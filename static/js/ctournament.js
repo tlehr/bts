@@ -187,8 +187,6 @@ function update_upcoming_match(c){
 	const new_section = cmatch.calc_section(m);
 	cmatch.update_match(m, old_section, new_section);
 
-	console.log(new_section);
-
 	if(old_section != new_section || new_section == 'unassigned') {
 		uiu.qsEach('.upcoming_container', (upcoming_container) => {
 			cmatch.render_upcoming_matches(upcoming_container);
@@ -309,7 +307,6 @@ function render_enable_announcement(target) {
 
 function change_announcements(e) {
 	let enable_announcements = document.getElementById('enable_announcements');
-	console.log(enable_announcements.checked);
 	window.localStorage.setItem('enable_announcements', enable_announcements.checked);
 
 }

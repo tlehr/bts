@@ -177,6 +177,9 @@ function default_handler_func(rerender, special_funcs, c) {
 			cerror.silent('Display ' + display_setting.client_id + ' is ' + (display_setting.online ? 'online' : 'offline'));
 		}
 		break;
+	case 'locations_changed':
+		curt.locations = c.val.all_locations;
+		break;
 	default:
 		cerror.silent('Unsupported change type ' + c.ctype);
 	}

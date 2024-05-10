@@ -70,7 +70,63 @@ function render_match_row(tr, match, court, style, show_player_status, show_add_
 	}
 
 	if (style === 'default') {
-		uiu.el(tr, 'td', court ? 'court_history' : '', court ? court.num : '');
+		const td_location = uiu.el(tr, 'td', '', '');
+		
+		if(court) {
+			uiu.el(td_location, 'div', 'court_history', court.num);
+		} 
+		else if (match.setup.location_id) {
+			uiu.el(td_location, 'div', 'location', curt.locations_by_id[match.setup.location_id].name);
+
+//			const location_select = uiu.el(td_location, 'select', {
+//				name: 'location',
+//			});
+//			var last_selected_location = '';
+//			
+//			uiu.el(location_select, 'option', {value: ''}, '');
+//			let location_marked = false;
+//
+//			for (const lo of curt.locations) {
+//				const attrs = {
+//					value: lo._id,
+//				}
+//		
+//				if ((lo._id === match.setup.location_id) && !location_marked) {
+//				 	location_marked = true;
+//				 	attrs.selected = 'selected';
+//		
+//				 	last_selected_location = lo._id;
+//				}
+//		
+//				uiu.el(location_select, 'option', attrs, lo.name[0]);
+//			}
+//
+//
+//			location_select.onchange = function() {
+//				if (match != null) {
+//
+//					if(location_select.value != ''){
+//						match.setup.location_id = location_select.value;
+//					} else {
+//						if (match.setup.location_id) {
+//							delete match.setup.location_id;
+//						}
+//					}
+//
+//					send({
+//							type: 'match_edit',
+//							id: match._id,
+//							tournament_key: match.tournament_key,
+//							match: match,
+//							btp_update: true,
+//						}, function (err) {
+//							if (err) {
+//								return cerror.net(err);
+//							}
+//					});
+//				}
+//			};
+		};
 	}
 
 	if (style === 'default' || style === 'plain') {
@@ -146,7 +202,13 @@ function render_match_row(tr, match, court, style, show_player_status, show_add_
 		
 		}
 	} else if(style === 'upcoming' && setup.highlight == 6) {
-		uiu.el(to_td, 'span', 'preperation', 'Spiel in Vorbereitung!');
+
+		let text = 'Spiel in Vorbereitung!';
+		if (match.setup.location_id) {
+			text += ' (' + curt.locations_by_id[match.setup.location_id].name + ')';
+		}
+
+		uiu.el(to_td, 'span', 'preperation', text);
 	}
 	
 	if (style === 'default' || style === 'plain') {
@@ -239,7 +301,6 @@ function create_match_button(targetEl, cssClass, title, listener, matchId,) {
 	btn.addEventListener('click', listener);
 }
 function update_match_score(m) {
-	console.log('In Matchscore update');
 	uiu.qsEach('.match_score[data-match_id=' + JSON.stringify(m._id) + ']', function(score_el) {
 		uiu.text(score_el, calc_score_str(m));
 	});
@@ -508,7 +569,7 @@ function update_match(m, old_section, new_section) {
 		case 'unassigned':
 			uiu.qsEach( '.unassigned_container > table > tbody > .match[data-match_id=' + JSON.stringify(m._id) + ']', (match_row_el) => {	
 				match_row_el.setAttribute('class', 'match highlight_' + (m.setup.highlight ? m.setup.highlight : 0));
-				render_match_row(match_row_el, m, null, 'default', true, true);
+				render_match_row(match_row_el, m, null, curt.only_now_on_court ? 'default' : 'plain', true, true);
 			});
 			break;
 		default:
@@ -650,6 +711,11 @@ function prepare_render(t) {
 	t.courts_by_id = {};
 	for (const c of t.courts) {
 		t.courts_by_id[c._id] = c;
+	}
+
+	t.locations_by_id = {};
+	for (const l of t.locations) {
+		t.locations_by_id[l._id] = l;
 	}
 }
 

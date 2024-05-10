@@ -15,6 +15,15 @@ function get_courts(db, tournament_key, callback) {
 	});
 }
 
+function get_locations(db, tournament_key, callback) {
+	db.locations.find({tournament_key}, function(err, locations) {
+		if (err) return callback(err);
+
+		locations.sort(utils.cmp_key('name'));
+		return callback(err, locations);
+	});
+}
+
 function get_umpires(db, tournament_key, callback) {
 	db.umpires.find({tournament_key}, function(err, umpires) {
 		if (err) return callback(err);
@@ -73,6 +82,7 @@ module.exports = {
 	get_courts,
 	get_matches,
 	get_umpires,
+	get_locations,
 	get_tabletoperators,
 	get_displays,
 	get_normalizations,

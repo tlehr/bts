@@ -9,7 +9,7 @@ const btp_proto = require('./btp_proto');
 const btp_sync = require('./btp_sync');
 const serror = require('./serror');
 
-const AUTOFETCH_TIMEOUT = 30000;
+const AUTOFETCH_TIMEOUT = 10000;
 const CONNECT_TIMEOUT = 5000;
 const WAIT_TIMEOUT = 10000;
 const BTP_PORT = 9901;
@@ -258,7 +258,23 @@ class BTPConn {
 					return cb(null, umpire_btp_id, service_judge_btp_id, court ? court.btp_id : null);
 				});
 			},
-		], (err, umpire_btp_id, service_judge_btp_id, court_btp_id) => {
+			(umpire_btp_id, service_judge_btp_id, court_btp_id, cb) => {
+				if (!match.setup || !match.setup.location_id) {
+					return cb(null, umpire_btp_id, service_judge_btp_id, court_btp_id, null);
+				}
+				
+				this.app.db.locations.findOne({
+					tournament_key: this.tkey,
+					_id: match.setup.location_id,
+				}, (err, location) => {
+					if (err) {
+						return cb(err);
+					}
+
+					return cb(null, umpire_btp_id, service_judge_btp_id, court_btp_id, location ? location.btp_id : null);
+				});
+			}
+		], (err, umpire_btp_id, service_judge_btp_id, court_btp_id, location_btp_id) => {
 			if (err) {
 				serror.silent('Error while fetching court/umpire: ' + err.message + '. Skipping sync of match ' + match._id);
 				return;
@@ -275,7 +291,7 @@ class BTPConn {
 			}
 
 			const req = btp_proto.update_request(
-				match, this.key_unicode, this.password, umpire_btp_id, service_judge_btp_id, court_btp_id);
+				match, this.key_unicode, this.password, umpire_btp_id, service_judge_btp_id, court_btp_id, location_btp_id);
 			this.send(req, response => {
 				const results = response.Action[0].Result;
 				const rescode = results ? results[0] : 'no-result';

@@ -19,11 +19,12 @@ function announcePreparationMatch(matchSetup) {
         return;
     }
     var preparation = createPreparationAnnouncement();
+    var location = createLocationAnnouncement(matchSetup);
     var matchNumber = createMatchNumberAnnouncement(matchSetup);
     var eventName = createEventAnnouncement(matchSetup);
     var round = createRoundAnnouncement(matchSetup);
     var teams = createTeamAnnouncement(matchSetup);
-    announce([preparation, matchNumber, eventName, round, teams, preparation]);
+    announce([preparation, location, matchNumber, eventName, round, teams, preparation, location]);
 }
 function announceSecondCallTeamOne(matchSetup) {
     if(!(window.localStorage.getItem('enable_announcements') === 'true')) {
@@ -190,6 +191,13 @@ function createEventAnnouncement(matchSetup) {
         }
     }
     return eventName;
+}
+
+function createLocationAnnouncement(matchSetup) {
+    if(matchSetup.location_id){
+        return curt.locations_by_id[matchSetup.location_id].name;
+    }
+    return '';
 }
 
 function createMatchNumberAnnouncement(matchSetup) {

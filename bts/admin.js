@@ -128,7 +128,12 @@ function handle_tournament_get(app, ws, msg) {
 		}
 
 		async.parallel([
-		function(cb) {
+			function(cb) {
+				stournament.get_locations(app.db, tournament.key, function(err, locations) {
+					tournament.locations = locations;
+					cb(err);
+				});
+			}, function(cb) {
 			stournament.get_courts(app.db, tournament.key, function(err, courts) {
 				tournament.courts = courts;
 				cb(err);
@@ -200,6 +205,7 @@ function _extract_setup(msg_setup) {
 		'is_match',
 		'incomplete',
 		'links',
+		'location_id',
 		'scheduled_time_str',
 		'scheduled_date',
 		'called_timestamp',
@@ -333,7 +339,7 @@ function handle_match_edit(app, ws, msg) {
 		return;
 	}
 	const tournament_key = msg.tournament_key;
-	const setup = _extract_setup(msg.setup);
+	const setup = _extract_setup(msg.match.setup);
 	// TODO get old setup, make sure no key has been removed
 	app.db.matches.update({_id: msg.id, tournament_key}, {$set: {setup}}, {returnUpdatedDocs: true}, function(err, numAffected, changed_match) {
 		if (err) {
@@ -351,7 +357,7 @@ function handle_match_edit(app, ws, msg) {
 			return;
 		}
 
-		notify_change(app, tournament_key, 'match_edit', {match__id: msg.id, match});
+		notify_change(app, tournament_key, 'match_edit', {match__id: msg.id, match: msg.match});
 		if (msg.btp_update) {
 			btp_manager.update_score(app, changed_match);
 		}

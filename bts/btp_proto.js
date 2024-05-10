@@ -50,7 +50,7 @@ function login_request(password) {
 	return res;
 }
 
-function update_request(match, key_unicode, password, umpire_btp_id, service_judge_btp_id, court_btp_id) {
+function update_request(match, key_unicode, password, umpire_btp_id, service_judge_btp_id, court_btp_id, location_btp_id) {
 	assert(key_unicode);
 	const matches = [];
 	const res = {
@@ -139,6 +139,9 @@ function update_request(match, key_unicode, password, umpire_btp_id, service_jud
 		}
 		if (shuttle_count) {
 			m.Shuttles = shuttle_count;
+		}
+		if (location_btp_id) {
+			m.LocationID = location_btp_id;
 		}
 
 		matches.push({Match: m});

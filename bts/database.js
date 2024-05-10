@@ -10,6 +10,7 @@ const Datastore = require('nedb');
 const utils = require('./utils');
 
 const TABLES = [
+	'locations',
 	'courts',
 	'event',
 	'matches',
@@ -58,6 +59,7 @@ function init(callback) {
 }
 
 function prepare(db, callback) {
+	db.locations.ensureIndex({fieldName: 'tournament_key', unique: false});
 	db.courts.ensureIndex({fieldName: 'tournament_key', unique: false});
 	db.matches.ensureIndex({fieldName: 'court_id', unique: false});
 	db.matches.ensureIndex({fieldName: 'tournament_key', unique: false});

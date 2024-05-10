@@ -259,10 +259,10 @@ function score_handler(req, res) {
 		network_team1_left: req.body.network_team1_left,
 		network_team1_serving: req.body.network_team1_serving,
 		network_teams_player1_even: req.body.network_teams_player1_even,
-		team1_won: req.body.team1_won,
+		team1_won: (req.body.presses.length > 0 && req.body.presses[req.body.presses.length - 1].type == 'postmatch-confirm') ? req.body.team1_won : null,
 		presses: req.body.presses,
-		duration_ms: req.body.duration_ms,
-		end_ts: req.body.end_ts,
+		duration_ms: (req.body.presses.length > 0  && req.body.presses[req.body.presses.length - 1].type == 'postmatch-confirm') ? req.body.duration_ms : null,
+		end_ts: (req.body.presses.length > 0 && req.body.presses[req.body.presses.length - 1].type == 'postmatch-confirm') ? req.body.end_ts : null,
 		'setup.now_on_court': true,
 	};
 

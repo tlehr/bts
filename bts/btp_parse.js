@@ -178,6 +178,7 @@ function get_btp_state(response) {
 	const all_btp_players = btp_t.Players ? btp_t.Players[0].Player : [];
 	const all_btp_draws = btp_t.Draws ? btp_t.Draws[0].Draw : [];
 	const all_btp_officials = btp_t.Officials ? btp_t.Officials[0].Official : [];
+	const all_btp_locations = btp_t.Locations ? btp_t.Locations[0].Location : [];
 	const all_btp_courts = btp_t.Courts ? btp_t.Courts[0].Court : [];
 	const all_btp_settings = btp_t.Settings ? btp_t.Settings[0].Setting : [];
 
@@ -211,6 +212,7 @@ function get_btp_state(response) {
 	const links = all_btp_links;
 	const players = utils.make_index(all_btp_players, p => p.ID[0]);
 	const officials = utils.make_index(all_btp_officials, o => o.ID[0]);
+	const locations = utils.make_index(all_btp_locations, l => l.ID[0]);
 	const courts = utils.make_index(all_btp_courts, c => c.ID[0]);
 	const btp_settings = utils.make_index(all_btp_settings, s =>s.ID[0]);
 
@@ -218,6 +220,7 @@ function get_btp_state(response) {
 		_calc_match_players(matches_by_pid, entries, players, bm, is_league);
 	}
 	return {
+		locations,
 		courts,
 		draws,
 		events,
