@@ -159,7 +159,9 @@ function render_match_row(tr, match, court, style, show_player_status, show_add_
 		
 		}
 	} else if(style === 'upcoming' && setup.highlight == 6) {
-		uiu.el(to_td, 'span', 'preperation', 'Spiel in Vorbereitung!');
+		uiu.el(to_td, 'span', 'preperation', 'Spiel in Vorbereitung (Feld 7 - 13)!');
+	} else if(style === 'upcoming' && setup.highlight == 5) {
+		uiu.el(to_td, 'span', 'preperation', 'Spiel in Vorbereitung (Feld 1 - 6)!');
 	}
 	
 		
@@ -217,7 +219,9 @@ function render_match_row(tr, match, court, style, show_player_status, show_add_
 		const call_td = uiu.el(tr, 'td', 'call_td');
 
 		if (!court) {
-			create_match_button(call_td, 'vlink match_preparation_call_button', 'match:preparationcall', on_announce_preparation_matchbutton_click, match._id);
+			//create_match_button(call_td, 'vlink match_preparation_call_button', 'match:preparationcall', on_announce_preparation_matchbutton_click, match._id);
+			create_match_button(call_td, 'vlink match_preparation_call_button_psv', 'match:preparationcall', on_announce_preparation_matchbutton_click_psv, match._id);
+			create_match_button(call_td, 'vlink match_preparation_call_button_bts', 'match:preparationcall', on_announce_preparation_matchbutton_click_bts, match._id);
 
 		} else {
 			create_match_button(call_td, 'vlink match_manual_call_button', 'match:manualcall', on_announce_match_manually_button_click, match._id);
@@ -716,6 +720,40 @@ function on_announce_preparation_matchbutton_click(e) {
 		});
 	}
 }
+function on_announce_preparation_matchbutton_click_psv(e) {
+	const match = fetchMatchFromEvent(e);
+	if (match != null) {
+		match.setup.highlight = 5; //its green
+
+		send({
+			type: 'match_preparation_call',
+			id: match._id,
+			tournament_key: match.tournament_key,
+			setup: match.setup,
+		}, function (err) {
+			if (err) {
+				return cerror.net(err);
+			}
+		});
+	}
+}
+function on_announce_preparation_matchbutton_click_bts(e) {
+	const match = fetchMatchFromEvent(e);
+	if (match != null) {
+		match.setup.highlight = 6; //its magenta
+
+		send({
+			type: 'match_preparation_call',
+			id: match._id,
+			tournament_key: match.tournament_key,
+			setup: match.setup,
+		}, function (err) {
+			if (err) {
+				return cerror.net(err);
+			}
+		});
+	}
+}
 function on_add_to_tabletoperators_team_one_button_click(e) {
 	const match = fetchMatchFromEvent(e);
 	ctabletoperator.add_to_tabletoperator(match, 0)
@@ -1141,11 +1179,11 @@ function render_unassigned(container) {
 }
 
 function render_upcoming_matches(container) {
-	const UPCOMING_MATCH_COUNT = 10;
+	const UPCOMING_MATCH_COUNT = 15;
 	uiu.empty(container);
 
-	uiu.el(container, 'h3', {
-		style: 'text-align: center;',
+	uiu.el(container, 'h2', {
+		style: 'text-align: left;',
 	}, ci18n('Next Matches'));
 
 	const upcoming_table = uiu.el(container, 'table', 'upcoming_table');
@@ -1173,31 +1211,44 @@ function render_finished(container) {
 	render_match_table(container, matches, false, true);
 }
 
-function render_courts(container, style) {
+function render_courts(container, style, min, max) {
+	if(!min) {
+		min = 0;
+	}
+
+	if(!max) {
+		max = 99999;
+	}
+	
+	
 	style = style || 'plain';
 	uiu.empty(container);
 	const table = uiu.el(container, 'table', 'match_table');
 	const tbody = uiu.el(table, 'tbody');
 	for (const c of curt.courts) {
-		const expected_section = 'court_' + c._id;
-		const court_matches = curt.matches.filter(m => calc_section(m) === expected_section);
 
-		const tr = uiu.el(tbody, 'tr', {class:"court_row", "data-court_id":c._id} );
-		const rowspan = Math.max(1, court_matches.length);
-		uiu.el(tr, 'th', {
-			'class': 'court_num',
-			rowspan,
-			title: c._id,
-		}, c.num);
+		if(c.num >= min && c.num <= max) {
 
-		if (court_matches.length === 0) {
-			render_droppable_row(tr, c, style, true);
-		} else {
-			let i = 0;
-			for (const cm of court_matches) {
-				const my_tr = (i > 0) ? uiu.el(tbody, 'tr') : tr;
-				render_match_row(my_tr, cm, c, style);
-				i++;
+			const expected_section = 'court_' + c._id;
+			const court_matches = curt.matches.filter(m => calc_section(m) === expected_section);
+
+			const tr = uiu.el(tbody, 'tr', {class:"court_row", "data-court_id":c._id} );
+			const rowspan = Math.max(1, court_matches.length);
+			uiu.el(tr, 'th', {
+				'class': 'court_num',
+				rowspan,
+				title: c._id,
+			}, c.num);
+
+			if (court_matches.length === 0) {
+				render_droppable_row(tr, c, style, true);
+			} else {
+				let i = 0;
+				for (const cm of court_matches) {
+					const my_tr = (i > 0) ? uiu.el(tbody, 'tr') : tr;
+					render_match_row(my_tr, cm, c, style);
+					i++;
+				}
 			}
 		}
 	}

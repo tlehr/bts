@@ -1273,6 +1273,25 @@ var ctournament = (function() {
 		cmatch.render_upcoming_matches(upcoming_container);
 	}
 
+	function render_upcoming_psv(container) {
+		cmatch.prepare_render(curt);
+		const courts_container = uiu.el(container, 'div', 'courts_container');
+		cmatch.render_courts(courts_container, 'public', 7, 13);
+
+		const upcoming_container = uiu.el(container, 'div', 'upcoming_container');
+		cmatch.render_upcoming_matches(upcoming_container);
+	}
+
+	function render_upcoming_bts(container) {
+		cmatch.prepare_render(curt);
+		const courts_container = uiu.el(container, 'div', 'courts_container');
+		cmatch.render_courts(courts_container, 'public', 1, 6);
+
+		const upcoming_container = uiu.el(container, 'div', 'upcoming_container');
+		cmatch.render_upcoming_matches(upcoming_container);
+	}
+
+
 	function ui_upcoming() {
 		crouting.set('t/:key/upcoming', { key: curt.key });
 		toprow.hide();
@@ -1287,6 +1306,44 @@ var ctournament = (function() {
 		});
 	}
 	_route_single(/t\/([a-z0-9]+)\/upcoming/, ui_upcoming, change.default_handler(_update_all_ui_elements_upcoming, {
+		score: update_score,
+		court_current_match: update_upcoming_current_match,
+		match_edit: update_upcoming_match,
+	}));
+
+	function ui_upcoming_psv() {
+		crouting.set('t/:key/psv_upcoming', { key: curt.key });
+		toprow.hide();
+
+		const main = uiu.qs('.main');
+		uiu.empty(main);
+		main.classList.add('main_upcoming');
+
+		render_upcoming_psv(main);
+		main.addEventListener('click', () => {
+			fullscreen.toggle();
+		});
+	}
+	_route_single(/t\/([a-z0-9]+)\/psv_upcoming/, ui_upcoming_psv, change.default_handler(_update_all_ui_elements_upcoming, {
+		score: update_score,
+		court_current_match: update_upcoming_current_match,
+		match_edit: update_upcoming_match,
+	}));
+
+	function ui_upcoming_bts() {
+		crouting.set('t/:key/bts_upcoming', { key: curt.key });
+		toprow.hide();
+
+		const main = uiu.qs('.main');
+		uiu.empty(main);
+		main.classList.add('main_upcoming');
+
+		render_upcoming_bts(main);
+		main.addEventListener('click', () => {
+			fullscreen.toggle();
+		});
+	}
+	_route_single(/t\/([a-z0-9]+)\/bts_upcoming/, ui_upcoming_bts, change.default_handler(_update_all_ui_elements_upcoming, {
 		score: update_score,
 		court_current_match: update_upcoming_current_match,
 		match_edit: update_upcoming_match,

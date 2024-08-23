@@ -12,6 +12,8 @@
 .match_edit_button,
 .match_scoresheet_button,
 .match_preparation_call_button,
+.match_preparation_call_button_psv,
+.match_preparation_call_button_bts,
 .match_begin_to_play_button,
 .match_manual_call_button,
 .match_second_call_button,
@@ -45,6 +47,23 @@
 	margin: 0 0 -0.1em 0.3em;
 	background-image: url(../icons/manual_call.svg);
 }
+
+.match_preparation_call_button_psv {
+	height: 1.2em;
+    min-height: 1em;
+    width: 1.2em;
+    margin: 0 0 -0.1em 0.3em;
+	background-image: url(../icons/Polizei_SV_Bremen_sw.svg);
+}
+
+.match_preparation_call_button_bts {
+	height: 1.2em;
+    min-height: 1em;
+    width: 1.2em;
+    margin: 0 0 -0.1em 0.3em;
+	background-image: url(../icons/BTS_Neustadt.png);
+}
+
 .match_begin_to_play_button {
 	height: 1.5em;
 	min-height: 1em;
@@ -81,6 +100,8 @@
 .match_edit_button:hover,
 .match_second_call_button:hover,
 .match_preparation_call_button:hover,
+.match_preparation_call_button_psv:hover,
+.match_preparation_call_button_bts:hover,
 .match_begin_to_play_button:hover,
 .match_manual_call_button:hover,
 .match_scoresheet_button:hover {
