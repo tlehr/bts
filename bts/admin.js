@@ -680,10 +680,12 @@ function handle_match_player_check_in (app, ws, msg) {
 				return ws.respond(msg, err);
 			}
 
-			for(const team of match.setup.teams) {
-				for(const player of team.players) {
-					if(player.btp_id == msg.player_id) {
-						player.checked_in = msg.checked_in;
+			if (match.setup) {
+				for(const team of match.setup.teams) {
+					for(const player of team.players) {
+						if(player.btp_id == msg.player_id) {
+							player.checked_in = msg.checked_in;
+						}
 					}
 				}
 			}
