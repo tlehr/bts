@@ -1173,31 +1173,40 @@ function render_finished(container) {
 	render_match_table(container, matches, false, true);
 }
 
-function render_courts(container, style) {
+function render_courts(container, style, min, max) {
+	if(!min) {
+		min = 0;
+	}
+
+	if(!max) {
+		max = 99999;
+	}
 	style = style || 'plain';
 	uiu.empty(container);
 	const table = uiu.el(container, 'table', 'match_table');
 	const tbody = uiu.el(table, 'tbody');
 	for (const c of curt.courts) {
-		const expected_section = 'court_' + c._id;
-		const court_matches = curt.matches.filter(m => calc_section(m) === expected_section);
+		if(c.num >= min && c.num <= max) {
+			const expected_section = 'court_' + c._id;
+			const court_matches = curt.matches.filter(m => calc_section(m) === expected_section);
 
-		const tr = uiu.el(tbody, 'tr', {class:"court_row", "data-court_id":c._id} );
-		const rowspan = Math.max(1, court_matches.length);
-		uiu.el(tr, 'th', {
-			'class': 'court_num',
-			rowspan,
-			title: c._id,
-		}, c.num);
+			const tr = uiu.el(tbody, 'tr', {class:"court_row", "data-court_id":c._id} );
+			const rowspan = Math.max(1, court_matches.length);
+			uiu.el(tr, 'th', {
+				'class': 'court_num',
+				rowspan,
+				title: c._id,
+			}, c.num);
 
-		if (court_matches.length === 0) {
-			render_droppable_row(tr, c, style, true);
-		} else {
-			let i = 0;
-			for (const cm of court_matches) {
-				const my_tr = (i > 0) ? uiu.el(tbody, 'tr') : tr;
-				render_match_row(my_tr, cm, c, style);
-				i++;
+			if (court_matches.length === 0) {
+				render_droppable_row(tr, c, style, true);
+			} else {
+				let i = 0;
+				for (const cm of court_matches) {
+					const my_tr = (i > 0) ? uiu.el(tbody, 'tr') : tr;
+					render_match_row(my_tr, cm, c, style);
+					i++;
+				}
 			}
 		}
 	}

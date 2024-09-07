@@ -1266,8 +1266,8 @@ var ctournament = (function() {
 
 	function render_upcoming(container) {
 		cmatch.prepare_render(curt);
-		const courts_container = uiu.el(container, 'div', 'courts_container');
-		cmatch.render_courts(courts_container, 'public');
+		//cmatch.render_courts(courts_container, 'public');
+		//const courts_container = uiu.el(container, 'div', 'courts_container');
 
 		const upcoming_container = uiu.el(container, 'div', 'upcoming_container');
 		cmatch.render_upcoming_matches(upcoming_container);
