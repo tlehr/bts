@@ -122,7 +122,20 @@ async function add_tabletoperators(app, tournament, match, callback) {
 	try {
         if ((tournament.tabletoperator_enabled && tournament.tabletoperator_enabled == true)) {
             if (!setup.tabletoperators || setup.tabletoperators == null) {
-                const value = await fetch_tabletoperator(admin, app, tournament.key, court_id);
+                
+				const fetch_result = await fetch_tabletoperator(admin, app, tournament.key, court_id);
+				let value = [];
+				if (tournament.tabletoperator_with_state_enabled && typeof(fetch_result) == "undefined") {
+					value.push({
+						asian_name: false,
+						name: setup.teams[0].players[0].state,
+						firstname: "",
+						lastname: "",
+						btp_id: -1});
+				} else {
+					value = fetch_result;
+				}
+
                 if (!setup.umpire || !setup.umpire.name || (tournament.tabletoperator_with_umpire_enabled && tournament.tabletoperator_with_umpire_enabled == true)) {
                     setup.tabletoperators = value;
                 }
@@ -441,7 +454,9 @@ function add_player_to_tabletoperator_list_by_match(app, tournament, tournament_
 					team = cur_match.setup.teams[index];
 				}
 
-				// TODO: 'tabletoperator_with_state_enabled'
+				if (tournament.tabletoperator_with_state_enabled) {
+					return;
+				}
 
 				if (team && typeof team.players !== 'undefined') {
 					var teams = [];
