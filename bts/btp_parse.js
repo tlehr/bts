@@ -71,11 +71,11 @@ function _calc_match_players(matches_by_pid, entries, players, bm, is_league) {
 		if (!bm.Team1Player1ID) return;
 
 		p1ar = [players.get(bm.Team1Player1ID[0])];
-		if (bm.Player2ID) {
+		if (bm.Team1Player2ID) {
 			p1ar.push(players.get(bm.Team1Player2ID[0]));
 		}
 		p2ar = [players.get(bm.Team2Player1ID[0])];
-		if (bm.Player2ID) {
+		if (bm.Team2Player2ID) {
 			p2ar.push(players.get(bm.Team2Player2ID[0]));
 		}
 	} else {
@@ -257,4 +257,5 @@ module.exports = {
 	parse_umpires,
 	// Testing only
 	_calc_match_players,
+	MATCH_TYPES,
 };

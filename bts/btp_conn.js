@@ -292,7 +292,7 @@ class BTPConn {
 			}
 
 			const req = btp_proto.update_request(
-				match, this.key_unicode, this.password, umpire_btp_id, service_judge_btp_id, court_btp_id);
+				match, this.key_unicode, this.password, umpire_btp_id, service_judge_btp_id, court_btp_id, this.is_team);
 			this.send(req, response => {
 				const results = response.Action[0].Result;
 				const rescode = results ? results[0] : 'no-result';
@@ -354,7 +354,7 @@ class BTPConn {
 			return;
 		}
 
-		const req = btp_proto.update_courts_request(courts, this.key_unicode, this.password);
+		const req = btp_proto.update_courts_request(courts, this.key_unicode, this.password, this.is_team);
 		this.send(req, response => {
 			const results = response.Action[0].Result;
 			const rescode = results ? results[0] : 'no-result';

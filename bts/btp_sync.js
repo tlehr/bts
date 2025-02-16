@@ -21,14 +21,29 @@ function date_str(dt) {
 async function craft_match(app, tkey, btp_id, court_map, event, draw, btp_links, officials, bm, match_ids_on_court, match_types, is_league) {
 	return new Promise((resolve, reject) => {
 
-		const gtid = event.GameTypeID[0];
+		let gtid = 1;
+		if(bm.MatchTypeID && (bm.MatchTypeID[0] === 3 ||  bm.MatchTypeID[0] === 4 || bm.MatchTypeID[0] === 5 || bm.MatchTypeID[0] === 7 || bm.MatchTypeID[0] === 10 || bm.MatchTypeID[0] === 11)) {
+			gtid = 2;
+		} else if(!bm.MatchTypeId) {
+			gtid = event.GameTypeID[0];
+		}
 		assert((gtid === 1) || (gtid === 2));
 
 		const scheduled_time_str = (bm.PlannedTime ? time_str(bm.PlannedTime[0]) : undefined);
 		const scheduled_date = (bm.PlannedTime ? date_str(bm.PlannedTime[0]) : undefined);
 		const match_name = (bm.RoundName && bm.RoundName[0] ? bm.RoundName[0] : undefined);
-		const event_name = (event.Name[0] === draw.Name[0]) ? draw.Name[0] : event.Name[0] + ' - ' + draw.Name[0];
-		const teams = _craft_teams(bm);
+		let event_name = (event.Name[0] === draw.Name[0]) ? draw.Name[0] : event.Name[0] + ' - ' + draw.Name[0];
+		let teams = _craft_teams(bm);
+		if(is_league) {
+			teams[0].short_name = bm.team1_name;
+			teams[0].name = bm.team1_name;
+			teams[1].short_name = bm.team2_name;
+			teams[1].name = bm.team2_name;
+
+			event_name = bm.team1_name + " : " + bm.team2_name + " (" + bm.Team1PointsSum + ":" + bm.Team2PointsSum + ") - " + (bm.MatchTypeNo[0] > 0 ? bm.MatchTypeNo[0] + ". " : " ") + btp_parse.MATCH_TYPES[bm.MatchTypeID[0]];
+		}
+
+		
 
 		const btp_player_ids = [];
 
@@ -440,7 +455,7 @@ async function integrate_matches(app, tkey, btp_state, court_map, callback) {
 				return;
 			}
 
-			craft_match(app, tkey, btp_id, court_map, event, draw, btp_state.links, officials, bm, match_ids_on_court).then(match => {
+			craft_match(app, tkey, btp_id, court_map, event, draw, btp_state.links, officials, bm, match_ids_on_court, false, btp_state.is_team).then(match => {
 
 				
 				match.setup.state = 'unscheduled';
@@ -753,8 +768,14 @@ function integrate_btp_settings(app, tkey, btp_state, callback) {
 
 		const tournament_name = btp_state.btp_settings.get(1001).Value[0];
 		const tournament_urn = btp_state.btp_settings.get(1008).Value[0];
-		const check_in_per_match = btp_state.btp_settings.get(1003).Value[0] ? false : true;
-		const pause_duration_ms = btp_state.btp_settings.get(1303).Value[0] * 60 * 1000;
+
+		btp_state.is_team = false;
+		if(!btp_state.btp_settings.get(1003) && !btp_state.btp_settings.get(1303)) {
+			btp_state.is_team = true;
+		}
+
+		const check_in_per_match = btp_state.btp_settings.get(1003) ? (btp_state.btp_settings.get(1003).Value[0] ? false : true) : false;
+		const pause_duration_ms = btp_state.btp_settings.get(1303) ? (btp_state.btp_settings.get(1303).Value[0] * 60 * 1000) : 0;
 
 		if (tournament.btp_settings.tournament_name != tournament_name) {
 			tournament.btp_settings.tournament_name = tournament_name;
@@ -792,6 +813,52 @@ function integrate_btp_settings(app, tkey, btp_state, callback) {
 	});
 }
 
+
+async function integrate_team_matches(app, tkey, btp_state, callback) {
+
+	// If it is an individual tournament, then ignore this method and continue with the next one.
+	if(!btp_state.is_team) {
+		return callback(null);
+	}
+
+	await async.eachOfSeries(btp_state.matches, async (match, key) => {
+		const team_match = btp_state.team_matches.get(match.TeamMatchID[0]);
+		team_match.Team1PointsSum = (team_match.Team1PointsSum ? team_match.Team1PointsSum : 0) + (match.Team1Points ? match.Team1Points[0] : 0);
+		team_match.Team2PointsSum = (team_match.Team2PointsSum ? team_match.Team2PointsSum : 0) + (match.Team2Points ? match.Team2Points[0] : 0);
+	});
+
+	await async.eachOfSeries(btp_state.matches, async (match, key) => {
+
+		const team_match = btp_state.team_matches.get(match.TeamMatchID[0]);
+
+		match.DrawID 			= team_match.DrawID;
+		match.PlanningID 		= team_match.PlanningID;
+		match.team1_name 		= team_match.btp_teams[0].Name[0];
+		match.team1_id 			= team_match.btp_teams[0].ID[0];
+		match.team2_name 		= team_match.btp_teams[1].Name[0];
+		match.team2_id 			= team_match.btp_teams[1].ID[0];
+		match.Team1PointsSum	= team_match.Team1PointsSum;
+		match.Team2PointsSum	= team_match.Team2PointsSum;
+		match.From1 			= team_match.From1;
+		match.From2 			= team_match.From2;
+		match.WinnerTo 			= team_match.WinnerTo;
+		match.LoserTo 			= team_match.LoserTo;
+		match.IsMatch 			= team_match.IsMatch;
+		match.IsPlayable 		= team_match.IsPlayable;
+		match.DisplayOrder 		= team_match.DisplayOrder;
+		match.Round 			= team_match.Round;
+		match.MatchNr 			= team_match.MatchNr;
+		match.ScoreSheetPrinted = team_match.ScoreSheetPrinted;
+		match.Highlight 		= team_match.Highlight;
+		//match		= team_match.
+		if(!match.ScoreStatus) {
+			match.ScoreStatus = 0;
+		}
+	});
+
+	return callback(null);
+}
+
 async function integrate_player_state(app, tkey, btp_state, callback) {
 	const btp_manager = require('./btp_manager');
 	app.db.tournaments.findOne({ key: tkey }, (err, tournament) => {
@@ -814,8 +881,9 @@ async function integrate_player_state(app, tkey, btp_state, callback) {
 									!cur_match.setup.called_timestamp &&
 									!cur_match.network_score) {
 
-									btp_state.matches[key].bts_players[team_nr][player_nr].CheckedIn[0] = true;
-
+									if (btp_state.matches[key].bts_players[team_nr][player_nr].CheckedIn) {
+										btp_state.matches[key].bts_players[team_nr][player_nr].CheckedIn[0] = true;
+									}
 
 									const player = cur_match.setup.teams[team_nr].players[player_nr];
 									if (ids_to_change.indexOf(id) == -1) {
@@ -873,7 +941,7 @@ function pause_is_done(match, team_nr, player_nr, btp_settings) {
 		if (match.bts_players[team_nr] && match.bts_players[team_nr].length > player_nr) {
 			const player = match.bts_players[team_nr][player_nr];
 
-			if (player.CheckedIn[0]) {
+			if (player.CheckedIn && player.CheckedIn[0]) {
 				return;
 			}
 
@@ -981,6 +1049,11 @@ function calculate_match_ids_on_court(btp_state) {
 				res.add(match_id);
 			}
 		}
+		if (c.SubMatchID){
+			for (const match_id of c.SubMatchID) {
+				res.add(match_id);
+			}
+		}
 	}
 	return res;
 }
@@ -1047,6 +1120,7 @@ async function sync_btp_data(app, tkey, response) {
 
 		async.waterfall([
 			cb => integrate_btp_settings(app, tkey, btp_state, cb),
+			cb => integrate_team_matches(app, tkey, btp_state, cb),
 			cb => integrate_player_state(app, tkey, btp_state, cb),
 			cb => integrate_umpires(app, tkey, btp_state, cb),
 			cb => integrate_courts(app, tkey, btp_state, cb),

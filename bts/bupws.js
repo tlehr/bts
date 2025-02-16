@@ -562,7 +562,10 @@ function get_display_setting(app, tkey, client_id, court_id, displaysetting) {
 						if (err) {
 							return resolve(returnvalue);
 						}
-						returnvalue.advertisements = advertisements;
+						if(returnvalue)
+						{
+						   	returnvalue.advertisements = advertisements;
+						}
 						resolve(returnvalue);
 
 					});

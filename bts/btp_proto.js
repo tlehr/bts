@@ -46,7 +46,7 @@ function login_request(password) {
 	return res;
 }
 
-function update_request(match, key_unicode, password, umpire_btp_id, service_judge_btp_id, court_btp_id) {
+function update_request(match, key_unicode, password, umpire_btp_id, service_judge_btp_id, court_btp_id, is_league) {
 	assert(key_unicode);
 	const matches = [];
 	const res = {
@@ -65,10 +65,16 @@ function update_request(match, key_unicode, password, umpire_btp_id, service_jud
 		},
 		Update: {
 			Tournament: {
-				Matches: matches
 			},
 		},
 	};
+
+	if(is_league) {
+		res.Update.Tournament.PlayerMatches = matches;
+	} else {
+		res.Update.Tournament.Matches = matches;
+	}
+
 	if (password) {
 		res.Action.Password = password;
 	}
@@ -156,6 +162,19 @@ function update_request(match, key_unicode, password, umpire_btp_id, service_jud
 			}
 		}
 
+		if(is_league) {
+			if(match.btp_player_ids.length > 3) {
+				m.Team1Player1ID = match.btp_player_ids[0];
+				m.Team1Player2ID = match.btp_player_ids[1];
+				m.Team2Player1ID = match.btp_player_ids[2];
+				m.Team2Player2ID = match.btp_player_ids[3];
+			}
+			else {
+				m.Team1Player1ID = match.btp_player_ids[0];
+				m.Team2Player1ID = match.btp_player_ids[1];
+			}
+		}
+
 		matches.push({Match: m});
 	}
 
@@ -234,7 +253,7 @@ function update_players_request(players, key_unicode, password) {
 	return res;
 }
 
-function update_courts_request(courts, key_unicode, password){
+function update_courts_request(courts, key_unicode, password, is_league){
 	assert(key_unicode);
 	const courts_list = [];
 	const res = {
@@ -274,7 +293,12 @@ function update_courts_request(courts, key_unicode, password){
 		 	}
 
 			if(court.btp_match_id){
-				c.MatchID = court.btp_match_id;
+				if(is_league) {
+					c.SubMatchID = court.btp_match_id;
+				} else {
+
+					c.MatchID = court.btp_match_id;
+				}
 			}
 
 		 	courts_list.push({Court: c});
