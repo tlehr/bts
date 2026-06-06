@@ -2238,22 +2238,23 @@ async function integrate_player_state(app, tkey, btp_state, callback) {
 							let id = pause_is_done(match, team_nr, player_nr, tournament.btp_settings, now_ms(app));
 
 							if (id != undefined && id != null) {
+								if (cur_match.setup.teams[team_nr] && cur_match.setup.teams[team_nr].players[player_nr]) {
+									if (!cur_match.setup.teams[team_nr].players[player_nr].now_tablet_on_court &&
+										!cur_match.setup.teams[team_nr].players[player_nr].now_playing_on_court &&
+										!cur_match.setup.called_timestamp &&
+										!cur_match.network_score) {
 
-								if (!cur_match.setup.teams[team_nr].players[player_nr].now_tablet_on_court &&
-									!cur_match.setup.teams[team_nr].players[player_nr].now_playing_on_court &&
-									!cur_match.setup.called_timestamp &&
-									!cur_match.network_score) {
-
-									btp_state.matches[key].bts_players[team_nr][player_nr].CheckedIn[0] = true;
+										btp_state.matches[key].bts_players[team_nr][player_nr].CheckedIn[0] = true;
 
 
-									const player = cur_match.setup.teams[team_nr].players[player_nr];
-									if (ids_to_change.indexOf(id) == -1) {
-										player.checked_in = true;
-										player.check_in_per_match = false;
-										player.tablet_break_active = false;
-										ids_to_change.push(id);
-										players_to_change.push(player);
+										const player = cur_match.setup.teams[team_nr].players[player_nr];
+										if (ids_to_change.indexOf(id) == -1) {
+											player.checked_in = true;
+											player.check_in_per_match = false;
+											player.tablet_break_active = false;
+											ids_to_change.push(id);
+											players_to_change.push(player);
+										}
 									}
 								}
 							}
