@@ -341,6 +341,146 @@ _describe('btp_sync', () => {
 		assert.strictEqual(merged.setup.court_id, 'court_7');
 	});
 
+	_it('parses BTP court numbers from localized court names', () => {
+		assert.strictEqual(btp_sync._parse_btp_court_num({ ID: [2], Name: ['Feld 1'] }), 1);
+		assert.strictEqual(btp_sync._parse_btp_court_num({ ID: [12], Name: ['Court 7'] }), 7);
+		assert.strictEqual(btp_sync._parse_btp_court_num({ ID: [13], Name: ['3'] }), 3);
+		assert.strictEqual(btp_sync._parse_btp_court_num({ ID: [14], Name: [''], SortOrder: [4] }), 4);
+	});
+
+	_it('migrates BTP courts whose global IDs are offset by another location', (done) => {
+		const state = {
+			courts: Array.from({ length: 17 }, (_, index) => {
+				const btp_id = index + 2;
+				return {
+					_id: 't1_' + btp_id,
+					tournament_key: 't1',
+					btp_id,
+					num: btp_id,
+					name: 'Feld ' + (index + 1),
+					location_id: 't1_main',
+					is_active: true,
+					has_umpire: true,
+					has_service_judge: true,
+				};
+			}),
+		};
+		const matches_query = (doc, query) => Object.keys(query).every((key) => doc[key] === query[key]);
+		const app = {
+			db: {
+				courts: {
+					findOne(query, cb) {
+						cb(null, state.courts.find((court) => matches_query(court, query)) || null);
+					},
+					find(query, cb) {
+						cb(null, state.courts.filter((court) => matches_query(court, query)));
+					},
+					insert(doc, cb) {
+						state.courts.push({ ...doc });
+						cb(null, doc);
+					},
+					update(query, update, options, cb) {
+						const court = state.courts.find((candidate) => matches_query(candidate, query));
+						if (!court) return cb(null, 0);
+						Object.assign(court, update.$set || {});
+						cb(null, 1, court);
+					},
+					remove(query, options, cb) {
+						const before = state.courts.length;
+						state.courts = state.courts.filter((court) => !matches_query(court, query));
+						cb(null, before - state.courts.length);
+					},
+				},
+			},
+		};
+		const btp_state = {
+			courts: new Map(Array.from({ length: 17 }, (_, index) => {
+				const btp_id = index + 2;
+				return [btp_id, {
+					ID: [btp_id],
+					Name: ['Feld ' + (index + 1)],
+					LocationID: [7],
+					SortOrder: [index + 1],
+				}];
+			})),
+		};
+		const location_map = new Map([[7, 't1_main']]);
+
+		btp_sync._integrate_courts(app, 't1', btp_state, new Map(), location_map, (err, scoring_formats, returned_location_map, court_map) => {
+			assert.ifError(err);
+			assert.strictEqual(scoring_formats instanceof Map, true);
+			assert.strictEqual(returned_location_map, location_map);
+			assert.strictEqual(court_map.get(2), 't1_1');
+			assert.strictEqual(court_map.get(18), 't1_17');
+			assert.deepStrictEqual(
+				state.courts.map((court) => court.num).sort((a, b) => a - b),
+				Array.from({ length: 17 }, (_, index) => index + 1)
+			);
+			assert.strictEqual(state.courts.some((court) => court._id === 't1_18'), false);
+			assert.strictEqual(state.courts.find((court) => court._id === 't1_1').btp_id, 2);
+			done();
+		});
+	});
+
+	_it('keeps the largest BTP location on natural court numbers when another location has duplicates', (done) => {
+		const state = { courts: [] };
+		const matches_query = (doc, query) => Object.keys(query).every((key) => doc[key] === query[key]);
+		const app = {
+			db: {
+				courts: {
+					findOne(query, cb) {
+						cb(null, state.courts.find((court) => matches_query(court, query)) || null);
+					},
+					find(query, cb) {
+						cb(null, state.courts.filter((court) => matches_query(court, query)));
+					},
+					insert(doc, cb) {
+						state.courts.push({ ...doc });
+						cb(null, doc);
+					},
+					update(query, update, options, cb) {
+						const court = state.courts.find((candidate) => matches_query(candidate, query));
+						if (!court) return cb(null, 0);
+						Object.assign(court, update.$set || {});
+						cb(null, 1, court);
+					},
+					remove(query, options, cb) {
+						const before = state.courts.length;
+						state.courts = state.courts.filter((court) => !matches_query(court, query));
+						cb(null, before - state.courts.length);
+					},
+				},
+			},
+		};
+		const main_courts = Array.from({ length: 17 }, (_, index) => {
+			const btp_id = index + 2;
+			return [btp_id, {
+				ID: [btp_id],
+				Name: ['Feld ' + (index + 1)],
+				LocationID: [7],
+				SortOrder: [index + 1],
+			}];
+		});
+		const btp_state = {
+			courts: new Map([
+				[1, { ID: [1], Name: ['Feld 1'], LocationID: [8], SortOrder: [1] }],
+				...main_courts,
+			]),
+		};
+		const location_map = new Map([[7, 't1_main'], [8, 't1_side']]);
+
+		btp_sync._integrate_courts(app, 't1', btp_state, new Map(), location_map, (err, scoring_formats, returned_location_map, court_map) => {
+			assert.ifError(err);
+			assert.strictEqual(returned_location_map, location_map);
+			assert.strictEqual(court_map.get(2), 't1_1');
+			assert.strictEqual(state.courts.find((court) => court._id === 't1_1').btp_id, 2);
+			assert.strictEqual(court_map.get(18), 't1_17');
+			assert.strictEqual(court_map.get(1), 't1_18');
+			assert.strictEqual(state.courts.find((court) => court._id === 't1_18').btp_id, 1);
+			done();
+		});
+	});
+
 	_it('keeps locally edited timing values when BTP scoring formats are normalized again', () => {
 		const existing = {
 			id: 11,
