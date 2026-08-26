@@ -16,6 +16,9 @@ const match_automation = require('./match_automation');
 const debug_flags = require('./debug_flags');
 const displaysettings_defaults = require('./displaysettings_defaults');
 
+const TABLETOPERATOR_RELEASE_SELECTION = '__release_tabletoperators__';
+const TABLETOPERATOR_RELEASE_PARTICIPANT_PREFIX = '__release_tabletoperator__:';
+
 function now_ms(app) {
 	return app?.clock ? app.clock.now_ms() : Date.now();
 }
@@ -1330,14 +1333,30 @@ function handle_tabletoperator_add(app, ws, msg) {
 			const match = msg.match
 			team = match.setup.teams[team_id];
 		} else if (msg.tabletoperator_name) {
+			let tabletoperator_participant = null;
+			try {
+				tabletoperator_participant = await new Promise((resolve, reject) => {
+					_find_tabletoperator_replacement_participant(app, tournament_key, msg.tabletoperator_name, msg.tabletoperator_btp_id, (find_err, participant) => {
+						if (find_err) {
+							return reject(find_err);
+						}
+						return resolve(participant);
+					});
+				});
+			} catch (find_err) {
+				return ws.respond(msg, find_err);
+			}
+			const participant_name = _tabletoperator_display_name(tabletoperator_participant) || msg.tabletoperator_name;
+			const participant_btp_id = Number(tabletoperator_participant?.btp_id);
 			team = {
 				"players": [
 					{
-						"asian_name": false,
-						"name": msg.tabletoperator_name,
-						"firstname": "",
-						"lastname": "",
-						"btp_id": -1
+						"asian_name": !!tabletoperator_participant?.asian_name,
+						"name": participant_name,
+						"firstname": tabletoperator_participant?.firstname || "",
+						"lastname": tabletoperator_participant?.lastname || "",
+						"btp_id": Number.isFinite(participant_btp_id) ? participant_btp_id : -1,
+						"state": tabletoperator_participant?.state || null
 					}
 				],
 				"name": "N/N"
@@ -1404,11 +1423,320 @@ function _normalize_tabletoperator_participants_for_waiting_list(tabletoperators
 	}));
 }
 
-function _apply_match_edit_tabletoperator_assignment(app, tournament_key, old_match, setup, tabletoperator_assignment_id, callback) {
+function _tabletoperator_release_participant_index(value) {
+	if (typeof value !== 'string' || !value.startsWith(TABLETOPERATOR_RELEASE_PARTICIPANT_PREFIX)) {
+		return null;
+	}
+	const index = Number(value.slice(TABLETOPERATOR_RELEASE_PARTICIPANT_PREFIX.length));
+	return Number.isInteger(index) && index >= 0 ? index : null;
+}
+
+function _tabletoperator_display_name(participant) {
+	if (!participant) {
+		return '';
+	}
+	return participant.name || [participant.firstname, participant.lastname].filter(Boolean).join(' ').trim();
+}
+
+function _normalize_tabletoperator_lookup_name(name) {
+	return String(name || '')
+		.normalize('NFKD')
+		.replace(/[\u0300-\u036f]/g, '')
+		.replace(/\s+/g, ' ')
+		.trim()
+		.toLocaleLowerCase();
+}
+
+function _parse_tabletoperator_replacement_name(value, btp_id_value) {
+	const raw = typeof value === 'string' ? value.trim() : '';
+	if (!raw) {
+		return null;
+	}
+	const provided_btp_id = Number(btp_id_value);
+	if (Number.isFinite(provided_btp_id) && provided_btp_id !== -1) {
+		return {
+			name: raw,
+			btp_id: provided_btp_id,
+		};
+	}
+	const btp_id_match = raw.match(/^(.*?)\s*\[#(-?\d+)\]\s*$/);
+	if (!btp_id_match) {
+		return {
+			name: raw,
+			btp_id: null,
+		};
+	}
+	return {
+		name: btp_id_match[1].trim(),
+		btp_id: Number(btp_id_match[2]),
+	};
+}
+
+function _find_tabletoperator_replacement_participant(app, tournament_key, value, btp_id_value, callback) {
+	const parsed = _parse_tabletoperator_replacement_name(value, btp_id_value);
+	if (!parsed) {
+		return callback(null, null);
+	}
+
+	app.db.matches.find({ tournament_key }, (find_err, matches) => {
+		if (find_err) {
+			return callback(find_err);
+		}
+
+		const normalized_name = _normalize_tabletoperator_lookup_name(parsed.name);
+		let fallback_by_name = null;
+		for (const match of matches || []) {
+			for (const team of (match?.setup?.teams || [])) {
+				for (const player of (team?.players || [])) {
+					if (!player) {
+						continue;
+					}
+					const player_btp_id = Number(player.btp_id);
+					if (parsed.btp_id !== null && Number.isFinite(parsed.btp_id) && player_btp_id === parsed.btp_id) {
+						const participant = { ...player };
+						participant.name = _tabletoperator_display_name(participant) || parsed.name;
+						return callback(null, participant);
+					}
+					if (!fallback_by_name && _normalize_tabletoperator_lookup_name(_tabletoperator_display_name(player)) === normalized_name) {
+						fallback_by_name = { ...player };
+					}
+				}
+			}
+		}
+
+		if (fallback_by_name) {
+			fallback_by_name.name = _tabletoperator_display_name(fallback_by_name) || parsed.name;
+			return callback(null, fallback_by_name);
+		}
+
+		return callback(null, {
+			name: parsed.name,
+			btp_id: -1,
+		});
+	});
+}
+
+function _release_tabletoperator_player_flags(app, tournament_key, released_ids, callback) {
+	if (!released_ids.length) {
+		return callback(null);
+	}
+	const released_id_set = new Set(released_ids);
+	const match_utils = require('./match_utils');
+
+	app.db.tournaments.findOne({ key: tournament_key }, (tournament_err, tournament) => {
+		if (tournament_err) {
+			return callback(tournament_err);
+		}
+		const check_in_per_match = !!(tournament?.btp_settings?.check_in_per_match);
+
+		app.db.matches.find({ tournament_key }, (find_err, matches) => {
+			if (find_err) {
+				return callback(find_err);
+			}
+
+			const players_to_update = [];
+			async.each(matches || [], (match, cb) => {
+				if (!match?.setup) {
+					return cb(null);
+				}
+
+				let changed = false;
+				(match.setup.teams || []).forEach((team) => {
+					(team?.players || []).forEach((player) => {
+						const player_btp_id = player && Number(player.btp_id);
+						if (!player || !Number.isFinite(player_btp_id) || !released_id_set.has(player_btp_id)) {
+							return;
+						}
+						const should_mark_globally_checked_in = !check_in_per_match && player.checked_in === false;
+						if (player.now_tablet_on_court || player.tablet_break_active || should_mark_globally_checked_in) {
+							player.now_tablet_on_court = false;
+							player.tablet_break_active = false;
+							if (should_mark_globally_checked_in) {
+								player.checked_in = true;
+								players_to_update.push(player);
+							}
+							changed = true;
+						}
+					});
+				});
+
+				if (!changed) {
+					return cb(null);
+				}
+				app.db.matches.update({ _id: match._id, tournament_key }, { $set: { setup: match.setup } }, {}, (update_err) => {
+					if (update_err) {
+						return cb(update_err);
+					}
+					notify_change(app, tournament_key, 'update_player_status', {
+						match__id: match._id,
+						btp_winner: match.btp_winner,
+						setup: match.setup,
+					});
+					notify_change(app, tournament_key, 'match_edit', {
+						match__id: match._id,
+						match,
+					});
+					return cb(null);
+				});
+			}, (each_err) => {
+				if (each_err) {
+					return callback(each_err);
+				}
+				if (players_to_update.length > 0) {
+					btp_manager.update_players(app, tournament_key, players_to_update);
+				}
+				match_utils.queue_reconcile_player_court_flags(app, tournament_key);
+				return callback(null);
+			});
+		});
+	});
+}
+
+function _set_tabletoperator_player_flags(app, tournament_key, assigned_tabletoperators, court_id, callback) {
+	const assigned_ids = [...new Set(_clone_match_tabletoperators(assigned_tabletoperators)
+		.map((participant) => Number(participant && participant.btp_id))
+		.filter((btp_id) => Number.isFinite(btp_id) && btp_id !== -1))];
+	if (!assigned_ids.length) {
+		return callback(null);
+	}
+	const assigned_id_set = new Set(assigned_ids);
+
+	app.db.matches.find({ tournament_key }, (find_err, matches) => {
+		if (find_err) {
+			return callback(find_err);
+		}
+
+		const players_to_update = [];
+		async.each(matches || [], (match, cb) => {
+			if (!match?.setup) {
+				return cb(null);
+			}
+
+			let changed = false;
+			(match.setup.teams || []).forEach((team) => {
+				(team?.players || []).forEach((player) => {
+					const player_btp_id = player && Number(player.btp_id);
+					if (!player || !Number.isFinite(player_btp_id) || !assigned_id_set.has(player_btp_id)) {
+						return;
+					}
+					if (player.now_tablet_on_court !== court_id || player.checked_in !== false || player.tablet_break_active !== false) {
+						player.now_tablet_on_court = court_id;
+						player.checked_in = false;
+						player.tablet_break_active = false;
+						players_to_update.push(player);
+						changed = true;
+					}
+				});
+			});
+
+			if (!changed) {
+				return cb(null);
+			}
+			app.db.matches.update({ _id: match._id, tournament_key }, { $set: { setup: match.setup } }, {}, (update_err) => {
+				if (update_err) {
+					return cb(update_err);
+				}
+				notify_change(app, tournament_key, 'update_player_status', {
+					match__id: match._id,
+					btp_winner: match.btp_winner,
+					setup: match.setup,
+				});
+				notify_change(app, tournament_key, 'match_edit', {
+					match__id: match._id,
+					match,
+				});
+				return cb(null);
+			});
+		}, (each_err) => {
+			if (each_err) {
+				return callback(each_err);
+			}
+			if (players_to_update.length > 0) {
+				btp_manager.update_players(app, tournament_key, players_to_update);
+			}
+			return callback(null);
+		});
+	});
+}
+
+function _replace_match_edit_tabletoperator(app, tournament_key, old_match, setup, tabletoperator_assignment_id, replacement_name, replacement_btp_id, callback) {
+	const current_tabletoperators = Array.isArray(old_match?.setup?.tabletoperators)
+		? old_match.setup.tabletoperators
+		: [];
+	const release_participant_index = _tabletoperator_release_participant_index(tabletoperator_assignment_id);
+	const assignment_court_id = setup?.court_id || old_match?.setup?.court_id || false;
+
+	_find_tabletoperator_replacement_participant(app, tournament_key, replacement_name, replacement_btp_id, (find_err, replacement_participant) => {
+		if (find_err) {
+			return callback(find_err);
+		}
+		if (!replacement_participant) {
+			return callback(null);
+		}
+
+		const replace_single = release_participant_index !== null;
+		const released_tabletoperators = replace_single
+			? current_tabletoperators.filter((participant, index) => index === release_participant_index)
+			: current_tabletoperators;
+		if (replace_single && released_tabletoperators.length === 0) {
+			return callback(new Error('Tabletoperator for replacement not found in match'));
+		}
+		const released_ids = [...new Set(released_tabletoperators
+			.map((participant) => Number(participant && participant.btp_id))
+			.filter((btp_id) => Number.isFinite(btp_id) && btp_id !== -1))];
+
+		const next_tabletoperators = replace_single
+			? current_tabletoperators.map((participant, index) => index === release_participant_index ? replacement_participant : participant)
+			: [replacement_participant];
+
+		setup.tabletoperators = _normalize_tabletoperator_participants_for_assignment(next_tabletoperators, assignment_court_id);
+		const should_refresh_live_tablet_status = !!(old_match?.setup?.now_on_court || setup?.now_on_court);
+		if (!should_refresh_live_tablet_status) {
+			return callback(null);
+		}
+
+		_release_tabletoperator_player_flags(app, tournament_key, released_ids, (release_err) => {
+			if (release_err) {
+				return callback(release_err);
+			}
+			_set_tabletoperator_player_flags(app, tournament_key, setup.tabletoperators, assignment_court_id, callback);
+		});
+	});
+}
+
+function _apply_match_edit_tabletoperator_assignment(app, tournament_key, old_match, setup, tabletoperator_assignment_id, replacement_name, replacement_btp_id, callback) {
+	if (replacement_name && String(replacement_name).trim()) {
+		return _replace_match_edit_tabletoperator(app, tournament_key, old_match, setup, tabletoperator_assignment_id, replacement_name, replacement_btp_id, callback);
+	}
 	if (!tabletoperator_assignment_id) {
 		return callback(null);
 	}
 	const match_utils = require('./match_utils');
+	const release_participant_index = _tabletoperator_release_participant_index(tabletoperator_assignment_id);
+
+	if (tabletoperator_assignment_id === TABLETOPERATOR_RELEASE_SELECTION || release_participant_index !== null) {
+		const current_tabletoperators = Array.isArray(old_match?.setup?.tabletoperators)
+			? old_match.setup.tabletoperators
+			: [];
+		const released_tabletoperators = tabletoperator_assignment_id === TABLETOPERATOR_RELEASE_SELECTION
+			? current_tabletoperators
+			: current_tabletoperators.filter((participant, index) => index === release_participant_index);
+		if (released_tabletoperators.length === 0) {
+			return callback(new Error('Tabletoperator for release not found in match'));
+		}
+		const released_ids = [...new Set(released_tabletoperators
+			.map((participant) => Number(participant && participant.btp_id))
+			.filter((btp_id) => Number.isFinite(btp_id) && btp_id !== -1))];
+		const remaining_tabletoperators = tabletoperator_assignment_id === TABLETOPERATOR_RELEASE_SELECTION
+			? []
+			: current_tabletoperators.filter((participant, index) => index !== release_participant_index);
+		if (remaining_tabletoperators.length > 0) {
+			setup.tabletoperators = _normalize_tabletoperator_participants_for_assignment(remaining_tabletoperators, setup.court_id);
+		} else {
+			delete setup.tabletoperators;
+		}
+		return _release_tabletoperator_player_flags(app, tournament_key, released_ids, callback);
+	}
 
 	app.db.tabletoperators.findOne({
 		_id: tabletoperator_assignment_id,
@@ -1532,6 +1860,10 @@ function handle_match_edit(app, ws, msg) {
 	const tournament_key = msg.tournament_key;
 	const setup = msg.match.setup;
 	const tabletoperator_assignment_id = msg.tabletoperator_assignment_id || null;
+	const tabletoperator_replacement_name = msg.tabletoperator_replacement_name || null;
+	const tabletoperator_replacement_btp_id = msg.tabletoperator_replacement_btp_id != null
+		? msg.tabletoperator_replacement_btp_id
+		: null;
 
 	app.db.tournaments.findOne({ key: tournament_key }, async (err, tournament) => {
 		if (err) {
@@ -1555,7 +1887,7 @@ function handle_match_edit(app, ws, msg) {
 			const dependent_releases = _collect_dependent_official_releases(setup);
 			const official_sync_meta = _build_match_edit_official_sync_meta(old_setup, setup || {});
 
-			_apply_match_edit_tabletoperator_assignment(app, tournament_key, old_match, setup, tabletoperator_assignment_id, function(tabletoperator_err) {
+			_apply_match_edit_tabletoperator_assignment(app, tournament_key, old_match, setup, tabletoperator_assignment_id, tabletoperator_replacement_name, tabletoperator_replacement_btp_id, function(tabletoperator_err) {
 				if (tabletoperator_err) {
 					ws.respond(msg, tabletoperator_err);
 					return;
@@ -1901,6 +2233,9 @@ function handle_match_player_check_in (app, ws, msg) {
 				for (const team of match.setup.teams) {
 					for (const player of team.players) {
 						if (player.btp_id == msg.player_id) {
+							if (msg.checked_in && player.now_tablet_on_court) {
+								return reject(new Error('Player is currently assigned as tablet operator and cannot be checked in'));
+							}
 							player.checked_in = msg.checked_in;
 							player_found = true;
 						}

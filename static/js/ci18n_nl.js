@@ -299,6 +299,11 @@ var ci18n_nl = Object.assign(
 	'tabletoperator:move_up': 'Omhoog in lijst',
 	'tabletoperator:move_down': 'Omlaag in lijst',
 	'tabletoperator:remove': 'Verwijderen uit lijst',
+	'tabletoperator:release_from_match': 'Tabletgebruiker uit deze wedstrijd verwijderen',
+	'tabletoperator:release_participant_from_match': '{name} als tabletgebruiker verwijderen',
+	'tabletoperator:replacement_label': 'Vervangen door:',
+	'tabletoperator:replacement_placeholder': 'Speler zoeken of naam invoeren',
+	'tabletoperator:replacement_hint': 'Zonder gerichte keuze uit de zoeklijst wordt de huidige tabletbediening volledig vervangen.',
 	'csvexport:winners': 'Oorkonde-export (Word/CSV)',
 });
 

@@ -9392,6 +9392,7 @@ function update_officials() {
 			participants: self_check_in_participants(match).map((participant) => ({
 				key: participant.key,
 				checked_in: participant.checked_in,
+				now_tablet_on_court: participant.now_tablet_on_court || false,
 			})),
 		});
 	}
@@ -9425,8 +9426,11 @@ function update_officials() {
 				update_self_check_in_match_card(match_id);
 				return;
 			}
+			const check_in_locked = participant.role === 'player' && !!participant.now_tablet_on_court;
 			chip.classList.toggle('self_check_in_chip_ready', !!participant.checked_in);
 			chip.classList.toggle('self_check_in_chip_waiting', !participant.checked_in);
+			chip.classList.toggle('self_check_in_chip_locked', check_in_locked);
+			chip.disabled = check_in_locked;
 		}
 
 		const all_ready = participants.length > 0 && participants.every((participant) => participant.checked_in);
@@ -9478,6 +9482,7 @@ function update_officials() {
 				label: person_display_name(player),
 				label_variants: build_person_name_variants(player),
 				checked_in: !!player.checked_in,
+				now_tablet_on_court: player.now_tablet_on_court || false,
 			});
 		});
 	});
@@ -9547,14 +9552,18 @@ function update_officials() {
 	}
 
 	function render_self_check_in_chip(container, participant) {
+		const check_in_locked = participant.role === 'player' && !!participant.now_tablet_on_court;
 		const attrs = {
 			type: 'button',
-			'class': 'self_check_in_chip self_check_in_chip_' + (participant.checked_in ? 'ready' : 'waiting') + (participant.role_label ? ' self_check_in_chip_with_role' : ''),
+			'class': 'self_check_in_chip self_check_in_chip_' + (participant.checked_in ? 'ready' : 'waiting') + (participant.role_label ? ' self_check_in_chip_with_role' : '') + (check_in_locked ? ' self_check_in_chip_locked' : ''),
 			'data-role': participant.role,
 			'data-match_id': participant.match_id,
 			'data-participant_id': participant.participant_id,
 			'data-participant-key': participant.key,
 		};
+		if (check_in_locked) {
+			attrs.disabled = 'disabled';
+		}
 		const chip = uiu.el(container, 'button', attrs);
 		if (participant.role_label) {
 			uiu.el(chip, 'span', 'self_check_in_chip_role', participant.role_label);
@@ -9570,6 +9579,10 @@ function update_officials() {
 		}
 		chip.addEventListener('click', function(ev) {
 			ev.stopPropagation();
+			if (check_in_locked) {
+				ev.preventDefault();
+				return;
+			}
 			const checked_in = !chip.classList.contains('self_check_in_chip_ready');
 			const payload = {
 				tournament_key: curt.key,

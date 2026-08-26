@@ -424,6 +424,11 @@ var ci18n_en = Object.assign(
 	'tabletoperator:move_up': 'Move up in list',
 	'tabletoperator:move_down': 'Move down in list',
 	'tabletoperator:remove': 'Remove from list',
+	'tabletoperator:release_from_match': 'Remove tablet operator from this match',
+	'tabletoperator:release_participant_from_match': 'Remove {name} as tablet operator',
+	'tabletoperator:replacement_label': 'Replace with:',
+	'tabletoperator:replacement_placeholder': 'Search player or enter name',
+	'tabletoperator:replacement_hint': 'Without selecting a search suggestion, the current tablet operator assignment is replaced completely.',
 	'csvexport:winners': 'Certificate export (Word/CSV)',
 });
 

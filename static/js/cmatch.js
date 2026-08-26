@@ -1010,6 +1010,7 @@ function render_match_participant_el(parentNode, participant, match_id, role, ic
 
 function render_player_el(parentNode, player, match_id, now_on_court, show_player_status, style, is_doubles) {
 	let player_status = get_player_status(player, now_on_court, show_player_status);
+	const player_check_in_locked = !!player.now_tablet_on_court;
 	const player_name = (style === 'public' || style === 'upcoming' && is_doubles) ?  short_name(player.firstname, player.lastname) : player.name;
 	let player_element = uiu.el(parentNode, 'span', {
 		'class' : 'person player ' + player_status + (style === 'public' || style === 'upcoming' ? '_public' : ''),
@@ -1017,7 +1018,7 @@ function render_player_el(parentNode, player, match_id, now_on_court, show_playe
 		'data-match_id': match_id,
 	}, player_name.replace(' ', '\xa0'));
 
-	if(player.check_in_per_match) {
+	if(player.check_in_per_match && !player_check_in_locked) {
 		if(player_status == "checked_in") {
 			player_element.classList.add("can_check_out");
 		} else if (player_status == "not_checked_in") {
@@ -1027,7 +1028,7 @@ function render_player_el(parentNode, player, match_id, now_on_court, show_playe
 
 
 	player_element.addEventListener("click", (ev) => {
-		if(curt.btp_settings.check_in_per_match) {
+		if(curt.btp_settings.check_in_per_match && !player_check_in_locked) {
 			send({
 				type: 'match_player_check_in',
 				match_id,
@@ -1098,10 +1099,11 @@ function update_players(m) {
 function update_player(match_id, player, now_on_court, show_player_status) {
 	uiu.qsEach('.player[data-match_id=' + JSON.stringify(match_id) + '][data-btp_id="' + JSON.stringify(player.btp_id) + '"]' , function(player_el) {
 		let player_status = get_player_status(player, now_on_court, show_player_status);
+		const player_check_in_locked = !!player.now_tablet_on_court;
 
 		player_el.classList.remove("now_on_court", "now_playing", "checked_in", "not_checked_in", "no_status", "can_check_out", "can_check_in");
 		player_el.classList.add(player_status);
-		if(player.check_in_per_match) {
+		if(player.check_in_per_match && !player_check_in_locked) {
 			if(player_status == "checked_in") {
 				player_el.classList.add("can_check_out");
 			} else if (player_status == "not_checked_in") {
@@ -1217,7 +1219,7 @@ function insert_new_match_row(m, section) {
 }
 
 function update_match_row(m, new_section) {
-	uiu.qsEach('[data-match_id=' + JSON.stringify(m._id) + ']', (match_row_el) => {
+	uiu.qsEach('tr[data-match_id=' + JSON.stringify(m._id) + ']', (match_row_el) => {
 		match_row_el.innerHTML = '';
 		
 		switch (new_section) {
@@ -1583,6 +1585,7 @@ function on_second_preparation_call_tabletoperator_button_click(e) {
 		});
 	}
 }
+
 function on_second_call_umpire_button_click(e) {
 	const match = fetchMatchFromEvent(e);
 	if (match != null) {
@@ -1831,10 +1834,17 @@ function _cancel_ui_edit() {
 	if (!dlg) {
 		return; // Already cancelled
 	}
+	_remove_tabletoperator_replacement_suggestions();
 	cbts_utils.esc_stack_pop();
 	uiu.remove(dlg);
 
 	crouting.set('t/:key/', { key: curt.key });
+}
+
+function _remove_tabletoperator_replacement_suggestions() {
+	uiu.qsEach('.tabletoperator_replacement_suggestions', (suggestions_el) => {
+		uiu.remove(suggestions_el);
+	});
 }
 
 function _delete_match_btn_click(e) {
@@ -1871,12 +1881,20 @@ function _delete_match_btn_click(e) {
 	}
 
 function ui_edit(match_id) {
-	const match = structuredClone(utils.find(curt.matches, m => m._id === match_id));
-	let old_court = structuredClone(match.setup.court_id);
-	if (!match) {
+	const source_match = utils.find(curt.matches, m => m._id === match_id);
+	if (!source_match) {
 		cerror.silent('Match ' + match_id + ' konnte nicht gefunden werden');
 		return;
 	}
+	const old_dialog = document.querySelector('.match_edit_dialog');
+	if (old_dialog) {
+		_remove_tabletoperator_replacement_suggestions();
+		cbts_utils.esc_stack_pop();
+		uiu.remove(old_dialog);
+	}
+
+	const match = structuredClone(source_match);
+	let old_court = structuredClone(match.setup.court_id);
 
 	if(!old_court) {
 		old_court = "not_on_court"
@@ -1888,7 +1906,7 @@ function ui_edit(match_id) {
 
 	const body = uiu.qs('body');
 	const dialog_bg = uiu.el(body, 'div', 'dialog_bg match_edit_dialog', {
-		'data-match_id': match_id,
+		'data-edit-match_id': match_id,
 	});
 	const dialog = uiu.el(dialog_bg, 'div', 'dialog');
 	
@@ -1942,6 +1960,8 @@ function ui_edit(match_id) {
 			old_court,
 			tournament_key: curt.key,
 			tabletoperator_assignment_id: d.tabletoperator_assignment_id || null,
+			tabletoperator_replacement_name: d.tabletoperator_replacement_name || null,
+			tabletoperator_replacement_btp_id: d.tabletoperator_replacement_btp_id || null,
 			btp_update: (curt.btp_enabled && (!! d.btp_update || force_btp_update)),
 		}, function match_edit_callback(err) {
 			btn.removeAttribute('disabled');
@@ -1973,7 +1993,10 @@ crouting.register(/t\/([a-z0-9]+)\/m\/([-a-zA-Z0-9_ ]+)\/edit$/, function(m) {
 	});
 }, change.default_handler(() => {
 	const dlg = uiu.qs('.match_edit_dialog');
-	const match_id = dlg.getAttribute('data-match_id');
+	if (!dlg) {
+		return;
+	}
+	const match_id = dlg.getAttribute('data-edit-match_id');
 	ui_edit(match_id);
 }));
 
@@ -3051,6 +3074,22 @@ function render_edit(form, match) {
 			selected: 'selected',
 		}, ci18n('match:edit:tabletoperator_assignment_no_change'));
 
+		if (Array.isArray(setup.tabletoperators) && setup.tabletoperators.length > 0) {
+			uiu.el(tabletoperator_select, 'option', {
+				value: '__release_tabletoperators__',
+			}, ci18n('tabletoperator:release_from_match'));
+			if (setup.tabletoperators.length > 1) {
+				setup.tabletoperators.forEach((participant, index) => {
+					const participant_name = participant.name || short_name(participant.firstname, participant.lastname, participant.name);
+					uiu.el(tabletoperator_select, 'option', {
+						value: '__release_tabletoperator__:' + index,
+					}, ci18n('tabletoperator:release_participant_from_match', {
+						name: participant_name || ('#' + (index + 1)),
+					}));
+				});
+			}
+		}
+
 		const unassigned_tabletoperators = (curt.tabletoperators || [])
 			.filter((entry) => entry && entry.court == null)
 			.sort((a, b) => (a.start_ts || 0) - (b.start_ts || 0));
@@ -3088,9 +3127,195 @@ function render_edit(form, match) {
 				style: 'width: 268px;',
 			});
 		}
+
+		_render_tabletoperator_replacement_picker(tabletoperator_container);
 	}
 
 	render_override_colors(edit_match_container, setup);
+}
+
+function _tabletoperator_status_court_number(court_id) {
+	if (!court_id || typeof court_id !== 'string') {
+		return '';
+	}
+	const parts = court_id.split('_');
+	return parts[parts.length - 1] || '';
+}
+
+function _normalize_tabletoperator_suggestion_text(value) {
+	return String(value || '')
+		.normalize('NFD')
+		.replace(/[\u0300-\u036f]/g, '')
+		.replace(/\s+/g, ' ')
+		.trim()
+		.toLocaleLowerCase();
+}
+
+function _render_tabletoperator_replacement_picker(tabletoperator_container) {
+	const replacement_row = uiu.el(tabletoperator_container, 'div', {
+		style: 'margin-top: 0.35em;',
+	});
+	uiu.el(replacement_row, 'span', 'match_label', ci18n('tabletoperator:replacement_label'));
+	render_tabletoperator_player_picker(replacement_row, {
+		input_name: 'tabletoperator_replacement_name',
+		btp_id_name: 'tabletoperator_replacement_btp_id',
+		placeholder: ci18n('tabletoperator:replacement_placeholder'),
+		input_style: 'width: 268px;',
+	});
+	uiu.el(replacement_row, 'span', {
+		style: 'margin-left: 0.5em; color: #666; font-size: 0.9em;',
+	}, ci18n('tabletoperator:replacement_hint'));
+}
+
+function render_tabletoperator_player_picker(container, options) {
+	options = options || {};
+	const input_wrap = uiu.el(container, 'span', {
+		style: 'display: inline-block; position: relative;',
+	});
+	const replacement_input = uiu.el(input_wrap, 'input', {
+		type: 'text',
+		class: options.input_class || '',
+		name: options.input_name || 'tabletoperator_player_name',
+		placeholder: options.placeholder || ci18n('tabletoperator:replacement_placeholder'),
+		autocomplete: 'off',
+		style: options.input_style || 'width: 268px;',
+	});
+	const replacement_btp_id_input = uiu.el(input_wrap, 'input', {
+		type: 'hidden',
+		name: options.btp_id_name || 'tabletoperator_player_btp_id',
+		value: '',
+	});
+	const suggestion_list = uiu.el(uiu.qs('body'), 'div', {
+		class: 'tabletoperator_replacement_suggestions',
+		style: 'display: none; position: fixed; width: 360px; max-height: 16em; overflow: auto; background: white; border: 1px solid #999; box-shadow: 0 2px 6px rgba(0,0,0,0.25); z-index: 20000; text-align: left;',
+	});
+	const suggestions = _tabletoperator_player_suggestions();
+
+	const hide_suggestions = () => {
+		suggestion_list.style.display = 'none';
+	};
+	const remove_suggestions_if_detached = () => {
+		if (!document.body.contains(replacement_input) && suggestion_list.parentNode) {
+			suggestion_list.parentNode.removeChild(suggestion_list);
+		}
+	};
+	const position_suggestions = () => {
+		const input_rect = replacement_input.getBoundingClientRect();
+		const below_space = window.innerHeight - input_rect.bottom;
+		const above_space = input_rect.top;
+		const open_up = below_space < 260 && above_space > below_space;
+		const max_height = Math.max(120, Math.min(260, (open_up ? above_space : below_space) - 20));
+		suggestion_list.style.left = input_rect.left + 'px';
+		suggestion_list.style.top = (open_up ? input_rect.top - max_height : input_rect.bottom) + 'px';
+		suggestion_list.style.maxHeight = max_height + 'px';
+	};
+	const render_suggestions = () => {
+		remove_suggestions_if_detached();
+		uiu.empty(suggestion_list);
+		const needle = _normalize_tabletoperator_suggestion_text(replacement_input.value);
+		if (needle.length < 2) {
+			hide_suggestions();
+			return;
+		}
+		const filtered = suggestions
+			.filter((participant) => _normalize_tabletoperator_suggestion_text(participant.name).includes(needle));
+		if (!filtered.length) {
+			hide_suggestions();
+			return;
+		}
+		filtered.forEach((participant) => {
+			const row = uiu.el(suggestion_list, 'div', {
+				style: 'display: flex; align-items: center; gap: 0.35em; padding: 0.15em 0.35em; cursor: pointer; white-space: nowrap;',
+			});
+			row.addEventListener('mouseover', () => {
+				row.style.backgroundColor = '#eef';
+			});
+			row.addEventListener('mouseout', () => {
+				row.style.backgroundColor = '';
+			});
+			row.addEventListener('mousedown', (ev) => {
+				ev.preventDefault();
+				replacement_input.value = participant.name;
+				const btp_id = Number(participant.btp_id);
+				replacement_btp_id_input.value = Number.isFinite(btp_id) && btp_id !== -1 ? String(btp_id) : '';
+				hide_suggestions();
+			});
+			uiu.el(row, 'span', {
+				style: 'flex: 1; overflow: hidden; text-overflow: ellipsis;',
+			}, participant.name);
+			if (participant.now_playing_on_court) {
+				uiu.el(row, 'div', 'court', _tabletoperator_status_court_number(participant.now_playing_on_court));
+			}
+			if (participant.now_tablet_on_court) {
+				uiu.el(row, 'div', 'tablet_inline', _tabletoperator_status_court_number(participant.now_tablet_on_court));
+			}
+		});
+		position_suggestions();
+		suggestion_list.style.display = '';
+	};
+
+	replacement_input.addEventListener('input', () => {
+		replacement_btp_id_input.value = '';
+		render_suggestions();
+	});
+	replacement_input.addEventListener('focus', render_suggestions);
+	replacement_input.addEventListener('blur', () => {
+		setTimeout(hide_suggestions, 150);
+	});
+	window.addEventListener('resize', position_suggestions);
+	document.querySelector('.match_edit_dialog')?.addEventListener('scroll', position_suggestions, true);
+	return {
+		input: replacement_input,
+		btp_id_input: replacement_btp_id_input,
+	};
+}
+
+function _tabletoperator_player_suggestions() {
+	const by_key = new Map();
+	const add_participant = (participant, status) => {
+		if (!participant) {
+			return;
+		}
+		const name = participant.name || short_name(participant.firstname, participant.lastname, participant.name);
+		if (!name) {
+			return;
+		}
+		const btp_id = Number(participant.btp_id);
+		const key = Number.isFinite(btp_id) && btp_id !== -1 ? 'btp:' + btp_id : 'name:' + name.toLocaleLowerCase();
+		const next_playing_court = status.now_playing_on_court || participant.now_playing_on_court;
+		const next_tablet_court = status.now_tablet_on_court || participant.now_tablet_on_court;
+		const existing = by_key.get(key);
+		if (existing) {
+			existing.now_playing_on_court = existing.now_playing_on_court || next_playing_court;
+			existing.now_tablet_on_court = existing.now_tablet_on_court || next_tablet_court;
+			return;
+		}
+		by_key.set(key, {
+			name,
+			firstname: participant.firstname,
+			lastname: participant.lastname,
+			btp_id: participant.btp_id,
+			now_playing_on_court: next_playing_court,
+			now_tablet_on_court: next_tablet_court,
+		});
+	};
+	(curt.matches || []).forEach((candidate_match) => {
+		const setup = candidate_match.setup || {};
+		const playing_court = setup.now_on_court && setup.court_id ? setup.court_id : false;
+		((candidate_match.setup && candidate_match.setup.teams) || []).forEach((team) => {
+			(team.players || []).forEach((player) => {
+				add_participant(player, {
+					now_playing_on_court: playing_court,
+				});
+			});
+		});
+		(setup.tabletoperators || []).forEach((participant) => {
+			add_participant(participant, {
+				now_tablet_on_court: participant.now_tablet_on_court || setup.court_id || false,
+			});
+		});
+	});
+	return [...by_key.values()].sort((a, b) => String(a.name).localeCompare(String(b.name)));
 }
 
 function render_override_colors(outer_container, setup) {
@@ -3420,7 +3645,8 @@ return {
 	create_timer,
 	update_tables,
 	_build_official_select_entries: build_official_select_entries,
-	_format_participant_dependency
+	_format_participant_dependency,
+	render_tabletoperator_player_picker,
 };
 
 })();

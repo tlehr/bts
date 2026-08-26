@@ -928,6 +928,7 @@ table.striped-table {
 	display: flex;
 	flex-direction: row;
 	flex-wrap: wrap-reverse;
+	align-items: flex-start;
 	justify-content: space-around;
 	padding: 0.25em 0 0 0;
 	margin: 0 0 0.75em 0;

@@ -2,7 +2,13 @@
 
 var ctabletoperator = (function() {
 
+let resize_handler_bound = false;
+let fit_resize_observer = null;
+let fit_request_pending = false;
+let fit_second_pass_pending = false;
+
 function render_unassigned(container) {
+	remove_tabletoperator_suggestions();
 	uiu.empty(container);
 	uiu.el(container, 'h3', {}, ci18n('tabletoperator:unassigned'));
 	const unassigned_tabletoperators = curt.tabletoperators.filter(m => m.court == null);
@@ -14,6 +20,9 @@ function render_unassigned(container) {
 	const tableoperator_content = uiu.el(container, 'div', 'unassigned_tableoperators_content');
 	render_tabletoperator_table(tableoperator_content, unassigned_tabletoperators);
 	render_tabletoperator_formular(container);
+	schedule_fit_unassigned_tableoperators(container);
+	bind_resize_handler_once();
+	observe_unassigned_tableoperator_layout(container);
 }
 
 function render_tabletoperator_table(container, tabletoperators) {
@@ -144,33 +153,141 @@ function create_tabletoperator_button(targetEl, cssClass, title, listener, table
 function render_tabletoperator_formular(target) {
 		const announcements = uiu.el(target, 'div', '_tabletoperator_container');
 		const form = uiu.el(announcements, 'form');
-		uiu.el(form, 'input', {
-			type: 'input',
-			class: 'tabletoperator_add_custom_input',
-			id: 'tabletoperator_name',
-			name: 'tabletoperator_name'
+		cmatch.render_tabletoperator_player_picker(form, {
+			input_name: 'tabletoperator_name',
+			btp_id_name: 'tabletoperator_btp_id',
+			placeholder: ci18n('tabletoperator:replacement_placeholder'),
+			input_class: 'tabletoperator_add_custom_input',
+			input_style: 'width: 290px;',
 		});
 		const btp_fetch_btn = uiu.el(form, 'button', {
 			class: 'vlink tabletoperator_add_custom_button',
 			role: 'submit',
 		});
 		form_utils.onsubmit(form, function (d) {
-			add_to_tabletoperator(null, null, d.tabletoperator_name)
+			add_to_tabletoperator(null, null, d.tabletoperator_name, d.tabletoperator_btp_id)
 		});
 }
 
-function add_to_tabletoperator(match, team_num, tabletoperator_name) {
+function add_to_tabletoperator(match, team_num, tabletoperator_name, tabletoperator_btp_id) {
 	if (match != null || tabletoperator_name) {
 		send({
 			type: 'tabletoperator_add',
 			tournament_key: curt.key,
 			team_id: team_num,
 			tabletoperator_name: tabletoperator_name,
+			tabletoperator_btp_id: tabletoperator_btp_id || null,
 			match: match,
 		}, err => {
 			if (err) {
 				return cerror.net(err);
 			}
+		});
+	}
+}
+
+function remove_tabletoperator_suggestions() {
+	uiu.qsEach('.tabletoperator_replacement_suggestions', (suggestions_el) => {
+		uiu.remove(suggestions_el);
+	});
+}
+
+function bind_resize_handler_once() {
+	if (resize_handler_bound) {
+		return;
+	}
+	resize_handler_bound = true;
+	window.addEventListener('resize', () => {
+		schedule_fit_unassigned_tableoperators(uiu.qs('.unassigned_tableoperators_container'));
+	});
+}
+
+function observe_unassigned_tableoperator_layout(container) {
+	if (typeof ResizeObserver === 'undefined' || !container || !container.parentNode) {
+		return;
+	}
+	if (fit_resize_observer) {
+		fit_resize_observer.disconnect();
+	}
+	fit_resize_observer = new ResizeObserver(() => {
+		schedule_fit_unassigned_tableoperators(uiu.qs('.unassigned_tableoperators_container'));
+	});
+	const parent = container.parentNode;
+	fit_resize_observer.observe(parent);
+	Array.prototype.forEach.call(parent.children, (child) => {
+		if (child !== container) {
+			fit_resize_observer.observe(child);
+		}
+	});
+}
+
+function schedule_fit_unassigned_tableoperators(container) {
+	if (!container) {
+		return;
+	}
+	if (fit_request_pending) {
+		return;
+	}
+	fit_request_pending = true;
+	window.requestAnimationFrame(() => {
+		fit_request_pending = false;
+		fit_unassigned_tableoperators(container, true);
+	});
+}
+
+function fit_unassigned_tableoperators(container, allow_second_pass) {
+	const parent = container.parentNode;
+	const content = container.querySelector('.unassigned_tableoperators_content');
+	const heading = container.querySelector('h3');
+	const form_container = container.querySelector('._tabletoperator_container');
+	if (!parent || !content || !heading || !form_container) {
+		return;
+	}
+	const previous_container_height = container.style.height;
+	const previous_container_max_height = container.style.maxHeight;
+	const previous_container_position = container.style.position;
+	const previous_container_visibility = container.style.visibility;
+	const previous_container_overflow = container.style.overflow;
+	const previous_content_height = content.style.height;
+	const previous_content_max_height = content.style.maxHeight;
+	container.style.position = 'absolute';
+	container.style.visibility = 'hidden';
+	container.style.overflow = 'hidden';
+	container.style.height = '0px';
+	container.style.maxHeight = '0px';
+	content.style.height = '0px';
+	content.style.maxHeight = '0px';
+
+	let sibling_height = 0;
+	Array.prototype.forEach.call(parent.children, (child) => {
+		if (child === container) {
+			return;
+		}
+		sibling_height = Math.max(sibling_height, child.getBoundingClientRect().height);
+	});
+	const target_height = Math.max(90, Math.round(sibling_height || 130));
+
+	container.style.height = previous_container_height;
+	container.style.maxHeight = previous_container_max_height;
+	container.style.position = previous_container_position;
+	container.style.visibility = previous_container_visibility;
+	container.style.overflow = previous_container_overflow;
+	content.style.height = previous_content_height;
+	content.style.maxHeight = previous_content_max_height;
+
+	const heading_height = heading.getBoundingClientRect().height;
+	const form_height = form_container.getBoundingClientRect().height;
+	const content_height = Math.max(35, target_height - heading_height - form_height - 8);
+	container.style.height = target_height + 'px';
+	container.style.maxHeight = target_height + 'px';
+	content.style.height = content_height + 'px';
+	content.style.maxHeight = content_height + 'px';
+
+	if (allow_second_pass && !fit_second_pass_pending) {
+		fit_second_pass_pending = true;
+		window.requestAnimationFrame(() => {
+			fit_second_pass_pending = false;
+			fit_unassigned_tableoperators(container, false);
 		});
 	}
 }

@@ -673,6 +673,11 @@ match_manual_call_button,
 	background: #a5d6a7;
 }
 
+.self_check_in_chip_locked {
+	cursor: not-allowed;
+	opacity: 0.55;
+}
+
 .self_check_in_chip_role {
 	font-size: calc(0.58rem * var(--self-check-in-scale, 1) * var(--self-check-in-chip-box-scale, 1) * var(--self-check-in-chip-box-scale-row, 1));
 	font-weight: bold;

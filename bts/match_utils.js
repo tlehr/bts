@@ -330,7 +330,8 @@ async function call_match(app, tournament, match, old_court, callback) {
 		state: match.setup && match.setup.state,
 		now_on_court: match.setup && match.setup.now_on_court,
 	});
-	async.waterfall([	(wcb) => add_called_timestamp(app, match, wcb),
+	async.waterfall([	(wcb) => ensure_court_available_for_match(app, tournament.key, match, wcb),
+		(wcb) => add_called_timestamp(app, match, wcb),
 		(wcb) => auto_assign_technical_officials_for_match(app, tournament, match._id, (assignErr) => {
 			if (assignErr) {
 				return wcb(assignErr);
@@ -387,6 +388,7 @@ async function switch_court(app, tournament, match, old_court, callback) {
 		return callback("Match cannot be switched to another court: one or more Teams are not set.");
 	}
 	async.waterfall([
+		(wcb) => ensure_court_available_for_match(app, tournament.key, match, wcb),
 		(wcb) => add_tabletoperators(app, tournament, match, wcb),
 		(wcb) => set_umpires_on_court(app, tournament, match, wcb),
 		(wcb) => remove_highlight_preparation(match, wcb),
@@ -415,6 +417,35 @@ function match_completly_initialized(setup) {
 		return false;
 	}
 	return true;
+}
+
+function ensure_court_available_for_match(app, tournament_key, match, callback) {
+	const court_id = match?.setup?.court_id;
+	const match_id = match?._id;
+	if (!court_id || !match_id) {
+		return callback("Match cannot be called court_id or _id not given.");
+	}
+
+	app.db.matches.find({
+		tournament_key,
+		'setup.now_on_court': true,
+		'setup.court_id': court_id,
+	}, (err, matches) => {
+		if (err) {
+			return callback(err);
+		}
+		const blocking_match = (matches || []).find((candidate) => {
+			return candidate &&
+				candidate._id !== match_id &&
+				candidate?.setup?.now_on_court === true &&
+				candidate?.setup?.court_id === court_id &&
+				typeof candidate.team1_won !== 'boolean';
+		});
+		if (blocking_match) {
+			return callback(new Error('Court ' + court_id + ' is already occupied by match ' + blocking_match._id));
+		}
+		return callback(null);
+	});
 }
 
 function add_called_timestamp(app, match, callback) {
@@ -1691,7 +1722,7 @@ function reset_tabletoperator_settings_at_player(app, tkey, tournament, player, 
 		btp_manager.update_players(app, tkey, [player]);
 		
 	} else {
-		if (player.last_time_on_court_ts) {
+		if (!tournament?.btp_settings?.check_in_per_match && player.last_time_on_court_ts) {
 			if ((now - player.last_time_on_court_ts) > tournament.btp_settings.pause_duration_ms) {
 				player.checked_in = true;
 			}
@@ -2324,7 +2355,10 @@ function auto_call_matches_on_free_courts(app, tournament_key, callback) {
 							candidate_match_nums: candidate_match_nums.map((match) => match && match.setup && match.setup.match_num),
 						});
 						call_preparation_match_on_court(app, tournament_key, court._id)
-							.then(() => cb(null))
+							.then(() => {
+								occupied_court_ids.add(court._id);
+								return cb(null);
+							})
 							.catch((callErr) => {
 								const message = callErr && (callErr.message || String(callErr));
 								if (/No match found to call on court/.test(message)) {

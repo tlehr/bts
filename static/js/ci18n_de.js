@@ -429,6 +429,11 @@ var ci18n_de = Object.assign(
 	'tabletoperator:move_up': 'In Liste vorziehen',
 	'tabletoperator:move_down': 'In Liste zurückstellen',
 	'tabletoperator:remove': 'Von Liste nehmen',
+	'tabletoperator:release_from_match': 'Tabletbediener von diesem Spiel entfernen',
+	'tabletoperator:release_participant_from_match': '{name} als Tabletbediener entfernen',
+	'tabletoperator:replacement_label': 'Ersetzen durch:',
+	'tabletoperator:replacement_placeholder': 'Spieler suchen oder Namen eingeben',
+	'tabletoperator:replacement_hint': 'Ohne gezielte Auswahl aus der Suche wird die aktuelle Tabletbedienung vollständig ersetzt.',
 	'csvexport:winners': 'Urkunden-Export (Word/CSV)',
 });
 
