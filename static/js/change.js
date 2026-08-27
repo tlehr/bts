@@ -78,6 +78,8 @@ function default_handler(rerender, special_funcs) {
 			'preparation_call_player_pause_expired_enabled',
 			'preparation_call_debug_output_enabled',
 			'preparation_call_technical_officials_available_enabled',
+			'preparation_call_no_player_waiting_as_tabletoperator_enabled',
+			'preparation_call_no_player_active_as_tabletoperator_enabled',
 			'preparation_call_time_limit_before_scheduled_enabled',
 			'preparation_call_time_limit_before_scheduled_minutes',
 			'preparation_call_block_ahead_limit_enabled',

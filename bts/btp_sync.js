@@ -596,13 +596,16 @@ function mergeLocalMatchIntoBtpMatch(current_match, match) {
 		Number(current_match.setup.highlight) > 0 &&
 		current_match.setup.preparation_call_timestamp;
 
-	if (local_preparation_active) {
-		match.setup.preparation_call_timestamp = current_match.setup.preparation_call_timestamp;
-		match.setup.state = 'preparation';
-	}
-	if (current_match.setup.needs_preparation_successor != null) {
-		match.setup.needs_preparation_successor = current_match.setup.needs_preparation_successor;
-	}
+		if (local_preparation_active) {
+			match.setup.preparation_call_timestamp = current_match.setup.preparation_call_timestamp;
+			match.setup.state = 'preparation';
+		}
+		if (current_match.setup.preparation_call_deferred === true) {
+			match.setup.preparation_call_deferred = true;
+		}
+		if (current_match.setup.needs_preparation_successor != null) {
+			match.setup.needs_preparation_successor = current_match.setup.needs_preparation_successor;
+		}
 	if (current_match.setup.needs_preparation_successor_ts != null) {
 		match.setup.needs_preparation_successor_ts = current_match.setup.needs_preparation_successor_ts;
 	}

@@ -353,6 +353,40 @@ function get_match_player_btp_ids(match) {
 		.filter((btp_id) => btp_id != null);
 }
 
+function get_waiting_tabletoperator_player_btp_ids(tournament) {
+	const tabletoperators = Array.isArray(tournament?.tabletoperators) ? tournament.tabletoperators : [];
+	const result = new Set();
+	tabletoperators.forEach((entry) => {
+		if (!entry || entry.court != null || !Array.isArray(entry.tabletoperator)) {
+			return;
+		}
+		entry.tabletoperator.forEach((operator) => {
+			if (operator && operator.btp_id != null) {
+				result.add(String(operator.btp_id));
+			}
+		});
+	});
+	return result;
+}
+
+function passes_no_player_waiting_as_tabletoperator_rule(match, tournament) {
+	if (tournament?.preparation_call_no_player_waiting_as_tabletoperator_enabled !== true) {
+		return true;
+	}
+	const waiting_player_ids = get_waiting_tabletoperator_player_btp_ids(tournament);
+	if (waiting_player_ids.size === 0) {
+		return true;
+	}
+	return get_match_player_btp_ids(match).every((btp_id) => !waiting_player_ids.has(String(btp_id)));
+}
+
+function passes_no_player_active_as_tabletoperator_rule(match, tournament) {
+	if (tournament?.preparation_call_no_player_active_as_tabletoperator_enabled !== true) {
+		return true;
+	}
+	return get_match_players(match).every((player) => !player || !player.now_tablet_on_court);
+}
+
 function is_finished_match(match) {
 	const state = match?.setup?.state;
 	if (state === 'finished') {
@@ -763,8 +797,9 @@ function passes_base_preparation_rules(match, location_id, tournament, options =
 	const ignore_location = options.ignore_location === true;
 	const ignore_technical_officials_available_rule = options.ignore_technical_officials_available_rule === true;
 
-	if (setup.state !== 'scheduled') return false;
-	if (setup.is_match !== true) return false;
+		if (setup.state !== 'scheduled') return false;
+		if (setup.preparation_call_deferred === true) return false;
+		if (setup.is_match !== true) return false;
 	if (setup.incomplete === true) return false;
 	if (!is_match_completely_initialized(match)) return false;
 	if (match?.team1_won !== undefined && match?.team1_won !== null) return false;
@@ -773,6 +808,8 @@ function passes_base_preparation_rules(match, location_id, tournament, options =
 	if (has_open_participant_dependency(match, tournament, { matches_by_planning_id })) return false;
 	if (!passes_time_limit_before_scheduled(match, tournament, now_ts)) return false;
 	if (!passes_player_pause_expired_rule(match, tournament, now_ts)) return false;
+	if (!passes_no_player_waiting_as_tabletoperator_rule(match, tournament)) return false;
+	if (!passes_no_player_active_as_tabletoperator_rule(match, tournament)) return false;
 	if (!ignore_technical_officials_available_rule && !passes_technical_officials_available_rule(match, tournament)) return false;
 
 	return true;
@@ -1085,8 +1122,9 @@ function passes_base_call_on_court_rules(match, court_id, tournament, options = 
 	const court = courts_by_id.get(court_id) || null;
 	const location_id = court?.location_id || null;
 
-	if (!court || court.is_active !== true) return false;
-	if (setup.state !== 'scheduled' && setup.state !== 'preparation') return false;
+		if (!court || court.is_active !== true) return false;
+		if (setup.preparation_call_deferred === true) return false;
+		if (setup.state !== 'scheduled' && setup.state !== 'preparation') return false;
 	if (setup.is_match !== true) return false;
 	if (setup.incomplete === true) return false;
 	if (!is_match_completely_initialized(match)) return false;
@@ -1488,12 +1526,13 @@ async function fetch_location_preparation_status(app, tournament_key, location_i
 }
 
 async function fetch_location_preparation_selection(app, tournament_key, location_id, options = {}) {
-	const [tournament, locations, courts, matches, umpires] = await Promise.all([
+	const [tournament, locations, courts, matches, umpires, tabletoperators] = await Promise.all([
 		app.db.tournaments.findOne_async({ key: tournament_key }),
 		app.db.locations.find_async({ tournament_key }),
 		app.db.courts.find_async({ tournament_key }),
 		app.db.matches.find_async({ tournament_key }),
 		app.db.umpires.find_async({ tournament_key }),
+		app.db.tabletoperators.find_async({ tournament_key }),
 	]);
 
 	const location = (locations || []).find((entry) => entry && entry._id === location_id) || null;
@@ -1503,6 +1542,7 @@ async function fetch_location_preparation_selection(app, tournament_key, locatio
 		courts,
 		matches,
 		umpires,
+		tabletoperators,
 	}, location_id, {
 		...options,
 		app,
@@ -1515,12 +1555,13 @@ async function fetch_location_preparation_selection(app, tournament_key, locatio
 }
 
 async function fetch_all_location_preparation_selections(app, tournament_key, options = {}) {
-	const [tournament, locations, courts, matches, umpires] = await Promise.all([
+	const [tournament, locations, courts, matches, umpires, tabletoperators] = await Promise.all([
 		app.db.tournaments.findOne_async({ key: tournament_key }),
 		app.db.locations.find_async({ tournament_key }),
 		app.db.courts.find_async({ tournament_key }),
 		app.db.matches.find_async({ tournament_key }),
 		app.db.umpires.find_async({ tournament_key }),
+		app.db.tabletoperators.find_async({ tournament_key }),
 	]);
 
 	return (locations || []).map((location) => {
@@ -1530,6 +1571,7 @@ async function fetch_all_location_preparation_selections(app, tournament_key, op
 			courts,
 			matches,
 			umpires,
+			tabletoperators,
 		}, location._id, {
 			...options,
 			app,
@@ -1543,12 +1585,13 @@ async function fetch_all_location_preparation_selections(app, tournament_key, op
 }
 
 async function fetch_global_preparation_candidates(app, tournament_key, options = {}) {
-	const [tournament, locations, courts, matches, umpires] = await Promise.all([
+	const [tournament, locations, courts, matches, umpires, tabletoperators] = await Promise.all([
 		app.db.tournaments.findOne_async({ key: tournament_key }),
 		app.db.locations.find_async({ tournament_key }),
 		app.db.courts.find_async({ tournament_key }),
 		app.db.matches.find_async({ tournament_key }),
 		app.db.umpires.find_async({ tournament_key }),
+		app.db.tabletoperators.find_async({ tournament_key }),
 	]);
 
 	return find_global_preparation_candidates({
@@ -1557,6 +1600,7 @@ async function fetch_global_preparation_candidates(app, tournament_key, options 
 		courts,
 		matches,
 		umpires,
+		tabletoperators,
 	}, options);
 }
 

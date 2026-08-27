@@ -448,14 +448,15 @@ function ensure_court_available_for_match(app, tournament_key, match, callback) 
 	});
 }
 
-function add_called_timestamp(app, match, callback) {
-	const setup = match.setup;
-	const called_timestamp = now_ms(app);
-	setup.called_timestamp = called_timestamp;
-	setup.state = 'oncourt';
-	remove_preparation_call_timestamp(setup);
-	return callback(null);
-}
+	function add_called_timestamp(app, match, callback) {
+		const setup = match.setup;
+		const called_timestamp = now_ms(app);
+		setup.called_timestamp = called_timestamp;
+		setup.state = 'oncourt';
+		delete setup.preparation_call_deferred;
+		remove_preparation_call_timestamp(setup);
+		return callback(null);
+	}
 
 function remove_called_timestamp(match, callback) {
 	const setup = match.setup;
@@ -487,13 +488,14 @@ function add_preparation_call_timestamp(app, tournament_key, setup, location_id)
 		stournament.get_locations(app.db, tournament_key, (err, all_locations) => {
 			for (const location of all_locations) {
 				if (location._id == location_id) {
-					setup.highlight = location.highlight;
-					setup.location_id = location_id;
-					setup.preparation_call_timestamp = now_ms(app);
-					setup.state = 'preparation';
-					resolve(setup);
-					return;
-				}
+						setup.highlight = location.highlight;
+						setup.location_id = location_id;
+						setup.preparation_call_timestamp = now_ms(app);
+						setup.state = 'preparation';
+						delete setup.preparation_call_deferred;
+						resolve(setup);
+						return;
+					}
 			}
 			serror.silent("Can't call a match in preparation for location ' + location_id.");
 			setup.highlight = 0;
@@ -1451,6 +1453,7 @@ function add_player_to_tabletoperator_list_by_match(app, tournament, tournament_
 							}
 							const admin = require('./admin'); // avoid dependency cycle
 							admin.notify_change(app, tournament_key, 'tabletoperator_add', { tabletoperator: inserted_t });
+							queue_auto_execute_preparation_selections(app, tournament_key);
 							if (i == teams.length - 1) {
 								callback(null);
 							}
@@ -1515,6 +1518,7 @@ function add_tabletoperator_to_tabletoperator_list_by_match(app, tournament_key,
 			}
 			const admin = require('./admin'); // avoid dependency cycle
 			admin.notify_change(app, tournament_key, 'tabletoperator_add', { tabletoperator: inserted_t });
+			queue_auto_execute_preparation_selections(app, tournament_key);
 		});
 	}
 	
@@ -1736,20 +1740,24 @@ function collect_expected_player_court_flags(matches) {
 	const expected_playing_courts = new Map();
 	const expected_tablet_courts = new Map();
 	(matches || [])
-		.filter((match) => match?.setup?.now_on_court === true && typeof match.team1_won !== 'boolean')
+		.filter((match) => match?.setup && typeof match.team1_won !== 'boolean')
 		.forEach((match) => {
 			const court_id = match?.setup?.court_id;
 			if (!court_id) {
 				return;
 			}
-			for_each_setup_player(match.setup, (player) => {
-				if (player?.btp_id != null && player.btp_id !== -1) {
-					expected_playing_courts.set(player.btp_id, court_id);
-				}
-			});
+			if (match.setup.now_on_court === true) {
+				for_each_setup_player(match.setup, (player) => {
+					const player_btp_id = Number(player?.btp_id);
+					if (Number.isFinite(player_btp_id) && player_btp_id !== -1) {
+						expected_playing_courts.set(player_btp_id, court_id);
+					}
+				});
+			}
 			(Array.isArray(match.setup.tabletoperators) ? match.setup.tabletoperators : []).forEach((operator) => {
-				if (operator?.btp_id != null && operator.btp_id !== -1) {
-					expected_tablet_courts.set(operator.btp_id, court_id);
+				const operator_btp_id = Number(operator?.btp_id);
+				if (Number.isFinite(operator_btp_id) && operator_btp_id !== -1) {
+					expected_tablet_courts.set(operator_btp_id, court_id);
 				}
 			});
 		});
@@ -1769,9 +1777,9 @@ function reconcile_player_court_flags_for_match(app, tournament_key, match, expe
 		if (!player) {
 			return;
 		}
-		const btp_id = player.btp_id;
-		const expected_playing_court = btp_id != null ? expected_flags.expected_playing_courts.get(btp_id) : null;
-		const expected_tablet_court = btp_id != null ? expected_flags.expected_tablet_courts.get(btp_id) : null;
+		const btp_id = Number(player.btp_id);
+		const expected_playing_court = Number.isFinite(btp_id) ? expected_flags.expected_playing_courts.get(btp_id) : null;
+		const expected_tablet_court = Number.isFinite(btp_id) ? expected_flags.expected_tablet_courts.get(btp_id) : null;
 		const has_wrong_playing_flag = !!player.now_playing_on_court && player.now_playing_on_court !== expected_playing_court;
 		const has_wrong_tablet_flag = !!player.now_tablet_on_court && player.now_tablet_on_court !== expected_tablet_court;
 
@@ -2476,7 +2484,8 @@ async function call_match_in_preparation(app, tournament, match, location_id, ca
 		if (
 			current_match.setup &&
 			current_match.setup.state === 'preparation' &&
-			Number(current_match.setup.highlight) > 0
+			Number(current_match.setup.highlight) > 0 &&
+			(!location_id || current_match.setup.location_id === location_id)
 		) {
 			return callback(null);
 		}

@@ -187,9 +187,9 @@ var ctournament = (function() {
 		}
 	}
 
-	function update_player_status(c) {
-		const cval = c.val;
-		const match_id = cval.match__id;
+		function update_player_status(c) {
+			const cval = c.val;
+			const match_id = cval.match__id;
 
 		// Find the match
 		const m = utils.find(curt.matches, m => m._id === match_id);
@@ -200,10 +200,8 @@ var ctournament = (function() {
 		m.btp_winner = cval.btp_winner;
 		m.setup = cval.setup;
 
-		if(current_view == 'show'){
-			cmatch.update_players(m);
-		}
-		
+		cmatch.update_players(m);
+		cmatch.update_all_player_status_indicators();
 	}
 
 	function remove_match(c) {
@@ -251,9 +249,10 @@ var ctournament = (function() {
 			m.setup = cval.match.setup;
 			m.btp_winner = cval.match.btp_winner;
 		}
-		const new_section = cmatch.calc_section(m);
-		cmatch.update_match(m, old_section, new_section);
-		update_location_preparation_need_labels();
+			const new_section = cmatch.calc_section(m);
+			cmatch.update_match(m, old_section, new_section);
+			cmatch.update_all_player_status_indicators();
+			update_location_preparation_need_labels();
 
 		return old_section;
 	}
@@ -318,6 +317,7 @@ var ctournament = (function() {
 	function tabletoperator_add(c) {
 		curt.tabletoperators.push(c.val.tabletoperator);
 		_show_render_tabletoperators();
+		request_location_preparation_selections();
 	}
 
 	function tabletoperator_moved_up(c) {
@@ -326,6 +326,7 @@ var ctournament = (function() {
 			changed_t.start_ts = c.val.tabletoperator.start_ts;
 		}
 		_show_render_tabletoperators();
+		request_location_preparation_selections();
 	}
 
 	function tabletoperator_moved_down(c) {
@@ -334,6 +335,7 @@ var ctournament = (function() {
 			changed_t.start_ts = c.val.tabletoperator.start_ts;
 		}
 		_show_render_tabletoperators();
+		request_location_preparation_selections();
 	}
 
 	function tabletoperator_removed(c) {
@@ -342,6 +344,7 @@ var ctournament = (function() {
 			changed_t.court = c.val.tabletoperator.court;
 		}
 		_show_render_tabletoperators();
+		request_location_preparation_selections();
 	}
 
 	function add_normalization(c) {
@@ -493,6 +496,8 @@ var ctournament = (function() {
 			'preparation_call_matches_ahead_of_frontier_limit',
 			'preparation_call_debug_output_enabled',
 			'preparation_call_technical_officials_available_enabled',
+			'preparation_call_no_player_waiting_as_tabletoperator_enabled',
+			'preparation_call_no_player_active_as_tabletoperator_enabled',
 		].forEach(field_name => _set_disabled_by_name(field_name, !preparation_automation_enabled));
 		const call_on_court_automation_enabled = !!curt.call_next_possible_scheduled_match_in_preparation;
 		[
@@ -2997,6 +3002,8 @@ var ctournament = (function() {
 			bind_live_prop(input.call_preparation_matches_automatically_enabled, 'call_preparation_matches_automatically_enabled');
 			input.preparation_successor_rally_count = create_numeric_input(curt, bts_fieldset, 'preparation_successor_rally_count', 1, 100, 11, 1);
 			input.preparation_call_player_pause_expired_enabled = create_checkbox(curt, bts_fieldset, 'preparation_call_player_pause_expired_enabled', 'automation_suboption_checkbox');
+			input.preparation_call_no_player_waiting_as_tabletoperator_enabled = create_checkbox(curt, bts_fieldset, 'preparation_call_no_player_waiting_as_tabletoperator_enabled', 'automation_suboption_checkbox');
+			input.preparation_call_no_player_active_as_tabletoperator_enabled = create_checkbox(curt, bts_fieldset, 'preparation_call_no_player_active_as_tabletoperator_enabled', 'automation_suboption_checkbox');
 			input.preparation_call_technical_officials_available_enabled = create_checkbox(curt, bts_fieldset, 'preparation_call_technical_officials_available_enabled', 'automation_suboption_checkbox');
 			input.preparation_call_technical_officials_available_hint = uiu.el(bts_fieldset, 'div', 'automation_suboption_hint');
 			{
@@ -9393,6 +9400,7 @@ function update_officials() {
 				key: participant.key,
 				checked_in: participant.checked_in,
 				now_tablet_on_court: participant.now_tablet_on_court || false,
+				waiting_as_tabletoperator: participant.waiting_as_tabletoperator || false,
 			})),
 		});
 	}
@@ -9426,7 +9434,7 @@ function update_officials() {
 				update_self_check_in_match_card(match_id);
 				return;
 			}
-			const check_in_locked = participant.role === 'player' && !!participant.now_tablet_on_court;
+			const check_in_locked = is_self_check_in_participant_locked(participant);
 			chip.classList.toggle('self_check_in_chip_ready', !!participant.checked_in);
 			chip.classList.toggle('self_check_in_chip_waiting', !participant.checked_in);
 			chip.classList.toggle('self_check_in_chip_locked', check_in_locked);
@@ -9483,6 +9491,7 @@ function update_officials() {
 				label_variants: build_person_name_variants(player),
 				checked_in: !!player.checked_in,
 				now_tablet_on_court: player.now_tablet_on_court || false,
+				waiting_as_tabletoperator: is_player_waiting_as_tabletoperator(player),
 			});
 		});
 	});
@@ -9552,7 +9561,7 @@ function update_officials() {
 	}
 
 	function render_self_check_in_chip(container, participant) {
-		const check_in_locked = participant.role === 'player' && !!participant.now_tablet_on_court;
+		const check_in_locked = is_self_check_in_participant_locked(participant);
 		const attrs = {
 			type: 'button',
 			'class': 'self_check_in_chip self_check_in_chip_' + (participant.checked_in ? 'ready' : 'waiting') + (participant.role_label ? ' self_check_in_chip_with_role' : '') + (check_in_locked ? ' self_check_in_chip_locked' : ''),
@@ -9604,6 +9613,25 @@ function update_officials() {
 					return cerror.net(err);
 				}
 			});
+		});
+	}
+
+	function is_self_check_in_participant_locked(participant) {
+		return participant && participant.role === 'player' && !!(participant.now_tablet_on_court || participant.waiting_as_tabletoperator);
+	}
+
+	function is_player_waiting_as_tabletoperator(player) {
+		const player_btp_id = player && player.btp_id;
+		if (player_btp_id == null || !Array.isArray(curt && curt.tabletoperators)) {
+			return false;
+		}
+
+		return curt.tabletoperators.some((entry) => {
+			if (!entry || entry.court != null || !Array.isArray(entry.tabletoperator)) {
+				return false;
+			}
+
+			return entry.tabletoperator.some((operator) => operator && String(operator.btp_id) === String(player_btp_id));
 		});
 	}
 

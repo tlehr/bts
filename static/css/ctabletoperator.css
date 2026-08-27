@@ -10,19 +10,6 @@
 	padding: 0.4em 0.4em;
 	margin: 0.4em 0 0 0.25em;
 }
-.tabletoperator_add_button {
-	display: inline-block;
-	min-width: 1em;
-	min-height: 1em;
-	background-size: 100%;
-	background-repeat: no-repeat;
-	background-position: center center;
-	height: 1.2em;
-	background-size: cover;
-	width: 1.0em;
-	margin: 0 0.2em 0 0.2em;
-	background-image: url(../icons/tabletoperator_add.svg);
-}
 .tabletoperator_move_up_button {
 	display: inline-block;
 	min-width: 1em;
@@ -67,18 +54,15 @@
 .tabletoperator_add_custom_button:hover,
 .tabletoperator_move_up_button:hover,
 .tabletoperator_move_down_button:hover,
-.tabletoperator_remove_button:hover,
-.tabletoperator_add_button:hover {
+.tabletoperator_remove_button:hover {
 	opacity: 0.5;
 }
 .tabletoperator_add_custom_button > *,
-.tabletoperator_remove_button > *,
-.tabletoperator_add_button > * {
+.tabletoperator_remove_button > * {
 	display: block;
 }
 .tabletoperator_add_custom_button > button,
-.tabletoperator_remove_button > button,
-.tabletoperator_add_button > button {
+.tabletoperator_remove_button > button {
 	margin: 0 0 0 2vmin;
 	font-size: 5vmin;
 	padding: 0.1em 0.1em;
