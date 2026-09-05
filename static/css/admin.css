@@ -119,6 +119,11 @@ button {
 .metadata_right_container{
 	min-width: 550px;
     width: 20%;
+	align-self: flex-end;
+}
+
+.enable_announcements_container {
+	align-self: flex-end;
 }
 
 .metadata_right_top_container{
@@ -126,6 +131,7 @@ button {
 	flex-direction: row;
     flex-wrap: wrap;
     justify-content: space-between;
+	align-items: flex-start;
 	gap: 0.5em 1em;
 }
 
@@ -133,6 +139,7 @@ button {
 	min-width: 260px;
 	padding: 0.15em 0.25em 0.25em 0.25em;
 	display: flex;
+	align-self: flex-start;
 	justify-content: center;
 }
 

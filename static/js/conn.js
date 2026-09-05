@@ -54,7 +54,24 @@ function handle_message(ws_msg) {
 		});
 		break;
 	case 'change':
-		on_change(msg);
+		if (msg.ctype === 'score' && window.curt && window.curt.bts_debug_output_enabled === true) {
+			console.log('[bts admin] score change received', {
+				tournament_key: msg.tournament_key,
+				current_tournament_key: window.curt && window.curt.key,
+				match_id: msg.val && msg.val.match_id,
+				score: msg.val && msg.val.network_score,
+			});
+		}
+		try {
+			on_change(msg);
+		} catch (err) {
+			console.error('[bts admin] change handler failed', {
+				ctype: msg.ctype,
+				tournament_key: msg.tournament_key,
+				val: msg.val,
+				err,
+			});
+		}
 		break;
 	default:
 		send({

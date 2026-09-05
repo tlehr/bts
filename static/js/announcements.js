@@ -60,6 +60,41 @@ function announcePreparationMatch(matchSetup) {
         buildAnnouncementClaimKey(matchSetup, 'match_preparation_call')
     );
 }
+
+function announceNoMatchWin(matchSetup, winningTeamIndex) {
+    const location_id = getLocationID(matchSetup);
+    const calls_enabled = window.localStorage.getItem('enable_announcement_calls_' + location_id) === 'true';
+    const free_enabled = window.localStorage.getItem('enable_free_announcements') === 'true';
+    if (!calls_enabled && !free_enabled) {
+        return;
+    }
+    const teams = matchSetup && matchSetup.teams ? matchSetup.teams : [];
+    const team1 = teams[0] && teams[0].players ? createSingleTeam(teams[0].players) : '';
+    const team2 = teams[1] && teams[1].players ? createSingleTeam(teams[1].players) : '';
+    const winner = teams[winningTeamIndex] && teams[winningTeamIndex].players
+        ? createSingleTeam(teams[winningTeamIndex].players)
+        : '';
+    if (!team1 || !team2 || !winner) {
+        return;
+    }
+    const introParts = [
+        createMatchNumberAnnouncement(matchSetup),
+        createEventAnnouncement(matchSetup),
+        createRoundAnnouncement(matchSetup),
+    ].filter(Boolean).map(part => String(part).replace(/!+$/, ''));
+    const intro = introParts.length > 0 ? introParts.join(', ') + '!' : '';
+    const teamsPart = ci18n('announcements:no_match_win:teams', {
+        team1,
+        team2,
+        winner,
+    });
+    announce(
+        [intro, teamsPart],
+        false,
+        buildAnnouncementClaimKey(matchSetup, 'match_no_match_announcement')
+    );
+}
+
 function announceSecondCallTeamOne(matchSetup) {
     if(!(window.localStorage.getItem('enable_announcement_calls_' + getLocationID(matchSetup)) === 'true')) {
         return;

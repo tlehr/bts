@@ -1,10 +1,38 @@
 var change = (function() {
 
-function default_handler(rerender, special_funcs) {
-	return function(c) {
-		default_handler_func(rerender, special_funcs, c);
-	};
-}
+	function default_handler(rerender, special_funcs) {
+		return function(c) {
+			if (c) {
+				c._bts_default_handler_seen = true;
+			}
+			default_handler_func(rerender, special_funcs, c);
+		};
+	}
+
+	function apply_score_patch(c) {
+		const score_match = change_score(c.val);
+		const debug_enabled = typeof window !== 'undefined' && window.curt && window.curt.bts_debug_output_enabled === true;
+		if (score_match && typeof cmatch !== 'undefined' && cmatch && typeof cmatch.update_match_score === 'function') {
+			c._bts_score_patch_applied = true;
+			cmatch.update_match_score(score_match);
+		} else if (debug_enabled) {
+			console.log('[bts admin] score change direct patch skipped', {
+				event_match_id: c && c.val && c.val.match_id,
+				has_match: !!score_match,
+				has_cmatch: typeof cmatch !== 'undefined' && !!cmatch,
+				has_update_match_score: typeof cmatch !== 'undefined' && cmatch && typeof cmatch.update_match_score === 'function',
+			});
+		}
+		if (
+			typeof current_view !== 'undefined' &&
+			current_view === 'show' &&
+			typeof ctournament !== 'undefined' &&
+			ctournament &&
+			typeof ctournament.update_location_preparation_need_labels === 'function'
+		) {
+			ctournament.update_location_preparation_need_labels();
+		}
+	}
 
 	function _announcement_claim_key(change_obj, fallback_kind) {
 		if (!change_obj || !change_obj.val) {
@@ -148,22 +176,89 @@ function default_handler(rerender, special_funcs) {
 		return list_name;
 	}
 
+	function _add_match_id_alias(ids, id) {
+		if (id === undefined || id === null || id === '') {
+			return;
+		}
+		const value = String(id);
+		ids.add(value);
+		if (value.startsWith('bts_btp_')) {
+			ids.add(value.substring(4));
+		}
+		else if (value.startsWith('btp_')) {
+			ids.add('bts_' + value);
+		}
+	}
+
+	function _match_id_aliases(match_id) {
+		const ids = new Set();
+		_add_match_id_alias(ids, match_id);
+		return ids;
+	}
+
+	function _match_matches_id(match, match_id) {
+		if (!match) {
+			return false;
+		}
+		const target_ids = _match_id_aliases(match_id);
+		const match_ids = new Set();
+		_add_match_id_alias(match_ids, match._id);
+		_add_match_id_alias(match_ids, match.match_id);
+		_add_match_id_alias(match_ids, match.btp_match_id);
+		if (match && Array.isArray(match.btp_match_ids)) {
+			match.btp_match_ids.forEach((entry) => {
+				if (!entry) return;
+				_add_match_id_alias(match_ids, entry.planning);
+				_add_match_id_alias(match_ids, entry.match_id);
+				_add_match_id_alias(match_ids, entry.id);
+			});
+		}
+		for (const id of match_ids) {
+			if (target_ids.has(id)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
 	function change_score(cval) {
 		const match_id = cval.match_id;
 
 		// Find the match
-		const m = utils.find(curt.matches, m => m._id === match_id);
+		const m = utils.find(curt.matches, m => _match_matches_id(m, match_id));
 		if (!m) {
 			cerror.silent('Cannot find match to update score, ID: ' + JSON.stringify(match_id));
-			return;
+			return null;
 		}
 
 		m.network_score = cval.network_score;
 		m.presses = cval.presses;
 		m.team1_won = cval.team1_won;
+		if (cval.shuttle_count !== undefined) {
+			m.shuttle_count = cval.shuttle_count;
+		}
+		if ('score_status' in cval) {
+			m.score_status = cval.score_status;
+		}
+		if ('forward_loser' in cval) {
+			m.forward_loser = cval.forward_loser;
+		}
+		if ('score_status_network_score' in cval) {
+			m.score_status_network_score = cval.score_status_network_score;
+		}
 		if (cval.end_ts !== undefined) {
 			m.end_ts = cval.end_ts;
 		}
+		if (!m.setup) {
+			m.setup = {};
+		}
+		if (cval.court_id !== undefined) {
+			m.setup.court_id = cval.court_id;
+		}
+		if (cval.now_on_court !== undefined) {
+			m.setup.now_on_court = cval.now_on_court;
+		}
+		return m;
 	}
 
 	function apply_umpires_changed(update, deps) {
@@ -320,6 +415,12 @@ function default_handler(rerender, special_funcs) {
 			break;
 		case 'courts_changed':
 			curt.courts = c.val.all_courts;
+			if (current_view === 'show' && ctournament && typeof ctournament.update_show_location_controls === 'function') {
+				ctournament.update_show_location_controls();
+			}
+			if (current_view === 'edit' && ctournament && typeof ctournament.update_edit_locations_and_courts === 'function') {
+				ctournament.update_edit_locations_and_courts();
+			}
 			rerender();
 			if (current_view === 'show' && ctournament && typeof ctournament.update_location_preparation_need_labels === 'function') {
 				ctournament.update_location_preparation_need_labels();
@@ -345,9 +446,26 @@ function default_handler(rerender, special_funcs) {
 			break;
 		case 'locations_changed':
 			curt.locations = c.val.all_locations;
+			if (current_view === 'show' && ctournament && typeof ctournament.update_show_location_controls === 'function') {
+				ctournament.update_show_location_controls();
+			}
+			if (current_view === 'edit' && ctournament && typeof ctournament.update_edit_locations_and_courts === 'function') {
+				ctournament.update_edit_locations_and_courts();
+			}
 			rerender();
 			break; 
 		case 'location_changed':
+			if (Array.isArray(c.val.all_locations)) {
+				curt.locations = c.val.all_locations;
+				if (current_view === 'show' && ctournament && typeof ctournament.update_show_location_controls === 'function') {
+					ctournament.update_show_location_controls();
+				}
+				if (current_view === 'edit' && ctournament && typeof ctournament.update_edit_locations_and_courts === 'function') {
+					ctournament.update_edit_locations_and_courts();
+				}
+				rerender();
+				break;
+			}
 			const l = utils.find(curt.locations, l => l._id === c.val.location_id);
 			if(l) {
 				l.highlight = c.val.highlight;
@@ -383,8 +501,11 @@ function default_handler(rerender, special_funcs) {
 				c.val.match.setup._match_id = c.val.match__id;
 			}
 			_handle_announcement_event('match_preparation_call', c.val, () => announcePreparationMatch(c.val.match.setup));
-			ctournament.update_match(c);
-			ctournament.update_upcoming_match(c);
+			if (current_view === 'show') {
+				ctournament.update_match(c);
+			} else {
+				ctournament.update_upcoming_match(c);
+			}
 			if (current_view === 'show' && ctournament && typeof ctournament.update_location_preparation_need_labels === 'function') {
 				ctournament.update_location_preparation_need_labels();
 			}
@@ -392,6 +513,15 @@ function default_handler(rerender, special_funcs) {
 		case 'match_called_on_court':
 			_attach_setup_announcement_claim(c, 'match_called_on_court');
 			_handle_announcement_event('match_called_on_court', c.val, () => announceNewMatch(c.val.setup));
+			break;
+		case 'match_no_match_announcement':
+			if (c.val && c.val.match && c.val.match.setup) {
+				c.val.match.setup._announcement_claim_key = `match_no_match_announcement:${c.val.match__id}:${c.val._announcement_ts || 'na'}`;
+				c.val.match.setup._match_id = c.val.match__id;
+			}
+			_handle_announcement_event('match_no_match_announcement', c.val, () => {
+				announceNoMatchWin(c.val.match.setup, c.val.winning_team_index);
+			});
 			break;
 		case 'begin_to_play_call':
 			_attach_setup_announcement_claim(c, 'begin_to_play_call');
@@ -581,8 +711,19 @@ function default_handler(rerender, special_funcs) {
 			official_edit[c.val.field] = c.val.value;
 			ctournament.update_officials();
 			break;
-		case 'score':
-			change_score(c.val);
+			case 'score':
+				const score_match = change_score(c.val);
+				if (score_match && cmatch && typeof cmatch.update_match_score === 'function') {
+					c._bts_score_patch_applied = true;
+					if (window.curt && window.curt.bts_debug_output_enabled === true) {
+						console.log('[bts admin] score change generic patch', {
+							event_match_id: c && c.val && c.val.match_id,
+							match_id: score_match._id,
+							score: score_match.network_score,
+					});
+				}
+				cmatch.update_match_score(score_match);
+			}
 			if (current_view === 'show' && ctournament && typeof ctournament.update_location_preparation_need_labels === 'function') {
 				ctournament.update_location_preparation_need_labels();
 			}
@@ -745,6 +886,7 @@ function default_handler(rerender, special_funcs) {
 
 	return {
 		default_handler,
+		apply_score_patch,
 		_apply_umpires_changed: apply_umpires_changed
 	};
 

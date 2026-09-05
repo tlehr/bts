@@ -32,14 +32,52 @@ function _resolve_vpath(vpath, keys) {
 
 function on_change(c) {
 	if (!cur_route) {
+		if (c && c.ctype === 'score' && window.curt && window.curt.bts_debug_output_enabled === true) {
+			console.log('[bts admin] score change dropped: no active route', {
+				tournament_key: c.tournament_key,
+				current_path: window.location.pathname,
+			});
+		}
 		return;
 	}
 
 	if (!curt || (c.tournament_key !== curt.key)) {
+		if (c && c.ctype === 'score' && window.curt && window.curt.bts_debug_output_enabled === true) {
+			console.log('[bts admin] score change dropped: tournament mismatch', {
+				tournament_key: c.tournament_key,
+				current_tournament_key: curt && curt.key,
+				current_path: window.location.pathname,
+			});
+		}
 		return;
 	}
 
+	if (c && c.ctype === 'score' && window.curt && window.curt.bts_debug_output_enabled === true) {
+		console.log('[bts admin] score change routed', {
+			tournament_key: c.tournament_key,
+			current_tournament_key: curt && curt.key,
+			current_path: window.location.pathname,
+			match_id: c.val && c.val.match_id,
+		});
+	}
 	cur_route.on_change(c);
+	if (
+		c &&
+		c.ctype === 'score' &&
+		!c._bts_score_patch_applied &&
+		typeof change !== 'undefined' &&
+		change &&
+		typeof change.apply_score_patch === 'function'
+	) {
+		if (window.curt && window.curt.bts_debug_output_enabled === true) {
+			console.log('[bts admin] score change routed fallback patch', {
+				tournament_key: c.tournament_key,
+				current_path: window.location.pathname,
+				match_id: c.val && c.val.match_id,
+			});
+		}
+		change.apply_score_patch(c);
+	}
 }
 
 // Go to the handler for the specific URL

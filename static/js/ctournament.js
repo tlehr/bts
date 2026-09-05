@@ -19,6 +19,7 @@ let official_drag_refresh_pending = false;
 let pending_official_role_overrides = new Map();
 let preparation_selection_request_inflight = false;
 let preparation_selection_request_pending = false;
+let tournament_refresh_after_missed_change_pending = false;
 let btp_next_fetch_countdown_interval = null;
 let speech_output_badge_listener_registered = false;
 let test_clock_controls = null;
@@ -26,6 +27,12 @@ let test_clock_status_interval = null;
 const ANNOUNCEMENT_SPEECH_CHECK_STATE_STORAGE_KEY = 'bts_announcement_speech_check_state';
 
 var ctournament = (function() {
+	function admin_live_debug(label, data) {
+		if (curt && curt.bts_debug_output_enabled === true) {
+			console.log('[bts admin live] ' + label, data);
+		}
+	}
+
 	function _route_single(rex, func, handler) {
 		if (!handler) {
 			handler = change.default_handler(func);
@@ -54,6 +61,35 @@ var ctournament = (function() {
 			}
 			success_cb();
 		});
+	}
+
+	function request_tournament_refresh_after_missed_change(reason) {
+		if (!curt || !curt.key || tournament_refresh_after_missed_change_pending) {
+			return;
+		}
+		tournament_refresh_after_missed_change_pending = true;
+		setTimeout(() => {
+			const tournament_key = curt && curt.key;
+			if (!tournament_key) {
+				tournament_refresh_after_missed_change_pending = false;
+				return;
+			}
+			send({
+				type: 'tournament_get',
+				key: tournament_key,
+			}, function(err, response) {
+				tournament_refresh_after_missed_change_pending = false;
+				if (err) {
+					return cerror.net(err);
+				}
+				if (!response || !response.tournament) {
+					return;
+				}
+				curt = response.tournament;
+				cerror.silent('Turnierdaten nach verpasster Live-Aktualisierung neu geladen: ' + reason);
+				refresh_current_view();
+			});
+		}, 100);
 	}
 
 	function ui_create() {
@@ -144,17 +180,65 @@ var ctournament = (function() {
 		const create_btn = uiu.el(main, 'button', {
 			role: 'button',
 		}, 'Create tournament ...');
-		create_btn.addEventListener('click', ui_create);
-	}
+			create_btn.addEventListener('click', ui_create);
+		}
 
-	function update_score(c) {
-		const cval = c.val;
-		const match_id = cval.match_id;
+		function _add_match_id_alias(ids, id) {
+			if (id === undefined || id === null || id === '') {
+				return;
+			}
+			const value = String(id);
+			ids.add(value);
+			if (value.startsWith('bts_btp_')) {
+				ids.add(value.substring(4));
+			}
+			else if (value.startsWith('btp_')) {
+				ids.add('bts_' + value);
+			}
+		}
 
-		// Find the match
-		const m = utils.find(curt.matches, m => m._id === match_id);
+		function _match_matches_id(match, match_id) {
+			if (!match) {
+				return false;
+			}
+			const target_ids = new Set();
+			const match_ids = new Set();
+			_add_match_id_alias(target_ids, match_id);
+			_add_match_id_alias(match_ids, match._id);
+			_add_match_id_alias(match_ids, match.match_id);
+			_add_match_id_alias(match_ids, match.btp_match_id);
+			if (Array.isArray(match.btp_match_ids)) {
+				match.btp_match_ids.forEach((entry) => {
+					if (!entry) return;
+					_add_match_id_alias(match_ids, entry.planning);
+					_add_match_id_alias(match_ids, entry.match_id);
+					_add_match_id_alias(match_ids, entry.id);
+				});
+			}
+			for (const id of match_ids) {
+				if (target_ids.has(id)) {
+					return true;
+				}
+			}
+			return false;
+		}
+
+		function update_score(c) {
+			const cval = c.val;
+			const match_id = cval.match_id;
+			admin_live_debug('score event', {
+				match_id,
+				current_view,
+				tournament_key: c.tournament_key,
+				current_tournament_key: curt && curt.key,
+				in_memory_match: !!utils.find(curt.matches, m => _match_matches_id(m, match_id)),
+			});
+
+			// Find the match
+			const m = utils.find(curt.matches, m => _match_matches_id(m, match_id));
 		if (!m) {
 			cerror.silent('Cannot find match to update score, ID: ' + JSON.stringify(match_id));
+			request_tournament_refresh_after_missed_change('score ' + match_id);
 			return;
 		}
 
@@ -163,8 +247,20 @@ var ctournament = (function() {
 		m.presses = cval.presses;
 		m.team1_won = cval.team1_won;
 		m.shuttle_count = cval.shuttle_count;
+		if ('score_status' in cval) {
+			m.score_status = cval.score_status;
+		}
+		if ('forward_loser' in cval) {
+			m.forward_loser = cval.forward_loser;
+		}
+		if ('score_status_network_score' in cval) {
+			m.score_status_network_score = cval.score_status_network_score;
+		}
 		if (cval.end_ts !== undefined) {
 			m.end_ts = cval.end_ts;
+		}
+		if (!m.setup) {
+			m.setup = {};
 		}
 		if (cval.court_id !== undefined) {
 			m.setup.court_id = cval.court_id;
@@ -175,8 +271,27 @@ var ctournament = (function() {
 		const new_section = cmatch.calc_section(m);
 
 		if (old_section === new_section) {
+			c._bts_score_patch_applied = true;
+				admin_live_debug('score patch', {
+					match_id: m._id,
+					section: old_section,
+					score_targets: cmatch.count_match_score_targets ? cmatch.count_match_score_targets(m) : 0,
+					timer_targets: cmatch.count_match_timer_targets ? cmatch.count_match_timer_targets(m) : 0,
+					score_text: cmatch.calc_score_str(m),
+				network_score: m.network_score,
+				score_status: m.score_status,
+				now_on_court: m.setup && m.setup.now_on_court,
+			});
 			cmatch.update_match_score(m);
 		} else {
+			c._bts_score_patch_applied = true;
+			admin_live_debug('score section change', {
+				match_id: m._id,
+				old_section,
+				new_section,
+				network_score: m.network_score,
+				score_status: m.score_status,
+			});
 			if (new_section == 'finished' || new_section == 'unassigned') {
 				m.setup.now_on_court = false;
 			}
@@ -195,6 +310,7 @@ var ctournament = (function() {
 		const m = utils.find(curt.matches, m => m._id === match_id);
 		if (!m) {
 			cerror.silent('Cannot find match to update player status, ID: ' + JSON.stringify(match_id));
+			request_tournament_refresh_after_missed_change('player status ' + match_id);
 			return;
 		}
 		m.btp_winner = cval.btp_winner;
@@ -211,6 +327,7 @@ var ctournament = (function() {
 		const m = utils.find(curt.matches, m => m._id === match_id);
 		if (!m) {
 			cerror.silent('Cannot find match to update, ID: ' + JSON.stringify(match_id));
+			request_tournament_refresh_after_missed_change('upcoming match ' + match_id);
 			return;
 		}
 		const section = cmatch.calc_section(m);
@@ -230,29 +347,52 @@ var ctournament = (function() {
 		const match_id = cval.match__id;
 
 		// Find the match
-		const m = utils.find(curt.matches, m => m._id === match_id);
+		let m = utils.find(curt.matches, m => m._id === match_id);
 		if (!m) {
+			if (cval.match) {
+				curt.matches.push(cval.match);
+				curt.matches = curt.matches.sort((a, b) => cmatch.cmp_match_order(a, b));
+				cmatch.add_match(cval.match, cmatch.calc_section(cval.match));
+				cmatch.update_all_player_status_indicators();
+				update_location_preparation_need_labels();
+				return;
+			}
 			cerror.silent('Cannot find match to update, ID: ' + JSON.stringify(match_id));
+			request_tournament_refresh_after_missed_change('match ' + match_id);
 			return;
 		}
 		const old_section = cmatch.calc_section(m);
 		if (cval.match) {
 			if('network_score' in cval.match){
 				m.network_score = cval.match.network_score;
+			} else if (cval.match.score_status === 'normal' || cval.match.score_status === 'no_match') {
+				delete m.network_score;
 			}
 			m.presses = cval.match.presses;
 			m.team1_won = cval.match.team1_won;
 			m.shuttle_count = cval.match.shuttle_count;
+			m.score_status = cval.match.score_status;
+			m.forward_loser = cval.match.forward_loser;
+			if ('score_status_network_score' in cval.match) {
+				m.score_status_network_score = cval.match.score_status_network_score;
+			} else {
+				delete m.score_status_network_score;
+			}
+			if ('no_match_losing_team' in cval.match) {
+				m.no_match_losing_team = cval.match.no_match_losing_team;
+			} else {
+				delete m.no_match_losing_team;
+			}
 			if ('end_ts' in cval.match) {
 				m.end_ts = cval.match.end_ts;
 			}
 			m.setup = cval.match.setup;
 			m.btp_winner = cval.match.btp_winner;
 		}
-			const new_section = cmatch.calc_section(m);
-			cmatch.update_match(m, old_section, new_section);
-			cmatch.update_all_player_status_indicators();
-			update_location_preparation_need_labels();
+		const new_section = cmatch.calc_section(m);
+		cmatch.update_match(m, old_section, new_section);
+		cmatch.update_all_player_status_indicators();
+		update_location_preparation_need_labels();
 
 		return old_section;
 	}
@@ -291,12 +431,21 @@ var ctournament = (function() {
 			return;
 		}
 		const old_section = cmatch.calc_section(m);
-		if(cval.match.network_score) {
-			m.network_score = cval.match.network_score;
-		}
-		m.presses = cval.match.presses;
-		m.team1_won = cval.match.team1_won;
+			if('network_score' in cval.match) {
+				m.network_score = cval.match.network_score;
+			} else if (cval.match.score_status === 'normal' || cval.match.score_status === 'no_match') {
+				delete m.network_score;
+			}
+			m.presses = cval.match.presses;
+			m.team1_won = cval.match.team1_won;
 		m.shuttle_count = cval.match.shuttle_count;
+		m.score_status = cval.match.score_status;
+		m.forward_loser = cval.match.forward_loser;
+		if ('score_status_network_score' in cval.match) {
+			m.score_status_network_score = cval.match.score_status_network_score;
+		} else {
+			delete m.score_status_network_score;
+		}
 		if ('end_ts' in cval.match) {
 			m.end_ts = cval.match.end_ts;
 		}
@@ -1016,10 +1165,14 @@ var ctournament = (function() {
 	// }
 
 	function render_enable_announcements(target, locations) {
-		const container = uiu.el(target, 'div', 'enable_announcements_container');
+		const container = uiu.el(target, 'div', 'enable_announcements_container location_announcements_controls');
+		render_enable_announcements_content(container, locations);
+	}
+
+	function render_enable_announcements_content(container, locations) {
 		uiu.el(container, 'h3', {}, 'Ansagen auf diesem Gerät');
 	
-		locations.forEach(loc => {
+		(locations || []).forEach(loc => {
 			{
 				const form = uiu.el(container, 'form');
 		
@@ -1125,10 +1278,14 @@ var ctournament = (function() {
 	}
 
 	function render_enable_location_courts(target, locations) {
-		const container = uiu.el(target, 'div', 'enable_announcements_container');
+		const container = uiu.el(target, 'div', 'enable_announcements_container location_courts_controls');
+		render_enable_location_courts_content(container, locations);
+	}
+
+	function render_enable_location_courts_content(container, locations) {
 		uiu.el(container, 'h3', {}, 'Zeige Felder');
 	
-		locations.forEach(loc => {
+		(locations || []).forEach(loc => {
 			const form = uiu.el(container, 'form');
 	
 			const checkboxId = `show_location_courts_${loc._id}`;
@@ -1157,6 +1314,23 @@ var ctournament = (function() {
 			// Gleich initial einmal aufrufen, damit der Sichtbarkeitszustand korrekt gesetzt ist
 			cmatch.update_tables(loc._id, checkbox.checked);
 		});
+	}
+
+	function update_show_location_controls() {
+		if (current_view !== 'show') {
+			return;
+		}
+		const locations = curt && Array.isArray(curt.locations) ? curt.locations : [];
+		const announcements_container = document.querySelector('.location_announcements_controls');
+		if (announcements_container) {
+			uiu.empty(announcements_container);
+			render_enable_announcements_content(announcements_container, locations);
+		}
+		const courts_container = document.querySelector('.location_courts_controls');
+		if (courts_container) {
+			uiu.empty(courts_container);
+			render_enable_location_courts_content(courts_container, locations);
+		}
 	}
 
 	function calculate_location_preparation_need_statuses() {
@@ -1250,8 +1424,11 @@ var ctournament = (function() {
 	}
 
 	function format_location_courts_label(location) {
-		const location_name = (location.name + " [" + location.short_name + "]") || 'Unbenannte Location';
-		return location_name;
+		if (!location) {
+			return 'Unbenannte Location';
+		}
+		const name = location.name || location.short_name || location._id || 'Unbenannte Location';
+		return location.short_name && location.short_name !== name ? name + " [" + location.short_name + "]" : name;
 	}
 
 	function update_location_preparation_need_labels(fetch_selections = true) {
@@ -1269,8 +1446,7 @@ var ctournament = (function() {
 			if (!location) {
 				return;
 			}
-			const location_name = (location.name + " [" + location.short_name + "]") || 'Unbenannte Location';
-			label.textContent = location_name;
+			label.textContent = format_location_courts_label(location);
 		});
 	}
 
@@ -3221,7 +3397,7 @@ var ctournament = (function() {
 		
 		// location-div##################################################################################
 		{
-			const location_div = uiu.el(form, 'div', 'settings');
+			const location_div = uiu.el(form, 'div', 'settings location_settings_section');
 			render_locations(location_div);
 			render_courts(location_div);
 		}
@@ -7104,17 +7280,32 @@ var ctournament = (function() {
 	function update_location(location_id, highlight, preparation_addition, meetingpoint_announcement) {
 		switch (get_admin_subpage()){
 			case 'edit':
-				const locations_table = document.querySelector('.locations_table');
-				const location_div = locations_table.parentElement;
-				location_div.innerHTML="";
-				render_locations(location_div);
-
+				update_edit_locations_and_courts();
 				break;
 			default:
 				break;
 		}
 		return;
 	};
+
+	function update_edit_locations_and_courts() {
+		if (current_view !== 'edit') {
+			return;
+		}
+		let section = document.querySelector('.location_settings_section');
+		if (!section) {
+			const locations_div = document.querySelector('.locations_div');
+			section = locations_div ? locations_div.parentElement : null;
+		}
+		if (!section) {
+			return;
+		}
+		section.innerHTML = '';
+		section.classList.add('location_settings_section');
+		render_locations(section);
+		render_courts(section);
+		update_edit_dependencies();
+	}
 
 /* ============================================================
  * DROP-ZONES (schmale Reihen zum Droppen)
@@ -10341,6 +10532,8 @@ function update_officials() {
 		update_display,
 		update_location,
 		update_location_logo,
+		update_edit_locations_and_courts,
+		update_show_location_controls,
 		update_court,
 		update_emergency_btn,
 		update_scoring_formats,
