@@ -467,6 +467,12 @@ async function craft_match(app, tkey, btp_id, location_map, court_map, event, st
 				match.btp_winner = bm.Winner[0];
 				match.team1_won = (match.btp_winner === 1);
 			}
+			match.btp_score_status = bm.ScoreStatus ? Number(bm.ScoreStatus[0]) : 0;
+			match.score_status = normalize_btp_score_status(match.btp_score_status);
+			match.forward_loser = bm.ForwardLoser ? parse_btp_bool(bm.ForwardLoser[0]) : false;
+			if ((match.score_status === 'no_match' || match.score_status === 'walkover') && typeof match.team1_won === 'boolean') {
+				match.no_match_losing_team = match.team1_won ? 1 : 0;
+			}
 			if (bm.Sets) {
 				match.network_score = _parse_score(bm);
 			}
@@ -584,6 +590,16 @@ function mergeLocalMatchIntoBtpMatch(current_match, match) {
 
 	if (!match.network_score && current_match.network_score) {
 		match.network_score = current_match.network_score;
+	}
+
+	if (
+		(current_match.score_status === 'retired' || current_match.score_status === 'disqualified') &&
+		Array.isArray(current_match.score_status_network_score)
+	) {
+		match.score_status = current_match.score_status;
+		match.btp_score_status = current_match.btp_score_status || match.btp_score_status;
+		match.forward_loser = current_match.forward_loser === true || match.forward_loser === true;
+		match.score_status_network_score = current_match.score_status_network_score;
 	}
 
 	if (current_match.setup.called_timestamp) {
@@ -776,9 +792,9 @@ function _craft_team(par) {
 			pres.nationality = p.Country[0];
 		}
 
-		//if (p.entries) {
-		//	pres.entries = p.entries;
-		//}
+		if (p.entries instanceof Map) {
+			pres.entries = Object.fromEntries(p.entries);
+		}
 
 		if (p.LastTimeOnCourt && p.LastTimeOnCourt[0]) {
 			let date = new Date(p.LastTimeOnCourt[0].year,
@@ -985,6 +1001,11 @@ function build_match_update_fields(match) {
 	return {
 		btp_match_ids: match.btp_match_ids,
 		btp_player_ids: match.btp_player_ids,
+		btp_score_status: match.btp_score_status,
+		forward_loser: match.forward_loser,
+		score_status: match.score_status,
+		no_match_losing_team: match.no_match_losing_team,
+		score_status_network_score: match.score_status_network_score,
 		setup: match.setup,
 		team1_won: match.team1_won,
 		btp_winner: match.btp_winner,
@@ -999,6 +1020,26 @@ function build_match_update_fields(match) {
 		shuttle_count: match.shuttle_count,
 		match_order: match.match_order,
 	};
+}
+
+function normalize_btp_score_status(score_status) {
+	const value = Number(score_status);
+	switch (value) {
+		case 1:
+			return 'walkover';
+		case 2:
+			return 'retired';
+		case 3:
+			return 'disqualified';
+		case 4:
+			return 'no_match';
+		default:
+			return 'normal';
+	}
+}
+
+function parse_btp_bool(value) {
+	return value === true || value === 'true' || value === 1 || value === '1';
 }
 
 function build_match_update_operations(current_match, next_match) {
@@ -1096,6 +1137,7 @@ function build_fallback_official(official_id, tkey) {
 
 async function integrate_matches(app, tkey, btp_state, scoring_formats, location_map, court_map, callback) {
 	const admin = require('./admin'); // avoid dependency cycle
+	const btp_manager = require('./btp_manager');
 	const match_utils = require('./match_utils');
 	const { draws, events, stages } = btp_state;
 
@@ -1110,6 +1152,43 @@ async function integrate_matches(app, tkey, btp_state, scoring_formats, location
 	const clubs = btp_state.clubs;
 	const districts = btp_state.districts;
 	let changes = false;
+	function cascade_synced_no_match(match, cb) {
+		admin.cascade_no_match_for_future_player_matches(app, tkey, match, (cascade_err, cascade_matches) => {
+			if (cascade_err) {
+				cb(cascade_err);
+				return;
+			}
+			if ((cascade_matches || []).length === 0) {
+				cb(null);
+				return;
+			}
+			changes = true;
+			for (const cascade_match of cascade_matches) {
+				admin.notify_change(app, tkey, 'match_edit', {
+					match__id: cascade_match._id,
+					match: cascade_match
+				});
+				btp_manager.update_score(app, cascade_match);
+			}
+			cb(null);
+		});
+	}
+	function rerun_pending_no_match_cascades(cb) {
+		app.db.matches.find({
+			tournament_key: tkey,
+		}, (err, matches) => {
+			if (err) {
+				cb(err);
+				return;
+			}
+			const cascade_sources = (matches || []).filter((match) =>
+				match.score_status === 'retired' ||
+				match.score_status === 'disqualified' ||
+				match.score_status === 'no_match'
+			);
+			async.eachSeries(cascade_sources, cascade_synced_no_match, cb);
+		});
+	}
 
 	async.each(btp_state.matches, function (bm, cb) {		
 		const draw = draws.get(bm.DrawID[0]);
@@ -1227,7 +1306,7 @@ async function integrate_matches(app, tkey, btp_state, scoring_formats, location
 						}
 
 						if (utils.plucked_deep_equal(match, current_match, Object.keys(match), true)) {
-							cb(null);
+							cascade_synced_no_match(match, cb);
 							return;
 						}
 
@@ -1267,7 +1346,7 @@ async function integrate_matches(app, tkey, btp_state, scoring_formats, location
 
 						const update_ops = build_match_update_operations(current_match, match);
 						if (Object.keys(update_ops).length === 0) {
-							cb(null);
+							cascade_synced_no_match(match, cb);
 							return;
 						}
 
@@ -1292,14 +1371,14 @@ async function integrate_matches(app, tkey, btp_state, scoring_formats, location
 									});
 								}
 							}
-							cb(null);
+							cascade_synced_no_match(match, cb);
 						});
 					});
 					return;
 				}
 				changes = true;
 				matches_to_add.push(match);
-				cb(null)
+				cascade_synced_no_match(match, cb);
 				return;
 			}, error => {
 				cb(null);
@@ -1360,10 +1439,9 @@ async function integrate_matches(app, tkey, btp_state, scoring_formats, location
 			}, 500);
 		};
 
-		
-		callback(null);
-	});
-}
+			rerun_pending_no_match_cascades(callback);
+		});
+	}
 
 async function reconcile_match_officials(app, tkey, callback) {
 	const admin = require('./admin');
@@ -1697,7 +1775,7 @@ function integrate_locations(app, tournament_key, btp_state, scoring_formats, ca
 
 		if (changed) {
 			stournament.get_locations(app.db, tournament_key, function (err, all_locations) {
-				admin.notify_change(app, tournament_key, 'location_changed', { all_locations });
+				admin.notify_change(app, tournament_key, 'locations_changed', { all_locations });
 				callback(err, scoring_formats, res);
 			});
 		} else {

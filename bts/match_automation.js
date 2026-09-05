@@ -56,6 +56,10 @@ function get_set_points(scoring_format, set_index) {
 	return use_last_set_points ? format.last_set_points : format.set_points;
 }
 
+function has_terminal_score_status(match) {
+	return !!match?.score_status && match.score_status !== 'normal';
+}
+
 function normalize_score_pair(score_pair) {
 	if (!Array.isArray(score_pair) || score_pair.length < 2) {
 		return null;
@@ -351,6 +355,49 @@ function get_match_player_btp_ids(match) {
 	return get_match_players(match)
 		.map((player) => player?.btp_id)
 		.filter((btp_id) => btp_id != null);
+}
+
+function get_match_team_player_btp_ids(match, team_index) {
+	const team = match?.setup?.teams?.[team_index];
+	if (!Array.isArray(team?.players)) {
+		return [];
+	}
+	return team.players
+		.map((player) => player?.btp_id)
+		.filter((btp_id) => btp_id != null)
+		.map((btp_id) => String(btp_id));
+}
+
+function get_inactive_player_btp_ids_from_special_results(tournament) {
+	const result = new Set();
+	const matches = Array.isArray(tournament?.matches) ? tournament.matches : [];
+	for (const match of matches) {
+		if (!match?.score_status || match.score_status === 'normal') {
+			continue;
+		}
+		if (match.score_status === 'no_match' && (match.no_match_losing_team === 0 || match.no_match_losing_team === 1)) {
+			for (const btp_id of get_match_team_player_btp_ids(match, match.no_match_losing_team)) {
+				result.add(btp_id);
+			}
+			continue;
+		}
+		if (typeof match.team1_won !== 'boolean') {
+			continue;
+		}
+		const affected_team_index = match.team1_won ? 1 : 0;
+		for (const btp_id of get_match_team_player_btp_ids(match, affected_team_index)) {
+			result.add(btp_id);
+		}
+	}
+	return result;
+}
+
+function passes_no_inactive_special_result_player_rule(match, tournament) {
+	const inactive_player_ids = get_inactive_player_btp_ids_from_special_results(tournament);
+	if (inactive_player_ids.size === 0) {
+		return true;
+	}
+	return get_match_player_btp_ids(match).every((btp_id) => !inactive_player_ids.has(String(btp_id)));
 }
 
 function get_waiting_tabletoperator_player_btp_ids(tournament) {
@@ -799,6 +846,7 @@ function passes_base_preparation_rules(match, location_id, tournament, options =
 
 		if (setup.state !== 'scheduled') return false;
 		if (setup.preparation_call_deferred === true) return false;
+		if (has_terminal_score_status(match)) return false;
 		if (setup.is_match !== true) return false;
 	if (setup.incomplete === true) return false;
 	if (!is_match_completely_initialized(match)) return false;
@@ -807,6 +855,7 @@ function passes_base_preparation_rules(match, location_id, tournament, options =
 	if (!ignore_location && !match_matches_location(match, location_id, courts_by_id)) return false;
 	if (has_open_participant_dependency(match, tournament, { matches_by_planning_id })) return false;
 	if (!passes_time_limit_before_scheduled(match, tournament, now_ts)) return false;
+	if (!passes_no_inactive_special_result_player_rule(match, tournament)) return false;
 	if (!passes_player_pause_expired_rule(match, tournament, now_ts)) return false;
 	if (!passes_no_player_waiting_as_tabletoperator_rule(match, tournament)) return false;
 	if (!passes_no_player_active_as_tabletoperator_rule(match, tournament)) return false;
@@ -1124,6 +1173,7 @@ function passes_base_call_on_court_rules(match, court_id, tournament, options = 
 
 		if (!court || court.is_active !== true) return false;
 		if (setup.preparation_call_deferred === true) return false;
+		if (has_terminal_score_status(match)) return false;
 		if (setup.state !== 'scheduled' && setup.state !== 'preparation') return false;
 	if (setup.is_match !== true) return false;
 	if (setup.incomplete === true) return false;
@@ -1135,6 +1185,7 @@ function passes_base_call_on_court_rules(match, court_id, tournament, options = 
 	if (!passes_call_on_court_preparation_rule(match, tournament, now_ts)) return false;
 	if (!passes_time_limit_before_scheduled_for_prefix(match, tournament, 'call_on_court', now_ts)) return false;
 	if (!passes_players_checked_in_rule_for_prefix(match, tournament, 'call_on_court')) return false;
+	if (!passes_no_inactive_special_result_player_rule(match, tournament)) return false;
 	if (!passes_player_pause_expired_rule_for_prefix(match, tournament, 'call_on_court', now_ts)) return false;
 	if (!passes_call_on_court_technical_officials_checked_in_rule(match, court, tournament)) return false;
 	if (!passes_call_on_court_technical_officials_available_rule(match, court, tournament)) return false;

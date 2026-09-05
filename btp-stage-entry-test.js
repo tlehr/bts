@@ -95,12 +95,14 @@ function find_explicit_candidate(indexes, args) {
 	const entry_id = args.entry_id != null ? Number(args.entry_id) : null;
 	const target_stage_id = args.target_stage_id != null ? Number(args.target_stage_id) : null;
 
-	if (target_stage_id == null) {
+	if (target_stage_id == null && args.target_status == null) {
 		throw new Error('Need --target-stage-id with explicit --entry-id or --stage-entry-id');
 	}
-	const target_stage = indexes.stages.get(target_stage_id);
+	const target_stage = target_stage_id == null ? null : indexes.stages.get(target_stage_id);
 	if (!target_stage) {
-		throw new Error(`Cannot find target stage ${target_stage_id}`);
+		if (target_stage_id != null) {
+			throw new Error(`Cannot find target stage ${target_stage_id}`);
+		}
 	}
 
 	const stage_entry = indexes.stage_entries.find(candidate => (
@@ -113,7 +115,7 @@ function find_explicit_candidate(indexes, args) {
 
 	return {
 		stage_entry,
-		target_stage,
+		target_stage: target_stage || indexes.stages.get(first(stage_entry.StageID)),
 		reason: 'explicit command line selection',
 	};
 }
@@ -207,6 +209,10 @@ parser.addArgument(['--target-stage-id'], {
 parser.addArgument(['--target-status'], {
 	help: 'Target StageEntry Status. Optional; useful to test whether StageEntry fields are writable at all.',
 });
+	parser.addArgument(['--list'], {
+		action: 'storeTrue',
+		help: 'List StageEntries and exit without sending an update.',
+	});
 	parser.addArgument(['--send'], {
 		action: 'storeTrue',
 		help: 'Actually send the update to BTP. Without this, only print XML.',
@@ -235,6 +241,12 @@ parser.addArgument(['--target-status'], {
 
 	const tournament = await fetch_tournament(ip, password, time_zone);
 	const indexes = build_indexes(tournament);
+	if (args.list) {
+		for (const stage_entry of indexes.stage_entries) {
+			console.log(describe_stage_entry(stage_entry, indexes));
+		}
+		return;
+	}
 	const candidate = (args.entry_id || args.stage_entry_id)
 		? find_explicit_candidate(indexes, args)
 		: find_auto_candidate(indexes);
@@ -246,8 +258,10 @@ parser.addArgument(['--target-status'], {
 	const original_update = normalize_stage_entry(candidate.stage_entry);
 	const next_update = {
 		...original_update,
-		StageID: first(candidate.target_stage.ID),
 	};
+	if (candidate.target_stage) {
+		next_update.StageID = first(candidate.target_stage.ID);
+	}
 	if (args.target_status != null) {
 		next_update.Status = Number(args.target_status);
 	}
@@ -276,10 +290,9 @@ parser.addArgument(['--target-status'], {
 
 	if (args.restore) {
 		const restore_update = {
-			...normalize_stage_entry(after_stage_entry),
-			StageID: original_update.StageID,
+			...original_update,
 		};
-		console.log('\nRestoring original StageID...');
+		console.log('\nRestoring original StageEntry...');
 		await send_stage_entry_update(ip, password, time_zone, unicode, restore_update);
 
 		const restored_tournament = await fetch_tournament(ip, password, time_zone);

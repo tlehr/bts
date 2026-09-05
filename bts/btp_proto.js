@@ -3,10 +3,46 @@ const assert = require('assert');
 const zlib = require('zlib');
 const xmldom = require('xmldom');
 const serror = require('./serror');
+const calc = require('../static/bup/dev/js/calc');
 
 function resolve_current_now_ms(options = {}) {
 	const normalized = Number(options.current_now_ms);
 	return Number.isFinite(normalized) ? normalized : Date.now();
+}
+
+function reached_score_from_match(match) {
+	const presses = Array.isArray(match?.presses) ? match.presses : [];
+	if (!match?.setup || presses.length < 1) {
+		return null;
+	}
+	try {
+		const state = calc.remote_state({}, match.setup, presses);
+		const scores = [];
+		if (Array.isArray(state?.match?.finished_games)) {
+			state.match.finished_games.forEach((finished_game) => {
+				if (Array.isArray(finished_game?.score) && finished_game.score.length >= 2) {
+					scores.push([
+						Number(finished_game.score[0]) || 0,
+						Number(finished_game.score[1]) || 0,
+					]);
+				}
+			});
+		}
+		if (Array.isArray(state?.game?.score) && state.game.score.length >= 2) {
+			const current_score = [
+				Number(state.game.score[0]) || 0,
+				Number(state.game.score[1]) || 0,
+			];
+			const last_score = scores[scores.length - 1];
+			if (!last_score || last_score[0] !== current_score[0] || last_score[1] !== current_score[1]) {
+				scores.push(current_score);
+			}
+		}
+		return scores.length > 0 ? scores : null;
+	} catch (err) {
+		console.error('[btp] failed to derive reached score for special score status', err);
+		return null;
+	}
 }
 
 function get_info_request(password) {
@@ -84,9 +120,34 @@ function update_request(match, key_unicode, password, umpire_btp_id, service_jud
 	assert(match.btp_match_ids.length > 0);
 	const shuttle_count = match.shuttle_count;
 	const presses = Array.isArray(match.presses) ? match.presses : [];
+	const score_status_by_name = {
+		normal: 0,
+		walkover: 1,
+		retired: 2,
+		disqualified: 3,
+		no_match: 4,
+	};
+	const normalize_score_status = () => {
+		if (score_status_by_name[match.score_status] != null) {
+			return score_status_by_name[match.score_status];
+		}
+		if (Number.isFinite(Number(match.btp_score_status))) {
+			return Number(match.btp_score_status);
+		}
+		for (let i = presses.length - 1; i >= 0 && i >= presses.length - 4; i--) {
+			if (presses[i]?.type == "retired") {
+				return 2; // retired
+			}
+			if (presses[i]?.type == "disqualified") {
+				return 3; // disqualified
+			}
+		}
+		return 0;
+	};
 
 	for (const btp_m_id of match.btp_match_ids) {
 		assert(btp_m_id);
+		const score_status = normalize_score_status();
 
 		//TODO: calc Status;
 
@@ -106,8 +167,12 @@ function update_request(match, key_unicode, password, umpire_btp_id, service_jud
 			const duration_mins = match.duration_ms ? Math.floor(match.duration_ms / 60000) : 0;
 			m.Duration = duration_mins;
 
-			if(match.network_score) {
-				const sets = match.network_score.map(ns => {
+			const special_status_uses_reached_score = score_status === 2 || score_status === 3;
+			const result_score = Array.isArray(match.score_status_network_score)
+				? match.score_status_network_score
+				: (special_status_uses_reached_score ? reached_score_from_match(match) : null) || match.network_score;
+			if(result_score) {
+				const sets = result_score.map(ns => {
 					return {
 						Set: {
 							T1: ns[0],
@@ -119,17 +184,16 @@ function update_request(match, key_unicode, password, umpire_btp_id, service_jud
 				m.Sets = sets;
 			}
 
-			let scoreStatus = 0; //Won normally
-			if(	(presses.length > 0 && presses[presses.length - 1].type == "retired") || 
-				(presses.length > 1 && presses[presses.length - 2].type == "retired")) {
-				scoreStatus = 2; //retired
+			m.ScoreStatus = score_status;
+			if (match.forward_loser === true || btp_m_id.forward_loser === true) {
+				m.ForwardLoser = true;
 			}
-			if(	(presses.length > 0 && presses[presses.length - 1].type == "disqualified") || 
-				(presses.length > 1 && presses[presses.length - 2].type == "disqualified")) {
-				scoreStatus = 3; //disqualified
+		}
+		if (score_status !== 0 && m.ScoreStatus == null) {
+			m.ScoreStatus = score_status;
+			if (match.forward_loser === true || btp_m_id.forward_loser === true) {
+				m.ForwardLoser = true;
 			}
-
-			m.ScoreStatus = scoreStatus;
 		}
 
 		if (umpire_btp_id) {
@@ -233,6 +297,47 @@ function update_players_request(players, key_unicode, password) {
 			btp_players.push({Player: pupdate});
 		}
 	});
+	return res;
+}
+
+function update_stage_entries_request(stage_entries, key_unicode, password) {
+	assert(key_unicode);
+	const stage_entries_list = [];
+	const res = {
+		Header: {
+			Version: {
+				Hi: 1,
+				Lo: 1,
+			},
+		},
+		Action: {
+			ID: 'SENDUPDATE',
+			Unicode: key_unicode,
+		},
+		Client: {
+			IP: 'bts',
+		},
+		Update: {
+			Tournament: {
+				StageEntries: stage_entries_list,
+			},
+		},
+	};
+	if (password) {
+		res.Action.Password = password;
+	}
+
+	assert(stage_entries);
+	assert(stage_entries.length > 0);
+	for (const stage_entry of stage_entries) {
+		const update = {};
+		for (const field of ['ID', 'StageID', 'EntryID', 'Status', 'Seed1', 'Seed2']) {
+			if (stage_entry[field] != null) {
+				update[field] = stage_entry[field];
+			}
+		}
+		stage_entries_list.push({StageEntry: update});
+	}
 	return res;
 }
 
@@ -468,6 +573,7 @@ module.exports = {
 	login_request,
 	update_request,
 	update_players_request,
+	update_stage_entries_request,
 	update_courts_request,
 	// Tests only
 	_req2xml: req2xml,

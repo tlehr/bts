@@ -45,6 +45,62 @@ function bup_incoming_ts(app, ts) {
 	return app?.clock?.to_effective_ts ? app.clock.to_effective_ts(ts) : ts;
 }
 
+function score_status_from_score_update(score_data) {
+	const explicit_status = score_data?.score_status;
+	if (explicit_status === 'retired' || explicit_status === 'disqualified') {
+		return explicit_status;
+	}
+	if (Number(explicit_status) === 2) {
+		return 'retired';
+	}
+	if (Number(explicit_status) === 3) {
+		return 'disqualified';
+	}
+	const presses = Array.isArray(score_data?.presses) ? score_data.presses : [];
+	for (let i = presses.length - 1; i >= 0 && i >= presses.length - 4; i--) {
+		const press_type = presses[i]?.type;
+		if (press_type === 'retired' || press_type === 'disqualified') {
+			return press_type;
+		}
+	}
+	return 'normal';
+}
+
+function reached_score_from_score_update(match, score_data) {
+	const presses = Array.isArray(score_data?.presses) ? score_data.presses : [];
+	if (!match?.setup || presses.length < 1) {
+		return null;
+	}
+	try {
+		const state = calc.remote_state({}, match.setup, presses);
+		const scores = [];
+		if (Array.isArray(state?.match?.finished_games)) {
+			state.match.finished_games.forEach((finished_game) => {
+				if (Array.isArray(finished_game?.score) && finished_game.score.length >= 2) {
+					scores.push([
+						Number(finished_game.score[0]) || 0,
+						Number(finished_game.score[1]) || 0,
+					]);
+				}
+			});
+		}
+		if (Array.isArray(state?.game?.score) && state.game.score.length >= 2) {
+			const current_score = [
+				Number(state.game.score[0]) || 0,
+				Number(state.game.score[1]) || 0,
+			];
+			const last_score = scores[scores.length - 1];
+			if (!last_score || last_score[0] !== current_score[0] || last_score[1] !== current_score[1]) {
+				scores.push(current_score);
+			}
+		}
+		return scores.length > 0 ? scores : null;
+	} catch (err) {
+		console.error('[bts] failed to derive reached score for special score status', err);
+		return null;
+	}
+}
+
 function normalize_panel_devicemode(devicemode) {
 	return devicemode === 'umpire' ? 'umpire' : 'display';
 }
@@ -331,11 +387,17 @@ async function handle_score_update(app, ws, msg) {
 			}
 
 			if (finish_confirmed) {
+				const score_status = score_status_from_score_update(score_data);
 				update["setup.now_on_court"] = false;
 				update["setup.state"] = 'finished';
 				update.team1_won = score_data.team1_won;
 				update.btp_winner = (update.team1_won === true) ? 1 : 2;
 				update.btp_needsync = true;
+				update.score_status = score_status;
+				update.forward_loser = score_status === 'retired' || score_status === 'disqualified';
+				if (update.forward_loser) {
+					update.score_status_network_score = reached_score_from_score_update(match, score_data) || score_data.score_status_network_score || score_data.network_score;
+				}
 			}
 
 			if (score_data.shuttle_count) {
@@ -380,6 +442,9 @@ async function handle_score_update(app, ws, msg) {
 							network_score: update.network_score,
 							team1_won: update.team1_won,
 							shuttle_count: update.shuttle_count,
+							score_status: update.score_status,
+							forward_loser: update.forward_loser,
+							score_status_network_score: update.score_status_network_score,
 							presses: updated_match.presses,
 							end_ts: updated_match.end_ts,
 							court_id: updated_match.setup && updated_match.setup.court_id,
@@ -1249,6 +1314,8 @@ function create_match_representation(app, tournament, match) {
 	const res = {
 		setup,
 		network_score: match.network_score,
+		score_status: match.score_status,
+		score_status_network_score: match.score_status_network_score,
 		network_team1_left: match.network_team1_left,
 		network_team1_serving: match.network_team1_serving,
 		network_teams_player1_even: match.network_teams_player1_even,
