@@ -1753,13 +1753,13 @@ function collect_expected_player_court_flags(matches) {
 						expected_playing_courts.set(player_btp_id, court_id);
 					}
 				});
+				(Array.isArray(match.setup.tabletoperators) ? match.setup.tabletoperators : []).forEach((operator) => {
+					const operator_btp_id = Number(operator?.btp_id);
+					if (Number.isFinite(operator_btp_id) && operator_btp_id !== -1) {
+						expected_tablet_courts.set(operator_btp_id, court_id);
+					}
+				});
 			}
-			(Array.isArray(match.setup.tabletoperators) ? match.setup.tabletoperators : []).forEach((operator) => {
-				const operator_btp_id = Number(operator?.btp_id);
-				if (Number.isFinite(operator_btp_id) && operator_btp_id !== -1) {
-					expected_tablet_courts.set(operator_btp_id, court_id);
-				}
-			});
 		});
 	return { expected_playing_courts, expected_tablet_courts };
 }
