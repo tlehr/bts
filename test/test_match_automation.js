@@ -626,6 +626,70 @@ _describe('match automation', () => {
 		});
 	});
 
+	_it('does not let a special result in another discipline block preparation', () => {
+		const source = make_preparation_match({
+			_id: 'retired-doubles',
+			team1_won: true,
+			setup: {
+				event_name: 'JD U15',
+				teams: [
+					{ players: [{ _id: 'partner', btp_id: 2 }] },
+					{ players: [{ _id: 'shared', btp_id: 1 }] },
+				],
+			},
+		});
+		source.score_status = 'retired';
+
+		const target = make_preparation_match({
+			_id: 'singles-target',
+			setup: {
+				event_name: 'JE U13',
+				teams: [
+					{ players: [{ _id: 'shared', btp_id: 1 }] },
+					{ players: [{ _id: 'opponent', btp_id: 3 }] },
+				],
+			},
+		});
+		const tournament = { courts: [], matches: [source, target] };
+
+		assert.strictEqual(
+			match_automation.is_match_eligible_for_preparation(target, 'l1', tournament),
+			true
+		);
+	});
+
+	_it('keeps special-result preparation blocks within the same discipline', () => {
+		const source = make_preparation_match({
+			_id: 'retired-group',
+			team1_won: true,
+			setup: {
+				event_name: 'JE U13 - Gruppe A',
+				teams: [
+					{ players: [{ _id: 'opponent', btp_id: 2 }] },
+					{ players: [{ _id: 'shared', btp_id: 1 }] },
+				],
+			},
+		});
+		source.score_status = 'retired';
+
+		const target = make_preparation_match({
+			_id: 'position-target',
+			setup: {
+				event_name: 'JE U13 - Position 1-4',
+				teams: [
+					{ players: [{ _id: 'shared', btp_id: 1 }] },
+					{ players: [{ _id: 'other', btp_id: 3 }] },
+				],
+			},
+		});
+		const tournament = { courts: [], matches: [source, target] };
+
+		assert.strictEqual(
+			match_automation.is_match_eligible_for_preparation(target, 'l1', tournament),
+			false
+		);
+	});
+
 	_it('respects the optional time limit before scheduled time', () => {
 		const tournament = {
 			preparation_call_time_limit_before_scheduled_enabled: true,
@@ -1775,6 +1839,9 @@ _describe('match automation', () => {
 					]),
 				},
 				umpires: {
+					find_async: async () => ([]),
+				},
+				tabletoperators: {
 					find_async: async () => ([]),
 				},
 			},

@@ -368,11 +368,26 @@ function get_match_team_player_btp_ids(match, team_index) {
 		.map((btp_id) => String(btp_id));
 }
 
-function get_inactive_player_btp_ids_from_special_results(tournament) {
+function normalize_match_discipline_name(match) {
+	return String(match?.setup?.event_name || '')
+		.replace(/\s*-\s*(?:Gruppe|Position)\s+.+$/i, '')
+		.trim();
+}
+
+function matches_same_discipline(a, b) {
+	const discipline_a = normalize_match_discipline_name(a);
+	const discipline_b = normalize_match_discipline_name(b);
+	return discipline_a !== '' && discipline_a === discipline_b;
+}
+
+function get_inactive_player_btp_ids_from_special_results(tournament, reference_match = null) {
 	const result = new Set();
 	const matches = Array.isArray(tournament?.matches) ? tournament.matches : [];
 	for (const match of matches) {
 		if (!match?.score_status || match.score_status === 'normal') {
+			continue;
+		}
+		if (reference_match && !matches_same_discipline(match, reference_match)) {
 			continue;
 		}
 		if (match.score_status === 'no_match' && (match.no_match_losing_team === 0 || match.no_match_losing_team === 1)) {
@@ -393,7 +408,7 @@ function get_inactive_player_btp_ids_from_special_results(tournament) {
 }
 
 function passes_no_inactive_special_result_player_rule(match, tournament) {
-	const inactive_player_ids = get_inactive_player_btp_ids_from_special_results(tournament);
+	const inactive_player_ids = get_inactive_player_btp_ids_from_special_results(tournament, match);
 	if (inactive_player_ids.size === 0) {
 		return true;
 	}
@@ -961,9 +976,7 @@ function find_preparation_frontier_match(tournament, location_id, options = {}) 
 }
 
 function normalize_frontier_block_event_name(event_name) {
-	return String(event_name || '')
-		.replace(/\s*-\s*Gruppe\s+.+$/i, '')
-		.trim();
+	return normalize_match_discipline_name({ setup: { event_name } });
 }
 
 function get_frontier_block_key(match) {
