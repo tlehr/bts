@@ -2686,8 +2686,288 @@ function get_preparation_frontier_debug_entries() {
 		.sort((a, b) => a.location_name.localeCompare(b.location_name, 'de'));
 }
 
-function preparation_call_debug_output_enabled() {
+const PREPARATION_DEBUG_RULE_LABELS = {
+	state_scheduled: 'Status ist angesetzt',
+	not_deferred: 'Vorbereitungsaufruf nicht zurueckgestellt',
+	score_status_normal: 'Keine Sonderwertung am Spiel',
+	is_match: 'Ist ein echtes Spiel',
+	not_incomplete: 'Spiel ist nicht unvollstaendig markiert',
+	participants_complete: 'Alle Teilnehmer stehen fest',
+	not_finished: 'Spiel ist nicht beendet',
+	location: 'Spiel passt zum Standort',
+	participant_dependencies: 'Keine offenen Vorgaenger oder frueheren Spielerteilnahmen',
+	time_before_scheduled: 'Zeitfenster vor geplanter Startzeit erreicht',
+	special_result_same_discipline: 'Keine blockierende Sonderwertung in derselben Disziplin',
+	not_playing_on_court: 'Kein Spieler spielt gerade',
+	player_pause: 'Spielerpausen sind abgelaufen',
+	not_waiting_tabletoperator: 'Kein Spieler wartet als Tabletbediener',
+	not_active_tabletoperator: 'Kein Spieler bedient gerade ein Tablet',
+	technical_officials_available: 'Schiedsrichterregeln erfuellt',
+	frontier_block_limit: 'Blockgrenze ab Frontier eingehalten',
+	frontier_time_limit: 'Zeitgrenze ab Frontier eingehalten',
+	frontier_match_limit: 'Spielanzahlgrenze ab Frontier eingehalten',
+};
+
+const CALL_ON_COURT_DEBUG_RULE_LABELS = {
+	...PREPARATION_DEBUG_RULE_LABELS,
+	court_active_free: 'Feld ist aktiv und frei',
+	state_scheduled_or_preparation: 'Status ist angesetzt oder in Vorbereitung',
+	not_on_court: 'Spiel ist noch nicht auf dem Feld',
+	call_on_court_preparation_age: 'Mindestzeit in Vorbereitung erreicht',
+	call_on_court_time_before_scheduled: 'Zeitfenster vor geplanter Startzeit erreicht',
+	players_checked_in: 'Alle Spieler sind eingecheckt',
+	call_on_court_officials_checked_in: 'Schiedsrichter sind eingecheckt',
+	call_on_court_officials_available: 'Schiedsrichter sind verfuegbar',
+	call_on_court_official_assignment_possible: 'Schiedsrichter koennen auf diesem Feld eingesetzt werden',
+	call_on_court_assigned_official_space: 'Feld hat Platz fuer zugewiesene Schiedsrichter',
+	call_on_court_frontier_block_limit: 'Blockgrenze ab Aufruf-Frontier eingehalten',
+	call_on_court_frontier_time_limit: 'Zeitgrenze ab Aufruf-Frontier eingehalten',
+	call_on_court_frontier_match_limit: 'Spielanzahlgrenze ab Aufruf-Frontier eingehalten',
+};
+
+function get_preparation_debug_location_name(location_id) {
+	const location = (curt && Array.isArray(curt.locations))
+		? curt.locations.find((candidate) => String(candidate?._id) === String(location_id))
+		: null;
+	if (location) {
+		return location.name || location.short_name || ('Standort ' + location_id);
+	}
+	return location_id != null ? ('Standort ' + location_id) : 'Standort';
+}
+
+function get_preparation_debug_diagnostics_for_match(match) {
+	if (!match || match._id == null) {
+		return [];
+	}
+	const match_id = String(match._id);
+	const selections_by_location_id = (curt && curt.location_preparation_selection_by_location_id) || {};
+	return Object.entries(selections_by_location_id)
+		.map(([location_id, selection]) => {
+			const diagnostics_by_match_id = (selection && selection.diagnostics_by_match_id) || {};
+			const diagnostics = diagnostics_by_match_id[match_id];
+			if (!diagnostics) {
+				return null;
+			}
+			return {
+				location_id,
+				location_name: get_preparation_debug_location_name(location_id),
+				diagnostics,
+			};
+		})
+		.filter((entry) => entry != null)
+		.sort((a, b) => a.location_name.localeCompare(b.location_name, 'de'));
+}
+
+function get_call_on_court_debug_entries_for_match(match) {
+	if (!match || match._id == null) {
+		return [];
+	}
+	const match_id = String(match._id);
+	const selections_by_location_id = (curt && curt.location_preparation_selection_by_location_id) || {};
+	return Object.entries(selections_by_location_id)
+		.map(([location_id, selection]) => {
+			const diagnostics_by_match_id = (selection && selection.call_on_court_diagnostics_by_match_id) || {};
+			const diagnostics = diagnostics_by_match_id[match_id];
+			if (!diagnostics) {
+				return null;
+			}
+			return {
+				location_id,
+				location_name: get_preparation_debug_location_name(location_id),
+				diagnostics,
+			};
+		})
+		.filter((entry) => entry != null)
+		.sort((a, b) => a.location_name.localeCompare(b.location_name, 'de'));
+}
+
+function get_call_on_court_debug_status(match) {
+	const entries = get_call_on_court_debug_entries_for_match(match);
+	if (entries.length === 0) {
+		return null;
+	}
+	return entries.some((entry) => entry.diagnostics?.eligible === true) ? 'ready' : 'blocked';
+}
+
+function get_preparation_debug_window_status(match) {
+	const entries = get_preparation_debug_diagnostics_for_match(match);
+	const window_entries = entries.filter((entry) => entry.diagnostics?.within_call_window === true);
+	if (window_entries.length === 0) {
+		return null;
+	}
+	if (window_entries.some((entry) => entry.diagnostics?.criteria_eligible === true)) {
+		return 'ok';
+	}
+	return 'blocked';
+}
+
+function format_preparation_debug_rule(rule, labels = PREPARATION_DEBUG_RULE_LABELS) {
+	if (rule && rule.enabled === false) {
+		const label = labels[rule.key] || rule.key || 'Regel';
+		return '- (deaktiviert) ' + label;
+	}
+	const marker = rule && rule.passed ? '\u2713' : '\u2717';
+	const label = labels[rule && rule.key] || (rule && rule.key) || 'Regel';
+	return marker + ' ' + label + (rule && rule.detail ? ' (' + rule.detail + ')' : '');
+}
+
+function preparation_debug_rules_pass(rules) {
+	return rules.every((rule) => rule && (rule.enabled === false || rule.passed === true));
+}
+
+function append_preparation_debug_rule_section(lines, title, passed, rules, labels = PREPARATION_DEBUG_RULE_LABELS) {
+	lines.push(title + ': ' + (passed ? 'ja' : 'nein'));
+	if (rules.length === 0) {
+		lines.push('- keine Regeln');
+		return;
+	}
+	rules.forEach((rule) => {
+		lines.push(format_preparation_debug_rule(rule, labels));
+	});
+}
+
+function count_failed_enabled_debug_rules(rules) {
+	return rules.filter((rule) => rule && rule.enabled !== false && rule.passed !== true).length;
+}
+
+function select_call_on_court_debug_diagnostics(court_diagnostics) {
+	if (!Array.isArray(court_diagnostics) || court_diagnostics.length === 0) {
+		return null;
+	}
+	const sorted = [...court_diagnostics].sort((a, b) => {
+		if (a?.eligible === true && b?.eligible !== true) return -1;
+		if (b?.eligible === true && a?.eligible !== true) return 1;
+		const a_rules = Array.isArray(a?.rules) ? a.rules : [];
+		const b_rules = Array.isArray(b?.rules) ? b.rules : [];
+		return count_failed_enabled_debug_rules(a_rules) - count_failed_enabled_debug_rules(b_rules);
+	});
+	return sorted[0] || null;
+}
+
+function format_preparation_debug_tooltip(match, entries) {
+	const match_num = match?.setup?.match_num != null ? ('#' + match.setup.match_num) : 'Spiel';
+	const lines = [match_num + ' Vorbereitungsauswahl'];
+	entries.forEach((entry, index) => {
+		if (index > 0) {
+			lines.push('');
+		}
+		lines.push(entry.location_name);
+		const rules = Array.isArray(entry.diagnostics?.rules) ? entry.diagnostics.rules : [];
+		if (rules.length === 0) {
+			lines.push('\u2717 Keine Detailregeln empfangen');
+			return;
+		}
+		const criteria_rules = rules.filter((rule) => !rule || rule.group !== 'window');
+		const window_rules = rules.filter((rule) => rule && rule.group === 'window');
+		const criteria_eligible = entry.diagnostics?.criteria_eligible ?? preparation_debug_rules_pass(criteria_rules);
+		const within_call_window = entry.diagnostics?.within_call_window ?? preparation_debug_rules_pass(window_rules);
+		append_preparation_debug_rule_section(lines, 'Grundsaetzlich aufrufbar', criteria_eligible, criteria_rules, PREPARATION_DEBUG_RULE_LABELS);
+		lines.push('');
+		append_preparation_debug_rule_section(lines, 'Innerhalb Aufrufgrenze', within_call_window, window_rules, PREPARATION_DEBUG_RULE_LABELS);
+	});
+	return lines.join('\n');
+}
+
+function format_call_on_court_debug_tooltip(match, entries) {
+	const match_num = match?.setup?.match_num != null ? ('#' + match.setup.match_num) : 'Spiel';
+	const lines = [match_num + ' Aufruf aufs Feld'];
+	entries.forEach((entry, index) => {
+		if (index > 0) {
+			lines.push('');
+		}
+		const diagnostics = entry.diagnostics || {};
+		lines.push(entry.location_name);
+		const court_diagnostics = Array.isArray(diagnostics.court_diagnostics) ? diagnostics.court_diagnostics : [];
+		const selected_diagnostics = select_call_on_court_debug_diagnostics(court_diagnostics);
+		lines.push('Aufrufkriterien erfuellt: ' + (diagnostics.eligible ? 'ja' : 'nein'));
+		if (court_diagnostics.length === 0) {
+			lines.push('\u2717 Keine Detaildaten fuer diesen Standort');
+			return;
+		}
+		const rules = Array.isArray(selected_diagnostics?.rules) ? selected_diagnostics.rules : [];
+		const criteria_rules = rules.filter((rule) => !rule || rule.group !== 'window');
+		const window_rules = rules.filter((rule) => rule && rule.group === 'window');
+		append_preparation_debug_rule_section(
+			lines,
+			'Kriterien',
+			selected_diagnostics?.criteria_eligible ?? preparation_debug_rules_pass(criteria_rules),
+			criteria_rules,
+			CALL_ON_COURT_DEBUG_RULE_LABELS
+		);
+		lines.push('');
+		append_preparation_debug_rule_section(
+			lines,
+			'Innerhalb Aufrufgrenze',
+			selected_diagnostics?.within_call_window ?? preparation_debug_rules_pass(window_rules),
+			window_rules,
+			CALL_ON_COURT_DEBUG_RULE_LABELS
+		);
+	});
+	return lines.join('\n');
+}
+
+function render_debug_icon(td, css_class, title) {
+	uiu.el(td, 'span', {
+		class: 'preparation_debug_icon ' + css_class,
+		title,
+	}, 'i');
+}
+
+function render_call_on_court_debug_cell(tr, match) {
+	const td = tr && tr.querySelector('td.call_td');
+	if (!td) {
+		return;
+	}
+	td.classList.add('preparation_debug_call_td');
+	const entries = get_call_on_court_debug_entries_for_match(match);
+	if (entries.length === 0) {
+		render_debug_icon(td, 'preparation_debug_icon_unknown', 'Keine Aufruf-Detaildaten fuer dieses Spiel vorhanden.');
+		return;
+	}
+	const is_ready = entries.some((entry) => entry.diagnostics?.eligible === true);
+	render_debug_icon(
+		td,
+		is_ready ? 'preparation_debug_icon_ok' : 'preparation_debug_icon_fail',
+		format_call_on_court_debug_tooltip(match, entries)
+	);
+}
+
+function render_preparation_debug_cell(tr, match) {
+	if (match?.setup?.state === 'preparation') {
+		render_call_on_court_debug_cell(tr, match);
+		return;
+	}
+	const td = tr && tr.querySelector('td.call_td');
+	if (!td) {
+		return;
+	}
+	td.classList.add('preparation_debug_call_td');
+	const entries = get_preparation_debug_diagnostics_for_match(match);
+	if (entries.length === 0) {
+		render_debug_icon(td, 'preparation_debug_icon_unknown', 'Keine Detaildaten fuer dieses Spiel vorhanden.');
+		return;
+	}
+	const has_failed_rule = entries.some((entry) => {
+		const rules = Array.isArray(entry.diagnostics?.rules) ? entry.diagnostics.rules : [];
+		return rules.some((rule) => !rule || rule.passed !== true);
+	});
+	render_debug_icon(
+		td,
+		has_failed_rule ? 'preparation_debug_icon_fail' : 'preparation_debug_icon_ok',
+		format_preparation_debug_tooltip(match, entries)
+	);
+}
+
+function preparation_call_debug_text_enabled() {
 	return !!(curt && curt.preparation_call_debug_output_enabled);
+}
+
+function preparation_call_debug_icons_enabled() {
+	return !!(curt && curt.preparation_call_debug_icons_enabled);
+}
+
+function preparation_call_debug_data_enabled() {
+	return preparation_call_debug_text_enabled() || preparation_call_debug_icons_enabled();
 }
 
 function render_unassigned(container) {
@@ -2695,7 +2975,7 @@ function render_unassigned(container) {
 	render_manual_btp_stage_status_warnings(container);
 	uiu.el(container, 'h3', 'section', ci18n('Unassigned Matches'));
 
-	if (preparation_call_debug_output_enabled()
+	if (preparation_call_debug_data_enabled()
 		&& curt
 		&& !curt.location_preparation_selection_by_location_id
 		&& ctournament
@@ -2703,8 +2983,8 @@ function render_unassigned(container) {
 		ctournament.request_location_preparation_selections();
 	}
 
-	const frontier_debug_entries = preparation_call_debug_output_enabled() ? get_preparation_frontier_debug_entries() : [];
-	if (preparation_call_debug_output_enabled()) {
+	const frontier_debug_entries = preparation_call_debug_text_enabled() ? get_preparation_frontier_debug_entries() : [];
+	if (preparation_call_debug_text_enabled()) {
 		const debug_container = uiu.el(container, 'div', 'preparation_frontier_debug');
 		uiu.el(debug_container, 'span', 'preparation_frontier_debug_label', 'Vorbereitungs-Debug:');
 		if (frontier_debug_entries.length) {
@@ -2733,9 +3013,10 @@ function render_unassigned(container) {
 		}
 		return true;
 	});
-	const callable_match_ids = get_preparation_callable_match_ids();
-	const cutoff_match_ids = get_preparation_cutoff_match_ids();
-	const frontier_match_ids = preparation_call_debug_output_enabled() ? get_preparation_frontier_match_ids() : new Set();
+	const show_preparation_debug_icons = preparation_call_debug_icons_enabled();
+	const callable_match_ids = show_preparation_debug_icons ? get_preparation_callable_match_ids() : new Set();
+	const cutoff_match_ids = show_preparation_debug_icons ? get_preparation_cutoff_match_ids() : new Set();
+	const frontier_match_ids = show_preparation_debug_icons ? get_preparation_frontier_match_ids() : new Set();
 
 	const table = uiu.el(container, 'table', 'match_table');
 	render_match_table_header(table, true);
@@ -2748,10 +3029,18 @@ function render_unassigned(container) {
 		const is_callable_for_preparation = callable_match_ids.has(String(match._id));
 		const is_cutoff_for_preparation = cutoff_match_ids.has(String(match._id));
 		const is_frontier_for_preparation = frontier_match_ids.has(String(match._id));
+		const preparation_window_status = show_preparation_debug_icons ? get_preparation_debug_window_status(match) : null;
+		const call_on_court_status = show_preparation_debug_icons && match?.setup?.state === 'preparation'
+			? get_call_on_court_debug_status(match)
+			: null;
 		const tr = uiu.el(tbody, 'tr', {
 			'class': 'match highlight_' + match.setup.highlight
 				+ (is_frontier_for_preparation ? ' preparation_frontier' : '')
 				+ (is_callable_for_preparation ? ' preparation_callable' : '')
+				+ (preparation_window_status === 'ok' ? ' preparation_debug_window_ok' : '')
+				+ (preparation_window_status === 'blocked' ? ' preparation_debug_window_blocked' : '')
+				+ (call_on_court_status === 'ready' ? ' call_on_court_debug_ready' : '')
+				+ (call_on_court_status === 'blocked' ? ' call_on_court_debug_blocked' : '')
 				+ (is_cutoff_for_preparation ? ' preparation_call_cutoff' : ''),
 			'data-match_id': match._id,
 		});
@@ -2759,6 +3048,9 @@ function render_unassigned(container) {
 			tr.setAttribute('data-preparation-callable', 'true');
 		}
 		render_match_row(tr, match, null, 'unasigned', true, curt.tabletoperator_enabled);
+		if (show_preparation_debug_icons) {
+			render_preparation_debug_cell(tr, match);
+		}
 	});
 }
 

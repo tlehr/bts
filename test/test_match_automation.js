@@ -690,6 +690,108 @@ _describe('match automation', () => {
 		);
 	});
 
+	_it('reports preparation diagnostics for special results per discipline', () => {
+		const source = make_preparation_match({
+			_id: 'retired-doubles',
+			team1_won: true,
+			setup: {
+				event_name: 'JD U15',
+				teams: [
+					{ players: [{ _id: 'partner', btp_id: 2 }] },
+					{ players: [{ _id: 'shared', btp_id: 1, name: 'Shared Player' }] },
+				],
+			},
+		});
+		source.score_status = 'retired';
+
+		const target = make_preparation_match({
+			_id: 'singles-target',
+			setup: {
+				event_name: 'JE U13',
+				teams: [
+					{ players: [{ _id: 'shared', btp_id: 1, name: 'Shared Player' }] },
+					{ players: [{ _id: 'opponent', btp_id: 3 }] },
+				],
+			},
+		});
+		const tournament = { courts: [], matches: [source, target] };
+
+		let diagnostics = match_automation.calculate_match_preparation_diagnostics(target, 'l1', tournament);
+		let special_result_rule = diagnostics.rules.find((rule) => rule.key === 'special_result_same_discipline');
+		assert.strictEqual(special_result_rule.passed, true);
+
+		source.setup.event_name = 'JE U13 - Gruppe A';
+		target.setup.event_name = 'JE U13 - Position 1-4';
+
+		diagnostics = match_automation.calculate_match_preparation_diagnostics(target, 'l1', tournament);
+		special_result_rule = diagnostics.rules.find((rule) => rule.key === 'special_result_same_discipline');
+		assert.strictEqual(special_result_rule.passed, false);
+		assert(special_result_rule.detail.includes('Shared Player'));
+	});
+
+	_it('includes preparation diagnostics in location selection debug data', () => {
+		const target = make_preparation_match({
+			_id: 'm1',
+			setup: {
+				location_id: 'l1',
+			},
+		});
+		const tournament = {
+			courts: [
+				{ _id: 'c1', location_id: 'l1', is_active: true, match_id: null },
+			],
+			matches: [target],
+		};
+
+		const selection = match_automation.calculate_location_preparation_selection(tournament, 'l1');
+
+		assert(selection.diagnostics_by_match_id.m1);
+		assert.strictEqual(selection.diagnostics_by_match_id.m1.match_id, 'm1');
+		assert(selection.diagnostics_by_match_id.m1.rules.some((rule) => rule.key === 'participants_complete'));
+	});
+
+	_it('separates preparation criteria from the call window in diagnostics', () => {
+		const tournament = {
+			preparation_call_time_limit_before_scheduled_enabled: true,
+			preparation_call_time_limit_before_scheduled_minutes: 15,
+			courts: [],
+			matches: [],
+		};
+		const match = make_preparation_match({
+			setup: {
+				scheduled_date: '2026-04-07',
+				scheduled_time_str: '10:00',
+			},
+		});
+
+		const diagnostics = match_automation.calculate_match_preparation_diagnostics(match, 'l1', tournament, {
+			now_ts: Date.parse('2026-04-07T09:40:00'),
+		});
+
+		assert.strictEqual(diagnostics.criteria_eligible, true);
+		assert.strictEqual(diagnostics.within_call_window, false);
+		assert.strictEqual(diagnostics.eligible, false);
+		assert.strictEqual(diagnostics.rules.find((rule) => rule.key === 'participants_complete').group, 'criteria');
+		assert.strictEqual(diagnostics.rules.find((rule) => rule.key === 'time_before_scheduled').group, 'window');
+	});
+
+	_it('marks disabled preparation diagnostic rules', () => {
+		const match = make_preparation_match();
+		const tournament = { courts: [], matches: [match] };
+
+		const diagnostics = match_automation.calculate_match_preparation_diagnostics(match, 'l1', tournament);
+
+		assert.strictEqual(diagnostics.rules.find((rule) => rule.key === 'time_before_scheduled').enabled, false);
+		assert.strictEqual(diagnostics.rules.find((rule) => rule.key === 'player_pause').enabled, false);
+		assert.strictEqual(diagnostics.rules.find((rule) => rule.key === 'not_waiting_tabletoperator').enabled, false);
+		assert.strictEqual(diagnostics.rules.find((rule) => rule.key === 'not_active_tabletoperator').enabled, false);
+		assert.strictEqual(diagnostics.rules.find((rule) => rule.key === 'technical_officials_available').enabled, false);
+		assert.strictEqual(diagnostics.rules.find((rule) => rule.key === 'frontier_block_limit').enabled, false);
+		assert.strictEqual(diagnostics.rules.find((rule) => rule.key === 'frontier_time_limit').enabled, false);
+		assert.strictEqual(diagnostics.rules.find((rule) => rule.key === 'frontier_match_limit').enabled, false);
+		assert.strictEqual(diagnostics.rules.find((rule) => rule.key === 'participants_complete').enabled, true);
+	});
+
 	_it('respects the optional time limit before scheduled time', () => {
 		const tournament = {
 			preparation_call_time_limit_before_scheduled_enabled: true,
@@ -808,9 +910,9 @@ _describe('match automation', () => {
 		);
 	});
 
-	_it('treats players currently on court or on tablet as not pause-cleared when the rule is enabled', () => {
+	_it('rejects players currently on court independently from pause timing', () => {
 		const tournament = {
-			preparation_call_player_pause_expired_enabled: true,
+			preparation_call_player_pause_expired_enabled: false,
 			btp_settings: {
 				pause_duration_ms: 10 * 60 * 1000,
 			},
@@ -827,6 +929,27 @@ _describe('match automation', () => {
 				],
 			},
 		});
+
+		assert.strictEqual(
+			match_automation.is_match_eligible_for_preparation(playing_match, 'l1', tournament, { now_ts: now }),
+			false
+		);
+		const diagnostics = match_automation.calculate_match_preparation_diagnostics(playing_match, 'l1', tournament, { now_ts: now });
+		assert.strictEqual(diagnostics.rules.find((rule) => rule.key === 'not_playing_on_court').passed, false);
+		assert.strictEqual(diagnostics.rules.find((rule) => rule.key === 'player_pause').passed, true);
+	});
+
+	_it('rejects active tablet operators through the dedicated tablet rule', () => {
+		const tournament = {
+			preparation_call_player_pause_expired_enabled: true,
+			preparation_call_no_player_active_as_tabletoperator_enabled: true,
+			btp_settings: {
+				pause_duration_ms: 10 * 60 * 1000,
+			},
+			courts: [],
+			matches: [],
+		};
+		const now = Date.parse('2026-04-07T10:30:00');
 		const tablet_match = make_preparation_match({
 			setup: {
 				teams: [
@@ -837,12 +960,17 @@ _describe('match automation', () => {
 		});
 
 		assert.strictEqual(
-			match_automation.is_match_eligible_for_preparation(playing_match, 'l1', tournament, { now_ts: now }),
-			false
-		);
-		assert.strictEqual(
 			match_automation.is_match_eligible_for_preparation(tablet_match, 'l1', tournament, { now_ts: now }),
 			false
+		);
+		const diagnostics = match_automation.calculate_match_preparation_diagnostics(tablet_match, 'l1', tournament, { now_ts: now });
+		assert.strictEqual(diagnostics.rules.find((rule) => rule.key === 'player_pause').passed, true);
+		assert.strictEqual(diagnostics.rules.find((rule) => rule.key === 'not_active_tabletoperator').passed, false);
+
+		tournament.preparation_call_no_player_active_as_tabletoperator_enabled = false;
+		assert.strictEqual(
+			match_automation.is_match_eligible_for_preparation(tablet_match, 'l1', tournament, { now_ts: now }),
+			true
 		);
 	});
 
@@ -922,6 +1050,69 @@ _describe('match automation', () => {
 				now_ts: Date.parse('2026-04-07T10:00:00'),
 			}),
 			true
+		);
+	});
+
+	_it('reports on-court call diagnostics for prepared matches', () => {
+		const court = make_court({ _id: 'c1', location_id: 'l1', is_active: true });
+		const match = make_preparation_match({
+			_id: 'prepared',
+			setup: {
+				state: 'preparation',
+				location_id: 'l1',
+				preparation_call_timestamp: Date.parse('2026-04-07T09:54:00'),
+			},
+		});
+		const tournament = make_tournament({
+			courts: [court],
+			matches: [match],
+			call_on_court_only_preparation_enabled: true,
+			call_on_court_only_preparation_minutes: 5,
+		});
+
+		const diagnostics = match_automation.calculate_match_call_on_court_diagnostics(match, 'c1', tournament, {
+			now_ts: Date.parse('2026-04-07T10:00:00'),
+		});
+
+		assert.strictEqual(diagnostics.eligible, true);
+		assert.strictEqual(diagnostics.criteria_eligible, true);
+		assert.strictEqual(diagnostics.rules.find((rule) => rule.key === 'court_active_free').passed, true);
+		assert.strictEqual(diagnostics.rules.find((rule) => rule.key === 'call_on_court_preparation_age').detail, 'in Vorbereitung 6 von 5 min');
+	});
+
+	_it('includes on-court call diagnostics in preparation selection debug data', () => {
+		const prepared_match = make_preparation_match({
+			_id: 'prepared',
+			setup: {
+				state: 'preparation',
+				location_id: 'l1',
+			},
+		});
+		const occupied_match = make_preparation_match({
+			_id: 'on-court',
+			setup: {
+				now_on_court: true,
+				court_id: 'c1',
+				location_id: 'l1',
+			},
+		});
+		const tournament = make_tournament({
+			courts: [
+				make_court({ _id: 'c1', location_id: 'l1', is_active: true }),
+			],
+			matches: [prepared_match, occupied_match],
+		});
+
+		const selection = match_automation.calculate_location_preparation_selection(tournament, 'l1');
+		const diagnostics = selection.call_on_court_diagnostics_by_match_id.prepared;
+
+		assert(diagnostics);
+		assert.strictEqual(diagnostics.eligible, true);
+		assert.deepStrictEqual(diagnostics.eligible_court_ids, ['c1']);
+		assert.strictEqual(diagnostics.court_diagnostics.find((entry) => entry.court_id === 'c1').eligible, true);
+		assert.strictEqual(
+			diagnostics.court_diagnostics[0].rules.some((rule) => rule.key === 'court_active_free'),
+			false
 		);
 	});
 
@@ -1661,6 +1852,75 @@ _describe('match automation', () => {
 		const candidates = match_automation.find_location_preparation_candidates(tournament, 'l1');
 
 		assert.deepStrictEqual(candidates.map((match) => match._id), ['m1', 'm3']);
+	});
+
+	_it('reports concrete preparation limit positions in diagnostics', () => {
+		const tournament = {
+			preparation_call_block_ahead_limit_enabled: true,
+			preparation_call_block_ahead_limit: 3,
+			preparation_call_time_ahead_of_frontier_enabled: true,
+			preparation_call_time_ahead_of_frontier_minutes: 30,
+			preparation_call_matches_ahead_of_frontier_enabled: true,
+			preparation_call_matches_ahead_of_frontier_limit: 3,
+			courts: [],
+			matches: [
+				make_preparation_match({
+					_id: 'frontier',
+					setup: {
+						match_num: 80,
+						scheduled_time_str: '09:00',
+						event_name: 'JE U13',
+						phase_block_key: 'HF',
+						teams: [
+							{ players: [{ _id: 'p1' }] },
+							{ players: [] },
+						],
+						links: { from1: 999 },
+					},
+				}),
+				make_preparation_match({
+					_id: 'm1',
+					setup: {
+						match_num: 81,
+						scheduled_time_str: '09:10',
+						event_name: 'JE U13',
+						phase_block_key: 'F',
+					},
+				}),
+				make_preparation_match({
+					_id: 'm2',
+					setup: {
+						match_num: 82,
+						scheduled_time_str: '09:20',
+						event_name: 'JE U13',
+						phase_block_key: 'PL',
+					},
+				}),
+			],
+		};
+
+		const diagnostics = match_automation.calculate_match_preparation_diagnostics(
+			tournament.matches[2],
+			'l1',
+			tournament,
+			{
+				frontier: tournament.matches[0],
+				relevant_matches: tournament.matches,
+			}
+		);
+
+		assert.strictEqual(
+			diagnostics.rules.find((rule) => rule.key === 'frontier_block_limit').detail,
+			'Block 2 von 3 nach Frontier-Spiel #80'
+		);
+		assert.strictEqual(
+			diagnostics.rules.find((rule) => rule.key === 'frontier_time_limit').detail,
+			'Zeit 20 von 30 min nach Frontier-Spiel #80'
+		);
+		assert.strictEqual(
+			diagnostics.rules.find((rule) => rule.key === 'frontier_match_limit').detail,
+			'Spiel 2 von 3 nach Frontier-Spiel #80'
+		);
 	});
 
 	_it('ignores incomplete matches when determining the frontier sequence', () => {

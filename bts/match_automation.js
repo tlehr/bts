@@ -320,6 +320,11 @@ function get_courts_by_id(tournament) {
 	return map;
 }
 
+function is_court_free(court_id, tournament) {
+	const matches = Array.isArray(tournament?.matches) ? tournament.matches : [];
+	return !matches.some((match) => match?.setup?.now_on_court === true && match?.setup?.court_id === court_id);
+}
+
 function match_matches_location(match, location_id, courts_by_id) {
 	const setup = match?.setup || {};
 	if (setup.location_id != null) {
@@ -355,6 +360,33 @@ function get_match_player_btp_ids(match) {
 	return get_match_players(match)
 		.map((player) => player?.btp_id)
 		.filter((btp_id) => btp_id != null);
+}
+
+function get_player_display_name(player) {
+	if (!player) {
+		return '';
+	}
+	if (player.name) {
+		return String(player.name);
+	}
+	const parts = [player.firstname, player.lastname || player.surname].filter((part) => !!part);
+	if (parts.length > 0) {
+		return parts.join(' ');
+	}
+	if (player.btp_id != null) {
+		return String(player.btp_id);
+	}
+	if (player._id != null) {
+		return String(player._id);
+	}
+	return '';
+}
+
+function format_player_names(players) {
+	return players
+		.map(get_player_display_name)
+		.filter((name) => name !== '')
+		.join(', ');
 }
 
 function get_match_team_player_btp_ids(match, team_index) {
@@ -415,6 +447,14 @@ function passes_no_inactive_special_result_player_rule(match, tournament) {
 	return get_match_player_btp_ids(match).every((btp_id) => !inactive_player_ids.has(String(btp_id)));
 }
 
+function get_inactive_special_result_players_for_match(match, tournament) {
+	const inactive_player_ids = get_inactive_player_btp_ids_from_special_results(tournament, match);
+	if (inactive_player_ids.size === 0) {
+		return [];
+	}
+	return get_match_players(match).filter((player) => player?.btp_id != null && inactive_player_ids.has(String(player.btp_id)));
+}
+
 function get_waiting_tabletoperator_player_btp_ids(tournament) {
 	const tabletoperators = Array.isArray(tournament?.tabletoperators) ? tournament.tabletoperators : [];
 	const result = new Set();
@@ -447,6 +487,32 @@ function passes_no_player_active_as_tabletoperator_rule(match, tournament) {
 		return true;
 	}
 	return get_match_players(match).every((player) => !player || !player.now_tablet_on_court);
+}
+
+function passes_no_player_playing_on_court_rule(match) {
+	return get_match_players(match).every((player) => !player || !player.now_playing_on_court);
+}
+
+function get_playing_players_for_match(match) {
+	return get_match_players(match).filter((player) => player && player.now_playing_on_court);
+}
+
+function get_waiting_tabletoperator_players_for_match(match, tournament) {
+	if (tournament?.preparation_call_no_player_waiting_as_tabletoperator_enabled !== true) {
+		return [];
+	}
+	const waiting_player_ids = get_waiting_tabletoperator_player_btp_ids(tournament);
+	if (waiting_player_ids.size === 0) {
+		return [];
+	}
+	return get_match_players(match).filter((player) => player?.btp_id != null && waiting_player_ids.has(String(player.btp_id)));
+}
+
+function get_active_tabletoperator_players_for_match(match, tournament) {
+	if (tournament?.preparation_call_no_player_active_as_tabletoperator_enabled !== true) {
+		return [];
+	}
+	return get_match_players(match).filter((player) => player && player.now_tablet_on_court);
 }
 
 function is_finished_match(match) {
@@ -601,10 +667,12 @@ function get_participant_readiness_mode(tournament, prefix = 'preparation_call')
 }
 
 function passes_player_pause_expired_rule(match, tournament, now_ts = DEFAULT_NOW_FN()) {
-	return passes_player_pause_expired_rule_for_prefix(match, tournament, 'preparation_call', now_ts);
+	return passes_player_pause_expired_rule_for_prefix(match, tournament, 'preparation_call', now_ts, {
+		include_current_activity: false,
+	});
 }
 
-function passes_player_pause_expired_rule_for_prefix(match, tournament, prefix, now_ts = DEFAULT_NOW_FN()) {
+function passes_player_pause_expired_rule_for_prefix(match, tournament, prefix, now_ts = DEFAULT_NOW_FN(), options = {}) {
 	if (get_participant_readiness_mode(tournament, prefix) !== 'pause_expired') {
 		return true;
 	}
@@ -618,7 +686,7 @@ function passes_player_pause_expired_rule_for_prefix(match, tournament, prefix, 
 		if (!player) {
 			return true;
 		}
-		if (player.now_playing_on_court || player.now_tablet_on_court) {
+		if (options.include_current_activity !== false && (player.now_playing_on_court || player.now_tablet_on_court)) {
 			return false;
 		}
 		if (player.tablet_break_active === true) {
@@ -632,6 +700,43 @@ function passes_player_pause_expired_rule_for_prefix(match, tournament, prefix, 
 		}
 		return (now_ts - Number(player.last_time_on_court_ts)) >= pause_duration_ms;
 	});
+}
+
+function get_player_pause_blockers(match, tournament, now_ts = DEFAULT_NOW_FN()) {
+	if (get_participant_readiness_mode(tournament, 'preparation_call') !== 'pause_expired') {
+		return [];
+	}
+
+	const pause_duration_ms = Number(tournament?.btp_settings?.pause_duration_ms);
+	if (!Number.isFinite(pause_duration_ms) || pause_duration_ms <= 0) {
+		return [];
+	}
+
+	return get_match_players(match)
+		.map((player) => {
+			if (!player) {
+				return null;
+			}
+			if (player.tablet_break_active === true) {
+				const tablet_break_until_ts = Number(player.tablet_break_until_ts);
+				if (Number.isFinite(tablet_break_until_ts) && now_ts < tablet_break_until_ts) {
+					return { player, reason: 'tablet_break', until_ts: tablet_break_until_ts };
+				}
+			}
+			if (!player.last_time_on_court_ts) {
+				return null;
+			}
+			const last_time_on_court_ts = Number(player.last_time_on_court_ts);
+			if (!Number.isFinite(last_time_on_court_ts)) {
+				return null;
+			}
+			const ready_ts = last_time_on_court_ts + pause_duration_ms;
+			if (now_ts < ready_ts) {
+				return { player, reason: 'pause', until_ts: ready_ts };
+			}
+			return null;
+		})
+		.filter((blocker) => blocker != null);
 }
 
 function passes_players_checked_in_rule(match, tournament) {
@@ -871,6 +976,7 @@ function passes_base_preparation_rules(match, location_id, tournament, options =
 	if (has_open_participant_dependency(match, tournament, { matches_by_planning_id })) return false;
 	if (!passes_time_limit_before_scheduled(match, tournament, now_ts)) return false;
 	if (!passes_no_inactive_special_result_player_rule(match, tournament)) return false;
+	if (!passes_no_player_playing_on_court_rule(match)) return false;
 	if (!passes_player_pause_expired_rule(match, tournament, now_ts)) return false;
 	if (!passes_no_player_waiting_as_tabletoperator_rule(match, tournament)) return false;
 	if (!passes_no_player_active_as_tabletoperator_rule(match, tournament)) return false;
@@ -1388,6 +1494,475 @@ function find_display_preparation_cutoff_match(tournament, display_frontier, str
 	return cutoff;
 }
 
+function add_preparation_diagnostic_rule(rules, key, passed, detail, enabled = true, group = 'criteria') {
+	const rule = {
+		key,
+		passed: passed === true,
+		enabled: enabled !== false,
+		group,
+	};
+	if (detail) {
+		rule.detail = detail;
+	}
+	rules.push(rule);
+}
+
+function enabled_diagnostic_rules_pass(rules) {
+	return rules.every((rule) => rule.enabled === false || rule.passed === true);
+}
+
+function describe_timestamp(timestamp) {
+	if (!Number.isFinite(timestamp)) {
+		return '';
+	}
+	return new Date(timestamp).toISOString();
+}
+
+function describe_pause_blockers(blockers) {
+	return blockers
+		.map((blocker) => {
+			const name = get_player_display_name(blocker.player);
+			if (blocker.reason === 'tablet_break') {
+				const until = describe_timestamp(blocker.until_ts);
+				return name ? `${name}: Tablet-Pause${until ? ' bis ' + until : ''}` : `Tablet-Pause${until ? ' bis ' + until : ''}`;
+			}
+			const until = describe_timestamp(blocker.until_ts);
+			return name ? `${name}: Pause${until ? ' bis ' + until : ''}` : `Pause${until ? ' bis ' + until : ''}`;
+		})
+		.filter((detail) => detail !== '')
+		.join('; ');
+}
+
+function format_limit_number(value) {
+	if (!Number.isFinite(value)) {
+		return '?';
+	}
+	if (Number.isInteger(value)) {
+		return String(value);
+	}
+	return String(Math.round(value * 10) / 10);
+}
+
+function describe_time_before_scheduled_limit_for_prefix(match, tournament, prefix, now_ts, passed) {
+	const limit_minutes = get_time_limit_before_scheduled_minutes_for_prefix(tournament, prefix);
+	if (limit_minutes == null) {
+		return null;
+	}
+	const scheduled_ts = get_scheduled_timestamp(match);
+	if (!Number.isFinite(scheduled_ts)) {
+		return 'Ansetzzeit fehlt';
+	}
+	const minutes_until_start = (scheduled_ts - now_ts) / (60 * 1000);
+	if (passed) {
+		if (minutes_until_start >= 0) {
+			return `noch ${format_limit_number(minutes_until_start)} von ${format_limit_number(limit_minutes)} min bis Start`;
+		}
+		return `${format_limit_number(Math.abs(minutes_until_start))} min nach geplanter Startzeit (Limit ${format_limit_number(limit_minutes)} min)`;
+	}
+	const available_from_ts = scheduled_ts - (limit_minutes * 60 * 1000);
+	return `noch ${format_limit_number(minutes_until_start)} min bis Start; Limit ${format_limit_number(limit_minutes)} min, freigegeben ab ${describe_timestamp(available_from_ts)}`;
+}
+
+function describe_time_before_scheduled_limit(match, tournament, now_ts, passed) {
+	return describe_time_before_scheduled_limit_for_prefix(match, tournament, 'preparation_call', now_ts, passed);
+}
+
+function get_frontier_match_distance(match, frontier, relevant_matches) {
+	if (!frontier) {
+		return null;
+	}
+	const match_index = relevant_matches.findIndex((candidate) => candidate?._id === match?._id);
+	const frontier_index = relevant_matches.findIndex((candidate) => candidate?._id === frontier?._id);
+	if (match_index < 0 || frontier_index < 0) {
+		return Number.POSITIVE_INFINITY;
+	}
+	return match_index - frontier_index;
+}
+
+function get_frontier_time_distance_minutes(match, frontier) {
+	if (!frontier) {
+		return null;
+	}
+	const match_ts = get_scheduled_timestamp(match);
+	const frontier_ts = get_scheduled_timestamp(frontier);
+	if (!Number.isFinite(match_ts) || !Number.isFinite(frontier_ts)) {
+		return Number.POSITIVE_INFINITY;
+	}
+	return (match_ts - frontier_ts) / (60 * 1000);
+}
+
+function describe_frontier_limit(kind, distance, limit, frontier, unit = '') {
+	if (limit == null) {
+		return null;
+	}
+	const frontier_label = frontier?.setup?.match_num != null ? `Frontier-Spiel #${frontier.setup.match_num}` : 'Frontier-Spiel';
+	const limit_text = `${format_limit_number(limit)}${unit}`;
+	if (!frontier) {
+		return `keine Frontier; Limit ${limit_text}`;
+	}
+	if (!Number.isFinite(distance)) {
+		return `nicht bestimmbar; Limit ${limit_text} nach ${frontier_label}`;
+	}
+	if (distance < 0) {
+		return `vor ${frontier_label}; Limit ${limit_text}`;
+	}
+	return `${kind} ${format_limit_number(distance)} von ${limit_text} nach ${frontier_label}`;
+}
+
+function describe_call_on_court_preparation_age(match, tournament, now_ts, passed) {
+	const minimum_minutes = get_call_on_court_preparation_age_minutes(tournament);
+	if (minimum_minutes == null) {
+		return null;
+	}
+	if (match?.setup?.state !== 'preparation') {
+		return 'Spiel ist nicht in Vorbereitung';
+	}
+	const preparation_ts = Number(match?.setup?.preparation_call_timestamp);
+	if (!Number.isFinite(preparation_ts)) {
+		return 'Zeitpunkt des Vorbereitungsaufrufs fehlt';
+	}
+	const age_minutes = Math.max(0, (now_ts - preparation_ts) / (60 * 1000));
+	if (passed) {
+		return `in Vorbereitung ${format_limit_number(age_minutes)} von ${format_limit_number(minimum_minutes)} min`;
+	}
+	return `erst ${format_limit_number(age_minutes)} von ${format_limit_number(minimum_minutes)} min in Vorbereitung`;
+}
+
+function calculate_match_call_on_court_diagnostics(match, court_id, tournament, options = {}) {
+	const setup = match?.setup || {};
+	const courts_by_id = options.courts_by_id || get_courts_by_id(tournament);
+	const matches_by_planning_id = options.matches_by_planning_id || build_matches_by_planning_id(tournament);
+	const now_ts = resolve_now_ts(options);
+	const court = courts_by_id.get(court_id) || null;
+	const location_id = court?.location_id || null;
+	const relevant_matches = options.relevant_matches || get_call_on_court_relevant_matches(tournament, location_id, { courts_by_id });
+	const frontier = options.frontier !== undefined
+		? options.frontier
+		: find_call_on_court_frontier_match(tournament, court_id, {
+			courts_by_id,
+			matches_by_planning_id,
+			now_ts,
+			relevant_matches,
+		});
+	const rules = [];
+	const court_free = !!court && court.is_active === true && is_court_free(court_id, tournament);
+
+	if (options.include_court_availability_rule !== false) {
+		add_preparation_diagnostic_rule(rules, 'court_active_free', court_free, court ? `Feld ${court.num ?? court_id}` : 'Feld fehlt');
+	}
+	add_preparation_diagnostic_rule(rules, 'not_deferred', setup.preparation_call_deferred !== true);
+	add_preparation_diagnostic_rule(rules, 'score_status_normal', !has_terminal_score_status(match), match?.score_status ? `Sonderwertung: ${match.score_status}` : null);
+	add_preparation_diagnostic_rule(
+		rules,
+		'state_scheduled_or_preparation',
+		setup.state === 'scheduled' || setup.state === 'preparation',
+		(setup.state === 'scheduled' || setup.state === 'preparation') ? null : (setup.state ? `Status: ${setup.state}` : 'Status fehlt')
+	);
+	add_preparation_diagnostic_rule(rules, 'is_match', setup.is_match === true);
+	add_preparation_diagnostic_rule(rules, 'not_incomplete', setup.incomplete !== true);
+	add_preparation_diagnostic_rule(rules, 'participants_complete', is_match_completely_initialized(match));
+	add_preparation_diagnostic_rule(rules, 'not_on_court', setup.now_on_court !== true);
+	add_preparation_diagnostic_rule(rules, 'not_finished', match?.team1_won === undefined || match?.team1_won === null);
+	const location_passed = match_matches_location(match, location_id, courts_by_id);
+	add_preparation_diagnostic_rule(
+		rules,
+		'location',
+		location_passed,
+		location_passed ? null : (location_id ? `Standort: ${location_id}` : null)
+	);
+	add_preparation_diagnostic_rule(
+		rules,
+		'participant_dependencies',
+		!has_open_participant_dependency(match, tournament, { matches_by_planning_id })
+	);
+
+	const preparation_age_enabled = get_call_on_court_preparation_age_minutes(tournament) != null;
+	const preparation_age_passed = passes_call_on_court_preparation_rule(match, tournament, now_ts);
+	add_preparation_diagnostic_rule(
+		rules,
+		'call_on_court_preparation_age',
+		preparation_age_passed,
+		describe_call_on_court_preparation_age(match, tournament, now_ts, preparation_age_passed),
+		preparation_age_enabled
+	);
+
+	const start_time_limit_enabled = get_time_limit_before_scheduled_minutes_for_prefix(tournament, 'call_on_court') != null;
+	const start_time_limit_passed = passes_time_limit_before_scheduled_for_prefix(match, tournament, 'call_on_court', now_ts);
+	add_preparation_diagnostic_rule(
+		rules,
+		'call_on_court_time_before_scheduled',
+		start_time_limit_passed,
+		describe_time_before_scheduled_limit_for_prefix(match, tournament, 'call_on_court', now_ts, start_time_limit_passed),
+		start_time_limit_enabled,
+		'window'
+	);
+
+	const players_checked_in_enabled = get_participant_readiness_mode(tournament, 'call_on_court') === 'checked_in';
+	add_preparation_diagnostic_rule(
+		rules,
+		'players_checked_in',
+		passes_players_checked_in_rule_for_prefix(match, tournament, 'call_on_court'),
+		null,
+		players_checked_in_enabled
+	);
+
+	const inactive_special_result_players = get_inactive_special_result_players_for_match(match, tournament);
+	add_preparation_diagnostic_rule(
+		rules,
+		'special_result_same_discipline',
+		inactive_special_result_players.length === 0,
+		inactive_special_result_players.length > 0 ? `Betroffen: ${format_player_names(inactive_special_result_players)}` : null
+	);
+
+	const player_pause_enabled = get_participant_readiness_mode(tournament, 'call_on_court') === 'pause_expired';
+	add_preparation_diagnostic_rule(
+		rules,
+		'player_pause',
+		passes_player_pause_expired_rule_for_prefix(match, tournament, 'call_on_court', now_ts),
+		null,
+		player_pause_enabled
+	);
+
+	const officials_mode = tournament?.call_on_court_technical_officials_mode || 'disabled';
+	add_preparation_diagnostic_rule(
+		rules,
+		'call_on_court_officials_checked_in',
+		passes_call_on_court_technical_officials_checked_in_rule(match, court, tournament),
+		null,
+		officials_mode === 'checked_in'
+	);
+	add_preparation_diagnostic_rule(
+		rules,
+		'call_on_court_officials_available',
+		passes_call_on_court_technical_officials_available_rule(match, court, tournament),
+		null,
+		officials_mode === 'available'
+	);
+	add_preparation_diagnostic_rule(
+		rules,
+		'call_on_court_official_assignment_possible',
+		passes_call_on_court_technical_official_assignment_possible_rule(match, court, tournament),
+		null,
+		officials_mode === 'available'
+	);
+	add_preparation_diagnostic_rule(
+		rules,
+		'call_on_court_assigned_official_space',
+		passes_call_on_court_assigned_official_space_rule(match, court, tournament),
+		null,
+		tournament?.call_on_court_require_official_space_enabled === true
+	);
+
+	const before_frontier = frontier && cmp_scheduled_match_order(match, frontier) < 0;
+	const block_limit = get_frontier_block_limit_for_prefix(tournament, 'call_on_court');
+	const time_limit = get_frontier_time_limit_minutes_for_prefix(tournament, 'call_on_court');
+	const match_limit = get_frontier_match_limit_for_prefix(tournament, 'call_on_court');
+	const block_distance = get_frontier_block_distance(match, frontier, relevant_matches);
+	const time_distance = get_frontier_time_distance_minutes(match, frontier);
+	const match_distance = get_frontier_match_distance(match, frontier, relevant_matches);
+	add_preparation_diagnostic_rule(
+		rules,
+		'call_on_court_frontier_block_limit',
+		before_frontier || passes_frontier_block_limit_for_prefix(match, frontier, tournament, relevant_matches, 'call_on_court'),
+		describe_frontier_limit('Block', block_distance, block_limit, frontier),
+		block_limit != null,
+		'window'
+	);
+	add_preparation_diagnostic_rule(
+		rules,
+		'call_on_court_frontier_time_limit',
+		before_frontier || passes_frontier_time_limit_for_prefix(match, frontier, tournament, 'call_on_court'),
+		describe_frontier_limit('Zeit', time_distance, time_limit, frontier, ' min'),
+		time_limit != null,
+		'window'
+	);
+	add_preparation_diagnostic_rule(
+		rules,
+		'call_on_court_frontier_match_limit',
+		before_frontier || passes_frontier_match_limit_for_prefix(match, frontier, tournament, relevant_matches, 'call_on_court'),
+		describe_frontier_limit('Spiel', match_distance, match_limit, frontier),
+		match_limit != null,
+		'window'
+	);
+
+	const criteria_rules = rules.filter((rule) => rule.group !== 'window');
+	const window_rules = rules.filter((rule) => rule.group === 'window');
+	const criteria_eligible = enabled_diagnostic_rules_pass(criteria_rules);
+	const within_call_window = enabled_diagnostic_rules_pass(window_rules);
+
+	return {
+		match_id: match?._id ?? null,
+		match_num: setup.match_num ?? null,
+		court_id: court_id ?? null,
+		court_num: court?.num ?? null,
+		criteria_eligible,
+		within_call_window,
+		eligible: criteria_eligible && within_call_window,
+		rules,
+	};
+}
+
+function calculate_match_preparation_diagnostics(match, location_id, tournament, options = {}) {
+	const setup = match?.setup || {};
+	const courts_by_id = options.courts_by_id || get_courts_by_id(tournament);
+	const matches_by_planning_id = options.matches_by_planning_id || build_matches_by_planning_id(tournament);
+	const now_ts = resolve_now_ts(options);
+	const relevant_matches = options.relevant_matches || get_location_relevant_matches(tournament, location_id, { courts_by_id });
+	const frontier = options.frontier !== undefined
+		? options.frontier
+		: find_preparation_frontier_match(tournament, location_id, {
+			courts_by_id,
+			matches_by_planning_id,
+			now_ts,
+			relevant_matches,
+			ignore_technical_officials_available_rule: options.ignore_technical_officials_available_rule === true,
+		});
+	const ignore_technical_officials_available_rule = options.ignore_technical_officials_available_rule === true;
+	const rules = [];
+
+	add_preparation_diagnostic_rule(
+		rules,
+		'state_scheduled',
+		setup.state === 'scheduled',
+		setup.state === 'scheduled' ? null : (setup.state ? `Status: ${setup.state}` : 'Status fehlt')
+	);
+	add_preparation_diagnostic_rule(rules, 'not_deferred', setup.preparation_call_deferred !== true);
+	add_preparation_diagnostic_rule(rules, 'score_status_normal', !has_terminal_score_status(match), match?.score_status ? `Sonderwertung: ${match.score_status}` : null);
+	add_preparation_diagnostic_rule(rules, 'is_match', setup.is_match === true);
+	add_preparation_diagnostic_rule(rules, 'not_incomplete', setup.incomplete !== true);
+	add_preparation_diagnostic_rule(rules, 'participants_complete', is_match_completely_initialized(match));
+	add_preparation_diagnostic_rule(rules, 'not_finished', match?.team1_won === undefined || match?.team1_won === null);
+	const location_passed = match_matches_location(match, location_id, courts_by_id);
+	add_preparation_diagnostic_rule(
+		rules,
+		'location',
+		location_passed,
+		location_passed ? null : (location_id ? `Standort: ${location_id}` : null)
+	);
+	add_preparation_diagnostic_rule(
+		rules,
+		'participant_dependencies',
+		!has_open_participant_dependency(match, tournament, { matches_by_planning_id })
+	);
+
+	const time_limit_enabled = get_time_limit_before_scheduled_minutes(tournament) != null;
+	const time_limit_passed = passes_time_limit_before_scheduled(match, tournament, now_ts);
+	add_preparation_diagnostic_rule(
+		rules,
+		'time_before_scheduled',
+		time_limit_passed,
+		describe_time_before_scheduled_limit(match, tournament, now_ts, time_limit_passed),
+		time_limit_enabled,
+		'window'
+	);
+
+	const inactive_special_result_players = get_inactive_special_result_players_for_match(match, tournament);
+	add_preparation_diagnostic_rule(
+		rules,
+		'special_result_same_discipline',
+		inactive_special_result_players.length === 0,
+		inactive_special_result_players.length > 0 ? `Betroffen: ${format_player_names(inactive_special_result_players)}` : null
+	);
+
+	const playing_players = get_playing_players_for_match(match);
+	add_preparation_diagnostic_rule(
+		rules,
+		'not_playing_on_court',
+		playing_players.length === 0,
+		playing_players.length > 0 ? `Betroffen: ${format_player_names(playing_players)}` : null
+	);
+
+	const pause_blockers = get_player_pause_blockers(match, tournament, now_ts);
+	const player_pause_enabled = get_participant_readiness_mode(tournament, 'preparation_call') === 'pause_expired';
+	add_preparation_diagnostic_rule(
+		rules,
+		'player_pause',
+		pause_blockers.length === 0,
+		describe_pause_blockers(pause_blockers),
+		player_pause_enabled
+	);
+
+	const waiting_tabletoperator_players = get_waiting_tabletoperator_players_for_match(match, tournament);
+	const waiting_tabletoperator_rule_enabled = tournament?.preparation_call_no_player_waiting_as_tabletoperator_enabled === true;
+	add_preparation_diagnostic_rule(
+		rules,
+		'not_waiting_tabletoperator',
+		waiting_tabletoperator_players.length === 0,
+		waiting_tabletoperator_players.length > 0 ? `Betroffen: ${format_player_names(waiting_tabletoperator_players)}` : null,
+		waiting_tabletoperator_rule_enabled
+	);
+
+	const active_tabletoperator_players = get_active_tabletoperator_players_for_match(match, tournament);
+	const active_tabletoperator_rule_enabled = tournament?.preparation_call_no_player_active_as_tabletoperator_enabled === true;
+	add_preparation_diagnostic_rule(
+		rules,
+		'not_active_tabletoperator',
+		active_tabletoperator_players.length === 0,
+		active_tabletoperator_players.length > 0 ? `Betroffen: ${format_player_names(active_tabletoperator_players)}` : null,
+		active_tabletoperator_rule_enabled
+	);
+
+	const technical_officials_rule_enabled =
+		ignore_technical_officials_available_rule !== true &&
+		tournament?.preparation_call_technical_officials_available_enabled === true;
+	add_preparation_diagnostic_rule(
+		rules,
+		'technical_officials_available',
+		!technical_officials_rule_enabled || passes_technical_officials_available_rule(match, tournament),
+		null,
+		technical_officials_rule_enabled
+	);
+
+	const before_frontier = frontier && cmp_scheduled_match_order(match, frontier) < 0;
+	const block_limit = get_frontier_block_limit(tournament);
+	const time_limit = get_frontier_time_limit_minutes(tournament);
+	const match_limit = get_frontier_match_limit(tournament);
+	const block_distance = get_frontier_block_distance(match, frontier, relevant_matches);
+	const time_distance = get_frontier_time_distance_minutes(match, frontier);
+	const match_distance = get_frontier_match_distance(match, frontier, relevant_matches);
+	const frontier_block_limit_passed = before_frontier || passes_frontier_block_limit(match, frontier, tournament, relevant_matches);
+	const frontier_time_limit_passed = before_frontier || passes_frontier_time_limit(match, frontier, tournament);
+	const frontier_match_limit_passed = before_frontier || passes_frontier_match_limit(match, frontier, tournament, relevant_matches);
+	add_preparation_diagnostic_rule(
+		rules,
+		'frontier_block_limit',
+		frontier_block_limit_passed,
+		describe_frontier_limit('Block', block_distance, block_limit, frontier),
+		block_limit != null,
+		'window'
+	);
+	add_preparation_diagnostic_rule(
+		rules,
+		'frontier_time_limit',
+		frontier_time_limit_passed,
+		describe_frontier_limit('Zeit', time_distance, time_limit, frontier, ' min'),
+		time_limit != null,
+		'window'
+	);
+	add_preparation_diagnostic_rule(
+		rules,
+		'frontier_match_limit',
+		frontier_match_limit_passed,
+		describe_frontier_limit('Spiel', match_distance, match_limit, frontier),
+		match_limit != null,
+		'window'
+	);
+	const criteria_rules = rules.filter((rule) => rule.group !== 'window');
+	const window_rules = rules.filter((rule) => rule.group === 'window');
+	const criteria_eligible = enabled_diagnostic_rules_pass(criteria_rules);
+	const within_call_window = enabled_diagnostic_rules_pass(window_rules);
+
+	return {
+		match_id: match?._id ?? null,
+		match_num: setup.match_num ?? null,
+		location_id: location_id ?? null,
+		criteria_eligible,
+		within_call_window,
+		eligible: criteria_eligible && within_call_window,
+		rules,
+	};
+}
+
 function find_location_preparation_candidates(tournament, location_id, options = {}) {
 	const matches = Array.isArray(tournament?.matches) ? tournament.matches : [];
 	const courts_by_id = options.courts_by_id || get_courts_by_id(tournament);
@@ -1528,6 +2103,53 @@ function calculate_location_preparation_selection(tournament, location_id, optio
 			now_ts,
 		});
 		});
+		const diagnostics_by_match_id = {};
+		display_relevant_matches.forEach((match) => {
+			if (!match || match._id == null) {
+				return;
+			}
+			diagnostics_by_match_id[match._id] = calculate_match_preparation_diagnostics(match, location_id, tournament, {
+				...options,
+				courts_by_id,
+				matches_by_planning_id,
+				now_ts,
+				relevant_matches: display_relevant_matches,
+				frontier: display_frontier,
+			});
+		});
+		const call_on_court_diagnostics_by_match_id = {};
+		const active_location_courts = [...courts_by_id.values()]
+			.filter((court) => court && court.location_id === location_id && court.is_active === true);
+		const matches = Array.isArray(tournament?.matches) ? tournament.matches : [];
+		matches.forEach((match) => {
+			const setup = match?.setup || {};
+			if (!match || match._id == null || setup.state !== 'preparation' || setup.location_id !== location_id) {
+				return;
+			}
+			const court_diagnostics = active_location_courts.map((court) => calculate_match_call_on_court_diagnostics(
+				match,
+				court._id,
+				tournament,
+				{
+					...options,
+					courts_by_id,
+					matches_by_planning_id,
+					now_ts,
+					include_court_availability_rule: false,
+				}
+			));
+			call_on_court_diagnostics_by_match_id[match._id] = {
+				match_id: match._id,
+				match_num: setup.match_num ?? null,
+				location_id,
+				eligible: court_diagnostics.some((diagnostics) => diagnostics.eligible === true),
+				eligible_court_ids: court_diagnostics
+					.filter((diagnostics) => diagnostics.eligible === true)
+					.map((diagnostics) => diagnostics.court_id)
+					.filter((court_id) => court_id != null),
+				court_diagnostics,
+			};
+		});
 		const effective_display_cutoff = display_cutoff || display_candidates[display_candidates.length - 1] || null;
 		const effective_required_preparation_count =
 			(tournament?.call_preparation_matches_automatically_enabled ? status.required_preparation_count : 0);
@@ -1546,6 +2168,8 @@ function calculate_location_preparation_selection(tournament, location_id, optio
 		display_cutoff: effective_display_cutoff,
 		display_relevant_matches,
 		display_candidates,
+		diagnostics_by_match_id,
+		call_on_court_diagnostics_by_match_id,
 		candidates,
 		selected_matches,
 		auto_selected_matches,
@@ -1683,6 +2307,8 @@ module.exports = {
 	find_location_preparation_candidates,
 	find_call_on_court_frontier_match,
 	get_preparation_successor_rally_count,
+	calculate_match_call_on_court_diagnostics,
+	calculate_match_preparation_diagnostics,
 	get_current_match_state,
 	get_current_leader,
 	has_open_participant_dependency,

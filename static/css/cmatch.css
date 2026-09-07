@@ -1331,7 +1331,64 @@ td.call_td {
 	width: 5.5em;
 }
 
-.match_table > tbody > tr.preparation_callable > td.call_td {
+td.call_td.preparation_debug_call_td {
+	position: relative;
+	box-sizing: border-box;
+	padding-right: 1.95em;
+	text-align: left;
+	white-space: nowrap;
+}
+
+.preparation_debug_icon {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 1.35em;
+	height: 1.35em;
+	border-radius: 50%;
+	font-size: 0.78em;
+	font-weight: 700;
+	line-height: 1;
+	cursor: help;
+	background: #e9eef3;
+	border: 1px solid #8c9aa8;
+	color: #2f3b45;
+}
+
+td.call_td .preparation_debug_icon {
+	position: absolute;
+	top: 50%;
+	right: 0.35em;
+	transform: translateY(-50%);
+}
+
+.preparation_debug_icon_ok {
+	background: #dff4e3;
+	border-color: #5aad67;
+	color: #23632d;
+}
+
+.preparation_debug_icon_fail {
+	background: #f8e3e1;
+	border-color: #cf6a60;
+	color: #8f2d25;
+}
+
+.preparation_debug_icon_unknown {
+	opacity: 0.55;
+}
+
+.match_table > tbody > tr.preparation_debug_window_ok > td.call_td .preparation_debug_icon,
+.match_table > tbody > tr.preparation_debug_window_blocked > td.call_td .preparation_debug_icon,
+.match_table > tbody > tr.call_on_court_debug_ready > td.call_td .preparation_debug_icon,
+.match_table > tbody > tr.call_on_court_debug_blocked > td.call_td .preparation_debug_icon {
+	background: rgba(255, 255, 255, 0.16);
+	border-color: rgba(255, 255, 255, 0.85);
+	color: #fff;
+}
+
+.match_table > tbody > tr.preparation_callable > td.call_td,
+.match_table > tbody > tr.preparation_debug_window_ok > td.call_td {
 	background-image: linear-gradient(to right, rgba(139, 199, 232, 0) 0%, rgba(139, 199, 232, 0.20) 55%, rgba(139, 199, 232, 0.85) 100%);
 	box-shadow: inset -3px 0 0 #8bc7e8;
 	border-top-right-radius: 10px;
@@ -1339,9 +1396,49 @@ td.call_td {
 	background-clip: padding-box;
 }
 
-.match_table > tbody > tr.preparation_callable:hover > td.call_td {
+.match_table > tbody > tr.preparation_callable:hover > td.call_td,
+.match_table > tbody > tr.preparation_debug_window_ok:hover > td.call_td {
 	background-image: linear-gradient(to right, rgba(139, 199, 232, 0.04) 0%, rgba(139, 199, 232, 0.26) 55%, rgba(110, 180, 219, 0.85) 100%);
 	box-shadow: inset -3px 0 0 #6eb4db;
+}
+
+.match_table > tbody > tr.preparation_debug_window_blocked > td.call_td {
+	background-image: linear-gradient(to right, rgba(217, 102, 94, 0) 0%, rgba(217, 102, 94, 0.22) 55%, rgba(205, 88, 79, 0.85) 100%);
+	box-shadow: inset -3px 0 0 #cd584f;
+	border-top-right-radius: 10px;
+	border-bottom-right-radius: 10px;
+	background-clip: padding-box;
+}
+
+.match_table > tbody > tr.preparation_debug_window_blocked:hover > td.call_td {
+	background-image: linear-gradient(to right, rgba(217, 102, 94, 0.05) 0%, rgba(217, 102, 94, 0.28) 55%, rgba(190, 72, 63, 0.88) 100%);
+	box-shadow: inset -3px 0 0 #be483f;
+}
+
+.match_table > tbody > tr.call_on_court_debug_ready > td.call_td {
+	background-image: linear-gradient(to right, rgba(92, 181, 105, 0) 0%, rgba(92, 181, 105, 0.24) 55%, rgba(65, 159, 78, 0.88) 100%);
+	box-shadow: inset -3px 0 0 #419f4e;
+	border-top-right-radius: 10px;
+	border-bottom-right-radius: 10px;
+	background-clip: padding-box;
+}
+
+.match_table > tbody > tr.call_on_court_debug_ready:hover > td.call_td {
+	background-image: linear-gradient(to right, rgba(92, 181, 105, 0.06) 0%, rgba(92, 181, 105, 0.30) 55%, rgba(52, 143, 66, 0.90) 100%);
+	box-shadow: inset -3px 0 0 #348f42;
+}
+
+.match_table > tbody > tr.call_on_court_debug_blocked > td.call_td {
+	background-image: linear-gradient(to right, rgba(217, 102, 94, 0) 0%, rgba(217, 102, 94, 0.22) 55%, rgba(205, 88, 79, 0.85) 100%);
+	box-shadow: inset -3px 0 0 #cd584f;
+	border-top-right-radius: 10px;
+	border-bottom-right-radius: 10px;
+	background-clip: padding-box;
+}
+
+.match_table > tbody > tr.call_on_court_debug_blocked:hover > td.call_td {
+	background-image: linear-gradient(to right, rgba(217, 102, 94, 0.05) 0%, rgba(217, 102, 94, 0.28) 55%, rgba(190, 72, 63, 0.88) 100%);
+	box-shadow: inset -3px 0 0 #be483f;
 }
 
 .match_table > tbody > tr.preparation_demand_court > td:last-child {

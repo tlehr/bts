@@ -643,7 +643,6 @@ var ctournament = (function() {
 			'preparation_call_time_ahead_of_frontier_minutes',
 			'preparation_call_matches_ahead_of_frontier_enabled',
 			'preparation_call_matches_ahead_of_frontier_limit',
-			'preparation_call_debug_output_enabled',
 			'preparation_call_technical_officials_available_enabled',
 			'preparation_call_no_player_waiting_as_tabletoperator_enabled',
 			'preparation_call_no_player_active_as_tabletoperator_enabled',
@@ -3369,21 +3368,25 @@ var ctournament = (function() {
 			uiu.el(debug_fieldset, 'div', 'hint', ci18n('tournament:edit:bts_debug_output_enabled:hint'));
 			input.bts_auto_call_trace_enabled = create_checkbox(curt, debug_fieldset, 'bts_auto_call_trace_enabled');
 			uiu.el(debug_fieldset, 'div', 'hint', ci18n('tournament:edit:bts_auto_call_trace_enabled:hint'));
-			const preparation_debug_label = uiu.el(debug_fieldset, 'label');
-			input.preparation_call_debug_output_enabled = uiu.el(preparation_debug_label, 'input', {
-				type: 'checkbox',
-				name: 'preparation_call_debug_output_enabled',
-				checked: curt.preparation_call_debug_output_enabled ? 'checked' : undefined,
-			});
-			uiu.el(preparation_debug_label, 'span', {}, ci18n('tournament:edit:preparation_call_debug_output_enabled'));
-			bind_live_prop(input.preparation_call_debug_output_enabled, 'preparation_call_debug_output_enabled', {
-				on_success: function() {
-					uiu.qsEach('.unassigned_container', function(unassigned_container) {
-						cmatch.render_unassigned(unassigned_container);
-					});
-				},
-			});
-			uiu.el(debug_fieldset, 'div', 'hint', ci18n('tournament:edit:preparation_call_debug_output_enabled:hint'));
+			function create_preparation_debug_checkbox(field) {
+				const label = uiu.el(debug_fieldset, 'label');
+				input[field] = uiu.el(label, 'input', {
+					type: 'checkbox',
+					name: field,
+					checked: curt[field] ? 'checked' : undefined,
+				});
+				uiu.el(label, 'span', {}, ci18n('tournament:edit:' + field));
+				bind_live_prop(input[field], field, {
+					on_success: function() {
+						uiu.qsEach('.unassigned_container', function(unassigned_container) {
+							cmatch.render_unassigned(unassigned_container);
+						});
+					},
+				});
+				uiu.el(debug_fieldset, 'div', 'hint', ci18n('tournament:edit:' + field + ':hint'));
+			}
+			create_preparation_debug_checkbox('preparation_call_debug_output_enabled');
+			create_preparation_debug_checkbox('preparation_call_debug_icons_enabled');
 		}
 
 

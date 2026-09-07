@@ -105,6 +105,7 @@ var change = (function() {
 			'preparation_successor_rally_count',
 			'preparation_call_player_pause_expired_enabled',
 			'preparation_call_debug_output_enabled',
+			'preparation_call_debug_icons_enabled',
 			'preparation_call_technical_officials_available_enabled',
 			'preparation_call_no_player_waiting_as_tabletoperator_enabled',
 			'preparation_call_no_player_active_as_tabletoperator_enabled',
@@ -137,7 +138,7 @@ var change = (function() {
 		if (field === 'upcoming_matches_today_only_enabled') {
 			ctournament.refresh_current_view();
 		}
-		if (field === 'preparation_call_debug_output_enabled' && current_view === 'show') {
+		if (['preparation_call_debug_output_enabled', 'preparation_call_debug_icons_enabled'].includes(field) && current_view === 'show') {
 			uiu.qsEach('.unassigned_container', function(unassigned_container) {
 				cmatch.render_unassigned(unassigned_container);
 			});
