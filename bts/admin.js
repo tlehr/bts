@@ -1925,10 +1925,16 @@ function match_event_name(match) {
 	return String(match?.setup?.event_name || '').trim();
 }
 
+function normalize_match_discipline_name(match) {
+	return match_event_name(match)
+		.replace(/\s*-\s*(?:Gruppe|Position)\s+.+$/i, '')
+		.trim();
+}
+
 function match_same_event(a, b) {
-	const event_a = match_event_name(a);
-	const event_b = match_event_name(b);
-	return event_a !== '' && event_a === event_b;
+	const discipline_a = normalize_match_discipline_name(a);
+	const discipline_b = normalize_match_discipline_name(b);
+	return discipline_a !== '' && discipline_a === discipline_b;
 }
 
 function match_team_players(setup, team_index) {
