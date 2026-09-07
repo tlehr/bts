@@ -267,6 +267,7 @@ var ci18n_de = Object.assign(
 	'tournament:edit:annoncement_include_event': 'Disziplin ansagen',
 	'tournament:edit:annoncement_include_round': 'Turnierrunden ansagen',
 	'tournament:edit:annoncement_include_matchnumber': 'Spielnummer ansagen',
+	'tournament:edit:no_match_cascade_announcements_enabled': 'Kampflos-Ansagen für Kaskaden aktivieren',
 	'tournament:edit:normalizations': 'Ausspracheoptimierung',
 	'tournament:edit:normalizations:origin': 'Original',
 	'tournament:edit:normalizations:replace': 'Ersetzung',

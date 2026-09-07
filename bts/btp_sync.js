@@ -1170,7 +1170,14 @@ async function integrate_matches(app, tkey, btp_state, scoring_formats, location
 				});
 				btp_manager.update_score(app, cascade_match);
 			}
-			cb(null);
+			app.db.tournaments.findOne({ key: tkey }, (tournament_err, tournament) => {
+				if (tournament_err) {
+					cb(tournament_err);
+					return;
+				}
+				admin.notify_cascaded_no_match_announcements(app, tkey, tournament, cascade_matches);
+				cb(null);
+			});
 		});
 	}
 	function rerun_pending_no_match_cascades(cb) {

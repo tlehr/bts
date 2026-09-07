@@ -49,6 +49,60 @@ function make_match(overrides = {}) {
 }
 
 describe('admin no-match cascade', function() {
+	it('announces cascaded no-match wins only when enabled', function() {
+		const sent = [];
+		const ws = {
+			last_tournament_key: 'default',
+			sendmsg: (msg) => sent.push(msg),
+		};
+		const app = { clock: { now_ms: () => 1234567890 } };
+		const match = make_match({
+			_id: 'cascaded',
+			score_status: 'no_match',
+			no_match_losing_team: 0,
+			team1_won: false,
+			btp_winner: 2,
+			setup: {
+				teams: [
+					{ players: [{ name: 'Lewis Danger', btp_id: 74 }] },
+					{ players: [{ name: 'Silas Kaemena', btp_id: 84 }] },
+				],
+			},
+		});
+		match.no_match_cascade_source_match_id = 'source';
+
+		admin.on_connect(app, ws);
+		try {
+			assert.strictEqual(
+				admin.notify_cascaded_no_match_announcements(
+					app,
+					'default',
+					{ no_match_cascade_announcements_enabled: false },
+					[match]
+				),
+				0
+			);
+			assert.strictEqual(sent.length, 0);
+
+			assert.strictEqual(
+				admin.notify_cascaded_no_match_announcements(
+					app,
+					'default',
+					{ no_match_cascade_announcements_enabled: true },
+					[match]
+				),
+				1
+			);
+			assert.strictEqual(sent.length, 1);
+			assert.strictEqual(sent[0].ctype, 'match_no_match_announcement');
+			assert.strictEqual(sent[0].val.match__id, 'cascaded');
+			assert.strictEqual(sent[0].val.winning_team_index, 1);
+			assert.strictEqual(sent[0].val._announcement_ts, 1234567890);
+		} finally {
+			admin.on_close(app, ws);
+		}
+	});
+
 	it('cascades from a group match into placement matches of the same discipline', async function() {
 		const db = await database.init_test();
 		const app = { db, clock: { now_ms: () => 1234567890 } };

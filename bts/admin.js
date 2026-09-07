@@ -151,6 +151,7 @@ function handle_tournament_edit_props(app, ws, msg) {
 		'tabletoperator_winner_of_quaterfinals_enabled','tabletoperator_split_doubles',
 		'tabletoperator_use_manual_counting_boards_enabled', 'tabletoperator_with_umpire_enabled', 
 		'annoncement_include_event', 'annoncement_include_round','annoncement_include_matchnumber',
+		'no_match_cascade_announcements_enabled',
 		'preparation_meetingpoint_enabled', 'preparation_tabletoperator_setup_enabled',
 		'call_preparation_matches_automatically_enabled', 'call_next_possible_scheduled_match_in_preparation',
 		'preparation_successor_rally_count',
@@ -293,6 +294,7 @@ function handle_tournament_edit_prop(app, ws, msg) {
 		'tabletoperator_assignment_scope',
 		'tabletoperator_use_manual_counting_boards_enabled', 'tabletoperator_with_umpire_enabled',
 		'annoncement_include_event', 'annoncement_include_round', 'annoncement_include_matchnumber',
+		'no_match_cascade_announcements_enabled',
 		'preparation_meetingpoint_enabled', 'preparation_tabletoperator_setup_enabled',
 		'call_preparation_matches_automatically_enabled', 'call_next_possible_scheduled_match_in_preparation',
 		'preparation_successor_rally_count',
@@ -2400,6 +2402,45 @@ function clear_no_match_cascade_for_source_match(app, tournament_key, source_mat
 	});
 }
 
+function get_no_match_winning_team_index(match) {
+	if (!match || match.score_status !== 'no_match') {
+		return null;
+	}
+	if (match.no_match_losing_team === 0) {
+		return 1;
+	}
+	if (match.no_match_losing_team === 1) {
+		return 0;
+	}
+	return null;
+}
+
+function notify_no_match_win_announcement(app, tournament_key, match) {
+	const winning_team_index = get_no_match_winning_team_index(match);
+	if (winning_team_index == null) {
+		return false;
+	}
+	notify_change(app, tournament_key, 'match_no_match_announcement', {
+		match__id: match._id,
+		match,
+		winning_team_index,
+	});
+	return true;
+}
+
+function notify_cascaded_no_match_announcements(app, tournament_key, tournament, cascade_matches) {
+	if (!tournament?.no_match_cascade_announcements_enabled) {
+		return 0;
+	}
+	let count = 0;
+	for (const match of cascade_matches || []) {
+		if (match?.no_match_cascade_source_match_id) {
+			count += notify_no_match_win_announcement(app, tournament_key, match) ? 1 : 0;
+		}
+	}
+	return count;
+}
+
 function handle_match_edit(app, ws, msg) {
 	const match_utils = require('./match_utils');
 	
@@ -2579,6 +2620,7 @@ function handle_match_edit(app, ws, msg) {
 										for (const related_match of related_matches) {
 											notify_change(app, tournament_key, 'match_edit', {match__id: related_match._id, match: related_match});
 										}
+										notify_cascaded_no_match_announcements(app, tournament_key, tournament, cascade_matches);
 									match_utils.queue_reconcile_player_court_flags(app, tournament_key);
 									if (msg.btp_update) {
 										btp_manager.update_score(app, changed_match);
@@ -4907,6 +4949,7 @@ module.exports = {
 	handle_change_display_mode,
 	cascade_no_match_for_future_player_matches,
 	clear_no_match_cascade_for_source_match,
+	notify_cascaded_no_match_announcements,
 	notify_change,
 	generate_tournament_web_url,
 	on_close,

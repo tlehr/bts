@@ -217,6 +217,7 @@ var ci18n_nl = Object.assign(
 	'tournament:edit:annoncement_include_event': 'Kondig onderdeel aan',
 	'tournament:edit:annoncement_include_round': 'Kondig ronde van toernooi aan',
 	'tournament:edit:annoncement_include_matchnumber': 'Kondig wedstrijdnummer aan',
+	'tournament:edit:no_match_cascade_announcements_enabled': 'Kampflos-meldingen voor cascades activeren',
 	'tournament:edit:announcement_speed': 'Aankondigingssnelheid (0.8-1.3): ',
 	'tournament:edit:announcement_pause_time_ms': 'Pauze tussen aankondigingen (sec): ',	
 	'tournament:edit:preparation_meetingpoint_enabled': 'Gebruik meetingpoint voor voorbereiding',

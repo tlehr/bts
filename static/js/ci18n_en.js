@@ -268,6 +268,7 @@ var ci18n_en = Object.assign(
 	'tournament:edit:annoncement_include_event': 'Announce event',
 	'tournament:edit:annoncement_include_round': 'Announce round of tournament',
 	'tournament:edit:annoncement_include_matchnumber': 'Announce number of match',
+	'tournament:edit:no_match_cascade_announcements_enabled': 'Announce by-forfeit cascade results',
 	'tournament:edit:announcement_speed': 'Announcementspeed (0.8-1.3): ',
 	'tournament:edit:announcement_pause_time_ms': 'Pause between announcements (sec): ',	
 	'tournament:edit:preparation_meetingpoint_enabled': 'Use Meetingpoint for preparation',

@@ -3294,6 +3294,7 @@ var ctournament = (function() {
 			input.annoncement_include_event = create_checkbox(curt, announcements_fieldset, 'annoncement_include_event');
 			input.annoncement_include_round = create_checkbox(curt, announcements_fieldset, 'annoncement_include_round');
 			input.annoncement_include_matchnumber = create_checkbox(curt, announcements_fieldset, 'annoncement_include_matchnumber');
+			input.no_match_cascade_announcements_enabled = create_checkbox(curt, announcements_fieldset, 'no_match_cascade_announcements_enabled');
 			input.preparation_meetingpoint_enabled = create_checkbox(curt, announcements_fieldset, 'preparation_meetingpoint_enabled');
 			input.preparation_tabletoperator_setup_enabled = create_checkbox(curt, announcements_fieldset, 'preparation_tabletoperator_setup_enabled');
 
