@@ -188,8 +188,12 @@ function handle_tournament_edit_props(app, ws, msg) {
 		'technical_official_break_after_assignment_seconds',
 		'logo_background_color', 'logo_foreground_color', 'scoring_formats',
 		'certificate_title_line_1', 'certificate_title_line_2',
+		'certificate_export_location',
 		'certificate_export_max_place', 'certificate_export_date',
-		'certificate_export_last_scheduled_date_filter']);
+		'certificate_export_last_scheduled_date_filter',
+		'certificate_export_double_swapped_entries_enabled',
+		'certificate_age_class_splits',
+		'certificate_discipline_replacements']);
 
 	if (msg.props.btp_timezone) {
 		props.btp_timezone = msg.props.btp_timezone === 'system' ? undefined : msg.props.btp_timezone;
@@ -331,8 +335,12 @@ function handle_tournament_edit_prop(app, ws, msg) {
 		'technical_official_break_after_assignment_seconds',
 		'logo_background_color', 'logo_foreground_color',
 		'certificate_title_line_1', 'certificate_title_line_2',
+		'certificate_export_location',
 		'certificate_export_max_place', 'certificate_export_date',
 		'certificate_export_last_scheduled_date_filter',
+		'certificate_export_double_swapped_entries_enabled',
+		'certificate_age_class_splits',
+		'certificate_discipline_replacements',
 	]);
 
 	const field = msg.field;

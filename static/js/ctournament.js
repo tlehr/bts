@@ -1844,21 +1844,135 @@ var ctournament = (function() {
 		const form = uiu.el(dialog, 'form');
 
 		const title = ccsvexport.split_tournament_title(curt.name, curt);
-		const event_options = ccsvexport.get_certificate_event_options(curt.matches);
+		const initialMaxPlace = Number(curt.certificate_export_max_place || 3);
+		function normalize_certificate_age_class_splits_for_ui(value) {
+			const result = {};
+			if (!value || typeof value !== 'object') return result;
+			Object.entries(value).forEach(([event_name, age_groups]) => {
+				if (!event_name || !Array.isArray(age_groups)) return;
+				const normalized = [...new Set(age_groups
+					.map((age_group) => String(age_group || '').replace(/\s+/g, '').toUpperCase())
+					.filter(Boolean))]
+					.sort((a, b) => cbts_utils.natcmp(a, b));
+				if (normalized.length > 0) {
+					result[event_name] = normalized;
+				}
+			});
+			return result;
+			}
+			let certificateAgeClassSplits = normalize_certificate_age_class_splits_for_ui(curt.certificate_age_class_splits);
+			function normalize_certificate_discipline_code_for_ui(value) {
+				const normalized = String(value || '').trim().toUpperCase();
+				if (!normalized || normalized === '*' || normalized === 'ALL') return '';
+				return normalized.replace(/\s+/g, '');
+			}
+				function normalize_certificate_discipline_replacements_for_ui(value) {
+					if (!Array.isArray(value)) return [];
+					return value
+						.map((replacement) => ({
+							discipline: normalize_certificate_discipline_code_for_ui(replacement?.discipline),
+							replace: String(replacement?.replace || '').trim(),
+						}))
+						.filter((replacement) => replacement.discipline && replacement.replace);
+				}
+				let certificateDisciplineReplacements = normalize_certificate_discipline_replacements_for_ui(curt.certificate_discipline_replacements);
+			const event_options = ccsvexport.get_certificate_event_options(curt.matches, {
+			include_age_class_splits: true,
+			max_place: initialMaxPlace,
+			tournament: curt,
+			certificate_age_class_splits: certificateAgeClassSplits,
+		});
 		const today = new Date(get_effective_test_clock_now_ms());
-		let certificateSettingsSaveTimer = null;
-		let pendingCertificateSettingsChanges = {};
+			let certificateSettingsSaveTimer = null;
+			let pendingCertificateSettingsChanges = {};
+			let refreshCertificateEventList = null;
+			let updateCertificateEventStatuses = null;
 
-		function save_certificate_export_settings(changes) {
-			send_with_live_status({
+			function save_certificate_export_settings(changes) {
+				Object.assign(curt, changes);
+				send_with_live_status({
 				type: 'tournament_edit_props',
 				key: curt.key,
 				props: changes,
 			}, (err) => {
 				if (err) {
 					cerror.net(err);
+					}
+				});
+			}
+
+			function get_certificate_export_discipline_codes() {
+				const codes = new Set();
+				function add_event_name(event_name) {
+					const info = ccsvexport.parse_event_name(event_name);
+					if (info.code) {
+						codes.add(info.code);
+					}
 				}
+				if (Array.isArray(curt.events?.events)) {
+					curt.events.events.forEach((event) => add_event_name(event.name));
+				} else if (Array.isArray(curt.events)) {
+					curt.events.forEach((event) => add_event_name(event.name));
+				}
+				(curt.matches || []).forEach((match) => add_event_name(match?.setup?.event_name));
+				return [...codes].sort((a, b) => cbts_utils.natcmp(a, b));
+			}
+
+			function render_certificate_discipline_select(parent, selected_value) {
+				const select = uiu.el(parent, 'select', {
+					style: 'max-width: 7em;',
+				});
+				const selected = normalize_certificate_discipline_code_for_ui(selected_value);
+				const codes = get_certificate_export_discipline_codes();
+				if (selected && !codes.includes(selected)) {
+					codes.push(selected);
+					codes.sort((a, b) => cbts_utils.natcmp(a, b));
+				}
+				codes.forEach((code) => {
+					const attrs = { value: code };
+					if (selected === code) {
+						attrs.selected = 'selected';
+					}
+					uiu.el(select, 'option', attrs, code);
+				});
+				return select;
+			}
+
+				function save_certificate_discipline_replacements(next) {
+					certificateDisciplineReplacements = normalize_certificate_discipline_replacements_for_ui(next);
+					save_certificate_export_settings({
+						certificate_discipline_replacements: certificateDisciplineReplacements,
+					});
+					if (updateCertificateEventStatuses) {
+						updateCertificateEventStatuses();
+					}
+				}
+
+		function certificate_age_class_split_enabled(event_name, age_group) {
+			return (certificateAgeClassSplits[event_name] || []).includes(age_group);
+		}
+
+		function set_certificate_age_class_split(event_name, age_group, enabled) {
+			const next = normalize_certificate_age_class_splits_for_ui(certificateAgeClassSplits);
+			const selected = new Set(next[event_name] || []);
+			if (enabled) {
+				selected.add(age_group);
+			} else {
+				selected.delete(age_group);
+			}
+			const selected_list = [...selected].sort((a, b) => cbts_utils.natcmp(a, b));
+			if (selected_list.length > 0) {
+				next[event_name] = selected_list;
+			} else {
+				delete next[event_name];
+			}
+			certificateAgeClassSplits = next;
+			save_certificate_export_settings({
+				certificate_age_class_splits: next,
 			});
+			if (refreshCertificateEventList) {
+				refreshCertificateEventList();
+			}
 		}
 
 		function schedule_certificate_export_settings_save(changes) {
@@ -1899,13 +2013,26 @@ var ctournament = (function() {
 			name: 'veranstaltung_2',
 			value: curt.certificate_title_line_2 || title.veranstaltung_2 || '',
 		});
-		title2Input.style.display = 'block';
-		title2Input.style.width = '100%';
-		title2Input.style.boxSizing = 'border-box';
+			title2Input.style.display = 'block';
+			title2Input.style.width = '100%';
+			title2Input.style.boxSizing = 'border-box';
 
-		const dateLabel = uiu.el(form, 'label');
-		dateLabel.style.display = 'block';
-		dateLabel.style.marginBottom = '0.75em';
+			const locationLabel = uiu.el(form, 'label');
+			locationLabel.style.display = 'block';
+			locationLabel.style.marginBottom = '0.75em';
+			uiu.el(locationLabel, 'span', {}, 'Ort');
+			const locationInput = uiu.el(locationLabel, 'input', {
+				type: 'text',
+				name: 'ort',
+				value: curt.certificate_export_location || '',
+			});
+			locationInput.style.display = 'block';
+			locationInput.style.width = '100%';
+			locationInput.style.boxSizing = 'border-box';
+
+			const dateLabel = uiu.el(form, 'label');
+			dateLabel.style.display = 'block';
+			dateLabel.style.marginBottom = '0.75em';
 		uiu.el(dateLabel, 'span', {}, 'Datum');
 		const dateInput = uiu.el(dateLabel, 'input', {
 			type: 'date',
@@ -1931,7 +2058,91 @@ var ctournament = (function() {
 		countInput.style.width = '100%';
 		countInput.style.boxSizing = 'border-box';
 
-		const eventsWrap = uiu.el(form, 'div', 'settings');
+		const doubleSwappedLabel = uiu.el(form, 'label', {
+			style: 'display: flex; gap: 0.5em; align-items: center; width: fit-content; clear: both; margin: 0.25em 0 1em 0;',
+			title: 'Erzeugt fuer Doppelpaare zusaetzlich eine zweite Exportzeile mit vertauschter Spielerreihenfolge.',
+		});
+		const doubleSwappedInput = uiu.el(doubleSwappedLabel, 'input', {
+			type: 'checkbox',
+			name: 'certificate_export_double_swapped_entries_enabled',
+		});
+			if (curt.certificate_export_double_swapped_entries_enabled) {
+				doubleSwappedInput.checked = true;
+			}
+			uiu.el(doubleSwappedLabel, 'span', {}, 'Doppel mit getauschten Spielern doppelt exportieren');
+
+				const disciplineReplacementWrap = uiu.el(form, 'div', {
+					style: 'margin: 0.25em 0 1em 0;',
+				});
+
+				function render_certificate_discipline_replacements() {
+					while (disciplineReplacementWrap.firstChild) {
+						disciplineReplacementWrap.removeChild(disciplineReplacementWrap.firstChild);
+					}
+					uiu.el(disciplineReplacementWrap, 'h4', {
+						style: 'margin: 0 0 0.4em 0;',
+					}, 'Disziplintexte');
+					const table = uiu.el(disciplineReplacementWrap, 'table', {
+						style: 'border-collapse: collapse;',
+					});
+					const tbody = uiu.el(table, 'tbody');
+					const header = uiu.el(tbody, 'tr');
+					uiu.el(header, 'th', {}, 'Disziplin');
+					uiu.el(header, 'th', {}, 'Ersetzung');
+					uiu.el(header, 'th', {}, '');
+					certificateDisciplineReplacements.forEach((replacement, index) => {
+						const row = uiu.el(tbody, 'tr');
+						uiu.el(row, 'td', {
+							style: 'padding-right: 0.4em;',
+						}, replacement.discipline);
+						uiu.el(row, 'td', {
+							style: 'padding-right: 0.4em;',
+						}, replacement.replace);
+						const actionCell = uiu.el(row, 'td');
+						const deleteBtn = uiu.el(actionCell, 'button', {
+							type: 'button',
+						}, 'Löschen');
+						deleteBtn.addEventListener('click', () => {
+							const next = certificateDisciplineReplacements.filter((_, replacementIndex) => replacementIndex !== index);
+							save_certificate_discipline_replacements(next);
+							render_certificate_discipline_replacements();
+						});
+					});
+					const inputRow = uiu.el(tbody, 'tr');
+					const disciplineCell = uiu.el(inputRow, 'td', {
+						style: 'padding-right: 0.4em;',
+					});
+					const disciplineSelect = render_certificate_discipline_select(disciplineCell, '');
+					const replaceCell = uiu.el(inputRow, 'td', {
+						style: 'padding-right: 0.4em;',
+					});
+					const replaceInput = uiu.el(replaceCell, 'input', {
+						type: 'text',
+						placeholder: 'Ersetzung',
+						style: 'width: 11em;',
+					});
+					const addCell = uiu.el(inputRow, 'td');
+					const addBtn = uiu.el(addCell, 'button', {
+						type: 'button',
+					}, 'Hinzufügen');
+					addBtn.addEventListener('click', () => {
+						const normalized = normalize_certificate_discipline_replacements_for_ui([{
+							discipline: disciplineSelect.value,
+							replace: replaceInput.value,
+						}]);
+						if (normalized.length === 0) {
+							return;
+						}
+						const next = certificateDisciplineReplacements
+							.filter((replacement) => replacement.discipline !== normalized[0].discipline);
+						next.push(normalized[0]);
+						save_certificate_discipline_replacements(next);
+						render_certificate_discipline_replacements();
+					});
+				}
+				render_certificate_discipline_replacements();
+
+			const eventsWrap = uiu.el(form, 'div', 'settings');
 		uiu.el(eventsWrap, 'h3', {}, 'Disziplinen');
 
 		if (event_options.length === 0) {
@@ -2016,36 +2227,107 @@ var ctournament = (function() {
 
 			const eventList = uiu.el(eventsWrap, 'div');
 
-			const eventCheckboxes = [];
-			event_options.forEach((event_option) => {
-				const row = uiu.el(eventList, 'div', {
-					style: 'display: flex; gap: 0.75em; align-items: flex-start; margin: 0.4em 0;',
+			let eventCheckboxes = [];
+
+			function get_certificate_event_options_for_dialog() {
+				return ccsvexport.get_certificate_event_options(curt.matches, {
+					include_age_class_splits: true,
+					max_place: Number(countInput.value || 0) || initialMaxPlace,
+					tournament: curt,
+					certificate_age_class_splits: certificateAgeClassSplits,
 				});
-				const selector = uiu.el(row, 'label', {
-					style: 'display: flex; gap: 0.75em; align-items: flex-start; flex: 1 1 auto;',
+			}
+
+			function render_certificate_event_list() {
+				const previousChecked = new Map(eventCheckboxes.map((entry) => [
+					entry.checkbox.getAttribute('data-certificate-key'),
+					entry.checkbox.checked,
+				]));
+				eventCheckboxes = [];
+				while (eventList.firstChild) {
+					eventList.removeChild(eventList.firstChild);
+				}
+				get_certificate_event_options_for_dialog().forEach((event_option) => {
+					const certificate_key = event_option.key || event_option.event_name;
+					const checked = previousChecked.has(certificate_key)
+						? previousChecked.get(certificate_key)
+						: true;
+					const row = uiu.el(eventList, 'div', {
+						style: `display: flex; gap: 0.75em; align-items: flex-start; margin: 0.4em 0;${event_option.is_age_class_split ? ' padding-left: 1.8em;' : ''}`,
+					});
+					const selector = uiu.el(row, 'label', {
+						style: 'display: flex; gap: 0.75em; align-items: flex-start; flex: 1 1 auto;',
+					});
+					const checkboxAttrs = {
+						type: 'checkbox',
+						'data-certificate-key': certificate_key,
+					};
+					if (checked) {
+						checkboxAttrs.checked = 'checked';
+					}
+					const checkbox = uiu.el(selector, 'input', checkboxAttrs);
+					const infoWrap = uiu.el(selector, 'div', { style: 'display: block; flex: 1 1 auto;' });
+					const titleLine = uiu.el(infoWrap, 'div', {
+						style: 'display: flex; flex-wrap: wrap; align-items: center; gap: 0.35em 0.4em;',
+					});
+					const titleText = uiu.el(titleLine, 'span', {}, event_option.label);
+					const detailLine = uiu.el(infoWrap, 'div', {
+						style: 'display: flex; flex-wrap: wrap; align-items: center; gap: 0.3em 0.4em; margin-top: 0.18em;',
+					});
+					if (!event_option.is_age_class_split && Array.isArray(event_option.age_class_candidates) && event_option.age_class_candidates.length > 0) {
+						const splitLine = uiu.el(infoWrap, 'div', {
+							style: 'display: flex; flex-wrap: wrap; align-items: center; gap: 0.35em 0.5em; margin-top: 0.18em; color: #333; font-size: 0.86em;',
+						});
+						splitLine.addEventListener('click', (event) => {
+							event.stopPropagation();
+						});
+						uiu.el(splitLine, 'span', {}, 'Separate Wertung:');
+						event_option.age_class_candidates.forEach((age_group) => {
+							const splitLabel = uiu.el(splitLine, 'label', {
+								style: 'display: inline-flex; gap: 0.3em; align-items: center;',
+								title: `${age_group}-Urkundenwertung aus ${event_option.label} erzeugen`,
+							});
+							const splitInputAttrs = {
+								type: 'checkbox',
+							};
+							if (certificate_age_class_split_enabled(event_option.event_name, age_group)) {
+								splitInputAttrs.checked = 'checked';
+							}
+							const splitInput = uiu.el(splitLabel, 'input', splitInputAttrs);
+							uiu.el(splitLabel, 'span', {}, age_group);
+							splitInput.addEventListener('change', (event) => {
+								event.stopPropagation();
+								set_certificate_age_class_split(event_option.event_name, age_group, splitInput.checked);
+							});
+						});
+					}
+					const resetBtn = uiu.el(row, 'button', {
+						type: 'button',
+						style: 'margin-left: 0.5em;',
+					}, 'Zurücksetzen');
+					resetBtn.addEventListener('click', () => {
+						send({
+							type: 'certificate_export_reset',
+							tournament_key: curt.key,
+							event_name: certificate_key,
+						}, (err, response) => {
+							if (err) {
+								return cerror.net(err);
+							}
+							curt.certificate_exports = response && response.certificate_exports ? response.certificate_exports : {};
+							update_event_statuses();
+						});
+					});
+					eventCheckboxes.push({
+						checkbox,
+						event_option,
+						titleLine,
+						titleText,
+						detailLine,
+						resetBtn,
+					});
 				});
-				const checkbox = uiu.el(selector, 'input', {
-					type: 'checkbox',
-					checked: 'checked',
-					'data-event-name': event_option.event_name,
-				});
-				const infoWrap = uiu.el(selector, 'div', { style: 'display: block; flex: 1 1 auto;' });
-				const titleLine = uiu.el(infoWrap, 'div', {
-					style: 'display: flex; flex-wrap: wrap; align-items: center; gap: 0.35em 0.4em;',
-				});
-				const titleText = uiu.el(titleLine, 'span', {}, event_option.label);
-				const resetBtn = uiu.el(row, 'button', {
-					type: 'button',
-					style: 'margin-left: 0.5em;',
-				}, 'Zurücksetzen');
-				eventCheckboxes.push({
-					checkbox,
-					event_option,
-					titleLine,
-					titleText,
-					resetBtn,
-				});
-			});
+			}
 
 			function get_selected_type_filter() {
 				if (typeFilterInputs.single.checked) return 'single';
@@ -2059,10 +2341,13 @@ var ctournament = (function() {
 				}, text);
 			}
 
-			function format_certificate_preview_tooltip(event_name, max_place, exported_at_display) {
+			function format_certificate_preview_tooltip(certificate_key, max_place, exported_at_display) {
 				const rows = ccsvexport.build_certificate_rows(curt.matches, curt, {
 					max_place,
-					selected_event_names: new Set([event_name]),
+					selected_certificate_keys: new Set([certificate_key]),
+					ort: locationInput.value,
+					certificate_export_double_swapped_entries_enabled: doubleSwappedInput.checked,
+					certificate_discipline_replacements: certificateDisciplineReplacements,
 				});
 				const lines = [];
 				if (exported_at_display) {
@@ -2087,16 +2372,21 @@ var ctournament = (function() {
 				const export_state = curt.certificate_exports || {};
 				eventCheckboxes.forEach((entry) => {
 					const event_option = entry.event_option;
+					const certificate_key = event_option.key || event_option.event_name;
 					const is_complete = ccsvexport.event_is_complete_for_max_place(event_option, max_place);
-					const exported_at = export_state[event_option.event_name] || null;
+					const exported_at = export_state[certificate_key] || null;
 					const exported_at_display = format_certificate_export_timestamp(exported_at);
-					const available_places = (event_option.available_places || []).join(', ');
+					const available_places = ccsvexport.get_relevant_certificate_available_places(event_option, max_place).join(', ');
+					const pending_place_ranges = ccsvexport.get_relevant_certificate_pending_ranges(event_option, max_place);
 					entry.checkbox.dataset.complete = is_complete ? 'true' : 'false';
 					entry.checkbox.dataset.exported = exported_at ? 'true' : 'false';
 					entry.checkbox.dataset.kind = event_option.kind || '';
 					entry.checkbox.dataset.latestScheduledDate = event_option.latest_scheduled_date || '';
 					while (entry.titleLine.childNodes.length > 1) {
 						entry.titleLine.removeChild(entry.titleLine.lastChild);
+					}
+					while (entry.detailLine.firstChild) {
+						entry.detailLine.removeChild(entry.detailLine.firstChild);
 					}
 					render_status_badge(
 						entry.titleLine,
@@ -2118,22 +2408,36 @@ var ctournament = (function() {
 						'certificate_export_badge_kind'
 					);
 					render_status_badge(
-						entry.titleLine,
+						entry.detailLine,
 						`Plätze: ${available_places || '—'}`,
 						'certificate_export_badge_places'
 					);
+					if (event_option.starter_count) {
+						render_status_badge(
+							entry.detailLine,
+							`Starter: ${event_option.starter_count}`,
+							'certificate_export_badge_places'
+						);
+					}
+					if (pending_place_ranges.length > 0) {
+						render_status_badge(
+							entry.detailLine,
+							`Ausstehend: ${pending_place_ranges.map((range) => range.label || `${range.place_from}/${range.place_to}`).join(', ')}`,
+							'certificate_export_badge_pending'
+						);
+					}
 					if (event_option.latest_scheduled_date) {
 						const latestDisplay = event_option.latest_scheduled_time
 							? `${event_option.latest_scheduled_date} ${event_option.latest_scheduled_time}`
 							: event_option.latest_scheduled_date;
 						render_status_badge(
-							entry.titleLine,
+							entry.detailLine,
 							`Letztes Spiel: ${latestDisplay}`,
 							'certificate_export_badge_places'
 						);
 					}
 					const previewTitle = format_certificate_preview_tooltip(
-						event_option.event_name,
+						certificate_key,
 						max_place,
 						exported_at ? exported_at_display : ''
 					);
@@ -2142,6 +2446,7 @@ var ctournament = (function() {
 					entry.checkbox.title = previewTitle;
 				});
 			}
+			updateCertificateEventStatuses = update_event_statuses;
 
 			function apply_quick_filters() {
 				const selected_type = get_selected_type_filter();
@@ -2154,6 +2459,12 @@ var ctournament = (function() {
 					checkbox.checked = matches_complete && matches_new && matches_type && matches_last_scheduled;
 				});
 			}
+
+			refreshCertificateEventList = () => {
+				render_certificate_event_list();
+				update_event_statuses();
+				apply_quick_filters();
+			};
 
 			selectAllBtn.addEventListener('click', () => {
 				eventCheckboxes.forEach((entry) => {
@@ -2193,6 +2504,11 @@ var ctournament = (function() {
 					certificate_title_line_2: title2Input.value,
 				});
 			});
+			locationInput.addEventListener('input', () => {
+				schedule_certificate_export_settings_save({
+					certificate_export_location: locationInput.value,
+				});
+			});
 			dateInput.addEventListener('change', () => {
 				save_certificate_export_settings({
 					certificate_export_date: dateInput.value,
@@ -2203,23 +2519,13 @@ var ctournament = (function() {
 					certificate_export_max_place: Number(countInput.value || 0) || 3,
 				});
 			});
-			eventCheckboxes.forEach((entry) => {
-				entry.resetBtn.addEventListener('click', () => {
-					send({
-						type: 'certificate_export_reset',
-						tournament_key: curt.key,
-						event_name: entry.event_option.event_name,
-					}, (err, response) => {
-						if (err) {
-							return cerror.net(err);
-						}
-						curt.certificate_exports = response && response.certificate_exports ? response.certificate_exports : {};
-						update_event_statuses();
-					});
+			doubleSwappedInput.addEventListener('change', () => {
+				save_certificate_export_settings({
+					certificate_export_double_swapped_entries_enabled: doubleSwappedInput.checked,
 				});
+				update_event_statuses();
 			});
-			update_event_statuses();
-			apply_quick_filters();
+			refreshCertificateEventList();
 
 			const actions = uiu.el(form, 'div', { style: 'margin-top: 1.5em;' });
 			const exportCsvBtn = uiu.el(actions, 'button', {
@@ -2248,13 +2554,13 @@ var ctournament = (function() {
 			}
 
 			function handle_certificate_export(format) {
-				const selected_event_names = new Set(
+				const selected_certificate_keys = new Set(
 					eventCheckboxes
 						.filter((entry) => entry.checkbox.checked)
-						.map((entry) => entry.checkbox.getAttribute('data-event-name'))
+						.map((entry) => entry.checkbox.getAttribute('data-certificate-key'))
 						.filter(Boolean)
 				);
-				if (selected_event_names.size === 0) {
+				if (selected_certificate_keys.size === 0) {
 					alert('Bitte mindestens eine Disziplin auswählen.');
 					return;
 				}
@@ -2264,12 +2570,15 @@ var ctournament = (function() {
 					set_certificate_export_buttons_disabled(false);
 				}, 5000);
 				try {
-					ccsvexport.export_certificate_file(format, {
-						veranstaltung_1: title1Input.value,
-						veranstaltung_2: title2Input.value,
-						datum: dateInput.value,
-						max_place: Number(countInput.value || 0),
-						selected_event_names,
+						ccsvexport.export_certificate_file(format, {
+							veranstaltung_1: title1Input.value,
+							veranstaltung_2: title2Input.value,
+							ort: locationInput.value,
+							datum: dateInput.value,
+							max_place: Number(countInput.value || 0),
+						selected_certificate_keys,
+						certificate_export_double_swapped_entries_enabled: doubleSwappedInput.checked,
+							certificate_discipline_replacements: certificateDisciplineReplacements,
 					});
 				} catch (err) {
 					if (releaseTimeout != null) {
@@ -2280,15 +2589,18 @@ var ctournament = (function() {
 					return;
 				}
 				save_certificate_export_settings({
-					certificate_title_line_1: title1Input.value,
-					certificate_title_line_2: title2Input.value,
-					certificate_export_date: dateInput.value,
+						certificate_title_line_1: title1Input.value,
+						certificate_title_line_2: title2Input.value,
+						certificate_export_location: locationInput.value,
+						certificate_export_date: dateInput.value,
 					certificate_export_max_place: Number(countInput.value || 0) || 3,
+					certificate_export_double_swapped_entries_enabled: doubleSwappedInput.checked,
+						certificate_discipline_replacements: certificateDisciplineReplacements,
 				});
 				send({
 					type: 'certificate_export_mark',
 					tournament_key: curt.key,
-					event_names: [...selected_event_names],
+					event_names: [...selected_certificate_keys],
 				}, (err, response) => {
 					if (releaseTimeout != null) {
 						window.clearTimeout(releaseTimeout);
@@ -3985,8 +4297,6 @@ var ctournament = (function() {
 			uiu.el(tr, "td", {}, `${d.scoring_format_name} (#${d.scoring_format_id})`);
 		}
 	}
-
-
 
 	function render_normalisation_values(main) {
 		uiu.el(main, 'h2','edit', ci18n('tournament:edit:normalizations'));

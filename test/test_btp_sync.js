@@ -976,6 +976,23 @@ _describe('btp_sync', () => {
 		assert.strictEqual(targetSetup.teams[0].players[1].checked_in, true);
 	});
 
+	_it('keeps player birth date information from BTP', () => {
+		const team = btp_sync._craft_team([{
+			ID: [101],
+			Firstname: ['Ada'],
+			Lastname: ['Lovelace'],
+			Asianname: [false],
+			DateOfBirth: [{
+				year: 2016,
+				month: 12,
+				day: 10,
+			}],
+		}]);
+
+		assert.strictEqual(team.players[0].birth_year, 2016);
+		assert.strictEqual(team.players[0].date_of_birth, '2016-12-10');
+	});
+
 	_it('detects player assignment changes independent from check-in state', () => {
 		const previousSetup = {
 			teams: [

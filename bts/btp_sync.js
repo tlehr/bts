@@ -792,6 +792,12 @@ function _craft_team(par) {
 			pres.nationality = p.Country[0];
 		}
 
+		if (p.DateOfBirth && p.DateOfBirth[0] && Number.isFinite(Number(p.DateOfBirth[0].year))) {
+			const birth_date = p.DateOfBirth[0];
+			pres.birth_year = Number(birth_date.year);
+			pres.date_of_birth = date_str(birth_date);
+		}
+
 		if (p.entries instanceof Map) {
 			pres.entries = Object.fromEntries(p.entries);
 		}
@@ -3162,4 +3168,5 @@ module.exports = {
 	_sanitize_scoring_format: sanitizeScoringFormat,
 	_resolve_btp_dependency_link,
 	_set_type_to_end_max: setTypeToEndMax,
+	_craft_team,
 };
