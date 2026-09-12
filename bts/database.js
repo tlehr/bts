@@ -53,12 +53,21 @@ function init(callback) {
 	}
 
 	TABLES.forEach(function(key) {
-		var d = new Datastore({ filename: path.join(db_dir, key), autoload: true });
+		var d = new Datastore({ filename: path.join(db_dir, key) });
 		d.persistence.setAutocompactionInterval(60000*10);
 		db[key] = d;
 	});
 
-	prepare(db, callback);
+	async.parallel(TABLES.map(function(key) {
+		return function(cb) {
+			db[key].loadDatabase(cb);
+		};
+	}), function(err) {
+		if (err) {
+			return callback(err);
+		}
+		prepare(db, callback);
+	});
 }
 
 function prepare(db, callback) {
