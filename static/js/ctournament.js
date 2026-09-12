@@ -12045,7 +12045,7 @@ function update_officials() {
 			'aria-label': 'Hinweis zum BTP-Import',
 		}, '?');
 		uiu.el(xlsx_help, 'span', 'registration_xlsx_help_text',
-			'In BTP die Meldelisten/Spielerlisten als XLSX exportieren und diese Datei hier auswählen. Die Daten werden den vorhandenen Meldungen zugeordnet und ergänzen Rang, Punkte, Setzplatzdaten und Datum.');
+			'In BTP: Bericht -> Meldungen. Im Dialog "Meldungen drucken" links bei den Konkurrenzen "Alle" und rechts bei den Feldern "Alle" auswaehlen. Dann unten auf Excel klicken und die gespeicherte .XLSX hier importieren. Der Import ergaenzt Rang, Punkte, Setzplatzdaten, Verein/Verband/Bundesland/Land und Meldedatum.');
 		const xlsx_status = uiu.el(xlsx_group, 'span', 'registration_xlsx_status');
 		render_registration_xlsx_import_status(xlsx_status, curt.registration_xlsx_metadata);
 		xlsx_input.addEventListener('change', () => upload_registration_xlsx(xlsx_input, xlsx_status));
