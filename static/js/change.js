@@ -773,7 +773,7 @@ var change = (function() {
 				ctournament.update_scoring_formats();
 				ctournament.update_stages_scoring_formats();
 				break;
-			case 'update_btp_events':
+		case 'update_btp_events':
 			if(!curt.events) {
 				curt.events = {};
 			}
@@ -782,6 +782,69 @@ var change = (function() {
 				curt.events[key] = value;
 			}
 			ctournament.update_stages_scoring_formats();
+			break;
+		case 'registration_player_status':
+			if (!curt.registration_player_statuses) {
+				curt.registration_player_statuses = {};
+			}
+			if (c.val.status) {
+				curt.registration_player_statuses[c.val.key] = c.val.status;
+			} else {
+				delete curt.registration_player_statuses[c.val.key];
+			}
+			break;
+		case 'registration_player_status_reset':
+			curt.registration_player_statuses = {};
+			break;
+		case 'registration_open_events':
+			curt.registration_open_events = c.val.open_events || {};
+			break;
+		case 'registration_xlsx_metadata':
+			curt.registration_xlsx_metadata = c.val.metadata || null;
+			break;
+		case 'registration_player_comment':
+			if (!curt.registration_player_comments) {
+				curt.registration_player_comments = {};
+			}
+			if (!curt.registration_player_comments[c.val.key]) {
+				curt.registration_player_comments[c.val.key] = {};
+			}
+			if (c.val.comment) {
+				curt.registration_player_comments[c.val.key][c.val.direction] = c.val.comment;
+			} else {
+				delete curt.registration_player_comments[c.val.key][c.val.direction];
+				if (Object.keys(curt.registration_player_comments[c.val.key]).length === 0) {
+					delete curt.registration_player_comments[c.val.key];
+				}
+			}
+			break;
+		case 'registration_player_comment_read':
+			if (curt.registration_player_comments?.[c.val.key]?.[c.val.direction]) {
+				curt.registration_player_comments[c.val.key][c.val.direction].read = true;
+				curt.registration_player_comments[c.val.key][c.val.direction].read_at = c.val.read_at || null;
+			}
+			break;
+		case 'registration_stage_comment':
+			if (!curt.registration_stage_comments) {
+				curt.registration_stage_comments = {};
+			}
+			if (!curt.registration_stage_comments[c.val.key]) {
+				curt.registration_stage_comments[c.val.key] = {};
+			}
+			if (c.val.comment) {
+				curt.registration_stage_comments[c.val.key][c.val.direction] = c.val.comment;
+			} else {
+				delete curt.registration_stage_comments[c.val.key][c.val.direction];
+				if (Object.keys(curt.registration_stage_comments[c.val.key]).length === 0) {
+					delete curt.registration_stage_comments[c.val.key];
+				}
+			}
+			break;
+		case 'registration_stage_comment_read':
+			if (curt.registration_stage_comments?.[c.val.key]?.[c.val.direction]) {
+				curt.registration_stage_comments[c.val.key][c.val.direction].read = true;
+				curt.registration_stage_comments[c.val.key][c.val.direction].read_at = c.val.read_at || null;
+			}
 			break;
 		case 'update_display_setting':
 			const updated_setting = c.val.setting;

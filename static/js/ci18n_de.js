@@ -135,6 +135,8 @@ var ci18n_de = Object.assign(
 
 	'display_setting:id': 'ID: ',
 	'display_setting:devicemode': 'Betriebsmodus: ',
+	'display_setting:devicemode:umpire': 'Tablet',
+	'display_setting:devicemode:display': 'Anzeige',
 	'display_setting:style': 'Erscheinungsbild: ',
 	'display_setting:court': 'Angezeigtes Feld: ',
 	'display_setting:reverse_order': 'Reihenfolge der Felder umkehren',
@@ -164,6 +166,7 @@ var ci18n_de = Object.assign(
 	'display_setting:tablet_mode': 'Tablet-Modus: ',
 	'display_setting:tablet_mode:umpire': 'Ergebniseingabe (Schiedsrichter)',
 	'display_setting:tablet_mode:scorecard': 'Ergebniseingabe (Spielzettel)',
+	'display_setting:tablet_mode:registration_check': 'Anmeldung',
 	'display_setting:neversettings': 'Settings-Dialog auf dem Gerät sperren',
 	'display_setting:autohide': 'Verberge Einstellungen nach (ms): ',
 	'display_setting:click_mode': 'Touch-Erkennung: ',

@@ -126,6 +126,214 @@ _describe('btp_sync', () => {
 		assert.strictEqual(normalized.last_set_points.interval_at, 8);
 	});
 
+	_it('normalizes BTP stage entries into registration entries', () => {
+		const btpState = {
+			entries: new Map([
+				[10, {
+					ID: [10],
+					Player1ID: [101],
+					Player2ID: [102],
+				}],
+			]),
+			players: new Map([
+				[101, {
+					ID: [101],
+					ClubID: [201],
+					Firstname: ['Ada'],
+					Lastname: ['Lovelace'],
+					MemberID: ['09-010496'],
+					Country: ['ENG'],
+					GenderID: [2],
+					DateOfBirth: [{ year: 1815, month: 12, day: 10 }],
+				}],
+				[102, {
+					ID: [102],
+					ClubID: [202],
+					Firstname: ['Grace'],
+					Lastname: ['Hopper'],
+					Country: ['USA'],
+					GenderID: [2],
+				}],
+			]),
+			clubs: new Map([
+				[201, { ID: [201], Name: ['Analytical Engines BC'], DistrictID: [301] }],
+				[202, { ID: [202], Name: ['Compiler Club'] }],
+			]),
+			districts: new Map([
+				[301, { ID: [301], Name: ['04-WI'] }],
+			]),
+		};
+
+		const normalized = btp_sync._normalize_stage_entry_for_event_payload({
+			ID: [20],
+			StageID: [30],
+			EntryID: [10],
+			Status: [0],
+			Seed1: [2],
+			Rank: [1815],
+			Points: [2067],
+			CreatedAt: [{ year: 2026, month: 4, day: 9, hour: 18, minute: 29 }],
+		}, btpState);
+
+		assert.strictEqual(normalized.stage_entry_id, 20);
+		assert.strictEqual(normalized.entry_id, 10);
+		assert.strictEqual(normalized.status, 0);
+		assert.strictEqual(normalized.seed1, 2);
+		assert.strictEqual(normalized.seed2, null);
+		assert.strictEqual(normalized.rank, 1815);
+		assert.strictEqual(normalized.points, 2067);
+		assert.strictEqual(normalized.entered_at, '2026-04-09 18:29');
+		assert.deepStrictEqual(normalized.team.players.map((player) => player.name), [
+			'Ada Lovelace',
+			'Grace Hopper',
+		]);
+		assert.deepStrictEqual(normalized.team.players.map((player) => player.club), [
+			'Analytical Engines BC',
+			'Compiler Club',
+		]);
+		assert.strictEqual(normalized.team.players[0].association, '04-WI');
+		assert.strictEqual(normalized.team.players[0].member_id, '09-010496');
+		assert.strictEqual(normalized.team.players[0].gender, 'W');
+		assert.strictEqual(normalized.team.players[0].date_of_birth, '1815-12-10');
+	});
+
+	_it('stores registration entries on event stages during event integration', (done) => {
+		const updated = {};
+		const app = {
+			db: {
+				tournaments: {
+					findOne(query, cb) {
+						assert.deepStrictEqual(query, { key: 't1' });
+						cb(null, { key: 't1' });
+					},
+					update(query, update, options, cb) {
+						assert.deepStrictEqual(query, { key: 't1' });
+						Object.assign(updated, update.$set);
+						cb(null);
+					},
+				},
+			},
+		};
+		const btpState = {
+			events: new Map([
+				[1, {
+					ID: [1],
+					Name: ['JE U15'],
+					GameTypeID: [1],
+					GenderID: [1],
+					MinAge: [0],
+					MaxAge: [15],
+					Fee: [0],
+					SeparateSeeding: [false],
+					AllowOnlineEntry: [true],
+					GradingID: [0],
+					SubGradingID: [0],
+					SubGrading2ID: [0],
+				}],
+			]),
+			stages: new Map([
+				[10, {
+					ID: [10],
+					Name: ['Hauptfeld'],
+					EventID: [1],
+					StageType: [1],
+					DisplayOrder: [1],
+				}],
+			]),
+			stage_entries: new Map([
+				[20, {
+					ID: [20],
+					StageID: [10],
+					EntryID: [30],
+					Status: [0],
+				}],
+			]),
+			entries: new Map([
+				[30, {
+					ID: [30],
+					Player1ID: [40],
+				}],
+			]),
+			players: new Map([
+				[40, {
+					ID: [40],
+					Firstname: ['Tjorve'],
+					Lastname: ['Von Deetzen'],
+				}],
+			]),
+			clubs: new Map(),
+			districts: new Map(),
+		};
+
+		btp_sync._integrate_events(app, 't1', btpState, (err) => {
+			assert.ifError(err);
+			assert.strictEqual(updated.events.events[0].name, 'JE U15');
+			assert.strictEqual(updated.events.events[0].is_drawn, false);
+			assert.strictEqual(updated.events.events[0].match_count, 0);
+			assert.strictEqual(updated.events.events[0].stages[0].entry_count, 1);
+			assert.strictEqual(updated.events.events[0].stages[0].entries[0].stage_entry_id, 20);
+			assert.strictEqual(updated.events.events[0].stages[0].entries[0].team.players[0].name, 'Tjorve Von Deetzen');
+			done();
+		});
+	});
+
+	_it('marks registration events as drawn when BTP has matches for them', (done) => {
+		const updated = {};
+		const app = {
+			db: {
+				tournaments: {
+					findOne(query, cb) {
+						assert.deepStrictEqual(query, { key: 't1' });
+						cb(null, { key: 't1' });
+					},
+					update(query, update, options, cb) {
+						assert.deepStrictEqual(query, { key: 't1' });
+						Object.assign(updated, update.$set);
+						cb(null);
+					},
+				},
+			},
+		};
+		const btpState = {
+			draws: new Map([
+				[50, { ID: [50], EventID: [1], Name: ['JE U15'] }],
+			]),
+			matches: [
+				{ ID: [70], DrawID: [50], IsMatch: [true] },
+				{ ID: [71], DrawID: [50], IsMatch: [false] },
+			],
+			events: new Map([
+				[1, {
+					ID: [1],
+					Name: ['JE U15'],
+					GameTypeID: [1],
+					GenderID: [1],
+					MinAge: [0],
+					MaxAge: [15],
+					Fee: [0],
+					SeparateSeeding: [false],
+					AllowOnlineEntry: [true],
+					GradingID: [0],
+					SubGradingID: [0],
+					SubGrading2ID: [0],
+				}],
+			]),
+			stages: new Map(),
+			stage_entries: new Map(),
+			entries: new Map(),
+			players: new Map(),
+			clubs: new Map(),
+			districts: new Map(),
+		};
+
+		btp_sync._integrate_events(app, 't1', btpState, (err) => {
+			assert.ifError(err);
+			assert.strictEqual(updated.events.events[0].is_drawn, true);
+			assert.strictEqual(updated.events.events[0].match_count, 1);
+			done();
+		});
+	});
+
 	_it('resolves direct visible predecessor links for placement matches without importing extra matches', () => {
 		const planning_nodes = new Map([
 			['37_4009', {

@@ -70,6 +70,18 @@ function build_default_tablet_setting(tournament) {
 	return build_base_setting(tournament, `${key}_default_umpire`, 'Schiedsrichter', 'umpire');
 }
 
+function build_default_registration_setting(tournament) {
+	const key = tournament && tournament.key ? tournament.key : 'default';
+	const setting = build_base_setting(tournament, `${key}_default_registration`, 'Anmeldung', 'umpire');
+	setting.tablet_mode = 'registration_check';
+	setting.style = 'hidden';
+	setting.show_announcements = 'none';
+	setting.negative_timers = false;
+	setting.shuttle_counter = false;
+	setting.editmode_doubleclick = false;
+	return setting;
+}
+
 function choose_default_patch(tournament, displaysettings) {
 	const settings = Array.isArray(displaysettings) ? displaysettings : [];
 	const first_display = settings.find((setting) => setting.devicemode === 'display');
@@ -107,7 +119,13 @@ async function ensure_default_displaysettings(app, tournament) {
 	if (displaysettings.length === 0) {
 		const default_display = await insert_setting_if_missing(app.db, build_default_display_setting(tournament));
 		const default_tablet = await insert_setting_if_missing(app.db, build_default_tablet_setting(tournament));
-		displaysettings = [default_display, default_tablet];
+		const default_registration = await insert_setting_if_missing(app.db, build_default_registration_setting(tournament));
+		displaysettings = [default_display, default_tablet, default_registration];
+	} else {
+		const default_registration = await insert_setting_if_missing(app.db, build_default_registration_setting(tournament));
+		if (!displaysettings.some((setting) => setting.id === default_registration.id)) {
+			displaysettings.push(default_registration);
+		}
 	}
 	const patch = choose_default_patch(tournament, displaysettings);
 	if (Object.keys(patch).length > 0) {
@@ -125,4 +143,5 @@ module.exports = {
 	ensure_default_displaysettings,
 	build_default_display_setting,
 	build_default_tablet_setting,
+	build_default_registration_setting,
 };

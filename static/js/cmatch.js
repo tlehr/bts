@@ -2115,11 +2115,15 @@ function get_manual_btp_stage_status_warnings() {
 
 function render_manual_btp_stage_status_warnings(container) {
 	const warnings = get_manual_btp_stage_status_warnings();
-	if (!warnings.length) {
+	const registration_todos = typeof ctournament !== 'undefined' && ctournament && typeof ctournament.get_registration_main_todos === 'function'
+		? ctournament.get_registration_main_todos()
+		: [];
+	if (!warnings.length && !registration_todos.length) {
 		return;
 	}
 	const warning_container = uiu.el(container, 'div', 'manual_btp_stage_status_warning');
-	uiu.el(warning_container, 'div', 'manual_btp_stage_status_warning_title', ci18n('tournament:manual_btp_stage_status:title'));
+	uiu.el(warning_container, 'div', 'manual_btp_stage_status_warning_title',
+		registration_todos.length ? 'ToDos' : ci18n('tournament:manual_btp_stage_status:title'));
 	warnings.forEach((warning) => {
 		uiu.el(warning_container, 'div', 'manual_btp_stage_status_warning_entry', ci18n('tournament:manual_btp_stage_status:entry', {
 			name: warning.name,
@@ -2127,6 +2131,9 @@ function render_manual_btp_stage_status_warnings(container) {
 			match_num: warning.match_num != null ? ('#' + warning.match_num) : '-',
 			status: warning.target_status,
 		}));
+	});
+	registration_todos.forEach((todo) => {
+		uiu.el(warning_container, 'div', 'manual_btp_stage_status_warning_entry', todo);
 	});
 }
 

@@ -5,6 +5,7 @@ const fs = require('fs');
 const path = require('path');
 const uuidv4 = require('uuid/v4');
 const {promisify} = require('util');
+const xlsx = require('node-xlsx');
 
 const btp_manager = require('./btp_manager');
 const update_queue = require('./update_queue');
@@ -3130,8 +3131,14 @@ function handle_free_announce(app, ws, msg) {
 	}
 	const tournament_key = msg.tournament_key;
 	const text = msg.text;
+	const announcement_claim_key = typeof msg.announcement_claim_key === 'string'
+		? msg.announcement_claim_key.trim().slice(0, 160)
+		: '';
 
-	notify_change(app, tournament_key, 'free_announce', {text});
+	notify_change(app, tournament_key, 'free_announce', {
+		text,
+		...(announcement_claim_key ? {_announcement_claim_key: announcement_claim_key} : {}),
+	});
 
 	ws.respond(msg);
 }
@@ -4683,6 +4690,610 @@ function handle_ticker_reset(app, ws, msg) {
 	ws.respond(msg);
 }
 
+function _registration_player_status_payload(app, key, status, raw_payload) {
+	const payload = raw_payload && typeof raw_payload === 'object' ? raw_payload : {};
+	const player_index = Number(payload.player_index);
+	const stage_type = Number(payload.stage_type);
+	return {
+		key,
+		status,
+		stage_entry_id: payload.stage_entry_id == null ? null : String(payload.stage_entry_id),
+		entry_id: payload.entry_id == null ? null : String(payload.entry_id),
+		entry_name: payload.entry_name == null ? '' : String(payload.entry_name),
+		player_id: payload.player_id == null ? null : String(payload.player_id),
+		player_index: Number.isFinite(player_index) ? player_index : null,
+		player_name: payload.player_name == null ? '' : String(payload.player_name),
+		event_name: payload.event_name == null ? '' : String(payload.event_name),
+		stage_id: payload.stage_id == null ? null : String(payload.stage_id),
+		stage_name: payload.stage_name == null ? '' : String(payload.stage_name),
+		stage_type: Number.isFinite(stage_type) ? stage_type : null,
+		club: payload.club == null ? '' : String(payload.club),
+		state: payload.state == null ? '' : String(payload.state),
+		partner: payload.partner == null ? '' : String(payload.partner),
+		updated_at: now_iso(app),
+	};
+}
+
+function handle_registration_player_status(app, ws, msg) {
+	if (!_require_msg(ws, msg, ['tournament_key', 'key', 'status'])) {
+		return;
+	}
+
+	const tournament_key = msg.tournament_key;
+	const key = String(msg.key || '').trim();
+	const status = msg.status === null ? '' : String(msg.status || '');
+	if (!key) {
+		return ws.respond(msg, { message: 'Missing registration player status key' });
+	}
+	if (!/^[A-Za-z0-9:_-]+$/.test(key)) {
+		return ws.respond(msg, { message: 'Invalid registration player status key ' + key });
+	}
+	if (!['', 'present', 'absent'].includes(status)) {
+		return ws.respond(msg, { message: 'Unsupported registration player status ' + status });
+	}
+
+	const saved_status = status
+		? _registration_player_status_payload(app, key, status, msg.registration_status)
+		: null;
+	const field = 'registration_player_statuses.' + key;
+	const update = saved_status
+		? { $set: { [field]: saved_status } }
+		: { $unset: { [field]: true } };
+	app.db.tournaments.update(
+		{ key: tournament_key },
+		update,
+		{ returnUpdatedDocs: true },
+		function(update_err, num) {
+			if (update_err) {
+				return ws.respond(msg, update_err);
+			}
+			if (num !== 1) {
+				return ws.respond(msg, { message: 'No tournament ' + tournament_key });
+			}
+			notify_change(app, tournament_key, 'registration_player_status', { key, status: saved_status });
+			return ws.respond(msg, null, { key, status: saved_status });
+		}
+	);
+}
+
+function handle_registration_player_status_reset(app, ws, msg) {
+	if (!_require_msg(ws, msg, ['tournament_key'])) {
+		return;
+	}
+
+	const tournament_key = msg.tournament_key;
+	app.db.tournaments.update(
+		{ key: tournament_key },
+		{ $set: { registration_player_statuses: {} } },
+		{ returnUpdatedDocs: true },
+		function(update_err, num) {
+			if (update_err) {
+				return ws.respond(msg, update_err);
+			}
+			if (num !== 1) {
+				return ws.respond(msg, { message: 'No tournament ' + tournament_key });
+			}
+			notify_change(app, tournament_key, 'registration_player_status_reset', {});
+			return ws.respond(msg, null, {});
+		}
+	);
+}
+
+function _registration_validate_player_key(ws, msg, key) {
+	if (!key) {
+		ws.respond(msg, { message: 'Missing registration player key' });
+		return false;
+	}
+	if (!/^[A-Za-z0-9:_-]+$/.test(key)) {
+		ws.respond(msg, { message: 'Invalid registration player key ' + key });
+		return false;
+	}
+	return true;
+}
+
+function _registration_player_comment_payload(app, key, comment, raw_payload) {
+	const payload = raw_payload && typeof raw_payload === 'object' ? raw_payload : {};
+	const player_index = Number(payload.player_index);
+	const stage_type = Number(payload.stage_type);
+	return {
+		key,
+		comment,
+		read: false,
+		read_at: null,
+		stage_entry_id: payload.stage_entry_id == null ? null : String(payload.stage_entry_id),
+		entry_id: payload.entry_id == null ? null : String(payload.entry_id),
+		entry_name: payload.entry_name == null ? '' : String(payload.entry_name),
+		player_id: payload.player_id == null ? null : String(payload.player_id),
+		player_index: Number.isFinite(player_index) ? player_index : null,
+		player_name: payload.player_name == null ? '' : String(payload.player_name),
+		event_name: payload.event_name == null ? '' : String(payload.event_name),
+		stage_id: payload.stage_id == null ? null : String(payload.stage_id),
+		stage_name: payload.stage_name == null ? '' : String(payload.stage_name),
+		stage_type: Number.isFinite(stage_type) ? stage_type : null,
+		club: payload.club == null ? '' : String(payload.club),
+		state: payload.state == null ? '' : String(payload.state),
+		partner: payload.partner == null ? '' : String(payload.partner),
+		updated_at: now_iso(app),
+	};
+}
+
+function _registration_stage_comment_payload(app, key, comment, raw_payload) {
+	const payload = raw_payload && typeof raw_payload === 'object' ? raw_payload : {};
+	const stage_type = Number(payload.stage_type);
+	return {
+		key,
+		comment,
+		read: false,
+		read_at: null,
+		event_id: payload.event_id == null ? null : String(payload.event_id),
+		event_name: payload.event_name == null ? '' : String(payload.event_name),
+		stage_id: payload.stage_id == null ? null : String(payload.stage_id),
+		stage_name: payload.stage_name == null ? '' : String(payload.stage_name),
+		stage_type: Number.isFinite(stage_type) ? stage_type : null,
+		stage_label: payload.stage_label == null ? '' : String(payload.stage_label),
+		updated_at: now_iso(app),
+	};
+}
+
+function _registration_comment_direction(direction) {
+	if (direction === 'control_to_check' || direction === 'check_to_control') {
+		return direction;
+	}
+	return null;
+}
+
+function _registration_comment_request(app, ws, msg, options) {
+	if (!_require_msg(ws, msg, ['tournament_key', 'key', 'direction', 'comment'])) {
+		return;
+	}
+
+	const tournament_key = msg.tournament_key;
+	const key = String(msg.key || '').trim();
+	if (!options.validate_key(ws, msg, key)) {
+		return;
+	}
+	const direction = _registration_comment_direction(msg.direction);
+	if (!direction) {
+		return ws.respond(msg, { message: 'Invalid registration ' + options.label + ' comment direction ' + msg.direction });
+	}
+
+	const comment = String(msg.comment || '').trim();
+	if (comment.length > 2000) {
+		return ws.respond(msg, { message: 'Registration ' + options.label + ' comment is too long' });
+	}
+
+	const saved_comment = comment
+		? options.payload(app, key, comment, msg.registration_comment)
+		: null;
+	const field = options.field + '.' + key + '.' + direction;
+	const update = saved_comment
+		? { $set: { [field]: saved_comment } }
+		: { $unset: { [field]: true } };
+	app.db.tournaments.update(
+		{ key: tournament_key },
+		update,
+		{ returnUpdatedDocs: true },
+		function(update_err, num) {
+			if (update_err) {
+				return ws.respond(msg, update_err);
+			}
+			if (num !== 1) {
+				return ws.respond(msg, { message: 'No tournament ' + tournament_key });
+			}
+			notify_change(app, tournament_key, options.change_type, { key, direction, comment: saved_comment });
+			return ws.respond(msg, null, { key, direction, comment: saved_comment });
+		}
+	);
+}
+
+function handle_registration_player_comment(app, ws, msg) {
+	return _registration_comment_request(app, ws, msg, {
+		label: 'player',
+		field: 'registration_player_comments',
+		change_type: 'registration_player_comment',
+		validate_key: _registration_validate_player_key,
+		payload: _registration_player_comment_payload,
+	});
+}
+
+function _registration_comment_read_request(app, ws, msg, options) {
+	if (!_require_msg(ws, msg, ['tournament_key', 'key', 'direction'])) {
+		return;
+	}
+
+	const tournament_key = msg.tournament_key;
+	const key = String(msg.key || '').trim();
+	if (!options.validate_key(ws, msg, key)) {
+		return;
+	}
+	const direction = _registration_comment_direction(msg.direction);
+	if (!direction) {
+		return ws.respond(msg, { message: 'Invalid registration ' + options.label + ' comment direction ' + msg.direction });
+	}
+
+	const read_at = now_iso(app);
+	const field = options.field + '.' + key + '.' + direction;
+	app.db.tournaments.update(
+		{ key: tournament_key, [field]: { $exists: true } },
+		{ $set: { [field + '.read']: true, [field + '.read_at']: read_at } },
+		{ returnUpdatedDocs: true },
+		function(update_err) {
+			if (update_err) {
+				return ws.respond(msg, update_err);
+			}
+			notify_change(app, tournament_key, options.change_type, { key, direction, read: true, read_at });
+			return ws.respond(msg, null, { key, direction, read: true, read_at });
+		}
+	);
+}
+
+function handle_registration_player_comment_read(app, ws, msg) {
+	return _registration_comment_read_request(app, ws, msg, {
+		label: 'player',
+		field: 'registration_player_comments',
+		change_type: 'registration_player_comment_read',
+		validate_key: _registration_validate_player_key,
+	});
+}
+
+function _registration_validate_stage_key(ws, msg, key) {
+	if (!key) {
+		ws.respond(msg, { message: 'Missing registration stage key' });
+		return false;
+	}
+	if (!/^[A-Za-z0-9:_-]+$/.test(key)) {
+		ws.respond(msg, { message: 'Invalid registration stage key ' + key });
+		return false;
+	}
+	return true;
+}
+
+function handle_registration_stage_comment(app, ws, msg) {
+	return _registration_comment_request(app, ws, msg, {
+		label: 'stage',
+		field: 'registration_stage_comments',
+		change_type: 'registration_stage_comment',
+		validate_key: _registration_validate_stage_key,
+		payload: _registration_stage_comment_payload,
+	});
+}
+
+function handle_registration_stage_comment_read(app, ws, msg) {
+	return _registration_comment_read_request(app, ws, msg, {
+		label: 'stage',
+		field: 'registration_stage_comments',
+		change_type: 'registration_stage_comment_read',
+		validate_key: _registration_validate_stage_key,
+	});
+}
+
+function _registration_event_key_part(value) {
+	return String(value == null ? '' : value)
+		.trim()
+		.replace(/[^A-Za-z0-9:_-]/g, '_')
+		.slice(0, 120);
+}
+
+function _registration_current_event_open_map(tournament) {
+	if (tournament.registration_open_events && typeof tournament.registration_open_events === 'object') {
+		const open_events = {};
+		for (const [key, value] of Object.entries(tournament.registration_open_events)) {
+			if (value === true) {
+				open_events[key] = true;
+			}
+		}
+		return open_events;
+	}
+
+	return {};
+}
+
+function handle_registration_open_event(app, ws, msg) {
+	if (!_require_msg(ws, msg, ['tournament_key', 'event_key', 'is_open'])) {
+		return;
+	}
+
+	const tournament_key = msg.tournament_key;
+	const event_key = String(msg.event_key || '').trim();
+	if (!event_key) {
+		return ws.respond(msg, { message: 'Missing registration event key' });
+	}
+	if (!/^[A-Za-z0-9:_-]+$/.test(event_key)) {
+		return ws.respond(msg, { message: 'Invalid registration event key ' + event_key });
+	}
+	if (typeof msg.is_open !== 'boolean') {
+		return ws.respond(msg, { message: 'registration_open_event requires boolean is_open' });
+	}
+
+	app.db.tournaments.findOne({ key: tournament_key }, function(find_err, tournament) {
+		if (find_err || !tournament) {
+			return ws.respond(msg, find_err || { message: 'No tournament ' + tournament_key });
+		}
+		const registration_open_events = _registration_current_event_open_map(tournament);
+		if (msg.is_open) {
+			registration_open_events[event_key] = true;
+		} else {
+			delete registration_open_events[event_key];
+		}
+		app.db.tournaments.update(
+			{ key: tournament_key },
+			{ $set: { registration_open_events } },
+			{ returnUpdatedDocs: true },
+			function(update_err, num) {
+				if (update_err) {
+					return ws.respond(msg, update_err);
+				}
+				if (num !== 1) {
+					return ws.respond(msg, { message: 'No tournament ' + tournament_key });
+				}
+				const payload = { event_key, is_open: msg.is_open, open_events: registration_open_events };
+				notify_change(app, tournament_key, 'registration_open_events', payload);
+				return ws.respond(msg, null, payload);
+			}
+		);
+	});
+}
+
+function _registration_xlsx_text(value) {
+	if (value === null || value === undefined) {
+		return '';
+	}
+	return String(value).trim();
+}
+
+function _registration_xlsx_norm(value) {
+	return _registration_xlsx_text(value)
+		.toLowerCase()
+		.normalize('NFD')
+		.replace(/[\u0300-\u036f]/g, '')
+		.replace(/ß/g, 'ss')
+		.replace(/[^a-z0-9]+/g, ' ')
+		.trim();
+}
+
+function _registration_xlsx_number(value) {
+	if (value === null || value === undefined || _registration_xlsx_text(value) === '') {
+		return null;
+	}
+	const num = Number(String(value).replace(',', '.'));
+	return Number.isFinite(num) && num !== 0 ? num : null;
+}
+
+function _registration_xlsx_date(value) {
+	if (value === null || value === undefined || _registration_xlsx_text(value) === '') {
+		return '';
+	}
+	if (value instanceof Date) {
+		return value.getFullYear() + '-' + utils.pad(value.getMonth() + 1, 2, '0') + '-' + utils.pad(value.getDate(), 2, '0');
+	}
+	if (typeof value === 'number' && Number.isFinite(value)) {
+		const epoch = Date.UTC(1899, 11, 30);
+		const date = new Date(epoch + value * 24 * 60 * 60 * 1000);
+		return date.getUTCFullYear() + '-' + utils.pad(date.getUTCMonth() + 1, 2, '0') + '-' + utils.pad(date.getUTCDate(), 2, '0');
+	}
+	const str = _registration_xlsx_text(value);
+	const m = /^(\d{1,2})\.(\d{1,2})\.(\d{4})(.*)$/.exec(str);
+	if (m) {
+		const date = m[3] + '-' + utils.pad(m[2], 2, '0') + '-' + utils.pad(m[1], 2, '0');
+		const rest = m[4].trim();
+		return rest ? date + ' ' + rest : date;
+	}
+	return str;
+}
+
+function _registration_xlsx_stage_label(stage) {
+	const type = Number(stage?.stage_type);
+	const name = _registration_xlsx_norm(stage?.name || stage?.stage_name);
+	if (type === 1 || name.includes('hauptfeld') || name.includes('main')) return 'Hauptfeld';
+	if (type === 9998 || name.includes('reserve')) return 'Reserve';
+	if (type === 9999 || name.includes('aussch') || name.includes('exclud')) return 'Ausschließen';
+	return stage?.name || stage?.stage_name || 'Liste';
+}
+
+function _registration_xlsx_player_key(entry, player, player_index) {
+	const player_id = player?.btp_id != null ? player.btp_id : player_index;
+	return String(entry?.stage_entry_id || entry?.entry_id || 'entry') + ':' + String(player_id);
+}
+
+function _registration_xlsx_sheet_parts(sheet_name, data) {
+	const title = _registration_xlsx_text(data?.[1]?.[0]) || _registration_xlsx_text(sheet_name);
+	const parts = title.split(/\s+-\s+/);
+	if (parts.length >= 2) {
+		return {
+			event_name: parts.slice(0, -1).join(' - '),
+			stage_name: parts[parts.length - 1],
+		};
+	}
+	return {
+		event_name: title,
+		stage_name: '',
+	};
+}
+
+function _registration_xlsx_header_map(row) {
+	const aliases = {
+		'nr': 'entry_order',
+		'name': 'player_name',
+		'geschlecht': 'gender',
+		'geb': 'date_of_birth',
+		'starke': 'strength',
+		'leistungspunktzahl': 'performance_points',
+		'ranglistenplatz': 'ranking_place',
+		'punkte': 'points',
+		'spielerid': 'member_id',
+		'verein': 'club',
+		'verband': 'association',
+		'bundesland': 'state',
+		'land': 'nationality',
+		'datum': 'entered_at',
+		'setzplatz': 'seed',
+		'status': 'entry_status',
+		'reihenfolge': 'display_order',
+		'notiz': 'note',
+		'entry info': 'entry_info',
+		'verfugbarkeit': 'availability',
+	};
+	const map = {};
+	row.forEach((label, index) => {
+		const key = aliases[_registration_xlsx_norm(label)];
+		if (key) {
+			map[key] = index;
+		}
+	});
+	return map;
+}
+
+function _registration_xlsx_parse(buffer) {
+	const sheets = xlsx.parse(buffer);
+	const rows = [];
+	for (const sheet of sheets) {
+		const data = sheet.data || [];
+		const header_index = data.findIndex((row) => {
+			const headers = row.map(_registration_xlsx_norm);
+			return headers.includes('name') && headers.includes('ranglistenplatz') && headers.includes('punkte');
+		});
+		if (header_index === -1) {
+			continue;
+		}
+		const sheet_parts = _registration_xlsx_sheet_parts(sheet.name, data);
+		const header = _registration_xlsx_header_map(data[header_index]);
+		for (const row of data.slice(header_index + 1)) {
+			const player_name = _registration_xlsx_text(row[header.player_name]);
+			if (!player_name) {
+				continue;
+			}
+			rows.push({
+				event_name: sheet_parts.event_name,
+				stage_name: sheet_parts.stage_name,
+				entry_order: _registration_xlsx_number(row[header.entry_order]),
+				player_name,
+				gender: _registration_xlsx_text(row[header.gender]),
+				date_of_birth: _registration_xlsx_date(row[header.date_of_birth]),
+				strength: _registration_xlsx_text(row[header.strength]),
+				performance_points: _registration_xlsx_number(row[header.performance_points]),
+				ranking_place: _registration_xlsx_number(row[header.ranking_place]),
+				points: _registration_xlsx_number(row[header.points]),
+				member_id: _registration_xlsx_text(row[header.member_id]),
+				club: _registration_xlsx_text(row[header.club]),
+				association: _registration_xlsx_text(row[header.association]),
+				state: _registration_xlsx_text(row[header.state]),
+				nationality: _registration_xlsx_text(row[header.nationality]),
+				entered_at: _registration_xlsx_date(row[header.entered_at]),
+				seed: _registration_xlsx_text(row[header.seed]),
+				entry_status: _registration_xlsx_text(row[header.entry_status]),
+				display_order: _registration_xlsx_text(row[header.display_order]),
+				note: _registration_xlsx_text(row[header.note]),
+				entry_info: _registration_xlsx_text(row[header.entry_info]),
+				availability: _registration_xlsx_text(row[header.availability]),
+			});
+		}
+	}
+	return rows;
+}
+
+function _registration_xlsx_collect_candidates(tournament) {
+	const candidates = [];
+	for (const event of tournament.events?.events || []) {
+		const event_norm = _registration_xlsx_norm(event.name);
+		for (const stage of event.stages || []) {
+			const stage_label = _registration_xlsx_stage_label(stage);
+			const stage_norms = new Set([
+				_registration_xlsx_norm(stage.name),
+				_registration_xlsx_norm(stage.stage_name),
+				_registration_xlsx_norm(stage_label),
+			]);
+			for (const entry of stage.entries || []) {
+				for (const [player_index, player] of (entry?.team?.players || []).entries()) {
+					candidates.push({
+						key: _registration_xlsx_player_key(entry, player, player_index),
+						event_norm,
+						stage_norms,
+						name_norm: _registration_xlsx_norm(player?.name || [player?.firstname, player?.lastname].filter(Boolean).join(' ')),
+						date_of_birth: _registration_xlsx_text(player?.date_of_birth),
+						club_norm: _registration_xlsx_norm(player?.club),
+						member_id_norm: _registration_xlsx_norm(player?.member_id),
+					});
+				}
+			}
+		}
+	}
+	return candidates;
+}
+
+function _registration_xlsx_match_rows(tournament, rows) {
+	const candidates = _registration_xlsx_collect_candidates(tournament);
+	const by_registration_key = {};
+	const unmatched = [];
+	for (const row of rows) {
+		const event_norm = _registration_xlsx_norm(row.event_name);
+		const stage_norm = _registration_xlsx_norm(row.stage_name);
+		const name_norm = _registration_xlsx_norm(row.player_name);
+		const club_norm = _registration_xlsx_norm(row.club);
+		const member_id_norm = _registration_xlsx_norm(row.member_id);
+		const matching = candidates.filter((candidate) => {
+			if (candidate.event_norm !== event_norm) return false;
+			if (stage_norm && !candidate.stage_norms.has(stage_norm)) return false;
+			if (member_id_norm && candidate.member_id_norm && candidate.member_id_norm === member_id_norm) return true;
+			if (candidate.name_norm !== name_norm) return false;
+			if (row.date_of_birth && candidate.date_of_birth && candidate.date_of_birth !== row.date_of_birth) return false;
+			if (club_norm && candidate.club_norm && candidate.club_norm !== club_norm) return false;
+			return true;
+		});
+		if (matching.length === 1) {
+			by_registration_key[matching[0].key] = row;
+		} else {
+			unmatched.push({
+				event_name: row.event_name,
+				stage_name: row.stage_name,
+				player_name: row.player_name,
+				matches: matching.length,
+			});
+		}
+	}
+	return { by_registration_key, unmatched };
+}
+
+async function async_handle_registration_xlsx_upload(app, ws, msg) {
+	if (!_require_msg(ws, msg, ['tournament_key', 'data_url', 'name'])) {
+		return;
+	}
+
+	const tournament = await app.db.tournaments.findOne_async({ key: msg.tournament_key });
+	if (!tournament) {
+		return ws.respond(msg, { message: 'No tournament ' + msg.tournament_key });
+	}
+
+	const m = /^data:([^;,]+)?(?:;base64)?,([A-Za-z0-9+/=]+)$/.exec(msg.data_url);
+	if (!m) {
+		return ws.respond(msg, { message: 'Invalid XLSX data URL' });
+	}
+	const buffer = Buffer.from(m[2], 'base64');
+	let rows;
+	try {
+		rows = _registration_xlsx_parse(buffer);
+	} catch (err) {
+		return ws.respond(msg, { message: 'Could not read XLSX file: ' + err.message });
+	}
+	const matched = _registration_xlsx_match_rows(tournament, rows);
+	const metadata = {
+		file_name: String(msg.name || ''),
+		uploaded_at: now_iso(app),
+		row_count: rows.length,
+		matched_count: Object.keys(matched.by_registration_key).length,
+		unmatched_count: matched.unmatched.length,
+		unmatched: matched.unmatched.slice(0, 25),
+		by_registration_key: matched.by_registration_key,
+	};
+
+	await app.db.tournaments.update_async(
+		{ key: msg.tournament_key },
+		{ $set: { registration_xlsx_metadata: metadata } },
+		{ returnUpdatedDocs: true }
+	);
+	notify_change(app, msg.tournament_key, 'registration_xlsx_metadata', { metadata });
+	return ws.respond(msg, null, { metadata });
+}
+
 const all_admins = [];
 function _notify_queue_hang(payload) {
 	for (const admin_ws of all_admins) {
@@ -4918,6 +5529,14 @@ module.exports = {
 	async_handle_preparation_selection_execute,
 	handle_match_player_check_in,
 	handle_match_participant_check_in,
+	handle_registration_player_status,
+	handle_registration_player_status_reset,
+	handle_registration_player_comment,
+	handle_registration_player_comment_read,
+	handle_registration_stage_comment,
+	handle_registration_stage_comment_read,
+	handle_registration_open_event,
+	async_handle_registration_xlsx_upload,
 	handle_ticker_pushall,
 	handle_ticker_reset,
 	handle_free_announce,

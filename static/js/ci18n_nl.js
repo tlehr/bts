@@ -99,6 +99,9 @@ var ci18n_nl = Object.assign(
 
 
 	'display_setting:id': 'ID:',
+	'display_setting:devicemode': 'Bedrijfsmodus: ',
+	'display_setting:devicemode:umpire': 'Tablet',
+	'display_setting:devicemode:display': 'Weergave',
 	'display_setting:wakelock': 'Bedrijfsmodus: ',
 	'display_setting:style': 'Stijl: ',	
 	'display_setting:court': 'Getoonde baan: ',
@@ -126,6 +129,10 @@ var ci18n_nl = Object.assign(
 	'display_setting:language_nl-NL': 'Nederlands',
 	'display_setting:fullscreen_ask': 'Vraag volledig scherm bij opstarten: ',
 	'display_setting:show_announcements': 'Toon aankondigingen: ',
+	'display_setting:tablet_mode': 'Tabletmodus: ',
+	'display_setting:tablet_mode:umpire': 'Scheidsrechterpaneel',
+	'display_setting:tablet_mode:scorecard': 'Wedstrijdbriefje',
+	'display_setting:tablet_mode:registration_check': 'Aanmelding',
 	'display_setting:neversettings': 'Blokkeer instellingenvenster op apparaat',
 	'display_setting:autohide': 'Verberg Instelling na (ms): ',
 	'display_setting:double_click_timeout': 'Dubbelklik blokkade (ms): ',

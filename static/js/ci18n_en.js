@@ -134,6 +134,9 @@ var ci18n_en = Object.assign(
 
 
 	'display_setting:id': 'ID:',
+	'display_setting:devicemode': 'Operating mode: ',
+	'display_setting:devicemode:umpire': 'Tablet',
+	'display_setting:devicemode:display': 'Display',
 	'display_setting:wakelock': 'Operating mode: ',
 	'display_setting:style': 'Style: ',	
 	'display_setting:court': 'Displayed court: ',
@@ -164,6 +167,7 @@ var ci18n_en = Object.assign(
 	'display_setting:tablet_mode': 'Tablet mode: ',
 	'display_setting:tablet_mode:umpire': 'Umpire panel',
 	'display_setting:tablet_mode:scorecard': 'Score slip',
+	'display_setting:tablet_mode:registration_check': 'Registration',
 	'display_setting:neversettings': 'Disable settings dialog on device',
 	'display_setting:autohide': 'Verberge Einstellungen nach (ms): ',
 	'display_setting:double_click_timeout': 'Doppel-Touch-Sperre (ms): ',

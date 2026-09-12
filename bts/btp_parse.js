@@ -277,6 +277,7 @@ function get_btp_state(response) {
 		draws,
 		events,
 		entries,
+		stage_entries,
 		players,
 		stages,
 		matches,

@@ -552,6 +552,93 @@ function _annotate_draw_rankings(btp_state) {
 	}
 }
 
+function normalize_stage_entry_for_event_payload(stage_entry, btp_state) {
+	const unwrap = (v) => (Array.isArray(v) && v.length === 1 ? v[0] : v);
+	const optional_number = (object, fields) => {
+		for (const field of fields) {
+			if (object[field] === undefined) continue;
+			const value = Number(unwrap(object[field]));
+			if (Number.isFinite(value)) {
+				return value;
+			}
+		}
+		return null;
+	};
+	const optional_string = (object, fields) => {
+		for (const field of fields) {
+			if (object[field] === undefined) continue;
+			const value = unwrap(object[field]);
+			if (value !== undefined && value !== null && String(value).trim() !== '') {
+				return String(value);
+			}
+		}
+		return '';
+	};
+	const optional_datetime = (object, fields) => {
+		for (const field of fields) {
+			if (object[field] === undefined) continue;
+			const value = unwrap(object[field]);
+			if (!value) continue;
+			if (typeof value === 'object' && Number.isFinite(Number(value.year))) {
+				const date = date_str(value);
+				if (Number.isFinite(Number(value.hour)) && Number.isFinite(Number(value.minute))) {
+					return date + ' ' + time_str(value);
+				}
+				return date;
+			}
+			if (String(value).trim() !== '') {
+				return String(value);
+			}
+		}
+		return '';
+	};
+	const entry_id = Number(unwrap(stage_entry.EntryID));
+	const entry = btp_state.entries.get(entry_id) || btp_state.entries.get(String(entry_id));
+	if (!entry) {
+		return null;
+	}
+
+	const team_players = [];
+	if (entry.Player1ID) {
+		const player_id = unwrap(entry.Player1ID);
+		const player = btp_state.players.get(player_id) || btp_state.players.get(Number(player_id)) || btp_state.players.get(String(player_id));
+		if (player) {
+			team_players.push(player);
+		}
+	}
+	if (entry.Player2ID) {
+		const player_id = unwrap(entry.Player2ID);
+		const player = btp_state.players.get(player_id) || btp_state.players.get(Number(player_id)) || btp_state.players.get(String(player_id));
+		if (player) {
+			team_players.push(player);
+		}
+	}
+	if (team_players.length === 0) {
+		return null;
+	}
+
+	const team = _craft_team.call({
+		clubs: btp_state.clubs,
+		districts: btp_state.districts,
+	}, team_players);
+
+	return {
+		stage_entry_id: Number(unwrap(stage_entry.ID)),
+		entry_id,
+		status: stage_entry.Status !== undefined ? Number(unwrap(stage_entry.Status)) : null,
+		seed1: stage_entry.Seed1 !== undefined ? Number(unwrap(stage_entry.Seed1)) : null,
+		seed2: stage_entry.Seed2 !== undefined ? Number(unwrap(stage_entry.Seed2)) : null,
+		entry_order: optional_number(stage_entry, ['EntryOrder', 'Order', 'DisplayOrder', 'Position', 'EntryNo', 'No']),
+		row: optional_number(stage_entry, ['Row', 'RowNr', 'RowNumber']),
+		strength: optional_number(stage_entry, ['Strength', 'Performance', 'Level', 'Leistung']),
+		rank: optional_number(stage_entry, ['Rank', 'Ranking', 'Rating', 'Rang']),
+		points: optional_number(stage_entry, ['Points', 'Punkte']),
+		entered_at: optional_datetime(stage_entry, ['Date', 'Created', 'CreatedAt', 'Timestamp', 'ModifiedAt', 'LastModified']),
+		series: optional_string(stage_entry, ['Series', 'Serie']),
+		team,
+	};
+}
+
 function findDefaultScoringFormat(scoringFormatMap) {
 
     for (const entry of scoringFormatMap.entries()) {
@@ -788,6 +875,15 @@ function _craft_team(par) {
 			pres.btp_id = p.ID[0];
 		}
 
+		if (p.MemberID && p.MemberID[0]) {
+			pres.member_id = String(p.MemberID[0]);
+		}
+
+		if (p.GenderID && p.GenderID[0]) {
+			pres.gender_id = p.GenderID[0];
+			pres.gender = Number(p.GenderID[0]) === 1 ? 'M' : (Number(p.GenderID[0]) === 2 ? 'W' : String(p.GenderID[0]));
+		}
+
 		if (p.Country && p.Country[0]) {
 			pres.nationality = p.Country[0];
 		}
@@ -818,11 +914,19 @@ function _craft_team(par) {
 		}
 
 		try{
-			const club = this.clubs.get(p.ClubID[0]);
-			const district = this.districts.get(club.DistrictID[0]);
-			const state_by_district = district.Name[0].split("-")[0];
+			const club = p.ClubID && this.clubs ? this.clubs.get(p.ClubID[0]) : null;
+			if (club && club.Name && club.Name[0]) {
+				pres.club = club.Name[0];
+				pres.club_id = p.ClubID[0];
+			}
+			const district = club && club.DistrictID && this.districts ? this.districts.get(club.DistrictID[0]) : null;
+			const state_by_district = district && district.Name && district.Name[0] ? district.Name[0].split("-")[0] : null;
+			if (district && district.Name && district.Name[0]) {
+				pres.association = district.Name[0];
+				pres.association_id = club.DistrictID[0];
+			}
 
-			var state = (state_by_district ? state_by_district : (p.State && p.Satate.length > 0 ? p.State[0] : undefined));
+			var state = (state_by_district ? state_by_district : (p.State && p.State.length > 0 ? p.State[0] : undefined));
 			if (state) {
 				switch (state) {
 					case 'BAW' : {
@@ -2338,8 +2442,13 @@ function integrate_events(app, tkey, btp_state, callback) {
 	const unwrap = (v) => (Array.isArray(v) && v.length === 1 ? v[0] : v);
 	const deepEqualJson = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 
-	if (!btp_state || !(btp_state.events instanceof Map) || !(btp_state.stages instanceof Map)) {
-		return callback(new Error("btp_state.events/stages missing or not a Map"));
+	if (
+		!btp_state ||
+		!(btp_state.events instanceof Map) ||
+		!(btp_state.stages instanceof Map) ||
+		!(btp_state.stage_entries instanceof Map)
+	) {
+		return callback(new Error("btp_state.events/stages/stage_entries missing or not a Map"));
 	}
 
 	function normalizeEvent(ev) {
@@ -2380,8 +2489,48 @@ function integrate_events(app, tkey, btp_state, callback) {
 		.map(normalizeStage)
 		.sort((a, b) => a.id - b.id);
 
+	const entriesByStageId = new Map();
+	for (const stage_entry of btp_state.stage_entries.values()) {
+		const stage_id = Number(unwrap(stage_entry.StageID));
+		const normalized_entry = normalize_stage_entry_for_event_payload(stage_entry, btp_state);
+		if (!normalized_entry) {
+			continue;
+		}
+		if (!entriesByStageId.has(stage_id)) entriesByStageId.set(stage_id, []);
+		entriesByStageId.get(stage_id).push(normalized_entry);
+	}
+	for (const entries of entriesByStageId.values()) {
+		entries.sort((a, b) => {
+			const a_name = a.team?.players?.map((player) => player.name || '').join(' / ') || '';
+			const b_name = b.team?.players?.map((player) => player.name || '').join(' / ') || '';
+			return a_name.localeCompare(b_name) || (a.entry_id - b.entry_id);
+		});
+	}
+
+	const matchCountByEventId = new Map();
+	if (btp_state.draws instanceof Map && btp_state.matches) {
+		const matches = btp_state.matches instanceof Map
+			? btp_state.matches.values()
+			: btp_state.matches;
+		for (const match of matches) {
+			if (!match || !match.DrawID || !(match.IsMatch && unwrap(match.IsMatch))) {
+				continue;
+			}
+			const draw = btp_state.draws.get(unwrap(match.DrawID))
+				|| btp_state.draws.get(Number(unwrap(match.DrawID)))
+				|| btp_state.draws.get(String(unwrap(match.DrawID)));
+			const event_id = draw && draw.EventID ? Number(unwrap(draw.EventID)) : null;
+			if (!Number.isFinite(event_id)) {
+				continue;
+			}
+			matchCountByEventId.set(event_id, (matchCountByEventId.get(event_id) || 0) + 1);
+		}
+	}
+
 	const stagesByEventId = new Map();
 	for (const st of stagesArr) {
+		st.entries = entriesByStageId.get(st.id) || [];
+		st.entry_count = st.entries.length;
 		if (!stagesByEventId.has(st.event_id)) stagesByEventId.set(st.event_id, []);
 		stagesByEventId.get(st.event_id).push(st);
 	}
@@ -2394,6 +2543,8 @@ function integrate_events(app, tkey, btp_state, callback) {
 	const payload = {
 		events: eventsArr.map((ev) => ({
 		...ev,
+		is_drawn: (matchCountByEventId.get(ev.id) || 0) > 0,
+		match_count: matchCountByEventId.get(ev.id) || 0,
 		stages: stagesByEventId.get(ev.id) || [],
 		})),
 		// optional: keep a flat list too, if you prefer later
@@ -3152,6 +3303,7 @@ module.exports = {
 	time_str,
 	// test only
 	_integrate_player_state: integrate_player_state,
+	_integrate_events: integrate_events,
 	_integrate_courts: integrate_courts,
 	_parse_btp_court_num: parse_btp_court_num,
 	_copy_checked_in_by_btp_id: copy_checked_in_by_btp_id,
@@ -3168,5 +3320,6 @@ module.exports = {
 	_sanitize_scoring_format: sanitizeScoringFormat,
 	_resolve_btp_dependency_link,
 	_set_type_to_end_max: setTypeToEndMax,
+	_normalize_stage_entry_for_event_payload: normalize_stage_entry_for_event_payload,
 	_craft_team,
 };
