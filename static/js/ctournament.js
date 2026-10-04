@@ -1407,51 +1407,6 @@ var ctournament = (function() {
 		}
 	}
 
-	function calculate_location_preparation_need_statuses() {
-		const courts = Array.isArray(curt.courts) ? curt.courts : [];
-		const matches = Array.isArray(curt.matches) ? curt.matches : [];
-		const status_by_location_id = new Map();
-		const occupied_court_ids = new Set(
-			matches
-				.filter((match) => {
-					const setup = match && match.setup;
-					return !!setup && setup.now_on_court === true && setup.court_id;
-				})
-				.map((match) => match.setup.court_id)
-		);
-
-		(curt.locations || []).forEach((loc) => {
-			const location_courts = courts.filter((court) => court && court.location_id === loc._id);
-			const active_location_courts = location_courts.filter((court) => court && court.is_active === true);
-			const active_location_court_ids = new Set(active_location_courts.map((court) => court._id));
-			const successor_need_count = matches.filter((match) => {
-				const setup = match && match.setup;
-				return !!setup
-					&& setup.now_on_court === true
-					&& setup.needs_preparation_successor === true
-					&& active_location_court_ids.has(setup.court_id);
-			}).length;
-			const free_court_count = active_location_courts.filter((court) => !occupied_court_ids.has(court._id)).length;
-			const active_court_count = active_location_courts.length;
-			const required_preparation_count = Math.min(active_court_count, successor_need_count + free_court_count);
-			const current_preparation_count = matches.filter((match) => {
-				const setup = match && match.setup;
-				return !!setup && setup.state === 'preparation' && setup.location_id === loc._id;
-			}).length;
-			status_by_location_id.set(loc._id, {
-				location_id: loc._id,
-				active_court_count,
-				successor_need_count,
-				free_court_count,
-				required_preparation_count,
-				current_preparation_count,
-				missing_preparation_count: Math.max(0, required_preparation_count - current_preparation_count),
-			});
-		});
-
-		return status_by_location_id;
-	}
-
 	function request_location_preparation_selections() {
 		if (!curt || !curt.key) {
 			return;
@@ -1510,7 +1465,6 @@ var ctournament = (function() {
 		if (!labels.length) {
 			return;
 		}
-		const statuses = calculate_location_preparation_need_statuses();
 		labels.forEach((label) => {
 			const location_id = label.getAttribute('data-location-need-label');
 			const location = utils.find(curt.locations || [], (loc) => String(loc._id) === String(location_id));
