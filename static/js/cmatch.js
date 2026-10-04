@@ -9,9 +9,16 @@ let is_paused = false;
 
 const OVERRIDE_COLORS_KEYS = ['', 'bg'];
 let tabletoperator_status_index = null;
+let player_status_match_index_source = null;
+let player_status_match_index = null;
 
 function invalidate_tabletoperator_status_index() {
 	tabletoperator_status_index = null;
+}
+
+function invalidate_player_status_match_index() {
+	player_status_match_index_source = null;
+	player_status_match_index = null;
 }
 
 function _participant_btp_key(participant) {
@@ -52,6 +59,42 @@ function _get_tabletoperator_status_index() {
 	}
 	tabletoperator_status_index = { waiting_btp_ids, active_court_by_btp_id };
 	return tabletoperator_status_index;
+}
+
+function _get_player_status_match_index() {
+	const matches = Array.isArray(curt && curt.matches) ? curt.matches : null;
+	if (player_status_match_index_source === matches && player_status_match_index) {
+		return player_status_match_index;
+	}
+	player_status_match_index_source = matches;
+	player_status_match_index = new Map();
+	if (!matches) {
+		return player_status_match_index;
+	}
+	matches.forEach((match) => {
+		_setup_player_btp_ids(match && match.setup).forEach((id) => {
+			let match_set = player_status_match_index.get(id);
+			if (!match_set) {
+				match_set = new Set();
+				player_status_match_index.set(id, match_set);
+			}
+			match_set.add(match);
+		});
+	});
+	return player_status_match_index;
+}
+
+function _matches_for_player_status_ids(player_ids) {
+	const index = _get_player_status_match_index();
+	const matches = new Set();
+	player_ids.forEach((id) => {
+		const match_set = index.get(id);
+		if (!match_set) {
+			return;
+		}
+		match_set.forEach((match) => matches.add(match));
+	});
+	return matches;
 }
 
 function _network_score_str(netscore) {
@@ -1340,7 +1383,7 @@ function update_player_status_indicators_for_player_ids(player_ids, options) {
 	if (!options || options.invalidate !== false) {
 		invalidate_tabletoperator_status_index();
 	}
-	curt.matches.forEach((match) => {
+	_matches_for_player_status_ids(wanted_ids).forEach((match) => {
 		const setup = match && match.setup;
 		if (!setup || !Array.isArray(setup.teams)) {
 			return;
@@ -1400,6 +1443,7 @@ function update_all_player_status_indicators() {
 	}
 
 function add_match(m, section) {
+	invalidate_player_status_match_index();
 	insert_new_match_row(m, section);
 }
 
@@ -1502,6 +1546,7 @@ function reorder_finished_match_row(m) {
 
 function update_match(m, old_section, new_section) {
 	invalidate_tabletoperator_status_index();
+	invalidate_player_status_match_index();
 	if(old_section != new_section) {
 		remove_match_from_gui(m, old_section);
 		insert_new_match_row(m, new_section);
@@ -2661,6 +2706,7 @@ crouting.register(/t\/([a-z0-9]+)\/m\/([-a-zA-Z0-9_ ]+)\/scoresheet$/, function(
 
 function render_match_table(container, matches, style, show_player_status, show_add_tabletoperator) {
 	invalidate_tabletoperator_status_index();
+	invalidate_player_status_match_index();
 	if(!show_player_status)
 	{
 		show_player_status = false;
@@ -3081,6 +3127,7 @@ function preparation_call_debug_data_enabled() {
 
 function render_unassigned(container) {
 	invalidate_tabletoperator_status_index();
+	invalidate_player_status_match_index();
 	uiu.empty(container);
 	render_manual_btp_stage_status_warnings(container);
 	uiu.el(container, 'h3', 'section', ci18n('Unassigned Matches'));
@@ -3272,6 +3319,7 @@ function render_finished(container) {
 
 function render_courts(container, style) {
 	invalidate_tabletoperator_status_index();
+	invalidate_player_status_match_index();
 	style = style || 'plain';
 	uiu.empty(container);
 	if(style === 'public') {
