@@ -70,18 +70,57 @@ function compact_line(xml) {
 	const groups = Array.from(xml.matchAll(/<GROUP ID="([^"]+)">/g)).map(match => match[1]);
 	const unique_groups = Array.from(new Set(groups)).slice(0, 8).join(', ');
 	const has_payments = xml.includes('<GROUP ID="Payments">');
-	return `${action}${has_payments ? ' [Payments]' : ''}${unique_groups ? ` groups=${unique_groups}` : ''}`;
+	const payment_fields = Array.from(xml.matchAll(/ID="([^"]*(?:Fee|Pay|Paid|Payment|Invoice|Zahl|Bezahlt)[^"]*)"/gi))
+		.map(match => match[1]);
+	const unique_payment_fields = Array.from(new Set(payment_fields)).slice(0, 8).join(', ');
+	return `${action}${has_payments ? ' [Payments]' : ''}${unique_groups ? ` groups=${unique_groups}` : ''}${unique_payment_fields ? ` payment-fields=${unique_payment_fields}` : ''}`;
+}
+
+function split_btp_frames(buffer) {
+	const frames = [];
+	let offset = 0;
+	while (offset + 4 <= buffer.length) {
+		const payload_len = buffer.readInt32BE(offset);
+		const frame_len = payload_len + 4;
+		if (payload_len < 0 || offset + frame_len > buffer.length) {
+			break;
+		}
+		frames.push(buffer.subarray(offset, offset + frame_len));
+		offset += frame_len;
+	}
+	return {
+		frames,
+		trailing: buffer.subarray(offset),
+	};
+}
+
+async function write_frame(out_dir, connection_id, direction, buffer, frame_index, frame_count) {
+	const suffix = frame_count > 1 ? `-${String(frame_index + 1).padStart(3, '0')}` : '';
+	const base = `${String(connection_id).padStart(4, '0')}-${direction}${suffix}`;
+	await fs.promises.writeFile(path.join(out_dir, `${base}.bin`), buffer);
+	const xml = await decode_to_xml(buffer);
+	await fs.promises.writeFile(path.join(out_dir, `${base}.xml`), xml);
+	console.log(`[${connection_id}] ${direction}${suffix}: ${buffer.length} bytes ${compact_line(xml)}`);
 }
 
 async function write_message(out_dir, connection_id, direction, chunks) {
 	const buffer = Buffer.concat(chunks);
 	if (buffer.length === 0) return;
 
-	const base = `${String(connection_id).padStart(4, '0')}-${direction}`;
-	await fs.promises.writeFile(path.join(out_dir, `${base}.bin`), buffer);
-	const xml = await decode_to_xml(buffer);
-	await fs.promises.writeFile(path.join(out_dir, `${base}.xml`), xml);
-	console.log(`[${connection_id}] ${direction}: ${buffer.length} bytes ${compact_line(xml)}`);
+	const {frames, trailing} = split_btp_frames(buffer);
+	if (frames.length === 0) {
+		await write_frame(out_dir, connection_id, direction, buffer, 0, 1);
+		return;
+	}
+
+	await Promise.all(frames.map((frame, index) =>
+		write_frame(out_dir, connection_id, direction, frame, index, frames.length)
+	));
+	if (trailing.length > 0) {
+		const base = `${String(connection_id).padStart(4, '0')}-${direction}-trailing`;
+		await fs.promises.writeFile(path.join(out_dir, `${base}.bin`), trailing);
+		console.warn(`[${connection_id}] ${direction}: ${trailing.length} trailing bytes not decoded`);
+	}
 }
 
 async function main() {

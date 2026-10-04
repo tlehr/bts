@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8" />
+	<title>Rechnung</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<style>
+		html,
+		body {
+			height: 100%;
+			margin: 0;
+			background: #2b2b2b;
+			color: #ffffff;
+			font-family: Arial, sans-serif;
+		}
+		.accounting_pdf_viewer {
+			display: grid;
+			grid-template-rows: auto 1fr;
+			height: 100%;
+		}
+		.accounting_pdf_viewer_toolbar {
+			align-items: center;
+			background: #3c3c3c;
+			display: flex;
+			gap: 16px;
+			min-height: 42px;
+			padding: 0 16px;
+		}
+		.accounting_pdf_viewer_title {
+			font-size: 14px;
+			font-weight: 700;
+			overflow: hidden;
+			text-overflow: ellipsis;
+			white-space: nowrap;
+		}
+		.accounting_pdf_viewer_download {
+			color: #ffffff;
+			font-size: 13px;
+			margin-left: auto;
+			text-decoration: none;
+		}
+		.accounting_pdf_viewer_download[aria-disabled="true"] {
+			opacity: 0.45;
+			pointer-events: none;
+		}
+		.accounting_pdf_viewer_frame {
+			border: 0;
+			height: 100%;
+			width: 100%;
+		}
+		.accounting_pdf_viewer_status {
+			align-self: center;
+			color: #d9d9d9;
+			font-size: 14px;
+			justify-self: center;
+		}
+	</style>
+</head>
+<body>
+	<div class="accounting_pdf_viewer">
+		<div class="accounting_pdf_viewer_toolbar">
+			<div class="accounting_pdf_viewer_title"></div>
+			<a class="accounting_pdf_viewer_download" href="#" download aria-disabled="true">PDF herunterladen</a>
+		</div>
+		<div class="accounting_pdf_viewer_status">PDF wird erstellt ...</div>
+		<iframe class="accounting_pdf_viewer_frame" title="PDF" hidden></iframe>
+	</div>
+	<script>
+	(function() {
+		'use strict';
+
+		const params = new URLSearchParams(window.location.search);
+		const key = params.get('key') || '';
+		const print_on_load = params.get('print') === '1';
+		const filename = decodeURIComponent((window.location.pathname.split('/').pop() || 'rechnung.pdf'));
+		const title = filename.replace(/\.pdf$/i, '');
+		const title_node = document.querySelector('.accounting_pdf_viewer_title');
+		const download_node = document.querySelector('.accounting_pdf_viewer_download');
+		const status_node = document.querySelector('.accounting_pdf_viewer_status');
+		const frame_node = document.querySelector('.accounting_pdf_viewer_frame');
+		let object_url = '';
+		let printed = false;
+
+		document.title = title;
+		if (key && window.history && typeof window.history.replaceState === 'function') {
+			window.history.replaceState(null, title, window.location.pathname);
+		}
+		title_node.textContent = title;
+		download_node.download = filename;
+
+		function show_pdf(bytes) {
+			const file = typeof File === 'function'
+				? new File([bytes], filename, { type: 'application/pdf' })
+				: new Blob([bytes], { type: 'application/pdf' });
+			if (object_url) {
+				URL.revokeObjectURL(object_url);
+			}
+			object_url = URL.createObjectURL(file);
+			if (print_on_load && !printed) {
+				printed = true;
+				frame_node.addEventListener('load', function() {
+					setTimeout(function() {
+						try {
+							frame_node.contentWindow.focus();
+							frame_node.contentWindow.print();
+						} catch (err) {
+							window.print();
+						}
+					}, 250);
+				}, { once: true });
+			}
+			frame_node.src = object_url;
+			frame_node.hidden = false;
+			status_node.hidden = true;
+			download_node.href = object_url;
+			download_node.setAttribute('download', filename);
+			download_node.removeAttribute('aria-disabled');
+		}
+
+		if (!key || typeof BroadcastChannel !== 'function') {
+			status_node.textContent = 'PDF konnte nicht uebergeben werden.';
+			return;
+		}
+
+		const channel = new BroadcastChannel('bts-accounting-pdf-' + key);
+		channel.onmessage = function(event) {
+			const data = event.data || {};
+			if (data.type === 'pdf' && data.bytes) {
+				show_pdf(data.bytes);
+			} else if (data.type === 'error') {
+				status_node.textContent = data.message || 'PDF konnte nicht erstellt werden.';
+			}
+		};
+		channel.postMessage({ type: 'ready' });
+		window.addEventListener('beforeunload', function() {
+			if (object_url) {
+				URL.revokeObjectURL(object_url);
+			}
+			channel.close();
+		});
+	}());
+	</script>
+</body>
+</html>

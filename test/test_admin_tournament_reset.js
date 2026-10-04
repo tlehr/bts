@@ -41,6 +41,12 @@ describe('admin tournament reset', function() {
 			ticker_password: 'ticker-secret',
 			displaysettings_general: 'display-a',
 			displaysettings_general_tablet: 'tablet-a',
+			accounting_letterhead_first_pdf: 'data:application/pdf;base64,JVBERi0xLjQ=',
+			accounting_letterhead_follow_pdf: 'data:application/pdf;base64,JVBERi0xLjQ=',
+			accounting_letterhead_first_page_number_enabled: false,
+			accounting_letterhead_layout: {
+				first: { content: { x: 20, y: 100, width: 170, height: 150 } },
+			},
 			events: { events: [{ id: 1, name: 'HE' }] },
 		});
 		await insert(db, 'matches', { _id: 'm1', tournament_key: 'default' });
@@ -108,13 +114,18 @@ describe('admin tournament reset', function() {
 		assert.deepStrictEqual(tournament.events, { events: [] });
 		assert.strictEqual(tournament.displaysettings_general, 'display-a');
 		assert.strictEqual(tournament.displaysettings_general_tablet, 'tablet-a');
+		assert.strictEqual(tournament.accounting_letterhead_first_pdf, undefined);
+		assert.strictEqual(tournament.accounting_letterhead_follow_pdf, undefined);
+		assert.strictEqual(tournament.accounting_letterhead_first_page_number_enabled, undefined);
+		assert.strictEqual(tournament.accounting_letterhead_layout, undefined);
 
 		assert.strictEqual((await db.normalizations.find_async({ tournament_key: 'default' })).length, 1);
 		const displaysettings = await db.displaysettings.find_async({});
-		assert.strictEqual(displaysettings.length, 2);
+		assert.strictEqual(displaysettings.length, 3);
 		const display_setting = displaysettings.find(setting => setting.id === 'display-a');
 		assert.strictEqual(display_setting.displaymode_style, 'tournament_overview_dm');
 		assert.strictEqual(display_setting.d_tournament_overview_courts, '6,5,4,3,2');
+		assert(displaysettings.find(setting => setting.id === 'default_default_registration'));
 		assert.strictEqual((await db.display_court_displaysettings.find_async({ tournament_key: 'default' })).length, 1);
 	});
 });

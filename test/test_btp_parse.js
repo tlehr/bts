@@ -126,4 +126,56 @@ _describe('btp_parse', () => {
 		const matches = bs.matches;
 		assert.deepStrictEqual(matches, []);
 	});
+
+	_it('payments', async() => {
+		const response = {
+			Result: [{
+				Tournament: [{
+					Payments: [{
+						Payment: [{
+							ID: [9],
+							Amount: [8],
+							PlayerID: [45],
+							GUID: ['{E819D7D0-3D2F-41E0-805D-C91AB49A7CF9}'],
+							PaymentType: [1],
+						}],
+					}],
+				}],
+			}],
+		};
+
+		const bs = btp_parse.get_btp_state(response);
+		const payment = bs.payments.get(9);
+		assert(payment);
+		assert.deepStrictEqual(payment.Amount[0], 8);
+		assert.deepStrictEqual(payment.PlayerID[0], 45);
+	});
+
+	_it('keeps payments with duplicate btp ids', async() => {
+		const response = {
+			Result: [{
+				Tournament: [{
+					Payments: [{
+						Payment: [{
+							ID: [120],
+							Amount: [22],
+							PlayerID: [253],
+							PaymentType: [1],
+						}, {
+							ID: [120],
+							Amount: [11],
+							PlayerID: [177],
+							PaymentType: [1],
+						}],
+					}],
+				}],
+			}],
+		};
+
+		const bs = btp_parse.get_btp_state(response);
+		const payments = Array.from(bs.payments.values());
+		assert.deepStrictEqual(payments.length, 2);
+		assert(payments.some(payment => payment.PlayerID[0] === 253 && payment.Amount[0] === 22));
+		assert(payments.some(payment => payment.PlayerID[0] === 177 && payment.Amount[0] === 11));
+	});
 });

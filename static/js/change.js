@@ -138,6 +138,19 @@ var change = (function() {
 		if (field === 'upcoming_matches_today_only_enabled') {
 			ctournament.refresh_current_view();
 		}
+		if (
+			[
+				'accounting_entry_fee_mode',
+				'accounting_invoice_treatment',
+				'accounting_letterhead_first_pdf',
+				'accounting_letterhead_follow_pdf',
+				'accounting_letterhead_first_page_number_enabled',
+				'accounting_letterhead_layout',
+			].includes(field) &&
+			current_view === 'accounting'
+		) {
+			ctournament.refresh_current_view();
+		}
 		if (['preparation_call_debug_output_enabled', 'preparation_call_debug_icons_enabled'].includes(field) && current_view === 'show') {
 			uiu.qsEach('.unassigned_container', function(unassigned_container) {
 				cmatch.render_unassigned(unassigned_container);
@@ -592,6 +605,10 @@ var change = (function() {
 			curt.umpires = [];
 			curt.courts_by_id = {};
 			curt.locations_by_id = {};
+			delete curt.btp_payments;
+			delete curt.accounting_entries;
+			delete curt.accounting_items;
+			delete curt.accounting_documents;
 			if (ctournament && typeof ctournament.refresh_current_view === 'function') {
 				ctournament.refresh_current_view();
 			} else {
@@ -798,6 +815,76 @@ var change = (function() {
 			break;
 		case 'registration_open_events':
 			curt.registration_open_events = c.val.open_events || {};
+			break;
+		case 'registration_accounting_entry':
+			if (!Array.isArray(curt.accounting_entries)) {
+				curt.accounting_entries = [];
+			}
+			if (c.val.entry) {
+				const existing_index = curt.accounting_entries.findIndex((entry) => entry && entry.id === c.val.entry.id);
+				if (existing_index >= 0) {
+					curt.accounting_entries[existing_index] = c.val.entry;
+				} else {
+					curt.accounting_entries.push(c.val.entry);
+				}
+			}
+			if (ctournament && typeof ctournament.refresh_current_view === 'function') {
+				ctournament.refresh_current_view();
+			}
+			break;
+		case 'registration_accounting_entry_remove':
+			if (Array.isArray(curt.accounting_entries)) {
+				curt.accounting_entries = curt.accounting_entries.filter((entry) => entry && entry.id !== c.val.entry_id);
+			}
+			if (ctournament && typeof ctournament.refresh_current_view === 'function') {
+				ctournament.refresh_current_view();
+			}
+			break;
+		case 'registration_accounting_document':
+			if (!Array.isArray(curt.accounting_documents)) {
+				curt.accounting_documents = [];
+			}
+			if (c.val.document) {
+				const existing_index = curt.accounting_documents.findIndex((document) => document && document.id === c.val.document.id);
+				if (existing_index >= 0) {
+					curt.accounting_documents[existing_index] = c.val.document;
+				} else {
+					curt.accounting_documents.push(c.val.document);
+				}
+			}
+			if (ctournament && typeof ctournament.refresh_current_view === 'function') {
+				ctournament.refresh_current_view();
+			}
+			break;
+		case 'registration_accounting_item':
+			if (!Array.isArray(curt.accounting_items)) {
+				curt.accounting_items = [];
+			}
+			if (c.val.item) {
+				const existing_index = curt.accounting_items.findIndex((item) => item && item.id === c.val.item.id);
+				if (existing_index >= 0) {
+					curt.accounting_items[existing_index] = c.val.item;
+				} else {
+					curt.accounting_items.push(c.val.item);
+				}
+			}
+			if (ctournament && typeof ctournament.refresh_current_view === 'function') {
+				ctournament.refresh_current_view();
+			}
+			break;
+		case 'registration_accounting_item_remove':
+			if (Array.isArray(curt.accounting_items)) {
+				curt.accounting_items = curt.accounting_items.filter((item) => item && item.id !== c.val.item_id);
+			}
+			if (ctournament && typeof ctournament.refresh_current_view === 'function') {
+				ctournament.refresh_current_view();
+			}
+			break;
+		case 'update_btp_payments':
+			curt.btp_payments = c.val.btp_payments || { payments: [] };
+			if (ctournament && typeof ctournament.refresh_current_view === 'function') {
+				ctournament.refresh_current_view();
+			}
 			break;
 		case 'registration_xlsx_metadata':
 			curt.registration_xlsx_metadata = c.val.metadata || null;

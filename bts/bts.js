@@ -67,6 +67,16 @@ function main() {
 
 function cadmin_router() {
 	const router = express.Router();
+	router.get('/pdf-viewer/:filename', function(req, res, next) {
+		fs.readFile(path.join(utils.root_dir(), 'static', 'accounting_pdf_viewer.html'), 'utf8', function(err, html) {
+			if (err) return next(err);
+			res.set('Content-Type', 'text/html');
+			res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
+			res.set('Pragma', 'no-cache');
+			res.set('Expires', '0');
+			res.send(html);
+		});
+	});
 	router.use(function(req, res, next) {
 		fs.readFile(path.join(utils.root_dir(), 'static', 'cbts.html'), 'utf8', function(err, html) {
 			if (err) return next(err);
