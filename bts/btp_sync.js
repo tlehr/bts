@@ -558,7 +558,9 @@ async function craft_match(app, tkey, btp_id, location_map, court_map, event, st
 			}
 			match.btp_score_status = bm.ScoreStatus ? Number(bm.ScoreStatus[0]) : 0;
 			match.score_status = normalize_btp_score_status(match.btp_score_status);
-			match.forward_loser = bm.ForwardLoser ? parse_btp_bool(bm.ForwardLoser[0]) : false;
+			match.forward_loser =
+				['retired', 'disqualified', 'no_match'].includes(match.score_status) &&
+				(bm.ForwardLoser ? parse_btp_bool(bm.ForwardLoser[0]) : false);
 			if ((match.score_status === 'no_match' || match.score_status === 'walkover') && typeof match.team1_won === 'boolean') {
 				match.no_match_losing_team = match.team1_won ? 1 : 0;
 			}
@@ -1354,6 +1356,11 @@ function get_btp_match_index(app, tkey) {
 				tournament_key: 1,
 				btp_needsync: 1,
 				_btp_sync_signature: 1,
+				score_status: 1,
+				btp_score_status: 1,
+				team1_won: 1,
+				btp_winner: 1,
+				forward_loser: 1,
 			},
 			(err, matches) => {
 				if (err) {
@@ -1497,6 +1504,17 @@ function btp_match_clears_local_special_result(current_match, bm) {
 	}
 	const remote = btp_result_signature_from_raw_match(bm);
 	return !remote || remote.score_status === 0;
+}
+
+function btp_match_needs_local_status_cleanup(current_match, bm) {
+	if (!current_match || current_match.btp_needsync === true) {
+		return false;
+	}
+	const remote = btp_result_signature_from_raw_match(bm);
+	const remote_score_status = remote ? remote.score_status : 0;
+	return remote_score_status === 0 &&
+		current_match.score_status === 'normal' &&
+		current_match.forward_loser === true;
 }
 
 function mark_pending_btp_sync_confirmed(app, tkey, current_match, bm) {
@@ -1769,7 +1787,12 @@ async function integrate_matches(app, tkey, btp_state, scoring_formats, location
 			officials_by_btp_id,
 		});
 		match_timing.signature_ms += Date.now() - signature_start_ms;
-		if (cur_match && cur_match._btp_sync_signature === btp_sync_signature) {
+		if (
+			cur_match &&
+			cur_match._btp_sync_signature === btp_sync_signature &&
+			!btp_match_clears_local_special_result(cur_match, bm) &&
+			!btp_match_needs_local_status_cleanup(cur_match, bm)
+		) {
 			match_timing.processed++;
 			match_timing.unchanged++;
 			match_timing.skipped_by_signature++;
@@ -1814,7 +1837,9 @@ async function integrate_matches(app, tkey, btp_state, scoring_formats, location
 						if (btp_clears_local_special_result) {
 							match.score_status = normalize_btp_score_status(bm.ScoreStatus ? Number(bm.ScoreStatus[0]) : 0);
 							match.btp_score_status = bm.ScoreStatus ? Number(bm.ScoreStatus[0]) : 0;
-							match.forward_loser = bm.ForwardLoser ? parse_btp_bool(bm.ForwardLoser[0]) : false;
+							match.forward_loser =
+								['retired', 'disqualified', 'no_match'].includes(match.score_status) &&
+								(bm.ForwardLoser ? parse_btp_bool(bm.ForwardLoser[0]) : false);
 							delete match.no_match_losing_team;
 							delete match.score_status_network_score;
 							match.setup.state = btp_setup_state;

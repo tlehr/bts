@@ -1577,6 +1577,7 @@ _describe('btp_sync', () => {
 				Status: 0,
 				Winner: [1],
 				ScoreStatus: [0],
+				ForwardLoser: [true],
 				Sets: [{
 					Set: [
 						{ T1: [21], T2: [19] },
@@ -1636,5 +1637,156 @@ _describe('btp_sync', () => {
 		assert.strictEqual(successor.btp_winner, undefined);
 		assert.strictEqual(successor.no_match_cascade_source_match_id, undefined);
 		assert.deepStrictEqual(pushed, ['successor']);
+	});
+
+	_it('does not signature-skip a stale local retired status after BTP already supplied the normal score', async () => {
+		const db = await database.init_test();
+		const app = {
+			db,
+			wss: { clients: [] },
+		};
+		await insert(db, 'tournaments', {
+			key: 'default',
+			name: 'Default',
+			btp_settings: {},
+			no_match_cascade_announcements_enabled: false,
+		});
+		const btpState = {
+			matches: [{
+				ID: [44],
+				DrawID: [10],
+				PlanningID: [100],
+				From1: [1],
+				From2: [2],
+				IsMatch: [true],
+				MatchNr: [44],
+				Highlight: [0],
+				Status: 0,
+				Winner: [1],
+				ScoreStatus: [0],
+				ForwardLoser: [true],
+				Sets: [{
+					Set: [
+						{ T1: [21], T2: [19] },
+						{ T1: [23], T2: [21] },
+					],
+				}],
+				bts_complete: true,
+				bts_players: [[{ ID: [1] }, { ID: [2] }], [{ ID: [3] }, { ID: [4] }]],
+			}, {
+				ID: [106],
+				DrawID: [10],
+				PlanningID: [200],
+				From1: [3],
+				From2: [5],
+				IsMatch: [true],
+				MatchNr: [106],
+				Highlight: [0],
+				Status: 0,
+				bts_complete: true,
+				bts_players: [[{ ID: [3] }, { ID: [4] }], [{ ID: [5] }, { ID: [6] }]],
+			}],
+			draws: new Map([[10, { ID: [10], EventID: [20], StageID: [30], Name: ['MD U17'], Position: [1] }]]),
+			events: new Map([[20, { ID: [20], Name: ['MD U17'], GameTypeID: [2] }]]),
+			stages: new Map([[30, { ID: [30], Name: ['Stage'], StageType: [1], DisplayOrder: [1] }]]),
+			links: [],
+			planning_nodes: new Map(),
+			courts: new Map(),
+			clubs: new Map(),
+			districts: new Map(),
+		};
+
+		await new Promise((resolve, reject) => {
+			btp_sync._integrate_matches(app, 'default', btpState, new Map(), new Map(), new Map(), (err) => {
+				if (err) reject(err);
+				else resolve();
+			});
+		});
+		const synced_source = await db.matches.findOne_async({ btp_id: 'default_MD U17_44' });
+		assert.strictEqual(synced_source.score_status, 'normal');
+		assert.ok(synced_source._btp_sync_signature);
+
+		await db.matches.update_async(
+			{ _id: synced_source._id },
+			{
+				$set: {
+					score_status: 'retired',
+					btp_score_status: 2,
+					score_status_network_score: [[0, 0]],
+					forward_loser: true,
+				},
+			},
+			{}
+		);
+		await insert(db, 'matches', {
+			_id: 'successor',
+			tournament_key: 'default',
+			btp_id: 'default_MD U17_106',
+			btp_match_ids: [{ id: 106, draw: 10, planning: 200 }],
+			btp_needsync: false,
+			score_status: 'no_match',
+			btp_score_status: 4,
+			no_match_losing_team: 0,
+			team1_won: false,
+			btp_winner: 2,
+			forward_loser: true,
+			no_match_cascade_source_match_id: synced_source._id,
+			no_match_cascade_affected_btp_ids: ['3', '4'],
+			no_match_cascade_original_setup: {
+				is_match: true,
+				event_name: 'MD U17',
+				state: 'scheduled',
+				now_on_court: false,
+				match_num: 106,
+				teams: [
+					{ players: [{ btp_id: 3, name: 'Lenie Kison' }, { btp_id: 4, name: 'Lea-Sophie Mews' }] },
+					{ players: [{ btp_id: 5, name: 'Anya Kamboj' }, { btp_id: 6, name: 'Pauline Rohmel' }] },
+				],
+			},
+			setup: {
+				is_match: true,
+				event_name: 'MD U17',
+				state: 'scheduled',
+				now_on_court: false,
+				match_num: 106,
+				teams: [
+					{ players: [{ btp_id: 3, name: 'Lenie Kison' }, { btp_id: 4, name: 'Lea-Sophie Mews' }] },
+					{ players: [{ btp_id: 5, name: 'Anya Kamboj' }, { btp_id: 6, name: 'Pauline Rohmel' }] },
+				],
+			},
+		});
+
+		await new Promise((resolve, reject) => {
+			btp_sync._integrate_matches(app, 'default', btpState, new Map(), new Map(), new Map(), (err) => {
+				if (err) reject(err);
+				else resolve();
+			});
+		});
+
+		const source = await db.matches.findOne_async({ _id: synced_source._id });
+		assert.strictEqual(source.score_status, 'normal');
+		assert.strictEqual(source.btp_score_status, 0);
+		assert.strictEqual(source.score_status_network_score, undefined);
+		assert.strictEqual(source.forward_loser, false);
+
+		const successor = await db.matches.findOne_async({ _id: 'successor' });
+		assert.strictEqual(successor.score_status, 'normal');
+		assert.strictEqual(successor.no_match_cascade_source_match_id, undefined);
+
+		await db.matches.update_async(
+			{ _id: synced_source._id },
+			{ $set: { score_status: 'normal', forward_loser: true } },
+			{}
+		);
+		await new Promise((resolve, reject) => {
+			btp_sync._integrate_matches(app, 'default', btpState, new Map(), new Map(), new Map(), (err) => {
+				if (err) reject(err);
+				else resolve();
+			});
+		});
+
+		const cleaned_source = await db.matches.findOne_async({ _id: synced_source._id });
+		assert.strictEqual(cleaned_source.score_status, 'normal');
+		assert.strictEqual(cleaned_source.forward_loser, false);
 	});
 	});
