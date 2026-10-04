@@ -2544,12 +2544,24 @@ function handle_match_edit(app, ws, msg) {
 					ws.respond(msg, score_status_err);
 					return;
 				}
-				const score_status = resolved_status.score_status;
-				const forward_loser = match_score_status_forwards_loser(score_status);
+				const resolved_score_status = resolved_status.score_status;
 				const no_match_losing_team = resolved_status.no_match_losing_team;
 				const old_score_status = normalize_match_score_status(old_match.score_status);
+				const reactivates_finished_match_for_counting =
+					will_be_on_court &&
+					old_setup.now_on_court !== true &&
+					no_match_losing_team == null &&
+					(
+						old_setup.state === 'finished' ||
+						typeof old_match.team1_won === 'boolean' ||
+						old_match.btp_winner != null ||
+						match_score_status_is_special_result(old_score_status)
+					);
+				const score_status = reactivates_finished_match_for_counting ? 'normal' : resolved_score_status;
+				const forward_loser = match_score_status_forwards_loser(score_status);
 				const clears_special_result = match_score_status_is_special_result(old_score_status) &&
 					!match_score_status_is_special_result(score_status);
+				const clears_finished_result_for_reactivation = reactivates_finished_match_for_counting;
 				if (no_match_losing_team != null) {
 					msg.match.no_match_losing_team = no_match_losing_team;
 					msg.match.team1_won = no_match_losing_team === 1;
@@ -2558,7 +2570,11 @@ function handle_match_edit(app, ws, msg) {
 					delete msg.match.score_status_network_score;
 				} else {
 					delete msg.match.no_match_losing_team;
-					if (clears_special_result) {
+					if (clears_finished_result_for_reactivation) {
+						delete msg.match.team1_won;
+						delete msg.match.btp_winner;
+						delete msg.match.score_status_network_score;
+					} else if (clears_special_result) {
 						delete msg.match.team1_won;
 						delete msg.match.btp_winner;
 						delete msg.match.network_score;
@@ -2581,10 +2597,51 @@ function handle_match_edit(app, ws, msg) {
 					return;
 				}
 
-				if (will_be_on_court && !was_called) {
-					return match_utils.call_match(app, tournament, msg.match, msg.old_court, (call_err) => {
-						ws.respond(msg, call_err);
+				if (will_be_on_court && (!was_called || clears_finished_result_for_reactivation)) {
+					if (!clears_finished_result_for_reactivation) {
+						return match_utils.call_match(app, tournament, msg.match, msg.old_court, (call_err) => {
+							ws.respond(msg, call_err);
+						});
+					}
+					const reactivation_update = {
+						$set: {
+							score_status: 'normal',
+							forward_loser: false,
+							btp_needsync: true,
+						},
+						$unset: {
+							no_match_losing_team: true,
+							team1_won: true,
+							btp_winner: true,
+							score_status_network_score: true,
+							end_ts: true,
+						},
+					};
+					app.db.matches.update({_id: msg.id, tournament_key}, reactivation_update, {returnUpdatedDocs: true}, function(reactivation_err, numAffected, reactivated_match) {
+						if (reactivation_err) {
+							ws.respond(msg, reactivation_err);
+							return;
+						}
+						if (numAffected !== 1) {
+							ws.respond(msg, new Error('Cannot find match ' + msg.id + ' of tournament ' + tournament_key + ' in database'));
+							return;
+						}
+						reactivated_match.setup = setup;
+						reactivated_match.score_status = 'normal';
+						reactivated_match.forward_loser = false;
+						delete reactivated_match.no_match_losing_team;
+						delete reactivated_match.team1_won;
+						delete reactivated_match.btp_winner;
+						delete reactivated_match.score_status_network_score;
+						delete reactivated_match.end_ts;
+						return match_utils.call_match(app, tournament, reactivated_match, msg.old_court, (call_err, called_match) => {
+							if (!call_err && msg.btp_update) {
+								btp_manager.update_score(app, called_match || reactivated_match);
+							}
+							ws.respond(msg, call_err);
+						});
 					});
+					return;
 				}
 
 				if (will_be_on_court && was_called && court_changed) {

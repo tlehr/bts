@@ -1921,6 +1921,9 @@ function _score_status_from_match_status_form(match_status, source_match) {
 	if (match_status === 'no_match_team1' || match_status === 'no_match_team2') {
 		return match_status;
 	}
+	if (match_status === 'on_court') {
+		return 'normal';
+	}
 	const source_score_status = source_match?.score_status || 'normal';
 	if (source_score_status === 'no_match' || source_score_status === 'walkover') {
 		return 'normal';

@@ -28,6 +28,15 @@ function createFakeElement(tagName) {
 			contains(name) {
 				return this._values.has(name);
 			},
+			toggle(name, force) {
+				const should_add = force === undefined ? !this._values.has(name) : !!force;
+				if (should_add) {
+					this._values.add(name);
+				} else {
+					this._values.delete(name);
+				}
+				return should_add;
+			},
 		},
 		setAttribute(name, value) {
 			this.attributes[name] = String(value);
