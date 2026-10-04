@@ -21,6 +21,8 @@ let pending_official_role_overrides = new Map();
 let preparation_selection_request_inflight = false;
 let preparation_selection_request_pending = false;
 let preparation_need_label_update_frame = null;
+let match_lookup_source = null;
+let match_lookup_by_id = new Map();
 let tournament_refresh_after_missed_change_pending = false;
 let btp_next_fetch_countdown_interval = null;
 let speech_output_badge_listener_registered = false;
@@ -55,6 +57,7 @@ var ctournament = (function() {
 			}
 
 			curt = response.tournament;
+			invalidate_match_lookup_index();
 			self_check_in_tabletoperator_waiting_ids = null;
 			preparation_selection_request_inflight = false;
 			preparation_selection_request_pending = false;
@@ -89,6 +92,7 @@ var ctournament = (function() {
 					return;
 				}
 				curt = response.tournament;
+				invalidate_match_lookup_index();
 				cerror.silent('Turnierdaten nach verpasster Live-Aktualisierung neu geladen: ' + reason);
 				refresh_current_view();
 			});
@@ -200,30 +204,59 @@ var ctournament = (function() {
 			}
 		}
 
-		function _match_matches_id(match, match_id) {
+		function _add_match_lookup_aliases(ids, match) {
 			if (!match) {
-				return false;
+				return ids;
 			}
-			const target_ids = new Set();
-			const match_ids = new Set();
-			_add_match_id_alias(target_ids, match_id);
-			_add_match_id_alias(match_ids, match._id);
-			_add_match_id_alias(match_ids, match.match_id);
-			_add_match_id_alias(match_ids, match.btp_match_id);
+			_add_match_id_alias(ids, match._id);
+			_add_match_id_alias(ids, match.match_id);
+			_add_match_id_alias(ids, match.btp_match_id);
 			if (Array.isArray(match.btp_match_ids)) {
 				match.btp_match_ids.forEach((entry) => {
 					if (!entry) return;
-					_add_match_id_alias(match_ids, entry.planning);
-					_add_match_id_alias(match_ids, entry.match_id);
-					_add_match_id_alias(match_ids, entry.id);
+					_add_match_id_alias(ids, entry.planning);
+					_add_match_id_alias(ids, entry.match_id);
+					_add_match_id_alias(ids, entry.id);
 				});
 			}
-			for (const id of match_ids) {
-				if (target_ids.has(id)) {
-					return true;
+			return ids;
+		}
+
+		function invalidate_match_lookup_index() {
+			match_lookup_source = null;
+			match_lookup_by_id = new Map();
+		}
+
+		function ensure_match_lookup_index() {
+			const matches = curt && Array.isArray(curt.matches) ? curt.matches : null;
+			if (matches === match_lookup_source) {
+				return;
+			}
+			match_lookup_source = matches;
+			match_lookup_by_id = new Map();
+			if (!matches) {
+				return;
+			}
+			matches.forEach((match) => {
+				_add_match_lookup_aliases(new Set(), match).forEach((id) => {
+					if (!match_lookup_by_id.has(id)) {
+						match_lookup_by_id.set(id, match);
+					}
+				});
+			});
+		}
+
+		function find_match_by_id(match_id) {
+			const ids = new Set();
+			_add_match_id_alias(ids, match_id);
+			ensure_match_lookup_index();
+			for (const id of ids) {
+				const match = match_lookup_by_id.get(id);
+				if (match) {
+					return match;
 				}
 			}
-			return false;
+			return null;
 		}
 
 		function update_score(c) {
@@ -234,99 +267,99 @@ var ctournament = (function() {
 				current_view,
 				tournament_key: c.tournament_key,
 				current_tournament_key: curt && curt.key,
-				in_memory_match: !!utils.find(curt.matches, m => _match_matches_id(m, match_id)),
+				in_memory_match: !!find_match_by_id(match_id),
 			});
 
 			// Find the match
-			const m = utils.find(curt.matches, m => _match_matches_id(m, match_id));
-		if (!m) {
-			cerror.silent('Cannot find match to update score, ID: ' + JSON.stringify(match_id));
-			request_tournament_refresh_after_missed_change('score ' + match_id);
-			return;
-		}
+			const m = find_match_by_id(match_id);
+			if (!m) {
+				cerror.silent('Cannot find match to update score, ID: ' + JSON.stringify(match_id));
+				request_tournament_refresh_after_missed_change('score ' + match_id);
+				return;
+			}
 
-		const old_section = cmatch.calc_section(m);
-		m.network_score = cval.network_score;
-		m.presses = cval.presses;
-		m.team1_won = cval.team1_won;
-		m.shuttle_count = cval.shuttle_count;
-		if ('score_status' in cval) {
-			m.score_status = cval.score_status;
-		}
-		if ('forward_loser' in cval) {
-			m.forward_loser = cval.forward_loser;
-		}
-		if ('score_status_network_score' in cval) {
-			m.score_status_network_score = cval.score_status_network_score;
-		}
-		if (cval.end_ts !== undefined) {
-			m.end_ts = cval.end_ts;
-		}
-		if (!m.setup) {
-			m.setup = {};
-		}
-		if (cval.court_id !== undefined) {
-			m.setup.court_id = cval.court_id;
-		}
-		if (cval.now_on_court !== undefined) {
-			m.setup.now_on_court = cval.now_on_court;
-		}
-		const new_section = cmatch.calc_section(m);
+			const old_section = cmatch.calc_section(m);
+			m.network_score = cval.network_score;
+			m.presses = cval.presses;
+			m.team1_won = cval.team1_won;
+			m.shuttle_count = cval.shuttle_count;
+			if ('score_status' in cval) {
+				m.score_status = cval.score_status;
+			}
+			if ('forward_loser' in cval) {
+				m.forward_loser = cval.forward_loser;
+			}
+			if ('score_status_network_score' in cval) {
+				m.score_status_network_score = cval.score_status_network_score;
+			}
+			if (cval.end_ts !== undefined) {
+				m.end_ts = cval.end_ts;
+			}
+			if (!m.setup) {
+				m.setup = {};
+			}
+			if (cval.court_id !== undefined) {
+				m.setup.court_id = cval.court_id;
+			}
+			if (cval.now_on_court !== undefined) {
+				m.setup.now_on_court = cval.now_on_court;
+			}
+			const new_section = cmatch.calc_section(m);
 
-		if (old_section === new_section) {
-			c._bts_score_patch_applied = true;
+			if (old_section === new_section) {
+				c._bts_score_patch_applied = true;
 				admin_live_debug('score patch', {
 					match_id: m._id,
 					section: old_section,
 					score_targets: cmatch.count_match_score_targets ? cmatch.count_match_score_targets(m) : 0,
 					timer_targets: cmatch.count_match_timer_targets ? cmatch.count_match_timer_targets(m) : 0,
 					score_text: cmatch.calc_score_str(m),
-				network_score: m.network_score,
-				score_status: m.score_status,
-				now_on_court: m.setup && m.setup.now_on_court,
-			});
-			cmatch.update_match_score(m);
-		} else {
-			c._bts_score_patch_applied = true;
-			admin_live_debug('score section change', {
-				match_id: m._id,
-				old_section,
-				new_section,
-				network_score: m.network_score,
-				score_status: m.score_status,
-			});
-			if (new_section == 'finished' || new_section == 'unassigned') {
-				m.setup.now_on_court = false;
+					network_score: m.network_score,
+					score_status: m.score_status,
+					now_on_court: m.setup && m.setup.now_on_court,
+				});
+				cmatch.update_match_score(m);
+			} else {
+				c._bts_score_patch_applied = true;
+				admin_live_debug('score section change', {
+					match_id: m._id,
+					old_section,
+					new_section,
+					network_score: m.network_score,
+					score_status: m.score_status,
+				});
+				if (new_section == 'finished' || new_section == 'unassigned') {
+					m.setup.now_on_court = false;
+				}
+				else {
+					m.setup.now_on_court = true;
+				}
+				cmatch.update_match(m, old_section, new_section);
 			}
-			else {
-				m.setup.now_on_court = true;
-			}
-			cmatch.update_match(m, old_section, new_section);
 		}
-	}
 
 		function update_player_status(c) {
 			const cval = c.val;
 			const match_id = cval.match__id;
 
-		// Find the match
-		const m = utils.find(curt.matches, m => m._id === match_id);
-		if (!m) {
-			cerror.silent('Cannot find match to update player status, ID: ' + JSON.stringify(match_id));
-			request_tournament_refresh_after_missed_change('player status ' + match_id);
-			return;
-		}
-		m.btp_winner = cval.btp_winner;
-		m.setup = cval.setup;
+			// Find the match
+			const m = find_match_by_id(match_id);
+			if (!m) {
+				cerror.silent('Cannot find match to update player status, ID: ' + JSON.stringify(match_id));
+				request_tournament_refresh_after_missed_change('player status ' + match_id);
+				return;
+			}
+			m.btp_winner = cval.btp_winner;
+			m.setup = cval.setup;
 
-		cmatch.update_player_status_indicators_for_match_players(m);
-	}
+			cmatch.update_player_status_indicators_for_match_players(m);
+		}
 
 	function remove_match(c) {
 		const cval = c.val;
 		const match_id = cval.match__id;
 
-		const m = utils.find(curt.matches, m => m._id === match_id);
+		const m = find_match_by_id(match_id);
 		if (!m) {
 			cerror.silent('Cannot find match to update, ID: ' + JSON.stringify(match_id));
 			request_tournament_refresh_after_missed_change('upcoming match ' + match_id);
@@ -349,11 +382,12 @@ var ctournament = (function() {
 		const match_id = cval.match__id;
 
 		// Find the match
-		let m = utils.find(curt.matches, m => m._id === match_id);
+		let m = find_match_by_id(match_id);
 		if (!m) {
 			if (cval.match) {
 				curt.matches.push(cval.match);
 				curt.matches = curt.matches.sort((a, b) => cmatch.cmp_match_order(a, b));
+				invalidate_match_lookup_index();
 				cmatch.add_match(cval.match, cmatch.calc_section(cval.match));
 				cmatch.update_player_status_indicators_for_match_players(cval.match);
 				update_location_preparation_need_labels();
@@ -363,38 +397,39 @@ var ctournament = (function() {
 			request_tournament_refresh_after_missed_change('match ' + match_id);
 			return;
 		}
-		const old_section = cmatch.calc_section(m);
-		if (cval.match) {
-			if('network_score' in cval.match){
-				m.network_score = cval.match.network_score;
-			} else if (cval.match.score_status === 'normal' || cval.match.score_status === 'no_match') {
-				delete m.network_score;
-			}
-			m.presses = cval.match.presses;
-			m.team1_won = cval.match.team1_won;
-			m.shuttle_count = cval.match.shuttle_count;
+			const old_section = cmatch.calc_section(m);
+			if (cval.match) {
+				if('network_score' in cval.match){
+					m.network_score = cval.match.network_score;
+				} else if (cval.match.score_status === 'normal' || cval.match.score_status === 'no_match') {
+					delete m.network_score;
+				}
+				m.presses = cval.match.presses;
+				m.team1_won = cval.match.team1_won;
+				m.shuttle_count = cval.match.shuttle_count;
 			m.score_status = cval.match.score_status;
 			m.forward_loser = cval.match.forward_loser;
 			if ('score_status_network_score' in cval.match) {
 				m.score_status_network_score = cval.match.score_status_network_score;
 			} else {
 				delete m.score_status_network_score;
+				}
+				if ('no_match_losing_team' in cval.match) {
+					m.no_match_losing_team = cval.match.no_match_losing_team;
+				} else {
+					delete m.no_match_losing_team;
+				}
+				if ('end_ts' in cval.match) {
+					m.end_ts = cval.match.end_ts;
+				}
+				m.setup = cval.match.setup;
+				m.btp_winner = cval.match.btp_winner;
 			}
-			if ('no_match_losing_team' in cval.match) {
-				m.no_match_losing_team = cval.match.no_match_losing_team;
-			} else {
-				delete m.no_match_losing_team;
-			}
-			if ('end_ts' in cval.match) {
-				m.end_ts = cval.match.end_ts;
-			}
-			m.setup = cval.match.setup;
-			m.btp_winner = cval.match.btp_winner;
-		}
-		const new_section = cmatch.calc_section(m);
-		cmatch.update_match(m, old_section, new_section);
-		cmatch.update_player_status_indicators_for_match_players(m);
-		update_location_preparation_need_labels();
+			const new_section = cmatch.calc_section(m);
+			invalidate_match_lookup_index();
+			cmatch.update_match(m, old_section, new_section);
+			cmatch.update_player_status_indicators_for_match_players(m);
+			update_location_preparation_need_labels();
 
 		return old_section;
 	}
@@ -427,12 +462,12 @@ var ctournament = (function() {
 		const match_id = cval.match__id;
 
 		// Find the match
-		const m = utils.find(curt.matches, m => m._id === match_id);
+		const m = find_match_by_id(match_id);
 		if (!m) {
 			cerror.silent('Cannot find match to update, ID: ' + JSON.stringify(match_id));
 			return;
-		}
-		const old_section = cmatch.calc_section(m);
+			}
+			const old_section = cmatch.calc_section(m);
 			if('network_score' in cval.match) {
 				m.network_score = cval.match.network_score;
 			} else if (cval.match.score_status === 'normal' || cval.match.score_status === 'no_match') {
@@ -454,6 +489,7 @@ var ctournament = (function() {
 		m.setup = cval.match.setup;
 		m.btp_winner = cval.match.btp_winner;
 		const new_section = cmatch.calc_section(m);
+		invalidate_match_lookup_index();
 		cmatch.update_match(m, old_section, new_section);
 		update_location_preparation_need_labels();
 		rerender_public_match_views(old_section, new_section);
@@ -13210,39 +13246,45 @@ function update_officials() {
 
 	_route_single(/t\/([a-z0-9]+)\/self_check_in/, ui_self_check_in, change.default_handler(_update_all_ui_elements_self_check_in, {
 		score: function(c) {
-			const before_structure_signature = self_check_in_match_structure_signature(utils.find(curt.matches, m => m._id === c.val.match_id));
-			const before_status_signature = self_check_in_match_status_signature(utils.find(curt.matches, m => m._id === c.val.match_id));
+			const before_match = find_match_by_id(c.val.match_id);
+			const before_structure_signature = self_check_in_match_structure_signature(before_match);
+			const before_status_signature = self_check_in_match_status_signature(before_match);
 			update_score(c);
 			rerender_self_check_in_if_needed(before_structure_signature, before_status_signature, c.val.match_id);
 		},
 		court_current_match: function(c) {
-			const before_structure_signature = self_check_in_match_structure_signature(utils.find(curt.matches, m => m._id === c.val.match__id));
-			const before_status_signature = self_check_in_match_status_signature(utils.find(curt.matches, m => m._id === c.val.match__id));
+			const before_match = find_match_by_id(c.val.match__id);
+			const before_structure_signature = self_check_in_match_structure_signature(before_match);
+			const before_status_signature = self_check_in_match_status_signature(before_match);
 			update_upcoming_current_match(c);
 			rerender_self_check_in_if_needed(before_structure_signature, before_status_signature, c.val.match__id);
 		},
 		match_edit: function(c) {
-			const before_structure_signature = self_check_in_match_structure_signature(utils.find(curt.matches, m => m._id === c.val.match__id));
-			const before_status_signature = self_check_in_match_status_signature(utils.find(curt.matches, m => m._id === c.val.match__id));
+			const before_match = find_match_by_id(c.val.match__id);
+			const before_structure_signature = self_check_in_match_structure_signature(before_match);
+			const before_status_signature = self_check_in_match_status_signature(before_match);
 			update_match(c);
 			rerender_self_check_in_if_needed(before_structure_signature, before_status_signature, c.val.match__id);
 		},
 		update_player_status: function(c) {
-			const before_structure_signature = self_check_in_match_structure_signature(utils.find(curt.matches, m => m._id === c.val.match__id));
-			const before_status_signature = self_check_in_match_status_signature(utils.find(curt.matches, m => m._id === c.val.match__id));
+			const before_match = find_match_by_id(c.val.match__id);
+			const before_structure_signature = self_check_in_match_structure_signature(before_match);
+			const before_status_signature = self_check_in_match_status_signature(before_match);
 			update_player_status(c);
 			rerender_self_check_in_if_needed(before_structure_signature, before_status_signature, c.val.match__id);
 		},
 		match_preparation_call: function(c) {
-			const before_structure_signature = self_check_in_match_structure_signature(utils.find(curt.matches, m => m._id === c.val.match__id));
-			const before_status_signature = self_check_in_match_status_signature(utils.find(curt.matches, m => m._id === c.val.match__id));
+			const before_match = find_match_by_id(c.val.match__id);
+			const before_structure_signature = self_check_in_match_structure_signature(before_match);
+			const before_status_signature = self_check_in_match_status_signature(before_match);
 			const changed_match = c.val.match;
-			const cur_match = utils.find(curt.matches, m => m._id === c.val.match__id);
+			const cur_match = find_match_by_id(c.val.match__id);
 			if (cur_match && changed_match) {
 				cur_match.setup = changed_match.setup;
 				cur_match.btp_winner = changed_match.btp_winner;
 				cur_match.team1_won = changed_match.team1_won;
 				cur_match.network_score = changed_match.network_score;
+				invalidate_match_lookup_index();
 			}
 			rerender_self_check_in_if_needed(before_structure_signature, before_status_signature, c.val.match__id);
 		},
