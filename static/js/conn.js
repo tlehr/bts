@@ -10,6 +10,7 @@ var CHANGE_HANDLER_WARN_MS = 16;
 
 var callback_handlers = {};
 var change_queue = [];
+var change_queue_head = 0;
 var change_queue_scheduled = false;
 
 var immediate_change_types = new Set([
@@ -110,26 +111,47 @@ function schedule_change_queue() {
 	setTimeout(process_change_queue, 0);
 }
 
+function queued_change_count() {
+	return change_queue.length - change_queue_head;
+}
+
+function compact_change_queue_if_needed(force) {
+	if (change_queue_head === 0) {
+		return;
+	}
+	if (change_queue_head >= change_queue.length) {
+		change_queue = [];
+		change_queue_head = 0;
+		return;
+	}
+	if (force || change_queue_head > 100) {
+		change_queue = change_queue.slice(change_queue_head);
+		change_queue_head = 0;
+	}
+}
+
 function process_change_queue() {
 	change_queue_scheduled = false;
 	const start_ms = _now_ms();
 	let processed = 0;
-	while (change_queue.length > 0) {
-		dispatch_change(change_queue.shift());
+	while (queued_change_count() > 0) {
+		dispatch_change(change_queue[change_queue_head]);
+		change_queue_head++;
 		processed++;
 		if (processed >= CHANGE_BATCH_MAX_MESSAGES || (_now_ms() - start_ms) >= CHANGE_BATCH_MAX_MS) {
 			break;
 		}
 	}
+	compact_change_queue_if_needed(false);
 	const duration_ms = _now_ms() - start_ms;
 	if (_debug_enabled() && processed > 0 && duration_ms >= CHANGE_BATCH_MAX_MS) {
 		console.log('[bts admin] change queue batch', {
 			processed,
-			remaining: change_queue.length,
+			remaining: queued_change_count(),
 			duration_ms: Math.round(duration_ms * 10) / 10,
 		});
 	}
-	if (change_queue.length > 0) {
+	if (queued_change_count() > 0) {
 		schedule_change_queue();
 	}
 }
@@ -141,7 +163,7 @@ function enqueue_change(msg) {
 	}
 	const key = change_coalesce_key(msg);
 	if (key) {
-		for (let i = change_queue.length - 1; i >= 0; i--) {
+		for (let i = change_queue.length - 1; i >= change_queue_head; i--) {
 			if (change_coalesce_key(change_queue[i]) === key) {
 				change_queue[i] = msg;
 				return;
@@ -255,7 +277,7 @@ return {
 	send,
 	_test_handle_message: handle_message,
 	_test_process_change_queue: process_change_queue,
-	_test_change_queue_length: () => change_queue.length,
+	_test_change_queue_length: queued_change_count,
 };
 
 });
