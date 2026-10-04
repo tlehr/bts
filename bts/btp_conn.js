@@ -247,10 +247,13 @@ class BTPConn {
 		}, this.autofetch_timeout_intervall);
 	}
 
-	terminate() {
+	terminate(options = {}) {
 		this.terminated = true;
 		this.next_fetch_ts = null;
 		this.fetch_in_progress = false;
+		if (options.silent === true) {
+			return;
+		}
 		this.report_status('deactivated','Terminated.');
 	}
 

@@ -11,7 +11,8 @@ const conns_by_tkey = new Map();
 function reconfigure(app, t) {
 	const cur_conn = conns_by_tkey.get(t.key);
 	if (cur_conn) {
-		cur_conn.terminate();
+		cur_conn.terminate({ silent: !!t.btp_enabled });
+		conns_by_tkey.delete(t.key);
 	}
 
 	if (! t.btp_enabled) {
