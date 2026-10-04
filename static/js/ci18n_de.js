@@ -220,6 +220,8 @@ var ci18n_de = Object.assign(
 	'tournament:edit:debug_output_hint': 'Diese Schalter sind nur für Fehlersuche gedacht. Im normalen Turnierbetrieb sollten sie ausgeschaltet bleiben, weil sie die Server- oder Browser-Konsole deutlich füllen können.',
 	'tournament:edit:bts_debug_output_enabled': 'Debug-Ausgaben in BTS/BUP aktivieren',
 	'tournament:edit:bts_debug_output_enabled:hint': 'Aktiviert allgemeine Debug-Ausgaben aus BTS und BUP, z. B. für Protokoll- und Ansagefehler.',
+	'tournament:edit:bts_client_performance_debug_enabled': 'Client-Performance-Messungen in der Browser-Konsole anzeigen',
+	'tournament:edit:bts_client_performance_debug_enabled:hint': 'Protokolliert langsame Admin-Change-Handler und Change-Queue-Batches im Browser. Separat von allgemeinen Debug-Ausgaben nutzbar.',
 	'tournament:edit:bts_auto_call_trace_enabled': 'Auto-Aufruf-Trace auf der Server-Konsole ausgeben',
 	'tournament:edit:bts_auto_call_trace_enabled:hint': 'Aktiviert detaillierte Server-Ausgaben zur automatischen Auswahl und zum automatischen Aufruf von Spielen.',
 	'tournament:edit:preparation_call_debug_output_enabled': 'Debug-Text für Vorbereitungsauswahl anzeigen',

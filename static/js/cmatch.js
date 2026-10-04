@@ -791,12 +791,17 @@ function create_match_prepparation_button(targetEl, cssClass, title, listener, m
 			return ids;
 		}
 
-			function _for_each_match_bound_element(selector, match_or_id, cb) {
-				const ids = _match_dom_ids(match_or_id);
-				uiu.qsEach(selector, function(el) {
-					if (ids.has(el.getAttribute('data-match_id'))) {
-						cb(el);
-				}
+		function _for_each_match_bound_element(selector, match_or_id, cb) {
+			const ids = _match_dom_ids(match_or_id);
+			const seen = new Set();
+			ids.forEach((id) => {
+				uiu.qsEach(selector + '[data-match_id=' + JSON.stringify(id) + ']', function(el) {
+					if (seen.has(el)) {
+						return;
+					}
+					seen.add(el);
+					cb(el);
+				});
 			});
 		}
 

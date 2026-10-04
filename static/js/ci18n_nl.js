@@ -180,6 +180,8 @@ var ci18n_nl = Object.assign(
 	'tournament:edit:debug_output_hint': 'Deze schakelaars zijn alleen bedoeld voor foutopsporing. Laat ze tijdens normaal toernooigebruik uitgeschakeld, omdat ze de server- of browserconsole snel kunnen vullen.',
 	'tournament:edit:bts_debug_output_enabled': 'Debug-uitvoer in BTS/BUP inschakelen',
 	'tournament:edit:bts_debug_output_enabled:hint': 'Schakelt algemene debug-uitvoer van BTS en BUP in, bijvoorbeeld voor protocol- en omroepdiagnostiek.',
+	'tournament:edit:bts_client_performance_debug_enabled': 'Clientprestatiemetingen in de browserconsole tonen',
+	'tournament:edit:bts_client_performance_debug_enabled:hint': 'Logt trage admin-change-handlers en change-queue-batches in de browser. Kan los van algemene debug-uitvoer worden gebruikt.',
 	'tournament:edit:bts_auto_call_trace_enabled': 'Auto-oproep-trace op de serverconsole tonen',
 	'tournament:edit:bts_auto_call_trace_enabled:hint': 'Schakelt gedetailleerde serveruitvoer in voor automatische wedstrijdselectie en automatische oproepen.',
 	'tournament:edit:preparation_call_debug_output_enabled': 'Debugtekst voor voorbereidingsselectie tonen',

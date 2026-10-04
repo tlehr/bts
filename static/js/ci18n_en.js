@@ -218,6 +218,8 @@ var ci18n_en = Object.assign(
 	'tournament:edit:debug_output_hint': 'These switches are meant for troubleshooting only. Keep them disabled during normal tournament operation because they can fill the server or browser console quickly.',
 	'tournament:edit:bts_debug_output_enabled': 'Enable debug output in BTS/BUP',
 	'tournament:edit:bts_debug_output_enabled:hint': 'Enables general debug output from BTS and BUP, for example protocol and announcement diagnostics.',
+	'tournament:edit:bts_client_performance_debug_enabled': 'Show client performance measurements in the browser console',
+	'tournament:edit:bts_client_performance_debug_enabled:hint': 'Logs slow admin change handlers and change queue batches in the browser. Can be used separately from general debug output.',
 	'tournament:edit:bts_auto_call_trace_enabled': 'Print auto-call trace on the server console',
 	'tournament:edit:bts_auto_call_trace_enabled:hint': 'Enables detailed server output for automatic match selection and automatic match calls.',
 	'tournament:edit:preparation_call_debug_output_enabled': 'Show preparation selection debug text',

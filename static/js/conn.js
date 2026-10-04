@@ -6,6 +6,7 @@ var WS_PATH = '/ws/admin';
 var request_id = 1;
 var CHANGE_BATCH_MAX_MESSAGES = 25;
 var CHANGE_BATCH_MAX_MS = 8;
+var CHANGE_HANDLER_WARN_MS = 16;
 
 var callback_handlers = {};
 var change_queue = [];
@@ -34,6 +35,11 @@ var immediate_change_types = new Set([
 	'queue_hang_warning',
 ]);
 
+var coalescable_change_types = new Set([
+	'score',
+	'update_player_status',
+]);
+
 function _construct_url(abspath) {
 	var l = window.location;
 	return (
@@ -51,7 +57,29 @@ function _now_ms() {
 	return Date.now();
 }
 
+function _debug_enabled() {
+	return typeof window !== 'undefined' && window.curt && window.curt.bts_client_performance_debug_enabled === true;
+}
+
+function change_coalesce_key(msg) {
+	if (!msg || !coalescable_change_types.has(msg.ctype) || !msg.val) {
+		return null;
+	}
+	const match_id = msg.ctype === 'score'
+		? msg.val.match_id
+		: msg.val.match__id;
+	if (match_id == null) {
+		return null;
+	}
+	return [
+		msg.tournament_key || '',
+		msg.ctype,
+		String(match_id),
+	].join(':');
+}
+
 function dispatch_change(msg) {
+	const start_ms = _now_ms();
 	try {
 		on_change(msg);
 	} catch (err) {
@@ -61,6 +89,16 @@ function dispatch_change(msg) {
 			val: msg.val,
 			err,
 		});
+	} finally {
+		const duration_ms = _now_ms() - start_ms;
+		if (_debug_enabled() && duration_ms >= CHANGE_HANDLER_WARN_MS) {
+			console.log('[bts admin] slow change handler', {
+				ctype: msg && msg.ctype,
+				tournament_key: msg && msg.tournament_key,
+				duration_ms: Math.round(duration_ms * 10) / 10,
+				match_id: msg && msg.val && (msg.val.match_id || msg.val.match__id),
+			});
+		}
 	}
 }
 
@@ -83,6 +121,14 @@ function process_change_queue() {
 			break;
 		}
 	}
+	const duration_ms = _now_ms() - start_ms;
+	if (_debug_enabled() && processed > 0 && duration_ms >= CHANGE_BATCH_MAX_MS) {
+		console.log('[bts admin] change queue batch', {
+			processed,
+			remaining: change_queue.length,
+			duration_ms: Math.round(duration_ms * 10) / 10,
+		});
+	}
 	if (change_queue.length > 0) {
 		schedule_change_queue();
 	}
@@ -92,6 +138,15 @@ function enqueue_change(msg) {
 	if (immediate_change_types.has(msg.ctype)) {
 		dispatch_change(msg);
 		return;
+	}
+	const key = change_coalesce_key(msg);
+	if (key) {
+		for (let i = change_queue.length - 1; i >= 0; i--) {
+			if (change_coalesce_key(change_queue[i]) === key) {
+				change_queue[i] = msg;
+				return;
+			}
+		}
 	}
 	change_queue.push(msg);
 	schedule_change_queue();
@@ -134,7 +189,7 @@ function handle_message(ws_msg) {
 		});
 		break;
 	case 'change':
-		if (msg.ctype === 'score' && window.curt && window.curt.bts_debug_output_enabled === true) {
+		if (msg.ctype === 'score' && _debug_enabled()) {
 			console.log('[bts admin] score change received', {
 				tournament_key: msg.tournament_key,
 				current_tournament_key: window.curt && window.curt.key,

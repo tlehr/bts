@@ -3732,6 +3732,8 @@ var ctournament = (function() {
 			uiu.el(debug_fieldset, 'div', 'hint', ci18n('tournament:edit:debug_output_hint'));
 			input.bts_debug_output_enabled = create_checkbox(curt, debug_fieldset, 'bts_debug_output_enabled');
 			uiu.el(debug_fieldset, 'div', 'hint', ci18n('tournament:edit:bts_debug_output_enabled:hint'));
+			input.bts_client_performance_debug_enabled = create_checkbox(curt, debug_fieldset, 'bts_client_performance_debug_enabled');
+			uiu.el(debug_fieldset, 'div', 'hint', ci18n('tournament:edit:bts_client_performance_debug_enabled:hint'));
 			input.bts_auto_call_trace_enabled = create_checkbox(curt, debug_fieldset, 'bts_auto_call_trace_enabled');
 			uiu.el(debug_fieldset, 'div', 'hint', ci18n('tournament:edit:bts_auto_call_trace_enabled:hint'));
 			function create_preparation_debug_checkbox(field) {
