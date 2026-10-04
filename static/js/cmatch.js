@@ -142,7 +142,7 @@ function auto_scroll() {
 	let new_top = 0;
 	let height = 0;
 	let child_higth = 0;
-	
+
 	scroll_object.forEach((item) =>{
 
 		let old_top = 0;
@@ -167,10 +167,10 @@ function auto_scroll() {
 
 	if(new_top >= 0) {
 		scroll_down = true;
-		pause_scroll(); 
+		pause_scroll();
 	} else if (height >= child_higth) {
 		scroll_down = false;
-		pause_scroll(); 
+		pause_scroll();
 	}
 
 	requestAnimationFrame(auto_scroll); // Verwendet eine gleichmäßige Animation
@@ -189,7 +189,7 @@ function resize_table(resizable_rows, table_width_factor) {
 			auto_size(item, row.fixed_width[index]);
 		});
 	});
-	
+
 	resizable_rows.forEach((row) => {
 		let fixed_size = 0;
 
@@ -217,7 +217,7 @@ function resizable_auto_size(parrent_el, factor, fixed_size, table_width_factor)
 	parrent_el.setAttribute('resize_factor', factor);
 	parrent_el.setAttribute('fixed_size', fixed_size);
 	parrent_el.setAttribute('table_width_factor', table_width_factor);
-	
+
 	auto_size(parrent_el, (table_width_factor * window.innerWidth - fixed_size) * factor);
 
 	if(!has_resize_event) {
@@ -233,14 +233,14 @@ function resizable_auto_size(parrent_el, factor, fixed_size, table_width_factor)
 				auto_size(item, (table_width_factor * window.innerWidth - fixed_size) * factor);
 			});
 		});
-		
+
 		has_resize_event = true;
 	}
 
 }
 
 
-function auto_size(parrent_el, parrent_width)	{	
+function auto_size(parrent_el, parrent_width)	{
 	if(!parrent_width) {
 		parrent_width = parrent_el.clientWidth;
 	}
@@ -270,7 +270,7 @@ function auto_size(parrent_el, parrent_width)	{
 				auto_size(item);
 			});
 		});
-		
+
 		has_resize_event = true;
 	}
 	*/
@@ -293,7 +293,7 @@ function render_match_table_header(table) {
 	uiu.el(title_tr, 'th', {}, '');
 }
 
-function render_match_row(tr, match, court, style, show_player_status, show_add_tabletoperator) {	
+function render_match_row(tr, match, court, style, show_player_status, show_add_tabletoperator) {
 	var resizable_elements = {	tr: tr,
 								variable_width_elements : [],
 								variable_width_factor: [],
@@ -324,9 +324,9 @@ function render_match_row(tr, match, court, style, show_player_status, show_add_
 	//	tr.classList.add('incomplete');
 	//}
 
-	const waitForMatchStart = 	match.setup.called_timestamp && 
+	const waitForMatchStart = 	match.setup.called_timestamp &&
 							(	match.network_score == undefined ||
-								( 	match.network_score[0] && 
+								( 	match.network_score[0] &&
 									(match.network_score[0][0] + match.network_score[0][1] < 1)
 								)
 							);
@@ -357,7 +357,7 @@ function render_match_row(tr, match, court, style, show_player_status, show_add_
 		} else if (match.setup.location_id){
 			const location = utils.find(curt.locations, l => l._id === match.setup.location_id);
 			uiu.el(court_number_td, 'span', 'location', "[" + (location?.short_name || location?.name || match.setup.location_id) + "]");
-		} 
+		}
 
 		if(match.setup.location_id) {
 			tr.setAttribute('data-location_id', match.setup.location_id);
@@ -428,7 +428,7 @@ function render_match_row(tr, match, court, style, show_player_status, show_add_
 			create_match_button(players0, 'vlink match_second_preparation_call_button', 'match:secondcallteamone', on_second_preparation_call_team_one_button_click, match._id);
 		}
 	}
-	
+
 	render_players_el(players0, setup, 0, match, show_player_status, style);
 	uiu.el(tr, 'td', 'match_vs', 'v');
 	const players1 = uiu.el(tr, 'td', ((match.team1_won === false) ? 'match_team_won ' : '') + 'match_team2');
@@ -442,7 +442,7 @@ function render_match_row(tr, match, court, style, show_player_status, show_add_
 		if(style === 'unasigned' && match.setup.highlight >= 1){
 			create_match_button(players1, 'vlink match_second_preparation_call_button', 'match:secondcallteamtwo', on_second_preparation_call_team_two_button_click, match._id);
 		}
-		
+
 		if (!show_add_tabletoperator) {
 			create_match_button(players1, 'vlink match_second_call_button', 'match:secondcallteamtwo', on_second_call_team_two_button_click, match._id);
 		}
@@ -465,7 +465,7 @@ function render_match_row(tr, match, court, style, show_player_status, show_add_
 		resizable_elements.variable_width_factor.push(1);
 	}
 
-		if(style != 'public') {		
+		if(style != 'public') {
 			const to_td = uiu.el(tr, 'td', 'umpire_and_tablet');
 			const show_participant_check_in_status = (style === 'unasigned');
 			if (style === 'default' || style === 'plain' || style === 'unasigned') {
@@ -495,7 +495,7 @@ function render_match_row(tr, match, court, style, show_player_status, show_add_
 				}
 				if (setup.tabletoperators && setup.tabletoperators.length > 0) {
 					const tablet_div = uiu.el(to_td, 'div', 'tablet_operator', '');
-					
+
 					const operators_div = uiu.el(tablet_div, 'div', 'operators');
 					setup.tabletoperators.forEach((operator) => {
 						render_match_participant_el(operators_div, operator, match._id, 'tabletoperator', 'tablet', show_participant_check_in_status);
@@ -515,11 +515,11 @@ function render_match_row(tr, match, court, style, show_player_status, show_add_
 				const no_umpire_button_class = style === 'unasigned' ? 'vlink no_umpire no_umpire_add' : 'vlink no_umpire';
 				create_match_button(no_umpire_span, no_umpire_button_class, 'match:add_umpire', on_add_officials_button, match._id);
 				uiu.el(no_umpire_span, 'span', 'match_no_umpire', ci18n('No umpire'));
-			
+
 			}
 		} else if(style === 'upcoming' && setup.highlight >= 1) {
-			var preparation_container = uiu.el(to_td, 'div', 'preparation_container'); 
-			uiu.el(preparation_container, 'span', 'preparation', 'in Vorbereitung' + (setup.location_id ? "" : "!")); 
+			var preparation_container = uiu.el(to_td, 'div', 'preparation_container');
+			uiu.el(preparation_container, 'span', 'preparation', 'in Vorbereitung' + (setup.location_id ? "" : "!"));
 
 			if(setup.location_id) {
         		const l = utils.find(curt.locations, l => l._id === setup.location_id);
@@ -527,23 +527,23 @@ function render_match_row(tr, match, court, style, show_player_status, show_add_
 					uiu.el(preparation_container, 'span', 'preparation', l.preparation_addition); //TODO: Hie die Halle mit ausgeben!
         		}
     		}
-			
+
 		}
-	}	
-		
+	}
+
 
 	if(style != 'upcoming') {
 		const score_td = uiu.el(tr, 'td', 'score');
 		if(style === 'public') {
 			score_td.classList.add('score_public');
 		}
-	
+
 
 		const score_span = uiu.el(score_td, 'span', {
 			'class': ('match_score' + ((match.setup.now_on_court === true) ? ' match_score_current' : '')),
 			'data-match_id': match._id,
 		}, calc_score_str(match));
-		
+
 		if(style === 'public' && calc_score_str(match) === '') {
 			if (setup.umpire && setup.umpire.firstname && setup.umpire.surname) {
 				const umpire_icon = uiu.el(score_span, 'div', 'umpire', '');
@@ -553,15 +553,15 @@ function render_match_row(tr, match, court, style, show_player_status, show_add_
 					uiu.el(umpire_name_div, 'span', {}, ' \u200B+ ');
 					uiu.el(umpire_name_div, 'span', {}, short_name(setup.service_judge.firstname, setup.service_judge.surname));
 				}
-			
+
 				let parrent_width = score_span.clientWidth;
 				parrent_width -= parseFloat(window.getComputedStyle(score_span, null).getPropertyValue('padding-left'));
 				parrent_width -= parseFloat(window.getComputedStyle(score_span, null).getPropertyValue('padding-right'));
-			
+
 				//auto_size(umpire_name_div, parrent_width - umpire_icon.offsetWidth - 20);
 				resizable_elements.fixed_width_elements.push(umpire_name_div);
 				resizable_elements.fixed_width.push(parrent_width - umpire_icon.offsetWidth - 20);
-			
+
 			} else if (setup.tabletoperators && setup.tabletoperators.length > 0){
 				const tablet_icon = uiu.el(score_span, 'div', 'tablet', '');
 				const operators_div = uiu.el(score_span, 'div', 'operators_public')
@@ -570,11 +570,11 @@ function render_match_row(tr, match, court, style, show_player_status, show_add_
 					uiu.el(operators_div, 'span', 'match_no_umpire', ' \u200B/ ');
 					uiu.el(operators_div, 'span', 'match_no_umpire', short_name(setup.tabletoperators[1].firstname, setup.tabletoperators[1].lastname, setup.tabletoperators[1].name));
 				}
-			
+
 				let parrent_width = score_span.clientWidth;
 				parrent_width -= parseFloat(window.getComputedStyle(score_span, null).getPropertyValue('padding-left'));
 				parrent_width -= parseFloat(window.getComputedStyle(score_span, null).getPropertyValue('padding-right'));
-			
+
 				//auto_size(operators_div, parrent_width - tablet_icon.offsetWidth - 20);
 
 				resizable_elements.fixed_width_elements.push(operators_div);
@@ -842,14 +842,14 @@ function create_match_prepparation_button(targetEl, cssClass, title, listener, m
 				active_timers.matches[m._id] = preparation_timer;
 			}
 		}
-		
+
 		if (match_scoring.is_match_over(m.network_score, m.setup.scoring_format)) {
 			create_match_button(timer_td, 'vlink match_confirm_button', 'Confirm_Finish', on_match_confirm_button_click, m._id);
 		}
 	});
-	
-		if(	m.network_score && m.network_score.length > 0 && 
-			m.network_score[0].length > 1 && 
+
+		if(	m.network_score && m.network_score.length > 0 &&
+			m.network_score[0].length > 1 &&
 			(m.network_score[0][0] > 0 || m.network_score[0][1] > 0) ) {
 			_for_each_match_bound_element('.match_second_call_button', m, (button_el) => {
 				button_el.style.visibility = 'hidden';
@@ -875,7 +875,7 @@ function create_match_prepparation_button(targetEl, cssClass, title, listener, m
 		_for_each_match_bound_element('.match_shuttle_count', m, function(el) {
 			uiu.setClass(el, 'match_shuttle_count_display_active', !!m.shuttle_count);
 		});
-		
+
 		_for_each_match_bound_element('.match_shuttle_count_number', m, function(el) {
 			uiu.text(el, m.shuttle_count || '');
 		});
@@ -887,7 +887,7 @@ function create_match_prepparation_button(targetEl, cssClass, title, listener, m
 		else {
 			shuttle_image.style.display = 'inline-block';
 		}
-			
+
 	});
 }
 
@@ -1078,7 +1078,7 @@ function render_players_el(parentNode, setup, team_id, match, show_player_status
 			cflags.render_flag_el(p1_el, nat1);
 		}
 
-		render_player_el(parentNode, team.players[1], match._id, setup.now_on_court, show_player_status, style, true);	
+		render_player_el(parentNode, team.players[1], match._id, setup.now_on_court, show_player_status, style, true);
 	}
 }
 
@@ -1136,7 +1136,7 @@ function render_player_el(parentNode, player, match_id, now_on_court, show_playe
 	const player_name = (style === 'public' || style === 'upcoming' && is_doubles) ?  short_name(player.firstname, player.lastname) : player.name;
 	let player_element = uiu.el(parentNode, 'span', {
 		'class' : 'person player ' + player_status + (style === 'public' || style === 'upcoming' ? '_public' : ''),
-		'data-btp_id' : player.btp_id, 
+		'data-btp_id' : player.btp_id,
 		'data-match_id': match_id,
 	}, player_name.replace(' ', '\xa0'));
 
@@ -1230,7 +1230,7 @@ function get_player_status(player, now_on_court, show_player_status) {
 		player_status = "not_checked_in";
 	}
 
-	
+
 
 	return player_status;
 }
@@ -1276,48 +1276,47 @@ function update_player(match_id, player, now_on_court, show_player_status) {
 		return;
 	}
 	const tablet_court = active_tabletoperator_court_for_player(player);
-	uiu.qsEach('.player[data-match_id=' + JSON.stringify(match_id) + ']', function(player_el) {
-		if (String(player_el.getAttribute('data-btp_id')) !== String(player_btp_id)) {
-			return;
-		}
-		let player_status = get_player_status(player, now_on_court, show_player_status);
-		const player_check_in_locked = is_player_check_in_locked(player);
+	uiu.qsEach(
+		'.player[data-match_id=' + JSON.stringify(String(match_id)) + '][data-btp_id=' + JSON.stringify(String(player_btp_id)) + ']',
+		function(player_el) {
+			let player_status = get_player_status(player, now_on_court, show_player_status);
+			const player_check_in_locked = is_player_check_in_locked(player);
 
-		player_el.classList.remove("now_on_court", "now_playing", "checked_in", "not_checked_in", "no_status", "can_check_out", "can_check_in");
-		player_el.classList.add(player_status);
-		if(player.check_in_per_match && !player_check_in_locked) {
-			if(player_status == "checked_in") {
-				player_el.classList.add("can_check_out");
-			} else if (player_status == "not_checked_in") {
-				player_el.classList.add("can_check_in");
+			player_el.classList.remove("now_on_court", "now_playing", "checked_in", "not_checked_in", "no_status", "can_check_out", "can_check_in");
+			player_el.classList.add(player_status);
+			if(player.check_in_per_match && !player_check_in_locked) {
+				if(player_status == "checked_in") {
+					player_el.classList.add("can_check_out");
+				} else if (player_status == "not_checked_in") {
+					player_el.classList.add("can_check_in");
+				}
 			}
-		}
 
-		//The only Child should be the now_playing_on_court icon or the now_tablet_on_court icon
-		while (player_el.firstElementChild) {
-			player_el.removeChild(player_el.lastElementChild);
-		}
+			//The only Child should be the now_playing_on_court icon or the now_tablet_on_court icon
+			while (player_el.firstElementChild) {
+				player_el.removeChild(player_el.lastElementChild);
+			}
 
-		if ((player.now_playing_on_court && player_status != "now_on_court") && player_status != "no_status") {
-			let parts = player.now_playing_on_court.split("_");
-			let court_number = parts[parts.length - 1];
-			uiu.el(player_el, 'div', 'court', court_number);
-		}
-	
-		if(tablet_court) {
-			let parts = tablet_court.split("_");
-			let court_number = parts[parts.length - 1];
-			uiu.el(player_el, 'div', 'tablet_inline', court_number);
-		}
+			if ((player.now_playing_on_court && player_status != "now_on_court") && player_status != "no_status") {
+				let parts = player.now_playing_on_court.split("_");
+				let court_number = parts[parts.length - 1];
+				uiu.el(player_el, 'div', 'court', court_number);
+			}
 
-		if(is_player_waiting_as_tabletoperator(player)) {
-			uiu.el(player_el, 'div', 'tabletoperator_waiting_inline', '');
-		}
+			if(tablet_court) {
+				let parts = tablet_court.split("_");
+				let court_number = parts[parts.length - 1];
+				uiu.el(player_el, 'div', 'tablet_inline', court_number);
+			}
 
-		if(show_player_status && player_status != "now_on_court") {
-			var timer_state = _extract_player_timer_state(player);
-			var timer = create_timer(timer_state, player_el, "#ffffff", "#ffffff");
-		}
+			if(is_player_waiting_as_tabletoperator(player)) {
+				uiu.el(player_el, 'div', 'tabletoperator_waiting_inline', '');
+			}
+
+			if(show_player_status && player_status != "now_on_court") {
+				var timer_state = _extract_player_timer_state(player);
+				var timer = create_timer(timer_state, player_el, "#ffffff", "#ffffff");
+			}
 
 	});
 }
@@ -1397,7 +1396,7 @@ function update_all_player_status_indicators() {
 function add_match(m, section) {
 	insert_new_match_row(m, section);
 }
-	
+
 function insert_new_match_row(m, section) {
 	switch (section) {
 		case 'finished':
@@ -1452,7 +1451,7 @@ function insert_new_match_row(m, section) {
 function update_match_row(m, new_section) {
 	uiu.qsEach('tr[data-match_id=' + JSON.stringify(m._id) + ']', (match_row_el) => {
 		match_row_el.innerHTML = '';
-		
+
 		switch (new_section) {
 			case 'finished':
 				render_match_row(match_row_el, m, null, 'default', false, curt.tabletoperator_enabled);
@@ -1463,7 +1462,7 @@ function update_match_row(m, new_section) {
 				render_match_row(match_row_el, m, null, 'unasigned', true, curt.tabletoperator_enabled);
 				break;
 			default:
-				const court = utils.find(curt.courts, c => c._id === m.setup.court_id);	
+				const court = utils.find(curt.courts, c => c._id === m.setup.court_id);
 				const closest = match_row_el.closest('.main_upcoming');
 				if(Boolean(closest)) {
 					render_match_row(match_row_el, m, court, 'public');
@@ -1495,7 +1494,7 @@ function reorder_finished_match_row(m) {
 	});
 }
 
-function update_match(m, old_section, new_section) {	
+function update_match(m, old_section, new_section) {
 	invalidate_tabletoperator_status_index();
 	if(old_section != new_section) {
 		remove_match_from_gui(m, old_section);
@@ -1509,13 +1508,13 @@ function update_match(m, old_section, new_section) {
 var active_timers = {'matches': {}, 'players' : {}};
 
 function create_timer(timer_state, parent, default_color, exigent_color) {
-	
+
 	if (!timer_state) {
 		return;
 	}
 
 	var tv = timer.calc(timer_state, get_effective_test_clock_now_ms());
-		
+
 	if(!tv || !tv.visible){
 		return;
 	}
@@ -1523,7 +1522,7 @@ function create_timer(timer_state, parent, default_color, exigent_color) {
 
 	var bgColor = timer_state.bgColor;
 	let el = uiu.el(parent, 'div', { class: 'timer', style: ('background-color:' + bgColor +'; color:' + default_color +';')}, tv.str);
-	
+
 	var tobj = {};
 	var has_been_attached = false;
 
@@ -1589,7 +1588,7 @@ function _extract_player_timer_state(player) {
 	} else {
 		s.bgColor = "#ff0000";
 	}
-	
+
 	return s;
 }
 
@@ -1651,7 +1650,7 @@ function cmp_scheduled_match_order(m1, m2) {
 
 	const cmp1 = cbts_utils.cmp(m1.setup.scheduled_date, m2.setup.scheduled_date);
 	if (cmp1 != 0) return cmp1;
-	
+
 	if (time_str1 === '00:00' && time_str2 === '00:00') {
 		return cbts_utils.cmp(m1.setup.match_num, m2.setup.match_num);
 	} else if (time_str1 === '00:00' && time_str2 !== '00:00') {
@@ -1793,7 +1792,7 @@ function on_second_call_tabletoperator_button_click(e) {
 			}
 		});
 	}
-}	
+}
 function on_second_preparation_call_tabletoperator_button_click(e) {
 	const match = fetchMatchFromEvent(e);
 	if (match != null) {
@@ -2453,7 +2452,7 @@ function ui_edit(match_id) {
 		'data-edit-match_id': match_id,
 	});
 	const dialog = uiu.el(dialog_bg, 'div', 'dialog');
-	
+
 	uiu.el(dialog, 'h3', {}, ci18n('Edit match'));
 
 	const form = uiu.el(dialog, 'form');
@@ -2631,7 +2630,7 @@ function ui_scoresheet(match_id) {
 	const scoresheet_buttons = uiu.el(dialog, 'div', 'match_scoresheet_buttons');
 
 	const cancel_btn = uiu.el(scoresheet_buttons, 'div', 'vlink', ci18n('Back'));
-	cancel_btn.addEventListener('click', _cancel_ui_scoresheet);	
+	cancel_btn.addEventListener('click', _cancel_ui_scoresheet);
 
 	const pdf_btn = uiu.el(scoresheet_buttons, 'button', {}, ci18n('PDF'));
 	pdf_btn.addEventListener('click', function() {
@@ -2664,7 +2663,7 @@ function render_match_table(container, matches, style, show_player_status, show_
 	if(! style) {
 		style = 'default';
 	}
-	
+
 	const table = uiu.el(container, 'table', 'match_table');
 	render_match_table_header(table, true);
 	const tbody = uiu.el(table, 'tbody');
@@ -3165,7 +3164,7 @@ function render_upcoming_matches(container) {
 
 	uiu.el(container, 'h2', {
 		style: 'text-align: center;',
-	}, ci18n('Next Matches'));	
+	}, ci18n('Next Matches'));
 
 	const upcoming_table = uiu.el(container, 'table', 'upcoming_table');
 	const upcoming_tbody = uiu.el(upcoming_table, 'tbody', 'upcoming_tbody');
@@ -3190,7 +3189,7 @@ function render_upcoming_matches(container) {
 		// Location vorhanden → muss matchen
 		return loc.name === param_location;
 	});
-	
+
 	var resizable_rows = [];
 	for (const match of unassigned_matches.slice(0, UPCOMING_MATCH_COUNT)) {
 		const tr = uiu.el(upcoming_tbody, 'tr', {
@@ -3353,14 +3352,14 @@ function update_tables(location_id, enabled) {
 
 function render_empty_court_row(tr, court, style, is_droppable) {
 	tr.setAttribute("data-style", style);
-	
+
 	if (!court) {
 		console.warn('court is not set!');
 
 	}
 
 	const is_active = court.is_active;
-	
+
 	if(style != 'public') {
 		const lead_target_td = uiu.el(tr, 'td', {class: (is_active ? "droppable " : "inactive " ) + "actions", colspan: 1, "data-court_id":court._id, "data-state" : (is_active ? "droppable" : "inactive" )}, '');
 

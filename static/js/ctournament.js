@@ -20,6 +20,7 @@ let official_drag_refresh_pending = false;
 let pending_official_role_overrides = new Map();
 let preparation_selection_request_inflight = false;
 let preparation_selection_request_pending = false;
+let preparation_need_label_update_frame = null;
 let tournament_refresh_after_missed_change_pending = false;
 let btp_next_fetch_countdown_interval = null;
 let speech_output_badge_listener_registered = false;
@@ -1087,9 +1088,9 @@ var ctournament = (function() {
 	function render_announcement_formular(target) {
 		const announcements = uiu.el(target, 'div', 'announcements_container');
 		uiu.el(announcements, 'h3', {}, 'Freie Ansage');
-	
+
 		const form = uiu.el(announcements, 'form');
-	
+
 		const textarea = uiu.el(form, 'textarea', {
 			type: 'textarea',
 			id: 'custom_announcement',
@@ -1098,7 +1099,7 @@ var ctournament = (function() {
 			rows: '4',
 			maxlength: '175'
 		});
-	
+
 		const btn_container = uiu.el(form, 'div', 'announcements_btn_container');
 
 		// Button: Lokal Abspielen
@@ -1107,7 +1108,7 @@ var ctournament = (function() {
 			class: 'announce_button',
 			id: 'local_announce_btn'
 		}, 'Lokal Abspielen');
-	
+
 		// Button: Remote Abspielen
 		const remote_btn = uiu.el(btn_container, 'button', {
 			type: 'submit',
@@ -1120,12 +1121,12 @@ var ctournament = (function() {
 			class: !curt.enable_emergency ? 'announce_emergency_button' : 'stop_emergency_button',
 			id: 'announce_emergency_btn'
 		}, !curt.enable_emergency ? 'Evakuierung Abspielen' : 'Evakuierung Stoppen');
-	
+
 		// Lokales Abspielen (z. B. mit deiner announce-Funktion)
 		local_btn.addEventListener('click', function () {
 			const text = textarea.value.trim();
 			if (!text) return;
-	
+
 			// Lokale Ansage abspielen
 			announce([text], true);  // ← Diese Funktion muss bei dir lokal definiert sein
 		});
@@ -1145,12 +1146,12 @@ var ctournament = (function() {
 				});
   			}
 		});
-	
+
 		// Remote Abspielen
 		form_utils.onsubmit(form, function (d) {
 			const text = d.custom_announcement?.trim();
 			if (!text) return;
-	
+
 			send({
 				type: 'free_announce',
 				tournament_key: curt.key,
@@ -1205,24 +1206,24 @@ var ctournament = (function() {
 
 	function render_enable_announcements_content(container, locations) {
 		uiu.el(container, 'h3', {}, 'Ansagen auf diesem Gerät');
-	
+
 		(locations || []).forEach(loc => {
 			{
 				const form = uiu.el(container, 'form');
-		
+
 				const checkboxId = `enable_announcement_calls_${loc._id}`;
 				const checkbox = uiu.el(form, 'input', {
 					type: 'checkbox',
 					id: checkboxId,
 					name: checkboxId
 				});
-		
+
 				// Initialer Zustand aus localStorage
 				checkbox.checked = (window.localStorage.getItem(checkboxId) === 'true');
-		
+
 				// Label anzeigen mit dem Location-Namen
 				uiu.el(form, 'label', { for: checkboxId }, (loc.name || 'Unbenannte Location') + " (Spielaufruf)");
-		
+
 				// Event Listener zum Speichern in localStorage
 				checkbox.addEventListener('change', function () {
 					window.localStorage.setItem(checkboxId, checkbox.checked);
@@ -1230,20 +1231,20 @@ var ctournament = (function() {
 			}
 			{
 				const form = uiu.el(container, 'form');
-		
+
 				const checkboxId = `enable_announcement_preparations_${loc._id}`;
 				const checkbox = uiu.el(form, 'input', {
 					type: 'checkbox',
 					id: checkboxId,
 					name: checkboxId
 				});
-		
+
 				// Initialer Zustand aus localStorage
 				checkbox.checked = (window.localStorage.getItem(checkboxId) === 'true');
-		
+
 				// Label anzeigen mit dem Location-Namen
 				uiu.el(form, 'label', { for: checkboxId }, (loc.name || 'Unbenannte Location') + " (in Vorbereitung)");
-		
+
 				// Event Listener zum Speichern in localStorage
 				checkbox.addEventListener('change', function () {
 					window.localStorage.setItem(checkboxId, checkbox.checked);
@@ -1253,20 +1254,20 @@ var ctournament = (function() {
 
 		{
 			const form = uiu.el(container, 'form');
-	
+
 			const checkboxId = 'enable_free_announcements';
 			const checkbox = uiu.el(form, 'input', {
 				type: 'checkbox',
 				id: checkboxId,
 				name: checkboxId
 			});
-	
+
 			// Initialer Zustand aus localStorage
 			checkbox.checked = (window.localStorage.getItem(checkboxId) === 'true');
-	
+
 			// Label anzeigen mit dem Location-Namen
 			uiu.el(form, 'label', { for: checkboxId }, 'Freie Remote Ansagen');
-	
+
 			// Event Listener zum Speichern in localStorage
 			checkbox.addEventListener('change', function () {
 				window.localStorage.setItem(checkboxId, checkbox.checked);
@@ -1318,33 +1319,33 @@ var ctournament = (function() {
 
 	function render_enable_location_courts_content(container, locations) {
 		uiu.el(container, 'h3', {}, 'Zeige Felder');
-	
+
 		(locations || []).forEach(loc => {
 			const form = uiu.el(container, 'form');
-	
+
 			const checkboxId = `show_location_courts_${loc._id}`;
 			const checkbox = uiu.el(form, 'input', {
 				type: 'checkbox',
 				id: checkboxId,
 				name: checkboxId
 			});
-	
+
 			// Initialer Zustand aus localStorage oder Default auf true
 			const storedValue = window.localStorage.getItem(checkboxId);
 			checkbox.checked = (storedValue === null) ? true : (storedValue === 'true');
-	
+
 			// Label anzeigen mit dem Location-Namen
 			uiu.el(form, 'label', {
 				for: checkboxId,
 				'data-location-need-label': loc._id,
 			}, format_location_courts_label(loc));
-	
+
 			// Event Listener zum Speichern in localStorage und Aufruf mit Parametern
 			checkbox.addEventListener('change', function () {
 				window.localStorage.setItem(checkboxId, checkbox.checked);
 				cmatch.update_tables(loc._id, checkbox.checked);
 			});
-	
+
 			// Gleich initial einmal aufrufen, damit der Sichtbarkeitszustand korrekt gesetzt ist
 			cmatch.update_tables(loc._id, checkbox.checked);
 		});
@@ -1465,13 +1466,10 @@ var ctournament = (function() {
 		return location.short_name && location.short_name !== name ? name + " [" + location.short_name + "]" : name;
 	}
 
-	function update_location_preparation_need_labels(fetch_selections = true) {
+	function update_location_preparation_need_labels_now() {
 		const labels = document.querySelectorAll('[data-location-need-label]');
 		if (!labels.length) {
 			return;
-		}
-		if (fetch_selections) {
-			request_location_preparation_selections();
 		}
 		const statuses = calculate_location_preparation_need_statuses();
 		labels.forEach((label) => {
@@ -1481,6 +1479,26 @@ var ctournament = (function() {
 				return;
 			}
 			label.textContent = format_location_courts_label(location);
+		});
+	}
+
+	function update_location_preparation_need_labels(fetch_selections = true) {
+		const labels = document.querySelectorAll('[data-location-need-label]');
+		if (!labels.length) {
+			return;
+		}
+		if (fetch_selections) {
+			request_location_preparation_selections();
+		}
+		if (preparation_need_label_update_frame != null) {
+			return;
+		}
+		const schedule = (typeof window !== 'undefined' && window.requestAnimationFrame)
+			? window.requestAnimationFrame.bind(window)
+			: (fn) => setTimeout(fn, 0);
+		preparation_need_label_update_frame = schedule(() => {
+			preparation_need_label_update_frame = null;
+			update_location_preparation_need_labels_now();
 		});
 	}
 
@@ -2925,7 +2943,7 @@ var ctournament = (function() {
 
 		const meta_div = uiu.el(main, 'div', 'metadata_container');
 
-		
+
 		if(curt.tabletoperator_enabled) {
 			uiu.el(meta_div, 'div', 'unassigned_tableoperators_container');
 		}
@@ -2946,7 +2964,7 @@ var ctournament = (function() {
 		const errors_scroll_left_div = uiu.el(meta_right_div, 'div', 'errors_scroll_left');
 
 		uiu.el(errors_scroll_left_div, 'div', 'errors');
-		
+
 		cmatch.prepare_render(curt);
 
 
@@ -2998,8 +3016,8 @@ var ctournament = (function() {
 	function render_settings(target) {
 		const settings_div = uiu.el(target, 'div', 'metadata_right_container_2');
 		uiu.el(settings_div, 'h3', {}, 'Turnier-Einstellungen');
-	
-		const settings_table = uiu.el(settings_div, 'table');	
+
+		const settings_table = uiu.el(settings_div, 'table');
 		var tr = uiu.el(settings_table, 'tr');
 		var td = uiu.el(tr, 'td');
 		uiu.el(td, 'div', 'status_label', 'BTS');
@@ -3051,7 +3069,7 @@ var ctournament = (function() {
 	function bts_status_changed(c) {
 		set_service_status('status', c);
 	}
-	
+
 	function set_service_status(service_id, c) {
 		if (c && c.val) {
 			if (curt) {
@@ -3066,7 +3084,7 @@ var ctournament = (function() {
 			}
 		}
 	}
-	
+
 	function _upload_logo(e) {
 		const input = e.target;
 		if (!input.files.length) return;
@@ -3103,12 +3121,12 @@ var ctournament = (function() {
 
 		const form = uiu.el(main, 'div', 'tournament_settings');
 		let input = {};
-	
+
 		// tournament-div##################################################################################
 		{
 			const tournament_div = uiu.el(form, 'div', 'settings');
 			uiu.el(tournament_div, 'h2', 'edit', ci18n('tournament:edit:tournament'));
-			
+
 			const key_label = uiu.el(tournament_div, 'label');
 			uiu.el(key_label, 'span', {}, ci18n('tournament:edit:id'));
 			uiu.el(key_label, 'input', {
@@ -3411,7 +3429,7 @@ var ctournament = (function() {
 			}
 				input.btp_timezone = btp_timezone_select;
 				bind_live_prop(input.btp_timezone, 'btp_timezone');
-		}		
+		}
 
 		// tournament-flow-div##################################################################################
 		{
@@ -3476,22 +3494,22 @@ var ctournament = (function() {
 				const attrs = {
 					value: wo[0],
 				}
-	
+
 				if ((wo[0] === curt.warmup) && !warmup_marked) {
 					warmup_marked = true;
 					attrs.selected = 'selected';
-	
+
 					warmup_ready_input.value = wo[1];
 					warmup_ready_input.disabled = wo[3];
 					warmup_start_input.value = wo[2];
 					warmup_start_input.disabled = wo[3];
-	
+
 					last_selected_warmup = wo;
 				}
-	
+
 				uiu.el(warmup_timer_select, 'option', attrs, ci18n('tournament:edit:warmup_timer_behavior:' + wo[0]));
 			}
-	
+
 				warmup_timer_select.onchange = function () {
 				if (!last_selected_warmup[3]) {
 					for (const wo of warmup_options) {
@@ -3501,14 +3519,14 @@ var ctournament = (function() {
 						}
 					}
 				}
-	
+
 				for (const wo of warmup_options) {
 					if (warmup_timer_select.value == wo[0]) {
 						warmup_ready_input.value = wo[1];
 						warmup_ready_input.disabled = wo[3];
 						warmup_start_input.value = wo[2];
 						warmup_start_input.disabled = wo[3];
-	
+
 							last_selected_warmup = wo;
 						}
 					}
@@ -3636,7 +3654,7 @@ var ctournament = (function() {
 				curt.tabletoperator_break_seconds = 300;
 			}
 			input.tabletoperator_break_seconds                      = create_input(curt, "number", tablet_fieldset, 'tabletoperator_break_seconds')
-		
+
 		}
 
 
@@ -3654,7 +3672,7 @@ var ctournament = (function() {
 		{
 			const call_div = uiu.el(form, 'div', 'settings');
 			uiu.el(call_div, 'h2', 'edit', ci18n('tournament:edit:calls'));
-			
+
 			const announcements_fieldset = uiu.el(call_div, 'fieldset');
 			input.annoncement_include_event = create_checkbox(curt, announcements_fieldset, 'annoncement_include_event');
 			input.annoncement_include_round = create_checkbox(curt, announcements_fieldset, 'annoncement_include_round');
@@ -3668,7 +3686,7 @@ var ctournament = (function() {
 
 			render_normalisation_values(uiu.el(call_div, 'div','normalizations_values_div'));
 
-		
+
 		}
 
 		// upcoming-div ###################################################################################################
@@ -3688,13 +3706,13 @@ var ctournament = (function() {
 		const officials_host = uiu.el(form, 'div', { id: 'officials_host' });
 		update_official_tables(officials_host);  // initial + später auch für Updates
 
-		
-		
+
+
 		// devices-div##################################################################################
 		{
 			const devices_div = uiu.el(form, 'div', 'settings');
 			uiu.el(devices_div, 'h2', 'edit', ci18n('tournament:edit:devices'));
-			
+
 			render_logo_preview(devices_div);
 
 			const default_display_fieldset = uiu.el(devices_div, 'fieldset');
@@ -3765,7 +3783,7 @@ var ctournament = (function() {
 		}
 
 
-		
+
 		// location-div##################################################################################
 		{
 			const location_div = uiu.el(form, 'div', 'settings location_settings_section');
@@ -3777,7 +3795,7 @@ var ctournament = (function() {
 		{
 			const ticker_div = uiu.el(form, 'div', 'settings');
 			uiu.el(ticker_div, 'h2', 'edit', ci18n('tournament:edit:ticker_connection'));
-			
+
 			const ticker_fieldset = uiu.el(ticker_div, 'fieldset');
 			const ticker_enabled_label = uiu.el(ticker_fieldset, 'label');
 			const te_attrs = {
@@ -3790,7 +3808,7 @@ var ctournament = (function() {
 				input.ticker_enabled = uiu.el(ticker_enabled_label, 'input', te_attrs);
 				uiu.el(ticker_enabled_label, 'span', {}, ci18n('tournament:edit:ticker_enabled'));
 				bind_live_prop(input.ticker_enabled, 'ticker_enabled');
-	
+
 			const ticker_url_label = uiu.el(ticker_fieldset, 'label');
 			uiu.el(ticker_url_label, 'span', {}, ci18n('tournament:edit:ticker_url'));
 				input.ticker_url = uiu.el(ticker_url_label, 'input', {
@@ -3799,7 +3817,7 @@ var ctournament = (function() {
 					value: (curt.ticker_url || ''),
 				});
 				bind_live_prop(input.ticker_url, 'ticker_url', { event_name: 'blur' });
-	
+
 			const ticker_password_label = uiu.el(ticker_fieldset, 'label');
 			uiu.el(ticker_password_label, 'span', {}, ci18n('tournament:edit:ticker_password'));
 				input.ticker_password = uiu.el(ticker_password_label, 'input', {
@@ -3882,7 +3900,7 @@ var ctournament = (function() {
 						refresh_current_view();
 					});
 				});
-			}		
+			}
 			update_edit_dependencies();
 		}
 	_route_single(/t\/([a-z0-9]+)\/edit$/, ui_edit, change.default_handler(_update_all_ui_elements_edit, {
@@ -3895,7 +3913,7 @@ var ctournament = (function() {
 		function update_scoring_formats() {
 		if (!scoring_formats_main) {
 			if (typeof debug !== "undefined" && debug?.log) {
-				debug.log("update_scoring_formats: main container not initialized");	
+				debug.log("update_scoring_formats: main container not initialized");
 			}
 			return;
 		}
@@ -4255,7 +4273,7 @@ var ctournament = (function() {
 	function update_stages_scoring_formats() {
 		if (!scoring_formats_main) {
 			if (typeof debug !== "undefined" && debug?.log) {
-				debug.log("update_scoring_formats: main container not initialized");	
+				debug.log("update_scoring_formats: main container not initialized");
 			}
 			return;
 		}
@@ -4415,7 +4433,7 @@ var ctournament = (function() {
 			const delete_btn = uiu.el(actions_td, 'button', {
 				'data-normalization-id': nv._id,
 			}, ci18n('tournament:edit:delete'));
-						
+
 			delete_btn.addEventListener('click', function (e) {
 				const del_btn = e.target;
 				const normalization_id = del_btn.getAttribute('data-normalization-id');
@@ -4516,7 +4534,7 @@ var ctournament = (function() {
 				node.title = ci18n('tournament:edit:displays:battery_duscharging_time', {
 					battery_discharging_time: Math.floor(battery.dischargingTime / 60)
 				});
-				
+
 				if (level <= 10) {
 					node.classList.add('battery-status-red');
 				} else if (level <= 20) {
@@ -4642,7 +4660,7 @@ var ctournament = (function() {
 		curt.displays.forEach((d) => {
 			used_configs.add(d.displaysetting_id);
 		});
-		
+
 		uiu.el(main, 'h3',  'edit', ci18n('tournament:edit:general_displaysettings'));
 		const create_actions = uiu.el(main, 'div', { style: 'margin: 0.5em 0 1em;' });
 		const create_display_btn = uiu.el(create_actions, 'button', {
@@ -4671,7 +4689,7 @@ var ctournament = (function() {
 		}
 	}
 
-	function render_general_displaysetting_line(parrent, s, used_configs) {		
+	function render_general_displaysetting_line(parrent, s, used_configs) {
 		uiu.el(parrent, 'th', {}, s.description ||s.id);
 		uiu.el(parrent, 'td', {}, format_general_displaysetting_mode(s));
 		const actions_td = uiu.el(parrent, 'td', {});
@@ -4680,7 +4698,7 @@ var ctournament = (function() {
 			'data-display_setting_id': s.id,
 		}, 'Edit');
 
-		edit_btn.addEventListener('click', (e) => {				
+		edit_btn.addEventListener('click', (e) => {
 			on_edit_display_setting_button_click(e);
 		});
 
@@ -4736,7 +4754,7 @@ var ctournament = (function() {
 		}
 		cbts_utils.esc_stack_pop();
 		uiu.remove(dlg);
-	
+
 		ui_edit();
 	}
 
@@ -6962,7 +6980,7 @@ var ctournament = (function() {
 				previewAnimationTimer = null;
 			}
 		};
-		
+
 		displaystyle_select.addEventListener('change', (e) => {
 			const style = e.target;
 			update_edit_display_setting(style.value);
@@ -6987,9 +7005,9 @@ var ctournament = (function() {
 			updateSecondarySectionMode();
 			scheduleDisplaySettingPreviewRender(80, true);
 		});
-		
+
 		render_select_number(primaryLayout.settingsColumn, ci18n('display_setting:scale'), 'scale', calculated_style, display_setting.d_scale, 20, 500);
-		
+
 		const select_color_div = uiu.el(primaryLayout.settingsColumn, 'div', { style: 'display: block' });
 		const select_color_label = uiu.el(select_color_div, 'label', {}, ci18n('display_setting:colors'));
 		render_select_color(select_color_label, 'c0', calculated_style, display_setting.d_c0);
@@ -7063,7 +7081,7 @@ var ctournament = (function() {
 		render_drop_down(secondaryLayout.settingsColumn, ci18n('display_setting:show_announcements'), 'show_announcements', calculated_style, ALL_ANNOUNCEMENT_MODES, display_setting.show_announcements || '');
 		render_drop_down(secondaryLayout.settingsColumn, ci18n('display_setting:click_mode'), 'click_mode', calculated_style, ALL_CLICK_MODES, display_setting.click_mode || '');
 		render_select_number(secondaryLayout.settingsColumn, ci18n('display_setting:button_block_timeout'), 'button_block_timeout', calculated_style, display_setting.button_block_timeout, 0, 5000);
-		
+
 		const technicalSection = createSettingsSection('Technik', 'display_setting_technical_section');
 		render_select_number(technicalSection, ci18n('display_setting:network_timeout'), 'network_timeout', true, display_setting.network_timeout, 1, 600000);
 		render_select_number(technicalSection, ci18n('display_setting:network_update_interval'), 'network_update_interval', true, display_setting.network_update_interval, 1, 600000);
@@ -7084,7 +7102,7 @@ var ctournament = (function() {
 		if(!labels) {
 			labels = values;
 		}
-		
+
 		const div = uiu.el(container, 'div', {field_name: select_name});
 		uiu.el(div, 'span', 'label', label_text);
 		const select = uiu.el(div, 'select', {
@@ -7163,7 +7181,7 @@ var ctournament = (function() {
 		});
 
 		uiu.visible(div, (displaystyle === true ||displaymode.option_applies(displaystyle, input_name)));
-	} 
+	}
 
 	function create_displaysettings_object(d) {
 		const displaysetting  = {
@@ -7217,7 +7235,7 @@ var ctournament = (function() {
 			d_team_colors: d.team_colors == 'on' ? true : false,
 			d_scale: d.scale || '100',
 			fullscreen_ask: 'never',
-			show_announcements: d.show_announcements || 'all', 
+			show_announcements: d.show_announcements || 'all',
 			neversettings: d.neversettings == 'on' ? true : false,
 			button_block_timeout: d.button_block_timeout || '100',
 			negative_timers: d.negative_timers == 'on' ? true : false,
@@ -7285,12 +7303,12 @@ var ctournament = (function() {
 			style: true,
 			language: true,
 		};
-		const names = [ 'displaymode_style', 'displaymode_reverse_order', 'tournament_overview_courts', 'show_pause', 'show_court_number', 'show_competition', 'show_round', 'show_players', 'show_team_name', 'show_middle_name', 'abbreviate_first_name', 'show_doubles_receiving', 
-						'c0', 'c1', 'cb0', 'cb1', 'cbg', 'cbg2', 'cbg3', 'cbg4', 'cfg', 'cfg2', 'cfg3', 'cfg4', 'cfgdark', 'cexp', 'ct', 
+		const names = [ 'displaymode_style', 'displaymode_reverse_order', 'tournament_overview_courts', 'show_pause', 'show_court_number', 'show_competition', 'show_round', 'show_players', 'show_team_name', 'show_middle_name', 'abbreviate_first_name', 'show_doubles_receiving',
+						'c0', 'c1', 'cb0', 'cb1', 'cbg', 'cbg2', 'cbg3', 'cbg4', 'cfg', 'cfg2', 'cfg3', 'cfg4', 'cfgdark', 'cexp', 'ct',
 						'cborder', 'cserv', 'cserv2', 'crecv', 'ctim_blue', 'ctim_active', 'team_colors', 'scale',
-						'tablet_mode', 'show_announcements', 'neversettings', 'button_block_timeout', 'negative_timers', 'shuttle_counter', 'editmode_doubleclick', 
+						'tablet_mode', 'show_announcements', 'neversettings', 'button_block_timeout', 'negative_timers', 'shuttle_counter', 'editmode_doubleclick',
 						'click_mode', 'style', 'language'];
-		
+
 		names.forEach((field_name) => {
 			const update = form ? form.querySelector(`[field_name="${field_name}"]`) : null;
 			if (!update) {
@@ -7313,7 +7331,7 @@ var ctournament = (function() {
 	}
 
 	function update_general_displaysettings(c)
-	{	
+	{
 		//const general_displaysettings_div = uiu.qs('.general_displaysettings');
 		const general_displaysettings_div = document.querySelector(".general_displaysettings");
 		if(general_displaysettings_div) {
@@ -7330,14 +7348,14 @@ var ctournament = (function() {
 		const tr = uiu.el(display_tbody, 'tr');
 		uiu.el(tr, 'th', {}, ci18n('tournament:edit:displays:num'));
 		uiu.el(tr, 'th', {}, ci18n('tournament:edit:displays:hostname'));
-		uiu.el(tr, 'th', {}, ci18n('tournament:edit:displays:batterylevel')); 
+		uiu.el(tr, 'th', {}, ci18n('tournament:edit:displays:batterylevel'));
 		uiu.el(tr, 'th', {}, ci18n('tournament:edit:displays:court'));
 		uiu.el(tr, 'th', {}, ci18n('tournament:edit:displays:setting'));
 		uiu.el(tr, 'th', {}, ci18n('tournament:edit:displays:onlinestatus'));
 		uiu.el(tr, 'th', {}, ci18n('tournament:edit:displays:ack_time'));
 		uiu.el(tr, 'th', {}, "");
 		uiu.el(tr, 'th', {}, "");
-		
+
 
 		const rendered_display_ids = new Set();
 		for (const display of curt.displays) {
@@ -7355,7 +7373,7 @@ var ctournament = (function() {
 		if(!document.querySelectorAll('.display_tbody').length) {
 			return;
 		}
-		
+
 		var nodes = document.querySelectorAll('[data-display_id=' + JSON.stringify(display.client_id) + ']');
 		if(nodes.length > 0) {
 			for (let i = 1; i < nodes.length; i++) {
@@ -7600,7 +7618,7 @@ var ctournament = (function() {
 			const content = [1, 2, 3, 4, 5, 6];
 			const selected = l.highlight;
 			const select_color = uiu.el(name_th, 'select', {id: 'select_highlight', class: 'highlight_' + selected, 'data-location_id': l._id});
-			for (const item of content) {			
+			for (const item of content) {
 					const attrs = {
 						'data-display-setting-id': item,
 						value: item,
@@ -7618,7 +7636,7 @@ var ctournament = (function() {
 				e.target.classList = [e.target.value];
 				send_location_to_admin(e.target.parentNode.parentNode, e.target.getAttribute('data-location_id'));
 			});
-				
+
 			const preparation_td = uiu.el(tr, 'td', {});
 			create_location_announcement_input(preparation_td, l, 'preparation_addition');
 
@@ -7653,7 +7671,7 @@ var ctournament = (function() {
 				type: 'file',
 				accept: 'image/*',
 				style: 'display:none;',
-				'data-location_id': l._id, 
+				'data-location_id': l._id,
 			});
 			logo_button.addEventListener('change', (e) => {
 				_upload_location_logo(e);
@@ -9409,7 +9427,7 @@ function update_officials() {
 		uiu.el(tr, 'th', {}, 'Schiedsrichter');
 		uiu.el(tr, 'th', {}, 'Aufschlagrichter');
 		uiu.el(tr, 'th', {}, '');
-		
+
 		var l = {_id : ''};
 
 		for (const c of curt.courts) {
@@ -9593,7 +9611,7 @@ function update_officials() {
 			default:
 				cmatch.update_court(court);
 				break;
-		} 
+		}
 	}
 
 	function create_checkbox(curt, parent_el, filed_id, label_class) {
@@ -9893,7 +9911,7 @@ function update_officials() {
 			name: fieldName
 		});
 		createSelectBoxContent(displaysettings_select_box, curt.displaysettings, displaysettings_id, opts);
-		return displaysettings_select_box;	
+		return displaysettings_select_box;
 	}
 	function createSelectBoxContent(select_box, content, selected_id, opts = {}) {
 		const filterFn = opts.filterFn || (() => true);
@@ -13121,7 +13139,7 @@ function update_officials() {
 		score: update_score,
 		court_current_match: update_upcoming_current_match,
 		match_edit: update_upcoming_match,
-		update_player_status: update_player_status, 
+		update_player_status: update_player_status,
 	}));
 
 	_route_single(/t\/([a-z0-9]+)\/current_matches/, ui_current_matches, change.default_handler(_update_all_ui_elements_current_matches, {
@@ -13353,14 +13371,14 @@ function update_officials() {
 	function get_admin_subpage() {
 		const path = window.location.pathname;
 		const parts = path.split('/').filter(Boolean); // Entfernt leere Einträge (z. B. durch führendes '/')
-	
+
 		// Erwartet: ['admin', 't', 'TurnierName', 'subpage?']
 		if (parts.length < 3 || parts[0] !== 'admin' || parts[1] !== 't') {
 			return null; // Nicht im erwarteten Admin-Pfad
 		}
-	
+
 		const subpage = parts[3]; // Kann undefined sein
-	
+
 		switch (subpage) {
 			case undefined:
 				return 'tournament-control';
