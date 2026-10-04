@@ -318,8 +318,7 @@ var ctournament = (function() {
 		m.btp_winner = cval.btp_winner;
 		m.setup = cval.setup;
 
-		cmatch.update_players(m);
-		cmatch.update_all_player_status_indicators();
+		cmatch.update_player_status_indicators_for_match_players(m);
 	}
 
 	function remove_match(c) {
@@ -355,7 +354,7 @@ var ctournament = (function() {
 				curt.matches.push(cval.match);
 				curt.matches = curt.matches.sort((a, b) => cmatch.cmp_match_order(a, b));
 				cmatch.add_match(cval.match, cmatch.calc_section(cval.match));
-				cmatch.update_all_player_status_indicators();
+				cmatch.update_player_status_indicators_for_match_players(cval.match);
 				update_location_preparation_need_labels();
 				return;
 			}
@@ -393,7 +392,7 @@ var ctournament = (function() {
 		}
 		const new_section = cmatch.calc_section(m);
 		cmatch.update_match(m, old_section, new_section);
-		cmatch.update_all_player_status_indicators();
+		cmatch.update_player_status_indicators_for_match_players(m);
 		update_location_preparation_need_labels();
 
 		return old_section;

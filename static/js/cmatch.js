@@ -1246,6 +1246,25 @@ function update_players(m, options) {
 
 }
 
+function _add_setup_player_btp_ids(setup, ids) {
+	if (!setup || !Array.isArray(setup.teams)) {
+		return ids;
+	}
+	setup.teams.forEach((team) => {
+		(team && Array.isArray(team.players) ? team.players : []).forEach((player) => {
+			const key = _participant_btp_key(player);
+			if (key) {
+				ids.add(key);
+			}
+		});
+	});
+	return ids;
+}
+
+function _setup_player_btp_ids(setup) {
+	return _add_setup_player_btp_ids(setup, new Set());
+}
+
 function update_player(match_id, player, now_on_court, show_player_status) {
 	const player_btp_id = player && player.btp_id;
 	if (player_btp_id == null) {
@@ -1296,6 +1315,39 @@ function update_player(match_id, player, now_on_court, show_player_status) {
 		}
 
 	});
+}
+
+function update_player_status_indicators_for_player_ids(player_ids, options) {
+	if (!Array.isArray(curt && curt.matches)) {
+		return;
+	}
+	const wanted_ids = player_ids instanceof Set
+		? player_ids
+		: new Set((player_ids || []).map(String));
+	if (wanted_ids.size === 0) {
+		return;
+	}
+	if (!options || options.invalidate !== false) {
+		invalidate_tabletoperator_status_index();
+	}
+	curt.matches.forEach((match) => {
+		const setup = match && match.setup;
+		if (!setup || !Array.isArray(setup.teams)) {
+			return;
+		}
+		setup.teams.forEach((team) => {
+			(team && Array.isArray(team.players) ? team.players : []).forEach((player) => {
+				const key = _participant_btp_key(player);
+				if (key && wanted_ids.has(key)) {
+					update_player(match._id, player, setup.now_on_court, match.btp_winner === undefined);
+				}
+			});
+		});
+	});
+}
+
+function update_player_status_indicators_for_match_players(match, options) {
+	update_player_status_indicators_for_player_ids(_setup_player_btp_ids(match && match.setup), options);
 }
 
 function update_all_player_status_indicators() {
@@ -4586,14 +4638,16 @@ return {
 	render_courts,
 	update_preparation_demand_court_markers,
 	render_umpire_options,
-		render_upcoming_matches,
-		update_court,
-		update_match_score,
-		count_match_score_targets,
-		count_match_timer_targets,
-		update_match,
+	render_upcoming_matches,
+	update_court,
+	update_match_score,
+	count_match_score_targets,
+	count_match_timer_targets,
+	update_match,
 	remove_match_from_gui,
 	update_players,
+	update_player_status_indicators_for_match_players,
+	update_player_status_indicators_for_player_ids,
 	update_all_player_status_indicators,
 	create_timer,
 	update_tables,
