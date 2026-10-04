@@ -23,6 +23,22 @@ function cascade_no_match_for_future_player_matches(app, tournament_key, source_
 	});
 }
 
+function handle_match_edit(app, msg) {
+	return new Promise((resolve, reject) => {
+		const ws = {
+			respond: (_msg, err, payload) => {
+				if (err) return reject(err);
+				resolve(payload);
+			},
+		};
+		admin.handle_match_edit(app, ws, msg);
+	});
+}
+
+function clone(value) {
+	return JSON.parse(JSON.stringify(value));
+}
+
 function make_match(overrides = {}) {
 	const setup_overrides = overrides.setup || {};
 	return {
@@ -127,6 +143,8 @@ describe('admin no-match cascade', function() {
 			setup: {
 				event_name: 'JE U17',
 				match_num: 86,
+				scheduled_date: '2026-09-27',
+				scheduled_time_str: '12:00',
 				teams: [
 					{ players: [{ name: 'Lewis Danger', btp_id: 74 }] },
 					{ players: [{ name: 'Silas Kaemena', btp_id: 84 }] },
@@ -164,5 +182,199 @@ describe('admin no-match cascade', function() {
 		const unchanged_doubles = await db.matches.findOne_async({ _id: 'doubles' });
 		assert.strictEqual(unchanged_doubles.score_status, 'normal');
 		assert.strictEqual(unchanged_doubles.team1_won, undefined);
+	});
+
+	it('does not cascade into future matches without a scheduled time', async function() {
+		const db = await database.init_test();
+		const app = { db, clock: { now_ms: () => 1234567890 } };
+		const source = make_match({
+			_id: 'source',
+			score_status: 'retired',
+			forward_loser: true,
+			no_match_losing_team: 1,
+			team1_won: true,
+			btp_winner: 1,
+			setup: {
+				event_name: 'JE U17 - Gruppe A',
+				match_num: 31,
+				teams: [
+					{ players: [{ name: 'Muhammad Sytsh Abdulquddus', btp_id: 62 }] },
+					{ players: [{ name: 'Lewis Danger', btp_id: 74 }] },
+				],
+			},
+		});
+		const scheduled_match = make_match({
+			_id: 'scheduled',
+			setup: {
+				event_name: 'JE U17',
+				match_num: 86,
+				scheduled_date: '2026-09-27',
+				scheduled_time_str: '12:30',
+				teams: [
+					{ players: [{ name: 'Lewis Danger', btp_id: 74 }] },
+					{ players: [{ name: 'Silas Kaemena', btp_id: 84 }] },
+				],
+			},
+		});
+		const unscheduled_match = make_match({
+			_id: 'unscheduled',
+			setup: {
+				event_name: 'JE U17',
+				state: 'unscheduled',
+				match_num: 106,
+				teams: [
+					{ players: [{ name: 'Lewis Danger', btp_id: 74 }] },
+					{ players: [{ name: 'Other Player', btp_id: 85 }] },
+				],
+			},
+		});
+
+		await insert(db, 'matches', source);
+		await insert(db, 'matches', scheduled_match);
+		await insert(db, 'matches', unscheduled_match);
+
+		const changed_matches = await cascade_no_match_for_future_player_matches(app, 'default', source);
+
+		assert.deepStrictEqual(changed_matches.map((match) => match._id), ['scheduled']);
+		const changed_scheduled = await db.matches.findOne_async({ _id: 'scheduled' });
+		assert.strictEqual(changed_scheduled.score_status, 'no_match');
+
+		const unchanged_unscheduled = await db.matches.findOne_async({ _id: 'unscheduled' });
+		assert.strictEqual(unchanged_unscheduled.score_status, 'normal');
+		assert.strictEqual(unchanged_unscheduled.team1_won, undefined);
+		assert.strictEqual(unchanged_unscheduled.btp_winner, undefined);
+		assert.strictEqual(unchanged_unscheduled.no_match_cascade_source_match_id, undefined);
+	});
+
+	it('applies a prior cascade when a future match is scheduled later', async function() {
+		const db = await database.init_test();
+		const app = { db, clock: { now_ms: () => 1234567890 } };
+		await insert(db, 'tournaments', {
+			key: 'default',
+			no_match_cascade_announcements_enabled: false,
+		});
+		const source = make_match({
+			_id: 'source',
+			score_status: 'retired',
+			forward_loser: true,
+			no_match_losing_team: 1,
+			team1_won: true,
+			btp_winner: 1,
+			setup: {
+				event_name: 'JE U17 - Gruppe A',
+				match_num: 31,
+				teams: [
+					{ players: [{ name: 'Muhammad Sytsh Abdulquddus', btp_id: 62 }] },
+					{ players: [{ name: 'Lewis Danger', btp_id: 74 }] },
+				],
+			},
+		});
+		const future_match = make_match({
+			_id: 'future',
+			setup: {
+				event_name: 'JE U17',
+				state: 'unscheduled',
+				match_num: 106,
+				teams: [
+					{ players: [{ name: 'Lewis Danger', btp_id: 74 }] },
+					{ players: [{ name: 'Silas Kaemena', btp_id: 84 }] },
+				],
+			},
+		});
+		const scheduled_future_match = clone(future_match);
+		scheduled_future_match.setup.state = 'scheduled';
+		scheduled_future_match.setup.scheduled_date = '2026-09-27';
+		scheduled_future_match.setup.scheduled_time_str = '13:00';
+
+		await insert(db, 'matches', source);
+		await insert(db, 'matches', future_match);
+
+		await handle_match_edit(app, {
+			type: 'match_edit',
+			tournament_key: 'default',
+			id: 'future',
+			old_court: null,
+			match: scheduled_future_match,
+		});
+
+		const changed_future_match = await db.matches.findOne_async({ _id: 'future' });
+		assert.strictEqual(changed_future_match.score_status, 'no_match');
+		assert.strictEqual(changed_future_match.forward_loser, true);
+		assert.strictEqual(changed_future_match.no_match_losing_team, 0);
+		assert.strictEqual(changed_future_match.team1_won, false);
+		assert.strictEqual(changed_future_match.btp_winner, 2);
+		assert.strictEqual(changed_future_match.no_match_cascade_source_match_id, 'source');
+		assert.deepStrictEqual(changed_future_match.no_match_cascade_affected_btp_ids, ['74']);
+		assert.strictEqual(changed_future_match.setup.scheduled_date, '2026-09-27');
+		assert.strictEqual(changed_future_match.setup.scheduled_time_str, '13:00');
+	});
+
+	it('applies a prior group cascade when a scheduled future match receives the affected player later', async function() {
+		const db = await database.init_test();
+		const app = { db, clock: { now_ms: () => 1234567890 } };
+		await insert(db, 'tournaments', {
+			key: 'default',
+			no_match_cascade_announcements_enabled: false,
+		});
+		const source = make_match({
+			_id: 'source-group-b',
+			score_status: 'retired',
+			forward_loser: true,
+			no_match_losing_team: 1,
+			team1_won: true,
+			btp_winner: 1,
+			setup: {
+				event_name: 'JE U17 - Gruppe B',
+				match_num: 44,
+				teams: [
+					{ players: [{ name: 'Group B Winner', btp_id: 62 }] },
+					{ players: [{ name: 'Lewis Danger', btp_id: 74 }] },
+				],
+			},
+		});
+		const future_match = make_match({
+			_id: 'linked-placement',
+			setup: {
+				event_name: 'JE U17',
+				state: 'scheduled',
+				match_num: 106,
+				scheduled_date: '2026-09-27',
+				scheduled_time_str: '13:30',
+				links: { from1: 31, from2: 44 },
+				teams: [
+					{ players: [{ name: 'Other Group Player', btp_id: 85 }] },
+					{ players: [{ name: 'Silas Kaemena', btp_id: 84 }] },
+				],
+			},
+		});
+		const linked_future_match = clone(future_match);
+		linked_future_match.setup.links = { from1: 44, from2: 31 };
+		linked_future_match.setup.teams = [
+			{ players: [{ name: 'Lewis Danger', btp_id: 74 }] },
+			{ players: [{ name: 'Silas Kaemena', btp_id: 84 }] },
+		];
+
+		await insert(db, 'matches', source);
+		await insert(db, 'matches', future_match);
+
+		await handle_match_edit(app, {
+			type: 'match_edit',
+			tournament_key: 'default',
+			id: 'linked-placement',
+			old_court: null,
+			match: linked_future_match,
+		});
+
+		const changed_future_match = await db.matches.findOne_async({ _id: 'linked-placement' });
+		assert.strictEqual(changed_future_match.score_status, 'no_match');
+		assert.strictEqual(changed_future_match.forward_loser, true);
+		assert.strictEqual(changed_future_match.no_match_losing_team, 0);
+		assert.strictEqual(changed_future_match.team1_won, false);
+		assert.strictEqual(changed_future_match.btp_winner, 2);
+		assert.strictEqual(changed_future_match.no_match_cascade_source_match_id, 'source-group-b');
+		assert.deepStrictEqual(changed_future_match.no_match_cascade_affected_btp_ids, ['74']);
+		assert.deepStrictEqual(changed_future_match.no_match_cascade_original_setup.teams[0].players, [
+			{ name: 'Lewis Danger', btp_id: 74 },
+		]);
 	});
 });

@@ -5,6 +5,17 @@ const assert = require('assert');
 const {_describe, _it} = require('./tutils.js');
 
 const btp_sync = require('../bts/btp_sync');
+const database = require('../bts/database');
+const btp_manager = require('../bts/btp_manager');
+
+function insert(db, collection, doc) {
+	return new Promise((resolve, reject) => {
+		db[collection].insert(doc, (err, inserted) => {
+			if (err) return reject(err);
+			resolve(inserted);
+		});
+	});
+}
 
 _describe('btp_sync', () => {
 	_it('normalizes standard scoring formats from BTP fields', () => {
@@ -547,6 +558,40 @@ _describe('btp_sync', () => {
 
 		assert.strictEqual(merged.setup.state, 'finished');
 		assert.strictEqual(merged.setup.court_id, 'court_7');
+	});
+
+	_it('keeps local blocked state when a future match contains players already on court', () => {
+		const currentMatch = {
+			btp_needsync: false,
+			setup: {
+				state: 'blocked',
+				now_on_court: false,
+				teams: [{
+					players: [{
+						btp_id: 1,
+						now_playing_on_court: 'court_1',
+					}],
+				}, {
+					players: [{ btp_id: 2 }],
+				}],
+			},
+		};
+		const btpMatch = {
+			setup: {
+				state: 'unscheduled',
+				now_on_court: false,
+				teams: [{
+					players: [{ btp_id: 1 }],
+				}, {
+					players: [{ btp_id: 2 }],
+				}],
+			},
+		};
+
+		const merged = btp_sync._merge_local_match_into_btp_match(currentMatch, structuredClone(btpMatch));
+
+		assert.strictEqual(merged.setup.state, 'blocked');
+		assert.strictEqual(merged.setup.teams[0].players[0].now_playing_on_court, 'court_1');
 	});
 
 	_it('parses BTP court numbers from localized court names', () => {
@@ -1223,5 +1268,225 @@ _describe('btp_sync', () => {
 
 		assert.strictEqual(btp_sync._setup_player_assignment_changed(previousSetup, sameSetup), false);
 		assert.strictEqual(btp_sync._setup_player_assignment_changed(previousSetup, changedSetup), true);
+	});
+
+	_it('recognizes when BTP has already accepted a pending local walkover sync', () => {
+		const localMatch = {
+			btp_needsync: true,
+			score_status: 'walkover',
+			team1_won: true,
+			btp_winner: 1,
+		};
+		const btpMatch = {
+			Winner: [1],
+			ScoreStatus: [1],
+		};
+
+		assert.strictEqual(btp_sync._btp_match_confirms_pending_local_sync(localMatch, btpMatch), true);
+	});
+
+	_it('does not confirm pending local sync when BTP still has a different special result', () => {
+		const localMatch = {
+			btp_needsync: true,
+			score_status: 'walkover',
+			team1_won: true,
+			btp_winner: 1,
+		};
+		const btpMatch = {
+			Winner: [2],
+			ScoreStatus: [1],
+		};
+
+		assert.strictEqual(btp_sync._btp_match_confirms_pending_local_sync(localMatch, btpMatch), false);
+	});
+
+	_it('clears pending local BTP sync when an imported BTP walkover confirms it', async () => {
+		const db = await database.init_test();
+		const app = { db };
+		await insert(db, 'tournaments', {
+			key: 'default',
+			name: 'Default',
+			btp_settings: {},
+		});
+		await insert(db, 'matches', {
+			_id: 'btp_default_MX U17_90',
+			tournament_key: 'default',
+			btp_id: 'default_MX U17_90',
+			btp_match_ids: [{ id: 90, draw: 10, planning: 100 }],
+			btp_needsync: true,
+			score_status: 'walkover',
+			btp_score_status: 1,
+			team1_won: true,
+			btp_winner: 1,
+			forward_loser: false,
+			setup: {
+				state: 'finished',
+				now_on_court: false,
+				teams: [{ players: [{ btp_id: 1 }] }, { players: [{ btp_id: 2 }] }],
+			},
+		});
+		const btpState = {
+			matches: [{
+				ID: [90],
+				DrawID: [10],
+				PlanningID: [100],
+				From1: [1],
+				From2: [2],
+				IsMatch: [true],
+				MatchNr: [1],
+				Highlight: [0],
+				Status: 0,
+				Winner: [1],
+				ScoreStatus: [1],
+				bts_complete: true,
+				bts_players: [[{ ID: [1] }], [{ ID: [2] }]],
+			}],
+			draws: new Map([[10, { ID: [10], EventID: [20], StageID: [30], Name: ['MX U17'], Position: [1] }]]),
+			events: new Map([[20, { ID: [20], Name: ['MX U17'], GameTypeID: [2] }]]),
+			stages: new Map([[30, { ID: [30], Name: ['Stage'], StageType: [1], DisplayOrder: [1] }]]),
+			links: [],
+			planning_nodes: new Map(),
+			courts: new Map(),
+			clubs: new Map(),
+			districts: new Map(),
+		};
+
+		await new Promise((resolve, reject) => {
+			btp_sync._integrate_matches(app, 'default', btpState, new Map(), new Map(), new Map(), (err) => {
+				if (err) reject(err);
+				else resolve();
+			});
+		});
+
+		const updated = await db.matches.findOne_async({ _id: 'btp_default_MX U17_90' });
+		assert.strictEqual(updated.btp_needsync, false);
+	});
+
+	_it('restores a cascaded no-match successor when BTP clears the source special result', async () => {
+		const db = await database.init_test();
+		const app = {
+			db,
+			wss: { clients: [] },
+		};
+		await insert(db, 'tournaments', {
+			key: 'default',
+			name: 'Default',
+			btp_settings: {},
+			no_match_cascade_announcements_enabled: false,
+		});
+		await insert(db, 'matches', {
+			_id: 'source',
+			tournament_key: 'default',
+			btp_id: 'default_JE U17_44',
+			btp_match_ids: [{ id: 44, draw: 10, planning: 100 }],
+			btp_needsync: false,
+			score_status: 'walkover',
+			btp_score_status: 1,
+			team1_won: true,
+			btp_winner: 1,
+			forward_loser: false,
+			setup: {
+				is_match: true,
+				event_name: 'JE U17',
+				state: 'finished',
+				now_on_court: false,
+				match_num: 44,
+				teams: [{ players: [{ btp_id: 1 }] }, { players: [{ btp_id: 2 }] }],
+			},
+		});
+		await insert(db, 'matches', {
+			_id: 'successor',
+			tournament_key: 'default',
+			btp_id: 'default_JE U17_106',
+			btp_match_ids: [{ id: 106, draw: 10, planning: 200 }],
+			btp_needsync: true,
+			score_status: 'no_match',
+			btp_score_status: 4,
+			no_match_losing_team: 0,
+			team1_won: false,
+			btp_winner: 2,
+			forward_loser: true,
+			no_match_cascade_source_match_id: 'source',
+			no_match_cascade_affected_btp_ids: ['2'],
+			no_match_cascade_original_setup: {
+				is_match: true,
+				event_name: 'JE U17',
+				state: 'scheduled',
+				now_on_court: false,
+				match_num: 106,
+				teams: [{ players: [{ btp_id: 2 }] }, { players: [{ btp_id: 3 }] }],
+			},
+			setup: {
+				is_match: true,
+				event_name: 'JE U17',
+				state: 'scheduled',
+				now_on_court: false,
+				match_num: 106,
+				teams: [{ players: [{ btp_id: 2 }] }, { players: [{ btp_id: 3 }] }],
+			},
+		});
+
+		const btpState = {
+			matches: [{
+				ID: [44],
+				DrawID: [10],
+				PlanningID: [100],
+				From1: [1],
+				From2: [2],
+				IsMatch: [true],
+				MatchNr: [44],
+				Highlight: [0],
+				Status: 0,
+				bts_complete: true,
+				bts_players: [[{ ID: [1] }], [{ ID: [2] }]],
+			}, {
+				ID: [106],
+				DrawID: [10],
+				PlanningID: [200],
+				From1: [2],
+				From2: [3],
+				IsMatch: [true],
+				MatchNr: [106],
+				Highlight: [0],
+				Status: 0,
+				bts_complete: true,
+				bts_players: [[{ ID: [2] }], [{ ID: [3] }]],
+			}],
+			draws: new Map([[10, { ID: [10], EventID: [20], StageID: [30], Name: ['JE U17'], Position: [1] }]]),
+			events: new Map([[20, { ID: [20], Name: ['JE U17'], GameTypeID: [1] }]]),
+			stages: new Map([[30, { ID: [30], Name: ['Stage'], StageType: [1], DisplayOrder: [1] }]]),
+			links: [],
+			planning_nodes: new Map(),
+			courts: new Map(),
+			clubs: new Map(),
+			districts: new Map(),
+		};
+		const pushed = [];
+		const originalUpdateScore = btp_manager.update_score;
+		btp_manager.update_score = (_app, match) => pushed.push(match._id);
+		try {
+			await new Promise((resolve, reject) => {
+				btp_sync._integrate_matches(app, 'default', btpState, new Map(), new Map(), new Map(), (err) => {
+					if (err) reject(err);
+					else resolve();
+				});
+			});
+		} finally {
+			btp_manager.update_score = originalUpdateScore;
+		}
+
+		const source = await db.matches.findOne_async({ _id: 'source' });
+		assert.strictEqual(source.score_status, 'normal');
+		assert.strictEqual(source.team1_won, undefined);
+		assert.strictEqual(source.btp_winner, undefined);
+		assert.strictEqual(source.setup.state, 'unscheduled');
+
+		const successor = await db.matches.findOne_async({ _id: 'successor' });
+		assert.strictEqual(successor.score_status, 'normal');
+		assert.strictEqual(successor.team1_won, undefined);
+		assert.strictEqual(successor.btp_winner, undefined);
+		assert.strictEqual(successor.no_match_cascade_source_match_id, undefined);
+		assert.strictEqual(successor.btp_needsync, true);
+		assert.deepStrictEqual(pushed, ['successor']);
 	});
 	});

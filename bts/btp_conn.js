@@ -150,14 +150,30 @@ class BTPConn {
 	async fetch(connection, reschedule_fetch ) {
 		return new Promise((resolve, reject) => {
 			try {			
+				const fetch_start_ms = real_now_ms(connection.app);
 				connection.fetch_in_progress = true;
 				connection.next_fetch_ts = null;
 				connection.publish_status();
 				const ir = btp_proto.get_info_request(connection.password);
 				connection.send(ir, async (response) => {
+					const response_ms = real_now_ms(connection.app) - fetch_start_ms;
+					if (response_ms >= 1000 || process.env.BTS_BTP_SYNC_TIMING === '1') {
+						console.warn('[bts] btp_fetch:response_received', {
+							tournament_key: connection.tkey,
+							duration_ms: response_ms,
+							has_response: response != null,
+						});
+					}
 					try {
 						if (response && response != null) {
 							const value = await btp_sync.sync_btp_data(connection.app, connection.tkey, response);
+							const total_ms = real_now_ms(connection.app) - fetch_start_ms;
+							if (total_ms >= 1000 || process.env.BTS_BTP_SYNC_TIMING === '1') {
+								console.warn('[bts] btp_fetch:complete', {
+									tournament_key: connection.tkey,
+									duration_ms: total_ms,
+								});
+							}
 							const match_utils = require('./match_utils');
 							debug_flags.log(connection.app, connection.tkey, '[bts] auto_call_trace:post_sync_reevaluation_start', {
 								ts: now_ms(connection.app),

@@ -2153,6 +2153,12 @@ function match_can_be_auto_no_winner_no_match(match) {
 	return typeof match.team1_won !== 'boolean' || score_status === 'no_match';
 }
 
+function match_is_time_scheduled(match) {
+	const setup = match?.setup || {};
+	return String(setup.scheduled_date || '').trim() !== '' &&
+		String(setup.scheduled_time_str || '').trim() !== '';
+}
+
 function reset_cascaded_match_setup(setup) {
 	const next_setup = plain_deep_copy(setup || {});
 	next_setup.now_on_court = false;
@@ -2208,6 +2214,7 @@ function cascade_no_match_for_future_player_matches(app, tournament_key, source_
 				!match_same_event(source_match, match) ||
 				!match_team_has_known_players(match.setup, 0) ||
 				!match_team_has_known_players(match.setup, 1) ||
+				!match_is_time_scheduled(match) ||
 				!match_can_be_auto_no_winner_no_match(match) ||
 				no_winner_candidate_by_id.has(match._id)
 			) {
@@ -2220,6 +2227,7 @@ function cascade_no_match_for_future_player_matches(app, tournament_key, source_
 				!match ||
 				match._id === source_match._id ||
 				!match_same_event(source_match, match) ||
+				!match_is_time_scheduled(match) ||
 				!unfinished_match_can_be_auto_no_match(match) ||
 				affected_team_index == null ||
 				!match_no_match_opponent_is_known(match, affected_team_index) ||
@@ -2331,6 +2339,46 @@ function cascade_no_match_for_future_player_matches(app, tournament_key, source_
 				);
 			}, (update_err) => callback(update_err, changed_matches));
 		});
+	});
+}
+
+function cascade_no_match_from_prior_sources_for_scheduled_match(app, tournament_key, target_match, callback) {
+	if (!target_match || !match_is_time_scheduled(target_match)) {
+		return callback(null, []);
+	}
+	app.db.matches.find({ tournament_key }, (find_err, matches) => {
+		if (find_err) {
+			return callback(find_err);
+		}
+		const sources = (matches || []).filter((source_match) => {
+			if (
+				!source_match ||
+				source_match._id === target_match._id ||
+				!match_score_status_cascades_no_match(source_match.score_status) ||
+				!match_same_event(source_match, target_match) ||
+				!match_is_before(source_match, target_match)
+			) {
+				return false;
+			}
+			const affected_team_index = affected_team_index_for_score_status(source_match);
+			if (affected_team_index == null) {
+				return false;
+			}
+			const affected_btp_ids = new Set(match_team_btp_ids(source_match.setup, affected_team_index));
+			return match_contains_any_btp_id(target_match, affected_btp_ids);
+		});
+		const changed_by_id = new Map();
+		async.eachSeries(sources, (source_match, next) => {
+			cascade_no_match_for_future_player_matches(app, tournament_key, source_match, (cascade_err, cascade_matches) => {
+				if (cascade_err) {
+					return next(cascade_err);
+				}
+				for (const changed_match of cascade_matches || []) {
+					changed_by_id.set(changed_match._id, changed_match);
+				}
+				return next(null);
+			});
+		}, (cascade_err) => callback(cascade_err, [...changed_by_id.values()]));
 	});
 }
 
@@ -2617,34 +2665,58 @@ function handle_match_edit(app, ws, msg) {
 											ws.respond(msg, cascade_err);
 											return;
 										}
-									const related_matches = [...(cleared_matches || []), ...(cascade_matches || [])];
-										notify_change(app, tournament_key, 'match_edit', {match__id: msg.id, match: changed_match});
-										if (should_announce_no_match) {
-											notify_change(app, tournament_key, 'match_no_match_announcement', {
-												match__id: changed_match._id,
-												match: changed_match,
-												winning_team_index: no_match_losing_team === 1 ? 0 : 1,
-											});
-										}
-										for (const related_match of related_matches) {
-											notify_change(app, tournament_key, 'match_edit', {match__id: related_match._id, match: related_match});
-										}
-										notify_cascaded_no_match_announcements(app, tournament_key, tournament, cascade_matches);
-									match_utils.queue_reconcile_player_court_flags(app, tournament_key);
-									if (msg.btp_update) {
-										btp_manager.update_score(app, changed_match);
+										const finish_match_edit = (schedule_cascade_matches) => {
+											const related_matches_by_id = new Map();
+											for (const related_match of [
+												...(cleared_matches || []),
+												...(cascade_matches || []),
+												...(schedule_cascade_matches || []),
+											]) {
+												related_matches_by_id.set(related_match._id, related_match);
+											}
+											const related_matches = [...related_matches_by_id.values()];
+											notify_change(app, tournament_key, 'match_edit', {match__id: msg.id, match: changed_match});
+											if (should_announce_no_match) {
+												notify_change(app, tournament_key, 'match_no_match_announcement', {
+													match__id: changed_match._id,
+													match: changed_match,
+													winning_team_index: no_match_losing_team === 1 ? 0 : 1,
+												});
+											}
 											for (const related_match of related_matches) {
-												btp_manager.update_score(app, related_match);
+												notify_change(app, tournament_key, 'match_edit', {match__id: related_match._id, match: related_match});
 											}
+											notify_cascaded_no_match_announcements(app, tournament_key, tournament, [
+												...(cascade_matches || []),
+												...(schedule_cascade_matches || []),
+											]);
+											match_utils.queue_reconcile_player_court_flags(app, tournament_key);
+											if (msg.btp_update) {
+												btp_manager.update_score(app, changed_match);
+												for (const related_match of related_matches) {
+													btp_manager.update_score(app, related_match);
+												}
+											}
+											app.db.umpires.find({ tournament_key }, function (umpire_err, all_umpires) {
+												if (umpire_err) {
+													ws.respond(msg, umpire_err);
+													return;
+												}
+												notify_change(app, tournament_key, 'umpires_changed', { all_umpires });
+												ws.respond(msg, err);
+											});
+										};
+										if (match_is_time_scheduled(changed_match)) {
+											cascade_no_match_from_prior_sources_for_scheduled_match(app, tournament_key, changed_match, function(schedule_cascade_err, schedule_cascade_matches) {
+												if (schedule_cascade_err) {
+													ws.respond(msg, schedule_cascade_err);
+													return;
+												}
+												finish_match_edit(schedule_cascade_matches);
+											});
+											return;
 										}
-										app.db.umpires.find({ tournament_key }, function (umpire_err, all_umpires) {
-											if (umpire_err) {
-												ws.respond(msg, umpire_err);
-												return;
-											}
-											notify_change(app, tournament_key, 'umpires_changed', { all_umpires });
-											ws.respond(msg, err);
-										});
+										finish_match_edit([]);
 									});
 								});
 							});

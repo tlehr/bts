@@ -4,8 +4,35 @@ var ws;
 var reconnect_duration = 500;
 var WS_PATH = '/ws/admin';
 var request_id = 1;
+var CHANGE_BATCH_MAX_MESSAGES = 25;
+var CHANGE_BATCH_MAX_MS = 8;
 
 var callback_handlers = {};
+var change_queue = [];
+var change_queue_scheduled = false;
+
+var immediate_change_types = new Set([
+	'free_announce',
+	'emergency_announce',
+	'match_preparation_call',
+	'match_called_on_court',
+	'match_no_match_announcement',
+	'begin_to_play_call',
+	'second_call_tabletoperator',
+	'second_call_umpire',
+	'second_call_servicejudge',
+	'second_call_team_one',
+	'second_call_team_two',
+	'second_preparation_call_tabletoperator',
+	'second_preparation_call_umpire',
+	'second_preparation_call_servicejudge',
+	'second_preparation_call_team_one',
+	'second_preparation_call_team_two',
+	'btp_status',
+	'ticker_status',
+	'bts_status',
+	'queue_hang_warning',
+]);
 
 function _construct_url(abspath) {
 	var l = window.location;
@@ -15,6 +42,59 @@ function _construct_url(abspath) {
 		(((l.port !== 80) && (l.port !== 443)) ? ':' + l.port : '') +
 		abspath
 	);
+}
+
+function _now_ms() {
+	if (typeof performance !== 'undefined' && performance && typeof performance.now === 'function') {
+		return performance.now();
+	}
+	return Date.now();
+}
+
+function dispatch_change(msg) {
+	try {
+		on_change(msg);
+	} catch (err) {
+		console.error('[bts admin] change handler failed', {
+			ctype: msg.ctype,
+			tournament_key: msg.tournament_key,
+			val: msg.val,
+			err,
+		});
+	}
+}
+
+function schedule_change_queue() {
+	if (change_queue_scheduled) {
+		return;
+	}
+	change_queue_scheduled = true;
+	setTimeout(process_change_queue, 0);
+}
+
+function process_change_queue() {
+	change_queue_scheduled = false;
+	const start_ms = _now_ms();
+	let processed = 0;
+	while (change_queue.length > 0) {
+		dispatch_change(change_queue.shift());
+		processed++;
+		if (processed >= CHANGE_BATCH_MAX_MESSAGES || (_now_ms() - start_ms) >= CHANGE_BATCH_MAX_MS) {
+			break;
+		}
+	}
+	if (change_queue.length > 0) {
+		schedule_change_queue();
+	}
+}
+
+function enqueue_change(msg) {
+	if (immediate_change_types.has(msg.ctype)) {
+		dispatch_change(msg);
+		return;
+	}
+	change_queue.push(msg);
+	schedule_change_queue();
 }
 
 function handle_message(ws_msg) {
@@ -62,16 +142,7 @@ function handle_message(ws_msg) {
 				score: msg.val && msg.val.network_score,
 			});
 		}
-		try {
-			on_change(msg);
-		} catch (err) {
-			console.error('[bts admin] change handler failed', {
-				ctype: msg.ctype,
-				tournament_key: msg.tournament_key,
-				val: msg.val,
-				err,
-			});
-		}
+		enqueue_change(msg);
 		break;
 	default:
 		send({
@@ -127,6 +198,9 @@ function send(msg, cb) {
 return {
 	connect,
 	send,
+	_test_handle_message: handle_message,
+	_test_process_change_queue: process_change_queue,
+	_test_change_queue_length: () => change_queue.length,
 };
 
 });
@@ -136,7 +210,9 @@ if ((typeof module !== 'undefined') && (typeof require !== 'undefined')) {
 	var WebSocket = require('ws');
 
 	var debug = require('./debug');
-	var utils = require('../bup/bup/js/utils.js');
+	var utils = {
+		values: Object.values,
+	};
 
 	module.exports = conn;
 }
