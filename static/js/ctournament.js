@@ -33,6 +33,9 @@ const ANNOUNCEMENT_SPEECH_CHECK_STATE_STORAGE_KEY = 'bts_announcement_speech_che
 var ctournament = (function() {
 	function admin_live_debug(label, data) {
 		if (curt && curt.bts_debug_output_enabled === true) {
+			if (typeof data === 'function') {
+				data = data();
+			}
 			console.log('[bts admin live] ' + label, data);
 		}
 	}
@@ -262,13 +265,13 @@ var ctournament = (function() {
 		function update_score(c) {
 			const cval = c.val;
 			const match_id = cval.match_id;
-			admin_live_debug('score event', {
+			admin_live_debug('score event', () => ({
 				match_id,
 				current_view,
 				tournament_key: c.tournament_key,
 				current_tournament_key: curt && curt.key,
 				in_memory_match: !!find_match_by_id(match_id),
-			});
+			}));
 
 			// Find the match
 			const m = find_match_by_id(match_id);
@@ -308,7 +311,7 @@ var ctournament = (function() {
 
 			if (old_section === new_section) {
 				c._bts_score_patch_applied = true;
-				admin_live_debug('score patch', {
+				admin_live_debug('score patch', () => ({
 					match_id: m._id,
 					section: old_section,
 					score_targets: cmatch.count_match_score_targets ? cmatch.count_match_score_targets(m) : 0,
@@ -317,17 +320,17 @@ var ctournament = (function() {
 					network_score: m.network_score,
 					score_status: m.score_status,
 					now_on_court: m.setup && m.setup.now_on_court,
-				});
+				}));
 				cmatch.update_match_score(m);
 			} else {
 				c._bts_score_patch_applied = true;
-				admin_live_debug('score section change', {
+				admin_live_debug('score section change', () => ({
 					match_id: m._id,
 					old_section,
 					new_section,
 					network_score: m.network_score,
 					score_status: m.score_status,
-				});
+				}));
 				if (new_section == 'finished' || new_section == 'unassigned') {
 					m.setup.now_on_court = false;
 				}

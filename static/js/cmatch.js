@@ -805,91 +805,97 @@ function create_match_prepparation_button(targetEl, cssClass, title, listener, m
 			});
 		}
 
+		function _for_each_match_bound_data_element(match_or_id, cb) {
+			const ids = _match_dom_ids(match_or_id);
+			const seen = new Set();
+			ids.forEach((id) => {
+				uiu.qsEach('[data-match_id=' + JSON.stringify(id) + ']', function(el) {
+					if (seen.has(el)) {
+						return;
+					}
+					seen.add(el);
+					cb(el);
+				});
+			});
+		}
+
 		function count_match_score_targets(match_or_id) {
 			let count = 0;
-			_for_each_match_bound_element('.match_score', match_or_id, function() {
-				count += 1;
+			_for_each_match_bound_data_element(match_or_id, function(el) {
+				if (el.classList.contains('match_score')) {
+					count += 1;
+				}
 			});
 			return count;
 		}
 
 		function count_match_timer_targets(match_or_id) {
 			let count = 0;
-			_for_each_match_bound_element('.match_timer', match_or_id, function() {
-				count += 1;
+			_for_each_match_bound_data_element(match_or_id, function(el) {
+				if (el.classList.contains('match_timer')) {
+					count += 1;
+				}
 			});
 			return count;
 		}
 
 		function update_match_score(m) {
-			_for_each_match_bound_element('.match_score', m, function(score_el) {
-				uiu.text(score_el, calc_score_str(m));
+			const score_text = calc_score_str(m);
+			const action_button_visibility = (
+				m.network_score && m.network_score.length > 0 &&
+				m.network_score[0].length > 1 &&
+				(m.network_score[0][0] > 0 || m.network_score[0][1] > 0)
+			) ? 'hidden' : 'visible';
+			const match_is_over = match_scoring.is_match_over(m.network_score, m.setup.scoring_format);
+
+			_for_each_match_bound_data_element(m, function(el) {
+				if (el.classList.contains('match_score')) {
+					uiu.text(el, score_text);
+				}
+
+				if (el.classList.contains('match_timer')) {
+					while (el.firstChild) {
+						el.removeChild(el.lastChild);
+					}
+
+					var timer_state = _extract_match_timer_state(m);
+					var timer = create_timer(timer_state, el, "#cccccc", "#ff0000");
+					if (timer) {
+						active_timers.matches[m._id] = timer;
+					} else {
+						var preparation_timer_state = _extract_preparation_timer_state(m);
+						var preparation_timer = create_timer(preparation_timer_state, el, "#cccccc", "#ff0000");
+						if (preparation_timer) {
+							active_timers.matches[m._id] = preparation_timer;
+						}
+					}
+
+					if (match_is_over) {
+						create_match_button(el, 'vlink match_confirm_button', 'Confirm_Finish', on_match_confirm_button_click, m._id);
+					}
+				}
+
+				if (
+					el.classList.contains('match_second_call_button') ||
+					el.classList.contains('match_begin_to_play_button') ||
+					el.classList.contains('match_manual_call_button')
+				) {
+					el.style.visibility = action_button_visibility;
+				}
+
+				if (el.classList.contains('match_shuttle_count')) {
+					uiu.setClass(el, 'match_shuttle_count_display_active', !!m.shuttle_count);
+				}
+
+				if (el.classList.contains('match_shuttle_count_number')) {
+					uiu.text(el, m.shuttle_count || '');
+				}
+
+				if (el.classList.contains('match_shuttle_image')) {
+					el.style.display = m.shuttle_count ? 'inline-block' : 'none';
+				}
 			});
-
-			_for_each_match_bound_element('.match_timer', m, (timer_td) => {
-			while (timer_td.firstChild) {
-				timer_td.removeChild(timer_td.lastChild);
-			}
-
-		var timer_state = _extract_match_timer_state(m);
-		var timer = create_timer(timer_state, timer_td, "#cccccc", "#ff0000");
-		if (timer) {
-			active_timers.matches[m._id] = timer;
-		} else {
-			var preparation_timer_state = _extract_preparation_timer_state(m);
-			var preparation_timer = create_timer(preparation_timer_state, timer_td, "#cccccc", "#ff0000");
-			if (preparation_timer) {
-				active_timers.matches[m._id] = preparation_timer;
-			}
 		}
-
-		if (match_scoring.is_match_over(m.network_score, m.setup.scoring_format)) {
-			create_match_button(timer_td, 'vlink match_confirm_button', 'Confirm_Finish', on_match_confirm_button_click, m._id);
-		}
-	});
-
-		if(	m.network_score && m.network_score.length > 0 &&
-			m.network_score[0].length > 1 &&
-			(m.network_score[0][0] > 0 || m.network_score[0][1] > 0) ) {
-			_for_each_match_bound_element('.match_second_call_button', m, (button_el) => {
-				button_el.style.visibility = 'hidden';
-			});
-			_for_each_match_bound_element('.match_begin_to_play_button', m, (button_el) => {
-				button_el.style.visibility = 'hidden';
-			});
-			_for_each_match_bound_element('.match_manual_call_button', m, (button_el) => {
-				button_el.style.visibility = 'hidden';
-			});
-		} else {
-			_for_each_match_bound_element('.match_second_call_button', m, (button_el) => {
-				button_el.style.visibility = 'visible';
-			});
-			_for_each_match_bound_element('.match_begin_to_play_button', m, (button_el) => {
-				button_el.style.visibility = 'visible';
-			});
-			_for_each_match_bound_element('.match_manual_call_button', m, (button_el) => {
-				button_el.style.visibility = 'visible';
-			});
-		}
-
-		_for_each_match_bound_element('.match_shuttle_count', m, function(el) {
-			uiu.setClass(el, 'match_shuttle_count_display_active', !!m.shuttle_count);
-		});
-
-		_for_each_match_bound_element('.match_shuttle_count_number', m, function(el) {
-			uiu.text(el, m.shuttle_count || '');
-		});
-
-		_for_each_match_bound_element('.match_shuttle_image', m, function(shuttle_image) {
-			if(!m.shuttle_count) {
-				shuttle_image.style.display = 'none';
-			}
-		else {
-			shuttle_image.style.display = 'inline-block';
-		}
-
-	});
-}
 
 function on_match_confirm_button_click(e) {
 	const match_id = e.target.getAttribute('data-match_id');
