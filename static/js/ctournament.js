@@ -12,6 +12,7 @@ let self_check_in_measure_probe = null;
 let self_check_in_fit_scheduled = false;
 let self_check_in_fit_roots = new Set();
 let self_check_in_called_overlay_timeout = null;
+let self_check_in_tabletoperator_waiting_ids = null;
 let skip_next_official_list_move = null;
 let official_drag_image_el = null;
 let official_drag_active = false;
@@ -53,6 +54,7 @@ var ctournament = (function() {
 			}
 
 			curt = response.tournament;
+			self_check_in_tabletoperator_waiting_ids = null;
 			preparation_selection_request_inflight = false;
 			preparation_selection_request_pending = false;
 			curt.location_preparation_selection_by_location_id = {};
@@ -464,33 +466,61 @@ var ctournament = (function() {
 	}
 
 	function tabletoperator_add(c) {
-		curt.tabletoperators.push(c.val.tabletoperator);
+		const tabletoperator = c && c.val && c.val.tabletoperator;
+		if (!tabletoperator || !tabletoperator._id) {
+			return;
+		}
+		self_check_in_tabletoperator_waiting_ids = null;
+		if (!Array.isArray(curt.tabletoperators)) {
+			curt.tabletoperators = [];
+		}
+		const existing = utils.find(curt.tabletoperators, m => m && m._id === tabletoperator._id);
+		if (existing) {
+			Object.assign(existing, tabletoperator);
+		} else {
+			curt.tabletoperators.push(tabletoperator);
+		}
 		_show_render_tabletoperators();
 		request_location_preparation_selections();
 	}
 
 	function tabletoperator_moved_up(c) {
-		const changed_t = utils.find(curt.tabletoperators, m => m._id === c.val.tabletoperator._id);
+		const tabletoperator = c && c.val && c.val.tabletoperator;
+		if (!tabletoperator || !tabletoperator._id || !Array.isArray(curt.tabletoperators)) {
+			return;
+		}
+		self_check_in_tabletoperator_waiting_ids = null;
+		const changed_t = utils.find(curt.tabletoperators, m => m && m._id === tabletoperator._id);
 		if (changed_t) {
-			changed_t.start_ts = c.val.tabletoperator.start_ts;
+			Object.assign(changed_t, tabletoperator);
 		}
 		_show_render_tabletoperators();
 		request_location_preparation_selections();
 	}
 
 	function tabletoperator_moved_down(c) {
-		const changed_t = utils.find(curt.tabletoperators, m => m._id === c.val.tabletoperator._id);
+		const tabletoperator = c && c.val && c.val.tabletoperator;
+		if (!tabletoperator || !tabletoperator._id || !Array.isArray(curt.tabletoperators)) {
+			return;
+		}
+		self_check_in_tabletoperator_waiting_ids = null;
+		const changed_t = utils.find(curt.tabletoperators, m => m && m._id === tabletoperator._id);
 		if (changed_t) {
-			changed_t.start_ts = c.val.tabletoperator.start_ts;
+			Object.assign(changed_t, tabletoperator);
 		}
 		_show_render_tabletoperators();
 		request_location_preparation_selections();
 	}
 
 	function tabletoperator_removed(c) {
-		const changed_t = utils.find(curt.tabletoperators, m => m._id === c.val.tabletoperator._id);
+		const tabletoperator = c && c.val && c.val.tabletoperator;
+		if (!tabletoperator || !tabletoperator._id || !Array.isArray(curt.tabletoperators)) {
+			return;
+		}
+		self_check_in_tabletoperator_waiting_ids = null;
+		const changed_t = utils.find(curt.tabletoperators, m => m && m._id === tabletoperator._id);
 		if (changed_t) {
-			changed_t.court = c.val.tabletoperator.court;
+			Object.assign(changed_t, tabletoperator);
 		}
 		_show_render_tabletoperators();
 		request_location_preparation_selections();
@@ -12643,19 +12673,32 @@ function update_officials() {
 		return participant && participant.role === 'player' && !!(participant.now_tablet_on_court || participant.waiting_as_tabletoperator);
 	}
 
+	function get_self_check_in_tabletoperator_waiting_ids() {
+		if (self_check_in_tabletoperator_waiting_ids) {
+			return self_check_in_tabletoperator_waiting_ids;
+		}
+		const waiting_ids = new Set();
+		const tabletoperators = Array.isArray(curt && curt.tabletoperators) ? curt.tabletoperators : [];
+		tabletoperators.forEach((entry) => {
+			if (!entry || entry.court != null || !Array.isArray(entry.tabletoperator)) {
+				return;
+			}
+			entry.tabletoperator.forEach((operator) => {
+				if (operator && operator.btp_id != null) {
+					waiting_ids.add(String(operator.btp_id));
+				}
+			});
+		});
+		self_check_in_tabletoperator_waiting_ids = waiting_ids;
+		return self_check_in_tabletoperator_waiting_ids;
+	}
+
 	function is_player_waiting_as_tabletoperator(player) {
 		const player_btp_id = player && player.btp_id;
-		if (player_btp_id == null || !Array.isArray(curt && curt.tabletoperators)) {
+		if (player_btp_id == null) {
 			return false;
 		}
-
-		return curt.tabletoperators.some((entry) => {
-			if (!entry || entry.court != null || !Array.isArray(entry.tabletoperator)) {
-				return false;
-			}
-
-			return entry.tabletoperator.some((operator) => operator && String(operator.btp_id) === String(player_btp_id));
-		});
+		return get_self_check_in_tabletoperator_waiting_ids().has(String(player_btp_id));
 	}
 
 	function fit_self_check_in_chip(chip) {
@@ -12918,6 +12961,7 @@ function update_officials() {
 	}
 
 	function render_self_check_in(container) {
+		self_check_in_tabletoperator_waiting_ids = null;
 		uiu.empty(container);
 
 		const matches = get_self_check_in_matches();

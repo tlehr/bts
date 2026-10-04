@@ -8,6 +8,51 @@ var scroll_down = true;
 let is_paused = false;
 
 const OVERRIDE_COLORS_KEYS = ['', 'bg'];
+let tabletoperator_status_index = null;
+
+function invalidate_tabletoperator_status_index() {
+	tabletoperator_status_index = null;
+}
+
+function _participant_btp_key(participant) {
+	const btp_id = participant && participant.btp_id;
+	return btp_id == null ? null : String(btp_id);
+}
+
+function _get_tabletoperator_status_index() {
+	if (tabletoperator_status_index) {
+		return tabletoperator_status_index;
+	}
+	const waiting_btp_ids = new Set();
+	const active_court_by_btp_id = new Map();
+	const tabletoperators = Array.isArray(curt && curt.tabletoperators) ? curt.tabletoperators : [];
+	for (const entry of tabletoperators) {
+		if (!entry || entry.court != null || !Array.isArray(entry.tabletoperator)) {
+			continue;
+		}
+		for (const operator of entry.tabletoperator) {
+			const key = _participant_btp_key(operator);
+			if (key) {
+				waiting_btp_ids.add(key);
+			}
+		}
+	}
+	const matches = Array.isArray(curt && curt.matches) ? curt.matches : [];
+	for (const match of matches) {
+		const setup = match && match.setup;
+		if (!setup || !Array.isArray(setup.tabletoperators)) {
+			continue;
+		}
+		for (const operator of setup.tabletoperators) {
+			const key = _participant_btp_key(operator);
+			if (key && operator && operator.now_tablet_on_court && !active_court_by_btp_id.has(key)) {
+				active_court_by_btp_id.set(key, operator.now_tablet_on_court);
+			}
+		}
+	}
+	tabletoperator_status_index = { waiting_btp_ids, active_court_by_btp_id };
+	return tabletoperator_status_index;
+}
 
 function _network_score_str(netscore) {
 	if (!netscore) {
@@ -1141,36 +1186,22 @@ function render_player_el(parentNode, player, match_id, now_on_court, show_playe
 }
 
 function is_player_waiting_as_tabletoperator(player) {
-	const player_btp_id = player && player.btp_id;
-	if (player_btp_id == null || !Array.isArray(curt && curt.tabletoperators)) {
+	const player_btp_id = _participant_btp_key(player);
+	if (player_btp_id == null) {
 		return false;
 	}
-
-	return curt.tabletoperators.some((entry) => {
-		if (!entry || entry.court != null || !Array.isArray(entry.tabletoperator)) {
-			return false;
-		}
-
-		return entry.tabletoperator.some((operator) => operator && String(operator.btp_id) === String(player_btp_id));
-	});
+	return _get_tabletoperator_status_index().waiting_btp_ids.has(player_btp_id);
 }
 
 function active_tabletoperator_court_for_player(player) {
 	if (!player) {
 		return false;
 	}
-	const player_btp_id = player.btp_id;
-	if (player_btp_id != null && Array.isArray(curt && curt.matches)) {
-		for (const match of curt.matches) {
-			const setup = match && match.setup;
-			if (!setup || !Array.isArray(setup.tabletoperators)) {
-				continue;
-			}
-			for (const operator of setup.tabletoperators) {
-				if (operator && String(operator.btp_id) === String(player_btp_id) && operator.now_tablet_on_court) {
-					return operator.now_tablet_on_court;
-				}
-			}
+	const player_btp_id = _participant_btp_key(player);
+	if (player_btp_id != null) {
+		const tablet_court = _get_tabletoperator_status_index().active_court_by_btp_id.get(player_btp_id);
+		if (tablet_court) {
+			return tablet_court;
 		}
 	}
 	return player.now_tablet_on_court || false;
@@ -1199,7 +1230,10 @@ function get_player_status(player, now_on_court, show_player_status) {
 	return player_status;
 }
 
-function update_players(m) {
+function update_players(m, options) {
+	if (!options || options.invalidate !== false) {
+		invalidate_tabletoperator_status_index();
+	}
 	if(m.setup.teams) {
 		m.setup.teams.forEach((team) => {
 			if(team.players) {
@@ -1268,9 +1302,10 @@ function update_all_player_status_indicators() {
 	if (!Array.isArray(curt && curt.matches)) {
 		return;
 	}
+	invalidate_tabletoperator_status_index();
 	curt.matches.forEach((match) => {
 		if (match && match.setup) {
-			update_players(match);
+			update_players(match, { invalidate: false });
 		}
 	});
 }
@@ -1404,6 +1439,7 @@ function reorder_finished_match_row(m) {
 }
 
 function update_match(m, old_section, new_section) {	
+	invalidate_tabletoperator_status_index();
 	if(old_section != new_section) {
 		remove_match_from_gui(m, old_section);
 		insert_new_match_row(m, new_section);
@@ -2562,6 +2598,7 @@ crouting.register(/t\/([a-z0-9]+)\/m\/([-a-zA-Z0-9_ ]+)\/scoresheet$/, function(
 }));
 
 function render_match_table(container, matches, style, show_player_status, show_add_tabletoperator) {
+	invalidate_tabletoperator_status_index();
 	if(!show_player_status)
 	{
 		show_player_status = false;
@@ -2981,6 +3018,7 @@ function preparation_call_debug_data_enabled() {
 }
 
 function render_unassigned(container) {
+	invalidate_tabletoperator_status_index();
 	uiu.empty(container);
 	render_manual_btp_stage_status_warnings(container);
 	uiu.el(container, 'h3', 'section', ci18n('Unassigned Matches'));
@@ -3171,6 +3209,7 @@ function render_finished(container) {
 }
 
 function render_courts(container, style) {
+	invalidate_tabletoperator_status_index();
 	style = style || 'plain';
 	uiu.empty(container);
 	if(style === 'public') {

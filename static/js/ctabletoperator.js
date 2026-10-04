@@ -8,13 +8,17 @@ let fit_request_pending = false;
 let fit_second_pass_pending = false;
 
 function render_unassigned(container) {
+	if (!container) {
+		return;
+	}
 	remove_tabletoperator_suggestions();
 	uiu.empty(container);
 	uiu.el(container, 'h3', {}, ci18n('tabletoperator:unassigned'));
-	const unassigned_tabletoperators = curt.tabletoperators.filter(m => m.court == null);
+	const tabletoperators = Array.isArray(curt && curt.tabletoperators) ? curt.tabletoperators : [];
+	const unassigned_tabletoperators = tabletoperators.filter(m => m && m.court == null);
 
 	unassigned_tabletoperators.sort((a, b) => {
-		return a.start_ts - b.start_ts;
+		return (a.start_ts || 0) - (b.start_ts || 0);
 	});
 
 	const tableoperator_content = uiu.el(container, 'div', 'unassigned_tableoperators_content');
@@ -44,22 +48,25 @@ function render_tabletoperator_table_header(table) {
 	uiu.el(title_tr, 'th', {}, ci18n('tabletoperator:name'));
 }
 function render_tabletoperator_row(tr, tabletoperator, is_fist_entry, is_last_entry) {
-	const to = tabletoperator.tabletoperator;
+	if (!tabletoperator) {
+		return;
+	}
+	const to = Array.isArray(tabletoperator.tabletoperator) ? tabletoperator.tabletoperator : [];
 	const to_td = uiu.el(tr, 'td');
 	const tablet_div = uiu.el(to_td, 'div', 'tablet_operator', '');
 	uiu.el(tablet_div, 'div', 'tablet', '');
 	const operators_div = uiu.el(tablet_div, 'div', 'operators');
 	const person_div = uiu.el(operators_div, 'div', 'person');
-	uiu.el(person_div, 'span', 'match_no_umpire', to[0].name);
+	uiu.el(person_div, 'span', 'match_no_umpire', to[0] && to[0].name ? to[0].name : '-');
 	if (to.length > 1) {
 		
 		uiu.el(person_div, 'span', 'match_no_umpire', ' \u200B/ ');
 		const person2_div = uiu.el(operators_div, 'div', 'person');
-		uiu.el(person2_div, 'span', 'match_no_umpire', to[1].name );
+		uiu.el(person2_div, 'span', 'match_no_umpire', to[1] && to[1].name ? to[1].name : '-');
 
 	}
 
-	const court = curt.courts_by_id[tabletoperator.played_on_court];
+	const court = curt && curt.courts_by_id ? curt.courts_by_id[tabletoperator.played_on_court] : null;
 	const court_td = uiu.el(tr, 'td', 'court_played');
 	
 	
@@ -133,7 +140,7 @@ function on_remove_from_list_button_click(e) {
 function fetchTabletOperatorFromEvent(e) {
 	const btn = e.target;
 	const to_id = btn.getAttribute('data-tabletoperator_id');
-	const to = utils.find(curt.tabletoperators, to => to._id === to_id);
+	const to = utils.find(Array.isArray(curt && curt.tabletoperators) ? curt.tabletoperators : [], to => to._id === to_id);
 	if (!to) {
 		cerror.silent('Tabletoperator ' + to_id + ' konnte nicht gefunden werden');
 		return null;
