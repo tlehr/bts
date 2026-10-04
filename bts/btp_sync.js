@@ -1812,6 +1812,11 @@ async function integrate_matches(app, tkey, btp_state, scoring_formats, location
 						const btp_now_on_court = match.setup.now_on_court;
 						match = mergeLocalMatchIntoBtpMatch(current_match, match);
 						if (btp_clears_local_special_result) {
+							match.score_status = normalize_btp_score_status(bm.ScoreStatus ? Number(bm.ScoreStatus[0]) : 0);
+							match.btp_score_status = bm.ScoreStatus ? Number(bm.ScoreStatus[0]) : 0;
+							match.forward_loser = bm.ForwardLoser ? parse_btp_bool(bm.ForwardLoser[0]) : false;
+							delete match.no_match_losing_team;
+							delete match.score_status_network_score;
 							match.setup.state = btp_setup_state;
 							match.setup.now_on_court = btp_now_on_court;
 							delete match.setup.called_timestamp;
