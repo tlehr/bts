@@ -496,12 +496,6 @@ var ctournament = (function() {
 		cmatch.update_match(m, old_section, new_section);
 		update_location_preparation_need_labels();
 		rerender_public_match_views(old_section, new_section);
-
-		if (old_section != new_section || new_section == 'unassigned') {
-			uiu.qsEach('.upcoming_container', (upcoming_container) => {
-				cmatch.render_upcoming_matches(upcoming_container);
-			});
-		}
 	}
 
 	function tabletoperator_add(c) {
