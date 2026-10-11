@@ -29423,5 +29423,4626 @@
       "bts/btp_sync_locks/resources.js": "34b9f5f26258328ae30c6fb9f7d6df1955a1813ec3c5d60cc332d1752fdc7a97",
       "bts/match_updates/setup_changes.js": "8def44eeb5a6e6536f2fd3f5596712d57c08aa252272d9f07f734c3db87fe0c0"
     }
+  },
+  "unchanged_notification_lock_optimization": {
+    "before_run": "related_call_lock_optimization.after_run",
+    "after_run": {
+      "status": "completed",
+      "commit": "85f1b5771e0c228056e36cda2512d6cf892db285",
+      "options": {
+        "bts_dir": "/home/tim/repos/bts",
+        "ref": "HEAD",
+        "duration_ms": 90000,
+        "sync_interval_ms": 2000,
+        "count": 519,
+        "point_min_ms": 400,
+        "point_max_ms": 800,
+        "set_points": 21,
+        "workload": "preparation"
+      },
+      "directory": "/tmp/bts-queue-responsiveness-KOKqqY",
+      "started_at": "2026-10-11T22:55:07.893Z",
+      "node_version": "v19.9.0",
+      "cpu": "Intel(R) Core(TM) i7-4770 CPU @ 3.40GHz",
+      "limitations": [
+        "Isolated deterministic 519-game fixture, real durable NeDB and unmodified committed BTS modules.",
+        "Real separate testclient simulates tablets, TV and admin; point interval in options, 13 courts, zero score gap.",
+        "Idle fixture games explicitly set to scheduled before measurement, enabling automatic calls after real finishes.",
+        "Periodic sync uses the actual validated integration planner but updates idle match numbers directly in staging; no periodic BTP TCP/XML fetch/parser.",
+        "Full BTP fixture is used only at bootstrap. No live tournament or server is modified. Officials/tabletoperator allocation disabled.",
+        "Automatic preparation enabled; 26 pairs of players recur across scheduled games, creating real participant dependencies. No winner/loser bracket propagation simulated.",
+        "One explicit unchanged court call during first integration; automatic calls through actual score finishes; free announcements every two seconds.",
+        "Queue samples every 20 ms, diagnostics/traces enabled by normal client. Observer overhead and local machine load included.",
+        "Reception of WebSocket events, no browser painting or audible speech. Limited duration, no capacity guarantee."
+      ],
+      "harness_sha256": {
+        "mixed_queue_benchmark.js": "5590c67a16c652408ffcca59128de6560b5e9d545ee61d5c3ceaa99e09d39b97",
+        "queue_responsiveness/mixed_server.js": "365c0a7f768a4e6da9e6c7e565d50a2090897df60a3d65ae25cd796afcd4301d",
+        "queue_responsiveness/mixed_receiver.js": "1ebd393698da76a1e01bd2375dccefe0d6d48b3d57ea3967a5f7f12a08781719",
+        "queue_responsiveness/instrument.js": "21c9b053f1bcb0558ac9f4887bfad59407c42f369bc5388a898ba146c72671ab",
+        "queue_responsiveness/process.js": "3f75b5ba1e79a86c268f5f1123b7238e032935999579efbc8b758ede2639e5cb",
+        "queue_responsiveness/server.js": "e840fdb71c2bb0df8cf2fcf57b4f3f73dda19b753c0288054816112ff47a2a10",
+        "queue_responsiveness/fixture.js": "e6e28563363e88d24dc973fa665aa4902541f8f0e3313d99e35dde7a2b1727ae",
+        "testclient_bridge.js": "e380e9f02fb70a742990e346cb589e4a31cfa9880f770baf45ca8f1ad08c99e6"
+      },
+      "client_commit": "e36022fee0e20b3c2752273c889b4052723595ad",
+      "client_source_sha256": "787f5b0ebef85d1cc30240429a12af72392259b0984e0de786501e654e7ead9c",
+      "dependency_lock_sha256": "8b396138d41ac4594985e858d7376dc84a554cf789aedf7055a1be6017586a73",
+      "summary": {
+        "drained": true,
+        "syncs": 46,
+        "finished_syncs": 46,
+        "sync_stage_start_ms": {
+          "count": 46,
+          "mean": 33.333308521739134,
+          "median": 23.931408,
+          "p95": 64.544291,
+          "max": 151.541364
+        },
+        "sync_total_ms": {
+          "count": 46,
+          "mean": 386.1523464565218,
+          "median": 360.377797,
+          "p95": 575.775548,
+          "max": 960.438501
+        },
+        "points": 955,
+        "tablet_to_tv_ms": {
+          "count": 960,
+          "mean": 14.1,
+          "min": 5,
+          "p50": 12,
+          "p95": 30,
+          "p99": 59,
+          "max": 109,
+          "over_50_ms": 15,
+          "over_100_ms": 1,
+          "over_200_ms": 0,
+          "sent_updates": 960,
+          "unmatched_updates": 0,
+          "coverage": 1
+        },
+        "tablet_to_admin_ms": {
+          "count": 960,
+          "mean": 9.2,
+          "min": 2,
+          "p50": 7,
+          "p95": 19,
+          "p99": 41,
+          "max": 73,
+          "over_50_ms": 5,
+          "over_100_ms": 0,
+          "over_200_ms": 0,
+          "sent_updates": 960,
+          "unmatched_updates": 0,
+          "coverage": 1
+        },
+        "finished_matches": 5,
+        "oncourt_matches": 13,
+        "call_events": 6,
+        "preparation_events": 5,
+        "preparation_calculation_ms": {
+          "count": 22,
+          "mean": 30.833017500000008,
+          "median": 28.758613,
+          "p95": 44.512185,
+          "max": 58.765029
+        },
+        "free_announce_ms": {
+          "count": 46,
+          "mean": 1.3667116956521739,
+          "median": 0.718609,
+          "p95": 4.46818,
+          "max": 7.966401
+        },
+        "call_ms": {
+          "count": 1,
+          "mean": 11.283327,
+          "median": 11.283327,
+          "p95": 11.283327,
+          "max": 11.283327
+        },
+        "unanswered": 0,
+        "windows": [
+          {
+            "third": 1,
+            "samples": 1463,
+            "pending": {
+              "count": 1463,
+              "mean": 0.01367053998632946,
+              "median": 0,
+              "p95": 0,
+              "max": 2
+            },
+            "oldest_pending_ms": {
+              "count": 1463,
+              "mean": 0.733252087491456,
+              "median": 0,
+              "p95": 0,
+              "max": 248.278639
+            },
+            "database_pending": {
+              "count": 1463,
+              "mean": 0.3274094326725906,
+              "median": 0,
+              "p95": 2,
+              "max": 13
+            },
+            "unfinished_syncs": {
+              "count": 301,
+              "mean": 0.19933554817275748,
+              "median": 0,
+              "p95": 1,
+              "max": 1
+            },
+            "oldest_sync_ms": {
+              "count": 301,
+              "mean": 42.56530026245848,
+              "median": 0,
+              "p95": 282.707751,
+              "max": 817.856559
+            }
+          },
+          {
+            "third": 2,
+            "samples": 1465,
+            "pending": {
+              "count": 1465,
+              "mean": 0.005460750853242321,
+              "median": 0,
+              "p95": 0,
+              "max": 1
+            },
+            "oldest_pending_ms": {
+              "count": 1465,
+              "mean": 0.002613843686006826,
+              "median": 0,
+              "p95": 0,
+              "max": 0.626298
+            },
+            "database_pending": {
+              "count": 1465,
+              "mean": 0.22935153583617748,
+              "median": 0,
+              "p95": 1,
+              "max": 8
+            },
+            "unfinished_syncs": {
+              "count": 301,
+              "mean": 0.16279069767441862,
+              "median": 0,
+              "p95": 1,
+              "max": 1
+            },
+            "oldest_sync_ms": {
+              "count": 301,
+              "mean": 25.53495272425249,
+              "median": 0,
+              "p95": 221.586692,
+              "max": 336.890963
+            }
+          },
+          {
+            "third": 3,
+            "samples": 1448,
+            "pending": {
+              "count": 1448,
+              "mean": 0.013121546961325966,
+              "median": 0,
+              "p95": 0,
+              "max": 1
+            },
+            "oldest_pending_ms": {
+              "count": 1448,
+              "mean": 0.2488844046961326,
+              "median": 0,
+              "p95": 0,
+              "max": 121.870941
+            },
+            "database_pending": {
+              "count": 1448,
+              "mean": 0.412292817679558,
+              "median": 0,
+              "p95": 3,
+              "max": 25
+            },
+            "unfinished_syncs": {
+              "count": 301,
+              "mean": 0.19933554817275748,
+              "median": 0,
+              "p95": 1,
+              "max": 1
+            },
+            "oldest_sync_ms": {
+              "count": 301,
+              "mean": 40.73865544850498,
+              "median": 0,
+              "p95": 308.033405,
+              "max": 565.490532
+            }
+          }
+        ],
+        "event_loop": {
+          "measured": true,
+          "max_ms": 81.002495,
+          "p95_ms": 12.681215
+        },
+        "processing_errors": 0,
+        "point_queue_wait_ms": {
+          "count": 1988,
+          "mean": 0.7751105181086517,
+          "median": 0.504883,
+          "p95": 1.577954,
+          "max": 123.823949
+        }
+      },
+      "artifacts": {
+        "server": "/tmp/bts-queue-responsiveness-KOKqqY/mixed/server-result.json",
+        "client": "/tmp/bts-queue-responsiveness-KOKqqY/mixed/client-result.json",
+        "probes": "/tmp/bts-queue-responsiveness-KOKqqY/mixed/probe-result.json"
+      },
+      "finished_at": "2026-10-11T22:56:41.442Z"
+    },
+    "audit": {
+      "options": true,
+      "harness_sha256": true,
+      "client_commit": true,
+      "client_source_sha256": true,
+      "dependency_lock_sha256": true,
+      "node_version": true,
+      "cpu": true
+    },
+    "fixture_validation": {
+      "matches": 519,
+      "distinct_participants": 52,
+      "oncourt": 13,
+      "oncourt_participants": 26,
+      "distinct_oncourt_participants": 26
+    },
+    "recorded_plan_classifications": {
+      "count": 50,
+      "ordering_only": 50,
+      "full": 0,
+      "unchanged_notification_plans": [
+        {
+          "id": 551,
+          "parent_id": null,
+          "name": "incremental_plan",
+          "kind": "phase",
+          "start_ts": 1791759395537,
+          "status": "ok",
+          "held_locks": [],
+          "attempt": 0,
+          "changes": 235,
+          "match_locks": 235,
+          "locks": [
+            "match:default:btp_default_Singles_100",
+            "match:default:btp_default_Singles_101",
+            "match:default:btp_default_Singles_102",
+            "match:default:btp_default_Singles_103",
+            "match:default:btp_default_Singles_104",
+            "match:default:btp_default_Singles_105",
+            "match:default:btp_default_Singles_108",
+            "match:default:btp_default_Singles_117",
+            "match:default:btp_default_Singles_122",
+            "match:default:btp_default_Singles_123",
+            "match:default:btp_default_Singles_124",
+            "match:default:btp_default_Singles_125",
+            "match:default:btp_default_Singles_126",
+            "match:default:btp_default_Singles_127",
+            "match:default:btp_default_Singles_128",
+            "match:default:btp_default_Singles_129",
+            "match:default:btp_default_Singles_130",
+            "match:default:btp_default_Singles_131",
+            "match:default:btp_default_Singles_134",
+            "match:default:btp_default_Singles_143",
+            "match:default:btp_default_Singles_148",
+            "match:default:btp_default_Singles_149",
+            "match:default:btp_default_Singles_150",
+            "match:default:btp_default_Singles_151",
+            "match:default:btp_default_Singles_152",
+            "match:default:btp_default_Singles_153",
+            "match:default:btp_default_Singles_154",
+            "match:default:btp_default_Singles_155",
+            "match:default:btp_default_Singles_156",
+            "match:default:btp_default_Singles_157",
+            "match:default:btp_default_Singles_160",
+            "match:default:btp_default_Singles_169",
+            "match:default:btp_default_Singles_174",
+            "match:default:btp_default_Singles_175",
+            "match:default:btp_default_Singles_176",
+            "match:default:btp_default_Singles_177",
+            "match:default:btp_default_Singles_178",
+            "match:default:btp_default_Singles_179",
+            "match:default:btp_default_Singles_180",
+            "match:default:btp_default_Singles_181"
+          ],
+          "locks_truncated": 197,
+          "allocation_scope": "ordering_only",
+          "ordering_unchanged_notifications": 19,
+          "offset_ms": 1,
+          "ts": 1791759395769,
+          "duration_ms": 232
+        },
+        {
+          "id": 1121,
+          "parent_id": null,
+          "name": "incremental_plan",
+          "kind": "phase",
+          "start_ts": 1791759395537,
+          "status": "ok",
+          "held_locks": [],
+          "attempt": 1,
+          "changes": 235,
+          "match_locks": 235,
+          "locks": [
+            "match:default:btp_default_Singles_100",
+            "match:default:btp_default_Singles_101",
+            "match:default:btp_default_Singles_102",
+            "match:default:btp_default_Singles_103",
+            "match:default:btp_default_Singles_104",
+            "match:default:btp_default_Singles_105",
+            "match:default:btp_default_Singles_108",
+            "match:default:btp_default_Singles_117",
+            "match:default:btp_default_Singles_122",
+            "match:default:btp_default_Singles_123",
+            "match:default:btp_default_Singles_124",
+            "match:default:btp_default_Singles_125",
+            "match:default:btp_default_Singles_126",
+            "match:default:btp_default_Singles_127",
+            "match:default:btp_default_Singles_128",
+            "match:default:btp_default_Singles_129",
+            "match:default:btp_default_Singles_130",
+            "match:default:btp_default_Singles_131",
+            "match:default:btp_default_Singles_134",
+            "match:default:btp_default_Singles_143",
+            "match:default:btp_default_Singles_148",
+            "match:default:btp_default_Singles_149",
+            "match:default:btp_default_Singles_150",
+            "match:default:btp_default_Singles_151",
+            "match:default:btp_default_Singles_152",
+            "match:default:btp_default_Singles_153",
+            "match:default:btp_default_Singles_154",
+            "match:default:btp_default_Singles_155",
+            "match:default:btp_default_Singles_156",
+            "match:default:btp_default_Singles_157",
+            "match:default:btp_default_Singles_160",
+            "match:default:btp_default_Singles_169",
+            "match:default:btp_default_Singles_174",
+            "match:default:btp_default_Singles_175",
+            "match:default:btp_default_Singles_176",
+            "match:default:btp_default_Singles_177",
+            "match:default:btp_default_Singles_178",
+            "match:default:btp_default_Singles_179",
+            "match:default:btp_default_Singles_180",
+            "match:default:btp_default_Singles_181"
+          ],
+          "locks_truncated": 197,
+          "allocation_scope": "ordering_only",
+          "ordering_unchanged_notifications": 19,
+          "offset_ms": 1,
+          "ts": 1791759395923,
+          "duration_ms": 386
+        },
+        {
+          "id": 541,
+          "parent_id": null,
+          "name": "incremental_plan",
+          "kind": "phase",
+          "start_ts": 1791759399537,
+          "status": "ok",
+          "held_locks": [],
+          "attempt": 0,
+          "changes": 235,
+          "match_locks": 235,
+          "locks": [
+            "match:default:btp_default_Singles_100",
+            "match:default:btp_default_Singles_101",
+            "match:default:btp_default_Singles_102",
+            "match:default:btp_default_Singles_103",
+            "match:default:btp_default_Singles_104",
+            "match:default:btp_default_Singles_105",
+            "match:default:btp_default_Singles_108",
+            "match:default:btp_default_Singles_112",
+            "match:default:btp_default_Singles_117",
+            "match:default:btp_default_Singles_123",
+            "match:default:btp_default_Singles_124",
+            "match:default:btp_default_Singles_125",
+            "match:default:btp_default_Singles_126",
+            "match:default:btp_default_Singles_127",
+            "match:default:btp_default_Singles_128",
+            "match:default:btp_default_Singles_129",
+            "match:default:btp_default_Singles_130",
+            "match:default:btp_default_Singles_131",
+            "match:default:btp_default_Singles_134",
+            "match:default:btp_default_Singles_138",
+            "match:default:btp_default_Singles_143",
+            "match:default:btp_default_Singles_149",
+            "match:default:btp_default_Singles_150",
+            "match:default:btp_default_Singles_151",
+            "match:default:btp_default_Singles_152",
+            "match:default:btp_default_Singles_153",
+            "match:default:btp_default_Singles_154",
+            "match:default:btp_default_Singles_155",
+            "match:default:btp_default_Singles_156",
+            "match:default:btp_default_Singles_157",
+            "match:default:btp_default_Singles_160",
+            "match:default:btp_default_Singles_164",
+            "match:default:btp_default_Singles_169",
+            "match:default:btp_default_Singles_175",
+            "match:default:btp_default_Singles_176",
+            "match:default:btp_default_Singles_177",
+            "match:default:btp_default_Singles_178",
+            "match:default:btp_default_Singles_179",
+            "match:default:btp_default_Singles_180",
+            "match:default:btp_default_Singles_181"
+          ],
+          "locks_truncated": 197,
+          "allocation_scope": "ordering_only",
+          "ordering_unchanged_notifications": 18,
+          "offset_ms": 0,
+          "ts": 1791759399665,
+          "duration_ms": 128
+        }
+      ]
+    },
+    "diagnosis": {
+      "purpose": "classification evidence only; preload repeats ordering checks per effect and significantly changes workload timing",
+      "observer_source": "'use strict';\nconst Module = require('module');\nconst fs = require('fs');\nconst { isDeepStrictEqual: equal } = require('util');\nconst original_load = Module._load;\nlet recorded = 0;\nModule._load = function(request, parent, ...args) {\n\tconst value = original_load.call(this, request, parent, ...args);\n\tif (request !== './btp_sync_locks/resources' || !parent?.filename.startsWith('/tmp/bts-queue-responsiveness-') ||\n\t\t!parent.filename.endsWith('/server-0/bts/btp_sync_plan.js')) return value;\n\tconst ordering = parent.require('./btp_sync_locks/ordering_only');\n\treturn function(key, before, changes, effects) {\n\t\tconst scope = value(key, before, changes, effects);\n\t\tif (scope.diagnostics.allocation_scope === 'ordering_only' || recorded++ >= 64) return scope;\n\t\tconst ids = new Set(changes.map(change => change.id));\n\t\tconst docs = new Map(before.matches.map(match => [match._id, match]));\n\t\tconst non_ordering = changes.filter(change => !ordering([change], []));\n\t\tconst excluded = effects.filter(effect => !ordering(changes, [effect]));\n\t\tconst row = { ts: Date.now(), scope: scope.diagnostics, changes: changes.length, effects: effects.length,\n\t\t\tnon_ordering_changes: non_ordering.slice(0, 6).map(change => ({ id: change.id, collection: change.collection,\n\t\t\t\tset: Object.keys(change.update?.$set || {}), unset: Object.keys(change.update?.$unset || {}) })),\n\t\t\tnon_ordering_count: non_ordering.length,\n\t\t\texcluded_effects: excluded.slice(0, 6).map(effect => { const note = effect.resources.notification;\n\t\t\t\tconst id = note?.value?.match__id || note?.value?._id;\n\t\t\t\treturn { resources: Object.keys(effect.resources), type: note?.ctype, id,\n\t\t\t\t\tdirect_change: ids.has(id), known_match: docs.has(id),\n\t\t\t\t\tunchanged_full_payload: equal(docs.get(id), note?.value?.match), payload_fields: Object.keys(note?.value || {}) };\n\t\t\t}), excluded_count: excluded.length };\n\t\tfs.appendFileSync('/tmp/bts-plan-rejections-diagnostic.jsonl', JSON.stringify(row) + '\\n');\n\t\treturn scope;\n\t};\n};\n",
+      "records": [
+        {
+          "ts": 1791758677356,
+          "scope": {
+            "direct_match_locks": 519,
+            "additional_match_locks": 0,
+            "local_only_changes": 0,
+            "allocation_scope": "full",
+            "expansion_reasons": {
+              "lifecycle": 519
+            },
+            "dependency_matches": {},
+            "players": 52,
+            "courts": 13
+          },
+          "changes": 534,
+          "effects": 524,
+          "non_ordering_changes": [
+            {
+              "id": "queue-fixture",
+              "collection": "tournaments",
+              "set": [
+                "events.events",
+                "btp_settings",
+                "name",
+                "scoring_formats"
+              ],
+              "unset": []
+            },
+            {
+              "id": "default_1",
+              "collection": "locations",
+              "set": [],
+              "unset": []
+            },
+            {
+              "id": "default_1",
+              "collection": "courts",
+              "set": [],
+              "unset": []
+            },
+            {
+              "id": "default_10",
+              "collection": "courts",
+              "set": [],
+              "unset": []
+            },
+            {
+              "id": "default_11",
+              "collection": "courts",
+              "set": [],
+              "unset": []
+            },
+            {
+              "id": "default_12",
+              "collection": "courts",
+              "set": [],
+              "unset": []
+            }
+          ],
+          "non_ordering_count": 534,
+          "excluded_effects": [
+            {
+              "resources": [
+                "notification"
+              ],
+              "type": "update_btp_settings",
+              "direct_change": false,
+              "known_match": false,
+              "unchanged_full_payload": true,
+              "payload_fields": [
+                "btp_settings"
+              ]
+            },
+            {
+              "resources": [
+                "notification"
+              ],
+              "type": "update_btp_events",
+              "direct_change": false,
+              "known_match": false,
+              "unchanged_full_payload": true,
+              "payload_fields": [
+                "events"
+              ]
+            },
+            {
+              "resources": [
+                "notification"
+              ],
+              "type": "update_btp_scoring_formats",
+              "direct_change": false,
+              "known_match": false,
+              "unchanged_full_payload": true,
+              "payload_fields": [
+                "scoring_formats"
+              ]
+            },
+            {
+              "resources": [
+                "notification"
+              ],
+              "type": "locations_changed",
+              "direct_change": false,
+              "known_match": false,
+              "unchanged_full_payload": true,
+              "payload_fields": [
+                "all_locations"
+              ]
+            },
+            {
+              "resources": [
+                "notification"
+              ],
+              "type": "courts_changed",
+              "direct_change": false,
+              "known_match": false,
+              "unchanged_full_payload": true,
+              "payload_fields": [
+                "all_courts"
+              ]
+            },
+            {
+              "resources": [
+                "notification"
+              ],
+              "type": "match_add",
+              "direct_change": false,
+              "known_match": false,
+              "unchanged_full_payload": false,
+              "payload_fields": [
+                "match"
+              ]
+            }
+          ],
+          "excluded_count": 524
+        },
+        {
+          "ts": 1791758755951,
+          "scope": {
+            "direct_match_locks": 519,
+            "additional_match_locks": 0,
+            "local_only_changes": 0,
+            "allocation_scope": "full",
+            "expansion_reasons": {
+              "lifecycle": 519
+            },
+            "dependency_matches": {},
+            "players": 52,
+            "courts": 13
+          },
+          "changes": 534,
+          "effects": 524,
+          "non_ordering_changes": [
+            {
+              "id": "queue-fixture",
+              "collection": "tournaments",
+              "set": [
+                "events.events",
+                "btp_settings",
+                "name",
+                "scoring_formats"
+              ],
+              "unset": []
+            },
+            {
+              "id": "default_1",
+              "collection": "locations",
+              "set": [],
+              "unset": []
+            },
+            {
+              "id": "default_1",
+              "collection": "courts",
+              "set": [],
+              "unset": []
+            },
+            {
+              "id": "default_10",
+              "collection": "courts",
+              "set": [],
+              "unset": []
+            },
+            {
+              "id": "default_11",
+              "collection": "courts",
+              "set": [],
+              "unset": []
+            },
+            {
+              "id": "default_12",
+              "collection": "courts",
+              "set": [],
+              "unset": []
+            }
+          ],
+          "non_ordering_count": 534,
+          "excluded_effects": [
+            {
+              "resources": [
+                "notification"
+              ],
+              "type": "update_btp_settings",
+              "direct_change": false,
+              "known_match": false,
+              "unchanged_full_payload": true,
+              "payload_fields": [
+                "btp_settings"
+              ]
+            },
+            {
+              "resources": [
+                "notification"
+              ],
+              "type": "update_btp_events",
+              "direct_change": false,
+              "known_match": false,
+              "unchanged_full_payload": true,
+              "payload_fields": [
+                "events"
+              ]
+            },
+            {
+              "resources": [
+                "notification"
+              ],
+              "type": "update_btp_scoring_formats",
+              "direct_change": false,
+              "known_match": false,
+              "unchanged_full_payload": true,
+              "payload_fields": [
+                "scoring_formats"
+              ]
+            },
+            {
+              "resources": [
+                "notification"
+              ],
+              "type": "locations_changed",
+              "direct_change": false,
+              "known_match": false,
+              "unchanged_full_payload": true,
+              "payload_fields": [
+                "all_locations"
+              ]
+            },
+            {
+              "resources": [
+                "notification"
+              ],
+              "type": "courts_changed",
+              "direct_change": false,
+              "known_match": false,
+              "unchanged_full_payload": true,
+              "payload_fields": [
+                "all_courts"
+              ]
+            },
+            {
+              "resources": [
+                "notification"
+              ],
+              "type": "match_add",
+              "direct_change": false,
+              "known_match": false,
+              "unchanged_full_payload": false,
+              "payload_fields": [
+                "match"
+              ]
+            }
+          ],
+          "excluded_count": 524
+        },
+        {
+          "ts": 1791758829068,
+          "scope": {
+            "direct_match_locks": 519,
+            "additional_match_locks": 0,
+            "local_only_changes": 0,
+            "allocation_scope": "full",
+            "expansion_reasons": {
+              "lifecycle": 519
+            },
+            "dependency_matches": {},
+            "players": 52,
+            "courts": 13
+          },
+          "changes": 534,
+          "effects": 524,
+          "non_ordering_changes": [
+            {
+              "id": "queue-fixture",
+              "collection": "tournaments",
+              "set": [
+                "events.events",
+                "btp_settings",
+                "name",
+                "scoring_formats"
+              ],
+              "unset": []
+            },
+            {
+              "id": "default_1",
+              "collection": "locations",
+              "set": [],
+              "unset": []
+            },
+            {
+              "id": "default_1",
+              "collection": "courts",
+              "set": [],
+              "unset": []
+            },
+            {
+              "id": "default_10",
+              "collection": "courts",
+              "set": [],
+              "unset": []
+            },
+            {
+              "id": "default_11",
+              "collection": "courts",
+              "set": [],
+              "unset": []
+            },
+            {
+              "id": "default_12",
+              "collection": "courts",
+              "set": [],
+              "unset": []
+            }
+          ],
+          "non_ordering_count": 534,
+          "excluded_effects": [
+            {
+              "resources": [
+                "notification"
+              ],
+              "type": "update_btp_settings",
+              "direct_change": false,
+              "known_match": false,
+              "unchanged_full_payload": true,
+              "payload_fields": [
+                "btp_settings"
+              ]
+            },
+            {
+              "resources": [
+                "notification"
+              ],
+              "type": "update_btp_events",
+              "direct_change": false,
+              "known_match": false,
+              "unchanged_full_payload": true,
+              "payload_fields": [
+                "events"
+              ]
+            },
+            {
+              "resources": [
+                "notification"
+              ],
+              "type": "update_btp_scoring_formats",
+              "direct_change": false,
+              "known_match": false,
+              "unchanged_full_payload": true,
+              "payload_fields": [
+                "scoring_formats"
+              ]
+            },
+            {
+              "resources": [
+                "notification"
+              ],
+              "type": "locations_changed",
+              "direct_change": false,
+              "known_match": false,
+              "unchanged_full_payload": true,
+              "payload_fields": [
+                "all_locations"
+              ]
+            },
+            {
+              "resources": [
+                "notification"
+              ],
+              "type": "courts_changed",
+              "direct_change": false,
+              "known_match": false,
+              "unchanged_full_payload": true,
+              "payload_fields": [
+                "all_courts"
+              ]
+            },
+            {
+              "resources": [
+                "notification"
+              ],
+              "type": "match_add",
+              "direct_change": false,
+              "known_match": false,
+              "unchanged_full_payload": false,
+              "payload_fields": [
+                "match"
+              ]
+            }
+          ],
+          "excluded_count": 524
+        },
+        {
+          "ts": 1791758907559,
+          "scope": {
+            "direct_match_locks": 20,
+            "additional_match_locks": 1,
+            "local_only_changes": 0,
+            "allocation_scope": "full",
+            "expansion_reasons": {
+              "participants": 19,
+              "state": 20,
+              "court": 1
+            },
+            "dependency_matches": {
+              "effect": 1,
+              "player": 20,
+              "court": 1
+            },
+            "players": 2,
+            "courts": 1
+          },
+          "changes": 21,
+          "effects": 25,
+          "non_ordering_changes": [
+            {
+              "id": "default_1",
+              "collection": "courts",
+              "set": [
+                "match_id"
+              ],
+              "unset": []
+            },
+            {
+              "id": "btp_default_Singles_118",
+              "collection": "matches",
+              "set": [
+                "setup.teams",
+                "setup.state"
+              ],
+              "unset": []
+            },
+            {
+              "id": "btp_default_Singles_14",
+              "collection": "matches",
+              "set": [
+                "setup.highlight",
+                "setup.state",
+                "setup.court_id",
+                "setup.now_on_court",
+                "setup.called_timestamp"
+              ],
+              "unset": [
+                "setup.preparation_call_timestamp"
+              ]
+            },
+            {
+              "id": "btp_default_Singles_144",
+              "collection": "matches",
+              "set": [
+                "setup.teams",
+                "setup.state"
+              ],
+              "unset": []
+            },
+            {
+              "id": "btp_default_Singles_170",
+              "collection": "matches",
+              "set": [
+                "setup.teams",
+                "setup.state"
+              ],
+              "unset": []
+            },
+            {
+              "id": "btp_default_Singles_196",
+              "collection": "matches",
+              "set": [
+                "setup.teams",
+                "setup.state"
+              ],
+              "unset": []
+            }
+          ],
+          "non_ordering_count": 21,
+          "excluded_effects": [
+            {
+              "resources": [
+                "matches"
+              ],
+              "direct_change": false,
+              "known_match": false,
+              "unchanged_full_payload": true,
+              "payload_fields": []
+            },
+            {
+              "resources": [
+                "notification"
+              ],
+              "type": "match_edit",
+              "id": "btp_default_Singles_14",
+              "direct_change": true,
+              "known_match": true,
+              "unchanged_full_payload": false,
+              "payload_fields": [
+                "match__id",
+                "match"
+              ]
+            },
+            {
+              "resources": [
+                "courts"
+              ],
+              "direct_change": false,
+              "known_match": false,
+              "unchanged_full_payload": true,
+              "payload_fields": []
+            },
+            {
+              "resources": [
+                "notification"
+              ],
+              "type": "match_called_on_court",
+              "id": "btp_default_Singles_14",
+              "direct_change": true,
+              "known_match": true,
+              "unchanged_full_payload": false,
+              "payload_fields": [
+                "tournament_key",
+                "btp_id",
+                "btp_match_ids",
+                "btp_player_ids",
+                "setup",
+                "team1_won",
+                "btp_winner",
+                "btp_score_status",
+                "score_status",
+                "forward_loser",
+                "_id",
+                "_btp_sync_signature"
+              ]
+            },
+            {
+              "resources": [
+                "notification"
+              ],
+              "type": "update_player_status",
+              "id": "btp_default_Singles_118",
+              "direct_change": true,
+              "known_match": true,
+              "unchanged_full_payload": false,
+              "payload_fields": [
+                "match__id",
+                "btp_winner",
+                "setup"
+              ]
+            },
+            {
+              "resources": [
+                "notification"
+              ],
+              "type": "update_player_status",
+              "id": "btp_default_Singles_144",
+              "direct_change": true,
+              "known_match": true,
+              "unchanged_full_payload": false,
+              "payload_fields": [
+                "match__id",
+                "btp_winner",
+                "setup"
+              ]
+            }
+          ],
+          "excluded_count": 25
+        },
+        {
+          "ts": 1791758909304,
+          "scope": {
+            "direct_match_locks": 237,
+            "additional_match_locks": 2,
+            "local_only_changes": 0,
+            "allocation_scope": "full",
+            "expansion_reasons": {
+              "identity": 237,
+              "scheduling": 237
+            },
+            "dependency_matches": {
+              "player": 239
+            },
+            "players": 24,
+            "courts": 0
+          },
+          "changes": 237,
+          "effects": 256,
+          "non_ordering_changes": [],
+          "non_ordering_count": 0,
+          "excluded_effects": [
+            {
+              "resources": [
+                "notification"
+              ],
+              "type": "match_edit",
+              "id": "btp_default_Singles_105",
+              "direct_change": false,
+              "known_match": true,
+              "unchanged_full_payload": true,
+              "payload_fields": [
+                "match__id",
+                "match"
+              ]
+            },
+            {
+              "resources": [
+                "notification"
+              ],
+              "type": "match_edit",
+              "id": "btp_default_Singles_131",
+              "direct_change": false,
+              "known_match": true,
+              "unchanged_full_payload": true,
+              "payload_fields": [
+                "match__id",
+                "match"
+              ]
+            },
+            {
+              "resources": [
+                "notification"
+              ],
+              "type": "match_edit",
+              "id": "btp_default_Singles_157",
+              "direct_change": false,
+              "known_match": true,
+              "unchanged_full_payload": true,
+              "payload_fields": [
+                "match__id",
+                "match"
+              ]
+            },
+            {
+              "resources": [
+                "notification"
+              ],
+              "type": "match_edit",
+              "id": "btp_default_Singles_183",
+              "direct_change": false,
+              "known_match": true,
+              "unchanged_full_payload": true,
+              "payload_fields": [
+                "match__id",
+                "match"
+              ]
+            },
+            {
+              "resources": [
+                "notification"
+              ],
+              "type": "match_edit",
+              "id": "btp_default_Singles_209",
+              "direct_change": false,
+              "known_match": true,
+              "unchanged_full_payload": true,
+              "payload_fields": [
+                "match__id",
+                "match"
+              ]
+            },
+            {
+              "resources": [
+                "notification"
+              ],
+              "type": "match_edit",
+              "id": "btp_default_Singles_235",
+              "direct_change": false,
+              "known_match": true,
+              "unchanged_full_payload": true,
+              "payload_fields": [
+                "match__id",
+                "match"
+              ]
+            }
+          ],
+          "excluded_count": 19
+        },
+        {
+          "ts": 1791758910771,
+          "scope": {
+            "direct_match_locks": 237,
+            "additional_match_locks": 2,
+            "local_only_changes": 0,
+            "allocation_scope": "full",
+            "expansion_reasons": {
+              "identity": 237,
+              "scheduling": 237
+            },
+            "dependency_matches": {
+              "player": 239
+            },
+            "players": 24,
+            "courts": 0
+          },
+          "changes": 237,
+          "effects": 256,
+          "non_ordering_changes": [],
+          "non_ordering_count": 0,
+          "excluded_effects": [
+            {
+              "resources": [
+                "notification"
+              ],
+              "type": "match_edit",
+              "id": "btp_default_Singles_105",
+              "direct_change": false,
+              "known_match": true,
+              "unchanged_full_payload": true,
+              "payload_fields": [
+                "match__id",
+                "match"
+              ]
+            },
+            {
+              "resources": [
+                "notification"
+              ],
+              "type": "match_edit",
+              "id": "btp_default_Singles_131",
+              "direct_change": false,
+              "known_match": true,
+              "unchanged_full_payload": true,
+              "payload_fields": [
+                "match__id",
+                "match"
+              ]
+            },
+            {
+              "resources": [
+                "notification"
+              ],
+              "type": "match_edit",
+              "id": "btp_default_Singles_157",
+              "direct_change": false,
+              "known_match": true,
+              "unchanged_full_payload": true,
+              "payload_fields": [
+                "match__id",
+                "match"
+              ]
+            },
+            {
+              "resources": [
+                "notification"
+              ],
+              "type": "match_edit",
+              "id": "btp_default_Singles_183",
+              "direct_change": false,
+              "known_match": true,
+              "unchanged_full_payload": true,
+              "payload_fields": [
+                "match__id",
+                "match"
+              ]
+            },
+            {
+              "resources": [
+                "notification"
+              ],
+              "type": "match_edit",
+              "id": "btp_default_Singles_209",
+              "direct_change": false,
+              "known_match": true,
+              "unchanged_full_payload": true,
+              "payload_fields": [
+                "match__id",
+                "match"
+              ]
+            },
+            {
+              "resources": [
+                "notification"
+              ],
+              "type": "match_edit",
+              "id": "btp_default_Singles_235",
+              "direct_change": false,
+              "known_match": true,
+              "unchanged_full_payload": true,
+              "payload_fields": [
+                "match__id",
+                "match"
+              ]
+            }
+          ],
+          "excluded_count": 19
+        },
+        {
+          "ts": 1791758912327,
+          "scope": {
+            "direct_match_locks": 237,
+            "additional_match_locks": 2,
+            "local_only_changes": 0,
+            "allocation_scope": "full",
+            "expansion_reasons": {
+              "identity": 237,
+              "scheduling": 237
+            },
+            "dependency_matches": {
+              "player": 239
+            },
+            "players": 24,
+            "courts": 0
+          },
+          "changes": 237,
+          "effects": 256,
+          "non_ordering_changes": [],
+          "non_ordering_count": 0,
+          "excluded_effects": [
+            {
+              "resources": [
+                "notification"
+              ],
+              "type": "match_edit",
+              "id": "btp_default_Singles_105",
+              "direct_change": false,
+              "known_match": true,
+              "unchanged_full_payload": true,
+              "payload_fields": [
+                "match__id",
+                "match"
+              ]
+            },
+            {
+              "resources": [
+                "notification"
+              ],
+              "type": "match_edit",
+              "id": "btp_default_Singles_131",
+              "direct_change": false,
+              "known_match": true,
+              "unchanged_full_payload": true,
+              "payload_fields": [
+                "match__id",
+                "match"
+              ]
+            },
+            {
+              "resources": [
+                "notification"
+              ],
+              "type": "match_edit",
+              "id": "btp_default_Singles_157",
+              "direct_change": false,
+              "known_match": true,
+              "unchanged_full_payload": true,
+              "payload_fields": [
+                "match__id",
+                "match"
+              ]
+            },
+            {
+              "resources": [
+                "notification"
+              ],
+              "type": "match_edit",
+              "id": "btp_default_Singles_183",
+              "direct_change": false,
+              "known_match": true,
+              "unchanged_full_payload": true,
+              "payload_fields": [
+                "match__id",
+                "match"
+              ]
+            },
+            {
+              "resources": [
+                "notification"
+              ],
+              "type": "match_edit",
+              "id": "btp_default_Singles_209",
+              "direct_change": false,
+              "known_match": true,
+              "unchanged_full_payload": true,
+              "payload_fields": [
+                "match__id",
+                "match"
+              ]
+            },
+            {
+              "resources": [
+                "notification"
+              ],
+              "type": "match_edit",
+              "id": "btp_default_Singles_235",
+              "direct_change": false,
+              "known_match": true,
+              "unchanged_full_payload": true,
+              "payload_fields": [
+                "match__id",
+                "match"
+              ]
+            }
+          ],
+          "excluded_count": 19
+        },
+        {
+          "ts": 1791758913863,
+          "scope": {
+            "direct_match_locks": 237,
+            "additional_match_locks": 2,
+            "local_only_changes": 0,
+            "allocation_scope": "full",
+            "expansion_reasons": {
+              "identity": 237,
+              "scheduling": 237
+            },
+            "dependency_matches": {
+              "player": 239
+            },
+            "players": 24,
+            "courts": 0
+          },
+          "changes": 237,
+          "effects": 255,
+          "non_ordering_changes": [],
+          "non_ordering_count": 0,
+          "excluded_effects": [
+            {
+              "resources": [
+                "notification"
+              ],
+              "type": "match_edit",
+              "id": "btp_default_Singles_105",
+              "direct_change": false,
+              "known_match": true,
+              "unchanged_full_payload": true,
+              "payload_fields": [
+                "match__id",
+                "match"
+              ]
+            },
+            {
+              "resources": [
+                "notification"
+              ],
+              "type": "match_edit",
+              "id": "btp_default_Singles_131",
+              "direct_change": false,
+              "known_match": true,
+              "unchanged_full_payload": true,
+              "payload_fields": [
+                "match__id",
+                "match"
+              ]
+            },
+            {
+              "resources": [
+                "notification"
+              ],
+              "type": "match_edit",
+              "id": "btp_default_Singles_157",
+              "direct_change": false,
+              "known_match": true,
+              "unchanged_full_payload": true,
+              "payload_fields": [
+                "match__id",
+                "match"
+              ]
+            },
+            {
+              "resources": [
+                "notification"
+              ],
+              "type": "match_edit",
+              "id": "btp_default_Singles_183",
+              "direct_change": false,
+              "known_match": true,
+              "unchanged_full_payload": true,
+              "payload_fields": [
+                "match__id",
+                "match"
+              ]
+            },
+            {
+              "resources": [
+                "notification"
+              ],
+              "type": "match_edit",
+              "id": "btp_default_Singles_209",
+              "direct_change": false,
+              "known_match": true,
+              "unchanged_full_payload": true,
+              "payload_fields": [
+                "match__id",
+                "match"
+              ]
+            },
+            {
+              "resources": [
+                "notification"
+              ],
+              "type": "match_edit",
+              "id": "btp_default_Singles_235",
+              "direct_change": false,
+              "known_match": true,
+              "unchanged_full_payload": true,
+              "payload_fields": [
+                "match__id",
+                "match"
+              ]
+            }
+          ],
+          "excluded_count": 18
+        },
+        {
+          "ts": 1791758914242,
+          "scope": {
+            "direct_match_locks": 20,
+            "additional_match_locks": 1,
+            "local_only_changes": 0,
+            "allocation_scope": "full",
+            "expansion_reasons": {
+              "participants": 19,
+              "state": 20,
+              "court": 1
+            },
+            "dependency_matches": {
+              "effect": 1,
+              "player": 20,
+              "court": 1
+            },
+            "players": 2,
+            "courts": 1
+          },
+          "changes": 21,
+          "effects": 25,
+          "non_ordering_changes": [
+            {
+              "id": "default_4",
+              "collection": "courts",
+              "set": [
+                "match_id"
+              ],
+              "unset": []
+            },
+            {
+              "id": "btp_default_Singles_119",
+              "collection": "matches",
+              "set": [
+                "setup.teams",
+                "setup.state"
+              ],
+              "unset": []
+            },
+            {
+              "id": "btp_default_Singles_145",
+              "collection": "matches",
+              "set": [
+                "setup.teams",
+                "setup.state"
+              ],
+              "unset": []
+            },
+            {
+              "id": "btp_default_Singles_15",
+              "collection": "matches",
+              "set": [
+                "setup.highlight",
+                "setup.state",
+                "setup.court_id",
+                "setup.now_on_court",
+                "setup.called_timestamp"
+              ],
+              "unset": [
+                "setup.preparation_call_timestamp"
+              ]
+            },
+            {
+              "id": "btp_default_Singles_171",
+              "collection": "matches",
+              "set": [
+                "setup.teams",
+                "setup.state"
+              ],
+              "unset": []
+            },
+            {
+              "id": "btp_default_Singles_197",
+              "collection": "matches",
+              "set": [
+                "setup.teams",
+                "setup.state"
+              ],
+              "unset": []
+            }
+          ],
+          "non_ordering_count": 21,
+          "excluded_effects": [
+            {
+              "resources": [
+                "matches"
+              ],
+              "direct_change": false,
+              "known_match": false,
+              "unchanged_full_payload": true,
+              "payload_fields": []
+            },
+            {
+              "resources": [
+                "notification"
+              ],
+              "type": "match_edit",
+              "id": "btp_default_Singles_15",
+              "direct_change": true,
+              "known_match": true,
+              "unchanged_full_payload": false,
+              "payload_fields": [
+                "match__id",
+                "match"
+              ]
+            },
+            {
+              "resources": [
+                "courts"
+              ],
+              "direct_change": false,
+              "known_match": false,
+              "unchanged_full_payload": true,
+              "payload_fields": []
+            },
+            {
+              "resources": [
+                "notification"
+              ],
+              "type": "match_called_on_court",
+              "id": "btp_default_Singles_15",
+              "direct_change": true,
+              "known_match": true,
+              "unchanged_full_payload": false,
+              "payload_fields": [
+                "tournament_key",
+                "btp_id",
+                "btp_match_ids",
+                "btp_player_ids",
+                "setup",
+                "team1_won",
+                "btp_winner",
+                "btp_score_status",
+                "score_status",
+                "forward_loser",
+                "_id",
+                "_btp_sync_signature"
+              ]
+            },
+            {
+              "resources": [
+                "notification"
+              ],
+              "type": "update_player_status",
+              "id": "btp_default_Singles_119",
+              "direct_change": true,
+              "known_match": true,
+              "unchanged_full_payload": false,
+              "payload_fields": [
+                "match__id",
+                "btp_winner",
+                "setup"
+              ]
+            },
+            {
+              "resources": [
+                "notification"
+              ],
+              "type": "update_player_status",
+              "id": "btp_default_Singles_145",
+              "direct_change": true,
+              "known_match": true,
+              "unchanged_full_payload": false,
+              "payload_fields": [
+                "match__id",
+                "btp_winner",
+                "setup"
+              ]
+            }
+          ],
+          "excluded_count": 25
+        },
+        {
+          "ts": 1791758914316,
+          "scope": {
+            "direct_match_locks": 20,
+            "additional_match_locks": 1,
+            "local_only_changes": 0,
+            "allocation_scope": "full",
+            "expansion_reasons": {
+              "participants": 19,
+              "state": 20,
+              "court": 1
+            },
+            "dependency_matches": {
+              "effect": 1,
+              "player": 20,
+              "court": 1
+            },
+            "players": 2,
+            "courts": 1
+          },
+          "changes": 21,
+          "effects": 25,
+          "non_ordering_changes": [
+            {
+              "id": "default_4",
+              "collection": "courts",
+              "set": [
+                "match_id"
+              ],
+              "unset": []
+            },
+            {
+              "id": "btp_default_Singles_119",
+              "collection": "matches",
+              "set": [
+                "setup.teams",
+                "setup.state"
+              ],
+              "unset": []
+            },
+            {
+              "id": "btp_default_Singles_145",
+              "collection": "matches",
+              "set": [
+                "setup.teams",
+                "setup.state"
+              ],
+              "unset": []
+            },
+            {
+              "id": "btp_default_Singles_15",
+              "collection": "matches",
+              "set": [
+                "setup.highlight",
+                "setup.state",
+                "setup.court_id",
+                "setup.now_on_court",
+                "setup.called_timestamp"
+              ],
+              "unset": [
+                "setup.preparation_call_timestamp"
+              ]
+            },
+            {
+              "id": "btp_default_Singles_171",
+              "collection": "matches",
+              "set": [
+                "setup.teams",
+                "setup.state"
+              ],
+              "unset": []
+            },
+            {
+              "id": "btp_default_Singles_197",
+              "collection": "matches",
+              "set": [
+                "setup.teams",
+                "setup.state"
+              ],
+              "unset": []
+            }
+          ],
+          "non_ordering_count": 21,
+          "excluded_effects": [
+            {
+              "resources": [
+                "matches"
+              ],
+              "direct_change": false,
+              "known_match": false,
+              "unchanged_full_payload": true,
+              "payload_fields": []
+            },
+            {
+              "resources": [
+                "notification"
+              ],
+              "type": "match_edit",
+              "id": "btp_default_Singles_15",
+              "direct_change": true,
+              "known_match": true,
+              "unchanged_full_payload": false,
+              "payload_fields": [
+                "match__id",
+                "match"
+              ]
+            },
+            {
+              "resources": [
+                "courts"
+              ],
+              "direct_change": false,
+              "known_match": false,
+              "unchanged_full_payload": true,
+              "payload_fields": []
+            },
+            {
+              "resources": [
+                "notification"
+              ],
+              "type": "match_called_on_court",
+              "id": "btp_default_Singles_15",
+              "direct_change": true,
+              "known_match": true,
+              "unchanged_full_payload": false,
+              "payload_fields": [
+                "tournament_key",
+                "btp_id",
+                "btp_match_ids",
+                "btp_player_ids",
+                "setup",
+                "team1_won",
+                "btp_winner",
+                "btp_score_status",
+                "score_status",
+                "forward_loser",
+                "_id",
+                "_btp_sync_signature"
+              ]
+            },
+            {
+              "resources": [
+                "notification"
+              ],
+              "type": "update_player_status",
+              "id": "btp_default_Singles_119",
+              "direct_change": true,
+              "known_match": true,
+              "unchanged_full_payload": false,
+              "payload_fields": [
+                "match__id",
+                "btp_winner",
+                "setup"
+              ]
+            },
+            {
+              "resources": [
+                "notification"
+              ],
+              "type": "update_player_status",
+              "id": "btp_default_Singles_145",
+              "direct_change": true,
+              "known_match": true,
+              "unchanged_full_payload": false,
+              "payload_fields": [
+                "match__id",
+                "btp_winner",
+                "setup"
+              ]
+            }
+          ],
+          "excluded_count": 25
+        },
+        {
+          "ts": 1791758915754,
+          "scope": {
+            "direct_match_locks": 237,
+            "additional_match_locks": 2,
+            "local_only_changes": 0,
+            "allocation_scope": "full",
+            "expansion_reasons": {
+              "identity": 237,
+              "scheduling": 237
+            },
+            "dependency_matches": {
+              "player": 239
+            },
+            "players": 24,
+            "courts": 0
+          },
+          "changes": 237,
+          "effects": 255,
+          "non_ordering_changes": [],
+          "non_ordering_count": 0,
+          "excluded_effects": [
+            {
+              "resources": [
+                "notification"
+              ],
+              "type": "match_edit",
+              "id": "btp_default_Singles_105",
+              "direct_change": false,
+              "known_match": true,
+              "unchanged_full_payload": true,
+              "payload_fields": [
+                "match__id",
+                "match"
+              ]
+            },
+            {
+              "resources": [
+                "notification"
+              ],
+              "type": "match_edit",
+              "id": "btp_default_Singles_131",
+              "direct_change": false,
+              "known_match": true,
+              "unchanged_full_payload": true,
+              "payload_fields": [
+                "match__id",
+                "match"
+              ]
+            },
+            {
+              "resources": [
+                "notification"
+              ],
+              "type": "match_edit",
+              "id": "btp_default_Singles_157",
+              "direct_change": false,
+              "known_match": true,
+              "unchanged_full_payload": true,
+              "payload_fields": [
+                "match__id",
+                "match"
+              ]
+            },
+            {
+              "resources": [
+                "notification"
+              ],
+              "type": "match_edit",
+              "id": "btp_default_Singles_183",
+              "direct_change": false,
+              "known_match": true,
+              "unchanged_full_payload": true,
+              "payload_fields": [
+                "match__id",
+                "match"
+              ]
+            },
+            {
+              "resources": [
+                "notification"
+              ],
+              "type": "match_edit",
+              "id": "btp_default_Singles_209",
+              "direct_change": false,
+              "known_match": true,
+              "unchanged_full_payload": true,
+              "payload_fields": [
+                "match__id",
+                "match"
+              ]
+            },
+            {
+              "resources": [
+                "notification"
+              ],
+              "type": "match_edit",
+              "id": "btp_default_Singles_235",
+              "direct_change": false,
+              "known_match": true,
+              "unchanged_full_payload": true,
+              "payload_fields": [
+                "match__id",
+                "match"
+              ]
+            }
+          ],
+          "excluded_count": 18
+        },
+        {
+          "ts": 1791758917040,
+          "scope": {
+            "direct_match_locks": 218,
+            "additional_match_locks": 1,
+            "local_only_changes": 0,
+            "allocation_scope": "full",
+            "expansion_reasons": {
+              "identity": 218,
+              "scheduling": 218
+            },
+            "dependency_matches": {
+              "player": 219
+            },
+            "players": 22,
+            "courts": 0
+          },
+          "changes": 218,
+          "effects": 255,
+          "non_ordering_changes": [],
+          "non_ordering_count": 0,
+          "excluded_effects": [
+            {
+              "resources": [
+                "notification"
+              ],
+              "type": "match_edit",
+              "id": "btp_default_Singles_105",
+              "direct_change": false,
+              "known_match": true,
+              "unchanged_full_payload": true,
+              "payload_fields": [
+                "match__id",
+                "match"
+              ]
+            },
+            {
+              "resources": [
+                "notification"
+              ],
+              "type": "match_edit",
+              "id": "btp_default_Singles_108",
+              "direct_change": false,
+              "known_match": true,
+              "unchanged_full_payload": true,
+              "payload_fields": [
+                "match__id",
+                "match"
+              ]
+            },
+            {
+              "resources": [
+                "notification"
+              ],
+              "type": "match_edit",
+              "id": "btp_default_Singles_131",
+              "direct_change": false,
+              "known_match": true,
+              "unchanged_full_payload": true,
+              "payload_fields": [
+                "match__id",
+                "match"
+              ]
+            },
+            {
+              "resources": [
+                "notification"
+              ],
+              "type": "match_edit",
+              "id": "btp_default_Singles_134",
+              "direct_change": false,
+              "known_match": true,
+              "unchanged_full_payload": true,
+              "payload_fields": [
+                "match__id",
+                "match"
+              ]
+            },
+            {
+              "resources": [
+                "notification"
+              ],
+              "type": "match_edit",
+              "id": "btp_default_Singles_157",
+              "direct_change": false,
+              "known_match": true,
+              "unchanged_full_payload": true,
+              "payload_fields": [
+                "match__id",
+                "match"
+              ]
+            },
+            {
+              "resources": [
+                "notification"
+              ],
+              "type": "match_edit",
+              "id": "btp_default_Singles_160",
+              "direct_change": false,
+              "known_match": true,
+              "unchanged_full_payload": true,
+              "payload_fields": [
+                "match__id",
+                "match"
+              ]
+            }
+          ],
+          "excluded_count": 37
+        },
+        {
+          "ts": 1791758917610,
+          "scope": {
+            "direct_match_locks": 20,
+            "additional_match_locks": 1,
+            "local_only_changes": 0,
+            "allocation_scope": "full",
+            "expansion_reasons": {
+              "participants": 19,
+              "state": 20,
+              "court": 1
+            },
+            "dependency_matches": {
+              "effect": 1,
+              "player": 20,
+              "court": 1
+            },
+            "players": 2,
+            "courts": 1
+          },
+          "changes": 21,
+          "effects": 25,
+          "non_ordering_changes": [
+            {
+              "id": "default_13",
+              "collection": "courts",
+              "set": [
+                "match_id"
+              ],
+              "unset": []
+            },
+            {
+              "id": "btp_default_Singles_120",
+              "collection": "matches",
+              "set": [
+                "setup.teams",
+                "setup.state"
+              ],
+              "unset": []
+            },
+            {
+              "id": "btp_default_Singles_146",
+              "collection": "matches",
+              "set": [
+                "setup.teams",
+                "setup.state"
+              ],
+              "unset": []
+            },
+            {
+              "id": "btp_default_Singles_16",
+              "collection": "matches",
+              "set": [
+                "setup.highlight",
+                "setup.state",
+                "setup.court_id",
+                "setup.now_on_court",
+                "setup.called_timestamp"
+              ],
+              "unset": [
+                "setup.preparation_call_timestamp"
+              ]
+            },
+            {
+              "id": "btp_default_Singles_172",
+              "collection": "matches",
+              "set": [
+                "setup.teams",
+                "setup.state"
+              ],
+              "unset": []
+            },
+            {
+              "id": "btp_default_Singles_198",
+              "collection": "matches",
+              "set": [
+                "setup.teams",
+                "setup.state"
+              ],
+              "unset": []
+            }
+          ],
+          "non_ordering_count": 21,
+          "excluded_effects": [
+            {
+              "resources": [
+                "matches"
+              ],
+              "direct_change": false,
+              "known_match": false,
+              "unchanged_full_payload": true,
+              "payload_fields": []
+            },
+            {
+              "resources": [
+                "notification"
+              ],
+              "type": "match_edit",
+              "id": "btp_default_Singles_16",
+              "direct_change": true,
+              "known_match": true,
+              "unchanged_full_payload": false,
+              "payload_fields": [
+                "match__id",
+                "match"
+              ]
+            },
+            {
+              "resources": [
+                "courts"
+              ],
+              "direct_change": false,
+              "known_match": false,
+              "unchanged_full_payload": true,
+              "payload_fields": []
+            },
+            {
+              "resources": [
+                "notification"
+              ],
+              "type": "match_called_on_court",
+              "id": "btp_default_Singles_16",
+              "direct_change": true,
+              "known_match": true,
+              "unchanged_full_payload": false,
+              "payload_fields": [
+                "tournament_key",
+                "btp_id",
+                "btp_match_ids",
+                "btp_player_ids",
+                "setup",
+                "team1_won",
+                "btp_winner",
+                "btp_score_status",
+                "score_status",
+                "forward_loser",
+                "_id",
+                "_btp_sync_signature"
+              ]
+            },
+            {
+              "resources": [
+                "notification"
+              ],
+              "type": "update_player_status",
+              "id": "btp_default_Singles_120",
+              "direct_change": true,
+              "known_match": true,
+              "unchanged_full_payload": false,
+              "payload_fields": [
+                "match__id",
+                "btp_winner",
+                "setup"
+              ]
+            },
+            {
+              "resources": [
+                "notification"
+              ],
+              "type": "update_player_status",
+              "id": "btp_default_Singles_146",
+              "direct_change": true,
+              "known_match": true,
+              "unchanged_full_payload": false,
+              "payload_fields": [
+                "match__id",
+                "btp_winner",
+                "setup"
+              ]
+            }
+          ],
+          "excluded_count": 25
+        },
+        {
+          "ts": 1791758917681,
+          "scope": {
+            "direct_match_locks": 20,
+            "additional_match_locks": 1,
+            "local_only_changes": 0,
+            "allocation_scope": "full",
+            "expansion_reasons": {
+              "participants": 19,
+              "state": 20,
+              "court": 1
+            },
+            "dependency_matches": {
+              "effect": 1,
+              "player": 20,
+              "court": 1
+            },
+            "players": 2,
+            "courts": 1
+          },
+          "changes": 21,
+          "effects": 25,
+          "non_ordering_changes": [
+            {
+              "id": "default_13",
+              "collection": "courts",
+              "set": [
+                "match_id"
+              ],
+              "unset": []
+            },
+            {
+              "id": "btp_default_Singles_120",
+              "collection": "matches",
+              "set": [
+                "setup.teams",
+                "setup.state"
+              ],
+              "unset": []
+            },
+            {
+              "id": "btp_default_Singles_146",
+              "collection": "matches",
+              "set": [
+                "setup.teams",
+                "setup.state"
+              ],
+              "unset": []
+            },
+            {
+              "id": "btp_default_Singles_16",
+              "collection": "matches",
+              "set": [
+                "setup.highlight",
+                "setup.state",
+                "setup.court_id",
+                "setup.now_on_court",
+                "setup.called_timestamp"
+              ],
+              "unset": [
+                "setup.preparation_call_timestamp"
+              ]
+            },
+            {
+              "id": "btp_default_Singles_172",
+              "collection": "matches",
+              "set": [
+                "setup.teams",
+                "setup.state"
+              ],
+              "unset": []
+            },
+            {
+              "id": "btp_default_Singles_198",
+              "collection": "matches",
+              "set": [
+                "setup.teams",
+                "setup.state"
+              ],
+              "unset": []
+            }
+          ],
+          "non_ordering_count": 21,
+          "excluded_effects": [
+            {
+              "resources": [
+                "matches"
+              ],
+              "direct_change": false,
+              "known_match": false,
+              "unchanged_full_payload": true,
+              "payload_fields": []
+            },
+            {
+              "resources": [
+                "notification"
+              ],
+              "type": "match_edit",
+              "id": "btp_default_Singles_16",
+              "direct_change": true,
+              "known_match": true,
+              "unchanged_full_payload": false,
+              "payload_fields": [
+                "match__id",
+                "match"
+              ]
+            },
+            {
+              "resources": [
+                "courts"
+              ],
+              "direct_change": false,
+              "known_match": false,
+              "unchanged_full_payload": true,
+              "payload_fields": []
+            },
+            {
+              "resources": [
+                "notification"
+              ],
+              "type": "match_called_on_court",
+              "id": "btp_default_Singles_16",
+              "direct_change": true,
+              "known_match": true,
+              "unchanged_full_payload": false,
+              "payload_fields": [
+                "tournament_key",
+                "btp_id",
+                "btp_match_ids",
+                "btp_player_ids",
+                "setup",
+                "team1_won",
+                "btp_winner",
+                "btp_score_status",
+                "score_status",
+                "forward_loser",
+                "_id",
+                "_btp_sync_signature"
+              ]
+            },
+            {
+              "resources": [
+                "notification"
+              ],
+              "type": "update_player_status",
+              "id": "btp_default_Singles_120",
+              "direct_change": true,
+              "known_match": true,
+              "unchanged_full_payload": false,
+              "payload_fields": [
+                "match__id",
+                "btp_winner",
+                "setup"
+              ]
+            },
+            {
+              "resources": [
+                "notification"
+              ],
+              "type": "update_player_status",
+              "id": "btp_default_Singles_146",
+              "direct_change": true,
+              "known_match": true,
+              "unchanged_full_payload": false,
+              "payload_fields": [
+                "match__id",
+                "btp_winner",
+                "setup"
+              ]
+            }
+          ],
+          "excluded_count": 25
+        },
+        {
+          "ts": 1791758919315,
+          "scope": {
+            "direct_match_locks": 236,
+            "additional_match_locks": 3,
+            "local_only_changes": 0,
+            "allocation_scope": "full",
+            "expansion_reasons": {
+              "identity": 236,
+              "scheduling": 236
+            },
+            "dependency_matches": {
+              "player": 239
+            },
+            "players": 24,
+            "courts": 0
+          },
+          "changes": 236,
+          "effects": 255,
+          "non_ordering_changes": [],
+          "non_ordering_count": 0,
+          "excluded_effects": [
+            {
+              "resources": [
+                "notification"
+              ],
+              "type": "match_edit",
+              "id": "btp_default_Singles_117",
+              "direct_change": false,
+              "known_match": true,
+              "unchanged_full_payload": true,
+              "payload_fields": [
+                "match__id",
+                "match"
+              ]
+            },
+            {
+              "resources": [
+                "notification"
+              ],
+              "type": "match_edit",
+              "id": "btp_default_Singles_143",
+              "direct_change": false,
+              "known_match": true,
+              "unchanged_full_payload": true,
+              "payload_fields": [
+                "match__id",
+                "match"
+              ]
+            },
+            {
+              "resources": [
+                "notification"
+              ],
+              "type": "match_edit",
+              "id": "btp_default_Singles_169",
+              "direct_change": false,
+              "known_match": true,
+              "unchanged_full_payload": true,
+              "payload_fields": [
+                "match__id",
+                "match"
+              ]
+            },
+            {
+              "resources": [
+                "notification"
+              ],
+              "type": "match_edit",
+              "id": "btp_default_Singles_195",
+              "direct_change": false,
+              "known_match": true,
+              "unchanged_full_payload": true,
+              "payload_fields": [
+                "match__id",
+                "match"
+              ]
+            },
+            {
+              "resources": [
+                "notification"
+              ],
+              "type": "match_edit",
+              "id": "btp_default_Singles_221",
+              "direct_change": false,
+              "known_match": true,
+              "unchanged_full_payload": true,
+              "payload_fields": [
+                "match__id",
+                "match"
+              ]
+            },
+            {
+              "resources": [
+                "notification"
+              ],
+              "type": "match_edit",
+              "id": "btp_default_Singles_247",
+              "direct_change": false,
+              "known_match": true,
+              "unchanged_full_payload": true,
+              "payload_fields": [
+                "match__id",
+                "match"
+              ]
+            }
+          ],
+          "excluded_count": 19
+        }
+      ],
+      "runs": [
+        {
+          "status": "error",
+          "commit": "0a2d630292b4f716fd0c6758d8a1f984c76372d5",
+          "options": {
+            "bts_dir": "/home/tim/repos/bts",
+            "ref": "HEAD",
+            "duration_ms": 30000,
+            "sync_interval_ms": 2000,
+            "count": 519,
+            "point_min_ms": 400,
+            "point_max_ms": 800,
+            "set_points": 7,
+            "workload": "preparation"
+          },
+          "directory": "/tmp/bts-queue-responsiveness-n7Zchv",
+          "started_at": "2026-10-11T22:44:36.463Z",
+          "node_version": "v19.9.0",
+          "cpu": "Intel(R) Core(TM) i7-4770 CPU @ 3.40GHz",
+          "limitations": [
+            "Isolated deterministic 519-game fixture, real durable NeDB and unmodified committed BTS modules.",
+            "Real separate testclient simulates tablets, TV and admin; point interval in options, 13 courts, zero score gap.",
+            "Idle fixture games explicitly set to scheduled before measurement, enabling automatic calls after real finishes.",
+            "Periodic sync uses the actual validated integration planner but updates idle match numbers directly in staging; no periodic BTP TCP/XML fetch/parser.",
+            "Full BTP fixture is used only at bootstrap. No live tournament or server is modified. Officials/tabletoperator allocation disabled.",
+            "Automatic preparation enabled; 26 pairs of players recur across scheduled games, creating real participant dependencies. No winner/loser bracket propagation simulated.",
+            "One explicit unchanged court call during first integration; automatic calls through actual score finishes; free announcements every two seconds.",
+            "Queue samples every 20 ms, diagnostics/traces enabled by normal client. Observer overhead and local machine load included.",
+            "Reception of WebSocket events, no browser painting or audible speech. Limited duration, no capacity guarantee."
+          ],
+          "harness_sha256": {
+            "mixed_queue_benchmark.js": "5590c67a16c652408ffcca59128de6560b5e9d545ee61d5c3ceaa99e09d39b97",
+            "queue_responsiveness/mixed_server.js": "365c0a7f768a4e6da9e6c7e565d50a2090897df60a3d65ae25cd796afcd4301d",
+            "queue_responsiveness/mixed_receiver.js": "1ebd393698da76a1e01bd2375dccefe0d6d48b3d57ea3967a5f7f12a08781719",
+            "queue_responsiveness/instrument.js": "21c9b053f1bcb0558ac9f4887bfad59407c42f369bc5388a898ba146c72671ab",
+            "queue_responsiveness/process.js": "3f75b5ba1e79a86c268f5f1123b7238e032935999579efbc8b758ede2639e5cb",
+            "queue_responsiveness/server.js": "e840fdb71c2bb0df8cf2fcf57b4f3f73dda19b753c0288054816112ff47a2a10",
+            "queue_responsiveness/fixture.js": "e6e28563363e88d24dc973fa665aa4902541f8f0e3313d99e35dde7a2b1727ae",
+            "testclient_bridge.js": "e380e9f02fb70a742990e346cb589e4a31cfa9880f770baf45ca8f1ad08c99e6"
+          },
+          "client_commit": "e36022fee0e20b3c2752273c889b4052723595ad",
+          "client_source_sha256": "787f5b0ebef85d1cc30240429a12af72392259b0984e0de786501e654e7ead9c",
+          "dependency_lock_sha256": "8b396138d41ac4594985e858d7376dc84a554cf789aedf7055a1be6017586a73",
+          "summary": {
+            "drained": true,
+            "syncs": 16,
+            "finished_syncs": 16,
+            "sync_stage_start_ms": {
+              "count": 16,
+              "mean": 38.43559725,
+              "median": 26.33445,
+              "p95": 152.94532,
+              "max": 152.94532
+            },
+            "sync_total_ms": {
+              "count": 16,
+              "mean": 395.90788925,
+              "median": 357.483873,
+              "p95": 938.080609,
+              "max": 938.080609
+            },
+            "points": 328,
+            "tablet_to_tv_ms": {
+              "count": 328,
+              "mean": 12.3,
+              "min": 4,
+              "p50": 10,
+              "p95": 25,
+              "p99": 36,
+              "max": 58,
+              "over_50_ms": 1,
+              "over_100_ms": 0,
+              "over_200_ms": 0,
+              "sent_updates": 328,
+              "unmatched_updates": 0,
+              "coverage": 1
+            },
+            "tablet_to_admin_ms": {
+              "count": 328,
+              "mean": 7.3,
+              "min": 2,
+              "p50": 6,
+              "p95": 16,
+              "p99": 24,
+              "max": 30,
+              "over_50_ms": 0,
+              "over_100_ms": 0,
+              "over_200_ms": 0,
+              "sent_updates": 328,
+              "unmatched_updates": 0,
+              "coverage": 1
+            },
+            "finished_matches": 0,
+            "oncourt_matches": 13,
+            "call_events": 1,
+            "preparation_events": 0,
+            "preparation_calculation_ms": {
+              "count": 0,
+              "mean": null,
+              "median": null,
+              "p95": null,
+              "max": null
+            },
+            "free_announce_ms": {
+              "count": 16,
+              "mean": 3.277833375,
+              "median": 0.700596,
+              "p95": 38.203578,
+              "max": 38.203578
+            },
+            "call_ms": {
+              "count": 1,
+              "mean": 11.904678,
+              "median": 11.904678,
+              "p95": 11.904678,
+              "max": 11.904678
+            },
+            "unanswered": 0,
+            "windows": [
+              {
+                "third": 1,
+                "samples": 501,
+                "pending": {
+                  "count": 501,
+                  "mean": 0.027944111776447105,
+                  "median": 0,
+                  "p95": 0,
+                  "max": 2
+                },
+                "oldest_pending_ms": {
+                  "count": 501,
+                  "mean": 2.2485935568862274,
+                  "median": 0,
+                  "p95": 0,
+                  "max": 240.053022
+                },
+                "database_pending": {
+                  "count": 501,
+                  "mean": 0.4411177644710579,
+                  "median": 0,
+                  "p95": 2,
+                  "max": 13
+                },
+                "unfinished_syncs": {
+                  "count": 102,
+                  "mean": 0.24509803921568626,
+                  "median": 0,
+                  "p95": 1,
+                  "max": 1
+                },
+                "oldest_sync_ms": {
+                  "count": 102,
+                  "mean": 64.88600210784315,
+                  "median": 0,
+                  "p95": 343.335481,
+                  "max": 806.467972
+                }
+              },
+              {
+                "third": 2,
+                "samples": 503,
+                "pending": {
+                  "count": 503,
+                  "mean": 0.0019880715705765406,
+                  "median": 0,
+                  "p95": 0,
+                  "max": 1
+                },
+                "oldest_pending_ms": {
+                  "count": 503,
+                  "mean": 0.00048592842942345925,
+                  "median": 0,
+                  "p95": 0,
+                  "max": 0.244422
+                },
+                "database_pending": {
+                  "count": 503,
+                  "mean": 0.24055666003976142,
+                  "median": 0,
+                  "p95": 1,
+                  "max": 8
+                },
+                "unfinished_syncs": {
+                  "count": 103,
+                  "mean": 0.1553398058252427,
+                  "median": 0,
+                  "p95": 1,
+                  "max": 1
+                },
+                "oldest_sync_ms": {
+                  "count": 103,
+                  "mean": 26.279986592233012,
+                  "median": 0,
+                  "p95": 230.926003,
+                  "max": 345.87527
+                }
+              },
+              {
+                "third": 3,
+                "samples": 501,
+                "pending": {
+                  "count": 501,
+                  "mean": 0.003992015968063872,
+                  "median": 0,
+                  "p95": 0,
+                  "max": 1
+                },
+                "oldest_pending_ms": {
+                  "count": 501,
+                  "mean": 0.0012940538922155687,
+                  "median": 0,
+                  "p95": 0,
+                  "max": 0.375538
+                },
+                "database_pending": {
+                  "count": 501,
+                  "mean": 0.3073852295409182,
+                  "median": 0,
+                  "p95": 1,
+                  "max": 25
+                },
+                "unfinished_syncs": {
+                  "count": 103,
+                  "mean": 0.1553398058252427,
+                  "median": 0,
+                  "p95": 1,
+                  "max": 1
+                },
+                "oldest_sync_ms": {
+                  "count": 103,
+                  "mean": 26.041862961165045,
+                  "median": 0,
+                  "p95": 222.577487,
+                  "max": 350.962783
+                }
+              }
+            ],
+            "event_loop": {
+              "measured": true,
+              "max_ms": 53.968895,
+              "p95_ms": 12.443647
+            },
+            "processing_errors": 0,
+            "point_queue_wait_ms": {
+              "count": 656,
+              "mean": 0.5340993277439028,
+              "median": 0.41027,
+              "p95": 1.047641,
+              "max": 9.798685
+            }
+          },
+          "error": "No active preparation measured",
+          "finished_at": "2026-10-11T22:45:09.494Z"
+        },
+        {
+          "status": "error",
+          "commit": "0a2d630292b4f716fd0c6758d8a1f984c76372d5",
+          "options": {
+            "bts_dir": "/home/tim/repos/bts",
+            "ref": "HEAD",
+            "duration_ms": 30000,
+            "sync_interval_ms": 2000,
+            "count": 519,
+            "point_min_ms": 100,
+            "point_max_ms": 200,
+            "set_points": 21,
+            "workload": "preparation"
+          },
+          "directory": "/tmp/bts-queue-responsiveness-KGeTjG",
+          "started_at": "2026-10-11T22:45:55.054Z",
+          "node_version": "v19.9.0",
+          "cpu": "Intel(R) Core(TM) i7-4770 CPU @ 3.40GHz",
+          "limitations": [
+            "Isolated deterministic 519-game fixture, real durable NeDB and unmodified committed BTS modules.",
+            "Real separate testclient simulates tablets, TV and admin; point interval in options, 13 courts, zero score gap.",
+            "Idle fixture games explicitly set to scheduled before measurement, enabling automatic calls after real finishes.",
+            "Periodic sync uses the actual validated integration planner but updates idle match numbers directly in staging; no periodic BTP TCP/XML fetch/parser.",
+            "Full BTP fixture is used only at bootstrap. No live tournament or server is modified. Officials/tabletoperator allocation disabled.",
+            "Automatic preparation enabled; 26 pairs of players recur across scheduled games, creating real participant dependencies. No winner/loser bracket propagation simulated.",
+            "One explicit unchanged court call during first integration; automatic calls through actual score finishes; free announcements every two seconds.",
+            "Queue samples every 20 ms, diagnostics/traces enabled by normal client. Observer overhead and local machine load included.",
+            "Reception of WebSocket events, no browser painting or audible speech. Limited duration, no capacity guarantee."
+          ],
+          "harness_sha256": {
+            "mixed_queue_benchmark.js": "5590c67a16c652408ffcca59128de6560b5e9d545ee61d5c3ceaa99e09d39b97",
+            "queue_responsiveness/mixed_server.js": "365c0a7f768a4e6da9e6c7e565d50a2090897df60a3d65ae25cd796afcd4301d",
+            "queue_responsiveness/mixed_receiver.js": "1ebd393698da76a1e01bd2375dccefe0d6d48b3d57ea3967a5f7f12a08781719",
+            "queue_responsiveness/instrument.js": "21c9b053f1bcb0558ac9f4887bfad59407c42f369bc5388a898ba146c72671ab",
+            "queue_responsiveness/process.js": "3f75b5ba1e79a86c268f5f1123b7238e032935999579efbc8b758ede2639e5cb",
+            "queue_responsiveness/server.js": "e840fdb71c2bb0df8cf2fcf57b4f3f73dda19b753c0288054816112ff47a2a10",
+            "queue_responsiveness/fixture.js": "e6e28563363e88d24dc973fa665aa4902541f8f0e3313d99e35dde7a2b1727ae",
+            "testclient_bridge.js": "e380e9f02fb70a742990e346cb589e4a31cfa9880f770baf45ca8f1ad08c99e6"
+          },
+          "client_commit": "e36022fee0e20b3c2752273c889b4052723595ad",
+          "client_source_sha256": "787f5b0ebef85d1cc30240429a12af72392259b0984e0de786501e654e7ead9c",
+          "dependency_lock_sha256": "8b396138d41ac4594985e858d7376dc84a554cf789aedf7055a1be6017586a73",
+          "summary": {
+            "drained": true,
+            "syncs": 16,
+            "finished_syncs": 16,
+            "sync_stage_start_ms": {
+              "count": 16,
+              "mean": 38.05454668750001,
+              "median": 30.796472,
+              "p95": 148.566896,
+              "max": 148.566896
+            },
+            "sync_total_ms": {
+              "count": 16,
+              "mean": 415.33935168749997,
+              "median": 348.450979,
+              "p95": 1042.073444,
+              "max": 1042.073444
+            },
+            "points": 425,
+            "tablet_to_tv_ms": {
+              "count": 425,
+              "mean": 14.3,
+              "min": 5,
+              "p50": 13,
+              "p95": 27,
+              "p99": 37,
+              "max": 52,
+              "over_50_ms": 1,
+              "over_100_ms": 0,
+              "over_200_ms": 0,
+              "sent_updates": 425,
+              "unmatched_updates": 0,
+              "coverage": 1
+            },
+            "tablet_to_admin_ms": {
+              "count": 425,
+              "mean": 8.5,
+              "min": 2,
+              "p50": 7,
+              "p95": 17,
+              "p99": 23,
+              "max": 28,
+              "over_50_ms": 0,
+              "over_100_ms": 0,
+              "over_200_ms": 0,
+              "sent_updates": 425,
+              "unmatched_updates": 0,
+              "coverage": 1
+            },
+            "finished_matches": 0,
+            "oncourt_matches": 13,
+            "call_events": 1,
+            "preparation_events": 0,
+            "preparation_calculation_ms": {
+              "count": 0,
+              "mean": null,
+              "median": null,
+              "p95": null,
+              "max": null
+            },
+            "free_announce_ms": {
+              "count": 15,
+              "mean": 3.7009878,
+              "median": 0.648025,
+              "p95": 34.392635,
+              "max": 34.392635
+            },
+            "call_ms": {
+              "count": 1,
+              "mean": 12.181286,
+              "median": 12.181286,
+              "p95": 12.181286,
+              "max": 12.181286
+            },
+            "unanswered": 0,
+            "windows": [
+              {
+                "third": 1,
+                "samples": 490,
+                "pending": {
+                  "count": 490,
+                  "mean": 0.04081632653061224,
+                  "median": 0,
+                  "p95": 0,
+                  "max": 2
+                },
+                "oldest_pending_ms": {
+                  "count": 490,
+                  "mean": 4.127014087755102,
+                  "median": 0,
+                  "p95": 0,
+                  "max": 310.862533
+                },
+                "database_pending": {
+                  "count": 490,
+                  "mean": 0.6510204081632653,
+                  "median": 0,
+                  "p95": 3,
+                  "max": 18
+                },
+                "unfinished_syncs": {
+                  "count": 101,
+                  "mean": 0.26732673267326734,
+                  "median": 0,
+                  "p95": 1,
+                  "max": 1
+                },
+                "oldest_sync_ms": {
+                  "count": 101,
+                  "mean": 82.31155558415841,
+                  "median": 0,
+                  "p95": 504.139849,
+                  "max": 904.825937
+                }
+              },
+              {
+                "third": 2,
+                "samples": 493,
+                "pending": {
+                  "count": 493,
+                  "mean": 0.004056795131845842,
+                  "median": 0,
+                  "p95": 0,
+                  "max": 1
+                },
+                "oldest_pending_ms": {
+                  "count": 493,
+                  "mean": 0.0011342413793103447,
+                  "median": 0,
+                  "p95": 0,
+                  "max": 0.311121
+                },
+                "database_pending": {
+                  "count": 493,
+                  "mean": 0.2515212981744422,
+                  "median": 0,
+                  "p95": 1,
+                  "max": 8
+                },
+                "unfinished_syncs": {
+                  "count": 101,
+                  "mean": 0.16831683168316833,
+                  "median": 0,
+                  "p95": 1,
+                  "max": 1
+                },
+                "oldest_sync_ms": {
+                  "count": 101,
+                  "mean": 26.420063534653462,
+                  "median": 0,
+                  "p95": 209.391038,
+                  "max": 305.098214
+                }
+              },
+              {
+                "third": 3,
+                "samples": 494,
+                "pending": {
+                  "count": 494,
+                  "mean": 0.0020242914979757085,
+                  "median": 0,
+                  "p95": 0,
+                  "max": 1
+                },
+                "oldest_pending_ms": {
+                  "count": 494,
+                  "mean": 0.0014613603238866396,
+                  "median": 0,
+                  "p95": 0,
+                  "max": 0.721912
+                },
+                "database_pending": {
+                  "count": 494,
+                  "mean": 0.3360323886639676,
+                  "median": 0,
+                  "p95": 3,
+                  "max": 25
+                },
+                "unfinished_syncs": {
+                  "count": 102,
+                  "mean": 0.17647058823529413,
+                  "median": 0,
+                  "p95": 1,
+                  "max": 1
+                },
+                "oldest_sync_ms": {
+                  "count": 102,
+                  "mean": 30.637797637254906,
+                  "median": 0,
+                  "p95": 218.313363,
+                  "max": 381.122037
+                }
+              }
+            ],
+            "event_loop": {
+              "measured": true,
+              "max_ms": 55.607295,
+              "p95_ms": 12.197887
+            },
+            "processing_errors": 0,
+            "point_queue_wait_ms": {
+              "count": 850,
+              "mean": 0.5565702647058818,
+              "median": 0.482219,
+              "p95": 1.14264,
+              "max": 3.596113
+            }
+          },
+          "error": "No active preparation measured",
+          "finished_at": "2026-10-11T22:46:27.692Z"
+        },
+        {
+          "status": "completed",
+          "commit": "0a2d630292b4f716fd0c6758d8a1f984c76372d5",
+          "options": {
+            "bts_dir": "/home/tim/repos/bts",
+            "ref": "HEAD",
+            "duration_ms": 90000,
+            "sync_interval_ms": 2000,
+            "count": 519,
+            "point_min_ms": 400,
+            "point_max_ms": 800,
+            "set_points": 21,
+            "workload": "preparation"
+          },
+          "directory": "/tmp/bts-queue-responsiveness-46gKEV",
+          "started_at": "2026-10-11T22:47:08.212Z",
+          "node_version": "v19.9.0",
+          "cpu": "Intel(R) Core(TM) i7-4770 CPU @ 3.40GHz",
+          "limitations": [
+            "Isolated deterministic 519-game fixture, real durable NeDB and unmodified committed BTS modules.",
+            "Real separate testclient simulates tablets, TV and admin; point interval in options, 13 courts, zero score gap.",
+            "Idle fixture games explicitly set to scheduled before measurement, enabling automatic calls after real finishes.",
+            "Periodic sync uses the actual validated integration planner but updates idle match numbers directly in staging; no periodic BTP TCP/XML fetch/parser.",
+            "Full BTP fixture is used only at bootstrap. No live tournament or server is modified. Officials/tabletoperator allocation disabled.",
+            "Automatic preparation enabled; 26 pairs of players recur across scheduled games, creating real participant dependencies. No winner/loser bracket propagation simulated.",
+            "One explicit unchanged court call during first integration; automatic calls through actual score finishes; free announcements every two seconds.",
+            "Queue samples every 20 ms, diagnostics/traces enabled by normal client. Observer overhead and local machine load included.",
+            "Reception of WebSocket events, no browser painting or audible speech. Limited duration, no capacity guarantee."
+          ],
+          "harness_sha256": {
+            "mixed_queue_benchmark.js": "5590c67a16c652408ffcca59128de6560b5e9d545ee61d5c3ceaa99e09d39b97",
+            "queue_responsiveness/mixed_server.js": "365c0a7f768a4e6da9e6c7e565d50a2090897df60a3d65ae25cd796afcd4301d",
+            "queue_responsiveness/mixed_receiver.js": "1ebd393698da76a1e01bd2375dccefe0d6d48b3d57ea3967a5f7f12a08781719",
+            "queue_responsiveness/instrument.js": "21c9b053f1bcb0558ac9f4887bfad59407c42f369bc5388a898ba146c72671ab",
+            "queue_responsiveness/process.js": "3f75b5ba1e79a86c268f5f1123b7238e032935999579efbc8b758ede2639e5cb",
+            "queue_responsiveness/server.js": "e840fdb71c2bb0df8cf2fcf57b4f3f73dda19b753c0288054816112ff47a2a10",
+            "queue_responsiveness/fixture.js": "e6e28563363e88d24dc973fa665aa4902541f8f0e3313d99e35dde7a2b1727ae",
+            "testclient_bridge.js": "e380e9f02fb70a742990e346cb589e4a31cfa9880f770baf45ca8f1ad08c99e6"
+          },
+          "client_commit": "e36022fee0e20b3c2752273c889b4052723595ad",
+          "client_source_sha256": "787f5b0ebef85d1cc30240429a12af72392259b0984e0de786501e654e7ead9c",
+          "dependency_lock_sha256": "8b396138d41ac4594985e858d7376dc84a554cf789aedf7055a1be6017586a73",
+          "summary": {
+            "drained": true,
+            "syncs": 45,
+            "finished_syncs": 45,
+            "sync_stage_start_ms": {
+              "count": 45,
+              "mean": 478.29906195555554,
+              "median": 35.337491,
+              "p95": 4336.082549,
+              "max": 6611.809395
+            },
+            "sync_total_ms": {
+              "count": 45,
+              "mean": 1090.6630886,
+              "median": 397.990942,
+              "p95": 6325.766129,
+              "max": 9514.912454
+            },
+            "points": 923,
+            "tablet_to_tv_ms": {
+              "count": 919,
+              "mean": 70.9,
+              "min": 4,
+              "p50": 12,
+              "p95": 103,
+              "p99": 1319,
+              "max": 2720,
+              "over_50_ms": 61,
+              "over_100_ms": 47,
+              "over_200_ms": 43,
+              "sent_updates": 928,
+              "unmatched_updates": 9,
+              "coverage": 0.99
+            },
+            "tablet_to_admin_ms": {
+              "count": 926,
+              "mean": 66.3,
+              "min": 2,
+              "p50": 7,
+              "p95": 66,
+              "p99": 1324,
+              "max": 1463,
+              "over_50_ms": 52,
+              "over_100_ms": 44,
+              "over_200_ms": 44,
+              "sent_updates": 928,
+              "unmatched_updates": 2,
+              "coverage": 0.998
+            },
+            "finished_matches": 3,
+            "oncourt_matches": 13,
+            "call_events": 4,
+            "preparation_events": 4,
+            "preparation_calculation_ms": {
+              "count": 24,
+              "mean": 31.574172875,
+              "median": 29.978962,
+              "p95": 50.44022,
+              "max": 56.742941
+            },
+            "free_announce_ms": {
+              "count": 46,
+              "mean": 68.41440810869564,
+              "median": 0.727358,
+              "p95": 682.87846,
+              "max": 1117.041343
+            },
+            "call_ms": {
+              "count": 1,
+              "mean": 12.232864,
+              "median": 12.232864,
+              "p95": 12.232864,
+              "max": 12.232864
+            },
+            "unanswered": 0,
+            "windows": [
+              {
+                "third": 1,
+                "samples": 1468,
+                "pending": {
+                  "count": 1468,
+                  "mean": 0.01634877384196185,
+                  "median": 0,
+                  "p95": 0,
+                  "max": 2
+                },
+                "oldest_pending_ms": {
+                  "count": 1468,
+                  "mean": 0.7607792935967302,
+                  "median": 0,
+                  "p95": 0,
+                  "max": 248.2862
+                },
+                "database_pending": {
+                  "count": 1468,
+                  "mean": 0.358991825613079,
+                  "median": 0,
+                  "p95": 3,
+                  "max": 14
+                },
+                "unfinished_syncs": {
+                  "count": 302,
+                  "mean": 0.19536423841059603,
+                  "median": 0,
+                  "p95": 1,
+                  "max": 1
+                },
+                "oldest_sync_ms": {
+                  "count": 302,
+                  "mean": 41.4226757549669,
+                  "median": 0,
+                  "p95": 276.184385,
+                  "max": 804.352526
+                }
+              },
+              {
+                "third": 2,
+                "samples": 1469,
+                "pending": {
+                  "count": 1469,
+                  "mean": 0.004765146358066712,
+                  "median": 0,
+                  "p95": 0,
+                  "max": 1
+                },
+                "oldest_pending_ms": {
+                  "count": 1469,
+                  "mean": 0.002400510551395507,
+                  "median": 0,
+                  "p95": 0,
+                  "max": 0.763559
+                },
+                "database_pending": {
+                  "count": 1469,
+                  "mean": 0.2226004084411164,
+                  "median": 0,
+                  "p95": 1,
+                  "max": 8
+                },
+                "unfinished_syncs": {
+                  "count": 303,
+                  "mean": 0.18151815181518152,
+                  "median": 0,
+                  "p95": 1,
+                  "max": 1
+                },
+                "oldest_sync_ms": {
+                  "count": 303,
+                  "mean": 33.7834615379538,
+                  "median": 0,
+                  "p95": 268.049184,
+                  "max": 507.911224
+                }
+              },
+              {
+                "third": 3,
+                "samples": 1038,
+                "pending": {
+                  "count": 1038,
+                  "mean": 0.055876685934489405,
+                  "median": 0,
+                  "p95": 0,
+                  "max": 2
+                },
+                "oldest_pending_ms": {
+                  "count": 1038,
+                  "mean": 1.7585484412331407,
+                  "median": 0,
+                  "p95": 0,
+                  "max": 227.80774
+                },
+                "database_pending": {
+                  "count": 1038,
+                  "mean": 0.6705202312138728,
+                  "median": 0,
+                  "p95": 4,
+                  "max": 34
+                },
+                "unfinished_syncs": {
+                  "count": 221,
+                  "mean": 0.7692307692307693,
+                  "median": 0,
+                  "p95": 4,
+                  "max": 4
+                },
+                "oldest_sync_ms": {
+                  "count": 221,
+                  "mean": 1251.856729728507,
+                  "median": 0,
+                  "p95": 6997.077094,
+                  "max": 9456.830596
+                }
+              }
+            ],
+            "event_loop": {
+              "measured": true,
+              "max_ms": 1351.614463,
+              "p95_ms": 13.082623
+            },
+            "processing_errors": 0,
+            "point_queue_wait_ms": {
+              "count": 1911,
+              "mean": 2.18297744217687,
+              "median": 0.533236,
+              "p95": 8.293112,
+              "max": 262.594721
+            }
+          },
+          "artifacts": {
+            "server": "/tmp/bts-queue-responsiveness-46gKEV/mixed/server-result.json",
+            "client": "/tmp/bts-queue-responsiveness-46gKEV/mixed/client-result.json",
+            "probes": "/tmp/bts-queue-responsiveness-46gKEV/mixed/probe-result.json"
+          },
+          "finished_at": "2026-10-11T22:48:41.847Z"
+        }
+      ],
+      "observer_applied_to_standard_after_run": false
+    },
+    "counterfactual": {
+      "report": {
+        "baseline_commit": "0a2d630292b4f716fd0c6758d8a1f984c76372d5",
+        "root": "/tmp/bts-notification-regression-qzdxutd6",
+        "exit_code": 2,
+        "expected_failures": 2,
+        "log": "/tmp/bts-notification-regression-qzdxutd6/old-final.log",
+        "final_log": "/tmp/bts-notification-regression-qzdxutd6/old-final.log",
+        "initial_log": "/tmp/bts-notification-regression-qzdxutd6/old.log",
+        "explicit_finish_wait_failure": true
+      },
+      "old_failure_log": "\n\n  ordering plans with unchanged match notifications\n    1) keeps a pure ordering plan narrow for an unchanged full match, wrapper or canonical ID\n    ✓ rejects missing, changed, mismatched or opaque notification targets\n    ✓ retains assignment, check-in, result, bye and unknown-field protection\n    2) finishes a real tablet game during ordering apply and refreshes the unchanged notification from stored data\n\n\n  2 passing (2s)\n  2 failing\n\n  1) ordering plans with unchanged match notifications\n       keeps a pure ordering plan narrow for an unchanged full match, wrapper or canonical ID:\n\n      AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ 'full'\n- 'ordering_only'\n      + expected - actual\n\n      -full\n      +ordering_only\n      \n      at Context.<anonymous> (test/test_ordering_unchanged_notifications.js:40:11)\n      at process.processImmediate (node:internal/timers:478:21)\n\n  2) ordering plans with unchanged match notifications\n       finishes a real tablet game during ordering apply and refreshes the unchanged notification from stored data:\n     Error: Finish waited for a read-only notification\n      at Timeout.<anonymous> (test/test_ordering_unchanged_notifications.js:30:111)\n      at listOnTimeout (node:internal/timers:573:17)\n      at process.processTimers (node:internal/timers:514:7)\n\n\n\n"
+    },
+    "validation": {
+      "fullsuite_passing": 802,
+      "fullsuite_log": "/tmp/bts-unchanged-notifications-full.log",
+      "final_targeted_passing": 22,
+      "final_targeted_log": "/tmp/bts-unchanged-notifications-targeted-final.log",
+      "initial_targeted_passing": 101,
+      "initial_targeted_log": "/tmp/bts-unchanged-notifications-targeted.log",
+      "lint": "all changed JS files and tests passed",
+      "git_diff_check": "passed"
+    },
+    "slow_receptions": [
+      {
+        "trace_id": "live-drill-1351600-mv4fa67w-925",
+        "sent_ts": 1791759396092,
+        "court_id": "default_5",
+        "match_id": "btp_default_Singles_5",
+        "admin_ms": 26,
+        "admin_received_ts": 1791759396118,
+        "tv_ms": 109,
+        "tv_received_ts": 1791759396201
+      }
+    ],
+    "slow_score_traces": [
+      {
+        "id": 1123,
+        "session": 1,
+        "name": "handle_score_update_v2",
+        "type": "point",
+        "trace_id": "live-drill-1351600-mv4fa67w-925",
+        "tournament_key": "default",
+        "court_id": "default_5",
+        "match_id": "btp_default_Singles_5",
+        "start_ts": 1791759396107,
+        "status": "ok",
+        "spans": [
+          {
+            "id": 1,
+            "parent_id": null,
+            "name": "handle_score_update_v2",
+            "kind": "lock_wait",
+            "start_ts": 1791759396107,
+            "status": "ok",
+            "held_locks": [],
+            "locks": [
+              "court:default:default_5",
+              "match:default:btp_default_Singles_5"
+            ],
+            "queue_id": 1048,
+            "offset_ms": 0,
+            "blockers": [],
+            "ts": 1791759396109,
+            "duration_ms": 1.4
+          },
+          {
+            "id": 2,
+            "parent_id": null,
+            "name": "handle_score_update_v2",
+            "kind": "lock_hold",
+            "start_ts": 1791759396109,
+            "status": "ok",
+            "held_locks": [],
+            "locks": [
+              "court:default:default_5",
+              "match:default:btp_default_Singles_5"
+            ],
+            "queue_id": 1048,
+            "offset_ms": 2,
+            "ts": 1791759396125,
+            "duration_ms": 16.7
+          },
+          {
+            "id": 3,
+            "parent_id": 2,
+            "name": "owner_check",
+            "kind": "phase",
+            "start_ts": 1791759396114,
+            "status": "ok",
+            "held_locks": [
+              "court:default:default_5",
+              "match:default:btp_default_Singles_5"
+            ],
+            "skipped": false,
+            "offset_ms": 7,
+            "ts": 1791759396114,
+            "duration_ms": 0
+          },
+          {
+            "id": 4,
+            "parent_id": 2,
+            "name": "duplicate_check",
+            "kind": "phase",
+            "start_ts": 1791759396113.9,
+            "status": "ok",
+            "held_locks": [
+              "court:default:default_5",
+              "match:default:btp_default_Singles_5"
+            ],
+            "skipped": false,
+            "offset_ms": 6.89990234375,
+            "ts": 1791759396114,
+            "duration_ms": 0.1
+          },
+          {
+            "id": 5,
+            "parent_id": 2,
+            "name": "matches:score_context_match",
+            "kind": "db_wait",
+            "start_ts": 1791759396114,
+            "status": "ok",
+            "held_locks": [
+              "court:default:default_5",
+              "match:default:btp_default_Singles_5"
+            ],
+            "queue_id": "matches:15640",
+            "blockers": [],
+            "offset_ms": 7,
+            "ts": 1791759396116,
+            "duration_ms": 1.3
+          },
+          {
+            "id": 6,
+            "parent_id": 2,
+            "name": "tournaments:score_context_tournament",
+            "kind": "db_wait",
+            "start_ts": 1791759396114,
+            "status": "ok",
+            "held_locks": [
+              "court:default:default_5",
+              "match:default:btp_default_Singles_5"
+            ],
+            "queue_id": "tournaments:2505",
+            "blockers": [
+              {
+                "id": 2504,
+                "task": "tournaments:findOne",
+                "state": "active",
+                "locks": [
+                  "db:tournaments:"
+                ],
+                "conflicting_locks": [
+                  "db:tournaments:"
+                ],
+                "operation_id": 1120,
+                "trace_id": "live-drill-1351600-mv4fa64s-922",
+                "phase": "running",
+                "elapsed_ms": 0,
+                "persistence_kind": null
+              }
+            ],
+            "offset_ms": 7,
+            "ts": 1791759396116,
+            "duration_ms": 1.9
+          },
+          {
+            "id": 7,
+            "parent_id": 2,
+            "name": "courts:score_context_court",
+            "kind": "db_wait",
+            "start_ts": 1791759396114,
+            "status": "ok",
+            "held_locks": [
+              "court:default:default_5",
+              "match:default:btp_default_Singles_5"
+            ],
+            "queue_id": "courts:2370",
+            "blockers": [],
+            "offset_ms": 7,
+            "ts": 1791759396116,
+            "duration_ms": 1.4
+          },
+          {
+            "id": 8,
+            "parent_id": 2,
+            "name": "matches:score_context_match",
+            "kind": "db_run",
+            "start_ts": 1791759396116,
+            "status": "ok",
+            "held_locks": [
+              "court:default:default_5",
+              "match:default:btp_default_Singles_5"
+            ],
+            "offset_ms": 9,
+            "before_callback_ms": 0.2,
+            "callback_ms": 0,
+            "persistence_ms": null,
+            "ts": 1791759396116,
+            "duration_ms": 0.1
+          },
+          {
+            "id": 9,
+            "parent_id": 2,
+            "name": "load_context_match",
+            "kind": "phase",
+            "start_ts": 1791759396114.5,
+            "status": "ok",
+            "held_locks": [
+              "court:default:default_5",
+              "match:default:btp_default_Singles_5"
+            ],
+            "skipped": false,
+            "offset_ms": 7.5,
+            "ts": 1791759396116,
+            "duration_ms": 1.5
+          },
+          {
+            "id": 10,
+            "parent_id": 2,
+            "name": "courts:score_context_court",
+            "kind": "db_run",
+            "start_ts": 1791759396116,
+            "status": "ok",
+            "held_locks": [
+              "court:default:default_5",
+              "match:default:btp_default_Singles_5"
+            ],
+            "offset_ms": 9,
+            "before_callback_ms": 0.1,
+            "callback_ms": 0,
+            "persistence_ms": null,
+            "ts": 1791759396116,
+            "duration_ms": 0.1
+          },
+          {
+            "id": 11,
+            "parent_id": 2,
+            "name": "load_context_court",
+            "kind": "phase",
+            "start_ts": 1791759396114.4,
+            "status": "ok",
+            "held_locks": [
+              "court:default:default_5",
+              "match:default:btp_default_Singles_5"
+            ],
+            "skipped": false,
+            "offset_ms": 7.39990234375,
+            "ts": 1791759396116,
+            "duration_ms": 1.6
+          },
+          {
+            "id": 12,
+            "parent_id": 2,
+            "name": "tournaments:score_context_tournament",
+            "kind": "db_run",
+            "start_ts": 1791759396116,
+            "status": "ok",
+            "held_locks": [
+              "court:default:default_5",
+              "match:default:btp_default_Singles_5"
+            ],
+            "offset_ms": 9,
+            "before_callback_ms": 0.1,
+            "callback_ms": 0,
+            "persistence_ms": null,
+            "ts": 1791759396116,
+            "duration_ms": 0
+          },
+          {
+            "id": 13,
+            "parent_id": 2,
+            "name": "load_context_tournament",
+            "kind": "phase",
+            "start_ts": 1791759396114,
+            "status": "ok",
+            "held_locks": [
+              "court:default:default_5",
+              "match:default:btp_default_Singles_5"
+            ],
+            "skipped": false,
+            "offset_ms": 7,
+            "ts": 1791759396116,
+            "duration_ms": 2
+          },
+          {
+            "id": 14,
+            "parent_id": 2,
+            "name": "load_context",
+            "kind": "phase",
+            "start_ts": 1791759396113.9,
+            "status": "ok",
+            "held_locks": [
+              "court:default:default_5",
+              "match:default:btp_default_Singles_5"
+            ],
+            "skipped": false,
+            "offset_ms": 6.89990234375,
+            "ts": 1791759396116,
+            "duration_ms": 2.1
+          },
+          {
+            "id": 15,
+            "parent_id": 2,
+            "name": "validate",
+            "kind": "phase",
+            "start_ts": 1791759396115.9,
+            "status": "ok",
+            "held_locks": [
+              "court:default:default_5",
+              "match:default:btp_default_Singles_5"
+            ],
+            "skipped": false,
+            "offset_ms": 8.89990234375,
+            "ts": 1791759396116,
+            "duration_ms": 0.1
+          },
+          {
+            "id": 16,
+            "parent_id": 2,
+            "name": "build_update",
+            "kind": "phase",
+            "start_ts": 1791759396116,
+            "status": "ok",
+            "held_locks": [
+              "court:default:default_5",
+              "match:default:btp_default_Singles_5"
+            ],
+            "skipped": false,
+            "offset_ms": 9,
+            "ts": 1791759396116,
+            "duration_ms": 0
+          },
+          {
+            "id": 17,
+            "parent_id": 2,
+            "name": "matches:fn",
+            "kind": "db_wait",
+            "start_ts": 1791759396117,
+            "status": "ok",
+            "held_locks": [
+              "court:default:default_5",
+              "match:default:btp_default_Singles_5"
+            ],
+            "queue_id": "matches:15641",
+            "blockers": [],
+            "offset_ms": 10,
+            "ts": 1791759396117,
+            "duration_ms": 0.1
+          },
+          {
+            "id": 18,
+            "parent_id": 2,
+            "name": "matches:fn",
+            "kind": "db_run",
+            "start_ts": 1791759396117,
+            "status": "ok",
+            "held_locks": [
+              "court:default:default_5",
+              "match:default:btp_default_Singles_5"
+            ],
+            "offset_ms": 10,
+            "before_callback_ms": 0.9,
+            "callback_ms": 0.8,
+            "persistence_kind": "append",
+            "persistence_ms": 0.4,
+            "ts": 1791759396118,
+            "duration_ms": 1.7
+          },
+          {
+            "id": 19,
+            "parent_id": 2,
+            "name": "db_update_match",
+            "kind": "phase",
+            "start_ts": 1791759396116.9,
+            "status": "ok",
+            "held_locks": [
+              "court:default:default_5",
+              "match:default:btp_default_Singles_5"
+            ],
+            "skipped": false,
+            "offset_ms": 9.89990234375,
+            "ts": 1791759396118,
+            "duration_ms": 1
+          },
+          {
+            "id": 20,
+            "parent_id": 2,
+            "name": "tournaments:findOne",
+            "kind": "db_wait",
+            "start_ts": 1791759396118,
+            "status": "ok",
+            "held_locks": [
+              "court:default:default_5",
+              "match:default:btp_default_Singles_5"
+            ],
+            "queue_id": "tournaments:2506",
+            "blockers": [],
+            "offset_ms": 11,
+            "ts": 1791759396118,
+            "duration_ms": 0.8
+          },
+          {
+            "id": 21,
+            "parent_id": 2,
+            "name": "admin_update_encode",
+            "kind": "encoding",
+            "start_ts": 1791759396118,
+            "status": "ok",
+            "held_locks": [
+              "court:default:default_5",
+              "match:default:btp_default_Singles_5"
+            ],
+            "offset_ms": 11,
+            "ts": 1791759396118,
+            "duration_ms": 0
+          },
+          {
+            "id": 22,
+            "parent_id": 2,
+            "name": "admin:score",
+            "kind": "send_wait",
+            "start_ts": 1791759396118,
+            "status": "ok",
+            "held_locks": [
+              "court:default:default_5",
+              "match:default:btp_default_Singles_5"
+            ],
+            "offset_ms": 11,
+            "ts": 1791759396118,
+            "duration_ms": 0
+          },
+          {
+            "id": 23,
+            "parent_id": 2,
+            "name": "admin:message",
+            "kind": "send_enqueue",
+            "start_ts": 1791759396118,
+            "status": "ok",
+            "held_locks": [
+              "court:default:default_5",
+              "match:default:btp_default_Singles_5"
+            ],
+            "offset_ms": 11,
+            "ts": 1791759396118,
+            "duration_ms": 0.1
+          },
+          {
+            "id": 24,
+            "parent_id": 2,
+            "name": "admin_update_encode",
+            "kind": "encoding",
+            "start_ts": 1791759396118,
+            "status": "ok",
+            "held_locks": [
+              "court:default:default_5",
+              "match:default:btp_default_Singles_5"
+            ],
+            "offset_ms": 11,
+            "ts": 1791759396118,
+            "duration_ms": 0
+          },
+          {
+            "id": 25,
+            "parent_id": 2,
+            "name": "admin:score",
+            "kind": "send_wait",
+            "start_ts": 1791759396118,
+            "status": "ok",
+            "held_locks": [
+              "court:default:default_5",
+              "match:default:btp_default_Singles_5"
+            ],
+            "offset_ms": 11,
+            "ts": 1791759396118,
+            "duration_ms": 0
+          },
+          {
+            "id": 26,
+            "parent_id": 2,
+            "name": "admin:message",
+            "kind": "send_enqueue",
+            "start_ts": 1791759396118,
+            "status": "ok",
+            "held_locks": [
+              "court:default:default_5",
+              "match:default:btp_default_Singles_5"
+            ],
+            "offset_ms": 11,
+            "ts": 1791759396118,
+            "duration_ms": 0
+          },
+          {
+            "id": 27,
+            "parent_id": 2,
+            "name": "notify_score_and_display_fanout_start",
+            "kind": "phase",
+            "start_ts": 1791759396117.7,
+            "status": "ok",
+            "held_locks": [
+              "court:default:default_5",
+              "match:default:btp_default_Singles_5"
+            ],
+            "court_id": "default_5",
+            "skipped": false,
+            "offset_ms": 10.699951171875,
+            "ts": 1791759396118,
+            "duration_ms": 0.3
+          },
+          {
+            "id": 28,
+            "parent_id": 2,
+            "name": "finish_cleanup",
+            "kind": "phase",
+            "start_ts": 1791759396118,
+            "status": "ok",
+            "held_locks": [
+              "court:default:default_5",
+              "match:default:btp_default_Singles_5"
+            ],
+            "skipped": true,
+            "offset_ms": 11,
+            "ts": 1791759396118,
+            "duration_ms": 0
+          },
+          {
+            "id": 29,
+            "parent_id": 2,
+            "name": "validate_court_reference",
+            "kind": "phase",
+            "start_ts": 1791759396118,
+            "status": "ok",
+            "held_locks": [
+              "court:default:default_5",
+              "match:default:btp_default_Singles_5"
+            ],
+            "court_id": "default_5",
+            "skipped": false,
+            "offset_ms": 11,
+            "ts": 1791759396118,
+            "duration_ms": 0
+          },
+          {
+            "id": 30,
+            "parent_id": 2,
+            "name": "admin_update_encode",
+            "kind": "encoding",
+            "start_ts": 1791759396118,
+            "status": "ok",
+            "held_locks": [
+              "court:default:default_5",
+              "match:default:btp_default_Singles_5"
+            ],
+            "offset_ms": 11,
+            "ts": 1791759396118,
+            "duration_ms": 0.1
+          },
+          {
+            "id": 31,
+            "parent_id": 2,
+            "name": "admin:court_current_match",
+            "kind": "send_wait",
+            "start_ts": 1791759396118,
+            "status": "ok",
+            "held_locks": [
+              "court:default:default_5",
+              "match:default:btp_default_Singles_5"
+            ],
+            "offset_ms": 11,
+            "ts": 1791759396118,
+            "duration_ms": 0
+          },
+          {
+            "id": 32,
+            "parent_id": 2,
+            "name": "admin:message",
+            "kind": "send_enqueue",
+            "start_ts": 1791759396118,
+            "status": "ok",
+            "held_locks": [
+              "court:default:default_5",
+              "match:default:btp_default_Singles_5"
+            ],
+            "offset_ms": 11,
+            "ts": 1791759396118,
+            "duration_ms": 0
+          },
+          {
+            "id": 33,
+            "parent_id": 2,
+            "name": "admin_update_encode",
+            "kind": "encoding",
+            "start_ts": 1791759396118,
+            "status": "ok",
+            "held_locks": [
+              "court:default:default_5",
+              "match:default:btp_default_Singles_5"
+            ],
+            "offset_ms": 11,
+            "ts": 1791759396118,
+            "duration_ms": 0
+          },
+          {
+            "id": 34,
+            "parent_id": 2,
+            "name": "admin:court_current_match",
+            "kind": "send_wait",
+            "start_ts": 1791759396118,
+            "status": "ok",
+            "held_locks": [
+              "court:default:default_5",
+              "match:default:btp_default_Singles_5"
+            ],
+            "offset_ms": 11,
+            "ts": 1791759396118,
+            "duration_ms": 0
+          },
+          {
+            "id": 35,
+            "parent_id": 2,
+            "name": "admin:message",
+            "kind": "send_enqueue",
+            "start_ts": 1791759396118,
+            "status": "ok",
+            "held_locks": [
+              "court:default:default_5",
+              "match:default:btp_default_Singles_5"
+            ],
+            "offset_ms": 11,
+            "ts": 1791759396118,
+            "duration_ms": 0
+          },
+          {
+            "id": 36,
+            "parent_id": 2,
+            "name": "notify_court_current_match",
+            "kind": "phase",
+            "start_ts": 1791759396117.8,
+            "status": "ok",
+            "held_locks": [
+              "court:default:default_5",
+              "match:default:btp_default_Singles_5"
+            ],
+            "skipped": false,
+            "offset_ms": 10.800048828125,
+            "ts": 1791759396118,
+            "duration_ms": 0.2
+          },
+          {
+            "id": 37,
+            "parent_id": 2,
+            "name": "highlight_update",
+            "kind": "phase",
+            "start_ts": 1791759396118,
+            "status": "ok",
+            "held_locks": [
+              "court:default:default_5",
+              "match:default:btp_default_Singles_5"
+            ],
+            "skipped": false,
+            "offset_ms": 11,
+            "ts": 1791759396118,
+            "duration_ms": 0
+          },
+          {
+            "id": 38,
+            "parent_id": 2,
+            "name": "ticker_update",
+            "kind": "phase",
+            "start_ts": 1791759396118,
+            "status": "ok",
+            "held_locks": [
+              "court:default:default_5",
+              "match:default:btp_default_Singles_5"
+            ],
+            "skipped": false,
+            "offset_ms": 11,
+            "ts": 1791759396118,
+            "duration_ms": 0
+          },
+          {
+            "id": 39,
+            "parent_id": 2,
+            "name": "court_clear_after_finish",
+            "kind": "phase",
+            "start_ts": 1791759396118,
+            "status": "ok",
+            "held_locks": [
+              "court:default:default_5",
+              "match:default:btp_default_Singles_5"
+            ],
+            "skipped": false,
+            "offset_ms": 11,
+            "ts": 1791759396118,
+            "duration_ms": 0
+          },
+          {
+            "id": 40,
+            "parent_id": 2,
+            "name": "auto_preparation",
+            "kind": "phase",
+            "start_ts": 1791759396118,
+            "status": "ok",
+            "held_locks": [
+              "court:default:default_5",
+              "match:default:btp_default_Singles_5"
+            ],
+            "reason": "score_not_relevant_for_preparation",
+            "skipped": false,
+            "offset_ms": 11,
+            "ts": 1791759396118,
+            "duration_ms": 0
+          },
+          {
+            "id": 41,
+            "parent_id": 2,
+            "name": "auto_call_free_courts",
+            "kind": "phase",
+            "start_ts": 1791759396118,
+            "status": "ok",
+            "held_locks": [
+              "court:default:default_5",
+              "match:default:btp_default_Singles_5"
+            ],
+            "skipped": true,
+            "court_id": "default_5",
+            "offset_ms": 11,
+            "ts": 1791759396118,
+            "duration_ms": 0
+          },
+          {
+            "id": 42,
+            "parent_id": 2,
+            "name": "display_court_displaysettings:findOne",
+            "kind": "db_wait",
+            "start_ts": 1791759396118,
+            "status": "ok",
+            "held_locks": [
+              "court:default:default_5",
+              "match:default:btp_default_Singles_5"
+            ],
+            "queue_id": "display_court_displaysettings:1583",
+            "blockers": [],
+            "offset_ms": 11,
+            "ts": 1791759396118,
+            "duration_ms": 0.1
+          },
+          {
+            "id": 43,
+            "parent_id": 2,
+            "name": "tournaments:findOne",
+            "kind": "db_run",
+            "start_ts": 1791759396118,
+            "status": "ok",
+            "held_locks": [
+              "court:default:default_5",
+              "match:default:btp_default_Singles_5"
+            ],
+            "offset_ms": 11,
+            "before_callback_ms": 6.3,
+            "callback_ms": 0,
+            "persistence_ms": null,
+            "ts": 1791759396125,
+            "duration_ms": 6.3
+          },
+          {
+            "id": 44,
+            "parent_id": 2,
+            "name": "display_court_displaysettings:findOne",
+            "kind": "db_run",
+            "start_ts": 1791759396118,
+            "status": "ok",
+            "held_locks": [
+              "court:default:default_5",
+              "match:default:btp_default_Singles_5"
+            ],
+            "offset_ms": 11,
+            "before_callback_ms": 6.5,
+            "callback_ms": 0,
+            "persistence_ms": null,
+            "ts": 1791759396125,
+            "duration_ms": 6.5
+          },
+          {
+            "id": 45,
+            "parent_id": 2,
+            "name": "score_change_group_panels",
+            "kind": "phase",
+            "start_ts": 1791759396117.7,
+            "status": "ok",
+            "held_locks": [
+              "court:default:default_5",
+              "match:default:btp_default_Singles_5"
+            ],
+            "skipped": false,
+            "offset_ms": 10.699951171875,
+            "ts": 1791759396125,
+            "duration_ms": 7.3
+          },
+          {
+            "id": 46,
+            "parent_id": 2,
+            "name": "courts:findOne",
+            "kind": "db_wait",
+            "start_ts": 1791759396125,
+            "status": "ok",
+            "held_locks": [
+              "court:default:default_5",
+              "match:default:btp_default_Singles_5"
+            ],
+            "queue_id": "courts:2373",
+            "blockers": [
+              {
+                "id": 2372,
+                "task": "courts:find",
+                "state": "active",
+                "locks": [
+                  "db:courts:"
+                ],
+                "conflicting_locks": [
+                  "db:courts:"
+                ],
+                "operation_id": 1120,
+                "trace_id": "live-drill-1351600-mv4fa64s-922",
+                "phase": "running",
+                "elapsed_ms": 0,
+                "persistence_kind": null
+              }
+            ],
+            "offset_ms": 18,
+            "ts": 1791759396155,
+            "duration_ms": 30.3
+          },
+          {
+            "id": 47,
+            "parent_id": 2,
+            "name": "score_change_direct_refreshes",
+            "kind": "phase",
+            "start_ts": 1791759396124.9,
+            "status": "ok",
+            "held_locks": [
+              "court:default:default_5",
+              "match:default:btp_default_Singles_5"
+            ],
+            "skipped": false,
+            "offset_ms": 17.89990234375,
+            "ts": 1791759396125,
+            "duration_ms": 0.1
+          },
+          {
+            "id": 48,
+            "parent_id": 2,
+            "name": "admin_update_encode",
+            "kind": "encoding",
+            "start_ts": 1791759396125,
+            "status": "ok",
+            "held_locks": [
+              "court:default:default_5",
+              "match:default:btp_default_Singles_5"
+            ],
+            "offset_ms": 18,
+            "ts": 1791759396125,
+            "duration_ms": 0
+          },
+          {
+            "id": 49,
+            "parent_id": 2,
+            "name": "admin:display_status_changed",
+            "kind": "send_wait",
+            "start_ts": 1791759396125,
+            "status": "ok",
+            "held_locks": [
+              "court:default:default_5",
+              "match:default:btp_default_Singles_5"
+            ],
+            "offset_ms": 18,
+            "ts": 1791759396125,
+            "duration_ms": 0
+          },
+          {
+            "id": 50,
+            "parent_id": 2,
+            "name": "admin:message",
+            "kind": "send_enqueue",
+            "start_ts": 1791759396125,
+            "status": "ok",
+            "held_locks": [
+              "court:default:default_5",
+              "match:default:btp_default_Singles_5"
+            ],
+            "offset_ms": 18,
+            "ts": 1791759396125,
+            "duration_ms": 0.1
+          },
+          {
+            "id": 51,
+            "parent_id": 2,
+            "name": "admin_update_encode",
+            "kind": "encoding",
+            "start_ts": 1791759396125,
+            "status": "ok",
+            "held_locks": [
+              "court:default:default_5",
+              "match:default:btp_default_Singles_5"
+            ],
+            "offset_ms": 18,
+            "ts": 1791759396125,
+            "duration_ms": 0
+          },
+          {
+            "id": 52,
+            "parent_id": 2,
+            "name": "admin:display_status_changed",
+            "kind": "send_wait",
+            "start_ts": 1791759396125,
+            "status": "ok",
+            "held_locks": [
+              "court:default:default_5",
+              "match:default:btp_default_Singles_5"
+            ],
+            "offset_ms": 18,
+            "ts": 1791759396125,
+            "duration_ms": 0
+          },
+          {
+            "id": 53,
+            "parent_id": 2,
+            "name": "admin:message",
+            "kind": "send_enqueue",
+            "start_ts": 1791759396125,
+            "status": "ok",
+            "held_locks": [
+              "court:default:default_5",
+              "match:default:btp_default_Singles_5"
+            ],
+            "offset_ms": 18,
+            "ts": 1791759396125,
+            "duration_ms": 0
+          },
+          {
+            "id": 54,
+            "parent_id": 2,
+            "name": "device_info_hostname",
+            "kind": "phase",
+            "start_ts": 1791759396118.1,
+            "status": "ok",
+            "held_locks": [
+              "court:default:default_5",
+              "match:default:btp_default_Singles_5"
+            ],
+            "skipped": false,
+            "offset_ms": 11.10009765625,
+            "ts": 1791759396125,
+            "duration_ms": 0
+          },
+          {
+            "id": 55,
+            "parent_id": 2,
+            "name": "device_info_settings_read",
+            "kind": "phase",
+            "start_ts": 1791759396118.1,
+            "status": "ok",
+            "held_locks": [
+              "court:default:default_5",
+              "match:default:btp_default_Singles_5"
+            ],
+            "skipped": false,
+            "offset_ms": 11.10009765625,
+            "ts": 1791759396125,
+            "duration_ms": 6.7
+          },
+          {
+            "id": 56,
+            "parent_id": 2,
+            "name": "device_info_notify",
+            "kind": "phase",
+            "start_ts": 1791759396124.7,
+            "status": "ok",
+            "held_locks": [
+              "court:default:default_5",
+              "match:default:btp_default_Singles_5"
+            ],
+            "skipped": false,
+            "offset_ms": 17.699951171875,
+            "ts": 1791759396125,
+            "duration_ms": 0.2
+          },
+          {
+            "id": 57,
+            "parent_id": 2,
+            "name": "device_info",
+            "kind": "phase",
+            "start_ts": 1791759396118,
+            "status": "ok",
+            "held_locks": [
+              "court:default:default_5",
+              "match:default:btp_default_Singles_5"
+            ],
+            "skipped": false,
+            "offset_ms": 11,
+            "ts": 1791759396125,
+            "duration_ms": 7
+          },
+          {
+            "id": 58,
+            "parent_id": 2,
+            "name": "courts:findOne",
+            "kind": "db_run",
+            "start_ts": 1791759396155,
+            "status": "ok",
+            "held_locks": [],
+            "offset_ms": 48,
+            "before_callback_ms": 30,
+            "callback_ms": 0,
+            "persistence_ms": null,
+            "ts": 1791759396185,
+            "duration_ms": 29.9
+          },
+          {
+            "id": 59,
+            "parent_id": 2,
+            "name": "matches:findOne",
+            "kind": "db_wait",
+            "start_ts": 1791759396185,
+            "status": "ok",
+            "held_locks": [],
+            "queue_id": "matches:15646",
+            "blockers": [
+              {
+                "id": 15645,
+                "task": "matches:score_context_match",
+                "state": "active",
+                "locks": [
+                  "db:matches:"
+                ],
+                "conflicting_locks": [
+                  "db:matches:"
+                ],
+                "operation_id": 1124,
+                "trace_id": "live-drill-1351600-mv4fa68z-926",
+                "phase": "running",
+                "elapsed_ms": 0,
+                "persistence_kind": null
+              }
+            ],
+            "offset_ms": 78,
+            "ts": 1791759396188,
+            "duration_ms": 2.8
+          },
+          {
+            "id": 60,
+            "parent_id": 2,
+            "name": "matches:findOne",
+            "kind": "db_run",
+            "start_ts": 1791759396188,
+            "status": "ok",
+            "held_locks": [],
+            "offset_ms": 81,
+            "before_callback_ms": 7.5,
+            "callback_ms": 0.1,
+            "persistence_ms": null,
+            "ts": 1791759396196,
+            "duration_ms": 7.5
+          },
+          {
+            "id": 61,
+            "parent_id": 2,
+            "name": "tv:display_points_update",
+            "kind": "send_enqueue",
+            "start_ts": 1791759396198,
+            "status": "ok",
+            "held_locks": [],
+            "court_id": "default_5",
+            "match_id": "btp_default_Singles_5",
+            "offset_ms": 91,
+            "ts": 1791759396198,
+            "duration_ms": 0.2
+          },
+          {
+            "id": 62,
+            "parent_id": 2,
+            "name": "score_change_court_panels",
+            "kind": "phase",
+            "start_ts": 1791759396124.9,
+            "status": "ok",
+            "held_locks": [],
+            "skipped": false,
+            "offset_ms": 17.89990234375,
+            "ts": 1791759396198,
+            "duration_ms": 73.1
+          }
+        ],
+        "span_summaries": [],
+        "summarized_spans": 0,
+        "pending_spans": 0,
+        "dropped_spans": 0,
+        "ts": 1791759396125,
+        "duration_ms": 18.3,
+        "revision": 14589,
+        "server_id": "1351588-1791759308087"
+      }
+    ],
+    "replans": [
+      {
+        "start": 1791759309939,
+        "duration": 3,
+        "task": "mixed_ordering_apply",
+        "attempt": 0,
+        "mismatches": [
+          {
+            "collection": "tournaments",
+            "count": 1,
+            "samples": [
+              {
+                "id": "queue-fixture",
+                "kind": "changed",
+                "fields": [
+                  "events.events",
+                  "displaysettings_general",
+                  "displaysettings_general_tablet"
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "start": 1791759373805,
+        "duration": 1,
+        "task": "mixed_ordering_apply",
+        "attempt": 0,
+        "mismatches": [
+          {
+            "collection": "matches",
+            "count": 1,
+            "samples": [
+              {
+                "id": "btp_default_Singles_13",
+                "kind": "changed",
+                "fields": [
+                  "setup.needs_preparation_successor",
+                  "setup.needs_preparation_successor_ts"
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "start": 1791759387710,
+        "duration": 1,
+        "task": "mixed_ordering_apply",
+        "attempt": 0,
+        "mismatches": [
+          {
+            "collection": "matches",
+            "count": 2,
+            "samples": [
+              {
+                "id": "btp_default_Singles_1",
+                "kind": "changed",
+                "fields": [
+                  "setup.needs_preparation_successor",
+                  "setup.needs_preparation_successor_ts"
+                ]
+              },
+              {
+                "id": "btp_default_Singles_10",
+                "kind": "changed",
+                "fields": [
+                  "setup.needs_preparation_successor",
+                  "setup.needs_preparation_successor_ts"
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "start": 1791759389274,
+        "duration": 12,
+        "task": "post_sync_auto_call_apply",
+        "attempt": 0,
+        "mismatches": [
+          {
+            "collection": "courts",
+            "count": 1,
+            "samples": [
+              {
+                "id": "default_4",
+                "kind": "changed",
+                "fields": [
+                  "match_id"
+                ]
+              }
+            ]
+          },
+          {
+            "collection": "matches",
+            "count": 20,
+            "samples": [
+              {
+                "id": "btp_default_Singles_108",
+                "kind": "changed",
+                "fields": [
+                  "setup.teams",
+                  "setup.state"
+                ]
+              },
+              {
+                "id": "btp_default_Singles_134",
+                "kind": "changed",
+                "fields": [
+                  "setup.teams",
+                  "setup.state"
+                ]
+              },
+              {
+                "id": "btp_default_Singles_160",
+                "kind": "changed",
+                "fields": [
+                  "setup.teams",
+                  "setup.state"
+                ]
+              },
+              {
+                "id": "btp_default_Singles_186",
+                "kind": "changed",
+                "fields": [
+                  "setup.teams",
+                  "setup.state"
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "start": 1791759389727,
+        "duration": 5,
+        "task": "mixed_ordering_apply",
+        "attempt": 0,
+        "mismatches": [
+          {
+            "collection": "matches",
+            "count": 2,
+            "samples": [
+              {
+                "id": "btp_default_Singles_10",
+                "kind": "changed",
+                "fields": [
+                  "setup.needs_preparation_successor",
+                  "setup.needs_preparation_successor_ts"
+                ]
+              },
+              {
+                "id": "btp_default_Singles_5",
+                "kind": "changed",
+                "fields": [
+                  "setup.needs_preparation_successor",
+                  "setup.needs_preparation_successor_ts"
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "start": 1791759393742,
+        "duration": 1,
+        "task": "mixed_ordering_apply",
+        "attempt": 0,
+        "mismatches": [
+          {
+            "collection": "matches",
+            "count": 2,
+            "samples": [
+              {
+                "id": "btp_default_Singles_11",
+                "kind": "changed",
+                "fields": [
+                  "setup.needs_preparation_successor",
+                  "setup.needs_preparation_successor_ts"
+                ]
+              },
+              {
+                "id": "btp_default_Singles_5",
+                "kind": "changed",
+                "fields": [
+                  "setup.needs_preparation_successor",
+                  "setup.needs_preparation_successor_ts"
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "start": 1791759395770,
+        "duration": 1,
+        "task": "mixed_ordering_apply",
+        "attempt": 0,
+        "mismatches": [
+          {
+            "collection": "matches",
+            "count": 1,
+            "samples": [
+              {
+                "id": "btp_default_Singles_16",
+                "kind": "changed",
+                "fields": [
+                  "setup.needs_preparation_successor",
+                  "setup.needs_preparation_successor_ts"
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "start": 1791759398071,
+        "duration": 2,
+        "task": "post_sync_auto_call_apply",
+        "attempt": 0,
+        "mismatches": [
+          {
+            "collection": "matches",
+            "count": 1,
+            "samples": [
+              {
+                "id": "btp_default_Singles_7",
+                "kind": "changed",
+                "fields": [
+                  "setup.needs_preparation_successor",
+                  "setup.needs_preparation_successor_ts"
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "server_log_bytes": 0,
+    "source_sha256": {
+      "bts/btp_sync_locks/ordering_notifications.js": "647605f288fcb1d1f814641ff305fc2fa8bee469d1d3d383fa482aa8c90c9f8a",
+      "bts/btp_sync_locks/ordering_only.js": "d5fcb266f50083bc6117c311468412e961b53d1eb4820d6a76a80f401d977625",
+      "bts/btp_sync_locks/resources.js": "9977f32ddda2d23b3f192cecd28e4a6dbc63d8f11a4d98beacc24b103aa3ebd1",
+      "bts/btp_sync_plan.js": "2c056d7ed24e8bbfba4885427ac51c1a0e82a581d46e760407d1618e66a24aa1",
+      "bts/performance/traces.js": "5626364401296bff5821372503338696b46456060295902f1a9ed33a3c6642e4"
+    }
   }
 }

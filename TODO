@@ -213,12 +213,32 @@ Naechste optionale Schritte nach diesen Arbeiten:
   fuenf Spielenden/Folgeaufrufe, Queues geleert, kein wachsender Sync-Stau.
   Bericht: debug/performance_preparation_2026-10-12.md und .json,
   related_call_lock_optimization. Rohdaten /tmp/bts-queue-responsiveness-N4Fa53.
-- OFFEN: Verbleibende breite Sync-Einstufung bei Spielendbestaetigung zuordnen.
-  Eine TV/Admin-Spitze 119/107ms; 81.5ms Lock-Warten auf mixed_ordering_apply
-  mit 236 Aenderungen, Konflikte auto-call/preparation/tabletoperators/umpires.
-  Dieser Plan faellt nicht unter die engere Ordering-Sperrmenge. Konkrete
-  Feld-/Effektgruende der Einstufung erfassen und Schreibziele pruefen, bevor
-  der Zuweisungsumfang kleiner wird. Vollstaendiger Blocker-/Score-Trace gesichert.
+- ERLEDIGT: Breite Sync-Einstufung bei Spielendbestaetigung zugeordnet und
+  korrigiert (85f1b57). 236 reine Nummernaenderungen plus 19 Meldungen fuer
+  unveraenderte Spiele wurden allein wegen der zusaetzlichen Ziele breit
+  gesperrt. ordering_notifications.js prueft bekannte vollstaendige Snapshot-
+  Kopien oder kanonische IDs; Meldungen bleiben erhalten und werden aktuell
+  veroeffentlicht. Fremde/abweichende Inhalte, Sammellisten, echte Zuweisungen,
+  Check-in, Spielende und Freilose bleiben konservativ. Trace exportiert
+  allocation_scope und ordering_unchanged_notifications ohne Payloaddaten.
+  Zwei Regressionen scheitern am alten Stand; realer Tablet-Spielabschluss
+  kann neu waehrend gehaltener Umnummerierung fortschreiten. Vollsuite 802,
+  danach 22 gezielte Tests, alle geaenderten JS-Dateien lint-sauber.
+  Ein normaler neuer 90s-Lauf mit vorhandener Referenz: alle 50 aufgezeichneten
+  Umnummerierungs-Einstufungen eng, drei davon mit 19/19/18 Lesemeldungen;
+  alle 960 Updates je Ziel, 46/46 Syncs, fuenf Spielenden/Folgeaufrufe, keine
+  Verarbeitungfehler und kein wachsender Rueckstau. TV-p99 59ms unveraendert,
+  Admin-p99 47->41ms, Admin-Maximum 107->73ms, Aufrufsignal 11ms.
+  Diagnose-Preload wird nur zur Ursachenbestimmung genutzt, nicht als
+  Performance-Vergleich (zusaetzliche wiederholte Pruefungen verlangsamen ihn).
+  Bericht: debug/performance_preparation_2026-10-12.md und .json,
+  unchanged_notification_lock_optimization. Lauf /tmp/bts-queue-responsiveness-KOKqqY.
+- OFFEN: Bei weiterem Bedarf asynchronen TV-Lesepfad anhand konkreter Spitzen
+  pruefen. Eine gewoehnliche Punktmeldung TV 109ms, Admin 26ms; Handler 18.3ms,
+  Lock-Warten 1.4ms ohne Blocker. Feldanzeigephase 73.1ms, Court-DB-Warten
+  und DB-Laufzeit je rund 30ms; letztere enthaelt asynchrone Fortsetzung.
+  Event-Loop-Maximum 81ms (vorher 61ms). Noch keine eindeutige Attribution
+  der CPU-/Leseverzoegerung; keine pauschalen weiteren Lock-Verkleinerungen.
 - OFFEN: Weiteren Bedarf anhand konkreter UX-Spitzen beurteilen.
   TV-p95/p99 im letzten Lauf 39/57ms (vorher 32/52ms), keine gleichmaessige
   Verbesserung jeder Punktlatenz. Hintergrundvorbereitung wartet noch bis

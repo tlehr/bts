@@ -230,3 +230,97 @@ Neuer Lauf: `/tmp/bts-queue-responsiveness-N4Fa53`.
 Kontrollprüfungen: `/tmp/bts-related-regression-a61q98a0`.
 Der JSON-Bericht ergänzt die Historie unter `related_call_lock_optimization`;
 alle vorherigen Ergebnisse bleiben erhalten.
+
+## Unveränderte Spielmeldungen als Ursache der breiten Einstufung
+
+`85f1b57` beseitigt den zuvor beschriebenen breiten Umnummerierungsplan. Der
+Plan verändert ausschließlich Spielnummern, enthält aber zusätzlich
+`match_edit`-Meldungen für bereits korrekt nummerierte Spiele. Bisher musste
+jede Meldung ein tatsächlich geschriebenes Spiel nennen. Andernfalls wurde
+der gesamte Plan mit Zuweisungs-Locks versehen.
+
+Ein separater Diagnoselauf bestätigt einen solchen Fall mit 236 tatsächlichen
+Änderungen und 255 Meldungen. Für die 19 zusätzlichen Meldungen zeigen die
+protokollierten Beispiele vorhandene Spiele, deren vollständiger Meldungsinhalt
+mit diesem Snapshot übereinstimmt.
+Keines der 236 Write-Ziele verletzt die bisherigen Ordering-Kriterien.
+Bei echten automatischen Folgeaufrufen werden dagegen Court-, Teilnehmer-
+und Statusänderungen gefunden; diese Pläne behalten ihre Zuweisungs-Locks.
+
+Die Klasse `ordering_notifications.js` prüft diese Lesemeldungen einmal je
+Plan. Zulässig sind ein vollständiges unverändertes Match, ein entsprechender
+Wrapper oder ausschließlich dessen kanonische `match__id`. Der Snapshot-
+Index wird erst bei Bedarf aufgebaut. Unbekannte Ziele, abweichende Inhalte,
+zusätzliche Wrapper-Felder, Sammellisten und weitere Effekte bleiben
+konservativ. Die Meldungen werden weiterhin veröffentlicht und nutzen den
+bereits abgesicherten aktuellen Match-Snapshot nach dem Commit.
+
+Die Trace-Phase `incremental_plan` nennt jetzt `allocation_scope` und
+`ordering_unchanged_notifications` direkt. Es werden keine Spielerdaten oder
+Meldungspayloads in diese Diagnose übernommen. Normaler Serverbetrieb erzeugt
+dadurch keine zusätzlichen Konsolenmeldungen.
+
+### Gegenlauf ohne zusätzliche Instrumentierung
+
+Ein weiterer normaler 90-Sekunden-Lauf verwendet den vorhandenen Lauf
+`N4Fa53` als Vergleich. Die Testwerkzeuge, Parameter, Client, Abhängigkeiten
+und Node/CPU stimmen überein. Es wird kein vorheriger Standardlauf wiederholt.
+
+| Messwert | Beziehungssperren reduziert | Zusätzlich Lesemeldungen anerkannt |
+| --- | ---: | ---: |
+| Manuelles Aufrufsignal | 13,2 ms | 11,3 ms |
+| Tablet → TV p95 / p99 | 31 / 59 ms | 30 / 59 ms |
+| Tablet → TV Maximum | 119 ms | 109 ms |
+| Tablet → Admin p95 / p99 | 20 / 47 ms | 19 / 41 ms |
+| Tablet → Admin Maximum | 107 ms | 73 ms |
+| Freie Durchsage p95 / Maximum | 2,6 / 5,3 ms | 4,5 / 8,0 ms |
+| Sync insgesamt p95 / Maximum | 770 / 928 ms | 576 / 960 ms |
+| Event-Loop-Verzögerung Maximum | 60,7 ms | 81,0 ms |
+| Angekommene Meldungen TV und Admin | jeweils 964/964 | jeweils 960/960 |
+| Abgeschlossene Syncs | 46/46 | 46/46 |
+| Spielenden / automatische Folgeaufrufe | 5 / 5 | 5 / 5 |
+
+Alle 50 aufgezeichneten Klassifizierungen der `mixed_ordering_apply`-Pläne
+(einschließlich Neuplanungen) sind `ordering_only`. Drei davon erkennen
+19, 19 bzw. 18 unveränderte Meldungen an und behalten die kleine Sperrmenge.
+Eine generelle Verbesserung jedes Maximums wird nicht behauptet: der
+Event-Loop-Wert und die Durchsage-Maximalzeit sind in diesem Lauf höher.
+Die Zahl offener Syncs bleibt in jedem Drittel höchstens eins; der Lauf endet
+mit leeren Queues und ohne aufgezeichneten Verarbeitungsfehler.
+
+Vier neue Regressionen prüfen erlaubte Payload-Formen, abweichende/fehlende
+Ziele, konservative Zuweisungs-, Check-in-, Ergebnis- und Freilosregeln sowie
+einen echten Tablet-Spielabschluss während einer gehaltenen Umnummerierung.
+Nach dem Abschluss enthält auch die spätere Lesemeldung den gespeicherten
+Endstatus. Die positive Klassifizierung und der Spielabschluss scheitern am
+vorherigen Stand; der Abschluss wartet dort auf den breiten Plan. Die
+Vollsuite besteht mit **802 Tests**, danach 22 gezielte Regressionen. Alle
+geänderten JS-Dateien und Tests sind ESLint-sauber, `git diff --check` ebenfalls.
+
+### Diagnoseversuche und verbleibende TV-Spitze
+
+Die ersten beiden verkürzten 30-Sekunden-Diagnoseversuche erreichen keine
+Spielenden oder aktive Vorbereitung und werden deshalb vom Runner abgelehnt.
+Sie werden nicht für Performance-Aussagen verwendet. Der anschließende
+90-Sekunden-Diagnoselauf verwendet einen nur in eigenen Testprozessen aktiven
+Preload, der Feldpfade und Meldungsgründe erfasst. Er wiederholt jedoch die
+Ordering-Prüfung pro Effekt und verursacht erhebliche zusätzliche Rechenarbeit.
+Seine Latenzen und Empfangslücken sind daher ebenfalls kein Performance-
+Vergleich. Die Klassifizierungsbefunde und die Beobachterquelle sind im JSON
+archiviert; der abschließende Standardlauf verwendet diesen Preload nicht.
+
+Die einzige TV-Meldung über 100 ms im neuen Standardlauf liegt bei 109 ms.
+Sie betrifft einen gewöhnlichen Punkt; Admin empfängt ihn nach 26 ms. Der
+Serverhandler läuft 18,3 ms. Die asynchrone Feldanzeige-Veröffentlichung
+enthält eine Phase von 73,1 ms; ein Court-Lesen wartet rund 30 ms auf den
+DB-Executor und läuft anschließend rund 30 ms einschließlich asynchroner
+Fortsetzung. Diese Zeiten sind teilweise überlappend. Der vollständige Trace
+bleibt für eine mögliche weitere Prüfung des TV-Lesepfads erhalten.
+
+Neuer Standardlauf: `/tmp/bts-queue-responsiveness-KOKqqY`.
+Diagnoselauf: `/tmp/bts-queue-responsiveness-46gKEV`.
+Kontrollprüfungen: `/tmp/bts-notification-regression-qzdxutd6`.
+Der JSON-Bericht ergänzt `unchanged_notification_lock_optimization` und erhält
+alle vorherigen Ergebnisse. Die bisherigen Grenzen bezüglich Dauerlast,
+echtem BTP-Abruf, Browser-Rendering, hörbarem Audiostart und aktiver
+Offiziellen-/Tabletoperator-Vergabe gelten weiterhin.
