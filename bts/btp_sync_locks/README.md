@@ -45,7 +45,9 @@ These counts explain scope, not the owner or exact hold time of a contended lock
 
 `resources.js` leitet die Locks aus den tatsächlichen Änderungen und Effekten
 eines bereits berechneten Plans ab. `match_changes.js` bestimmt weiterhin die
-abhängigen Spieler und Felder; deren Match-Referenzen erweitern die Sperrmenge.
+abhängigen Spieler und Felder. Bei reinen Reihenfolgeänderungen ohne
+Zuweisungsumfang bleiben nur die direkt geschriebenen Spiele gesperrt;
+Spieler- und Feldbeziehungen erweitern diese Sperrmenge nicht mehr.
 Spielende, Freilose, Teilnehmer, Check-in, Profile und unbekannte Änderungen
 behalten den bisherigen konservativen Umfang.
 
@@ -65,6 +67,20 @@ Offiziellen oder Tabletbediener enthalten. Andernfalls bleibt der bisherige
 Umfang erhalten: diese Vergabe-/Freigabepfade können andere Match-Setups
 mitschreiben. Die Diagnose unterscheidet `ordering_only`,
 `ordering_with_allocation` und `full`.
+
+Die kleinere Sperrmenge setzt voraus, dass Statushelfer eine parallele
+Umnummerierung erhalten. `match_updates/setup_changes.js` erfasst daher nur
+geänderte Setup-Felder für Spieler-/Tabletstatus und Pausen-Reset. Diese
+Helfer ersetzen keine gesamte zuvor gelesene Setup-Kopie mehr. Finish-Cleanup
+verwendet weiterhin gezielte Teilnehmer-Patches. Benachrichtigungen beider
+Pfade enthalten das tatsächlich gespeicherte Setup.
+
+Ein reiner Ordering-Commit liest nach seinen Writes die aktuellen Match-
+Referenzen über den geordneten Modell-Snapshot. Seine Benachrichtigungen und
+sein Folge-Cache berücksichtigen damit auch einen inzwischen abgeschlossenen
+Aufruf oder Spielerstatuswechsel. Scheitert ein späterer Write, nimmt der
+Rollback nur die vom Ordering-Plan geänderten Felder zurück. Andere Pläne
+behalten ihren bisherigen konservativen Rollback und Lock-Umfang.
 
 Automatische Vorbereitung, deren Offiziellenvergabe und die manuelle
 Ausführung einer berechneten Vorbereitungsauswahl erwerben `selection`.

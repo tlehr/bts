@@ -6,9 +6,13 @@ const reads = require('./reads');
 // independent court may concurrently update state and preparation markers.
 async function save(app, match, patch) {
 	if (!Object.keys(patch).length) return;
-	await reads.call(app.db.matches, 'update', { _id: match._id, tournament_key: match.tournament_key }, { $set: patch }, {});
+	const updated = await new Promise((resolve, reject) => {
+		app.db.matches.update({ _id: match._id, tournament_key: match.tournament_key }, { $set: patch }, { returnUpdatedDocs: true },
+			(error, _count, document) => error ? reject(error) : resolve(document));
+	});
+	const current = updated || match;
 	require('../admin').notify_change(app, match.tournament_key, 'update_player_status', {
-		match__id: match._id, btp_winner: match.btp_winner, setup: match.setup,
+		match__id: current._id, btp_winner: current.btp_winner, setup: current.setup,
 	});
 }
 

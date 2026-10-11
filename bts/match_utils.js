@@ -1,5 +1,7 @@
 'use_strict';
 
+const SetupChanges = require('./match_updates/setup_changes');
+
 const assert = require('assert');
 const async = require('async');
 const debug_flags = require('./debug_flags');
@@ -2019,6 +2021,7 @@ function update_player_court_states(app, tkey, assignments, callback) {
 		// Merge all assignments into each setup before writing it once. Separate
 		// scans per court can overwrite each other's player changes in one match.
 		Promise.allSettled(matches.map(async (match) => {
+			const setup_changes = new SetupChanges(match.setup);
 			let changed = false;
 			for (const assignment of assignments) {
 				if (assignment.players) {
@@ -2030,12 +2033,13 @@ function update_player_court_states(app, tkey, assignments, callback) {
 			}
 			if (!changed) return;
 			await new Promise((resolve, reject) => {
-				app.db.matches.update({ _id: match._id, tournament_key: tkey }, { $set: { setup: match.setup } }, {}, (update_err) => {
+				app.db.matches.update({ _id: match._id, tournament_key: tkey }, setup_changes.update(match.setup), { returnUpdatedDocs: true }, (update_err, _count, updated) => {
 					if (update_err) return reject(update_err);
+					const current = updated || match;
 					admin.notify_change(app, tkey, 'update_player_status', {
-						match__id: match._id,
-						btp_winner: match.btp_winner,
-						setup: match.setup,
+						match__id: current._id,
+						btp_winner: current.btp_winner,
+						setup: current.setup,
 					});
 					resolve();
 				});

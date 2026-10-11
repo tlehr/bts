@@ -1,5 +1,7 @@
 'use strict';
 
+const SetupChanges = require('./match_updates/setup_changes');
+
 const async = require('async');
 const fs = require('fs');
 const path = require('path');
@@ -1128,13 +1130,14 @@ async function reset_player_pause_times(app, tournament_key) {
 
 	let changed_matches = 0;
 	for (const match of matches) {
+		const setup_changes = new SetupChanges(match.setup);
 		if (!clear_player_pause_fields_in_match(match)) {
 			continue;
 		}
 		changed_matches++;
 		await app.db.matches.update_async(
 			{ _id: match._id, tournament_key },
-			{ $set: { setup: match.setup } },
+			setup_changes.update(match.setup),
 			{},
 		);
 	}
@@ -1647,6 +1650,7 @@ function _release_tabletoperator_player_flags(app, tournament_key, released_ids,
 					return cb(null);
 				}
 
+				const setup_changes = new SetupChanges(match.setup);
 				let changed = false;
 				if (Array.isArray(match.setup.tabletoperators)) {
 					const next_tabletoperators = match.setup.tabletoperators.filter((participant) => {
@@ -1684,18 +1688,19 @@ function _release_tabletoperator_player_flags(app, tournament_key, released_ids,
 				if (!changed) {
 					return cb(null);
 				}
-				app.db.matches.update({ _id: match._id, tournament_key }, { $set: { setup: match.setup } }, {}, (update_err) => {
+				app.db.matches.update({ _id: match._id, tournament_key }, setup_changes.update(match.setup), { returnUpdatedDocs: true }, (update_err, _count, updated) => {
 					if (update_err) {
 						return cb(update_err);
 					}
+					const current = updated || match;
 					notify_change(app, tournament_key, 'update_player_status', {
-						match__id: match._id,
-						btp_winner: match.btp_winner,
-						setup: match.setup,
+						match__id: current._id,
+						btp_winner: current.btp_winner,
+						setup: current.setup,
 					});
 					notify_change(app, tournament_key, 'match_edit', {
-						match__id: match._id,
-						match,
+						match__id: current._id,
+						match: current,
 					});
 					return cb(null);
 				});
@@ -1730,6 +1735,7 @@ function _set_tabletoperator_player_flags(app, tournament_key, assigned_tabletop
 				return cb(null);
 			}
 
+			const setup_changes = new SetupChanges(match.setup);
 			let changed = false;
 			(match.setup.teams || []).forEach((team) => {
 				(team?.players || []).forEach((player) => {
@@ -1749,7 +1755,7 @@ function _set_tabletoperator_player_flags(app, tournament_key, assigned_tabletop
 			if (!changed) {
 				return cb(null);
 			}
-			app.db.matches.update({ _id: match._id, tournament_key }, { $set: { setup: match.setup } }, { returnUpdatedDocs: true }, (update_err, numAffected, changed_match) => {
+			app.db.matches.update({ _id: match._id, tournament_key }, setup_changes.update(match.setup), { returnUpdatedDocs: true }, (update_err, numAffected, changed_match) => {
 				if (update_err) {
 					return cb(update_err);
 				}

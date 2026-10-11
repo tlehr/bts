@@ -1,6 +1,7 @@
 'use strict';
 
 const assert = require('assert');
+const { modify } = require('nedb/lib/model');
 
 const { _describe, _it } = require('./tutils.js');
 const match_utils = require('../bts/match_utils.js');
@@ -18,7 +19,7 @@ function make_collection(rows) {
 				callback(null, 0, null);
 				return;
 			}
-			Object.assign(row, update.$set || {});
+			Object.assign(row, modify(row, update));
 			callback(null, 1, row);
 		},
 	};

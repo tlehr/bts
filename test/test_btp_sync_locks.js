@@ -91,16 +91,18 @@ describe('BTP sync lock dependencies', function() {
 		['match number', next => { next.setup.match_num = 12; }],
 		['match order', next => { next.match_order = 12; }],
 	]) {
-		it(`protects selection and related matches without global allocation locks for ${label}`, function() {
+		it(`protects selection and direct matches without relation or allocation locks for ${label}`, function() {
 			const old = match('changed'); delete old.setup.umpire;
 			const next = copy(old); edit(next);
 			const plan = scope(old, next);
 			assert.strictEqual(plan.diagnostics.allocation_scope, 'ordering_only');
 			assert(plan.locks.includes(keys.selection('test')));
 			assert(plan.locked_matches.has('changed'));
-			assert(plan.locked_matches.has('related-player'));
-			assert(plan.locked_matches.has('related-court'));
+			assert(!plan.locked_matches.has('related-player'));
+			assert(!plan.locked_matches.has('related-court'));
 			assert(!plan.locked_matches.has('unrelated'));
+			assert(!plan.locks.includes(keys.court('test', 'court')));
+			assert.strictEqual(plan.diagnostics.additional_match_locks, 0);
 			for (const domain of ['preparation', 'auto_call', 'umpires', 'tabletoperators']) assert(!plan.locks.includes(keys[domain]('test')));
 			assert.deepStrictEqual(plan, scope(old, next, [], false));
 		});

@@ -42,7 +42,10 @@ module.exports = function resources(tkey, before, changes, effects) {
 		if (collection === 'matches') {
 			match_work = true;
 			add_match(id);
-			const dependencies = match_changes(old, next);
+			// Pure ordering changes own only their actual targets. Participant
+			// status propagation uses field patches and preserves these numbers;
+			// selection still waits, all allocation/mixed plans still expand.
+			const dependencies = ordering_only ? [] : match_changes(old, next);
 			if (!dependencies.length) metadata_only++;
 			for (const reason of dependencies) reasons[reason] = (reasons[reason] || 0) + 1;
 			if (dependencies.length) for (const doc of [old, next]) {
@@ -83,7 +86,7 @@ module.exports = function resources(tkey, before, changes, effects) {
 		locks.push(keys.selection(tkey));
 		// Keep allocation/check-in/finish writers serialized, also for profile
 		// updates. Ordering-only writes protect candidate selection separately;
-		// targeted calls on matches outside their relation scope can continue.
+		// targeted calls on matches outside their write targets can continue.
 		if (!ordering_only) locks.push(keys.preparation(tkey), keys.tabletoperators(tkey), keys.umpires(tkey), keys.auto_call(tkey));
 	}
 	return { locks: keys.normalize_list(locks), locked_matches, diagnostics: {

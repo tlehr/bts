@@ -292,13 +292,16 @@ async function apply(app, tkey, plan) {
 	} catch (error) {
 		// NeDB has no multi-document transaction. Restore completed writes under
 		// the same locks, and never publish or cache a partially applied plan.
+		// Pure ordering may overlap participant propagation. Undo only its own
+		// fields so a completed call/finish is not restored to an older setup.
 		for (const change of completed.reverse()) {
 			const store = app.db[change.collection];
 			const query = { _id: change.id, ...query_for(change.collection, tkey) };
 			try {
 				if (!change.before) await store.remove_async(query, {});
 				else if (!change.after) await promisify(store.insert.bind(store))(change.before);
-				else await store.update_async(query, change.before, {});
+				else await store.update_async(query, plan.diagnostics.allocation_scope === 'ordering_only'
+					? patch(change.after, change.before) : change.before, {});
 			} catch (rollback_error) {
 				error.message += `; rollback failed: ${rollback_error.message}`;
 			}
@@ -453,6 +456,13 @@ async function run(app, tkey, response, options, integrate, cache) {
 			log_timing('incremental_writes', apply_start, { changes: changes.length,
 				...write_stats,
 				collections: Object.fromEntries(COLLECTIONS.map(collection => [collection, changes.filter(change => change.collection === collection).length])) });
+			if (scope.diagnostics.allocation_scope === 'ordering_only') {
+				// Calls/finishes can update participant status during these writes.
+				// Publish their current setup, never the old planning snapshot.
+				const live_start = Date.now();
+				final_state.matches = (await tournament_model.attach(app.db).snapshot(tkey, ['matches'])).matches;
+				log_timing('incremental_live_matches', live_start, { matches: final_state.matches.length });
+			}
 			const publish_start = Date.now();
 			const jobs = await publish(app, effects, final_state);
 			log_timing('incremental_publish', publish_start, { effects: effects.length, deferred_jobs: jobs.length });
