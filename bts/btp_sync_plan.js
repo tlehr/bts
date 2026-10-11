@@ -372,9 +372,10 @@ async function run(app, tkey, response, options, integrate, cache) {
 			} else {
 				if (!cache.db) cache.db = memory_db();
 				const refresh_start = Date.now();
-				const copied_records = await refresh(cache.db, before, cache.stage_state, cache.source_state);
+				const refresh_metrics = {};
+				const copied_records = await refresh(cache.db, before, cache.stage_state, cache.source_state, refresh_metrics);
 				cache.source_state = before;
-				log_timing('incremental_refresh', refresh_start, { attempt, copied_records });
+				log_timing('incremental_refresh', refresh_start, { attempt, copied_records, ...refresh_metrics });
 				const planning_app = cache.planning_app || (cache.planning_app = { db: cache.db, wss: { clients: [] } });
 				planning_app.clock = app.clock;
 				planning_app._btp_sync_effects = effects;

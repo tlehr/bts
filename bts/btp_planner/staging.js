@@ -4,6 +4,7 @@ const { promisify } = require('util');
 const Datastore = require('nedb');
 const tournament_model = require('../tournament_model');
 const utils = require('../utils');
+const refresh_writes = require('./refresh_writes');
 const COLLECTIONS = ['tournaments', 'locations', 'courts', 'matches', 'umpires', 'tabletoperators'];
 const yield_turn = () => new Promise(resolve => setImmediate(resolve));
 
@@ -64,29 +65,44 @@ function memory_db() {
 	db.umpires.ensureIndex({ fieldName: 'name', unique: true });
 	db.matches.ensureIndex({ fieldName: 'btp_id' });
 	tournament_model.attach(db);
+	for (const collection of COLLECTIONS) refresh_writes.register(db[collection], {
+		start: () => { pending_writes++; },
+		finish: error => { if (error) write_error = write_error || error; pending_writes--; },
+	});
 	return db;
 }
 
 
-async function refresh(db, state, previous, previous_source) {
+async function refresh(db, state, previous, previous_source, metrics) {
 	let copied_records = 0;
+	if (metrics) Object.assign(metrics, { refresh_groups: 0, refresh_queue_wait_ms: 0,
+		refresh_apply_ms: 0, refresh_max_group_ms: 0, refresh_operations: 0 });
 	for (const collection of COLLECTIONS) {
+		const operations = [];
+		const store = db[collection];
 		const old = new Map((previous?.[collection] || []).map(doc => [doc._id, doc]));
 		const source = new Map((previous_source?.[collection] || []).map(doc => [doc._id, doc]));
 		for (let i = 0; i < state[collection].length; i++) {
 			const doc = state[collection][i];
 			const existing = old.get(doc._id);
 			old.delete(doc._id);
-			if (!existing) { await db[collection].insert_async(doc); copied_records++; }
+			if (!existing) { operations.push({ kind: 'insert', id: doc._id, document: doc }); copied_records++; }
 			else if (source.get(doc._id) !== doc || db[collection]._btp_dirty.has(doc._id)) {
 				if (JSON.stringify(existing) !== JSON.stringify(doc)) {
-					await db[collection].update_async({ _id: doc._id }, doc, {});
+					operations.push({ kind: 'update', id: doc._id, document: doc });
 					copied_records++;
 				}
 			}
 			if (i % 32 === 31) await yield_turn();
 		}
-		for (const doc of old.values()) await db[collection].remove_async({ _id: doc._id }, {});
+		for (const doc of old.values()) operations.push({ kind: 'remove', id: doc._id });
+		if (metrics) metrics.refresh_operations += operations.length;
+		if (refresh_writes.supported(store)) await refresh_writes.write(store, operations, metrics);
+		else for (const operation of operations) {
+			if (operation.kind === 'insert') await store.insert_async(operation.document);
+			else if (operation.kind === 'update') await store.update_async({ _id: operation.id }, operation.document, {});
+			else await store.remove_async({ _id: operation.id }, {});
+		}
 		db[collection]._btp_dirty.clear();
 	}
 	return copied_records;

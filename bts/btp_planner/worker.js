@@ -33,7 +33,8 @@ async function plan_work(payload) {
 		process.env.BTS_BTP_SYNC_TIMING = payload.timing_enabled ? '1' : '0';
 		const before = payload.seed || source_state(session.source_state, payload.delta);
 		const start = process.hrtime.bigint();
-		const copied_records = await staging.refresh(session.db, before, session.stage_state, session.source_state);
+		const refresh_metrics = {};
+		const copied_records = await staging.refresh(session.db, before, session.stage_state, session.source_state, refresh_metrics);
 		session.source_state = before;
 		const refresh_end = process.hrtime.bigint();
 		const app = session.app || (session.app = { db: session.db, wss: { clients: [] }, _btp_serializable_effects: true });
@@ -61,7 +62,7 @@ async function plan_work(payload) {
 		return { value: { result, changes: returned_changes,
 			effects: app._btp_sync_effects, revision: ++session.revision, copied_records,
 			selection_calls: payload.operation === 'auto_call' ? session.selection_calls : null,
-			phases: { refresh_ms: ms(refresh_end - start), integrate_ms: ms(integration_end - refresh_end),
+			phases: { refresh_ms: ms(refresh_end - start), ...refresh_metrics, integrate_ms: ms(integration_end - refresh_end),
 				diff_ms: ms(process.hrtime.bigint() - integration_end) } } };
 	} catch (error) { sessions.delete(payload.session); throw error; }
 }
