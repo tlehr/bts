@@ -99,6 +99,7 @@ class PerformanceHistory {
 		this.events.unshift({ ts, label, details }); this.events.length = Math.min(50, this.events.length);
 	}
 	fail(error) { this.error = error.message; this.failures++; }
+	unavailable(reason) { this.unavailable_reason = reason; }
 	pause(paused, now = Date.now()) {
 		if (paused) this.drain = { started: now, clear_since: null, finished_ms: null };
 	}
@@ -120,6 +121,7 @@ class PerformanceHistory {
 		});
 	}
 	status(now = Date.now()) {
+		if (this.unavailable_reason) return { level: 'UNKNOWN', reasons: [this.unavailable_reason] };
 		if (!this.last_at || now - this.last_at + this.history.at(-1).rtt_ms > 5000 || this.error) return { level: 'UNKNOWN', reasons: [this.error || 'No fresh server telemetry'] };
 		if (this.history.at(-1).snapshot.database.some(row => row.observed === false)) return { level: 'UNKNOWN', reasons: ['Some DB queues lack telemetry'] };
 		const recent = this.history.filter(entry => entry.ts >= now - 30000), warnings = [];
@@ -138,7 +140,7 @@ class PerformanceHistory {
 		return { level: warnings.length ? 'WARN' : 'OK', reasons: warnings.length ? warnings : ['No sustained backlog observed'] };
 	}
 	report() {
-		return { scope: 'server-wide', sample_interval_ms: 1000, history_window_ms: 300000,
+		return { scope: 'server-wide', available: !this.unavailable_reason && !!this.last_at, unavailable_reason: this.unavailable_reason || null, sample_interval_ms: 1000, history_window_ms: 300000,
 			runs: this.runs, probe_failures: this.failures, events: this.events, drain: this.drain,
 			latest_status: this.status(), latest: this.history.at(-1) || null,
 			series: this.series, traces: [...this.traces.values()], diagnostic_events: this.archive_events,

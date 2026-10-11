@@ -609,6 +609,7 @@ function parse_args(argv) {
 		checkin_max_ms: 45000,
 		score_all_active: true,
 		processing_traces: true,
+		server_telemetry: true,
 		max_runtime_ms: 0,
 		dashboard: process.stdout.isTTY,
 		display_ack_render_ms: 0,
@@ -651,6 +652,8 @@ function parse_args(argv) {
 		else if (arg === '--checkin-max-ms') options.checkin_max_ms = Number(next()) || options.checkin_max_ms;
 		else if (arg === '--no-processing-traces') options.processing_traces = false;
 		else if (arg === '--processing-traces') options.processing_traces = true;
+		else if (arg === '--no-server-telemetry') options.server_telemetry = false;
+		else if (arg === '--server-telemetry') options.server_telemetry = true;
 		else if (arg === '--score-all-active') options.score_all_active = true;
 		else if (arg === '--score-one-active') options.score_all_active = false;
 		else if (arg === '--include-blocked-checkins') throw new Error('Only preparation matches may be checked in');
@@ -702,6 +705,7 @@ function parse_args(argv) {
 				'  --dashboard                 show a stable ANSI terminal dashboard (default on TTY)',
 				'  --dashboard-view N          start in view 1 overview, 2 queues, 3 payloads, 4 events',
 				'  --no-processing-traces      disable detailed operation/lock/DB/worker recording (queue probes remain)',
+				'  --no-server-telemetry        reception-only comparison, including older servers without diagnostics',
 				'  --plain-log                 print line-oriented JSON logs instead of the dashboard',
 				'  --display-ack-render-ms N   simulated display render time sent in display_rendered ACKs',
 				'  --slow-latency-ms N         log tablet-to-TV/Admin latency samples at or above N ms, default 500, 0 disables',
@@ -1733,7 +1737,8 @@ async function run(options, { AdminClient = AdminWsClient, TabletClient = BupV2C
 	on_dashboard = () => {}, on_controls = () => {}, on_report = () => {}, keyboard = true } = {}) {
 	const dashboard = new Dashboard(options);
 	const admin = new AdminClient(options.base_url, options.tournament_key, dashboard);
-	const probe = AdminClient === AdminWsClient ? new AdminWsClient(options.base_url, options.tournament_key, null, { handshake_timeout_ms: 3000 }) : null;
+	const probe = AdminClient === AdminWsClient && options.server_telemetry !== false ? new AdminWsClient(options.base_url, options.tournament_key, null, { handshake_timeout_ms: 3000 }) : null;
+	if (options.server_telemetry === false) dashboard.performance.unavailable('Server telemetry disabled for reception-only comparison');
 	let probe_timer = null, probe_busy = false, probe_stopped = false;
 	async function poll_performance() {
 		if (probe_stopped || stopped || probe_busy || !probe) return;
@@ -1955,8 +1960,9 @@ async function run(options, { AdminClient = AdminWsClient, TabletClient = BupV2C
 		dashboard.start();
 		if (keyboard) cleanup_keyboard = setup_keyboard_controls();
 		await admin.connect();
-		if (probe) { poll_performance(); probe_timer = setInterval(poll_performance, 1000); }
 		const initial_tournament = await admin.tournament();
+		if (probe && initial_tournament.debug_offloading) { poll_performance(); probe_timer = setInterval(poll_performance, 1000); }
+		else if (probe) { probe_stopped = true; probe.close(); dashboard.performance.unavailable('Server version has no performance telemetry'); }
 		server_offloading = initial_tournament.debug_offloading || null;
 		server_profiles.push({ elapsed_ms: 0, profile: server_offloading });
 		if (options.expected_matches && initial_tournament.matches.length !== options.expected_matches) {
@@ -2166,7 +2172,7 @@ async function run(options, { AdminClient = AdminWsClient, TabletClient = BupV2C
 		admin.close();
 		// Stop generating tournament traffic, then collect the last completions.
 		// This is a bounded, read-only tail, not a wait for every server task.
-		if (probe) {
+		if (probe && !dashboard.performance.unavailable_reason) {
 			const tail_deadline = Date.now() + 1200;
 			try {
 				for (let batch = 0; batch < 8 && Date.now() < tail_deadline; batch++) {
@@ -2198,6 +2204,7 @@ async function run(options, { AdminClient = AdminWsClient, TabletClient = BupV2C
 				point_interval_ms: [options.point_min_ms, options.point_max_ms],
 				score_gap_ms: [options.score_gap_min_ms, options.score_gap_max_ms],
 				pause_visible_ms: options.pause_visible_ms, score_all_active: options.score_all_active,
+				server_telemetry: options.server_telemetry !== false, processing_traces: options.processing_traces !== false,
 				score_probability: [options.score_probability_min, options.score_probability_max],
 			},
 			tablet_to_tv_ms: dashboard.tv_latency_stats.summary(dashboard.score_updates),

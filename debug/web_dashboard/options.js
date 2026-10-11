@@ -23,6 +23,7 @@ const fields = [
 	['display_ack_render_ms', '--display-ack-render-ms', 'Simulierte TV-Verarbeitungszeit (ms)', 'number', 'diagnostics', 0, 60000],
 	['slow_latency_ms', '--slow-latency-ms', 'Langsame Empfangsereignisse ab (ms; 0 = aus)', 'number', 'diagnostics', 0, 60000],
 	['processing_traces', '', 'Verarbeitungsschritte und Locks aufzeichnen', 'boolean', 'diagnostics'],
+	['server_telemetry', '', 'Serverdiagnose abfragen (aus: nur Eventempfang)', 'boolean', 'diagnostics'],
 	['tablet_battery_min', '--tablet-battery-min', 'Anfangsakku mindestens (%)', 'number', 'battery', 1, 100],
 	['tablet_battery_max', '--tablet-battery-max', 'Anfangsakku höchstens (%)', 'number', 'battery', 1, 100],
 	['tablet_battery_drain_min', '--tablet-battery-drain-min', 'Akkuverlust mindestens (% je Update)', 'number', 'battery', 0, 100, 0.01],
@@ -34,7 +35,7 @@ const fields = [
 
 function defaults(mode = 'benchmark') {
 	const options = parse_args(mode === 'benchmark' ? ['--scenario', 'benchmark', '--plain-log'] : ['--plain-log']);
-	return Object.fromEntries(fields.map(field => [field.key, field.key === 'processing_traces' ? options.processing_traces !== false : options[field.key] ?? '']));
+	return Object.fromEntries(fields.map(field => [field.key, options[field.key] ?? '']));
 }
 
 function build_options(input) {
@@ -45,7 +46,8 @@ function build_options(input) {
 		const value = values[field.key];
 		if (field.type === 'boolean') {
 			if (typeof value !== 'boolean') throw new Error(field.label + ': ungültiger Wert.');
-			argv.push(field.key === 'processing_traces' ? value ? '--processing-traces' : '--no-processing-traces' : value ? '--score-all-active' : '--score-one-active');
+			const flags = { processing_traces: ['--no-processing-traces', '--processing-traces'], server_telemetry: ['--no-server-telemetry', '--server-telemetry'], score_all_active: ['--score-one-active', '--score-all-active'] };
+			argv.push(flags[field.key][Number(value)]);
 		} else if (field.type === 'number') {
 			if (value === '' && field.key === 'expected_matches' && input.mode === 'interactive') continue;
 			const number = Number(value);
