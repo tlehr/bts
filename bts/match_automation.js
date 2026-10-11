@@ -578,7 +578,8 @@ function passes_no_inactive_special_result_player_rule(match, tournament, option
 	return get_match_player_btp_ids(match).every((btp_id) => !inactive_player_ids.has(String(btp_id)));
 }
 
-function get_inactive_special_result_players_for_match(match, tournament) {
+function get_inactive_special_result_players_for_match(match, tournament, options = {}) {
+	if (options[PARTICIPANT_LOOKUP]) return options[PARTICIPANT_LOOKUP].inactive_players(match, get_match_players(match));
 	const inactive_player_ids = get_inactive_player_btp_ids_from_special_results(tournament, match);
 	if (inactive_player_ids.size === 0) {
 		return [];
@@ -1105,9 +1106,9 @@ function passes_base_preparation_rules(match, location_id, tournament, options =
 	if (match?.team1_won !== undefined && match?.team1_won !== null) return false;
 	if (setup.state === 'preparation' || setup.state === 'oncourt' || setup.state === 'blocked' || setup.state === 'finished') return false;
 	if (!ignore_location && !match_matches_location(match, location_id, courts_by_id)) return false;
-	if (has_open_participant_dependency(match, tournament, { matches_by_planning_id })) return false;
+	if (has_open_participant_dependency(match, tournament, { ...options, matches_by_planning_id })) return false;
 	if (!passes_time_limit_before_scheduled(match, tournament, now_ts)) return false;
-	if (!passes_no_inactive_special_result_player_rule(match, tournament)) return false;
+	if (!passes_no_inactive_special_result_player_rule(match, tournament, options)) return false;
 	if (!passes_no_player_playing_on_court_rule(match)) return false;
 	if (!passes_player_pause_expired_rule(match, tournament, now_ts)) return false;
 	if (!passes_no_player_waiting_as_tabletoperator_rule(match, tournament)) return false;
@@ -1235,6 +1236,7 @@ function find_preparation_frontier_match(tournament, location_id, options = {}) 
 	const relevant_matches = options.relevant_matches || get_location_relevant_matches(tournament, location_id, { courts_by_id });
 
 	return relevant_matches.find((match) => !passes_base_preparation_rules(match, location_id, tournament, {
+		[PARTICIPANT_LOOKUP]: options[PARTICIPANT_LOOKUP],
 		courts_by_id,
 		matches_by_planning_id,
 		now_ts,
@@ -1628,6 +1630,7 @@ function is_match_eligible_for_preparation(match, location_id, tournament, optio
 	const frontier = options.frontier !== undefined
 		? options.frontier
 		: find_preparation_frontier_match(tournament, location_id, {
+			[PARTICIPANT_LOOKUP]: options[PARTICIPANT_LOOKUP],
 			courts_by_id,
 			matches_by_planning_id,
 			now_ts,
@@ -1636,6 +1639,7 @@ function is_match_eligible_for_preparation(match, location_id, tournament, optio
 		});
 
 	if (!passes_base_preparation_rules(match, location_id, tournament, {
+		[PARTICIPANT_LOOKUP]: options[PARTICIPANT_LOOKUP],
 		courts_by_id,
 		matches_by_planning_id,
 		now_ts,
@@ -1899,7 +1903,7 @@ function describe_call_on_court_preparation_age(match, tournament, now_ts, passe
 }
 
 function calculate_match_call_on_court_diagnostics(match, court_id, tournament, options = {}) {
-	options = with_frontier_positions(options);
+	options = with_participant_lookup(tournament, with_frontier_positions(options));
 	const setup = match?.setup || {};
 	const courts_by_id = options.courts_by_id || get_courts_by_id(tournament);
 	const matches_by_planning_id = options.matches_by_planning_id || build_matches_by_planning_id(tournament);
@@ -1910,6 +1914,7 @@ function calculate_match_call_on_court_diagnostics(match, court_id, tournament, 
 	const frontier = options.frontier !== undefined
 		? options.frontier
 		: find_call_on_court_frontier_match(tournament, court_id, {
+			[PARTICIPANT_LOOKUP]: options[PARTICIPANT_LOOKUP],
 			courts_by_id,
 			matches_by_planning_id,
 			now_ts,
@@ -1944,7 +1949,7 @@ function calculate_match_call_on_court_diagnostics(match, court_id, tournament, 
 	add_preparation_diagnostic_rule(
 		rules,
 		'participant_dependencies',
-		!has_open_participant_dependency(match, tournament, { matches_by_planning_id })
+		!has_open_participant_dependency(match, tournament, { ...options, matches_by_planning_id })
 	);
 
 	const preparation_age_enabled = get_call_on_court_preparation_age_minutes(tournament) != null;
@@ -1977,7 +1982,7 @@ function calculate_match_call_on_court_diagnostics(match, court_id, tournament, 
 		players_checked_in_enabled
 	);
 
-	const inactive_special_result_players = get_inactive_special_result_players_for_match(match, tournament);
+	const inactive_special_result_players = get_inactive_special_result_players_for_match(match, tournament, options);
 	add_preparation_diagnostic_rule(
 		rules,
 		'special_result_same_discipline',
@@ -2074,7 +2079,7 @@ function calculate_match_call_on_court_diagnostics(match, court_id, tournament, 
 }
 
 function calculate_match_preparation_diagnostics(match, location_id, tournament, options = {}) {
-	options = with_frontier_positions(options);
+	options = with_participant_lookup(tournament, with_frontier_positions(options));
 	const setup = match?.setup || {};
 	const courts_by_id = options.courts_by_id || get_courts_by_id(tournament);
 	const matches_by_planning_id = options.matches_by_planning_id || build_matches_by_planning_id(tournament);
@@ -2083,6 +2088,7 @@ function calculate_match_preparation_diagnostics(match, location_id, tournament,
 	const frontier = options.frontier !== undefined
 		? options.frontier
 		: find_preparation_frontier_match(tournament, location_id, {
+			[PARTICIPANT_LOOKUP]: options[PARTICIPANT_LOOKUP],
 			courts_by_id,
 			matches_by_planning_id,
 			now_ts,
@@ -2120,7 +2126,7 @@ function calculate_match_preparation_diagnostics(match, location_id, tournament,
 	add_preparation_diagnostic_rule(
 		rules,
 		'participant_dependencies',
-		!has_open_participant_dependency(match, tournament, { matches_by_planning_id })
+		!has_open_participant_dependency(match, tournament, { ...options, matches_by_planning_id })
 	);
 	add_preparation_diagnostic_rule(rules, 'not_on_court', setup.now_on_court !== true);
 
@@ -2135,7 +2141,7 @@ function calculate_match_preparation_diagnostics(match, location_id, tournament,
 		'window'
 	);
 
-	const inactive_special_result_players = get_inactive_special_result_players_for_match(match, tournament);
+	const inactive_special_result_players = get_inactive_special_result_players_for_match(match, tournament, options);
 	add_preparation_diagnostic_rule(
 		rules,
 		'special_result_same_discipline',
@@ -2245,7 +2251,7 @@ function calculate_match_preparation_diagnostics(match, location_id, tournament,
 }
 
 function find_location_preparation_candidates(tournament, location_id, options = {}) {
-	options = with_frontier_positions(options);
+	options = with_participant_lookup(tournament, with_frontier_positions(options));
 	const matches = Array.isArray(tournament?.matches) ? tournament.matches : [];
 	const courts_by_id = options.courts_by_id || get_courts_by_id(tournament);
 	const matches_by_planning_id = options.matches_by_planning_id || build_matches_by_planning_id(tournament);
@@ -2255,6 +2261,7 @@ function find_location_preparation_candidates(tournament, location_id, options =
 	const frontier = options.frontier !== undefined
 		? options.frontier
 		: find_preparation_frontier_match(tournament, location_id, {
+			[PARTICIPANT_LOOKUP]: options[PARTICIPANT_LOOKUP],
 			courts_by_id,
 			matches_by_planning_id,
 			now_ts,
@@ -2265,6 +2272,7 @@ function find_location_preparation_candidates(tournament, location_id, options =
 	return matches
 		.filter((match) => is_match_eligible_for_preparation(match, location_id, tournament, {
 			[FRONTIER_POSITIONS]: options[FRONTIER_POSITIONS],
+			[PARTICIPANT_LOOKUP]: options[PARTICIPANT_LOOKUP],
 			courts_by_id,
 			matches_by_planning_id,
 			now_ts,
@@ -2290,6 +2298,7 @@ function find_global_preparation_frontier_match(tournament, options = {}) {
 	const relevant_matches = options.relevant_matches || get_global_relevant_matches(tournament);
 
 	return relevant_matches.find((match) => !passes_base_preparation_rules(match, null, tournament, {
+		[PARTICIPANT_LOOKUP]: options[PARTICIPANT_LOOKUP],
 		courts_by_id,
 		matches_by_planning_id,
 		now_ts,
@@ -2299,7 +2308,7 @@ function find_global_preparation_frontier_match(tournament, options = {}) {
 }
 
 function find_global_preparation_candidates(tournament, options = {}) {
-	options = with_frontier_positions(options);
+	options = with_participant_lookup(tournament, with_frontier_positions(options));
 	const matches = Array.isArray(tournament?.matches) ? tournament.matches : [];
 	const courts_by_id = options.courts_by_id || get_courts_by_id(tournament);
 	const matches_by_planning_id = options.matches_by_planning_id || build_matches_by_planning_id(tournament);
@@ -2308,6 +2317,7 @@ function find_global_preparation_candidates(tournament, options = {}) {
 	const frontier = options.frontier !== undefined
 		? options.frontier
 		: find_global_preparation_frontier_match(tournament, {
+			[PARTICIPANT_LOOKUP]: options[PARTICIPANT_LOOKUP],
 			courts_by_id,
 			matches_by_planning_id,
 			now_ts,
@@ -2318,6 +2328,7 @@ function find_global_preparation_candidates(tournament, options = {}) {
 	return matches
 		.filter((match) => {
 			if (!passes_base_preparation_rules(match, null, tournament, {
+				[PARTICIPANT_LOOKUP]: options[PARTICIPANT_LOOKUP],
 				courts_by_id,
 				matches_by_planning_id,
 				now_ts,
@@ -2338,7 +2349,7 @@ function find_global_preparation_candidates(tournament, options = {}) {
 }
 
 function calculate_location_preparation_selection(tournament, location_id, options = {}) {
-	options = with_frontier_positions(options);
+	options = with_participant_lookup(tournament, with_frontier_positions(options));
 	const status = calculate_location_preparation_status(tournament, location_id);
 	const courts_by_id = options.courts_by_id || get_courts_by_id(tournament);
 	const matches_by_planning_id = options.matches_by_planning_id || build_matches_by_planning_id(tournament);
@@ -2348,6 +2359,7 @@ function calculate_location_preparation_selection(tournament, location_id, optio
 	const frontier = options.frontier !== undefined
 		? options.frontier
 		: find_preparation_frontier_match(tournament, location_id, {
+			[PARTICIPANT_LOOKUP]: options[PARTICIPANT_LOOKUP],
 			courts_by_id,
 			matches_by_planning_id,
 			now_ts,
@@ -2575,18 +2587,10 @@ async function fetch_all_location_preparation_selections(app, tournament_key, op
 		app.db.tabletoperators.find_async({ tournament_key }),
 	]);
 
+	const input = { ...(tournament || {}), locations, courts, matches, umpires, tabletoperators };
+	const context = with_participant_lookup(input, with_frontier_positions({ ...options, app }));
 	return (locations || []).map((location) => {
-		const selection = calculate_location_preparation_selection({
-			...(tournament || {}),
-			locations,
-			courts,
-			matches,
-			umpires,
-			tabletoperators,
-		}, location._id, {
-			...options,
-			app,
-		});
+		const selection = calculate_location_preparation_selection(input, location._id, context);
 
 		return {
 			...selection,

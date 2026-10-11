@@ -41,6 +41,11 @@ class ParticipantLookup {
 		const inactive = this.inactive_by_discipline.get(this.rules.discipline(match));
 		return !inactive || this.player_ids(match).every(id => !inactive.has(String(id)));
 	}
+
+	inactive_players(match, players) {
+		const inactive = this.inactive_by_discipline.get(this.rules.discipline(match));
+		return inactive ? players.filter(player => player?.btp_id != null && inactive.has(String(player.btp_id))) : [];
+	}
 }
 
 module.exports = ParticipantLookup;
