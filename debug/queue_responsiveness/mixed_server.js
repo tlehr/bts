@@ -10,7 +10,7 @@ const { response } = require('./fixture');
 const { instrument, clock } = require('./instrument');
 const pause = ms => new Promise(resolve => setTimeout(resolve, ms));
 
-async function main({ root, directory, count, sync_interval_ms, set_points }) {
+async function main({ root, directory, count, sync_interval_ms, set_points, workload }) {
 	await validate_archive(root, directory);
 	const load = name => require(path.join(root, 'bts', name));
 	const database = load('database'), admin = load('admin'), queue = load('update_queue');
@@ -21,7 +21,8 @@ async function main({ root, directory, count, sync_interval_ms, set_points }) {
 	const server = http.createServer(), wss = new WebSocket.Server({ server });
 	const app = { db, wss, config: {} };
 	await load('clock').init(app);
-	const fixture = response(count);
+	const preparation = workload === 'preparation';
+	const fixture = response(count, false, preparation ? 26 : null);
 	fixture.Result[0].Tournament[0].ScoringFormats[0].ScoringFormat[0].Score = [set_points];
 	await load('btp_sync').sync_btp_data(app, 'default', fixture);
 	const matches = (await db.matches.find_async({ tournament_key: 'default' })).sort((a, b) => a.setup.match_num - b.setup.match_num);
@@ -35,10 +36,26 @@ async function main({ root, directory, count, sync_interval_ms, set_points }) {
 	}, { tournament_key: 'default', match_id: matches[i]._id, court_id: courts[i]._id }));
 	await db.tournaments.update_async({ key: 'default' }, { $set: {
 		bupws_v2_enabled: true,
+		call_preparation_matches_automatically_enabled: preparation,
 		call_next_possible_scheduled_match_in_preparation: true, call_on_court_only_preparation_enabled: false,
 		call_on_court_participant_readiness_mode: 'disabled',
 	} }, {});
 	const measurement = instrument(root, db, queue, reason => process.send({ type: 'probe', reason }));
+	const preparation_calculations = [], automation = load('match_automation');
+	const original_fetch = automation.fetch_location_preparation_selection;
+	automation.fetch_location_preparation_selection = function(app, key, location, options = {}) {
+		const timing = options.preparation_timing;
+		return original_fetch(app, key, location, { ...options, preparation_timing: {
+			step: (...args) => timing?.step(...args) || (() => {}),
+			sync(phase, details, work) {
+				const began = clock();
+				const result = timing ? timing.sync(phase, details, work) : work();
+				preparation_calculations.push({ ns: String(began), duration_ms: Number(clock() - began) / 1e6,
+					...details, candidates: result.candidates.length });
+				return result;
+			},
+		} });
+	};
 	const replans = [], traces = load('performance/traces'), original_phase = traces.phase;
 	traces.phase = function(name, start, duration, details) {
 		if (name === 'incremental_replan' && replans.length < 256) {
@@ -114,7 +131,7 @@ async function main({ root, directory, count, sync_interval_ms, set_points }) {
 				clearInterval(sample_timer);
 				const drained = quiet === 5 && diagnostics.tasks.every(row => row.finished_ns) && diagnostics.database.every(row => row.finished_ns);
 				const final = await db.matches.find_async({ tournament_key: 'default' });
-				const result = { drained, syncs, replans, sync_backlog_samples, matches: final.length, finished_matches: final.filter(match => match.end_ts).length,
+				const result = { drained, syncs, replans, sync_backlog_samples, preparation_calculations, matches: final.length, finished_matches: final.filter(match => match.end_ts).length,
 					oncourt_matches: final.filter(match => match.setup.state === 'oncourt').length, ...diagnostics };
 				await fs.writeFile(path.join(directory, 'server-result.json'), JSON.stringify(result));
 				if (!drained || syncs.some(row => row.error)) throw new Error('Mixed workload failed to drain or integrate');

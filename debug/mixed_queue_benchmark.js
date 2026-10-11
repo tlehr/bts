@@ -12,14 +12,15 @@ const { module_path } = require('./testclient_bridge');
 
 function parse(argv) {
 	const options = { bts_dir: path.resolve(__dirname, '..'), ref: 'HEAD', duration_ms: 120000, sync_interval_ms: 2000, count: 519,
-		point_min_ms: 800, point_max_ms: 1600, set_points: 21 };
+		point_min_ms: 800, point_max_ms: 1600, set_points: 21, workload: 'ordering' };
 	for (let i = 0; i < argv.length; i++) {
 		const key = { '--ref': 'ref', '--duration-ms': 'duration_ms', '--sync-interval-ms': 'sync_interval_ms', '--matches': 'count',
-			'--point-min-ms': 'point_min_ms', '--point-max-ms': 'point_max_ms', '--set-points': 'set_points' }[argv[i]];
+			'--point-min-ms': 'point_min_ms', '--point-max-ms': 'point_max_ms', '--set-points': 'set_points', '--workload': 'workload' }[argv[i]];
 		if (!key || !argv[i + 1] || argv[i + 1].startsWith('--')) throw new Error('Unknown option or missing value: ' + argv[i]);
-		options[key] = key === 'ref' ? argv[++i] : Number(argv[++i]);
+		options[key] = ['ref', 'workload'].includes(key) ? argv[++i] : Number(argv[++i]);
 	}
 	if (options.ref.startsWith('-') || !options.ref.trim()) throw new Error('Invalid ref');
+	if (!['ordering', 'preparation'].includes(options.workload)) throw new Error('Invalid workload');
 	for (const [key, min, max] of [['duration_ms', 5000, 300000], ['sync_interval_ms', 500, 10000], ['count', 14, 2000],
 		['point_min_ms', 50, 30000], ['point_max_ms', 50, 30000], ['set_points', 1, 21]]) {
 		if (!Number.isInteger(options[key]) || options[key] < min || options[key] > max) throw new Error('Invalid ' + key);
@@ -53,6 +54,8 @@ function summarize(server, client, probes) {
 		points: client.points, tablet_to_tv_ms: client.tablet_to_tv_ms, tablet_to_admin_ms: client.tablet_to_admin_ms,
 		finished_matches: server.finished_matches, oncourt_matches: server.oncourt_matches,
 		call_events: client.payload_types.admin.filter(row => row.type === 'change:match_called_on_court').reduce((sum, row) => sum + row.count, 0),
+		preparation_events: client.payload_types.admin.filter(row => row.type === 'change:match_preparation_call').reduce((sum, row) => sum + row.count, 0),
+		preparation_calculation_ms: statistics((server.preparation_calculations || []).map(row => row.duration_ms)),
 		free_announce_ms: statistics(probes.probes.filter(row => row.kind === 'free').map(row => row.latency_ms)),
 		call_ms: statistics(probes.probes.filter(row => row.kind === 'call').map(row => row.latency_ms)),
 		unanswered: probes.unanswered, windows, event_loop: server.event_loop,
@@ -74,6 +77,7 @@ async function run(options, { signal, log = console.log } = {}) {
 			'Idle fixture games explicitly set to scheduled before measurement, enabling automatic calls after real finishes.',
 			'Periodic sync uses the actual validated integration planner but updates idle match numbers directly in staging; no periodic BTP TCP/XML fetch/parser.',
 			'Full BTP fixture is used only at bootstrap. No live tournament or server is modified. Officials/tabletoperator allocation disabled.',
+			options.workload === 'preparation' ? 'Automatic preparation enabled; 26 pairs of players recur across scheduled games, creating real participant dependencies. No winner/loser bracket propagation simulated.' : 'Automatic preparation disabled; independent participants.',
 			'One explicit unchanged court call during first integration; automatic calls through actual score finishes; free announcements every two seconds.',
 			'Queue samples every 20 ms, diagnostics/traces enabled by normal client. Observer overhead and local machine load included.',
 			'Reception of WebSocket events, no browser painting or audible speech. Limited duration, no capacity guarantee.',
@@ -102,7 +106,7 @@ async function run(options, { signal, log = console.log } = {}) {
 		result.client_source_sha256 = crypto.createHash('sha256').update(await fs.readFile(client_path)).digest('hex');
 		result.dependency_lock_sha256 = crypto.createHash('sha256').update(await fs.readFile(path.join(options.bts_dir, 'package-lock.json'))).digest('hex');
 		server = launch(path.join(__dirname, 'queue_responsiveness/mixed_server.js'), { root, directory: output, count: options.count,
-			sync_interval_ms: options.sync_interval_ms, set_points: options.set_points }, output, 'server', signal);
+			sync_interval_ms: options.sync_interval_ms, set_points: options.set_points, workload: options.workload }, output, 'server', signal);
 		const setup = await server.wait('ready');
 		receiver = launch(path.join(__dirname, 'queue_responsiveness/mixed_receiver.js'), { ...setup, directory: output,
 			client_module: client_path, count: options.count, duration_ms: options.duration_ms,
@@ -118,6 +122,7 @@ async function run(options, { signal, log = console.log } = {}) {
 		const measured = JSON.parse(await fs.readFile(finished.result, 'utf8'));
 		const probes = JSON.parse(await fs.readFile(path.join(output, 'probe-result.json'), 'utf8'));
 		result.summary = summarize(measured, client, probes);
+		if (options.workload === 'preparation' && (!result.summary.preparation_events || !result.summary.preparation_calculation_ms.count)) throw new Error('No active preparation measured');
 		if (measured.finished_matches && result.summary.call_events < 2) throw new Error('Finishes observed without automatic follow-up call events');
 		if (result.summary.processing_errors) throw new Error('Server processing errors observed: ' + result.summary.processing_errors);
 		result.artifacts = { server: finished.result, client: done.result, probes: path.join(output, 'probe-result.json') };

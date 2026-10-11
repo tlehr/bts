@@ -7,8 +7,19 @@ describe('mixed queue benchmark', function() {
 	it('rejects unbounded workloads and ambiguous refs/options', function() {
 		for (const args of [['--duration-ms', '0'], ['--duration-ms', '300001'], ['--matches', '13'], ['--sync-interval-ms', '499'],
 			['--ref', '--all'], ['--duration-ms', 'NaN'], ['--matches', '519.5'], ['--point-min-ms', '49'],
-			['--point-min-ms', '1601'], ['--set-points', '0'], ['--unknown', '1']]) assert.throws(() => parse(args));
+			['--point-min-ms', '1601'], ['--set-points', '0'], ['--workload', 'unknown'], ['--unknown', '1']]) assert.throws(() => parse(args));
 		assert.strictEqual(parse(['--duration-ms', '180000']).duration_ms, 180000);
+		assert.strictEqual(parse(['--workload', 'preparation']).workload, 'preparation');
+		assert.strictEqual(parse([]).workload, 'ordering');
+	});
+	it('reuses 26 participant pairs while retaining all independent planning IDs', function() {
+		const { response } = require('../debug/queue_responsiveness/fixture');
+		const matches = response(519, false, 26).Result[0].Tournament[0].Matches[0].Match;
+		const leaves = matches.filter(match => match.IsMatch[0] === false);
+		assert.strictEqual(new Set(leaves.map(match => match.EntryID[0])).size, 52);
+		assert.strictEqual(new Set(matches.map(match => match.PlanningID[0])).size, 1557);
+		assert.strictEqual(matches.filter(match => match.IsMatch[0]).length, 519);
+		assert.strictEqual(leaves[0].EntryID[0], leaves[52].EntryID[0]);
 	});
 	it('reports unavailable values and finite percentiles without inventing zero latency', function() {
 		assert.deepStrictEqual(statistics([null, undefined, NaN]), { count: 0, mean: null, median: null, p95: null, max: null });

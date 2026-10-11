@@ -1,13 +1,14 @@
 'use strict';
 
 // A public, deterministic BTP response: independent matches, no real players.
-function response(count = 519, changed = false) {
+function response(count = 519, changed = false, participant_groups = null) {
 	const players = [], entries = [], matches = [];
 	for (let n = 1; n <= count; n++) {
 		for (const id of [n * 2 - 1, n * 2]) {
 			players.push({ ID: [id], Firstname: ['Player'], Lastname: [String(id)], CheckedIn: [true] });
 			entries.push({ ID: [id], EventID: [1], Player1ID: [id] });
-			matches.push({ ID: [count + id], DrawID: [1], PlanningID: [count + id], EntryID: [id], IsMatch: [false] });
+			const entry_id = participant_groups ? (id - 1) % (participant_groups * 2) + 1 : id;
+			matches.push({ ID: [count + id], DrawID: [1], PlanningID: [count + id], EntryID: [entry_id], IsMatch: [false] });
 		}
 		matches.push({ ID: [n], DrawID: [1], PlanningID: [n], From1: [count + n * 2 - 1], From2: [count + n * 2],
 			IsMatch: [true], IsPlayable: [true], MatchNr: [n + (changed && n > 1 ? 10000 : 0)],
