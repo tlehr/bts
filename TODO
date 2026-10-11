@@ -186,14 +186,36 @@ Naechste optionale Schritte nach diesen Arbeiten:
   anschliessend 98 gezielte Regressionen; alle geaenderten Module lint-sauber.
   Beide neuen Laeufe getrennt archiviert, vorhandener Vergleich wiederverwendet:
   debug/performance_ordering_2026-10-11.md und .json, refresh_optimization.
+- ERLEDIGT: Automatische Vorbereitung mit gemeinsamen Teilnehmern gemessen
+  und beschleunigt. Werkzeug 4a2a7a6: --workload preparation, 519 Spiele,
+  26 wiederkehrende Spielerpaare, aktive Vorbereitung, zwei gleiche 90s-Laeufe.
+  c61149f: vorhandene Teilnehmerreferenzen fuer Kandidaten, Frontier und volle
+  UI-Diagnosen teilen; gemeinsame Hallenabfrage nutzt einen frischen Snapshot.
+  Auswahl-Maximum 587->63ms, TV-p99 686->70ms, Admin-p99 708->54ms,
+  Event-Loop-Maximum 606->79ms, Durchsage-p95 144->7ms. Alle 959 Updates je
+  Ziel, 46/46 Syncs, fuenf Spielenden/Folgeaufrufe, kein wachsender Sync-Stau.
+  Vollsuite 793, danach 130 gezielte Regressionen inkl. Hallenabhaengigkeiten.
+  Ganze Auswahl inkl. Diagnosen im gleichen Snapshot achtmal tief verglichen.
+  Bericht: debug/performance_preparation_2026-10-12.md und .json.
+- OFFEN: Verbleibenden Lock-Konflikt bei Aufrufen mit gemeinsamen Spielern
+  gezielt reduzieren. Neue manuelle Probe 277ms, davon 262ms Warten auf
+  mixed_ordering_apply wegen match:default:btp_default_Singles_13. Spiel 13
+  wird nicht direkt umnummeriert; Beziehung zu anderen geaenderten Spielen
+  erweitert den Lock-Umfang. Bei reiner Reihenfolgeaenderung pruefen, welche
+  Beziehungssperren erforderlich bleiben; Offiziellen-/Tabletoperator-Vergabe,
+  Byes, Spielende und Check-in weiterhin vollstaendig absichern.
+  Zwei TV-Spitzen 146/186ms verbleiben; letzter Fall ist Spielendbestaetigung
+  mit Vorbereitung-Lock-Warten, Cleanup und asynchroner Anzeigeveroeffentlichung.
+  Traces und konkrete Blocker im neuen Bericht gesichert.
 - OFFEN: Weiteren Bedarf anhand konkreter UX-Spitzen beurteilen.
   TV-p95/p99 im letzten Lauf 39/57ms (vorher 32/52ms), keine gleichmaessige
   Verbesserung jeder Punktlatenz. Hintergrundvorbereitung wartet noch bis
   280ms, Loop-Maximum 88ms, Root-Sync-Maximum 1362ms. Erst konkrete langsame
   Vorgaenge zuordnen, bevor weitere Auslagerungen oder Schreibpfade folgen.
-  Aktive Offiziellen-/Tabletoperator-Zuweisung, aktive automatische Vorbereitung,
-  akustischer Start und beliebige Dauerlast sind durch diesen Lasttest nicht
-  abgedeckt; Regeln/Freilose bleiben durch Regressionen geprueft.
+  Aktive Vorbereitung und gemeinsame Teilnehmer nun separat gemessen (oben).
+  Aktive Offiziellen-/Tabletoperator-Zuweisung, akustischer Start und beliebige
+  Dauerlast sind durch diese Lasttests nicht abgedeckt; Regeln/Freilose bleiben
+  durch Regressionen geprueft.
 - Bei Bedarf Langzeitlauf des juengsten Gesamtstands: Der zehnminuetige
   optimierte Vergleich verwendet den gesicherten Stand 647e479; juengste
   Diagnose-/Cache-Aenderungen sind durch Regressionen, kurze Empfangslaeufe
