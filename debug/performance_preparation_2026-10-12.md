@@ -324,3 +324,100 @@ Der JSON-Bericht ergänzt `unchanged_notification_lock_optimization` und erhält
 alle vorherigen Ergebnisse. Die bisherigen Grenzen bezüglich Dauerlast,
 echtem BTP-Abruf, Browser-Rendering, hörbarem Audiostart und aktiver
 Offiziellen-/Tabletoperator-Vergabe gelten weiterhin.
+
+## Gezielte Objekt-Reads für die TV-Punktanzeige
+
+Commit `819e144` ersetzt im inkrementellen V2-Punkt-Fanout die normalen
+Court-, Match- und Turnierabfragen durch gezielte Reads der kanonischen
+Objekte. Jeder Read bleibt im Executor seiner Collection: vorherige Writes
+müssen einschließlich Persistenz abgeschlossen sein. Der aktuelle Court
+bestimmt das zu lesende Match; Daten aus dem ursprünglichen Punkt-Request
+werden nicht als möglicherweise veralteter Anzeige-Snapshot wiederverwendet.
+Die Reads liefern getrennte Kopien. Einzel- und Mehrfeldanzeige teilen weiterhin
+einen Court-Kontext pro Fanout; blockierte Tablet-/Vollzustands-Refreshes
+halten inkrementelle TV-Meldungen weiterhin nicht auf.
+
+`tournament_model/display_reads.js` kapselt die Reads in einer kleinen Datei.
+Die unveränderte Auswahl der Präsentationsfelder liegt gemeinsam in
+`panel_tournament_projection.js`; Registrierungen werden nicht kopiert.
+Unvollständige oder simulierte Datastores behalten die bisherigen Async-/Callback-Reads.
+Ein TTL-Index wird erst beim tatsächlichen Start des Reads geprüft. Falls
+vorhanden, läuft NeDBs normaler Cursor einschließlich Ablauf/Löschung im
+gleichen Executor-Slot. Diese potenziell schreibende Aufgabe ist konservativ
+kein zertifizierter Nur-Lese-Task und nutzt keinen Kompaktierungs-Bypass.
+Weitere Locks, Threads oder Prioritätsregeln werden nicht eingeführt.
+Initialisierung/Vollzustand und die Suche nach kürzlich beendeten Spielen
+behalten ihre bisherigen Pfade.
+
+Sieben neue Regressionen prüfen gezielte Kopien/Präsentationsfelder ohne
+Registrierungs- oder Match-Scan, Persistenz-/Write-Reihenfolge, fehlende,
+verschobene und gelöschte Objekte, nach Enqueue hinzugefügte TTL-Indizes,
+aktuelle Feldzuweisung im echten Fanout, Einzel-/Mehrfeldpunkte ohne normale
+DB-Cursor sowie Async-/Callback-Fallbacks. Die vollständige Suite besteht mit
+**809 Tests**. Neue Module, Modell-Anbindung und geänderte Tests sind
+ESLint-sauber. Die 27 bereits vorhandenen Befunde in `bupws_v2.js` bleiben
+unverändert; es wird keine Lint-saubere Gesamtdatei behauptet.
+
+### Vergleich unter derselben Vorbereitungslast
+
+Ein neuer normaler 90-Sekunden-Lauf verwendet `KOKqqY` als vorhandene Referenz.
+Parameter, alle acht Testwerkzeug-Hashes, Client-Commit/-Quelle,
+Abhängigkeits-Lock, Node und CPU stimmen überein. Der Server läuft aus dem
+unveränderlichen Archiv des geprüften Commits. Kein Live-Turnier wird
+verändert; der alte Lauf wird nicht wiederholt.
+
+| Messwert | Normale Anzeige-Reads | Gezielte Anzeige-Reads |
+| --- | ---: | ---: |
+| Tablet → TV Mittel / p95 / p99 | 14,1 / 30 / 59 ms | 12,8 / 27 / 56 ms |
+| Tablet → TV Maximum / über 100 ms | 109 ms / 1 | 74 ms / 0 |
+| Tablet → Admin p95 / p99 / Maximum | 19 / 41 / 73 ms | 21 / 49 / 69 ms |
+| Court-Fanout-Phase p99 / Maximum | 18,5 / 73,6 ms | 11,7 / 41,3 ms |
+| Gruppierung/Turnier-Read p99 / Maximum | 9,9 / 43,6 ms | 5,4 / 8,5 ms |
+| Primärer Score-Lock-Wait p99 / Maximum | 3,4 / 12,9 ms | 3,5 / 9,1 ms |
+| Score-Handler Median / p95 | 6,6 / 17,6 ms | 8,9 / 22,2 ms |
+| Manuelles Aufrufsignal | 11,3 ms | 13,9 ms |
+| Freie Durchsage p95 / Maximum | 4,5 / 8,0 ms | 4,1 / 5,4 ms |
+| Sync insgesamt p95 / Maximum | 576 / 960 ms | 634 / 1310 ms |
+| Event-Loop-Verzögerung Maximum | 81,0 ms | 96,7 ms |
+| Empfangene Meldungen TV und Admin | jeweils 960/960 | jeweils 957/957 |
+| Syncs / Spielenden / automatische Folgeaufrufe | 46 / 5 / 5 | 46 / 5 / 5 |
+
+Die eigentlichen Court-/Match-Objekt-Reads liegen im neuen Lauf jeweils
+höchstens bei 0,4 ms, der Turnier-Read höchstens bei 0,6 ms. Die einzelnen
+Read-Verteilungen im JSON beziehen sich auf normale Punkt-Roots; die fünf
+Spielabschluss-Roots fassen DB-Spans zusammen und erlauben hierfür keine
+vollständige Einzelverteilung. Alte generische `findOne`-Namen umfassen zudem
+weitere, durch den gleichen Vorgang geerbte Reads. Die vollständigen
+Fanout-Phasen und die Client-Empfangsmessungen sind deshalb der maßgebliche
+Vergleich. Asynchrone DB-Zeiten sind keine synchronen CPU-Zeiten und dürfen
+nicht zu überlappenden Handler-/Phasenzeiten addiert werden.
+
+Alle 49 aufgezeichneten Umnummerierungs-Klassifizierungen sind weiterhin
+`ordering_only`. Alle Syncs und Anfragen werden beantwortet, es gibt keine
+aufgezeichneten Verarbeitungsfehler. Je Laufdrittel bleibt höchstens ein Sync
+offen; der Lauf endet mit geleerten Queues. Die finale Fixture enthält erneut
+519 Spiele, 52 verschiedene Teilnehmer und 13 aktive Felder mit 26
+verschiedenen Spielern. Das Serverlog bleibt leer.
+
+Die kürzere TV-Veröffentlichung ist im Trace nachvollziehbar. Die langsamste
+TV-Meldung des neuen Laufs benötigt 74 ms, Admin 69 ms. Zwischen Client-Senden
+und Handler-Start liegen hier 44 ms; das Kontextladen dauert 19,5 ms. Der
+Handler wartet nur 2,5 ms auf seine Locks ohne gemeldeten Blockierer. Seine
+Court-Fanout-Phase beträgt anschließend 3,6 ms. Die größte Fanout-Phase des
+Laufs liegt bei einem anderen Punkt bei 41,3 ms (TV 56 ms, Admin 9 ms): der
+Court-Read beginnt nach 35,4 ms Queue-Wartezeit, ohne beim Enqueue erfassten
+Blockierer; der Read selbst dauert 0,2 ms. Eine genaue CPU-/Dispatch-Ursache
+dieser verbleibenden Verzögerungen wird nicht behauptet.
+
+Admin-p99, Handler-Median, Event-Loop-Maximum und Sync-Maximum sind in diesem
+einzelnen Gegenlauf höher. Es wird weder eine Verbesserung aller Teilpfade
+noch eine kausale Regression dieser Werte aus diesem kurzen Vergleich
+abgeleitet. Die Serverlast und der konkrete Turnierfortschritt variieren trotz
+gleicher Fixture/Parameter geringfügig. Das Ergebnis belegt den gezielten
+TV-Pfad; Dauerlast, periodischer BTP-Abruf, aktive Offiziellenvergabe,
+Browser-Rendering und hörbarer Audiostart bleiben separate Messziele.
+
+Neuer Standardlauf: `/tmp/bts-queue-responsiveness-4szjcF`.
+Validierung: `/tmp/bts-display-reads-full-suite.log`.
+Der JSON-Bericht ergänzt `display_context_read_optimization` und erhält alle
+vorherigen Ergebnisse inklusive ungünstiger Werte und Diagnosegrenzen.

@@ -233,17 +233,28 @@ Naechste optionale Schritte nach diesen Arbeiten:
   Performance-Vergleich (zusaetzliche wiederholte Pruefungen verlangsamen ihn).
   Bericht: debug/performance_preparation_2026-10-12.md und .json,
   unchanged_notification_lock_optimization. Lauf /tmp/bts-queue-responsiveness-KOKqqY.
-- OFFEN: Bei weiterem Bedarf asynchronen TV-Lesepfad anhand konkreter Spitzen
-  pruefen. Eine gewoehnliche Punktmeldung TV 109ms, Admin 26ms; Handler 18.3ms,
-  Lock-Warten 1.4ms ohne Blocker. Feldanzeigephase 73.1ms, Court-DB-Warten
-  und DB-Laufzeit je rund 30ms; letztere enthaelt asynchrone Fortsetzung.
-  Event-Loop-Maximum 81ms (vorher 61ms). Noch keine eindeutige Attribution
-  der CPU-/Leseverzoegerung; keine pauschalen weiteren Lock-Verkleinerungen.
+- ERLEDIGT: Inkrementellen TV-Lesepfad auf gezielte kanonische Objekt-Reads
+  umgestellt (819e144). Kleine display_reads-Datei, aktuelle Court-Zuordnung,
+  abgetrennte Kopien und gemeinsame Praesentations-Projektion ohne Register.
+  Executor-Reihenfolge/Persistenz bleibt erhalten, TTL inklusive spaeter
+  angelegter Indizes und Teil-Datastores nutzen bestehende Cursor-Fallbacks.
+  Keine neuen Locks/Threads. Vollsuite 809, neue/geaenderte kleine Module und
+  Tests lint-sauber, bestehende 27 bupws_v2-Befunde unveraendert.
+  Ein neuer gleicher 90s-Lauf mit vorhandener Referenz: TV-p99 59->56ms,
+  Maximum 109->74ms, Court-Fanout-p99 18.5->11.7ms, alle 957 Updates je Ziel,
+  46/46 Syncs, fuenf Spielenden/Folgeaufrufe; kein Rueckstau, leeres Serverlog.
+  Admin-p99 41->49ms, Handler-Median 6.6->8.9ms, Loop-Maximum 81->97ms und
+  Sync-Maximum 960->1310ms sind hoeher und ebenfalls dokumentiert.
+  Bericht: debug/performance_preparation_2026-10-12.md und .json,
+  display_context_read_optimization. Lauf /tmp/bts-queue-responsiveness-4szjcF.
 - OFFEN: Weiteren Bedarf anhand konkreter UX-Spitzen beurteilen.
-  TV-p95/p99 im letzten Lauf 39/57ms (vorher 32/52ms), keine gleichmaessige
-  Verbesserung jeder Punktlatenz. Hintergrundvorbereitung wartet noch bis
-  280ms, Loop-Maximum 88ms, Root-Sync-Maximum 1362ms. Erst konkrete langsame
-  Vorgaenge zuordnen, bevor weitere Auslagerungen oder Schreibpfade folgen.
+  Neu langsamste TV-Meldung 74ms/Admin 69ms: 44ms zwischen Senden/Handler,
+  Kontextladen 19.5ms; TV-Fanout danach 3.6ms. Groesste Court-Fanout-Phase
+  41.3ms enthaelt 35.4ms Executor-Warten ohne erfassten Enqueue-Blocker bei
+  0.2ms eigentlichem Objekt-Read. Keine genaue CPU-/Dispatch-Ursache belegt.
+  Loop-Maximum 97ms, Sync-Maximum 1310ms; keine gleichmaessige Verbesserung
+  jeder Punktlatenz. Erst konkrete Vorgaenge zuordnen, bevor weitere
+  Auslagerungen, Lock-Verkleinerungen oder Schreibpfade folgen.
   Aktive Vorbereitung und gemeinsame Teilnehmer nun separat gemessen (oben).
   Aktive Offiziellen-/Tabletoperator-Zuweisung, akustischer Start und beliebige
   Dauerlast sind durch diese Lasttests nicht abgedeckt; Regeln/Freilose bleiben
