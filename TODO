@@ -1,7 +1,8 @@
 2026-10-11: ERLEDIGT - Testclient in ein separates Git-Repository ausgegliedert.
-Ergebnis: /home/tim/repos/bts-testclient, eigener Branch main, Commit 9ccade8;
-BUP-Regeln als festgeschriebenes Submodul, eigene npm-ci-Installation, 21
-unabhaengige Clienttests und Client-Lint gruen. BTS behaelt kompatible Starter
+Ergebnis: /home/tim/repos/bts-testclient, eigener Branch main, Grundstand 9ccade8,
+IP-Kompatibilitaet fuer alte Server e36022f. BUP-Regeln als festgeschriebenes
+Submodul, eigene npm-ci-Installation, 23 unabhaengige Clienttests und Client-Lint
+gruen. BTS behaelt kompatible Starter
 und seine Integrationstests; 746 BTS-Tests und 22 Browserpruefungen gruen.
 Noch kein Remote eingerichtet oder Push ausgefuehrt.
 Ziel: eigenstaendig installierbarer Testclient mit eigener package.json,
@@ -27,13 +28,19 @@ Vor der Ausgliederung folgende Abhaengigkeiten aufloesen:
 Abnahme: Installation in sauberem Checkout, Live-Test ausschliesslich ueber
 Serveradresse, Dashboard/CLI/Benchmark/Download funktionsgleich; Profilvergleich
 mit explizitem BTS-Checkout und Serverintegration weiterhin pruefbar.
-Repositoryname und Remote-Ziel bei der eigentlichen Ausgliederung festlegen.
+Repositoryname: bts-testclient. Ein Remote-Ziel ist weiterhin optional offen.
 
-2026-10-11: TESTBAR - Ausgangsstand vor den Optimierungen mit aktuellem Testclient
-testbar machen und als Performance-Referenz dokumentieren.
+2026-10-11: ERLEDIGT - Ausgangsstand vor den Optimierungen mit aktuellem Testclient
+testbar und als Performance-Referenz dokumentiert.
+Verifizierte Baseline cf73f0a, gesicherter optimierter Stand 647e479, je zehn
+Minuten auf identischen eingefrorenen Daten/Anfangszustaenden. Alle 1170 bzw.
+1208 Updates bei TV und Admin zugeordnet. TV-p95 514 -> 38 ms, Admin-p95
+215 -> 25 ms. Externe BTP-Syncs deaktiviert. Historische IP-Geraetezuordnung
+im Client korrigiert; nur ungueltigen alten Lauf wiederholt. Vollstaendige
+Zusammenfassung: debug/performance_results_2026-10-11.md und .json.
 - Baseline-Commit anhand der Historie verifizieren und mit vollem SHA festhalten.
-  Aktueller HEAD 91f07b9 auf feat/bupws_v2 ist der Ausgangspunkt der derzeit
-  uncommitteten Aenderungen, enthaelt aber bereits fruehere Optimierungen;
+  Der fruehere HEAD 91f07b9 auf feat/bupws_v2 war der Ausgangspunkt der
+  damals uncommitteten Aenderungen, enthaelt aber bereits fruehere Optimierungen;
   deshalb nicht ungeprueft als Stand vor saemtlichen Optimierungen bezeichnen.
 - Alten Server in separatem Worktree/Checkout starten; aktuellen Testclient
   dagegen betreiben. Kompatibilitaet von Tablet/TV/Admin-Protokoll pruefen,
@@ -55,7 +62,7 @@ verifizierten alten Stand, der mit dem optimierten Stand vergleichbar ist.
 2026-10-11: ERLEDIGT - Bisherige Optimierungen auf eigenem Branch committet.
 Branch perf/server-responsiveness; Sicherungscommit 647e479, danach getrennte
 Commits fuer Ausgangsvergleich (cc48198), Diagnose (e1fabfd) und Admin-Snapshots
-(c9df33b). Ausgliederung folgt als eigener Commit. Keine Remote-Aenderungen.
+(c9df33b). Ausgliederung fe2a7df. Keine Remote-Aenderungen.
 - Eigenen Branch vom aktuellen feat/bupws_v2 anlegen (Vorschlag:
   perf/server-responsiveness); alle bestehenden Arbeitskopie-Aenderungen erhalten.
 - Gesamten Diff einschliesslich neuer/ungetrackter Dateien sichten; Optimierungen,
@@ -114,6 +121,17 @@ Referenz: bts-test-1.json, Zwischenbericht ueber knapp zehn Minuten, 13 Felder,
    Tablet->TV/Admin-Empfangslatenz oder Admin-Antwortzeit; gezielte Regressionen.
 Reihenfolge: erst Diagnose vervollstaendigen und DB-Ursachen zuordnen, dann
 Snapshot-Optimierung anhand der Messungen. Umsetzung und Regressionen abgeschlossen.
+
+Naechste optionale Schritte nach diesen Arbeiten:
+- Remote-Ziel fuer bts-testclient festlegen; danach die beiden Repositorys
+  in CI mit explizitem BTS_TESTCLIENT_DIR und festgeschriebenem Clientstand
+  bereitstellen. Die alte Travis-Konfiguration ist weiterhin veraltet.
+- Reproduzierbaren BTP-Sync-Vergleich mit zugespielten externen Aenderungen
+  ergaenzen; die jetzige Baseline isoliert Punkte/Admin-Verkehr ohne BTP.
+- Bei Bedarf Langzeitlauf des juengsten Gesamtstands: Der zehnminuetige
+  optimierte Vergleich verwendet den gesicherten Stand 647e479; juengste
+  Diagnose-/Cache-Aenderungen sind durch Regressionen, kurze Empfangslaeufe
+  und isolierte Cache-Paare verifiziert.
 
 make bupdate in docker
 

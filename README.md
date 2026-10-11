@@ -38,7 +38,11 @@ output. Leave these variables unset to control logging through the admin menu.
 ## Development checks
 
 Run JavaScript linting with `npm run lint:js` or `make eslint`, and tests with
-`npm test`. Linting includes the server, browser code, tests and debug scripts.
+`npm test`. The full suite includes simulator integration tests and therefore
+requires the separate `bts-testclient` checkout with installed dependencies
+(default `../bts-testclient`, or set `BTS_TESTCLIENT_DIR`). Server startup itself
+does not require the testclient. Linting includes the server, browser code, tests
+and compatibility starters.
 The configuration uses ES2022 syntax and Node globals, with Mocha globals for
 tests. Tests and debug scripts allow console output; server console calls still
 need an explicit exemption.
@@ -57,6 +61,10 @@ To start a display, go to http://IP:4000/d2 , where 2 is the court number (alter
 To start an umpire panel, go to http://IP:4000/u2 , where 2 is the court number (alternatively, just `/u`).
 
 ## Lokales Testdashboard
+
+Der Testclient liegt im eigenen Repository `../bts-testclient`. Dort einmal
+`git submodule update --init --recursive` und `npm ci` ausführen. Bei einem anderen
+Speicherort `BTS_TESTCLIENT_DIR` auf dessen absoluten Pfad setzen.
 
 BTS wie üblich mit `make dev` oder `make run` starten. Das separate Testwerkzeug
 startest du mit `npm run debug:dashboard`; öffne danach

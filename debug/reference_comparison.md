@@ -30,7 +30,21 @@ Node-Version/CPU, Client-Quellhash, Laufzeit und Empfangswerte je Server. Abweic
 Anfangszustaende werden als `identical_initial_states: false` ausgewiesen und
 duerfen nicht als streng kontrollierter Vergleich bezeichnet werden.
 
-Verifikation des unveraenderten Baseline-Servers: ein echter 15-Sekunden-Smoke
-am 11. Oktober 2026 mit 519 Spielen und 13 aktiven Feldern wurde abgeschlossen;
-31 Updates kamen bei beiden Empfaengern an. Dies prueft die Protokollkompatibilitaet,
-ist noch keine vollstaendige zehnminuetige Performance-Referenz.
+## Historische Geraetezuordnung
+
+Der alte Server identifiziert Panels anhand der letzten Stelle ihrer IP-Adresse
+und ignoriert die vom Client mitgeschickte TV-ID. Ohne Anpassung teilen sich
+simulierte Panels auf localhost dieselbe ID. Der Vergleich setzt daher auf beiden
+Seiten `--legacy-loopback-devices`: TVs und Tablets erhalten getrennte
+IPv4-Loopback-Adressen und passende IDs. Dies ist eine Clientanpassung;
+der archivierte Server bleibt unveraendert. Fuer normale Live-Tests ist die
+Option ausgeschaltet. Maximal 125 Felder, nur lokale IPv4-Server.
+
+Der erste Zehn-Minuten-Lauf des alten Servers war deswegen fuer TV-Latenzen
+ungeeignet: nur 96 von 1175 Updates wurden zugeordnet. Dies war ein
+Testaufbaufehler, kein belegter Zustellverlust des historischen Servers.
+Die gueltige optimierte Langzeitmessung wurde behalten; nur der ungueltige
+Baseline-Lauf wurde mit korrigierter Geraetezuordnung wiederholt. Ein eigener
+30-Sekunden-Vergleich von altem und aktuellem Server erfasste jeweils alle
+70 Updates bei TV und Admin. Details und Werte im
+[Ergebnisbericht vom 11. Oktober](performance_results_2026-10-11.md).

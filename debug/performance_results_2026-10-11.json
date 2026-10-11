@@ -1,0 +1,1615 @@
+{
+  "date": "2026-10-11",
+  "scope": "score-and-admin-reception-with-external-BTP-disabled",
+  "node_version": "v19.9.0",
+  "cpu": "Intel(R) Core(TM) i7-4770 CPU @ 3.40GHz",
+  "seed": "519",
+  "identical_snapshot_files": true,
+  "identical_initial_states": true,
+  "snapshot_files": [
+    {
+      "name": "courts",
+      "sha256": "16bf3c930471e5767b91f1d6583fec5abf08c8ee150d76ca4f1157486eb9e1ab"
+    },
+    {
+      "name": "locations",
+      "sha256": "30bd3a304c2fda1cb70f723478692f3c9a9820aadbaefa9dccc17b5f40b103db"
+    },
+    {
+      "name": "event",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "matches",
+      "sha256": "a2f7e7db6ddfb98542ac6120018f2fd04a9cc1a26a80b17be3518062f19df267"
+    },
+    {
+      "name": "tournaments",
+      "sha256": "af128fcdd2b89097186e73fc1309b716b5e34b49f787ebdd4ff1d288f16ea812"
+    },
+    {
+      "name": "umpires",
+      "sha256": "4dc88735319d45cf2e0a8fd2291bdbaca500dea2fc293494a831a4b7ae17f24f"
+    },
+    {
+      "name": "logs",
+      "sha256": "a5d55a0e3c4791766300c1d804eb406d9ddf0309ca7bb6ec01df371703534f81"
+    },
+    {
+      "name": "tabletoperators",
+      "sha256": "86390928cbec165f876d48c9f2c4fab033e1d210cd22b57defe430acafe94beb"
+    },
+    {
+      "name": "displaysettings",
+      "sha256": "a3c31867ddb7bcd9893d860147d9ffaf182ff96fe06f6d8b6acd7b773471dd43"
+    },
+    {
+      "name": "display_court_displaysettings",
+      "sha256": "4a328479d92b3f054fcdd9645ad86cd004c6943f9cf8c103ce9c6ffa3c0b07e0"
+    },
+    {
+      "name": "normalizations",
+      "sha256": "bca0ff1b25f04cf2a2f9ed151f54e1a8045d128a80cbdcd0847eb88153c0e528"
+    },
+    {
+      "name": "advertisements",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "app_settings",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "corrected_baseline_client_commit": "e36022fee0e20b3c2752273c889b4052723595ad",
+  "corrected_baseline_client_source_verified": true,
+  "baseline": {
+    "server_commit": "cf73f0a731dd26aac4fb360a71b5d2b165deef0f",
+    "client_file_sha256": "787f5b0ebef85d1cc30240429a12af72392259b0984e0de786501e654e7ead9c",
+    "client_legacy_loopback_devices": true,
+    "runtime_ms": 600271,
+    "started_at": "2026-10-11T19:06:03.241Z",
+    "points": 1158,
+    "initial_state": {
+      "matches": 519,
+      "finished_matches": 300,
+      "active_matches": 13,
+      "active_courts": 13,
+      "pending_player_checkins": 0,
+      "pending_players": 0,
+      "check_in_per_match": true,
+      "state_sha256": "0bafbf45890c4e28eebbe4986011138cfdc799681f96d8ddc2e616269aec1a1f"
+    },
+    "tablet_to_tv_ms": {
+      "count": 1170,
+      "mean": 205.6,
+      "min": 86,
+      "p50": 167,
+      "p95": 514,
+      "p99": 654,
+      "max": 1098,
+      "over_50_ms": 1170,
+      "over_100_ms": 1109,
+      "over_200_ms": 419,
+      "sent_updates": 1170,
+      "unmatched_updates": 0,
+      "coverage": 1
+    },
+    "tablet_to_admin_ms": {
+      "count": 1170,
+      "mean": 59.7,
+      "min": 3,
+      "p50": 11,
+      "p95": 215,
+      "p99": 469,
+      "max": 675,
+      "over_50_ms": 489,
+      "over_100_ms": 231,
+      "over_200_ms": 66,
+      "sent_updates": 1170,
+      "unmatched_updates": 0,
+      "coverage": 1
+    },
+    "payload_types": {
+      "tv": [
+        {
+          "type": "display_points_update",
+          "count": 1170,
+          "latency_count": 1170,
+          "avg": 205.6,
+          "min": 86,
+          "p95": 514,
+          "p99": 654,
+          "max": 1098
+        },
+        {
+          "type": "display_timer_update",
+          "count": 115,
+          "latency_count": 0,
+          "avg": null,
+          "min": null,
+          "p95": null,
+          "p99": null,
+          "max": null
+        },
+        {
+          "type": "display_state",
+          "count": 25,
+          "latency_count": 0,
+          "avg": null,
+          "min": null,
+          "p95": null,
+          "p99": null,
+          "max": null
+        }
+      ],
+      "admin": [
+        {
+          "type": "change:display_wait_for_done",
+          "count": 15877,
+          "latency_count": 0,
+          "avg": null,
+          "min": null,
+          "p95": null,
+          "p99": null,
+          "max": null
+        },
+        {
+          "type": "change:display_is_done",
+          "count": 15333,
+          "latency_count": 0,
+          "avg": null,
+          "min": null,
+          "p95": null,
+          "p99": null,
+          "max": null
+        },
+        {
+          "type": "change:display_status_changed",
+          "count": 2119,
+          "latency_count": 0,
+          "avg": null,
+          "min": null,
+          "p95": null,
+          "p99": null,
+          "max": null
+        },
+        {
+          "type": "answer",
+          "count": 1327,
+          "latency_count": 0,
+          "avg": null,
+          "min": null,
+          "p95": null,
+          "p99": null,
+          "max": null
+        },
+        {
+          "type": "change:display_render_stats",
+          "count": 1186,
+          "latency_count": 0,
+          "avg": null,
+          "min": null,
+          "p95": null,
+          "p99": null,
+          "max": null
+        },
+        {
+          "type": "change:court_current_match",
+          "count": 1170,
+          "latency_count": 0,
+          "avg": null,
+          "min": null,
+          "p95": null,
+          "p99": null,
+          "max": null
+        },
+        {
+          "type": "change:score",
+          "count": 1170,
+          "latency_count": 1170,
+          "avg": 59.7,
+          "min": 3,
+          "p95": 215,
+          "p99": 469,
+          "max": 675
+        },
+        {
+          "type": "change:update_player_status",
+          "count": 158,
+          "latency_count": 0,
+          "avg": null,
+          "min": null,
+          "p95": null,
+          "p99": null,
+          "max": null
+        },
+        {
+          "type": "change:match_edit",
+          "count": 37,
+          "latency_count": 0,
+          "avg": null,
+          "min": null,
+          "p95": null,
+          "p99": null,
+          "max": null
+        },
+        {
+          "type": "change:match_called_on_court",
+          "count": 13,
+          "latency_count": 0,
+          "avg": null,
+          "min": null,
+          "p95": null,
+          "p99": null,
+          "max": null
+        },
+        {
+          "type": "change:court_changed",
+          "count": 12,
+          "latency_count": 0,
+          "avg": null,
+          "min": null,
+          "p95": null,
+          "p99": null,
+          "max": null
+        },
+        {
+          "type": "change:match_preparation_call",
+          "count": 12,
+          "latency_count": 0,
+          "avg": null,
+          "min": null,
+          "p95": null,
+          "p99": null,
+          "max": null
+        },
+        {
+          "type": "change:tabletoperator_add",
+          "count": 12,
+          "latency_count": 0,
+          "avg": null,
+          "min": null,
+          "p95": null,
+          "p99": null,
+          "max": null
+        },
+        {
+          "type": "change:tabletoperator_removed",
+          "count": 11,
+          "latency_count": 0,
+          "avg": null,
+          "min": null,
+          "p95": null,
+          "p99": null,
+          "max": null
+        }
+      ]
+    },
+    "phases": [
+      {
+        "name": "checkin-and-play",
+        "start_ms": 0,
+        "end_ms": 120000,
+        "idle": false,
+        "actual_start_ms": 0,
+        "actual_end_ms": 120262,
+        "points": 297,
+        "score_updates": 301,
+        "finish_confirmations": 4,
+        "repair_score_updates": 0,
+        "player_checkins": 8,
+        "checkin_errors": 0,
+        "tablet_to_tv_ms": {
+          "count": 301,
+          "mean": 185.1,
+          "p50": 150,
+          "p95": 410,
+          "p99": 656,
+          "max": 729,
+          "sent_updates": 301,
+          "unmatched_updates": 0,
+          "coverage": 1,
+          "over_50_ms": 301,
+          "over_100_ms": 282,
+          "over_200_ms": 79
+        },
+        "tablet_to_admin_ms": {
+          "count": 301,
+          "mean": 72.7,
+          "p50": 12,
+          "p95": 269,
+          "p99": 567,
+          "max": 675,
+          "sent_updates": 301,
+          "unmatched_updates": 0,
+          "coverage": 1,
+          "over_50_ms": 132,
+          "over_100_ms": 70,
+          "over_200_ms": 26
+        },
+        "occupied_courts": {
+          "count": 91,
+          "mean": 13,
+          "p50": 13,
+          "p95": 13,
+          "p99": 13,
+          "max": 13
+        },
+        "free_courts": {
+          "count": 91,
+          "mean": 0,
+          "p50": 0,
+          "p95": 0,
+          "p99": 0,
+          "max": 0
+        }
+      },
+      {
+        "name": "load",
+        "start_ms": 120000,
+        "end_ms": 360000,
+        "idle": false,
+        "actual_start_ms": 120262,
+        "actual_end_ms": 360390,
+        "points": 561,
+        "score_updates": 567,
+        "finish_confirmations": 6,
+        "repair_score_updates": 0,
+        "player_checkins": 6,
+        "checkin_errors": 0,
+        "tablet_to_tv_ms": {
+          "count": 567,
+          "mean": 228.6,
+          "p50": 185,
+          "p95": 536,
+          "p99": 666,
+          "max": 1098,
+          "sent_updates": 567,
+          "unmatched_updates": 0,
+          "coverage": 1,
+          "over_50_ms": 567,
+          "over_100_ms": 547,
+          "over_200_ms": 252
+        },
+        "tablet_to_admin_ms": {
+          "count": 567,
+          "mean": 54.4,
+          "p50": 10,
+          "p95": 199,
+          "p99": 369,
+          "max": 608,
+          "sent_updates": 567,
+          "unmatched_updates": 0,
+          "coverage": 1,
+          "over_50_ms": 223,
+          "over_100_ms": 102,
+          "over_200_ms": 28
+        },
+        "occupied_courts": {
+          "count": 179,
+          "mean": 12.1,
+          "p50": 12,
+          "p95": 13,
+          "p99": 13,
+          "max": 13
+        },
+        "free_courts": {
+          "count": 179,
+          "mean": 0.9,
+          "p50": 1,
+          "p95": 1,
+          "p99": 2,
+          "max": 2
+        }
+      },
+      {
+        "name": "idle",
+        "start_ms": 360000,
+        "end_ms": 480000,
+        "idle": true,
+        "actual_start_ms": 360390,
+        "actual_end_ms": 480043,
+        "points": 0,
+        "score_updates": 0,
+        "finish_confirmations": 0,
+        "repair_score_updates": 0,
+        "player_checkins": 0,
+        "checkin_errors": 0,
+        "tablet_to_tv_ms": {
+          "count": 0,
+          "mean": null,
+          "p50": null,
+          "p95": null,
+          "p99": null,
+          "max": null,
+          "sent_updates": 0,
+          "unmatched_updates": 0,
+          "coverage": null,
+          "over_50_ms": 0,
+          "over_100_ms": 0,
+          "over_200_ms": 0
+        },
+        "tablet_to_admin_ms": {
+          "count": 0,
+          "mean": null,
+          "p50": null,
+          "p95": null,
+          "p99": null,
+          "max": null,
+          "sent_updates": 0,
+          "unmatched_updates": 0,
+          "coverage": null,
+          "over_50_ms": 0,
+          "over_100_ms": 0,
+          "over_200_ms": 0
+        },
+        "occupied_courts": {
+          "count": 94,
+          "mean": 12,
+          "p50": 12,
+          "p95": 12,
+          "p99": 12,
+          "max": 12
+        },
+        "free_courts": {
+          "count": 94,
+          "mean": 1,
+          "p50": 1,
+          "p95": 1,
+          "p99": 1,
+          "max": 1
+        }
+      },
+      {
+        "name": "load-after-idle",
+        "start_ms": 480000,
+        "end_ms": 600000,
+        "idle": false,
+        "actual_start_ms": 480043,
+        "actual_end_ms": 600271,
+        "points": 300,
+        "score_updates": 302,
+        "finish_confirmations": 2,
+        "repair_score_updates": 0,
+        "player_checkins": 10,
+        "checkin_errors": 0,
+        "tablet_to_tv_ms": {
+          "count": 302,
+          "mean": 182.9,
+          "p50": 153,
+          "p95": 438,
+          "p99": 576,
+          "max": 708,
+          "sent_updates": 302,
+          "unmatched_updates": 0,
+          "coverage": 1,
+          "over_50_ms": 302,
+          "over_100_ms": 280,
+          "over_200_ms": 88
+        },
+        "tablet_to_admin_ms": {
+          "count": 302,
+          "mean": 56.8,
+          "p50": 11,
+          "p95": 170,
+          "p99": 274,
+          "max": 626,
+          "sent_updates": 302,
+          "unmatched_updates": 0,
+          "coverage": 1,
+          "over_50_ms": 134,
+          "over_100_ms": 59,
+          "over_200_ms": 12
+        },
+        "occupied_courts": {
+          "count": 90,
+          "mean": 12.7,
+          "p50": 13,
+          "p95": 13,
+          "p99": 13,
+          "max": 13
+        },
+        "free_courts": {
+          "count": 90,
+          "mean": 0.3,
+          "p50": 0,
+          "p95": 1,
+          "p99": 1,
+          "max": 1
+        }
+      }
+    ]
+  },
+  "optimized_checkpoint": {
+    "server_commit": "647e4793364a492a8182cb3688e1421c4aaddb97",
+    "client_file_sha256": "b8102f8e4f8411effb4187ad75465f44477a62e6f1af3344f74dd2c0c9e57d65",
+    "client_legacy_loopback_devices": false,
+    "runtime_ms": 600208,
+    "started_at": "2026-10-11T18:51:12.517Z",
+    "points": 1196,
+    "initial_state": {
+      "matches": 519,
+      "finished_matches": 300,
+      "active_matches": 13,
+      "active_courts": 13,
+      "pending_player_checkins": 0,
+      "pending_players": 0,
+      "check_in_per_match": true,
+      "state_sha256": "0bafbf45890c4e28eebbe4986011138cfdc799681f96d8ddc2e616269aec1a1f"
+    },
+    "tablet_to_tv_ms": {
+      "count": 1208,
+      "mean": 12,
+      "min": 3,
+      "p50": 7,
+      "p95": 38,
+      "p99": 115,
+      "max": 243,
+      "over_50_ms": 42,
+      "over_100_ms": 13,
+      "over_200_ms": 2,
+      "sent_updates": 1208,
+      "unmatched_updates": 0,
+      "coverage": 1
+    },
+    "tablet_to_admin_ms": {
+      "count": 1208,
+      "mean": 7.9,
+      "min": 1,
+      "p50": 4,
+      "p95": 25,
+      "p99": 75,
+      "max": 182,
+      "over_50_ms": 29,
+      "over_100_ms": 7,
+      "over_200_ms": 0,
+      "sent_updates": 1208,
+      "unmatched_updates": 0,
+      "coverage": 1
+    },
+    "payload_types": {
+      "tv": [
+        {
+          "type": "display_points_update",
+          "count": 1208,
+          "latency_count": 1208,
+          "avg": 12,
+          "min": 3,
+          "p95": 38,
+          "p99": 115,
+          "max": 243
+        },
+        {
+          "type": "display_timer_update",
+          "count": 119,
+          "latency_count": 0,
+          "avg": null,
+          "min": null,
+          "p95": null,
+          "p99": null,
+          "max": null
+        },
+        {
+          "type": "display_state",
+          "count": 24,
+          "latency_count": 0,
+          "avg": null,
+          "min": null,
+          "p95": null,
+          "p99": null,
+          "max": null
+        }
+      ],
+      "admin": [
+        {
+          "type": "change:display_wait_for_done",
+          "count": 15845,
+          "latency_count": 0,
+          "avg": null,
+          "min": null,
+          "p95": null,
+          "p99": null,
+          "max": null
+        },
+        {
+          "type": "change:display_is_done",
+          "count": 15844,
+          "latency_count": 0,
+          "avg": null,
+          "min": null,
+          "p95": null,
+          "p99": null,
+          "max": null
+        },
+        {
+          "type": "change:display_status_changed",
+          "count": 2193,
+          "latency_count": 0,
+          "avg": null,
+          "min": null,
+          "p95": null,
+          "p99": null,
+          "max": null
+        },
+        {
+          "type": "answer",
+          "count": 1251,
+          "latency_count": 0,
+          "avg": null,
+          "min": null,
+          "p95": null,
+          "p99": null,
+          "max": null
+        },
+        {
+          "type": "change:display_render_stats",
+          "count": 1224,
+          "latency_count": 0,
+          "avg": null,
+          "min": null,
+          "p95": null,
+          "p99": null,
+          "max": null
+        },
+        {
+          "type": "change:court_current_match",
+          "count": 1208,
+          "latency_count": 0,
+          "avg": null,
+          "min": null,
+          "p95": null,
+          "p99": null,
+          "max": null
+        },
+        {
+          "type": "change:score",
+          "count": 1208,
+          "latency_count": 1208,
+          "avg": 7.9,
+          "min": 1,
+          "p95": 25,
+          "p99": 75,
+          "max": 182
+        },
+        {
+          "type": "change:update_player_status",
+          "count": 96,
+          "latency_count": 0,
+          "avg": null,
+          "min": null,
+          "p95": null,
+          "p99": null,
+          "max": null
+        },
+        {
+          "type": "change:match_edit",
+          "count": 35,
+          "latency_count": 0,
+          "avg": null,
+          "min": null,
+          "p95": null,
+          "p99": null,
+          "max": null
+        },
+        {
+          "type": "change:tabletoperator_removed",
+          "count": 22,
+          "latency_count": 0,
+          "avg": null,
+          "min": null,
+          "p95": null,
+          "p99": null,
+          "max": null
+        },
+        {
+          "type": "change:court_changed",
+          "count": 12,
+          "latency_count": 0,
+          "avg": null,
+          "min": null,
+          "p95": null,
+          "p99": null,
+          "max": null
+        },
+        {
+          "type": "change:match_preparation_call",
+          "count": 12,
+          "latency_count": 0,
+          "avg": null,
+          "min": null,
+          "p95": null,
+          "p99": null,
+          "max": null
+        },
+        {
+          "type": "change:tabletoperator_add",
+          "count": 12,
+          "latency_count": 0,
+          "avg": null,
+          "min": null,
+          "p95": null,
+          "p99": null,
+          "max": null
+        },
+        {
+          "type": "change:match_called_on_court",
+          "count": 11,
+          "latency_count": 0,
+          "avg": null,
+          "min": null,
+          "p95": null,
+          "p99": null,
+          "max": null
+        }
+      ]
+    },
+    "phases": [
+      {
+        "name": "checkin-and-play",
+        "start_ms": 0,
+        "end_ms": 120000,
+        "idle": false,
+        "actual_start_ms": 0,
+        "actual_end_ms": 120136,
+        "points": 296,
+        "score_updates": 300,
+        "finish_confirmations": 4,
+        "repair_score_updates": 0,
+        "player_checkins": 8,
+        "checkin_errors": 0,
+        "tablet_to_tv_ms": {
+          "count": 300,
+          "mean": 10.9,
+          "p50": 7,
+          "p95": 23,
+          "p99": 55,
+          "max": 243,
+          "sent_updates": 300,
+          "unmatched_updates": 0,
+          "coverage": 1,
+          "over_50_ms": 4,
+          "over_100_ms": 2,
+          "over_200_ms": 1
+        },
+        "tablet_to_admin_ms": {
+          "count": 300,
+          "mean": 6.7,
+          "p50": 4,
+          "p95": 15,
+          "p99": 40,
+          "max": 182,
+          "sent_updates": 300,
+          "unmatched_updates": 0,
+          "coverage": 1,
+          "over_50_ms": 2,
+          "over_100_ms": 1,
+          "over_200_ms": 0
+        },
+        "occupied_courts": {
+          "count": 97,
+          "mean": 13,
+          "p50": 13,
+          "p95": 13,
+          "p99": 13,
+          "max": 13
+        },
+        "free_courts": {
+          "count": 97,
+          "mean": 0,
+          "p50": 0,
+          "p95": 0,
+          "p99": 0,
+          "max": 0
+        }
+      },
+      {
+        "name": "load",
+        "start_ms": 120000,
+        "end_ms": 360000,
+        "idle": false,
+        "actual_start_ms": 120136,
+        "actual_end_ms": 360250,
+        "points": 595,
+        "score_updates": 601,
+        "finish_confirmations": 6,
+        "repair_score_updates": 0,
+        "player_checkins": 6,
+        "checkin_errors": 0,
+        "tablet_to_tv_ms": {
+          "count": 601,
+          "mean": 11.9,
+          "p50": 7,
+          "p95": 39,
+          "p99": 93,
+          "max": 184,
+          "sent_updates": 601,
+          "unmatched_updates": 0,
+          "coverage": 1,
+          "over_50_ms": 24,
+          "over_100_ms": 6,
+          "over_200_ms": 0
+        },
+        "tablet_to_admin_ms": {
+          "count": 601,
+          "mean": 7.8,
+          "p50": 4,
+          "p95": 30,
+          "p99": 70,
+          "max": 148,
+          "sent_updates": 601,
+          "unmatched_updates": 0,
+          "coverage": 1,
+          "over_50_ms": 16,
+          "over_100_ms": 3,
+          "over_200_ms": 0
+        },
+        "occupied_courts": {
+          "count": 189,
+          "mean": 12.8,
+          "p50": 13,
+          "p95": 13,
+          "p99": 13,
+          "max": 13
+        },
+        "free_courts": {
+          "count": 189,
+          "mean": 0.2,
+          "p50": 0,
+          "p95": 1,
+          "p99": 1,
+          "max": 1
+        }
+      },
+      {
+        "name": "idle",
+        "start_ms": 360000,
+        "end_ms": 480000,
+        "idle": true,
+        "actual_start_ms": 360250,
+        "actual_end_ms": 480049,
+        "points": 0,
+        "score_updates": 0,
+        "finish_confirmations": 0,
+        "repair_score_updates": 0,
+        "player_checkins": 0,
+        "checkin_errors": 0,
+        "tablet_to_tv_ms": {
+          "count": 0,
+          "mean": null,
+          "p50": null,
+          "p95": null,
+          "p99": null,
+          "max": null,
+          "sent_updates": 0,
+          "unmatched_updates": 0,
+          "coverage": null,
+          "over_50_ms": 0,
+          "over_100_ms": 0,
+          "over_200_ms": 0
+        },
+        "tablet_to_admin_ms": {
+          "count": 0,
+          "mean": null,
+          "p50": null,
+          "p95": null,
+          "p99": null,
+          "max": null,
+          "sent_updates": 0,
+          "unmatched_updates": 0,
+          "coverage": null,
+          "over_50_ms": 0,
+          "over_100_ms": 0,
+          "over_200_ms": 0
+        },
+        "occupied_courts": {
+          "count": 93,
+          "mean": 13,
+          "p50": 13,
+          "p95": 13,
+          "p99": 13,
+          "max": 13
+        },
+        "free_courts": {
+          "count": 93,
+          "mean": 0,
+          "p50": 0,
+          "p95": 0,
+          "p99": 0,
+          "max": 0
+        }
+      },
+      {
+        "name": "load-after-idle",
+        "start_ms": 480000,
+        "end_ms": 600000,
+        "idle": false,
+        "actual_start_ms": 480049,
+        "actual_end_ms": 600208,
+        "points": 305,
+        "score_updates": 307,
+        "finish_confirmations": 2,
+        "repair_score_updates": 0,
+        "player_checkins": 10,
+        "checkin_errors": 0,
+        "tablet_to_tv_ms": {
+          "count": 307,
+          "mean": 13.2,
+          "p50": 7,
+          "p95": 39,
+          "p99": 134,
+          "max": 203,
+          "sent_updates": 307,
+          "unmatched_updates": 0,
+          "coverage": 1,
+          "over_50_ms": 14,
+          "over_100_ms": 5,
+          "over_200_ms": 1
+        },
+        "tablet_to_admin_ms": {
+          "count": 307,
+          "mean": 9.1,
+          "p50": 4,
+          "p95": 26,
+          "p99": 100,
+          "max": 162,
+          "sent_updates": 307,
+          "unmatched_updates": 0,
+          "coverage": 1,
+          "over_50_ms": 11,
+          "over_100_ms": 3,
+          "over_200_ms": 0
+        },
+        "occupied_courts": {
+          "count": 100,
+          "mean": 13,
+          "p50": 13,
+          "p95": 13,
+          "p99": 13,
+          "max": 13
+        },
+        "free_courts": {
+          "count": 100,
+          "mean": 0,
+          "p50": 0,
+          "p95": 0,
+          "p99": 1,
+          "max": 1
+        }
+      }
+    ]
+  },
+  "current_short_controls": [
+    {
+      "server_commit": "cf73f0a731dd26aac4fb360a71b5d2b165deef0f",
+      "client_file_sha256": "787f5b0ebef85d1cc30240429a12af72392259b0984e0de786501e654e7ead9c",
+      "client_legacy_loopback_devices": true,
+      "runtime_ms": 30240,
+      "started_at": "2026-10-11T19:05:13.402Z",
+      "points": 69,
+      "initial_state": {
+        "matches": 519,
+        "finished_matches": 300,
+        "active_matches": 13,
+        "active_courts": 13,
+        "pending_player_checkins": 0,
+        "pending_players": 0,
+        "check_in_per_match": true,
+        "state_sha256": "0bafbf45890c4e28eebbe4986011138cfdc799681f96d8ddc2e616269aec1a1f"
+      },
+      "tablet_to_tv_ms": {
+        "count": 70,
+        "mean": 278.7,
+        "min": 95,
+        "p50": 176,
+        "p95": 630,
+        "p99": 1236,
+        "max": 1236,
+        "over_50_ms": 70,
+        "over_100_ms": 68,
+        "over_200_ms": 29,
+        "sent_updates": 70,
+        "unmatched_updates": 0,
+        "coverage": 1
+      },
+      "tablet_to_admin_ms": {
+        "count": 70,
+        "mean": 72.9,
+        "min": 4,
+        "p50": 12,
+        "p95": 291,
+        "p99": 635,
+        "max": 635,
+        "over_50_ms": 26,
+        "over_100_ms": 18,
+        "over_200_ms": 7,
+        "sent_updates": 70,
+        "unmatched_updates": 0,
+        "coverage": 1
+      },
+      "payload_types": {
+        "tv": [
+          {
+            "type": "display_points_update",
+            "count": 70,
+            "latency_count": 70,
+            "avg": 278.7,
+            "min": 95,
+            "p95": 630,
+            "p99": 1236,
+            "max": 1236
+          },
+          {
+            "type": "display_state",
+            "count": 14,
+            "latency_count": 0,
+            "avg": null,
+            "min": null,
+            "p95": null,
+            "p99": null,
+            "max": null
+          },
+          {
+            "type": "display_timer_update",
+            "count": 11,
+            "latency_count": 0,
+            "avg": null,
+            "min": null,
+            "p95": null,
+            "p99": null,
+            "max": null
+          }
+        ],
+        "admin": [
+          {
+            "type": "change:display_wait_for_done",
+            "count": 967,
+            "latency_count": 0,
+            "avg": null,
+            "min": null,
+            "p95": null,
+            "p99": null,
+            "max": null
+          },
+          {
+            "type": "change:display_is_done",
+            "count": 905,
+            "latency_count": 0,
+            "avg": null,
+            "min": null,
+            "p95": null,
+            "p99": null,
+            "max": null
+          },
+          {
+            "type": "change:display_status_changed",
+            "count": 199,
+            "latency_count": 0,
+            "avg": null,
+            "min": null,
+            "p95": null,
+            "p99": null,
+            "max": null
+          },
+          {
+            "type": "change:display_render_stats",
+            "count": 83,
+            "latency_count": 0,
+            "avg": null,
+            "min": null,
+            "p95": null,
+            "p99": null,
+            "max": null
+          },
+          {
+            "type": "answer",
+            "count": 73,
+            "latency_count": 0,
+            "avg": null,
+            "min": null,
+            "p95": null,
+            "p99": null,
+            "max": null
+          },
+          {
+            "type": "change:court_current_match",
+            "count": 70,
+            "latency_count": 0,
+            "avg": null,
+            "min": null,
+            "p95": null,
+            "p99": null,
+            "max": null
+          },
+          {
+            "type": "change:score",
+            "count": 70,
+            "latency_count": 70,
+            "avg": 72.9,
+            "min": 4,
+            "p95": 291,
+            "p99": 635,
+            "max": 635
+          },
+          {
+            "type": "change:update_player_status",
+            "count": 10,
+            "latency_count": 0,
+            "avg": null,
+            "min": null,
+            "p95": null,
+            "p99": null,
+            "max": null
+          },
+          {
+            "type": "change:court_changed",
+            "count": 1,
+            "latency_count": 0,
+            "avg": null,
+            "min": null,
+            "p95": null,
+            "p99": null,
+            "max": null
+          },
+          {
+            "type": "change:match_called_on_court",
+            "count": 1,
+            "latency_count": 0,
+            "avg": null,
+            "min": null,
+            "p95": null,
+            "p99": null,
+            "max": null
+          },
+          {
+            "type": "change:match_edit",
+            "count": 1,
+            "latency_count": 0,
+            "avg": null,
+            "min": null,
+            "p95": null,
+            "p99": null,
+            "max": null
+          },
+          {
+            "type": "change:tabletoperator_add",
+            "count": 1,
+            "latency_count": 0,
+            "avg": null,
+            "min": null,
+            "p95": null,
+            "p99": null,
+            "max": null
+          },
+          {
+            "type": "change:tabletoperator_removed",
+            "count": 1,
+            "latency_count": 0,
+            "avg": null,
+            "min": null,
+            "p95": null,
+            "p99": null,
+            "max": null
+          }
+        ]
+      },
+      "phases": []
+    },
+    {
+      "server_commit": "fe2a7df9335ec98f6e8a6ab35f32791ecc2ce628",
+      "client_file_sha256": "787f5b0ebef85d1cc30240429a12af72392259b0984e0de786501e654e7ead9c",
+      "client_legacy_loopback_devices": true,
+      "runtime_ms": 30178,
+      "started_at": "2026-10-11T19:05:45.343Z",
+      "points": 69,
+      "initial_state": {
+        "matches": 519,
+        "finished_matches": 300,
+        "active_matches": 13,
+        "active_courts": 13,
+        "pending_player_checkins": 0,
+        "pending_players": 0,
+        "check_in_per_match": true,
+        "state_sha256": "0bafbf45890c4e28eebbe4986011138cfdc799681f96d8ddc2e616269aec1a1f"
+      },
+      "tablet_to_tv_ms": {
+        "count": 70,
+        "mean": 12.6,
+        "min": 4,
+        "p50": 8,
+        "p95": 44,
+        "p99": 117,
+        "max": 117,
+        "over_50_ms": 3,
+        "over_100_ms": 1,
+        "over_200_ms": 0,
+        "sent_updates": 70,
+        "unmatched_updates": 0,
+        "coverage": 1
+      },
+      "tablet_to_admin_ms": {
+        "count": 70,
+        "mean": 9.1,
+        "min": 2,
+        "p50": 4,
+        "p95": 41,
+        "p99": 71,
+        "max": 71,
+        "over_50_ms": 2,
+        "over_100_ms": 0,
+        "over_200_ms": 0,
+        "sent_updates": 70,
+        "unmatched_updates": 0,
+        "coverage": 1
+      },
+      "payload_types": {
+        "tv": [
+          {
+            "type": "display_points_update",
+            "count": 70,
+            "latency_count": 70,
+            "avg": 12.6,
+            "min": 4,
+            "p95": 44,
+            "p99": 117,
+            "max": 117
+          },
+          {
+            "type": "display_state",
+            "count": 14,
+            "latency_count": 0,
+            "avg": null,
+            "min": null,
+            "p95": null,
+            "p99": null,
+            "max": null
+          },
+          {
+            "type": "display_timer_update",
+            "count": 11,
+            "latency_count": 0,
+            "avg": null,
+            "min": null,
+            "p95": null,
+            "p99": null,
+            "max": null
+          }
+        ],
+        "admin": [
+          {
+            "type": "change:display_wait_for_done",
+            "count": 912,
+            "latency_count": 0,
+            "avg": null,
+            "min": null,
+            "p95": null,
+            "p99": null,
+            "max": null
+          },
+          {
+            "type": "change:display_is_done",
+            "count": 911,
+            "latency_count": 0,
+            "avg": null,
+            "min": null,
+            "p95": null,
+            "p99": null,
+            "max": null
+          },
+          {
+            "type": "change:display_status_changed",
+            "count": 188,
+            "latency_count": 0,
+            "avg": null,
+            "min": null,
+            "p95": null,
+            "p99": null,
+            "max": null
+          },
+          {
+            "type": "change:display_render_stats",
+            "count": 83,
+            "latency_count": 0,
+            "avg": null,
+            "min": null,
+            "p95": null,
+            "p99": null,
+            "max": null
+          },
+          {
+            "type": "answer",
+            "count": 80,
+            "latency_count": 0,
+            "avg": null,
+            "min": null,
+            "p95": null,
+            "p99": null,
+            "max": null
+          },
+          {
+            "type": "change:court_current_match",
+            "count": 70,
+            "latency_count": 0,
+            "avg": null,
+            "min": null,
+            "p95": null,
+            "p99": null,
+            "max": null
+          },
+          {
+            "type": "change:score",
+            "count": 70,
+            "latency_count": 70,
+            "avg": 9.1,
+            "min": 2,
+            "p95": 41,
+            "p99": 71,
+            "max": 71
+          },
+          {
+            "type": "change:update_player_status",
+            "count": 8,
+            "latency_count": 0,
+            "avg": null,
+            "min": null,
+            "p95": null,
+            "p99": null,
+            "max": null
+          },
+          {
+            "type": "change:tabletoperator_removed",
+            "count": 2,
+            "latency_count": 0,
+            "avg": null,
+            "min": null,
+            "p95": null,
+            "p99": null,
+            "max": null
+          },
+          {
+            "type": "change:court_changed",
+            "count": 1,
+            "latency_count": 0,
+            "avg": null,
+            "min": null,
+            "p95": null,
+            "p99": null,
+            "max": null
+          },
+          {
+            "type": "change:match_called_on_court",
+            "count": 1,
+            "latency_count": 0,
+            "avg": null,
+            "min": null,
+            "p95": null,
+            "p99": null,
+            "max": null
+          },
+          {
+            "type": "change:match_edit",
+            "count": 1,
+            "latency_count": 0,
+            "avg": null,
+            "min": null,
+            "p95": null,
+            "p99": null,
+            "max": null
+          },
+          {
+            "type": "change:tabletoperator_add",
+            "count": 1,
+            "latency_count": 0,
+            "avg": null,
+            "min": null,
+            "p95": null,
+            "p99": null,
+            "max": null
+          }
+        ]
+      },
+      "phases": []
+    }
+  ],
+  "invalid_first_baseline": {
+    "reason": "Old server uses last source-IP octet instead of supplied TV IDs; simulated devices shared localhost identity.",
+    "tv_received": 96,
+    "tv_sent": 1175,
+    "excluded_from_latency_comparison": true
+  },
+  "admin_snapshot": {
+    "samples_per_variant": 12,
+    "scope": "full-admin-snapshot-through-production-handler-and-outbox",
+    "limitations": [
+      "Delivery time ends at ws.send; no network, rendering or point-load measurement.",
+      "Only immutable match-revision optimization differs; request count, full histories and background/priority settings are identical."
+    ],
+    "responses_structurally_equal": true,
+    "rows": {
+      "uncached": [
+        {
+          "cold_ms": 212.26762998104095,
+          "warm_ms": 155.35380899906158,
+          "bytes": 4263645
+        },
+        {
+          "cold_ms": 126.52320998907089,
+          "warm_ms": 145.85932797193527,
+          "bytes": 4263645
+        },
+        {
+          "cold_ms": 132.35509502887726,
+          "warm_ms": 151.01200103759766,
+          "bytes": 4263645
+        },
+        {
+          "cold_ms": 127.99679297208786,
+          "warm_ms": 137.81041103601456,
+          "bytes": 4263645
+        },
+        {
+          "cold_ms": 169.27569794654846,
+          "warm_ms": 161.42236298322678,
+          "bytes": 4263645
+        },
+        {
+          "cold_ms": 134.86376202106476,
+          "warm_ms": 161.22803896665573,
+          "bytes": 4263645
+        },
+        {
+          "cold_ms": 157.2131000161171,
+          "warm_ms": 125.87081301212311,
+          "bytes": 4263645
+        },
+        {
+          "cold_ms": 125.15288299322128,
+          "warm_ms": 130.1447639465332,
+          "bytes": 4263645
+        },
+        {
+          "cold_ms": 137.06485801935196,
+          "warm_ms": 153.5757640004158,
+          "bytes": 4263645
+        },
+        {
+          "cold_ms": 144.98373502492905,
+          "warm_ms": 120.7156190276146,
+          "bytes": 4263645
+        },
+        {
+          "cold_ms": 123.2491779923439,
+          "warm_ms": 129.418398976326,
+          "bytes": 4263645
+        },
+        {
+          "cold_ms": 114.45455598831177,
+          "warm_ms": 118.04396003484726,
+          "bytes": 4263645
+        }
+      ],
+      "cached": [
+        {
+          "cold_ms": 114.31482797861099,
+          "warm_ms": 72.94086599349976,
+          "bytes": 4263644
+        },
+        {
+          "cold_ms": 154.96247100830078,
+          "warm_ms": 75.46631896495819,
+          "bytes": 4263644
+        },
+        {
+          "cold_ms": 87.63898199796677,
+          "warm_ms": 70.22186201810837,
+          "bytes": 4263644
+        },
+        {
+          "cold_ms": 98.4027059674263,
+          "warm_ms": 58.060503005981445,
+          "bytes": 4263644
+        },
+        {
+          "cold_ms": 90.52568197250366,
+          "warm_ms": 63.403635025024414,
+          "bytes": 4263644
+        },
+        {
+          "cold_ms": 122.27186000347137,
+          "warm_ms": 61.75299996137619,
+          "bytes": 4263644
+        },
+        {
+          "cold_ms": 100.28835201263428,
+          "warm_ms": 68.75645101070404,
+          "bytes": 4263644
+        },
+        {
+          "cold_ms": 87.01747995615005,
+          "warm_ms": 65.37195497751236,
+          "bytes": 4263644
+        },
+        {
+          "cold_ms": 78.32225400209427,
+          "warm_ms": 57.1256639957428,
+          "bytes": 4263644
+        },
+        {
+          "cold_ms": 78.8522760272026,
+          "warm_ms": 64.09010797739029,
+          "bytes": 4263644
+        },
+        {
+          "cold_ms": 90.77597397565842,
+          "warm_ms": 77.48360300064087,
+          "bytes": 4263644
+        },
+        {
+          "cold_ms": 85.7171660065651,
+          "warm_ms": 59.12180095911026,
+          "bytes": 4263644
+        }
+      ]
+    },
+    "summary": {
+      "uncached": {
+        "cold_ms": {
+          "count": 12,
+          "mean": 142.1,
+          "p50": 132.4,
+          "p95": 212.3,
+          "p99": 212.3,
+          "max": 212.3
+        },
+        "warm_ms": {
+          "count": 12,
+          "mean": 140.9,
+          "p50": 137.8,
+          "p95": 161.4,
+          "p99": 161.4,
+          "max": 161.4
+        }
+      },
+      "cached": {
+        "cold_ms": {
+          "count": 12,
+          "mean": 99.1,
+          "p50": 90.5,
+          "p95": 155,
+          "p99": 155,
+          "max": 155
+        },
+        "warm_ms": {
+          "count": 12,
+          "mean": 66.1,
+          "p50": 64.1,
+          "p95": 77.5,
+          "p99": 77.5,
+          "max": 77.5
+        }
+      }
+    }
+  },
+  "limitations": [
+    "External BTP sync disabled in disposable copies; does not measure sync or full tournament completion.",
+    "Same initial state and seed do not imply identical operations: servers advance games at different speeds.",
+    "Optimized valid ten-minute checkpoint reused; corrected old run used separate loopback IPs. Thirty-second controls on both servers verify this protocol compatibility.",
+    "Corrected old client source matches recorded hash; its commit was created while the run was active. Initial optimized run predates client extraction and is identified by source hash.",
+    "Runs executed sequentially on same host, with other verification work partly overlapping. Observational comparison, not an exclusive-host capacity test.",
+    "Latency ends at simulated client WebSocket receipt, before JSON parsing; no browser rendering or audible playback measurement.",
+    "Old server has no new queue telemetry; unavailable does not mean zero wait."
+  ],
+  "local_reports": {
+    "original": "/tmp/bts-reference-Hkga5Y",
+    "corrected_old": "/tmp/bts-reference-QXM21w",
+    "short_controls": "/tmp/bts-reference-fd4i1G",
+    "admin_snapshot": "/tmp/bts-admin-snapshot-VsxBet"
+  },
+  "client_bup_commit": "96c680e08cdb32c7c53d490f0c538fac5e287003",
+  "validation": {
+    "bts_tests_clean_checkout": 746,
+    "client_tests_clean_checkout": 23,
+    "chrome_checks": 22,
+    "post_compatibility_integration_tests": 18,
+    "client_eslint": true
+  }
+}
