@@ -21,15 +21,7 @@ const all_panels = [];
 const active_umpire_match_owners = new Map();
 const default_tournament_key = 'default';
 const default_displaysettings_key = default_tournament_key;
-// Panel reads need presentation/settings fields, never the registration package.
-// Use an inclusion projection: NeDB clones the document before applying exclusions.
-const PANEL_TOURNAMENT_PROJECTION = {
-	key: 1, name: 1, language: 1,
-	logo_id: 1, logo_background_color: 1, logo_foreground_color: 1,
-	displaysettings_general: 1, displaysettings_general_tablet: 1,
-	bupws_v2_enabled: 1, bup_v2_admin_wait_for_score_updates: 1,
-	bts_debug_output_enabled: 1, bts_server_diagnostics_enabled: 1, bts_auto_call_trace_enabled: 1, bts_score_press_timing_enabled: 1,
-};
+const PANEL_TOURNAMENT_PROJECTION = require('./panel_tournament_projection');
 const SCORE_UPDATE_FULL_STATE_FALLBACK = false;
 const FINISHED_MATCH_DISPLAY_MS = 60000;
 const V2_RENDER_ACK_TIMEOUT_MS = 10000;
@@ -2697,8 +2689,8 @@ async function refresh_tournament(app, tournament_key) {
 }
 
 async function get_score_change_court_context(app, tournament_key, court_id) {
-	const court = court_id ? await find_one_async(app.db.courts, { tournament_key, _id: court_id }) : null;
-	let raw_match = court?.match_id ? await find_one_async(app.db.matches, { tournament_key, _id: court.match_id }) : null;
+	const court = court_id ? await read_display_context_part(app, 'court', tournament_key, court_id) : null;
+	let raw_match = court?.match_id ? await read_display_context_part(app, 'match', tournament_key, court.match_id) : null;
 	if (!raw_match && court_id) {
 		raw_match = await get_recent_finished_match_for_court(app, tournament_key, court_id);
 	}
@@ -2708,6 +2700,17 @@ async function get_score_change_court_context(app, tournament_key, court_id) {
 		match,
 		current_match_id: match?.setup?.match_id || match?._id || null,
 	};
+}
+
+async function read_display_context_part(app, part, key, id) {
+	if (app.db.model?.read_display_context_part) {
+		return new Promise((resolve, reject) => {
+			app.db.model.read_display_context_part(part, key, id, (error, value) => error ? reject(error) : resolve(value));
+		});
+	}
+	const collection = { tournament: 'tournaments', court: 'courts', match: 'matches' }[part];
+	const query = part === 'tournament' ? { key } : { tournament_key: key, _id: id };
+	return find_one_async(app.db[collection], query, part === 'tournament' ? PANEL_TOURNAMENT_PROJECTION : undefined);
 }
 
 async function send_finished_confirmed(_app, tournament_key, court_id, match_id) {
@@ -3522,7 +3525,6 @@ async function handle_score_change(app, tournament_key, court_id, options = {}) 
 	const phase_start_ns = timing_now_ns();
 	const matching_panels = all_panels.filter((ws) => ws && ws.last_tournament_key === tournament_key);
 	if (matching_panels.length === 0) return;
-	const tournament = await find_one_async(app.db.tournaments, { key: tournament_key }, PANEL_TOURNAMENT_PROJECTION);
 	const panels_by_court = new Map();
 	const multi_panels = [];
 	const direct_refreshes = [];
@@ -3533,6 +3535,7 @@ async function handle_score_change(app, tournament_key, court_id, options = {}) 
 		}
 		return court_contexts.get(context_court_id);
 	};
+	const tournament = await read_display_context_part(app, 'tournament', tournament_key);
 	debug_tablet_loop(app, 'handle_score_change:start', {
 		tournament_key,
 		court_id: court_id || null,

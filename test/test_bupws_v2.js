@@ -328,8 +328,11 @@ _describe('bupws v2 score fanout', () => {
 		multi.v2_multi_court_display = true;
 		multi.last_v2_match_ids_by_court.set('court-1', 'match-1');
 		let reads = 0;
-		const find_court = app.db.courts.findOne_async.bind(app.db.courts);
-		app.db.courts.findOne_async = (...args) => { reads++; return find_court(...args); };
+		const read_context = app.db.model.read_display_context_part;
+		app.db.model.read_display_context_part = (part, ...args) => {
+			if (part === 'court') reads++;
+			return read_context(part, ...args);
+		};
 		let completed = false;
 		const delivered = wait_for_points([single, multi]);
 		const operation = bupws_v2.handle_score_change(app, 'fanout-test', 'court-1').then(() => { completed = true; });
@@ -429,5 +432,86 @@ _describe('bupws v2 score fanout', () => {
 			cleanup();
 		}
 		assert(multi.messages.length > 0);
+	});
+
+	_it('uses the current court assignment and score after queued writes have persisted', async () => {
+		const { app, panel, cleanup } = await fixture();
+		const tv = panel('ordered-tv');
+		await new Promise((resolve, reject) => app.db.matches.insert({
+			_id: 'replacement', tournament_key: 'fanout-test', network_score: [[7, 4]], presses: [],
+			setup: { match_id: 'replacement', court_id: 'court-1', now_on_court: true,
+				state: 'oncourt', counting: '3x21', warmup: 'none', teams: [{ players: [] }, { players: [] }],
+			},
+		}, error => error ? reject(error) : resolve()));
+		tv.last_v2_match_id = 'replacement';
+		const persist = app.db.courts.persistence.persistNewState;
+		let release, reached;
+		const held = new Promise(resolve => { reached = resolve; });
+		app.db.courts.persistence.persistNewState = function(docs, done) {
+			release = () => persist.call(this, docs, done);
+			reached();
+		};
+		const write = app.db.courts.update_async({ _id: 'court-1' }, { $set: { match_id: 'replacement' } }, {});
+		await held;
+		let requested;
+		const queued = new Promise(resolve => { requested = resolve; });
+		const read_context = app.db.model.read_display_context_part;
+		app.db.model.read_display_context_part = (part, ...args) => {
+			const result = read_context(part, ...args);
+			if (part === 'court') requested();
+			return result;
+		};
+		const operation = bupws_v2.handle_score_change(app, 'fanout-test', 'court-1');
+		try {
+			await queued;
+			await new Promise(resolve => setImmediate(resolve));
+			assert(!tv.messages.some(msg => msg.type === 'display_points_update'));
+		} finally {
+			app.db.courts.persistence.persistNewState = persist;
+			release();
+			await write;
+			await operation;
+			cleanup();
+		}
+		const points = tv.messages.find(msg => msg.type === 'display_points_update');
+		assert(points, 'replacement match was not published');
+		assert.deepStrictEqual(points.score.current_set, { left: 7, right: 4 });
+	});
+
+	_it('publishes single and multi-court point updates without ordinary DB cursor reads', async () => {
+		const { app, panel, cleanup } = await fixture();
+		const single = panel('lookup-single');
+		const multi = panel('lookup-multi');
+		multi.v2_multi_court_display = true;
+		multi.last_v2_match_ids_by_court.set('court-1', 'match-1');
+		for (const name of ['courts', 'matches', 'tournaments']) {
+			app.db[name].getCandidates = () => { throw new Error('TV fanout used ordinary ' + name + ' cursor'); };
+		}
+		try {
+			await bupws_v2.handle_score_change(app, 'fanout-test', 'court-1');
+			for (const ws of [single, multi]) {
+				const points = ws.messages.find(msg => msg.type === 'display_points_update');
+				assert(points, 'TV point did not arrive through object lookup');
+				assert.deepStrictEqual(points.score.current_set, { left: 1, right: 0 });
+			}
+		} finally { cleanup(); }
+	});
+
+	_it('retains ordinary async and callback display reads for partial datastores', async () => {
+		const { app, panel, cleanup } = await fixture();
+		const tv = panel('fallback-tv');
+		delete app.db.model.read_display_context_part;
+		try {
+			await bupws_v2.handle_score_change(app, 'fanout-test', 'court-1');
+			assert(tv.messages.some(msg => msg.type === 'display_points_update'));
+			tv.messages.length = 0;
+			delete app.db.courts.findOne_async;
+			delete app.db.matches.findOne_async;
+			delete app.db.tournaments.findOne_async;
+			await app.db.matches.update_async({ _id: 'match-1' }, { $set: { network_score: [[4, 2]] } }, {});
+			await bupws_v2.handle_score_change(app, 'fanout-test', 'court-1');
+			const points = tv.messages.find(msg => msg.type === 'display_points_update');
+			assert.deepStrictEqual(points.score.current_set, { left: 4, right: 2 });
+		} finally { cleanup(); }
 	});
 });

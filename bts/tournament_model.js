@@ -28,6 +28,7 @@ function attach(db) {
 	if (['matches', 'tournaments', 'courts'].every(collection => db[collection]?.executor &&
 		typeof db[collection].getAllData === 'function' && typeof db[collection].updateIndexes === 'function')) {
 		require('./tournament_model/score_reads')(model);
+		require('./tournament_model/display_reads')(model);
 	}
 	return model;
 }
