@@ -161,13 +161,24 @@ Naechste optionale Schritte nach diesen Arbeiten:
   Folgeaufrufe, kein wachsender Sync-Rueckstau und kein Verarbeitungsfehler.
   Kein erneuter Zehnminuten-Baseline-Lauf; Messgrenzen/Rohdaten dokumentiert
   in debug/performance_ordering_2026-10-11.md und .json.
-- OFFEN: Hauptthread-Spitzen bei automatischer Feldkandidatenauswahl reduzieren.
-  Trotz beseitigter Replan-Schleifen bleiben ~1s-Empfangsausreisser;
-  Aufrufplanung bis 2.1s, Integrationsfunktion bis 1.3s, Loop-Maximum 674ms.
-  Wiederholte Turnierlistenpruefungen (u.a. has_open_participant_dependency)
-  gezielt profilieren und Referenz-/Kandidatenindizes pro Auswahl nutzen bzw.
-  Auslagerung getrennt pruefen. Durchsage-Maximum nicht verbessert (371ms).
-  Kein Beleg fuer beliebige Dauerlast oder den akustischen Start am Client.
+- ERLEDIGT: Hauptthread-Spitzen bei automatischer Feldkandidatenauswahl reduziert.
+  CPU-Profil bestaetigt wiederholtes Zusammenstellen derselben Spielerlisten.
+  Commit fb7a667: Teamspieler->offene Matches und Sonderergebnisse je Disziplin
+  einmal pro synchroner Auswahl; alle freien Felder teilen die Referenzen.
+  Naechste Auswahl baut frische Daten auf. Locks/Planvalidierung und Regeln
+  fuer Offizielle, Freilose und Reaktivierungen erhalten. Vollsuite 777 Tests.
+  Neuer 90s-Lauf gegen vorhandenen Vergleich, identische Werkzeuge/Parameter:
+  TV-p99 990->52ms, Admin-p99 987->46ms, Durchsage-Maximum 371->45ms,
+  Loop-Maximum 674->88ms; 960/960 Updates je Ziel, 46/46 Syncs, fuenf
+  automatische Folgeaufrufe. Kein wachsender Sync-Rueckstau, alles geleert.
+  Ergebnisse/Grenzen: debug/performance_ordering_2026-10-11.md und .json.
+- OFFEN: Snapshot-Refresh der automatischen Aufrufplanung gezielt untersuchen.
+  Integrationsphase jetzt maximal 72ms, gesamter Aufruf noch bis 630ms;
+  Refresh bis 476ms. Zuerst DB-Warten, Kopieren und Modellaufbau unterscheiden,
+  bevor weitere Auslagerungen/gezielte Snapshot-Reads umgesetzt werden.
+  Nachlaufende Vorbereitung wartet noch bis 345ms; eigentlicher Score-Handler
+  maximal 38ms. Root-Sync-Maximum 1843ms, kein Nachweis fuer beliebige Dauerlast,
+  aktive Offiziellen-/Tabletoperator-Zuweisung oder akustischen Start am Client.
 - Bei Bedarf Langzeitlauf des juengsten Gesamtstands: Der zehnminuetige
   optimierte Vergleich verwendet den gesicherten Stand 647e479; juengste
   Diagnose-/Cache-Aenderungen sind durch Regressionen, kurze Empfangslaeufe

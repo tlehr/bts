@@ -108,7 +108,7 @@ zu fünf automatischen Folgeaufrufen. Die verbleibenden vier Neuplanungen haben
 berechtigte Gründe: Initialisierung der Turniereinstellungen, tatsächliches
 Spielende und geänderte Feldbelegung. Keine erneute Marker-Replan-Schleife.
 
-**Offen bleiben spürbare Einzelspitzen.** Automatische Aufrufplanung dauert
+**Stand vor der nächsten Auswahloptimierung:** Automatische Aufrufplanung dauert
 noch etwa 0,8–2,1 Sekunden, davon bis zu 1,3 Sekunden in der Integrationsfunktion;
 Event-Loop-Maximum 674 ms. Die Kandidatenprüfung liest wiederholt Turnierlisten,
 unter anderem in `has_open_participant_dependency`. Das ist der nächste
@@ -134,3 +134,70 @@ Der JSON-Bericht archiviert beide Läufe einschließlich Messquellen-Hashes,
 Grenzen und der drei Zeitabschnitte. Frühe Diagnose-Reproduktionen mit Sätzen
 bis drei Punkte sind separat unter `/tmp/bts-queue-responsiveness-lXy4MW`
 gesichert und dienen ausschließlich der Ursachenprüfung.
+
+## Teilnehmerreferenzen in der automatischen Feldkandidatenauswahl
+
+Commit `fb7a66748cb23858e2bfbce07dd84664e657a4bf` ersetzt wiederholte
+Turnierdurchläufe durch direkte Referenzen von Teamspielern auf ihre offenen
+Matches. Ausschlüsse durch Sonderergebnisse werden einmal je Disziplin
+gesammelt. Globale Kandidatenauswahl und sämtliche freien Felder teilen diese
+Lookups innerhalb eines synchronen Auswahlvorgangs. Der nächste Vorgang baut
+frische Referenzen auf; Reaktivierung, Spielende, neue Teilnehmer und geänderte
+Reihenfolge werden berücksichtigt. Spieler-ID-Vergleiche, Vorgängerregeln,
+Offiziellenregeln, Locks und anschließende Planvalidierung bleiben erhalten.
+Die kleine Klasse liegt in `bts/match_automation/participant_lookup.js`.
+
+Der CPU-Mitschnitt der bisherigen Auswahl bestätigt den Engpass: rund 13,2
+Sekunden Selbstzeit entfallen auf `get_match_players` innerhalb des gesamten
+Teilbenchmarks. Bei 519 unabhängigen eingeplanten Spielen sinkt der Median
+aus fünf Durchläufen für ein freies Feld von 359 auf 9 ms, für 13 freie Felder
+von 3.225 auf 16 ms. Beide Versionen liefern dieselben 519 Kandidaten pro Feld.
+Diese Werte stammen aus einem reinen Auswahlbenchmark mit CPU-Profiler,
+ohne Netzwerk/DB und außerhalb anderer Tests. Sie sind keine Empfangslatenzen.
+Quelle, Rohwerte und Profilpfad sind im JSON-Bericht archiviert.
+
+Anschließend wurde ausschließlich der neue Stand erneut für 90 Sekunden
+gemessen, mit denselben Parametern und demselben Seed wie der vorhandene
+`a7623d1`-Lauf. Messwerkzeuge, Clientquellen/Commit, Abhängigkeiten, Node und
+CPU stimmen überein. Die Quelldateien des Servers waren vorher durch die volle
+Suite mit **777 Tests** geprüft und als unveränderlicher Commit gesichert.
+
+| Gleiche 90-Sekunden-Lastparameter, je ein Lauf | Vorher `a7623d1` | Nachher `fb7a667` |
+| --- | ---: | ---: |
+| Tablet → TV, p95 / p99 / Maximum | 37 / 990 / 1279 ms | 32 / 52 / 98 ms |
+| Tablet → Admin, p95 / p99 / Maximum | 29 / 987 / 1312 ms | 22 / 46 / 97 ms |
+| Empfang bei TV und Admin, jeweils | 951 / 951 | 960 / 960 |
+| Freie Durchsage, p95 / Maximum | 75 / 371 ms | 33 / 45 ms |
+| Event-Loop-Maximum | 674 ms | 88 ms |
+| Score-Handler: beobachtetes Queue-Warten, Maximum | 221 ms | 38 ms |
+| Auto-Aufruf: Integrationsphase, Maximum der erfassten Versuche | 1298 ms | 72 ms |
+| Auto-Aufruf: gesamter erfasster Vorgang, Maximum | 2099 ms | 630 ms |
+| Syncs abgeschlossen | 46 / 46 | 46 / 46 |
+| Spielenden / automatische Folgeaufrufe | 5 / 5 | 5 / 5 |
+
+Alle 13 Felder bleiben belegt. Es gibt keine fehlenden Antworten oder
+Verarbeitungsfehler; das Serverlog ist leer. In jedem der drei Laufabschnitte
+ist höchstens ein Sync unfertig. Scheduler und Datenbank sind nach dem Nachlauf
+vollständig geleert. Die sechs Neuplanungen betreffen Initialisierung,
+tatsächliche Spielenden und Feldzuweisungen; keine Nachfolger-Marker-Schleife.
+
+Der bisherige JSON-Wert `point_queue_wait_ms` umfasst alle Aufgaben mit
+Score-Ursprung, einschließlich nachlaufender Vorbereitung und automatischer
+Aufrufe. Deren Maximum beträgt weiterhin 345 ms. Die zusätzliche Aufteilung
+nach Aufgabennamen zeigt für den eigentlichen `handle_score_update_v2` maximal
+38 ms. Hintergrundarbeit und Empfangslatenzen werden damit getrennt beurteilt.
+
+Weitere Grenzen: Die gesamte Auto-Aufrufplanung erreicht noch 630 ms, darunter
+ein Snapshot-Refresh von 476 ms. Dessen Dauer umfasst asynchrone Arbeit und ist
+kein Beleg für entsprechend lange CPU-Blockierung. Dieser Refresh-Pfad ist der
+nächste gezielt zu untersuchende Engpass. Der Root-Sync bleibt ungefähr gleich
+lang im Median (620 → 627 ms); sein Maximum steigt von 1668 auf 1843 ms.
+Die Verbesserung betrifft vor allem kurze Empfangszeiten während dieser Arbeit.
+Je ein kurzer Lauf und veränderter tatsächlicher Spielfortschritt ergeben
+keinen Dauerlastnachweis. Aktive Offiziellen-/Tabletoperator-Zuweisung,
+akustischer Clientstart und Browserdarstellung liegen außerhalb dieser Messung.
+Freilos-/Offiziellen-/Reaktivierungsregeln sind durch Regressionen geprüft.
+
+Rohdaten: `/tmp/bts-queue-responsiveness-v9q90F`.
+Vergleich und Detailphasen: `selection_optimization` im JSON-Bericht oben.
+Keine Wiederholung des alten Zehnminuten-Baseline-Laufs.
