@@ -12,17 +12,18 @@ function overview(match) {
 	return deepCopy({ ...fields, presses_deferred: true });
 }
 
-function read_matches(db, key, defer_history, callback) {
+function read_matches(db, key, defer_history, callback, options = {}) {
 	const traces = require('./performance/traces'), read_span = traces.begin('admin_match_read', 'phase');
 	const original_callback = callback;
 	callback = (error, matches) => { traces.end(read_span, error); return original_callback(error, matches); };
-	if (!defer_history || !db.model) {
+	const background = require('./offload/profile').enabled('admin_response_background');
+	const revision_cache = require('./offload/profile').enabled('admin_match_revision_cache');
+	if (!db.model || !defer_history && (!background || !revision_cache)) {
 		return db.matches.find({ tournament_key: key }, (error, matches) => {
 			if (error) return callback(error);
 			callback(null, defer_history ? matches.map(overview) : matches);
 		});
 	}
-	const background = require('./offload/profile').enabled('admin_response_background');
 	const capture = done => {
 		let matches;
 		try {
@@ -32,7 +33,13 @@ function read_matches(db, key, defer_history, callback) {
 		} catch (error) { return done(error); }
 		done(null, matches);
 	};
-	const finish = background ? (error, records) => {
+	const finish = background && revision_cache && options.immutable === true ? (error, records) => {
+		if (error) return callback(error);
+		const span = traces.begin('admin_match_copy', 'phase');
+		const snapshots = records.map(record => require('./admin_response/match_cache').snapshot(record, defer_history));
+		traces.end(span, null, { skipped: true, reason: 'immutable-datastore-revisions' });
+		callback(null, snapshots);
+	} : background ? (error, records) => {
 		if (error) return callback(error);
 		const copy_span = traces.begin('admin_match_copy', 'phase');
 		const finish_copy = (err, matches) => { traces.end(copy_span, err); return callback(err, matches); };
@@ -45,7 +52,7 @@ function read_matches(db, key, defer_history, callback) {
 			if (foreground.busy()) { foreground.idle().then(() => setImmediate(copy)); return; }
 			try {
 				const start = process.hrtime.bigint();
-				do { matches.push(overview(records[offset++])); }
+				do { const record = records[offset++]; matches.push(defer_history ? overview(record) : deepCopy(record)); }
 				while (offset < records.length && process.hrtime.bigint() - start < 2000000n);
 			} catch (err) { return finish_copy(err); }
 			if (offset < records.length) setImmediate(copy); else finish_copy(null, matches);

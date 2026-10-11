@@ -7,10 +7,9 @@ const { features, environment } = require('./options');
 const { OwnedProcess, pause, wait_for_abort } = require('./process');
 const readiness = require('./readiness');
 
-const cwd = path.resolve(__dirname, '../..');
-
 function plan(options) {
 	return { base_url: options.base_url, tournament: options.tournament, seed: options.seed,
+		bts_dir: options.bts_dir,
 		expected_matches: options.expected_matches, estimated_test_minutes: options.profiles.length * 10,
 		warmup_ms_per_run: options.warmup_ms, profiles: options.profiles.map(name => ({ name, features: features(name) })),
 		output_dir: options.output_dir || 'new /tmp/bts-offload-sequence-* directory',
@@ -19,6 +18,7 @@ function plan(options) {
 }
 
 async function run(options, dependencies = {}) {
+	const cwd = options.bts_dir || path.resolve(process.env.BTS_REPOSITORY_DIR || path.join(__dirname, '../../../bts'));
 	if (options.dry_run) return plan(options);
 	const signal = dependencies.signal, log = dependencies.log || console.log;
 	const output_dir = options.output_dir || await fs.mkdtemp(path.join(os.tmpdir(), 'bts-offload-sequence-'));
@@ -56,7 +56,7 @@ async function run(options, dependencies = {}) {
 				await pause(options.warmup_ms, signal);
 				entry.actual_profile = await readiness.ready(server, options, entry.expected_features, label, signal);
 				entry.status = 'testing'; entry.test_started_at = new Date().toISOString(); await save();
-				client = new OwnedProcess(dependencies.client_entry || path.join(cwd, 'debug/live_tournament_drill.js'), [
+				client = new OwnedProcess(dependencies.client_entry || path.resolve(__dirname, '../live_tournament_drill.js'), [
 					'--scenario', 'benchmark', '--base-url', options.base_url, '--tournament', options.tournament,
 					'--seed', options.seed, '--expected-matches', String(options.expected_matches), '--plain-log', '--report', paths.report,
 					'--slow-latency-ms', '100',

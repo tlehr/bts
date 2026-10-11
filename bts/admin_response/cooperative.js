@@ -6,6 +6,7 @@
 module.exports = async function encode(message) {
 	let turn = process.hrtime.bigint();
 	const foreground = require('../foreground_work');
+	const cache = require('./match_cache');
 	const yield_if_due = async () => {
 		if (foreground.busy()) { await foreground.idle(); turn = process.hrtime.bigint(); }
 		if (process.hrtime.bigint() - turn < 2000000n) return;
@@ -28,8 +29,12 @@ module.exports = async function encode(message) {
 				for (let i = 0; i < child.length; i++) {
 					await yield_if_due();
 					if (i) parts.push(',');
-					const wrapper = JSON.stringify({ [String(i)]: child[i] });
-					parts.push(wrapper === '{}' ? 'null' : wrapper.slice(String(i).length + 4, -1));
+					const cached = cache.encode(child[i]);
+					if (cached !== undefined) parts.push(cached);
+					else {
+						const wrapper = JSON.stringify({ [String(i)]: child[i] });
+						parts.push(wrapper === '{}' ? 'null' : wrapper.slice(String(i).length + 4, -1));
+					}
 					await yield_if_due();
 				}
 				parts.push(']');

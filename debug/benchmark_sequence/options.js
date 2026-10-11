@@ -16,6 +16,8 @@ const PROFILES = {
 		preparation_candidates: true, sync_batch_writes: false, sync_prepared_tournament: true, compaction_staged: true },
 	'combined-responsive-background-admin': { sync_plan: true, device_info: true, compaction: true, sync_plan_patch_return: true, compaction_reads: true, preparation_reads: true,
 		preparation_candidates: true, sync_batch_writes: false, sync_prepared_tournament: true, admin_response_background: true, admin_response_priority: true, compaction_staged: true },
+	'combined-responsive-cached-admin': { sync_plan: true, device_info: true, compaction: true, sync_plan_patch_return: true, compaction_reads: true, preparation_reads: true,
+		preparation_candidates: true, sync_batch_writes: false, sync_prepared_tournament: true, admin_response_background: true, admin_response_priority: true, admin_match_revision_cache: true, compaction_staged: true },
 	'combined-responsive-cooperative-admin': { sync_plan: true, device_info: true, compaction: true, sync_plan_patch_return: true, compaction_reads: true, preparation_reads: true,
 		preparation_candidates: true, sync_batch_writes: false, sync_prepared_tournament: true, admin_response_background: true, compaction_staged: true },
 	'sync-plan': { sync_plan: true, device_info: false, compaction: false },
@@ -26,7 +28,7 @@ const PROFILES = {
 function features(name) {
 	if (!PROFILES[name]) throw new Error('Unknown profile: ' + name);
 	return { btp_decode: true, sync_plan_patch_return: false, compaction_reads: false, preparation_reads: false,
-		preparation_candidates: false, sync_batch_writes: false, sync_prepared_tournament: false, admin_response_background: false, admin_response_worker: false, admin_response_priority: false, compaction_staged: false, ...PROFILES[name], xlsx_import: false };
+		preparation_candidates: false, sync_batch_writes: false, sync_prepared_tournament: false, admin_response_background: false, admin_response_worker: false, admin_response_priority: false, admin_match_revision_cache: false, compaction_staged: false, ...PROFILES[name], xlsx_import: false };
 }
 
 function environment(name, label, base = process.env) {
@@ -41,6 +43,7 @@ function environment(name, label, base = process.env) {
 		BTS_SYNC_PREPARED_TOURNAMENT: selected.sync_prepared_tournament ? '1' : '0',
 		BTS_ADMIN_RESPONSE_BACKGROUND: selected.admin_response_background ? '1' : '0',
 		BTS_ADMIN_RESPONSE_PRIORITY: selected.admin_response_priority ? '1' : '0',
+		BTS_ADMIN_MATCH_REVISION_CACHE: selected.admin_match_revision_cache ? '1' : '0',
 		BTS_ADMIN_RESPONSE_ENCODER: selected.admin_response_worker ? 'worker' : 'cooperative',
 		BTS_COMPACTION_STAGED: selected.compaction_staged ? '1' : '0',
 		BTS_UPDATE_QUEUE_SLOW_TASK_MS: '50',
@@ -49,7 +52,8 @@ function environment(name, label, base = process.env) {
 }
 
 function parse_args(argv) {
-	const options = { base_url: 'https://localhost:4433', tournament: 'default', profiles: ['combined-responsive-background-admin'],
+	const options = { base_url: 'https://localhost:4433', tournament: 'default', profiles: ['combined-responsive-cached-admin'],
+		bts_dir: path.resolve(process.env.BTS_REPOSITORY_DIR || path.join(__dirname, '../../../bts')),
 		expected_matches: 519, seed: '519', output_dir: null, ready_timeout_ms: 120000, warmup_ms: 10000,
 		dry_run: false, help: false };
 	for (let i = 0; i < argv.length; i++) {
@@ -59,6 +63,7 @@ function parse_args(argv) {
 			return argv[++i];
 		};
 		if (arg === '--base-url') options.base_url = next();
+		else if (arg === '--bts-dir') options.bts_dir = path.resolve(next());
 		else if (arg === '--tournament') options.tournament = next();
 		else if (arg === '--profiles') options.profiles = next().split(',');
 		else if (arg === '--output-dir') options.output_dir = path.resolve(next());

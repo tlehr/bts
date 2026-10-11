@@ -139,7 +139,7 @@ describe('automated benchmark sequence', function() {
 		options.profiles = parse_args([]).profiles;
 		const result = await run(options, dependencies);
 		assert.strictEqual(result.estimated_test_minutes, 10);
-		assert.deepStrictEqual(result.profiles.map(row => row.name), ['combined-responsive-background-admin']);
+		assert.deepStrictEqual(result.profiles.map(row => row.name), ['combined-responsive-cached-admin']);
 		assert.strictEqual(result.profiles[0].features.btp_decode, true);
 		assert.strictEqual(result.profiles[0].features.sync_plan, true);
 		assert.strictEqual(result.profiles[0].features.sync_plan_patch_return, true);
@@ -151,6 +151,8 @@ describe('automated benchmark sequence', function() {
 		assert.strictEqual(result.profiles[0].features.admin_response_background, true);
 		assert.strictEqual(result.profiles[0].features.admin_response_priority, true);
 		assert.strictEqual(result.profiles[0].features.admin_response_worker, false);
+		assert.strictEqual(result.profiles[0].features.admin_match_revision_cache, true);
+		assert.strictEqual(require('../debug/benchmark_sequence/options').features('combined-responsive-background-admin').admin_match_revision_cache, false);
 		assert.strictEqual(result.profiles[0].features.compaction_staged, true);
 		assert.strictEqual(require('../debug/benchmark_sequence/options').environment(result.profiles[0].name, 'test', { BTS_SYNC_BATCH_WRITES: '1' }).BTS_SYNC_BATCH_WRITES, '0');
 		await assert.rejects(fs.access(options.output_dir), error => error.code === 'ENOENT');

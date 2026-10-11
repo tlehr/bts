@@ -31,6 +31,7 @@ function snapshot(app, sockets, key, trace_cursor) {
 	return { protocol_version: 2, server_id: id, ts: now, scope: 'server-wide', tournament_key: key,
 		lock, database, workers: registry.snapshots().filter(row => row.enqueued_count > 0), event_loop: last_loop,
 		processing: require('./traces').snapshot(trace_cursor),
+		admin_encoding_cache: require('../admin_response/match_cache').stats(),
 		outgoing: { sockets: outgoing.length, pending: outgoing.reduce((n, s) => n + s.pending, 0),
 			active: outgoing.reduce((n, s) => n + s.active, 0),
 			oldest_pending_ms: Math.max(0, ...outgoing.map(s => s.oldest_pending_ms)),

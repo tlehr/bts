@@ -15,6 +15,7 @@ const flags = {
 	sync_prepared_tournament: ['BTS_SYNC_PREPARED_TOURNAMENT', true],
 	admin_response_background: ['BTS_ADMIN_RESPONSE_BACKGROUND', true],
 	admin_response_priority: ['BTS_ADMIN_RESPONSE_PRIORITY', true],
+	admin_match_revision_cache: ['BTS_ADMIN_MATCH_REVISION_CACHE', true],
 	admin_response_worker: ['BTS_ADMIN_RESPONSE_ENCODER', false],
 	compaction_staged: ['BTS_COMPACTION_STAGED', false],
 };

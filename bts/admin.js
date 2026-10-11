@@ -836,7 +836,7 @@ function handle_tournament_get(app, ws, msg, trace_done) {
 						require('./admin_match_data').read_matches(app.db, tournament.key, msg.defer_finished_history === true, function(err, matches) {
 							tournament.matches = matches;
 							cb(err);
-						});
+						}, { immutable: !!ws.reserve_response });
 					}, function (cb) {
 						stournament.get_displays(app, tournament, function (err, displays) {
 							tournament.displays = displays;
