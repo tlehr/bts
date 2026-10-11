@@ -3210,6 +3210,7 @@ function check_in_locks(tournament_key, match_id, role) {
 
 function preparation_selection_execute_locks(tournament_key) {
 	return [
+		update_queue.lock_keys.selection(tournament_key),
 		update_queue.lock_keys.preparation(tournament_key),
 		update_queue.lock_keys.tabletoperators(tournament_key),
 		update_queue.lock_keys.umpires(tournament_key),

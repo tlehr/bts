@@ -68,6 +68,10 @@ function preparation(tournament_key) {
 	return 'preparation:' + part(tournament_key);
 }
 
+function selection(tournament_key) {
+	return 'selection:' + part(tournament_key);
+}
+
 function tournament_key_from_lock(lock) {
 	const pieces = String(lock || '').split(':');
 	if (pieces.length < 2) {
@@ -179,6 +183,7 @@ module.exports = {
 	normalized_lists_conflict,
 	part,
 	preparation,
+	selection,
 	score_update,
 	sync,
 	tabletoperators,

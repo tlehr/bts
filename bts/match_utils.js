@@ -1202,12 +1202,14 @@ function auto_execute_preparation_selection_for_setup(app, tournament, setup, ca
 	if (!tournament || !tournament.key) {
 		return callback(null);
 	}
-	return auto_execute_preparation_selections(app, tournament, (err) => {
-		if (err) {
-			return callback(err);
-		}
-		return auto_assign_technical_officials_for_preparation_matches(app, tournament, callback);
-	});
+	// A successful explicit call must not await selection of other matches.
+	// The queued follow-up reads fresh state under selection/allocation locks;
+	// planners capture it as a deferred job and run it only after commit.
+	if (is_tournament_automation_enabled(tournament) && (tournament.call_preparation_matches_automatically_enabled ||
+		(tournament.technical_official_auto_assignment_mode || 'manual_only') === 'when_available')) {
+		queue_auto_execute_preparation_selections(app, tournament.key);
+	}
+	return callback(null);
 }
 
 function queue_auto_execute_preparation_selections(app, tournament_key, callback) {
@@ -1237,6 +1239,7 @@ function queue_auto_execute_preparation_selections(app, tournament_key, callback
 	pending_preparation_selection_runs.set(tournament_key, state);
 
 	const task = update_queue.locks([
+		update_queue.lock_keys.selection(tournament_key),
 		update_queue.lock_keys.preparation(tournament_key),
 		update_queue.lock_keys.tabletoperators(tournament_key),
 		update_queue.lock_keys.umpires(tournament_key),
@@ -1630,6 +1633,7 @@ function queue_auto_assign_technical_officials_when_available(app, tournament_ke
 	pending_technical_official_assignment_runs.set(tournament_key, state);
 
 	const task = update_queue.locks([
+		update_queue.lock_keys.selection(tournament_key),
 		update_queue.lock_keys.preparation(tournament_key),
 		update_queue.lock_keys.umpires(tournament_key),
 	], update_queue.named('auto_assign_technical_officials_when_available', () => new Promise((resolve, reject) => {
@@ -3066,7 +3070,9 @@ function auto_call_matches_on_free_courts(app, tournament_key, callback) {
 	};
 
 	const run_once = () => {
-		_auto_call_matches_on_free_courts_once(app, tournament_key, (err) => {
+		// Live automatic choices use the validated planner/commit path as well
+		// as post-sync choices; ordering cannot change during their commit.
+		queue_auto_call_matches_on_free_courts(app, tournament_key, (err) => {
 			finish_callbacks(err);
 			if (run_state.pending) {
 				run_state.pending = false;

@@ -41,6 +41,7 @@ describe('BTP sync lock dependencies', function() {
 		});
 	}
 	for (const [label, reason, change] of [
+		['match order', 'scheduling', next => { next.match_order = 12; }],
 		['check-in', 'participants', next => { next.setup.teams[0].players[0].checked_in = true; }],
 		['player pause', 'participants', next => { next.setup.teams[0].players[0].last_time_on_court_ts = 123; }],
 		['tablet operator association', 'participants', next => { next.setup.teams[0].players[0].state = 'BAY'; }],
@@ -85,6 +86,65 @@ describe('BTP sync lock dependencies', function() {
 		assert.strictEqual(plan.diagnostics.direct_match_locks, 1);
 		assert.strictEqual(plan.diagnostics.additional_match_locks, 3);
 		assert.deepStrictEqual(plan.diagnostics.dependency_matches, { effect: 1, player: 2, court: 2 });
+	});
+	for (const [label, edit] of [
+		['match number', next => { next.setup.match_num = 12; }],
+		['match order', next => { next.match_order = 12; }],
+	]) {
+		it(`protects selection and related matches without global allocation locks for ${label}`, function() {
+			const old = match('changed'); delete old.setup.umpire;
+			const next = copy(old); edit(next);
+			const plan = scope(old, next);
+			assert.strictEqual(plan.diagnostics.allocation_scope, 'ordering_only');
+			assert(plan.locks.includes(keys.selection('test')));
+			assert(plan.locked_matches.has('changed'));
+			assert(plan.locked_matches.has('related-player'));
+			assert(plan.locked_matches.has('related-court'));
+			assert(!plan.locked_matches.has('unrelated'));
+			for (const domain of ['preparation', 'auto_call', 'umpires', 'tabletoperators']) assert(!plan.locks.includes(keys[domain]('test')));
+			assert.deepStrictEqual(plan, scope(old, next, [], false));
+		});
+	}
+	it('does not narrow mixed ordering, profile, unknown, result or opaque-effect plans', function() {
+		for (const edit of [
+			next => { next.setup.teams[0].players[0].name = 'Changed'; },
+			next => { next.setup.future_dependency = true; },
+			next => { next.future_dependency = true; },
+			next => { next.team1_won = true; },
+			next => { next.setup.scheduled_time_str = '12:30'; },
+		]) {
+			const old = match('changed'), next = copy(old); next.setup.match_num = 12; edit(next);
+			const plan = scope(old, next);
+			assert.strictEqual(plan.diagnostics.allocation_scope, 'full');
+			for (const domain of ['preparation', 'auto_call', 'umpires', 'tabletoperators']) assert(plan.locks.includes(keys[domain]('test')));
+		}
+		const old = match('changed'); delete old.setup.umpire;
+		const next = copy(old); next.setup.match_num = 12;
+		for (const effect of [
+			{ resources: { hidden_bye: true } }, { resources: { matches: ['changed'] } },
+			{ resources: { notification: { ctype: 'match_edit', value: { _id: 'unrelated' } } } },
+			{ resources: { notification: { ctype: 'match_edit', value: { _id: 'changed', all_courts: [] } } } },
+		]) assert.strictEqual(scope(old, next, [effect]).diagnostics.allocation_scope, 'full');
+		assert.strictEqual(scope(old, next, [{ resources: { notification: { ctype: 'match_edit', value: next } } },
+			{ resources: { deferred_job: true } }]).diagnostics.allocation_scope, 'ordering_only');
+	});
+	it('allows number/signature bookkeeping while preserving BTP identities and notification targets', function() {
+		const old = match('changed'); delete old.setup.umpire;
+		old.btp_match_ids = [{ id: 1, nr: 1, draw: 2, planning: 3 }];
+		const next = copy(old); next.setup.match_num = 12; next.btp_match_ids[0].nr = 12; next._btp_sync_signature = 'new';
+		const notification = [{ resources: { notification: { ctype: 'match_edit', value: { match__id: 'changed', match: next } } } }];
+		assert.strictEqual(scope(old, next, notification).diagnostics.allocation_scope, 'ordering_only');
+		next.btp_match_ids[0].id = 9;
+		assert.strictEqual(scope(old, next, notification).diagnostics.allocation_scope, 'full');
+	});
+	it('retains allocation protection for tablet-operator choices and existing official assignments', function() {
+		const old = match('changed'), next = copy(old); next.setup.match_num = 12;
+		assert.strictEqual(scope(old, next).diagnostics.allocation_scope, 'ordering_with_allocation');
+		delete old.setup.umpire; delete next.setup.umpire;
+		const plan = resources('test', { tournaments: [{ tabletoperator_enabled: true }], matches: [old] },
+			[{ collection: 'matches', id: old._id, before: old, after: next }], []);
+		assert.strictEqual(plan.diagnostics.allocation_scope, 'ordering_with_allocation');
+		for (const domain of ['preparation', 'auto_call', 'umpires', 'tabletoperators']) assert(plan.locks.includes(keys[domain]('test')));
 	});
 	it('retains inventories on insertion and deletion and does not compare dates by reference', function() {
 		const old = match('changed');

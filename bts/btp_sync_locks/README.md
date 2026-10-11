@@ -40,3 +40,49 @@ With `BTS_BTP_SYNC_TIMING=1`, `incremental_plan.lock_scope` reports:
 - `players` / `courts`: distinct relation keys expanded, including effects.
 
 These counts explain scope, not the owner or exact hold time of a contended lock.
+
+## Reihenfolgeänderungen und Auswahl-Lock
+
+`resources.js` leitet die Locks aus den tatsächlichen Änderungen und Effekten
+eines bereits berechneten Plans ab. `match_changes.js` bestimmt weiterhin die
+abhängigen Spieler und Felder; deren Match-Referenzen erweitern die Sperrmenge.
+Spielende, Freilose, Teilnehmer, Check-in, Profile und unbekannte Änderungen
+behalten den bisherigen konservativen Umfang.
+
+`ordering_only.js` erkennt ausschließlich Änderungen der Spielnummer und
+`match_order`, einschließlich der Nummer in `btp_match_ids.nr`, des internen
+Sync-Fingerprints und optionaler Anzeige-Ranglisten. BTP-Identitäten müssen
+gleich bleiben. Alle Änderungen müssen in diese Klasse fallen; gemischte Pläne,
+Einfügungen, Löschungen und externe Effekte bleiben konservativ. Zugelassen
+sind nur passende Match-Edit-Benachrichtigungen und separat gesperrte Folgejobs.
+Änderungen der angesetzten Zeit sind weiterhin keine reine Reihenfolgeänderung:
+sie können Zulässigkeit und Vorbereitungsregeln beeinflussen.
+
+Der Lock `selection:<Turnier>` schützt die automatische Kandidatenauswahl.
+Solche Nummernänderungen benötigen die vier Zuweisungs-Locks nicht, wenn keine
+Tabletbedienervergabe aktiv ist und die geänderten Spiele keine zugewiesenen
+Offiziellen oder Tabletbediener enthalten. Andernfalls bleibt der bisherige
+Umfang erhalten: diese Vergabe-/Freigabepfade können andere Match-Setups
+mitschreiben. Die Diagnose unterscheidet `ordering_only`,
+`ordering_with_allocation` und `full`.
+
+Automatische Vorbereitung, deren Offiziellenvergabe und die manuelle
+Ausführung einer berechneten Vorbereitungsauswahl erwerben `selection`.
+Automatische Feldaufrufe verwenden auch außerhalb des Post-Sync-Pfads den
+validierten Planner; dessen Commit hält `selection` und prüft den aktuellen
+Datenstand erneut. Eine beim Warten veränderte Reihenfolge führt zur Neuplanung.
+Das funktioniert auch ohne aktivierte BTP-Verbindung.
+
+Ein gezielter Feldaufruf wählt sein Spiel bereits über die Match-ID. Seine
+anschließende automatische Vorbereitung weiterer Spiele läuft als separater
+Queue-Job mit frischen Daten. Der erfolgreiche Aufruf wartet nicht auf diesen
+Job und hält dabei keinen Lock, den der Folgejob selbst erwerben muss. Geplante
+Aufrufe erfassen den Job als Effekt und starten ihn erst nach erfolgreichem
+Commit. Die bestehenden Queue-Fehler-/Diagnosepfade bleiben erhalten.
+
+Die Tests in `test_ordering_sync_concurrency.js` halten den Integrations- bzw.
+Auswahlpfad gezielt offen: ein echter unbeteiligter Aufruf muss fortschreiten,
+DB-Zustand und Feldreferenz müssen erhalten bleiben, und eine wartende
+automatische Auswahl muss geänderte Nummern vor der Vergabe berücksichtigen.
+`test_btp_sync_locks.js` prüft insbesondere konservative gemischte Pläne,
+Offizielle, Tabletbediener, unbekannte Felder und externe Freiloseffekte.

@@ -14,6 +14,13 @@ module.exports = function resources(tkey, before, changes, effects) {
 	const sources = new Map();
 	let match_work = false;
 	let metadata_only = 0;
+	const ordering_plan = require('./ordering_only')(changes, effects);
+	// A tablet-operator team can be chosen from another match during an explicit
+	// call. Official moves can also update a previous assignment. Those writers
+	// still use allocation-wide locks, so keep their existing protection.
+	const ordering_only = ordering_plan && !before.tournaments?.some(tournament => tournament.tabletoperator_enabled === true) &&
+		changes.every(change => !change.before.setup?.umpire && !change.before.setup?.service_judge &&
+			!change.before.setup?.tabletoperators?.length);
 	const add_match = (id, source = 'direct') => {
 		if (!id) return;
 		locked_matches.add(id);
@@ -73,14 +80,17 @@ module.exports = function resources(tkey, before, changes, effects) {
 	}
 	for (const court of courts) locks.push(keys.court(tkey, court));
 	if (match_work) {
+		locks.push(keys.selection(tkey));
 		// Keep allocation/check-in/finish writers serialized, also for profile
-		// updates. Only ordinary points on unaffected matches may bypass this.
-		locks.push(keys.preparation(tkey), keys.tabletoperators(tkey), keys.umpires(tkey), keys.auto_call(tkey));
+		// updates. Ordering-only writes protect candidate selection separately;
+		// targeted calls on matches outside their relation scope can continue.
+		if (!ordering_only) locks.push(keys.preparation(tkey), keys.tabletoperators(tkey), keys.umpires(tkey), keys.auto_call(tkey));
 	}
 	return { locks: keys.normalize_list(locks), locked_matches, diagnostics: {
 		direct_match_locks: direct.size,
 		additional_match_locks: [...locked_matches].filter(id => !direct.has(id)).length,
 		local_only_changes: metadata_only,
+		allocation_scope: ordering_only ? 'ordering_only' : ordering_plan ? 'ordering_with_allocation' : 'full',
 		expansion_reasons: reasons,
 		dependency_matches: Object.fromEntries([...sources].map(([source, ids]) => [source, ids.size])),
 		players: players.size, courts: courts.size,

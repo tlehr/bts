@@ -166,7 +166,10 @@ async function guard(app, tkey, options) {
 	if (options.is_current && !options.is_current()) return 'connection_terminated';
 	const tournament = await app.db.tournaments.findOne_async({ key: tkey }, { btp_enabled: 1, last_reset_ts: 1 });
 	if (options.is_current && !options.is_current()) return 'connection_terminated';
-	if (!tournament || tournament.btp_enabled !== true) return 'btp_disabled';
+	if (!tournament) return options.worker_operation === 'auto_call' ? 'tournament_missing' : 'btp_disabled';
+	// Automatic local allocation uses the same validated planner, also when
+	// this tournament is operated without a BTP connection.
+	if (options.worker_operation !== 'auto_call' && tournament.btp_enabled !== true) return 'btp_disabled';
 	if (options.expected_reset_ts !== undefined && tournament.last_reset_ts !== options.expected_reset_ts) return 'tournament_reset_during_sync';
 	return null;
 }
