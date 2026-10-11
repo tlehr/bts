@@ -59,6 +59,14 @@ Sync-Fingerprints und optionaler Anzeige-Ranglisten. BTP-Identitäten müssen
 gleich bleiben. Alle Änderungen müssen in diese Klasse fallen; gemischte Pläne,
 Einfügungen, Löschungen und externe Effekte bleiben konservativ. Zugelassen
 sind nur passende Match-Edit-Benachrichtigungen und separat gesperrte Folgejobs.
+Eine Match-Edit-Meldung darf auch ein vorhandenes unverändertes Spiel betreffen,
+wenn ihr vollständiger Inhalt dem Planungs-Snapshot entspricht oder sie nur
+die kanonische Match-ID nennt. Diese reine Lesemeldung erweitert die Locks
+nicht; bei Veröffentlichung erhält sie den aktuellen gespeicherten Datensatz.
+Unbekannte Ziele, abweichende Inhalte, zusätzliche Effekte und Sammellisten
+bleiben konservativ. Die Diagnose `ordering_unchanged_notifications` zählt
+diese anerkannten Meldungen. `incremental_plan` exportiert außerdem die
+`allocation_scope` direkt im Trace, ohne Spielerdaten zu übertragen.
 Änderungen der angesetzten Zeit sind weiterhin keine reine Reihenfolgeänderung:
 sie können Zulässigkeit und Vorbereitungsregeln beeinflussen.
 

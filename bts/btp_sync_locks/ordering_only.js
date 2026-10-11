@@ -1,6 +1,7 @@
 'use strict';
 
 const { isDeepStrictEqual: equal } = require('util');
+const OrderingNotifications = require('./ordering_notifications');
 
 // Match numbers/order affect candidate selection, but do not allocate players,
 // courts or officials. Unknown fields and profile changes remain conservative.
@@ -22,17 +23,12 @@ function change_is_ordering(change) {
 	return !equal(before.setup.match_num, after.setup.match_num) || !equal(before.match_order, after.match_order);
 }
 
-module.exports = function ordering_only(changes, effects) {
-	if (!changes.length || !changes.every(change_is_ordering)) return false;
-	const ids = new Set(changes.map(change => change.id));
-	return effects.every(({ resources }) => {
-		// Deferred work obtains its own locks after this commit. Other external
-		// effects (including byes) still require the full allocation scope.
-		if (resources.deferred_job) return Object.keys(resources).every(key => key === 'deferred_job');
-		const notification = resources.notification;
-		const value = notification?.value;
-		return Object.keys(resources).every(key => key === 'notification') && notification?.ctype === 'match_edit' &&
-			ids.has(value?.match__id || value?._id) && (!value.match || ids.has(value.match._id)) &&
-			Object.keys(value).every(key => !key.startsWith('all_'));
-	});
-};
+function inspect(changes, effects, matches = []) {
+	if (!changes.length || !changes.every(change_is_ordering)) return { ordering: false, unchanged_notifications: 0 };
+	const notifications = new OrderingNotifications(new Set(changes.map(change => change.id)), matches);
+	const ordering = effects.every(effect => notifications.accept(effect));
+	return { ordering, unchanged_notifications: ordering ? notifications.unchanged : 0 };
+}
+
+module.exports = (changes, effects, matches) => inspect(changes, effects, matches).ordering;
+module.exports.inspect = inspect;

@@ -424,7 +424,9 @@ async function run(app, tkey, response, options, integrate, cache) {
 			(options.worker_operation === 'auto_call' || scope.diagnostics.allocation_scope === 'ordering_only');
 		log_timing('incremental_diff', diff_start, { attempt, changes: changes.length });
 		const queued = Date.now();
-		log_timing('incremental_plan', started, { attempt, changes: changes.length, match_locks: scope.locked_matches.size, locks: scope.locks, lock_scope: scope.diagnostics });
+		log_timing('incremental_plan', started, { attempt, changes: changes.length, match_locks: scope.locked_matches.size, locks: scope.locks,
+			allocation_scope: scope.diagnostics.allocation_scope, ordering_unchanged_notifications: scope.diagnostics.ordering_unchanged_notifications,
+			lock_scope: scope.diagnostics });
 		const commit = async () => {
 			log_timing('integration_lock_wait', queued, { locks: scope.locks });
 			const reason = await guard(app, tkey, options);

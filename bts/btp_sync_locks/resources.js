@@ -14,7 +14,8 @@ module.exports = function resources(tkey, before, changes, effects) {
 	const sources = new Map();
 	let match_work = false;
 	let metadata_only = 0;
-	const ordering_plan = require('./ordering_only')(changes, effects);
+	const ordering = require('./ordering_only').inspect(changes, effects, before.matches);
+	const ordering_plan = ordering.ordering;
 	// A tablet-operator team can be chosen from another match during an explicit
 	// call. Official moves can also update a previous assignment. Those writers
 	// still use allocation-wide locks, so keep their existing protection.
@@ -94,6 +95,7 @@ module.exports = function resources(tkey, before, changes, effects) {
 		additional_match_locks: [...locked_matches].filter(id => !direct.has(id)).length,
 		local_only_changes: metadata_only,
 		allocation_scope: ordering_only ? 'ordering_only' : ordering_plan ? 'ordering_with_allocation' : 'full',
+		ordering_unchanged_notifications: ordering.unchanged_notifications,
 		expansion_reasons: reasons,
 		dependency_matches: Object.fromEntries([...sources].map(([source, ids]) => [source, ids.size])),
 		players: players.size, courts: courts.size,

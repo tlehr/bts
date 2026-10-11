@@ -26,6 +26,7 @@ describe('processing traces and flow evidence', function() {
 			traces.phase('incremental_refresh', Date.now(), 12, { copied_records: 519,
 				refresh_operations: 520, refresh_groups: 24, refresh_queue_wait_ms: 3,
 				refresh_apply_ms: 8, refresh_max_group_ms: 2.3, refresh_foreground_wait_ms: 1,
+				allocation_scope: 'ordering_only', ordering_unchanged_notifications: 19,
 				documents: [{ private: 'secret' }] });
 		});
 		const span = completed().find(row => row.name === 'snapshot_refresh').spans[0];
@@ -33,6 +34,7 @@ describe('processing traces and flow evidence', function() {
 		assert.strictEqual(span.refresh_groups, 24); assert.strictEqual(span.refresh_queue_wait_ms, 3);
 		assert.strictEqual(span.refresh_apply_ms, 8); assert.strictEqual(span.refresh_max_group_ms, 2.3);
 		assert.strictEqual(span.refresh_foreground_wait_ms, 1);
+		assert.strictEqual(span.allocation_scope, 'ordering_only'); assert.strictEqual(span.ordering_unchanged_notifications, 19);
 		assert(!('documents' in span));
 	});
 	it('retains later locks and sync publication after hundreds of repetitive DB steps', async function() {
