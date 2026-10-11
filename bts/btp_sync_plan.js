@@ -39,8 +39,13 @@ function local_projection(match) {
 	return result;
 }
 
-function dependency_projection(match, locked_matches) {
+function dependency_projection(match, locked_matches, ignore_successor = false) {
 	if (locked_matches.has(match._id)) return match;
+	const setup = dependency_setup(match.setup);
+	if (ignore_successor) {
+		delete setup.needs_preparation_successor;
+		delete setup.needs_preparation_successor_ts;
+	}
 	return {
 		_id: match._id, btp_id: match.btp_id, btp_match_ids: match.btp_match_ids, btp_player_ids: match.btp_player_ids,
 		team1_won: match.team1_won, btp_winner: match.btp_winner,
@@ -48,7 +53,7 @@ function dependency_projection(match, locked_matches) {
 		match_order: match.match_order, forward_loser: match.forward_loser, no_match_losing_team: match.no_match_losing_team,
 		// Fewer locks must not hide a completed dependency change while planning
 		// or waiting. Ignore ordinary points/profiles, but retain all setup flags.
-		setup: dependency_setup(match.setup),
+		setup,
 	};
 }
 
@@ -114,14 +119,14 @@ function merge_point_rebases(plan, final_state, rebased) {
 		? changed.get(match._id) || rebased.get(match._id) : match);
 }
 
-async function unchanged(db, tkey, expected, locked_matches, skip = false, diagnostics, point_rebase) {
+async function unchanged(db, tkey, expected, locked_matches, skip = false, diagnostics, point_rebase, ignore_successor = false) {
 	const checked = await Promise.all(COLLECTIONS.map(async collection => {
 		const visited = new Set();
 		let mismatches = 0;
 		const samples = [];
 		const projection = doc => collection === 'matches'
 			? (skip ? local_projection(doc) : point_rebase?.matches.has(doc._id)
-				? point_projection(doc) : dependency_projection(doc, locked_matches)) : doc;
+				? point_projection(doc) : dependency_projection(doc, locked_matches, ignore_successor)) : doc;
 		// Most records still have the same immutable identity. Only replacements
 		// need a value comparison, with score traffic filtered as before.
 		const different = await db[collection].find_async({
@@ -408,6 +413,11 @@ async function run(app, tkey, response, options, integrate, cache) {
 		const input = validation_input(before);
 		const final_state = resulting_state(before, changes);
 		const point_matches = point_rebase_matches(before, changes, effects, scope.locked_matches);
+		// With automatic preparation disabled, point-derived successor markers on
+		// unlocked games affect neither pure ordering writes nor court selection.
+		// Preserve validation of every other field and all locked-game markers.
+		const ignore_successor = !before.tournaments.some(tournament => tournament.call_preparation_matches_automatically_enabled === true) &&
+			(options.worker_operation === 'auto_call' || scope.diagnostics.allocation_scope === 'ordering_only');
 		log_timing('incremental_diff', diff_start, { attempt, changes: changes.length });
 		const queued = Date.now();
 		log_timing('incremental_plan', started, { attempt, changes: changes.length, match_locks: scope.locked_matches.size, locks: scope.locks, lock_scope: scope.diagnostics });
@@ -422,7 +432,7 @@ async function run(app, tkey, response, options, integrate, cache) {
 			const validation_start = Date.now();
 			const mismatches = [];
 			const rebased = new Map();
-			const valid = await unchanged(app.db, tkey, input, scope.locked_matches, false, mismatches, { matches: point_matches, rebased });
+			const valid = await unchanged(app.db, tkey, input, scope.locked_matches, false, mismatches, { matches: point_matches, rebased }, ignore_successor);
 			log_timing('incremental_validate', validation_start, { attempt, valid, rebased_matches: rebased.size });
 			if (!valid) {
 				log_timing('incremental_replan', validation_start, { attempt, mismatches });

@@ -690,6 +690,46 @@ describe('incremental BTP sync plans', function() {
 		assert.strictEqual(plans, 1);
 	});
 
+	it('keeps pure ordering stable during unrelated point-derived successor changes', async function() {
+		const { app, tkey } = await fixture();
+		let plans = 0;
+		const result = await planner.sync(app, tkey, {}, { ...OPTIONS, skip_unchanged: false }, async staged => {
+			plans++;
+			await staged.db.matches.update_async({ _id: 'one' }, { $set: { 'setup.match_num': 17 } }, {});
+			// A fresh marker during every attempt previously exhausted all retries.
+			await app.db.matches.update_async({ _id: 'two' }, { $set: {
+				'setup.needs_preparation_successor': true, 'setup.needs_preparation_successor_ts': plans,
+				network_score: [[plans, 0]],
+			} }, {});
+			return true;
+		});
+		assert.strictEqual(result, true);
+		assert.strictEqual(plans, 1);
+		const current = await app.db.matches.findOne_async({ _id: 'two' });
+		assert.strictEqual(current.setup.needs_preparation_successor_ts, 1);
+		assert.deepStrictEqual(current.network_score, [[1, 0]]);
+	});
+
+	for (const scenario of ['preparation enabled', 'locked successor', 'unrelated finish']) {
+		it('still replans ordering for ' + scenario, async function() {
+			const { app, tkey } = await fixture();
+			if (scenario === 'preparation enabled') await app.db.tournaments.update_async({ key: tkey }, {
+				$set: { call_preparation_matches_automatically_enabled: true },
+			}, {});
+			let plans = 0;
+			await planner.sync(app, tkey, {}, { ...OPTIONS, skip_unchanged: false }, async staged => {
+				plans++;
+				await staged.db.matches.update_async({ _id: 'one' }, { $set: { 'setup.match_num': 17 } }, {});
+				if (plans === 1) await app.db.matches.update_async({ _id: scenario === 'locked successor' ? 'one' : 'two' }, {
+					$set: scenario === 'unrelated finish' ? { end_ts: 123, 'setup.state': 'finished', 'setup.now_on_court': false } :
+						{ 'setup.needs_preparation_successor': true, 'setup.needs_preparation_successor_ts': 123 },
+				}, {});
+				return true;
+			});
+			assert.strictEqual(plans, 2);
+		});
+	}
+
 	it('allows one additional hidden-bye delivery and repeats checks for pending local sync', async function() {
 		const { app, tkey } = await fixture();
 		let plans = 0;

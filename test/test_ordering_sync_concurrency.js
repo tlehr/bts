@@ -106,4 +106,34 @@ describe('ordering sync concurrency', function() {
 		assert.strictEqual((await f.app.db.courts.findOne_async({ _id: f.court._id })).match_id, f.changed._id);
 		assert.strictEqual((await f.app.db.matches.findOne_async({ _id: f.match._id })).setup.state, 'preparation');
 	});
+	it('commits real automatic calls despite successor updates on unrelated active games', async function() {
+		const f = await fixture();
+		await f.app.db.tournaments.update_async({ key: f.key }, { $set: {
+			call_next_possible_scheduled_match_in_preparation: true, call_on_court_only_preparation_enabled: false,
+			call_on_court_participant_readiness_mode: 'disabled',
+		} }, {});
+		const courts = await f.app.db.courts.find_async({ tournament_key: f.key });
+		const busy = courts.find(court => court._id !== f.court._id);
+		await f.app.db.matches.update_async({ _id: f.match._id }, { $set: { 'setup.state': 'scheduled' } }, {});
+		await f.app.db.matches.update_async({ _id: f.changed._id }, { $set: {
+			'setup.state': 'oncourt', 'setup.now_on_court': true, 'setup.court_id': busy._id,
+		} }, {});
+		await f.app.db.courts.update_async({ _id: busy._id }, { $set: { match_id: f.changed._id } }, {});
+		await f.app.db.courts.update_async({ _id: { $nin: [f.court._id, busy._id] } }, { $set: { is_active: false } }, { multi: true });
+		let plans = 0;
+		await require('../bts/btp_sync_plan').sync(f.app, f.key, {}, {
+			worker_operation: 'auto_call', planning_namespace: 'successor-test', skip_unchanged: false,
+		}, async staged => {
+			plans++;
+			await promisify(match_utils._plan_auto_call_once)(staged, f.key);
+			await f.app.db.matches.update_async({ _id: f.changed._id }, { $set: {
+				'setup.needs_preparation_successor': true, 'setup.needs_preparation_successor_ts': plans,
+			} }, {});
+			return true;
+		});
+		await drain(f.key);
+		assert.strictEqual(plans, 1);
+		assert.strictEqual((await f.app.db.courts.findOne_async({ _id: f.court._id })).match_id, f.match._id);
+		assert.strictEqual((await f.app.db.matches.findOne_async({ _id: f.changed._id })).setup.needs_preparation_successor_ts, 1);
+	});
 });

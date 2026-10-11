@@ -86,3 +86,12 @@ DB-Zustand und Feldreferenz müssen erhalten bleiben, und eine wartende
 automatische Auswahl muss geänderte Nummern vor der Vergabe berücksichtigen.
 `test_btp_sync_locks.js` prüft insbesondere konservative gemischte Pläne,
 Offizielle, Tabletbediener, unbekannte Felder und externe Freiloseffekte.
+
+Die Validierung ignoriert `needs_preparation_successor` und dessen Zeitstempel
+auf **ungesperrten** Spielen nur bei reinen Ordering-Plänen oder automatischer
+Feldzuweisung, wenn automatische Vorbereitung ausgeschaltet ist. Diese
+Punktmarkierungen beeinflussen dort weder die Nummernänderung noch die
+Feldkandidaten. Sie bleiben im Live-Objekt erhalten. Bei aktiver automatischer
+Vorbereitung, gesperrten Spielen und allen anderen Integrationen bleiben beide
+Felder Bestandteil der Validierung. Spielende, Check-in und Zuweisungen werden
+weiterhin geprüft und führen gegebenenfalls zu einer neuen Planung.
