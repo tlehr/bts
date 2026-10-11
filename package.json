@@ -16,7 +16,8 @@
 		"debug:isolated-admin": "node debug/isolated_admin_benchmark.js",
 		"debug:isolated-transport": "node debug/isolated_transport_benchmark.js",
 		"debug:reference": "node debug/reference_comparison.js",
-		"debug:queue-check": "node debug/queue_responsiveness_benchmark.js"
+		"debug:queue-check": "node debug/queue_responsiveness_benchmark.js",
+		"debug:mixed-queue": "node debug/mixed_queue_benchmark.js"
 	},
 	"dependencies": {
 		"argparse": "^1.0.10",

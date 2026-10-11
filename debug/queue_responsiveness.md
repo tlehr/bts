@@ -87,3 +87,69 @@ Der Runner archiviert seine eigene Messimplementierung, deren Hashes und den
 Hash des Dependency-Lockfiles zur Nachvollziehbarkeit. Die synthetischen
 Messberichte können ohne reale Spielernamen oder BTP-Zugangsdaten weitergegeben
 werden.
+
+## Fortlaufende Punkte, Nummernänderungen und Aufrufe
+
+Der zusätzliche Dauertest benutzt dieselbe isolierte, synthetische Turnierbasis
+und den Testmotor aus dem separaten `bts-testclient`-Repository. Er benötigt
+keinen laufenden Server. Standard: zwei Minuten; drei Minuten einschließlich
+echter Spielenden lassen sich so ausführen:
+
+```sh
+npm run debug:mixed-queue -- --duration-ms 180000
+```
+
+Es laufen 13 Felder mit Punkten alle 800–1600 ms, Admin-Übersichten und
+Diagnoseabfragen. Alle zwei Sekunden ändern sich die Nummern noch nicht
+begonnener Spiele; freie Durchsagen werden ebenso häufig angefordert. Ein
+unverändertes Spiel wird während der ersten Integration tatsächlich aufgerufen.
+Weitere Aufrufe entstehen automatisch aus den Spielenden. Die Gesamtzahl der
+Aufruf-Events enthält den ersten manuellen Aufruf; sie wird nicht vollständig
+als Anzahl automatischer Aufrufe ausgewiesen.
+
+Der periodische Sync verwendet den echten validierenden Integrationsplaner mit
+realen DB-Schreibvorgängen und Benachrichtigungen. Die Nummernänderung wird
+direkt im isolierten Planungsstand erzeugt. BTP-Transport und vollständiger
+Parser laufen nur beim Aufbau des Turniers. Eine wiederholte alte Komplettantwort
+würde laufende Punkte/Ergebnisse zurücksetzen und die Messung verfälschen.
+Tabletoperator- und Offiziellenzuweisung sind in dieser Testbasis ausgeschaltet.
+Die zunächst nicht eingeplanten BTP-Spiele werden vor Beginn in der isolierten
+DB als eingeplant markiert, damit sie nach einem Spielende aufgerufen werden
+können. Beobachtet der Lauf Spielenden ohne weitere Aufruf-Events, gilt diese
+Prüfung als fehlgeschlagen.
+
+`report.json` dokumentiert Server-/Client-Commit, Messquellen-Hashes,
+Empfangsstatistiken und drei Zeitabschnitte. Jeder Abschnitt zeigt wartende
+Scheduler- und DB-Aufgaben sowie Zahl/Alter unfertiger Syncs, einschließlich
+Serialisierung vor dem ersten Ressourcen-Lock. `sync_stage_start_ms` enthält
+diese Wartezeit und den Aufbau des Planungsstands bis zum Beginn der
+Integrationsfunktion; es ist keine reine Scheduler-Wartezeit. Die Rohdaten
+liegen unter `mixed/server-result.json`, `client-result.json` und
+`probe-result.json` im ausgegebenen Verzeichnis. Nach dem Ende der Simulation
+stoppt der Runner weitere Syncs und verlangt das vollständige Leeren der
+beobachteten Scheduler-/DB-Aufgaben. Fehlende Aufruf-/Durchsage-Events oder
+Antworten sowie fehlender TV-/Admin-Punktempfang lassen den Lauf fehlschlagen.
+Das gilt auch für Fehler in den abgeholten Verarbeitungs-Traces. Unvollständig
+zugeordnete Punkte werden mit Anzahl und Zustellquote ausgewiesen.
+
+Der Fortschritt erscheint alle zehn Sekunden. `Ctrl+C` beendet nur die eigenen
+Testprozesse. `--ref` wählt einen archivierten Commit des aktuellen Planers,
+`--sync-interval-ms` das Sync-Intervall (500–10000 ms), `--matches` 14–2000
+Spiele und `--duration-ms` 5 Sekunden bis 5 Minuten. Der historische FIFO-Stand
+hat diesen Planer nicht; dafür weiterhin den kontrollierten Paarvergleich oben
+verwenden. Kurze Spitzen und vollständig abgebaute Queues sind kein Beleg für
+Stabilität bei beliebig hoher Last oder für den akustischen Start im Browser.
+
+Mit `--point-min-ms` und `--point-max-ms` kann die Punktfrequenz erhöht werden.
+Der kürzere geprüfte Lauf mit automatischen Folgeaufrufen verwendet:
+
+```sh
+npm run debug:mixed-queue -- --duration-ms 90000 --point-min-ms 400 --point-max-ms 800
+```
+
+`--set-points 3` verkürzt ausschließlich die synthetischen Sätze für gezielte
+Fehlerreproduktionen; Standard bleibt 21. Solche Läufe sind kein gleichwertiger
+Vergleich zur normalen Spielsimulation. `mixed/replans.jsonl` sichert bis zu
+256 Gründe für Neuplanungen, einschließlich abweichender Felder, auch wenn
+der Test vorzeitig abbricht. Diese zusätzliche Diagnose schreibt nur im
+isolierten Testprozess; der normale Server bekommt dadurch keine neuen Logs.
