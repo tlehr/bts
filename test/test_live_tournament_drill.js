@@ -2,7 +2,6 @@
 
 const assert = require('assert');
 const fs = require('fs');
-const path = require('path');
 const vm = require('vm');
 const { createRequire } = require('module');
 const { EventEmitter } = require('events');
@@ -133,7 +132,7 @@ async function simulate_benchmark({ expected = 519, interrupt = false, change_pr
 		async connect() { displays++; }
 		close() {}
 	}
-	const filename = path.resolve(__dirname, '../debug/live_tournament_drill.js');
+	const filename = require('../debug/testclient_bridge').module_path('live_tournament_drill');
 	const module = { exports: {} };
 	const local_require = createRequire(filename);
 	vm.runInNewContext(fs.readFileSync(filename, 'utf8'), {

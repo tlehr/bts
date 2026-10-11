@@ -1,5 +1,17 @@
 # Wiederholbarer Live-Benchmark
 
+Der Live-Testclient und das Webdashboard liegen jetzt im eigenen Repository
+`bts-testclient` neben diesem BTS-Checkout. Dort `git submodule update --init
+--recursive` und `npm ci` ausfuehren; `npm start` oeffnet den lokalen Dashboard-
+Server. Die bisherigen `npm run debug:*`-Starter hier leiten an diesen Client
+weiter. Fuer andere Verzeichnisse `BTS_TESTCLIENT_DIR` setzen. Die Clientversion
+ist in `testclient.version.json` dokumentiert. Interne Serverbenchmarks und die
+unten archivierten Messungen bleiben in diesem Repository. Aktuelle Bedienung
+und alle Clientoptionen stehen in dessen README; Serververgleich zusaetzlich in
+`reference_comparison.md`. Das neue Standardprofil der Sequenz ist
+`combined-responsive-cached-admin`; alte Profile schalten den neuen Cache explizit
+aus, um dessen Wirkung getrennt vergleichen zu koennen.
+
 Für die Bedienung im Browser gibt es jetzt ein lokales Testdashboard. BTS wie
 gewohnt starten; anschließend im Repository:
 

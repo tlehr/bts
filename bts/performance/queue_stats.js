@@ -25,8 +25,8 @@ class QueueStats {
 	enqueue(task) {
 		const entry = { id: ++this.next_id, task, queued: performance.now() };
 		const traces = require('./traces'); entry.context = traces.capture();
-		entry.wait_span = traces.begin(this.prefix + task, this.kind + '_wait', { queue_id: this.prefix + entry.id,
-			blockers: this.kind === 'db' ? this.blockers() : [] });
+		if (entry.context?.record) entry.wait_span = traces.begin(this.prefix + task, this.kind + '_wait', traces.enabled() ? { queue_id: this.prefix + entry.id,
+			blockers: this.kind === 'db' ? this.blockers() : [] } : {});
 		this.pending.set(entry.id, entry);
 		this.high_watermark = Math.max(this.high_watermark, this.pending.size + this.active.size);
 		return entry;

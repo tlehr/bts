@@ -1,4 +1,9 @@
-2026-10-11: OFFEN - Testclient in ein separates Git-Repository ausgliedern.
+2026-10-11: ERLEDIGT - Testclient in ein separates Git-Repository ausgegliedert.
+Ergebnis: /home/tim/repos/bts-testclient, eigener Branch main, Commit 9ccade8;
+BUP-Regeln als festgeschriebenes Submodul, eigene npm-ci-Installation, 21
+unabhaengige Clienttests und Client-Lint gruen. BTS behaelt kompatible Starter
+und seine Integrationstests; 746 BTS-Tests und 22 Browserpruefungen gruen.
+Noch kein Remote eingerichtet oder Push ausgefuehrt.
 Ziel: eigenstaendig installierbarer Testclient mit eigener package.json,
 Dokumentation und Tests; Verbindung zu BTS ueber HTTP/WebSocket, ohne dass
 fuer Live-Tests ein lokaler BTS-Checkout erforderlich ist.
@@ -24,7 +29,7 @@ Serveradresse, Dashboard/CLI/Benchmark/Download funktionsgleich; Profilvergleich
 mit explizitem BTS-Checkout und Serverintegration weiterhin pruefbar.
 Repositoryname und Remote-Ziel bei der eigentlichen Ausgliederung festlegen.
 
-2026-10-11: OFFEN - Ausgangsstand vor den Optimierungen mit aktuellem Testclient
+2026-10-11: TESTBAR - Ausgangsstand vor den Optimierungen mit aktuellem Testclient
 testbar machen und als Performance-Referenz dokumentieren.
 - Baseline-Commit anhand der Historie verifizieren und mit vollem SHA festhalten.
   Aktueller HEAD 91f07b9 auf feat/bupws_v2 ist der Ausgangspunkt der derzeit
@@ -47,7 +52,10 @@ testbar machen und als Performance-Referenz dokumentieren.
 Abnahme: dokumentierter Startbefehl und reproduzierbarer Bericht fuer den
 verifizierten alten Stand, der mit dem optimierten Stand vergleichbar ist.
 
-2026-10-11: OFFEN - Bisherige Optimierungen auf eigenem Branch committen.
+2026-10-11: ERLEDIGT - Bisherige Optimierungen auf eigenem Branch committet.
+Branch perf/server-responsiveness; Sicherungscommit 647e479, danach getrennte
+Commits fuer Ausgangsvergleich (cc48198), Diagnose (e1fabfd) und Admin-Snapshots
+(c9df33b). Ausgliederung folgt als eigener Commit. Keine Remote-Aenderungen.
 - Eigenen Branch vom aktuellen feat/bupws_v2 anlegen (Vorschlag:
   perf/server-responsiveness); alle bestehenden Arbeitskopie-Aenderungen erhalten.
 - Gesamten Diff einschliesslich neuer/ungetrackter Dateien sichten; Optimierungen,
@@ -65,7 +73,15 @@ Abnahme: funktionsfaehiger dokumentierter Branch ohne unbeabsichtigt ausgelassen
 Quelldateien, klarer Commit als optimierter Vergleichsstand. Vor der eigentlichen
 Testclient-Ausgliederung diesen gemeinsamen Stand sichern.
 
-2026-10-11: OFFEN - Drei Folgepunkte aus dem letzten Performance-Lauf umsetzen.
+2026-10-11: ERLEDIGT - Drei Folgepunkte aus dem letzten Performance-Lauf umgesetzt.
+Kritische Schritte bleiben neben begrenzten DB-Zusammenfassungen erhalten;
+Statistikbudget je Vorgangstyp. DB-Wartezeiten mit beobachteten Vorgaengern,
+Persistenz-/Callback-Details auch fuer ungetracete Hintergrundarbeit.
+Admin-Snapshots verwenden unveraenderliche Revisionen und schwach gehaltene
+JSON-Caches; Originalantworten und Change-Reihenfolge bleiben erhalten.
+Zwoelf isolierte Paare: warmer Snapshot-Median 137,8 -> 64,1 ms, kalter
+132,4 -> 90,5 ms, gleiche Antwortinhalte. Messende ws.send, kein Beleg fuer
+gleich grosse Verbesserung bei TV-Empfang. Details bts/performance/README.md.
 Referenz: bts-test-1.json, Zwischenbericht ueber knapp zehn Minuten, 13 Felder,
 1.191 zugeordnete Score-Updates; kein anhaltender Rueckstau, aber kurze Spitzen.
 1. Ablaufdiagnose trotz Aufzeichnungsgrenzen aussagekraeftig erhalten.
@@ -97,7 +113,7 @@ Referenz: bts-test-1.json, Zwischenbericht ueber knapp zehn Minuten, 13 Felder,
    Abnahme: weniger Snapshot-Arbeit bei gleicher Server-Testlast, keine schlechtere
    Tablet->TV/Admin-Empfangslatenz oder Admin-Antwortzeit; gezielte Regressionen.
 Reihenfolge: erst Diagnose vervollstaendigen und DB-Ursachen zuordnen, dann
-Snapshot-Optimierung anhand der Messungen. Noch keine Umsetzung dieser Punkte.
+Snapshot-Optimierung anhand der Messungen. Umsetzung und Regressionen abgeschlossen.
 
 make bupdate in docker
 
