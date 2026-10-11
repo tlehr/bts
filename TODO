@@ -126,8 +126,21 @@ Naechste optionale Schritte nach diesen Arbeiten:
 - Remote-Ziel fuer bts-testclient festlegen; danach die beiden Repositorys
   in CI mit explizitem BTS_TESTCLIENT_DIR und festgeschriebenem Clientstand
   bereitstellen. Die alte Travis-Konfiguration ist weiterhin veraltet.
-- Reproduzierbaren BTP-Sync-Vergleich mit zugespielten externen Aenderungen
-  ergaenzen; die jetzige Baseline isoliert Punkte/Admin-Verkehr ohne BTP.
+- ERLEDIGT: Reproduzierbarer BTP-/Spielaufrufvergleich, npm run debug:queue-check.
+  24 isolierte Faelle mit 519 synthetischen Spielen, alter/current Server,
+  alle Events empfangen und alle Queues geleert. BTP-Warten: Aufruf-Median
+  2015 -> 16 ms; unveraenderter Sync: 305 -> 27 ms. Grosser Sync mit 518
+  Aenderungen blockiert weiter, Median 237 -> 276 ms. Ergebnisse:
+  debug/performance_queue_2026-10-11.md und .json.
+- OFFEN: Gemeinsame Zuweisungs-Locks bei reinen Match-Metadaten eingrenzen.
+  Ein Sync nur mit geaenderten Spielnummern haelt derzeit auto-call,
+  preparation, tabletoperators und umpires und blockiert damit selbst einen
+  Aufruf eines unveraenderten Spiels. Aenderungsklassen/Validierung pruefen,
+  notwendige Abhaengigkeiten, Offizielle, Check-in, Spielende und Freilos-
+  Weitergabe schuetzen; Regressionen und gezielten Aufrufvergleich verwenden.
+- OFFEN: Bei Bedarf dauerhafte gemischte Sync-/Punkt-/Aufruflast pruefen.
+  Die Einzelproben belegen das vollstaendige Leeren, nicht die Stabilitaet
+  bei kontinuierlicher hoeherer Last oder den akustischen Start am Client.
 - Bei Bedarf Langzeitlauf des juengsten Gesamtstands: Der zehnminuetige
   optimierte Vergleich verwendet den gesicherten Stand 647e479; juengste
   Diagnose-/Cache-Aenderungen sind durch Regressionen, kurze Empfangslaeufe

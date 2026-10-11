@@ -656,3 +656,18 @@ manuellen Handler, keine Feldvergabe. Keine Browser-Frame-/Audio-Messung.
 
 Ergebnisse, Quellen und Einschränkungen stehen in
 [performance_isolated_sync_2026-10-11.md](performance_isolated_sync_2026-10-11.md).
+
+## Alter und aktueller Server: Sync gegen echten Spielaufruf
+
+```sh
+npm run debug:queue-check
+```
+
+Vergleicht die alte globale Queue und den aktuellen Scheduler auf eigenen
+synthetischen Turnieren mit 519 Spielen. Vier Szenarien: kein Sync, verzögerte
+BTP-Antwort, 518 geänderte Spiele und unveränderte Daten. Echte Feldvergabe und
+freie Durchsage bis zum WebSocket-Empfang; Wartezeiten, konkrete Lock-Blocker,
+DB-Arbeit und vollständiges Leeren der Queues werden exportiert. Kein laufender
+Server erforderlich, keine Änderung am Live-Turnier. Details und Grenzen:
+[queue_responsiveness.md](queue_responsiveness.md); Messergebnisse:
+[performance_queue_2026-10-11.md](performance_queue_2026-10-11.md).

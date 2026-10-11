@@ -64,7 +64,10 @@ Client-ESLint und 22 Chromepruefungen des Dashboards bestanden. Zusaetzlich
 18 gezielte BTS-/Client-Integrationstests nach der IP-Korrektur bestanden.
 Die Originalberichte liegen weiterhin lokal unter `/tmp/bts-reference-*`.
 
-Ein reproduzierbarer Vergleich mit zugespielten externen BTP-Aenderungen und
-ein Langzeitlauf des letzten Stands bleiben sinnvolle separate Messungen.
-Historische Queue-Daten fehlen und werden nicht als Null-Wartezeit dargestellt.
+Der ergaenzende [BTP-/Aufrufvergleich](performance_queue_2026-10-11.md) belegt
+in isolierten alten und aktuellen Servern die beseitigte Blockierung beim
+BTP-Warten und bei unveraenderten Daten sowie verbleibende Zuweisungs-Locks
+bei grossen Aenderungen. Historische Queue-Daten des obigen Live-Laufs fehlen
+weiterhin und werden nicht als Null-Wartezeit dargestellt.
+Ein Langzeitlauf des letzten Stands bleibt eine sinnvolle separate Messung.
 Remote/Push ist bislang nicht eingerichtet bzw. ausgefuehrt.

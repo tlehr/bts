@@ -1,0 +1,1591 @@
+{
+  "scope": "controlled-btp-sync-and-actual-match-calling-event-reception",
+  "date": "2026-10-11",
+  "acceptance": {
+    "cases": 24,
+    "received_events": 48,
+    "all_expected_events_received": true,
+    "all_observed_tasks_finished": true,
+    "all_queues_drained": true,
+    "all_sync_probes_sent_and_enqueued_before_sync_end": true,
+    "all_bulk_syncs_changed_exactly_518_matches": true
+  },
+  "comparison": {
+    "status": "completed",
+    "started_at": "2026-10-11T19:33:55.678Z",
+    "finished_at": "2026-10-11T19:34:38.663Z",
+    "node_version": "v19.9.0",
+    "cpu": "Intel(R) Core(TM) i7-4770 CPU @ 3.40GHz",
+    "refs": [
+      {
+        "commit": "cf73f0a731dd26aac4fb360a71b5d2b165deef0f",
+        "ref": "cf73f0a731dd26aac4fb360a71b5d2b165deef0f"
+      },
+      {
+        "commit": "c41f71d8c4faf56987d2e0c09c1e93ba38a472ff",
+        "ref": "HEAD"
+      }
+    ],
+    "matches": 519,
+    "samples": 3,
+    "delay_ms": 2000,
+    "phases": [
+      "idle",
+      "slow-fetch",
+      "changed-sync",
+      "unchanged-sync"
+    ],
+    "fixture_sha256": "6424d0c85a6ff192fa9bb462acfdae8ba29a10ea918c0bb0bdc60a3823742397",
+    "artifact_directory": "/tmp/bts-queue-responsiveness-JrM38x",
+    "limitations": [
+      "Deterministic synthetic BTP tournament, no original tournament data. Durable NeDB files and unmodified archived server modules.",
+      "BTP send is replaced by a controlled response callback. Tests actual fetch scheduling and real BTP parsing/integration, not TCP or XML decoding.",
+      "Actual admin handlers, websocket serialization/outbox and reception in a separate process. No browser speech/rendering or audible-start measurement.",
+      "Changed sync modifies match numbers for every match except the probed match; real shared allocation/official resources may still conflict.",
+      "Observer wrappers measure scheduler admission/execution and database callbacks; they preserve datastore methods and batch-write certificates.",
+      "Integration probes are triggered at the first live match writer start; dispatch after integration completion is explicitly reported.",
+      "Queue samples every 20 ms can miss shorter peaks. Event-loop histogram measures scheduling delay, not exclusively CPU execution.",
+      "Bootstrap is unmeasured, and the normal server automation timers are not started; real post-fetch follow-up tasks are retained."
+    ],
+    "rows": [
+      {
+        "commit": "cf73f0a731dd26aac4fb360a71b5d2b165deef0f",
+        "phase": "idle",
+        "sample": 0,
+        "probe_reason": "idle_control",
+        "call_ms": 9.478228,
+        "free_ms": 3.980627,
+        "call_queue_wait_ms": 0.314335,
+        "call_dispatch_ms": 1.949692,
+        "call_queue_admission_ms": 2.140404,
+        "event_loop_max_ms": 60.129279,
+        "sync_ms": null,
+        "queue_high_watermark": 1,
+        "changed_matches": 0,
+        "drained": true,
+        "probe_sent_before_sync_end": false,
+        "call_enqueued_before_sync_end": false,
+        "diagnostics": "/tmp/bts-queue-responsiveness-JrM38x/cf73f0a-idle-0/server-result.json",
+        "events": [
+          "free",
+          "call"
+        ],
+        "event_timestamps": {
+          "free": {
+            "sent_ns": "434285315167476",
+            "received_ns": "434285319148103",
+            "latency_ms": 3.980627
+          },
+          "call": {
+            "sent_ns": "434285315167476",
+            "received_ns": "434285324645704",
+            "latency_ms": 9.478228
+          }
+        }
+      },
+      {
+        "commit": "c41f71d8c4faf56987d2e0c09c1e93ba38a472ff",
+        "phase": "idle",
+        "sample": 0,
+        "probe_reason": "idle_control",
+        "call_ms": 16.613211,
+        "free_ms": 4.396091,
+        "call_queue_wait_ms": 0.25815,
+        "call_dispatch_ms": 1.86991,
+        "call_queue_admission_ms": 2.911333,
+        "event_loop_max_ms": 66.617343,
+        "sync_ms": null,
+        "queue_high_watermark": 1,
+        "changed_matches": 0,
+        "drained": true,
+        "probe_sent_before_sync_end": false,
+        "call_enqueued_before_sync_end": false,
+        "diagnostics": "/tmp/bts-queue-responsiveness-JrM38x/c41f71d-idle-0/server-result.json",
+        "events": [
+          "free",
+          "call"
+        ],
+        "event_timestamps": {
+          "free": {
+            "sent_ns": "434286655365850",
+            "received_ns": "434286659761941",
+            "latency_ms": 4.396091
+          },
+          "call": {
+            "sent_ns": "434286655365850",
+            "received_ns": "434286671979061",
+            "latency_ms": 16.613211
+          }
+        }
+      },
+      {
+        "commit": "c41f71d8c4faf56987d2e0c09c1e93ba38a472ff",
+        "phase": "idle",
+        "sample": 1,
+        "probe_reason": "idle_control",
+        "call_ms": 19.263092,
+        "free_ms": 6.019588,
+        "call_queue_wait_ms": 0.333702,
+        "call_dispatch_ms": 2.496335,
+        "call_queue_admission_ms": 4.037729,
+        "event_loop_max_ms": 62.619647,
+        "sync_ms": null,
+        "queue_high_watermark": 1,
+        "changed_matches": 0,
+        "drained": true,
+        "probe_sent_before_sync_end": false,
+        "call_enqueued_before_sync_end": false,
+        "diagnostics": "/tmp/bts-queue-responsiveness-JrM38x/c41f71d-idle-1/server-result.json",
+        "events": [
+          "free",
+          "call"
+        ],
+        "event_timestamps": {
+          "free": {
+            "sent_ns": "434287943360494",
+            "received_ns": "434287949380082",
+            "latency_ms": 6.019588
+          },
+          "call": {
+            "sent_ns": "434287943360494",
+            "received_ns": "434287962623586",
+            "latency_ms": 19.263092
+          }
+        }
+      },
+      {
+        "commit": "cf73f0a731dd26aac4fb360a71b5d2b165deef0f",
+        "phase": "idle",
+        "sample": 1,
+        "probe_reason": "idle_control",
+        "call_ms": 13.650296,
+        "free_ms": 5.538144,
+        "call_queue_wait_ms": 0.568585,
+        "call_dispatch_ms": 2.390989,
+        "call_queue_admission_ms": 3.688845,
+        "event_loop_max_ms": 65.208319,
+        "sync_ms": null,
+        "queue_high_watermark": 1,
+        "changed_matches": 0,
+        "drained": true,
+        "probe_sent_before_sync_end": false,
+        "call_enqueued_before_sync_end": false,
+        "diagnostics": "/tmp/bts-queue-responsiveness-JrM38x/cf73f0a-idle-1/server-result.json",
+        "events": [
+          "free",
+          "call"
+        ],
+        "event_timestamps": {
+          "free": {
+            "sent_ns": "434288936218571",
+            "received_ns": "434288941756715",
+            "latency_ms": 5.538144
+          },
+          "call": {
+            "sent_ns": "434288936218571",
+            "received_ns": "434288949868867",
+            "latency_ms": 13.650296
+          }
+        }
+      },
+      {
+        "commit": "cf73f0a731dd26aac4fb360a71b5d2b165deef0f",
+        "phase": "idle",
+        "sample": 2,
+        "probe_reason": "idle_control",
+        "call_ms": 10.929837,
+        "free_ms": 4.175978,
+        "call_queue_wait_ms": 0.334571,
+        "call_dispatch_ms": 1.821067,
+        "call_queue_admission_ms": 2.494153,
+        "event_loop_max_ms": 60.588031,
+        "sync_ms": null,
+        "queue_high_watermark": 1,
+        "changed_matches": 0,
+        "drained": true,
+        "probe_sent_before_sync_end": false,
+        "call_enqueued_before_sync_end": false,
+        "diagnostics": "/tmp/bts-queue-responsiveness-JrM38x/cf73f0a-idle-2/server-result.json",
+        "events": [
+          "free",
+          "call"
+        ],
+        "event_timestamps": {
+          "free": {
+            "sent_ns": "434289772102484",
+            "received_ns": "434289776278462",
+            "latency_ms": 4.175978
+          },
+          "call": {
+            "sent_ns": "434289772102484",
+            "received_ns": "434289783032321",
+            "latency_ms": 10.929837
+          }
+        }
+      },
+      {
+        "commit": "c41f71d8c4faf56987d2e0c09c1e93ba38a472ff",
+        "phase": "idle",
+        "sample": 2,
+        "probe_reason": "idle_control",
+        "call_ms": 15.333157,
+        "free_ms": 4.018679,
+        "call_queue_wait_ms": 0.26534,
+        "call_dispatch_ms": 2.0548,
+        "call_queue_admission_ms": 2.473415,
+        "event_loop_max_ms": 69.074943,
+        "sync_ms": null,
+        "queue_high_watermark": 1,
+        "changed_matches": 0,
+        "drained": true,
+        "probe_sent_before_sync_end": false,
+        "call_enqueued_before_sync_end": false,
+        "diagnostics": "/tmp/bts-queue-responsiveness-JrM38x/c41f71d-idle-2/server-result.json",
+        "events": [
+          "free",
+          "call"
+        ],
+        "event_timestamps": {
+          "free": {
+            "sent_ns": "434291162731417",
+            "received_ns": "434291166750096",
+            "latency_ms": 4.018679
+          },
+          "call": {
+            "sent_ns": "434291162731417",
+            "received_ns": "434291178064574",
+            "latency_ms": 15.333157
+          }
+        }
+      },
+      {
+        "commit": "cf73f0a731dd26aac4fb360a71b5d2b165deef0f",
+        "phase": "slow-fetch",
+        "sample": 0,
+        "probe_reason": "btp_request_started",
+        "call_ms": 2014.680203,
+        "free_ms": 3.446871,
+        "call_queue_wait_ms": 1997.113437,
+        "call_dispatch_ms": 1.482854,
+        "call_queue_admission_ms": 1.786334,
+        "event_loop_max_ms": 110.886911,
+        "sync_ms": 2001.171643,
+        "queue_high_watermark": 2,
+        "changed_matches": 0,
+        "drained": true,
+        "probe_sent_before_sync_end": true,
+        "call_enqueued_before_sync_end": true,
+        "diagnostics": "/tmp/bts-queue-responsiveness-JrM38x/cf73f0a-slow-fetch-0/server-result.json",
+        "events": [
+          "free",
+          "call"
+        ],
+        "event_timestamps": {
+          "free": {
+            "sent_ns": "434292239126110",
+            "received_ns": "434292242572981",
+            "latency_ms": 3.446871
+          },
+          "call": {
+            "sent_ns": "434292239126110",
+            "received_ns": "434294253806313",
+            "latency_ms": 2014.680203
+          }
+        }
+      },
+      {
+        "commit": "c41f71d8c4faf56987d2e0c09c1e93ba38a472ff",
+        "phase": "slow-fetch",
+        "sample": 0,
+        "probe_reason": "btp_request_started",
+        "call_ms": 15.911379,
+        "free_ms": 3.395077,
+        "call_queue_wait_ms": 0.246588,
+        "call_dispatch_ms": 1.453953,
+        "call_queue_admission_ms": 2.013669,
+        "event_loop_max_ms": 79.560703,
+        "sync_ms": 2001.564617,
+        "queue_high_watermark": 1,
+        "changed_matches": 0,
+        "drained": true,
+        "probe_sent_before_sync_end": true,
+        "call_enqueued_before_sync_end": true,
+        "diagnostics": "/tmp/bts-queue-responsiveness-JrM38x/c41f71d-slow-fetch-0/server-result.json",
+        "events": [
+          "free",
+          "call"
+        ],
+        "event_timestamps": {
+          "free": {
+            "sent_ns": "434295603386103",
+            "received_ns": "434295606781180",
+            "latency_ms": 3.395077
+          },
+          "call": {
+            "sent_ns": "434295603386103",
+            "received_ns": "434295619297482",
+            "latency_ms": 15.911379
+          }
+        }
+      },
+      {
+        "commit": "c41f71d8c4faf56987d2e0c09c1e93ba38a472ff",
+        "phase": "slow-fetch",
+        "sample": 1,
+        "probe_reason": "btp_request_started",
+        "call_ms": 15.992774,
+        "free_ms": 3.468596,
+        "call_queue_wait_ms": 0.246056,
+        "call_dispatch_ms": 1.612258,
+        "call_queue_admission_ms": 1.933269,
+        "event_loop_max_ms": 58.228735,
+        "sync_ms": 2001.024524,
+        "queue_high_watermark": 1,
+        "changed_matches": 0,
+        "drained": true,
+        "probe_sent_before_sync_end": true,
+        "call_enqueued_before_sync_end": true,
+        "diagnostics": "/tmp/bts-queue-responsiveness-JrM38x/c41f71d-slow-fetch-1/server-result.json",
+        "events": [
+          "free",
+          "call"
+        ],
+        "event_timestamps": {
+          "free": {
+            "sent_ns": "434298831448479",
+            "received_ns": "434298834917075",
+            "latency_ms": 3.468596
+          },
+          "call": {
+            "sent_ns": "434298831448479",
+            "received_ns": "434298847441253",
+            "latency_ms": 15.992774
+          }
+        }
+      },
+      {
+        "commit": "cf73f0a731dd26aac4fb360a71b5d2b165deef0f",
+        "phase": "slow-fetch",
+        "sample": 1,
+        "probe_reason": "btp_request_started",
+        "call_ms": 2013.266966,
+        "free_ms": 4.199503,
+        "call_queue_wait_ms": 1996.902888,
+        "call_dispatch_ms": 1.637087,
+        "call_queue_admission_ms": 2.597943,
+        "event_loop_max_ms": 73.400319,
+        "sync_ms": 2002.255599,
+        "queue_high_watermark": 2,
+        "changed_matches": 0,
+        "drained": true,
+        "probe_sent_before_sync_end": true,
+        "call_enqueued_before_sync_end": true,
+        "diagnostics": "/tmp/bts-queue-responsiveness-JrM38x/cf73f0a-slow-fetch-1/server-result.json",
+        "events": [
+          "free",
+          "call"
+        ],
+        "event_timestamps": {
+          "free": {
+            "sent_ns": "434301542835675",
+            "received_ns": "434301547035178",
+            "latency_ms": 4.199503
+          },
+          "call": {
+            "sent_ns": "434301542835675",
+            "received_ns": "434303556102641",
+            "latency_ms": 2013.266966
+          }
+        }
+      },
+      {
+        "commit": "cf73f0a731dd26aac4fb360a71b5d2b165deef0f",
+        "phase": "slow-fetch",
+        "sample": 2,
+        "probe_reason": "btp_request_started",
+        "call_ms": 2015.85785,
+        "free_ms": 3.731125,
+        "call_queue_wait_ms": 1997.08603,
+        "call_dispatch_ms": 1.484383,
+        "call_queue_admission_ms": 2.147284,
+        "event_loop_max_ms": 104.660991,
+        "sync_ms": 2002.026807,
+        "queue_high_watermark": 2,
+        "changed_matches": 0,
+        "drained": true,
+        "probe_sent_before_sync_end": true,
+        "call_enqueued_before_sync_end": true,
+        "diagnostics": "/tmp/bts-queue-responsiveness-JrM38x/cf73f0a-slow-fetch-2/server-result.json",
+        "events": [
+          "free",
+          "call"
+        ],
+        "event_timestamps": {
+          "free": {
+            "sent_ns": "434304331453015",
+            "received_ns": "434304335184140",
+            "latency_ms": 3.731125
+          },
+          "call": {
+            "sent_ns": "434304331453015",
+            "received_ns": "434306347310865",
+            "latency_ms": 2015.85785
+          }
+        }
+      },
+      {
+        "commit": "c41f71d8c4faf56987d2e0c09c1e93ba38a472ff",
+        "phase": "slow-fetch",
+        "sample": 2,
+        "probe_reason": "btp_request_started",
+        "call_ms": 22.601415,
+        "free_ms": 4.213198,
+        "call_queue_wait_ms": 0.360099,
+        "call_dispatch_ms": 1.849341,
+        "call_queue_admission_ms": 2.222851,
+        "event_loop_max_ms": 63.340543,
+        "sync_ms": 2000.47346,
+        "queue_high_watermark": 1,
+        "changed_matches": 0,
+        "drained": true,
+        "probe_sent_before_sync_end": true,
+        "call_enqueued_before_sync_end": true,
+        "diagnostics": "/tmp/bts-queue-responsiveness-JrM38x/c41f71d-slow-fetch-2/server-result.json",
+        "events": [
+          "free",
+          "call"
+        ],
+        "event_timestamps": {
+          "free": {
+            "sent_ns": "434307638665533",
+            "received_ns": "434307642878731",
+            "latency_ms": 4.213198
+          },
+          "call": {
+            "sent_ns": "434307638665533",
+            "received_ns": "434307661266948",
+            "latency_ms": 22.601415
+          }
+        }
+      },
+      {
+        "commit": "cf73f0a731dd26aac4fb360a71b5d2b165deef0f",
+        "phase": "changed-sync",
+        "sample": 0,
+        "probe_reason": "first_live_match_write",
+        "call_ms": 236.654477,
+        "free_ms": 2.024987,
+        "call_queue_wait_ms": 224.560346,
+        "call_dispatch_ms": 1.613627,
+        "call_queue_admission_ms": 0.720911,
+        "event_loop_max_ms": 57.049087,
+        "sync_ms": 522.196734,
+        "queue_high_watermark": 3,
+        "changed_matches": 518,
+        "drained": true,
+        "probe_sent_before_sync_end": true,
+        "call_enqueued_before_sync_end": true,
+        "diagnostics": "/tmp/bts-queue-responsiveness-JrM38x/cf73f0a-changed-sync-0/server-result.json",
+        "events": [
+          "free",
+          "call"
+        ],
+        "event_timestamps": {
+          "free": {
+            "sent_ns": "434310598191068",
+            "received_ns": "434310600216055",
+            "latency_ms": 2.024987
+          },
+          "call": {
+            "sent_ns": "434310598191068",
+            "received_ns": "434310834845545",
+            "latency_ms": 236.654477
+          }
+        }
+      },
+      {
+        "commit": "c41f71d8c4faf56987d2e0c09c1e93ba38a472ff",
+        "phase": "changed-sync",
+        "sample": 0,
+        "probe_reason": "first_live_match_write",
+        "call_ms": 272.721698,
+        "free_ms": 3.662955,
+        "call_queue_wait_ms": 258.62424,
+        "call_dispatch_ms": 1.869609,
+        "call_queue_admission_ms": 1.785138,
+        "event_loop_max_ms": 55.181311,
+        "sync_ms": 835.885367,
+        "queue_high_watermark": 2,
+        "changed_matches": 518,
+        "drained": true,
+        "probe_sent_before_sync_end": true,
+        "call_enqueued_before_sync_end": true,
+        "diagnostics": "/tmp/bts-queue-responsiveness-JrM38x/c41f71d-changed-sync-0/server-result.json",
+        "events": [
+          "free",
+          "call"
+        ],
+        "event_timestamps": {
+          "free": {
+            "sent_ns": "434312696034055",
+            "received_ns": "434312699697010",
+            "latency_ms": 3.662955
+          },
+          "call": {
+            "sent_ns": "434312696034055",
+            "received_ns": "434312968755753",
+            "latency_ms": 272.721698
+          }
+        }
+      },
+      {
+        "commit": "c41f71d8c4faf56987d2e0c09c1e93ba38a472ff",
+        "phase": "changed-sync",
+        "sample": 1,
+        "probe_reason": "first_live_match_write",
+        "call_ms": 276.161556,
+        "free_ms": 3.44931,
+        "call_queue_wait_ms": 262.428499,
+        "call_dispatch_ms": 1.727776,
+        "call_queue_admission_ms": 1.727094,
+        "event_loop_max_ms": 56.655871,
+        "sync_ms": 850.882663,
+        "queue_high_watermark": 2,
+        "changed_matches": 518,
+        "drained": true,
+        "probe_sent_before_sync_end": true,
+        "call_enqueued_before_sync_end": true,
+        "diagnostics": "/tmp/bts-queue-responsiveness-JrM38x/c41f71d-changed-sync-1/server-result.json",
+        "events": [
+          "free",
+          "call"
+        ],
+        "event_timestamps": {
+          "free": {
+            "sent_ns": "434314806224740",
+            "received_ns": "434314809674050",
+            "latency_ms": 3.44931
+          },
+          "call": {
+            "sent_ns": "434314806224740",
+            "received_ns": "434315082386296",
+            "latency_ms": 276.161556
+          }
+        }
+      },
+      {
+        "commit": "cf73f0a731dd26aac4fb360a71b5d2b165deef0f",
+        "phase": "changed-sync",
+        "sample": 1,
+        "probe_reason": "first_live_match_write",
+        "call_ms": 221.650979,
+        "free_ms": 1.916195,
+        "call_queue_wait_ms": 210.665426,
+        "call_dispatch_ms": 1.537135,
+        "call_queue_admission_ms": 0.729284,
+        "event_loop_max_ms": 65.077247,
+        "sync_ms": 510.896321,
+        "queue_high_watermark": 3,
+        "changed_matches": 518,
+        "drained": true,
+        "probe_sent_before_sync_end": true,
+        "call_enqueued_before_sync_end": true,
+        "diagnostics": "/tmp/bts-queue-responsiveness-JrM38x/cf73f0a-changed-sync-1/server-result.json",
+        "events": [
+          "free",
+          "call"
+        ],
+        "event_timestamps": {
+          "free": {
+            "sent_ns": "434316118077852",
+            "received_ns": "434316119994047",
+            "latency_ms": 1.916195
+          },
+          "call": {
+            "sent_ns": "434316118077852",
+            "received_ns": "434316339728831",
+            "latency_ms": 221.650979
+          }
+        }
+      },
+      {
+        "commit": "cf73f0a731dd26aac4fb360a71b5d2b165deef0f",
+        "phase": "changed-sync",
+        "sample": 2,
+        "probe_reason": "first_live_match_write",
+        "call_ms": 248.80176,
+        "free_ms": 2.170355,
+        "call_queue_wait_ms": 237.072713,
+        "call_dispatch_ms": 1.560302,
+        "call_queue_admission_ms": 0.879064,
+        "event_loop_max_ms": 53.477375,
+        "sync_ms": 525.614617,
+        "queue_high_watermark": 3,
+        "changed_matches": 518,
+        "drained": true,
+        "probe_sent_before_sync_end": true,
+        "call_enqueued_before_sync_end": true,
+        "diagnostics": "/tmp/bts-queue-responsiveness-JrM38x/cf73f0a-changed-sync-2/server-result.json",
+        "events": [
+          "free",
+          "call"
+        ],
+        "event_timestamps": {
+          "free": {
+            "sent_ns": "434317448270912",
+            "received_ns": "434317450441267",
+            "latency_ms": 2.170355
+          },
+          "call": {
+            "sent_ns": "434317448270912",
+            "received_ns": "434317697072672",
+            "latency_ms": 248.80176
+          }
+        }
+      },
+      {
+        "commit": "c41f71d8c4faf56987d2e0c09c1e93ba38a472ff",
+        "phase": "changed-sync",
+        "sample": 2,
+        "probe_reason": "first_live_match_write",
+        "call_ms": 343.351317,
+        "free_ms": 4.30039,
+        "call_queue_wait_ms": 325.545729,
+        "call_dispatch_ms": 2.159386,
+        "call_queue_admission_ms": 2.250393,
+        "event_loop_max_ms": 110.821375,
+        "sync_ms": 928.16911,
+        "queue_high_watermark": 2,
+        "changed_matches": 518,
+        "drained": true,
+        "probe_sent_before_sync_end": true,
+        "call_enqueued_before_sync_end": true,
+        "diagnostics": "/tmp/bts-queue-responsiveness-JrM38x/c41f71d-changed-sync-2/server-result.json",
+        "events": [
+          "free",
+          "call"
+        ],
+        "event_timestamps": {
+          "free": {
+            "sent_ns": "434319561921243",
+            "received_ns": "434319566221633",
+            "latency_ms": 4.30039
+          },
+          "call": {
+            "sent_ns": "434319561921243",
+            "received_ns": "434319905272560",
+            "latency_ms": 343.351317
+          }
+        }
+      },
+      {
+        "commit": "cf73f0a731dd26aac4fb360a71b5d2b165deef0f",
+        "phase": "unchanged-sync",
+        "sample": 0,
+        "probe_reason": "unchanged_response_received",
+        "call_ms": 304.925475,
+        "free_ms": 6.071842,
+        "call_queue_wait_ms": 284.804477,
+        "call_dispatch_ms": 4.456791,
+        "call_queue_admission_ms": 4.064558,
+        "event_loop_max_ms": 60.030975,
+        "sync_ms": 295.75313,
+        "queue_high_watermark": 3,
+        "changed_matches": 0,
+        "drained": true,
+        "probe_sent_before_sync_end": true,
+        "call_enqueued_before_sync_end": true,
+        "diagnostics": "/tmp/bts-queue-responsiveness-JrM38x/cf73f0a-unchanged-sync-0/server-result.json",
+        "events": [
+          "free",
+          "call"
+        ],
+        "event_timestamps": {
+          "free": {
+            "sent_ns": "434320734521978",
+            "received_ns": "434320740593820",
+            "latency_ms": 6.071842
+          },
+          "call": {
+            "sent_ns": "434320734521978",
+            "received_ns": "434321039447453",
+            "latency_ms": 304.925475
+          }
+        }
+      },
+      {
+        "commit": "c41f71d8c4faf56987d2e0c09c1e93ba38a472ff",
+        "phase": "unchanged-sync",
+        "sample": 0,
+        "probe_reason": "unchanged_response_received",
+        "call_ms": 27.218445,
+        "free_ms": 3.623333,
+        "call_queue_wait_ms": 0.281161,
+        "call_dispatch_ms": 1.944336,
+        "call_queue_admission_ms": 5.330979,
+        "event_loop_max_ms": 53.608447,
+        "sync_ms": 17.692183,
+        "queue_high_watermark": 1,
+        "changed_matches": 0,
+        "drained": true,
+        "probe_sent_before_sync_end": true,
+        "call_enqueued_before_sync_end": true,
+        "diagnostics": "/tmp/bts-queue-responsiveness-JrM38x/c41f71d-unchanged-sync-0/server-result.json",
+        "events": [
+          "free",
+          "call"
+        ],
+        "event_timestamps": {
+          "free": {
+            "sent_ns": "434322335627333",
+            "received_ns": "434322339250666",
+            "latency_ms": 3.623333
+          },
+          "call": {
+            "sent_ns": "434322335627333",
+            "received_ns": "434322362845778",
+            "latency_ms": 27.218445
+          }
+        }
+      },
+      {
+        "commit": "c41f71d8c4faf56987d2e0c09c1e93ba38a472ff",
+        "phase": "unchanged-sync",
+        "sample": 1,
+        "probe_reason": "unchanged_response_received",
+        "call_ms": 28.105307,
+        "free_ms": 3.675846,
+        "call_queue_wait_ms": 0.252469,
+        "call_dispatch_ms": 1.898681,
+        "call_queue_admission_ms": 6.178227,
+        "event_loop_max_ms": 52.232191,
+        "sync_ms": 18.844732,
+        "queue_high_watermark": 1,
+        "changed_matches": 0,
+        "drained": true,
+        "probe_sent_before_sync_end": true,
+        "call_enqueued_before_sync_end": true,
+        "diagnostics": "/tmp/bts-queue-responsiveness-JrM38x/c41f71d-unchanged-sync-1/server-result.json",
+        "events": [
+          "free",
+          "call"
+        ],
+        "event_timestamps": {
+          "free": {
+            "sent_ns": "434323639368035",
+            "received_ns": "434323643043881",
+            "latency_ms": 3.675846
+          },
+          "call": {
+            "sent_ns": "434323639368035",
+            "received_ns": "434323667473342",
+            "latency_ms": 28.105307
+          }
+        }
+      },
+      {
+        "commit": "cf73f0a731dd26aac4fb360a71b5d2b165deef0f",
+        "phase": "unchanged-sync",
+        "sample": 1,
+        "probe_reason": "unchanged_response_received",
+        "call_ms": 321.84884,
+        "free_ms": 7.47009,
+        "call_queue_wait_ms": 300.272763,
+        "call_dispatch_ms": 5.583325,
+        "call_queue_admission_ms": 4.156261,
+        "event_loop_max_ms": 60.325887,
+        "sync_ms": 311.161057,
+        "queue_high_watermark": 3,
+        "changed_matches": 0,
+        "drained": true,
+        "probe_sent_before_sync_end": true,
+        "call_enqueued_before_sync_end": true,
+        "diagnostics": "/tmp/bts-queue-responsiveness-JrM38x/cf73f0a-unchanged-sync-1/server-result.json",
+        "events": [
+          "free",
+          "call"
+        ],
+        "event_timestamps": {
+          "free": {
+            "sent_ns": "434324406830788",
+            "received_ns": "434324414300878",
+            "latency_ms": 7.47009
+          },
+          "call": {
+            "sent_ns": "434324406830788",
+            "received_ns": "434324728679628",
+            "latency_ms": 321.84884
+          }
+        }
+      },
+      {
+        "commit": "cf73f0a731dd26aac4fb360a71b5d2b165deef0f",
+        "phase": "unchanged-sync",
+        "sample": 2,
+        "probe_reason": "unchanged_response_received",
+        "call_ms": 298.467968,
+        "free_ms": 6.744336,
+        "call_queue_wait_ms": 277.024972,
+        "call_dispatch_ms": 5.206785,
+        "call_queue_admission_ms": 3.941628,
+        "event_loop_max_ms": 61.276159,
+        "sync_ms": 287.53318,
+        "queue_high_watermark": 3,
+        "changed_matches": 0,
+        "drained": true,
+        "probe_sent_before_sync_end": true,
+        "call_enqueued_before_sync_end": true,
+        "diagnostics": "/tmp/bts-queue-responsiveness-JrM38x/cf73f0a-unchanged-sync-2/server-result.json",
+        "events": [
+          "free",
+          "call"
+        ],
+        "event_timestamps": {
+          "free": {
+            "sent_ns": "434325493073940",
+            "received_ns": "434325499818276",
+            "latency_ms": 6.744336
+          },
+          "call": {
+            "sent_ns": "434325493073940",
+            "received_ns": "434325791541908",
+            "latency_ms": 298.467968
+          }
+        }
+      },
+      {
+        "commit": "c41f71d8c4faf56987d2e0c09c1e93ba38a472ff",
+        "phase": "unchanged-sync",
+        "sample": 2,
+        "probe_reason": "unchanged_response_received",
+        "call_ms": 26.315112,
+        "free_ms": 3.851302,
+        "call_queue_wait_ms": 0.342798,
+        "call_dispatch_ms": 1.953173,
+        "call_queue_admission_ms": 6.121632,
+        "event_loop_max_ms": 66.453503,
+        "sync_ms": 17.475667,
+        "queue_high_watermark": 1,
+        "changed_matches": 0,
+        "drained": true,
+        "probe_sent_before_sync_end": true,
+        "call_enqueued_before_sync_end": true,
+        "diagnostics": "/tmp/bts-queue-responsiveness-JrM38x/c41f71d-unchanged-sync-2/server-result.json",
+        "events": [
+          "free",
+          "call"
+        ],
+        "event_timestamps": {
+          "free": {
+            "sent_ns": "434327325116777",
+            "received_ns": "434327328968079",
+            "latency_ms": 3.851302
+          },
+          "call": {
+            "sent_ns": "434327325116777",
+            "received_ns": "434327351431889",
+            "latency_ms": 26.315112
+          }
+        }
+      }
+    ],
+    "summary": {
+      "cf73f0a731dd26aac4fb360a71b5d2b165deef0f": {
+        "idle": {
+          "call_ms": {
+            "count": 3,
+            "median": 10.929837,
+            "p95": 13.650296,
+            "max": 13.650296
+          },
+          "free_ms": {
+            "count": 3,
+            "median": 4.175978,
+            "p95": 5.538144,
+            "max": 5.538144
+          },
+          "call_queue_wait_ms": {
+            "count": 3,
+            "median": 0.334571,
+            "p95": 0.568585,
+            "max": 0.568585
+          },
+          "call_dispatch_ms": {
+            "count": 3,
+            "median": 1.949692,
+            "p95": 2.390989,
+            "max": 2.390989
+          },
+          "call_queue_admission_ms": {
+            "count": 3,
+            "median": 2.494153,
+            "p95": 3.688845,
+            "max": 3.688845
+          },
+          "event_loop_max_ms": {
+            "count": 3,
+            "median": 60.588031,
+            "p95": 65.208319,
+            "max": 65.208319
+          },
+          "sync_ms": {
+            "count": 0,
+            "median": null,
+            "p95": null,
+            "max": null
+          },
+          "queue_high_watermark": {
+            "count": 3,
+            "median": 1,
+            "p95": 1,
+            "max": 1
+          }
+        },
+        "slow-fetch": {
+          "call_ms": {
+            "count": 3,
+            "median": 2014.680203,
+            "p95": 2015.85785,
+            "max": 2015.85785
+          },
+          "free_ms": {
+            "count": 3,
+            "median": 3.731125,
+            "p95": 4.199503,
+            "max": 4.199503
+          },
+          "call_queue_wait_ms": {
+            "count": 3,
+            "median": 1997.08603,
+            "p95": 1997.113437,
+            "max": 1997.113437
+          },
+          "call_dispatch_ms": {
+            "count": 3,
+            "median": 1.484383,
+            "p95": 1.637087,
+            "max": 1.637087
+          },
+          "call_queue_admission_ms": {
+            "count": 3,
+            "median": 2.147284,
+            "p95": 2.597943,
+            "max": 2.597943
+          },
+          "event_loop_max_ms": {
+            "count": 3,
+            "median": 104.660991,
+            "p95": 110.886911,
+            "max": 110.886911
+          },
+          "sync_ms": {
+            "count": 3,
+            "median": 2002.026807,
+            "p95": 2002.255599,
+            "max": 2002.255599
+          },
+          "queue_high_watermark": {
+            "count": 3,
+            "median": 2,
+            "p95": 2,
+            "max": 2
+          }
+        },
+        "changed-sync": {
+          "call_ms": {
+            "count": 3,
+            "median": 236.654477,
+            "p95": 248.80176,
+            "max": 248.80176
+          },
+          "free_ms": {
+            "count": 3,
+            "median": 2.024987,
+            "p95": 2.170355,
+            "max": 2.170355
+          },
+          "call_queue_wait_ms": {
+            "count": 3,
+            "median": 224.560346,
+            "p95": 237.072713,
+            "max": 237.072713
+          },
+          "call_dispatch_ms": {
+            "count": 3,
+            "median": 1.560302,
+            "p95": 1.613627,
+            "max": 1.613627
+          },
+          "call_queue_admission_ms": {
+            "count": 3,
+            "median": 0.729284,
+            "p95": 0.879064,
+            "max": 0.879064
+          },
+          "event_loop_max_ms": {
+            "count": 3,
+            "median": 57.049087,
+            "p95": 65.077247,
+            "max": 65.077247
+          },
+          "sync_ms": {
+            "count": 3,
+            "median": 522.196734,
+            "p95": 525.614617,
+            "max": 525.614617
+          },
+          "queue_high_watermark": {
+            "count": 3,
+            "median": 3,
+            "p95": 3,
+            "max": 3
+          }
+        },
+        "unchanged-sync": {
+          "call_ms": {
+            "count": 3,
+            "median": 304.925475,
+            "p95": 321.84884,
+            "max": 321.84884
+          },
+          "free_ms": {
+            "count": 3,
+            "median": 6.744336,
+            "p95": 7.47009,
+            "max": 7.47009
+          },
+          "call_queue_wait_ms": {
+            "count": 3,
+            "median": 284.804477,
+            "p95": 300.272763,
+            "max": 300.272763
+          },
+          "call_dispatch_ms": {
+            "count": 3,
+            "median": 5.206785,
+            "p95": 5.583325,
+            "max": 5.583325
+          },
+          "call_queue_admission_ms": {
+            "count": 3,
+            "median": 4.064558,
+            "p95": 4.156261,
+            "max": 4.156261
+          },
+          "event_loop_max_ms": {
+            "count": 3,
+            "median": 60.325887,
+            "p95": 61.276159,
+            "max": 61.276159
+          },
+          "sync_ms": {
+            "count": 3,
+            "median": 295.75313,
+            "p95": 311.161057,
+            "max": 311.161057
+          },
+          "queue_high_watermark": {
+            "count": 3,
+            "median": 3,
+            "p95": 3,
+            "max": 3
+          }
+        }
+      },
+      "c41f71d8c4faf56987d2e0c09c1e93ba38a472ff": {
+        "idle": {
+          "call_ms": {
+            "count": 3,
+            "median": 16.613211,
+            "p95": 19.263092,
+            "max": 19.263092
+          },
+          "free_ms": {
+            "count": 3,
+            "median": 4.396091,
+            "p95": 6.019588,
+            "max": 6.019588
+          },
+          "call_queue_wait_ms": {
+            "count": 3,
+            "median": 0.26534,
+            "p95": 0.333702,
+            "max": 0.333702
+          },
+          "call_dispatch_ms": {
+            "count": 3,
+            "median": 2.0548,
+            "p95": 2.496335,
+            "max": 2.496335
+          },
+          "call_queue_admission_ms": {
+            "count": 3,
+            "median": 2.911333,
+            "p95": 4.037729,
+            "max": 4.037729
+          },
+          "event_loop_max_ms": {
+            "count": 3,
+            "median": 66.617343,
+            "p95": 69.074943,
+            "max": 69.074943
+          },
+          "sync_ms": {
+            "count": 0,
+            "median": null,
+            "p95": null,
+            "max": null
+          },
+          "queue_high_watermark": {
+            "count": 3,
+            "median": 1,
+            "p95": 1,
+            "max": 1
+          }
+        },
+        "slow-fetch": {
+          "call_ms": {
+            "count": 3,
+            "median": 15.992774,
+            "p95": 22.601415,
+            "max": 22.601415
+          },
+          "free_ms": {
+            "count": 3,
+            "median": 3.468596,
+            "p95": 4.213198,
+            "max": 4.213198
+          },
+          "call_queue_wait_ms": {
+            "count": 3,
+            "median": 0.246588,
+            "p95": 0.360099,
+            "max": 0.360099
+          },
+          "call_dispatch_ms": {
+            "count": 3,
+            "median": 1.612258,
+            "p95": 1.849341,
+            "max": 1.849341
+          },
+          "call_queue_admission_ms": {
+            "count": 3,
+            "median": 2.013669,
+            "p95": 2.222851,
+            "max": 2.222851
+          },
+          "event_loop_max_ms": {
+            "count": 3,
+            "median": 63.340543,
+            "p95": 79.560703,
+            "max": 79.560703
+          },
+          "sync_ms": {
+            "count": 3,
+            "median": 2001.024524,
+            "p95": 2001.564617,
+            "max": 2001.564617
+          },
+          "queue_high_watermark": {
+            "count": 3,
+            "median": 1,
+            "p95": 1,
+            "max": 1
+          }
+        },
+        "changed-sync": {
+          "call_ms": {
+            "count": 3,
+            "median": 276.161556,
+            "p95": 343.351317,
+            "max": 343.351317
+          },
+          "free_ms": {
+            "count": 3,
+            "median": 3.662955,
+            "p95": 4.30039,
+            "max": 4.30039
+          },
+          "call_queue_wait_ms": {
+            "count": 3,
+            "median": 262.428499,
+            "p95": 325.545729,
+            "max": 325.545729
+          },
+          "call_dispatch_ms": {
+            "count": 3,
+            "median": 1.869609,
+            "p95": 2.159386,
+            "max": 2.159386
+          },
+          "call_queue_admission_ms": {
+            "count": 3,
+            "median": 1.785138,
+            "p95": 2.250393,
+            "max": 2.250393
+          },
+          "event_loop_max_ms": {
+            "count": 3,
+            "median": 56.655871,
+            "p95": 110.821375,
+            "max": 110.821375
+          },
+          "sync_ms": {
+            "count": 3,
+            "median": 850.882663,
+            "p95": 928.16911,
+            "max": 928.16911
+          },
+          "queue_high_watermark": {
+            "count": 3,
+            "median": 2,
+            "p95": 2,
+            "max": 2
+          }
+        },
+        "unchanged-sync": {
+          "call_ms": {
+            "count": 3,
+            "median": 27.218445,
+            "p95": 28.105307,
+            "max": 28.105307
+          },
+          "free_ms": {
+            "count": 3,
+            "median": 3.675846,
+            "p95": 3.851302,
+            "max": 3.851302
+          },
+          "call_queue_wait_ms": {
+            "count": 3,
+            "median": 0.281161,
+            "p95": 0.342798,
+            "max": 0.342798
+          },
+          "call_dispatch_ms": {
+            "count": 3,
+            "median": 1.944336,
+            "p95": 1.953173,
+            "max": 1.953173
+          },
+          "call_queue_admission_ms": {
+            "count": 3,
+            "median": 6.121632,
+            "p95": 6.178227,
+            "max": 6.178227
+          },
+          "event_loop_max_ms": {
+            "count": 3,
+            "median": 53.608447,
+            "p95": 66.453503,
+            "max": 66.453503
+          },
+          "sync_ms": {
+            "count": 3,
+            "median": 17.692183,
+            "p95": 18.844732,
+            "max": 18.844732
+          },
+          "queue_high_watermark": {
+            "count": 3,
+            "median": 1,
+            "p95": 1,
+            "max": 1
+          }
+        }
+      }
+    },
+    "harness_sha256": {
+      "debug/queue_responsiveness/process.js": "27ea106266d1da111b00df3c7687347fed7ef37543bf71f375b81f39c6d7f12c",
+      "debug/queue_responsiveness/receiver.js": "3aaa749abcd550047a7c6fee47bba50233ceff6fdc788f77394cb28f7c7734a1",
+      "debug/queue_responsiveness/fixture.js": "f4232c965dd89cce43c6db19adb75a8928952d0eae35db21f8b9e0854bada165",
+      "debug/queue_responsiveness/instrument.js": "4f70e1436e74752130df5b8de1c018636c5c4b681a4afb18076bb4536e128710",
+      "debug/queue_responsiveness/server.js": "54014ff5155fc5ab7357726f1e4289ad6d899380c760f0aa9db47a2c7761e270",
+      "debug/queue_responsiveness/run.js": "9ba2b17a51bd6fd7698ccecc2e14a2154907dd4ffede5c3bde148326acd4d001",
+      "debug/queue_responsiveness_benchmark.js": "f6460e6066400c65780d7e174af2a9d3754fee4b756e68766f0282a10de436cc"
+    },
+    "harness_source_directory": "/tmp/bts-queue-responsiveness-JrM38x/harness-source",
+    "metadata_notes": [
+      "First complete run preceded the observer-blocker and automatic source-export additions. Exact measured source was preserved before those changes.",
+      "Idle overlap flags in this original run are false; they are not sync overlap measurements. The final runner reports null for idle."
+    ]
+  },
+  "blocker_followup": {
+    "status": "completed",
+    "started_at": "2026-10-11T19:35:39.288Z",
+    "finished_at": "2026-10-11T19:35:43.685Z",
+    "node_version": "v19.9.0",
+    "cpu": "Intel(R) Core(TM) i7-4770 CPU @ 3.40GHz",
+    "refs": [
+      {
+        "commit": "c41f71d8c4faf56987d2e0c09c1e93ba38a472ff",
+        "ref": "HEAD"
+      }
+    ],
+    "matches": 519,
+    "samples": 2,
+    "delay_ms": 2000,
+    "phases": [
+      "changed-sync"
+    ],
+    "fixture_sha256": "6424d0c85a6ff192fa9bb462acfdae8ba29a10ea918c0bb0bdc60a3823742397",
+    "artifact_directory": "/tmp/bts-queue-responsiveness-zT1JvV",
+    "limitations": [
+      "Deterministic synthetic BTP tournament, no original tournament data. Durable NeDB files and unmodified archived server modules.",
+      "BTP send is replaced by a controlled response callback. Tests actual fetch scheduling and real BTP parsing/integration, not TCP or XML decoding.",
+      "Actual admin handlers, websocket serialization/outbox and reception in a separate process. No browser speech/rendering or audible-start measurement.",
+      "Changed sync modifies match numbers for every match except the probed match; real shared allocation/official resources may still conflict.",
+      "Observer wrappers measure scheduler admission/execution and database callbacks; they preserve datastore methods and batch-write certificates.",
+      "Integration probes are triggered at the first live match writer start; dispatch after integration completion is explicitly reported.",
+      "Queue samples every 20 ms can miss shorter peaks. Event-loop histogram measures scheduling delay, not exclusively CPU execution.",
+      "Bootstrap is unmeasured, and the normal server automation timers are not started; real post-fetch follow-up tasks are retained."
+    ],
+    "rows": [
+      {
+        "commit": "c41f71d8c4faf56987d2e0c09c1e93ba38a472ff",
+        "phase": "changed-sync",
+        "sample": 0,
+        "probe_reason": "first_live_match_write",
+        "call_ms": 290.448549,
+        "free_ms": 3.427449,
+        "call_queue_wait_ms": 260.957087,
+        "call_observed_blockers": [
+          {
+            "id": 2,
+            "task": "fetch_sync_apply",
+            "key": null,
+            "trace_id": null,
+            "operation_id": null,
+            "state": "active",
+            "enqueued_ts": 1791747341086,
+            "start_ts": 1791747341086,
+            "observed_ts": 1791747341093,
+            "conflicting_locks": [
+              "auto-call:default",
+              "preparation:default",
+              "tabletoperators:default",
+              "umpires:default"
+            ],
+            "held_lock_count": 523
+          }
+        ],
+        "call_dispatch_ms": 1.521218,
+        "call_queue_admission_ms": 1.845087,
+        "event_loop_max_ms": 63.897599,
+        "sync_ms": 836.854962,
+        "queue_high_watermark": 2,
+        "changed_matches": 518,
+        "drained": true,
+        "offload_features": {
+          "btp_decode": true,
+          "sync_plan": false,
+          "sync_plan_patch_return": false,
+          "device_info": false,
+          "xlsx_import": false,
+          "compaction": false,
+          "compaction_reads": false,
+          "preparation_reads": false,
+          "preparation_candidates": false,
+          "sync_batch_writes": false,
+          "sync_prepared_tournament": true,
+          "admin_response_background": true,
+          "admin_response_priority": true,
+          "admin_match_revision_cache": true,
+          "admin_response_worker": false,
+          "compaction_staged": false
+        },
+        "probe_sent_before_sync_end": true,
+        "call_enqueued_before_sync_end": true,
+        "diagnostics": "/tmp/bts-queue-responsiveness-zT1JvV/c41f71d-changed-sync-0/server-result.json",
+        "events": [
+          "free",
+          "call"
+        ],
+        "event_timestamps": {
+          "free": {
+            "sent_ns": "434389934727514",
+            "received_ns": "434389938154963",
+            "latency_ms": 3.427449
+          },
+          "call": {
+            "sent_ns": "434389934727514",
+            "received_ns": "434390225176063",
+            "latency_ms": 290.448549
+          }
+        }
+      },
+      {
+        "commit": "c41f71d8c4faf56987d2e0c09c1e93ba38a472ff",
+        "phase": "changed-sync",
+        "sample": 1,
+        "probe_reason": "first_live_match_write",
+        "call_ms": 304.864456,
+        "free_ms": 3.433747,
+        "call_queue_wait_ms": 274.029084,
+        "call_observed_blockers": [
+          {
+            "id": 2,
+            "task": "fetch_sync_apply",
+            "key": null,
+            "trace_id": null,
+            "operation_id": null,
+            "state": "active",
+            "enqueued_ts": 1791747343219,
+            "start_ts": 1791747343220,
+            "observed_ts": 1791747343227,
+            "conflicting_locks": [
+              "auto-call:default",
+              "preparation:default",
+              "tabletoperators:default",
+              "umpires:default"
+            ],
+            "held_lock_count": 523
+          }
+        ],
+        "call_dispatch_ms": 1.512028,
+        "call_queue_admission_ms": 1.893511,
+        "event_loop_max_ms": 76.480511,
+        "sync_ms": 879.182265,
+        "queue_high_watermark": 2,
+        "changed_matches": 518,
+        "drained": true,
+        "offload_features": {
+          "btp_decode": true,
+          "sync_plan": false,
+          "sync_plan_patch_return": false,
+          "device_info": false,
+          "xlsx_import": false,
+          "compaction": false,
+          "compaction_reads": false,
+          "preparation_reads": false,
+          "preparation_candidates": false,
+          "sync_batch_writes": false,
+          "sync_prepared_tournament": true,
+          "admin_response_background": true,
+          "admin_response_priority": true,
+          "admin_match_revision_cache": true,
+          "admin_response_worker": false,
+          "compaction_staged": false
+        },
+        "probe_sent_before_sync_end": true,
+        "call_enqueued_before_sync_end": true,
+        "diagnostics": "/tmp/bts-queue-responsiveness-zT1JvV/c41f71d-changed-sync-1/server-result.json",
+        "events": [
+          "free",
+          "call"
+        ],
+        "event_timestamps": {
+          "free": {
+            "sent_ns": "434392068673592",
+            "received_ns": "434392072107339",
+            "latency_ms": 3.433747
+          },
+          "call": {
+            "sent_ns": "434392068673592",
+            "received_ns": "434392373538048",
+            "latency_ms": 304.864456
+          }
+        }
+      }
+    ],
+    "summary": {
+      "c41f71d8c4faf56987d2e0c09c1e93ba38a472ff": {
+        "changed-sync": {
+          "call_ms": {
+            "count": 2,
+            "median": 290.448549,
+            "p95": 304.864456,
+            "max": 304.864456
+          },
+          "free_ms": {
+            "count": 2,
+            "median": 3.427449,
+            "p95": 3.433747,
+            "max": 3.433747
+          },
+          "call_queue_wait_ms": {
+            "count": 2,
+            "median": 260.957087,
+            "p95": 274.029084,
+            "max": 274.029084
+          },
+          "call_dispatch_ms": {
+            "count": 2,
+            "median": 1.512028,
+            "p95": 1.521218,
+            "max": 1.521218
+          },
+          "call_queue_admission_ms": {
+            "count": 2,
+            "median": 1.845087,
+            "p95": 1.893511,
+            "max": 1.893511
+          },
+          "event_loop_max_ms": {
+            "count": 2,
+            "median": 63.897599,
+            "p95": 76.480511,
+            "max": 76.480511
+          },
+          "sync_ms": {
+            "count": 2,
+            "median": 836.854962,
+            "p95": 879.182265,
+            "max": 879.182265
+          },
+          "queue_high_watermark": {
+            "count": 2,
+            "median": 2,
+            "p95": 2,
+            "max": 2
+          }
+        }
+      }
+    },
+    "harness_sha256": {
+      "fixture.js": "f4232c965dd89cce43c6db19adb75a8928952d0eae35db21f8b9e0854bada165",
+      "instrument.js": "21c9b053f1bcb0558ac9f4887bfad59407c42f369bc5388a898ba146c72671ab",
+      "process.js": "3f75b5ba1e79a86c268f5f1123b7238e032935999579efbc8b758ede2639e5cb",
+      "receiver.js": "49a085e33de39213f8326da6f08c584ec32c2fa3669b894dc63292bb054d1ee2",
+      "run.js": "82ab3d2145872c10508fd052b208f282e66cccc3bfa12f095753f1bcc3538594",
+      "server.js": "4675dbdf23b45e16c6b260691e63d7146402b844fbb5873ee96c5509ddc85f3c",
+      "../queue_responsiveness_benchmark.js": "e9439fd75f66fda48551f7e9c544c28397163e9ebadc0018a13a8abb5259f263"
+    },
+    "dependency_lock_sha256": "8b396138d41ac4594985e858d7376dc84a554cf789aedf7055a1be6017586a73"
+  },
+  "conclusion": {
+    "transport_wait_no_longer_blocks_match_call": true,
+    "unchanged_sync_no_longer_blocks_match_call": true,
+    "bulk_sync_still_blocks_unaffected_match_call": true,
+    "bulk_sync_blocking_resources": [
+      "auto-call:default",
+      "preparation:default",
+      "tabletoperators:default",
+      "umpires:default"
+    ],
+    "audible_start_measured": false,
+    "continuous_backlog_growth_tested": false
+  },
+  "verification": {
+    "targeted_tests_passed": 37,
+    "targeted_test_modules": [
+      "test/test_queue_responsiveness_benchmark.js",
+      "test/test_update_queue.js",
+      "test/test_btp_fetch_pipeline.js"
+    ],
+    "eslint_passed": true,
+    "final_smoke": {
+      "artifact_directory": "/tmp/bts-queue-responsiveness-XVopcY",
+      "cases": 8,
+      "matches": 12,
+      "delay_ms": 100,
+      "all_cases_complete_and_drained": true
+    },
+    "archive_guard_smoke": {
+      "artifact_directory": "/tmp/bts-queue-responsiveness-H364WT",
+      "cases": 1,
+      "matches": 12,
+      "all_cases_complete_and_drained": true
+    }
+  }
+}
