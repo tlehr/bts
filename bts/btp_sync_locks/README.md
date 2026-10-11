@@ -5,7 +5,8 @@
 only the changed match lock. Player identities, check-ins, pause/availability
 flags, court assignments, officials' identities/check-ins, scheduling, scoring,
 results, bye links and unknown setup fields retain conservative expansion through
-the captured player/court relation index. Insertions and deletions also expand.
+the captured player/court relation index, except for the strictly classified
+ordering-only case described below. Insertions and deletions also expand.
 Date values are compared by value. Explicit outgoing effect resources always
 take precedence over the metadata shortcut.
 
@@ -14,7 +15,7 @@ also retain expansion: they can affect tablet operator assignment after a game.
 
 `resources.js` collects direct writes, effects and dependent matches into a
 normalized lock list. Preparation, tablet operator, official and auto-call
-domain locks remain held for all match work: assignment, check-in and finish
+domain locks remain held for match work with allocation scope: assignment, check-in and finish
 writers must still wait. Ordinary points on games related only through metadata
 may proceed. Directly changed matches remain locked.
 
@@ -32,7 +33,8 @@ With `BTS_BTP_SYNC_TIMING=1`, `incremental_plan.lock_scope` reports:
 - `additional_match_locks`: distinct remaining match locks added by relations
   or effects. Together these two counts equal `match_locks`.
 - `local_only_changes`: match changes which need no relation expansion by
-  themselves, including metadata, signatures and point-only changes.
+  themselves, including metadata, signatures, point-only changes and eligible
+  ordering-only changes.
 - `expansion_reasons`: number of changed matches per dependency category.
   A match can have multiple reasons; these counts are not additive.
 - `dependency_matches`: distinct matches contributed by `player`, `court` or
@@ -76,8 +78,8 @@ verwendet weiterhin gezielte Teilnehmer-Patches. Benachrichtigungen beider
 Pfade enthalten das tatsächlich gespeicherte Setup.
 
 Ein reiner Ordering-Commit liest nach seinen Writes die aktuellen Match-
-Referenzen über den geordneten Modell-Snapshot. Seine Benachrichtigungen und
-sein Folge-Cache berücksichtigen damit auch einen inzwischen abgeschlossenen
+Referenzen über den geordneten Modell-Snapshot. Seine Benachrichtigungen
+berücksichtigen damit auch einen inzwischen abgeschlossenen
 Aufruf oder Spielerstatuswechsel. Scheitert ein späterer Write, nimmt der
 Rollback nur die vom Ordering-Plan geänderten Felder zurück. Andere Pläne
 behalten ihren bisherigen konservativen Rollback und Lock-Umfang.
