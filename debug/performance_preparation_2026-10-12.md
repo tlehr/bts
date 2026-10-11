@@ -421,3 +421,126 @@ Neuer Standardlauf: `/tmp/bts-queue-responsiveness-4szjcF`.
 Validierung: `/tmp/bts-display-reads-full-suite.log`.
 Der JSON-Bericht ergänzt `display_context_read_optimization` und erhält alle
 vorherigen Ergebnisse inklusive ungünstiger Werte und Diagnosegrenzen.
+
+## Schlanke automatische Vorbereitung als Standard
+
+Die verbliebenen Verzögerungen vor dem Score-Handler wurden mit einem
+CPU-Sampling-Profil im eigenen archivierten Testserver untersucht. Zwei
+langsame Punkte des Diagnoselaufs warten zwischen Client-Senden und Handler-
+Start 68 bzw. 66 ms. In diesen Fenstern entfallen ungefähr 52,7 bzw. 48,5 ms
+Sampling-Zeit auf `calculate_location_preparation_selection`. Ein großer
+Anteil liegt in der Schleife für vollständige Match-/UI-Diagnosen. Diese
+Berechnung läuft synchron auf dem Hauptthread, während der nächste
+WebSocket-Punkt verarbeitet werden müsste. Die Sampling-Fenster, Stack-
+Summen, monotone/Wandzeit-Zuordnung und Beobachterquelle sind im JSON
+archiviert. Inklusive Stack-Zeiten überlappen und werden nicht addiert.
+Der Profil-Lauf ist ein Ursachenbeleg, kein Performance-Vergleich.
+
+Die bereits vorhandene schlanke automatische Auswahl war bisher standardmäßig
+ausgeschaltet. Commit `ccbf6c2` aktiviert ausschließlich
+`preparation_candidates` als Standard. Damit nutzen auch `make dev` und
+`make run` ohne spezielle Performance-Umgebungsvariable diesen Pfad.
+`BTS_PREPARATION_CANDIDATES_LIGHT=0` erhält den alten Pfad für gezielte
+Vergleiche. Kein anderer Feature-Standard, keine Locks, Writer oder Threads
+werden geändert.
+
+Automatische Aufrufe benötigen die echten Kandidaten und Zulassungsregeln,
+aber keine vollständigen Diagnoseanzeigen für alle Spiele. Die schlanke
+Auswahl erhält diese Kandidaten und berechnet bei einer leeren Auswahl die
+für eine selbstblockierende wartende Tablet-Offiziellen-Zuweisung benötigte
+Frontier-Diagnose. Explizite Admin-Abfragen berechnen weiterhin alle
+Match-, Feld- und Aufrufdiagnosen. Die bestehende Freilosweitergabe bleibt
+unverändert.
+
+Eine neue Integration prüft beide Standardsituationen (Variable fehlt und
+expliziter alter Override) mit echten Vorbereitungsaufrufen und anschließender
+echter Admin-Abfrage. Beide wählen dasselbe Match und speichern denselben
+Aufrufzeitpunkt; die Admin-Antwort enthält weiterhin vollständige Diagnosen.
+93 gezielte bestehende Regressionen einschließlich Sync/Freilosweitergabe,
+sechs Tests inklusive dieser Integration und die vollständige Suite mit
+**810 Tests** bestehen. Die geänderte Profil-Datei und der Test sind
+ESLint-sauber, `git diff --check` ebenfalls.
+
+### Vergleich mit dem vorhandenen Standardlauf
+
+Ein neuer unveränderter 90-Sekunden-Runner verwendet `4szjcF` als Referenz.
+Alle sieben Herkunftsprüfungen bestehen: Parameter, acht Testwerkzeug-Hashes,
+Client-Commit/-Quelle, Dependency-Lock, Node und CPU sind identisch.
+Die tatsächlichen Server-Feature-Profile unterscheiden sich ausschließlich
+in `preparation_candidates: false → true`; innerhalb jedes Laufs bleibt das
+Profil stabil. Der CPU-Profiler ist beim Vergleich deaktiviert.
+
+| Messwert | Vollständige Vorbereitung | Schlanke automatische Auswahl |
+| --- | ---: | ---: |
+| Synchrone Vorbereitungsberechnung Median / p95 / Maximum | 30,1 / 45,2 / 70,2 ms | 5,5 / 10,7 / 13,9 ms |
+| Tablet → TV p95 / p99 / Maximum | 27 / 56 / 74 ms | 25 / 46 / 90 ms |
+| Tablet → Admin p95 / p99 / Maximum | 21 / 49 / 69 ms | 20 / 32 / 67 ms |
+| Senden bis Handler-Start p99 | 31 ms | 18 ms |
+| Kontextladen p99 / Maximum | 11,5 / 32,4 ms | 10,6 / 44,3 ms |
+| Primärer Score-Lock-Wait p99 / Maximum | 3,5 / 9,1 ms | 2,6 / 4,1 ms |
+| Manuelles Aufrufsignal | 13,9 ms | 14,6 ms |
+| Freie Durchsage p95 / Maximum | 4,1 / 5,4 ms | 13,1 / 76,8 ms |
+| Sync insgesamt p95 / Maximum | 634 / 1310 ms | 780 / 964 ms |
+| Event-Loop-Verzögerung Maximum | 96,7 ms | 70,2 ms |
+| Empfangene Meldungen TV und Admin | jeweils 957/957 | jeweils 965/965 |
+| Syncs / Spielenden / automatische Folgeaufrufe | 46 / 5 / 5 | 46 / 5 / 5 |
+
+Die Reduktion der konkreten Vorbereitungsberechnung und die kürzeren
+Empfangs-p99 sind sichtbar. Nicht jedes Maximum wird kleiner: TV-Maximum,
+Kontext-Maximum, Durchsagewerte und Sync-p95 sind höher und bleiben im
+Bericht erhalten. Es gibt keine aufgezeichneten Verarbeitungsfehler und
+keinen wachsenden oder bleibenden Rückstau. Je Drittel bleibt höchstens ein
+Sync offen; alle Queues werden geleert. Alle 52 aufgezeichneten
+Umnummerierungs-Klassifizierungen bleiben `ordering_only`. Die finale
+Fixture enthält unverändert 519 Spiele, 52 verschiedene Teilnehmer und
+13 aktive Felder mit 26 verschiedenen Spielern. Das Serverlog bleibt leer.
+
+### Durchsage-Spitzen: Server-Übergabe und Simulator trennen
+
+Die 76,8-ms-Durchsage im Standardlauf durchläuft laut Handler keine
+Ressourcen-Queue. Ihr Zeitfenster enthält regelmäßige Server-Abtastungen im
+20-ms-Abstand; daraus ergibt sich kein Beleg für eine entsprechend lange
+Server-Blockade. Der normale Runner erfasst jedoch keine getrennten
+Server-Empfangs-/Handoff-Zeitstempel. Ihre exakte Ursache kann deshalb nicht
+rückwirkend behauptet werden.
+
+Ein zusätzlicher Diagnoselauf beobachtet diese Grenzen im eigenen Testserver
+und profiliert den separaten Simulatorprozess. Bei seiner langsamsten
+Durchsage liegen 8,87 ms zwischen Senden und Server-Handler. Der Server
+übergibt das Signal nach weiteren **0,098 ms** an `ws.send`; der komplette
+Handler dauert 0,330 ms. Anschließend liegen **76,92 ms** bis zum Empfangs-
+Callback. In diesem Fenster zeigen die CPU-Samples ungefähr 51,2 ms in
+`bts-testclient/vendor/bup/js/utils.js:deep_copy` und 16,4 ms im Nachrichten-
+Handler des Simulators. Eine zweite langsame Durchsage zeigt denselben
+Befund: Handler-Start bis Handoff 0,081 ms, danach 64,47 ms bis Empfang,
+mit ungefähr 45,8 ms in `deep_copy`.
+
+Über alle 46 diagnostischen Durchsagen liegt die Server-Handoff-Phase im
+Median bei 0,089 ms, maximal bei 0,266 ms; der komplette Handler dauert
+höchstens 1,25 ms. Die beobachtete Outbox hat danach weder wartende noch
+aktive Encoder, der gemeldete Transportpuffer liegt bei null. Handoff
+bedeutet Übergabe an WebSocket, nicht garantiertes Schreiben auf die Leitung.
+Die langen Diagnosefälle belegen vor allem Arbeit im Simulator nach diesem
+Handoff. Dessen Probe-Verbindung und sämtliche simulierten Geräte teilen
+derzeit einen Node-Hauptthread. Die gemessene Empfangslatenz enthält somit
+auch dessen Kopier-/Nachrichtenarbeit.
+
+Dieser zweite Diagnoselauf hat eigene Profiler-/Beobachterkosten und ist
+ebenfalls kein weiterer Performance-Vergleich. Er identifiziert die neu
+beobachteten Fälle, nicht exakt die frühere 76,8-ms-Meldung. Der Client wird
+in diesem Schritt nicht optimiert. Für zuverlässige weitere Server-Prüfungen
+sollte eine unabhängige Signal-Empfangsprobe beziehungsweise dauerhaft
+getrennte Server-Handoff-/Empfangszeiten folgen. Verbliebene breite
+Hintergrund-Match-Reads und die vollständige Admin-Diagnoseberechnung sind
+weitere konkrete Prüfstellen. Dauerlast, echter periodischer BTP-Abruf,
+aktive Offiziellenvergabe, Browser-Rendering und hörbarer Audiostart bleiben
+außerhalb dieser Abnahme.
+
+Standardlauf: `/tmp/bts-queue-responsiveness-IlUBgP`.
+Server-CPU-Diagnose: `/tmp/bts-queue-responsiveness-5x9NmG`.
+Signal-/Simulator-Diagnose: `/tmp/bts-queue-responsiveness-40KDHB`.
+Vollsuite: `/tmp/bts-light-preparation-full-suite.log`.
+Der JSON-Bericht ergänzt `lean_automatic_preparation_default` und erhält
+die vollständige bisherige Historie. Die Diagnosequellen, Profil-Hashes,
+Zeitgrenzen und ausgewählten CPU-Fenster sind darin enthalten; die rohen
+CPU-Profile liegen in den genannten temporären Laufverzeichnissen.

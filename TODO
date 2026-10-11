@@ -248,17 +248,43 @@ Naechste optionale Schritte nach diesen Arbeiten:
   Bericht: debug/performance_preparation_2026-10-12.md und .json,
   display_context_read_optimization. Lauf /tmp/bts-queue-responsiveness-4szjcF.
 - OFFEN: Weiteren Bedarf anhand konkreter UX-Spitzen beurteilen.
-  Neu langsamste TV-Meldung 74ms/Admin 69ms: 44ms zwischen Senden/Handler,
-  Kontextladen 19.5ms; TV-Fanout danach 3.6ms. Groesste Court-Fanout-Phase
-  41.3ms enthaelt 35.4ms Executor-Warten ohne erfassten Enqueue-Blocker bei
-  0.2ms eigentlichem Objekt-Read. Keine genaue CPU-/Dispatch-Ursache belegt.
-  Loop-Maximum 97ms, Sync-Maximum 1310ms; keine gleichmaessige Verbesserung
-  jeder Punktlatenz. Erst konkrete Vorgaenge zuordnen, bevor weitere
-  Auslagerungen, Lock-Verkleinerungen oder Schreibpfade folgen.
+  Schlanke automatische Auswahl jetzt Standard (ccbf6c2, Details unten).
+  TV-p99 56->46ms, Admin-p99 49->32ms, Loop-Maximum 97->70ms; aber TV-
+  Maximum 74->90ms, Kontext-Maximum 32.4->44.3ms und Durchsage-Maximum
+  5.4->76.8ms. Nicht alle Spitzen kleiner; keine pauschale Kausalaussage.
+  Breite Match-Reads der Hintergrundvorbereitung bleiben, ebenso die
+  volle Diagnoseberechnung bei expliziten Admin-Abfragen. Erst konkrete
+  Vorgaenge zuordnen, bevor weitere Auslagerungen/Locks/Writer folgen.
   Aktive Vorbereitung und gemeinsame Teilnehmer nun separat gemessen (oben).
   Aktive Offiziellen-/Tabletoperator-Zuweisung, akustischer Start und beliebige
   Dauerlast sind durch diese Lasttests nicht abgedeckt; Regeln/Freilose bleiben
   durch Regressionen geprueft.
+- ERLEDIGT: CPU-Ursache fuer Verzoegerungen vor Score-Handler nachgewiesen:
+  in zwei Sampling-Fenstern 52.7/48.5ms vollstaendige Vorbereitungs-/UI-
+  Diagnoseberechnung, waehrend Punkte auf Verarbeitung warten. Bestehenden
+  preparation_candidates-Pfad als Standard aktiviert (ccbf6c2), alten
+  Override BTS_PREPARATION_CANDIDATES_LIGHT=0 erhalten. Echte Kandidaten,
+  Tablet-Offiziellen-Selbstblock-Reparatur, Admin-Diagnosen und Freilosregeln
+  bleiben geprueft. Neue echte Aufruf-/Admin-Integration fuer beide Pfade;
+  Vollsuite 810, gezielte Regressionen 93, Integration inkl. Vergleich 6.
+  Neuer normaler 90s-Lauf mit vorhandener Referenz, tatsaechlich nur ein
+  Feature anders: Berechnung Median 30.1->5.5ms, p95 45.2->10.7ms,
+  TV-p99 56->46ms, Admin-p99 49->32ms; 965/965 Updates je Ziel, 46/46 Syncs,
+  fuenf Spielenden/Folgeaufrufe, kein Rueckstau und leeres Serverlog.
+  Unguenstige Maxima/Sync-p95 ebenfalls archiviert. CPU-Diagnose nicht
+  als Performance-Vergleich verwendet. Keine neuen Threads oder Locks.
+  Bericht: debug/performance_preparation_2026-10-12.md und .json,
+  lean_automatic_preparation_default. Lauf /tmp/bts-queue-responsiveness-IlUBgP.
+- OFFEN: Empfangsproben vom Simulator-Hauptthread trennen bzw. Server-
+  Eingang/Handoff und Client-Empfang dauerhaft getrennt messen. Neues
+  Diagnosebeispiel: Durchsage 85.9ms insgesamt; Server-Handoff 0.098ms nach
+  Handler-Start, danach 76.9ms bis Client-Callback mit 51.2ms deep_copy im
+  Simulator. Zweiter Fall gleichartig (Handoff 0.081ms, danach 64.5ms).
+  Alle 46 Server-Handoff-Phasen <=0.266ms, kein Outbox-/Transport-Rueckstau.
+  Belegt Simulator-Arbeit fuer diese Faelle; fruehere 76.8ms-Probe nicht
+  rueckwirkend exakt zugeordnet. Diagnosekosten schliessen Latenzvergleich
+  aus; kein echter Browserclient optimiert. Unabhaengige Empfangsprobe
+  erhoeht Aussagekraft weiterer Server-Optimierungen.
 - Bei Bedarf Langzeitlauf des juengsten Gesamtstands: Der zehnminuetige
   optimierte Vergleich verwendet den gesicherten Stand 647e479; juengste
   Diagnose-/Cache-Aenderungen sind durch Regressionen, kurze Empfangslaeufe
