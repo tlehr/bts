@@ -43,13 +43,13 @@ async function plan_work(payload) {
 		if (payload.operation === 'btp') {
 			result = await require('../btp_sync')._integrate_snapshot(app, payload.tkey, JSON.parse(payload.response_json), payload.options);
 		} else if (payload.operation === 'auto_call') {
-			const rules = require('../match_automation'), select = rules.find_field_independent_call_on_court_candidates;
+			const rules = require('../match_automation'), select = rules.calculate_call_on_court_selection;
 			session.selection_calls = 0;
-			rules.find_field_independent_call_on_court_candidates = (...args) => { session.selection_calls++; return select(...args); };
+			rules.calculate_call_on_court_selection = (...args) => { session.selection_calls++; return select(...args); };
 			try {
 				result = await new Promise((resolve, reject) => require('../match_utils')._plan_auto_call_once(app, payload.tkey,
 					error => error ? reject(error) : resolve(true)));
-			} finally { rules.find_field_independent_call_on_court_candidates = select; }
+			} finally { rules.calculate_call_on_court_selection = select; }
 		} else throw new Error('Unknown planner operation');
 		await session.db.wait_for_writes();
 		session.stage_state = staging.planning_snapshot(session.db);

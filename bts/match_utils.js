@@ -3167,9 +3167,10 @@ function _auto_call_matches_on_free_courts_once(app, tournament_key, callback) {
 						umpires: umpires || [],
 					};
 					const trace_enabled = debug_flags.auto_call_trace_enabled(app, tournament_key);
-					const potential_call_matches = match_automation.find_field_independent_call_on_court_candidates(current_tournament, {
+					const call_selection = match_automation.calculate_call_on_court_selection(current_tournament, free_active_courts, {
 						now_ts: selection_ts,
 					});
+					const potential_call_matches = call_selection.potential_matches;
 					if (potential_call_matches.length === 0) {
 						debug_flags.log(app, tournament_key, '[bts] auto_call_trace:auto_call_matches_on_free_courts_no_global_candidates', {
 							ts: now_ms(app),
@@ -3182,10 +3183,7 @@ function _auto_call_matches_on_free_courts_once(app, tournament_key, callback) {
 						return callback ? callback(null) : null;
 					}
 					const court_candidate_entries = free_active_courts.map((court) => {
-						const candidate_matches = match_automation.find_call_on_court_candidates(current_tournament, court._id, {
-							now_ts: selection_ts,
-							candidate_matches: potential_call_matches,
-						});
+						const candidate_matches = call_selection.by_court.get(court._id);
 						const rejection_diagnostics = trace_enabled
 							? summarize_call_on_court_rejections(
 								match_automation,

@@ -3,6 +3,8 @@
 const match_scoring = require('../static/js/match_scoring');
 const FrontierPositions = require('./match_automation/frontier_positions');
 const FRONTIER_POSITIONS = Symbol('frontier_positions');
+const ParticipantLookup = require('./match_automation/participant_lookup');
+const PARTICIPANT_LOOKUP = Symbol('participant_lookup');
 const DEFAULT_PREPARATION_SUCCESSOR_RALLY_COUNT = 11;
 const DEFAULT_FRONTIER_BLOCK_LIMIT = 1;
 const DEFAULT_FRONTIER_MATCH_LIMIT = 1;
@@ -567,7 +569,8 @@ function get_inactive_player_btp_ids_from_special_results(tournament, reference_
 	return result;
 }
 
-function passes_no_inactive_special_result_player_rule(match, tournament) {
+function passes_no_inactive_special_result_player_rule(match, tournament, options = {}) {
+	if (options[PARTICIPANT_LOOKUP]) return options[PARTICIPANT_LOOKUP].passes_special_result_rule(match);
 	const inactive_player_ids = get_inactive_player_btp_ids_from_special_results(tournament, match);
 	if (inactive_player_ids.size === 0) {
 		return true;
@@ -707,6 +710,7 @@ function has_open_participant_dependency(match, tournament, options = {}) {
 		}
 	}
 
+	if (options[PARTICIPANT_LOOKUP]) return options[PARTICIPANT_LOOKUP].has_earlier_open_match(match);
 	const current_player_ids = new Set(get_match_player_btp_ids(match));
 	if (current_player_ids.size === 0) {
 		return false;
@@ -1407,6 +1411,37 @@ function passes_call_on_court_assigned_official_space_rule(match, court, tournam
 	return true;
 }
 
+function with_participant_lookup(tournament, options) {
+	if (options[PARTICIPANT_LOOKUP]) return options;
+	const matches = Array.isArray(tournament?.matches) ? tournament.matches : [];
+	return { ...options, [PARTICIPANT_LOOKUP]: new ParticipantLookup(matches, {
+		player_ids: get_match_player_btp_ids,
+		is_finished: is_finished_match,
+		compare: cmp_scheduled_match_order,
+		discipline: normalize_match_discipline_name,
+		inactive_ids: match => get_inactive_player_btp_ids_from_special_results({ matches: [match] }),
+	}) };
+}
+
+// All fields share the same snapshot and references. No context escapes this
+// calculation, so a later call sees changed results, participants and ordering.
+function calculate_call_on_court_selection(tournament, courts, options = {}) {
+	const context = with_participant_lookup(tournament, with_frontier_positions({
+		...options,
+		courts_by_id: options.courts_by_id || get_courts_by_id(tournament),
+		matches_by_planning_id: options.matches_by_planning_id || build_matches_by_planning_id(tournament),
+		now_ts: resolve_now_ts(options),
+	}));
+	const potential_matches = find_field_independent_call_on_court_candidates(tournament, context);
+	const by_court = new Map();
+	if (potential_matches.length) {
+		for (const court of courts) by_court.set(court._id, find_call_on_court_candidates(tournament, court._id, {
+			...context, candidate_matches: potential_matches,
+		}));
+	}
+	return { potential_matches, by_court };
+}
+
 function passes_base_call_on_court_rules(match, court_id, tournament, options = {}) {
 	const setup = match?.setup || {};
 	const courts_by_id = options.courts_by_id || get_courts_by_id(tournament);
@@ -1425,11 +1460,11 @@ function passes_base_call_on_court_rules(match, court_id, tournament, options = 
 	if (setup.now_on_court === true) return false;
 	if (match?.team1_won !== undefined && match?.team1_won !== null) return false;
 	if (!match_matches_location(match, location_id, courts_by_id)) return false;
-	if (has_open_participant_dependency(match, tournament, { matches_by_planning_id })) return false;
+	if (has_open_participant_dependency(match, tournament, { ...options, matches_by_planning_id })) return false;
 	if (!passes_call_on_court_preparation_rule(match, tournament, now_ts)) return false;
 	if (!passes_time_limit_before_scheduled_for_prefix(match, tournament, 'call_on_court', now_ts)) return false;
 	if (!passes_players_checked_in_rule_for_prefix(match, tournament, 'call_on_court')) return false;
-	if (!passes_no_inactive_special_result_player_rule(match, tournament)) return false;
+	if (!passes_no_inactive_special_result_player_rule(match, tournament, options)) return false;
 	if (!passes_player_pause_expired_rule_for_prefix(match, tournament, 'call_on_court', now_ts)) return false;
 	if (!passes_call_on_court_technical_officials_checked_in_rule(match, court, tournament)) return false;
 	if (!passes_call_on_court_technical_officials_available_rule(match, court, tournament)) return false;
@@ -1448,6 +1483,7 @@ function find_call_on_court_frontier_match(tournament, court_id, options = {}) {
 	const relevant_matches = options.relevant_matches || get_call_on_court_relevant_matches(tournament, location_id, { courts_by_id });
 
 	return relevant_matches.find((match) => !passes_base_call_on_court_rules(match, court_id, tournament, {
+		[PARTICIPANT_LOOKUP]: options[PARTICIPANT_LOOKUP],
 		courts_by_id,
 		matches_by_planning_id,
 		now_ts,
@@ -1465,6 +1501,7 @@ function is_match_eligible_for_on_court_call(match, court_id, tournament, option
 	const frontier = options.frontier !== undefined
 		? options.frontier
 		: find_call_on_court_frontier_match(tournament, court_id, {
+			[PARTICIPANT_LOOKUP]: options[PARTICIPANT_LOOKUP],
 			courts_by_id,
 			matches_by_planning_id,
 			now_ts,
@@ -1472,6 +1509,7 @@ function is_match_eligible_for_on_court_call(match, court_id, tournament, option
 		});
 
 	if (!passes_base_call_on_court_rules(match, court_id, tournament, {
+		[PARTICIPANT_LOOKUP]: options[PARTICIPANT_LOOKUP],
 		courts_by_id,
 		matches_by_planning_id,
 		now_ts,
@@ -1523,22 +1561,24 @@ function passes_field_independent_call_on_court_rules(match, tournament, options
 	if (!is_match_completely_initialized(match)) return false;
 	if (setup.now_on_court === true) return false;
 	if (match?.team1_won !== undefined && match?.team1_won !== null) return false;
-	if (has_open_participant_dependency(match, tournament, { matches_by_planning_id })) return false;
+	if (has_open_participant_dependency(match, tournament, { ...options, matches_by_planning_id })) return false;
 	if (!passes_call_on_court_preparation_rule(match, tournament, now_ts)) return false;
 	if (!passes_time_limit_before_scheduled_for_prefix(match, tournament, 'call_on_court', now_ts)) return false;
 	if (!passes_players_checked_in_rule_for_prefix(match, tournament, 'call_on_court')) return false;
-	if (!passes_no_inactive_special_result_player_rule(match, tournament)) return false;
+	if (!passes_no_inactive_special_result_player_rule(match, tournament, options)) return false;
 	if (!passes_player_pause_expired_rule_for_prefix(match, tournament, 'call_on_court', now_ts)) return false;
 
 	return true;
 }
 
 function find_field_independent_call_on_court_candidates(tournament, options = {}) {
+	options = with_participant_lookup(tournament, options);
 	const matches = Array.isArray(tournament?.matches) ? tournament.matches : [];
 	const matches_by_planning_id = options.matches_by_planning_id || build_matches_by_planning_id(tournament);
 	const now_ts = resolve_now_ts(options);
 	return matches
 		.filter((match) => passes_field_independent_call_on_court_rules(match, tournament, {
+			[PARTICIPANT_LOOKUP]: options[PARTICIPANT_LOOKUP],
 			matches_by_planning_id,
 			now_ts,
 		}))
@@ -1546,7 +1586,7 @@ function find_field_independent_call_on_court_candidates(tournament, options = {
 }
 
 function find_call_on_court_candidates(tournament, court_id, options = {}) {
-	options = with_frontier_positions(options);
+	options = with_participant_lookup(tournament, with_frontier_positions(options));
 	const matches = Array.isArray(tournament?.matches) ? tournament.matches : [];
 	const candidate_source_matches = Array.isArray(options.candidate_matches) ? options.candidate_matches : matches;
 	const courts_by_id = options.courts_by_id || get_courts_by_id(tournament);
@@ -1558,6 +1598,7 @@ function find_call_on_court_candidates(tournament, court_id, options = {}) {
 	const frontier = options.frontier !== undefined
 		? options.frontier
 		: find_call_on_court_frontier_match(tournament, court_id, {
+			[PARTICIPANT_LOOKUP]: options[PARTICIPANT_LOOKUP],
 			courts_by_id,
 			matches_by_planning_id,
 			now_ts,
@@ -1567,6 +1608,7 @@ function find_call_on_court_candidates(tournament, court_id, options = {}) {
 	return candidate_source_matches
 		.filter((match) => is_match_eligible_for_on_court_call(match, court_id, tournament, {
 			[FRONTIER_POSITIONS]: options[FRONTIER_POSITIONS],
+			[PARTICIPANT_LOOKUP]: options[PARTICIPANT_LOOKUP],
 			courts_by_id,
 			matches_by_planning_id,
 			now_ts,
@@ -2574,6 +2616,7 @@ async function fetch_global_preparation_candidates(app, tournament_key, options 
 }
 
 module.exports = {
+	calculate_call_on_court_selection,
 	can_leader_finish_match_within_rallies,
 	calculate_location_preparation_need,
 	calculate_location_preparation_selection,

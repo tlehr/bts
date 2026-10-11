@@ -39,15 +39,15 @@ async function fixture(settings = {}) {
 }
 
 async function count_selections(work) {
-	const original = rules.find_field_independent_call_on_court_candidates;
+	const original = rules.calculate_call_on_court_selection;
 	const worker = require('../bts/btp_planner').client, run = worker.run;
 	let count = 0;
-	rules.find_field_independent_call_on_court_candidates = (...args) => { count++; return original(...args); };
+	rules.calculate_call_on_court_selection = (...args) => { count++; return original(...args); };
 	worker.run = async function(...args) {
 		const result = await run.apply(this, args); count += result.selection_calls || 0; return result;
 	};
 	try { await work(() => count); }
-	finally { rules.find_field_independent_call_on_court_candidates = original; worker.run = run; }
+	finally { rules.calculate_call_on_court_selection = original; worker.run = run; }
 }
 
 describe('post-sync auto-call precheck', function() {
