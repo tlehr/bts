@@ -28,7 +28,7 @@ function snapshot(app, sockets, key, trace_cursor) {
 		.map(([name, store]) => ({ name, ...require('../database_tasks').health(store) }));
 	const outgoing = sockets.filter(ws => !ws.performance_probe && ws.outbox_stats)
 		.map(ws => ({ ...ws.outbox_stats(), buffered_bytes: ws.bufferedAmount || 0 }));
-	return { server_id: id, ts: now, scope: 'server-wide', tournament_key: key,
+	return { protocol_version: 2, server_id: id, ts: now, scope: 'server-wide', tournament_key: key,
 		lock, database, workers: registry.snapshots().filter(row => row.enqueued_count > 0), event_loop: last_loop,
 		processing: require('./traces').snapshot(trace_cursor),
 		outgoing: { sockets: outgoing.length, pending: outgoing.reduce((n, s) => n + s.pending, 0),

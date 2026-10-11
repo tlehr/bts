@@ -20,6 +20,47 @@ const completed = () => traces.snapshot(0).completed;
 describe('processing traces and flow evidence', function() {
 	beforeEach(function() { traces.disable(); });
 	afterEach(function() { traces.disable(); });
+	it('retains later locks and sync publication after hundreds of repetitive DB steps', async function() {
+		traces.enable();
+		await traces.operation('large_sync', { type: 'sync' }, async () => {
+			for (let i = 0; i < 400; i++) { const span = traces.begin('matches:sync_write_' + i, 'db_run'); traces.end(span); }
+			for (const [name, kind] of [['sync_apply', 'lock_wait'], ['sync_apply', 'lock_hold'], ['incremental_publish', 'phase']]) traces.end(traces.begin(name, kind));
+		});
+		const record = completed().find(row => row.name === 'large_sync');
+		assert(record.spans.some(row => row.kind === 'lock_wait')); assert(record.spans.some(row => row.kind === 'lock_hold'));
+		assert(record.spans.some(row => row.name === 'incremental_publish')); assert.strictEqual(record.dropped_spans, 0);
+		assert.strictEqual(record.summarized_spans, 320); assert.strictEqual(record.span_summaries[0].count, 320);
+		assert.strictEqual(traces.snapshot().stages.find(row => row.name === 'matches:other' && row.kind === 'db_run').count, 400);
+	});
+	it('prevents one operation type from consuming the statistics budget of later types', async function() {
+		traces.enable();
+		await traces.operation('many_point_stages', { type: 'point' }, async () => {
+			for (let i = 0; i < 120; i++) traces.end(traces.begin('point_step_' + i, 'phase'));
+		});
+		await traces.operation('later_sync', { type: 'sync' }, async () => traces.end(traces.begin('incremental_writes', 'phase')));
+		assert(traces.snapshot().unaggregated_samples > 0);
+		assert(traces.snapshot().stages.some(row => row.type === 'sync' && row.name === 'incremental_writes'));
+	});
+	it('identifies untraced persistence blocking a traced read without exposing query contents', async function() {
+		traces.enable(); const store = new Datastore({ inMemoryOnly: true });
+		const persist = store.persistence.persistNewState; const entered = deferred(); let release;
+		store.persistence.persistNewState = function(documents, callback) { release = () => persist.call(this, documents, callback); entered.resolve(); };
+		database_tasks.attach(store, 'matches');
+		const write = promisify(store.insert.bind(store))({ _id: 'private-player', secret: 'private-value' });
+		await entered.promise;
+		const reading = traces.operation('waiting_score', { type: 'point' }, () => promisify(store.findOne.bind(store))({ _id: 'private-player' }));
+		try {
+			await new Promise(resolve => setTimeout(resolve, 35));
+			const health = database_tasks.health(store); assert(health.active_detail.persistence.pending);
+			assert(!JSON.stringify(health).includes('private-player')); assert(!JSON.stringify(health).includes('query_fields'));
+		} finally { release(); store.persistence.persistNewState = persist; }
+		await write; await reading;
+		const record = completed().find(row => row.name === 'waiting_score'), wait = record.spans.find(row => row.kind === 'db_wait');
+		assert.strictEqual(wait.blockers[0].task, 'matches:insert'); assert.strictEqual(wait.blockers[0].operation_id, null);
+		assert.strictEqual(wait.blockers[0].persistence_kind, 'append'); assert(wait.duration_ms >= 30);
+		const task = database_tasks.health(store).recent_tasks.find(row => row.task === 'insert');
+		assert(task.persistence_ms >= 30); assert(task.before_callback_ms >= 30); assert(task.callback_ms != null);
+	});
 	it('records only during an explicit lease, expires automatically, bounds spans and keeps failures', async function() {
 		await traces.operation('unobserved', {}, async () => { assert.strictEqual(traces.begin('no', 'phase'), null); });
 		traces.enable(Date.now() - 11000); assert.strictEqual(traces.enabled(), false);

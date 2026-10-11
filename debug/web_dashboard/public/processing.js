@@ -100,6 +100,7 @@ window.DrillProcessing = (() => {
 			' · Servervorgang ' + time(trace.duration_ms) + ' · längstes Lock-Warten ' + time(largest_wait) +
 			(trace.skipped ? ' · übersprungen: ' + (trace.reason || 'unverändert') : '') + (trace.match_id ? ' · Spiel ' + trace.match_id : '') +
 			(receipt ? ' · Tablet → TV ' + time(receipt.tv_ms) + ' · Tablet → Admin ' + time(receipt.admin_ms) : '') +
+			(trace.summarized_spans ? ' · ' + trace.summarized_spans + ' DB-Schritte zusammengefasst' : '') +
 			(trace.dropped_spans ? ' · ' + trace.dropped_spans + ' Schritte wegen Aufzeichnungslimit ausgelassen' : '');
 		if (trace.status !== 'running' && trace.pending_spans) $('trace-summary').textContent += ' · ' + trace.pending_spans + ' Hintergrund-/Versandschritte noch offen';
 		const axis = element('div', null, 'timeline-axis'); axis.append(element('span', 'Serverzeit seit Vorgangsbeginn'), element('span', time(total))); container.append(axis);
@@ -118,16 +119,34 @@ window.DrillProcessing = (() => {
 			for (const blocker of row.blockers || []) {
 				const conflicting = blocker.conflicting_locks || [];
 				details.append(element('p', 'Beobachteter Blockierer: ' + (names[blocker.task] || blocker.task) + ' (#' + blocker.id + ', ' + (blocker.state === 'active' ? 'läuft' : 'wartet vor diesem Vorgang') + '). Ressourcen: ' + (conflicting.length ? conflicting : blocker.locks || []).map(lock_title).join(', '), 'lock-description'));
+				if (row.kind === 'db_wait') details.append(element('p', 'DB-Aufgabe: Phase ' + (blocker.phase || 'unbekannt') +
+					' · Laufzeit bei Beobachtung ' + time(blocker.elapsed_ms) + (blocker.persistence_kind ? ' · Persistenz: ' + blocker.persistence_kind : '') +
+					(!blocker.operation_id ? ' · Hintergrundarbeit ohne Einzeltrace' : ''), 'helper'));
 				const owner = [...(snapshot.processing?.active || []), ...(snapshot.processing?.completed || [])].find(item => item.id === blocker.operation_id);
 				if (owner) { const button = element('button', 'Blockierenden Vorgang #' + owner.id + ' öffnen', 'button secondary'); button.type = 'button';
 					button.addEventListener('click', () => { selected = owner; $('flow-type').value = owner.type; chosen_step = null; draw(); }); details.append(button); }
 			}
 			if (row.kind === 'lock_wait') details.append(element('p', row.blockers?.length ? 'Der Blockierer wurde während des Wartens beobachtet. Die gesamte Wartezeit umfasst auch Scheduling.' : 'Kein Lock-Konflikt beobachtet; die Wartezeit kann durch Scheduling entstehen.', 'helper'));
+			if (row.kind === 'db_run' && row.before_callback_ms != null) details.append(element('p',
+				'Bis zum Callback: ' + time(row.before_callback_ms) + ' · Callback: ' + time(row.callback_ms) +
+				(row.persistence_ms != null ? ' · Persistenz (' + row.persistence_kind + '): ' + time(row.persistence_ms) : '') +
+				'. Teilzeiten können sich überlappen; asynchrone Wartezeit ist enthalten.', 'helper'));
 			const raw = element('details'); raw.open = opened.has('raw:' + row.id);
 			raw.append(element('summary', 'Technische Messdaten'), element('pre', JSON.stringify(row, null, 2))); details.append(raw);
 			raw.addEventListener('toggle', () => { if (raw.open) opened.add('raw:' + row.id); else opened.delete('raw:' + row.id); frozen.set(trace.id, [...opened]); });
 			details.addEventListener('toggle', () => { if (details.open) opened.add(row.id); else opened.delete(row.id); frozen.set(trace.id, [...opened]); });
 			container.append(details);
+		}
+		for (const group of trace.span_summaries || []) {
+			const details = element('details', null, 'timeline-entry');
+			details.append(element('summary', group.name + ' · ' + (kinds[group.kind] || 'DB-Schritte') + ' · ' + group.count + ' zusammengefasst'),
+				element('p', 'Summe ' + time(group.total_ms) + ' · längster Einzelschritt ' + time(group.max_ms) + ' · Fehler ' + group.failed +
+					'. Die Summe überlappender Schritte ist keine Vorgangsdauer.', 'helper'));
+			if (group.slowest) { const row = group.slowest;
+				details.append(element('p', 'Längster Schritt: ' + title(row) + ' · Beginn +' + time(row.offset_ms)));
+				for (const blocker of row.blockers || []) details.append(element('p', 'Beobachteter Blockierer: ' + blocker.task + ' · ' + (blocker.phase || blocker.state), 'helper'));
+				const raw = element('details'); raw.append(element('summary', 'Technische Messdaten'), element('pre', JSON.stringify(group, null, 2))); details.append(raw);
+			} container.append(details);
 		}
 		if (!rows.length) container.append(element('p', 'Keine Schritte erfasst; die Detailaufzeichnung war möglicherweise ausgeschaltet.', 'helper'));
 	}
@@ -139,7 +158,8 @@ window.DrillProcessing = (() => {
 				: 'Detailaufzeichnung ' + (processing.enabled ? 'aktiv' : 'ausgelaufen') + ' · serverweite Sitzung ' + processing.session +
 				' · ' + (processing.active_total ?? processing.active?.length ?? 0) + ' Vorgänge aktiv · ' + (processing.remaining || 0) + ' Berichte noch abzuholen' +
 				(snapshot.probe.age_ms == null || snapshot.probe.age_ms + (snapshot.probe.rtt_ms || 0) > 5000 ? ' · Messdaten veraltet' : '') +
-				(processing.gap || processing.dropped_traces ? ' · Aufzeichnungslimit erreicht; Export enthält Angaben zur Abdeckung.' : '');
+				(processing.gap || processing.dropped_traces ? ' · Aufzeichnungslimit erreicht; Export enthält Angaben zur Abdeckung.' : '') +
+				(processing.unaggregated_samples ? ' · ' + processing.unaggregated_samples + ' Messungen ohne Schrittstatistik' : '');
 		const rows = (processing?.stages || []).filter(row => row.type === type), plan = $('processing-plan'); plan.replaceChildren();
 		const lane = element('div', null, 'flow-stages processing-stages');
 		for (const definition of plans[type]) lane.append(stage_card(definition, rows, 'main')); plan.append(lane);

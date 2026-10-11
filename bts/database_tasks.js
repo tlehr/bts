@@ -51,7 +51,7 @@ function attach(store, collection) {
 			try { return traces.with_context(health_entry.context, () => traces.run(health_entry.run_span, () => barrier_task.fn.apply(this, args))); }
 			catch (error) { state.health.finish(health_entry, error); throw error; }
 		} };
-		if (!enabled()) {
+		if (!enabled() && !traces.enabled()) {
 			state.active = null; state.last = null;
 			return push.call(this, ordered, force);
 		}
@@ -59,6 +59,7 @@ function attach(store, collection) {
 			: task.fn === store._update || task.fn === store._remove ? task.arguments[0] : null;
 		const record = { id: ++state.next_id, task: name_of(store, task), started: null, phase: 'queued',
 			query_fields: query ? Object.keys(query).slice(0, 8) : [] };
+		health_entry.diagnostic = record;
 		const traced = { ...ordered, diagnostic_id: record.id, fn: function(...args) {
 			record.started = process.hrtime.bigint(); record.phase = 'running'; state.active = record;
 			const done = args[args.length - 1];
@@ -84,7 +85,7 @@ function attach(store, collection) {
 		const original = store.persistence[method];
 		store.persistence[method] = function(...args) {
 			const record = state.active;
-			if (!enabled() || !record || record.phase !== 'running') return original.apply(this, args);
+			if ((!enabled() && !require('./performance/traces').enabled()) || !record || record.phase !== 'running') return original.apply(this, args);
 			const persistence = { kind, started: process.hrtime.bigint(), finished: null };
 			record.persistence = persistence;
 			const last = method === 'persistNewState' ? 1 : 0;
@@ -101,7 +102,7 @@ function attach(store, collection) {
 
 function snapshot(store) {
 	const state = observers.get(store);
-	if (!state || !enabled()) return null;
+	if (!state || (!enabled() && !require('./performance/traces').enabled())) return null;
 	const now = process.hrtime.bigint();
 	const running = store.executor.queue.running();
 	const active = running && state.active ? summary(state.active, now) : null;
@@ -113,7 +114,11 @@ function snapshot(store) {
 
 function health(store) {
 	const state = observers.get(store);
-	return state ? { observed: true, ...state.health.snapshot(), executor_running: store.executor.queue.running() }
+	const current = snapshot(store);
+	// Do not expose query fields through the diagnostic protocol.
+	const safe = record => record ? Object.fromEntries(Object.entries(record).filter(([key]) => key !== 'query_fields')) : null;
+	return state ? { observed: true, ...state.health.snapshot(), executor_running: store.executor.queue.running(),
+		active_detail: safe(current?.active), last_completed: safe(current?.last_completed) }
 		: { observed: false };
 }
 
