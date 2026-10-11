@@ -201,3 +201,89 @@ Freilos-/Offiziellen-/Reaktivierungsregeln sind durch Regressionen geprüft.
 Rohdaten: `/tmp/bts-queue-responsiveness-v9q90F`.
 Vergleich und Detailphasen: `selection_optimization` im JSON-Bericht oben.
 Keine Wiederholung des alten Zehnminuten-Baseline-Laufs.
+
+## Refresh der privaten Planungsdatenbank
+
+Zwei getrennte Optimierungen reduzieren den Snapshot-Refresh und den gesamten
+automatischen Aufruf. `ebf27c4f63a4f83df3da7f3ef11c3038552c7d2c` bündelt
+private Refresh-Schritte; `6de3740598dc87a9d7547adc7c518e4154f9c58b` ergänzt
+die Punktpriorität. Der vorherige Produktionsstand entspricht `fb7a667`
+(danach nur der Ergebnis-Commit `f18b009`).
+
+NeDB wickelt eine einzelne Aktualisierung über mehrere Event-Loop-Runden ab.
+Der bisherige Refresh wiederholt dies für jedes geänderte Objekt. Ein
+Komponententest mit 519 realen, synthetischen Match-Dokumenten zeigt im ruhigen
+Prozess einen Median von 128 ms vorher und 53 ms nach der Bündelung.
+Mit künstlicher konkurrierender Arbeit von 2 ms pro Event-Loop-Runde werden
+daraus 5.546 bzw. 121 ms. Diese künstliche Last verdeutlicht den Mechanismus;
+sie ist kein Produktions-Latenzvergleich. Queue-Warten, Laufzeit bis zum
+DB-Callback und synchroner Modellaufbau sind separat im JSON aufgezeichnet.
+
+Nur die vom Planner erzeugten privaten In-Memory-Stores dürfen den neuen Pfad
+verwenden. Dokumentprüfung, Unique-Indizes, Modell-Hooks und stabile
+Objektidentitäten bleiben erhalten. Updates, Inserts und Removes laufen in
+der bestehenden Executor-Reihenfolge, maximal 32 Objekte pro Gruppe.
+Zusätzlich endet eine Gruppe nach einem zwischen Objekten geprüften
+2-ms-Budget. Ein einzelner teurer Datensatz kann dieses Budget überschreiten.
+Angepasste Schreiber/Index-/Persistenz-Hooks, TTLs oder Zeitstempel verwenden
+den normalen NeDB-Pfad. Die Live-Datenbank und ihre Sync-Write-Bündelung wurden
+hier nicht geändert.
+
+Der erste 90-Sekunden-Lauf mit Bündelung allein verkürzt den Refresh auf
+maximal 227 ms und den Auto-Aufruf auf 407 ms. Gleichzeitig liegen fünf
+TV-Meldungen über 100 ms (Maximum 255 ms), zeitlich beim ersten Auto-Aufruf.
+Die Punkt-Traces zeigen verzögerte DB-Schreibcallbacks und wartende TV-
+Veröffentlichung, keine lange Wartezeit auf Match-Locks. Ein beobachteter
+Persistenzabschnitt dauert 88 ms; diese Dauer allein beweist keine CPU-
+Blockierung durch den Refresh. Der Zwischenlauf wird vollständig mitarchiviert.
+
+Die Ergänzung lässt Refresh-Gruppen und größere Vergleichsdurchläufe pausieren,
+solange Punkte noch gespeichert und die Score-Veröffentlichung angestoßen
+werden. Sie nutzt die vorhandene Punktpriorität (`admin_response_priority`,
+standardmäßig aktiv). Das Warten erfolgt außerhalb des privaten DB-Executors
+und vor den Integrations-Locks. Aktive eigene Punktkontexte warten nicht auf
+sich selbst; Hintergrundarbeit aus bereits freigegebenen Punktkontexten wartet
+korrekt auf andere aktive Punkte. Die zusätzliche Wartezeit wird getrennt als
+`refresh_foreground_wait_ms` erfasst.
+
+| Gleiche 90-Sekunden-Parameter, je ein Lauf | Vorher | Nur Gruppen | Gruppen + Punktpriorität |
+| --- | ---: | ---: | ---: |
+| Auto-Aufruf: Refresh-Maximum | 476 ms | 227 ms | 145 ms |
+| Gesamter erfasster Auto-Aufruf, Maximum | 630 ms | 407 ms | 278 ms |
+| Tablet → TV, p95 / p99 / Maximum | 32 / 52 / 98 ms | 38 / 59 / 255 ms | 39 / 57 / 83 ms |
+| Tablet → Admin, p95 / p99 / Maximum | 22 / 46 / 97 ms | 25 / 49 / 179 ms | 24 / 45 / 74 ms |
+| Freie Durchsage, p95 / Maximum | 33 / 45 ms | 3 / 59 ms | 5 / 46 ms |
+| Event-Loop-Maximum | 88 ms | 107 ms | 88 ms |
+| Zugeordnete Meldungen bei TV und Admin, jeweils | 960 / 960 | 961 / 961 | 967 / 967 |
+| TV-Meldungen über 100 ms | 0 | 5 | 0 |
+| Syncs abgeschlossen | 46 / 46 | 46 / 46 | 46 / 46 |
+
+Im letzten Lauf führen alle fünf Spielenden zu automatischen Folgeaufrufen;
+alle 13 Felder bleiben belegt. Keine fehlenden Antworten, kein Verarbeitungs-
+fehler, leeres Serverlog. Pro Laufdrittel höchstens ein unfertiger Sync,
+anschließend sämtliche beobachteten Scheduler-/DB-Aufgaben abgeschlossen.
+Der erste Refresh umfasst 534 Objekte in 40 Gruppen: rund 77 ms Anwendung,
+40 ms Queue-Warten und 19 ms gezielte Freigabe für Punkte. Die längste Gruppe
+innerhalb der erfassten Auto-Aufrufe dauert 2,22 ms.
+
+Die bisherigen TV-p95/p99 werden durch diesen Schritt nicht kleiner, die
+Punkt-Maxima bleiben im abschließenden Lauf unter 100 ms. Der Root-Sync hat
+einen ähnlichen Median (627 → 644 ms), ein kleineres Maximum (1843 → 1362 ms).
+Nachlaufende Vorbereitung wartet noch bis 280 ms. Diese kurzen Einzelvergleiche
+mit unterschiedlichem tatsächlichem Spielfortschritt belegen weder eine
+allgemeine Kapazitätsgrenze noch allein den kausalen Anteil der Punktpriorität.
+Die Regressionen belegen deren Reihenfolge und Schutz gegen Selbstblockierung.
+Aktive Offiziellen-/Tabletoperator-Zuweisung und Dauerlast bleiben separat offen.
+
+Validierung: volle Suite nach Gruppen **785 Tests**, nach Punktpriorität
+**786 Tests**; anschließend **98 gezielte Regressionen** einschließlich eines
+zusätzlichen Falls mit freigegebenem Punktkontext. Alle geänderten Module und
+Tests ESLint sauber. Der JSON-Bericht archiviert unter `refresh_optimization`
+die getrennten Quellen, Messwerte, Vergleichsprüfungen und auffälligen Punkt-
+Traces. Client, Messwerkzeuge, Parameter, Node/CPU und Abhängigkeiten stimmen
+mit dem vorhandenen vorherigen Lauf überein.
+
+Rohdaten nur Gruppen: `/tmp/bts-queue-responsiveness-oNh8IV`.
+Rohdaten abschließend: `/tmp/bts-queue-responsiveness-cH7Ngr`.
+Der vorhandene Vergleichslauf wurde wiederverwendet; kein alter Baseline-Test
+wiederholt. Der zweite neue Lauf prüft gezielt die zusätzliche Punktpriorität.
