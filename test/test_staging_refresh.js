@@ -4,6 +4,7 @@ const assert = require('assert');
 const Datastore = require('nedb');
 const staging = require('../bts/btp_planner/staging');
 const writes = require('../bts/btp_planner/refresh_writes');
+const foreground = require('../bts/foreground_work');
 
 function state(count = 64) {
 	const result = Object.fromEntries(staging.COLLECTIONS.map(name => [name, []]));
@@ -18,6 +19,48 @@ function state(count = 64) {
 }
 
 describe('private planning snapshot refresh', function() {
+	it('pauses follow-up work inherited from a released point while another point is active', async function() {
+		const previous_priority = process.env.BTS_ADMIN_RESPONSE_PRIORITY;
+		process.env.BTS_ADMIN_RESPONSE_PRIORITY = '1';
+		const old_point = foreground.begin('handle_score_update_v2'); old_point();
+		const current_point = foreground.begin('handle_score_update_v2');
+		try {
+			let finished = false;
+			const waiting = foreground.run(old_point, () => foreground.background_idle()).then(() => { finished = true; });
+			await new Promise(resolve => setImmediate(resolve));
+			assert.strictEqual(finished, false);
+			current_point(); await waiting;
+			assert.strictEqual(finished, true);
+		} finally {
+			current_point();
+			if (previous_priority === undefined) delete process.env.BTS_ADMIN_RESPONSE_PRIORITY;
+			else process.env.BTS_ADMIN_RESPONSE_PRIORITY = previous_priority;
+		}
+	});
+	it('lets point publication finish before refresh and avoids waiting for its own active context', async function() {
+		const previous_priority = process.env.BTS_ADMIN_RESPONSE_PRIORITY;
+		process.env.BTS_ADMIN_RESPONSE_PRIORITY = '1';
+		const db = staging.memory_db(), initial = state(1);
+		await staging.refresh(db, initial);
+		const previous = staging.planning_snapshot(db), metrics = {};
+		const next = { ...initial, matches: initial.matches.map(m => ({ ...m, changed: true })) };
+		const release = foreground.begin('handle_score_update_v2');
+		try {
+			await foreground.run(release, () => foreground.background_idle());
+			let finished = false;
+			const refreshing = staging.refresh(db, next, previous, initial, metrics).then(() => { finished = true; });
+			await new Promise(resolve => setImmediate(resolve));
+			assert.strictEqual(finished, false);
+			assert.strictEqual((await db.matches.findOne_async({ _id: 'm0' })).changed, undefined);
+			release(); await refreshing;
+			assert.strictEqual((await db.matches.findOne_async({ _id: 'm0' })).changed, true);
+			assert(metrics.refresh_foreground_wait_ms > 0);
+		} finally {
+			release();
+			if (previous_priority === undefined) delete process.env.BTS_ADMIN_RESPONSE_PRIORITY;
+			else process.env.BTS_ADMIN_RESPONSE_PRIORITY = previous_priority;
+		}
+	});
 	it('matches ordinary NeDB replacement, insertion and removal, preserving canonical identity and dates', async function() {
 		const fast = staging.memory_db(), ordinary = staging.memory_db(), initial = state();
 		const update = ordinary.matches.update_async;

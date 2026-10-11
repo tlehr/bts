@@ -76,7 +76,8 @@ function memory_db() {
 async function refresh(db, state, previous, previous_source, metrics) {
 	let copied_records = 0;
 	if (metrics) Object.assign(metrics, { refresh_groups: 0, refresh_queue_wait_ms: 0,
-		refresh_apply_ms: 0, refresh_max_group_ms: 0, refresh_operations: 0 });
+		refresh_apply_ms: 0, refresh_max_group_ms: 0, refresh_operations: 0, refresh_foreground_wait_ms: 0 });
+	await refresh_writes.idle(metrics);
 	for (const collection of COLLECTIONS) {
 		const operations = [];
 		const store = db[collection];
@@ -93,7 +94,7 @@ async function refresh(db, state, previous, previous_source, metrics) {
 					copied_records++;
 				}
 			}
-			if (i % 32 === 31) await yield_turn();
+			if (i % 32 === 31) { await yield_turn(); await refresh_writes.idle(metrics); }
 		}
 		for (const doc of old.values()) operations.push({ kind: 'remove', id: doc._id });
 		if (metrics) metrics.refresh_operations += operations.length;

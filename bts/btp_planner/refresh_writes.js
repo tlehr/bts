@@ -2,10 +2,18 @@
 
 const Datastore = require('nedb');
 const model = require('nedb/lib/model');
+const foreground = require('../foreground_work');
 const registered = new WeakMap();
 const methods = ['insert', 'update', 'remove', 'insert_async', 'update_async', 'remove_async',
 	'_insert', '_update', '_remove', 'getCandidates', 'prepareDocumentForInsertion', 'addToIndexes', 'updateIndexes', 'removeFromIndexes'];
 const now = () => Number(process.hrtime.bigint()) / 1e6;
+
+async function idle(metrics) {
+	if (!foreground.busy()) return;
+	const start = now();
+	await foreground.background_idle();
+	if (metrics) metrics.refresh_foreground_wait_ms += now() - start;
+}
 
 // Only the factory's private, disposable in-memory stores are registered.
 // Modified writers, timestamps and TTLs retain the ordinary NeDB path.
@@ -44,6 +52,7 @@ function apply(store, operation) {
 async function write(store, operations, metrics) {
 	let position = 0;
 	while (position < operations.length) {
+		await idle(metrics);
 		const queued = now(), entry = registered.get(store);
 		entry.lifecycle.start();
 		await new Promise((resolve, reject) => {
@@ -79,4 +88,4 @@ async function write(store, operations, metrics) {
 	}
 }
 
-module.exports = { register, supported, write };
+module.exports = { register, supported, write, idle };
