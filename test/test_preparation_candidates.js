@@ -2,6 +2,10 @@
 
 const assert = require('assert');
 const automation = require('../bts/match_automation');
+const { promisify } = require('util');
+const database = require('../bts/database');
+const match_utils = require('../bts/match_utils');
+const admin = require('../bts/admin');
 
 function fixture() {
 	return {
@@ -35,6 +39,46 @@ function compare(tournament) {
 }
 
 describe('automatic preparation without UI diagnostics', function() {
+	it('uses the lean default for actual calls, keeps admin diagnostics and supports the old-path override', async function() {
+		const flag = 'BTS_PREPARATION_CANDIDATES_LIGHT', saved = process.env[flag];
+		const original = automation.fetch_location_preparation_selection;
+		try {
+			for (const override of [undefined, '0']) {
+				if (override === undefined) delete process.env[flag]; else process.env[flag] = override;
+				const db = await database.init_test();
+				const input = fixture(), { locations, courts, matches, umpires, tabletoperators, ...settings } = input;
+				const insert = (collection, doc) => promisify(db[collection].insert.bind(db[collection]))(doc);
+				const tournament = await insert('tournaments', settings);
+				for (const [collection, documents] of Object.entries({ locations, courts, matches, umpires, tabletoperators })) {
+					for (const doc of documents) await insert(collection, { ...doc, tournament_key: settings.key });
+				}
+				const app = { db, clock: { now_ms: () => 1791716400000 } };
+				let selection;
+				automation.fetch_location_preparation_selection = async (...args) => {
+					selection = await original(...args);
+					return selection;
+				};
+				await promisify(match_utils.auto_execute_preparation_selection)(app, tournament, 'hall');
+				assert.strictEqual(selection.field_selection_debug === undefined, override === undefined);
+				assert.deepStrictEqual(selection.auto_selected_matches.map(match => match._id), ['match-0']);
+				const called = await db.matches.findOne_async({ _id: 'match-0' });
+				assert.strictEqual(called.setup.state, 'preparation');
+				assert.strictEqual(called.setup.preparation_call_timestamp, app.clock.now_ms());
+				let response;
+				await admin.async_handle_preparation_selection_get(app, {
+					respond(_request, error, value) { assert.ifError(error); response = value; },
+				}, { tournament_key: settings.key });
+				const ui = response.selections.find(row => row.location_id === 'hall');
+				assert(ui.diagnostics_by_match_id['match-1'].rules.length > 0);
+				assert(Array.isArray(ui.field_selection_debug.sorted_free_court_ids));
+				assert(ui.call_on_court_diagnostics_by_match_id['match-0'].court_diagnostics.length > 0);
+			}
+		} finally {
+			automation.fetch_location_preparation_selection = original;
+			if (saved === undefined) delete process.env[flag]; else process.env[flag] = saved;
+		}
+	});
+
 	it('selects the same scheduled candidates and leaves the UI response complete', function() {
 		const { full, automatic } = compare(fixture());
 		assert.strictEqual(automatic.auto_selected_matches.length, 1);

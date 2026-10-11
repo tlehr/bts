@@ -10,7 +10,7 @@ const flags = {
 	compaction: ['BTS_COMPACTION_WORKER', false],
 	compaction_reads: ['BTS_COMPACTION_MODEL_READS', false],
 	preparation_reads: ['BTS_PREPARATION_MODEL_READS', false],
-	preparation_candidates: ['BTS_PREPARATION_CANDIDATES_LIGHT', false],
+	preparation_candidates: ['BTS_PREPARATION_CANDIDATES_LIGHT', true],
 	sync_batch_writes: ['BTS_SYNC_BATCH_WRITES', false],
 	sync_prepared_tournament: ['BTS_SYNC_PREPARED_TOURNAMENT', true],
 	admin_response_background: ['BTS_ADMIN_RESPONSE_BACKGROUND', true],
