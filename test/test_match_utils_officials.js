@@ -643,6 +643,28 @@ _describe('match utils official state helpers', () => {
 		assert.deepStrictEqual(sorted.map((court) => court._id), ['c2', 'c1', 'c3']);
 	});
 
+	_it('keeps exact tabletoperator courts before same-location fallbacks', () => {
+		const sorted = match_utils.sort_free_courts_for_auto_call(
+			[
+				{ _id: 'c7', num: 7, location_id: 'l1' },
+				{ _id: 'c8', num: 8, location_id: 'l1' },
+				{ _id: 'c10', num: 10, location_id: 'l1' },
+			],
+			[
+				{ _id: 'to1', court: null, played_on_court: 'c8', start_ts: 10 },
+				{ _id: 'to2', court: null, played_on_court: 'c7', start_ts: 20 },
+			],
+			{ tabletoperator_enabled: true, tabletoperator_assignment_scope: 'same_location' },
+			[
+				{ _id: 'c7', num: 7, location_id: 'l1' },
+				{ _id: 'c8', num: 8, location_id: 'l1' },
+				{ _id: 'c10', num: 10, location_id: 'l1' },
+			]
+		);
+
+		assert.deepStrictEqual(sorted.map((court) => court._id), ['c8', 'c7', 'c10']);
+	});
+
 	_it('prefers free courts in the tabletoperator location when location scope is enabled', () => {
 		const sorted = match_utils.sort_free_courts_for_auto_call(
 			[

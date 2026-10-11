@@ -54,6 +54,7 @@ var ctournament = (function() {
 		send({
 			type: 'tournament_get',
 			key: tournament_key,
+			defer_finished_history: true,
 		}, function (err, response) {
 			if (err) {
 				return cerror.net(err);
@@ -86,6 +87,7 @@ var ctournament = (function() {
 			send({
 				type: 'tournament_get',
 				key: tournament_key,
+				defer_finished_history: true,
 			}, function(err, response) {
 				tournament_refresh_after_missed_change_pending = false;
 				if (err) {
@@ -284,6 +286,7 @@ var ctournament = (function() {
 			const old_section = cmatch.calc_section(m);
 			m.network_score = cval.network_score;
 			m.presses = cval.presses;
+			delete m.presses_deferred;
 			m.team1_won = cval.team1_won;
 			m.shuttle_count = cval.shuttle_count;
 			if ('score_status' in cval) {
@@ -408,6 +411,7 @@ var ctournament = (function() {
 					delete m.network_score;
 				}
 				m.presses = cval.match.presses;
+				delete m.presses_deferred;
 				m.team1_won = cval.match.team1_won;
 				m.shuttle_count = cval.match.shuttle_count;
 			m.score_status = cval.match.score_status;
@@ -477,6 +481,7 @@ var ctournament = (function() {
 				delete m.network_score;
 			}
 			m.presses = cval.match.presses;
+			delete m.presses_deferred;
 			m.team1_won = cval.match.team1_won;
 		m.shuttle_count = cval.match.shuttle_count;
 		m.score_status = cval.match.score_status;
@@ -704,6 +709,7 @@ var ctournament = (function() {
 		const preparation_automation_enabled = !!curt.call_preparation_matches_automatically_enabled;
 		[
 			'preparation_successor_rally_count',
+			'preparation_call_min_gap_seconds',
 			'preparation_call_time_limit_before_scheduled_enabled',
 			'preparation_call_time_limit_before_scheduled_minutes',
 			'preparation_call_block_ahead_limit_enabled',
@@ -3546,6 +3552,7 @@ var ctournament = (function() {
 			uiu.el(bts_legend, 'span', {}, ci18n('tournament:edit:call_preparation_matches_automatically_enabled'));
 			bind_live_prop(input.call_preparation_matches_automatically_enabled, 'call_preparation_matches_automatically_enabled');
 			input.preparation_successor_rally_count = create_numeric_input(curt, bts_fieldset, 'preparation_successor_rally_count', 1, 100, 11, 1);
+			input.preparation_call_min_gap_seconds = create_numeric_input(curt, bts_fieldset, 'preparation_call_min_gap_seconds', 0, 300, 10, 1);
 			input.preparation_call_player_pause_expired_enabled = create_checkbox(curt, bts_fieldset, 'preparation_call_player_pause_expired_enabled', 'automation_suboption_checkbox');
 			input.preparation_call_no_player_waiting_as_tabletoperator_enabled = create_checkbox(curt, bts_fieldset, 'preparation_call_no_player_waiting_as_tabletoperator_enabled', 'automation_suboption_checkbox');
 			input.preparation_call_no_player_active_as_tabletoperator_enabled = create_checkbox(curt, bts_fieldset, 'preparation_call_no_player_active_as_tabletoperator_enabled', 'automation_suboption_checkbox');
@@ -3737,10 +3744,14 @@ var ctournament = (function() {
 			uiu.el(debug_fieldset, 'div', 'hint', ci18n('tournament:edit:debug_output_hint'));
 			input.bts_debug_output_enabled = create_checkbox(curt, debug_fieldset, 'bts_debug_output_enabled');
 			uiu.el(debug_fieldset, 'div', 'hint', ci18n('tournament:edit:bts_debug_output_enabled:hint'));
+			input.bts_server_diagnostics_enabled = create_checkbox(curt, debug_fieldset, 'bts_server_diagnostics_enabled');
+			uiu.el(debug_fieldset, 'div', 'hint', ci18n('tournament:edit:bts_server_diagnostics_enabled:hint'));
 			input.bts_client_performance_debug_enabled = create_checkbox(curt, debug_fieldset, 'bts_client_performance_debug_enabled');
 			uiu.el(debug_fieldset, 'div', 'hint', ci18n('tournament:edit:bts_client_performance_debug_enabled:hint'));
 			input.bts_auto_call_trace_enabled = create_checkbox(curt, debug_fieldset, 'bts_auto_call_trace_enabled');
 			uiu.el(debug_fieldset, 'div', 'hint', ci18n('tournament:edit:bts_auto_call_trace_enabled:hint'));
+			input.bts_score_press_timing_enabled = create_checkbox(curt, debug_fieldset, 'bts_score_press_timing_enabled');
+			uiu.el(debug_fieldset, 'div', 'hint', ci18n('tournament:edit:bts_score_press_timing_enabled:hint'));
 			function create_preparation_debug_checkbox(field) {
 				const label = uiu.el(debug_fieldset, 'label');
 				input[field] = uiu.el(label, 'input', {
@@ -4652,11 +4663,11 @@ var ctournament = (function() {
 		const create_actions = uiu.el(main, 'div', { style: 'margin: 0.5em 0 1em;' });
 		const create_display_btn = uiu.el(create_actions, 'button', {
 			type: 'button',
-		}, 'Neue Displayeinstellung');
+		}, ci18n('tournament:edit:displaysettings:create_display'));
 		const create_tablet_btn = uiu.el(create_actions, 'button', {
 			type: 'button',
 			style: 'margin-left: 0.5em;',
-		}, 'Neue Tableteinstellung');
+		}, ci18n('tournament:edit:displaysettings:create_tablet'));
 		create_display_btn.addEventListener('click', () => {
 			ui_create_display_setting_from_default('display');
 		});
@@ -4679,20 +4690,20 @@ var ctournament = (function() {
 	function render_general_displaysetting_line(parrent, s, used_configs) {
 		uiu.el(parrent, 'th', {}, s.description ||s.id);
 		uiu.el(parrent, 'td', {}, format_general_displaysetting_mode(s));
-		const actions_td = uiu.el(parrent, 'td', {});
-		const is_default_setting = s.id === curt.displaysettings_general || s.id === curt.displaysettings_general_tablet;
-		const edit_btn = uiu.el(actions_td, 'button', {
-			'data-display_setting_id': s.id,
-		}, 'Edit');
+			const actions_td = uiu.el(parrent, 'td', {});
+			const is_default_setting = s.id === curt.displaysettings_general || s.id === curt.displaysettings_general_tablet;
+			const edit_btn = uiu.el(actions_td, 'button', {
+				'data-display_setting_id': s.id,
+			}, ci18n('tournament:edit:edit'));
 
 		edit_btn.addEventListener('click', (e) => {
 			on_edit_display_setting_button_click(e);
 		});
 
 
-		const delete_btn = uiu.el(actions_td, 'button', {
-			'data-display-setting-id': s.id,
-		}, 'Delete');
+			const delete_btn = uiu.el(actions_td, 'button', {
+				'data-display-setting-id': s.id,
+			}, ci18n('tournament:edit:delete'));
 
 		if (used_configs.has(s.id) || is_default_setting) {
 			delete_btn.setAttribute('disabled', 'disabled');
@@ -7341,7 +7352,12 @@ var ctournament = (function() {
 		uiu.el(tr, 'th', {}, ci18n('tournament:edit:displays:onlinestatus'));
 		uiu.el(tr, 'th', {}, ci18n('tournament:edit:displays:ack_time'));
 		uiu.el(tr, 'th', {}, "");
-		uiu.el(tr, 'th', {}, "");
+		const delete_all_th = uiu.el(tr, 'th', {});
+		const delete_all_btn = uiu.el(delete_all_th, 'button', {
+			type: 'button',
+			class: 'display_delete_all_btn',
+		}, ci18n('tournament:edit:displays:delete_all'));
+		delete_all_btn.addEventListener('click', on_display_delete_all_click);
 
 
 		const rendered_display_ids = new Set();
@@ -7353,6 +7369,54 @@ var ctournament = (function() {
 			const tr = uiu.el(display_tbody, 'tr', { 'data-display_id': display.client_id });
 			render_display(tr, display);
 		}
+	}
+
+	function get_deletable_display_client_ids() {
+		const ids = [];
+		const seen = new Set();
+		(curt.displays || []).forEach((display) => {
+			if (!display || display.online || display.client_id == null || seen.has(display.client_id)) {
+				return;
+			}
+			seen.add(display.client_id);
+			ids.push(display.client_id);
+		});
+		return ids;
+	}
+
+	function delete_display_client_ids(client_ids, callback) {
+		const ids = client_ids.slice();
+		const next = () => {
+			const display_client_id = ids.shift();
+			if (display_client_id == null) {
+				if (callback) {
+					callback();
+				}
+				return;
+			}
+			send_with_live_status({
+				type: 'display_delete',
+				tournament_key: curt.key,
+				display_client_id: display_client_id,
+			}, err => {
+				if (err) {
+					return cerror.net(err);
+				}
+				next();
+			});
+		};
+		next();
+	}
+
+	function on_display_delete_all_click() {
+		const client_ids = get_deletable_display_client_ids();
+		if (client_ids.length < 1) {
+			return;
+		}
+		if (!window.confirm(ci18n('tournament:edit:displays:delete_all_confirm', { count: client_ids.length }))) {
+			return;
+		}
+		delete_display_client_ids(client_ids);
 	}
 
 	function update_display(display) {
@@ -7404,7 +7468,7 @@ var ctournament = (function() {
 		const actions_td = uiu.el(tr, 'td', {});
 		const reset_btn = uiu.el(actions_td, 'button', {
 			'data-display-client-id': display.client_id,
-		}, 'Restart');
+		}, ci18n('tournament:edit:displays:restart'));
 
 		if (!display.online) {
 			reset_btn.setAttribute('disabled', 'disabled');
@@ -7426,7 +7490,7 @@ var ctournament = (function() {
 		const delete_td = uiu.el(tr, 'td', {});
 		const delete_btn = uiu.el(delete_td, 'button', {
 			'data-display-client-id': display.client_id,
-		}, 'Delete');
+		}, ci18n('tournament:edit:delete'));
 		if (display.online) {
 			delete_btn.setAttribute('disabled', 'disabled');
 		}
@@ -7667,7 +7731,7 @@ var ctournament = (function() {
 			const actions_td = uiu.el(tr, 'td', {});
 			const del_btn = uiu.el(actions_td, 'button', {
 				'data-location-id': l._id,
-			}, 'Delete');
+			}, ci18n('tournament:edit:delete'));
 			del_btn.addEventListener('click', function (e) {
 				const del_btn = e.target;
 				const location_id = del_btn.getAttribute('data-location-id');
@@ -9484,7 +9548,7 @@ function update_officials() {
 			const actions_td = uiu.el(tr, 'td', {});
 			const del_btn = uiu.el(actions_td, 'button', {
 				'data-court-id': c._id,
-			}, 'Delete');
+			}, ci18n('tournament:edit:delete'));
 			del_btn.addEventListener('click', function (e) {
 				const del_btn = e.target;
 				const court_id = del_btn.getAttribute('data-court-id');
@@ -9656,19 +9720,20 @@ function update_officials() {
 	function create_numeric_input(curt, parent_el, filed_id, min_value, max_value, default_value, step_value) {
 		const text_input = uiu.el(parent_el, 'label');
 		uiu.el(text_input, 'span', {}, ci18n('tournament:edit:' + filed_id));
-			const result = uiu.el(text_input, 'input', {
-				type: "number",
-				name: filed_id,
-				value: curt[filed_id] || default_value,
-				min: min_value,
-				max: max_value,
-				step: step_value
-			});
-			bind_live_prop(result, filed_id, {
-				get_value: input_el => Number(input_el.value),
-			});
-			return result;
-		}
+		const current_value = curt[filed_id];
+		const result = uiu.el(text_input, 'input', {
+			type: "number",
+			name: filed_id,
+			value: current_value == null || current_value === '' ? default_value : current_value,
+			min: min_value,
+			max: max_value,
+			step: step_value
+		});
+		bind_live_prop(result, filed_id, {
+			get_value: input_el => Number(input_el.value),
+		});
+		return result;
+	}
 
 	function create_select_input(curt, parent_el, filed_id, values) {
 		const label = uiu.el(parent_el, 'label');

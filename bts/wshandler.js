@@ -4,13 +4,14 @@ const serror = require('./serror');
 
 
 function handle(mod, app, ws) {
+	const outbox = require('./admin_response/outbox')(ws);
+	ws.outbox_stats = outbox.stats;
 	function _ws_sendmsg(msg) {
-		const msg_json = JSON.stringify(msg);
-		ws.send(msg_json);
+		outbox.send(msg);
 	}
 	ws.sendmsg = _ws_sendmsg;
 
-	function _respond(request, err, response) {
+	function response_message(request, err, response) {
 		if (err) {
 			response = {
 				type: 'error',
@@ -26,9 +27,19 @@ function handle(mod, app, ws) {
 			response.type = 'answer';
 		}
 		response.rid = request.rid;
-		ws.sendmsg(response);
+		return response;
+	}
+	function _respond(request, err, response, background = false) {
+		response = response_message(request, err, response);
+		if (background && !err) outbox.large(response, request.key);
+		else ws.sendmsg(response);
 	}
 	ws.respond = _respond;
+	ws.respond_background = (request, err, response) => _respond(request, err, response, true);
+	ws.reserve_response = request => {
+		const reservation = outbox.reserve();
+		return (err, response) => outbox.complete(reservation, response_message(request, err, response), request.key, !err);
+	};
 
 	mod.on_connect(app, ws);
 

@@ -4,7 +4,17 @@
 	"author": "Philipp Hagemeister <phihag@phihag.de>",
 	"description": "Badminton Tournament Server",
 	"scripts": {
-		"test": "mocha test/"
+		"test": "mocha test/",
+		"lint:js": "eslint bts/ ticker/ test/ debug/ static/js/ div/*.js *.js",
+		"debug:simulate-tournament": "node debug/tournament_simulation_probe.js",
+		"debug:live-drill": "node debug/live_tournament_drill.js",
+		"debug:dashboard": "node debug/live_dashboard.js",
+		"debug:benchmark": "node debug/live_tournament_drill.js --scenario benchmark",
+		"debug:offload-benchmark": "node debug/offload_benchmark.js",
+		"debug:benchmark-sequence": "node debug/run_benchmark_sequence.js",
+		"debug:isolated-sync": "node debug/isolated_sync_benchmark.js",
+		"debug:isolated-admin": "node debug/isolated_admin_benchmark.js",
+		"debug:isolated-transport": "node debug/isolated_transport_benchmark.js"
 	},
 	"dependencies": {
 		"argparse": "^1.0.10",
@@ -26,7 +36,7 @@
 	},
 	"devDependencies": {
 		"acorn": "^6.1.1",
-		"eslint": "*",
+		"eslint": "8.57.1",
 		"mocha": "*",
 		"stylelint": "*",
 		"stylelint-config-standard": "*",

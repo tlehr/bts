@@ -7,6 +7,7 @@ const vm = require('vm');
 
 const {_describe, _it} = require('./tutils.js');
 
+const calc = require('../static/bup/dev/js/calc');
 const match_scoring = require('../static/js/match_scoring');
 
 function createFakeElement(tagName) {
@@ -55,8 +56,11 @@ function createFakeElement(tagName) {
 	};
 }
 
-function loadCmatchForUpdateCourtTest(tr, curt) {
+function loadCmatchForUpdateCourtTest(tr, curt, history) {
 	const source = fs.readFileSync(path.join(__dirname, '..', 'static', 'js', 'cmatch.js'), 'utf8');
+	const routes = [];
+	const ci18n = (key) => key;
+	ci18n.get_lang = () => 'de-DE';
 	const context = {
 		console,
 		setTimeout() { return 1; },
@@ -77,13 +81,16 @@ function loadCmatchForUpdateCourtTest(tr, curt) {
 			querySelectorAll() { return []; },
 		},
 		curt,
-		crouting: { register() {} },
+		cmatch_history: history,
+		crouting: { register(pattern, load) { routes.push({ pattern, load }); } },
+		ctournament: { switch_tournament(_key, callback) { callback(); } },
 		change: { default_handler(fn) { return fn; } },
-		ci18n: (key) => key,
+		ci18n,
 		cerror: { net() {}, silent() {} },
 		cflags: { render_flag_el() {} },
 		cbts_utils: { cmp(a, b) { return a === b ? 0 : (a < b ? -1 : 1); } },
 		ctabletoperator: { add_to_tabletoperator() {} },
+		calc,
 		utils: {
 			find(list, predicate) {
 				return (list || []).find(predicate);
@@ -132,10 +139,24 @@ function loadCmatchForUpdateCourtTest(tr, curt) {
 	};
 	vm.createContext(context);
 	vm.runInContext(source, context, { filename: 'cmatch.js' });
+	context.cmatch.test_routes = routes;
 	return context.cmatch;
 }
 
 _describe('cmatch', () => {
+	_it('loads deferred finished histories before editing or reconstructing a scoresheet', () => {
+		const match = { _id: 'finished', setup: { state: 'finished' }, presses_deferred: true };
+		const requested = [];
+		const cmatch = loadCmatchForUpdateCourtTest(createFakeElement('tr'), { matches: [match] },
+			{ load(source) { requested.push(source); } });
+		for (const view of ['edit', 'scoresheet']) {
+			const url = 't/default/m/finished/' + view;
+			const route = cmatch.test_routes.find(r => r.pattern.test(url));
+			route.load(route.pattern.exec(url));
+		}
+		assert.deepStrictEqual(requested, [match, match]);
+	});
+
 	_it('detects match end for default 3x21 fallback', () => {
 		assert.strictEqual(match_scoring.is_match_over([[21, 10], [21, 18]], null), true);
 		assert.strictEqual(match_scoring.is_match_over([[21, 10], [18, 21]], null), false);
@@ -161,6 +182,233 @@ _describe('cmatch', () => {
 
 		assert.strictEqual(match_scoring.is_match_over([[21, 18], [19, 21], [11, 9]], scoringFormat), true);
 		assert.strictEqual(match_scoring.is_match_over([[21, 18], [19, 21], [10, 9]], scoringFormat), false);
+	});
+
+	_it('hides the admin match timer after side choice', () => {
+		const cmatch = loadCmatchForUpdateCourtTest(createFakeElement('tr'), {});
+
+		assert.strictEqual(cmatch._should_hide_admin_match_timer({
+			presses: [{ type: 'pick_side', timestamp: 1770000005000, team1_left: true }],
+		}), true);
+	});
+
+	_it('hides the admin match timer after the first point without press history', () => {
+		const cmatch = loadCmatchForUpdateCourtTest(createFakeElement('tr'), {});
+
+		assert.strictEqual(cmatch._should_hide_admin_match_timer({
+			network_score: [[1, 0]],
+		}), true);
+		assert.strictEqual(cmatch._should_hide_admin_match_timer({
+			network_score: [[0, 0]],
+		}), false);
+	});
+
+	_it('keeps admin pause timer visible after an interval point', () => {
+		const cmatch = loadCmatchForUpdateCourtTest(createFakeElement('tr'), {});
+		const presses = [
+			{ type: 'pick_side', timestamp: 1770000000000, team1_left: true },
+			{ type: 'love-all', timestamp: 1770000001000 },
+		];
+		for (let idx = 0; idx < 11; idx += 1) {
+			presses.push({ type: 'score', timestamp: 1770000002000 + idx * 1000, side: 'left' });
+		}
+
+		const timerState = cmatch._extract_match_timer_state({
+			setup: {
+				match_id: 'match-1',
+				is_match: true,
+				is_doubles: false,
+				counting: '1x21',
+				scoring_format: calc.scoring_format_from_counting('1x21'),
+				teams: [
+					{ players: ['Alice Example'] },
+					{ players: ['Bob Example'] },
+				],
+			},
+			presses,
+		});
+
+		assert.strictEqual(timerState.timer.start, 1770000012000);
+		assert.strictEqual(timerState.timer.duration, 60000);
+	});
+
+	_it('does not reconstruct admin timers for finished matches with stale press history', () => {
+		const cmatch = loadCmatchForUpdateCourtTest(createFakeElement('tr'), {});
+		const presses = [
+			{ type: 'pick_side', timestamp: 1770000000000, team1_left: true },
+			{ type: 'love-all', timestamp: 1770000001000 },
+			{ type: 'score', timestamp: 1770000002000, side: 'left' },
+			{ type: 'postgame-confirm', timestamp: 1770000003000 },
+		];
+
+		const timerState = cmatch._extract_match_timer_state({
+			_id: 'match-1',
+			team1_won: true,
+			end_ts: 1770000004000,
+			setup: {
+				match_id: 'match-1',
+				match_num: 36,
+				state: 'finished',
+				is_match: true,
+				is_doubles: false,
+				counting: '1x21',
+				scoring_format: calc.scoring_format_from_counting('1x21'),
+				teams: [
+					{ players: ['Alice Example'] },
+					{ players: ['Bob Example'] },
+				],
+			},
+			presses,
+		});
+
+		assert.strictEqual(timerState, null);
+	});
+
+	_it('allows manual preparation calls for deferred matches with tablet operators', () => {
+		const cmatch = loadCmatchForUpdateCourtTest(createFakeElement('tr'), {
+			matches: [],
+			courts: [],
+		});
+		const match = {
+			setup: {
+				state: 'scheduled',
+				preparation_call_deferred: true,
+				is_match: true,
+				incomplete: false,
+				teams: [
+					{ players: [{ btp_id: 1, now_tablet_on_court: 'court-1' }] },
+					{ players: [{ btp_id: 2 }] },
+				],
+			},
+		};
+
+		assert.strictEqual(cmatch._is_manual_preparation_call_allowed_for_location(match, { _id: 'l1' }), true);
+	});
+
+	_it('does not show stale tablet operator court badges from non-running matches', () => {
+		const cmatch = loadCmatchForUpdateCourtTest(createFakeElement('tr'), {
+			tabletoperators: [],
+			matches: [
+				{
+					_id: 'old-match',
+					setup: {
+						now_on_court: false,
+						court_id: 'default_3',
+						tabletoperators: [
+							{ btp_id: 7, now_tablet_on_court: 'default_3' },
+						],
+					},
+				},
+			],
+		});
+
+		assert.strictEqual(
+			cmatch._active_tabletoperator_court_for_player({ btp_id: 7, now_tablet_on_court: 'default_3' }),
+			false
+		);
+	});
+
+	_it('shows tablet operator court badges for running matches', () => {
+		const cmatch = loadCmatchForUpdateCourtTest(createFakeElement('tr'), {
+			tabletoperators: [],
+			matches: [
+				{
+					_id: 'running-match',
+					setup: {
+						now_on_court: true,
+						court_id: 'default_3',
+						tabletoperators: [
+							{ btp_id: 7 },
+						],
+					},
+				},
+			],
+		});
+
+		assert.strictEqual(
+			cmatch._active_tabletoperator_court_for_player({ btp_id: 7 }),
+			'default_3'
+		);
+	});
+
+	_it('marks preparation callable only when the automatic call window is eligible', () => {
+		const cmatch = loadCmatchForUpdateCourtTest(createFakeElement('tr'), {
+			location_preparation_selection_by_location_id: {
+				l1: {
+					diagnostics_by_match_id: {
+						manual_only: {
+							manual_eligible: true,
+							criteria_eligible: true,
+							within_call_window: false,
+							eligible: false,
+						},
+						automatic: {
+							manual_eligible: true,
+							criteria_eligible: true,
+							within_call_window: true,
+							eligible: true,
+						},
+					},
+				},
+			},
+		});
+
+		const callable = cmatch._get_preparation_callable_match_ids();
+
+		assert.strictEqual(callable.has('manual_only'), false);
+		assert.strictEqual(callable.has('automatic'), true);
+	});
+
+	_it('hides manual preparation calls while a player is playing', () => {
+		const cmatch = loadCmatchForUpdateCourtTest(createFakeElement('tr'), {
+			matches: [],
+			courts: [],
+		});
+		const match = {
+			setup: {
+				state: 'scheduled',
+				is_match: true,
+				incomplete: false,
+				teams: [
+					{ players: [{ btp_id: 1, now_playing_on_court: 'court-1' }] },
+					{ players: [{ btp_id: 2 }] },
+				],
+			},
+		};
+
+		assert.strictEqual(cmatch._is_manual_preparation_call_allowed_for_location(match, { _id: 'l1' }), false);
+	});
+
+	_it('hides manual preparation calls for players removed by special result in the same discipline', () => {
+		const source = {
+			score_status: 'retired',
+			team1_won: true,
+			setup: {
+				event_name: 'JE U13 - Gruppe A',
+				teams: [
+					{ players: [{ btp_id: 1 }] },
+					{ players: [{ btp_id: 2 }] },
+				],
+			},
+		};
+		const match = {
+			setup: {
+				event_name: 'JE U13 - Position 1-4',
+				state: 'scheduled',
+				is_match: true,
+				incomplete: false,
+				teams: [
+					{ players: [{ btp_id: 2 }] },
+					{ players: [{ btp_id: 3 }] },
+				],
+			},
+		};
+		const cmatch = loadCmatchForUpdateCourtTest(createFakeElement('tr'), {
+			matches: [source, match],
+			courts: [],
+		});
+
+		assert.strictEqual(cmatch._is_manual_preparation_call_allowed_for_location(match, { _id: 'l1' }), false);
 	});
 
 	_it('clears a stale finished match from a court row when the court is updated', () => {
@@ -260,7 +508,7 @@ _describe('cmatch', () => {
 
 		assert.strictEqual(
 			cmatch._format_participant_dependency(target, 0, [predecessor]),
-			'Winner #18 - 2026-04-18 11:30'
+			'Winner #18 - 18.4.2026 11:30'
 		);
 		assert.strictEqual(
 			cmatch._format_participant_dependency(target, 1, [predecessor]),
@@ -290,6 +538,65 @@ _describe('cmatch', () => {
 		assert.strictEqual(
 			cmatch._format_participant_dependency(target, 0, []),
 			'CP-VF (5/12)'
+		);
+	});
+
+	_it('adds predecessor time to direct winner labels that lack it', () => {
+		const tr = createFakeElement('tr');
+		tr.setAttribute('data-court_id', 'court-1');
+		const cmatch = loadCmatchForUpdateCourtTest(tr, {
+			matches: [],
+		});
+
+		const target = {
+			_id: 'target',
+			btp_match_ids: [{ planning: 3005 }],
+			setup: {
+				links: {
+					from1: 4009,
+					from1_link: 'Winner #18',
+				}
+			}
+		};
+		const predecessor = {
+			_id: 'pred-1',
+			btp_match_ids: [{ planning: 4009 }],
+			setup: {
+				is_match: true,
+				match_num: 18,
+				scheduled_date: '2026-04-18',
+				scheduled_time_str: '11:30',
+				links: {
+					winner_to: 3005,
+				}
+			}
+		};
+
+		assert.strictEqual(
+			cmatch._format_participant_dependency(target, 0, [predecessor]),
+			'Winner #18 - 18.4.2026 11:30'
+		);
+	});
+
+	_it('localizes date in direct winner labels that already include ISO date', () => {
+		const tr = createFakeElement('tr');
+		tr.setAttribute('data-court_id', 'court-1');
+		const cmatch = loadCmatchForUpdateCourtTest(tr, {
+			matches: [],
+		});
+
+		const target = {
+			_id: 'target',
+			setup: {
+				links: {
+					from1_link: 'Winner #18 - 2026-04-18 11:30',
+				}
+			}
+		};
+
+		assert.strictEqual(
+			cmatch._format_participant_dependency(target, 0, []),
+			'Winner #18 - 18.4.2026 11:30'
 		);
 	});
 
@@ -340,7 +647,7 @@ _describe('cmatch', () => {
 
 		assert.strictEqual(
 			cmatch._format_participant_dependency(target, 0, [placeholder, predecessor]),
-			'Winner #18 - 2026-04-18 11:30'
+			'Winner #18 - 18.4.2026 11:30'
 		);
 		assert.strictEqual(
 			cmatch._format_participant_dependency(target, 1, [placeholder, predecessor]),
@@ -460,7 +767,7 @@ _describe('cmatch', () => {
 
 		assert.strictEqual(
 			cmatch._format_participant_dependency(target, 1, [feederA, feederB, visibleConsolidation]),
-			'Loser #17 - 2026-04-18 11:00'
+			'Loser #17 - 18.4.2026 11:00'
 		);
 	});
 });

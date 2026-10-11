@@ -30,7 +30,7 @@ function read_config(callback, autocreate) {
 			utils.copy_file('config.json.default', 'config.json', function(err) {
 				if (err) return callback(err);
 
-				console.log('Created default configuration in ' + path.resolve('config.json'));  // eslint-disable-line no-console
+				require('./server_diagnostics').log(null, null, 'Created default configuration in ' + path.resolve('config.json'));
 				read_config(callback, false);
 			});
 			return;
@@ -53,10 +53,12 @@ function main() {
 		function (config, db, cb) {
 			const app = create_app(config, db);
 			clock.init(app).then(() => {
-				match_utils.start_technical_official_pause_manager(app);
-				match_utils.start_player_court_reconciliation_manager(app);
-				btp_manager.init(app, (err) => cb(err, app));
-			}).catch(cb);
+					match_utils.start_technical_official_pause_manager(app);
+					match_utils.start_player_court_reconciliation_manager(app);
+					match_utils.start_preparation_age_auto_call_manager(app);
+					match_utils.start_preparation_pause_auto_call_manager(app);
+					btp_manager.init(app, (err) => cb(err, app));
+				}).catch(cb);
 		}, function(app, cb) {
 			ticker_manager.init(app, cb);
 		},
@@ -138,7 +140,7 @@ function create_app(config, db) {
 
 	if (config.enable_https) {
 		server.listen(config.https_port, function () {
-			console.log("HTTPS server listening on port " + config.https_port);
+			require('./server_diagnostics').log(app, null, 'HTTPS server listening on port ' + config.https_port);
 		});
 		const httpApp = express();
 		httpApp.get("*", function (req, res, next) {
@@ -150,11 +152,11 @@ function create_app(config, db) {
 		});
 
 		require('http').createServer(httpApp).listen(config.port, function () {
-			console.log("HTTP server listening on port " + config.port+" ==> permanently redirected to https.");
+			require('./server_diagnostics').log(app, null, 'HTTP server listening on port ' + config.port + ' ==> permanently redirected to https.');
 		});
 	} else {
 		server.listen(config.port, function () {
-			console.log("HTTP server listening on port " + config.port);
+			require('./server_diagnostics').log(app, null, 'HTTP server listening on port ' + config.port);
 		});
 	}
 	return app;

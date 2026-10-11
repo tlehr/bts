@@ -17,6 +17,39 @@ const MATCH_TYPES = {
 	'11': 'GD',
 };
 
+function _btp_stage_entry_status_label(raw_status) {
+	switch (Number(raw_status)) {
+		case 108:
+			return "DNS";
+		case 109:
+			return "WDN";
+		default:
+			return "<none>";
+	}
+}
+
+function _set_player_draw_entry_status(player, draw_id, entry_status) {
+	if (!player.entries) {
+		player.entries = new Map();
+	}
+	if (!player.entries.has(draw_id)) {
+		player.entries.set(draw_id, "<none>");
+	}
+	if (entry_status !== "<none>") {
+		player.entries.set(draw_id, entry_status);
+	}
+}
+
+function _players_draw_entry_status(players, draw_id) {
+	if (!Array.isArray(players) || players.length === 0) {
+		return "<none>";
+	}
+	const statuses = players
+		.map(player => player && player.entries instanceof Map ? player.entries.get(draw_id) : undefined)
+		.filter(status => status && status !== "<none>");
+	return statuses.length > 0 && statuses.every(status => status === statuses[0]) ? statuses[0] : "<none>";
+}
+
 
 function _calc_match_id(bm, is_league) {
 	if (is_league) {
@@ -41,7 +74,8 @@ function filter_matches(all_btp_matches, is_league) {
 // bts_winners: Array of players who have won this match.
 function _calc_match_players(matches_by_pid, entries, stage_entries, draws, players, bm, is_league) {
 	const draw = draws.get(bm.DrawID[0]);
-	const stage_id = draw.StageID[0];
+	const draw_id = draw && draw.ID ? draw.ID[0] : bm.DrawID[0];
+	const stage_id = draw && draw.StageID ? draw.StageID[0] : undefined;
 	let entry_status = "<none>";
 
 	if (bm.bts_winners) {
@@ -55,18 +89,12 @@ function _calc_match_players(matches_by_pid, entries, stage_entries, draws, play
 		}
 
 		for (const [key, value] of stage_entries) {
-		    if (value.StageID[0] === stage_id && value.EntryID[0] === bm.EntryID[0]) {
+			if (stage_id == null) {
+				break;
+			}
+		    if (String(value.StageID[0]) === String(stage_id) && String(value.EntryID[0]) === String(bm.EntryID[0])) {
 		        //console.log(`Gefunden: Key = ${key}, Value =`, value);
-				switch (value.Status[0]){
-					case 108:
-						entry_status = "DNS";
-						break;
-					case 109:
-						entry_status = "WDN";
-						break;
-
-
-				}
+				entry_status = _btp_stage_entry_status_label(value.Status && value.Status[0]);
 		        break;
 		    }
 		}
@@ -75,25 +103,13 @@ function _calc_match_players(matches_by_pid, entries, stage_entries, draws, play
 		const p1 = players.get(e.Player1ID[0]);
 		assert(p1);
 
-		if(!p1.entries) {
-			p1.entries = new Map([[draw.ID[0], "<none>"]]);
-		}
-
-		if(entry_status != "<none>") {
-			p1.entries.set(draw.ID[0], entry_status);
-		}
+		_set_player_draw_entry_status(p1, draw_id, entry_status);
 
 		const res = [p1];
 		if (e.Player2ID) {
 			const p2 = players.get(e.Player2ID[0]);
 			assert(p2);
-			if(!p2.entries) {
-				p2.entries = new Map([[draw.ID[0], "<none>"]]);
-			}
-	
-			if(entry_status != "<none>") {
-				p2.entries.set(draw.ID[0], entry_status);
-			}
+			_set_player_draw_entry_status(p2, draw_id, entry_status);
 			res.push(p2);
 		}
 		bm.bts_winners = res;
@@ -139,17 +155,20 @@ function _calc_match_players(matches_by_pid, entries, stage_entries, draws, play
 	}
 
 	bm.bts_players = [p1ar, p2ar];
-	bm.bts_players_entry_status = [p1es, p2es];
+	bm.bts_players_entry_status = [
+		p1es || _players_draw_entry_status(p1ar, draw_id),
+		p2es || _players_draw_entry_status(p2ar, draw_id),
+	];
 
 	if (p1ar && p2ar) {
 		bm.bts_complete = true;
 		if (bm.Winner) {
-			//if (! bm.bts_winners) {
-				// TODO: happened at DM O 35
-				//serror.silent(
-				//	'Strange match (num ' + bm.MatchNr + ') with Winner = ' + bm.Winner + ', '+
-				//	'but no winning players');
-			//}
+			const winner = Number(bm.Winner[0]);
+			if (winner === 1) {
+				bm.bts_winners = p1ar;
+			} else if (winner === 2) {
+				bm.bts_winners = p2ar;
+			}
 			return;
 		}
 	}

@@ -65,4 +65,28 @@ _describe('btp_proto update_request', () => {
 		const player_ids = req.Update.Tournament.Players.map((entry) => entry.Player.ID);
 		assert.deepStrictEqual(player_ids, [11, 22]);
 	});
+
+	_it('sends a bye-vs-bye auto winner without score sets or special status', () => {
+		const req = btp_proto.update_request({
+			btp_match_ids: [{ id: 1, draw: 2, planning: 3 }],
+			team1_won: true,
+			btp_winner: 1,
+			btp_winner_only_update: true,
+			score_status: 'normal',
+			btp_score_status: 0,
+			setup: {
+				highlight: 0,
+				teams: [
+					{ players: [] },
+					{ players: [] },
+				],
+			},
+		}, 'unicode');
+
+		const match = req.Update.Tournament.Matches[0].Match;
+		assert.strictEqual(match.Winner, 1);
+		assert.strictEqual(match.ScoreStatus, undefined);
+		assert.strictEqual(match.Sets, undefined);
+		assert.strictEqual(match.Duration, undefined);
+	});
 });

@@ -101,9 +101,10 @@ var change = (function() {
 
 	function _after_tournament_field_change(field, value, change_obj) {
 		const preparation_selection_live_fields = new Set([
-			'call_preparation_matches_automatically_enabled',
-			'preparation_successor_rally_count',
-			'preparation_call_player_pause_expired_enabled',
+				'call_preparation_matches_automatically_enabled',
+				'preparation_successor_rally_count',
+				'preparation_call_min_gap_seconds',
+				'preparation_call_player_pause_expired_enabled',
 			'preparation_call_debug_output_enabled',
 			'preparation_call_debug_icons_enabled',
 			'preparation_call_technical_officials_available_enabled',
@@ -234,6 +235,7 @@ var change = (function() {
 
 		m.network_score = cval.network_score;
 		m.presses = cval.presses;
+		delete m.presses_deferred;
 		m.team1_won = cval.team1_won;
 		if (cval.shuttle_count !== undefined) {
 			m.shuttle_count = cval.shuttle_count;
@@ -501,7 +503,6 @@ var change = (function() {
 				c.val.match.setup._announcement_claim_key = `match_preparation_call:${c.val.match__id}:${c.val._announcement_ts || 'na'}`;
 				c.val.match.setup._match_id = c.val.match__id;
 			}
-			_handle_announcement_event('match_preparation_call', c.val, () => announcePreparationMatch(c.val.match.setup));
 			if (current_view === 'show') {
 				ctournament.update_match(c);
 			} else {
@@ -509,6 +510,17 @@ var change = (function() {
 			}
 			if (current_view === 'show' && ctournament && typeof ctournament.update_location_preparation_need_labels === 'function') {
 				ctournament.update_location_preparation_need_labels();
+			}
+			try {
+				_handle_announcement_event('match_preparation_call', c.val, () => announcePreparationMatch(c.val.match.setup));
+			} catch (err) {
+				console.error('[bts admin] preparation announcement failed', {
+					match_id: c.val && (c.val.match__id || (c.val.match && c.val.match._id)),
+					err,
+				});
+				if (typeof cerror !== 'undefined' && cerror && typeof cerror.silent === 'function') {
+					cerror.silent('Vorbereitungsdurchsage konnte nicht abgespielt werden: ' + (err && err.message ? err.message : err));
+				}
 			}
 			break;
 		case 'match_called_on_court':
@@ -905,9 +917,11 @@ var change = (function() {
 			}
 			break;
 		case 'delete_display':
-			const client_id = c.val.client_id;
+			const client_id = c.val && c.val.client_id ? c.val.client_id : c.val;
 			const display = utils.find(curt.displays, m => m.client_id === client_id);
-			utils.remove(curt.displays, display);
+			if (display) {
+				utils.remove(curt.displays, display);
+			}
 			ctournament.delete_display(c);
 			break;
 		case 'display_render_stats':

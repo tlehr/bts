@@ -1,105 +1,26 @@
 'use strict';
 
-class update_queue {
-	constructor() {
-		this.queue = [];
-		this.active = false;
-		this.current_task = null;
-		this.current_task_started_at = null;
-		this.current_task_watchdog = null;
-		this.hang_reporter = null;
-	}
+const lock_keys = require('./queue_lock_keys');
+const { ResourceLockQueue } = require('./resource_lock_queue');
 
-	_task_name(task) {
-		if (!task) {
-			return '<unknown>';
-		}
-		if (task._queue_name) {
-			return task._queue_name;
-		}
-		return task.name && task.name.length > 0 ? task.name : '<anonymous>';
-	}
-
-	_task_hang_after_ms(task) {
-		if (!task) {
-			return 5000;
-		}
-		if (typeof task._queue_hang_after_ms === 'number' && task._queue_hang_after_ms > 0) {
-			return task._queue_hang_after_ms;
-		}
-		return 5000;
-	}
-
-	_start_watchdog(task, task_name) {
-		this._clear_watchdog();
-		const hang_after_ms = this._task_hang_after_ms(task);
-		this.current_task_watchdog = setTimeout(() => {
-			const runtime_ms = this.current_task_started_at ? (Date.now() - this.current_task_started_at) : null;
-			const payload = {
-				task: task_name,
-				runtime_ms,
-				queue_length: this.queue.length
-			};
-			console.warn('[bts] update_queue:task_still_running', payload);
-			if (typeof this.hang_reporter === 'function') {
-				try {
-					this.hang_reporter(payload);
-				} catch (err) {
-					console.warn('[bts] update_queue:hang_reporter_error', err && (err.stack || err.message || String(err)));
-				}
-			}
-		}, hang_after_ms);
-	}
-
-	_clear_watchdog() {
-		if (this.current_task_watchdog) {
-			clearTimeout(this.current_task_watchdog);
-			this.current_task_watchdog = null;
-		}
-	}
-
-	async process() {
-		if (this.active) {
-			return;
-		}
-		this.active = true;
-		while (this.queue.length > 0) {
-			const { task, args, resolve, reject } = this.queue.shift();
-			const task_name = this._task_name(task);
-			this.current_task = task_name;
-			this.current_task_started_at = Date.now();
-			this._start_watchdog(task, task_name);
-			try {
-				const res = await task(...args);
-				this._clear_watchdog();
-				this.current_task = null;
-				this.current_task_started_at = null;
-				resolve(res);
-			} catch (err) {
-				this._clear_watchdog();
-				this.current_task = null;
-				this.current_task_started_at = null;
-				reject(err);
-			}
-		}
-		this.active = false;
-	}
-
-	async execute(task, ...args) {
-		return new Promise((resolve, reject) => {
-			this.queue.push({ task, args, resolve, reject });
-			this.process();
-		});
-	}
-
-	set_hang_reporter(fn) {
-		this.hang_reporter = fn;
-	}
-}
-const update_queue_inst = new update_queue();
+const queue = new ResourceLockQueue();
 
 function instance() {
-	return update_queue_inst;
+	return {
+		execute(task, ...args) {
+			return queue.execute(task, {
+				args,
+				locks: task?._queue_locks || [lock_keys.legacy_global()],
+				mode: 'global',
+			});
+		},
+		set_hang_reporter(fn) {
+			queue.set_hang_reporter(fn);
+		},
+		stats() {
+			return queue.stats();
+		},
+	};
 }
 
 function named(name, task) {
@@ -112,8 +33,56 @@ function hang_after(ms, task) {
 	return task;
 }
 
+function locks(lock_list, task) {
+	task._queue_locks = lock_keys.normalize_list(lock_list);
+	return task;
+}
+
+function exclusive(task) {
+	task._queue_exclusive = true;
+	task._queue_locks = lock_keys.normalize_list([...(task._queue_locks || []), lock_keys.all()]);
+	return task;
+}
+
+function keyed_instance(key) {
+	return {
+		execute(task, ...args) {
+			return execute_keyed(key, task, ...args);
+		},
+	};
+}
+
+function execute_keyed(key, task, ...args) {
+	const task_locks = task?._queue_locks || [lock_keys.keyed(key)];
+	return queue.execute(task, {
+		args,
+		locks: task_locks,
+		key,
+		mode: 'keyed',
+	});
+}
+
+function execute_locked(lock_list, task, ...args) {
+	return queue.execute(task, {
+		args,
+		locks: lock_keys.normalize_list(lock_list),
+		mode: 'locked',
+	});
+}
+
+function stats() {
+	return queue.stats();
+}
+
 module.exports = {
+	execute_keyed,
+	execute_locked,
+	exclusive,
+	hang_after,
 	instance,
+	keyed_instance,
+	locks,
+	lock_keys,
 	named,
-	hang_after
+	stats,
 };

@@ -31,6 +31,37 @@ function real_now_ms(app) {
 	return app?.clock?.real_now_ms ? app.clock.real_now_ms() : Date.now();
 }
 
+function timing_now_ns() {
+	return process.hrtime.bigint();
+}
+
+function timing_elapsed_ms(start_ns, end_ns = timing_now_ns()) {
+	return Math.round((Number(end_ns - start_ns) / 1000000) * 10) / 10;
+}
+
+function log_score_press_timing(app, tournament_key, protocol, score_data, received_start_ns, processing_start_ns, err, reason) {
+	if (err) require('./performance/traces').fail();
+	const end_ns = timing_now_ns();
+	const presses = Array.isArray(score_data?.presses) ? score_data.presses : [];
+	debug_flags.log(app, tournament_key, '[bts] score_press_timing:score_update', {
+		protocol,
+		tournament_key,
+		match_id: score_data?.match_id || null,
+		court_id: score_data?.court_id || null,
+		trace_id: score_data?.debug_trace_id || score_data?.trace_id || null,
+		press_count: presses.length,
+		last_press_type: presses.length > 0 ? presses[presses.length - 1]?.type || null : null,
+		score_sets: Array.isArray(score_data?.network_score) ? score_data.network_score.length : 0,
+		finish_confirmed: score_data?.finish_confirmed === true,
+		team1_won: typeof score_data?.team1_won === 'boolean' ? score_data.team1_won : null,
+		reason: reason || (err ? 'error' : 'ok'),
+		error: err ? err.message || String(err) : null,
+		queue_wait_ms: timing_elapsed_ms(received_start_ns, processing_start_ns),
+		processing_ms: timing_elapsed_ms(processing_start_ns, end_ns),
+		total_ms: timing_elapsed_ms(received_start_ns, end_ns),
+	});
+}
+
 function bup_outgoing_ts(app, ts) {
 	if (ts == null) {
 		return ts;
@@ -290,18 +321,25 @@ async function handle_persist_display_settings(app, ws, msg) {
 	await bupws_v2.reinitialize_client(app, tournament_key, client_id);
 }
 async function handle_score_update(app, ws, msg) {
-	return update_queue.instance().execute(update_queue.named('handle_score_update', () => new Promise((resolve) => {
+	const received_start_ns = timing_now_ns();
+	const score_data_for_locks = msg && msg.score ? msg.score : {};
+	const score_update_locks = update_queue.lock_keys.score_update(msg && msg.tournament_key, score_data_for_locks, {
+		finish: score_data_for_locks.finish_confirmed === true,
+	});
+	const task = update_queue.locks(score_update_locks, update_queue.named('handle_score_update', () => new Promise((resolve) => {
+		const processing_start_ns = timing_now_ns();
 		const match_utils = require('./match_utils');
 		const tournament_key = msg.tournament_key;
 		const score_data = msg.score;
 		const match_id = score_data.match_id;
 		let finished = false;
-		const finish = (err) => {
+		const finish = (err, reason) => {
 			if (finished) {
 				return;
 			}
 			finished = true;
 			clearTimeout(timeout);
+			log_score_press_timing(app, tournament_key, 'bup_v1', score_data, received_start_ns, processing_start_ns, err, reason);
 			if (err) {
 				send_error(ws, tournament_key, err.message || String(err));
 			}
@@ -417,6 +455,11 @@ async function handle_score_update(app, ws, msg) {
 			const preparation_successor_state = match_automation.calculate_preparation_successor_state(simulated_match, tournament, {
 				now_ts: now_ms(app),
 			});
+			const score_should_trigger_auto_preparation = match_utils.score_update_should_trigger_auto_preparation(
+				match,
+				preparation_successor_state,
+				finish_confirmed
+			);
 			update['setup.needs_preparation_successor'] = preparation_successor_state.needs_preparation_successor;
 			update['setup.needs_preparation_successor_ts'] = preparation_successor_state.needs_preparation_successor_ts;
 
@@ -450,6 +493,7 @@ async function handle_score_update(app, ws, msg) {
 							court_id: updated_match.setup && updated_match.setup.court_id,
 							now_on_court: updated_match.setup && updated_match.setup.now_on_court,
 						});
+						require('./foreground_work').release();
 					}
 					cb(null, updated_match);
 				},
@@ -528,26 +572,29 @@ async function handle_score_update(app, ws, msg) {
 					if (!updated_match) {
 						return cb(new Error('Cannot find match ' + JSON.stringify(updated_match)));
 					}
-					match_utils.auto_execute_preparation_selection_for_setup(app, tournament, updated_match.setup, (err) => {
-						if (err) {
-							return cb(err);
-						}
-						return cb(null, updated_match, changed_court);
-					});
-				},
-				(updated_match, changed_court, cb) => {
-					if (!finish_confirmed || !score_data.court_id) {
+					const auto_call_after_preparation = !!finish_confirmed && !!score_data.court_id;
+					if (!score_should_trigger_auto_preparation) {
 						return cb(null, updated_match, changed_court);
 					}
-					match_utils.call_preparation_match_on_court(app, tournament_key, score_data.court_id)
-						.then(() => cb(null, updated_match, changed_court))
-						.catch((err) => {
-							const message = err && (err.message || String(err));
-							if (/No match found to call on court/.test(message)) {
-								return cb(null, updated_match, changed_court);
+					if (auto_call_after_preparation) {
+						match_utils.queue_auto_execute_preparation_selections(app, tournament_key, (prep_err) => {
+							if (prep_err) {
+								console.warn('[bup] queued auto preparation after score failed', prep_err && (prep_err.stack || prep_err.message || String(prep_err)));
+								return;
 							}
-							return cb(err);
+							match_utils.auto_call_matches_on_free_courts(app, tournament_key, (call_err) => {
+								if (call_err) {
+									console.warn('[bup] queued auto call after score preparation failed', call_err && (call_err.stack || call_err.message || String(call_err)));
+								}
+							});
 						});
+					} else {
+						match_utils.queue_auto_execute_preparation_selections(app, tournament_key);
+					}
+					return cb(null, updated_match, changed_court);
+				},
+				(updated_match, changed_court, cb) => {
+					return cb(null, updated_match, changed_court);
 				},
 				(updated_match, changed_court, cb) => {
 					if (!device_info) {
@@ -559,6 +606,10 @@ async function handle_score_update(app, ws, msg) {
 			], finish);
 		})().catch(finish);
 	})));
+	task._queue_trace_id = score_data_for_locks.debug_trace_id || score_data_for_locks.trace_id || null;
+	task._queue_context = { tournament_key: msg.tournament_key, court_id: score_data_for_locks.court_id,
+		match_id: score_data_for_locks.match_id, type: score_data_for_locks.finish_confirmed ? 'finish' : 'point' };
+	return update_queue.instance().execute(task);
 }
 async function handle_device_info(app, ws, msg) {
 	const tournament_key = msg.tournament_key;
@@ -672,7 +723,9 @@ async function send_finshed_confirmed(app, tournament_key, court_id, match_id) {
 }
 
 async function confirm_match_finished_from_admin(app, tournament_key, match_id, court_id) {
-	return update_queue.instance().execute(update_queue.named('confirm_match_finished_from_admin', async () => {
+	const task = update_queue.locks(
+		update_queue.lock_keys.score_update(tournament_key, { match_id, court_id }, { finish: true }),
+		update_queue.named('confirm_match_finished_from_admin', async () => {
 		const match_utils = require('./match_utils');
 		const [match, tournament, court] = await Promise.all([
 			match_utils.fetch_match(app, tournament_key, match_id),
@@ -687,6 +740,9 @@ async function confirm_match_finished_from_admin(app, tournament_key, match_id, 
 		}
 		if (!court) {
 			throw new Error('Court not found ' + JSON.stringify(court_id));
+		}
+		if (match.setup?.court_id && match.setup.court_id !== court_id) {
+			throw new Error('Match moved to another court; retry finish confirmation.');
 		}
 		const network_score = Array.isArray(match.network_score) ? match.network_score : [];
 		let team1_won = typeof match.team1_won === 'boolean' ? match.team1_won : null;
@@ -755,6 +811,7 @@ async function confirm_match_finished_from_admin(app, tournament_key, match_id, 
 			court_id: updated_match.setup && updated_match.setup.court_id,
 			now_on_court: updated_match.setup && updated_match.setup.now_on_court,
 		});
+		require('./foreground_work').release();
 		btp_manager.update_score(app, updated_match);
 		await match_utils.reset_player_tabletoperator(app, tournament_key, match_id, end_ts);
 		await new Promise((resolve, reject) => {
@@ -770,24 +827,20 @@ async function confirm_match_finished_from_admin(app, tournament_key, match_id, 
 		});
 		handle_score_change(app, tournament_key, court_id);
 		ticker_manager.pushall(app, tournament_key);
-		await new Promise((resolve, reject) => {
-			match_utils.auto_execute_preparation_selection_for_setup(app, tournament, updated_match.setup, (err) => {
+		match_utils.queue_auto_execute_preparation_selections(app, tournament_key, (prep_err) => {
+			if (prep_err) {
+				console.warn('[bup] queued auto preparation after finish confirmation failed', prep_err && (prep_err.stack || prep_err.message || String(prep_err)));
+				return;
+			}
+			match_utils.auto_call_matches_on_free_courts(app, tournament_key, (err) => {
 				if (err) {
-					return reject(err);
+					console.warn('[bup] queued auto call after finish confirmation failed', err && (err.stack || err.message || String(err)));
 				}
-				resolve();
 			});
 		});
-		try {
-			await match_utils.call_preparation_match_on_court(app, tournament_key, court_id);
-		} catch (err) {
-			const message = err && (err.message || String(err));
-			if (!/No match found to call on court/.test(message)) {
-				throw err;
-			}
-		}
 		return updated_match;
 	}));
+	return update_queue.instance().execute(task);
 }
 
 async function send_advertisement_add(app, tournament_key, advertisement) {
@@ -1472,6 +1525,7 @@ async function refresh_protocol_mode(app, tournament_key) {
 		if (panel_ws.last_tournament_key && panel_ws.last_tournament_key !== tournament_key) {
 			continue;
 		}
+		panel_ws.court_id = undefined;
 		if (use_v2) {
 			send_use_bup_v2(panel_ws, tournament_key);
 		} else {

@@ -38,6 +38,13 @@ function fetch(tkey) {
 }
 
 function update_score(app, match) {
+	if (app?._btp_sync_effects) {
+		const effects = require('./btp_sync_effects');
+		const value = effects.copy(match);
+		effects.capture(app, real_app => update_score(real_app, value), { matches: [value._id], players: value.btp_player_ids || [], hidden_bye: value.btp_winner_only_update && !value._id },
+			{ target: 'btp_manager', method: 'update_score', args: [value] });
+		return true;
+	}
 	assert(match);
 	const tkey = match.tournament_key;
 	assert(tkey);
@@ -56,6 +63,14 @@ function update_score(app, match) {
 }
 
 function update_players(app, tkey, players) {
+	if (app?._btp_sync_effects) {
+		const effects = require('./btp_sync_effects');
+		const value = effects.copy(players || []);
+		if (!value.length) return false;
+		effects.capture(app, real_app => update_players(real_app, tkey, value), { players: value.map(player => player.btp_id) },
+			{ target: 'btp_manager', method: 'update_players', args: [tkey, value] });
+		return true;
+	}
 	assert(tkey);
 
 	if (!players || players.length < 1) {
@@ -72,6 +87,14 @@ function update_players(app, tkey, players) {
 }
 
 function update_courts(app, tkey, courts) {
+	if (app?._btp_sync_effects) {
+		const effects = require('./btp_sync_effects');
+		const value = effects.copy(courts || []);
+		if (!value.length) return false;
+		effects.capture(app, real_app => update_courts(real_app, tkey, value), { courts: value.map(court => court._id) },
+			{ target: 'btp_manager', method: 'update_courts', args: [tkey, value] });
+		return true;
+	}
 	assert(tkey);
 
 	if (!courts || courts.length < 1) {
@@ -87,7 +110,14 @@ function update_courts(app, tkey, courts) {
 	conn.update_courts(courts);
 }
 
-function update_highlight(app, match) {	
+function update_highlight(app, match) {
+	if (app?._btp_sync_effects) {
+		const effects = require('./btp_sync_effects');
+		const value = effects.copy(match);
+		effects.capture(app, real_app => update_highlight(real_app, value), { matches: [value._id] },
+			{ target: 'btp_manager', method: 'update_highlight', args: [value] });
+		return true;
+	}
 	assert(match);
 	const tkey = match.tournament_key;
 	assert(tkey);

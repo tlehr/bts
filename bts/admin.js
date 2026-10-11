@@ -5,7 +5,8 @@ const fs = require('fs');
 const path = require('path');
 const uuidv4 = require('uuid/v4');
 const {promisify} = require('util');
-const xlsx = require('node-xlsx');
+const registration_xlsx = require('./registration_xlsx');
+const { text: _registration_xlsx_text, norm: _registration_xlsx_norm } = require('./registration_xlsx/parse');
 
 const btp_manager = require('./btp_manager');
 const update_queue = require('./update_queue');
@@ -45,6 +46,7 @@ function _require_msg(ws, msg, fields) {
 function _annotate_tournament(tournament) {
 	const tz = utils.get_system_timezone();
 	tournament.system_timezone = tz;
+	tournament.debug_offloading = require('./offload/profile').snapshot();
 	debug_flags.set_from_tournament(tournament);
 }
 
@@ -144,7 +146,7 @@ function handle_tournament_edit_props(app, ws, msg) {
 		'self_check_in_called_overlay_duration_ms',
 		'ticker_enabled', 'ticker_url', 'ticker_password',
 		'language', 'dm_style', 'displaysettings_general', 'displaysettings_general_tablet',
-		'bupws_v2_enabled', 'bup_v2_admin_wait_for_score_updates', 'bts_debug_output_enabled', 'bts_client_performance_debug_enabled', 'bts_auto_call_trace_enabled',
+		'bupws_v2_enabled', 'bup_v2_admin_wait_for_score_updates', 'bts_debug_output_enabled', 'bts_server_diagnostics_enabled', 'bts_client_performance_debug_enabled', 'bts_auto_call_trace_enabled', 'bts_score_press_timing_enabled',
 		'tabletoperator_enabled', 'tabletoperator_break_seconds',
 		'announcement_speed','announcement_pause_time_ms',
 		'tabletoperator_set_break_after_tabletservice','tabletoperator_with_state_enabled',
@@ -156,6 +158,7 @@ function handle_tournament_edit_props(app, ws, msg) {
 		'preparation_meetingpoint_enabled', 'preparation_tabletoperator_setup_enabled',
 		'call_preparation_matches_automatically_enabled', 'call_next_possible_scheduled_match_in_preparation',
 		'preparation_successor_rally_count',
+		'preparation_call_min_gap_seconds',
 		'preparation_call_time_limit_before_scheduled_enabled',
 		'preparation_call_time_limit_before_scheduled_minutes',
 		'preparation_call_block_ahead_limit_enabled',
@@ -290,7 +293,7 @@ function handle_tournament_edit_prop(app, ws, msg) {
 		'self_check_in_called_overlay_duration_ms',
 		'ticker_enabled', 'ticker_url', 'ticker_password',
 		'language', 'dm_style', 'displaysettings_general', 'displaysettings_general_tablet',
-		'bupws_v2_enabled', 'bup_v2_admin_wait_for_score_updates', 'bts_debug_output_enabled', 'bts_client_performance_debug_enabled', 'bts_auto_call_trace_enabled',
+		'bupws_v2_enabled', 'bup_v2_admin_wait_for_score_updates', 'bts_debug_output_enabled', 'bts_server_diagnostics_enabled', 'bts_client_performance_debug_enabled', 'bts_auto_call_trace_enabled', 'bts_score_press_timing_enabled',
 		'tabletoperator_enabled', 'tabletoperator_break_seconds',
 		'announcement_speed', 'announcement_pause_time_ms',
 		'tabletoperator_set_break_after_tabletservice', 'tabletoperator_with_state_enabled',
@@ -303,6 +306,7 @@ function handle_tournament_edit_prop(app, ws, msg) {
 		'preparation_meetingpoint_enabled', 'preparation_tabletoperator_setup_enabled',
 		'call_preparation_matches_automatically_enabled', 'call_next_possible_scheduled_match_in_preparation',
 		'preparation_successor_rally_count',
+		'preparation_call_min_gap_seconds',
 		'preparation_call_time_limit_before_scheduled_enabled',
 		'preparation_call_time_limit_before_scheduled_minutes',
 		'preparation_call_block_ahead_limit_enabled',
@@ -762,17 +766,30 @@ async function handle_clock_set(app, ws, msg) {
 	return ws.respond(msg, null, { clock: clock_state });
 }
 
-function handle_tournament_get(app, ws, msg) {
+function handle_tournament_get(app, ws, msg, trace_done) {
 	if (! msg.key) {
 		return ws.respond(msg, {message: 'Missing key'});
 	}
+	const traces = require('./performance/traces');
+	if (!traces.capture() && traces.enabled()) return traces.operation('admin_tournament_get', { tournament_key: msg.key, type: 'admin' },
+		() => new Promise((resolve, reject) => handle_tournament_get(app, ws, msg, error => error ? reject(error) : resolve()))).catch(() => {});
+	const snapshot_span = traces.begin('admin_tournament_snapshot', 'phase');
+	// Hold later live updates on this connection from the start of the read.
+	// Copying/encoding yields, so updates can commit before the reply is ready.
+	const respond_to_client = require('./offload/profile').enabled('admin_response_background') && ws.reserve_response
+		? ws.reserve_response(msg) : (error, response) => ws.respond(msg, error, response);
+	const respond = (error, response) => {
+		traces.end(snapshot_span, error);
+		try { return respond_to_client(error, response); }
+		finally { if (trace_done) trace_done(error); }
+	};
 
 	app.db.tournaments.findOne({ key: msg.key }, function (err, tournament) {
 		if (!err && !tournament) {
 			err = { message: 'No tournament ' + msg.key };
 		}
 		if (err) {
-			ws.respond(msg, err);
+			respond(err);
 			return;
 		}
 		tournament.certificate_exports = tournament.certificate_exports || {};
@@ -816,7 +833,7 @@ function handle_tournament_get(app, ws, msg) {
 							cb(err);
 						});
 					}, function(cb) {
-						stournament.get_matches(app.db, tournament.key, function(err, matches) {
+						require('./admin_match_data').read_matches(app.db, tournament.key, msg.defer_finished_history === true, function(err, matches) {
 							tournament.matches = matches;
 							cb(err);
 						});
@@ -848,10 +865,10 @@ function handle_tournament_get(app, ws, msg) {
 					tournament.ticker_status = ticker_manager.get_status(tournament.key);
 					tournament.test_clock = _clock_state_response(app);
 					_annotate_tournament(tournament);
-					ws.respond(msg, err, {tournament});
+					respond(err, {tournament});
 				});
 			})
-			.catch((ensureErr) => ws.respond(msg, ensureErr));
+			.catch((ensureErr) => respond(ensureErr));
 	});
 }
 
@@ -885,6 +902,7 @@ async function async_handle_preparation_selection_get(app, ws, msg) {
 			display_cutoff_match_num: selection.display_cutoff?.setup?.match_num ?? null,
 			diagnostics_by_match_id: selection.diagnostics_by_match_id || {},
 			call_on_court_diagnostics_by_match_id: selection.call_on_court_diagnostics_by_match_id || {},
+			field_selection_debug: selection.field_selection_debug || {},
 			successor_court_ids: Array.isArray(selection.successor_court_ids) ? selection.successor_court_ids : [],
 			successor_match_ids: Array.isArray(selection.successor_match_ids) ? selection.successor_match_ids : [],
 			free_court_ids: Array.isArray(selection.free_court_ids) ? selection.free_court_ids : [],
@@ -900,7 +918,9 @@ async function async_handle_preparation_selection_execute(app, ws, msg) {
 
 	const match_utils = require('./match_utils');
 	try {
-		const called_matches = await update_queue.instance().execute(update_queue.named('preparation_selection_execute', async () => {
+		const task = update_queue.locks(
+			preparation_selection_execute_locks(msg.tournament_key),
+			update_queue.named('preparation_selection_execute', async () => {
 			const tournament = await app.db.tournaments.findOne_async({ key: msg.tournament_key });
 			if (!tournament) {
 				throw new Error('Cannot find tournament ' + msg.tournament_key);
@@ -926,6 +946,7 @@ async function async_handle_preparation_selection_execute(app, ws, msg) {
 
 			return called_matches;
 		}));
+		const called_matches = await update_queue.instance().execute(task);
 
 		return ws.respond(msg, null, {
 			location_id: msg.location_id,
@@ -950,6 +971,17 @@ function handle_create_tournament(app, ws, msg) {
 	});
 }
 
+function compact_datastore(datastore) {
+	return new Promise((resolve) => {
+		if (!datastore || !datastore.filename || !datastore.persistence || typeof datastore.persistence.compactDatafile !== 'function' || typeof datastore.once !== 'function') {
+			resolve();
+			return;
+		}
+		datastore.once('compaction.done', resolve);
+		datastore.persistence.compactDatafile();
+	});
+}
+
 async function reset_tournament_to_empty_default(app, tournament_key) {
 	const tournament = await app.db.tournaments.findOne_async({ key: tournament_key });
 	if (!tournament) {
@@ -961,6 +993,8 @@ async function reset_tournament_to_empty_default(app, tournament_key) {
 		name: 'Default',
 		events: { events: [] },
 		certificate_exports: {},
+		btp_enabled: false,
+		btp_autofetch_enabled: false,
 		last_reset_ts: reset_ts,
 	};
 
@@ -970,6 +1004,20 @@ async function reset_tournament_to_empty_default(app, tournament_key) {
 	await app.db.courts.remove_async({ tournament_key }, { multi: true });
 	await app.db.locations.remove_async({ tournament_key }, { multi: true });
 	await app.db.umpires.remove_async({ tournament_key }, { multi: true });
+	await app.db.display_court_displaysettings.update_async(
+		{},
+		{ $unset: { court_id: true } },
+		{ multi: true }
+	);
+	await Promise.all([
+		compact_datastore(app.db.matches),
+		compact_datastore(app.db.tabletoperators),
+		compact_datastore(app.db.logs),
+		compact_datastore(app.db.courts),
+		compact_datastore(app.db.locations),
+		compact_datastore(app.db.umpires),
+		compact_datastore(app.db.display_court_displaysettings),
+	]);
 
 	const [, updated_tournament] = await app.db.tournaments.update_async(
 		{ key: tournament_key },
@@ -978,6 +1026,7 @@ async function reset_tournament_to_empty_default(app, tournament_key) {
 	);
 
 	await displaysettings_defaults.ensure_default_displaysettings(app, updated_tournament || { ...tournament, ...tournament_patch });
+	btp_manager.reconfigure(app, updated_tournament || { ...tournament, ...tournament_patch });
 	return {
 		tournament_key,
 		tournament: updated_tournament || { ...tournament, ...tournament_patch },
@@ -1332,7 +1381,17 @@ function handle_tabletoperator_remove(app, ws, msg) {
 			ws.respond(msg, err);
 			return;
 		}
-		notify_change(app, tournament_key, 'tabletoperator_removed', { tabletoperator: changed_tabletoperator });
+		const released_ids = [...new Set((Array.isArray(tabletoperator.tabletoperator) ? tabletoperator.tabletoperator : [])
+			.map((participant) => Number(participant && participant.btp_id))
+			.filter((btp_id) => Number.isFinite(btp_id) && btp_id !== -1))];
+		_release_tabletoperator_player_flags(app, tournament_key, released_ids, (release_err) => {
+			if (release_err) {
+				ws.respond(msg, release_err);
+				return;
+			}
+			notify_change(app, tournament_key, 'tabletoperator_removed', { tabletoperator: changed_tabletoperator });
+			ws.respond(msg);
+		});
 	});
 }
 
@@ -1589,6 +1648,20 @@ function _release_tabletoperator_player_flags(app, tournament_key, released_ids,
 				}
 
 				let changed = false;
+				if (Array.isArray(match.setup.tabletoperators)) {
+					const next_tabletoperators = match.setup.tabletoperators.filter((participant) => {
+						const participant_btp_id = participant && Number(participant.btp_id);
+						return !Number.isFinite(participant_btp_id) || !released_id_set.has(participant_btp_id);
+					});
+					if (next_tabletoperators.length !== match.setup.tabletoperators.length) {
+						if (next_tabletoperators.length > 0) {
+							match.setup.tabletoperators = next_tabletoperators;
+						} else {
+							delete match.setup.tabletoperators;
+						}
+						changed = true;
+					}
+				}
 				(match.setup.teams || []).forEach((team) => {
 					(team?.players || []).forEach((player) => {
 						const player_btp_id = player && Number(player.btp_id);
@@ -1863,7 +1936,11 @@ function handle_match_call_on_court(app, ws, msg) {
 			return ws.respond(msg, err);
 		}
 
-		update_queue.instance().execute(process_match,app, msg, tournament).then(res => {
+		const task = update_queue.locks(
+			match_call_on_court_locks(msg.tournament_key, msg.match_id, msg.court_id),
+			update_queue.named('handle_match_call_on_court', () => process_match(app, msg, tournament))
+		);
+		update_queue.instance().execute(task).then(res => {
 			ws.respond(msg);
 		}).catch(err => {
 			ws.respond(msg, err);
@@ -2603,45 +2680,13 @@ function handle_match_edit(app, ws, msg) {
 							ws.respond(msg, call_err);
 						});
 					}
-					const reactivation_update = {
-						$set: {
-							score_status: 'normal',
-							forward_loser: false,
-							btp_needsync: true,
-						},
-						$unset: {
-							no_match_losing_team: true,
-							team1_won: true,
-							btp_winner: true,
-							score_status_network_score: true,
-							end_ts: true,
-						},
-					};
-					app.db.matches.update({_id: msg.id, tournament_key}, reactivation_update, {returnUpdatedDocs: true}, function(reactivation_err, numAffected, reactivated_match) {
-						if (reactivation_err) {
-							ws.respond(msg, reactivation_err);
-							return;
+					const reactivation_match = { ...old_match, setup };
+					return match_utils.call_match(app, tournament, reactivation_match, msg.old_court, (call_err, called_match) => {
+						if (!call_err && msg.btp_update) {
+							btp_manager.update_score(app, called_match);
 						}
-						if (numAffected !== 1) {
-							ws.respond(msg, new Error('Cannot find match ' + msg.id + ' of tournament ' + tournament_key + ' in database'));
-							return;
-						}
-						reactivated_match.setup = setup;
-						reactivated_match.score_status = 'normal';
-						reactivated_match.forward_loser = false;
-						delete reactivated_match.no_match_losing_team;
-						delete reactivated_match.team1_won;
-						delete reactivated_match.btp_winner;
-						delete reactivated_match.score_status_network_score;
-						delete reactivated_match.end_ts;
-						return match_utils.call_match(app, tournament, reactivated_match, msg.old_court, (call_err, called_match) => {
-							if (!call_err && msg.btp_update) {
-								btp_manager.update_score(app, called_match || reactivated_match);
-							}
-							ws.respond(msg, call_err);
-						});
-					});
-					return;
+						ws.respond(msg, call_err);
+					}, { reactivate: true });
 				}
 
 				if (will_be_on_court && was_called && court_changed) {
@@ -3039,7 +3084,9 @@ function handle_match_player_check_in (app, ws, msg) {
 		return;
 	}
 
-	update_queue.instance().execute(update_queue.named('handle_match_player_check_in', () => new Promise((resolve, reject) => {
+	const task = update_queue.locks(
+		check_in_locks(msg.tournament_key, msg.match_id),
+		update_queue.named('handle_match_player_check_in', () => new Promise((resolve, reject) => {
 		app.db.tournaments.findOne({ key: msg.tournament_key }, async (err, tournament) => {
 			if (err) {
 				return reject(err);
@@ -3051,6 +3098,11 @@ function handle_match_player_check_in (app, ws, msg) {
 				}
 				if (!match || !match.setup) {
 					return reject(new Error('Match not found'));
+				}
+
+				if (msg.checked_in && msg.require_preparation === true &&
+					(match.setup.state !== 'preparation' || match.setup.now_on_court === true)) {
+					return reject(new Error('Match is no longer in preparation'));
 				}
 
 				let player_found = false;
@@ -3076,7 +3128,8 @@ function handle_match_player_check_in (app, ws, msg) {
 					return reject(new Error('Player not found in match'));
 				}
 
-					match_utils.match_update(app, match, undefined, (err) => {
+				match.btp_needsync = true;
+				match_utils.match_update(app, match, undefined, (err) => {
 					if (err) {
 						return reject(err);
 					}
@@ -3092,7 +3145,8 @@ function handle_match_player_check_in (app, ws, msg) {
 				});
 			});
 		});
-	}))).then(() => ws.respond(msg)).catch((err) => ws.respond(msg, err));
+	})));
+	update_queue.instance().execute(task).then(() => ws.respond(msg)).catch((err) => ws.respond(msg, err));
 }
 
 function is_player_waiting_as_tabletoperator(app, tournament_key, player_id) {
@@ -3141,6 +3195,54 @@ function trigger_auto_call_after_readiness_change(app, tournament_key) {
 	});
 }
 
+function check_in_locks(tournament_key, match_id, role) {
+	const locks = [
+		update_queue.lock_keys.match(tournament_key, match_id),
+	];
+	if (!role || role === 'tabletoperator') {
+		locks.push(update_queue.lock_keys.tabletoperators(tournament_key));
+	}
+	if (role === 'umpire' || role === 'service_judge') {
+		locks.push(update_queue.lock_keys.umpires(tournament_key));
+	}
+	return locks;
+}
+
+function preparation_selection_execute_locks(tournament_key) {
+	return [
+		update_queue.lock_keys.preparation(tournament_key),
+		update_queue.lock_keys.tabletoperators(tournament_key),
+		update_queue.lock_keys.umpires(tournament_key),
+	];
+}
+
+function match_call_on_court_locks(tournament_key, match_id, court_id) {
+	return [
+		update_queue.lock_keys.match(tournament_key, match_id),
+		update_queue.lock_keys.court(tournament_key, court_id),
+		update_queue.lock_keys.preparation(tournament_key),
+		update_queue.lock_keys.auto_call(tournament_key),
+		update_queue.lock_keys.tabletoperators(tournament_key),
+		update_queue.lock_keys.umpires(tournament_key),
+		update_queue.lock_keys.btp(tournament_key),
+	];
+}
+
+function official_assignment_locks(tournament_key, match_id, source_match_id, options = {}) {
+	const locks = [
+		update_queue.lock_keys.match(tournament_key, match_id),
+		update_queue.lock_keys.umpires(tournament_key),
+		update_queue.lock_keys.btp(tournament_key),
+	];
+	if (source_match_id && source_match_id !== match_id) {
+		locks.push(update_queue.lock_keys.match(tournament_key, source_match_id));
+	}
+	if (options.include_preparation) {
+		locks.push(update_queue.lock_keys.preparation(tournament_key));
+	}
+	return locks;
+}
+
 function handle_match_participant_check_in(app, ws, msg) {
 	const match_utils = require('./match_utils');
 
@@ -3148,7 +3250,9 @@ function handle_match_participant_check_in(app, ws, msg) {
 		return;
 	}
 
-	update_queue.instance().execute(update_queue.named('handle_match_participant_check_in', () => new Promise((resolve, reject) => {
+	const task = update_queue.locks(
+		check_in_locks(msg.tournament_key, msg.match_id, msg.role),
+		update_queue.named('handle_match_participant_check_in', () => new Promise((resolve, reject) => {
 		app.db.tournaments.findOne({ key: msg.tournament_key }, (tournament_err, tournament) => {
 			if (tournament_err) {
 				return reject(tournament_err);
@@ -3186,6 +3290,7 @@ function handle_match_participant_check_in(app, ws, msg) {
 					return reject(new Error('Participant not found in match'));
 				}
 
+				match.btp_needsync = true;
 				match_utils.match_update(app, match, undefined, (update_err) => {
 					if (update_err) {
 						return reject(update_err);
@@ -3228,7 +3333,8 @@ function handle_match_participant_check_in(app, ws, msg) {
 				});
 			});
 		});
-	}))).then(() => ws.respond(msg)).catch((err) => ws.respond(msg, err));
+	})));
+	update_queue.instance().execute(task).then(() => ws.respond(msg)).catch((err) => ws.respond(msg, err));
 }
 
 
@@ -3877,7 +3983,11 @@ function _assign_next_umpire_to_match(app, tournament_key, match_id, options = {
 }
 
 function assign_next_umpire_to_match(app, tournament_key, match_id) {
-  return update_queue.instance().execute(update_queue.named('handle_add_officials_to_match', () => _assign_next_umpire_to_match(app, tournament_key, match_id)));
+  const task = update_queue.locks(
+    official_assignment_locks(tournament_key, match_id, null, { include_preparation: true }),
+    update_queue.named('handle_add_officials_to_match', () => _assign_next_umpire_to_match(app, tournament_key, match_id))
+  );
+  return update_queue.instance().execute(task);
 }
 
 function handle_add_officials_to_match(app, ws, msg) {
@@ -4010,7 +4120,11 @@ function _assign_next_service_judge_to_match(app, tournament_key, match_id, opti
 }
 
 function assign_next_service_judge_to_match(app, tournament_key, match_id) {
-  return update_queue.instance().execute(update_queue.named('handle_add_service_judge_to_match', () => _assign_next_service_judge_to_match(app, tournament_key, match_id)));
+  const task = update_queue.locks(
+    official_assignment_locks(tournament_key, match_id, null, { include_preparation: true }),
+    update_queue.named('handle_add_service_judge_to_match', () => _assign_next_service_judge_to_match(app, tournament_key, match_id))
+  );
+  return update_queue.instance().execute(task);
 }
 
 function handle_add_service_judge_to_match(app, ws, msg) {
@@ -4059,7 +4173,9 @@ function handle_assign_official_to_preparation_match(app, ws, msg) {
 
   const role_flag = role === 'umpire' ? 'is_planed_as_umpire' : 'is_planed_as_service_judge';
 
-  update_queue.instance().execute(update_queue.named('handle_assign_official_to_preparation_match', () => new Promise((resolve, reject) => {
+  const task = update_queue.locks(
+    official_assignment_locks(tournament_key, match_id, source_match_id, { include_preparation: true }),
+    update_queue.named('handle_assign_official_to_preparation_match', () => new Promise((resolve, reject) => {
     app.db.tournaments.findOne({ key: tournament_key }, function (tournament_err, tournament) {
       if (tournament_err) return reject(tournament_err);
     app.db.matches.find({ tournament_key, _id: { $in: [...new Set([match_id, source_match_id].filter(Boolean))] } }, function (err, matches) {
@@ -4198,7 +4314,8 @@ function handle_assign_official_to_preparation_match(app, ws, msg) {
       });
     });
     });
-  }))).then(() => ws.respond(msg)).catch((err) => cerror.ws(ws, err));
+  })));
+  update_queue.instance().execute(task).then(() => ws.respond(msg)).catch((err) => cerror.ws(ws, err));
 }
 
 function handle_assign_official_to_match(app, ws, msg) {
@@ -4219,7 +4336,9 @@ function handle_assign_official_to_match(app, ws, msg) {
 
   const role_flag = role === 'umpire' ? 'is_planed_as_umpire' : 'is_planed_as_service_judge';
 
-  update_queue.instance().execute(update_queue.named('handle_assign_official_to_match', () => new Promise((resolve, reject) => {
+  const task = update_queue.locks(
+    official_assignment_locks(tournament_key, match_id, source_match_id, { include_preparation: true }),
+    update_queue.named('handle_assign_official_to_match', () => new Promise((resolve, reject) => {
     app.db.tournaments.findOne({ key: tournament_key }, function (tournament_err, tournament) {
       if (tournament_err) return reject(tournament_err);
     app.db.matches.find({ tournament_key, _id: { $in: [...new Set([match_id, source_match_id].filter(Boolean))] } }, function (err, matches) {
@@ -4359,7 +4478,8 @@ function handle_assign_official_to_match(app, ws, msg) {
       });
     });
     });
-  }))).then(() => ws.respond(msg)).catch((err) => cerror.ws(ws, err));
+  })));
+  update_queue.instance().execute(task).then(() => ws.respond(msg)).catch((err) => cerror.ws(ws, err));
 }
 
 function handle_remove_official_from_preparation_match(app, ws, msg) {
@@ -4372,7 +4492,9 @@ function handle_remove_official_from_preparation_match(app, ws, msg) {
     return cerror.ws(ws, new Error('Invalid role for remove_official_from_preparation_match: ' + role));
   }
 
-  update_queue.instance().execute(update_queue.named('handle_remove_official_from_preparation_match', () => new Promise((resolve, reject) => {
+  const task = update_queue.locks(
+    official_assignment_locks(tournament_key, match_id, null, { include_preparation: true }),
+    update_queue.named('handle_remove_official_from_preparation_match', () => new Promise((resolve, reject) => {
     app.db.matches.findOne({ _id: match_id, tournament_key }, function (err, match) {
       if (err) return reject(err);
       if (!match) return reject(new Error('Cannot find match ' + match_id));
@@ -4474,7 +4596,8 @@ function handle_remove_official_from_preparation_match(app, ws, msg) {
         );
       });
     });
-  }))).then(() => ws.respond(msg)).catch((err) => cerror.ws(ws, err));
+  })));
+  update_queue.instance().execute(task).then(() => ws.respond(msg)).catch((err) => cerror.ws(ws, err));
 }
 
 function handle_remove_official_from_match(app, ws, msg) {
@@ -4487,7 +4610,9 @@ function handle_remove_official_from_match(app, ws, msg) {
     return cerror.ws(ws, new Error('Invalid role for remove_official_from_match: ' + role));
   }
 
-  update_queue.instance().execute(update_queue.named('handle_remove_official_from_match', () => new Promise((resolve, reject) => {
+  const task = update_queue.locks(
+    official_assignment_locks(tournament_key, match_id, null),
+    update_queue.named('handle_remove_official_from_match', () => new Promise((resolve, reject) => {
     app.db.matches.findOne({ _id: match_id, tournament_key }, function (err, match) {
       if (err) return reject(err);
       if (!match) return reject(new Error('Cannot find match ' + match_id));
@@ -4589,7 +4714,8 @@ function handle_remove_official_from_match(app, ws, msg) {
         );
       });
     });
-  }))).then(() => ws.respond(msg)).catch((err) => cerror.ws(ws, err));
+  })));
+  update_queue.instance().execute(task).then(() => ws.respond(msg)).catch((err) => cerror.ws(ws, err));
 }
 
 
@@ -5163,53 +5289,6 @@ function handle_registration_open_event(app, ws, msg) {
 	});
 }
 
-function _registration_xlsx_text(value) {
-	if (value === null || value === undefined) {
-		return '';
-	}
-	return String(value).trim();
-}
-
-function _registration_xlsx_norm(value) {
-	return _registration_xlsx_text(value)
-		.toLowerCase()
-		.normalize('NFD')
-		.replace(/[\u0300-\u036f]/g, '')
-		.replace(/ß/g, 'ss')
-		.replace(/[^a-z0-9]+/g, ' ')
-		.trim();
-}
-
-function _registration_xlsx_number(value) {
-	if (value === null || value === undefined || _registration_xlsx_text(value) === '') {
-		return null;
-	}
-	const num = Number(String(value).replace(',', '.'));
-	return Number.isFinite(num) && num !== 0 ? num : null;
-}
-
-function _registration_xlsx_date(value) {
-	if (value === null || value === undefined || _registration_xlsx_text(value) === '') {
-		return '';
-	}
-	if (value instanceof Date) {
-		return value.getFullYear() + '-' + utils.pad(value.getMonth() + 1, 2, '0') + '-' + utils.pad(value.getDate(), 2, '0');
-	}
-	if (typeof value === 'number' && Number.isFinite(value)) {
-		const epoch = Date.UTC(1899, 11, 30);
-		const date = new Date(epoch + value * 24 * 60 * 60 * 1000);
-		return date.getUTCFullYear() + '-' + utils.pad(date.getUTCMonth() + 1, 2, '0') + '-' + utils.pad(date.getUTCDate(), 2, '0');
-	}
-	const str = _registration_xlsx_text(value);
-	const m = /^(\d{1,2})\.(\d{1,2})\.(\d{4})(.*)$/.exec(str);
-	if (m) {
-		const date = m[3] + '-' + utils.pad(m[2], 2, '0') + '-' + utils.pad(m[1], 2, '0');
-		const rest = m[4].trim();
-		return rest ? date + ' ' + rest : date;
-	}
-	return str;
-}
-
 function _registration_xlsx_stage_label(stage) {
 	const type = Number(stage?.stage_type);
 	const name = _registration_xlsx_norm(stage?.name || stage?.stage_name);
@@ -5222,102 +5301,6 @@ function _registration_xlsx_stage_label(stage) {
 function _registration_xlsx_player_key(entry, player, player_index) {
 	const player_id = player?.btp_id != null ? player.btp_id : player_index;
 	return String(entry?.stage_entry_id || entry?.entry_id || 'entry') + ':' + String(player_id);
-}
-
-function _registration_xlsx_sheet_parts(sheet_name, data) {
-	const title = _registration_xlsx_text(data?.[1]?.[0]) || _registration_xlsx_text(sheet_name);
-	const parts = title.split(/\s+-\s+/);
-	if (parts.length >= 2) {
-		return {
-			event_name: parts.slice(0, -1).join(' - '),
-			stage_name: parts[parts.length - 1],
-		};
-	}
-	return {
-		event_name: title,
-		stage_name: '',
-	};
-}
-
-function _registration_xlsx_header_map(row) {
-	const aliases = {
-		'nr': 'entry_order',
-		'name': 'player_name',
-		'geschlecht': 'gender',
-		'geb': 'date_of_birth',
-		'starke': 'strength',
-		'leistungspunktzahl': 'performance_points',
-		'ranglistenplatz': 'ranking_place',
-		'punkte': 'points',
-		'spielerid': 'member_id',
-		'verein': 'club',
-		'verband': 'association',
-		'bundesland': 'state',
-		'land': 'nationality',
-		'datum': 'entered_at',
-		'setzplatz': 'seed',
-		'status': 'entry_status',
-		'reihenfolge': 'display_order',
-		'notiz': 'note',
-		'entry info': 'entry_info',
-		'verfugbarkeit': 'availability',
-	};
-	const map = {};
-	row.forEach((label, index) => {
-		const key = aliases[_registration_xlsx_norm(label)];
-		if (key) {
-			map[key] = index;
-		}
-	});
-	return map;
-}
-
-function _registration_xlsx_parse(buffer) {
-	const sheets = xlsx.parse(buffer);
-	const rows = [];
-	for (const sheet of sheets) {
-		const data = sheet.data || [];
-		const header_index = data.findIndex((row) => {
-			const headers = row.map(_registration_xlsx_norm);
-			return headers.includes('name') && headers.includes('ranglistenplatz') && headers.includes('punkte');
-		});
-		if (header_index === -1) {
-			continue;
-		}
-		const sheet_parts = _registration_xlsx_sheet_parts(sheet.name, data);
-		const header = _registration_xlsx_header_map(data[header_index]);
-		for (const row of data.slice(header_index + 1)) {
-			const player_name = _registration_xlsx_text(row[header.player_name]);
-			if (!player_name) {
-				continue;
-			}
-			rows.push({
-				event_name: sheet_parts.event_name,
-				stage_name: sheet_parts.stage_name,
-				entry_order: _registration_xlsx_number(row[header.entry_order]),
-				player_name,
-				gender: _registration_xlsx_text(row[header.gender]),
-				date_of_birth: _registration_xlsx_date(row[header.date_of_birth]),
-				strength: _registration_xlsx_text(row[header.strength]),
-				performance_points: _registration_xlsx_number(row[header.performance_points]),
-				ranking_place: _registration_xlsx_number(row[header.ranking_place]),
-				points: _registration_xlsx_number(row[header.points]),
-				member_id: _registration_xlsx_text(row[header.member_id]),
-				club: _registration_xlsx_text(row[header.club]),
-				association: _registration_xlsx_text(row[header.association]),
-				state: _registration_xlsx_text(row[header.state]),
-				nationality: _registration_xlsx_text(row[header.nationality]),
-				entered_at: _registration_xlsx_date(row[header.entered_at]),
-				seed: _registration_xlsx_text(row[header.seed]),
-				entry_status: _registration_xlsx_text(row[header.entry_status]),
-				display_order: _registration_xlsx_text(row[header.display_order]),
-				note: _registration_xlsx_text(row[header.note]),
-				entry_info: _registration_xlsx_text(row[header.entry_info]),
-				availability: _registration_xlsx_text(row[header.availability]),
-			});
-		}
-	}
-	return rows;
 }
 
 function _registration_xlsx_collect_candidates(tournament) {
@@ -5387,11 +5370,11 @@ async function async_handle_registration_xlsx_upload(app, ws, msg) {
 		return;
 	}
 
-	const tournament = await app.db.tournaments.findOne_async({ key: msg.tournament_key });
+	let tournament = await app.db.tournaments.findOne_async({ key: msg.tournament_key });
 	if (!tournament) {
 		return ws.respond(msg, { message: 'No tournament ' + msg.tournament_key });
 	}
-
+	const reset_ts = tournament.last_reset_ts;
 	const m = /^data:([^;,]+)?(?:;base64)?,([A-Za-z0-9+/=]+)$/.exec(msg.data_url);
 	if (!m) {
 		return ws.respond(msg, { message: 'Invalid XLSX data URL' });
@@ -5399,9 +5382,13 @@ async function async_handle_registration_xlsx_upload(app, ws, msg) {
 	const buffer = Buffer.from(m[2], 'base64');
 	let rows;
 	try {
-		rows = _registration_xlsx_parse(buffer);
+		rows = await registration_xlsx.parse(buffer, { tournament_key: msg.tournament_key });
 	} catch (err) {
 		return ws.respond(msg, { message: 'Could not read XLSX file: ' + err.message });
+	}
+	tournament = await app.db.tournaments.findOne_async({ key: msg.tournament_key });
+	if (!tournament || tournament.last_reset_ts !== reset_ts) {
+		return ws.respond(msg, { message: 'Tournament reset while reading XLSX; retry upload.' });
 	}
 	const matched = _registration_xlsx_match_rows(tournament, rows);
 	const metadata = {
@@ -5426,6 +5413,7 @@ async function async_handle_registration_xlsx_upload(app, ws, msg) {
 const all_admins = [];
 function _notify_queue_hang(payload) {
 	for (const admin_ws of all_admins) {
+		if (admin_ws.performance_probe) continue;
 		admin_ws.sendmsg({
 			type: 'change',
 			tournament_key: admin_ws.last_tournament_key || 'default',
@@ -5435,6 +5423,14 @@ function _notify_queue_hang(payload) {
 	}
 }
 function notify_change(app, tournament_key, ctype, val) {
+	const effects = require('./btp_sync_effects');
+	if (app?._btp_sync_effects) {
+		const value = effects.copy(val);
+		effects.capture(app, real_app => notify_change(real_app, tournament_key, ctype, value), {
+			notification: { tournament_key, ctype, value },
+		});
+		return;
+	}
 	let payload = val;
 	const announcement_change_types = new Set([
 		'match_preparation_call',
@@ -5462,10 +5458,25 @@ function notify_change(app, tournament_key, ctype, val) {
 	if (ctype === 'match_preparation_call' && payload && typeof payload === 'object') {
 		debug_flags.log(app, payload.match?.tournament_key || payload.match?.setup?.tournament_key || null, '[bts] debug:match_preparation_call_sent', {
 			match_id: payload.match__id || payload.match?._id || null,
+			match_num: payload.match?.setup?.match_num ?? null,
+			admin_count: all_admins.length,
 			announcement_ts: payload._announcement_ts || null,
 			state: payload.match?.setup?.state || null,
 			highlight: payload.match?.setup?.highlight || 0,
 			location_id: payload.match?.setup?.location_id || null,
+		});
+	}
+	if ((ctype === 'match_called_on_court' || ctype === 'court_current_match') && payload && typeof payload === 'object') {
+		const match = payload.match || payload;
+		debug_flags.log(app, tournament_key, '[bts] debug:admin_notify_call_state', {
+			tournament_key,
+			ctype,
+			admin_count: all_admins.length,
+			match_id: payload.match__id || match?._id || null,
+			match_num: match?.setup?.match_num ?? null,
+			court_id: match?.setup?.court_id || payload.court_id || null,
+			state: match?.setup?.state || null,
+			now_on_court: match?.setup?.now_on_court ?? null,
 		});
 	}
 	if (ctype === 'score') {
@@ -5479,6 +5490,7 @@ function notify_change(app, tournament_key, ctype, val) {
 		});
 	}
 	for (const admin_ws of all_admins) {
+		if (admin_ws.performance_probe) continue;
 		admin_ws.sendmsg({
 			type: 'change',
 			tournament_key,
@@ -5508,6 +5520,18 @@ function handle_fetch_allscoresheets_data(app, ws, msg) {
 			matches: interesting_matches,
 		});
 	});
+}
+
+function handle_debug_queue_stats(app, ws, msg) {
+	ws.respond(msg, null, {
+		queue: update_queue.stats(),
+	});
+}
+
+function handle_debug_performance_stats(app, ws, msg) {
+	if (msg.probe === true) ws.performance_probe = true;
+	if (msg.trace === true) require('./performance/traces').enable();
+	ws.respond(msg, null, { performance: require('./performance/monitor').snapshot(app, all_admins, msg.tournament_key, msg.trace_cursor) });
 }
 
 function on_connect(app, ws) {
@@ -5641,6 +5665,8 @@ module.exports = {
 	handle_tabletoperator_move_up,
 	handle_tabletoperator_move_down,
 	handle_tabletoperator_remove,
+	handle_debug_queue_stats,
+	handle_debug_performance_stats,
 	handle_fetch_allscoresheets_data,
 	handle_clock_get,
 	handle_clock_set,
@@ -5694,6 +5720,7 @@ module.exports = {
 	handle_second_preparation_call_team_one,
 	handle_second_preparation_call_team_two,
 	handle_tournament_get,
+	handle_match_history_get: require('./admin_match_data').handle_match_history_get,
 	handle_tournament_list,
 	handle_tournament_edit_prop,
 	handle_tournament_edit_scoring_format,
@@ -5713,5 +5740,6 @@ module.exports = {
 	_build_match_edit_official_sync_meta,
 	_collect_dependent_official_releases,
 	_remove_official_from_setup,
+	_release_tabletoperator_player_flags,
 	reset_tournament_to_empty_default,
 };

@@ -17,6 +17,37 @@ function insert(db, collection, doc) {
 	});
 }
 
+function delay(ms) {
+	return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function singleMatchBtpState(overrides = {}) {
+	return {
+		matches: [{
+			ID: [1],
+			DrawID: [10],
+			PlanningID: [100],
+			From1: [1],
+			From2: [2],
+			IsMatch: [true],
+			MatchNr: [1],
+			Highlight: [0],
+			Status: 0,
+			bts_complete: true,
+			bts_players: [[{ ID: [1] }], [{ ID: [2] }]],
+			...overrides,
+		}],
+		draws: new Map([[10, { ID: [10], EventID: [20], StageID: [30], Name: ['MX U17'], Position: [1] }]]),
+		events: new Map([[20, { ID: [20], Name: ['MX U17'], GameTypeID: [2] }]]),
+		stages: new Map([[30, { ID: [30], Name: ['Stage'], StageType: [1], DisplayOrder: [1] }]]),
+		links: [],
+		planning_nodes: new Map(),
+		courts: new Map(),
+		clubs: new Map(),
+		districts: new Map(),
+	};
+}
+
 _describe('btp_sync', () => {
 	_it('normalizes standard scoring formats from BTP fields', () => {
 		const normalized = btp_sync._normalize_scoring_format({
@@ -56,6 +87,141 @@ _describe('btp_sync', () => {
 				break_before_set_duration_ms: 120000,
 			},
 		});
+	});
+
+	_it('skips BTP sync when BTP was disabled before parsing the response', async () => {
+		const app = {
+			db: {
+				tournaments: {
+					findOne_async: async () => ({ key: 'default', btp_enabled: false, last_reset_ts: 1 }),
+				},
+			},
+		};
+
+		const result = await btp_sync.sync_btp_data(app, 'default', { invalid: true }, { expected_reset_ts: 1 });
+
+		assert.deepStrictEqual(result, { skipped: true, reason: 'btp_disabled' });
+	});
+
+	_it('skips stale BTP sync responses after a tournament reset', async () => {
+		const app = {
+			db: {
+				tournaments: {
+					findOne_async: async () => ({ key: 'default', btp_enabled: true, last_reset_ts: 2 }),
+				},
+			},
+		};
+
+		const result = await btp_sync.sync_btp_data(app, 'default', { invalid: true }, { expected_reset_ts: 1 });
+
+		assert.deepStrictEqual(result, { skipped: true, reason: 'tournament_reset_during_sync' });
+	});
+
+	_it('does not treat pure check-in match updates as now-on-court changes', () => {
+		assert.strictEqual(btp_sync._match_update_affects_now_on_court_state({
+			$set: {
+				'setup.teams.0.players.0.checked_in': true,
+				'_btp_sync_signature': 'abc',
+			},
+		}), false);
+	});
+
+	_it('treats field and tabletoperator match updates as now-on-court changes', () => {
+		assert.strictEqual(btp_sync._match_update_affects_now_on_court_state({
+			$set: {
+				'setup.court_id': 'default_7',
+			},
+		}), true);
+		assert.strictEqual(btp_sync._match_update_affects_now_on_court_state({
+			$unset: {
+				'setup.teams.0.players.0.now_tablet_on_court': true,
+			},
+		}), true);
+	});
+
+	_it('waits for BTP match inserts before reporting match integration complete', async () => {
+		const db = await database.init_test();
+		const app = {
+			db,
+			wss: { clients: [] },
+		};
+		await insert(db, 'tournaments', {
+			key: 'default',
+			name: 'Default',
+			btp_enabled: true,
+			last_reset_ts: 1,
+			btp_settings: {},
+		});
+
+		const originalInsert = db.matches.insert.bind(db.matches);
+		let delayed_insert_callback_finished = false;
+		db.matches.insert = (doc, cb) => {
+			originalInsert(doc, (err, inserted) => {
+				setTimeout(() => {
+					delayed_insert_callback_finished = true;
+					cb(err, inserted);
+				}, 25);
+			});
+		};
+
+		let integration_callback_returned = false;
+		const integration = new Promise((resolve, reject) => {
+			btp_sync._integrate_matches(app, 'default', singleMatchBtpState(), new Map(), new Map(), new Map(), (err) => {
+				integration_callback_returned = true;
+				if (err) reject(err);
+				else resolve();
+			});
+		});
+
+		await delay(5);
+		assert.strictEqual(integration_callback_returned, false);
+
+		await integration;
+		assert.strictEqual(delayed_insert_callback_finished, true);
+
+		const inserted_match = await db.matches.findOne_async({ btp_id: 'default_MX U17_1' });
+		assert.ok(inserted_match);
+	});
+
+	_it('does not add BTP matches after a tournament reset invalidated the sync', async () => {
+		const db = await database.init_test();
+		const app = {
+			db,
+			wss: { clients: [] },
+		};
+		await insert(db, 'tournaments', {
+			key: 'default',
+			name: 'Default',
+			btp_enabled: true,
+			last_reset_ts: 2,
+			btp_settings: {},
+		});
+
+		let insert_called = false;
+		db.matches.insert = (doc, cb) => {
+			insert_called = true;
+			cb(new Error('stale sync must not insert matches'));
+		};
+
+		await new Promise((resolve, reject) => {
+			btp_sync._integrate_matches(
+				app,
+				'default',
+				singleMatchBtpState(),
+				new Map(),
+				new Map(),
+				new Map(),
+				(err) => {
+					if (err) reject(err);
+					else resolve();
+				},
+				{ expected_reset_ts: 1 }
+			);
+		});
+
+		const inserted_match = await db.matches.findOne_async({ btp_id: 'default_MX U17_1' });
+		assert.strictEqual(insert_called, false);
+		assert.strictEqual(inserted_match, null);
 	});
 
 	_it('normalizes editable scoring formats using the score fallback', () => {
@@ -213,9 +379,11 @@ _describe('btp_sync', () => {
 		const app = {
 			db: {
 				tournaments: {
-					findOne(query, cb) {
-						assert.deepStrictEqual(query, { key: 't1' });
-						cb(null, { key: 't1' });
+					findOne(query, projection, cb) {
+						assert.strictEqual(query.key, 't1');
+						assert.deepStrictEqual(projection, { key: 1, _id: 0 });
+						const tournament = { key: 't1' };
+						cb(null, query.$where && !query.$where.call(tournament) ? null : tournament);
 					},
 					update(query, update, options, cb) {
 						assert.deepStrictEqual(query, { key: 't1' });
@@ -293,9 +461,11 @@ _describe('btp_sync', () => {
 		const app = {
 			db: {
 				tournaments: {
-					findOne(query, cb) {
-						assert.deepStrictEqual(query, { key: 't1' });
-						cb(null, { key: 't1' });
+					findOne(query, projection, cb) {
+						assert.strictEqual(query.key, 't1');
+						assert.deepStrictEqual(projection, { key: 1, _id: 0 });
+						const tournament = { key: 't1' };
+						cb(null, query.$where && !query.$where.call(tournament) ? null : tournament);
 					},
 					update(query, update, options, cb) {
 						assert.deepStrictEqual(query, { key: 't1' });
@@ -446,6 +616,627 @@ _describe('btp_sync', () => {
 		assert.strictEqual(label, 'Gewinner #49 - 2026-04-19 14:00');
 	});
 
+	_it('keeps successor teams empty until BTP supplies the successor players', async () => {
+		const db = await database.init_test();
+		const app = {
+			db,
+			wss: { clients: [] },
+		};
+		await insert(db, 'tournaments', {
+			key: 'default',
+			name: 'Default',
+			btp_settings: {},
+		});
+		const base_state = {
+			matches: [{
+				ID: [1001],
+				DrawID: [10],
+				PlanningID: [100],
+				From1: [1],
+				From2: [2],
+				WinnerTo: [200],
+				IsMatch: [true],
+				MatchNr: [1],
+				Highlight: [0],
+				Status: 0,
+				PlannedTime: [{ year: 2026, month: 4, day: 18, hour: 11, minute: 0 }],
+				bts_complete: true,
+				bts_players: [
+					[{ ID: [1], Firstname: ['Alice'], Lastname: ['A'] }],
+					[{ ID: [2], Firstname: ['Berta'], Lastname: ['B'] }],
+				],
+			}, {
+				ID: [1002],
+				DrawID: [10],
+				PlanningID: [200],
+				From1: [100],
+				From2: [3],
+				IsMatch: [true],
+				MatchNr: [2],
+				Highlight: [0],
+				Status: 0,
+				bts_complete: false,
+				bts_players: [
+					[],
+					[{ ID: [3], Firstname: ['Cara'], Lastname: ['C'] }],
+				],
+			}],
+			draws: new Map([[10, { ID: [10], EventID: [20], StageID: [30], Name: ['JE U17'], Position: [1] }]]),
+			events: new Map([[20, { ID: [20], Name: ['JE U17'], GameTypeID: [1] }]]),
+			stages: new Map([[30, { ID: [30], Name: ['Stage'], StageType: [1], DisplayOrder: [1] }]]),
+			links: [],
+			planning_nodes: new Map(),
+			courts: new Map(),
+			clubs: new Map(),
+			districts: new Map(),
+		};
+
+		await new Promise((resolve, reject) => {
+			btp_sync._integrate_matches(app, 'default', base_state, new Map(), new Map(), new Map(), (err) => {
+				if (err) reject(err);
+				else resolve();
+			});
+		});
+		let successor = await db.matches.findOne_async({ _id: 'btp_default_JE U17_1002' });
+		assert.strictEqual(successor.setup.incomplete, true);
+		assert.deepStrictEqual(successor.setup.teams[0].players, []);
+		assert.strictEqual(successor.setup.links.from1_link, 'Gewinner #1 - 2026-04-18 11:00');
+
+		const state_with_winner = {
+			...base_state,
+			matches: base_state.matches.map((match) => (
+				match.ID[0] === 1001
+					? { ...match, Winner: [1], ScoreStatus: [0] }
+					: match
+			)),
+		};
+		await new Promise((resolve, reject) => {
+			btp_sync._integrate_matches(app, 'default', state_with_winner, new Map(), new Map(), new Map(), (err) => {
+				if (err) reject(err);
+				else resolve();
+			});
+		});
+
+		successor = await db.matches.findOne_async({ _id: 'btp_default_JE U17_1002' });
+		assert.strictEqual(successor.setup.incomplete, true);
+		assert.deepStrictEqual(successor.setup.teams[0].players, []);
+		assert.strictEqual(successor.setup.teams[1].players[0].btp_id, 3);
+
+		const state_with_btp_successor_players = {
+			...state_with_winner,
+			matches: state_with_winner.matches.map((match) => (
+				match.ID[0] === 1002
+					? {
+						...match,
+						bts_players: [
+							[{ ID: [1], Firstname: ['Alice'], Lastname: ['A'] }],
+							[{ ID: [3], Firstname: ['Cara'], Lastname: ['C'] }],
+						],
+					}
+					: match
+			)),
+		};
+		await new Promise((resolve, reject) => {
+			btp_sync._integrate_matches(app, 'default', state_with_btp_successor_players, new Map(), new Map(), new Map(), (err) => {
+				if (err) reject(err);
+				else resolve();
+			});
+		});
+
+		successor = await db.matches.findOne_async({ _id: 'btp_default_JE U17_1002' });
+		assert.strictEqual(successor.setup.incomplete, false);
+		assert.strictEqual(successor.setup.teams[0].players[0].btp_id, 1);
+		assert.strictEqual(successor.setup.teams[0].players[0].name, 'Alice A');
+		assert.strictEqual(successor.setup.teams[1].players[0].btp_id, 3);
+	});
+
+	_it('does not fill a successor team through an unfinished real KO predecessor', async () => {
+		const db = await database.init_test();
+		const app = {
+			db,
+			wss: { clients: [] },
+		};
+		await insert(db, 'tournaments', {
+			key: 'default',
+			name: 'Default',
+			btp_settings: {},
+		});
+		const btpState = {
+			matches: [{
+				ID: [1001],
+				DrawID: [10],
+				PlanningID: [4007],
+				From1: [1],
+				From2: [3],
+				WinnerTo: [3004],
+				IsMatch: [true],
+				MatchNr: [23],
+				Highlight: [0],
+				Status: 0,
+				bts_complete: true,
+				Winner: [1],
+				ScoreStatus: [0],
+				bts_players: [
+					[
+						{ ID: [1], Firstname: ['Lukas'], Lastname: ['Bayerlein'] },
+						{ ID: [2], Firstname: ['Maya'], Lastname: ['Herzog'] },
+					],
+					[
+						{ ID: [3], Firstname: ['Other'], Lastname: ['Pair'] },
+					],
+				],
+			}, {
+				ID: [1002],
+				DrawID: [10],
+				PlanningID: [4008],
+				From1: [4],
+				From2: [6],
+				WinnerTo: [3004],
+				IsMatch: [true],
+				MatchNr: [24],
+				Highlight: [0],
+				Status: 0,
+				bts_complete: true,
+				Winner: [1],
+				ScoreStatus: [0],
+				bts_players: [
+					[
+						{ ID: [4], Firstname: ['Johannes'], Lastname: ['Ernst'] },
+						{ ID: [5], Firstname: ['Maira'], Lastname: ['Wochnik'] },
+					],
+					[
+						{ ID: [6], Firstname: ['Other'], Lastname: ['Pair'] },
+					],
+				],
+			}, {
+				ID: [1003],
+				DrawID: [10],
+				PlanningID: [3004],
+				From1: [4007],
+				From2: [4008],
+				WinnerTo: [2002],
+				IsMatch: [true],
+				MatchNr: [48],
+				Highlight: [0],
+				Status: 0,
+				bts_complete: false,
+				bts_players: [
+					[],
+					[],
+				],
+			}, {
+				ID: [1004],
+				DrawID: [10],
+				PlanningID: [2002],
+				From1: [3003],
+				From2: [3004],
+				IsMatch: [true],
+				MatchNr: [57],
+				Highlight: [0],
+				Status: 0,
+				bts_complete: false,
+				bts_players: [
+					[{ ID: [7], Firstname: ['Jonte'], Lastname: ['Spelthahn'] }],
+					[],
+				],
+			}],
+			draws: new Map([[10, { ID: [10], EventID: [20], StageID: [30], Name: ['MX U15'], Position: [1] }]]),
+			events: new Map([[20, { ID: [20], Name: ['MX U15'], GameTypeID: [2] }]]),
+			stages: new Map([[30, { ID: [30], Name: ['Stage'], StageType: [1], DisplayOrder: [1] }]]),
+			links: [],
+			planning_nodes: new Map(),
+			courts: new Map(),
+			clubs: new Map(),
+			districts: new Map(),
+		};
+
+		await new Promise((resolve, reject) => {
+			btp_sync._integrate_matches(app, 'default', btpState, new Map(), new Map(), new Map(), (err) => {
+				if (err) reject(err);
+				else resolve();
+			});
+		});
+
+		const successor = await db.matches.findOne_async({ _id: 'btp_default_MX U15_1004' });
+		assert.strictEqual(successor.setup.incomplete, true);
+		assert.strictEqual(successor.setup.teams[0].players[0].btp_id, 7);
+		assert.deepStrictEqual(successor.setup.teams[1].players, []);
+	});
+
+	_it('reports an empty bye-vs-bye branch to BTP as a winner without score or special status', async () => {
+		const db = await database.init_test();
+		const app = {
+			db,
+			wss: { clients: [] },
+		};
+		await insert(db, 'tournaments', {
+			key: 'default',
+			name: 'Default',
+			btp_settings: {},
+		});
+		const btpState = {
+			matches: [{
+				ID: [1001],
+				DrawID: [10],
+				PlanningID: [4007],
+				From1: [1],
+				From2: [2],
+				WinnerTo: [3004],
+				IsMatch: [true],
+				MatchNr: [60],
+				Highlight: [0],
+				Status: 0,
+				bts_complete: false,
+				bts_players: [[], []],
+			}],
+			draws: new Map([[10, { ID: [10], EventID: [20], StageID: [30], Name: ['MD U13'], Position: [1] }]]),
+			events: new Map([[20, { ID: [20], Name: ['MD U13'], GameTypeID: [2] }]]),
+			stages: new Map([[30, { ID: [30], Name: ['Stage'], StageType: [1], DisplayOrder: [1] }]]),
+			links: [],
+			planning_nodes: new Map(),
+			courts: new Map(),
+			clubs: new Map(),
+			districts: new Map(),
+		};
+		const pushed = [];
+		const originalUpdateScore = btp_manager.update_score;
+		btp_manager.update_score = (_app, match) => pushed.push({
+			id: match._id,
+			team1_won: match.team1_won,
+			btp_winner: match.btp_winner,
+			score_status: match.score_status,
+			btp_score_status: match.btp_score_status,
+			network_score: match.network_score,
+			btp_winner_only_update: match.btp_winner_only_update,
+		});
+		try {
+			await new Promise((resolve, reject) => {
+				btp_sync._integrate_matches(app, 'default', btpState, new Map(), new Map(), new Map(), (err) => {
+					if (err) reject(err);
+					else resolve();
+				});
+			});
+		} finally {
+			btp_manager.update_score = originalUpdateScore;
+		}
+
+		const match = await db.matches.findOne_async({ _id: 'btp_default_MD U13_1001' });
+		assert.strictEqual(match.team1_won, true);
+		assert.strictEqual(match.btp_winner, 1);
+		assert.strictEqual(match.btp_needsync, true);
+		assert.strictEqual(match.score_status, 'normal');
+		assert.strictEqual(match.btp_score_status, 0);
+		assert.strictEqual(match.network_score, undefined);
+		assert.strictEqual(match._btp_auto_bye_winner_sync, undefined);
+		assert.deepStrictEqual(pushed, [{
+			id: 'btp_default_MD U13_1001',
+			team1_won: true,
+			btp_winner: 1,
+			score_status: 'normal',
+			btp_score_status: 0,
+			network_score: undefined,
+			btp_winner_only_update: true,
+		}]);
+	});
+
+	_it('does not report an empty match as bye-vs-bye when a predecessor can still produce players', async () => {
+		const db = await database.init_test();
+		const app = {
+			db,
+			wss: { clients: [] },
+		};
+		await insert(db, 'tournaments', {
+			key: 'default',
+			name: 'Default',
+			btp_settings: {},
+		});
+		const btpState = {
+			matches: [{
+				ID: [1001],
+				DrawID: [10],
+				PlanningID: [4007],
+				From1: [1],
+				From2: [2],
+				WinnerTo: [3004],
+				IsMatch: [true],
+				MatchNr: [60],
+				Highlight: [0],
+				Status: 0,
+				bts_complete: true,
+				bts_players: [[{ ID: [1], Firstname: ['A'], Lastname: ['One'] }], [{ ID: [2], Firstname: ['B'], Lastname: ['Two'] }]],
+			}, {
+				ID: [1002],
+				DrawID: [10],
+				PlanningID: [3004],
+				From1: [4007],
+				From2: [3],
+				IsMatch: [true],
+				MatchNr: [28],
+				Highlight: [0],
+				Status: 0,
+				bts_complete: false,
+				bts_players: [[], []],
+			}],
+			draws: new Map([[10, { ID: [10], EventID: [20], StageID: [30], Name: ['MD U13'], Position: [1] }]]),
+			events: new Map([[20, { ID: [20], Name: ['MD U13'], GameTypeID: [2] }]]),
+			stages: new Map([[30, { ID: [30], Name: ['Stage'], StageType: [1], DisplayOrder: [1] }]]),
+			links: [],
+			planning_nodes: new Map(),
+			courts: new Map(),
+			clubs: new Map(),
+			districts: new Map(),
+		};
+		const pushed = [];
+		const originalUpdateScore = btp_manager.update_score;
+		btp_manager.update_score = (_app, match) => pushed.push(match._id);
+		try {
+			await new Promise((resolve, reject) => {
+				btp_sync._integrate_matches(app, 'default', btpState, new Map(), new Map(), new Map(), (err) => {
+					if (err) reject(err);
+					else resolve();
+				});
+			});
+		} finally {
+			btp_manager.update_score = originalUpdateScore;
+		}
+
+		const match = await db.matches.findOne_async({ _id: 'btp_default_MD U13_1002' });
+		assert.strictEqual(match.team1_won, undefined);
+		assert.strictEqual(match.btp_winner, undefined);
+		assert.strictEqual(match.btp_needsync, undefined);
+		assert.deepStrictEqual(pushed, []);
+	});
+
+	_it('finds hidden bye successors in either raw or planning nodes and keeps draws separate', () => {
+		const branch = { ID: [201], DrawID: [10], PlanningID: [4001], From1: [9001], From2: [9002], bts_players: [[], []] };
+		const otherDrawBranch = { ...branch, ID: [202], DrawID: [20] };
+		const successor = { ID: [301], DrawID: [10], PlanningID: [3001], From1: ['4001'], From2: [4002], IsMatch: [true], bts_players: [[], [{ ID: [77] }]] };
+		const emptySuccessor = { ...successor, bts_players: [[], []] };
+		for (const inRawMatches of [true, false]) {
+			const state = {
+				matches: [inRawMatches ? successor : emptySuccessor],
+				planning_nodes: new Map([
+					[201, branch], [202, otherDrawBranch],
+					[301, inRawMatches ? emptySuccessor : successor],
+				]),
+				links: [],
+			};
+			assert.deepStrictEqual(btp_sync._find_hidden_empty_bye_branch_winner_candidates(state).map(match => match.ID[0]), [201]);
+		}
+	});
+
+	_it('ignores overwritten raw and planning successors when deciding hidden bye winners', () => {
+		const branch = { ID: [201], DrawID: [10], PlanningID: [4001], From1: [9001], From2: [9002], bts_players: [[], []] };
+		const oneSided = { ID: [301], DrawID: [10], PlanningID: [3001], From1: [4001], From2: [4002], IsMatch: [true], bts_players: [[], [{ ID: [77] }]] };
+		const overwritten = { ...oneSided, ID: [302], bts_players: [[{ ID: [88] }], [{ ID: [77] }]] };
+		const state = {
+			matches: [oneSided, overwritten],
+			planning_nodes: new Map([[201, branch], [301, oneSided], [302, overwritten]]),
+			links: [],
+		};
+		assert.deepStrictEqual(btp_sync._find_hidden_empty_bye_branch_winner_candidates(state), []);
+	});
+
+	_it('treats a resolved source whose winner is a bye as empty for hidden bye branches', () => {
+		const hiddenBranch = {
+			ID: [201],
+			DrawID: [10],
+			PlanningID: [4001],
+			From1: [3001],
+			From2: [3002],
+			WinnerTo: [2009],
+			Highlight: [0],
+			bts_players: [[], []],
+		};
+		const source1 = {
+			ID: [301],
+			DrawID: [10],
+			PlanningID: [3001],
+			From1: [5001],
+			From2: [5002],
+			Winner: [2],
+			MatchNr: [3],
+			bts_players: [[{ ID: [1], Firstname: ['Pairing'], Lastname: ['One'] }], []],
+			bts_winners: [],
+		};
+		const source2 = {
+			ID: [302],
+			DrawID: [10],
+			PlanningID: [3002],
+			From1: [5003],
+			From2: [5004],
+			Winner: [1],
+			MatchNr: [4],
+			bts_players: [[], [{ ID: [2], Firstname: ['Pairing'], Lastname: ['Two'] }]],
+			bts_winners: [],
+		};
+		const oneSidedSuccessor = {
+			ID: [501],
+			DrawID: [10],
+			PlanningID: [2009],
+			From1: [4001],
+			From2: [5000],
+			IsMatch: [true],
+			MatchNr: [60],
+			bts_players: [[], [{ ID: [3], Firstname: ['Pairing'], Lastname: ['Three'] }]],
+		};
+		const visibleSuccessor = {
+			ID: [1009],
+			DrawID: [10],
+			PlanningID: [1009],
+			From1: [2009],
+			From2: [4002],
+			IsMatch: [true],
+			IsPlayable: [true],
+			MatchNr: [28],
+			Highlight: [0],
+			Status: 0,
+			bts_players: [[], []],
+		};
+		const btpState = {
+			matches: [visibleSuccessor],
+			planning_nodes: new Map([
+				['10_3001', source1],
+				['10_3002', source2],
+				['10_4001', hiddenBranch],
+				['10_2009', oneSidedSuccessor],
+				['10_1009', visibleSuccessor],
+			]),
+			links: [],
+		};
+
+		const candidates = btp_sync._find_hidden_empty_bye_branch_winner_candidates(btpState);
+
+		assert.deepStrictEqual(candidates.map(match => match.ID[0]), [201]);
+	});
+
+	_it('reports hidden empty bye-vs-bye predecessor branches to BTP', async () => {
+		const db = await database.init_test();
+		const app = {
+			db,
+			wss: { clients: [] },
+		};
+		await insert(db, 'tournaments', {
+			key: 'default',
+			name: 'Default',
+			btp_settings: {},
+		});
+
+		const realEntry1 = {
+			ID: [301],
+			DrawID: [10],
+			PlanningID: [5001],
+			EntryID: [101],
+			bts_winners: [{ ID: [1], Firstname: ['Pairing'], Lastname: ['One'] }],
+		};
+		const realEntry2 = {
+			ID: [302],
+			DrawID: [10],
+			PlanningID: [5002],
+			EntryID: [102],
+			bts_winners: [{ ID: [2], Firstname: ['Pairing'], Lastname: ['Two'] }],
+		};
+		const hiddenBye1 = {
+			ID: [201],
+			DrawID: [10],
+			PlanningID: [4001],
+			EntryID: [20101],
+			From1: [1],
+			From2: [2],
+			WinnerTo: [2009],
+			Highlight: [0],
+			bts_players: [[], []],
+		};
+		const hiddenBye2 = {
+			ID: [202],
+			DrawID: [10],
+			PlanningID: [4002],
+			EntryID: [20201],
+			From1: [3],
+			From2: [4],
+			WinnerTo: [2010],
+			Highlight: [0],
+			bts_players: [[], []],
+		};
+		const hiddenPredecessor1 = {
+			ID: [601],
+			DrawID: [10],
+			PlanningID: [2009],
+			From1: [5001],
+			From2: [4001],
+			WinnerTo: [1009],
+			IsMatch: [true],
+			MatchNr: [60],
+			Highlight: [0],
+			bts_players: [[{ ID: [1], Firstname: ['Pairing'], Lastname: ['One'] }], []],
+		};
+		const hiddenPredecessor2 = {
+			ID: [602],
+			DrawID: [10],
+			PlanningID: [2010],
+			From1: [4002],
+			From2: [5002],
+			WinnerTo: [1009],
+			IsMatch: [true],
+			MatchNr: [61],
+			Highlight: [0],
+			bts_players: [[], [{ ID: [2], Firstname: ['Pairing'], Lastname: ['Two'] }]],
+		};
+		const visiblePlacement = {
+			ID: [1009],
+			DrawID: [10],
+			PlanningID: [1009],
+			From1: [2009],
+			From2: [2010],
+			IsMatch: [true],
+			IsPlayable: [true],
+			MatchNr: [28],
+			Highlight: [0],
+			Status: 0,
+			bts_complete: false,
+			bts_players: [[], []],
+		};
+		const planning_nodes = new Map([
+			['10_5001', realEntry1],
+			['10_5002', realEntry2],
+			['10_4001', hiddenBye1],
+			['10_4002', hiddenBye2],
+			['10_2009', hiddenPredecessor1],
+			['10_2010', hiddenPredecessor2],
+			['10_1009', visiblePlacement],
+		]);
+		const btpState = {
+			matches: [visiblePlacement],
+			draws: new Map([[10, { ID: [10], EventID: [20], StageID: [30], Name: ['MD U13'], Position: [1] }]]),
+			events: new Map([[20, { ID: [20], Name: ['MD U13'], GameTypeID: [2] }]]),
+			stages: new Map([[30, { ID: [30], Name: ['Stage'], StageType: [1], DisplayOrder: [1] }]]),
+			links: [],
+			planning_nodes,
+			courts: new Map(),
+			clubs: new Map(),
+			districts: new Map(),
+		};
+		const pushed = [];
+		const originalUpdateScore = btp_manager.update_score;
+		btp_manager.update_score = (_app, match) => pushed.push({
+			id: match.btp_match_ids[0].id,
+			match_num: match.btp_match_ids[0].nr,
+			winner_only: match.btp_winner_only_update,
+			team1_won: match.team1_won,
+			network_score: match.network_score,
+			score_status_network_score: match.score_status_network_score,
+		});
+		try {
+			await new Promise((resolve, reject) => {
+				btp_sync._integrate_matches(app, 'default', btpState, new Map(), new Map(), new Map(), (err) => {
+					if (err) reject(err);
+					else resolve();
+				});
+			});
+		} finally {
+			btp_manager.update_score = originalUpdateScore;
+		}
+
+		assert.deepStrictEqual(pushed, [
+			{
+				id: 201,
+				match_num: undefined,
+				winner_only: true,
+				team1_won: true,
+				network_score: undefined,
+				score_status_network_score: undefined,
+			},
+			{
+				id: 202,
+				match_num: undefined,
+				winner_only: true,
+				team1_won: true,
+				network_score: undefined,
+				score_status_network_score: undefined,
+			},
+		]);
+	});
+
 	_it('sanitizes end_points to be at least 1 and max_points to be at least end_points', () => {
 		const sanitized = btp_sync._sanitize_scoring_format({
 			id: 99,
@@ -558,6 +1349,49 @@ _describe('btp_sync', () => {
 
 		assert.strictEqual(merged.setup.state, 'finished');
 		assert.strictEqual(merged.setup.court_id, 'court_7');
+	});
+
+	_it('keeps local live tablet score fields while a match is on court', () => {
+		const currentMatch = {
+			btp_needsync: false,
+			network_score: [[17, 12], [4, 2]],
+			network_team1_left: true,
+			network_team1_serving: false,
+			network_teams_player1_even: [false, true],
+			presses: [{ type: 'score', side: 'left' }],
+			duration_ms: 123000,
+			shuttle_count: 2,
+			setup: {
+				court_id: 'court_7',
+				now_on_court: true,
+				state: 'oncourt',
+				called_timestamp: 1770000000000,
+				teams: [{ players: [] }, { players: [] }],
+			},
+		};
+		const btpMatch = {
+			network_score: [[2, 1]],
+			network_team1_left: false,
+			duration_ms: 9000,
+			setup: {
+				court_id: 'court_7',
+				now_on_court: true,
+				state: 'oncourt',
+				teams: [{ players: [] }, { players: [] }],
+			},
+		};
+
+		const merged = btp_sync._merge_local_match_into_btp_match(currentMatch, structuredClone(btpMatch));
+
+		assert.deepStrictEqual(merged.network_score, [[17, 12], [4, 2]]);
+		assert.strictEqual(merged.network_team1_left, true);
+		assert.strictEqual(merged.network_team1_serving, false);
+		assert.deepStrictEqual(merged.network_teams_player1_even, [false, true]);
+		assert.deepStrictEqual(merged.presses, [{ type: 'score', side: 'left' }]);
+		assert.strictEqual(merged.duration_ms, 123000);
+		assert.strictEqual(merged.shuttle_count, 2);
+		assert.strictEqual(merged.setup.now_on_court, true);
+		assert.strictEqual(merged.setup.called_timestamp, 1770000000000);
 	});
 
 	_it('keeps local blocked state when a future match contains players already on court', () => {
@@ -989,7 +1823,7 @@ _describe('btp_sync', () => {
 		assert.strictEqual(staleMerged.setup.umpire, undefined);
 	});
 
-	_it('drops stale local preparation state when the highlight is already cleared', () => {
+	_it('keeps local preparation state across sync even when the highlight is zero', () => {
 		const currentMatch = {
 			btp_needsync: false,
 			setup: {
@@ -1009,8 +1843,8 @@ _describe('btp_sync', () => {
 
 		const merged = btp_sync._merge_local_match_into_btp_match(currentMatch, structuredClone(btpMatch));
 
-		assert.strictEqual(merged.setup.state, 'scheduled');
-		assert.strictEqual(merged.setup.preparation_call_timestamp, undefined);
+		assert.strictEqual(merged.setup.state, 'preparation');
+		assert.strictEqual(merged.setup.preparation_call_timestamp, 1775701859486);
 	});
 
 	_it('clears stale planned and on-court flags when an official is no longer referenced by matches', () => {
@@ -1270,6 +2104,21 @@ _describe('btp_sync', () => {
 		assert.strictEqual(btp_sync._setup_player_assignment_changed(previousSetup, changedSetup), true);
 	});
 
+	_it('only treats player assignment changes as now-on-court changes for active matches', () => {
+		assert.strictEqual(btp_sync._player_assignment_change_affects_now_on_court_state(
+			{ setup: { now_on_court: false } },
+			{ setup: { now_on_court: false } }
+		), false);
+		assert.strictEqual(btp_sync._player_assignment_change_affects_now_on_court_state(
+			{ setup: { now_on_court: true } },
+			{ setup: { now_on_court: false } }
+		), true);
+		assert.strictEqual(btp_sync._player_assignment_change_affects_now_on_court_state(
+			{ setup: { now_on_court: false } },
+			{ setup: { now_on_court: true } }
+		), true);
+	});
+
 	_it('recognizes when BTP has already accepted a pending local walkover sync', () => {
 		const localMatch = {
 			btp_needsync: true,
@@ -1298,6 +2147,31 @@ _describe('btp_sync', () => {
 		};
 
 		assert.strictEqual(btp_sync._btp_match_confirms_pending_local_sync(localMatch, btpMatch), false);
+	});
+
+	_it('keeps local preparation location when merging a BTP match without court information', () => {
+		const currentMatch = {
+			setup: {
+				state: 'preparation',
+				now_on_court: false,
+				highlight: 1,
+				location_id: 'location-1',
+				preparation_call_timestamp: 1234567890,
+			},
+		};
+		const btpMatch = {
+			setup: {
+				state: 'scheduled',
+				now_on_court: false,
+			},
+		};
+
+		const merged = btp_sync._merge_local_match_into_btp_match(currentMatch, btpMatch);
+
+		assert.strictEqual(merged.setup.state, 'preparation');
+		assert.strictEqual(merged.setup.location_id, 'location-1');
+		assert.strictEqual(merged.setup.highlight, 1);
+		assert.strictEqual(merged.setup.preparation_call_timestamp, 1234567890);
 	});
 
 	_it('clears pending local BTP sync when an imported BTP walkover confirms it', async () => {
@@ -1789,4 +2663,248 @@ _describe('btp_sync', () => {
 		assert.strictEqual(cleaned_source.score_status, 'normal');
 		assert.strictEqual(cleaned_source.forward_loser, false);
 	});
+
+	_it('clears a stale local normal result when BTP no longer has a result', async () => {
+		const db = await database.init_test();
+		const app = {
+			db,
+			wss: { clients: [] },
+		};
+		await insert(db, 'tournaments', {
+			key: 'default',
+			name: 'Default',
+			btp_settings: {},
+		});
+		await insert(db, 'matches', {
+			_id: 'source',
+			tournament_key: 'default',
+			btp_id: 'default_MD U17_44',
+			btp_match_ids: [{ id: 44, draw: 10, planning: 100 }],
+			btp_needsync: false,
+			score_status: 'normal',
+			btp_score_status: 0,
+			team1_won: true,
+			btp_winner: 1,
+			network_score: [[21, 19], [23, 21]],
+			end_ts: 12345,
+			setup: {
+				is_match: true,
+				event_name: 'MD U17',
+				state: 'finished',
+				now_on_court: false,
+				court_id: 'old-court',
+				called_timestamp: 12300,
+				match_num: 44,
+				teams: [
+					{ players: [{ btp_id: 1, name: 'Aditri Reddy Kotla' }, { btp_id: 2, name: 'Alina Lin' }] },
+					{ players: [{ btp_id: 3, name: 'Lenie Kison' }, { btp_id: 4, name: 'Lea-Sophie Mews' }] },
+				],
+			},
+		});
+
+		const btpState = {
+			matches: [{
+				ID: [44],
+				DrawID: [10],
+				PlanningID: [100],
+				From1: [1],
+				From2: [2],
+				IsMatch: [true],
+				MatchNr: [44],
+				Highlight: [0],
+				Status: 0,
+				bts_complete: true,
+				bts_players: [[{ ID: [1] }, { ID: [2] }], [{ ID: [3] }, { ID: [4] }]],
+			}],
+			draws: new Map([[10, { ID: [10], EventID: [20], StageID: [30], Name: ['MD U17'], Position: [1] }]]),
+			events: new Map([[20, { ID: [20], Name: ['MD U17'], GameTypeID: [2] }]]),
+			stages: new Map([[30, { ID: [30], Name: ['Stage'], StageType: [1], DisplayOrder: [1] }]]),
+			links: [],
+			planning_nodes: new Map(),
+			courts: new Map(),
+			clubs: new Map(),
+			districts: new Map(),
+		};
+
+		await new Promise((resolve, reject) => {
+			btp_sync._integrate_matches(app, 'default', btpState, new Map(), new Map(), new Map(), (err) => {
+				if (err) reject(err);
+				else resolve();
+			});
+		});
+
+		const source = await db.matches.findOne_async({ _id: 'source' });
+		assert.strictEqual(source.score_status, 'normal');
+		assert.strictEqual(source.btp_score_status, 0);
+		assert.strictEqual(source.forward_loser, false);
+		assert.strictEqual(source.team1_won, undefined);
+		assert.strictEqual(source.btp_winner, undefined);
+		assert.strictEqual(source.network_score, undefined);
+		assert.strictEqual(source.end_ts, undefined);
+		assert.strictEqual(source.setup.state, 'unscheduled');
+		assert.notStrictEqual(source.setup.now_on_court, true);
+		assert.strictEqual(source.setup.court_id, undefined);
+		assert.strictEqual(source.setup.called_timestamp, undefined);
 	});
+
+	_it('keeps a pending local normal result until BTP confirms it', async () => {
+		const db = await database.init_test();
+		const app = {
+			db,
+			wss: { clients: [] },
+		};
+		await insert(db, 'tournaments', {
+			key: 'default',
+			name: 'Default',
+			btp_settings: {},
+		});
+		await insert(db, 'matches', {
+			_id: 'source',
+			tournament_key: 'default',
+			btp_id: 'default_MD U17_44',
+			btp_match_ids: [{ id: 44, draw: 10, planning: 100 }],
+			btp_needsync: true,
+			score_status: 'normal',
+			btp_score_status: 0,
+			team1_won: true,
+			btp_winner: 1,
+			network_score: [[21, 19], [23, 21]],
+			end_ts: 12345,
+			setup: {
+				is_match: true,
+				event_name: 'MD U17',
+				state: 'finished',
+				now_on_court: false,
+				match_num: 44,
+				teams: [
+					{ players: [{ btp_id: 1, name: 'Aditri Reddy Kotla' }, { btp_id: 2, name: 'Alina Lin' }] },
+					{ players: [{ btp_id: 3, name: 'Lenie Kison' }, { btp_id: 4, name: 'Lea-Sophie Mews' }] },
+				],
+			},
+		});
+
+		const btpState = {
+			matches: [{
+				ID: [44],
+				DrawID: [10],
+				PlanningID: [100],
+				From1: [1],
+				From2: [2],
+				IsMatch: [true],
+				MatchNr: [44],
+				Highlight: [0],
+				Status: 0,
+				bts_complete: true,
+				bts_players: [[{ ID: [1] }, { ID: [2] }], [{ ID: [3] }, { ID: [4] }]],
+			}],
+			draws: new Map([[10, { ID: [10], EventID: [20], StageID: [30], Name: ['MD U17'], Position: [1] }]]),
+			events: new Map([[20, { ID: [20], Name: ['MD U17'], GameTypeID: [2] }]]),
+			stages: new Map([[30, { ID: [30], Name: ['Stage'], StageType: [1], DisplayOrder: [1] }]]),
+			links: [],
+			planning_nodes: new Map(),
+			courts: new Map(),
+			clubs: new Map(),
+			districts: new Map(),
+		};
+
+		await new Promise((resolve, reject) => {
+			btp_sync._integrate_matches(app, 'default', btpState, new Map(), new Map(), new Map(), (err) => {
+				if (err) reject(err);
+				else resolve();
+			});
+		});
+
+		const source = await db.matches.findOne_async({ _id: 'source' });
+		assert.strictEqual(source.btp_needsync, true);
+		assert.strictEqual(source.team1_won, true);
+		assert.strictEqual(source.btp_winner, 1);
+		assert.deepStrictEqual(source.network_score, [[21, 19], [23, 21]]);
+		assert.strictEqual(source.setup.state, 'finished');
+	});
+});
+
+_describe('BTP on-court reconciliation', () => {
+	_it('batches all court assignments and skips unchanged courts and players', async () => {
+		const db = await database.init_test();
+		const app = { db };
+		await insert(db, 'tournaments', { key: 'default' });
+		const active = [
+			{ _id: 'active-1', tournament_key: 'default', setup: {
+				court_id: 'court-1', now_on_court: true, called_timestamp: 1, state: 'oncourt',
+				teams: [{ players: [{ btp_id: 11 }] }], tabletoperators: [{ btp_id: 101 }],
+			} },
+			{ _id: 'active-2', tournament_key: 'default', setup: {
+				court_id: 'court-2', now_on_court: true, called_timestamp: 1, state: 'oncourt',
+				teams: [{ players: [{ btp_id: 21 }] }], tabletoperators: [{ btp_id: 201 }],
+			} },
+		];
+		for (const match of active) await insert(db, 'matches', match);
+		await insert(db, 'matches', { _id: 'shared', tournament_key: 'default', setup: {
+			state: 'scheduled', teams: [{ players: [{ btp_id: 11 }, { btp_id: 201 }] }],
+		} });
+		await insert(db, 'courts', { _id: 'court-1', tournament_key: 'default', match_id: 'active-1' });
+		await insert(db, 'courts', { _id: 'court-2', tournament_key: 'default', match_id: null });
+		let match_reads = 0;
+		let match_writes = 0;
+		let court_writes = 0;
+		let indexed_reads = 0;
+		const find_related = db.model.find_matches_by_players;
+		db.model.find_matches_by_players = (...args) => { indexed_reads++; return find_related(...args); };
+		const find = db.matches.find.bind(db.matches);
+		const find_async = db.matches.find_async.bind(db.matches);
+		db.matches.find = (...args) => { match_reads++; return find(...args); };
+		db.matches.find_async = (...args) => { match_reads++; return find_async(...args); };
+		const update = db.matches.update.bind(db.matches);
+		db.matches.update = (...args) => { match_writes++; return update(...args); };
+		const update_court = db.courts.update.bind(db.courts);
+		db.courts.update = (...args) => { court_writes++; return update_court(...args); };
+		const run = () => new Promise((resolve, reject) => {
+			btp_sync._integrate_now_on_court(app, 'default', err => err ? reject(err) : resolve());
+		});
+		await run();
+		assert.strictEqual(match_reads, 1);
+		assert.strictEqual(indexed_reads, 1);
+		assert.strictEqual(match_writes, 1);
+		assert.strictEqual(court_writes, 1);
+		const shared = await db.matches.findOne_async({ _id: 'shared' });
+		assert.strictEqual(shared.setup.teams[0].players[0].now_playing_on_court, 'court-1');
+		assert.strictEqual(shared.setup.teams[0].players[1].now_tablet_on_court, 'court-2');
+		assert.strictEqual(shared.setup.state, 'blocked');
+		assert.strictEqual((await db.courts.findOne_async({ _id: 'court-2' })).match_id, 'active-2');
+		await run();
+		assert.strictEqual(match_reads, 2);
+		assert.strictEqual(indexed_reads, 2);
+		assert.strictEqual(match_writes, 1);
+		assert.strictEqual(court_writes, 1);
+	});
+
+	_it('waits for newly called matches and propagates a failed call', async () => {
+		const match_utils = require('../bts/match_utils');
+		const db = await database.init_test();
+		await insert(db, 'tournaments', { key: 'default' });
+		await insert(db, 'matches', { _id: 'new', tournament_key: 'default', setup: {
+			now_on_court: true, court_id: 'court-1', teams: [],
+		} });
+		let complete_call;
+		let completed = false;
+		const original_call = match_utils.call_match;
+		try {
+			const started = new Promise(resolve => {
+				match_utils.call_match = (...args) => {
+					complete_call = args[4];
+					resolve();
+				};
+			});
+			const operation = new Promise(resolve => {
+				btp_sync._integrate_now_on_court({ db }, 'default', err => { completed = true; resolve(err); });
+			});
+			await started;
+			assert.strictEqual(completed, false);
+			const expected = new Error('cannot call match');
+			complete_call(expected);
+			assert.strictEqual(await operation, expected);
+		} finally {
+			match_utils.call_match = original_call;
+		}
+	});
+});

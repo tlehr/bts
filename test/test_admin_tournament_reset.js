@@ -31,6 +31,7 @@ describe('admin tournament reset', function() {
 			warmup_timer_behavior: 'call-down',
 			call_preparation_matches_automatically_enabled: true,
 			call_next_possible_scheduled_match_in_preparation: true,
+			preparation_call_min_gap_seconds: 17,
 			preparation_call_block_ahead_limit_enabled: true,
 			preparation_call_block_ahead_limit: 3,
 			official_rotation_mode: 'umpire_only',
@@ -76,6 +77,12 @@ describe('admin tournament reset', function() {
 			court_id: 'default_1',
 			displaysetting_id: 'display-a',
 		});
+		await insert(db, 'display_court_displaysettings', {
+			_id: 'd2',
+			client_id: 'tablet',
+			court_id: 'default_2',
+			displaysetting_id: 'tablet-a',
+		});
 
 		await admin.reset_tournament_to_empty_default(app, 'default');
 
@@ -89,14 +96,15 @@ describe('admin tournament reset', function() {
 		const tournament = await db.tournaments.findOne_async({ key: 'default' });
 		assert.strictEqual(tournament.name, 'Default');
 		assert.strictEqual(tournament.tguid, undefined);
-		assert.strictEqual(tournament.btp_enabled, true);
-		assert.strictEqual(tournament.btp_autofetch_enabled, true);
+		assert.strictEqual(tournament.btp_enabled, false);
+		assert.strictEqual(tournament.btp_autofetch_enabled, false);
 		assert.strictEqual(tournament.btp_ip, '192.0.2.5');
 		assert.strictEqual(tournament.btp_password, 'secret');
 		assert.deepStrictEqual(tournament.btp_settings, { tournament_urn: 'old-btp' });
 		assert.strictEqual(tournament.warmup_timer_behavior, 'call-down');
 		assert.strictEqual(tournament.call_preparation_matches_automatically_enabled, true);
 		assert.strictEqual(tournament.call_next_possible_scheduled_match_in_preparation, true);
+		assert.strictEqual(tournament.preparation_call_min_gap_seconds, 17);
 		assert.strictEqual(tournament.preparation_call_block_ahead_limit_enabled, true);
 		assert.strictEqual(tournament.preparation_call_block_ahead_limit, 3);
 		assert.strictEqual(tournament.official_rotation_mode, 'umpire_only');
@@ -111,10 +119,16 @@ describe('admin tournament reset', function() {
 
 		assert.strictEqual((await db.normalizations.find_async({ tournament_key: 'default' })).length, 1);
 		const displaysettings = await db.displaysettings.find_async({});
-		assert.strictEqual(displaysettings.length, 2);
+		assert.strictEqual(displaysettings.length, 3);
 		const display_setting = displaysettings.find(setting => setting.id === 'display-a');
 		assert.strictEqual(display_setting.displaymode_style, 'tournament_overview_dm');
 		assert.strictEqual(display_setting.d_tournament_overview_courts, '6,5,4,3,2');
-		assert.strictEqual((await db.display_court_displaysettings.find_async({ tournament_key: 'default' })).length, 1);
+		const registration_setting = displaysettings.find(setting => setting.id === 'default_default_registration');
+		assert(registration_setting);
+		assert.strictEqual(registration_setting.tablet_mode, 'registration_check');
+		const display_assignments = await db.display_court_displaysettings.find_async({});
+		assert.strictEqual(display_assignments.length, 2);
+		assert.deepStrictEqual(display_assignments.map(display => display.client_id).sort(), ['monitor', 'tablet']);
+		assert(display_assignments.every(display => display.court_id === undefined));
 	});
 });

@@ -11,6 +11,72 @@ const btp_parse = require('../bts/btp_parse');
 
 
 _describe('btp_parse', () => {
+	_it('reads string stage-entry DNS statuses into the player draw entries', async() => {
+		const bm = {
+			DrawID: [5],
+			EntryID: [100],
+			IsMatch: [false],
+		};
+		const player = {
+			ID: [53],
+			Firstname: ['Zizhan'],
+			Lastname: ['Yu'],
+			entries: new Map([[2, '<none>']]),
+		};
+		const entries = new Map([[100, { Player1ID: [53] }]]);
+		const stage_entries = new Map([[900, {
+			StageID: [10],
+			EntryID: [100],
+			Status: ['108'],
+		}]]);
+		const draws = new Map([[5, {
+			ID: [5],
+			StageID: [10],
+		}]]);
+		const players = new Map([[53, player]]);
+
+		btp_parse._calc_match_players(new Map(), entries, stage_entries, draws, players, bm, false);
+
+		assert.deepStrictEqual(bm.bts_winners.map(p => p.ID[0]), [53]);
+		assert.strictEqual(player.entries.get(2), '<none>');
+		assert.strictEqual(player.entries.get(5), 'DNS');
+	});
+
+	_it('propagates the winning team from a finished normal match', async() => {
+		const players = new Map([
+			[1, { ID: [1], Firstname: ['Anna'], Lastname: ['One'] }],
+			[2, { ID: [2], Firstname: ['Berta'], Lastname: ['Two'] }],
+			[3, { ID: [3], Firstname: ['Carla'], Lastname: ['Three'] }],
+			[4, { ID: [4], Firstname: ['Dina'], Lastname: ['Four'] }],
+		]);
+		const entries = new Map([
+			[101, { Player1ID: [1], Player2ID: [2] }],
+			[102, { Player1ID: [3], Player2ID: [4] }],
+		]);
+		const draws = new Map([[5, { ID: [5], StageID: [10] }]]);
+		const stage_entries = new Map();
+		const source1 = { DrawID: [5], PlanningID: [2001], EntryID: [101] };
+		const source2 = { DrawID: [5], PlanningID: [2002], EntryID: [102] };
+		const bm = {
+			DrawID: [5],
+			PlanningID: [1001],
+			From1: [2001],
+			From2: [2002],
+			IsMatch: [true],
+			Winner: [2],
+		};
+		const matches_by_pid = new Map([
+			['5_2001', source1],
+			['5_2002', source2],
+			['5_1001', bm],
+		]);
+
+		btp_parse._calc_match_players(matches_by_pid, entries, stage_entries, draws, players, bm, false);
+
+		assert.deepStrictEqual(bm.bts_players.map(team => team.map(player => player.ID[0])), [[1, 2], [3, 4]]);
+		assert.deepStrictEqual(bm.bts_winners.map(player => player.ID[0]), [3, 4]);
+	});
+
 	_it('DMO35 2017 finals', async() => {
 		const test_file = path.join(__dirname, 'testdata', 'dmo35_finals.json');
 		const contents = await fs.promises.readFile(test_file, 'utf-8');

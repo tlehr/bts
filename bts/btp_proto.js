@@ -4,6 +4,8 @@ const zlib = require('zlib');
 const xmldom = require('xmldom');
 const serror = require('./serror');
 const calc = require('../static/bup/dev/js/calc');
+const decode_timing = require('./timing/btp_decode');
+const { el2obj, decode_string, parse } = require('./btp_decode/codec');
 
 function resolve_current_now_ms(options = {}) {
 	const normalized = Number(options.current_now_ms);
@@ -157,36 +159,40 @@ function update_request(match, key_unicode, password, umpire_btp_id, service_jud
 			PlanningID: btp_m_id.planning,
 			Status: 0,
 			Highlight: (match.setup.highlight ? match.setup.highlight : 0),
-			MatchOrder: match.match_order,
 			// BTP also sends a boolean ScoreSheetPrinted here
 		};
+		if (match.match_order != null) {
+			m.MatchOrder = match.match_order;
+		}
 
 		if(typeof match.team1_won === 'boolean') {
 			m.Winner = match.team1_won ? 1 : 2;
-		
-			const duration_mins = match.duration_ms ? Math.floor(match.duration_ms / 60000) : 0;
-			m.Duration = duration_mins;
 
-			const special_status_uses_reached_score = score_status === 2 || score_status === 3;
-			const result_score = Array.isArray(match.score_status_network_score)
-				? match.score_status_network_score
-				: (special_status_uses_reached_score ? reached_score_from_match(match) : null) || match.network_score;
-			if(result_score) {
-				const sets = result_score.map(ns => {
-					return {
-						Set: {
-							T1: ns[0],
-							T2: ns[1],
-						},
-					};
-				});
+			if (match.btp_winner_only_update !== true) {
+				const duration_mins = match.duration_ms ? Math.floor(match.duration_ms / 60000) : 0;
+				m.Duration = duration_mins;
 
-				m.Sets = sets;
-			}
+				const special_status_uses_reached_score = score_status === 2 || score_status === 3;
+				const result_score = Array.isArray(match.score_status_network_score)
+					? match.score_status_network_score
+					: (special_status_uses_reached_score ? reached_score_from_match(match) : null) || match.network_score;
+				if(result_score) {
+					const sets = result_score.map(ns => {
+						return {
+							Set: {
+								T1: ns[0],
+								T2: ns[1],
+							},
+						};
+					});
 
-			m.ScoreStatus = score_status;
-			if (match.forward_loser === true || btp_m_id.forward_loser === true) {
-				m.ForwardLoser = true;
+					m.Sets = sets;
+				}
+
+				m.ScoreStatus = score_status;
+				if (match.forward_loser === true || btp_m_id.forward_loser === true) {
+					m.ForwardLoser = true;
+				}
 			}
 		}
 		if (score_status !== 0 && m.ScoreStatus == null) {
@@ -392,57 +398,6 @@ function update_courts_request(courts, key_unicode, password){
 }
 
 
-function el2obj(el) {
-	const res = {};
-	for (let i = 0;i < el.childNodes.length;i++) {
-		const c = el.childNodes[i];
-		if (c.nodeType === c.TEXT_NODE) {
-			// Whitespace in indented XML
-			assert(/^\s*$/.test(c.data));
-			continue;
-		}
-		let item;
-
-		if (c.tagName === 'GROUP') {
-			item = el2obj(c);
-		} else if (c.tagName === 'ITEM') {
-			const itype = c.getAttribute('TYPE');
-			if (itype === 'String') {
-				item = c.textContent;
-			} else if (itype === 'Integer') {
-				item = parseInt(c.textContent);
-			} else if (itype === 'Float') {
-				item = parseFloat(c.textContent);
-			} else if (itype === 'Bool') {
-				item = c.textContent === 'true';
-			} else if (itype === 'DateTime') {
-				const dt = c.getElementsByTagName('DATETIME')[0];
-				item = {
-					_type: 'datetime',
-					year: parseInt(dt.getAttribute('Y')),
-					month: parseInt(dt.getAttribute('MM')),
-					day: parseInt(dt.getAttribute('D')),
-					hour: parseInt(dt.getAttribute('H')),
-					minute: parseInt(dt.getAttribute('M')),
-					second: parseInt(dt.getAttribute('S')),
-					ms: parseInt(dt.getAttribute('MS')),
-				};
-			} else {
-				throw new Error('Unsupported BTP item type ' + itype);
-			}
-		} else {
-			throw new Error('Unsupported BTP tag ' + c.tagName);
-		}
-
-		const id = c.getAttribute('ID');
-		if (!res[id]) {
-			res[id] = [];
-		}
-		res[id].push(item);
-	}
-	return res;
-}
-
 function _req2xml_add(doc, parent, obj, timeZone) {
 	for (const k in obj) {
 		const v = obj[k];
@@ -528,39 +483,34 @@ function encode_xml(xml_str) {
 	return whole_req;
 }
 
-function decode_string(buf, callback) {
-	if (buf.length < 4) {
-		return callback(new Error('Got only ' + buf.length + ' bytes'));
-	}
-
-	const expect_len = buf.readInt32BE(0);
-	if (buf.length - 4 !== expect_len) {
-		return callback(new Error('Expected a message of 4+' + expect_len + ' Bytes, but got ' + buf.length));
-	}
-
-	const main_buf = buf.slice(4);
-	const response_buf = zlib.gunzipSync(main_buf, {});
-	callback(null, response_buf.toString('utf8'));
-}
-
-function decode(buf, callback) {
+function decode(buf, callback, context = {}) {
 	assert(callback);
-	decode_string(buf, (err, response_str) => {
-		if (err) return callback(err);
-		const parser = new xmldom.DOMParser();
+	const timing = decode_timing(context, buf.length);
+	const finish = (err, response) => {
+		if (timing) timing.finish(err);
+		return callback(err, response);
+	};
+	try {
+		decode_string(buf, (err, response_str) => {
+			if (err) return finish(err);
 
-		var response;
-		try {
-			const doc = parser.parseFromString(response_str);
-			response = el2obj(doc.documentElement);
-		} catch(err) {
-			serror.silent('Encountered an error while parsing BTP message: ' + err.message);
-			callback(err);
-			return;
-		}
+			let response;
+			try {
+				response = parse(response_str, timing);
+			} catch(err) {
+				if (timing) timing.finish(err);
+				serror.silent('Encountered an error while parsing BTP message: ' + err.message);
+				return finish(err);
+			}
 
-		callback(null, response);
-	});
+			return finish(null, response);
+		}, timing);
+	} catch (err) {
+		// gunzipSync errors and caller callback exceptions still propagate as
+		// before. Finish is idempotent and excludes all caller callback work.
+		if (timing) timing.finish(err);
+		throw err;
+	}
 }
 
 module.exports = {

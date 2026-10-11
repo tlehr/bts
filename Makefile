@@ -22,7 +22,7 @@ test:
 	@npm test
 
 dev:
-	@./node_modules/.bin/supervisor -i node_modules,static,data,original_data bts/bts.js
+	@./node_modules/.bin/supervisor -q -i node_modules,static,data,original_data bts/bts.js
 
 ticker-dev:
 	@./node_modules/.bin/supervisor -i static ticker/ticker.js
@@ -36,7 +36,7 @@ ticker-run:
 lint: eslint stylelint
 
 eslint:
-	@./node_modules/.bin/eslint bts/ ticker/ test/*.js static/js/ div/*.js *.js
+	@npm run lint:js
 
 stylelint:
 	@./node_modules/.bin/stylelint static/css/*.css

@@ -775,6 +775,61 @@ _describe('match automation', () => {
 		assert.strictEqual(diagnostics.rules.find((rule) => rule.key === 'time_before_scheduled').group, 'window');
 	});
 
+	_it('uses a smaller rule set for manual preparation-call diagnostics', () => {
+		const source = make_preparation_match({
+			_id: 'source',
+			team1_won: true,
+			setup: {
+				teams: [
+					{ players: [{ _id: 'p1', btp_id: 1 }] },
+					{ players: [{ _id: 'p2', btp_id: 2 }] },
+				],
+			},
+		});
+		const match = make_preparation_match({
+			_id: 'target',
+			setup: {
+				state: 'preparation',
+				preparation_call_deferred: true,
+				teams: [
+					{ players: [{ _id: 'p1', btp_id: 1, now_tablet_on_court: 'c1' }] },
+					{ players: [{ _id: 'p3', btp_id: 3 }] },
+				],
+			},
+		});
+		const tournament = {
+			preparation_call_no_player_active_as_tabletoperator_enabled: true,
+			courts: [],
+			matches: [source, match],
+		};
+
+		const diagnostics = match_automation.calculate_match_preparation_diagnostics(match, 'l1', tournament);
+
+		assert.strictEqual(diagnostics.manual_eligible, true);
+		assert.strictEqual(diagnostics.criteria_eligible, false);
+		assert.strictEqual(diagnostics.rules.find((rule) => rule.key === 'manual_state_callable').passed, true);
+		assert.strictEqual(diagnostics.rules.find((rule) => rule.key === 'state_scheduled').passed, false);
+		assert.strictEqual(diagnostics.rules.find((rule) => rule.key === 'not_deferred').passed, false);
+		assert.strictEqual(diagnostics.rules.find((rule) => rule.key === 'not_active_tabletoperator').passed, false);
+	});
+
+	_it('blocks manual preparation-call diagnostics while a player is playing', () => {
+		const match = make_preparation_match({
+			setup: {
+				teams: [
+					{ players: [{ _id: 'p1', now_playing_on_court: 'c1' }] },
+					{ players: [{ _id: 'p2' }] },
+				],
+			},
+		});
+		const tournament = { courts: [], matches: [match] };
+
+		const diagnostics = match_automation.calculate_match_preparation_diagnostics(match, 'l1', tournament);
+
+		assert.strictEqual(diagnostics.manual_eligible, false);
+		assert.strictEqual(diagnostics.rules.find((rule) => rule.key === 'not_playing_on_court').passed, false);
+	});
+
 	_it('marks disabled preparation diagnostic rules', () => {
 		const match = make_preparation_match();
 		const tournament = { courts: [], matches: [match] };
@@ -1705,6 +1760,73 @@ _describe('match automation', () => {
 		assert.deepStrictEqual(candidates.map((match) => match._id), ['m1', 'm3', 'm4']);
 	});
 
+	_it('uses the UI default block limit when the block rule is enabled without a saved value', () => {
+		const tournament = {
+			preparation_call_block_ahead_limit_enabled: true,
+			courts: [],
+			matches: [
+				make_preparation_match({
+					_id: 'before',
+					setup: {
+						match_num: 1,
+						scheduled_time_str: '09:00',
+						event_name: 'HE',
+						phase_block_key: 'G1',
+					},
+				}),
+				make_preparation_match({
+					_id: 'frontier',
+					setup: {
+						match_num: 2,
+						scheduled_time_str: '09:05',
+						event_name: 'HE',
+						phase_block_key: 'G1',
+						teams: [
+							{ players: [{ _id: 'p1' }] },
+							{ players: [] },
+						],
+						links: { from1: 999 },
+					},
+				}),
+				make_preparation_match({
+					_id: 'same-block-after-frontier',
+					setup: {
+						match_num: 3,
+						scheduled_time_str: '09:10',
+						event_name: 'HE',
+						phase_block_key: 'G1',
+					},
+				}),
+				make_preparation_match({
+					_id: 'next-block',
+					setup: {
+						match_num: 4,
+						scheduled_time_str: '09:15',
+						event_name: 'HE',
+						phase_block_key: 'G2',
+					},
+				}),
+				make_preparation_match({
+					_id: 'too-far',
+					setup: {
+						match_num: 5,
+						scheduled_time_str: '09:20',
+						event_name: 'HE',
+						phase_block_key: 'VF',
+					},
+				}),
+			],
+		};
+
+		const candidates = match_automation.find_location_preparation_candidates(tournament, 'l1');
+
+		assert.deepStrictEqual(candidates.map((match) => match._id), [
+			'before',
+			'same-block-after-frontier',
+			'next-block',
+		]);
+	});
+
 	_it('counts repeated block keys after the frontier by their concrete sequence position', () => {
 		const tournament = {
 			preparation_call_block_ahead_limit_enabled: true,
@@ -1852,6 +1974,235 @@ _describe('match automation', () => {
 		const candidates = match_automation.find_location_preparation_candidates(tournament, 'l1');
 
 		assert.deepStrictEqual(candidates.map((match) => match._id), ['m1', 'm3']);
+	});
+
+	_it('counts already prepared matches when applying the preparation frontier block limit', () => {
+		const tournament = {
+			preparation_call_block_ahead_limit_enabled: true,
+			preparation_call_block_ahead_limit: 2,
+			courts: [],
+			matches: [
+				make_preparation_match({
+					_id: 'frontier',
+					setup: {
+						match_num: 42,
+						scheduled_time_str: '11:00',
+						event_name: 'MX U17',
+						phase_block_key: '9/16',
+						teams: [
+							{ players: [{ _id: 'p1' }] },
+							{ players: [] },
+						],
+						links: { from1: 999 },
+					},
+				}),
+				make_preparation_match({
+					_id: 'prepared',
+					setup: {
+						match_num: 51,
+						scheduled_time_str: '11:00',
+						event_name: 'MX U15',
+						phase_block_key: '9/16',
+						state: 'preparation',
+						location_id: 'l1',
+					},
+				}),
+				make_preparation_match({
+					_id: 'second-block',
+					setup: {
+						match_num: 53,
+						scheduled_time_str: '11:30',
+						event_name: 'MX U17',
+						phase_block_key: 'HF',
+					},
+				}),
+				make_preparation_match({
+					_id: 'third-block',
+					setup: {
+						match_num: 54,
+						scheduled_time_str: '11:30',
+						event_name: 'MX U13',
+						phase_block_key: 'HF',
+					},
+				}),
+			],
+		};
+
+		const selection = match_automation.calculate_location_preparation_selection(tournament, 'l1');
+		const third_block_rule = selection.diagnostics_by_match_id['third-block'].rules
+			.find((rule) => rule.key === 'frontier_block_limit');
+
+		assert.deepStrictEqual(selection.candidates.map((match) => match._id), ['second-block']);
+		assert.strictEqual(selection.display_cutoff._id, 'second-block');
+		assert.strictEqual(third_block_rule.passed, false);
+		assert.strictEqual(third_block_rule.detail, 'Block 3 von 2 nach Frontier-Spiel #42');
+	});
+
+	_it('keeps the display cutoff on the last match of a block when that match is already in preparation', () => {
+		const tournament = {
+			preparation_call_block_ahead_limit_enabled: true,
+			preparation_call_block_ahead_limit: 2,
+			courts: [],
+			matches: [
+				make_preparation_match({
+					_id: 'frontier',
+					setup: {
+						match_num: 49,
+						scheduled_time_str: '10:30',
+						event_name: 'JD U17',
+						phase_block_key: 'VF',
+						incomplete: true,
+					},
+				}),
+				make_preparation_match({
+					_id: 'candidate',
+					setup: {
+						match_num: 58,
+						scheduled_time_str: '11:00',
+						event_name: 'JD U19',
+						phase_block_key: 'VF',
+					},
+				}),
+				make_preparation_match({
+					_id: 'prepared-same-block',
+					setup: {
+						match_num: 59,
+						scheduled_time_str: '11:00',
+						event_name: 'JD U19',
+						phase_block_key: 'VF',
+						state: 'preparation',
+						location_id: 'l1',
+					},
+				}),
+				make_preparation_match({
+					_id: 'prepared-next-block',
+					setup: {
+						match_num: 62,
+						scheduled_time_str: '11:00',
+						event_name: 'MD U13',
+						phase_block_key: 'HF',
+						state: 'preparation',
+						location_id: 'l1',
+					},
+				}),
+			],
+		};
+
+		const selection = match_automation.calculate_location_preparation_selection(tournament, 'l1');
+
+		assert.deepStrictEqual(selection.display_candidates.map((match) => match._id), ['candidate']);
+		assert.strictEqual(selection.display_cutoff._id, 'prepared-same-block');
+	});
+
+	_it('counts finished and on-court matches when applying the preparation frontier block limit', () => {
+		const tournament = {
+			preparation_call_block_ahead_limit_enabled: true,
+			preparation_call_block_ahead_limit: 2,
+			courts: [],
+			matches: [
+				make_preparation_match({
+					_id: 'frontier',
+					setup: {
+						match_num: 42,
+						scheduled_time_str: '11:00',
+						event_name: 'MX U17',
+						phase_block_key: '9/16',
+						teams: [
+							{ players: [{ _id: 'p1' }] },
+							{ players: [] },
+						],
+						links: { from1: 999 },
+					},
+				}),
+				make_preparation_match({
+					_id: 'finished-block',
+					team1_won: true,
+					setup: {
+						match_num: 51,
+						scheduled_time_str: '11:00',
+						event_name: 'MX U15',
+						phase_block_key: '9/16',
+						state: 'finished',
+					},
+				}),
+				make_preparation_match({
+					_id: 'on-court-block',
+					setup: {
+						match_num: 53,
+						scheduled_time_str: '11:30',
+						event_name: 'MX U17',
+						phase_block_key: 'HF',
+						state: 'oncourt',
+						now_on_court: true,
+					},
+				}),
+				make_preparation_match({
+					_id: 'too-far',
+					setup: {
+						match_num: 54,
+						scheduled_time_str: '11:30',
+						event_name: 'MX U13',
+						phase_block_key: 'HF',
+					},
+				}),
+			],
+		};
+
+		const selection = match_automation.calculate_location_preparation_selection(tournament, 'l1');
+		const too_far_rule = selection.diagnostics_by_match_id['too-far'].rules
+			.find((rule) => rule.key === 'frontier_block_limit');
+
+		assert.deepStrictEqual(selection.candidates.map((match) => match._id), []);
+		assert.strictEqual(too_far_rule.passed, false);
+		assert.strictEqual(too_far_rule.detail, 'Block 3 von 2 nach Frontier-Spiel #42');
+	});
+
+	_it('uses blocked matches as the preparation frontier for block limits', () => {
+		const tournament = {
+			preparation_call_block_ahead_limit_enabled: true,
+			preparation_call_block_ahead_limit: 1,
+			courts: [],
+			matches: [
+				make_preparation_match({
+					_id: 'blocked-frontier',
+					setup: {
+						match_num: 104,
+						scheduled_time_str: '13:00',
+						event_name: 'ME U17',
+						phase_block_key: 'R16',
+						state: 'blocked',
+					},
+				}),
+				make_preparation_match({
+					_id: 'first-block',
+					setup: {
+						match_num: 106,
+						scheduled_time_str: '13:00',
+						event_name: 'ME U19',
+						phase_block_key: 'R16',
+					},
+				}),
+				make_preparation_match({
+					_id: 'too-far',
+					setup: {
+						match_num: 110,
+						scheduled_time_str: '13:30',
+						event_name: 'MX U19',
+						phase_block_key: 'Finale',
+					},
+				}),
+			],
+		};
+
+		const selection = match_automation.calculate_location_preparation_selection(tournament, 'l1');
+		const too_far_rule = selection.diagnostics_by_match_id['too-far'].rules
+			.find((rule) => rule.key === 'frontier_block_limit');
+
+		assert.deepStrictEqual(selection.candidates.map((match) => match._id), ['first-block']);
+		assert.strictEqual(selection.display_frontier._id, 'blocked-frontier');
+		assert.strictEqual(selection.frontier._id, 'blocked-frontier');
+		assert.strictEqual(too_far_rule.passed, false);
+		assert.strictEqual(too_far_rule.detail, 'Block 2 von 1 nach Frontier-Spiel #104');
 	});
 
 	_it('reports concrete preparation limit positions in diagnostics', () => {
@@ -2068,6 +2419,29 @@ _describe('match automation', () => {
 		assert.deepStrictEqual(selection.auto_selected_matches, []);
 	});
 
+	_it('reports the next court order for preparation debug field selection', () => {
+		const tournament = {
+			tabletoperator_enabled: true,
+			tabletoperator_assignment_scope: 'same_location',
+			courts: [
+				{ _id: 'c7', num: 7, location_id: 'l1', is_active: true, match_id: null },
+				{ _id: 'c8', num: 8, location_id: 'l1', is_active: true, match_id: null },
+				{ _id: 'c9', num: 9, location_id: 'l1', is_active: true, match_id: 'occupied' },
+				{ _id: 'c10', num: 10, location_id: 'l1', is_active: true, match_id: null },
+			],
+			tabletoperators: [
+				{ court: null, played_on_court: 'c8', start_ts: 1000 },
+				{ court: null, played_on_court: 'c7', start_ts: 2000 },
+			],
+			matches: [],
+		};
+
+		const selection = match_automation.calculate_location_preparation_selection(tournament, 'l1');
+
+		assert.deepStrictEqual(selection.field_selection_debug.sorted_free_court_ids, ['c8', 'c7', 'c10']);
+		assert.deepStrictEqual(selection.field_selection_debug.next_court_ids, ['c8', 'c7', 'c10']);
+	});
+
 	_it('fetches the preparation selection for one location from db-backed data', async () => {
 		const app = {
 			db: {
@@ -2192,6 +2566,59 @@ _describe('match automation', () => {
 		const candidates = match_automation.find_global_preparation_candidates(tournament);
 
 		assert.deepStrictEqual(candidates.map((match) => match._id), ['m1', 'm2']);
+	});
+
+	_it('keeps scheduled matches in the field-independent on-court prefilter when preparation is optional', () => {
+		const scheduled_match = make_preparation_match({
+			_id: 'scheduled',
+			setup: {
+				state: 'scheduled',
+				match_num: 1,
+			},
+		});
+		const preparation_match = make_preparation_match({
+			_id: 'preparation',
+			setup: {
+				state: 'preparation',
+				match_num: 2,
+				preparation_call_timestamp: 1,
+			},
+		});
+		const tournament = make_tournament({
+			call_on_court_only_preparation_enabled: false,
+			matches: [preparation_match, scheduled_match],
+		});
+
+		const candidates = match_automation.find_field_independent_call_on_court_candidates(tournament, { now_ts: 2 });
+
+		assert.deepStrictEqual(candidates.map((match) => match._id), ['preparation', 'scheduled']);
+	});
+
+	_it('limits the field-independent on-court prefilter to preparation when required', () => {
+		const scheduled_match = make_preparation_match({
+			_id: 'scheduled',
+			setup: {
+				state: 'scheduled',
+				match_num: 1,
+			},
+		});
+		const preparation_match = make_preparation_match({
+			_id: 'preparation',
+			setup: {
+				state: 'preparation',
+				match_num: 2,
+				preparation_call_timestamp: 1,
+			},
+		});
+		const tournament = make_tournament({
+			call_on_court_only_preparation_enabled: true,
+			call_on_court_only_preparation_minutes: 0,
+			matches: [scheduled_match, preparation_match],
+		});
+
+		const candidates = match_automation.find_field_independent_call_on_court_candidates(tournament, { now_ts: 2 });
+
+		assert.deepStrictEqual(candidates.map((match) => match._id), ['preparation']);
 	});
 
 	_it('keeps a realistic location fixture stable across active, inactive and prepared matches', () => {

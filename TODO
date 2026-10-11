@@ -1,3 +1,104 @@
+2026-10-11: OFFEN - Testclient in ein separates Git-Repository ausgliedern.
+Ziel: eigenstaendig installierbarer Testclient mit eigener package.json,
+Dokumentation und Tests; Verbindung zu BTS ueber HTTP/WebSocket, ohne dass
+fuer Live-Tests ein lokaler BTS-Checkout erforderlich ist.
+Umfang: Tablet-/TV-/Admin-Simulation, CLI, Webdashboard, reproduzierbare
+Benchmarksequenz, Empfangs-/Payload-/Queue-/Ablaufdiagnose und JSON-Exporte.
+Alle vorhandenen Bedien- und Simulationsfunktionen erhalten.
+Vor der Ausgliederung folgende Abhaengigkeiten aufloesen:
+- debug/live_tournament_drill.js importiert static/bup/dev/js/calc fuer die
+  Spielstandsberechnung. BUP-Berechnung mit nachvollziehbarer Quelle/Lizenz
+  als eigene Abhaengigkeit oder gepflegtes Modul bereitstellen; keine zweite
+  unabhaengige Implementierung der Spielregeln einfuehren.
+- debug/benchmark_sequence startet derzeit bts/bts.js relativ zum eigenen
+  Repository und liest dessen Konfiguration. Lokalen BTS-Pfad/Startbefehl
+  explizit konfigurierbar machen, damit der Profilvergleich erhalten bleibt.
+- Reine Clienttests mitnehmen; Tests mit direkten BTS-Imports als getrennte
+  Integrationstests gegen einen expliziten BTS-Checkout erhalten. Serverseitige
+  interne Benchmarks unter debug/isolated_sync, debug/offload usw. bleiben
+  beim BTS-Code, solange sie dessen interne Module voraussetzen.
+- Telemetrie/Recorder bleiben im Server. Diagnoseprotokoll und Berichtformat
+  versionieren, fehlende Diagnosefunktionen aelterer Server sichtbar behandeln.
+Abnahme: Installation in sauberem Checkout, Live-Test ausschliesslich ueber
+Serveradresse, Dashboard/CLI/Benchmark/Download funktionsgleich; Profilvergleich
+mit explizitem BTS-Checkout und Serverintegration weiterhin pruefbar.
+Repositoryname und Remote-Ziel bei der eigentlichen Ausgliederung festlegen.
+
+2026-10-11: OFFEN - Ausgangsstand vor den Optimierungen mit aktuellem Testclient
+testbar machen und als Performance-Referenz dokumentieren.
+- Baseline-Commit anhand der Historie verifizieren und mit vollem SHA festhalten.
+  Aktueller HEAD 91f07b9 auf feat/bupws_v2 ist der Ausgangspunkt der derzeit
+  uncommitteten Aenderungen, enthaelt aber bereits fruehere Optimierungen;
+  deshalb nicht ungeprueft als Stand vor saemtlichen Optimierungen bezeichnen.
+- Alten Server in separatem Worktree/Checkout starten; aktuellen Testclient
+  dagegen betreiben. Kompatibilitaet von Tablet/TV/Admin-Protokoll pruefen,
+  fehlende neue Diagnosen erkennen und deren Abfragen deaktivieren. Fehlende
+  Queue-/Lock-Daten als nicht verfuegbar ausweisen, nicht als null Wartezeit.
+  Baseline-Server fuer den Vergleich nicht um Optimierungen ergaenzen.
+- Baseline und optimierten Server mit getrennten Arbeitskopien derselben
+  519-Spiele-Turnierdaten sowie identischem BTP-Ausgangszustand vergleichen;
+  Seed, Phasen, Felder, Clientlast und Diagnosemodus gleich halten. Auch die
+  externen BTP-Aenderungen isolieren oder aus derselben Quelle reproduzieren.
+  Kein Zuruecksetzen/Modifizieren des laufenden Live-Turniers fuer die Baseline.
+- Referenzbericht archivieren: Server-/Client-Commit, Ausgangsdaten-Fingerprint,
+  Node-Version/Hardware, Einstellungen, Empfangslatenzen, Zustellquote und Fehler.
+  Gemeinsame Messbasis ist Tablet->TV/Admin-Empfang; neue interne Serverdaten
+  getrennt ausweisen. Bereits kompatible Referenzdaten wiederverwenden.
+Abnahme: dokumentierter Startbefehl und reproduzierbarer Bericht fuer den
+verifizierten alten Stand, der mit dem optimierten Stand vergleichbar ist.
+
+2026-10-11: OFFEN - Bisherige Optimierungen auf eigenem Branch committen.
+- Eigenen Branch vom aktuellen feat/bupws_v2 anlegen (Vorschlag:
+  perf/server-responsiveness); alle bestehenden Arbeitskopie-Aenderungen erhalten.
+- Gesamten Diff einschliesslich neuer/ungetrackter Dateien sichten; Optimierungen,
+  Fehlerkorrekturen, Diagnose/Testclient und ESLint-Aktualisierung nachvollziehbar
+  zuordnen. Lokale Konfigurationen, Turnierdaten, Logs und Testberichte nicht
+  versehentlich mit aufnehmen.
+- Sinnvolle, zusammenhaengende Commits bilden, sofern jeder Zwischenstand mit
+  seinen Abhaengigkeiten funktioniert; serverseitige Aenderungen und Client-
+  Werkzeug getrennt dokumentieren, aber keine kaputten Zwischenstaende erzeugen.
+- Relevante Tests/Lint pruefen und den Stand aus sauberem Checkout inklusive
+  notwendiger BUP-Abhaengigkeiten starten. Messbelege und verbleibende Aufgaben
+  dokumentieren. Optimierten Commit fuer den Baseline-Vergleich festhalten.
+- Lokale Commits erstellen; Remote-Push/PR ist ein separater Schritt.
+Abnahme: funktionsfaehiger dokumentierter Branch ohne unbeabsichtigt ausgelassene
+Quelldateien, klarer Commit als optimierter Vergleichsstand. Vor der eigentlichen
+Testclient-Ausgliederung diesen gemeinsamen Stand sichern.
+
+2026-10-11: OFFEN - Drei Folgepunkte aus dem letzten Performance-Lauf umsetzen.
+Referenz: bts-test-1.json, Zwischenbericht ueber knapp zehn Minuten, 13 Felder,
+1.191 zugeordnete Score-Updates; kein anhaltender Rueckstau, aber kurze Spitzen.
+1. Ablaufdiagnose trotz Aufzeichnungsgrenzen aussagekraeftig erhalten.
+   Im Bericht fehlen 7.456 Schritte bei 31 Vorgaengen wegen des Span-Limits;
+   die Statistik erreicht zudem 256 unterschiedliche Schrittgruppen.
+   Lock-Warte-/Haltezeiten und wichtige Sync-/Spielende-/Aufrufphasen priorisieren,
+   repetitive DB-Schritte begrenzt zusammenfassen und Statistikgruppen fair
+   ueber Vorgangstypen verteilen. Speicher/Diagnoseaufwand weiterhin begrenzen;
+   Auslassungen und Zusammenfassungen in Dashboard und Export sichtbar machen.
+   Abnahme: komplexe Syncs/Spielenden behalten die kritischen Schritte und
+   Wartezeiten auch bei vielen DB-Aufgaben; Grenzen gezielt pruefen.
+2. Verursacher langer DB-Wartezeiten sichtbar machen.
+   Beim langsamsten TV-Update (213 ms) wartet das Laden des Spielkontexts
+   rund 146 ms auf eine DB-Aufgabe; der Spiel-Lock wird fast sofort erworben.
+   Wartende Aufgabe mit tatsaechlich vorausgehender/laufender DB-Arbeit,
+   Vorgangs-ID und Laufphase korrelieren; auch Arbeit ohne aktiven Root-Trace
+   beruecksichtigen. DB-Ausfuehrung, Persistenz, Callback und Freigabe soweit
+   messbar unterscheiden. Keine Abfrageinhalte/Spielerdaten in Diagnosen.
+   Abnahme: gezielt verzoegerte DB-Arbeit laesst sich im Dashboard/Export als
+   Ursache erkennen; DB-Reihenfolge bleibt erhalten, stille Betriebsart ebenso.
+3. Admin-Snapshot-Arbeit anhand dieser Diagnosen reduzieren.
+   Im Bericht 1.176 vollstaendige Admin-Snapshots (~2/s); Zusammenstellung und
+   JSON-Kodierung dauern im Mittel jeweils rund 60 ms. Anteil von Testclient-
+   Polling, DB-Lesen/Kopieren und Kodierung getrennt bestimmen. Unveraenderte
+   Daten nach Moeglichkeit wiederverwenden; unnoetige Vollabfragen reduzieren,
+   ohne reale Admin-Last im Vergleich unbemerkt abzusenken.
+   Aktuelle Daten, Antwortreihenfolge und Change-Events weiterhin garantieren;
+   Verbesserungen getrennt von Diagnose- und Testclient-Aenderungen messen.
+   Abnahme: weniger Snapshot-Arbeit bei gleicher Server-Testlast, keine schlechtere
+   Tablet->TV/Admin-Empfangslatenz oder Admin-Antwortzeit; gezielte Regressionen.
+Reihenfolge: erst Diagnose vervollstaendigen und DB-Ursachen zuordnen, dann
+Snapshot-Optimierung anhand der Messungen. Noch keine Umsetzung dieser Punkte.
+
 make bupdate in docker
 
 make a backup of what we pulled every hour and save it for debugging
@@ -779,3 +880,766 @@ auth?
 keep data in automanaged git repo?
 regular backups?
 test t4s laptop for a longer time (hangs?)
+
+-----
+BTS-Sync-Performance: offene Vorschlaege (Stand 2026-10-10)
+
+Frühere offene Punkte sind nachfolgend dokumentiert. Am 2026-10-11 hat Tim
+die verbleibenden Serveroptimierungen und eigenständige Tests freigegeben.
+Jeden Punkt zuerst mit Problem und Loesungsansatz vorstellen; Tim entscheidet.
+Kleine, gekapselte Module und bestehende Spieler-, Match-, Feld- und
+Offiziellen-Objekte nutzen. Freilose muessen weiterhin weitergeschoben werden.
+
+Teilumsetzung am 2026-10-10 freigegeben und abgeschlossen:
+Objekt-Fingerprints im Laufzeitmodell und vorgeschaltete Normalisierungspruefung.
+Hashes fuer unveraenderte relevante Daten werden wiederverwendet; bei gleichem
+Sammelhash entfallen Setup-Snapshots. Die gezielte Pausenverarbeitung ueber
+Spielerreferenzen und die weiteren Punkte unten bleiben offen.
+
+Nach Live-Test am 2026-10-10 zusaetzlich freigegeben und umgesetzt:
+Kontextladen und automatische Datenbank-Kompaktierung. Automatische
+Kompaktierungen werden ueber zehn Minuten verteilt und nacheinander ausgefuehrt;
+NeDBs Executor und sicheres Dateischreiben bleiben erhalten. Punktmeldungen
+lesen Spiel, Feld und kleine Turniereinstellungen direkt aus den Objektindizes,
+weiterhin hinter vorherigen DB-Schreibvorgaengen. Timing trennt DB-Queue-Wartezeit,
+Lookup/Kopie und den ersten Event-Loop-Durchlauf. Einzelne grosse Kompaktierungen
+koennen ihre eigene Queue weiterhin blockieren. Live-Test am 2026-10-10:
+13 automatische Kompaktierungen ohne Ueberlappung; Match-Kompaktierung 192 statt
+676 ms, langsamster Punkt 315 statt 717 ms. Vier Kontextlade-Ausreisser blieben
+bei 216-255 ms, waehrend Lookup/Kopie nur 0-0,3 ms benoetigten; keine
+Kompaktierungsueberlappung. Queue-Tiefe 0 schliesst eine aktive Executor-Aufgabe
+nicht aus. Erster Event-Loop-Durchlauf 0,1-2,2 ms schliesst spaetere
+Unterbrechungen nicht aus. Laufende DB-Aufgaben und spaetere CPU/Callback-
+Verzoegerungen: zusaetzliche Diagnose am 2026-10-10 freigegeben und umgesetzt.
+database_tasks.js erfasst laufende Aufgaben, Append/Kompaktierung, Callback-
+Laufzeit und noch ausstehende Queue-Freigabe. Kontextphasen nennen Aufgaben
+beim Einreihen und vor der Abfrage. Ein 20-ms-Timer misst Verspaetungen auch
+nach dem ersten Event-Loop-Durchlauf. Live-Test 2026-10-10 21:19 Uhr ausgewertet:
+vier Kontext-Ausreisser 205-242 ms, Lookup/Kopie nur 0-0,2 ms, Timer-Verspaetung
+184-219 ms. Vorherige Abfragen hatten ihren Callback teils bereits 185-222 ms
+vor Beginn der Kontextabfrage beendet. Die Event-Loop-Ausfuehrung verzoegert
+Queue-Freigabe und Start; keine automatische Kompaktierung ueberlappte diese
+Ausreisser. Konkrete CPU-Ursache pro Live-Ausreisser noch nicht vollstaendig
+gemessen. Vorbereitungsauswahl als Engpass separat reproduziert, siehe Punkt 6.
+Ein weiterer Ausreisser: device_info 312 ms innerhalb einer Punktmeldung;
+Hostname, Einstellungslesen/-schreiben und Benachrichtigung werden jetzt
+getrennt gemessen. Bei langsamem Gesamtvorgang werden alle Teilschritte mit
+der Punkt-Trace-ID ausgegeben. Entkopplung vom Punktpfad bleibt ein offener,
+noch nicht freigegebener Vorschlag; die Messung wartet weiterhin auf Abschluss.
+Live-Test: drei langsame device_info-Vorgaenge 252-378 ms, davon 252-377 ms
+Einstellungslesen; Hostname 0 ms, Benachrichtigung 0,2-0,4 ms. Beim groessten
+Ausreisser dauerten gleichzeitig zwei unabhaengige findOne-Abfragen rund
+376 ms, ohne Persistierung, unmittelbar bei BTP response_received. Synchrone
+Dekomprimierung/XML-Dekodierung in btp_proto.decode ist ein weiterer Verdacht;
+deren eigene Laufzeit ist noch nicht gemessen. Entkopplung der Geraeteinfos
+allein beseitigt eine gemeinsame Event-Loop-Unterbrechung nicht.
+Decoder-Messung nach Live-Test 22:40 Uhr freigegeben und umgesetzt:
+bts/timing/btp_decode.js erfasst Dekomprimierung, UTF-8-Konvertierung,
+XML-Parsing und DOM-Objektumwandlung mit monotoner Dauer und Prozess-CPU-Zeit.
+BTS_BTP_SYNC_TIMING=1 aktiviert eine kompakte response_decode-Zeile je Antwort,
+mit Turnier, Aktion, Antwortgroessen und realen Start-/Endzeitstempeln.
+Messung endet vor Logausgabe und Consumer-Callback; kein Netzwerkwarten,
+Hash oder nachfolgende Integration enthalten. Prozess-CPU kann Hintergrund-
+threads und GC enthalten. Callback-/Fehlerverhalten bleibt erhalten.
+557 Tests bestanden; darunter sieben neue Decoder-/Connection-Tests ohne
+Netzwerkzugriff. Live-Test 2026-10-10 22:59 Uhr ausgewertet: 19 vollstaendige
+BTP-Antworten brauchen 296,9-417 ms synchrone Decodierung (Median 319,8).
+XML-Groesse rund 2,12 MB, Paket rund 86 KB. Phasenmediane: Dekomprimierung
+1,8 ms, UTF-8 7,1 ms, XML-Parsing 262,7 ms, Objektumwandlung 48,3 ms.
+Parsing verursacht 82,1 Prozent der summierten Decoder-Wandzeit; CPU-Werte
+sind prozessweit einschliesslich parallelem GC/Hintergrundthreads.
+202 kleine SENDUPDATE-Antworten: Median 0,3 ms, Maximum 1,9 ms.
+Fuenf Client-Sendezeitstempel liegen innerhalb einer Decoder-Blockade;
+einmal noch 258 ms bis Decoder-Ende, danach Server-Timing nur 105,3 ms.
+Warten vor Handler-Eintritt fehlt im Server-total_ms; keine Verarbeitungs-
+ueberlappung aus Client-Sendezeit plus Serverdauer ableiten.
+Alle 1194 Meldungen erfolgreich, 24 Check-ins, alle TV-Meldungen erkannt.
+Punkt-p95 35,2 statt 54,2 ms, Maximum 174,8 statt 368,3 ms, TV-Mittel 15
+statt 24 ms. Nur Messungen hinzugefuegt; anderer Turnierstand und weniger
+Check-ins begrenzen Zuordnung. Validierung Median wieder 1 ms, Maximum 5;
+der vorherige 100-ms-Ausreisser beweist keinen entsprechenden CPU-Aufwand.
+Archiv: benchmark_519_with_btp_decoder_diagnostics.
+Worker-Decodierung jetzt freigegeben und umgesetzt in bts/btp_decode/:
+Ein wiederverwendeter Worker decodiert SENDTOURNAMENTINFO-Antworten komplett;
+kleine Update-Bestaetigungen bleiben im Hauptthread. Gemeinsamer Codec erhaelt
+Typen, wiederholte IDs und DateTime-Struktur. FIFO mit maximal 64 wartenden
+Auftraegen, keine Turnier-Locks beim Decodieren. Timeout/Terminate brechen
+Socket oder Worker-Arbeit ab; wartende Auftraege anderer Verbindungen bleiben
+erhalten. Reset, Enable-Pruefung, Validierung und Freilosverarbeitung bleiben
+im bisherigen Integrationspfad. Workerfehler werden einmal per Callback gemeldet,
+naechster Auftrag nutzt einen Ersatzworker. Idle-Worker haelt Prozess nicht offen.
+Timing execution=worker misst Queue, Dispatch, Eingangswartezeit und Rueckgabe;
+Rueckgabe umfasst Klonen, Zustellung und Scheduling, keine reine Clone-CPU-Zeit.
+Offline-Vergleich: 519 kuenstliche Matches, 1,90 MB XML, 51 KB Paket, 12
+abwechselnde Messpaare nach Warmup, 24 vollstaendig gleiche Decoder-Ergebnisse.
+Heartbeat-Maximalverspaetung je Abruf: Median 144,4 auf 5,8 ms; Gesamtabruf
+Median 146,2 auf 155,1 ms; Rueckgabe Median 13,2 ms, Dispatch 0,1 ms.
+Kein Live-Replay und keine DB-/TV-Messung. Erstaufruf enthaelt Workerstart.
+Reproduzierbar mit node debug/btp_decode_benchmark.js; Archiv
+debug/performance_runs.json, persistent_btp_decoder_worker. Live-Test offen.
+571 Tests bestanden, Node-Syntaxpruefung erfolgreich. Zusaetzlich Idle-Prozess-
+Exit geprueft. Alte ESLint-Version kann die moderne Syntax der Produktions-
+module nicht parsen; kompatible neue Module, Tests und Offline-Script geprueft.
+ESLint anschliessend auf 8.57.1 fuer Node 19 aktualisiert, .eslintrc auf
+ES2022/Node/Mocha eingestellt; npm run lint:js und make eslint einheitlich.
+Worker-Module, Timing, Tests und Offline-Script bestehen jetzt ohne CLI-
+Ausnahmen. 183 Dateien ohne Parserfehler; Gesamtlauf meldet weiterhin 1882
+Regelverstoesse. 571 Tests nach dem Tooling-Update bestanden. ESLint 8 ist
+eine Legacy-Kompatibilitaetsloesung; neuere Versionen benoetigen neueres Node.
+Weitere Auslagerungen inzwischen gemeinsam freigegeben und umgesetzt:
+- Isolierte Sync-Planung/Normalisierung: CPU-Anteil messen; Snapshot zum Worker,
+  Plan zurueck, Versionsvalidierung und Locks vor Apply bleiben erforderlich.
+  Implementiert in bts/btp_planner/, Schalter BTS_SYNC_PLAN_WORKER=1.
+- XLSX-Import: xlsx.parse in admin.js ist synchron und isolierbar; betrifft
+  Uploads, kein nachgewiesener Engpass des normalen Live-Tests.
+  Implementiert in bts/registration_xlsx/, BTS_XLSX_IMPORT_WORKER=1.
+- DB-Kompaktierung: CPU-Serialisierung getrennt pruefen, aber NeDB-Executor,
+  atomaren Schreibablauf und Reihenfolge beibehalten; kein zweiter Writer.
+  Implementiert in bts/compaction_worker/, BTS_COMPACTION_WORKER=1.
+  Unveraenderte serialisierte Zeilen werden im Worker weiterverwendet.
+- Geraeteinfos ausserhalb des Punktpfads: asynchron entkoppeln statt neuer
+  Thread; Abschluss, Fehlerbehandlung und Reihenfolge separat erfasst.
+  Implementiert in bts/device_info/, BTS_DEVICE_INFO_BACKGROUND=1.
+Alle vier neuen Schalter standardmaessig aus, Decoder standardmaessig an.
+Gemeinsame begrenzte Worker-FIFO und Timing in bts/offload/, eigener Worker
+je Operation. Reale Start-/Endzeitpunkte, Transport, Queue und Event-Loop-
+Verspaetung getrennt messen; verschachtelte Zeiten nicht addieren.
+Testclient speichert tatsaechliches Serverprofil und markiert Profilwechsel.
+Offline-Vergleich: node debug/offload_benchmark.js, identische synthetische
+Eingaben je Paar, separate Worker-Erstaufrufe, acht abwechselnde Paare.
+Gemeinsamer Live-Vergleich inzwischen ausgewertet, siehe unten. Einzelnen
+Beitrag bei Bedarf mit je einem Schalter gegen Decoder-Basis pruefen;
+Details und Einschraenkungen in bts/offload/README.md und debug/README.md.
+591 Tests jeweils mit Standardprofil und allen neuen Schaltern bestanden;
+neue Module, Tests und Offline-Harness linten sauber, git diff --check sauber.
+Archiv: debug/performance_runs.json, independent_background_offloads.
+Offline-Mediane nach Warmup: Planung gesamt 61,5 auf 67,2 ms, Timer-Verzug
+18,6 auf 1,6 ms; Kompaktierungsserialisierung 161,1 auf 22,6 ms, Timer-Verzug
+161 auf 0,5 ms (inklusive Zeilencache, ohne Disk-I/O); XLSX 29,6 auf 33,4 ms,
+Timer-Verzug 28,1 auf 1,6 ms. Bei kuenstlichem 100-ms-Hostname-Warten:
+Punktbestaetigung 101,2 auf 1,8 ms, Metadaten weiterhin rund 101 ms.
+Erstaufrufe inklusive Start/Snapshot separat: Planung 588,9 ms,
+Kompaktierung 322,4 ms, XLSX 251,6 ms. Keine Live-Latenzmessung.
+Automatischer Live-Ablauf inzwischen umgesetzt: npm run debug:benchmark-sequence.
+Standardmaessig Basis und kombinierte Planung/Geraeteinfos/Kompaktierung je
+zehn Minuten, XLSX aus. Eigene direkte Node-Server ohne Dateiwaechter; vor Last
+Serverprofil/PID und 519 Spiele pruefen. Getrennte Logs/Berichte in neuem
+/tmp/bts-offload-sequence-*-Verzeichnis, atomisch gespeicherte sequence.json.
+Abbruch und Fehler stoppen nur eigene Kinder; vorhandenen Server vorher manuell
+stoppen. Turnier laeuft weiter, kein Reset. Einzelprofile bei unklarer Zuordnung
+ebenfalls automatisch waehlbar. Neun neue Ablauf-/Prozesstests mit isolierten
+lokalen Testservern bestanden, gesamte Suite 600 Tests bestanden (33 Sekunden).
+Abbruch, belegter Port, falsches Profil, gemischter/unvollstaendiger Bericht,
+Startfehler, Prozesswechsel und erzwungene Bereinigung eines haengenden Kindes
+geprueft. Neue Module/Tests linten sauber, git diff --check sauber.
+Kein echter Live-Test durch den Agenten gestartet.
+Benutzerlauf 2026-10-10/11 23:59-00:19 Uhr Europe/Berlin ausgewertet:
+/tmp/bts-offload-sequence-KtsbsF. Beide Profile vollstaendig, keine Mischprofile,
+1190/1179 erfolgreiche Punkt-/Spielende-Meldungen, keine Fehler, alle TV-
+Meldungen zugeordnet. Server-total p95 34,3 auf 9,5 ms, Maximum 265,9 auf
+121,1 ms; Queue-p95 1,1 auf 0,2 ms. TV-Mittel aus Phasen gewichtet ca. 18,3
+auf 10,7 ms; Hauptlast-p95 31 auf 17 ms, letzte Lastphase 47 auf 22 ms.
+BTP-Sync-Gesamtmedian 508 auf 507 ms, Mittel 729 auf 494 ms, Neuplanungen
+8 auf 2; BTP-Planung selbst Median 320,7 auf 349,1 ms. Timer-Verzug waehrend
+BTP-Planung Median 57,6 auf 28,4 ms. Vier Punkt-Kontext-Ausreisser ueber
+100 ms in Basis, keiner kombiniert. Match-Kompaktierung unter Last einmal
+je Lauf: 251 auf 189 ms, Timer-Verzug 23,1 auf 0,8 ms, 146/519 Dokumente
+als Delta uebertragen. Alle Sammlungen im Mittel dagegen 87,7 auf 123,0 ms;
+kein allgemeiner Beleg fuer kuerzere Disk-I/O-/Executor-Wartezeit.
+Geraeteinfos 1192 Hintergrundauftraege ohne Fehler, Median 1,3 ms, max 92 ms.
+Anderer Turnierstand (153/168 fertige Spiele), 34/30 Check-ins, Hauptlast-
+Belegung 12,6/12,4; erste/letzte Lastbelegung vergleichbar. Gemeinsamer Lauf
+belegt keinen isolierten Anteil der drei Aenderungen; XLSX nicht getestet.
+Archiv debug/performance_runs.json: benchmark_519_offload_sequence_basis /
+combined und live_comparisons. Auswertung comparison.md im Laufverzeichnis.
+Weitere Diagnosekandidaten: Decoder-Rueckgabe weiterhin Median 34,5 ms, max
+73,6 ms (Clone/Delivery/Scheduling, keine isolierte CPU-Zeit), verbleibende
+Punkt-Lock-Wartezeit max 114,8 ms. Erst genauer zuordnen, dann optimieren.
+Hashpruefung zuletzt Median rund 1 ms, aktuell kein vorrangiger Thread-Kandidat.
+Am 2026-10-11 weitere Untersuchung freigegeben und umgesetzt:
+Sync-Planungsrueckgabe in kleinem Modul bts/btp_planner/changes.js gekapselt.
+Optional BTS_SYNC_PLAN_PATCH_RETURN=1 (Standard aus, Planungsworker erforderlich):
+bestehende Dokumente als geaenderte oberste Felder plus Original-DB-Patch,
+neue vollstaendig, geloeschte per ID. Hauptthread rekonstruiert exakt aus dem
+Auftragssnapshot, unveraenderte Presses bleiben dort. Effects bleiben vollstaendig.
+Strikte Feldvergleiche erhalten auch Datumswerte/undefinierte Eigenschaften,
+welche die bestehende Patch-Vergleichsfunktion teilweise ignoriert; deren
+Schreibsemantik wurde hier nicht geaendert. DB-Objekte werden nicht mutiert.
+Offline-Vergleich isolierte Rueckgabe: 519 Spiele, 36 geaenderte, je 180 Presses,
+30 abwechselnde Messpaare nach Warmup. JSON-Groessenschaetzung 601125 auf
+8035 Bytes; gesamter Uebergabe-Median 11,1 auf 6,8 ms, darin zusaetzlich 6,1 ms
+Feldvergleich im Worker und 0,2 ms Rekonstruktion. Zustellung 11,0 auf 0,4 ms,
+maximaler 2-ms-Timer-Verzug je Auftrag im Median 5,7 auf 0,4 ms. Gleiche
+vollstaendige Ergebnisse in 32 Paaren. Keine Live-Latenz oder Effects gemessen.
+Archiv: synthetic_benchmarks.sync_planner_patch_return; wiederholbar mit
+node debug/planner_return_benchmark.js.
+Explorativer binaerer Decodertransport mit V8 brachte im separaten Probeprozess
+keinen klaren Gesamtgewinn (ca. 40,6 ms Clone vs. 40,5 ms V8 inklusive
+Serialisierung/Deserialisierung, synthetische angereicherte 519er Antwort).
+Decoderpfad daher unveraendert; keine verifizierte Live-Verbesserung behaupten.
+115-ms-Punkt-Wartezeit im letzten Lauf steht neben Sync-Apply 112 ms:
+37 Aenderungen, 36 direkte plus 186 Relations-Match-Locks, 46 Spieler/7 Felder.
+Nur zeitlicher Zusammenhang, bisher keine eindeutige Queue-Zuordnung (<500 ms).
+Neue Queue-Diagnose ab 50 ms bei Score/Sync-Timing, expliziter Schalter bleibt
+erhalten. Aufgaben-ID, Trace, reale Zeitgrenzen, letzter beobachteter Blockierer
+mit ID/Zustand/konkret kollidierenden angeforderten Locks. Scheduling kann weitere
+Wartezeit verursachen; letzter Blockierer erklaert nicht automatisch alles.
+Sync-Zeitstempel und getrennte incremental_writes/publish/cache innerhalb der
+bestehenden Locks machen Schreib-/Benachrichtigungs-/Cache-Anteile sichtbar.
+605 Tests jeweils Standard und alle Auslagerungen inklusive Patch-Rueckgabe,
+neue/geaenderte Module linten sauber. Benutzerkorrektur: vorhandenen
+kombinierten Lauf als Vergleich verwenden,
+keinen weiteren zehnminuetigen Vergleichslauf wiederholen. Standard des Runners
+jetzt nur combined-patches (zehn Minuten); npm run debug:benchmark-sequence.
+Live-Test 2026-10-11 00:36-00:46 Uhr Europe/Berlin ausgewertet:
+/tmp/bts-offload-sequence-uKx2Hd. Ein Lauf combined-patches, korrektes Profil,
+1195 erfolgreiche Meldungen (1178 Punkte, 17 Spielenden), alle am TV zugeordnet,
+26 Check-ins ohne Fehler. BTP-Planer-Rueckgabe Median 14,2 auf 11,9 ms,
+Maximum 36,5 auf 24,3 ms; Rekonstruktion zusaetzlich Median 0,4 ms. BTP-Sync-
+Gesamtmedian 507 auf 506 ms; Mittel 494,2 auf 505,4 ms, Neuplanungen 2 auf 3.
+Gesamtlatenz nicht verbessert: Server-total p95 9,5 auf 12,7 ms, max 121,1
+auf 180,0 ms, TV-Mittel ca. 10,7 auf 11,2 ms, Hauptlast-p95 17 auf 20 ms.
+Score-Queue-Maximum 114,8 auf 57,2 ms. Zwei Lock-Blockierer jetzt nachgewiesen:
+fetch_sync_apply hinter 140/157 Match-Locks, Schreiben 99/75 ms plus
+Veroeffentlichung 18/20 ms. Alle BTP-Applys: Schreiben Median 58 ms,
+Veroeffentlichung 18 ms, Cache 0 ms; innerhalb Apply, nicht addieren.
+Groesste drei Scores 180/164,8/133,5 ms: Turnier-Modelllesen wartet nachweislich
+156/134,9/101 ms hinter Turnier-Kompaktierung (173,8 ms, davon Serialisierung/
+Transport 22,7 ms); eigentliche Reads 0,1 ms, Timer-Verzug nur 0,6-2 ms.
+Vierter Kontext-Ausreisser: 104,6 ms alle drei Collections, Timer-Verzug 83,2 ms,
+keine Kompaktierung/Lock-Blockade beobachtet, gleichzeitig automatische
+Vorbereitung 197 ms. CPU-Funktion damit nicht eindeutig isoliert.
+Naechster Vorschlag: bestaetigte Modellobjekte waehrend reiner Kompaktierung
+lesen, sofern keine zuvor wartenden Schreibvorgaenge ueberholt werden;
+Persistierungs- und Schreibreihenfolge bei echten Writes weiter erhalten.
+Danach Sync-Schreiben/Veroeffentlichung und direkte Vorbereitungsauswahl pruefen.
+Anderer Turnierstand (168/183 fertig), 30/26 Check-ins; Hauptlast-Belegung
+12,4 in beiden Laeufen. Zusaetzliche Diagnosekosten und Datenunterschiede
+begrenzen Kausalitaet. Archiv: benchmark_519_after_sync_planner_patch_return,
+live_comparisons.benchmark_519_sync_planner_patch_return_comparison;
+comparison.md im neuen Laufverzeichnis. Referenzdaten weiterverwenden.
+Weiterer offener Vorschlag: sieben Post-Sync-Auto-Call-Planungen ohne Aenderungen
+im letzten Test; Ursachen der Cache-Invalidierung und relevante Eingaben pruefen.
+
+2026-10-11: Modell-Reads waehrend reiner Kompaktierung umgesetzt, Live-Test offen.
+BTS_COMPACTION_MODEL_READS ist standardmaessig aus. Bei aktiver reiner
+Kompaktierung koennen Score-Kontext-Reads Spiel, Turnier und Feld direkt aus
+den kanonischen Objekten kopieren; Callback bleibt asynchron. Fruehere Writes,
+unbekannte Aufgaben, nicht beobachtete Executor-Jobs, TTL-Indizes und DB-Laden
+verhindern diese Abkuerzung. Die Reihenfolgepruefung funktioniert unabhaengig
+von Timing-Schaltern. Spaetere Writes warten weiterhin auf die Kompaktierung;
+eine Match-Kompaktierung kann daher weiterhin den folgenden Punkt-Write bremsen.
+Elf neue Tests pruefen diese Grenzen, inklusive echter Datei-Kompaktierung
+mit und ohne Worker: spaetere Writes bleiben nach Neuladen erhalten.
+616 Tests jeweils Standard und mit allen Auslagerungen inklusive neuer Reads
+bestanden; betroffene Module und Tests linten sauber.
+Runner-Standard jetzt combined-reads: ein zehnminuetiger Lauf mit denselben
+Schaltern wie combined-patches plus BTS_COMPACTION_MODEL_READS=1. Vergleich
+mit vorhandenem /tmp/bts-offload-sequence-uKx2Hd; kein erneuter Referenzlauf.
+Start: npm run debug:benchmark-sequence. Noch keine Live-Latenzverbesserung
+gemessen. Neue Diagnose database:compaction_model_read sowie
+compaction_read_bypassed/compaction_read_decision trennen die Wirkung.
+
+Live-Test 2026-10-11 01:17-01:27 Uhr Europe/Berlin ausgewertet:
+/tmp/bts-offload-sequence-mW3RTa, combined-reads, korrektes Profil. 1144
+erfolgreiche Meldungen (1131 Punkte, 13 Spielenden), alle am TV zugeordnet,
+30 Check-ins ohne Fehler. Vorhandene archivierte combined-patches-Referenz
+weiterverwendet; deren Rohlogs liegen nicht mehr unter /tmp.
+Server-total p95 12,7 auf 11,5 ms, Maximum 180 auf 121,6 ms, Mittel 5,1 ms
+unveraendert. Score-Lock-Warten maximal 57,2 auf 38,8 ms. TV gewichtetes Mittel
+11,2 auf 12,2 ms, Hauptlast-p95 20 auf 35 ms. BTP-Sync Median 506 auf 435 ms,
+Mittel 505,4 auf 507 ms, Maximum 927 auf 1664 ms, Neuplanungen 3 auf 4.
+Die neue Read-Abkuerzung wurde NICHT genutzt: kein compaction_model_read,
+keine Punkte waehrend Feld-, Match- oder Turnier-Kompaktierung gesendet.
+Naechste Punkte erst 261-706 ms nach Kompaktierungsende; vorherige 2,7-3 ms
+lange Punkte 13,7-59,5 ms vor deren Start. Live-Nutzen bleibt damit offen;
+bei Bedarf kurze gezielte Ueberlappungsprobe statt erneutem Zehnminuten-Basislauf.
+Groesster Score: 121,6 ms, Kontext 103,1 ms, eigentliche Modell-Reads 0-0,1 ms,
+Timer-Verzug 82,7 ms. Gewoehnliche Reads aktiv, keine Kompaktierung oder
+beobachtete Ressourcen-Lock-Blockade; gleichzeitig Vorbereitungsauswahl 184 ms.
+Zweitgroesster Score 113 ms ueberlappt Vorbereitungsauswahl 205 ms. Insgesamt
+43 langsame Vorbereitungsauswahl-Aufgaben, Maximum 236 ms. CPU-Funktion noch
+nicht isoliert. Im Code liest auto_execute_preparation_selections weiterhin
+alle Turnierspiele auch vor dem fast skip: Datenladen, Statuspruefung,
+Kandidatenauswahl und Ausfuehrung getrennt messen; Modellreferenzen bzw. kleine
+Projektionen pruefen, Schreibsichtbarkeit, Byes und Offizielle erhalten.
+Elf score_change_court_panels ueber 100 ms, Maximum 180,7 ms; enthaelt Reads
+und asynchronen Versand, keine isolierte CPU-Zeit. Kontext, Payload-Aufbau,
+Full-State-Fallback und Versand getrennt messen.
+Vergleichsgrenzen: 183/200 fertige Spiele, 26/30 Check-ins, mittlere
+Hauptlast-Belegung 12,4/11,5 Felder, neue Executor-Buchhaltung. Keine kausale
+Verbesserung/Verschlechterung dem Read-Schalter zugeordnet. Archiv:
+benchmark_519_after_compaction_model_reads und
+live_comparisons.benchmark_519_compaction_model_reads_comparison;
+comparison.md sowie analysis.json im neuen Laufverzeichnis.
+
+2026-10-11: Automatische Vorbereitungs-Bedarfspruefung optimiert und gemessen.
+BTS_PREPARATION_MODEL_READS ist standardmaessig aus. Vorbereitung liest mit
+diesem Schalter Feld-/Matchreferenzen in NeDB-Executor-Reihenfolge, ohne ganze
+Historien oder Setups zu kopieren. Spielstaetten behalten Namenssortierung;
+fruehere Writes und Kompaktierungen werden weiter abgewartet. TTL-Indizes und
+unvollstaendige Datenbankadapter verwenden weiterhin NeDB-Abfragen. Die reine
+Bedarfspruefung veraendert keine Modellobjekte. Kandidatenauswahl, echte Aufrufe,
+Offiziellenpruefungen, Aufrufabstaende und Sync-Freilosweitergabe bleiben bestehen.
+Gekapselt in bts/preparation_selection/{status,selection_reads,timing}.js.
+preparation:timing misst pro Hauptthread-Aufgabe: Turnierlesen, Status-Reads,
+synchrone Statusberechnung, sechs parallele Auswahl-Reads, synchrone Kandidaten-
+berechnung, Selbstblockierungsaufloesung und Aufrufausfuehrung. Monotone Zeiten,
+reale Start-/Endzeitstempel, Timer-Verzug und Prozess-CPU nur fuer synchrone
+Berechnungen; letzteres keine exklusive Hauptthread-CPU-Zuordnung. Keine
+Diagnoseprobes ohne Timing-Flags; keine Nutzdaten im Protokoll.
+Isolierter Vergleich: node debug/preparation_reads_benchmark.js. 519 Spiele,
+13 Felder, 180 Historieneintraege je Spiel, drei Warmups plus 20 Messungen pro
+Variante mit wechselnder Reihenfolge. Status-Pruefung Median 28,2 auf 0,4 ms,
+p95 31,6 auf 1,3 ms, max 44,5 auf 1,5 ms; Timer-Verzug max 24,5 auf 0 ms.
+Nur synthetische In-Memory-Vorpruefung, keine gemessene Live-TV-Verbesserung.
+625 Tests Standard und mit allen Auslagerungen/Modell-Reads bestanden.
+Neue Module und Tests linten sauber; alte Lint-Fehler in grossen Bestandsdateien
+bleiben bestehen, keine neuen in den geaenderten Funktionsabschnitten.
+Archiv: synthetic_benchmarks.preparation_model_reads.
+Runner-Standard jetzt combined-preparation, weiterhin ein Lauf zehn Minuten;
+gleiche Schalter wie combined-reads plus neuer Vorbereitungs-Schalter. Referenz
+/tmp/bts-offload-sequence-mW3RTa weiterverwenden, keinen Basislauf wiederholen.
+Benchmarkberichte jetzt globale echte TV-p95/p99 aus Rohmesswerten sowie pro
+Phase p99 und Anzahlen ueber 50/100/200 ms; fehlende TV-Zuordnungen bleiben sichtbar.
+Vorgeschlagenes Abnahmeziel: Punkt bis TV p95 <50 ms, p99 <100 ms auch unter
+Sync/Spielende; wiederkehrende Ausreisser erklaeren/beseitigen. Aufrufe sollen
+nicht wegen Syncs an unbeteiligten Ressourcen warten; bei denselben Ressourcen
+bleiben kurze Konsistenz-Locks erforderlich. Manuelle Aufrufe haben noch keine
+vollstaendige Client-Latenzmessung. Abschliessend reale Tablets/TVs pruefen.
+Weiterarbeiten nur an verbleibenden Ausreissern: zunaechst neue Vorbereitungs-
+Phasen und TV-Pfad, danach ggf. Sync-Schreiben/Veroeffentlichung. Nicht allein
+den Sync-Gesamtmedian als Ziel verwenden.
+
+Tims Praezisierung: Zielwerte sind Orientierung, keine Abbruchgrenze. Weiter
+sinnvoll optimieren, solange Punktanzeige, Aufrufe oder andere Interaktionen
+fuer Nutzer davon profitieren; reine interne Sync-Zeit ist kein Erfolgskriterium.
+Live-Test 2026-10-11 01:43-01:53 Uhr Europe/Berlin ausgewertet:
+/tmp/bts-offload-sequence-fq0G28, combined-preparation, korrektes Profil.
+1178 erfolgreiche Meldungen (1164 Punkte, 14 Spielenden), alle am TV, 32 Check-ins
+ohne gemeldete Fehler. Archivierte combined-reads-Referenz weiterverwendet;
+deren Rohlogs fehlen inzwischen unter /tmp, kein weiterer Referenzlauf.
+TV-Hauptlast-p95 35 auf 23 ms, Mittel ca. 12,2 auf 11,8 ms. Neu global aus
+Rohmesswerten: Median 8 ms, p95 29 ms, p99 115 ms, Maximum 189 ms, 33 ueber
+50 ms, 18 ueber 100 ms (1,53 %), keine ueber 200 ms. Historisches globales
+p99 nicht ableitbar. Server-total p95 11,5 auf 16,3 ms, Maximum 121,6 auf
+184,8 ms; Score-Lock-Warten max 38,8 auf 133,1 ms. Kein pauschaler Gesamterfolg.
+106 Vorbereitungsaufgaben: 84 genug vorbereitet, 22 mit Auswahl. Match-Status-
+Read ueber Modell Median 0,6 ms, Statusberechnung 0,4 ms (max 0,8). Ganze
+No-op-Aufgaben Median 8,8 ms, max 167,6 ms; letzteres Reads/Timer-Verzug 111,4 ms.
+Synchrone Kandidatenberechnung Hauptthread Median 65,1 ms, p95 71,7 ms,
+max 75,6 ms; gesamte Auswahl-Aufgabe Median 146 ms. Auswahl-Match-Read weiterhin
+vollstaendige DB-Kopie: Median 18,9 ms; parallele Reads nicht addieren.
+Aufrufausfuehrung Median 52,1 ms inklusive Schreiben/Benachrichtigung.
+Naechster Vorschlag: automatische Auswahl von umfassender Anzeige-/Diagnose-
+berechnung trennen. calculate_location_preparation_selection erzeugt viele
+Display-/Match-/Feld-Diagnosen, die der automatische Aufruf nicht alle braucht.
+Tatsaechliche Kandidaten und fuer Self-Block-Aufloesung erforderliche Frontier-
+Diagnose beibehalten; Zulassung/Offizielle/Byes/Fairness durch Vergleich pruefen.
+Kosten der Unterteile noch nicht einzeln gemessen. Verbleibende CPU-Arbeit danach
+ggf. auslagern; Hauptthread-Entlastung wirkt auch ohne gemeinsamen Match-Lock.
+Weitere getrennte Belege: Match-Read-Bypass 0,1 ms waehrend Kompaktierung,
+nachfolgender Punkt-Write wartet 182,3 ms, Score total 184,8 ms. Match-Rewrite
+188,4 ms; Lesebeschleunigung hebt Schreibbarriere nicht auf. Turnier-Read-Bypass
+ebenfalls erstmals aktiv; passende Folgepunktmeldung 3,6 ms vor Rewrite-Ende
+(Zuordnung ueber Feld/Logreihenfolge, Bypass hat keine Score-Trace-ID).
+Sync 733: 46 Aenderungen, 291 Locks, Schreiben 146 ms, Veroeffentlichung 23 ms;
+Score 734 wartet nachweislich 133,1 ms am konkreten Match. Spieler-Feld-Abgleich
+1152 blockiert Punkte 66,1/29,9 ms, wartete selbst 134 ms hinter Vorbereitung
+1151 (136 ms Laufzeit). Offiziellenzuordnung ueberlappt folgende Verarbeitung,
+aber ihre CPU-Funktion ist nicht isoliert. Schreib-/Lock-Arbeit weiter beachten.
+TV-Einzelsamples bisher erst ab 500 ms geloggt; die 18 TV-Werte ueber 100 ms
+lassen sich noch nicht einzeln Serverereignissen zuordnen. Naechster Versuch:
+ab 100 ms mit Trace-ID loggen. Handlerdauer nicht zur Client-Sendezeit addieren;
+belegte Server-Ueberlappungen nur mit echten Queue-Start-/Endzeitstempeln.
+Vergleichsgrenzen: 200/213 fertige Spiele, 30/32 Check-ins, mittlere Hauptlast-
+Belegung 11,5/12,0 Felder; neue Phasen-Diagnose und Turnierverlauf begrenzen
+Kausalitaet. Archiv: benchmark_519_after_preparation_model_reads,
+live_comparisons.benchmark_519_preparation_model_reads_comparison; comparison.md
+und analysis.json im neuen Laufverzeichnis. Nutzerwirkung priorisieren.
+
+2026-10-11: Tim hat alle drei naechsten Stellen gemeinsam vor einem weiteren
+Live-Test freigegeben. Umgesetzt, jeweils eigener standardmaessig ausgeschalteter
+Schalter und eigene Messung:
+1) BTS_PREPARATION_CANDIDATES_LIGHT: automatische Auswahl ohne gesamte UI-/Feld-
+   Diagnoselisten. Echte Kandidaten/Regeln unveraendert, Frontier-Diagnose fuer
+   wartende selbstblockierende Tablet-Offizielle bleibt bei leerer Auswahl.
+   UI-Abfragen liefern weiterhin alle Diagnosen. candidate_calculation nennt
+   automatic_only. Kleines Modul preparation_selection/automatic.js.
+2) BTS_SYNC_BATCH_WRITES: ein Append je zusammenhaengender Sammlung statt je
+   Dokument. NeDB-Modifier/Validierung/Index-Hooks, kanonische Identitaet und
+   bestehende Ressourcen-Locks bleiben. Ganzer Gruppen-Rollback bei Fehler;
+   Vorherstaende werden auch nach moeglichem Teil-Append persistiert. Eigene
+   Writer/Adapter/TTL behalten Einzel-Writes. incremental_writes nennt
+   batch_groups, batch_changes, individual_writes. Modul btp_planner/batch_writes.js.
+3) BTS_COMPACTION_STAGED: automatische Datei-Vorbereitung neben dem Executor,
+   originale Datei bleibt massgeblich; erfolgreiche Appends werden nachgezogen.
+   Erst Restjournal/fsync/atomarer Rename/Verzeichnis-fsync halten den Executor.
+   Direkte Index-Appends warten ebenfalls beim Tausch. Endserialisierung max
+   acht Dokumente, max drei Nachziehrunden/1024 wartende Journal-Dokumente.
+   Bei Ueberlast/Appendfehler/manuellem Rewrite wird die Runde verworfen.
+   Startup/manuell/TTL/eigene Codecs behalten alten Pfad. compaction_staged
+   misst Vorbereitung, Queue-Warten und commit_locked_ms mit echten Zeitgrenzen.
+   Absturz vor/nach Rename, Punkte/Sync-Batches/Indexaenderungen und I/O-Fehler
+   an isolierten Datei-DBs getestet. Kleine Datei compaction_worker/staged.js.
+Verifikation: Standard-Suite 647 bestanden; danach weitere Crash-/Fehlertests,
+vollstaendige Suite mit allen neuen Schaltern 652 bestanden. Letzte gezielte
+Persistenz-/Auswahltests 27 bestanden (auch automatischer Wartungstakt); neue/geaenderte kleine Module lint-sauber.
+Synthetischer Einzelvergleich debug/responsiveness_benchmark.js (10 je Variante,
+wechselnde Reihenfolge, 519 Spiele/13 Felder/180 Historieneintraege, temporaere
+Dateien): Auswahl-Median 290,5 -> 94,4 ms; 46 Writes 21,6 -> 14,4 ms und 46 ->
+1 Append. Punkt-Write nach Einreihen der Kompaktierung 77,8 -> 1,4 ms. Gesamte
+Kompaktierung 77,8 -> 92,1 ms: Nutzen ist der fruehere Punkt-Write, keine kuerzere
+Wartungs-Gesamtzeit. Keine Live-TV-/Ressourcen-Lock-Messung und keine Annahme
+derselben absoluten Zeiten im Turnier. Auswahlfixture: 213 fertig/6 Vorbereitung/
+7 bereite geplante Spiele/293 ohne Check-in. Archiv: synthetic_benchmarks,
+three_responsiveness_optimizations. Ein erster verworfener All-ready-Probe-Datensatz
+zeigte viel wiederholte Teilnehmer-Abhaengigkeits-/Feld-Frontierarbeit per V8-Profil;
+keine Ergebniszahlen dieses abgebrochenen Probes verwenden. Restpotential merken:
+has_open_participant_dependency durchsucht alle Spiele und liest Teilnehmer mehrfach;
+Auswahl-Snapshot koennte Referenzindex Spieler -> Spiele nutzen. UI-Feld-Diagnosen
+koennen denselben Frontier je Feld wiederverwenden. Gleichheit/Mutationen pruefen.
+Runner-Standard combined-responsive: alle bisherigen plus diese drei Schalter,
+weiter EIN neuer Lauf zehn Minuten. Kein Wiederholen der vorhandenen Referenz
+combined-preparation (/tmp/bts-offload-sequence-fq0G28). Client loggt TV-Ausreisser
+jetzt ab 100 statt 500 ms mit Trace-ID; Lastfolge unveraendert. Gemeinsamer Lauf
+zeigt Gesamtwirkung, Unterphasen getrennt; keine unabhaengigen TV-Gewinne aus
+einem einzigen gemeinsamen Lauf behaupten. Anderen Turnierstand weiter berichten.
+Live-Test 2026-10-11 02:16–02:26 Uhr ausgewertet, alle drei Schalter aktiv:
+1179 Meldungen (1165 Punkte/14 Spielenden), 24 Check-ins, alle TV-Zuordnungen,
+keine Fehler. Auswahlberechnung Median 65,1 -> 17,2 ms, maximale Dauer 75,6 ->
+26 ms; 15 echte Auswahljobs statt 22. Gesamter Auswahljob Median 146 -> 96,1 ms.
+13 erfolgreiche Staged-Kompaktierungen; Match-Executor gesperrt 16,9 statt
+188,4 ms, Gesamtdauer jetzt 295 ms. Kein Punkt-Sendezeitstempel in dieser
+Match-Kompaktierung und alle Journale leer: unmittelbarer Live-Punktgewinn
+hierdurch nicht gemessen. Finaler Swap typisch 17 ms, Maximum 56,4 ms
+(normalizations). Batches 388 Aenderungen/26 Gruppen/ein Einzel-Fallback;
+Write-Median 29 -> 63 ms, Mittel 51,5 -> 51,8 ms, max 166 -> 160 ms. Drei
+Neuplanungen statt null. Gesamtsync-Median 404,5 -> 548 ms.
+TV-Gesamtergebnis schlechter: Mittel 11,8 -> 16,5 ms, p95 29 -> 73 ms,
+p99 unveraendert 115 ms, Maximum 189 -> 185 ms; >100 ms 18 -> 23. Davon
+20 in ersten zwei Minuten (vorher vier); spaeter drei statt 14. Zehn Sekunden
+Warmup liegen davor, diese Anfangsphase nicht aus Bewertung entfernen.
+Punkt-Queue-Maximum 133,1 -> 68,7 ms; anderer Turnierstand (213/227 fertig),
+32/24 Check-ins und sechs statt drei fruehe Spielenden begrenzen Zuordnung.
+Restpotential priorisieren: gemeinsame Hauptthread-/Scheduling-Stalls trotz
+kleiner Ressourcenqueue; Trace 49 TV 178 ms, Queue 0,3 ms, Kontext 147,2 ms,
+Timer-Verzug 106,5 ms und unabhaengige Reads ohne Persistierung gleichzeitig
+langsam. Funktion/GC/OS-Beitrag noch ungemessen. Ein Turnier-Batch Executor
+121,3 ms, davon persistNewState 89,2 ms inkl. Serialisierung/Scheduling;
+Dateisnapshot Turnier 447915 Bytes, events 443174 Bytes. Als naechste Diagnose
+isolierte Datenkopie/CPU-Profil und genaue Kopier-/Serialisierungs-/Publish-
+Zeiten vorschlagen, noch keine weitere Optimierung freigegeben. Ausserdem
+Collection-Batch-Barrieren fuer andere Punktwrites und breiten courts-Lock
+beim Spielende merken (Punkt 869 wartet 40 ms hinter Spielende 868 anderes Feld).
+Archiv: benchmark_519_after_three_responsiveness_optimizations und
+live_comparisons.benchmark_519_three_responsiveness_optimizations_comparison;
+lesbar debug/performance_responsiveness_2026-10-11.md. Vorhandene Referenz
+nicht wiederholt und keine Live-Turniermutation durch die Auswertung.
+2026-10-11: Isolierte Kopie/Batch-Entscheidung freigegeben und erledigt. Tim nennt
+neben TV-Punkten auch fluessige Admin-UI und nicht haengende akustische Aufrufe
+als gleichzeitige Nutzerziele. Standardprofil jetzt combined-responsive-single-writes,
+explizit BTS_SYNC_BATCH_WRITES=0 auch bei geerbter 1; vorheriges combined-responsive
+mit Batch bleibt auswaehlbar. Kleine Diagnosemodule debug/isolated_sync/ und
+npm run debug:isolated-sync: Dateikopie, nur temporaere NeDB-Replikate, echte
+Sync-Validierung/Locks/Apply/Publish und echte Admin-/Aufruf-Handler. Originale
+auch per SHA-256 unveraendert; keine Verbindung zu BTP, TVs oder Lautsprechern.
+519 echte Matches (241 fertig/13 aktiv), deterministische Profil-Updates an
+46 inaktiven Spielen plus Events. Je Lastart 12 wechselnde Messpaare + zwei
+Warmups, 12 Kontrollen ohne Sync. 28 Paare/Reloads identisch, kanonische Identitaet
+und alle Edits/Punktmarker geprueft. Punkt allein Median Einzel 2,2 / Batch
+18,9 ms; Admin-Antwort 64,7 / 86,1 ms; manuelle Aufrufmeldung 0,2 / 13,8 ms.
+Gegenlaeufig: Punkt parallel Admin 66,7 / 28,6 ms; kein pauschaler Einzel-Write-
+Gewinn. Ohne Sync Admin-Antwort 67,9 ms, Timer-Verzug je Durchlauf max im Median
+55,2 ms. Admin-Antwort ~3,77 MB, JSON+UTF8-Laenge Median 31–33 ms. Prioritaet:
+Admin-Neuladepfad/Listen und benoetigte Detail-/Historien-Daten pruefen, komplette
+Antwort seltener vorbereiten oder schwere Ausgabe-Arbeit entkoppeln. Noch keine
+weitere Optimierung freigegeben. Nicht ungeprueft Presses/Details entfernen.
+Vier begrenzte CPU-Profile ab erstem Live-Writer, ohne privates Planen/Reloads:
+Kopieren/Validieren/Serialisieren + Admin-Antwort; Turnier-modify in Einzeldiagnose
+26–28 ms in beiden Varianten, Serialisierung 5–11 ms. Erste Einzel-Write-Phasen
+hatten asynchrone Collection-Zuordnung verloren (Nullwerte nicht nutzen), korrigiert
+mit AsyncLocalStorage und nochmals zwei Profil-Paare/Reloads plus zwei finale
+Smoke-Paare geprueft. Urspruengliche unbeschraenkte CPU-Profile nicht zur Diagnose
+verwenden. 19 gezielte Profil-/Batch-Tests bestanden, kleine Diagnosemodule lint-
+sauber. Archiv synthetic_benchmarks.isolated_live_snapshot_sync_write_comparison,
+debug/performance_isolated_sync_2026-10-11.md; /tmp/bts-isolated-sync-Xi6nEx.
+2026-10-11: Freigegebene Admin-Entlastung umgesetzt und isoliert geprueft.
+Kleine Module admin_match_data und cmatch_history: fertige Historien nur bei
+Bedarf fuer Bearbeiten/Spielberichtsbogen, markiert statt leer ersetzt. Live-
+Timer und Sammel-Export bleiben vollstaendig, alte Clients ohne Opt-in ebenfalls.
+Objektmodell-Leser kopiert die ausgelassenen Historien nicht; geordneter Match-
+Executor-Read hinter Persistierung, keine neuen Ressourcen-/Turnier-Locks.
+Spaete Detailantworten nach Navigation/Objektwechsel werden verworfen, neuere
+Live-Historien nicht ueberschrieben. 83 gezielte Tests und echter Chrome-Smoke
+(519 Spiele, 241 fertige Zeilen, Edit + Scoresheet-SVG nach Nachladen) bestanden.
+npm run debug:isolated-admin vergleicht gleiche Kopie, je zwoelf Paare mit/ohne
+Sync, Einzelwrites in beiden Varianten, kein Profiling. Antwort 3,77 -> 2,44 MB;
+Admin mit Sync Median 67,6 -> 46,5 ms; JSON+UTF8 32,7 -> 20,4 ms; parallele
+Punktmeldung 66,7 -> 48,3 ms, Aufrufereignis jeweils 0,3 ms. Ohne Sync Punkt-
+Median 10,8 -> 11,2 ms, also hier kein Gewinn. Groesster Timer-Verzug mit Sync
+weiter ~88 ms, andere Stalls bleiben. Kein echter TV-/Frame-/Audiozeit-Nachweis.
+Alle 28 Paare identische persistierte Dokumente und Reload, Quelle unveraendert.
+Archiv: synthetic_benchmarks.isolated_admin_deferred_finished_history,
+debug/performance_isolated_sync_2026-10-11.md; /tmp/bts-isolated-admin-iauuVO.
+Weitere Serverpunkte bleiben: Events-/Spielerprofile, Turnier-Modify /
+Serialisierung, begrenzte Collection-Batches und courts-Lock beim Spielende.
+Aktuelle Praezisierung von Tim: Zielpunkt ist vorerst der Nachrichtenempfang am
+Client fuer Punkte, Admin-Antworten und Aufrufsignale. Client-Rendering, Frames
+und hoerbarer Ansagebeginn muessen aktuell nicht optimiert oder gemessen werden.
+Serverseitige Ereignisbereitschaft allein belegt den Empfang noch nicht; weitere
+Live-Validierung soll Versand/Transport bis zum Client-Empfang einschliessen.
+Aufruf misst Server-Bereitstellung: Browser-DOM/Frames und Speech-Queue/Audiostart
+bleiben offene Messziele. Im Test bewusst keine echte Spielzuteilung oder Ansage.
+
+1. Spielerpausen und vorgeschaltete Normalisierungspruefung
+   bts/btp_sync.js: normalize_sync_state / normalize_match_player_pause_state
+   Der Hash ueberspringt bereits die Berechnung bei gleichen Daten, braucht
+   zuvor aber alle Match-Setups, eine Projektion und JSON-Serialisierung.
+   Pruefen: zusaetzliche relevante Aenderungsrevisionen als schneller Vorfilter;
+   den Hash bei erforderlicher Inhaltspruefung beibehalten. Die vorhandene
+   Entity.revision zaehlt auch Punkte und unveraenderte Schreibvorgaenge und
+   eignet sich allein nicht. Nur bei geaenderten relevanten Werten markieren.
+   Bei Aenderungen nur betroffene Spieler und deren player.matches pruefen.
+   Loeschungen, Resets, Rollbacks, Einstellungen und zeitabhaengige Faelligkeiten
+   erfassen. Erst nach erfolgreicher Verarbeitung einen Stand als erledigt merken.
+   Tims weiterer Vorschlag: Fingerprints je Objekt beim Schreiben berechnen
+   und ggf. im Datensatz speichern; beim Lesen nur ID/Fingerprint vergleichen
+   und unveraenderte lokale Objekte wiederverwenden. Fuer BTS zuerst gepruefte
+   Fingerprints an den unveraenderlichen Datenrevisionen des Modells erwaegen:
+   NeDB haelt die Daten bereits im Speicher, die Schreib-Hooks aktualisieren
+   die kanonischen Objekte. Metadaten, Punktestand und Pausen/Zuweisungen haben
+   unterschiedliche Abhaengigkeiten und brauchen geeignete Teil-Fingerprints.
+   Persistierte Fingerprints atomar mit den Nutzdaten schreiben; Hashfelder
+   selbst aus dem Hash ausschliessen und Formatversion/Altbestand behandeln.
+   Spieler sind aus Meldungen und Matchteilnahmen abgeleitet, ohne eigene
+   Spieler-Collection; deren Fingerprints an den kanonischen Quellen pflegen.
+
+2. Offiziellen-Abgleich und Sichtbarkeit
+   reconcile_match_officials / normalize_official_visibility
+   official.assignments statt Rollen aus allen Matches neu sammeln.
+   Geaenderte Profile, Rollen und Matchzustaende gezielt verfolgen; aktive und
+   geplante Einsaetze sowie aktuelle Profile korrekt erhalten. Referenzen ohne
+   lokale _id brauchen weiterhin die Zuordnung ueber BTP-ID.
+
+3. Feldbelegung und veraltete Teilnehmerflags
+   integrate_now_on_court
+   Vollstaendige Matchabfrage samt Punktehistorien durch Feld-/Spielerreferenzen
+   und kleine Indizes fuer aktive Spiele und gesetzte Feldflags ersetzen.
+   Doppelte Feldbelegung und veraltete Flags weiterhin reparieren.
+
+4. Spieler-Check-ins bei turnierweiten Check-ins
+   integrate_player_state / get_match_form_db
+   Einzelabfrage je eingehendem Match durch BTP-Match-ID-Index und direkte
+   Spieler-/Teilnahmereferenzen ersetzen. Dieser Pfad ist nur aktiv, wenn
+   check_in_per_match ausgeschaltet ist; abgelaufene Pausen weiter erkennen.
+
+5. Feldimport ohne unveraenderte Schreibvorgaenge
+   upsert_btp_court
+   Aktuelles Feldobjekt vor dem Schreiben vergleichen; nur wirkliche Aenderungen
+   speichern. Umnummerierung und Bereinigung alter Feld-Datensaetze erhalten.
+
+6. Blockpositionen der automatischen Vorbereitungsauswahl wiederverwenden
+   Am 2026-10-10 freigegeben und umgesetzt.
+   bts/match_automation.js: get_frontier_block_distance /
+   calculate_location_preparation_selection
+   Read-only Offline-Diagnose nach dem Live-Test: eine Auswahl ohne neue Spiele
+   benoetigt 169-183 ms CPU-Zeit bei 519 Spielen. Dieselbe Blockreihenfolge wird
+   in einer Berechnung 831-mal aufgebaut (417847 Match-Besuche, 1662 Lookups).
+   CPU-Sampling: 45,7 Prozent beim Aufbau einschliesslich Unterfunktionen.
+   Gekapseltes Modul bts/match_automation/frontier_positions.js: einmal je
+   Berechnung und exakt geordneter Matchliste einen Index aufbauen, dann ueber
+   Objektreferenz und ID-Fallback nachschlagen. Listen, Reihenfolge, wiederholte
+   Blocknamen, fehlende/duplizierte IDs und Freilosregeln bleiben erhalten.
+   Privater Kontext auf kopierten Optionen; naechster Aufruf baut frisch auf.
+   Offline-Vergleich mit identischen 519 Spielen, festem Zeitpunkt und 30
+   abwechselnden Messpaaren: Median 166,3 auf 41,7 ms (rund 75 Prozent weniger).
+   Indexaufbau 831 auf 2; Match-Besuche 417847 auf 521. 561 vollstaendige
+   Auswahl-/Diagnosevergleiche mit vorherigem Quellstand stimmen ueberein.
+   518 Tests bestanden. Offline-Messung ohne DB-Queue/Netzwerk.
+   Live-Test 2026-10-10 22:14 Uhr: 1138 erfolgreiche Meldungen, p95 25,2 statt
+   36,4 ms, Maximum 196,9 statt 385,9 ms; Tablet-TV-Mittel 17,7 statt 22,5 ms.
+   Kontext-Ausreisser ueber 100 ms: zwei statt vier; 117-122 statt 205-242 ms.
+   Einmal Turnier-Kompaktierung, einmal Event-Loop-Verspaetung bei Sync-Replanung.
+   Anderer Turnierfortschritt und 28 statt 56 Check-ins begrenzen die Zuordnung.
+   Sync-Gesamtmedian fast unveraendert (520 statt 535 ms); ein Durchlauf 2144 ms
+   wegen zwei Neuplanungen bei geaenderten Vorbereitung-Nachfolgerflags.
+   Archiv: debug/performance_runs.json, synthetic_benchmarks,
+   per_calculation_frontier_positions.
+
+7. Ausweitung der Sync-Locks nach geaenderten Feldern unterscheiden
+   bts/btp_sync_plan.js: resources
+   Am 2026-10-10 freigegeben und umgesetzt. Ausgangspunkt im letzten Live-Test:
+   165,2 ms Queue-Wartezeit waehrend ein Sync 98 Datensaetze integrierte und
+   237 Matches sperrte, einschliesslich dieses Spiels/Felds; Apply 154 ms.
+   Kleine Module bts/btp_sync_locks/match_changes.js und resources.js:
+   Gruppenranglisten und reine Spieler-/Offiziellenprofile sperren nur direkt
+   geaenderte Matches. Spieler-Landesverband und Rundenbezeichnung bleiben
+   abgesichert, da sie die Tabletoperator-Zuweisung beeinflussen koennen.
+   Teilnehmerstatus, Check-ins, Pausen, Belegung, Ergebnisse, Freiloslinks,
+   unbekannte Setup-Felder und explizite Effects behalten Relations-Locks.
+   Vorbereitung/Auto-Call/Tabletoperator/Offiziellen-Domainlocks bleiben immer
+   bei Matcharbeit erhalten. Validierung ungesperrter Matches prueft jetzt
+   auch Check-ins, Belegungsflags und Vorbereitung-Nachfolgerflags; relevante
+   Aenderungen beim Planen/Warten loesen Neuplanung aus. Timing lock_scope
+   nennt direkte/zusaetzliche Match-Locks, Ursachen und Relationsbeitraege.
+   Offline mit unveraenderlicher Kopie der aktuellen 519 Spiele, 13 aktive:
+   98 kuenstliche Ranglisten-/Profilaenderungen an inaktiven Spielen: 241 auf
+   98 Match-Locks, Konflikte mit aktiven Punkt-Locks von 13 auf 0. Gemischt
+   mit acht Check-ins: 241 auf 151 Locks, Konflikte 13 auf 6. Reine Check-ins:
+   unveraendert 92 Locks. Kein Replay des letzten Syncs, keine Live-Latenz-
+   messung. 550 Tests bestanden, einschliesslich paralleler Punkte waehrend
+   Apply, wartendem Spielende/Check-in, Neuplanung und Freilosverarbeitung.
+   Archiv: debug/performance_runs.json, field_aware_sync_lock_expansion.
+   Live-Test 2026-10-10 22:40 Uhr ausgewertet: 1194 erfolgreiche Meldungen,
+   34 Check-ins, alle TV-Meldungen zugeordnet. Match-Locks Median 51 statt
+   135; drei nichtleere Plaene nur mit direkten Locks (15/2/2 Matches).
+   Weniger Aenderungen (Median 15 statt 24) begrenzen die Zuordnung.
+   Insgesamt keine Verbesserung: Punkt-p95 54,2 statt 25,2 ms, Maximum
+   368,3 statt 196,9 ms, TV-Mittel 24 statt 17,7 ms. Hoehere Feldbelegung
+   und anderer Turnierstand beachten. Groesste Lock-Wartezeit 116,1 statt
+   165,2 ms; Queue-p95 dennoch 1,9 statt 0,6 ms. Sync-Gesamtmedian 645
+   statt 520 ms, Apply-Median 69 statt 99 ms; fuenf statt drei Neuplanungen.
+   Zwei groesste Punkt-Ausreisser neben BTP response_received ohne
+   Kompaktierungsueberlappung: Kontext 303,9 ms bei leerem Executor,
+   Timer-Verspaetung 283,9 ms; Device-Einstellungslesen 343,2 ms gleichzeitig
+   mit unabhaengiger Turnierabfrage 342,3 ms ohne Persistierung.
+   Konkrete Decoder-CPU-Zeit im bisherigen Lauf ungemessen. Die getrennte
+   Decoder-Messung ist inzwischen freigegeben und umgesetzt, siehe oben.
+   Decoder-Engpass inzwischen durch Live-Messung nachgewiesen und Worker-
+   Entkopplung freigegeben/umgesetzt (siehe oben). Ein weiterer Kontextausreisser
+   wartete 105,6 ms hinter Feld-Kompaktierung; kein gemeinsamer CPU-Stall.
+   Archiv: benchmark_519_after_field_aware_sync_locks.
+
+Bereits umgesetzt: Auto-Call-Vorpruefung, Ausschluss nicht integrierbarer
+BTP-Eintraege aus der Matchauswahl (Freilosgraph bleibt vollstaendig), gezielte
+Spielende-Bereinigung einschliesslich kanonischer Offiziellen und Rollen.
+Letzter vollstaendiger Testlauf vor der Zusatzdiagnose: 497 Tests bestanden.
+Zusatzdiagnose: 510 Tests bestanden. Letzter Live-Test mit
+519 Spielen: Punktmeldungen p95 29 statt 61,1 ms; Hashpruefung Median 1 ms,
+drei Normalisierungsdurchlaeufe uebersprungen. Lauf und Einschraenkungen in
+debug/performance_runs.json (benchmark_519_after_normalization_object_fingerprints).
+Kontext-/Kompaktierungs-Live-Test ebenfalls in debug/performance_runs.json
+(benchmark_519_after_ordered_context_and_spread_compaction): Punktmittelwert
+8,5 statt 10 ms, p95 27,4 statt 29 ms, 1181 erfolgreiche Meldungen. Anderer
+Turnierfortschritt und Feldbelegung begrenzen die Vergleichbarkeit.
+Diagnose-Live-Test ebenfalls archiviert
+(benchmark_519_with_executor_and_device_diagnostics): 1135 erfolgreiche
+Meldungen, Median 4,9 ms, p95 36,4 ms, max 385,9 ms. Dieser Schritt fuegte
+Messungen hinzu; er ist keine weitere Geschwindigkeitsoptimierung.
+
+2026-10-11: Autonom freigegebene Serveroptimierungen umgesetzt.
+Vorbereitete Turnier-Writes kopieren/validieren nur geänderte Zweige vor den
+Ressourcen-Locks. NeDB-Indizes, Einzel-Append, kanonische Identitäten und
+Fallback bei neuer Ausgangsrevision erhalten. Registrierungs-Metadaten
+überspringen den Spielerprofil-Neuaufbau. Fehlgeschlagene Appends reparieren
+Daten und Profilprioritäten; neuere Match-Profile bleiben erhalten.
+Admin-Übersichten kopieren außerhalb des Executors und kodieren JSON in kurzen
+Abschnitten. Antwortplatz wird vor dem Lesen reserviert, spätere Live-Updates
+folgen auf die Übersicht. Punktpersistierung/Veröffentlichung hat Vorrang vor
+Hintergrundarbeit; Cleanup danach blockiert diese Priorität nicht weiter.
+Spielende sperrt bei bekanntem Feld nur dieses Feld statt alle; unbekanntes
+Feld bleibt breit, Feldvergabe separat geschützt, verschobene Admin-Bestätigung
+wird abgelehnt. V2-Endzeitstempel als Boolean für korrekte Cleanup-Locks.
+Standardprofil combined-responsive-background-admin; vorbereitete Writes,
+kooperative Admin-Antwort und Punktpriorität auch ohne Profil an. Batch-Writes
+bleiben aus. JSON-Worker optional, wegen 40–50 ms längerer Übersicht kein Standard.
+Vier getrennte Paarvergleiche auf unveränderter 519-Spiele-Kopie mit echtem
+WebSocket-Empfang, Quellen/Endzustände/Reloads geprüft; kein Live-Reset oder
+wiederholter zehnminütiger Referenzlauf. Letzter Vergleich isoliert nur die
+Punktpriorität: Median 32.7 -> 7.2 ms bei Metadaten, 30.5 -> 7.7 ms bei
+Registrierungs-Sync; Aufruf ~3 ms, Admin 75.1 -> 76.4 bzw. 71.6 -> 74.3 ms.
+Abschließend 692 vollständige Tests sowie 84 gezielte Regressionen und echter
+Chrome-Smoke grün. Kleiner abschließender WebSocket-Smoke nach Fehlerpfadkorrektur separat
+archiviert. Messgrenzen und Einzelwerte: debug/performance_isolated_sync_2026-10-11.md.
+Aktueller Zielpunkt weiterhin Signalempfang, keine weitere Clientoptimierung.
+
+2026-10-11: Testdashboard um kumulative Payload- und Empfangsstatistiken erweitert.
+TV-Payloads und Admin-Nachrichten getrennt nach Typ ueber die gesamte Laufzeit;
+keine Fuenfminuten-Begrenzung oder Beschraenkung auf acht Typen mehr. Globale
+Tablet->TV/Tablet->Admin-Statistiken: Samples, Mittel, p95/p99, Maximum und nicht
+zugeordnete Updates; pro Feld letzter Wert und Minutenmittel beider Ziele.
+Admin-Zuordnung ueber Spiel, Feld, Team-Spielstand, letzten Press und Endstatus;
+TV/Admin unabhaengig, doppelte/veraltete Events erzeugen keine weitere Probe.
+Empfangszeit am Anfang des WebSocket-Callbacks vor JSON-Parse, keine Browser-
+Rendering-/Change-Queue-Messung. Kumulative Typen und Admin-Werte auch im JSON-
+Bericht und Stop-Log, Admin-Werte zusaetzlich je Benchmarkphase. Kleine
+live_drill_metrics-Datei fuer kumulative Zaehler/Histogramme mit gecachten
+Perzentilen. 707 Tests bestanden, einschliesslich echtem lokalem Admin-WebSocket
+und virtueller Zehnminuten-Sequenz; sechs abschliessende Dashboard-Regressionen
+separat gruen. Kein Live-Turnier fuer diese Pruefungen veraendert.
+
+2026-10-11: Testdashboard um Server-Rueckstau und vier Ansichten erweitert.
+1 Uebersicht, 2 Queues, 3 Payloads, 4 Ereignisse; Umschalten auch im Benchmark,
+Startansicht optional --dashboard-view. Sekuendliche Diagnoseabfrage auf eigener
+Admin-Verbindung, ohne Turnier-Changes, DB-Abfragen oder Resource-Lock-Aufgaben.
+Lock-, DB- und Worker-Queues mit Wartezahl, Laufzahl, aeltester Wartezeit,
+Eingangs-/Abschlussrate und bis zu fuenf Minuten Verlauf; Admin-Outbox und
+Transportpuffer ebenfalls sichtbar. DB-/Worker-Zaehler funktionieren ohne Logs;
+Event-Loop-Messung nur waehrend aktiver Diagnoseabfragen. Warnungen bei
+anhaltendem Rueckstau/Loop-Verzoegerung, UNKNOWN bei fehlenden/veralteten Daten.
+Empfangslatenzen zusaetzlich mit p95/p99 der letzten Minute und getrennten
+ausstehenden/abgelaufenen Zuordnungen. Bestehende Lock-Diagnosen und Queue-Hang-
+Events werden angezeigt, keine rohe Konsolenweiterleitung. Pause misst den
+Abbau wartender Queues; Hoechstwerte, letzte Messung und Diagnosen im Bericht.
+Server-Queues serverweit, Empfangslatenzen fuer das Testturnier; Abtastung ist
+keine Kapazitaetsgarantie. Vollstaendige Suite 717 Tests gruen; abschliessend
+32 gezielte Regressionen sowie 13 Dashboard-/WebSocket-Tests gruen, darunter
+zwei spaeter ergaenzte Tests fuer Event-Loop-Messung und unvollstaendige DB-
+Telemetrie. Bestehende Startbefehle bleiben gueltig. Kein Live-Turnier veraendert.
+
+2026-10-11: Lokale Weboberflaeche fuer den Live-Testclient umgesetzt.
+Start: npm run debug:dashboard; Browser http://127.0.0.1:4444, optional --port.
+Kein automatischer Teststart: Server/Turnier waehlen und Startknopf benutzen.
+Grundparameter zuerst, alle Simulationsparameter in aufklappbaren Einstellungen;
+freie Steuerung und feste zehnminuetige Sequenz nutzen denselben bestehenden
+Testmotor. Node-Simulation als eigener IPC-Unterprozess, Webdarstellung separat.
+Fuenf Ansichten: Uebersicht, Ablauf/Queues, Spielfelder, Nachrichten, Ereignisse.
+Native interaktive SVG-Graphen fuer Empfangs-p95, Queue-Anzahl, aelteste Wartezeit
+und Event Loop; fuenf Minuten Verlauf, kumulative Typen und gesamte Berichtswerte.
+Ablaufgrafik als vereinfachtes Modell gekennzeichnet, kein Einzelpunkt-Trace.
+Start/Stopp, Pause/Tempo im freien Modus, Fortschritt, Server-/Turnierpruefung,
+JSON-Download, Wiederverbinden und Erhalt aufklappbarer Details. Veraltete
+Steuerantworten koennen neuere Live-Updates nicht mehr ueberschreiben (Revision).
+Port nur Loopback, Steueranfragen aus eigener Oberflaeche, nur eigener Child wird
+beendet; kein BTS-Start/Stopp oder Turnier-Reset. CLI und Profilvergleich bleiben
+verfuegbar. Kleine Dateien unter debug/web_dashboard, keine neuen Abhaengigkeiten.
+725 vollstaendige Tests, danach 14 gezielte Tests und 14 echte Chrome-Browser-
+Pruefungen gruen (Desktop/Mobil, Ansichten, Steuerung, Reload, Bericht).
+Backend-Pruefung mit echtem Testmotor auf schreibfreier BTS-Testinstanz,
+Browser-Pruefung mit synthetischen Testdaten. Kein Live-Turnier veraendert.
+
+2026-10-11: Gemessene Ablaufplaene, Einzelvorgaenge und Diagnoseexport umgesetzt.
+Eigener begrenzter Recorder unter bts/performance/traces.js, AsyncLocalStorage
+ordnet Lock-, DB-, Worker-, Sync- und Versandzeiten dem ausloesenden Vorgang zu.
+10-Sekunden-Freigabe durch Dashboard-Abfragen, ohne Konsolenlogging; Checkbox
+und --no-processing-traces erlauben Vergleiche ohne Detailaufzeichnung.
+Lock-Warten und Lock-Halten getrennt; konkrete beobachtete Blockierer mit
+Konfliktressourcen und Vorgangs-ID auch waehrend des Wartens. DB-Callbacks an
+Einreicher gebunden; freigegebene Locks werden bei spaeterer Hintergrundarbeit
+nicht mehr als gehalten ausgewiesen. Nachlaufende Schritte bleiben sichtbar,
+auch wenn der eigentliche Handler schon beendet ist. Unabhaengige Aufrufplaene
+tragen eine Referenz auf ihren ausloesenden Vorgang. Reale Sync-Worker liefern
+Integrationsphasen, BTP-Decoder ihre Teilzeiten; Fingerprint-/Skip-Entscheidung,
+Replan, DB-Schreiben, Publikation sowie Admin-Uebersicht/Kopieren/Kodieren erfasst.
+Neue kleine Browserdatei processing.js: Plaene fuer Punkt, Spielende, Sync,
+Aufruf/Vorbereitung und Admin-Laden; anklickbare Schritte mit Zeitgraph,
+letzter Dauer, Mittelwert, p95 (letzte 256), Maximum, Fehler und Skip-Anzahl.
+Einzelvorgaenge nach Zeit/Lock-Warten/Dauer/Fehler sortierbar, Zeitleiste mit
+ueberlappenden Schritten und Link zum Blockierer; technische JSON-Daten separat
+aufklappbar. Versanduebergabe ist keine bestaetigte Netzwerkzustellung; Client-
+Empfangszeiten ueber Trace-ID zugeordnet und ohne Uhrenvergleich dargestellt.
+Live-Graphen bleiben auf fuenf Minuten begrenzt, JSON-Download archiviert bis zu
+43.200 Samples, 5.000 Vorgange/Punktzuordnungen und 10.000 Ereignisse. Download
+auch waehrend des Tests als Zwischenbericht; finaler begrenzter Nur-Lese-Nachlauf
+holt verbleibende Abschlussberichte. Grenzen, ausgelassene Schritte/Locks,
+Telemetry-Luecken und ausstehende Schritte explizit; normales Weiterdrehen des
+abgeholten Server-Ringpuffers ist kein Verlust. Historische /tmp-Rohlogs nicht
+automatisch enthalten. Bestehende Simulation und Startbefehle bleiben erhalten.
+Validierung: 739 Tests der vollen Suite gruen; danach 128 betroffene Regressionen
+auf finalem Backend gruen; 22 echte Chrome-Pruefungen mit simulierten Messwerten
+inklusive Schrittgraph, Zeitleiste/Blockierer, Zwischen-/Abschlussdownload,
+Steuerung, Reload und Mobile. Neue/beruehrte Diagnosemodule ESLint gruen und
+git diff --check sauber. Backend-Belege mit realer Punktverarbeitung/TV-Handoff,
+echtem Sync-Worker, unveraendertem Sync ohne Ressourcen-Locks und echter Admin-
+Antwort auf isolierten In-Memory-Testdaten. Kein Live-Turnier veraendert.

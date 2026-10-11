@@ -47,13 +47,13 @@ function _get_tabletoperator_status_index() {
 	const matches = Array.isArray(curt && curt.matches) ? curt.matches : [];
 	for (const match of matches) {
 		const setup = match && match.setup;
-		if (!setup || !Array.isArray(setup.tabletoperators)) {
+		if (!setup || setup.now_on_court !== true || !setup.court_id || !Array.isArray(setup.tabletoperators)) {
 			continue;
 		}
 		for (const operator of setup.tabletoperators) {
 			const key = _participant_btp_key(operator);
-			if (key && operator && operator.now_tablet_on_court && !active_court_by_btp_id.has(key)) {
-				active_court_by_btp_id.set(key, operator.now_tablet_on_court);
+			if (key && operator && !active_court_by_btp_id.has(key)) {
+				active_court_by_btp_id.set(key, operator.now_tablet_on_court || setup.court_id);
 			}
 		}
 	}
@@ -114,6 +114,61 @@ function calc_score_str(match) {
 		return score ? score + ' ' + status : status;
 	}
 	return _network_score_str(match.network_score);
+}
+
+function _network_score_has_started(network_score) {
+	if (!Array.isArray(network_score)) {
+		return false;
+	}
+	return network_score.some((game) => (
+		Array.isArray(game) &&
+		((Number(game[0]) || 0) > 0 || (Number(game[1]) || 0) > 0)
+	));
+}
+
+function _press_starts_visible_match(match_press) {
+	return !!match_press && [
+		'pick_side',
+		'love-all',
+		'score',
+		'point',
+	].includes(match_press.type);
+}
+
+function _should_hide_admin_match_timer(match) {
+	if (!match) {
+		return false;
+	}
+	if (_network_score_has_started(match.network_score || match.score_status_network_score)) {
+		return true;
+	}
+	return Array.isArray(match.presses) && match.presses.some(_press_starts_visible_match);
+}
+
+function _has_terminal_score_status(match) {
+	const score_status = match && (match.score_status || match.btp_score_status);
+	return score_status === 'walkover'
+		|| score_status === 'retired'
+		|| score_status === 'disqualified'
+		|| score_status === 'no_match'
+		|| score_status === 'no_match_team1'
+		|| score_status === 'no_match_team2';
+}
+
+function _match_has_finished_result(match) {
+	return typeof (match && match.team1_won) === 'boolean'
+		|| !!(match && match.btp_winner)
+		|| !!(match && match.end_ts)
+		|| !!(match && match.setup && match.setup.end_ts)
+		|| (match && match.setup && match.setup.state === 'finished')
+		|| _has_terminal_score_status(match);
+}
+
+function _is_finished_timer_reconstruction_error(err) {
+	const message = err && err.message ? err.message : String(err);
+	return /Match finished, but game instead of match confirmed/.test(message)
+		|| /Invalid status for a finished game/.test(message)
+		|| /Match not finished, but match end confirmed/.test(message);
 }
 
 function calc_section(m) {
@@ -675,12 +730,14 @@ function render_match_row(tr, match, court, style, show_player_status, show_add_
 	if (style === 'default' || style === 'plain' || style === 'unasigned') {
 		const call_td = uiu.el(tr, 'td', 'call_td');
 
-		if (style === 'unasigned' && completeMatch && match?.setup?.preparation_call_deferred === true) {
-			uiu.el(call_td, 'span', 'preparation_call_deferred_badge', ci18n('match:status:deferred'));
-		} else if (style === 'unasigned' && completeMatch) {
+		if (style === 'unasigned' && completeMatch) {
+			if (match?.setup?.preparation_call_deferred === true) {
+				uiu.el(call_td, 'span', 'preparation_call_deferred_badge', ci18n('match:status:deferred'));
+			}
 			const locations = curt.locations;
 			locations.forEach((l)=> {
-				if(window.localStorage.getItem('show_location_courts_' + l._id) !== 'false') {
+				if(window.localStorage.getItem('show_location_courts_' + l._id) !== 'false'
+					&& is_manual_preparation_call_allowed_for_location(match, l)) {
 					create_match_prepparation_button(call_td, 'vlink match_preparation_call_button', 'match:preparationcall', on_announce_preparation_matchbutton_click, match._id, l);
 				}
 			});
@@ -1050,13 +1107,13 @@ function _format_dependency_from_incoming_edges(source_planning, matches) {
 				return incoming_plannings.every((planning) => candidate_sources.includes(planning));
 			});
 			if (consolidation_match) {
-				return ci18n(unique_relations[0]) + " #" + consolidation_match.setup.match_num + " - " + consolidation_match.setup.scheduled_date + " " + consolidation_match.setup.scheduled_time_str;
+				return ci18n(unique_relations[0]) + " #" + consolidation_match.setup.match_num + _format_dependency_match_time_suffix(consolidation_match);
 			}
 		}
 	}
 	if (incoming.length === 1) {
 		const entry = incoming[0];
-		return ci18n(entry.relation) + " #" + entry.match.setup.match_num + " - " + entry.match.setup.scheduled_date + " " + entry.match.setup.scheduled_time_str;
+		return ci18n(entry.relation) + " #" + entry.match.setup.match_num + _format_dependency_match_time_suffix(entry.match);
 	}
 
 	const unique_relations = [...new Set(incoming.map((entry) => entry.relation))];
@@ -1069,6 +1126,92 @@ function _format_dependency_from_incoming_edges(source_planning, matches) {
 	return match_refs.join(' / ');
 }
 
+function _dependency_label_has_time(label) {
+	return typeof label === 'string' && /\b\d{1,2}:\d{2}\b/.test(label);
+}
+
+function _get_dependency_date_locale() {
+	if (typeof ci18n === 'function' && typeof ci18n.get_lang === 'function') {
+		const lang = ci18n.get_lang();
+		if (lang && lang !== 'auto') {
+			return lang;
+		}
+	}
+	if (typeof navigator !== 'undefined' && navigator.language) {
+		return navigator.language;
+	}
+	return 'de-DE';
+}
+
+function _format_local_dependency_date(date_str) {
+	const match = typeof date_str === 'string' ? date_str.match(/^(\d{4})-(\d{2})-(\d{2})$/) : null;
+	if (!match) {
+		return date_str || '';
+	}
+	const date = new Date(Date.UTC(Number(match[1]), Number(match[2]) - 1, Number(match[3])));
+	try {
+		return new Intl.DateTimeFormat(_get_dependency_date_locale()).format(date);
+	} catch (err) {
+		return match[3] + "." + match[2] + "." + match[1];
+	}
+}
+
+function _format_dependency_match_time(match) {
+	const setup = match && match.setup;
+	if (!setup || !setup.scheduled_date || !setup.scheduled_time_str) {
+		return null;
+	}
+	return _format_local_dependency_date(setup.scheduled_date) + " " + setup.scheduled_time_str;
+}
+
+function _format_dependency_match_time_suffix(match) {
+	const time = _format_dependency_match_time(match);
+	return time ? (" - " + time) : "";
+}
+
+function _localize_direct_dependency_label(label) {
+	const match = typeof label === 'string'
+		? label.match(/^(.* #\d+) - (\d{4}-\d{2}-\d{2}) (\d{1,2}:\d{2})$/)
+		: null;
+	if (!match) {
+		return label;
+	}
+	return match[1] + " - " + _format_local_dependency_date(match[2]) + " " + match[3];
+}
+
+function _append_time_to_direct_dependency_label(label, match, team_id, matches) {
+	if (!label) {
+		return label;
+	}
+	if (_dependency_label_has_time(label)) {
+		return _localize_direct_dependency_label(label);
+	}
+	const parsed = String(label).match(/^(Gewinner|Verlierer|Winner|Loser) #(\d+)$/);
+	if (!parsed) {
+		return label;
+	}
+
+	const match_num = Number(parsed[2]);
+	const predecessor = _find_direct_predecessor_match(match, team_id, matches);
+	const candidates = [];
+	if (predecessor) {
+		candidates.push(predecessor);
+	}
+	(matches || []).forEach((candidate) => {
+		if (candidate && !candidates.includes(candidate)) {
+			candidates.push(candidate);
+		}
+	});
+	const timed_match = utils.find(candidates, (candidate) => {
+		return candidate
+			&& candidate.setup
+			&& Number(candidate.setup.match_num) === match_num
+		&& _format_dependency_match_time(candidate);
+	});
+	const time = _format_dependency_match_time(timed_match);
+	return time ? (label + " - " + time) : label;
+}
+
 function _format_participant_dependency(match, team_id, matches) {
 	const links = match && match.setup ? match.setup.links : null;
 	if (!links) {
@@ -1077,17 +1220,17 @@ function _format_participant_dependency(match, team_id, matches) {
 
 	const direct_link_label = team_id === 0 ? links.from1_link : links.from2_link;
 	if (direct_link_label) {
-		return direct_link_label;
+		return _append_time_to_direct_dependency_label(direct_link_label, match, team_id, matches);
 	}
 
 	const predecessor = _find_direct_predecessor_match(match, team_id, matches);
 	if (predecessor && predecessor.setup && predecessor.setup.links) {
 		const current_planning = _get_match_planning_id(match);
 		if (current_planning != null && predecessor.setup.links.winner_to == current_planning) {
-			return ci18n('Winner') + " #" + predecessor.setup.match_num + " - " + predecessor.setup.scheduled_date + " " + predecessor.setup.scheduled_time_str;
+			return ci18n('Winner') + " #" + predecessor.setup.match_num + _format_dependency_match_time_suffix(predecessor);
 		}
 		if (current_planning != null && predecessor.setup.links.loser_to == current_planning) {
-			return ci18n('Loser') + " #" + predecessor.setup.match_num + " - " + predecessor.setup.scheduled_date + " " + predecessor.setup.scheduled_time_str;
+			return ci18n('Loser') + " #" + predecessor.setup.match_num + _format_dependency_match_time_suffix(predecessor);
 		}
 	}
 	const source_planning = _get_source_planning_for_team(match, team_id);
@@ -1257,6 +1400,10 @@ function active_tabletoperator_court_for_player(player) {
 		if (tablet_court) {
 			return tablet_court;
 		}
+	}
+	const matches = Array.isArray(curt && curt.matches) ? curt.matches : null;
+	if (matches) {
+		return false;
 	}
 	return player.now_tablet_on_court || false;
 }
@@ -1557,6 +1704,7 @@ function update_match(m, old_section, new_section) {
 }
 
 var active_timers = {'matches': {}, 'players' : {}};
+var reported_match_timer_errors = {};
 
 function create_timer(timer_state, parent, default_color, exigent_color) {
 
@@ -1670,6 +1818,9 @@ function _extract_preparation_timer_state(match) {
 }
 
 function _extract_match_timer_state(match) {
+	if (_match_has_finished_result(match)) {
+		return null;
+	}
 	var presses = match.presses;
 
 	let s = {};
@@ -1678,11 +1829,23 @@ function _extract_match_timer_state(match) {
 	s.lang = (curt && curt.btp_settings && curt.btp_settings.language && curt.btp_settings.language !== 'auto') ? curt.btp_settings.language : "de";
 
 	try {
-		return calc.remote_state(s, match.setup, presses);
+		const timer_state = calc.remote_state(s, match.setup, presses);
+		if (_should_hide_admin_match_timer(match) && !(timer_state && timer_state.timer && timer_state.timer.start)) {
+			return null;
+		}
+		return timer_state;
 	} catch (err) {
+		if (_is_finished_timer_reconstruction_error(err)) {
+			return null;
+		}
 		const label = match && match.setup && match.setup.match_num ? `#${match.setup.match_num}` : (match && match._id ? match._id : '<unknown>');
-		console.error(`[bts] calc.remote_state failed for ${label}`, err);
-		if (typeof cerror !== 'undefined' && cerror && cerror.silent) {
+		const error_key = (match && match._id ? match._id : label) + ':' + (err && err.message ? err.message : String(err));
+		if (!reported_match_timer_errors[error_key]) {
+			reported_match_timer_errors[error_key] = true;
+			console.error(`[bts] calc.remote_state failed for ${label}`, err);
+		}
+		if (!reported_match_timer_errors[error_key + ':ui'] && typeof cerror !== 'undefined' && cerror && cerror.silent) {
+			reported_match_timer_errors[error_key + ':ui'] = true;
 			cerror.silent(`Timer state for ${label} could not be calculated: ${err.message}`);
 		}
 		return false;
@@ -2480,6 +2643,10 @@ function ui_edit(match_id) {
 		cerror.silent('Match ' + match_id + ' konnte nicht gefunden werden');
 		return;
 	}
+	if (source_match.presses_deferred === true) {
+		cmatch_history.load(source_match, () => ui_edit(match_id));
+		return;
+	}
 	const old_dialog = document.querySelector('.match_edit_dialog');
 	if (old_dialog) {
 		_remove_tabletoperator_replacement_suggestions();
@@ -2636,6 +2803,10 @@ function ui_scoresheet(match_id) {
 		cerror.silent('Match ' + match_id + ' konnte nicht gefunden werden');
 		return;
 	}
+	if (match.presses_deferred === true) {
+		cmatch_history.load(match, () => ui_scoresheet(match_id));
+		return;
+	}
 	crouting.set('t/' + curt.key + '/m/' + match_id + '/scoresheet', {}, _cancel_ui_scoresheet);
 
 	cbts_utils.esc_stack_push(_cancel_ui_scoresheet);
@@ -2733,14 +2904,147 @@ function get_preparation_callable_match_ids() {
 	const result = new Set();
 	const selections_by_location_id = (curt && curt.location_preparation_selection_by_location_id) || {};
 	for (const selection of Object.values(selections_by_location_id)) {
-		const display_match_ids = (selection && selection.display_candidate_match_ids) || selection?.candidate_match_ids || [];
-		for (const match_id of display_match_ids) {
-			if (match_id != null) {
+		const diagnostics_by_match_id = (selection && selection.diagnostics_by_match_id) || {};
+		Object.entries(diagnostics_by_match_id).forEach(([match_id, diagnostics]) => {
+			if (diagnostics && diagnostics.eligible === true) {
 				result.add(String(match_id));
 			}
-		}
+		});
 	}
 	return result;
+}
+
+const MANUAL_PREPARATION_RULE_KEYS = new Set([
+	'manual_state_callable',
+	'score_status_normal',
+	'is_match',
+	'not_incomplete',
+	'participants_complete',
+	'not_finished',
+	'not_on_court',
+	'location',
+	'special_result_same_discipline',
+	'not_playing_on_court',
+]);
+
+function is_manual_preparation_rule(rule) {
+	return !!rule && MANUAL_PREPARATION_RULE_KEYS.has(rule.key);
+}
+
+function match_has_complete_teams(match) {
+	const teams = match?.setup?.teams;
+	return Array.isArray(teams)
+		&& teams.length >= 2
+		&& Array.isArray(teams[0]?.players)
+		&& Array.isArray(teams[1]?.players)
+		&& teams[0].players.length >= 1
+		&& teams[1].players.length >= 1;
+}
+
+function get_match_players_for_manual_preparation(match) {
+	const teams = match?.setup?.teams;
+	if (!Array.isArray(teams)) {
+		return [];
+	}
+	return teams.flatMap((team) => Array.isArray(team?.players) ? team.players : []);
+}
+
+function get_match_player_btp_ids_for_manual_preparation(match) {
+	return get_match_players_for_manual_preparation(match)
+		.map((player) => player?.btp_id)
+		.filter((btp_id) => btp_id != null)
+		.map((btp_id) => String(btp_id));
+}
+
+function normalize_match_discipline_name_for_manual_preparation(match) {
+	return String(match?.setup?.event_name || '')
+		.replace(/\s*-\s*(?:Gruppe|Position)\s+.+$/i, '')
+		.trim();
+}
+
+function matches_same_discipline_for_manual_preparation(a, b) {
+	const discipline_a = normalize_match_discipline_name_for_manual_preparation(a);
+	const discipline_b = normalize_match_discipline_name_for_manual_preparation(b);
+	return discipline_a !== '' && discipline_a === discipline_b;
+}
+
+function has_inactive_special_result_player_for_manual_preparation(match) {
+	const player_ids = new Set(get_match_player_btp_ids_for_manual_preparation(match));
+	if (player_ids.size === 0 || !curt || !Array.isArray(curt.matches)) {
+		return false;
+	}
+	for (const candidate of curt.matches) {
+		if (!candidate || candidate === match || !candidate.score_status || candidate.score_status === 'normal') {
+			continue;
+		}
+		if (!matches_same_discipline_for_manual_preparation(candidate, match)) {
+			continue;
+		}
+		let affected_team_index = null;
+		if (candidate.score_status === 'no_match' && (candidate.no_match_losing_team === 0 || candidate.no_match_losing_team === 1)) {
+			affected_team_index = candidate.no_match_losing_team;
+		} else if (typeof candidate.team1_won === 'boolean') {
+			affected_team_index = candidate.team1_won ? 1 : 0;
+		}
+		if (affected_team_index == null) {
+			continue;
+		}
+		const affected_players = candidate.setup?.teams?.[affected_team_index]?.players || [];
+		if (affected_players.some((player) => player?.btp_id != null && player_ids.has(String(player.btp_id)))) {
+			return true;
+		}
+	}
+	return false;
+}
+
+function get_court_location_id(court_id) {
+	if (court_id == null || !curt || !Array.isArray(curt.courts)) {
+		return null;
+	}
+	const court = curt.courts.find((candidate) => String(candidate?._id) === String(court_id));
+	return court ? court.location_id : null;
+}
+
+function match_matches_preparation_location(match, location) {
+	const location_id = location?._id;
+	const setup = match?.setup || {};
+	if (setup.location_id != null) {
+		return String(setup.location_id) === String(location_id);
+	}
+	if (setup.court_id != null) {
+		const court_location_id = get_court_location_id(setup.court_id);
+		return court_location_id == null || String(court_location_id) === String(location_id);
+	}
+	return true;
+}
+
+function get_preparation_debug_diagnostics_for_match_and_location(match, location) {
+	if (!match || match._id == null || !location || location._id == null) {
+		return null;
+	}
+	const selection = curt?.location_preparation_selection_by_location_id?.[String(location._id)];
+	const diagnostics_by_match_id = (selection && selection.diagnostics_by_match_id) || {};
+	return diagnostics_by_match_id[String(match._id)] || null;
+}
+
+function is_manual_preparation_call_allowed_for_location(match, location) {
+	const diagnostics = get_preparation_debug_diagnostics_for_match_and_location(match, location);
+	if (diagnostics && diagnostics.manual_eligible != null) {
+		return diagnostics.manual_eligible === true;
+	}
+
+	const setup = match?.setup || {};
+	if (!(setup.state === 'scheduled' || setup.state === 'preparation' || setup.state === 'blocked')) return false;
+	if (match?.score_status && match.score_status !== 'normal') return false;
+	if (setup.is_match !== true) return false;
+	if (setup.incomplete === true) return false;
+	if (!match_has_complete_teams(match)) return false;
+	if (match?.team1_won !== undefined && match?.team1_won !== null) return false;
+	if (setup.now_on_court === true) return false;
+	if (!match_matches_preparation_location(match, location)) return false;
+	if (has_inactive_special_result_player_for_manual_preparation(match)) return false;
+	if (get_match_players_for_manual_preparation(match).some((player) => player && player.now_playing_on_court)) return false;
+	return true;
 }
 
 function get_preparation_cutoff_match_ids() {
@@ -2795,10 +3099,54 @@ function update_preparation_demand_court_markers() {
 	});
 }
 
+const preparation_selection_skip_debug = new Map();
+const PREPARATION_SELECTION_SKIP_DEBUG_DURATION_MS = 60 * 1000;
+
+function get_failed_preparation_debug_rule_text(diagnostics) {
+	const rules = Array.isArray(diagnostics?.rules) ? diagnostics.rules : [];
+	const rule = rules.find((candidate) => candidate && candidate.enabled !== false && candidate.passed !== true);
+	if (!rule) {
+		return 'kein Detailgrund vorhanden';
+	}
+	const label = PREPARATION_DEBUG_RULE_LABELS[rule.key] || rule.key || 'Regel';
+	return label + (rule.detail ? ' (' + rule.detail + ')' : '');
+}
+
+function update_preparation_selection_skip_debug_entries(entries) {
+	const now = Date.now();
+	entries.forEach((entry) => {
+		const key = entry.location_id + ':' + entry.match_id + ':' + entry.selected_match_id;
+		preparation_selection_skip_debug.set(key, {
+			...entry,
+			key,
+			expires_ts: now + PREPARATION_SELECTION_SKIP_DEBUG_DURATION_MS,
+		});
+	});
+	for (const [key, entry] of preparation_selection_skip_debug.entries()) {
+		if (entry.expires_ts <= now) {
+			preparation_selection_skip_debug.delete(key);
+		}
+	}
+}
+
+function get_visible_preparation_selection_skip_debug_entries() {
+	const now = Date.now();
+	const result = [];
+	for (const [key, entry] of preparation_selection_skip_debug.entries()) {
+		if (entry.expires_ts <= now) {
+			preparation_selection_skip_debug.delete(key);
+			continue;
+		}
+		result.push(entry);
+	}
+	return result.sort((a, b) => a.location_name.localeCompare(b.location_name, 'de'));
+}
+
 function get_preparation_frontier_debug_entries() {
 	const selections_by_location_id = (curt && curt.location_preparation_selection_by_location_id) || {};
 	const locations_by_id = new Map((curt && curt.locations || []).map((location) => [String(location._id), location]));
 	const courts_by_id = new Map((curt && curt.courts || []).map((court) => [String(court._id), court]));
+	const pending_skip_entries = [];
 	const format_match_nums = (nums) => {
 		const values = (Array.isArray(nums) ? nums : []).filter((num) => num != null);
 		return values.length ? values.map((num) => '#' + num).join(', ') : '-';
@@ -2811,7 +3159,18 @@ function get_preparation_frontier_debug_entries() {
 			});
 		return values.length ? values.join(', ') : '-';
 	};
-	return Object.entries(selections_by_location_id)
+	const format_field_selection_debug = (selection) => {
+		const field_selection_debug = selection?.field_selection_debug || {};
+		const next_court_ids = Array.isArray(field_selection_debug.next_court_ids)
+			? field_selection_debug.next_court_ids
+			: [];
+		const sorted_free_court_ids = Array.isArray(field_selection_debug.sorted_free_court_ids)
+			? field_selection_debug.sorted_free_court_ids
+			: [];
+		return 'Feldauswahl: naechste Felder ' + format_court_ids(next_court_ids)
+			+ ' (freie Reihenfolge ' + format_court_ids(sorted_free_court_ids) + ')';
+	};
+	const result = Object.entries(selections_by_location_id)
 		.map(([location_id, selection]) => {
 			const location = locations_by_id.get(String(location_id));
 			const location_name = location ? (location.name || location.short_name || ('Standort ' + location_id)) : ('Standort ' + location_id);
@@ -2821,6 +3180,34 @@ function get_preparation_frontier_debug_entries() {
 			const missing = selection && selection.missing_preparation_count != null ? selection.missing_preparation_count : 0;
 			const auto_required = selection && selection.effective_required_preparation_count != null ? selection.effective_required_preparation_count : 0;
 			const auto_missing = selection && selection.effective_missing_preparation_count != null ? selection.effective_missing_preparation_count : 0;
+			const display_candidate_match_ids = (selection && selection.display_candidate_match_ids) || [];
+			const display_candidate_match_nums = (selection && selection.display_candidate_match_nums) || [];
+			const selected_match_ids = auto_missing > 0
+				? ((selection && selection.auto_selected_match_ids) || [])
+				: ((selection && selection.selected_match_ids) || []);
+			const selected_match_nums = auto_missing > 0
+				? ((selection && selection.auto_selected_match_nums) || [])
+				: ((selection && selection.selected_match_nums) || []);
+			const first_display_match_id = display_candidate_match_ids[0];
+			const first_selected_match_id = selected_match_ids[0];
+			if (
+				(auto_missing > 0 || missing > 0) &&
+				first_display_match_id != null &&
+				String(first_display_match_id) !== String(first_selected_match_id)
+			) {
+				const diagnostics = selection?.diagnostics_by_match_id?.[String(first_display_match_id)];
+				pending_skip_entries.push({
+					location_id: String(location_id),
+					location_name,
+					match_id: String(first_display_match_id),
+					selected_match_id: first_selected_match_id != null ? String(first_selected_match_id) : '-',
+					text: location_name
+						+ ': #' + (display_candidate_match_nums[0] != null ? display_candidate_match_nums[0] : first_display_match_id)
+						+ ' uebersprungen'
+						+ (selected_match_nums[0] != null ? ' zugunsten #' + selected_match_nums[0] : '')
+						+ ' - ' + get_failed_preparation_debug_rule_text(diagnostics),
+				});
+			}
 			return {
 				location_id: String(location_id),
 				location_name,
@@ -2836,12 +3223,16 @@ function get_preparation_frontier_debug_entries() {
 					+ ', Kandidaten ' + format_match_nums(selection && selection.display_candidate_match_nums)
 					+ ', Auswahl ' + format_match_nums(selection && selection.selected_match_nums)
 					+ ', Auto-Auswahl ' + format_match_nums(selection && selection.auto_selected_match_nums),
+				field_selection_text: location_name + ': ' + format_field_selection_debug(selection),
 			};
 		})
 		.sort((a, b) => a.location_name.localeCompare(b.location_name, 'de'));
+	update_preparation_selection_skip_debug_entries(pending_skip_entries);
+	return result;
 }
 
 const PREPARATION_DEBUG_RULE_LABELS = {
+	manual_state_callable: 'Status erlaubt haendischen Vorbereitungsaufruf',
 	state_scheduled: 'Status ist angesetzt',
 	not_deferred: 'Vorbereitungsaufruf nicht zurueckgestellt',
 	score_status_normal: 'Keine Sonderwertung am Spiel',
@@ -2849,6 +3240,7 @@ const PREPARATION_DEBUG_RULE_LABELS = {
 	not_incomplete: 'Spiel ist nicht unvollstaendig markiert',
 	participants_complete: 'Alle Teilnehmer stehen fest',
 	not_finished: 'Spiel ist nicht beendet',
+	not_on_court: 'Spiel ist noch nicht auf dem Feld',
 	location: 'Spiel passt zum Standort',
 	participant_dependencies: 'Keine offenen Vorgaenger oder frueheren Spielerteilnahmen',
 	time_before_scheduled: 'Zeitfenster vor geplanter Startzeit erreicht',
@@ -3013,12 +3405,17 @@ function format_preparation_debug_tooltip(match, entries) {
 			return;
 		}
 		const criteria_rules = rules.filter((rule) => !rule || rule.group !== 'window');
+		const manual_rules = rules.filter(is_manual_preparation_rule);
+		const automatic_criteria_rules = criteria_rules.filter((rule) => !is_manual_preparation_rule(rule));
 		const window_rules = rules.filter((rule) => rule && rule.group === 'window');
-		const criteria_eligible = entry.diagnostics?.criteria_eligible ?? preparation_debug_rules_pass(criteria_rules);
+		const manual_eligible = entry.diagnostics?.manual_eligible ?? preparation_debug_rules_pass(manual_rules);
+		const automatic_criteria_eligible = preparation_debug_rules_pass(automatic_criteria_rules);
 		const within_call_window = entry.diagnostics?.within_call_window ?? preparation_debug_rules_pass(window_rules);
-		append_preparation_debug_rule_section(lines, 'Grundsaetzlich aufrufbar', criteria_eligible, criteria_rules, PREPARATION_DEBUG_RULE_LABELS);
+		append_preparation_debug_rule_section(lines, 'Haendisch aufrufbar', manual_eligible, manual_rules, PREPARATION_DEBUG_RULE_LABELS);
 		lines.push('');
-		append_preparation_debug_rule_section(lines, 'Innerhalb Aufrufgrenze', within_call_window, window_rules, PREPARATION_DEBUG_RULE_LABELS);
+		append_preparation_debug_rule_section(lines, 'Weitere Automatik-Regeln', automatic_criteria_eligible, automatic_criteria_rules, PREPARATION_DEBUG_RULE_LABELS);
+		lines.push('');
+		append_preparation_debug_rule_section(lines, 'Innerhalb Automatik-Aufrufgrenze', within_call_window, window_rules, PREPARATION_DEBUG_RULE_LABELS);
 	});
 	return lines.join('\n');
 }
@@ -3104,7 +3501,8 @@ function render_preparation_debug_cell(tr, match) {
 	}
 	const has_failed_rule = entries.some((entry) => {
 		const rules = Array.isArray(entry.diagnostics?.rules) ? entry.diagnostics.rules : [];
-		return rules.some((rule) => !rule || rule.passed !== true);
+		const manual_rules = rules.filter(is_manual_preparation_rule);
+		return manual_rules.some((rule) => !rule || (rule.enabled !== false && rule.passed !== true));
 	});
 	render_debug_icon(
 		td,
@@ -3141,6 +3539,7 @@ function render_unassigned(container) {
 	}
 
 	const frontier_debug_entries = preparation_call_debug_text_enabled() ? get_preparation_frontier_debug_entries() : [];
+	const skip_debug_entries = preparation_call_debug_text_enabled() ? get_visible_preparation_selection_skip_debug_entries() : [];
 	if (preparation_call_debug_text_enabled()) {
 		const debug_container = uiu.el(container, 'div', 'preparation_frontier_debug');
 		uiu.el(debug_container, 'span', 'preparation_frontier_debug_label', 'Vorbereitungs-Debug:');
@@ -3148,6 +3547,16 @@ function render_unassigned(container) {
 			frontier_debug_entries.forEach((entry) => {
 				uiu.el(debug_container, 'span', 'preparation_frontier_debug_entry', entry.text);
 			});
+			uiu.el(debug_container, 'span', 'preparation_frontier_debug_label', 'Feldauswahl-Debug:');
+			frontier_debug_entries.forEach((entry) => {
+				uiu.el(debug_container, 'span', 'preparation_frontier_debug_entry', entry.field_selection_text);
+			});
+			if (skip_debug_entries.length) {
+				uiu.el(debug_container, 'span', 'preparation_frontier_debug_label', 'Auswahl-Skip-Debug (1 min):');
+				skip_debug_entries.forEach((entry) => {
+					uiu.el(debug_container, 'span', 'preparation_frontier_debug_entry', entry.text);
+				});
+			}
 		} else {
 			const has_locations = curt && Array.isArray(curt.locations) && curt.locations.length > 0;
 			uiu.el(
@@ -4694,6 +5103,8 @@ return {
 	render_finished,
 	render_unassigned,
 	render_courts,
+	_get_preparation_callable_match_ids: get_preparation_callable_match_ids,
+	_is_manual_preparation_call_allowed_for_location: is_manual_preparation_call_allowed_for_location,
 	update_preparation_demand_court_markers,
 	render_umpire_options,
 	render_upcoming_matches,
@@ -4711,6 +5122,9 @@ return {
 	update_tables,
 	_build_official_select_entries: build_official_select_entries,
 	_format_participant_dependency,
+	_extract_match_timer_state,
+	_should_hide_admin_match_timer,
+	_active_tabletoperator_court_for_player: active_tabletoperator_court_for_player,
 	render_tabletoperator_player_picker,
 	refresh_unassigned_status_context,
 };
@@ -4723,6 +5137,7 @@ if ((typeof module !== 'undefined') && (typeof require !== 'undefined')) {
 	var cbts_utils = require('./cbts_utils');
 	var cerror = require('../bup/js/cerror');
 	var cflags = require('./cflags');
+	var cmatch_history = require('./cmatch_history');
 	var change = require('./change');
 	var ci18n = require('./ci18n');
 	var countries = require('./countries');

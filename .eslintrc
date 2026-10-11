@@ -1,4 +1,5 @@
 {
+    "root": true,
     "rules": {
         "indent": 0,
         "quotes": [
@@ -21,12 +22,30 @@
     },
     "env": {
         "node": true,
-        "es6": true
+        "es2022": true
     },
     "globals": {
     },
     "parserOptions": {
-        "ecmaVersion": 2017
+        "ecmaVersion": 2022,
+        "sourceType": "script"
     },
+    "overrides": [
+        {
+            "files": ["test/**/*.js"],
+            "env": {
+                "mocha": true
+            },
+            "rules": {
+                "no-console": "off"
+            }
+        },
+        {
+            "files": ["debug/**/*.js"],
+            "rules": {
+                "no-console": "off"
+            }
+        }
+    ],
     "extends": "eslint:recommended"
 }

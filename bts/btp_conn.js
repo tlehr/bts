@@ -1,22 +1,39 @@
 'use strict';
 
 const assert = require('assert');
+const crypto = require('crypto');
 const net = require('net');
 
 const async = require('async');
 
 const btp_proto = require('./btp_proto');
+const bulk_decoder = require('./btp_decode');
+const btp_parse = require('./btp_parse');
 const btp_sync = require('./btp_sync');
 const debug_flags = require('./debug_flags');
-const update_queue = require('./update_queue');
 const serror = require('./serror');
 
 const AUTOFETCH_TIMEOUT = 30000;
 const CONNECT_TIMEOUT = 5000;
 const WAIT_TIMEOUT = 10000;
-const FETCH_QUEUE_HANG_TIMEOUT = 30000;
+const FETCH_HARD_TIMEOUT = CONNECT_TIMEOUT + WAIT_TIMEOUT + 5000;
 const BTP_PORT = 9901;
 const BLP_PORT = 9911;
+
+function fetch_hard_timeout_ms() {
+	const configured = Number(process.env.BTS_BTP_FETCH_HARD_TIMEOUT_MS);
+	if (Number.isFinite(configured) && configured > 0) {
+		return Math.round(configured);
+	}
+	return FETCH_HARD_TIMEOUT;
+}
+
+function normalize_autofetch_timeout_ms(autofetch_timeout_intervall) {
+	const parsed_autofetch_timeout_seconds = Number(autofetch_timeout_intervall);
+	return Number.isFinite(parsed_autofetch_timeout_seconds) && parsed_autofetch_timeout_seconds > 0
+		? parsed_autofetch_timeout_seconds * 1000
+		: AUTOFETCH_TIMEOUT;
+}
 
 function now_ms(app) {
 	return app?.clock ? app.clock.now_ms() : Date.now();
@@ -26,19 +43,180 @@ function real_now_ms(app) {
 	return app?.clock ? app.clock.real_now_ms() : Date.now();
 }
 
+function warn_compact(label, payload, failure = false) {
+	if (!failure && !require('./server_diagnostics').sync_timing_enabled(payload.tournament_key)) return;
+	try {
+		console.warn(`${label} ${JSON.stringify(payload)}`);
+	} catch (err) {
+		console.warn(label, payload);
+	}
+}
+
+function request_fetch(connection, reschedule_fetch) {
+	// Background triggers do not await the fetch. Observe failures here while
+	// fetch() itself retains a shared promise for callers that do await it.
+	return connection.fetch(connection, reschedule_fetch).catch(err => {
+		serror.silent('BTP fetch failed: ' + (err.message || String(err)));
+		return null;
+	});
+}
+
+async function queue_fetch_sync_task(connection, response, fetch_reset_ts, response_hash, fetch_start_ms) {
+	const state = await fetch_response_state(connection, fetch_reset_ts);
+	if (!state.ok) {
+		log_ignored_fetch_response(connection, state.reason, real_now_ms(connection.app) - fetch_start_ms);
+		return null;
+	}
+	// Planning and comparison take place outside the resource queue. The sync
+	// itself queues only the resources its validated writes actually affect.
+	const value = await btp_sync.sync_btp_data(connection.app, connection.tkey, response, {
+		expected_reset_ts: fetch_reset_ts,
+		is_current: () => !connection.terminated,
+	});
+	if (value === true || value?.reason === 'no_sync_changes') {
+		connection.last_applied_fetch_response_hash = response_hash;
+		connection.last_applied_fetch_reset_ts = fetch_reset_ts;
+	}
+	if (value?.skipped) {
+		warn_compact('[bts] btp_fetch:sync_skipped', {
+			tournament_key: connection.tkey, reason: value.reason,
+			duration_ms: real_now_ms(connection.app) - fetch_start_ms,
+		});
+		if (value.reason !== 'no_sync_changes') return null;
+	}
+	return value;
+}
+
+async function fetch_response_state(connection, fetch_reset_ts) {
+	if (!connection || connection.terminated) {
+		return { ok: false, reason: 'connection_terminated' };
+	}
+	const tournaments = connection.app?.db?.tournaments;
+	if (!tournaments || typeof tournaments.findOne_async !== 'function') {
+		return { ok: true, reason: 'no_tournament_store' };
+	}
+	const tournament = await tournaments.findOne_async({ key: connection.tkey }, { btp_enabled: 1, last_reset_ts: 1 });
+	if (connection.terminated) {
+		return { ok: false, reason: 'connection_terminated' };
+	}
+	if (!tournament || tournament.btp_enabled !== true) {
+		return { ok: false, reason: 'btp_disabled' };
+	}
+	if (tournament.last_reset_ts !== fetch_reset_ts) {
+		return { ok: false, reason: 'tournament_reset_during_fetch' };
+	}
+	return { ok: true, reason: 'current' };
+}
+
+function log_ignored_fetch_response(connection, reason, duration_ms) {
+	warn_compact('[bts] btp_fetch:response_ignored', {
+		tournament_key: connection?.tkey,
+		reason,
+		duration_ms,
+	});
+}
+
+function hash_fetch_response(response) {
+	return crypto
+		.createHash('sha1')
+		.update(JSON.stringify(response))
+		.digest('hex');
+}
+
+function count_pending_local_btp_sync(app, tkey) {
+	return new Promise((resolve) => {
+		const matches = app?.db?.matches;
+		if (!matches) {
+			resolve({ ok: false, count: null, reason: 'no_match_store' });
+			return;
+		}
+		const query = tkey
+			? { tournament_key: tkey, btp_needsync: true }
+			: { btp_needsync: true };
+		if (typeof matches.count === 'function') {
+			matches.count(query, (err, count) => {
+				if (err) {
+					resolve({ ok: false, count: null, reason: err.message || String(err) });
+					return;
+				}
+				resolve({ ok: true, count });
+			});
+			return;
+		}
+		if (typeof matches.find_async === 'function') {
+			matches.find_async(query)
+				.then((pending_matches) => resolve({ ok: true, count: pending_matches.length }))
+				.catch((err) => resolve({ ok: false, count: null, reason: err.message || String(err) }));
+			return;
+		}
+		resolve({ ok: false, count: null, reason: 'no_count_api' });
+	});
+}
+
+function response_has_hidden_empty_bye_branch_winners(response) {
+	try {
+		const btp_state = btp_parse.get_btp_state(response);
+		const candidates = btp_sync._find_hidden_empty_bye_branch_winner_candidates(btp_state);
+		if (require('./server_diagnostics').sync_timing_enabled()) {
+			warn_compact('[bts] btp_fetch:hidden_empty_bye_check', {
+				candidate_count: candidates.length,
+				candidates: candidates.slice(0, 20).map((match) => ({
+					id: match.ID && match.ID[0],
+					match_num: match.MatchNr && match.MatchNr[0],
+					draw: match.DrawID && match.DrawID[0],
+					planning: match.PlanningID && match.PlanningID[0],
+					from1: match.From1 && match.From1[0],
+					from2: match.From2 && match.From2[0],
+				})),
+			});
+		}
+		return candidates.length > 0;
+	} catch (err) {
+		warn_compact('[bts] btp_fetch:hidden_bye_check_failed', {
+			reason: err && (err.message || String(err)),
+		}, true);
+		return false;
+	}
+}
+
+async function should_skip_fetch_sync(connection, response_hash, response = null) {
+	if (!response_hash || !connection.last_applied_fetch_response_hash) {
+		return { skip: false, reason: 'no_previous_response_hash' };
+	}
+	if (connection.last_applied_fetch_response_hash !== response_hash) {
+		return { skip: false, reason: 'response_changed' };
+	}
+	const pending = await count_pending_local_btp_sync(connection.app, connection.tkey);
+	if (!pending.ok) {
+		return { skip: false, reason: `pending_check_failed:${pending.reason}` };
+	}
+	if (pending.count > 0) {
+		return { skip: false, reason: 'local_btp_sync_pending', pending_count: pending.count };
+	}
+	if (response && response_has_hidden_empty_bye_branch_winners(response)) {
+		if (connection.last_hidden_empty_bye_response_hash_attempted === response_hash) {
+			return { skip: true, reason: 'identical_response_after_hidden_empty_bye_attempt' };
+		}
+		connection.last_hidden_empty_bye_response_hash_attempted = response_hash;
+		return { skip: false, reason: 'hidden_empty_bye_branch_pending' };
+	}
+	return { skip: true, reason: 'identical_response_without_local_pending_sync' };
+}
+
 
 function send_raw_request(ip, port, raw_req, callback) {
 	assert(callback);
 	if (!ip) {
 		return callback(new Error('No IP address specified'));
 	}
+	let called = false;
 	const client = net.connect({host: ip, port, timeout: CONNECT_TIMEOUT}, () => {
+		if (called) return;
 		client.setTimeout(WAIT_TIMEOUT);
 		client.write(raw_req);
 	});
 
 	const got = [];
-	let called = false;
 	client.on('error', (err) => {
 		if (called) return;
 		called = true;
@@ -47,10 +225,11 @@ function send_raw_request(ip, port, raw_req, callback) {
 	client.on('timeout', () => {
 		if (called) return;
 		called = true;
+		client.destroy();
 		callback(new Error(`Connection to ${ip}:${port} timed out after ${WAIT_TIMEOUT}ms`));
 	});
 	client.on('data', (data) => {
-		got.push(data);
+		if (!called) got.push(data);
 	});
 	client.on('end', () => {
 		if (called) return;
@@ -58,9 +237,14 @@ function send_raw_request(ip, port, raw_req, callback) {
 
 		callback(null, Buffer.concat(got));
 	});
+	return () => {
+		if (called) return;
+		called = true;
+		client.destroy();
+	};
 }
 
-function send_request(ip, port, xml_req, timeZone, callback) {
+function send_request(ip, port, xml_req, timeZone, callback, context) {
 	assert(callback);
 	let encoded_req;
 	try {
@@ -69,14 +253,26 @@ function send_request(ip, port, xml_req, timeZone, callback) {
 		serror.silent('Error while encoding for BTP:' + e.message);
 		return callback(e);
 	}
-	send_raw_request(ip, port, encoded_req, (err, raw_response) => {
+	let cancelled = false;
+	let cancel_decode;
+	const cancel_raw = send_raw_request(ip, port, encoded_req, (err, raw_response) => {
+		if (cancelled) return;
 		if (err) return callback(err);
-		btp_proto.decode(raw_response, (err, decoded) => {
-			if (err) return callback(err);
-
-			return callback(err, decoded);
-		});
+		if (context?.action === 'SENDTOURNAMENTINFO' && require('./offload/profile').enabled('btp_decode')) {
+			cancel_decode = bulk_decoder.decode(raw_response, context, (error, decoded) => {
+				if (cancelled) return;
+				if (error?.btp_parse_error) serror.silent('Encountered an error while parsing BTP message: ' + error.message);
+				callback(error, decoded);
+			});
+		} else {
+			btp_proto.decode(raw_response, callback, context);
+		}
 	});
+	return () => {
+		cancelled = true;
+		if (typeof cancel_raw === 'function') cancel_raw();
+		if (cancel_decode) cancel_decode();
+	};
 } 
 
 
@@ -93,12 +289,13 @@ class BTPConn {
 		this.autofetch_timeout = null;
 		this.next_fetch_ts = null;
 		this.fetch_in_progress = false;
+		this.fetch_promise = null;
+		this.fetch_reschedule_requested = false;
+		this.last_applied_fetch_reset_ts = undefined;
 		this.readonly = readonly;
 		this.is_team = is_team;
-		const parsed_autofetch_timeout = Number(autofetch_timeout_intervall);
-		this.autofetch_timeout_intervall = Number.isFinite(parsed_autofetch_timeout) && parsed_autofetch_timeout > 0
-			? parsed_autofetch_timeout
-			: AUTOFETCH_TIMEOUT;
+		this.autofetch_timeout_intervall = normalize_autofetch_timeout_ms(autofetch_timeout_intervall);
+		this.last_applied_fetch_response_hash = null;
 		this.connect();
 	}
 
@@ -124,11 +321,7 @@ class BTPConn {
 
 			this.pushall();
 			if (this.enabled_autofetch) {
-				update_queue.instance().execute(
-					update_queue.hang_after(FETCH_QUEUE_HANG_TIMEOUT, update_queue.named('fetch', this.fetch)),
-					this,
-					true
-				);
+				request_fetch(this, true);
 			}
 		});
 	}
@@ -140,89 +333,167 @@ class BTPConn {
 		}
 		this.next_fetch_ts = null;
 		this.publish_status();
-		update_queue.instance().execute(
-			update_queue.hang_after(FETCH_QUEUE_HANG_TIMEOUT, update_queue.named('fetch', this.fetch)),
-			this,
-			this.enabled_autofetch
-		);
+		return request_fetch(this, this.enabled_autofetch);
 	}
 
-	async fetch(connection, reschedule_fetch ) {
+	fetch(connection = this, reschedule_fetch = false) {
+		if (connection.terminated) {
+			return Promise.resolve(null);
+		}
+		connection.fetch_reschedule_requested = connection.fetch_reschedule_requested || reschedule_fetch === true;
+		if (connection.fetch_promise) {
+			return connection.fetch_promise;
+		}
+		connection.fetch_in_progress = true;
+		connection.next_fetch_ts = null;
+		connection.publish_status();
+		let reschedule = true; // Failed integrations remain eligible for an automatic retry.
+		// Defer execution until the shared promise is installed. It spans receipt
+		// and integration, preventing a second fetch from overtaking this one.
+		connection.fetch_promise = Promise.resolve().then(() => connection._fetch_once()).then(result => {
+			reschedule = result.reschedule;
+			return result.value;
+		}).finally(() => {
+			connection.fetch_promise = null;
+			connection.fetch_in_progress = false;
+			const requested = connection.fetch_reschedule_requested;
+			connection.fetch_reschedule_requested = false;
+			if (!connection.terminated) {
+				if (reschedule && requested) {
+					connection.schedule_fetch();
+				} else {
+					connection.publish_status();
+				}
+			}
+		});
+		return connection.fetch_promise;
+	}
+
+	_fetch_response(fetch_start_ms) {
 		return new Promise((resolve, reject) => {
-			try {			
-				const fetch_start_ms = real_now_ms(connection.app);
-				connection.fetch_in_progress = true;
-				connection.next_fetch_ts = null;
-				connection.publish_status();
-				const ir = btp_proto.get_info_request(connection.password);
-				connection.send(ir, async (response) => {
-					const response_ms = real_now_ms(connection.app) - fetch_start_ms;
-					if (response_ms >= 1000 || process.env.BTS_BTP_SYNC_TIMING === '1') {
-						console.warn('[bts] btp_fetch:response_received', {
-							tournament_key: connection.tkey,
-							duration_ms: response_ms,
+			let settled = false;
+			let hard_timeout;
+			let cancel_send;
+			const finish = (err, value) => {
+				if (settled) return;
+				settled = true;
+				clearTimeout(hard_timeout);
+				if (typeof cancel_send === 'function') cancel_send();
+				this.cancel_fetch_request = null;
+				if (err) reject(err);
+				else resolve(value);
+			};
+			this.cancel_fetch_request = () => finish(null, null);
+			const hard_timeout_ms = fetch_hard_timeout_ms();
+			hard_timeout = setTimeout(() => {
+				warn_compact('[bts] btp_fetch:hard_timeout', {
+					tournament_key: this.tkey,
+					duration_ms: real_now_ms(this.app) - fetch_start_ms,
+					timeout_ms: hard_timeout_ms,
+				}, true);
+				finish(null, null);
+				if (!this.terminated) {
+					this.report_status('error', `BTP fetch timed out after ${hard_timeout_ms}ms`);
+					this.schedule_reconnect();
+				}
+			}, hard_timeout_ms);
+			Promise.resolve().then(async () => {
+				const tournaments = this.app?.db?.tournaments;
+				const tournament = tournaments && typeof tournaments.findOne_async === 'function'
+					? await tournaments.findOne_async({ key: this.tkey }, { last_reset_ts: 1 })
+					: null;
+				if (settled) return;
+				if (this.terminated) {
+					finish(null, null);
+					return;
+				}
+				const fetch_reset_ts = tournament ? tournament.last_reset_ts : undefined;
+				cancel_send = this.send(btp_proto.get_info_request(this.password), response => {
+					if (settled) return;
+					const response_ms = real_now_ms(this.app) - fetch_start_ms;
+					// The hard timeout covers only receipt, never waiting for a lock
+					// or applying the snapshot after it has already arrived.
+					finish(null, response == null ? null : { response, fetch_reset_ts });
+					if (require('./server_diagnostics').sync_timing_enabled(this.tkey)) {
+						warn_compact('[bts] btp_fetch:response_received', {
+							tournament_key: this.tkey, duration_ms: response_ms,
 							has_response: response != null,
 						});
 					}
-					try {
-						if (response && response != null) {
-							const value = await btp_sync.sync_btp_data(connection.app, connection.tkey, response);
-							const total_ms = real_now_ms(connection.app) - fetch_start_ms;
-							if (total_ms >= 1000 || process.env.BTS_BTP_SYNC_TIMING === '1') {
-								console.warn('[bts] btp_fetch:complete', {
-									tournament_key: connection.tkey,
-									duration_ms: total_ms,
-								});
-							}
-							const match_utils = require('./match_utils');
-							debug_flags.log(connection.app, connection.tkey, '[bts] auto_call_trace:post_sync_reevaluation_start', {
-								ts: now_ms(connection.app),
-								tournament_key: connection.tkey,
-								reschedule_fetch: reschedule_fetch === true,
-							});
-							match_utils.queue_auto_execute_preparation_selections(connection.app, connection.tkey, (selectionErr) => {
-								if (selectionErr) {
-									console.warn('[bts] failed to auto select preparation matches after fetch', selectionErr && (selectionErr.stack || selectionErr.message || String(selectionErr)));
-									return;
-								}
-								debug_flags.log(connection.app, connection.tkey, '[bts] auto_call_trace:post_sync_preparation_done', {
-									ts: now_ms(connection.app),
-									tournament_key: connection.tkey,
-								});
-								match_utils.auto_call_matches_on_free_courts(connection.app, connection.tkey, (callErr) => {
-									if (callErr) {
-										console.warn('[bts] failed to auto call matches on free courts after fetch', callErr && (callErr.stack || callErr.message || String(callErr)));
-										return;
-									}
-									debug_flags.log(connection.app, connection.tkey, '[bts] auto_call_trace:post_sync_on_court_done', {
-										ts: now_ms(connection.app),
-										tournament_key: connection.tkey,
-									});
-								});
-							});
-							if (reschedule_fetch == true) {
-								connection.schedule_fetch();
-							}
-							connection.fetch_in_progress = false;
-							connection.publish_status();
-							resolve(value);
-						} else {
-							connection.fetch_in_progress = false;
-							connection.publish_status();
-							resolve(null);
-						}
-					} catch (innerError) {
-						connection.fetch_in_progress = false;
-						connection.publish_status();
-						reject(innerError);
-					}
 				});
-			} catch (e) {
-				connection.fetch_in_progress = false;
-				connection.publish_status();
-				reject(e);
-			}
+				// Test transports may complete synchronously before send returns.
+				if (settled && typeof cancel_send === 'function') cancel_send();
+			}).catch(err => finish(err));
 		});
+	}
+
+	async _fetch_once() {
+		return require('./performance/traces').operation('btp_fetch', { tournament_key: this.tkey, type: 'sync' }, () => this._fetch_once_measured());
+	}
+
+	async _fetch_once_measured() {
+		if (this.terminated) return { value: null, reschedule: false };
+		const connection = this;
+		const fetch_start_ms = real_now_ms(this.app);
+		const traces = require('./performance/traces');
+		const transport = traces.begin('btp_request_response', 'transport');
+		let snapshot;
+		try { snapshot = await this._fetch_response(fetch_start_ms); traces.end(transport, !snapshot); }
+		catch (error) { traces.end(transport, error); throw error; }
+		if (!snapshot) return { value: null, reschedule: false };
+		const { response, fetch_reset_ts } = snapshot;
+		const response_state = await fetch_response_state(this, fetch_reset_ts);
+		if (!response_state.ok) {
+			log_ignored_fetch_response(this, response_state.reason, real_now_ms(this.app) - fetch_start_ms);
+			return { value: null, reschedule: false };
+		}
+		const hash_start_ms = real_now_ms(this.app);
+		const response_hash = hash_fetch_response(response);
+		const hash_duration_ms = real_now_ms(this.app) - hash_start_ms;
+		if (require('./server_diagnostics').sync_timing_enabled(this.tkey)) {
+			warn_compact('[bts] btp_fetch:response_hash', {
+				tournament_key: this.tkey, duration_ms: hash_duration_ms,
+			});
+		}
+		// Fetching and planning hold no resource lock. The backend validates
+		// local changes and reset/enable state under its affected resource locks.
+		const value = await queue_fetch_sync_task(this, response, fetch_reset_ts, response_hash, fetch_start_ms);
+		if (value?.skipped) traces.annotate({ skipped: true, reason: value.reason });
+		if (value === true && !this.terminated) {
+			const total_ms = real_now_ms(this.app) - fetch_start_ms;
+			if (require('./server_diagnostics').sync_timing_enabled(this.tkey)) {
+				warn_compact('[bts] btp_fetch:complete', {
+					tournament_key: this.tkey, duration_ms: total_ms,
+				});
+			}
+			const match_utils = require('./match_utils');
+			debug_flags.log(connection.app, connection.tkey, '[bts] auto_call_trace:post_sync_reevaluation_start', {
+				ts: now_ms(connection.app),
+				tournament_key: connection.tkey,
+				reschedule_fetch: this.fetch_reschedule_requested === true,
+			});
+			match_utils.queue_auto_execute_preparation_selections(connection.app, connection.tkey, (selectionErr) => {
+				if (selectionErr) {
+					console.warn('[bts] failed to auto select preparation matches after fetch', selectionErr && (selectionErr.stack || selectionErr.message || String(selectionErr)));
+					return;
+				}
+				debug_flags.log(connection.app, connection.tkey, '[bts] auto_call_trace:post_sync_preparation_done', {
+					ts: now_ms(connection.app),
+					tournament_key: connection.tkey,
+				});
+				match_utils.queue_auto_call_matches_on_free_courts(connection.app, connection.tkey, (callErr) => {
+					if (callErr) {
+						console.warn('[bts] failed to auto call matches on free courts after fetch', callErr && (callErr.stack || callErr.message || String(callErr)));
+						return;
+					}
+					debug_flags.log(connection.app, connection.tkey, '[bts] auto_call_trace:post_sync_on_court_done', {
+						ts: now_ms(connection.app),
+						tournament_key: connection.tkey,
+					});
+				});
+			});
+		}
+		return { value, reschedule: value != null };
 	}
 
 	schedule_fetch() {
@@ -237,20 +508,25 @@ class BTPConn {
 		this.next_fetch_ts = real_now_ms(this.app) + this.autofetch_timeout_intervall;
 		this.publish_status();
 		this.autofetch_timeout = setTimeout(() => {
+			this.autofetch_timeout = null;
+			if (this.terminated) {
+				return;
+			}
 			this.next_fetch_ts = null;
 			this.publish_status();
-			update_queue.instance().execute(
-				update_queue.hang_after(FETCH_QUEUE_HANG_TIMEOUT, update_queue.named('fetch', this.fetch)),
-				this,
-				true
-			);
+			request_fetch(this, true);
 		}, this.autofetch_timeout_intervall);
 	}
 
 	terminate(options = {}) {
 		this.terminated = true;
+		if (this.cancel_fetch_request) this.cancel_fetch_request();
 		this.next_fetch_ts = null;
 		this.fetch_in_progress = false;
+		if (this.autofetch_timeout) {
+			clearTimeout(this.autofetch_timeout);
+			this.autofetch_timeout = null;
+		}
 		if (options.silent === true) {
 			return;
 		}
@@ -260,14 +536,17 @@ class BTPConn {
 	send(xml_req, success_cb) {
 		if (this.terminated) return success_cb(null);
 		const port = this.is_team ? BLP_PORT : BTP_PORT;
-		send_request(this.ip, port, xml_req, this.timeZone, (err, response) => {
+		return send_request(this.ip, port, xml_req, this.timeZone, (err, response) => {
+			if (this.terminated) {
+				return success_cb(null);
+			}
 			if (err) {
 				this.report_status('error', 'Connection error: ' + err.message);
 				this.schedule_reconnect();
 				return success_cb(null);
 			}
 			success_cb(response);
-		});
+		}, { tournament_key: this.tkey, action: xml_req.Action?.ID });
 	}
 
 	// Push the changes from all changed matches
@@ -444,10 +723,30 @@ class BTPConn {
 					current_now_ms: now_ms(this.app),
 				}
 			);
+			if (match.btp_winner_only_update === true) {
+				warn_compact('[bts] btp_update:winner_only_send', {
+					tournament_key: this.tkey,
+					match_id: match.btp_match_ids?.[0]?.id,
+					match_num: match.btp_match_ids?.[0]?.nr,
+					draw: match.btp_match_ids?.[0]?.draw,
+					planning: match.btp_match_ids?.[0]?.planning,
+				});
+			}
 			this.send(req, response => {
-				const results = response.Action[0].Result;
+				const results = response?.Action?.[0]?.Result;
 				const rescode = results ? results[0] : 'no-result';
+				if (match.btp_winner_only_update === true) {
+					warn_compact('[bts] btp_update:winner_only_result', {
+						tournament_key: this.tkey,
+						match_id: match.btp_match_ids?.[0]?.id,
+						match_num: match.btp_match_ids?.[0]?.nr,
+						result: rescode,
+					});
+				}
 				if (rescode === 1) {
+					if (!match._id) {
+						return;
+					}
 					this.app.db.matches.update({_id: match._id}, {$set: {btp_needsync: false}}, {}, (err) => {
 						if (err) {
 							serror.silent('Failed to mark match as synced: ' + err.message);
@@ -524,4 +823,9 @@ module.exports = {
 	send_raw_request,
 	BTP_PORT,
 	BLP_PORT,
+	_fetch_response_state: fetch_response_state,
+	_fetch_hard_timeout_ms: fetch_hard_timeout_ms,
+	_normalize_autofetch_timeout_ms: normalize_autofetch_timeout_ms,
+	_hash_fetch_response: hash_fetch_response,
+	_should_skip_fetch_sync: should_skip_fetch_sync,
 };

@@ -8,6 +8,18 @@ const admin = require('../bts/admin.js');
 const bupws = require('../bts/bupws.js');
 
 _describe('bupws', () => {
+	_it('rejects an admin finish confirmation when the match moved after the court was chosen', async () => {
+		const db = await require('../bts/database').init_test();
+		const insert = (store, docs) => require('util').promisify(store.insert.bind(store))(docs);
+		await insert(db.tournaments, { key: 'default' });
+		await insert(db.courts, [{ _id: 'old', tournament_key: 'default', match_id: 'other' }, { _id: 'new', tournament_key: 'default', match_id: 'moved' }]);
+		await insert(db.matches, { _id: 'moved', tournament_key: 'default', team1_won: true, setup: { court_id: 'new', state: 'oncourt', now_on_court: true } });
+		const match = db.model.tournament('default').matches.get('moved').data;
+		await assert.rejects(bupws.confirm_match_finished_from_admin({ db }, 'default', 'moved', 'old'), /moved to another court/);
+		assert.strictEqual(db.model.tournament('default').matches.get('moved').data, match);
+		assert.strictEqual(db.model.tournament('default').courts.get('old').data.match_id, 'other');
+		assert.strictEqual(db.model.tournament('default').courts.get('new').data.match_id, 'moved');
+	});
 	_it('clears the stored court match reference when the finished match still owns the court', (done) => {
 		const notifications = [];
 		const original_notify_change = admin.notify_change;
