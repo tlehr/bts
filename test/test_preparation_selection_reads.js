@@ -119,6 +119,24 @@ describe('preparation status model reads and timing', function() {
 		assert.deepStrictEqual((await captured).matches, []);
 		assert.strictEqual(f.db.model.tournament(f.key).matches.has('ready'), false);
 	});
+	it('checks automatic call spacing and reads its tournament without copying all match histories', async function() {
+		const f = await fixture();
+		await f.db.matches.update_async({ _id: 'ready' }, { $set: {
+			'setup.state': 'scheduled', 'setup.is_match': true, 'setup.incomplete': false,
+			'setup.match_num': 1, 'setup.scheduled_date': '2026-10-12', 'setup.scheduled_time_str': '00:00',
+		} }, {});
+		const find = f.db.matches.find;
+		f.db.matches.find = function(query, ...args) {
+			if (!query._id) throw new Error('copied all score histories for a preparation gap');
+			return find.call(this, query, ...args);
+		};
+		try {
+			await promisify(match_utils.queue_auto_execute_preparation_selections)(f.app, f.key);
+			const match = await f.db.matches.findOne_async({ _id: 'ready' });
+			assert.strictEqual(match.setup.state, 'preparation');
+			assert.strictEqual(match.setup.preparation_call_timestamp, f.app.clock.now_ms());
+		} finally { f.db.matches.find = find; }
+	});
 	it('waits for earlier persistence even when a preparation change is already visible in the model', async function() {
 		const f = await fixture(), persist = f.db.matches.persistence.persistNewState;
 		let release, reached;

@@ -832,7 +832,7 @@ function normalize_preparation_state(setup) {
 
 function latest_preparation_call_timestamp(app, tournament_key) {
 	return new Promise((resolve, reject) => {
-		app.db.matches.find({ tournament_key }, (err, matches) => {
+		const captured = (err, matches) => {
 			if (err) {
 				return reject(err);
 			}
@@ -844,7 +844,11 @@ function latest_preparation_call_timestamp(app, tournament_key) {
 				}
 			}
 			return resolve(latest_ts);
-		});
+		};
+		const reads = require('./preparation_selection/model_reads');
+		if (reads.supported(app, 'matches', true)) reads.read(app, tournament_key, 'matches', true)
+			.then(matches => captured(null, matches), captured);
+		else app.db.matches.find({ tournament_key }, captured);
 	});
 }
 
@@ -1248,7 +1252,7 @@ function queue_auto_execute_preparation_selections(app, tournament_key, callback
 	], update_queue.named('auto_execute_preparation_selections', () => new Promise((resolve, reject) => {
 		const timing = preparation_timing.start(tournament_key, 'queued_preparation');
 		const loaded = timing?.step('read_tournament');
-		app.db.tournaments.findOne({ key: tournament_key }, (err, tournament) => {
+		const captured = (err, tournament) => {
 			loaded?.(err, { found: !!tournament });
 			if (err) {
 				timing?.finish(err);
@@ -1266,7 +1270,11 @@ function queue_auto_execute_preparation_selections(app, tournament_key, callback
 				}
 				return resolve(true);
 			}, { timing });
-		});
+		};
+		const reads = require('./preparation_selection/model_reads');
+		if (reads.supported(app, 'tournaments', true)) reads.read(app, tournament_key, 'tournaments', true)
+			.then(tournament => captured(null, tournament), captured);
+		else app.db.tournaments.findOne({ key: tournament_key }, captured);
 	})));
 
 	update_queue.instance().execute(task).then(() => {
@@ -2606,6 +2614,7 @@ function remove_umpire_on_court(app, tkey, match_id, end_ts, context, callback) 
 }
 
 function set_umpire_to_standby(app, tournament_key, setup) {
+	if (!setup.umpire && !setup.service_judge) return;
 	app.db.tournaments.findOne({ key: tournament_key }, (tournament_err, tournament) => {
 		const standby_options = tournament_err || !tournament ? {} : { tournament };
 		if (setup.umpire) {
