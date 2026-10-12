@@ -13,6 +13,7 @@ function attach(db) {
 	const binding = new DatastoreBinding(model);
 	model.snapshot = binding.snapshot.bind(binding);
 	model.find_matches_by_players = binding.find_matches_by_players.bind(binding);
+	require('./tournament_model/sync_validation')(model);
 	require('./tournament_model/cleanup_reads')(model);
 	Object.defineProperty(db, 'model', { value: model, configurable: true });
 	for (const collection of COLLECTIONS) {

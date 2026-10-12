@@ -129,32 +129,31 @@ async function unchanged(db, tkey, expected, locked_matches, skip = false, diagn
 				? point_projection(doc) : dependency_projection(doc, locked_matches, ignore_successor)) : doc;
 		// Most records still have the same immutable identity. Only replacements
 		// need a value comparison, with score traffic filtered as before.
-		const different = await db[collection].find_async({
-			...query_for(collection, tkey),
-			$where: function() {
-				visited.add(this._id);
-				const entry = expected[collection].get(this._id);
-				if (entry?.document === this) return false;
-				if (entry && entry.signature === undefined) entry.signature = JSON.stringify(projection(entry.document));
-				const same = entry && entry.signature === JSON.stringify(projection(this));
-				if (same) {
-					if (collection === 'matches' && point_rebase?.matches.has(this._id) &&
-						POINT_FIELDS.some(field => !utils.deep_equal(entry.document[field], this[field]))) {
-						point_rebase.rebased.set(this._id, this);
-					}
-					entry.document = this;
-					return false;
+		const inspect = document => {
+			visited.add(document._id);
+			const entry = expected[collection].get(document._id);
+			if (entry?.document === document) return false;
+			if (entry && entry.signature === undefined) entry.signature = JSON.stringify(projection(entry.document));
+			const same = entry && entry.signature === JSON.stringify(projection(document));
+			if (same) {
+				if (collection === 'matches' && point_rebase?.matches.has(document._id) &&
+					POINT_FIELDS.some(field => !utils.deep_equal(entry.document[field], document[field]))) {
+					point_rebase.rebased.set(document._id, document);
 				}
-				mismatches++;
-				if (diagnostics && samples.length < 4) {
-					const update = entry && patch(projection(entry.document), projection(this));
-					samples.push({ id: this._id, kind: entry ? 'changed' : 'added',
-						fields: update ? [...Object.keys(update.$set || {}), ...Object.keys(update.$unset || {})] : [],
-					});
-				}
-				return true;
-			},
-		}, { _id: 1, tournament_key: 1, key: 1 });
+				entry.document = document;
+				return false;
+			}
+			mismatches++;
+			if (diagnostics && samples.length < 4) {
+				const update = entry && patch(projection(entry.document), projection(document));
+				samples.push({ id: document._id, kind: entry ? 'changed' : 'added',
+					fields: update ? [...Object.keys(update.$set || {}), ...Object.keys(update.$unset || {})] : [],
+				});
+			}
+			return true;
+		};
+		const valid = await new Promise((resolve, reject) => tournament_model.attach(db).inspect_sync_records(collection, tkey, inspect,
+			(error, result) => error ? reject(error) : resolve(result)));
 		if (diagnostics) {
 			for (const id of expected[collection].keys()) if (!visited.has(id)) {
 				mismatches++;
@@ -162,7 +161,7 @@ async function unchanged(db, tkey, expected, locked_matches, skip = false, diagn
 			}
 			if (mismatches) diagnostics.push({ collection, count: mismatches, samples });
 		}
-		return different.length === 0 && visited.size === expected[collection].size;
+		return valid && visited.size === expected[collection].size;
 	}));
 	return checked.every(Boolean);
 }
