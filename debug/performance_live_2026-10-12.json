@@ -1,0 +1,789 @@
+{
+  "date": "2026-10-12",
+  "objective": {
+    "scope": "Tablet send to TV/Admin WebSocket event reception; no browser rendering or audible playback measurement",
+    "p99_ms_strictly_below": 30,
+    "max_ms_desired_strictly_below": 50,
+    "no_growing_backlog": true
+  },
+  "outcome": {
+    "p99_target_met": true,
+    "max_target_met": false,
+    "updates_received_by_each_target": 1219,
+    "missing_updates": 0,
+    "updates_above_50ms_per_target": 1,
+    "pause_drain_ms": 158,
+    "decision": "Stop code optimization at this stage: p99 target is met in a complete real run; the remaining maximum is an asynchronous persistence outlier, not evidence of a growing server queue. Keep storage completion before score publication."
+  },
+  "comparison_limits": [
+    "The live tournament progressed between runs; seed 519 does not make different starting states identical.",
+    "All three new ten-minute runs started with 519 matches and 13 occupied courts.",
+    "The active real Admin UI also requested full preparation diagnostics.",
+    "All measurements include server telemetry and processing traces.",
+    "Do not claim a universal maximum, audio/paint latency or capacity beyond the measured workload.",
+    "The supplied report runtime commit was not independently pinned; a32329b identifies the checkout before this task, not a verified historical runtime."
+  ],
+  "command": "node debug/live_tournament_drill.js --scenario benchmark --base-url https://localhost:4433 --tournament default --point-min-ms 3200 --point-max-ms 6400 --score-gap-min-ms 0 --score-gap-max-ms 0 --seed 519 --report /tmp/bts-live-worker-compaction-10min.json --plain-log --server-telemetry --processing-traces",
+  "client_commit": "ba0d8a1f6306a2ffe23ccf83045b6c7e5f92af56",
+  "runtime_metadata": "/tmp/bts-live-worker-compaction-10min-metadata.json",
+  "runtime_source_hashes_match_final_sources": true,
+  "optimizations": [
+    {
+      "commit": "86a5310",
+      "change": "Cooperative full Admin preparation diagnostics; immutable periodic reads; repair only actual wrong player flags; diagnostic DB call sites."
+    },
+    {
+      "commit": "34a900e",
+      "change": "Automatic court calls use immutable model inputs; only selected mutable match is copied; prepared match appends bounded to four records."
+    },
+    {
+      "commit": "ac17779",
+      "change": "Admin tournament root detached from immutable version references; QR image cache by URL; diagnostic GC pause observer."
+    },
+    {
+      "commit": "37861d1",
+      "change": "Sync planning worker and incremental return payloads enabled by default; concurrent call test covers both main and worker."
+    },
+    {
+      "commit": "2a46b2a",
+      "change": "Resolve committed notification versions before copying remaining envelopes; yield between prepared documents; safe model reads during pure compaction enabled by default."
+    }
+  ],
+  "client_change": {
+    "commit": "ba0d8a1",
+    "change": "Retain 10000 traces so the complete ten-minute diagnostic run has no archive eviction."
+  },
+  "runs": [
+    {
+      "stage": "supplied_report",
+      "bts_commit": "a32329b",
+      "analysis": "/tmp/bts-web-report-2-analysis-2026-10-12.json",
+      "source": "/home/tim/Downloads/bts-test-1 (2).json",
+      "runtime_ms": 600100,
+      "stop_reason": "completed",
+      "failure": null,
+      "points": 1187,
+      "checkins": 24,
+      "initial_state": null,
+      "tablet_to_tv_ms": {
+        "count": 1202,
+        "mean": 16.4,
+        "min": 2,
+        "p50": 4,
+        "p95": 59,
+        "p99": 87,
+        "max": 157,
+        "over_50_ms": 104,
+        "over_100_ms": 4,
+        "over_200_ms": 0,
+        "sent_updates": 1202,
+        "unmatched_updates": 0,
+        "coverage": 1
+      },
+      "tablet_to_admin_ms": {
+        "count": 1202,
+        "mean": 17.7,
+        "min": 3,
+        "p50": 6,
+        "p95": 61,
+        "p99": 88,
+        "max": 158,
+        "over_50_ms": 112,
+        "over_100_ms": 4,
+        "over_200_ms": 0,
+        "sent_updates": 1202,
+        "unmatched_updates": 0,
+        "coverage": 1
+      },
+      "server_profiles": null,
+      "mixed_server_profiles": null,
+      "trace_counts": null,
+      "trace_status_counts": null,
+      "trace_gaps": 0,
+      "archive_dropped": {
+        "samples": 0,
+        "traces": 0,
+        "events": 0
+      },
+      "drain": null
+    },
+    {
+      "stage": "periodic_preparation_and_bounded_writes",
+      "bts_commit": "34a900e",
+      "analysis": "/tmp/bts-live-optimized-10min-analysis.json",
+      "source": "/tmp/bts-live-optimized-10min.json",
+      "runtime_ms": 600076,
+      "stop_reason": "completed",
+      "failure": null,
+      "points": 1189,
+      "checkins": 36,
+      "initial_state": {
+        "matches": 519,
+        "finished_matches": 336,
+        "active_matches": 13,
+        "active_courts": 13,
+        "pending_player_checkins": 4,
+        "pending_players": 4,
+        "check_in_per_match": true,
+        "state_sha256": "104e7fe245bedfbb96766d5e4818dccb6181c7f56c8bdcedc207849271fc497b"
+      },
+      "tablet_to_tv_ms": {
+        "count": 1204,
+        "mean": 6.4,
+        "min": 2,
+        "p50": 4,
+        "p95": 15,
+        "p99": 47,
+        "max": 73,
+        "over_50_ms": 10,
+        "over_100_ms": 0,
+        "over_200_ms": 0,
+        "sent_updates": 1204,
+        "unmatched_updates": 0,
+        "coverage": 1
+      },
+      "tablet_to_admin_ms": {
+        "count": 1204,
+        "mean": 7.9,
+        "min": 3,
+        "p50": 6,
+        "p95": 17,
+        "p99": 48,
+        "max": 88,
+        "over_50_ms": 11,
+        "over_100_ms": 0,
+        "over_200_ms": 0,
+        "sent_updates": 1204,
+        "unmatched_updates": 0,
+        "coverage": 1
+      },
+      "server_profiles": [
+        {
+          "elapsed_ms": 0,
+          "profile": {
+            "server_id": "1458065-1791792937851",
+            "run_label": null,
+            "features": {
+              "btp_decode": true,
+              "sync_plan": false,
+              "sync_plan_patch_return": false,
+              "device_info": false,
+              "xlsx_import": false,
+              "compaction": false,
+              "compaction_reads": false,
+              "preparation_reads": true,
+              "preparation_candidates": true,
+              "sync_batch_writes": false,
+              "sync_prepared_tournament": true,
+              "sync_prepared_matches": true,
+              "admin_response_background": true,
+              "admin_response_priority": true,
+              "admin_match_revision_cache": true,
+              "admin_response_worker": false,
+              "compaction_staged": false
+            }
+          }
+        }
+      ],
+      "mixed_server_profiles": false,
+      "trace_counts": {
+        "periodic_official_pause": 600,
+        "periodic_preparation_pause": 600,
+        "periodic_preparation_age": 600,
+        "admin_preparation_selection": 1238,
+        "admin_tournament_get": 1379,
+        "handle_match_player_check_in": 36,
+        "post_sync_auto_call_apply": 30,
+        "btp_fetch": 19,
+        "handle_score_update_v2": 1204,
+        "periodic_player_court_reconciliation": 40
+      },
+      "trace_status_counts": {
+        "ok": 5746
+      },
+      "trace_gaps": 0,
+      "archive_dropped": {
+        "samples": 0,
+        "traces": 0,
+        "events": 0
+      },
+      "drain": {
+        "started": 1791793764572,
+        "clear_since": 1791793764695,
+        "finished_ms": 123
+      }
+    },
+    {
+      "stage": "admin_revision_and_qr_reuse",
+      "bts_commit": "ac17779",
+      "analysis": "/tmp/bts-live-admin-cached-10min-analysis.json",
+      "source": "/tmp/bts-live-admin-cached-10min.json",
+      "runtime_ms": 600236,
+      "stop_reason": "completed",
+      "failure": null,
+      "points": 1180,
+      "checkins": 48,
+      "initial_state": {
+        "matches": 519,
+        "finished_matches": 353,
+        "active_matches": 13,
+        "active_courts": 13,
+        "pending_player_checkins": 4,
+        "pending_players": 4,
+        "check_in_per_match": true,
+        "state_sha256": "34c70a742cb84e6ec20aef30035f9589cd12683db9c9db69cee08eba8ef18bb1"
+      },
+      "tablet_to_tv_ms": {
+        "count": 1195,
+        "mean": 5.7,
+        "min": 2,
+        "p50": 4,
+        "p95": 12,
+        "p99": 40,
+        "max": 132,
+        "over_50_ms": 6,
+        "over_100_ms": 2,
+        "over_200_ms": 0,
+        "sent_updates": 1195,
+        "unmatched_updates": 0,
+        "coverage": 1
+      },
+      "tablet_to_admin_ms": {
+        "count": 1195,
+        "mean": 7.2,
+        "min": 3,
+        "p50": 5,
+        "p95": 14,
+        "p99": 38,
+        "max": 133,
+        "over_50_ms": 6,
+        "over_100_ms": 2,
+        "over_200_ms": 0,
+        "sent_updates": 1195,
+        "unmatched_updates": 0,
+        "coverage": 1
+      },
+      "server_profiles": [
+        {
+          "elapsed_ms": 0,
+          "profile": {
+            "server_id": "1465589-1791794894004",
+            "run_label": null,
+            "features": {
+              "btp_decode": true,
+              "sync_plan": false,
+              "sync_plan_patch_return": false,
+              "device_info": false,
+              "xlsx_import": false,
+              "compaction": false,
+              "compaction_reads": false,
+              "preparation_reads": true,
+              "preparation_candidates": true,
+              "sync_batch_writes": false,
+              "sync_prepared_tournament": true,
+              "sync_prepared_matches": true,
+              "admin_response_background": true,
+              "admin_response_priority": true,
+              "admin_match_revision_cache": true,
+              "admin_response_worker": false,
+              "compaction_staged": false
+            }
+          }
+        }
+      ],
+      "mixed_server_profiles": false,
+      "trace_counts": {
+        "periodic_official_pause": 599,
+        "periodic_preparation_pause": 599,
+        "periodic_preparation_age": 599,
+        "admin_preparation_selection": 1256,
+        "admin_tournament_get": 1384,
+        "handle_match_player_check_in": 48,
+        "handle_score_update_v2": 1195,
+        "periodic_player_court_reconciliation": 40,
+        "post_sync_auto_call_apply": 33,
+        "btp_fetch": 19
+      },
+      "trace_status_counts": {
+        "ok": 5772
+      },
+      "trace_gaps": 0,
+      "archive_dropped": {
+        "samples": 0,
+        "traces": 0,
+        "events": 0
+      },
+      "drain": {
+        "started": 1791796592785,
+        "clear_since": 1791796593109,
+        "finished_ms": 324
+      }
+    },
+    {
+      "stage": "sync_worker_and_pure_compaction_reads",
+      "bts_commit": "2a46b2a",
+      "analysis": "/tmp/bts-live-worker-compaction-10min-analysis.json",
+      "source": "/tmp/bts-live-worker-compaction-10min.json",
+      "runtime_ms": 600125,
+      "stop_reason": "completed",
+      "failure": null,
+      "points": 1206,
+      "checkins": 72,
+      "initial_state": {
+        "matches": 519,
+        "finished_matches": 371,
+        "active_matches": 13,
+        "active_courts": 13,
+        "pending_player_checkins": 4,
+        "pending_players": 4,
+        "check_in_per_match": true,
+        "state_sha256": "0fb315f3674d2dd611f837e9d68e259bbea4359ca3f05a1d0d175bb8fe698cb4"
+      },
+      "tablet_to_tv_ms": {
+        "count": 1219,
+        "mean": 5.2,
+        "min": 2,
+        "p50": 4,
+        "p95": 11,
+        "p99": 20,
+        "max": 114,
+        "over_50_ms": 1,
+        "over_100_ms": 1,
+        "over_200_ms": 0,
+        "sent_updates": 1219,
+        "unmatched_updates": 0,
+        "coverage": 1
+      },
+      "tablet_to_admin_ms": {
+        "count": 1219,
+        "mean": 6.7,
+        "min": 3,
+        "p50": 5,
+        "p95": 13,
+        "p99": 22,
+        "max": 115,
+        "over_50_ms": 1,
+        "over_100_ms": 1,
+        "over_200_ms": 0,
+        "sent_updates": 1219,
+        "unmatched_updates": 0,
+        "coverage": 1
+      },
+      "server_profiles": [
+        {
+          "elapsed_ms": 0,
+          "profile": {
+            "server_id": "1477662-1791797385777",
+            "run_label": null,
+            "features": {
+              "btp_decode": true,
+              "sync_plan": true,
+              "sync_plan_patch_return": true,
+              "device_info": false,
+              "xlsx_import": false,
+              "compaction": false,
+              "compaction_reads": true,
+              "preparation_reads": true,
+              "preparation_candidates": true,
+              "sync_batch_writes": false,
+              "sync_prepared_tournament": true,
+              "sync_prepared_matches": true,
+              "admin_response_background": true,
+              "admin_response_priority": true,
+              "admin_match_revision_cache": true,
+              "admin_response_worker": false,
+              "compaction_staged": false
+            }
+          }
+        }
+      ],
+      "mixed_server_profiles": false,
+      "trace_counts": {
+        "admin_preparation_selection": 1273,
+        "admin_tournament_get": 1364,
+        "handle_match_player_check_in": 72,
+        "periodic_official_pause": 599,
+        "periodic_preparation_pause": 599,
+        "periodic_preparation_age": 599,
+        "handle_score_update_v2": 1219,
+        "periodic_player_court_reconciliation": 40,
+        "post_sync_auto_call_apply": 31,
+        "btp_fetch": 19
+      },
+      "trace_status_counts": {
+        "ok": 5815
+      },
+      "trace_gaps": 0,
+      "archive_dropped": {
+        "samples": 0,
+        "traces": 0,
+        "events": 0
+      },
+      "drain": {
+        "started": 1791797826106,
+        "clear_since": 1791797826264,
+        "finished_ms": 158
+      }
+    }
+  ],
+  "worst_update": {
+    "trace_id": "live-drill-1478436-mv529bsv-1019",
+    "operation_id": 4960,
+    "tv_ms": 114,
+    "admin_ms": 115,
+    "handler_start_after_send_ms": 1,
+    "match_persistence_ms": 109.5,
+    "update_before_callback_ms": 110.2,
+    "overlapping_gc_events": 0,
+    "event_loop_max_in_overlapping_window_ms": 36.765695,
+    "attribution": "Asynchronous persistence wait; exact OS/filesystem cause not identified. No comparably long main-thread or GC pause observed.",
+    "other_updates_max_ms": {
+      "tv": 39,
+      "admin": 40
+    }
+  },
+  "queue_windows": [
+    {
+      "from_ms": 0,
+      "until_ms": 200000,
+      "queues": {
+        "Locks:": {
+          "max_pending": 3,
+          "max_oldest_ms": 9
+        },
+        "DB courts:": {
+          "max_pending": 0,
+          "max_oldest_ms": 0
+        },
+        "DB locations:": {
+          "max_pending": 0,
+          "max_oldest_ms": 0
+        },
+        "DB event:": {
+          "max_pending": 0,
+          "max_oldest_ms": 0
+        },
+        "DB matches:": {
+          "max_pending": 1,
+          "max_oldest_ms": 19
+        },
+        "DB tournaments:": {
+          "max_pending": 1,
+          "max_oldest_ms": 1
+        },
+        "DB umpires:": {
+          "max_pending": 0,
+          "max_oldest_ms": 0
+        },
+        "DB logs:": {
+          "max_pending": 0,
+          "max_oldest_ms": 0
+        },
+        "DB tabletoperators:": {
+          "max_pending": 0,
+          "max_oldest_ms": 0
+        },
+        "DB displaysettings:": {
+          "max_pending": 1,
+          "max_oldest_ms": 2
+        },
+        "DB display_court_displaysettings:": {
+          "max_pending": 8,
+          "max_oldest_ms": 19
+        },
+        "DB normalizations:": {
+          "max_pending": 0,
+          "max_oldest_ms": 0
+        },
+        "DB advertisements:": {
+          "max_pending": 0,
+          "max_oldest_ms": 0
+        },
+        "DB app_settings:": {
+          "max_pending": 0,
+          "max_oldest_ms": 0
+        },
+        "Worker btp_decode:4": {
+          "max_pending": 0,
+          "max_oldest_ms": 0
+        },
+        "Worker sync_plan_worker:5": {
+          "max_pending": 0,
+          "max_oldest_ms": 0
+        },
+        "Admin send:": {
+          "max_pending": 1,
+          "max_oldest_ms": 3
+        }
+      }
+    },
+    {
+      "from_ms": 200000,
+      "until_ms": 400000,
+      "queues": {
+        "Locks:": {
+          "max_pending": 0,
+          "max_oldest_ms": 0
+        },
+        "DB courts:": {
+          "max_pending": 0,
+          "max_oldest_ms": 0
+        },
+        "DB locations:": {
+          "max_pending": 0,
+          "max_oldest_ms": 0
+        },
+        "DB event:": {
+          "max_pending": 0,
+          "max_oldest_ms": 0
+        },
+        "DB matches:": {
+          "max_pending": 1,
+          "max_oldest_ms": 2
+        },
+        "DB tournaments:": {
+          "max_pending": 2,
+          "max_oldest_ms": 1
+        },
+        "DB umpires:": {
+          "max_pending": 0,
+          "max_oldest_ms": 0
+        },
+        "DB logs:": {
+          "max_pending": 0,
+          "max_oldest_ms": 0
+        },
+        "DB tabletoperators:": {
+          "max_pending": 0,
+          "max_oldest_ms": 0
+        },
+        "DB displaysettings:": {
+          "max_pending": 0,
+          "max_oldest_ms": 0
+        },
+        "DB display_court_displaysettings:": {
+          "max_pending": 1,
+          "max_oldest_ms": 5
+        },
+        "DB normalizations:": {
+          "max_pending": 0,
+          "max_oldest_ms": 0
+        },
+        "DB advertisements:": {
+          "max_pending": 0,
+          "max_oldest_ms": 0
+        },
+        "DB app_settings:": {
+          "max_pending": 0,
+          "max_oldest_ms": 0
+        },
+        "Worker btp_decode:4": {
+          "max_pending": 0,
+          "max_oldest_ms": 0
+        },
+        "Worker sync_plan_worker:5": {
+          "max_pending": 0,
+          "max_oldest_ms": 0
+        },
+        "Admin send:": {
+          "max_pending": 1,
+          "max_oldest_ms": 4
+        }
+      }
+    },
+    {
+      "from_ms": 400000,
+      "until_ms": 601000,
+      "queues": {
+        "Locks:": {
+          "max_pending": 3,
+          "max_oldest_ms": 0
+        },
+        "DB courts:": {
+          "max_pending": 1,
+          "max_oldest_ms": 16
+        },
+        "DB locations:": {
+          "max_pending": 1,
+          "max_oldest_ms": 1
+        },
+        "DB event:": {
+          "max_pending": 0,
+          "max_oldest_ms": 0
+        },
+        "DB matches:": {
+          "max_pending": 2,
+          "max_oldest_ms": 1
+        },
+        "DB tournaments:": {
+          "max_pending": 1,
+          "max_oldest_ms": 2
+        },
+        "DB umpires:": {
+          "max_pending": 1,
+          "max_oldest_ms": 1
+        },
+        "DB logs:": {
+          "max_pending": 0,
+          "max_oldest_ms": 0
+        },
+        "DB tabletoperators:": {
+          "max_pending": 1,
+          "max_oldest_ms": 1
+        },
+        "DB displaysettings:": {
+          "max_pending": 0,
+          "max_oldest_ms": 0
+        },
+        "DB display_court_displaysettings:": {
+          "max_pending": 1,
+          "max_oldest_ms": 3
+        },
+        "DB normalizations:": {
+          "max_pending": 0,
+          "max_oldest_ms": 0
+        },
+        "DB advertisements:": {
+          "max_pending": 0,
+          "max_oldest_ms": 0
+        },
+        "DB app_settings:": {
+          "max_pending": 0,
+          "max_oldest_ms": 0
+        },
+        "Worker btp_decode:4": {
+          "max_pending": 0,
+          "max_oldest_ms": 0
+        },
+        "Worker sync_plan_worker:5": {
+          "max_pending": 0,
+          "max_oldest_ms": 0
+        },
+        "Admin send:": {
+          "max_pending": 0,
+          "max_oldest_ms": 0
+        }
+      }
+    }
+  ],
+  "end_queue_snapshot": [
+    {
+      "key": "Locks:",
+      "pending": 0,
+      "active": false,
+      "oldest_pending_ms": 0
+    },
+    {
+      "key": "DB courts:",
+      "pending": 0,
+      "active": 0,
+      "oldest_pending_ms": 0
+    },
+    {
+      "key": "DB locations:",
+      "pending": 0,
+      "active": 0,
+      "oldest_pending_ms": 0
+    },
+    {
+      "key": "DB event:",
+      "pending": 0,
+      "active": 0,
+      "oldest_pending_ms": 0
+    },
+    {
+      "key": "DB matches:",
+      "pending": 0,
+      "active": 0,
+      "oldest_pending_ms": 0
+    },
+    {
+      "key": "DB tournaments:",
+      "pending": 0,
+      "active": 0,
+      "oldest_pending_ms": 0
+    },
+    {
+      "key": "DB umpires:",
+      "pending": 0,
+      "active": 0,
+      "oldest_pending_ms": 0
+    },
+    {
+      "key": "DB logs:",
+      "pending": 0,
+      "active": 0,
+      "oldest_pending_ms": 0
+    },
+    {
+      "key": "DB tabletoperators:",
+      "pending": 0,
+      "active": 0,
+      "oldest_pending_ms": 0
+    },
+    {
+      "key": "DB displaysettings:",
+      "pending": 0,
+      "active": 0,
+      "oldest_pending_ms": 0
+    },
+    {
+      "key": "DB display_court_displaysettings:",
+      "pending": 1,
+      "active": 0,
+      "oldest_pending_ms": 2
+    },
+    {
+      "key": "DB normalizations:",
+      "pending": 0,
+      "active": 0,
+      "oldest_pending_ms": 0
+    },
+    {
+      "key": "DB advertisements:",
+      "pending": 0,
+      "active": 0,
+      "oldest_pending_ms": 0
+    },
+    {
+      "key": "DB app_settings:",
+      "pending": 0,
+      "active": 0,
+      "oldest_pending_ms": 0
+    },
+    {
+      "key": "Worker btp_decode:4",
+      "pending": 0,
+      "active": 0,
+      "oldest_pending_ms": 0
+    },
+    {
+      "key": "Worker sync_plan_worker:5",
+      "pending": 0,
+      "active": 0,
+      "oldest_pending_ms": 0
+    },
+    {
+      "key": "Admin send:",
+      "pending": 0,
+      "active": 0,
+      "oldest_pending_ms": 0
+    }
+  ],
+  "verification": {
+    "server_full_suite": {
+      "passing": 858,
+      "log": "/tmp/bts-live-final-full-tests.log"
+    },
+    "client_full_suite": {
+      "passing": 31,
+      "log": "/tmp/bts-client-expanded-archive-tests.log"
+    },
+    "targeted_sync_and_compaction_tests": {
+      "passing": 56,
+      "log": "/tmp/bts-sync-notification-final-targeted.log"
+    },
+    "lint": "Changed/new modules and tests clean; admin.js, match_utils.js and match_automation.js have no new findings relative to a32329b; btp_sync_plan.js clean.",
+    "preserved": "Caller/official/bye rules, reset/version validation, rollback/reload and ordered persistence are covered by functional tests."
+  }
+}
