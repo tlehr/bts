@@ -3,15 +3,16 @@
 const { monitorEventLoopDelay, performance } = require('perf_hooks');
 const registry = require('./registry');
 const id = require('../offload/profile').snapshot().server_id;
-let loop, previous, idle_timer, last_at = 0, last_loop = null;
+let loop, gc, previous, idle_timer, last_at = 0, last_loop = null;
 
 function snapshot(app, sockets, key, trace_cursor) {
 	const now = Date.now();
 	clearTimeout(idle_timer);
-	idle_timer = setTimeout(() => { loop.disable(); loop = null; last_loop = null; }, 10000);
+	idle_timer = setTimeout(() => { loop.disable(); gc.stop(); loop = gc = null; last_loop = null; }, 10000);
 	idle_timer.unref();
 	if (!loop) {
 		loop = monitorEventLoopDelay({ resolution: 20 }); loop.enable();
+		gc = require('./garbage_collection')();
 		previous = performance.eventLoopUtilization(); last_at = now;
 	}
 	if (now - last_at >= 1000) {
@@ -29,7 +30,8 @@ function snapshot(app, sockets, key, trace_cursor) {
 	const outgoing = sockets.filter(ws => !ws.performance_probe && ws.outbox_stats)
 		.map(ws => ({ ...ws.outbox_stats(), buffered_bytes: ws.bufferedAmount || 0 }));
 	return { protocol_version: 2, server_id: id, ts: now, scope: 'server-wide', tournament_key: key,
-		lock, database, workers: registry.snapshots().filter(row => row.enqueued_count > 0), event_loop: last_loop,
+		lock, database, workers: registry.snapshots().filter(row => row.enqueued_count > 0),
+		event_loop: last_loop ? { ...last_loop, gc: gc.snapshot(now) } : null,
 		processing: require('./traces').snapshot(trace_cursor),
 		admin_encoding_cache: require('../admin_response/match_cache').stats(),
 		outgoing: { sockets: outgoing.length, pending: outgoing.reduce((n, s) => n + s.pending, 0),

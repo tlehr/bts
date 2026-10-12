@@ -786,7 +786,7 @@ function handle_tournament_get(app, ws, msg, trace_done) {
 		finally { if (trace_done) trace_done(error); }
 	};
 
-	app.db.tournaments.findOne({ key: msg.key }, function (err, tournament) {
+	require('./admin_response/tournament_read')(app.db, msg.key, !!ws.reserve_response, function (err, tournament) {
 		if (!err && !tournament) {
 			err = { message: 'No tournament ' + msg.key };
 		}
@@ -802,14 +802,10 @@ function handle_tournament_get(app, ws, msg, trace_done) {
 				async.parallel([
 					function (cb) {
 						try {
-							const qrcode = require('qrcode');
-
 							const url = generate_tournament_web_url(tournament);
-							qrcode.toDataURL(url, function (error, data) {
-								const qrCodeDataUrl = data;
-								tournament.mainQrCode = qrCodeDataUrl;
-								cb(error);
-							});
+							require('./admin_response/qrcode_cache')(url).then(data => {
+								tournament.mainQrCode = data; cb(null);
+							}, cb);
 						} catch (error) {
 							cb(error);
 						}
