@@ -35,11 +35,12 @@ describe('mixed queue benchmark', function() {
 		}
 	});
 	it('rejects unbounded workloads and ambiguous refs/options', function() {
-		for (const args of [['--duration-ms', '0'], ['--duration-ms', '300001'], ['--matches', '13'], ['--sync-interval-ms', '499'],
+		for (const args of [['--duration-ms', '0'], ['--duration-ms', '600001'], ['--matches', '13'], ['--sync-interval-ms', '499'], ['--sync-interval-ms', '30001'],
 			['--ref', '--all'], ['--duration-ms', 'NaN'], ['--matches', '519.5'], ['--point-min-ms', '49'],
 			['--point-min-ms', '1601'], ['--set-points', '0'], ['--workload', 'unknown'], ['--unknown', '1']]) assert.throws(() => parse(args));
 		assert.strictEqual(parse(['--duration-ms', '180000']).duration_ms, 180000);
 		assert.strictEqual(parse(['--workload', 'preparation']).workload, 'preparation');
+		assert.strictEqual(parse(['--duration-ms', '600000', '--sync-interval-ms', '30000', '--workload', 'preparation-btp']).workload, 'preparation-btp');
 		assert.strictEqual(parse([]).workload, 'ordering');
 	});
 	it('reuses 26 participant pairs while retaining all independent planning IDs', function() {

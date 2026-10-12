@@ -20,8 +20,8 @@ function parse(argv) {
 		options[key] = ['ref', 'workload'].includes(key) ? argv[++i] : Number(argv[++i]);
 	}
 	if (options.ref.startsWith('-') || !options.ref.trim()) throw new Error('Invalid ref');
-	if (!['ordering', 'preparation'].includes(options.workload)) throw new Error('Invalid workload');
-	for (const [key, min, max] of [['duration_ms', 5000, 300000], ['sync_interval_ms', 500, 10000], ['count', 14, 2000],
+	if (!['ordering', 'preparation', 'preparation-btp'].includes(options.workload)) throw new Error('Invalid workload');
+	for (const [key, min, max] of [['duration_ms', 5000, 600000], ['sync_interval_ms', 500, 30000], ['count', 14, 2000],
 		['point_min_ms', 50, 30000], ['point_max_ms', 50, 30000], ['set_points', 1, 21]]) {
 		if (!Number.isInteger(options[key]) || options[key] < min || options[key] > max) throw new Error('Invalid ' + key);
 	}
@@ -76,9 +76,11 @@ async function run(options, { signal, log = console.log } = {}) {
 			'Isolated deterministic 519-game fixture, real durable NeDB and unmodified committed BTS modules.',
 			'Real separate testclient simulates tablets, TV and admin; point interval in options, 13 courts, zero score gap.',
 			'Idle fixture games explicitly set to scheduled before measurement, enabling automatic calls after real finishes.',
-			'Periodic sync uses the actual validated integration planner but updates idle match numbers directly in staging; no periodic BTP TCP/XML fetch/parser.',
+			options.workload === 'preparation-btp'
+				? 'Periodic sync runs the actual full BTP integration against a deterministic parsed response, alternating a registered player profile; no BTP TCP/XML transport.'
+				: 'Periodic sync uses the actual validated integration planner but updates idle match numbers directly in staging; no periodic BTP TCP/XML fetch/parser.',
 			'Full BTP fixture is used only at bootstrap. No live tournament or server is modified. Officials/tabletoperator allocation disabled.',
-			options.workload === 'preparation' ? 'Automatic preparation enabled; 26 pairs of players recur across scheduled games, creating real participant dependencies. No winner/loser bracket propagation simulated.' : 'Automatic preparation disabled; independent participants.',
+			options.workload.startsWith('preparation') ? 'Automatic preparation enabled; 26 pairs of players recur across scheduled games, creating real participant dependencies. No winner/loser bracket propagation simulated.' : 'Automatic preparation disabled; independent participants.',
 			'One explicit unchanged court call during first integration; automatic calls through actual score finishes; free announcements every two seconds.',
 			'Queue samples every 20 ms, diagnostics/traces enabled by normal client. Observer overhead and local machine load included.',
 			'Reception of WebSocket events, no browser painting or audible speech. Limited duration, no capacity guarantee.',
@@ -129,7 +131,7 @@ async function run(options, { signal, log = console.log } = {}) {
 		const measured = JSON.parse(await fs.readFile(finished.result, 'utf8'));
 		const probes = JSON.parse(await fs.readFile(path.join(output, 'probe-result.json'), 'utf8'));
 		result.summary = summarize(measured, client, probes);
-		if (options.workload === 'preparation' && (!result.summary.preparation_events || !result.summary.preparation_calculation_ms.count)) throw new Error('No active preparation measured');
+		if (options.workload.startsWith('preparation') && (!result.summary.preparation_events || !result.summary.preparation_calculation_ms.count)) throw new Error('No active preparation measured');
 		if (measured.finished_matches && result.summary.call_events < 2) throw new Error('Finishes observed without automatic follow-up call events');
 		if (result.summary.processing_errors) throw new Error('Server processing errors observed: ' + result.summary.processing_errors);
 		result.artifacts = { server: finished.result, client: done.result, probes: path.join(output, 'probe-result.json') };

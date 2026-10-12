@@ -21,8 +21,15 @@ async function main({ root, directory, count, sync_interval_ms, set_points, work
 	const server = http.createServer(), wss = new WebSocket.Server({ server });
 	const app = { db, wss, config: {} };
 	await load('clock').init(app);
-	const preparation = workload === 'preparation';
+	const preparation = workload.startsWith('preparation');
 	const fixture = response(count, false, preparation ? 26 : null);
+	if (workload === 'preparation-btp') {
+		// Keep idle matches scheduled on every full sync. Omit remote scores and
+		// winners: the real integration must preserve local points and finishes.
+		for (const match of fixture.Result[0].Tournament[0].Matches[0].Match) if (match.IsMatch[0]) {
+			match.PlannedTime = [{ year: 2026, month: 10, day: 12, hour: 0, minute: 0 }];
+		}
+	}
 	fixture.Result[0].Tournament[0].ScoringFormats[0].ScoringFormat[0].Score = [set_points];
 	await load('btp_sync').sync_btp_data(app, 'default', fixture);
 	const matches = (await db.matches.find_async({ tournament_key: 'default' })).sort((a, b) => a.setup.match_num - b.setup.match_num);
@@ -85,7 +92,8 @@ async function main({ root, directory, count, sync_interval_ms, set_points, work
 		syncs.push(row);
 		// Use the real validated integration planner. Change idle games only:
 		// replaying a stale full BTP fixture would reset live points/results.
-		const work = measurement.run('sync', () => load('btp_sync_plan').sync(app, 'default', { sequence }, {
+		const integrate = () => workload === 'preparation-btp'
+			? full_btp_sync(row.sequence) : load('btp_sync_plan').sync(app, 'default', { sequence }, {
 			task_name: 'mixed_ordering_apply', skip_unchanged: false,
 		}, async staged => {
 			row.planning_ns ||= String(clock());
@@ -100,7 +108,16 @@ async function main({ root, directory, count, sync_interval_ms, set_points, work
 				admin.notify_change(staged, 'default', 'match_edit', { match__id: match._id, match: { ...match, setup: { ...match.setup, match_num: number } } });
 			}
 			return true;
-		})).then(() => { row.finished_ns = String(clock()); }, error => {
+		});
+		function full_btp_sync(sequence) {
+			row.planning_ns = String(clock());
+			// Profile changes affect registrations and related match projections,
+			// including an on-court game, rather than only idle ordering fields.
+			const next = JSON.parse(JSON.stringify(fixture));
+			next.Result[0].Tournament[0].Players[0].Player[0].Lastname = ['Player ' + (sequence % 2)];
+			return load('btp_sync').sync_btp_data(app, 'default', next);
+		}
+		const work = measurement.run('sync', integrate).then(() => { row.finished_ns = String(clock()); }, error => {
 			row.error = error.message; process.send({ type: 'error', message: error.message });
 		}).finally(() => pending.delete(work));
 		pending.add(work);
