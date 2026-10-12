@@ -1,15 +1,15 @@
 # Getrennt schaltbare Auslagerungen
 
 Die bisherigen Auslagerungen bleiben einzeln schaltbar. BTP-Decodierung,
-vorbereitete Turnier-Writes und kooperative Admin-Antworten mit Punktpriorität
+Sync-Planung mit Rückgabe der Änderungen, vorbereitete Turnier-Writes und kooperative Admin-Antworten mit Punktpriorität
 sind standardmäßig eingeschaltet. Jeder Schalter wird
 unabhängig ausgewertet (`1` ein, `0` aus):
 
 | Schalter | Standard | Wirkung |
 | --- | --- | --- |
 | `BTS_BTP_DECODE_WORKER` | `1` | Große BTP-Antworten im Decoder-Worker; kleine Bestätigungen direkt. |
-| `BTS_SYNC_PLAN_WORKER` | `0` | BTP-Integration, Normalisierung und Auto-Call-Planung auf privatem Speicherstand im Planungsworker. |
-| `BTS_SYNC_PLAN_PATCH_RETURN` | `0` | Planungsworker gibt bei bestehenden Objekten nur geänderte Felder zurück; benötigt `BTS_SYNC_PLAN_WORKER=1`. |
+| `BTS_SYNC_PLAN_WORKER` | `1` | BTP-Integration, Normalisierung und Auto-Call-Planung auf privatem Speicherstand im Planungsworker. |
+| `BTS_SYNC_PLAN_PATCH_RETURN` | `1` | Planungsworker gibt bei bestehenden Objekten nur geänderte Felder zurück; benötigt `BTS_SYNC_PLAN_WORKER=1`. |
 | `BTS_DEVICE_INFO_BACKGROUND` | `0` | Geräteinformationen aus Punktmeldungen über eine asynchrone Queue je Gerät nachziehen. |
 | `BTS_XLSX_IMPORT_WORKER` | `0` | XLSX-Datei im Importworker lesen; Zuordnung und Speicherung anschließend im Hauptthread. |
 | `BTS_COMPACTION_WORKER` | `0` | NeDB-Datensätze im Worker serialisieren, unveränderte Zeilen wiederverwenden. |

@@ -3,8 +3,8 @@
 const server_id = `${process.pid}-${Date.now()}`;
 const flags = {
 	btp_decode: ['BTS_BTP_DECODE_WORKER', true],
-	sync_plan: ['BTS_SYNC_PLAN_WORKER', false],
-	sync_plan_patch_return: ['BTS_SYNC_PLAN_PATCH_RETURN', false],
+	sync_plan: ['BTS_SYNC_PLAN_WORKER', true],
+	sync_plan_patch_return: ['BTS_SYNC_PLAN_PATCH_RETURN', true],
 	device_info: ['BTS_DEVICE_INFO_BACKGROUND', false],
 	xlsx_import: ['BTS_XLSX_IMPORT_WORKER', false],
 	compaction: ['BTS_COMPACTION_WORKER', false],

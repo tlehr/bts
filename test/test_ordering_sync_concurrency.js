@@ -106,7 +106,7 @@ describe('ordering sync concurrency', function() {
 		assert.strictEqual((await f.app.db.courts.findOne_async({ _id: f.court._id })).match_id, f.changed._id);
 		assert.strictEqual((await f.app.db.matches.findOne_async({ _id: f.match._id })).setup.state, 'preparation');
 	});
-	it('commits real automatic calls despite successor updates on unrelated active games', async function() {
+	for (const mode of ['main', 'worker']) it('commits real automatic calls despite unrelated successor updates (' + mode + ')', async function() {
 		const f = await fixture();
 		await f.app.db.tournaments.update_async({ key: f.key }, { $set: {
 			call_next_possible_scheduled_match_in_preparation: true, call_on_court_only_preparation_enabled: false,
@@ -121,16 +121,33 @@ describe('ordering sync concurrency', function() {
 		await f.app.db.courts.update_async({ _id: busy._id }, { $set: { match_id: f.changed._id } }, {});
 		await f.app.db.courts.update_async({ _id: { $nin: [f.court._id, busy._id] } }, { $set: { is_active: false } }, { multi: true });
 		let plans = 0;
-		await require('../bts/btp_sync_plan').sync(f.app, f.key, {}, {
-			worker_operation: 'auto_call', planning_namespace: 'successor-test', skip_unchanged: false,
-		}, async staged => {
+		const update_successor = async () => {
 			plans++;
-			await promisify(match_utils._plan_auto_call_once)(staged, f.key);
 			await f.app.db.matches.update_async({ _id: f.changed._id }, { $set: {
 				'setup.needs_preparation_successor': true, 'setup.needs_preparation_successor_ts': plans,
 			} }, {});
-			return true;
-		});
+		};
+		const worker = require('../bts/btp_planner').client, run = worker.run;
+		const previous = process.env.BTS_SYNC_PLAN_WORKER;
+		process.env.BTS_SYNC_PLAN_WORKER = mode === 'worker' ? '1' : '0';
+		if (mode === 'worker') worker.run = async function(...args) {
+			const result = await run.apply(this, args);
+			await update_successor();
+			return result;
+		};
+		try {
+			await require('../bts/btp_sync_plan').sync(f.app, f.key, {}, {
+				worker_operation: 'auto_call', planning_namespace: 'successor-test', skip_unchanged: false,
+			}, async staged => {
+				await promisify(match_utils._plan_auto_call_once)(staged, f.key);
+				await update_successor();
+				return true;
+			});
+		} finally {
+			worker.run = run;
+			worker.close();
+			if (previous === undefined) delete process.env.BTS_SYNC_PLAN_WORKER; else process.env.BTS_SYNC_PLAN_WORKER = previous;
+		}
 		await drain(f.key);
 		assert.strictEqual(plans, 1);
 		assert.strictEqual((await f.app.db.courts.findOne_async({ _id: f.court._id })).match_id, f.match._id);
