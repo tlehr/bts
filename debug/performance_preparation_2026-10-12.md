@@ -544,3 +544,106 @@ Der JSON-Bericht ergänzt `lean_automatic_preparation_default` und erhält
 die vollständige bisherige Historie. Die Diagnosequellen, Profil-Hashes,
 Zeitgrenzen und ausgewählten CPU-Fenster sind darin enthalten; die rohen
 CPU-Profile liegen in den genannten temporären Laufverzeichnissen.
+
+## Unabhängige Empfangszeitstempel im Testclient
+
+Der Testclient verwendet seit `a789f73` auf dem eigenen Branch
+`perf/isolated-reception` einen Empfangsthread für seine bestehenden
+WebSocket-Verbindungen. `src/reception/worker.js` setzt den Zeitstempel am
+WebSocket-Message-Event, bevor Nachrichten geparst oder an den Simulator
+weitergereicht werden. `src/reception/transport.js` kapselt die Übermittlung
+und den Lebenszyklus in einer kleinen Datei. Die bisherigen Verbindungen,
+Protokolle, Geräteidentitäten und Zuordnungen bleiben erhalten; es werden
+keine zusätzlichen Mess-Displays oder Admin-Verbindungen erzeugt.
+
+TV- und Admin-Callbacks erhalten diesen ursprünglichen Zeitstempel. Der
+Simulator verarbeitet die Nachrichten danach wie bisher, während die
+Empfangslatenz den früheren Eingang abbildet. Eine bereits vorher empfangene,
+erst später zugestellte TV-Nachricht darf keinen neueren Punkt oder eine
+gleichlautende Spielendbestätigung erfüllen. Dafür prüft das TV-Matching nun
+auch die Empfangszeit gegenüber dem Sendestart. Bestehende Admin-Zuordnung
+mit Match, Team-Score, letzter Press-Aktion und Endstatus bleibt erhalten.
+
+Der Standard gilt für die normale CLI und das Web-Dashboard. Deren
+Steuerung, Szenarien, Live-Ansichten und Downloads bleiben verfügbar. Die
+Weitergabeverzögerung wird im Bericht separat als
+`reception.simulator_delivery_ms` ausgewiesen. Sie enthält IPC-Übermittlung
+und Scheduling des Simulators vor dem Nachrichten-Callback, ist also keine
+exklusive CPU-Kopierzeit. Empfangs-Worker-Ausfälle werden als Fehler erfasst;
+normaler Abschluss und Abbruch beenden nur den eigenen Worker.
+
+BTS-Commit `5c04fac` bindet denselben Empfangsthread auch an die
+Durchsage-/Aufrufprobe des gemischten Tests an. Sie verwendet den im Worker
+erfassten monotonen Empfangszeitpunkt. Ein Abbruch vor Simulationsbeginn
+räumt ebenfalls den Worker auf. Benchmarkberichte benennen die neue
+Messmethode und archivieren die Hashes/Quellen beider Empfangsmodule.
+Der BTS-Laufzeitcode wurde in diesem Schritt nicht verändert.
+
+### Kontrollierte Prüfungen und realer Lastlauf
+
+Eine kontrollierte WebSocket-Prüfung blockiert den Simulator 250 ms, während
+ein unabhängiger Testserver dieselbe Nachricht an den nativen und den neuen
+Empfänger sendet. Der Worker erfasst den Eingang während der Pause; der
+native Hauptthread-Callback läuft erst danach. Eine echte Admin-Verbindung
+prüft zusätzlich das Score-Matching mit dem frühen Zeitstempel. Weitere
+Regressionen prüfen stale TV-Meldungen, Send-Callbacks, unerwarteten Worker-
+Abbruch und normalen Abschluss ohne falsche Fehlermeldung. Die Benchmark-
+Integration prüft den Abbruch vor dem Start ohne erzwungenes Prozess-Kill.
+
+Die finale BTS-Vollsuite besteht mit **816 Tests**, die Testclient-Vollsuite
+mit **28 Tests**, danach beziehungsweise zusätzlich zwölf gezielte finale
+Regressionen. Die geänderten JS-Dateien sind ESLint-sauber, beide Repository-
+Diffs ebenfalls. Die neuen unabhängigen Tests liegen im ausgegliederten
+Testclient; BTS bindet sie über einen kleinen Test-Adapter ein.
+
+Ein neuer normaler 90-Sekunden-Lauf verwendet dieselben Parameter wie
+`IlUBgP`, ohne diesen alten Lauf zu wiederholen. Alle **128 JavaScript-
+Dateien des BTS-Laufzeitverzeichnisses** sind zwischen den archivierten
+Servern bytegleich, sämtliche Feature-Werte ebenfalls. Node, CPU,
+Dependency-Lock und Optionen stimmen überein. Zwei Testwerkzeug-Dateien
+und der Testclient sind dagegen absichtlich geändert. Deshalb ist dies die
+Validierung einer neuen Messgrenze, kein weiterer Backend-Performance-Gewinn.
+
+| Messwert | Unabhängiger Empfang |
+| --- | ---: |
+| Tablet → TV Mittel / p95 / p99 / Maximum | 12,5 / 26 / 41 / 82 ms |
+| Tablet → Admin Mittel / p95 / p99 / Maximum | 7,6 / 17 / 31 / 67 ms |
+| Freie Durchsage p95 / Maximum | 4,1 / 16,8 ms |
+| Manuelles Aufrufsignal | 10,8 ms |
+| Erfasste Weitergabe an Simulator Mittel / Maximum | 0,91 / 122 ms |
+| Empfangene Meldungen TV und Admin | jeweils 946/946 |
+| Syncs / Spielenden / automatische Folgeaufrufe | 46 / 5 / 5 |
+
+Alle gesendeten Updates und alle Aufruf-/Durchsage-Anfragen werden
+zugeordnet beziehungsweise beantwortet. Der Empfangsthread erfasst
+89.019 Nachrichten ohne gemeldeten Fehler; die Zahl umfasst auch
+Steuerungs-, Bestätigungs- und Diagnosenachrichten. Die getrennte
+Weitergabe-Maximalzeit von 122 ms wird damit nicht länger automatisch als
+TV-/Admin-Empfangslatenz gezählt. Je Laufdrittel bleibt höchstens ein Sync
+offen; am Ende sind die Queues geleert. Es gibt keine aufgezeichneten
+Verarbeitungsfehler und das Serverlog bleibt leer.
+
+Die tatsächliche Fortschrittsfolge variiert durch die Transport-/Scheduling-
+Änderung geringfügig: 941 Punkte plus fünf Spielendmeldungen und vier
+Vorbereitungsereignisse, fünf automatische Folgeaufrufe. Beim vorherigen
+Lauf waren es 960 Punkte plus fünf Spielendmeldungen und sechs
+Vorbereitungsereignisse. Die Senderzeit bleibt der Simulator-Sendestart
+vor Serialisierung; zusätzliches ausgehendes IPC sowie Netzwerk und Arbeit
+im Empfangsthread sind weiterhin enthalten. Der Worker selbst kann
+Scheduling-, Decodier- und Weitergabekosten haben. Eine reine Messung der
+Server-CPU oder eine garantierte Kapazitätsgrenze wird nicht behauptet.
+
+Die langsamste TV-Meldung im neuen Lauf ist ein Spielabschluss: TV 82 ms,
+Admin 67 ms. Der primäre Finish-Task wartet 57,8 ms auf eine aktive
+`auto_execute_preparation_selections`-Aufgabe an `preparation`,
+`tabletoperators` und `umpires`. Kontextladen dauert danach 2,5 ms,
+Court-Fanout 14,0 ms. Dies ist eine konkrete weitere Server-Prüfstelle;
+gewöhnliche Punkte benötigen diese zusätzlichen Finish-Locks nicht.
+Weitere Optimierungen sollten den neuen Empfangsstand als Referenz
+verwenden und solche belegten Vorgänge untersuchen.
+
+Neuer Standardlauf: `/tmp/bts-queue-responsiveness-xU6iXx`.
+Testclient-Commit: `a789f73`; BTS-Testanbindung: `5c04fac`.
+Der JSON-Bericht ergänzt `isolated_reception_validation`, erhält sämtliche
+historischen Ergebnisse und archiviert Empfangsmethode, Modul-Hashes,
+Backend-Gleichheitsprüfung und alle 946 Punkt-/Spielendzuordnungen.

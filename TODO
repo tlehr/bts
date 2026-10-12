@@ -275,16 +275,33 @@ Naechste optionale Schritte nach diesen Arbeiten:
   als Performance-Vergleich verwendet. Keine neuen Threads oder Locks.
   Bericht: debug/performance_preparation_2026-10-12.md und .json,
   lean_automatic_preparation_default. Lauf /tmp/bts-queue-responsiveness-IlUBgP.
-- OFFEN: Empfangsproben vom Simulator-Hauptthread trennen bzw. Server-
-  Eingang/Handoff und Client-Empfang dauerhaft getrennt messen. Neues
+- ERLEDIGT: Empfangsproben vom Simulator-Hauptthread getrennt. Neues
   Diagnosebeispiel: Durchsage 85.9ms insgesamt; Server-Handoff 0.098ms nach
   Handler-Start, danach 76.9ms bis Client-Callback mit 51.2ms deep_copy im
   Simulator. Zweiter Fall gleichartig (Handoff 0.081ms, danach 64.5ms).
   Alle 46 Server-Handoff-Phasen <=0.266ms, kein Outbox-/Transport-Rueckstau.
   Belegt Simulator-Arbeit fuer diese Faelle; fruehere 76.8ms-Probe nicht
   rueckwirkend exakt zugeordnet. Diagnosekosten schliessen Latenzvergleich
-  aus; kein echter Browserclient optimiert. Unabhaengige Empfangsprobe
-  erhoeht Aussagekraft weiterer Server-Optimierungen.
+  aus; kein echter Browserclient optimiert.
+  Testclient a789f73 auf perf/isolated-reception: bestehende WebSockets
+  in eigenem Worker, Zeitstempel vor Parse/Simulator-Weitergabe. CLI und
+  Web-Dashboard nutzen ihn standardmaessig, kein zusaetzlicher Socket.
+  Simulator-Weitergabe separat in reception.simulator_delivery_ms.
+  Stale TV-Zuordnung, normale/fehlerhafte Abschluesse und Abbruch vor
+  Simulationsstart abgesichert. BTS-Testanbindung 5c04fac. Vollsuite BTS
+  816, Client 28, finale gezielte Tests 12; alle geaenderten JS lint-sauber.
+  Neuer gleicher 90s-Lauf, kein Backend-Code geaendert (128 JS bytegleich):
+  TV-p99 41ms, Admin-p99 31ms, Durchsage-Maximum 16.8ms, Weitergabe an
+  Simulator separat bis122ms. Alle 946 Updates je Ziel, 46/46 Syncs,
+  fuenf Spielenden/Folgeaufrufe, kein bleibender Rueckstau, leeres Serverlog.
+  Messmethode geaendert: keine Behauptung eines neuen BTS-Performance-Gewinns;
+  historische Werte bleiben erhalten. Neue Referenz:
+  /tmp/bts-queue-responsiveness-xU6iXx, isolated_reception_validation im Bericht.
+- OFFEN: Belegten Finish-Blocker im neuen Empfangslauf pruefen: Spielende
+  TV82ms/Admin67ms, 57.8ms Lock-Warten hinter auto_execute_preparation_selections
+  an preparation/tabletoperators/umpires. Danach Kontext2.5ms/Fanout14ms.
+  Hintergrundreads und gehaltene Zuweisungs-Locks gezielt pruefen;
+  keine pauschale Verkleinerung ohne Absicherung von Aufrufen/Offiziellen.
 - Bei Bedarf Langzeitlauf des juengsten Gesamtstands: Der zehnminuetige
   optimierte Vergleich verwendet den gesicherten Stand 647e479; juengste
   Diagnose-/Cache-Aenderungen sind durch Regressionen, kurze Empfangslaeufe
