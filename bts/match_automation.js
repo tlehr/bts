@@ -2554,7 +2554,7 @@ async function fetch_location_preparation_status(app, tournament_key, location_i
 async function fetch_location_preparation_selection(app, tournament_key, location_id, options = {}) {
 	const timing = options.preparation_timing;
 	const { tournaments: tournament, locations, courts, matches, umpires, tabletoperators } =
-		await require('./preparation_selection/selection_reads')(app, tournament_key, location_id, timing);
+		await require('./preparation_selection/selection_reads')(app, tournament_key, location_id, timing, options.automatic_only === true);
 
 	const location = (locations || []).find((entry) => entry && entry._id === location_id) || null;
 	const calculate = () => calculate_location_preparation_selection({

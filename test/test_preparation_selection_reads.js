@@ -82,6 +82,43 @@ describe('preparation status model reads and timing', function() {
 		await f.db.courts.update_async({ _id: 'second' }, { $set: { is_active: false } }, {});
 		await compare();
 	});
+	it('uses immutable selection inputs only for automatic work and keeps public candidates detached', async function() {
+		const f = await fixture();
+		await f.db.matches.update_async({ _id: 'ready' }, { $set: {
+			'setup.state': 'scheduled', 'setup.is_match': true, 'setup.incomplete': false,
+			'setup.match_num': 1, 'setup.scheduled_date': '2026-10-12', 'setup.scheduled_time_str': '10:00',
+		} }, {});
+		const read = require('../bts/preparation_selection/selection_reads');
+		const automatic = await read(f.app, f.key, 'hall', null, true);
+		assert.strictEqual(automatic.matches[0], f.db.model.tournament(f.key).matches.get('ready').data);
+		const full = await read(f.app, f.key, 'hall');
+		full.matches[0].setup.teams[0].players[0].name = 'Detached';
+		assert.notStrictEqual(automatic.matches[0].setup.teams[0].players[0].name, 'Detached');
+		const freeze = value => {
+			if (!value || typeof value !== 'object' || Object.isFrozen(value)) return;
+			Object.values(value).forEach(freeze); Object.freeze(value);
+		};
+		for (const collection of ['tournaments', 'locations', 'courts', 'matches', 'umpires', 'tabletoperators']) {
+			for (const record of f.db[collection].getAllData()) freeze(record);
+		}
+		const selection = await rules.fetch_location_preparation_selection(f.app, f.key, 'hall', { automatic_only: true });
+		assert.deepStrictEqual(selection.auto_selected_matches.map(match => match._id), ['ready']);
+		await promisify(match_utils.auto_execute_preparation_selection)(f.app, f.tournament, 'hall');
+		assert.strictEqual((await f.db.matches.findOne_async({ _id: 'ready' })).setup.state, 'preparation');
+	});
+	it('honors a TTL index installed after automatic selection inputs are queued', async function() {
+		const f = await fixture();
+		await f.db.matches.update_async({ _id: 'ready' }, { $set: { expires: new Date(0) } }, {});
+		let release, reached;
+		const held = new Promise(resolve => { reached = resolve; });
+		f.db.matches.executor.push({ this: f.db.matches, fn: done => { release = done; reached(); }, arguments: [() => {}] });
+		await held;
+		const captured = require('../bts/preparation_selection/selection_reads')(f.app, f.key, 'hall', null, true);
+		await promisify(f.db.matches.ensureIndex.bind(f.db.matches))({ fieldName: 'expires', expireAfterSeconds: 1 });
+		release();
+		assert.deepStrictEqual((await captured).matches, []);
+		assert.strictEqual(f.db.model.tournament(f.key).matches.has('ready'), false);
+	});
 	it('waits for earlier persistence even when a preparation change is already visible in the model', async function() {
 		const f = await fixture(), persist = f.db.matches.persistence.persistNewState;
 		let release, reached;

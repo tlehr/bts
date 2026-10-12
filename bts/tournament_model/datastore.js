@@ -53,6 +53,17 @@ class DatastoreBinding {
 		const result = {};
 		await Promise.all(collections.map(collection => new Promise((resolve, reject) => {
 			const capture = done => {
+				// TTL cursors may expire records; check after earlier executor jobs,
+				// including an index installed while this snapshot was waiting.
+				if (Object.keys(this.db[collection].ttlIndexes || {}).length) {
+					const field = collection === 'tournaments' ? 'key' : 'tournament_key';
+					return this.db[collection].find({ [field]: key })._exec((error, documents) => {
+						if (error) return done(error);
+						result[collection] = documents.sort((a, b) => String(a._id).localeCompare(String(b._id)));
+						if (collection === 'matches') Object.defineProperty(result, 'relations', { value: tournament.relations });
+						done(null);
+					});
+				}
 				try {
 					const field = collection === 'tournaments' ? 'key' : 'tournament_key';
 					result[collection] = [...tournament.collection(collection).values()].filter(entity => entity.present && entity.data[field] === key)

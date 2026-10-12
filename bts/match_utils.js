@@ -3489,12 +3489,10 @@ async function call_match_in_preparation(app, tournament, match, location_id, ca
 		if (!force) {
 			try {
 				const match_automation = require('./match_automation');
-				const [courts, matches, umpires, tabletoperators] = await Promise.all([
-					app.db.courts.find_async({ tournament_key }),
-					app.db.matches.find_async({ tournament_key }),
-					app.db.umpires.find_async({ tournament_key }),
-					app.db.tabletoperators.find_async({ tournament_key }),
-				]);
+				const reads = require('./preparation_selection/model_reads');
+				const [courts, matches, umpires, tabletoperators] = await Promise.all(
+					['courts', 'matches', 'umpires', 'tabletoperators'].map(collection =>
+						reads.read(app, tournament_key, collection, use_preparation_call_gap)));
 				const current_tournament = {
 					...(tournament || {}),
 					courts,
