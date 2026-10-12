@@ -6,6 +6,14 @@ const QueueStats = require('./performance/queue_stats');
 const ms = (start, end) => Math.round(Number(end - start) / 1e5) / 10;
 const enabled = () => require('./server_diagnostics').enabled() || process.env.BTS_BTP_SYNC_TIMING === '1' || debug_flags.any_score_press_timing_enabled();
 
+function origin() {
+	// Only unowned diagnostic jobs need a call site. Export source locations,
+	// never paths, query values or complete stacks.
+	const frames = (new Error().stack || '').split('\n').map(line => line.match(/[/\\]bts[/\\]([^/\\]+\.js):(\d+):\d+/))
+		.filter(frame => frame && !['database_tasks.js', 'database.js', 'utils.js'].includes(frame[1]));
+	return frames.slice(0, 2).map(frame => frame[1] + ':' + frame[2]).join('>');
+}
+
 function name_of(store, task) {
 	if (task.diagnostic_name) return task.diagnostic_name;
 	if (task.fn === store.persistence.persistCachedDatabase) return 'compact';
@@ -40,7 +48,9 @@ function attach(store, collection) {
 		// original task before its function is wrapped for timing below.
 		const barrier_task = read_barrier.wrap(task);
 		const traces = require('./performance/traces');
-		const health_entry = state.health.enqueue(name_of(store, task));
+		const source = !traces.capture() && traces.enabled() ? origin() : '';
+		const task_name = name_of(store, task) + (source ? '@' + source : '');
+		const health_entry = state.health.enqueue(task_name);
 		const ordered = { ...barrier_task, fn: function(...args) {
 			state.health.start(health_entry);
 			const callback = args[args.length - 1];
@@ -57,7 +67,7 @@ function attach(store, collection) {
 		}
 		const query = task.this?.constructor?.name === 'Cursor' ? task.this.query
 			: task.fn === store._update || task.fn === store._remove ? task.arguments[0] : null;
-		const record = { id: ++state.next_id, task: name_of(store, task), started: null, phase: 'queued',
+		const record = { id: ++state.next_id, task: task_name, started: null, phase: 'queued',
 			query_fields: query ? Object.keys(query).slice(0, 8) : [] };
 		health_entry.diagnostic = record;
 		const traced = { ...ordered, diagnostic_id: record.id, fn: function(...args) {

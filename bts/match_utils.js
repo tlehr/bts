@@ -2291,125 +2291,12 @@ function reset_tabletoperator_settings_at_player(app, tkey, tournament, player, 
 	}
 }
 
-function collect_expected_player_court_flags(matches) {
-	const expected_playing_courts = new Map();
-	const expected_tablet_courts = new Map();
-	(matches || [])
-		.filter((match) => match?.setup && typeof match.team1_won !== 'boolean')
-		.forEach((match) => {
-			const court_id = match?.setup?.court_id;
-			if (!court_id) {
-				return;
-			}
-			if (match.setup.now_on_court === true) {
-				for_each_setup_player(match.setup, (player) => {
-					const player_btp_id = Number(player?.btp_id);
-					if (Number.isFinite(player_btp_id) && player_btp_id !== -1) {
-						expected_playing_courts.set(player_btp_id, court_id);
-					}
-				});
-				(Array.isArray(match.setup.tabletoperators) ? match.setup.tabletoperators : []).forEach((operator) => {
-					const operator_btp_id = Number(operator?.btp_id);
-					if (Number.isFinite(operator_btp_id) && operator_btp_id !== -1) {
-						expected_tablet_courts.set(operator_btp_id, court_id);
-					}
-				});
-			}
-		});
-	return { expected_playing_courts, expected_tablet_courts };
-}
-
-function reconcile_player_court_flags_for_match(app, tournament_key, match, expected_flags, end_ts, callback) {
-	if (!match?.setup) {
-		return callback(null, false);
-	}
-	const btp_manager = require('./btp_manager');
-	const admin = require('./admin');
-	const players_to_update = [];
-	let changed = false;
-
-	for_each_setup_player(match.setup, (player) => {
-		if (!player) {
-			return;
-		}
-		const btp_id = Number(player.btp_id);
-		const expected_playing_court = Number.isFinite(btp_id) ? expected_flags.expected_playing_courts.get(btp_id) : null;
-		const expected_tablet_court = Number.isFinite(btp_id) ? expected_flags.expected_tablet_courts.get(btp_id) : null;
-		const has_wrong_playing_flag = !!player.now_playing_on_court && player.now_playing_on_court !== expected_playing_court;
-		const has_wrong_tablet_flag = !!player.now_tablet_on_court && player.now_tablet_on_court !== expected_tablet_court;
-
-		if (has_wrong_playing_flag) {
-			player.now_playing_on_court = false;
-			player.checked_in = false;
-			player.tablet_break_active = false;
-			players_to_update.push(player);
-			changed = true;
-		}
-
-		if (has_wrong_tablet_flag) {
-			player.now_tablet_on_court = false;
-			player.tablet_break_active = false;
-			players_to_update.push(player);
-			changed = true;
-		}
-	});
-	if (release_blocked_match_if_no_players_on_court(match.setup)) {
-		changed = true;
-	}
-
-	if (!changed) {
-		return callback(null, false);
-	}
-
-	const setup = match.setup;
-	app.db.matches.update({ _id: match._id }, { $set: { setup } }, {}, (err) => {
-		if (err) {
-			return callback(err);
-		}
-		if (players_to_update.length > 0) {
-			btp_manager.update_players(app, tournament_key, players_to_update);
-		}
-		admin.notify_change(app, tournament_key, 'update_player_status', {
-			match__id: match._id,
-			btp_winner: match.btp_winner,
-			setup: match.setup,
-		});
-		return callback(null, true);
-	});
-}
-
 function reconcile_player_court_flags_for_tournament(app, tournament, callback) {
-	if (!app || !app.db || !tournament?.key) {
-		return callback(null);
-	}
-	const tournament_key = tournament.key;
-	const end_ts = now_ms(app);
-	app.db.matches.find({ tournament_key }, (err, matches) => {
-		if (err) {
-			return callback(err);
-		}
-		const expected_flags = collect_expected_player_court_flags(matches);
-		let changed_count = 0;
-		async.eachSeries(matches || [], (match, cb) => {
-			reconcile_player_court_flags_for_match(app, tournament_key, match, expected_flags, end_ts, (match_err, changed) => {
-				if (match_err) {
-					return cb(match_err);
-				}
-				if (changed) {
-					changed_count++;
-				}
-				return cb(null);
-			});
-		}, (reconcile_err) => {
-			if (reconcile_err) {
-				return callback(reconcile_err);
-			}
-			if (changed_count > 0) {
-				queue_auto_execute_preparation_selections(app, tournament_key);
-			}
-			return callback(null);
-		});
-	});
+	if (!app?.db || !tournament?.key) return callback(null);
+	const key = tournament.key;
+	require('./preparation_selection/periodic_reads').matches(app, key).then(matches =>
+		require('./match_reconciliation/run').apply(app, key, matches,
+			require('./match_reconciliation/player_flags').expected(matches))).then(() => callback(null), callback);
 }
 
 function queue_reconcile_player_court_flags(app, tournament_key, callback) {
@@ -2435,28 +2322,7 @@ function queue_reconcile_player_court_flags(app, tournament_key, callback) {
 	};
 	pending_player_court_reconciliation_runs.set(tournament_key, state);
 
-	const task = update_queue.locks([
-		update_queue.lock_keys.matches(tournament_key),
-		update_queue.lock_keys.courts(tournament_key),
-		update_queue.lock_keys.tabletoperators(tournament_key),
-		update_queue.lock_keys.umpires(tournament_key),
-	], update_queue.named(`player_court_reconciliation_${tournament_key}`, () => new Promise((resolve, reject) => {
-			app.db.tournaments.findOne({ key: tournament_key }, (err, tournament) => {
-				if (err || !tournament) {
-					reject(err || new Error('tournament not found'));
-					return;
-				}
-				reconcile_player_court_flags_for_tournament(app, tournament, (reconcile_err) => {
-					if (reconcile_err) {
-						reject(reconcile_err);
-						return;
-					}
-					resolve(null);
-				});
-			});
-		})));
-
-	update_queue.instance().execute(task).then(() => {
+	require('./match_reconciliation/run').run(app, tournament_key).then(() => {
 		const current = pending_player_court_reconciliation_runs.get(tournament_key);
 		pending_player_court_reconciliation_runs.delete(tournament_key);
 		(current?.callbacks || []).forEach((cb) => cb(null));
@@ -2471,18 +2337,12 @@ function start_player_court_reconciliation_manager(app) {
 	if (player_court_reconciliation_interval || !app || !app.db) {
 		return;
 	}
-	const reconcile_all_tournaments = () => {
-		app.db.tournaments.find({}, (err, tournaments) => {
-			if (err) {
-				return;
-			}
-			(tournaments || [])
-				.filter((tournament) => is_tournament_automation_enabled(tournament))
-				.forEach((tournament) => {
-					queue_reconcile_player_court_flags(app, tournament.key);
-				});
+	const reconcile_all_tournaments = require('./preparation_selection/periodic_reads').runner(app,
+		'periodic_player_court_reconciliation', {}, tournament => {
+			if (!is_tournament_automation_enabled(tournament)) return;
+			return new Promise((resolve, reject) => queue_reconcile_player_court_flags(app, tournament.key,
+				error => error ? reject(error) : resolve()));
 		});
-	};
 	player_court_reconciliation_interval = setInterval(reconcile_all_tournaments, 15000);
 	reconcile_all_tournaments();
 }
@@ -2768,19 +2628,11 @@ function start_technical_official_pause_manager(app) {
 	if (technical_official_pause_interval || !app || !app.db) {
 		return;
 	}
-	technical_official_pause_interval = setInterval(() => {
-		app.db.tournaments.find({
-			official_rotation_mode: { $ne: 'disabled' },
-			technical_official_break_after_assignment_seconds: { $gt: 0 },
-		}, (err, tournaments) => {
-			if (err) {
-				return;
-			}
-			(tournaments || []).forEach((tournament) => {
-				queue_process_expired_technical_official_breaks(app, tournament.key);
-			});
-		});
-	}, 1000);
+	const run = require('./preparation_selection/periodic_reads').runner(app, 'periodic_official_pause', {
+		official_rotation_mode: { $ne: 'disabled' }, technical_official_break_after_assignment_seconds: { $gt: 0 },
+	}, tournament => new Promise((resolve, reject) => queue_process_expired_technical_official_breaks(app, tournament.key,
+		error => error ? reject(error) : resolve())));
+	technical_official_pause_interval = setInterval(run, 1000);
 }
 
 function get_call_on_court_preparation_age_ms(tournament) {
@@ -2820,38 +2672,22 @@ function process_preparation_age_auto_calls_for_tournament(app, tournament, call
 		return callback(null);
 	}
 	const tournament_key = tournament.key;
-	app.db.matches.find({ tournament_key, 'setup.state': 'preparation' }, (err, matches) => {
-		if (err) {
-			return callback(err);
-		}
+	require('./preparation_selection/periodic_reads').matches(app, tournament_key, { 'setup.state': 'preparation' }).then(matches => {
 		if (!has_preparation_match_ready_for_auto_call(tournament, matches, now_ms(app))) {
 			return callback(null);
 		}
 		return auto_call_matches_on_free_courts(app, tournament_key, callback);
-	});
+	}, callback);
 }
 
 function start_preparation_age_auto_call_manager(app) {
 	if (preparation_age_auto_call_interval || !app || !app.db) {
 		return;
 	}
-	const run = () => {
-		app.db.tournaments.find({
-			call_next_possible_scheduled_match_in_preparation: true,
-			call_on_court_only_preparation_enabled: true,
-		}, (err, tournaments) => {
-			if (err) {
-				return;
-			}
-			async.eachSeries(tournaments || [], (tournament, cb) => {
-				process_preparation_age_auto_calls_for_tournament(app, tournament, cb);
-			}, (process_err) => {
-				if (process_err) {
-					console.warn('[bts] failed to process preparation age auto calls', process_err && (process_err.stack || process_err.message || String(process_err)));
-				}
-			});
-		});
-	};
+	const run = require('./preparation_selection/periodic_reads').runner(app, 'periodic_preparation_age', {
+		call_next_possible_scheduled_match_in_preparation: true, call_on_court_only_preparation_enabled: true,
+	}, tournament => new Promise((resolve, reject) => process_preparation_age_auto_calls_for_tournament(app, tournament,
+		error => error ? reject(error) : resolve())));
 	preparation_age_auto_call_interval = setInterval(run, 1000);
 	run();
 }
@@ -2910,10 +2746,12 @@ function process_preparation_pause_auto_calls_for_tournament(app, tournament, ca
 		return callback(null);
 	}
 	const tournament_key = tournament.key;
-	app.db.matches.find({ tournament_key }, (err, matches) => {
-		if (err) {
-			return callback(err);
-		}
+	if (!is_tournament_automation_enabled(tournament) || tournament.call_preparation_matches_automatically_enabled !== true ||
+		require('./match_automation').get_participant_readiness_mode(tournament, 'preparation_call') !== 'pause_expired' ||
+		!Number.isFinite(Number(tournament.btp_settings?.pause_duration_ms)) || Number(tournament.btp_settings.pause_duration_ms) <= 0) {
+		return callback(null);
+	}
+	require('./preparation_selection/periodic_reads').matches(app, tournament_key).then(matches => {
 		const now = now_ms(app);
 		const latest_ready_ts = latest_expired_preparation_pause_ts(tournament, matches, now);
 		if (latest_ready_ts == null) {
@@ -2926,29 +2764,17 @@ function process_preparation_pause_auto_calls_for_tournament(app, tournament, ca
 		}
 		state.set(tournament_key, latest_ready_ts);
 		return queue_auto_execute_preparation_selections(app, tournament_key, callback);
-	});
+	}, callback);
 }
 
 function start_preparation_pause_auto_call_manager(app) {
 	if (preparation_pause_auto_call_interval || !app || !app.db) {
 		return;
 	}
-	const run = () => {
-		app.db.tournaments.find({
-			call_preparation_matches_automatically_enabled: true,
-		}, (err, tournaments) => {
-			if (err) {
-				return;
-			}
-			async.eachSeries(tournaments || [], (tournament, cb) => {
-				process_preparation_pause_auto_calls_for_tournament(app, tournament, cb);
-			}, (process_err) => {
-				if (process_err) {
-					console.warn('[bts] failed to process preparation pause auto calls', process_err && (process_err.stack || process_err.message || String(process_err)));
-				}
-			});
-		});
-	};
+	const run = require('./preparation_selection/periodic_reads').runner(app, 'periodic_preparation_pause', {
+		call_preparation_matches_automatically_enabled: true,
+	}, tournament => new Promise((resolve, reject) => process_preparation_pause_auto_calls_for_tournament(app, tournament,
+		error => error ? reject(error) : resolve())));
 	preparation_pause_auto_call_interval = setInterval(run, 1000);
 	run();
 }

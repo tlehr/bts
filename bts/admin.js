@@ -875,14 +875,20 @@ function handle_tournament_get(app, ws, msg, trace_done) {
 }
 
 async function async_handle_preparation_selection_get(app, ws, msg) {
+	return require('./performance/traces').operation('admin_preparation_selection', { type: 'admin', tournament_key: msg.tournament_key },
+		() => preparation_selection_response(app, ws, msg));
+}
+
+async function preparation_selection_response(app, ws, msg) {
 	if (!_require_msg(ws, msg, ['tournament_key'])) {
 		return;
 	}
 
 	const selections = await match_automation.fetch_all_location_preparation_selections(app, msg.tournament_key, {
 		now_ts: now_ms(app),
+		cooperative: true,
 	});
-	return ws.respond(msg, null, {
+	return (ws.respond_background || ws.respond).call(ws, msg, null, {
 		selections: selections.map((selection) => ({
 			location_id: selection.location_id,
 			required_preparation_count: selection.required_preparation_count,

@@ -2440,14 +2440,15 @@ function calculate_location_preparation_selection(tournament, location_id, optio
 			if (!match || match._id == null) {
 				return;
 			}
-			diagnostics_by_match_id[match._id] = calculate_match_preparation_diagnostics(match, location_id, tournament, {
+			const diagnose = () => { diagnostics_by_match_id[match._id] = calculate_match_preparation_diagnostics(match, location_id, tournament, {
 				...options,
 				courts_by_id,
 				matches_by_planning_id,
 				now_ts,
 				relevant_matches: frontier_window_matches,
 				frontier: display_frontier,
-			});
+			}); };
+			if (options.diagnostics_queue) options.diagnostics_queue.push(diagnose); else diagnose();
 		});
 		const call_on_court_diagnostics_by_match_id = {};
 		let call_on_court_relevant_matches = options.relevant_matches;
@@ -2462,6 +2463,7 @@ function calculate_location_preparation_selection(tournament, location_id, optio
 			if (!call_on_court_relevant_matches) {
 				call_on_court_relevant_matches = get_call_on_court_relevant_matches(tournament, location_id, { courts_by_id });
 			}
+			const diagnose = () => {
 			const court_diagnostics = active_location_courts.map((court) => calculate_match_call_on_court_diagnostics(
 				match,
 				court._id,
@@ -2486,6 +2488,8 @@ function calculate_location_preparation_selection(tournament, location_id, optio
 					.filter((court_id) => court_id != null),
 				court_diagnostics,
 			};
+			};
+			if (options.diagnostics_queue) options.diagnostics_queue.push(diagnose); else diagnose();
 		});
 		const effective_display_cutoff = display_cutoff || display_candidates[display_candidates.length - 1] || null;
 		const effective_required_preparation_count =
@@ -2578,18 +2582,13 @@ async function fetch_location_preparation_selection(app, tournament_key, locatio
 }
 
 async function fetch_all_location_preparation_selections(app, tournament_key, options = {}) {
-	const [tournament, locations, courts, matches, umpires, tabletoperators] = await Promise.all([
-		app.db.tournaments.findOne_async({ key: tournament_key }),
-		app.db.locations.find_async({ tournament_key }),
-		app.db.courts.find_async({ tournament_key }),
-		app.db.matches.find_async({ tournament_key }),
-		app.db.umpires.find_async({ tournament_key }),
-		app.db.tabletoperators.find_async({ tournament_key }),
-	]);
+	const { tournaments: tournament, locations, courts, matches, umpires, tabletoperators } =
+		await require('./preparation_selection/selection_reads')(app, tournament_key, null, options.preparation_timing, options.cooperative === true);
 
 	const input = { ...(tournament || {}), locations, courts, matches, umpires, tabletoperators };
-	const context = with_participant_lookup(input, with_frontier_positions({ ...options, app }));
-	return (locations || []).map((location) => {
+	const jobs = options.cooperative === true ? [] : null;
+	const context = with_participant_lookup(input, with_frontier_positions({ ...options, app, diagnostics_queue: jobs }));
+	const selections = (locations || []).map((location) => {
 		const selection = calculate_location_preparation_selection(input, location._id, context);
 
 		return {
@@ -2597,6 +2596,8 @@ async function fetch_all_location_preparation_selections(app, tournament_key, op
 			location,
 		};
 	});
+	if (jobs) await require('./preparation_selection/cooperative')(jobs);
+	return selections;
 }
 
 async function fetch_global_preparation_candidates(app, tournament_key, options = {}) {

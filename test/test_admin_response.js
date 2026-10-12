@@ -17,6 +17,17 @@ const tick = () => new Promise(resolve => setImmediate(resolve));
 
 describe('background admin response output', function() {
 	after(() => encoder.close());
+	it('preserves full preparation diagnostic JSON while allowing other work between diagnostic rows', async function() {
+		const rows = Object.fromEntries(Array.from({ length: 2000 }, (_, i) => [i, { match_id: i, rules: [
+			{ enabled: true, description: 'Pausenprüfung 🏸', optional: undefined, date: new Date(0) },
+		] }]));
+		const message = { selections: [undefined, null, { toJSON(key) { return { key }; } }, {
+			location_id: 'hall', diagnostics_by_match_id: rows, call_on_court_diagnostics_by_match_id: {},
+		}], rid: 1, type: 'answer' };
+		let yielded = false; setImmediate(() => { yielded = true; });
+		assert.strictEqual(await require('../bts/admin_response/cooperative')(message), JSON.stringify(message));
+		assert(yielded);
+	});
 	it('produces the same JSON bytes including Dates, Unicode, undefined and special numeric values', async function() {
 		const message = { type: 'answer', rid: 'one', nested: [{ date: new Date(1000), name: 'Ä羽毛🏸', absent: undefined, nan: NaN }], missing: undefined };
 		const previous = process.env.BTS_ADMIN_RESPONSE_ENCODER;

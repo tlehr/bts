@@ -58,7 +58,9 @@ function clean(details = {}) {
 			'deferred_jobs', 'worker_ms', 'input_wait_ms', 'return_delivery_ms', 'dispatch_ms', 'request_id', 'ctype',
 			'before_callback_ms', 'callback_ms', 'persistence_kind', 'persistence_ms', 'copied_records',
 			'refresh_groups', 'refresh_operations', 'refresh_queue_wait_ms', 'refresh_apply_ms', 'refresh_max_group_ms',
-			'refresh_foreground_wait_ms', 'allocation_scope', 'ordering_unchanged_notifications'].includes(key)) continue;
+			'refresh_foreground_wait_ms', 'allocation_scope', 'ordering_unchanged_notifications', 'recipients',
+			'direct_match_locks', 'additional_match_locks', 'dependency_player_matches', 'dependency_court_matches',
+			'dependency_effect_matches', 'allocation_reasons'].includes(key)) continue;
 		if (typeof value === 'string') result[key] = value.slice(0, 200);
 		else if (typeof value === 'number' || typeof value === 'boolean' || value === null) result[key] = value;
 		else if (Array.isArray(value)) { result[key] = value.slice(0, 40).map(item => typeof item === 'string' ? item.slice(0, 200)

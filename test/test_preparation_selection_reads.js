@@ -34,6 +34,32 @@ describe('preparation status model reads and timing', function() {
 			if (value === undefined) delete process.env[flag]; else process.env[flag] = value;
 		}
 	});
+	it('preserves all public diagnostics with frozen model inputs and yields while explaining many games', async function() {
+		const f = await fixture();
+		for (let i = 0; i < 70; i++) await f.insert('matches', {
+			_id: 'scheduled-' + i, tournament_key: f.key, match_order: i, setup: {
+				state: 'scheduled', is_match: true, incomplete: false, location_id: 'hall', match_num: i + 1,
+				scheduled_date: '2026-10-12', scheduled_time_str: '10:00',
+				teams: [{ players: [{ btp_id: i * 2 + 10, name: 'A' }] }, { players: [{ btp_id: i * 2 + 11, name: 'B' }] }],
+			},
+		});
+		const options = { now_ts: 1791792000000 };
+		const ordinary = await rules.fetch_all_location_preparation_selections(f.app, f.key, options);
+		const freeze = value => {
+			if (!value || typeof value !== 'object' || Object.isFrozen(value)) return;
+			Object.values(value).forEach(freeze); Object.freeze(value);
+		};
+		for (const name of ['matches', 'courts', 'locations', 'umpires', 'tabletoperators', 'tournaments']) f.db[name].getAllData().forEach(freeze);
+		f.db.matches.find = () => { throw new Error('copied all histories'); };
+		const end = require('../bts/foreground_work').begin('handle_score_update_v2');
+		let finished = false;
+		const calculating = rules.fetch_all_location_preparation_selections(f.app, f.key, { ...options, cooperative: true })
+			.then(value => { finished = true; return value; });
+		try { await turn(); assert.strictEqual(finished, false); } finally { end(); }
+		const cooperative = await calculating;
+		assert.deepStrictEqual(cooperative, ordinary);
+		assert(Object.keys(cooperative[0].diagnostics_by_match_id).length >= 70);
+	});
 	it('uses original immutable references without querying or copying histories for a no-op check', async function() {
 		const f = await fixture();
 		const data = f.db.model.tournament(f.key).matches.get('ready').data;

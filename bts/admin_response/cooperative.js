@@ -15,6 +15,10 @@ module.exports = async function encode(message) {
 		turn = process.hrtime.bigint();
 	};
 	const parts = [];
+	const array_item = (value, index) => {
+		const wrapper = JSON.stringify({ [String(index)]: value });
+		return wrapper === '{}' ? 'null' : wrapper.slice(String(index).length + 4, -1);
+	};
 	async function object(value, kind) {
 		parts.push('{'); let first = true;
 		for (const key of Object.keys(value)) {
@@ -23,6 +27,19 @@ module.exports = async function encode(message) {
 			if (kind === 'response' && key === 'tournament' && child && Object.getPrototypeOf(child) === Object.prototype && !child.toJSON) {
 				if (!first) parts.push(','); first = false;
 				parts.push(JSON.stringify(key) + ':'); await object(child, 'tournament');
+			} else if (kind === 'response' && key === 'selections' && Array.isArray(child) && !child.toJSON) {
+				if (!first) parts.push(','); first = false;
+				parts.push(JSON.stringify(key) + ':[');
+				for (let i = 0; i < child.length; i++) {
+					if (i) parts.push(',');
+					if (child[i] && Object.getPrototypeOf(child[i]) === Object.prototype && !child[i].toJSON) await object(child[i], 'selection');
+					else parts.push(array_item(child[i], i));
+				}
+				parts.push(']');
+			} else if (kind === 'selection' && ['diagnostics_by_match_id', 'call_on_court_diagnostics_by_match_id'].includes(key) &&
+				child && Object.getPrototypeOf(child) === Object.prototype && !child.toJSON) {
+				if (!first) parts.push(','); first = false;
+				parts.push(JSON.stringify(key) + ':'); await object(child, 'diagnostics');
 			} else if (kind === 'tournament' && key === 'matches' && Array.isArray(child) && !child.toJSON) {
 				if (!first) parts.push(','); first = false;
 				parts.push(JSON.stringify(key) + ':[');
@@ -31,10 +48,7 @@ module.exports = async function encode(message) {
 					if (i) parts.push(',');
 					const cached = cache.encode(child[i]);
 					if (cached !== undefined) parts.push(cached);
-					else {
-						const wrapper = JSON.stringify({ [String(i)]: child[i] });
-						parts.push(wrapper === '{}' ? 'null' : wrapper.slice(String(i).length + 4, -1));
-					}
+					else parts.push(array_item(child[i], i));
 					await yield_if_due();
 				}
 				parts.push(']');

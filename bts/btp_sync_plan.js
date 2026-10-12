@@ -429,6 +429,11 @@ async function run(app, tkey, response, options, integrate, cache) {
 		const queued = Date.now();
 		log_timing('incremental_plan', started, { attempt, changes: changes.length, match_locks: scope.locked_matches.size, locks: scope.locks,
 			allocation_scope: scope.diagnostics.allocation_scope, ordering_unchanged_notifications: scope.diagnostics.ordering_unchanged_notifications,
+			direct_match_locks: scope.diagnostics.direct_match_locks, additional_match_locks: scope.diagnostics.additional_match_locks,
+			dependency_player_matches: scope.diagnostics.dependency_matches.player || 0,
+			dependency_court_matches: scope.diagnostics.dependency_matches.court || 0,
+			dependency_effect_matches: scope.diagnostics.dependency_matches.effect || 0,
+			allocation_reasons: Object.keys(scope.diagnostics.expansion_reasons),
 			lock_scope: scope.diagnostics });
 		const commit = async () => {
 			log_timing('integration_lock_wait', queued, { locks: scope.locks });
