@@ -105,13 +105,27 @@ weiterhin im Executor. `compaction_read_bypassed` und `compaction_read_decision`
 nennen die Entscheidung. Erfolgreiche schnelle Reads werden bei Timing-Logging
 als `database:compaction_model_read` protokolliert.
 
-Die automatische Vorbereitung kann mit `BTS_PREPARATION_MODEL_READS=1` den
-Vorbereitungsbedarf ebenfalls über Modell-Snapshots prüfen. Die reine
-Statusberechnung liest Match- und Feldreferenzen ohne Historien zu kopieren.
-Diese Snapshots bleiben in der bisherigen Executor-Reihenfolge; es gibt hierfür
-keine Kompaktierungs-Abkürzung. Kandidatenauswahl und echte Aufrufe behalten ihre
-bisherigen NeDB-Abfragen und Schreibwege. Details stehen in
-`../preparation_selection/status.js` und `../offload/README.md`.
+Die automatische Vorbereitung verwendet standardmäßig geordnete Modell-Snapshots
+für Bedarf, automatische Kandidaten, Zulässigkeit und die Prüfung des Aufrufabstands.
+Unveränderte Historien und Meldedaten werden dafür nicht kopiert. Die konfigurierten
+Mindestabstände, Offiziellenregeln und Schreibwege bleiben erhalten. Öffentliche
+Kandidatenantworten liefern weiterhin bearbeitbare, isolierte Kopien.
+`BTS_PREPARATION_MODEL_READS=0` aktiviert den bisherigen Abfrageweg. Snapshot-Reads
+prüfen TTL-Indizes bei Ausführung, auch wenn ein Index erst nach dem Einreihen
+angelegt wurde; dann übernimmt der normale NeDB-Cursor die Ablaufprüfung.
+
+`sync_validation.js` besucht für die Sync-Validierung unveränderte kanonische
+Datensatzrevisionen im Executor ohne NeDB-Scan und Ergebnis-Kopien. Änderungen,
+Löschungen und neue Datensätze werden weiterhin geprüft; konkurrierende Punkte
+werden nur unter den vorhandenen Regeln übernommen. TTL-Reads behalten ihren
+Cursor. Weder Sync-Reads noch Vorbereitung umgehen Persistierungs-Barrieren.
+
+Nach einem erfolgreichen Punkte-Append kann `../score_publication/committed_points.js`
+den gespeicherten Stand direkt an verbundene TVs senden, die genau dieses Spiel
+anzeigen. Feld und Match sind dabei noch durch die validierte Punkteoperation
+geschützt. Es gibt keinen Cache eines früheren Punktes. Neue Zuordnungen,
+Darstellungseinstellungen, Timer, Tabellen und vollständige Ansichten verwenden
+weiterhin den regulären Aktualisierungspfad; TTL-Kontexte nehmen keine Abkürzung.
 
 ## Objekt-Hashes
 

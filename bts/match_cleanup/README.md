@@ -8,6 +8,7 @@ Punktehistorie; die Turnier-Projektion lässt das Disziplinpaket `events` aus.
 | --- | --- |
 | `reads.js` | Geordnete, gezielte Lesezugriffe und Kompatibilität mit einfachen Test-Datenbanken |
 | `players.js` | Spieler- und Tabletflags in zugeordneten Matches, Pausen und Feldfreigabe |
+| `participant_writes.js` | Höchstens vier Teilnehmeränderungen je geordnetem Append, mit Rollback und nativem Fallback |
 | `officials.js` | Aktuellen Offiziellen-Datensatz freigeben und andere Einsätze berücksichtigen |
 | `finish.js` | Reihenfolge und einzelne Phasenmessungen |
 
@@ -30,3 +31,12 @@ begonnenen Offiziellen-Schreibvorgänge.
 Die Aufrufer halten weiterhin ihre Ressourcen-Locks. Die Bereinigung erwirbt
 keine verschachtelten Locks; Folgeaufträge zur automatischen Zuweisung werden
 eingereiht und laufen nach der Freigabe der bestehenden Locks.
+
+Teilnehmeränderungen werden in Gruppen von höchstens vier Matches gespeichert.
+Zwischen den Gruppen können bereits wartende Punkte und Reads anderer Felder
+laufen. Die vorbereiteten Änderungen entstehen gegen den aktuellen Datensatz im
+Executor; nur geänderte Objekt- und dichte Arrayzweige werden kopiert. Unveränderte
+Punktehistorien werden geteilt. Ein fehlgeschlagener Append stellt seine Gruppe
+auch auf der Platte wieder her; erfolgreiche frühere Gruppen sind bereits gemeldet.
+Bei angepassten Datastore-Writern, Zeitstempeln und TTL bleibt der native Weg
+bestehen. TTL-Indizes werden auch nach dem Einreihen erneut berücksichtigt.

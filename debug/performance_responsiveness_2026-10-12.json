@@ -1,0 +1,3747 @@
+{
+  "objective": {
+    "tv_p99_ms_exclusive": 30,
+    "admin_p99_ms_exclusive": 30,
+    "endpoint": "client-websocket-message-received-before-json-parse",
+    "status": "achieved-in-isolated-web-sequence",
+    "scope": "Fixed 10-minute sequence, 519 deterministic fixture matches, 13 courts, 3200–6400 ms points, full parsed BTP integration every 30 seconds. Not a direct live-server A/B proof.",
+    "achieved_by": "web_sequence_full_integration"
+  },
+  "user_live_reference": {
+    "source": {
+      "path": "/home/tim/Downloads/bts-test-1 (1).json",
+      "sha256": "bddc5d744215382cd80f2d81410a24c5885dd0bf42ecf8527143105b1349bed1",
+      "bytes": 73190825,
+      "export_version": 2,
+      "exported_at": "2026-10-12T00:24:41.690Z",
+      "partial": true,
+      "stop_reason": "in-progress"
+    },
+    "tablet_to_tv_ms": {
+      "count": 1188,
+      "mean": 18.5,
+      "min": 3,
+      "p50": 8,
+      "p95": 64,
+      "p99": 113,
+      "max": 187,
+      "over_50_ms": 113,
+      "over_100_ms": 18,
+      "over_200_ms": 0,
+      "sent_updates": 1188,
+      "unmatched_updates": 0,
+      "coverage": 1
+    },
+    "tablet_to_admin_ms": {
+      "count": 1188,
+      "mean": 13.8,
+      "min": 2,
+      "p50": 4,
+      "p95": 54,
+      "p99": 95,
+      "max": 155,
+      "over_50_ms": 77,
+      "over_100_ms": 8,
+      "over_200_ms": 0,
+      "sent_updates": 1188,
+      "unmatched_updates": 0,
+      "coverage": 1
+    },
+    "note": "Partial web export with all 1188 receipts; different real tournament, TLS and workload. Not an exact A/B baseline for the deterministic HTTP fixture."
+  },
+  "runs": {
+    "prior_reception_baseline": {
+      "status": "completed",
+      "commit": "5c04fac387092c1b22181a961f28fd239228cb32",
+      "client_commit": "a789f73516f5ab5748351b6ed089cf0ada7cd40e",
+      "client_source_sha256": "6003f018c09f608f28c90580d0948ed34217b8afd5838c47ffef55fdbcf9e7e7",
+      "client_reception_sha256": {
+        "reception/transport.js": "8f9913f2b690a82f1c1a11320703ded8577b8d314bfcc5516cf5a631af73e293",
+        "reception/worker.js": "e8c34cb9bc20eb2df0afef062004d576691fe1009a01ef0cef4e85bef7aa5b50"
+      },
+      "options": {
+        "bts_dir": "/home/tim/repos/bts",
+        "ref": "HEAD",
+        "duration_ms": 90000,
+        "sync_interval_ms": 2000,
+        "count": 519,
+        "point_min_ms": 400,
+        "point_max_ms": 800,
+        "set_points": 21,
+        "workload": "preparation"
+      },
+      "directory": "/tmp/bts-queue-responsiveness-xU6iXx",
+      "started_at": "2026-10-12T00:01:20.663Z",
+      "finished_at": "2026-10-12T00:02:53.896Z",
+      "summary": {
+        "drained": true,
+        "syncs": 46,
+        "finished_syncs": 46,
+        "sync_stage_start_ms": {
+          "count": 46,
+          "mean": 39.93890176086957,
+          "median": 36.611383,
+          "p95": 84.438022,
+          "max": 163.986635
+        },
+        "sync_total_ms": {
+          "count": 46,
+          "mean": 403.92957873913036,
+          "median": 392.87307,
+          "p95": 606.458108,
+          "max": 924.120909
+        },
+        "points": 941,
+        "tablet_to_tv_ms": {
+          "count": 946,
+          "mean": 12.5,
+          "min": 3,
+          "p50": 10,
+          "p95": 26,
+          "p99": 41,
+          "max": 82,
+          "over_50_ms": 3,
+          "over_100_ms": 0,
+          "over_200_ms": 0,
+          "sent_updates": 946,
+          "unmatched_updates": 0,
+          "coverage": 1
+        },
+        "tablet_to_admin_ms": {
+          "count": 946,
+          "mean": 7.6,
+          "min": 2,
+          "p50": 6,
+          "p95": 17,
+          "p99": 31,
+          "max": 67,
+          "over_50_ms": 2,
+          "over_100_ms": 0,
+          "over_200_ms": 0,
+          "sent_updates": 946,
+          "unmatched_updates": 0,
+          "coverage": 1
+        },
+        "reception": {
+          "method": "isolated-websocket-reception",
+          "thread_id": 1,
+          "messages": 89019,
+          "clock": "Worker Date.now at WebSocket message callback; monotonic hrtime also forwarded",
+          "simulator_delivery_ms": {
+            "mean": 0.9110976308428538,
+            "max": 122
+          },
+          "error": null
+        },
+        "finished_matches": 5,
+        "oncourt_matches": 13,
+        "call_events": 6,
+        "preparation_events": 4,
+        "preparation_calculation_ms": {
+          "count": 28,
+          "mean": 7.0604365,
+          "median": 6.413059,
+          "p95": 12.855129,
+          "max": 13.919322
+        },
+        "free_announce_ms": {
+          "count": 45,
+          "mean": 1.7558280000000002,
+          "median": 0.969466,
+          "p95": 4.053871,
+          "max": 16.848293
+        },
+        "call_ms": {
+          "count": 1,
+          "mean": 10.803029,
+          "median": 10.803029,
+          "p95": 10.803029,
+          "max": 10.803029
+        },
+        "unanswered": 0,
+        "windows": [
+          {
+            "third": 1,
+            "samples": 1455,
+            "pending": {
+              "count": 1455,
+              "mean": 0.013058419243986255,
+              "median": 0,
+              "p95": 0,
+              "max": 2
+            },
+            "oldest_pending_ms": {
+              "count": 1455,
+              "mean": 0.7987726879725087,
+              "median": 0,
+              "p95": 0,
+              "max": 237.940027
+            },
+            "database_pending": {
+              "count": 1455,
+              "mean": 0.4020618556701031,
+              "median": 0,
+              "p95": 3,
+              "max": 20
+            },
+            "unfinished_syncs": {
+              "count": 299,
+              "mean": 0.1939799331103679,
+              "median": 0,
+              "p95": 1,
+              "max": 1
+            },
+            "oldest_sync_ms": {
+              "count": 299,
+              "mean": 40.33227293311036,
+              "median": 0,
+              "p95": 278.567894,
+              "max": 805.926672
+            }
+          },
+          {
+            "third": 2,
+            "samples": 1453,
+            "pending": {
+              "count": 1453,
+              "mean": 0.004817618719889883,
+              "median": 0,
+              "p95": 0,
+              "max": 1
+            },
+            "oldest_pending_ms": {
+              "count": 1453,
+              "mean": 0.0021549304886441844,
+              "median": 0,
+              "p95": 0,
+              "max": 0.690969
+            },
+            "database_pending": {
+              "count": 1453,
+              "mean": 0.3083275980729525,
+              "median": 0,
+              "p95": 1,
+              "max": 8
+            },
+            "unfinished_syncs": {
+              "count": 300,
+              "mean": 0.17,
+              "median": 0,
+              "p95": 1,
+              "max": 1
+            },
+            "oldest_sync_ms": {
+              "count": 300,
+              "mean": 30.383742496666667,
+              "median": 0,
+              "p95": 245.986012,
+              "max": 372.241765
+            }
+          },
+          {
+            "third": 3,
+            "samples": 1448,
+            "pending": {
+              "count": 1448,
+              "mean": 0.024171270718232045,
+              "median": 0,
+              "p95": 0,
+              "max": 3
+            },
+            "oldest_pending_ms": {
+              "count": 1448,
+              "mean": 0.9250869067679557,
+              "median": 0,
+              "p95": 0,
+              "max": 180.707193
+            },
+            "database_pending": {
+              "count": 1448,
+              "mean": 0.3687845303867403,
+              "median": 0,
+              "p95": 3,
+              "max": 25
+            },
+            "unfinished_syncs": {
+              "count": 301,
+              "mean": 0.1893687707641196,
+              "median": 0,
+              "p95": 1,
+              "max": 1
+            },
+            "oldest_sync_ms": {
+              "count": 301,
+              "mean": 40.62931914617941,
+              "median": 0,
+              "p95": 285.35755,
+              "max": 532.867692
+            }
+          }
+        ],
+        "event_loop": {
+          "measured": true,
+          "max_ms": 55.246847,
+          "p95_ms": 13.385727
+        },
+        "processing_errors": 0,
+        "point_queue_wait_ms": {
+          "count": 1963,
+          "mean": 1.0051525084055015,
+          "median": 0.575772,
+          "p95": 1.767494,
+          "max": 182.64685
+        }
+      },
+      "artifacts": {
+        "server": "/tmp/bts-queue-responsiveness-xU6iXx/mixed/server-result.json",
+        "client": "/tmp/bts-queue-responsiveness-xU6iXx/mixed/client-result.json",
+        "probes": "/tmp/bts-queue-responsiveness-xU6iXx/mixed/probe-result.json"
+      },
+      "limitations": [
+        "Isolated deterministic 519-game fixture, real durable NeDB and unmodified committed BTS modules.",
+        "Real separate testclient simulates tablets, TV and admin; point interval in options, 13 courts, zero score gap.",
+        "Idle fixture games explicitly set to scheduled before measurement, enabling automatic calls after real finishes.",
+        "Periodic sync uses the actual validated integration planner but updates idle match numbers directly in staging; no periodic BTP TCP/XML fetch/parser.",
+        "Full BTP fixture is used only at bootstrap. No live tournament or server is modified. Officials/tabletoperator allocation disabled.",
+        "Automatic preparation enabled; 26 pairs of players recur across scheduled games, creating real participant dependencies. No winner/loser bracket propagation simulated.",
+        "One explicit unchanged court call during first integration; automatic calls through actual score finishes; free announcements every two seconds.",
+        "Queue samples every 20 ms, diagnostics/traces enabled by normal client. Observer overhead and local machine load included.",
+        "Reception of WebSocket events, no browser painting or audible speech. Limited duration, no capacity guarantee."
+      ]
+    },
+    "validation_lower_pace_not_comparable": {
+      "status": "completed",
+      "commit": "c3ea681a1deb660b948b0665fb0f8f5f20f313aa",
+      "client_commit": "1087d5f297f4de88a0e3d33025ee85be1473ba30",
+      "client_source_sha256": "6003f018c09f608f28c90580d0948ed34217b8afd5838c47ffef55fdbcf9e7e7",
+      "client_reception_sha256": {
+        "reception/transport.js": "8f9913f2b690a82f1c1a11320703ded8577b8d314bfcc5516cf5a631af73e293",
+        "reception/worker.js": "e8c34cb9bc20eb2df0afef062004d576691fe1009a01ef0cef4e85bef7aa5b50"
+      },
+      "options": {
+        "bts_dir": "/home/tim/repos/bts",
+        "ref": "c3ea681",
+        "duration_ms": 90000,
+        "sync_interval_ms": 2000,
+        "count": 519,
+        "point_min_ms": 800,
+        "point_max_ms": 1600,
+        "set_points": 21,
+        "workload": "preparation"
+      },
+      "directory": "/tmp/bts-queue-responsiveness-1328of",
+      "started_at": "2026-10-12T00:32:08.989Z",
+      "finished_at": "2026-10-12T00:33:42.260Z",
+      "summary": {
+        "drained": true,
+        "syncs": 46,
+        "finished_syncs": 46,
+        "sync_stage_start_ms": {
+          "count": 46,
+          "mean": 35.33649797826087,
+          "median": 29.65969,
+          "p95": 58.933959,
+          "max": 165.021451
+        },
+        "sync_total_ms": {
+          "count": 46,
+          "mean": 357.5839930869566,
+          "median": 333.131128,
+          "p95": 493.750124,
+          "max": 936.14604
+        },
+        "points": 701,
+        "tablet_to_tv_ms": {
+          "count": 701,
+          "mean": 12.6,
+          "min": 3,
+          "p50": 11,
+          "p95": 26,
+          "p99": 35,
+          "max": 60,
+          "over_50_ms": 1,
+          "over_100_ms": 0,
+          "over_200_ms": 0,
+          "sent_updates": 701,
+          "unmatched_updates": 0,
+          "coverage": 1
+        },
+        "tablet_to_admin_ms": {
+          "count": 701,
+          "mean": 7.7,
+          "min": 2,
+          "p50": 6,
+          "p95": 18,
+          "p99": 24,
+          "max": 40,
+          "over_50_ms": 0,
+          "over_100_ms": 0,
+          "over_200_ms": 0,
+          "sent_updates": 701,
+          "unmatched_updates": 0,
+          "coverage": 1
+        },
+        "reception": {
+          "method": "isolated-websocket-reception",
+          "thread_id": 1,
+          "messages": 72638,
+          "clock": "Worker Date.now at WebSocket message callback; monotonic hrtime also forwarded",
+          "simulator_delivery_ms": {
+            "mean": 0.4779867287094909,
+            "max": 90
+          },
+          "error": null
+        },
+        "finished_matches": 0,
+        "oncourt_matches": 13,
+        "call_events": 1,
+        "preparation_events": 2,
+        "preparation_calculation_ms": {
+          "count": 6,
+          "mean": 6.399585666666667,
+          "median": 5.945773,
+          "p95": 9.534737,
+          "max": 9.534737
+        },
+        "free_announce_ms": {
+          "count": 45,
+          "mean": 1.4788775333333335,
+          "median": 1.230626,
+          "p95": 3.229982,
+          "max": 7.011037
+        },
+        "call_ms": {
+          "count": 1,
+          "mean": 11.055221,
+          "median": 11.055221,
+          "p95": 11.055221,
+          "max": 11.055221
+        },
+        "unanswered": 0,
+        "windows": [
+          {
+            "third": 1,
+            "samples": 1448,
+            "pending": {
+              "count": 1448,
+              "mean": 0.013812154696132596,
+              "median": 0,
+              "p95": 0,
+              "max": 2
+            },
+            "oldest_pending_ms": {
+              "count": 1448,
+              "mean": 0.7080720220994475,
+              "median": 0,
+              "p95": 0,
+              "max": 250.329693
+            },
+            "database_pending": {
+              "count": 1448,
+              "mean": 0.4095303867403315,
+              "median": 0,
+              "p95": 3,
+              "max": 18
+            },
+            "unfinished_syncs": {
+              "count": 299,
+              "mean": 0.19732441471571907,
+              "median": 0,
+              "p95": 1,
+              "max": 1
+            },
+            "oldest_sync_ms": {
+              "count": 299,
+              "mean": 44.986796561872914,
+              "median": 0,
+              "p95": 296.040267,
+              "max": 806.491862
+            }
+          },
+          {
+            "third": 2,
+            "samples": 1462,
+            "pending": {
+              "count": 1462,
+              "mean": 0.0047879616963064295,
+              "median": 0,
+              "p95": 0,
+              "max": 1
+            },
+            "oldest_pending_ms": {
+              "count": 1462,
+              "mean": 0.001982578659370725,
+              "median": 0,
+              "p95": 0,
+              "max": 0.562521
+            },
+            "database_pending": {
+              "count": 1462,
+              "mean": 0.2715458276333789,
+              "median": 0,
+              "p95": 1,
+              "max": 8
+            },
+            "unfinished_syncs": {
+              "count": 301,
+              "mean": 0.14950166112956811,
+              "median": 0,
+              "p95": 1,
+              "max": 1
+            },
+            "oldest_sync_ms": {
+              "count": 301,
+              "mean": 21.971644498338872,
+              "median": 0,
+              "p95": 194.51975,
+              "max": 330.004695
+            }
+          },
+          {
+            "third": 3,
+            "samples": 1460,
+            "pending": {
+              "count": 1460,
+              "mean": 0.013013698630136987,
+              "median": 0,
+              "p95": 0,
+              "max": 1
+            },
+            "oldest_pending_ms": {
+              "count": 1460,
+              "mean": 0.5728144726027398,
+              "median": 0,
+              "p95": 0,
+              "max": 182.042282
+            },
+            "database_pending": {
+              "count": 1460,
+              "mean": 0.2602739726027397,
+              "median": 0,
+              "p95": 1,
+              "max": 25
+            },
+            "unfinished_syncs": {
+              "count": 302,
+              "mean": 0.1456953642384106,
+              "median": 0,
+              "p95": 1,
+              "max": 1
+            },
+            "oldest_sync_ms": {
+              "count": 302,
+              "mean": 23.383320463576155,
+              "median": 0,
+              "p95": 190.027194,
+              "max": 352.981169
+            }
+          }
+        ],
+        "event_loop": {
+          "measured": true,
+          "max_ms": 71.892991,
+          "p95_ms": 13.484031
+        },
+        "processing_errors": 0,
+        "point_queue_wait_ms": {
+          "count": 1414,
+          "mean": 0.8024338649222067,
+          "median": 0.559406,
+          "p95": 1.434866,
+          "max": 184.225794
+        }
+      },
+      "artifacts": {
+        "server": "/tmp/bts-queue-responsiveness-1328of/mixed/server-result.json",
+        "client": "/tmp/bts-queue-responsiveness-1328of/mixed/client-result.json",
+        "probes": "/tmp/bts-queue-responsiveness-1328of/mixed/probe-result.json"
+      },
+      "limitations": [
+        "Isolated deterministic 519-game fixture, real durable NeDB and unmodified committed BTS modules.",
+        "Real separate testclient simulates tablets, TV and admin; point interval in options, 13 courts, zero score gap.",
+        "Idle fixture games explicitly set to scheduled before measurement, enabling automatic calls after real finishes.",
+        "Periodic sync uses the actual validated integration planner but updates idle match numbers directly in staging; no periodic BTP TCP/XML fetch/parser.",
+        "Full BTP fixture is used only at bootstrap. No live tournament or server is modified. Officials/tabletoperator allocation disabled.",
+        "Automatic preparation enabled; 26 pairs of players recur across scheduled games, creating real participant dependencies. No winner/loser bracket propagation simulated.",
+        "One explicit unchanged court call during first integration; automatic calls through actual score finishes; free announcements every two seconds.",
+        "Queue samples every 20 ms, diagnostics/traces enabled by normal client. Observer overhead and local machine load included.",
+        "Reception of WebSocket events, no browser painting or audible speech. Limited duration, no capacity guarantee."
+      ],
+      "comparison_note": "Slower 800–1600 ms cadence; no finishes during its 90-second run. Not evidence of an improvement relative to 400–800 ms preparation runs."
+    },
+    "sync_validation": {
+      "status": "completed",
+      "commit": "c3ea681a1deb660b948b0665fb0f8f5f20f313aa",
+      "client_commit": "1087d5f297f4de88a0e3d33025ee85be1473ba30",
+      "client_source_sha256": "6003f018c09f608f28c90580d0948ed34217b8afd5838c47ffef55fdbcf9e7e7",
+      "client_reception_sha256": {
+        "reception/transport.js": "8f9913f2b690a82f1c1a11320703ded8577b8d314bfcc5516cf5a631af73e293",
+        "reception/worker.js": "e8c34cb9bc20eb2df0afef062004d576691fe1009a01ef0cef4e85bef7aa5b50"
+      },
+      "options": {
+        "bts_dir": "/home/tim/repos/bts",
+        "ref": "c3ea681",
+        "duration_ms": 90000,
+        "sync_interval_ms": 2000,
+        "count": 519,
+        "point_min_ms": 400,
+        "point_max_ms": 800,
+        "set_points": 21,
+        "workload": "preparation"
+      },
+      "directory": "/tmp/bts-queue-responsiveness-yql4Nf",
+      "started_at": "2026-10-12T00:34:03.754Z",
+      "finished_at": "2026-10-12T00:35:37.574Z",
+      "summary": {
+        "drained": true,
+        "syncs": 46,
+        "finished_syncs": 46,
+        "sync_stage_start_ms": {
+          "count": 46,
+          "mean": 36.355798543478265,
+          "median": 28.890107,
+          "p95": 80.970618,
+          "max": 151.686824
+        },
+        "sync_total_ms": {
+          "count": 46,
+          "mean": 377.3059463695653,
+          "median": 346.505975,
+          "p95": 563.556913,
+          "max": 948.090464
+        },
+        "points": 958,
+        "tablet_to_tv_ms": {
+          "count": 963,
+          "mean": 12.2,
+          "min": 3,
+          "p50": 10,
+          "p95": 27,
+          "p99": 46,
+          "max": 85,
+          "over_50_ms": 6,
+          "over_100_ms": 0,
+          "over_200_ms": 0,
+          "sent_updates": 963,
+          "unmatched_updates": 0,
+          "coverage": 1
+        },
+        "tablet_to_admin_ms": {
+          "count": 963,
+          "mean": 7.6,
+          "min": 2,
+          "p50": 6,
+          "p95": 20,
+          "p99": 35,
+          "max": 61,
+          "over_50_ms": 2,
+          "over_100_ms": 0,
+          "over_200_ms": 0,
+          "sent_updates": 963,
+          "unmatched_updates": 0,
+          "coverage": 1
+        },
+        "reception": {
+          "method": "isolated-websocket-reception",
+          "thread_id": 1,
+          "messages": 90664,
+          "clock": "Worker Date.now at WebSocket message callback; monotonic hrtime also forwarded",
+          "simulator_delivery_ms": {
+            "mean": 0.842462278302303,
+            "max": 72
+          },
+          "error": null
+        },
+        "finished_matches": 5,
+        "oncourt_matches": 13,
+        "call_events": 6,
+        "preparation_events": 4,
+        "preparation_calculation_ms": {
+          "count": 25,
+          "mean": 6.4007824,
+          "median": 5.848148,
+          "p95": 10.137208,
+          "max": 12.294513
+        },
+        "free_announce_ms": {
+          "count": 46,
+          "mean": 1.032054608695652,
+          "median": 0.705604,
+          "p95": 3.727149,
+          "max": 4.808659
+        },
+        "call_ms": {
+          "count": 1,
+          "mean": 12.695529,
+          "median": 12.695529,
+          "p95": 12.695529,
+          "max": 12.695529
+        },
+        "unanswered": 0,
+        "windows": [
+          {
+            "third": 1,
+            "samples": 1450,
+            "pending": {
+              "count": 1450,
+              "mean": 0.015172413793103448,
+              "median": 0,
+              "p95": 0,
+              "max": 2
+            },
+            "oldest_pending_ms": {
+              "count": 1450,
+              "mean": 0.9207950703448277,
+              "median": 0,
+              "p95": 0,
+              "max": 260.14512
+            },
+            "database_pending": {
+              "count": 1450,
+              "mean": 0.4406896551724138,
+              "median": 0,
+              "p95": 3,
+              "max": 17
+            },
+            "unfinished_syncs": {
+              "count": 301,
+              "mean": 0.18604651162790697,
+              "median": 0,
+              "p95": 1,
+              "max": 1
+            },
+            "oldest_sync_ms": {
+              "count": 301,
+              "mean": 39.281982528239205,
+              "median": 0,
+              "p95": 264.463103,
+              "max": 804.634922
+            }
+          },
+          {
+            "third": 2,
+            "samples": 1464,
+            "pending": {
+              "count": 1464,
+              "mean": 0.00273224043715847,
+              "median": 0,
+              "p95": 0,
+              "max": 1
+            },
+            "oldest_pending_ms": {
+              "count": 1464,
+              "mean": 0.0012314474043715847,
+              "median": 0,
+              "p95": 0,
+              "max": 0.653054
+            },
+            "database_pending": {
+              "count": 1464,
+              "mean": 0.2390710382513661,
+              "median": 0,
+              "p95": 1,
+              "max": 8
+            },
+            "unfinished_syncs": {
+              "count": 303,
+              "mean": 0.1485148514851485,
+              "median": 0,
+              "p95": 1,
+              "max": 1
+            },
+            "oldest_sync_ms": {
+              "count": 303,
+              "mean": 25.038310452145218,
+              "median": 0,
+              "p95": 205.400591,
+              "max": 362.648483
+            }
+          },
+          {
+            "third": 3,
+            "samples": 1458,
+            "pending": {
+              "count": 1458,
+              "mean": 0.01646090534979424,
+              "median": 0,
+              "p95": 0,
+              "max": 1
+            },
+            "oldest_pending_ms": {
+              "count": 1458,
+              "mean": 0.2594131879286694,
+              "median": 0,
+              "p95": 0,
+              "max": 124.813807
+            },
+            "database_pending": {
+              "count": 1458,
+              "mean": 0.41838134430727025,
+              "median": 0,
+              "p95": 3,
+              "max": 21
+            },
+            "unfinished_syncs": {
+              "count": 301,
+              "mean": 0.1893687707641196,
+              "median": 0,
+              "p95": 1,
+              "max": 1
+            },
+            "oldest_sync_ms": {
+              "count": 301,
+              "mean": 39.34009641196013,
+              "median": 0,
+              "p95": 288.933627,
+              "max": 576.768272
+            }
+          }
+        ],
+        "event_loop": {
+          "measured": true,
+          "max_ms": 59.572223,
+          "p95_ms": 13.156351
+        },
+        "processing_errors": 0,
+        "point_queue_wait_ms": {
+          "count": 1998,
+          "mean": 0.7717219004004013,
+          "median": 0.552048,
+          "p95": 1.588593,
+          "max": 125.686057
+        }
+      },
+      "artifacts": {
+        "server": "/tmp/bts-queue-responsiveness-yql4Nf/mixed/server-result.json",
+        "client": "/tmp/bts-queue-responsiveness-yql4Nf/mixed/client-result.json",
+        "probes": "/tmp/bts-queue-responsiveness-yql4Nf/mixed/probe-result.json"
+      },
+      "limitations": [
+        "Isolated deterministic 519-game fixture, real durable NeDB and unmodified committed BTS modules.",
+        "Real separate testclient simulates tablets, TV and admin; point interval in options, 13 courts, zero score gap.",
+        "Idle fixture games explicitly set to scheduled before measurement, enabling automatic calls after real finishes.",
+        "Periodic sync uses the actual validated integration planner but updates idle match numbers directly in staging; no periodic BTP TCP/XML fetch/parser.",
+        "Full BTP fixture is used only at bootstrap. No live tournament or server is modified. Officials/tabletoperator allocation disabled.",
+        "Automatic preparation enabled; 26 pairs of players recur across scheduled games, creating real participant dependencies. No winner/loser bracket propagation simulated.",
+        "One explicit unchanged court call during first integration; automatic calls through actual score finishes; free announcements every two seconds.",
+        "Queue samples every 20 ms, diagnostics/traces enabled by normal client. Observer overhead and local machine load included.",
+        "Reception of WebSocket events, no browser painting or audible speech. Limited duration, no capacity guarantee."
+      ]
+    },
+    "automatic_preparation_reads": {
+      "status": "completed",
+      "commit": "9029f4e606a215416db525ffa6125cbe479bc36e",
+      "client_commit": "1087d5f297f4de88a0e3d33025ee85be1473ba30",
+      "client_source_sha256": "6003f018c09f608f28c90580d0948ed34217b8afd5838c47ffef55fdbcf9e7e7",
+      "client_reception_sha256": {
+        "reception/transport.js": "8f9913f2b690a82f1c1a11320703ded8577b8d314bfcc5516cf5a631af73e293",
+        "reception/worker.js": "e8c34cb9bc20eb2df0afef062004d576691fe1009a01ef0cef4e85bef7aa5b50"
+      },
+      "options": {
+        "bts_dir": "/home/tim/repos/bts",
+        "ref": "HEAD",
+        "duration_ms": 90000,
+        "sync_interval_ms": 2000,
+        "count": 519,
+        "point_min_ms": 400,
+        "point_max_ms": 800,
+        "set_points": 21,
+        "workload": "preparation"
+      },
+      "directory": "/tmp/bts-queue-responsiveness-gthmSF",
+      "started_at": "2026-10-12T00:37:01.170Z",
+      "finished_at": "2026-10-12T00:38:35.093Z",
+      "summary": {
+        "drained": true,
+        "syncs": 46,
+        "finished_syncs": 46,
+        "sync_stage_start_ms": {
+          "count": 46,
+          "mean": 37.9044942826087,
+          "median": 36.394578,
+          "p95": 74.760765,
+          "max": 153.175817
+        },
+        "sync_total_ms": {
+          "count": 46,
+          "mean": 397.83060402173925,
+          "median": 365.376333,
+          "p95": 649.171326,
+          "max": 999.34945
+        },
+        "points": 953,
+        "tablet_to_tv_ms": {
+          "count": 958,
+          "mean": 12.4,
+          "min": 3,
+          "p50": 10,
+          "p95": 25,
+          "p99": 39,
+          "max": 62,
+          "over_50_ms": 1,
+          "over_100_ms": 0,
+          "over_200_ms": 0,
+          "sent_updates": 958,
+          "unmatched_updates": 0,
+          "coverage": 1
+        },
+        "tablet_to_admin_ms": {
+          "count": 958,
+          "mean": 7.4,
+          "min": 2,
+          "p50": 6,
+          "p95": 18,
+          "p99": 29,
+          "max": 46,
+          "over_50_ms": 0,
+          "over_100_ms": 0,
+          "over_200_ms": 0,
+          "sent_updates": 958,
+          "unmatched_updates": 0,
+          "coverage": 1
+        },
+        "reception": {
+          "method": "isolated-websocket-reception",
+          "thread_id": 1,
+          "messages": 90330,
+          "clock": "Worker Date.now at WebSocket message callback; monotonic hrtime also forwarded",
+          "simulator_delivery_ms": {
+            "mean": 0.9352374626369977,
+            "max": 106
+          },
+          "error": null
+        },
+        "finished_matches": 5,
+        "oncourt_matches": 13,
+        "call_events": 6,
+        "preparation_events": 4,
+        "preparation_calculation_ms": {
+          "count": 26,
+          "mean": 6.840280615384616,
+          "median": 5.580062,
+          "p95": 14.631361,
+          "max": 15.301309
+        },
+        "free_announce_ms": {
+          "count": 46,
+          "mean": 2.2922410434782607,
+          "median": 1.043865,
+          "p95": 8.339133,
+          "max": 10.877007
+        },
+        "call_ms": {
+          "count": 1,
+          "mean": 10.648066,
+          "median": 10.648066,
+          "p95": 10.648066,
+          "max": 10.648066
+        },
+        "unanswered": 0,
+        "windows": [
+          {
+            "third": 1,
+            "samples": 1459,
+            "pending": {
+              "count": 1459,
+              "mean": 0.011651816312542838,
+              "median": 0,
+              "p95": 0,
+              "max": 2
+            },
+            "oldest_pending_ms": {
+              "count": 1459,
+              "mean": 0.6321505400959562,
+              "median": 0,
+              "p95": 0,
+              "max": 213.077593
+            },
+            "database_pending": {
+              "count": 1459,
+              "mean": 0.38793694311172033,
+              "median": 0,
+              "p95": 2,
+              "max": 21
+            },
+            "unfinished_syncs": {
+              "count": 302,
+              "mean": 0.1986754966887417,
+              "median": 0,
+              "p95": 1,
+              "max": 1
+            },
+            "oldest_sync_ms": {
+              "count": 302,
+              "mean": 39.833927552980136,
+              "median": 0,
+              "p95": 284.153691,
+              "max": 704.057342
+            }
+          },
+          {
+            "third": 2,
+            "samples": 1465,
+            "pending": {
+              "count": 1465,
+              "mean": 0.0061433447098976105,
+              "median": 0,
+              "p95": 0,
+              "max": 1
+            },
+            "oldest_pending_ms": {
+              "count": 1465,
+              "mean": 0.0033446095563139933,
+              "median": 0,
+              "p95": 0,
+              "max": 1.036291
+            },
+            "database_pending": {
+              "count": 1465,
+              "mean": 0.2573378839590444,
+              "median": 0,
+              "p95": 1,
+              "max": 14
+            },
+            "unfinished_syncs": {
+              "count": 302,
+              "mean": 0.1490066225165563,
+              "median": 0,
+              "p95": 1,
+              "max": 1
+            },
+            "oldest_sync_ms": {
+              "count": 302,
+              "mean": 24.673301387417215,
+              "median": 0,
+              "p95": 201.774054,
+              "max": 370.045463
+            }
+          },
+          {
+            "third": 3,
+            "samples": 1457,
+            "pending": {
+              "count": 1457,
+              "mean": 0.024021962937542895,
+              "median": 0,
+              "p95": 0,
+              "max": 1
+            },
+            "oldest_pending_ms": {
+              "count": 1457,
+              "mean": 0.16470789224433768,
+              "median": 0,
+              "p95": 0,
+              "max": 75.292411
+            },
+            "database_pending": {
+              "count": 1457,
+              "mean": 0.34111187371310914,
+              "median": 0,
+              "p95": 1,
+              "max": 25
+            },
+            "unfinished_syncs": {
+              "count": 302,
+              "mean": 0.20198675496688742,
+              "median": 0,
+              "p95": 1,
+              "max": 1
+            },
+            "oldest_sync_ms": {
+              "count": 302,
+              "mean": 49.59470180463577,
+              "median": 0,
+              "p95": 325.588345,
+              "max": 925.204694
+            }
+          }
+        ],
+        "event_loop": {
+          "measured": true,
+          "max_ms": 49.446911,
+          "p95_ms": 13.213695
+        },
+        "processing_errors": 0,
+        "point_queue_wait_ms": {
+          "count": 1985,
+          "mean": 0.7481339506297238,
+          "median": 0.538865,
+          "p95": 1.550675,
+          "max": 76.033018
+        }
+      },
+      "artifacts": {
+        "server": "/tmp/bts-queue-responsiveness-gthmSF/mixed/server-result.json",
+        "client": "/tmp/bts-queue-responsiveness-gthmSF/mixed/client-result.json",
+        "probes": "/tmp/bts-queue-responsiveness-gthmSF/mixed/probe-result.json"
+      },
+      "limitations": [
+        "Isolated deterministic 519-game fixture, real durable NeDB and unmodified committed BTS modules.",
+        "Real separate testclient simulates tablets, TV and admin; point interval in options, 13 courts, zero score gap.",
+        "Idle fixture games explicitly set to scheduled before measurement, enabling automatic calls after real finishes.",
+        "Periodic sync uses the actual validated integration planner but updates idle match numbers directly in staging; no periodic BTP TCP/XML fetch/parser.",
+        "Full BTP fixture is used only at bootstrap. No live tournament or server is modified. Officials/tabletoperator allocation disabled.",
+        "Automatic preparation enabled; 26 pairs of players recur across scheduled games, creating real participant dependencies. No winner/loser bracket propagation simulated.",
+        "One explicit unchanged court call during first integration; automatic calls through actual score finishes; free announcements every two seconds.",
+        "Queue samples every 20 ms, diagnostics/traces enabled by normal client. Observer overhead and local machine load included.",
+        "Reception of WebSocket events, no browser painting or audible speech. Limited duration, no capacity guarantee."
+      ]
+    },
+    "publication_priority": {
+      "status": "completed",
+      "commit": "60e878560052d71d265a2eeb1b00ef4290c32b96",
+      "client_commit": "1087d5f297f4de88a0e3d33025ee85be1473ba30",
+      "client_source_sha256": "6003f018c09f608f28c90580d0948ed34217b8afd5838c47ffef55fdbcf9e7e7",
+      "client_reception_sha256": {
+        "reception/transport.js": "8f9913f2b690a82f1c1a11320703ded8577b8d314bfcc5516cf5a631af73e293",
+        "reception/worker.js": "e8c34cb9bc20eb2df0afef062004d576691fe1009a01ef0cef4e85bef7aa5b50"
+      },
+      "options": {
+        "bts_dir": "/home/tim/repos/bts",
+        "ref": "HEAD",
+        "duration_ms": 90000,
+        "sync_interval_ms": 2000,
+        "count": 519,
+        "point_min_ms": 400,
+        "point_max_ms": 800,
+        "set_points": 21,
+        "workload": "preparation"
+      },
+      "directory": "/tmp/bts-queue-responsiveness-I0AuHc",
+      "started_at": "2026-10-12T00:40:25.987Z",
+      "finished_at": "2026-10-12T00:41:59.544Z",
+      "summary": {
+        "drained": true,
+        "syncs": 46,
+        "finished_syncs": 46,
+        "sync_stage_start_ms": {
+          "count": 46,
+          "mean": 40.13962856521739,
+          "median": 37.390231,
+          "p95": 72.005002,
+          "max": 141.901146
+        },
+        "sync_total_ms": {
+          "count": 46,
+          "mean": 388.98512630434783,
+          "median": 361.428138,
+          "p95": 690.31527,
+          "max": 872.982029
+        },
+        "points": 950,
+        "tablet_to_tv_ms": {
+          "count": 955,
+          "mean": 12.3,
+          "min": 3,
+          "p50": 10,
+          "p95": 27,
+          "p99": 36,
+          "max": 57,
+          "over_50_ms": 3,
+          "over_100_ms": 0,
+          "over_200_ms": 0,
+          "sent_updates": 955,
+          "unmatched_updates": 0,
+          "coverage": 1
+        },
+        "tablet_to_admin_ms": {
+          "count": 955,
+          "mean": 7.7,
+          "min": 2,
+          "p50": 6,
+          "p95": 19,
+          "p99": 30,
+          "max": 50,
+          "over_50_ms": 0,
+          "over_100_ms": 0,
+          "over_200_ms": 0,
+          "sent_updates": 955,
+          "unmatched_updates": 0,
+          "coverage": 1
+        },
+        "reception": {
+          "method": "isolated-websocket-reception",
+          "thread_id": 1,
+          "messages": 90129,
+          "clock": "Worker Date.now at WebSocket message callback; monotonic hrtime also forwarded",
+          "simulator_delivery_ms": {
+            "mean": 0.7480167315736334,
+            "max": 142
+          },
+          "error": null
+        },
+        "finished_matches": 5,
+        "oncourt_matches": 13,
+        "call_events": 6,
+        "preparation_events": 6,
+        "preparation_calculation_ms": {
+          "count": 28,
+          "mean": 6.777935178571427,
+          "median": 5.662906,
+          "p95": 13.347506,
+          "max": 17.945811
+        },
+        "free_announce_ms": {
+          "count": 46,
+          "mean": 1.730157347826087,
+          "median": 1.063151,
+          "p95": 4.953455,
+          "max": 6.571068
+        },
+        "call_ms": {
+          "count": 1,
+          "mean": 10.969505,
+          "median": 10.969505,
+          "p95": 10.969505,
+          "max": 10.969505
+        },
+        "unanswered": 0,
+        "windows": [
+          {
+            "third": 1,
+            "samples": 1452,
+            "pending": {
+              "count": 1452,
+              "mean": 0.010330578512396695,
+              "median": 0,
+              "p95": 0,
+              "max": 1
+            },
+            "oldest_pending_ms": {
+              "count": 1452,
+              "mean": 0.7331785096418733,
+              "median": 0,
+              "p95": 0,
+              "max": 235.707044
+            },
+            "database_pending": {
+              "count": 1452,
+              "mean": 0.3650137741046832,
+              "median": 0,
+              "p95": 1,
+              "max": 18
+            },
+            "unfinished_syncs": {
+              "count": 301,
+              "mean": 0.18604651162790697,
+              "median": 0,
+              "p95": 1,
+              "max": 1
+            },
+            "oldest_sync_ms": {
+              "count": 301,
+              "mean": 37.55774445847176,
+              "median": 0,
+              "p95": 251.483037,
+              "max": 804.294627
+            }
+          },
+          {
+            "third": 2,
+            "samples": 1460,
+            "pending": {
+              "count": 1460,
+              "mean": 0.004794520547945206,
+              "median": 0,
+              "p95": 0,
+              "max": 1
+            },
+            "oldest_pending_ms": {
+              "count": 1460,
+              "mean": 0.0021787787671232873,
+              "median": 0,
+              "p95": 0,
+              "max": 0.543393
+            },
+            "database_pending": {
+              "count": 1460,
+              "mean": 0.27534246575342464,
+              "median": 0,
+              "p95": 1,
+              "max": 8
+            },
+            "unfinished_syncs": {
+              "count": 300,
+              "mean": 0.15666666666666668,
+              "median": 0,
+              "p95": 1,
+              "max": 1
+            },
+            "oldest_sync_ms": {
+              "count": 300,
+              "mean": 26.7705113,
+              "median": 0,
+              "p95": 218.325453,
+              "max": 342.608224
+            }
+          },
+          {
+            "third": 3,
+            "samples": 1462,
+            "pending": {
+              "count": 1462,
+              "mean": 0.01709986320109439,
+              "median": 0,
+              "p95": 0,
+              "max": 1
+            },
+            "oldest_pending_ms": {
+              "count": 1462,
+              "mean": 0.34049949452804373,
+              "median": 0,
+              "p95": 0,
+              "max": 142.448593
+            },
+            "database_pending": {
+              "count": 1462,
+              "mean": 0.3700410396716826,
+              "median": 0,
+              "p95": 2,
+              "max": 25
+            },
+            "unfinished_syncs": {
+              "count": 302,
+              "mean": 0.19205298013245034,
+              "median": 0,
+              "p95": 1,
+              "max": 1
+            },
+            "oldest_sync_ms": {
+              "count": 302,
+              "mean": 41.164759788079465,
+              "median": 0,
+              "p95": 283.78244,
+              "max": 625.306444
+            }
+          }
+        ],
+        "event_loop": {
+          "measured": true,
+          "max_ms": 61.538303,
+          "p95_ms": 13.115391
+        },
+        "processing_errors": 0,
+        "point_queue_wait_ms": {
+          "count": 1978,
+          "mean": 0.8385291263902925,
+          "median": 0.565643,
+          "p95": 1.701215,
+          "max": 144.789688
+        }
+      },
+      "artifacts": {
+        "server": "/tmp/bts-queue-responsiveness-I0AuHc/mixed/server-result.json",
+        "client": "/tmp/bts-queue-responsiveness-I0AuHc/mixed/client-result.json",
+        "probes": "/tmp/bts-queue-responsiveness-I0AuHc/mixed/probe-result.json"
+      },
+      "limitations": [
+        "Isolated deterministic 519-game fixture, real durable NeDB and unmodified committed BTS modules.",
+        "Real separate testclient simulates tablets, TV and admin; point interval in options, 13 courts, zero score gap.",
+        "Idle fixture games explicitly set to scheduled before measurement, enabling automatic calls after real finishes.",
+        "Periodic sync uses the actual validated integration planner but updates idle match numbers directly in staging; no periodic BTP TCP/XML fetch/parser.",
+        "Full BTP fixture is used only at bootstrap. No live tournament or server is modified. Officials/tabletoperator allocation disabled.",
+        "Automatic preparation enabled; 26 pairs of players recur across scheduled games, creating real participant dependencies. No winner/loser bracket propagation simulated.",
+        "One explicit unchanged court call during first integration; automatic calls through actual score finishes; free announcements every two seconds.",
+        "Queue samples every 20 ms, diagnostics/traces enabled by normal client. Observer overhead and local machine load included.",
+        "Reception of WebSocket events, no browser painting or audible speech. Limited duration, no capacity guarantee."
+      ]
+    },
+    "full_btp_reference": {
+      "status": "completed",
+      "commit": "6058f6fb49e062022c81f8886c46b9ccd922ef1f",
+      "client_commit": "1087d5f297f4de88a0e3d33025ee85be1473ba30",
+      "client_source_sha256": "6003f018c09f608f28c90580d0948ed34217b8afd5838c47ffef55fdbcf9e7e7",
+      "client_reception_sha256": {
+        "reception/transport.js": "8f9913f2b690a82f1c1a11320703ded8577b8d314bfcc5516cf5a631af73e293",
+        "reception/worker.js": "e8c34cb9bc20eb2df0afef062004d576691fe1009a01ef0cef4e85bef7aa5b50"
+      },
+      "options": {
+        "bts_dir": "/home/tim/repos/bts",
+        "ref": "HEAD",
+        "duration_ms": 90000,
+        "sync_interval_ms": 10000,
+        "count": 519,
+        "point_min_ms": 400,
+        "point_max_ms": 800,
+        "set_points": 21,
+        "workload": "preparation-btp"
+      },
+      "directory": "/tmp/bts-queue-responsiveness-JiJwL3",
+      "started_at": "2026-10-12T00:43:39.692Z",
+      "finished_at": "2026-10-12T00:45:12.972Z",
+      "summary": {
+        "drained": true,
+        "syncs": 10,
+        "finished_syncs": 10,
+        "sync_stage_start_ms": {
+          "count": 10,
+          "mean": 0.0736258,
+          "median": 0.027348,
+          "p95": 0.486017,
+          "max": 0.486017
+        },
+        "sync_total_ms": {
+          "count": 10,
+          "mean": 353.51425570000004,
+          "median": 283.886573,
+          "p95": 650.861589,
+          "max": 650.861589
+        },
+        "points": 931,
+        "tablet_to_tv_ms": {
+          "count": 935,
+          "mean": 13.6,
+          "min": 3,
+          "p50": 12,
+          "p95": 27,
+          "p99": 42,
+          "max": 76,
+          "over_50_ms": 5,
+          "over_100_ms": 0,
+          "over_200_ms": 0,
+          "sent_updates": 935,
+          "unmatched_updates": 0,
+          "coverage": 1
+        },
+        "tablet_to_admin_ms": {
+          "count": 935,
+          "mean": 8.4,
+          "min": 2,
+          "p50": 7,
+          "p95": 19,
+          "p99": 35,
+          "max": 63,
+          "over_50_ms": 2,
+          "over_100_ms": 0,
+          "over_200_ms": 0,
+          "sent_updates": 935,
+          "unmatched_updates": 0,
+          "coverage": 1
+        },
+        "reception": {
+          "method": "isolated-websocket-reception",
+          "thread_id": 1,
+          "messages": 65300,
+          "clock": "Worker Date.now at WebSocket message callback; monotonic hrtime also forwarded",
+          "simulator_delivery_ms": {
+            "mean": 0.6724655436447167,
+            "max": 112
+          },
+          "error": null
+        },
+        "finished_matches": 4,
+        "oncourt_matches": 13,
+        "call_events": 5,
+        "preparation_events": 5,
+        "preparation_calculation_ms": {
+          "count": 27,
+          "mean": 8.342802444444445,
+          "median": 6.4811,
+          "p95": 14.475279,
+          "max": 21.76657
+        },
+        "free_announce_ms": {
+          "count": 45,
+          "mean": 1.4963086666666665,
+          "median": 1.04918,
+          "p95": 4.697796,
+          "max": 7.869952
+        },
+        "call_ms": {
+          "count": 1,
+          "mean": 27.368291,
+          "median": 27.368291,
+          "p95": 27.368291,
+          "max": 27.368291
+        },
+        "unanswered": 0,
+        "windows": [
+          {
+            "third": 1,
+            "samples": 1454,
+            "pending": {
+              "count": 1454,
+              "mean": 0.002751031636863824,
+              "median": 0,
+              "p95": 0,
+              "max": 2
+            },
+            "oldest_pending_ms": {
+              "count": 1454,
+              "mean": 0.00046492022008253094,
+              "median": 0,
+              "p95": 0,
+              "max": 0.282294
+            },
+            "database_pending": {
+              "count": 1454,
+              "mean": 0.4126547455295736,
+              "median": 0,
+              "p95": 3,
+              "max": 17
+            },
+            "unfinished_syncs": {
+              "count": 300,
+              "mean": 0.043333333333333335,
+              "median": 0,
+              "p95": 0,
+              "max": 1
+            },
+            "oldest_sync_ms": {
+              "count": 300,
+              "mean": 10.573676693333333,
+              "median": 0,
+              "p95": 0,
+              "max": 613.314915
+            }
+          },
+          {
+            "third": 2,
+            "samples": 1460,
+            "pending": {
+              "count": 1460,
+              "mean": 0.0013698630136986301,
+              "median": 0,
+              "p95": 0,
+              "max": 1
+            },
+            "oldest_pending_ms": {
+              "count": 1460,
+              "mean": 0.000554691095890411,
+              "median": 0,
+              "p95": 0,
+              "max": 0.575511
+            },
+            "database_pending": {
+              "count": 1460,
+              "mean": 0.28013698630136985,
+              "median": 0,
+              "p95": 1,
+              "max": 8
+            },
+            "unfinished_syncs": {
+              "count": 302,
+              "mean": 0.033112582781456956,
+              "median": 0,
+              "p95": 0,
+              "max": 1
+            },
+            "oldest_sync_ms": {
+              "count": 302,
+              "mean": 6.318678354304636,
+              "median": 0,
+              "p95": 0,
+              "max": 451.323725
+            }
+          },
+          {
+            "third": 3,
+            "samples": 1455,
+            "pending": {
+              "count": 1455,
+              "mean": 0.008247422680412371,
+              "median": 0,
+              "p95": 0,
+              "max": 1
+            },
+            "oldest_pending_ms": {
+              "count": 1455,
+              "mean": 0.009034617869415808,
+              "median": 0,
+              "p95": 0,
+              "max": 3.456611
+            },
+            "database_pending": {
+              "count": 1455,
+              "mean": 0.3649484536082474,
+              "median": 0,
+              "p95": 2,
+              "max": 20
+            },
+            "unfinished_syncs": {
+              "count": 300,
+              "mean": 0.03666666666666667,
+              "median": 0,
+              "p95": 0,
+              "max": 1
+            },
+            "oldest_sync_ms": {
+              "count": 300,
+              "mean": 7.673692083333334,
+              "median": 0,
+              "p95": 0,
+              "max": 476.335887
+            }
+          }
+        ],
+        "event_loop": {
+          "measured": true,
+          "max_ms": 70.713343,
+          "p95_ms": 13.582335
+        },
+        "processing_errors": 0,
+        "point_queue_wait_ms": {
+          "count": 1934,
+          "mean": 0.6869300268872799,
+          "median": 0.55194,
+          "p95": 1.306273,
+          "max": 9.999182
+        }
+      },
+      "artifacts": {
+        "server": "/tmp/bts-queue-responsiveness-JiJwL3/mixed/server-result.json",
+        "client": "/tmp/bts-queue-responsiveness-JiJwL3/mixed/client-result.json",
+        "probes": "/tmp/bts-queue-responsiveness-JiJwL3/mixed/probe-result.json"
+      },
+      "limitations": [
+        "Isolated deterministic 519-game fixture, real durable NeDB and unmodified committed BTS modules.",
+        "Real separate testclient simulates tablets, TV and admin; point interval in options, 13 courts, zero score gap.",
+        "Idle fixture games explicitly set to scheduled before measurement, enabling automatic calls after real finishes.",
+        "Periodic sync runs the actual full BTP integration against a deterministic parsed response, alternating a registered player profile; no BTP TCP/XML transport.",
+        "Full BTP fixture is used only at bootstrap. No live tournament or server is modified. Officials/tabletoperator allocation disabled.",
+        "Automatic preparation enabled; 26 pairs of players recur across scheduled games, creating real participant dependencies. No winner/loser bracket propagation simulated.",
+        "One explicit unchanged court call during first integration; automatic calls through actual score finishes; free announcements every two seconds.",
+        "Queue samples every 20 ms, diagnostics/traces enabled by normal client. Observer overhead and local machine load included.",
+        "Reception of WebSocket events, no browser painting or audible speech. Limited duration, no capacity guarantee."
+      ]
+    },
+    "prepared_match_writes": {
+      "status": "completed",
+      "commit": "0c6825df5260b5b6c273300514a4111def62e29c",
+      "client_commit": "1087d5f297f4de88a0e3d33025ee85be1473ba30",
+      "client_source_sha256": "6003f018c09f608f28c90580d0948ed34217b8afd5838c47ffef55fdbcf9e7e7",
+      "client_reception_sha256": {
+        "reception/transport.js": "8f9913f2b690a82f1c1a11320703ded8577b8d314bfcc5516cf5a631af73e293",
+        "reception/worker.js": "e8c34cb9bc20eb2df0afef062004d576691fe1009a01ef0cef4e85bef7aa5b50"
+      },
+      "options": {
+        "bts_dir": "/home/tim/repos/bts",
+        "ref": "HEAD",
+        "duration_ms": 90000,
+        "sync_interval_ms": 10000,
+        "count": 519,
+        "point_min_ms": 400,
+        "point_max_ms": 800,
+        "set_points": 21,
+        "workload": "preparation-btp"
+      },
+      "directory": "/tmp/bts-queue-responsiveness-ebg4zP",
+      "started_at": "2026-10-12T00:47:52.254Z",
+      "finished_at": "2026-10-12T00:49:25.657Z",
+      "summary": {
+        "drained": true,
+        "syncs": 10,
+        "finished_syncs": 10,
+        "sync_stage_start_ms": {
+          "count": 10,
+          "mean": 0.0789752,
+          "median": 0.024039,
+          "p95": 0.490353,
+          "max": 0.490353
+        },
+        "sync_total_ms": {
+          "count": 10,
+          "mean": 369.54781149999997,
+          "median": 289.979999,
+          "p95": 659.409879,
+          "max": 659.409879
+        },
+        "points": 934,
+        "tablet_to_tv_ms": {
+          "count": 939,
+          "mean": 13.6,
+          "min": 3,
+          "p50": 12,
+          "p95": 27,
+          "p99": 41,
+          "max": 52,
+          "over_50_ms": 3,
+          "over_100_ms": 0,
+          "over_200_ms": 0,
+          "sent_updates": 939,
+          "unmatched_updates": 0,
+          "coverage": 1
+        },
+        "tablet_to_admin_ms": {
+          "count": 939,
+          "mean": 8.2,
+          "min": 2,
+          "p50": 7,
+          "p95": 19,
+          "p99": 26,
+          "max": 40,
+          "over_50_ms": 0,
+          "over_100_ms": 0,
+          "over_200_ms": 0,
+          "sent_updates": 939,
+          "unmatched_updates": 0,
+          "coverage": 1
+        },
+        "reception": {
+          "method": "isolated-websocket-reception",
+          "thread_id": 1,
+          "messages": 65682,
+          "clock": "Worker Date.now at WebSocket message callback; monotonic hrtime also forwarded",
+          "simulator_delivery_ms": {
+            "mean": 0.6898541457324686,
+            "max": 129
+          },
+          "error": null
+        },
+        "finished_matches": 5,
+        "oncourt_matches": 13,
+        "call_events": 6,
+        "preparation_events": 6,
+        "preparation_calculation_ms": {
+          "count": 29,
+          "mean": 8.362917620689654,
+          "median": 6.787385,
+          "p95": 19.21719,
+          "max": 26.083502
+        },
+        "free_announce_ms": {
+          "count": 46,
+          "mean": 2.2805787173913044,
+          "median": 1.20762,
+          "p95": 10.266528,
+          "max": 14.064767
+        },
+        "call_ms": {
+          "count": 1,
+          "mean": 20.662133,
+          "median": 20.662133,
+          "p95": 20.662133,
+          "max": 20.662133
+        },
+        "unanswered": 0,
+        "windows": [
+          {
+            "third": 1,
+            "samples": 1459,
+            "pending": {
+              "count": 1459,
+              "mean": 0.0054832076764907475,
+              "median": 0,
+              "p95": 0,
+              "max": 2
+            },
+            "oldest_pending_ms": {
+              "count": 1459,
+              "mean": 0.0016382995202193283,
+              "median": 0,
+              "p95": 0,
+              "max": 1.081004
+            },
+            "database_pending": {
+              "count": 1459,
+              "mean": 0.3680603152844414,
+              "median": 0,
+              "p95": 3,
+              "max": 14
+            },
+            "unfinished_syncs": {
+              "count": 302,
+              "mean": 0.052980132450331126,
+              "median": 0,
+              "p95": 1,
+              "max": 1
+            },
+            "oldest_sync_ms": {
+              "count": 302,
+              "mean": 14.048106367549666,
+              "median": 0,
+              "p95": 54.224068,
+              "max": 613.362113
+            }
+          },
+          {
+            "third": 2,
+            "samples": 1470,
+            "pending": {
+              "count": 1470,
+              "mean": 0.0013605442176870747,
+              "median": 0,
+              "p95": 0,
+              "max": 1
+            },
+            "oldest_pending_ms": {
+              "count": 1470,
+              "mean": 0.0006196122448979592,
+              "median": 0,
+              "p95": 0,
+              "max": 0.554028
+            },
+            "database_pending": {
+              "count": 1470,
+              "mean": 0.28503401360544217,
+              "median": 0,
+              "p95": 1,
+              "max": 8
+            },
+            "unfinished_syncs": {
+              "count": 302,
+              "mean": 0.023178807947019868,
+              "median": 0,
+              "p95": 0,
+              "max": 1
+            },
+            "oldest_sync_ms": {
+              "count": 302,
+              "mean": 2.8930551456953646,
+              "median": 0,
+              "p95": 0,
+              "max": 234.023374
+            }
+          },
+          {
+            "third": 3,
+            "samples": 1457,
+            "pending": {
+              "count": 1457,
+              "mean": 0.0068634179821551134,
+              "median": 0,
+              "p95": 0,
+              "max": 1
+            },
+            "oldest_pending_ms": {
+              "count": 1457,
+              "mean": 0.007080070693205215,
+              "median": 0,
+              "p95": 0,
+              "max": 3.117652
+            },
+            "database_pending": {
+              "count": 1457,
+              "mean": 0.4152367879203844,
+              "median": 0,
+              "p95": 3,
+              "max": 26
+            },
+            "unfinished_syncs": {
+              "count": 302,
+              "mean": 0.03642384105960265,
+              "median": 0,
+              "p95": 0,
+              "max": 1
+            },
+            "oldest_sync_ms": {
+              "count": 302,
+              "mean": 9.481328506622516,
+              "median": 0,
+              "p95": 0,
+              "max": 628.123495
+            }
+          }
+        ],
+        "event_loop": {
+          "measured": true,
+          "max_ms": 59.867135,
+          "p95_ms": 13.615103
+        },
+        "processing_errors": 0,
+        "point_queue_wait_ms": {
+          "count": 1945,
+          "mean": 0.6825095984575836,
+          "median": 0.551971,
+          "p95": 1.289885,
+          "max": 11.339058
+        }
+      },
+      "artifacts": {
+        "server": "/tmp/bts-queue-responsiveness-ebg4zP/mixed/server-result.json",
+        "client": "/tmp/bts-queue-responsiveness-ebg4zP/mixed/client-result.json",
+        "probes": "/tmp/bts-queue-responsiveness-ebg4zP/mixed/probe-result.json"
+      },
+      "limitations": [
+        "Isolated deterministic 519-game fixture, real durable NeDB and unmodified committed BTS modules.",
+        "Real separate testclient simulates tablets, TV and admin; point interval in options, 13 courts, zero score gap.",
+        "Idle fixture games explicitly set to scheduled before measurement, enabling automatic calls after real finishes.",
+        "Periodic sync runs the actual full BTP integration against a deterministic parsed response, alternating a registered player profile; no BTP TCP/XML transport.",
+        "Full BTP fixture is used only at bootstrap. No live tournament or server is modified. Officials/tabletoperator allocation disabled.",
+        "Automatic preparation enabled; 26 pairs of players recur across scheduled games, creating real participant dependencies. No winner/loser bracket propagation simulated.",
+        "One explicit unchanged court call during first integration; automatic calls through actual score finishes; free announcements every two seconds.",
+        "Queue samples every 20 ms, diagnostics/traces enabled by normal client. Observer overhead and local machine load included.",
+        "Reception of WebSocket events, no browser painting or audible speech. Limited duration, no capacity guarantee."
+      ]
+    },
+    "preparation_call_spacing": {
+      "status": "completed",
+      "commit": "4fe4b1c39a502839120c4a5e2ee7fea6087828ec",
+      "client_commit": "bfff330b45fc38e3460edb6dcc2b01b7fd4ecd07",
+      "client_source_sha256": "6003f018c09f608f28c90580d0948ed34217b8afd5838c47ffef55fdbcf9e7e7",
+      "client_reception_sha256": {
+        "reception/transport.js": "8f9913f2b690a82f1c1a11320703ded8577b8d314bfcc5516cf5a631af73e293",
+        "reception/worker.js": "e8c34cb9bc20eb2df0afef062004d576691fe1009a01ef0cef4e85bef7aa5b50"
+      },
+      "options": {
+        "bts_dir": "/home/tim/repos/bts",
+        "ref": "HEAD",
+        "duration_ms": 90000,
+        "sync_interval_ms": 10000,
+        "count": 519,
+        "point_min_ms": 400,
+        "point_max_ms": 800,
+        "set_points": 21,
+        "workload": "preparation-btp"
+      },
+      "directory": "/tmp/bts-queue-responsiveness-YcmUx5",
+      "started_at": "2026-10-12T00:52:57.278Z",
+      "finished_at": "2026-10-12T00:54:30.794Z",
+      "summary": {
+        "drained": true,
+        "syncs": 10,
+        "finished_syncs": 10,
+        "sync_stage_start_ms": {
+          "count": 10,
+          "mean": 0.0874108,
+          "median": 0.047239,
+          "p95": 0.477852,
+          "max": 0.477852
+        },
+        "sync_total_ms": {
+          "count": 10,
+          "mean": 397.17450870000005,
+          "median": 357.877653,
+          "p95": 673.970834,
+          "max": 673.970834
+        },
+        "points": 933,
+        "tablet_to_tv_ms": {
+          "count": 937,
+          "mean": 13.9,
+          "min": 4,
+          "p50": 12,
+          "p95": 27,
+          "p99": 35,
+          "max": 66,
+          "over_50_ms": 5,
+          "over_100_ms": 0,
+          "over_200_ms": 0,
+          "sent_updates": 937,
+          "unmatched_updates": 0,
+          "coverage": 1
+        },
+        "tablet_to_admin_ms": {
+          "count": 937,
+          "mean": 8.5,
+          "min": 2,
+          "p50": 7,
+          "p95": 19,
+          "p99": 29,
+          "max": 60,
+          "over_50_ms": 1,
+          "over_100_ms": 0,
+          "over_200_ms": 0,
+          "sent_updates": 937,
+          "unmatched_updates": 0,
+          "coverage": 1
+        },
+        "reception": {
+          "method": "isolated-websocket-reception",
+          "thread_id": 1,
+          "messages": 65456,
+          "clock": "Worker Date.now at WebSocket message callback; monotonic hrtime also forwarded",
+          "simulator_delivery_ms": {
+            "mean": 0.6682504277682718,
+            "max": 50
+          },
+          "error": null
+        },
+        "finished_matches": 4,
+        "oncourt_matches": 13,
+        "call_events": 5,
+        "preparation_events": 5,
+        "preparation_calculation_ms": {
+          "count": 29,
+          "mean": 7.748830620689653,
+          "median": 6.1001,
+          "p95": 20.516572,
+          "max": 32.196488
+        },
+        "free_announce_ms": {
+          "count": 45,
+          "mean": 1.5954045333333333,
+          "median": 1.177757,
+          "p95": 3.977305,
+          "max": 10.292037
+        },
+        "call_ms": {
+          "count": 1,
+          "mean": 21.382164,
+          "median": 21.382164,
+          "p95": 21.382164,
+          "max": 21.382164
+        },
+        "unanswered": 0,
+        "windows": [
+          {
+            "third": 1,
+            "samples": 1457,
+            "pending": {
+              "count": 1457,
+              "mean": 0.002059025394646534,
+              "median": 0,
+              "p95": 0,
+              "max": 2
+            },
+            "oldest_pending_ms": {
+              "count": 1457,
+              "mean": 0.00024931983527796844,
+              "median": 0,
+              "p95": 0,
+              "max": 0.200253
+            },
+            "database_pending": {
+              "count": 1457,
+              "mean": 0.40974605353466026,
+              "median": 0,
+              "p95": 3,
+              "max": 13
+            },
+            "unfinished_syncs": {
+              "count": 301,
+              "mean": 0.046511627906976744,
+              "median": 0,
+              "p95": 0,
+              "max": 1
+            },
+            "oldest_sync_ms": {
+              "count": 301,
+              "mean": 11.954928518272427,
+              "median": 0,
+              "p95": 0,
+              "max": 610.294948
+            }
+          },
+          {
+            "third": 2,
+            "samples": 1463,
+            "pending": {
+              "count": 1463,
+              "mean": 0.001367053998632946,
+              "median": 0,
+              "p95": 0,
+              "max": 1
+            },
+            "oldest_pending_ms": {
+              "count": 1463,
+              "mean": 0.0005253294600136705,
+              "median": 0,
+              "p95": 0,
+              "max": 0.436801
+            },
+            "database_pending": {
+              "count": 1463,
+              "mean": 0.2597402597402597,
+              "median": 0,
+              "p95": 1,
+              "max": 8
+            },
+            "unfinished_syncs": {
+              "count": 303,
+              "mean": 0.036303630363036306,
+              "median": 0,
+              "p95": 0,
+              "max": 1
+            },
+            "oldest_sync_ms": {
+              "count": 303,
+              "mean": 6.181415772277227,
+              "median": 0,
+              "p95": 0,
+              "max": 338.888445
+            }
+          },
+          {
+            "third": 3,
+            "samples": 1468,
+            "pending": {
+              "count": 1468,
+              "mean": 0.006130790190735695,
+              "median": 0,
+              "p95": 0,
+              "max": 1
+            },
+            "oldest_pending_ms": {
+              "count": 1468,
+              "mean": 0.004657017029972752,
+              "median": 0,
+              "p95": 0,
+              "max": 1.335812
+            },
+            "database_pending": {
+              "count": 1468,
+              "mean": 0.3576294277929155,
+              "median": 0,
+              "p95": 2,
+              "max": 21
+            },
+            "unfinished_syncs": {
+              "count": 302,
+              "mean": 0.04304635761589404,
+              "median": 0,
+              "p95": 0,
+              "max": 1
+            },
+            "oldest_sync_ms": {
+              "count": 302,
+              "mean": 11.292152566225166,
+              "median": 0,
+              "p95": 0,
+              "max": 575.068088
+            }
+          }
+        ],
+        "event_loop": {
+          "measured": true,
+          "max_ms": 68.747263,
+          "p95_ms": 13.418495
+        },
+        "processing_errors": 0,
+        "point_queue_wait_ms": {
+          "count": 1936,
+          "mean": 0.6531820051652893,
+          "median": 0.534022,
+          "p95": 1.224916,
+          "max": 28.186573
+        }
+      },
+      "artifacts": {
+        "server": "/tmp/bts-queue-responsiveness-YcmUx5/mixed/server-result.json",
+        "client": "/tmp/bts-queue-responsiveness-YcmUx5/mixed/client-result.json",
+        "probes": "/tmp/bts-queue-responsiveness-YcmUx5/mixed/probe-result.json"
+      },
+      "limitations": [
+        "Isolated deterministic 519-game fixture, real durable NeDB and unmodified committed BTS modules.",
+        "Real separate testclient simulates tablets, TV and admin; point interval in options, 13 courts, zero score gap.",
+        "Idle fixture games explicitly set to scheduled before measurement, enabling automatic calls after real finishes.",
+        "Periodic sync runs the actual full BTP integration against a deterministic parsed response, alternating a registered player profile; no BTP TCP/XML transport.",
+        "Full BTP fixture is used only at bootstrap. No live tournament or server is modified. Officials/tabletoperator allocation disabled.",
+        "Automatic preparation enabled; 26 pairs of players recur across scheduled games, creating real participant dependencies. No winner/loser bracket propagation simulated.",
+        "One explicit unchanged court call during first integration; automatic calls through actual score finishes; free announcements every two seconds.",
+        "Queue samples every 20 ms, diagnostics/traces enabled by normal client. Observer overhead and local machine load included.",
+        "Reception of WebSocket events, no browser painting or audible speech. Limited duration, no capacity guarantee."
+      ]
+    },
+    "parallel_display_reads": {
+      "status": "completed",
+      "commit": "e70e57b6b49410defc379c77d012151f597efd2b",
+      "client_commit": "bfff330b45fc38e3460edb6dcc2b01b7fd4ecd07",
+      "client_source_sha256": "6003f018c09f608f28c90580d0948ed34217b8afd5838c47ffef55fdbcf9e7e7",
+      "client_reception_sha256": {
+        "reception/transport.js": "8f9913f2b690a82f1c1a11320703ded8577b8d314bfcc5516cf5a631af73e293",
+        "reception/worker.js": "e8c34cb9bc20eb2df0afef062004d576691fe1009a01ef0cef4e85bef7aa5b50"
+      },
+      "options": {
+        "bts_dir": "/home/tim/repos/bts",
+        "ref": "HEAD",
+        "duration_ms": 90000,
+        "sync_interval_ms": 10000,
+        "count": 519,
+        "point_min_ms": 400,
+        "point_max_ms": 800,
+        "set_points": 21,
+        "workload": "preparation-btp"
+      },
+      "directory": "/tmp/bts-queue-responsiveness-K0hNxO",
+      "started_at": "2026-10-12T00:55:57.940Z",
+      "finished_at": "2026-10-12T00:57:31.435Z",
+      "summary": {
+        "drained": true,
+        "syncs": 10,
+        "finished_syncs": 10,
+        "sync_stage_start_ms": {
+          "count": 10,
+          "mean": 0.0799922,
+          "median": 0.017573,
+          "p95": 0.493031,
+          "max": 0.493031
+        },
+        "sync_total_ms": {
+          "count": 10,
+          "mean": 350.93923779999994,
+          "median": 322.498673,
+          "p95": 659.89947,
+          "max": 659.89947
+        },
+        "points": 929,
+        "tablet_to_tv_ms": {
+          "count": 934,
+          "mean": 13.3,
+          "min": 4,
+          "p50": 12,
+          "p95": 25,
+          "p99": 35,
+          "max": 54,
+          "over_50_ms": 1,
+          "over_100_ms": 0,
+          "over_200_ms": 0,
+          "sent_updates": 934,
+          "unmatched_updates": 0,
+          "coverage": 1
+        },
+        "tablet_to_admin_ms": {
+          "count": 934,
+          "mean": 8.4,
+          "min": 2,
+          "p50": 7,
+          "p95": 19,
+          "p99": 29,
+          "max": 44,
+          "over_50_ms": 0,
+          "over_100_ms": 0,
+          "over_200_ms": 0,
+          "sent_updates": 934,
+          "unmatched_updates": 0,
+          "coverage": 1
+        },
+        "reception": {
+          "method": "isolated-websocket-reception",
+          "thread_id": 1,
+          "messages": 65359,
+          "clock": "Worker Date.now at WebSocket message callback; monotonic hrtime also forwarded",
+          "simulator_delivery_ms": {
+            "mean": 0.6995517067274591,
+            "max": 59
+          },
+          "error": null
+        },
+        "finished_matches": 5,
+        "oncourt_matches": 13,
+        "call_events": 6,
+        "preparation_events": 6,
+        "preparation_calculation_ms": {
+          "count": 29,
+          "mean": 9.866610344827585,
+          "median": 8.840139,
+          "p95": 17.757587,
+          "max": 20.812958
+        },
+        "free_announce_ms": {
+          "count": 46,
+          "mean": 1.4825632826086954,
+          "median": 1.154058,
+          "p95": 3.965639,
+          "max": 5.877482
+        },
+        "call_ms": {
+          "count": 1,
+          "mean": 23.39832,
+          "median": 23.39832,
+          "p95": 23.39832,
+          "max": 23.39832
+        },
+        "unanswered": 0,
+        "windows": [
+          {
+            "third": 1,
+            "samples": 1461,
+            "pending": {
+              "count": 1461,
+              "mean": 0.004106776180698152,
+              "median": 0,
+              "p95": 0,
+              "max": 2
+            },
+            "oldest_pending_ms": {
+              "count": 1461,
+              "mean": 0.0009972005475701576,
+              "median": 0,
+              "p95": 0,
+              "max": 0.937992
+            },
+            "database_pending": {
+              "count": 1461,
+              "mean": 0.4202600958247775,
+              "median": 0,
+              "p95": 3,
+              "max": 13
+            },
+            "unfinished_syncs": {
+              "count": 302,
+              "mean": 0.046357615894039736,
+              "median": 0,
+              "p95": 0,
+              "max": 1
+            },
+            "oldest_sync_ms": {
+              "count": 302,
+              "mean": 11.015804725165562,
+              "median": 0,
+              "p95": 0,
+              "max": 612.588737
+            }
+          },
+          {
+            "third": 2,
+            "samples": 1466,
+            "pending": {
+              "count": 1466,
+              "mean": 0.001364256480218281,
+              "median": 0,
+              "p95": 0,
+              "max": 1
+            },
+            "oldest_pending_ms": {
+              "count": 1466,
+              "mean": 0.0004492926330150068,
+              "median": 0,
+              "p95": 0,
+              "max": 0.372186
+            },
+            "database_pending": {
+              "count": 1466,
+              "mean": 0.2598908594815825,
+              "median": 0,
+              "p95": 1,
+              "max": 8
+            },
+            "unfinished_syncs": {
+              "count": 302,
+              "mean": 0.023178807947019868,
+              "median": 0,
+              "p95": 0,
+              "max": 1
+            },
+            "oldest_sync_ms": {
+              "count": 302,
+              "mean": 3.452021784768212,
+              "median": 0,
+              "p95": 0,
+              "max": 261.509327
+            }
+          },
+          {
+            "third": 3,
+            "samples": 1464,
+            "pending": {
+              "count": 1464,
+              "mean": 0.006830601092896175,
+              "median": 0,
+              "p95": 0,
+              "max": 1
+            },
+            "oldest_pending_ms": {
+              "count": 1464,
+              "mean": 0.0058536584699453555,
+              "median": 0,
+              "p95": 0,
+              "max": 2.918905
+            },
+            "database_pending": {
+              "count": 1464,
+              "mean": 0.39207650273224043,
+              "median": 0,
+              "p95": 3,
+              "max": 25
+            },
+            "unfinished_syncs": {
+              "count": 301,
+              "mean": 0.03986710963455149,
+              "median": 0,
+              "p95": 0,
+              "max": 1
+            },
+            "oldest_sync_ms": {
+              "count": 301,
+              "mean": 7.616858797342192,
+              "median": 0,
+              "p95": 0,
+              "max": 424.169904
+            }
+          }
+        ],
+        "event_loop": {
+          "measured": true,
+          "max_ms": 66.158591,
+          "p95_ms": 13.705215
+        },
+        "processing_errors": 0,
+        "point_queue_wait_ms": {
+          "count": 1933,
+          "mean": 0.7186003843766173,
+          "median": 0.574096,
+          "p95": 1.462303,
+          "max": 14.231735
+        }
+      },
+      "artifacts": {
+        "server": "/tmp/bts-queue-responsiveness-K0hNxO/mixed/server-result.json",
+        "client": "/tmp/bts-queue-responsiveness-K0hNxO/mixed/client-result.json",
+        "probes": "/tmp/bts-queue-responsiveness-K0hNxO/mixed/probe-result.json"
+      },
+      "limitations": [
+        "Isolated deterministic 519-game fixture, real durable NeDB and unmodified committed BTS modules.",
+        "Real separate testclient simulates tablets, TV and admin; point interval in options, 13 courts, zero score gap.",
+        "Idle fixture games explicitly set to scheduled before measurement, enabling automatic calls after real finishes.",
+        "Periodic sync runs the actual full BTP integration against a deterministic parsed response, alternating a registered player profile; no BTP TCP/XML transport.",
+        "Full BTP fixture is used only at bootstrap. No live tournament or server is modified. Officials/tabletoperator allocation disabled.",
+        "Automatic preparation enabled; 26 pairs of players recur across scheduled games, creating real participant dependencies. No winner/loser bracket propagation simulated.",
+        "One explicit unchanged court call during first integration; automatic calls through actual score finishes; free announcements every two seconds.",
+        "Queue samples every 20 ms, diagnostics/traces enabled by normal client. Observer overhead and local machine load included.",
+        "Reception of WebSocket events, no browser painting or audible speech. Limited duration, no capacity guarantee."
+      ]
+    },
+    "committed_points_and_timers": {
+      "status": "completed",
+      "commit": "c51088e54977ce42521c8f63bac0dbf33dd22bb7",
+      "client_commit": "bfff330b45fc38e3460edb6dcc2b01b7fd4ecd07",
+      "client_source_sha256": "6003f018c09f608f28c90580d0948ed34217b8afd5838c47ffef55fdbcf9e7e7",
+      "client_reception_sha256": {
+        "reception/transport.js": "8f9913f2b690a82f1c1a11320703ded8577b8d314bfcc5516cf5a631af73e293",
+        "reception/worker.js": "e8c34cb9bc20eb2df0afef062004d576691fe1009a01ef0cef4e85bef7aa5b50"
+      },
+      "options": {
+        "bts_dir": "/home/tim/repos/bts",
+        "ref": "HEAD",
+        "duration_ms": 90000,
+        "sync_interval_ms": 10000,
+        "count": 519,
+        "point_min_ms": 400,
+        "point_max_ms": 800,
+        "set_points": 21,
+        "workload": "preparation-btp"
+      },
+      "directory": "/tmp/bts-queue-responsiveness-TaTg1g",
+      "started_at": "2026-10-12T01:04:51.519Z",
+      "finished_at": "2026-10-12T01:06:24.611Z",
+      "summary": {
+        "drained": true,
+        "syncs": 10,
+        "finished_syncs": 10,
+        "sync_stage_start_ms": {
+          "count": 10,
+          "mean": 0.07315419999999999,
+          "median": 0.018879,
+          "p95": 0.476354,
+          "max": 0.476354
+        },
+        "sync_total_ms": {
+          "count": 10,
+          "mean": 372.0215972,
+          "median": 287.925816,
+          "p95": 694.008952,
+          "max": 694.008952
+        },
+        "points": 934,
+        "tablet_to_tv_ms": {
+          "count": 939,
+          "mean": 9.3,
+          "min": 2,
+          "p50": 8,
+          "p95": 19,
+          "p99": 30,
+          "max": 56,
+          "over_50_ms": 2,
+          "over_100_ms": 0,
+          "over_200_ms": 0,
+          "sent_updates": 939,
+          "unmatched_updates": 0,
+          "coverage": 1
+        },
+        "tablet_to_admin_ms": {
+          "count": 939,
+          "mean": 10.2,
+          "min": 2,
+          "p50": 9,
+          "p95": 21,
+          "p99": 30,
+          "max": 57,
+          "over_50_ms": 2,
+          "over_100_ms": 0,
+          "over_200_ms": 0,
+          "sent_updates": 939,
+          "unmatched_updates": 0,
+          "coverage": 1
+        },
+        "reception": {
+          "method": "isolated-websocket-reception",
+          "thread_id": 1,
+          "messages": 65638,
+          "clock": "Worker Date.now at WebSocket message callback; monotonic hrtime also forwarded",
+          "simulator_delivery_ms": {
+            "mean": 0.552606721716079,
+            "max": 72
+          },
+          "error": null
+        },
+        "finished_matches": 5,
+        "oncourt_matches": 13,
+        "call_events": 6,
+        "preparation_events": 6,
+        "preparation_calculation_ms": {
+          "count": 29,
+          "mean": 7.81472348275862,
+          "median": 5.480056,
+          "p95": 15.82868,
+          "max": 18.453995
+        },
+        "free_announce_ms": {
+          "count": 45,
+          "mean": 1.788651888888889,
+          "median": 1.185135,
+          "p95": 5.865557,
+          "max": 6.750551
+        },
+        "call_ms": {
+          "count": 1,
+          "mean": 22.951885,
+          "median": 22.951885,
+          "p95": 22.951885,
+          "max": 22.951885
+        },
+        "unanswered": 0,
+        "windows": [
+          {
+            "third": 1,
+            "samples": 1448,
+            "pending": {
+              "count": 1448,
+              "mean": 0.003453038674033149,
+              "median": 0,
+              "p95": 0,
+              "max": 2
+            },
+            "oldest_pending_ms": {
+              "count": 1448,
+              "mean": 0.0010089544198895028,
+              "median": 0,
+              "p95": 0,
+              "max": 0.99345
+            },
+            "database_pending": {
+              "count": 1448,
+              "mean": 0.44613259668508287,
+              "median": 0,
+              "p95": 3,
+              "max": 13
+            },
+            "unfinished_syncs": {
+              "count": 300,
+              "mean": 0.04666666666666667,
+              "median": 0,
+              "p95": 0,
+              "max": 1
+            },
+            "oldest_sync_ms": {
+              "count": 300,
+              "mean": 11.536232293333335,
+              "median": 0,
+              "p95": 0,
+              "max": 622.302673
+            }
+          },
+          {
+            "third": 2,
+            "samples": 1454,
+            "pending": {
+              "count": 1454,
+              "mean": 0.001375515818431912,
+              "median": 0,
+              "p95": 0,
+              "max": 1
+            },
+            "oldest_pending_ms": {
+              "count": 1454,
+              "mean": 0.0003783954607977992,
+              "median": 0,
+              "p95": 0,
+              "max": 0.356639
+            },
+            "database_pending": {
+              "count": 1454,
+              "mean": 0.3149931224209078,
+              "median": 0,
+              "p95": 2,
+              "max": 8
+            },
+            "unfinished_syncs": {
+              "count": 302,
+              "mean": 0.023178807947019868,
+              "median": 0,
+              "p95": 0,
+              "max": 1
+            },
+            "oldest_sync_ms": {
+              "count": 302,
+              "mean": 3.4830347450331125,
+              "median": 0,
+              "p95": 0,
+              "max": 371.603443
+            }
+          },
+          {
+            "third": 3,
+            "samples": 1441,
+            "pending": {
+              "count": 1441,
+              "mean": 0.002775850104094379,
+              "median": 0,
+              "p95": 0,
+              "max": 1
+            },
+            "oldest_pending_ms": {
+              "count": 1441,
+              "mean": 0.0034031929215822348,
+              "median": 0,
+              "p95": 0,
+              "max": 1.489165
+            },
+            "database_pending": {
+              "count": 1441,
+              "mean": 0.3823733518390007,
+              "median": 0,
+              "p95": 1,
+              "max": 25
+            },
+            "unfinished_syncs": {
+              "count": 300,
+              "mean": 0.043333333333333335,
+              "median": 0,
+              "p95": 0,
+              "max": 1
+            },
+            "oldest_sync_ms": {
+              "count": 300,
+              "mean": 11.019129193333333,
+              "median": 0,
+              "p95": 0,
+              "max": 629.111821
+            }
+          }
+        ],
+        "event_loop": {
+          "measured": true,
+          "max_ms": 82.116607,
+          "p95_ms": 14.696447
+        },
+        "processing_errors": 0,
+        "point_queue_wait_ms": {
+          "count": 1947,
+          "mean": 0.6812335762711861,
+          "median": 0.55217,
+          "p95": 1.313255,
+          "max": 10.927673
+        }
+      },
+      "artifacts": {
+        "server": "/tmp/bts-queue-responsiveness-TaTg1g/mixed/server-result.json",
+        "client": "/tmp/bts-queue-responsiveness-TaTg1g/mixed/client-result.json",
+        "probes": "/tmp/bts-queue-responsiveness-TaTg1g/mixed/probe-result.json"
+      },
+      "limitations": [
+        "Isolated deterministic 519-game fixture, real durable NeDB and unmodified committed BTS modules.",
+        "Real separate testclient simulates tablets, TV and admin; point interval in options, 13 courts, zero score gap.",
+        "Idle fixture games explicitly set to scheduled before measurement, enabling automatic calls after real finishes.",
+        "Periodic sync runs the actual full BTP integration against a deterministic parsed response, alternating a registered player profile; no BTP TCP/XML transport.",
+        "Full BTP fixture is used only at bootstrap. No live tournament or server is modified. Officials/tabletoperator allocation disabled.",
+        "Automatic preparation enabled; 26 pairs of players recur across scheduled games, creating real participant dependencies. No winner/loser bracket propagation simulated.",
+        "One explicit unchanged court call during first integration; automatic calls through actual score finishes; free announcements every two seconds.",
+        "Queue samples every 20 ms, diagnostics/traces enabled by normal client. Observer overhead and local machine load included.",
+        "Reception of WebSocket events, no browser painting or audible speech. Limited duration, no capacity guarantee."
+      ]
+    },
+    "points_only_long_run": {
+      "status": "error",
+      "error": "Server processing errors observed: 2",
+      "commit": "78536276fc6f60e93f92d957055b0cb0dd23e67e",
+      "client_commit": "4d86e3cf9ddf4a03ad1f6d3a64274a4ba9b35270",
+      "client_source_sha256": "6003f018c09f608f28c90580d0948ed34217b8afd5838c47ffef55fdbcf9e7e7",
+      "client_reception_sha256": {
+        "reception/transport.js": "8f9913f2b690a82f1c1a11320703ded8577b8d314bfcc5516cf5a631af73e293",
+        "reception/worker.js": "e8c34cb9bc20eb2df0afef062004d576691fe1009a01ef0cef4e85bef7aa5b50"
+      },
+      "options": {
+        "bts_dir": "/home/tim/repos/bts",
+        "ref": "HEAD",
+        "duration_ms": 600000,
+        "sync_interval_ms": 10000,
+        "count": 519,
+        "point_min_ms": 400,
+        "point_max_ms": 800,
+        "set_points": 21,
+        "workload": "preparation-btp"
+      },
+      "directory": "/tmp/bts-queue-responsiveness-XUu1Nk",
+      "started_at": "2026-10-12T01:12:15.942Z",
+      "finished_at": "2026-10-12T01:22:23.254Z",
+      "summary": {
+        "drained": true,
+        "syncs": 61,
+        "finished_syncs": 61,
+        "sync_stage_start_ms": {
+          "count": 61,
+          "mean": 0.03498529508196721,
+          "median": 0.023449,
+          "p95": 0.052806,
+          "max": 0.513384
+        },
+        "sync_total_ms": {
+          "count": 61,
+          "mean": 452.17044911475404,
+          "median": 354.601291,
+          "p95": 814.212538,
+          "max": 1266.647791
+        },
+        "points": 6219,
+        "tablet_to_tv_ms": {
+          "count": 6283,
+          "mean": 9.1,
+          "min": 2,
+          "p50": 7,
+          "p95": 20,
+          "p99": 36,
+          "max": 102,
+          "over_50_ms": 19,
+          "over_100_ms": 1,
+          "over_200_ms": 0,
+          "sent_updates": 6283,
+          "unmatched_updates": 0,
+          "coverage": 1
+        },
+        "tablet_to_admin_ms": {
+          "count": 6283,
+          "mean": 9.7,
+          "min": 2,
+          "p50": 8,
+          "p95": 21,
+          "p99": 38,
+          "max": 104,
+          "over_50_ms": 22,
+          "over_100_ms": 1,
+          "over_200_ms": 0,
+          "sent_updates": 6283,
+          "unmatched_updates": 0,
+          "coverage": 1
+        },
+        "reception": {
+          "method": "isolated-websocket-reception",
+          "thread_id": 1,
+          "messages": 441564,
+          "clock": "Worker Date.now at WebSocket message callback; monotonic hrtime also forwarded",
+          "simulator_delivery_ms": {
+            "mean": 0.8703947785598464,
+            "max": 134
+          },
+          "error": null
+        },
+        "finished_matches": 64,
+        "oncourt_matches": 13,
+        "call_events": 65,
+        "preparation_events": 65,
+        "preparation_calculation_ms": {
+          "count": 316,
+          "mean": 4.718801136075945,
+          "median": 3.924201,
+          "p95": 9.57569,
+          "max": 27.982932
+        },
+        "free_announce_ms": {
+          "count": 301,
+          "mean": 2.041104398671097,
+          "median": 1.103773,
+          "p95": 5.912905,
+          "max": 22.885036
+        },
+        "call_ms": {
+          "count": 1,
+          "mean": 21.774289,
+          "median": 21.774289,
+          "p95": 21.774289,
+          "max": 21.774289
+        },
+        "unanswered": 0,
+        "windows": [
+          {
+            "third": 1,
+            "samples": 9660,
+            "pending": {
+              "count": 9660,
+              "mean": 0.002898550724637681,
+              "median": 0,
+              "p95": 0,
+              "max": 2
+            },
+            "oldest_pending_ms": {
+              "count": 9660,
+              "mean": 0.0022492628364389235,
+              "median": 0,
+              "p95": 0,
+              "max": 2.831062
+            },
+            "database_pending": {
+              "count": 9660,
+              "mean": 0.36262939958592133,
+              "median": 0,
+              "p95": 3,
+              "max": 20
+            },
+            "unfinished_syncs": {
+              "count": 1995,
+              "mean": 0.03558897243107769,
+              "median": 0,
+              "p95": 0,
+              "max": 1
+            },
+            "oldest_sync_ms": {
+              "count": 1995,
+              "mean": 6.971214330325816,
+              "median": 0,
+              "p95": 0,
+              "max": 611.454777
+            }
+          },
+          {
+            "third": 2,
+            "samples": 9677,
+            "pending": {
+              "count": 9677,
+              "mean": 0.005476903999173298,
+              "median": 0,
+              "p95": 0,
+              "max": 2
+            },
+            "oldest_pending_ms": {
+              "count": 9677,
+              "mean": 0.03275319417174744,
+              "median": 0,
+              "p95": 0,
+              "max": 53.952564
+            },
+            "database_pending": {
+              "count": 9677,
+              "mean": 0.3650924873411181,
+              "median": 0,
+              "p95": 3,
+              "max": 20
+            },
+            "unfinished_syncs": {
+              "count": 1991,
+              "mean": 0.052737317930688095,
+              "median": 0,
+              "p95": 1,
+              "max": 1
+            },
+            "oldest_sync_ms": {
+              "count": 1991,
+              "mean": 18.46869815670517,
+              "median": 0,
+              "p95": 43.999105,
+              "max": 1210.198604
+            }
+          },
+          {
+            "third": 3,
+            "samples": 9665,
+            "pending": {
+              "count": 9665,
+              "mean": 0.005690636316606311,
+              "median": 0,
+              "p95": 0,
+              "max": 2
+            },
+            "oldest_pending_ms": {
+              "count": 9665,
+              "mean": 0.041459702638385935,
+              "median": 0,
+              "p95": 0,
+              "max": 85.964987
+            },
+            "database_pending": {
+              "count": 9665,
+              "mean": 0.38654940506983965,
+              "median": 0,
+              "p95": 3,
+              "max": 25
+            },
+            "unfinished_syncs": {
+              "count": 1986,
+              "mean": 0.04380664652567976,
+              "median": 0,
+              "p95": 0,
+              "max": 1
+            },
+            "oldest_sync_ms": {
+              "count": 1986,
+              "mean": 11.303173153575027,
+              "median": 0,
+              "p95": 0,
+              "max": 960.60997
+            }
+          }
+        ],
+        "event_loop": {
+          "measured": true,
+          "max_ms": 95.682559,
+          "p95_ms": 14.458879
+        },
+        "processing_errors": 2,
+        "point_queue_wait_ms": {
+          "count": 13349,
+          "mean": 1.4314767296426698,
+          "median": 1.112713,
+          "p95": 3.203395,
+          "max": 86.236843
+        }
+      },
+      "artifacts": null,
+      "limitations": [
+        "Isolated deterministic 519-game fixture, real durable NeDB and unmodified committed BTS modules.",
+        "Real separate testclient simulates tablets, TV and admin; point interval in options, 13 courts, zero score gap.",
+        "Idle fixture games explicitly set to scheduled before measurement, enabling automatic calls after real finishes.",
+        "Periodic sync runs the actual full BTP integration against a deterministic parsed response, alternating a registered player profile; no BTP TCP/XML transport.",
+        "Full BTP fixture is used only at bootstrap. No live tournament or server is modified. Officials/tabletoperator allocation disabled.",
+        "Automatic preparation enabled; 26 pairs of players recur across scheduled games, creating real participant dependencies. No winner/loser bracket propagation simulated.",
+        "One explicit unchanged court call during first integration; automatic calls through actual score finishes; free announcements every two seconds.",
+        "Queue samples every 20 ms, diagnostics/traces enabled by normal client. Observer overhead and local machine load included.",
+        "Reception of WebSocket events, no browser painting or audible speech. Limited duration, no capacity guarantee."
+      ],
+      "interpretation": "Failed harness status is preserved. Its two error traces are preparation-only check-ins rejected after the match moved to court. The later harness explicitly reports such correlated rejections and still preserves unexpected errors. Its p99 of 36/38 ms remains an unfavorable, higher-load result."
+    },
+    "bounded_participant_writes": {
+      "status": "completed",
+      "error": null,
+      "commit": "c11426214449fd7244c70145d174ea92d6680775",
+      "client_commit": "9d44c92b5ff5c7b3c28240cd1b91c1d94531058f",
+      "client_source_sha256": "e259bdc3706b6e7781de3619c986730387418af4d4313b59c88648cc909f040b",
+      "client_reception_sha256": {
+        "reception/transport.js": "8f9913f2b690a82f1c1a11320703ded8577b8d314bfcc5516cf5a631af73e293",
+        "reception/worker.js": "e8c34cb9bc20eb2df0afef062004d576691fe1009a01ef0cef4e85bef7aa5b50"
+      },
+      "options": {
+        "bts_dir": "/home/tim/repos/bts",
+        "ref": "HEAD",
+        "duration_ms": 90000,
+        "sync_interval_ms": 10000,
+        "count": 519,
+        "point_min_ms": 400,
+        "point_max_ms": 800,
+        "set_points": 21,
+        "workload": "preparation-btp"
+      },
+      "directory": "/tmp/bts-queue-responsiveness-EaH27g",
+      "started_at": "2026-10-12T01:34:59.077Z",
+      "finished_at": "2026-10-12T01:36:32.536Z",
+      "summary": {
+        "drained": true,
+        "syncs": 10,
+        "finished_syncs": 10,
+        "sync_stage_start_ms": {
+          "count": 10,
+          "mean": 0.0814329,
+          "median": 0.028721,
+          "p95": 0.474895,
+          "max": 0.474895
+        },
+        "sync_total_ms": {
+          "count": 10,
+          "mean": 428.90826990000005,
+          "median": 316.050148,
+          "p95": 710.879845,
+          "max": 710.879845
+        },
+        "points": 938,
+        "tablet_to_tv_ms": {
+          "count": 942,
+          "mean": 8.4,
+          "min": 2,
+          "p50": 6,
+          "p95": 21,
+          "p99": 41,
+          "max": 95,
+          "over_50_ms": 5,
+          "over_100_ms": 0,
+          "over_200_ms": 0,
+          "sent_updates": 942,
+          "unmatched_updates": 0,
+          "coverage": 1
+        },
+        "tablet_to_admin_ms": {
+          "count": 942,
+          "mean": 9.2,
+          "min": 2,
+          "p50": 7,
+          "p95": 22,
+          "p99": 41,
+          "max": 96,
+          "over_50_ms": 6,
+          "over_100_ms": 0,
+          "over_200_ms": 0,
+          "sent_updates": 942,
+          "unmatched_updates": 0,
+          "coverage": 1
+        },
+        "reception": {
+          "method": "isolated-websocket-reception",
+          "thread_id": 1,
+          "messages": 65760,
+          "clock": "Worker Date.now at WebSocket message callback; monotonic hrtime also forwarded",
+          "simulator_delivery_ms": {
+            "mean": 0.7009580291970803,
+            "max": 71
+          },
+          "error": null
+        },
+        "finished_matches": 4,
+        "oncourt_matches": 13,
+        "call_events": 5,
+        "preparation_events": 5,
+        "preparation_calculation_ms": {
+          "count": 26,
+          "mean": 7.262634346153847,
+          "median": 5.584195,
+          "p95": 20.966674,
+          "max": 28.253281
+        },
+        "free_announce_ms": {
+          "count": 46,
+          "mean": 1.5496524782608698,
+          "median": 0.922309,
+          "p95": 4.939148,
+          "max": 7.683555
+        },
+        "call_ms": {
+          "count": 1,
+          "mean": 21.340928,
+          "median": 21.340928,
+          "p95": 21.340928,
+          "max": 21.340928
+        },
+        "unanswered": 0,
+        "windows": [
+          {
+            "third": 1,
+            "samples": 1457,
+            "pending": {
+              "count": 1457,
+              "mean": 0.0034317089910775567,
+              "median": 0,
+              "p95": 0,
+              "max": 2
+            },
+            "oldest_pending_ms": {
+              "count": 1457,
+              "mean": 0.0011286101578586137,
+              "median": 0,
+              "p95": 0,
+              "max": 1.115112
+            },
+            "database_pending": {
+              "count": 1457,
+              "mean": 0.4447494852436513,
+              "median": 0,
+              "p95": 3,
+              "max": 14
+            },
+            "unfinished_syncs": {
+              "count": 302,
+              "mean": 0.04966887417218543,
+              "median": 0,
+              "p95": 0,
+              "max": 1
+            },
+            "oldest_sync_ms": {
+              "count": 302,
+              "mean": 11.549945158940396,
+              "median": 0,
+              "p95": 0,
+              "max": 609.813471
+            }
+          },
+          {
+            "third": 2,
+            "samples": 1470,
+            "pending": {
+              "count": 1470,
+              "mean": 0.0006802721088435374,
+              "median": 0,
+              "p95": 0,
+              "max": 1
+            },
+            "oldest_pending_ms": {
+              "count": 1470,
+              "mean": 0.00036980952380952383,
+              "median": 0,
+              "p95": 0,
+              "max": 0.54362
+            },
+            "database_pending": {
+              "count": 1470,
+              "mean": 0.29183673469387755,
+              "median": 0,
+              "p95": 1,
+              "max": 8
+            },
+            "unfinished_syncs": {
+              "count": 302,
+              "mean": 0.039735099337748346,
+              "median": 0,
+              "p95": 0,
+              "max": 1
+            },
+            "oldest_sync_ms": {
+              "count": 302,
+              "mean": 8.103242821192053,
+              "median": 0,
+              "p95": 0,
+              "max": 550.063279
+            }
+          },
+          {
+            "third": 3,
+            "samples": 1469,
+            "pending": {
+              "count": 1469,
+              "mean": 0.006126616746085773,
+              "median": 0,
+              "p95": 0,
+              "max": 1
+            },
+            "oldest_pending_ms": {
+              "count": 1469,
+              "mean": 0.0034762001361470386,
+              "median": 0,
+              "p95": 0,
+              "max": 0.713907
+            },
+            "database_pending": {
+              "count": 1469,
+              "mean": 0.29475833900612664,
+              "median": 0,
+              "p95": 1,
+              "max": 26
+            },
+            "unfinished_syncs": {
+              "count": 303,
+              "mean": 0.052805280528052806,
+              "median": 0,
+              "p95": 1,
+              "max": 1
+            },
+            "oldest_sync_ms": {
+              "count": 303,
+              "mean": 15.141709270627063,
+              "median": 0,
+              "p95": 39.883859,
+              "max": 646.550753
+            }
+          }
+        ],
+        "event_loop": {
+          "measured": true,
+          "max_ms": 68.616191,
+          "p95_ms": 13.565951
+        },
+        "failed_traces_total": 0,
+        "expected_checkin_rejections": 0,
+        "processing_errors": 0,
+        "point_queue_wait_ms": {
+          "count": 1946,
+          "mean": 0.6992697127440896,
+          "median": 0.551332,
+          "p95": 1.521393,
+          "max": 7.28781
+        }
+      },
+      "artifacts": {
+        "server": "/tmp/bts-queue-responsiveness-EaH27g/mixed/server-result.json",
+        "client": "/tmp/bts-queue-responsiveness-EaH27g/mixed/client-result.json",
+        "probes": "/tmp/bts-queue-responsiveness-EaH27g/mixed/probe-result.json"
+      },
+      "limitations": [
+        "Isolated deterministic 519-game fixture, real durable NeDB and unmodified committed BTS modules.",
+        "Real separate testclient simulates tablets, TV and admin; point interval in options, 13 courts, zero score gap.",
+        "Idle fixture games explicitly set to scheduled before measurement, enabling automatic calls after real finishes.",
+        "Periodic sync runs the actual full BTP integration against a deterministic parsed response, alternating a registered player profile; no BTP TCP/XML transport.",
+        "Full BTP fixture is used only at bootstrap. No live tournament or server is modified. Officials/tabletoperator allocation disabled.",
+        "Automatic preparation enabled; 26 pairs of players recur across scheduled games, creating real participant dependencies. No winner/loser bracket propagation simulated.",
+        "One explicit unchanged court call during first integration; automatic calls through actual score finishes; free announcements every two seconds.",
+        "Queue samples every 20 ms, diagnostics/traces enabled by normal client. Observer overhead and local machine load included.",
+        "Reception of WebSocket events, no browser painting or audible speech. Limited duration, no capacity guarantee."
+      ]
+    },
+    "web_sequence_full_integration": {
+      "status": "completed",
+      "error": null,
+      "commit": "7bd6b49303bc790b3ae7c3907aa0272eb5c49573",
+      "client_commit": "9d44c92b5ff5c7b3c28240cd1b91c1d94531058f",
+      "client_source_sha256": "e259bdc3706b6e7781de3619c986730387418af4d4313b59c88648cc909f040b",
+      "client_reception_sha256": {
+        "reception/transport.js": "8f9913f2b690a82f1c1a11320703ded8577b8d314bfcc5516cf5a631af73e293",
+        "reception/worker.js": "e8c34cb9bc20eb2df0afef062004d576691fe1009a01ef0cef4e85bef7aa5b50"
+      },
+      "options": {
+        "bts_dir": "/home/tim/repos/bts",
+        "ref": "HEAD",
+        "duration_ms": 600000,
+        "sync_interval_ms": 30000,
+        "count": 519,
+        "point_min_ms": 3200,
+        "point_max_ms": 6400,
+        "set_points": 21,
+        "workload": "preparation-btp",
+        "scenario": "benchmark"
+      },
+      "directory": "/tmp/bts-queue-responsiveness-WmzmbJ",
+      "started_at": "2026-10-12T01:38:31.515Z",
+      "finished_at": "2026-10-12T01:48:36.635Z",
+      "summary": {
+        "drained": true,
+        "syncs": 21,
+        "finished_syncs": 21,
+        "sync_stage_start_ms": {
+          "count": 21,
+          "mean": 0.09474761904761905,
+          "median": 0.039667,
+          "p95": 0.393371,
+          "max": 0.88973
+        },
+        "sync_total_ms": {
+          "count": 21,
+          "mean": 293.9294855238096,
+          "median": 270.940535,
+          "p95": 376.257692,
+          "max": 737.926186
+        },
+        "points": 1217,
+        "tablet_to_tv_ms": {
+          "count": 1223,
+          "mean": 7.2,
+          "min": 2,
+          "p50": 6,
+          "p95": 16,
+          "p99": 26,
+          "max": 46,
+          "over_50_ms": 0,
+          "over_100_ms": 0,
+          "over_200_ms": 0,
+          "sent_updates": 1223,
+          "unmatched_updates": 0,
+          "coverage": 1
+        },
+        "tablet_to_admin_ms": {
+          "count": 1223,
+          "mean": 8,
+          "min": 2,
+          "p50": 7,
+          "p95": 17,
+          "p99": 27,
+          "max": 47,
+          "over_50_ms": 0,
+          "over_100_ms": 0,
+          "over_200_ms": 0,
+          "sent_updates": 1223,
+          "unmatched_updates": 0,
+          "coverage": 1
+        },
+        "reception": {
+          "method": "isolated-websocket-reception",
+          "thread_id": 1,
+          "messages": 90964,
+          "clock": "Worker Date.now at WebSocket message callback; monotonic hrtime also forwarded",
+          "simulator_delivery_ms": {
+            "mean": 0.4771008310980168,
+            "max": 132
+          },
+          "error": null
+        },
+        "finished_matches": 6,
+        "oncourt_matches": 13,
+        "call_events": 7,
+        "preparation_events": 10,
+        "preparation_calculation_ms": {
+          "count": 15,
+          "mean": 12.3486102,
+          "median": 11.037859,
+          "p95": 25.786543,
+          "max": 25.786543
+        },
+        "free_announce_ms": {
+          "count": 300,
+          "mean": 2.031197823333334,
+          "median": 0.768476,
+          "p95": 9.721112,
+          "max": 24.093667
+        },
+        "call_ms": {
+          "count": 1,
+          "mean": 25.174766,
+          "median": 25.174766,
+          "p95": 25.174766,
+          "max": 25.174766
+        },
+        "unanswered": 0,
+        "windows": [
+          {
+            "third": 1,
+            "samples": 9677,
+            "pending": {
+              "count": 9677,
+              "mean": 0.0007233646791360959,
+              "median": 0,
+              "p95": 0,
+              "max": 2
+            },
+            "oldest_pending_ms": {
+              "count": 9677,
+              "mean": 0.0001570864937480624,
+              "median": 0,
+              "p95": 0,
+              "max": 0.365255
+            },
+            "database_pending": {
+              "count": 9677,
+              "mean": 0.2815955358065516,
+              "median": 0,
+              "p95": 1,
+              "max": 20
+            },
+            "unfinished_syncs": {
+              "count": 1991,
+              "mean": 0.01054746358613762,
+              "median": 0,
+              "p95": 0,
+              "max": 1
+            },
+            "oldest_sync_ms": {
+              "count": 1991,
+              "mean": 2.2721524645906572,
+              "median": 0,
+              "p95": 0,
+              "max": 646.579346
+            }
+          },
+          {
+            "third": 2,
+            "samples": 9705,
+            "pending": {
+              "count": 9705,
+              "mean": 0.0009273570324574962,
+              "median": 0,
+              "p95": 0,
+              "max": 1
+            },
+            "oldest_pending_ms": {
+              "count": 9705,
+              "mean": 0.0013033274600721277,
+              "median": 0,
+              "p95": 0,
+              "max": 4.727067
+            },
+            "database_pending": {
+              "count": 9705,
+              "mean": 0.2158681092220505,
+              "median": 0,
+              "p95": 0,
+              "max": 8
+            },
+            "unfinished_syncs": {
+              "count": 1993,
+              "mean": 0.010536879076768691,
+              "median": 0,
+              "p95": 0,
+              "max": 1
+            },
+            "oldest_sync_ms": {
+              "count": 1993,
+              "mean": 1.564936420973407,
+              "median": 0,
+              "p95": 0,
+              "max": 337.092847
+            }
+          },
+          {
+            "third": 3,
+            "samples": 9705,
+            "pending": {
+              "count": 9705,
+              "mean": 0.0005151983513652757,
+              "median": 0,
+              "p95": 0,
+              "max": 1
+            },
+            "oldest_pending_ms": {
+              "count": 9705,
+              "mean": 0.00041882009273570315,
+              "median": 0,
+              "p95": 0,
+              "max": 1.15429
+            },
+            "database_pending": {
+              "count": 9705,
+              "mean": 0.2379185986604843,
+              "median": 0,
+              "p95": 0,
+              "max": 25
+            },
+            "unfinished_syncs": {
+              "count": 1993,
+              "mean": 0.008028098344204716,
+              "median": 0,
+              "p95": 0,
+              "max": 1
+            },
+            "oldest_sync_ms": {
+              "count": 1993,
+              "mean": 1.2123754570998495,
+              "median": 0,
+              "p95": 0,
+              "max": 321.690959
+            }
+          }
+        ],
+        "event_loop": {
+          "measured": true,
+          "max_ms": 81.919999,
+          "p95_ms": 13.090815
+        },
+        "failed_traces_total": 0,
+        "expected_checkin_rejections": 0,
+        "processing_errors": 0,
+        "point_queue_wait_ms": {
+          "count": 2537,
+          "mean": 0.7413114040204966,
+          "median": 0.638463,
+          "p95": 1.462505,
+          "max": 8.96491
+        }
+      },
+      "artifacts": {
+        "server": "/tmp/bts-queue-responsiveness-WmzmbJ/mixed/server-result.json",
+        "client": "/tmp/bts-queue-responsiveness-WmzmbJ/mixed/client-result.json",
+        "probes": "/tmp/bts-queue-responsiveness-WmzmbJ/mixed/probe-result.json"
+      },
+      "limitations": [
+        "Isolated deterministic 519-game fixture, real durable NeDB and unmodified committed BTS modules.",
+        "Real separate testclient simulates tablets, TV and admin; point interval in options, 13 courts, zero score gap.",
+        "Idle fixture games explicitly set to scheduled before measurement, enabling automatic calls after real finishes.",
+        "Periodic sync runs the actual full BTP integration against a deterministic parsed response, alternating a registered player profile; no BTP TCP/XML transport.",
+        "Full BTP fixture is used only at bootstrap. No live tournament or server is modified. Officials/tabletoperator allocation disabled.",
+        "Automatic preparation enabled; 26 pairs of players recur across scheduled games, creating real participant dependencies. No winner/loser bracket propagation simulated.",
+        "One explicit unchanged court call during first integration; automatic calls through actual score finishes; free announcements every two seconds.",
+        "Queue samples every 20 ms, diagnostics/traces enabled by normal client. Observer overhead and local machine load included.",
+        "Reception of WebSocket events, no browser painting or audible speech. Limited duration, no capacity guarantee."
+      ]
+    }
+  },
+  "comparison_rules": [
+    "Only compare identical workload, duration, point intervals, sync intervals and reception method.",
+    "The preparation-btp workload exercises the complete parsed BTP integration; it does not use BTP TCP/XML or real winner/loser brackets.",
+    "Server and receiver are real separate processes; actual NeDB persistence and score/admin/display handlers are used.",
+    "No test suites or CPU profiling ran alongside measured benchmarks.",
+    "The live server at localhost:4433 was unreachable; no live data was altered."
+  ],
+  "validation": {
+    "full_suite": {
+      "log": "/tmp/bts-bounded-participants-full-suite.log",
+      "passing": 835
+    },
+    "targeted_publication": {
+      "log": "/tmp/bts-points-final-targeted.log",
+      "passing": 22
+    },
+    "historical_profile_isolation": {
+      "log": "/tmp/bts-benchmark-profile-flags-tests.log",
+      "passing": 13
+    },
+    "standalone_client": {
+      "log": "/tmp/bts-testclient-checkin-race-tests.log",
+      "passing": 30
+    },
+    "bounded_writes_targeted": {
+      "log": "/tmp/bts-bounded-participants-validation.log",
+      "passing": 19
+    },
+    "fixed_sequence_harness": {
+      "log": "/tmp/bts-fixed-mixed-sequence-tests.log",
+      "passing": 5
+    }
+  },
+  "verification": {
+    "runtime_ms": 600194,
+    "scenario": "benchmark",
+    "stop_reason": "completed",
+    "failure": null,
+    "reception": {
+      "method": "isolated-websocket-reception",
+      "thread_id": 1,
+      "messages": 90964,
+      "clock": "Worker Date.now at WebSocket message callback; monotonic hrtime also forwarded",
+      "simulator_delivery_ms": {
+        "mean": 0.4771008310980168,
+        "max": 132
+      },
+      "error": null
+    },
+    "phases": [
+      {
+        "name": "checkin-and-play",
+        "start_ms": 0,
+        "end_ms": 120000,
+        "idle": false,
+        "actual_start_ms": 0,
+        "actual_end_ms": 120206,
+        "points": 304,
+        "score_updates": 304,
+        "finish_confirmations": 0,
+        "repair_score_updates": 0,
+        "player_checkins": 0,
+        "checkin_errors": 0,
+        "tablet_to_tv_ms": {
+          "count": 304,
+          "mean": 8.9,
+          "p50": 8,
+          "p95": 20,
+          "p99": 26,
+          "max": 46,
+          "sent_updates": 304,
+          "unmatched_updates": 0,
+          "coverage": 1,
+          "over_50_ms": 0,
+          "over_100_ms": 0,
+          "over_200_ms": 0
+        },
+        "tablet_to_admin_ms": {
+          "count": 304,
+          "mean": 9.8,
+          "p50": 9,
+          "p95": 21,
+          "p99": 28,
+          "max": 47,
+          "sent_updates": 304,
+          "unmatched_updates": 0,
+          "coverage": 1,
+          "over_50_ms": 0,
+          "over_100_ms": 0,
+          "over_200_ms": 0
+        },
+        "occupied_courts": {
+          "count": 104,
+          "mean": 13,
+          "p50": 13,
+          "p95": 13,
+          "p99": 13,
+          "max": 13
+        },
+        "free_courts": {
+          "count": 104,
+          "mean": 0,
+          "p50": 0,
+          "p95": 0,
+          "p99": 0,
+          "max": 1
+        }
+      },
+      {
+        "name": "load",
+        "start_ms": 120000,
+        "end_ms": 360000,
+        "idle": false,
+        "actual_start_ms": 120206,
+        "actual_end_ms": 360138,
+        "points": 604,
+        "score_updates": 608,
+        "finish_confirmations": 4,
+        "repair_score_updates": 0,
+        "player_checkins": 0,
+        "checkin_errors": 0,
+        "tablet_to_tv_ms": {
+          "count": 608,
+          "mean": 6.5,
+          "p50": 6,
+          "p95": 11,
+          "p99": 27,
+          "max": 39,
+          "sent_updates": 608,
+          "unmatched_updates": 0,
+          "coverage": 1,
+          "over_50_ms": 0,
+          "over_100_ms": 0,
+          "over_200_ms": 0
+        },
+        "tablet_to_admin_ms": {
+          "count": 608,
+          "mean": 7.3,
+          "p50": 7,
+          "p95": 13,
+          "p99": 28,
+          "max": 40,
+          "sent_updates": 608,
+          "unmatched_updates": 0,
+          "coverage": 1,
+          "over_50_ms": 0,
+          "over_100_ms": 0,
+          "over_200_ms": 0
+        },
+        "occupied_courts": {
+          "count": 196,
+          "mean": 13,
+          "p50": 13,
+          "p95": 13,
+          "p99": 13,
+          "max": 13
+        },
+        "free_courts": {
+          "count": 196,
+          "mean": 0,
+          "p50": 0,
+          "p95": 0,
+          "p99": 0,
+          "max": 0
+        }
+      },
+      {
+        "name": "idle",
+        "start_ms": 360000,
+        "end_ms": 480000,
+        "idle": true,
+        "actual_start_ms": 360138,
+        "actual_end_ms": 480147,
+        "points": 0,
+        "score_updates": 0,
+        "finish_confirmations": 0,
+        "repair_score_updates": 0,
+        "player_checkins": 0,
+        "checkin_errors": 0,
+        "tablet_to_tv_ms": {
+          "count": 0,
+          "mean": null,
+          "p50": null,
+          "p95": null,
+          "p99": null,
+          "max": null,
+          "sent_updates": 0,
+          "unmatched_updates": 0,
+          "coverage": null,
+          "over_50_ms": 0,
+          "over_100_ms": 0,
+          "over_200_ms": 0
+        },
+        "tablet_to_admin_ms": {
+          "count": 0,
+          "mean": null,
+          "p50": null,
+          "p95": null,
+          "p99": null,
+          "max": null,
+          "sent_updates": 0,
+          "unmatched_updates": 0,
+          "coverage": null,
+          "over_50_ms": 0,
+          "over_100_ms": 0,
+          "over_200_ms": 0
+        },
+        "occupied_courts": {
+          "count": 108,
+          "mean": 13,
+          "p50": 13,
+          "p95": 13,
+          "p99": 13,
+          "max": 13
+        },
+        "free_courts": {
+          "count": 108,
+          "mean": 0,
+          "p50": 0,
+          "p95": 0,
+          "p99": 0,
+          "max": 0
+        }
+      },
+      {
+        "name": "load-after-idle",
+        "start_ms": 480000,
+        "end_ms": 600000,
+        "idle": false,
+        "actual_start_ms": 480147,
+        "actual_end_ms": 600194,
+        "points": 309,
+        "score_updates": 311,
+        "finish_confirmations": 2,
+        "repair_score_updates": 0,
+        "player_checkins": 0,
+        "checkin_errors": 0,
+        "tablet_to_tv_ms": {
+          "count": 311,
+          "mean": 6.7,
+          "p50": 6,
+          "p95": 16,
+          "p99": 19,
+          "max": 43,
+          "sent_updates": 311,
+          "unmatched_updates": 0,
+          "coverage": 1,
+          "over_50_ms": 0,
+          "over_100_ms": 0,
+          "over_200_ms": 0
+        },
+        "tablet_to_admin_ms": {
+          "count": 311,
+          "mean": 7.5,
+          "p50": 7,
+          "p95": 17,
+          "p99": 20,
+          "max": 44,
+          "sent_updates": 311,
+          "unmatched_updates": 0,
+          "coverage": 1,
+          "over_50_ms": 0,
+          "over_100_ms": 0,
+          "over_200_ms": 0
+        },
+        "occupied_courts": {
+          "count": 97,
+          "mean": 13,
+          "p50": 13,
+          "p95": 13,
+          "p99": 13,
+          "max": 13
+        },
+        "free_courts": {
+          "count": 97,
+          "mean": 0,
+          "p50": 0,
+          "p95": 0,
+          "p99": 0,
+          "max": 0
+        }
+      }
+    ],
+    "pause_drain": {
+      "started": 1791769473768,
+      "clear_since": 1791769474212,
+      "finished_ms": 444
+    },
+    "diagnostic_archive": {
+      "dropped_point_receptions": 0,
+      "dropped_test_events": 0,
+      "limits": {
+        "point_receptions": 5000,
+        "test_events": 10000
+      },
+      "processing_traces_requested": true
+    },
+    "performance_archive_dropped": {
+      "samples": 0,
+      "traces": 0,
+      "events": 0
+    },
+    "server_log_bytes": 0,
+    "unexpected_processing_errors": 0,
+    "failed_traces_total": 0,
+    "expected_checkin_rejections": 0,
+    "runtime_source_identity": {
+      "archived_commit": "7bd6b49303bc790b3ae7c3907aa0272eb5c49573",
+      "javascript_files_verified": 134,
+      "different_files": []
+    }
+  },
+  "limits": [
+    "The live server was unreachable; no live-tournament capacity or TLS/real-bracket guarantee is inferred.",
+    "The representative fixture starts checked in; the measured scenario generated no check-in writes. Check-in races and rules were covered by targeted and full-suite tests, and occurred in the separate higher-load long run.",
+    "Full parsed BTP integration is exercised; real TCP/XML, doubles, official allocation and winner/loser bracket progression are outside this fixture.",
+    "The 4x faster continuous point stress workloads exceed the target and are retained, including the recent 90-second bounded-write result of 41/41 ms. The achieved target is scoped to the original point cadence and test phases.",
+    "The two endpoints are actual WebSocket reception in an isolated receiver thread, not browser painting or audible playback.",
+    "The last representative run lost no archived diagnostic samples or receipts. The earlier 6283-update stress run explicitly dropped 1283 individual receipt records while keeping its complete cumulative latency statistics."
+  ]
+}

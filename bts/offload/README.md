@@ -14,10 +14,11 @@ unabhängig ausgewertet (`1` ein, `0` aus):
 | `BTS_XLSX_IMPORT_WORKER` | `0` | XLSX-Datei im Importworker lesen; Zuordnung und Speicherung anschließend im Hauptthread. |
 | `BTS_COMPACTION_WORKER` | `0` | NeDB-Datensätze im Worker serialisieren, unveränderte Zeilen wiederverwenden. |
 | `BTS_COMPACTION_MODEL_READS` | `0` | Punktmeldungen lesen stabile Modellobjekte während reiner Kompaktierung, sofern keine früheren Schreib-/unbekannten Aufträge warten. |
-| `BTS_PREPARATION_MODEL_READS` | `0` | Automatische Vorbereitung prüft den Bedarf mit geordneten Match-/Feldreferenzen statt vollständigen NeDB-Kopien. |
-| `BTS_PREPARATION_CANDIDATES_LIGHT` | `0` | Automatische Kandidatenauswahl berechnet keine umfassenden UI-Diagnosen. |
+| `BTS_PREPARATION_MODEL_READS` | `1` | Bedarf, automatische Kandidaten, Zulässigkeit und Aufrufabstände lesen geordnete Objektreferenzen statt vollständiger NeDB-Kopien. |
+| `BTS_PREPARATION_CANDIDATES_LIGHT` | `1` | Automatische Kandidatenauswahl berechnet keine umfassenden UI-Diagnosen. |
 | `BTS_SYNC_BATCH_WRITES` | `0` | Änderungen werden je zusammenhängender Sammlung als ein NeDB-Append gespeichert. |
 | `BTS_SYNC_PREPARED_TOURNAMENT` | `1` | Nur geänderte Turnierzweige kopieren und einmal validieren, vor den Ressourcen-Locks; Einzel-Append mit normalen Indizes und Rollback. |
+| `BTS_SYNC_PREPARED_MATCHES` | `1` | Geänderte Matchzweige vor den Sync-Locks vorbereiten; Punkt-/Historienzweige teilen und bei ersetztem Basisdatensatz normal neu berechnen. |
 | `BTS_ADMIN_RESPONSE_BACKGROUND` | `1` | Übersicht in kurzen Abschnitten kopieren und JSON erzeugen; geordnete Antworten und Updates pro Verbindung. |
 | `BTS_ADMIN_RESPONSE_PRIORITY` | `1` | Hintergrundarbeit pausiert während der Punktpersistierung bis zur Veröffentlichung; Spielende-Cleanup behält seine eigenen Locks. |
 | `BTS_COMPACTION_STAGED` | `0` | Automatische Kompaktierung bereitet die Datei außerhalb des Executors vor; benötigt den Kompaktierungsworker. |
@@ -104,7 +105,7 @@ anschließende Punkt-Write aber weiterhin warten. Laufende Append-Persistierung
 wird nie übersprungen. Dieser Schalter verkürzt keine Disk-I/O-Zeit und keine
 Sync-Ressourcen-Locks.
 
-`BTS_PREPARATION_MODEL_READS=1` betrifft zunächst nur die Bedarfsprüfung in
+`BTS_PREPARATION_MODEL_READS=1` ist der Standard und beschleunigt die Bedarfsprüfung in
 `auto_execute_preparation_selections`. `../preparation_selection/status.js`
 liest Spielstätten wie bisher nach Namen sortiert und anschließend Felder und
 Spiele über unveränderliche Modell-Snapshots. Reihenfolge und Executor-Barrieren
@@ -112,11 +113,15 @@ bleiben erhalten; frühere Schreibvorgänge und Kompaktierung werden abgewartet.
 Historien, Spielerdaten und Setups werden für diese reine Statusberechnung nicht
 kopiert. Fehlende Modell-Anbindungen und TTL-Indizes verwenden die NeDB-Abfragen.
 Es werden keine Objekte geändert oder zusätzliche Threads/Locks angelegt.
+Automatische Kandidaten, die erneute Zulässigkeitsprüfung und die Suche nach dem
+letzten Vorbereitungstimestamp verwenden ebenfalls geordnete Referenzen. Die
+initiale Turnierabfrage kopiert keine Meldelisten mehr; ohne beteiligte Offizielle
+entfällt die Standby-Turnierabfrage. Öffentliche Kandidatenantworten bleiben Kopien.
 
 Ohne den zusätzlichen Kandidaten-Schalter behalten Auswahl und Ausführung ihre bisherigen Daten,
 Prüfungen, Offiziellenzuordnungen und Aufrufabstände. Insbesondere wird die
 Freilosverarbeitung im Sync nicht verändert. `selection_reads.js` misst die
-bisherigen Auswahl-Abfragen; `timing.js` trennt Reads, synchrone Berechnungen,
+Auswahl-Reads und nennt deren Quelle; `timing.js` trennt Reads, synchrone Berechnungen,
 Selbstblockierungsauflösung und Ausführung in einem kompakten Protokoll.
 
 Isolierter Vergleich ohne Serverstart und ohne echte Turnierdaten:
