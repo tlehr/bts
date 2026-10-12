@@ -11,7 +11,7 @@ var CHANGE_HANDLER_WARN_MS = 16;
 var callback_handlers = {};
 var change_queue = [];
 var change_queue_head = 0;
-var change_queue_scheduled = false;
+var change_scheduler = change_queue_scheduler(process_change_queue);
 
 var immediate_change_types = new Set([
 	'free_announce',
@@ -104,11 +104,7 @@ function dispatch_change(msg) {
 }
 
 function schedule_change_queue() {
-	if (change_queue_scheduled) {
-		return;
-	}
-	change_queue_scheduled = true;
-	setTimeout(process_change_queue, 0);
+	change_scheduler.schedule();
 }
 
 function queued_change_count() {
@@ -131,7 +127,7 @@ function compact_change_queue_if_needed(force) {
 }
 
 function process_change_queue() {
-	change_queue_scheduled = false;
+	change_scheduler.cancel();
 	const start_ms = _now_ms();
 	let processed = 0;
 	while (queued_change_count() > 0) {
@@ -287,6 +283,7 @@ if ((typeof module !== 'undefined') && (typeof require !== 'undefined')) {
 	var WebSocket = require('ws');
 
 	var debug = require('./debug');
+	var change_queue_scheduler = require('./change_queue_scheduler');
 	var utils = {
 		values: Object.values,
 	};

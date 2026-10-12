@@ -1,0 +1,115 @@
+{
+  "browser": {
+    "protocolVersion": "1.3",
+    "product": "Chrome/155.0.8059.39",
+    "revision": "@3ff7ac5a9224be9156d7f8703a06e22890aafd34",
+    "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36",
+    "jsVersion": "15.5.35.20"
+  },
+  "fixture": "production conn + DOM rows + real WebSocket; synthetic 80 changes/s, background tabs, no live tournament writes",
+  "reproduced_original_backlog": false,
+  "runtime_ms": 2659,
+  "sent_background": 160,
+  "before": {
+    "hidden": true,
+    "visibility": "hidden",
+    "handled": 160,
+    "hidden_handled": 160,
+    "last": 160,
+    "pending": 0
+  },
+  "after": {
+    "hidden": true,
+    "visibility": "hidden",
+    "handled": 160,
+    "hidden_handled": 160,
+    "last": 160,
+    "pending": 0
+  },
+  "after_drained": {
+    "hidden": true,
+    "visibility": "hidden",
+    "handled": 160,
+    "hidden_handled": 160,
+    "last": 160,
+    "pending": 0
+  },
+  "before_drained": {
+    "hidden": false,
+    "visibility": "visible",
+    "handled": 160,
+    "hidden_handled": 160,
+    "last": 160,
+    "pending": 0
+  },
+  "foreground_catchup_before_ms": 20,
+  "freeze_resume_sent": 250,
+  "resumed": {
+    "hidden": false,
+    "visibility": "visible",
+    "handled": 410,
+    "hidden_handled": 410,
+    "last": 410,
+    "pending": 0
+  },
+  "samples": [
+    {
+      "elapsed_ms": 1000,
+      "before": {
+        "hidden": true,
+        "visibility": "hidden",
+        "handled": 76,
+        "hidden_handled": 76,
+        "last": 76,
+        "pending": 0
+      },
+      "after": {
+        "hidden": true,
+        "visibility": "hidden",
+        "handled": 76,
+        "hidden_handled": 76,
+        "last": 76,
+        "pending": 0
+      }
+    },
+    {
+      "elapsed_ms": 2003,
+      "before": {
+        "hidden": true,
+        "visibility": "hidden",
+        "handled": 156,
+        "hidden_handled": 156,
+        "last": 156,
+        "pending": 0
+      },
+      "after": {
+        "hidden": true,
+        "visibility": "hidden",
+        "handled": 156,
+        "hidden_handled": 156,
+        "last": 156,
+        "pending": 0
+      }
+    }
+  ],
+  "errors": [],
+  "verification": {
+    "server_tests_passed": 878,
+    "regression_changes_with_timer_callbacks_suspended": 3000,
+    "regression_tests_added": 6
+  },
+  "source_sha256": {
+    "static/js/conn.js": "1438fec799c31262ad927ccd5049958b64ff4428217ef90a06bf730b28ccc65c",
+    "static/js/change_queue_scheduler.js": "421b1c469eddb5ae0fcf53430d83895f20a072afcef9128255b0a5ecfb6a62c9",
+    "static/cbts.html": "a58e4070533ee4961835878808e00948073071d4e323327f3f399ca1399e9c02",
+    "test/test_conn_background.js": "4b6fee4f59d0326cc77a92b634800dfeaafe35d2ec3490614a2ec3c0755aa4e6"
+  },
+  "baseline_conn_sha256": "49a786b709c4c27832ce77fbf966178a0ee84ce92acbe55024f6cd9981cc6602",
+  "limits": [
+    "The original reported ten-minute Admin overview slowdown was not reproduced on the small Chrome DOM fixture.",
+    "Timer suspension was controlled in VM regression tests; these are correctness tests, not live UI latency measurements.",
+    "The successful browser check used a short 80-changes/s real WebSocket stream with simple DOM rows, not full tournament rendering.",
+    "The freeze/resume test explicitly parks 250 already received changes while Chrome is frozen; it does not promise delivery over a frozen WebSocket.",
+    "No live tournament changes or server point-latency benchmark were performed."
+  ]
+}
