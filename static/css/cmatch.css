@@ -1543,8 +1543,18 @@ td.call_td .preparation_debug_icon {
 }
 
 .manual_btp_stage_status_warning_entry {
-	display: block;
-	margin-top: 0.18rem;
+	display: list-item;
+	list-style-type: disc;
+	margin-top: 0.35rem;
+	margin-inline-start: 1.2em;
+	padding-inline-start: 0.15em;
+	line-height: 1.45;
+}
+
+.manual_btp_stage_status_warning_entry + .manual_btp_stage_status_warning_entry {
+	margin-top: 0.65rem;
+	padding-top: 0.65rem;
+	border-top: 1px solid #e6cf86;
 }
 
 .name {
