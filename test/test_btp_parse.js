@@ -4,43 +4,46 @@ const assert = require('assert');
 const fs = require('fs');
 const path = require('path');
 
-const {_it, _describe, assert_snapshot} = require('./tutils.js');
+const {_it, _describe} = require('./tutils.js');
 
 const btp_parse = require('../bts/btp_parse');
 
 
 
 _describe('btp_parse', () => {
-	_it('reads string stage-entry DNS statuses into the player draw entries', async() => {
-		const bm = {
-			DrawID: [5],
-			EntryID: [100],
-			IsMatch: [false],
-		};
-		const player = {
-			ID: [53],
-			Firstname: ['Zizhan'],
-			Lastname: ['Yu'],
-			entries: new Map([[2, '<none>']]),
-		};
-		const entries = new Map([[100, { Player1ID: [53] }]]);
-		const stage_entries = new Map([[900, {
-			StageID: [10],
-			EntryID: [100],
-			Status: ['108'],
-		}]]);
-		const draws = new Map([[5, {
-			ID: [5],
-			StageID: [10],
-		}]]);
-		const players = new Map([[53, player]]);
+	for (const [raw, label] of [[108, 'DNS'], ['108', 'DNS'], [109, 'WDN'], ['109', 'WDN'], [7, 'DSQ'], ['7', 'DSQ'], [110, 'FWDN'], ['110', 'FWDN']]) {
+		_it('imports stage-entry ' + label + ' from ' + typeof raw + ' codes per draw', async() => {
+			const bm = {
+				DrawID: [5],
+				EntryID: [100],
+				IsMatch: [false],
+			};
+			const player = {
+				ID: [53],
+				Firstname: ['Zizhan'],
+				Lastname: ['Yu'],
+				entries: new Map([[2, '<none>']]),
+			};
+			const entries = new Map([[100, { Player1ID: [53] }]]);
+			const stage_entries = new Map([[900, {
+				StageID: [10],
+				EntryID: [100],
+				Status: [raw],
+			}]]);
+			const draws = new Map([[5, {
+				ID: [5],
+				StageID: [10],
+			}]]);
+			const players = new Map([[53, player]]);
 
-		btp_parse._calc_match_players(new Map(), entries, stage_entries, draws, players, bm, false);
+			btp_parse._calc_match_players(new Map(), entries, stage_entries, draws, players, bm, false);
 
-		assert.deepStrictEqual(bm.bts_winners.map(p => p.ID[0]), [53]);
-		assert.strictEqual(player.entries.get(2), '<none>');
-		assert.strictEqual(player.entries.get(5), 'DNS');
-	});
+			assert.deepStrictEqual(bm.bts_winners.map(p => p.ID[0]), [53]);
+			assert.strictEqual(player.entries.get(2), '<none>');
+			assert.strictEqual(player.entries.get(5), label);
+		});
+
+	}
 
 	_it('propagates the winning team from a finished normal match', async() => {
 		const players = new Map([

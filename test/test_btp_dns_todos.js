@@ -100,7 +100,7 @@ describe('BTP DNS consistency todos', function() {
 			source.indexOf('function refresh_manual_btp_stage_status_warnings('));
 		const nodes = [], translations = [];
 		const current = { matches: [match(129)] };
-		const context = vm.createContext({ curt: current, btp_dns_todos: { collect },
+		const context = vm.createContext({ curt: current, btp_dns_todos: { collect }, btp_dsq_todos: require('../static/js/btp_dsq_todos'),
 			get_manual_btp_stage_status_warnings: () => [],
 			ctournament: { get_registration_main_todos: () => ['Registration todo'] },
 			ci18n: (key, values) => { translations.push({ key, values }); return key; },

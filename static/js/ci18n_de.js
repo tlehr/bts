@@ -454,6 +454,8 @@ var ci18n_de = Object.assign(
 	'tournament:manual_btp_stage_status:dns_mismatch': '{name} ist in BTP für {event_name} als DNS eingetragen, aber das erste Spiel dieser Disziplin ({match_num}) ist nicht kampflos gegen {name} gewertet. Bitte DNS im BTP-Hauptprogramm entfernen oder dieses erste Spiel im BTS für {name} kampflos werten.',
 	'tournament:manual_btp_stage_status:target_dns': 'Nicht erschienen / Did not show (DNS)',
 	'tournament:manual_btp_stage_status:target_wdn': 'Zurückgezogen (WDN)',
+	'tournament:manual_btp_stage_status:target_dsq': 'Disqualifiziert (DSQ)',
+	'tournament:manual_btp_stage_status:dsq_mismatch': '{name} ist in BTP für {event_name} als DSQ eingetragen, aber im BTS ist keine Disqualifikation gegen {name} erfasst. Bitte den DSQ-Status im BTP-Hauptprogramm prüfen und gegebenenfalls entfernen oder die Disqualifikation im betroffenen Spiel im BTS erfassen.',
 	'tournament:manual_btp_stage_status:unknown_event': 'dieser Disziplin',
 	'match:player:entry_blocked': '{status} in BTP für {event_name}: Spielaufruf und Check-in sind gesperrt. Den {status}-Status im BTP-Hauptprogramm entfernen, damit der Spieler wieder teilnehmen kann.',
 	'match:edit:not_in_preparation': 'nicht in Vorbereitung',

@@ -1,0 +1,89 @@
+{
+  "browser": {
+    "protocolVersion": "1.3",
+    "product": "Chrome/155.0.8059.39",
+    "revision": "@3ff7ac5a9224be9156d7f8703a06e22890aafd34",
+    "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36",
+    "jsVersion": "15.5.35.20"
+  },
+  "checks": [
+    "German todo names DNS, participant, discipline, first match and both resolutions",
+    "DNS octagonal badge with white text, accessible description and spacing replaces bare team prefix",
+    "badge and name vertically centered within 3px, separated by at least 6px at 20px text size",
+    "existing yellow warning box style applied",
+    "DNS player and Self-Check-in chip dark red, explanatory title, no check-in request",
+    "DNS removal restores normal color and both check-in controls live; removes badge",
+    "existing click handler uses current status after DNS removal",
+    "live DNS on a replaced match object blocks existing handlers again",
+    "first walkover loss removes todo without reload",
+    "reactivated match restores todo",
+    "en translated and interpolated",
+    "nl translated and interpolated",
+    "removing imported DNS removes todo without reload",
+    "de WDN status: dark red, check-in disabled, current tooltip; no DNS first-match todo",
+    "en WDN status: dark red, check-in disabled, current tooltip; no DNS first-match todo",
+    "nl WDN status: dark red, check-in disabled, current tooltip; no DNS first-match todo",
+    "WDN removal restores colors, clears tooltips and permits check-in through existing handler",
+    "de DSQ from numeric stage code 7: badge, dark red, check-in disabled, BTP-to-BTS mismatch todo",
+    "en DSQ from numeric stage code 7: badge, dark red, check-in disabled, BTP-to-BTS mismatch todo",
+    "nl DSQ from numeric stage code 7: badge, dark red, check-in disabled, BTP-to-BTS mismatch todo",
+    "recording the relevant DSQ loss clears mismatch todo without requiring the first match",
+    "de BTS disqualification requests DSQ in BTP",
+    "en BTS disqualification requests DSQ in BTP",
+    "nl BTS disqualification requests DSQ in BTP",
+    "imported DSQ resolves reverse todo live",
+    "forced withdrawal code 110 gets FWDN badge with smaller label and same participation guards"
+  ],
+  "background_color": "rgb(255, 247, 214)",
+  "errors": [],
+  "fixture": "actual warning/player/Self-Check-in functions, shared DNS/WDN/DSQ/FWDN policy, translations, BUP DOM helpers and CSS; synthetic matches; no live writes",
+  "date": "2026-10-13",
+  "server_tests_passed": 957,
+  "targeted_regressions_passed": 106,
+  "dsq_todo_regressions": 10,
+  "scope": [
+    "DSQ entry status 7 and FWDN entry status 110 use the shared server/UI participant policy and BTP parser.",
+    "Manual/automatic calls, forced preparation, repeated player announcements and check-in remain blocked per affected draw; result recording and check-out remain available.",
+    "DSQ badge and localized tooltips use the existing stop-sign layout; FWDN has a smaller label to fit four letters.",
+    "Yellow todos cover imported DSQ without a recorded disqualification and BTS disqualification without imported DSQ.",
+    "Disqualification can occur in any round. Earlier/cascaded withdrawal results do not request downgrading DSQ to WDN."
+  ],
+  "code_verification": {
+    "method": "Read-only installed BTP 2024 status-label lookup. Known DNS/WDN codes confirm the same lookup used for DSQ. No tournament data was edited.",
+    "binary_sha256": "c48c77105e8329c0dac360fc39a7eb04b9b726b83502d5d10563a0c26b5de96c",
+    "statuses": {
+      "7": "DSQ",
+      "108": "DNS",
+      "109": "WDN",
+      "110": "FWDN"
+    }
+  },
+  "live_check": {
+    "raw_stage_status": 7,
+    "imported_status": "DSQ",
+    "draw": 5,
+    "match_199_blocked": true,
+    "other_discipline_match_381_blocked": false,
+    "dsq_mismatch_todo_present": true,
+    "method": "Read-only BTP SENDTOURNAMENTINFO and read-only NeDB file inspection; no tournament data changed."
+  },
+  "source_sha256": {
+    "bts/btp_parse.js": "3115d9b341c8b52be01f616f2dd2f19c8e70acd2be01d4f261d40fb9c3e5c115",
+    "static/js/btp_entry_status.js": "91f64c66ace29cd5007bf6d0a4715db460966beb7b572a11894c620cfd2b97c4",
+    "static/js/btp_dsq_todos.js": "b6493d6bb7ec636222684c234e2735c537c6a252d20f5ebad244736b2a4be99d",
+    "static/js/cmatch.js": "c2f760a5d4361766c00864a4c99fed2f84994d83ed55c318604c2d9f2192d389",
+    "static/cbts.html": "038ec685cd9407e64d6fe96b399719e2088e7230008e319aeb755b80d6301fb0",
+    "static/css/cmatch.css": "77737470c92a93d394ece60079bf3bff144071ae3c5ae31d89220f8d02e779ed",
+    "static/js/ci18n_de.js": "976000c07b927f62a26e2e8f6f83fd1ee86beeb350feb58c692521f354d0b6bf",
+    "static/js/ci18n_en.js": "4b9c7e83300db1538eb60719f63a4b999b591e6335f3cce19bd7cca831050a47",
+    "static/js/ci18n_nl.js": "d3b423625f611646d43581c6556c620a1bc70c739e58d9317fd6650f103156c6",
+    "test/test_btp_parse.js": "6913213a6eb3e0ce04ef7953da57c0659acc327ab0372e4836a828bfebf05b4a",
+    "test/test_btp_dsq_todos.js": "eff755060c1c26853aa38dbd8268c64d8e519df02c497ac625a3687c6c78f637",
+    "test/test_btp_entry_blocking.js": "7846aafa2f811d4638b06616a0952fd9e0be8590f001801aa7f6c8334623f448"
+  },
+  "limits": [
+    "Browser checks use real component functions, translations and CSS with synthetic matches, not the complete live Admin page.",
+    "Server regression tests use isolated fixtures. Live verification used only SENDTOURNAMENTINFO and read-only NeDB inspection; no live result or assignment was edited.",
+    "No new live latency benchmark was run for this entry-status extension."
+  ]
+}

@@ -1328,6 +1328,7 @@ function render_player_entry_status_badge(player_el, match, player) {
 	const badge = uiu.el(player_el.parentNode, 'span', {
 		'class': 'btp_entry_status_badge',
 		'role': 'img',
+		'data-entry-status': status,
 		'aria-label': description,
 		'title': description,
 	});
@@ -2349,18 +2350,23 @@ function _manual_btp_stage_status_hint(match, raw_status) {
 }
 
 function _btp_stage_status_is_dns(status) {
-	return status === 'DNS' || status === 108 || status === '108';
+	return btp_entry_status.blocking_status(status) === 'DNS';
 }
 
 function _btp_stage_status_is_wdn(status) {
-	return status === 'WDN' || status === 109 || status === '109';
+	return ['WDN', 'FWDN'].includes(btp_entry_status.blocking_status(status));
 }
 
 function _btp_stage_status_done(status) {
-	return _btp_stage_status_is_dns(status) || _btp_stage_status_is_wdn(status);
+	return btp_entry_status.blocking_status(status) != null;
 }
 
 function _btp_stage_status_matches_target(status, target_status) {
+	if (target_status === ci18n('tournament:manual_btp_stage_status:target_dsq')) {
+		return btp_entry_status.blocking_status(status) === 'DSQ';
+	}
+	// Do not ask to downgrade an existing disqualification for older/cascaded results.
+	if (btp_entry_status.blocking_status(status) === 'DSQ') return true;
 	if (target_status === ci18n('tournament:manual_btp_stage_status:target_dns')) {
 		return _btp_stage_status_is_dns(status);
 	}
@@ -2390,6 +2396,9 @@ function _player_has_done_btp_stage_status_for_match(match, player, target_statu
 }
 
 function _manual_btp_stage_status_target(match) {
+	if (match && match.score_status === 'disqualified') {
+		return ci18n('tournament:manual_btp_stage_status:target_dsq');
+	}
 	if (match && match.score_status === 'walkover') {
 		return ci18n('tournament:manual_btp_stage_status:target_dns');
 	}
@@ -2400,7 +2409,8 @@ function _match_needs_manual_btp_stage_status(match) {
 	return !!match && (
 		match.score_status === 'no_match' ||
 		match.score_status === 'walkover' ||
-		match.score_status === 'retired'
+		match.score_status === 'retired' ||
+		match.score_status === 'disqualified'
 	);
 }
 
@@ -2411,8 +2421,11 @@ function _manual_btp_stage_status_losing_team_index(match) {
 	if (match.no_match_losing_team === 0 || match.no_match_losing_team === 1) {
 		return match.no_match_losing_team;
 	}
-	if (match.score_status === 'retired' && typeof match.team1_won === 'boolean') {
+	if (['retired', 'disqualified'].includes(match.score_status) && typeof match.team1_won === 'boolean') {
 		return match.team1_won ? 1 : 0;
+	}
+	if (['retired', 'disqualified'].includes(match.score_status) && [1, 2].includes(match.btp_winner)) {
+		return match.btp_winner === 1 ? 1 : 0;
 	}
 	return null;
 }
@@ -2445,7 +2458,8 @@ function get_manual_btp_stage_status_warnings() {
 		const player_ids = players.map((player) => player?.btp_id || player?.name).filter(Boolean).join('/');
 		const event_name = setup?.event_name || '';
 		const key = [event_name, player_ids].join('|');
-		if (!warnings_by_key.has(key)) {
+		if (!warnings_by_key.has(key) || (match.score_status === 'disqualified' &&
+			warnings_by_key.get(key).target_status !== target_status)) {
 			warnings_by_key.set(key, {
 				name: _team_status_label(setup, losing_team_index, ci18n(`match:edit:team${losing_team_index + 1}`)),
 				event_name,
@@ -2460,20 +2474,27 @@ function get_manual_btp_stage_status_warnings() {
 function render_manual_btp_stage_status_warnings(container) {
 	const warnings = get_manual_btp_stage_status_warnings();
 	const dns_todos = btp_dns_todos.collect(curt?.matches);
+	const dsq_todos = btp_dsq_todos.collect(curt?.matches);
 	const registration_todos = typeof ctournament !== 'undefined' && ctournament && typeof ctournament.get_registration_main_todos === 'function'
 		? ctournament.get_registration_main_todos()
 		: [];
-	if (!warnings.length && !registration_todos.length && !dns_todos.length) {
+	if (!warnings.length && !registration_todos.length && !dns_todos.length && !dsq_todos.length) {
 		return;
 	}
 	const warning_container = uiu.el(container, 'div', 'manual_btp_stage_status_warning');
 	uiu.el(warning_container, 'div', 'manual_btp_stage_status_warning_title',
-		registration_todos.length || dns_todos.length ? 'ToDos' : ci18n('tournament:manual_btp_stage_status:title'));
+		registration_todos.length || dns_todos.length || dsq_todos.length ? 'ToDos' : ci18n('tournament:manual_btp_stage_status:title'));
 	dns_todos.forEach((todo) => {
 		uiu.el(warning_container, 'div', 'manual_btp_stage_status_warning_entry', ci18n('tournament:manual_btp_stage_status:dns_mismatch', {
 			name: todo.name,
 			event_name: todo.event_name || ci18n('tournament:manual_btp_stage_status:unknown_event'),
 			match_num: todo.match_num != null ? ('#' + todo.match_num) : '-',
+		}));
+	});
+	dsq_todos.forEach((todo) => {
+		uiu.el(warning_container, 'div', 'manual_btp_stage_status_warning_entry', ci18n('tournament:manual_btp_stage_status:dsq_mismatch', {
+			name: todo.name,
+			event_name: todo.event_name || ci18n('tournament:manual_btp_stage_status:unknown_event'),
 		}));
 	});
 	warnings.forEach((warning) => {
@@ -3277,7 +3298,7 @@ function get_preparation_frontier_debug_entries() {
 }
 
 const PREPARATION_DEBUG_RULE_LABELS = {
-	no_btp_inactive_player: 'Kein Spieler ist in BTP als DNS oder WDN eingetragen',
+	no_btp_inactive_player: 'Kein Spieler ist in BTP als DNS, WDN, FWDN oder DSQ eingetragen',
 	manual_state_callable: 'Status erlaubt haendischen Vorbereitungsaufruf',
 	state_scheduled: 'Status ist angesetzt',
 	not_deferred: 'Vorbereitungsaufruf nicht zurueckgestellt',
@@ -5186,6 +5207,7 @@ if ((typeof module !== 'undefined') && (typeof require !== 'undefined')) {
 	var cmatch_history = require('./cmatch_history');
 	var btp_dns_todos = require('./btp_dns_todos');
 	var btp_entry_status = require('./btp_entry_status');
+	var btp_dsq_todos = require('./btp_dsq_todos');
 	var change = require('./change');
 	var ci18n = require('./ci18n');
 	var countries = require('./countries');

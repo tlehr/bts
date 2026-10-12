@@ -450,6 +450,8 @@ var ci18n_en = Object.assign(
 		'tournament:manual_btp_stage_status:dns_mismatch': '{name} is marked DNS in BTP for {event_name}, but their first match in this event ({match_num}) is not recorded as a walkover loss. Please remove DNS in the BTP main application or record this first match as a walkover loss for {name} in BTS.',
 		'tournament:manual_btp_stage_status:target_dns': 'Did not show (DNS)',
 		'tournament:manual_btp_stage_status:target_wdn': 'Withdrawn (WDN)',
+		'tournament:manual_btp_stage_status:target_dsq': 'Disqualified (DSQ)',
+		'tournament:manual_btp_stage_status:dsq_mismatch': '{name} is marked DSQ in BTP for {event_name}, but BTS has no disqualification recorded against this player. Please check and, if appropriate, remove DSQ in the BTP main application or record the disqualification in the affected match in BTS.',
 		'tournament:manual_btp_stage_status:unknown_event': 'this event',
 		'match:player:entry_blocked': '{status} in BTP for {event_name}: match calls and check-in are blocked. Remove {status} in the BTP main application to allow this player to participate again.',
 		'match:edit:not_in_preparation': 'not in preparation',

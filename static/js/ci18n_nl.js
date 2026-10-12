@@ -335,6 +335,8 @@ var ci18n_nl = Object.assign(
 		'tournament:manual_btp_stage_status:dns_mismatch': '{name} staat in BTP als DNS voor {event_name}, maar de eerste wedstrijd in dit onderdeel ({match_num}) is niet als reglementair verlies vastgelegd. Verwijder DNS in het BTP-hoofdprogramma of registreer deze eerste wedstrijd in BTS als reglementair verlies voor {name}.',
 		'tournament:manual_btp_stage_status:target_dns': 'Niet verschenen / Did not show (DNS)',
 		'tournament:manual_btp_stage_status:target_wdn': 'Teruggetrokken (WDN)',
+		'tournament:manual_btp_stage_status:target_dsq': 'Gediskwalificeerd (DSQ)',
+		'tournament:manual_btp_stage_status:dsq_mismatch': '{name} staat in BTP als DSQ voor {event_name}, maar BTS heeft geen diskwalificatie tegen deze speler geregistreerd. Controleer DSQ in het BTP-hoofdprogramma en verwijder deze zo nodig, of registreer de diskwalificatie in de betreffende wedstrijd in BTS.',
 		'tournament:manual_btp_stage_status:unknown_event': 'dit onderdeel',
 		'match:player:entry_blocked': '{status} in BTP voor {event_name}: oproepen en inchecken zijn geblokkeerd. Verwijder {status} in het BTP-hoofdprogramma zodat deze speler weer kan deelnemen.',
 		'match:edit:not_in_preparation': 'niet in voorbereiding',

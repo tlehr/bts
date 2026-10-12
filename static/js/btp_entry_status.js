@@ -3,9 +3,13 @@
 // Shared by the server and Admin UI. Entry status belongs to a BTP draw,
 // not to the player's participation in every discipline.
 var btp_entry_status = (function() {
-	const is_dns = status => status === 'DNS' || status === 108 || status === '108';
-	const blocking_status = status => is_dns(status) ? 'DNS' :
-		(status === 'WDN' || status === 109 || status === '109' ? 'WDN' : null);
+	// BTP stage-entry codes differ from match result codes (DSQ result = 3).
+	const status_labels = new Map([
+		['108', 'DNS'], ['DNS', 'DNS'], ['109', 'WDN'], ['WDN', 'WDN'],
+		['7', 'DSQ'], ['DSQ', 'DSQ'], ['110', 'FWDN'], ['FWDN', 'FWDN'],
+	]);
+	const blocking_status = status => status_labels.get(String(status)) || null;
+	const is_dns = status => blocking_status(status) === 'DNS';
 
 	function player_status(match, player, team, normalize) {
 		if (!match || !player) return null;
@@ -48,7 +52,7 @@ var btp_entry_status = (function() {
 		if (!reason) return null;
 		return new Error('Match cannot be called: ' + reason + ' is blocked in BTP for ' + (match.setup.event_name || 'this discipline') + '.');
 	}
-	return { is_dns, player_has_dns, dns_players, player_blocking_status, player_is_blocked,
+	return { blocking_status, is_dns, player_has_dns, dns_players, player_blocking_status, player_is_blocked,
 		blocked_players, blocking_reason, call_error };
 })();
 

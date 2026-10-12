@@ -40,7 +40,7 @@ async function unchanged(app, original) {
 	assert.strictEqual((await app.db.courts.findOne_async({ _id: 'court' })).match_id, null);
 }
 
-for (const entry_status of ['DNS', 'WDN']) {
+for (const entry_status of ['DNS', 'WDN', 'DSQ', 'FWDN']) {
 	describe('BTP ' + entry_status + ' player blocking', function() {
 		it('rejects check-in through the API while allowing check-out', async function() {
 			const app = await fixture(entry_status), original = await app.db.matches.findOne_async({ _id: 'match' });
@@ -129,7 +129,7 @@ for (const entry_status of ['DNS', 'WDN']) {
 		});
 
 		it('supports per-player doubles status and team fallback without trusting stale aggregate labels', function() {
-			const a = { btp_id: 1, entries: { 5: entry_status === 'DNS' ? '108' : '109', 2: '<none>' } }, b = { btp_id: 2, entries: { 5: '<none>' } };
+			const a = { btp_id: 1, entries: { 5: String({ DNS: 108, WDN: 109, DSQ: 7, FWDN: 110 }[entry_status]), 2: '<none>' } }, b = { btp_id: 2, entries: { 5: '<none>' } };
 			const match = { btp_match_ids: [{ draw: 5 }], setup: { teams: [{ entry_status, players: [a, b] }] } };
 			assert.deepStrictEqual(status.blocked_players(match), [a]);
 			delete a.entries; assert.deepStrictEqual(status.blocked_players(match), [a]);
@@ -156,7 +156,7 @@ for (const entry_status of ['DNS', 'WDN']) {
 
 		it('allows recording a withdrawal or walkover result while preserving the imported status', async function() {
 			const app = await fixture(entry_status), proposed = structuredClone(app.match);
-			proposed.score_status = entry_status === 'DNS' ? 'walkover' : 'retired';
+			proposed.score_status = entry_status === 'DNS' ? 'walkover' : entry_status === 'DSQ' ? 'disqualified' : 'retired';
 			proposed.no_match_losing_team = 0;
 			proposed.team1_won = false;
 			proposed.btp_winner = 2;
@@ -206,13 +206,13 @@ describe('BTP entry status normalization', function() {
 	it('normalizes numeric codes and keeps the first-match DNS policy separate from withdrawal', function() {
 		const player = { btp_id: 1, name: 'Player', entries: {} };
 		const match = { btp_match_ids: [{ draw: 5 }], setup: { teams: [{ players: [player] }] } };
-		for (const [raw, label] of [[108, 'DNS'], ['108', 'DNS'], ['DNS', 'DNS'], [109, 'WDN'], ['109', 'WDN'], ['WDN', 'WDN']]) {
+		for (const [raw, label] of [[108, 'DNS'], ['108', 'DNS'], ['DNS', 'DNS'], [109, 'WDN'], ['109', 'WDN'], ['WDN', 'WDN'], [7, 'DSQ'], ['7', 'DSQ'], ['DSQ', 'DSQ'], [110, 'FWDN'], ['110', 'FWDN'], ['FWDN', 'FWDN']]) {
 			player.entries[5] = raw;
 			assert.strictEqual(status.player_blocking_status(match, player), label);
 			assert.strictEqual(status.player_has_dns(match, player), label === 'DNS');
 			assert(status.call_error(match).message.includes('Player (' + label + ')'));
 		}
-		for (const raw of [null, undefined, '<none>', 0, 110, 'unknown']) {
+		for (const raw of [null, undefined, '<none>', 0, 3, 111, 'unknown']) {
 			player.entries[5] = raw;
 			assert.strictEqual(status.player_is_blocked(match, player), false);
 			assert.strictEqual(status.call_error(match), null);

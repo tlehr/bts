@@ -18,14 +18,7 @@ const MATCH_TYPES = {
 };
 
 function _btp_stage_entry_status_label(raw_status) {
-	switch (Number(raw_status)) {
-		case 108:
-			return "DNS";
-		case 109:
-			return "WDN";
-		default:
-			return "<none>";
-	}
+	return require('../static/js/btp_entry_status').blocking_status(raw_status) || '<none>';
 }
 
 function _set_player_draw_entry_status(player, draw_id, entry_status) {

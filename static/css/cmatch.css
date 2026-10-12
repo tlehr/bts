@@ -787,6 +787,10 @@ match_manual_call_button,
 	clip-path: inherit;
 }
 
+.btp_entry_status_badge[data-entry-status="FWDN"] > .btp_entry_status_badge_label {
+	font-size: 0.34em;
+}
+
 .person.can_check_in:not(.player),
 .person.can_check_out:not(.player) {
 	cursor: default;
