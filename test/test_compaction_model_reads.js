@@ -138,6 +138,39 @@ describe('model reads during pure compaction', function() {
 		assert.strictEqual(unknown_ran, true);
 	});
 
+	it('lets score reads pass queued internal readers during tournament compaction', async function() {
+		const { db } = await fixture(), held = hold_compaction(db.tournaments); await held.started;
+		const queries = [
+			require('../bts/preparation_selection/periodic_reads').tournaments({ db }, {}),
+			new Promise((resolve, reject) => require('../bts/admin_response/tournament_read')(db, 'test', true,
+				(error, value) => error ? reject(error) : resolve(value))),
+			new Promise((resolve, reject) => db.model.read_display_context_part('tournament', 'test', null,
+				(error, value) => error ? reject(error) : resolve(value))),
+			db.model.snapshot('test', ['tournaments']),
+			new Promise((resolve, reject) => db.model.read_cleanup_tournament('test',
+				(error, value) => error ? reject(error) : resolve(value))),
+		];
+		try {
+			const capture = await read(db, 'tournament');
+			assert.strictEqual(capture.timing.compaction_read_bypassed, true);
+			assert.strictEqual(capture.value.key, 'test');
+			assert.strictEqual(barrier.inspect(db.tournaments).allowed, true);
+		} finally { held.release(); await held.finished; }
+		await Promise.all(queries);
+	});
+
+	it('retains the TTL barrier if an index is installed behind a certified internal reader', async function() {
+		const { db } = await fixture(), held = hold_compaction(db.tournaments); await held.started;
+		const timer_read = require('../bts/preparation_selection/periodic_reads').tournaments({ db }, {});
+		db.tournaments.ttlIndexes.expiry = 1;
+		let delivered = false;
+		const capture = read(db, 'tournament').then(result => { delivered = true; return result; });
+		try { await turn(); assert.strictEqual(delivered, false); }
+		finally { delete db.tournaments.ttlIndexes.expiry; held.release(); await held.finished; }
+		await timer_read;
+		assert.strictEqual((await capture).timing.compaction_read_decision, 'ttl_index');
+	});
+
 	it('waits for unobserved queued jobs and for expiry-capable cursor reads', async function() {
 		const { db } = await fixture(), held = hold_compaction(db.matches); await held.started;
 		db.matches.executor.queue.push({ this: db.matches, fn(done) { done(); }, arguments: [] });

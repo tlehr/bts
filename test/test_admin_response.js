@@ -55,6 +55,22 @@ describe('background admin response output', function() {
 		const circular = {}; circular.self = circular;
 		await assert.rejects(encode({ tournament: { matches: [circular] } }), /circular/i);
 	});
+	it('encodes complete performance trace replies in bounded turns with native JSON semantics', async function() {
+		const encode = require('../bts/admin_response/cooperative');
+		const message = { type: 'answer', rid: 'probe', performance: { ts: 1,
+			database: [undefined, { date: new Date(1000) }], processing: {
+				active: [{ toJSON(key) { return { key }; } }],
+				completed: Array.from({ length: 2000 }, (_, id) => ({ id,
+					spans: Array.from({ length: 30 }, (_, index) => ({ index, name: 'step', duration_ms: .1 })),
+				})), stages: [null, { count: 2 }],
+			},
+		} };
+		let yielded = false;
+		setImmediate(() => { yielded = true; });
+		assert.strictEqual(await encode(message), JSON.stringify(message));
+		assert.strictEqual(yielded, true);
+	});
+
 	it('pauses background copying/encoding until all running point tasks finish and releases on failures', async function() {
 		const previous = process.env.BTS_ADMIN_RESPONSE_PRIORITY;
 		process.env.BTS_ADMIN_RESPONSE_PRIORITY = '1';

@@ -62,7 +62,9 @@ function clean(details = {}) {
 			'direct_match_locks', 'additional_match_locks', 'dependency_player_matches', 'dependency_court_matches',
 			'dependency_effect_matches', 'allocation_reasons', 'bounded_match_groups', 'bounded_match_changes',
 			'prepared_match_writes', 'prepared_match_fallbacks', 'serialization_ms', 'storage_wait_ms',
-			'storage_start_ts', 'storage_end_ts', 'storage_bytes'].includes(key)) continue;
+			'storage_start_ts', 'storage_end_ts', 'storage_bytes', 'read_source', 'compaction_read_bypassed',
+			'compaction_read_decision', 'db_queue_wait_ms', 'read_ms', 'queue_depth_at_enqueue',
+			'compaction_pending_at_enqueue'].includes(key)) continue;
 		if (typeof value === 'string') result[key] = value.slice(0, 200);
 		else if (typeof value === 'number' || typeof value === 'boolean' || value === null) result[key] = value;
 		else if (Array.isArray(value)) { result[key] = value.slice(0, 40).map(item => typeof item === 'string' ? item.slice(0, 200)
@@ -189,12 +191,22 @@ function snapshot(after = revision) {
 	if (!Number.isSafeInteger(after) || after < 0) after = revision;
 	const eligible = completed.filter(record => record.revision > after), records = eligible.slice(0, LIMITS.response);
 	const unfinished = [...active.values(), ...completed.filter(record => record.pending_spans > 0)];
+	// Background encoding may yield while an operation completes or adds a
+	// follow-up span. Export detached rows at this cursor, never live records.
+	const exported = new Map();
+	const export_record = record => {
+		if (!exported.has(record)) exported.set(record, { ...record,
+			spans: record.spans.map(row => ({ ...row })),
+			span_summaries: record.span_summaries.map(row => ({ ...row, ...(row.slowest ? { slowest: { ...row.slowest } } : {}) })),
+		});
+		return exported.get(record);
+	};
 	return { enabled: enabled(), session, lease_remaining_ms: Math.max(0, until - Date.now()), limits: LIMITS,
 		cursor: records.at(-1)?.revision ?? revision, remaining: Math.max(0, eligible.length - records.length),
 		gap: after > 0 && after < evicted_revision,
 		dropped_traces: dropped, buffer_overwrites: overwritten, unaggregated_samples: unaggregated,
 		active_total: unfinished.length, active_truncated: Math.max(0, unfinished.length - LIMITS.active),
-		active: unfinished.slice(0, LIMITS.active), completed: records,
+		active: unfinished.slice(0, LIMITS.active).map(export_record), completed: records.map(export_record),
 		stages: [...stages.values()].map(stage => {
 			if (stage.cached_p95 == null) { const values = [...stage.recent].sort((a, b) => a - b); stage.cached_p95 = values[Math.ceil(values.length * .95) - 1]; }
 			const { recent, sum, cached_p95, ...row } = stage;

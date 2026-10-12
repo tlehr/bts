@@ -3,6 +3,7 @@
 const { match } = require('nedb/lib/model');
 const { promisify } = require('util');
 const { supported, read } = require('./model_reads');
+const { certify_read } = require('../database_read_barrier');
 
 // Private, read-only automation inputs. Keep the executor barrier so a timer
 // never observes an indexed write before its persistence callback completes.
@@ -20,8 +21,8 @@ function tournaments(app, query) {
 			} catch (error) { return done(error); }
 			done(null, documents);
 		};
-		store.executor.push({ this: store, fn: capture, diagnostic_name: 'automation_tournaments',
-			arguments: [(error, values) => error ? reject(error) : resolve(values)] });
+		store.executor.push(certify_read({ this: store, fn: capture, diagnostic_name: 'automation_tournaments',
+			arguments: [(error, values) => error ? reject(error) : resolve(values)] }));
 	});
 }
 

@@ -2,6 +2,7 @@
 
 const { deepCopy } = require('nedb/lib/model');
 const normalization = require('./normalization_fingerprints');
+const { certify_read } = require('../database_read_barrier');
 
 function match_projection(document) {
 	const { _id, end_ts, team1_won, btp_winner, btp_needsync, setup } = document;
@@ -37,9 +38,9 @@ module.exports = async function normalization_state(model, key, include_document
 			} catch (error) { return done(error); }
 			done(null, digest);
 		};
-		store.executor.push({ this: store, fn: capture, diagnostic_name: 'normalization_read_' + collection, arguments: [
+		store.executor.push(certify_read({ this: store, fn: capture, diagnostic_name: 'normalization_read_' + collection, arguments: [
 			(error, digest) => error ? reject(error) : resolve(digest),
-		] });
+		] }));
 	})));
 	const key_signature = digests.join(':');
 	if (tournament._normalization_signature?.key !== key_signature) {

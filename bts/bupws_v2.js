@@ -16,6 +16,7 @@ const update_queue = require('./update_queue');
 const displaysettings_defaults = require('./displaysettings_defaults');
 const event_loop_probe = require('./timing/event_loop_probe');
 const timed_steps = require('./timing/steps');
+const publish_committed_points = require('./score_publication/committed_points');
 
 const all_panels = [];
 const active_umpire_match_owners = new Map();
@@ -3296,7 +3297,7 @@ async function handle_score_update(app, ws, msg) {
 				(updated_match, cb) => {
 					const start_ns = timing_now_ns();
 					if (updated_match) {
-						const sent = require('./score_publication/committed_points')({
+						const sent = publish_committed_points({
 							app, key: tournament_key, court, match: updated_match, panels: all_panels,
 							// Timers retain their normal ordered fanout. Preparing them here
 							// would delay both the immediate point and the Admin event.
@@ -3330,7 +3331,10 @@ async function handle_score_update(app, ws, msg) {
 						court_id: updated_match?.setup?.court_id || null,
 						skip_origin_umpire: !score_indicates_finished,
 					});
-					cb(null, updated_match);
+					// Return from NeDB's persistence callback before starting court,
+					// player and device follow-ups. The match/court locks remain held,
+					// while the executor and transport can process committed updates.
+					setImmediate(cb, null, updated_match);
 				},
 				(updated_match, cb) => {
 					if (updated_match && finish_confirmed) {

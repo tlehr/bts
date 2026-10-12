@@ -24,7 +24,20 @@ module.exports = async function encode(message) {
 		for (const key of Object.keys(value)) {
 			await yield_if_due();
 			const child = value[key];
-			if (kind === 'response' && key === 'tournament' && child && Object.getPrototypeOf(child) === Object.prototype && !child.toJSON) {
+			if (((kind === 'response' && key === 'performance') || (kind === 'performance' && key === 'processing')) &&
+				child && Object.getPrototypeOf(child) === Object.prototype && !child.toJSON) {
+				if (!first) parts.push(','); first = false;
+				parts.push(JSON.stringify(key) + ':'); await object(child, key);
+			} else if (['performance', 'processing'].includes(kind) && Array.isArray(child) && !child.toJSON) {
+				if (!first) parts.push(','); first = false;
+				parts.push(JSON.stringify(key) + ':[');
+				for (let i = 0; i < child.length; i++) {
+					await yield_if_due();
+					if (i) parts.push(',');
+					parts.push(array_item(child[i], i));
+				}
+				parts.push(']');
+			} else if (kind === 'response' && key === 'tournament' && child && Object.getPrototypeOf(child) === Object.prototype && !child.toJSON) {
 				if (!first) parts.push(','); first = false;
 				parts.push(JSON.stringify(key) + ':'); await object(child, 'tournament');
 			} else if (kind === 'response' && key === 'selections' && Array.isArray(child) && !child.toJSON) {

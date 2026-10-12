@@ -20,6 +20,25 @@ const completed = () => traces.snapshot(0).completed;
 describe('processing traces and flow evidence', function() {
 	beforeEach(function() { traces.disable(); });
 	afterEach(function() { traces.disable(); });
+	it('detaches running trace rows so background exports retain their captured cursor state', async function() {
+		traces.enable();
+		const gate = deferred();
+		const running = traces.operation('detached_export', { type: 'point' }, async () => {
+			const span = traces.begin('persist', 'phase');
+			await gate.promise;
+			traces.end(span);
+		});
+		await turn();
+		const captured = traces.snapshot(0).active.find(row => row.name === 'detached_export');
+		try {
+			assert.strictEqual(captured.status, 'running');
+			assert.strictEqual(captured.spans[0].status, 'running');
+		} finally { gate.resolve(); await running; }
+		assert.strictEqual(captured.status, 'running');
+		assert.strictEqual(captured.spans[0].status, 'running');
+		assert.strictEqual(completed().find(row => row.name === 'detached_export').spans[0].status, 'ok');
+	});
+
 	it('retains bounded refresh timings and operation counts without snapshot contents', async function() {
 		traces.enable();
 		await traces.operation('snapshot_refresh', { type: 'sync' }, async () => {

@@ -5540,7 +5540,9 @@ function handle_debug_queue_stats(app, ws, msg) {
 function handle_debug_performance_stats(app, ws, msg) {
 	if (msg.probe === true) ws.performance_probe = true;
 	if (msg.trace === true) require('./performance/traces').enable();
-	ws.respond(msg, null, { performance: require('./performance/monitor').snapshot(app, all_admins, msg.tournament_key, msg.trace_cursor) });
+	(ws.respond_background || ws.respond).call(ws, msg, null, {
+		performance: require('./performance/monitor').snapshot(app, all_admins, msg.tournament_key, msg.trace_cursor),
+	});
 }
 
 function on_connect(app, ws) {

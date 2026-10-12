@@ -1,6 +1,7 @@
 'use strict';
 
 const { deepCopy } = require('nedb/lib/model');
+const { certify_read } = require('../database_read_barrier');
 
 // NeDB-specific lifecycle hooks and ordered, read-only snapshots.
 class DatastoreBinding {
@@ -46,7 +47,7 @@ class DatastoreBinding {
 			} catch (error) { return done(error); }
 			done(null, docs);
 		};
-		store.executor.push({ this: store, fn: capture, arguments: [callback], diagnostic_name: 'player_match_lookup' });
+		store.executor.push(certify_read({ this: store, fn: capture, arguments: [callback], diagnostic_name: 'player_match_lookup' }));
 	}
 	async snapshot(key, collections) {
 		const tournament = this.model.tournament(key);
@@ -73,8 +74,8 @@ class DatastoreBinding {
 				} catch (error) { done(error); }
 			};
 			// Preserve datastore write ordering without scanning or copying its docs.
-			this.db[collection].executor.push({ this: this.db[collection], fn: capture, diagnostic_name: 'sync_snapshot_' + collection,
-				arguments: [error => error ? reject(error) : resolve()] });
+			this.db[collection].executor.push(certify_read({ this: this.db[collection], fn: capture, diagnostic_name: 'sync_snapshot_' + collection,
+				arguments: [error => error ? reject(error) : resolve()] }));
 		})));
 		return result;
 	}

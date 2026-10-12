@@ -317,6 +317,37 @@ _describe('bupws v2 score fanout', () => {
 		}
 	});
 
+	_it('returns from persistence before court notifications while publishing the committed score immediately', async () => {
+		const { app, panel, cleanup } = await fixture();
+		const tablet = panel('callback-source'); tablet.panel_devicemode = 'umpire';
+		const tv = panel('callback-tv'); tv.panel_devicemode = 'display';
+		const admin = require('../bts/admin');
+		const update = app.db.matches.update, notify = admin.notify_change;
+		let in_callback = false;
+		const notifications = [];
+		app.db.matches.update = function(query, change, options, callback) {
+			return update.call(this, query, change, options, function(...args) {
+				in_callback = true;
+				try { return callback.apply(this, args); }
+				finally { in_callback = false; }
+			});
+		};
+		admin.notify_change = function(app, key, type, payload) {
+			if (key === 'fanout-test') notifications.push({ type, in_callback });
+			return notify(app, key, type, payload);
+		};
+		try {
+			await bupws_v2.handle_score_update(app, tablet, { tournament_key: 'fanout-test',
+				score: { match_id: 'match-1', court_id: 'court-1', network_score: [[2, 0]], presses: [] } });
+			assert.deepStrictEqual(notifications.find(entry => entry.type === 'score'), { type: 'score', in_callback: true });
+			assert.deepStrictEqual(notifications.find(entry => entry.type === 'court_current_match'), { type: 'court_current_match', in_callback: false });
+			assert(tv.messages.some(message => message.type === 'display_points_update'));
+			assert.deepStrictEqual((await app.db.matches.findOne_async({ _id: 'match-1' })).network_score, [[2, 0]]);
+		} finally {
+			app.db.matches.update = update; admin.notify_change = notify; cleanup();
+		}
+	});
+
 	_it('sends only persisted points to the initialized TV before delayed presentation reads', async () => {
 		const { app, panel, cleanup } = await fixture();
 		const tablet = panel('point-source'); tablet.panel_devicemode = 'umpire';

@@ -1,6 +1,7 @@
 'use strict';
 
 const { deepCopy } = require('nedb/lib/model');
+const { certify_read } = require('../database_read_barrier');
 
 function project_match(doc) {
 	if (!doc) return null;
@@ -15,7 +16,7 @@ function ordered(db, collection, read, callback) {
 		try { value = read(); } catch (error) { return done(error); }
 		done(null, value);
 	};
-	store.executor.push({ this: store, fn: capture, arguments: [callback], diagnostic_name: 'cleanup_read_' + collection });
+	store.executor.push(certify_read({ this: store, fn: capture, arguments: [callback], diagnostic_name: 'cleanup_read_' + collection }));
 }
 
 module.exports = function attach_cleanup_reads(model) {
