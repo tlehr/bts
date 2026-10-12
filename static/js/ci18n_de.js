@@ -451,6 +451,7 @@ var ci18n_de = Object.assign(
 		'match:edit:forward_loser': 'Verlierer weiterschieben (automatisch nach DBV)',
 	'tournament:manual_btp_stage_status:title': 'BTP-Hauptfeldstatus prüfen',
 	'tournament:manual_btp_stage_status:entry': '{match_num}: Bitte im BTP-Hauptprogramm den Hauptfeldstatus für {name} in {event_name} auf „{status}“ setzen.',
+	'tournament:manual_btp_stage_status:dns_mismatch': '{name} ist in BTP für {event_name} als DNS eingetragen, aber das erste Spiel dieser Disziplin ({match_num}) ist nicht kampflos gegen {name} gewertet. Bitte DNS im BTP-Hauptprogramm entfernen oder dieses erste Spiel im BTS für {name} kampflos werten.',
 	'tournament:manual_btp_stage_status:target_dns': 'Nicht erschienen / Did not show (DNS)',
 	'tournament:manual_btp_stage_status:target_wdn': 'Zurückgezogen (WDN)',
 	'tournament:manual_btp_stage_status:unknown_event': 'dieser Disziplin',

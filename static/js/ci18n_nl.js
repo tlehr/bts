@@ -332,6 +332,7 @@ var ci18n_nl = Object.assign(
 		'match:edit:forward_loser': 'Verliezer doorschuiven (automatisch volgens DBV)',
 		'tournament:manual_btp_stage_status:title': 'BTP-hoofdtoernooistatus controleren',
 		'tournament:manual_btp_stage_status:entry': '{match_num}: Zet de hoofdtoernooistatus voor {name} in {event_name} in het BTP-hoofdprogramma op “{status}”.',
+		'tournament:manual_btp_stage_status:dns_mismatch': '{name} staat in BTP als DNS voor {event_name}, maar de eerste wedstrijd in dit onderdeel ({match_num}) is niet als reglementair verlies vastgelegd. Verwijder DNS in het BTP-hoofdprogramma of registreer deze eerste wedstrijd in BTS als reglementair verlies voor {name}.',
 		'tournament:manual_btp_stage_status:target_dns': 'Niet verschenen / Did not show (DNS)',
 		'tournament:manual_btp_stage_status:target_wdn': 'Teruggetrokken (WDN)',
 		'tournament:manual_btp_stage_status:unknown_event': 'dit onderdeel',

@@ -447,6 +447,7 @@ var ci18n_en = Object.assign(
 		'match:edit:forward_loser': 'Forward loser (automatic by DBV rules)',
 		'tournament:manual_btp_stage_status:title': 'Check BTP main-draw status',
 		'tournament:manual_btp_stage_status:entry': '{match_num}: Please set the main-draw status for {name} in {event_name} to “{status}” in the BTP main application.',
+		'tournament:manual_btp_stage_status:dns_mismatch': '{name} is marked DNS in BTP for {event_name}, but their first match in this event ({match_num}) is not recorded as a walkover loss. Please remove DNS in the BTP main application or record this first match as a walkover loss for {name} in BTS.',
 		'tournament:manual_btp_stage_status:target_dns': 'Did not show (DNS)',
 		'tournament:manual_btp_stage_status:target_wdn': 'Withdrawn (WDN)',
 		'tournament:manual_btp_stage_status:unknown_event': 'this event',

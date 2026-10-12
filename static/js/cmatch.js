@@ -2424,15 +2424,23 @@ function get_manual_btp_stage_status_warnings() {
 
 function render_manual_btp_stage_status_warnings(container) {
 	const warnings = get_manual_btp_stage_status_warnings();
+	const dns_todos = btp_dns_todos.collect(curt?.matches);
 	const registration_todos = typeof ctournament !== 'undefined' && ctournament && typeof ctournament.get_registration_main_todos === 'function'
 		? ctournament.get_registration_main_todos()
 		: [];
-	if (!warnings.length && !registration_todos.length) {
+	if (!warnings.length && !registration_todos.length && !dns_todos.length) {
 		return;
 	}
 	const warning_container = uiu.el(container, 'div', 'manual_btp_stage_status_warning');
 	uiu.el(warning_container, 'div', 'manual_btp_stage_status_warning_title',
-		registration_todos.length ? 'ToDos' : ci18n('tournament:manual_btp_stage_status:title'));
+		registration_todos.length || dns_todos.length ? 'ToDos' : ci18n('tournament:manual_btp_stage_status:title'));
+	dns_todos.forEach((todo) => {
+		uiu.el(warning_container, 'div', 'manual_btp_stage_status_warning_entry', ci18n('tournament:manual_btp_stage_status:dns_mismatch', {
+			name: todo.name,
+			event_name: todo.event_name || ci18n('tournament:manual_btp_stage_status:unknown_event'),
+			match_num: todo.match_num != null ? ('#' + todo.match_num) : '-',
+		}));
+	});
 	warnings.forEach((warning) => {
 		uiu.el(warning_container, 'div', 'manual_btp_stage_status_warning_entry', ci18n('tournament:manual_btp_stage_status:entry', {
 			name: warning.name,
@@ -5138,6 +5146,7 @@ if ((typeof module !== 'undefined') && (typeof require !== 'undefined')) {
 	var cerror = require('../bup/js/cerror');
 	var cflags = require('./cflags');
 	var cmatch_history = require('./cmatch_history');
+	var btp_dns_todos = require('./btp_dns_todos');
 	var change = require('./change');
 	var ci18n = require('./ci18n');
 	var countries = require('./countries');
