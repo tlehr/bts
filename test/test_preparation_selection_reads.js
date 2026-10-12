@@ -60,6 +60,28 @@ describe('preparation status model reads and timing', function() {
 		assert.deepStrictEqual(cooperative, ordinary);
 		assert(Object.keys(cooperative[0].diagnostics_by_match_id).length >= 70);
 	});
+	it('inspects automatic field candidates without copying unrelated histories and detaches only the selected game', async function() {
+		const f = await fixture();
+		await f.db.tournaments.update_async({ key: f.key }, { $set: {
+			call_next_possible_scheduled_match_in_preparation: true, call_on_court_only_preparation_enabled: true,
+			call_on_court_only_preparation_minutes: 0, call_on_court_participant_readiness_mode: 'disabled',
+		} }, {});
+		await f.db.matches.update_async({ _id: 'ready' }, { $set: { 'setup.is_match': true, 'setup.incomplete': false,
+			'setup.preparation_call_timestamp': 1, 'setup.match_num': 1, btp_match_ids: [{ id: 1 }],
+		} }, {});
+		await f.insert('matches', { _id: 'unrelated-history', tournament_key: f.key, team1_won: true,
+			setup: { state: 'finished', teams: [] }, presses: [],
+		});
+		const history = f.db.model.tournament(f.key).matches.get('unrelated-history').data;
+		Object.defineProperty(history, 'presses', { configurable: true, enumerable: true, get() { throw new Error('copied unrelated history'); } });
+		const before = f.db.model.tournament(f.key).matches.get('ready').data;
+		try {
+			await match_utils.call_preparation_match_on_court(f.app, f.key, 'court', 'ready');
+			assert.strictEqual(before.setup.state, 'preparation');
+			assert.strictEqual(before.setup.now_on_court, undefined);
+			assert.strictEqual(f.db.model.tournament(f.key).matches.get('ready').data.setup.state, 'oncourt');
+		} finally { delete history.presses; }
+	});
 	it('uses original immutable references without querying or copying histories for a no-op check', async function() {
 		const f = await fixture();
 		const data = f.db.model.tournament(f.key).matches.get('ready').data;

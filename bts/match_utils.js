@@ -2787,7 +2787,7 @@ function call_preparation_match_on_court(app, tournament_key, court_id, expected
 			court_id,
 			expected_match_id: expected_match_id || null,
 		});
-		app.db.tournaments.findOne({ key: tournament_key }, async (err, tournament) => {
+		require('./preparation_selection/call_reads').callback(app, tournament_key, 'tournaments', async (err, tournament) => {
 			if (err) {
 				return reject("No tournament found for ");
 			}
@@ -2797,9 +2797,9 @@ function call_preparation_match_on_court(app, tournament_key, court_id, expected
 			if (tournament.call_next_possible_scheduled_match_in_preparation) {
 				const match_automation = require('./match_automation');
 				Promise.all([
-					app.db.courts.find_async({ tournament_key }),
-					app.db.matches.find_async({ tournament_key }),
-					app.db.umpires.find_async({ tournament_key }),
+					require('./preparation_selection/call_reads').read(app, tournament_key, 'courts'),
+					require('./preparation_selection/call_reads').read(app, tournament_key, 'matches'),
+					require('./preparation_selection/call_reads').read(app, tournament_key, 'umpires'),
 				]).then(([courts, matches, umpires]) => {
 					const current_tournament = {
 						...(tournament || {}),
@@ -2819,7 +2819,7 @@ function call_preparation_match_on_court(app, tournament_key, court_id, expected
 						});
 						return reject("No match found to call on court.");
 					}
-					const next_match = expected_match_id
+					let next_match = expected_match_id
 						? candidates.find((match) => match && match._id === expected_match_id)
 						: candidates[0];
 					if (!next_match) {
@@ -2844,6 +2844,7 @@ function call_preparation_match_on_court(app, tournament_key, court_id, expected
 						location_id: next_match && next_match.setup && next_match.setup.location_id,
 						candidate_count: candidates.length,
 					});
+					next_match = require('nedb/lib/model').deepCopy(next_match);
 					next_match.setup.court_id = court_id;
 					next_match.setup.now_on_court = true;
 					call_match(app, tournament, next_match, undefined, (callErr) => {
@@ -2931,20 +2932,21 @@ function _auto_call_matches_on_free_courts_once(app, tournament_key, callback) {
 		return callback ? callback(null) : null;
 	}
 
-	app.db.tournaments.findOne({ key: tournament_key }, (tournamentErr, tournament) => {
+	require('./preparation_selection/call_reads').callback(app, tournament_key, 'tournaments', (tournamentErr, tournament) => {
 		if (tournamentErr) {
 			return callback ? callback(tournamentErr) : null;
 		}
 
-		app.db.courts.find({ tournament_key }, (err, courts) => {
+		require('./preparation_selection/call_reads').callback(app, tournament_key, 'courts', (err, courts) => {
 			if (err) {
 				return callback ? callback(err) : null;
 			}
 
+			const matches_read = require('./preparation_selection/call_reads').read(app, tournament_key, 'matches');
 			Promise.all([
-				app.db.matches.find_async({ tournament_key, 'setup.now_on_court': true }),
-				app.db.matches.find_async({ tournament_key }),
-				app.db.umpires.find_async({ tournament_key }),
+				matches_read.then(matches => matches.filter(match => match.setup?.now_on_court === true)),
+				matches_read,
+				require('./preparation_selection/call_reads').read(app, tournament_key, 'umpires'),
 			]).then(([on_court_matches, all_matches, umpires]) => {
 
 				const continue_with_tabletoperators = (tabletoperators) => {

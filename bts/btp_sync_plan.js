@@ -254,7 +254,7 @@ async function apply(app, tkey, plan) {
 	const batch_writes = require('./btp_planner/batch_writes');
 	const enabled = require('./offload/profile').enabled('sync_batch_writes');
 	const stats = { batch_groups: 0, batch_changes: 0, individual_writes: 0, prepared_tournament_writes: 0, prepared_tournament_fallbacks: 0,
-		prepared_match_writes: 0, prepared_match_fallbacks: 0 };
+		prepared_match_writes: 0, prepared_match_fallbacks: 0, bounded_match_groups: 0, bounded_match_changes: 0 };
 	const count_prepared = (counts, collection) => {
 		const prefix = collection === 'matches' ? 'prepared_match' : 'prepared_tournament';
 		stats[prefix + '_writes'] += counts.prepared_writes;
@@ -276,9 +276,22 @@ async function apply(app, tkey, plan) {
 			}
 			const query = { _id: change.id, ...query_for(change.collection, tkey) };
 			if (plan.prepared.has(change) && batch_writes.supported(store) && !store.timestampData) {
-				count_prepared(await batch_writes.write(store, [change], () => query, plan.prepared), change.collection);
-				completed.push(change); stats.individual_writes++;
-				continue;
+				const group = [change];
+				if (change.collection === 'matches') while (group.length < 4 && ordered[i + 1]?.collection === 'matches' &&
+					plan.prepared.has(ordered[i + 1])) group.push(ordered[++i]);
+				const counts = await batch_writes.write(store, group, entry => ({ _id: entry.id, ...query_for(entry.collection, tkey) }), plan.prepared, {
+					diagnostic_name: group.length > 1 ? 'sync_prepared_match_group' : 'sync_batch_write',
+					// If TTL/timestamps or custom writers changed while queued, return
+					// without writes. Execute the native update outside this slot.
+					fallback: done => done(null, { native_fallback: true }),
+				});
+				if (counts.native_fallback) i -= group.length - 1;
+				else {
+					count_prepared(counts, change.collection); completed.push(...group);
+					if (group.length > 1) { stats.bounded_match_groups++; stats.bounded_match_changes += group.length; }
+					else stats.individual_writes++;
+					continue;
+				}
 			}
 			if (!change.after) await store.remove_async(query, {});
 			else if (!change.before) await promisify(store.insert.bind(store))(change.after);
