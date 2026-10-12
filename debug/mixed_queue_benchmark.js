@@ -52,6 +52,7 @@ function summarize(server, client, probes) {
 		sync_stage_start_ms: statistics(server.syncs.map(row => elapsed(row.enqueued_ns, row.planning_ns))),
 		sync_total_ms: statistics(server.syncs.map(row => elapsed(row.enqueued_ns, row.finished_ns))),
 		points: client.points, tablet_to_tv_ms: client.tablet_to_tv_ms, tablet_to_admin_ms: client.tablet_to_admin_ms,
+		reception: client.reception || { method: 'simulator-websocket-reception' },
 		finished_matches: server.finished_matches, oncourt_matches: server.oncourt_matches,
 		call_events: client.payload_types.admin.filter(row => row.type === 'change:match_called_on_court').reduce((sum, row) => sum + row.count, 0),
 		preparation_events: client.payload_types.admin.filter(row => row.type === 'change:match_preparation_call').reduce((sum, row) => sum + row.count, 0),
@@ -104,6 +105,12 @@ async function run(options, { signal, log = console.log } = {}) {
 		const client_path = module_path('live_tournament_drill');
 		result.client_commit = (await execute('git', ['-C', path.dirname(client_path), 'rev-parse', 'HEAD'])).stdout.trim();
 		result.client_source_sha256 = crypto.createHash('sha256').update(await fs.readFile(client_path)).digest('hex');
+		result.client_reception_sha256 = {};
+		for (const name of ['reception/transport.js', 'reception/worker.js']) {
+			const source = await fs.readFile(path.join(path.dirname(client_path), name));
+			result.client_reception_sha256[name] = crypto.createHash('sha256').update(source).digest('hex');
+			await fs.writeFile(path.join(source_dir, 'client-' + name.replaceAll('/', '-')), source);
+		}
 		result.dependency_lock_sha256 = crypto.createHash('sha256').update(await fs.readFile(path.join(options.bts_dir, 'package-lock.json'))).digest('hex');
 		server = launch(path.join(__dirname, 'queue_responsiveness/mixed_server.js'), { root, directory: output, count: options.count,
 			sync_interval_ms: options.sync_interval_ms, set_points: options.set_points, workload: options.workload }, output, 'server', signal);

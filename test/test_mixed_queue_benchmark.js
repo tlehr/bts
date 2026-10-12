@@ -3,7 +3,37 @@
 const assert = require('assert');
 const { parse, statistics, summarize } = require('../debug/mixed_queue_benchmark');
 
+const fs = require('fs/promises');
+const os = require('os');
+const path = require('path');
+const http = require('http');
+const WebSocket = require('ws');
+const { module_path } = require('../debug/testclient_bridge');
+const { launch } = require('../debug/queue_responsiveness/process');
+
 describe('mixed queue benchmark', function() {
+	this.timeout(10000);
+	it('stops its receiver before simulation starts and reaps its reception worker without force-killing', async function() {
+		const directory = await fs.mkdtemp(path.join(os.tmpdir(), 'bts-reception-cancel-'));
+		const server = http.createServer(), wss = new WebSocket.Server({ server });
+		let receiver;
+		try {
+			await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
+			receiver = launch(path.resolve(__dirname, '../debug/queue_responsiveness/mixed_receiver.js'), {
+				url: 'http://127.0.0.1:' + server.address().port, directory, count: 14, duration_ms: 5000,
+				point_min_ms: 100, point_max_ms: 200, client_module: module_path('live_tournament_drill'),
+			}, directory, 'receiver');
+			await receiver.wait('ready');
+			const exited = new Promise(resolve => receiver.child.once('exit', (code, signal) => resolve({ code, signal })));
+			await receiver.stop();
+			assert.deepStrictEqual(await exited, { code: 0, signal: null });
+		} finally {
+			await receiver?.stop();
+			for (const ws of wss.clients) ws.terminate();
+			await new Promise(resolve => server.close(resolve));
+			await fs.rm(directory, { recursive: true, force: true });
+		}
+	});
 	it('rejects unbounded workloads and ambiguous refs/options', function() {
 		for (const args of [['--duration-ms', '0'], ['--duration-ms', '300001'], ['--matches', '13'], ['--sync-interval-ms', '499'],
 			['--ref', '--all'], ['--duration-ms', 'NaN'], ['--matches', '519.5'], ['--point-min-ms', '49'],
