@@ -32,6 +32,7 @@ function summary(record, now) {
 		callback_ms: record.callback_started ? ms(record.callback_started, record.callback_finished || now) : null,
 		queue_release_pending_ms: record.callback_finished ? ms(record.callback_finished, now) : null,
 		persistence: record.persistence ? { kind: record.persistence.kind,
+			...require('./performance/storage_io').details(record.persistence),
 			elapsed_ms: ms(record.persistence.started, record.persistence.finished || now),
 			pending: !record.persistence.finished } : null,
 	};
@@ -42,6 +43,7 @@ function attach(store, collection) {
 	const read_barrier = require('./database_read_barrier').attach(store);
 	const state = { active: null, last: null, next_id: 0, health: new QueueStats('db', collection + ':') };
 	observers.set(store, state);
+	require('./performance/storage_io').attach(store, () => state.active);
 	const executor = store.executor, push = executor.push;
 	executor.push = function(task, force) {
 		// Ordering safety is independent of diagnostic flags. Classify the

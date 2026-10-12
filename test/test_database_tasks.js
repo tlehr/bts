@@ -104,4 +104,25 @@ describe('datastore task diagnostics', function() {
 			assert.deepStrictEqual(await promisify(reloaded.findOne.bind(reloaded))({ _id: 'game' }), { _id: 'game', score: 2 });
 		} finally { fs.rmSync(directory, { recursive: true, force: true }); }
 	});
+	it('separates native serialization from asynchronous append waiting without changing stored data', async function() {
+		const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'bts-append-phases-'));
+		let slow = false;
+		try {
+			const store = new Datastore({ filename: path.join(directory, 'records'),
+				afterSerialization(value) { if (slow) { const end = Date.now() + 3; while (Date.now() < end) { /* simulate serialization work */ } } return value; },
+				beforeDeserialization: value => value,
+			});
+			await promisify(store.loadDatabase.bind(store))(); tasks.attach(store, 'records'); slow = true;
+			await promisify(store.insert.bind(store))({ _id: 'record', value: 'ä' });
+			const record = tasks.snapshot(store).last_completed;
+			assert(record.persistence.serialization_ms >= 2);
+			assert(record.persistence.storage_wait_ms >= 0);
+			assert(record.persistence.storage_end_ts >= record.persistence.storage_start_ts);
+			assert(record.persistence.storage_bytes > 0);
+			assert(!JSON.stringify(record.persistence).includes(directory));
+			slow = false; const reloaded = new Datastore({ filename: store.filename });
+			await promisify(reloaded.loadDatabase.bind(reloaded))();
+			assert.deepStrictEqual(await promisify(reloaded.findOne.bind(reloaded))({ _id: 'record' }), { _id: 'record', value: 'ä' });
+		} finally { fs.rmSync(directory, { recursive: true, force: true }); }
+	});
 });

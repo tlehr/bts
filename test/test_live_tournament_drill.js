@@ -136,7 +136,7 @@ async function simulate_benchmark({ expected = 519, interrupt = false, change_pr
 	const module = { exports: {} };
 	const local_require = createRequire(filename);
 	vm.runInNewContext(fs.readFileSync(filename, 'utf8'), {
-		module, require: (name) => name === 'fs' ? { promises: { writeFile: async (_path, data) => { report = JSON.parse(data); } } } : local_require(name),
+		module, require: (name) => name === './report_writer' ? async (_path, data) => { report = JSON.parse(JSON.stringify(data)); } : local_require(name),
 		process: fake_process,
 		Date: class extends Date { static now() { return now; } },
 		console: { log: (...args) => logs.push(args), error: (...args) => logs.push(args) },

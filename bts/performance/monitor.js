@@ -30,6 +30,7 @@ function snapshot(app, sockets, key, trace_cursor) {
 	const outgoing = sockets.filter(ws => !ws.performance_probe && ws.outbox_stats)
 		.map(ws => ({ ...ws.outbox_stats(), buffered_bytes: ws.bufferedAmount || 0 }));
 	return { protocol_version: 2, server_id: id, ts: now, scope: 'server-wide', tournament_key: key,
+		memory: { ...process.memoryUsage(), uptime_s: Math.round(process.uptime()) },
 		lock, database, workers: registry.snapshots().filter(row => row.enqueued_count > 0),
 		event_loop: last_loop ? { ...last_loop, gc: gc.snapshot(now) } : null,
 		processing: require('./traces').snapshot(trace_cursor),

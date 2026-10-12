@@ -49,6 +49,7 @@ class QueueStats {
 		const record = entry.diagnostic, now = process.hrtime.bigint();
 		const ms = start => start ? Math.round(Number(now - start) / 1e5) / 10 : null;
 		const detail = record ? { before_callback_ms: record.callback_started ? Math.round(Number(record.callback_started - record.started) / 1e5) / 10 : null,
+			...require('./storage_io').details(record.persistence),
 			callback_ms: ms(record.callback_started), persistence_kind: record.persistence?.kind,
 			persistence_ms: record.persistence ? Math.round(Number((record.persistence.finished || now) - record.persistence.started) / 1e5) / 10 : null } : {};
 		traces.end(entry.run_span, error, detail);

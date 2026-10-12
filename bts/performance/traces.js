@@ -61,7 +61,8 @@ function clean(details = {}) {
 			'refresh_foreground_wait_ms', 'allocation_scope', 'ordering_unchanged_notifications', 'recipients',
 			'direct_match_locks', 'additional_match_locks', 'dependency_player_matches', 'dependency_court_matches',
 			'dependency_effect_matches', 'allocation_reasons', 'bounded_match_groups', 'bounded_match_changes',
-			'prepared_match_writes', 'prepared_match_fallbacks'].includes(key)) continue;
+			'prepared_match_writes', 'prepared_match_fallbacks', 'serialization_ms', 'storage_wait_ms',
+			'storage_start_ts', 'storage_end_ts', 'storage_bytes'].includes(key)) continue;
 		if (typeof value === 'string') result[key] = value.slice(0, 200);
 		else if (typeof value === 'number' || typeof value === 'boolean' || value === null) result[key] = value;
 		else if (Array.isArray(value)) { result[key] = value.slice(0, 40).map(item => typeof item === 'string' ? item.slice(0, 200)
