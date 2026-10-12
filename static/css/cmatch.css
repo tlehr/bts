@@ -753,9 +753,9 @@ match_manual_call_button,
 	background-color: #ffabab;
 }
 
-.player.dns_blocked,
-.player.dns_blocked_public,
-.self_check_in_chip.self_check_in_chip_dns {
+.player.entry_blocked,
+.player.entry_blocked_public,
+.self_check_in_chip.self_check_in_chip_entry_blocked {
 	background-color: #8b0000;
 	color: #fff;
 	cursor: not-allowed;

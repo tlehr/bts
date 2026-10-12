@@ -566,9 +566,9 @@ async function call_match(app, tournament, match, old_court, callback, options =
 		}
 		const current_setup = current_match?.setup || {};
 		require('./match_entry_status').preserve(current_match, match);
-		const dns_error = require('../static/js/btp_entry_status').call_error(current_match || match) ||
+		const entry_error = require('../static/js/btp_entry_status').call_error(current_match || match) ||
 			require('../static/js/btp_entry_status').call_error(match);
-		if (dns_error) return finish_call(dns_error);
+		if (entry_error) return finish_call(entry_error);
 		const current_is_finished = current_match &&
 			(typeof current_match.team1_won === 'boolean' || current_setup.state === 'finished' || current_match.btp_winner);
 		const already_called_on_same_court = current_match &&
@@ -3279,8 +3279,8 @@ async function call_match_in_preparation(app, tournament, match, location_id, ca
 			return finish(new Error('Cannot find match ' + match_id + ' of tournament ' + tournament_key + ' in database'));
 		}
 		const setup = current_match.setup || match.setup || {};
-		const dns_error = require('../static/js/btp_entry_status').call_error(current_match);
-		if (dns_error) return finish(dns_error);
+		const entry_error = require('../static/js/btp_entry_status').call_error(current_match);
+		if (entry_error) return finish(entry_error);
 		if (
 			!force &&
 			current_match.setup &&

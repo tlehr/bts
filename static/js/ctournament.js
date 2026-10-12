@@ -12527,7 +12527,7 @@ function update_officials() {
 				checked_in: participant.checked_in,
 				now_tablet_on_court: participant.now_tablet_on_court || false,
 				waiting_as_tabletoperator: participant.waiting_as_tabletoperator || false,
-				dns_blocked: participant.dns_blocked || false,
+				entry_status: participant.entry_status || null,
 			})),
 		});
 	}
@@ -12565,13 +12565,13 @@ function update_officials() {
 			chip.classList.toggle('self_check_in_chip_ready', !!participant.checked_in);
 			chip.classList.toggle('self_check_in_chip_waiting', !participant.checked_in);
 			chip.classList.toggle('self_check_in_chip_locked', check_in_locked);
-			chip.classList.toggle('self_check_in_chip_dns', !!participant.dns_blocked);
-			if (participant.dns_blocked) chip.title = ci18n('match:player:dns_blocked', { event_name: match.setup.event_name || '' });
+			chip.classList.toggle('self_check_in_chip_entry_blocked', !!participant.entry_status);
+			if (participant.entry_status) chip.title = ci18n('match:player:entry_blocked', { event_name: match.setup.event_name || '', status: participant.entry_status });
 			else chip.removeAttribute('title');
 			chip.disabled = check_in_locked;
 		}
 
-		const all_ready = participants.length > 0 && participants.every((participant) => participant.checked_in && !participant.dns_blocked);
+		const all_ready = participants.length > 0 && participants.every((participant) => participant.checked_in && !participant.entry_status);
 		card.classList.toggle('self_check_in_match_ready', all_ready);
 		card.classList.toggle('self_check_in_match_waiting', !all_ready);
 		const status_el = card.querySelector('.self_check_in_match_status');
@@ -12622,7 +12622,7 @@ function update_officials() {
 				checked_in: !!player.checked_in,
 				now_tablet_on_court: player.now_tablet_on_court || false,
 				waiting_as_tabletoperator: is_player_waiting_as_tabletoperator(player),
-				dns_blocked: btp_entry_status.player_has_dns(match, player, team),
+				entry_status: btp_entry_status.player_blocking_status(match, player, team),
 			});
 		});
 	});
@@ -12705,10 +12705,10 @@ function update_officials() {
 			attrs.disabled = 'disabled';
 		}
 		const chip = uiu.el(container, 'button', attrs);
-		if (participant.dns_blocked) {
-			chip.classList.add('self_check_in_chip_dns');
+		if (participant.entry_status) {
+			chip.classList.add('self_check_in_chip_entry_blocked');
 			const match = utils.find(curt.matches, m => m._id === participant.match_id);
-			chip.title = ci18n('match:player:dns_blocked', { event_name: match?.setup?.event_name || '' });
+			chip.title = ci18n('match:player:entry_blocked', { event_name: match?.setup?.event_name || '', status: participant.entry_status });
 		}
 		if (participant.role_label) {
 			uiu.el(chip, 'span', 'self_check_in_chip_role', participant.role_label);
@@ -12753,7 +12753,7 @@ function update_officials() {
 	}
 
 	function is_self_check_in_participant_locked(participant) {
-		return participant && participant.role === 'player' && !!(participant.dns_blocked || participant.now_tablet_on_court || participant.waiting_as_tabletoperator);
+		return participant && participant.role === 'player' && !!(participant.entry_status || participant.now_tablet_on_court || participant.waiting_as_tabletoperator);
 	}
 
 	function get_self_check_in_tabletoperator_waiting_ids() {
@@ -12952,7 +12952,7 @@ function update_officials() {
 			do_fit = true;
 		}
 		const participants = self_check_in_participants(match);
-		const all_ready = participants.length > 0 && participants.every(p => p.checked_in && !p.dns_blocked);
+		const all_ready = participants.length > 0 && participants.every(p => p.checked_in && !p.entry_status);
 		const columns = participants.length <= 3 ? 1 : 2;
 		const rows = Math.ceil(participants.length / columns);
 		const has_officials = participants.some((participant) => !!participant.role_label);

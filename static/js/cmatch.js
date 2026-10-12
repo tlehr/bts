@@ -408,7 +408,7 @@ function render_match_row(tr, match, court, style, show_player_status, show_add_
 	}
 
 	const completeMatch = (match.setup.teams[0].players.length >= 1 && match.setup.teams[1].players.length >= 1);
-	const dns_blocked = btp_entry_status.dns_players(match).length > 0;
+	const entry_blocked = btp_entry_status.blocked_players(match).length > 0;
 
 	if (style === 'unasigned') {
 		if(completeMatch){
@@ -519,11 +519,11 @@ function render_match_row(tr, match, court, style, show_player_status, show_add_
 	}
 
 	if (style === 'default' || style === 'plain' || style === 'unasigned') {
-		if (!show_add_tabletoperator && !dns_blocked) {
+		if (!show_add_tabletoperator && !entry_blocked) {
 			create_match_button(players0, 'vlink match_second_call_button', 'match:secondcallteamone', on_second_call_team_one_button_click, match._id);
 		}
 
-		if(style === 'unasigned' && match.setup.highlight >= 1 && !dns_blocked){
+		if(style === 'unasigned' && match.setup.highlight >= 1 && !entry_blocked){
 			create_match_button(players0, 'vlink match_second_preparation_call_button', 'match:secondcallteamone', on_second_preparation_call_team_one_button_click, match._id);
 		}
 	}
@@ -538,11 +538,11 @@ function render_match_row(tr, match, court, style, show_player_status, show_add_
 
 	render_players_el(players1, setup, 1, match, show_player_status, style);
 	if (style === 'default' || style === 'plain' || style === 'unasigned') {
-		if(style === 'unasigned' && match.setup.highlight >= 1 && !dns_blocked){
+		if(style === 'unasigned' && match.setup.highlight >= 1 && !entry_blocked){
 			create_match_button(players1, 'vlink match_second_preparation_call_button', 'match:secondcallteamtwo', on_second_preparation_call_team_two_button_click, match._id);
 		}
 
-		if (!show_add_tabletoperator && !dns_blocked) {
+		if (!show_add_tabletoperator && !entry_blocked) {
 			create_match_button(players1, 'vlink match_second_call_button', 'match:secondcallteamtwo', on_second_call_team_two_button_click, match._id);
 		}
 	}
@@ -742,7 +742,7 @@ function render_match_row(tr, match, court, style, show_player_status, show_add_
 					create_match_prepparation_button(call_td, 'vlink match_preparation_call_button', 'match:preparationcall', on_announce_preparation_matchbutton_click, match._id, l);
 				}
 			});
-		} else if ((style === 'default' || style === 'plain') && court && !dns_blocked) {
+		} else if ((style === 'default' || style === 'plain') && court && !entry_blocked) {
 			create_match_button(call_td, 'vlink match_manual_call_button', 'match:manualcall', on_announce_match_manually_button_click, match._id);
 			create_match_button(call_td, 'vlink match_begin_to_play_button', 'match:begintoplay', on_begin_to_play_button_click, match._id);
 		}
@@ -1332,8 +1332,8 @@ function render_player_el(parentNode, player, match_id, now_on_court, show_playe
 		'data-btp_id' : player.btp_id,
 		'data-match_id': match_id,
 	}, player_name.replace(' ', '\xa0'));
-	if (player_status === 'dns_blocked') {
-		player_element.title = ci18n('match:player:dns_blocked', { event_name: match.setup.event_name || '' });
+	if (player_status === 'entry_blocked') {
+		player_element.title = ci18n('match:player:entry_blocked', { event_name: match.setup.event_name || '', status: btp_entry_status.player_blocking_status(match, player) });
 	}
 
 	if(player.check_in_per_match && !player_check_in_locked) {
@@ -1384,7 +1384,7 @@ function render_player_el(parentNode, player, match_id, now_on_court, show_playe
 		uiu.el(player_element, 'div', 'tabletoperator_waiting_inline', '');
 	}
 
-	if(show_player_status && player_status != "now_on_court" && player_status !== 'dns_blocked') {
+	if(show_player_status && player_status != "now_on_court" && player_status !== 'entry_blocked') {
 		var timer_state = _extract_player_timer_state(player);
 		var timer = create_timer(timer_state, player_element, "#ffffff", "#ffffff");
 	}
@@ -1417,12 +1417,12 @@ function active_tabletoperator_court_for_player(player) {
 }
 
 function is_player_check_in_locked(player, match) {
-	return btp_entry_status.player_has_dns(match, player) ||
+	return btp_entry_status.player_is_blocked(match, player) ||
 		!!(player && (active_tabletoperator_court_for_player(player) || is_player_waiting_as_tabletoperator(player)));
 }
 
 function get_player_status(player, now_on_court, show_player_status, match) {
-	if (btp_entry_status.player_has_dns(match, player)) return 'dns_blocked';
+	if (btp_entry_status.player_is_blocked(match, player)) return 'entry_blocked';
 	let player_status = "";
 	if (!show_player_status) {
 		player_status = "no_status";
@@ -1488,12 +1488,12 @@ function update_player(match_id, player, now_on_court, show_player_status, match
 			let player_status = get_player_status(player, now_on_court, show_player_status, match);
 			const player_check_in_locked = is_player_check_in_locked(player, match);
 
-			if (player_status === 'dns_blocked') {
-				player_el.title = ci18n('match:player:dns_blocked', { event_name: match.setup.event_name || '' });
-			} else if (player_el.classList.contains('dns_blocked') || player_el.classList.contains('dns_blocked_public')) {
+			if (player_status === 'entry_blocked') {
+				player_el.title = ci18n('match:player:entry_blocked', { event_name: match.setup.event_name || '', status: btp_entry_status.player_blocking_status(match, player) });
+			} else if (player_el.classList.contains('entry_blocked') || player_el.classList.contains('entry_blocked_public')) {
 				player_el.removeAttribute('title');
 			}
-			player_el.classList.remove('dns_blocked', 'dns_blocked_public', "now_on_court", "now_playing", "checked_in", "not_checked_in", "no_status", "can_check_out", "can_check_in");
+			player_el.classList.remove('entry_blocked', 'entry_blocked_public', "now_on_court", "now_playing", "checked_in", "not_checked_in", "no_status", "can_check_out", "can_check_in");
 			player_el.classList.add(player_status);
 			if(player.check_in_per_match && !player_check_in_locked) {
 				if(player_status == "checked_in") {
@@ -1524,7 +1524,7 @@ function update_player(match_id, player, now_on_court, show_player_status, match
 				uiu.el(player_el, 'div', 'tabletoperator_waiting_inline', '');
 			}
 
-			if(show_player_status && player_status != "now_on_court" && player_status !== 'dns_blocked') {
+			if(show_player_status && player_status != "now_on_court" && player_status !== 'entry_blocked') {
 				var timer_state = _extract_player_timer_state(player);
 				var timer = create_timer(timer_state, player_el, "#ffffff", "#ffffff");
 			}
@@ -2943,7 +2943,7 @@ function get_preparation_callable_match_ids() {
 }
 
 const MANUAL_PREPARATION_RULE_KEYS = new Set([
-	'no_btp_dns_player',
+	'no_btp_inactive_player',
 	'manual_state_callable',
 	'score_status_normal',
 	'is_match',
@@ -3057,7 +3057,7 @@ function get_preparation_debug_diagnostics_for_match_and_location(match, locatio
 }
 
 function is_manual_preparation_call_allowed_for_location(match, location) {
-	if (btp_entry_status.dns_players(match).length) return false;
+	if (btp_entry_status.blocked_players(match).length) return false;
 	const diagnostics = get_preparation_debug_diagnostics_for_match_and_location(match, location);
 	if (diagnostics && diagnostics.manual_eligible != null) {
 		return diagnostics.manual_eligible === true;
@@ -3262,7 +3262,7 @@ function get_preparation_frontier_debug_entries() {
 }
 
 const PREPARATION_DEBUG_RULE_LABELS = {
-	no_btp_dns_player: 'Kein Spieler ist in BTP als DNS eingetragen',
+	no_btp_inactive_player: 'Kein Spieler ist in BTP als DNS oder WDN eingetragen',
 	manual_state_callable: 'Status erlaubt haendischen Vorbereitungsaufruf',
 	state_scheduled: 'Status ist angesetzt',
 	not_deferred: 'Vorbereitungsaufruf nicht zurueckgestellt',

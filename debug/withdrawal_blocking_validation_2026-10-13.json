@@ -1,0 +1,63 @@
+{
+  "browser": {
+    "protocolVersion": "1.3",
+    "product": "Chrome/155.0.8059.39",
+    "revision": "@3ff7ac5a9224be9156d7f8703a06e22890aafd34",
+    "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36",
+    "jsVersion": "15.5.35.20"
+  },
+  "checks": [
+    "German todo names DNS, participant, discipline, first match and both resolutions",
+    "existing yellow warning box style applied",
+    "DNS player and Self-Check-in chip dark red, explanatory title, no check-in request",
+    "DNS removal restores normal color and both check-in controls live",
+    "existing click handler uses current status after DNS removal",
+    "live DNS on a replaced match object blocks existing handlers again",
+    "first walkover loss removes todo without reload",
+    "reactivated match restores todo",
+    "en translated and interpolated",
+    "nl translated and interpolated",
+    "removing imported DNS removes todo without reload",
+    "de WDN status: dark red, check-in disabled, current tooltip; no DNS first-match todo",
+    "en WDN status: dark red, check-in disabled, current tooltip; no DNS first-match todo",
+    "nl WDN status: dark red, check-in disabled, current tooltip; no DNS first-match todo",
+    "WDN removal restores colors, clears tooltips and permits check-in through existing handler"
+  ],
+  "background_color": "rgb(255, 247, 214)",
+  "errors": [],
+  "fixture": "actual warning/player/Self-Check-in functions, shared DNS/WDN policy, translations, BUP DOM helpers and CSS; synthetic matches; no live writes",
+  "date": "2026-10-13",
+  "server_tests_passed": 914,
+  "entry_status_regression_tests": 27,
+  "targeted_regressions_passed": 59,
+  "scope": [
+    "BTP DNS (108) and WDN (109) block check-in, manual and automatic preparation/court calls, and repeat player announcements for the affected draw.",
+    "Guards use stored status, including under match locks and against stale or forged browser snapshots.",
+    "Dark-red Admin and Self-Check-in controls and localized tooltips show the actual status and update on status changes/removal.",
+    "Uncalled inactive matches do not hold back other disciplines; running matches remain participant dependencies.",
+    "Check-out and explicit withdrawal/walkover result edits remain available through the server API.",
+    "The first-match consistency todo remains DNS-specific; a withdrawal after earlier matches is not treated as a no-show."
+  ],
+  "source_sha256": {
+    "bts/admin.js": "158c0105521848030c6300c9184e5b1589dad653fae153c8f4333924be592fb3",
+    "bts/match_utils.js": "9e3ba6a7e37f2ba68dfdbf68bb7e48bacf3ea9d083ef527619f5b20e055d5137",
+    "bts/match_automation.js": "e711b4b9212744a9b995af4bbaa838f9883c9b1a609d05130bacaf52f3dd59ce",
+    "bts/match_entry_guard.js": "85c39e54f7ad0fa6e89ed4427bcbec48b3742df4c3ada593190fa99cbd880cd4",
+    "bts/match_entry_status.js": "aa0af53536f9cd51f97abe00b9b460de614edf2dedda0767e5ad9af8b0036f61",
+    "bts/btp_parse.js": "b6468cfb3aef2a255a22efdae3555b547cb6ca8bbcd4175780b065801c9846d8",
+    "static/js/btp_entry_status.js": "bac1504d1a619afad10e4d3747ac8007d4619b113d8b3164423eafcbd116f132",
+    "static/js/btp_dns_todos.js": "615ac770fb75206296047fb338b52d821821a64847bc57a79a475fa4b4ef7adf",
+    "static/js/cmatch.js": "2872b23fee6ab33c5a0d2d3fb0d26d62f7c80c73bbd64da0eefd0a5e0cadeff1",
+    "static/js/ctournament.js": "d67804bfd63b75f0974973e98b569dd84266fafde7be81c1ab214f8fc94de572",
+    "static/js/ci18n_de.js": "74ab3517f3ff6ff983298cacfc60da548512e7e2c88593a0f91ac0346d7fd1fc",
+    "static/js/ci18n_en.js": "8ca7e9e6d47050eb6c8ba5e749a012411b8100e73352965e7ff7b1a86c5606c5",
+    "static/js/ci18n_nl.js": "33ce4738ccf4f0c27663437f9f5579f3b5eb3c59d66e2ecf9bb4ad6fad109f25",
+    "static/css/cmatch.css": "4fb985d7da486865789ddc6fdc19c61ea7cd89f8d50742838c56507aaad6d7c3",
+    "test/test_btp_entry_blocking.js": "87b8cfb2255b2dce210eaaed724384fbb8678b5904f525b02252f77400646d24"
+  },
+  "limits": [
+    "Browser checks exercise real component functions and styles on synthetic fixtures, not the complete live Admin page.",
+    "Server tests use isolated NeDB fixtures; no live tournament status, assignment or result was changed.",
+    "No new live performance benchmark was necessary for this extension of the existing participant guards."
+  ]
+}

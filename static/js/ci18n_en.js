@@ -451,7 +451,7 @@ var ci18n_en = Object.assign(
 		'tournament:manual_btp_stage_status:target_dns': 'Did not show (DNS)',
 		'tournament:manual_btp_stage_status:target_wdn': 'Withdrawn (WDN)',
 		'tournament:manual_btp_stage_status:unknown_event': 'this event',
-		'match:player:dns_blocked': 'DNS in BTP for {event_name}: match calls and check-in are blocked. Remove DNS in the BTP main application to allow this player to participate again.',
+		'match:player:entry_blocked': '{status} in BTP for {event_name}: match calls and check-in are blocked. Remove {status} in the BTP main application to allow this player to participate again.',
 		'match:edit:not_in_preparation': 'not in preparation',
 		'match:edit:in_preparation_for': 'in preparation for {location_name}',
 	'match:edit:swap_hint': 'Swap',
