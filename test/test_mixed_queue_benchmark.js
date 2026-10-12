@@ -75,5 +75,13 @@ describe('mixed queue benchmark', function() {
 		assert.strictEqual(result.windows[2].unfinished_syncs.max, 9);
 		assert.strictEqual(result.point_queue_wait_ms.max, 12);
 		assert.strictEqual(result.processing_errors, 1);
+		client.server_performance.traces.push({ name: 'handle_match_player_check_in', status: 'error', ts: 1200,
+			spans: [{ locks: ['match:default:prepared'] }] });
+		client.test_events = [{ ts: 1204, label: 'live-drill:checkin:error', data: { id: 'prepared', error: 'Match is no longer in preparation' } }];
+		const classified = summarize(server, client, probes);
+		assert.strictEqual(classified.failed_traces_total, 2); assert.strictEqual(classified.expected_checkin_rejections, 1);
+		assert.strictEqual(classified.processing_errors, 1);
+		client.test_events[0].data.id = 'different';
+		assert.strictEqual(summarize(server, client, probes).processing_errors, 2, 'unrelated failures must not be hidden');
 	});
 });

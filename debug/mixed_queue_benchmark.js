@@ -37,6 +37,12 @@ function statistics(values) {
 }
 
 function summarize(server, client, probes) {
+	const failed = (client.server_performance?.traces || []).filter(row => row.status === 'error');
+	const races = (client.test_events || []).filter(event => ['live-drill:checkin:error', 'live-drill:checkin:skipped'].includes(event.label) &&
+		(event.data?.error === 'Match is no longer in preparation' || event.data?.reason === 'no-longer-in-preparation'));
+	const expected_rejections = failed.filter(trace => trace.name === 'handle_match_player_check_in' && races.some(event =>
+		Math.abs(event.ts - (trace.ts || trace.start_ts + trace.duration_ms)) <= 1000 && trace.spans.some(span =>
+			span.locks?.includes(require('../bts/queue_lock_keys').match('default', event.data.id || event.data.match_id)))));
 	const elapsed = (a, b) => a && b ? Number(BigInt(b) - BigInt(a)) / 1e6 : null;
 	const first = BigInt(server.samples[0].ns), last = BigInt(server.samples.at(-1).ns), span = last - first;
 	const third = row => Math.min(2, Math.max(0, Number((BigInt(row.ns) - first) * 3n / (span || 1n))));
@@ -60,7 +66,8 @@ function summarize(server, client, probes) {
 		free_announce_ms: statistics(probes.probes.filter(row => row.kind === 'free').map(row => row.latency_ms)),
 		call_ms: statistics(probes.probes.filter(row => row.kind === 'call').map(row => row.latency_ms)),
 		unanswered: probes.unanswered, windows, event_loop: server.event_loop,
-		processing_errors: (client.server_performance?.traces || []).filter(row => row.status === 'error').length,
+		failed_traces_total: failed.length, expected_checkin_rejections: expected_rejections.length,
+		processing_errors: failed.length - expected_rejections.length,
 		point_queue_wait_ms: statistics(server.tasks.filter(row => row.owner === 'score_update').map(row => row.wait_ms)),
 	};
 }
