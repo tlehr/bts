@@ -1,0 +1,57 @@
+{
+  "browser": {
+    "protocolVersion": "1.3",
+    "product": "Chrome/155.0.8059.39",
+    "revision": "@3ff7ac5a9224be9156d7f8703a06e22890aafd34",
+    "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36",
+    "jsVersion": "15.5.35.20"
+  },
+  "checks": [
+    "German todo names DNS, participant, discipline, first match and both resolutions",
+    "existing yellow warning box style applied",
+    "DNS player and Self-Check-in chip dark red, explanatory title, no check-in request",
+    "DNS removal restores normal color and both check-in controls live",
+    "existing click handler uses current status after DNS removal",
+    "live DNS on a replaced match object blocks existing handlers again",
+    "first walkover loss removes todo without reload",
+    "reactivated match restores todo",
+    "en translated and interpolated",
+    "nl translated and interpolated",
+    "removing imported DNS removes todo without reload"
+  ],
+  "background_color": "rgb(255, 247, 214)",
+  "errors": [],
+  "fixture": "actual warning/player/Self-Check-in functions, shared DNS policy, translations, BUP DOM helpers and CSS; synthetic matches; no live writes",
+  "date": "2026-10-13",
+  "server_tests_passed": 899,
+  "new_server_regression_tests": 12,
+  "targeted_regressions_passed": 150,
+  "scope": [
+    "DNS blocks check-in and manual/automatic preparation and court calls for the affected BTP draw.",
+    "Repeated player calls and announcements read stored status under a match lock.",
+    "Match edits preserve authoritative imported entry status, including swapped teams and stale browser snapshots.",
+    "DNS players are dark red with a localized explanation; Admin and Self-Check-in controls update live.",
+    "Uncalled DNS matches do not keep the participant from other disciplines; running matches remain dependencies.",
+    "Check-out and explicit result edits remain available."
+  ],
+  "source_sha256": {
+    "bts/admin.js": "3355ade2b793f716620d7167b784fc77897a6e7818082cf272b6eb0db2ec5ed6",
+    "bts/match_utils.js": "a17612a32d5fa9be1b54153793a6b745e988e1894b179f3906a43b20c97567e9",
+    "bts/match_automation.js": "b9b1716d9286e7edc691d607297397a05fbccf6ce8dc9eb6681702f9913401ad",
+    "bts/match_dns_guard.js": "85c39e54f7ad0fa6e89ed4427bcbec48b3742df4c3ada593190fa99cbd880cd4",
+    "bts/match_entry_status.js": "aa0af53536f9cd51f97abe00b9b460de614edf2dedda0767e5ad9af8b0036f61",
+    "bts/match_automation/participant_lookup.js": "6e78c4fcb204fc1ebd5542654bcbb080b23cf2469fb75b0bdb1504da76c6c072",
+    "static/js/btp_entry_status.js": "049ed442d0b72c7b3b9f1190362ea8cb9181cae7e88a87ff19da5471412bb996",
+    "static/js/btp_dns_todos.js": "615ac770fb75206296047fb338b52d821821a64847bc57a79a475fa4b4ef7adf",
+    "static/js/cmatch.js": "4c739d7a585218a8d3775cbbf4241da4b42c4dbb75016e335efbf0efa1dc9f3d",
+    "static/js/ctournament.js": "bfbfcee14a28428bfe99a1a56dfddb97059f6affa7953ee625eaa46277124c30",
+    "static/css/cmatch.css": "8c86cd7a0eb00edc429355fb1dcadb4900428e864d14c3496aa17fbb1a1bebbc",
+    "static/cbts.html": "3a81923b3019981a76edead0f1065cdf0ceae4e36969d1dac4285b7cf2c7e086",
+    "test/test_btp_dns_blocking.js": "5f3f8862655880b2168eeb79cf678e751ab8afb82d1a28a5e30af2bf32ae2081"
+  },
+  "limits": [
+    "Browser checks exercise actual component functions, translations and CSS on synthetic fixtures; they do not drive the complete live Admin page.",
+    "Server checks use isolated NeDB fixtures. No live player status, court assignment or match result was changed.",
+    "The feature has not been evaluated in a new live latency benchmark."
+  ]
+}

@@ -336,6 +336,7 @@ var ci18n_nl = Object.assign(
 		'tournament:manual_btp_stage_status:target_dns': 'Niet verschenen / Did not show (DNS)',
 		'tournament:manual_btp_stage_status:target_wdn': 'Teruggetrokken (WDN)',
 		'tournament:manual_btp_stage_status:unknown_event': 'dit onderdeel',
+		'match:player:dns_blocked': 'DNS in BTP voor {event_name}: oproepen en inchecken zijn geblokkeerd. Verwijder DNS in het BTP-hoofdprogramma zodat deze speler weer kan deelnemen.',
 		'match:edit:not_in_preparation': 'niet in voorbereiding',
 		'match:edit:in_preparation_for': 'in voorbereiding voor {location_name}',
 		'match:edit:swap_hint': 'Wissel',

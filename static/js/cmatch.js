@@ -408,6 +408,7 @@ function render_match_row(tr, match, court, style, show_player_status, show_add_
 	}
 
 	const completeMatch = (match.setup.teams[0].players.length >= 1 && match.setup.teams[1].players.length >= 1);
+	const dns_blocked = btp_entry_status.dns_players(match).length > 0;
 
 	if (style === 'unasigned') {
 		if(completeMatch){
@@ -518,11 +519,11 @@ function render_match_row(tr, match, court, style, show_player_status, show_add_
 	}
 
 	if (style === 'default' || style === 'plain' || style === 'unasigned') {
-		if (!show_add_tabletoperator) {
+		if (!show_add_tabletoperator && !dns_blocked) {
 			create_match_button(players0, 'vlink match_second_call_button', 'match:secondcallteamone', on_second_call_team_one_button_click, match._id);
 		}
 
-		if(style === 'unasigned' && match.setup.highlight >= 1){
+		if(style === 'unasigned' && match.setup.highlight >= 1 && !dns_blocked){
 			create_match_button(players0, 'vlink match_second_preparation_call_button', 'match:secondcallteamone', on_second_preparation_call_team_one_button_click, match._id);
 		}
 	}
@@ -537,11 +538,11 @@ function render_match_row(tr, match, court, style, show_player_status, show_add_
 
 	render_players_el(players1, setup, 1, match, show_player_status, style);
 	if (style === 'default' || style === 'plain' || style === 'unasigned') {
-		if(style === 'unasigned' && match.setup.highlight >= 1){
+		if(style === 'unasigned' && match.setup.highlight >= 1 && !dns_blocked){
 			create_match_button(players1, 'vlink match_second_preparation_call_button', 'match:secondcallteamtwo', on_second_preparation_call_team_two_button_click, match._id);
 		}
 
-		if (!show_add_tabletoperator) {
+		if (!show_add_tabletoperator && !dns_blocked) {
 			create_match_button(players1, 'vlink match_second_call_button', 'match:secondcallteamtwo', on_second_call_team_two_button_click, match._id);
 		}
 	}
@@ -741,7 +742,7 @@ function render_match_row(tr, match, court, style, show_player_status, show_add_
 					create_match_prepparation_button(call_td, 'vlink match_preparation_call_button', 'match:preparationcall', on_announce_preparation_matchbutton_click, match._id, l);
 				}
 			});
-		} else if ((style === 'default' || style === 'plain') && court) {
+		} else if ((style === 'default' || style === 'plain') && court && !dns_blocked) {
 			create_match_button(call_td, 'vlink match_manual_call_button', 'match:manualcall', on_announce_match_manually_button_click, match._id);
 			create_match_button(call_td, 'vlink match_begin_to_play_button', 'match:begintoplay', on_begin_to_play_button_click, match._id);
 		}
@@ -1253,7 +1254,7 @@ function render_players_el(parentNode, setup, team_id, match, show_player_status
 		if(team.entry_status !== "<none>"){
 			uiu.el(parentNode, 'span', {}, team.entry_status);
 		}
-		render_player_el(parentNode, team.players[0], match._id, setup.now_on_court, show_player_status, style, team.players.length > 1 ? true : false);
+		render_player_el(parentNode, team.players[0], match._id, setup.now_on_court, show_player_status, style, team.players.length > 1 ? true : false, match);
 	} else {
 		const dependency = _format_participant_dependency(match, team_id, curt.matches);
 		uiu.el(parentNode, 'span', {}, dependency);
@@ -1270,7 +1271,7 @@ function render_players_el(parentNode, setup, team_id, match, show_player_status
 			cflags.render_flag_el(p1_el, nat1);
 		}
 
-		render_player_el(parentNode, team.players[1], match._id, setup.now_on_court, show_player_status, style, true);
+		render_player_el(parentNode, team.players[1], match._id, setup.now_on_court, show_player_status, style, true, match);
 	}
 }
 
@@ -1321,9 +1322,9 @@ function render_match_participant_el(parentNode, participant, match_id, role, ic
 	return participant_el;
 }
 
-function render_player_el(parentNode, player, match_id, now_on_court, show_player_status, style, is_doubles) {
-	let player_status = get_player_status(player, now_on_court, show_player_status);
-	const player_check_in_locked = is_player_check_in_locked(player);
+function render_player_el(parentNode, player, match_id, now_on_court, show_player_status, style, is_doubles, match) {
+	let player_status = get_player_status(player, now_on_court, show_player_status, match);
+	const player_check_in_locked = is_player_check_in_locked(player, match);
 	const tablet_court = active_tabletoperator_court_for_player(player);
 	const player_name = (style === 'public' || style === 'upcoming' && is_doubles) ?  short_name(player.firstname, player.lastname) : player.name;
 	let player_element = uiu.el(parentNode, 'span', {
@@ -1331,6 +1332,9 @@ function render_player_el(parentNode, player, match_id, now_on_court, show_playe
 		'data-btp_id' : player.btp_id,
 		'data-match_id': match_id,
 	}, player_name.replace(' ', '\xa0'));
+	if (player_status === 'dns_blocked') {
+		player_element.title = ci18n('match:player:dns_blocked', { event_name: match.setup.event_name || '' });
+	}
 
 	if(player.check_in_per_match && !player_check_in_locked) {
 		if(player_status == "checked_in") {
@@ -1342,12 +1346,16 @@ function render_player_el(parentNode, player, match_id, now_on_court, show_playe
 
 
 	player_element.addEventListener("click", (ev) => {
-		if(curt.btp_settings.check_in_per_match && !player_check_in_locked) {
+		const current_match = utils.find(curt.matches || [], m => m._id === match_id) || match;
+		const current_player = (current_match?.setup?.teams || []).flatMap(t => t.players || [])
+			.find(p => String(p.btp_id) === String(player.btp_id)) || player;
+		const current_status = get_player_status(current_player, current_match?.setup?.now_on_court, show_player_status, current_match);
+		if(curt.btp_settings.check_in_per_match && !is_player_check_in_locked(current_player, current_match)) {
 			send({
 				type: 'match_player_check_in',
 				match_id,
 				player_id: player.btp_id,
-				checked_in: (player_status == "not_checked_in"),
+				checked_in: (current_status == "not_checked_in"),
 				tournament_key: curt.key
 			}, function (err) {
 				if (err) {
@@ -1376,7 +1384,7 @@ function render_player_el(parentNode, player, match_id, now_on_court, show_playe
 		uiu.el(player_element, 'div', 'tabletoperator_waiting_inline', '');
 	}
 
-	if(show_player_status && player_status != "now_on_court") {
+	if(show_player_status && player_status != "now_on_court" && player_status !== 'dns_blocked') {
 		var timer_state = _extract_player_timer_state(player);
 		var timer = create_timer(timer_state, player_element, "#ffffff", "#ffffff");
 	}
@@ -1408,11 +1416,13 @@ function active_tabletoperator_court_for_player(player) {
 	return player.now_tablet_on_court || false;
 }
 
-function is_player_check_in_locked(player) {
-	return !!(player && (active_tabletoperator_court_for_player(player) || is_player_waiting_as_tabletoperator(player)));
+function is_player_check_in_locked(player, match) {
+	return btp_entry_status.player_has_dns(match, player) ||
+		!!(player && (active_tabletoperator_court_for_player(player) || is_player_waiting_as_tabletoperator(player)));
 }
 
-function get_player_status(player, now_on_court, show_player_status) {
+function get_player_status(player, now_on_court, show_player_status, match) {
+	if (btp_entry_status.player_has_dns(match, player)) return 'dns_blocked';
 	let player_status = "";
 	if (!show_player_status) {
 		player_status = "no_status";
@@ -1439,7 +1449,7 @@ function update_players(m, options) {
 		m.setup.teams.forEach((team) => {
 			if(team.players) {
 				team.players.forEach((player) => {
-					update_player(m._id, player, m.setup.now_on_court, m.btp_winner === undefined);
+					update_player(m._id, player, m.setup.now_on_court, m.btp_winner === undefined, m);
 				});
 			}
 		});
@@ -1466,7 +1476,7 @@ function _setup_player_btp_ids(setup) {
 	return _add_setup_player_btp_ids(setup, new Set());
 }
 
-function update_player(match_id, player, now_on_court, show_player_status) {
+function update_player(match_id, player, now_on_court, show_player_status, match) {
 	const player_btp_id = player && player.btp_id;
 	if (player_btp_id == null) {
 		return;
@@ -1475,10 +1485,15 @@ function update_player(match_id, player, now_on_court, show_player_status) {
 	uiu.qsEach(
 		'.player[data-match_id=' + JSON.stringify(String(match_id)) + '][data-btp_id=' + JSON.stringify(String(player_btp_id)) + ']',
 		function(player_el) {
-			let player_status = get_player_status(player, now_on_court, show_player_status);
-			const player_check_in_locked = is_player_check_in_locked(player);
+			let player_status = get_player_status(player, now_on_court, show_player_status, match);
+			const player_check_in_locked = is_player_check_in_locked(player, match);
 
-			player_el.classList.remove("now_on_court", "now_playing", "checked_in", "not_checked_in", "no_status", "can_check_out", "can_check_in");
+			if (player_status === 'dns_blocked') {
+				player_el.title = ci18n('match:player:dns_blocked', { event_name: match.setup.event_name || '' });
+			} else if (player_el.classList.contains('dns_blocked') || player_el.classList.contains('dns_blocked_public')) {
+				player_el.removeAttribute('title');
+			}
+			player_el.classList.remove('dns_blocked', 'dns_blocked_public', "now_on_court", "now_playing", "checked_in", "not_checked_in", "no_status", "can_check_out", "can_check_in");
 			player_el.classList.add(player_status);
 			if(player.check_in_per_match && !player_check_in_locked) {
 				if(player_status == "checked_in") {
@@ -1509,7 +1524,7 @@ function update_player(match_id, player, now_on_court, show_player_status) {
 				uiu.el(player_el, 'div', 'tabletoperator_waiting_inline', '');
 			}
 
-			if(show_player_status && player_status != "now_on_court") {
+			if(show_player_status && player_status != "now_on_court" && player_status !== 'dns_blocked') {
 				var timer_state = _extract_player_timer_state(player);
 				var timer = create_timer(timer_state, player_el, "#ffffff", "#ffffff");
 			}
@@ -1943,6 +1958,7 @@ function on_second_call_team_one_button_click(e) {
 		send({
 			type: 'second_call_team_one',
 			tournament_key: curt.key,
+			match_id: match._id,
 			setup: match.setup,
 		}, err => {
 			if (err) {
@@ -1957,6 +1973,7 @@ function on_second_call_team_two_button_click(e) {
 		send({
 			type: 'second_call_team_two',
 			tournament_key: curt.key,
+			match_id: match._id,
 			setup: match.setup,
 		}, err => {
 			if (err) {
@@ -1971,6 +1988,7 @@ function on_second_preparation_call_team_one_button_click(e) {
 		send({
 			type: 'second_preparation_call_team_one',
 			tournament_key: curt.key,
+			match_id: match._id,
 			setup: match.setup,
 		}, err => {
 			if (err) {
@@ -1985,6 +2003,7 @@ function on_second_preparation_call_team_two_button_click(e) {
 		send({
 			type: 'second_preparation_call_team_two',
 			tournament_key: curt.key,
+			match_id: match._id,
 			setup: match.setup,
 		}, err => {
 			if (err) {
@@ -2092,6 +2111,7 @@ function on_begin_to_play_button_click(e) {
 		send({
 			type: 'begin_to_play_call',
 			tournament_key: curt.key,
+			match_id: match._id,
 			setup: match.setup,
 		}, err => {
 			if (err) {
@@ -2923,6 +2943,7 @@ function get_preparation_callable_match_ids() {
 }
 
 const MANUAL_PREPARATION_RULE_KEYS = new Set([
+	'no_btp_dns_player',
 	'manual_state_callable',
 	'score_status_normal',
 	'is_match',
@@ -3036,6 +3057,7 @@ function get_preparation_debug_diagnostics_for_match_and_location(match, locatio
 }
 
 function is_manual_preparation_call_allowed_for_location(match, location) {
+	if (btp_entry_status.dns_players(match).length) return false;
 	const diagnostics = get_preparation_debug_diagnostics_for_match_and_location(match, location);
 	if (diagnostics && diagnostics.manual_eligible != null) {
 		return diagnostics.manual_eligible === true;
@@ -3240,6 +3262,7 @@ function get_preparation_frontier_debug_entries() {
 }
 
 const PREPARATION_DEBUG_RULE_LABELS = {
+	no_btp_dns_player: 'Kein Spieler ist in BTP als DNS eingetragen',
 	manual_state_callable: 'Status erlaubt haendischen Vorbereitungsaufruf',
 	state_scheduled: 'Status ist angesetzt',
 	not_deferred: 'Vorbereitungsaufruf nicht zurueckgestellt',
@@ -5147,6 +5170,7 @@ if ((typeof module !== 'undefined') && (typeof require !== 'undefined')) {
 	var cflags = require('./cflags');
 	var cmatch_history = require('./cmatch_history');
 	var btp_dns_todos = require('./btp_dns_todos');
+	var btp_entry_status = require('./btp_entry_status');
 	var change = require('./change');
 	var ci18n = require('./ci18n');
 	var countries = require('./countries');

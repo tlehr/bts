@@ -725,6 +725,8 @@ function has_open_participant_dependency(match, tournament, options = {}) {
 		if (is_finished_match(other_match)) {
 			return false;
 		}
+		if (!other_match.setup?.now_on_court && other_match.setup?.state !== 'oncourt' &&
+			require('../static/js/btp_entry_status').dns_players(other_match).length) return false;
 		if (cmp_scheduled_match_order(other_match, match) >= 0) {
 			return false;
 		}
@@ -1090,6 +1092,7 @@ function passes_call_on_court_technical_official_assignment_possible_rule(match,
 }
 
 function passes_base_preparation_rules(match, location_id, tournament, options = {}) {
+	if (require('../static/js/btp_entry_status').dns_players(match).length) return false;
 	const setup = match?.setup || {};
 	const courts_by_id = options.courts_by_id || get_courts_by_id(tournament);
 	const matches_by_planning_id = options.matches_by_planning_id || build_matches_by_planning_id(tournament);
@@ -1419,6 +1422,8 @@ function with_participant_lookup(tournament, options) {
 	return { ...options, [PARTICIPANT_LOOKUP]: new ParticipantLookup(matches, {
 		player_ids: get_match_player_btp_ids,
 		is_finished: is_finished_match,
+		counts_as_open: match => match.setup?.now_on_court === true || match.setup?.state === 'oncourt' ||
+			!require('../static/js/btp_entry_status').dns_players(match).length,
 		compare: cmp_scheduled_match_order,
 		discipline: normalize_match_discipline_name,
 		inactive_ids: match => get_inactive_player_btp_ids_from_special_results({ matches: [match] }),
@@ -1445,6 +1450,7 @@ function calculate_call_on_court_selection(tournament, courts, options = {}) {
 }
 
 function passes_base_call_on_court_rules(match, court_id, tournament, options = {}) {
+	if (require('../static/js/btp_entry_status').dns_players(match).length) return false;
 	const setup = match?.setup || {};
 	const courts_by_id = options.courts_by_id || get_courts_by_id(tournament);
 	const matches_by_planning_id = options.matches_by_planning_id || build_matches_by_planning_id(tournament);
@@ -1544,6 +1550,7 @@ function cmp_call_on_court_candidate_order(m1, m2) {
 }
 
 function passes_field_independent_call_on_court_rules(match, tournament, options = {}) {
+	if (require('../static/js/btp_entry_status').dns_players(match).length) return false;
 	const setup = match?.setup || {};
 	const state = setup.state;
 	const only_preparation = tournament?.call_on_court_only_preparation_enabled === true;
@@ -1765,6 +1772,7 @@ function enabled_diagnostic_rules_pass(rules) {
 }
 
 const MANUAL_PREPARATION_RULE_KEYS = new Set([
+	'no_btp_dns_player',
 	'manual_state_callable',
 	'score_status_normal',
 	'is_match',
@@ -1921,6 +1929,9 @@ function calculate_match_call_on_court_diagnostics(match, court_id, tournament, 
 			relevant_matches,
 		});
 	const rules = [];
+	const dns_players = require('../static/js/btp_entry_status').dns_players(match);
+	add_preparation_diagnostic_rule(rules, 'no_btp_dns_player', !dns_players.length,
+		dns_players.length ? 'DNS in BTP: ' + format_player_names(dns_players) : null);
 	const court_free = !!court && court.is_active === true && is_court_free(court_id, tournament);
 
 	if (options.include_court_availability_rule !== false) {
@@ -2097,6 +2108,9 @@ function calculate_match_preparation_diagnostics(match, location_id, tournament,
 		});
 	const ignore_technical_officials_available_rule = options.ignore_technical_officials_available_rule === true;
 	const rules = [];
+	const dns_players = require('../static/js/btp_entry_status').dns_players(match);
+	add_preparation_diagnostic_rule(rules, 'no_btp_dns_player', !dns_players.length,
+		dns_players.length ? 'DNS in BTP: ' + format_player_names(dns_players) : null);
 
 	add_preparation_diagnostic_rule(
 		rules,

@@ -753,6 +753,15 @@ match_manual_call_button,
 	background-color: #ffabab;
 }
 
+.player.dns_blocked,
+.player.dns_blocked_public,
+.self_check_in_chip.self_check_in_chip_dns {
+	background-color: #8b0000;
+	color: #fff;
+	cursor: not-allowed;
+	opacity: 1;
+}
+
 .person.can_check_in:not(.player),
 .person.can_check_out:not(.player) {
 	cursor: default;

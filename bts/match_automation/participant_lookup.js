@@ -11,7 +11,7 @@ class ParticipantLookup {
 		this.inactive_by_discipline = new Map();
 		for (const match of matches) {
 			if (!match) continue;
-			if (!rules.is_finished(match)) {
+			if (!rules.is_finished(match) && rules.counts_as_open?.(match) !== false) {
 				for (const id of new Set(this.player_ids(match))) {
 					if (!this.open_matches.has(id)) this.open_matches.set(id, []);
 					this.open_matches.get(id).push(match);

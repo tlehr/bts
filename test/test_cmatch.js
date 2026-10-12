@@ -91,6 +91,7 @@ function loadCmatchForUpdateCourtTest(tr, curt, history) {
 		cbts_utils: { cmp(a, b) { return a === b ? 0 : (a < b ? -1 : 1); } },
 		ctabletoperator: { add_to_tabletoperator() {} },
 		calc,
+		btp_entry_status: require('../static/js/btp_entry_status'),
 		utils: {
 			find(list, predicate) {
 				return (list || []).find(predicate);

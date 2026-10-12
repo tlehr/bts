@@ -3,7 +3,6 @@
 // Compare imported entry status with the first actual match in a discipline.
 // This is read-only: resolving a mismatch remains an explicit Admin action.
 var btp_dns_todos = (function() {
-	const is_dns = status => status === 'DNS' || status === 108 || status === '108';
 	const discipline = match => String(match.setup?.event_name || '')
 		.replace(/\s*-\s*(?:Gruppe|Position)\s+.+$/i, '').trim();
 	const draws = match => (match.btp_match_ids || []).filter(id => id?.draw != null).map(id => String(id.draw));
@@ -12,9 +11,7 @@ var btp_dns_todos = (function() {
 	const key = (match, player) => JSON.stringify([discipline(match), player_id(player)]);
 
 	function has_dns(match, team, player) {
-		const entries = player.entries || {};
-		const ids = draws(match).filter(id => Object.prototype.hasOwnProperty.call(entries, id));
-		return ids.length ? ids.some(id => is_dns(entries[id])) : is_dns(team.entry_status);
+		return btp_entry_status.player_has_dns(match, player, team);
 	}
 
 	function actual_match(match) {
@@ -101,5 +98,8 @@ var btp_dns_todos = (function() {
 })();
 
 /*@DEV*/
-if (typeof module !== 'undefined') module.exports = btp_dns_todos;
+if (typeof module !== 'undefined') {
+	var btp_entry_status = require('./btp_entry_status');
+	module.exports = btp_dns_todos;
+}
 /*/@DEV*/

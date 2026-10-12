@@ -2613,9 +2613,15 @@ function handle_match_edit(app, ws, msg) {
 			}
 
 			const old_setup = old_match.setup || {};
+			require('./match_entry_status').preserve(old_match, msg.match);
 			const was_called = !!old_setup.called_timestamp;
 			const will_be_on_court = !!setup.now_on_court && !!setup.court_id;
 			const will_be_in_preparation = !will_be_on_court && setup.state === 'preparation' && !!setup.location_id;
+			if (will_be_on_court || will_be_in_preparation) {
+				const dns_error = require('../static/js/btp_entry_status').call_error(old_match) ||
+					require('../static/js/btp_entry_status').call_error(msg.match);
+				if (dns_error) return ws.respond(msg, dns_error);
+			}
 			const was_in_same_preparation =
 				old_setup.state === 'preparation' &&
 				old_setup.location_id === setup.location_id &&
@@ -3078,10 +3084,13 @@ function handle_match_preparation_call(app, ws, msg) {
 			return ws.respond(err);
 		}
 
-		match_utils.call_match_in_preparation(app, tournament, msg.match, msg.location_id, (err) => {
-			ws.respond(msg, err);
-			return;
-		}, { force: true });
+		const locks = [...preparation_selection_execute_locks(tournament_key),
+			update_queue.lock_keys.match(tournament_key, msg.match._id), update_queue.lock_keys.btp(tournament_key)];
+		update_queue.execute_locked(locks, () => new Promise((resolve, reject) => {
+			match_utils.call_match_in_preparation(app, tournament, msg.match, msg.location_id, (error) => {
+				if (error) reject(error); else resolve();
+			}, { force: true });
+		})).then(() => ws.respond(msg), error => ws.respond(msg, error));
 	});
 }
 
@@ -3117,6 +3126,9 @@ function handle_match_player_check_in (app, ws, msg) {
 				for (const team of match.setup.teams) {
 					for (const player of team.players) {
 						if (player.btp_id == msg.player_id) {
+							if (msg.checked_in && require('../static/js/btp_entry_status').player_has_dns(match, player, team)) {
+								return reject(new Error('Player is marked DNS in BTP for this discipline and cannot be checked in'));
+							}
 							if (msg.checked_in && player.now_tablet_on_court) {
 								return reject(new Error('Player is currently assigned as tablet operator and cannot be checked in'));
 							}
@@ -3352,20 +3364,15 @@ function handle_begin_to_play_call(app, ws, msg) {
 		return;
 	}
 
-	const tournament_key = msg.tournament_key;
-	const setup = _extract_setup(msg.setup);
 
-	notify_change(app, tournament_key, 'begin_to_play_call', {setup});
-	
-	ws.respond(msg);
+	return require('./match_dns_guard').announce(app, ws, msg, 'begin_to_play_call', true, _extract_setup);
 }
 
 function handle_announce_match_manually(app, ws, msg) {
 	if (!_require_msg(ws, msg, ['tournament_key', 'match'])) {
 		return;
 	}
-	notify_change(app, msg.tournament_key, 'match_called_on_court', msg.match);
-	ws.respond(msg);
+	return require('./match_dns_guard').announce(app, ws, msg, 'match_called_on_court', false);
 }
 
 
@@ -3484,12 +3491,8 @@ function handle_second_call_team_one(app, ws, msg) {
 		return;
 	}
 
-	const tournament_key = msg.tournament_key;
-	const setup = _extract_setup(msg.setup);
 
-	notify_change(app, tournament_key, 'second_call_team_one', {setup});
-	
-	ws.respond(msg);
+	return require('./match_dns_guard').announce(app, ws, msg, 'second_call_team_one', true, _extract_setup);
 }
 
 
@@ -3498,12 +3501,8 @@ function handle_second_preparation_call_team_one(app, ws, msg) {
 		return;
 	}
 
-	const tournament_key = msg.tournament_key;
-	const setup = _extract_setup(msg.setup);
 
-	notify_change(app, tournament_key, 'second_preparation_call_team_one', {setup});
-	
-	ws.respond(msg);
+	return require('./match_dns_guard').announce(app, ws, msg, 'second_preparation_call_team_one', true, _extract_setup);
 }
 
 function handle_official_list_move(app, ws, msg) {
@@ -4881,12 +4880,8 @@ function handle_second_call_team_two(app, ws, msg) {
 		return;
 	}
 
-	const tournament_key = msg.tournament_key;
-	const setup = _extract_setup(msg.setup);
 
-	notify_change(app, tournament_key, 'second_call_team_two', {setup});
-	
-	ws.respond(msg);
+	return require('./match_dns_guard').announce(app, ws, msg, 'second_call_team_two', true, _extract_setup);
 }
 
 
@@ -4895,12 +4890,8 @@ function handle_second_preparation_call_team_two(app, ws, msg) {
 		return;
 	}
 
-	const tournament_key = msg.tournament_key;
-	const setup = _extract_setup(msg.setup);
 
-	notify_change(app, tournament_key, 'second_preparation_call_team_two', {setup});
-	
-	ws.respond(msg);
+	return require('./match_dns_guard').announce(app, ws, msg, 'second_preparation_call_team_two', true, _extract_setup);
 }
 
 

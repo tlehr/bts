@@ -455,6 +455,7 @@ var ci18n_de = Object.assign(
 	'tournament:manual_btp_stage_status:target_dns': 'Nicht erschienen / Did not show (DNS)',
 	'tournament:manual_btp_stage_status:target_wdn': 'Zurückgezogen (WDN)',
 	'tournament:manual_btp_stage_status:unknown_event': 'dieser Disziplin',
+	'match:player:dns_blocked': 'DNS in BTP für {event_name}: Spielaufruf und Check-in sind gesperrt. Den DNS-Status im BTP-Hauptprogramm entfernen, damit der Spieler wieder teilnehmen kann.',
 	'match:edit:not_in_preparation': 'nicht in Vorbereitung',
 	'match:edit:in_preparation_for': 'in Vorbereitung für {location_name}',
 	'match:edit:swap_hint': 'Tausch',
