@@ -12,12 +12,19 @@ const { module_path } = require('./testclient_bridge');
 
 function parse(argv) {
 	const options = { bts_dir: path.resolve(__dirname, '..'), ref: 'HEAD', duration_ms: 120000, sync_interval_ms: 2000, count: 519,
-		point_min_ms: 800, point_max_ms: 1600, set_points: 21, workload: 'ordering' };
+		point_min_ms: 800, point_max_ms: 1600, set_points: 21, workload: 'ordering', scenario: null };
 	for (let i = 0; i < argv.length; i++) {
 		const key = { '--ref': 'ref', '--duration-ms': 'duration_ms', '--sync-interval-ms': 'sync_interval_ms', '--matches': 'count',
-			'--point-min-ms': 'point_min_ms', '--point-max-ms': 'point_max_ms', '--set-points': 'set_points', '--workload': 'workload' }[argv[i]];
+			'--point-min-ms': 'point_min_ms', '--point-max-ms': 'point_max_ms', '--set-points': 'set_points', '--workload': 'workload', '--scenario': 'scenario' }[argv[i]];
 		if (!key || !argv[i + 1] || argv[i + 1].startsWith('--')) throw new Error('Unknown option or missing value: ' + argv[i]);
-		options[key] = ['ref', 'workload'].includes(key) ? argv[++i] : Number(argv[++i]);
+		options[key] = ['ref', 'workload', 'scenario'].includes(key) ? argv[++i] : Number(argv[++i]);
+	}
+	if (options.scenario && options.scenario !== 'benchmark') throw new Error('Invalid scenario');
+	if (options.scenario === 'benchmark') {
+		if (argv.includes('--duration-ms') && options.duration_ms !== 600000) throw new Error('Benchmark duration must be 600000 ms');
+		options.duration_ms = 600000;
+		if (!argv.includes('--point-min-ms')) options.point_min_ms = 3200;
+		if (!argv.includes('--point-max-ms')) options.point_max_ms = 6400;
 	}
 	if (options.ref.startsWith('-') || !options.ref.trim()) throw new Error('Invalid ref');
 	if (!['ordering', 'preparation', 'preparation-btp'].includes(options.workload)) throw new Error('Invalid workload');
@@ -126,7 +133,7 @@ async function run(options, { signal, log = console.log } = {}) {
 		const setup = await server.wait('ready');
 		receiver = launch(path.join(__dirname, 'queue_responsiveness/mixed_receiver.js'), { ...setup, directory: output,
 			client_module: client_path, count: options.count, duration_ms: options.duration_ms,
-			point_min_ms: options.point_min_ms, point_max_ms: options.point_max_ms }, output, 'receiver', signal);
+			point_min_ms: options.point_min_ms, point_max_ms: options.point_max_ms, scenario: options.scenario }, output, 'receiver', signal);
 		await receiver.wait('ready');
 		log('Mixed workload reports: ' + directory); receiver.send({ type: 'start' }); server.send({ type: 'start' });
 		const started = Date.now();

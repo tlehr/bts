@@ -41,6 +41,10 @@ describe('mixed queue benchmark', function() {
 		assert.strictEqual(parse(['--duration-ms', '180000']).duration_ms, 180000);
 		assert.strictEqual(parse(['--workload', 'preparation']).workload, 'preparation');
 		assert.strictEqual(parse(['--duration-ms', '600000', '--sync-interval-ms', '30000', '--workload', 'preparation-btp']).workload, 'preparation-btp');
+		const benchmark = parse(['--scenario', 'benchmark']);
+		assert.strictEqual(benchmark.duration_ms, 600000); assert.strictEqual(benchmark.point_min_ms, 3200); assert.strictEqual(benchmark.point_max_ms, 6400);
+		assert.throws(() => parse(['--scenario', 'benchmark', '--duration-ms', '90000']));
+		assert.throws(() => parse(['--scenario', 'unknown']));
 		assert.strictEqual(parse([]).workload, 'ordering');
 	});
 	it('reuses 26 participant pairs while retaining all independent planning IDs', function() {

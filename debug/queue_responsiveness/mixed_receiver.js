@@ -7,10 +7,12 @@ async function main(options) {
 	const { parse_args, run } = require(options.client_module);
 	const reception = new (require(path.join(path.dirname(options.client_module), 'reception/transport')))();
 	await reception.ready;
-	const args = parse_args(['--base-url', options.url, '--tournament', 'default', '--seed', '519-mixed',
+	const argv = ['--base-url', options.url, '--tournament', 'default', '--seed', '519-mixed',
 		'--expected-matches', String(options.count), '--point-min-ms', String(options.point_min_ms), '--point-max-ms', String(options.point_max_ms),
 		'--score-gap-min-ms', '0', '--score-gap-max-ms', '0', '--max-runtime-ms', String(options.duration_ms),
-		'--no-dashboard', '--report', path.join(options.directory, 'client-result.json')]);
+		'--no-dashboard', '--report', path.join(options.directory, 'client-result.json')];
+	if (options.scenario) argv.push('--scenario', options.scenario);
+	const args = parse_args(argv);
 	args.quiet = true;
 	const ws = new reception.WebSocket(options.url.replace(/^http/, 'ws') + '/ws/admin');
 	const probes = [], pending = new Map(), answers = new Set();
