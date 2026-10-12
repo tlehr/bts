@@ -1251,9 +1251,6 @@ function render_players_el(parentNode, setup, team_id, match, show_player_status
 	}
 
 	if (team.players.length > 0) {
-		if(team.entry_status !== "<none>"){
-			uiu.el(parentNode, 'span', {}, team.entry_status);
-		}
 		render_player_el(parentNode, team.players[0], match._id, setup.now_on_court, show_player_status, style, team.players.length > 1 ? true : false, match);
 	} else {
 		const dependency = _format_participant_dependency(match, team_id, curt.matches);
@@ -1322,6 +1319,18 @@ function render_match_participant_el(parentNode, participant, match_id, role, ic
 	return participant_el;
 }
 
+function render_player_entry_status_badge(player_el, match, player) {
+	const status = btp_entry_status.player_blocking_status(match, player);
+	if (!status) return;
+	const badge = uiu.el(player_el, 'span', {
+		'class': 'btp_entry_status_badge',
+		'role': 'img',
+		'aria-label': ci18n('match:player:entry_blocked', { event_name: match.setup.event_name || '', status }),
+	});
+	uiu.el(badge, 'span', { 'class': 'btp_entry_status_badge_label', 'aria-hidden': 'true' }, status);
+	player_el.insertBefore(badge, player_el.firstChild);
+}
+
 function render_player_el(parentNode, player, match_id, now_on_court, show_player_status, style, is_doubles, match) {
 	let player_status = get_player_status(player, now_on_court, show_player_status, match);
 	const player_check_in_locked = is_player_check_in_locked(player, match);
@@ -1335,6 +1344,7 @@ function render_player_el(parentNode, player, match_id, now_on_court, show_playe
 	if (player_status === 'entry_blocked') {
 		player_element.title = ci18n('match:player:entry_blocked', { event_name: match.setup.event_name || '', status: btp_entry_status.player_blocking_status(match, player) });
 	}
+	render_player_entry_status_badge(player_element, match, player);
 
 	if(player.check_in_per_match && !player_check_in_locked) {
 		if(player_status == "checked_in") {
@@ -1503,10 +1513,11 @@ function update_player(match_id, player, now_on_court, show_player_status, match
 				}
 			}
 
-			//The only Child should be the now_playing_on_court icon or the now_tablet_on_court icon
+			// Rebuild status badges and court/tablet indicators while keeping the name text.
 			while (player_el.firstElementChild) {
 				player_el.removeChild(player_el.lastElementChild);
 			}
+			render_player_entry_status_badge(player_el, match, player);
 
 			if ((player.now_playing_on_court && player_status != "now_on_court") && player_status != "no_status") {
 				let parts = player.now_playing_on_court.split("_");

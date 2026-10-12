@@ -1,0 +1,41 @@
+{
+  "browser": {
+    "protocolVersion": "1.3",
+    "product": "Chrome/155.0.8059.39",
+    "revision": "@3ff7ac5a9224be9156d7f8703a06e22890aafd34",
+    "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36",
+    "jsVersion": "15.5.35.20"
+  },
+  "checks": [
+    "German todo names DNS, participant, discipline, first match and both resolutions",
+    "DNS octagonal badge with white text, accessible description and spacing replaces bare team prefix",
+    "existing yellow warning box style applied",
+    "DNS player and Self-Check-in chip dark red, explanatory title, no check-in request",
+    "DNS removal restores normal color and both check-in controls live; removes badge",
+    "existing click handler uses current status after DNS removal",
+    "live DNS on a replaced match object blocks existing handlers again",
+    "first walkover loss removes todo without reload",
+    "reactivated match restores todo",
+    "en translated and interpolated",
+    "nl translated and interpolated",
+    "removing imported DNS removes todo without reload",
+    "de WDN status: dark red, check-in disabled, current tooltip; no DNS first-match todo",
+    "en WDN status: dark red, check-in disabled, current tooltip; no DNS first-match todo",
+    "nl WDN status: dark red, check-in disabled, current tooltip; no DNS first-match todo",
+    "WDN removal restores colors, clears tooltips and permits check-in through existing handler"
+  ],
+  "background_color": "rgb(255, 247, 214)",
+  "errors": [],
+  "fixture": "actual warning/player/Self-Check-in functions, shared DNS/WDN policy, translations, BUP DOM helpers and CSS; synthetic matches; no live writes",
+  "date": "2026-10-13",
+  "targeted_tests_passed": 32,
+  "change": "Octagonal DNS/WDN badges replace the bare team status prefix and follow live per-player status changes.",
+  "source_sha256": {
+    "static/js/cmatch.js": "5223fed6bc389e4e9c225c3ad9f8e36ff01d7830a96010b68053564d63015867",
+    "static/css/cmatch.css": "87721a4f9860375a209afc3c889a98ee301efaf8a98cc42dc84a1da4c2487c4f"
+  },
+  "limits": [
+    "Component checks use a synthetic fixture; no live tournament data was changed.",
+    "The full CSS file has pre-existing Stylelint violations; the new badge rules produced no Stylelint violations."
+  ]
+}
