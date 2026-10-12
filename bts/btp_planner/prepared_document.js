@@ -30,22 +30,27 @@ function validate(value) {
 
 function plain(value) { return value && Object.getPrototypeOf(value) === Object.prototype; }
 
-function assign(document, parts, value, unset) {
-	if (!plain(document)) return null;
+function assign(document, parts, value, unset, arrays) {
+	const array = Array.isArray(document);
+	if (!plain(document) && !(arrays && array)) return null;
 	const [key, ...rest] = parts;
-	const copy = { ...document };
+	if (array && (!/^(0|[1-9]\d*)$/.test(key) || Number(key) >= document.length ||
+		!Object.prototype.hasOwnProperty.call(document, key) || (!rest.length && unset))) return null;
+	if (array && (Object.keys(document).length !== document.length ||
+		Object.keys(document).some((field, index) => field !== String(index)))) return null;
+	const copy = array ? document.slice() : { ...document };
 	if (!rest.length) {
 		if (unset) delete copy[key]; else copy[key] = value;
 	} else {
 		if (document[key] === undefined && unset) return document;
-		const child = assign(document[key] === undefined ? {} : document[key], rest, value, unset);
+		const child = assign(document[key] === undefined ? {} : document[key], rest, value, unset, arrays);
 		if (!child) return null; // Arrays, Dates, null and scalar parents use NeDB.
 		copy[key] = child;
 	}
 	return copy;
 }
 
-function prepare(change, collection) {
+function prepare(change, collection, arrays = false) {
 	if (change.collection !== collection || !change.before || !change.after || !plain(change.before)) return null;
 	const update = change.update;
 	if (!update || Object.keys(update).some(key => !['$set', '$unset'].includes(key))) return null;
@@ -60,7 +65,7 @@ function prepare(change, collection) {
 		const unset = operation === '$unset';
 		if (!unset && !validate(value)) return null;
 		const copied = unset ? undefined : deepCopy(value);
-		document = assign(document, path.split('.'), copied, unset);
+		document = assign(document, path.split('.'), copied, unset, arrays);
 		if (!document) return null;
 	}
 	return { before: change.before, document };

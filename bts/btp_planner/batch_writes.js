@@ -40,10 +40,11 @@ function restore(store, originals) {
 // One executor barrier and append per group; normal NeDB model validation and
 // index hooks still update the canonical entities. No public read sees the
 // staged indexes before persistence completes. Resource locks remain unchanged.
-function write(store, changes, query_for, prepared = new Map()) {
+function write(store, changes, query_for, prepared = new Map(), options = {}) {
 	return new Promise((resolve, reject) => store.executor.push({
-		this: store, diagnostic_name: 'sync_batch_write', arguments: [(error, stats) => error ? reject(error) : resolve(stats)],
+		this: store, diagnostic_name: options.diagnostic_name || 'sync_batch_write', arguments: [(error, stats) => error ? reject(error) : resolve(stats)],
 		fn: function(done) {
+			if (options.fallback && (store.timestampData || !supported(store))) return options.fallback(done);
 			const originals = new Map(), documents = [];
 			const profiles = new Map();
 			const rollback = () => {
@@ -54,9 +55,10 @@ function write(store, changes, query_for, prepared = new Map()) {
 			try {
 				for (const change of changes) {
 					const old = store.indexes._id.getMatching(change.id)[0];
+					const ready = typeof prepared === 'function' ? prepared(change, old) : prepared.get(change);
 					if (!originals.has(change.id)) originals.set(change.id, old);
 					if (change.collection === 'tournaments' && !profiles.get(change.id)) {
-						profiles.set(change.id, require('../tournament_model/registration_rollback').capture(store, old, prepared.get(change)?.document || change.after));
+						profiles.set(change.id, require('../tournament_model/registration_rollback').capture(store, old, ready?.document || change.after));
 					}
 					if (change.before && (!old || !model.match(old, query_for(change)))) {
 						throw new Error(`BTP sync lost ${change.collection}/${change.id}`);
@@ -68,7 +70,6 @@ function write(store, changes, query_for, prepared = new Map()) {
 						const doc = store.prepareDocumentForInsertion(change.after);
 						store.addToIndexes(doc); documents.push(doc);
 					} else {
-						const ready = prepared.get(change);
 						// A queued writer may have replaced the baseline after validation.
 						// Recompute the patch normally rather than losing that update.
 						const doc = ready?.before === old ? ready.document : model.modify(old, change.update);
@@ -83,7 +84,10 @@ function write(store, changes, query_for, prepared = new Map()) {
 				return done(error);
 			}
 			const persisted = error => {
-				if (!error) return done(null, stats);
+				if (!error) {
+					if (options.return_records) stats.records = documents;
+					return done(null, stats);
+				}
 				try { rollback(); }
 				catch (rollback) { error.message += `; rollback failed: ${rollback.message}`; return done(error); }
 				// An append can fail after writing a prefix. Append before-images too,

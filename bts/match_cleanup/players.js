@@ -4,15 +4,11 @@ const reads = require('./reads');
 
 // Patch participant fields rather than replacing setup: a point press on an
 // independent court may concurrently update state and preparation markers.
-async function save(app, match, patch) {
-	if (!Object.keys(patch).length) return;
-	const updated = await new Promise((resolve, reject) => {
-		app.db.matches.update({ _id: match._id, tournament_key: match.tournament_key }, { $set: patch }, { returnUpdatedDocs: true },
-			(error, _count, document) => error ? reject(error) : resolve(document));
-	});
-	const current = updated || match;
-	require('../admin').notify_change(app, match.tournament_key, 'update_player_status', {
-		match__id: current._id, btp_winner: current.btp_winner, setup: current.setup,
+async function save(app, edits) {
+	await require('./participant_writes')(app, edits, records => {
+		for (const current of records) require('../admin').notify_change(app, current.tournament_key, 'update_player_status', {
+			match__id: current._id, btp_winner: current.btp_winner, setup: current.setup,
+		});
 	});
 }
 
@@ -31,8 +27,9 @@ async function players(app, key, id, end_ts, provided, helpers) {
 	if (!ids.length) return;
 	const wanted = new Set(ids.map(String));
 	const matches = await reads.matches(app, key, ids, true);
-	await Promise.allSettled(matches.map(async match => {
-		if (!match.setup || match.setup.now_on_court === true) return;
+	const edits = [];
+	for (const match of matches) {
+		if (!match.setup || match.setup.now_on_court === true) continue;
 		const patch = {}, changed = [];
 		for (const { player, path } of slots(match.setup, false)) {
 			if (!wanted.has(String(player.btp_id))) continue;
@@ -50,8 +47,9 @@ async function players(app, key, id, end_ts, provided, helpers) {
 		}
 		if (helpers.release_blocked_match_if_no_players_on_court(match.setup)) patch['setup.state'] = match.setup.state;
 		if (changed.length) require('../btp_manager').update_players(app, key, changed);
-		await save(app, match, patch);
-	})).then(throw_failure);
+		if (Object.keys(patch).length) edits.push({ match, patch });
+	}
+	await save(app, edits);
 }
 
 async function tablets(app, key, id, end_ts, provided, helpers) {
@@ -64,8 +62,9 @@ async function tablets(app, key, id, end_ts, provided, helpers) {
 	// Read after player cleanup so a dual-role participant keeps its updated
 	// check-in and pause timestamps.
 	const matches = await reads.matches(app, key, ids, false);
-	await Promise.allSettled(matches.map(async match => {
-		if (match.setup?.now_on_court === true && match._id !== id) return;
+	const edits = [];
+	for (const match of matches) {
+		if (match.setup?.now_on_court === true && match._id !== id) continue;
 		const patch = {};
 		for (const { player, path } of slots(match.setup, true)) {
 			if (!wanted.has(String(player.btp_id))) continue;
@@ -78,13 +77,9 @@ async function tablets(app, key, id, end_ts, provided, helpers) {
 				require('../btp_manager').update_players(app, key, [player]);
 			}
 		}
-		await save(app, match, patch);
-	})).then(throw_failure);
-}
-
-function throw_failure(results) {
-	const failed = results.find(result => result.status === 'rejected');
-	if (failed) throw failed.reason;
+		if (Object.keys(patch).length) edits.push({ match, patch });
+	}
+	await save(app, edits);
 }
 
 module.exports = { players, tablets };
