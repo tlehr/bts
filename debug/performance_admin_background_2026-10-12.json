@@ -111,5 +111,147 @@
     "The successful browser check used a short 80-changes/s real WebSocket stream with simple DOM rows, not full tournament rendering.",
     "The freeze/resume test explicitly parks 250 already received changes while Chrome is frozen; it does not promise delivery over a frozen WebSocket.",
     "No live tournament changes or server point-latency benchmark were performed."
-  ]
+  ],
+  "chained_timer_chrome_validation": {
+    "browser": {
+      "protocolVersion": "1.3",
+      "product": "Chrome/155.0.8059.39",
+      "revision": "@3ff7ac5a9224be9156d7f8703a06e22890aafd34",
+      "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36",
+      "jsVersion": "15.5.35.20"
+    },
+    "fixture": "production conn + DOM rows + real WebSocket; 80 changes/s in bursts of 80 with 2ms synthetic handler work, background tabs, no live tournament writes",
+    "reproduced_original_backlog": true,
+    "runtime_ms": 11018,
+    "sent_background": 640,
+    "before": {
+      "hidden": true,
+      "visibility": "hidden",
+      "handled": 53,
+      "hidden_handled": 53,
+      "last": 53,
+      "pending": 587
+    },
+    "after": {
+      "hidden": true,
+      "visibility": "hidden",
+      "handled": 621,
+      "hidden_handled": 621,
+      "last": 621,
+      "pending": 19
+    },
+    "after_drained": {
+      "hidden": true,
+      "visibility": "hidden",
+      "handled": 640,
+      "hidden_handled": 640,
+      "last": 640,
+      "pending": 0
+    },
+    "before_drained": {
+      "hidden": false,
+      "visibility": "visible",
+      "handled": 640,
+      "hidden_handled": 53,
+      "last": 640,
+      "pending": 0
+    },
+    "foreground_catchup_before_ms": 1776,
+    "freeze_resume_sent": 250,
+    "resumed": {
+      "hidden": false,
+      "visibility": "visible",
+      "handled": 890,
+      "hidden_handled": 643,
+      "last": 890,
+      "pending": 0
+    },
+    "samples": [
+      {
+        "elapsed_ms": 2000,
+        "before": {
+          "hidden": true,
+          "visibility": "hidden",
+          "handled": 29,
+          "hidden_handled": 29,
+          "last": 29,
+          "pending": 51
+        },
+        "after": {
+          "hidden": true,
+          "visibility": "hidden",
+          "handled": 85,
+          "hidden_handled": 85,
+          "last": 85,
+          "pending": 50
+        }
+      },
+      {
+        "elapsed_ms": 4020,
+        "before": {
+          "hidden": true,
+          "visibility": "hidden",
+          "handled": 37,
+          "hidden_handled": 37,
+          "last": 37,
+          "pending": 283
+        },
+        "after": {
+          "hidden": true,
+          "visibility": "hidden",
+          "handled": 247,
+          "hidden_handled": 247,
+          "last": 247,
+          "pending": 73
+        }
+      },
+      {
+        "elapsed_ms": 6023,
+        "before": {
+          "hidden": true,
+          "visibility": "hidden",
+          "handled": 45,
+          "hidden_handled": 45,
+          "last": 45,
+          "pending": 435
+        },
+        "after": {
+          "hidden": true,
+          "visibility": "hidden",
+          "handled": 406,
+          "hidden_handled": 406,
+          "last": 406,
+          "pending": 74
+        }
+      },
+      {
+        "elapsed_ms": 8033,
+        "before": {
+          "hidden": true,
+          "visibility": "hidden",
+          "handled": 53,
+          "hidden_handled": 53,
+          "last": 53,
+          "pending": 587
+        },
+        "after": {
+          "hidden": true,
+          "visibility": "hidden",
+          "handled": 569,
+          "hidden_handled": 569,
+          "last": 569,
+          "pending": 71
+        }
+      }
+    ],
+    "errors": [],
+    "source_commit": "795cdeb",
+    "baseline_commit": "d62f527",
+    "benchmark_script_sha256": "1d8f3c9b408065e99026bc859d2ebc957fb67dddae44595b275759bf5f182efa",
+    "limits": [
+      "Uses 2ms synthetic work per change handler and bursts of 80 messages once per second to exercise chained continuation timers.",
+      "This reproduces growing background queue backlog in actual Chrome without custom timer-throttling flags; it does not reproduce full tournament rendering or the exact reported ten-minute run.",
+      "The new queue has transient burst backlog; all 640 updates drain while the page remains hidden."
+    ]
+  }
 }
