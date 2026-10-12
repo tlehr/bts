@@ -55,7 +55,10 @@ describe('staged automatic compaction', function() {
 		};
 		return { entered: entered.promise, release: gate.resolve };
 	}
-	it('uses staged maintenance through the automatic scheduler and lets a stopped round finish', async function() {
+	it('uses staged maintenance by default through the automatic scheduler and lets a stopped round finish', async function() {
+		delete process.env.BTS_COMPACTION_WORKER;
+		delete process.env.BTS_COMPACTION_STAGED;
+		assert.strictEqual(staged.supported(store), true);
 		const gate = hold_stage(), errors = [];
 		let tick;
 		const control = schedule({ matches: store }, ['matches'], {

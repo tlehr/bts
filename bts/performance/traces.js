@@ -64,7 +64,9 @@ function clean(details = {}) {
 			'prepared_match_writes', 'prepared_match_fallbacks', 'serialization_ms', 'storage_wait_ms',
 			'storage_start_ts', 'storage_end_ts', 'storage_bytes', 'read_source', 'compaction_read_bypassed',
 			'compaction_read_decision', 'db_queue_wait_ms', 'read_ms', 'queue_depth_at_enqueue',
-			'compaction_pending_at_enqueue'].includes(key)) continue;
+			'compaction_pending_at_enqueue', 'snapshot_encode_ms', 'stage_write_ms', 'commit_queue_wait_ms',
+			'commit_start_ts', 'commit_end_ts', 'commit_locked_ms', 'input_documents', 'catchup_documents',
+			'commit_documents'].includes(key)) continue;
 		if (typeof value === 'string') result[key] = value.slice(0, 200);
 		else if (typeof value === 'number' || typeof value === 'boolean' || value === null) result[key] = value;
 		else if (Array.isArray(value)) { result[key] = value.slice(0, 40).map(item => typeof item === 'string' ? item.slice(0, 200)

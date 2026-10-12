@@ -7,7 +7,7 @@ const flags = {
 	sync_plan_patch_return: ['BTS_SYNC_PLAN_PATCH_RETURN', true],
 	device_info: ['BTS_DEVICE_INFO_BACKGROUND', false],
 	xlsx_import: ['BTS_XLSX_IMPORT_WORKER', false],
-	compaction: ['BTS_COMPACTION_WORKER', false],
+	compaction: ['BTS_COMPACTION_WORKER', true],
 	compaction_reads: ['BTS_COMPACTION_MODEL_READS', true],
 	preparation_reads: ['BTS_PREPARATION_MODEL_READS', true],
 	preparation_candidates: ['BTS_PREPARATION_CANDIDATES_LIGHT', true],
@@ -18,7 +18,7 @@ const flags = {
 	admin_response_priority: ['BTS_ADMIN_RESPONSE_PRIORITY', true],
 	admin_match_revision_cache: ['BTS_ADMIN_MATCH_REVISION_CACHE', true],
 	admin_response_worker: ['BTS_ADMIN_RESPONSE_ENCODER', false],
-	compaction_staged: ['BTS_COMPACTION_STAGED', false],
+	compaction_staged: ['BTS_COMPACTION_STAGED', true],
 };
 
 function enabled(name) {

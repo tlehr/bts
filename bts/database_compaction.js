@@ -39,7 +39,8 @@ module.exports = function schedule_compaction(db, collections, options = {}) {
 		};
 		const staged = require('./compaction_worker/staged');
 		if (staged.supported(store)) {
-			staged.run(store, name).then(() => done(null), done);
+			require('./performance/traces').operation('database_compaction', { type: 'other', collection: name },
+				() => staged.run(store, name)).then(() => done(null), done);
 			return;
 		}
 		// Use NeDB's executor and persistence implementation. Pending writes
