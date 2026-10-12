@@ -5,8 +5,8 @@
 // an already displayed match; the normal fanout still refreshes presentation,
 // changed assignments and full views. Never send a new game's points into an
 // old game's view, and retain ordinary reads when TTL can remove a court.
-module.exports = function publish({ app, key, court, match, panels, build, send, visible, full_state_fallback }) {
-	if (full_state_fallback || !court || !match || court.match_id !== match._id || !visible(app, match) ||
+module.exports = function publish({ app, key, court, match, panels, build, send, visible, full_state_fallback, lock_scope_active }) {
+	if (lock_scope_active === false || full_state_fallback || !court || !match || court.match_id !== match._id || !visible(app, match) ||
 		Object.keys(app.db.courts.ttlIndexes || {}).length || Object.keys(app.db.matches.ttlIndexes || {}).length) return 0;
 	const id = match.setup?.match_id || match._id;
 	const recipients = panels.filter(ws => ws.readyState === 1 && ws.last_tournament_key === key && ws.panel_devicemode === 'display' &&

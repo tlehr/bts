@@ -10,6 +10,7 @@ describe('committed display score recipients', function() {
 			panels: [{ readyState: 1, last_tournament_key: 'test', panel_devicemode: 'display', court_id: 'court', last_v2_match_id: 'game' }],
 			visible: () => true, build: () => ({}), send: () => true };
 		assert.strictEqual(publish({ ...input, full_state_fallback: true }), 0);
+		assert.strictEqual(publish({ ...input, lock_scope_active: false }), 0);
 		assert.strictEqual(publish({ ...input, visible: () => false }), 0);
 		assert.strictEqual(publish({ ...input, court: { _id: 'court', match_id: 'replacement' } }), 0);
 		input.app.db.courts.ttlIndexes.expires = 1; assert.strictEqual(publish(input), 0); delete input.app.db.courts.ttlIndexes.expires;

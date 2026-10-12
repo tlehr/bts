@@ -3301,7 +3301,7 @@ async function handle_score_update(app, ws, msg) {
 							// Timers retain their normal ordered fanout. Preparing them here
 							// would delay both the immediate point and the Admin event.
 							build: build_display_points_update_v2, send: (panel, points) => send_v2_payload(panel, points),
-							visible: is_match_visible_on_display, full_state_fallback: SCORE_UPDATE_FULL_STATE_FALLBACK,
+							visible: is_match_visible_on_display, full_state_fallback: SCORE_UPDATE_FULL_STATE_FALLBACK, lock_scope_active: !finished,
 						});
 						score_phase('committed_display_points', start_ns, { recipients: sent });
 						require('./foreground_work').publication(() => handle_score_change(app, tournament_key, updated_match.setup.court_id, {
