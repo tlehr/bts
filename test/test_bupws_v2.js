@@ -254,7 +254,7 @@ _describe('bupws v2 score fanout', () => {
 			panels.push(ws);
 			return ws;
 		};
-		return { app, panel, cleanup() { panels.forEach(ws => bupws_v2.on_close(app, ws)); } };
+		return { app, panel, cleanup() { panels.forEach(ws => { ws.readyState = 3; bupws_v2.on_close(app, ws); }); } };
 	}
 
 	function wait_for_points(panels) {
