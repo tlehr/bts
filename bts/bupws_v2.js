@@ -3296,9 +3296,11 @@ async function handle_score_update(app, ws, msg) {
 				(updated_match, cb) => {
 					const start_ns = timing_now_ns();
 					if (updated_match) {
-						handle_score_change(app, tournament_key, updated_match.setup.court_id, {
+						require('./foreground_work').publication(() => handle_score_change(app, tournament_key, updated_match.setup.court_id, {
 							skip_umpire_ws: score_indicates_finished ? null : ws,
 							score_timing_score_data: score_data,
+						})).catch(error => {
+							console.warn('[bts] score display publication failed:', error && (error.stack || error.message || String(error))); // eslint-disable-line no-console
 						});
 						admin.notify_change(app, tournament_key, 'score', {
 							match_id,

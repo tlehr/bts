@@ -86,6 +86,42 @@ describe('background admin response output', function() {
 			if (previous === undefined) delete process.env.BTS_ADMIN_RESPONSE_PRIORITY; else process.env.BTS_ADMIN_RESPONSE_PRIORITY = previous;
 		}
 	});
+	it('retains CPU priority until asynchronous display publication, without retaining court locks or waiting for itself', async function() {
+		const previous = process.env.BTS_ADMIN_RESPONSE_PRIORITY;
+		process.env.BTS_ADMIN_RESPONSE_PRIORITY = '1';
+		const { ResourceLockQueue } = require('../bts/resource_lock_queue'), update_queue = require('../bts/update_queue');
+		const queue = new ResourceLockQueue();
+		let release, delivery;
+		const handed_off = new Promise(resolve => { release = resolve; });
+		try {
+			await queue.execute(update_queue.named('handle_score_update_v2', () => {
+				delivery = foreground.publication(async () => {
+					await foreground.background_idle();
+					await handed_off;
+				});
+				foreground.release();
+			}), { locks: ['court:test:publication'] });
+			assert.strictEqual(queue.stats().active, false);
+			assert.strictEqual(foreground.busy(), true);
+			let encoded = false;
+			const background = encoder.encode({ tournament: { matches: [] } }).then(() => { encoded = true; });
+			await tick(); assert.strictEqual(encoded, false);
+			release(); await delivery; await background;
+			assert.strictEqual(foreground.busy(), false);
+		} finally {
+			release(); await delivery;
+			if (previous === undefined) delete process.env.BTS_ADMIN_RESPONSE_PRIORITY; else process.env.BTS_ADMIN_RESPONSE_PRIORITY = previous;
+		}
+	});
+	it('releases display publication priority after rejection or synchronous failure', async function() {
+		const end = foreground.begin('handle_score_update_v2');
+		try {
+			const failure = new Error('display failed');
+			await assert.rejects(foreground.run(end, () => foreground.publication(() => Promise.reject(failure))), error => error === failure);
+			assert.throws(() => foreground.run(end, () => foreground.publication(() => { throw failure; })), error => error === failure);
+		} finally { end(); }
+		assert.strictEqual(foreground.busy(), false);
+	});
 	it('holds later updates behind the snapshot, freezes them, and leaves another socket independent', async function() {
 		const ws = socket(), other = socket();
 		let release;

@@ -37,4 +37,13 @@ function begin(name) {
 const run = (end, work) => end ? context.run(end, work) : work();
 const release = () => context.getStore()?.();
 
-module.exports = { begin, busy, idle, background_idle, run, release };
+function publication(work) {
+	// Score persistence and TV delivery have separate lifetimes. The point
+	// handler can release its locks while CPU-heavy copying still yields until
+	// its display messages have been handed to their WebSockets.
+	const end = active_tasks.has(context.getStore()) ? begin('handle_score_update_publication') : null;
+	try { return Promise.resolve(run(end, work)).finally(() => end?.()); }
+	catch (error) { end?.(); throw error; }
+}
+
+module.exports = { begin, busy, idle, background_idle, run, release, publication };
