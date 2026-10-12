@@ -13,6 +13,7 @@ const flags = {
 	preparation_candidates: ['BTS_PREPARATION_CANDIDATES_LIGHT', true],
 	sync_batch_writes: ['BTS_SYNC_BATCH_WRITES', false],
 	sync_prepared_tournament: ['BTS_SYNC_PREPARED_TOURNAMENT', true],
+	sync_prepared_matches: ['BTS_SYNC_PREPARED_MATCHES', true],
 	admin_response_background: ['BTS_ADMIN_RESPONSE_BACKGROUND', true],
 	admin_response_priority: ['BTS_ADMIN_RESPONSE_PRIORITY', true],
 	admin_match_revision_cache: ['BTS_ADMIN_MATCH_REVISION_CACHE', true],

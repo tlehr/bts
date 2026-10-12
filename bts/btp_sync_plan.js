@@ -253,10 +253,12 @@ async function apply(app, tkey, plan) {
 	const completed = [];
 	const batch_writes = require('./btp_planner/batch_writes');
 	const enabled = require('./offload/profile').enabled('sync_batch_writes');
-	const stats = { batch_groups: 0, batch_changes: 0, individual_writes: 0, prepared_tournament_writes: 0, prepared_tournament_fallbacks: 0 };
-	const count_prepared = counts => {
-		stats.prepared_tournament_writes += counts.prepared_writes;
-		stats.prepared_tournament_fallbacks += counts.prepared_fallbacks;
+	const stats = { batch_groups: 0, batch_changes: 0, individual_writes: 0, prepared_tournament_writes: 0, prepared_tournament_fallbacks: 0,
+		prepared_match_writes: 0, prepared_match_fallbacks: 0 };
+	const count_prepared = (counts, collection) => {
+		const prefix = collection === 'matches' ? 'prepared_match' : 'prepared_tournament';
+		stats[prefix + '_writes'] += counts.prepared_writes;
+		stats[prefix + '_fallbacks'] += counts.prepared_fallbacks;
 	};
 	try {
 		// Deletions first permit court-number changes and renamed identifiers.
@@ -267,14 +269,14 @@ async function apply(app, tkey, plan) {
 			if (enabled && batch_writes.supported(store)) {
 				const group = [change];
 				while (ordered[i + 1]?.collection === change.collection) group.push(ordered[++i]);
-				count_prepared(await batch_writes.write(store, group, entry => ({ _id: entry.id, ...query_for(entry.collection, tkey) }), plan.prepared));
+				count_prepared(await batch_writes.write(store, group, entry => ({ _id: entry.id, ...query_for(entry.collection, tkey) }), plan.prepared), change.collection);
 				completed.push(...group);
 				stats.batch_groups++; stats.batch_changes += group.length;
 				continue;
 			}
 			const query = { _id: change.id, ...query_for(change.collection, tkey) };
 			if (plan.prepared.has(change) && batch_writes.supported(store) && !store.timestampData) {
-				count_prepared(await batch_writes.write(store, [change], () => query, plan.prepared));
+				count_prepared(await batch_writes.write(store, [change], () => query, plan.prepared), change.collection);
 				completed.push(change); stats.individual_writes++;
 				continue;
 			}
@@ -403,12 +405,14 @@ async function run(app, tkey, response, options, integrate, cache) {
 		const scope = resources(tkey, before, changes, effects);
 		const plan = { before, changes, effects, ...scope };
 		plan.prepared = new Map();
-		if (require('./offload/profile').enabled('sync_prepared_tournament')) {
+		if (require('./offload/profile').enabled('sync_prepared_tournament') || require('./offload/profile').enabled('sync_prepared_matches')) {
 			const prepare_start = Date.now();
 			for (const change of changes) {
 				const store = app.db[change.collection];
-				if (change.collection !== 'tournaments' || store.timestampData || !require('./btp_planner/batch_writes').supported(store)) continue;
-				const prepared = require('./btp_planner/prepared_tournament').prepare(change);
+				const prepared_kind = change.collection === 'tournaments' ? 'tournament' : change.collection === 'matches' ? 'match' : null;
+				if (!prepared_kind || !require('./offload/profile').enabled(prepared_kind === 'match' ? 'sync_prepared_matches' : 'sync_prepared_tournament') ||
+					store.timestampData || !require('./btp_planner/batch_writes').supported(store)) continue;
+				const prepared = require('./btp_planner/prepared_' + prepared_kind).prepare(change);
 				if (prepared) plan.prepared.set(change, prepared);
 			}
 			log_timing('incremental_prepare_writes', prepare_start, { prepared_tournaments: plan.prepared.size });
