@@ -1320,15 +1320,19 @@ function render_match_participant_el(parentNode, participant, match_id, role, ic
 }
 
 function render_player_entry_status_badge(player_el, match, player) {
+	const previous_badge = player_el.previousElementSibling;
+	if (previous_badge?.classList.contains('btp_entry_status_badge')) previous_badge.remove();
 	const status = btp_entry_status.player_blocking_status(match, player);
 	if (!status) return;
-	const badge = uiu.el(player_el, 'span', {
+	const description = ci18n('match:player:entry_blocked', { event_name: match.setup.event_name || '', status });
+	const badge = uiu.el(player_el.parentNode, 'span', {
 		'class': 'btp_entry_status_badge',
 		'role': 'img',
-		'aria-label': ci18n('match:player:entry_blocked', { event_name: match.setup.event_name || '', status }),
+		'aria-label': description,
+		'title': description,
 	});
 	uiu.el(badge, 'span', { 'class': 'btp_entry_status_badge_label', 'aria-hidden': 'true' }, status);
-	player_el.insertBefore(badge, player_el.firstChild);
+	player_el.parentNode.insertBefore(badge, player_el);
 }
 
 function render_player_el(parentNode, player, match_id, now_on_court, show_player_status, style, is_doubles, match) {
