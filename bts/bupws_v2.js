@@ -3296,6 +3296,12 @@ async function handle_score_update(app, ws, msg) {
 				(updated_match, cb) => {
 					const start_ns = timing_now_ns();
 					if (updated_match) {
+						const sent = require('./score_publication/committed_points')({
+							app, key: tournament_key, court, match: updated_match, panels: all_panels,
+							build: build_display_incremental_updates_v2, send: send_v2_incremental_updates,
+							visible: is_match_visible_on_display, full_state_fallback: SCORE_UPDATE_FULL_STATE_FALLBACK,
+						});
+						score_phase('committed_display_points', start_ns, { recipients: sent });
 						require('./foreground_work').publication(() => handle_score_change(app, tournament_key, updated_match.setup.court_id, {
 							skip_umpire_ws: score_indicates_finished ? null : ws,
 							score_timing_score_data: score_data,

@@ -317,6 +317,41 @@ _describe('bupws v2 score fanout', () => {
 		}
 	});
 
+	_it('sends only persisted points to the initialized TV before delayed presentation reads', async () => {
+		const { app, panel, cleanup } = await fixture();
+		const tablet = panel('point-source'); tablet.panel_devicemode = 'umpire';
+		const tv = panel('committed-tv'); tv.panel_devicemode = 'display';
+		const stale = panel('stale-tv'); stale.panel_devicemode = 'display'; stale.last_v2_match_id = 'different-game';
+		const persist = app.db.matches.persistence.persistNewState;
+		let release_persistence, reached_persistence, reached_presentation;
+		const writing = new Promise(resolve => { reached_persistence = resolve; });
+		const reading = new Promise(resolve => { reached_presentation = resolve; });
+		const releases = [];
+		app.db.matches.persistence.persistNewState = function(documents, done) {
+			release_persistence = () => persist.call(this, documents, done); reached_persistence();
+		};
+		const original = app.db.model.read_display_context_part;
+		app.db.model.read_display_context_part = (part, ...args) => {
+			if (part !== 'tournament') return original(part, ...args);
+			const callback = args.pop();
+			return original(part, ...args, (...results) => { releases.push(() => callback(...results)); reached_presentation(); });
+		};
+		const delivered = wait_for_points([tv]);
+		const running = bupws_v2.handle_score_update(app, tablet, { tournament_key: 'fanout-test',
+			score: { match_id: 'match-1', court_id: 'court-1', network_score: [[2, 0]], presses: [] } });
+		try {
+			await writing; assert(!tv.messages.some(msg => msg.type === 'display_points_update'));
+			app.db.matches.persistence.persistNewState = persist; release_persistence();
+			await delivered; await reading;
+			assert.deepStrictEqual(tv.messages.find(msg => msg.type === 'display_points_update').score.current_set, { left: 2, right: 0 });
+			assert(!stale.messages.some(msg => msg.type === 'display_points_update'));
+		} finally {
+			app.db.matches.persistence.persistNewState = persist;
+			app.db.model.read_display_context_part = original;
+			for (const release of releases) release();
+			await running; await require('../bts/foreground_work').idle(); cleanup();
+		}
+	});
 	_it('sends single and multi-court TV updates while a tablet refresh is blocked', async () => {
 		const { app, panel, cleanup } = await fixture();
 		const tablet = panel('slow-tablet');
