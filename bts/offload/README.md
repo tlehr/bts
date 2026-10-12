@@ -13,7 +13,7 @@ unabhängig ausgewertet (`1` ein, `0` aus):
 | `BTS_DEVICE_INFO_BACKGROUND` | `0` | Geräteinformationen aus Punktmeldungen über eine asynchrone Queue je Gerät nachziehen. |
 | `BTS_XLSX_IMPORT_WORKER` | `0` | XLSX-Datei im Importworker lesen; Zuordnung und Speicherung anschließend im Hauptthread. |
 | `BTS_COMPACTION_WORKER` | `0` | NeDB-Datensätze im Worker serialisieren, unveränderte Zeilen wiederverwenden. |
-| `BTS_COMPACTION_MODEL_READS` | `0` | Punktmeldungen lesen stabile Modellobjekte während reiner Kompaktierung, sofern keine früheren Schreib-/unbekannten Aufträge warten. |
+| `BTS_COMPACTION_MODEL_READS` | `1` | Punktmeldungen lesen stabile Modellobjekte während reiner Kompaktierung, sofern keine früheren Schreib-/unbekannten Aufträge warten. |
 | `BTS_PREPARATION_MODEL_READS` | `1` | Bedarf, automatische Kandidaten, Zulässigkeit und Aufrufabstände lesen geordnete Objektreferenzen statt vollständiger NeDB-Kopien. |
 | `BTS_PREPARATION_CANDIDATES_LIGHT` | `1` | Automatische Kandidatenauswahl berechnet keine umfassenden UI-Diagnosen. |
 | `BTS_SYNC_BATCH_WRITES` | `0` | Änderungen werden je zusammenhängender Sammlung als ein NeDB-Append gespeichert. |

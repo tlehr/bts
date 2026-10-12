@@ -2,7 +2,6 @@
 
 const crypto = require('crypto');
 const { promisify } = require('util');
-const { copy } = require('./btp_sync_effects');
 const update_queue = require('./update_queue');
 const utils = require('./utils');
 const tournament_model = require('./tournament_model');
@@ -228,23 +227,16 @@ async function publish(app, effects, final_state) {
 		const notification = effect.resources.notification;
 		if (!notification) { effect.run(app); continue; }
 		const { tournament_key, ctype } = notification;
-		let value = copy(notification.value);
+		const value = notification.value;
 		const id = value?.match__id || value?.match?._id || (value?.setup && value?._id);
 		const key = `${ctype}:${id || value?._id || ''}`;
 		if (seen.has(key)) continue;
 		seen.add(key);
-		if (id && ctype !== 'match_remove') {
-			const current = matches.get(id);
-			if (!current) continue;
-			if (value.match) value.match = current;
-			else if (value.match__id) value = { ...value, setup: current.setup, btp_winner: current.btp_winner };
-			else value = current;
-		}
-		if (ctype === 'umpire_updated') value = umpires.get(value._id) || value;
-		if (value?.all_courts) value.all_courts = final_state.courts;
-		if (value?.all_locations) value.all_locations = final_state.locations;
-		if (value?.all_umpires) value.all_umpires = final_state.umpires;
-		admin.notify_change(app, tournament_key, ctype, value);
+		const current = id && ctype !== 'match_remove' ? matches.get(id) : null;
+		if (id && ctype !== 'match_remove' && !current) continue;
+		const umpire = ctype === 'umpire_updated' ? umpires.get(value._id) : null;
+		admin.notify_change(app, tournament_key, ctype,
+			require('./btp_planner/notification_value')(notification, current, umpire, final_state));
 	}
 	return jobs;
 }
@@ -427,6 +419,9 @@ async function run(app, tkey, response, options, integrate, cache) {
 					store.timestampData || !require('./btp_planner/batch_writes').supported(store)) continue;
 				const prepared = require('./btp_planner/prepared_' + prepared_kind).prepare(change);
 				if (prepared) plan.prepared.set(change, prepared);
+				// This is still private, immutable planning input, before any
+				// resource lock. Let queued points run between prepared documents.
+				await yield_turn();
 			}
 			log_timing('incremental_prepare_writes', prepare_start, { prepared_tournaments: plan.prepared.size });
 		}
