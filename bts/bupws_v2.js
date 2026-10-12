@@ -3298,7 +3298,9 @@ async function handle_score_update(app, ws, msg) {
 					if (updated_match) {
 						const sent = require('./score_publication/committed_points')({
 							app, key: tournament_key, court, match: updated_match, panels: all_panels,
-							build: build_display_incremental_updates_v2, send: send_v2_incremental_updates,
+							// Timers retain their normal ordered fanout. Preparing them here
+							// would delay both the immediate point and the Admin event.
+							build: build_display_points_update_v2, send: (panel, points) => send_v2_payload(panel, points),
 							visible: is_match_visible_on_display, full_state_fallback: SCORE_UPDATE_FULL_STATE_FALLBACK,
 						});
 						score_phase('committed_display_points', start_ns, { recipients: sent });
