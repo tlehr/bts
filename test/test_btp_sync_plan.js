@@ -72,6 +72,21 @@ async function edit_one(app) {
 }
 
 describe('incremental BTP sync plans', function() {
+	it('uses worker-provided wire JSON and hash without serializing the response again', async function() {
+		const { app, tkey } = await fixture();
+		const wire = response(), json = JSON.stringify(wire);
+		const hash = require('crypto').createHash('sha256').update(json).digest('hex');
+		const unencoded = { toJSON() { throw new Error('response serialized on main thread'); } };
+		let integrated = false;
+		assert.strictEqual(await planner.sync(app, tkey, unencoded, { ...OPTIONS, source_json: json, source_hash: hash },
+			async (planning_app, key, input) => {
+				assert.strictEqual(key, tkey); assert.deepStrictEqual(input, wire); integrated = true;
+				return edit_one(planning_app);
+			}), true);
+		assert.strictEqual(integrated, true);
+		assert.strictEqual((await app.db.matches.findOne_async({ _id: 'one' })).setup.teams[0].players[0].checked_in, true);
+	});
+
 	it('keeps read-only source snapshots stable while writes create isolated replacements', async function() {
 		const { app, tkey } = await fixture();
 		const before = await planner._snapshot(app.db, tkey);

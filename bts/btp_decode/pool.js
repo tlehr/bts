@@ -56,6 +56,7 @@ class DecodePool {
 				error = Object.assign(new Error(result.error.message), result.error);
 			}
 			this.health.finish(job.health, error);
+			if (!error) require('./response_hashes').remember(result.response, result.hashes);
 			require('../performance/traces').import_phases(job.health.run_span, result.record?.phases.map(row => ({ ...row, name: 'btp_decode_' + row.phase })));
 			require('../performance/traces').with_context(job.health.context, () => job.callback(error, result.response));
 		});

@@ -9,6 +9,7 @@ const flags = {
 	xlsx_import: ['BTS_XLSX_IMPORT_WORKER', false],
 	compaction: ['BTS_COMPACTION_WORKER', true],
 	compaction_reads: ['BTS_COMPACTION_MODEL_READS', true],
+	score_idle_reads: ['BTS_SCORE_MODEL_IDLE_READS', true],
 	preparation_reads: ['BTS_PREPARATION_MODEL_READS', true],
 	preparation_candidates: ['BTS_PREPARATION_CANDIDATES_LIGHT', true],
 	sync_batch_writes: ['BTS_SYNC_BATCH_WRITES', false],

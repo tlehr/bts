@@ -98,7 +98,12 @@ describe('BTP bulk decoder worker', function() {
 		const input = backing.subarray(15, 15 + packet.length);
 		const expected = await promisify(proto.decode)(input);
 		const decode = () => new Promise((resolve, reject) => pool.decode(input, {}, (err, value) => err ? reject(err) : resolve(value)));
-		assert.deepStrictEqual(await decode(), expected);
+		const decoded = await decode();
+		assert.deepStrictEqual(decoded, expected);
+		const hashes = require('../bts/btp_decode/response_hashes').get(decoded);
+		assert.strictEqual(hashes.json, JSON.stringify(expected));
+		for (const algorithm of ['sha1', 'sha256']) assert.strictEqual(hashes[algorithm],
+			require('crypto').createHash(algorithm).update(JSON.stringify(expected)).digest('hex'));
 		const worker = pool.worker;
 		assert.deepStrictEqual(await decode(), expected);
 		assert.strictEqual(pool.worker, worker);

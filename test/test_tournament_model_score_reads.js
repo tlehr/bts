@@ -8,6 +8,23 @@ const read = (db, part, id, key = 'test') => new Promise((resolve, reject) => {
 });
 
 describe('ordered score context reads', function() {
+	it('captures idle stores immediately but delivers detached values asynchronously before a later write', async function() {
+		const { db } = await fixture();
+		await new Promise(resolve => setImmediate(resolve));
+		let delivered = false;
+		const capture = read(db, 'match', 'one').then(result => { delivered = true; return result; });
+		assert.strictEqual(delivered, false);
+		const write = db.matches.update_async({ _id: 'one' }, { $set: { network_score: [[9, 7]] } }, {});
+		const result = await capture;
+		assert.strictEqual(result.timing.model_read_bypassed, true);
+		assert.strictEqual(result.timing.model_read_decision, 'idle_store');
+		assert.strictEqual(result.timing.compaction_read_bypassed, false);
+		assert.deepStrictEqual(result.value.network_score, [[0, 0]]);
+		await write;
+		assert.deepStrictEqual(result.value.network_score, [[0, 0]]);
+		assert.deepStrictEqual((await read(db, 'match', 'one')).value.network_score, [[9, 7]]);
+	});
+
 	it('looks up only the requested objects and returns detached copies without registration data', async function() {
 		const { db, tournament } = await fixture();
 		db.matches.getCandidates = () => { throw new Error('queried all tournament matches'); };

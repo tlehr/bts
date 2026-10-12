@@ -49,4 +49,14 @@ function inspect(store) {
 	return { allowed: true, reason: 'pure_compaction' };
 }
 
-module.exports = { attach, certify_read, inspect };
+function inspect_idle(store) {
+	const state = states.get(store), executor = store.executor;
+	if (!executor.ready) return { allowed: false, reason: 'not_ready' };
+	if (!state || state.active || state.pending.size || executor.queue.running() || executor.queue.length() || executor.buffer.length) {
+		return { allowed: false, reason: 'busy_store' };
+	}
+	if (Object.keys(store.ttlIndexes || {}).length) return { allowed: false, reason: 'ttl_index' };
+	return { allowed: true, reason: 'idle_store' };
+}
+
+module.exports = { attach, certify_read, inspect, inspect_idle };

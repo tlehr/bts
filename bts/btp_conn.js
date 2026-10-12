@@ -75,6 +75,10 @@ async function queue_fetch_sync_task(connection, response, fetch_reset_ts, respo
 	const value = await btp_sync.sync_btp_data(connection.app, connection.tkey, response, {
 		expected_reset_ts: fetch_reset_ts,
 		is_current: () => !connection.terminated,
+		...(require('./btp_decode/response_hashes').get(response) ? {
+			source_hash: require('./btp_decode/response_hashes').get(response).sha256,
+			source_json: require('./btp_decode/response_hashes').get(response).json,
+		} : {}),
 	});
 	if (value === true || value?.reason === 'no_sync_changes') {
 		connection.last_applied_fetch_response_hash = response_hash;
@@ -451,7 +455,7 @@ class BTPConn {
 			return { value: null, reschedule: false };
 		}
 		const hash_start_ms = real_now_ms(this.app);
-		const response_hash = hash_fetch_response(response);
+		const response_hash = require('./btp_decode/response_hashes').get(response)?.sha1 || hash_fetch_response(response);
 		const hash_duration_ms = real_now_ms(this.app) - hash_start_ms;
 		if (require('./server_diagnostics').sync_timing_enabled(this.tkey)) {
 			warn_compact('[bts] btp_fetch:response_hash', {

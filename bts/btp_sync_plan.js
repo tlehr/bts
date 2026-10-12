@@ -343,8 +343,10 @@ async function run(app, tkey, response, options, integrate, cache) {
 		cache.preflight = null;
 	}
 	const fingerprint_start = Date.now();
-	const response_json = JSON.stringify(response);
-	const source_hash = crypto.createHash('sha256').update(response_json).digest('hex');
+	// Decoder workers fingerprint the wire data before local annotations. All
+	// local records and time-dependent allocation still use the guards below.
+	const response_json = options.source_json ?? JSON.stringify(response);
+	const source_hash = options.source_hash || crypto.createHash('sha256').update(response_json).digest('hex');
 	const now = app.clock ? app.clock.now_ms() : Date.now();
 	const skip_unchanged = options.skip_unchanged !== false && cache.source_hash === source_hash && now < cache.next_pause_check && !cache.hidden_retry && !cache.pending &&
 		await unchanged(app.db, tkey, cache.skip_input, new Set(), true);

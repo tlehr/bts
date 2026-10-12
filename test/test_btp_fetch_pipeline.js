@@ -117,6 +117,22 @@ describe('BTP fetch and integration pipeline', function() {
 		else process.env.BTS_BTP_FETCH_HARD_TIMEOUT_MS = old_timeout;
 	});
 
+	it('passes decoder wire hashes and JSON into planning without hashing again on the main thread', async function() {
+		const { conn, state, sent } = current;
+		const response = structuredClone(RESPONSE), json = JSON.stringify(response);
+		const hashes = { json, sha1: require('crypto').createHash('sha1').update(json).digest('hex'),
+			sha256: require('crypto').createHash('sha256').update(json).digest('hex') };
+		require('../bts/btp_decode/response_hashes').remember(response, hashes);
+		Object.defineProperty(response, 'toJSON', { value() { throw new Error('response hashed on main thread'); } });
+		btp_sync.sync_btp_data = async (app, key, value, options) => {
+			assert.strictEqual(value, response); assert.strictEqual(options.source_json, json);
+			assert.strictEqual(options.source_hash, hashes.sha256); return true;
+		};
+		const fetch = conn.sync_data(); await sent; state.reply(response);
+		assert.strictEqual(await fetch, true);
+		assert.strictEqual(conn.last_applied_fetch_response_hash, hashes.sha1);
+	});
+
 	it('allows an admin holding BTP and match locks to finish before the fetch replies', async function() {
 		const { conn, state, sent } = current;
 		const fetch = conn.sync_data();

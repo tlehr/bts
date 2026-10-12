@@ -63,7 +63,7 @@ function clean(details = {}) {
 			'dependency_effect_matches', 'allocation_reasons', 'bounded_match_groups', 'bounded_match_changes',
 			'prepared_match_writes', 'prepared_match_fallbacks', 'serialization_ms', 'storage_wait_ms',
 			'storage_start_ts', 'storage_end_ts', 'storage_bytes', 'read_source', 'compaction_read_bypassed',
-			'compaction_read_decision', 'db_queue_wait_ms', 'read_ms', 'queue_depth_at_enqueue',
+			'compaction_read_decision', 'model_read_bypassed', 'model_read_decision', 'db_queue_wait_ms', 'read_ms', 'queue_depth_at_enqueue',
 			'compaction_pending_at_enqueue', 'snapshot_encode_ms', 'stage_write_ms', 'commit_queue_wait_ms',
 			'commit_start_ts', 'commit_end_ts', 'commit_locked_ms', 'input_documents', 'catchup_documents',
 			'commit_documents'].includes(key)) continue;

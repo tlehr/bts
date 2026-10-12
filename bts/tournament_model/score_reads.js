@@ -14,12 +14,15 @@ module.exports = function attach_score_reads(model) {
 		const collection = COLLECTIONS[part];
 		const store = model.db[collection];
 		const enqueued = process.hrtime.bigint();
-		const bypass = profile.enabled('compaction_reads') ? read_barrier.inspect(store)
+		const idle = profile.enabled('score_idle_reads') ? read_barrier.inspect_idle(store) : { allowed: false };
+		const bypass = idle.allowed ? idle : profile.enabled('compaction_reads') ? read_barrier.inspect(store)
 			: { allowed: false, reason: 'disabled' };
 		const extra = {
 			read_source: 'object_model',
-			compaction_read_bypassed: bypass.allowed,
+			compaction_read_bypassed: bypass.allowed && bypass.reason === 'pure_compaction',
 			compaction_read_decision: bypass.reason,
+			model_read_bypassed: bypass.allowed,
+			model_read_decision: bypass.reason,
 			queue_depth_at_enqueue: store.executor.queue.length(),
 			compaction_pending_at_enqueue: model.db.compaction?.active_collection === collection,
 			executor_at_enqueue: database_tasks.snapshot(store),
