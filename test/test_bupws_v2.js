@@ -478,6 +478,29 @@ _describe('bupws v2 score fanout', () => {
 		assert.deepStrictEqual(points.score.current_set, { left: 7, right: 4 });
 	});
 
+	_it('starts the current court read while presentation settings are still waiting', async () => {
+		const { app, panel, cleanup } = await fixture();
+		panel('parallel-tv');
+		const original = app.db.model.read_display_context_part;
+		let release, reached, court_requested = false;
+		const held = new Promise(resolve => { reached = resolve; });
+		app.db.model.read_display_context_part = (part, ...args) => {
+			if (part === 'court') court_requested = true;
+			if (part === 'tournament') {
+				const callback = args.pop();
+				return original(part, ...args, (...results) => { release = () => callback(...results); reached(); });
+			}
+			return original(part, ...args);
+		};
+		const running = bupws_v2.handle_score_change(app, 'fanout-test', 'court-1');
+		try {
+			await held;
+			assert.strictEqual(court_requested, true);
+		} finally {
+			release(); await running;
+			app.db.model.read_display_context_part = original; cleanup();
+		}
+	});
 	_it('publishes single and multi-court point updates without ordinary DB cursor reads', async () => {
 		const { app, panel, cleanup } = await fixture();
 		const single = panel('lookup-single');

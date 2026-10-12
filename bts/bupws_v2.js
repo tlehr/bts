@@ -3537,7 +3537,16 @@ async function handle_score_change(app, tournament_key, court_id, options = {}) 
 		}
 		return court_contexts.get(context_court_id);
 	};
-	const tournament = await read_display_context_part(app, 'tournament', tournament_key);
+	// Presentation settings and the changed court are independent reads. Start
+	// both executor-ordered captures together rather than serializing the TV's
+	// tournament -> court -> match path behind unrelated tournament work.
+	const tournament_read = read_display_context_part(app, 'tournament', tournament_key);
+	if (court_id && matching_panels.some(ws => ws.panel_devicemode !== 'umpire' && ws.court_id === court_id)) {
+		// The court group below handles errors on this same cached promise. Do
+		// not await it here: a blocked court must not hold up other recipients.
+		court_context(court_id).catch(() => {});
+	}
+	const tournament = await tournament_read;
 	debug_tablet_loop(app, 'handle_score_change:start', {
 		tournament_key,
 		court_id: court_id || null,
