@@ -56,6 +56,14 @@ describe('btp_conn', function() {
 		assert.strictEqual(_normalize_autofetch_timeout_ms(undefined), 30000);
 	});
 
+	it('falls back to thirty seconds instead of letting an overflowing timer become 1 ms', function() {
+		for (const value of [7998985000, '7998985000', Infinity, NaN, -1, 0, 'invalid']) {
+			assert.strictEqual(_normalize_autofetch_timeout_ms(value), 30000);
+		}
+		assert.strictEqual(_normalize_autofetch_timeout_ms(2147483.647), 2147483647);
+		assert.strictEqual(_normalize_autofetch_timeout_ms(2147483.648), 30000);
+	});
+
 	it('uses a configurable hard fetch timeout', function() {
 		const old_value = process.env.BTS_BTP_FETCH_HARD_TIMEOUT_MS;
 		process.env.BTS_BTP_FETCH_HARD_TIMEOUT_MS = '7';

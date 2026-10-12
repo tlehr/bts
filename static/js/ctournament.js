@@ -3339,10 +3339,12 @@ var ctournament = (function() {
 				bro_attrs.checked = 'checked';
 			}
 				if (!curt['btp_autofetch_timeout_intervall']) {
-					curt['btp_autofetch_timeout_intervall'] = 30000;
+					curt['btp_autofetch_timeout_intervall'] = 30;
 				}
-				const btp_autofetch_timeout_to_seconds = function(ms) {
-					const seconds = Number(ms || 30000) / 1000;
+				// The stored setting and Admin API use seconds. Only BTPConn
+				// converts to milliseconds when constructing its timer.
+				const format_btp_autofetch_seconds = function(value) {
+					const seconds = Number(value);
 					if (!Number.isFinite(seconds) || seconds <= 0) {
 						return '30';
 					}
@@ -3358,21 +3360,21 @@ var ctournament = (function() {
 					name: 'btp_autofetch_timeout_intervall',
 					min: '1',
 					step: '1',
-					value: btp_autofetch_timeout_to_seconds(curt.btp_autofetch_timeout_intervall),
+					value: format_btp_autofetch_seconds(curt.btp_autofetch_timeout_intervall),
 				});
 				bind_live_prop(input.btp_autofetch_timeout_intervall, 'btp_autofetch_timeout_intervall', {
 					get_value: function(input_el) {
 						const seconds = Number(input_el.value);
 						if (!Number.isFinite(seconds) || seconds <= 0) {
-							return 30000;
+							return 30;
 						}
-						return Math.round(seconds * 1000);
+						return seconds;
 					},
 					on_error: function(input_el, old_value) {
-						input_el.value = btp_autofetch_timeout_to_seconds(old_value);
+						input_el.value = format_btp_autofetch_seconds(old_value);
 					},
 					on_success: function(input_el, value) {
-						input_el.value = btp_autofetch_timeout_to_seconds(value);
+						input_el.value = format_btp_autofetch_seconds(value);
 					},
 				});
 

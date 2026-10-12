@@ -30,8 +30,11 @@ function fetch_hard_timeout_ms() {
 
 function normalize_autofetch_timeout_ms(autofetch_timeout_intervall) {
 	const parsed_autofetch_timeout_seconds = Number(autofetch_timeout_intervall);
-	return Number.isFinite(parsed_autofetch_timeout_seconds) && parsed_autofetch_timeout_seconds > 0
-		? parsed_autofetch_timeout_seconds * 1000
+	const timeout_ms = parsed_autofetch_timeout_seconds * 1000;
+	// Node replaces overflowing timers with 1 ms, which would continuously
+	// refetch instead of respecting the configured interval.
+	return Number.isFinite(timeout_ms) && timeout_ms > 0 && timeout_ms <= 2147483647
+		? timeout_ms
 		: AUTOFETCH_TIMEOUT;
 }
 
