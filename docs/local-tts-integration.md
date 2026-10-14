@@ -61,6 +61,18 @@ Alternativ BTS_SPEECH_ENABLED=true, BTS_SPEECH_URL, BTS_SPEECH_API_KEY_FILE oder
 
 Weitere optionale Grenzen: max_entries (512), max_text (1200), timeout_ms (2500), submit_interval_ms (650), poll_interval_ms (2000), audio_url_ttl_seconds (900), audio_timeout_ms (30000), max_audio_clients (16). Der lokale Adapter begrenzt neue POSTs, gibt bei 429 Raum frei und blockiert keinen Spielruf auf CPU-Inferenz.
 
+## Optionale Qwen-Modellgröße
+
+Der Sprachserver bietet zusätzlich Qwen3-TTS 0.6B Base als Startoption. Im separaten Projekt zunächst das gepinnte Modell herunterladen:
+
+    BTS_OFFLINE=false ./scripts/start.sh --model-size 0.6b --download-model
+
+Danach den bisherigen Sprachserver regulär stoppen und mit `./scripts/start.sh --model-size 0.6b` starten. `./scripts/start.sh --model-size 1.7b` wechselt wieder zur bisherigen Größe. Ohne Auswahl bleibt die bestehende Konfiguration maßgeblich. Pro Serverprozess wird ein Modell geladen; die Größe wird nicht je Browser ausgewählt.
+
+API-Adresse, Schlüssel und öffentliche Stimmen-IDs bleiben gleich. Die eigenen Referenzaufnahmen können weiterverwendet werden; der Klang kann zwischen den Modellen abweichen. Der bestehende BTS-Adapter erkennt Modell-/Revisionsänderungen über `/health` und trennt die vorbereiteten Audios über die Syntheseidentität. Bestehende Aufnahmen werden nicht als passende Aufnahmen des anderen Modells ausgegeben. Nach dem Modellwechsel die Bereitschaft des Sprachservers abwarten und die Seite neu laden.
+
+Die Messanleitung und Ergebnisse stehen im Sprachserver-Projekt unter `docs/model-comparison.md`. Der Wechsel auf das kleinere Modell ist eine Option; seine CPU-Geschwindigkeit muss am eingesetzten Rechner geprüft werden.
+
 ## Was vorab gecacht wird
 
 Beim BTS-Start werden vorhandene Turniere vorgemerkt; ein Browser muss dafür nicht geöffnet sein. Je Turnier werden Spiele in Vorbereitung, priorisierte Kandidaten aus der vorhandenen Vorbereitungsselektion und die nächsten geplanten Spiele bis zum konfigurierten Horizont vorbereitet. Bereits in Vorbereitung/auf dem Feld befindliche Spiele und echte Aufrufkandidaten bleiben zusätzlich enthalten, damit der Horizont einer Halle nicht die nötigen Ansagen einer anderen Halle verdrängt. Bereits vorbereitete/aufgerufene Spiele und reale Kandidaten erhalten höhere Priorität.
