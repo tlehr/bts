@@ -70,6 +70,7 @@ class SpeechBroker {
             enabled: this.config.enabled, mode: this.config.mode, voice: this.config.voice,
             deadline_ms: this.config.deadline_ms, max_text: this.config.max_text,
             voices: this.voices, last_error: this.last_error,
+            cache_version: this.identity ? crypto.createHash('sha256').update(this.identity).digest('hex') : null,
             preparing: entries.filter(item => ['unsubmitted', 'queued', 'processing'].includes(item.status)).length,
             ready: entries.filter(item => item.status === 'completed').length,
         };
@@ -135,6 +136,13 @@ class SpeechBroker {
                 audio_url: this.audio_url(tournament_key, entry.audio_id),
             } : { status: entry?.status || 'unsubmitted', audio_url: null };
         });
+    }
+
+    inspect(parts, options) {
+        const { voice, language } = this.validate(parts, options);
+        return parts.map(text => ({
+            status: this.entries.get(this.key(text, voice, language))?.status || 'missing',
+        }));
     }
 
     audio_url(tournament_key, audio_id) {

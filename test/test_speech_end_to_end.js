@@ -192,6 +192,31 @@ suite('BTS / actual FastAPI / native Chrome speech integration', function() {
             fs.writeFileSync('/tmp/bts-local-tts-preview.png', Buffer.from(result.data, 'base64')));
     });
 
+    it('updates native browser readiness indicators as a free announcement is cached without playing it', async function() {
+        const before = await devtools.evaluate('window.__audioSources.length');
+        await devtools.evaluate('document.querySelector(\'.announcement_speech_check_form button\').scrollIntoView(); ' +
+            'btsSpeechReadiness.refresh(true)');
+        assert.strictEqual(await devtools.evaluate(
+            'document.querySelector(\'.announcement_speech_check_form button\').dataset.speechState'), 'ready');
+        const text = 'Anzeige ohne Wiedergabe! Ä U17';
+        await devtools.evaluate('(() => { const field = document.getElementById(\'custom_announcement\'); ' +
+            'field.value = ' + JSON.stringify(text) + '; field.scrollIntoView(); ' +
+            'field.dispatchEvent(new Event(\'input\', {bubbles:true})); })(); btsSpeechReadiness.refresh(true)');
+        const badge = 'document.getElementById(\'custom_announcement\').parentElement.querySelector(\'.local_speech_readiness\')';
+        assert.strictEqual(await devtools.evaluate(badge + '.dataset.speechState'), 'missing');
+        await until(() => [...app.speech.broker.entries.values()].some(entry => entry.text === text && entry.status === 'completed'));
+        await devtools.evaluate('btsSpeechReadiness.refresh(true)');
+        assert.strictEqual(await devtools.evaluate(badge + '.dataset.speechState'), 'ready');
+        assert((await devtools.evaluate(badge + '.textContent')).includes('Lokal bereit'));
+        await devtools.evaluate('document.querySelector(\'.match_preparation_call_button\').scrollIntoView(); ' +
+            'btsSpeechReadiness.refresh(true)');
+        assert.strictEqual(await devtools.evaluate(
+            'document.querySelector(\'.match_preparation_call_button\').dataset.speechState'), 'ready');
+        assert.strictEqual(await devtools.evaluate('window.__audioSources.length'), before);
+        await devtools.call('Page.captureScreenshot', { format: 'png' }).then(result =>
+            fs.writeFileSync('/tmp/bts-local-tts-readiness-preview.png', Buffer.from(result.data, 'base64')));
+    });
+
     it('uses the real match-call WebSocket path and plays a repeated event only once', async function() {
         await devtools.evaluate('localStorage.setItem(\'enable_announcement_calls_default_h1\', \'true\'); window.__audioSources = [];');
         const match = await app.db.matches.findOne_async({ _id: 'match1' });

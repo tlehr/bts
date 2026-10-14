@@ -139,6 +139,13 @@ function createSpeechService(context) {
 
     return {
         settings, prepare, speak, cancel, unlock,
+        inspect: parts => {
+            const value = settings();
+            if (!value.enabled || !value.key || !languageSupported(value)) return Promise.resolve(null);
+            return context.request('speech_status', {
+                tournament_key: value.key, voice: value.voice, language: value.language, parts,
+            }, 1500).catch(() => null);
+        },
         status: () => !settings().enabled ? Promise.resolve({ speech: { enabled: false } }) :
             context.request('speech_status',
                 { tournament_key: settings().key, voice: settings().voice }, 1500).catch(() => null),

@@ -23,6 +23,19 @@ Der Sprachtest zeigt, ob tatsächlich Server-Audio oder Browser-Fallback verwend
 
 Die CPU muss die Vorbereitungen zunächst abarbeiten. Bereits bekannte Texte werden automatisch frühzeitig erzeugt; bei einem ersten Kaltstart oder bisher unbekannten Namen kann trotzdem ein Fallback erforderlich sein. Generierung selbst löst keine Wiedergabe aus.
 
+## Lokale Bereitschaft einzelner Durchsagen
+
+Aufruf-Schaltflächen zeigen für die auf diesem Gerät ausgewählte lokale Stimme eine kleine Statusmarkierung. Dies umfasst Spielruf, Vorbereitungsruf je Halle, Zweitrufe für Spieler/Offizielle und Spielbeginn. Sprachtest und freie Ansagen zeigen denselben Cache-Status.
+
+- Grün mit Haken: **Lokal bereit**, alle benötigten Sprachbausteine sind fertig.
+- Gelb mit Punkten: **Wird vorbereitet**, mindestens ein Baustein ist noch in der Warteschlange oder Generierung.
+- Grau mit Minus: **Noch nicht bereit**, benötigte Bausteine fehlen im BTS-Adapter. Ein Fragezeichen bedeutet, dass die Prüfung noch aussteht.
+- Rot mit Ausrufezeichen: Generierung fehlgeschlagen oder Status/Sprachserver nicht verfügbar.
+
+Der Tooltip nennt Stimme und Anzahl fertiger Bausteine; auch das zugängliche Label enthält diesen Text. Gleiche Teile werden innerhalb einer Durchsage nur einmal gezählt. Bei Browser-TTS als ausgewähltem Modus weist der Tooltip darauf hin. Grün beschreibt den Cache, unabhängig von Hallen-Checkboxen und Browser-Audiofreigabe; beides muss für die tatsächliche Wiedergabe aktiviert sein. Bei Remote-Ansagen gilt die Stimme des empfangenden Geräts.
+
+Die Prüfung verwendet ausschließlich `speech_status` mit unveränderten Texten, ohne Generierung, Prioritätsänderung oder Wiedergabe auszulösen. Pro Aktualisierung werden höchstens zwei Pakete mit jeweils 64 unterschiedlichen Bausteinen geprüft, bevorzugt für sichtbare Bedienelemente. Die automatische Prüfung läuft alle fünf Sekunden, pausiert bei verborgenem Tab und begrenzt zusätzliche Prüfungen durch Neurendern. Nach 15 Sekunden ohne Bestätigung verfällt eine grüne Beobachtung. Stimmen-/Sprach-/Turnierwechsel, Textänderungen und eine geänderte Synthesekonfiguration werden berücksichtigt. **Cache-Status aktualisieren** prüft zusätzlich auf Nutzerwunsch.
+
 ## Betreiberkonfiguration
 
 Im Beispiel config.json.default ist der externe Dienst zunächst deaktiviert. Das Einrichtungsskript aktiviert ihn lokal. Manuelle Konfiguration:
@@ -77,7 +90,7 @@ Aktuell werden nur deutsche Server-Stimmen angeboten. Englisch/Niederländisch b
 
 ## Tests
 
-    ./node_modules/.bin/mocha test/test_speech_text.js test/test_speech_browser.js test/test_speech_backend.js
+    ./node_modules/.bin/mocha test/test_speech_text.js test/test_speech_browser.js test/test_speech_backend.js test/test_speech_readiness.js
     npm test
 
 Ein ausdrücklich aktivierter End-to-End-Test nutzt eine temporäre In-Memory-BTS-Datenbank, die **echte** FastAPI mit einer kleinen Mock-Engine und einen separaten Headless-Chrome. Er verändert keine produktiven Turnierdaten und benötigt den installierten Sprachserver sowie Chrome:
@@ -91,6 +104,8 @@ Bytegenaue Vergleiche aller bisherigen Ansagearten, geänderte Gegner, Queue-Gre
 
 ## Prüfstand dieses Auftrags
 
-Am 14.10.2026: vollständige BTS-Suite 996 bestanden, vier zusätzliche End-to-End-Fälle standardmäßig deaktiviert. Diese wurden ausdrücklich aktiviert und bestanden mit tatsächlichem BTS, FastAPI/Mock-TTS und nativem Chrome: Vorab-Cache und geschützter WAV-Abruf, Nutzeraktivierung/Audioausgabe, echter Spielaufruf über den bestehenden WebSocket ohne doppelte Wiedergabe sowie Cache-Wiederverwendung nach frischem Adapterstart. Die abschließenden gezielten Text-, Provider-, Hintergrund- und Verbindungstests bestanden ebenfalls.
+Am 14.10.2026 nach Ergänzung der Bereitschaftsanzeige: 52 gezielte Text-, Provider-, Backend- und Anzeigetests bestanden. Alle fünf separat aktivierten End-to-End-Fälle bestanden mit tatsächlichem BTS, FastAPI/Mock-TTS und nativem Chrome: Vorab-Cache und geschützter WAV-Abruf, Nutzeraktivierung/Audioausgabe, Cache-Markierungen am Vorbereitungsaufruf und an einer freien Ansage ohne Wiedergabe, echter Spielaufruf über den bestehenden WebSocket ohne doppelte Wiedergabe sowie Cache-Wiederverwendung nach frischem Adapterstart.
+
+Die vollständige BTS-Suite war in zwei Läufen nicht vollständig grün: jeweils 1008 bestanden, fünf optionale End-to-End-Fälle deaktiviert und ein Zeitlimit überschritten. Betroffen waren unterschiedliche bestehende Tests: zunächst die Teilnehmerprüfung für 519 Spiele (2 Sekunden), danach die Benchmark-Erkennung eines Serverprofilwechsels (15 Sekunden). Beide Tests bestanden isoliert (915 ms beziehungsweise 11,5 Sekunden); ihre Testlimits und Implementierung wurden nicht verändert. Die zehn abschließenden Bereitschaftstests bestanden ebenfalls, einschließlich der Invalidierung einer außerhalb des sichtbaren Bereichs liegenden grünen Markierung bei geänderter Synthesekonfiguration.
 
 Der Sprachserver bestand 54 Mock-Tests einschließlich Synthesekonfigurations-Invalidierung. Seine echte Qwen-CPU-Anbindung wurde zuvor mit beiden Referenzstimmen erfolgreich geprüft. Die lokale Verbindung ist im privaten config.json eingerichtet; der Sprachserver verwendet den vorhandenen geprüften Modellcache offline. Prozesse/Dienste werden für die Aktivierung durch den Betreiber gestartet bzw. neu gestartet.

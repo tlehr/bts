@@ -48,8 +48,9 @@ function handle(app, ws, msg) {
             speech.prefetch.subscribe(key, options.voice || broker.config.voice);
             reply({ speech: broker.public_config(options.voice), clips: broker.views(msg.parts, options, key) });
         } else {
-            const options = broker.validate([], { voice: msg.voice });
-            reply({ speech: broker.public_config(options.voice) });
+            const parts = msg.parts === undefined ? [] : msg.parts;
+            const options = broker.validate(parts, { voice: msg.voice, language: msg.language });
+            reply({ speech: broker.public_config(options.voice), clips: broker.inspect(parts, options) });
         }
     } catch (_) {
         reply({ speech_error: 'invalid_speech_request', clips: [] });

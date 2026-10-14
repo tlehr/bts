@@ -44,6 +44,22 @@ function harness(options = {}) {
 }
 
 describe('Browser local speech provider', function() {
+    it('inspects readiness without preparing jobs or playing audio and preserves exact text', async function() {
+        const h = harness();
+        await h.service.inspect([TEXT]);
+        assert.deepStrictEqual(h.requests, [['speech_status', {
+            tournament_key: 'default', voice: 'hallensprecherin', language: 'de-DE', parts: [TEXT],
+        }]]);
+        assert.strictEqual(h.played.length, 0);
+        assert.strictEqual(h.browser.length, 0);
+        h.settings.enabled = false;
+        await h.service.inspect([TEXT]);
+        h.settings.enabled = true;
+        h.settings.language = 'en-GB';
+        await h.service.inspect([TEXT]);
+        assert.strictEqual(h.requests.length, 1);
+    });
+
     it('plays ready server audio in order once, without consulting browser voices', async function() {
         const h = harness();
         const result = await h.service.speak([TEXT, 'Auf Spielfeld 4!', TEXT], 'event1', h.fallback);

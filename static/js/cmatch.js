@@ -1,3 +1,4 @@
+/* global btsSpeechReadiness */
 'use strict';
 
 var cmatch = (function() {
@@ -820,6 +821,9 @@ function create_match_button(targetEl, cssClass, title, listener, matchId,) {
 		'data-match_id': matchId,
 	});
 	btn.draggable = false;
+	if (typeof btsSpeechReadiness !== 'undefined') {
+		btsSpeechReadiness.trackMatch(btn, matchId, title, cssClass.includes('match_second_preparation_call_button'));
+	}
 	btn.addEventListener('mousedown', function (ev) {
 		ev.stopPropagation();
 	});
@@ -850,6 +854,9 @@ function create_match_prepparation_button(targetEl, cssClass, title, listener, m
 	});
 
 	btn.addEventListener('click', listener);
+	if (typeof btsSpeechReadiness !== 'undefined') {
+		btsSpeechReadiness.trackMatch(btn, matchId, title, true, location._id);
+	}
 }
 
 		function _add_match_dom_id(ids, id) {

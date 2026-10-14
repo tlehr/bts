@@ -1,3 +1,4 @@
+/* global btsSpeechReadiness */
 'use strict';
 /* global btsSpeechService, cancelAnnouncementPlayback */
 
@@ -1170,6 +1171,11 @@ var ctournament = (function() {
 			class: 'announce_button',
 			id: 'remote_announce_btn'
 		}, 'Remote Abspielen');
+		if (typeof btsSpeechReadiness !== 'undefined') {
+			const readiness = uiu.el(form, 'span', 'local_speech_readiness');
+			btsSpeechReadiness.trackText(readiness, () => [textarea.value.trim()], true);
+			textarea.addEventListener('input', () => btsSpeechReadiness.changed());
+		}
 
 		const emergency_btn = uiu.el(btn_container, 'button', {
 			type: 'submit',
@@ -1290,6 +1296,7 @@ var ctournament = (function() {
 			const change = (name, value) => {
 				try { window.localStorage.setItem('bts_speech_' + name, value); } catch (_) { /* Private storage. */ }
 				void btsSpeechService.prepare([ci18n('announcements:speechcheck:text')]);
+				if (typeof btsSpeechReadiness !== 'undefined') btsSpeechReadiness.changed();
 				void update();
 			};
 			mode.addEventListener('change', () => change('mode', mode.value));
@@ -1303,7 +1310,16 @@ var ctournament = (function() {
 			uiu.el(controls, 'button', { type: 'button' }, 'Ansage stoppen')
 				.addEventListener('click', cancelAnnouncementPlayback);
 			uiu.el(controls, 'button', { type: 'button' }, 'Cache-Status aktualisieren')
-				.addEventListener('click', () => { void update(); });
+				.addEventListener('click', () => {
+					void update();
+					if (typeof btsSpeechReadiness !== 'undefined') void btsSpeechReadiness.refresh(true);
+				});
+			const legend = uiu.el(controls, 'div', 'local_speech_legend');
+			for (const [state, label] of [['ready', 'Lokal bereit'], ['preparing', 'Wird vorbereitet'],
+				['missing', 'Noch nicht bereit'], ['unavailable', 'Status nicht verfügbar']]) {
+				uiu.el(legend, 'span', { class: 'local_speech_readiness', 'data-speech-state': state }, label);
+			}
+			uiu.el(legend, 'small', {}, 'Markierung an den Aufrufen: Cache für die ausgewählte Stimme. Details beim Darüberfahren. Audio und Ansagen auf diesem Gerät aktivieren.');
 			void update();
 		}
 
@@ -1382,6 +1398,9 @@ var ctournament = (function() {
 			const button = uiu.el(form, 'button', {
 				type: 'button',
 			}, ci18n('announcements:speechcheck:button'));
+			if (typeof btsSpeechReadiness !== 'undefined') {
+				btsSpeechReadiness.trackText(button, () => [ci18n('announcements:speechcheck:text')]);
+			}
 
 			const updateSpeechCheckStatus = function(state) {
 				const current = state || (typeof getAnnouncementSpeechCheckState === 'function'

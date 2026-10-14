@@ -297,6 +297,42 @@ describe('Server speech adapter and protected audio', function() {
         assert.strictEqual(broker.entries.size, 1);
     });
 
+    it('inspects exact parts without submitting jobs, promoting priorities or exposing audio URLs', function() {
+        const broker = new SpeechBroker(config());
+        broker.prepare([TEXT]);
+        const entry = [...broker.entries.values()][0];
+        entry.status = 'completed';
+        entry.audio_id = id();
+        const before = JSON.stringify([...broker.entries.values()]);
+        const responses = [];
+        const app = { speech: { broker, prefetch: { subscribe() { throw new Error('inspection must not subscribe'); } } } };
+        const ws = { speech_tournament_key: 'default', respond: (_msg, error, response) => {
+            assert.ifError(error); responses.push(response);
+        } };
+        const msg = { type: 'speech_status', tournament_key: 'default', voice: 'hallensprecherin',
+            language: 'de-DE', parts: [TEXT, 'Noch nicht angefragt'] };
+        handle(app, ws, msg);
+        assert.deepStrictEqual(responses[0].clips, [{ status: 'completed' }, { status: 'missing' }]);
+        assert.strictEqual(JSON.stringify([...broker.entries.values()]), before);
+        assert(!JSON.stringify(responses[0]).includes(KEY));
+        handle(app, ws, { ...msg, voice: 'hallensprecher' });
+        assert(responses[1].clips.every(clip => clip.status === 'missing'));
+        handle(app, ws, { ...msg, parts: Array(65).fill(TEXT) });
+        assert.strictEqual(responses[2].speech_error, 'invalid_speech_request');
+        handle(app, ws, { ...msg, parts: null });
+        assert.strictEqual(responses[3].speech_error, 'invalid_speech_request');
+    });
+
+    it('exposes an opaque cache revision that changes with synthesis identity', function() {
+        const broker = new SpeechBroker(config());
+        broker.identity = JSON.stringify(['Qwen/Base', 'revision-one', 'voice-config']);
+        const first = broker.public_config().cache_version;
+        assert(/^[a-f0-9]{64}$/.test(first));
+        assert.strictEqual(broker.public_config().cache_version, first);
+        broker.identity = JSON.stringify(['Qwen/Base', 'revision-two', 'voice-config']);
+        assert.notStrictEqual(broker.public_config().cache_version, first);
+    });
+
     it('prepares from real persisted match data before a call, then uses changed text', async function() {
         const db = await database.init_test();
         const current = tournament();
