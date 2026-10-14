@@ -1,448 +1,83 @@
-function getLocationID(matchSetup) {
-    if (!matchSetup) {
-        return null;
-    }
-    if (matchSetup.location_id) {
-        return matchSetup.location_id;
-    }
-    if (matchSetup.court_id) {
-        const court = utils.find(curt.courts, c => c._id === matchSetup.court_id);
-        if (court && court.location_id) {
-            return court.location_id;
-        }
-    }
-    return null;
-}
-
-function announceNewMatch(matchSetup) {
-    const location_id = getLocationID(matchSetup);
-    const calls_enabled = window.localStorage.getItem('enable_announcement_calls_' + location_id) === 'true';
-    if (!calls_enabled) {
-        return;
-    }
-    const field = createFieldAnnouncement(matchSetup);
-    const matchNumber = createMatchNumberAnnouncement(matchSetup);
-    const eventName = createEventAnnouncement(matchSetup);
-    const round = createRoundAnnouncement(matchSetup);
-    const teams = createTeamAnnouncement(matchSetup);
-    const umpire = createUmpire(matchSetup);
-    const serviceJudge = createServiceJudge(matchSetup);
-    const tabletOperator = createTabletOperator(matchSetup);
-    announce(
-        [field, matchNumber, eventName, round, teams, umpire, serviceJudge, tabletOperator, field],
-        false,
-        buildAnnouncementClaimKey(matchSetup, 'match_called_on_court')
-    );
-}
-
-function announcePreparationMatch(matchSetup) {
-    const location_id = getLocationID(matchSetup);
-    const preparations_enabled = window.localStorage.getItem('enable_announcement_preparations_' + location_id) === 'true';
-    if (!preparations_enabled) {
-        return;
-    }
-    const field = createFieldPreparationAnnouncement(matchSetup);
-    var preparation = createPreparationAnnouncement(matchSetup, true);
-    var matchNumber = createMatchNumberAnnouncement(matchSetup);
-    var eventName = createEventAnnouncement(matchSetup);
-    var round = createRoundAnnouncement(matchSetup);
-    var teams = createTeamAnnouncement(matchSetup);
-    const umpire = createUmpire(matchSetup);
-    const serviceJudge = createServiceJudge(matchSetup);
-    const tabletOperator = createTabletOperator(matchSetup);
-    var lastPart = preparation;
-    if (curt.preparation_meetingpoint_enabled) {
-        lastPart = createMeetingPointAnnouncement(matchSetup, true);
-    }
-    announce(
-        [preparation, field, matchNumber, eventName, round, teams, umpire, serviceJudge, tabletOperator, lastPart],
-        false,
-        buildAnnouncementClaimKey(matchSetup, 'match_preparation_call')
-    );
-}
-
-function announceNoMatchWin(matchSetup, winningTeamIndex) {
-    const location_id = getLocationID(matchSetup);
-    const calls_enabled = window.localStorage.getItem('enable_announcement_calls_' + location_id) === 'true';
-    const free_enabled = window.localStorage.getItem('enable_free_announcements') === 'true';
-    if (!calls_enabled && !free_enabled) {
-        return;
-    }
-    const teams = matchSetup && matchSetup.teams ? matchSetup.teams : [];
-    const team1 = teams[0] && teams[0].players ? createSingleTeam(teams[0].players) : '';
-    const team2 = teams[1] && teams[1].players ? createSingleTeam(teams[1].players) : '';
-    const winner = teams[winningTeamIndex] && teams[winningTeamIndex].players
-        ? createSingleTeam(teams[winningTeamIndex].players)
-        : '';
-    if (!team1 || !team2 || !winner) {
-        return;
-    }
-    const introParts = [
-        createMatchNumberAnnouncement(matchSetup),
-        createEventAnnouncement(matchSetup),
-        createRoundAnnouncement(matchSetup),
-    ].filter(Boolean).map(part => String(part).replace(/!+$/, ''));
-    const intro = introParts.length > 0 ? introParts.join(', ') + '!' : '';
-    const teamsPart = ci18n('announcements:no_match_win:teams', {
-        team1,
-        team2,
-        winner,
-    });
-    announce(
-        [intro, teamsPart],
-        false,
-        buildAnnouncementClaimKey(matchSetup, 'match_no_match_announcement')
-    );
-}
-
-function announceSecondCallTeamOne(matchSetup) {
-    if(!(window.localStorage.getItem('enable_announcement_calls_' + getLocationID(matchSetup)) === 'true')) {
-        return;
-    }
-    announceSecondCall(matchSetup, matchSetup.teams[0]);
-}
-
-function announceSecondCallTeamTwo(matchSetup) {
-    if(!(window.localStorage.getItem('enable_announcement_calls_' + getLocationID(matchSetup)) === 'true')) {
-        return;
-    }
-    announceSecondCall(matchSetup, matchSetup.teams[1]);
-}
-
-function announceSecondPreparationCallTeamOne(matchSetup) {
-    if(!(window.localStorage.getItem('enable_announcement_preparations_' + getLocationID(matchSetup)) === 'true')) {
-        return;
-    }
-    announceSecondPreparationCall(matchSetup, matchSetup.teams[0]);
-}
-
-function announceSecondPreparationCallTeamTwo(matchSetup) {
-    if(!(window.localStorage.getItem('enable_announcement_preparations_' + getLocationID(matchSetup)) === 'true')) {
-        return;
-    }
-    announceSecondPreparationCall(matchSetup, matchSetup.teams[1]);
-}
-
-function announceSecondCallTabletoperator(matchSetup) {
-    if (!(window.localStorage.getItem('enable_announcement_calls_' + getLocationID(matchSetup)) === 'true')) {
-        return;
-    }
-    const tabletOperatorCall = createTabletOperator(matchSetup);
-    if (tabletOperatorCall != null) { 
-        const call = createFieldAnnouncement(matchSetup) + createSecondCallAnnouncement() + tabletOperatorCall;
-         announce([call]);
-    }
-}
-function announceSecondCallUmpire(matchSetup) {
-    if (!(window.localStorage.getItem('enable_announcement_calls_' + getLocationID(matchSetup)) === 'true')) {
-        return;
-    }
-    const umpireCall = createUmpire(matchSetup);;
-    if (umpireCall != null) {
-        const call = createFieldAnnouncement(matchSetup) + createSecondCallAnnouncement() + umpireCall;
-        announce([call]);
-    }
-}
-function announceSecondCallServiceJudge(matchSetup) {
-    if (!(window.localStorage.getItem('enable_announcement_calls_' + getLocationID(matchSetup)) === 'true')) {
-        return;
-    }
-    const servicejudgeCall = createServiceJudge(matchSetup);;
-    if (servicejudgeCall != null) {
-        const call = createFieldAnnouncement(matchSetup) + createSecondCallAnnouncement() + servicejudgeCall;
-        announce([call]);
-    }
-}
-
-
-function announceSecondCall(matchSetup, team) {
-    if(!(window.localStorage.getItem('enable_announcement_calls_' + getLocationID(matchSetup)) === 'true')) {
-        return;
-    }
-    var secondCall = createSecondCallAnnouncement() + createSingleTeam(team.players);
-    var field = createFieldAnnouncement(matchSetup);
-    announce([secondCall, field]);
-}
-
-
-function announceSecondPreparationCallTabletoperator(matchSetup) {
-    if(!(window.localStorage.getItem('enable_announcement_preparations_' + getLocationID(matchSetup)) === 'true')) {
-        return;
-    }
-    const tabletOperatorCall = createTabletOperator(matchSetup);
-    if (tabletOperatorCall != null) { 
-        var secondCall = createSecondPreparationCallAnnouncement() + tabletOperatorCall + '!';
-        
-        
-        var callUs = createSingleTeam(matchSetup.tabletoperators) + ', ' + ci18n('announcements:please_as_tablet_service');
-        if (curt.preparation_meetingpoint_enabled) {
-            var meetingPoint = createMeetingPointAnnouncement(matchSetup, !matchSetup.tabletoperators || matchSetup.tabletoperators.length !== 1);
-            meetingPoint = meetingPoint.replace("bitte meldet euch ", "");
-            meetingPoint = meetingPoint.replace("Bitte meldet euch ", "");
-            meetingPoint = meetingPoint.replace("!", "");
-            callUs += ' ' + meetingPoint + 'melden!';
-        }
-        announce([secondCall, callUs]);
-    }
-}
-
-
-function announceSecondPreparationCallUmpire(matchSetup) {
-    if(!(window.localStorage.getItem('enable_announcement_preparations_' + getLocationID(matchSetup)) === 'true')) {
-        return;
-    }
-    const umpireCall = createUmpire(matchSetup);
-    if (umpireCall != null) {
-        var secondCall = createSecondPreparationCallAnnouncement() + umpireCall + '!';
-        
-        
-        var callUs = normalizeNames(matchSetup.umpire.name);
-        if (curt.preparation_meetingpoint_enabled) {
-            var meetingPoint = createMeetingPointAnnouncement(matchSetup, false);
-            callUs += ' ' + meetingPoint;
-        } else {
-            callUs += ' ' + ci18n('announcements:preparation') + '!';
-        }
-        announce([secondCall, callUs]);
-    }
-}
-
-function announceSecondPreparationCallServiceJudge(matchSetup) {
-    if(!(window.localStorage.getItem('enable_announcement_preparations_' + getLocationID(matchSetup)) === 'true')) {
-        return;
-    }
-    const servicejudgeCall = createServiceJudge(matchSetup);
-    if (servicejudgeCall != null) {
-        var secondCall = createSecondPreparationCallAnnouncement() + servicejudgeCall + '!';
-        
-        
-        var callUs = normalizeNames(matchSetup.service_judge.name);
-        if (curt.preparation_meetingpoint_enabled) {
-            var meetingPoint = createMeetingPointAnnouncement(matchSetup, false);
-            callUs += ' ' + meetingPoint;
-        } else {
-            callUs += ' ' + ci18n('announcements:preparation') + '!';
-        }
-        announce([secondCall, callUs]);
-    }
-}
-
-
-function announceSecondPreparationCall(matchSetup, team) {
-    if(!(window.localStorage.getItem('enable_announcement_preparations_' + getLocationID(matchSetup)) === 'true')) {
-        return;
-    }
-    var secondCall = createSecondPreparationCallAnnouncement() + createSingleTeam(team.players);
-    const usePlural = team.players.length !== 1;
-    if(matchSetup.location_id) {
-        const l = utils.find(curt.locations, l => l._id === matchSetup.location_id);
-        if(l) {
-            secondCall += ' ' + resolveSingularPluralAnnouncement(l.preparation_addition, usePlural);
-        }
-    }
-    secondCall += "!";
-    var callUs = createSingleTeam(team.players);
-    if (curt.preparation_meetingpoint_enabled) {
-        var meetingPoint = createMeetingPointAnnouncement(matchSetup, usePlural);
-        
-        callUs += ' ' + meetingPoint;
-    }
-    announce([secondCall, callUs]);
-}
-
-function announceBeginnToPlay(matchSetup, team) {
-    if(!(window.localStorage.getItem('enable_announcement_calls_' + getLocationID(matchSetup)) === 'true')) {
-        return;
-    }
-    announce([createFieldAnnouncement(matchSetup) + ci18n('announcements:begin_to_play')]);
-}
-
-function createSecondCallAnnouncement() {
-    return ci18n('announcements:second_call') + ' ' + ci18n('announcements:second_call_for') + ':';
-}
-
-function createSecondPreparationCallAnnouncement() {
-    return ci18n('announcements:second_call') + ' ' + ci18n('announcements:preparation')+ ' ' + ci18n('announcements:second_call_for') + ':';
-}
-
-function createTeamAnnouncement(matchSetup) {
-    var teams = createSingleTeam(matchSetup.teams[0].players) + "," + ci18n('announcements:vs') + createSingleTeam(matchSetup.teams[1].players);
-    return teams;
-}
-
-function createTabletOperator(matchSetup) {
-    if (matchSetup.tabletoperators && matchSetup.tabletoperators != null) {
-        return (curt.tabletoperator_use_manual_counting_boards_enabled ? ci18n('announcements:counting_board_service') : ci18n('announcements:table_service')) + createSingleTeam(matchSetup.tabletoperators);
-    } 
-    return null;
-}
-
-function createUmpire(matchSetup) {
-    if (matchSetup.umpire && matchSetup.umpire.name && matchSetup.umpire.name != null) {
-        return ci18n('announcements:umpire') + normalizeNames(matchSetup.umpire.name);
-    }
-    return null;
-}
-
-function createServiceJudge(matchSetup) {
-    if (matchSetup.service_judge && matchSetup.service_judge.name && matchSetup.service_judge.name != null) {
-        return ci18n('announcements:service_judge') + normalizeNames(matchSetup.service_judge.name);
-    }
-    return null;
-}
-
-function createSingleTeam(playersSetup) {
-    var team = normalizeNames(playersSetup[0].name);
-    if (playersSetup.length == 2) {
-        team = team + ci18n('announcements:and') + normalizeNames(playersSetup[1].name)
-    }
-    return team;
-}
-
-
-function normalizeNames(name) {
-    if (curt.normalizations && curt.normalizations.length > 0) {
-        for (const norm of curt.normalizations) {
-            if (ci18n('announcements:lang') == norm.language) {
-                name = name.replaceAll(norm.origin, norm.replace); 
-            }
-        }
-    }
-    return name;
-}
-
-function createRoundAnnouncement(matchSetup) {
-    if (curt.annoncement_include_round) {
-        var round = matchSetup.match_name;
-        if (round == "R16") {
-            round = ci18n('announcements:round_16');
-        } else if (round == "VF") {
-            round = ci18n('announcements:quaterfinal');
-        } else if (round == "HF") {
-            round = ci18n('announcements:semifinal');
-        } else if (round == "Finale") {
-            round = ci18n('announcements:final');
-        } else if (round.indexOf('/') !== -1) {
-            var roundParts = round.split("/")
-            var diff = roundParts[1] - roundParts[0];
-            if (diff > 1) {
-                round = ci18n('announcements:round_for_places') + roundParts[0] + ci18n('announcements:to') + roundParts[1];
-            } else {
-                round = ci18n('announcements:game_for_place') + roundParts[0] + ci18n('announcements:and') + roundParts[1];
-            }
-        } else if (round.indexOf('-') !== -1) {
-            round = ci18n('announcements:intermediate_round');
-        } else {
-            round = "";
-        }
-        return round;
-    } else {
-        return null;
-    }
-}
-function eventAnnouncementNameByCode(code) {
-    if (code == 'JE') {
-        return ci18n('announcements:boys_singles');
-    } else if (code == 'JD') {
-        return ci18n('announcements:boys_doubles');
-    } else if (code == 'ME') {
-        return ci18n('announcements:girls_singles');
-    } else if (code == 'MD') {
-        return ci18n('announcements:girls_doubles');
-    } else if (code == 'GD' || code == 'MX') {
-        return ci18n('announcements:mixed_doubles');
-    } else if (code == 'HE') {
-        return ci18n('announcements:men_singles');
-    } else if (code == 'HD') {
-        return ci18n('announcements:men_doubles');
-    } else if (code == 'DE') {
-        return ci18n('announcements:women_singles');
-    } else if (code == 'DD') {
-        return ci18n('announcements:women_doubles');
-    } else if (code == 'E') {
-        return ci18n('announcements:singles');
-    } else if (code == 'D') {
-        return ci18n('announcements:doubles');
-    }
-    return "";
-}
-
-function createEventAnnouncement(matchSetup) {
-    if (curt.annoncement_include_event) {
-        var eventParts = matchSetup.event_name.replaceAll("-", " ").split(" ");
-        var eventName = eventAnnouncementNameByCode(eventParts[0]);
-        if (eventName == "") {
-            eventName = eventAnnouncementNameByCode(eventParts[1]);
-            if (eventParts[0]) {
-                eventName = eventName + " " + eventParts[0];
-            }
-        } else {
-            if (eventParts[1]) {
-                eventName = eventName + " " + eventParts[1];
-            }
-        }
-        return eventName;
-    } else {
-        return null;
-    }
-}
-
-function createMatchNumberAnnouncement(matchSetup) {
-    if (curt.annoncement_include_matchnumber) {
-        var number = matchSetup.match_num;
-        return ci18n('announcements:match_number') + number + "!";
-    } else {
-        return null;
-    }
-}
-
-function createFieldAnnouncement(matchSetup) {
-    if (matchSetup.court_id) {
-        var court = matchSetup.court_id.split("_")[1];
-        return ci18n('announcements:on_court') + court + "!";
-    } else {
-        return "";
-    }
-
-}
-function createFieldPreparationAnnouncement(matchSetup) {
-    if (matchSetup.court_id) {
-        var court = matchSetup.court_id.split("_")[1];
-        return ci18n('announcements:for_court') + court + "!";
-    } else {
-        return "";
-    }
-
-}
-
-function resolveSingularPluralAnnouncement(text, usePlural) {
-    return (text || '').replace(/\{([^{}\/]*)\/([^{}]*)\}/g, function(match, singular, plural) {
-        return usePlural ? plural : singular;
+/* global createAnnouncementTexts, btsSpeechService */
+function announcementTexts() {
+    return createAnnouncementTexts({
+        tournament: curt, translate: ci18n, announce, window,
+        claim: buildAnnouncementClaimKey,
     });
 }
 
-function createPreparationAnnouncement(matchSetup, usePlural) {
-    let addition = "";
-    if(matchSetup.location_id) {
-        const l = utils.find(curt.locations, l => l._id === matchSetup.location_id);
-        if(l) {
-            addition = ' ' + resolveSingularPluralAnnouncement(l.preparation_addition, usePlural !== false);
-        }
-    }
-    return ci18n('announcements:preparation') + addition;
-}
+function getLocationID(...args) { return announcementTexts().getLocationID(...args); }
+function announceNewMatch(...args) { return announcementTexts().announceNewMatch(...args); }
+function announcePreparationMatch(...args) { return announcementTexts().announcePreparationMatch(...args); }
+function announceNoMatchWin(...args) { return announcementTexts().announceNoMatchWin(...args); }
+function announceSecondCallTeamOne(...args) { return announcementTexts().announceSecondCallTeamOne(...args); }
+function announceSecondCallTeamTwo(...args) { return announcementTexts().announceSecondCallTeamTwo(...args); }
+function announceSecondPreparationCallTeamOne(...args) { return announcementTexts().announceSecondPreparationCallTeamOne(...args); }
+function announceSecondPreparationCallTeamTwo(...args) { return announcementTexts().announceSecondPreparationCallTeamTwo(...args); }
+function announceSecondCallTabletoperator(...args) { return announcementTexts().announceSecondCallTabletoperator(...args); }
+function announceSecondCallUmpire(...args) { return announcementTexts().announceSecondCallUmpire(...args); }
+function announceSecondCallServiceJudge(...args) { return announcementTexts().announceSecondCallServiceJudge(...args); }
+function announceSecondCall(...args) { return announcementTexts().announceSecondCall(...args); }
+function announceSecondPreparationCallTabletoperator(...args) { return announcementTexts().announceSecondPreparationCallTabletoperator(...args); }
+function announceSecondPreparationCallUmpire(...args) { return announcementTexts().announceSecondPreparationCallUmpire(...args); }
+function announceSecondPreparationCallServiceJudge(...args) { return announcementTexts().announceSecondPreparationCallServiceJudge(...args); }
+function announceSecondPreparationCall(...args) { return announcementTexts().announceSecondPreparationCall(...args); }
+function announceBeginnToPlay(...args) { return announcementTexts().announceBeginnToPlay(...args); }
+function createSecondCallAnnouncement(...args) { return announcementTexts().createSecondCallAnnouncement(...args); }
+function createSecondPreparationCallAnnouncement(...args) { return announcementTexts().createSecondPreparationCallAnnouncement(...args); }
+function createTeamAnnouncement(...args) { return announcementTexts().createTeamAnnouncement(...args); }
+function createTabletOperator(...args) { return announcementTexts().createTabletOperator(...args); }
+function createUmpire(...args) { return announcementTexts().createUmpire(...args); }
+function createServiceJudge(...args) { return announcementTexts().createServiceJudge(...args); }
+function createSingleTeam(...args) { return announcementTexts().createSingleTeam(...args); }
+function normalizeNames(...args) { return announcementTexts().normalizeNames(...args); }
+function createRoundAnnouncement(...args) { return announcementTexts().createRoundAnnouncement(...args); }
+function eventAnnouncementNameByCode(...args) { return announcementTexts().eventAnnouncementNameByCode(...args); }
+function createEventAnnouncement(...args) { return announcementTexts().createEventAnnouncement(...args); }
+function createMatchNumberAnnouncement(...args) { return announcementTexts().createMatchNumberAnnouncement(...args); }
+function createFieldAnnouncement(...args) { return announcementTexts().createFieldAnnouncement(...args); }
+function createFieldPreparationAnnouncement(...args) { return announcementTexts().createFieldPreparationAnnouncement(...args); }
+function resolveSingularPluralAnnouncement(...args) { return announcementTexts().resolveSingularPluralAnnouncement(...args); }
+function createPreparationAnnouncement(...args) { return announcementTexts().createPreparationAnnouncement(...args); }
+function createMeetingPointAnnouncement(...args) { return announcementTexts().createMeetingPointAnnouncement(...args); }
 
-function createMeetingPointAnnouncement(matchSetup, usePlural) {
-    let result = ci18n('announcements:meetingpoint');
-    if(matchSetup.location_id) {
-        const l = utils.find(curt.locations, l => l._id === matchSetup.location_id);
-        if(l) {
-            result = resolveSingularPluralAnnouncement(l.meetingpoint_announcement, usePlural !== false);
-        }
-    }
-    
-    return result;
-}
+// Keep the existing public browser entry points for other BTS modules.
+Object.assign(window, {
+    getLocationID,
+    announceNewMatch,
+    announcePreparationMatch,
+    announceNoMatchWin,
+    announceSecondCallTeamOne,
+    announceSecondCallTeamTwo,
+    announceSecondPreparationCallTeamOne,
+    announceSecondPreparationCallTeamTwo,
+    announceSecondCallTabletoperator,
+    announceSecondCallUmpire,
+    announceSecondCallServiceJudge,
+    announceSecondCall,
+    announceSecondPreparationCallTabletoperator,
+    announceSecondPreparationCallUmpire,
+    announceSecondPreparationCallServiceJudge,
+    announceSecondPreparationCall,
+    announceBeginnToPlay,
+    createSecondCallAnnouncement,
+    createSecondPreparationCallAnnouncement,
+    createTeamAnnouncement,
+    createTabletOperator,
+    createUmpire,
+    createServiceJudge,
+    createSingleTeam,
+    normalizeNames,
+    createRoundAnnouncement,
+    eventAnnouncementNameByCode,
+    createEventAnnouncement,
+    createMatchNumberAnnouncement,
+    createFieldAnnouncement,
+    createFieldPreparationAnnouncement,
+    resolveSingularPluralAnnouncement,
+    createPreparationAnnouncement,
+    createMeetingPointAnnouncement,
+});
 
 let emergencyInterval = null;
 let emergencyAudio = null;
@@ -457,6 +92,8 @@ const ANNOUNCEMENT_RETRY_TTL_MS = 5000;
 const ANNOUNCEMENT_LEADER_FAILOVER_SUPPRESS_MS = 1500;
 const announcementPlaybackQueue = [];
 let announcementPlaybackActive = false;
+let announcementPlaybackGeneration = 0;
+let announcementPlaybackSequence = 0;
 let announcementVoicesPromise = null;
 let announcementLeaderHeartbeat = null;
 let announcementLeaderLockHeld = false;
@@ -766,7 +403,7 @@ function getAnnouncementSpeechCheckState() {
     return { ...announcementSpeechCheckState };
 }
 
-function runAnnouncementSpeechCheck() {
+function runBrowserAnnouncementSpeechCheck() {
     if (!(window.speechSynthesis && typeof window.SpeechSynthesisUtterance === 'function')) {
         return Promise.resolve(setAnnouncementSpeechCheckState('unsupported', ci18n('announcements:speechcheck:unsupported')));
     }
@@ -829,14 +466,25 @@ function runAnnouncementSpeechCheck() {
     });
 }
 
-function playAnnouncementBatch(parts, voice, done, claimKey) {
+function playAnnouncementBatch(parts, voice, done, claimKey, signal) {
     const filteredParts = (parts || []).filter((part) => !!part);
     let index = 0;
     let batchStarted = false;
     let batchStatus = 'ok';
+    let finished = false;
+    const finish = (status) => {
+        if (finished) return;
+        finished = true;
+        signal?.removeEventListener('abort', cancel);
+        done(status, { started: batchStarted });
+    };
+    const cancel = () => finish('cancelled');
+    signal?.addEventListener('abort', cancel, { once: true });
     const playNext = () => {
+        if (finished) return;
+        if (signal?.aborted) { finish('cancelled'); return; }
         if (index >= filteredParts.length) {
-            done(batchStarted ? batchStatus : 'suspicious');
+            finish(batchStarted ? batchStatus : 'suspicious');
             return;
         }
         let utteranceStarted = false;
@@ -960,51 +608,67 @@ window.addEventListener('storage', function(event) {
     }
 });
 
+function browserAnnouncementBatch(parts, signal, claimKey) {
+    return getAnnouncementVoices().then((voices) => new Promise((resolve) => {
+        playAnnouncementBatch(parts, findAnnouncementVoice(voices),
+            (status, metadata) => resolve({ status, ...metadata }), claimKey, signal);
+    }));
+}
+
+function cancelAnnouncementPlayback() {
+    announcementPlaybackGeneration += 1;
+    announcementPlaybackQueue.length = 0;
+    announcementPlaybackActive = false;
+    btsSpeechService.cancel();
+}
+
+function runAnnouncementSpeechCheck() {
+    cancelAnnouncementPlayback();
+    if (btsSpeechService.settings().mode === 'browser') return runBrowserAnnouncementSpeechCheck();
+    return btsSpeechService.unlock().then(() => btsSpeechService.speak(
+        [ci18n('announcements:speechcheck:text')], btsSpeechService.testId(),
+        (parts, signal) => browserAnnouncementBatch(parts, signal, null)
+    )).then((result) => setAnnouncementSpeechCheckState(
+        result.status === 'ok' ? 'active' : 'error',
+        result.status === 'ok'
+            ? (result.provider === 'server' ? 'Lokales Server-Audio funktioniert.' : 'Browser-TTS funktioniert (Fallback).')
+            : 'Audio noch nicht bereit oder Wiedergabe gesperrt. Audio aktivieren und erneut testen.'
+    )).catch(() => setAnnouncementSpeechCheckState('error', ci18n('announcements:speechcheck:error')));
+}
+
 function processAnnouncementPlaybackQueue() {
-    if (announcementPlaybackActive) {
-        return;
-    }
+    if (announcementPlaybackActive) return;
     const nextBatch = announcementPlaybackQueue.shift();
-    if (!nextBatch) {
-        return;
-    }
+    if (!nextBatch) return;
     announcementPlaybackActive = true;
-    getAnnouncementVoices().then((voices) => {
-        const voice = findAnnouncementVoice(voices);
-        announcementDebugLog('[bts] announcement batch start', {
-            claimKey: nextBatch.claimKey || null,
-            parts: (nextBatch.callArray || []).filter(Boolean),
-        });
-        playAnnouncementBatch(nextBatch.callArray, voice, (status) => {
-            announcementDebugLog('[bts] announcement batch end', {
-                claimKey: nextBatch.claimKey || null,
-            });
-            if (status === 'ok' || status === 'active') {
-                setAnnouncementSpeechCheckState('active', ci18n('announcements:speechcheck:ok'));
-            } else if (status === 'suspicious') {
-                setAnnouncementSpeechCheckState('suspicious', ci18n('announcements:speechcheck:suspicious'));
-            } else if (status === 'error') {
-                setAnnouncementSpeechCheckState('error', ci18n('announcements:speechcheck:error'));
-            }
-            if ((status === 'suspicious' || status === 'error') && nextBatch.allowRetry !== false) {
-                releaseAnnouncementPlaybackClaim(nextBatch.callArray, nextBatch.claimKey);
-                releaseAnnouncementLeaderForFailover();
-                requestAnnouncementRetry(nextBatch);
-            }
-            const pauseMs = curt.announcement_pause_time_ms ? (curt.announcement_pause_time_ms * 1000) : 2000;
-            setTimeout(() => {
-                announcementPlaybackActive = false;
-                processAnnouncementPlaybackQueue();
-            }, pauseMs);
-        }, nextBatch.claimKey);
-    }).catch(() => {
-        announcementDebugLog('[bts] announcement batch end', {
-            claimKey: nextBatch.claimKey || null,
-            error: true,
-        });
-        announcementPlaybackActive = false;
-        processAnnouncementPlaybackQueue();
-    });
+    const generation = announcementPlaybackGeneration;
+    const finish = (result) => {
+        if (generation !== announcementPlaybackGeneration) return;
+        if (result.status === 'ok') {
+            setAnnouncementSpeechCheckState('active', result.provider === 'server'
+                ? 'Lokales Server-Audio aktiv.' : ci18n('announcements:speechcheck:ok'));
+        } else if (result.status === 'suspicious') {
+            setAnnouncementSpeechCheckState('suspicious', ci18n('announcements:speechcheck:suspicious'));
+        } else if (['error', 'unavailable'].includes(result.status)) {
+            setAnnouncementSpeechCheckState('error', result.status === 'unavailable'
+                ? 'Server-Audio wird vorbereitet; Automatik bietet Browser-Fallback.'
+                : ci18n('announcements:speechcheck:error'));
+        }
+        if (result.allowRetry && nextBatch.allowRetry !== false) {
+            releaseAnnouncementPlaybackClaim(nextBatch.callArray, nextBatch.claimKey);
+            releaseAnnouncementLeaderForFailover();
+            requestAnnouncementRetry(nextBatch);
+        }
+        const pauseMs = curt.announcement_pause_time_ms ? (curt.announcement_pause_time_ms * 1000) : 2000;
+        setTimeout(() => {
+            if (generation !== announcementPlaybackGeneration) return;
+            announcementPlaybackActive = false;
+            processAnnouncementPlaybackQueue();
+        }, pauseMs);
+    };
+    btsSpeechService.speak(nextBatch.callArray, nextBatch.playbackId,
+        (parts, signal) => browserAnnouncementBatch(parts, signal, nextBatch.claimKey))
+        .then(finish, () => finish({ status: 'error', started: false, allowRetry: false }));
 }
 
 function announce(callArray, local, claimKey, options) {
@@ -1013,6 +677,7 @@ function announce(callArray, local, claimKey, options) {
         announcementPlaybackQueue.push({
             callArray,
             claimKey,
+            playbackId: claimKey || ANNOUNCEMENT_TAB_ID + ":" + (++announcementPlaybackSequence),
             retryCount: resolvedOptions.retryCount || 0,
             allowRetry: resolvedOptions.allowRetry !== false,
         });

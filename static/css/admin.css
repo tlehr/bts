@@ -3611,3 +3611,28 @@ h2.edit {
 .official_card_trail[data-state="umpire_only"] .official_card_trail_swap {
   visibility: hidden;
 }
+
+.local_speech_controls {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4em;
+    margin: 0.6em 0 1em;
+}
+
+.local_speech_controls label {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2em;
+}
+
+.local_speech_controls select,
+.local_speech_controls button {
+    box-sizing: border-box;
+    max-width: 100%;
+    width: 100%;
+}
+
+.local_speech_status {
+    font-size: 0.9em;
+    line-height: 1.4;
+}

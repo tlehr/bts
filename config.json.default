@@ -9,5 +9,15 @@
 	"enable_https": false,
 	"https_port": 4433,
 	"https_key": "${PATH_TO}/key.pem",
-	"https_cert": "${PATH_TO}/cert.pem"
+	"https_cert": "${PATH_TO}/cert.pem",
+	"speech": {
+		"enabled": false,
+		"url": "http://127.0.0.1:8077",
+		"api_key_file": "data/speech-api-key",
+		"mode": "auto",
+		"voice": "hallensprecherin",
+		"prefetch_matches": 12,
+		"prefetch_interval_ms": 30000,
+		"deadline_ms": 700
+	}
 }

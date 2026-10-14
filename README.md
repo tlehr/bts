@@ -135,3 +135,14 @@ reports to `/tmp/bts-isolated-admin-*`. For an exact replay, pass
 histories; edit/scoresheet dialogs load a finished history on demand. Active timers
 and bulk scoresheet exports retain full histories. Reload an already open admin
 page to load the new client script.
+
+## Lokaler Sprachserver
+
+BTS kann Ansagen mit dem separaten **bts-sprachserver** vorab als WAV erzeugen.
+Unter **Ansagen auf diesem Gerät** stehen Browser-TTS, Server-Audio und Automatik
+mit Browser-Fallback zur Auswahl. Künftige Spiel-/Vorbereitungsrufe werden im
+Hintergrund vorbereitet; eine Generierung löst keine Wiedergabe aus.
+
+Einrichtung, Aktivierung und Betrieb: [Lokale TTS-Integration](docs/local-tts-integration.md).
+Für einen lokalen Checkout verbindet ./scripts/configure-local-tts.sh ../bts-sprachserver
+die beiden Dienste, ohne Geheimnisse ins Git oder ins Browser-JavaScript zu übernehmen.

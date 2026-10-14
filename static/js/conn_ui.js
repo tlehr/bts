@@ -38,18 +38,19 @@ function on_connect() {
 }
 
 function send(msg, cb) {
-	c.send(msg, cb);
+	return c.send(msg, cb);
 }
 
 return {
 	ui_connect: ui_connect,
 	send: send,
+	cancel_request: rid => c.cancel_request(rid),
 };
 
 })();
 
 function send(msg, cb) { // eslint-disable-line no-unused-vars
-	conn_ui.send(msg, cb);
+	return conn_ui.send(msg, cb);
 }
 
 /*@DEV*/

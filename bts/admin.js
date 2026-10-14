@@ -863,6 +863,7 @@ function handle_tournament_get(app, ws, msg, trace_done) {
 					tournament.ticker_status = ticker_manager.get_status(tournament.key);
 					tournament.test_clock = _clock_state_response(app);
 					_annotate_tournament(tournament);
+					if (!err && app.speech) app.speech.loaded(tournament, ws);
 					respond(err, {tournament});
 				});
 			})
@@ -884,6 +885,8 @@ async function preparation_selection_response(app, ws, msg) {
 		now_ts: now_ms(app),
 		cooperative: true,
 	});
+	app.speech?.prefetch.schedule(msg.tournament_key, selections.flatMap(selection =>
+		selection.selected_matches.map(match => match._id)));
 	return (ws.respond_background || ws.respond).call(ws, msg, null, {
 		selections: selections.map((selection) => ({
 			location_id: selection.location_id,
@@ -5433,6 +5436,7 @@ function notify_change(app, tournament_key, ctype, val) {
 		return;
 	}
 	let payload = val;
+	app.speech?.changed(tournament_key, ctype);
 	const announcement_change_types = new Set([
 		'match_preparation_call',
 		'match_called_on_court',
@@ -5648,6 +5652,9 @@ async function async_handle_tournament_upload_location_logo(app, ws, msg) {
 }
 
 module.exports = {
+	handle_speech_prepare: require('./speech').handle,
+	handle_speech_resolve: require('./speech').handle,
+	handle_speech_status: require('./speech').handle,
 	handle_edit_display_setting,
 	handle_create_display_setting,
 	async_handle_delete_display_setting,

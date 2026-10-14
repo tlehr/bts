@@ -1,0 +1,261 @@
+'use strict';
+
+const crypto = require('crypto');
+const fs = require('fs');
+const path = require('path');
+const { request } = require('./http');
+const PRIORITY = { high: 0, normal: 1, low: 2 };
+const ID = /^[0-9a-f]{32}$/;
+
+function bounded(value, fallback, min, max) {
+    return Number.isInteger(value) && value >= min && value <= max ? value : fallback;
+}
+
+function configuration(config = {}, env = process.env) {
+    let api_key = env.BTS_SPEECH_API_KEY || config.api_key || '';
+    const key_file = env.BTS_SPEECH_API_KEY_FILE || config.api_key_file;
+    if (!api_key && key_file) {
+        try {
+            const filename = path.resolve(key_file);
+            if (fs.statSync(filename).size <= 4096) api_key = fs.readFileSync(filename, 'utf8').trim();
+        } catch (_) { /* Speech failure must not prevent BTS from starting. */ }
+    }
+    let base_url = env.BTS_SPEECH_URL || config.url || 'http://127.0.0.1:8077';
+    try {
+        const parsed = new URL(base_url);
+        if (!['http:', 'https:'].includes(parsed.protocol) || parsed.username || parsed.password ||
+            parsed.search || parsed.hash || parsed.pathname !== '/') throw new Error('invalid_url');
+        base_url = parsed.origin;
+    } catch (_) { base_url = null; }
+    const configured = env.BTS_SPEECH_ENABLED === undefined ? config.enabled === true : env.BTS_SPEECH_ENABLED === 'true';
+    return {
+        enabled: configured && !!base_url && /^[\x20-\x7e]{32,}$/.test(api_key),
+        configured, api_key, base_url,
+        mode: ['browser', 'auto', 'server'].includes(config.mode) ? config.mode : 'auto',
+        voice: config.voice === 'hallensprecher' ? 'hallensprecher' : 'hallensprecherin',
+        deadline_ms: bounded(config.deadline_ms, 700, 50, 2000),
+        timeout_ms: bounded(config.timeout_ms, 2500, 100, 10000),
+        submit_interval_ms: bounded(config.submit_interval_ms, 650, 500, 10000),
+        poll_interval_ms: bounded(config.poll_interval_ms, 2000, 500, 10000),
+        prefetch_matches: bounded(config.prefetch_matches, 12, 1, 100),
+        prefetch_interval_ms: bounded(config.prefetch_interval_ms, 30000, 5000, 300000),
+        max_entries: bounded(config.max_entries, 512, 32, 4096),
+        max_text: bounded(config.max_text, 1200, 1, 10000),
+        audio_url_ttl_seconds: bounded(config.audio_url_ttl_seconds, 900, 60, 3600),
+        audio_timeout_ms: bounded(config.audio_timeout_ms, 30000, 1000, 120000),
+        max_audio_clients: bounded(config.max_audio_clients, 16, 1, 64),
+    };
+}
+
+class SpeechBroker {
+    constructor(config, options = {}) {
+        this.config = config;
+        this.request = options.request || request;
+        this.now = options.now || Date.now;
+        this.entries = new Map();
+        this.signing_key = crypto.randomBytes(32);
+        this.voices = [];
+        this.identity = null;
+        this.last_error = config.configured && !config.enabled ? 'configuration_missing' : null;
+        this.timer = null;
+        this.stopped = true;
+        this.last_post = -Infinity;
+        this.last_metadata = 0;
+        this.audio_clients = 0;
+    }
+
+    public_config(voice = this.config.voice) {
+        const entries = [...this.entries.values()].filter(entry => entry.voice === voice);
+        return {
+            enabled: this.config.enabled, mode: this.config.mode, voice: this.config.voice,
+            deadline_ms: this.config.deadline_ms, max_text: this.config.max_text,
+            voices: this.voices, last_error: this.last_error,
+            preparing: entries.filter(item => ['unsubmitted', 'queued', 'processing'].includes(item.status)).length,
+            ready: entries.filter(item => item.status === 'completed').length,
+        };
+    }
+
+    key(text, voice, language) {
+        return crypto.createHash('sha256').update(JSON.stringify([text, voice, language])).digest('hex');
+    }
+
+    validate(parts, options = {}) {
+        if (!Array.isArray(parts) || parts.length > 64 ||
+            parts.some(text => typeof text !== 'string' || text.length > this.config.max_text || !text.trim())) {
+            throw new Error('invalid_speech_parts');
+        }
+        const voice = options.voice || this.config.voice;
+        if (!['hallensprecherin', 'hallensprecher'].includes(voice)) throw new Error('invalid_speech_voice');
+        const language = options.language || 'de-DE';
+        // English voices are not advertised or synthesized before operator validation.
+        if (language !== 'de-DE') throw new Error('unsupported_speech_language');
+        return { voice, language, priority: Object.hasOwn(PRIORITY, options.priority) ? options.priority : 'low' };
+    }
+
+    prepare(parts, options = {}) {
+        const normalized = this.validate(parts, options);
+        if (!this.config.enabled) return normalized;
+        for (const text of parts) {
+            const key = this.key(text, normalized.voice, normalized.language);
+            let entry = this.entries.get(key);
+            if (!entry) {
+                if (this.entries.size >= this.config.max_entries) {
+                    const victim = [...this.entries.values()]
+                        .filter(item => !item.busy && !['queued', 'processing'].includes(item.status))
+                        .sort((a, b) => b.priority - a.priority || a.used - b.used)[0];
+                    if (!victim) continue;
+                    this.entries.delete(victim.key);
+                }
+                entry = {
+                    key, text, ...normalized, priority: PRIORITY[normalized.priority],
+                    status: 'unsubmitted', created: this.now(), used: this.now(),
+                    retry_at: 0, next_poll: 0, busy: false,
+                };
+                this.entries.set(key, entry);
+            }
+            entry.used = this.now();
+            if (PRIORITY[normalized.priority] < entry.priority) {
+                entry.priority = PRIORITY[normalized.priority];
+                if (entry.status === 'queued') entry.promote = true;
+            }
+            if (entry.status === 'failed' && entry.retry_at <= this.now()) entry.status = 'unsubmitted';
+            // Revalidate preference/configuration occasionally through the authoritative cache.
+            if (entry.status === 'completed' && entry.checked + 300000 < this.now()) entry.status = 'unsubmitted';
+            if (normalized.priority === 'high') entry.next_poll = 0;
+        }
+        return normalized;
+    }
+
+    views(parts, options, tournament_key) {
+        const { voice, language } = this.validate(parts, options);
+        return parts.map(text => {
+            const entry = this.entries.get(this.key(text, voice, language));
+            return entry?.status === 'completed' ? {
+                status: 'completed',
+                audio_url: this.audio_url(tournament_key, entry.audio_id),
+            } : { status: entry?.status || 'unsubmitted', audio_url: null };
+        });
+    }
+
+    audio_url(tournament_key, audio_id) {
+        const expires = Math.floor(this.now() / 1000) + this.config.audio_url_ttl_seconds;
+        return '/h/' + encodeURIComponent(tournament_key) + '/speech/audio/' + audio_id +
+            '?expires=' + expires + '&signature=' + this.signature(tournament_key, audio_id, expires);
+    }
+
+    signature(tournament_key, audio_id, expires) {
+        return crypto.createHmac('sha256', this.signing_key)
+            .update(JSON.stringify([tournament_key, audio_id, Number(expires)])).digest('base64url');
+    }
+
+    authorize(tournament_key, audio_id, expires, signature) {
+        if (!this.config.enabled || !ID.test(audio_id) || !/^\d{10}$/.test(String(expires)) ||
+            typeof signature !== 'string' || !/^[A-Za-z0-9_-]{43}$/.test(signature)) return false;
+        const remaining = Number(expires) - Math.floor(this.now() / 1000);
+        if (remaining < 0 || remaining > this.config.audio_url_ttl_seconds) return false;
+        return crypto.timingSafeEqual(Buffer.from(signature),
+            Buffer.from(this.signature(tournament_key, audio_id, expires)));
+    }
+
+    async refresh() {
+        const [health, voices] = await Promise.allSettled([
+            this.request(this.config.base_url, this.config.api_key, 'GET', '/health', undefined, this.config.timeout_ms),
+            this.request(this.config.base_url, this.config.api_key, 'GET', '/v1/voices', undefined, this.config.timeout_ms),
+        ]);
+        if (voices.status === 'fulfilled' && Array.isArray(voices.value.voices)) {
+            this.voices = voices.value.voices.filter(voice =>
+                ['hallensprecherin', 'hallensprecher'].includes(voice.voice_id) && voice.languages?.includes('de-DE'));
+        }
+        const state = health.status === 'fulfilled' ? health.value : health.reason.response;
+        if (state?.model_revision) {
+            const identity = JSON.stringify([state.configuration_version, state.model, state.model_revision, this.voices]);
+            if (this.identity && identity !== this.identity) {
+                for (const entry of this.entries.values()) {
+                    entry.status = 'unsubmitted';
+                    entry.job_id = null;
+                    entry.retry_at = 0;
+                }
+            }
+            this.identity = identity;
+            this.last_error = state.status === 'starting' || state.status === 'error' ? 'speech_unavailable' : null;
+        } else this.last_error = 'speech_unavailable';
+        this.last_metadata = this.now();
+    }
+
+    update(entry, response) {
+        if (!ID.test(response.job_id) || response.text !== entry.text || response.voice !== entry.voice ||
+            response.language !== entry.language || !['queued', 'processing', 'completed', 'failed'].includes(response.status)) {
+            throw new Error('speech_invalid_response');
+        }
+        if (response.status === 'completed' && !ID.test(response.audio?.audio_id)) {
+            throw new Error('speech_invalid_audio');
+        }
+        entry.job_id = response.job_id;
+        entry.status = response.status;
+        entry.checked = this.now();
+        entry.next_poll = this.now() + this.config.poll_interval_ms;
+        if (response.status === 'completed') {
+            entry.audio_id = response.audio.audio_id;
+            this.last_error = null;
+        } else if (response.status === 'failed') {
+            entry.retry_at = this.now() + 30000;
+            this.last_error = 'speech_generation_failed';
+        }
+    }
+
+    async step() {
+        const now = this.now();
+        const entries = [...this.entries.values()].filter(entry => !entry.busy);
+        const pending = entries.filter(entry =>
+            (entry.status === 'unsubmitted' || entry.promote) && entry.retry_at <= now)
+            .sort((a, b) => a.priority - b.priority || a.created - b.created);
+        let entry = now - this.last_post >= this.config.submit_interval_ms ? pending[0] : null;
+        let post = !!entry;
+        if (!entry) entry = entries.filter(item => ['queued', 'processing'].includes(item.status) && item.next_poll <= now)
+            .sort((a, b) => a.priority - b.priority || a.next_poll - b.next_poll)[0];
+        if (!entry) return;
+        entry.busy = true;
+        try {
+            let response;
+            if (post) {
+                this.last_post = now;
+                entry.promote = false;
+                response = await this.request(this.config.base_url, this.config.api_key, 'POST', '/v1/speech', {
+                    text: entry.text, voice: entry.voice, language: entry.language,
+                    priority: Object.keys(PRIORITY)[entry.priority],
+                }, this.config.timeout_ms);
+            } else {
+                response = await this.request(this.config.base_url, this.config.api_key, 'GET',
+                    '/v1/jobs/' + entry.job_id, undefined, this.config.timeout_ms);
+            }
+            this.update(entry, response);
+        } catch (error) {
+            this.last_error = error.status === 429 ? 'speech_busy' : 'speech_unavailable';
+            if (!post && error.status === 404) { entry.status = 'unsubmitted'; entry.job_id = null; }
+            if (post && entry.job_id && entry.status === 'queued') entry.promote = true;
+            entry.retry_at = this.now() + (error.status === 429 ? 10000 : 5000);
+            entry.next_poll = entry.retry_at;
+        } finally { entry.busy = false; }
+    }
+
+    start() {
+        if (!this.config.enabled || !this.stopped) return;
+        this.stopped = false;
+        const tick = async () => {
+            try {
+                if (this.last_metadata + 15000 <= this.now()) await this.refresh();
+                await this.step();
+            } catch (_) { this.last_error = 'speech_unavailable'; }
+            if (!this.stopped) this.timer = setTimeout(tick, 100);
+            this.timer?.unref();
+        };
+        void tick();
+    }
+
+    stop() {
+        this.stopped = true;
+        clearTimeout(this.timer);
+    }
+}
+
+module.exports = { SpeechBroker, configuration };

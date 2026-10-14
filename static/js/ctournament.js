@@ -1,4 +1,5 @@
 'use strict';
+/* global btsSpeechService, cancelAnnouncementPlayback */
 
 var curt; // current tournament
 let current_view = null;
@@ -60,6 +61,9 @@ var ctournament = (function() {
 				return cerror.net(err);
 			}
 
+			if (curt && curt.key !== tournament_key && typeof cancelAnnouncementPlayback === 'function') {
+				cancelAnnouncementPlayback();
+			}
 			curt = response.tournament;
 			invalidate_match_lookup_index();
 			self_check_in_tabletoperator_waiting_ids = null;
@@ -68,6 +72,9 @@ var ctournament = (function() {
 			curt.location_preparation_selection_by_location_id = {};
 			if (curt.language && curt.language !== 'auto') {
 				ci18n.switch_language(curt.language);
+			}
+			if (typeof btsSpeechService !== 'undefined') {
+				void btsSpeechService.prepare([ci18n('announcements:speechcheck:text')]);
 			}
 			success_cb();
 		});
@@ -1138,6 +1145,15 @@ var ctournament = (function() {
 			rows: '4',
 			maxlength: '175'
 		});
+		let draft_timer;
+		textarea.addEventListener('input', function() {
+			clearTimeout(draft_timer);
+			draft_timer = setTimeout(() => {
+				// Match the existing free-announcement submit formatting exactly.
+				const text = textarea.value.trim();
+				if (text && typeof btsSpeechService !== 'undefined') void btsSpeechService.prepare([text]);
+			}, 1500);
+		});
 
 		const btn_container = uiu.el(form, 'div', 'announcements_btn_container');
 
@@ -1245,6 +1261,51 @@ var ctournament = (function() {
 
 	function render_enable_announcements_content(container, locations) {
 		uiu.el(container, 'h3', {}, 'Ansagen auf diesem Gerät');
+		if (typeof btsSpeechService !== 'undefined') {
+			const controls = uiu.el(container, 'div', 'local_speech_controls');
+			const modeLabel = uiu.el(controls, 'label', {}, 'Sprachausgabe: ');
+			const mode = uiu.el(modeLabel, 'select');
+			for (const [value, label] of [
+				['browser', 'Browser-TTS'],
+				['auto', 'Lokaler Sprachserver mit Browser-Fallback'],
+				['server', 'Nur lokales Server-Audio'],
+			]) uiu.el(mode, 'option', { value }, label);
+			mode.value = btsSpeechService.settings().mode;
+			const voiceLabel = uiu.el(controls, 'label', {}, 'Lokale Stimme: ');
+			const voice = uiu.el(voiceLabel, 'select');
+			for (const [value, label] of [
+				['hallensprecherin', 'Hallensprecherin'], ['hallensprecher', 'Hallensprecher'],
+			]) uiu.el(voice, 'option', { value }, label);
+			voice.value = btsSpeechService.settings().voice;
+			const status = uiu.el(controls, 'div', 'local_speech_status');
+			const update = () => btsSpeechService.status().then(response => {
+				if (!status.isConnected) return;
+				if (response?.speech) curt.speech = response.speech;
+				const speech = curt.speech || {};
+				status.textContent = !speech.enabled
+					? 'Lokaler Sprachserver ist im BTS-Backend noch nicht konfiguriert.'
+					: (speech.last_error ? 'Sprachserver derzeit nicht bereit. ' : '') +
+						(speech.ready || 0) + ' Ansageteile bereit, ' + (speech.preparing || 0) + ' werden vorbereitet.';
+			});
+			const change = (name, value) => {
+				try { window.localStorage.setItem('bts_speech_' + name, value); } catch (_) { /* Private storage. */ }
+				void btsSpeechService.prepare([ci18n('announcements:speechcheck:text')]);
+				void update();
+			};
+			mode.addEventListener('change', () => change('mode', mode.value));
+			voice.addEventListener('change', () => change('voice', voice.value));
+			const unlock = uiu.el(controls, 'button', { type: 'button' }, 'Audio aktivieren');
+			unlock.addEventListener('click', () => {
+				btsSpeechService.unlock().then(ok => {
+					status.textContent = ok ? 'Audiowiedergabe aktiviert.' : 'Audiowiedergabe gesperrt; erneut aktivieren.';
+				});
+			});
+			uiu.el(controls, 'button', { type: 'button' }, 'Ansage stoppen')
+				.addEventListener('click', cancelAnnouncementPlayback);
+			uiu.el(controls, 'button', { type: 'button' }, 'Cache-Status aktualisieren')
+				.addEventListener('click', () => { void update(); });
+			void update();
+		}
 
 		(locations || []).forEach(loc => {
 			{

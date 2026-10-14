@@ -92,6 +92,7 @@ function create_app(config, db) {
 	const app = express();
 	app.config = config;
 	app.db = db;
+	app.speech = require('./speech').create(app);
 	app.use('/bup/', express.static(config.bup_location, {index: config.bup_index}));
 	app.use('/bupdev/', express.static(path.join(utils.root_dir(), 'static/bup/dev/')));
 	app.use('/static/', express.static('static/', {}));
@@ -107,6 +108,7 @@ function create_app(config, db) {
 	app.get('/h/:tournament_key/m/:match_id/info', http_api.matchinfo_handler);
 	app.get('/h/:tournament_key/logo/:logo_id', http_api.logo_handler);
 	app.get('/h/preview/display/:variant.json', http_api.display_preview_handler);
+	app.get('/h/:tournament_key/speech/audio/:audio_id', require('./speech/proxy'));
 
 	var server = null;
 	if (config.enable_https) {
@@ -120,6 +122,8 @@ function create_app(config, db) {
 	}
 	
 	const wss = new ws_module.Server({ server: server });
+	app.speech.start();
+	server.once('close', () => app.speech.stop());
 	app.wss = wss;
 	wss.on('connection', function connection(ws, req) {
 		const location = url.parse(req.url, true);
@@ -155,11 +159,12 @@ function create_app(config, db) {
 			require('./server_diagnostics').log(app, null, 'HTTP server listening on port ' + config.port + ' ==> permanently redirected to https.');
 		});
 	} else {
-		server.listen(config.port, function () {
+		server.listen(config.port, config.host, function () {
 			require('./server_diagnostics').log(app, null, 'HTTP server listening on port ' + config.port);
 		});
 	}
 	return app;
 }
 
-main();
+if (require.main === module) main();
+module.exports = { create_app, read_config };

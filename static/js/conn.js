@@ -264,13 +264,16 @@ function send(msg, cb) {
 		callback_handlers[msg.rid] = cb;
 	}
 	const msg_json = JSON.stringify(msg);
-	debug.log('<', msg_json);
-	ws.send(msg_json);
+	debug.log('<', msg.type?.startsWith('speech_') ? msg.type : msg_json);
+	try { ws.send(msg_json); }
+	catch (error) { delete callback_handlers[msg.rid]; throw error; }
+	return msg.rid;
 }
 
 return {
 	connect,
 	send,
+	cancel_request: rid => { delete callback_handlers[rid]; },
 	_test_handle_message: handle_message,
 	_test_process_change_queue: process_change_queue,
 	_test_change_queue_length: queued_change_count,
