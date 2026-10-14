@@ -15,7 +15,8 @@ function harness(options = {}) {
     const player = {
         play() {
             played.push(this.src);
-            if (fail === 'blocked') return Promise.reject(new Error('blocked'));
+            if (fail === 'blocked') return Promise.reject(Object.assign(new Error('blocked'), { name: 'NotAllowedError' }));
+            if (fail === 'download') return Promise.reject(Object.assign(new Error('source failed'), { name: 'NotSupportedError' }));
             if (fail === 'held') return Promise.resolve();
             setImmediate(() => {
                 this.onplaying?.();
@@ -35,6 +36,7 @@ function harness(options = {}) {
             return { clips: values.parts.map(() => clip()), speech: { enabled: true } };
         },
         cancelBrowser() {},
+        now: options.now,
     });
     const fallback = async parts => {
         browser.push(parts);
@@ -48,7 +50,7 @@ describe('Browser local speech provider', function() {
         const h = harness();
         await h.service.inspect([TEXT]);
         assert.deepStrictEqual(h.requests, [['speech_status', {
-            tournament_key: 'default', voice: 'hallensprecherin', language: 'de-DE', parts: [TEXT],
+            tournament_key: 'default', voice: 'hallensprecherin', language: 'de-DE', parts: [TEXT], audio_urls: true,
         }]]);
         assert.strictEqual(h.played.length, 0);
         assert.strictEqual(h.browser.length, 0);
@@ -72,6 +74,56 @@ describe('Browser local speech provider', function() {
         assert.strictEqual(h.played.length, 3);
     });
 
+    it('plays the exact audio confirmed by readiness inspection without another time-critical resolve request', async function() {
+        const h = harness({ request: async (type, values) => {
+            assert.strictEqual(type, 'speech_status', 'a green announcement must not depend on another 700 ms lookup');
+            return { speech: { enabled: true, cache_version: 'one' }, clips: values.parts.map(clip) };
+        } });
+        await h.service.inspect([TEXT, 'U17']);
+        const result = await h.service.speak([TEXT, 'U17', TEXT], 'event1', h.fallback);
+        assert.strictEqual(result.provider, 'server');
+        assert.strictEqual(h.requests.length, 1);
+        assert.strictEqual(h.played.length, 3);
+        assert.strictEqual(h.browser.length, 0);
+    });
+
+    it('does not reuse readiness URLs for another voice, language or tournament', async function() {
+        for (const changed of [{ voice: 'hallensprecher' }, { key: 'another' }, { language: 'en-GB' }]) {
+            const h = harness({ request: async (type, values) => type === 'speech_status' ?
+                { clips: values.parts.map(clip) } : { clips: values.parts.map(() => ({ status: 'queued' })) } });
+            await h.service.inspect([TEXT]);
+            Object.assign(h.settings, changed);
+            assert.strictEqual((await h.service.speak([TEXT], 'event1', h.fallback)).provider, 'browser');
+            assert.strictEqual(h.played.length, 0);
+        }
+    });
+
+    it('expires inspected audio and invalidates it when the synthesis configuration changes', async function() {
+        for (const scenario of ['expiry', 'version']) {
+            let time = 1000, version = 'one';
+            const h = harness({ now: () => time, request: async (type, values) => {
+                if (type === 'speech_resolve') time += 21;
+                return { speech: { enabled: true, cache_version: version },
+                    clips: values.parts.map(() => type === 'speech_status' && version === 'one' ? clip() : { status: 'queued' }) };
+            } });
+            await h.service.inspect([TEXT]);
+            if (scenario === 'expiry') time += 15001;
+            else {
+                version = 'two';
+                await h.service.inspect(['Another text']);
+            }
+            assert.strictEqual((await h.service.speak([TEXT], 'event1', h.fallback)).provider, 'browser');
+            assert.strictEqual(h.requests.at(-1)[0], 'speech_resolve');
+            assert.strictEqual(h.played.length, 0);
+        }
+    });
+
+    it('does not mark a completed inspection usable without a signed same-origin audio URL', async function() {
+        const h = harness({ request: async () => ({ clips: [{ status: 'completed', audio_url: 'https://example.com/file.wav' }] }) });
+        assert.strictEqual((await h.service.inspect([TEXT])).clips[0].status, 'unavailable');
+        assert.strictEqual(h.played.length, 0);
+    });
+
     it('browser mode preserves exact text and never requests server audio', async function() {
         const h = harness({ mode: 'browser' });
         await h.service.speak([TEXT, null, 'U17'], 'event1', h.fallback);
@@ -86,7 +138,10 @@ describe('Browser local speech provider', function() {
         }) });
         const result = await h.service.speak([TEXT], 'event1', h.fallback);
         assert.strictEqual(result.provider, 'browser');
+        assert.strictEqual(result.fallback_reason, 'cache_incomplete');
+        assert(h.service.outputMessage().includes('Browser-Fallback'));
         completed = true;
+        await h.service.inspect([TEXT]);
         await delay(30);
         assert.strictEqual(h.browser.length, 1);
         assert.strictEqual(h.played.length, 0);
@@ -100,6 +155,17 @@ describe('Browser local speech provider', function() {
         } });
         assert.strictEqual((await h.service.speak([TEXT], 'event1', h.fallback)).provider, 'browser');
         assert.strictEqual(h.played.length, 0);
+    });
+
+    it('falls back with a reason when an incomplete response arrives exactly at the deadline', async function() {
+        let time = 1000;
+        const h = harness({ now: () => time, request: async () => {
+            time += 20;
+            return { clips: [{ status: 'queued' }] };
+        } });
+        const result = await h.service.speak([TEXT], 'event1', h.fallback);
+        assert.strictEqual(result.provider, 'browser');
+        assert.strictEqual(result.fallback_reason, 'cache_incomplete');
     });
 
     it('falls back safely on transport failure and unsupported language', async function() {
@@ -116,6 +182,19 @@ describe('Browser local speech provider', function() {
         const result = await h.service.speak([TEXT], 'event1', h.fallback);
         assert.strictEqual(result.provider, 'browser');
         assert.strictEqual(h.browser.length, 1);
+        assert.strictEqual(result.fallback_reason, 'audio_blocked');
+        assert.strictEqual(h.service.settings().audio_ready, false);
+        assert.strictEqual(h.service.settings().audio_error, 'audio_blocked');
+        assert(h.service.describeResult(result).includes('gesperrt'));
+    });
+
+    it('distinguishes a failed audio download from an autoplay permission error', async function() {
+        const h = harness({ fail: 'download' });
+        const result = await h.service.speak([TEXT], 'event1', h.fallback);
+        assert.strictEqual(result.provider, 'browser');
+        assert.strictEqual(result.fallback_reason, 'audio_failed');
+        assert(h.service.outputMessage().includes('Audiodatei'));
+        assert.strictEqual(h.service.settings().audio_error, 'audio_failed');
     });
 
     it('never repeats a partially audible server batch using browser fallback', async function() {
@@ -173,7 +252,9 @@ describe('Browser local speech provider', function() {
 
     it('unlocks and reuses the same audio element for actual playback', async function() {
         const h = harness();
+        assert.strictEqual(h.service.settings().audio_ready, false);
         assert(await h.service.unlock());
+        assert.strictEqual(h.service.settings().audio_ready, true);
         await h.service.speak([TEXT], 'event1', h.fallback);
         assert.strictEqual(h.played.length, 2);
         assert(h.played[0].startsWith('data:audio/wav;'));

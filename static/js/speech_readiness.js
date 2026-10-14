@@ -17,7 +17,8 @@ function createSpeechReadiness(context) {
         ready: 'Lokal bereit', preparing: 'Wird vorbereitet', missing: 'Noch nicht bereit',
         checking: 'Wird geprüft', failed: 'Generierung fehlgeschlagen',
         unavailable: 'Status nicht verfügbar', disabled: 'Lokale Sprache aus',
-        unsupported: 'Nur Browser-TTS', empty: 'Keine Ansage',
+        unsupported: 'Nur Browser-TTS', empty: 'Keine Ansage', browser: 'Browser-TTS ausgewählt',
+        locked: 'Audio aktivieren', audio_error: 'Server-Audio nicht abspielbar',
     };
     const calls = {
         'match:manualcall': 'announceNewMatch', 'match:preparationcall': 'announcePreparationMatch',
@@ -87,9 +88,12 @@ function createSpeechReadiness(context) {
             const completed = states.filter(state => state === 'completed').length;
             let state;
             if (!value.settings.enabled) state = 'disabled';
+            else if (value.settings.mode === 'browser') state = 'browser';
             else if (value.settings.language !== 'de-DE' || parts.some(text => text.length > value.settings.max_text)) state = 'unsupported';
             else if (!parts.length) state = 'empty';
-            else if (unavailable) state = 'unavailable';
+            else if (unavailable || states.includes('unavailable')) state = 'unavailable';
+            else if (value.settings.audio_error && value.settings.audio_error !== 'audio_blocked') state = 'audio_error';
+            else if (value.settings.audio_ready === false || value.settings.audio_error === 'audio_blocked') state = 'locked';
             else if (states.includes('failed')) state = 'failed';
             else if (completed === parts.length) state = 'ready';
             else if (states.some(status => ['unsubmitted', 'queued', 'processing'].includes(status))) state = 'preparing';
@@ -190,4 +194,5 @@ else {
     setInterval(() => { if (!document.hidden) void btsSpeechReadiness.refresh(); }, 5000);
     window.addEventListener('focus', () => btsSpeechReadiness.changed());
     window.addEventListener('storage', () => btsSpeechReadiness.changed());
+    window.addEventListener('bts-speech-output-changed', () => btsSpeechReadiness.changed());
 }

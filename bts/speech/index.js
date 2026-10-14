@@ -50,7 +50,8 @@ function handle(app, ws, msg) {
         } else {
             const parts = msg.parts === undefined ? [] : msg.parts;
             const options = broker.validate(parts, { voice: msg.voice, language: msg.language });
-            reply({ speech: broker.public_config(options.voice), clips: broker.inspect(parts, options) });
+            reply({ speech: broker.public_config(options.voice),
+                clips: broker.inspect(parts, options, msg.audio_urls === true ? key : undefined) });
         }
     } catch (_) {
         reply({ speech_error: 'invalid_speech_request', clips: [] });

@@ -28,6 +28,7 @@ let match_lookup_by_id = new Map();
 let tournament_refresh_after_missed_change_pending = false;
 let btp_next_fetch_countdown_interval = null;
 let speech_output_badge_listener_registered = false;
+let local_speech_output_listener_registered = false;
 let test_clock_controls = null;
 let test_clock_status_interval = null;
 const ANNOUNCEMENT_SPEECH_CHECK_STATE_STORAGE_KEY = 'bts_announcement_speech_check_state';
@@ -1265,6 +1266,10 @@ var ctournament = (function() {
 		render_enable_announcements_content(container, locations);
 	}
 
+	function update_local_speech_output_status() {
+		uiu.qsEach('.local_speech_playback_status', el => { el.textContent = btsSpeechService.outputMessage(); });
+	}
+
 	function render_enable_announcements_content(container, locations) {
 		uiu.el(container, 'h3', {}, 'Ansagen auf diesem Gerät');
 		if (typeof btsSpeechService !== 'undefined') {
@@ -1284,6 +1289,11 @@ var ctournament = (function() {
 			]) uiu.el(voice, 'option', { value }, label);
 			voice.value = btsSpeechService.settings().voice;
 			const status = uiu.el(controls, 'div', 'local_speech_status');
+			uiu.el(controls, 'div', { class: 'local_speech_playback_status', 'aria-live': 'polite' }, btsSpeechService.outputMessage());
+			if (!local_speech_output_listener_registered) {
+				local_speech_output_listener_registered = true;
+				window.addEventListener('bts-speech-output-changed', update_local_speech_output_status);
+			}
 			const update = () => btsSpeechService.status().then(response => {
 				if (!status.isConnected) return;
 				if (response?.speech) curt.speech = response.speech;
@@ -1297,6 +1307,7 @@ var ctournament = (function() {
 				try { window.localStorage.setItem('bts_speech_' + name, value); } catch (_) { /* Private storage. */ }
 				void btsSpeechService.prepare([ci18n('announcements:speechcheck:text')]);
 				if (typeof btsSpeechReadiness !== 'undefined') btsSpeechReadiness.changed();
+				update_local_speech_output_status();
 				void update();
 			};
 			mode.addEventListener('change', () => change('mode', mode.value));
@@ -1319,7 +1330,7 @@ var ctournament = (function() {
 				['missing', 'Noch nicht bereit'], ['unavailable', 'Status nicht verfügbar']]) {
 				uiu.el(legend, 'span', { class: 'local_speech_readiness', 'data-speech-state': state }, label);
 			}
-			uiu.el(legend, 'small', {}, 'Markierung an den Aufrufen: Cache für die ausgewählte Stimme. Details beim Darüberfahren. Audio und Ansagen auf diesem Gerät aktivieren.');
+			uiu.el(legend, 'small', {}, 'Haken: alle Ansageteile der gewählten Stimme gecacht und Audio auf diesem Gerät freigegeben. Details beim Darüberfahren. Hallen-Ansagen zusätzlich aktivieren.');
 			void update();
 		}
 

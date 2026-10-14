@@ -14,7 +14,7 @@ function element() {
 function harness() {
     const current = { ...tournament(), matches: [{ _id: 'match1', setup: setup() }] };
     const settings = { key: 'default', enabled: true, voice: 'hallensprecherin', language: 'de-DE',
-        mode: 'auto', max_text: 1200 };
+        mode: 'auto', max_text: 1200, audio_ready: true };
     const requests = [], statuses = new Map();
     let time = 100000;
     const h = { current, settings, requests, statuses, version: 'one', error: null, fail: false };
@@ -33,6 +33,27 @@ function harness() {
 }
 
 describe('Announcement cache readiness indicators', function() {
+    it('never shows a green check for browser mode, blocked audio or a failed audio download', async function() {
+        const h = harness(), target = element();
+        h.controller.trackText(target, () => ['Text']);
+        h.ready('Text');
+        await h.controller.refresh();
+        assert.strictEqual(target.dataset.speechState, 'ready');
+        h.settings.mode = 'browser';
+        h.controller.changed();
+        assert.strictEqual(target.dataset.speechState, 'browser');
+        h.settings.mode = 'auto';
+        h.settings.audio_ready = false;
+        h.controller.changed();
+        assert.strictEqual(target.dataset.speechState, 'locked');
+        h.settings.audio_ready = true;
+        h.settings.audio_error = 'audio_failed';
+        h.controller.changed();
+        assert.strictEqual(target.dataset.speechState, 'audio_error');
+        h.settings.audio_error = null;
+        h.controller.changed();
+        assert.strictEqual(target.dataset.speechState, 'ready');
+    });
     it('marks a whole call green only after every exact part is ready', async function() {
         const h = harness(), target = element();
         h.controller.trackMatch(target, 'match1', 'match:manualcall');

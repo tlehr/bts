@@ -177,11 +177,14 @@ suite('BTS / actual FastAPI / native Chrome speech integration', function() {
             'const nativePlay = HTMLMediaElement.prototype.play; HTMLMediaElement.prototype.play = function() {' +
             'this.addEventListener(\'playing\', () => window.__audioSources.push(this.currentSrc), {once:true}); ' +
             'return nativePlay.call(this); };');
-        const bounds = await devtools.evaluate('(() => { const r = [...document.querySelectorAll(\'.local_speech_controls button\')]' +
-            '.find(b => b.textContent === \'Audio aktivieren\').getBoundingClientRect(); return {x:r.x+r.width/2,y:r.y+r.height/2}; })()');
+        const bounds = await devtools.evaluate('(() => { const button = [...document.querySelectorAll(\'.local_speech_controls button\')]' +
+            '.find(b => b.textContent === \'Audio aktivieren\'); button.scrollIntoView({block:\'center\'}); ' +
+            'const r = button.getBoundingClientRect(); return {x:r.x+r.width/2,y:r.y+r.height/2}; })()');
         for (const type of ['mousePressed', 'mouseReleased']) {
             await devtools.call('Input.dispatchMouseEvent', { type, x: bounds.x, y: bounds.y, button: 'left', clickCount: 1 });
         }
+        assert.strictEqual(await devtools.evaluate('btsSpeechService.unlock()'), true,
+            'the actual silent unlock WAV must be playable in the native browser');
         const state = await devtools.evaluate('runAnnouncementSpeechCheck()');
         assert.strictEqual(state.status, 'active', JSON.stringify(state));
         assert(state.detail.includes('Server-Audio'));
@@ -215,6 +218,54 @@ suite('BTS / actual FastAPI / native Chrome speech integration', function() {
         assert.strictEqual(await devtools.evaluate('window.__audioSources.length'), before);
         await devtools.call('Page.captureScreenshot', { format: 'png' }).then(result =>
             fs.writeFileSync('/tmp/bts-local-tts-readiness-preview.png', Buffer.from(result.data, 'base64')));
+    });
+
+    it('uses the green preparation call audio directly in automatic mode despite a delayed resolve endpoint', async function() {
+        await devtools.evaluate('(() => { const mode = document.querySelector(\'.local_speech_controls select\'); ' +
+            'mode.value = \'auto\'; mode.dispatchEvent(new Event(\'change\')); ' +
+            'localStorage.setItem(\'enable_announcement_preparations_default_h1\', \'true\'); ' +
+            'window.__audioSources = []; window.__browserSpeechCalls = 0; ' +
+            'const nativeSpeak = speechSynthesis.speak.bind(speechSynthesis); ' +
+            'speechSynthesis.speak = words => { window.__browserSpeechCalls++; return nativeSpeak(words); }; ' +
+            'document.querySelector(\'.match_preparation_call_button\').scrollIntoView(); })(); btsSpeechReadiness.refresh(true)');
+        assert.strictEqual(await devtools.evaluate(
+            'document.querySelector(\'.match_preparation_call_button\').dataset.speechState'), 'ready');
+        for (const entry of app.speech.broker.entries.values()) entry.checked = Date.now() - 301000;
+        const original = admin.handle_speech_resolve;
+        let lookups = 0;
+        admin.handle_speech_resolve = (...args) => { lookups++; setTimeout(() => original(...args), 900); };
+        try {
+            const match = await app.db.matches.findOne_async({ _id: 'match1' });
+            admin.notify_change(app, 'default', 'match_preparation_call', {
+                match__id: match._id, match, _announcement_ts: Date.now(),
+            });
+            await until(() => devtools.evaluate('window.__audioSources.length >= 10'));
+            await until(() => devtools.evaluate('announcementPlaybackActive === false'));
+            assert.strictEqual(await devtools.evaluate('window.__browserSpeechCalls'), 0);
+            assert.strictEqual(lookups, 0, 'a green call must not depend on another short-deadline WebSocket lookup');
+            assert((await devtools.evaluate('document.querySelector(\'.local_speech_playback_status\').textContent')).includes('Server-Audio'));
+        } finally { admin.handle_speech_resolve = original; }
+    });
+
+    it('removes green readiness and visibly identifies browser fallback after a native audio download failure', async function() {
+        await devtools.evaluate('document.querySelector(\'.announcement_speech_check_form button\').scrollIntoView(); ' +
+            'btsSpeechReadiness.refresh(true)');
+        await devtools.call('Network.enable');
+        await devtools.call('Network.setCacheDisabled', { cacheDisabled: true });
+        await devtools.call('Network.setBlockedURLs', { urls: ['*/speech/audio/*'] });
+        try {
+            const result = await devtools.evaluate('btsSpeechService.speak([ci18n(\'announcements:speechcheck:text\')], ' +
+                '\'native-download-failure\', async () => ({status:\'ok\', started:true}))');
+            assert.strictEqual(result.provider, 'browser');
+            assert.strictEqual(result.fallback_reason, 'audio_failed');
+            assert.strictEqual(await devtools.evaluate(
+                'document.querySelector(\'.announcement_speech_check_form button\').dataset.speechState'), 'audio_error');
+            const message = await devtools.evaluate('document.querySelector(\'.local_speech_playback_status\').textContent');
+            assert(message.includes('Browser-Fallback') && message.includes('Audiodatei'), message);
+        } finally {
+            await devtools.call('Network.setBlockedURLs', { urls: [] });
+            await devtools.evaluate('btsSpeechService.unlock()');
+        }
     });
 
     it('uses the real match-call WebSocket path and plays a repeated event only once', async function() {

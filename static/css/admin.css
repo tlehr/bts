@@ -3632,7 +3632,8 @@ h2.edit {
     width: 100%;
 }
 
-.local_speech_status {
+.local_speech_status,
+.local_speech_playback_status {
     font-size: 0.9em;
     line-height: 1.4;
 }
@@ -3644,7 +3645,9 @@ h2.edit {
 
 [data-speech-state="ready"] { --speech-color: #18733c; }
 [data-speech-state="preparing"] { --speech-color: #a45b00; }
+[data-speech-state="locked"] { --speech-color: #a45b00; }
 [data-speech-state="failed"],
+[data-speech-state="audio_error"],
 [data-speech-state="unavailable"] { --speech-color: #b42318; }
 
 [data-speech-state]::after {
@@ -3669,6 +3672,7 @@ h2.edit {
 [data-speech-state="preparing"]::after { content: "…"; }
 [data-speech-state="checking"]::after { content: "?"; }
 [data-speech-state="failed"]::after,
+[data-speech-state="audio_error"]::after,
 [data-speech-state="unavailable"]::after { content: "!"; }
 
 .local_speech_readiness {

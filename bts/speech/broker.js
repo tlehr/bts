@@ -121,7 +121,7 @@ class SpeechBroker {
             }
             if (entry.status === 'failed' && entry.retry_at <= this.now()) entry.status = 'unsubmitted';
             // Revalidate preference/configuration occasionally through the authoritative cache.
-            if (entry.status === 'completed' && entry.checked + 300000 < this.now()) entry.status = 'unsubmitted';
+            if (entry.status === 'completed' && entry.checked + 300000 < this.now()) entry.revalidate = true;
             if (normalized.priority === 'high') entry.next_poll = 0;
         }
         return normalized;
@@ -138,11 +138,15 @@ class SpeechBroker {
         });
     }
 
-    inspect(parts, options) {
+    inspect(parts, options, tournament_key) {
         const { voice, language } = this.validate(parts, options);
-        return parts.map(text => ({
-            status: this.entries.get(this.key(text, voice, language))?.status || 'missing',
-        }));
+        return parts.map(text => {
+            const entry = this.entries.get(this.key(text, voice, language));
+            return { status: entry?.status || 'missing',
+                ...(entry?.status === 'completed' && tournament_key ?
+                    { audio_url: this.audio_url(tournament_key, entry.audio_id) } : {}),
+            };
+        });
     }
 
     audio_url(tournament_key, audio_id) {
@@ -215,7 +219,7 @@ class SpeechBroker {
         const now = this.now();
         const entries = [...this.entries.values()].filter(entry => !entry.busy);
         const pending = entries.filter(entry =>
-            (entry.status === 'unsubmitted' || entry.promote) && entry.retry_at <= now)
+            (entry.status === 'unsubmitted' || entry.promote || entry.revalidate) && entry.retry_at <= now)
             .sort((a, b) => a.priority - b.priority || a.created - b.created);
         let entry = now - this.last_post >= this.config.submit_interval_ms ? pending[0] : null;
         let post = !!entry;
@@ -228,6 +232,7 @@ class SpeechBroker {
             if (post) {
                 this.last_post = now;
                 entry.promote = false;
+                entry.revalidate = false;
                 response = await this.request(this.config.base_url, this.config.api_key, 'POST', '/v1/speech', {
                     text: entry.text, voice: entry.voice, language: entry.language,
                     priority: Object.keys(PRIORITY)[entry.priority],
@@ -241,6 +246,7 @@ class SpeechBroker {
             this.last_error = error.status === 429 ? 'speech_busy' : 'speech_unavailable';
             if (!post && error.status === 404) { entry.status = 'unsubmitted'; entry.job_id = null; }
             if (post && entry.job_id && entry.status === 'queued') entry.promote = true;
+            if (post && entry.status === 'completed') entry.revalidate = true;
             entry.retry_at = this.now() + (error.status === 429 ? 10000 : 5000);
             entry.next_poll = entry.retry_at;
         } finally { entry.busy = false; }

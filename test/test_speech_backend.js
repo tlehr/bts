@@ -122,6 +122,24 @@ describe('Server speech adapter and protected audio', function() {
         } finally { await close(fixture.server); }
     });
 
+    it('keeps a ready clip usable while revalidating its older cache reference in the background', async function() {
+        let time = Date.now();
+        let posts = 0;
+        const broker = new SpeechBroker(config(), { now: () => time, request: async (_base, _key, _method, _path, body) => {
+            posts++;
+            return reply(body, 'completed');
+        } });
+        broker.prepare([TEXT]);
+        await broker.step();
+        time += 301000;
+        broker.prepare([TEXT], { priority: 'high' });
+        assert.strictEqual(broker.views([TEXT], {}, 'default')[0].status, 'completed');
+        assert.strictEqual(posts, 1, 'playback lookup must not await an upstream cache revalidation');
+        await broker.step();
+        assert.strictEqual(posts, 2);
+        assert.strictEqual(broker.views([TEXT], {}, 'default')[0].status, 'completed');
+    });
+
     it('promotes queued prefetch work when it is needed for an actual call', async function() {
         let time = Date.now();
         const sent = [];
@@ -321,6 +339,11 @@ describe('Server speech adapter and protected audio', function() {
         assert.strictEqual(responses[2].speech_error, 'invalid_speech_request');
         handle(app, ws, { ...msg, parts: null });
         assert.strictEqual(responses[3].speech_error, 'invalid_speech_request');
+        handle(app, ws, { ...msg, parts: [TEXT], audio_urls: true });
+        const clip = responses[4].clips[0];
+        assert.strictEqual(clip.status, 'completed');
+        assert(clip.audio_url.startsWith('/h/default/speech/audio/'));
+        assert.strictEqual(JSON.stringify([...broker.entries.values()]), before);
     });
 
     it('exposes an opaque cache revision that changes with synthesis identity', function() {

@@ -631,8 +631,8 @@ function runAnnouncementSpeechCheck() {
     )).then((result) => setAnnouncementSpeechCheckState(
         result.status === 'ok' ? 'active' : 'error',
         result.status === 'ok'
-            ? (result.provider === 'server' ? 'Lokales Server-Audio funktioniert.' : 'Browser-TTS funktioniert (Fallback).')
-            : 'Audio noch nicht bereit oder Wiedergabe gesperrt. Audio aktivieren und erneut testen.'
+            ? btsSpeechService.describeResult(result)
+            : btsSpeechService.describeResult(result) + ' Audio aktivieren und erneut testen.'
     )).catch(() => setAnnouncementSpeechCheckState('error', ci18n('announcements:speechcheck:error')));
 }
 
@@ -645,14 +645,11 @@ function processAnnouncementPlaybackQueue() {
     const finish = (result) => {
         if (generation !== announcementPlaybackGeneration) return;
         if (result.status === 'ok') {
-            setAnnouncementSpeechCheckState('active', result.provider === 'server'
-                ? 'Lokales Server-Audio aktiv.' : ci18n('announcements:speechcheck:ok'));
+            setAnnouncementSpeechCheckState('active', btsSpeechService.describeResult(result));
         } else if (result.status === 'suspicious') {
             setAnnouncementSpeechCheckState('suspicious', ci18n('announcements:speechcheck:suspicious'));
         } else if (['error', 'unavailable'].includes(result.status)) {
-            setAnnouncementSpeechCheckState('error', result.status === 'unavailable'
-                ? 'Server-Audio wird vorbereitet; Automatik bietet Browser-Fallback.'
-                : ci18n('announcements:speechcheck:error'));
+            setAnnouncementSpeechCheckState('error', btsSpeechService.describeResult(result));
         }
         if (result.allowRetry && nextBatch.allowRetry !== false) {
             releaseAnnouncementPlaybackClaim(nextBatch.callArray, nextBatch.claimKey);

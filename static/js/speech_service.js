@@ -4,13 +4,56 @@
 
 function createSpeechService(context) {
     const history = new Map();
+    const prepared = new Map();
     let active = null;
     let audio = null;
     let test_id = 0;
+    let cache_version;
+    let audio_ready = false;
+    let audio_error = null;
+    let last_result = null;
     const now = context.now || Date.now;
     const getAudio = () => audio || (audio = context.makeAudio());
-    const settings = () => context.settings();
+    const settings = () => ({ ...context.settings(), audio_ready, audio_error });
     const languageSupported = value => value.language === 'de-DE';
+    const usable = clip => clip?.status === 'completed' && typeof clip.audio_url === 'string' &&
+        /^\/h\/[^/]+\/speech\/audio\/[0-9a-f]{32}\?/.test(clip.audio_url);
+    const key = (text, value) => JSON.stringify([value.key, value.voice, value.language, text]);
+    const changed = () => context.onStateChange?.();
+
+    function remember(response, parts, value) {
+        if (cache_version !== response?.speech?.cache_version) {
+            prepared.clear();
+            cache_version = response?.speech?.cache_version;
+        }
+        if (response?.speech_error || response?.speech?.enabled === false) { prepared.clear(); return; }
+        if (response?.clips?.length !== parts.length) return;
+        response.clips.forEach((clip, index) => {
+            const id = key(parts[index], value);
+            prepared.delete(id);
+            if (usable(clip)) prepared.set(id, { clip, checked: now() });
+        });
+        while (prepared.size > 512) prepared.delete(prepared.keys().next().value);
+    }
+
+    const reasons = {
+        browser_mode: 'Browser-TTS ist ausgewählt.',
+        disabled: 'Lokale Sprache ist nicht eingerichtet.',
+        unsupported_language: 'Für diese Sprache ist keine lokale Stimme verfügbar.',
+        cache_incomplete: 'Die vollständige Durchsage ist noch nicht gecacht.',
+        speech_timeout: 'Die Antwort auf die Cache-Abfrage kam nicht rechtzeitig.',
+        speech_rate_limit: 'Zu viele Sprachabfragen in kurzer Zeit.',
+        speech_request_failed: 'Der Sprachstatus konnte nicht abgerufen werden.',
+        audio_blocked: 'Der Browser hat Server-Audio gesperrt. Audio aktivieren.',
+        audio_failed: 'Die lokale Audiodatei konnte nicht geladen oder abgespielt werden.',
+        audio_start_timeout: 'Die lokale Audiodatei startete nicht rechtzeitig.',
+    };
+    function describeResult(result) {
+        if (result.provider === 'browser') return result.fallback_reason === 'browser_mode' ? 'Browser-TTS aktiv (ausgewählt).' :
+            'Browser-Fallback: ' + (reasons[result.fallback_reason] || reasons.speech_request_failed);
+        if (result.provider === 'server' && ['ok', 'playing'].includes(result.status)) return 'Lokales Server-Audio aktiv.';
+        return reasons[result.reason] || 'Lokales Server-Audio ist nicht verfügbar.';
+    }
 
     async function prepare(parts) {
         const value = settings();
@@ -23,31 +66,33 @@ function createSpeechService(context) {
     }
 
     async function ready(parts, value, signal) {
-        if (!value.enabled || !value.key || !languageSupported(value)) return null;
+        if (!value.enabled || !value.key) return { reason: 'disabled' };
+        if (!languageSupported(value)) return { reason: 'unsupported_language' };
+        const cached = parts.map(text => prepared.get(key(text, value)));
+        if (cached.every(entry => entry && now() - entry.checked < 15000)) return { clips: cached.map(entry => entry.clip) };
         const deadline = now() + value.deadline_ms;
         do {
-            if (signal.aborted) return null;
+            if (signal.aborted) return { reason: 'cancelled' };
             try {
                 const response = await context.request('speech_resolve', {
                     tournament_key: value.key, voice: value.voice, language: value.language, parts,
                 }, Math.max(1, deadline - now()), signal);
-                if (signal.aborted || now() > deadline) return null;
-                if (response.clips?.length === parts.length &&
-                    response.clips.every(clip => clip.status === 'completed' &&
-                        typeof clip.audio_url === 'string' && /^\/h\/[^/]+\/speech\/audio\/[0-9a-f]{32}\?/.test(clip.audio_url))) {
-                    return response.clips;
-                }
-                if (response.speech_error || response.speech?.enabled === false) return null;
-            } catch (_) { return null; }
+                if (signal.aborted || now() > deadline) return { reason: 'speech_timeout' };
+                remember(response, parts, value);
+                if (response.clips?.length === parts.length && response.clips.every(usable)) return { clips: response.clips };
+                if (response.speech_error || response.speech?.enabled === false) return {
+                    reason: response.speech_error === 'speech_rate_limit' ? 'speech_rate_limit' : 'speech_request_failed',
+                };
+            } catch (error) { return { reason: error.message === 'speech_timeout' ? 'speech_timeout' : 'speech_request_failed' }; }
             const remaining = deadline - now();
-            if (remaining <= 0) return null;
+            if (remaining <= 0) return { reason: 'cache_incomplete' };
             await new Promise(resolve => {
                 const timer = setTimeout(finish, Math.min(100, remaining));
                 function finish() { clearTimeout(timer); signal.removeEventListener('abort', finish); resolve(); }
                 signal.addEventListener('abort', finish, { once: true });
             });
         } while (now() < deadline);
-        return null;
+        return { reason: 'cache_incomplete' };
     }
 
     async function play(clips, value, signal) {
@@ -68,7 +113,13 @@ function createSpeechService(context) {
                     else resolve();
                 };
                 const abort = () => finish(new Error('cancelled'));
-                player.onplaying = () => { started = true; clearTimeout(timer); };
+                player.onplaying = () => {
+                    const first = !started;
+                    started = true; clearTimeout(timer);
+                    audio_ready = true; audio_error = null;
+                    last_result = { status: 'playing', provider: 'server' };
+                    if (first) changed();
+                };
                 player.onended = () => finish();
                 player.onerror = () => finish(new Error('audio_failed'));
                 player.src = clip.audio_url;
@@ -76,7 +127,8 @@ function createSpeechService(context) {
                 player.volume = value.volume === undefined ? 1 : value.volume;
                 signal.addEventListener('abort', abort, { once: true });
                 timer = setTimeout(() => finish(new Error('audio_start_timeout')), 3000);
-                try { Promise.resolve(player.play()).catch(() => finish(new Error('audio_blocked'))); }
+                try { Promise.resolve(player.play()).catch(error =>
+                    finish(new Error(error.name === 'NotAllowedError' ? 'audio_blocked' : 'audio_failed'))); }
                 catch (_) { finish(new Error('audio_failed')); }
             });
         }
@@ -92,31 +144,40 @@ function createSpeechService(context) {
         const controller = new AbortController();
         active = controller;
         let result;
-        const useBrowser = async () => {
+        const useBrowser = async reason => {
             if (controller.signal.aborted) return { status: 'cancelled', started: false };
-            try { return { ...await browser(parts, controller.signal), provider: 'browser' }; }
-            catch (_) { return { status: 'error', provider: 'browser', started: false }; }
+            last_result = { status: 'playing', provider: 'browser', fallback_reason: reason };
+            changed();
+            try { return { ...await browser(parts, controller.signal), provider: 'browser', fallback_reason: reason }; }
+            catch (_) { return { status: 'error', provider: 'browser', fallback_reason: reason, started: false }; }
         };
         try {
-            if (value.mode === 'browser') result = await useBrowser();
+            if (value.mode === 'browser') result = await useBrowser('browser_mode');
             else {
-                const clips = await ready(parts, value, controller.signal);
+                const resolved = await ready(parts, value, controller.signal);
                 if (controller.signal.aborted) result = { status: 'cancelled', started: false };
-                else if (!clips) {
-                    result = value.mode === 'auto' ? await useBrowser() :
-                        { status: 'unavailable', provider: 'server', started: false };
+                else if (!resolved.clips) {
+                    result = value.mode === 'auto' ? await useBrowser(resolved.reason) :
+                        { status: 'unavailable', reason: resolved.reason, provider: 'server', started: false };
                 } else {
-                    try { result = await play(clips, value, controller.signal); }
+                    try { result = await play(resolved.clips, value, controller.signal); }
                     catch (error) {
                         if (controller.signal.aborted) result = { status: 'cancelled', provider: 'server', started: error.started };
-                        else if (!error.started && value.mode === 'auto') result = await useBrowser();
-                        else result = { status: 'error', provider: 'server', started: !!error.started };
+                        else {
+                            prepared.clear();
+                            audio_error = error.message;
+                            if (audio_error === 'audio_blocked') audio_ready = false;
+                            if (!error.started && value.mode === 'auto') result = await useBrowser(error.message);
+                            else result = { status: 'error', reason: error.message, provider: 'server', started: !!error.started };
+                        }
                     }
                 }
             }
         } finally { if (active === controller) active = null; }
         // Claims may fail over to another tab only if no output began.
         result.allowRetry = !result.started && ['error', 'suspicious'].includes(result.status);
+        last_result = result;
+        changed();
         return result;
     }
 
@@ -132,19 +193,32 @@ function createSpeechService(context) {
         player.src = 'data:audio/wav;base64,UklGRiYAAABXQVZFZm10IBAAAAABAAEAwF0AAIC7AAACABAAZGF0YQIAAAAAAA==';
         player.volume = 0;
         try {
-            return Promise.resolve(player.play()).then(() => { player.pause(); player.volume = 1; return true; },
-                () => { player.volume = 1; return false; });
-        } catch (_) { player.volume = 1; return Promise.resolve(false); }
+            return Promise.resolve(player.play()).then(() => {
+                player.pause(); player.volume = 1; audio_ready = true; audio_error = null; changed(); return true;
+            }, error => {
+                player.volume = 1; audio_ready = false;
+                audio_error = error.name === 'NotAllowedError' ? 'audio_blocked' : 'audio_failed'; changed(); return false;
+            });
+        } catch (_) {
+            player.volume = 1; audio_ready = false; audio_error = 'audio_failed'; changed(); return Promise.resolve(false);
+        }
     }
 
     return {
-        settings, prepare, speak, cancel, unlock,
-        inspect: parts => {
+        settings, prepare, speak, cancel, unlock, describeResult,
+        outputMessage: () => settings().mode === 'browser' ? 'Browser-TTS ist ausgewählt.' :
+            last_result ? (last_result.status === 'playing' ? 'Aktuelle Ausgabe: ' : 'Letzte Ausgabe: ') + describeResult(last_result) :
+                audio_ready ? 'Audiowiedergabe freigegeben.' : 'Lokales Audio noch nicht freigegeben. Audio aktivieren.',
+        inspect: async parts => {
             const value = settings();
-            if (!value.enabled || !value.key || !languageSupported(value)) return Promise.resolve(null);
-            return context.request('speech_status', {
-                tournament_key: value.key, voice: value.voice, language: value.language, parts,
+            if (!value.enabled || !value.key || !languageSupported(value)) return null;
+            const response = await context.request('speech_status', {
+                tournament_key: value.key, voice: value.voice, language: value.language, parts, audio_urls: true,
             }, 1500).catch(() => null);
+            remember(response, parts, value);
+            if (response?.clips) response.clips = response.clips.map(clip =>
+                clip.status === 'completed' && !usable(clip) ? { status: 'unavailable' } : clip);
+            return response;
         },
         status: () => !settings().enabled ? Promise.resolve({ speech: { enabled: false } }) :
             context.request('speech_status',
@@ -176,6 +250,7 @@ else {
         },
         makeAudio: () => new Audio(),
         cancelBrowser: () => window.speechSynthesis?.cancel(),
+        onStateChange: () => window.dispatchEvent(new CustomEvent('bts-speech-output-changed')),
         request: (type, values, timeout_ms, signal) => new Promise((resolve, reject) => {
             let rid;
             let finished = false;
@@ -185,7 +260,8 @@ else {
                 clearTimeout(timer);
                 signal?.removeEventListener('abort', abort);
                 if (rid !== undefined) conn_ui.cancel_request(rid);
-                if (error) reject(new Error('speech_request_failed')); else resolve(result);
+                if (error) reject(new Error(error.message === 'speech_timeout' ? 'speech_timeout' : 'speech_request_failed'));
+                else resolve(result);
             };
             const abort = () => finish(new Error('cancelled'));
             const timer = setTimeout(() => finish(new Error('speech_timeout')), timeout_ms);
