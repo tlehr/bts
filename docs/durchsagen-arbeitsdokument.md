@@ -346,7 +346,15 @@ Die Schnittstellen müssen für jede Quellaufnahme ermittelt werden, damit keine
 
 ### 7.2 Festgelegt: Ein vollständiger Spielblock je Spiel mit zwei Team-Ausschnitten
 
-Nach den Feldaufnahmen werden die Spielblöcke der tatsächlichen Spiele vorbereitet. Sobald der Text eines Spiels mit seinen beiden Teams feststeht, wird dessen **vollständiger Spielblock B03 → B04 → B05 → B07 in einem Modellaufruf** generiert. Der Block enthält die tatsächliche Spielnummer, Disziplin / Altersklasse, Runde und beide Teams, soweit die entsprechenden Spielangaben aktiviert sind.
+Nach den Feldaufnahmen werden die Spielblöcke der tatsächlichen Spiele vorbereitet. **Sobald beide Teams eines Spiels feststehen**, wird dessen **vollständiger Spielblock B03 → B04 → B05 → B07** zur Generierung vorgemerkt und in einem Modellaufruf erzeugt. Der Block enthält die tatsächliche Spielnummer, Disziplin / Altersklasse, Runde und beide Teams, soweit die entsprechenden Spielangaben aktiviert sind.
+
+**Freigabe und Reihenfolge:**
+
+- Ein Spiel wird vorbereitet, sobald beide tatsächlichen Teams vollständig bekannt sind. Im Doppel müssen beide Spieler jedes Teams feststehen.
+- Die freigegebenen Spiele werden **in der Reihenfolge ihrer Ansetzung im Spielplan** generiert: Das zuerst angesetzte, noch nicht vorbereitete Spiel mit zwei feststehenden Teams kommt zuerst.
+- Spiele mit einem noch unbekannten Team warten. Andere bereits freigegebene Spiele können währenddessen in ihrer Ansetzungsreihenfolge vorbereitet werden.
+- Werden die Teams eines weiteren Spiels bekannt, wird es an seiner Stelle im aktuellen Spielplan in die noch offene Generierungsreihenfolge einsortiert. Eine geänderte Ansetzungsreihenfolge wird bei den noch offenen Aufträgen berücksichtigt.
+- Die Vormerkung erfolgt beim Bekanntwerden beider Teams. Die vereinbarte erste Feldstufe und der einzelne Generierungsplatz bleiben erhalten; bereits passende Aufnahmen werden wiederverwendet.
 
 Die Feldansagen B01 und die Offiziellen B08 gehören nicht zu dieser Aufnahme. Derselbe Spielblock kann dadurch bei D01 und D02 sowie bei einem Feldwechsel wiederverwendet werden.
 
@@ -399,7 +407,7 @@ Die übrigen Punkte können wir direkt in dieser Datei festlegen:
 | Kampflos | Welche Aufnahmen können mit D01/D02 geteilt werden, ohne die andere Satzmelodie zu verlieren? | Offen |
 | Pausen und Betonung | Welche Pausen gehören in die Aufnahme, welche setzen wir beim Abspielen? | Offen |
 | Browser-TTS | Welche bestehende Abschnittsaufteilung behalten oder ändern wir dafür? | Offen |
-| Vorab-Cache | Welche Varianten müssen vorbereitet werden, und welche erst nach einer tatsächlichen Änderung? | Zuerst B01-Anfang und B01-Ende für alle Felder; danach vollständige Spielblöcke samt Team-Ausschnitten; weitere Vorbereitungsstufen und die Reihenfolge der Spiele offen |
+| Vorab-Cache | Welche Varianten müssen vorbereitet werden, und welche erst nach einer tatsächlichen Änderung? | Zuerst B01-Anfang und B01-Ende für alle Felder; danach Spielblöcke samt Team-Ausschnitten, sobald beide Teams feststehen, in der angesetzten Spielplanreihenfolge; weitere Vorbereitungsstufen offen |
 
 Für eine vereinbarte neue Fassung können wir je Durchsage anschließend festhalten:
 
@@ -456,7 +464,7 @@ Die Kennungen dieses Dokuments decken alle 14 spielbezogenen Auslöser ab: D04 u
 
 Diese Übersicht wird bei jeder weiteren Festlegung zur Stückelung und Reihenfolge mit aktualisiert. Sie beschreibt den geplanten Bestand für die ausgewählte lokale Stimme. Bereits passende Aufnahmen werden wiederverwendet. Die Angaben zum Generierungsaufwand beziehen sich auf einen vollständig leeren Cache.
 
-**F** ist die Anzahl aller im Turnier angelegten Felder. **S** ist die Anzahl der vorzubereitenden Spiele in ihrer jeweils aktuellen Spielblockfassung; die folgenden Planungsmengen setzen unterschiedliche Spielblocktexte voraus. Ein wiederverwendetes Satzstück zählt einmal zum Bestand, unabhängig davon, wie oft es später abgespielt wird. Bei B01 zählen Anfang und Ende wegen ihrer unterschiedlichen Betonung als zwei Aufnahmen je Feld. Die vollständigen Feld-Referenzaufnahmen werden zusätzlich aufbewahrt, zählen hier aber nicht als weitere Wiedergabestücke. Die vollständigen Spielblöcke werden dagegen selbst abgespielt und deshalb zusätzlich zu ihren Team-Ausschnitten gezählt.
+**F** ist die Anzahl aller im Turnier angelegten Felder. **S** ist die Anzahl der vorzubereitenden Spiele, deren beide Teams bereits feststehen, in ihrer jeweils aktuellen Spielblockfassung; die folgenden Planungsmengen setzen unterschiedliche Spielblocktexte voraus. Werden weitere Teams bekannt, kommen die entsprechenden Spiele hinzu. Ein wiederverwendetes Satzstück zählt einmal zum Bestand, unabhängig davon, wie oft es später abgespielt wird. Bei B01 zählen Anfang und Ende wegen ihrer unterschiedlichen Betonung als zwei Aufnahmen je Feld. Die vollständigen Feld-Referenzaufnahmen werden zusätzlich aufbewahrt, zählen hier aber nicht als weitere Wiedergabestücke. Die vollständigen Spielblöcke werden dagegen selbst abgespielt und deshalb zusätzlich zu ihren Team-Ausschnitten gezählt.
 
 ### 10.1 Festgelegte Vorbereitungsstufen
 
@@ -473,11 +481,11 @@ Diese Übersicht wird bei jeder weiteren Festlegung zur Stückelung und Reihenfo
 
 **Aufwand der Feldstufe: F vollständige Generierungen für 2 × F Wiedergabestücke.** Anfang und Ende werden aus derselben Aufnahme gewonnen und lösen keine getrennten Generierungsaufträge aus. Die Verwendung von B01-Anfang bei D03 benötigt ebenfalls keine weitere Feldaufnahme.
 
-**Aufwand der Spielblockstufe: S vollständige Generierungen für 3 × S Wiedergabestücke.** Beide Team-Ausschnitte entstehen aus dem jeweiligen vollständigen Spielblock und benötigen keine zusätzlichen Modellaufrufe. Die weitere Verwendung desselben Spielblocks bei D01 und D02 wird nicht doppelt gezählt.
+**Aufwand der Spielblockstufe: S vollständige Generierungen für 3 × S Wiedergabestücke.** Die Spiele werden freigegeben, sobald beide Teams feststehen, und in der angesetzten Spielplanreihenfolge generiert. Beide Team-Ausschnitte entstehen aus dem jeweiligen vollständigen Spielblock und benötigen keine zusätzlichen Modellaufrufe. Die weitere Verwendung desselben Spielblocks bei D01 und D02 wird nicht doppelt gezählt.
 
 **Zusammen: F + S vollständige Generierungen für 2 × F + 3 × S Wiedergabestücke**, bevor die weiteren noch offenen Bereiche hinzukommen. Bei bereits passenden oder identischen Texten kann Wiederverwendung den tatsächlichen Aufwand und Bestand verringern.
 
-Für jede dieser Generierungen wird der festgelegte Beispiel-Spielblock aus Abschnitt 7.1 zwischen die beiden Spielfeldansagen gesetzt. Er wird nicht zusätzlich als eigener Text angefordert. Ob wir seinen Mittelteil ebenfalls ausschneiden und als Baustein nutzen, ist noch offen; deshalb wird er hier nicht als weiterer fertiger Baustein mitgezählt.
+Für jede Feld-Referenzgenerierung wird der festgelegte Beispiel-Spielblock aus Abschnitt 7.1 zwischen die beiden Spielfeldansagen gesetzt. Er wird nicht zusätzlich als eigener Text angefordert. Ob wir seinen Mittelteil ebenfalls ausschneiden und als Baustein nutzen, ist noch offen; deshalb wird er hier nicht als weiterer fertiger Baustein mitgezählt. Die Spielblockstufe verwendet die tatsächlichen Spielangaben und feststehenden Teams des jeweiligen Spiels.
 
 ### 10.2 Weitere benötigte Texte und noch offene Mengen
 
@@ -515,7 +523,7 @@ Beispiel mit 16 Feldern und 100 unterschiedlichen Spielblöcken: **32 Feldaufnah
 
 ### 10.4 Geplante Abfolge der Generierung
 
-Die erste Stufe arbeitet Feld für Feld ab. Danach folgt die Spielblockstufe: je Spiel eine vollständige Aufnahme und daraus beide Teams ohne „gegen“. Bei Feldern 1 bis F und Spielen 1 bis S sieht die Abfolge so aus; welche Spiele innerhalb der zweiten Stufe zuerst vorbereitet werden, ist noch festzulegen:
+Die erste Stufe arbeitet Feld für Feld ab. Danach folgt die Spielblockstufe: je Spiel mit zwei feststehenden Teams eine vollständige Aufnahme und daraus beide Teams ohne „gegen“. Die freigegebenen Spiele werden in ihrer **angesetzten Reihenfolge im Spielplan** abgearbeitet. Bei Feldern 1 bis F und S freigegebenen Spielen sieht die Abfolge so aus:
 
 ```text
 1. Referenzaufruf für Feld 1 vollständig generieren
@@ -532,17 +540,18 @@ F. Referenzaufruf für das letzte Feld vollständig generieren
    → B01-Anfang für dieses Feld ausschneiden und cachen
    → B01-Ende für dieses Feld ausschneiden und cachen
 
-F + 1. Vollständigen Spielblock für Spiel 1 mit den tatsächlichen Teams generieren
+F + 1. Vollständigen Spielblock für das zuerst angesetzte bereite Spiel generieren
        → Vollständigen Spielblock für die Wiedergabe cachen
        → B06-Team1 ohne „gegen“ ausschneiden und cachen
        → B06-Team2 ohne „gegen“ ausschneiden und cachen
 
-F + 2. Vollständigen Spielblock für Spiel 2 mit den tatsächlichen Teams generieren
+F + 2. Vollständigen Spielblock für das nächste angesetzte bereite Spiel generieren
        → Vollständigen Spielblock für die Wiedergabe cachen
        → B06-Team1 ohne „gegen“ ausschneiden und cachen
        → B06-Team2 ohne „gegen“ ausschneiden und cachen
 
-… dieselben Schritte für alle weiteren bekannten Spielblocktexte …
+… dieselben Schritte für alle weiteren Spiele mit zwei feststehenden Teams,
+  jeweils in der aktuellen Ansetzungsreihenfolge …
 
 F + S. Vollständigen Spielblock für das letzte vorzubereitende Spiel generieren
        → Vollständigen Spielblock und beide Team-Ausschnitte cachen
@@ -550,4 +559,4 @@ F + S. Vollständigen Spielblock für das letzte vorzubereitende Spiel generiere
 Danach: weitere Vorbereitungsstufen – Reihenfolge noch festzulegen.
 ```
 
-Bereits passende Feldaufnahmen und Spielblöcke werden wiederverwendet; fehlende Ausschnitte werden aus einer vorhandenen passenden Quellaufnahme gewonnen. Bei einer Lücke in der Feldnummerierung werden nur die tatsächlich angelegten Felder bearbeitet. Noch nicht feststehende Teamtexte werden ergänzt, sobald sie bekannt sind. Die Reihenfolge der Spiele, die Staffelung weiterer Vorbereitungsstufen und der Umgang mit einem währenddessen ausgelösten echten Aufruf bleiben gesondert festzulegen.
+Bereits passende Feldaufnahmen und Spielblöcke werden wiederverwendet; fehlende Ausschnitte werden aus einer vorhandenen passenden Quellaufnahme gewonnen. Bei einer Lücke in der Feldnummerierung werden nur die tatsächlich angelegten Felder bearbeitet. Sobald beide Teams eines weiteren Spiels feststehen, wird es nach seiner Position im Spielplan in die noch offene Generierungsreihenfolge aufgenommen. Die Staffelung weiterer Vorbereitungsstufen und der Umgang mit einem währenddessen ausgelösten echten Aufruf bleiben gesondert festzulegen.
