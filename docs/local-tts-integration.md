@@ -61,6 +61,12 @@ Alternativ BTS_SPEECH_ENABLED=true, BTS_SPEECH_URL, BTS_SPEECH_API_KEY_FILE oder
 
 Weitere optionale Grenzen: max_entries (512), max_text (1200), timeout_ms (2500), submit_interval_ms (650), poll_interval_ms (2000), audio_url_ttl_seconds (900), audio_timeout_ms (30000), max_audio_clients (16). Der lokale Adapter begrenzt neue POSTs, gibt bei 429 Raum frei und blockiert keinen Spielruf auf CPU-Inferenz.
 
+BTS hält die gesamte Warteliste selbst und übermittelt **höchstens einen offenen Generierungsauftrag**. Erst nach dessen Abschluss oder endgültigem Fehler wird der nächste Text gewählt: tatsächliche Aufrufe (`high`), unmittelbar bevorstehende Ansagen (`normal`), danach übrige Vorbereitungen (`low`). Bei gleicher Priorität kommen abonnierte Stimmen abwechselnd zum Zug; innerhalb einer Stimme bleibt die zeitliche Reihenfolge erhalten. Die Vorbereitung fügt Texte beider Stimmen abwechselnd ein, damit eine volle lokale Liste nicht eine Stimme verdrängt. Ferne Vorabarbeit verdrängt keine noch ausstehende unmittelbar bevorstehende Ansage.
+
+Ein unklarer Übermittlungsfehler hält denselben Auftrag fest; BTS versucht ihn identisch erneut, statt parallel andere Texte zu senden. Der Sprachserver fasst solche Wiederholungen zusammen. Er lehnt einen anderen neuen Auftrag während eines offenen Jobs mit `429/busy` und `Retry-After: 1` ab. Bereits fertige Cache-Treffer bleiben verfügbar. Nach einer Busy-Antwort bleiben die Texte im BTS; während der Wartezeit werden keine anderen Teile an der Ablehnung vorbei geschickt.
+
+Für die Umstellung BTS und Sprachserver neu starten und die BTS-Seite neu laden. Beim Sprachserver-Neustart wird höchstens ein alter offener Auftrag fortgesetzt. Weitere alte Warteaufträge werden mit `queue_released` als fehlgeschlagen markiert; Texte, Metadaten, fertige Audios und Freigaben bleiben erhalten. BTS bereitet die aktuell noch benötigten Ansageteile aus den Turnierdaten erneut vor. Die Cache-Anzeige meldet ausdrücklich, wenn der Sprachserver beschäftigt ist und weitere Ansageteile im BTS warten.
+
 ## Optionale Qwen-Modellgröße
 
 Der Sprachserver bietet zusätzlich Qwen3-TTS 0.6B Base als Startoption. Im separaten Projekt zunächst das gepinnte Modell herunterladen:
@@ -136,6 +142,8 @@ Bytegenaue Vergleiche aller bisherigen Ansagearten, geänderte Gegner, Queue-Gre
 
 
 ## Prüfstand dieses Auftrags
+
+Nach der Umstellung auf einen offenen Generierungsauftrag: 1025 BTS-Tests bestanden, acht optionale End-to-End-Fälle regulär deaktiviert. Separat bestanden diese acht Fälle mit echter FastAPI und nativem Chrome, einschließlich Stimmwechsel zur männlichen Stimme, deren Vorab-Cache und anschließender lokaler Wiedergabe. Während der Browserfälle wurde geprüft, dass vor Abschluss des aktuellen Jobs kein weiterer Generierungsauftrag gesendet wird. 68 gezielte Sprachtests und 81 Sprachserver-Tests bestanden. Parallele unterschiedliche Serveranfragen, Busy-Ablehnung ohne Jobanlage, Cache-Abruf während laufender Generierung, verlorene POST-Antworten und der Umstieg aus der alten Server-Warteschlange sind geprüft.
 
 Am 15.10.2026 nach der Kitten-Anbindung: 1019 BTS-Tests und 62 gezielte Sprachtests bestanden; sieben optionale End-to-End-Fälle bleiben in der normalen Suite deaktiviert. Separat wurden diese sieben Fälle mit echter FastAPI/Mock-Synthese und nativem Chrome erfolgreich ausgeführt. Die neuen Backend-Tests prüfen erneute Vorbereitung nach dem Wechsel und das Verwerfen verspäteter Antworten des vorherigen Backends. Der Sprachserver bestand 79 reguläre Tests sowie separat zweimal den echten Kitten-CPU-Test mit beiden Stimmen, Worker-Wiederverwendung, geschütztem WAV-Abruf und persistenten Cache-Treffern nach Neustart.
 

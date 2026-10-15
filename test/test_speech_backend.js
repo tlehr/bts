@@ -140,11 +140,14 @@ describe('Server speech adapter and protected audio', function() {
         assert.strictEqual(broker.views([TEXT], {}, 'default')[0].status, 'completed');
     });
 
-    it('promotes queued prefetch work when it is needed for an actual call', async function() {
+    it('chooses actual calls before unsent prefetch without replacing an active job', async function() {
         let time = Date.now();
-        const sent = [];
+        const sent = [], jobs = new Map();
         const broker = new SpeechBroker(config(), { now: () => time,
-            request: async (_base, _key, _method, _path, body) => { sent.push(body); return reply(body); } });
+            request: async (_base, _key, method, route, body) => {
+                if (method === 'GET') return jobs.get(route.split('/').at(-1));
+                sent.push(body); const job = reply(body); jobs.set(job.job_id, job); return job;
+            } });
         broker.prepare(['low', 'urgent']);
         broker.prepare(['urgent'], { priority: 'high' });
         await broker.step();
@@ -155,8 +158,15 @@ describe('Server speech adapter and protected audio', function() {
         broker.prepare(['low'], { priority: 'high' });
         time += 1000;
         await broker.step();
-        assert.strictEqual(sent[2].text, 'low');
-        assert.strictEqual(sent[2].priority, 'high');
+        assert.strictEqual(sent.length, 1);
+        const active = [...jobs.values()][0];
+        jobs.set(active.job_id, reply(active, 'completed'));
+        time += 3000;
+        await broker.step();
+        time += 1000;
+        await broker.step();
+        assert.strictEqual(sent[1].text, 'low');
+        assert.strictEqual(sent[1].priority, 'high');
     });
 
     it('backs off a full queue instead of flooding the speech server', async function() {
@@ -183,6 +193,127 @@ describe('Server speech adapter and protected audio', function() {
         assert.throws(() => broker.prepare([TEXT], { voice: '../../voices' }));
         assert.throws(() => broker.prepare([TEXT], { language: 'en-GB' }));
         assert.throws(() => broker.prepare(Array(65).fill(TEXT)));
+    });
+
+    it('backs off all new parts together when the server rejects a busy request', async function() {
+        let time = Date.now();
+        const sent = [];
+        let accepted, full = true;
+        const broker = new SpeechBroker(config(), { now: () => time,
+            request: async (_base, _key, method, _path, body) => {
+                sent.push({ method, body });
+                if (method === 'GET') return reply(accepted);
+                if (full) throw Object.assign(new Error('full'), { status: 429 });
+                return (accepted = reply(body));
+            } });
+        broker.prepare(['accepted', 'full', 'another']);
+        await broker.step();
+        time += 1000;
+        await broker.step();
+        time += 1000;
+        await broker.step();
+        assert.deepStrictEqual(sent.map(call => call.method), ['POST']);
+        time += 10000;
+        full = false;
+        await broker.step();
+        assert.strictEqual(sent.at(-1).method, 'POST');
+        time += 3000;
+        await broker.step();
+        assert.deepStrictEqual(sent.map(call => call.method), ['POST', 'POST', 'GET']);
+    });
+
+    it('keeps exactly one open job and chooses the next priority only after completion', async function() {
+        let time = Date.now();
+        const posts = [];
+        const jobs = new Map();
+        const broker = new SpeechBroker(config(), { now: () => time,
+            request: async (_base, _key, method, route, body) => {
+                if (method === 'GET') return jobs.get(route.split('/').at(-1));
+                posts.push(body);
+                const job = reply(body); jobs.set(job.job_id, job); return job;
+            } });
+        broker.prepare(['one', 'two', 'three']);
+        await broker.step(); time += 1000;
+        await broker.step(); time += 1000;
+        await broker.step();
+        assert.strictEqual(posts.length, 1);
+        broker.prepare(['actual call'], { voice: 'hallensprecher', priority: 'high' });
+        await broker.step();
+        assert.strictEqual(posts.length, 1);
+        const active = [...jobs.values()][0];
+        jobs.set(active.job_id, reply(active, 'completed'));
+        time += 3000;
+        await broker.step();
+        time += 1000;
+        await broker.step();
+        assert.strictEqual(posts.at(-1).text, 'actual call');
+        assert.strictEqual(posts.at(-1).priority, 'high');
+        assert.strictEqual(posts.length, 2);
+    });
+
+    it('holds the same request across a lost POST reply instead of opening another job', async function() {
+        let time = Date.now(), calls = 0, active;
+        const sent = [];
+        const broker = new SpeechBroker(config(), { now: () => time,
+            request: async (_base, _key, method, _route, body) => {
+                if (method === 'GET') return reply(active, 'completed');
+                sent.push(body);
+                if (++calls === 1) { active = reply(body); throw new Error('speech_timeout'); }
+                return body.text === active.text ? active : reply(body, 'completed');
+            } });
+        broker.prepare(['first']);
+        await broker.step();
+        broker.prepare(['urgent'], { priority: 'high', voice: 'hallensprecher' });
+        time += 1000;
+        await broker.step();
+        assert.strictEqual(sent.length, 1);
+        time += 5000;
+        await broker.step();
+        assert.deepStrictEqual(sent.map(request => request.text), ['first', 'first']);
+        time += 3000;
+        await broker.step();
+        time += 1000;
+        await broker.step();
+        assert.deepStrictEqual(sent.map(request => request.text), ['first', 'first', 'urgent']);
+    });
+
+    it('does not dispatch a second job while waiting for the first POST acknowledgement', async function() {
+        let finish, count = 0;
+        const broker = new SpeechBroker(config(), { request: async (_base, _key, _method, _route, body) => {
+            count++;
+            return new Promise(resolve => { finish = () => resolve(reply(body)); });
+        } });
+        broker.prepare(['one', 'two']);
+        const first = broker.step();
+        await broker.step();
+        await broker.step();
+        assert.strictEqual(count, 1);
+        finish();
+        await first;
+    });
+
+    it('gives a newly selected male voice a turn ahead of older same-priority female prefetch', async function() {
+        let time = Date.now();
+        const sent = [];
+        const broker = new SpeechBroker(config(), { now: () => time,
+            request: async (_base, _key, _method, _route, body) => { sent.push(body); return reply(body, 'completed'); } });
+        broker.prepare(['female one', 'female two', 'female three'], { priority: 'normal' });
+        await broker.step(); time += 1000;
+        broker.prepare(['male one', 'male two'], { voice: 'hallensprecher', priority: 'normal' });
+        await broker.step(); time += 1000;
+        await broker.step(); time += 1000;
+        await broker.step();
+        assert.deepStrictEqual(sent.map(request => request.voice),
+            ['hallensprecherin', 'hallensprecher', 'hallensprecherin', 'hallensprecher']);
+    });
+
+    it('does not evict imminent calls to make room for distant background work', function() {
+        const broker = new SpeechBroker(config({ max_entries: 32 }));
+        broker.prepare(Array.from({ length: 32 }, (_, i) => 'imminent ' + i), { priority: 'normal' });
+        broker.prepare(['future'], { priority: 'low' });
+        assert.strictEqual(broker.views(['imminent 0'], {}, 'default')[0].status, 'unsubmitted');
+        assert.strictEqual(broker.views(['future'], {}, 'default')[0].status, 'unsubmitted');
+        assert(![...broker.entries.values()].some(entry => entry.text === 'future'));
     });
 
     it('rejects mismatched upstream text and malformed completed audio', async function() {
@@ -428,10 +559,13 @@ describe('Server speech adapter and protected audio', function() {
         }
         const broker = new SpeechBroker(config());
         const prefetch = new Prefetcher({ db }, broker);
-        prefetch.subscriptions.set('default', new Set(['hallensprecherin']));
+        prefetch.subscriptions.set('default', new Set(['hallensprecherin', 'hallensprecher']));
         await prefetch.refresh('default');
         assert([...broker.entries.values()].some(entry => entry.text.includes('Muhammad Sytsh Abdulquddus')));
         assert([...broker.entries.values()].every(entry => entry.status === 'unsubmitted'));
+        const firstEntries = [...broker.entries.values()].slice(0, 4);
+        assert.deepStrictEqual(firstEntries.map(entry => entry.voice),
+            ['hallensprecherin', 'hallensprecher', 'hallensprecherin', 'hallensprecher']);
         await db.matches.update_async({ _id: 'match1' }, { $set: { 'setup.teams.1.players.0.name': 'Neuer Gegner' } }, {});
         await prefetch.refresh('default');
         assert([...broker.entries.values()].some(entry => entry.text.includes('Neuer Gegner')));

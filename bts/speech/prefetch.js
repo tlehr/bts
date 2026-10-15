@@ -90,15 +90,20 @@ class Prefetcher {
             const imminent = selected.filter(match => ['preparation', 'oncourt'].includes(match.setup.state) ||
                 preferred.has(match._id));
             const imminent_parts = imminent.length ? prepare(context, imminent) : [];
-            for (const voice of this.subscriptions.get(key) || []) {
-                for (let i = 0; i < imminent_parts.length; i += 64) {
-                    this.broker.prepare(imminent_parts.slice(i, i + 64), { voice, language: 'de-DE', priority: 'normal' });
-                }
-                for (let i = 0; i < parts.length; i += 64) {
-                    this.broker.prepare(parts.slice(i, i + 64), { voice, language: 'de-DE', priority: 'low' });
+            const voices = [...(this.subscriptions.get(key) || [])];
+            const warm = async (texts, priority) => {
+                for (let i = 0; i < texts.length; i += 64) {
+                    // Interleave voices before the bounded broker cache can fill.
+                    for (const text of texts.slice(i, i + 64)) {
+                        for (const voice of voices) {
+                            this.broker.prepare([text], { voice, language: 'de-DE', priority });
+                        }
+                    }
                     await new Promise(resolve => setImmediate(resolve));
                 }
-            }
+            };
+            await warm(imminent_parts, 'normal');
+            await warm(parts, 'low');
         } finally { this.running.delete(key); }
     }
 

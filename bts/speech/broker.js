@@ -60,6 +60,10 @@ class SpeechBroker {
         this.timer = null;
         this.stopped = true;
         this.last_post = -Infinity;
+        this.last_post_voice = new Map();
+        this.post_retry_at = 0;
+        this.current = null;
+        this.stepping = false;
         this.last_metadata = 0;
         this.audio_clients = 0;
     }
@@ -102,7 +106,8 @@ class SpeechBroker {
             if (!entry) {
                 if (this.entries.size >= this.config.max_entries) {
                     const victim = [...this.entries.values()]
-                        .filter(item => !item.busy && !['queued', 'processing'].includes(item.status))
+                        .filter(item => item !== this.current?.entry && !item.busy && !['queued', 'processing'].includes(item.status))
+                        .filter(item => item.status !== 'unsubmitted' || item.priority >= PRIORITY[normalized.priority])
                         .sort((a, b) => b.priority - a.priority || a.used - b.used)[0];
                     if (!victim) continue;
                     this.entries.delete(victim.key);
@@ -117,7 +122,6 @@ class SpeechBroker {
             entry.used = this.now();
             if (PRIORITY[normalized.priority] < entry.priority) {
                 entry.priority = PRIORITY[normalized.priority];
-                if (entry.status === 'queued') entry.promote = true;
             }
             if (entry.status === 'failed' && entry.retry_at <= this.now()) entry.status = 'unsubmitted';
             // Revalidate preference/configuration occasionally through the authoritative cache.
@@ -194,7 +198,7 @@ class SpeechBroker {
         this.last_metadata = this.now();
     }
 
-    update(entry, response) {
+    validate_response(entry, response) {
         if (!ID.test(response.job_id) || response.text !== entry.text || response.voice !== entry.voice ||
             response.language !== entry.language || !['queued', 'processing', 'completed', 'failed'].includes(response.status)) {
             throw new Error('speech_invalid_response');
@@ -202,6 +206,10 @@ class SpeechBroker {
         if (response.status === 'completed' && !ID.test(response.audio?.audio_id)) {
             throw new Error('speech_invalid_audio');
         }
+    }
+
+    update(entry, response) {
+        this.validate_response(entry, response);
         entry.job_id = response.job_id;
         entry.status = response.status;
         entry.checked = this.now();
@@ -216,42 +224,60 @@ class SpeechBroker {
     }
 
     async step() {
+        if (this.stepping) return;
         const now = this.now();
-        const entries = [...this.entries.values()].filter(entry => !entry.busy);
-        const pending = entries.filter(entry =>
-            (entry.status === 'unsubmitted' || entry.promote || entry.revalidate) && entry.retry_at <= now)
-            .sort((a, b) => a.priority - b.priority || a.created - b.created);
-        let entry = now - this.last_post >= this.config.submit_interval_ms ? pending[0] : null;
-        let post = !!entry;
-        if (!entry) entry = entries.filter(item => ['queued', 'processing'].includes(item.status) && item.next_poll <= now)
-            .sort((a, b) => a.priority - b.priority || a.next_poll - b.next_poll)[0];
-        if (!entry) return;
+        if (!this.current) {
+            if (now < this.post_retry_at || now - this.last_post < this.config.submit_interval_ms) return;
+            const pending = [...this.entries.values()].filter(entry => !entry.busy &&
+                (entry.status === 'unsubmitted' || entry.revalidate) && entry.retry_at <= now)
+                .sort((a, b) => a.priority - b.priority ||
+                    Number(a.voice === this.last_post_voice.get(a.priority)) - Number(b.voice === this.last_post_voice.get(b.priority)) ||
+                    a.created - b.created);
+            const entry = pending[0];
+            if (!entry) return;
+            this.current = { entry, identity: this.identity, job_id: null, request: {
+                text: entry.text, voice: entry.voice, language: entry.language,
+                priority: Object.keys(PRIORITY)[entry.priority],
+            } };
+        }
+        const current = this.current;
+        const entry = current.entry;
+        const post = !current.job_id;
+        if (post ? now < Math.max(this.post_retry_at, entry.retry_at) : now < entry.next_poll) return;
+        this.stepping = true;
         entry.busy = true;
-        const identity = this.identity;
         try {
             let response;
             if (post) {
                 this.last_post = now;
-                entry.promote = false;
                 entry.revalidate = false;
-                response = await this.request(this.config.base_url, this.config.api_key, 'POST', '/v1/speech', {
-                    text: entry.text, voice: entry.voice, language: entry.language,
-                    priority: Object.keys(PRIORITY)[entry.priority],
-                }, this.config.timeout_ms);
+                response = await this.request(this.config.base_url, this.config.api_key, 'POST', '/v1/speech',
+                    current.request, this.config.timeout_ms);
             } else {
                 response = await this.request(this.config.base_url, this.config.api_key, 'GET',
-                    '/v1/jobs/' + entry.job_id, undefined, this.config.timeout_ms);
+                    '/v1/jobs/' + current.job_id, undefined, this.config.timeout_ms);
             }
-            if (identity === this.identity) this.update(entry, response);
+            this.validate_response(entry, response);
+            if (!post && response.job_id !== current.job_id) throw new Error('speech_invalid_response');
+            if (current.identity === this.identity) this.update(entry, response);
+            else entry.next_poll = now + this.config.poll_interval_ms;
+            current.job_id = response.job_id;
+            if (post) this.last_post_voice.set(entry.priority, entry.voice);
+            if (['completed', 'failed'].includes(response.status)) this.current = null;
         } catch (error) {
-            if (identity !== this.identity) return;
             this.last_error = error.status === 429 ? 'speech_busy' : 'speech_unavailable';
-            if (!post && error.status === 404) { entry.status = 'unsubmitted'; entry.job_id = null; }
-            if (post && entry.job_id && entry.status === 'queued') entry.promote = true;
+            const delay = error.response?.error?.code === 'busy' ? 1000 : error.status === 429 ? 10000 : 5000;
+            if (post && error.status === 429) this.post_retry_at = now + delay;
+            if (post && [400, 401, 403, 404, 409, 413, 422, 429].includes(error.status)) this.current = null;
+            if (!post && error.status === 404) {
+                entry.status = 'unsubmitted'; entry.job_id = null; this.current = null;
+            }
             if (post && entry.status === 'completed') entry.revalidate = true;
-            entry.retry_at = this.now() + (error.status === 429 ? 10000 : 5000);
+            // An ambiguous POST failure keeps ownership of this exact request.
+            // Retrying it uses API single-flight rather than opening a second job.
+            entry.retry_at = this.now() + delay;
             entry.next_poll = entry.retry_at;
-        } finally { entry.busy = false; }
+        } finally { entry.busy = false; this.stepping = false; }
     }
 
     start() {

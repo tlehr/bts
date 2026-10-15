@@ -1300,7 +1300,8 @@ var ctournament = (function() {
 				const speech = curt.speech || {};
 				status.textContent = !speech.enabled
 					? 'Lokaler Sprachserver ist im BTS-Backend noch nicht konfiguriert.'
-					: (speech.last_error ? 'Sprachserver derzeit nicht bereit. ' : '') +
+					: (speech.last_error === 'speech_busy' ? 'Sprachserver beschäftigt; weitere Ansageteile warten im BTS. ' :
+						speech.last_error ? 'Sprachserver derzeit nicht bereit. ' : '') +
 						(speech.ready || 0) + ' Ansageteile bereit, ' + (speech.preparing || 0) + ' werden vorbereitet.';
 			});
 			const change = (name, value) => {

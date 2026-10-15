@@ -83,6 +83,7 @@ const suite = process.env.BTS_SPEECH_INTEGRATION === '1' ? describe : describe.s
 suite('BTS / actual FastAPI / native Chrome speech integration', function() {
     this.timeout(60000);
     let directory, api, chrome, app, server, client, devtools;
+    const dispatchViolations = [];
     const key = 'test-only-key-' + 'x'.repeat(32);
 
     before(async function() {
@@ -116,6 +117,16 @@ suite('BTS / actual FastAPI / native Chrome speech integration', function() {
         // Accelerated mock generation, while the real deployment retains its rate limit.
         app.speech.broker.config.submit_interval_ms = 0;
         app.speech.broker.config.poll_interval_ms = 0;
+        const request = app.speech.broker.request;
+        let outstanding = null;
+        app.speech.broker.request = async (...args) => {
+            const method = args[2], route = args[3];
+            if (method === 'POST' && outstanding) dispatchViolations.push({ method, outstanding });
+            const response = await request(...args);
+            if (method === 'POST' && ['queued', 'processing'].includes(response.status)) outstanding = response.job_id;
+            if (route === '/v1/jobs/' + outstanding && ['completed', 'failed'].includes(response.status)) outstanding = null;
+            return response;
+        };
         server = app.wss.options.server;
         await until(() => server.address()?.port);
         client = new WebSocket('ws://127.0.0.1:' + server.address().port + '/ws/admin');
@@ -288,5 +299,31 @@ suite('BTS / actual FastAPI / native Chrome speech integration', function() {
         await fresh.step();
         assert.strictEqual(fresh.views(['Jungeneinzel U17'], {}, 'default')[0].status, 'completed');
         assert.strictEqual(fs.readFileSync(path.join(directory, 'received.jsonl'), 'utf8'), before);
+    });
+
+    it('prepares the male voice after selection and plays its cached audio with only one outstanding job', async function() {
+        await devtools.evaluate('(() => { const voice = document.querySelectorAll(\'.local_speech_controls select\')[1]; ' +
+            'voice.value = \'hallensprecher\'; voice.dispatchEvent(new Event(\'change\')); })()');
+        await until(() => {
+            const male = [...app.speech.broker.entries.values()].filter(entry => entry.voice === 'hallensprecher');
+            return male.length > 1 && male.every(entry => entry.status === 'completed');
+        }, 25000);
+        await devtools.evaluate('document.querySelector(\'.announcement_speech_check_form button\').scrollIntoView(); ' +
+            'btsSpeechReadiness.refresh(true)');
+        assert.strictEqual(await devtools.evaluate('btsSpeechService.settings().voice'), 'hallensprecher');
+        assert.strictEqual(await devtools.evaluate(
+            'document.querySelector(\'.announcement_speech_check_form button\').dataset.speechState'), 'ready');
+        const before = await devtools.evaluate('window.__browserSpeechCalls');
+        const state = await devtools.evaluate('runAnnouncementSpeechCheck()');
+        assert.strictEqual(state.status, 'active', JSON.stringify(state));
+        assert(state.detail.includes('Server-Audio'));
+        assert.strictEqual(await devtools.evaluate('window.__browserSpeechCalls'), before);
+        const text = await devtools.evaluate('ci18n(\'announcements:speechcheck:text\')');
+        const clip = app.speech.broker.views([text], { voice: 'hallensprecher' }, 'default')[0];
+        assert(await devtools.evaluate('window.__audioSources.some(src => src.includes(' +
+            JSON.stringify(clip.audio_url.split('?')[0]) + '))'));
+        const received = fs.readFileSync(path.join(directory, 'received.jsonl'), 'utf8').trim().split('\n').map(JSON.parse);
+        assert(received.some(item => item.voice === 'hallensprecher' && item.text.includes('Muhammad Sytsh Abdulquddus')));
+        assert.deepStrictEqual(dispatchViolations, []);
     });
 });
