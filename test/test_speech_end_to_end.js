@@ -435,7 +435,7 @@ suite('BTS / actual FastAPI / native Chrome speech integration', function() {
         await devtools.call('Page.bringToFront');
     });
 
-    it('plays and previews the shorter male recording natively without regenerating or modifying the cached WAV', async function() {
+    it('plays and previews the shorter male recording natively at increased speed without regenerating or modifying the cached WAV', async function() {
         const text = 'BTS_TEST_COMPACT_NAME';
         await rpc(client, { type: 'speech_prepare', tournament_key: 'default', voice: 'hallensprecher', language: 'de-DE', parts: [text] });
         await until(() => app.speech.broker.views([text], { voice: 'hallensprecher' }, 'default')[0].status === 'completed');
@@ -453,10 +453,15 @@ suite('BTS / actual FastAPI / native Chrome speech integration', function() {
         assert.strictEqual(await devtools.evaluate('window.__browserSpeechCalls'), before);
         const duration = await devtools.evaluate('window.__lastAudio.duration');
         assert(duration >= 0.39 && duration < 0.42, String(duration));
+        const expectedRate = await devtools.evaluate('btsSpeechService.settings().rate * 1.1');
+        assert(Math.abs(await devtools.evaluate('window.__lastAudio.playbackRate') - expectedRate) < 1e-6);
+        assert.strictEqual(await devtools.evaluate('window.__lastAudio.preservesPitch'), true);
         const preview = await devtools.evaluate('btsSpeechService.queue().then(response => ' +
             'btsSpeechService.preview(response.queue.items.find(item => item.text === ' + JSON.stringify(text) + '), response.speech.cache_version))');
         assert.strictEqual(preview.status, 'ok');
         assert.strictEqual(await devtools.evaluate('window.__lastAudio.duration'), duration);
+        assert(Math.abs(await devtools.evaluate('window.__lastAudio.playbackRate') - expectedRate) < 1e-6);
+        assert.strictEqual(await devtools.evaluate('window.__lastAudio.preservesPitch'), true);
         const after = Buffer.from(await (await fetch(app.speech.broker.config.base_url + '/v1/audio/' + audio_id,
             { headers: { 'X-API-Key': key } })).arrayBuffer());
         assert.deepStrictEqual(after, original);

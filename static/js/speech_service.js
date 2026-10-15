@@ -129,7 +129,8 @@ function createSpeechService(context) {
                 player.onended = () => finish();
                 player.onerror = () => finish(new Error('audio_failed'));
                 player.src = clip.audio_url;
-                player.playbackRate = value.rate || 1;
+                player.playbackRate = (value.rate || 1) * (value.voice === 'hallensprecher' ? 1.1 : 1);
+                player.preservesPitch = true;
                 player.volume = value.volume === undefined ? 1 : value.volume;
                 signal.addEventListener('abort', abort, { once: true });
                 timer = setTimeout(() => finish(new Error('audio_start_timeout')), 3000);

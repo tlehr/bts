@@ -137,7 +137,9 @@ Noch unbekannte Gegner, zukünftige Änderungen und spontan eingegebene Ansagen 
 
 ## Kürzere Wortpausen beim Hallensprecher
 
-Für die männliche Stimme liefert BTS eine Wiedergabekopie mit kürzerer Stille aus. Die bereits erzeugten WAVs, Ansagetexte und Generierungsschlüssel bleiben erhalten; eine neue Synthese ist dafür nicht erforderlich. Das gilt für tatsächliche Durchsagen und die Lautsprecher zum Probehören. Die Wortgeschwindigkeit wird dabei nicht erhöht.
+Für die männliche Stimme liefert BTS eine Wiedergabekopie mit kürzerer Stille aus. Die bereits erzeugten WAVs, Ansagetexte und Generierungsschlüssel bleiben erhalten; eine neue Synthese ist dafür nicht erforderlich. Das gilt für tatsächliche Durchsagen und die Lautsprecher zum Probehören.
+
+Zusätzlich spielt der Browser die lokale männliche Stimme mit dem Faktor 1,10 zur eingestellten Ansagegeschwindigkeit ab. Beim Standardwert 1,05 ergibt das eine Wiedergabegeschwindigkeit von 1,155. `preservesPitch` erhält dabei die Tonhöhe. Dieser Faktor gilt für jeden Sprachbaustein und für Hörproben. Die gesonderten Satz- und Kommapausen behalten ihre Dauer. Die Einstellung der Ansagegeschwindigkeit bleibt nutzbar; weibliche Stimme und Browser-TTS verwenden weiterhin ihren bisherigen Wert. Auch diese Tempoänderung benötigt keine Neugenerierung; nach dem Update die Ansageseite neu laden.
 
 Anfang und Ende einer Aufnahme behalten etwa 30 ms stille Reserve. Innerhalb eines Bausteins ohne Satzzeichen oder Zeilenumbrüche werden nahezu stille Wortlücken ab 250 ms auf 100 ms begrenzt. Dadurch bleiben vollständige Namen gemeinsam gecacht und werden flüssiger gesprochen. Bei Bausteinen mit Satzzeichen oder Zeilenumbrüchen werden nur die Ränder gekürzt, damit innere Satzpausen erhalten bleiben. Die von BTS zusätzlich gesetzten Satz- und Kommapausen werden weiterhin berücksichtigt.
 
@@ -185,6 +187,8 @@ Bytegenaue Vergleiche aller bisherigen Ansagearten, geänderte Gegner, Queue-Gre
 
 
 ## Prüfstand dieses Auftrags
+
+Nach Erhöhung des männlichen Sprechtempos: 103 gezielte Sprachtests und alle dreizehn optionalen End-to-End-Fälle bestanden (32 einschließlich der geteilten Texttests); ESLint bestand für die geänderten JavaScript-Dateien. Der native Chrome spielt Durchsage und Hörprobe mit dem zusätzlichen Tempo-Faktor und erhaltener Tonhöhe ab. Der Sprachservice-Test prüft mehrere Bausteine, die bestehende Geschwindigkeitseinstellung und den Rückwechsel zur weiblichen Stimme. Vorhandene WAVs bleiben bytegleich, und das Abspielen löst keine zusätzliche Generierung aus.
 
 Nach Kürzung der Stille beim Hallensprecher: 1059 BTS-Tests mit `mocha test/ --timeout 10000`, 102 gezielte Sprachtests und alle dreizehn optionalen End-to-End-Fälle bestanden (32 einschließlich der geteilten Texttests). Der neue native Chrome-Fall spielt dieselbe männliche Aufnahme regulär und als Hörprobe mit verkürzten Pausen ab; das Original-WAV im Sprachserver bleibt bytegleich und es gibt keine weitere Generierung. Prüffälle sichern die Samples oberhalb der Stille-Schwelle, leise Sprachanteile, kurze Lücken, Satzpausen, zusätzliche RIFF-Chunks und Stereo. Signaturen binden die Wiedergabevariante; Range-/ETag-Antworten passen zur bearbeiteten WAV. Zu große, abgebrochene und zeitlich überschrittene Downloads geben ihre Slots frei. Die Wiedergabekopien liegen nur im begrenzten BTS-Arbeitsspeicher und verändern weder Stimmenprofile noch Modellkonfiguration oder vorhandene Aufnahmen.
 

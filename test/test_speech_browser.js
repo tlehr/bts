@@ -207,6 +207,31 @@ describe('Browser local speech provider', function() {
         assert.strictEqual(h.played.length, 3);
     });
 
+    it('speeds up every male clip and preview while preserving pitch and respecting the tournament speed', async function() {
+        const h = harness({ request: async (_type, values) => ({ speech: { enabled: true, cache_version: 'one' },
+            clips: values.parts?.map(clip), queue: { items: [{ ...previewClip(), voice: 'hallensprecher' }] },
+        }) });
+        const rates = [];
+        const play = h.player.play;
+        h.player.play = function() {
+            rates.push({ rate: this.playbackRate, pitch: this.preservesPitch });
+            return play.call(this);
+        };
+        h.settings.voice = 'hallensprecher';
+        await h.service.speak(['Vorname Nachname', 'gegen', 'Anderer Name'], 'male-speed', h.fallback);
+        assert.strictEqual(rates.length, 3);
+        assert(rates.every(value => Math.abs(value.rate - 1.21) < 1e-6 && value.pitch === true));
+        h.settings.rate = 1.05;
+        const response = await h.service.queue();
+        assert.strictEqual((await h.service.preview(response.queue.items[0], response.speech.cache_version)).status, 'ok');
+        assert(Math.abs(rates[3].rate - 1.155) < 1e-6);
+        assert.strictEqual(rates[3].pitch, true);
+        h.settings.voice = 'hallensprecherin';
+        await h.service.speak([TEXT], 'female-speed', h.fallback);
+        assert.deepStrictEqual(rates[4], { rate: 1.05, pitch: true });
+        assert.deepStrictEqual(h.browser, []);
+    });
+
     it('plays the exact audio confirmed by readiness inspection without another time-critical resolve request', async function() {
         const h = harness({ request: async (type, values) => {
             assert.strictEqual(type, 'speech_status', 'a green announcement must not depend on another 700 ms lookup');
