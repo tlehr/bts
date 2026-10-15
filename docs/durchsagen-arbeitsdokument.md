@@ -409,3 +409,77 @@ Die Kennungen dieses Dokuments decken alle 14 spielbezogenen Auslöser ab: D04 u
 | D10 | `announceSecondPreparationCallServiceJudge` |
 | D11 | `announceSecondPreparationCallTabletoperator` |
 | D12 | `announceNoMatchWin` |
+
+## 10. Übersicht am Dateiende: Satzstücke, Anzahl und Generierungsreihenfolge
+
+Diese Übersicht wird bei jeder weiteren Festlegung zur Stückelung und Reihenfolge mit aktualisiert. Sie beschreibt den geplanten Bestand für die ausgewählte lokale Stimme. Bereits passende Aufnahmen werden wiederverwendet. Die Angaben zum Generierungsaufwand beziehen sich auf einen vollständig leeren Cache.
+
+**F** ist die Anzahl aller im Turnier angelegten Felder. Ein wiederverwendetes Satzstück zählt einmal zum Bestand, unabhängig davon, wie oft es später abgespielt wird. Bei B01 zählen Anfang und Ende wegen ihrer unterschiedlichen Betonung als zwei Aufnahmen je Feld. Vollständige Quellaufnahmen zum Ausschneiden werden zusätzlich aufbewahrt, zählen hier aber nicht als weitere Satzstücke für die Wiedergabe.
+
+### 10.1 Festgelegte erste Vorbereitungsstufe
+
+| Stufe | Benötigtes Satzstück | Gesprochener Text | Anzahl der Wiedergabestücke |
+| --- | --- | --- | --- |
+| 1, je Feld gemeinsam erzeugt | B01-Anfang | `Auf Spielfeld {Feld}!` vom Anfang des Referenzaufrufs | F |
+| 1, aus derselben Quellaufnahme | B01-Ende | `Auf Spielfeld {Feld}!` vom Ende des Referenzaufrufs | F |
+| **Summe der Feldstufe** | | | **2 × F** |
+
+**Aufwand dieser Stufe: F vollständige Generierungen für 2 × F Wiedergabestücke.** Anfang und Ende werden aus derselben Aufnahme gewonnen und lösen keine getrennten Generierungsaufträge aus. Die Verwendung von B01-Anfang bei D03 benötigt ebenfalls keine weitere Feldaufnahme.
+
+Für jede dieser Generierungen wird der festgelegte Beispiel-Spielblock aus Abschnitt 7.1 zwischen die beiden Spielfeldansagen gesetzt. Er wird nicht zusätzlich als eigener Text angefordert. Ob wir seinen Mittelteil ebenfalls ausschneiden und als Baustein nutzen, ist noch offen; deshalb wird er hier nicht als weiterer fertiger Baustein mitgezählt.
+
+### 10.2 Weitere benötigte Texte und noch offene Mengen
+
+| Satzstück / Bereich | Benötigter Text beziehungsweise Varianten | Anzahl der Wiedergabestücke | Generierungsreihenfolge |
+| --- | --- | --- | --- |
+| B12 für den zweiten Teil von D03 | `Bitte mit dem Spielen beginnen!`, gemeinsam für alle Felder | 1 benötigte Anweisung; Herkunft der Aufnahme noch offen | Nach der Feldstufe; genaue Position noch offen |
+| Spielblock B03 → B04 → B05 → B07 | Spielnummer, Disziplin / Altersklasse, Runde und beide Teams der tatsächlichen Spiele | Noch offen: abhängig von Aufnahmegrenzen, Spielbestand und wiederverwendeten Texten | Nach der Feldstufe; genaue Position noch offen |
+| B02 | `Für Spielfeld {Feld}!` für die Vorbereitungsaufrufe | Noch offen: feldabhängige Aufnahmen, deren Gewinnung noch festzulegen ist | Nach der Feldstufe; genaue Position noch offen |
+| B08 | Zugeordnete Schiedsrichter, Aufschlagrichter und Bedienpersonen mit ihren Rollen | Noch offen: abhängig von Zuordnungen und gemeinsam nutzbaren Aufnahmen | Nach der Feldstufe; genaue Position noch offen |
+| B09 | `In Vorbereitung` mit den jeweiligen Hallenzusätzen und Einzahl-/Mehrzahlformen | Noch offen: abhängig von den unterschiedlichen verwendeten Textfassungen und ihrer Stückelung | Nach der Feldstufe; genaue Position noch offen |
+| B10 | Treffpunkttexte je Halle, gegebenenfalls in Einzahl und Mehrzahl | Noch offen: abhängig von den unterschiedlichen verwendeten Textfassungen und ihrer Stückelung | Nach der Feldstufe; genaue Position noch offen |
+| Zweitaufrufe D04–D11 / B11 | Normaler Zweitaufruf beziehungsweise Vorbereitungs-Zweitaufruf mit Team oder Rolle und Namen sowie Ziel-/Meldezusatz | Noch offen: abhängig von Aufnahmegrenzen und Wiederverwendung mit den übrigen Bausteinen | Nach der Feldstufe; genaue Position noch offen |
+| Kampflos-/Walkover-Mitteilung D12 | Spielangaben und `{Team 1} gegen {Team 2} geht kampflos an {Siegerteam}!` | Noch offen: abhängig von Aufnahmegrenzen und gemeinsam genutzten Spiel-/Namensaufnahmen | Nach der Feldstufe; genaue Position noch offen |
+| Sprachtest D14 | `Dies ist ein Test der Sprachausgabe.` | 1 vollständige Testaufnahme | Nach der Feldstufe; genaue Position noch offen |
+| Freie Ansage D13 | Jeweils eingegebener vollständiger Text | 0 im festen Vorrat; bei Bedarf eine Aufnahme je neuem, unterschiedlichem Text | Bei Bedarf; Vorrang gegenüber anderer laufender Vorarbeit noch festzulegen |
+| Evakuierung D15 | Bestehende MP3 | 0 zu generieren | Keine Sprachgenerierung erforderlich |
+
+Die offenen Bereiche sind keine zusätzlichen, bereits beschlossenen Einzelaufnahmen je Tabellenzeile. Beispielsweise können Spielblöcke, Offizielle und Zweitaufrufe Aufnahmen teilen. Ihre endgültigen Stückzahlen werden erst mit den zugehörigen Festlegungen eingetragen, damit gemeinsam verwendete Texte nicht mehrfach gezählt werden. Die Anwesenheitskontrolle gehört weiterhin nicht zum Bestand dieser Übersicht.
+
+### 10.3 Aktuell bezifferbarer Bestand
+
+| Bereits bezifferbare Position | Anzahl |
+| --- | --- |
+| B01-Anfang für alle Felder | F |
+| B01-Ende für alle Felder | F |
+| Startanweisung B12 für D03 | 1 benötigtes Satzstück; Erstellung noch offen |
+| Sprachtest D14 | 1 |
+| **Teilbestand für diese Positionen** | **2 × F + 2** |
+
+Beispiel mit 16 Feldern: **32 Feldaufnahmen + 1 Startanweisung + 1 Sprachtest = 34 Wiedergabestücke für diese Positionen.** Die erste Feldstufe allein benötigt dafür 16 vollständige Referenzgenerierungen und liefert 32 Ausschnitte. Wie die Startanweisung gewonnen wird, ist noch offen.
+
+**Die Gesamtzahl für sämtliche Turnierdurchsagen ist noch offen.** Zum Teilbestand kommen die zusätzlich erforderlichen, noch festzulegenden Aufnahmen für Spielblöcke, Vorbereitung, Offizielle, Zweitaufrufe und kampflose Entscheidungen hinzu. Die Anzahl der Wiedergabestücke ist nicht automatisch die Anzahl der Modellaufrufe: Ein Modellaufruf kann mehrere Ausschnitte liefern.
+
+### 10.4 Geplante Abfolge der Generierung
+
+Die festgelegte erste Stufe arbeitet Feld für Feld ab. Pro Feld entstehen beide B01-Ausschnitte, bevor das nächste Feld vorbereitet wird. Bei Feldern 1 bis F sieht diese Abfolge so aus:
+
+```text
+1. Referenzaufruf für Feld 1 vollständig generieren
+   → B01-Anfang für Feld 1 ausschneiden und cachen
+   → B01-Ende für Feld 1 ausschneiden und cachen
+
+2. Referenzaufruf für Feld 2 vollständig generieren
+   → B01-Anfang für Feld 2 ausschneiden und cachen
+   → B01-Ende für Feld 2 ausschneiden und cachen
+
+… dieselben Schritte für alle weiteren Felder …
+
+F. Referenzaufruf für das letzte Feld vollständig generieren
+   → B01-Anfang für dieses Feld ausschneiden und cachen
+   → B01-Ende für dieses Feld ausschneiden und cachen
+
+Danach: weitere Vorbereitungsstufen – Reihenfolge noch festzulegen.
+```
+
+Bereits passende Feldaufnahmen werden übersprungen; fehlende Ausschnitte werden nach Möglichkeit aus einer vorhandenen passenden Quellaufnahme gewonnen. Bei einer Lücke in der Feldnummerierung werden nur die tatsächlich angelegten Felder bearbeitet. Die Staffelung weiterer Vorbereitungsstufen und der Umgang mit einem währenddessen ausgelösten echten Aufruf bleiben gesondert festzulegen.
