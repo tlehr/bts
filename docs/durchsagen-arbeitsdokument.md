@@ -19,7 +19,7 @@ Die Anwesenheitskontrolle bleibt vorerst außerhalb dieser Betrachtung. Die Date
 
 Im Hörtest **Variante 5** wurde die separat erzeugte Spielfeldansage als unnatürlich bewertet. **Variante 6** übernimmt deshalb Anfangs- und Schlussansage aus Variante 1 und setzt den Spielblock aus Variante 5 dazwischen. Diese Aufnahme steht zum Vergleich bereit. Die vereinbarte Erstellung von B01-Anfang und B01-Ende für alle Felder greift dieses Vorgehen auf (Abschnitt 7.1); ihre Umsetzung für den Turnierbetrieb steht noch aus.
 
-Der Testtext enthält „Spiel 189“. Die produktive deutsche Vorlage lautet derzeit „Spiel Nummer 189!“. Diesen Unterschied berücksichtigen wir bei der Übertragung der Hörtestergebnisse.
+Der Hörtest und der festgelegte Referenzaufruf verwenden „Spiel 189.“ beziehungsweise die ausgeschriebene Fassung ohne „Nummer“. Die produktive deutsche Vorlage lautet derzeit „Spiel Nummer 189!“. Der festgelegte Referenztext in Abschnitt 7.1 bleibt unabhängig von dieser produktiven Vorlage wortgetreu erhalten.
 
 ## 2. Schreibweise in dieser Datei
 
@@ -290,17 +290,33 @@ Die erste Vorbereitungsstufe erstellt die beiden Spielfeldaufnahmen für **alle 
 
 | Aufnahme | Gesprochener Text | Herkunft | Geplanter Einsatz bei D01 |
 | --- | --- | --- | --- |
-| B01-Anfang je Feld | `Auf Spielfeld {Feld}!` | Anfang eines vollständig erzeugten Spielaufrufs für dieses Feld | Beginn des Aufrufs |
+| B01-Anfang je Feld | `Auf Spielfeld {Feld}!` | Anfang eines vollständig erzeugten Referenz-Spielaufrufs für dieses Feld | Beginn des Aufrufs |
 | B01-Ende je Feld | `Auf Spielfeld {Feld}!` | Ende derselben vollständigen Aufnahme | Abschluss des Aufrufs |
 
 **Erstellung je Feld:**
 
-1. Einen vollständigen Spielaufruf D01 mit der jeweiligen Feldnummer am Anfang und Ende erzeugen. Die Spielfeldansagen entstehen dabei im Zusammenhang der gesamten Durchsage.
+1. Einen vollständigen Referenz-Spielaufruf nach der unten festgelegten Vorlage mit der jeweiligen Feldnummer am Anfang und Ende erzeugen. Die Spielfeldansagen entstehen dabei im Zusammenhang der gesamten Durchsage.
 2. Die erste Spielfeldansage sauber ausschneiden und als B01-Anfang dieses Feldes speichern.
 3. Die letzte Spielfeldansage aus derselben Aufnahme ausschneiden und als B01-Ende dieses Feldes speichern.
 4. Beide Ausschnitte für spätere Aufrufe aus dem Cache verwenden. Für die zweite Position wird kein weiterer vollständiger Spielaufruf erzeugt.
 
-Schematische Quellaufnahme:
+**Festgelegter Mittelteil für sämtliche Felder:**
+
+```text
+Spiel einhundertneunundachtzig.  Mädcheneinzel U neunzehn.  Achtelfinale! Nina Keo Boun Khoune gegen LeandraGalowicz.
+```
+
+Dieser Beispiel-Spielblock bleibt immer gleich. Er muss keinem tatsächlichen Turnierspiel entsprechen. Schreibweisen, Satzzeichen und die beiden Doppel-Leerzeichen nach den ersten beiden Punkten bleiben exakt erhalten. Insbesondere bleiben `LeandraGalowicz` zusammengeschrieben und `Spiel einhundertneunundachtzig.` ohne das Wort „Nummer“.
+
+**Vollständige Quellaufnahme je Feld:**
+
+```text
+Auf Spielfeld {Feld}! Spiel einhundertneunundachtzig.  Mädcheneinzel U neunzehn.  Achtelfinale! Nina Keo Boun Khoune gegen LeandraGalowicz. Auf Spielfeld {Feld}!
+```
+
+Beim Senden an den Sprachserver wird auch die jeweilige Feldnummer ausgeschrieben. Nur die Feldangaben am Anfang und Ende ändern sich zwischen den Referenzaufnahmen. Es werden keine Offiziellen oder zusätzlichen Angaben angehängt.
+
+Die gewünschten Ausschnitte sind:
 
 ```text
 Auf Spielfeld {Feld}! → {vollständiger Mittelteil des Referenzaufrufs} → Auf Spielfeld {Feld}!
@@ -313,7 +329,7 @@ Anfang und Ende sind trotz identischen Wortlauts zwei unterschiedliche Cache-Bau
 
 Die Schnittstellen müssen für jede Quellaufnahme ermittelt werden, damit keine Wortenden abgeschnitten oder benachbarte Wörter mit übernommen werden. Die festen Zeiten des bisherigen Feld-8-Hörtests sind keine allgemeine Schnittvorgabe. Quellaufnahme und Schnittinformationen bleiben als Herkunft der Ausschnitte erhalten.
 
-**Noch offen:** Welcher vollständige Mittelteil dient als Referenzaufruf für diese erste Vorbereitungsstufe? Ob und wie wir daraus zusätzlich andere Bausteine gewinnen, legen wir bei den nächsten Schritten fest. B02 („Für Spielfeld …!“) ist durch diese Festlegung noch nicht abgedeckt.
+**Noch offen:** Ob und wie wir aus den Referenzaufnahmen zusätzlich andere Bausteine gewinnen, legen wir bei den nächsten Schritten fest. B02 („Für Spielfeld …!“) ist durch diese Festlegung noch nicht abgedeckt.
 
 ### 7.2 Weitere Entscheidungen
 
@@ -321,8 +337,8 @@ Die übrigen Punkte können wir direkt in dieser Datei festlegen:
 
 | Thema | Zu entscheiden | Vereinbarung |
 | --- | --- | --- |
-| Feldansage | Wie entstehen die Aufnahmen für Anfang und Schluss? | B01-Anfang und B01-Ende je Feld aus derselben vollständigen D01-Aufnahme; erste Vorbereitungsstufe für alle Felder (Abschnitt 7.1) |
-| Referenzaufruf | Welcher Mittelteil wird für die erstmalige Erstellung der Feldaufnahmen gesprochen? | Offen |
+| Feldansage | Wie entstehen die Aufnahmen für Anfang und Schluss? | B01-Anfang und B01-Ende je Feld aus derselben vollständigen Referenzaufnahme; erste Vorbereitungsstufe für alle Felder (Abschnitt 7.1) |
+| Referenzaufruf | Welcher Mittelteil wird für die erstmalige Erstellung der Feldaufnahmen gesprochen? | Festgelegter Beispiel-Spielblock aus Abschnitt 7.1: Spiel 189, Mädcheneinzel U19, Achtelfinale, Nina Keo Boun Khoune gegen LeandraGalowicz; wortgetreu mit ausgeschriebenen Zahlen und unverändert für alle Felder |
 | Einsatz weiterer Feldansagen | Welche B01-Ausschnitte passen auch zu D03–D08? Wie wird B02 erstellt? | Offen |
 | Spielblock | Welche Angaben bleiben gemeinsam in einer langen Aufnahme? | Offen |
 | Namen und Paarungen | Ein vollständiger Name je Aufnahme, ein Team oder beide Teams mit „gegen“? | Offen |
