@@ -27,4 +27,19 @@ describe('Local TTS listening comparison', function() {
         assert.strictEqual(punctuation.parts[6].text, 'LeandraGalowicz,');
         assert(grouped.parts.some(part => part.text === 'Nina Keo Boun Khoune gegen LeandraGalowicz.'));
     });
+
+    it('adds only one court-independent game recording and preserves its full inner sentence melody', function() {
+        const value = plan();
+        const existing = new Set(value.cases.slice(0, 4).flatMap(item => item.parts.map(part => part.text)));
+        const hybrid = value.cases[4];
+        assert.strictEqual(hybrid.parts.length, 3);
+        assert.strictEqual(hybrid.parts[0].text, hybrid.parts[2].text);
+        assert(existing.has(hybrid.parts[0].text));
+        assert.deepStrictEqual(hybrid.parts.filter(part => !existing.has(part.text)).map(part => part.text), [
+            'Spiel einhundertneunundachtzig.  Mädcheneinzel U neunzehn.  Achtelfinale! Nina Keo Boun Khoune gegen LeandraGalowicz.',
+        ]);
+        assert(!hybrid.parts[1].text.includes('Spielfeld'));
+        assert.strictEqual(hybrid.parts[1].preserve_inner_pauses, true);
+        assert.strictEqual(value.cases[0].parts[0].preserve_inner_pauses, true);
+    });
 });
