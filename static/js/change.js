@@ -306,6 +306,9 @@ var change = (function() {
 		}
 
 		switch (c.ctype) {
+		case 'speech_cache_changed':
+			window.dispatchEvent(new CustomEvent('bts-speech-cache-changed'));
+			break;
 		case 'free_announce':
 			_handle_announcement_event('free_announce', c.val, () => {
 				if (!(window.localStorage.getItem('enable_free_announcements') === 'true')) {

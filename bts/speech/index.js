@@ -9,7 +9,9 @@ function public_config(broker, selected) {
 }
 
 function create(app) {
-    const broker = new SpeechBroker(configuration(app.config.speech));
+    const broker = new SpeechBroker(configuration(app.config.speech), { onChange: keys => {
+        for (const key of keys) require('../admin').notify_change(app, key, 'speech_cache_changed', {});
+    } });
     const prefetch = new Prefetcher(app, broker);
     return {
         broker, prefetch,

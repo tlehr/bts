@@ -32,6 +32,8 @@ class Engine:
     def generate(self, text, voice, language, seed):
         with (root / "received.jsonl").open("a", encoding="utf-8") as handle:
             handle.write(json.dumps({"text": text, "voice": voice, "language": language}, ensure_ascii=False) + "\n")
+        if text == "BTS_TEST_GENERATION_FAILURE":
+            raise RuntimeError("Injected test generation failure")
         return np.zeros(12000, dtype=np.float32), 24000
 
 

@@ -1,11 +1,13 @@
 /* exported createSpeechQueue */
 'use strict';
 
-function createSpeechQueue({ root, service }) {
+function createSpeechQueue({ root, service, onSnapshot = () => {} }) {
     const document = root.ownerDocument;
+    const window = document.defaultView;
     const rows = new Map();
     const priorities = { high: 'Hoch · aktueller Aufruf', normal: 'Normal · bevorstehendes Spiel', low: 'Niedrig · Vorrat' };
     let running = null, stopped = false, playing = false, available = false, version;
+    let refresh_timer = null, refresh_again = false, last_refresh = -Infinity;
     function element(parent, tag, className, text) {
         const node = document.createElement(tag);
         if (className) node.className = className;
@@ -18,6 +20,11 @@ function createSpeechQueue({ root, service }) {
         'Für die ausgewählte Stimme dieses Turniers. Laufender Auftrag zuerst, danach die nächsten Texte; fertige Aufnahmen stehen unten. Nummern gelten für die gemeinsame Warteschlange.');
     const summary = element(root, 'p', 'speech_queue_summary', 'Warteschlange wird geladen …');
     summary.setAttribute('aria-live', 'polite');
+    const progress_container = element(root, 'div', 'speech_queue_progress_container');
+    progress_container.hidden = true;
+    const progress = element(progress_container, 'progress', 'speech_queue_progress');
+    progress.setAttribute('aria-label', 'Fortschritt der Sprachvorbereitung');
+    const progress_label = element(progress_container, 'div', 'speech_queue_progress_label');
     const list = element(root, 'ol', 'speech_queue_list');
     list.setAttribute('aria-label', 'Sprachtexte in Abarbeitungsreihenfolge');
     const feedback = element(root, 'p', 'speech_queue_feedback');
@@ -73,17 +80,29 @@ function createSpeechQueue({ root, service }) {
         if (stopped || !root.isConnected) { stop(); return; }
         available = !!response?.queue && !response.speech_error && response.speech?.enabled !== false;
         if (!available) {
+            progress_container.hidden = true;
             summary.textContent = response?.speech?.enabled === false ? 'Lokale Sprache ist nicht eingerichtet.' :
                 'Warteschlange derzeit nicht verfügbar. Cache-Status aktualisieren oder kurz warten.';
+            onSnapshot(response, null);
             buttons();
             return;
         }
         version = response.speech.cache_version;
         const items = response.queue.items;
         const ready = items.filter(item => item.status === 'completed').length;
-        summary.textContent = items.length ? items.length + ' Texte · ' + ready + ' fertig · ' +
+        const failed = items.filter(item => item.status === 'failed').length;
+        const counts = { total: items.length, ready, failed, preparing: items.length - ready - failed };
+        const summary_text = items.length ? items.length + ' Texte · ' + ready + ' fertig · ' +
             (items.length - ready) + ' offen' + (response.queue.busy_elsewhere ?
                 ' · Ein bereits laufender anderer Auftrag wird noch abgeschlossen.' : '') : 'Noch keine Texte vorgemerkt.';
+        if (summary.textContent !== summary_text) summary.textContent = summary_text;
+        progress_container.hidden = !items.length;
+        progress.max = items.length || 1;
+        progress.value = ready;
+        const label = ready + ' von ' + items.length + ' Texten bereit · ' + (items.length ? Math.floor(ready * 100 / items.length) : 0) + ' %';
+        progress.setAttribute('aria-valuetext', label);
+        progress_label.textContent = label;
+        onSnapshot(response, counts);
         const used = new Set(items.map(item => item.key));
         for (const [key, row] of rows) {
             if (!used.has(key)) { row.node.remove(); rows.delete(key); }
@@ -113,18 +132,38 @@ function createSpeechQueue({ root, service }) {
     function refresh() {
         if (stopped) return Promise.resolve();
         if (!root.isConnected) { stop(); return Promise.resolve(); }
-        if (!running) running = load().finally(() => { running = null; });
+        if (running) { refresh_again = true; return running; }
+        clearTimeout(refresh_timer);
+        refresh_timer = null;
+        last_refresh = Date.now();
+        running = load().finally(() => {
+            running = null;
+            if (refresh_again) { refresh_again = false; scheduleRefresh(); }
+        });
         return running;
+    }
+
+    function scheduleRefresh() {
+        if (stopped || document.hidden) return;
+        if (!root.isConnected) { stop(); return; }
+        if (refresh_timer !== null) return;
+        // Coalesce fast cache hits and never overlap an existing status request.
+        refresh_timer = setTimeout(() => { refresh_timer = null; void refresh(); }, Math.max(0, 1000 - (Date.now() - last_refresh)));
     }
     function stop() {
         if (stopped) return;
         stopped = true;
         clearInterval(timer);
+        clearTimeout(refresh_timer);
+        window.removeEventListener('bts-speech-cache-changed', scheduleRefresh);
+        document.removeEventListener('visibilitychange', scheduleRefresh);
         observer.disconnect();
         if (playing) service.cancelPreview();
     }
     const observer = new MutationObserver(() => { if (!root.isConnected) stop(); });
     observer.observe(root.closest('.main') || document.body, { childList: true, subtree: true });
+    window.addEventListener('bts-speech-cache-changed', scheduleRefresh);
+    document.addEventListener('visibilitychange', scheduleRefresh);
     const timer = setInterval(() => {
         if (!root.isConnected) stop();
         else if (!document.hidden) void refresh();

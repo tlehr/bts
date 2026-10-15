@@ -52,6 +52,7 @@ class SpeechBroker {
         this.config = config;
         this.request = options.request || request;
         this.now = options.now || Date.now;
+        this.on_change = options.onChange || (() => {});
         this.entries = new Map();
         this.signing_key = crypto.randomBytes(32);
         this.voices = [];
@@ -297,6 +298,7 @@ class SpeechBroker {
         const entry = current.entry;
         const post = !current.job_id;
         if (post ? now < Math.max(this.post_retry_at, entry.retry_at) : now < entry.next_poll) return;
+        const previous_status = entry.status;
         this.stepping = true;
         entry.busy = true;
         try {
@@ -330,7 +332,13 @@ class SpeechBroker {
             // Retrying it uses API single-flight rather than opening a second job.
             entry.retry_at = this.now() + delay;
             entry.next_poll = entry.retry_at;
-        } finally { entry.busy = false; this.stepping = false; }
+        } finally {
+            entry.busy = false;
+            this.stepping = false;
+            if (entry.status !== previous_status && ['completed', 'failed'].includes(entry.status) && entry.tournaments.size) {
+                this.on_change([...entry.tournaments]);
+            }
+        }
     }
 
     start() {

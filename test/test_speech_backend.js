@@ -186,6 +186,43 @@ describe('Server speech adapter and protected audio', function() {
         assert.strictEqual(count, 2);
     });
 
+    it('notifies associated tournaments once on completion or failure after releasing the current job', async function() {
+        let time = Date.now(), active;
+        const changes = [];
+        const broker = new SpeechBroker(config(), { now: () => time,
+            onChange: keys => {
+                assert.strictEqual(broker.current, null);
+                assert.strictEqual(broker.stepping, false);
+                changes.push(keys);
+            },
+            request: async (_base, _key, method, _route, body) => {
+                if (method === 'GET') return active;
+                return (active = reply(body, body.text === 'failure' ? 'failed' : body.text === 'cached' ? 'completed' : 'queued'));
+            },
+        });
+        broker.prepare([TEXT], {}, 'default');
+        broker.prepare([TEXT], {}, 'other');
+        await broker.step();
+        assert.deepStrictEqual(changes, []);
+        active = reply(active, 'processing');
+        time += 3000; await broker.step();
+        assert.deepStrictEqual(changes, []);
+        active = reply(active, 'completed');
+        time += 3000; await broker.step();
+        assert.deepStrictEqual(changes, [['default', 'other']]);
+        broker.prepare([TEXT], {}, 'default');
+        time += 3000; await broker.step();
+        assert.strictEqual(changes.length, 1, 'an unchanged ready recording must not send duplicate notifications');
+        broker.prepare(['failure'], {}, 'default');
+        await broker.step();
+        assert.deepStrictEqual(changes, [['default', 'other'], ['default']]);
+        broker.prepare(['cached'], {}, 'default');
+        time += 3000; await broker.step();
+        assert.deepStrictEqual(changes, [['default', 'other'], ['default'], ['default']]);
+        assert(!JSON.stringify(changes).includes(TEXT));
+        assert(!JSON.stringify(changes).includes(KEY));
+    });
+
     it('reports the actual priority and alternating-voice dispatch order without changing it', async function() {
         let time = Date.now();
         const sent = [];

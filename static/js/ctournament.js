@@ -1295,21 +1295,23 @@ var ctournament = (function() {
 				['hallensprecherin', 'Hallensprecherin'], ['hallensprecher', 'Hallensprecher'],
 			]) uiu.el(voice, 'option', { value }, label);
 			voice.value = btsSpeechService.settings().voice;
-			const status = uiu.el(controls, 'div', 'local_speech_status');
+			const status = uiu.el(controls, 'div', { class: 'local_speech_status', 'aria-live': 'polite' }, 'Cache-Status wird geladen …');
 			render_local_speech_output_status(controls);
-			const update = () => btsSpeechService.status().then(response => {
+			const paintStatus = (response, counts) => {
 				if (!status.isConnected) return;
 				if (response?.speech) curt.speech = response.speech;
 				const speech = curt.speech || {};
-				status.textContent = !speech.enabled
+				const text = !speech.enabled
 					? 'Lokaler Sprachserver ist im BTS-Backend noch nicht konfiguriert.'
-					: (speech.last_error === 'speech_busy' ? 'Sprachserver beschäftigt; weitere Ansageteile warten im BTS. ' :
+					: !counts ? 'Cache-Status derzeit nicht verfügbar.' :
+					(speech.last_error === 'speech_busy' ? 'Sprachserver beschäftigt; weitere Ansageteile warten im BTS. ' :
 						speech.last_error ? 'Sprachserver derzeit nicht bereit. ' : '') +
-						(speech.ready || 0) + ' Ansageteile bereit, ' + (speech.preparing || 0) + ' werden vorbereitet.';
-			});
+						counts.ready + ' Ansageteile bereit, ' + counts.preparing + ' werden vorbereitet.' +
+						(counts.failed ? ' ' + counts.failed + ' fehlgeschlagen.' : '');
+				if (status.textContent !== text) status.textContent = text;
+			};
 			const changed = () => {
 				btsSpeechService.settingsChanged();
-				void update();
 				refreshQueue?.();
 			};
 			bind_live_prop(mode, 'announcement_speech_mode', { on_success: changed });
@@ -1325,7 +1327,6 @@ var ctournament = (function() {
 				.addEventListener('click', cancelAnnouncementPlayback);
 			uiu.el(controls, 'button', { type: 'button' }, 'Cache-Status aktualisieren')
 				.addEventListener('click', () => {
-					void update();
 					refreshQueue?.();
 					if (typeof btsSpeechReadiness !== 'undefined') void btsSpeechReadiness.refresh(true);
 				});
@@ -1335,7 +1336,7 @@ var ctournament = (function() {
 				uiu.el(legend, 'span', { class: 'local_speech_readiness', 'data-speech-state': state }, label);
 			}
 			uiu.el(legend, 'small', {}, 'Haken: alle Ansageteile der gewählten Stimme gecacht und Audio auf diesem Gerät freigegeben. Details beim Darüberfahren. Hallen-Ansagen zusätzlich aktivieren.');
-			void update();
+			return paintStatus;
 		}
 	}
 
@@ -3771,8 +3772,9 @@ var ctournament = (function() {
 			uiu.el(call_div, 'p', {}, 'Sprachausgabe für alle Clients dieses Turniers. Änderungen werden automatisch gespeichert. Es wird nur die ausgewählte lokale Stimme vorbereitet.');
 			const layout = uiu.el(call_div, 'div', 'speech_settings_layout');
 			const speech_controls = uiu.el(layout, 'div');
-			const queue = createSpeechQueue({ root: uiu.el(layout, 'section', 'speech_queue'), service: btsSpeechService });
-			render_local_speech_controls(speech_controls, () => { void queue.refresh(); });
+			let queue;
+			const paintStatus = render_local_speech_controls(speech_controls, () => { void queue?.refresh(); });
+			queue = createSpeechQueue({ root: uiu.el(layout, 'section', 'speech_queue'), service: btsSpeechService, onSnapshot: paintStatus });
 
 			const announcements_fieldset = uiu.el(call_div, 'fieldset');
 			input.annoncement_include_event = create_checkbox(curt, announcements_fieldset, 'annoncement_include_event');
