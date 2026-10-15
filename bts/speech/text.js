@@ -29,7 +29,7 @@ function prepare(tournament, matches, locale = 'de') {
         if (court.is_active === false) continue;
         parts.push(texts.createFieldAnnouncement({ court_id: court._id }));
         parts.push(texts.createFieldPreparationAnnouncement({ court_id: court._id }));
-        parts.push(texts.createFieldAnnouncement({ court_id: court._id }) + translate(locale, 'announcements:begin_to_play'));
+        parts.push(texts.createBeginToPlayAnnouncement({ court_id: court._id }));
     }
     for (const match of matches) {
         const setup = match.setup;

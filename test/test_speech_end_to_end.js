@@ -191,16 +191,19 @@ suite('BTS / actual FastAPI / native Chrome speech integration', function() {
         if (directory) fs.rmSync(directory, { recursive: true, force: true });
     });
 
-    it('warms exact legacy call parts before playback and proxies the actual protected WAV', async function() {
-        const parts = ['Jungeneinzel U17', 'Halbfinale', 'Johann Bjarne Schöttmer, gegen Muhammad Sytsh Abdulquddus'];
+    it('warms exact call parts with sentence spacing before playback and proxies the actual protected WAV', async function() {
+        const parts = ['Jungeneinzel U17', 'Halbfinale', 'Johann Bjarne Schöttmer, gegen Muhammad Sytsh Abdulquddus',
+            'Auf Spielfeld 4! Bitte mit dem Spielen beginnen!'];
         const resolved = await rpc(client, { type: 'speech_resolve', tournament_key: 'default',
             voice: 'hallensprecherin', language: 'de-DE', parts });
         assert(resolved.clips.every(clip => clip.status === 'completed'));
-        const file = await fetch('http://127.0.0.1:' + server.address().port + resolved.clips[0].audio_url);
+        const file = await fetch('http://127.0.0.1:' + server.address().port + resolved.clips.at(-1).audio_url);
         assert.strictEqual(file.headers.get('content-type'), 'audio/wav');
         assert.strictEqual(Buffer.from(await file.arrayBuffer()).subarray(0, 4).toString(), 'RIFF');
         const original = fs.readFileSync(path.join(directory, 'received.jsonl'), 'utf8').trim().split('\n').map(JSON.parse);
         assert(original.some(record => record.text === parts[2]));
+        assert(original.some(record => record.text === parts[3]));
+        assert(!original.some(record => record.text === 'Auf Spielfeld 4!Bitte mit dem Spielen beginnen!'));
         assert(original.every(record => !record.text.includes('U siebzehn')));
     });
 

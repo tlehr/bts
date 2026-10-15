@@ -137,7 +137,7 @@ function createAnnouncementTexts(context) {
         }
         const tabletOperatorCall = createTabletOperator(matchSetup);
         if (tabletOperatorCall != null) {
-            const call = createFieldAnnouncement(matchSetup) + createSecondCallAnnouncement() + tabletOperatorCall;
+            const call = prependFieldAnnouncement(matchSetup, createSecondCallAnnouncement() + tabletOperatorCall);
              announce([call]);
         }
     }
@@ -147,7 +147,7 @@ function createAnnouncementTexts(context) {
         }
         const umpireCall = createUmpire(matchSetup);
         if (umpireCall != null) {
-            const call = createFieldAnnouncement(matchSetup) + createSecondCallAnnouncement() + umpireCall;
+            const call = prependFieldAnnouncement(matchSetup, createSecondCallAnnouncement() + umpireCall);
             announce([call]);
         }
     }
@@ -157,7 +157,7 @@ function createAnnouncementTexts(context) {
         }
         const servicejudgeCall = createServiceJudge(matchSetup);
         if (servicejudgeCall != null) {
-            const call = createFieldAnnouncement(matchSetup) + createSecondCallAnnouncement() + servicejudgeCall;
+            const call = prependFieldAnnouncement(matchSetup, createSecondCallAnnouncement() + servicejudgeCall);
             announce([call]);
         }
     }
@@ -262,7 +262,15 @@ function createAnnouncementTexts(context) {
         if(!(window.localStorage.getItem('enable_announcement_calls_' + getLocationID(matchSetup)) === 'true')) {
             return;
         }
-        announce([createFieldAnnouncement(matchSetup) + ci18n('announcements:begin_to_play')]);
+        announce([createBeginToPlayAnnouncement(matchSetup)]);
+    }
+
+    function prependFieldAnnouncement(matchSetup, text) {
+        return [createFieldAnnouncement(matchSetup), text].filter(Boolean).join(' ');
+    }
+
+    function createBeginToPlayAnnouncement(matchSetup) {
+        return prependFieldAnnouncement(matchSetup, ci18n('announcements:begin_to_play'));
     }
 
     function createSecondCallAnnouncement() {
@@ -452,7 +460,7 @@ function createAnnouncementTexts(context) {
         return result;
     }
 
-    return { getLocationID, announceNewMatch, announcePreparationMatch, announceNoMatchWin, announceSecondCallTeamOne, announceSecondCallTeamTwo, announceSecondPreparationCallTeamOne, announceSecondPreparationCallTeamTwo, announceSecondCallTabletoperator, announceSecondCallUmpire, announceSecondCallServiceJudge, announceSecondCall, announceSecondPreparationCallTabletoperator, announceSecondPreparationCallUmpire, announceSecondPreparationCallServiceJudge, announceSecondPreparationCall, announceBeginnToPlay, createSecondCallAnnouncement, createSecondPreparationCallAnnouncement, createTeamAnnouncement, createTabletOperator, createUmpire, createServiceJudge, createSingleTeam, normalizeNames, createRoundAnnouncement, eventAnnouncementNameByCode, createEventAnnouncement, createMatchNumberAnnouncement, createFieldAnnouncement, createFieldPreparationAnnouncement, resolveSingularPluralAnnouncement, createPreparationAnnouncement, createMeetingPointAnnouncement };
+    return { getLocationID, announceNewMatch, announcePreparationMatch, announceNoMatchWin, announceSecondCallTeamOne, announceSecondCallTeamTwo, announceSecondPreparationCallTeamOne, announceSecondPreparationCallTeamTwo, announceSecondCallTabletoperator, announceSecondCallUmpire, announceSecondCallServiceJudge, announceSecondCall, announceSecondPreparationCallTabletoperator, announceSecondPreparationCallUmpire, announceSecondPreparationCallServiceJudge, announceSecondPreparationCall, announceBeginnToPlay, createBeginToPlayAnnouncement, createSecondCallAnnouncement, createSecondPreparationCallAnnouncement, createTeamAnnouncement, createTabletOperator, createUmpire, createServiceJudge, createSingleTeam, normalizeNames, createRoundAnnouncement, eventAnnouncementNameByCode, createEventAnnouncement, createMatchNumberAnnouncement, createFieldAnnouncement, createFieldPreparationAnnouncement, resolveSingularPluralAnnouncement, createPreparationAnnouncement, createMeetingPointAnnouncement };
 }
 
 if (typeof module !== 'undefined' && module.exports) { module.exports = createAnnouncementTexts; }

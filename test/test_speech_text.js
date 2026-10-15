@@ -8,6 +8,9 @@ const create = require('../static/js/announcement_text');
 const { _translate: translate } = require('../static/js/ci18n');
 const { prepare, CALLS } = require('../bts/speech/text');
 const { upcoming } = require('../bts/speech/prefetch');
+const SPACED_FIELD_CALLS = new Set([
+    'announceBeginnToPlay', 'announceSecondCallTabletoperator', 'announceSecondCallUmpire', 'announceSecondCallServiceJudge',
+]);
 
 function tournament(flags = 7) {
     return {
@@ -48,7 +51,7 @@ function baseline(context) {
 
 describe('Shared announcement text and preparation', function() {
     for (const locale of ['de', 'en']) for (const flags of [0, 1, 7]) {
-        it('preserves every legacy call byte for byte: ' + locale + '/' + flags, function() {
+        it('preserves legacy text except corrected sentence separators: ' + locale + '/' + flags, function() {
             const current = tournament(flags);
             current.normalizations = [{ origin: 'Johann', replace: 'Hans', language: 'de-DE' }];
             for (const match of [setup(), setup({ court_id: null }), setup({ match_name: '3/4' }),
@@ -62,12 +65,56 @@ describe('Shared announcement text and preparation', function() {
                     };
                     const old = baseline({ ...context, announce: values => before.push(values) });
                     old[call](match, 0);
+                    // The frozen legacy fixture deliberately retains the reported
+                    // missing space. Only these four joins gain a separator.
+                    const field = old.createFieldAnnouncement(match);
+                    if (SPACED_FIELD_CALLS.has(call) && field) {
+                        before[0][0] = field + ' ' + before[0][0].slice(field.length);
+                    }
                     create(context)[call](match, 0);
                     assert.deepStrictEqual(Buffer.from(JSON.stringify(after)), Buffer.from(JSON.stringify(before)), call);
                 }
             }
         });
     }
+
+    for (const [locale, field, instruction] of [
+        ['de', 'Auf Spielfeld 5!', 'Bitte mit dem Spielen beginnen!'],
+        ['en', 'On Court 5!', 'Start to play!'],
+    ]) {
+        it('separates sentences identically in playback and prefetch, including future courts: ' + locale, function() {
+            const current = tournament();
+            current.courts.push({ _id: 'default_5', is_active: true, location_id: 'default_h1' });
+            const observed = [];
+            const texts = create({ tournament: current, translate: key => translate(locale, key),
+                announce: parts => observed.push(...parts),
+                window: { localStorage: { getItem: () => 'true' } }, claim: () => null });
+            const expected = field + ' ' + instruction;
+            texts.announceBeginnToPlay(setup({ court_id: 'default_5' }));
+            texts.announceBeginnToPlay(setup({ court_id: null }));
+            assert.deepStrictEqual(observed, [expected, instruction]);
+            const future = prepare(current, [], locale);
+            assert(future.includes(expected), 'the exact corrected call must be ready before court assignment');
+            assert(!future.includes(field + instruction), 'the broken concatenation must not be warmed again');
+        });
+    }
+
+    it('separates the court sentence from official second calls and prefetches their exact text', function() {
+        const current = tournament();
+        const match = setup();
+        const prepared = prepare(current, [{ setup: match }]);
+        const calls = [];
+        const texts = create({ tournament: current, translate: key => translate('de', key),
+            announce: parts => calls.push(...parts),
+            window: { localStorage: { getItem: () => 'true' } }, claim: () => null });
+        for (const call of ['announceSecondCallTabletoperator', 'announceSecondCallUmpire', 'announceSecondCallServiceJudge']) {
+            texts[call](match);
+            assert(calls.at(-1).startsWith('Auf Spielfeld 4! Zweiter Aufruf für:'), calls.at(-1));
+            assert(prepared.includes(calls.at(-1)), 'second call must use the exact prefetched text');
+            texts[call]({ ...match, court_id: null });
+            assert(calls.at(-1).startsWith('Zweiter Aufruf für:'), 'an unassigned court must not add leading whitespace');
+        }
+    });
 
     it('prepares the exact upcoming call parts and common future courts without playing', function() {
         const current = tournament();
