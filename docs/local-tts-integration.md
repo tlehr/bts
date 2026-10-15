@@ -1,5 +1,7 @@
 # Lokale Sprachausgabe im BTS
 
+Wortlaut, Reihenfolge und Stückelung der Turnierdurchsagen bearbeiten wir im [Arbeitsdokument zu den Durchsagen](durchsagen-arbeitsdokument.md).
+
 Auf **feat/localTts** ist der BTS-Sprachserver jetzt tatsächlich angebunden. Das Backend bereitet künftige Ansageteile vor, fragt fertige WAVs ab und liefert sie über signierte URLs aus. Die vorhandene Ansage-Queue, Standortauswahl, Tab-Leader und Browser-TTS bleiben erhalten.
 
 ## Lokal einrichten und aktivieren
