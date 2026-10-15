@@ -687,7 +687,7 @@ describe('Server speech adapter and protected audio', function() {
         await db.matches.update_async({ _id: 'match1' }, { $set: { 'setup.teams.1.players.0.name': 'Neuer Gegner' } }, {});
         await prefetch.refresh('default');
         assert.deepStrictEqual([...broker.entries.values()].map(entry => entry.text).filter(text => !previous.has(text)).sort(),
-            ['Neuer Gegner', 'Neuer Gegner!']);
+            ['Neuer Gegner']);
         assert.strictEqual(broker.views(['Johann Bjarne Schöttmer, gegen Neuer Gegner'], {}, 'default')[0].audio_url, null);
         prefetch.stop();
     });

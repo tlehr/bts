@@ -74,11 +74,15 @@ describe('Shared announcement text and preparation', function() {
                     create(context)[call](match, 0);
                     assert.deepStrictEqual(Buffer.from(JSON.stringify(after)), Buffer.from(JSON.stringify(before)), call);
                     const local = [];
-                    create({ ...context, local: true, announce: values => local.push(values) })[call](match, 0);
+                    const builder = create({ ...context, local: true, announce: values => local.push(values) });
+                    builder[call](match, 0);
                     // Only boundaries and their whitespace differ. Every name,
-                    // word, number and punctuation mark must survive in order.
+                    // word and number survives; structural punctuation becomes
+                    // playback boundaries, without changing the browser text.
                     const characters = values => values.flat().filter(Boolean).join('').replace(/\s/g, '');
-                    assert.strictEqual(characters(local), characters(before), call + ' local text');
+                    const plan = builder.localPlan(after.flat());
+                    assert.deepStrictEqual(local.flat(), plan.map(part => part.text));
+                    assert.strictEqual(characters(plan.map(part => part.text + part.after)), characters(before), call + ' local text');
                     assert(local.flat().every(text => text.trim() && !/^[\s,;:.!?]+$/.test(text)));
                     assert(local.flat().length <= 64, 'a complete call must fit the resolve API');
                 }
@@ -208,6 +212,45 @@ describe('Shared announcement text and preparation', function() {
         assert(!parts.includes('Johann'));
         assert(!parts.includes('U17'));
         assert(!parts.some(text => text.includes('Spielfeld') && text.includes('Bitte mit dem Spielen')));
+    });
+
+    it('uses one recording per name and round with sentence endings represented as playback pauses', function() {
+        const current = tournament();
+        const match = setup({ match_name: 'R16',
+            teams: [{ players: [{ name: 'Buddhsa Keo Boun Khoune' }] }, { players: [{ name: 'Noe Rößler' }] }] });
+        const prepared = prepare(current, [{ setup: match }]);
+        for (const text of ['Buddhsa Keo Boun Khoune', 'Noe Rößler', 'Achtelfinale']) {
+            assert.strictEqual(prepared.filter(part => part === text).length, 1, text);
+            assert(!prepared.includes(text + '!'), text + ' must not be generated again for sentence endings');
+            assert(!prepared.includes(', ' + text), text + ' must not be generated again after a comma');
+        }
+        const calls = [];
+        const texts = create({ tournament: current, translate: (key, data) => translate('de', key, data),
+            window: { localStorage: { getItem: () => 'true' } }, claim: () => null,
+            announce: (parts, _local, _claim, options) => calls.push({ parts, ...options }) });
+        texts.announceSecondPreparationCallTeamOne({ ...match, location_id: null });
+        assert(calls[0].parts[0].endsWith('Buddhsa Keo Boun Khoune!'));
+        const index = calls[0].localParts.indexOf('Buddhsa Keo Boun Khoune');
+        assert(index >= 0);
+        assert.strictEqual(calls[0].localPauses[index], 250);
+        texts.announceNoMatchWin(match, 1);
+        assert.strictEqual(calls[1].localParts.at(-1), 'Noe Rößler');
+        assert.strictEqual(calls[1].localPauses.at(-1), 250);
+        const round = calls[1].localParts.indexOf('Achtelfinale');
+        assert(round >= 0);
+        assert.strictEqual(calls[1].localPauses[round], 250);
+    });
+
+    it('preserves punctuation within original names, including initials and abbreviations', function() {
+        const match = setup({ location_id: null,
+            teams: [{ players: [{ name: 'Nina K.' }] }, { players: [{ name: 'Leandra G.!' }] }] });
+        const prepared = prepare(tournament(), [{ setup: match }]);
+        for (const name of ['Nina K.', 'Leandra G.!']) {
+            assert.strictEqual(prepared.filter(text => text === name).length, 1);
+            assert(!prepared.includes(name + '!'));
+        }
+        assert(!prepared.includes('Nina K'));
+        assert(!prepared.includes('Leandra G'));
     });
 
     it('prioritizes real preparation candidates and excludes finished/incomplete records', function() {

@@ -203,6 +203,11 @@ suite('BTS / actual FastAPI / native Chrome speech integration', function() {
         assert.strictEqual(Buffer.from(await file.arrayBuffer()).subarray(0, 4).toString(), 'RIFF');
         const original = fs.readFileSync(path.join(directory, 'received.jsonl'), 'utf8').trim().split('\n').map(JSON.parse);
         for (const text of parts) assert(original.some(record => record.text === text), text);
+        for (const name of ['Johann Bjarne Schöttmer', 'Muhammad Sytsh Abdulquddus', 'Ulli Unparteiisch', 'Lisa Linie']) {
+            assert.strictEqual(original.filter(record => record.text === name).length, 1, name);
+            assert(!original.some(record => record.text === name + '!'), name + ' must share its sentence-ending WAV');
+        }
+        assert(!original.some(record => record.text === 'Halbfinale!' || record.text === ', Halbfinale'));
         assert.strictEqual(original.filter(record => record.text === parts.at(-1)).length, 1);
         assert(!original.some(record => record.text.includes('Spielfeld') && record.text.includes('Bitte mit dem Spielen')));
         assert(!original.some(record => record.text.includes('Schöttmer, gegen')));
@@ -259,6 +264,20 @@ suite('BTS / actual FastAPI / native Chrome speech integration', function() {
             'Auf Spielfeld 8!', 'Bitte mit dem Spielen beginnen!'], {}, 'default').map(clip => clip.audio_url.split('?')[0]);
         assert.deepStrictEqual(sources, expected);
         assert.strictEqual(await devtools.evaluate('window.__browserSpeechCalls || 0'), fallback);
+        assert.strictEqual(fs.readFileSync(path.join(directory, 'received.jsonl'), 'utf8'), before);
+    });
+
+    it('reuses the same native WAV for a name in the middle and at the end of a forfeit announcement', async function() {
+        const before = fs.readFileSync(path.join(directory, 'received.jsonl'), 'utf8');
+        await devtools.evaluate('window.__audioSources = []; ' +
+            'announceNoMatchWin({...curt.matches[0].setup, _announcement_claim_key:\'name-reuse-e2e\'}, 0);');
+        await until(() => devtools.evaluate('window.__audioSources.length === 8 && !announcementPlaybackActive'));
+        const sources = await devtools.evaluate('window.__audioSources.map(src => new URL(src).pathname)');
+        const parts = ['Spiel Nummer 17', 'Jungeneinzel U17', 'Halbfinale', 'Johann Bjarne Schöttmer',
+            'gegen', 'Muhammad Sytsh Abdulquddus', 'geht kampflos an', 'Johann Bjarne Schöttmer'];
+        const expected = app.speech.broker.views(parts, {}, 'default').map(clip => clip.audio_url.split('?')[0]);
+        assert.deepStrictEqual(sources, expected);
+        assert.strictEqual(sources[3], sources.at(-1));
         assert.strictEqual(fs.readFileSync(path.join(directory, 'received.jsonl'), 'utf8'), before);
     });
 

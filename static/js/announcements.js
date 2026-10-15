@@ -556,6 +556,7 @@ function requestAnnouncementRetry(batch) {
         claimKey: batch.claimKey,
         callArray: batch.callArray,
         localParts: batch.localParts,
+        localPauses: batch.localPauses,
         excludeTabId: ANNOUNCEMENT_TAB_ID,
         retryCount: (batch.retryCount || 0) + 1,
         expiresAt: Date.now() + ANNOUNCEMENT_RETRY_TTL_MS,
@@ -582,6 +583,7 @@ function handleAnnouncementRetryRequest(request) {
         retryCount: request.retryCount || 0,
         allowRetry: false,
         localParts: request.localParts,
+        localPauses: request.localPauses,
     });
 }
 
@@ -666,7 +668,7 @@ function processAnnouncementPlaybackQueue() {
         }, pauseMs);
     };
     btsSpeechService.speak(nextBatch.callArray, nextBatch.playbackId,
-        (parts, signal) => browserAnnouncementBatch(parts, signal, nextBatch.claimKey), nextBatch.localParts)
+        (parts, signal) => browserAnnouncementBatch(parts, signal, nextBatch.claimKey), nextBatch.localParts, nextBatch.localPauses)
         .then(finish, () => finish({ status: 'error', started: false, allowRetry: false }));
 }
 
@@ -676,6 +678,7 @@ function announce(callArray, local, claimKey, options) {
         announcementPlaybackQueue.push({
             callArray,
             localParts: resolvedOptions.localParts,
+            localPauses: resolvedOptions.localPauses,
             claimKey,
             playbackId: claimKey || ANNOUNCEMENT_TAB_ID + ":" + (++announcementPlaybackSequence),
             retryCount: resolvedOptions.retryCount || 0,

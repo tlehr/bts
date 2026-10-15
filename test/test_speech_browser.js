@@ -46,6 +46,38 @@ function harness(options = {}) {
 }
 
 describe('Browser local speech provider', function() {
+    it('reuses the same recording at sentence endings and waits before playing the next clip', async function() {
+        const h = harness();
+        const times = [];
+        const play = h.player.play;
+        h.player.play = function() { times.push(Date.now()); return play.call(this); };
+        const result = await h.service.speak(['Nina K.! Nina K.'], 'name-boundary', h.fallback,
+            ['Nina K.', 'Nina K.'], [80, 0]);
+        assert.strictEqual(result.provider, 'server');
+        assert.deepStrictEqual(h.requests[0][1].parts, ['Nina K.', 'Nina K.']);
+        assert.strictEqual(h.played.length, 2);
+        assert.strictEqual(h.played[0], h.played[1]);
+        assert(times[1] - times[0] >= 65, 'the punctuation pause must separate the clips');
+        assert.deepStrictEqual(h.browser, []);
+    });
+
+    it('cancels during a sentence pause without playing the next clip or falling back', async function() {
+        const h = harness({ fail: 'held' });
+        const playback = h.service.speak(['Nina! Weiter!'], 'stop-name-boundary', h.fallback,
+            ['Nina', 'Weiter!'], [250, 0]);
+        await new Promise(resolve => setImmediate(resolve));
+        assert.strictEqual(h.played.length, 1);
+        h.player.onplaying();
+        h.player.onended();
+        await Promise.resolve();
+        h.service.cancel();
+        const result = await playback;
+        assert.strictEqual(result.status, 'cancelled');
+        assert.strictEqual(result.started, true);
+        assert.strictEqual(h.played.length, 1);
+        assert.deepStrictEqual(h.browser, []);
+    });
+
     it('plays reusable local clips in order while browser mode and fallback keep the original sentence', async function() {
         const browserParts = ['Auf Spielfeld 8! Bitte mit dem Spielen beginnen!'];
         const localParts = ['Auf Spielfeld 8!', 'Bitte mit dem Spielen beginnen!'];

@@ -17,26 +17,33 @@ function createAnnouncementTexts(context) {
         return text;
     }
 
-    function localParts(parts) {
+    function localPlan(parts) {
         return parts.filter(Boolean).flatMap(text => {
             const chunks = [];
-            let punctuation = '';
             for (const piece of compositions.get(text) || [text]) {
-                // Whitespace between recordings needs no WAV. Attach isolated
-                // punctuation to the next phrase (or the last name at the end).
-                if (!piece || !piece.trim()) { if (punctuation) punctuation += piece; continue; }
-                if (/^[\s,;:.!?]+$/.test(piece)) { punctuation += piece; continue; }
-                chunks.push((punctuation + piece).trim());
-                punctuation = '';
+                if (!piece || !piece.trim()) continue;
+                // Punctuation added by composition belongs to the playback
+                // boundary. It must not create a second WAV for the same name.
+                // Punctuation inside an atomic name (e.g. "Max M.") stays intact.
+                if (/^[\s,;:.!?]+$/.test(piece)) {
+                    if (chunks.length) chunks[chunks.length - 1].after += piece;
+                    continue;
+                }
+                chunks.push({ text: piece.trim(), after: '' });
             }
-            if (punctuation && chunks.length) chunks[chunks.length - 1] += punctuation.trimEnd();
             return chunks;
         });
     }
 
+    function localParts(parts) {
+        return localPlan(parts).map(part => part.text);
+    }
+
     function announce(parts, local, claim) {
-        const prepared = localParts(parts);
-        context.announce(context.local ? prepared : parts, local, claim, { localParts: prepared });
+        const plan = localPlan(parts);
+        const prepared = plan.map(part => part.text);
+        const pauses = plan.map(part => /[.!?]/.test(part.after) ? 250 : /[,;:]/.test(part.after) ? 120 : 0);
+        context.announce(context.local ? prepared : parts, local, claim, { localParts: prepared, localPauses: pauses });
     }
     const window = context.window;
     const buildAnnouncementClaimKey = context.claim;
@@ -501,7 +508,7 @@ function createAnnouncementTexts(context) {
         return result;
     }
 
-    return { localParts, getLocationID, announceNewMatch, announcePreparationMatch, announceNoMatchWin, announceSecondCallTeamOne, announceSecondCallTeamTwo, announceSecondPreparationCallTeamOne, announceSecondPreparationCallTeamTwo, announceSecondCallTabletoperator, announceSecondCallUmpire, announceSecondCallServiceJudge, announceSecondCall, announceSecondPreparationCallTabletoperator, announceSecondPreparationCallUmpire, announceSecondPreparationCallServiceJudge, announceSecondPreparationCall, announceBeginnToPlay, createBeginToPlayAnnouncement, createSecondCallAnnouncement, createSecondPreparationCallAnnouncement, createTeamAnnouncement, createTabletOperator, createUmpire, createServiceJudge, createSingleTeam, normalizeNames, createRoundAnnouncement, eventAnnouncementNameByCode, createEventAnnouncement, createMatchNumberAnnouncement, createFieldAnnouncement, createFieldPreparationAnnouncement, resolveSingularPluralAnnouncement, createPreparationAnnouncement, createMeetingPointAnnouncement };
+    return { localPlan, localParts, getLocationID, announceNewMatch, announcePreparationMatch, announceNoMatchWin, announceSecondCallTeamOne, announceSecondCallTeamTwo, announceSecondPreparationCallTeamOne, announceSecondPreparationCallTeamTwo, announceSecondCallTabletoperator, announceSecondCallUmpire, announceSecondCallServiceJudge, announceSecondCall, announceSecondPreparationCallTabletoperator, announceSecondPreparationCallUmpire, announceSecondPreparationCallServiceJudge, announceSecondPreparationCall, announceBeginnToPlay, createBeginToPlayAnnouncement, createSecondCallAnnouncement, createSecondPreparationCallAnnouncement, createTeamAnnouncement, createTabletOperator, createUmpire, createServiceJudge, createSingleTeam, normalizeNames, createRoundAnnouncement, eventAnnouncementNameByCode, createEventAnnouncement, createMatchNumberAnnouncement, createFieldAnnouncement, createFieldPreparationAnnouncement, resolveSingularPluralAnnouncement, createPreparationAnnouncement, createMeetingPointAnnouncement };
 }
 
 if (typeof module !== 'undefined' && module.exports) { module.exports = createAnnouncementTexts; }

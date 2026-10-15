@@ -101,9 +101,9 @@ function createSpeechService(context) {
         return { reason: 'cache_incomplete' };
     }
 
-    async function play(clips, value, signal) {
+    async function play(clips, value, signal, pauses = []) {
         let started = false;
-        for (const clip of clips) {
+        for (const [index, clip] of clips.entries()) {
             if (signal.aborted) throw Object.assign(new Error('cancelled'), { started });
             const player = getAudio();
             await new Promise((resolve, reject) => {
@@ -137,11 +137,26 @@ function createSpeechService(context) {
                     finish(new Error(error.name === 'NotAllowedError' ? 'audio_blocked' : 'audio_failed'))); }
                 catch (_) { finish(new Error('audio_failed')); }
             });
+            const pause = pauses[index];
+            if (Number.isFinite(pause) && pause > 0) {
+                await new Promise((resolve, reject) => {
+                    const finish = error => {
+                        clearTimeout(timer);
+                        signal.removeEventListener('abort', abort);
+                        if (error) reject(Object.assign(error, { started }));
+                        else resolve();
+                    };
+                    const abort = () => finish(new Error('cancelled'));
+                    const timer = setTimeout(finish, Math.min(pause, 500));
+                    signal.addEventListener('abort', abort, { once: true });
+                    if (signal.aborted) abort();
+                });
+            }
         }
         return { status: 'ok', provider: 'server', started };
     }
 
-    async function speak(parts, playback_id, browser, localParts = parts) {
+    async function speak(parts, playback_id, browser, localParts = parts, localPauses = []) {
         parts = parts.filter(Boolean);
         localParts = localParts.filter(Boolean);
         if (history.has(playback_id)) return { status: 'skipped', provider: 'none', started: false };
@@ -168,7 +183,7 @@ function createSpeechService(context) {
                     result = value.mode === 'auto' ? await useBrowser(resolved.reason) :
                         { status: 'unavailable', reason: resolved.reason, provider: 'server', started: false };
                 } else {
-                    try { result = await play(resolved.clips, value, controller.signal); }
+                    try { result = await play(resolved.clips, value, controller.signal, localPauses); }
                     catch (error) {
                         if (controller.signal.aborted) result = { status: 'cancelled', provider: 'server', started: error.started };
                         else {
