@@ -129,6 +129,15 @@ Auslöser: Gezielte Aufforderung zum Spielbeginn.
 Auf Spielfeld {Feld}! Bitte mit dem Spielen beginnen!
 ```
 
+**Vereinbarter lokaler Aufbau:**
+
+```text
+B01-Anfang des jeweiligen Feldes
+→ B12 Bitte mit dem Spielen beginnen!
+```
+
+Der erste Teil verwendet die bereits aus dem vollständigen Referenzaufruf ausgeschnittene Aufnahme **B01-Anfang**. D03 benötigt dafür keine zusätzliche Generierung der Spielfeldansage. Wie die Aufnahme für B12 erstellt wird und welche Übergangspause verwendet wird, bleibt noch festzulegen.
+
 Ohne Feldzuweisung bleibt nur `Bitte mit dem Spielen beginnen!`.
 
 ### D04 – Zweiter Aufruf eines Teams auf das Feld
@@ -288,10 +297,10 @@ Variante 6 zeigt einen Weg zur Wiederverwendung von im Zusammenhang erzeugten Te
 
 Die erste Vorbereitungsstufe erstellt die beiden Spielfeldaufnahmen für **alle im Turnier angelegten Felder**. Sie verwendet die zentral ausgewählte lokale Stimme.
 
-| Aufnahme | Gesprochener Text | Herkunft | Geplanter Einsatz bei D01 |
+| Aufnahme | Gesprochener Text | Herkunft | Vereinbarter Einsatz |
 | --- | --- | --- | --- |
-| B01-Anfang je Feld | `Auf Spielfeld {Feld}!` | Anfang eines vollständig erzeugten Referenz-Spielaufrufs für dieses Feld | Beginn des Aufrufs |
-| B01-Ende je Feld | `Auf Spielfeld {Feld}!` | Ende derselben vollständigen Aufnahme | Abschluss des Aufrufs |
+| B01-Anfang je Feld | `Auf Spielfeld {Feld}!` | Anfang eines vollständig erzeugten Referenz-Spielaufrufs für dieses Feld | Beginn von D01 und erster Teil von D03 |
+| B01-Ende je Feld | `Auf Spielfeld {Feld}!` | Ende derselben vollständigen Aufnahme | Abschluss von D01 |
 
 **Erstellung je Feld:**
 
@@ -339,7 +348,7 @@ Die übrigen Punkte können wir direkt in dieser Datei festlegen:
 | --- | --- | --- |
 | Feldansage | Wie entstehen die Aufnahmen für Anfang und Schluss? | B01-Anfang und B01-Ende je Feld aus derselben vollständigen Referenzaufnahme; erste Vorbereitungsstufe für alle Felder (Abschnitt 7.1) |
 | Referenzaufruf | Welcher Mittelteil wird für die erstmalige Erstellung der Feldaufnahmen gesprochen? | Festgelegter Beispiel-Spielblock aus Abschnitt 7.1: Spiel 189, Mädcheneinzel U19, Achtelfinale, Nina Keo Boun Khoune gegen LeandraGalowicz; wortgetreu mit ausgeschriebenen Zahlen und unverändert für alle Felder |
-| Einsatz weiterer Feldansagen | Welche B01-Ausschnitte passen auch zu D03–D08? Wie wird B02 erstellt? | Offen |
+| Einsatz weiterer Feldansagen | Welche B01-Ausschnitte verwenden andere Durchsagen? Wie wird B02 erstellt? | D03 verwendet B01-Anfang des jeweiligen Feldes; weitere Verwendungen und die Erstellung von B02 bleiben offen |
 | Spielblock | Welche Angaben bleiben gemeinsam in einer langen Aufnahme? | Offen |
 | Namen und Paarungen | Ein vollständiger Name je Aufnahme, ein Team oder beide Teams mit „gegen“? | Offen |
 | Offizielle | Welche Rollen-/Namensstücke lassen sich natürlich zwischen normalen Aufrufen und Zweitaufrufen wiederverwenden? | Offen |
