@@ -135,6 +135,16 @@ BTS-Datenänderungen, die vorhandene Kandidatenabfrage und zusätzlich eine peri
 
 Noch unbekannte Gegner, zukünftige Änderungen und spontan eingegebene Ansagen können nicht vor ihrer Kenntnis vertont werden. Das aktuelle, tatsächlich ausgelöste Textarray ist deshalb immer maßgeblich: es wird beim Ruf exakt erneut aufgelöst. Die Aufnahme eines früheren Textes wird nicht aufgrund derselben Match-ID verwendet.
 
+## Zahlen vor dem Sprachserver ausschreiben
+
+Auf Wunsch werden alle Ziffern im deutschen Sprachserver-Text ausgeschrieben. Dies ist eine ausdrückliche Ausnahme zur bisherigen unveränderten Textübergabe: Erst `bts/speech/broker.js` erstellt direkt vor `POST /v1/speech` die Sprechfassung mit `bts/speech/numbers.js`. Anzeige, gespeicherte Turnierdaten, Textliste, Browser-TTS und die Originaltexte der lokalen Bausteine behalten ihre Ziffern. Für beide lokalen Stimmen gelten dieselben Regeln, auch bei freien Ansagen und Sprachtests.
+
+Beispiele: `Auf Spielfeld 8` → `Auf Spielfeld acht`, `Spiel Nummer 186` → `Spiel Nummer einhundertsechsundachtzig`, `U17` → `U siebzehn`. Ganze Zahlen werden zusammenhängend gesprochen, damit innerhalb einer Zahl keine zusätzlichen Wortpausen entstehen. Deutsche Tausenderpunkte werden aufgelöst (`1.234`), Dezimalkommas als „Komma“ gesprochen und Nachkommastellen einzeln gelesen (`1,05` → `eins Komma null fünf`). Führende Nullen und Zahlen oberhalb der unterstützten Größenordnung werden ziffernweise ausgeschrieben, ohne Rundung. Andere Zahlennotationen behalten ihre Trennzeichen; Datum, Uhrzeit, Ergebnis und Ordnungszahl werden nicht anhand des Kontextes umformuliert. Der übrige Wortlaut bleibt erhalten; zwischen Buchstaben und ausgeschriebenen Zahlen werden bei Bedarf Leerzeichen eingefügt.
+
+Vorbereitung, Bereitschaftsprüfung und Auflösung verwenden weiterhin denselben Originaltext als BTS-Schlüssel. Nur der an den Sprachserver gesendete Text und die Prüfung seiner Antworten verwenden die Sprechfassung. Der persistente Sprachserver-Cache unterscheidet die neue ausgeschriebene Fassung von früheren Ziffernaufnahmen; unveränderte Texte bleiben wiederverwendbar. Die Umwandlung hat eine eigene Version in der vom BTS veröffentlichten Cache-Identität. Auch nach der Ausschreibung gilt die konfigurierte maximale Textlänge; ein zu langer Text wird vor der Einplanung abgelehnt und kann im Automatikmodus über den bisherigen Browser-Fallback ausgegeben werden.
+
+Zum Aktivieren **BTS neu starten und alle Client-Seiten neu laden**. Texte mit Ziffern werden bei Bedarf neu vorbereitet. Vorhandene WAVs werden weder überschrieben noch gelöscht; am Sprachserver ist keine Änderung erforderlich.
+
 ## Kürzere Wortpausen beim Hallensprecher
 
 Für die männliche Stimme liefert BTS eine Wiedergabekopie mit kürzerer Stille aus. Die bereits erzeugten WAVs, Ansagetexte und Generierungsschlüssel bleiben erhalten; eine neue Synthese ist dafür nicht erforderlich. Das gilt für tatsächliche Durchsagen und die Lautsprecher zum Probehören.
@@ -154,7 +164,7 @@ Die Variante ist Teil der signierten Audio-Berechtigung (`words-v1` beziehungswe
 - static/js/announcement_text.js enthält die gemeinsam verwendeten bisherigen Textfunktionen und leitet daraus die lokale Stückelung ab. Browser-Wortlaut, Namen, U17 und Satzzeichen bleiben erhalten.
 - bts/speech/text.js rendert diese Funktionen nur zur Vorbereitung, ohne Wiedergabe.
 - bts/speech/prefetch.js liest vorhandene Turnierdaten im Hintergrund und wartet auf freie Foreground-Arbeit.
-- bts/speech/broker.js dedupliziert, priorisiert und pollt die versionierte API; bts/speech/http.js setzt einen vollständigen Request-Timeout.
+- bts/speech/broker.js dedupliziert, priorisiert, schreibt Zahlen ausschließlich für die Sprachserver-Anfrage aus und pollt die versionierte API; bts/speech/http.js setzt einen vollständigen Request-Timeout.
 - Die vorhandene /ws/admin-Verbindung bietet speech_prepare, speech_resolve, speech_status und die rein lesende speech_queue. Die Verbindung muss zuvor das betreffende Turnier erfolgreich geladen haben; Speech-Fehler beeinträchtigen den allgemeinen Verbindungsstatus nicht.
 - bts/speech/proxy.js prüft zeitlich begrenzte, an Turnier und Audio-ID gebundene HMAC-Berechtigungen und reicht WAV/Range/ETag durch. Ohne gültige Signatur gibt es kein Audio.
 - static/js/speech_service.js löst die lokalen Bausteine auf und entscheidet einmal je Wiedergabe-ID zwischen vorbereiteten WAVs und Browser-Fallback mit den ursprünglichen Textabschnitten. Nur vollständig bereite Batches werden als Server-Audio begonnen.
@@ -174,7 +184,7 @@ Aktuell werden nur deutsche Server-Stimmen angeboten. Englisch/Niederländisch b
 
 ## Tests
 
-    ./node_modules/.bin/mocha test/test_speech_playback.js test/test_speech_text.js test/test_speech_browser.js test/test_speech_backend.js test/test_speech_readiness.js
+    ./node_modules/.bin/mocha test/test_speech_numbers.js test/test_speech_playback.js test/test_speech_text.js test/test_speech_browser.js test/test_speech_backend.js test/test_speech_readiness.js
     npm test
 
 Ein ausdrücklich aktivierter End-to-End-Test nutzt eine temporäre In-Memory-BTS-Datenbank, die **echte** FastAPI mit einer kleinen Mock-Engine und einen separaten Headless-Chrome. Er verändert keine produktiven Turnierdaten und benötigt den installierten Sprachserver sowie Chrome:
@@ -187,6 +197,8 @@ Bytegenaue Vergleiche aller bisherigen Ansagearten, geänderte Gegner, Queue-Gre
 
 
 ## Prüfstand dieses Auftrags
+
+Nach Ausschreiben der Zahlen vor der Sprachserver-Anfrage: 1071 BTS-Tests mit `mocha test/ --timeout 10000` bestanden; die dreizehn optionalen End-to-End-Fälle bestanden separat mit echter FastAPI und nativem Chrome (32 einschließlich der geteilten Texttests). Die Engine erhält unter anderem „Auf Spielfeld acht“, „Spiel Nummer siebzehn“ und „Jungeneinzel U siebzehn“, während die sichtbare Textliste ihre Ziffern behält. Vorbereitung und tatsächliche Wiedergabe teilen weiterhin dieselben Aufnahmen ohne weitere Synthese. Geprüft sind beide Stimmen, strenge Prüfung der ausgeschriebenen Serverantwort, Begrenzung nach der Expansion, deutsche Zahlwortformen, große Zahlen ohne Präzisionsverlust, führende Nullen, Tausenderpunkte, Dezimalkommas und unveränderte Browsertexte. ESLint bestand für alle geänderten JavaScript-Dateien.
 
 Nach Erhöhung des männlichen Sprechtempos: 103 gezielte Sprachtests und alle dreizehn optionalen End-to-End-Fälle bestanden (32 einschließlich der geteilten Texttests); ESLint bestand für die geänderten JavaScript-Dateien. Der native Chrome spielt Durchsage und Hörprobe mit dem zusätzlichen Tempo-Faktor und erhaltener Tonhöhe ab. Der Sprachservice-Test prüft mehrere Bausteine, die bestehende Geschwindigkeitseinstellung und den Rückwechsel zur weiblichen Stimme. Vorhandene WAVs bleiben bytegleich, und das Abspielen löst keine zusätzliche Generierung aus.
 

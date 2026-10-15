@@ -18,6 +18,7 @@ const { wave, pcm } = require('./fixtures/speech_pcm');
 
 const KEY = 'test-only-key-' + 'x'.repeat(32);
 const TEXT = ' In Vorbereitung! Jungeneinzel U17: Halbfinale! Schöttmer\n';
+const SPOKEN_TEXT = ' In Vorbereitung! Jungeneinzel U siebzehn: Halbfinale! Schöttmer\n';
 const listening = server => new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
 const close = server => new Promise(resolve => server.close(resolve));
 const id = () => crypto.randomBytes(16).toString('hex');
@@ -97,7 +98,7 @@ describe('Server speech adapter and protected audio', function() {
         assert.strictEqual(config({ url: 'http://secret@127.0.0.1:8077' }).enabled, false);
     });
 
-    it('deduplicates exact text, submits asynchronously, polls and returns only signed ready audio', async function() {
+    it('deduplicates original text, submits spelled numbers asynchronously, polls and returns only signed ready audio', async function() {
         const fixture = await http_fixture();
         let time = Date.now();
         const broker = new SpeechBroker(config({ url: fixture.url }), { now: () => time });
@@ -108,7 +109,7 @@ describe('Server speech adapter and protected audio', function() {
             assert.strictEqual(broker.views([TEXT], {}, 'default')[0].audio_url, null);
             await broker.step();
             const job = [...fixture.jobs.values()][0];
-            assert.strictEqual(job.text, TEXT);
+            assert.strictEqual(job.text, SPOKEN_TEXT);
             assert.strictEqual(job.priority, 'low');
             fixture.jobs.set(job.job_id, reply(job, 'completed'));
             time += 3000;
@@ -315,6 +316,47 @@ describe('Server speech adapter and protected audio', function() {
         assert.throws(() => broker.prepare(Array(65).fill(TEXT)));
     });
 
+    it('spells numbers for both upstream voices while queue, status and playback use the original text', async function() {
+        let time = Date.now();
+        const sent = [];
+        const original = 'Auf Spielfeld 8! Spiel Nummer 186, Jungeneinzel U17!';
+        const spoken = 'Auf Spielfeld acht! Spiel Nummer einhundertsechsundachtzig, Jungeneinzel U siebzehn!';
+        const broker = new SpeechBroker(config(), { now: () => time, request: async (_base, _key, _method, _route, body) => {
+            sent.push(body); return reply(body, 'completed');
+        } });
+        for (const voice of ['hallensprecherin', 'hallensprecher']) {
+            broker.prepare([original, original], { voice }, 'default');
+            broker.prepare([original], { voice, priority: 'high' }, 'default');
+            await broker.step(); time += 1000;
+            assert.strictEqual(broker.views([original], { voice }, 'default')[0].status, 'completed');
+            assert.strictEqual(broker.inspect([original], { voice }, 'default')[0].status, 'completed');
+        }
+        assert.deepStrictEqual(sent.map(body => [body.text, body.voice, body.priority]), [
+            [spoken, 'hallensprecherin', 'high'], [spoken, 'hallensprecher', 'high'],
+        ]);
+        assert.deepStrictEqual(broker.queue('default').items.map(item => item.text), [original, original]);
+        assert.strictEqual(broker.entries.size, 2);
+        broker.prepare([original], { priority: 'high' }, 'default');
+        await broker.step();
+        assert.strictEqual(sent.length, 2, 'playing the original numeric text must reuse its prepared recording');
+    });
+
+    it('checks the expanded text limit before scheduling any part of an invalid batch', function() {
+        const broker = new SpeechBroker(config({ max_text: 10 }));
+        assert.throws(() => broker.prepare(['OK', 'Feld 17']), /invalid_speech_parts/);
+        assert.strictEqual(broker.entries.size, 0);
+        broker.prepare(['Feld 4']);
+        assert.strictEqual(broker.entries.size, 1);
+    });
+
+    it('rejects a server response for the original digits instead of the requested spoken text', async function() {
+        const broker = new SpeechBroker(config(), { request: async (_base, _key, _method, _route, body) =>
+            reply({ ...body, text: 'Auf Spielfeld 8' }, 'completed') });
+        broker.prepare(['Auf Spielfeld 8']);
+        await broker.step();
+        assert.strictEqual(broker.views(['Auf Spielfeld 8'], {}, 'default')[0].audio_url, null);
+    });
+
     it('backs off all new parts together when the server rejects a busy request', async function() {
         let time = Date.now();
         const sent = [];
@@ -489,7 +531,7 @@ describe('Server speech adapter and protected audio', function() {
         const clip = broker.views([TEXT], {}, 'default')[0];
         assert.strictEqual(clip.status, 'completed');
         assert.notStrictEqual(clip.audio_url, old_audio);
-        assert.deepStrictEqual(received.map(request => request.text), [TEXT, TEXT]);
+        assert.deepStrictEqual(received.map(request => request.text), [SPOKEN_TEXT, SPOKEN_TEXT]);
         assert(received.every(request => request.voice === 'hallensprecherin' && request.language === 'de-DE'));
     });
 

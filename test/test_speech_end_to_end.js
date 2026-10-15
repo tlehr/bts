@@ -202,19 +202,22 @@ suite('BTS / actual FastAPI / native Chrome speech integration', function() {
         assert.strictEqual(file.headers.get('content-type'), 'audio/wav');
         assert.strictEqual(Buffer.from(await file.arrayBuffer()).subarray(0, 4).toString(), 'RIFF');
         const original = fs.readFileSync(path.join(directory, 'received.jsonl'), 'utf8').trim().split('\n').map(JSON.parse);
-        for (const text of parts) assert(original.some(record => record.text === text), text);
+        const spokenParts = ['Jungeneinzel U siebzehn', 'Halbfinale', 'Johann Bjarne Schöttmer', 'gegen', 'Muhammad Sytsh Abdulquddus',
+            'Auf Spielfeld vier', 'Auf Spielfeld acht', 'Bitte mit dem Spielen beginnen', 'Spiel Nummer siebzehn'];
         for (const name of ['Johann Bjarne Schöttmer', 'Muhammad Sytsh Abdulquddus', 'Ulli Unparteiisch', 'Lisa Linie']) {
             assert.strictEqual(original.filter(record => record.text === name).length, 1, name);
             assert(!original.some(record => record.text === name + '!'), name + ' must share its sentence-ending WAV');
         }
         assert(!original.some(record => record.text === 'Halbfinale!' || record.text === ', Halbfinale'));
-        for (const text of parts) {
+        for (const text of spokenParts) {
             assert.strictEqual(original.filter(record => record.text === text).length, 1, text);
             assert(!original.some(record => record.text === text + '!'), text + ' must not have a sentence-ending variant');
         }
         assert(!original.some(record => record.text.includes('Spielfeld') && record.text.includes('Bitte mit dem Spielen')));
         assert(!original.some(record => record.text.includes('Schöttmer, gegen')));
-        assert(original.every(record => !record.text.includes('U siebzehn')));
+        assert(original.every(record => !/\d/.test(record.text)), 'the actual engine must receive spelled-out numbers');
+        const queue = await rpc(client, { type: 'speech_queue', tournament_key: 'default' });
+        for (const text of parts) assert(queue.queue.items.some(item => item.text === text), text);
     });
 
     it('renders usable controls and plays ready server audio in the native browser', async function() {
@@ -570,6 +573,7 @@ suite('BTS / actual FastAPI / native Chrome speech integration', function() {
                 'disabled:row.querySelector(\'button\').disabled, priority:row.dataset.priority}))');
             assert.deepStrictEqual(rendered.map(row => row.key), expected.queue.items.map(item => item.key));
             assert.deepStrictEqual(rendered.map(row => row.text), expected.queue.items.map(item => item.text));
+            assert(rendered.some(row => row.text === 'Auf Spielfeld 8'), 'the displayed queue must retain digits');
             assert.deepStrictEqual(rendered.map(row => row.disabled), expected.queue.items.map(item => item.status !== 'completed'));
             assert(rendered.some(row => row.priority === 'high' && row.disabled));
             assert(expected.queue.items.every(item => item.voice === 'hallensprecher'));

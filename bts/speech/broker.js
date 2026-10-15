@@ -4,6 +4,7 @@ const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
 const { request } = require('./http');
+const { spellNumbers, VERSION: TEXT_VERSION } = require('./numbers');
 const PRIORITY = { high: 0, normal: 1, low: 2 };
 const ID = /^[0-9a-f]{32}$/;
 
@@ -87,7 +88,8 @@ class SpeechBroker {
 
     validate(parts, options = {}) {
         if (!Array.isArray(parts) || parts.length > 64 ||
-            parts.some(text => typeof text !== 'string' || text.length > this.config.max_text || !text.trim())) {
+            parts.some(text => typeof text !== 'string' || text.length > this.config.max_text || !text.trim() ||
+                spellNumbers(text).length > this.config.max_text)) {
             throw new Error('invalid_speech_parts');
         }
         const voice = options.voice || this.config.voice;
@@ -245,7 +247,7 @@ class SpeechBroker {
         }
         const state = health.status === 'fulfilled' ? health.value : health.reason.response;
         if (state?.model_revision) {
-            const identity = JSON.stringify([state.configuration_version, state.backend, state.model, state.model_revision, this.voices]);
+            const identity = JSON.stringify([TEXT_VERSION, state.configuration_version, state.backend, state.model, state.model_revision, this.voices]);
             if (this.identity && identity !== this.identity) {
                 for (const entry of this.entries.values()) {
                     entry.status = 'unsubmitted';
@@ -260,7 +262,7 @@ class SpeechBroker {
     }
 
     validate_response(entry, response) {
-        if (!ID.test(response.job_id) || response.text !== entry.text || response.voice !== entry.voice ||
+        if (!ID.test(response.job_id) || response.text !== spellNumbers(entry.text) || response.voice !== entry.voice ||
             response.language !== entry.language || !['queued', 'processing', 'completed', 'failed'].includes(response.status)) {
             throw new Error('speech_invalid_response');
         }
@@ -293,7 +295,7 @@ class SpeechBroker {
             const entry = pending[0];
             if (!entry) return;
             this.current = { entry, identity: this.identity, job_id: null, request: {
-                text: entry.text, voice: entry.voice, language: entry.language,
+                text: spellNumbers(entry.text), voice: entry.voice, language: entry.language,
                 priority: Object.keys(PRIORITY)[entry.priority],
             } };
         }
