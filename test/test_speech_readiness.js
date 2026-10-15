@@ -61,7 +61,7 @@ describe('Announcement cache readiness indicators', function() {
         assert.strictEqual(target.dataset.speechState, 'missing');
         const parts = h.requests[0];
         assert(parts.includes('Johann Bjarne Schöttmer'));
-        assert(parts.includes(', gegen'));
+        assert(parts.includes('gegen'));
         assert(parts.includes('Muhammad Sytsh Abdulquddus'));
         for (const text of parts.slice(1)) h.ready(text);
         h.statuses.set(h.settings.voice + parts[0], 'processing');
@@ -108,12 +108,12 @@ describe('Announcement cache readiness indicators', function() {
         const h = harness(), target = element();
         h.controller.trackMatch(target, 'match1', 'match:begintoplay');
         await h.controller.refresh();
-        assert.deepStrictEqual(h.requests[0], ['Auf Spielfeld 4!', 'Bitte mit dem Spielen beginnen!']);
-        h.ready('Auf Spielfeld 4!');
+        assert.deepStrictEqual(h.requests[0], ['Auf Spielfeld 4', 'Bitte mit dem Spielen beginnen']);
+        h.ready('Auf Spielfeld 4');
         await h.controller.refresh(true);
         assert.strictEqual(target.dataset.speechState, 'missing');
         assert(target.title.includes('1/2'));
-        h.ready('Bitte mit dem Spielen beginnen!');
+        h.ready('Bitte mit dem Spielen beginnen');
         await h.controller.refresh(true);
         assert.strictEqual(target.dataset.speechState, 'ready');
     });

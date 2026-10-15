@@ -193,8 +193,8 @@ suite('BTS / actual FastAPI / native Chrome speech integration', function() {
     });
 
     it('warms reusable names and one start instruction for all courts and proxies the actual protected WAV', async function() {
-        const parts = ['Jungeneinzel U17', 'Halbfinale', 'Johann Bjarne Schöttmer', ', gegen', 'Muhammad Sytsh Abdulquddus',
-            'Auf Spielfeld 4!', 'Auf Spielfeld 8!', 'Bitte mit dem Spielen beginnen!'];
+        const parts = ['Jungeneinzel U17', 'Halbfinale', 'Johann Bjarne Schöttmer', 'gegen', 'Muhammad Sytsh Abdulquddus',
+            'Auf Spielfeld 4', 'Auf Spielfeld 8', 'Bitte mit dem Spielen beginnen', 'Spiel Nummer 17'];
         const resolved = await rpc(client, { type: 'speech_resolve', tournament_key: 'default',
             voice: 'hallensprecherin', language: 'de-DE', parts });
         assert(resolved.clips.every(clip => clip.status === 'completed'));
@@ -208,7 +208,10 @@ suite('BTS / actual FastAPI / native Chrome speech integration', function() {
             assert(!original.some(record => record.text === name + '!'), name + ' must share its sentence-ending WAV');
         }
         assert(!original.some(record => record.text === 'Halbfinale!' || record.text === ', Halbfinale'));
-        assert.strictEqual(original.filter(record => record.text === parts.at(-1)).length, 1);
+        for (const text of parts) {
+            assert.strictEqual(original.filter(record => record.text === text).length, 1, text);
+            assert(!original.some(record => record.text === text + '!'), text + ' must not have a sentence-ending variant');
+        }
         assert(!original.some(record => record.text.includes('Spielfeld') && record.text.includes('Bitte mit dem Spielen')));
         assert(!original.some(record => record.text.includes('Schöttmer, gegen')));
         assert(original.every(record => !record.text.includes('U siebzehn')));
@@ -260,8 +263,8 @@ suite('BTS / actual FastAPI / native Chrome speech integration', function() {
             'for (const court_id of [\'default_4\', \'default_8\']) announceBeginnToPlay({...curt.matches[0].setup, court_id});');
         await until(() => devtools.evaluate('window.__audioSources.length === 4 && !announcementPlaybackActive'));
         const sources = await devtools.evaluate('window.__audioSources.map(src => new URL(src).pathname)');
-        const expected = app.speech.broker.views(['Auf Spielfeld 4!', 'Bitte mit dem Spielen beginnen!',
-            'Auf Spielfeld 8!', 'Bitte mit dem Spielen beginnen!'], {}, 'default').map(clip => clip.audio_url.split('?')[0]);
+        const expected = app.speech.broker.views(['Auf Spielfeld 4', 'Bitte mit dem Spielen beginnen',
+            'Auf Spielfeld 8', 'Bitte mit dem Spielen beginnen'], {}, 'default').map(clip => clip.audio_url.split('?')[0]);
         assert.deepStrictEqual(sources, expected);
         assert.strictEqual(await devtools.evaluate('window.__browserSpeechCalls || 0'), fallback);
         assert.strictEqual(fs.readFileSync(path.join(directory, 'received.jsonl'), 'utf8'), before);

@@ -23,7 +23,7 @@ function renderer(tournament, locale, parts) {
 }
 
 function prepare(tournament, matches, locale = 'de') {
-    const parts = [translate(locale, 'announcements:speechcheck:text')];
+    const parts = [];
     const texts = renderer(tournament, locale, parts);
     parts.push(texts.createBeginToPlayAnnouncement({}));
     for (const court of tournament.courts || []) {
@@ -60,7 +60,8 @@ function prepare(tournament, matches, locale = 'de') {
             }
         }
     }
-    return [...new Set(texts.localParts(parts))];
+    // Speech checks, like free announcements, use their original complete text.
+    return [...new Set([translate(locale, 'announcements:speechcheck:text'), ...texts.localParts(parts)])];
 }
 
 module.exports = { prepare, renderer, CALLS };

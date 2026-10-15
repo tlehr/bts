@@ -6,6 +6,7 @@ function createAnnouncementTexts(context) {
     // public builders. Browser utterances keep their existing sentence layout;
     // local audio can reuse the leaves of these compositions.
     const compositions = new Map();
+    const names = new Set();
     function compose(parts, separator = '') {
         const text = parts.join(separator);
         const chunks = [];
@@ -22,14 +23,19 @@ function createAnnouncementTexts(context) {
             const chunks = [];
             for (const piece of compositions.get(text) || [text]) {
                 if (!piece || !piece.trim()) continue;
-                // Punctuation added by composition belongs to the playback
-                // boundary. It must not create a second WAV for the same name.
-                // Punctuation inside an atomic name (e.g. "Max M.") stays intact.
+                // Treat boundaries uniformly, including punctuation inside a
+                // complete phrase such as "Spiel Nummer 186!". Original names
+                // remain verbatim, including initials and their punctuation.
                 if (/^[\s,;:.!?]+$/.test(piece)) {
                     if (chunks.length) chunks[chunks.length - 1].after += piece;
                     continue;
                 }
-                chunks.push({ text: piece.trim(), after: '' });
+                const value = piece.trim();
+                if (names.has(value)) chunks.push({ text: value, before: '', after: '' });
+                else {
+                    const [, before, body, after] = /^([\s,;:.!?]*)([\s\S]*?)([\s,;:.!?]*)$/.exec(value);
+                    chunks.push({ text: body, before, after });
+                }
             }
             return chunks;
         });
@@ -42,7 +48,10 @@ function createAnnouncementTexts(context) {
     function announce(parts, local, claim) {
         const plan = localPlan(parts);
         const prepared = plan.map(part => part.text);
-        const pauses = plan.map(part => /[.!?]/.test(part.after) ? 250 : /[,;:]/.test(part.after) ? 120 : 0);
+        const pauses = plan.map((part, index) => {
+            const boundary = part.after + (plan[index + 1]?.before || '');
+            return /[.!?]/.test(boundary) ? 250 : /[,;:]/.test(boundary) ? 120 : 0;
+        });
         context.announce(context.local ? prepared : parts, local, claim, { localParts: prepared, localPauses: pauses });
     }
     const window = context.window;
@@ -372,6 +381,7 @@ function createAnnouncementTexts(context) {
                 }
             }
         }
+        if (typeof name === 'string') names.add(name.trim());
         return name;
     }
 

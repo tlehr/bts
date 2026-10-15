@@ -82,7 +82,7 @@ describe('Shared announcement text and preparation', function() {
                     const characters = values => values.flat().filter(Boolean).join('').replace(/\s/g, '');
                     const plan = builder.localPlan(after.flat());
                     assert.deepStrictEqual(local.flat(), plan.map(part => part.text));
-                    assert.strictEqual(characters(plan.map(part => part.text + part.after)), characters(before), call + ' local text');
+                    assert.strictEqual(characters(plan.map(part => part.before + part.text + part.after)), characters(before), call + ' local text');
                     assert(local.flat().every(text => text.trim() && !/^[\s,;:.!?]+$/.test(text)));
                     assert(local.flat().length <= 64, 'a complete call must fit the resolve API');
                 }
@@ -106,8 +106,8 @@ describe('Shared announcement text and preparation', function() {
             texts.announceBeginnToPlay(setup({ court_id: null }));
             assert.deepStrictEqual(observed, [expected, instruction]);
             const future = prepare(current, [], locale);
-            assert(future.includes(field), 'the court must be ready before assignment');
-            assert.strictEqual(future.filter(text => text === instruction).length, 1);
+            assert(future.includes(field.slice(0, -1)), 'the court must be ready before assignment');
+            assert.strictEqual(future.filter(text => text === instruction.slice(0, -1)).length, 1);
             assert(!future.includes(expected), 'a combined recording must not be generated for each court');
             assert(!future.includes(field + instruction), 'the broken concatenation must not be warmed again');
         });
@@ -129,7 +129,7 @@ describe('Shared announcement text and preparation', function() {
             texts[call]({ ...match, court_id: null });
             assert(calls.at(-1).startsWith('Zweiter Aufruf für:'), 'an unassigned court must not add leading whitespace');
         }
-        for (const part of ['Auf Spielfeld 4!', 'Zweiter Aufruf für:', 'Schiedsrichter:', 'Ulli Unparteiisch']) {
+        for (const part of ['Auf Spielfeld 4', 'Zweiter Aufruf für', 'Schiedsrichter', 'Ulli Unparteiisch']) {
             assert(local.includes(part), part);
         }
     });
@@ -145,11 +145,11 @@ describe('Shared announcement text and preparation', function() {
         for (const text of observed) assert(parts.includes(text), text);
         assert(parts.includes('Jungeneinzel U17'));
         assert(parts.includes('Johann Bjarne Schöttmer'));
-        assert(parts.includes(', gegen'));
+        assert(parts.includes('gegen'));
         assert(parts.includes('Muhammad Sytsh Abdulquddus'));
         assert(!parts.includes('Johann Bjarne Schöttmer, gegen Muhammad Sytsh Abdulquddus'));
-        assert(parts.includes('Auf Spielfeld 4!'));
-        assert(parts.includes('Für Spielfeld 4!'));
+        assert(parts.includes('Auf Spielfeld 4'));
+        assert(parts.includes('Für Spielfeld 4'));
         assert.strictEqual(new Set(parts).size, parts.length);
     });
 
@@ -164,7 +164,7 @@ describe('Shared announcement text and preparation', function() {
         current.locations.push({ _id: 'default_h2', preparation_addition: 'Halle zwei!',
             meetingpoint_announcement: 'Bitte in Halle zwei melden!' });
         const parts = prepare(current, [{ setup: setup({ location_id: null }) }]);
-        assert(parts.includes('Bitte in Halle zwei melden!'));
+        assert(parts.includes('Bitte in Halle zwei melden'));
         assert(parts.some(part => part.includes('Turnierleitung in Halle eins')));
     });
 
@@ -205,7 +205,7 @@ describe('Shared announcement text and preparation', function() {
             umpire: { name: first.teams[0].players[0].name } });
         const parts = prepare(current, [{ setup: first }, { setup: second }]);
         assert.strictEqual(parts.filter(text => text === 'Johann Bjarne Schöttmer').length, 1);
-        for (const text of ['Neue Gegnerin', 'Andere Partnerin', 'und', ', gegen', 'Schiedsrichter:', 'Jungeneinzel U17']) {
+        for (const text of ['Neue Gegnerin', 'Andere Partnerin', 'und', 'gegen', 'Schiedsrichter', 'Jungeneinzel U17']) {
             assert(parts.includes(text), text);
         }
         assert(!parts.some(text => text.includes('Schöttmer, gegen')));
@@ -251,6 +251,50 @@ describe('Shared announcement text and preparation', function() {
         }
         assert(!prepared.includes('Nina K'));
         assert(!prepared.includes('Leandra G'));
+    });
+
+    it('shares match number 186 between regular and forfeit calls with their respective pauses', function() {
+        const calls = [];
+        const current = tournament();
+        const match = setup({ match_num: 186 });
+        const texts = create({ tournament: current, translate: (key, data) => translate('de', key, data),
+            window: { localStorage: { getItem: () => 'true' } }, claim: () => null,
+            announce: (parts, _local, _claim, options) => calls.push({ parts, ...options }) });
+        texts.announceNewMatch(match);
+        texts.announceNoMatchWin(match, 0);
+        assert(calls[0].parts.includes('Spiel Nummer 186!'));
+        assert(calls[1].parts[0].startsWith('Spiel Nummer 186,'));
+        for (const [index, pause] of [[0, 250], [1, 120]]) {
+            const position = calls[index].localParts.indexOf('Spiel Nummer 186');
+            assert(position >= 0);
+            assert.strictEqual(calls[index].localPauses[position], pause);
+        }
+        const prepared = prepare(current, [{ setup: match }]);
+        assert.strictEqual(prepared.filter(text => text === 'Spiel Nummer 186').length, 1);
+        assert(!prepared.includes('Spiel Nummer 186!'));
+    });
+
+    it('has no punctuation-only duplicate variants across all structured call parts and hall variants', function() {
+        for (const locale of ['de', 'en']) for (const meetingpoint of [false, true]) {
+            const current = tournament();
+            current.preparation_meetingpoint_enabled = meetingpoint;
+            current.locations.push({ ...current.locations[0], _id: 'hall2', preparation_addition: 'Halle eins',
+                meetingpoint_announcement: current.locations[0].meetingpoint_announcement.slice(0, -1) });
+            const prepared = prepare(current, ['R16', 'HF', '3/4'].map((match_name, i) => ({
+                setup: setup({ location_id: null, match_num: 186 + i, match_name }),
+            })), locale);
+            const speechcheck = translate(locale, 'announcements:speechcheck:text');
+            assert.strictEqual(prepared[0], speechcheck, 'the speech test remains a complete original recording');
+            const variants = new Map();
+            for (const text of prepared.slice(1)) {
+                const words = text.replace(/^[\s,;:.!?]+|[\s,;:.!?]+$/g, '');
+                assert(!variants.has(words), 'duplicate: ' + variants.get(words) + ' / ' + text);
+                variants.set(words, text);
+            }
+            for (const text of ['Auf Spielfeld 4', 'Für Spielfeld 4', 'In Vorbereitung']) {
+                if (locale === 'de') assert(prepared.includes(text), text);
+            }
+        }
     });
 
     it('prioritizes real preparation candidates and excludes finished/incomplete records', function() {
