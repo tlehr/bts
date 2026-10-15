@@ -2,11 +2,12 @@
 
 const { prepare } = require('./text');
 const reads = require('../preparation_selection/model_reads');
+const resolveSettings = require('../../static/js/speech_settings');
 const EVENTS = new Set([
     'match_edit', 'match_added', 'match_delete', 'match_preparation_call', 'match_called_on_court',
     'court_current_match', 'match_finished', 'matches_changed', 'prop_changed',
     'location_changed', 'locations_changed', 'court_changed', 'courts_changed',
-    'normalization_add', 'normalization_remove', 'normalizations_changed',
+    'normalization_add', 'normalization_remove', 'normalizations_changed', 'props',
     'umpire_updated', 'umpires_changed', 'tabletoperator_updated', 'tabletoperator_add',
 ]);
 
@@ -39,21 +40,35 @@ class Prefetcher {
         this.subscriptions = new Map();
         this.timers = new Map();
         this.running = new Set();
+        this.dirty = new Set();
         this.preferred = new Map();
         this.interval = null;
     }
 
-    subscribe(key, voice = this.broker.config.voice) {
+    settings(key) {
+        return this.subscriptions.get(key) || resolveSettings({}, this.broker.config);
+    }
+
+    configure(tournament, schedule = true) {
+        const selected = resolveSettings(tournament, this.broker.config);
+        const previous = this.subscriptions.get(tournament.key);
+        if (previous?.voice === selected.voice && previous?.mode === selected.mode) return;
+        this.subscriptions.set(tournament.key, selected);
+        this.broker.select_voice(tournament.key, selected.mode === 'browser' ? null : selected.voice);
+        if (schedule) this.schedule(tournament.key);
+    }
+
+    subscribe(key, tournament = {}) {
         if (!this.broker.config.enabled || this.subscriptions.size >= 128 && !this.subscriptions.has(key)) return;
-        if (!this.subscriptions.has(key)) this.subscriptions.set(key, new Set());
-        this.subscriptions.get(key).add(voice);
+        if (!this.subscriptions.has(key)) this.configure({ ...tournament, key }, false);
         this.schedule(key);
     }
 
     schedule(key, candidates) {
         if (!this.broker.config.enabled || !this.subscriptions.has(key)) return;
         if (candidates) this.preferred.set(key, candidates.slice(0, this.broker.config.max_entries));
-        if (this.timers.has(key) || this.running.has(key)) return;
+        if (this.running.has(key)) { this.dirty.add(key); return; }
+        if (this.timers.has(key)) return;
         const timer = setTimeout(() => {
             this.timers.delete(key);
             void this.refresh(key).catch(() => { this.broker.last_error = 'prefetch_unavailable'; });
@@ -70,6 +85,7 @@ class Prefetcher {
     async refresh(key) {
         if (this.running.has(key)) return;
         this.running.add(key);
+        const revision = this.subscriptions.get(key);
         try {
             await require('../foreground_work').idle();
             const [tournament, locations, courts, matches, normalizations] = await Promise.all([
@@ -80,6 +96,11 @@ class Prefetcher {
                 read_normalizations(this.app.db),
             ]);
             if (!tournament) return;
+            // An edit may commit while the background snapshot is being read.
+            if (this.subscriptions.get(key) !== revision) return;
+            this.configure(tournament, false);
+            const speech_settings = this.settings(key);
+            if (speech_settings.mode === 'browser') return;
             // Only verified German voices are enabled. "auto" is warmed in German;
             // browsers using another UI language retain their existing browser TTS.
             if (tournament.language && !['auto', 'de'].includes(tournament.language)) return;
@@ -90,21 +111,21 @@ class Prefetcher {
             const imminent = selected.filter(match => ['preparation', 'oncourt'].includes(match.setup.state) ||
                 preferred.has(match._id));
             const imminent_parts = imminent.length ? prepare(context, imminent) : [];
-            const voices = [...(this.subscriptions.get(key) || [])];
             const warm = async (texts, priority) => {
                 for (let i = 0; i < texts.length; i += 64) {
-                    // Interleave voices before the bounded broker cache can fill.
+                    if (this.subscriptions.get(key) !== speech_settings) return;
                     for (const text of texts.slice(i, i + 64)) {
-                        for (const voice of voices) {
-                            this.broker.prepare([text], { voice, language: 'de-DE', priority }, key);
-                        }
+                        this.broker.prepare([text], { voice: speech_settings.voice, language: 'de-DE', priority }, key);
                     }
                     await new Promise(resolve => setImmediate(resolve));
                 }
             };
             await warm(imminent_parts, 'normal');
             await warm(parts, 'low');
-        } finally { this.running.delete(key); }
+        } finally {
+            this.running.delete(key);
+            if (this.dirty.delete(key)) this.schedule(key);
+        }
     }
 
     start() {
@@ -116,7 +137,7 @@ class Prefetcher {
         // Warm tournaments without requiring an announcement-capable browser to be open.
         this.app.db.tournaments.find({}, (error, tournaments) => {
             if (error) return;
-            for (const tournament of tournaments) this.subscribe(tournament.key);
+            for (const tournament of tournaments) this.subscribe(tournament.key, tournament);
         });
     }
 
@@ -125,6 +146,7 @@ class Prefetcher {
         this.interval = null;
         for (const timer of this.timers.values()) clearTimeout(timer);
         this.timers.clear();
+        this.dirty.clear();
     }
 }
 

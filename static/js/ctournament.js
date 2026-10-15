@@ -1282,7 +1282,7 @@ var ctournament = (function() {
 		if (typeof btsSpeechService !== 'undefined') {
 			const controls = uiu.el(container, 'div', 'local_speech_controls');
 			const modeLabel = uiu.el(controls, 'label', {}, 'Sprachausgabe: ');
-			const mode = uiu.el(modeLabel, 'select');
+			const mode = uiu.el(modeLabel, 'select', { name: 'announcement_speech_mode' });
 			for (const [value, label] of [
 				['browser', 'Browser-TTS'],
 				['auto', 'Lokaler Sprachserver mit Browser-Fallback'],
@@ -1290,7 +1290,7 @@ var ctournament = (function() {
 			]) uiu.el(mode, 'option', { value }, label);
 			mode.value = btsSpeechService.settings().mode;
 			const voiceLabel = uiu.el(controls, 'label', {}, 'Lokale Stimme: ');
-			const voice = uiu.el(voiceLabel, 'select');
+			const voice = uiu.el(voiceLabel, 'select', { name: 'announcement_speech_voice' });
 			for (const [value, label] of [
 				['hallensprecherin', 'Hallensprecherin'], ['hallensprecher', 'Hallensprecher'],
 			]) uiu.el(voice, 'option', { value }, label);
@@ -1307,23 +1307,21 @@ var ctournament = (function() {
 						speech.last_error ? 'Sprachserver derzeit nicht bereit. ' : '') +
 						(speech.ready || 0) + ' Ansageteile bereit, ' + (speech.preparing || 0) + ' werden vorbereitet.';
 			});
-			const change = (name, value) => {
-				try { window.localStorage.setItem('bts_speech_' + name, value); } catch (_) { /* Private storage. */ }
-				void btsSpeechService.prepare([ci18n('announcements:speechcheck:text')]);
-				if (typeof btsSpeechReadiness !== 'undefined') btsSpeechReadiness.changed();
-				update_local_speech_output_status();
+			const changed = () => {
+				btsSpeechService.settingsChanged();
 				void update();
 				refreshQueue?.();
 			};
-			mode.addEventListener('change', () => change('mode', mode.value));
-			voice.addEventListener('change', () => change('voice', voice.value));
+			bind_live_prop(mode, 'announcement_speech_mode', { on_success: changed });
+			bind_live_prop(voice, 'announcement_speech_voice', { on_success: changed });
+			uiu.el(controls, 'small', {}, 'Stimme und Modus gelten für alle Clients dieses Turniers. Audio muss in jedem Browser einmal freigegeben werden.');
 			const unlock = uiu.el(controls, 'button', { type: 'button' }, 'Audio aktivieren');
 			unlock.addEventListener('click', () => {
 				btsSpeechService.unlock().then(ok => {
 					status.textContent = ok ? 'Audiowiedergabe aktiviert.' : 'Audiowiedergabe gesperrt; erneut aktivieren.';
 				});
 			});
-			uiu.el(controls, 'button', { type: 'button' }, 'Ansage stoppen')
+			uiu.el(controls, 'button', { type: 'button' }, 'Ansage auf diesem Gerät stoppen')
 				.addEventListener('click', cancelAnnouncementPlayback);
 			uiu.el(controls, 'button', { type: 'button' }, 'Cache-Status aktualisieren')
 				.addEventListener('click', () => {
@@ -1339,30 +1337,6 @@ var ctournament = (function() {
 			uiu.el(legend, 'small', {}, 'Haken: alle Ansageteile der gewählten Stimme gecacht und Audio auf diesem Gerät freigegeben. Details beim Darüberfahren. Hallen-Ansagen zusätzlich aktivieren.');
 			void update();
 		}
-	}
-
-	function ui_speech_settings() {
-		const existing = document.querySelector('.local_speech_dialog');
-		if (existing) {
-			existing.querySelector('select')?.focus();
-			return;
-		}
-		const dialog = uiu.el(uiu.qs('.main'), 'dialog', {
-			class: 'local_speech_dialog', 'aria-labelledby': 'local_speech_dialog_title',
-		});
-		uiu.el(dialog, 'h2', { id: 'local_speech_dialog_title' }, 'Sprachausgabe');
-		uiu.el(dialog, 'p', {}, 'Einstellungen für die Ansagen auf diesem Gerät.');
-		const layout = uiu.el(dialog, 'div', 'speech_settings_layout');
-		const settings = uiu.el(layout, 'div');
-		const queue = createSpeechQueue({ root: uiu.el(layout, 'section', 'speech_queue'), service: btsSpeechService });
-		render_local_speech_controls(settings, () => { void queue.refresh(); });
-		uiu.el(dialog, 'button', { type: 'button', class: 'local_speech_close' }, 'Schließen')
-			.addEventListener('click', () => dialog.close());
-		dialog.addEventListener('close', () => { queue.stop(); dialog.remove(); });
-		dialog.addEventListener('keydown', event => {
-			if (event.key === 'Escape') event.stopPropagation();
-		});
-		dialog.showModal();
 	}
 
 	function render_enable_announcements_content(container, locations) {
@@ -1825,10 +1799,6 @@ var ctournament = (function() {
 		const items = [{
 			label: ci18n('edit BTS settings'),
 			href: base_path + '/edit',
-		}, {
-			label: 'Sprachausgabe',
-			button: true,
-			func: ui_speech_settings,
 		}];
 		if (curt.btp_enabled) {
 			items.push({
@@ -3796,8 +3766,13 @@ var ctournament = (function() {
 
 		// call-div##################################################################################
 		{
-			const call_div = uiu.el(form, 'div', 'settings');
+			const call_div = uiu.el(form, 'div', 'settings speech_settings_section');
 			uiu.el(call_div, 'h2', 'edit', ci18n('tournament:edit:calls'));
+			uiu.el(call_div, 'p', {}, 'Sprachausgabe für alle Clients dieses Turniers. Änderungen werden automatisch gespeichert. Es wird nur die ausgewählte lokale Stimme vorbereitet.');
+			const layout = uiu.el(call_div, 'div', 'speech_settings_layout');
+			const speech_controls = uiu.el(layout, 'div');
+			const queue = createSpeechQueue({ root: uiu.el(layout, 'section', 'speech_queue'), service: btsSpeechService });
+			render_local_speech_controls(speech_controls, () => { void queue.refresh(); });
 
 			const announcements_fieldset = uiu.el(call_div, 'fieldset');
 			input.annoncement_include_event = create_checkbox(curt, announcements_fieldset, 'annoncement_include_event');

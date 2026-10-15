@@ -46,10 +46,10 @@ function harness(options = {}) {
 }
 
 describe('Browser local speech provider', function() {
-    const previewClip = () => ({ ...clip(), tournament_key: 'default', text: TEXT, voice: 'hallensprecher' });
+    const previewClip = () => ({ ...clip(), tournament_key: 'default', text: TEXT, voice: 'hallensprecherin' });
     const previewResponse = () => ({ speech: { enabled: true, cache_version: 'one' }, queue: { items: [previewClip()] } });
 
-    it('reads the queue without preparing or playing and previews the exact cached voice even in browser mode', async function() {
+    it('reads the queue without preparing or playing and previews the selected cached voice even in browser mode', async function() {
         const h = harness({ mode: 'browser', request: async () => previewResponse() });
         const response = await h.service.queue();
         assert.deepStrictEqual(h.requests, [['speech_queue', { tournament_key: 'default' }]]);
@@ -72,6 +72,7 @@ describe('Browser local speech provider', function() {
             [previewClip(), 'old'], [null, 'one'],
             [{ ...previewClip(), status: 'processing' }, 'one'],
             [{ ...previewClip(), tournament_key: 'other' }, 'one'],
+            [{ ...previewClip(), voice: 'hallensprecher' }, 'one'],
             [{ ...previewClip(), audio_url: '/h/other/speech/audio/' + 'a'.repeat(32) + '?signature=test' }, 'one'],
             [{ ...previewClip(), audio_url: 'https://example.org/test.wav' }, 'one'],
         ]) assert.strictEqual((await h.service.preview(item, version)).status, 'unavailable');

@@ -1,3 +1,4 @@
+/* global btsSpeechService */
 var change = (function() {
 
 	function default_handler(rerender, special_funcs) {
@@ -100,6 +101,9 @@ var change = (function() {
 	}
 
 	function _after_tournament_field_change(field, value, change_obj) {
+		if (['announcement_speech_mode', 'announcement_speech_voice'].includes(field) && typeof btsSpeechService !== 'undefined') {
+			btsSpeechService.settingsChanged();
+		}
 		const preparation_selection_live_fields = new Set([
 				'call_preparation_matches_automatically_enabled',
 				'preparation_successor_rally_count',

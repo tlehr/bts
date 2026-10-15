@@ -2,18 +2,24 @@
 
 const { SpeechBroker, configuration } = require('./broker');
 const { Prefetcher } = require('./prefetch');
+const resolveSettings = require('../../static/js/speech_settings');
+
+function public_config(broker, selected) {
+    return { ...broker.public_config(selected.voice), ...selected };
+}
 
 function create(app) {
     const broker = new SpeechBroker(configuration(app.config.speech));
     const prefetch = new Prefetcher(app, broker);
     return {
         broker, prefetch,
+        configure(tournament) { prefetch.configure(tournament); },
         start() { broker.start(); prefetch.start(); },
         stop() { broker.stop(); prefetch.stop(); },
         loaded(tournament, ws) {
             ws.speech_tournament_key = tournament.key;
-            tournament.speech = broker.public_config();
-            prefetch.subscribe(tournament.key);
+            prefetch.subscribe(tournament.key, tournament);
+            tournament.speech = public_config(broker, prefetch.settings(tournament.key));
         },
         changed(key, type) { prefetch.changed(key, type); },
     };
@@ -40,19 +46,27 @@ function handle(app, ws, msg) {
         return;
     }
     const broker = speech.broker;
+    const selected = speech.prefetch.settings?.(key) || resolveSettings({}, broker.config);
+    const configuration = public_config(broker, selected);
     try {
         if (msg.type === 'speech_queue') {
-            reply({ speech: broker.public_config(), queue: broker.queue(key) });
+            reply({ speech: configuration, queue: broker.queue(key) });
         } else if (msg.type !== 'speech_status') {
-            const options = { voice: msg.voice, language: msg.language,
+            broker.validate(msg.parts, { voice: msg.voice, language: msg.language });
+            if (msg.voice && msg.voice !== selected.voice) {
+                reply({ speech: configuration, speech_error: 'speech_settings_changed', clips: [] });
+                return;
+            }
+            if (selected.mode === 'browser') { reply({ speech: configuration, clips: [] }); return; }
+            const options = { voice: selected.voice, language: msg.language,
                 priority: msg.type === 'speech_resolve' ? 'high' : 'low' };
             broker.prepare(msg.parts, options, key);
-            speech.prefetch.subscribe(key, options.voice || broker.config.voice);
-            reply({ speech: broker.public_config(options.voice), clips: broker.views(msg.parts, options, key) });
+            speech.prefetch.subscribe(key);
+            reply({ speech: configuration, clips: broker.views(msg.parts, options, key) });
         } else {
             const parts = msg.parts === undefined ? [] : msg.parts;
-            const options = broker.validate(parts, { voice: msg.voice, language: msg.language });
-            reply({ speech: broker.public_config(options.voice),
+            const options = broker.validate(parts, { voice: msg.voice || selected.voice, language: msg.language });
+            reply({ speech: configuration,
                 clips: broker.inspect(parts, options, msg.audio_urls === true ? key : undefined) });
         }
     } catch (_) {

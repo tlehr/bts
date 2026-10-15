@@ -155,6 +155,16 @@ class SpeechBroker {
         });
     }
 
+    select_voice(tournament_key, voice) {
+        for (const [key, entry] of this.entries) {
+            if (!entry.tournaments.has(tournament_key) || entry.voice === voice) continue;
+            entry.tournaments.delete(tournament_key);
+            // A submitted request retains its independent current slot until it
+            // finishes. Removing its local cache entry never opens another slot.
+            if (!entry.tournaments.size) this.entries.delete(key);
+        }
+    }
+
     pending_order(now = this.now()) {
         const eligible = [...this.entries.values()].filter(entry => entry !== this.current?.entry && !entry.busy &&
             (entry.status === 'unsubmitted' || entry.revalidate) && entry.retry_at <= now);

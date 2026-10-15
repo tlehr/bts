@@ -82,7 +82,7 @@ class CDP {
 const suite = process.env.BTS_SPEECH_INTEGRATION === '1' ? describe : describe.skip;
 suite('BTS / actual FastAPI / native Chrome speech integration', function() {
     this.timeout(60000);
-    let directory, api, chrome, app, server, client, devtools;
+    let directory, api, chrome, app, server, client, devtools, devtoolsHost;
     const dispatchViolations = [];
     const key = 'test-only-key-' + 'x'.repeat(32);
 
@@ -96,16 +96,14 @@ suite('BTS / actual FastAPI / native Chrome speech integration', function() {
     }
 
     async function openSpeechSettings() {
-        const position = await devtools.evaluate('(() => { const label = document.querySelector(\'.toprow_menu_label\'); ' +
-            'const r = label.getBoundingClientRect(); return {x:r.x+r.width/2,y:r.y+r.height/2}; })()');
-        await devtools.call('Input.dispatchMouseEvent', { type: 'mouseMoved', ...position });
-        await click('.toprow_menu_item[data-label="Sprachausgabe"]');
-        await until(() => devtools.evaluate('!!document.querySelector(\'.local_speech_dialog[open] .local_speech_controls\')'));
+        await devtools.evaluate('crouting.navigate_to(\'t/default/edit\')');
+        await until(() => devtools.evaluate('!!document.querySelector(\'.tournament_settings .local_speech_controls\')'));
+        await devtools.evaluate('document.querySelector(\'.speech_settings_layout\').scrollIntoView({block:\'start\'})');
     }
 
     async function closeSpeechSettings() {
-        await click('.local_speech_close');
-        await until(() => devtools.evaluate('!document.querySelector(\'.local_speech_dialog\')'));
+        await devtools.evaluate('ctournament.ui_show()');
+        await until(() => devtools.evaluate('!document.querySelector(\'.local_speech_controls\')'));
     }
 
     before(async function() {
@@ -168,6 +166,7 @@ suite('BTS / actual FastAPI / native Chrome speech integration', function() {
         chrome.stderr.on('data', data => { logs += data; });
         const endpoint = await until(() => /DevTools listening on (ws:\/\/[^\s]+)/.exec(logs)?.[1]);
         const http_url = new URL(endpoint);
+        devtoolsHost = http_url.host;
         const pages = await (await fetch('http://' + http_url.host + '/json/list')).json();
         const page = pages.find(value => value.type === 'page');
         const ws = new WebSocket(page.webSocketDebuggerUrl);
@@ -207,12 +206,16 @@ suite('BTS / actual FastAPI / native Chrome speech integration', function() {
 
     it('renders usable controls and plays ready server audio in the native browser', async function() {
         assert.strictEqual(await devtools.evaluate('!!document.querySelector(\'.local_speech_controls\')'), false,
-            'speech settings belong in the admin menu rather than the main announcement panel');
-        await devtools.evaluate('localStorage.setItem(\'bts_speech_mode\', \'server\'); window.__audioSources = []; ' +
+            'speech settings belong on the existing settings page');
+        await devtools.evaluate('window.__audioSources = []; ' +
             'const nativePlay = HTMLMediaElement.prototype.play; HTMLMediaElement.prototype.play = function() {' +
+            'window.__lastAudio = this; ' +
             'this.addEventListener(\'playing\', () => window.__audioSources.push(this.currentSrc), {once:true}); ' +
             'return nativePlay.call(this); };');
         await openSpeechSettings();
+        await devtools.evaluate('(() => { const mode = document.querySelector(\'select[name="announcement_speech_mode"]\'); ' +
+            'mode.value = \'server\'; mode.dispatchEvent(new Event(\'change\')); })()');
+        await until(() => devtools.evaluate('btsSpeechService.settings().mode === \'server\''));
         const bounds = await devtools.evaluate('(() => { const button = [...document.querySelectorAll(\'.local_speech_controls button\')]' +
             '.find(b => b.textContent === \'Audio aktivieren\'); button.scrollIntoView({block:\'center\'}); ' +
             'const r = button.getBoundingClientRect(); return {x:r.x+r.width/2,y:r.y+r.height/2}; })()');
@@ -337,14 +340,31 @@ suite('BTS / actual FastAPI / native Chrome speech integration', function() {
         assert.strictEqual(fs.readFileSync(path.join(directory, 'received.jsonl'), 'utf8'), before);
     });
 
-    it('prepares the male voice after selection and plays its cached audio with only one outstanding job', async function() {
+    it('shares persisted voice and mode with a second browser and generates only the selected voice', async function() {
+        const { targetId } = await devtools.call('Target.createTarget', {
+            url: 'http://127.0.0.1:' + server.address().port + '/admin/t/default/', background: true,
+        });
+        const pages = await (await fetch('http://' + devtoolsHost + '/json/list')).json();
+        const socket = new WebSocket(pages.find(page => page.id === targetId).webSocketDebuggerUrl);
+        await new Promise(resolve => socket.once('open', resolve));
+        const second = new CDP(socket);
+        await until(() => second.evaluate('typeof btsSpeechService !== \'undefined\' && typeof curt !== \'undefined\' && !!curt?.speech'));
+        await second.evaluate('localStorage.setItem(\'bts_speech_voice\', \'hallensprecherin\'); ' +
+            'localStorage.setItem(\'bts_speech_mode\', \'browser\')');
+        const receivedBefore = fs.readFileSync(path.join(directory, 'received.jsonl'), 'utf8').trim().split('\n').length;
         await openSpeechSettings();
+        await rpc(client, { type: 'tournament_edit_prop', key: 'default', field: 'announcement_speech_mode', value: 'server' });
+        await until(() => second.evaluate('btsSpeechService.settings().mode === \'server\''));
+        await rpc(client, { type: 'tournament_edit_prop', key: 'default', field: 'announcement_speech_mode', value: 'auto' });
         await devtools.evaluate('(() => { const voice = document.querySelectorAll(\'.local_speech_controls select\')[1]; ' +
             'voice.value = \'hallensprecher\'; voice.dispatchEvent(new Event(\'change\')); })()');
         await closeSpeechSettings();
+        await until(() => second.evaluate('btsSpeechService.settings().voice === \'hallensprecher\' && btsSpeechService.settings().mode === \'auto\''));
+        assert.strictEqual((await app.db.tournaments.findOne_async({ key: 'default' })).announcement_speech_voice, 'hallensprecher');
         await until(() => {
             const male = [...app.speech.broker.entries.values()].filter(entry => entry.voice === 'hallensprecher');
-            return male.length > 1 && male.every(entry => entry.status === 'completed');
+            return male.length > 1 && male.every(entry => entry.status === 'completed') &&
+                [...app.speech.broker.entries.values()].every(entry => entry.voice === 'hallensprecher');
         }, 25000);
         await devtools.evaluate('document.querySelector(\'.announcement_speech_check_form button\').scrollIntoView(); ' +
             'btsSpeechReadiness.refresh(true)');
@@ -362,22 +382,26 @@ suite('BTS / actual FastAPI / native Chrome speech integration', function() {
             JSON.stringify(clip.audio_url.split('?')[0]) + '))'));
         const received = fs.readFileSync(path.join(directory, 'received.jsonl'), 'utf8').trim().split('\n').map(JSON.parse);
         assert(received.some(item => item.voice === 'hallensprecher' && item.text.includes('Muhammad Sytsh Abdulquddus')));
+        assert(received.slice(receivedBefore).every(item => item.voice === 'hallensprecher'));
         assert.deepStrictEqual(dispatchViolations, []);
         await openSpeechSettings();
         assert.strictEqual(await devtools.evaluate('document.querySelectorAll(\'.local_speech_controls select\')[1].value'), 'hallensprecher');
-        for (const type of ['keyDown', 'keyUp']) {
-            await devtools.call('Input.dispatchKeyEvent', { type, key: 'Escape', code: 'Escape', windowsVirtualKeyCode: 27 });
-        }
-        await until(() => devtools.evaluate('!document.querySelector(\'.local_speech_dialog\')'));
+        await closeSpeechSettings();
+        await second.call('Page.reload');
+        await until(() => second.evaluate('typeof btsSpeechService !== \'undefined\' && typeof curt !== \'undefined\' && !!curt?.speech && btsSpeechService.settings().voice === \'hallensprecher\''));
+        socket.close();
+        await devtools.call('Target.closeTarget', { targetId });
+        await devtools.call('Page.bringToFront');
     });
 
-    it('shows the real prioritized queue and previews either ready voice without submitting or changing announcements', async function() {
+    it('shows the selected voice queue on the existing settings page and previews it without generating', async function() {
+        await openSpeechSettings();
         await until(() => !app.speech.broker.current && !app.speech.broker.stepping);
         app.speech.stop();
         const broker = app.speech.broker;
-        broker.prepare(['Laufender Testauftrag'], { priority: 'low' }, 'default');
+        broker.prepare(['Laufender Testauftrag'], { voice: 'hallensprecher', priority: 'low' }, 'default');
         await broker.step();
-        for (const voice of ['hallensprecherin', 'hallensprecher']) {
+        for (const voice of ['hallensprecher']) {
             broker.prepare(['Priorität hoch eins', 'Priorität hoch zwei'], { voice, priority: 'high' }, 'default');
             broker.prepare(['Als Nächstes'], { voice, priority: 'normal' }, 'default');
         }
@@ -388,9 +412,8 @@ suite('BTS / actual FastAPI / native Chrome speech integration', function() {
         const original = admin.handle_speech_queue;
         admin.handle_speech_queue = (...args) => { reads++; return original(...args); };
         try {
-            await devtools.evaluate('localStorage.setItem(\'bts_speech_mode\', \'browser\'); window.__audioSources = [];');
+            await devtools.evaluate('window.__audioSources = [];');
             const browserBefore = await devtools.evaluate('window.__browserSpeechCalls');
-            await openSpeechSettings();
             await until(async () => await devtools.evaluate('document.querySelectorAll(\'.speech_queue_row\').length') === expected.queue.items.length);
             const rendered = await devtools.evaluate('[...document.querySelectorAll(\'.speech_queue_row\')].map(row => ({' +
                 'key:row.dataset.key, text:row.querySelector(\'.speech_queue_text\').textContent, ' +
@@ -399,12 +422,13 @@ suite('BTS / actual FastAPI / native Chrome speech integration', function() {
             assert.deepStrictEqual(rendered.map(row => row.text), expected.queue.items.map(item => item.text));
             assert.deepStrictEqual(rendered.map(row => row.disabled), expected.queue.items.map(item => item.status !== 'completed'));
             assert(rendered.some(row => row.priority === 'high' && row.disabled));
+            assert(expected.queue.items.every(item => item.voice === 'hallensprecher'));
             assert(!rendered.some(row => row.text === 'Nicht aus diesem Turnier'));
             await until(() => reads >= 2, 6000);
             const received = fs.readFileSync(path.join(directory, 'received.jsonl'), 'utf8');
-            for (const voice of ['hallensprecherin', 'hallensprecher']) {
+            for (const voice of ['hallensprecher']) {
                 const item = expected.queue.items.find(item => item.status === 'completed' && item.voice === voice);
-                assert(item, 'both cached voices must be available');
+                assert(item, 'the selected cached voice must be available');
                 await click('.speech_queue_row[data-key="' + item.key + '"] .speech_queue_preview');
                 await until(async () => await devtools.evaluate('document.querySelector(\'.speech_queue_feedback\').textContent') === 'Aufnahme abgespielt.');
                 assert(await devtools.evaluate('window.__audioSources.some(src => src.includes(' +
@@ -420,18 +444,25 @@ suite('BTS / actual FastAPI / native Chrome speech integration', function() {
             await devtools.call('Emulation.setDeviceMetricsOverride',
                 { width: 390, height: 844, deviceScaleFactor: 1, mobile: false });
             await devtools.evaluate('document.querySelector(\'.speech_queue\').scrollIntoView({block:\'start\'})');
-            assert.strictEqual(await devtools.evaluate('document.querySelector(\'.local_speech_dialog\').scrollWidth > ' +
-                'document.querySelector(\'.local_speech_dialog\').clientWidth'), false);
+            await devtools.evaluate('document.querySelector(\'.speech_queue_list\').scrollTop = 0; ' +
+                'new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))');
             await devtools.call('Page.captureScreenshot', { format: 'png' }).then(result =>
                 fs.writeFileSync('/tmp/bts-speech-queue-mobile.png', Buffer.from(result.data, 'base64')));
+            const width = await devtools.evaluate('(() => { const layout = document.querySelector(\'.speech_settings_layout\'); ' +
+                'return {content:layout.scrollWidth, available:layout.clientWidth}; })()');
+            assert(width.content <= width.available, JSON.stringify(width));
+            await devtools.evaluate('window.__audioSources = []');
+            await click('.speech_queue_preview:not(:disabled)');
+            await until(() => devtools.evaluate('window.__audioSources.length > 0 && !window.__lastAudio.paused'));
             await closeSpeechSettings();
+            assert.strictEqual(await devtools.evaluate('window.__lastAudio.paused'), true,
+                'leaving the settings page must immediately stop its preview');
             const closedReads = reads;
             await delay(3300);
             assert.strictEqual(reads, closedReads, 'closing the dialog must stop queue polling');
             assert.deepStrictEqual(devtools.events.filter(event => event.method === 'Runtime.exceptionThrown'), []);
         } finally {
             admin.handle_speech_queue = original;
-            await devtools.evaluate('localStorage.setItem(\'bts_speech_mode\', \'auto\')');
         }
     });
 });

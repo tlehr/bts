@@ -3612,38 +3612,15 @@ h2.edit {
   visibility: hidden;
 }
 
-.local_speech_dialog {
-    box-sizing: border-box;
-    width: min(70rem, calc(100vw - 2rem));
-    max-height: calc(100vh - 2rem);
-    overflow-y: auto;
-    padding: 1.25rem;
-    border: 1px solid #bbb;
-    border-radius: 0.5rem;
-    background: #fff;
-    color: #222;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
-}
-
-.local_speech_dialog::backdrop {
-    background: rgba(0, 0, 0, 0.45);
-}
-
-.local_speech_dialog h2 {
-    margin: 0 0 0.5em;
-    padding: 0;
-    color: inherit;
-    font-size: 1.35rem;
-    text-align: left;
-}
-
-.local_speech_dialog button {
+.speech_settings_layout button {
     min-height: 2.25rem;
     font: inherit;
+    margin: 0;
 }
 
-.local_speech_close {
-    width: 100%;
+.tournament_settings > .speech_settings_section {
+    box-sizing: border-box;
+    width: min(920px, calc(100vw - 2rem));
 }
 
 .speech_settings_layout {
@@ -3668,6 +3645,7 @@ h2.edit {
     overflow-y: auto;
     border: 1px solid #d5dce4;
     border-radius: 0.35rem;
+    background: #fff;
 }
 
 .speech_queue_row {

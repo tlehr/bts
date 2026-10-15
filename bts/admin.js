@@ -150,7 +150,7 @@ function handle_tournament_edit_props(app, ws, msg) {
 		'language', 'dm_style', 'displaysettings_general', 'displaysettings_general_tablet',
 		'bupws_v2_enabled', 'bup_v2_admin_wait_for_score_updates', 'bts_debug_output_enabled', 'bts_server_diagnostics_enabled', 'bts_client_performance_debug_enabled', 'bts_auto_call_trace_enabled', 'bts_score_press_timing_enabled',
 		'tabletoperator_enabled', 'tabletoperator_break_seconds',
-		'announcement_speed','announcement_pause_time_ms',
+		'announcement_speed','announcement_pause_time_ms', 'announcement_speech_mode', 'announcement_speech_voice',
 		'tabletoperator_set_break_after_tabletservice','tabletoperator_with_state_enabled',
 		'tabletoperator_with_state_from_match_enabled',
 		'tabletoperator_winner_of_quaterfinals_enabled','tabletoperator_split_doubles',
@@ -204,6 +204,9 @@ function handle_tournament_edit_props(app, ws, msg) {
 	if (msg.props.btp_timezone) {
 		props.btp_timezone = msg.props.btp_timezone === 'system' ? undefined : msg.props.btp_timezone;
 	}
+	if (!require('../static/js/speech_settings').valid(props)) {
+		return ws.respond(msg, { message: 'Invalid speech settings' });
+	}
 	app.db.tournaments.findOne({ key }, async (err, tournament) => {
 		if (err || !tournament) {
 			ws.respond(msg, err);
@@ -229,6 +232,7 @@ function handle_tournament_edit_props(app, ws, msg) {
 			if (utils.has_key(props, k => /^ticker_/.test(k))) {
 				ticker_manager.reconfigure(app, t);
 			}
+			app.speech?.configure?.(t);
 			debug_flags.set_from_tournament(t);
 			notify_change(app, key, 'props', t);
 			if (utils.has_key(props, (k) => k === 'technical_official_auto_assignment_mode' || k === 'official_rotation_mode')) {
@@ -297,7 +301,7 @@ function handle_tournament_edit_prop(app, ws, msg) {
 		'language', 'dm_style', 'displaysettings_general', 'displaysettings_general_tablet',
 		'bupws_v2_enabled', 'bup_v2_admin_wait_for_score_updates', 'bts_debug_output_enabled', 'bts_server_diagnostics_enabled', 'bts_client_performance_debug_enabled', 'bts_auto_call_trace_enabled', 'bts_score_press_timing_enabled',
 		'tabletoperator_enabled', 'tabletoperator_break_seconds',
-		'announcement_speed', 'announcement_pause_time_ms',
+		'announcement_speed', 'announcement_pause_time_ms', 'announcement_speech_mode', 'announcement_speech_voice',
 		'tabletoperator_set_break_after_tabletservice', 'tabletoperator_with_state_enabled',
 		'tabletoperator_with_state_from_match_enabled',
 		'tabletoperator_winner_of_quaterfinals_enabled', 'tabletoperator_split_doubles',
@@ -362,6 +366,9 @@ function handle_tournament_edit_prop(app, ws, msg) {
 	}
 	const props = {};
 	props[field] = value;
+	if (!require('../static/js/speech_settings').valid(props)) {
+		return ws.respond(msg, { message: 'Invalid speech settings' });
+	}
 
 	app.db.tournaments.findOne({ key }, async (err, tournament) => {
 		if (err || !tournament) {
@@ -383,6 +390,7 @@ function handle_tournament_edit_prop(app, ws, msg) {
 			if (/^ticker_/.test(field)) {
 				ticker_manager.reconfigure(app, t);
 			}
+			app.speech?.configure?.(t);
 			debug_flags.set_from_tournament(t);
 			if (field === 'automation_enabled' && t[field] === true) {
 				const match_utils = require('./match_utils');

@@ -8,7 +8,8 @@ const { promisify } = require('util');
 const { SpeechBroker, configuration } = require('../bts/speech/broker');
 const { request } = require('../bts/speech/http');
 const proxy = require('../bts/speech/proxy');
-const { handle } = require('../bts/speech');
+const { create, handle } = require('../bts/speech');
+const resolveSettings = require('../static/js/speech_settings');
 const { Prefetcher } = require('../bts/speech/prefetch');
 const database = require('../bts/database');
 const admin = require('../bts/admin');
@@ -640,17 +641,93 @@ describe('Server speech adapter and protected audio', function() {
         }
         const broker = new SpeechBroker(config());
         const prefetch = new Prefetcher({ db }, broker);
-        prefetch.subscriptions.set('default', new Set(['hallensprecherin', 'hallensprecher']));
+        prefetch.configure(current, false);
         await prefetch.refresh('default');
         assert([...broker.entries.values()].some(entry => entry.text.includes('Muhammad Sytsh Abdulquddus')));
         assert([...broker.entries.values()].every(entry => entry.status === 'unsubmitted'));
-        const firstEntries = [...broker.entries.values()].slice(0, 4);
-        assert.deepStrictEqual(firstEntries.map(entry => entry.voice),
-            ['hallensprecherin', 'hallensprecher', 'hallensprecherin', 'hallensprecher']);
+        assert([...broker.entries.values()].every(entry => entry.voice === 'hallensprecherin'));
         await db.matches.update_async({ _id: 'match1' }, { $set: { 'setup.teams.1.players.0.name': 'Neuer Gegner' } }, {});
         await prefetch.refresh('default');
         assert([...broker.entries.values()].some(entry => entry.text.includes('Neuer Gegner')));
         assert.strictEqual(broker.views(['Johann Bjarne Schöttmer, gegen Neuer Gegner'], {}, 'default')[0].audio_url, null);
         prefetch.stop();
+    });
+
+    it('uses the persisted selection on restart and rejects generation requests from stale clients', async function() {
+        const db = await database.init_test();
+        const current = { ...tournament(), announcement_speech_voice: 'hallensprecher', announcement_speech_mode: 'server' };
+        await promisify(db.tournaments.insert.bind(db.tournaments))(current);
+        const app = { db, config: { speech: { enabled: true, api_key: KEY } } };
+        app.speech = create(app);
+        try {
+            const loaded = { ...current }, responses = [];
+            const ws = { respond: (_msg, error, response) => { assert.ifError(error); responses.push(response); } };
+            app.speech.loaded(loaded, ws);
+            assert.strictEqual(loaded.speech.voice, 'hallensprecher');
+            assert.strictEqual(loaded.speech.mode, 'server');
+            handle(app, ws, { type: 'speech_prepare', tournament_key: 'default', parts: [TEXT], voice: 'hallensprecherin' });
+            assert.strictEqual(responses[0].speech_error, 'speech_settings_changed');
+            assert.strictEqual(app.speech.broker.entries.size, 0);
+            handle(app, ws, { type: 'speech_prepare', tournament_key: 'default', parts: [TEXT] });
+            assert([...app.speech.broker.entries.values()].every(entry => entry.voice === 'hallensprecher'));
+            await app.speech.prefetch.refresh('default');
+            assert([...app.speech.broker.entries.values()].every(entry => entry.voice === 'hallensprecher'));
+            assert.deepStrictEqual(resolveSettings({ ...current, speech: { voice: 'hallensprecherin', mode: 'auto' } }),
+                { voice: 'hallensprecher', mode: 'server' });
+            await db.tournaments.update_async({ key: 'default' }, { $set: { announcement_speech_mode: 'browser' } }, {});
+            app.speech.configure({ ...current, announcement_speech_mode: 'browser' });
+            await app.speech.prefetch.refresh('default');
+            handle(app, ws, { type: 'speech_prepare', tournament_key: 'default', parts: [TEXT], voice: 'hallensprecher' });
+            assert.deepStrictEqual(responses.at(-1).clips, []);
+            assert.strictEqual(app.speech.broker.entries.size, 0, 'central browser mode must not generate local recordings');
+        } finally { app.speech.stop(); }
+    });
+
+    it('drops unsent work for a deselected voice, preserves other tournaments and completes the current job alone', async function() {
+        let active;
+        const sent = [];
+        const broker = new SpeechBroker(config(), { request: async (_base, _key, method, _route, body) => {
+            if (method === 'GET') return reply(active, 'completed');
+            sent.push(body); return (active = reply(body));
+        } });
+        broker.prepare(['current', 'unused', 'shared'], {}, 'default');
+        broker.prepare(['shared'], {}, 'other');
+        await broker.step();
+        const prefetch = new Prefetcher({}, broker);
+        prefetch.configure({ key: 'default', announcement_speech_voice: 'hallensprecher' }, false);
+        assert.deepStrictEqual(broker.queue('default').items, []);
+        assert.strictEqual(broker.queue('other').items[0].text, 'shared');
+        assert(![...broker.entries.values()].some(entry => entry.text === 'unused'));
+        broker.prepare(['new voice'], { voice: 'hallensprecher', priority: 'high' }, 'default');
+        await broker.step();
+        assert.strictEqual(sent.length, 1, 'a voice change must not open a second server job');
+        broker.current.entry.next_poll = 0;
+        await broker.step();
+        assert.strictEqual(broker.current, null);
+        broker.last_post = -Infinity;
+        await broker.step();
+        assert.strictEqual(sent.at(-1).voice, 'hallensprecher');
+        prefetch.configure({ key: 'default', announcement_speech_voice: 'hallensprecher', announcement_speech_mode: 'browser' }, false);
+        assert.strictEqual(broker.queue('default').items.length, 0);
+    });
+
+    it('saves central speech settings through both existing edit paths and rejects invalid values atomically', async function() {
+        const db = await database.init_test();
+        await promisify(db.tournaments.insert.bind(db.tournaments))({ key: 'default', displaysettings_general: 'display', displaysettings_general_tablet: 'tablet' });
+        const app = { db, config: { speech: { enabled: true, api_key: KEY } } };
+        app.speech = create(app);
+        const edit = msg => new Promise((resolve, reject) => admin['handle_' + msg.type](app,
+            { respond: (_msg, error) => error ? reject(error) : resolve() }, { key: 'default', ...msg }));
+        try {
+            await edit({ type: 'tournament_edit_prop', field: 'announcement_speech_voice', value: 'hallensprecher' });
+            assert.strictEqual((await db.tournaments.findOne_async({ key: 'default' })).announcement_speech_voice, 'hallensprecher');
+            assert.strictEqual(app.speech.prefetch.settings('default').voice, 'hallensprecher');
+            await edit({ type: 'tournament_edit_props', props: { announcement_speech_mode: 'server', announcement_speech_voice: 'hallensprecherin' } });
+            assert.deepStrictEqual(app.speech.prefetch.settings('default'), { mode: 'server', voice: 'hallensprecherin' });
+            await assert.rejects(edit({ type: 'tournament_edit_prop', field: 'announcement_speech_voice', value: 'unknown' }));
+            await assert.rejects(edit({ type: 'tournament_edit_props', props: { announcement_speech_voice: 'hallensprecher', announcement_speech_mode: 'unknown' } }));
+            assert.deepStrictEqual(resolveSettings(await db.tournaments.findOne_async({ key: 'default' })),
+                { mode: 'server', voice: 'hallensprecherin' });
+        } finally { app.speech.stop(); }
     });
 });

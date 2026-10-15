@@ -15,7 +15,7 @@ function createSpeechQueue({ root, service }) {
     }
     element(root, 'h3', '', 'Texte und Reihenfolge');
     element(root, 'p', 'speech_queue_help',
-        'Für dieses Turnier, mit beiden vorbereiteten Stimmen. Laufender Auftrag zuerst, danach die nächsten Texte; fertige Aufnahmen stehen unten. Nummern gelten für die gemeinsame Warteschlange.');
+        'Für die ausgewählte Stimme dieses Turniers. Laufender Auftrag zuerst, danach die nächsten Texte; fertige Aufnahmen stehen unten. Nummern gelten für die gemeinsame Warteschlange.');
     const summary = element(root, 'p', 'speech_queue_summary', 'Warteschlange wird geladen …');
     summary.setAttribute('aria-live', 'polite');
     const list = element(root, 'ol', 'speech_queue_list');
@@ -83,7 +83,7 @@ function createSpeechQueue({ root, service }) {
         const ready = items.filter(item => item.status === 'completed').length;
         summary.textContent = items.length ? items.length + ' Texte · ' + ready + ' fertig · ' +
             (items.length - ready) + ' offen' + (response.queue.busy_elsewhere ?
-                ' · Der Sprachserver bearbeitet gerade ein anderes Turnier.' : '') : 'Noch keine Texte vorgemerkt.';
+                ' · Ein bereits laufender anderer Auftrag wird noch abgeschlossen.' : '') : 'Noch keine Texte vorgemerkt.';
         const used = new Set(items.map(item => item.key));
         for (const [key, row] of rows) {
             if (!used.has(key)) { row.node.remove(); rows.delete(key); }
@@ -120,8 +120,11 @@ function createSpeechQueue({ root, service }) {
         if (stopped) return;
         stopped = true;
         clearInterval(timer);
+        observer.disconnect();
         if (playing) service.cancelPreview();
     }
+    const observer = new MutationObserver(() => { if (!root.isConnected) stop(); });
+    observer.observe(root.closest('.main') || document.body, { childList: true, subtree: true });
     const timer = setInterval(() => {
         if (!root.isConnected) stop();
         else if (!document.hidden) void refresh();

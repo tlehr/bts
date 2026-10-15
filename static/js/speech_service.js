@@ -1,4 +1,4 @@
-/* global ci18n, conn_ui */
+/* global ci18n, conn_ui, resolveSpeechSettings */
 /* exported btsSpeechService */
 'use strict';
 
@@ -196,7 +196,7 @@ function createSpeechService(context) {
     async function preview(clip, version) {
         const value = settings();
         if (active) return { status: 'busy', reason: 'playback_busy' };
-        if (!value.enabled || !value.key || !clip || clip.tournament_key !== value.key || version !== cache_version ||
+        if (!value.enabled || !value.key || !clip || clip.voice !== value.voice || clip.tournament_key !== value.key || version !== cache_version ||
             !usable(clip) || !clip.audio_url.startsWith('/h/' + encodeURIComponent(value.key) + '/speech/audio/')) {
             return { status: 'unavailable', reason: 'cache_incomplete' };
         }
@@ -242,6 +242,7 @@ function createSpeechService(context) {
 
     return {
         settings, prepare, speak, cancel, unlock, describeResult, preview,
+        settingsChanged() { prepared.clear(); preview_controller?.abort(); changed(); },
         cancelPreview: () => preview_controller?.abort(),
         queue: async () => {
             const value = settings();
@@ -272,11 +273,6 @@ function createSpeechService(context) {
     };
 }
 
-function speechPreference(name, fallback) {
-    try { return window.localStorage.getItem('bts_speech_' + name) || fallback; }
-    catch (_) { return fallback; }
-}
-
 var btsSpeechService; // eslint-disable-line no-unused-vars -- shared browser service
 if (typeof module !== 'undefined' && module.exports) module.exports = createSpeechService;
 else {
@@ -286,8 +282,7 @@ else {
             return {
                 ...value, enabled: value.enabled === true,
                 key: typeof curt === 'undefined' ? null : curt?.key,
-                mode: speechPreference('mode', value.mode || 'browser'),
-                voice: speechPreference('voice', value.voice || 'hallensprecherin'),
+                ...resolveSpeechSettings(typeof curt === 'undefined' ? {} : curt),
                 language: ci18n('announcements:lang'),
                 deadline_ms: value.deadline_ms || 700, max_text: value.max_text || 1200,
                 rate: (typeof curt !== 'undefined' && curt?.announcement_speed) || 1.05,
