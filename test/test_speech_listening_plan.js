@@ -42,4 +42,18 @@ describe('Local TTS listening comparison', function() {
         assert.strictEqual(hybrid.parts[1].preserve_inner_pauses, true);
         assert.strictEqual(value.cases[0].parts[0].preserve_inner_pauses, true);
     });
+
+    it('uses separate court excerpts from the chosen full reference without requesting new speech', function() {
+        const value = plan();
+        const contextual = value.cases[5];
+        assert.strictEqual(contextual.parts[1].text, value.cases[4].parts[1].text);
+        for (const index of [0, 2]) {
+            const { excerpt, preserve_inner_pauses } = contextual.parts[index];
+            assert.strictEqual(excerpt.source_case, value.cases[0].id);
+            assert.strictEqual(excerpt.source_sha256, value.context_reference.source_sha256);
+            assert.strictEqual(preserve_inner_pauses, true);
+            assert(excerpt.end_frame > excerpt.start_frame);
+        }
+        assert.notStrictEqual(contextual.parts[0].excerpt.id, contextual.parts[2].excerpt.id);
+    });
 });

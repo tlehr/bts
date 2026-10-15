@@ -1,0 +1,34 @@
+{
+  "source_case": "01-am-stueck",
+  "source_sha256": "9c62e0f0389530fee6ab07eedeeb414b2b0d6669999f197866c9a6a11a2bcdd1",
+  "sample_rate": 24000,
+  "reference_parameters": {
+    "voice": "hallensprecher",
+    "temperature": 0.8,
+    "top_k": 50,
+    "top_p": 0.8,
+    "seed": 42,
+    "speed": 1.155
+  },
+  "alignment": {
+    "method": "Lokale Wortzeitmarken und energiearme Schnittstellen zwischen den Wörtern",
+    "tool": "vosk==0.3.45, vosk-model-small-de-0.15",
+    "model_archive_sha256": "b7e53c90b1f0a38456f4cd62b366ecd58803cd97cd42b06438e2c131713d5e43",
+    "opening_eight_end_seconds": 1.65,
+    "following_game_start_seconds": 1.86,
+    "last_name_end_seconds": 10.05,
+    "closing_on_start_seconds": 10.32
+  },
+  "opening": {
+    "id": "06-spielfeld-anfang",
+    "label": "Spielfeld am Anfang · aus Variante 1",
+    "start_frame": 0,
+    "end_frame": 40800
+  },
+  "closing": {
+    "id": "06-spielfeld-ende",
+    "label": "Spielfeld am Ende · aus Variante 1",
+    "start_frame": 242603,
+    "end_frame": 280260
+  }
+}
