@@ -108,9 +108,24 @@ Im echten API-Test brauchten die vollständigen Beispielansagen auf dem bisherig
 
 Beim BTS-Start werden vorhandene Turniere vorgemerkt; ein Browser muss dafür nicht geöffnet sein. Je Turnier werden Spiele in Vorbereitung, priorisierte Kandidaten aus der vorhandenen Vorbereitungsselektion und die nächsten geplanten Spiele bis zum konfigurierten Horizont vorbereitet. Bereits in Vorbereitung/auf dem Feld befindliche Spiele und echte Aufrufkandidaten bleiben zusätzlich enthalten, damit der Horizont einer Halle nicht die nötigen Ansagen einer anderen Halle verdrängt. Bereits vorbereitete/aufgerufene Spiele und reale Kandidaten erhalten höhere Priorität.
 
-Die Vorbereitung umfasst unveränderte Bestandteile von Spielruf, Vorbereitungsruf, Spieler-/Offiziellen-Zweitruf und Spielbeginn. Feldtexte werden für aktive Felder bereits ohne feste zukünftige Feldzuweisung erzeugt. Bei noch offenem Standort werden die vorhandenen Hallen-/Meetingpoint-Varianten berücksichtigt. Bekannte Namen, Disziplinen, Runden und Matchnummern werden auch dann vorbereitet, wenn einzelne künftige Offizielle noch fehlen.
+Die Vorbereitung umfasst Bestandteile von Spielruf, Vorbereitungsruf, Spieler-/Offiziellen-Zweitruf, Spielbeginn und kampfloser Entscheidung für beide möglichen Gewinner. Der Wortlaut bleibt erhalten. Feldtexte werden für aktive Felder bereits ohne feste zukünftige Feldzuweisung erzeugt. Bei noch offenem Standort werden die vorhandenen Hallen-/Meetingpoint-Varianten für Spieler und Offizielle berücksichtigt. Bekannte Namen, Disziplinen, Runden und Matchnummern werden auch dann vorbereitet, wenn einzelne künftige Offizielle noch fehlen.
 
-Beim Spielbeginn und bei Offiziellen-Zweitrufen verbindet der gemeinsame BTS-Textbaustein die Feldansage mit dem folgenden Satz durch ein Leerzeichen: etwa `Auf Spielfeld 5! Bitte mit dem Spielen beginnen!`. Vorab-Cache und tatsächlicher Aufruf verwenden denselben Textbaustein, auch für noch unzugewiesene künftige Felder. Ohne Feldzuweisung entsteht kein führendes Leerzeichen. Die Korrektur erfolgt beim Zusammenstellen der BTS-Ansage; der Sprachserver erhält diesen Text unverändert. Der geänderte exakte Text hat einen eigenen Cache-Schlüssel und wird neu vorbereitet. Bereits vorhandene Aufnahmen müssen dafür nicht gelöscht werden. BTS neu starten und alle Client-Seiten neu laden, damit alte Zusammensetzungen nicht mehr angefordert werden. Die Länge der hörbaren Satzpause bleibt vom Sprachmodell abhängig.
+Lokales Audio und Browser-TTS verwenden unterschiedliche Stückelungen aus denselben Textfunktionen. Die Funktionen merken sich beim Zusammensetzen die Bestandteile; Namen werden nicht nachträglich durch Textsuche zerlegt. Die bisherigen Browser-Textarrays einschließlich ihrer Satzabstände bleiben bytegleich. Für lokale Aufnahmen werden die wiederverwendbaren Bestandteile daraus abgeleitet:
+
+| Aufrufbestandteil | Lokale Aufnahmen |
+| --- | --- |
+| Spielbeginn | `Auf Spielfeld 8!` und `Bitte mit dem Spielen beginnen!`; der zweite Satz nur einmal je Stimme/Sprache |
+| Spieler und Doppel | Vollständige Personennamen, `und`, `, gegen`; wechselnde Gegner/Partner brauchen keine neue Gesamtaufnahme |
+| Offizielle und Zweitrufe | Aufrufpräfix, Rolle, Name und gegebenenfalls Feldansage getrennt |
+| Vorbereitung | `In Vorbereitung`, Hallenergänzung, Namen und vollständige Meetingpoint-Hinweise; Einzahl/Mehrzahl bleiben erhalten |
+| Kampfloser Sieg | Einleitungsangaben, Teams/Namen und feste Gewinnformulierung; beide möglichen Gewinner vorbereitet |
+| Nummern, Disziplinen, Runden | Kurze Angaben wie `Spiel Nummer 17!`, `Jungeneinzel U17` und `Halbfinale` bleiben zusammen |
+
+Nur Leerraum an neuen Aufnahmegrenzen entfällt. Innerhalb der Bausteine bleiben Namen, bisherige Aussprache-Normalisierungen, Zahlen und Schreibweisen erhalten. Satzzeichen bleiben in ihrer Reihenfolge und werden an benachbarte Sprachbausteine angehängt; dafür werden keine eigenen WAVs angefordert. Dadurch kann ein Name am Satzende zusätzlich eine Variante mit Ausrufezeichen benötigen. Freie Ansagen und der Sprachtest behalten ihre vollständigen Texte. Die lokale Wiedergabe spielt die fertigen Bausteine der Reihe nach. Natürliche Übergänge und Pausen hängen weiterhin vom Sprachmodell und den Aufnahmen ab; die Mock-Tests bewerten keine Sprachqualität.
+
+Vorab-Cache, Bereitschaftsmarkierung und tatsächlicher lokaler Aufruf verwenden denselben Plan. Beim Browser-Fallback erhält die gesamte Durchsage ihre ursprünglichen Browser-Textabschnitte, auch wenn nur ein lokaler Baustein fehlt. Eine bereits begonnene lokale Durchsage wird weiterhin nicht komplett per Browser wiederholt. Claims, Tab-Wechsel und Wiederholungsversuche führen beide Stückelungen mit.
+
+Für diese Umstellung **BTS neu starten und alle Client-Seiten neu laden**. Damit verschwinden alte zusammengesetzte Vormerkungen aus dem BTS und die neuen Bausteine werden vorbereitet. Vorhandene WAVs bleiben im Sprachserver-Cache; passende unveränderte Bausteine werden wiederverwendet. Am Sprachserver ist keine Änderung nötig.
 
 BTS-Datenänderungen, die vorhandene Kandidatenabfrage und zusätzlich eine periodische Prüfung erneuern die Vorbereitung. Freie Ansagen werden beim Tippen nach einer kurzen Ruhephase vorbereitet. Ein zentraler Stimmwechsel startet die Vorbereitung der neuen Stimme und beendet die noch nicht gesendete Vorarbeit für die vorherige Stimme. Identische Teile verschiedener Spiele/Clients teilen sich den Sprachserver-Cache.
 
@@ -118,13 +133,13 @@ Noch unbekannte Gegner, zukünftige Änderungen und spontan eingegebene Ansagen 
 
 ## Datenfluss und Wiedergabe
 
-- static/js/announcement_text.js enthält die gemeinsam verwendeten bisherigen Textfunktionen. Browser und Backend erhalten denselben Text; weder U17 noch Namen oder Satzzeichen werden zusätzlich geändert.
+- static/js/announcement_text.js enthält die gemeinsam verwendeten bisherigen Textfunktionen und leitet daraus die lokale Stückelung ab. Browser-Wortlaut, Namen, U17 und Satzzeichen bleiben erhalten.
 - bts/speech/text.js rendert diese Funktionen nur zur Vorbereitung, ohne Wiedergabe.
 - bts/speech/prefetch.js liest vorhandene Turnierdaten im Hintergrund und wartet auf freie Foreground-Arbeit.
 - bts/speech/broker.js dedupliziert, priorisiert und pollt die versionierte API; bts/speech/http.js setzt einen vollständigen Request-Timeout.
 - Die vorhandene /ws/admin-Verbindung bietet speech_prepare, speech_resolve, speech_status und die rein lesende speech_queue. Die Verbindung muss zuvor das betreffende Turnier erfolgreich geladen haben; Speech-Fehler beeinträchtigen den allgemeinen Verbindungsstatus nicht.
 - bts/speech/proxy.js prüft zeitlich begrenzte, an Turnier und Audio-ID gebundene HMAC-Berechtigungen und reicht WAV/Range/ETag durch. Ohne gültige Signatur gibt es kein Audio.
-- static/js/speech_service.js entscheidet einmal je Wiedergabe-ID zwischen vorbereiteter WAV und Browser-Fallback. Nur vollständig bereite Batches werden als Server-Audio begonnen.
+- static/js/speech_service.js löst die lokalen Bausteine auf und entscheidet einmal je Wiedergabe-ID zwischen vorbereiteten WAVs und Browser-Fallback mit den ursprünglichen Textabschnitten. Nur vollständig bereite Batches werden als Server-Audio begonnen.
 - static/js/announcements.js behält Queue, Claims, Leader und Pausen. Eine hörbar begonnene Ausgabe wird bei Fehlern nicht als vollständiger Ruf wiederholt. **Ansage stoppen** beendet aktive Ausgabe und verwirft ausstehende Ansagen.
 
 Spätere Qwen-Abschlüsse füllen nur den Cache. Sie erzeugen keine neuen Wiedergabeereignisse. Mehrere erlaubte Geräte können dieselbe WAV je einmal nutzen. Ein einmal durch Nutzeraktion aktiviertes HTMLAudioElement wird für weitere Serverausgaben wiederverwendet.
@@ -154,6 +169,10 @@ Bytegenaue Vergleiche aller bisherigen Ansagearten, geänderte Gegner, Queue-Gre
 
 
 ## Prüfstand dieses Auftrags
+
+Nach Wiederverwendung lokaler Sprachbausteine: 1044 BTS-Tests, 87 gezielte Sprachtests und alle elf optionalen End-to-End-Fälle bestanden (zusammen mit den geteilten Texttests: 26). Der Browser-Wortlaut wird weiterhin bytegenau gegen die eingefrorene Ausgangsversion verglichen, abgesehen von den bereits zuvor korrigierten Satzabständen. Für die lokale Stückelung prüfen dieselben Fälle alle Nicht-Leerraumzeichen in unveränderter Reihenfolge. Zusätzliche Fälle decken beide Gewinner, Einzel/Doppel, Hallenvarianten, Offizielle, Bereitschaft aller Bausteine und die vollständige ursprüngliche Browser-Ansage beim Fallback ab. Nach einem Gegnerwechsel kommen nur dessen Name und die benötigte Variante mit Satzschluss hinzu. Der echte Chrome spielt zwei Spielbeginn-Aufrufe mit verschiedenen Feldclips und derselben Startanweisung in korrekter Reihenfolge; die FastAPI erhält dabei keinen weiteren Generierungsauftrag.
+
+Ein Vergleich der Vorabtexte mit Stand `a64cc85` für 16 aktive Felder und zwölf synthetische Spiele nach dem Test-Setup (unterschiedliche Matchnummern und Gegner, gleiche Offizielle/Disziplin/Runde/Halle) ergab 194 Aufnahmen mit 10.102 Zeichen vorher und 133 Aufnahmen mit 2.634 Zeichen danach. Das sind rund 74 % weniger zu synthetisierender Text, obwohl nun auch kampflose Entscheidungen vorbereitet werden. Die Einsparung hängt vom Turnier ab; sie ist keine gemessene Beschleunigung der Modellinferenz. Syntaxprüfung und geänderte neue Module sind lint-sauber; die 25 bereits vorhandenen ESLint-Meldungen in `announcements.js` bleiben unverändert.
 
 Nach automatischer Cache-Anzeige und Fortschrittsbalken: 1040 BTS-Tests, 83 gezielte Sprachtests und alle zehn optionalen End-to-End-Fälle bestanden. Der neue Browserfall setzt die periodische Abfrage auf 60 Sekunden und prüft die schnelle Aktualisierung nach der tatsächlichen Abschlussmeldung. Cache-Zahl links, Liste und Balken bleiben konsistent; die Einstellungsseite wird dabei nicht neu aufgebaut und es erfolgt keine Audiowiedergabe. Ein gezielt fehlgeschlagener API-Auftrag zählt nicht als fertig. Bei einer fehlenden Statusantwort verschwindet der Balken und die Anzeige meldet den Ausfall. Abschlussmeldungen enthalten keine Ansagetexte oder Schlüssel; unveränderte fertige Aufnahmen erzeugen keine doppelten Meldungen.
 

@@ -2,7 +2,42 @@
 function createAnnouncementTexts(context) {
     const curt = context.tournament;
     const ci18n = context.translate;
-    const announce = context.announce;
+    // Remember the structure while still returning the original strings from
+    // public builders. Browser utterances keep their existing sentence layout;
+    // local audio can reuse the leaves of these compositions.
+    const compositions = new Map();
+    function compose(parts, separator = '') {
+        const text = parts.join(separator);
+        const chunks = [];
+        parts.forEach((part, index) => {
+            if (index) chunks.push(separator);
+            chunks.push(...(compositions.get(part) || [part]));
+        });
+        compositions.set(text, chunks);
+        return text;
+    }
+
+    function localParts(parts) {
+        return parts.filter(Boolean).flatMap(text => {
+            const chunks = [];
+            let punctuation = '';
+            for (const piece of compositions.get(text) || [text]) {
+                // Whitespace between recordings needs no WAV. Attach isolated
+                // punctuation to the next phrase (or the last name at the end).
+                if (!piece || !piece.trim()) { if (punctuation) punctuation += piece; continue; }
+                if (/^[\s,;:.!?]+$/.test(piece)) { punctuation += piece; continue; }
+                chunks.push((punctuation + piece).trim());
+                punctuation = '';
+            }
+            if (punctuation && chunks.length) chunks[chunks.length - 1] += punctuation.trimEnd();
+            return chunks;
+        });
+    }
+
+    function announce(parts, local, claim) {
+        const prepared = localParts(parts);
+        context.announce(context.local ? prepared : parts, local, claim, { localParts: prepared });
+    }
     const window = context.window;
     const buildAnnouncementClaimKey = context.claim;
     const utils = { find: (items, predicate) => (items || []).find(predicate) };
@@ -90,12 +125,18 @@ function createAnnouncementTexts(context) {
             createEventAnnouncement(matchSetup),
             createRoundAnnouncement(matchSetup),
         ].filter(Boolean).map(part => String(part).replace(/!+$/, ''));
-        const intro = introParts.length > 0 ? introParts.join(', ') + '!' : '';
-        const teamsPart = ci18n('announcements:no_match_win:teams', {
+        const intro = introParts.length > 0 ? compose([compose(introParts, ', '), '!']) : '';
+        const values = {
             team1,
             team2,
             winner,
-        });
+        };
+        const teamsPart = ci18n('announcements:no_match_win:teams', values);
+        // Use the translated placeholder order, including repeated winners.
+        // Only register a composition if it renders exactly like ci18n.
+        const templateParts = ci18n('announcements:no_match_win:teams').split(/(\{(?:team1|team2|winner)\})/)
+            .map(part => Object.hasOwn(values, part.slice(1, -1)) ? values[part.slice(1, -1)] : part);
+        if (templateParts.join('') === teamsPart) compose(templateParts);
         announce(
             [intro, teamsPart],
             false,
@@ -137,7 +178,7 @@ function createAnnouncementTexts(context) {
         }
         const tabletOperatorCall = createTabletOperator(matchSetup);
         if (tabletOperatorCall != null) {
-            const call = prependFieldAnnouncement(matchSetup, createSecondCallAnnouncement() + tabletOperatorCall);
+            const call = prependFieldAnnouncement(matchSetup, compose([createSecondCallAnnouncement(), tabletOperatorCall]));
              announce([call]);
         }
     }
@@ -147,7 +188,7 @@ function createAnnouncementTexts(context) {
         }
         const umpireCall = createUmpire(matchSetup);
         if (umpireCall != null) {
-            const call = prependFieldAnnouncement(matchSetup, createSecondCallAnnouncement() + umpireCall);
+            const call = prependFieldAnnouncement(matchSetup, compose([createSecondCallAnnouncement(), umpireCall]));
             announce([call]);
         }
     }
@@ -157,7 +198,7 @@ function createAnnouncementTexts(context) {
         }
         const servicejudgeCall = createServiceJudge(matchSetup);
         if (servicejudgeCall != null) {
-            const call = prependFieldAnnouncement(matchSetup, createSecondCallAnnouncement() + servicejudgeCall);
+            const call = prependFieldAnnouncement(matchSetup, compose([createSecondCallAnnouncement(), servicejudgeCall]));
             announce([call]);
         }
     }
@@ -167,7 +208,7 @@ function createAnnouncementTexts(context) {
         if(!(window.localStorage.getItem('enable_announcement_calls_' + getLocationID(matchSetup)) === 'true')) {
             return;
         }
-        var secondCall = createSecondCallAnnouncement() + createSingleTeam(team.players);
+        var secondCall = compose([createSecondCallAnnouncement(), createSingleTeam(team.players)]);
         var field = createFieldAnnouncement(matchSetup);
         announce([secondCall, field]);
     }
@@ -179,16 +220,16 @@ function createAnnouncementTexts(context) {
         }
         const tabletOperatorCall = createTabletOperator(matchSetup);
         if (tabletOperatorCall != null) {
-            var secondCall = createSecondPreparationCallAnnouncement() + tabletOperatorCall + '!';
+            var secondCall = compose([createSecondPreparationCallAnnouncement(), tabletOperatorCall, '!']);
 
 
-            var callUs = createSingleTeam(matchSetup.tabletoperators) + ', ' + ci18n('announcements:please_as_tablet_service');
+            var callUs = compose([createSingleTeam(matchSetup.tabletoperators), ', ', ci18n('announcements:please_as_tablet_service')]);
             if (curt.preparation_meetingpoint_enabled) {
                 var meetingPoint = createMeetingPointAnnouncement(matchSetup, !matchSetup.tabletoperators || matchSetup.tabletoperators.length !== 1);
                 meetingPoint = meetingPoint.replace('bitte meldet euch ', '');
                 meetingPoint = meetingPoint.replace('Bitte meldet euch ', '');
                 meetingPoint = meetingPoint.replace('!', '');
-                callUs += ' ' + meetingPoint + 'melden!';
+                callUs = compose([callUs, ' ', meetingPoint + 'melden!']);
             }
             announce([secondCall, callUs]);
         }
@@ -201,15 +242,15 @@ function createAnnouncementTexts(context) {
         }
         const umpireCall = createUmpire(matchSetup);
         if (umpireCall != null) {
-            var secondCall = createSecondPreparationCallAnnouncement() + umpireCall + '!';
+            var secondCall = compose([createSecondPreparationCallAnnouncement(), umpireCall, '!']);
 
 
             var callUs = normalizeNames(matchSetup.umpire.name);
             if (curt.preparation_meetingpoint_enabled) {
                 var meetingPoint = createMeetingPointAnnouncement(matchSetup, false);
-                callUs += ' ' + meetingPoint;
+                callUs = compose([callUs, ' ', meetingPoint]);
             } else {
-                callUs += ' ' + ci18n('announcements:preparation') + '!';
+                callUs = compose([callUs, ' ', ci18n('announcements:preparation') + '!']);
             }
             announce([secondCall, callUs]);
         }
@@ -221,15 +262,15 @@ function createAnnouncementTexts(context) {
         }
         const servicejudgeCall = createServiceJudge(matchSetup);
         if (servicejudgeCall != null) {
-            var secondCall = createSecondPreparationCallAnnouncement() + servicejudgeCall + '!';
+            var secondCall = compose([createSecondPreparationCallAnnouncement(), servicejudgeCall, '!']);
 
 
             var callUs = normalizeNames(matchSetup.service_judge.name);
             if (curt.preparation_meetingpoint_enabled) {
                 var meetingPoint = createMeetingPointAnnouncement(matchSetup, false);
-                callUs += ' ' + meetingPoint;
+                callUs = compose([callUs, ' ', meetingPoint]);
             } else {
-                callUs += ' ' + ci18n('announcements:preparation') + '!';
+                callUs = compose([callUs, ' ', ci18n('announcements:preparation') + '!']);
             }
             announce([secondCall, callUs]);
         }
@@ -240,20 +281,20 @@ function createAnnouncementTexts(context) {
         if(!(window.localStorage.getItem('enable_announcement_preparations_' + getLocationID(matchSetup)) === 'true')) {
             return;
         }
-        var secondCall = createSecondPreparationCallAnnouncement() + createSingleTeam(team.players);
+        var secondCall = compose([createSecondPreparationCallAnnouncement(), createSingleTeam(team.players)]);
         const usePlural = team.players.length !== 1;
         if(matchSetup.location_id) {
             const l = utils.find(curt.locations, l => l._id === matchSetup.location_id);
             if(l) {
-                secondCall += ' ' + resolveSingularPluralAnnouncement(l.preparation_addition, usePlural);
+                secondCall = compose([secondCall, ' ', resolveSingularPluralAnnouncement(l.preparation_addition, usePlural)]);
             }
         }
-        secondCall += '!';
+        secondCall = compose([secondCall, '!']);
         var callUs = createSingleTeam(team.players);
         if (curt.preparation_meetingpoint_enabled) {
             var meetingPoint = createMeetingPointAnnouncement(matchSetup, usePlural);
 
-            callUs += ' ' + meetingPoint;
+            callUs = compose([callUs, ' ', meetingPoint]);
         }
         announce([secondCall, callUs]);
     }
@@ -266,7 +307,7 @@ function createAnnouncementTexts(context) {
     }
 
     function prependFieldAnnouncement(matchSetup, text) {
-        return [createFieldAnnouncement(matchSetup), text].filter(Boolean).join(' ');
+        return compose([createFieldAnnouncement(matchSetup), text].filter(Boolean), ' ');
     }
 
     function createBeginToPlayAnnouncement(matchSetup) {
@@ -282,27 +323,27 @@ function createAnnouncementTexts(context) {
     }
 
     function createTeamAnnouncement(matchSetup) {
-        var teams = createSingleTeam(matchSetup.teams[0].players) + ',' + ci18n('announcements:vs') + createSingleTeam(matchSetup.teams[1].players);
+        var teams = compose([createSingleTeam(matchSetup.teams[0].players), ',' + ci18n('announcements:vs'), createSingleTeam(matchSetup.teams[1].players)]);
         return teams;
     }
 
     function createTabletOperator(matchSetup) {
         if (matchSetup.tabletoperators && matchSetup.tabletoperators != null) {
-            return (curt.tabletoperator_use_manual_counting_boards_enabled ? ci18n('announcements:counting_board_service') : ci18n('announcements:table_service')) + createSingleTeam(matchSetup.tabletoperators);
+            return compose([curt.tabletoperator_use_manual_counting_boards_enabled ? ci18n('announcements:counting_board_service') : ci18n('announcements:table_service'), createSingleTeam(matchSetup.tabletoperators)]);
         }
         return null;
     }
 
     function createUmpire(matchSetup) {
         if (matchSetup.umpire && matchSetup.umpire.name && matchSetup.umpire.name != null) {
-            return ci18n('announcements:umpire') + normalizeNames(matchSetup.umpire.name);
+            return compose([ci18n('announcements:umpire'), normalizeNames(matchSetup.umpire.name)]);
         }
         return null;
     }
 
     function createServiceJudge(matchSetup) {
         if (matchSetup.service_judge && matchSetup.service_judge.name && matchSetup.service_judge.name != null) {
-            return ci18n('announcements:service_judge') + normalizeNames(matchSetup.service_judge.name);
+            return compose([ci18n('announcements:service_judge'), normalizeNames(matchSetup.service_judge.name)]);
         }
         return null;
     }
@@ -310,7 +351,7 @@ function createAnnouncementTexts(context) {
     function createSingleTeam(playersSetup) {
         var team = normalizeNames(playersSetup[0].name);
         if (playersSetup.length == 2) {
-            team = team + ci18n('announcements:and') + normalizeNames(playersSetup[1].name);
+            team = compose([team, ci18n('announcements:and'), normalizeNames(playersSetup[1].name)]);
         }
         return team;
     }
@@ -445,7 +486,7 @@ function createAnnouncementTexts(context) {
                 addition = ' ' + resolveSingularPluralAnnouncement(l.preparation_addition, usePlural !== false);
             }
         }
-        return ci18n('announcements:preparation') + addition;
+        return compose([ci18n('announcements:preparation'), addition]);
     }
 
     function createMeetingPointAnnouncement(matchSetup, usePlural) {
@@ -460,7 +501,7 @@ function createAnnouncementTexts(context) {
         return result;
     }
 
-    return { getLocationID, announceNewMatch, announcePreparationMatch, announceNoMatchWin, announceSecondCallTeamOne, announceSecondCallTeamTwo, announceSecondPreparationCallTeamOne, announceSecondPreparationCallTeamTwo, announceSecondCallTabletoperator, announceSecondCallUmpire, announceSecondCallServiceJudge, announceSecondCall, announceSecondPreparationCallTabletoperator, announceSecondPreparationCallUmpire, announceSecondPreparationCallServiceJudge, announceSecondPreparationCall, announceBeginnToPlay, createBeginToPlayAnnouncement, createSecondCallAnnouncement, createSecondPreparationCallAnnouncement, createTeamAnnouncement, createTabletOperator, createUmpire, createServiceJudge, createSingleTeam, normalizeNames, createRoundAnnouncement, eventAnnouncementNameByCode, createEventAnnouncement, createMatchNumberAnnouncement, createFieldAnnouncement, createFieldPreparationAnnouncement, resolveSingularPluralAnnouncement, createPreparationAnnouncement, createMeetingPointAnnouncement };
+    return { localParts, getLocationID, announceNewMatch, announcePreparationMatch, announceNoMatchWin, announceSecondCallTeamOne, announceSecondCallTeamTwo, announceSecondPreparationCallTeamOne, announceSecondPreparationCallTeamTwo, announceSecondCallTabletoperator, announceSecondCallUmpire, announceSecondCallServiceJudge, announceSecondCall, announceSecondPreparationCallTabletoperator, announceSecondPreparationCallUmpire, announceSecondPreparationCallServiceJudge, announceSecondPreparationCall, announceBeginnToPlay, createBeginToPlayAnnouncement, createSecondCallAnnouncement, createSecondPreparationCallAnnouncement, createTeamAnnouncement, createTabletOperator, createUmpire, createServiceJudge, createSingleTeam, normalizeNames, createRoundAnnouncement, eventAnnouncementNameByCode, createEventAnnouncement, createMatchNumberAnnouncement, createFieldAnnouncement, createFieldPreparationAnnouncement, resolveSingularPluralAnnouncement, createPreparationAnnouncement, createMeetingPointAnnouncement };
 }
 
 if (typeof module !== 'undefined' && module.exports) { module.exports = createAnnouncementTexts; }

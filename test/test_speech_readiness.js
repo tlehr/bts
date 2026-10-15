@@ -60,7 +60,9 @@ describe('Announcement cache readiness indicators', function() {
         await h.controller.refresh();
         assert.strictEqual(target.dataset.speechState, 'missing');
         const parts = h.requests[0];
-        assert(parts.includes('Johann Bjarne Schöttmer, gegen Muhammad Sytsh Abdulquddus'));
+        assert(parts.includes('Johann Bjarne Schöttmer'));
+        assert(parts.includes(', gegen'));
+        assert(parts.includes('Muhammad Sytsh Abdulquddus'));
         for (const text of parts.slice(1)) h.ready(text);
         h.statuses.set(h.settings.voice + parts[0], 'processing');
         await h.controller.refresh(true);
@@ -87,7 +89,7 @@ describe('Announcement cache readiness indicators', function() {
                 ])),
         ];
         const expected = [], targets = [];
-        const texts = createTexts({ tournament: h.current, translate: (...args) => translate('de', ...args),
+        const texts = createTexts({ local: true, tournament: h.current, translate: (...args) => translate('de', ...args),
             window: { localStorage: { getItem: () => 'true' } }, claim: () => null,
             announce: parts => expected.push(...parts.filter(Boolean)) });
         for (const [title, preparation, call] of actions) {
@@ -100,6 +102,20 @@ describe('Announcement cache readiness indicators', function() {
         await h.controller.refresh();
         assert.deepStrictEqual(new Set(h.requests.flat()), new Set(expected));
         assert(targets.every(target => target.dataset.speechState === 'ready'));
+    });
+
+    it('marks a start call ready only when both reusable clips are complete', async function() {
+        const h = harness(), target = element();
+        h.controller.trackMatch(target, 'match1', 'match:begintoplay');
+        await h.controller.refresh();
+        assert.deepStrictEqual(h.requests[0], ['Auf Spielfeld 4!', 'Bitte mit dem Spielen beginnen!']);
+        h.ready('Auf Spielfeld 4!');
+        await h.controller.refresh(true);
+        assert.strictEqual(target.dataset.speechState, 'missing');
+        assert(target.title.includes('1/2'));
+        h.ready('Bitte mit dem Spielen beginnen!');
+        await h.controller.refresh(true);
+        assert.strictEqual(target.dataset.speechState, 'ready');
     });
 
     it('checks the selected hall meetingpoint without changing the match setup', async function() {

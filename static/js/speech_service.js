@@ -141,8 +141,9 @@ function createSpeechService(context) {
         return { status: 'ok', provider: 'server', started };
     }
 
-    async function speak(parts, playback_id, browser) {
+    async function speak(parts, playback_id, browser, localParts = parts) {
         parts = parts.filter(Boolean);
+        localParts = localParts.filter(Boolean);
         if (history.has(playback_id)) return { status: 'skipped', provider: 'none', started: false };
         history.set(playback_id, true);
         while (history.size > 1024) history.delete(history.keys().next().value);
@@ -161,7 +162,7 @@ function createSpeechService(context) {
         try {
             if (value.mode === 'browser') result = await useBrowser('browser_mode');
             else {
-                const resolved = await ready(parts, value, controller.signal);
+                const resolved = await ready(localParts, value, controller.signal);
                 if (controller.signal.aborted) result = { status: 'cancelled', started: false };
                 else if (!resolved.clips) {
                     result = value.mode === 'auto' ? await useBrowser(resolved.reason) :

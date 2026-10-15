@@ -123,10 +123,11 @@ suite('BTS / actual FastAPI / native Chrome speech integration', function() {
         });
         const db = await database.init_test();
         const current = { ...tournament(), name: 'TTS-Testturnier', events: { events: [] }, btp_enabled: false };
+        current.courts.push({ _id: 'default_8', is_active: true, location_id: 'default_h1' });
         for (const [collection, values] of Object.entries({
             tournaments: [current],
             locations: current.locations.map(value => ({ ...value, tournament_key: 'default', name: 'Halle eins', required_preparation_count: 1 })),
-            courts: current.courts.map(value => ({ ...value, tournament_key: 'default', num: 4 })),
+            courts: current.courts.map(value => ({ ...value, tournament_key: 'default', num: Number(value._id.split('_')[1]) })),
             matches: [{ _id: 'match1', tournament_key: 'default',
                 setup: { ...setup(), is_match: true, counting: '3x21', incomplete: false }, presses: [] }],
         })) await promisify(db[collection].insert.bind(db[collection]))(values);
@@ -191,9 +192,9 @@ suite('BTS / actual FastAPI / native Chrome speech integration', function() {
         if (directory) fs.rmSync(directory, { recursive: true, force: true });
     });
 
-    it('warms exact call parts with sentence spacing before playback and proxies the actual protected WAV', async function() {
-        const parts = ['Jungeneinzel U17', 'Halbfinale', 'Johann Bjarne Schöttmer, gegen Muhammad Sytsh Abdulquddus',
-            'Auf Spielfeld 4! Bitte mit dem Spielen beginnen!'];
+    it('warms reusable names and one start instruction for all courts and proxies the actual protected WAV', async function() {
+        const parts = ['Jungeneinzel U17', 'Halbfinale', 'Johann Bjarne Schöttmer', ', gegen', 'Muhammad Sytsh Abdulquddus',
+            'Auf Spielfeld 4!', 'Auf Spielfeld 8!', 'Bitte mit dem Spielen beginnen!'];
         const resolved = await rpc(client, { type: 'speech_resolve', tournament_key: 'default',
             voice: 'hallensprecherin', language: 'de-DE', parts });
         assert(resolved.clips.every(clip => clip.status === 'completed'));
@@ -201,9 +202,10 @@ suite('BTS / actual FastAPI / native Chrome speech integration', function() {
         assert.strictEqual(file.headers.get('content-type'), 'audio/wav');
         assert.strictEqual(Buffer.from(await file.arrayBuffer()).subarray(0, 4).toString(), 'RIFF');
         const original = fs.readFileSync(path.join(directory, 'received.jsonl'), 'utf8').trim().split('\n').map(JSON.parse);
-        assert(original.some(record => record.text === parts[2]));
-        assert(original.some(record => record.text === parts[3]));
-        assert(!original.some(record => record.text === 'Auf Spielfeld 4!Bitte mit dem Spielen beginnen!'));
+        for (const text of parts) assert(original.some(record => record.text === text), text);
+        assert.strictEqual(original.filter(record => record.text === parts.at(-1)).length, 1);
+        assert(!original.some(record => record.text.includes('Spielfeld') && record.text.includes('Bitte mit dem Spielen')));
+        assert(!original.some(record => record.text.includes('Schöttmer, gegen')));
         assert(original.every(record => !record.text.includes('U siebzehn')));
     });
 
@@ -244,6 +246,20 @@ suite('BTS / actual FastAPI / native Chrome speech integration', function() {
         assert.deepStrictEqual(errors, []);
         await devtools.call('Page.captureScreenshot', { format: 'png' }).then(result =>
             fs.writeFileSync('/tmp/bts-local-tts-preview.png', Buffer.from(result.data, 'base64')));
+    });
+
+    it('plays two real start calls using two court clips and the same instruction without further generation', async function() {
+        const before = fs.readFileSync(path.join(directory, 'received.jsonl'), 'utf8');
+        const fallback = await devtools.evaluate('window.__browserSpeechCalls || 0');
+        await devtools.evaluate('window.__audioSources = []; localStorage.setItem(\'enable_announcement_calls_default_h1\', \'true\'); ' +
+            'for (const court_id of [\'default_4\', \'default_8\']) announceBeginnToPlay({...curt.matches[0].setup, court_id});');
+        await until(() => devtools.evaluate('window.__audioSources.length === 4 && !announcementPlaybackActive'));
+        const sources = await devtools.evaluate('window.__audioSources.map(src => new URL(src).pathname)');
+        const expected = app.speech.broker.views(['Auf Spielfeld 4!', 'Bitte mit dem Spielen beginnen!',
+            'Auf Spielfeld 8!', 'Bitte mit dem Spielen beginnen!'], {}, 'default').map(clip => clip.audio_url.split('?')[0]);
+        assert.deepStrictEqual(sources, expected);
+        assert.strictEqual(await devtools.evaluate('window.__browserSpeechCalls || 0'), fallback);
+        assert.strictEqual(fs.readFileSync(path.join(directory, 'received.jsonl'), 'utf8'), before);
     });
 
     it('updates native browser readiness indicators as a free announcement is cached without playing it', async function() {

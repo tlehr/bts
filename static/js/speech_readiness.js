@@ -47,6 +47,7 @@ function createSpeechReadiness(context) {
         const matches = new Map((value.tournament?.matches || []).map(match => [match._id, match]));
         let parts;
         const texts = context.createTexts({
+            local: true,
             tournament: value.tournament || {}, translate: context.translate,
             window: { localStorage: { getItem: () => 'true' } }, claim: () => null,
             announce: values => parts.push(...values),

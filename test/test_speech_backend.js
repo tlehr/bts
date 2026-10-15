@@ -683,9 +683,11 @@ describe('Server speech adapter and protected audio', function() {
         assert([...broker.entries.values()].some(entry => entry.text.includes('Muhammad Sytsh Abdulquddus')));
         assert([...broker.entries.values()].every(entry => entry.status === 'unsubmitted'));
         assert([...broker.entries.values()].every(entry => entry.voice === 'hallensprecherin'));
+        const previous = new Set([...broker.entries.values()].map(entry => entry.text));
         await db.matches.update_async({ _id: 'match1' }, { $set: { 'setup.teams.1.players.0.name': 'Neuer Gegner' } }, {});
         await prefetch.refresh('default');
-        assert([...broker.entries.values()].some(entry => entry.text.includes('Neuer Gegner')));
+        assert.deepStrictEqual([...broker.entries.values()].map(entry => entry.text).filter(text => !previous.has(text)).sort(),
+            ['Neuer Gegner', 'Neuer Gegner!']);
         assert.strictEqual(broker.views(['Johann Bjarne Schöttmer, gegen Neuer Gegner'], {}, 'default')[0].audio_url, null);
         prefetch.stop();
     });

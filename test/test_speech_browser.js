@@ -46,6 +46,29 @@ function harness(options = {}) {
 }
 
 describe('Browser local speech provider', function() {
+    it('plays reusable local clips in order while browser mode and fallback keep the original sentence', async function() {
+        const browserParts = ['Auf Spielfeld 8! Bitte mit dem Spielen beginnen!'];
+        const localParts = ['Auf Spielfeld 8!', 'Bitte mit dem Spielen beginnen!'];
+        const h = harness({ request: async (_type, values) => ({ clips: values.parts.map((text, i) => ({
+            ...clip(), audio_url: clip().audio_url.replace('a'.repeat(32), String(i).repeat(32)),
+        })) }) });
+        const result = await h.service.speak(browserParts, 'split-start', h.fallback, localParts);
+        assert.strictEqual(result.provider, 'server');
+        assert.deepStrictEqual(h.requests[0][1].parts, localParts);
+        assert.strictEqual(h.played.length, 2);
+        assert(h.played[0].includes('0'.repeat(32)) && h.played[1].includes('1'.repeat(32)));
+        assert.deepStrictEqual(h.browser, []);
+        const missing = harness({ request: async (_type, values) => ({ clips: values.parts.map((_, i) =>
+            i ? { status: 'processing' } : clip()) }) });
+        assert.strictEqual((await missing.service.speak(browserParts, 'missing', missing.fallback, localParts)).provider, 'browser');
+        assert.deepStrictEqual(missing.played, []);
+        assert.deepStrictEqual(missing.browser, [browserParts]);
+        const browser = harness({ mode: 'browser' });
+        await browser.service.speak(browserParts, 'browser-start', browser.fallback, localParts);
+        assert.deepStrictEqual(browser.requests, []);
+        assert.deepStrictEqual(browser.browser, [browserParts]);
+    });
+
     const previewClip = () => ({ ...clip(), tournament_key: 'default', text: TEXT, voice: 'hallensprecherin' });
     const previewResponse = () => ({ speech: { enabled: true, cache_version: 'one' }, queue: { items: [previewClip()] } });
 
