@@ -14,6 +14,7 @@ const { Prefetcher } = require('../bts/speech/prefetch');
 const database = require('../bts/database');
 const admin = require('../bts/admin');
 const { tournament, setup } = require('./test_speech_text');
+const { wave, pcm } = require('./fixtures/speech_pcm');
 
 const KEY = 'test-only-key-' + 'x'.repeat(32);
 const TEXT = ' In Vorbereitung! Jungeneinzel U17: Halbfinale! Schöttmer\n';
@@ -585,6 +586,96 @@ describe('Server speech adapter and protected audio', function() {
             assert.strictEqual(broker.audio_clients, 0);
             assert.strictEqual(fixture.requests.at(-1).range, 'bytes=0-3');
         } finally { await close(server); await close(fixture.server); }
+    });
+
+    it('selects signed male playback variants for resolution, readiness and previews without new generation', function() {
+        const broker = new SpeechBroker(config());
+        for (const voice of ['hallensprecher', 'hallensprecherin']) {
+            const texts = ['Nina Beispiel', 'Bitte kommen!', 'Zeile eins\nZeile zwei'];
+            broker.prepare(texts, { voice }, 'default');
+            for (const entry of broker.entries.values()) { entry.status = 'completed'; entry.audio_id ||= id(); }
+            const resolved = broker.views(texts, { voice }, 'default');
+            const inspected = broker.inspect(texts, { voice }, 'default');
+            for (let i = 0; i < resolved.length; i++) {
+                const url = new URL(resolved[i].audio_url, 'http://localhost');
+                const mode = url.searchParams.get('playback') || '';
+                assert.strictEqual(mode, voice === 'hallensprecher' ? i ? 'edges-v1' : 'words-v1' : '');
+                assert.strictEqual(inspected[i].audio_url, resolved[i].audio_url);
+                assert(broker.queue('default').items.some(item => item.audio_url === resolved[i].audio_url));
+                const expires = url.searchParams.get('expires'), signature = url.searchParams.get('signature');
+                const audio_id = url.pathname.split('/').pop();
+                assert(broker.authorize('default', audio_id, expires, signature, mode));
+                assert(!broker.authorize('default', audio_id, expires, signature, mode ? '' : 'words-v1'));
+                assert(!broker.authorize('default', audio_id, expires, signature, 'unknown'));
+            }
+        }
+        assert([...broker.entries.values()].every(entry => !entry.job_id));
+    });
+
+    it('serves compact male WAVs with matching ranges, caching and grants while keeping raw recordings intact', async function() {
+        const raw = wave([[300, 0], [120, 800], [700, 0], [120, -1000], [400, 0]]);
+        let downloads = 0;
+        const upstream = http.createServer((req, res) => {
+            downloads++;
+            assert.strictEqual(req.headers['x-api-key'], KEY);
+            assert.strictEqual(req.headers.range, undefined, 'compaction requires the complete original recording');
+            res.writeHead(200, { 'Content-Type': 'audio/wav', 'Content-Length': raw.length }); res.end(raw);
+        });
+        await listening(upstream);
+        const app = express(), broker = new SpeechBroker(config({ url: 'http://127.0.0.1:' + upstream.address().port }));
+        app.speech = { broker }; app.get('/h/:tournament_key/speech/audio/:audio_id', proxy);
+        const server = http.createServer(app); await listening(server);
+        try {
+            const url = 'http://127.0.0.1:' + server.address().port +
+                broker.audio_url('default', id(), { voice: 'hallensprecher', text: 'Nina Beispiel' });
+            const result = await fetch_buffer(url);
+            assert.strictEqual(result.status, 200);
+            assert.strictEqual(pcm(result.body).length / 48000, 0.4);
+            assert.strictEqual(Number(result.headers['content-length']), result.body.length);
+            assert(result.headers['cache-control'].startsWith('private'));
+            const range = await fetch_buffer(url, { Range: 'bytes=0-3' });
+            assert.strictEqual(range.status, 206); assert.strictEqual(range.body.toString(), 'RIFF');
+            assert.strictEqual(range.headers['content-range'], 'bytes 0-3/' + result.body.length);
+            const suffix = await fetch_buffer(url, { Range: 'bytes=-4' });
+            assert.deepStrictEqual(suffix.body, result.body.subarray(-4));
+            const invalid = await fetch_buffer(url, { Range: 'bytes=9999999-' });
+            assert.strictEqual(invalid.status, 416);
+            assert.strictEqual(invalid.headers['content-range'], 'bytes */' + result.body.length);
+            assert.strictEqual((await fetch_buffer(url, { 'If-None-Match': result.headers.etag })).status, 304);
+            assert.strictEqual((await fetch_buffer(url, { Range: 'bytes=0-3', 'If-Range': 'old-etag' })).status, 200);
+            assert.strictEqual((await fetch_buffer(url.replace('playback=words-v1', 'playback=edges-v1'))).status, 401);
+            assert.strictEqual((await fetch_buffer(url.replace('&playback=words-v1', ''))).status, 401);
+            assert.strictEqual(downloads, 1, 'the bounded BTS memory cache avoids repeated WAV downloads');
+            const plain = await fetch_buffer('http://127.0.0.1:' + server.address().port + broker.audio_url('default', id()));
+            assert.deepStrictEqual(plain.body, raw);
+            assert.strictEqual(broker.audio_clients, 0);
+        } finally { await close(server); await close(upstream); }
+    });
+
+    it('releases compact playback download slots after oversized, aborted or timed-out upstream responses', async function() {
+        let mode;
+        const upstream = http.createServer((_req, res) => {
+            if (mode === 'oversized') {
+                res.writeHead(200, { 'Content-Type': 'audio/wav', 'Content-Length': 16 * 1024 * 1024 + 1 });
+                res.flushHeaders();
+            } else if (mode === 'aborted') {
+                res.writeHead(200, { 'Content-Type': 'audio/wav', 'Content-Length': 1000 });
+                res.flushHeaders(); res.write('RIFF'); setImmediate(() => res.destroy());
+            }
+        });
+        await listening(upstream);
+        const app = express(), broker = new SpeechBroker(config({ url: 'http://127.0.0.1:' + upstream.address().port }));
+        broker.config.audio_timeout_ms = 50;
+        app.speech = { broker }; app.get('/h/:tournament_key/speech/audio/:audio_id', proxy);
+        const server = http.createServer(app); await listening(server);
+        try {
+            for (mode of ['oversized', 'aborted', 'timeout']) {
+                const url = 'http://127.0.0.1:' + server.address().port +
+                    broker.audio_url('default', id(), { voice: 'hallensprecher', text: 'Nina Beispiel' });
+                assert.strictEqual((await fetch_buffer(url)).status, 503, mode);
+                assert.strictEqual(broker.audio_clients, 0, mode);
+            }
+        } finally { await close(server); await close(upstream); }
     });
 
     it('returns a bounded proxy error when the speech service is unavailable', async function() {

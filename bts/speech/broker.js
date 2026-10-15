@@ -140,7 +140,7 @@ class SpeechBroker {
             const entry = this.entries.get(this.key(text, voice, language));
             return entry?.status === 'completed' ? {
                 status: 'completed',
-                audio_url: this.audio_url(tournament_key, entry.audio_id),
+                audio_url: this.audio_url(tournament_key, entry.audio_id, entry),
             } : { status: entry?.status || 'unsubmitted', audio_url: null };
         });
     }
@@ -151,7 +151,7 @@ class SpeechBroker {
             const entry = this.entries.get(this.key(text, voice, language));
             return { status: entry?.status || 'missing',
                 ...(entry?.status === 'completed' && tournament_key ?
-                    { audio_url: this.audio_url(tournament_key, entry.audio_id) } : {}),
+                    { audio_url: this.audio_url(tournament_key, entry.audio_id, entry) } : {}),
             };
         });
     }
@@ -206,29 +206,32 @@ class SpeechBroker {
                 priority: Object.keys(PRIORITY)[entry.priority], status: entry.status,
                 position: entry === current ? 0 : positions.get(entry) ?? null,
                 current: entry === current, retry_at: Math.max(entry.retry_at, this.post_retry_at),
-                audio_url: entry.status === 'completed' ? this.audio_url(tournament_key, entry.audio_id) : null,
+                audio_url: entry.status === 'completed' ? this.audio_url(tournament_key, entry.audio_id, entry) : null,
             })),
         };
     }
 
-    audio_url(tournament_key, audio_id) {
+    audio_url(tournament_key, audio_id, entry) {
         const expires = Math.floor(this.now() / 1000) + this.config.audio_url_ttl_seconds;
+        const playback = entry?.voice === 'hallensprecher' ? /[,;:.!?\r\n]/.test(entry.text) ? 'edges-v1' : 'words-v1' : '';
         return '/h/' + encodeURIComponent(tournament_key) + '/speech/audio/' + audio_id +
-            '?expires=' + expires + '&signature=' + this.signature(tournament_key, audio_id, expires);
+            '?expires=' + expires + '&signature=' + this.signature(tournament_key, audio_id, expires, playback) +
+            (playback ? '&playback=' + playback : '');
     }
 
-    signature(tournament_key, audio_id, expires) {
+    signature(tournament_key, audio_id, expires, playback = '') {
         return crypto.createHmac('sha256', this.signing_key)
-            .update(JSON.stringify([tournament_key, audio_id, Number(expires)])).digest('base64url');
+            .update(JSON.stringify([tournament_key, audio_id, Number(expires), playback])).digest('base64url');
     }
 
-    authorize(tournament_key, audio_id, expires, signature) {
+    authorize(tournament_key, audio_id, expires, signature, playback = '') {
         if (!this.config.enabled || !ID.test(audio_id) || !/^\d{10}$/.test(String(expires)) ||
+            !['', 'edges-v1', 'words-v1'].includes(playback) ||
             typeof signature !== 'string' || !/^[A-Za-z0-9_-]{43}$/.test(signature)) return false;
         const remaining = Number(expires) - Math.floor(this.now() / 1000);
         if (remaining < 0 || remaining > this.config.audio_url_ttl_seconds) return false;
         return crypto.timingSafeEqual(Buffer.from(signature),
-            Buffer.from(this.signature(tournament_key, audio_id, expires)));
+            Buffer.from(this.signature(tournament_key, audio_id, expires, playback)));
     }
 
     async refresh() {

@@ -34,6 +34,9 @@ class Engine:
             handle.write(json.dumps({"text": text, "voice": voice, "language": language}, ensure_ascii=False) + "\n")
         if text == "BTS_TEST_GENERATION_FAILURE":
             raise RuntimeError("Injected test generation failure")
+        if text == "BTS_TEST_COMPACT_NAME":
+            tone = (0.2 * np.sin(2 * np.pi * 400 * np.arange(2880) / 24000)).astype(np.float32)
+            return np.concatenate([np.zeros(9600), tone, np.zeros(16800), tone, np.zeros(9600)]).astype(np.float32), 24000
         return np.zeros(12000, dtype=np.float32), 24000
 
 

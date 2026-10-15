@@ -135,6 +135,18 @@ BTS-Datenänderungen, die vorhandene Kandidatenabfrage und zusätzlich eine peri
 
 Noch unbekannte Gegner, zukünftige Änderungen und spontan eingegebene Ansagen können nicht vor ihrer Kenntnis vertont werden. Das aktuelle, tatsächlich ausgelöste Textarray ist deshalb immer maßgeblich: es wird beim Ruf exakt erneut aufgelöst. Die Aufnahme eines früheren Textes wird nicht aufgrund derselben Match-ID verwendet.
 
+## Kürzere Wortpausen beim Hallensprecher
+
+Für die männliche Stimme liefert BTS eine Wiedergabekopie mit kürzerer Stille aus. Die bereits erzeugten WAVs, Ansagetexte und Generierungsschlüssel bleiben erhalten; eine neue Synthese ist dafür nicht erforderlich. Das gilt für tatsächliche Durchsagen und die Lautsprecher zum Probehören. Die Wortgeschwindigkeit wird dabei nicht erhöht.
+
+Anfang und Ende einer Aufnahme behalten etwa 30 ms stille Reserve. Innerhalb eines Bausteins ohne Satzzeichen oder Zeilenumbrüche werden nahezu stille Wortlücken ab 250 ms auf 100 ms begrenzt. Dadurch bleiben vollständige Namen gemeinsam gecacht und werden flüssiger gesprochen. Bei Bausteinen mit Satzzeichen oder Zeilenumbrüchen werden nur die Ränder gekürzt, damit innere Satzpausen erhalten bleiben. Die von BTS zusätzlich gesetzten Satz- und Kommapausen werden weiterhin berücksichtigt.
+
+Die Verarbeitung erkennt PCM16-WAVs mit einem oder zwei Kanälen und zählt einen Bereich nur bei höchstens vier PCM-Stufen als still (etwa −78 dBFS). Alle Samples oberhalb dieser Schwelle bleiben unverändert und in ihrer Reihenfolge erhalten; kurze Lücken und stille Reserven an Wortgrenzen bleiben stehen. Rein stille, unbekannte oder nicht unterstützte Dateien werden unverändert ausgeliefert. Die weibliche Stimme verwendet die bisherige Originalauslieferung.
+
+In 20 vorhandenen männlichen Namensaufnahmen fanden sich bei dieser konservativen Schwelle fünf Wortlücken über 250 ms, die längste etwa 755 ms. Eine vorhandene Namensaufnahme wurde dadurch von 2,24 s auf 1,445 s verkürzt. Alle Samples über der Stille-Schwelle wurden im Original und in der Wiedergabekopie bytegleich nachgewiesen. Diese Messung ersetzt keine akustische Hallenabnahme.
+
+Die Variante ist Teil der signierten Audio-Berechtigung (`words-v1` beziehungsweise `edges-v1`). BTS verarbeitet sie beim WAV-Abruf, hält höchstens 16 MiB Wiedergabekopien im Arbeitsspeicher und unterstützt Range-/ETag-Abfragen für die tatsächlich ausgelieferten Bytes. Ein Download ist auf 16 MiB und die vorhandene Audio-Zeitgrenze begrenzt. Abbruch und Fehler geben den Downloadslot frei; vor hörbarer Ausgabe bleibt der bestehende Browser-Fallback verfügbar. Zum Aktivieren BTS neu starten und die Ansageseite neu laden. Die vorhandenen Aufnahmen können sofort verwendet werden.
+
 ## Datenfluss und Wiedergabe
 
 - static/js/announcement_text.js enthält die gemeinsam verwendeten bisherigen Textfunktionen und leitet daraus die lokale Stückelung ab. Browser-Wortlaut, Namen, U17 und Satzzeichen bleiben erhalten.
@@ -160,7 +172,7 @@ Aktuell werden nur deutsche Server-Stimmen angeboten. Englisch/Niederländisch b
 
 ## Tests
 
-    ./node_modules/.bin/mocha test/test_speech_text.js test/test_speech_browser.js test/test_speech_backend.js test/test_speech_readiness.js
+    ./node_modules/.bin/mocha test/test_speech_playback.js test/test_speech_text.js test/test_speech_browser.js test/test_speech_backend.js test/test_speech_readiness.js
     npm test
 
 Ein ausdrücklich aktivierter End-to-End-Test nutzt eine temporäre In-Memory-BTS-Datenbank, die **echte** FastAPI mit einer kleinen Mock-Engine und einen separaten Headless-Chrome. Er verändert keine produktiven Turnierdaten und benötigt den installierten Sprachserver sowie Chrome:
@@ -173,6 +185,8 @@ Bytegenaue Vergleiche aller bisherigen Ansagearten, geänderte Gegner, Queue-Gre
 
 
 ## Prüfstand dieses Auftrags
+
+Nach Kürzung der Stille beim Hallensprecher: 1059 BTS-Tests mit `mocha test/ --timeout 10000`, 102 gezielte Sprachtests und alle dreizehn optionalen End-to-End-Fälle bestanden (32 einschließlich der geteilten Texttests). Der neue native Chrome-Fall spielt dieselbe männliche Aufnahme regulär und als Hörprobe mit verkürzten Pausen ab; das Original-WAV im Sprachserver bleibt bytegleich und es gibt keine weitere Generierung. Prüffälle sichern die Samples oberhalb der Stille-Schwelle, leise Sprachanteile, kurze Lücken, Satzpausen, zusätzliche RIFF-Chunks und Stereo. Signaturen binden die Wiedergabevariante; Range-/ETag-Antworten passen zur bearbeiteten WAV. Zu große, abgebrochene und zeitlich überschrittene Downloads geben ihre Slots frei. Die Wiedergabekopien liegen nur im begrenzten BTS-Arbeitsspeicher und verändern weder Stimmenprofile noch Modellkonfiguration oder vorhandene Aufnahmen.
 
 Nach einheitlicher Behandlung aller strukturierten Bausteine: 1050 BTS-Tests mit `mocha test/ --timeout 10000`, 93 gezielte Sprachtests und alle zwölf optionalen End-to-End-Fälle bestanden (31 einschließlich der geteilten Texttests). Der Regressionstest für Spiel 186 vergleicht normalen Spielruf und kampflose Entscheidung: beide verwenden dieselbe lokale Aufnahme; die Satz- beziehungsweise Kommapause bleibt getrennt erhalten. Ein zusätzlicher Test prüft den gesamten vorbereiteten Vorrat mit mehreren Runden, Nummern, Hallenvarianten sowie ein-/ausgeschaltetem Meetingpoint in Deutsch und Englisch auf reine Satzzeichen-Dopplungen. Initialen und ursprüngliche Namenszeichen bleiben geschützt. Die echte FastAPI erzeugt Nummern, Feldansagen, Startanweisung, Runden und Namen jeweils nur einmal; die tatsächlichen Browseraufrufe verwenden diese Aufnahmen. Der Sprachtest bleibt als vollständiger Originaltext vorbereitet und wird weiterhin lokal abgespielt.
 

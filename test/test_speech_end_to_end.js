@@ -435,6 +435,34 @@ suite('BTS / actual FastAPI / native Chrome speech integration', function() {
         await devtools.call('Page.bringToFront');
     });
 
+    it('plays and previews the shorter male recording natively without regenerating or modifying the cached WAV', async function() {
+        const text = 'BTS_TEST_COMPACT_NAME';
+        await rpc(client, { type: 'speech_prepare', tournament_key: 'default', voice: 'hallensprecher', language: 'de-DE', parts: [text] });
+        await until(() => app.speech.broker.views([text], { voice: 'hallensprecher' }, 'default')[0].status === 'completed');
+        const clip = app.speech.broker.views([text], { voice: 'hallensprecher' }, 'default')[0];
+        assert(clip.audio_url.includes('playback=words-v1'));
+        const audio_id = new URL(clip.audio_url, 'http://localhost').pathname.split('/').pop();
+        const original = Buffer.from(await (await fetch(app.speech.broker.config.base_url + '/v1/audio/' + audio_id,
+            { headers: { 'X-API-Key': key } })).arrayBuffer());
+        const received = fs.readFileSync(path.join(directory, 'received.jsonl'), 'utf8');
+        const before = await devtools.evaluate('window.__browserSpeechCalls');
+        const result = await devtools.evaluate('btsSpeechService.speak([' + JSON.stringify(text) + '], ' +
+            '\'male-shorter-pauses\', async () => { window.__browserSpeechCalls++; return {status:\'ok\', started:true}; })');
+        assert.strictEqual(result.provider, 'server');
+        assert.strictEqual(result.status, 'ok');
+        assert.strictEqual(await devtools.evaluate('window.__browserSpeechCalls'), before);
+        const duration = await devtools.evaluate('window.__lastAudio.duration');
+        assert(duration >= 0.39 && duration < 0.42, String(duration));
+        const preview = await devtools.evaluate('btsSpeechService.queue().then(response => ' +
+            'btsSpeechService.preview(response.queue.items.find(item => item.text === ' + JSON.stringify(text) + '), response.speech.cache_version))');
+        assert.strictEqual(preview.status, 'ok');
+        assert.strictEqual(await devtools.evaluate('window.__lastAudio.duration'), duration);
+        const after = Buffer.from(await (await fetch(app.speech.broker.config.base_url + '/v1/audio/' + audio_id,
+            { headers: { 'X-API-Key': key } })).arrayBuffer());
+        assert.deepStrictEqual(after, original);
+        assert.strictEqual(fs.readFileSync(path.join(directory, 'received.jsonl'), 'utf8'), received);
+    });
+
     it('updates cache counts and progress from completion events even when periodic polling is delayed', async function() {
         const broker = app.speech.broker;
         const events = [];
