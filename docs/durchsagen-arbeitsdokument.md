@@ -4,7 +4,7 @@ Stand: 16.10.2026 · Branch: `feat/localTts`
 
 Diese Datei ist unsere gemeinsame Grundlage, um Wortlaut, Reihenfolge und Stückelung der Turnierdurchsagen zu bearbeiten. Die Kennungen D01–D15 und B01–B12 bleiben bei Überarbeitungen erhalten, damit wir einzelne Stellen eindeutig benennen können.
 
-Die Anwesenheitskontrolle bleibt vorerst außerhalb dieser Betrachtung. Die Datei beschreibt den aktuellen Programmstand und hält in Abschnitt 7 unsere Vereinbarungen für die Überarbeitung fest. Änderungen hier werden anschließend ausdrücklich in die Anwendung übertragen; BTS liest diese Markdown-Datei nicht als Konfiguration.
+Die Anwesenheitskontrolle bleibt vorerst außerhalb dieser Betrachtung. Die Datei beschreibt den aktuellen Programmstand, hält in Abschnitt 7.1 und 7.2 unsere Vereinbarungen fest und plant in Abschnitt 7.3 die übrigen Ansagen nach derselben Logik. Die neuen Vorschläge sind noch akustisch zu prüfen. Änderungen hier werden anschließend ausdrücklich in die Anwendung übertragen; BTS liest diese Markdown-Datei nicht als Konfiguration.
 
 ## 1. Ziel und bisherige Hörentscheidung
 
@@ -107,7 +107,7 @@ B01 Auf Spielfeld {Feld}!
 
 Die Spielfeldansage steht am Anfang und am Ende. Der aktuelle lokale Aufbau verwendet dafür dieselbe Aufnahme; im Kontext-Hörtest 6 stammen Anfang und Ende aus unterschiedlichen Stellen derselben vollständigen Referenz.
 
-Für die geplante lokale Fassung ist vereinbart: Am Anfang wird **B01-Anfang** des jeweiligen Feldes verwendet, danach der **vollständige Spielblock des Spiels**, am Schluss **B01-Ende** desselben Feldes. Die Offiziellen bleiben zwischen Spielblock und Schlussansage; ihre Aufnahmegrenzen sind noch offen. Erstellung und Wiederverwendung der Feldaufnahmen sind in Abschnitt 7.1 festgelegt, die der Spielblöcke und Team-Ausschnitte in Abschnitt 7.2.
+Für die geplante lokale Fassung ist vereinbart: Am Anfang wird **B01-Anfang** des jeweiligen Feldes verwendet, danach der **vollständige Spielblock des Spiels**, am Schluss **B01-Ende** desselben Feldes. Die Offiziellen bleiben zwischen Spielblock und Schlussansage; der neue Planungsentwurf verwendet dafür vollständige Rollen-/Namensaufnahmen (Abschnitt 7.3). Erstellung und Wiederverwendung der Feldaufnahmen sind in Abschnitt 7.1 festgelegt, die der Spielblöcke und Team-Ausschnitte in Abschnitt 7.2.
 
 ### D02 – Vorbereitungsaufruf
 
@@ -140,7 +140,7 @@ B01-Anfang des jeweiligen Feldes
 → B12 Bitte mit dem Spielen beginnen!
 ```
 
-Der erste Teil verwendet die bereits aus dem vollständigen Referenzaufruf ausgeschnittene Aufnahme **B01-Anfang**. D03 benötigt dafür keine zusätzliche Generierung der Spielfeldansage. Wie die Aufnahme für B12 erstellt wird und welche Übergangspause verwendet wird, bleibt noch festzulegen.
+Der erste Teil verwendet die bereits aus dem vollständigen Referenzaufruf ausgeschnittene Aufnahme **B01-Anfang**. D03 benötigt dafür keine zusätzliche Generierung der Spielfeldansage. Der neue Planungsentwurf gewinnt B12 aus einem vollständigen Beispiel für D03 (Abschnitt 7.3). Die Übergangspause wird im Hörvergleich abgestimmt.
 
 Ohne Feldzuweisung bleibt nur `Bitte mit dem Spielen beginnen!`.
 
@@ -384,13 +384,143 @@ Das Wort „gegen“ bleibt in der vollständigen Aufnahme zwischen den Teams h�
 3. Team 2 ohne das davor gesprochene „gegen“ ausschneiden und dem Spiel als B06-Team2 zuordnen.
 4. Den vollständigen Spielblock und beide Team-Ausschnitte aus dem Cache verwenden. Ausschneiden und Speichern lösen keine zusätzliche Sprachgenerierung aus.
 
-Für die regulären Spiel- und Vorbereitungsaufrufe wird der zusammenhängend generierte Spielblock abgespielt. Wie die zusätzlichen Team-Ausschnitte in weiteren Durchsagen verwendet werden, legen wir bei deren Bearbeitung fest.
+Für die regulären Spiel- und Vorbereitungsaufrufe wird der zusammenhängend generierte Spielblock abgespielt. Die Verwendung der zusätzlichen Team-Ausschnitte in weiteren Durchsagen beschreibt der Planungsentwurf in Abschnitt 7.3.
 
 Bei S Spielen mit unterschiedlichen aktuellen Spielblocktexten entstehen **S Generierungen und 3 × S Wiedergabestücke**: S vollständige Spielblöcke und 2 × S Team-Ausschnitte. Es gibt dafür keine zusätzliche Generierungsstufe je Team. Bereits passende vollständige Aufnahmen werden wiederverwendet; fehlende Team-Ausschnitte werden daraus gewonnen.
 
 Ändert sich der gesprochene Inhalt eines Spiels, etwa durch neue Gegner, wird nur dessen benötigte neue Spielblockfassung samt Team-Ausschnitten vorbereitet. Eine Wiederholung des unveränderten Aufrufs oder eine andere Feldzuweisung benötigt keine neue Generierung. Die B01-Feldaufnahmen bleiben unabhängig davon nutzbar.
 
-### 7.3 Weitere Entscheidungen
+### 7.3 Planungsentwurf: Weitere Ansagen aus vollständigen Kontextaufnahmen
+
+Dieser Entwurf überträgt das Vorgehen der Feld- und Spielblöcke auf die übrigen Durchsagen. Auch kurze wiederkehrende Texte werden **im Zusammenhang einer vollständigen, sinnvoll gesprochenen Beispiel-Durchsage erzeugt und anschließend ausgeschnitten**. Die Beispielnamen werden nur im Quellaudio gesprochen; im verwendeten Ausschnitt stehen die jeweils vorgesehenen Inhalte.
+
+Wo ein Abschnitt später zusammenbleiben kann, speichern wir ihn als längeres Stück. Insbesondere bleiben ein Team mit beiden Namen, Rolle und Name sowie vollständige Hallen-/Meldeformulierungen zusammen. Die bereits vereinbarte Gewinnung beider Teams ohne „gegen“ bleibt erhalten. Ein vorhandener vollständiger Spielblock wird für D01 und D02 weiterhin unverändert am Stück wiedergegeben.
+
+#### A. Vorbereitung: Feld und Halle gemeinsam gewinnen
+
+Für jede tatsächlich benötigte Kombination aus Halle und Feld entsteht einmal eine vollständige D02-Referenz:
+
+```text
+In Vorbereitung {Hallenzusatz}
+→ Für Spielfeld {Feld}!
+→ festgelegter Beispiel-Spielblock aus Abschnitt 7.1
+→ Treffpunkttext der Halle in Mehrzahl
+```
+
+Bei ausgeschaltetem Treffpunkt endet die Referenz wie die heutige D02-Vorlage mit `In Vorbereitung {Hallenzusatz}`. Für den Spielblock der Referenz werden die festgelegten Beispielnamen und -angaben verwendet. Es wird keine neue Referenz für jedes tatsächliche Spiel oder jede spätere Paarung erzeugt.
+
+Aus der Quelle gewinnen wir:
+
+- **Vorbereitungsstart mit Feld:** `In Vorbereitung {Hallenzusatz} → Für Spielfeld {Feld}!` bleibt ein gemeinsames langes Stück für D02.
+- **Vorbereitungsstart ohne Feld:** B09 allein, für D02 ohne zugewiesenes Spielfeld; je tatsächlich unterschiedlicher Hallenfassung einmal.
+- **Vorbereitungsabschluss:** B10 in Mehrzahl oder, bei deaktiviertem Treffpunkt, die abschließende B09-Fassung.
+- **Hallenzusatz allein:** sofern er für den Team-Zweitaufruf D05 benötigt wird, ohne ein zusätzliches „In Vorbereitung“ zu übernehmen.
+
+Für den Anfang und den Schluss identischer B09-Texte dürfen getrennte Ausschnitte erhalten bleiben, wenn ihre Betonung unterschiedlich benötigt wird. B02 wird bei D02 zusammen mit B09 wiedergegeben; eine zusätzliche einzeln generierte B02-Aufnahme ist dafür nicht nötig.
+
+Fehlende Hallenformen werden aus ergänzenden **vollständigen** Beispielen gewonnen:
+
+| Benötigte Form | Geeignete Kontextaufnahme | Gewonnene Ausschnitte |
+| --- | --- | --- |
+| Halle ohne zugeordnetes Feld | D02 ohne Feld, mit dem festen Beispiel-Spielblock | Vollständiger B09-Anfang und der passende Abschluss |
+| Einzahl-/Mehrzahlformen von Hallenzusatz und Treffpunkt | D05 mit einem festen Beispiel-Einzelteam beziehungsweise Beispiel-Doppelteam | Hallenzusatz, Treffpunkttext und einmal das gemeinsame Präfix `Zweiter Aufruf In Vorbereitung für:` |
+| Bedienaufforderung mit oder ohne Treffpunkt | Vollständiger D11-Referenzaufruf mit festen Beispielnamen und der jeweiligen Personenform | `bitte als Tabletbedienung` samt vollständigem Meldezusatz als ein längerer Ausschnitt |
+| Abschluss ohne Treffpunkt für D09/D10 | Vollständiger D09- oder D10-Beispielaufruf | Die abschließende Formulierung `In Vorbereitung!` |
+
+Zuerst werden bereits erzeugte Referenzen auf geeignete Ausschnitte geprüft. Nur fehlende, tatsächlich benötigte Text-/Betonungsformen führen zu ergänzenden Quellen. Gleiche Hallentexte werden nach Möglichkeit geteilt. Die Beispiel-Teamnamen bleiben fest; dies ist keine Generierung je tatsächlichem Team.
+
+Die in Abschnitt 8 beschriebenen Wortlautprobleme von D11 bleiben als eigene Bearbeitungspunkte sichtbar. Das Ausschneiden soll die vorhandene Formulierung nicht unbemerkt umschreiben oder den Fehler durch das Abschneiden von Wörtern kaschieren.
+
+#### B. Offizielle: Eine Quelle pro Rollen-/Namenskombination
+
+Für jede tatsächlich zugeordnete, unterschiedliche Kombination aus Rolle und vollständigem Namen beziehungsweise Bedien-Team wird einmal ein vollständiger normaler Offiziellen-Zweitaufruf erzeugt. Beispielsweise:
+
+```text
+Auf Spielfeld acht! Zweiter Aufruf für:Schiedsrichter:{Name}
+```
+
+Das Referenzfeld bleibt fest. Bei den späteren echten Durchsagen kommt das jeweilige B01-Anfang aus dem Feldcache zum Einsatz. Für ein anderes Feld oder ein anderes Spiel mit derselben Rollen-/Namenskombination entsteht keine neue Offiziellen-Quelle.
+
+Aus jeder solchen Quelle gewinnen wir:
+
+1. **Langen normalen Zweitaufruf:** `Zweiter Aufruf für:{Rolle}:{Name/n}` bleibt zusammen für D06–D08.
+2. **Rolle mit Name:** `{Rolle}:{Name/n}` bleibt zusammen für B08 bei D01/D02 sowie die ersten Abschnitte von D09–D11.
+3. **Name beziehungsweise Bedien-Team allein:** für die wiederholte persönliche Ansprache bei D09–D11, falls dafür noch keine passende vollständige Namens-/Teamaufnahme vorhanden ist.
+
+Aus einer der Quellen wird zusätzlich einmal das gemeinsame normale Zweitaufruf-Präfix für D04 gewonnen. Gibt es keine passende Offiziellen-Quelle, dient ein vollständiger D04-Beispielaufruf als Quelle dieses Präfixes.
+
+Einzelne Rollenwörter, Vor-/Nachnamen und das „und“ eines Bedien-Teams werden nicht separat synthetisiert. Für eine neue Rollen-/Namenskombination wird nur die entsprechende fehlende Quelle ergänzt; andere unveränderte Zuordnungen bleiben im Cache.
+
+#### C. Feste Anweisungen und Präfixe
+
+| Wiederverwendeter Ausschnitt | Vollständiger Kontext für seine Gewinnung | Zusätzliche Generierung |
+| --- | --- | --- |
+| B12 `Bitte mit dem Spielen beginnen!` | `Auf Spielfeld acht! Bitte mit dem Spielen beginnen!` | Eine vollständige D03-Referenz; nur die Startanweisung ausschneiden |
+| `Zweiter Aufruf für:` | Normaler Offiziellen-Zweitaufruf aus B oder vollständige D04-Referenz mit Beispielteam und abschließender Feldansage | Keine, wenn eine ohnehin nötige Quelle passt; sonst eine vollständige D04-Referenz |
+| `Zweiter Aufruf In Vorbereitung für:` | Eine der vollständigen Vorbereitungs-Zweitaufruf-Referenzen aus A | In den ergänzenden Hallenreferenzen enthalten |
+| `geht kampflos an` | Vollständige D12-Referenz mit Spielangaben, beiden Beispielteams und einem Beispiel-Siegerteam | Eine vollständige Referenz; die zusammenhängende Formulierung vor dem Siegerteam ausschneiden |
+| Sprachtest | `Dies ist ein Test der Sprachausgabe.` | Eine vollständige Testaufnahme; kein Schnitt nötig |
+
+Damit gibt es im Grundentwurf **fünf gemeinsame feste Wiedergabestücke**. Sie benötigen drei eigene Quellen für D03, die Kampflos-Formulierung und den Sprachtest. Das normale Zweitaufruf-Präfix kann eine vierte eigene Quelle benötigen. Das Vorbereitungs-Präfix stammt aus den Hallenreferenzen. Eine geeignete vorhandene Quelle wird stets zuerst genutzt.
+
+Die Präfixe bleiben in ihren Quellen bis zum tatsächlichen Team beziehungsweise zur Rolle mit Namen verbunden. Wir generieren kein alleinstehendes „Zweiter Aufruf für:“ als vermeintlich vollständigen Satz.
+
+#### D. Zusätzliche Ausschnitte für kampflose Entscheidungen
+
+Für D12 lassen sich bei Bedarf zwei weitere zusammenhängende Stücke **aus dem bereits vorhandenen vollständigen Spielblock** gewinnen:
+
+- **Spielkopf:** die aktivierten Spielangaben B03 → B04 → B05 bis vor dem ersten Team. Sind alle drei ausgeschaltet, entfällt dieser Ausschnitt.
+- **Beide Teams gemeinsam:** B07 mit dem bereits natürlich gesprochenen `gegen` zwischen den Teams. Die zwei zuvor gespeicherten einzelnen Team-Ausschnitte bleiben weiterhin beide ohne „gegen“.
+
+Der vorgeschlagene Aufbau ist:
+
+```text
+Spielkopf aus dem vollständigen Spielblock, soweit vorhanden
+→ beide Teams gemeinsam aus demselben Spielblock, einschließlich „gegen“
+→ geht kampflos an
+→ vorhandener Ausschnitt des tatsächlichen Siegerteams, ohne „gegen“
+```
+
+Für eine kampflose Entscheidung entsteht so zunächst kein neuer spielbezogener Syntheseauftrag. Zusätzliche Ausschnitte werden aus dem vorhandenen Audio gewonnen. Beide möglichen Siegerfassungen werden nicht vorsorglich als neue vollständige Ansagen generiert.
+
+**Hörprüfpunkt:** Die heutige D12-Einleitung verwendet Kommata und die Teamansage setzt sich nach Team 2 fort. Die ursprüngliche Betonung der übernommenen Ausschnitte bleibt hörbar; sie lässt sich durch nachträgliche Pausen nicht exakt an eine andere Satzmelodie anpassen. Falls diese Montage den Hörtest nicht besteht, ist eine vollständige D12-Generierung für die tatsächlich eingetretene Entscheidung die gezielte Alternative. Auch dabei werden keine hypothetischen Sieger durchgeneriert.
+
+#### E. Geplanter Aufbau sämtlicher Durchsagen
+
+Die folgende Tabelle ist der neue lokale Planungsentwurf. Die Textreihenfolge und alle gesprochenen Inhalte aus Abschnitt 4 bleiben erhalten; dort beschriebene abschaltbare oder leere Bestandteile entfallen weiterhin.
+
+| Durchsage | Vorgeschlagene Wiedergabestücke | Zusätzliche Generierung beim Auslösen |
+| --- | --- | --- |
+| D01 | B01-Anfang → vollständiger Spielblock → vorhandene Rollen-/Namensstücke B08 in ihrer bisherigen Reihenfolge → B01-Ende | Keine bei vorbereitetem Bestand |
+| D02 mit Feld | Langer Vorbereitungsstart B09 + B02 → vollständiger Spielblock → Rollen-/Namensstücke → Treffpunkt in Mehrzahl oder B09-Abschluss | Keine bei vorbereitetem Bestand |
+| D02 ohne Feld | B09-Anfang der Halle → derselbe Spielblock → Rollen-/Namensstücke → derselbe passende Abschluss | Keine bei vorbereitetem Bestand |
+| D03 | B01-Anfang → vollständige Startanweisung B12 | Keine bei vorbereitetem Bestand |
+| D04 | Normales Zweitaufruf-Präfix → Team-Ausschnitt der aufgerufenen Seite → B01-Ende des Feldes | Keine bei vorbereitetem Bestand |
+| D05 | Vorbereitungs-Zweitaufruf-Präfix → Team-Ausschnitt → Hallenzusatz in passender Personenform → derselbe Team-Ausschnitt nochmals → Treffpunkt in passender Personenform | Keine bei vorbereitetem Bestand; ohne Treffpunkt bleibt die zweite Teamnennung allein |
+| D06/D07/D08 | B01-Anfang → langer normaler Zweitaufruf mit Rolle und vollständigem Namen/Bedien-Team | Keine bei vorbereiteter Zuordnung |
+| D09/D10 | Vorbereitungs-Zweitaufruf-Präfix → Rolle mit Name → Name allein → Treffpunkt in Einzahl oder `In Vorbereitung!` | Keine bei vorbereiteter Zuordnung und Hallenform |
+| D11 | Vorbereitungs-Zweitaufruf-Präfix → Rolle mit Bedien-Team → Bedien-Team allein → längere Bedienaufforderung mit dem passenden Meldezusatz | Keine bei vorbereiteter Zuordnung und Hallenform; heutiger Wortlautfehler separat zu klären |
+| D12 | Spielkopf → beide Teams gemeinsam → `geht kampflos an` → Siegerteam | Zunächst nur weitere Schnitte; vollständige tatsächliche D12 nur als Alternative bei unzureichendem Hörtest |
+| D13 | Vollständiger eingegebener Text in einer Aufnahme | Eine Generierung je neuem, tatsächlich verwendetem Text, falls nicht vorhanden |
+| D14 | Vollständiger Sprachtest | Keine, wenn die einmalige Testaufnahme bereitsteht |
+| D15 | Bestehende Evakuierungs-MP3 | Keine Synthese |
+
+Die bei D05, D09–D12 vorhandenen Namenswiederholungen bleiben gesprochen erhalten. Wiederholtes Abspielen desselben Ausschnitts benötigt keine erneute Generierung.
+
+#### F. Wiederverwendung, Bereitstellung und Klangprüfung
+
+- Alle Quellen und Ausschnitte gelten für die ausgewählte Stimme und Synthesekonfiguration. Gleicher Text allein reicht nicht aus, um bewusst verschiedene Betonungsformen wie B01-Anfang und B01-Ende zusammenzufassen.
+- Schnitte werden je Quelle ermittelt und mit ihr verknüpft. Vollständige Namen und leise Wortenden bleiben erhalten. Die Werte des Feld-8-Beispiels werden nicht auf andere Aufnahmen übertragen.
+- Geeignete vorhandene Team-/Namensaufnahmen werden auch für weitere Ansagen genutzt. Es wird kein Vorrat aller denkbaren Team-, Rollen-, Hallen- und Feldkombinationen generiert.
+- Wird eine neue Zuordnung oder Hallenfassung benötigt, kommen nur deren fehlende Quellen hinzu. Ein unveränderter Text oder ein Feldwechsel löst keine pauschale Neuerzeugung aus.
+- Die vereinbarten ersten Stufen bleiben Feldaufnahmen, danach freigegebene Spielblöcke in Spielplanreihenfolge. Fehlende Zusatzquellen werden entsprechend den nächsten anstehenden Ansagen vorbereitet.
+- Für den laufenden Betrieb schlägt der Entwurf vor: Ein echter Aufruf mit fehlenden Teilen erhält vor noch nicht gestarteter ferner Vorarbeit Vorrang. Bereits laufende Generierungen werden fertiggestellt; BTS behält einen offenen Auftrag zur Zeit und priorisiert den nächsten Auftrag selbst.
+- Freie Ansagen werden als vollständiger Text vorbereitet, sobald der Entwurf stabil beziehungsweise abgesendet ist. Noch nicht gestartete, überholte Entwurfsaufträge entfallen. Die fertige Aufnahme spielt erst beim tatsächlichen Auslösen.
+- Browser-TTS erhält weiterhin die vollständigen Textabschnitte. Die hier beschriebenen Kontextaufnahmen und Schnitte betreffen die lokale Strategie.
+
+Vor einer produktiven Umstellung prüfen wir die Übergänge mit Einzel und Doppel, langen und kurzen Namen, Rollenwechseln, beiden Personenformen der Hallentexte und einem kampflosen Sieger auf jeder Seite. Die Kontextaufnahme ist ein Ansatz für bessere Sprachmelodie; die akustische Gleichwertigkeit zur am Stück gesprochenen Fassung ist für die neuen Kombinationen noch nicht bestätigt.
+
+### 7.4 Noch zu prüfende Details
 
 Die übrigen Punkte können wir direkt in dieser Datei festlegen:
 
@@ -398,16 +528,16 @@ Die übrigen Punkte können wir direkt in dieser Datei festlegen:
 | --- | --- | --- |
 | Feldansage | Wie entstehen die Aufnahmen für Anfang und Schluss? | B01-Anfang und B01-Ende je Feld aus derselben vollständigen Referenzaufnahme; erste Vorbereitungsstufe für alle Felder (Abschnitt 7.1) |
 | Referenzaufruf | Welcher Mittelteil wird für die erstmalige Erstellung der Feldaufnahmen gesprochen? | Festgelegter Beispiel-Spielblock aus Abschnitt 7.1: Spiel 189, Mädcheneinzel U19, Achtelfinale, Nina Keo Boun Khoune gegen LeandraGalowicz; wortgetreu mit ausgeschriebenen Zahlen und unverändert für alle Felder |
-| Einsatz weiterer Feldansagen | Welche B01-Ausschnitte verwenden andere Durchsagen? Wie wird B02 erstellt? | D03 verwendet B01-Anfang des jeweiligen Feldes; weitere Verwendungen und die Erstellung von B02 bleiben offen |
+| Einsatz weiterer Feldansagen | Welche B01-Ausschnitte verwenden andere Durchsagen? Wie wird B02 erstellt? | D03 verwendet vereinbart B01-Anfang. Entwurf: D04 nutzt B01-Ende, D06–D08 B01-Anfang; D02 erhält B09 + B02 zusammen aus einer vollständigen Vorbereitungsreferenz. |
 | Spielblock | Zusammensetzung und Aufnahmegrenzen | Festgelegt: B03 → B04 → B05 → B07 als eine vollständige Aufnahme je Spiel mit den tatsächlichen Teams (Abschnitt 7.2) |
 | Namen und Paarungen | Wie entstehen die Teamaufnahmen? | Aus jedem Spielblock zwei vollständige Team-Ausschnitte gewinnen; beide ohne „gegen“, keine zusätzliche Generierung je Team (Abschnitt 7.2) |
-| Offizielle | Welche Rollen-/Namensstücke lassen sich natürlich zwischen normalen Aufrufen und Zweitaufrufen wiederverwenden? | Offen |
-| Vorbereitung | Welche Hallen- und Treffpunkttexte bilden jeweils einen vollständigen Satz? | Offen |
-| Zweitaufrufe | Wie viel Zusammenhang brauchen Präfix, Rolle, Name und Zielort? | Offen |
-| Kampflos | Welche Aufnahmen können mit D01/D02 geteilt werden, ohne die andere Satzmelodie zu verlieren? | Offen |
-| Pausen und Betonung | Welche Pausen gehören in die Aufnahme, welche setzen wir beim Abspielen? | Offen |
-| Browser-TTS | Welche bestehende Abschnittsaufteilung behalten oder ändern wir dafür? | Offen |
-| Vorab-Cache | Welche Varianten müssen vorbereitet werden, und welche erst nach einer tatsächlichen Änderung? | Zuerst B01-Anfang und B01-Ende für alle Felder; danach Spielblöcke samt Team-Ausschnitten, sobald beide Teams feststehen, in der angesetzten Spielplanreihenfolge; weitere Vorbereitungsstufen offen |
+| Offizielle | Welche Rollen-/Namensstücke lassen sich natürlich zwischen normalen Aufrufen und Zweitaufrufen wiederverwenden? | Entwurf: vollständige normale Zweitaufruf-Quelle je Rollen-/Namenskombination; daraus langer Zweitaufruf, Rolle mit Name und gegebenenfalls Name allein. Übergänge hörprüfen. |
+| Vorbereitung | Welche Hallen- und Treffpunkttexte bilden jeweils einen vollständigen Satz? | Entwurf: langer Vorbereitungsstart je Feld/Hallenfassung, ergänzende vollständige Referenzen nur für fehlende Hallenformen. |
+| Zweitaufrufe | Wie viel Zusammenhang brauchen Präfix, Rolle, Name und Zielort? | Entwurf: Präfixe aus vollständigen Referenzen, vorhandene Team-Ausschnitte und längere Rollen-/Namensstücke verwenden. |
+| Kampflos | Welche Aufnahmen können mit D01/D02 geteilt werden, ohne die andere Satzmelodie zu verlieren? | Entwurf: Spielkopf und komplette Teambegegnung aus dem Spielblock, feste Klausel aus D12-Referenz, vorhandener Siegerteam-Ausschnitt. Hörprobe entscheidet über Verwendbarkeit. |
+| Pausen und Betonung | Welche Pausen gehören in die Aufnahme, welche setzen wir beim Abspielen? | Innere Melodie längerer Stücke bewahren; konkrete Übergangspausen im Hörvergleich festlegen. |
+| Browser-TTS | Welche bestehende Abschnittsaufteilung behalten oder ändern wir dafür? | Entwurf: bisherige vollständige Browserabschnitte beibehalten. |
+| Vorab-Cache | Welche Varianten müssen vorbereitet werden, und welche erst nach einer tatsächlichen Änderung? | Vereinbart: zuerst Feldaufnahmen, danach bereite Spielblöcke in Ansetzungsreihenfolge. Entwurf für Zusatzquellen, bedarfsabhängige Ergänzungen und Vorrang echter Aufrufe in Abschnitt 7.3 und 10. |
 
 Für eine vereinbarte neue Fassung können wir je Durchsage anschließend festhalten:
 
@@ -483,80 +613,85 @@ Diese Übersicht wird bei jeder weiteren Festlegung zur Stückelung und Reihenfo
 
 **Aufwand der Spielblockstufe: S vollständige Generierungen für 3 × S Wiedergabestücke.** Die Spiele werden freigegeben, sobald beide Teams feststehen, und in der angesetzten Spielplanreihenfolge generiert. Beide Team-Ausschnitte entstehen aus dem jeweiligen vollständigen Spielblock und benötigen keine zusätzlichen Modellaufrufe. Die weitere Verwendung desselben Spielblocks bei D01 und D02 wird nicht doppelt gezählt.
 
-**Zusammen: F + S vollständige Generierungen für 2 × F + 3 × S Wiedergabestücke**, bevor die weiteren noch offenen Bereiche hinzukommen. Bei bereits passenden oder identischen Texten kann Wiederverwendung den tatsächlichen Aufwand und Bestand verringern.
+**Zusammen: F + S vollständige Generierungen für 2 × F + 3 × S Wiedergabestücke**, bevor die weiteren im Entwurf geplanten Bereiche hinzukommen. Bei bereits passenden oder identischen Texten kann Wiederverwendung den tatsächlichen Aufwand und Bestand verringern.
 
 Für jede Feld-Referenzgenerierung wird der festgelegte Beispiel-Spielblock aus Abschnitt 7.1 zwischen die beiden Spielfeldansagen gesetzt. Er wird nicht zusätzlich als eigener Text angefordert. Ob wir seinen Mittelteil ebenfalls ausschneiden und als Baustein nutzen, ist noch offen; deshalb wird er hier nicht als weiterer fertiger Baustein mitgezählt. Die Spielblockstufe verwendet die tatsächlichen Spielangaben und feststehenden Teams des jeweiligen Spiels.
 
-### 10.2 Weitere benötigte Texte und noch offene Mengen
+### 10.2 Zusätzliche Satzstücke des Planungsentwurfs
 
-| Satzstück / Bereich | Benötigter Text beziehungsweise Varianten | Anzahl der Wiedergabestücke | Generierungsreihenfolge |
-| --- | --- | --- | --- |
-| B12 für den zweiten Teil von D03 | `Bitte mit dem Spielen beginnen!`, gemeinsam für alle Felder | 1 benötigte Anweisung; Herkunft der Aufnahme noch offen | Nach den Feld- und Spielblockstufen; genaue Position noch offen |
-| B02 | `Für Spielfeld {Feld}!` für die Vorbereitungsaufrufe | Noch offen: feldabhängige Aufnahmen, deren Gewinnung noch festzulegen ist | Nach den Feld- und Spielblockstufen; genaue Position noch offen |
-| B08 | Zugeordnete Schiedsrichter, Aufschlagrichter und Bedienpersonen mit ihren Rollen | Noch offen: abhängig von Zuordnungen und gemeinsam nutzbaren Aufnahmen | Nach den Feld- und Spielblockstufen; genaue Position noch offen |
-| B09 | `In Vorbereitung` mit den jeweiligen Hallenzusätzen und Einzahl-/Mehrzahlformen | Noch offen: abhängig von den unterschiedlichen verwendeten Textfassungen und ihrer Stückelung | Nach den Feld- und Spielblockstufen; genaue Position noch offen |
-| B10 | Treffpunkttexte je Halle, gegebenenfalls in Einzahl und Mehrzahl | Noch offen: abhängig von den unterschiedlichen verwendeten Textfassungen und ihrer Stückelung | Nach den Feld- und Spielblockstufen; genaue Position noch offen |
-| Zweitaufrufe D04–D11 / B11 | Normaler Zweitaufruf beziehungsweise Vorbereitungs-Zweitaufruf mit Team oder Rolle und Namen sowie Ziel-/Meldezusatz | Noch offen: abhängig von Wiederverwendung der bereits gezählten Team-Ausschnitte und weiteren Aufnahmegrenzen | Nach den Feld- und Spielblockstufen; genaue Position noch offen |
-| Kampflos-/Walkover-Mitteilung D12 | Spielangaben und `{Team 1} gegen {Team 2} geht kampflos an {Siegerteam}!` | Noch offen: abhängig von Aufnahmegrenzen und gemeinsam genutzten Spiel-/Teamaufnahmen | Nach den Feld- und Spielblockstufen; genaue Position noch offen |
-| Sprachtest D14 | `Dies ist ein Test der Sprachausgabe.` | 1 vollständige Testaufnahme | Nach den Feld- und Spielblockstufen; genaue Position noch offen |
-| Freie Ansage D13 | Jeweils eingegebener vollständiger Text | 0 im festen Vorrat; bei Bedarf eine Aufnahme je neuem, unterschiedlichem Text | Bei Bedarf; Vorrang gegenüber anderer laufender Vorarbeit noch festzulegen |
-| Evakuierung D15 | Bestehende MP3 | 0 zu generieren | Keine Sprachgenerierung erforderlich |
+Die folgenden Stücke ergänzen den Bestand aus 10.1. Sie werden aus den vollständigen Kontextaufnahmen in Abschnitt 7.3 gewonnen. Ein Ausschnitt verursacht keinen eigenen Modellaufruf. Leere beziehungsweise nicht benötigte Formen werden ausgelassen; gleiche geeignete Text-/Betonungsformen werden einmal gezählt.
 
-Die offenen Bereiche sind keine zusätzlichen, bereits beschlossenen Einzelaufnahmen je Tabellenzeile. Beispielsweise können die vorhandenen Team-Ausschnitte in weiteren Durchsagen wiederverwendet werden. Ihre endgültigen Stückzahlen werden erst mit den zugehörigen Festlegungen eingetragen; die bereits gezählten Spielblöcke und Team-Ausschnitte werden dabei nicht erneut addiert. Die Anwesenheitskontrolle gehört weiterhin nicht zum Bestand dieser Übersicht.
+| Satzstück | Anzahl der zusätzlichen Wiedergabestücke | Vollständige Quelle und Wiederverwendung |
+| --- | --- | --- |
+| Langer Vorbereitungsstart B09 + B02 | 1 je benötigter unterschiedlicher Hallen-/Feldfassung | D02-Referenz mit festem Beispiel-Spielblock; nicht je tatsächlichem Spiel |
+| B09-Anfang ohne Feld | 1 je benötigter Hallenfassung | Aus vorhandener D02-Referenz, sonst D02-Beispiel ohne Feld |
+| B09-Abschluss bei deaktiviertem Treffpunkt | 1 je benötigter Abschlussfassung | Ende der passenden D02-Referenz; Anfang und Ende nur bei geeigneter gleicher Betonung teilen |
+| Hallenzusatz für D05 | 1 je benötigter Einzahl-/Mehrzahlfassung | Aus vorhandener Referenz, sonst vollständiges D05-Beispiel |
+| Treffpunkt B10 | 1 je benötigter Einzahl-/Mehrzahlfassung | Aus vorhandenen D02-/D05-Referenzen; auch für D09/D10 nutzen |
+| Längere Bedienaufforderung für D11 | 1 je benötigter Hallen-/Personenfassung einschließlich Variante ohne Treffpunkt | Vollständiges D11-Beispiel; `bitte als Tabletbedienung` und Meldezusatz bleiben zusammen |
+| Abschluss `In Vorbereitung!` für D09/D10 | 1 gemeinsam, falls benötigt | Vollständiges Vorbereitungs-Zweitaufruf-Beispiel |
+| Langer normaler Offiziellen-Zweitaufruf | R, wobei R die Anzahl unterschiedlicher tatsächlicher Rollen-/Namenszuordnungen ist | Je Zuordnung eine vollständige D06-/D07-/D08-Referenz mit festem Referenzfeld |
+| Rolle mit vollständigem Namen/Bedien-Team | R | Ausschnitt aus denselben R Quellen; für B08 und D09–D11 |
+| Name/Bedien-Team allein | U, höchstens R | Nur soweit noch keine geeignete Namens-/Teamaufnahme vorhanden ist; aus denselben R Quellen, zwischen Rollen wiederverwenden |
+| B12 `Bitte mit dem Spielen beginnen!` | 1 gemeinsam | Vollständige D03-Referenz |
+| Normales Zweitaufruf-Präfix `Zweiter Aufruf für:` | 1 gemeinsam | Aus einer Offiziellen-Referenz; nur falls keine passt, eine eigene vollständige D04-Referenz |
+| Vorbereitungs-Präfix `Zweiter Aufruf In Vorbereitung für:` | 1 gemeinsam | Aus einer vollständigen Vorbereitungs-Zweitaufruf-Referenz, gemeinsam mit Hallenstücken gewinnen |
+| `geht kampflos an` | 1 gemeinsam | Vollständige D12-Referenz mit Beispielteams und einem Beispiel-Sieger |
+| Sprachtest D14 | 1 gemeinsam | Vollständige Testaufnahme, kein Schnitt |
+| Spielkopf für tatsächliche kampflose Entscheidung | Höchstens 1 je betroffenem Spiel; 0 bei ausgeschalteten Spielangaben | Zusätzlicher Schnitt aus dem vorhandenen Spielblock |
+| Beide Teams gemeinsam einschließlich „gegen“ für D12 | 1 je betroffenem Spiel | Zusätzlicher Schnitt aus demselben Spielblock; die zwei einzelnen Teamstücke bleiben ohne „gegen“ |
+| Freie Ansage D13 | 0 im festen Vorrat; 1 je neuem vollständigem Text | Erst bei vorhandenem konkretem Text erzeugen |
+| Vollständige tatsächliche D12 als mögliche Alternative | 0 im Grundentwurf | Nur falls der Hörtest eine vollständige Aufnahme erfordert; dann 1 je tatsächlichem unterschiedlichem Ergebnistext |
+| Evakuierung D15 | 0 neu zu generieren | Bestehende MP3 |
 
-### 10.3 Aktuell bezifferbarer Bestand
+Die ersten sieben Tabellenzeilen bilden zusammen die **H unterschiedlichen Vorbereitungs-/Hallenstücke**. **Q** zählt die dafür benötigten vollständigen Kontextquellen, nicht die Hallen: Eine vollständige Quelle kann mehrere Stücke liefern. Q umfasst alle benötigten vollständigen D02-/D05-/D09-/D10-/D11-Beispiele einschließlich der Quelle für das gemeinsame Vorbereitungs-Präfix. Es gibt keine solche Quelle je tatsächlichem Team.
 
-| Bereits bezifferbare Position | Anzahl |
-| --- | --- |
-| B01-Anfang für alle Felder | F |
-| B01-Ende für alle Felder | F |
-| Vollständige Spielblöcke | S |
-| B06-Team1 aus jedem Spielblock, ohne „gegen“ | S |
-| B06-Team2 aus jedem Spielblock, ohne „gegen“ | S |
-| Startanweisung B12 für D03 | 1 benötigtes Satzstück; Erstellung noch offen |
-| Sprachtest D14 | 1 |
-| **Teilbestand für diese Positionen** | **2 × F + 3 × S + 2** |
+Die fünf gemeinsamen Stücke von B12 bis Sprachtest benötigen zusammen **G = 3 zusätzliche vollständige Generierungen**: D03-Referenz, D12-Referenz und Sprachtest. **G = 4**, wenn das normale Zweitaufruf-Präfix zusätzlich eine eigene D04-Referenz benötigt. Die Quelle des Vorbereitungs-Präfixes ist bereits in Q enthalten, die einer geeigneten Offiziellen-Referenz bereits in R. Diese Quellen werden nicht erneut addiert.
 
-Beispiel mit 16 Feldern und 100 unterschiedlichen Spielblöcken: **32 Feldaufnahmen + 100 vollständige Spielblöcke + 200 Team-Ausschnitte + 1 Startanweisung + 1 Sprachtest = 334 Wiedergabestücke für diese Positionen.** Die Feld- und Spielblockstufen benötigen dafür zusammen 16 + 100 = **116 vollständige Generierungen**; die 232 Ausschnitte entstehen daraus ohne zusätzliche Synthese. Die Erzeugung der Startanweisung und des Sprachtests kommt gesondert hinzu.
+### 10.3 Anzahl der Stücke und vollständigen Generierungen
 
-**Die Gesamtzahl für sämtliche Turnierdurchsagen ist noch offen.** Zum Teilbestand kommen die zusätzlich erforderlichen, noch festzulegenden Aufnahmen für Vorbereitung, Offizielle, Zweitaufrufe und kampflose Entscheidungen hinzu. Die Anzahl der Wiedergabestücke ist nicht automatisch die Anzahl der Modellaufrufe: Ein Modellaufruf kann mehrere Ausschnitte liefern.
+Für den Grundentwurf mit allen beschriebenen Funktionen, einer Stimme, leerem Cache und unterschiedlichen aktuellen Spielblocktexten gilt:
 
-### 10.4 Geplante Abfolge der Generierung
+| Bereich | Vollständige Generierungen | Wiedergabestücke |
+| --- | --- | --- |
+| Alle Felder | F | 2 × F |
+| Alle bereiten Spielblöcke samt beiden Teams | S | 3 × S |
+| Vorbereitung und Hallenformen | Q | H |
+| Offizielle | R | 2 × R + U |
+| Fünf gemeinsame feste Stücke | G = 3 oder 4 | 5 |
+| **Vorbereiteter Grundbestand** | **F + S + Q + R + G** | **2 × F + 3 × S + H + 2 × R + U + 5** |
 
-Die erste Stufe arbeitet Feld für Feld ab. Danach folgt die Spielblockstufe: je Spiel mit zwei feststehenden Teams eine vollständige Aufnahme und daraus beide Teams ohne „gegen“. Die freigegebenen Spiele werden in ihrer **angesetzten Reihenfolge im Spielplan** abgearbeitet. Bei Feldern 1 bis F und S freigegebenen Spielen sieht die Abfolge so aus:
+Q und H werden aus den tatsächlich benötigten Hallen-/Feldtexten und Personenformen in 10.2 gezählt; R aus den tatsächlichen Rollen-/Namenszuordnungen. U zählt nur zusätzliche noch fehlende reine Namensaufnahmen. Werden Funktionen nicht verwendet, entfallen ihre Stücke und nur dafür benötigten Quellen. Bewusst unterschiedliche Betonungsformen werden weiterhin getrennt gezählt.
 
-```text
-1. Referenzaufruf für Feld 1 vollständig generieren
-   → B01-Anfang für Feld 1 ausschneiden und cachen
-   → B01-Ende für Feld 1 ausschneiden und cachen
+**Rechenbeispiel:** Bei 16 Feldern und 100 unterschiedlichen bereiten Spielblöcken entstehen 32 Feldstücke, 100 vollständige Spielblöcke und 200 Team-Ausschnitte, zusammen **332 Wiedergabestücke aus 116 Generierungen**. Mit den fünf gemeinsamen Stücken und den turnierabhängigen Vorbereitungs-/Offiziellen-Aufnahmen ergibt der Entwurf insgesamt **337 + H + 2 × R + U Wiedergabestücke aus 119 + Q + R Generierungen**; bei eigener D04-Präfixquelle sind es **120 + Q + R Generierungen**. Q, H, R und U müssen am tatsächlichen Turnier gezählt werden. Das Beispiel ist keine Zählung eines konkreten Turniers.
 
-2. Referenzaufruf für Feld 2 vollständig generieren
-   → B01-Anfang für Feld 2 ausschneiden und cachen
-   → B01-Ende für Feld 2 ausschneiden und cachen
+Im Betrieb können noch folgende Mengen hinzukommen:
 
-… dieselben Schritte für alle weiteren Felder …
+- **W weitere Ausschnitte für D12:** zusammen Spielköpfe und vollständige Begegnungen aus vorhandenen Spielblöcken; höchstens zwei je betroffenem Spiel, ohne zusätzliche Synthese.
+- **X neue freie Ansagen:** X vollständige Generierungen und X Wiedergabestücke.
+- **Z vollständige tatsächliche D12-Fassungen**, falls nach dem Hörtest erforderlich: Z zusätzliche Generierungen und Z Wiedergabestücke. Im Grundentwurf ist Z = 0; bei Nutzung dieser Alternative werden dafür nicht eigens unbenötigte Montageschnitte angelegt.
 
-F. Referenzaufruf für das letzte Feld vollständig generieren
-   → B01-Anfang für dieses Feld ausschneiden und cachen
-   → B01-Ende für dieses Feld ausschneiden und cachen
+Damit erhöht sich der Grundbestand um **W + X + Z Wiedergabestücke** und **X + Z Generierungen**. Bereits passende Quellen und Ausschnitte verringern den noch offenen Aufwand. Aufbewahrte reine Kontextquellen zählen nicht zusätzlich als Wiedergabestücke. Mehrfaches Abspielen eines Teamstücks oder Einsatz in mehreren Durchsagen wird nicht erneut gezählt. Die Anwesenheitskontrolle bleibt ausgeschlossen.
 
-F + 1. Vollständigen Spielblock für das zuerst angesetzte bereite Spiel generieren
-       → Vollständigen Spielblock für die Wiedergabe cachen
-       → B06-Team1 ohne „gegen“ ausschneiden und cachen
-       → B06-Team2 ohne „gegen“ ausschneiden und cachen
+### 10.4 Reihenfolge der Generierung
 
-F + 2. Vollständigen Spielblock für das nächste angesetzte bereite Spiel generieren
-       → Vollständigen Spielblock für die Wiedergabe cachen
-       → B06-Team1 ohne „gegen“ ausschneiden und cachen
-       → B06-Team2 ohne „gegen“ ausschneiden und cachen
+**Vereinbarte erste Stufen:**
 
-… dieselben Schritte für alle weiteren Spiele mit zwei feststehenden Teams,
-  jeweils in der aktuellen Ansetzungsreihenfolge …
+1. **Alle F Felder:** Je Feld den vollständigen Referenzaufruf erzeugen, B01-Anfang und B01-Ende daraus gewinnen und sofort cachen. Bei Lücken in der Feldnummerierung nur tatsächlich angelegte Felder bearbeiten.
+2. **Bereite Spiele in ihrer angesetzten Spielplanreihenfolge:** Je Spiel mit zwei vollständig feststehenden Teams einen vollständigen Spielblock erzeugen und direkt beide Team-Ausschnitte ohne „gegen“ gewinnen. Unbekannte Teams warten; folgende bereite Spiele können weiter vorbereitet werden. Neu bereite Spiele werden an ihrer aktuellen Stelle in die noch offene Reihenfolge einsortiert.
 
-F + S. Vollständigen Spielblock für das letzte vorzubereitende Spiel generieren
-       → Vollständigen Spielblock und beide Team-Ausschnitte cachen
+**Vorschlag für die weiteren Vorbereitungsstufen:**
 
-Danach: weitere Vorbereitungsstufen – Reihenfolge noch festzulegen.
-```
+3. **Vorbereitung und Hallen:** Zuerst vollständige D02-Referenzen für die benötigten Hallen-/Feldkombinationen; die für den nächsten geplanten Aufruf nötige Fassung zuerst. Daraus jeweils langen Vorbereitungsstart und weitere passende Hallenstücke gewinnen. Anschließend nur noch fehlende Formen durch vollständige D05-/D09-/D10-/D11-Beispiele ergänzen. Dabei das gemeinsame Vorbereitungs-Präfix mitgewinnen. Auch bei Ansagen ohne Hallentext braucht dieses Präfix einmal eine vollständige Kontextquelle.
+4. **Offizielle:** Je tatsächlich benötigter Rollen-/Namenszuordnung eine vollständige normale Zweitaufruf-Referenz. Die Zuordnungen der nächsten angesetzten Spiele zuerst. Daraus langen Zweitaufruf, Rolle mit Namen und gegebenenfalls fehlenden Namen allein gewinnen; normales Zweitaufruf-Präfix aus einer passenden Quelle mitnehmen.
+5. **Verbleibende feste Quellen:** Vollständige D03-Referenz für B12, vollständige D12-Referenz für `geht kampflos an`, danach Sprachtest. Eine eigene D04-Referenz für das normale Präfix nur dann einschieben, wenn keine geeignete Offiziellen-Quelle vorhanden oder bereits vorgesehen ist.
 
-Bereits passende Feldaufnahmen und Spielblöcke werden wiederverwendet; fehlende Ausschnitte werden aus einer vorhandenen passenden Quellaufnahme gewonnen. Bei einer Lücke in der Feldnummerierung werden nur die tatsächlich angelegten Felder bearbeitet. Sobald beide Teams eines weiteren Spiels feststehen, wird es nach seiner Position im Spielplan in die noch offene Generierungsreihenfolge aufgenommen. Die Staffelung weiterer Vorbereitungsstufen und der Umgang mit einem währenddessen ausgelösten echten Aufruf bleiben gesondert festzulegen.
+**Bedarfsabhängige Ergänzungen und Priorität:**
+
+- Neue, tatsächlich benötigte Hallenformen oder Rollen-/Namenszuordnungen ergänzen nur ihre fehlenden Quellen. Ein anderes Feld oder eine andere Ansetzung löst keine erneute Erzeugung vorhandener Rollen- oder Spielblöcke aus.
+- D12-Spielkopf und Begegnung werden aus dem vorhandenen Spielblock geschnitten, sobald benötigt. Sie sind keine zusätzlichen Aufträge an das Sprachmodell.
+- Freie Texte werden erst bei einem konkreten stabilen beziehungsweise abgesendeten Text vorbereitet. Eine gegebenenfalls notwendige vollständige D12 wird erst mit tatsächlichem Ergebnis erzeugt.
+- Ein ausgelöster echter Aufruf mit fehlenden Teilen zieht die dafür benötigten Quellen vor noch nicht gestartete Vorarbeit. Bereits laufende Aufträge werden fertiggestellt. Diese Laufzeitpriorität ist Teil des neuen Entwurfs; die relative Spielplanreihenfolge der regulär vorgemerkten Spielblöcke bleibt erhalten.
+- BTS verwaltet die Reihenfolge und hält weiterhin **höchstens einen offenen Generierungsauftrag** beim Sprachserver. Nach jedem fertiggestellten Auftrag und dessen Schnitten wird der verfügbare Bestand aktualisiert.
+
+Die zusätzlichen Stufen sind ein Planungsentwurf für den Hörvergleich. Kontextgenerierung, Schnitt und Cache-Nutzung werden erst nach unserer Abstimmung in die Anwendung übertragen.
