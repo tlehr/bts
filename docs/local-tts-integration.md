@@ -73,6 +73,21 @@ API-Adresse, Schlüssel und öffentliche Stimmen-IDs bleiben gleich. Die eigenen
 
 Die Messanleitung und Ergebnisse stehen im Sprachserver-Projekt unter `docs/model-comparison.md`. Der Wechsel auf das kleinere Modell ist eine Option; seine CPU-Geschwindigkeit muss am eingesetzten Rechner geprüft werden.
 
+## Optionales Kitten-C++-Backend
+
+Nach dem bestätigten Kitten-Hörtest ist die native Alternative im separaten Sprachserver angebunden. Dort einmalig installieren, den bisherigen Sprachserver regulär stoppen und neu starten:
+
+    ./scripts/install-kitten.sh
+    ./scripts/start.sh --backend kitten_cpp
+
+Die Installation benötigt die beiden vorhandenen Referenz-WAVs samt ihren bestätigten Texten, einen C++20-Compiler und git. Sie bereitet je Stimme ein eigenes privates Profil vor. Sie ändert keine `.env` und keine bestehende Referenzkonfiguration. Der Worker hält Modell und Decoder geladen; die API nutzt weiterhin dauerhafte Jobs und WAVs.
+
+`/health` muss `backend: kitten_cpp`, `model: KittenML/kitten-tts-2` und `status: ready` anzeigen. BTS-Adresse, Schlüssel und die Auswahl **Lokaler Sprachserver mit Browser-Fallback** bleiben gleich. BTS erkennt den Wechsel über Backend und Syntheseidentität, verwirft bisherige Bereitschaftszuordnungen und fordert die passenden Teile automatisch vorab an. Sobald diese fertig sind, erscheinen dieselben grünen Markierungen. Generierung löst keine Wiedergabe aus.
+
+Qwen- und Kitten-Caches sind getrennt; vorhandene Freigaben bleiben erhalten. Verspätete API-Antworten eines vor dem Wechsel begonnenen Auftrags werden verworfen und können keine alte Aufnahme wieder als bereit markieren. Rückwechsel im Sprachserver: `./scripts/start.sh --backend qwen --model-size 1.7b`. Für einen dauerhaften Kitten-Start kann der Betreiber dort `BTS_BACKEND=kitten_cpp` konfigurieren. Die Auswahl erfolgt einmal je Sprachserverprozess.
+
+Im echten API-Test brauchten die vollständigen Beispielansagen auf dem bisherigen i7 ungefähr 37 und 32 Sekunden. Der Vorab-Cache bleibt deshalb erforderlich. Die männliche Kitten-Referenz wurde technisch erfolgreich geklont und benötigt noch eine Hörabnahme. Installation, Offline-Build und systemd-Pfade: `bts-sprachserver/docs/kitten-backend.md`.
+
 ## Was vorab gecacht wird
 
 Beim BTS-Start werden vorhandene Turniere vorgemerkt; ein Browser muss dafür nicht geöffnet sein. Je Turnier werden Spiele in Vorbereitung, priorisierte Kandidaten aus der vorhandenen Vorbereitungsselektion und die nächsten geplanten Spiele bis zum konfigurierten Horizont vorbereitet. Bereits in Vorbereitung/auf dem Feld befindliche Spiele und echte Aufrufkandidaten bleiben zusätzlich enthalten, damit der Horizont einer Halle nicht die nötigen Ansagen einer anderen Halle verdrängt. Bereits vorbereitete/aufgerufene Spiele und reale Kandidaten erhalten höhere Priorität.
@@ -121,6 +136,8 @@ Bytegenaue Vergleiche aller bisherigen Ansagearten, geänderte Gegner, Queue-Gre
 
 
 ## Prüfstand dieses Auftrags
+
+Am 15.10.2026 nach der Kitten-Anbindung: 1019 BTS-Tests und 62 gezielte Sprachtests bestanden; sieben optionale End-to-End-Fälle bleiben in der normalen Suite deaktiviert. Separat wurden diese sieben Fälle mit echter FastAPI/Mock-Synthese und nativem Chrome erfolgreich ausgeführt. Die neuen Backend-Tests prüfen erneute Vorbereitung nach dem Wechsel und das Verwerfen verspäteter Antworten des vorherigen Backends. Der Sprachserver bestand 79 reguläre Tests sowie separat zweimal den echten Kitten-CPU-Test mit beiden Stimmen, Worker-Wiederverwendung, geschütztem WAV-Abruf und persistenten Cache-Treffern nach Neustart.
 
 Am 14.10.2026 nach der Fallback-Korrektur: vollständige BTS-Suite 1017 bestanden; sieben optionale End-to-End-Fälle darin standardmäßig deaktiviert. Zusätzlich bestanden 60 gezielte Text-, Provider-, Backend- und Anzeigetests sowie alle sieben separat aktivierten End-to-End-Fälle mit tatsächlichem BTS, FastAPI/Mock-TTS und nativem Chrome: Vorab-Cache und geschützter WAV-Abruf, Nutzeraktivierung/Audioausgabe, Cache-Markierungen am Vorbereitungsaufruf und an einer freien Ansage ohne Wiedergabe, lokale Ausgabe trotz verzögerter Resolve-Abfrage, sichtbarer Fallback bei Audio-Abruffehler, echter Spielaufruf über den bestehenden WebSocket ohne doppelte Wiedergabe sowie Cache-Wiederverwendung nach frischem Adapterstart.
 

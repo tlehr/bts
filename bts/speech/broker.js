@@ -180,7 +180,7 @@ class SpeechBroker {
         }
         const state = health.status === 'fulfilled' ? health.value : health.reason.response;
         if (state?.model_revision) {
-            const identity = JSON.stringify([state.configuration_version, state.model, state.model_revision, this.voices]);
+            const identity = JSON.stringify([state.configuration_version, state.backend, state.model, state.model_revision, this.voices]);
             if (this.identity && identity !== this.identity) {
                 for (const entry of this.entries.values()) {
                     entry.status = 'unsubmitted';
@@ -227,6 +227,7 @@ class SpeechBroker {
             .sort((a, b) => a.priority - b.priority || a.next_poll - b.next_poll)[0];
         if (!entry) return;
         entry.busy = true;
+        const identity = this.identity;
         try {
             let response;
             if (post) {
@@ -241,8 +242,9 @@ class SpeechBroker {
                 response = await this.request(this.config.base_url, this.config.api_key, 'GET',
                     '/v1/jobs/' + entry.job_id, undefined, this.config.timeout_ms);
             }
-            this.update(entry, response);
+            if (identity === this.identity) this.update(entry, response);
         } catch (error) {
+            if (identity !== this.identity) return;
             this.last_error = error.status === 429 ? 'speech_busy' : 'speech_unavailable';
             if (!post && error.status === 404) { entry.status = 'unsubmitted'; entry.job_id = null; }
             if (post && entry.job_id && entry.status === 'queued') entry.promote = true;

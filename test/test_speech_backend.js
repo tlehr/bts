@@ -210,6 +210,38 @@ describe('Server speech adapter and protected audio', function() {
         assert.strictEqual(broker.views([TEXT], {}, 'default')[0].audio_url, null);
     });
 
+    it('prepares the exact call again after switching to the Kitten backend', async function() {
+        let backend = 'qwen';
+        let time = Date.now();
+        const received = [];
+        const broker = new SpeechBroker(config(), { now: () => time, request: async (_base, _key, _method, pathname, body) => {
+            if (pathname === '/health') return {
+                backend, model: backend === 'qwen' ? 'Qwen/Base' : 'KittenML/kitten-tts-2',
+                model_revision: (backend === 'qwen' ? 'a' : 'b').repeat(40),
+            };
+            if (pathname === '/v1/voices') return { voices: [
+                { voice_id: 'hallensprecherin', version: '1', languages: ['de-DE'] },
+                { voice_id: 'hallensprecher', version: '1', languages: ['de-DE'] },
+            ] };
+            received.push(body);
+            return reply(body, 'completed');
+        } });
+        await broker.refresh();
+        broker.prepare([TEXT]);
+        await broker.step();
+        const old_audio = broker.views([TEXT], {}, 'default')[0].audio_url;
+        backend = 'kitten_cpp';
+        time += 1000;
+        await broker.refresh();
+        assert.strictEqual(broker.views([TEXT], {}, 'default')[0].audio_url, null);
+        await broker.step();
+        const clip = broker.views([TEXT], {}, 'default')[0];
+        assert.strictEqual(clip.status, 'completed');
+        assert.notStrictEqual(clip.audio_url, old_audio);
+        assert.deepStrictEqual(received.map(request => request.text), [TEXT, TEXT]);
+        assert(received.every(request => request.voice === 'hallensprecherin' && request.language === 'de-DE'));
+    });
+
     it('invalidates the full synthesis identity even while the new model is starting', async function() {
         let configuration_version = 'one';
         let starting = false;
@@ -230,6 +262,33 @@ describe('Server speech adapter and protected audio', function() {
         starting = true;
         await broker.refresh();
         assert.strictEqual(broker.views([TEXT], {}, 'default')[0].audio_url, null);
+    });
+
+    it('discards an old in-flight generation answer after a backend switch', async function() {
+        let backend = 'qwen', finish;
+        let time = Date.now();
+        let old_request;
+        const broker = new SpeechBroker(config(), { now: () => time, request: async (_base, _key, _method, pathname, body) => {
+            if (pathname === '/health') return { backend, model: 'shared-model', model_revision: 'a'.repeat(40) };
+            if (pathname === '/v1/voices') return { voices: [] };
+            if (backend === 'qwen') {
+                old_request = body;
+                return new Promise(resolve => { finish = resolve; });
+            }
+            return reply(body, 'completed');
+        } });
+        await broker.refresh();
+        broker.prepare([TEXT]);
+        const pending = broker.step();
+        backend = 'kitten_cpp';
+        await broker.refresh();
+        finish(reply(old_request, 'completed'));
+        await pending;
+        assert.strictEqual(broker.views([TEXT], {}, 'default')[0].audio_url, null);
+        assert.strictEqual(broker.views([TEXT], {}, 'default')[0].status, 'unsubmitted');
+        time += 1000;
+        await broker.step();
+        assert.strictEqual(broker.views([TEXT], {}, 'default')[0].status, 'completed');
     });
 
     it('drops a failed WebSocket send callback so a late answer cannot replay it', function() {
