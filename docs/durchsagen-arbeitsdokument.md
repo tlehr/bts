@@ -48,7 +48,7 @@ Ein leerer oder ausgeschalteter optionaler Baustein entfällt. Ein fehlendes Spi
 | B11 | Präfixe für Zweitaufrufe | Normal: `Zweiter Aufruf für:`; Vorbereitung: `Zweiter Aufruf In Vorbereitung für:` |
 | B12 | Beginn des Spiels | `Bitte mit dem Spielen beginnen!` |
 
-**Spielblock** bezeichnet in den folgenden Vorlagen diese Reihenfolge:
+**Festgelegte Zusammensetzung des Spielblocks**, in dieser Reihenfolge:
 
 ```text
 B03 Spielnummer
@@ -349,7 +349,7 @@ Die übrigen Punkte können wir direkt in dieser Datei festlegen:
 | Feldansage | Wie entstehen die Aufnahmen für Anfang und Schluss? | B01-Anfang und B01-Ende je Feld aus derselben vollständigen Referenzaufnahme; erste Vorbereitungsstufe für alle Felder (Abschnitt 7.1) |
 | Referenzaufruf | Welcher Mittelteil wird für die erstmalige Erstellung der Feldaufnahmen gesprochen? | Festgelegter Beispiel-Spielblock aus Abschnitt 7.1: Spiel 189, Mädcheneinzel U19, Achtelfinale, Nina Keo Boun Khoune gegen LeandraGalowicz; wortgetreu mit ausgeschriebenen Zahlen und unverändert für alle Felder |
 | Einsatz weiterer Feldansagen | Welche B01-Ausschnitte verwenden andere Durchsagen? Wie wird B02 erstellt? | D03 verwendet B01-Anfang des jeweiligen Feldes; weitere Verwendungen und die Erstellung von B02 bleiben offen |
-| Spielblock | Welche Angaben bleiben gemeinsam in einer langen Aufnahme? | Offen |
+| Spielblock | Zusammensetzung und Aufnahmegrenzen | Festgelegt: B03 Spielnummer → B04 Disziplin / Altersklasse → B05 Runde → B07 Beide Teams. Die konkreten Aufnahmegrenzen bleiben noch festzulegen. |
 | Namen und Paarungen | Ein vollständiger Name je Aufnahme, ein Team oder beide Teams mit „gegen“? | Offen |
 | Offizielle | Welche Rollen-/Namensstücke lassen sich natürlich zwischen normalen Aufrufen und Zweitaufrufen wiederverwenden? | Offen |
 | Vorbereitung | Welche Hallen- und Treffpunkttexte bilden jeweils einen vollständigen Satz? | Offen |
