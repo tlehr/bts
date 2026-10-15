@@ -96,7 +96,7 @@ class Prefetcher {
                     // Interleave voices before the bounded broker cache can fill.
                     for (const text of texts.slice(i, i + 64)) {
                         for (const voice of voices) {
-                            this.broker.prepare([text], { voice, language: 'de-DE', priority });
+                            this.broker.prepare([text], { voice, language: 'de-DE', priority }, key);
                         }
                     }
                     await new Promise(resolve => setImmediate(resolve));

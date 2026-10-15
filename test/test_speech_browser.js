@@ -46,6 +46,83 @@ function harness(options = {}) {
 }
 
 describe('Browser local speech provider', function() {
+    const previewClip = () => ({ ...clip(), tournament_key: 'default', text: TEXT, voice: 'hallensprecher' });
+    const previewResponse = () => ({ speech: { enabled: true, cache_version: 'one' }, queue: { items: [previewClip()] } });
+
+    it('reads the queue without preparing or playing and previews the exact cached voice even in browser mode', async function() {
+        const h = harness({ mode: 'browser', request: async () => previewResponse() });
+        const response = await h.service.queue();
+        assert.deepStrictEqual(h.requests, [['speech_queue', { tournament_key: 'default' }]]);
+        assert.strictEqual(h.played.length, 0);
+        assert.strictEqual((await h.service.preview(response.queue.items[0], response.speech.cache_version)).status, 'ok');
+        assert.deepStrictEqual(h.played, [clip().audio_url]);
+        assert.strictEqual(h.browser.length, 0);
+        assert.strictEqual(h.requests.length, 1);
+        assert.strictEqual(h.settings.voice, 'hallensprecherin');
+        assert.strictEqual(h.settings.mode, 'browser');
+        h.settings.enabled = false;
+        assert.strictEqual(await h.service.queue(), null);
+        assert.strictEqual(h.requests.length, 1);
+    });
+
+    it('refuses stale, unfinished, foreign-tournament and external preview audio without generating it', async function() {
+        const h = harness({ request: async () => previewResponse() });
+        await h.service.queue();
+        for (const [item, version] of [
+            [previewClip(), 'old'], [null, 'one'],
+            [{ ...previewClip(), status: 'processing' }, 'one'],
+            [{ ...previewClip(), tournament_key: 'other' }, 'one'],
+            [{ ...previewClip(), audio_url: '/h/other/speech/audio/' + 'a'.repeat(32) + '?signature=test' }, 'one'],
+            [{ ...previewClip(), audio_url: 'https://example.org/test.wav' }, 'one'],
+        ]) assert.strictEqual((await h.service.preview(item, version)).status, 'unavailable');
+        assert.strictEqual(h.played.length, 0);
+        assert.strictEqual(h.browser.length, 0);
+        assert.strictEqual(h.requests.length, 1);
+    });
+
+    it('never interrupts an actual announcement to preview and closing a preview does not stop an announcement', async function() {
+        const h = harness({ fail: 'held' });
+        const announcement = h.service.speak([TEXT], 'actual', h.fallback);
+        await delay(5);
+        assert.strictEqual((await h.service.preview(previewClip(), undefined)).status, 'busy');
+        h.service.cancelPreview();
+        assert(!h.player.paused);
+        h.player.onplaying(); h.player.onended();
+        assert.strictEqual((await announcement).status, 'ok');
+        assert.strictEqual(h.played.length, 1);
+    });
+
+    it('lets actual announcements preempt previews and keeps preview out of announcement deduplication', async function() {
+        const h = harness({ fail: 'held', request: async (type, values) => type === 'speech_queue' ? previewResponse() :
+            { speech: { enabled: true, cache_version: 'one' }, clips: values.parts.map(clip) } });
+        await h.service.queue();
+        const preview = h.service.preview(previewClip(), 'one');
+        const announcement = h.service.speak([TEXT], 'actual', h.fallback);
+        assert.strictEqual((await preview).status, 'cancelled');
+        await delay(5);
+        assert.strictEqual(h.played.length, 2);
+        h.player.onplaying(); h.player.onended();
+        assert.strictEqual((await announcement).status, 'ok');
+        assert.strictEqual((await h.service.speak([TEXT], 'actual', h.fallback)).status, 'skipped');
+        assert.strictEqual(h.browser.length, 0);
+    });
+
+    it('cancels previews on close and reports playback errors without browser fallback', async function() {
+        const h = harness({ fail: 'held', request: async () => previewResponse() });
+        await h.service.queue();
+        const preview = h.service.preview(previewClip(), 'one');
+        h.service.cancelPreview();
+        assert.strictEqual((await preview).status, 'cancelled');
+        assert(h.player.paused);
+        const blocked = harness({ fail: 'blocked', request: async () => previewResponse() });
+        await blocked.service.queue();
+        const result = await blocked.service.preview(previewClip(), 'one');
+        assert.strictEqual(result.reason, 'audio_blocked');
+        assert.strictEqual(blocked.service.settings().audio_error, 'audio_blocked');
+        assert.strictEqual(blocked.browser.length, 0);
+        assert.strictEqual(blocked.requests.length, 1);
+    });
+
     it('inspects readiness without preparing jobs or playing audio and preserves exact text', async function() {
         const h = harness();
         await h.service.inspect([TEXT]);

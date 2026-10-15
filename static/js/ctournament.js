@@ -1,6 +1,6 @@
 /* global btsSpeechReadiness */
 'use strict';
-/* global btsSpeechService, cancelAnnouncementPlayback */
+/* global btsSpeechService, cancelAnnouncementPlayback, createSpeechQueue */
 
 var curt; // current tournament
 let current_view = null;
@@ -1278,7 +1278,7 @@ var ctournament = (function() {
 		}
 	}
 
-	function render_local_speech_controls(container) {
+	function render_local_speech_controls(container, refreshQueue) {
 		if (typeof btsSpeechService !== 'undefined') {
 			const controls = uiu.el(container, 'div', 'local_speech_controls');
 			const modeLabel = uiu.el(controls, 'label', {}, 'Sprachausgabe: ');
@@ -1313,6 +1313,7 @@ var ctournament = (function() {
 				if (typeof btsSpeechReadiness !== 'undefined') btsSpeechReadiness.changed();
 				update_local_speech_output_status();
 				void update();
+				refreshQueue?.();
 			};
 			mode.addEventListener('change', () => change('mode', mode.value));
 			voice.addEventListener('change', () => change('voice', voice.value));
@@ -1327,6 +1328,7 @@ var ctournament = (function() {
 			uiu.el(controls, 'button', { type: 'button' }, 'Cache-Status aktualisieren')
 				.addEventListener('click', () => {
 					void update();
+					refreshQueue?.();
 					if (typeof btsSpeechReadiness !== 'undefined') void btsSpeechReadiness.refresh(true);
 				});
 			const legend = uiu.el(controls, 'div', 'local_speech_legend');
@@ -1350,10 +1352,13 @@ var ctournament = (function() {
 		});
 		uiu.el(dialog, 'h2', { id: 'local_speech_dialog_title' }, 'Sprachausgabe');
 		uiu.el(dialog, 'p', {}, 'Einstellungen für die Ansagen auf diesem Gerät.');
-		render_local_speech_controls(dialog);
+		const layout = uiu.el(dialog, 'div', 'speech_settings_layout');
+		const settings = uiu.el(layout, 'div');
+		const queue = createSpeechQueue({ root: uiu.el(layout, 'section', 'speech_queue'), service: btsSpeechService });
+		render_local_speech_controls(settings, () => { void queue.refresh(); });
 		uiu.el(dialog, 'button', { type: 'button', class: 'local_speech_close' }, 'Schließen')
 			.addEventListener('click', () => dialog.close());
-		dialog.addEventListener('close', () => dialog.remove());
+		dialog.addEventListener('close', () => { queue.stop(); dialog.remove(); });
 		dialog.addEventListener('keydown', event => {
 			if (event.key === 'Escape') event.stopPropagation();
 		});

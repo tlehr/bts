@@ -97,7 +97,7 @@ class SpeechBroker {
         return { voice, language, priority: Object.hasOwn(PRIORITY, options.priority) ? options.priority : 'low' };
     }
 
-    prepare(parts, options = {}) {
+    prepare(parts, options = {}, tournament_key) {
         const normalized = this.validate(parts, options);
         if (!this.config.enabled) return normalized;
         for (const text of parts) {
@@ -116,9 +116,11 @@ class SpeechBroker {
                     key, text, ...normalized, priority: PRIORITY[normalized.priority],
                     status: 'unsubmitted', created: this.now(), used: this.now(),
                     retry_at: 0, next_poll: 0, busy: false,
+                    tournaments: new Set(),
                 };
                 this.entries.set(key, entry);
             }
+            if (tournament_key) entry.tournaments.add(tournament_key);
             entry.used = this.now();
             if (PRIORITY[normalized.priority] < entry.priority) {
                 entry.priority = PRIORITY[normalized.priority];
@@ -151,6 +153,51 @@ class SpeechBroker {
                     { audio_url: this.audio_url(tournament_key, entry.audio_id) } : {}),
             };
         });
+    }
+
+    pending_order(now = this.now()) {
+        const eligible = [...this.entries.values()].filter(entry => entry !== this.current?.entry && !entry.busy &&
+            (entry.status === 'unsubmitted' || entry.revalidate) && entry.retry_at <= now);
+        const ordered = [];
+        for (const priority of [0, 1, 2]) {
+            const voices = new Map();
+            for (const entry of eligible.filter(item => item.priority === priority).sort((a, b) => a.created - b.created)) {
+                if (!voices.has(entry.voice)) voices.set(entry.voice, []);
+                voices.get(entry.voice).push(entry);
+            }
+            let last = this.current?.entry.priority === priority ? this.current.request.voice : this.last_post_voice.get(priority);
+            while (voices.size) {
+                const next = [...voices.values()].map(items => items[0]).sort((a, b) =>
+                    Number(a.voice === last) - Number(b.voice === last) || a.created - b.created)[0];
+                ordered.push(next);
+                last = next.voice;
+                const items = voices.get(next.voice);
+                items.shift();
+                if (!items.length) voices.delete(next.voice);
+            }
+        }
+        return ordered;
+    }
+
+    queue(tournament_key) {
+        const current = this.current?.entry;
+        const pending = this.pending_order();
+        const scheduled = new Set([current, ...pending]);
+        const rest = [...this.entries.values()].filter(entry => !scheduled.has(entry))
+            .sort((a, b) => Number(a.status === 'completed') - Number(b.status === 'completed') ||
+                a.priority - b.priority || a.created - b.created);
+        const ordered = [...(current ? [current] : []), ...pending, ...rest];
+        const positions = new Map(pending.map((entry, index) => [entry, index + 1]));
+        return {
+            busy_elsewhere: !!current && !current.tournaments.has(tournament_key),
+            items: ordered.filter(entry => entry.tournaments.has(tournament_key)).map(entry => ({
+                key: entry.key, text: entry.text, voice: entry.voice, language: entry.language, tournament_key,
+                priority: Object.keys(PRIORITY)[entry.priority], status: entry.status,
+                position: entry === current ? 0 : positions.get(entry) ?? null,
+                current: entry === current, retry_at: Math.max(entry.retry_at, this.post_retry_at),
+                audio_url: entry.status === 'completed' ? this.audio_url(tournament_key, entry.audio_id) : null,
+            })),
+        };
     }
 
     audio_url(tournament_key, audio_id) {
@@ -228,11 +275,7 @@ class SpeechBroker {
         const now = this.now();
         if (!this.current) {
             if (now < this.post_retry_at || now - this.last_post < this.config.submit_interval_ms) return;
-            const pending = [...this.entries.values()].filter(entry => !entry.busy &&
-                (entry.status === 'unsubmitted' || entry.revalidate) && entry.retry_at <= now)
-                .sort((a, b) => a.priority - b.priority ||
-                    Number(a.voice === this.last_post_voice.get(a.priority)) - Number(b.voice === this.last_post_voice.get(b.priority)) ||
-                    a.created - b.created);
+            const pending = this.pending_order(now);
             const entry = pending[0];
             if (!entry) return;
             this.current = { entry, identity: this.identity, job_id: null, request: {

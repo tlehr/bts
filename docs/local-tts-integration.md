@@ -23,6 +23,12 @@ Der Sprachtest zeigt, ob tatsächlich Server-Audio oder Browser-Fallback verwend
 
 Die Sprachsteuerung liegt im Dialog **Sprachausgabe** des Adminmenüs: Modus, Stimme, Audiofreigabe, Ansage stoppen und Cache-Status. Die Einstellungen gelten für dieses Gerät und bleiben beim Schließen erhalten. Der Dialog lässt sich über **Schließen** oder Escape beenden. Die Hallenfreigaben, freie Ansagen, der Sprachtest und die Anzeige der tatsächlichen Ausgabe bleiben in der Turnieransicht erreichbar.
 
+Daneben zeigt **Texte und Reihenfolge** die im BTS vorgemerkten Texte des geladenen Turniers mit Stimme, Priorität und Status. Der laufende Auftrag steht oben, danach folgen die sendbaren Texte in der tatsächlichen Reihenfolge: **Hoch** (aktueller Aufruf), **Normal** (bevorstehendes Spiel), **Niedrig** (Vorrat), mit wechselnden Stimmen bei gleicher Priorität. Zurückgestellte oder fehlgeschlagene Texte und fertige Aufnahmen folgen darunter. Die Nummern beziehen sich auf die gemeinsame Warteschlange; Texte anderer Turniere werden nicht angezeigt. Ein laufender Auftrag eines anderen Turniers wird allgemein als beschäftigt gemeldet. Beide bereits abonnierten Stimmen erscheinen; das Öffnen der Liste abonniert keine zusätzliche Stimme und erzeugt keine neuen Aufträge.
+
+Mit **🔊** lässt sich jede fertige lokale Aufnahme einzeln probehören, auch die andere Stimme und unabhängig vom ausgewählten Ausgabemodus. Noch unfertige Texte haben einen deaktivierten Lautsprecher. Probehören verwendet ausschließlich die geschützte WAV, ohne Browser-Fallback, Prioritätsänderung oder neue Generierung. Es verändert die Stimmwahl nicht und unterbricht keine laufende Durchsage. Ein echter Aufruf darf das Probehören unterbrechen. Beim Schließen endet nur das Probehören; reguläre Ansagen bleiben erhalten.
+
+Die Liste aktualisiert sich im geöffneten, sichtbaren Dialog alle drei Sekunden und über **Cache-Status aktualisieren**. Sie zeigt den aktuell vom BTS verwalteten Cache und Vorbereitungshorizont, kein vollständiges Archiv des Sprachservers. Beim Verlassen des Dialogs endet die Abfrage. Für diese Erweiterung BTS neu starten und die Seite neu laden; am Sprachserver ist keine Änderung nötig.
+
 Die CPU muss die Vorbereitungen zunächst abarbeiten. Bereits bekannte Texte werden automatisch frühzeitig erzeugt; bei einem ersten Kaltstart oder bisher unbekannten Namen kann trotzdem ein Fallback erforderlich sein. Generierung selbst löst keine Wiedergabe aus.
 
 ## Lokale Bereitschaft einzelner Durchsagen
@@ -112,7 +118,7 @@ Noch unbekannte Gegner, zukünftige Änderungen und spontan eingegebene Ansagen 
 - bts/speech/text.js rendert diese Funktionen nur zur Vorbereitung, ohne Wiedergabe.
 - bts/speech/prefetch.js liest vorhandene Turnierdaten im Hintergrund und wartet auf freie Foreground-Arbeit.
 - bts/speech/broker.js dedupliziert, priorisiert und pollt die versionierte API; bts/speech/http.js setzt einen vollständigen Request-Timeout.
-- Die vorhandene /ws/admin-Verbindung bietet speech_prepare, speech_resolve und speech_status. Die Verbindung muss zuvor das betreffende Turnier erfolgreich geladen haben; Speech-Fehler beeinträchtigen den allgemeinen Verbindungsstatus nicht.
+- Die vorhandene /ws/admin-Verbindung bietet speech_prepare, speech_resolve, speech_status und die rein lesende speech_queue. Die Verbindung muss zuvor das betreffende Turnier erfolgreich geladen haben; Speech-Fehler beeinträchtigen den allgemeinen Verbindungsstatus nicht.
 - bts/speech/proxy.js prüft zeitlich begrenzte, an Turnier und Audio-ID gebundene HMAC-Berechtigungen und reicht WAV/Range/ETag durch. Ohne gültige Signatur gibt es kein Audio.
 - static/js/speech_service.js entscheidet einmal je Wiedergabe-ID zwischen vorbereiteter WAV und Browser-Fallback. Nur vollständig bereite Batches werden als Server-Audio begonnen.
 - static/js/announcements.js behält Queue, Claims, Leader und Pausen. Eine hörbar begonnene Ausgabe wird bei Fehlern nicht als vollständiger Ruf wiederholt. **Ansage stoppen** beendet aktive Ausgabe und verwirft ausstehende Ansagen.
@@ -144,6 +150,8 @@ Bytegenaue Vergleiche aller bisherigen Ansagearten, geänderte Gegner, Queue-Gre
 
 
 ## Prüfstand dieses Auftrags
+
+Nach Ergänzung der Textliste mit Probehören: 1033 BTS-Tests und 76 gezielte Sprachtests bestanden. Die neun optionalen End-to-End-Fälle bestanden separat mit echter FastAPI und nativem Chrome. Der neue Browserfall vergleicht die angezeigte Liste mit der tatsächlichen BTS-Reihenfolge, prüft gesperrte Lautsprecher für unfertige Texte, spielt die geschützten WAVs beider Stimmen ab und bestätigt unveränderte Stimmwahl, Auftragsliste und Generierungsanzahl. Fremde Turniertexte bleiben ausgeblendet; nach dem Schließen enden die Listenabfragen. Zusätzlich geprüft sind Abbruch, Vorrang echter Durchsagen sowie die Ablehnung veralteter oder turnierfremder Hörproben.
 
 Nach der Umstellung auf einen offenen Generierungsauftrag: 1025 BTS-Tests bestanden, acht optionale End-to-End-Fälle regulär deaktiviert. Separat bestanden diese acht Fälle mit echter FastAPI und nativem Chrome, einschließlich Stimmwechsel zur männlichen Stimme, deren Vorab-Cache und anschließender lokaler Wiedergabe. Während der Browserfälle wurde geprüft, dass vor Abschluss des aktuellen Jobs kein weiterer Generierungsauftrag gesendet wird. 68 gezielte Sprachtests und 81 Sprachserver-Tests bestanden. Parallele unterschiedliche Serveranfragen, Busy-Ablehnung ohne Jobanlage, Cache-Abruf während laufender Generierung, verlorene POST-Antworten und der Umstieg aus der alten Server-Warteschlange sind geprüft.
 

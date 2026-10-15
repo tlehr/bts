@@ -41,10 +41,12 @@ function handle(app, ws, msg) {
     }
     const broker = speech.broker;
     try {
-        if (msg.type !== 'speech_status') {
+        if (msg.type === 'speech_queue') {
+            reply({ speech: broker.public_config(), queue: broker.queue(key) });
+        } else if (msg.type !== 'speech_status') {
             const options = { voice: msg.voice, language: msg.language,
                 priority: msg.type === 'speech_resolve' ? 'high' : 'low' };
-            broker.prepare(msg.parts, options);
+            broker.prepare(msg.parts, options, key);
             speech.prefetch.subscribe(key, options.voice || broker.config.voice);
             reply({ speech: broker.public_config(options.voice), clips: broker.views(msg.parts, options, key) });
         } else {

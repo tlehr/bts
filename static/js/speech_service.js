@@ -6,6 +6,7 @@ function createSpeechService(context) {
     const history = new Map();
     const prepared = new Map();
     let active = null;
+    let preview_controller = null;
     let audio = null;
     let test_id = 0;
     let cache_version;
@@ -21,12 +22,17 @@ function createSpeechService(context) {
     const key = (text, value) => JSON.stringify([value.key, value.voice, value.language, text]);
     const changed = () => context.onStateChange?.();
 
-    function remember(response, parts, value) {
+    function rememberMetadata(response) {
         if (cache_version !== response?.speech?.cache_version) {
             prepared.clear();
             cache_version = response?.speech?.cache_version;
         }
-        if (response?.speech_error || response?.speech?.enabled === false) { prepared.clear(); return; }
+        if (response?.speech_error || response?.speech?.enabled === false) prepared.clear();
+    }
+
+    function remember(response, parts, value) {
+        rememberMetadata(response);
+        if (response?.speech_error || response?.speech?.enabled === false) return;
         if (response?.clips?.length !== parts.length) return;
         response.clips.forEach((clip, index) => {
             const id = key(parts[index], value);
@@ -140,6 +146,7 @@ function createSpeechService(context) {
         if (history.has(playback_id)) return { status: 'skipped', provider: 'none', started: false };
         history.set(playback_id, true);
         while (history.size > 1024) history.delete(history.keys().next().value);
+        preview_controller?.abort();
         const value = settings();
         const controller = new AbortController();
         active = controller;
@@ -186,6 +193,35 @@ function createSpeechService(context) {
         context.cancelBrowser?.();
     }
 
+    async function preview(clip, version) {
+        const value = settings();
+        if (active) return { status: 'busy', reason: 'playback_busy' };
+        if (!value.enabled || !value.key || !clip || clip.tournament_key !== value.key || version !== cache_version ||
+            !usable(clip) || !clip.audio_url.startsWith('/h/' + encodeURIComponent(value.key) + '/speech/audio/')) {
+            return { status: 'unavailable', reason: 'cache_incomplete' };
+        }
+        const controller = new AbortController();
+        active = preview_controller = controller;
+        let result;
+        try {
+            result = await play([clip], value, controller.signal);
+        } catch (error) {
+            result = { status: controller.signal.aborted ? 'cancelled' : 'error', reason: error.message, provider: 'server' };
+            if (!controller.signal.aborted) {
+                audio_error = error.message;
+                if (audio_error === 'audio_blocked') audio_ready = false;
+            }
+        } finally {
+            if (active === controller) {
+                active = null;
+                last_result = result;
+                changed();
+            }
+            if (preview_controller === controller) preview_controller = null;
+        }
+        return result;
+    }
+
     function unlock() {
         if (active) return Promise.resolve(false);
         const player = getAudio();
@@ -205,7 +241,16 @@ function createSpeechService(context) {
     }
 
     return {
-        settings, prepare, speak, cancel, unlock, describeResult,
+        settings, prepare, speak, cancel, unlock, describeResult, preview,
+        cancelPreview: () => preview_controller?.abort(),
+        queue: async () => {
+            const value = settings();
+            if (!value.enabled || !value.key) return null;
+            const response = await context.request('speech_queue', { tournament_key: value.key }, 1500).catch(() => null);
+            if (settings().key !== value.key) return null;
+            rememberMetadata(response);
+            return response;
+        },
         outputMessage: () => settings().mode === 'browser' ? 'Browser-TTS ist ausgewählt.' :
             last_result ? (last_result.status === 'playing' ? 'Aktuelle Ausgabe: ' : 'Letzte Ausgabe: ') + describeResult(last_result) :
                 audio_ready ? 'Audiowiedergabe freigegeben.' : 'Lokales Audio noch nicht freigegeben. Audio aktivieren.',

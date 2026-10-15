@@ -3614,7 +3614,7 @@ h2.edit {
 
 .local_speech_dialog {
     box-sizing: border-box;
-    width: min(28rem, calc(100vw - 2rem));
+    width: min(70rem, calc(100vw - 2rem));
     max-height: calc(100vh - 2rem);
     overflow-y: auto;
     padding: 1.25rem;
@@ -3644,6 +3644,55 @@ h2.edit {
 
 .local_speech_close {
     width: 100%;
+}
+
+.speech_settings_layout {
+    display: grid;
+    grid-template-columns: minmax(15rem, 1fr) minmax(0, 2fr);
+    gap: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.speech_queue { min-width: 0; }
+.speech_queue h3 { margin: 0.5rem 0; }
+.speech_queue_help, .speech_queue_summary, .speech_queue_feedback {
+    font-size: 0.85rem;
+    line-height: 1.4;
+}
+
+.speech_queue_list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    max-height: 55vh;
+    overflow-y: auto;
+    border: 1px solid #d5dce4;
+    border-radius: 0.35rem;
+}
+
+.speech_queue_row {
+    display: grid;
+    grid-template-columns: 2rem minmax(0, 1fr) 2.5rem;
+    gap: 0.5rem;
+    align-items: start;
+    padding: 0.75rem 0.5rem;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.speech_queue_row:last-child { border-bottom: 0; }
+.speech_queue_current { background: #fff7e8; }
+.speech_queue_order { color: #526176; text-align: center; font-size: 0.9rem; }
+.speech_queue_text { white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.4; }
+.speech_queue_meta { margin-top: 0.4rem; font-size: 0.75rem; color: #526176; line-height: 1.4; }
+.speech_queue_row[data-status="completed"] .speech_queue_order { color: #18733c; }
+.speech_queue_row[data-status="failed"] .speech_queue_meta { color: #b42318; }
+.speech_queue_preview { width: 2.5rem; padding: 0.25rem; cursor: pointer; }
+.speech_queue_preview:disabled { opacity: 0.4; cursor: default; }
+.speech_queue_preview:focus-visible { outline: 2px solid #2563eb; outline-offset: 2px; }
+
+@media (max-width: 700px) {
+    .speech_settings_layout { grid-template-columns: minmax(0, 1fr); gap: 0.5rem; }
+    .speech_queue_list { max-height: 45vh; }
 }
 
 .local_speech_controls {

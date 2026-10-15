@@ -370,4 +370,68 @@ suite('BTS / actual FastAPI / native Chrome speech integration', function() {
         }
         await until(() => devtools.evaluate('!document.querySelector(\'.local_speech_dialog\')'));
     });
+
+    it('shows the real prioritized queue and previews either ready voice without submitting or changing announcements', async function() {
+        await until(() => !app.speech.broker.current && !app.speech.broker.stepping);
+        app.speech.stop();
+        const broker = app.speech.broker;
+        broker.prepare(['Laufender Testauftrag'], { priority: 'low' }, 'default');
+        await broker.step();
+        for (const voice of ['hallensprecherin', 'hallensprecher']) {
+            broker.prepare(['Priorität hoch eins', 'Priorität hoch zwei'], { voice, priority: 'high' }, 'default');
+            broker.prepare(['Als Nächstes'], { voice, priority: 'normal' }, 'default');
+        }
+        broker.prepare(['Nicht aus diesem Turnier'], { priority: 'high' }, 'other');
+        const snapshot = JSON.stringify([...broker.entries.values()]);
+        const expected = await rpc(client, { type: 'speech_queue', tournament_key: 'default' });
+        let reads = 0;
+        const original = admin.handle_speech_queue;
+        admin.handle_speech_queue = (...args) => { reads++; return original(...args); };
+        try {
+            await devtools.evaluate('localStorage.setItem(\'bts_speech_mode\', \'browser\'); window.__audioSources = [];');
+            const browserBefore = await devtools.evaluate('window.__browserSpeechCalls');
+            await openSpeechSettings();
+            await until(async () => await devtools.evaluate('document.querySelectorAll(\'.speech_queue_row\').length') === expected.queue.items.length);
+            const rendered = await devtools.evaluate('[...document.querySelectorAll(\'.speech_queue_row\')].map(row => ({' +
+                'key:row.dataset.key, text:row.querySelector(\'.speech_queue_text\').textContent, ' +
+                'disabled:row.querySelector(\'button\').disabled, priority:row.dataset.priority}))');
+            assert.deepStrictEqual(rendered.map(row => row.key), expected.queue.items.map(item => item.key));
+            assert.deepStrictEqual(rendered.map(row => row.text), expected.queue.items.map(item => item.text));
+            assert.deepStrictEqual(rendered.map(row => row.disabled), expected.queue.items.map(item => item.status !== 'completed'));
+            assert(rendered.some(row => row.priority === 'high' && row.disabled));
+            assert(!rendered.some(row => row.text === 'Nicht aus diesem Turnier'));
+            await until(() => reads >= 2, 6000);
+            const received = fs.readFileSync(path.join(directory, 'received.jsonl'), 'utf8');
+            for (const voice of ['hallensprecherin', 'hallensprecher']) {
+                const item = expected.queue.items.find(item => item.status === 'completed' && item.voice === voice);
+                assert(item, 'both cached voices must be available');
+                await click('.speech_queue_row[data-key="' + item.key + '"] .speech_queue_preview');
+                await until(async () => await devtools.evaluate('document.querySelector(\'.speech_queue_feedback\').textContent') === 'Aufnahme abgespielt.');
+                assert(await devtools.evaluate('window.__audioSources.some(src => src.includes(' +
+                    JSON.stringify(item.audio_url.split('?')[0]) + '))'));
+            }
+            assert.strictEqual(await devtools.evaluate('window.__browserSpeechCalls'), browserBefore);
+            assert.strictEqual(await devtools.evaluate('btsSpeechService.settings().voice'), 'hallensprecher');
+            assert.strictEqual(fs.readFileSync(path.join(directory, 'received.jsonl'), 'utf8'), received);
+            assert.strictEqual(JSON.stringify([...broker.entries.values()]), snapshot);
+            await devtools.evaluate('document.querySelector(\'.speech_queue_list\').scrollTop = 0');
+            await devtools.call('Page.captureScreenshot', { format: 'png' }).then(result =>
+                fs.writeFileSync('/tmp/bts-speech-queue.png', Buffer.from(result.data, 'base64')));
+            await devtools.call('Emulation.setDeviceMetricsOverride',
+                { width: 390, height: 844, deviceScaleFactor: 1, mobile: false });
+            await devtools.evaluate('document.querySelector(\'.speech_queue\').scrollIntoView({block:\'start\'})');
+            assert.strictEqual(await devtools.evaluate('document.querySelector(\'.local_speech_dialog\').scrollWidth > ' +
+                'document.querySelector(\'.local_speech_dialog\').clientWidth'), false);
+            await devtools.call('Page.captureScreenshot', { format: 'png' }).then(result =>
+                fs.writeFileSync('/tmp/bts-speech-queue-mobile.png', Buffer.from(result.data, 'base64')));
+            await closeSpeechSettings();
+            const closedReads = reads;
+            await delay(3300);
+            assert.strictEqual(reads, closedReads, 'closing the dialog must stop queue polling');
+            assert.deepStrictEqual(devtools.events.filter(event => event.method === 'Runtime.exceptionThrown'), []);
+        } finally {
+            admin.handle_speech_queue = original;
+            await devtools.evaluate('localStorage.setItem(\'bts_speech_mode\', \'auto\')');
+        }
+    });
 });

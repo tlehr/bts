@@ -185,6 +185,87 @@ describe('Server speech adapter and protected audio', function() {
         assert.strictEqual(count, 2);
     });
 
+    it('reports the actual priority and alternating-voice dispatch order without changing it', async function() {
+        let time = Date.now();
+        const sent = [];
+        const broker = new SpeechBroker(config({ submit_interval_ms: 0 }), { now: () => time,
+            request: async (_base, _key, _method, _route, body) => {
+                sent.push(body); return reply(body, 'completed');
+            } });
+        for (const voice of ['hallensprecherin', 'hallensprecher']) {
+            for (const priority of ['low', 'high', 'normal']) {
+                broker.prepare([priority + ' one', priority + ' two'], { voice, priority }, 'default');
+                time++;
+            }
+        }
+        const before = JSON.stringify([...broker.entries.values()]);
+        const expected = broker.queue('default').items;
+        assert.deepStrictEqual(expected.map(item => item.priority), [
+            'high', 'high', 'high', 'high', 'normal', 'normal', 'normal', 'normal', 'low', 'low', 'low', 'low',
+        ]);
+        assert.deepStrictEqual(expected.slice(0, 4).map(item => item.voice), [
+            'hallensprecherin', 'hallensprecher', 'hallensprecherin', 'hallensprecher',
+        ]);
+        assert.deepStrictEqual(expected.map(item => item.position), Array.from({ length: 12 }, (_, i) => i + 1));
+        assert(expected.every(item => item.audio_url === null));
+        assert.strictEqual(JSON.stringify([...broker.entries.values()]), before);
+        assert.strictEqual(broker.last_post_voice.size, 0);
+        for (let i = 0; i < expected.length; i++) { await broker.step(); time += 3000; }
+        assert.deepStrictEqual(sent.map(item => [item.text, item.voice]), expected.map(item => [item.text, item.voice]));
+        assert(broker.queue('default').items.every(item => item.position === null && item.status === 'completed'));
+    });
+
+    it('keeps the current job first, separates deferred work and scopes shared text to its tournaments', async function() {
+        const time = Date.now();
+        const broker = new SpeechBroker(config(), { now: () => time, request: async (_base, _key, _method, _route, body) => reply(body) });
+        broker.prepare(['active'], { priority: 'low' }, 'other');
+        await broker.step();
+        broker.prepare([TEXT], { voice: 'hallensprecher', priority: 'high' }, 'default');
+        broker.prepare(['shared'], {}, 'default');
+        broker.prepare(['shared'], {}, 'other');
+        broker.prepare(['failed', 'done', 'delayed'], {}, 'default');
+        for (const entry of broker.entries.values()) {
+            if (entry.text === 'failed') entry.status = 'failed';
+            if (entry.text === 'done') { entry.status = 'completed'; entry.audio_id = id(); }
+            if (entry.text === 'delayed') entry.retry_at = time + 5000;
+        }
+        const own = broker.queue('default');
+        assert(own.busy_elsewhere);
+        assert.deepStrictEqual(own.items.map(item => item.text), [TEXT, 'shared', 'failed', 'delayed', 'done']);
+        assert.strictEqual(own.items[0].priority, 'high');
+        assert(own.items.slice(2).every(item => item.position === null));
+        const other = broker.queue('other');
+        assert.strictEqual(other.busy_elsewhere, false);
+        assert(other.items[0].current);
+        assert.strictEqual(other.items[0].position, 0);
+        assert.deepStrictEqual(other.items.map(item => item.text), ['active', 'shared']);
+        const url = new URL(own.items.at(-1).audio_url, 'http://localhost');
+        const audio_id = url.pathname.split('/').at(-1);
+        assert(broker.authorize('default', audio_id, url.searchParams.get('expires'), url.searchParams.get('signature')));
+        assert(!broker.authorize('other', audio_id, url.searchParams.get('expires'), url.searchParams.get('signature')));
+        assert(!JSON.stringify(own).includes(KEY));
+    });
+
+    it('allows queue inspection only for the loaded admin tournament and never schedules generation', function() {
+        const broker = new SpeechBroker(config());
+        broker.prepare([TEXT], {}, 'default');
+        const before = JSON.stringify([...broker.entries.values()]);
+        const responses = [];
+        const ws = { respond: (_msg, error, response) => { assert.ifError(error); responses.push(response); } };
+        const app = { speech: { broker, prefetch: { subscribe() { throw new Error('queue reads must not subscribe'); } } } };
+        const msg = { type: 'speech_queue', tournament_key: 'default' };
+        admin.handle_speech_queue(app, ws, msg);
+        assert.strictEqual(responses[0].speech_error, 'tournament_not_loaded');
+        ws.speech_tournament_key = 'default';
+        admin.handle_speech_queue(app, ws, msg);
+        assert.strictEqual(responses[1].queue.items[0].text, TEXT);
+        assert.strictEqual(responses[1].queue.items[0].status, 'unsubmitted');
+        assert.strictEqual(JSON.stringify([...broker.entries.values()]), before);
+        assert.strictEqual(broker.current, null);
+        admin.handle_speech_queue(app, ws, { ...msg, tournament_key: 'other' });
+        assert.strictEqual(responses[2].speech_error, 'tournament_not_loaded');
+    });
+
     it('bounds the local queue and validates both content and voice/language', function() {
         const broker = new SpeechBroker(config({ max_entries: 32 }));
         broker.prepare(Array.from({ length: 40 }, (_, i) => 'text ' + i));
