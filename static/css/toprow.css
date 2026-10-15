@@ -219,6 +219,14 @@
 	pointer-events: none;
 }
 
+button.toprow_menu_item {
+	width: 100%;
+	border: 0;
+	background: transparent;
+	font: inherit;
+	text-align: left;
+}
+
 .toprow_menu_item:link,
 .toprow_menu_item:visited,
 .toprow_menu_item:hover,

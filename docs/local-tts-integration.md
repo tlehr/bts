@@ -15,11 +15,13 @@ Anschließend:
 1. Im Sprachserver-Projekt ./scripts/start.sh starten.
 2. Den BTS-Prozess/Dienst mit dem bestehenden Startverfahren neu starten.
 3. Die BTS-Seite neu laden.
-4. Unter **Ansagen auf diesem Gerät** den Modus **Lokaler Sprachserver mit Browser-Fallback** und die lokale Stimme wählen.
-5. Einmal **Audio aktivieren**, danach den vorhandenen Sprachtest verwenden.
+4. Im **☰-Adminmenü → Sprachausgabe** den Modus **Lokaler Sprachserver mit Browser-Fallback** und die lokale Stimme wählen.
+5. Dort einmal **Audio aktivieren**, den Dialog schließen und danach den vorhandenen Sprachtest verwenden.
 6. Die bisherigen Hallen-Checkboxen für Spiel-/Vorbereitungsrufe wie gewohnt setzen. Für die deutschen Server-Stimmen muss die Turniersprache Deutsch sein; andere Sprachen bleiben im Automatikmodus bei Browser-TTS.
 
 Der Sprachtest zeigt, ob tatsächlich Server-Audio oder Browser-Fallback verwendet wurde. Der Cache-Status zeigt für die ausgewählte Stimme vorbereitete und noch anstehende Teile. **Nur lokales Server-Audio** überspringt unbereite Ansagen, statt sie per Browser zu sprechen; für den Turnierbetrieb wird deshalb Automatik empfohlen. **Browser-TTS** ist der unmittelbare Rollback auf die bisherige Ausgabe.
+
+Die Sprachsteuerung liegt im Dialog **Sprachausgabe** des Adminmenüs: Modus, Stimme, Audiofreigabe, Ansage stoppen und Cache-Status. Die Einstellungen gelten für dieses Gerät und bleiben beim Schließen erhalten. Der Dialog lässt sich über **Schließen** oder Escape beenden. Die Hallenfreigaben, freie Ansagen, der Sprachtest und die Anzeige der tatsächlichen Ausgabe bleiben in der Turnieransicht erreichbar.
 
 Die CPU muss die Vorbereitungen zunächst abarbeiten. Bereits bekannte Texte werden automatisch frühzeitig erzeugt; bei einem ersten Kaltstart oder bisher unbekannten Namen kann trotzdem ein Fallback erforderlich sein. Generierung selbst löst keine Wiedergabe aus.
 

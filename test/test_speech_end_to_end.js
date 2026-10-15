@@ -86,6 +86,28 @@ suite('BTS / actual FastAPI / native Chrome speech integration', function() {
     const dispatchViolations = [];
     const key = 'test-only-key-' + 'x'.repeat(32);
 
+    async function click(selector) {
+        const bounds = await devtools.evaluate('(() => { const element = document.querySelector(' + JSON.stringify(selector) + '); ' +
+            'element.scrollIntoView({block:\'center\'}); const r = element.getBoundingClientRect(); ' +
+            'return {x:r.x+r.width/2,y:r.y+r.height/2}; })()');
+        for (const type of ['mousePressed', 'mouseReleased']) {
+            await devtools.call('Input.dispatchMouseEvent', { type, ...bounds, button: 'left', clickCount: 1 });
+        }
+    }
+
+    async function openSpeechSettings() {
+        const position = await devtools.evaluate('(() => { const label = document.querySelector(\'.toprow_menu_label\'); ' +
+            'const r = label.getBoundingClientRect(); return {x:r.x+r.width/2,y:r.y+r.height/2}; })()');
+        await devtools.call('Input.dispatchMouseEvent', { type: 'mouseMoved', ...position });
+        await click('.toprow_menu_item[data-label="Sprachausgabe"]');
+        await until(() => devtools.evaluate('!!document.querySelector(\'.local_speech_dialog[open] .local_speech_controls\')'));
+    }
+
+    async function closeSpeechSettings() {
+        await click('.local_speech_close');
+        await until(() => devtools.evaluate('!document.querySelector(\'.local_speech_dialog\')'));
+    }
+
     before(async function() {
         directory = fs.mkdtempSync(path.join(os.tmpdir(), 'bts-speech-e2e-'));
         const python = process.env.BTS_SPEECH_PYTHON ||
@@ -156,7 +178,7 @@ suite('BTS / actual FastAPI / native Chrome speech integration', function() {
         await devtools.call('Emulation.setDeviceMetricsOverride',
             { width: 1280, height: 1100, deviceScaleFactor: 1, mobile: false });
         await devtools.call('Page.navigate', { url: 'http://127.0.0.1:' + server.address().port + '/admin/t/default/' });
-        await until(() => devtools.evaluate('!!document.querySelector(\'.local_speech_controls\')'));
+        await until(() => devtools.evaluate('!!document.querySelector(\'.location_announcements_controls\')'));
     });
 
     after(async function() {
@@ -184,16 +206,28 @@ suite('BTS / actual FastAPI / native Chrome speech integration', function() {
     });
 
     it('renders usable controls and plays ready server audio in the native browser', async function() {
+        assert.strictEqual(await devtools.evaluate('!!document.querySelector(\'.local_speech_controls\')'), false,
+            'speech settings belong in the admin menu rather than the main announcement panel');
         await devtools.evaluate('localStorage.setItem(\'bts_speech_mode\', \'server\'); window.__audioSources = []; ' +
             'const nativePlay = HTMLMediaElement.prototype.play; HTMLMediaElement.prototype.play = function() {' +
             'this.addEventListener(\'playing\', () => window.__audioSources.push(this.currentSrc), {once:true}); ' +
             'return nativePlay.call(this); };');
+        await openSpeechSettings();
         const bounds = await devtools.evaluate('(() => { const button = [...document.querySelectorAll(\'.local_speech_controls button\')]' +
             '.find(b => b.textContent === \'Audio aktivieren\'); button.scrollIntoView({block:\'center\'}); ' +
             'const r = button.getBoundingClientRect(); return {x:r.x+r.width/2,y:r.y+r.height/2}; })()');
         for (const type of ['mousePressed', 'mouseReleased']) {
             await devtools.call('Input.dispatchMouseEvent', { type, x: bounds.x, y: bounds.y, button: 'left', clickCount: 1 });
         }
+        await devtools.call('Page.captureScreenshot', { format: 'png' }).then(result =>
+            fs.writeFileSync('/tmp/bts-speech-admin-menu.png', Buffer.from(result.data, 'base64')));
+        await devtools.call('Emulation.setDeviceMetricsOverride',
+            { width: 390, height: 844, deviceScaleFactor: 1, mobile: false });
+        await devtools.call('Page.captureScreenshot', { format: 'png' }).then(result =>
+            fs.writeFileSync('/tmp/bts-speech-admin-menu-mobile.png', Buffer.from(result.data, 'base64')));
+        await devtools.call('Emulation.setDeviceMetricsOverride',
+            { width: 1280, height: 1100, deviceScaleFactor: 1, mobile: false });
+        await closeSpeechSettings();
         assert.strictEqual(await devtools.evaluate('btsSpeechService.unlock()'), true,
             'the actual silent unlock WAV must be playable in the native browser');
         const state = await devtools.evaluate('runAnnouncementSpeechCheck()');
@@ -232,9 +266,11 @@ suite('BTS / actual FastAPI / native Chrome speech integration', function() {
     });
 
     it('uses the green preparation call audio directly in automatic mode despite a delayed resolve endpoint', async function() {
+        await openSpeechSettings();
         await devtools.evaluate('(() => { const mode = document.querySelector(\'.local_speech_controls select\'); ' +
-            'mode.value = \'auto\'; mode.dispatchEvent(new Event(\'change\')); ' +
-            'localStorage.setItem(\'enable_announcement_preparations_default_h1\', \'true\'); ' +
+            'mode.value = \'auto\'; mode.dispatchEvent(new Event(\'change\')); })()');
+        await closeSpeechSettings();
+        await devtools.evaluate('(() => { localStorage.setItem(\'enable_announcement_preparations_default_h1\', \'true\'); ' +
             'window.__audioSources = []; window.__browserSpeechCalls = 0; ' +
             'const nativeSpeak = speechSynthesis.speak.bind(speechSynthesis); ' +
             'speechSynthesis.speak = words => { window.__browserSpeechCalls++; return nativeSpeak(words); }; ' +
@@ -302,8 +338,10 @@ suite('BTS / actual FastAPI / native Chrome speech integration', function() {
     });
 
     it('prepares the male voice after selection and plays its cached audio with only one outstanding job', async function() {
+        await openSpeechSettings();
         await devtools.evaluate('(() => { const voice = document.querySelectorAll(\'.local_speech_controls select\')[1]; ' +
             'voice.value = \'hallensprecher\'; voice.dispatchEvent(new Event(\'change\')); })()');
+        await closeSpeechSettings();
         await until(() => {
             const male = [...app.speech.broker.entries.values()].filter(entry => entry.voice === 'hallensprecher');
             return male.length > 1 && male.every(entry => entry.status === 'completed');
@@ -325,5 +363,11 @@ suite('BTS / actual FastAPI / native Chrome speech integration', function() {
         const received = fs.readFileSync(path.join(directory, 'received.jsonl'), 'utf8').trim().split('\n').map(JSON.parse);
         assert(received.some(item => item.voice === 'hallensprecher' && item.text.includes('Muhammad Sytsh Abdulquddus')));
         assert.deepStrictEqual(dispatchViolations, []);
+        await openSpeechSettings();
+        assert.strictEqual(await devtools.evaluate('document.querySelectorAll(\'.local_speech_controls select\')[1].value'), 'hallensprecher');
+        for (const type of ['keyDown', 'keyUp']) {
+            await devtools.call('Input.dispatchKeyEvent', { type, key: 'Escape', code: 'Escape', windowsVirtualKeyCode: 27 });
+        }
+        await until(() => devtools.evaluate('!document.querySelector(\'.local_speech_dialog\')'));
     });
 });

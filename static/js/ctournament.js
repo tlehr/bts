@@ -1270,8 +1270,15 @@ var ctournament = (function() {
 		uiu.qsEach('.local_speech_playback_status', el => { el.textContent = btsSpeechService.outputMessage(); });
 	}
 
-	function render_enable_announcements_content(container, locations) {
-		uiu.el(container, 'h3', {}, 'Ansagen auf diesem Gerät');
+	function render_local_speech_output_status(container) {
+		uiu.el(container, 'div', { class: 'local_speech_playback_status', 'aria-live': 'polite' }, btsSpeechService.outputMessage());
+		if (!local_speech_output_listener_registered) {
+			local_speech_output_listener_registered = true;
+			window.addEventListener('bts-speech-output-changed', update_local_speech_output_status);
+		}
+	}
+
+	function render_local_speech_controls(container) {
 		if (typeof btsSpeechService !== 'undefined') {
 			const controls = uiu.el(container, 'div', 'local_speech_controls');
 			const modeLabel = uiu.el(controls, 'label', {}, 'Sprachausgabe: ');
@@ -1289,11 +1296,7 @@ var ctournament = (function() {
 			]) uiu.el(voice, 'option', { value }, label);
 			voice.value = btsSpeechService.settings().voice;
 			const status = uiu.el(controls, 'div', 'local_speech_status');
-			uiu.el(controls, 'div', { class: 'local_speech_playback_status', 'aria-live': 'polite' }, btsSpeechService.outputMessage());
-			if (!local_speech_output_listener_registered) {
-				local_speech_output_listener_registered = true;
-				window.addEventListener('bts-speech-output-changed', update_local_speech_output_status);
-			}
+			render_local_speech_output_status(controls);
 			const update = () => btsSpeechService.status().then(response => {
 				if (!status.isConnected) return;
 				if (response?.speech) curt.speech = response.speech;
@@ -1334,6 +1337,32 @@ var ctournament = (function() {
 			uiu.el(legend, 'small', {}, 'Haken: alle Ansageteile der gewählten Stimme gecacht und Audio auf diesem Gerät freigegeben. Details beim Darüberfahren. Hallen-Ansagen zusätzlich aktivieren.');
 			void update();
 		}
+	}
+
+	function ui_speech_settings() {
+		const existing = document.querySelector('.local_speech_dialog');
+		if (existing) {
+			existing.querySelector('select')?.focus();
+			return;
+		}
+		const dialog = uiu.el(uiu.qs('.main'), 'dialog', {
+			class: 'local_speech_dialog', 'aria-labelledby': 'local_speech_dialog_title',
+		});
+		uiu.el(dialog, 'h2', { id: 'local_speech_dialog_title' }, 'Sprachausgabe');
+		uiu.el(dialog, 'p', {}, 'Einstellungen für die Ansagen auf diesem Gerät.');
+		render_local_speech_controls(dialog);
+		uiu.el(dialog, 'button', { type: 'button', class: 'local_speech_close' }, 'Schließen')
+			.addEventListener('click', () => dialog.close());
+		dialog.addEventListener('close', () => dialog.remove());
+		dialog.addEventListener('keydown', event => {
+			if (event.key === 'Escape') event.stopPropagation();
+		});
+		dialog.showModal();
+	}
+
+	function render_enable_announcements_content(container, locations) {
+		uiu.el(container, 'h3', {}, 'Ansagen auf diesem Gerät');
+		if (typeof btsSpeechService !== 'undefined') render_local_speech_output_status(container);
 
 		(locations || []).forEach(loc => {
 			{
@@ -1791,6 +1820,10 @@ var ctournament = (function() {
 		const items = [{
 			label: ci18n('edit BTS settings'),
 			href: base_path + '/edit',
+		}, {
+			label: 'Sprachausgabe',
+			button: true,
+			func: ui_speech_settings,
 		}];
 		if (curt.btp_enabled) {
 			items.push({

@@ -31,7 +31,8 @@ function update_container(container, elems, with_sep) {
 				if (item.href) {
 					item_attrs.href = item.href;
 				}
-				const item_el = uiu.el(dropdown, (item.href ? 'a' : 'span'), item_attrs, item.label);
+				if (item.button) item_attrs.type = 'button';
+				const item_el = uiu.el(dropdown, (item.href ? 'a' : item.button ? 'button' : 'span'), item_attrs, item.label);
 				if (item.func) {
 					item_el.addEventListener('click', item.func);
 				}
