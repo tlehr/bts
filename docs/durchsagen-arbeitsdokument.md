@@ -4,19 +4,20 @@ Stand: 16.10.2026 · Branch: `feat/localTts`
 
 Diese Datei ist unsere gemeinsame Grundlage, um Wortlaut, Reihenfolge und Stückelung der Turnierdurchsagen zu bearbeiten. Die Kennungen D01–D15 und B01–B12 bleiben bei Überarbeitungen erhalten, damit wir einzelne Stellen eindeutig benennen können.
 
-Die Anwesenheitskontrolle bleibt vorerst außerhalb dieser Betrachtung. Die Datei beschreibt zunächst den aktuellen Programmstand. Änderungen hier werden anschließend ausdrücklich in die Anwendung übertragen; BTS liest diese Markdown-Datei nicht als Konfiguration.
+Die Anwesenheitskontrolle bleibt vorerst außerhalb dieser Betrachtung. Die Datei beschreibt den aktuellen Programmstand und hält in Abschnitt 7 unsere Vereinbarungen für die Überarbeitung fest. Änderungen hier werden anschließend ausdrücklich in die Anwendung übertragen; BTS liest diese Markdown-Datei nicht als Konfiguration.
 
 ## 1. Ziel und bisherige Hörentscheidung
 
 - Möglichst lange, natürlich klingende Satzstücke verwenden.
 - Wiederholte Inhalte möglichst aus bereits erzeugten Aufnahmen abspielen.
+- So wenig wie möglich und so viel wie nötig generieren. Bereits passende Aufnahmen werden wiederverwendet.
 - Den gesprochenen Inhalt zunächst erhalten; die Stückelung darf sich ändern.
 - Vollständige Namen zusammenhalten. Übergänge zwischen Namen, „und“ und „gegen“ sollen natürlich klingen.
 - Zahlen vor der lokalen Synthese ausschreiben; in der Anzeige bleiben Ziffern erhalten.
 - Für Browser-TTS und lokale Generierung dürfen unterschiedliche Strategien verwendet werden.
 - Klangliches Ziel ist der deutlich bevorzugte zusammenhängende Hörtest **Variante 1**.
 
-Im Hörtest **Variante 5** wurde die separat erzeugte Spielfeldansage als unnatürlich bewertet. **Variante 6** übernimmt deshalb Anfangs- und Schlussansage aus Variante 1 und setzt den Spielblock aus Variante 5 dazwischen. Diese Aufnahme steht zum Vergleich bereit. Daraus ist noch keine allgemeine Stückelungsregel für den Turnierbetrieb abgeleitet.
+Im Hörtest **Variante 5** wurde die separat erzeugte Spielfeldansage als unnatürlich bewertet. **Variante 6** übernimmt deshalb Anfangs- und Schlussansage aus Variante 1 und setzt den Spielblock aus Variante 5 dazwischen. Diese Aufnahme steht zum Vergleich bereit. Die vereinbarte Erstellung von B01-Anfang und B01-Ende für alle Felder greift dieses Vorgehen auf (Abschnitt 7.1); ihre Umsetzung für den Turnierbetrieb steht noch aus.
 
 Der Testtext enthält „Spiel 189“. Die produktive deutsche Vorlage lautet derzeit „Spiel Nummer 189!“. Diesen Unterschied berücksichtigen wir bei der Übertragung der Hörtestergebnisse.
 
@@ -103,6 +104,8 @@ B01 Auf Spielfeld {Feld}!
 ```
 
 Die Spielfeldansage steht am Anfang und am Ende. Der aktuelle lokale Aufbau verwendet dafür dieselbe Aufnahme; im Kontext-Hörtest 6 stammen Anfang und Ende aus unterschiedlichen Stellen derselben vollständigen Referenz.
+
+Für die geplante lokale Fassung ist vereinbart: Am Anfang wird **B01-Anfang** des jeweiligen Feldes verwendet, am Schluss **B01-Ende** desselben Feldes. Die Aufnahmegrenzen des Mittelteils und der Offiziellen bleiben offen. Erstellung und Wiederverwendung der Feldaufnahmen sind in Abschnitt 7.1 festgelegt.
 
 ### D02 – Vorbereitungsaufruf
 
@@ -279,13 +282,48 @@ BTS behält die Warteschlange und schickt höchstens einen offenen Generierungsa
 
 Variante 6 zeigt einen Weg zur Wiederverwendung von im Zusammenhang erzeugten Teilen. Die geprüften Schnittstellen gehören ausschließlich zu der konkreten Referenz-WAV. Für andere Texte und Aufnahmen müssen passende Grenzen ermittelt werden. Allein das Ändern von Satzzeichen oder eines Seeds garantiert keine gleiche Betonung bei anderer Stückelung.
 
-## 7. Entscheidungen für unsere nächste Überarbeitung
+## 7. Vereinbarungen und offene Entscheidungen
 
-Die folgenden Punkte sind offen und können wir direkt in dieser Datei festlegen:
+### 7.1 Festgelegt: Zuerst B01-Anfang und B01-Ende für alle Felder
+
+Die erste Vorbereitungsstufe erstellt die beiden Spielfeldaufnahmen für **alle im Turnier angelegten Felder**. Sie verwendet die zentral ausgewählte lokale Stimme.
+
+| Aufnahme | Gesprochener Text | Herkunft | Geplanter Einsatz bei D01 |
+| --- | --- | --- | --- |
+| B01-Anfang je Feld | `Auf Spielfeld {Feld}!` | Anfang eines vollständig erzeugten Spielaufrufs für dieses Feld | Beginn des Aufrufs |
+| B01-Ende je Feld | `Auf Spielfeld {Feld}!` | Ende derselben vollständigen Aufnahme | Abschluss des Aufrufs |
+
+**Erstellung je Feld:**
+
+1. Einen vollständigen Spielaufruf D01 mit der jeweiligen Feldnummer am Anfang und Ende erzeugen. Die Spielfeldansagen entstehen dabei im Zusammenhang der gesamten Durchsage.
+2. Die erste Spielfeldansage sauber ausschneiden und als B01-Anfang dieses Feldes speichern.
+3. Die letzte Spielfeldansage aus derselben Aufnahme ausschneiden und als B01-Ende dieses Feldes speichern.
+4. Beide Ausschnitte für spätere Aufrufe aus dem Cache verwenden. Für die zweite Position wird kein weiterer vollständiger Spielaufruf erzeugt.
+
+Schematische Quellaufnahme:
+
+```text
+Auf Spielfeld {Feld}! → {vollständiger Mittelteil des Referenzaufrufs} → Auf Spielfeld {Feld}!
+└──── B01-Anfang ────┘                                                 └──── B01-Ende ────┘
+```
+
+Bei N Feldern und vollständig leerem Cache entstehen damit **N vollständige Generierungen und 2 × N wiederverwendbare Feldaufnahmen**. Beispielsweise ergeben 16 Felder 16 vollständige Generierungen und 32 Ausschnitte. Bereits passende Aufnahmen werden weiterverwendet; ein Neustart allein soll keine erneute Generierung auslösen.
+
+Anfang und Ende sind trotz identischen Wortlauts zwei unterschiedliche Cache-Bausteine. Ihre Betonung stammt aus der jeweiligen Position im vollständigen Aufruf. Die spätere Änderung eines Gegners, einer Spielnummer oder einer Runde erfordert keine erneute Erzeugung dieser vorhandenen Feldaufnahmen. Ein neues Feld benötigt seine beiden Aufnahmen; eine andere Stimme oder Synthesekonfiguration benötigt dazu passende Aufnahmen.
+
+Die Schnittstellen müssen für jede Quellaufnahme ermittelt werden, damit keine Wortenden abgeschnitten oder benachbarte Wörter mit übernommen werden. Die festen Zeiten des bisherigen Feld-8-Hörtests sind keine allgemeine Schnittvorgabe. Quellaufnahme und Schnittinformationen bleiben als Herkunft der Ausschnitte erhalten.
+
+**Noch offen:** Welcher vollständige Mittelteil dient als Referenzaufruf für diese erste Vorbereitungsstufe? Ob und wie wir daraus zusätzlich andere Bausteine gewinnen, legen wir bei den nächsten Schritten fest. B02 („Für Spielfeld …!“) ist durch diese Festlegung noch nicht abgedeckt.
+
+### 7.2 Weitere Entscheidungen
+
+Die übrigen Punkte können wir direkt in dieser Datei festlegen:
 
 | Thema | Zu entscheiden | Vereinbarung |
 | --- | --- | --- |
-| Feldansage | Welche Aufnahmen benötigen Anfang und Schluss? Können dieselben Ausschnitte über verschiedene Durchsagen hinweg überzeugen? | Offen |
+| Feldansage | Wie entstehen die Aufnahmen für Anfang und Schluss? | B01-Anfang und B01-Ende je Feld aus derselben vollständigen D01-Aufnahme; erste Vorbereitungsstufe für alle Felder (Abschnitt 7.1) |
+| Referenzaufruf | Welcher Mittelteil wird für die erstmalige Erstellung der Feldaufnahmen gesprochen? | Offen |
+| Einsatz weiterer Feldansagen | Welche B01-Ausschnitte passen auch zu D03–D08? Wie wird B02 erstellt? | Offen |
 | Spielblock | Welche Angaben bleiben gemeinsam in einer langen Aufnahme? | Offen |
 | Namen und Paarungen | Ein vollständiger Name je Aufnahme, ein Team oder beide Teams mit „gegen“? | Offen |
 | Offizielle | Welche Rollen-/Namensstücke lassen sich natürlich zwischen normalen Aufrufen und Zweitaufrufen wiederverwenden? | Offen |
@@ -294,7 +332,7 @@ Die folgenden Punkte sind offen und können wir direkt in dieser Datei festlegen
 | Kampflos | Welche Aufnahmen können mit D01/D02 geteilt werden, ohne die andere Satzmelodie zu verlieren? | Offen |
 | Pausen und Betonung | Welche Pausen gehören in die Aufnahme, welche setzen wir beim Abspielen? | Offen |
 | Browser-TTS | Welche bestehende Abschnittsaufteilung behalten oder ändern wir dafür? | Offen |
-| Vorab-Cache | Welche Varianten müssen vorbereitet werden, und welche erst nach einer tatsächlichen Änderung? | Offen |
+| Vorab-Cache | Welche Varianten müssen vorbereitet werden, und welche erst nach einer tatsächlichen Änderung? | Zuerst B01-Anfang und B01-Ende für alle Felder; weitere Vorbereitungsstufen offen |
 
 Für eine vereinbarte neue Fassung können wir je Durchsage anschließend festhalten:
 
