@@ -184,6 +184,8 @@ Aktuell werden nur deutsche Server-Stimmen angeboten. Englisch/Niederländisch b
 
 ## Tests
 
+Für wiederholte akustische Vergleiche mit festem Spielruf gibt es einen [separaten Hörtest](tts-listening-lab.md). Er hält Kitten geladen, vergleicht vier Stückelungs-/Satzzeichenvarianten und erlaubt Änderungen von Pausen, Tempo, Seed und Sampling ohne Neustart des Produktivservers. Er schreibt ausschließlich eigene Testaufnahmen.
+
     ./node_modules/.bin/mocha test/test_speech_numbers.js test/test_speech_playback.js test/test_speech_text.js test/test_speech_browser.js test/test_speech_backend.js test/test_speech_readiness.js
     npm test
 
