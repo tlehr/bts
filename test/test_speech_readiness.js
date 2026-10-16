@@ -22,7 +22,7 @@ function harness() {
         requests.push([...parts]);
         if (h.pending) await h.pending;
         return h.fail ? null : { speech: { enabled: true, cache_version: h.version, last_error: h.error },
-            clips: parts.map(text => ({ status: statuses.get(settings.voice + text) || 'missing' })) };
+            clips: parts.map(text => ({ status: statuses.get(settings.voice + text) || 'missing', local: h.local === true })) };
     } };
     h.ready = (text, voice = settings.voice) => statuses.set(voice + text, 'completed');
     h.advance = ms => { time += ms; };
@@ -209,6 +209,17 @@ describe('Announcement cache readiness indicators', function() {
         h.statuses.set(h.settings.voice + 'Text', 'failed');
         await h.controller.refresh(true);
         assert.strictEqual(target.dataset.speechState, 'failed');
+    });
+
+    it('keeps verified locally stored calls ready while the generation server is offline', async function() {
+        const h = harness(), target = element();
+        h.controller.trackText(target, () => ['Text']);
+        h.ready('Text'); h.local = true; h.error = 'speech_unavailable';
+        await h.controller.refresh();
+        assert.strictEqual(target.dataset.speechState, 'ready');
+        h.local = false;
+        await h.controller.refresh(true);
+        assert.strictEqual(target.dataset.speechState, 'unavailable', 'remote-only references cannot promise offline playback');
     });
 
     it('does not inspect disabled, unsupported, empty or disconnected controls', async function() {

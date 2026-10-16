@@ -3,6 +3,7 @@
 const http = require('http');
 const https = require('https');
 const crypto = require('crypto');
+const fs = require('fs');
 const compactWav = require('./playback');
 const playbackCaches = new WeakMap();
 const MAX_PLAYBACK_BYTES = 16 * 1024 * 1024;
@@ -98,6 +99,28 @@ module.exports = function audio_proxy(req, res) {
         const record = cache.items.get(cacheKey);
         cache.items.delete(cacheKey); cache.items.set(cacheKey, record);
         headers(); playbackResponse(req, res, record); return;
+    }
+    const local = broker.disk?.file(audio_id);
+    if (local) {
+        headers();
+        if (playback) {
+            if (local.size_bytes > MAX_PLAYBACK_BYTES) { fail(); return; }
+            void fs.promises.readFile(local.path).then(data => {
+                if (res.writableEnded || res.destroyed) return;
+                playbackResponse(req, res, cachePlayback(cache, cacheKey, compactWav(data, playback === 'words-v1')));
+            }).catch(fail);
+        } else {
+            res.setHeader('Content-Type', 'audio/wav');
+            res.setHeader('ETag', '"' + local.sha256 + '"');
+            res.sendFile(local.path, { cacheControl: false, lastModified: false }, error => {
+                if (!error) return;
+                if (error.status === 416 && !res.headersSent) {
+                    res.setHeader('Content-Range', 'bytes */' + local.size_bytes);
+                    res.status(416).end();
+                } else fail();
+            });
+        }
+        return;
     }
     const target = new URL('/v1/audio/' + audio_id, broker.config.base_url);
     upstream = (target.protocol === 'https:' ? https : http).request(target, {

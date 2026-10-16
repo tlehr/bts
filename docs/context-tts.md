@@ -25,6 +25,28 @@ BTS legt Quellen vor ihren abhängigen Ausschnitten an und schickt weiterhin nur
 
 Der Sprachserver speichert Quellen und Ausschnitte als unveränderliche WAVs im bestehenden Cache. Quellen verwenden Seed 42; ihre Schlüssel berücksichtigen weiterhin Stimme, Modell, Referenz und Sampling. Die Ausschnittschlüssel enthalten zusätzlich die konkrete Quellaufnahme, den exakten Textbereich, das Erkennungsmodell und die Verarbeitungsversion. Änderungen der Schnittverarbeitung benötigen keine neue Sprachsynthese der Quelle. Alte Aufnahmen werden nicht überschrieben.
 
+### Dauerhafter BTS-Cache und gemeinsamer Audiospeicher
+
+BTS speichert fertige Quellen und Ausschnitte zusätzlich dauerhaft unter `data/speech-cache/`. Der atomar geschriebene Index enthält die genaue Zuordnung zu Baustein, Stimme, Sprache und bestätigter Synthesekonfiguration sowie WAV-Prüfsumme und Wiedergabemerkmale. Der Fertigstatus wird erst nach Prüfung und Synchronisierung von Datei und Index veröffentlicht. Beim Neustart werden Dateien geprüft und passende Zuordnungen wiederhergestellt, ohne diese Bausteine erneut beim Sprachserver anzumelden. Fehlende oder beschädigte Dateien werden nicht als fertig angezeigt. Eine bestätigte Modell-, Stimm- oder Verarbeitungsänderung verwendet die dazu passende eigene Zuordnung.
+
+Laufen beide Dienste auf demselben Dateisystem, kann `speech.shared_audio_dir` in der BTS-Konfiguration auf das `data/audio/` des Sprachservers zeigen. BTS legt dann eigene **Hardlinks** an: zwei Dateinamen, dieselben WAV-Daten auf der Festplatte. Die eigenen Links erhalten den fertigen Bestand auch bei abgeschaltetem Sprachserver. Bereits heruntergeladene Kopien werden beim Start auf Hardlinks umgestellt, wenn die passende unveränderte Quelldatei verfügbar ist. Über Dateisystemgrenzen hinweg wird stattdessen kopiert; bei einem entfernten Sprachserver werden fertige Dateien einmalig über die geschützte Audio-API heruntergeladen.
+
+Die SQLite-Datenbank des Sprachservers und der BTS-Index bleiben getrennt. BTS verändert keine Sprachserver-Datei und schreibt nicht in dessen Datenbank. Die Sprachserver-Bereinigung erhält WAVs mit zusätzlichen Hardlinks, damit ihre Quell-IDs auch für spätere Ausschnitte verfügbar bleiben. Ist das konfigurierte Sprachserver-Cachelimit durch geschützte Dateien ausgeschöpft, wird weiterer Platz benötigt oder das Limit muss erhöht werden; fertige geteilte Aufnahmen werden dafür nicht gelöscht. BTS entfernt seinen gesicherten Bestand nicht automatisch.
+
+Beispiel innerhalb von `speech` in der BTS-`config.json`:
+
+```json
+{
+  "cache_enabled": true,
+  "cache_dir": "data/speech-cache",
+  "shared_audio_dir": "/pfad/zum/bts-sprachserver/data/audio"
+}
+```
+
+Alternativ gelten `BTS_SPEECH_CACHE_ENABLED`, `BTS_SPEECH_CACHE_DIR` und `BTS_SPEECH_SHARED_AUDIO_DIR`. Der Standard ist ein eigener Cache neben dem dateibasierten BTS-Datenbestand; `shared_audio_dir` ist standardmäßig leer. Die Dienste benötigen Zugriff auf den angegebenen Audiopfad. Jeder BTS-Datenbestand behält seinen eigenen Index; gemeinsam genutzt werden die unveränderlichen WAV-Daten. Der Cache enthält keine API-Schlüssel und wird mit privaten Verzeichnis-/Indexrechten angelegt.
+
+Fertige Aufnahmen werden direkt durch den vorhandenen signierten BTS-Audiopfad ausgeliefert, einschließlich Bereichsanfragen. Das funktioniert auch nach einem BTS-Neustart mit gestopptem Sprachserver; nur fehlende Bausteine benötigen dessen Rückkehr. Die Bereitschaftsanzeige berücksichtigt diese lokale Verfügbarkeit. Die Einstellungen nennen zusätzlich, wie viele Aufträge dauerhaft im BTS gespeichert sind.
+
 ### Anzeige der Aufträge
 
 Jede Zeile zeigt ihre Auftragsart ausdrücklich an:
@@ -65,5 +87,7 @@ Die vorhandene Turnierauswahl von Stimme und Sprachmodus gilt weiterhin für all
 103 Sprachserver-Tests bestanden, die beiden bisherigen teuren Modelltests blieben opt-in. 137 BTS-Sprachtests einschließlich FastAPI und echtem Chrome bestanden; ESLint meldet für die geänderten JavaScript-Dateien keine Fehler. Neue Tests vergleichen sämtliche gesprochenen Wörter und Browsertexte über optionale Turniereinstellungen hinweg, prüfen die vollständige Vorabplanung, Quellabhängigkeiten, Cache-Wiederverwendung und die gemeinsame Audio-Uhr.
 
 Ein zusätzlicher Regressionstest bereitet drei Spiele ohne Feldzuweisung und alle 13 Feldreferenzen vor. Anschließend ruft er acht B01-basierte Ansagearten für jedes Spiel auf jedem Feld ab. Alle Stücke sind bereits fertig; weder eine weitere Quelle noch ein Ausschnitt oder ein zusätzlicher Sprachserver-Auftrag wird angelegt.
+
+Die dauerhafte Speicherung wird zusätzlich mit HTTP-Downloads und echten Hardlinks geprüft: Neustart mit abgeschaltetem Sprachserver, signierte lokale Wiedergabe einschließlich Range/ETag, Wiederherstellung von Kontextstücken und Pausen, Wechsel der Syntheseidentität, beschädigte Dateien, Index-Schreibfehler ohne erneute Synthese sowie die Umstellung vorhandener Kopien auf Hardlinks ohne API-Aufruf. Ein FastAPI-/Chrome-Test beendet den tatsächlichen API-Prozess und prüft anschließend grüne Bereitschaft und Wiedergabe über einen frisch gestarteten BTS-Adapter. Ein Sprachserver-Test prüft die Erhaltung geteilter Dateien bei der Bereinigung und die Ablehnung eines vollen geschützten Caches vor einem neuen Modelllauf.
 
 Der separate Durchlauf `bts-sprachserver/data/integration/context/cdaa5732dbfe/` bereitete alle 32 Varianten des Beispielspiels über den echten BTS-Adapter vor: 14 Kontextquellen und 30 Ausschnitte sowie ein separater Sprachtest, keine fehlgeschlagenen Aufträge. Passende vorhandene Kitten-Rohaufnahmen wurden nur gelesen, fehlende Quellen mit dem nativen Worker erzeugt. Ein echter Chrome spielte D01 ohne Offizielle, D05, D08/Klapptafel und D12 mit beiden Siegern über die neue Audio-Uhr vollständig ab, ohne Browser-Fallback oder JavaScript-Fehler.

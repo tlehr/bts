@@ -4,6 +4,7 @@ const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
 const { request } = require('./http');
+const SpeechDiskCache = require('./disk_cache');
 const { spellNumbers, VERSION: TEXT_VERSION } = require('./numbers');
 const context = require('./context');
 const PRIORITY = { high: 0, normal: 1, low: 2 };
@@ -33,6 +34,9 @@ function configuration(config = {}, env = process.env) {
     return {
         enabled: configured && !!base_url && /^[\x20-\x7e]{32,}$/.test(api_key),
         configured, api_key, base_url,
+        cache_enabled: env.BTS_SPEECH_CACHE_ENABLED === undefined ? config.cache_enabled !== false : env.BTS_SPEECH_CACHE_ENABLED !== 'false',
+        cache_dir: env.BTS_SPEECH_CACHE_DIR || config.cache_dir || null,
+        shared_audio_dir: env.BTS_SPEECH_SHARED_AUDIO_DIR || config.shared_audio_dir || null,
         mode: ['browser', 'auto', 'server'].includes(config.mode) ? config.mode : 'auto',
         voice: config.voice === 'hallensprecher' ? 'hallensprecher' : 'hallensprecherin',
         deadline_ms: bounded(config.deadline_ms, 700, 50, 2000),
@@ -70,6 +74,26 @@ class SpeechBroker {
         this.last_metadata = 0;
         this.audio_clients = 0;
         this.context_version = null;
+        this.disk = null;
+        this.cache_error = null;
+        if (config.enabled && config.cache_enabled && config.cache_dir) {
+            try {
+                this.disk = new SpeechDiskCache(config);
+                const saved = this.disk.state;
+                if (saved && JSON.parse(saved.identity)[0] === TEXT_VERSION && Array.isArray(saved.voices)) {
+                    this.identity = saved.identity;
+                    this.voices = saved.voices;
+                    this.context_version = saved.context_version === context.VERSION ? context.VERSION : null;
+                }
+                void this.disk.ready.then(() => {
+                    const changed = new Set();
+                    for (const entry of this.entries.values()) if (this.restore(entry)) {
+                        for (const key of entry.tournaments) changed.add(key);
+                    }
+                    if (changed.size) this.on_change([...changed]);
+                }).catch(() => { this.cache_error = 'speech_cache_unavailable'; });
+            } catch (_) { this.cache_error = 'speech_cache_unavailable'; }
+        }
     }
 
     public_config(voice = this.config.voice) {
@@ -82,7 +106,25 @@ class SpeechBroker {
             cache_version: this.identity ? crypto.createHash('sha256').update(this.identity).digest('hex') : null,
             preparing: entries.filter(item => ['unsubmitted', 'queued', 'processing'].includes(item.status)).length,
             ready: entries.filter(item => item.status === 'completed').length,
+            persistent_cache: { enabled: !!this.disk, ready: entries.filter(item => item.status === 'completed' && item.local).length,
+                error: this.cache_error },
         };
+    }
+
+    restore(entry) {
+        const saved = this.disk?.lookup(this.identity, entry.key);
+        if (!saved) return false;
+        Object.assign(entry, { status: 'completed', job_id: saved.job_id, audio_id: saved.audio_id, processed: saved.processed,
+            leading_quiet_ms: saved.leading_quiet_ms, trailing_quiet_ms: saved.trailing_quiet_ms,
+            checked: this.now(), local: true, revalidate: false });
+        return true;
+    }
+
+    check_local(entry) {
+        if (entry?.local && !this.disk?.file(entry.audio_id)) {
+            Object.assign(entry, { status: 'unsubmitted', local: false, retry_at: 0, revalidate: false });
+        }
+        return entry;
     }
 
     key(text, voice, language) {
@@ -136,7 +178,9 @@ class SpeechBroker {
                     tournaments: new Set(),
                 };
                 this.entries.set(key, entry);
+                this.restore(entry);
             }
+            this.check_local(entry);
             if (tournament_key) entry.tournaments.add(tournament_key);
             entry.used = this.now();
             if (PRIORITY[normalized.priority] < entry.priority) {
@@ -144,7 +188,7 @@ class SpeechBroker {
             }
             if (entry.status === 'failed' && entry.retry_at <= this.now()) entry.status = 'unsubmitted';
             // Revalidate preference/configuration occasionally through the authoritative cache.
-            if (entry.status === 'completed' && entry.checked + 300000 < this.now()) entry.revalidate = true;
+            if (entry.status === 'completed' && !entry.local && entry.checked + 300000 < this.now()) entry.revalidate = true;
             if (normalized.priority === 'high') entry.next_poll = 0;
         }
         return normalized;
@@ -153,12 +197,13 @@ class SpeechBroker {
     views(parts, options, tournament_key) {
         const { voice, language } = this.validate(parts, options);
         return parts.map(text => {
-            const entry = this.entries.get(this.key(text, voice, language));
+            const entry = this.check_local(this.entries.get(this.key(text, voice, language)));
             return entry?.status === 'completed' ? {
                 status: 'completed',
                 audio_url: this.audio_url(tournament_key, entry.audio_id, entry),
                 processed: entry.processed || false, leading_quiet_ms: entry.leading_quiet_ms || 0,
                 trailing_quiet_ms: entry.trailing_quiet_ms || 0,
+                ...(entry.local ? { local: true } : {}),
             } : { status: entry?.status || 'unsubmitted', audio_url: null };
         });
     }
@@ -166,11 +211,12 @@ class SpeechBroker {
     inspect(parts, options, tournament_key) {
         const { voice, language } = this.validate(parts, options);
         return parts.map(text => {
-            const entry = this.entries.get(this.key(text, voice, language));
+            const entry = this.check_local(this.entries.get(this.key(text, voice, language)));
             return { status: entry?.status || 'missing',
                 ...(entry?.status === 'completed' && tournament_key ?
                     { audio_url: this.audio_url(tournament_key, entry.audio_id, entry), processed: entry.processed || false,
                         leading_quiet_ms: entry.leading_quiet_ms || 0, trailing_quiet_ms: entry.trailing_quiet_ms || 0 } : {}),
+                ...(entry?.status === 'completed' && entry.local ? { local: true } : {}),
             };
         });
     }
@@ -211,6 +257,7 @@ class SpeechBroker {
     }
 
     queue(tournament_key) {
+        for (const entry of this.entries.values()) this.check_local(entry);
         // Describe a source by its actual consumers. A full field reference
         // contains a fixed example game, but only supplies the reusable edges.
         const source_usage = new Map();
@@ -239,6 +286,7 @@ class SpeechBroker {
                 current: entry === current, retry_at: Math.max(entry.retry_at, this.post_retry_at),
                 audio_url: entry.status === 'completed' ? this.audio_url(tournament_key, entry.audio_id, entry) : null,
                 kind: entry.context?.kind || 'text',
+                local: entry.local === true,
                 operation: !entry.source_key ? 'synthesis' : entry.context.before || entry.context.after ? 'excerpt' : 'processing',
                 ...(entry.source_key ? { source_key: entry.source_key, source_range: {
                     start: entry.context.before.length, end: entry.context.before.length + entry.text.length,
@@ -297,9 +345,17 @@ class SpeechBroker {
                     entry.status = 'unsubmitted';
                     entry.job_id = null;
                     entry.retry_at = 0;
+                    entry.local = false;
                 }
             }
             this.identity = identity;
+            if (this.disk) {
+                try {
+                    await this.disk.setState({ identity, voices: this.voices, context_version: next_context });
+                    this.cache_error = null;
+                }
+                catch (_) { this.cache_error = 'speech_cache_unavailable'; }
+            }
             this.last_error = state.status === 'starting' || state.status === 'error' ? 'speech_unavailable' : null;
         } else this.last_error = 'speech_unavailable';
         this.last_metadata = this.now();
@@ -335,6 +391,8 @@ class SpeechBroker {
     }
 
     async step() {
+        if (this.disk) await this.disk.ready;
+        if (this.cache_error && !this.disk) return;
         if (this.stepping) return;
         const now = this.now();
         if (!this.current) {
@@ -370,6 +428,16 @@ class SpeechBroker {
             }
             this.validate_response(entry, response);
             if (!post && response.job_id !== current.job_id) throw new Error('speech_invalid_response');
+            current.job_id = response.job_id;
+            if (current.identity === this.identity && response.status === 'completed' && this.disk) {
+                // Completion means both the WAV and its index have reached disk.
+                // Keep the current job occupied until publication finishes.
+                try {
+                    await this.disk.store(this.identity, entry.key, response);
+                    this.cache_error = null;
+                } catch (error) { this.cache_error = 'speech_cache_unavailable'; throw error; }
+                entry.local = true;
+            }
             if (current.identity === this.identity) this.update(entry, response);
             else entry.next_poll = now + this.config.poll_interval_ms;
             current.job_id = response.job_id;

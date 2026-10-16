@@ -665,4 +665,39 @@ suite('BTS / actual FastAPI / native Chrome speech integration', function() {
             admin.handle_speech_queue = original;
         }
     });
+    it('keeps shared audio green and plays it after BTS adapter restart with the actual FastAPI process stopped', async function() {
+        const text = 'Jungeneinzel U17';
+        const voice = await devtools.evaluate('btsSpeechService.settings().voice');
+        const config = { ...app.speech.broker.config, cache_dir: path.join(directory, 'persistent-bts'),
+            shared_audio_dir: path.join(directory, 'data', 'audio') };
+        const original = app.speech.broker;
+        const before = fs.readFileSync(path.join(directory, 'received.jsonl'), 'utf8');
+        const first = new SpeechBroker(config);
+        await first.refresh(); first.prepare([text], { voice }, 'default'); await first.step();
+        assert(first.views([text], { voice }, 'default')[0].local);
+        const entry = [...first.entries.values()][0];
+        assert.strictEqual(fs.statSync(first.disk.file(entry.audio_id).path).ino,
+            fs.statSync(path.join(config.shared_audio_dir, entry.audio_id + '.wav')).ino);
+        await terminate(api);
+        const fresh = new SpeechBroker(config); await fresh.disk.ready;
+        fresh.prepare([text], { voice }, 'default'); await fresh.refresh(); await fresh.step();
+        app.speech.broker = fresh;
+        try {
+            await devtools.call('Emulation.setDeviceMetricsOverride',
+                { width: 1280, height: 1100, deviceScaleFactor: 1, mobile: false });
+            await devtools.evaluate('(() => { const target = document.createElement(\'button\'); target.type = \'button\'; ' +
+                'target.id = \'durable-ready-test\'; target.textContent = \'Gespeicherte Ansage\'; document.body.appendChild(target); ' +
+                'target.scrollIntoView({block:\'center\'}); btsSpeechReadiness.trackText(target, () => [' + JSON.stringify(text) + ']); })()');
+            await devtools.evaluate('btsSpeechReadiness.refresh(true)');
+            assert.strictEqual(await devtools.evaluate('document.getElementById(\'durable-ready-test\').dataset.speechState'), 'ready');
+            const result = await devtools.evaluate('btsSpeechService.speak([' + JSON.stringify(text) + '], \'durable-offline-test\', ' +
+                '() => { throw new Error(\'unexpected browser fallback\'); })');
+            assert.strictEqual(result.provider, 'server');
+            assert.strictEqual(result.status, 'ok');
+            assert.strictEqual(fs.readFileSync(path.join(directory, 'received.jsonl'), 'utf8'), before);
+        } finally {
+            app.speech.broker = original;
+            await devtools.evaluate('document.getElementById(\'durable-ready-test\')?.remove()');
+        }
+    });
 });

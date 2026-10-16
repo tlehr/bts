@@ -3,13 +3,16 @@
 const { SpeechBroker, configuration } = require('./broker');
 const { Prefetcher } = require('./prefetch');
 const resolveSettings = require('../../static/js/speech_settings');
+const path = require('path');
 
 function public_config(broker, selected) {
     return { ...broker.public_config(selected.voice), ...selected };
 }
 
 function create(app) {
-    const broker = new SpeechBroker(configuration(app.config.speech), { onChange: keys => {
+    const config = configuration(app.config.speech);
+    if (!config.cache_dir && app.db?.tournaments?.filename) config.cache_dir = path.join(path.dirname(app.db.tournaments.filename), 'speech-cache');
+    const broker = new SpeechBroker(config, { onChange: keys => {
         for (const key of keys) require('../admin').notify_change(app, key, 'speech_cache_changed', {});
     } });
     const prefetch = new Prefetcher(app, broker);

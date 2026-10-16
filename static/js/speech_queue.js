@@ -151,7 +151,8 @@ function createSpeechQueue({ root, service, onSnapshot = () => {} }) {
         const failed = items.filter(item => item.status === 'failed').length;
         const fields = items.filter(item => item.source_usage?.type === 'field').length;
         const games = items.filter(item => item.source_usage?.type === 'game').length;
-        const counts = { total: items.length, ready, failed, preparing: items.length - ready - failed };
+        const counts = { total: items.length, ready, failed, preparing: items.length - ready - failed,
+            saved: items.filter(item => item.status === 'completed' && item.local).length };
         const summary_text = items.length ? items.length + ' Aufträge · ' + ready + ' fertig · ' +
             counts.preparing + ' offen' + (failed ? ' · ' + failed + ' fehlgeschlagen' : '') +
             (fields || games ? ' · ' + fields + ' Feldreferenzen · ' + games + ' Spielblöcke' : '') +

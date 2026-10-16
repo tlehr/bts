@@ -16,6 +16,9 @@
 		"api_key_file": "data/speech-api-key",
 		"mode": "auto",
 		"voice": "hallensprecherin",
+		"cache_enabled": true,
+		"cache_dir": "data/speech-cache",
+		"shared_audio_dir": null,
 		"prefetch_matches": 12,
 		"prefetch_interval_ms": 30000,
 		"deadline_ms": 700

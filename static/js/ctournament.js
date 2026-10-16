@@ -1306,9 +1306,11 @@ var ctournament = (function() {
 					? 'Lokaler Sprachserver ist im BTS-Backend noch nicht konfiguriert.'
 					: !counts ? 'Cache-Status derzeit nicht verfügbar.' :
 					(speech.last_error === 'speech_busy' ? 'Sprachserver beschäftigt; weitere Ansageteile warten im BTS. ' :
-						speech.last_error ? 'Sprachserver derzeit nicht bereit. ' : '') +
+						speech.last_error ? 'Sprachserver derzeit nicht bereit. ' + (counts.saved ? 'Gespeicherte Ansagen bleiben verfügbar. ' : '') : '') +
 						counts.ready + ' Ansageteile bereit, ' + counts.preparing + ' werden vorbereitet.' +
-						(counts.failed ? ' ' + counts.failed + ' fehlgeschlagen.' : '');
+						(counts.failed ? ' ' + counts.failed + ' fehlgeschlagen.' : '') +
+						(speech.persistent_cache?.enabled ? ' ' + counts.saved + ' dauerhaft im BTS gespeichert.' : '') +
+						(speech.persistent_cache?.error ? ' Dauerhaftes Speichern derzeit fehlgeschlagen.' : '');
 				if (status.textContent !== text) status.textContent = text;
 			};
 			const changed = () => {

@@ -91,12 +91,13 @@ function createSpeechReadiness(context) {
                 return entry && now() - entry.checked < 15000 ? entry.status : 'unknown';
             });
             const completed = states.filter(state => state === 'completed').length;
+            const locallyReady = parts.length > 0 && completed === parts.length && parts.every(text => cache.get(text)?.local);
             let state;
             if (!value.settings.enabled) state = 'disabled';
             else if (value.settings.mode === 'browser') state = 'browser';
             else if (value.settings.language !== 'de-DE' || parts.some(text => text.length > (value.settings.max_part_length || value.settings.max_text))) state = 'unsupported';
             else if (!parts.length) state = 'empty';
-            else if (unavailable || states.includes('unavailable')) state = 'unavailable';
+            else if (unavailable && !locallyReady || states.includes('unavailable')) state = 'unavailable';
             else if (value.settings.audio_error && value.settings.audio_error !== 'audio_blocked') state = 'audio_error';
             else if (value.settings.audio_error === 'audio_blocked') state = 'locked';
             else if (value.settings.audio_ready === false) state = 'checking';
@@ -143,7 +144,8 @@ function createSpeechReadiness(context) {
                 version = response.speech?.cache_version;
             }
             unavailable = response.speech?.last_error === 'speech_unavailable';
-            batch.forEach((text, index) => cache.set(text, { status: response.clips[index].status, checked: now() }));
+            batch.forEach((text, index) => cache.set(text, { status: response.clips[index].status,
+                local: response.clips[index].local === true, checked: now() }));
         }
         const current = snapshot();
         paint(collect(current), current);
