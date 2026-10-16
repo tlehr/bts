@@ -90,6 +90,44 @@ describe('Durable BTS speech cache', function() {
         assert.strictEqual(upstream.requests.length, count);
     });
 
+    for (const stage of ['original', 'context', 'name']) it('restores a cached ' + stage + ' excerpt before enqueueing missing raw sources, including during startup', async function() {
+        upstream = await fixture(directory, true, true);
+        upstream.state.failCuts = stage === 'name' ? true : stage === 'context' ? 'original' : false;
+        let clock = 1000;
+        const first = new SpeechBroker(upstream.config, { now: () => clock }); await first.refresh();
+        const part = '~bts-context-v1~' + JSON.stringify({ before: 'Finale! ', text: 'Ein Name', after: ' gegen Andere.', kind: 'team' });
+        first.prepare([part], {}, 'default');
+        for (let step = 0; step < 8; step++) { await first.step(); clock += 1000; }
+        assert(first.views([part], {}, 'default')[0].local);
+        for (const entry of first.entries.values()) if (entry.context?.kind === 'source') {
+            fs.unlinkSync(first.disk.file(entry.audio_id).path);
+            fs.unlinkSync(path.join(upstream.shared_directory, entry.audio_id + '.wav'));
+        }
+        const requests = upstream.requests.length;
+        const fresh = new SpeechBroker(upstream.config);
+        fresh.prepare([part], {}, 'default'); // Deliberately before asynchronous cache verification finishes.
+        await fresh.disk.ready; await fresh.step();
+        assert(fresh.views([part], {}, 'default')[0].local);
+        assert.strictEqual(fresh.entries.size, 1, 'no raw source is needed to play a finished excerpt');
+        assert.strictEqual(fresh.pending_order().length, 0);
+        assert.strictEqual(upstream.requests.length, requests);
+    });
+
+    it('checks the disk cache again before dispatching a previously waiting request', async function() {
+        upstream = await fixture(directory, true);
+        const broker = new SpeechBroker(upstream.config); await broker.refresh();
+        broker.prepare(['Zwischenzeitlich fertig'], {}, 'default');
+        const entry = [...broker.entries.values()][0];
+        const response = await broker.request(upstream.config.base_url, KEY, 'POST', '/v1/speech',
+            { text: entry.text, voice: entry.voice, language: entry.language }, 2000);
+        await broker.disk.store(broker.identity, entry.key, response);
+        const count = upstream.requests.length;
+        await broker.step();
+        assert(broker.views([entry.text], {}, 'default')[0].local);
+        assert.strictEqual(broker.current, null);
+        assert.strictEqual(upstream.requests.length, count);
+    });
+
     for (const stage of ['context', 'name']) it('retains a successful ' + stage + ' fallback and its provenance after a restart without another request', async function() {
         upstream = await fixture(directory, true, true); upstream.state.failCuts = stage === 'name' ? true : 'original';
         let clock = 1000;

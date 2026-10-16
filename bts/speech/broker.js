@@ -90,6 +90,7 @@ class SpeechBroker {
                     for (const entry of this.entries.values()) if (this.restore(entry)) {
                         for (const key of entry.tournaments) changed.add(key);
                     }
+                    for (const entry of this.entries.values()) this.ensure_source(entry);
                     if (changed.size) this.on_change([...changed]);
                 }).catch(() => { this.cache_error = 'speech_cache_unavailable'; });
             } catch (_) { this.cache_error = 'speech_cache_unavailable'; }
@@ -114,21 +115,23 @@ class SpeechBroker {
     restore(entry) {
         const saved = this.disk?.lookup(this.identity, entry.key);
         if (!saved) return false;
-        if (saved.fallback_stage && entry.context?.kind === 'team' && !this.set_team_fallback(entry, saved.fallback_stage)) return false;
+        if (saved.fallback_stage && entry.context?.kind === 'team' && !this.set_team_fallback(entry, saved.fallback_stage, true)) return false;
         Object.assign(entry, { status: 'completed', job_id: saved.job_id, audio_id: saved.audio_id, processed: saved.processed,
             leading_quiet_ms: saved.leading_quiet_ms, trailing_quiet_ms: saved.trailing_quiet_ms,
             checked: this.now(), local: true, revalidate: false });
         return true;
     }
 
-    set_team_fallback(entry, stage) {
+    set_team_fallback(entry, stage, cache_only = false) {
         const original = context.decode(entry.part, this.config.max_text);
         const recipe = stage === 'name' ? { before: '', text: entry.text, after: '', kind: 'team' } : original;
         const part = context.sourcePart(recipe);
         const key = this.key('team-fallback-' + stage + '-v1:' + part, entry.voice, entry.language);
         let source = this.entries.get(key);
+        Object.assign(entry, { context: recipe, source_key: key, fallback_stage: stage });
+        if (!source && cache_only && !this.disk?.lookup(this.identity, key)) return true;
         if (!source) {
-            if (this.entries.size >= this.config.max_entries) return false;
+            if (this.entries.size >= this.config.max_entries) return cache_only;
             source = { key, part, text: recipe.before + recipe.text + recipe.after, context: context.decode(part, this.config.max_text),
                 source_key: null, voice: entry.voice, language: entry.language, priority: entry.priority,
                 status: 'unsubmitted', created: entry.created, used: this.now(), retry_at: 0, next_poll: 0, busy: false,
@@ -142,11 +145,34 @@ class SpeechBroker {
                 source[group] ||= new Set();
                 source[group].add(tournament);
             }
+            if (entry.foreground_expiry?.has(tournament)) {
+                source.foreground_expiry ||= new Map();
+                source.foreground_expiry.set(tournament, Math.max(source.foreground_expiry.get(tournament) || 0,
+                    entry.foreground_expiry.get(tournament)));
+            }
         }
         source.priority = Math.min(source.priority, entry.priority);
         source.used = this.now();
-        Object.assign(entry, { context: recipe, source_key: key, fallback_stage: stage });
         return true;
+    }
+
+    ensure_source(entry) {
+        if (!entry.source_key || this.disk && !this.disk.verified) return;
+        if (entry.fallback_stage) {
+            this.set_team_fallback(entry, entry.fallback_stage, entry.status === 'completed');
+            return;
+        }
+        // A cached excerpt is playable by itself. Do not regenerate a missing
+        // raw source just to display the provenance of an already finished cut.
+        if (entry.status === 'completed' && !this.entries.has(entry.source_key) && !this.disk?.lookup(this.identity, entry.source_key)) return;
+        const source = context.sourcePart(entry.context);
+        const options = { voice: entry.voice, language: entry.language, priority: Object.keys(PRIORITY)[entry.priority] };
+        if (!entry.tournaments.size) this.prepare([source], options);
+        for (const key of entry.tournaments) {
+            if (entry.prefetch_tournaments?.has(key)) this.prepare([source], { ...options, prefetch: true }, key);
+            if (entry.foreground_tournaments?.has(key)) this.prepare([source],
+                { ...options, foreground_until: entry.foreground_expiry?.get(key) }, key);
+        }
     }
 
     advance_team_fallback(entry) {
@@ -202,7 +228,6 @@ class SpeechBroker {
         for (const text of parts) {
             const recipe = context.decode(text, this.config.max_text);
             const source = recipe && recipe.kind !== 'source' ? context.sourcePart(recipe) : null;
-            if (source) this.prepare([source], options, tournament_key);
             const key = this.key(text, normalized.voice, normalized.language);
             let entry = this.entries.get(key);
             if (!entry) {
@@ -229,11 +254,17 @@ class SpeechBroker {
                 this.restore(entry);
             }
             this.check_local(entry);
+            if (entry.status !== 'completed' && !entry.busy && entry !== this.current?.entry) this.restore(entry);
             const interests = options.prefetch ? 'prefetch_tournaments' : 'foreground_tournaments';
             if (tournament_key) {
                 entry.tournaments.add(tournament_key);
                 entry[interests] ||= new Set();
                 entry[interests].add(tournament_key);
+                if (!options.prefetch && entry.context) {
+                    entry.foreground_expiry ||= new Map();
+                    entry.foreground_expiry.set(tournament_key, Math.max(entry.foreground_expiry.get(tournament_key) || 0,
+                        options.foreground_until ?? this.now() + 10000));
+                }
             }
             const active_source = this.entries.get(entry.source_key);
             if (active_source) {
@@ -241,6 +272,11 @@ class SpeechBroker {
                 if (tournament_key) {
                     active_source[interests] ||= new Set();
                     active_source[interests].add(tournament_key);
+                    if (!options.prefetch && entry.foreground_expiry?.has(tournament_key)) {
+                        active_source.foreground_expiry ||= new Map();
+                        active_source.foreground_expiry.set(tournament_key, Math.max(active_source.foreground_expiry.get(tournament_key) || 0,
+                            entry.foreground_expiry.get(tournament_key)));
+                    }
                 }
                 active_source.priority = Math.min(active_source.priority, PRIORITY[normalized.priority]);
                 active_source.used = this.now();
@@ -253,6 +289,7 @@ class SpeechBroker {
             // Revalidate preference/configuration occasionally through the authoritative cache.
             if (entry.status === 'completed' && !entry.local && entry.checked + 300000 < this.now()) entry.revalidate = true;
             if (normalized.priority === 'high') entry.next_poll = 0;
+            this.ensure_source(entry);
         }
         return normalized;
     }
@@ -290,6 +327,7 @@ class SpeechBroker {
             entry.tournaments.delete(tournament_key);
             entry.prefetch_tournaments?.delete(tournament_key);
             entry.foreground_tournaments?.delete(tournament_key);
+            entry.foreground_expiry?.delete(tournament_key);
             // A submitted request retains its independent current slot until it
             // finishes. Removing its local cache entry never opens another slot.
             if (!entry.tournaments.size) this.entries.delete(key);
@@ -303,11 +341,18 @@ class SpeechBroker {
             const source = this.entries.get(stack.pop())?.source_key;
             if (source && !wanted.has(source)) { wanted.add(source); stack.push(source); }
         }
-        let changed = false;
+        let changed = false, retry_after = null;
         for (const [key, entry] of this.entries) {
-            if (!entry.prefetch_tournaments?.has(tournament_key) || wanted.has(key)) continue;
-            entry.prefetch_tournaments.delete(tournament_key);
-            if (entry.foreground_tournaments?.has(tournament_key)) continue;
+            if (wanted.has(key) || !entry.prefetch_tournaments?.has(tournament_key) &&
+                !(entry.context && entry.foreground_tournaments?.has(tournament_key))) continue;
+            entry.prefetch_tournaments?.delete(tournament_key);
+            if (entry.foreground_tournaments?.has(tournament_key)) {
+                if (!entry.context) continue;
+                const remaining = (entry.foreground_expiry?.get(tournament_key) || 0) - this.now();
+                if (remaining > 0) { retry_after = Math.min(retry_after ?? Infinity, remaining); continue; }
+                entry.foreground_tournaments.delete(tournament_key);
+                entry.foreground_expiry?.delete(tournament_key);
+            }
             entry.tournaments.delete(tournament_key);
             changed = true;
             if (!entry.tournaments.size) {
@@ -318,6 +363,7 @@ class SpeechBroker {
             }
         }
         if (changed) this.on_change([tournament_key]);
+        return retry_after;
     }
 
     pending_order(now = this.now()) {
@@ -511,6 +557,11 @@ class SpeechBroker {
         const current = this.current;
         const entry = current.entry;
         const post = !current.job_id;
+        if (post && this.restore(entry)) {
+            this.current = null;
+            if (entry.tournaments.size) this.on_change([...entry.tournaments]);
+            return;
+        }
         if (post ? now < Math.max(this.post_retry_at, entry.retry_at) : now < entry.next_poll) return;
         const previous_status = entry.status;
         this.stepping = true;

@@ -53,7 +53,8 @@ class SpeechDiskCache {
         } catch (error) {
             if (error.code !== 'ENOENT') throw new Error('speech_cache_index_invalid');
         }
-        this.ready = this.verify();
+        this.verified = false;
+        this.ready = this.verify().then(() => { this.verified = true; });
     }
 
     key(identity, key) { return crypto.createHash('sha256').update(JSON.stringify([identity, key])).digest('hex'); }

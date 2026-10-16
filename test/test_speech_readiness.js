@@ -7,8 +7,10 @@ const { _translate: translate } = require('../static/js/ci18n');
 const { tournament, setup } = require('./test_speech_text');
 
 function element() {
-    return { isConnected: true, visible: true, dataset: {}, title: 'Spiel aufrufen', textContent: '',
-        setAttribute(name, value) { this[name] = value; } };
+    const writes = [];
+    const dataset = new Proxy({}, { set(target, key, value) { writes.push([key, value]); target[key] = value; return true; } });
+    return { isConnected: true, visible: true, dataset, writes, title: 'Spiel aufrufen', textContent: '',
+        setAttribute(name, value) { writes.push([name, value]); this[name] = value; } };
 }
 
 function harness() {
@@ -33,6 +35,51 @@ function harness() {
 }
 
 describe('Announcement cache readiness indicators', function() {
+    it('rehydrates rebuilt buttons immediately and never rewrites unchanged ready indicators', async function() {
+        const h = harness(), old = element(), other = element();
+        h.controller.trackText(old, () => ['One']); h.controller.trackText(other, () => ['Two']);
+        h.ready('One'); h.ready('Two'); await h.controller.refresh();
+        const writes = other.writes.length;
+        old.isConnected = false;
+        const rebuilt = element(); rebuilt.isConnected = false;
+        h.controller.trackText(rebuilt, () => ['One']);
+        assert.strictEqual(rebuilt.dataset.speechState, 'ready', 'the new DOM node must never start unknown');
+        assert.deepStrictEqual(rebuilt.writes.filter(([key]) => key === 'speechState'), [['speechState', 'ready']]);
+        rebuilt.isConnected = true;
+        h.controller.changed(true); await h.controller.refresh(true);
+        assert.strictEqual(other.writes.length, writes, 'an unchanged indicator has no DOM mutations');
+        assert.strictEqual(rebuilt.writes.filter(([key]) => key === 'speechState').length, 1);
+    });
+
+    it('keeps visible ready states during revalidation and changes only the call whose result changed', async function() {
+        const h = harness(), one = element(), two = element();
+        h.controller.trackText(one, () => ['One']); h.controller.trackText(two, () => ['Two']);
+        h.ready('One'); h.ready('Two'); await h.controller.refresh();
+        const writes = two.writes.length;
+        h.advance(16000);
+        let release;
+        h.pending = new Promise(resolve => { release = resolve; });
+        const updating = h.controller.refresh(true);
+        assert.strictEqual(one.dataset.speechState, 'ready');
+        assert.strictEqual(two.dataset.speechState, 'ready');
+        h.statuses.delete(h.settings.voice + 'One');
+        release(); await updating;
+        assert.strictEqual(one.dataset.speechState, 'missing');
+        assert.strictEqual(two.dataset.speechState, 'ready');
+        assert.strictEqual(two.writes.length, writes);
+    });
+
+    it('invalidates only changed announcement text while unrelated ready buttons stay untouched', async function() {
+        const h = harness(), one = element(), two = element(); let text = 'One';
+        h.controller.trackText(one, () => [text]); h.controller.trackText(two, () => ['Two']);
+        h.ready('One'); h.ready('Two'); await h.controller.refresh();
+        const writes = two.writes.length;
+        text = 'Changed'; h.controller.changed();
+        assert.strictEqual(one.dataset.speechState, 'checking');
+        assert.strictEqual(two.dataset.speechState, 'ready');
+        assert.strictEqual(two.writes.length, writes);
+    });
+
     it('never shows a green check for browser mode, blocked audio or a failed audio download', async function() {
         const h = harness(), target = element();
         h.controller.trackText(target, () => ['Text']);

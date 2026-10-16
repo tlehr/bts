@@ -5,6 +5,7 @@
 function createSpeechReadiness(context) {
     const tracked = new Map();
     const cache = new Map();
+    const inspecting = new Set();
     const now = context.now || Date.now;
     let identity = null;
     let version = null;
@@ -44,9 +45,10 @@ function createSpeechReadiness(context) {
         version = null;
         unavailable = false;
         cache.clear();
+        inspecting.clear();
     }
 
-    function collect(value) {
+    function collect(value, selected = tracked, disconnected = false) {
         const matches = new Map((value.tournament?.matches || []).map(match => [match._id, match]));
         let parts;
         const texts = context.createTexts({
@@ -56,8 +58,8 @@ function createSpeechReadiness(context) {
             announce: values => parts.push(...values),
         });
         const jobs = [];
-        for (const [element, item] of tracked) {
-            if (!element.isConnected) { tracked.delete(element); continue; }
+        for (const [element, item] of selected) {
+            if (!element.isConnected && !disconnected) { tracked.delete(element); continue; }
             parts = [];
             try {
                 if (item.read) parts = item.read();
@@ -73,22 +75,25 @@ function createSpeechReadiness(context) {
     }
 
     function display(element, item, state, settings, completed, total) {
-        element.dataset.speechState = state;
         const voice = settings.voice === 'hallensprecher' ? 'Hallensprecher' : 'Hallensprecherin';
         const count = total === undefined ? '' : ' · ' + completed + '/' + total + ' Ansageteile bereit.';
         let detail = labels[state] + ' · ' + voice + count;
         if (settings.mode === 'browser') detail += ' Auf diesem Gerät ist Browser-TTS ausgewählt.';
         if (state === 'locked') detail += ' Ein normaler Klick oder Tastendruck im BTS gibt Audio automatisch frei.';
+        const rendered = JSON.stringify([state, detail, item.title, item.label]);
+        if (item.rendered === rendered) return;
+        item.rendered = rendered;
+        if (element.dataset.speechState !== state) element.dataset.speechState = state;
         element.title = (item.title ? item.title + '\n' : '') + detail;
         element.setAttribute('aria-label', (item.title ? item.title + ': ' : '') + detail);
         if (item.label) element.textContent = labels[state] + (total === undefined ? '' : ' (' + completed + '/' + total + ')');
     }
 
-    function paint(jobs, value) {
+    function paint(jobs, value, retainKnown = false) {
         for (const { element, item, parts } of jobs) {
             const states = parts.map(text => {
                 const entry = cache.get(text);
-                return entry && now() - entry.checked < 15000 ? entry.status : 'unknown';
+                return entry && (retainKnown || inspecting.has(text) || now() - entry.checked < 15000) ? entry.status : 'unknown';
             });
             const completed = states.filter(state => state === 'completed').length;
             const locallyReady = parts.length > 0 && completed === parts.length && parts.every(text => cache.get(text)?.local);
@@ -117,8 +122,9 @@ function createSpeechReadiness(context) {
         const jobs = collect(value);
         const used = new Set(jobs.flatMap(job => job.parts));
         for (const text of cache.keys()) if (!used.has(text)) cache.delete(text);
-        paint(jobs, value);
-        if (!value.settings.enabled || !value.settings.key || value.settings.language !== 'de-DE') return;
+        if (!value.settings.enabled || !value.settings.key || value.settings.language !== 'de-DE') {
+            paint(jobs, value); return;
+        }
         // Bound inspection traffic independently of the number of matches. Inspect
         // visible controls only; old observations expire instead of staying green.
         const parts = [...new Set(jobs.filter(job => context.visible(job.element)).flatMap(job => job.parts))]
@@ -127,16 +133,21 @@ function createSpeechReadiness(context) {
             .sort((a, b) => (cache.get(a)?.checked || 0) - (cache.get(b)?.checked || 0))
             .slice(0, 128);
         if (parts.length) lastInspection = now();
+        parts.forEach(text => inspecting.add(text));
+        paint(jobs, value);
         for (let i = 0; i < parts.length; i += 64) {
             const batch = parts.slice(i, i + 64);
             const response = await context.service.inspect(batch);
+            batch.forEach(text => inspecting.delete(text));
             if (snapshot().identity !== value.identity || currentGeneration !== generation) {
                 refreshAgain = forceAgain = true;
+                inspecting.clear();
                 return;
             }
             if (!response || response.speech_error || !Array.isArray(response.clips) ||
                 response.clips.length !== batch.length || response.speech?.enabled === false) {
                 unavailable = true;
+                inspecting.clear();
                 break;
             }
             if (version !== response.speech?.cache_version) {
@@ -179,12 +190,15 @@ function createSpeechReadiness(context) {
     }
 
     function track(element, item) {
-        item.title = tracked.get(element)?.title ?? (element.title || (item.label ? '' : element.textContent.trim()));
+        const previous = tracked.get(element);
+        item.title = previous?.title ?? (element.title || (item.label ? '' : element.textContent.trim()));
+        item.rendered = previous?.rendered;
         tracked.set(element, item);
         const value = snapshot();
         if (identity !== value.identity) reset(value);
-        const state = !value.settings.enabled ? 'disabled' : value.settings.language !== 'de-DE' ? 'unsupported' : 'checking';
-        display(element, item, state, value.settings);
+        // Rows are often rebuilt for score updates. Reuse the exact part
+        // observations before the new button is even attached to the DOM.
+        paint(collect(value, [[element, item]], true), value, true);
         schedule();
     }
 
@@ -194,7 +208,7 @@ function createSpeechReadiness(context) {
         changed(force = false) {
             const value = snapshot();
             if (identity !== value.identity) reset(value);
-            paint(collect(value), value);
+            paint(collect(value), value, true);
             if (running) { refreshAgain = true; forceAgain ||= force; }
             else schedule(force);
         },

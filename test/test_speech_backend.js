@@ -87,6 +87,51 @@ function fetch_buffer(url, headers = {}) {
 describe('Server speech adapter and protected audio', function() {
     this.timeout(10000);
 
+    it('reacts to confirmed score finishes through the real admin notification path without replanning for every point', async function() {
+        const db = await database.init_test(), scheduled = [];
+        const app = { db, config: { speech: { enabled: true, api_key: KEY } } };
+        app.speech = create(app);
+        app.speech.prefetch.schedule = key => scheduled.push(key);
+        admin.notify_change(app, 'default', 'score', { now_on_court: true });
+        assert.deepStrictEqual(scheduled, []);
+        admin.notify_change(app, 'default', 'score', { now_on_court: false, team1_won: true });
+        admin.notify_change(app, 'default', 'score', { team1_won: false });
+        assert.deepStrictEqual(scheduled, ['default', 'default']);
+        app.speech.stop();
+    });
+
+    it('expires obsolete contextual foreground requests without keeping their source pinned forever', function() {
+        let clock = 1000;
+        const broker = new SpeechBroker(config(), { now: () => clock });
+        broker.context_version = 'bts-context-v1';
+        const part = '~bts-context-v1~' + JSON.stringify({ before: 'Auf Spielfeld acht! ',
+            text: 'Tabletbedienung: Ein Team', after: '', kind: 'generic' });
+        broker.prepare([part], { priority: 'high' }, 'default');
+        broker.prepare(['Freier Text'], {}, 'default');
+        assert.strictEqual(broker.reconcile_prefetch('default', [], { voice: 'hallensprecherin' }), 10000);
+        clock += 10001;
+        broker.prepare([part], { prefetch: true }, 'default');
+        broker.reconcile_prefetch('default', [], { voice: 'hallensprecherin' });
+        assert.deepStrictEqual(broker.queue('default').items.map(item => item.text), ['Freier Text']);
+    });
+
+    it('retains a shared source for the latest actual request without extending it through background preparation', function() {
+        let clock = 1000;
+        const broker = new SpeechBroker(config(), { now: () => clock }); broker.context_version = 'bts-context-v1';
+        const first = '~bts-context-v1~' + JSON.stringify({ before: '', text: 'Ein Team', after: ' gegen Andere.', kind: 'team' });
+        const second = '~bts-context-v1~' + JSON.stringify({ before: 'Ein Team gegen ', text: 'Andere', after: '.', kind: 'team' });
+        broker.prepare([first], { priority: 'high' }, 'default'); clock += 5000;
+        broker.prepare([second], { priority: 'high' }, 'default');
+        broker.prepare([first], { prefetch: true }, 'default');
+        clock = 12000;
+        assert.strictEqual(broker.reconcile_prefetch('default', [], { voice: 'hallensprecherin' }), 4000);
+        const child = broker.entries.get(broker.key(second, 'hallensprecherin', 'de-DE'));
+        assert(child && broker.entries.has(child.source_key));
+        clock = 17000;
+        broker.reconcile_prefetch('default', [], { voice: 'hallensprecherin' });
+        assert.strictEqual(broker.entries.size, 0);
+    });
+
     it('retires stale prefetch without cancelling an active request, manual calls or another tournament', async function() {
         let clock = 1000, current;
         const sent = [];

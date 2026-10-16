@@ -26,7 +26,7 @@ function create(app) {
             prefetch.subscribe(tournament.key, tournament);
             tournament.speech = public_config(broker, prefetch.settings(tournament.key));
         },
-        changed(key, type) { prefetch.changed(key, type); },
+        changed(key, type, value) { prefetch.changed(key, type, value); },
     };
 }
 

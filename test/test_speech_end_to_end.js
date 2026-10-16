@@ -665,7 +665,57 @@ suite('BTS / actual FastAPI / native Chrome speech integration', function() {
             admin.handle_speech_queue = original;
         }
     });
+    it('keeps rebuilt ready icons green and mutates only the icon whose cache result changes', async function() {
+        const broker = app.speech.broker;
+        const wasRunning = !broker.stopped;
+        app.speech.stop();
+        await until(async () => {
+            if (broker.current && !broker.stepping) { broker.current.entry.next_poll = 0; await broker.step(); }
+            return !broker.current && !broker.stepping;
+        });
+        const voice = await devtools.evaluate('btsSpeechService.settings().voice');
+        const entries = [...broker.entries.values()].filter(entry => entry.voice === voice && entry.status === 'completed').slice(0, 2);
+        assert.strictEqual(entries.length, 2);
+        const original = { status: entries[0].status, retry_at: entries[0].retry_at };
+        try {
+            await devtools.evaluate('(() => { const root = document.createElement(\'div\'); root.id = \'stable-speech-icons\'; ' +
+                'document.body.appendChild(root); ' + JSON.stringify(entries.map(entry => entry.part)) + '.forEach((text, index) => {' +
+                'const button = document.createElement(\'button\'); button.id = \'stable-icon-\' + index; button.textContent = text; ' +
+                'root.appendChild(button); btsSpeechReadiness.trackText(button, () => [text]); }); root.scrollIntoView({block:\'center\'}); })()');
+            await devtools.evaluate('btsSpeechReadiness.refresh(true)');
+            assert.deepStrictEqual(await devtools.evaluate('[...document.querySelectorAll(\'#stable-speech-icons button\')].map(b => b.dataset.speechState)'),
+                ['ready', 'ready']);
+            await devtools.evaluate('window.__iconChanges = []; window.__iconObserver = new MutationObserver(records => ' +
+                'window.__iconChanges.push(...records.map(record => ({id:record.target.id, attribute:record.attributeName})))); ' +
+                'window.__iconObserver.observe(document.getElementById(\'stable-speech-icons\'), ' +
+                '{subtree:true, attributes:true, attributeFilter:[\'data-speech-state\',\'title\',\'aria-label\']})');
+            const attachedState = await devtools.evaluate('(() => { document.getElementById(\'stable-icon-0\').remove(); ' +
+                'const button = document.createElement(\'button\'); button.id = \'stable-icon-0\'; button.textContent = \'Neuer Button\'; ' +
+                'btsSpeechReadiness.trackText(button, () => [' + JSON.stringify(entries[0].part) + ']); ' +
+                'const state = button.dataset.speechState; document.getElementById(\'stable-speech-icons\').appendChild(button); return state; })()');
+            assert.strictEqual(attachedState, 'ready', 'a rebuilt DOM node must be ready before insertion');
+            await devtools.evaluate('btsSpeechReadiness.refresh(true)');
+            assert.deepStrictEqual(await devtools.evaluate('window.__iconChanges'), []);
+            entries[0].status = 'failed'; entries[0].retry_at = Date.now() + 60000;
+            await devtools.evaluate('btsSpeechReadiness.refresh(true)');
+            const changes = await devtools.evaluate('window.__iconChanges');
+            assert(changes.length > 0);
+            assert(changes.every(change => change.id === 'stable-icon-0'));
+            assert.strictEqual(await devtools.evaluate('document.getElementById(\'stable-icon-0\').dataset.speechState'), 'failed');
+        } finally {
+            Object.assign(entries[0], original);
+            await devtools.evaluate('window.__iconObserver?.disconnect(); document.getElementById(\'stable-speech-icons\')?.remove()');
+            if (wasRunning) app.speech.start();
+        }
+    });
+
     it('keeps shared audio green and plays it after BTS adapter restart with the actual FastAPI process stopped', async function() {
+        app.speech.stop();
+        await until(async () => {
+            const broker = app.speech.broker;
+            if (broker.current && !broker.stepping) { broker.current.entry.next_poll = 0; await broker.step(); }
+            return !broker.current && !broker.stepping;
+        });
         const text = 'Jungeneinzel U17';
         const voice = await devtools.evaluate('btsSpeechService.settings().voice');
         const config = { ...app.speech.broker.config, cache_dir: path.join(directory, 'persistent-bts'),

@@ -5444,7 +5444,7 @@ function notify_change(app, tournament_key, ctype, val) {
 		return;
 	}
 	let payload = val;
-	app.speech?.changed(tournament_key, ctype);
+	app.speech?.changed(tournament_key, ctype, val);
 	const announcement_change_types = new Set([
 		'match_preparation_call',
 		'match_called_on_court',

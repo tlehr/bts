@@ -39,6 +39,7 @@ class Prefetcher {
         this.broker = broker;
         this.subscriptions = new Map();
         this.timers = new Map();
+        this.lease_timers = new Map();
         this.running = new Set();
         this.dirty = new Set();
         this.preferred = new Map();
@@ -54,6 +55,8 @@ class Prefetcher {
         const previous = this.subscriptions.get(tournament.key);
         if (previous?.voice === selected.voice && previous?.mode === selected.mode) return;
         this.subscriptions.set(tournament.key, selected);
+        clearTimeout(this.lease_timers.get(tournament.key));
+        this.lease_timers.delete(tournament.key);
         this.broker.select_voice(tournament.key, selected.mode === 'browser' ? null : selected.voice);
         if (schedule) this.schedule(tournament.key);
     }
@@ -77,8 +80,9 @@ class Prefetcher {
         this.timers.set(key, timer);
     }
 
-    changed(key, type) {
-        if (EVENTS.has(type) || type.includes('normalization') || type.includes('tabletoperator') ||
+    changed(key, type, value) {
+        const finished = type === 'score' && (value?.now_on_court === false || typeof value?.team1_won === 'boolean');
+        if (finished || EVENTS.has(type) || type.includes('normalization') || type.includes('tabletoperator') ||
             type.includes('umpire') || type.includes('servicejudge')) this.schedule(key);
     }
 
@@ -129,7 +133,14 @@ class Prefetcher {
             await warm(imminent_parts, 'normal');
             await warm(parts, 'low');
             if (this.subscriptions.get(key) === speech_settings) {
-                this.broker.reconcile_prefetch(key, parts, { voice: speech_settings.voice, language: 'de-DE' });
+                const retry = this.broker.reconcile_prefetch(key, parts, { voice: speech_settings.voice, language: 'de-DE' });
+                clearTimeout(this.lease_timers.get(key));
+                this.lease_timers.delete(key);
+                if (retry !== null) {
+                    const timer = setTimeout(() => { this.lease_timers.delete(key); this.schedule(key); }, retry);
+                    timer.unref();
+                    this.lease_timers.set(key, timer);
+                }
             }
         } finally {
             this.running.delete(key);
@@ -155,6 +166,8 @@ class Prefetcher {
         this.interval = null;
         for (const timer of this.timers.values()) clearTimeout(timer);
         this.timers.clear();
+        for (const timer of this.lease_timers.values()) clearTimeout(timer);
+        this.lease_timers.clear();
         this.dirty.clear();
     }
 }
