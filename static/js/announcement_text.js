@@ -1,6 +1,9 @@
+/* global createContextSpeechPlan */
 /* Shared legacy text builders. Context separates text preparation from playback. */
 function createAnnouncementTexts(context) {
     const curt = context.tournament;
+    let activeCall;
+    let api;
     const ci18n = context.translate;
     // Remember the structure while still returning the original strings from
     // public builders. Browser utterances keep their existing sentence layout;
@@ -47,11 +50,16 @@ function createAnnouncementTexts(context) {
 
     function announce(parts, local, claim) {
         const plan = localPlan(parts);
-        const prepared = plan.map(part => part.text);
-        const pauses = plan.map((part, index) => {
+        let prepared = plan.map(part => part.text);
+        let pauses = plan.map((part, index) => {
             const boundary = part.after + (plan[index + 1]?.before || '');
             return /[.!?]/.test(boundary) ? 250 : /[,;:]/.test(boundary) ? 120 : 0;
         });
+        if (activeCall && curt.speech?.context_version === 'bts-context-v1' && ci18n('announcements:lang') === 'de-DE') {
+            const planner = typeof module !== 'undefined' && module.exports ? require('./speech_context') : createContextSpeechPlan;
+            const recipe = planner(api, curt, activeCall.name, activeCall.setup, activeCall.args, parts);
+            if (recipe) { prepared = recipe.parts; pauses = recipe.pauses; }
+        }
         context.announce(context.local ? prepared : parts, local, claim, { localParts: prepared, localPauses: pauses });
     }
     const window = context.window;
@@ -518,7 +526,17 @@ function createAnnouncementTexts(context) {
         return result;
     }
 
-    return { localPlan, localParts, getLocationID, announceNewMatch, announcePreparationMatch, announceNoMatchWin, announceSecondCallTeamOne, announceSecondCallTeamTwo, announceSecondPreparationCallTeamOne, announceSecondPreparationCallTeamTwo, announceSecondCallTabletoperator, announceSecondCallUmpire, announceSecondCallServiceJudge, announceSecondCall, announceSecondPreparationCallTabletoperator, announceSecondPreparationCallUmpire, announceSecondPreparationCallServiceJudge, announceSecondPreparationCall, announceBeginnToPlay, createBeginToPlayAnnouncement, createSecondCallAnnouncement, createSecondPreparationCallAnnouncement, createTeamAnnouncement, createTabletOperator, createUmpire, createServiceJudge, createSingleTeam, normalizeNames, createRoundAnnouncement, eventAnnouncementNameByCode, createEventAnnouncement, createMatchNumberAnnouncement, createFieldAnnouncement, createFieldPreparationAnnouncement, resolveSingularPluralAnnouncement, createPreparationAnnouncement, createMeetingPointAnnouncement };
+    api = { localPlan, localParts, getLocationID, announceNewMatch, announcePreparationMatch, announceNoMatchWin, announceSecondCallTeamOne, announceSecondCallTeamTwo, announceSecondPreparationCallTeamOne, announceSecondPreparationCallTeamTwo, announceSecondCallTabletoperator, announceSecondCallUmpire, announceSecondCallServiceJudge, announceSecondCall, announceSecondPreparationCallTabletoperator, announceSecondPreparationCallUmpire, announceSecondPreparationCallServiceJudge, announceSecondPreparationCall, announceBeginnToPlay, createBeginToPlayAnnouncement, createSecondCallAnnouncement, createSecondPreparationCallAnnouncement, createTeamAnnouncement, createTabletOperator, createUmpire, createServiceJudge, createSingleTeam, normalizeNames, createRoundAnnouncement, eventAnnouncementNameByCode, createEventAnnouncement, createMatchNumberAnnouncement, createFieldAnnouncement, createFieldPreparationAnnouncement, resolveSingularPluralAnnouncement, createPreparationAnnouncement, createMeetingPointAnnouncement };
+    for (const [name, fn] of Object.entries(api)) {
+        if (!name.startsWith('announce')) continue;
+        api[name] = (setup, ...args) => {
+            const previous = activeCall;
+            activeCall = { name, setup, args };
+            try { return fn(setup, ...args); }
+            finally { activeCall = previous; }
+        };
+    }
+    return api;
 }
 
 if (typeof module !== 'undefined' && module.exports) { module.exports = createAnnouncementTexts; }

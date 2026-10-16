@@ -104,12 +104,15 @@ class Prefetcher {
             // Only verified German voices are enabled. "auto" is warmed in German;
             // browsers using another UI language retain their existing browser TTS.
             if (tournament.language && !['auto', 'de'].includes(tournament.language)) return;
-            const selected = upcoming(matches, this.broker.config.prefetch_matches, this.preferred.get(key));
-            const context = { ...tournament, locations, courts, normalizations };
+            const selected = upcoming(matches, this.broker.context_version ? this.broker.config.max_entries :
+                this.broker.config.prefetch_matches, this.preferred.get(key));
+            if (this.broker.context_version) selected.sort((a, b) => Number(a.setup.match_num || 0) - Number(b.setup.match_num || 0));
+            const context = { ...tournament, locations, courts, normalizations,
+                speech: { context_version: this.broker.context_version } };
             const parts = prepare(context, selected);
             const preferred = new Set(this.preferred.get(key));
-            const imminent = selected.filter(match => ['preparation', 'oncourt'].includes(match.setup.state) ||
-                preferred.has(match._id));
+            const imminent = selected.filter((match, index) => ['preparation', 'oncourt'].includes(match.setup.state) ||
+                preferred.has(match._id) || this.broker.context_version && index < this.broker.config.prefetch_matches);
             const imminent_parts = imminent.length ? prepare(context, imminent) : [];
             const warm = async (texts, priority) => {
                 for (let i = 0; i < texts.length; i += 64) {

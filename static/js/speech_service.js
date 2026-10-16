@@ -8,6 +8,11 @@ function createSpeechService(context) {
     let active = null;
     let preview_controller = null;
     let audio = null;
+    let audio_context = null;
+    const getAudioContext = () => {
+        try { return audio_context || (audio_context = context.makeAudioContext?.()); }
+        catch (_) { return null; }
+    };
     let test_id = 0;
     let cache_version;
     let audio_ready = false;
@@ -23,6 +28,7 @@ function createSpeechService(context) {
     const changed = () => context.onStateChange?.();
 
     function rememberMetadata(response) {
+        context.onMetadata?.(response?.speech);
         if (cache_version !== response?.speech?.cache_version) {
             prepared.clear();
             cache_version = response?.speech?.cache_version;
@@ -64,7 +70,7 @@ function createSpeechService(context) {
     async function prepare(parts) {
         const value = settings();
         if (!value.enabled || !value.key || !languageSupported(value)) return null;
-        const texts = parts.filter(part => typeof part === 'string' && part.length && part.length <= value.max_text);
+        const texts = parts.filter(part => typeof part === 'string' && part.length && part.length <= (value.max_part_length || value.max_text));
         return context.request('speech_prepare', {
             tournament_key: value.key, voice: value.voice, language: value.language,
             parts: [...new Set(texts)].slice(0, 64),
@@ -101,7 +107,60 @@ function createSpeechService(context) {
         return { reason: 'cache_incomplete' };
     }
 
+    async function playBuffered(clips, value, signal, pauses, player) {
+        // Decode before starting and schedule the complete call on one audio
+        // clock. Loading the next URL between pieces must not extend a pause.
+        let bytes = 0;
+        const buffers = [];
+        for (const clip of clips) {
+            if (signal.aborted) throw new Error('cancelled');
+            const controller = new AbortController();
+            const abort = () => controller.abort();
+            signal.addEventListener('abort', abort, { once: true });
+            const timer = setTimeout(abort, 3000);
+            let data;
+            try { data = await context.fetchAudio(clip.audio_url, controller.signal); }
+            finally { clearTimeout(timer); signal.removeEventListener('abort', abort); }
+            bytes += data.byteLength;
+            if (bytes > 32 * 1024 * 1024) throw new Error('audio_failed');
+            buffers.push(await player.decodeAudioData(data));
+        }
+        if (signal.aborted) throw new Error('cancelled');
+        const gain = player.createGain();
+        gain.gain.value = value.volume === undefined ? 1 : value.volume;
+        gain.connect(player.destination);
+        const sources = [];
+        try {
+            await new Promise((resolve, reject) => {
+                const abort = () => reject(Object.assign(new Error('cancelled'), { started: true }));
+                const finish = () => { signal.removeEventListener('abort', abort); resolve(); };
+                signal.addEventListener('abort', abort, { once: true });
+                let time = player.currentTime + .05;
+                buffers.forEach((buffer, index) => {
+                    const source = player.createBufferSource();
+                    source.buffer = buffer; source.connect(gain); sources.push(source);
+                    if (index === buffers.length - 1) source.onended = finish;
+                    source.start(time);
+                    const margin = (clips[index].trailing_quiet_ms || 0) + (clips[index + 1]?.leading_quiet_ms || 0);
+                    time += buffer.duration + Math.max(0, (pauses[index] || 0) - margin) / 1000;
+                });
+                audio_ready = true; audio_error = null;
+                last_result = { status: 'playing', provider: 'server' }; changed();
+            });
+            return { status: 'ok', provider: 'server', started: true };
+        } catch (error) {
+            error.started = sources.length > 0;
+            throw error;
+        } finally {
+            for (const source of sources) { try { source.stop(); } catch (_) { /* Already ended. */ } source.disconnect(); }
+            gain.disconnect();
+        }
+    }
+
     async function play(clips, value, signal, pauses = []) {
+        const clock = context.fetchAudio && clips.every(clip => clip.processed) &&
+            Math.abs((value.rate || 1) - 1.05) < .0001 ? getAudioContext() : null;
+        if (clock?.state === 'running') return playBuffered(clips, value, signal, pauses, clock);
         let started = false;
         for (const [index, clip] of clips.entries()) {
             if (signal.aborted) throw Object.assign(new Error('cancelled'), { started });
@@ -129,7 +188,8 @@ function createSpeechService(context) {
                 player.onended = () => finish();
                 player.onerror = () => finish(new Error('audio_failed'));
                 player.src = clip.audio_url;
-                player.playbackRate = (value.rate || 1) * (value.voice === 'hallensprecher' ? 1.1 : 1);
+                player.playbackRate = clip.processed ? (value.rate || 1) / 1.05 :
+                    (value.rate || 1) * (value.voice === 'hallensprecher' ? 1.1 : 1);
                 player.preservesPitch = true;
                 player.volume = value.volume === undefined ? 1 : value.volume;
                 signal.addEventListener('abort', abort, { once: true });
@@ -138,7 +198,10 @@ function createSpeechService(context) {
                     finish(new Error(error.name === 'NotAllowedError' ? 'audio_blocked' : 'audio_failed'))); }
                 catch (_) { finish(new Error('audio_failed')); }
             });
-            const pause = pauses[index];
+            const target = pauses[index];
+            const margin = clip.processed ? ((clip.trailing_quiet_ms || 0) + (clips[index + 1]?.leading_quiet_ms || 0)) /
+                ((value.rate || 1) / 1.05) : 0;
+            const pause = Number.isFinite(target) ? Math.max(0, target - margin) : 0;
             if (Number.isFinite(pause) && pause > 0) {
                 await new Promise((resolve, reject) => {
                     const finish = error => {
@@ -241,6 +304,8 @@ function createSpeechService(context) {
 
     function unlock() {
         if (active) return Promise.resolve(false);
+        const clock = getAudioContext();
+        if (clock) void clock.resume().catch(() => {});
         const player = getAudio();
         // Reuse this same element for later server audio (including Safari's gesture policy).
         player.src = 'data:audio/wav;base64,UklGRiYAAABXQVZFZm10IBAAAAABAAEAwF0AAIC7AAACABAAZGF0YQIAAAAAAA==';
@@ -306,7 +371,18 @@ else {
             };
         },
         makeAudio: () => new Audio(),
+        makeAudioContext: () => {
+            const AudioClock = window.AudioContext || window.webkitAudioContext;
+            return AudioClock ? new AudioClock() : null;
+        },
+        fetchAudio: async (url, signal) => {
+            const response = await fetch(url, { credentials: 'same-origin', signal });
+            if (!response.ok || response.headers.get('content-type')?.split(';')[0] !== 'audio/wav' ||
+                Number(response.headers.get('content-length')) > 32 * 1024 * 1024) throw new Error('audio_failed');
+            return response.arrayBuffer();
+        },
         cancelBrowser: () => window.speechSynthesis?.cancel(),
+        onMetadata: value => { if (value && typeof curt !== 'undefined' && curt) curt.speech = { ...curt.speech, ...value }; },
         onStateChange: () => window.dispatchEvent(new CustomEvent('bts-speech-output-changed')),
         request: (type, values, timeout_ms, signal) => new Promise((resolve, reject) => {
             let rid;

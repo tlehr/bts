@@ -2,6 +2,7 @@
 
 const create = require('../../static/js/announcement_text');
 const { _translate: translate } = require('../../static/js/ci18n');
+const contextPlan = require('../../static/js/speech_context');
 
 const CALLS = [
     'announceNewMatch', 'announcePreparationMatch',
@@ -14,6 +15,7 @@ const CALLS = [
 
 function renderer(tournament, locale, parts) {
     return create({
+        local: tournament.speech?.context_version === 'bts-context-v1',
         tournament,
         translate: (key, data, fallback) => translate(locale, key, data, fallback),
         window: { localStorage: { getItem: () => 'true' } },
@@ -23,6 +25,32 @@ function renderer(tournament, locale, parts) {
 }
 
 function prepare(tournament, matches, locale = 'de') {
+    if (tournament.speech?.context_version === 'bts-context-v1' && locale === 'de') {
+        const parts = [];
+        const texts = renderer(tournament, locale, parts);
+        const warm = (name, setup) => parts.push(...contextPlan(texts, tournament, name, setup).parts);
+        for (const court of tournament.courts || []) {
+            if (court.is_active !== false) warm('prepareFields', { court_id: court._id });
+        }
+        warm('prepareInstruction', {});
+        for (const match of matches) {
+            const setup = match.setup;
+            if (!setup?.teams?.slice(0, 2).every(team => team.players?.length && team.players.every(player => player.name?.trim())) ||
+                setup.teams.length < 2) continue;
+            try { warm('prepareGame', setup); } catch (_) { /* No partial block with unknown game data. */ }
+            for (const call of CALLS) {
+                try { texts[call](setup); } catch (_) { /* Keep known blocks when officials are unresolved. */ }
+            }
+            if (!setup.location_id) for (const location of tournament.locations || []) {
+                for (const call of CALLS.filter(name => name.includes('Preparation'))) {
+                    try { texts[call]({ ...setup, location_id: location._id }); } catch (_) { /* Not assigned yet. */ }
+                }
+            }
+        }
+        warm('prepareCommon', {});
+        parts.push(translate(locale, 'announcements:speechcheck:text'));
+        return [...new Set(parts)];
+    }
     const parts = [];
     const texts = renderer(tournament, locale, parts);
     parts.push(texts.createBeginToPlayAnnouncement({}));

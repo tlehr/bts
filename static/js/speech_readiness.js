@@ -90,7 +90,7 @@ function createSpeechReadiness(context) {
             let state;
             if (!value.settings.enabled) state = 'disabled';
             else if (value.settings.mode === 'browser') state = 'browser';
-            else if (value.settings.language !== 'de-DE' || parts.some(text => text.length > value.settings.max_text)) state = 'unsupported';
+            else if (value.settings.language !== 'de-DE' || parts.some(text => text.length > (value.settings.max_part_length || value.settings.max_text))) state = 'unsupported';
             else if (!parts.length) state = 'empty';
             else if (unavailable || states.includes('unavailable')) state = 'unavailable';
             else if (value.settings.audio_error && value.settings.audio_error !== 'audio_blocked') state = 'audio_error';
@@ -117,7 +117,7 @@ function createSpeechReadiness(context) {
         // Bound inspection traffic independently of the number of matches. Inspect
         // visible controls only; old observations expire instead of staying green.
         const parts = [...new Set(jobs.filter(job => context.visible(job.element)).flatMap(job => job.parts))]
-            .filter(text => text.length <= value.settings.max_text && text.trim())
+            .filter(text => text.length <= (value.settings.max_part_length || value.settings.max_text) && text.trim())
             .sort((a, b) => (cache.get(a)?.checked || 0) - (cache.get(b)?.checked || 0))
             .slice(0, 128);
         if (parts.length) lastInspection = now();

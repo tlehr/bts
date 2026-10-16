@@ -119,7 +119,8 @@ function createSpeechQueue({ root, service, onSnapshot = () => {} }) {
             row.order.title = item.current ? 'Laufender Auftrag' : item.position === null ? '' : 'Platz in der Warteschlange';
             row.text.textContent = item.text;
             const voice = item.voice === 'hallensprecher' ? 'Hallensprecher' : 'Hallensprecherin';
-            row.meta.textContent = voice + ' · ' + priorities[item.priority] + ' · ' + status(item);
+            row.meta.textContent = voice + ' · ' + priorities[item.priority] + ' · ' +
+                (item.kind === 'source' ? 'Kontextaufnahme · ' : '') + status(item);
             row.button.setAttribute('aria-label', 'Probehören: ' + voice + ' – ' + item.text);
             row.button.title = item.status === 'completed' ? 'Lokale Aufnahme probehören (' + voice + ')' :
                 'Probehören ist nach der Generierung verfügbar.';

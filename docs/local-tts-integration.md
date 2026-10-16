@@ -233,3 +233,8 @@ Am 14.10.2026 nach der Fallback-Korrektur: vollständige BTS-Suite 1017 bestande
 Die neuen Regressionsfälle prüfen insbesondere die direkte lokale Wiedergabe eines grün markierten Vorbereitungsaufrufs im Automatikmodus mit über fünf Minuten alten Backend-Einträgen und künstlich verzögerter Resolve-Abfrage sowie einen tatsächlich im nativen Browser blockierten Audio-Download mit sichtbarem Fallback-Grund und entfernter grüner Markierung. Der tatsächliche WAV-Aufruf bleibt geschützt; originale Ansagetexte und Mehrfachwiedergabeschutz sind weiterhin geprüft.
 
 Der Sprachserver bestand 54 Mock-Tests einschließlich Synthesekonfigurations-Invalidierung. Seine echte Qwen-CPU-Anbindung wurde zuvor mit beiden Referenzstimmen erfolgreich geprüft. Die lokale Verbindung ist im privaten config.json eingerichtet; der Sprachserver verwendet den vorhandenen geprüften Modellcache offline. Prozesse/Dienste werden für die Aktivierung durch den Betreiber gestartet bzw. neu gestartet.
+
+
+## Kontextbasierte Generierung ab 16.10.2026
+
+Mit aktualisiertem Sprachserver und lokalem Wortmodell verwendet BTS die [gemeinsame Kontextstrategie](context-tts.md). Sie ersetzt für deutsche strukturierte Turnieraufrufe die oben beschriebene kurze Stückelung und deren männliche Nachbeschleunigung: ganze Spielblöcke, aus vollständigen Quellen gewonnene Feld-/Teamstücke und längere gemeinsame Texte, einschließlich der D05-/D08-/D12-Korrekturen. Der Browsertext bleibt erhalten. Ältere Server bieten die Strategie nicht an und nutzen weiterhin die bisherige Anbindung.

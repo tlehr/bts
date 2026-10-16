@@ -4,7 +4,7 @@ Stand: 16.10.2026 · Branch: `feat/localTts`
 
 Diese Datei ist unsere gemeinsame Grundlage, um Wortlaut, Reihenfolge und Stückelung der Turnierdurchsagen zu bearbeiten. Die Kennungen D01–D15 und B01–B12 bleiben bei Überarbeitungen erhalten, damit wir einzelne Stellen eindeutig benennen können.
 
-Die Anwesenheitskontrolle bleibt vorerst außerhalb dieser Betrachtung. Die Datei beschreibt den aktuellen Programmstand, hält in Abschnitt 7.1 und 7.2 unsere Vereinbarungen fest und plant in Abschnitt 7.3 die übrigen Ansagen nach derselben Logik. Die neuen Vorschläge sind noch akustisch zu prüfen. Änderungen hier werden anschließend ausdrücklich in die Anwendung übertragen; BTS liest diese Markdown-Datei nicht als Konfiguration.
+Die Anwesenheitskontrolle bleibt vorerst außerhalb dieser Betrachtung. Die Datei beschreibt den aktuellen Programmstand, hält in Abschnitt 7.1 und 7.2 unsere Vereinbarungen fest und plant in Abschnitt 7.3 die übrigen Ansagen nach derselben Logik. Der vereinbarte Kontextaufbau ist jetzt in BTS und Sprachserver umgesetzt, einschließlich der Korrekturen für D05, D08 und D12. [Betrieb, Verarbeitung und Prüfungen](context-tts.md) beschreiben den implementierten Stand. Weitere Änderungen dieser Datei werden ausdrücklich in die Anwendung übertragen; BTS liest diese Markdown-Datei nicht als Konfiguration. Die Klangabnahme weiterer Namen und Kombinationen bleibt ein Hörtest.
 
 ## 1. Ziel und bisherige Hörentscheidung
 
@@ -17,7 +17,7 @@ Die Anwesenheitskontrolle bleibt vorerst außerhalb dieser Betrachtung. Die Date
 - Für Browser-TTS und lokale Generierung dürfen unterschiedliche Strategien verwendet werden.
 - Klangliches Ziel ist der deutlich bevorzugte zusammenhängende Hörtest **Variante 1**.
 
-Im Hörtest **Variante 5** wurde die separat erzeugte Spielfeldansage als unnatürlich bewertet. **Variante 6** übernimmt deshalb Anfangs- und Schlussansage aus Variante 1 und setzt den Spielblock aus Variante 5 dazwischen. Diese Aufnahme steht zum Vergleich bereit. Die vereinbarte Erstellung von B01-Anfang und B01-Ende für alle Felder greift dieses Vorgehen auf (Abschnitt 7.1); ihre Umsetzung für den Turnierbetrieb steht noch aus.
+Im Hörtest **Variante 5** wurde die separat erzeugte Spielfeldansage als unnatürlich bewertet. **Variante 6** übernimmt deshalb Anfangs- und Schlussansage aus Variante 1 und setzt den Spielblock aus Variante 5 dazwischen. Diese Aufnahme steht zum Vergleich bereit. Die vereinbarte Erstellung von B01-Anfang und B01-Ende für alle Felder greift dieses Vorgehen auf (Abschnitt 7.1); ihre Umsetzung für den Turnierbetrieb ist mit der serverseitig angebotenen Strategie `bts-context-v1` verfügbar.
 
 Der Hörtest und der festgelegte Referenzaufruf verwenden „Spiel 189.“ beziehungsweise die ausgeschriebene Fassung ohne „Nummer“. Die produktive deutsche Vorlage lautet derzeit „Spiel Nummer 189!“. Der festgelegte Referenztext in Abschnitt 7.1 bleibt unabhängig von dieser produktiven Vorlage wortgetreu erhalten.
 
@@ -269,7 +269,7 @@ Browser-TTS erhält die bisherigen vollständigen Ansageabschnitte. Beispielswei
 
 ### 6.3 Lokale Sprachausgabe im Turnierbetrieb
 
-Der aktuelle produktive lokale Plan zerlegt die Abschnitte anhand ihrer bekannten Struktur weiter. Die folgende Tabelle zeigt die sichtbaren Bausteintexte vor dem Ausschreiben der Zahlen für die Synthese:
+Der bisherige lokale Plan für Server ohne Kontextverarbeitung zerlegt die Abschnitte anhand ihrer bekannten Struktur weiter. Bei `bts-context-v1` gilt der längere Aufbau aus Abschnitt 7. Die folgende Tabelle zeigt die sichtbaren Bausteintexte vor dem Ausschreiben der Zahlen für die Synthese:
 
 | Gesprochener Abschnitt | Aktuelle lokale Bausteintexte |
 | --- | --- |
@@ -466,7 +466,7 @@ Damit gibt es im Grundentwurf **fünf gemeinsame feste Wiedergabestücke**. Sie 
 
 Die Präfixe bleiben in ihren Quellen bis zum tatsächlichen Team beziehungsweise zur Rolle mit Namen verbunden. Wir generieren kein alleinstehendes „Zweiter Aufruf für:“ als vermeintlich vollständigen Satz.
 
-**Hörkorrektur vom 16.10.2026:** Im festen Hörsatz wird nur „In Vorbereitung für“ innerhalb des gemeinsamen Präfixes auf 88 % des bisherigen Tempos gebracht; „Zweiter Aufruf“ bleibt gleich schnell. D05 verwendet Zielabstände von 140 ms vor dem ersten Team, 120 ms vor dem Hallenzusatz, 320 ms vor der Teamwiederholung und gegebenenfalls 160 ms vor dem Treffpunkt. Vorhandene Randstille zählt dazu. D08 erhält innerhalb des langen Klapptafel-Zweitaufrufs nach „Klapptafelbedienung“ zusätzliche 180 ms. Diese quellengebundenen Audiokorrekturen benötigen keine neue Synthese. Für „Das Spiel geht kampflos an“ wird die bisherige gemeinsame D12-Quelle einmalig ersetzt; Anzahl der geplanten Stücke und Generierungen bleibt gleich. Die Tempo-/Pausenbearbeitung gilt zunächst für den Hörsatz, die D12-Textänderung auch für die produktiven deutschen Vorlagen.
+**Hörkorrektur vom 16.10.2026:** Im festen Hörsatz wird nur „In Vorbereitung für“ innerhalb des gemeinsamen Präfixes auf 88 % des bisherigen Tempos gebracht; „Zweiter Aufruf“ bleibt gleich schnell. D05 verwendet Zielabstände von 140 ms vor dem ersten Team, 120 ms vor dem Hallenzusatz, 320 ms vor der Teamwiederholung und gegebenenfalls 160 ms vor dem Treffpunkt. Vorhandene Randstille zählt dazu. D08 erhält innerhalb des langen Klapptafel-Zweitaufrufs nach „Klapptafelbedienung“ zusätzliche 180 ms. Diese quellengebundenen Audiokorrekturen benötigen keine neue Synthese. Für „Das Spiel geht kampflos an“ wird die bisherige gemeinsame D12-Quelle einmalig ersetzt; Anzahl der geplanten Stücke und Generierungen bleibt gleich. Diese Tempo-/Pausenbearbeitung und der D12-Wortlaut sind jetzt auch in die produktive deutsche Kontextstrategie übernommen. Für neue Aufnahmen ermittelt der Server die Grenzen individuell; die festen Hörtest-Frames werden nicht übernommen.
 
 #### D. Kampflose Entscheidungen: Spielblock auch hier zusammenhalten
 
@@ -517,7 +517,7 @@ Die bei D05, D09–D12 vorhandenen Namenswiederholungen bleiben gesprochen erhal
 - Freie Ansagen werden als vollständiger Text vorbereitet, sobald der Entwurf stabil beziehungsweise abgesendet ist. Noch nicht gestartete, überholte Entwurfsaufträge entfallen. Die fertige Aufnahme spielt erst beim tatsächlichen Auslösen.
 - Browser-TTS erhält weiterhin die vollständigen Textabschnitte. Die hier beschriebenen Kontextaufnahmen und Schnitte betreffen die lokale Strategie.
 
-Vor einer produktiven Umstellung prüfen wir die Übergänge mit Einzel und Doppel, langen und kurzen Namen, Rollenwechseln, beiden Personenformen der Hallentexte und einem kampflosen Sieger auf jeder Seite. Die Kontextaufnahme ist ein Ansatz für bessere Sprachmelodie; die akustische Gleichwertigkeit zur am Stück gesprochenen Fassung ist für die neuen Kombinationen noch nicht bestätigt.
+Die automatisierten Prüfungen decken den Aufbau mit Einzel und Doppel, optionalen Spielangaben, Rollenwechseln und beiden Siegern ab; der reale Ablauf wurde mit dem Beispielspiel geprüft. Weitere Klangproben mit langen und kurzen Namen sowie beiden Personenformen bleiben sinnvoll. Die Kontextaufnahme ist ein Ansatz für bessere Sprachmelodie; die akustische Gleichwertigkeit zur am Stück gesprochenen Fassung ist für die neuen Kombinationen noch nicht bestätigt.
 
 ### 7.4 Noch zu prüfende Details
 
