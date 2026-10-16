@@ -88,12 +88,13 @@ class Prefetcher {
         const revision = this.subscriptions.get(key);
         try {
             await require('../foreground_work').idle();
-            const [tournament, locations, courts, matches, normalizations] = await Promise.all([
+            const [tournament, locations, courts, matches, normalizations, tabletoperators] = await Promise.all([
                 reads.read(this.app, key, 'tournaments', true),
                 reads.read(this.app, key, 'locations', true),
                 reads.read(this.app, key, 'courts', true),
                 reads.read(this.app, key, 'matches', true),
                 read_normalizations(this.app.db),
+                reads.read(this.app, key, 'tabletoperators', true),
             ]);
             if (!tournament) return;
             // An edit may commit while the background snapshot is being read.
@@ -107,13 +108,15 @@ class Prefetcher {
             const selected = upcoming(matches, this.broker.context_version ? this.broker.config.max_entries :
                 this.broker.config.prefetch_matches, this.preferred.get(key));
             if (this.broker.context_version) selected.sort((a, b) => Number(a.setup.match_num || 0) - Number(b.setup.match_num || 0));
-            const context = { ...tournament, locations, courts, normalizations,
+            const context = { ...tournament, locations, courts, normalizations, tabletoperators,
                 speech: { context_version: this.broker.context_version } };
             const parts = prepare(context, selected);
             const preferred = new Set(this.preferred.get(key));
             const imminent = selected.filter((match, index) => ['preparation', 'oncourt'].includes(match.setup.state) ||
                 preferred.has(match._id) || this.broker.context_version && index < this.broker.config.prefetch_matches);
-            const imminent_parts = imminent.length ? prepare(context, imminent) : [];
+            // On-court teams are imminent candidates for the next tablet duty.
+            // The rest of the waiting pool is warmed at the stock priority.
+            const imminent_parts = imminent.length ? prepare({ ...context, tabletoperators: [] }, imminent) : [];
             const warm = async (texts, priority) => {
                 for (let i = 0; i < texts.length; i += 64) {
                     if (this.subscriptions.get(key) !== speech_settings) return;

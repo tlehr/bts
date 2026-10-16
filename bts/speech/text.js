@@ -24,6 +24,40 @@ function renderer(tournament, locale, parts) {
     });
 }
 
+function prepare_tabletoperators(texts, tournament, setup = {}, groups) {
+    if (tournament.tabletoperator_enabled !== true) return;
+    if (!groups) {
+        if (tournament.tabletoperator_with_state_from_match_enabled) {
+            const player = (setup.teams || []).slice(0, 2).flatMap(team => team.players || []).find(player => player?.state);
+            groups = [[{ name: player?.state }]];
+        } else {
+            groups = (setup.teams || []).slice(0, 2).flatMap(team => {
+                const players = team.players || [];
+                const teams = tournament.tabletoperator_split_doubles ? players.map(player => [player]) : [players];
+                return teams.map(players => tournament.tabletoperator_with_state_enabled && players[0]?.state ?
+                    [{ name: players[0].state }] : players);
+            });
+        }
+    }
+    for (const players of groups) {
+        if (!players?.length || players.some(player => typeof player?.name !== 'string' || !player.name.trim())) continue;
+        const candidate = { tabletoperators: players };
+        // These exact recipes also supply the role+name used by D01/D02.
+        // Their context is independent of the next game and its actual field.
+        texts.announceSecondCallTabletoperator(candidate);
+        texts.announceSecondPreparationCallTabletoperator(candidate);
+        for (const location of tournament.locations || []) {
+            texts.announceSecondPreparationCallTabletoperator({ ...candidate, location_id: location._id });
+        }
+    }
+}
+
+function prepare_waiting_tabletoperators(texts, tournament) {
+    const groups = (tournament.tabletoperators || []).filter(value => value.court == null && value.end_ts == null)
+        .map(value => value.tabletoperator);
+    prepare_tabletoperators(texts, tournament, {}, groups);
+}
+
 function prepare(tournament, matches, locale = 'de') {
     if (tournament.speech?.context_version === 'bts-context-v1' && locale === 'de') {
         const parts = [];
@@ -35,9 +69,14 @@ function prepare(tournament, matches, locale = 'de') {
         warm('prepareInstruction', {});
         for (const match of matches) {
             const setup = match.setup;
-            if (!setup?.teams?.slice(0, 2).every(team => team.players?.length && team.players.every(player => player.name?.trim())) ||
-                setup.teams.length < 2) continue;
-            try { warm('prepareGame', setup); } catch (_) { /* No partial block with unknown game data. */ }
+            if (!setup) continue;
+            const complete = setup.teams?.length >= 2 && setup.teams.slice(0, 2)
+                .every(team => team.players?.length && team.players.every(player => player.name?.trim()));
+            if (complete) {
+                try { warm('prepareGame', setup); } catch (_) { /* No partial block with unknown game data. */ }
+            }
+            prepare_tabletoperators(texts, tournament, setup);
+            if (!complete) continue;
             for (const call of CALLS) {
                 try { texts[call](setup); } catch (_) { /* Keep known blocks when officials are unresolved. */ }
             }
@@ -47,6 +86,7 @@ function prepare(tournament, matches, locale = 'de') {
                 }
             }
         }
+        prepare_waiting_tabletoperators(texts, tournament);
         warm('prepareCommon', {});
         parts.push(translate(locale, 'announcements:speechcheck:text'));
         return [...new Set(parts)];
@@ -62,6 +102,7 @@ function prepare(tournament, matches, locale = 'de') {
     }
     for (const match of matches) {
         const setup = match.setup;
+        if (setup) prepare_tabletoperators(texts, tournament, setup);
         if (!setup || !setup.teams?.[0]?.players?.length || !setup.teams?.[1]?.players?.length) continue;
         for (const builder of ['createTeamAnnouncement', 'createEventAnnouncement', 'createRoundAnnouncement',
             'createMatchNumberAnnouncement', 'createUmpire', 'createServiceJudge', 'createTabletOperator',
@@ -88,6 +129,7 @@ function prepare(tournament, matches, locale = 'de') {
             }
         }
     }
+    prepare_waiting_tabletoperators(texts, tournament);
     // Speech checks, like free announcements, use their original complete text.
     return [...new Set([translate(locale, 'announcements:speechcheck:text'), ...texts.localParts(parts)])];
 }

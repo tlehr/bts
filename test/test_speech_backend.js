@@ -826,6 +826,55 @@ describe('Server speech adapter and protected audio', function() {
         prefetch.stop();
     });
 
+    it('prepares tablet candidates from on-court teams and the persisted waiting pool before their later assignment', async function() {
+        const db = await database.init_test();
+        const current = { ...tournament(), tabletoperator_enabled: true, announcement_speech_voice: 'hallensprecher' };
+        const previous = setup({ state: 'oncourt', tabletoperators: null, umpire: null, service_judge: null });
+        const next = setup({ match_num: 18, court_id: null, location_id: null, tabletoperators: null,
+            umpire: null, service_judge: null, teams: [{ players: [{ name: 'Nächste A' }] }, { players: [{ name: 'Nächste B' }] }] });
+        const fixture = { tournaments: [current],
+            locations: current.locations.map(value => ({ ...value, tournament_key: 'default' })),
+            courts: current.courts.map(value => ({ ...value, tournament_key: 'default' })),
+            matches: [{ _id: 'previous', tournament_key: 'default', setup: previous },
+                { _id: 'next', tournament_key: 'default', setup: next }],
+            tabletoperators: [{ tournament_key: 'default', tabletoperator: [{ name: 'Wartende Bedienung' }], court: null, end_ts: null }],
+        };
+        for (const [collection, values] of Object.entries(fixture)) await promisify(db[collection].insert.bind(db[collection]))(values);
+        let clock = 1000;
+        const sent = [];
+        const broker = new SpeechBroker(config(), { now: () => clock,
+            request: async (_base, _key, _method, _route, body) => {
+                sent.push(body);
+                const job_id = id();
+                return { ...body, job_id, status: 'completed', audio: { audio_id: job_id, processed: !!body.context } };
+            } });
+        broker.context_version = 'bts-context-v1';
+        const prefetch = new Prefetcher({ db }, broker);
+        try {
+            prefetch.configure(current, false);
+            await prefetch.refresh('default');
+            const roles = [...broker.entries.values()].filter(entry => entry.text.startsWith('Tabletbedienung:'));
+            assert(roles.some(entry => entry.text.includes('Johann') && entry.priority === 1));
+            assert(roles.some(entry => entry.text === 'Tabletbedienung:Wartende Bedienung' && entry.priority === 2));
+            assert(roles.every(entry => entry.voice === 'hallensprecher'));
+            while (broker.pending_order().length) { await broker.step(); clock += 1000; }
+            const count = sent.length;
+            // The previous game leaves the upcoming set. Its possible loser is
+            // only assigned to the next game's tablet service at the call.
+            await db.matches.update_async({ _id: 'previous' }, { $set: { 'setup.state': 'finished' } }, {});
+            await db.matches.update_async({ _id: 'next' }, { $set: { 'setup.tabletoperators': previous.teams[1].players,
+                'setup.court_id': 'default_4', 'setup.location_id': 'default_h1', 'setup.state': 'oncourt' } }, {});
+            await prefetch.refresh('default');
+            const selected = { ...current, speech: { context_version: broker.context_version } };
+            const texts = require('../bts/speech/text').renderer(selected, 'de', []);
+            const assigned = { ...next, tabletoperators: previous.teams[1].players, court_id: 'default_4', location_id: 'default_h1' };
+            const plan = require('../static/js/speech_context')(texts, selected, 'announceNewMatch', assigned);
+            broker.prepare(plan.parts, { voice: 'hallensprecher', priority: 'high' }, 'default');
+            assert(broker.views(plan.parts, { voice: 'hallensprecher' }, 'default').every(clip => clip.status === 'completed'));
+            assert.strictEqual(sent.length, count, 'the full late call is already warm before assignment');
+        } finally { prefetch.stop(); }
+    });
+
     it('uses the persisted selection on restart and rejects generation requests from stale clients', async function() {
         const db = await database.init_test();
         const current = { ...tournament(), announcement_speech_voice: 'hallensprecher', announcement_speech_mode: 'server' };

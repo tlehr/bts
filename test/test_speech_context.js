@@ -20,6 +20,78 @@ function capture(current, match, call, winner = 0) {
 }
 
 describe('Context speech in tournament calls', function() {
+    for (const doubles of [false, true]) for (const split of [false, true]) for (const boards of [false, true]) {
+        it('warms late tablet assignment from both on-court teams across fields and halls (' + [doubles, split, boards].join('/') + ')', async function() {
+            let clock = 1000;
+            const sent = [];
+            const broker = new SpeechBroker(configuration({ enabled: true, api_key: 'test-key-' + 'x'.repeat(32) }, {}), {
+                now: () => clock,
+                request: async (_base, _key, _method, _route, body) => {
+                    sent.push(body);
+                    const job_id = crypto.randomBytes(16).toString('hex');
+                    return { ...body, job_id, status: 'completed', audio: { audio_id: job_id, processed: !!body.context } };
+                },
+            });
+            broker.context_version = 'bts-context-v1';
+            const current = { ...tournament(), speech: { context_version: broker.context_version },
+                tabletoperator_enabled: true, tabletoperator_split_doubles: split,
+                tabletoperator_use_manual_counting_boards_enabled: boards };
+            current.normalizations = [{ origin: 'Johann', replace: 'Hans', language: 'de-DE' }];
+            current.courts.push({ _id: 'default_8', is_active: true }, { _id: 'default_9', is_active: true });
+            current.locations.push({ _id: 'hall2', meetingpoint_announcement: 'Bitte {komm/kommt} in Halle zwei!' });
+            const previous = setup({ state: 'oncourt', tabletoperators: null, umpire: null, service_judge: null });
+            if (doubles) previous.teams.forEach((team, index) => team.players.push({ name: 'Zweite Person ' + index }));
+            const next = setup({ match_num: 18, court_id: null, location_id: null, tabletoperators: null,
+                umpire: null, service_judge: null, teams: [{ players: [{ name: 'Neues Team A' }] }, { players: [{ name: 'Neues Team B' }] }] });
+            const prepared = prepare(current, [{ setup: previous }, { setup: next }]);
+            for (let i = 0; i < prepared.length; i += 64) broker.prepare(prepared.slice(i, i + 64), {}, 'default');
+            while (broker.pending_order().length) { await broker.step(); clock += 1000; }
+            const count = sent.length, entries = broker.entries.size;
+            const groups = previous.teams.flatMap(team => split ? team.players.map(player => [player]) : [team.players]);
+            const sources = new Set();
+            for (const tabletoperators of groups) for (const court of current.courts) for (const hall of current.locations) {
+                const assigned = { ...next, state: 'oncourt', tabletoperators, court_id: court._id, location_id: hall._id };
+                for (const call of ['announceNewMatch', 'announceSecondCallTabletoperator',
+                    'announceSecondPreparationCallTabletoperator']) {
+                    const plan = capture(current, assigned, call);
+                    broker.prepare(plan.localParts, { priority: 'high' }, 'default');
+                    assert(broker.views(plan.localParts, {}, 'default').every(clip => clip.status === 'completed'), call);
+                    const role = plan.localParts.find(part => /^(?:Tablet|Klapptafel)bedienung:/.test(decode(part, 1200)?.text));
+                    if (role) sources.add(sourcePart(decode(role, 1200)));
+                }
+            }
+            await broker.step();
+            assert.strictEqual(sent.length, count, 'late assignment requires no extra API request');
+            assert.strictEqual(broker.entries.size, entries, 'no field/game/operator combination is generated');
+            assert.strictEqual(sources.size, groups.length, 'one shared contextual source per candidate team');
+            assert(!JSON.stringify(previous).includes('Hans'), 'preparation must not mutate match/player names');
+        });
+    }
+
+    it('warms existing waiting operators and service aliases without generating disabled or obsolete candidates', function() {
+        const current = { ...tournament(), speech: { context_version: 'bts-context-v1' }, tabletoperator_enabled: true,
+            tabletoperator_with_state_enabled: true, tabletoperators: [
+                { tabletoperator: [{ name: 'Wartender Dienst' }], court: null, end_ts: null },
+                { tabletoperator: [{ name: 'Beendeter Dienst' }], court: null, end_ts: 1 },
+            ] };
+        const match = setup({ tabletoperators: null });
+        match.teams.forEach((team, index) => { team.players[0].state = 'Landesverband ' + index; });
+        const recipes = prepare(current, [{ setup: match }]).map(part => decode(part, 1200)).filter(Boolean);
+        const roles = recipes.filter(recipe => recipe.text.startsWith('Tabletbedienung:')).map(recipe => recipe.text);
+        assert(roles.includes('Tabletbedienung:Wartender Dienst'));
+        assert(roles.includes('Tabletbedienung:Landesverband 0') && roles.includes('Tabletbedienung:Landesverband 1'));
+        assert(!roles.some(text => text.includes('Beendeter Dienst') || text.includes('Johann')));
+        const fromMatch = prepare({ ...current, tabletoperators: [], tabletoperator_with_state_from_match_enabled: true }, [{ setup: match }])
+            .map(part => decode(part, 1200)).filter(recipe => recipe?.text.startsWith('Tabletbedienung:'));
+        assert.deepStrictEqual(fromMatch.map(recipe => recipe.text), ['Tabletbedienung:Landesverband 0']);
+        delete match.teams[0].players[0].state;
+        const laterState = prepare({ ...current, tabletoperators: [], tabletoperator_with_state_from_match_enabled: true }, [{ setup: match }])
+            .map(part => decode(part, 1200)).filter(recipe => recipe?.text.startsWith('Tabletbedienung:'));
+        assert.deepStrictEqual(laterState.map(recipe => recipe.text), ['Tabletbedienung:Landesverband 1']);
+        const disabled = prepare({ ...current, tabletoperator_enabled: false }, [{ setup: match }]);
+        assert(!disabled.some(part => decode(part, 1200)?.text.startsWith('Tabletbedienung:')));
+    });
+
     for (const outcome of ['context', 'name', 'failed', 'source-failed', 'source-rejected']) it('bounds team recovery and retains one request at a time: ' + outcome, async function() {
         let clock = 1000;
         const sent = [], jobs = new Map();
