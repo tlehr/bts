@@ -3637,6 +3637,8 @@ h2.edit {
     line-height: 1.4;
 }
 
+.speech_queue_breakdown { margin: 0 0 1rem; padding: 0.5rem 0.75rem; border-left: 3px solid #526176; background: #f8fafc; font-size: 0.85rem; line-height: 1.4; }
+.speech_queue_breakdown p { margin: 0.2rem 0; }
 .speech_queue_progress_container { margin: 0 0 1rem; }
 .speech_queue_progress { display: block; width: 100%; height: 1rem; accent-color: #18733c; }
 .speech_queue_progress_label { margin-top: 0.35rem; font-size: 0.85rem; line-height: 1.4; color: #526176; }
@@ -3663,10 +3665,22 @@ h2.edit {
 
 .speech_queue_row:last-child { border-bottom: 0; }
 .speech_queue_current { background: #fff7e8; }
+.speech_queue_row:focus { outline: 2px solid #2563eb; outline-offset: -2px; }
 .speech_queue_order { color: #526176; text-align: center; font-size: 0.9rem; }
+.speech_queue_action { display: inline-block; font-size: 0.75rem; font-weight: bold; line-height: 1.4; padding: 0.15rem 0.4rem; border-radius: 0.25rem; margin-bottom: 0.4rem; background: #e2e8f0; color: #334155; }
+.speech_queue_row[data-operation="synthesis"] .speech_queue_action { background: #ede9fe; color: #5b21b6; }
+.speech_queue_row[data-operation="excerpt"] .speech_queue_action { background: #dbeafe; color: #1e40af; }
 .speech_queue_text { white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.4; }
 .speech_queue_purpose:not([hidden]) { display: block; overflow-wrap: anywhere; }
 .speech_queue_explanation { font-size: 0.8rem; color: #526176; margin: 0.25rem 0 0.5rem; line-height: 1.4; }
+.speech_queue_source, .speech_queue_results { font-size: 0.8rem; line-height: 1.4; margin-top: 0.5rem; overflow-wrap: anywhere; }
+.speech_queue_source_link { color: #1e40af; }
+.speech_queue_source_details { margin-top: 0.35rem; }
+.speech_queue_source_details summary, .speech_queue_results summary { cursor: pointer; color: #334155; }
+.speech_queue_source_text { white-space: pre-wrap; color: #526176; padding: 0.5rem; margin: 0.35rem 0 0; background: #f8fafc; border: 1px solid #d5dce4; border-radius: 0.25rem; }
+.speech_queue_source_text mark { background: #fef08a; color: #1f2937; font-weight: bold; }
+.speech_queue_results ul { padding-left: 1.25rem; margin: 0.35rem 0 0; }
+.speech_queue_results li + li { margin-top: 0.35rem; }
 .speech_queue_meta { margin-top: 0.4rem; font-size: 0.75rem; color: #526176; line-height: 1.4; }
 .speech_queue_row[data-status="completed"] .speech_queue_order { color: #18733c; }
 .speech_queue_row[data-status="failed"] .speech_queue_meta { color: #b42318; }

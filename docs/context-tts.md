@@ -25,6 +25,20 @@ BTS legt Quellen vor ihren abhängigen Ausschnitten an und schickt weiterhin nur
 
 Der Sprachserver speichert Quellen und Ausschnitte als unveränderliche WAVs im bestehenden Cache. Quellen verwenden Seed 42; ihre Schlüssel berücksichtigen weiterhin Stimme, Modell, Referenz und Sampling. Die Ausschnittschlüssel enthalten zusätzlich die konkrete Quellaufnahme, den exakten Textbereich, das Erkennungsmodell und die Verarbeitungsversion. Änderungen der Schnittverarbeitung benötigen keine neue Sprachsynthese der Quelle. Alte Aufnahmen werden nicht überschrieben.
 
+### Anzeige der Aufträge
+
+Jede Zeile zeigt ihre Auftragsart ausdrücklich an:
+
+| Anzeige | Was passiert? |
+| --- | --- |
+| **Sprachaufnahme erzeugen** | Der vollständige angezeigte Text wird synthetisiert oder als vorhandene Aufnahme aus dem Cache übernommen. |
+| **Aus Aufnahme ausschneiden** | Der angezeigte Baustein wird aus der genannten Quellaufnahme geschnitten. Das Sprachmodell wird dafür nicht erneut aufgerufen. |
+| **Aufnahme aufbereiten** | Die vollständige vorhandene Aufnahme wird für die Wiedergabe bearbeitet, etwa das Tempo eines Spielblocks. Dafür entsteht keine neue Sprachsynthese. |
+
+Quellen erhalten in der geöffneten Listenansicht eine Kennung wie „Aufnahme A17“. Ihre aufklappbare Liste „Liefert … Bausteine“ zeigt die vorgemerkten Ergebnisse. Jeder Verarbeitungsauftrag verweist auf seine Quelle; ein Klick auf „Aus Aufnahme A17“ springt zur zugehörigen Zeile. Bei Ausschnitten lässt sich der vollständige Originaltext aufklappen, darin ist die übernommene Stelle markiert. Die beiden „In Vorbereitung“-Zeilen zeigen deshalb dieselbe Aufnahme, aber unterschiedliche markierte Positionen.
+
+Wartet ein Ausschnitt auf seine noch unfertige Quelle, wird diese Abhängigkeit ausdrücklich angezeigt. Laufende Aufträge heißen je nach Art „Sprachaufnahme wird erzeugt“, „Wird ausgeschnitten“ oder „Wird aufbereitet“. Getrennte Zähler unterscheiden Sprachaufnahmen und Verarbeitung; der Gesamtfortschritt zählt alle Aufträge. Die A-Kennung einer Aufnahme und die wechselnde Warteschlangenposition links haben verschiedene Aufgaben.
+
 ## Tempo, Pausen und Wiedergabe
 
 - Der Hallensprecher erhält insgesamt Tempo 1,155, die Hallensprecherin 1,05. Der Client rechnet seine Turniereinstellung relativ zum bisherigen Standard 1,05 dazu; er beschleunigt vorbereitete Aufnahmen nicht nochmals um den früheren Männerfaktor.

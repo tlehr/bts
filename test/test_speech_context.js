@@ -99,6 +99,13 @@ describe('Context speech in tournament calls', function() {
         assert.strictEqual(sent.filter(body => body.context).length, 2, 'two inexpensive cuts');
         const queue = broker.queue('default').items.filter(item => item.kind !== 'source');
         assert.deepStrictEqual(queue.map(item => item.excerpt_position).sort(), ['end', 'start']);
+        assert(queue.every(item => item.operation === 'excerpt'));
+        assert.strictEqual(new Set(queue.map(item => item.source_key)).size, 1);
+        const source = broker.queue('default').items.find(item => item.kind === 'source');
+        assert.strictEqual(source.operation, 'synthesis');
+        assert(queue.every(item => item.source_key === source.key &&
+            source.text.slice(item.source_range.start, item.source_range.end) === item.text));
+        assert.notDeepStrictEqual(queue[0].source_range, queue[1].source_range, 'the identical text must point to different positions');
     });
 
     it('shares the game source across fields and officials and keeps distinct field opening and closing pieces', function() {
@@ -177,6 +184,15 @@ describe('Context speech in tournament calls', function() {
         const games = queue.filter(item => item.source_usage?.type === 'game');
         assert.strictEqual(fields.length, 13, 'one fixed reference for each field, shared by every game');
         assert.strictEqual(games.length, 3, 'one source for each actual game');
+        for (const source of [...fields, ...games]) {
+            assert.strictEqual(source.operation, 'synthesis');
+            const children = queue.filter(item => item.source_key === source.key);
+            assert(children.length >= 2);
+            for (const child of children) {
+                assert.strictEqual(source.text.slice(child.source_range.start, child.source_range.end), child.text);
+                assert.strictEqual(child.operation, child.kind === 'game' ? 'processing' : 'excerpt');
+            }
+        }
         assert(games.every(item => !item.text.includes('Spielfeld')));
         assert.strictEqual(new Set(fields.map(item => item.source_usage.text)).size, 13);
         const requestsBefore = sent.length, entriesBefore = broker.entries.size;

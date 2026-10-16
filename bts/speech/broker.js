@@ -239,6 +239,10 @@ class SpeechBroker {
                 current: entry === current, retry_at: Math.max(entry.retry_at, this.post_retry_at),
                 audio_url: entry.status === 'completed' ? this.audio_url(tournament_key, entry.audio_id, entry) : null,
                 kind: entry.context?.kind || 'text',
+                operation: !entry.source_key ? 'synthesis' : entry.context.before || entry.context.after ? 'excerpt' : 'processing',
+                ...(entry.source_key ? { source_key: entry.source_key, source_range: {
+                    start: entry.context.before.length, end: entry.context.before.length + entry.text.length,
+                } } : {}),
                 ...(entry.context?.kind === 'source' ? { source_usage: source_usage.get(entry.key) || { type: 'shared' } } : {}),
                 ...(entry.context?.kind === 'generic' ? { excerpt_position: !entry.context.before.trim() ? 'start' :
                     !entry.context.after.trim() ? 'end' : 'middle' } : {}),
