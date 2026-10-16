@@ -3759,8 +3759,8 @@ var ctournament = (function() {
 				input[field] = uiu.el(label, 'input', {
 					type: 'checkbox',
 					name: field,
-					checked: curt[field] ? 'checked' : undefined,
 				});
+				input[field].checked = !!curt[field];
 				uiu.el(label, 'span', {}, ci18n('tournament:edit:' + field));
 				bind_live_prop(input[field], field, {
 					on_success: function() {
