@@ -116,7 +116,7 @@ function createSpeechQueue({ root, service, onSnapshot = () => {} }) {
             feedback.textContent = result.status === 'ok' ? 'Aufnahme abgespielt.' :
                 result.status === 'busy' ? 'Gerade läuft eine Durchsage. Danach erneut probehören.' :
                 result.status === 'cancelled' ? 'Probehören beendet.' :
-                result.reason === 'audio_blocked' ? 'Audiowiedergabe gesperrt. Bitte Audio aktivieren.' :
+                result.reason === 'audio_blocked' ? 'Browser-Audio gesperrt. Bitte einmal im BTS klicken oder eine Taste drücken.' :
                 'Lokale Aufnahme nicht verfügbar. Cache-Status aktualisieren und erneut versuchen.';
             buttons();
         });

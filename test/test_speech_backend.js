@@ -631,7 +631,8 @@ describe('Server speech adapter and protected audio', function() {
     });
 
     it('selects signed male playback variants for resolution, readiness and previews without new generation', function() {
-        const broker = new SpeechBroker(config());
+        const time = Date.now();
+        const broker = new SpeechBroker(config(), { now: () => time });
         for (const voice of ['hallensprecher', 'hallensprecherin']) {
             const texts = ['Nina Beispiel', 'Bitte kommen!', 'Zeile eins\nZeile zwei'];
             broker.prepare(texts, { voice }, 'default');

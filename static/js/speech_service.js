@@ -9,6 +9,7 @@ function createSpeechService(context) {
     let preview_controller = null;
     let audio = null;
     let audio_context = null;
+    let unlocking = null;
     const getAudioContext = () => {
         try { return audio_context || (audio_context = context.makeAudioContext?.()); }
         catch (_) { return null; }
@@ -56,7 +57,7 @@ function createSpeechService(context) {
         speech_timeout: 'Die Antwort auf die Cache-Abfrage kam nicht rechtzeitig.',
         speech_rate_limit: 'Zu viele Sprachabfragen in kurzer Zeit.',
         speech_request_failed: 'Der Sprachstatus konnte nicht abgerufen werden.',
-        audio_blocked: 'Der Browser hat Server-Audio gesperrt. Audio aktivieren.',
+        audio_blocked: 'Der Browser hat Audio gesperrt. Bitte einmal im BTS klicken oder eine Taste drücken.',
         audio_failed: 'Die lokale Audiodatei konnte nicht geladen oder abgespielt werden.',
         audio_start_timeout: 'Die lokale Audiodatei startete nicht rechtzeitig.',
     };
@@ -158,6 +159,10 @@ function createSpeechService(context) {
     }
 
     async function play(clips, value, signal, pauses = []) {
+        // A click can unlock audio while its button starts a call. Finish the
+        // silent probe before assigning the real WAV to the shared element.
+        if (unlocking) await unlocking;
+        if (signal.aborted) throw Object.assign(new Error('cancelled'), { started: false });
         const clock = context.fetchAudio && clips.every(clip => clip.processed) &&
             Math.abs((value.rate || 1) - 1.05) < .0001 ? getAudioContext() : null;
         if (clock?.state === 'running') return playBuffered(clips, value, signal, pauses, clock);
@@ -303,28 +308,51 @@ function createSpeechService(context) {
     }
 
     function unlock() {
+        if (unlocking) return unlocking;
         if (active) return Promise.resolve(false);
         const clock = getAudioContext();
         if (clock) void clock.resume().catch(() => {});
         const player = getAudio();
         // Reuse this same element for later server audio (including Safari's gesture policy).
+        // Silent PCM at normal volume probes permission for unmuted playback;
+        // a volume-zero test can succeed even when real announcements are blocked.
         player.src = 'data:audio/wav;base64,UklGRiYAAABXQVZFZm10IBAAAAABAAEAwF0AAIC7AAACABAAZGF0YQIAAAAAAA==';
-        player.volume = 0;
-        try {
-            return Promise.resolve(player.play()).then(() => {
-                player.pause(); player.volume = 1; audio_ready = true; audio_error = null; changed(); return true;
-            }, error => {
-                player.volume = 1; audio_ready = false;
-                audio_error = error.name === 'NotAllowedError' ? 'audio_blocked' : 'audio_failed'; changed(); return false;
-            });
-        } catch (_) {
-            player.volume = 1; audio_ready = false; audio_error = 'audio_failed'; changed(); return Promise.resolve(false);
+        player.volume = 1;
+        unlocking = new Promise(resolve => {
+            let finished = false;
+            const finish = error => {
+                if (finished) return;
+                finished = true;
+                clearTimeout(timer);
+                player.pause();
+                audio_ready = !error;
+                audio_error = error ? error.name === 'NotAllowedError' ? 'audio_blocked' : 'audio_failed' : null;
+                changed();
+                resolve(!error);
+            };
+            const timer = setTimeout(() => finish(new Error('audio_start_timeout')), 1500);
+            try { Promise.resolve(player.play()).then(() => finish(), finish); }
+            catch (error) { finish(error); }
+        });
+        const attempt = unlocking;
+        const clear = () => { if (unlocking === attempt) unlocking = null; };
+        void attempt.then(clear, clear);
+        return attempt;
+    }
+
+    function ensureAudio() {
+        const value = settings();
+        if (!value.enabled || !value.key || value.mode === 'browser' || !languageSupported(value)) return Promise.resolve(false);
+        if (audio_ready && !audio_error) {
+            if (audio_context?.state === 'suspended') void audio_context.resume().catch(() => {});
+            return Promise.resolve(true);
         }
+        return unlock();
     }
 
     return {
-        settings, prepare, speak, cancel, unlock, describeResult, preview,
-        settingsChanged() { prepared.clear(); preview_controller?.abort(); changed(); },
+        settings, prepare, speak, cancel, unlock, ensureAudio, describeResult, preview,
+        settingsChanged() { prepared.clear(); preview_controller?.abort(); changed(); void ensureAudio(); },
         cancelPreview: () => preview_controller?.abort(),
         queue: async () => {
             const value = settings();
@@ -336,7 +364,8 @@ function createSpeechService(context) {
         },
         outputMessage: () => settings().mode === 'browser' ? 'Browser-TTS ist ausgewählt.' :
             last_result ? (last_result.status === 'playing' ? 'Aktuelle Ausgabe: ' : 'Letzte Ausgabe: ') + describeResult(last_result) :
-                audio_ready ? 'Audiowiedergabe freigegeben.' : 'Lokales Audio noch nicht freigegeben. Audio aktivieren.',
+                audio_ready ? 'Audiowiedergabe automatisch bereit.' : audio_error === 'audio_blocked' ? reasons.audio_blocked :
+                    'Lokales Audio wird automatisch vorbereitet.',
         inspect: async parts => {
             const value = settings();
             if (!value.enabled || !value.key || !languageSupported(value)) return null;
@@ -405,4 +434,9 @@ else {
         }),
     });
     window.btsSpeechService = btsSpeechService;
+    for (const name of ['click', 'keydown', 'touchend']) {
+        document.addEventListener(name, event => {
+            if (event.isTrusted && !event.repeat) void btsSpeechService.ensureAudio();
+        }, { capture: true, passive: true });
+    }
 }

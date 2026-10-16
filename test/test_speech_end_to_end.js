@@ -175,10 +175,18 @@ suite('BTS / actual FastAPI / native Chrome speech integration', function() {
         devtools = new CDP(ws);
         await devtools.call('Runtime.enable');
         await devtools.call('Page.enable');
+        await devtools.call('Page.addScriptToEvaluateOnNewDocument', { source:
+            'const originalInterval = window.setInterval.bind(window); window.setInterval = (fn, ms, ...args) => ' +
+            'originalInterval(fn, String(fn).includes(\'btsSpeechReadiness.refresh\') ? 60000 : ms, ...args);' });
         await devtools.call('Emulation.setDeviceMetricsOverride',
             { width: 1280, height: 1100, deviceScaleFactor: 1, mobile: false });
         await devtools.call('Page.navigate', { url: 'http://127.0.0.1:' + server.address().port + '/admin/t/default/' });
-        await until(() => devtools.evaluate('!!document.querySelector(\'.location_announcements_controls\')'));
+        try {
+            await until(() => devtools.evaluate('!!document.querySelector(\'.location_announcements_controls\')'));
+        } catch (error) {
+            const exceptions = devtools.events.filter(event => event.method === 'Runtime.exceptionThrown');
+            throw new Error(error.message + ': ' + JSON.stringify(exceptions.map(event => event.params.exceptionDetails.exception?.description)));
+        }
     });
 
     after(async function() {
@@ -225,19 +233,22 @@ suite('BTS / actual FastAPI / native Chrome speech integration', function() {
             'speech settings belong on the existing settings page');
         await devtools.evaluate('window.__audioSources = []; ' +
             'const nativePlay = HTMLMediaElement.prototype.play; HTMLMediaElement.prototype.play = function() {' +
-            'window.__lastAudio = this; ' +
-            'this.addEventListener(\'playing\', () => window.__audioSources.push(this.currentSrc), {once:true}); ' +
+            'if (!this.src.startsWith(\'data:\')) { window.__lastAudio = this; ' +
+            'this.addEventListener(\'playing\', () => window.__audioSources.push(this.currentSrc), {once:true}); } ' +
             'return nativePlay.call(this); };');
         await openSpeechSettings();
         await devtools.evaluate('(() => { const mode = document.querySelector(\'select[name="announcement_speech_mode"]\'); ' +
             'mode.value = \'server\'; mode.dispatchEvent(new Event(\'change\')); })()');
         await until(() => devtools.evaluate('btsSpeechService.settings().mode === \'server\''));
+        assert.strictEqual(await devtools.evaluate('[...document.querySelectorAll(\'.local_speech_controls button\')]' +
+            '.some(b => b.textContent === \'Audio aktivieren\')'), false);
         const bounds = await devtools.evaluate('(() => { const button = [...document.querySelectorAll(\'.local_speech_controls button\')]' +
-            '.find(b => b.textContent === \'Audio aktivieren\'); button.scrollIntoView({block:\'center\'}); ' +
+            '.find(b => b.textContent === \'Cache-Status aktualisieren\'); button.scrollIntoView({block:\'center\'}); ' +
             'const r = button.getBoundingClientRect(); return {x:r.x+r.width/2,y:r.y+r.height/2}; })()');
         for (const type of ['mousePressed', 'mouseReleased']) {
             await devtools.call('Input.dispatchMouseEvent', { type, x: bounds.x, y: bounds.y, button: 'left', clickCount: 1 });
         }
+        await until(() => devtools.evaluate('btsSpeechService.settings().audio_ready'));
         await devtools.call('Page.captureScreenshot', { format: 'png' }).then(result =>
             fs.writeFileSync('/tmp/bts-speech-admin-menu.png', Buffer.from(result.data, 'base64')));
         await devtools.call('Emulation.setDeviceMetricsOverride',
@@ -247,8 +258,8 @@ suite('BTS / actual FastAPI / native Chrome speech integration', function() {
         await devtools.call('Emulation.setDeviceMetricsOverride',
             { width: 1280, height: 1100, deviceScaleFactor: 1, mobile: false });
         await closeSpeechSettings();
-        assert.strictEqual(await devtools.evaluate('btsSpeechService.unlock()'), true,
-            'the actual silent unlock WAV must be playable in the native browser');
+        assert.strictEqual(await devtools.evaluate('btsSpeechService.settings().audio_ready'), true,
+            'an ordinary BTS click must automatically unlock audio without a dedicated activation button');
         const state = await devtools.evaluate('runAnnouncementSpeechCheck()');
         assert.strictEqual(state.status, 'active', JSON.stringify(state));
         assert(state.detail.includes('Server-Audio'));
@@ -542,6 +553,37 @@ suite('BTS / actual FastAPI / native Chrome speech integration', function() {
             } finally { admin.handle_speech_queue = original; }
         } finally {
             client.off('message', receive);
+            await closeSpeechSettings();
+            app.speech.start();
+        }
+    });
+
+    it('updates announcement readiness on a completion event without a manual refresh or periodic polling', async function() {
+        await openSpeechSettings();
+        await until(() => !app.speech.broker.current && !app.speech.broker.stepping);
+        app.speech.stop();
+        const broker = app.speech.broker;
+        const text = 'Button aktualisiert sich beim fertigen Baustein.';
+        const voice = await devtools.evaluate('btsSpeechService.settings().voice');
+        broker.prepare([text], { voice }, 'default');
+        try {
+            await click('.speech_queue h3');
+            await until(() => devtools.evaluate('btsSpeechService.settings().audio_ready'));
+            await devtools.evaluate('(() => { const target = document.createElement(\'button\'); target.type = \'button\'; ' +
+                'target.textContent = \'Ansage prüfen\'; target.id = \'event-readiness-test\'; ' +
+                'document.querySelector(\'.local_speech_controls\').appendChild(target); ' +
+                'target.scrollIntoView({block:\'center\'}); btsSpeechReadiness.trackText(target, () => [' + JSON.stringify(text) + ']); })()');
+            await devtools.evaluate('btsSpeechReadiness.refresh(true)');
+            assert.strictEqual(await devtools.evaluate('document.getElementById(\'event-readiness-test\').dataset.speechState'), 'preparing');
+            await broker.step();
+            await until(async () => {
+                if (broker.current) broker.current.entry.next_poll = 0;
+                await broker.step();
+                return !broker.current;
+            });
+            await until(() => devtools.evaluate('document.getElementById(\'event-readiness-test\').dataset.speechState === \'ready\''), 2500);
+        } finally {
+            await devtools.evaluate('document.getElementById(\'event-readiness-test\')?.remove()');
             await closeSpeechSettings();
             app.speech.start();
         }

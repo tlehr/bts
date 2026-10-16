@@ -42,7 +42,7 @@ function harness(options = {}) {
         browser.push(parts);
         return { status: 'ok', started: true };
     };
-    return { service, settings, played, requests, browser, player, fallback };
+    return { service, settings, played, requests, browser, player, fallback, setFail: value => { fail = value; } };
 }
 
 describe('Browser local speech provider', function() {
@@ -417,6 +417,55 @@ describe('Browser local speech provider', function() {
         assert.strictEqual(h.played.length, 2);
         assert(h.played[0].startsWith('data:audio/wav;'));
         assert.strictEqual(h.player.volume, 1);
+    });
+
+    it('automatically probes unmuted audio and recovers from browser blocking on the next interaction', async function() {
+        const h = harness({ fail: 'blocked' });
+        const volumes = [];
+        const play = h.player.play;
+        h.player.play = function() { volumes.push(this.volume); return play.call(this); };
+        assert.strictEqual(await h.service.ensureAudio(), false);
+        assert.strictEqual(h.service.settings().audio_error, 'audio_blocked');
+        assert(h.service.outputMessage().includes('klicken'));
+        h.setFail(null);
+        assert.strictEqual(await h.service.ensureAudio(), true);
+        assert.strictEqual(h.service.settings().audio_ready, true);
+        assert.deepStrictEqual(volumes, [1, 1], 'a muted probe cannot confirm permission for real speech');
+        assert.strictEqual((await h.service.speak([TEXT], 'automatic-audio', h.fallback)).provider, 'server');
+        assert.strictEqual(h.browser.length, 0);
+    });
+
+    it('coalesces automatic unlock attempts and finishes the silent probe before a simultaneous actual call', async function() {
+        const h = harness();
+        let release;
+        const play = h.player.play;
+        h.player.play = function() {
+            if (this.src.startsWith('data:')) { h.played.push(this.src); return new Promise(resolve => { release = resolve; }); }
+            return play.call(this);
+        };
+        const first = h.service.ensureAudio();
+        assert.strictEqual(h.service.ensureAudio(), first);
+        const actual = h.service.speak([TEXT], 'unlock-race', h.fallback);
+        await delay(5);
+        assert.strictEqual(h.played.length, 1);
+        release();
+        assert.strictEqual((await actual).provider, 'server');
+        assert.strictEqual(h.played.length, 2);
+        assert(h.played[1].startsWith('/h/default/speech/audio/'));
+    });
+
+    it('does not probe audio in browser mode or interrupt an active announcement', async function() {
+        const browser = harness({ mode: 'browser' });
+        assert.strictEqual(await browser.service.ensureAudio(), false);
+        assert.deepStrictEqual(browser.played, []);
+        const h = harness({ fail: 'held' });
+        const actual = h.service.speak([TEXT], 'active-unlock', h.fallback);
+        await delay(5);
+        const src = h.player.src;
+        assert.strictEqual(await h.service.ensureAudio(), false);
+        assert.strictEqual(h.player.src, src);
+        h.service.cancel();
+        await actual;
     });
 
     it('lets two independent clients play a shared recording once each', async function() {

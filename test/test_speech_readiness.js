@@ -45,7 +45,11 @@ describe('Announcement cache readiness indicators', function() {
         h.settings.mode = 'auto';
         h.settings.audio_ready = false;
         h.controller.changed();
+        assert.strictEqual(target.dataset.speechState, 'checking');
+        h.settings.audio_error = 'audio_blocked';
+        h.controller.changed();
         assert.strictEqual(target.dataset.speechState, 'locked');
+        assert(target.title.includes('normaler Klick oder Tastendruck'));
         h.settings.audio_ready = true;
         h.settings.audio_error = 'audio_failed';
         h.controller.changed();
@@ -146,7 +150,7 @@ describe('Announcement cache readiness indicators', function() {
         assert.strictEqual(target.dataset.speechState, 'checking');
         release();
         await pending;
-        assert.strictEqual(target.dataset.speechState, 'checking');
+        assert.strictEqual(target.dataset.speechState, 'missing', 'the new voice is inspected automatically after the old response');
         await h.controller.refresh(true);
         assert.strictEqual(target.dataset.speechState, 'missing');
         assert(target.title.includes('Hallensprecher ·'));
@@ -164,7 +168,7 @@ describe('Announcement cache readiness indicators', function() {
         h.controller.changed();
         release();
         await pending;
-        assert.strictEqual(target.dataset.speechState, 'checking');
+        assert.strictEqual(target.dataset.speechState, 'missing', 'the new text needs no second manual refresh');
         assert.strictEqual(h.requests[0][0], ' Ä\nU17 ');
         await h.controller.refresh(true);
         assert.strictEqual(target.dataset.speechState, 'missing');
@@ -248,7 +252,9 @@ describe('Announcement cache readiness indicators', function() {
         await h.controller.refresh();
         assert.deepStrictEqual(h.requests.map(parts => parts.length), [64, 64]);
         await h.controller.refresh();
-        assert.strictEqual(h.requests.length, 2, 'rerendering must not flood the admin socket');
+        assert.deepStrictEqual(h.requests.map(parts => parts.length), [64, 64, 32], 'unknown visible parts need no four-second delay');
+        await h.controller.refresh();
+        assert.strictEqual(h.requests.length, 3, 'known recent parts must not flood the admin socket');
         h.advance(5000);
         await h.controller.refresh();
         assert(targets.every(target => target.dataset.speechState === 'ready'));
@@ -256,5 +262,38 @@ describe('Announcement cache readiness indicators', function() {
         h.advance(16000);
         await h.controller.refresh();
         assert.strictEqual(targets[0].dataset.speechState, 'checking');
+    });
+
+    it('retains a forced cache refresh received during an inspection and never overlaps requests', async function() {
+        const h = harness(), target = element();
+        h.controller.trackText(target, () => ['Text']);
+        h.statuses.set(h.settings.voice + 'Text', 'processing');
+        await h.controller.refresh();
+        assert.strictEqual(target.dataset.speechState, 'preparing');
+        let release;
+        h.pending = new Promise(resolve => { release = resolve; });
+        const first = h.controller.refresh(true);
+        const again = h.controller.refresh(true);
+        assert.strictEqual(first, again);
+        assert.strictEqual(h.requests.length, 2, 'the follow-up must wait for the current request');
+        h.ready('Text');
+        release();
+        await again;
+        assert.strictEqual(h.requests.length, 3, 'the forced follow-up must bypass the recent status cache');
+        assert.strictEqual(target.dataset.speechState, 'ready');
+    });
+
+    it('immediately inspects newly visible controls while keeping recent visible observations cached', async function() {
+        const h = harness(), one = element(), two = element();
+        two.visible = false;
+        h.controller.trackText(one, () => ['One']);
+        h.controller.trackText(two, () => ['Two']);
+        h.ready('One'); h.ready('Two');
+        await h.controller.refresh();
+        assert.deepStrictEqual(h.requests, [['One']]);
+        two.visible = true;
+        await h.controller.refresh();
+        assert.deepStrictEqual(h.requests, [['One'], ['Two']]);
+        assert.strictEqual(two.dataset.speechState, 'ready');
     });
 });

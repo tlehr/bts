@@ -636,7 +636,7 @@ function runAnnouncementSpeechCheck() {
         result.status === 'ok' ? 'active' : 'error',
         result.status === 'ok'
             ? btsSpeechService.describeResult(result)
-            : btsSpeechService.describeResult(result) + ' Audio aktivieren und erneut testen.'
+            : btsSpeechService.describeResult(result) + ' Bitte erneut auf Sprachtest klicken.'
     )).catch(() => setAnnouncementSpeechCheckState('error', ci18n('announcements:speechcheck:error')));
 }
 

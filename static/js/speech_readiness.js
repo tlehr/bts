@@ -11,6 +11,9 @@ function createSpeechReadiness(context) {
     let unavailable = false;
     let running = null;
     let timer = null;
+    let scheduledForce = false;
+    let refreshAgain = false;
+    let forceAgain = false;
     let generation = 0;
     let lastInspection = -Infinity;
     const labels = {
@@ -18,7 +21,7 @@ function createSpeechReadiness(context) {
         checking: 'Wird geprüft', failed: 'Generierung fehlgeschlagen',
         unavailable: 'Status nicht verfügbar', disabled: 'Lokale Sprache aus',
         unsupported: 'Nur Browser-TTS', empty: 'Keine Ansage', browser: 'Browser-TTS ausgewählt',
-        locked: 'Audio aktivieren', audio_error: 'Server-Audio nicht abspielbar',
+        locked: 'Browser wartet auf Klick', audio_error: 'Server-Audio nicht abspielbar',
     };
     const calls = {
         'match:manualcall': 'announceNewMatch', 'match:preparationcall': 'announcePreparationMatch',
@@ -31,7 +34,7 @@ function createSpeechReadiness(context) {
     function snapshot() {
         const value = context.snapshot();
         value.identity = JSON.stringify([value.settings.key, value.settings.voice, value.settings.language,
-            value.settings.enabled, value.settings.max_text]);
+            value.settings.enabled, value.settings.max_text, value.settings.max_part_length, value.tournament?.speech?.context_version]);
         return value;
     }
 
@@ -75,6 +78,7 @@ function createSpeechReadiness(context) {
         const count = total === undefined ? '' : ' · ' + completed + '/' + total + ' Ansageteile bereit.';
         let detail = labels[state] + ' · ' + voice + count;
         if (settings.mode === 'browser') detail += ' Auf diesem Gerät ist Browser-TTS ausgewählt.';
+        if (state === 'locked') detail += ' Ein normaler Klick oder Tastendruck im BTS gibt Audio automatisch frei.';
         element.title = (item.title ? item.title + '\n' : '') + detail;
         element.setAttribute('aria-label', (item.title ? item.title + ': ' : '') + detail);
         if (item.label) element.textContent = labels[state] + (total === undefined ? '' : ' (' + completed + '/' + total + ')');
@@ -94,7 +98,8 @@ function createSpeechReadiness(context) {
             else if (!parts.length) state = 'empty';
             else if (unavailable || states.includes('unavailable')) state = 'unavailable';
             else if (value.settings.audio_error && value.settings.audio_error !== 'audio_blocked') state = 'audio_error';
-            else if (value.settings.audio_ready === false || value.settings.audio_error === 'audio_blocked') state = 'locked';
+            else if (value.settings.audio_error === 'audio_blocked') state = 'locked';
+            else if (value.settings.audio_ready === false) state = 'checking';
             else if (states.includes('failed')) state = 'failed';
             else if (completed === parts.length) state = 'ready';
             else if (states.some(status => ['unsubmitted', 'queued', 'processing'].includes(status))) state = 'preparing';
@@ -113,18 +118,21 @@ function createSpeechReadiness(context) {
         for (const text of cache.keys()) if (!used.has(text)) cache.delete(text);
         paint(jobs, value);
         if (!value.settings.enabled || !value.settings.key || value.settings.language !== 'de-DE') return;
-        if (!force && now() - lastInspection < 4000) return;
         // Bound inspection traffic independently of the number of matches. Inspect
         // visible controls only; old observations expire instead of staying green.
         const parts = [...new Set(jobs.filter(job => context.visible(job.element)).flatMap(job => job.parts))]
-            .filter(text => text.length <= (value.settings.max_part_length || value.settings.max_text) && text.trim())
+            .filter(text => text.length <= (value.settings.max_part_length || value.settings.max_text) && text.trim() &&
+                (force || !cache.has(text) || now() - cache.get(text).checked >= 4000))
             .sort((a, b) => (cache.get(a)?.checked || 0) - (cache.get(b)?.checked || 0))
             .slice(0, 128);
         if (parts.length) lastInspection = now();
         for (let i = 0; i < parts.length; i += 64) {
             const batch = parts.slice(i, i + 64);
             const response = await context.service.inspect(batch);
-            if (snapshot().identity !== value.identity || currentGeneration !== generation) return;
+            if (snapshot().identity !== value.identity || currentGeneration !== generation) {
+                refreshAgain = forceAgain = true;
+                return;
+            }
             if (!response || response.speech_error || !Array.isArray(response.clips) ||
                 response.clips.length !== batch.length || response.speech?.enabled === false) {
                 unavailable = true;
@@ -142,17 +150,34 @@ function createSpeechReadiness(context) {
     }
 
     function refresh(force = false) {
-        if (!running) running = run(force).finally(() => { running = null; });
+        if (running) {
+            refreshAgain = true;
+            forceAgain ||= force;
+            return running;
+        }
+        running = (async () => {
+            do {
+                refreshAgain = forceAgain = false;
+                await run(force);
+                force = forceAgain;
+            } while (refreshAgain);
+        })().finally(() => { running = null; });
         return running;
     }
 
-    function schedule() {
+    function schedule(force = false) {
+        scheduledForce ||= force;
         if (!context.schedule || timer !== null) return;
-        timer = context.schedule(() => { timer = null; void refresh(); }, 250);
+        timer = context.schedule(() => {
+            timer = null;
+            const force = scheduledForce;
+            scheduledForce = false;
+            void refresh(force);
+        }, force ? Math.max(250, 1000 - (now() - lastInspection)) : 250);
     }
 
     function track(element, item) {
-        item.title = element.title || (item.label ? '' : element.textContent.trim());
+        item.title = tracked.get(element)?.title ?? (element.title || (item.label ? '' : element.textContent.trim()));
         tracked.set(element, item);
         const value = snapshot();
         if (identity !== value.identity) reset(value);
@@ -163,11 +188,13 @@ function createSpeechReadiness(context) {
 
     return {
         refresh,
-        changed() {
+        schedule,
+        changed(force = false) {
             const value = snapshot();
             if (identity !== value.identity) reset(value);
             paint(collect(value), value);
-            schedule();
+            if (running) { refreshAgain = true; forceAgain ||= force; }
+            else schedule(force);
         },
         trackText(element, read, label = false) { track(element, { read, label }); },
         trackMatch(element, matchId, title, preparation = false, locationId) {
@@ -196,4 +223,7 @@ else {
     window.addEventListener('focus', () => btsSpeechReadiness.changed());
     window.addEventListener('storage', () => btsSpeechReadiness.changed());
     window.addEventListener('bts-speech-output-changed', () => btsSpeechReadiness.changed());
+    window.addEventListener('bts-speech-cache-changed', () => btsSpeechReadiness.changed(true));
+    window.addEventListener('scroll', () => btsSpeechReadiness.schedule(), { capture: true, passive: true });
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) btsSpeechReadiness.changed(true); });
 }

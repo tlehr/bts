@@ -76,6 +76,7 @@ var ctournament = (function() {
 				ci18n.switch_language(curt.language);
 			}
 			if (typeof btsSpeechService !== 'undefined') {
+				void btsSpeechService.ensureAudio();
 				void btsSpeechService.prepare([ci18n('announcements:speechcheck:text')]);
 			}
 			success_cb();
@@ -1316,13 +1317,7 @@ var ctournament = (function() {
 			};
 			bind_live_prop(mode, 'announcement_speech_mode', { on_success: changed });
 			bind_live_prop(voice, 'announcement_speech_voice', { on_success: changed });
-			uiu.el(controls, 'small', {}, 'Stimme und Modus gelten für alle Clients dieses Turniers. Audio muss in jedem Browser einmal freigegeben werden.');
-			const unlock = uiu.el(controls, 'button', { type: 'button' }, 'Audio aktivieren');
-			unlock.addEventListener('click', () => {
-				btsSpeechService.unlock().then(ok => {
-					status.textContent = ok ? 'Audiowiedergabe aktiviert.' : 'Audiowiedergabe gesperrt; erneut aktivieren.';
-				});
-			});
+			uiu.el(controls, 'small', {}, 'Stimme und Modus gelten für alle Clients dieses Turniers. Lokales Audio wird automatisch vorbereitet. Falls der Browser Audio sperrt, genügt ein normaler Klick oder Tastendruck im BTS.');
 			uiu.el(controls, 'button', { type: 'button' }, 'Ansage auf diesem Gerät stoppen')
 				.addEventListener('click', cancelAnnouncementPlayback);
 			uiu.el(controls, 'button', { type: 'button' }, 'Cache-Status aktualisieren')

@@ -46,7 +46,7 @@ Wartet ein Ausschnitt auf seine noch unfertige Quelle, wird diese Abhängigkeit 
 - D05 nutzt Zielpausen von 140/120/320/160 ms. Leere Bestandteile entfallen. D08 erhält nach „Klapptafelbedienung“ zusätzlich 180 ms innerhalb des langen Aufrufs.
 - D12 setzt vor „Das Spiel geht kampflos an“ 250 ms Zielabstand, vor dem Siegerteam 140 ms. Der deutsche Browsertext verwendet denselben neuen Ergebnissatz.
 
-Vorhandene leise Ränder zählen zur Zielpause. Am Standardtempo dekodiert ein freigegebener Web-Audio-Client alle fertigen Teile vor dem Start und plant sie auf einer gemeinsamen Audio-Uhr. So verlängert der Abruf der nächsten WAV die Verbindung nicht. Bei abweichender Turniergeschwindigkeit oder ohne laufende Audio-Uhr bleibt der vorhandene HTML-Audio-Pfad mit erhaltener Tonhöhe verfügbar. Audio muss weiterhin einmal pro Browser freigegeben werden.
+Vorhandene leise Ränder zählen zur Zielpause. Am Standardtempo dekodiert ein freigegebener Web-Audio-Client alle fertigen Teile vor dem Start und plant sie auf einer gemeinsamen Audio-Uhr. So verlängert der Abruf der nächsten WAV die Verbindung nicht. Bei abweichender Turniergeschwindigkeit oder ohne laufende Audio-Uhr bleibt der vorhandene HTML-Audio-Pfad mit erhaltener Tonhöhe verfügbar. BTS bereitet die Audiowiedergabe pro Browser automatisch vor; verlangt dessen Autoplay-Regel eine Interaktion, wird die Freigabe beim nächsten normalen Klick, Tastendruck oder Touch im BTS automatisch wiederholt.
 
 ## Automatische Schnitte
 
