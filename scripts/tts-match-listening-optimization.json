@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "edge_threshold_dbfs": -52,
+  "keep_leading_ms": 35,
+  "keep_trailing_ms": 45,
+  "max_leading_trim_ms": 300,
+  "max_trailing_trim_ms": 150,
+  "fade_ms": 5,
+  "preserve_full_blocks": ["game"],
+  "piece_gain_db": {"hall": 2},
+  "source_cleanups": {
+    "game": [{
+      "source_sha256": "8b7ad580ff4245ae7d0c55f8df0451ae3d4fcb1ef0eb0050dbe8041063b280de",
+      "start_frame": 125880,
+      "end_frame": 129600,
+      "fade_ms": 5,
+      "note": "Fixed source only: low-level artifact before Nina, after Achtelfinale. Speech onset about 5.43 s; no generic noise gate."
+    }]
+  }
+}

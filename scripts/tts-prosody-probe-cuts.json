@@ -1,0 +1,27 @@
+{
+  "sample_rate": 24000,
+  "notes": {
+    "field_emphasis": "Experimentelle Hervorhebung; ob die Feldnummer passend betont wird, entscheidet der Hörvergleich.",
+    "walkover_pause": "Diagnosequelle: Die lokale Erkennung findet nach an ein zusätzliches paus. Die vollständige Fassung wird nicht übernommen. Der gesonderte Ausschnitt endet vor diesem Wort."
+  },
+  "pieces": {
+    "field_start": {
+      "source": "field_emphasis",
+      "source_sha256": "ca0877b308c6fa4b723f13964f4a09b2a21dad4d8962d6a9cf6020c281676ff6",
+      "start_frame": 0,
+      "end_frame": 34320
+    },
+    "field_end": {
+      "source": "field_emphasis",
+      "source_sha256": "ca0877b308c6fa4b723f13964f4a09b2a21dad4d8962d6a9cf6020c281676ff6",
+      "start_frame": 212880,
+      "end_frame": 244221
+    },
+    "walkover": {
+      "source": "walkover_pause",
+      "source_sha256": "0c2190027031f4ee3d36d4f131a23b29953fd6eb3062b80a7986826df1161918",
+      "start_frame": 167640,
+      "end_frame": 195360
+    }
+  }
+}

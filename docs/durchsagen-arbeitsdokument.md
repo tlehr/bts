@@ -466,23 +466,19 @@ Damit gibt es im Grundentwurf **fünf gemeinsame feste Wiedergabestücke**. Sie 
 
 Die Präfixe bleiben in ihren Quellen bis zum tatsächlichen Team beziehungsweise zur Rolle mit Namen verbunden. Wir generieren kein alleinstehendes „Zweiter Aufruf für:“ als vermeintlich vollständigen Satz.
 
-#### D. Zusätzliche Ausschnitte für kampflose Entscheidungen
+#### D. Kampflose Entscheidungen: Spielblock auch hier zusammenhalten
 
-Für D12 lassen sich bei Bedarf zwei weitere zusammenhängende Stücke **aus dem bereits vorhandenen vollständigen Spielblock** gewinnen:
+Der erste Hörsatz teilte den vorhandenen Spielblock für D12 in Spielkopf und vollständige Begegnung. Die zusätzliche Montagepause trennte ein leises Quellsignal vor „Nina“ vom vorherigen Satzteil ab. Der optimierte Hörversuch behält deshalb auch hier den **vollständigen vorhandenen Spielblock** zusammen. Ein gesonderter Spielkopf und ein Begegnungs-Ausschnitt sind für diesen Aufbau nicht erforderlich.
 
-- **Spielkopf:** die aktivierten Spielangaben B03 → B04 → B05 bis vor dem ersten Team. Sind alle drei ausgeschaltet, entfällt dieser Ausschnitt.
-- **Beide Teams gemeinsam:** B07 mit dem bereits natürlich gesprochenen `gegen` zwischen den Teams. Die zwei zuvor gespeicherten einzelnen Team-Ausschnitte bleiben weiterhin beide ohne „gegen“.
-
-Der vorgeschlagene Aufbau ist:
+Der überarbeitete Planungsentwurf lautet:
 
 ```text
-Spielkopf aus dem vollständigen Spielblock, soweit vorhanden
-→ beide Teams gemeinsam aus demselben Spielblock, einschließlich „gegen“
+Vollständiger Spielblock B03 → B04 → B05 → B07
 → geht kampflos an
 → vorhandener Ausschnitt des tatsächlichen Siegerteams, ohne „gegen“
 ```
 
-Für eine kampflose Entscheidung entsteht so zunächst kein neuer spielbezogener Syntheseauftrag. Zusätzliche Ausschnitte werden aus dem vorhandenen Audio gewonnen. Beide möglichen Siegerfassungen werden nicht vorsorglich als neue vollständige Ansagen generiert.
+Für eine kampflose Entscheidung entsteht so zunächst kein neuer spielbezogener Syntheseauftrag. Die gemeinsame Kampflos-Klausel und der schon vorhandene Siegerteam-Ausschnitt ergänzen den Spielblock. Die beiden einzelnen Team-Ausschnitte bleiben weiterhin ohne „gegen“. Beide möglichen Siegerfassungen werden nicht vorsorglich als neue vollständige Ansagen generiert. Die feste Störstelle des Beispiels wird ausschließlich in einer Wiedergabekopie und an ihre geprüfte Quelle gebunden bereinigt; daraus folgt keine allgemeine Zeit- oder Lautstärkeregel für andere Aufnahmen.
 
 **Hörprüfpunkt:** Die heutige D12-Einleitung verwendet Kommata und die Teamansage setzt sich nach Team 2 fort. Die ursprüngliche Betonung der übernommenen Ausschnitte bleibt hörbar; sie lässt sich durch nachträgliche Pausen nicht exakt an eine andere Satzmelodie anpassen. Falls diese Montage den Hörtest nicht besteht, ist eine vollständige D12-Generierung für die tatsächlich eingetretene Entscheidung die gezielte Alternative. Auch dabei werden keine hypothetischen Sieger durchgeneriert.
 
@@ -501,7 +497,7 @@ Die folgende Tabelle ist der neue lokale Planungsentwurf. Die Textreihenfolge un
 | D06/D07/D08 | B01-Anfang → langer normaler Zweitaufruf mit Rolle und vollständigem Namen/Bedien-Team | Keine bei vorbereiteter Zuordnung |
 | D09/D10 | Vorbereitungs-Zweitaufruf-Präfix → Rolle mit Name → Name allein → Treffpunkt in Einzahl oder `In Vorbereitung!` | Keine bei vorbereiteter Zuordnung und Hallenform |
 | D11 | Vorbereitungs-Zweitaufruf-Präfix → Rolle mit Bedien-Team → Bedien-Team allein → längere Bedienaufforderung mit dem passenden Meldezusatz | Keine bei vorbereiteter Zuordnung und Hallenform; heutiger Wortlautfehler separat zu klären |
-| D12 | Spielkopf → beide Teams gemeinsam → `geht kampflos an` → Siegerteam | Zunächst nur weitere Schnitte; vollständige tatsächliche D12 nur als Alternative bei unzureichendem Hörtest |
+| D12 | Vollständiger vorhandener Spielblock → `geht kampflos an` → Siegerteam | Keine zusätzliche Spielblock- oder Teamgenerierung; vollständige tatsächliche D12 nur als Alternative bei unzureichendem Hörtest |
 | D13 | Vollständiger eingegebener Text in einer Aufnahme | Eine Generierung je neuem, tatsächlich verwendetem Text, falls nicht vorhanden |
 | D14 | Vollständiger Sprachtest | Keine, wenn die einmalige Testaufnahme bereitsteht |
 | D15 | Bestehende Evakuierungs-MP3 | Keine Synthese |
@@ -535,8 +531,8 @@ Die übrigen Punkte können wir direkt in dieser Datei festlegen:
 | Offizielle | Welche Rollen-/Namensstücke lassen sich natürlich zwischen normalen Aufrufen und Zweitaufrufen wiederverwenden? | Entwurf: vollständige normale Zweitaufruf-Quelle je Rollen-/Namenskombination; daraus langer Zweitaufruf, Rolle mit Name und gegebenenfalls Name allein. Übergänge hörprüfen. |
 | Vorbereitung | Welche Hallen- und Treffpunkttexte bilden jeweils einen vollständigen Satz? | Entwurf: langer Vorbereitungsstart je Feld/Hallenfassung, ergänzende vollständige Referenzen nur für fehlende Hallenformen. |
 | Zweitaufrufe | Wie viel Zusammenhang brauchen Präfix, Rolle, Name und Zielort? | Entwurf: Präfixe aus vollständigen Referenzen, vorhandene Team-Ausschnitte und längere Rollen-/Namensstücke verwenden. |
-| Kampflos | Welche Aufnahmen können mit D01/D02 geteilt werden, ohne die andere Satzmelodie zu verlieren? | Entwurf: Spielkopf und komplette Teambegegnung aus dem Spielblock, feste Klausel aus D12-Referenz, vorhandener Siegerteam-Ausschnitt. Hörprobe entscheidet über Verwendbarkeit. |
-| Pausen und Betonung | Welche Pausen gehören in die Aufnahme, welche setzen wir beim Abspielen? | Innere Melodie längerer Stücke bewahren; konkrete Übergangspausen im Hörvergleich festlegen. |
+| Kampflos | Welche Aufnahmen können mit D01/D02 geteilt werden, ohne die andere Satzmelodie zu verlieren? | Optimierter Entwurf: vollständigen Spielblock erhalten, gemeinsame Klausel und vorhandenes Siegerteam ergänzen. Hörprobe entscheidet über Verwendbarkeit. |
+| Pausen und Betonung | Welche Pausen gehören in die Aufnahme, welche setzen wir beim Abspielen? | Hörversuch: vorhandene leise Ränder auf die Zielpause anrechnen, kurze Fades an aktiven Schnittstellen. Innere Melodie bewahren. Modell-Hervorhebungen werden gesondert erprobt; sie sind keine garantierte Betonung. |
 | Browser-TTS | Welche bestehende Abschnittsaufteilung behalten oder ändern wir dafür? | Entwurf: bisherige vollständige Browserabschnitte beibehalten. |
 | Vorab-Cache | Welche Varianten müssen vorbereitet werden, und welche erst nach einer tatsächlichen Änderung? | Zuerst Feldaufnahmen; die Spielblöcke bleiben untereinander in Ansetzungsreihenfolge. Optimierter Entwurf: B12 früh vorziehen, dann nächste Aufrufe einschließlich ihrer Hallen-/Offiziellen-Teile vollständig vorbereiten; Zweitaufrufe und gemeinsame Kampflos-Klausel vor ferner Vorarbeit. Details und Vorrang tatsächlicher Anforderungen in Abschnitt 10.4. |
 
@@ -641,8 +637,7 @@ Die folgenden Stücke ergänzen den Bestand aus 10.1. Sie werden aus den vollst�
 | Vorbereitungs-Präfix `Zweiter Aufruf In Vorbereitung für:` | 1 gemeinsam | Aus einer vollständigen Vorbereitungs-Zweitaufruf-Referenz, gemeinsam mit Hallenstücken gewinnen |
 | `geht kampflos an` | 1 gemeinsam | Vollständige D12-Referenz mit Beispielteams und einem Beispiel-Sieger |
 | Sprachtest D14 | 1 gemeinsam | Vollständige Testaufnahme, kein Schnitt |
-| Spielkopf für tatsächliche kampflose Entscheidung | Höchstens 1 je betroffenem Spiel; 0 bei ausgeschalteten Spielangaben | Zusätzlicher Schnitt aus dem vorhandenen Spielblock |
-| Beide Teams gemeinsam einschließlich „gegen“ für D12 | 1 je betroffenem Spiel | Zusätzlicher Schnitt aus demselben Spielblock; die zwei einzelnen Teamstücke bleiben ohne „gegen“ |
+| Spielkopf und Begegnung als getrennte D12-Stücke | 0 im optimierten Entwurf | Vollständigen Spielblock wiederverwenden; die zwei historischen Testschnitte bleiben nur im bisherigen Hörsatz vorhanden |
 | Freie Ansage D13 | 0 im festen Vorrat; 1 je neuem vollständigem Text | Erst bei vorhandenem konkretem Text erzeugen |
 | Vollständige tatsächliche D12 als mögliche Alternative | 0 im Grundentwurf | Nur falls der Hörtest eine vollständige Aufnahme erfordert; dann 1 je tatsächlichem unterschiedlichem Ergebnistext |
 | Evakuierung D15 | 0 neu zu generieren | Bestehende MP3 |
@@ -670,7 +665,7 @@ Q und H werden aus den tatsächlich benötigten Hallen-/Feldtexten und Personenf
 
 Im Betrieb können noch folgende Mengen hinzukommen:
 
-- **W weitere Ausschnitte für D12:** zusammen Spielköpfe und vollständige Begegnungen aus vorhandenen Spielblöcken; höchstens zwei je betroffenem Spiel, ohne zusätzliche Synthese.
+- **W weitere Ausschnitte für D12:** W = 0 im optimierten Entwurf, weil der Spielblock zusammenbleibt. Der frühere getrennte Hörversuch benötigte bis zu zwei zusätzliche Ausschnitte je betroffenem Spiel, ohne zusätzliche Synthese.
 - **X neue freie Ansagen:** X vollständige Generierungen und X Wiedergabestücke.
 - **Z vollständige tatsächliche D12-Fassungen**, falls nach dem Hörtest erforderlich: Z zusätzliche Generierungen und Z Wiedergabestücke. Im Grundentwurf ist Z = 0; bei Nutzung dieser Alternative werden dafür nicht eigens unbenötigte Montageschnitte angelegt.
 
@@ -694,7 +689,7 @@ Die Vormerkungen der regulären Spielblöcke behalten dabei turnierweit ihre Ans
 | 2 | **Gemeinsame Startanweisung B12** | Eine vollständige D03-Referenz liefert `Bitte mit dem Spielen beginnen!`. Zusammen mit den Feldstücken ist D03 damit für alle Felder bereit, bevor viele weitere Spielblöcke entstehen. |
 | 3 | **Die nächsten regulären Aufrufe vollständig vorbereiten** | Je nahem Spiel den Spielblock samt beiden Team-Ausschnitten erstellen und anschließend die für seine nächste D01- oder D02-Ansage fehlenden Hallen- und Offiziellen-Quellen ergänzen. Erst dann das nächste Spiel bearbeiten. Die Spielblöcke bleiben untereinander in Ansetzungsreihenfolge. |
 | 4 | **Zweitaufrufe für die gerade aufgerufenen und nahen Spiele absichern** | Die Teamstücke und normalen Offiziellen-Zweitaufrufe sind überwiegend schon vorhanden. Nur fehlende Präfixe, passende Einzahl-/Mehrzahlformen und Bedienaufforderungen ergänzen; Quellen mit mehreren benötigten Ausschnitten zuerst. |
-| 5 | **Gemeinsame Kampflos-Formulierung** | Ein vollständiges D12-Beispiel liefert einmal `geht kampflos an`. Diese gemeinsame Absicherung kommt vor weit entfernten Spielblöcken. Spielkopf und Begegnung erst bei Bedarf aus dem jeweiligen vorhandenen Spielblock schneiden. |
+| 5 | **Gemeinsame Kampflos-Formulierung** | Ein vollständiges D12-Beispiel liefert einmal `geht kampflos an`. Diese gemeinsame Absicherung kommt vor weit entfernten Spielblöcken. Den jeweiligen Spielblock vollständig wiederverwenden. |
 | 6 | **Weitere bereite Spiele samt ihren benötigten Zusatzteilen** | Den Vorrat in Spielplanreihenfolge erweitern. Für jedes Spiel wiederum die nächste Ansage vervollständigen, vorhandene Hallen-/Rollenstücke teilen. Bei neuem nahen Bedarf zurück zu Priorität 3 beziehungsweise 4. |
 | 7 | **Weitere tatsächlich benötigte Sonderformen und automatischer Sprachtest** | Verbleibende Hallen-/Bedienformen für spätere Einsätze und die Testaufnahme nachrangig vorbereiten. Keine hypothetischen Team-, Rollen- oder Hallenkombinationen erzeugen. Ein ausdrücklich angeforderter Sprachtest wartet nicht auf diese Gruppe. |
 

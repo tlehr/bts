@@ -18,8 +18,15 @@ a{color:#135d82}.sticky{position:sticky;top:0;background:#eef2f4;padding:12px 0;
 <main>
 <h1>Spiel 189 · Alle spielbezogenen Durchsagen</h1>
 <p id="description"></p><p id="settings" class="muted"></p>
+<section id="analysis" hidden><h2>Bearbeitung und Messanalyse</h2><p id="optimization-summary"></p>
+<details><summary>Messbefunde und Grenzen der Analyse anzeigen</summary>
+<p>Vorhandene leise Randbereiche zählen zur Zielpause. Die angezeigten Messwerte sind technische Hinweise; sie bewerten die Sprachmelodie nicht.</p>
+<div id="analysis-values"></div><p><a href="analysis.md">Analyse lesen</a> · <a href="analysis.json">Alle Messwerte</a></p></details></section>
 <section><h2>Referenz · bevorzugte zusammenhängende Aufnahme</h2>
 <audio id="reference" controls preload="metadata"></audio><p id="reference-text"></p></section>
+<section id="probes" hidden><details><summary>Zwei gezielte Modellversuche anhören</summary>
+<p>Zwei zusätzliche vollständige Kontextaufnahmen testen die Hervorhebung der Feldnummer und einen Pausenmarker vor dem Sieger. Diese Versuche sind von der Bearbeitung der vorhandenen WAVs getrennt. Die Wirkung der Markierungen muss im Hörvergleich beurteilt werden.</p>
+<div id="probe-items"></div><p><a href="https://huggingface.co/KittenML/kitten-tts-2/blob/main/README.md#expression-controls">Dokumentation der experimentellen Betonungssteuerung</a></p></details></section>
 <p>Die folgenden Durchsagen bestehen aus den geplanten Kontext-Ausschnitten. Du kannst jede Ansage einzeln hören oder die sichtbare Auswahl nacheinander abspielen. Unter jeder Ansage lassen sich die verwendeten Stücke einzeln prüfen.</p>
 <div class="sticky"><div class="tools">
 <input id="search" type="search" aria-label="Durchsagen suchen" placeholder="Durchsagen suchen …">
@@ -63,7 +70,7 @@ function next() {
 function text(tag, value, cls) { const item = document.createElement(tag); item.textContent = value; if (cls) item.className = cls; return item; }
 const p = report.parameters;
 document.querySelector('#description').textContent = report.note + ` Beispiel-Offizielle: ${report.fixture.umpire}, ${report.fixture.service_judge}; Bedienung: ${report.fixture.operators}.`;
-document.querySelector('#settings').textContent = `${report.cases.length} Durchsagen · Hallensprecher · Tempo ${p.speed} · Temperatur ${p.temperature} · Seed ${p.seed} · Satzpausen 250 ms, Verbindungen 60/120 ms`;
+document.querySelector('#settings').textContent = `${report.cases.length} Durchsagen · Hallensprecher · Tempo ${p.speed} · Temperatur ${p.temperature} · Seed ${p.seed} · ${report.optimization ? 'Zielpausen 250/60/120 ms unter Berücksichtigung vorhandener Stille' : 'Satzpausen 250 ms, Verbindungen 60/120 ms'}`;
 document.querySelector('#reference').src = report.reference.file;
 document.querySelector('#reference-text').textContent = report.reference.text;
 document.querySelector('#reference').addEventListener('play', () => {
@@ -72,13 +79,25 @@ document.querySelector('#reference').addEventListener('play', () => {
 });
 for (const item of report.cases) {
     const article = document.createElement('article'); article.dataset.id = item.id;
+    if (item.original) article.append(text('small', 'Bearbeitete Montage'));
     article.append(text('h2', item.label), player(item.file), text('small', `${item.duration} Sekunden · ${item.parts.length} Stücke`));
+    if (item.original) {
+        const compare = document.createElement('details'); compare.append(text('summary', 'Bisherige Fassung zum direkten Vergleich'), player(item.original.file));
+        article.append(compare);
+    }
+    if (item.full_reference) {
+        const compare = document.createElement('details'); compare.append(text('summary', 'Vollständig gesprochene Kontextquelle vergleichen'), text('p', item.full_reference.note), player(item.full_reference.file));
+        article.append(compare);
+    }
+    for (const variant of item.variants || []) {
+        const compare = document.createElement('details'); compare.append(text('summary', variant.label), player(variant.file)); article.append(compare);
+    }
     if (item.note) article.append(text('p', item.note, 'note'));
     article.append(text('p', item.parts.map(part => report.pieces[part.piece].display).join(' ')));
     const detail = document.createElement('details'); detail.append(text('summary', 'Bausteine einzeln hören und Übergänge ansehen'));
     for (const part of item.parts) {
         const clip = report.pieces[part.piece]; const block = document.createElement('div'); block.className = 'piece';
-        block.append(text('strong', clip.display), player(clip.file), text('small', `${part.piece} · Quelle: ${clip.source} · danach ${part.pause_ms} ms Pause`));
+        block.append(text('strong', clip.display), player(clip.file), text('small', `${part.piece} · Quelle: ${clip.source} · danach ${part.pause_ms} ms eingefügte Pause${part.target_pause_ms !== undefined ? ` · Ziel ${part.target_pause_ms} ms mit Randstille` : ''}`));
         detail.append(block);
     }
     article.append(detail); container.append(article);
@@ -87,6 +106,27 @@ for (const [name, item] of Object.entries(report.sources)) {
     const detail = document.createElement('details');
     detail.append(text('summary', `${name} · ${item.duration.toFixed(2)} Sekunden`), text('p', item.display), player(item.file));
     document.querySelector('#sources').append(detail);
+}
+if (report.optimization) {
+    document.querySelector('#analysis').hidden = false;
+    document.querySelector('#optimization-summary').textContent = report.optimization.summary + ' Zusätzliche Sprachgenerierungen für diese Bearbeitung: 0.';
+    const a = report.analysis;
+    for (const name of ['team1', 'team2', 'walkover']) {
+        const before = a.before.pieces[name]; const after = a.after.pieces[name];
+        document.querySelector('#analysis-values').append(text('p', `${name}: RMS der letzten 60 ms ${before.end_60ms_dbfs} → ${after.end_60ms_dbfs} dBFS. Aktive Sprachränder bleiben Hörprüfpunkte.`));
+    }
+    const oldCase = a.before.cases.find(c => c.id === 'd05-team-1').joins[0];
+    const newCase = a.after.cases.find(c => c.id === 'd05-team-1').joins[0];
+    document.querySelector('#analysis-values').append(text('p', `D05, Präfix → Team: gemessener leiser Abstand ${oldCase.signal_quiet_ms} → ${newCase.signal_quiet_ms} ms.`));
+}
+if (report.probes) {
+    document.querySelector('#probes').hidden = false;
+    for (const item of report.probes.items) {
+        const block = document.createElement('article'); block.append(text('h2', item.purpose), player(item.file), text('p', item.display));
+        if (item.note) block.append(text('p', item.note, 'note'));
+        const detail = document.createElement('details'); detail.append(text('summary', 'Eingabetext mit Modellmarkierung'), text('pre', item.text)); block.append(detail);
+        document.querySelector('#probe-items').append(block);
+    }
 }
 function filter() {
     stop();
