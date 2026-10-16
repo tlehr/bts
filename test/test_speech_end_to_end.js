@@ -280,7 +280,7 @@ suite('BTS / actual FastAPI / native Chrome speech integration', function() {
         await until(() => devtools.evaluate('window.__audioSources.length === 8 && !announcementPlaybackActive'));
         const sources = await devtools.evaluate('window.__audioSources.map(src => new URL(src).pathname)');
         const parts = ['Spiel Nummer 17', 'Jungeneinzel U17', 'Halbfinale', 'Johann Bjarne Schöttmer',
-            'gegen', 'Muhammad Sytsh Abdulquddus', 'geht kampflos an', 'Johann Bjarne Schöttmer'];
+            'gegen', 'Muhammad Sytsh Abdulquddus', 'Das Spiel geht kampflos an', 'Johann Bjarne Schöttmer'];
         const expected = app.speech.broker.views(parts, {}, 'default').map(clip => clip.audio_url.split('?')[0]);
         assert.deepStrictEqual(sources, expected);
         assert.strictEqual(sources[3], sources.at(-1));

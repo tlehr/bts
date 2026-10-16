@@ -1,6 +1,7 @@
 """Signal measurements and conservative, traceable edits for the fixed listening fixture."""
 import copy
 import json
+import subprocess
 from pathlib import Path
 
 import numpy as np
@@ -109,13 +110,54 @@ def prepare_piece(name, samples, profile):
         "trim_end_ms": trim_end, "fades": fades, "gain_db": round(float(gain_db), 3)}
 
 
-def optimize_spec(spec):
+def edit_piece_timing(name, samples, source_start, sha256, profile):
+    """Apply reviewed source-frame edits before trimming; never move other cuts."""
+    result, changes = samples.copy(), []
+    edits = sorted(profile.get("piece_timing", {}).get(name, []), key=lambda edit: edit["start_frame"], reverse=True)
+    previous_start = source_start + len(samples)
+    for edit in edits:
+        if edit["source_sha256"] != sha256:
+            raise ValueError("Timing edit belongs to another source")
+        a, b = edit["start_frame"] - source_start, edit["end_frame"] - source_start
+        if not 0 <= a <= b <= len(samples) or edit["end_frame"] > previous_start:
+            raise ValueError("Invalid or overlapping timing range")
+        previous_start = edit["start_frame"]
+        if edit["kind"] == "tempo":
+            speed = edit["speed"]
+            if not a < b or not .5 <= speed <= 2:
+                raise ValueError("Invalid tempo edit")
+            raw = subprocess.run(["ffmpeg", "-nostdin", "-hide_banner", "-loglevel", "error",
+                "-f", "f32le", "-ar", str(RATE), "-ac", "1", "-i", "pipe:0", "-af", f"atempo={speed}",
+                "-f", "f32le", "pipe:1"], input=result[a:b].astype("<f4").tobytes(),
+                stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True).stdout
+            replacement = np.frombuffer(raw, dtype="<f4")
+            if not len(replacement) or not np.isfinite(replacement).all():
+                raise ValueError("Invalid time-stretched audio")
+        elif edit["kind"] == "pause":
+            if a != b or not 0 < edit["insert_ms"] <= 1000:
+                raise ValueError("Invalid pause insertion")
+            # A source-specific insertion is allowed only inside a quiet gap.
+            if a < 120 or a + 120 > len(samples) or dbfs(samples[a - 120:a + 120]) > -48:
+                raise ValueError("Pause insertion intersects active speech")
+            replacement = np.zeros(round(edit["insert_ms"] * 24), dtype=np.float32)
+        else:
+            raise ValueError("Unknown timing edit")
+        result = np.concatenate([result[:a], replacement, result[b:]])
+        changes.append({**edit, "duration_change_ms": round((len(replacement) - (b - a)) / 24, 3)})
+    return result, changes
+
+
+def optimize_spec(spec, profile=None):
     result = copy.deepcopy(spec)
     for case in result["cases"]:
         if case["id"].startswith("d12-"):
             # Same spoken content, keep the already synthesized game block intact.
             case["parts"] = [{"piece": "game", "pause_ms": case["parts"][1]["pause_ms"]}, *case["parts"][2:]]
             case["note"] += " Im bearbeiteten Versuch bleibt der Spielblock am Stück; eine zusätzliche interne Montagepause entfällt."
+        for prefix, pauses in (profile or {}).get("case_pause_targets_ms", {}).items():
+            if case["id"].startswith(prefix):
+                for index, part in enumerate(case["parts"][:-1]):
+                    part["pause_ms"] = pauses[index]
     return result
 
 

@@ -6,7 +6,7 @@
     "model_archive_sha256": "b7e53c90b1f0a38456f4cd62b366ecd58803cd97cd42b06438e2c131713d5e43",
     "boundaries": "Local word timestamps, low-energy windows and nearby zero crossings; original checked cuts for field opening and closing.",
     "scope": "Fixed listening fixture only; no generic production segmentation. Continuous coarticulated word boundaries remain listening test points.",
-    "walkover_anchor": "Constrained local recognition separates an (8.07–8.25 s) and Nina (8.25–8.55 s)."
+    "walkover_anchor": "Plain sentence and colon, no expression marker. Local recognition: Das 8.07–8.28, Spiel 8.28–8.55, geht 8.55–8.73, kampflos 8.73–9.24, an 9.24–9.48; Nina from 9.63 s."
   },
   "pieces": {
     "field_start": {
@@ -214,10 +214,10 @@
     },
     "walkover": {
       "source": "walkover",
-      "source_sha256": "a347484b2b144c2e41d6fe1a8d7511f80890793c34725a678e6230e671fbf146",
-      "start_frame": 168535,
-      "end_frame": 197659,
-      "note": "Geht kampflos an; constrained word alignment separates an [8.07,8.25] from Nina [8.25,8.55]."
+      "source_sha256": "f183845138b9f8c7f3430ca8837564c88361d8d544d09d9d6816b31c3bf8bb75",
+      "start_frame": 192960,
+      "end_frame": 228840,
+      "note": "Das Spiel geht kampflos an; local recognition 8.07–9.48 s, quiet source cuts at 8.04 and 9.535 s before the winner name."
     }
   }
 }

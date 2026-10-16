@@ -10,7 +10,7 @@ import pytest
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "scripts"))
-from tts_match_audio import adaptive_pause, clean_source, dbfs, edge_quiet, optimize_spec, prepare_piece
+from tts_match_audio import adaptive_pause, clean_source, dbfs, edge_quiet, edit_piece_timing, optimize_spec, prepare_piece
 
 
 @pytest.fixture
@@ -80,3 +80,50 @@ def test_whole_game_reuse_keeps_all_calls_and_original_plan():
             assert [p["piece"] for p in case["parts"]][:2] == ["game", "walkover"]
         else:
             assert case == next(c for c in original["cases"] if c["id"] == case["id"])
+
+
+def test_internal_pause_keeps_every_sample_and_rejects_active_speech():
+    x = np.concatenate([np.ones(2400, np.float32) * .1, np.zeros(1200, np.float32),
+        np.ones(2400, np.float32) * -.1])
+    original = x.copy()
+    edit = {"kind": "pause", "source_sha256": "fixed", "start_frame": 3500,
+        "end_frame": 3500, "insert_ms": 180}
+    profile = {"piece_timing": {"role": [edit]}}
+    y, changes = edit_piece_timing("role", x, 500, "fixed", profile)
+    assert np.array_equal(x, original)
+    assert np.array_equal(y[:3000], x[:3000])
+    assert np.array_equal(y[7320:], x[3000:])
+    assert np.all(y[3000:7320] == 0)
+    assert changes[0]["duration_change_ms"] == 180
+    with pytest.raises(ValueError, match="another source"):
+        edit_piece_timing("role", x, 500, "changed", profile)
+    with pytest.raises(ValueError, match="active speech"):
+        edit_piece_timing("role", np.ones_like(x) * .1, 500, "fixed", profile)
+
+
+def test_regional_tempo_preserves_pitch_and_untouched_words():
+    rate = 24000
+    tone = (.1 * np.sin(np.arange(rate) * 2 * np.pi * 200 / rate)).astype(np.float32)
+    x = np.concatenate([np.zeros(2400, np.float32), tone, np.zeros(2400, np.float32)])
+    profile = {"piece_timing": {"prefix": [{"kind": "tempo", "source_sha256": "fixed",
+        "start_frame": 3400, "end_frame": 27400, "speed": .88}]}}
+    y, changes = edit_piece_timing("prefix", x, 1000, "fixed", profile)
+    assert np.array_equal(y[:2400], x[:2400])
+    assert np.array_equal(y[-2400:], x[-2400:])
+    stretched = y[2400:-2400]
+    assert len(stretched) / len(tone) == pytest.approx(1 / .88, abs=.03)
+    frequency = np.fft.rfftfreq(len(stretched), 1 / rate)[np.argmax(abs(np.fft.rfft(stretched)))]
+    assert frequency == pytest.approx(200, abs=2)
+    assert changes[0]["duration_change_ms"] > 100
+
+
+def test_feedback_pause_targets_apply_to_all_d05_variants_and_both_winners(profile):
+    plan = json.loads(subprocess.check_output(["node", str(ROOT / "scripts/tts-match-listening-plan.js")]))
+    optimized = optimize_spec(plan, profile)
+    for case in optimized["cases"]:
+        expected = [140, 120, 320, 160] if case["id"].startswith("d05-") else (
+            [250, 140] if case["id"].startswith("d12-") else None)
+        if expected:
+            assert [p["pause_ms"] for p in case["parts"][:-1]] == expected[:len(case["parts"]) - 1]
+        else:
+            assert case == next(c for c in plan["cases"] if c["id"] == case["id"])

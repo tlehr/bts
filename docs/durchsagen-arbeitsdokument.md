@@ -228,7 +228,7 @@ Auslöser: Eine kampflose Entscheidung beziehungsweise ein Walkover wird mit fes
 
 ```text
 Spiel Nummer {Nummer}, {Disziplin}, {Runde}!
-→ {Team 1} gegen {Team 2} geht kampflos an {Siegerteam}!
+→ {Team 1} gegen {Team 2}. Das Spiel geht kampflos an {Siegerteam}!
 ```
 
 Ausgeschaltete Spielangaben entfallen. Die verbleibenden Angaben des ersten Abschnitts werden mit `, ` verbunden und gemeinsam mit `!` abgeschlossen. Sind alle drei ausgeschaltet, entfällt der erste Abschnitt vollständig.
@@ -459,12 +459,14 @@ Einzelne Rollenwörter, Vor-/Nachnamen und das „und“ eines Bedien-Teams werd
 | B12 `Bitte mit dem Spielen beginnen!` | `Auf Spielfeld acht! Bitte mit dem Spielen beginnen!` | Eine vollständige D03-Referenz; nur die Startanweisung ausschneiden |
 | `Zweiter Aufruf für:` | Normaler Offiziellen-Zweitaufruf aus B oder vollständige D04-Referenz mit Beispielteam und abschließender Feldansage | Keine, wenn eine ohnehin nötige Quelle passt; sonst eine vollständige D04-Referenz |
 | `Zweiter Aufruf In Vorbereitung für:` | Eine der vollständigen Vorbereitungs-Zweitaufruf-Referenzen aus A | In den ergänzenden Hallenreferenzen enthalten |
-| `geht kampflos an` | Vollständige D12-Referenz mit Spielangaben, beiden Beispielteams und einem Beispiel-Siegerteam | Eine vollständige Referenz; die zusammenhängende Formulierung vor dem Siegerteam ausschneiden |
+| `Das Spiel geht kampflos an` | Vollständige D12-Referenz mit Spielangaben, beiden Beispielteams und einem Beispiel-Siegerteam | Eine vollständige Referenz; die zusammenhängende Formulierung vor dem Siegerteam ausschneiden |
 | Sprachtest | `Dies ist ein Test der Sprachausgabe.` | Eine vollständige Testaufnahme; kein Schnitt nötig |
 
 Damit gibt es im Grundentwurf **fünf gemeinsame feste Wiedergabestücke**. Sie benötigen drei eigene Quellen für D03, die Kampflos-Formulierung und den Sprachtest. Das normale Zweitaufruf-Präfix kann eine vierte eigene Quelle benötigen. Das Vorbereitungs-Präfix stammt aus den Hallenreferenzen. Eine geeignete vorhandene Quelle wird stets zuerst genutzt.
 
 Die Präfixe bleiben in ihren Quellen bis zum tatsächlichen Team beziehungsweise zur Rolle mit Namen verbunden. Wir generieren kein alleinstehendes „Zweiter Aufruf für:“ als vermeintlich vollständigen Satz.
+
+**Hörkorrektur vom 16.10.2026:** Im festen Hörsatz wird nur „In Vorbereitung für“ innerhalb des gemeinsamen Präfixes auf 88 % des bisherigen Tempos gebracht; „Zweiter Aufruf“ bleibt gleich schnell. D05 verwendet Zielabstände von 140 ms vor dem ersten Team, 120 ms vor dem Hallenzusatz, 320 ms vor der Teamwiederholung und gegebenenfalls 160 ms vor dem Treffpunkt. Vorhandene Randstille zählt dazu. D08 erhält innerhalb des langen Klapptafel-Zweitaufrufs nach „Klapptafelbedienung“ zusätzliche 180 ms. Diese quellengebundenen Audiokorrekturen benötigen keine neue Synthese. Für „Das Spiel geht kampflos an“ wird die bisherige gemeinsame D12-Quelle einmalig ersetzt; Anzahl der geplanten Stücke und Generierungen bleibt gleich. Die Tempo-/Pausenbearbeitung gilt zunächst für den Hörsatz, die D12-Textänderung auch für die produktiven deutschen Vorlagen.
 
 #### D. Kampflose Entscheidungen: Spielblock auch hier zusammenhalten
 
@@ -474,13 +476,13 @@ Der überarbeitete Planungsentwurf lautet:
 
 ```text
 Vollständiger Spielblock B03 → B04 → B05 → B07
-→ geht kampflos an
+→ Das Spiel geht kampflos an
 → vorhandener Ausschnitt des tatsächlichen Siegerteams, ohne „gegen“
 ```
 
 Für eine kampflose Entscheidung entsteht so zunächst kein neuer spielbezogener Syntheseauftrag. Die gemeinsame Kampflos-Klausel und der schon vorhandene Siegerteam-Ausschnitt ergänzen den Spielblock. Die beiden einzelnen Team-Ausschnitte bleiben weiterhin ohne „gegen“. Beide möglichen Siegerfassungen werden nicht vorsorglich als neue vollständige Ansagen generiert. Die feste Störstelle des Beispiels wird ausschließlich in einer Wiedergabekopie und an ihre geprüfte Quelle gebunden bereinigt; daraus folgt keine allgemeine Zeit- oder Lautstärkeregel für andere Aufnahmen.
 
-**Hörprüfpunkt:** Die heutige D12-Einleitung verwendet Kommata und die Teamansage setzt sich nach Team 2 fort. Die ursprüngliche Betonung der übernommenen Ausschnitte bleibt hörbar; sie lässt sich durch nachträgliche Pausen nicht exakt an eine andere Satzmelodie anpassen. Falls diese Montage den Hörtest nicht besteht, ist eine vollständige D12-Generierung für die tatsächlich eingetretene Entscheidung die gezielte Alternative. Auch dabei werden keine hypothetischen Sieger durchgeneriert.
+**Hörprüfpunkt:** Die heutige D12-Einleitung verwendet Kommata. Nach Team 2 endet der Begegnungssatz; „Das Spiel geht kampflos an“ eröffnet den Ergebnissatz. Der deutsche Browsertext verwendet denselben neuen Wortlaut. Die ursprüngliche Betonung der übernommenen Ausschnitte bleibt hörbar; sie lässt sich durch nachträgliche Pausen nicht exakt an eine andere Satzmelodie anpassen. Falls diese Montage den Hörtest nicht besteht, ist eine vollständige D12-Generierung für die tatsächlich eingetretene Entscheidung die gezielte Alternative. Auch dabei werden keine hypothetischen Sieger durchgeneriert.
 
 #### E. Geplanter Aufbau sämtlicher Durchsagen
 
@@ -497,7 +499,7 @@ Die folgende Tabelle ist der neue lokale Planungsentwurf. Die Textreihenfolge un
 | D06/D07/D08 | B01-Anfang → langer normaler Zweitaufruf mit Rolle und vollständigem Namen/Bedien-Team | Keine bei vorbereiteter Zuordnung |
 | D09/D10 | Vorbereitungs-Zweitaufruf-Präfix → Rolle mit Name → Name allein → Treffpunkt in Einzahl oder `In Vorbereitung!` | Keine bei vorbereiteter Zuordnung und Hallenform |
 | D11 | Vorbereitungs-Zweitaufruf-Präfix → Rolle mit Bedien-Team → Bedien-Team allein → längere Bedienaufforderung mit dem passenden Meldezusatz | Keine bei vorbereiteter Zuordnung und Hallenform; heutiger Wortlautfehler separat zu klären |
-| D12 | Vollständiger vorhandener Spielblock → `geht kampflos an` → Siegerteam | Keine zusätzliche Spielblock- oder Teamgenerierung; vollständige tatsächliche D12 nur als Alternative bei unzureichendem Hörtest |
+| D12 | Vollständiger vorhandener Spielblock → `Das Spiel geht kampflos an` → Siegerteam | Keine zusätzliche Spielblock- oder Teamgenerierung; vollständige tatsächliche D12 nur als Alternative bei unzureichendem Hörtest |
 | D13 | Vollständiger eingegebener Text in einer Aufnahme | Eine Generierung je neuem, tatsächlich verwendetem Text, falls nicht vorhanden |
 | D14 | Vollständiger Sprachtest | Keine, wenn die einmalige Testaufnahme bereitsteht |
 | D15 | Bestehende Evakuierungs-MP3 | Keine Synthese |
@@ -635,7 +637,7 @@ Die folgenden Stücke ergänzen den Bestand aus 10.1. Sie werden aus den vollst�
 | B12 `Bitte mit dem Spielen beginnen!` | 1 gemeinsam | Vollständige D03-Referenz |
 | Normales Zweitaufruf-Präfix `Zweiter Aufruf für:` | 1 gemeinsam | Aus einer Offiziellen-Referenz; nur falls keine passt, eine eigene vollständige D04-Referenz |
 | Vorbereitungs-Präfix `Zweiter Aufruf In Vorbereitung für:` | 1 gemeinsam | Aus einer vollständigen Vorbereitungs-Zweitaufruf-Referenz, gemeinsam mit Hallenstücken gewinnen |
-| `geht kampflos an` | 1 gemeinsam | Vollständige D12-Referenz mit Beispielteams und einem Beispiel-Sieger |
+| `Das Spiel geht kampflos an` | 1 gemeinsam | Vollständige D12-Referenz mit Beispielteams und einem Beispiel-Sieger |
 | Sprachtest D14 | 1 gemeinsam | Vollständige Testaufnahme, kein Schnitt |
 | Spielkopf und Begegnung als getrennte D12-Stücke | 0 im optimierten Entwurf | Vollständigen Spielblock wiederverwenden; die zwei historischen Testschnitte bleiben nur im bisherigen Hörsatz vorhanden |
 | Freie Ansage D13 | 0 im festen Vorrat; 1 je neuem vollständigem Text | Erst bei vorhandenem konkretem Text erzeugen |
@@ -689,7 +691,7 @@ Die Vormerkungen der regulären Spielblöcke behalten dabei turnierweit ihre Ans
 | 2 | **Gemeinsame Startanweisung B12** | Eine vollständige D03-Referenz liefert `Bitte mit dem Spielen beginnen!`. Zusammen mit den Feldstücken ist D03 damit für alle Felder bereit, bevor viele weitere Spielblöcke entstehen. |
 | 3 | **Die nächsten regulären Aufrufe vollständig vorbereiten** | Je nahem Spiel den Spielblock samt beiden Team-Ausschnitten erstellen und anschließend die für seine nächste D01- oder D02-Ansage fehlenden Hallen- und Offiziellen-Quellen ergänzen. Erst dann das nächste Spiel bearbeiten. Die Spielblöcke bleiben untereinander in Ansetzungsreihenfolge. |
 | 4 | **Zweitaufrufe für die gerade aufgerufenen und nahen Spiele absichern** | Die Teamstücke und normalen Offiziellen-Zweitaufrufe sind überwiegend schon vorhanden. Nur fehlende Präfixe, passende Einzahl-/Mehrzahlformen und Bedienaufforderungen ergänzen; Quellen mit mehreren benötigten Ausschnitten zuerst. |
-| 5 | **Gemeinsame Kampflos-Formulierung** | Ein vollständiges D12-Beispiel liefert einmal `geht kampflos an`. Diese gemeinsame Absicherung kommt vor weit entfernten Spielblöcken. Den jeweiligen Spielblock vollständig wiederverwenden. |
+| 5 | **Gemeinsame Kampflos-Formulierung** | Ein vollständiges D12-Beispiel liefert einmal `Das Spiel geht kampflos an`. Diese gemeinsame Absicherung kommt vor weit entfernten Spielblöcken. Den jeweiligen Spielblock vollständig wiederverwenden. |
 | 6 | **Weitere bereite Spiele samt ihren benötigten Zusatzteilen** | Den Vorrat in Spielplanreihenfolge erweitern. Für jedes Spiel wiederum die nächste Ansage vervollständigen, vorhandene Hallen-/Rollenstücke teilen. Bei neuem nahen Bedarf zurück zu Priorität 3 beziehungsweise 4. |
 | 7 | **Weitere tatsächlich benötigte Sonderformen und automatischer Sprachtest** | Verbleibende Hallen-/Bedienformen für spätere Einsätze und die Testaufnahme nachrangig vorbereiten. Keine hypothetischen Team-, Rollen- oder Hallenkombinationen erzeugen. Ein ausdrücklich angeforderter Sprachtest wartet nicht auf diese Gruppe. |
 

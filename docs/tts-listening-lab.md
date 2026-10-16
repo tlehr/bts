@@ -106,9 +106,9 @@ Die Stimme ist der Hallensprecher mit den bisherigen Parametern 0,8 / 50 / 0,8, 
 
 Die Varianten betreffen dasselbe Beispiel-Einzelspiel und seine beiden Bedienpersonen. Weitere Paarungen, Stimmeneinstellungen und sämtliche Kombinationen optionaler Spielangaben werden nicht durchgeneriert. Anwesenheitskontrolle, freie Ansage, Sprachtest und Evakuierung gehören nicht zu diesem spielbezogenen Hörsatz.
 
-Der Plan enthält **14 vollständige Quellen und 31 Wiedergabestücke**. Beide Teamstücke stammen ohne „gegen“ aus demselben Spielblock. Die vollständige Begegnung mit „gegen“ und der Spielkopf für D12 werden ebenfalls aus diesem Block gewonnen. Rolle und Name sowie beide Bedienpersonen mit „und“ bleiben zusammen. Kurze Präfixe, Hallenzusätze und Anweisungen stammen aus vollständigen Kontextaufrufen. Zwischen den fertigen Stücken liegen 250 ms Satzpause, 60 ms Verbindungspause und bei der Bedienaufforderung 120 ms nach dem wiederholten Team. Innere Pausen werden nicht nachträglich gekürzt.
+Der Plan enthält **14 vollständige Quellen und 31 Wiedergabestücke**. Beide Teamstücke stammen ohne „gegen“ aus demselben Spielblock. Die historische vollständige Begegnung und der Spielkopf werden weiterhin bereitgestellt; die optimierte D12-Montage verwendet den Spielblock am Stück. Rolle und Name sowie beide Bedienpersonen mit „und“ bleiben zusammen. Kurze Präfixe, Hallenzusätze und Anweisungen stammen aus vollständigen Kontextaufrufen. Die unbearbeitete Montage verwendet 250 ms Satzpause, 60 ms Verbindungspause und bei der Bedienaufforderung 120 ms nach dem wiederholten Team. Das optionale Bearbeitungsprofil rechnet Randstille an und enthält die gezielten Tempo-/Pausenkorrekturen des Hörvergleichs.
 
-Der bekannte D11-Wortlautfehler `Turnierleitungmelden!` und das auch bei Klapptafeln verwendete „Tabletbedienung“ bleiben gekennzeichnet erhalten. Der Hörsatz ändert die produktiven Vorlagen nicht. Ob die übernommenen Satzmelodien insbesondere bei Zweitaufrufen und D12 natürlich zusammenpassen, entscheidet die Hörbewertung.
+Der bekannte D11-Wortlautfehler `Turnierleitungmelden!` und das auch bei Klapptafeln verwendete „Tabletbedienung“ bleiben gekennzeichnet erhalten. Die Tempo-/Pausenbearbeitung gehört zum Hörsatz; der D12-Wortlaut „Das Spiel geht kampflos an“ wurde zusätzlich in die produktive deutsche Vorlage übernommen. Ob die übernommenen Satzmelodien insbesondere bei Zweitaufrufen und D12 natürlich zusammenpassen, entscheidet die Hörbewertung.
 
 ### Erzeugen und erneut montieren
 
@@ -121,10 +121,10 @@ Im BTS-Verzeichnis mit der vorhandenen Sprachserver-Umgebung:
 Der ausgegebene Pfad zu `sources.json` wird anschließend an `--assemble` übergeben. Das Zusammenbauen benötigt kein geladenes Modell:
 
 ```bash
-../bts-sprachserver/.venv/bin/python scripts/tts-match-listening.py --assemble ../bts-sprachserver/data/listening-lab/match-suite/sources-8ca497a225c6/sources.json
+../bts-sprachserver/.venv/bin/python scripts/tts-match-listening.py --assemble ../bts-sprachserver/data/listening-lab/match-suite/sources-5c4ba4f3c722/sources.json --optimization scripts/tts-match-listening-optimization.json --baseline ../bts-sprachserver/data/listening-lab/match-suite/3c8a204a6b35
 ```
 
-Der Quellenordner hängt von Engine und Parametern ab. Die angegebenen Schnittgrenzen in `scripts/tts-match-listening-cuts.json` sind über SHA-256 an die konkreten WAVs gebunden. Abweichende Quellen werden abgelehnt. Die Grenzen wurden mit den vorhandenen lokalen Vosk-Wortzeitmarken und Signalenergie ermittelt; Erkennungsergebnisse sind keine Bestätigung der Namensaussprache. Es entsteht keine neue Laufzeitabhängigkeit der Anwendung.
+Der Quellenordner hängt von Engine, Parametern und Quelltexten ab. Unveränderte Texte verwenden weiterhin ihren Einzelcache; neue Texte überschreiben keine ältere Quellenliste. Die angegebenen Schnittgrenzen in `scripts/tts-match-listening-cuts.json` sind über SHA-256 an die konkreten WAVs gebunden. Abweichende Quellen werden abgelehnt. Die Grenzen wurden mit den vorhandenen lokalen Vosk-Wortzeitmarken und Signalenergie ermittelt; Erkennungsergebnisse sind keine Bestätigung der Namensaussprache. Es entsteht keine neue Laufzeitabhängigkeit der Anwendung.
 
 Die Testdaten liegen unter `bts-sprachserver/data/listening-lab/match-suite/`. Der vorhandene Hörtest-Cache wird nur gelesen; neue Rohaufnahmen und bearbeitete Quellen erhalten eigene Dateien. Jeder Montageversuch bekommt einen neuen Ordner mit einer eigenständigen Hörseite, 32 WAVs, einzeln abspielbaren Stücken, vollständigen Kontextquellen, Herkunftsbericht und ZIP-Download. Die Hörseite kann direkt als `index.html` geöffnet oder lokal mit `python3 -m http.server 8079 --bind 127.0.0.1 --directory PFAD_ZUM_HOERSATZ` bereitgestellt werden. Suche, Gruppenauswahl und fortlaufendes Abspielen erleichtern den Vergleich.
 
@@ -132,6 +132,8 @@ Der erste fertige Hörsatz liegt unter `data/listening-lab/match-suite/1bfff7ef4
 
 ### Messanalyse, Bearbeitung und Modell-Betonung
 
-Der [neue Vorher-Nachher-Vergleich](http://127.0.0.1:8081/) stellt die 32 bearbeiteten Fassungen ihren bisherigen Aufnahmen gegenüber. Er bereinigt eine geprüfte leise Störstelle vor „Nina“, berücksichtigt vorhandene Randstille bei den Montagepausen und hält den D12-Spielblock zusammen. Diese Änderungen verwenden vorhandene Quellen ohne neue Synthese. Zwei gezielte Modellaufnahmen ergänzen elf Vergleichsmontagen mit markierten Feldnummern beziehungsweise einer alternativen gemeinsamen Kampflos-Klausel.
+Der [aktuelle Vorher-Nachher-Vergleich](http://127.0.0.1:8082/) übernimmt die Hörkorrekturen zu D05, D08 und D12: ruhigeres „In Vorbereitung für“, längere Übergänge bei D05, zusätzliche Pause nach „Klapptafelbedienung“ bei D08 und „Das Spiel geht kampflos an“ bei D12. Eine gemeinsame Kontextquelle für D12 wurde neu erzeugt, die anderen 13 Quellen kamen aus dem Cache. Die vorherige Fassung steht unter jeder Durchsage bereit. Der Lauf liegt unter `data/listening-lab/match-suite/259d0213c25f/`.
+
+Der [erste bearbeitete Vergleich](http://127.0.0.1:8081/) bereinigt eine geprüfte leise Störstelle vor „Nina“, berücksichtigt vorhandene Randstille und hält den D12-Spielblock zusammen. Zwei gezielte Modellaufnahmen ergänzen dort elf Vergleichsmontagen. Die frühere Modell-Klausel hat den alten D12-Wortlaut und wird im aktuellen Hörsatz nicht eingesetzt.
 
 Die [ausführliche Analyse](tts-audio-analyse.md) trennt Messbefunde, Nachbearbeitung, Modellversuche und noch offene Hörentscheidungen. Sie dokumentiert auch den unerwünscht mitgesprochenen Pausenmarker des zweiten Versuchs. Die vollständige experimentelle Quelle wird nicht als reguläre Durchsage verwendet; der daraus getestete Klausel-Ausschnitt endet vor dem Zusatzwort. Es gibt keine automatische Umstellung der produktiven Ansagen.

@@ -21,7 +21,7 @@ from bts_sprachserver.config import Settings, KittenSampling
 from bts_sprachserver.kitten import file_digest
 from bts_sprachserver.listening_lab import LabEngine, digest, render_clip, trim_edges
 from bts_sprachserver.voices import load_voices
-from tts_match_audio import adaptive_pause, audit, clean_source, optimize_spec, prepare_piece, write_analysis
+from tts_match_audio import adaptive_pause, audit, clean_source, edit_piece_timing, optimize_spec, prepare_piece, write_analysis
 
 
 def specification():
@@ -43,7 +43,9 @@ def generate(spec):
     sampling = KittenSampling.model_validate({**settings.kitten_sampling.model_dump(),
         **{key: parameters[key] for key in ("temperature", "top_k", "top_p")}})
     engine.experiment_sampling = sampling
-    identity = digest([engine.identity, parameters, sampling.model_dump()])[:12]
+    # Keep source manifests from earlier text revisions reproducible. Raw audio
+    # still uses per-text keys, so unchanged sources require no new inference.
+    identity = digest([engine.identity, parameters, sampling.model_dump(), spec["sources"]])[:12]
     directory = work / ("sources-" + identity)
     directory.mkdir(exist_ok=True)
     raw_dir = work / "clips"
@@ -115,7 +117,7 @@ def assemble(spec, source_report, cuts_path, optimization_path=None, baseline=No
     if profile and baseline is None:
         raise ValueError("Optimized comparison requires an existing baseline suite")
     if profile:
-        spec = optimize_spec(spec)
+        spec = optimize_spec(spec, profile)
     run = source_report.parent.parent / uuid.uuid4().hex[:12]
     for name in ("pieces", "sources"):
         (run / name).mkdir(parents=True, exist_ok=True)
@@ -129,8 +131,7 @@ def assemble(spec, source_report, cuts_path, optimization_path=None, baseline=No
     if profile:
         result["optimization"] = {"profile_sha256": file_digest(optimization_path), "baseline_id": baseline.name,
             "new_generations_for_edits": 0,
-            "summary": "Geprüfte leise Störstelle bereinigt, Randpausen berücksichtigt, kurze Fades an aktiven Schnitten. "
-                       "D12 verwendet den Spielblock am Stück. Die Satzmelodie bleibt eine Hörentscheidung."}
+            "summary": profile.get("summary", "Quellgebundene Audiobearbeitung mit protokollierten Zielpausen.")}
     arrays = {}
     for name, info in report["sources"].items():
         path = run / "sources" / (name + ".wav")
@@ -157,12 +158,16 @@ def assemble(spec, source_report, cuts_path, optimization_path=None, baseline=No
                 raise ValueError("Cuts belong to a different recording: " + name)
         if not isinstance(start, int) or not isinstance(end, int) or not 0 <= start < end <= len(full):
             raise ValueError("Invalid excerpt: " + name)
-        # No time stretching or inner silence compaction after extraction.
-        clips[name] = trim_edges(full[start:end])
+        samples = full[start:end]
+        timing = []
+        if profile:
+            samples, timing = edit_piece_timing(name, samples, start, info["sha256"], profile)
+        clips[name] = trim_edges(samples)
         if not len(clips[name]) or np.max(np.abs(clips[name])) <= 4 / 32768:
             raise ValueError("Silent excerpt: " + name)
         if profile:
             clips[name], piece_edits[name] = prepare_piece(name, clips[name], profile)
+            piece_edits[name]["timing"] = timing
         path = run / "pieces" / (name + ".wav")
         write_wav(path, clips[name])
         result["pieces"][name] = {**piece, "file": str(path.relative_to(run)),
@@ -221,6 +226,8 @@ def assemble(spec, source_report, cuts_path, optimization_path=None, baseline=No
                 raise ValueError("Unexpected probe rate")
         replacements = {}
         for name, cut in probe_cuts["pieces"].items():
+            if cut.get("text") != spec["pieces"][name]["text"]:
+                raise ValueError("Probe words differ from the current plan: " + name)
             source = probes["sources"][cut["source"]]
             if cut["source_sha256"] != source["sha256"]:
                 raise ValueError("Probe cut belongs to another source")

@@ -9,19 +9,22 @@
       "source": "field_emphasis",
       "source_sha256": "ca0877b308c6fa4b723f13964f4a09b2a21dad4d8962d6a9cf6020c281676ff6",
       "start_frame": 0,
-      "end_frame": 34320
+      "end_frame": 34320,
+      "text": "Auf Spielfeld acht!"
     },
     "field_end": {
       "source": "field_emphasis",
       "source_sha256": "ca0877b308c6fa4b723f13964f4a09b2a21dad4d8962d6a9cf6020c281676ff6",
       "start_frame": 212880,
-      "end_frame": 244221
+      "end_frame": 244221,
+      "text": "Auf Spielfeld acht!"
     },
     "walkover": {
       "source": "walkover_pause",
       "source_sha256": "0c2190027031f4ee3d36d4f131a23b29953fd6eb3062b80a7986826df1161918",
       "start_frame": 167640,
-      "end_frame": 195360
+      "end_frame": 195360,
+      "text": "geht kampflos an"
     }
   }
 }

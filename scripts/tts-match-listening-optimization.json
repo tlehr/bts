@@ -1,5 +1,6 @@
 {
-  "version": 1,
+  "version": 2,
+  "summary": "D05: In Vorbereitung für mit 88 % des bisherigen Tempos; Zielpausen 140/120/320/160 ms. D08: nach Klapptafelbedienung 180 ms zusätzliche Pause. D12: Das Spiel geht kampflos an aus einer neuen gemeinsamen Kontextaufnahme. Die Satzmelodie bleibt eine Hörentscheidung.",
   "edge_threshold_dbfs": -52,
   "keep_leading_ms": 35,
   "keep_trailing_ms": 45,
@@ -8,6 +9,25 @@
   "fade_ms": 5,
   "preserve_full_blocks": ["game"],
   "piece_gain_db": {"hall": 2},
+  "case_pause_targets_ms": {"d05-": [140, 120, 320, 160], "d12-": [250, 140]},
+  "piece_timing": {
+    "prep_prefix": [{
+      "kind": "tempo",
+      "source_sha256": "892a1cb3ffae3dc4f5320d3b0e3c5dbf93d4152683fbb9b093222dfeb07c5740",
+      "start_frame": 25920,
+      "end_frame": 53962,
+      "speed": 0.88,
+      "note": "In Vorbereitung für; Zweiter Aufruf retains its original speed."
+    }],
+    "board_long": [{
+      "kind": "pause",
+      "source_sha256": "cd188fd3be5b51862d8a7dc546321300cb9e4fab7889b331eca606f644bafffe",
+      "start_frame": 86657,
+      "end_frame": 86657,
+      "insert_ms": 180,
+      "note": "Quiet source gap after Klapptafelbedienung, before Lena; only D08's long call."
+    }]
+  },
   "source_cleanups": {
     "game": [{
       "source_sha256": "8b7ad580ff4245ae7d0c55f8df0451ae3d4fcb1ef0eb0050dbe8041063b280de",

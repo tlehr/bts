@@ -26,7 +26,7 @@ const sources = [
     ['prep_operator_no_meeting', `${prep}Tabletbedienung:${operators}! ${operators}, bitte als Tabletbedienung`],
     ['prep_umpire_no_meeting', `${prep}Schiedsrichter:Alexandra Becker! Alexandra Becker In Vorbereitung!`],
     ['preparation_no_meeting', `In Vorbereitung ${hall} Für Spielfeld 8! ${game} In Vorbereitung ${hall}`],
-    ['walkover', `Spiel 189, Mädcheneinzel U19, Achtelfinale! ${team1} gegen ${team2} geht kampflos an ${team1}!`],
+    ['walkover', `Spiel 189, Mädcheneinzel U19, Achtelfinale! ${team1} gegen ${team2}. Das Spiel geht kampflos an: ${team1}!`],
 ];
 
 const pieces = {};
@@ -62,7 +62,7 @@ for (const [id, source, role, names] of [
 piece('operator_request', 'prep_operator', 'bitte als Tabletbedienung bei der Turnierleitungmelden!');
 piece('operator_request_no_meeting', 'prep_operator_no_meeting', 'bitte als Tabletbedienung');
 piece('prep_fallback', 'prep_umpire_no_meeting', 'In Vorbereitung!');
-piece('walkover', 'walkover', 'geht kampflos an');
+piece('walkover', 'walkover', 'Das Spiel geht kampflos an');
 
 const cases = [];
 function call(id, label, ids, boundaries = {}, note = '') {

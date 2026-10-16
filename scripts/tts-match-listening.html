@@ -70,7 +70,7 @@ function next() {
 function text(tag, value, cls) { const item = document.createElement(tag); item.textContent = value; if (cls) item.className = cls; return item; }
 const p = report.parameters;
 document.querySelector('#description').textContent = report.note + ` Beispiel-Offizielle: ${report.fixture.umpire}, ${report.fixture.service_judge}; Bedienung: ${report.fixture.operators}.`;
-document.querySelector('#settings').textContent = `${report.cases.length} Durchsagen · Hallensprecher · Tempo ${p.speed} · Temperatur ${p.temperature} · Seed ${p.seed} · ${report.optimization ? 'Zielpausen 250/60/120 ms unter Berücksichtigung vorhandener Stille' : 'Satzpausen 250 ms, Verbindungen 60/120 ms'}`;
+document.querySelector('#settings').textContent = `${report.cases.length} Durchsagen · Hallensprecher · Tempo ${p.speed} · Temperatur ${p.temperature} · Seed ${p.seed} · ${report.optimization ? 'Pausen je Übergang, vorhandene Randstille wird angerechnet' : 'Satzpausen 250 ms, Verbindungen 60/120 ms'}`;
 document.querySelector('#reference').src = report.reference.file;
 document.querySelector('#reference-text').textContent = report.reference.text;
 document.querySelector('#reference').addEventListener('play', () => {
@@ -109,7 +109,7 @@ for (const [name, item] of Object.entries(report.sources)) {
 }
 if (report.optimization) {
     document.querySelector('#analysis').hidden = false;
-    document.querySelector('#optimization-summary').textContent = report.optimization.summary + ' Zusätzliche Sprachgenerierungen für diese Bearbeitung: 0.';
+    document.querySelector('#optimization-summary').textContent = report.optimization.summary + ` Neue Kontextaufnahmen in diesem Quelllauf: ${report.source_batch_new_generations}. Die Audiobearbeitung selbst benötigt keine Sprachgenerierung.`;
     const a = report.analysis;
     for (const name of ['team1', 'team2', 'walkover']) {
         const before = a.before.pieces[name]; const after = a.after.pieces[name];

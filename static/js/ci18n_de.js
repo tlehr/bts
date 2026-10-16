@@ -83,7 +83,7 @@ var ci18n_de = Object.assign(
 
 	'announcements:begin_to_play': 'Bitte mit dem Spielen beginnen!',
 	'announcements:no_match_win:intro': 'Das Spiel {match_number}, {event_name}, {round}!',
-	'announcements:no_match_win:teams': '{team1} gegen {team2} geht kampflos an {winner}!',
+	'announcements:no_match_win:teams': '{team1} gegen {team2}. Das Spiel geht kampflos an {winner}!',
 	'announcements:second_call': 'Zweiter Aufruf',
 	'announcements:second_call_for': 'für',
 	

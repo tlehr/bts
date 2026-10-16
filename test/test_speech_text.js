@@ -50,6 +50,25 @@ function baseline(context) {
 }
 
 describe('Shared announcement text and preparation', function() {
+    it('starts the German walkover result with Das Spiel for browser and cached local speech', function() {
+        const current = tournament(), match = setup(), calls = [];
+        const texts = create({ tournament: current, translate: (key, data) => translate('de', key, data),
+            window: { localStorage: { getItem: () => 'true' } }, claim: () => null,
+            announce: (parts, _local, _claim, options) => calls.push({ parts, ...options }) });
+        for (const winner of [0, 1]) {
+            texts.announceNoMatchWin(match, winner);
+            const call = calls.at(-1);
+            assert.strictEqual(call.parts[1], 'Johann Bjarne Schöttmer gegen Muhammad Sytsh Abdulquddus. ' +
+                'Das Spiel geht kampflos an ' + match.teams[winner].players[0].name + '!');
+            assert(call.localParts.includes('Das Spiel geht kampflos an'));
+            const opponent = call.localParts.indexOf('Muhammad Sytsh Abdulquddus');
+            assert.strictEqual(call.localPauses[opponent], 250, 'finish the encounter before the result sentence');
+        }
+        const prepared = prepare(current, [{ setup: match }]);
+        assert(prepared.includes('Das Spiel geht kampflos an'));
+        assert(!prepared.includes('geht kampflos an'));
+    });
+
     for (const locale of ['de', 'en']) for (const flags of [0, 1, 7]) {
         it('preserves legacy text except corrected sentence separators: ' + locale + '/' + flags, function() {
             const current = tournament(flags);
