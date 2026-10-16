@@ -17,7 +17,9 @@ function createSpeechQueue({ root, service, onSnapshot = () => {} }) {
     }
     element(root, 'h3', '', 'Texte und Reihenfolge');
     element(root, 'p', 'speech_queue_help',
-        'Für die ausgewählte Stimme dieses Turniers. Laufender Auftrag zuerst, danach die nächsten Texte; fertige Aufnahmen stehen unten. Nummern gelten für die gemeinsame Warteschlange.');
+        'Für die ausgewählte Stimme dieses Turniers. Laufender Auftrag zuerst, danach die nächsten Texte; fertige Aufnahmen stehen unten. ' +
+        'Nummern gelten für die gemeinsame Warteschlange. ' +
+        'Eine Feldreferenz liefert Anfang und Ende für alle Spiele auf diesem Feld. Jeder Spielblock wird unabhängig vom Feld einmal erzeugt.');
     const summary = element(root, 'p', 'speech_queue_summary', 'Warteschlange wird geladen …');
     summary.setAttribute('aria-live', 'polite');
     const progress_container = element(root, 'div', 'speech_queue_progress_container');
@@ -51,11 +53,13 @@ function createSpeechQueue({ root, service, onSnapshot = () => {} }) {
         const node = element(list, 'li', 'speech_queue_row');
         const order = element(node, 'span', 'speech_queue_order');
         const content = element(node, 'div', 'speech_queue_content');
+        const purpose = element(content, 'strong', 'speech_queue_purpose');
+        const explanation = element(content, 'div', 'speech_queue_explanation');
         const text = element(content, 'div', 'speech_queue_text');
         const meta = element(content, 'div', 'speech_queue_meta');
         const button = element(node, 'button', 'speech_queue_preview', '🔊');
         button.type = 'button';
-        row = { node, order, text, meta, button, item };
+        row = { node, order, purpose, explanation, text, meta, button, item };
         rows.set(item.key, row);
         button.addEventListener('click', async () => {
             if (button.disabled) return;
@@ -91,9 +95,12 @@ function createSpeechQueue({ root, service, onSnapshot = () => {} }) {
         const items = response.queue.items;
         const ready = items.filter(item => item.status === 'completed').length;
         const failed = items.filter(item => item.status === 'failed').length;
+        const fields = items.filter(item => item.source_usage?.type === 'field').length;
+        const games = items.filter(item => item.source_usage?.type === 'game').length;
         const counts = { total: items.length, ready, failed, preparing: items.length - ready - failed };
         const summary_text = items.length ? items.length + ' Texte · ' + ready + ' fertig · ' +
-            (items.length - ready) + ' offen' + (response.queue.busy_elsewhere ?
+            (items.length - ready) + ' offen' + (fields || games ? ' · ' + fields + ' Feldreferenzen · ' + games + ' Spielblöcke' : '') +
+            (response.queue.busy_elsewhere ?
                 ' · Ein bereits laufender anderer Auftrag wird noch abgeschlossen.' : '') : 'Noch keine Texte vorgemerkt.';
         if (summary.textContent !== summary_text) summary.textContent = summary_text;
         progress_container.hidden = !items.length;
@@ -118,9 +125,19 @@ function createSpeechQueue({ root, service, onSnapshot = () => {} }) {
                 (item.status === 'completed' ? '✓' : '–') : String(item.position);
             row.order.title = item.current ? 'Laufender Auftrag' : item.position === null ? '' : 'Platz in der Warteschlange';
             row.text.textContent = item.text;
+            const usage = item.source_usage?.type;
+            row.purpose.hidden = !usage;
+            row.explanation.hidden = !['field', 'game'].includes(usage);
+            row.purpose.textContent = usage === 'field' ? 'Feldreferenz: ' + item.source_usage.text :
+                usage === 'game' ? 'Spielblock · einmal pro Spiel' : usage === 'shared' ? 'Gemeinsame Kontextaufnahme' : '';
+            row.explanation.textContent = usage === 'field' ?
+                'Feste Beispielansage zum Ausschneiden von Anfang und Ende. Diese Feldbausteine werden für alle Spiele wiederverwendet.' :
+                usage === 'game' ? 'Wird mit den vorbereiteten Feldbausteinen zusammengesetzt.' : '';
             const voice = item.voice === 'hallensprecher' ? 'Hallensprecher' : 'Hallensprecherin';
+            const stage = item.kind === 'source' ? 'Kontextaufnahme' : item.kind === 'field_start' ? 'Feldanfang · Ausschnitt' :
+                item.kind === 'field_end' ? 'Feldende · Ausschnitt' : item.kind === 'game' ? 'Spielblock · Audiobearbeitung' : '';
             row.meta.textContent = voice + ' · ' + priorities[item.priority] + ' · ' +
-                (item.kind === 'source' ? 'Kontextaufnahme · ' : '') + status(item);
+                (stage ? stage + ' · ' : '') + status(item);
             row.button.setAttribute('aria-label', 'Probehören: ' + voice + ' – ' + item.text);
             row.button.title = item.status === 'completed' ? 'Lokale Aufnahme probehören (' + voice + ')' :
                 'Probehören ist nach der Generierung verfügbar.';

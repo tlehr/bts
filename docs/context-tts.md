@@ -11,13 +11,15 @@ Der in [unserem Arbeitsdokument](durchsagen-arbeitsdokument.md) vereinbarte Aufb
 - Eine vollständige normale Zweitaufruf-Quelle je Rollen-/Namenszuordnung liefert den langen Aufruf, Rolle mit Name und gegebenenfalls den Namen allein. Doppel- und Bedien-Teams behalten ihr „und“.
 - Hallen-, Treffpunkt-, Präfix- und Anweisungstexte stammen aus vollständigen Beispielaufrufen. Identische Quellen werden gemeinsam genutzt. D12 verwendet den vollständigen Spielblock, einmal „Das Spiel geht kampflos an“ und das tatsächliche Siegerteam.
 
+Für B01 benötigen `F` Felder und `S` bekannte Spiele also `F` feste Feldreferenzen und `S` Spielquellen, keine `F × S` vollständigen Spielaufrufe. Der Spielblock mit Nummer 189 in jeder Feldreferenz ist immer derselbe feste Beispieltext. Er wird nur für die Sprachmelodie mitgesprochen und beim Ausschneiden des Feldanfangs und Feldendes verworfen. Bei der späteren Feldzuweisung wählt BTS die beiden fertigen Feldstücke aus und setzt den tatsächlichen Spielblock dazwischen; dafür entsteht kein weiterer Sprachserver-Auftrag.
+
 `speech_context.js` plant die Ausschnitte gemeinsam für Browser, Bereitschaftsanzeigen und Backend. Seine internen Beschreibungen bleiben in der Übertragung; die Einstellungen zeigen die lesbaren Zieltexte. Zahlen bleiben dort Ziffern und werden erst vor der Anfrage an den Sprachserver ausgeschrieben.
 
 ## Reihenfolge und Cache
 
 Zuerst kommen die Feldaufnahmen für alle aktiven Felder und B12. Anschließend werden die nahen Aufrufe einschließlich fehlender Hallen-/Offiziellen-Teile vervollständigt. Die regulären Spielblöcke folgen ihrer Spielnummer. Weitere Spiele mit bekannten Teams werden ebenfalls vorgemerkt; die Zahl der nahen Spiele steuert `prefetch_matches`, die Gesamtvormerkung bleibt durch `max_entries` begrenzt (Standard jetzt 4096).
 
-BTS legt Quellen vor ihren abhängigen Ausschnitten an und schickt weiterhin nur einen offenen Auftrag. Ein Ausschnitt ist ein kurzer Verarbeitungsauftrag, keine zusätzliche Sprachsynthese. Aktuelle Aufrufe erhöhen auch die Priorität ihrer fehlenden Quelle; eine laufende Arbeit wird fertiggestellt. Die gemeinsame Warteschlange, Fortschritt, Abschlussereignisse und Lautsprecher-Proben bleiben erhalten. Quellzeilen sind als „Kontextaufnahme“ gekennzeichnet. Der Fortschritt zählt Quellen und Schnitte, nicht allein Modellaufrufe.
+BTS legt Quellen vor ihren abhängigen Ausschnitten an und schickt weiterhin nur einen offenen Auftrag. Ein Ausschnitt ist ein kurzer Verarbeitungsauftrag, keine zusätzliche Sprachsynthese. Aktuelle Aufrufe erhöhen auch die Priorität ihrer fehlenden Quelle; eine laufende Arbeit wird fertiggestellt. Die gemeinsame Warteschlange, Fortschritt, Abschlussereignisse und Lautsprecher-Proben bleiben erhalten. Quellzeilen unterscheiden „Feldreferenz“, „Spielblock · einmal pro Spiel“ und „Gemeinsame Kontextaufnahme“. Die Zusammenfassung zählt Feldreferenzen und Spielblöcke getrennt. Der Fortschritt zählt Quellen und Schnitte, nicht allein Modellaufrufe.
 
 Der Sprachserver speichert Quellen und Ausschnitte als unveränderliche WAVs im bestehenden Cache. Quellen verwenden Seed 42; ihre Schlüssel berücksichtigen weiterhin Stimme, Modell, Referenz und Sampling. Die Ausschnittschlüssel enthalten zusätzlich die konkrete Quellaufnahme, den exakten Textbereich, das Erkennungsmodell und die Verarbeitungsversion. Änderungen der Schnittverarbeitung benötigen keine neue Sprachsynthese der Quelle. Alte Aufnahmen werden nicht überschrieben.
 
@@ -45,5 +47,7 @@ Die vorhandene Turnierauswahl von Stimme und Sprachmodus gilt weiterhin für all
 ## Validierung
 
 103 Sprachserver-Tests bestanden, die beiden bisherigen teuren Modelltests blieben opt-in. 137 BTS-Sprachtests einschließlich FastAPI und echtem Chrome bestanden; ESLint meldet für die geänderten JavaScript-Dateien keine Fehler. Neue Tests vergleichen sämtliche gesprochenen Wörter und Browsertexte über optionale Turniereinstellungen hinweg, prüfen die vollständige Vorabplanung, Quellabhängigkeiten, Cache-Wiederverwendung und die gemeinsame Audio-Uhr.
+
+Ein zusätzlicher Regressionstest bereitet drei Spiele ohne Feldzuweisung und alle 13 Feldreferenzen vor. Anschließend ruft er acht B01-basierte Ansagearten für jedes Spiel auf jedem Feld ab. Alle Stücke sind bereits fertig; weder eine weitere Quelle noch ein Ausschnitt oder ein zusätzlicher Sprachserver-Auftrag wird angelegt.
 
 Der separate Durchlauf `bts-sprachserver/data/integration/context/cdaa5732dbfe/` bereitete alle 32 Varianten des Beispielspiels über den echten BTS-Adapter vor: 14 Kontextquellen und 30 Ausschnitte sowie ein separater Sprachtest, keine fehlgeschlagenen Aufträge. Passende vorhandene Kitten-Rohaufnahmen wurden nur gelesen, fehlende Quellen mit dem nativen Worker erzeugt. Ein echter Chrome spielte D01 ohne Offizielle, D05, D08/Klapptafel und D12 mit beiden Siegern über die neue Audio-Uhr vollständig ab, ohne Browser-Fallback oder JavaScript-Fehler.

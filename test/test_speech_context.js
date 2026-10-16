@@ -106,6 +106,50 @@ describe('Context speech in tournament calls', function() {
         assert(broker.queue('default').items.filter(item => item.processed).every(item => !item.audio_url.includes('playback=')));
     });
 
+    it('reuses 13 field references and three game sources for every later B01 field assignment without another request', async function() {
+        let clock = 1000;
+        const sent = [];
+        const broker = new SpeechBroker(configuration({ enabled: true, api_key: 'test-key-' + 'x'.repeat(32) }, {}), {
+            now: () => clock,
+            request: async (_url, _key, method, _route, body) => {
+                assert.strictEqual(method, 'POST');
+                sent.push(body);
+                const job_id = crypto.randomBytes(16).toString('hex');
+                return { ...body, job_id, status: 'completed', audio: { audio_id: job_id, processed: !!body.context } };
+            },
+        });
+        broker.context_version = 'bts-context-v1';
+        const current = { ...tournament(), speech: { context_version: broker.context_version },
+            courts: Array.from({ length: 13 }, (_, index) => ({ _id: 'default_' + (index + 1),
+                is_active: true, location_id: 'default_h1' })) };
+        const matches = Array.from({ length: 3 }, (_, index) => ({ setup: setup({ court_id: null, match_num: 185 + index }) }));
+        const options = { voice: 'hallensprecher', priority: 'normal' };
+        const prepared = prepare(current, matches);
+        for (let i = 0; i < prepared.length; i += 64) broker.prepare(prepared.slice(i, i + 64), options, 'default');
+        while (broker.pending_order().length) { await broker.step(); clock += 1000; }
+        assert([...broker.entries.values()].every(entry => entry.status === 'completed'));
+        const queue = broker.queue('default').items;
+        const fields = queue.filter(item => item.source_usage?.type === 'field');
+        const games = queue.filter(item => item.source_usage?.type === 'game');
+        assert.strictEqual(fields.length, 13, 'one fixed reference for each field, shared by every game');
+        assert.strictEqual(games.length, 3, 'one source for each actual game');
+        assert(games.every(item => !item.text.includes('Spielfeld')));
+        assert.strictEqual(new Set(fields.map(item => item.source_usage.text)).size, 13);
+        const requestsBefore = sent.length, entriesBefore = broker.entries.size;
+        const fieldCalls = ['announceNewMatch', 'announceBeginnToPlay', 'announceSecondCallTeamOne',
+            'announceSecondCallTeamTwo', 'announceSecondCallUmpire', 'announceSecondCallServiceJudge',
+            'announceSecondCallTabletoperator', 'announceNoMatchWin'];
+        for (const match of matches) for (const court of current.courts) for (const call of fieldCalls) {
+            const parts = capture(current, { ...match.setup, court_id: court._id }, call).localParts;
+            broker.prepare(parts, { ...options, priority: 'high' }, 'default');
+            assert(broker.views(parts, options, 'default').every(item => item.status === 'completed'), call);
+        }
+        await broker.step();
+        assert.strictEqual(sent.length, requestsBefore, 'field assignment needs no source, extraction or status POST');
+        assert.strictEqual(broker.entries.size, entriesBefore, 'no extra field/game combination is registered');
+        assert.strictEqual(broker.current, null);
+    });
+
     it('decodes contextual clips before playback and schedules exact pauses on one audio clock', async function() {
         const scheduled = [], events = [];
         let decoded = 0;

@@ -3665,6 +3665,8 @@ h2.edit {
 .speech_queue_current { background: #fff7e8; }
 .speech_queue_order { color: #526176; text-align: center; font-size: 0.9rem; }
 .speech_queue_text { white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.4; }
+.speech_queue_purpose:not([hidden]) { display: block; overflow-wrap: anywhere; }
+.speech_queue_explanation { font-size: 0.8rem; color: #526176; margin: 0.25rem 0 0.5rem; line-height: 1.4; }
 .speech_queue_meta { margin-top: 0.4rem; font-size: 0.75rem; color: #526176; line-height: 1.4; }
 .speech_queue_row[data-status="completed"] .speech_queue_order { color: #18733c; }
 .speech_queue_row[data-status="failed"] .speech_queue_meta { color: #b42318; }

@@ -211,6 +211,17 @@ class SpeechBroker {
     }
 
     queue(tournament_key) {
+        // Describe a source by its actual consumers. A full field reference
+        // contains a fixed example game, but only supplies the reusable edges.
+        const source_usage = new Map();
+        for (const child of this.entries.values()) {
+            if (!child.source_key || !child.tournaments.has(tournament_key)) continue;
+            if (['field_start', 'field_end'].includes(child.context?.kind)) {
+                source_usage.set(child.source_key, { type: 'field', text: child.text });
+            } else if (child.context?.kind === 'game') {
+                source_usage.set(child.source_key, { type: 'game' });
+            }
+        }
         const current = this.current?.entry;
         const pending = this.pending_order();
         const scheduled = new Set([current, ...pending]);
@@ -228,6 +239,7 @@ class SpeechBroker {
                 current: entry === current, retry_at: Math.max(entry.retry_at, this.post_retry_at),
                 audio_url: entry.status === 'completed' ? this.audio_url(tournament_key, entry.audio_id, entry) : null,
                 kind: entry.context?.kind || 'text',
+                ...(entry.context?.kind === 'source' ? { source_usage: source_usage.get(entry.key) || { type: 'shared' } } : {}),
                 processed: entry.processed || false, leading_quiet_ms: entry.leading_quiet_ms || 0,
                 trailing_quiet_ms: entry.trailing_quiet_ms || 0,
             })),
