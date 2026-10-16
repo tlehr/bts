@@ -121,13 +121,16 @@ class Prefetcher {
                 for (let i = 0; i < texts.length; i += 64) {
                     if (this.subscriptions.get(key) !== speech_settings) return;
                     for (const text of texts.slice(i, i + 64)) {
-                        this.broker.prepare([text], { voice: speech_settings.voice, language: 'de-DE', priority }, key);
+                        this.broker.prepare([text], { voice: speech_settings.voice, language: 'de-DE', priority, prefetch: true }, key);
                     }
                     await new Promise(resolve => setImmediate(resolve));
                 }
             };
             await warm(imminent_parts, 'normal');
             await warm(parts, 'low');
+            if (this.subscriptions.get(key) === speech_settings) {
+                this.broker.reconcile_prefetch(key, parts, { voice: speech_settings.voice, language: 'de-DE' });
+            }
         } finally {
             this.running.delete(key);
             if (this.dirty.delete(key)) this.schedule(key);

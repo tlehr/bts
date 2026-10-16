@@ -76,6 +76,20 @@ describe('Durable BTS speech cache', function() {
         localServer = upstream = null;
     });
 
+    it('keeps completed WAVs on disk when they leave the current prefetch plan and restores them without another request', async function() {
+        upstream = await fixture(directory, true);
+        const broker = new SpeechBroker(upstream.config); await broker.refresh();
+        broker.prepare(['Temporärer Bedarf'], { prefetch: true }, 'default'); await broker.step();
+        const entry = [...broker.entries.values()][0];
+        const filename = broker.disk.file(entry.audio_id).path, count = upstream.requests.length;
+        broker.reconcile_prefetch('default', [], { voice: upstream.config.voice });
+        assert.strictEqual(broker.queue('default').items.length, 0);
+        assert(fs.existsSync(filename));
+        broker.prepare(['Temporärer Bedarf'], { prefetch: true }, 'default'); await broker.step();
+        assert(broker.views(['Temporärer Bedarf'], {}, 'default')[0].local);
+        assert.strictEqual(upstream.requests.length, count);
+    });
+
     for (const stage of ['context', 'name']) it('retains a successful ' + stage + ' fallback and its provenance after a restart without another request', async function() {
         upstream = await fixture(directory, true, true); upstream.state.failCuts = stage === 'name' ? true : 'original';
         let clock = 1000;

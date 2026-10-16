@@ -27,6 +27,7 @@ function renderer(tournament, locale, parts) {
 function prepare_tabletoperators(texts, tournament, setup = {}, groups) {
     if (tournament.tabletoperator_enabled !== true) return;
     if (!groups) {
+        if (setup.state !== 'oncourt' || !setup.court_id) return;
         if (tournament.tabletoperator_with_state_from_match_enabled) {
             const player = (setup.teams || []).slice(0, 2).flatMap(team => team.players || []).find(player => player?.state);
             groups = [[{ name: player?.state }]];

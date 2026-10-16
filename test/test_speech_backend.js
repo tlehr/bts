@@ -87,6 +87,52 @@ function fetch_buffer(url, headers = {}) {
 describe('Server speech adapter and protected audio', function() {
     this.timeout(10000);
 
+    it('retires stale prefetch without cancelling an active request, manual calls or another tournament', async function() {
+        let clock = 1000, current;
+        const sent = [];
+        const broker = new SpeechBroker(config(), { now: () => clock,
+            request: async (_base, _key, method, _route, body) => {
+                if (method === 'GET') return reply(current, 'completed');
+                sent.push(body); current = reply(body, 'processing'); return current;
+            } });
+        broker.prepare(['obsolete', 'needed', 'shared'], { prefetch: true }, 'default');
+        broker.prepare(['shared'], { prefetch: true }, 'other');
+        await broker.step(); clock += 3000;
+        broker.prepare(['manual'], { priority: 'high' }, 'default');
+        broker.reconcile_prefetch('default', ['needed'], { voice: 'hallensprecherin' });
+        assert(broker.current, 'retiring an active entry must not release its one current slot');
+        assert.deepStrictEqual(broker.queue('default').items.map(item => item.text).sort(), ['manual', 'needed']);
+        assert(broker.queue('other').items.some(item => item.text === 'shared'));
+        assert.strictEqual(sent.length, 1);
+        await broker.step(); clock += 1000;
+        assert.strictEqual(broker.current, null);
+        await broker.step();
+        assert.deepStrictEqual(sent.map(body => body.text), ['obsolete', 'manual']);
+    });
+
+    it('does not start a context or individual fallback for a retired in-flight team excerpt', async function() {
+        let clock = 1000, current;
+        const sent = [];
+        const broker = new SpeechBroker(config(), { now: () => clock,
+            request: async (_base, _key, method, _route, body) => {
+                if (method === 'GET') return { ...current, status: 'failed', error: { code: 'alignment_failed' } };
+                sent.push(body); const job_id = id();
+                return (current = { ...body, job_id, status: body.context ? 'processing' : 'completed',
+                    audio: body.context ? null : { audio_id: job_id } });
+            } });
+        broker.context_version = 'bts-context-v1';
+        const part = '~bts-context-v1~' + JSON.stringify({ before: 'Finale! ', text: 'Ein Team', after: ' gegen Andere.', kind: 'team' });
+        broker.prepare([part], { prefetch: true }, 'default');
+        await broker.step(); clock += 1000;
+        await broker.step(); clock += 3000;
+        broker.reconcile_prefetch('default', [], { voice: 'hallensprecherin' });
+        await broker.step(); clock += 1000;
+        await broker.step();
+        assert.strictEqual(sent.length, 2);
+        assert.strictEqual(broker.entries.size, 0);
+        assert.strictEqual(broker.current, null);
+    });
+
     it('keeps credentials private and disables a missing/unsafe configuration', function() {
         const broker = new SpeechBroker(config());
         const public_data = JSON.stringify(broker.public_config());
@@ -856,6 +902,7 @@ describe('Server speech adapter and protected audio', function() {
             const roles = [...broker.entries.values()].filter(entry => entry.text.startsWith('Tabletbedienung:'));
             assert(roles.some(entry => entry.text.includes('Johann') && entry.priority === 1));
             assert(roles.some(entry => entry.text === 'Tabletbedienung:Wartende Bedienung' && entry.priority === 2));
+            assert(!roles.some(entry => /Nächste [AB]/.test(entry.text)), 'future games are not speculative tablet candidates');
             assert(roles.every(entry => entry.voice === 'hallensprecher'));
             while (broker.pending_order().length) { await broker.step(); clock += 1000; }
             const count = sent.length;
@@ -865,6 +912,9 @@ describe('Server speech adapter and protected audio', function() {
             await db.matches.update_async({ _id: 'next' }, { $set: { 'setup.tabletoperators': previous.teams[1].players,
                 'setup.court_id': 'default_4', 'setup.location_id': 'default_h1', 'setup.state': 'oncourt' } }, {});
             await prefetch.refresh('default');
+            const updated_roles = [...broker.entries.values()].filter(entry => entry.text.startsWith('Tabletbedienung:'));
+            assert(!updated_roles.some(entry => entry.text.includes('Johann')), 'the unused possible winner must leave the active queue');
+            assert(updated_roles.some(entry => entry.text.includes('Muhammad')), 'the newly assigned loser remains available');
             const selected = { ...current, speech: { context_version: broker.context_version } };
             const texts = require('../bts/speech/text').renderer(selected, 'de', []);
             const assigned = { ...next, tabletoperators: previous.teams[1].players, court_id: 'default_4', location_id: 'default_h1' };

@@ -74,7 +74,7 @@ describe('Context speech in tournament calls', function() {
                 { tabletoperator: [{ name: 'Wartender Dienst' }], court: null, end_ts: null },
                 { tabletoperator: [{ name: 'Beendeter Dienst' }], court: null, end_ts: 1 },
             ] };
-        const match = setup({ tabletoperators: null });
+        const match = setup({ state: 'oncourt', tabletoperators: null });
         match.teams.forEach((team, index) => { team.players[0].state = 'Landesverband ' + index; });
         const recipes = prepare(current, [{ setup: match }]).map(part => decode(part, 1200)).filter(Boolean);
         const roles = recipes.filter(recipe => recipe.text.startsWith('Tabletbedienung:')).map(recipe => recipe.text);
@@ -90,6 +90,17 @@ describe('Context speech in tournament calls', function() {
         assert.deepStrictEqual(laterState.map(recipe => recipe.text), ['Tabletbedienung:Landesverband 1']);
         const disabled = prepare({ ...current, tabletoperator_enabled: false }, [{ setup: match }]);
         assert(!disabled.some(part => decode(part, 1200)?.text.startsWith('Tabletbedienung:')));
+    });
+
+    it('limits speculative tablet roles to teams currently on a court while still preparing future game blocks', function() {
+        const current = { ...tournament(), speech: { context_version: 'bts-context-v1' }, tabletoperator_enabled: true };
+        for (const state of ['scheduled', 'preparation', 'ready', 'finished', 'oncourt']) for (const court_id of [null, 'default_4']) {
+            const match = setup({ state, court_id, tabletoperators: null, umpire: null, service_judge: null });
+            const recipes = prepare(current, [{ setup: match }]).map(part => decode(part, 1200)).filter(Boolean);
+            const roles = recipes.filter(recipe => recipe.text.startsWith('Tabletbedienung:'));
+            assert.strictEqual(roles.length, state === 'oncourt' && court_id ? 2 : 0, state + '/' + court_id);
+            assert(recipes.some(recipe => recipe.kind === 'game'), 'known game blocks retain their independent planning');
+        }
     });
 
     for (const outcome of ['context', 'name', 'failed', 'source-failed', 'source-rejected']) it('bounds team recovery and retains one request at a time: ' + outcome, async function() {

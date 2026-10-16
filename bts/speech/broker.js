@@ -136,7 +136,13 @@ class SpeechBroker {
             this.entries.set(key, source);
             this.restore(source);
         }
-        for (const tournament of entry.tournaments) source.tournaments.add(tournament);
+        for (const tournament of entry.tournaments) {
+            source.tournaments.add(tournament);
+            for (const group of ['prefetch_tournaments', 'foreground_tournaments']) if (entry[group]?.has(tournament)) {
+                source[group] ||= new Set();
+                source[group].add(tournament);
+            }
+        }
         source.priority = Math.min(source.priority, entry.priority);
         source.used = this.now();
         Object.assign(entry, { context: recipe, source_key: key, fallback_stage: stage });
@@ -223,10 +229,19 @@ class SpeechBroker {
                 this.restore(entry);
             }
             this.check_local(entry);
-            if (tournament_key) entry.tournaments.add(tournament_key);
+            const interests = options.prefetch ? 'prefetch_tournaments' : 'foreground_tournaments';
+            if (tournament_key) {
+                entry.tournaments.add(tournament_key);
+                entry[interests] ||= new Set();
+                entry[interests].add(tournament_key);
+            }
             const active_source = this.entries.get(entry.source_key);
             if (active_source) {
                 if (tournament_key) active_source.tournaments.add(tournament_key);
+                if (tournament_key) {
+                    active_source[interests] ||= new Set();
+                    active_source[interests].add(tournament_key);
+                }
                 active_source.priority = Math.min(active_source.priority, PRIORITY[normalized.priority]);
                 active_source.used = this.now();
             }
@@ -273,10 +288,36 @@ class SpeechBroker {
         for (const [key, entry] of this.entries) {
             if (!entry.tournaments.has(tournament_key) || entry.voice === voice) continue;
             entry.tournaments.delete(tournament_key);
+            entry.prefetch_tournaments?.delete(tournament_key);
+            entry.foreground_tournaments?.delete(tournament_key);
             // A submitted request retains its independent current slot until it
             // finishes. Removing its local cache entry never opens another slot.
             if (!entry.tournaments.size) this.entries.delete(key);
         }
+    }
+
+    reconcile_prefetch(tournament_key, parts, { voice, language = 'de-DE' }) {
+        const wanted = new Set(parts.map(part => this.key(part, voice, language)));
+        const stack = [...wanted];
+        while (stack.length) {
+            const source = this.entries.get(stack.pop())?.source_key;
+            if (source && !wanted.has(source)) { wanted.add(source); stack.push(source); }
+        }
+        let changed = false;
+        for (const [key, entry] of this.entries) {
+            if (!entry.prefetch_tournaments?.has(tournament_key) || wanted.has(key)) continue;
+            entry.prefetch_tournaments.delete(tournament_key);
+            if (entry.foreground_tournaments?.has(tournament_key)) continue;
+            entry.tournaments.delete(tournament_key);
+            changed = true;
+            if (!entry.tournaments.size) {
+                // A submitted request still owns the one current slot until
+                // completion. Its output may be archived, but never retried.
+                if (entry === this.current?.entry) entry.detached = true;
+                this.entries.delete(key);
+            }
+        }
+        if (changed) this.on_change([tournament_key]);
     }
 
     pending_order(now = this.now()) {
@@ -443,7 +484,7 @@ class SpeechBroker {
         } else if (response.status === 'failed') {
             entry.retry_at = this.now() + 30000;
             this.last_error = 'speech_generation_failed';
-            if (entry.context?.kind === 'team' && response.error?.code === 'alignment_failed') this.advance_team_fallback(entry);
+            if (!entry.detached && entry.context?.kind === 'team' && response.error?.code === 'alignment_failed') this.advance_team_fallback(entry);
             this.failed_fallback_source(entry);
         }
     }
