@@ -68,7 +68,8 @@ class SpeechDiskCache {
             Number.isSafeInteger(item.size_bytes) && item.size_bytes > 44 && item.size_bytes <= MAX_BYTES &&
             (!item.file || item.file === item.sha256 + '.wav' || item.file === 'id-' + item.audio_id + '.wav') &&
             typeof item.processed === 'boolean' && [item.leading_quiet_ms, item.trailing_quiet_ms].every(value =>
-                Number.isFinite(value) && value >= 0 && value <= 60000);
+                Number.isFinite(value) && value >= 0 && value <= 60000) &&
+            (item.fallback_stage === undefined || ['context', 'name'].includes(item.fallback_stage));
     }
 
     async inspect(filename, expected = {}) {
@@ -102,7 +103,8 @@ class SpeechDiskCache {
             try {
                 const source = path.join(path.resolve(this.config.shared_audio_dir), item.audio_id + '.wav');
                 const stat = await fsp.lstat(source);
-                if (stat.isFile() && !stat.isSymbolicLink()) await this.save(item.identity, item.key, { job_id: item.job_id, audio: item });
+                if (stat.isFile() && !stat.isSymbolicLink()) await this.save(item.identity, item.key,
+                    { job_id: item.job_id, audio: item, fallback_stage: item.fallback_stage });
             } catch (_) { /* Keep the verified copy if sharing is unavailable. */ }
         }
     }
@@ -226,7 +228,8 @@ class SpeechDiskCache {
             const stored_file = await this.inspect(filename, file);
             const item = { identity, key, job_id: response.job_id, audio_id: audio.audio_id,
                 sha256: file.sha256, size_bytes: file.size_bytes, file: name, processed: audio.processed === true,
-                leading_quiet_ms: audio.leading_quiet_ms || 0, trailing_quiet_ms: audio.trailing_quiet_ms || 0, storage };
+                leading_quiet_ms: audio.leading_quiet_ms || 0, trailing_quiet_ms: audio.trailing_quiet_ms || 0, storage,
+                ...(response.fallback_stage ? { fallback_stage: response.fallback_stage } : {}) };
             if (!this.recordValid(item)) throw new Error('invalid_cache_record');
             const record_key = this.key(identity, key);
             const previous = this.records.get(record_key);

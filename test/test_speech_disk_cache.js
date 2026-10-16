@@ -16,7 +16,7 @@ const listen = server => new Promise(resolve => server.listen(0, '127.0.0.1', re
 
 async function fixture(directory, shared = false, context = false) {
     const jobs = new Map(), requests = [], body = wave([[10, 0], [40, 1000], [10, 0]]);
-    const state = { revision: 'a'.repeat(40), corrupt: false };
+    const state = { revision: 'a'.repeat(40), corrupt: false, failCuts: false };
     const shared_directory = path.join(directory, 'shared');
     fs.mkdirSync(shared_directory);
     const server = http.createServer((req, res) => {
@@ -41,6 +41,10 @@ async function fixture(directory, shared = false, context = false) {
             const result = { ...request, job_id, status: 'completed', audio: { audio_id: job_id, size_bytes: body.length,
                 sha256: crypto.createHash('sha256').update(body).digest('hex'), processed: !!request.context,
                 leading_quiet_ms: request.context ? 10 : 0, trailing_quiet_ms: request.context ? 10 : 0 } };
+            if (state.failCuts && request.context?.before &&
+                (state.failCuts !== 'original' || jobs.get(request.context.audio_id).source_seed !== 43)) {
+                result.status = 'failed'; result.error = { code: 'alignment_failed' }; delete result.audio;
+            }
             if (shared) fs.writeFileSync(path.join(shared_directory, job_id + '.wav'), body);
             jobs.set(job_id, result); json(result);
         });
@@ -70,6 +74,29 @@ describe('Durable BTS speech cache', function() {
         if (upstream?.server.listening) await close(upstream.server);
         fs.rmSync(directory, { recursive: true, force: true });
         localServer = upstream = null;
+    });
+
+    for (const stage of ['context', 'name']) it('retains a successful ' + stage + ' fallback and its provenance after a restart without another request', async function() {
+        upstream = await fixture(directory, true, true); upstream.state.failCuts = stage === 'name' ? true : 'original';
+        let clock = 1000;
+        const first = new SpeechBroker(upstream.config, { now: () => clock }); await first.refresh();
+        const part = '~bts-context-v1~' + JSON.stringify({ before: 'Finale! ', text: 'Ridhi Polali',
+            after: ' gegen Charlotte Dettmann.', kind: 'team' });
+        first.prepare([part], {}, 'default');
+        for (let step = 0; step < 10; step++) { await first.step(); clock += 2000; }
+        assert(first.views([part], {}, 'default')[0].local);
+        const count = upstream.posts().length;
+        assert.strictEqual(count, stage === 'name' ? 6 : 4);
+        const fresh = new SpeechBroker(upstream.config); await fresh.disk.ready;
+        fresh.prepare([part], {}, 'default'); await fresh.step();
+        assert(fresh.views([part], {}, 'default')[0].local);
+        const row = fresh.queue('default').items.find(item => item.kind === 'team');
+        assert.strictEqual(row.fallback_stage, stage);
+        assert.strictEqual(row.operation, stage === 'name' ? 'processing' : 'excerpt');
+        const source = fresh.entries.get(row.source_key);
+        assert.strictEqual(source.text.slice(row.source_range.start, row.source_range.end), row.text);
+        if (stage === 'context') assert.strictEqual(source.source_seed, 43);
+        assert.strictEqual(upstream.posts().length, count);
     });
 
     for (const shared of [false, true]) it('restores completed audio after BTS restart and serves it with the speech server stopped (' +

@@ -20,6 +20,83 @@ function capture(current, match, call, winner = 0) {
 }
 
 describe('Context speech in tournament calls', function() {
+    for (const outcome of ['context', 'name', 'failed', 'source-failed', 'source-rejected']) it('bounds team recovery and retains one request at a time: ' + outcome, async function() {
+        let clock = 1000;
+        const sent = [], jobs = new Map();
+        let open = null;
+        const broker = new SpeechBroker(configuration({ enabled: true, api_key: 'test-key-' + 'x'.repeat(32) }, {}), {
+            now: () => clock,
+            request: async (_url, _key, method, route, body) => {
+                if (method === 'POST') {
+                    assert.strictEqual(open, null, 'only BTS determines which job starts next');
+                    if (outcome === 'source-rejected' && body.source_seed === 43) {
+                        sent.push(body);
+                        throw Object.assign(new Error('Source variant rejected'), { status: 422 });
+                    }
+                    const job_id = crypto.randomBytes(16).toString('hex');
+                    const job = { ...body, job_id, status: 'processing' };
+                    jobs.set(job_id, job); sent.push(body); open = job_id; return job;
+                }
+                const job = jobs.get(route.split('/').at(-1));
+                assert.strictEqual(open, job.job_id); open = null;
+                const source = job.context && jobs.get(job.context.audio_id);
+                const failed = outcome === 'source-failed' && job.source_seed === 43 || job.context && (
+                    source?.source_seed !== 43 && job.context.before ||
+                    outcome !== 'context' && job.context.before || outcome === 'failed');
+                return { ...job, status: failed ? 'failed' : 'completed',
+                    ...(failed ? { error: { code: job.context ? 'alignment_failed' : 'generation_failed' } } :
+                        { audio: { audio_id: job.job_id, processed: !!job.context } }) };
+            },
+        });
+        broker.context_version = 'bts-context-v1';
+        const part = '~bts-context-v1~' + JSON.stringify({ before: 'Finale! ', text: 'Ridhi Polali',
+            after: ' gegen Charlotte Dettmann.', kind: 'team' });
+        for (let step = 0; step < 25; step++) {
+            broker.prepare([part], { priority: 'normal' }, 'default');
+            await broker.step(); clock += 1000;
+        }
+        const entry = broker.entries.get(broker.key(part, 'hallensprecherin', 'de-DE'));
+        assert.strictEqual(entry.status, outcome === 'failed' ? 'failed' : 'completed');
+        assert.strictEqual(sent.filter(body => body.source_seed === 43).length, 1, 'one genuinely different complete context');
+        assert.strictEqual(sent.filter(body => !body.context && body.text === 'Ridhi Polali').length, outcome === 'context' ? 0 : 1);
+        assert.strictEqual(sent.length, outcome === 'context' ? 4 : ['source-failed', 'source-rejected'].includes(outcome) ? 5 : 6);
+        assert.strictEqual(entry.fallback_stage, outcome === 'context' ? 'context' : 'name');
+        assert.strictEqual(!!entry.terminal_failure, outcome === 'failed');
+        const row = broker.queue('default').items.find(item => item.key === entry.key);
+        const source = broker.queue('default').items.find(item => item.key === row.source_key);
+        assert.strictEqual(source.text.slice(row.source_range.start, row.source_range.end), row.text);
+        assert.strictEqual(row.operation, outcome === 'context' ? 'excerpt' : 'processing');
+    });
+
+    it('shares one alternate game recording between two failed team cuts and preserves the original game source', async function() {
+        let clock = 1000;
+        const sent = [];
+        const broker = new SpeechBroker(configuration({ enabled: true, api_key: 'test-key-' + 'x'.repeat(32) }, {}), {
+            now: () => clock,
+            request: async (_url, _key, _method, _route, body) => {
+                sent.push(body);
+                const job_id = crypto.randomBytes(16).toString('hex');
+                const failed = body.context && (body.context.before || body.context.after);
+                return { ...body, job_id, status: failed ? 'failed' : 'completed',
+                    ...(failed ? { error: { code: 'alignment_failed' } } :
+                        { audio: { audio_id: job_id, processed: !!body.context } }) };
+            },
+        });
+        broker.context_version = 'bts-context-v1';
+        const parts = [{ before: 'Finale! ', text: 'Ridhi Polali', after: ' gegen Charlotte Dettmann.', kind: 'team' },
+            { before: 'Finale! Ridhi Polali gegen ', text: 'Charlotte Dettmann', after: '.', kind: 'team' }]
+            .map(recipe => '~bts-context-v1~' + JSON.stringify(recipe));
+        broker.prepare(parts, {}, 'default'); await broker.step(); clock += 1000;
+        const original = [...broker.entries.values()].find(entry => entry.context.kind === 'source');
+        const original_audio = original.audio_id;
+        for (let step = 0; step < 15; step++) { await broker.step(); clock += 1000; }
+        assert(broker.views(parts, {}, 'default').every(clip => clip.status === 'completed'));
+        assert.strictEqual(original.audio_id, original_audio, 'the successfully generated game is never overwritten');
+        assert.strictEqual(sent.filter(body => body.source_seed === 43).length, 1);
+        assert.strictEqual(sent.filter(body => !body.context).length, 4, 'two game sources and two individual names');
+        assert.strictEqual(sent.length, 10);
+    });
+
     it('uses the correct girls discipline in browser calls and the actual local synthesis request for singles and doubles', async function() {
         let clock = 1000;
         const sent = [];

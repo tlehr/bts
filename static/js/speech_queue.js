@@ -62,7 +62,8 @@ function createSpeechQueue({ root, service, onSnapshot = () => {} }) {
         }[type] :
             item.status === 'queued' ? 'Beim Sprachserver' : 'Wird übermittelt / geprüft';
         if (item.status === 'completed') return 'Fertig';
-        if (item.status === 'failed') return type === 'synthesis' ? 'Sprachaufnahme fehlgeschlagen' : 'Verarbeitung fehlgeschlagen';
+        if (item.status === 'failed') return item.terminal_failure ? 'Auch Einzelaufnahme fehlgeschlagen; automatische Versuche beendet' :
+            type === 'synthesis' ? 'Sprachaufnahme fehlgeschlagen' : 'Verarbeitung fehlgeschlagen';
         if (source && source.status !== 'completed') return 'Wartet auf ' + recordingLabel(source.key) +
             (source.status === 'failed' ? ' (fehlgeschlagen)' : '');
         if (item.retry_at > Date.now()) return 'Wartet auf erneuten Versuch';
@@ -190,11 +191,13 @@ function createSpeechQueue({ root, service, onSnapshot = () => {} }) {
             row.text.textContent = item.text;
             const usage = item.source_usage?.type;
             row.purpose.hidden = false;
-            row.explanation.hidden = !['field', 'game'].includes(usage);
+            row.explanation.hidden = !item.fallback_stage && !['field', 'game'].includes(usage);
             row.purpose.textContent = type === 'synthesis' ? recordingLabel(item.key) + ' · ' +
                 (usage === 'field' ? 'Feldreferenz: ' + item.source_usage.text : usage === 'game' ? 'Spielblock · einmal pro Spiel' :
                     usage === 'shared' ? 'Referenz für mehrere Bausteine' : 'Einzeltext') : partLabel(item);
-            row.explanation.textContent = usage === 'field' ?
+            row.explanation.textContent = item.fallback_stage === 'context' ?
+                'Namensschnitt fehlgeschlagen: neue Aufnahme mit vollständigem Kontext und anderem Zufallswert.' :
+                item.fallback_stage === 'name' ? 'Letzter Fallback: vollständigen Namen einzeln erzeugen und aufbereiten.' : usage === 'field' ?
                 'Feste Beispielansage zum Ausschneiden von Anfang und Ende. Diese Feldbausteine werden für alle Spiele wiederverwendet.' :
                 usage === 'game' ? 'Wird mit den vorbereiteten Feldbausteinen zusammengesetzt.' : '';
             const source = by_key.get(item.source_key);

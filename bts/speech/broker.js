@@ -114,10 +114,52 @@ class SpeechBroker {
     restore(entry) {
         const saved = this.disk?.lookup(this.identity, entry.key);
         if (!saved) return false;
+        if (saved.fallback_stage && entry.context?.kind === 'team' && !this.set_team_fallback(entry, saved.fallback_stage)) return false;
         Object.assign(entry, { status: 'completed', job_id: saved.job_id, audio_id: saved.audio_id, processed: saved.processed,
             leading_quiet_ms: saved.leading_quiet_ms, trailing_quiet_ms: saved.trailing_quiet_ms,
             checked: this.now(), local: true, revalidate: false });
         return true;
+    }
+
+    set_team_fallback(entry, stage) {
+        const original = context.decode(entry.part, this.config.max_text);
+        const recipe = stage === 'name' ? { before: '', text: entry.text, after: '', kind: 'team' } : original;
+        const part = context.sourcePart(recipe);
+        const key = this.key('team-fallback-' + stage + '-v1:' + part, entry.voice, entry.language);
+        let source = this.entries.get(key);
+        if (!source) {
+            if (this.entries.size >= this.config.max_entries) return false;
+            source = { key, part, text: recipe.before + recipe.text + recipe.after, context: context.decode(part, this.config.max_text),
+                source_key: null, voice: entry.voice, language: entry.language, priority: entry.priority,
+                status: 'unsubmitted', created: entry.created, used: this.now(), retry_at: 0, next_poll: 0, busy: false,
+                tournaments: new Set(), fallback_source: stage, ...(stage === 'context' ? { source_seed: 43 } : {}) };
+            this.entries.set(key, source);
+            this.restore(source);
+        }
+        for (const tournament of entry.tournaments) source.tournaments.add(tournament);
+        source.priority = Math.min(source.priority, entry.priority);
+        source.used = this.now();
+        Object.assign(entry, { context: recipe, source_key: key, fallback_stage: stage });
+        return true;
+    }
+
+    advance_team_fallback(entry) {
+        const stage = !entry.fallback_stage ? 'context' : entry.fallback_stage === 'context' ? 'name' : null;
+        if (!stage || !this.set_team_fallback(entry, stage)) {
+            entry.terminal_failure = true;
+            return;
+        }
+        Object.assign(entry, { status: 'unsubmitted', job_id: null, retry_at: 0, next_poll: 0, local: false });
+        if (this.entries.get(entry.source_key).status === 'failed') this.advance_team_fallback(entry);
+        if (entry.tournaments.size) this.on_change([...entry.tournaments]);
+    }
+
+    failed_fallback_source(entry) {
+        if (!entry.fallback_source) return;
+        for (const child of this.entries.values()) if (child.source_key === entry.key && child.context?.kind === 'team') {
+            this.advance_team_fallback(child);
+            if (child.terminal_failure) child.status = 'failed';
+        }
     }
 
     check_local(entry) {
@@ -182,11 +224,17 @@ class SpeechBroker {
             }
             this.check_local(entry);
             if (tournament_key) entry.tournaments.add(tournament_key);
+            const active_source = this.entries.get(entry.source_key);
+            if (active_source) {
+                if (tournament_key) active_source.tournaments.add(tournament_key);
+                active_source.priority = Math.min(active_source.priority, PRIORITY[normalized.priority]);
+                active_source.used = this.now();
+            }
             entry.used = this.now();
             if (PRIORITY[normalized.priority] < entry.priority) {
                 entry.priority = PRIORITY[normalized.priority];
             }
-            if (entry.status === 'failed' && entry.retry_at <= this.now()) entry.status = 'unsubmitted';
+            if (entry.status === 'failed' && !entry.terminal_failure && entry.retry_at <= this.now()) entry.status = 'unsubmitted';
             // Revalidate preference/configuration occasionally through the authoritative cache.
             if (entry.status === 'completed' && !entry.local && entry.checked + 300000 < this.now()) entry.revalidate = true;
             if (normalized.priority === 'high') entry.next_poll = 0;
@@ -287,6 +335,8 @@ class SpeechBroker {
                 audio_url: entry.status === 'completed' ? this.audio_url(tournament_key, entry.audio_id, entry) : null,
                 kind: entry.context?.kind || 'text',
                 local: entry.local === true,
+                ...(entry.fallback_stage || entry.fallback_source ? { fallback_stage: entry.fallback_stage || entry.fallback_source } : {}),
+                ...(entry.terminal_failure ? { terminal_failure: true } : {}),
                 operation: !entry.source_key ? 'synthesis' : entry.context.before || entry.context.after ? 'excerpt' : 'processing',
                 ...(entry.source_key ? { source_key: entry.source_key, source_range: {
                     start: entry.context.before.length, end: entry.context.before.length + entry.text.length,
@@ -342,6 +392,12 @@ class SpeechBroker {
             const identity = JSON.stringify([TEXT_VERSION, state.configuration_version, state.backend, state.model, state.model_revision, this.voices, next_context]);
             if (this.identity && identity !== this.identity) {
                 for (const entry of this.entries.values()) {
+                    if (entry.fallback_stage) {
+                        entry.context = context.decode(entry.part, this.config.max_text);
+                        entry.source_key = this.key(context.sourcePart(entry.context), entry.voice, entry.language);
+                        delete entry.fallback_stage;
+                    }
+                    delete entry.terminal_failure;
                     entry.status = 'unsubmitted';
                     entry.job_id = null;
                     entry.retry_at = 0;
@@ -387,6 +443,8 @@ class SpeechBroker {
         } else if (response.status === 'failed') {
             entry.retry_at = this.now() + 30000;
             this.last_error = 'speech_generation_failed';
+            if (entry.context?.kind === 'team' && response.error?.code === 'alignment_failed') this.advance_team_fallback(entry);
+            this.failed_fallback_source(entry);
         }
     }
 
@@ -404,6 +462,7 @@ class SpeechBroker {
                 text: spellNumbers(entry.text), voice: entry.voice, language: entry.language,
                 priority: Object.keys(PRIORITY)[entry.priority],
                 ...(entry.context ? { profile: context.VERSION } : {}),
+                ...(entry.source_seed === undefined ? {} : { source_seed: entry.source_seed }),
                 ...(entry.source_key ? { context: { audio_id: this.entries.get(entry.source_key).audio_id,
                     before: spellNumbers(entry.context.before), after: spellNumbers(entry.context.after), kind: entry.context.kind } } : {}),
             } };
@@ -433,7 +492,7 @@ class SpeechBroker {
                 // Completion means both the WAV and its index have reached disk.
                 // Keep the current job occupied until publication finishes.
                 try {
-                    await this.disk.store(this.identity, entry.key, response);
+                    await this.disk.store(this.identity, entry.key, { ...response, fallback_stage: entry.fallback_stage });
                     this.cache_error = null;
                 } catch (error) { this.cache_error = 'speech_cache_unavailable'; throw error; }
                 entry.local = true;
@@ -444,6 +503,10 @@ class SpeechBroker {
             if (post) this.last_post_voice.set(entry.priority, entry.voice);
             if (['completed', 'failed'].includes(response.status)) this.current = null;
         } catch (error) {
+            if (post && entry.fallback_source && [400, 413, 422].includes(error.status)) {
+                entry.status = 'failed';
+                this.failed_fallback_source(entry);
+            }
             if (post && entry.source_key && error.response?.error?.code === 'audio_unavailable') {
                 const parent = this.entries.get(entry.source_key);
                 if (parent) { parent.status = 'unsubmitted'; parent.retry_at = 0; }
