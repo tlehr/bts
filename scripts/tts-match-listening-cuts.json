@@ -1,0 +1,223 @@
+{
+  "sample_rate": 24000,
+  "method": {
+    "tool": "vosk==0.3.45",
+    "model": "vosk-model-small-de-0.15",
+    "model_archive_sha256": "b7e53c90b1f0a38456f4cd62b366ecd58803cd97cd42b06438e2c131713d5e43",
+    "boundaries": "Local word timestamps, low-energy windows and nearby zero crossings; original checked cuts for field opening and closing.",
+    "scope": "Fixed listening fixture only; no generic production segmentation. Continuous coarticulated word boundaries remain listening test points.",
+    "walkover_anchor": "Constrained local recognition separates an (8.07–8.25 s) and Nina (8.25–8.55 s)."
+  },
+  "pieces": {
+    "field_start": {
+      "source": "field",
+      "source_sha256": "9c62e0f0389530fee6ab07eedeeb414b2b0d6669999f197866c9a6a11a2bcdd1",
+      "start_frame": 0,
+      "end_frame": 40800,
+      "note": "Previously checked opening boundary of preferred reference 1."
+    },
+    "field_end": {
+      "source": "field",
+      "source_sha256": "9c62e0f0389530fee6ab07eedeeb414b2b0d6669999f197866c9a6a11a2bcdd1",
+      "start_frame": 242603,
+      "end_frame": 280260,
+      "note": "Previously checked closing boundary of preferred reference 1."
+    },
+    "begin": {
+      "source": "begin",
+      "source_sha256": "c5febe3821dc450fae8dd4da6a549629c928d87b8e760b72cb649953921c08ba",
+      "start_frame": 42811,
+      "end_frame": 77198,
+      "note": "Between acht and Bitte; retain complete instruction."
+    },
+    "game_header": {
+      "source": "game",
+      "source_sha256": "8b7ad580ff4245ae7d0c55f8df0451ae3d4fcb1ef0eb0050dbe8041063b280de",
+      "start_frame": 0,
+      "end_frame": 125809,
+      "note": "After Achtelfinale, before Nina."
+    },
+    "encounter": {
+      "source": "game",
+      "source_sha256": "8b7ad580ff4245ae7d0c55f8df0451ae3d4fcb1ef0eb0050dbe8041063b280de",
+      "start_frame": 125809,
+      "end_frame": 191795,
+      "note": "Complete encounter including gegen."
+    },
+    "team1": {
+      "source": "game",
+      "source_sha256": "8b7ad580ff4245ae7d0c55f8df0451ae3d4fcb1ef0eb0050dbe8041063b280de",
+      "start_frame": 125809,
+      "end_frame": 160706,
+      "note": "Complete first team, ends before onset of gegen."
+    },
+    "team2": {
+      "source": "game",
+      "source_sha256": "8b7ad580ff4245ae7d0c55f8df0451ae3d4fcb1ef0eb0050dbe8041063b280de",
+      "start_frame": 166663,
+      "end_frame": 191795,
+      "note": "Complete second team, starts after gegen."
+    },
+    "prep_start": {
+      "source": "preparation",
+      "source_sha256": "72fddc651020c3e801f0a245bfec8c99aed41f4904375baec5a4ddd87a861135",
+      "start_frame": 0,
+      "end_frame": 74285,
+      "note": "Long B09 + B02; ends before Spiel."
+    },
+    "prep_open": {
+      "source": "preparation",
+      "source_sha256": "72fddc651020c3e801f0a245bfec8c99aed41f4904375baec5a4ddd87a861135",
+      "start_frame": 0,
+      "end_frame": 42199,
+      "note": "B09 without field; ends before Fuer."
+    },
+    "meeting_plural": {
+      "source": "preparation",
+      "source_sha256": "72fddc651020c3e801f0a245bfec8c99aed41f4904375baec5a4ddd87a861135",
+      "start_frame": 262392,
+      "end_frame": 313548,
+      "note": "Complete plural meeting instruction, after last team."
+    },
+    "umpire_long": {
+      "source": "umpire",
+      "source_sha256": "e8621eae2b409aad05f3703fbf5f54b8ba22c8159f3078e8a7b2cd26bc3becb7",
+      "start_frame": 30796,
+      "end_frame": 108076,
+      "note": "Complete normal second call, including prefix, role and full name."
+    },
+    "umpire_role": {
+      "source": "umpire",
+      "source_sha256": "e8621eae2b409aad05f3703fbf5f54b8ba22c8159f3078e8a7b2cd26bc3becb7",
+      "start_frame": 62435,
+      "end_frame": 108076,
+      "note": "Role and full name together."
+    },
+    "umpire_name": {
+      "source": "umpire",
+      "source_sha256": "e8621eae2b409aad05f3703fbf5f54b8ba22c8159f3078e8a7b2cd26bc3becb7",
+      "start_frame": 82232,
+      "end_frame": 108076,
+      "note": "Full name or complete operator team without role."
+    },
+    "normal_prefix": {
+      "source": "umpire",
+      "source_sha256": "e8621eae2b409aad05f3703fbf5f54b8ba22c8159f3078e8a7b2cd26bc3becb7",
+      "start_frame": 30796,
+      "end_frame": 62435,
+      "note": "Complete Zweiter Aufruf fuer prefix, before Schiedsrichter."
+    },
+    "judge_long": {
+      "source": "judge",
+      "source_sha256": "3124b3a23b4292a0785611ab43ffd76804cb43a1fd3266f033e01a3d21f05273",
+      "start_frame": 29057,
+      "end_frame": 112946,
+      "note": "Complete normal second call, including prefix, role and full name."
+    },
+    "judge_role": {
+      "source": "judge",
+      "source_sha256": "3124b3a23b4292a0785611ab43ffd76804cb43a1fd3266f033e01a3d21f05273",
+      "start_frame": 59682,
+      "end_frame": 112946,
+      "note": "Role and full name together."
+    },
+    "judge_name": {
+      "source": "judge",
+      "source_sha256": "3124b3a23b4292a0785611ab43ffd76804cb43a1fd3266f033e01a3d21f05273",
+      "start_frame": 89081,
+      "end_frame": 112946,
+      "note": "Full name or complete operator team without role."
+    },
+    "tablet_long": {
+      "source": "tablet",
+      "source_sha256": "e2154ff87bc4682e67e8559f13069da7e249400528bb204c680e0c41d01e5074",
+      "start_frame": 31430,
+      "end_frame": 136173,
+      "note": "Complete normal second call, including prefix, role and full name."
+    },
+    "tablet_role": {
+      "source": "tablet",
+      "source_sha256": "e2154ff87bc4682e67e8559f13069da7e249400528bb204c680e0c41d01e5074",
+      "start_frame": 61509,
+      "end_frame": 136173,
+      "note": "Role and full name together."
+    },
+    "tablet_name": {
+      "source": "tablet",
+      "source_sha256": "e2154ff87bc4682e67e8559f13069da7e249400528bb204c680e0c41d01e5074",
+      "start_frame": 89596,
+      "end_frame": 136173,
+      "note": "Full name or complete operator team without role."
+    },
+    "board_long": {
+      "source": "board",
+      "source_sha256": "cd188fd3be5b51862d8a7dc546321300cb9e4fab7889b331eca606f644bafffe",
+      "start_frame": 33455,
+      "end_frame": 124590,
+      "note": "Complete normal second call, including prefix, role and full name."
+    },
+    "board_role": {
+      "source": "board",
+      "source_sha256": "cd188fd3be5b51862d8a7dc546321300cb9e4fab7889b331eca606f644bafffe",
+      "start_frame": 61601,
+      "end_frame": 124590,
+      "note": "Role and full name together."
+    },
+    "prep_prefix": {
+      "source": "prep_team",
+      "source_sha256": "892a1cb3ffae3dc4f5320d3b0e3c5dbf93d4152683fbb9b093222dfeb07c5740",
+      "start_frame": 0,
+      "end_frame": 53962,
+      "note": "Complete preparation second-call prefix before Nina."
+    },
+    "hall": {
+      "source": "prep_team",
+      "source_sha256": "892a1cb3ffae3dc4f5320d3b0e3c5dbf93d4152683fbb9b093222dfeb07c5740",
+      "start_frame": 86064,
+      "end_frame": 103508,
+      "note": "Complete hall addition, after team and before repeated team."
+    },
+    "meeting_single": {
+      "source": "prep_team",
+      "source_sha256": "892a1cb3ffae3dc4f5320d3b0e3c5dbf93d4152683fbb9b093222dfeb07c5740",
+      "start_frame": 138604,
+      "end_frame": 178491,
+      "note": "Complete singular meeting instruction."
+    },
+    "operator_request": {
+      "source": "prep_operator",
+      "source_sha256": "46a373d82ecb44176f305f7bb0723a0758e4b8eef0511158d6357a9b9dcd3719",
+      "start_frame": 174801,
+      "end_frame": 239496,
+      "note": "Complete operator request, after repeated complete operator team."
+    },
+    "operator_request_no_meeting": {
+      "source": "prep_operator_no_meeting",
+      "source_sha256": "93b18b433fdf0921d1ce3e590407781c5c22409bb5c09ba5a165fa4ecc4ab9be",
+      "start_frame": 179375,
+      "end_frame": 216535,
+      "note": "Complete operator request without meeting instruction."
+    },
+    "prep_fallback": {
+      "source": "prep_umpire_no_meeting",
+      "source_sha256": "c3905919b59f66a60ef8d6288446ae7991c3696781bf470beb7fb90b308afa5b",
+      "start_frame": 139616,
+      "end_frame": 164165,
+      "note": "Closing In Vorbereitung, after repeated official name."
+    },
+    "prep_close": {
+      "source": "preparation_no_meeting",
+      "source_sha256": "f8e7872660f8eeae5006b9e88592dd689635282af42dc6ef30601a472aba7d98",
+      "start_frame": 260404,
+      "end_frame": 309585,
+      "note": "Closing B09 after complete encounter."
+    },
+    "walkover": {
+      "source": "walkover",
+      "source_sha256": "a347484b2b144c2e41d6fe1a8d7511f80890793c34725a678e6230e671fbf146",
+      "start_frame": 168535,
+      "end_frame": 197659,
+      "note": "Geht kampflos an; constrained word alignment separates an [8.07,8.25] from Nina [8.25,8.55]."
+    }
+  }
+}

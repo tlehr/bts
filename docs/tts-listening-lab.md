@@ -83,3 +83,49 @@ Die Grenzen gelten ausschließlich für die vollständige WAV mit Hash `9c62e0f0
 Der erste Bericht `data/listening-lab/c7035da814f2/report.json` enthält unveränderte Referenzen 1 und 5 sowie Variante 6 mit 11,653 Sekunden. Die separaten Spielfeldclips dauern etwa 1,626 und 1,535 Sekunden. Ein Test-Engine-Typ verbot Modellladen und Inferenz ausdrücklich; der Durchlauf benötigte null neue Clips und keinen Modellprozess. Wortzeitmarken und Kontrolltranskripte liegen daneben. Die Beurteilung der Übergänge erfolgt im Hörvergleich.
 
 97 reguläre Sprachserver-Tests und 18 gezielte BTS-Tests bestanden; die zwei opt-in CPU-Inferenztests blieben deaktiviert. Ein echter Chrome spielte Variante 6 und beide Einzelclips vollständig ab. Alle sechs Fassungen ließen sich ohne neue Inferenz anzeigen. Ein anderes Tempo ließ Variante 6 mit Hinweis aus; die Rückkehr zu 1,155 stellte denselben WAV-Hash wieder her. Die Mobilansicht wurde bei 390 Pixeln Breite geprüft. Tests mit synthetischen und echten Audios prüften die unveränderten Sprachsamples und exakt 6000 stille Frames je Übergang bei 24 kHz (250 ms).
+
+## Alle Durchsagen für ein Beispielspiel
+
+Der neue feste Hörsatz folgt dem [geplanten Aufbau im Arbeitsdokument](durchsagen-arbeitsdokument.md): vollständige Kontextaufnahmen erzeugen, daraus wiederkehrende Stücke ausschneiden und anschließend die Durchsagen montieren. Er verwendet Spiel 189 auf Feld 8 in Halle 2, Mädcheneinzel U19, Achtelfinale, Nina Keo Boun Khoune gegen LeandraGalowicz. Der Spielblock entspricht dem bisherigen Hörbeispiel mit „Spiel 189.“. Beispiel-Offizielle sind Alexandra Becker und Martin Hoffmann; die Bedienung bilden Lena Fischer und Tom Schneider.
+
+Die Stimme ist der Hallensprecher mit den bisherigen Parametern 0,8 / 50 / 0,8, Seed 42 und Tempo 1,155. Alle Zahlen werden vor der Synthese durch die BTS-Funktion ausgeschrieben. Die Anzeige behält die Ziffern. Die bevorzugte vollständige Referenz und der vorhandene Spielblock werden wiederverwendet.
+
+| Durchsage | Hörproben | Abgedeckte Fälle |
+| --- | --- | --- |
+| D01 | 2 | Feldaufruf mit allen Offiziellen und ohne Offizielle |
+| D02 | 4 | Vorbereitung mit/ohne Feld, jeweils mit/ohne Treffpunkt |
+| D03 | 2 | Startanweisung mit/ohne Feld |
+| D04 | 2 | Zweiter Feldaufruf für Team 1 beziehungsweise Team 2 |
+| D05 | 4 | Zweiter Vorbereitungsaufruf für beide Seiten, jeweils mit/ohne Treffpunkt |
+| D06 / D07 | 4 | Zweiter Aufruf für Schiedsrichter und Aufschlagrichter, jeweils mit/ohne Feld |
+| D08 | 4 | Zweiter Aufruf für Tablet-/Klapptafelbedienung, jeweils mit/ohne Feld |
+| D09 / D10 | 4 | Zweiter Vorbereitungsaufruf für Schiedsrichter und Aufschlagrichter, jeweils mit/ohne Treffpunkt |
+| D11 | 4 | Zweiter Vorbereitungsaufruf für Tablet-/Klapptafelbedienung, jeweils mit/ohne Treffpunkt |
+| D12 | 2 | Kampflose Entscheidung für jede der beiden Seiten |
+| **Gesamt** | **32** | **Alle 14 spielbezogenen Auslöser mit ergänzenden Varianten** |
+
+Die Varianten betreffen dasselbe Beispiel-Einzelspiel und seine beiden Bedienpersonen. Weitere Paarungen, Stimmeneinstellungen und sämtliche Kombinationen optionaler Spielangaben werden nicht durchgeneriert. Anwesenheitskontrolle, freie Ansage, Sprachtest und Evakuierung gehören nicht zu diesem spielbezogenen Hörsatz.
+
+Der Plan enthält **14 vollständige Quellen und 31 Wiedergabestücke**. Beide Teamstücke stammen ohne „gegen“ aus demselben Spielblock. Die vollständige Begegnung mit „gegen“ und der Spielkopf für D12 werden ebenfalls aus diesem Block gewonnen. Rolle und Name sowie beide Bedienpersonen mit „und“ bleiben zusammen. Kurze Präfixe, Hallenzusätze und Anweisungen stammen aus vollständigen Kontextaufrufen. Zwischen den fertigen Stücken liegen 250 ms Satzpause, 60 ms Verbindungspause und bei der Bedienaufforderung 120 ms nach dem wiederholten Team. Innere Pausen werden nicht nachträglich gekürzt.
+
+Der bekannte D11-Wortlautfehler `Turnierleitungmelden!` und das auch bei Klapptafeln verwendete „Tabletbedienung“ bleiben gekennzeichnet erhalten. Der Hörsatz ändert die produktiven Vorlagen nicht. Ob die übernommenen Satzmelodien insbesondere bei Zweitaufrufen und D12 natürlich zusammenpassen, entscheidet die Hörbewertung.
+
+### Erzeugen und erneut montieren
+
+Im BTS-Verzeichnis mit der vorhandenen Sprachserver-Umgebung:
+
+```bash
+../bts-sprachserver/.venv/bin/python scripts/tts-match-listening.py --generate-sources
+```
+
+Der ausgegebene Pfad zu `sources.json` wird anschließend an `--assemble` übergeben. Das Zusammenbauen benötigt kein geladenes Modell:
+
+```bash
+../bts-sprachserver/.venv/bin/python scripts/tts-match-listening.py --assemble ../bts-sprachserver/data/listening-lab/match-suite/sources-8ca497a225c6/sources.json
+```
+
+Der Quellenordner hängt von Engine und Parametern ab. Die angegebenen Schnittgrenzen in `scripts/tts-match-listening-cuts.json` sind über SHA-256 an die konkreten WAVs gebunden. Abweichende Quellen werden abgelehnt. Die Grenzen wurden mit den vorhandenen lokalen Vosk-Wortzeitmarken und Signalenergie ermittelt; Erkennungsergebnisse sind keine Bestätigung der Namensaussprache. Es entsteht keine neue Laufzeitabhängigkeit der Anwendung.
+
+Die Testdaten liegen unter `bts-sprachserver/data/listening-lab/match-suite/`. Der vorhandene Hörtest-Cache wird nur gelesen; neue Rohaufnahmen und bearbeitete Quellen erhalten eigene Dateien. Jeder Montageversuch bekommt einen neuen Ordner mit einer eigenständigen Hörseite, 32 WAVs, einzeln abspielbaren Stücken, vollständigen Kontextquellen, Herkunftsbericht und ZIP-Download. Die Hörseite kann direkt als `index.html` geöffnet oder lokal mit `python3 -m http.server 8079 --bind 127.0.0.1 --directory PFAD_ZUM_HOERSATZ` bereitgestellt werden. Suche, Gruppenauswahl und fortlaufendes Abspielen erleichtern den Vergleich.
+
+Der erste fertige Hörsatz liegt unter `data/listening-lab/match-suite/1bfff7ef4b79/` im Sprachserver-Repository. Zwei Quellen kamen unverändert aus dem bestehenden Hörtest, zwölf wurden neu generiert. Die 32 Durchsagen umfassen zusammen etwa 4 Minuten 40 Sekunden. Alle Ausschnitte wurden samplegenau gegen ihre Quellen geprüft, alle Montagepausen und Dateihashes kontrolliert und das ZIP auf Lesbarkeit geprüft. Die vollständige Referenz bleibt bytegleich; D01 ohne Offizielle entspricht bytegleich der bisherigen Variante 6. Unpassende Quellhashes, Schnittgrenzen und Abtastraten werden abgelehnt. Ein echter Chrome spielte alle 32 WAVs vollständig ab; Gruppenauswahl und Mobilansicht mit 390 Pixeln Breite wurden geprüft. Das bestätigt die technische Wiedergabe, nicht die akustische Qualität der neuen Übergänge.
