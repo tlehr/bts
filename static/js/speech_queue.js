@@ -135,10 +135,11 @@ function createSpeechQueue({ root, service, onSnapshot = () => {} }) {
                 usage === 'game' ? 'Wird mit den vorbereiteten Feldbausteinen zusammengesetzt.' : '';
             const voice = item.voice === 'hallensprecher' ? 'Hallensprecher' : 'Hallensprecherin';
             const stage = item.kind === 'source' ? 'Kontextaufnahme' : item.kind === 'field_start' ? 'Feldanfang · Ausschnitt' :
-                item.kind === 'field_end' ? 'Feldende · Ausschnitt' : item.kind === 'game' ? 'Spielblock · Audiobearbeitung' : '';
+                item.kind === 'field_end' ? 'Feldende · Ausschnitt' : item.kind === 'game' ? 'Spielblock · Audiobearbeitung' :
+                item.excerpt_position === 'start' ? 'Anfang · Ausschnitt' : item.excerpt_position === 'end' ? 'Ende · Ausschnitt' : '';
             row.meta.textContent = voice + ' · ' + priorities[item.priority] + ' · ' +
                 (stage ? stage + ' · ' : '') + status(item);
-            row.button.setAttribute('aria-label', 'Probehören: ' + voice + ' – ' + item.text);
+            row.button.setAttribute('aria-label', 'Probehören: ' + voice + (stage ? ' (' + stage + ')' : '') + ' – ' + item.text);
             row.button.title = item.status === 'completed' ? 'Lokale Aufnahme probehören (' + voice + ')' :
                 'Probehören ist nach der Generierung verfügbar.';
             // Keep existing nodes and focus when only status or signed URLs change.

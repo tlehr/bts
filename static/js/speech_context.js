@@ -53,9 +53,10 @@ function createContextSpeechPlan(texts, tournament, name, setup = {}, args = [],
     const location = (tournament.locations || []).find(hall => hall._id === setup.location_id);
     const hall = plural => texts.resolveSingularPluralAnnouncement(location?.preparation_addition || '', plural);
     const meeting = plural => texts.createMeetingPointAnnouncement(setup, plural);
-    const preparation = texts.createPreparationAnnouncement(setup, true);
-    const hallSource = `${preparation} Für Spielfeld 8! ${reference} ${meeting(true)}`;
-    const hallEndSource = `${preparation} Für Spielfeld 8! ${reference} ${preparation}`;
+    const preparation = texts.createPreparationAnnouncement(setup, true).trim();
+    const preparationSource = (court, ending) => [preparation, court, reference, ending.trim()].filter(Boolean).join(' ');
+    const hallSource = preparationSource('Für Spielfeld 8!', meeting(true));
+    const hallEndSource = preparationSource('Für Spielfeld 8!', preparation);
     const secondHall = plural => {
         const example = plural ? `${example1} und ${example2}` : example1;
         const source = `${prep}${example}${hall(plural) ? ' ' + hall(plural) : ''}! ${example} ${meeting(plural)}`;
@@ -80,10 +81,14 @@ function createContextSpeechPlan(texts, tournament, name, setup = {}, args = [],
     }
     if (name === 'announceNewMatch') return result([fieldPiece(false), gamePieces(), ...officials(), fieldPiece(true)]);
     if (name === 'announcePreparationMatch') {
-        const opening = field ? `${preparation} ${texts.createFieldPreparationAnnouncement(setup)}` : preparation;
-        const source = `${opening}${field ? '' : ' Für Spielfeld 8!'} ${reference} ${meeting(true)}`;
+        const court = texts.createFieldPreparationAnnouncement(setup);
+        const opening = [preparation, court].filter(Boolean).join(' ');
+        // Keep the reference's ending consistent with D02. Without a meeting
+        // point its opening and closing cuts can share this same recording.
+        const source = preparationSource(court || 'Für Spielfeld 8!',
+            tournament.preparation_meetingpoint_enabled ? meeting(true) : preparation);
         return result([piece(source, opening), gamePieces(), ...officials(), tournament.preparation_meetingpoint_enabled ?
-            piece(hallSource, meeting(true), 'generic', true) : piece(hallEndSource, preparation, 'generic', true)]);
+            piece(hallSource, meeting(true).trim(), 'generic', true) : piece(hallEndSource, preparation, 'generic', true)]);
     }
     if (name === 'announceBeginnToPlay') return result([fieldPiece(false), piece(`${fieldReference} ${instruction}`, instruction)]);
     if (name === 'announceSecondCallTeamOne' || name === 'announceSecondCallTeamTwo') {

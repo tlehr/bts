@@ -5,7 +5,7 @@ const crypto = require('crypto');
 const create = require('../static/js/announcement_text');
 const translate = require('../static/js/ci18n')._translate;
 const { prepare, CALLS } = require('../bts/speech/text');
-const { decode } = require('../bts/speech/context');
+const { decode, sourcePart } = require('../bts/speech/context');
 const { SpeechBroker, configuration } = require('../bts/speech/broker');
 const { tournament, setup } = require('./test_speech_text');
 const createService = require('../static/js/speech_service');
@@ -55,6 +55,50 @@ describe('Context speech in tournament calls', function() {
             assert.strictEqual(recipes.filter(item => item.text === 'Das Spiel geht kampflos an').length, 1);
             assert(!recipes.some(item => ['gegen', 'und', 'Spiel Nummer 17', 'Jungeneinzel U17'].includes(item.text)));
         }
+    });
+
+    it('shares one preparation reference across empty hall additions while retaining distinct opening and closing cuts', async function() {
+        const current = { ...tournament(), speech: { context_version: 'bts-context-v1' },
+            preparation_meetingpoint_enabled: false, locations: [
+                { _id: 'default_h1', preparation_addition: '', meetingpoint_announcement: '' },
+                { _id: 'default_h2', preparation_addition: '  ', meetingpoint_announcement: 'Hier treffen!' },
+            ] };
+        const matches = [null, 'default_h1', 'default_h2'].map((location_id, index) => ({
+            setup: setup({ court_id: null, location_id, match_num: index + 1 }),
+        }));
+        const prepared = prepare(current, matches);
+        const pieces = prepared.filter(part => decode(part, 1200)?.text.trim() === 'In Vorbereitung');
+        assert.strictEqual(pieces.length, 2, 'one opening and one closing, without whitespace or unused meeting-point variants');
+        const recipes = pieces.map(part => decode(part, 1200));
+        assert(recipes.every(recipe => recipe.text === 'In Vorbereitung'));
+        assert.strictEqual(new Set(recipes.map(sourcePart)).size, 1, 'both cuts reuse the same complete reference recording');
+        assert(recipes.some(recipe => !recipe.before));
+        assert(recipes.some(recipe => !recipe.after));
+        for (const match of matches) {
+            const call = capture(current, match.setup, 'announcePreparationMatch');
+            assert.strictEqual(call.localParts[0], pieces.find(part => !decode(part, 1200).before));
+            assert.strictEqual(call.localParts.at(-1), pieces.find(part => !decode(part, 1200).after));
+        }
+
+        let clock = 1000;
+        const sent = [];
+        const broker = new SpeechBroker(configuration({ enabled: true, api_key: 'test-key-' + 'x'.repeat(32) }, {}), {
+            now: () => clock,
+            request: async (_url, _key, method, _route, body) => {
+                assert.strictEqual(method, 'POST');
+                sent.push(body);
+                const job_id = crypto.randomBytes(16).toString('hex');
+                return { ...body, job_id, status: 'completed', audio: { audio_id: job_id, processed: !!body.context } };
+            },
+        });
+        broker.context_version = 'bts-context-v1';
+        broker.prepare(pieces, { voice: 'hallensprecher' }, 'default');
+        for (let step = 0; step < 10 && broker.pending_order().length; step++) { await broker.step(); clock += 1000; }
+        assert([...broker.entries.values()].every(entry => entry.status === 'completed'));
+        assert.strictEqual(sent.filter(body => !body.context).length, 1, 'only one TTS generation');
+        assert.strictEqual(sent.filter(body => body.context).length, 2, 'two inexpensive cuts');
+        const queue = broker.queue('default').items.filter(item => item.kind !== 'source');
+        assert.deepStrictEqual(queue.map(item => item.excerpt_position).sort(), ['end', 'start']);
     });
 
     it('shares the game source across fields and officials and keeps distinct field opening and closing pieces', function() {

@@ -240,6 +240,8 @@ class SpeechBroker {
                 audio_url: entry.status === 'completed' ? this.audio_url(tournament_key, entry.audio_id, entry) : null,
                 kind: entry.context?.kind || 'text',
                 ...(entry.context?.kind === 'source' ? { source_usage: source_usage.get(entry.key) || { type: 'shared' } } : {}),
+                ...(entry.context?.kind === 'generic' ? { excerpt_position: !entry.context.before.trim() ? 'start' :
+                    !entry.context.after.trim() ? 'end' : 'middle' } : {}),
                 processed: entry.processed || false, leading_quiet_ms: entry.leading_quiet_ms || 0,
                 trailing_quiet_ms: entry.trailing_quiet_ms || 0,
             })),
