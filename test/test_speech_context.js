@@ -20,6 +20,36 @@ function capture(current, match, call, winner = 0) {
 }
 
 describe('Context speech in tournament calls', function() {
+    it('uses the correct girls discipline in browser calls and the actual local synthesis request for singles and doubles', async function() {
+        let clock = 1000;
+        const sent = [];
+        const broker = new SpeechBroker(configuration({ enabled: true, api_key: 'test-key-' + 'x'.repeat(32) }, {}), {
+            now: () => clock,
+            request: async (_url, _key, method, _route, body) => {
+                assert.strictEqual(method, 'POST');
+                sent.push(body);
+                const job_id = crypto.randomBytes(16).toString('hex');
+                return { ...body, job_id, status: 'completed', audio: { audio_id: job_id, processed: !!body.context } };
+            },
+        });
+        broker.context_version = 'bts-context-v1';
+        const current = { ...tournament(), speech: { context_version: broker.context_version } };
+        for (const [code, discipline] of [['ME', 'Mädcheneinzel'], ['MD', 'Mädchendoppel']]) {
+            const match = setup({ event_name: code + ' U19' });
+            if (code === 'MD') match.teams.forEach(team => team.players.push({ name: 'Weitere Spielerin' }));
+            const call = capture(current, match, 'announceNewMatch');
+            assert(call.parts.includes(discipline + ' U19'), 'the browser receives the corrected discipline');
+            broker.prepare(call.localParts.filter(part => decode(part, 1200)?.kind === 'game'), {}, 'default');
+        }
+        for (let step = 0; step < 10 && broker.pending_order().length; step++) { await broker.step(); clock += 1000; }
+        assert([...broker.entries.values()].every(entry => entry.status === 'completed'));
+        const sources = sent.filter(body => !body.context);
+        assert.strictEqual(sources.length, 2);
+        assert(sources.some(body => body.text.includes('Mädcheneinzel U neunzehn.')));
+        assert(sources.some(body => body.text.includes('Mädchendoppel U neunzehn.')));
+        assert(sent.every(body => !/Maedchen|Mädchenneinzel/.test(body.text)));
+    });
+
     it('preserves every spoken word and the browser layout across all calls and optional settings', function() {
         const characters = parts => parts.filter(Boolean).join(' ').replace(/[^\p{L}\p{N}]/gu, '');
         for (const flags of [0, 1, 2, 7]) for (const point of [false, true]) for (const doubles of [false, true]) {

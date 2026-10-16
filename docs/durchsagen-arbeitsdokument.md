@@ -69,8 +69,8 @@ Die aktuellen deutschen Disziplintexte sind:
 | --- | --- |
 | JE | `Jungeneinzel` |
 | JD | `Jungendoppel` |
-| ME | `Maedchenneinzel` |
-| MD | `Maedchendoppel` |
+| ME | `Mädcheneinzel` |
+| MD | `Mädchendoppel` |
 | GD / MX | `Gemischtes Doppel` |
 | HE | `Herreneinzel` |
 | HD | `Herrendoppel` |
@@ -79,7 +79,7 @@ Die aktuellen deutschen Disziplintexte sind:
 | E | `Einzel` |
 | D | `Doppel` |
 
-Die Schreibweisen `Maedchenneinzel` und `Maedchendoppel` stehen tatsächlich in der deutschen Sprachvorlage. Der Alters-/Klassenzusatz kommt aus dem Veranstaltungsnamen hinzu. Vorhandene Ausspracheersetzungen für Namen werden ebenfalls berücksichtigt.
+Die deutschen Sprachvorlagen verwenden `Mädcheneinzel` und `Mädchendoppel`, jeweils mit Umlaut und ohne zusätzliches „n“. Der Alters-/Klassenzusatz kommt aus dem Veranstaltungsnamen hinzu. Vorhandene Ausspracheersetzungen für Namen werden ebenfalls berücksichtigt.
 
 Bei den Runden werden `R16`, `VF`, `HF` und `Finale` in die entsprechenden Rundennamen übersetzt. Eine Bezeichnung mit Bindestrich ergibt `Zwischenrunde`. Platzierungsangaben mit `/` werden abhängig vom Abstand als „Runde um Platz … bis …“ oder „Spiel um Platz … und …“ aufgebaut. Im aktuellen Code fehlen dabei teilweise Leerzeichen: Beispielsweise ergeben `1/4` und `3/4` die Texte `Runde um Platz1bis4` und `Spiel um Platz3 und 4`. Andere nicht erkannte Rundennamen ergeben einen leeren Rundentext.
 
@@ -557,7 +557,6 @@ Diese Punkte sind dokumentiert, damit sie bei der gemeinsamen Bearbeitung nicht 
 
 - D11: Der Meldezusatz kann Wörter ohne Abstand aneinanderhängen und Einzahl-/Mehrzahlformulierungen ungünstig kombinieren.
 - D11: Die zweite Ansprache nennt auch bei manuellen Klapptafeln weiterhin „Tabletbedienung“.
-- B04: Die Sprachvorlage enthält `Maedchenneinzel` und `Maedchendoppel`.
 - B05: Beim Zusammensetzen von Platzierungsrunden fehlen teilweise Leerzeichen.
 - Mehrere Präfixe und Rollen werden aktuell direkt hinter einem Doppelpunkt ohne Leerzeichen angefügt. Diese Stellen sind in den Vorlagen oben sichtbar.
 
