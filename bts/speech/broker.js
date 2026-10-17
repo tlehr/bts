@@ -5,6 +5,7 @@ const fs = require('fs');
 const path = require('path');
 const { request } = require('./http');
 const SpeechDiskCache = require('./disk_cache');
+const { SpeechCoverage } = require('./coverage');
 const { spellNumbers, VERSION: TEXT_VERSION } = require('./numbers');
 const context = require('./context');
 const PRIORITY = { high: 0, normal: 1, low: 2 };
@@ -76,6 +77,7 @@ class SpeechBroker {
         this.context_version = null;
         this.disk = null;
         this.cache_error = null;
+        this.coverage = new SpeechCoverage(this);
         if (config.enabled && config.cache_enabled && config.cache_dir) {
             try {
                 this.disk = new SpeechDiskCache(config);
@@ -119,6 +121,7 @@ class SpeechBroker {
         Object.assign(entry, { status: 'completed', job_id: saved.job_id, audio_id: saved.audio_id, processed: saved.processed,
             leading_quiet_ms: saved.leading_quiet_ms, trailing_quiet_ms: saved.trailing_quiet_ms,
             checked: this.now(), local: true, revalidate: false });
+        entry.generated_for = new Set(saved.generated_for || []);
         return true;
     }
 
@@ -252,6 +255,7 @@ class SpeechBroker {
                 };
                 this.entries.set(key, entry);
                 this.restore(entry);
+                if (!entry.generated_for) entry.generated_for = new Set(this.disk?.origin(this.identity, key) || []);
             }
             this.check_local(entry);
             if (entry.status !== 'completed' && !entry.busy && entry !== this.current?.entry) this.restore(entry);
@@ -391,7 +395,7 @@ class SpeechBroker {
         return ordered;
     }
 
-    queue(tournament_key) {
+    queue(tournament_key, voice = this.coverage.plans.get(tournament_key)?.voice || this.config.voice) {
         for (const entry of this.entries.values()) this.check_local(entry);
         // Describe a source by its actual consumers. A full field reference
         // contains a fixed example game, but only supplies the reusable edges.
@@ -413,6 +417,7 @@ class SpeechBroker {
         const ordered = [...(current ? [current] : []), ...pending, ...rest];
         const positions = new Map(pending.map((entry, index) => [entry, index + 1]));
         return {
+            coverage: this.coverage.summary(tournament_key, voice),
             busy_elsewhere: !!current && !current.tournaments.has(tournament_key),
             items: ordered.filter(entry => entry.tournaments.has(tournament_key)).map(entry => ({
                 key: entry.key, text: entry.text, voice: entry.voice, language: entry.language, tournament_key,
@@ -485,6 +490,7 @@ class SpeechBroker {
                         delete entry.fallback_stage;
                     }
                     delete entry.terminal_failure;
+                    delete entry.generated_for;
                     entry.status = 'unsubmitted';
                     entry.job_id = null;
                     entry.retry_at = 0;
@@ -578,19 +584,29 @@ class SpeechBroker {
                     '/v1/jobs/' + current.job_id, undefined, this.config.timeout_ms);
             }
             this.validate_response(entry, response);
+            if (post && current.identity === this.identity && response.cache_hit === false) {
+                entry.generated_for ||= new Set();
+                for (const key of entry.tournaments) entry.generated_for.add(key);
+            }
             if (!post && response.job_id !== current.job_id) throw new Error('speech_invalid_response');
             current.job_id = response.job_id;
+            if (post && current.identity === this.identity && response.cache_hit === false && response.status !== 'completed' && this.disk) {
+                try { await this.disk.mark_generated(current.identity, entry.key, [...(entry.generated_for || [])]); }
+                catch (_) { this.cache_error = 'speech_cache_unavailable'; }
+            }
             if (current.identity === this.identity && response.status === 'completed' && this.disk) {
                 // Completion means both the WAV and its index have reached disk.
                 // Keep the current job occupied until publication finishes.
                 try {
-                    await this.disk.store(this.identity, entry.key, { ...response, fallback_stage: entry.fallback_stage });
+                    await this.disk.store(this.identity, entry.key, { ...response, fallback_stage: entry.fallback_stage,
+                        generated_for: [...(entry.generated_for || [])] });
                     this.cache_error = null;
                 } catch (error) { this.cache_error = 'speech_cache_unavailable'; throw error; }
                 entry.local = true;
             }
             if (current.identity === this.identity) this.update(entry, response);
             else entry.next_poll = now + this.config.poll_interval_ms;
+            if (current.identity === this.identity && response.status === 'completed') await this.coverage.remember();
             current.job_id = response.job_id;
             if (post) this.last_post_voice.set(entry.priority, entry.voice);
             if (['completed', 'failed'].includes(response.status)) this.current = null;

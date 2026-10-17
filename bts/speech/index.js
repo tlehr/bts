@@ -55,7 +55,7 @@ function handle(app, ws, msg) {
     const configuration = public_config(broker, selected);
     try {
         if (msg.type === 'speech_queue') {
-            reply({ speech: configuration, queue: broker.queue(key) });
+            reply({ speech: configuration, queue: broker.queue(key, selected.voice) });
         } else if (msg.type !== 'speech_status') {
             broker.validate(msg.parts, { voice: msg.voice, language: msg.language });
             if (msg.voice && msg.voice !== selected.voice) {

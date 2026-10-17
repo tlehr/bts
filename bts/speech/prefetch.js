@@ -1,6 +1,7 @@
 'use strict';
 
 const { prepare } = require('./text');
+const { plan } = require('./coverage');
 const reads = require('../preparation_selection/model_reads');
 const resolveSettings = require('../../static/js/speech_settings');
 const EVENTS = new Set([
@@ -9,6 +10,7 @@ const EVENTS = new Set([
     'location_changed', 'locations_changed', 'court_changed', 'courts_changed',
     'normalization_add', 'normalization_remove', 'normalizations_changed', 'props',
     'umpire_updated', 'umpires_changed', 'tabletoperator_updated', 'tabletoperator_add',
+    'update_btp_events',
 ]);
 
 function read_normalizations(db) {
@@ -92,13 +94,14 @@ class Prefetcher {
         const revision = this.subscriptions.get(key);
         try {
             await require('../foreground_work').idle();
-            const [tournament, locations, courts, matches, normalizations, tabletoperators] = await Promise.all([
+            const [tournament, locations, courts, matches, normalizations, tabletoperators, umpires] = await Promise.all([
                 reads.read(this.app, key, 'tournaments', true),
                 reads.read(this.app, key, 'locations', true),
                 reads.read(this.app, key, 'courts', true),
                 reads.read(this.app, key, 'matches', true),
                 read_normalizations(this.app.db),
                 reads.read(this.app, key, 'tabletoperators', true),
+                reads.read(this.app, key, 'umpires', true),
             ]);
             if (!tournament) return;
             // An edit may commit while the background snapshot is being read.
@@ -114,6 +117,9 @@ class Prefetcher {
             if (this.broker.context_version) selected.sort((a, b) => Number(a.setup.match_num || 0) - Number(b.setup.match_num || 0));
             const context = { ...tournament, locations, courts, normalizations, tabletoperators,
                 speech: { context_version: this.broker.context_version } };
+            const coverage = await plan(context, matches, umpires);
+            if (this.subscriptions.get(key) !== speech_settings) return;
+            await this.broker.coverage.set_plan(key, speech_settings.voice, coverage);
             const parts = prepare(context, selected);
             const preferred = new Set(this.preferred.get(key));
             const imminent = selected.filter((match, index) => ['preparation', 'oncourt'].includes(match.setup.state) ||

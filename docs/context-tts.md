@@ -64,7 +64,21 @@ Jede Zeile zeigt ihre Auftragsart ausdrücklich an:
 
 Quellen erhalten in der geöffneten Listenansicht eine Kennung wie „Aufnahme A17“. Ihre aufklappbare Liste „Liefert … Bausteine“ zeigt die vorgemerkten Ergebnisse. Jeder Verarbeitungsauftrag verweist auf seine Quelle; ein Klick auf „Aus Aufnahme A17“ springt zur zugehörigen Zeile. Bei Ausschnitten lässt sich der vollständige Originaltext aufklappen, darin ist die übernommene Stelle markiert. Die beiden „In Vorbereitung“-Zeilen zeigen deshalb dieselbe Aufnahme, aber unterschiedliche markierte Positionen.
 
-Wartet ein Ausschnitt auf seine noch unfertige Quelle, wird diese Abhängigkeit ausdrücklich angezeigt. Laufende Aufträge heißen je nach Art „Sprachaufnahme wird erzeugt“, „Wird ausgeschnitten“ oder „Wird aufbereitet“. Getrennte Zähler unterscheiden Sprachaufnahmen und Verarbeitung. Der Fortschritt „Aktuell benötigt“ zählt ausschließlich die aktuelle Auftragsliste dieses Turniers; diese kann im Turnierverlauf kleiner werden. Eine separate Anzeige „Dauerhaft im BTS-Cache“ zählt alle geprüften gespeicherten Zuordnungen einschließlich nicht mehr benötigter Aufnahmen, anderer Turniere, Stimmen und Synthesefassungen. Dieser Bestand bleibt beim Entfernen von Aufträgen und nach Neustarts erhalten; während der Dateiprüfung wird noch keine Teilzahl angezeigt. Die A-Kennung einer Aufnahme und die wechselnde Warteschlangenposition links haben verschiedene Aufgaben.
+Wartet ein Ausschnitt auf seine noch unfertige Quelle, wird diese Abhängigkeit ausdrücklich angezeigt. Laufende Aufträge heißen je nach Art „Sprachaufnahme wird erzeugt“, „Wird ausgeschnitten“ oder „Wird aufbereitet“. Die Zusammenfassung der Warteschlange zählt weiterhin tatsächliche Aufträge einschließlich Rohaufnahmen und Verarbeitung. Die A-Kennung einer Aufnahme und die wechselnde Warteschlangenposition links haben verschiedene Aufgaben.
+
+Darunter stehen ein Gesamtbalken und Balken für D01–D14. Sie zeigen wiederverwendbare Wiedergabebausteine für die ausgewählte Stimme und Synthesefassung dieses Turniers. Dieselben Bausteine dürfen mehreren Aufrufarten dienen; der Gesamtbalken zählt ihre Vereinigung, keine Summe der Einzelbalken. Ein Spiel mit noch unbekannten Teilnehmern erhält vorläufig einen gemeinsamen grauen Platzhalter. Auch gemeldete Personen aller Disziplinen, bekannte Paarungen und Offizielle werden als mögliche spätere Aufrufe erfasst. Identische Bausteine derselben Person werden dabei über Disziplinen hinweg zusammengefasst; unterschiedliche Einzahl- und Paarungsfassungen bleiben eigene Texte. Die Aufrufarten lassen sich gemeinsam ein- und ausklappen. D15 verwendet eine vorhandene MP3 und benötigt keine Sprachgenerierung.
+
+| Farbe | Bedeutung |
+| --- | --- |
+| Blau | Aufnahme vorhanden, derzeit kein Bedarf in der BTS-Warteschlange |
+| Dunkelgrün | Benötigter Baustein aus vorhandenem Cache |
+| Hellgrün | Benötigter Baustein, für dieses Turnier neu erzeugt oder aufbereitet |
+| Orange | Beauftragt, noch nicht fertig; auch offene fehlgeschlagene Aufträge mit zusätzlichem rotem Fehlerzähler |
+| Grau | Bekannter möglicher Baustein oder unbekanntes Spiel, noch ohne Aufnahme und ohne Auftrag |
+
+Der graue Bestand erzeugt keine Sprachaufträge. Die Vorbereitung verwendet unverändert die vorhandene Auswahl und Reihenfolge. Ihre Bereitschaftsquote zählt nur Grün und Orange. Fällt der Bedarf an einer fertigen Aufnahme weg, wandert sie nach Blau. Der Sprachserver meldet mit `cache_hit`, ob eine fertige Aufnahme wiederverwendet wurde; bestehende BTS-Aufnahmen gelten ebenfalls als Cache. Zuordnung zu Aufrufarten und Ursprung neuer Aufnahmen werden im BTS-Index mitgespeichert und überleben einen Neustart. Bereits angenommene neue Generierungen erhalten dafür vor ihrem Abschluss eine gespeicherte Herkunftsmarkierung. Ältere Cacheeinträge erhalten ihre Zuordnung beim nächsten Vergleich mit den bekannten Turniertexten.
+
+Eine separate Anzeige „Dauerhaft im BTS-Cache“ zählt alle geprüften gespeicherten Zuordnungen einschließlich anderer Turniere, Stimmen und Synthesefassungen. Dieser Bestand bleibt beim Entfernen von Aufträgen und nach Neustarts erhalten; während der Dateiprüfung wird noch keine Teilzahl angezeigt.
 
 ## Tempo, Pausen und Wiedergabe
 
@@ -93,7 +107,7 @@ Bereits geprüfte Bereitschafts-Icons werden bei einem Neuaufbau der Spielzeile 
 
 ## Validierung
 
-103 Sprachserver-Tests bestanden, die beiden bisherigen teuren Modelltests blieben opt-in. 137 BTS-Sprachtests einschließlich FastAPI und echtem Chrome bestanden; ESLint meldet für die geänderten JavaScript-Dateien keine Fehler. Neue Tests vergleichen sämtliche gesprochenen Wörter und Browsertexte über optionale Turniereinstellungen hinweg, prüfen die vollständige Vorabplanung, Quellabhängigkeiten, Cache-Wiederverwendung und die gemeinsame Audio-Uhr.
+103 Sprachserver-Tests bestanden, die beiden bisherigen teuren Modelltests blieben opt-in. 179 BTS-Sprachtests und 17 zusätzliche Integrationstests mit FastAPI und echtem Chrome bestanden; ESLint meldet für die geänderten JavaScript-Dateien keine Fehler. Die Tests vergleichen sämtliche gesprochenen Wörter und Browsertexte über optionale Turniereinstellungen hinweg und prüfen Vorabplanung, Quellabhängigkeiten, Cache-Wiederverwendung und die gemeinsame Audio-Uhr. Die fünf Balkenzustände sind einschließlich Mehrfachverwendung, grauem Potenzial ohne Generierungsauftrag, unverändertem Balken-DOM und Neustarts vor und nach dem Abschluss einer neuen Generierung geprüft.
 
 Ein zusätzlicher Regressionstest bereitet drei Spiele ohne Feldzuweisung und alle 13 Feldreferenzen vor. Anschließend ruft er acht B01-basierte Ansagearten für jedes Spiel auf jedem Feld ab. Alle Stücke sind bereits fertig; weder eine weitere Quelle noch ein Ausschnitt oder ein zusätzlicher Sprachserver-Auftrag wird angelegt.
 

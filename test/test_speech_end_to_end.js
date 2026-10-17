@@ -503,15 +503,16 @@ suite('BTS / actual FastAPI / native Chrome speech integration', function() {
         const refresh = () => devtools.evaluate('[...document.querySelectorAll(\'.local_speech_controls button\')]' +
             '.find(button => button.textContent === \'Cache-Status aktualisieren\').click()');
         const snapshot = () => devtools.evaluate('(() => { const progress = document.querySelector(\'.speech_queue_progress\'); ' +
-            'return {ready:progress.value, total:progress.max, hidden:progress.parentElement.hidden, ' +
-            'label:progress.getAttribute(\'aria-valuetext\'), status:document.querySelector(\'.local_speech_status\').textContent}; })()');
+            'return {ready:Number(progress.dataset.ready), total:Number(progress.dataset.needed), hidden:progress.parentElement.hidden, ' +
+            'label:document.querySelector(\'.speech_queue_progress_label\').textContent, status:document.querySelector(\'.local_speech_status\').textContent}; })()');
         try {
-            const before = broker.queue('default').items.length;
+            const initial = broker.queue('default'), before = initial.items.length;
+            const neededBefore = initial.coverage.total.cached + initial.coverage.total.generated + initial.coverage.total.ordered;
             const text = 'Fortschritt wird automatisch aktualisiert.';
             broker.prepare([text], { voice: 'hallensprecher' }, 'default');
             await refresh();
-            await until(async () => (await snapshot()).total === before + 1);
-            assert.strictEqual((await snapshot()).ready, before);
+            await until(async () => (await snapshot()).total === neededBefore + 1);
+            assert.strictEqual((await snapshot()).ready, neededBefore);
             await devtools.evaluate('window.__speechQueueNode = document.querySelector(\'.speech_queue\')');
             const finish = async () => {
                 await broker.step();
@@ -522,9 +523,9 @@ suite('BTS / actual FastAPI / native Chrome speech integration', function() {
                 });
             };
             await finish();
-            await until(async () => (await snapshot()).ready === before + 1, 2500);
+            await until(async () => (await snapshot()).ready === neededBefore + 1, 2500);
             const completed = await snapshot();
-            assert.strictEqual(completed.total, before + 1);
+            assert.strictEqual(completed.total, neededBefore + 1);
             assert(completed.label.startsWith('Aktuell benötigt: '));
             assert(completed.label.endsWith('100 %'));
             assert(completed.status.includes((before + 1) + ' aktuell benötigte Aufträge bereit, 0 werden vorbereitet.'));
@@ -534,13 +535,13 @@ suite('BTS / actual FastAPI / native Chrome speech integration', function() {
 
             broker.prepare(['BTS_TEST_GENERATION_FAILURE'], { voice: 'hallensprecher' }, 'default');
             await refresh();
-            await until(async () => (await snapshot()).total === before + 2);
+            await until(async () => (await snapshot()).total === neededBefore + 2);
             broker.last_post = -Infinity;
             await finish();
             await until(async () => (await snapshot()).status.includes('1 fehlgeschlagen.'), 2500);
             const failed = await snapshot();
-            assert.strictEqual(failed.ready, before + 1);
-            assert.strictEqual(failed.total, before + 2);
+            assert.strictEqual(failed.ready, neededBefore + 1);
+            assert.strictEqual(failed.total, neededBefore + 2);
             assert(!failed.label.endsWith('100 %'), 'failed parts must not count as ready');
             assert.strictEqual(await devtools.evaluate('window.__audioSources.length'), sources,
                 'completion events and progress updates must never play audio');
@@ -621,9 +622,10 @@ suite('BTS / actual FastAPI / native Chrome speech integration', function() {
             assert(rendered.some(row => row.priority === 'high' && row.disabled));
             assert(expected.queue.items.every(item => item.voice === 'hallensprecher'));
             const progress = await devtools.evaluate('(() => { const progress = document.querySelector(\'.speech_queue_progress\'); ' +
-                'return {ready:progress.value, total:progress.max}; })()');
-            assert.strictEqual(progress.total, expected.queue.items.length);
-            assert.strictEqual(progress.ready, expected.queue.items.filter(item => item.status === 'completed').length);
+                'return {ready:Number(progress.dataset.ready), total:Number(progress.dataset.needed)}; })()');
+            const coverage = expected.queue.coverage.total;
+            assert.strictEqual(progress.total, coverage.cached + coverage.generated + coverage.ordered);
+            assert.strictEqual(progress.ready, coverage.cached + coverage.generated);
             assert(!rendered.some(row => row.text === 'Nicht aus diesem Turnier'));
             await until(() => reads >= 2, 6000);
             const received = fs.readFileSync(path.join(directory, 'received.jsonl'), 'utf8');
@@ -666,6 +668,36 @@ suite('BTS / actual FastAPI / native Chrome speech integration', function() {
             admin.handle_speech_queue = original;
         }
     });
+    it('renders five proportional coverage segments and updates them without generating or rebuilding the bars', async function() {
+        const response = await rpc(client, { type: 'speech_queue', tournament_key: 'default' });
+        const counts = { stock: 1, cached: 1, generated: 1, ordered: 1, potential: 1, total: 5, failed: 0 };
+        response.queue.coverage = { total: counts, groups: [{ id: 'D08', label: 'Tabletbedienung', ...counts }] };
+        const original = admin.handle_speech_queue;
+        const received = fs.readFileSync(path.join(directory, 'received.jsonl'), 'utf8');
+        admin.handle_speech_queue = (_app, ws, msg) => ws.respond(msg, null, { speech: response.speech, queue: response.queue });
+        try {
+            await openSpeechSettings();
+            await until(() => devtools.evaluate('document.querySelector(\'.speech_queue_progress\')?.dataset.signature?.includes(\'"stock":1\')'));
+            const parts = () => devtools.evaluate('[...document.querySelectorAll(\'.speech_queue_progress .speech_coverage_segment\')]' +
+                '.map(part => ({state:part.dataset.coverageState, width:part.style.width, hidden:part.hidden, color:getComputedStyle(part).backgroundColor}))');
+            const first = await parts();
+            assert.deepStrictEqual(first.map(part => part.state), ['stock', 'cached', 'generated', 'ordered', 'potential']);
+            assert(first.every(part => part.width === '20%' && !part.hidden));
+            assert.strictEqual(new Set(first.map(part => part.color)).size, 5);
+            await devtools.evaluate('window.__coverageBar = document.querySelector(\'.speech_queue_progress\')');
+            counts.generated = 0; counts.stock = 2;
+            await devtools.evaluate('[...document.querySelectorAll(\'.local_speech_controls button\')]' +
+                '.find(button => button.textContent === \'Cache-Status aktualisieren\').click()');
+            await until(async () => (await parts())[0].width === '40%');
+            assert((await parts()).find(part => part.state === 'generated').hidden);
+            assert(await devtools.evaluate('window.__coverageBar === document.querySelector(\'.speech_queue_progress\')'));
+            assert.strictEqual(fs.readFileSync(path.join(directory, 'received.jsonl'), 'utf8'), received);
+        } finally {
+            admin.handle_speech_queue = original;
+            await closeSpeechSettings();
+        }
+    });
+
     it('keeps rebuilt ready icons green and mutates only the icon whose cache result changes', async function() {
         const broker = app.speech.broker;
         const wasRunning = !broker.stopped;

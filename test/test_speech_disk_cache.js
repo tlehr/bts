@@ -38,9 +38,10 @@ async function fixture(directory, shared = false, context = false) {
         req.on('end', () => {
             const request = JSON.parse(Buffer.concat(chunks));
             const job_id = crypto.randomBytes(16).toString('hex');
-            const result = { ...request, job_id, status: 'completed', audio: { audio_id: job_id, size_bytes: body.length,
+            const result = { ...request, job_id, status: 'completed', cache_hit: state.cacheHit === true, audio: { audio_id: job_id, size_bytes: body.length,
                 sha256: crypto.createHash('sha256').update(body).digest('hex'), processed: !!request.context,
                 leading_quiet_ms: request.context ? 10 : 0, trailing_quiet_ms: request.context ? 10 : 0 } };
+            if (state.pending) { result.status = 'queued'; result.audio = null; }
             if (state.failCuts && request.context?.before &&
                 (state.failCuts !== 'original' || jobs.get(request.context.audio_id).source_seed !== 43)) {
                 result.status = 'failed'; result.error = { code: 'alignment_failed' }; delete result.audio;
@@ -74,6 +75,57 @@ describe('Durable BTS speech cache', function() {
         if (upstream?.server.listening) await close(upstream.server);
         fs.rmSync(directory, { recursive: true, force: true });
         localServer = upstream = null;
+    });
+
+    it('retains announcement groups and generation origin across retirement and restart, including shared use by another tournament', async function() {
+        upstream = await fixture(directory, true);
+        const first = new SpeechBroker(upstream.config); await first.refresh();
+        const targets = new Map([['Tabletbedienung: Ein Name', { part: 'Tabletbedienung: Ein Name', groups: new Set(['D08', 'D11']) }]]);
+        await first.coverage.set_plan('default', upstream.config.voice, targets);
+        first.prepare([...targets.keys()], { prefetch: true }, 'default'); await first.step();
+        assert.strictEqual(first.queue('default').coverage.total.generated, 1);
+        first.reconcile_prefetch('default', [], { voice: upstream.config.voice });
+        assert.strictEqual(first.queue('default').coverage.total.stock, 1);
+        const count = upstream.requests.length;
+        const fresh = new SpeechBroker(upstream.config); await fresh.disk.ready;
+        await fresh.coverage.set_plan('default', upstream.config.voice, new Map());
+        let coverage = fresh.queue('default').coverage;
+        assert.strictEqual(coverage.total.stock, 1);
+        assert.strictEqual(coverage.groups.find(group => group.id === 'D08').stock, 1);
+        fresh.prepare([...targets.keys()], { prefetch: true }, 'default');
+        assert.strictEqual(fresh.queue('default').coverage.total.generated, 1);
+        await fresh.coverage.set_plan('other', upstream.config.voice, targets);
+        fresh.prepare([...targets.keys()], { prefetch: true }, 'other');
+        coverage = fresh.queue('other').coverage;
+        assert.strictEqual(coverage.total.cached, 1);
+        assert.strictEqual(coverage.total.generated, 0);
+        assert.strictEqual(upstream.requests.length, count);
+    });
+
+    it('counts a cache hit from the speech server as reused cache rather than newly generated audio', async function() {
+        upstream = await fixture(directory, true); upstream.state.cacheHit = true;
+        const first = new SpeechBroker(upstream.config); await first.refresh();
+        const targets = new Map([['Vorhandene Aufnahme', { part: 'Vorhandene Aufnahme', groups: new Set(['D14']) }]]);
+        await first.coverage.set_plan('default', upstream.config.voice, targets);
+        first.prepare([...targets.keys()], { prefetch: true }, 'default'); await first.step();
+        const coverage = first.queue('default').coverage;
+        assert.strictEqual(coverage.total.cached, 1);
+        assert.strictEqual(coverage.total.generated, 0);
+    });
+
+    it('remembers who initiated generation when BTS restarts before the audio is completed', async function() {
+        upstream = await fixture(directory, true); upstream.state.pending = true;
+        const first = new SpeechBroker(upstream.config); await first.refresh();
+        const part = 'Nach dem Neustart fertig', targets = new Map([[part, { part, groups: new Set(['D13']) }]]);
+        await first.coverage.set_plan('default', upstream.config.voice, targets);
+        first.prepare([part], { prefetch: true }, 'default'); await first.step();
+        assert.strictEqual(first.queue('default').coverage.total.ordered, 1);
+        upstream.state.pending = false; upstream.state.cacheHit = true;
+        const fresh = new SpeechBroker(upstream.config); await fresh.disk.ready;
+        await fresh.coverage.set_plan('default', upstream.config.voice, targets);
+        fresh.prepare([part], { prefetch: true }, 'default'); await fresh.step();
+        assert.strictEqual(fresh.queue('default').coverage.total.generated, 1);
+        assert.strictEqual(fresh.disk.generation.size, 0, 'completed provenance replaces the temporary generation marker');
     });
 
     it('keeps completed WAVs on disk when they leave the current prefetch plan and restores them without another request', async function() {

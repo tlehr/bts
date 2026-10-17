@@ -6,6 +6,12 @@ function createSpeechQueue({ root, service, onSnapshot = () => {} }) {
     const window = document.defaultView;
     const rows = new Map();
     const recordings = new Map();
+    const coverage_rows = new Map();
+    const bar_segments = new WeakMap();
+    const coverage_states = [
+        ['stock', 'Vorrat im Cache'], ['cached', 'Benötigt · aus Cache'], ['generated', 'Benötigt · neu erzeugt'],
+        ['ordered', 'Beauftragt'], ['potential', 'Noch ohne Auftrag'],
+    ];
     let next_recording = 1;
     const priorities = { high: 'Hoch · aktueller Aufruf', normal: 'Normal · bevorstehendes Spiel', low: 'Niedrig · Vorrat' };
     const operation = item => item.operation || (['source', 'text'].includes(item.kind || 'text') ? 'synthesis' :
@@ -42,15 +48,95 @@ function createSpeechQueue({ root, service, onSnapshot = () => {} }) {
     const processing_counts = element(breakdown, 'p', 'speech_queue_processing_counts');
     const progress_container = element(root, 'div', 'speech_queue_progress_container');
     progress_container.hidden = true;
-    const progress = element(progress_container, 'progress', 'speech_queue_progress');
-    progress.setAttribute('aria-label', 'Fortschritt der aktuell benötigten Sprachaufträge');
+    const progress_title = element(progress_container, 'strong', 'speech_coverage_title');
+    const progress = element(progress_container, 'div', 'speech_queue_progress speech_coverage_bar');
+    const progress_counts = element(progress_container, 'div', 'speech_coverage_counts');
+    const progress_failure = element(progress_container, 'div', 'speech_coverage_failure');
     const progress_label = element(progress_container, 'div', 'speech_queue_progress_label');
+    const coverage_legend = element(progress_container, 'div', 'speech_coverage_legend');
+    for (const [state, label] of coverage_states) {
+        const item = element(coverage_legend, 'span');
+        const swatch = element(item, 'span', 'speech_coverage_swatch');
+        swatch.dataset.coverageState = state;
+        swatch.setAttribute('aria-hidden', 'true');
+        element(item, 'span', '', label);
+    }
     const cache_status = element(root, 'p', 'speech_queue_cache_status speech_queue_help');
     cache_status.hidden = true;
+    const coverage_details = element(root, 'details', 'speech_coverage_details');
+    coverage_details.open = true;
+    coverage_details.hidden = true;
+    element(coverage_details, 'summary', '', 'Vorbereitung nach Aufrufart');
+    element(coverage_details, 'p', 'speech_queue_help',
+        'Grau umfasst auch Spiele mit unbekannten Teilnehmern und mögliche Bediener aus allen Disziplinen. ' +
+        'Daraus werden keine zusätzlichen Aufträge erzeugt. Die Balken zählen wiederverwendbare Bausteine und noch unbekannte Spiele. ' +
+        'Gemeinsame Bausteine erscheinen bei mehreren Aufrufarten und im Gesamtbalken nur einmal.');
+    const coverage_list = element(coverage_details, 'div', 'speech_coverage_list');
     const list = element(root, 'ol', 'speech_queue_list');
     list.setAttribute('aria-label', 'Sprachaufnahmen und Verarbeitung in Abarbeitungsreihenfolge');
     const feedback = element(root, 'p', 'speech_queue_feedback');
     feedback.setAttribute('aria-live', 'polite');
+
+    function paintBar(bar, counts, label, caption, failure) {
+        const signature = JSON.stringify(counts);
+        if (bar.dataset.signature === signature) return;
+        bar.dataset.signature = signature;
+        let segments = bar_segments.get(bar);
+        if (!segments) {
+            segments = new Map();
+            for (const [state] of coverage_states) {
+                const segment = element(bar, 'span', 'speech_coverage_segment');
+                segment.dataset.coverageState = state;
+                segment.setAttribute('aria-hidden', 'true');
+                segments.set(state, segment);
+            }
+            bar_segments.set(bar, segments);
+        }
+        const detail = coverage_states.map(([state, text]) => text + ': ' + counts[state]).join(' · ');
+        bar.setAttribute('role', 'img');
+        bar.setAttribute('aria-label', label + ' · ' + detail);
+        bar.dataset.ready = counts.cached + counts.generated;
+        bar.dataset.needed = counts.cached + counts.generated + counts.ordered;
+        for (const [state, text] of coverage_states) {
+            const segment = segments.get(state);
+            segment.hidden = !counts[state];
+            segment.style.width = (counts[state] * 100 / (counts.total || 1)) + '%';
+            segment.title = text + ': ' + counts[state];
+        }
+        caption.textContent = counts.total ? detail : 'Noch keine Bausteine oder Personen bekannt.';
+        failure.hidden = !counts.failed;
+        failure.textContent = counts.failed ? counts.failed + ' beauftragte Bausteine fehlgeschlagen' : '';
+    }
+
+    function paintCoverage(coverage, fallback) {
+        const total = coverage?.total || fallback;
+        progress_title.textContent = coverage ? 'Gesamt · eindeutige Bausteine und Potenzial' : 'Aktuelle Aufträge';
+        paintBar(progress, total, progress_title.textContent, progress_counts, progress_failure);
+        const ready = total.cached + total.generated, needed = ready + total.ordered;
+        progress_label.textContent = coverage?.verifying ? 'Gespeicherter Bestand wird geprüft …' :
+            'Aktuell benötigt: ' + ready + ' von ' + needed + ' Bausteinen bereit' + (needed ? ' · ' + Math.floor(ready * 100 / needed) + ' %' : '');
+        progress_container.hidden = !total.total;
+        coverage_details.hidden = !coverage;
+        if (!coverage) return;
+        const used = new Set();
+        for (const group of coverage.groups) {
+            used.add(group.id);
+            let row = coverage_rows.get(group.id);
+            if (!row) {
+                const node = element(coverage_list, 'div', 'speech_coverage_row');
+                node.dataset.coverageGroup = group.id;
+                const title = element(node, 'strong', 'speech_coverage_title');
+                const bar = element(node, 'div', 'speech_coverage_bar');
+                const counts = element(node, 'div', 'speech_coverage_counts');
+                const failure = element(node, 'div', 'speech_coverage_failure');
+                row = { node, title, bar, counts, failure };
+                coverage_rows.set(group.id, row);
+            }
+            row.title.textContent = group.id === 'other' ? group.label : group.id + ' · ' + group.label;
+            paintBar(row.bar, group, row.title.textContent, row.counts, row.failure);
+        }
+        for (const [id, row] of coverage_rows) if (!used.has(id)) { row.node.remove(); coverage_rows.delete(id); }
+    }
 
     function buttons() {
         for (const row of rows.values()) {
@@ -134,6 +220,7 @@ function createSpeechQueue({ root, service, onSnapshot = () => {} }) {
         if (!available) {
             progress_container.hidden = true;
             breakdown.hidden = true;
+            coverage_details.hidden = true;
             cache_status.hidden = true;
             summary.textContent = response?.speech?.enabled === false ? 'Lokale Sprache ist nicht eingerichtet.' :
                 'Warteschlange derzeit nicht verfügbar. Cache-Status aktualisieren oder kurz warten.';
@@ -168,13 +255,8 @@ function createSpeechQueue({ root, service, onSnapshot = () => {} }) {
         const countLabel = values => values.length + ' gesamt · ' + values.filter(item => item.status === 'completed').length + ' fertig';
         synthesis_counts.textContent = 'Sprachaufnahmen: ' + countLabel(items.filter(item => operation(item) === 'synthesis'));
         processing_counts.textContent = 'Ausschneiden / Aufbereiten: ' + countLabel(items.filter(item => operation(item) !== 'synthesis'));
-        progress_container.hidden = !items.length;
-        progress.max = items.length || 1;
-        progress.value = ready;
-        const label = 'Aktuell benötigt: ' + ready + ' von ' + items.length + ' bereit · ' +
-            (items.length ? Math.floor(ready * 100 / items.length) : 0) + ' %';
-        progress.setAttribute('aria-valuetext', label);
-        progress_label.textContent = label;
+        paintCoverage(response.queue.coverage, { total: items.length, stock: 0, cached: ready, generated: 0,
+            ordered: items.length - ready, potential: 0, failed });
         const persistent = response.speech.persistent_cache;
         cache_status.hidden = !persistent?.enabled;
         cache_status.textContent = persistent?.error ? 'Dauerhaft gespeicherter Bestand derzeit nicht verfügbar.' :
