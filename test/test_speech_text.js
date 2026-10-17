@@ -7,7 +7,7 @@ const vm = require('vm');
 const create = require('../static/js/announcement_text');
 const { _translate: translate } = require('../static/js/ci18n');
 const { prepare, CALLS } = require('../bts/speech/text');
-const { upcoming } = require('../bts/speech/prefetch');
+const { requiredPlan } = require('../bts/speech/planning');
 const SPACED_FIELD_CALLS = new Set([
     'announceBeginnToPlay', 'announceSecondCallTabletoperator', 'announceSecondCallUmpire', 'announceSecondCallServiceJudge',
 ]);
@@ -316,17 +316,16 @@ describe('Shared announcement text and preparation', function() {
         }
     });
 
-    it('prioritizes real preparation candidates and excludes finished/incomplete records', function() {
+    it('requires only called games, ordered by their actual call timestamps', function() {
         const matches = [
             { _id: 'early', setup: setup({ match_num: 1 }) },
             { _id: 'candidate', setup: setup({ match_num: 50 }) },
-            { _id: 'prepared', setup: setup({ state: 'preparation', match_num: 40 }) },
-            { _id: 'another-hall', setup: setup({ state: 'oncourt', match_num: 80 }) },
+            { _id: 'prepared', setup: setup({ state: 'preparation', match_num: 40, preparation_call_timestamp: 200 }) },
+            { _id: 'another-hall', setup: setup({ state: 'oncourt', match_num: 80, called_timestamp: 100 }) },
             { _id: 'finished', setup: setup({ state: 'finished' }) },
             { _id: 'incomplete', setup: setup({ state: 'incomplete' }) },
         ];
-        assert.deepStrictEqual(upcoming(matches, 1, ['candidate']).map(match => match._id),
-            ['candidate', 'prepared', 'early', 'another-hall']);
+        assert.deepStrictEqual([...requiredPlan(tournament(), matches).games.keys()], ['another-hall', 'prepared']);
     });
 });
 

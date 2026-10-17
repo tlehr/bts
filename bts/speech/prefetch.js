@@ -1,8 +1,8 @@
 'use strict';
 
-const { prepare } = require('./text');
 const { plan } = require('./coverage');
 const idlePlan = require('./idle_plan');
+const { isRequired, matchParts, requiredPlan, requiredParts } = require('./planning');
 const reads = require('../preparation_selection/model_reads');
 const resolveSettings = require('../../static/js/speech_settings');
 const EVENTS = new Set([
@@ -13,27 +13,11 @@ const EVENTS = new Set([
     'umpire_updated', 'umpires_changed', 'tabletoperator_updated', 'tabletoperator_add',
     'update_btp_events',
 ]);
+const CALL_EVENTS = new Set(['match_preparation_call', 'match_called_on_court']);
 
 function read_normalizations(db) {
     return new Promise((resolve, reject) => db.normalizations.find({}, (error, values) =>
         error ? reject(error) : resolve(values)));
-}
-
-function upcoming(matches, limit, preferred_ids = []) {
-    const preferred = new Set(preferred_ids);
-    return matches.filter(match => ['preparation', 'scheduled', 'oncourt', 'ready'].includes(match.setup?.state))
-        .sort((a, b) => {
-            const rank = match => preferred.has(match._id) ? 0 : match.setup.state === 'preparation' ? 1 :
-                match.setup.state === 'oncourt' ? 3 : 2;
-            return rank(a) - rank(b) ||
-                Number(a.setup.match_num || 0) - Number(b.setup.match_num || 0) ||
-                String(a._id).localeCompare(String(b._id));
-        }).filter(match => {
-            // Active/prepared games and real call candidates must not be lost
-            // because a different hall filled the scheduled-game horizon.
-            if (preferred.has(match._id) || ['preparation', 'oncourt'].includes(match.setup.state)) return true;
-            return limit-- > 0;
-        });
 }
 
 class Prefetcher {
@@ -46,6 +30,8 @@ class Prefetcher {
         this.running = new Set();
         this.dirty = new Set();
         this.preferred = new Map();
+        this.contexts = new Map();
+        this.urgent = new Set();
         this.interval = null;
     }
 
@@ -58,6 +44,7 @@ class Prefetcher {
         const previous = this.subscriptions.get(tournament.key);
         if (previous?.voice === selected.voice && previous?.mode === selected.mode) return;
         this.subscriptions.set(tournament.key, selected);
+        this.contexts.delete(tournament.key);
         clearTimeout(this.lease_timers.get(tournament.key));
         this.lease_timers.delete(tournament.key);
         this.broker.select_voice(tournament.key, selected.mode === 'browser' ? null : selected.voice);
@@ -70,21 +57,47 @@ class Prefetcher {
         this.schedule(key);
     }
 
-    schedule(key, candidates) {
+    schedule(key, candidates, urgent = false) {
         if (!this.broker.config.enabled || !this.subscriptions.has(key)) return;
         this.broker.pending_plans.add(key);
         if (candidates) this.preferred.set(key, candidates.slice(0, this.broker.config.max_entries));
-        if (this.running.has(key)) { this.dirty.add(key); return; }
-        if (this.timers.has(key)) return;
+        if (this.running.has(key)) {
+            this.dirty.add(key);
+            if (urgent) this.urgent.add(key);
+            return;
+        }
+        if (this.timers.has(key)) {
+            if (!urgent) return;
+            clearTimeout(this.timers.get(key));
+        }
         const timer = setTimeout(() => {
             this.timers.delete(key);
             void this.refresh(key).catch(() => { this.broker.last_error = 'prefetch_unavailable'; });
-        }, 500);
+        }, urgent ? 0 : 500);
         timer.unref();
         this.timers.set(key, timer);
     }
 
     changed(key, type, value) {
+        if (CALL_EVENTS.has(type)) {
+            if (!this.subscriptions.has(key)) this.subscribe(key);
+            // The call notification follows persistence. Admit the complete
+            // game immediately, even while another server job is still busy.
+            const cached = this.contexts.get(key), match = value?.match || value;
+            if (cached && cached.settings === this.settings(key) &&
+                cached.context.speech.context_version === this.broker.context_version && isRequired(match)) {
+                try {
+                    const parts = matchParts(cached.context, match);
+                    cached.required.games.set(match._id, { match: { _id: match._id, setup: match.setup }, parts });
+                    this.broker.set_prefetch_order(key, requiredParts(cached.required), cached.settings);
+                    for (let i = 0; i < parts.length; i += 64) this.broker.prepare(parts.slice(i, i + 64),
+                        { ...cached.settings, language: 'de-DE', priority: 'normal', prefetch: true }, key);
+                    this.broker.on_change([key]);
+                } catch (_) { this.broker.last_error = 'prefetch_unavailable'; }
+            }
+            this.schedule(key, undefined, true);
+            return;
+        }
         const finished = type === 'score' && (value?.now_on_court === false || typeof value?.team1_won === 'boolean');
         if (finished || EVENTS.has(type) || type.includes('normalization') || type.includes('tabletoperator') ||
             type.includes('umpire') || type.includes('servicejudge')) this.schedule(key);
@@ -114,22 +127,19 @@ class Prefetcher {
             if (speech_settings.mode === 'browser') return;
             // Only verified German voices are enabled. "auto" is warmed in German;
             // browsers using another UI language retain their existing browser TTS.
-            if (tournament.language && !['auto', 'de'].includes(tournament.language)) return;
-            const selected = upcoming(matches, this.broker.context_version ? this.broker.config.max_entries :
-                this.broker.config.prefetch_matches, this.preferred.get(key));
-            if (this.broker.context_version) selected.sort((a, b) => Number(a.setup.match_num || 0) - Number(b.setup.match_num || 0));
+            if (tournament.language && !['auto', 'de'].includes(tournament.language)) {
+                this.contexts.delete(key);
+                this.broker.reconcile_prefetch(key, [], speech_settings);
+                return;
+            }
+            if (this.dirty.has(key)) return;
             const context = { ...tournament, locations, courts, normalizations, tabletoperators,
                 speech: { context_version: this.broker.context_version } };
-            const coverage = await plan(context, matches, umpires);
-            if (this.subscriptions.get(key) !== speech_settings) return;
-            await this.broker.coverage.set_plan(key, speech_settings.voice, coverage);
-            const parts = prepare(context, selected);
-            const preferred = new Set(this.preferred.get(key));
-            const imminent = selected.filter((match, index) => ['preparation', 'oncourt'].includes(match.setup.state) ||
-                preferred.has(match._id) || this.broker.context_version && index < this.broker.config.prefetch_matches);
-            // On-court teams are imminent candidates for the next tablet duty.
-            // The rest of the waiting pool is warmed at the stock priority.
-            const imminent_parts = imminent.length ? prepare({ ...context, tabletoperators: [] }, imminent) : [];
+            const required = requiredPlan(context, matches), parts = requiredParts(required);
+            // Retain only the context and active game recipes needed by an
+            // immediate call; the registration inventory is rebuilt separately.
+            this.contexts.set(key, { context: { ...context, events: undefined }, settings: speech_settings, required });
+            this.broker.set_prefetch_order(key, parts, speech_settings);
             const warm = async (texts, priority) => {
                 for (let i = 0; i < texts.length; i += 64) {
                     if (this.subscriptions.get(key) !== speech_settings) return;
@@ -139,11 +149,16 @@ class Prefetcher {
                     await new Promise(resolve => setImmediate(resolve));
                 }
             };
-            await warm(imminent_parts, 'normal');
-            await warm(parts, 'low');
-            const idle_parts = await idlePlan(context, matches, umpires, this.preferred.get(key));
-            if (this.subscriptions.get(key) === speech_settings) {
+            await warm(parts, 'normal');
+            if (this.dirty.has(key) || this.subscriptions.get(key) !== speech_settings) return;
+            const coverage = await plan(context, matches, umpires);
+            const needed = new Set(parts);
+            const idle_parts = (await idlePlan(context, matches, umpires, this.preferred.get(key)))
+                .filter(part => !needed.has(part));
+            if (!this.dirty.has(key) && this.subscriptions.get(key) === speech_settings) {
                 const retry = this.broker.reconcile_prefetch(key, parts, { voice: speech_settings.voice, language: 'de-DE', idle_parts });
+                await this.broker.coverage.set_plan(key, speech_settings.voice, coverage);
+                this.broker.on_change([key]);
                 clearTimeout(this.lease_timers.get(key));
                 this.lease_timers.delete(key);
                 if (retry !== null) {
@@ -154,7 +169,7 @@ class Prefetcher {
             }
         } finally {
             this.running.delete(key);
-            if (this.dirty.delete(key)) this.schedule(key);
+            if (this.dirty.delete(key)) this.schedule(key, undefined, this.urgent.delete(key));
             else this.broker.pending_plans.delete(key);
         }
     }
@@ -180,8 +195,10 @@ class Prefetcher {
         for (const timer of this.lease_timers.values()) clearTimeout(timer);
         this.lease_timers.clear();
         this.dirty.clear();
+        this.contexts.clear();
+        this.urgent.clear();
         for (const key of this.subscriptions.keys()) this.broker.pending_plans.delete(key);
     }
 }
 
-module.exports = { Prefetcher, upcoming };
+module.exports = { Prefetcher };

@@ -129,7 +129,8 @@ suite('BTS / actual FastAPI / native Chrome speech integration', function() {
             locations: current.locations.map(value => ({ ...value, tournament_key: 'default', name: 'Halle eins', required_preparation_count: 1 })),
             courts: current.courts.map(value => ({ ...value, tournament_key: 'default', num: Number(value._id.split('_')[1]) })),
             matches: [{ _id: 'match1', tournament_key: 'default',
-                setup: { ...setup(), is_match: true, counting: '3x21', incomplete: false }, presses: [] }],
+                setup: { ...setup({ state: 'preparation', preparation_call_timestamp: Date.now() }),
+                    is_match: true, counting: '3x21', incomplete: false }, presses: [] }],
         })) await promisify(db[collection].insert.bind(db[collection]))(values);
         app = create_app({
             port: 0, host: '127.0.0.1', bup_location: 'static/bup/dev', report_errors: false,

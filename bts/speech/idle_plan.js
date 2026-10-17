@@ -1,9 +1,7 @@
 'use strict';
 
-const { renderer, prepare_tabletoperators, tabletoperator_groups } = require('./text');
-const { cmp_scheduled_match_order } = require('../match_automation');
-
-const OPEN = new Set(['oncourt', 'preparation', 'scheduled', 'ready', 'incomplete']);
+const { renderer, prepare_tabletoperators, prepare_waiting_tabletoperators, tabletoperator_groups, prepare } = require('./text');
+const { isOpen, tier, compare } = require('./planning');
 
 // Keep this inventory separate from the work queue. The broker admits one
 // playback piece (and its source) only after all ordinary work is finished.
@@ -21,15 +19,8 @@ async function idlePlan(tournament, matches, umpires = [], preferred_ids = []) {
         const event = named.find(event => name === event.name || name.startsWith(event.name + ' '));
         return event ? eventKey(event) : name ? 'name:' + name.split(/\s+-\s+/)[0] : null;
     };
-    const rank = match => match.setup.state === 'oncourt' || match.setup.court_id && match.setup.now_on_court ? 0 :
-        match.setup.state === 'preparation' ? 1 : preferred.has(match._id) ? 2 : 3;
-    const open = matches.filter(match => match.setup && match.setup.is_match !== false &&
-        OPEN.has(match.setup.state) && typeof match.team1_won !== 'boolean' && match.score_status !== 'no_match')
-        // Immediate duties come first; within each tier retain the BTS list's
-        // schedule, including known teams from unresolved pairings.
-        .sort((a, b) => rank(a) - rank(b) || cmp_scheduled_match_order(a, b) ||
-            String(a._id).localeCompare(String(b._id)));
-    const active = new Set(open.filter(match => rank(match) < 3)
+    const open = matches.filter(isOpen).sort((a, b) => compare(a, b, preferred));
+    const active = new Set(open.filter(match => tier(match, preferred) < 3)
         .map(match => discipline(match.setup)).filter(Boolean));
     // At a quiet tournament start, warm the next discipline, not every later
     // discipline merely because it already has entries in BTP.
@@ -38,10 +29,19 @@ async function idlePlan(tournament, matches, umpires = [], preferred_ids = []) {
     let work = 0;
     const yieldWork = async () => { if (++work % 16 === 0) await new Promise(resolve => setImmediate(resolve)); };
     const addTeams = setup => prepare_tabletoperators(texts, tournament, setup, tabletoperator_groups(tournament, setup));
-    for (const match of open) if (active.has(discipline(match.setup))) {
+    let waiting_added = false;
+    for (const match of open) {
         await yieldWork();
-        addTeams(match.setup);
+        if (!waiting_added && tier(match, preferred) === 3) {
+            prepare_waiting_tabletoperators(texts, tournament);
+            waiting_added = true;
+        }
+        // Future game blocks, assigned officials and hall variants are reserve
+        // too. Shared court/common pieces already belong to the required plan.
+        parts.push(...prepare(tournament, [match], 'de', { shared: false }));
+        if (active.has(discipline(match.setup))) addTeams(match.setup);
     }
+    if (!waiting_added) prepare_waiting_tabletoperators(texts, tournament);
     // Teams with a known next game come first. Registered teams without a
     // resolved opponent still supply useful tablet/board announcements.
     const active_order = [...active];

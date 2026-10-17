@@ -54,7 +54,9 @@ describe('Speech preparation only during idle time', function() {
         assert.deepStrictEqual(names(parts), ['Vorbereitet A', 'Vorbereitet B', 'Früh A', 'Früh B',
             'Spät A', 'Spät B', 'Bekannt ohne Paarung', 'Noch ohne Gegner'].map(name => 'Tabletbedienung:' + name));
         assert.strictEqual(new Set(parts).size, parts.length);
-        assert(!parts.some(part => part.includes('Andere Disziplin') || part.includes('Schon fertig')));
+        assert(!names(parts).some(part => part.includes('Andere Disziplin')));
+        assert(parts.some(part => part.includes('Andere Disziplin')), 'future game blocks also belong to idle inventory');
+        assert(!parts.some(part => part.includes('Schon fertig')));
         const observed = [], texts = renderer(current, 'de', observed);
         texts.announceSecondCallTabletoperator({ tabletoperators: team('Früh A').players });
         texts.announceSecondPreparationCallTabletoperator({ tabletoperators: team('Früh A').players });
@@ -68,10 +70,10 @@ describe('Speech preparation only during idle time', function() {
             scheduled_date: '2026-10-17', scheduled_time_str: time, teams: [team(id), { players: [] }], ...overrides,
         }), ...extra });
         const matches = [
-            match('Feld', '08:00', { state: 'oncourt', now_on_court: true }),
-            match('Feld ohne Status', '08:15', { now_on_court: true }),
-            match('Vorbereitung', '11:00', { state: 'preparation', teams: [team('Vorbereitung'), team('Früh')] }),
-            match('Vorbereitung früher', '10:30', { state: 'preparation' }),
+            match('Feld', '08:00', { state: 'oncourt', now_on_court: true, called_timestamp: 200 }),
+            match('Feld ohne Status', '08:15', { now_on_court: true, called_timestamp: 100 }),
+            match('Vorbereitung', '11:00', { state: 'preparation', preparation_call_timestamp: 300, teams: [team('Vorbereitung'), team('Früh')] }),
+            match('Vorbereitung früher', '10:30', { state: 'preparation', preparation_call_timestamp: 400 }),
             match('Kandidat', '12:00'),
             match('Kandidat später', '12:30'),
             match('Früh', '09:00'),
@@ -82,7 +84,7 @@ describe('Speech preparation only during idle time', function() {
             match('Platzhalterzeit', '00:00', { match_num: 1 }),
         ];
         const parts = await idlePlan(current, matches, [], ['Kandidat später', 'Kandidat']);
-        assert.deepStrictEqual(names(parts), ['Feld', 'Feld ohne Status', 'Vorbereitung früher', 'Vorbereitung', 'Früh',
+        assert.deepStrictEqual(names(parts), ['Feld ohne Status', 'Feld', 'Vorbereitung', 'Früh', 'Vorbereitung früher',
             'Kandidat', 'Kandidat später', 'Unvollständig', 'Manuell früher', 'Manuell später',
             'Platzhalterzeit', 'Ohne Uhrzeit'].map(name => 'Tabletbedienung:' + name));
         assert.strictEqual(names(parts).filter(name => name === 'Tabletbedienung:Früh').length, 1,
@@ -96,7 +98,7 @@ describe('Speech preparation only during idle time', function() {
             game('candidate', { match_num: 50, teams: [doubles, team('Gegner')] })];
         let parts = await idlePlan(current, matches, [], ['candidate']);
         assert(names(parts).includes('Tabletbedienung:Erste und Zweite'));
-        assert(!parts.some(part => part.includes('Nicht aktiv')));
+        assert(!names(parts).some(part => part.includes('Nicht aktiv')));
         current.tabletoperator_split_doubles = true;
         parts = await idlePlan(current, matches, [], ['candidate']);
         assert(names(parts).includes('Tabletbedienung:Erste'));
@@ -108,7 +110,7 @@ describe('Speech preparation only during idle time', function() {
         const roles = parts.map(part => context.decode(part, 1200)?.text).filter(text => text?.startsWith('Klapptafelbedienung:'));
         assert.strictEqual(roles.filter(text => text === 'Klapptafelbedienung:Bremen').length, 1);
         current.tabletoperator_enabled = false;
-        assert.deepStrictEqual(await idlePlan(current, matches), []);
+        assert.deepStrictEqual(names(await idlePlan(current, matches)), []);
         const officials = await idlePlan(current, matches, [{ name: 'Alexandra Becker' }]);
         assert(officials.some(part => context.decode(part, 1200)?.text === 'Schiedsrichter:Alexandra Becker'));
     });
@@ -277,7 +279,7 @@ describe('Speech preparation only during idle time', function() {
         const db = await database.init_test();
         const current = { ...selected(), announcement_speech_voice: voice };
         const previous = game('previous', { state: 'oncourt', teams: [team('Auf Feld A'), team('Auf Feld B')] });
-        const next = game('next', { state: 'preparation', match_num: 18, court_id: null,
+        const next = game('next', { state: 'scheduled', match_num: 18, court_id: null,
             teams: [team('Nächste Bedienung A'), team('Nächste Bedienung B')] });
         const fixture = { tournaments: [current], matches: [previous, next],
             courts: current.courts, locations: current.locations };

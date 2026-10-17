@@ -896,7 +896,7 @@ describe('Server speech adapter and protected audio', function() {
         const fixture = {
             tournaments: [current], locations: current.locations.map(value => ({ ...value, tournament_key: 'default' })),
             courts: current.courts.map(value => ({ ...value, tournament_key: 'default' })),
-            matches: [{ _id: 'match1', tournament_key: 'default', setup: setup() }],
+            matches: [{ _id: 'match1', tournament_key: 'default', setup: setup({ state: 'preparation' }) }],
         };
         for (const [collection, values] of Object.entries(fixture)) {
             await promisify(db[collection].insert.bind(db[collection]))(values);
@@ -946,10 +946,13 @@ describe('Server speech adapter and protected audio', function() {
             await prefetch.refresh('default');
             const roles = [...broker.entries.values()].filter(entry => entry.text.startsWith('Tabletbedienung:'));
             assert(roles.some(entry => entry.text.includes('Johann') && entry.priority === 1));
-            assert(roles.some(entry => entry.text === 'Tabletbedienung:Wartende Bedienung' && entry.priority === 2));
+            assert(!roles.some(entry => entry.text === 'Tabletbedienung:Wartende Bedienung'), 'unassigned waiting operators are idle inventory');
             assert(!roles.some(entry => /Nächste [AB]/.test(entry.text)), 'future games are not speculative tablet candidates');
             assert(roles.every(entry => entry.voice === 'hallensprecher'));
             while (broker.pending_order().length) { await broker.step(); clock += 1000; }
+            while ([...broker.idle_plans.values()].some(plan => plan.cursor < plan.parts.length) || broker.pending_order().length) {
+                await broker.step(); clock += 1000;
+            }
             const count = sent.length;
             // The previous game leaves the upcoming set. Its possible loser is
             // only assigned to the next game's tablet service at the call.

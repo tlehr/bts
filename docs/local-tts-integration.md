@@ -25,7 +25,7 @@ Der Sprachtest zeigt, ob tatsächlich Server-Audio oder Browser-Fallback verwend
 
 Die Sprachsteuerung liegt im vorhandenen Bereich **Aufrufe** der BTS-Einstellungsseite. Modus und Stimme werden wie die Ansagegeschwindigkeit automatisch im Turnier gespeichert (`announcement_speech_mode`, `announcement_speech_voice`) und über die bestehende WebSocket-Verbindung an alle Clients verteilt. Sie bleiben nach Neuladen und BTS-Neustart erhalten. Frühere lokale Browser-Einstellungen werden ignoriert. Solange keine Auswahl gespeichert wurde, gelten die Vorgaben der Backend-Konfiguration. Die Audiofreigabe und das Stoppen der aktuellen Wiedergabe betreffen weiterhin das jeweilige Gerät; Browser erlauben keine zentrale Audiofreigabe. Die Hallenfreigaben, freie Ansagen, der Sprachtest und die Anzeige der tatsächlichen Ausgabe bleiben in der Turnieransicht erreichbar.
 
-Daneben zeigt **Texte und Reihenfolge** die im BTS vorgemerkten Texte für die zentral gewählte Stimme des geladenen Turniers mit Priorität und Status. Der laufende Auftrag steht oben, danach folgen die sendbaren Texte in der tatsächlichen Reihenfolge: **Hoch** (aktueller Aufruf), **Normal** (bevorstehendes Spiel), **Niedrig** (Vorrat). Zurückgestellte oder fehlgeschlagene Texte und fertige Aufnahmen folgen darunter. Die Nummern beziehen sich auf die gemeinsame Warteschlange; Texte anderer Turniere werden nicht angezeigt. Ein bereits laufender anderer Auftrag wird allgemein als beschäftigt gemeldet. Das Lesen der Liste erzeugt keine neuen Aufträge.
+Daneben zeigt **Texte und Reihenfolge** die im BTS vorgemerkten Texte für die zentral gewählte Stimme des geladenen Turniers mit Priorität und Status. Der laufende Auftrag steht oben, danach folgen die sendbaren Texte in der tatsächlichen Reihenfolge: **Hoch** (aktuell ausgelöster Aufruf), **Normal** (benötigte Ansagen laufender/vorbereiteter Spiele und gemeinsame Bausteine), **Niedrig** (ausdrücklich angeforderter Text), anschließend **Nur bei Leerlauf** (weitere mögliche Ansagen). Zurückgestellte oder fehlgeschlagene Texte und fertige Aufnahmen folgen darunter. Die Nummern beziehen sich auf die gemeinsame Warteschlange; Texte anderer Turniere werden nicht angezeigt. Ein bereits laufender anderer Auftrag wird allgemein als beschäftigt gemeldet. Das Lesen der Liste erzeugt keine neuen Aufträge.
 
 Mit **🔊** lässt sich jede fertige lokale Aufnahme der gewählten Stimme einzeln probehören. Noch unfertige Texte haben einen deaktivierten Lautsprecher. Probehören verwendet ausschließlich die geschützte WAV, ohne Browser-Fallback, Prioritätsänderung oder neue Generierung. Es verändert die Stimmwahl nicht und unterbricht keine laufende Durchsage. Ein echter Aufruf darf das Probehören unterbrechen. Bei Stimmwechsel oder Verlassen der Einstellungsseite endet das Probehören; reguläre Ansagen bleiben erhalten.
 
@@ -66,7 +66,6 @@ Im Beispiel config.json.default ist der externe Dienst zunächst deaktiviert. Da
       "api_key_file": "data/speech-api-key",
       "mode": "auto",
       "voice": "hallensprecherin",
-      "prefetch_matches": 12,
       "prefetch_interval_ms": 30000,
       "deadline_ms": 700
     }
@@ -75,7 +74,9 @@ Alternativ BTS_SPEECH_ENABLED=true, BTS_SPEECH_URL, BTS_SPEECH_API_KEY_FILE oder
 
 Weitere optionale Grenzen: max_entries (512), max_text (1200), timeout_ms (2500), submit_interval_ms (650), poll_interval_ms (2000), audio_url_ttl_seconds (900), audio_timeout_ms (30000), max_audio_clients (16). Der lokale Adapter begrenzt neue POSTs, gibt bei 429 Raum frei und blockiert keinen Spielruf auf CPU-Inferenz.
 
-BTS hält die gesamte Warteliste selbst und übermittelt **höchstens einen offenen Generierungsauftrag**. Erst nach dessen Abschluss oder endgültigem Fehler wird der nächste Text gewählt: tatsächliche Aufrufe (`high`), unmittelbar bevorstehende Ansagen (`normal`), danach übrige Vorbereitungen (`low`). Pro Turnier wird ausschließlich die zentral ausgewählte Stimme vorbereitet. Beim Stimmwechsel entfallen die lokalen Vormerkungen der abgewählten Stimme, sofern sie kein anderes Turnier benötigt. Bereits erzeugte Audiodateien bleiben im persistenten Sprachserver-Cache; ein schon übermittelter Auftrag wird noch abgeschlossen. Bei zentral ausgewähltem Browser-TTS werden keine weiteren lokalen Generierungen vorgemerkt. Veraltete Clients dürfen keine andere Stimme zur Generierung anmelden. Nutzen unterschiedliche Turniere unterschiedliche Stimmen, bleibt deren abwechselnde Bedienung bei gleicher Priorität erhalten. Ferne Vorabarbeit verdrängt keine noch ausstehende unmittelbar bevorstehende Ansage.
+BTS hält die gesamte Warteliste selbst und übermittelt **höchstens einen offenen Generierungsauftrag**. Erst nach dessen Abschluss oder endgültigem Fehler wird der nächste Text gewählt: tatsächlich ausgelöste Aufrufe (`high`), benötigte Ansagen laufender/vorbereiteter Spiele und gemeinsame Bausteine (`normal`), ausdrücklich angeforderte weitere Texte (`low`), anschließend mögliche spätere Ansagen ausschließlich im Leerlauf (`idle`, gegenüber dem Sprachserver als `low`). Pro Turnier wird ausschließlich die zentral ausgewählte Stimme vorbereitet. Beim Stimmwechsel entfallen die lokalen Vormerkungen der abgewählten Stimme, sofern sie kein anderes Turnier benötigt. Bereits erzeugte Audiodateien bleiben im persistenten Sprachserver-Cache; ein schon übermittelter Auftrag wird noch abgeschlossen. Bei zentral ausgewähltem Browser-TTS werden keine weiteren lokalen Generierungen vorgemerkt. Veraltete Clients dürfen keine andere Stimme zur Generierung anmelden. Nutzen unterschiedliche Turniere unterschiedliche Stimmen, bleibt deren abwechselnde Bedienung bei gleicher Priorität erhalten. Ferne Vorabarbeit verdrängt keine noch ausstehende benötigte Ansage.
+
+Der frühere Vorlaufparameter `prefetch_matches` wird weiterhin als Konfiguration akzeptiert, erweitert den regulären Bedarf aber nicht mehr um zukünftige Spiele. Solche Spiele werden unabhängig von einem festen Vorlauf nur im Leerlauf vorbereitet.
 
 Ein unklarer Übermittlungsfehler hält denselben Auftrag fest; BTS versucht ihn identisch erneut, statt parallel andere Texte zu senden. Der Sprachserver fasst solche Wiederholungen zusammen. Er lehnt einen anderen neuen Auftrag während eines offenen Jobs mit `429/busy` und `Retry-After: 1` ab. Bereits fertige Cache-Treffer bleiben verfügbar. Nach einer Busy-Antwort bleiben die Texte im BTS; während der Wartezeit werden keine anderen Teile an der Ablehnung vorbei geschickt.
 
@@ -243,17 +244,24 @@ Mit aktualisiertem Sprachserver und lokalem Wortmodell verwendet BTS die [gemein
 
 ## Zusätzliche Vorbereitung bei Leerlauf
 
-Sobald alle regulären Aufträge erledigt sind, bereitet BTS weitere mögliche Ansagen der zentral gewählten Stimme vor. Die Reihenfolge ist:
+BTS trennt benötigte Ansagen von bloß möglicher späterer Verwendung. Direkt beim Feld- oder Vorbereitungsaufruf wird das vollständige Paket des Spiels als **benötigt** aufgenommen: Spielblock, beide Teams, alle bekannten Offiziellen, Hallenvarianten, Zweitrufe, Spielbeginn und beide möglichen kampflosen Sieger. Dazu gehören die möglichen Tablet-/Klapptafelansagen beider Teams, auch schon während der Vorbereitung. Gemeinsame Feldreferenzen und feste Ansagebausteine gehören weiterhin zum regulären Bedarf; freie Texte und Sprachtests können ausdrücklich angefordert werden.
 
-1. Reguläre Aufträge: aktuelle Aufrufe, Feldreferenzen, bekannte Spielblöcke und zugewiesene Offizielle. Dazu gehören weiterhin beide möglichen Tablet-/Klapptafelbediener aus Spielen auf dem Feld sowie der vorhandene Bediener-Wartepool.
-2. Im Leerlauf zuerst Teams laufender Spiele auf dem Feld; deren mögliche Bediener sind üblicherweise schon regulär vorbereitet und werden dann aus dem Cache übernommen.
-3. Teams der Spiele in Vorbereitung.
-4. Teams der tatsächlichen Aufrufkandidaten.
-5. Teams der weiteren nicht zugewiesenen Spiele laufender Disziplinen, in der Reihenfolge der BTS-Liste.
-6. Weitere gemeldete Teams derselben Disziplinen, auch wenn ihr nächster Gegner noch nicht feststeht.
-7. Weitere bekannte Schiedsrichter und Aufschlagrichter, einschließlich ihrer Vorbereitungsaufrufe und Hallenvarianten. Bereits bekannte Spielaufrufe und gemeinsame Bausteine gehören weiterhin zum regulären Plan.
+Die benötigten Spielpakete folgen dieser Reihenfolge:
 
-Innerhalb jeder Spielgruppe gilt dieselbe Reihenfolge wie in der BTS-Liste: geplanter Termin, bei gleichem Termin eine vorhandene manuelle Reihenfolge, danach Spielnummer. Bereits bekannte Teams unvollständiger Paarungen behalten die Position ihres Spiels; unbekannte Namen werden ausgelassen. Die Platzhalterzeit `00:00` und fehlende Uhrzeiten folgen den vorhandenen Regeln der Spielliste. Kommt ein Team in mehreren Spielen vor, zählt sein dringendster Bedarf; identische Ansagen werden nur einmal vorbereitet.
+1. Laufende Spiele nach `setup.called_timestamp`, ältester tatsächlicher Feldaufruf zuerst.
+2. Spiele in Vorbereitung nach `setup.preparation_call_timestamp`, ältester Vorbereitungsaufruf zuerst.
+
+Spielnummer und angesetzte Uhrzeit ändern diese Aufrufreihenfolge nicht. Bei gleichem Zeitstempel gilt die bestehende BTS-Sortierung; fehlt ein gültiger Aufrufzeitstempel, folgt das Spiel hinter denen mit bekanntem Zeitstempel. Beim Ruf nutzt BTS den zuletzt geladenen Turnierkontext, um die benötigten Bausteine synchron vor der Benachrichtigung der Clients einzutragen. Parallel wird die gespeicherte Planung ohne die sonstige 500-ms-Bündelung neu gelesen. Bei einem Kaltstart ohne geladenen Kontext erfolgt die Eintragung über diese sofortige Datenbankabfrage. Ein bereits vorgemerkter Reserveeintrag samt Quelle wird hochgestuft, ohne seine fertige Aufnahme erneut zu generieren.
+
+Erst wenn keine reguläre Arbeit mehr offen ist, werden zusätzlich vorbereitet:
+
+1. Aufrufkandidaten mit ihren vollständigen Spielpaketen und möglichen Tabletbedienern.
+2. Noch nicht zugewiesene Bediener aus der Tablet-Warteliste.
+3. Weitere bekannte Spielblöcke und Ansagen in der Reihenfolge der BTS-Liste; Tabletansagen weiterer Teams bleiben auf laufende Disziplinen begrenzt.
+4. Weitere gemeldete Teams laufender Disziplinen ohne anstehende bekannte Paarung.
+5. Weitere bekannte Schiedsrichter und Aufschlagrichter, einschließlich ihrer Vorbereitungsaufrufe und Hallenvarianten.
+
+Diese späteren Spiele und Personen werden vorher nicht automatisch als benötigt vorgemerkt. Für Aufrufkandidaten und weitere Spiele gilt die BTS-Sortierung: geplanter Termin, bei gleichem Termin eine vorhandene manuelle Reihenfolge, danach Spielnummer. Bekannte Teams unvollständiger Paarungen behalten die Position ihres Spiels; unbekannte Namen werden ausgelassen. Die Platzhalterzeit `00:00` und fehlende Uhrzeiten folgen den vorhandenen Regeln der Spielliste. Kommt ein Team in mehreren Paketen vor, zählt sein dringendster Bedarf; identische Ansagen werden nur einmal vorbereitet.
 
 Eine Disziplin gilt hier als laufend, wenn sie ein Spiel auf dem Feld, in Vorbereitung oder unter den aktuellen Aufrufkandidaten hat. BTS ordnet die BTP-Stufen der jeweiligen Disziplin zu; ohne Stufeninformationen verwendet es den Disziplinnamen. Gibt es noch keine aktiven Spiele, beginnt es mit der nächsten anstehenden Disziplin. Spätere, noch nicht laufende Disziplinen werden nicht allein wegen vorhandener Meldelisten vollständig mit Tabletansagen vorbereitet. Doppelaufteilung, Landesverbandsansagen, Klapptafeln, Namensnormalisierung und die bestehenden Kontextaufnahmen gelten auch im Leerlauf. Unbekannte Gegner oder freie Ansagetexte werden nicht erfunden.
 

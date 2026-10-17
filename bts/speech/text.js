@@ -62,15 +62,16 @@ function prepare_waiting_tabletoperators(texts, tournament) {
     prepare_tabletoperators(texts, tournament, {}, groups);
 }
 
-function prepare(tournament, matches, locale = 'de') {
+function prepare(tournament, matches, locale = 'de', options = {}) {
+    const shared = options.shared !== false;
     if (tournament.speech?.context_version === 'bts-context-v1' && locale === 'de') {
         const parts = [];
         const texts = renderer(tournament, locale, parts);
         const warm = (name, setup) => parts.push(...contextPlan(texts, tournament, name, setup).parts);
-        for (const court of tournament.courts || []) {
+        for (const court of shared ? tournament.courts || [] : []) {
             if (court.is_active !== false) warm('prepareFields', { court_id: court._id });
         }
-        warm('prepareInstruction', {});
+        if (shared) warm('prepareInstruction', {});
         for (const match of matches) {
             const setup = match.setup;
             if (!setup) continue;
@@ -79,7 +80,8 @@ function prepare(tournament, matches, locale = 'de') {
             if (complete) {
                 try { warm('prepareGame', setup); } catch (_) { /* No partial block with unknown game data. */ }
             }
-            prepare_tabletoperators(texts, tournament, setup);
+            prepare_tabletoperators(texts, tournament, setup,
+                options.tablet_candidates ? tabletoperator_groups(tournament, setup) : undefined);
             if (!complete) continue;
             for (const call of CALLS) {
                 try { texts[call](setup); } catch (_) { /* Keep known blocks when officials are unresolved. */ }
@@ -90,15 +92,17 @@ function prepare(tournament, matches, locale = 'de') {
                 }
             }
         }
-        prepare_waiting_tabletoperators(texts, tournament);
-        warm('prepareCommon', {});
-        parts.push(translate(locale, 'announcements:speechcheck:text'));
+        if (shared) {
+            if (options.waiting !== false) prepare_waiting_tabletoperators(texts, tournament);
+            warm('prepareCommon', {});
+            parts.push(translate(locale, 'announcements:speechcheck:text'));
+        }
         return [...new Set(parts)];
     }
     const parts = [];
     const texts = renderer(tournament, locale, parts);
-    parts.push(texts.createBeginToPlayAnnouncement({}));
-    for (const court of tournament.courts || []) {
+    if (shared) parts.push(texts.createBeginToPlayAnnouncement({}));
+    for (const court of shared ? tournament.courts || [] : []) {
         if (court.is_active === false) continue;
         parts.push(texts.createFieldAnnouncement({ court_id: court._id }));
         parts.push(texts.createFieldPreparationAnnouncement({ court_id: court._id }));
@@ -106,7 +110,8 @@ function prepare(tournament, matches, locale = 'de') {
     }
     for (const match of matches) {
         const setup = match.setup;
-        if (setup) prepare_tabletoperators(texts, tournament, setup);
+        if (setup) prepare_tabletoperators(texts, tournament, setup,
+            options.tablet_candidates ? tabletoperator_groups(tournament, setup) : undefined);
         if (!setup || !setup.teams?.[0]?.players?.length || !setup.teams?.[1]?.players?.length) continue;
         for (const builder of ['createTeamAnnouncement', 'createEventAnnouncement', 'createRoundAnnouncement',
             'createMatchNumberAnnouncement', 'createUmpire', 'createServiceJudge', 'createTabletOperator',
@@ -133,9 +138,9 @@ function prepare(tournament, matches, locale = 'de') {
             }
         }
     }
-    prepare_waiting_tabletoperators(texts, tournament);
+    if (shared && options.waiting !== false) prepare_waiting_tabletoperators(texts, tournament);
     // Speech checks, like free announcements, use their original complete text.
-    return [...new Set([translate(locale, 'announcements:speechcheck:text'), ...texts.localParts(parts)])];
+    return [...new Set([...(shared ? [translate(locale, 'announcements:speechcheck:text')] : []), ...texts.localParts(parts)])];
 }
 
-module.exports = { prepare, renderer, CALLS, prepare_tabletoperators, tabletoperator_groups };
+module.exports = { prepare, renderer, CALLS, prepare_tabletoperators, prepare_waiting_tabletoperators, tabletoperator_groups };

@@ -13,7 +13,7 @@ function createSpeechQueue({ root, service, onSnapshot = () => {} }) {
         ['ordered', 'Beauftragt'], ['potential', 'Noch ohne Auftrag'],
     ];
     let next_recording = 1;
-    const priorities = { high: 'Hoch · aktueller Aufruf', normal: 'Normal · bevorstehendes Spiel', low: 'Niedrig · Vorrat',
+    const priorities = { high: 'Hoch · aktueller Aufruf', normal: 'Normal · benötigt', low: 'Niedrig · angeforderter Text',
         idle: 'Nur bei Leerlauf · mögliche spätere Ansage' };
     const operation = item => item.operation || (['source', 'text'].includes(item.kind || 'text') ? 'synthesis' :
         item.kind === 'game' ? 'processing' : 'excerpt');
@@ -39,7 +39,9 @@ function createSpeechQueue({ root, service, onSnapshot = () => {} }) {
         'Vollständige Sprachaufnahmen werden einmal erzeugt und wiederverwendet. Ausschnitte und Aufbereitung verwenden diese Aufnahmen. ' +
         'BTS setzt die fertigen Bausteine beim Aufruf zusammen.');
     element(root, 'p', 'speech_queue_help',
-        'Die Liste zeigt den aktuellen Bedarf und begonnene Leerlauf-Vorbereitung dieses Turniers. ' +
+        'Laufende und in Vorbereitung gerufene Spiele werden beim Aufruf mit allen möglichen Ansagen als benötigt aufgenommen. ' +
+        'Laufende Spiele folgen ihrer Aufrufzeit, vorbereitete Spiele der Zeit ihres Vorbereitungsaufrufs – jeweils älteste zuerst. ' +
+        'Die Liste zeigt diesen Bedarf und begonnene Leerlauf-Vorbereitung dieses Turniers. ' +
         'Zusätzliche mögliche Ansagen werden nur vorbereitet, wenn alle regulären Aufträge erledigt sind. ' +
         'Nicht mehr benötigte Aufträge entfallen; fertige Aufnahmen bleiben gespeichert. ' +
         'Laufender Auftrag zuerst; fertige stehen unten. Nummern links zeigen die Reihenfolge. A-Nummern verknüpfen Bausteine mit ihrer Aufnahme.');
@@ -72,7 +74,7 @@ function createSpeechQueue({ root, service, onSnapshot = () => {} }) {
     element(coverage_details, 'summary', '', 'Vorbereitung nach Aufrufart');
     element(coverage_details, 'p', 'speech_queue_help',
         'Grau umfasst auch Spiele mit unbekannten Teilnehmern und mögliche Bediener aus allen Disziplinen. ' +
-        'Im Leerlauf zuerst laufende Spiele, dann Vorbereitung und Aufrufkandidaten. Danach weitere Spiele in der Reihenfolge der BTS-Liste, ' +
+        'Nur im Leerlauf: Aufrufkandidaten, wartende Tabletbediener und weitere Spiele in der Reihenfolge der BTS-Liste, ' +
         'übrige Teams laufender Disziplinen und bekannte Offizielle. ' +
         'Unbekannte Teilnehmer bleiben ohne Auftrag. Fertiger Leerlauf-Vorrat erscheint blau. ' +
         'Die Balken zählen wiederverwendbare Bausteine und noch unbekannte Spiele. ' +

@@ -62,6 +62,7 @@ class SpeechBroker {
         this.on_change = options.onChange || (() => {});
         this.entries = new Map();
         this.idle_plans = new Map();
+        this.prefetch_plans = new Map();
         this.pending_plans = new Set();
         this.last_idle_tournament = null;
         this.signing_key = crypto.randomBytes(32);
@@ -332,6 +333,7 @@ class SpeechBroker {
 
     select_voice(tournament_key, voice) {
         if (this.idle_plans.get(tournament_key)?.voice !== voice) this.idle_plans.delete(tournament_key);
+        if (this.prefetch_plans.get(tournament_key)?.voice !== voice) this.prefetch_plans.delete(tournament_key);
         for (const [key, entry] of this.entries) {
             if (!entry.tournaments.has(tournament_key) || entry.voice === voice) continue;
             entry.tournaments.delete(tournament_key);
@@ -345,6 +347,11 @@ class SpeechBroker {
         }
     }
 
+    set_prefetch_order(tournament_key, parts, { voice, language = 'de-DE' }) {
+        this.prefetch_plans.set(tournament_key, { voice,
+            positions: new Map(parts.map((part, index) => [this.key(part, voice, language), index])) });
+    }
+
     reconcile_prefetch(tournament_key, parts, { voice, language = 'de-DE', idle_parts = [] }) {
         const expand = values => {
             const wanted = new Set(values.map(part => this.key(part, voice, language))), stack = [...wanted];
@@ -355,6 +362,7 @@ class SpeechBroker {
             return wanted;
         };
         const wanted = expand(parts), idle = expand(idle_parts);
+        this.set_prefetch_order(tournament_key, parts, { voice, language });
         this.idle_plans.set(tournament_key, { voice, language, parts: idle_parts, cursor: 0,
             positions: new Map(idle_parts.map((part, index) => [this.key(part, voice, language), index])) });
         let changed = false, retry_after = null;
@@ -429,23 +437,25 @@ class SpeechBroker {
 
     pending_order(now = this.now()) {
         const regular_pending = this.regular_work_pending();
-        const idle_positions = new Map();
-        if (!regular_pending) for (const entry of this.entries.values()) {
-            if (entry.priority !== PRIORITY.idle || entry.status === 'completed' && !entry.revalidate) continue;
-            for (const tournament of entry.idle_tournaments || []) {
-                const position = this.idle_plans.get(tournament)?.positions.get(entry.key);
+        const positions = new Map();
+        for (const entry of this.entries.values()) {
+            if (entry.priority === PRIORITY.high || entry.status === 'completed' && !entry.revalidate) continue;
+            const idle = entry.priority === PRIORITY.idle;
+            if (idle && regular_pending) continue;
+            for (const tournament of (idle ? entry.idle_tournaments : entry.prefetch_tournaments) || []) {
+                const position = (idle ? this.idle_plans : this.prefetch_plans).get(tournament)?.positions.get(entry.key);
                 if (position === undefined) continue;
                 // A source inherits the earliest still-needed cut's place.
-                // Reordering the plan must also reorder already admitted work.
+                // Call timestamps and revised plans also reorder admitted work.
                 let dependency = entry;
-                while (dependency && position < (idle_positions.get(dependency.key) ?? Infinity)) {
-                    idle_positions.set(dependency.key, position);
+                while (dependency && position < (positions.get(dependency.key) ?? Infinity)) {
+                    positions.set(dependency.key, position);
                     dependency = this.entries.get(dependency.source_key);
                 }
             }
         }
-        const compare = (a, b) => (a.priority === PRIORITY.idle ?
-            (idle_positions.get(a.key) ?? Infinity) - (idle_positions.get(b.key) ?? Infinity) : 0) || a.created - b.created;
+        const compare = (a, b) => (a.priority !== PRIORITY.high ?
+            (positions.get(a.key) ?? Infinity) - (positions.get(b.key) ?? Infinity) : 0) || a.created - b.created;
         const eligible = [...this.entries.values()].filter(entry => entry !== this.current?.entry && !entry.busy &&
             (entry.priority !== PRIORITY.idle || !regular_pending) &&
             (!entry.source_key || this.entries.get(entry.source_key)?.status === 'completed') &&
@@ -559,6 +569,7 @@ class SpeechBroker {
                 this.context_version = next_context;
                 this.entries.clear();
                 this.idle_plans.clear();
+                this.prefetch_plans.clear();
             }
             const identity = JSON.stringify([TEXT_VERSION, state.configuration_version, state.backend, state.model, state.model_revision, this.voices, next_context]);
             if (this.identity && identity !== this.identity) {
