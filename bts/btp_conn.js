@@ -568,7 +568,7 @@ class BTPConn {
 				}
 
 				for (const m of matches) {
-					if (typeof m.team1_won !== 'boolean') {
+					if (typeof m.team1_won !== 'boolean' && m.score_status !== 'no_match') {
 						// serror.silent('match ' + m._id + ' has needsync but is not finished');
 						continue;
 					}

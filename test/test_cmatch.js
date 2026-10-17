@@ -145,6 +145,17 @@ function loadCmatchForUpdateCourtTest(tr, curt, history) {
 }
 
 _describe('cmatch', () => {
+	_it('lists no-match results under finished even without a winner or with older setup state', () => {
+		const cmatch = loadCmatchForUpdateCourtTest(createFakeElement('tr'), {});
+		for (const state of ['scheduled', 'preparation', 'oncourt', 'finished']) {
+			const match = { score_status: 'no_match', setup: { state, court_id: 'court', now_on_court: state === 'oncourt' } };
+			assert.strictEqual(cmatch.calc_section(match), 'finished', state);
+		}
+		assert.strictEqual(cmatch.calc_section({ setup: { state: 'finished' } }), 'finished');
+		assert.strictEqual(cmatch.calc_section({ setup: { state: 'scheduled' } }), 'unassigned');
+		assert.strictEqual(cmatch.calc_section({ setup: { state: 'oncourt', court_id: 'court', now_on_court: true } }), 'court_court');
+	});
+
 	_it('loads deferred finished histories before editing or reconstructing a scoresheet', () => {
 		const match = { _id: 'finished', setup: { state: 'finished' }, presses_deferred: true };
 		const requested = [];

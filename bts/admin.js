@@ -2356,7 +2356,7 @@ function cascade_no_match_for_future_player_matches(app, tournament_key, source_
 				const { match } = candidate;
 			const setup = { ...(match.setup || {}) };
 			setup.now_on_court = false;
-			setup.state = 'scheduled';
+			setup.state = 'finished';
 				setup.highlight = 0;
 				delete setup.preparation_call_timestamp;
 				delete setup.preparation_call_deferred;
@@ -2401,7 +2401,7 @@ function cascade_no_match_for_future_player_matches(app, tournament_key, source_
 				const team1_won = no_match_losing_team === 1;
 				const setup = { ...(match.setup || {}) };
 				setup.now_on_court = false;
-				setup.state = 'scheduled';
+				setup.state = 'finished';
 				setup.highlight = 0;
 				delete setup.preparation_call_timestamp;
 					delete setup.preparation_call_deferred;
@@ -2625,6 +2625,18 @@ function handle_match_edit(app, ws, msg) {
 
 			const old_setup = old_match.setup || {};
 			require('./match_entry_status').preserve(old_match, msg.match);
+			const is_no_match_result = normalize_match_score_status(msg.match.score_status) === 'no_match' &&
+				(setup.state === 'finished' || setup.now_on_court !== true);
+			const no_winner_result = is_no_match_result && no_match_losing_team_from_message(msg.match) == null &&
+				typeof msg.match.team1_won !== 'boolean' && !msg.match.btp_winner;
+			if (is_no_match_result) {
+				setup.state = 'finished';
+				setup.now_on_court = false;
+				setup.highlight = 0;
+				delete setup.called_timestamp;
+				delete setup.preparation_call_timestamp;
+				delete setup.preparation_call_deferred;
+			}
 			const was_called = !!old_setup.called_timestamp;
 			const will_be_on_court = !!setup.now_on_court && !!setup.court_id;
 			const will_be_in_preparation = !will_be_on_court && setup.state === 'preparation' && !!setup.location_id;
@@ -2660,7 +2672,7 @@ function handle_match_edit(app, ws, msg) {
 						match_score_status_is_special_result(old_score_status)
 					);
 				const score_status = reactivates_finished_match_for_counting ? 'normal' : resolved_score_status;
-				const forward_loser = match_score_status_forwards_loser(score_status);
+				const forward_loser = !no_winner_result && match_score_status_forwards_loser(score_status);
 				const clears_special_result = match_score_status_is_special_result(old_score_status) &&
 					!match_score_status_is_special_result(score_status);
 				const clears_finished_result_for_reactivation = reactivates_finished_match_for_counting;
@@ -2720,7 +2732,7 @@ function handle_match_edit(app, ws, msg) {
 					});
 				}
 
-				if (!will_be_on_court && was_called) {
+				if (!will_be_on_court && was_called && !is_no_match_result) {
 					return match_utils.uncall_match(app, tournament, msg.match, msg.old_court, (uncall_err) => {
 						ws.respond(msg, uncall_err);
 					});
@@ -2742,7 +2754,7 @@ function handle_match_edit(app, ws, msg) {
 						update_unset.score_status_network_score = true;
 					} else {
 						update_unset.no_match_losing_team = true;
-						if (clears_special_result) {
+						if (clears_special_result || no_winner_result) {
 							update_unset.team1_won = true;
 							update_unset.btp_winner = true;
 							update_unset.network_score = true;
@@ -2756,7 +2768,7 @@ function handle_match_edit(app, ws, msg) {
 				if (Object.keys(update_unset).length > 0) {
 					update_doc.$unset = update_unset;
 				}
-				app.db.matches.update({_id: msg.id, tournament_key}, update_doc, {returnUpdatedDocs: true}, function(err, numAffected, changed_match) {
+				app.db.matches.update({_id: msg.id, tournament_key}, update_doc, {returnUpdatedDocs: true}, async function(err, numAffected, changed_match) {
 					if (err) {
 						ws.respond(msg, err);
 						return;
@@ -2770,6 +2782,20 @@ function handle_match_edit(app, ws, msg) {
 						serror.silent(errmsg);
 						ws.respond(msg, new Error(errmsg));
 						return;
+					}
+					if (is_no_match_result) {
+						try {
+							const courts = await app.db.courts.find_async({ tournament_key, match_id: msg.id });
+							for (const court of courts) {
+								const [affected, updated] = await app.db.courts.update_async({ _id: court._id, tournament_key, match_id: msg.id },
+									{ $set: { match_id: null } }, { returnUpdatedDocs: true });
+								if (affected) notify_change(app, tournament_key, 'court_changed', { ...updated, court_id: court._id });
+							}
+							if (old_setup.now_on_court === true && old_setup.court_id) {
+								await new Promise((resolve, reject) => match_utils._close_tabletoperator_assignment_on_court(
+									app, tournament_key, old_setup.court_id, null, error => error ? reject(error) : resolve()));
+							}
+						} catch (result_error) { return ws.respond(msg, result_error); }
 					}
 
 					_apply_match_edit_official_state_changes(app, tournament_key, old_setup, changed_match.setup || {}, function(official_err) {

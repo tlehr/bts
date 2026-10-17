@@ -49,6 +49,61 @@ function singleMatchBtpState(overrides = {}) {
 }
 
 _describe('btp_sync', () => {
+	_it('keeps a no-match result without a winner finished through import and later syncs', async () => {
+		const db = await database.init_test();
+		const app = { db, wss: { clients: [] } };
+		await insert(db, 'tournaments', { key: 'default', btp_settings: {} });
+		const state = singleMatchBtpState({ ScoreStatus: [4] });
+		const sync = () => new Promise((resolve, reject) => btp_sync._integrate_matches(
+			app, 'default', state, new Map(), new Map(), new Map(), err => err ? reject(err) : resolve()));
+		await sync();
+		const id = 'btp_default_MX U17_1';
+		const check = async () => {
+			const match = await db.matches.findOne_async({ _id: id });
+			assert.strictEqual(match.score_status, 'no_match');
+			assert.strictEqual(match.setup.state, 'finished');
+			assert.strictEqual(match.setup.now_on_court, false);
+			assert.strictEqual(match.team1_won, undefined);
+			assert.strictEqual(match.btp_winner, undefined);
+			assert.strictEqual(match.network_score, undefined);
+		};
+		await check();
+		// Reproduce an older stored record, retaining its identical BTP signature.
+		await db.matches.update_async({ _id: id }, { $set: { 'setup.state': 'scheduled' } }, {});
+		await sync();
+		await check();
+		await sync();
+		await check();
+		delete state.matches[0].ScoreStatus;
+		await sync();
+		const cleared = await db.matches.findOne_async({ _id: id });
+		assert.strictEqual(cleared.score_status, 'normal');
+		assert.notStrictEqual(cleared.setup.state, 'finished');
+	});
+
+	_it('accepts a no-winner no-match result while a local match is prepared or on court', async () => {
+		for (const previous_state of ['preparation', 'oncourt', 'blocked']) {
+			const db = await database.init_test();
+			const app = { db, wss: { clients: [] } };
+			await insert(db, 'tournaments', { key: 'default', btp_settings: {} });
+			await insert(db, 'matches', {
+				_id: 'btp_default_MX U17_1', tournament_key: 'default', btp_id: 'default_MX U17_1',
+				btp_match_ids: [{ id: 1, draw: 10, planning: 100 }], score_status: 'normal',
+				setup: { is_match: true, state: previous_state, now_on_court: previous_state !== 'preparation',
+					called_timestamp: 1000, preparation_call_timestamp: 500,
+					teams: [{ players: [{ btp_id: 1 }] }, { players: [{ btp_id: 2 }] }] },
+			});
+			await new Promise((resolve, reject) => btp_sync._integrate_matches(
+				app, 'default', singleMatchBtpState({ ScoreStatus: [4] }), new Map(), new Map(), new Map(),
+				err => err ? reject(err) : resolve()));
+			const match = await db.matches.findOne_async({ _id: 'btp_default_MX U17_1' });
+			assert.strictEqual(match.setup.state, 'finished', previous_state);
+			assert.strictEqual(match.setup.now_on_court, false, previous_state);
+			assert.strictEqual(match.team1_won, undefined);
+			assert.strictEqual(match.btp_winner, undefined);
+		}
+	});
+
 	_it('normalizes standard scoring formats from BTP fields', () => {
 		const normalized = btp_sync._normalize_scoring_format({
 			ID: ['10'],

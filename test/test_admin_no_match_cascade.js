@@ -4,6 +4,8 @@ const assert = require('assert');
 
 const admin = require('../bts/admin');
 const database = require('../bts/database');
+const btp_manager = require('../bts/btp_manager');
+const btp_proto = require('../bts/btp_proto');
 
 function insert(db, collection, doc) {
 	return new Promise((resolve, reject) => {
@@ -65,6 +67,72 @@ function make_match(overrides = {}) {
 }
 
 describe('admin no-match cascade', function() {
+	it('finishes and sends a direct no-winner result from scheduled, prepared and active matches', async function() {
+		const original_update = btp_manager.update_score;
+		const sent = [];
+		btp_manager.update_score = (_app, match) => sent.push(btp_proto.update_request(match, 'unicode'));
+		try {
+			for (const state of ['scheduled', 'preparation', 'oncourt']) {
+				const db = await database.init_test();
+				const app = { db, clock: { now_ms: () => 1234567890 } };
+				await insert(db, 'tournaments', { key: 'default', btp_enabled: false, btp_settings: {} });
+				const match = make_match({ _id: 'direct-result', setup: { state,
+					now_on_court: state === 'oncourt', court_id: 'court', location_id: 'hall',
+					called_timestamp: state === 'oncourt' ? 1000 : undefined,
+					preparation_call_timestamp: state === 'preparation' ? 500 : undefined,
+					teams: [{ entry_status: 'WDN', players: [{ btp_id: 1 }] },
+						{ entry_status: 'WDN', players: [{ btp_id: 2 }] }],
+				} });
+				match.btp_match_ids = [{ id: 325, draw: 10, planning: 1015 }];
+				await insert(db, 'matches', match);
+				await insert(db, 'courts', { _id: 'court', tournament_key: 'default',
+					match_id: state === 'oncourt' ? match._id : null });
+				const draft = clone(match);
+				draft.score_status = 'no_match';
+				draft.setup.now_on_court = false;
+				await handle_match_edit(app, { tournament_key: 'default', id: match._id,
+					match: draft, old_court: 'court', btp_update: true });
+				const result = await db.matches.findOne_async({ _id: match._id });
+				assert.strictEqual(result.setup.state, 'finished', state);
+				assert.strictEqual(result.score_status, 'no_match');
+				assert.strictEqual(result.setup.now_on_court, false);
+				assert.strictEqual(result.setup.preparation_call_timestamp, undefined);
+				assert.strictEqual(result.team1_won, undefined);
+				assert.strictEqual(result.btp_winner, undefined);
+				assert.strictEqual(result.btp_needsync, true);
+				assert.strictEqual(result.forward_loser, false);
+				assert.strictEqual((await db.courts.findOne_async({ _id: 'court' })).match_id, null);
+				const outbound = sent[sent.length - 1].Update.Tournament.Matches[0].Match;
+				assert.strictEqual(outbound.ScoreStatus, 4);
+				assert.strictEqual(outbound.Winner, undefined);
+				assert.strictEqual(outbound.Sets, undefined);
+				assert.strictEqual(outbound.ForwardLoser, undefined);
+			}
+		} finally { btp_manager.update_score = original_update; }
+	});
+
+	it('records a finished no-match result without a winner when both sides cannot play', async function() {
+		const db = await database.init_test();
+		const app = { db };
+		const source = make_match({ _id: 'source-a', score_status: 'retired', team1_won: false });
+		const other_source = make_match({ _id: 'source-b', score_status: 'disqualified', team1_won: false,
+			setup: { teams: [{ players: [{ btp_id: 3 }] }, { players: [{ btp_id: 4 }] }] } });
+		const future = make_match({ _id: 'both-inactive', setup: { match_num: 325,
+			scheduled_date: '2026-09-27', scheduled_time_str: '09:00',
+			teams: [{ players: [{ btp_id: 1 }] }, { players: [{ btp_id: 3 }] }] } });
+		for (const match of [source, other_source, future]) await insert(db, 'matches', match);
+		await cascade_no_match_for_future_player_matches(app, 'default', source);
+		const result = await db.matches.findOne_async({ _id: future._id });
+		assert.strictEqual(result.score_status, 'no_match');
+		assert.strictEqual(result.setup.state, 'finished');
+		assert.strictEqual(result.setup.now_on_court, false);
+		assert.strictEqual(result.btp_needsync, true);
+		assert.strictEqual(result.team1_won, undefined);
+		assert.strictEqual(result.btp_winner, undefined);
+		assert.strictEqual(result.no_match_losing_team, undefined);
+		assert.strictEqual(result.network_score, undefined);
+	});
+
 	it('announces cascaded no-match wins only when enabled', function() {
 		const sent = [];
 		const ws = {
@@ -172,6 +240,7 @@ describe('admin no-match cascade', function() {
 		assert.deepStrictEqual(changed_matches.map((match) => match._id), ['placement']);
 		const changed_placement = await db.matches.findOne_async({ _id: 'placement' });
 		assert.strictEqual(changed_placement.score_status, 'no_match');
+		assert.strictEqual(changed_placement.setup.state, 'finished');
 		assert.strictEqual(changed_placement.forward_loser, true);
 		assert.strictEqual(changed_placement.no_match_losing_team, 0);
 		assert.strictEqual(changed_placement.team1_won, false);

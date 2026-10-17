@@ -9,6 +9,19 @@ function extract_first_match_status(req) {
 }
 
 _describe('btp_proto update_request', () => {
+	_it('sends a no-match result without inventing a winner or score', () => {
+		const req = btp_proto.update_request({
+			btp_match_ids: [{ id: 1, draw: 2, planning: 3 }],
+			score_status: 'no_match', forward_loser: false,
+			setup: { state: 'finished', highlight: 0 },
+		}, 'unicode');
+		const match = req.Update.Tournament.Matches[0].Match;
+		assert.strictEqual(match.ScoreStatus, 4);
+		assert.strictEqual(match.Winner, undefined);
+		assert.strictEqual(match.Sets, undefined);
+		assert.strictEqual(match.ForwardLoser, undefined);
+	});
+
 	_it('writes match check-in bits in check-in per match mode', () => {
 		const req = btp_proto.update_request({
 			btp_match_ids: [{ id: 1, draw: 2, planning: 3 }],

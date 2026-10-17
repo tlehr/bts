@@ -12,6 +12,18 @@ const {
 } = require('../bts/btp_conn');
 
 describe('btp_conn', function() {
+	it('retries pending no-match results without a winner after reconnecting', function() {
+		const result = { _id: 'no-winner', score_status: 'no_match', btp_needsync: true };
+		const normal = { _id: 'normal', team1_won: false, btp_needsync: true };
+		const unfinished = { _id: 'unfinished', score_status: 'normal', btp_needsync: true };
+		const sent = [];
+		const conn = Object.create(BTPConn.prototype);
+		conn.app = { db: { matches: { find: (_query, callback) => callback(null, [result, normal, unfinished]) } } };
+		conn.update_score = match => sent.push(match);
+		conn.pushall();
+		assert.deepStrictEqual(sent, [result, normal]);
+	});
+
 	function make_conn_stub() {
 		const statuses = [];
 		const conn = Object.create(BTPConn.prototype);

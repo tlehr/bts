@@ -1263,7 +1263,10 @@ function mergeLocalMatchIntoBtpMatch(current_match, match) {
 	if (current_match.btp_winner) {
 		match.setup.state = 'finished';
 	}
-	if (typeof current_match.team1_won === 'boolean' || current_match.btp_winner || current_match.btp_needsync) {
+	// "Kein Spiel" is a complete result even if neither side can win.
+	const has_result = typeof current_match.team1_won === 'boolean' || current_match.btp_winner ||
+		current_match.btp_needsync || current_match.score_status === 'no_match' || match.score_status === 'no_match';
+	if (has_result) {
 		match.setup.now_on_court = false;
 		match.setup.state = 'finished';
 	} else if (current_match.setup.now_on_court === true) {
@@ -1279,6 +1282,7 @@ function mergeLocalMatchIntoBtpMatch(current_match, match) {
 		typeof current_match.team1_won !== 'boolean' &&
 		!current_match.btp_winner &&
 		!current_match.btp_needsync &&
+		!has_result &&
 		current_match.setup &&
 		current_match.setup.state === 'blocked'
 	) {
@@ -1309,6 +1313,7 @@ function mergeLocalMatchIntoBtpMatch(current_match, match) {
 	}
 
 	const local_preparation_active =
+		!has_result &&
 		current_match.setup &&
 		current_match.setup.state === 'preparation' &&
 		current_match.setup.preparation_call_timestamp;
@@ -1995,6 +2000,8 @@ function btp_match_needs_local_status_cleanup(current_match, bm) {
 	}
 	const remote = btp_result_signature_from_raw_match(bm);
 	const remote_score_status = remote ? remote.score_status : 0;
+	if (remote_score_status === 4 && current_match.score_status === 'no_match' &&
+		(current_match.setup?.state !== 'finished' || current_match.setup?.now_on_court === true)) return true;
 	return remote_score_status === 0 &&
 		current_match.score_status === 'normal' &&
 		current_match.forward_loser === true;
@@ -2632,7 +2639,7 @@ async function integrate_matches(app, tkey, btp_state, scoring_formats, location
 
 				
 				match.setup.state = 'unscheduled';
-				if (typeof match.team1_won === 'boolean' || match.btp_winner || match.btp_needsync) {
+				if (typeof match.team1_won === 'boolean' || match.btp_winner || match.btp_needsync || match.score_status === 'no_match') {
 					match.setup.state = 'finished';
 					match.setup.now_on_court = false;
 				} else if (match.setup.now_on_court === true) {
@@ -3167,7 +3174,7 @@ function reconcile_match_officials(app, tkey, callback, snapshot = null) {
 					null;
 
 				const is_on_court = match.setup && match.setup.now_on_court === true;
-				const is_finished = typeof match.team1_won === 'boolean' || match.btp_winner || match.btp_needsync;
+				const is_finished = typeof match.team1_won === 'boolean' || match.btp_winner || match.btp_needsync || match.setup?.state === 'finished';
 				const planned_key = role === 'umpire' ? 'is_planed_as_umpire' : 'is_planed_as_service_judge';
 				const on_court_key = role === 'umpire' ? 'umpire_on_court' : 'service_judge_on_court';
 				const safe_name = official.name || [official.firstname, official.surname].filter(Boolean).join(' ').trim();
@@ -4399,7 +4406,7 @@ function buildOfficialReferenceState(matches) {
 
 	(matches || []).forEach((match) => {
 		const setup = match.setup || {};
-		const is_finished = typeof match.team1_won === 'boolean' || match.btp_winner || match.btp_needsync;
+		const is_finished = typeof match.team1_won === 'boolean' || match.btp_winner || match.btp_needsync || setup.state === 'finished';
 		const is_on_court = setup.now_on_court === true;
 		const is_planned = !is_finished && !is_on_court && !!setup.state;
 

@@ -173,7 +173,7 @@ function _is_finished_timer_reconstruction_error(err) {
 }
 
 function calc_section(m) {
-	if (typeof m.team1_won === 'boolean') {
+	if (typeof m.team1_won === 'boolean' || m.score_status === 'no_match' || m.setup.state === 'finished') {
 		return 'finished';
 	}
 	if (m.setup.court_id && m.setup.now_on_court) {
