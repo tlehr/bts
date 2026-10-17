@@ -82,11 +82,18 @@ describe('Durable BTS speech cache', function() {
         broker.prepare(['Temporärer Bedarf'], { prefetch: true }, 'default'); await broker.step();
         const entry = [...broker.entries.values()][0];
         const filename = broker.disk.file(entry.audio_id).path, count = upstream.requests.length;
+        assert.strictEqual(broker.public_config().persistent_cache.stored, 1);
         broker.reconcile_prefetch('default', [], { voice: upstream.config.voice });
         assert.strictEqual(broker.queue('default').items.length, 0);
+        assert.strictEqual(broker.public_config().persistent_cache.ready, 0);
+        assert.strictEqual(broker.public_config().persistent_cache.stored, 1, 'the saved inventory is independent of current demand');
         assert(fs.existsSync(filename));
-        broker.prepare(['Temporärer Bedarf'], { prefetch: true }, 'default'); await broker.step();
-        assert(broker.views(['Temporärer Bedarf'], {}, 'default')[0].local);
+        const fresh = new SpeechBroker(upstream.config);
+        assert.strictEqual(fresh.public_config().persistent_cache.stored, null, 'do not show a partial count during verification');
+        await fresh.disk.ready;
+        assert.strictEqual(fresh.public_config('hallensprecher').persistent_cache.stored, 1, 'the inventory includes inactive voices after restart');
+        fresh.prepare(['Temporärer Bedarf'], { prefetch: true }, 'default'); await fresh.step();
+        assert(fresh.views(['Temporärer Bedarf'], {}, 'default')[0].local);
         assert.strictEqual(upstream.requests.length, count);
     });
 

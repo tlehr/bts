@@ -525,8 +525,9 @@ suite('BTS / actual FastAPI / native Chrome speech integration', function() {
             await until(async () => (await snapshot()).ready === before + 1, 2500);
             const completed = await snapshot();
             assert.strictEqual(completed.total, before + 1);
+            assert(completed.label.startsWith('Aktuell benötigt: '));
             assert(completed.label.endsWith('100 %'));
-            assert(completed.status.includes((before + 1) + ' Ansageteile bereit, 0 werden vorbereitet.'));
+            assert(completed.status.includes((before + 1) + ' aktuell benötigte Aufträge bereit, 0 werden vorbereitet.'));
             assert(await devtools.evaluate('window.__speechQueueNode === document.querySelector(\'.speech_queue\')'));
             assert(events.some(event => event.tournament_key === 'default' && JSON.stringify(event.val) === '{}'));
             assert(!JSON.stringify(events).includes(text));
@@ -730,9 +731,23 @@ suite('BTS / actual FastAPI / native Chrome speech integration', function() {
             fs.statSync(path.join(config.shared_audio_dir, entry.audio_id + '.wav')).ino);
         await terminate(api);
         const fresh = new SpeechBroker(config); await fresh.disk.ready;
-        fresh.prepare([text], { voice }, 'default'); await fresh.refresh(); await fresh.step();
+        fresh.prepare([text], { voice, prefetch: true }, 'default'); await fresh.refresh(); await fresh.step();
         app.speech.broker = fresh;
         try {
+            await openSpeechSettings();
+            const inventory = () => devtools.evaluate('document.querySelector(\'.speech_queue_cache_status\').textContent');
+            await until(async () => (await inventory()).includes('Dauerhaft im BTS-Cache: 1 '));
+            const stored = await inventory();
+            assert(stored.includes('alle Turniere und Stimmen'));
+            fresh.reconcile_prefetch('default', [], { voice });
+            assert(!fresh.queue('default').items.some(item => item.key === entry.key));
+            await devtools.evaluate('[...document.querySelectorAll(\'.local_speech_controls button\')]' +
+                '.find(button => button.textContent === \'Cache-Status aktualisieren\').click()');
+            await until(() => devtools.evaluate('!document.querySelector(' +
+                JSON.stringify('.speech_queue_row[data-key="' + entry.key + '"]') + ')'));
+            assert.strictEqual(await inventory(), stored, 'removing a finished job must not reduce the saved inventory');
+            fresh.prepare([text], { voice }, 'default');
+            await closeSpeechSettings();
             await devtools.call('Emulation.setDeviceMetricsOverride',
                 { width: 1280, height: 1100, deviceScaleFactor: 1, mobile: false });
             await devtools.evaluate('(() => { const target = document.createElement(\'button\'); target.type = \'button\'; ' +

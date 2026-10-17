@@ -32,6 +32,7 @@ function createSpeechQueue({ root, service, onSnapshot = () => {} }) {
         'Vollständige Sprachaufnahmen werden einmal erzeugt und wiederverwendet. Ausschnitte und Aufbereitung verwenden diese Aufnahmen. ' +
         'BTS setzt die fertigen Bausteine beim Aufruf zusammen.');
     element(root, 'p', 'speech_queue_help',
+        'Die Liste zeigt den aktuellen Bedarf dieses Turniers. Nicht mehr benötigte Aufträge entfallen; fertige Aufnahmen bleiben gespeichert. ' +
         'Laufender Auftrag zuerst; fertige stehen unten. Nummern links zeigen die Reihenfolge. A-Nummern verknüpfen Bausteine mit ihrer Aufnahme.');
     const summary = element(root, 'p', 'speech_queue_summary', 'Warteschlange wird geladen …');
     summary.setAttribute('aria-live', 'polite');
@@ -42,8 +43,10 @@ function createSpeechQueue({ root, service, onSnapshot = () => {} }) {
     const progress_container = element(root, 'div', 'speech_queue_progress_container');
     progress_container.hidden = true;
     const progress = element(progress_container, 'progress', 'speech_queue_progress');
-    progress.setAttribute('aria-label', 'Fortschritt der Sprachvorbereitung');
+    progress.setAttribute('aria-label', 'Fortschritt der aktuell benötigten Sprachaufträge');
     const progress_label = element(progress_container, 'div', 'speech_queue_progress_label');
+    const cache_status = element(root, 'p', 'speech_queue_cache_status speech_queue_help');
+    cache_status.hidden = true;
     const list = element(root, 'ol', 'speech_queue_list');
     list.setAttribute('aria-label', 'Sprachaufnahmen und Verarbeitung in Abarbeitungsreihenfolge');
     const feedback = element(root, 'p', 'speech_queue_feedback');
@@ -131,6 +134,7 @@ function createSpeechQueue({ root, service, onSnapshot = () => {} }) {
         if (!available) {
             progress_container.hidden = true;
             breakdown.hidden = true;
+            cache_status.hidden = true;
             summary.textContent = response?.speech?.enabled === false ? 'Lokale Sprache ist nicht eingerichtet.' :
                 'Warteschlange derzeit nicht verfügbar. Cache-Status aktualisieren oder kurz warten.';
             onSnapshot(response, null);
@@ -154,11 +158,11 @@ function createSpeechQueue({ root, service, onSnapshot = () => {} }) {
         const games = items.filter(item => item.source_usage?.type === 'game').length;
         const counts = { total: items.length, ready, failed, preparing: items.length - ready - failed,
             saved: items.filter(item => item.status === 'completed' && item.local).length };
-        const summary_text = items.length ? items.length + ' Aufträge · ' + ready + ' fertig · ' +
+        const summary_text = items.length ? 'Aktuell benötigt: ' + items.length + ' Aufträge · ' + ready + ' bereit · ' +
             counts.preparing + ' offen' + (failed ? ' · ' + failed + ' fehlgeschlagen' : '') +
             (fields || games ? ' · ' + fields + ' Feldreferenzen · ' + games + ' Spielblöcke' : '') +
             (response.queue.busy_elsewhere ?
-                ' · Ein bereits laufender anderer Auftrag wird noch abgeschlossen.' : '') : 'Noch keine Aufträge vorgemerkt.';
+                ' · Ein bereits laufender anderer Auftrag wird noch abgeschlossen.' : '') : 'Aktuell keine Aufträge benötigt.';
         if (summary.textContent !== summary_text) summary.textContent = summary_text;
         breakdown.hidden = !items.length;
         const countLabel = values => values.length + ' gesamt · ' + values.filter(item => item.status === 'completed').length + ' fertig';
@@ -167,9 +171,16 @@ function createSpeechQueue({ root, service, onSnapshot = () => {} }) {
         progress_container.hidden = !items.length;
         progress.max = items.length || 1;
         progress.value = ready;
-        const label = ready + ' von ' + items.length + ' Aufträgen fertig · ' + (items.length ? Math.floor(ready * 100 / items.length) : 0) + ' %';
+        const label = 'Aktuell benötigt: ' + ready + ' von ' + items.length + ' bereit · ' +
+            (items.length ? Math.floor(ready * 100 / items.length) : 0) + ' %';
         progress.setAttribute('aria-valuetext', label);
         progress_label.textContent = label;
+        const persistent = response.speech.persistent_cache;
+        cache_status.hidden = !persistent?.enabled;
+        cache_status.textContent = persistent?.error ? 'Dauerhaft gespeicherter Bestand derzeit nicht verfügbar.' :
+            Number.isInteger(persistent?.stored) ? 'Dauerhaft im BTS-Cache: ' + persistent.stored.toLocaleString('de-DE') +
+                (persistent.stored === 1 ? ' Aufnahme oder Baustein' : ' Aufnahmen und Bausteine') +
+                ' (alle Turniere und Stimmen).' : 'Dauerhaft gespeicherter Bestand wird geprüft …';
         onSnapshot(response, counts);
         const used = new Set(items.map(item => item.key));
         for (const [key, row] of rows) {

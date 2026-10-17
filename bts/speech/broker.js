@@ -108,7 +108,7 @@ class SpeechBroker {
             preparing: entries.filter(item => ['unsubmitted', 'queued', 'processing'].includes(item.status)).length,
             ready: entries.filter(item => item.status === 'completed').length,
             persistent_cache: { enabled: !!this.disk, ready: entries.filter(item => item.status === 'completed' && item.local).length,
-                error: this.cache_error },
+                stored: this.disk?.count() ?? null, error: this.cache_error },
         };
     }
 

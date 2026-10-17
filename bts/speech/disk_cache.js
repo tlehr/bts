@@ -126,6 +126,13 @@ class SpeechDiskCache {
         return item && this.file(item.audio_id) ? item : null;
     }
 
+    count() {
+        if (!this.verified) return null;
+        let count = 0;
+        for (const item of this.valid.values()) if (this.files.has(item.audio_id)) count++;
+        return count;
+    }
+
     persist() {
         this.writes = this.writes.catch(() => {}).then(async () => {
             const temporary = this.index + '.' + crypto.randomBytes(12).toString('hex') + '.tmp';
