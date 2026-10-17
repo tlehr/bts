@@ -1,5 +1,7 @@
 # Kontext-v2: isolierte Untersuchung
 
+Die nach dem Hörvergleich gemeinsam festgelegten Regeln für die künftige automatische BTS-Strategie stehen im [v2-Plan](context-v2-plan.md). Die erste Festlegung ist ein eigener Kontext `[Team] gegen [Team]` je tatsächlichem Team. Diese Entscheidung ist vom unveränderten Messbericht und von der Bedienung des Kontexteditors getrennt.
+
 Produktiv bleibt `bts-context-v1`. Die [gesicherte v1](bts-context-v1-baseline.md) liegt in beiden Repositories auf dem annotierten lokalen Tag `bts-context-v1-stable`. Der BTS-Tag verweist auf `23922ac5c6f81505552c269eef6d50de58775089`, der Sprachserver-Tag auf `cba19aeaa117df6dcb3c5157fa8b11278bbba006`. Die zwei vorgefundenen Dokumentänderungen liegen weiterhin im ursprünglichen Checkout und zusätzlich in privaten Sicherungspatches. Es wurde nichts gepusht.
 
 Dieser Branch `feat/localTts-context-v2-experiments` liegt ausschließlich in der separaten Arbeitskopie `data/context-v2-worktree`. Er erweitert die produktiven Ansagetexte, Kontextstrategie, Prioritäten oder API nicht. Die Anwesenheitskontrolle, D13 und D15 werden nicht verändert.
