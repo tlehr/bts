@@ -45,7 +45,11 @@ function gameblocks(tournament, samples) {
         if (!Number.isSafeInteger(Number(setup.match_num)) || Number(setup.match_num) <= 0 || setup.teams?.length !== 2) {
             throw new Error('A sample needs a positive match number and two known teams');
         }
-        const number = plan.whole(`Spielnummer ${setup.match_num}.`, 'lab-v2/B03');
+        const numberDisplay = `Spielnummer ${setup.match_num}`;
+        const numberText = spellNumbers(numberDisplay);
+        const numberSource = plan.source(`${numberText} ist als nächstes an der Reihe.`,
+            'lab-v2/number-turn-context', `${numberDisplay} ist als nächstes an der Reihe.`);
+        const number = excerpt(plan, numberSource, numberText, 'lab-v2/B03', { kind: 'generic', display: numberDisplay });
         // German display labels use umlauts; old tournament translations may use ASCII transliteration.
         const eventDisplay = texts.createEventAnnouncement(setup).replaceAll('Maedchen', 'Mädchen') + '!';
         const eventText = spellNumbers(texts.normalizeNames(eventDisplay));
@@ -73,7 +77,8 @@ function gameblocks(tournament, samples) {
     result.generator_sha256 = require('crypto').createHash('sha256').update(fs.readFileSync(__filename)).digest('hex');
     result.scope = { purpose: 'Requested game-block listening samples, not production activation',
         team_source: '[Team] gegen [Team], without added terminal punctuation',
-        number_source: 'Spielnummer [number].', event_source: 'Wir rufen auf: [discipline] [age]!',
+        number_source: 'Spielnummer [number] ist als nächstes an der Reihe.',
+        number_excerpt: 'Spielnummer [number]', event_source: 'Wir rufen auf: [discipline] [age]!',
         round_source: '[round]!', pauses_are_listening_settings: true,
         samples: samples.map(({ id, origin, setup }) => ({ id, origin, match_number: setup.match_num, event: setup.event_name, round: setup.match_name })) };
     return result;

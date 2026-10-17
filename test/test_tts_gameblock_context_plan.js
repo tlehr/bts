@@ -7,16 +7,22 @@ const sample = (id, number, teams) => ({ id, label: id, origin: 'test fixture',
     setup: { match_num: number, event_name: 'ME U19', match_name: 'R16', teams } });
 
 describe('Requested context game-block listening plan', function() {
-    it('generates direct numbers/rounds, omits the event prefix and keeps the two team positions distinct', function() {
+    it('cuts numbers and disciplines from context, generates rounds directly and keeps the team positions distinct', function() {
         const plan = gameblocks({}, [sample('one', 189, [team('Nina Keo Boun Khoune'), team('LeandraGalowicz')])]);
         assert.strictEqual(plan.strategy, 'bts-context-v2-lab-only');
         assert.strictEqual(plan.production_strategy, 'bts-context-v1');
         const pieces = new Map(plan.pieces.map(piece => [piece.id, piece]));
         const sources = new Map(plan.sources.map(source => [source.id, source]));
-        assert(plan.sources.some(source => source.text === 'Spielnummer einhundertneunundachtzig.'));
+        assert(plan.sources.some(source => source.text === 'Spielnummer einhundertneunundachtzig ist als nächstes an der Reihe.'));
+        assert(!plan.sources.some(source => source.text === 'Spielnummer einhundertneunundachtzig.'));
         assert(plan.sources.some(source => source.text === 'Wir rufen auf: Mädcheneinzel U neunzehn!'));
         assert(plan.sources.some(source => source.text === 'Achtelfinale!'));
         for (const piece of pieces.values()) assert.strictEqual(piece.before + piece.text + piece.after, sources.get(piece.source).text);
+        const number = plan.pieces.find(piece => piece.profile === 'lab-v2/B03');
+        assert.strictEqual(number.before, '');
+        assert.strictEqual(number.text, 'Spielnummer einhundertneunundachtzig');
+        assert.strictEqual(number.after, ' ist als nächstes an der Reihe.');
+        assert.strictEqual(number.display, 'Spielnummer 189');
         const event = plan.pieces.find(piece => piece.profile === 'lab-v2/B04');
         assert.strictEqual(event.before, 'Wir rufen auf: ');
         assert.strictEqual(event.text, 'Mädcheneinzel U neunzehn!');
@@ -27,6 +33,7 @@ describe('Requested context game-block listening plan', function() {
         assert.strictEqual(plan.cases[0].pieces.length, 5);
         assert.strictEqual(plan.cases[1].pieces.length, 6);
         assert(plan.cases.every(item => !item.pieces.some(entry => pieces.get(entry.piece).text.includes('Wir rufen auf'))));
+        assert(plan.cases.every(item => !item.pieces.some(entry => pieces.get(entry.piece).text.includes('ist als nächstes'))));
         assert(plan.sources.every(source => !/\d/.test(source.text)));
     });
 

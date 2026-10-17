@@ -45,7 +45,7 @@ Schnittgrenzen beziehen sich immer auf die tatsächlich erzeugte Original-WAV un
 
 | Teil | Vollständige Generierung | Verwendung |
 | --- | --- | --- |
-| B03 Spielnummer | `Spielnummer [Nummer].` | Direkt und vollständig abspielen |
+| B03 Spielnummer | `Spielnummer [Nummer] ist als nächstes an der Reihe.` | Nur `Spielnummer [Nummer]` ausschneiden; der Nachsatz wird nicht abgespielt |
 | B04 Disziplin und Altersklasse | `Wir rufen auf: [Disziplin] [Altersklasse]!` | Nur `[Disziplin] [Altersklasse]!` ausschneiden; „Wir rufen auf:“ wird nicht abgespielt |
 | B05 Runde | `[Runde]!` | Direkt und vollständig abspielen; das Ausrufezeichen entspricht zunächst dem bisherigen Beispiel |
 | B07 Begegnung | Je tatsächlichem Team: `[Team] gegen [Team]` | Erste Position von Team 1, Verbinder „gegen“, zweite Position von Team 2; alternativ Team 1 und Verbinder als gemeinsames Stück |
@@ -61,6 +61,8 @@ Spielnummer [Nummer].
 
 Spielnummern werden je Nummer, Disziplinen je Kombination mit Altersklasse und Runden je gesprochenem Rundentext dedupliziert. Für denselben Spielblock auf einem anderen Feld ist keine neue Generierung nötig. Zahlen werden vor der Synthese ausgeschrieben; die Anzeige behält Ziffern. Aktuelle Ausspracheersetzungen werden angewendet. Die Quelle für B04 enthält echte Umlaute, etwa „Mädcheneinzel“.
 
+Für B03 steht nach der Nummer innerhalb des Kontextsatzes **kein zusätzlicher Punkt**. Der Ausschnitt endet vor „ist“, damit er die im Satz erzeugte Betonung behält. Die angezeigte Spielblockfassung darf weiterhin einen Punkt nach der Spielnummer zeigen; die Pause zwischen B03 und B04 wird bei der Montage gesetzt.
+
 ### Angeforderte Hörproben
 
 `scripts/tts-gameblock-context-plan.js` erzeugt den isolierten Hörplan aus dem privaten Turnierexport. Er enthält das bekannte Beispielspiel 189 (nicht das tatsächlich im Export gespeicherte Spiel 189) sowie die tatsächlichen Spiele 161 und 381 als weiteres Einzel und Doppel. Alle drei sind Achtelfinals.
@@ -73,6 +75,8 @@ Spielnummern werden je Nummer, Disziplinen je Kombination mit Altersklasse und R
 Die fertige private Hörseite liegt im vorhandenen Hörpaket unter `spielbloecke/`. Sie bietet beide Montagen, eine Abspielfolge der drei Spiele sowie pro Baustein Quelltext, Originalaufnahme, Schnittdaten und den einzelnen Ausschnitt. Ein unsicherer Schnitt bleibt als solcher gekennzeichnet. Audiodateien und der private Turnierexport werden nicht in Git aufgenommen.
 
 Der tatsächliche Versuch vom 17. Oktober 2026 hat alle 13 Quellen erzeugt. Nach einer Korrektur der Positionszuordnung bei identischen Teamwiederholungen sind alle sechs Montagen verfügbar; dafür wurde keine Quelle erneut synthetisiert. Beim Doppel bleibt die aktiv gesprochene Grenze nach „gegen“ in beiden Montagen als Hörprüfstelle markiert. Ein weiterer reiner Cache-Lauf verwendet sämtliche Quellen und 19 Wiedergabestücke ohne neue Synthese und ohne Modellladen wieder.
+
+Anschließend wurde B03 auf den oben beschriebenen Kontextsatz umgestellt. Dafür brauchen die drei Beispielnummern jeweils eine neue Kontextaufnahme; die zehn anderen Quellen passen weiterhin zum vorhandenen Cache. Die Hörseite `spielbloecke/` verwendet den neuen Aufbau. Der bisherige Vergleich mit direkt erzeugter Spielnummer bleibt unter `spielbloecke-direkte-spielnummer/` erhalten.
 
 ## 4. Bezug zum bisherigen Aufbau
 
