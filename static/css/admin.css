@@ -3625,7 +3625,7 @@ h2.edit {
 
 .speech_settings_layout {
     display: grid;
-    grid-template-columns: minmax(15rem, 1fr) minmax(0, 2fr);
+    grid-template-columns: minmax(0, 1fr);
     gap: 1.5rem;
     margin-bottom: 1rem;
 }
@@ -3689,7 +3689,7 @@ h2.edit {
 .speech_queue_preview:focus-visible { outline: 2px solid #2563eb; outline-offset: 2px; }
 
 @media (max-width: 700px) {
-    .speech_settings_layout { grid-template-columns: minmax(0, 1fr); gap: 0.5rem; }
+    .speech_settings_layout { gap: 0.5rem; }
     .speech_queue_list { max-height: 45vh; }
 }
 
