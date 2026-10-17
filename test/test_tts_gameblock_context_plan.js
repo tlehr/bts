@@ -15,7 +15,7 @@ describe('Requested context game-block listening plan', function() {
         const sources = new Map(plan.sources.map(source => [source.id, source]));
         assert(plan.sources.some(source => source.text === 'Spielnummer einhundertneunundachtzig ist als nächstes an der Reihe.'));
         assert(!plan.sources.some(source => source.text === 'Spielnummer einhundertneunundachtzig.'));
-        assert(plan.sources.some(source => source.text === 'Im Mädcheneinzel U neunzehn erwarten wir spannende Spiele!'));
+        assert(plan.sources.some(source => source.text === 'Im Mädchen Einzel U neunzehn erwarten wir spannende Spiele!'));
         assert(plan.sources.some(source => source.text === 'Achtelfinale!'));
         for (const piece of pieces.values()) assert.strictEqual(piece.before + piece.text + piece.after, sources.get(piece.source).text);
         const number = plan.pieces.find(piece => piece.profile === 'lab-v2/B03');
@@ -25,7 +25,7 @@ describe('Requested context game-block listening plan', function() {
         assert.strictEqual(number.display, 'Spielnummer 189');
         const event = plan.pieces.find(piece => piece.profile === 'lab-v2/B04');
         assert.strictEqual(event.before, 'Im ');
-        assert.strictEqual(event.text, 'Mädcheneinzel U neunzehn');
+        assert.strictEqual(event.text, 'Mädchen Einzel U neunzehn');
         assert.strictEqual(event.after, ' erwarten wir spannende Spiele!');
         assert.strictEqual(event.display, 'Mädcheneinzel U19');
         const positions = plan.pieces.filter(piece => piece.text === 'Nina Keo Boun Khoune');
@@ -66,7 +66,8 @@ describe('Requested context game-block listening plan', function() {
         assert.strictEqual(trials.cases.length, 3);
         assert.deepStrictEqual(trials.pronunciation, existing.pronunciation, 'other pronunciation rules keep their cache identity');
         const original = existing.pieces.find(piece => piece.profile === 'lab-v2/B04');
-        assert.strictEqual(trials.pieces[0].id, original.id, 'reuse the already cut original');
+        assert.strictEqual(trials.pieces[2].id, original.id, 'reuse the current space spelling');
+        assert(trials.sources.some(source => source.text === 'Im Jungendoppel U dreizehn erwarten wir spannende Spiele!'));
         assert(trials.sources.some(source => source.text === 'Im Jungen-Doppel U dreizehn erwarten wir spannende Spiele!'));
         assert(trials.sources.some(source => source.text === 'Im Jungen Doppel U dreizehn erwarten wir spannende Spiele!'));
         for (const piece of trials.pieces) {
@@ -75,6 +76,30 @@ describe('Requested context game-block listening plan', function() {
             assert.strictEqual(piece.after, ' erwarten wir spannende Spiele!');
         }
         assert(trials.cases.every(item => item.display === 'Jungendoppel U13' && item.pieces.length === 1));
+        const fromJoinedRecording = disciplinePronunciationTrials(trials);
+        assert.strictEqual(fromJoinedRecording.pieces[0].id, trials.pieces[0].id, 'retain cache reuse for historical joined recordings');
         assert.throws(() => disciplinePronunciationTrials(existing, 'Unknown'), /No matching discipline/);
+    });
+
+    it('separates every German discipline compound only in B04 speech, keeping names and display intact', function() {
+        for (const [code, display, spoken] of [
+            ['JE', 'Jungeneinzel', 'Jungen Einzel'], ['JD', 'Jungendoppel', 'Jungen Doppel'],
+            ['ME', 'Mädcheneinzel', 'Mädchen Einzel'], ['MD', 'Mädchendoppel', 'Mädchen Doppel'],
+            ['HE', 'Herreneinzel', 'Herren Einzel'], ['HD', 'Herrendoppel', 'Herren Doppel'],
+            ['DE', 'Dameneinzel', 'Damen Einzel'], ['DD', 'Damendoppel', 'Damen Doppel'],
+            ['GD', 'Gemischtes Doppel', 'Gemischtes Doppel'], ['MX', 'Gemischtes Doppel', 'Gemischtes Doppel'],
+            ['E', 'Einzel', 'Einzel'], ['D', 'Doppel', 'Doppel'],
+        ]) {
+            const entry = sample(code, 7, [team('Jungendoppel Mustermann'), team('Mädcheneinzel Musterfrau')]);
+            entry.setup.event_name = code + ' U19';
+            const plan = gameblocks({}, [entry]);
+            const event = plan.pieces.find(piece => piece.profile === 'lab-v2/B04');
+            assert.strictEqual(event.text, spoken + ' U neunzehn', code);
+            assert.strictEqual(event.display, display + ' U19', code);
+            assert(plan.cases.every(item => item.display.includes(display + ' U19!')), code);
+            assert(plan.sources.some(source => source.text === `Im ${spoken} U neunzehn erwarten wir spannende Spiele!`), code);
+            assert(plan.sources.some(source => source.text === 'Jungendoppel Mustermann gegen Jungendoppel Mustermann'), code);
+            assert(plan.sources.some(source => source.text === 'Mädcheneinzel Musterfrau gegen Mädcheneinzel Musterfrau'), code);
+        }
     });
 });

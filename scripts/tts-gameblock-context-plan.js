@@ -7,6 +7,12 @@ const { _translate: translate } = require('../static/js/ci18n');
 const { spellNumbers } = require('../bts/speech/numbers');
 const { Plan, digest } = require('./tts-context-benchmark-plan');
 
+// Speech-only spelling: apply to an event label, never to player names or UI text.
+function spokenDiscipline(text) {
+    return text.replace(/^(Jungen|Mädchen|Herren|Damen)(einzel|doppel)\b/i,
+        (_full, first, second) => first + ' ' + second[0].toUpperCase() + second.slice(1));
+}
+
 function excerpt(plan, source, text, profile, { last = false, kind = 'team', display = text } = {}) {
     const full = plan.sources.get(source).text;
     const start = last ? full.lastIndexOf(text) : full.indexOf(text);
@@ -52,7 +58,7 @@ function gameblocks(tournament, samples) {
         const number = excerpt(plan, numberSource, numberText, 'lab-v2/B03', { kind: 'generic', display: numberDisplay });
         // German display labels use umlauts; old tournament translations may use ASCII transliteration.
         const eventDisplay = texts.createEventAnnouncement(setup).replaceAll('Maedchen', 'Mädchen');
-        const eventText = spellNumbers(texts.normalizeNames(eventDisplay));
+        const eventText = spellNumbers(spokenDiscipline(texts.normalizeNames(eventDisplay)));
         const eventSource = plan.source(`Im ${eventText} erwarten wir spannende Spiele!`,
             'lab-v2/event-expectation-context', `Im ${eventDisplay} erwarten wir spannende Spiele!`);
         const event = excerpt(plan, eventSource, eventText, 'lab-v2/B04', { kind: 'generic', display: eventDisplay });
@@ -81,6 +87,7 @@ function gameblocks(tournament, samples) {
         number_source: 'Spielnummer [number] ist als nächstes an der Reihe.',
         number_excerpt: 'Spielnummer [number]', event_source: 'Im [discipline] [age] erwarten wir spannende Spiele!',
         event_excerpt: '[discipline] [age]',
+        discipline_spelling: 'Space between Jungen/Mädchen/Herren/Damen and Einzel/Doppel; display unchanged',
         round_source: '[round]!', pauses_are_listening_settings: true,
         samples: samples.map(({ id, origin, setup }) => ({ id, origin, match_number: setup.match_num, event: setup.event_name, round: setup.match_name })) };
     return result;
@@ -102,13 +109,13 @@ function disciplinePronunciationTrials(existing, display = 'Jungendoppel U13') {
     const original = existing.pieces.find(piece => piece.profile === 'lab-v2/B04' && piece.display === display);
     if (!original) throw new Error('No matching discipline excerpt in the recorded plan');
     const source = existing.sources.find(item => item.id === original.source);
-    const compound = /^(Jungen|Mädchen|Herren|Damen)(einzel|doppel)\b/i;
+    const compound = /^(Jungen|Mädchen|Herren|Damen)[ -]?(einzel|doppel)\b/i;
     if (!compound.test(original.text)) throw new Error('No supported discipline compound');
     const separate = (text, separator) => text.replace(compound,
-        (_full, first, second) => first + separator + second[0].toUpperCase() + second.slice(1));
+        (_full, first, second) => first + separator + (separator ? second[0].toUpperCase() : second[0].toLowerCase()) + second.slice(1));
     const plan = new Plan(existing.pronunciation.normalizations || []);
     for (const [id, label, text, shown] of [
-        ['original', 'Bisherige Schreibweise', original.text, display],
+        ['original', 'Zusammengeschrieben', separate(original.text, ''), display],
         ['hyphen', 'Mit Bindestrich', separate(original.text, '-'), separate(display, '-')],
         ['space', 'Mit Leerzeichen', separate(original.text, ' '), separate(display, ' ')],
     ]) {
@@ -138,4 +145,4 @@ if (require.main === module) {
     }
 }
 
-module.exports = { gameblocks, examples, disciplinePronunciationTrials };
+module.exports = { gameblocks, examples, disciplinePronunciationTrials, spokenDiscipline };

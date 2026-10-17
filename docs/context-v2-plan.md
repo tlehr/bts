@@ -59,7 +59,11 @@ Spielnummer [Nummer].
 → [Team 1] gegen [Team 2]
 ```
 
-Spielnummern werden je Nummer, Disziplinen je Kombination mit Altersklasse und Runden je gesprochenem Rundentext dedupliziert. Für denselben Spielblock auf einem anderen Feld ist keine neue Generierung nötig. Zahlen werden vor der Synthese ausgeschrieben; die Anzeige behält Ziffern. Aktuelle Ausspracheersetzungen werden angewendet. Die Quelle für B04 enthält echte Umlaute, etwa „Mädcheneinzel“.
+Spielnummern werden je Nummer, Disziplinen je Kombination mit Altersklasse und Runden je gesprochenem Rundentext dedupliziert. Für denselben Spielblock auf einem anderen Feld ist keine neue Generierung nötig. Zahlen werden vor der Synthese ausgeschrieben; die Anzeige behält Ziffern. Aktuelle Ausspracheersetzungen werden angewendet. Die Quelle für B04 enthält echte Umlaute und die im Hörvergleich gewählte Trennung mit Leerzeichen, etwa „Mädchen Einzel“.
+
+Für die lokale v2-Disziplinquelle werden `Jungeneinzel`, `Jungendoppel`, `Mädcheneinzel`, `Mädchendoppel`, `Herreneinzel`, `Herrendoppel`, `Dameneinzel` und `Damendoppel` zu `Jungen Einzel`, `Jungen Doppel`, `Mädchen Einzel`, `Mädchen Doppel`, `Herren Einzel`, `Herren Doppel`, `Damen Einzel` und `Damen Doppel`. Bereits getrennte Bezeichnungen wie `Gemischtes Doppel` sowie `Einzel` und `Doppel` bleiben unverändert. Die Anzeige behält die übliche Zusammenschreibung. Die Regel wird ausschließlich auf die Disziplin angewendet, nicht auf Spielernamen oder den Browsertext.
+
+Beispielquelle: `Im Jungen Doppel U dreizehn erwarten wir spannende Spiele!`. Disziplin und Altersklasse bleiben ein gemeinsamer Ausschnitt aus dieser Aufnahme; innerhalb der Disziplin werden keine Einzelwörter zusammengeschnitten. Der geänderte Quelltext erhält automatisch einen eigenen Cache-Schlüssel. Nummern-, Runden- und Teamquellen behalten ihre bisherigen Schlüssel; eine allgemeine Cache-Löschung oder neue Synthese dieser Bausteine ist nicht nötig.
 
 Für B03 steht nach der Nummer innerhalb des Kontextsatzes **kein zusätzlicher Punkt**. Der Ausschnitt endet vor „ist“, damit er die im Satz erzeugte Betonung behält. Die angezeigte Spielblockfassung darf weiterhin einen Punkt nach der Spielnummer zeigen; die Pause zwischen B03 und B04 wird bei der Montage gesetzt.
 
@@ -86,7 +90,11 @@ Der Hörtest hat beim Jungendoppel einen Rest von „Im“ im Ausschnitt bestät
 
 Der Nutzer bestätigt anschließend den korrigierten Schnitt, hört aber im Wort „Jungendoppel“ eine unpassende Aussprache („Jungend doppel“). Für einen gezielten Vergleich werden im selben Kontext die Schreibweisen `Jungendoppel`, `Jungen-Doppel` und `Jungen Doppel` verwendet. Nur die beiden neuen Schreibweisen benötigen eine neue Synthese; die bestätigte bisherige Aufnahme wird wiederverwendet. Die Anzeige bleibt `Jungendoppel U13`. Jede Probe enthält die vollständige Disziplin und Altersklasse aus einer einzigen Quelle, ohne Schnitt innerhalb des Wortes. Neue WAVs erhalten eigene Schnittgrenzen.
 
-`disciplinePronunciationTrials` im Planskript erzeugt diesen Vergleich ohne Änderung des bestehenden Spielblockplans. Die Regel unterstützt auch die entsprechenden Einzel-/Doppelkomposita mit Jungen, Mädchen, Herren oder Damen; im aktuellen Hörvergleich wird zunächst das beanstandete Jungendoppel geprüft. Die separate Hörseite liegt unter `aussprache-jungendoppel/`. Eine neue Ausspracheform ist damit noch nicht als allgemeine Ersetzung für alle Disziplinen festgelegt.
+`disciplinePronunciationTrials` im Planskript erzeugt diesen Vergleich unabhängig vom jeweils aktuellen Spielblockplan und kann sowohl die frühere Zusammenschreibung als auch die neue getrennte Quelle wiederverwenden. Die separate Hörseite liegt unter `aussprache-jungendoppel/`.
+
+Im anschließenden Hörvergleich wählt der Nutzer **die Variante mit Leerzeichen** und bittet um Übernahme für alle Disziplinen. Damit gilt die oben dokumentierte Regel für sämtliche v2-Spielblockpläne. Die Hörseite `spielbloecke/` wird entsprechend aktualisiert; die bisherige Fassung bleibt unter `spielbloecke-disziplinen-zusammen/` erhalten. Die produktive v1 wird dadurch nicht umgestellt.
+
+Die sechs aktualisierten Hörproben vom 17. Oktober benötigen zwei neue Synthesen: `Mädchen Einzel U19` und `Jungen Einzel U17`. Die gewählte `Jungen Doppel U13`-Aufnahme wird bytegleich übernommen. Insgesamt werden elf Quellaufnahmen und 17 Wiedergabestücke aus dem Cache wiederverwendet. Die zwei neuen Quellen umfassen 117 gesprochene Eingabezeichen und 8,64 Sekunden Roh-Audio; gemessen wurden 46,19 Sekunden reine Inferenz und 59,86 Sekunden für den gesamten Laborlauf. Alle sechs Montagen sind verfügbar. Neue Schnittgrenzen bleiben im Bericht als Hörprüfstellen gekennzeichnet; die Auswahl der bisherigen Doppelprobe ist mit deren exaktem Audiohash dokumentiert. Automatisierte Tests prüfen alle zwölf unterstützten Disziplinkürzel, unveränderte Anzeigen und Namen sowie Cache-Wiederverwendung beider früheren Schreibweisen.
 
 ## 4. Bezug zum bisherigen Aufbau
 
