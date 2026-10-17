@@ -51,9 +51,10 @@ function gameblocks(tournament, samples) {
             'lab-v2/number-turn-context', `${numberDisplay} ist als nächstes an der Reihe.`);
         const number = excerpt(plan, numberSource, numberText, 'lab-v2/B03', { kind: 'generic', display: numberDisplay });
         // German display labels use umlauts; old tournament translations may use ASCII transliteration.
-        const eventDisplay = texts.createEventAnnouncement(setup).replaceAll('Maedchen', 'Mädchen') + '!';
+        const eventDisplay = texts.createEventAnnouncement(setup).replaceAll('Maedchen', 'Mädchen');
         const eventText = spellNumbers(texts.normalizeNames(eventDisplay));
-        const eventSource = plan.source(`Wir rufen auf: ${eventText}`, 'lab-v2/event-call-context', `Wir rufen auf: ${eventDisplay}`);
+        const eventSource = plan.source(`Im ${eventText} erwarten wir spannende Spiele!`,
+            'lab-v2/event-expectation-context', `Im ${eventDisplay} erwarten wir spannende Spiele!`);
         const event = excerpt(plan, eventSource, eventText, 'lab-v2/B04', { kind: 'generic', display: eventDisplay });
         const roundText = texts.createRoundAnnouncement(setup);
         if (!roundText) throw new Error('This listening sample requires a known round');
@@ -66,7 +67,7 @@ function gameblocks(tournament, samples) {
             const pieces = [number, event, round, ...encounter];
             plan.cases.push({ id: `${sample.id}-${suffix}`, experiment: 'Spielblöcke',
                 label: `${sample.label} · ${label}`, sample_origin: sample.origin,
-                display: [`Spielnummer ${setup.match_num}.`, eventDisplay, roundText + '!',
+                display: [`Spielnummer ${setup.match_num}.`, eventDisplay + '!', roundText + '!',
                     setup.teams.map(team => team.players.map(player => player.name).join(' und ')).join(' gegen ')].join(' '),
                 pieces: pieces.map((piece, index) => ({ piece, pause_ms: pauses[index] })),
                 subjective_quality: 'not-rated' });
@@ -78,7 +79,8 @@ function gameblocks(tournament, samples) {
     result.scope = { purpose: 'Requested game-block listening samples, not production activation',
         team_source: '[Team] gegen [Team], without added terminal punctuation',
         number_source: 'Spielnummer [number] ist als nächstes an der Reihe.',
-        number_excerpt: 'Spielnummer [number]', event_source: 'Wir rufen auf: [discipline] [age]!',
+        number_excerpt: 'Spielnummer [number]', event_source: 'Im [discipline] [age] erwarten wir spannende Spiele!',
+        event_excerpt: '[discipline] [age]',
         round_source: '[round]!', pauses_are_listening_settings: true,
         samples: samples.map(({ id, origin, setup }) => ({ id, origin, match_number: setup.match_num, event: setup.event_name, round: setup.match_name })) };
     return result;

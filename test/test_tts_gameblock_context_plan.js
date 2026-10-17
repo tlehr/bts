@@ -15,7 +15,7 @@ describe('Requested context game-block listening plan', function() {
         const sources = new Map(plan.sources.map(source => [source.id, source]));
         assert(plan.sources.some(source => source.text === 'Spielnummer einhundertneunundachtzig ist als nächstes an der Reihe.'));
         assert(!plan.sources.some(source => source.text === 'Spielnummer einhundertneunundachtzig.'));
-        assert(plan.sources.some(source => source.text === 'Wir rufen auf: Mädcheneinzel U neunzehn!'));
+        assert(plan.sources.some(source => source.text === 'Im Mädcheneinzel U neunzehn erwarten wir spannende Spiele!'));
         assert(plan.sources.some(source => source.text === 'Achtelfinale!'));
         for (const piece of pieces.values()) assert.strictEqual(piece.before + piece.text + piece.after, sources.get(piece.source).text);
         const number = plan.pieces.find(piece => piece.profile === 'lab-v2/B03');
@@ -24,8 +24,10 @@ describe('Requested context game-block listening plan', function() {
         assert.strictEqual(number.after, ' ist als nächstes an der Reihe.');
         assert.strictEqual(number.display, 'Spielnummer 189');
         const event = plan.pieces.find(piece => piece.profile === 'lab-v2/B04');
-        assert.strictEqual(event.before, 'Wir rufen auf: ');
-        assert.strictEqual(event.text, 'Mädcheneinzel U neunzehn!');
+        assert.strictEqual(event.before, 'Im ');
+        assert.strictEqual(event.text, 'Mädcheneinzel U neunzehn');
+        assert.strictEqual(event.after, ' erwarten wir spannende Spiele!');
+        assert.strictEqual(event.display, 'Mädcheneinzel U19');
         const positions = plan.pieces.filter(piece => piece.text === 'Nina Keo Boun Khoune');
         assert.strictEqual(positions.length, 2);
         assert.notStrictEqual(positions[0].id, positions[1].id);
@@ -33,6 +35,7 @@ describe('Requested context game-block listening plan', function() {
         assert.strictEqual(plan.cases[0].pieces.length, 5);
         assert.strictEqual(plan.cases[1].pieces.length, 6);
         assert(plan.cases.every(item => !item.pieces.some(entry => pieces.get(entry.piece).text.includes('Wir rufen auf'))));
+        assert(plan.cases.every(item => !item.pieces.some(entry => pieces.get(entry.piece).text.includes('erwarten wir spannende Spiele'))));
         assert(plan.cases.every(item => !item.pieces.some(entry => pieces.get(entry.piece).text.includes('ist als nächstes'))));
         assert(plan.sources.every(source => !/\d/.test(source.text)));
     });
