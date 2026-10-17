@@ -2,6 +2,7 @@
 
 const { prepare } = require('./text');
 const { plan } = require('./coverage');
+const idlePlan = require('./idle_plan');
 const reads = require('../preparation_selection/model_reads');
 const resolveSettings = require('../../static/js/speech_settings');
 const EVENTS = new Set([
@@ -71,6 +72,7 @@ class Prefetcher {
 
     schedule(key, candidates) {
         if (!this.broker.config.enabled || !this.subscriptions.has(key)) return;
+        this.broker.pending_plans.add(key);
         if (candidates) this.preferred.set(key, candidates.slice(0, this.broker.config.max_entries));
         if (this.running.has(key)) { this.dirty.add(key); return; }
         if (this.timers.has(key)) return;
@@ -91,6 +93,7 @@ class Prefetcher {
     async refresh(key) {
         if (this.running.has(key)) return;
         this.running.add(key);
+        this.broker.pending_plans.add(key);
         const revision = this.subscriptions.get(key);
         try {
             await require('../foreground_work').idle();
@@ -138,8 +141,9 @@ class Prefetcher {
             };
             await warm(imminent_parts, 'normal');
             await warm(parts, 'low');
+            const idle_parts = await idlePlan(context, matches, umpires, this.preferred.get(key));
             if (this.subscriptions.get(key) === speech_settings) {
-                const retry = this.broker.reconcile_prefetch(key, parts, { voice: speech_settings.voice, language: 'de-DE' });
+                const retry = this.broker.reconcile_prefetch(key, parts, { voice: speech_settings.voice, language: 'de-DE', idle_parts });
                 clearTimeout(this.lease_timers.get(key));
                 this.lease_timers.delete(key);
                 if (retry !== null) {
@@ -151,6 +155,7 @@ class Prefetcher {
         } finally {
             this.running.delete(key);
             if (this.dirty.delete(key)) this.schedule(key);
+            else this.broker.pending_plans.delete(key);
         }
     }
 
@@ -175,6 +180,7 @@ class Prefetcher {
         for (const timer of this.lease_timers.values()) clearTimeout(timer);
         this.lease_timers.clear();
         this.dirty.clear();
+        for (const key of this.subscriptions.keys()) this.broker.pending_plans.delete(key);
     }
 }
 

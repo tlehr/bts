@@ -24,21 +24,24 @@ function renderer(tournament, locale, parts) {
     });
 }
 
+function tabletoperator_groups(tournament, setup) {
+    if (tournament.tabletoperator_with_state_from_match_enabled) {
+        const player = (setup.teams || []).slice(0, 2).flatMap(team => team.players || []).find(player => player?.state);
+        return [[{ name: player?.state }]];
+    }
+    return (setup.teams || []).slice(0, 2).flatMap(team => {
+        const players = team.players || [];
+        const teams = tournament.tabletoperator_split_doubles ? players.map(player => [player]) : [players];
+        return teams.map(players => tournament.tabletoperator_with_state_enabled && players[0]?.state ?
+            [{ name: players[0].state }] : players);
+    });
+}
+
 function prepare_tabletoperators(texts, tournament, setup = {}, groups) {
     if (tournament.tabletoperator_enabled !== true) return;
     if (!groups) {
         if (setup.state !== 'oncourt' || !setup.court_id) return;
-        if (tournament.tabletoperator_with_state_from_match_enabled) {
-            const player = (setup.teams || []).slice(0, 2).flatMap(team => team.players || []).find(player => player?.state);
-            groups = [[{ name: player?.state }]];
-        } else {
-            groups = (setup.teams || []).slice(0, 2).flatMap(team => {
-                const players = team.players || [];
-                const teams = tournament.tabletoperator_split_doubles ? players.map(player => [player]) : [players];
-                return teams.map(players => tournament.tabletoperator_with_state_enabled && players[0]?.state ?
-                    [{ name: players[0].state }] : players);
-            });
-        }
+        groups = tabletoperator_groups(tournament, setup);
     }
     for (const players of groups) {
         if (!players?.length || players.some(player => typeof player?.name !== 'string' || !player.name.trim())) continue;
@@ -135,4 +138,4 @@ function prepare(tournament, matches, locale = 'de') {
     return [...new Set([translate(locale, 'announcements:speechcheck:text'), ...texts.localParts(parts)])];
 }
 
-module.exports = { prepare, renderer, CALLS };
+module.exports = { prepare, renderer, CALLS, prepare_tabletoperators, tabletoperator_groups };

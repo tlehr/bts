@@ -13,7 +13,8 @@ function createSpeechQueue({ root, service, onSnapshot = () => {} }) {
         ['ordered', 'Beauftragt'], ['potential', 'Noch ohne Auftrag'],
     ];
     let next_recording = 1;
-    const priorities = { high: 'Hoch · aktueller Aufruf', normal: 'Normal · bevorstehendes Spiel', low: 'Niedrig · Vorrat' };
+    const priorities = { high: 'Hoch · aktueller Aufruf', normal: 'Normal · bevorstehendes Spiel', low: 'Niedrig · Vorrat',
+        idle: 'Nur bei Leerlauf · mögliche spätere Ansage' };
     const operation = item => item.operation || (['source', 'text'].includes(item.kind || 'text') ? 'synthesis' :
         item.kind === 'game' ? 'processing' : 'excerpt');
     const operation_labels = { synthesis: 'Sprachaufnahme erzeugen', excerpt: 'Aus Aufnahme ausschneiden', processing: 'Aufnahme aufbereiten' };
@@ -38,7 +39,9 @@ function createSpeechQueue({ root, service, onSnapshot = () => {} }) {
         'Vollständige Sprachaufnahmen werden einmal erzeugt und wiederverwendet. Ausschnitte und Aufbereitung verwenden diese Aufnahmen. ' +
         'BTS setzt die fertigen Bausteine beim Aufruf zusammen.');
     element(root, 'p', 'speech_queue_help',
-        'Die Liste zeigt den aktuellen Bedarf dieses Turniers. Nicht mehr benötigte Aufträge entfallen; fertige Aufnahmen bleiben gespeichert. ' +
+        'Die Liste zeigt den aktuellen Bedarf und begonnene Leerlauf-Vorbereitung dieses Turniers. ' +
+        'Zusätzliche mögliche Ansagen werden nur vorbereitet, wenn alle regulären Aufträge erledigt sind. ' +
+        'Nicht mehr benötigte Aufträge entfallen; fertige Aufnahmen bleiben gespeichert. ' +
         'Laufender Auftrag zuerst; fertige stehen unten. Nummern links zeigen die Reihenfolge. A-Nummern verknüpfen Bausteine mit ihrer Aufnahme.');
     const summary = element(root, 'p', 'speech_queue_summary', 'Warteschlange wird geladen …');
     summary.setAttribute('aria-live', 'polite');
@@ -69,7 +72,9 @@ function createSpeechQueue({ root, service, onSnapshot = () => {} }) {
     element(coverage_details, 'summary', '', 'Vorbereitung nach Aufrufart');
     element(coverage_details, 'p', 'speech_queue_help',
         'Grau umfasst auch Spiele mit unbekannten Teilnehmern und mögliche Bediener aus allen Disziplinen. ' +
-        'Daraus werden keine zusätzlichen Aufträge erzeugt. Die Balken zählen wiederverwendbare Bausteine und noch unbekannte Spiele. ' +
+        'Bei Leerlauf werden zuerst wahrscheinliche nächste Tabletbediener, dann weitere Teams laufender Disziplinen und bekannte Offizielle vorbereitet. ' +
+        'Unbekannte Teilnehmer bleiben ohne Auftrag. Fertiger Leerlauf-Vorrat erscheint blau. ' +
+        'Die Balken zählen wiederverwendbare Bausteine und noch unbekannte Spiele. ' +
         'Gemeinsame Bausteine erscheinen bei mehreren Aufrufarten und im Gesamtbalken nur einmal.');
     const coverage_list = element(coverage_details, 'div', 'speech_coverage_list');
     const list = element(root, 'ol', 'speech_queue_list');
@@ -239,24 +244,28 @@ function createSpeechQueue({ root, service, onSnapshot = () => {} }) {
                 children.get(item.source_key).push(item);
             }
         }
-        const ready = items.filter(item => item.status === 'completed').length;
-        const failed = items.filter(item => item.status === 'failed').length;
-        const fields = items.filter(item => item.source_usage?.type === 'field').length;
-        const games = items.filter(item => item.source_usage?.type === 'game').length;
-        const counts = { total: items.length, ready, failed, preparing: items.length - ready - failed,
-            saved: items.filter(item => item.status === 'completed' && item.local).length };
-        const summary_text = items.length ? 'Aktuell benötigt: ' + items.length + ' Aufträge · ' + ready + ' bereit · ' +
+        const needed = items.filter(item => !item.idle), idle = items.filter(item => item.idle);
+        const ready = needed.filter(item => item.status === 'completed').length;
+        const failed = needed.filter(item => item.status === 'failed').length;
+        const fields = needed.filter(item => item.source_usage?.type === 'field').length;
+        const games = needed.filter(item => item.source_usage?.type === 'game').length;
+        const counts = { total: needed.length, ready, failed, preparing: needed.length - ready - failed,
+            saved: needed.filter(item => item.status === 'completed' && item.local).length };
+        const summary_text = (needed.length ? 'Aktuell benötigt: ' + needed.length + ' Aufträge · ' + ready + ' bereit · ' +
             counts.preparing + ' offen' + (failed ? ' · ' + failed + ' fehlgeschlagen' : '') +
-            (fields || games ? ' · ' + fields + ' Feldreferenzen · ' + games + ' Spielblöcke' : '') +
+            (fields || games ? ' · ' + fields + ' Feldreferenzen · ' + games + ' Spielblöcke' : '') : 'Aktuell keine Aufträge benötigt.') +
+            (idle.length ? ' · Leerlauf-Vorrat: ' + idle.filter(item => item.status === 'completed').length + ' bereit, ' +
+                idle.filter(item => item.status !== 'completed').length + ' offen' : '') +
             (response.queue.busy_elsewhere ?
-                ' · Ein bereits laufender anderer Auftrag wird noch abgeschlossen.' : '') : 'Aktuell keine Aufträge benötigt.';
+                ' · Ein bereits laufender anderer Auftrag wird noch abgeschlossen.' : '');
         if (summary.textContent !== summary_text) summary.textContent = summary_text;
         breakdown.hidden = !items.length;
         const countLabel = values => values.length + ' gesamt · ' + values.filter(item => item.status === 'completed').length + ' fertig';
         synthesis_counts.textContent = 'Sprachaufnahmen: ' + countLabel(items.filter(item => operation(item) === 'synthesis'));
         processing_counts.textContent = 'Ausschneiden / Aufbereiten: ' + countLabel(items.filter(item => operation(item) !== 'synthesis'));
-        paintCoverage(response.queue.coverage, { total: items.length, stock: 0, cached: ready, generated: 0,
-            ordered: items.length - ready, potential: 0, failed });
+        paintCoverage(response.queue.coverage, { total: items.length, stock: idle.filter(item => item.status === 'completed').length,
+            cached: ready, generated: 0,
+            ordered: needed.length - ready + idle.filter(item => item.status !== 'completed').length, potential: 0, failed });
         const persistent = response.speech.persistent_cache;
         cache_status.hidden = !persistent?.enabled;
         cache_status.textContent = persistent?.error ? 'Dauerhaft gespeicherter Bestand derzeit nicht verfügbar.' :
@@ -321,7 +330,7 @@ function createSpeechQueue({ root, service, onSnapshot = () => {} }) {
             const stage = item.kind === 'source' ? 'Kontextaufnahme' : item.kind === 'field_start' ? 'Feldanfang · Ausschnitt' :
                 item.kind === 'field_end' ? 'Feldende · Ausschnitt' : item.kind === 'game' ? 'Spielblock · Audiobearbeitung' :
                 item.excerpt_position === 'start' ? 'Anfang · Ausschnitt' : item.excerpt_position === 'end' ? 'Ende · Ausschnitt' : '';
-            row.meta.textContent = voice + ' · ' + priorities[item.priority] + ' · ' +
+            row.meta.textContent = voice + ' · ' + priorities[item.idle ? 'idle' : item.priority] + ' · ' +
                 (stage ? stage + ' · ' : '') + status(item, source);
             row.button.setAttribute('aria-label', 'Probehören: ' + voice + (stage ? ' (' + stage + ')' : '') + ' – ' + item.text);
             row.button.title = item.status === 'completed' ? 'Lokale Aufnahme probehören (' + voice + ')' :

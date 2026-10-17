@@ -169,10 +169,12 @@ class SpeechCoverage {
             const saved = broker.disk?.lookup(broker.identity, key);
             const ready = !!saved || entry?.status === 'completed' ||
                 !broker.disk && value.archived?.entry?.status === 'completed';
-            const needed = !!entry?.tournaments.has(tournament);
+            const needed = !!entry?.tournaments.has(tournament) && (!entry.idle_tournaments?.has(tournament) ||
+                entry.prefetch_tournaments?.has(tournament) || entry.foreground_tournaments?.has(tournament));
+            const requested = !!entry?.tournaments.has(tournament);
             const generated = saved?.generated_for?.includes(tournament) || entry?.generated_for?.has(tournament) || value.archived?.generated;
-            const state = ready ? needed ? generated ? 'generated' : 'cached' : 'stock' : needed ? 'ordered' : 'potential';
-            const failed = needed && entry?.status === 'failed' ? 1 : 0;
+            const state = ready ? needed ? generated ? 'generated' : 'cached' : 'stock' : requested ? 'ordered' : 'potential';
+            const failed = requested && entry?.status === 'failed' ? 1 : 0;
             for (const counts of [total, ...[...value.groups].map(group => groups.get(group)).filter(Boolean)]) {
                 counts.total++; counts[state]++; counts.failed += failed;
             }

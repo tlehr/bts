@@ -240,3 +240,20 @@ Der Sprachserver bestand 54 Mock-Tests einschließlich Synthesekonfigurations-In
 ## Kontextbasierte Generierung ab 16.10.2026
 
 Mit aktualisiertem Sprachserver und lokalem Wortmodell verwendet BTS die [gemeinsame Kontextstrategie](context-tts.md). Sie ersetzt für deutsche strukturierte Turnieraufrufe die oben beschriebene kurze Stückelung und deren männliche Nachbeschleunigung: ganze Spielblöcke, aus vollständigen Quellen gewonnene Feld-/Teamstücke und längere gemeinsame Texte, einschließlich der D05-/D08-/D12-Korrekturen. Der Browsertext bleibt erhalten. Ältere Server bieten die Strategie nicht an und nutzen weiterhin die bisherige Anbindung.
+
+## Zusätzliche Vorbereitung bei Leerlauf
+
+Sobald alle regulären Aufträge erledigt sind, bereitet BTS weitere mögliche Ansagen der zentral gewählten Stimme vor. Die Reihenfolge ist:
+
+1. Reguläre Aufträge: aktuelle Aufrufe, Feldreferenzen, bekannte Spielblöcke und zugewiesene Offizielle. Dazu gehören weiterhin beide möglichen Tablet-/Klapptafelbediener aus Spielen auf dem Feld sowie der vorhandene Bediener-Wartepool.
+2. Im Leerlauf: Teams aus vorbereiteten Spielen und tatsächlichen Aufrufkandidaten, dann aus den nächsten bekannten Spielen laufender Disziplinen, nach geplantem Datum, Uhrzeit und Spielnummer. Noch unvollständige Paarungen folgen dahinter, soweit bereits Namen bekannt sind.
+3. Weitere gemeldete Teams derselben Disziplinen, auch wenn ihr nächster Gegner noch nicht feststeht.
+4. Weitere bekannte Schiedsrichter und Aufschlagrichter, einschließlich ihrer Vorbereitungsaufrufe und Hallenvarianten. Bereits bekannte Spielaufrufe und gemeinsame Bausteine gehören weiterhin zum regulären Plan.
+
+Eine Disziplin gilt hier als laufend, wenn sie ein Spiel auf dem Feld, in Vorbereitung oder unter den aktuellen Aufrufkandidaten hat. BTS ordnet die BTP-Stufen der jeweiligen Disziplin zu; ohne Stufeninformationen verwendet es den Disziplinnamen. Gibt es noch keine aktiven Spiele, beginnt es mit der nächsten anstehenden Disziplin. Spätere, noch nicht laufende Disziplinen werden nicht allein wegen vorhandener Meldelisten vollständig mit Tabletansagen vorbereitet. Doppelaufteilung, Landesverbandsansagen, Klapptafeln, Namensnormalisierung und die bestehenden Kontextaufnahmen gelten auch im Leerlauf. Unbekannte Gegner oder freie Ansagetexte werden nicht erfunden.
+
+Der Leerlaufplan bleibt zunächst ein Inventar möglicher Texte. Erst ohne offene reguläre Arbeit übernimmt der Broker jeweils einen Baustein samt benötigter Quellaufnahme. Auch Wartezeiten auf die Wiederholung fehlgeschlagener regulärer Arbeit werden nicht mit zusätzlicher Synthese gefüllt. Ein neuer regulärer Auftrag hat vor dem nächsten Leerlaufauftrag Vorrang; eine bereits angenommene Aufnahme oder eine Anfrage mit ungewissem Ausgang behält den einzigen Serverplatz bis zur Klärung. BTS verwendet intern die zusätzliche Priorität `idle`, an den unveränderten Sprachserver geht dafür `low`.
+
+Vor einem Auftrag werden Speicher- und Festplattencache geprüft. Identische Texte und Quellaufnahmen werden wiederverwendet; fertiger Leerlaufvorrat bleibt dauerhaft gespeichert. Der Broker hält nur begrenzt viele Einträge im Arbeitsspeicher. Bei Platzbedarf kann er fertig auf Festplatte gespeicherte Leerlaufeinträge aus dem Arbeitsspeicher nehmen, ohne ihre Dateien zu löschen oder reguläre Aufträge zu verdrängen. Bei geändertem Bedarf, Disziplin- oder Stimmwechsel entfallen überholte, noch nicht benötigte Arbeiten. Bereits gestartete Aufnahmen dürfen fertig werden und bleiben im Cache.
+
+Die Einstellungsseite kennzeichnet solche Einträge mit **„Nur bei Leerlauf“**. Unbeauftragte Möglichkeiten bleiben grau, tatsächlich begonnene Vorbereitung orange und fertiger, aktuell nicht benötigter Vorrat blau. Erst bei einem regulären Bedarf wird dieser Vorrat einem der grünen Bereiche zugeordnet. Die Zahl „Aktuell benötigt“ enthält keine bloße Leerlaufreserve; diese wird daneben gesondert ausgewiesen.

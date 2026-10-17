@@ -77,6 +77,34 @@ describe('Durable BTS speech cache', function() {
         localServer = upstream = null;
     });
 
+    it('finishes more idle inventory than fits in memory, preserves ordinary cache entries and reuses all files after restart', async function() {
+        upstream = await fixture(directory, true);
+        const config = { ...upstream.config, max_entries: 32, submit_interval_ms: 0 };
+        const service = new SpeechBroker(config); await service.refresh();
+        const voice = config.voice;
+        service.prepare(['Regulär benötigt'], { voice, priority: 'normal', prefetch: true }, 'default');
+        await service.step();
+        const regular_key = service.key('Regulär benötigt', voice, 'de-DE');
+        const parts = Array.from({ length: 70 }, (_, i) => 'Weitere Tabletbedienung ' + i);
+        const targets = new Map(parts.map(part => [part, { part, groups: new Set(['D08']) }]));
+        await service.coverage.set_plan('default', voice, targets);
+        service.reconcile_prefetch('default', ['Regulär benötigt'], { voice, idle_parts: parts });
+        for (let i = 0; i < 80; i++) {
+            await service.step();
+            assert(service.entries.size <= 32);
+            assert(service.entries.has(regular_key), 'idle work must not evict ordinary cache entries');
+        }
+        assert.strictEqual(upstream.posts().length, 71);
+        assert.strictEqual(service.queue('default').coverage.groups.find(group => group.id === 'D08').stock, 70);
+        const count = upstream.requests.length;
+        const fresh = new SpeechBroker(config); await fresh.disk.ready;
+        await fresh.coverage.set_plan('default', voice, targets);
+        fresh.reconcile_prefetch('default', [], { voice, idle_parts: parts });
+        await fresh.step();
+        assert.strictEqual(upstream.requests.length, count, 'a restarted BTS must check disk without requesting the speech server again');
+        assert.strictEqual(fresh.queue('default').coverage.total.stock, 71);
+    });
+
     it('retains announcement groups and generation origin across retirement and restart, including shared use by another tournament', async function() {
         upstream = await fixture(directory, true);
         const first = new SpeechBroker(upstream.config); await first.refresh();

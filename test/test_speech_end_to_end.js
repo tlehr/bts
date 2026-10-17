@@ -670,6 +670,7 @@ suite('BTS / actual FastAPI / native Chrome speech integration', function() {
     });
     it('renders five proportional coverage segments and updates them without generating or rebuilding the bars', async function() {
         const response = await rpc(client, { type: 'speech_queue', tournament_key: 'default' });
+        response.queue.items = [{ ...response.queue.items.find(item => item.status === 'completed'), priority: 'idle', idle: true }];
         const counts = { stock: 1, cached: 1, generated: 1, ordered: 1, potential: 1, total: 5, failed: 0 };
         response.queue.coverage = { total: counts, groups: [{ id: 'D08', label: 'Tabletbedienung', ...counts }] };
         const original = admin.handle_speech_queue;
@@ -678,6 +679,10 @@ suite('BTS / actual FastAPI / native Chrome speech integration', function() {
         try {
             await openSpeechSettings();
             await until(() => devtools.evaluate('document.querySelector(\'.speech_queue_progress\')?.dataset.signature?.includes(\'"stock":1\')'));
+            const summary = await devtools.evaluate('document.querySelector(\'.speech_queue_summary\').textContent');
+            assert(summary.includes('Aktuell keine Aufträge benötigt.'));
+            assert(summary.includes('Leerlauf-Vorrat: 1 bereit, 0 offen'));
+            assert(await devtools.evaluate('document.querySelector(\'.speech_queue_meta\').textContent.includes(\'Nur bei Leerlauf\')'));
             const parts = () => devtools.evaluate('[...document.querySelectorAll(\'.speech_queue_progress .speech_coverage_segment\')]' +
                 '.map(part => ({state:part.dataset.coverageState, width:part.style.width, hidden:part.hidden, color:getComputedStyle(part).backgroundColor}))');
             const first = await parts();
