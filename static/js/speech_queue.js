@@ -72,7 +72,7 @@ function createSpeechQueue({ root, service, onSnapshot = () => {} }) {
     element(coverage_details, 'summary', '', 'Vorbereitung nach Aufrufart');
     element(coverage_details, 'p', 'speech_queue_help',
         'Grau umfasst auch Spiele mit unbekannten Teilnehmern und mögliche Bediener aus allen Disziplinen. ' +
-        'Bei Leerlauf werden zuerst wahrscheinliche nächste Tabletbediener, dann weitere Teams laufender Disziplinen und bekannte Offizielle vorbereitet. ' +
+        'Im Leerlauf folgen Tabletbediener zuerst der Liste „Nicht zugewiesen“, danach weitere Teams laufender Disziplinen und bekannte Offizielle. ' +
         'Unbekannte Teilnehmer bleiben ohne Auftrag. Fertiger Leerlauf-Vorrat erscheint blau. ' +
         'Die Balken zählen wiederverwendbare Bausteine und noch unbekannte Spiele. ' +
         'Gemeinsame Bausteine erscheinen bei mehreren Aufrufarten und im Gesamtbalken nur einmal.');

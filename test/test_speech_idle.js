@@ -34,7 +34,7 @@ function service(options = {}) {
 }
 
 describe('Speech preparation only during idle time', function() {
-    it('orders tablet candidates by active/prepared games and schedule, then remaining registrations of those disciplines', async function() {
+    it('orders tablet candidates by unassigned games, then remaining registrations of active disciplines', async function() {
         const current = selected();
         current.events = { events: [
             { id: 1, name: 'JE U17', stages: [{ id: 11, entries: [
@@ -51,8 +51,8 @@ describe('Speech preparation only during idle time', function() {
             game('finished', { stage_id: 11, state: 'finished', teams: [team('Schon fertig A'), team('Schon fertig B')] }),
         ];
         const parts = await idlePlan(current, matches);
-        assert.deepStrictEqual(names(parts), ['Vorbereitet A', 'Vorbereitet B', 'Früh A', 'Früh B',
-            'Spät A', 'Spät B', 'Bekannt ohne Paarung', 'Noch ohne Gegner'].map(name => 'Tabletbedienung:' + name));
+        assert.deepStrictEqual(names(parts), ['Früh A', 'Früh B', 'Spät A', 'Spät B',
+            'Vorbereitet A', 'Vorbereitet B', 'Bekannt ohne Paarung', 'Noch ohne Gegner'].map(name => 'Tabletbedienung:' + name));
         assert.strictEqual(new Set(parts).size, parts.length);
         assert(!parts.some(part => part.includes('Andere Disziplin') || part.includes('Schon fertig')));
         const observed = [], texts = renderer(current, 'de', observed);
@@ -60,6 +60,29 @@ describe('Speech preparation only during idle time', function() {
         texts.announceSecondPreparationCallTabletoperator({ tabletoperators: team('Früh A').players });
         texts.announceSecondPreparationCallTabletoperator({ tabletoperators: team('Früh A').players, location_id: 'default_h1' });
         assert(observed.every(part => parts.includes(part)), 'idle inventory must use the exact later playback recipes');
+    });
+
+    it('follows the unassigned list including manual order, unknown opponents and unscheduled times without promoting preparation or candidates', async function() {
+        const current = selected();
+        const match = (id, time, overrides = {}, extra = {}) => ({ ...game(id, {
+            scheduled_date: '2026-10-17', scheduled_time_str: time, teams: [team(id), { players: [] }], ...overrides,
+        }), ...extra });
+        const matches = [
+            match('Feld', '08:00', { state: 'oncourt', now_on_court: true }),
+            match('Vorbereitung', '11:00', { state: 'preparation', teams: [team('Vorbereitung'), team('Früh')] }),
+            match('Kandidat', '12:00'),
+            match('Früh', '09:00'),
+            match('Unvollständig', '08:30', { state: 'incomplete' }),
+            match('Manuell später', '10:00', { match_num: 2 }, { match_order: 20 }),
+            match('Manuell früher', '10:00', { match_num: 99 }, { match_order: 10 }),
+            match('Ohne Uhrzeit', null, { match_num: 0 }),
+            match('Platzhalterzeit', '00:00', { match_num: 1 }),
+        ];
+        const parts = await idlePlan(current, matches, [], ['Kandidat']);
+        assert.deepStrictEqual(names(parts), ['Unvollständig', 'Früh', 'Manuell früher', 'Manuell später',
+            'Vorbereitung', 'Kandidat', 'Platzhalterzeit', 'Ohne Uhrzeit', 'Feld'].map(name => 'Tabletbedienung:' + name));
+        assert.strictEqual(names(parts).filter(name => name === 'Tabletbedienung:Früh').length, 1,
+            'a team appearing in several games keeps its earliest place');
     });
 
     it('uses preferred candidates to start a quiet discipline and respects doubles, state and counting-board settings', async function() {
@@ -103,6 +126,20 @@ describe('Speech preparation only during idle time', function() {
         const reserve = broker.queue(key).items.filter(item => item.idle);
         assert.strictEqual(reserve.length, 2);
         assert(reserve.every(item => item.priority === 'idle' && item.status === 'completed'));
+    });
+
+    it('applies a revised idle order to already admitted cuts and their sources before dispatch', async function() {
+        const { broker, posts, advance } = service();
+        const before = 'Auf Spielfeld acht! ';
+        const part = text => '~bts-context-v1~' + JSON.stringify({ before, text, after: '', kind: 'generic' });
+        const earlier = part('Tabletbedienung:Früheres Spiel'), later = part('Tabletbedienung:Späteres Spiel');
+        broker.reconcile_prefetch(key, [], { voice, idle_parts: [later, earlier] });
+        broker.admit_idle();
+        advance();
+        broker.reconcile_prefetch(key, [], { voice, idle_parts: [earlier, later] });
+        for (let i = 0; i < 5; i++) { await broker.step(); advance(); }
+        assert.deepStrictEqual(posts.map(post => post.text), [before + 'Tabletbedienung:Früheres Spiel',
+            'Tabletbedienung:Früheres Spiel', before + 'Tabletbedienung:Späteres Spiel', 'Tabletbedienung:Späteres Spiel']);
     });
 
     it('does not fill retry delays for ordinary work with speculative requests', async function() {

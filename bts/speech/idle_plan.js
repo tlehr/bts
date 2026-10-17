@@ -1,6 +1,7 @@
 'use strict';
 
 const { renderer, prepare_tabletoperators, tabletoperator_groups } = require('./text');
+const { cmp_scheduled_match_order } = require('../match_automation');
 
 const OPEN = new Set(['oncourt', 'preparation', 'scheduled', 'ready', 'incomplete']);
 
@@ -20,18 +21,16 @@ async function idlePlan(tournament, matches, umpires = [], preferred_ids = []) {
         const event = named.find(event => name === event.name || name.startsWith(event.name + ' '));
         return event ? eventKey(event) : name ? 'name:' + name.split(/\s+-\s+/)[0] : null;
     };
-    const rank = match => match.setup.state === 'oncourt' ? 0 : match.setup.state === 'preparation' ? 1 :
-        preferred.has(match._id) ? 2 : 3;
-    const complete = match => match.setup.teams?.length >= 2 && match.setup.teams.slice(0, 2)
-        .every(team => team.players?.length && team.players.every(player => player.name?.trim()));
+    const assigned = match => !!(match.setup.court_id && match.setup.now_on_court);
     const open = matches.filter(match => match.setup && match.setup.is_match !== false &&
         OPEN.has(match.setup.state) && typeof match.team1_won !== 'boolean' && match.score_status !== 'no_match')
-        .sort((a, b) => rank(a) - rank(b) ||
-            Number(!complete(a)) - Number(!complete(b)) ||
-            String(a.setup.scheduled_date || '').localeCompare(String(b.setup.scheduled_date || '')) ||
-            String(a.setup.scheduled_time_str || '').localeCompare(String(b.setup.scheduled_time_str || '')) ||
-            Number(a.setup.match_num || 0) - Number(b.setup.match_num || 0) || String(a._id).localeCompare(String(b._id)));
-    const active = new Set(open.filter(match => rank(match) < 3).map(match => discipline(match.setup)).filter(Boolean));
+        // Mirror the unassigned list: a preparation/candidate flag must not
+        // move a later game ahead of the earlier scheduled games. Known teams
+        // from unresolved pairings keep their game's position too.
+        .sort((a, b) => Number(assigned(a)) - Number(assigned(b)) || cmp_scheduled_match_order(a, b) ||
+            String(a._id).localeCompare(String(b._id)));
+    const active = new Set(open.filter(match => ['oncourt', 'preparation'].includes(match.setup.state) || preferred.has(match._id))
+        .map(match => discipline(match.setup)).filter(Boolean));
     // At a quiet tournament start, warm the next discipline, not every later
     // discipline merely because it already has entries in BTP.
     if (!active.size && open.length && discipline(open[0].setup)) active.add(discipline(open[0].setup));

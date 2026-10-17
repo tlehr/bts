@@ -2635,6 +2635,7 @@ async function fetch_global_preparation_candidates(app, tournament_key, options 
 }
 
 module.exports = {
+	cmp_scheduled_match_order,
 	calculate_call_on_court_selection,
 	can_leader_finish_match_within_rallies,
 	calculate_location_preparation_need,

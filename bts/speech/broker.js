@@ -355,7 +355,8 @@ class SpeechBroker {
             return wanted;
         };
         const wanted = expand(parts), idle = expand(idle_parts);
-        this.idle_plans.set(tournament_key, { voice, language, parts: idle_parts, cursor: 0 });
+        this.idle_plans.set(tournament_key, { voice, language, parts: idle_parts, cursor: 0,
+            positions: new Map(idle_parts.map((part, index) => [this.key(part, voice, language), index])) });
         let changed = false, retry_after = null;
         for (const [key, entry] of this.entries) {
             if (!entry.tournaments.has(tournament_key)) continue;
@@ -428,6 +429,23 @@ class SpeechBroker {
 
     pending_order(now = this.now()) {
         const regular_pending = this.regular_work_pending();
+        const idle_positions = new Map();
+        if (!regular_pending) for (const entry of this.entries.values()) {
+            if (entry.priority !== PRIORITY.idle || entry.status === 'completed' && !entry.revalidate) continue;
+            for (const tournament of entry.idle_tournaments || []) {
+                const position = this.idle_plans.get(tournament)?.positions.get(entry.key);
+                if (position === undefined) continue;
+                // A source inherits the earliest still-needed cut's place.
+                // Reordering the plan must also reorder already admitted work.
+                let dependency = entry;
+                while (dependency && position < (idle_positions.get(dependency.key) ?? Infinity)) {
+                    idle_positions.set(dependency.key, position);
+                    dependency = this.entries.get(dependency.source_key);
+                }
+            }
+        }
+        const compare = (a, b) => (a.priority === PRIORITY.idle ?
+            (idle_positions.get(a.key) ?? Infinity) - (idle_positions.get(b.key) ?? Infinity) : 0) || a.created - b.created;
         const eligible = [...this.entries.values()].filter(entry => entry !== this.current?.entry && !entry.busy &&
             (entry.priority !== PRIORITY.idle || !regular_pending) &&
             (!entry.source_key || this.entries.get(entry.source_key)?.status === 'completed') &&
@@ -435,14 +453,14 @@ class SpeechBroker {
         const ordered = [];
         for (const priority of [0, 1, 2, 3]) {
             const voices = new Map();
-            for (const entry of eligible.filter(item => item.priority === priority).sort((a, b) => a.created - b.created)) {
+            for (const entry of eligible.filter(item => item.priority === priority).sort(compare)) {
                 if (!voices.has(entry.voice)) voices.set(entry.voice, []);
                 voices.get(entry.voice).push(entry);
             }
             let last = this.current?.entry.priority === priority ? this.current.request.voice : this.last_post_voice.get(priority);
             while (voices.size) {
                 const next = [...voices.values()].map(items => items[0]).sort((a, b) =>
-                    Number(a.voice === last) - Number(b.voice === last) || a.created - b.created)[0];
+                    Number(a.voice === last) - Number(b.voice === last) || compare(a, b))[0];
                 ordered.push(next);
                 last = next.voice;
                 const items = voices.get(next.voice);
