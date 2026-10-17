@@ -29,19 +29,52 @@ Milo Ebeling und Adrian Kranig gegen Milo Ebeling und Adrian Kranig
 
 Die vorhandenen BTS-Ausspracheersetzungen und die Zahlenausschreibung werden vor der Übergabe an den Sprachserver angewendet. Die Anzeige der Namen bleibt davon getrennt. Die obige Formel wird so festgehalten, wie sie vorgegeben wurde; zusätzliche Satzzeichen sind hier noch nicht vereinbart. Die bisherigen Laborbeispiele mit abschließendem Punkt bleiben als eigene Referenzen erhalten und werden nicht stillschweigend zu dieser Quelle umbenannt.
 
-## 2. Noch festzulegen: Ausschnitte und Verwendung
+## 2. Team-Ausschnitte und Verwendung im Hörtest
 
-Die Quelle stellt beide Teampositionen mit dem gesprochenen Verbinder „gegen“ bereit. Wie diese Aufnahme genau geschnitten und für die einzelnen Durchsagen verwendet wird, wird im nächsten Schritt festgelegt. Die möglichen Bereiche sind:
+Die Quelle stellt beide Teampositionen mit dem gesprochenen Verbinder „gegen“ bereit. Die möglichen Bereiche sind:
 
 ```text
 Team an erster Position | gegen | Team an zweiter Position
 ```
 
-Auch die Bündelung des ersten Teams mit „gegen“ ist technisch möglich; daraus folgt noch keine neue Festlegung der Wiedergabestücke. Es werden hier weder zusätzliche isolierte Namensgenerierungen noch bestimmte Pausen beschlossen. Beide Positionen müssen ihre eigene Herkunft und Betonung behalten, obwohl ihr Text identisch ist.
+Für die angeforderten Spielblock-Hörproben werden zwei Montagen **derselben** Quellen verglichen: `Team 1 mit gegen → Team 2` sowie `Team 1 → gegen → Team 2`. Dafür werden keine zusätzlichen Namen oder Begegnungen isoliert generiert. Beide Positionen behalten ihre eigene Herkunft und Betonung, obwohl ihr Text identisch ist. Die Auswahl der endgültigen Montage und der Pausen bleibt vom Hörvergleich abhängig.
 
 Schnittgrenzen beziehen sich immer auf die tatsächlich erzeugte Original-WAV und ihren Hash. Ein sicherer Schnitt wird nicht aus der Zeichenlänge oder aus festen Zeiten einer anderen Aufnahme abgeleitet. Vollständige Namen und leise An-/Auslaute müssen erhalten bleiben.
 
-## 3. Bezug zum bisherigen Aufbau
+## 3. Festgelegt: die übrigen Teile des Spielblocks
+
+| Teil | Vollständige Generierung | Verwendung |
+| --- | --- | --- |
+| B03 Spielnummer | `Spielnummer [Nummer].` | Direkt und vollständig abspielen |
+| B04 Disziplin und Altersklasse | `Wir rufen auf: [Disziplin] [Altersklasse]!` | Nur `[Disziplin] [Altersklasse]!` ausschneiden; „Wir rufen auf:“ wird nicht abgespielt |
+| B05 Runde | `[Runde]!` | Direkt und vollständig abspielen; das Ausrufezeichen entspricht zunächst dem bisherigen Beispiel |
+| B07 Begegnung | Je tatsächlichem Team: `[Team] gegen [Team]` | Erste Position von Team 1, Verbinder „gegen“, zweite Position von Team 2; alternativ Team 1 und Verbinder als gemeinsames Stück |
+
+Damit ergibt sich:
+
+```text
+Spielnummer [Nummer].
+→ [Disziplin] [Altersklasse]!
+→ [Runde]!
+→ [Team 1] gegen [Team 2]
+```
+
+Spielnummern werden je Nummer, Disziplinen je Kombination mit Altersklasse und Runden je gesprochenem Rundentext dedupliziert. Für denselben Spielblock auf einem anderen Feld ist keine neue Generierung nötig. Zahlen werden vor der Synthese ausgeschrieben; die Anzeige behält Ziffern. Aktuelle Ausspracheersetzungen werden angewendet. Die Quelle für B04 enthält echte Umlaute, etwa „Mädcheneinzel“.
+
+### Angeforderte Hörproben
+
+`scripts/tts-gameblock-context-plan.js` erzeugt den isolierten Hörplan aus dem privaten Turnierexport. Er enthält das bekannte Beispielspiel 189 (nicht das tatsächlich im Export gespeicherte Spiel 189) sowie die tatsächlichen Spiele 161 und 381 als weiteres Einzel und Doppel. Alle drei sind Achtelfinals.
+
+- Drei Spielnummern, drei Kombinationen aus Disziplin und Altersklasse, **eine** gemeinsame Runde und sechs Teamkontexte ergeben **13 vollständige Quellaufnahmen**.
+- Zwei Montagen je Spiel ergeben **sechs Hörproben**, ohne zusätzliche Synthese für die Vergleichsmontage.
+- Die Testpausen betragen 250 ms zwischen Spielnummer, Disziplin, Runde und Begegnung sowie 60 ms an den Übergängen innerhalb der Begegnung. Vorhandene Randstille wird angerechnet. Diese Werte sind zunächst Hörtest-Einstellungen.
+- Gesprochen wird mit Hallensprecher, Seed 42 und dem bisherigen Wiedergabetempo 1,155. Kein Kontexttext wird stellvertretend als kürzerer Generierungsaufwand gezählt.
+
+Die fertige private Hörseite liegt im vorhandenen Hörpaket unter `spielbloecke/`. Sie bietet beide Montagen, eine Abspielfolge der drei Spiele sowie pro Baustein Quelltext, Originalaufnahme, Schnittdaten und den einzelnen Ausschnitt. Ein unsicherer Schnitt bleibt als solcher gekennzeichnet. Audiodateien und der private Turnierexport werden nicht in Git aufgenommen.
+
+Der tatsächliche Versuch vom 17. Oktober 2026 hat alle 13 Quellen erzeugt. Nach einer Korrektur der Positionszuordnung bei identischen Teamwiederholungen sind alle sechs Montagen verfügbar; dafür wurde keine Quelle erneut synthetisiert. Beim Doppel bleibt die aktiv gesprochene Grenze nach „gegen“ in beiden Montagen als Hörprüfstelle markiert. Ein weiterer reiner Cache-Lauf verwendet sämtliche Quellen und 19 Wiedergabestücke ohne neue Synthese und ohne Modellladen wieder.
+
+## 4. Bezug zum bisherigen Aufbau
 
 Aktuell gewinnt `static/js/speech_context.js` die Team-Ausschnitte aus dem vollständigen tatsächlichen Spielblock (`gamePieces` / `teamPiece`). Die neue Festlegung ersetzt für die künftige v2-Teamquelle diese Bindung an den jeweiligen Spielgegner durch den wiederholten eigenen Teamkontext. Sie schaltet noch nicht eigenständig die gesamte Strategie um; der übrige Aufbau und die genaue Schnittverwendung werden weiter festgelegt.
 
