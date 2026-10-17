@@ -9,7 +9,8 @@ function createSpeechQueue({ root, service, onSnapshot = () => {} }) {
     const coverage_rows = new Map();
     const bar_segments = new WeakMap();
     const coverage_states = [
-        ['stock', 'Vorrat im Cache'], ['cached', 'Benötigt · aus Cache'], ['generated', 'Benötigt · neu erzeugt'],
+        ['stock', 'Vorrat im Cache'], ['prepared', 'Vorsorglich erzeugt · diese Sitzung'],
+        ['cached', 'Benötigt · aus Cache'], ['generated', 'Benötigt · neu erzeugt'],
         ['ordered', 'Beauftragt'], ['potential', 'Noch ohne Auftrag'],
     ];
     let next_recording = 1;
@@ -75,8 +76,10 @@ function createSpeechQueue({ root, service, onSnapshot = () => {} }) {
     element(coverage_details, 'p', 'speech_queue_help',
         'Grau umfasst auch Spiele mit unbekannten Teilnehmern und mögliche Bediener aus allen Disziplinen. ' +
         'Nur im Leerlauf: Aufrufkandidaten, wartende Tabletbediener und weitere Spiele in der Reihenfolge der BTS-Liste, ' +
-        'übrige Teams laufender Disziplinen und bekannte Offizielle. ' +
-        'Unbekannte Teilnehmer bleiben ohne Auftrag. Fertiger Leerlauf-Vorrat erscheint blau. ' +
+        'übrige Teams laufender Disziplinen, bekannte Offizielle und zuletzt alle übrigen möglichen Tabletbediener. ' +
+        'Unbekannte Teilnehmer bleiben ohne Auftrag. Türkis zeigt seit dem letzten BTS-Start neu erzeugten, ' +
+        'noch nie konkret benötigten Vorrat; übriger fertiger Vorrat erscheint blau. ' +
+        'Neuladen der Seite setzt diese Sitzung nicht zurück. Sobald ein Baustein benötigt wird, zählt er grün. ' +
         'Die Balken zählen wiederverwendbare Bausteine und noch unbekannte Spiele. ' +
         'Gemeinsame Bausteine erscheinen bei mehreren Aufrufarten und im Gesamtbalken nur einmal.');
     const coverage_list = element(coverage_details, 'div', 'speech_coverage_list');
@@ -86,6 +89,7 @@ function createSpeechQueue({ root, service, onSnapshot = () => {} }) {
     feedback.setAttribute('aria-live', 'polite');
 
     function paintBar(bar, counts, label, caption, failure) {
+        counts = { prepared: 0, ...counts };
         const signature = JSON.stringify(counts);
         if (bar.dataset.signature === signature) return;
         bar.dataset.signature = signature;
@@ -267,7 +271,7 @@ function createSpeechQueue({ root, service, onSnapshot = () => {} }) {
         synthesis_counts.textContent = 'Sprachaufnahmen: ' + countLabel(items.filter(item => operation(item) === 'synthesis'));
         processing_counts.textContent = 'Ausschneiden / Aufbereiten: ' + countLabel(items.filter(item => operation(item) !== 'synthesis'));
         paintCoverage(response.queue.coverage, { total: items.length, stock: idle.filter(item => item.status === 'completed').length,
-            cached: ready, generated: 0,
+            prepared: 0, cached: ready, generated: 0,
             ordered: needed.length - ready + idle.filter(item => item.status !== 'completed').length, potential: 0, failed });
         const persistent = response.speech.persistent_cache;
         cache_status.hidden = !persistent?.enabled;

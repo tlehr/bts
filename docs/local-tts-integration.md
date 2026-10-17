@@ -270,4 +270,13 @@ Der Leerlaufplan bleibt zunächst ein Inventar möglicher Texte. Erst ohne offen
 
 Vor einem Auftrag werden Speicher- und Festplattencache geprüft. Identische Texte und Quellaufnahmen werden wiederverwendet; fertiger Leerlaufvorrat bleibt dauerhaft gespeichert. Der Broker hält nur begrenzt viele Einträge im Arbeitsspeicher. Bei Platzbedarf kann er fertig auf Festplatte gespeicherte Leerlaufeinträge aus dem Arbeitsspeicher nehmen, ohne ihre Dateien zu löschen oder reguläre Aufträge zu verdrängen. Bei geändertem Bedarf, Disziplin- oder Stimmwechsel entfallen überholte, noch nicht benötigte Arbeiten. Bereits gestartete Aufnahmen dürfen fertig werden und bleiben im Cache.
 
-Die Einstellungsseite kennzeichnet solche Einträge mit **„Nur bei Leerlauf“**. Unbeauftragte Möglichkeiten bleiben grau, tatsächlich begonnene Vorbereitung orange und fertiger, aktuell nicht benötigter Vorrat blau. Erst bei einem regulären Bedarf wird dieser Vorrat einem der grünen Bereiche zugeordnet. Die Zahl „Aktuell benötigt“ enthält keine bloße Leerlaufreserve; diese wird daneben gesondert ausgewiesen.
+Die Einstellungsseite kennzeichnet solche Einträge mit **„Nur bei Leerlauf“**. Die Gesamt- und Einzelbalken zeigen sechs getrennte Bereiche in dieser Reihenfolge:
+
+1. **Blau – Vorrat im Cache:** fertiger, aktuell nicht benötigter Bestand außerhalb der folgenden Kategorie.
+2. **Türkis – Vorsorglich erzeugt · diese Sitzung:** seit dem letzten BTS-Start tatsächlich neu erzeugte Bausteine, für die es in diesem Serverlauf noch keinen konkreten Bedarf gab. Ein Cache-Treffer des Sprachservers zählt nicht als neue Erzeugung. Neuladen der Seite oder weitere Clients setzen den Zähler nicht zurück; beim BTS-Neustart werden diese fertigen Dateien zum bisherigen blauen Vorrat.
+3. **Dunkelgrün – Benötigt · aus Cache.**
+4. **Hellgrün – Benötigt · neu erzeugt.**
+5. **Orange – Beauftragt:** noch nicht fertige Aufträge.
+6. **Grau – Noch ohne Auftrag:** bekannte Möglichkeiten und noch unbekannte Spiele.
+
+Sobald ein vorsorglich erzeugter Baustein konkret benötigt wird, wechselt er in den grünen Bereich. Entfällt dieser Bedarf später wieder, gehört er zum blauen Vorrat und nicht erneut zur Kategorie „noch nie benötigt“. Das gilt auch nach Entfernen eines fertigen Eintrags aus dem Arbeitsspeicher. Die Zahl „Aktuell benötigt“ enthält keine bloße Leerlaufreserve; diese wird daneben gesondert ausgewiesen. Neue Balken verändern weder Generierungsreihenfolge noch Audio-Cache.

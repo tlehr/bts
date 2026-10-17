@@ -32,22 +32,24 @@ describe('Speech coverage by announcement type', function() {
         assert.strictEqual(service.current, null);
     });
 
-    it('keeps five disjoint states, deduplicates shared pieces overall, and retains retired completed pieces as stock', async function() {
+    it('keeps six disjoint states, deduplicates shared pieces overall, and retains retired completed pieces as stock', async function() {
         const service = broker();
         await service.coverage.set_plan('default', voice, targets([
             ['Stock', ['D01']], ['Cache', ['D01', 'D02']], ['New', ['D02']], ['Pending', ['D08']],
-            ['Potential', ['D08']], [null, ['D01']],
+            ['Reserve', ['D08']], ['Potential', ['D08']], [null, ['D01']],
         ]));
         service.prepare(['Stock', 'Cache', 'New', 'Pending'], options, 'default');
+        service.prepare(['Reserve'], { ...options, priority: 'idle' }, 'default');
         for (const entry of service.entries.values()) if (entry.text !== 'Pending') {
             entry.status = 'completed';
             if (entry.text === 'New') entry.generated_for = new Set(['default']);
+            if (entry.text === 'Reserve') service.coverage.mark_generated(entry);
         }
         await service.coverage.remember();
         service.reconcile_prefetch('default', ['Cache', 'New', 'Pending'], { voice });
         let coverage = service.queue('default').coverage;
-        assert.deepStrictEqual(STATES.map(state => coverage.total[state]), [1, 1, 1, 1, 2]);
-        assert.strictEqual(coverage.total.total, 6);
+        assert.deepStrictEqual(STATES.map(state => coverage.total[state]), [1, 1, 1, 1, 1, 2]);
+        assert.strictEqual(coverage.total.total, 7);
         assert(coverage.groups.reduce((sum, group) => sum + group.total, 0) > coverage.total.total);
         const pending = service.entries.get(service.key('Pending', voice, 'de-DE'));
         pending.status = 'failed';
@@ -58,7 +60,8 @@ describe('Speech coverage by announcement type', function() {
         coverage = service.queue('default').coverage;
         assert.strictEqual(coverage.total.generated, 0);
         assert.strictEqual(coverage.total.stock, 2);
-        assert.strictEqual(coverage.total.total, 6, 'finished progress moves to blue instead of disappearing');
+        assert.strictEqual(coverage.total.prepared, 1, 'unused session reserve keeps its own category after retirement');
+        assert.strictEqual(coverage.total.total, 7, 'finished progress remains visible after retirement');
         assert.strictEqual(service.queue('default', 'hallensprecherin').coverage, null);
     });
 });

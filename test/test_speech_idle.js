@@ -303,21 +303,26 @@ describe('Speech preparation only during idle time', function() {
         assert(!broker.entries.has(source.key));
     });
 
-    it('reuses finished reserve without new generation, counts it as stock and promotes it to needed on use', async function() {
+    it('counts newly generated reserve separately until its first actual need, then never returns it to unused session reserve', async function() {
         const { broker, posts, advance } = service();
         await broker.coverage.set_plan(key, voice, new Map([['Reserve', { part: 'Reserve', groups: new Set(['D08']) }]]));
         broker.reconcile_prefetch(key, [], { voice, idle_parts: ['Reserve'] });
         assert.strictEqual(broker.queue(key).coverage.total.potential, 1);
         await broker.step(); advance();
-        assert.strictEqual(broker.queue(key).coverage.total.stock, 1);
+        assert.strictEqual(broker.queue(key).coverage.total.prepared, 1);
+        assert.strictEqual(broker.queue(key).coverage.total.stock, 0);
         broker.reconcile_prefetch(key, [], { voice, idle_parts: ['Reserve'] });
         await broker.step(); advance();
         assert.strictEqual(posts.length, 1);
         broker.prepare(['Reserve'], { voice, priority: 'normal', prefetch: true }, key);
         assert.strictEqual(broker.queue(key).coverage.total.generated, 1);
+        assert.strictEqual(broker.queue(key).coverage.total.prepared, 0);
         assert.strictEqual(broker.queue(key).items[0].idle, false);
         await broker.step();
         assert.strictEqual(posts.length, 1);
+        broker.reconcile_prefetch(key, [], { voice, idle_parts: ['Reserve'] });
+        assert.strictEqual(broker.queue(key).coverage.total.stock, 1);
+        assert.strictEqual(broker.queue(key).coverage.total.prepared, 0, 'previously needed audio is no longer unused reserve');
     });
 
     it('checks the persistent cache before admitting reserve and discards obsolete inventory on voice change', async function() {
@@ -332,6 +337,18 @@ describe('Speech preparation only during idle time', function() {
         broker.select_voice(key, 'hallensprecherin');
         await broker.step();
         assert.strictEqual(posts.length, 0);
+    });
+
+    it('keeps ordinary work out of unused reserve when the cache identity becomes known after scheduling', async function() {
+        const { broker } = service();
+        await broker.coverage.set_plan(key, voice, new Map([['Benötigt', { part: 'Benötigt', groups: new Set(['D08']) }]]));
+        broker.prepare(['Benötigt'], { voice, priority: 'normal', prefetch: true }, key);
+        broker.identity = 'initial-health-response';
+        await broker.step();
+        assert.strictEqual(broker.queue(key).coverage.total.generated, 1);
+        broker.reconcile_prefetch(key, [], { voice });
+        assert.strictEqual(broker.queue(key).coverage.total.stock, 1);
+        assert.strictEqual(broker.queue(key).coverage.total.prepared, 0);
     });
 
     it('builds the idle inventory from persisted tournament data and warms a late tablet assignment without another synthesis', async function() {

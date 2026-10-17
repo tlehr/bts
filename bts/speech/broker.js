@@ -270,6 +270,7 @@ class SpeechBroker {
                 entry.tournaments.add(tournament_key);
                 entry[interests] ||= new Set();
                 entry[interests].add(tournament_key);
+                if (normalized.priority !== 'idle') this.coverage.mark_needed(entry, tournament_key);
                 if (!options.prefetch && entry.context) {
                     entry.foreground_expiry ||= new Map();
                     entry.foreground_expiry.set(tournament_key, Math.max(entry.foreground_expiry.get(tournament_key) || 0,
@@ -680,6 +681,7 @@ class SpeechBroker {
             if (post && current.identity === this.identity && response.cache_hit === false) {
                 entry.generated_for ||= new Set();
                 for (const key of entry.tournaments) entry.generated_for.add(key);
+                this.coverage.mark_generated(entry);
             }
             if (!post && response.job_id !== current.job_id) throw new Error('speech_invalid_response');
             current.job_id = response.job_id;

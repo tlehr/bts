@@ -95,7 +95,9 @@ describe('Durable BTS speech cache', function() {
             assert(service.entries.has(regular_key), 'idle work must not evict ordinary cache entries');
         }
         assert.strictEqual(upstream.posts().length, 71);
-        assert.strictEqual(service.queue('default').coverage.groups.find(group => group.id === 'D08').stock, 70);
+        assert.strictEqual(service.queue('default').coverage.groups.find(group => group.id === 'D08').prepared, 70,
+            'unused session reserve survives eviction from the bounded in-memory queue');
+        assert.strictEqual(service.queue('default').coverage.groups.find(group => group.id === 'D08').stock, 0);
         const count = upstream.requests.length;
         const fresh = new SpeechBroker(config); await fresh.disk.ready;
         await fresh.coverage.set_plan('default', voice, targets);
@@ -103,6 +105,45 @@ describe('Durable BTS speech cache', function() {
         await fresh.step();
         assert.strictEqual(upstream.requests.length, count, 'a restarted BTS must check disk without requesting the speech server again');
         assert.strictEqual(fresh.queue('default').coverage.total.stock, 71);
+        assert.strictEqual(fresh.queue('default').coverage.total.prepared, 0, 'a new BTS session treats all existing files as old stock');
+    });
+
+    it('remembers the first actual need of session reserve even after retirement and eviction, independently for each tournament', async function() {
+        upstream = await fixture(directory, true);
+        const first = new SpeechBroker({ ...upstream.config, submit_interval_ms: 0 }); await first.refresh();
+        const voice = upstream.config.voice;
+        const part = 'Vorsorglich für die Tabletbedienung';
+        const targets = new Map([[part, { part, groups: new Set(['D08', 'D11']) }]]);
+        await first.coverage.set_plan('default', voice, targets);
+        await first.coverage.set_plan('other', voice, targets);
+        first.reconcile_prefetch('default', [], { voice, idle_parts: [part] });
+        await first.step();
+        assert.strictEqual(first.queue('default').coverage.total.prepared, 1);
+        assert.strictEqual(first.queue('other').coverage.total.prepared, 0);
+        assert.strictEqual(first.queue('other').coverage.total.stock, 1, 'another tournament reuses already existing audio');
+        const count = upstream.requests.length;
+        first.prepare([part], { voice, priority: 'normal', prefetch: true }, 'default');
+        assert.strictEqual(first.queue('default').coverage.total.generated, 1);
+        first.reconcile_prefetch('default', [], { voice });
+        assert.strictEqual(first.entries.size, 0);
+        assert.strictEqual(first.queue('default').coverage.total.stock, 1);
+        assert.strictEqual(first.queue('default').coverage.total.prepared, 0);
+        first.reconcile_prefetch('default', [], { voice, idle_parts: [part] });
+        await first.step();
+        assert.strictEqual(first.queue('default').coverage.total.prepared, 0);
+        assert.strictEqual(upstream.requests.length, count);
+    });
+
+    it('counts an idle cache hit from the speech server as existing stock, not as new session reserve', async function() {
+        upstream = await fixture(directory, true); upstream.state.cacheHit = true;
+        const first = new SpeechBroker(upstream.config); await first.refresh();
+        const voice = upstream.config.voice, part = 'Schon beim Sprachserver vorhanden';
+        await first.coverage.set_plan('default', voice, new Map([[part, { part, groups: new Set(['D08']) }]]));
+        first.reconcile_prefetch('default', [], { voice, idle_parts: [part] });
+        await first.step();
+        const coverage = first.queue('default').coverage;
+        assert.strictEqual(coverage.total.stock, 1);
+        assert.strictEqual(coverage.total.prepared, 0);
     });
 
     it('retains announcement groups and generation origin across retirement and restart, including shared use by another tournament', async function() {

@@ -669,10 +669,10 @@ suite('BTS / actual FastAPI / native Chrome speech integration', function() {
             admin.handle_speech_queue = original;
         }
     });
-    it('renders five proportional coverage segments and updates them without generating or rebuilding the bars', async function() {
+    it('renders six proportional coverage segments and updates them without generating or rebuilding the bars', async function() {
         const response = await rpc(client, { type: 'speech_queue', tournament_key: 'default' });
         response.queue.items = [{ ...response.queue.items.find(item => item.status === 'completed'), priority: 'idle', idle: true }];
-        const counts = { stock: 1, cached: 1, generated: 1, ordered: 1, potential: 1, total: 5, failed: 0 };
+        const counts = { stock: 1, prepared: 1, cached: 1, generated: 1, ordered: 1, potential: 1, total: 6, failed: 0 };
         response.queue.coverage = { total: counts, groups: [{ id: 'D08', label: 'Tabletbedienung', ...counts }] };
         const original = admin.handle_speech_queue;
         const received = fs.readFileSync(path.join(directory, 'received.jsonl'), 'utf8');
@@ -687,15 +687,21 @@ suite('BTS / actual FastAPI / native Chrome speech integration', function() {
             const parts = () => devtools.evaluate('[...document.querySelectorAll(\'.speech_queue_progress .speech_coverage_segment\')]' +
                 '.map(part => ({state:part.dataset.coverageState, width:part.style.width, hidden:part.hidden, color:getComputedStyle(part).backgroundColor}))');
             const first = await parts();
-            assert.deepStrictEqual(first.map(part => part.state), ['stock', 'cached', 'generated', 'ordered', 'potential']);
-            assert(first.every(part => part.width === '20%' && !part.hidden));
-            assert.strictEqual(new Set(first.map(part => part.color)).size, 5);
+            assert.deepStrictEqual(first.map(part => part.state), ['stock', 'prepared', 'cached', 'generated', 'ordered', 'potential']);
+            assert(first.every(part => Math.abs(parseFloat(part.width) - 100 / 6) < 0.001 && !part.hidden));
+            assert.strictEqual(new Set(first.map(part => part.color)).size, 6);
+            assert(await devtools.evaluate('document.querySelector(\'.speech_coverage_legend\').textContent.includes(\'Vorsorglich erzeugt · diese Sitzung\')'));
             await devtools.evaluate('window.__coverageBar = document.querySelector(\'.speech_queue_progress\')');
-            counts.generated = 0; counts.stock = 2;
+            counts.prepared = 0; counts.generated = 2;
+            Object.assign(response.queue.coverage.groups[0], counts);
             await devtools.evaluate('[...document.querySelectorAll(\'.local_speech_controls button\')]' +
                 '.find(button => button.textContent === \'Cache-Status aktualisieren\').click()');
-            await until(async () => (await parts())[0].width === '40%');
-            assert((await parts()).find(part => part.state === 'generated').hidden);
+            await until(async () => (await parts()).find(part => part.state === 'prepared').hidden);
+            assert(Math.abs(parseFloat((await parts()).find(part => part.state === 'generated').width) - 200 / 6) < 0.001);
+            const group = await devtools.evaluate('[...document.querySelectorAll(\'[data-coverage-group="D08"] .speech_coverage_segment\')]' +
+                '.map(part => ({state:part.dataset.coverageState, width:part.style.width, hidden:part.hidden}))');
+            assert(group.find(part => part.state === 'prepared').hidden);
+            assert(Math.abs(parseFloat(group.find(part => part.state === 'generated').width) - 200 / 6) < 0.001);
             assert(await devtools.evaluate('window.__coverageBar === document.querySelector(\'.speech_queue_progress\')'));
             assert.strictEqual(fs.readFileSync(path.join(directory, 'received.jsonl'), 'utf8'), received);
         } finally {

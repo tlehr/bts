@@ -11,7 +11,7 @@ const GROUPS = [
     ['D11', 'Tablet- / Klapptafelbedienung in Vorbereitung'], ['D12', 'Kampfloser Sieg'],
     ['D13', 'Freie Ansagen'], ['D14', 'Sprachtest'], ['other', 'Weitere Bausteine'],
 ];
-const STATES = ['stock', 'cached', 'generated', 'ordered', 'potential'];
+const STATES = ['stock', 'prepared', 'cached', 'generated', 'ordered', 'potential'];
 
 // Describe possible playback pieces without submitting them to the broker.
 // Unknown games use one shared placeholder until their real text is known.
@@ -86,6 +86,30 @@ class SpeechCoverage {
         this.broker = broker;
         this.plans = new Map();
         this.history = new Map();
+        // Session means this broker's lifetime, shared by all browser clients.
+        // Keep these markers outside queue entries so eviction cannot erase
+        // session progress, and do not restore them from the persistent cache.
+        this.session_generated = new Set();
+        this.session_needed = new Set();
+    }
+
+    session_key(key, tournament) {
+        return JSON.stringify([this.broker.identity, tournament, key]);
+    }
+
+    mark_needed(entry, tournament) {
+        if (entry.context?.kind !== 'source') this.session_needed.add(this.session_key(entry.key, tournament));
+    }
+
+    mark_generated(entry) {
+        if (entry.context?.kind === 'source') return;
+        for (const tournament of entry.tournaments) {
+            this.session_generated.add(this.session_key(entry.key, tournament));
+            // Work may have been scheduled before the first health response
+            // established the cache identity. Preserve its ordinary need too.
+            if (!entry.idle_tournaments?.has(tournament) || entry.prefetch_tournaments?.has(tournament) ||
+                entry.foreground_tournaments?.has(tournament)) this.mark_needed(entry, tournament);
+        }
     }
 
     async set_plan(tournament, voice, targets) {
@@ -153,7 +177,10 @@ class SpeechCoverage {
                 entry.prefetch_tournaments?.has(tournament) || entry.foreground_tournaments?.has(tournament));
             const requested = !!entry?.tournaments.has(tournament);
             const generated = saved?.generated_for?.includes(tournament) || entry?.generated_for?.has(tournament) || value.archived?.generated;
-            const state = ready ? needed ? generated ? 'generated' : 'cached' : 'stock' : requested ? 'ordered' : 'potential';
+            const session = this.session_key(key, tournament);
+            const prepared = this.session_generated.has(session) && !this.session_needed.has(session);
+            const state = ready ? needed ? generated ? 'generated' : 'cached' : prepared ? 'prepared' : 'stock' :
+                requested ? 'ordered' : 'potential';
             const failed = requested && entry?.status === 'failed' ? 1 : 0;
             for (const counts of [total, ...[...value.groups].map(group => groups.get(group)).filter(Boolean)]) {
                 counts.total++; counts[state]++; counts.failed += failed;
