@@ -128,3 +128,19 @@ Der Spielblock B03 → B04 → B05 → B07 bleibt in seinem bestätigten Aufbau 
 | 6 | D12 Kampflos-Klausel | `Das Spiel geht kampflos an` mit Siegerteam in einem vollständigen Kontext erzeugen und mit dem bestätigten Spielblock und vorhandenen Teamaufnahmen prüfen. |
 
 Freie Ansagen und der Sprachtest bleiben vollständige Äußerungen. Die Evakuierung bleibt die bestehende Aufnahme. Dafür ist in diesem Schritt kein neuer Kontextsatz vorgesehen.
+
+### 5.1 Erster B01-Hörsatz: Spielfeld acht, beide Stimmen
+
+`scripts/tts-field-context-plan.js` ergänzt den gespeicherten, bestätigten Spielblockplan um genau eine vollständige Feldreferenz pro Feld und Stimme. Für diesen ersten Hörtest wird nur Feld acht verwendet. Die Referenz hält die Spielnummer ohne „Nummer“, Satzzeichen und Doppel-Leerzeichen aus der bisherigen festen Vorlage bei; für v2 gilt die bereits gewählte gesprochene Schreibweise `Mädchen Einzel`. Die archivierte v1-Referenz bleibt unverändert.
+
+```text
+Auf Spielfeld acht! Spiel einhundertneunundachtzig.  Mädchen Einzel U neunzehn.  Achtelfinale! Nina Keo Boun Khoune gegen LeandraGalowicz. Auf Spielfeld acht!
+```
+
+Aus dieser einen Quelle je Stimme werden **B01-Anfang** und **B01-Ende** als unterschiedliche Positionsbausteine gewonnen. Die vollständige Quelle bleibt zusätzlich als pegelangeglichene Hörreferenz verfügbar. Beide Feldstücke umschließen in den Testmontagen die vorhandenen Spielblöcke; deren Texte, Audiobausteine und innere Pausenziele bleiben erhalten. An den zwei äußeren Übergängen gilt zunächst ein Ziel von 250 ms einschließlich vorhandener Randstille. Die Testaufrufe enthalten noch keine Offiziellen.
+
+Je Stimme gibt es neun Proben: zwei Feldstücke, eine vollständige Kontextreferenz und die drei bestehenden Spiele mit jeweils zwei Begegnungsmontagen. Die Seiten `feldansagen/` und `feldansagen-hallensprecherin/` im Hörpaket verlinken einander und bieten die Quelle, jeden Ausschnitt sowie den zusammengebauten Aufruf an. Die Klangabnahme dieser neuen Feldstücke steht noch aus.
+
+Der männliche Lauf erzeugte eine neue Quelle mit 158 Zeichen und 11,8 Sekunden Roh-Audio in 36,87 Sekunden Inferenz, der weibliche dieselben 158 Zeichen mit 16,0 Sekunden Roh-Audio in 47,07 Sekunden Inferenz. Pro Stimme werden 13 Quellen und 19 bestehende Spielblockbausteine aus dem Cache wiederverwendet. Die neuen Feldschnitte liegen an den jeweils erkannten Satzpausen; keine Frames wurden von der anderen Stimme oder historischen Aufnahmen übernommen. Die Plangenerierung verändert weder den bestätigten Ausgangsplan noch die vorhandenen Audiobausteine. Neue oder geänderte Feldnummern benötigen nur ihre eigenen fehlenden Feldquellen, keine neuen Spielblöcke.
+
+Der reine Cache-Test verwendet je Stimme alle 14 Quellen und 22 Wiedergabestücke erneut, ohne Synthese, neue Schnittverarbeitung oder Modellladen. Alle neun Montagen beziehungsweise Einzelproben und ihre Hörkopien bleiben bytegleich. Chrome prüft beide Stimmen, die drei Aufrufe in Abspielfolge, die Feldstücke, den Referenzplayer, beide Begegnungsmontagen, manuelles Stoppen sowie alle Quellen- und Stimmenlinks.
