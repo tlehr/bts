@@ -37,6 +37,11 @@ describe('Requested context game-block listening plan', function() {
         assert(plan.cases.every(item => !item.pieces.some(entry => pieces.get(entry.piece).text.includes('Wir rufen auf'))));
         assert(plan.cases.every(item => !item.pieces.some(entry => pieces.get(entry.piece).text.includes('erwarten wir spannende Spiele'))));
         assert(plan.cases.every(item => !item.pieces.some(entry => pieces.get(entry.piece).text.includes('ist als nächstes'))));
+        assert(plan.cases.every(item => !item.pieces.some(entry => pieces.get(entry.piece).text.includes('spielt jetzt'))));
+        const encounter = plan.cases.map(item => item.pieces.slice(3).map(entry => pieces.get(entry.piece).text).join(' '));
+        assert.deepStrictEqual(encounter, ['Nina Keo Boun Khoune gegen LeandraGalowicz', 'Nina Keo Boun Khoune gegen LeandraGalowicz']);
+        assert.strictEqual(pieces.get(plan.cases[0].pieces[3].piece).after, ' spielt jetzt gegen Nina Keo Boun Khoune!');
+        assert.strictEqual(pieces.get(plan.cases[0].pieces[4].piece).before, 'LeandraGalowicz spielt jetzt ');
         assert(plan.sources.every(source => !/\d/.test(source.text)));
     });
 
@@ -45,10 +50,10 @@ describe('Requested context game-block listening plan', function() {
         const plan = gameblocks({ normalizations: [{ language: 'de-DE', origin: 'Wächtler', replace: 'Wächtla' }] },
             [sample('one', 381, teams), sample('two', 382, teams)]);
         assert.strictEqual(plan.sources.length, 6, 'two numbers + one event + one round + two team contexts');
-        const repeat = plan.sources.filter(source => source.profile === 'lab-v2/team-repeat-no-punctuation');
+        const repeat = plan.sources.filter(source => source.profile === 'lab-v2/team-repeat-plays-now');
         assert.strictEqual(repeat.length, 2);
-        assert(repeat.some(source => source.text === 'Alex Nord und Robin Wächtla gegen Alex Nord und Robin Wächtla'));
-        assert(repeat.every(source => !/[.!?]$/.test(source.text)));
+        assert(repeat.some(source => source.text === 'Alex Nord und Robin Wächtla spielt jetzt gegen Alex Nord und Robin Wächtla!'));
+        assert(repeat.every(source => source.text.endsWith('!')));
         assert(plan.cases.some(item => item.display.includes('Robin Wächtler')));
         assert(!plan.pieces.some(piece => piece.text === 'Robin Wächtla'));
         assert.throws(() => gameblocks({}, [sample('missing', 7, [team('Known'), team('')])]), /complete actual teams/);
@@ -98,8 +103,8 @@ describe('Requested context game-block listening plan', function() {
             assert.strictEqual(event.display, display + ' U19', code);
             assert(plan.cases.every(item => item.display.includes(display + ' U19!')), code);
             assert(plan.sources.some(source => source.text === `Im ${spoken} U neunzehn erwarten wir spannende Spiele!`), code);
-            assert(plan.sources.some(source => source.text === 'Jungendoppel Mustermann gegen Jungendoppel Mustermann'), code);
-            assert(plan.sources.some(source => source.text === 'Mädcheneinzel Musterfrau gegen Mädcheneinzel Musterfrau'), code);
+            assert(plan.sources.some(source => source.text === 'Jungendoppel Mustermann spielt jetzt gegen Jungendoppel Mustermann!'), code);
+            assert(plan.sources.some(source => source.text === 'Mädcheneinzel Musterfrau spielt jetzt gegen Mädcheneinzel Musterfrau!'), code);
         }
     });
 });

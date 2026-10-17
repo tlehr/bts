@@ -36,11 +36,12 @@ function gameblocks(tournament, samples) {
         const name = spellNumbers(texts.createSingleTeam(players));
         if (!teams.has(name)) {
             const display = players.map(player => player.name).join(' und ');
-            const source = plan.source(`${name} gegen ${name}`, 'lab-v2/team-repeat-no-punctuation', `${display} gegen ${display}`);
+            const source = plan.source(`${name} spielt jetzt gegen ${name}!`,
+                'lab-v2/team-repeat-plays-now', `${display} spielt jetzt gegen ${display}!`);
             teams.set(name, {
-                first: excerpt(plan, source, name, 'lab-v2/team-before-gegen', { display }),
-                first_with_against: excerpt(plan, source, `${name} gegen`, 'lab-v2/team-before-with-gegen', { display: `${display} gegen` }),
+                first: excerpt(plan, source, name, 'lab-v2/team-before-plays', { display }),
                 connector: excerpt(plan, source, 'gegen', 'lab-v2/team-connector', { kind: 'generic' }),
+                second_with_against: excerpt(plan, source, `gegen ${name}`, 'lab-v2/team-after-with-gegen', { display: `gegen ${display}` }),
                 second: excerpt(plan, source, name, 'lab-v2/team-after-gegen', { last: true, display }),
             });
         }
@@ -67,7 +68,7 @@ function gameblocks(tournament, samples) {
         const round = plan.whole(roundText + '!', 'lab-v2/B05');
         const [left, right] = setup.teams.map(team => dual(team.players));
         for (const [suffix, label, encounter, pauses] of [
-            ['two', 'Team 1 mit „gegen“ + Team 2', [left.first_with_against, right.second], [250, 250, 250, 60, 0]],
+            ['two', 'Team 1 + „gegen“ mit Team 2', [left.first, right.second_with_against], [250, 250, 250, 60, 0]],
             ['three', 'Team 1 + „gegen“ + Team 2', [left.first, left.connector, right.second], [250, 250, 250, 60, 60, 0]],
         ]) {
             const pieces = [number, event, round, ...encounter];
@@ -83,7 +84,8 @@ function gameblocks(tournament, samples) {
     result.strategy = 'bts-context-v2-lab-only';
     result.generator_sha256 = require('crypto').createHash('sha256').update(fs.readFileSync(__filename)).digest('hex');
     result.scope = { purpose: 'Requested game-block listening samples, not production activation',
-        team_source: '[Team] gegen [Team], without added terminal punctuation',
+        team_source: '[Team] spielt jetzt gegen [Team]!',
+        team_context_discarded: 'spielt jetzt; final exclamation mark guides the second position',
         number_source: 'Spielnummer [number] ist als nächstes an der Reihe.',
         number_excerpt: 'Spielnummer [number]', event_source: 'Im [discipline] [age] erwarten wir spannende Spiele!',
         event_excerpt: '[discipline] [age]',

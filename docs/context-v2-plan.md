@@ -7,10 +7,10 @@ Diese Datei hält die schrittweise festgelegte neue BTS-Strategie fest. Sie besc
 Für jedes Team wird dieser vollständige Kontext erzeugt:
 
 ```text
-[Team] gegen [Team]
+[Team] spielt jetzt gegen [Team]!
 ```
 
-Beide Vorkommen enthalten **dasselbe Team**. Die Quelle enthält weder einen anderen Gegner noch eine Spielnummer, ein Feld, eine Disziplin oder eine Runde.
+Beide Vorkommen enthalten **dasselbe Team**. „Spielt jetzt“ ist Kontext für die Betonung und wird nicht abgespielt. Die Quelle endet mit dem gewünschten Ausrufezeichen und enthält weder einen anderen Gegner noch eine Spielnummer, ein Feld, eine Disziplin oder eine Runde.
 
 - **Einzel:** `[Team]` ist der vollständige Spielername.
 - **Doppel und Mixed:** `[Team]` enthält beide vollständigen Spielernamen mit „und“, in der tatsächlichen Teamreihenfolge. Die Namen werden nicht in Vor-/Nachnamen oder Einzelwörter zerlegt.
@@ -22,22 +22,22 @@ Beide Vorkommen enthalten **dasselbe Team**. Die Quelle enthält weder einen and
 Beispiele für die Quellen:
 
 ```text
-Johann Bjarne Schöttmer gegen Johann Bjarne Schöttmer
+Johann Bjarne Schöttmer spielt jetzt gegen Johann Bjarne Schöttmer!
 
-Milo Ebeling und Adrian Kranig gegen Milo Ebeling und Adrian Kranig
+Milo Ebeling und Adrian Kranig spielt jetzt gegen Milo Ebeling und Adrian Kranig!
 ```
 
-Die vorhandenen BTS-Ausspracheersetzungen und die Zahlenausschreibung werden vor der Übergabe an den Sprachserver angewendet. Die Anzeige der Namen bleibt davon getrennt. Die obige Formel wird so festgehalten, wie sie vorgegeben wurde; zusätzliche Satzzeichen sind hier noch nicht vereinbart. Die bisherigen Laborbeispiele mit abschließendem Punkt bleiben als eigene Referenzen erhalten und werden nicht stillschweigend zu dieser Quelle umbenannt.
+Die vorhandenen BTS-Ausspracheersetzungen und die Zahlenausschreibung werden vor der Übergabe an den Sprachserver angewendet. Die Anzeige der Namen bleibt davon getrennt. Die Formel einschließlich „spielt“ gilt unverändert auch für Doppel, wie vom Nutzer vorgegeben. Die bisherigen Quellen `Team gegen Team` ohne Satzzeichen sowie die älteren Laborbeispiele mit abschließendem Punkt bleiben als eigene Referenzen erhalten und werden nicht stillschweigend zu dieser Quelle umbenannt.
 
 ## 2. Team-Ausschnitte und Verwendung im Hörtest
 
 Die Quelle stellt beide Teampositionen mit dem gesprochenen Verbinder „gegen“ bereit. Die möglichen Bereiche sind:
 
 ```text
-Team an erster Position | gegen | Team an zweiter Position
+Team an erster Position | spielt jetzt (verwerfen) | gegen | Team an zweiter Position
 ```
 
-Für die angeforderten Spielblock-Hörproben werden zwei Montagen **derselben** Quellen verglichen: `Team 1 mit gegen → Team 2` sowie `Team 1 → gegen → Team 2`. Dafür werden keine zusätzlichen Namen oder Begegnungen isoliert generiert. Beide Positionen behalten ihre eigene Herkunft und Betonung, obwohl ihr Text identisch ist. Die Auswahl der endgültigen Montage und der Pausen bleibt vom Hörvergleich abhängig.
+Für die angeforderten Spielblock-Hörproben werden zwei Montagen **derselben** Quellen verglichen: `Team 1 → gegen mit Team 2` sowie `Team 1 → gegen → Team 2`. „Gegen“ bleibt in der ersten Montage am zweiten Team, weil diese beiden Teile in der neuen Kontextaufnahme direkt aufeinander folgen. Team 1 und „gegen“ sind durch den verworfenen Kontext getrennt und werden deshalb nicht als zusammenhängender Ausschnitt ausgegeben. Dafür werden keine zusätzlichen Namen oder Begegnungen isoliert generiert. Beide Positionen behalten ihre eigene Herkunft und Betonung, obwohl ihr Text identisch ist. Die Auswahl der endgültigen Montage und der Pausen bleibt vom Hörvergleich abhängig.
 
 Schnittgrenzen beziehen sich immer auf die tatsächlich erzeugte Original-WAV und ihren Hash. Ein sicherer Schnitt wird nicht aus der Zeichenlänge oder aus festen Zeiten einer anderen Aufnahme abgeleitet. Vollständige Namen und leise An-/Auslaute müssen erhalten bleiben.
 
@@ -48,7 +48,7 @@ Schnittgrenzen beziehen sich immer auf die tatsächlich erzeugte Original-WAV un
 | B03 Spielnummer | `Spielnummer [Nummer] ist als nächstes an der Reihe.` | Nur `Spielnummer [Nummer]` ausschneiden; der Nachsatz wird nicht abgespielt |
 | B04 Disziplin und Altersklasse | `Im [Disziplin] [Altersklasse] erwarten wir spannende Spiele!` | Nur `[Disziplin] [Altersklasse]` ausschneiden; „Im“ und der Nachsatz werden nicht abgespielt |
 | B05 Runde | `[Runde]!` | Direkt und vollständig abspielen; das Ausrufezeichen entspricht zunächst dem bisherigen Beispiel |
-| B07 Begegnung | Je tatsächlichem Team: `[Team] gegen [Team]` | Erste Position von Team 1, Verbinder „gegen“, zweite Position von Team 2; alternativ Team 1 und Verbinder als gemeinsames Stück |
+| B07 Begegnung | Je tatsächlichem Team: `[Team] spielt jetzt gegen [Team]!` | Erste Position von Team 1, Verbinder „gegen“, zweite Position von Team 2; alternativ Verbinder und Team 2 als gemeinsames Stück. „Spielt jetzt“ verwerfen |
 
 Damit ergibt sich:
 
@@ -95,6 +95,10 @@ Der Nutzer bestätigt anschließend den korrigierten Schnitt, hört aber im Wort
 Im anschließenden Hörvergleich wählt der Nutzer **die Variante mit Leerzeichen** und bittet um Übernahme für alle Disziplinen. Damit gilt die oben dokumentierte Regel für sämtliche v2-Spielblockpläne. Die Hörseite `spielbloecke/` wird entsprechend aktualisiert; die bisherige Fassung bleibt unter `spielbloecke-disziplinen-zusammen/` erhalten. Die produktive v1 wird dadurch nicht umgestellt.
 
 Die sechs aktualisierten Hörproben vom 17. Oktober benötigen zwei neue Synthesen: `Mädchen Einzel U19` und `Jungen Einzel U17`. Die gewählte `Jungen Doppel U13`-Aufnahme wird bytegleich übernommen. Insgesamt werden elf Quellaufnahmen und 17 Wiedergabestücke aus dem Cache wiederverwendet. Die zwei neuen Quellen umfassen 117 gesprochene Eingabezeichen und 8,64 Sekunden Roh-Audio; gemessen wurden 46,19 Sekunden reine Inferenz und 59,86 Sekunden für den gesamten Laborlauf. Alle sechs Montagen sind verfügbar. Neue Schnittgrenzen bleiben im Bericht als Hörprüfstellen gekennzeichnet; die Auswahl der bisherigen Doppelprobe ist mit deren exaktem Audiohash dokumentiert. Automatisierte Tests prüfen alle zwölf unterstützten Disziplinkürzel, unveränderte Anzeigen und Namen sowie Cache-Wiederverwendung beider früheren Schreibweisen.
+
+Anschließend wird die Teamquelle auf `[Team] spielt jetzt gegen [Team]!` geändert. Die sechs neuen Teamquellen der drei Hörbeispiele umfassen zusammen 376 Eingabezeichen und 29,28 Sekunden Roh-Audio; die tatsächliche Inferenz dauert zusammen 142,19 Sekunden. Ein zunächst unsicheres „spielt“ beim Doppel wird durch eine zusätzliche, zeitlich übereinstimmende Kontexterkennung abgesichert und aus derselben Quelle neu geschnitten. Dafür wird keine Teamaufnahme wiederholt. Die sieben Spielnummern-, Disziplin- und Rundenbausteine bleiben bytegleich im Cache. Alle sechs Montagen liegen unter `spielbloecke/`; die bisherige Teamfassung bleibt unter `spielbloecke-team-ohne-spielt-jetzt/` erhalten. Die erste Montage verbindet nun `Team 1` mit dem zusammenhängenden Ausschnitt `gegen Team 2`; „spielt jetzt“ ist in keinem Wiedergabebaustein enthalten.
+
+Der abschließende reine Cache-Lauf trifft alle 13 Quellen und 19 Wiedergabebausteine, benötigt keine Synthese und lädt weder Sprach- noch Ausrichtungsmodell. Die sechs Montagen und ihre Hörkopien sind bytegleich zum vorherigen fertigen Lauf; gemessen wurden 9,45 Sekunden einschließlich Identitätsprüfung und Export. Wiedergabe, Abspielfolge, Stopp und Quellenlinks wurden im lokalen Chrome geprüft.
 
 ## 4. Bezug zum bisherigen Aufbau
 
