@@ -1,0 +1,227 @@
+{
+  "snapshot_utc": "20261017T085739Z",
+  "stable_tag": "bts-context-v1-stable",
+  "runtime_commits": {
+    "bts": "b97808f985f627494469d49bcfc9c1296ce0942e",
+    "speech": "a0bedd8703ce0d1ad0214caf3fa5566a06d4191d"
+  },
+  "branches": {
+    "bts": "feat/localTts",
+    "speech": "feat/localTts"
+  },
+  "speech_package_version": "1.0.0",
+  "backend": "kitten_cpp",
+  "model": "KittenML/kitten-tts-2",
+  "model_revision": "f2eee74f4467855ad58fe16f1fb7b7df473263fd",
+  "configuration_version": "3e5e1815b0336cbff90930907cef159c4a7ce9d7ea18f744cde8433934c9768d",
+  "context_version": "bts-context-v1",
+  "engine": {
+    "protocol": 1,
+    "files": {
+      "worker": "d5d4b977ec01ce2a123d6bcc0157c7b7cb2c186510cefbf2d70a06c32ddbdf4d",
+      "model": "84f0a8b9986fbc01fbe6d4777703304d1cecc7b99e8c6fd2c607e0661e804d4c",
+      "decoder": "c67c1a700358695c780c64417328b74f4d6a71f7363df7cdbbcda6133d6096ae",
+      "voices": "6e1f11910e5de98e5d4f04517c0773a967f66379ab3d48a75db8f325dab436b1",
+      "config": "b49bcabeaf2df0b316a84348cde9c6d5bb003371822120b5026ffb5bd8d8966a"
+    },
+    "libraries": [
+      {
+        "name": "libc10.so",
+        "sha256": "79c9a9b5564ed4ac03cfce9e00dd41cafa3ba1372e001842763eb31560efe3aa"
+      },
+      {
+        "name": "libgomp.so.1",
+        "sha256": "78511033caddec6ccae8f4d62b94d56135f377c4cee33120e6d7df2ef499f69f"
+      },
+      {
+        "name": "libtorch.so",
+        "sha256": "59a95807d56ca89993351a173839f160ca9c2c6ec6f6b89a5e691d8f1392d3ff"
+      },
+      {
+        "name": "libtorch_cpu.so",
+        "sha256": "94fa0a8828acc91faabb2689bc18fa2c4b58ab37feebb8b937d03370d1cf3d1d"
+      },
+      {
+        "name": "libggml-base.so.0",
+        "sha256": "1337548bc776218c0113802cb360003df405021f1bc502feb4d01dfd984fa20a"
+      },
+      {
+        "name": "libggml-cpu.so.0",
+        "sha256": "5f2659f9fa23b28a0fe46dad684513ba54202ab3eaae4626e211c3bd1f1c44db"
+      },
+      {
+        "name": "libggml.so.0",
+        "sha256": "5519a463f9463ddd18f21cd7a711a11901d38a07d47902c53dbd2e06aee7bf20"
+      },
+      {
+        "name": "libkitten_text_processing.so.0",
+        "sha256": "2ec149bcfb5e993e9a59cfeea9fec8423181c2c8e94d321efdc2f81bea775f15"
+      },
+      {
+        "name": "libllama.so.0",
+        "sha256": "e18c1018aa4bbe52ff7190e098c073aaf5f9298fd05dfa1db267bbb51307b654"
+      },
+      {
+        "name": "libc.so.6",
+        "sha256": "3a15d66867d83762c7f2f1e37359cb8f6c5743edb369c65285cb0b1c4f7498bf"
+      },
+      {
+        "name": "libdl.so.2",
+        "sha256": "c2994527172cc23b7fb0f7d611b71e00a37da27af12c2e5e9e0dc1a742886c96"
+      },
+      {
+        "name": "libgcc_s.so.1",
+        "sha256": "d93224d2b0dab4247598be683adca02f5cf00586f99c187579cd7e92058fb7cb"
+      },
+      {
+        "name": "libm.so.6",
+        "sha256": "fce00b6f25f459cf4ae0b7fae4257909a1a8a86f9149e7c029a5d617baf1ccd0"
+      },
+      {
+        "name": "libpthread.so.0",
+        "sha256": "90491a21ce44efcf3bd4b65ec82501c091d7ebe7f8d9b341dd01d721001d9ecd"
+      },
+      {
+        "name": "librt.so.1",
+        "sha256": "6d072187d88e092e81561a44c03a4a41397319022c6d43519757cc051c576d82"
+      },
+      {
+        "name": "libstdc++.so.6.0.33",
+        "sha256": "1fd75fe70354a416d75aef22bcae68c47bd25d20e2d0568c30b1a9838cf62f11"
+      }
+    ],
+    "build": {
+      "source": "1ce0bb504e5452795b52ca9a3c3950e982d82bb1",
+      "normalizer": "1988d61ca82d51ad11cb4a541ac61e1f46677eb4",
+      "patch": "931c9184149a37ff51aa94d7fa43c097e184bf8b6c27b557d3e1516f3760dda7",
+      "worker_source": "8f5880c7c679093733dbbe3f7ddf05ae4bf442aa1a1ec06b6a5d8252c69efef5",
+      "torch": "2.9.1+cpu",
+      "kittenml": "0.9.4",
+      "codec": "749d1c1a46eb10492095d68fbcf55691ccf137cd",
+      "decoder": "default",
+      "flash_attention": false
+    },
+    "profiles": {
+      "hallensprecherin": {
+        "reference_sha256": "6a5c4d7be183f88fe45e8334aa0295f42791d405cdda77fb2eb12f91feb579d4",
+        "reference_text_sha256": "5652ad54051e0992c6fde8f052e08a48a0282cd6fd6e0a961288c288fc7f98d9",
+        "version": "1",
+        "languages": [
+          "de-DE"
+        ]
+      },
+      "hallensprecher": {
+        "reference_sha256": "84498fd95aace36bfbe207c39ebc6c4c64405d628d852eada0cd03fb42886b9e",
+        "reference_text_sha256": "5652ad54051e0992c6fde8f052e08a48a0282cd6fd6e0a961288c288fc7f98d9",
+        "version": "1",
+        "languages": [
+          "de-DE"
+        ]
+      }
+    }
+  },
+  "voices": {
+    "hallensprecherin": {
+      "version": "1",
+      "languages": [
+        "de-DE"
+      ],
+      "reference_sha256": "6a5c4d7be183f88fe45e8334aa0295f42791d405cdda77fb2eb12f91feb579d4",
+      "reference_text_sha256": "5652ad54051e0992c6fde8f052e08a48a0282cd6fd6e0a961288c288fc7f98d9"
+    },
+    "hallensprecher": {
+      "version": "1",
+      "languages": [
+        "de-DE"
+      ],
+      "reference_sha256": "84498fd95aace36bfbe207c39ebc6c4c64405d628d852eada0cd03fb42886b9e",
+      "reference_text_sha256": "5652ad54051e0992c6fde8f052e08a48a0282cd6fd6e0a961288c288fc7f98d9"
+    }
+  },
+  "sampling": {
+    "temperature": 0.8,
+    "top_k": 50,
+    "top_p": 0.8,
+    "min_p": 0,
+    "repetition_penalty": 1.1,
+    "repetition_window": 50,
+    "token_run_penalty": 1.3,
+    "token_run_grace": 10,
+    "max_new_tokens": 1000,
+    "chunk_chars": 380,
+    "chunk_gap_seconds": 0.16
+  },
+  "threads": 4,
+  "decoder_threads": 4,
+  "source_seed": 42,
+  "fallback_source_seed": 43,
+  "playback_speed": {
+    "hallensprecher": 1.155,
+    "hallensprecherin": 1.05
+  },
+  "tournament": {
+    "mode": "auto",
+    "voice": "hallensprecher",
+    "context_version": "bts-context-v1",
+    "cache_version": "0380e5ea49cb0073aecd5854474902065684f4d2c391c7afa81174857017ab01",
+    "normalizations_sha256": "e4f40f52f6bffdcd27e053a8e8503db660a96f8ae90492404bf0675d7360beec",
+    "normalizations_count": 38,
+    "matches": 519,
+    "settings": {
+      "tabletoperator_enabled": true,
+      "tabletoperator_with_state_enabled": false,
+      "tabletoperator_assignment_scope": "same_court",
+      "tabletoperator_with_state_from_match_enabled": false,
+      "tabletoperator_split_doubles": false,
+      "annoncement_include_round": true,
+      "announcement_speech_voice": "hallensprecher",
+      "annoncement_include_event": true,
+      "annoncement_include_matchnumber": true,
+      "announcement_speech_mode": "auto"
+    }
+  },
+  "private_backups": {
+    "bts": "/home/tim/repos/bts/data/v1-freeze/20261017T085739Z",
+    "speech": "/home/tim/repos/bts-sprachserver/data/v1-freeze/20261017T085739Z"
+  },
+  "backup_patch_sha256": {
+    "bts": "c5a58c7105cac647d71f018891d78d26e36fc1c430c39f08388b6af3c41bdb72",
+    "speech": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "api_identity_verified": true,
+  "historical_failed_jobs_at_snapshot": 492,
+  "historical_last_error_at_snapshot": "alignment_failed",
+  "tests": {
+    "speech": {
+      "passed": 108,
+      "skipped_opt_in": 2
+    },
+    "browser": {
+      "passed": 37,
+      "integration_cases": 17,
+      "shared_text_tests": 20
+    },
+    "bts_full_after_test_fix": {
+      "passed": 1168,
+      "skipped_opt_in": 17,
+      "failed": 1,
+      "failure": "benchmark fixed 15-second timeout"
+    },
+    "trace_recheck": {
+      "passed": 19
+    },
+    "benchmark_recheck": {
+      "passed": 1,
+      "seconds": 9.23
+    },
+    "status": "speech-integration-passed; full-suite-timeout-documented"
+  },
+  "test_dependency": {
+    "repository": "bts-testclient",
+    "commit": "cbba35510eac71616c3abb47f7d0d746cab3b18f",
+    "branch": "feat/localTts",
+    "clean": true,
+    "bundle": "/home/tim/repos/bts/data/v1-freeze/20261017T085739Z/testclient.bundle"
+  },
+  "cpu_model": "Intel(R) Core(TM) i7-4770 CPU @ 3.40GHz"
+}

@@ -11,6 +11,7 @@ const WorkerClient = require('../bts/offload/client');
 const outbox = require('../bts/admin_response/outbox');
 const { PerformanceHistory } = require('../debug/live_drill_performance');
 const Archive = require('../debug/web_dashboard/archive');
+const { rows: archived_rows } = require('../debug/testclient_bridge').load('report_archive');
 const { Dashboard, parse_args } = require('../debug/live_tournament_drill');
 
 const turn = () => new Promise(resolve => setImmediate(resolve));
@@ -218,13 +219,18 @@ describe('processing traces and flow evidence', function() {
 		assert.strictEqual(history.history.length, 1); assert.strictEqual(history.report().series.length, 3);
 		assert.strictEqual(history.report().traces.length, 2, 'IDs from different server runs must not collide');
 	});
-	it('exports graph samples, trace updates and events without retaining repeated revisions', function() {
+	it('exports graph samples, trace updates and events without retaining repeated revisions', async function() {
 		const archive = new Archive();
-		for (let revision = 1; revision <= 3; revision++) archive.add({ server_id: 'one', processing: {
-			completed: [{ id: 1, revision }], active: [], stages: [] }, events: [{ kind: 'server', ts: 100, label: 'event' }] }, { ts: revision, measured: true });
-		const report = archive.export(); assert.strictEqual(report.series.length, 3); assert.strictEqual(report.traces.length, 1);
-		assert.strictEqual(report.traces[0].revision, 3); assert.strictEqual(report.events.length, 1);
-		assert.strictEqual(report.raw_server_logs_included, false);
+		try {
+			for (let revision = 1; revision <= 3; revision++) archive.add({ server_id: 'one', processing: {
+				completed: [{ id: 1, revision }], active: [], stages: [] }, events: [{ kind: 'server', ts: 100, label: 'event' }] }, { ts: revision, measured: true });
+			const report = archive.export(); assert.strictEqual(report.series.length, 3); assert.strictEqual(report.traces.length, 1);
+			const exported_traces = [];
+			for await (const row of archived_rows(report.traces)) exported_traces.push(row);
+			assert.strictEqual(exported_traces.length, 1);
+			assert.strictEqual(exported_traces[0].revision, 3); assert.strictEqual(report.events.length, 1);
+			assert.strictEqual(report.raw_server_logs_included, false);
+		} finally { archive.close(); }
 	});
 	it('correlates reception at both clients with the point trace, independently of server clocks', function() {
 		const dashboard = new Dashboard({ ...parse_args(['--plain-log']), quiet: true });
