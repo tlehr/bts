@@ -111,3 +111,20 @@ Der abschließende reine Cache-Lauf trifft alle 13 Quellen und 19 Wiedergabebaus
 Aktuell gewinnt `static/js/speech_context.js` die Team-Ausschnitte aus dem vollständigen tatsächlichen Spielblock (`gamePieces` / `teamPiece`). Die neue Festlegung ersetzt für die künftige v2-Teamquelle diese Bindung an den jeweiligen Spielgegner durch den wiederholten eigenen Teamkontext. Sie schaltet noch nicht eigenständig die gesamte Strategie um; der übrige Aufbau und die genaue Schnittverwendung werden weiter festgelegt.
 
 Der Sprachserver unterstützt bereits vollständige Kontextquellen und quellengebundene Ausschnitte. Die spätere BTS-Planung muss passende Quellen deduplizieren, ihre Positionsausschnitte referenzieren und weiterhin nur einen Sprachserverauftrag zur Zeit senden. Die bestehende Priorisierung wird durch diese Festlegung nicht neu geordnet. Die Anwesenheitskontrolle bleibt außerhalb des Umfangs.
+
+## 5. Weitere Hörvergleiche mit beiden Stimmen
+
+Ab jetzt werden die weiteren abgestimmten Hörbeispiele jeweils mit **Hallensprecher und Hallensprecherin** bereitgestellt. Geeignete vorhandene Quellen und Ausschnitte der jeweiligen Stimme werden zuerst wiederverwendet. Die Stimmen behalten ihre eigenen Cache-Schlüssel, Schnittgrenzen und Hörbewertungen. Diese Vereinbarung betrifft das Hörlabor; für die produktive Vorbereitung gilt weiterhin die zentral ausgewählte Stimme.
+
+Der Spielblock B03 → B04 → B05 → B07 bleibt in seinem bestätigten Aufbau erhalten. Außerhalb dieses Blocks bestehen bereits v1-Kontextvorlagen; sie sind Ausgangspunkt für die folgenden v2-Hörtests. Die Tabelle benennt noch abzustimmende beziehungsweise zu prüfende Bereiche und keine Liste bereits beauftragter neuer Generierungen.
+
+| Reihenfolge | Bereich | Grundlage für den nächsten Kontextvergleich |
+| --- | --- | --- |
+| 1 | B01 Feldanfang und Feldende | Vollständiger Referenz-Spielaufruf mit derselben Feldansage am Anfang und Schluss; beide Positionen getrennt ausschneiden. Zuerst Feld acht und Übergänge zum bestätigten Spielblock prüfen. Die feste v1-Referenz aus Abschnitt 7.1 des Arbeitsdokuments bleibt als Vergleich erhalten. |
+| 2 | B12 Spielbeginn | `Auf Spielfeld acht! Bitte mit dem Spielen beginnen!`; daraus die vollständige Startanweisung gewinnen und mit B01-Anfang prüfen. |
+| 3 | B02, B09, B10 Vorbereitung, Halle und Treffpunkt | Vollständiger Vorbereitungsaufruf; Anfang und Abschluss sowie Einzahl-/Mehrzahlformen der Hallen- und Treffpunkttexte abstimmen. |
+| 4 | B08 Schiedsrichter, Aufschlagrichter, Tablet-/Klapptafelbedienung | Vollständige Aufrufe mit Rolle und tatsächlichem vollständigem Namen beziehungsweise Bedien-Team; Rolle mit Namen möglichst zusammenhalten. |
+| 5 | B11 Zweitaufruf-Präfixe | `Zweiter Aufruf für:` und `Zweiter Aufruf In Vorbereitung für:` im Zusammenhang mit Team beziehungsweise Rolle und Namen gewinnen. Passende Quellen aus den vorherigen Bereichen zuerst verwenden. |
+| 6 | D12 Kampflos-Klausel | `Das Spiel geht kampflos an` mit Siegerteam in einem vollständigen Kontext erzeugen und mit dem bestätigten Spielblock und vorhandenen Teamaufnahmen prüfen. |
+
+Freie Ansagen und der Sprachtest bleiben vollständige Äußerungen. Die Evakuierung bleibt die bestehende Aufnahme. Dafür ist in diesem Schritt kein neuer Kontextsatz vorgesehen.
