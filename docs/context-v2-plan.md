@@ -82,6 +82,8 @@ Anschließend wurde B03 auf den oben beschriebenen Kontextsatz umgestellt. Dafü
 
 Die folgende Anpassung von B04 verwendet den oben beschriebenen Satz „Im … erwarten wir spannende Spiele!“. Dafür werden nur die drei Disziplin-/Altersklassenquellen neu erzeugt; Nummern, Runde und Teams bleiben wiederverwendbar. Die bisherige Fassung mit „Wir rufen auf:“ bleibt unter `spielbloecke-wir-rufen-auf/` erhalten, die aktuelle Fassung liegt weiterhin unter `spielbloecke/`.
 
+Der Hörtest hat beim Jungendoppel einen Rest von „Im“ im Ausschnitt bestätigt. Die zunächst verwendete einzelne Wortmarke bei etwa 108 ms wird deshalb verworfen. Eine auf den bekannten Kontext begrenzte zusätzliche Erkennung verankert sowohl das Ende von „Im“ als auch den Anfang von „Jungen“ bei etwa 210 ms. Der neue Schnitt verwendet diese beiden übereinstimmenden Marken derselben Originalaufnahme. Sämtliche 13 Quellen und die 18 anderen Bausteine bleiben bytegleich; neue Synthese ist dafür gesperrt. Auf der Hörseite stehen alter und korrigierter Ausschnitt im direkten Vergleich. Die Hörnotizen unterscheiden nun auch verschiedene Schnitte desselben Textplans.
+
 ## 4. Bezug zum bisherigen Aufbau
 
 Aktuell gewinnt `static/js/speech_context.js` die Team-Ausschnitte aus dem vollständigen tatsächlichen Spielblock (`gamePieces` / `teamPiece`). Die neue Festlegung ersetzt für die künftige v2-Teamquelle diese Bindung an den jeweiligen Spielgegner durch den wiederholten eigenen Teamkontext. Sie schaltet noch nicht eigenständig die gesamte Strategie um; der übrige Aufbau und die genaue Schnittverwendung werden weiter festgelegt.
