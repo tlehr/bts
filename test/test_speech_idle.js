@@ -7,6 +7,7 @@ const { SpeechBroker, configuration } = require('../bts/speech/broker');
 const { Prefetcher } = require('../bts/speech/prefetch');
 const database = require('../bts/database');
 const idlePlan = require('../bts/speech/idle_plan');
+const { plan: coveragePlan } = require('../bts/speech/coverage');
 const context = require('../bts/speech/context');
 const { renderer } = require('../bts/speech/text');
 const { tournament, setup } = require('./test_speech_text');
@@ -52,11 +53,10 @@ describe('Speech preparation only during idle time', function() {
         ];
         const parts = await idlePlan(current, matches);
         assert.deepStrictEqual(names(parts), ['Vorbereitet A', 'Vorbereitet B', 'Früh A', 'Früh B',
-            'Spät A', 'Spät B', 'Bekannt ohne Paarung', 'Noch ohne Gegner'].map(name => 'Tabletbedienung:' + name));
+            'Spät A', 'Spät B', 'Bekannt ohne Paarung', 'Noch ohne Gegner',
+            'Andere Disziplin', 'Weitere Andere', 'Schon fertig A', 'Schon fertig B'].map(name => 'Tabletbedienung:' + name));
         assert.strictEqual(new Set(parts).size, parts.length);
-        assert(!names(parts).some(part => part.includes('Andere Disziplin')));
         assert(parts.some(part => part.includes('Andere Disziplin')), 'future game blocks also belong to idle inventory');
-        assert(!parts.some(part => part.includes('Schon fertig')));
         const observed = [], texts = renderer(current, 'de', observed);
         texts.announceSecondCallTabletoperator({ tabletoperators: team('Früh A').players });
         texts.announceSecondPreparationCallTabletoperator({ tabletoperators: team('Früh A').players });
@@ -98,7 +98,7 @@ describe('Speech preparation only during idle time', function() {
             game('candidate', { match_num: 50, teams: [doubles, team('Gegner')] })];
         let parts = await idlePlan(current, matches, [], ['candidate']);
         assert(names(parts).includes('Tabletbedienung:Erste und Zweite'));
-        assert(!names(parts).some(part => part.includes('Nicht aktiv')));
+        assert(names(parts).indexOf('Tabletbedienung:Nicht aktiv') > names(parts).indexOf('Tabletbedienung:Gegner'));
         current.tabletoperator_split_doubles = true;
         parts = await idlePlan(current, matches, [], ['candidate']);
         assert(names(parts).includes('Tabletbedienung:Erste'));
@@ -113,6 +113,65 @@ describe('Speech preparation only during idle time', function() {
         assert.deepStrictEqual(names(await idlePlan(current, matches)), []);
         const officials = await idlePlan(current, matches, [{ name: 'Alexandra Becker' }]);
         assert(officials.some(part => context.decode(part, 1200)?.text === 'Schiedsrichter:Alexandra Becker'));
+    });
+
+    it('covers every remaining known tablet candidate last, including individuals from doubles and finished games', async function() {
+        const current = selected();
+        const doubles = { players: [{ btp_id: 1, name: 'Erste' }, { btp_id: 2, name: 'Zweite' }] };
+        current.events = { events: [
+            { id: 1, name: 'Aktiv', stages: [{ id: 11, entries: [{ team: team('Aktive Reserve') }] }] },
+            { id: 2, name: 'Später', stages: [{ id: 22, entries: [{ team: doubles },
+                { team: doubles }, { team: team('Ohne Spiel') }] }] },
+        ] };
+        current.tabletoperators = [{ court: 'default_4', end_ts: 100, tabletoperator: team('Frühere Bedienung').players }];
+        const matches = [
+            game('active', { stage_id: 11, state: 'preparation', teams: [team('Aktiv A'), team('Aktiv B')], court_id: null }),
+            game('later', { stage_id: 22, teams: [doubles, team('Gegner')], court_id: null }),
+            game('finished', { state: 'finished', teams: [team('Fertig A'), team('Fertig B')], court_id: null }),
+            game('unresolved', { stage_id: 22, state: 'incomplete', teams: [team('Bekannt'), { players: [] }], court_id: null }),
+        ];
+        const parts = await idlePlan(current, matches, [{ name: 'Offizieller' }]);
+        const decoded = parts.map(part => context.decode(part, 1200)?.text || part);
+        const last_official = decoded.findLastIndex(text => text.includes('Offizieller'));
+        const first_remaining = decoded.indexOf('Tabletbedienung:Erste');
+        assert(first_remaining > last_official, 'the new tier follows all earlier reserve, including officials');
+        assert(last_official > decoded.indexOf('Tabletbedienung:Aktive Reserve'));
+        for (const name of ['Erste', 'Zweite', 'Erste und Zweite', 'Ohne Spiel', 'Gegner', 'Fertig A', 'Fertig B', 'Bekannt', 'Frühere Bedienung']) {
+            assert(decoded.includes('Tabletbedienung:' + name), name);
+            assert.strictEqual(decoded.filter(text => text === 'Tabletbedienung:' + name).length, 1, 'reuse candidates across registrations/games');
+        }
+        const targets = await coveragePlan(current, matches);
+        for (const target of targets.values()) if (target.groups.has('D08') || target.groups.has('D11')) {
+            assert(parts.includes(target.part), 'every known tablet playback recipe in coverage is eligible for idle preparation');
+        }
+        const observed = [], texts = renderer(current, 'de', observed);
+        texts.announceSecondPreparationCallTabletoperator({ tabletoperators: doubles.players });
+        texts.announceSecondPreparationCallTabletoperator({ tabletoperators: [doubles.players[0]], location_id: 'default_h1' });
+        assert(observed.every(part => parts.includes(part)), 'prepare individual and pairing hall variants with exact playback recipes');
+        current.tabletoperator_split_doubles = true;
+        assert(!names(await idlePlan(current, matches)).includes('Tabletbedienung:Erste und Zweite'));
+    });
+
+    it('keeps the final reserve subject to tablet, counting-board and state settings even without open games', async function() {
+        const current = selected();
+        current.events = { events: [{ stages: [{ entries: [
+            { team: { players: [{ name: 'Erste', state: 'Bremen' }, { name: 'Zweite', state: 'Bremen' }] } },
+            { team: team('Ohne Landesverband') },
+            { team: { players: [{ name: 'Bekannt trotz Platzhalter' }, {}] } },
+        ] }] }] };
+        const parts = await idlePlan(current, []);
+        assert(names(parts).includes('Tabletbedienung:Bekannt trotz Platzhalter'));
+        for (const flag of ['tabletoperator_with_state_enabled', 'tabletoperator_with_state_from_match_enabled']) {
+            const settings = { ...current, [flag]: true, tabletoperator_use_manual_counting_boards_enabled: true };
+            const reserve = (await idlePlan(settings, [])).map(part => context.decode(part, 1200)?.text || part);
+            assert.strictEqual(reserve.filter(text => text === 'Klapptafelbedienung:Bremen').length, 1);
+            assert(!reserve.some(text => text.includes('Ohne Landesverband')));
+            const targets = await coveragePlan(settings, []);
+            assert([...targets.values()].filter(target => target.groups.has('D08')).every(target =>
+                reserve.includes(context.decode(target.part, 1200)?.text || target.part)));
+        }
+        current.tabletoperator_enabled = false;
+        assert.deepStrictEqual(names(await idlePlan(current, [])), []);
     });
 
     it('keeps inventory out of the queue until ordinary work is finished and sends only protocol priorities', async function() {

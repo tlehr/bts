@@ -1,6 +1,7 @@
 'use strict';
 
-const { renderer, prepare_tabletoperators, prepare_waiting_tabletoperators, tabletoperator_groups, prepare } = require('./text');
+const { renderer, prepare_tabletoperators, prepare_waiting_tabletoperators, tabletoperator_groups,
+    potential_tabletoperator_groups, prepare } = require('./text');
 const { isOpen, tier, compare } = require('./planning');
 
 // Keep this inventory separate from the work queue. The broker admits one
@@ -66,6 +67,13 @@ async function idlePlan(tournament, matches, umpires = [], preferred_ids = []) {
                 texts['announceSecondPreparationCall' + suffix]({ ...setup, location_id: location._id });
             }
         }
+    }
+    // Last, cover every remaining known person/pairing, including other
+    // disciplines and completed games. Existing recipes keep their earlier
+    // position, and cached recordings never cause a new synthesis request.
+    for (const group of potential_tabletoperator_groups(tournament, matches)) {
+        await yieldWork();
+        prepare_tabletoperators(texts, tournament, {}, [group]);
     }
     return [...new Set(parts)];
 }

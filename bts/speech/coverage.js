@@ -1,6 +1,6 @@
 'use strict';
 
-const { renderer } = require('./text');
+const { renderer, potential_tabletoperator_groups } = require('./text');
 const contextPlan = require('../../static/js/speech_context');
 const { _translate: translate } = require('../../static/js/ci18n');
 const GROUPS = [
@@ -31,21 +31,11 @@ async function plan(tournament, matches, umpires = []) {
     };
     const halls = setup => setup.location_id || !tournament.locations?.length ? [setup] :
         tournament.locations.map(location => ({ ...setup, location_id: location._id }));
-    const players = new Map(), teams = [];
     const known = team => team?.players?.length && team.players.every(player => player.name?.trim());
-    const collect = team => {
-        if (!known(team)) return;
-        teams.push(team.players);
-        for (const player of team.players) players.set(String(player.btp_id ?? player.name), player);
-    };
-    for (const event of tournament.events?.events || []) for (const stage of event.stages || []) {
-        for (const entry of stage.entries || []) collect(entry.team);
-    }
     for (const match of matches) {
         await yieldWork();
         const setup = match.setup;
         if (!setup || setup.is_match === false) continue;
-        for (const team of setup.teams || []) collect(team);
         if (!setup.teams?.slice(0, 2).every(known) || setup.teams.length < 2) {
             for (const group of ['D01', 'D02', 'D04', 'D05', 'D12']) add(null, group, 'unknown-game:' + match._id);
             continue;
@@ -81,21 +71,11 @@ async function plan(tournament, matches, umpires = []) {
         for (const hall of halls({ [role]: official })) call('D' + String(Number(group.slice(1)) + 3).padStart(2, '0'),
             'announceSecondPreparationCall' + name, hall);
     }
-    if (tournament.tabletoperator_enabled === true) {
-        const groups = [...players.values()].map(player => [player]);
-        if (!tournament.tabletoperator_split_doubles) groups.push(...teams);
-        for (const value of tournament.tabletoperators || []) if (value.tabletoperator?.length) groups.push(value.tabletoperator);
-        for (let group of groups) {
-            await yieldWork();
-            if (tournament.tabletoperator_with_state_enabled || tournament.tabletoperator_with_state_from_match_enabled) {
-                const state = group.find(player => player.state)?.state;
-                if (!state) continue;
-                group = [{ name: state }];
-            }
-            const setup = { tabletoperators: group };
-            call('D08', 'announceSecondCallTabletoperator', setup);
-            for (const hall of halls(setup)) call('D11', 'announceSecondPreparationCallTabletoperator', hall);
-        }
+    for (const group of potential_tabletoperator_groups(tournament, matches)) {
+        await yieldWork();
+        const setup = { tabletoperators: group };
+        call('D08', 'announceSecondCallTabletoperator', setup);
+        for (const hall of halls(setup)) call('D11', 'announceSecondPreparationCallTabletoperator', hall);
     }
     add(translate('de', 'announcements:speechcheck:text'), 'D14');
     return targets;

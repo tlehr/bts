@@ -37,6 +37,42 @@ function tabletoperator_groups(tournament, setup) {
     });
 }
 
+// The final reserve tier includes individuals as well as currently configured
+// pairings: a doubles player can later be assigned as an individual operator.
+// Coverage and idle preparation must describe the same known candidates.
+function* potential_tabletoperator_groups(tournament, matches) {
+    if (tournament.tabletoperator_enabled !== true) return;
+    const players = new Map(), teams = [];
+    const known = player => typeof player?.name === 'string' && player.name.trim();
+    const collect = team => {
+        if (!team?.players?.length) return;
+        if (team.players.every(known)) teams.push(team.players);
+        for (const player of team.players) if (known(player)) players.set(String(player.btp_id ?? player.name), player);
+    };
+    for (const event of tournament.events?.events || []) for (const stage of event.stages || []) {
+        for (const entry of stage.entries || []) collect(entry.team);
+    }
+    for (const match of matches) if (match.setup?.is_match !== false) {
+        for (const team of match.setup?.teams || []) collect(team);
+    }
+    const groups = [...players.values()].map(player => [player]);
+    if (!tournament.tabletoperator_split_doubles) groups.push(...teams);
+    for (const value of tournament.tabletoperators || []) if (value.tabletoperator?.length) groups.push(value.tabletoperator);
+    const seen = new Set();
+    for (let group of groups) {
+        if (tournament.tabletoperator_with_state_enabled || tournament.tabletoperator_with_state_from_match_enabled) {
+            const state = group.find(player => player?.state)?.state;
+            if (!state) continue;
+            group = [{ name: state }];
+        }
+        if (!group.every(known)) continue;
+        const key = JSON.stringify(group.map(player => player.name));
+        if (seen.has(key)) continue;
+        seen.add(key);
+        yield group;
+    }
+}
+
 function prepare_tabletoperators(texts, tournament, setup = {}, groups) {
     if (tournament.tabletoperator_enabled !== true) return;
     if (!groups) {
@@ -143,4 +179,5 @@ function prepare(tournament, matches, locale = 'de', options = {}) {
     return [...new Set([...(shared ? [translate(locale, 'announcements:speechcheck:text')] : []), ...texts.localParts(parts)])];
 }
 
-module.exports = { prepare, renderer, CALLS, prepare_tabletoperators, prepare_waiting_tabletoperators, tabletoperator_groups };
+module.exports = { prepare, renderer, CALLS, prepare_tabletoperators, prepare_waiting_tabletoperators,
+    tabletoperator_groups, potential_tabletoperator_groups };
