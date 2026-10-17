@@ -47,7 +47,7 @@ Schnittgrenzen beziehen sich immer auf die tatsächlich erzeugte Original-WAV un
 | --- | --- | --- |
 | B03 Spielnummer | `Spielnummer [Nummer] ist als nächstes an der Reihe.` | Nur `Spielnummer [Nummer]` ausschneiden; der Nachsatz wird nicht abgespielt |
 | B04 Disziplin und Altersklasse | `Im [Disziplin] [Altersklasse] erwarten wir spannende Spiele!` | Nur `[Disziplin] [Altersklasse]` ausschneiden; „Im“ und der Nachsatz werden nicht abgespielt |
-| B05 Runde | `[Runde]!` | Direkt und vollständig abspielen; das Ausrufezeichen entspricht zunächst dem bisherigen Beispiel |
+| B05 Runde | `[Runde]!` | Direkt und vollständig abspielen; dieser Klang ist im Spielblock vom Nutzer bestätigt |
 | B07 Begegnung | Je tatsächlichem Team: `[Team] spielt jetzt gegen [Team]!` | Erste Position von Team 1, Verbinder „gegen“, zweite Position von Team 2; alternativ Verbinder und Team 2 als gemeinsames Stück. „Spielt jetzt“ verwerfen |
 
 Damit ergibt sich:
@@ -69,6 +69,8 @@ Für B03 steht nach der Nummer innerhalb des Kontextsatzes **kein zusätzlicher 
 
 Für B04 steht nach der Altersklasse ebenfalls **kein zusätzliches Satzzeichen** im Kontextsatz. Der Ausschnitt beginnt nach „Im“ und endet vor „erwarten“. Das abschließende Ausrufezeichen gehört nur zur vollständigen Kontextaufnahme; die Pause zur Runde entsteht bei der Montage. Die angezeigte Spielblockfassung behält ihr bisheriges Ausrufezeichen nach der Altersklasse.
 
+Der Nutzer bestätigt den vollständigen bisherigen Spielblock mit dem neuen Teamkontext. Insbesondere passt die direkt erzeugte Runde im zusammengesetzten Spielblock; für B05 wird deshalb kein neuer Kontextsatz eingeführt. Texte, Bausteinfolge und Pausenziele bleiben für den anschließenden Hörvergleich mit der Hallensprecherin unverändert. Eine bevorzugte der beiden Begegnungsmontagen ist damit noch nicht ausdrücklich festgelegt.
+
 ### Angeforderte Hörproben
 
 `scripts/tts-gameblock-context-plan.js` erzeugt den isolierten Hörplan aus dem privaten Turnierexport. Er enthält das bekannte Beispielspiel 189 (nicht das tatsächlich im Export gespeicherte Spiel 189) sowie die tatsächlichen Spiele 161 und 381 als weiteres Einzel und Doppel. Alle drei sind Achtelfinals.
@@ -79,6 +81,10 @@ Für B04 steht nach der Altersklasse ebenfalls **kein zusätzliches Satzzeichen*
 - Gesprochen wird mit Hallensprecher, Seed 42 und dem bisherigen Wiedergabetempo 1,155. Kein Kontexttext wird stellvertretend als kürzerer Generierungsaufwand gezählt.
 
 Die fertige private Hörseite liegt im vorhandenen Hörpaket unter `spielbloecke/`. Sie bietet beide Montagen, eine Abspielfolge der drei Spiele sowie pro Baustein Quelltext, Originalaufnahme, Schnittdaten und den einzelnen Ausschnitt. Ein unsicherer Schnitt bleibt als solcher gekennzeichnet. Audiodateien und der private Turnierexport werden nicht in Git aufgenommen.
+
+Für den ausdrücklich gewünschten Vergleich mit der Hallensprecherin wird derselbe Plan ohne Änderungen an Texten, Bausteinfolge oder Pausenzielen verwendet. Die weibliche Stimme hat eigene Quellaufnahmen und Schnitte und verwendet ihr bisheriges Wiedergabetempo 1,05; die männliche bleibt bei 1,155. Es gibt weiterhin eine Aufnahme pro eigenständiger Nummer, Disziplin-/Altersklassenkombination, Rundentext oder tatsächlichem Team und gewählter Stimme. Die sechs weiblichen Montagen liegen separat unter `spielbloecke-hallensprecherin/`; beide Hörseiten verlinken einander. Die männlichen Audiodateien und die produktive Stimmenauswahl bleiben erhalten. Eine Bestätigung der weiblichen Hörqualität liegt erst nach dem Vergleich durch den Nutzer vor.
+
+Der weibliche Vergleich vom 17. Oktober erzeugte 13 Quellen mit 764 Eingabezeichen und 58,12 Sekunden Roh-Audio; die tatsächliche Inferenz dauerte 230,89 Sekunden, der gesamte Laborlauf 252,59 Sekunden. Alle sechs Montagen sind verfügbar. Die 63 männlichen Audioartefakte bleiben bytegleich. Der reine weibliche Cache-Lauf trifft alle 13 Quellen und 19 Wiedergabestücke, lädt keine Modelle und erzeugt weder neue Sprache noch neue Schnitte; die Montagen bleiben bytegleich. Beide Hörseiten wurden auf Wiedergabe, Abspielfolge, Stopp sowie Quellen- und Stimmenlinks geprüft.
 
 Der tatsächliche Versuch vom 17. Oktober 2026 hat alle 13 Quellen erzeugt. Nach einer Korrektur der Positionszuordnung bei identischen Teamwiederholungen sind alle sechs Montagen verfügbar; dafür wurde keine Quelle erneut synthetisiert. Beim Doppel bleibt die aktiv gesprochene Grenze nach „gegen“ in beiden Montagen als Hörprüfstelle markiert. Ein weiterer reiner Cache-Lauf verwendet sämtliche Quellen und 19 Wiedergabestücke ohne neue Synthese und ohne Modellladen wieder.
 
