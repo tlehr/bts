@@ -1,7 +1,7 @@
 'use strict';
 
 const assert = require('assert');
-const { gameblocks } = require('../scripts/tts-gameblock-context-plan');
+const { gameblocks, disciplinePronunciationTrials } = require('../scripts/tts-gameblock-context-plan');
 const team = (...names) => ({ players: names.map(name => ({ name })) });
 const sample = (id, number, teams) => ({ id, label: id, origin: 'test fixture',
     setup: { match_num: number, event_name: 'ME U19', match_name: 'R16', teams } });
@@ -52,5 +52,29 @@ describe('Requested context game-block listening plan', function() {
         assert(plan.cases.some(item => item.display.includes('Robin Wächtler')));
         assert(!plan.pieces.some(piece => piece.text === 'Robin Wächtla'));
         assert.throws(() => gameblocks({}, [sample('missing', 7, [team('Known'), team('')])]), /complete actual teams/);
+    });
+
+    it('compares one intact discipline with hyphen and space while preserving the original source cache and display', function() {
+        const setup = sample('doubles', 381, [team('Alex Nord', 'Robin West'), team('Kim Ost', 'Erik Süd')]);
+        setup.setup.event_name = 'JD U13';
+        const existing = gameblocks({}, [setup]);
+        const snapshot = JSON.stringify(existing);
+        const trials = disciplinePronunciationTrials(existing);
+        assert.strictEqual(JSON.stringify(existing), snapshot);
+        assert.strictEqual(trials.sources.length, 3);
+        assert.strictEqual(trials.pieces.length, 3);
+        assert.strictEqual(trials.cases.length, 3);
+        assert.deepStrictEqual(trials.pronunciation, existing.pronunciation, 'other pronunciation rules keep their cache identity');
+        const original = existing.pieces.find(piece => piece.profile === 'lab-v2/B04');
+        assert.strictEqual(trials.pieces[0].id, original.id, 'reuse the already cut original');
+        assert(trials.sources.some(source => source.text === 'Im Jungen-Doppel U dreizehn erwarten wir spannende Spiele!'));
+        assert(trials.sources.some(source => source.text === 'Im Jungen Doppel U dreizehn erwarten wir spannende Spiele!'));
+        for (const piece of trials.pieces) {
+            assert.strictEqual(piece.display, 'Jungendoppel U13');
+            assert.strictEqual(piece.before, 'Im ');
+            assert.strictEqual(piece.after, ' erwarten wir spannende Spiele!');
+        }
+        assert(trials.cases.every(item => item.display === 'Jungendoppel U13' && item.pieces.length === 1));
+        assert.throws(() => disciplinePronunciationTrials(existing, 'Unknown'), /No matching discipline/);
     });
 });

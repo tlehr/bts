@@ -98,9 +98,44 @@ function examples(tournament) {
     return samples;
 }
 
-if (require.main === module) {
-    const tournament = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));
-    process.stdout.write(JSON.stringify(gameblocks(tournament, examples(tournament)), null, 2) + '\n');
+function disciplinePronunciationTrials(existing, display = 'Jungendoppel U13') {
+    const original = existing.pieces.find(piece => piece.profile === 'lab-v2/B04' && piece.display === display);
+    if (!original) throw new Error('No matching discipline excerpt in the recorded plan');
+    const source = existing.sources.find(item => item.id === original.source);
+    const compound = /^(Jungen|Mädchen|Herren|Damen)(einzel|doppel)\b/i;
+    if (!compound.test(original.text)) throw new Error('No supported discipline compound');
+    const separate = (text, separator) => text.replace(compound,
+        (_full, first, second) => first + separator + second[0].toUpperCase() + second.slice(1));
+    const plan = new Plan(existing.pronunciation.normalizations || []);
+    for (const [id, label, text, shown] of [
+        ['original', 'Bisherige Schreibweise', original.text, display],
+        ['hyphen', 'Mit Bindestrich', separate(original.text, '-'), separate(display, '-')],
+        ['space', 'Mit Leerzeichen', separate(original.text, ' '), separate(display, ' ')],
+    ]) {
+        const full = original.before + text + original.after;
+        const fullDisplay = original.before + shown + original.after;
+        const recording = plan.source(full, source.profile, fullDisplay);
+        const piece = excerpt(plan, recording, text, original.profile, { kind: original.kind, display });
+        plan.cases.push({ id: 'discipline-' + id, experiment: 'Aussprache', label: label + ' · ' + shown,
+            display, pieces: [{ piece, pause_ms: 0 }], subjective_quality: 'not-rated' });
+    }
+    const result = plan.export();
+    result.strategy = 'bts-context-v2-lab-only';
+    result.generator_sha256 = require('crypto').createHash('sha256').update(fs.readFileSync(__filename)).digest('hex');
+    result.scope = { purpose: 'Pronunciation comparison only; tournament display and default plan unchanged',
+        display, source_plan_sha256: digest(existing), variants: ['original', 'hyphen', 'space'],
+        no_internal_audio_splices: true, boundaries_belong_to_each_actual_source: true };
+    return result;
 }
 
-module.exports = { gameblocks, examples };
+if (require.main === module) {
+    if (process.argv[2] === '--pronunciation') {
+        const existing = JSON.parse(fs.readFileSync(process.argv[3], 'utf8'));
+        process.stdout.write(JSON.stringify(disciplinePronunciationTrials(existing, process.argv[4]), null, 2) + '\n');
+    } else {
+        const tournament = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));
+        process.stdout.write(JSON.stringify(gameblocks(tournament, examples(tournament)), null, 2) + '\n');
+    }
+}
+
+module.exports = { gameblocks, examples, disciplinePronunciationTrials };
