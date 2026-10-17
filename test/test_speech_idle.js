@@ -34,7 +34,7 @@ function service(options = {}) {
 }
 
 describe('Speech preparation only during idle time', function() {
-    it('orders tablet candidates by unassigned games, then remaining registrations of active disciplines', async function() {
+    it('prepares imminent tablet candidates before later games and remaining registrations of active disciplines', async function() {
         const current = selected();
         current.events = { events: [
             { id: 1, name: 'JE U17', stages: [{ id: 11, entries: [
@@ -51,8 +51,8 @@ describe('Speech preparation only during idle time', function() {
             game('finished', { stage_id: 11, state: 'finished', teams: [team('Schon fertig A'), team('Schon fertig B')] }),
         ];
         const parts = await idlePlan(current, matches);
-        assert.deepStrictEqual(names(parts), ['Früh A', 'Früh B', 'Spät A', 'Spät B',
-            'Vorbereitet A', 'Vorbereitet B', 'Bekannt ohne Paarung', 'Noch ohne Gegner'].map(name => 'Tabletbedienung:' + name));
+        assert.deepStrictEqual(names(parts), ['Vorbereitet A', 'Vorbereitet B', 'Früh A', 'Früh B',
+            'Spät A', 'Spät B', 'Bekannt ohne Paarung', 'Noch ohne Gegner'].map(name => 'Tabletbedienung:' + name));
         assert.strictEqual(new Set(parts).size, parts.length);
         assert(!parts.some(part => part.includes('Andere Disziplin') || part.includes('Schon fertig')));
         const observed = [], texts = renderer(current, 'de', observed);
@@ -62,15 +62,18 @@ describe('Speech preparation only during idle time', function() {
         assert(observed.every(part => parts.includes(part)), 'idle inventory must use the exact later playback recipes');
     });
 
-    it('follows the unassigned list including manual order, unknown opponents and unscheduled times without promoting preparation or candidates', async function() {
+    it('prioritizes on-court games, preparation and candidates while keeping BTS list order within each tier', async function() {
         const current = selected();
         const match = (id, time, overrides = {}, extra = {}) => ({ ...game(id, {
             scheduled_date: '2026-10-17', scheduled_time_str: time, teams: [team(id), { players: [] }], ...overrides,
         }), ...extra });
         const matches = [
             match('Feld', '08:00', { state: 'oncourt', now_on_court: true }),
+            match('Feld ohne Status', '08:15', { now_on_court: true }),
             match('Vorbereitung', '11:00', { state: 'preparation', teams: [team('Vorbereitung'), team('Früh')] }),
+            match('Vorbereitung früher', '10:30', { state: 'preparation' }),
             match('Kandidat', '12:00'),
+            match('Kandidat später', '12:30'),
             match('Früh', '09:00'),
             match('Unvollständig', '08:30', { state: 'incomplete' }),
             match('Manuell später', '10:00', { match_num: 2 }, { match_order: 20 }),
@@ -78,11 +81,12 @@ describe('Speech preparation only during idle time', function() {
             match('Ohne Uhrzeit', null, { match_num: 0 }),
             match('Platzhalterzeit', '00:00', { match_num: 1 }),
         ];
-        const parts = await idlePlan(current, matches, [], ['Kandidat']);
-        assert.deepStrictEqual(names(parts), ['Unvollständig', 'Früh', 'Manuell früher', 'Manuell später',
-            'Vorbereitung', 'Kandidat', 'Platzhalterzeit', 'Ohne Uhrzeit', 'Feld'].map(name => 'Tabletbedienung:' + name));
+        const parts = await idlePlan(current, matches, [], ['Kandidat später', 'Kandidat']);
+        assert.deepStrictEqual(names(parts), ['Feld', 'Feld ohne Status', 'Vorbereitung früher', 'Vorbereitung', 'Früh',
+            'Kandidat', 'Kandidat später', 'Unvollständig', 'Manuell früher', 'Manuell später',
+            'Platzhalterzeit', 'Ohne Uhrzeit'].map(name => 'Tabletbedienung:' + name));
         assert.strictEqual(names(parts).filter(name => name === 'Tabletbedienung:Früh').length, 1,
-            'a team appearing in several games keeps its earliest place');
+            'a team appearing in several games keeps its most urgent place');
     });
 
     it('uses preferred candidates to start a quiet discipline and respects doubles, state and counting-board settings', async function() {

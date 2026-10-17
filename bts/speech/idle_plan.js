@@ -21,15 +21,15 @@ async function idlePlan(tournament, matches, umpires = [], preferred_ids = []) {
         const event = named.find(event => name === event.name || name.startsWith(event.name + ' '));
         return event ? eventKey(event) : name ? 'name:' + name.split(/\s+-\s+/)[0] : null;
     };
-    const assigned = match => !!(match.setup.court_id && match.setup.now_on_court);
+    const rank = match => match.setup.state === 'oncourt' || match.setup.court_id && match.setup.now_on_court ? 0 :
+        match.setup.state === 'preparation' ? 1 : preferred.has(match._id) ? 2 : 3;
     const open = matches.filter(match => match.setup && match.setup.is_match !== false &&
         OPEN.has(match.setup.state) && typeof match.team1_won !== 'boolean' && match.score_status !== 'no_match')
-        // Mirror the unassigned list: a preparation/candidate flag must not
-        // move a later game ahead of the earlier scheduled games. Known teams
-        // from unresolved pairings keep their game's position too.
-        .sort((a, b) => Number(assigned(a)) - Number(assigned(b)) || cmp_scheduled_match_order(a, b) ||
+        // Immediate duties come first; within each tier retain the BTS list's
+        // schedule, including known teams from unresolved pairings.
+        .sort((a, b) => rank(a) - rank(b) || cmp_scheduled_match_order(a, b) ||
             String(a._id).localeCompare(String(b._id)));
-    const active = new Set(open.filter(match => ['oncourt', 'preparation'].includes(match.setup.state) || preferred.has(match._id))
+    const active = new Set(open.filter(match => rank(match) < 3)
         .map(match => discipline(match.setup)).filter(Boolean));
     // At a quiet tournament start, warm the next discipline, not every later
     // discipline merely because it already has entries in BTP.

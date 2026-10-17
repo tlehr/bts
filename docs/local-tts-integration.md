@@ -246,9 +246,14 @@ Mit aktualisiertem Sprachserver und lokalem Wortmodell verwendet BTS die [gemein
 Sobald alle regulären Aufträge erledigt sind, bereitet BTS weitere mögliche Ansagen der zentral gewählten Stimme vor. Die Reihenfolge ist:
 
 1. Reguläre Aufträge: aktuelle Aufrufe, Feldreferenzen, bekannte Spielblöcke und zugewiesene Offizielle. Dazu gehören weiterhin beide möglichen Tablet-/Klapptafelbediener aus Spielen auf dem Feld sowie der vorhandene Bediener-Wartepool.
-2. Im Leerlauf: Teams der nicht zugewiesenen Spiele laufender Disziplinen, in derselben Reihenfolge wie die BTS-Liste: geplanter Termin, bei gleichem Termin eine vorhandene manuelle Reihenfolge, danach Spielnummer. Vorbereitung und Aufrufkandidaten ändern diese Reihenfolge nicht. Bereits bekannte Teams unvollständiger Paarungen behalten die Position ihres Spiels; unbekannte Namen werden ausgelassen. Die Platzhalterzeit `00:00` und fehlende Uhrzeiten folgen den vorhandenen Regeln der Spielliste. Spiele auf einem Feld folgen hinter den nicht zugewiesenen Spielen; deren mögliche Bediener sind üblicherweise schon regulär vorbereitet.
-3. Weitere gemeldete Teams derselben Disziplinen, auch wenn ihr nächster Gegner noch nicht feststeht.
-4. Weitere bekannte Schiedsrichter und Aufschlagrichter, einschließlich ihrer Vorbereitungsaufrufe und Hallenvarianten. Bereits bekannte Spielaufrufe und gemeinsame Bausteine gehören weiterhin zum regulären Plan.
+2. Im Leerlauf zuerst Teams laufender Spiele auf dem Feld; deren mögliche Bediener sind üblicherweise schon regulär vorbereitet und werden dann aus dem Cache übernommen.
+3. Teams der Spiele in Vorbereitung.
+4. Teams der tatsächlichen Aufrufkandidaten.
+5. Teams der weiteren nicht zugewiesenen Spiele laufender Disziplinen, in der Reihenfolge der BTS-Liste.
+6. Weitere gemeldete Teams derselben Disziplinen, auch wenn ihr nächster Gegner noch nicht feststeht.
+7. Weitere bekannte Schiedsrichter und Aufschlagrichter, einschließlich ihrer Vorbereitungsaufrufe und Hallenvarianten. Bereits bekannte Spielaufrufe und gemeinsame Bausteine gehören weiterhin zum regulären Plan.
+
+Innerhalb jeder Spielgruppe gilt dieselbe Reihenfolge wie in der BTS-Liste: geplanter Termin, bei gleichem Termin eine vorhandene manuelle Reihenfolge, danach Spielnummer. Bereits bekannte Teams unvollständiger Paarungen behalten die Position ihres Spiels; unbekannte Namen werden ausgelassen. Die Platzhalterzeit `00:00` und fehlende Uhrzeiten folgen den vorhandenen Regeln der Spielliste. Kommt ein Team in mehreren Spielen vor, zählt sein dringendster Bedarf; identische Ansagen werden nur einmal vorbereitet.
 
 Eine Disziplin gilt hier als laufend, wenn sie ein Spiel auf dem Feld, in Vorbereitung oder unter den aktuellen Aufrufkandidaten hat. BTS ordnet die BTP-Stufen der jeweiligen Disziplin zu; ohne Stufeninformationen verwendet es den Disziplinnamen. Gibt es noch keine aktiven Spiele, beginnt es mit der nächsten anstehenden Disziplin. Spätere, noch nicht laufende Disziplinen werden nicht allein wegen vorhandener Meldelisten vollständig mit Tabletansagen vorbereitet. Doppelaufteilung, Landesverbandsansagen, Klapptafeln, Namensnormalisierung und die bestehenden Kontextaufnahmen gelten auch im Leerlauf. Unbekannte Gegner oder freie Ansagetexte werden nicht erfunden.
 
