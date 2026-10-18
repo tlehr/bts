@@ -600,7 +600,7 @@ class SpeechBroker {
                 local: entry.local === true,
                 ...(entry.fallback_stage || entry.fallback_source ? { fallback_stage: entry.fallback_stage || entry.fallback_source } : {}),
                 ...(entry.terminal_failure ? { terminal_failure: true } : {}),
-                diagnostics: this.failures.get(this.identity, entry.key),
+                diagnostics: this.failures.get_current(this.identity, entry.key),
                 operation: !entry.source_key ? 'synthesis' : entry.context.before || entry.context.after ? 'excerpt' : 'processing',
                 ...(entry.source_key ? { source_key: entry.source_key, source_range: {
                     start: entry.context.before.length, end: entry.context.before.length + entry.text.length,

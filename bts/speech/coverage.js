@@ -228,7 +228,7 @@ class SpeechCoverage {
             const failed = requested && entry?.status === 'failed' ? 1 : 0;
             if (target?.part || entry || saved || value.archived) {
                 componentRows.push({ id: key, part, ...description, state, failed: !!failed,
-                    diagnostics: broker.failures?.get(broker.identity, key) || null, status: ready ? 'completed' : entry?.status || 'missing',
+                    diagnostics: broker.failures?.get_current(broker.identity, key) || null, status: ready ? 'completed' : entry?.status || 'missing',
                     retry_at: Math.max(entry?.retry_at || 0, entry?.server_retry_at || 0, broker.post_retry_at || 0),
                     terminal_failure: entry?.terminal_failure === true, fallback_stage: entry?.fallback_stage });
             }

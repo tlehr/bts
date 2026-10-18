@@ -88,7 +88,8 @@ function createSpeechQueue({ root, service, onSnapshot = () => {} }) {
     element(root, 'h3', '', 'Texte und Reihenfolge');
     element(root, 'p', 'speech_queue_help',
         'Vollständige Sprachaufnahmen werden einmal erzeugt und wiederverwendet. Ausschnitte und Aufbereitung verwenden diese Aufnahmen. ' +
-        'BTS setzt die fertigen Bausteine beim Aufruf zusammen.');
+        'BTS setzt die fertigen Bausteine beim Aufruf zusammen. ' +
+        'Fehlerhinweise und Fehlversuche werden nur seit dem letzten BTS-Start angezeigt.');
     element(root, 'p', 'speech_queue_help',
         'Laufende und in Vorbereitung gerufene Spiele werden beim Aufruf mit allen möglichen Ansagen als benötigt aufgenommen. ' +
         'Laufende Spiele folgen ihrer Aufrufzeit, vorbereitete Spiele der Zeit ihres Vorbereitungsaufrufs – jeweils älteste zuerst. ' +

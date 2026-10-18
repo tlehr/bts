@@ -50,17 +50,85 @@ describe('Speech failure feedback', function() {
             disk = new Disk(cfg); await disk.ready;
             const restored = new SpeechFailures(disk);
             assert.strictEqual(restored.get('identity', 'a'.repeat(64)).failure_count, 12);
+            assert.strictEqual(restored.get_current('identity', 'a'.repeat(64)), null);
             assert.strictEqual(disk.count(), 0);
         } finally { fs.rmSync(directory, { recursive: true, force: true }); }
     });
 
+    it('excludes earlier runs from both queue and inventory while retaining recovery state', async function() {
+        const broker = new SpeechBroker(config(), { now: () => 1700000010000 });
+        const part = '~bts-context-v2~' + JSON.stringify({ before: '', text: 'Finale!', after: '', kind: 'generic' });
+        broker.context_version = 'bts-context-v2';
+        broker.prepare([part], { voice: 'hallensprecher', prefetch: true }, 't');
+        const key = broker.key(part, 'hallensprecher', 'de-DE');
+        broker.failures.observe(broker.identity, key, failure(49));
+        broker.failures.remember_recovery(broker.identity, key, 'context', true);
+        await broker.coverage.set_plan('t', 'hallensprecher', new Map([[part, { part, groups: new Set(['D01']) }]]));
+        assert.strictEqual(broker.queue('t').items.find(row => row.key === key).diagnostics, null);
+        assert.strictEqual(broker.coverage.inventory('t', 'hallensprecher', 'components').items[0].diagnostics, null);
+        assert.strictEqual(broker.failures.get(broker.identity, key).failure_count, 49);
+        assert.strictEqual(broker.failures.recovery(broker.identity, key).terminal, true);
+        const response = failure(50);
+        response.diagnostics.recent_failures.push({ ...response.diagnostics.recent_failures[0],
+            event_id: 'b'.repeat(32) + ':50', created_at: 1700000011, attempt: 50 });
+        response.diagnostics.last_failure_at = 1700000011;
+        for (let i = 0; i < 20; i++) broker.failures.observe(broker.identity, key, response);
+        const info = broker.queue('t').items.find(row => row.key === key).diagnostics;
+        assert.strictEqual(info.failure_count, 1);
+        assert.strictEqual(info.recent_failures.length, 1);
+        assert.strictEqual(info.last_failure_at, 1700000011);
+        assert.deepStrictEqual(broker.coverage.inventory('t', 'hallensprecher', 'components').items[0].diagnostics, info);
+        assert(!describeFailures({ diagnostics: info }).summary.includes('wiederholt'));
+        const late = new SpeechFailures(null, () => 1700000010000);
+        late.observe('id', 'key', response);
+        assert.strictEqual(late.get_current('id', 'key').failure_count, 1, 'first response may mix old and current events');
+        broker.stop();
+    });
+
+    it('counts new failures beyond the eight-event detail window and resets display at restart', function() {
+        let now = 1700000010000;
+        const records = new Map();
+        const disk = { diagnostics: records, key: (identity, key) => JSON.stringify([identity, key]) };
+        const log = new SpeechFailures(disk, () => now);
+        log.observe('id', 'key', failure(49));
+        assert.strictEqual(log.get_current('id', 'key'), null);
+        for (let n = 50; n <= 61; n++) {
+            const response = failure(n);
+            response.diagnostics.recent_failures = [{ ...response.diagnostics.recent_failures[0],
+                event_id: 'b'.repeat(32) + ':' + n, created_at: ++now / 1000, attempt: n }];
+            log.observe('id', 'key', response);
+        }
+        assert.strictEqual(log.get_current('id', 'key').failure_count, 12);
+        assert.strictEqual(log.get_current('id', 'key').recent_failures.length, 8);
+        log.transport('id', 'key', new Error('offline'), 'transport');
+        assert.strictEqual(log.get_current('id', 'key').transport_count, 1);
+        now++;
+        const restarted = new SpeechFailures(disk, () => now);
+        assert.strictEqual(restarted.get_current('id', 'key'), null);
+        assert.strictEqual(restarted.get('id', 'key').failure_count, 61);
+        assert.strictEqual(restarted.get('id', 'key').transport_count, 1);
+    });
+
+    it('filters dated old-server failures and counts only fresh retry attempts', function() {
+        const log = new SpeechFailures(null, () => 1700000010000), response = failure();
+        delete response.diagnostics;
+        Object.assign(response, { attempts: 49, updated_at: 1700000000 });
+        log.observe('id', 'key', response);
+        assert.strictEqual(log.get_current('id', 'key'), null);
+        Object.assign(response, { attempts: 50, updated_at: 1700000011 });
+        log.observe('id', 'key', response); log.observe('id', 'key', response);
+        assert.strictEqual(log.get_current('id', 'key').failure_count, 1);
+    });
+
     it('propagates source failures to dependent pieces and keeps reasons through the name fallback', function() {
-        const broker = new SpeechBroker(config()); broker.context_version = 'bts-context-v2';
+        const broker = new SpeechBroker(config(), { now: () => 1700000000000 }); broker.context_version = 'bts-context-v2';
         const part = '~bts-context-v2~' + JSON.stringify({ before: '', text: 'Name', after: ' spielt jetzt gegen Name!', kind: 'team' });
         broker.prepare([part], { voice: 'hallensprecher', priority: 'normal' }, 't');
         const child = broker.entries.get(broker.key(part, 'hallensprecher', 'de-DE'));
         const source = broker.entries.get(child.source_key);
         const response = { ...failure(3, 'source_quality_failed'), text: source.text };
+        response.diagnostics.recent_failures = [1, 2, 3].map(attempt => ({ ...response.diagnostics.recent_failures[0],
+            event_id: 'b'.repeat(32) + ':' + attempt, attempt }));
         broker.update(source, response);
         assert.strictEqual(child.fallback_stage, 'context');
         assert.strictEqual(broker.queue('t').items.find(row => row.key === child.key).diagnostics.failure_count, 3);
