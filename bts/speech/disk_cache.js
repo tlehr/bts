@@ -58,8 +58,9 @@ class SpeechDiskCache {
                             !/^[0-9a-f]{32,64}$/.test(key) || !Number.isSafeInteger(count) || count < 0) ||
                         !Array.isArray(row.recent_failures) || row.recent_failures.length > 8 ||
                         ![row.archived || 0, row.transport_count || 0, row.last_failure_at].every(value => Number.isFinite(value) && value >= 0)) continue;
-                    const { cleanEvent } = require('./failures');
-                    this.diagnostics.set(pair[0], { ...row, recent_failures: row.recent_failures.map(cleanEvent).filter(Boolean) });
+                    const { cleanEvent, cleanRecovery } = require('./failures');
+                    this.diagnostics.set(pair[0], { ...row, recovery: cleanRecovery(row.recovery) || undefined,
+                        recent_failures: row.recent_failures.map(cleanEvent).filter(Boolean) });
                 }
                 for (const item of saved.records) if (this.recordValid(item)) this.records.set(this.key(item.identity, item.key), item);
                 for (const item of (Array.isArray(saved.generation) ? saved.generation : []).slice(0, 8192)) if (item && typeof item.identity === 'string' &&

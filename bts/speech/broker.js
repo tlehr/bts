@@ -105,7 +105,7 @@ class SpeechBroker {
                     for (const entry of this.entries.values()) if (this.restore(entry)) {
                         for (const key of entry.tournaments) changed.add(key);
                     }
-                    for (const entry of this.entries.values()) this.ensure_source(entry);
+                    for (const entry of this.entries.values()) { this.restore_recovery(entry); this.ensure_source(entry); }
                     if (changed.size) this.on_change([...changed]);
                 }).catch(() => { this.cache_error = 'speech_cache_unavailable'; });
             } catch (_) { this.cache_error = 'speech_cache_unavailable'; }
@@ -144,20 +144,23 @@ class SpeechBroker {
         const saved = this.disk?.lookup(this.identity, entry.key);
         if (!saved) return false;
         if (this.playback_profile && entry.context?.kind !== 'source' && saved.playback_profile !== this.playback_profile) return false;
-        if (saved.fallback_stage && entry.context?.kind === 'team' && !this.set_team_fallback(entry, saved.fallback_stage, true)) return false;
+        if (saved.fallback_stage && entry.source_key && !this.set_fallback(entry, saved.fallback_stage, true)) return false;
         Object.assign(entry, { status: 'completed', job_id: saved.job_id, audio_id: saved.audio_id, processed: saved.processed,
             playback_profile: saved.playback_profile || null,
             leading_quiet_ms: saved.leading_quiet_ms, trailing_quiet_ms: saved.trailing_quiet_ms,
             checked: this.now(), local: true, revalidate: false });
         entry.generated_for = new Set(saved.generated_for || []);
+        delete entry.terminal_failure;
+        this.remember_recovery(entry);
         return true;
     }
 
-    set_team_fallback(entry, stage, cache_only = false) {
+    set_fallback(entry, stage, cache_only = false) {
         const original = context.decode(entry.part, this.config.max_text);
+        if (!original || original.kind === 'source' || stage === 'name' && original.kind !== 'team') return false;
         const recipe = stage === 'name' ? { before: '', text: entry.text, after: '', kind: 'team', version: original.version } : original;
         const part = context.sourcePart(recipe);
-        const key = this.key('team-fallback-' + stage + '-v1:' + part, entry.voice, entry.language);
+        const key = this.key((original.kind === 'team' ? 'team' : 'context') + '-fallback-' + stage + '-v1:' + part, entry.voice, entry.language);
         let source = this.entries.get(key);
         Object.assign(entry, { context: recipe, source_key: key, fallback_stage: stage });
         if (!source && cache_only && !this.disk?.lookup(this.identity, key)) return true;
@@ -188,9 +191,9 @@ class SpeechBroker {
     }
 
     ensure_source(entry) {
-        if (!entry.source_key || this.disk && !this.disk.verified) return;
+        if (!entry.source_key || entry.terminal_failure || this.disk && !this.disk.verified) return;
         if (entry.fallback_stage) {
-            this.set_team_fallback(entry, entry.fallback_stage, entry.status === 'completed');
+            this.set_fallback(entry, entry.fallback_stage, entry.status === 'completed');
             return;
         }
         // A cached excerpt is playable by itself. Do not regenerate a missing
@@ -208,21 +211,44 @@ class SpeechBroker {
         }
     }
 
-    advance_team_fallback(entry) {
-        const stage = !entry.fallback_stage ? 'context' : entry.fallback_stage === 'context' ? 'name' : null;
-        if (!stage || !this.set_team_fallback(entry, stage)) {
+    remember_recovery(entry) {
+        if (!entry.source_key || !this.failures || !entry.fallback_stage && !entry.terminal_failure && !this.failures.recovery(this.identity, entry.key)) return;
+        if (this.failures.remember_recovery(this.identity, entry.key, entry.fallback_stage, entry.terminal_failure === true)) this.recovery_dirty = true;
+    }
+
+    restore_recovery(entry) {
+        if (!entry.source_key || entry.recovery_loaded || entry.status === 'completed' || this.disk && !this.disk.verified) return;
+        entry.recovery_loaded = true;
+        const state = this.failures.recovery(this.identity, entry.key);
+        if (!state) return;
+        if (state.stage && !this.set_fallback(entry, state.stage, state.terminal)) return;
+        if (state.terminal) Object.assign(entry, { status: 'failed', terminal_failure: true, retry_at: 0 });
+    }
+
+    async persist_recovery() {
+        if (!this.recovery_dirty) return;
+        this.recovery_dirty = false;
+        try { await this.failures.persist(); this.diagnostics_error = false; }
+        catch (_) { this.recovery_dirty = true; this.diagnostics_error = true; }
+    }
+
+    advance_fallback(entry) {
+        const stage = !entry.fallback_stage ? 'context' : entry.fallback_stage === 'context' && entry.context?.kind === 'team' ? 'name' : null;
+        if (!stage || !this.set_fallback(entry, stage)) {
             entry.terminal_failure = true;
+            this.remember_recovery(entry);
             return;
         }
         Object.assign(entry, { status: 'unsubmitted', job_id: null, retry_at: 0, next_poll: 0, local: false });
-        if (this.entries.get(entry.source_key).status === 'failed') this.advance_team_fallback(entry);
+        this.remember_recovery(entry);
+        if (this.entries.get(entry.source_key).status === 'failed') this.advance_fallback(entry);
         if (entry.tournaments.size) this.on_change([...entry.tournaments]);
     }
 
     failed_fallback_source(entry) {
         if (!entry.fallback_source) return;
-        for (const child of this.entries.values()) if (child.source_key === entry.key && child.context?.kind === 'team') {
-            this.advance_team_fallback(child);
+        for (const child of this.entries.values()) if (child.source_key === entry.key) {
+            this.advance_fallback(child);
             if (child.terminal_failure) child.status = 'failed';
         }
     }
@@ -291,6 +317,7 @@ class SpeechBroker {
             if (normalized.priority === 'spare') entry.spare_cached = true;
             this.check_local(entry);
             if (entry.status !== 'completed' && !entry.busy && entry !== this.current?.entry) this.restore(entry);
+            if (!entry.busy && entry !== this.current?.entry) this.restore_recovery(entry);
             const interests = options.prefetch ? normalized.priority === 'spare' ? 'spare_tournaments' :
                 normalized.priority === 'idle' ? 'idle_tournaments' : 'prefetch_tournaments' : 'foreground_tournaments';
             if (tournament_key) {
@@ -642,6 +669,7 @@ class SpeechBroker {
                         delete entry.fallback_stage;
                     }
                     delete entry.terminal_failure;
+                    delete entry.recovery_loaded;
                     delete entry.generated_for;
                     entry.status = 'unsubmitted';
                     entry.job_id = null;
@@ -684,21 +712,23 @@ class SpeechBroker {
         entry.checked = this.now();
         entry.next_poll = this.now() + this.config.poll_interval_ms;
         if (response.status === 'completed') {
+            delete entry.terminal_failure;
             entry.audio_id = response.audio.audio_id;
             entry.processed = response.audio.processed === true;
             entry.playback_profile = response.audio.playback_profile || null;
             entry.leading_quiet_ms = response.audio.leading_quiet_ms || 0;
             entry.trailing_quiet_ms = response.audio.trailing_quiet_ms || 0;
             this.last_error = null;
+            this.remember_recovery(entry);
         } else if (response.status === 'failed') {
             entry.retry_at = this.now() + 30000;
             this.last_error = 'speech_generation_failed';
-            if (!entry.detached && entry.context?.kind === 'team' && response.error?.code === 'alignment_failed') this.advance_team_fallback(entry);
+            if (!entry.detached && entry.source_key && response.error?.code === 'alignment_failed') this.advance_fallback(entry);
             if (response.error?.code === 'source_quality_failed') {
                 entry.terminal_failure = true;
                 for (const child of this.entries.values()) if (child.source_key === entry.key) {
-                    if (child.context?.kind === 'team') this.advance_team_fallback(child);
-                    else { child.terminal_failure = true; child.status = 'failed'; }
+                    if (child.context?.kind === 'team') this.advance_fallback(child);
+                    else { child.terminal_failure = true; child.status = 'failed'; this.remember_recovery(child); }
                 }
             }
             this.failed_fallback_source(entry);
@@ -707,6 +737,7 @@ class SpeechBroker {
 
     async step() {
         if (this.disk) await this.disk.ready;
+        if (this.recovery_dirty) await this.persist_recovery();
         if (this.cache_error && !this.disk) return;
         if (this.stepping) return;
         const now = this.now();
@@ -811,6 +842,7 @@ class SpeechBroker {
             entry.retry_at = this.now() + delay;
             entry.next_poll = entry.retry_at;
         } finally {
+            if (this.recovery_dirty) await this.persist_recovery();
             entry.busy = false;
             this.stepping = false;
             if (entry.status !== previous_status && ['completed', 'failed'].includes(entry.status) && entry.tournaments.size) {

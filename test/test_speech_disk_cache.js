@@ -83,6 +83,31 @@ describe('Durable BTS speech cache', function() {
         localServer = upstream = null;
     });
 
+    for (const shared of [false, true]) it('retains a successful non-name context recovery offline (' + (shared ? 'shared' : 'download') + ')', async function() {
+        upstream = await fixture(directory, shared, true);
+        upstream.state.failCuts = 'original';
+        const first = new SpeechBroker({ ...upstream.config, submit_interval_ms: 0 }); await first.refresh();
+        const part = '~bts-context-v1~' + JSON.stringify({ before: 'Im ', text: 'Jungen Einzel U19',
+            after: ' erwarten wir spannende Spiele!', kind: 'generic' });
+        const options = { voice: 'hallensprecher', prefetch: true, priority: 'normal' };
+        for (let step = 0; step < 6; step++) { first.prepare([part], options, 'default'); await first.step(); }
+        const previous = first.views([part], options, 'default')[0];
+        assert(previous.local && previous.status === 'completed');
+        assert.strictEqual(first.entries.get(first.key(part, options.voice, 'de-DE')).fallback_stage, 'context');
+        assert.strictEqual(upstream.posts().filter(post => post.body.source_seed === 43).length, 1);
+        first.stop();
+        const requests = upstream.requests.length;
+        const second = new SpeechBroker(upstream.config, { request: async () => { throw new Error('offline cache must suffice'); } });
+        await second.disk.ready;
+        second.prepare([part], options, 'default'); await second.step();
+        const restored = second.views([part], options, 'default')[0];
+        assert(restored.local && restored.status === 'completed');
+        assert.strictEqual(second.entries.get(second.key(part, options.voice, 'de-DE')).audio_id,
+            first.entries.get(first.key(part, options.voice, 'de-DE')).audio_id);
+        assert.strictEqual(upstream.requests.length, requests);
+        second.stop();
+    });
+
     for (const shared of [false, true]) it('retains normalized playback offline for both voices (' + (shared ? 'shared' : 'download') + ')', async function() {
         upstream = await fixture(directory, shared, false, true);
         const first = new SpeechBroker({ ...upstream.config, submit_interval_ms: 0 }); await first.refresh();

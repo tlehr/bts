@@ -379,7 +379,7 @@ function createSpeechQueue({ root, service, onSnapshot = () => {} }) {
                 (usage === 'field' ? 'Feldreferenz: ' + item.source_usage.text : usage === 'game' ? 'Spielblock · einmal pro Spiel' :
                     usage === 'shared' ? 'Referenz für mehrere Bausteine' : 'Einzeltext') : partLabel(item);
             row.explanation.textContent = item.fallback_stage === 'context' ?
-                'Namensschnitt fehlgeschlagen: neue Aufnahme mit vollständigem Kontext und anderem Zufallswert.' :
+                'Schnitt fehlgeschlagen: neue Aufnahme mit vollständigem Kontext und anderem Zufallswert.' :
                 item.fallback_stage === 'name' ? 'Letzter Fallback: vollständigen Namen einzeln erzeugen und aufbereiten.' : usage === 'field' ?
                 'Feste Beispielansage zum Ausschneiden von Anfang und Ende. Diese Feldbausteine werden für alle Spiele wiederverwendet.' :
                 usage === 'game' ? 'Wird mit den vorbereiteten Feldbausteinen zusammengesetzt.' : '';

@@ -145,7 +145,7 @@ describe('Speech preparation only during idle time', function() {
         const spare = broker.entries.get(broker.key(part, 'hallensprecherin', 'de-DE'));
         assert.strictEqual(spare.priority, 4);
         assert.strictEqual(broker.entries.get(spare.source_key).priority, 4);
-        broker.set_team_fallback(spare, 'context');
+        broker.set_fallback(spare, 'context');
         const source = broker.entries.get(spare.source_key);
         assert.strictEqual(source.priority, 4);
         assert(source.spare_tournaments.has(key));
@@ -365,7 +365,7 @@ describe('Speech preparation only during idle time', function() {
         const recipe = '~bts-context-v1~' + JSON.stringify({ before: '', text: 'Ein Name', after: ' gegen Andere.', kind: 'team' });
         broker.prepare([recipe], { voice, prefetch: true }, key);
         const entry = broker.entries.get(broker.key(recipe, voice, 'de-DE'));
-        broker.set_team_fallback(entry, 'name');
+        broker.set_fallback(entry, 'name');
         entry.status = 'failed'; entry.terminal_failure = true;
         broker.entries.get(entry.source_key).status = 'failed';
         broker.reconcile_prefetch(key, [recipe], { voice, idle_parts: ['Andere Reserve'] });

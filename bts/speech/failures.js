@@ -5,6 +5,12 @@ const MAX_EVENTS = 8;
 const code = value => typeof value === 'string' && /^[a-z][a-z0-9_]{0,63}$/.test(value) ? value : 'unspecified';
 const integer = value => Number.isSafeInteger(value) && value >= 0 && value <= 1e9 ? value : 0;
 const stamp = value => Number.isFinite(value) && value >= 0 ? value : 0;
+const RECOVERY_POLICY = 'context-recovery-v1';
+
+function cleanRecovery(value) {
+    if (!value || value.policy !== RECOVERY_POLICY || ![null, 'context', 'name'].includes(value.stage) || typeof value.terminal !== 'boolean') return null;
+    return { policy: RECOVERY_POLICY, stage: value.stage, terminal: value.terminal };
+}
 
 function cleanEvent(row) {
     if (!row || typeof row.event_id !== 'string' || row.event_id.length > 180 || !stamp(row.created_at)) return null;
@@ -32,6 +38,12 @@ class SpeechFailures {
         return { failure_count: Object.values(row.families).reduce((sum, n) => sum + n, row.archived || 0),
             transport_count: row.transport_count || 0, last_failure_at: row.last_failure_at,
             recent_failures: row.recent_failures };
+    }
+
+    recovery(identity, key) { return cleanRecovery(this.records.get(this.id(identity, key))?.recovery); }
+
+    remember_recovery(identity, key, stage, terminal) {
+        return this.save(identity, key, row => { row.recovery = { policy: RECOVERY_POLICY, stage: stage || null, terminal }; });
     }
 
     save(identity, key, update) {
@@ -91,4 +103,4 @@ class SpeechFailures {
     async persist() { if (this.disk) await this.disk.persist(); }
 }
 
-module.exports = { SpeechFailures, cleanEvent };
+module.exports = { SpeechFailures, cleanEvent, cleanRecovery };

@@ -113,3 +113,13 @@ sie für die laufende BTS-Sitzung. Bei älteren Servereinträgen sind teilweise 
 Fehlercode und Versuchsanzahl vorhanden; die Anzeige kennzeichnet fehlende Details.
 Der aktualisierte Sprachserver liefert die genaueren Gründe nach seinem Neustart.
 Diese Diagnoseänderungen erhalten die bestehenden v2-Audioschlüssel und Aufnahmen.
+
+Schnittfehler werden begrenzt behandelt: Nach einem fehlgeschlagenen Ausschnitt
+versucht BTS einmal dieselbe Kontextaufnahme mit einem anderen Seed neu zu erzeugen.
+Mehrere Ausschnitte derselben Quelle teilen diese neue Aufnahme. Scheitert auch
+dieser Versuch, endet die automatische Verarbeitung mit sichtbarem Fehler.
+Bei Teams bleibt danach der bereits abgestimmte letzte Versuch als vollständiger
+Einzelname erhalten. Der verbrauchte Wiederherstellungsschritt und der endgültige
+Stopp werden im BTS-Cache gespeichert; Seitenneuladen, erneute Vorbereitung und
+BTS-Neustarts starten die Schleife nicht neu. Andere Aufträge können weiterlaufen.
+Fertige Ausschnitte aus der Ersatzaufnahme bleiben ebenfalls offline verwendbar.
