@@ -86,7 +86,7 @@ Bei den Runden werden `R16`, `VF`, `HF` und `Finale` in die entsprechenden Runde
 ### 3.2 Einstellbare Varianten
 
 - Spielnummer B03, Disziplin B04 und Runde B05 lassen sich jeweils ausschalten.
-- Die Halle kann einen eigenen Vorbereitungszusatz und einen eigenen Treffpunkttext haben. Ein leer hinterlegter Treffpunkttext bleibt leer.
+- Die Halle kann einen eigenen Vorbereitungszusatz und einen eigenen Treffpunkttext haben. Bei D02 wird ein leerer oder ausgeschalteter Treffpunkt durch den Abschluss `Das Spiel ist in Vorbereitung!` ersetzt; der gespeicherte Treffpunkttext bleibt dabei erhalten.
 - Hallentexte können mit `{Einzahl/Mehrzahl}` unterschiedliche Ansprachen enthalten, beispielsweise `Bitte {melde dich/meldet euch} bei der Turnierleitung!`.
 - Der vollständige Vorbereitungsaufruf spricht beide Seiten gemeinsam an und verwendet die Mehrzahl. Ein gezielter Team-Zweitaufruf verwendet bei einem Spieler die Einzahl, bei zwei Spielern die Mehrzahl.
 - Schiedsrichter und Aufschlagrichter werden beim gezielten Vorbereitungs-Zweitaufruf in der Einzahl angesprochen. Bei der Bedienung richtet sich die Form nach der Zahl der zugeordneten Personen.
@@ -121,7 +121,7 @@ B09 In Vorbereitung {Hallenzusatz}
 → B10 Treffpunkt
 ```
 
-Ohne aktivierte Treffpunktfunktion wird am Ende stattdessen B09, also `In Vorbereitung {Hallenzusatz}`, wiederholt. Ein noch nicht zugewiesenes Feld lässt B02 entfallen.
+Ohne aktivierte Treffpunktfunktion oder bei leerem Treffpunkttext lautet der Abschluss stattdessen `Das Spiel ist in Vorbereitung!`. Das gilt für Browser-TTS und beide lokalen Stimmen. Ein noch nicht zugewiesenes Feld lässt B02 entfallen.
 
 Die geplante lokale Fassung verwendet denselben vollständigen Spielblock wie D01. Ein Vorbereitungsaufruf benötigt dafür keine zusätzliche Spielblock-Generierung.
 
@@ -780,6 +780,8 @@ B12 und den zusammengesetzten D03-Aufruf für beide Stimmen klanglich bestätigt
 
 ## 13. Vorbereitung nach Location im v2-Hörlabor
 
+Historischer Hörstand vor der Änderung des Vorbereitungsabschlusses in Abschnitt 15.
+
 **Korrektur: Vollständige Location-Texte werden direkt erzeugt, mit demselben
 Wortlaut und denselben Satzzeichen wie bei der Browserstimme.** Zusätzliche
 Kontextsätze und Ausschnitte sind für diese Bausteine nicht vorgesehen. Nur die
@@ -810,3 +812,44 @@ die direkten Aufnahmen und ihre Montage. Die historische Kontextfassung bleibt
 unter `/vorbereitung-kontext/` erhalten. Die Seite verwendet den eingelesenen
 Stand; geänderte Einstellungen erfordern einen neuen Plan/Lauf. Die Klangabnahme
 der direkten Location-Aufnahme ist offen. Der produktive BTS bleibt auf v1.
+
+## 14. Hörversuch: Ausrufezeichen im vollständigen Vorbereitungskontext
+
+Dieser Vergleich dokumentiert noch den bisherigen Abschluss. Abschnitt 15 setzt darauf auf.
+
+Auf Wunsch wird bei beiden Stimmen **im vollständigen Kontextsatz** das erste
+Satzzeichen nach `In Vorbereitung` von `:` auf `!` geändert. Das Modell erhält:
+
+```text
+In Vorbereitung! Spielnummer einhunderteinundsechzig. Jungen Einzel U siebzehn. Achtelfinale! Muhammad Sytsh Abdulquddus gegen Max Hahn. In Vorbereitung!
+```
+
+Aus dieser neuen vollständigen Aufnahme wird nur der Anfang ausgeschnitten.
+Die Vergleichsmontage ersetzt ausschließlich den bisherigen Anfangsausschnitt;
+Spielblock, fertiger Abschluss und Montagepausen werden unverändert wiederverwendet.
+Der Abschluss des Kontextsatzes enthielt bereits ein Ausrufezeichen und bleibt so.
+
+`http://127.0.0.1:8084/vorbereitung-ausrufezeichen/` bietet je Stimme den bisherigen
+und den neuen Aufruf, beide Anfangsausschnitte und beide vollständigen Kontexte.
+Die Klangabnahme dieses einmaligen Versuchs ist offen.
+
+## 15. Abschluss ohne Treffpunkt
+
+Der gemeinsame D02-Text für Browserstimme, Hallensprecher und Hallensprecherin
+lautet am Ende jetzt `Das Spiel ist in Vorbereitung!`, falls die Treffpunktfunktion
+ausgeschaltet oder der zugehörige Treffpunkttext leer ist. Ein nichtleerer aktiver
+Treffpunkt wird weiterhin verwendet. Gezielt ausgelöste Zweitaufrufe sind eigene
+Vorlagen und werden durch diese Änderung nicht umgeschrieben.
+
+`http://127.0.0.1:8084/vorbereitung-abschluss/` vergleicht den bisherigen und den
+neuen Abschluss mit beiden Stimmen. Je Stimme liefert eine neue vollständige
+Kontextaufnahme den Abschlussausschnitt:
+
+```text
+In Vorbereitung! Spielnummer einhunderteinundsechzig. Jungen Einzel U siebzehn. Achtelfinale! Muhammad Sytsh Abdulquddus gegen Max Hahn. Das Spiel ist in Vorbereitung!
+```
+
+Die Montage verwendet den vorhandenen Anfang mit `!`, den bereits bestätigten
+Spielblock und den neuen Abschluss. Der Vergleich verändert ausschließlich den
+letzten Baustein. Originale und Schnittstellen sind auf der Hörseite sichtbar.
+Die Klangabnahme ist offen. Die Änderung liegt im v2-Experimentierbranch.

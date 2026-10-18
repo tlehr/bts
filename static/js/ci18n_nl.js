@@ -69,6 +69,7 @@ var ci18n_nl = Object.assign(
 	'announcements:service_judge': 'Servicerechter:',
 	'announcements:and': ' en ',
 	'announcements:preparation': 'In voorbereiding',
+	'announcements:match_in_preparation': 'De wedstrijd is in voorbereiding!',
 	'announcements:meetingpoint': 'Kom naar het meetingpoint!',
 	'announcements:on_court': 'Op Baan ',
 	'announcements:for_court': 'Voor Baan ',

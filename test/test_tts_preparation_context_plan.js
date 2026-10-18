@@ -41,28 +41,29 @@ describe('location-aware preparation hearing plan', function() {
         assert(!plan.sources.some(s => /Spielfeld/.test(s.text)), 'no hypothetical court variants');
     });
 
-    it('shares one complete recording for identical beginnings, endings and locations', function() {
+    it('shares the opening and new no-meeting-point ending across locations', function() {
         const input = { locations: [hall('a'), hall('b', '  ', 'Unused meeting point!')] };
         const plan = preparation(games(), input);
-        assert.strictEqual(plan.scope.distinct_location_sources_per_voice, 1);
+        assert.strictEqual(plan.scope.distinct_location_sources_per_voice, 2);
         const [a, b] = plan.scope.locations;
         assert.strictEqual(a.opening, 'In Vorbereitung');
-        assert.strictEqual(a.ending, 'In Vorbereitung');
+        assert.strictEqual(a.ending, 'Das Spiel ist in Vorbereitung!');
         assert.strictEqual(a.opening_piece, b.opening_piece);
         assert.strictEqual(a.closing_piece, b.closing_piece);
-        assert.strictEqual(a.opening_piece, a.closing_piece);
+        assert.notStrictEqual(a.opening_piece, a.closing_piece);
         assert(!plan.sources.some(s => s.text.includes('Unused')));
         assert(plan.sources.some(s => s.text === 'In Vorbereitung'));
         assert(!plan.sources.some(s => s.profile === 'lab-v2/preparation-location-reference'));
-        assert.strictEqual(plan.cases.filter(c => c.experiment === 'sentences').length, 2, 'one sentence card per location');
+        assert.strictEqual(plan.cases.filter(c => c.experiment === 'sentences').length, 4, 'both sentences once per location');
     });
 
-    it('honors an explicitly empty meeting point instead of inventing a location or default ending', function() {
+    it('uses the new ending when the enabled meeting-point text is empty', function() {
         const plan = preparation(games(), { preparation_meetingpoint_enabled: true, locations: [hall('empty')] });
-        assert.strictEqual(plan.scope.locations[0].ending_kind, 'empty');
-        assert.strictEqual(plan.scope.locations[0].closing_piece, null);
-        assert.strictEqual(plan.cases.length, 2);
-        assert.strictEqual(plan.cases[0].pieces.length, 6);
+        assert.strictEqual(plan.scope.locations[0].ending_kind, 'preparation');
+        assert.strictEqual(plan.scope.locations[0].ending, 'Das Spiel ist in Vorbereitung!');
+        assert(plan.scope.locations[0].closing_piece);
+        assert.strictEqual(plan.cases.length, 3);
+        assert.strictEqual(plan.cases[0].pieces.length, 7);
         assert.strictEqual(plan.cases[0].pieces.at(-1).pause_ms, 0);
         assert(!plan.sources.some(s => /Meetingpoint|Halle zwei/.test(s.text)));
     });

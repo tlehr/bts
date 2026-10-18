@@ -247,7 +247,7 @@ describe('Context speech in tournament calls', function() {
         }
     });
 
-    it('shares one preparation reference across empty hall additions while retaining distinct opening and closing cuts', async function() {
+    it('shares one reference for the opening and new no-meeting-point ending across empty hall additions', async function() {
         const current = { ...tournament(), speech: { context_version: 'bts-context-v1' },
             preparation_meetingpoint_enabled: false, locations: [
                 { _id: 'default_h1', preparation_addition: '', meetingpoint_announcement: '' },
@@ -257,10 +257,10 @@ describe('Context speech in tournament calls', function() {
             setup: setup({ court_id: null, location_id, match_num: index + 1 }),
         }));
         const prepared = prepare(current, matches);
-        const pieces = prepared.filter(part => decode(part, 1200)?.text.trim() === 'In Vorbereitung');
+        const pieces = prepared.filter(part => ['In Vorbereitung', 'Das Spiel ist in Vorbereitung!'].includes(decode(part, 1200)?.text.trim()));
         assert.strictEqual(pieces.length, 2, 'one opening and one closing, without whitespace or unused meeting-point variants');
         const recipes = pieces.map(part => decode(part, 1200));
-        assert(recipes.every(recipe => recipe.text === 'In Vorbereitung'));
+        assert.deepStrictEqual(recipes.map(recipe => recipe.text).sort(), ['Das Spiel ist in Vorbereitung!', 'In Vorbereitung']);
         assert.strictEqual(new Set(recipes.map(sourcePart)).size, 1, 'both cuts reuse the same complete reference recording');
         assert(recipes.some(recipe => !recipe.before));
         assert(recipes.some(recipe => !recipe.after));
@@ -295,7 +295,7 @@ describe('Context speech in tournament calls', function() {
         assert.strictEqual(source.operation, 'synthesis');
         assert(queue.every(item => item.source_key === source.key &&
             source.text.slice(item.source_range.start, item.source_range.end) === item.text));
-        assert.notDeepStrictEqual(queue[0].source_range, queue[1].source_range, 'the identical text must point to different positions');
+        assert.notDeepStrictEqual(queue[0].source_range, queue[1].source_range, 'opening and ending must point to their actual source ranges');
     });
 
     it('shares the game source across fields and officials and keeps distinct field opening and closing pieces', function() {

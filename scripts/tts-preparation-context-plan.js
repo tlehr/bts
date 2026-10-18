@@ -45,8 +45,8 @@ function preparation(existing, tournament, sampleId = 'beispiel-189-two') {
     for (const location of locations) {
         const setup = { location_id: location._id };
         const opening = texts.createPreparationAnnouncement(setup, true).trim();
-        const ending = (tournament.preparation_meetingpoint_enabled ?
-            texts.createMeetingPointAnnouncement(setup, true) : opening).trim();
+        const ending = texts.createPreparationClosingAnnouncement(setup, true).trim();
+        const hasMeeting = tournament.preparation_meetingpoint_enabled && !!texts.createMeetingPointAnnouncement(setup, true).trim();
         const b09 = direct(opening);
         const b10 = ending ? direct(ending) : null;
         const locationId = 'loc-' + digest(location._id).slice(0, 12);
@@ -59,14 +59,14 @@ function preparation(existing, tournament, sampleId = 'beispiel-189-two') {
                 [opening, game.display, ending].filter(Boolean).join(' ')],
             ['sentences', b09 === b10 ? 'B09 · Vorbereitungsanfang und Abschluss · dieselbe Aufnahme' : 'B09 · Vorbereitungsanfang',
                 [{ piece: b09, pause_ms: 0 }], opening],
-            ...(b10 && b10 !== b09 ? [['sentences', 'B10 · Treffpunkt', [{ piece: b10, pause_ms: 0 }], ending]] : []),
+            ...(b10 && b10 !== b09 ? [['sentences', hasMeeting ? 'B10 · Treffpunkt' : 'Vorbereitungsabschluss', [{ piece: b10, pause_ms: 0 }], ending]] : []),
         ]) {
             plan.cases.push({ id: `${locationId}-${group}${group === 'sentences' ? '-' + rows[0].piece : ''}`, experiment: group, label: label + ' · ' + description,
                 location_id: location._id, display, pieces: rows, subjective_quality: 'not-rated' });
         }
         summaries.push({ location_id: location._id, name: label, preparation_addition: location.preparation_addition || '',
             meetingpoint_announcement: location.meetingpoint_announcement || '', opening, ending,
-            ending_kind: tournament.preparation_meetingpoint_enabled ? (ending ? 'meeting' : 'empty') : 'preparation',
+            ending_kind: hasMeeting ? 'meeting' : 'preparation',
             opening_source: plan.pieces.get(b09).source, closing_source: b10 ? plan.pieces.get(b10).source : null,
             opening_piece: b09, closing_piece: b10 });
     }

@@ -94,6 +94,7 @@ var ci18n_en = Object.assign(
 	'announcements:service_judge': 'Servicejudge:',
 	'announcements:and': ' and ',
 	'announcements:preparation': 'In preparation',
+	'announcements:match_in_preparation': 'The match is in preparation!',
 	'announcements:meetingpoint': 'Come to the meetingpoint!',
 	'announcements:on_court': 'On Court ',
 	'announcements:for_court': 'For Court ',

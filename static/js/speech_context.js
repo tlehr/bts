@@ -55,8 +55,6 @@ function createContextSpeechPlan(texts, tournament, name, setup = {}, args = [],
     const meeting = plural => texts.createMeetingPointAnnouncement(setup, plural);
     const preparation = texts.createPreparationAnnouncement(setup, true).trim();
     const preparationSource = (court, ending) => [preparation, court, reference, ending.trim()].filter(Boolean).join(' ');
-    const hallSource = preparationSource('Für Spielfeld 8!', meeting(true));
-    const hallEndSource = preparationSource('Für Spielfeld 8!', preparation);
     const secondHall = plural => {
         const example = plural ? `${example1} und ${example2}` : example1;
         const source = `${prep}${example}${hall(plural) ? ' ' + hall(plural) : ''}! ${example} ${meeting(plural)}`;
@@ -83,12 +81,12 @@ function createContextSpeechPlan(texts, tournament, name, setup = {}, args = [],
     if (name === 'announcePreparationMatch') {
         const court = texts.createFieldPreparationAnnouncement(setup);
         const opening = [preparation, court].filter(Boolean).join(' ');
-        // Keep the reference's ending consistent with D02. Without a meeting
-        // point its opening and closing cuts can share this same recording.
-        const source = preparationSource(court || 'Für Spielfeld 8!',
-            tournament.preparation_meetingpoint_enabled ? meeting(true) : preparation);
-        return result([piece(source, opening), gamePieces(), ...officials(), tournament.preparation_meetingpoint_enabled ?
-            piece(hallSource, meeting(true).trim(), 'generic', true) : piece(hallEndSource, preparation, 'generic', true)]);
+        const ending = texts.createPreparationClosingAnnouncement(setup, true).trim();
+        // Use the exact browser ending, including the no-meeting-point sentence.
+        // A fixed reference field keeps the ending shared across actual courts.
+        const source = preparationSource(court || 'Für Spielfeld 8!', ending);
+        const closingSource = preparationSource('Für Spielfeld 8!', ending);
+        return result([piece(source, opening), gamePieces(), ...officials(), piece(closingSource, ending, 'generic', true)]);
     }
     if (name === 'announceBeginnToPlay') return result([fieldPiece(false), piece(`${fieldReference} ${instruction}`, instruction)]);
     if (name === 'announceSecondCallTeamOne' || name === 'announceSecondCallTeamTwo') {

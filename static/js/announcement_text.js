@@ -117,10 +117,7 @@ function createAnnouncementTexts(context) {
         const umpire = createUmpire(matchSetup);
         const serviceJudge = createServiceJudge(matchSetup);
         const tabletOperator = createTabletOperator(matchSetup);
-        var lastPart = preparation;
-        if (curt.preparation_meetingpoint_enabled) {
-            lastPart = createMeetingPointAnnouncement(matchSetup, true);
-        }
+        var lastPart = createPreparationClosingAnnouncement(matchSetup, true);
         announce(
             [preparation, field, matchNumber, eventName, round, teams, umpire, serviceJudge, tabletOperator, lastPart],
             false,
@@ -526,7 +523,12 @@ function createAnnouncementTexts(context) {
         return result;
     }
 
-    api = { localPlan, localParts, getLocationID, announceNewMatch, announcePreparationMatch, announceNoMatchWin, announceSecondCallTeamOne, announceSecondCallTeamTwo, announceSecondPreparationCallTeamOne, announceSecondPreparationCallTeamTwo, announceSecondCallTabletoperator, announceSecondCallUmpire, announceSecondCallServiceJudge, announceSecondCall, announceSecondPreparationCallTabletoperator, announceSecondPreparationCallUmpire, announceSecondPreparationCallServiceJudge, announceSecondPreparationCall, announceBeginnToPlay, createBeginToPlayAnnouncement, createSecondCallAnnouncement, createSecondPreparationCallAnnouncement, createTeamAnnouncement, createTabletOperator, createUmpire, createServiceJudge, createSingleTeam, normalizeNames, createRoundAnnouncement, eventAnnouncementNameByCode, createEventAnnouncement, createMatchNumberAnnouncement, createFieldAnnouncement, createFieldPreparationAnnouncement, resolveSingularPluralAnnouncement, createPreparationAnnouncement, createMeetingPointAnnouncement };
+    function createPreparationClosingAnnouncement(matchSetup, usePlural) {
+        const meeting = curt.preparation_meetingpoint_enabled ? createMeetingPointAnnouncement(matchSetup, usePlural) : '';
+        return meeting.trim() ? meeting : ci18n('announcements:match_in_preparation');
+    }
+
+    api = { localPlan, localParts, getLocationID, announceNewMatch, announcePreparationMatch, announceNoMatchWin, announceSecondCallTeamOne, announceSecondCallTeamTwo, announceSecondPreparationCallTeamOne, announceSecondPreparationCallTeamTwo, announceSecondCallTabletoperator, announceSecondCallUmpire, announceSecondCallServiceJudge, announceSecondCall, announceSecondPreparationCallTabletoperator, announceSecondPreparationCallUmpire, announceSecondPreparationCallServiceJudge, announceSecondPreparationCall, announceBeginnToPlay, createBeginToPlayAnnouncement, createSecondCallAnnouncement, createSecondPreparationCallAnnouncement, createTeamAnnouncement, createTabletOperator, createUmpire, createServiceJudge, createSingleTeam, normalizeNames, createRoundAnnouncement, eventAnnouncementNameByCode, createEventAnnouncement, createMatchNumberAnnouncement, createFieldAnnouncement, createFieldPreparationAnnouncement, resolveSingularPluralAnnouncement, createPreparationAnnouncement, createMeetingPointAnnouncement, createPreparationClosingAnnouncement };
     for (const [name, fn] of Object.entries(api)) {
         if (!name.startsWith('announce')) continue;
         api[name] = (setup, ...args) => {

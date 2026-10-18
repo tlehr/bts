@@ -50,6 +50,29 @@ function baseline(context) {
 }
 
 describe('Shared announcement text and preparation', function() {
+    it('uses the full no-meeting-point closing sentence in browser and local preparations', function() {
+        for (const locale of ['de', 'en', 'nl']) for (const enabled of [false, true]) {
+            for (const meeting of ['', '   ', 'Bitte meldet euch am Eingang!']) {
+                const current = tournament();
+                current.preparation_meetingpoint_enabled = enabled;
+                current.locations[0].meetingpoint_announcement = meeting;
+                const calls = [];
+                const texts = create({ tournament: current, translate: (key, data) => translate(locale, key, data),
+                    window: { localStorage: { getItem: () => 'true' } }, claim: () => null,
+                    announce: (parts, _local, _claim, options) => calls.push({ parts, ...options }) });
+                texts.announcePreparationMatch(setup());
+                const expected = enabled && meeting.trim() ? meeting : translate(locale, 'announcements:match_in_preparation');
+                assert.strictEqual(calls[0].parts.at(-1), expected);
+                assert.strictEqual(calls[0].localParts.at(-1), expected.replace(/[.!?]+$/, ''));
+                assert.strictEqual(texts.createPreparationClosingAnnouncement(setup(), true), expected);
+                assert.strictEqual(current.locations[0].meetingpoint_announcement, meeting, 'stored location text stays intact');
+                if (locale === 'de' && !(enabled && meeting.trim())) {
+                    assert.strictEqual(expected, 'Das Spiel ist in Vorbereitung!');
+                }
+            }
+        }
+    });
+
     it('starts the German walkover result with Das Spiel for browser and cached local speech', function() {
         const current = tournament(), match = setup(), calls = [];
         const texts = create({ tournament: current, translate: (key, data) => translate('de', key, data),

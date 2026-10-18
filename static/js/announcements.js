@@ -40,6 +40,7 @@ function createFieldPreparationAnnouncement(...args) { return announcementTexts(
 function resolveSingularPluralAnnouncement(...args) { return announcementTexts().resolveSingularPluralAnnouncement(...args); }
 function createPreparationAnnouncement(...args) { return announcementTexts().createPreparationAnnouncement(...args); }
 function createMeetingPointAnnouncement(...args) { return announcementTexts().createMeetingPointAnnouncement(...args); }
+function createPreparationClosingAnnouncement(...args) { return announcementTexts().createPreparationClosingAnnouncement(...args); }
 
 // Keep the existing public browser entry points for other BTS modules.
 Object.assign(window, {
@@ -77,6 +78,7 @@ Object.assign(window, {
     resolveSingularPluralAnnouncement,
     createPreparationAnnouncement,
     createMeetingPointAnnouncement,
+    createPreparationClosingAnnouncement,
 });
 
 let emergencyInterval = null;
