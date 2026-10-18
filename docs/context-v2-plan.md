@@ -211,6 +211,39 @@ einen vollständigen D01-Spielaufruf, die Rolle allein und den vollständigen
 Kontext. Die vorgesehenen 28 Proben für beide Stimmen sind nach Rolle filterbar.
 Die 80-ms-Übergangspause und die zentralen Wiedergaberegeln bleiben erhalten.
 
+### 5.0.2 Fehlende Namen technischer Offizieller
+
+Bestätigter v2-Plan: Für einen angeforderten Schiedsrichter oder Aufschlagrichter
+wird zuerst ein vorhandener vollständiger Einzelname aus der zweiten Position
+gesucht. Fehlt er, entsteht einmal je vollständigem Namen und Stimme die Quelle:
+
+```text
+[Name] spielt jetzt gegen [Name]!
+```
+
+Verwendet wird das zweite Namensvorkommen ohne „gegen“. Genau derselbe Baustein
+kann bei mehreren Spielen, beiden Richterrollen und später bei Spielernamen
+wiederverwendet werden. Rolle, Feld und Spiel gehören nicht zum Namensschlüssel.
+Stimme, Syntheseidentität, Aussprache und prosodische Position bleiben getrennt.
+Die gemeinsame Rollenaufnahme wird vor den Namen gesetzt; hierfür gilt weiterhin
+das 80-ms-Pausenziel einschließlich Randstille.
+
+Der Planer `scripts/tts-official-name-plan.js` erhält einen vorhandenen v2-Plan
+und explizite Aufträge mit `setup.umpire.name` / `setup.service_judge.name`.
+Er normalisiert Namen wie der Spielerplan, fasst gleiche gesprochene Namen
+rollenübergreifend zusammen und übernimmt vorhandene passende Stücke unverändert.
+Er bereitet keine gesamte Offiziellenliste vor. Leere Zuordnungen und „kein Spiel“
+enthalten keine Namensaufträge. Aus Doppelteams werden keine Einzelpersonen
+herausgeschnitten; ein nur im Doppel vorhandener Offizieller erhält bei Bedarf
+seine eigene Einzelnamensquelle.
+
+Hörvergleich: `http://127.0.0.1:8084/offizielle-namen/` mit beiden Stimmen.
+„Tim Lehr“ wird einmal je Stimme erzeugt und für Schiedsrichter sowie
+Aufschlagrichter geteilt. „Max Hahn“ kommt aus dem vorhandenen Spieler-Namenscache.
+Diese expliziten Hörbeispiele verändern keine Turnierzuordnungen. Bei der
+Hallensprecherin bleibt der neue Tim-Lehr-Schnitt als aktive Schnittgrenze
+zur Hörprüfung markiert. Es gibt noch keine produktive v2-Umschaltung.
+
 ### 5.1 Erster B01-Hörsatz: Spielfeld acht, beide Stimmen
 
 `scripts/tts-field-context-plan.js` ergänzt den gespeicherten, bestätigten Spielblockplan um genau eine vollständige Feldreferenz pro Feld und Stimme. Für diesen ersten Hörtest wird nur Feld acht verwendet. Die Referenz hält die Spielnummer ohne „Nummer“, Satzzeichen und Doppel-Leerzeichen aus der bisherigen festen Vorlage bei; für v2 gilt die bereits gewählte gesprochene Schreibweise `Mädchen Einzel`. Die archivierte v1-Referenz bleibt unverändert.

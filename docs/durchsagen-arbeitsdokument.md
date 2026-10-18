@@ -934,3 +934,14 @@ eine Quelle; alle sechs Quellen bestehen im ersten Versuch. Vorhandene Namen,
 Teams, Spiel- und Feldstücke werden bytegleich wiederverwendet. Die Seite zeigt
 28 Proben, nach Rolle und Aufbau filterbar. Die Klangabnahme dieser weiteren
 Rollen ist offen; die gesicherte v1 bleibt unverändert.
+
+Fehlende Namen technischer Offizieller werden im v2-Labor jetzt nach demselben
+Muster wie Spielernamen geplant: `[Name] spielt jetzt gegen [Name]!`.
+Das zweite Namensvorkommen ohne „gegen“ wird je Name und Stimme einmal gewonnen
+und rollenübergreifend wiederverwendet. Vorhandene passende Einzelnamen kommen
+direkt aus dem Cache; Personen werden nicht aus einem Doppel herausgeschnitten.
+Es werden nur explizit angeforderte Richter vorbereitet, keine gesamte Namensliste.
+Der Vergleich unter `http://127.0.0.1:8084/offizielle-namen/` zeigt den neuen
+Namen Tim Lehr bei beiden Richterrollen und Max Hahn als Cache-Treffer, jeweils
+mit beiden Stimmen. Details und Schnittwarnungen stehen im
+[v2-Plan, Abschnitt 5.0.2](context-v2-plan.md#502-fehlende-namen-technischer-offizieller).

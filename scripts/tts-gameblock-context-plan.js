@@ -23,6 +23,23 @@ function excerpt(plan, source, text, profile, { last = false, kind = 'team', dis
     return id;
 }
 
+// Players and technical officials share exactly the same sources and positions.
+function repeatedTeam(plan, name, display, positions = ['first', 'connector', 'second_with_against', 'second']) {
+    const source = plan.source(`${name} spielt jetzt gegen ${name}!`,
+        'lab-v2/team-repeat-plays-now', `${display} spielt jetzt gegen ${display}!`);
+    const recipes = {
+        first: [name, 'lab-v2/team-before-plays', { display }],
+        connector: ['gegen', 'lab-v2/team-connector', { kind: 'generic' }],
+        second_with_against: [`gegen ${name}`, 'lab-v2/team-after-with-gegen', { display: `gegen ${display}` }],
+        second: [name, 'lab-v2/team-after-gegen', { last: true, display }],
+    };
+    return Object.fromEntries(positions.map(position => {
+        if (!recipes[position]) throw new Error('Unknown repeated-team position');
+        const [text, profile, options] = recipes[position];
+        return [position, excerpt(plan, source, text, profile, options)];
+    }));
+}
+
 function gameblocks(tournament, samples) {
     const plan = new Plan(tournament.normalizations || []);
     const texts = create({ tournament: { ...tournament, annoncement_include_event: true, annoncement_include_round: true },
@@ -36,14 +53,7 @@ function gameblocks(tournament, samples) {
         const name = spellNumbers(texts.createSingleTeam(players));
         if (!teams.has(name)) {
             const display = players.map(player => player.name).join(' und ');
-            const source = plan.source(`${name} spielt jetzt gegen ${name}!`,
-                'lab-v2/team-repeat-plays-now', `${display} spielt jetzt gegen ${display}!`);
-            teams.set(name, {
-                first: excerpt(plan, source, name, 'lab-v2/team-before-plays', { display }),
-                connector: excerpt(plan, source, 'gegen', 'lab-v2/team-connector', { kind: 'generic' }),
-                second_with_against: excerpt(plan, source, `gegen ${name}`, 'lab-v2/team-after-with-gegen', { display: `gegen ${display}` }),
-                second: excerpt(plan, source, name, 'lab-v2/team-after-gegen', { last: true, display }),
-            });
+            teams.set(name, repeatedTeam(plan, name, display));
         }
         return teams.get(name);
     };
@@ -147,4 +157,4 @@ if (require.main === module) {
     }
 }
 
-module.exports = { gameblocks, examples, disciplinePronunciationTrials, spokenDiscipline };
+module.exports = { gameblocks, examples, disciplinePronunciationTrials, spokenDiscipline, repeatedTeam };
