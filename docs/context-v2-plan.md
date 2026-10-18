@@ -394,6 +394,11 @@ Pausen-/Lautheitsregeln ohne erneute Verarbeitung übernommen. Feld- und Probenw
 erleichtern den Stimmenvergleich. Produktive v1 bleibt bis zur späteren Integration
 erhalten. [Details und Stückzählung](durchsagen-arbeitsdokument.md#23-b02-vollständiger-feldsatz-für-vorbereitete-spiele).
 
+Der Betreiber hat die vollständigen Feldsätze und die aktuellen D02-Montagen
+mit beiden Stimmen klanglich bestätigt („Passt!“). B02 ist für diesen Hörstand
+abgenommen; der vollständige direkte Satz je Feld und die bestehenden
+Qualitätsregeln sind damit festgelegt. Die produktive v2-Einbindung folgt separat.
+
 ### 5.1 Erster B01-Hörsatz: Spielfeld acht, beide Stimmen
 
 `scripts/tts-field-context-plan.js` ergänzt den gespeicherten, bestätigten Spielblockplan um genau eine vollständige Feldreferenz pro Feld und Stimme. Für diesen ersten Hörtest wird nur Feld acht verwendet. Die Referenz hält die Spielnummer ohne „Nummer“, Satzzeichen und Doppel-Leerzeichen aus der bisherigen festen Vorlage bei; für v2 gilt die bereits gewählte gesprochene Schreibweise `Mädchen Einzel`. Die archivierte v1-Referenz bleibt unverändert.

@@ -1238,3 +1238,10 @@ fertigen bleiben bytegleich. Tatsächlicher Aufwand: 14 männliche und 22 weibli
 Kandidaten, davon einer beziehungsweise neun verworfen. Beide Stimmen liefern
 danach 13 gültige Feldaufnahmen. Die vollständigen Montagen und reinen Cache-Läufe
 sind geprüft; beim Wiederholen entstehen keine neuen Synthesen.
+
+Der Betreiber hat diesen Hörsatz mit „Passt!“ klanglich bestätigt. Damit sind
+die vollständigen B02-Feldsätze für Feld 1 bis 13 und ihre Einbindung in die
+gezeigten D02-Vorbereitungsaufrufe für beide Stimmen abgenommen. Die Festlegung
+bleibt: ein vollständiger Satz je Feld, ohne zusätzlichen Kontextsatz und ohne
+Textschnitte, mit den gemeinsamen Qualitäts-, Pausen- und Lautheitsregeln.
+Vorhandene automatische Befunde der wiederverwendeten Stücke bleiben dokumentiert.
