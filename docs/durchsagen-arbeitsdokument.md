@@ -999,4 +999,7 @@ wegen einer längeren Satzpause vor der Klausel anhand unabhängiger lokaler
 Wortanker bestimmt, aus derselben Aufnahme und ohne zusätzliche Synthese. Das
 Ende von „an“ liegt bei beiden Stimmen in aktiver Sprache; diese Übergänge sind
 zur Hörprüfung markiert. Bestehende Schnittwarnungen bleiben ebenfalls sichtbar.
-Die Klangabnahme steht aus. Details im [v2-Plan](context-v2-plan.md#504-d12-gemeinsame-kampflos-formulierung-und-siegerteam-nach-gegen).
+Der Betreiber hat diese konkreten Einzel- und Doppelproben mit beiden Stimmen
+klanglich bestätigt („Passt so!“), einschließlich der markierten Übergänge zum
+Siegerteam. Die Schnittbefunde bleiben dokumentiert. Details im
+[v2-Plan](context-v2-plan.md#504-d12-gemeinsame-kampflos-formulierung-und-siegerteam-nach-gegen).

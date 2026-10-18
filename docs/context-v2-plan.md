@@ -332,8 +332,12 @@ die vollständige Klausel und beide Nachbarwörter in zwei Erkennungen und schne
 in echter Stille vor dem Wortanfang; keine neue Synthese und keine übernommenen
 historischen Frames. Der so bestimmte Schnitt bleibt zur Hörprüfung markiert.
 Bei beiden Stimmen liegt das Ende von „an“ in aktiver Sprache und wird zusätzlich
-markiert. Die Klangabnahme ist offen. Wiederholungsläufe brauchen keine Synthese;
-produktive v1, Browsertexte und Turnierergebnisse bleiben unverändert.
+markiert. Der Betreiber hat die aktuellen Einzel- und Doppelproben für beide
+Stimmen bestätigt („Passt so!“), einschließlich des Übergangs von „an“ zum
+Siegerteam. Die Bestätigung gilt diesen konkreten Aufnahmen; automatische
+Schnittbefunde bleiben als Herkunftsinformation erhalten. Wiederholungsläufe
+brauchen keine Synthese; produktive v1, Browsertexte und Turnierergebnisse
+bleiben unverändert.
 
 ### 5.1 Erster B01-Hörsatz: Spielfeld acht, beide Stimmen
 
