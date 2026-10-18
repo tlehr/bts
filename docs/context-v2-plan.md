@@ -253,6 +253,41 @@ Der vorhandene männliche B11-Ausschnitt wird zuerst verwendet. Geprüft werden
 Team-Zweitaufrufe D04/D05 sowie die Offiziellen-Zweitaufrufe D06–D11 mit den
 jeweiligen Location-/Treffpunktvarianten. Anschließend folgt die D12-Kampflos-Klausel.
 
+### 5.0.3 B11: Zweitaufrufe mit beiden Stimmen
+
+Hörseite: `http://127.0.0.1:8084/zweitaufrufe/`. Pro Stimme gibt es 20 vollständige
+Durchsagen für D04–D11, drei Einzelbausteine und zwei Kontextreferenzen. Insgesamt
+sind es 50 Proben. Einzelnamen, Doppelteams, alle vier Rollen sowie Offiziellen-
+Zweitaufrufe ohne Feldzuweisung werden geprüft. Die Klangabnahme ist offen.
+
+`scripts/tts-second-call-plan.js` verwendet für Wortlaut und Satzfolge die
+Browser-Textfunktionen. Ein Tokenvergleich nach Zahlenausschreibung verhindert
+fehlende, zusätzliche oder vertauschte Wörter. Die tatsächlichen Location-
+Einstellungen werden übernommen. Im gespeicherten Stand „Campus Helleweg“ sind
+Hallenzusatz und Treffpunkt leer und die Treffpunktfunktion ausgeschaltet.
+Weitere Locations und ihre Einzahl-/Mehrzahlformen werden vom Planer unterstützt,
+aber in diesem Hörsatz nicht erfunden oder zusätzlich generiert.
+
+| Stimme | Kontextquelle | Verwendete neue Stücke |
+| --- | --- | --- |
+| Hallensprecher | `Zweiter Aufruf In Vorbereitung für:Tabletbedienung:Max Hahn! Max Hahn, bitte als Tabletbedienung.` | `Zweiter Aufruf In Vorbereitung für:` und `bitte als Tabletbedienung` |
+| Hallensprecherin | Derselbe Vorbereitungskontext | Dieselben zwei Stücke |
+| Hallensprecherin | `Zweiter Aufruf für:Max Hahn. Auf Spielfeld acht!` | `Zweiter Aufruf für:` |
+
+Das normale Männerpräfix bleibt der vorhandene Ausschnitt aus der Tabletquelle.
+Die übrigen Team-, Namens-, Rollen-, Feld- und Vorbereitungsstücke bleiben
+bytegleich. Auch die abschließende Aufforderung für D11 wird zwischen Einzelperson,
+Doppelteam, Tablet und Klapptafel geteilt. Der derzeitige Browserwortlaut
+`bitte als Tabletbedienung` bleibt dabei auch im Klapptafel-Fall erhalten.
+
+Es gibt drei verwendete neue Quellen aus vier tatsächlichen Kandidaten. Der
+erste weibliche Vorbereitungskandidat wird wegen überlanger Pausen verworfen;
+Seed 43 besteht. Die übrigen Quellen bestehen mit Seed 42. Die neuen Schnitte
+benötigen keine aktive Grenzwarnung; historische Namenswarnungen bleiben erhalten.
+Die warmen Wiederholungsläufe benötigen keine Synthese und spielen bytegleiche
+Bausteine. Die gemeinsame 100-ms-/LUFS-Aufbereitung, Stimmenreferenzen und Tempo
+bleiben erhalten. Der Produktivbetrieb bleibt v1; D12 ist der nächste Hörbereich.
+
 ### 5.1 Erster B01-Hörsatz: Spielfeld acht, beide Stimmen
 
 `scripts/tts-field-context-plan.js` ergänzt den gespeicherten, bestätigten Spielblockplan um genau eine vollständige Feldreferenz pro Feld und Stimme. Für diesen ersten Hörtest wird nur Feld acht verwendet. Die Referenz hält die Spielnummer ohne „Nummer“, Satzzeichen und Doppel-Leerzeichen aus der bisherigen festen Vorlage bei; für v2 gilt die bereits gewählte gesprochene Schreibweise `Mädchen Einzel`. Die archivierte v1-Referenz bleibt unverändert.

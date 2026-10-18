@@ -951,3 +951,27 @@ Die aktuellen Proben sind mit beiden Stimmen klanglich bestätigt, einschließli
 des markierten Namensanfangs von Tim Lehr bei der Hallensprecherin. Die Bestätigung
 gilt den konkreten Aufnahmen. Als nächster Hörbereich sind B11-Zweitaufrufe mit
 vorhandenen Teams, Rollen und Location-Texten vorgesehen; danach die D12-Kampflos-Klausel.
+
+## 20. B11 im v2-Hörlabor: Zweitaufrufe D04–D11
+
+`http://127.0.0.1:8084/zweitaufrufe/` enthält pro Stimme 20 vollständige
+Zweitaufrufe sowie drei Einzelbausteine und zwei Kontextreferenzen. Normale
+Teamaufrufe, Vorbereitungsaufrufe, Richter und Tablet-/Klapptafelbedienung werden
+mit vorhandenen Namen und Teams zusammengesetzt. Die Offiziellen-Aufrufe werden
+zusätzlich ohne zugewiesenes Feld geprüft. Es gibt keine neuen Turnierzuordnungen.
+
+Der Männerbaustein `Zweiter Aufruf für:` ist bereits vorhanden. Je Stimme wird
+der Vorbereitungskontext aus Abschnitt 5.0.3 des v2-Plans erzeugt; er liefert
+das gemeinsame Vorbereitungspräfix und `bitte als Tabletbedienung`. Für die
+Hallensprecherin kommt die normale Präfixquelle hinzu. So entstehen drei
+verwendete neue Quellen; vier Kandidaten waren einschließlich einer wegen
+Pausen verworfenen Frauenaufnahme nötig. Bestehende Wiedergabestücke werden
+ohne erneute Bearbeitung übernommen.
+
+Der gespeicherte Location-Stand ist Campus Helleweg ohne Hallenzusatz und ohne
+aktiven Treffpunkt. Wortlaut und Reihenfolge kommen aus den Browserfunktionen;
+Location-Varianten und Einzahl-/Mehrzahlformen sind im Planer berücksichtigt.
+Der aktuelle D11-Wortlaut bleibt auch bei Klapptafeln erhalten. Das Hörlabor
+schreibt keine Browsertexte um. Pausen rechnen Randstille an: 140 ms nach dem
+Präfix, 80 ms nach der Rolle, bei Klapptafeln 180 ms; 320 ms vor dem wiederholten
+Namen. Die Klangabnahme dieses Hörsatzes ist offen. Danach folgt D12.
