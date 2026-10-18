@@ -142,3 +142,24 @@ describe('Context v2 failed-source recovery', function() {
         broker.stop();
     });
 });
+
+
+describe('Speech startup during a context-version change', function() {
+    it('keeps restored plans from reaching an unverified starting server', async function() {
+        const { SpeechBroker, configuration } = require('../bts/speech/broker');
+        const posts = [];
+        const broker = new SpeechBroker(configuration({ enabled: true, api_key: 'x'.repeat(32), cache_enabled: false }, {}), {
+            request: async (_base, _key, method, route, body) => {
+                if (method === 'POST') posts.push(body);
+                if (route === '/v1/voices') return { voices: [] };
+                throw new Error('server_starting');
+            },
+        });
+        broker.prepare(['Veralteter Auftrag'], { voice: 'hallensprecher', priority: 'normal' }, 'test');
+        broker.start();
+        try {
+            await new Promise(resolve => setTimeout(resolve, 150));
+            assert.strictEqual(posts.length, 0, 'cache metadata is sufficient for playback, not for new synthesis');
+        } finally { broker.stop(); }
+    });
+});

@@ -80,6 +80,7 @@ class SpeechBroker {
         this.current = null;
         this.stepping = false;
         this.last_metadata = 0;
+        this.metadata_verified = false;
         this.audio_clients = 0;
         this.context_version = null;
         this.playback_profile = null;
@@ -605,6 +606,7 @@ class SpeechBroker {
                 ['hallensprecherin', 'hallensprecher'].includes(voice.voice_id) && voice.languages?.includes('de-DE'));
         }
         const state = health.status === 'fulfilled' ? health.value : health.reason.response;
+        if (health.status === 'fulfilled' && state?.model_revision) this.metadata_verified = true;
         if (state?.model_revision) {
             const next_context = context.SUPPORTED.includes(state.context_version) ? state.context_version : null;
             if (next_context !== this.context_version) {
@@ -798,7 +800,9 @@ class SpeechBroker {
         const tick = async () => {
             try {
                 if (this.last_metadata + 15000 <= this.now()) await this.refresh();
-                await this.step();
+                // Restored metadata supports offline playback, but must not
+                // submit an old context plan while a new service starts.
+                if (this.metadata_verified) await this.step();
             } catch (_) { this.last_error = 'speech_unavailable'; }
             if (!this.stopped) this.timer = setTimeout(tick, 100);
             this.timer?.unref();
