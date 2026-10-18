@@ -5,6 +5,7 @@ const idlePlan = require('./idle_plan');
 const { isRequired, matchParts, requiredPlan, requiredParts } = require('./planning');
 const reads = require('../preparation_selection/model_reads');
 const resolveSettings = require('../../static/js/speech_settings');
+const { PlanningStatus } = require('./planning_status');
 const EVENTS = new Set([
     'match_edit', 'match_added', 'match_delete', 'match_preparation_call', 'match_called_on_court',
     'court_current_match', 'match_finished', 'matches_changed', 'prop_changed',
@@ -32,12 +33,21 @@ class Prefetcher {
         this.dirty = new Set();
         this.preferred = new Map();
         this.contexts = new Map();
+        this.planning = new Map();
         this.urgent = new Set();
         this.interval = null;
     }
 
     settings(key) {
         return this.subscriptions.get(key) || resolveSettings({}, this.broker.config);
+    }
+
+    planning_status(key) {
+        const settings = this.settings(key), model = this.planning.get(key);
+        if (model) return model.snapshot(this.broker, key, settings, this.broker.pending_plans.has(key));
+        return { title: key, state: !this.broker.config.enabled || settings.mode === 'browser' ? 'disabled' : 'updating',
+            phase: 'unknown', voice: settings.voice, mode: settings.mode, games: {}, stages: [],
+            total: { ready: 0, queued: 0, total: 0, failed: 0 }, current: null, active_stage: null, updated_at: this.broker.now() };
     }
 
     configure(tournament, schedule = true) {
@@ -47,6 +57,7 @@ class Prefetcher {
             previous?.warm_other_voice === selected.warm_other_voice) return;
         this.subscriptions.set(tournament.key, selected);
         this.contexts.delete(tournament.key);
+        this.planning.delete(tournament.key);
         clearTimeout(this.lease_timers.get(tournament.key));
         this.lease_timers.delete(tournament.key);
         this.broker.select_voice(tournament.key, selected.mode === 'browser' ? null : selected.voice);
@@ -131,6 +142,7 @@ class Prefetcher {
             // browsers using another UI language retain their existing browser TTS.
             if (tournament.language && !['auto', 'de'].includes(tournament.language)) {
                 this.contexts.delete(key);
+                this.planning.delete(key);
                 this.broker.reconcile_prefetch(key, [], speech_settings);
                 return;
             }
@@ -138,6 +150,7 @@ class Prefetcher {
             const context = { ...tournament, locations, courts, normalizations, tabletoperators,
                 speech: { context_version: this.broker.context_version } };
             const required = requiredPlan(context, matches, umpires), parts = requiredParts(required);
+            const planning = new PlanningStatus(context, matches, required, this.preferred.get(key));
             // Retain only the context and active game recipes needed by an
             // immediate call; the registration inventory is rebuilt separately.
             this.contexts.set(key, { context: { ...context, events: undefined }, settings: speech_settings, required });
@@ -155,11 +168,12 @@ class Prefetcher {
             if (this.dirty.has(key) || this.subscriptions.get(key) !== speech_settings) return;
             const coverage = await plan(context, matches, umpires);
             const needed = new Set(parts);
-            const idle_parts = (await idlePlan(context, matches, umpires, this.preferred.get(key)))
+            const idle_parts = (await idlePlan(context, matches, umpires, this.preferred.get(key), (stage, values) => planning.add(stage, values)))
                 .filter(part => !needed.has(part));
             if (!this.dirty.has(key) && this.subscriptions.get(key) === speech_settings) {
                 const retry = this.broker.reconcile_prefetch(key, parts, { ...speech_settings, language: 'de-DE', idle_parts });
                 await this.broker.coverage.set_plan(key, speech_settings.voice, coverage);
+                if (!this.dirty.has(key) && this.subscriptions.get(key) === speech_settings) this.planning.set(key, planning);
                 this.broker.on_change([key]);
                 clearTimeout(this.lease_timers.get(key));
                 this.lease_timers.delete(key);
@@ -198,6 +212,7 @@ class Prefetcher {
         this.lease_timers.clear();
         this.dirty.clear();
         this.contexts.clear();
+        this.planning.clear();
         this.urgent.clear();
         for (const key of this.subscriptions.keys()) this.broker.pending_plans.delete(key);
     }

@@ -30,6 +30,7 @@ function update_container(container, elems, with_sep) {
 				};
 				if (item.href) {
 					item_attrs.href = item.href;
+					if (item.target) { item_attrs.target = item.target; item_attrs.rel = 'noopener'; }
 				}
 				if (item.button) item_attrs.type = 'button';
 				const item_el = uiu.el(dropdown, (item.href ? 'a' : item.button ? 'button' : 'span'), item_attrs, item.label);

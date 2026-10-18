@@ -958,6 +958,97 @@ suite('BTS / actual FastAPI / native Chrome speech integration', function() {
         }
     });
 
+    it('opens live planning in a separate admin tab with ready / queued / total bars and automatic game-state updates', async function() {
+        const broker = app.speech.broker, wasRunning = !broker.stopped;
+        broker.stop();
+        await until(async () => {
+            if (broker.current && !broker.stepping) { broker.current.entry.next_poll = 0; await broker.step(); }
+            return !broker.current && !broker.stepping;
+        });
+        const match = await app.db.matches.findOne_async({ _id: 'match1' });
+        const before = fs.readFileSync(path.join(directory, 'received.jsonl'), 'utf8');
+        let targetId, socket, selected;
+        try {
+            await app.speech.prefetch.refresh('default');
+            await until(() => devtools.evaluate('!!document.querySelector(\'.speech_planning_link\')'));
+            const originalURL = await devtools.evaluate('location.href');
+            const attrs = await devtools.evaluate('(() => { const a = document.querySelector(\'.speech_planning_link\'); ' +
+                'return {href:a.href,target:a.target,rel:a.rel}; })()');
+            assert.strictEqual(attrs.target, '_blank');
+            assert.strictEqual(attrs.rel, 'noopener');
+            assert(attrs.href.endsWith('/admin/t/default/speech-planning/'));
+            const menu = await devtools.evaluate('(() => { const label = document.querySelector(\'.speech_planning_link\')' +
+                '.closest(\'.toprow_menu\').querySelector(\'.toprow_menu_label\'); label.scrollIntoView(); ' +
+                'const r = label.getBoundingClientRect(); return {x:r.x+r.width/2,y:r.y+r.height/2}; })()');
+            await devtools.call('Input.dispatchMouseEvent', { type: 'mouseMoved', ...menu });
+            await until(() => devtools.evaluate('document.querySelector(\'.speech_planning_link\').getBoundingClientRect().height > 0'));
+            await click('.speech_planning_link');
+            const page = await until(async () => (await (await fetch('http://' + devtoolsHost + '/json/list')).json())
+                .find(value => value.url === attrs.href));
+            targetId = page.id;
+            socket = new WebSocket(page.webSocketDebuggerUrl);
+            await new Promise(resolve => socket.once('open', resolve));
+            const live = new CDP(socket);
+            await live.call('Runtime.enable');
+            await live.call('Emulation.setDeviceMetricsOverride', { width: 1340, height: 1500, deviceScaleFactor: 1, mobile: false });
+            await live.call('Page.bringToFront');
+            const snapshot = () => live.evaluate('(() => { const panel = document.querySelector(\'.speech_plan_live\'); return {' +
+                'connected:panel?.dataset.connected, state:panel?.dataset.state, phase:panel?.querySelector(\'p:nth-of-type(2)\').textContent, ' +
+                'counts:document.querySelector(\'.speech_plan_counts\')?.textContent, ' +
+                'cards:document.querySelectorAll(\'.speech_plan_card\').length, bars:document.querySelectorAll(\'.live-progress\').length, ' +
+                'active:document.querySelector(\'.live-current\')?.id, updated:panel?.dataset.updatedAt}; })()');
+            await until(async () => (await snapshot()).connected === 'true');
+            const initial = await snapshot();
+            assert(initial.counts.includes('bereit ·') && initial.counts.includes('in der Queue ·') && initial.counts.includes('gesamt'));
+            assert(initial.cards > 10 && initial.bars > 10);
+            assert(await live.evaluate('document.querySelectorAll(\'#overview [id]\').length === new Set([...document.querySelectorAll(\'#overview [id]\')].map(n => n.id)).size'));
+            assert.strictEqual(await live.evaluate('typeof btsSpeechService'), 'undefined');
+            assert.strictEqual(await live.evaluate('window.opener'), null);
+            assert.strictEqual(await devtools.evaluate('location.href'), originalURL);
+            assert((await fetch(attrs.href)).headers.get('cache-control').includes('no-store'));
+
+            await app.db.matches.update_async({ _id: match._id }, { $set: { 'setup.state': 'oncourt', 'setup.called_timestamp': Date.now() } }, {});
+            await app.speech.prefetch.refresh('default');
+            await until(async () => (await snapshot()).phase.includes('1 auf dem Feld'));
+            assert(await live.evaluate('document.querySelector(\'.phase[data-state="oncourt"]\').classList.contains(\'live-present\')'));
+
+            const model = app.speech.prefetch.planning.get('default');
+            const voice = app.speech.prefetch.settings('default').voice;
+            const part = [...model.parts].find(([part, stage]) => stage === 'shared' &&
+                broker.entries.has(broker.key(part, voice, 'de-DE')))?.[0];
+            assert(part);
+            const entry = broker.entries.get(broker.key(part, voice, 'de-DE'));
+            selected = { entry, values: { status: entry.status, local: entry.local, retry_at: entry.retry_at } };
+            Object.assign(entry, { status: 'processing', local: false, retry_at: 0 });
+            broker.current = { entry, request: { voice: entry.voice } };
+            await until(async () => (await snapshot()).active === 'location-field-priority');
+            const caption = await live.evaluate('document.querySelector(\'[data-stage="shared"] p\').textContent');
+            assert(/\b[1-9]\d* in der Queue/.test(caption), caption);
+            if (process.env.BTS_SPEECH_PLANNING_SCREENSHOT) {
+                const shot = await live.call('Page.captureScreenshot', { format: 'png', captureBeyondViewport: true });
+                fs.writeFileSync(process.env.BTS_SPEECH_PLANNING_SCREENSHOT, Buffer.from(shot.data, 'base64'));
+            }
+            Object.assign(entry, selected.values); broker.current = null; selected = null;
+            const update = (await snapshot()).updated;
+            await until(async () => (await snapshot()).updated !== update);
+            for (const ws of app.wss.clients) if (ws.speech_planning_last) ws.close();
+            await until(async () => (await snapshot()).connected === 'false');
+            assert.strictEqual(await live.evaluate('document.querySelectorAll(\'.live-current,.live-present\').length'), 0);
+            await until(async () => (await snapshot()).connected === 'true');
+            assert.strictEqual(fs.readFileSync(path.join(directory, 'received.jsonl'), 'utf8'), before,
+                'opening and polling the graphic must not submit synthesis');
+            assert.deepStrictEqual(live.events.filter(event => event.method === 'Runtime.exceptionThrown'), []);
+        } finally {
+            if (selected) { Object.assign(selected.entry, selected.values); broker.current = null; }
+            socket?.close();
+            if (targetId) await devtools.call('Target.closeTarget', { targetId });
+            await devtools.call('Page.bringToFront');
+            await app.db.matches.update_async({ _id: match._id }, { $set: { setup: match.setup } }, {});
+            await app.speech.prefetch.refresh('default');
+            if (wasRunning) broker.start();
+        }
+    });
+
     it('keeps shared audio green and plays it after BTS adapter restart with the actual FastAPI process stopped', async function() {
         app.speech.stop();
         await until(async () => {

@@ -1802,6 +1802,11 @@ var ctournament = (function() {
 		const items = [{
 			label: ci18n('edit BTS settings'),
 			href: base_path + '/edit',
+		}, {
+			label: 'Sprachplanung · live',
+			href: base_path + '/speech-planning/',
+			target: '_blank',
+			class: 'speech_planning_link',
 		}];
 		if (curt.btp_enabled) {
 			items.push({

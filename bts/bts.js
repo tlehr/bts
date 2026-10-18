@@ -69,6 +69,14 @@ function main() {
 
 function cadmin_router() {
 	const router = express.Router();
+	router.get('/t/:tournament_key/speech-planning/', function(req, res, next) {
+		fs.readFile(path.join(utils.root_dir(), 'docs', 'sprachgenerierung-reihenfolge.html'), 'utf8', function(err, html) {
+			if (err) return next(err);
+			res.set('Cache-Control', 'no-store');
+			res.type('html').send(html.replace('</style>', '</style><link rel="stylesheet" href="/static/css/speech_planning.css">')
+				.replace('</html>', '<script src="/static/js/speech_planning.js"></script></html>'));
+		});
+	});
 	router.use(function(req, res, next) {
 		fs.readFile(path.join(utils.root_dir(), 'static', 'cbts.html'), 'utf8', function(err, html) {
 			if (err) return next(err);

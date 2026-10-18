@@ -6,7 +6,7 @@ const { isOpen, tier, compare } = require('./planning');
 
 // Keep this inventory separate from the work queue. The broker admits one
 // playback piece (and its source) only after all ordinary work is finished.
-async function idlePlan(tournament, matches, umpires = [], preferred_ids = []) {
+async function idlePlan(tournament, matches, umpires = [], preferred_ids = [], onStage) {
     const preferred = new Set(preferred_ids), stages = new Map();
     const events = tournament.events?.events || [];
     const eventKey = event => 'event:' + (event.id ?? event.name);
@@ -29,6 +29,11 @@ async function idlePlan(tournament, matches, umpires = [], preferred_ids = []) {
     const v2 = tournament.speech?.context_version === 'bts-context-v2';
     const inventory = v2 ? require('./v2_inventory') : null;
     const parts = [], texts = renderer(tournament, 'de', parts);
+    const record = (stage, action) => {
+        const start = parts.length;
+        action();
+        if (onStage) onStage(stage, parts.slice(start));
+    };
     let work = 0;
     const yieldWork = async () => { if (++work % 16 === 0) await new Promise(resolve => setImmediate(resolve)); };
     const addTeams = setup => prepare_tabletoperators(texts, tournament, setup, tabletoperator_groups(tournament, setup));
@@ -36,28 +41,31 @@ async function idlePlan(tournament, matches, umpires = [], preferred_ids = []) {
     for (const match of open) {
         await yieldWork();
         if (!waiting_added && tier(match, preferred) === 3) {
-            prepare_waiting_tabletoperators(texts, tournament);
+            record('tablet_waiting', () => prepare_waiting_tabletoperators(texts, tournament));
             waiting_added = true;
         }
         // Future game blocks, assigned officials and hall variants are reserve
         // too. Shared court/common pieces already belong to the required plan.
-        parts.push(...prepare(tournament, [match], 'de', { shared: false }));
-        if (active.has(discipline(match.setup)) && (!v2 || tier(match, preferred) < 3)) addTeams(match.setup);
+        const stage = ['oncourt', 'preparation', 'candidate', 'planned'][tier(match, preferred)];
+        record(stage, () => {
+            parts.push(...prepare(tournament, [match], 'de', { shared: false }));
+            if (active.has(discipline(match.setup)) && (!v2 || tier(match, preferred) < 3)) addTeams(match.setup);
+        });
     }
-    if (!waiting_added) prepare_waiting_tabletoperators(texts, tournament);
+    if (!waiting_added) record('tablet_waiting', () => prepare_waiting_tabletoperators(texts, tournament));
     // Teams with a known next game come first. Registered teams without a
     // resolved opponent still supply useful tablet/board announcements.
     const active_order = [...active];
     const active_events = events.filter(event => active.has(eventKey(event)))
         .sort((a, b) => active_order.indexOf(eventKey(a)) - active_order.indexOf(eventKey(b)));
     if (v2) {
-        parts.push(...inventory.registration(tournament, matches));
-        for (const match of open) if (active.has(discipline(match.setup)) && tier(match, preferred) === 3) addTeams(match.setup);
+        record('registration_reserve', () => parts.push(...inventory.registration(tournament, matches)));
+        for (const match of open) if (active.has(discipline(match.setup)) && tier(match, preferred) === 3) record('tablet', () => addTeams(match.setup));
     }
     for (const event of active_events) for (const stage of event.stages || []) {
         for (const entry of stage.entries || []) {
             await yieldWork();
-            if (entry.team) addTeams({ teams: [entry.team] });
+            if (entry.team) record('tablet', () => addTeams({ teams: [entry.team] }));
         }
     }
     // Unassigned officials are useful reserve too; assigned officials are
@@ -67,11 +75,13 @@ async function idlePlan(tournament, matches, umpires = [], preferred_ids = []) {
         if (!official.name?.trim()) continue;
         for (const [role, suffix] of [['umpire', 'Umpire'], ['service_judge', 'ServiceJudge']]) {
             const setup = { [role]: official };
-            texts['announceSecondCall' + suffix](setup);
-            texts['announceSecondPreparationCall' + suffix](setup);
-            for (const location of tournament.locations || []) {
-                texts['announceSecondPreparationCall' + suffix]({ ...setup, location_id: location._id });
-            }
+            record('officials', () => {
+                texts['announceSecondCall' + suffix](setup);
+                texts['announceSecondPreparationCall' + suffix](setup);
+                for (const location of tournament.locations || []) {
+                    texts['announceSecondPreparationCall' + suffix]({ ...setup, location_id: location._id });
+                }
+            });
         }
     }
     // Last, cover every remaining known person/pairing, including other
@@ -79,7 +89,7 @@ async function idlePlan(tournament, matches, umpires = [], preferred_ids = []) {
     // position, and cached recordings never cause a new synthesis request.
     for (const group of potential_tabletoperator_groups(tournament, matches)) {
         await yieldWork();
-        prepare_tabletoperators(texts, tournament, {}, [group]);
+        record('people', () => prepare_tabletoperators(texts, tournament, {}, [group]));
     }
     return [...new Set(parts)];
 }

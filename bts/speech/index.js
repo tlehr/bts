@@ -34,6 +34,14 @@ function handle(app, ws, msg) {
     const speech = app.speech;
     const key = msg.tournament_key;
     const reply = values => ws.respond(msg, null, values);
+    if (msg.type === 'speech_planning') {
+        if (!key || key !== ws.speech_tournament_key) return reply({ speech_error: 'tournament_not_loaded' });
+        if (!speech) return reply({ speech_error: 'speech_unavailable' });
+        const now = Date.now();
+        if (now - (ws.speech_planning_last || 0) < 500) return reply({ speech_error: 'speech_rate_limit' });
+        ws.speech_planning_last = now;
+        return reply({ planning: speech.prefetch.planning_status(key) });
+    }
     if (!speech || !speech.broker.config.enabled) {
         reply({ speech: speech?.broker.public_config() || { enabled: false }, clips: [] });
         return;

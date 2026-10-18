@@ -5691,6 +5691,7 @@ module.exports = {
 	handle_speech_status: require('./speech').handle,
 	handle_speech_queue: require('./speech').handle,
 	handle_speech_inventory: require('./speech').handle,
+	handle_speech_planning: require('./speech').handle,
 	handle_edit_display_setting,
 	handle_create_display_setting,
 	async_handle_delete_display_setting,

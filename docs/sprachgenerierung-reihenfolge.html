@@ -24,10 +24,10 @@ je kleiner, desto früher. Klicke auf einen Spielzustand, um seine Aufgaben herv
 <style>
 text{font-family:system-ui,sans-serif;fill:#163047} .title{font-size:23px;font-weight:750}.body{font-size:18px}.small{font-size:16px;fill:#536b7d}.label{font-size:14px;font-weight:750;letter-spacing:.5px}.rank{font-size:20px;font-weight:800}.urgent{fill:#fff3df;stroke:#db8b20;stroke-width:1.5}.state{fill:#f3f5f7;stroke:#c4d0d9;stroke-width:1.5}.need{fill:#edf8ef;stroke:#86b894;stroke-width:1.5}.cache{fill:#edf4fd;stroke:#9ebae1;stroke-width:1.5}.reserve{fill:#f3f5f7;stroke:#bfcbd4;stroke-width:1.5}.base{fill:#f5f0ff;stroke:#b9a4de;stroke-width:1.5}.line{fill:none;stroke:#8799a8;stroke-width:2;marker-end:url(#arrow)}.phase{cursor:pointer}.phase:hover rect,.phase.active rect{stroke:#163047;stroke-width:3}.dimmed{opacity:.3}.focus{stroke:#163047;stroke-width:3}.divider{stroke:#d8e2e9;stroke-width:1}.pill{fill:#fff;stroke:#d8e2e9;stroke-width:1}.green{fill:#166534}.blue{fill:#1d4ed8}.orange{fill:#a6550a}
 </style>
-<rect x="18" y="20" width="1244" height="104" rx="14" class="urgent"/>
+<g id="urgent-priority"><rect x="18" y="20" width="1244" height="104" rx="14" class="urgent"/>
 <text x="40" y="52" class="label orange">IMMER VORRANG · AUCH WÄHREND DER GRUNDVORBEREITUNG</text>
 <text x="40" y="86" class="title">1 · Tatsächlich ausgelöste Turnierdurchsagen</text>
-<text x="40" y="111" class="small">Fehlendes Audio in Auslösereihenfolge · auch Anmeldung, freie Ansagen und Kampflos-Mitteilungen</text>
+<text x="40" y="111" class="small">Fehlendes Audio in Auslösereihenfolge · auch Anmeldung, freie Ansagen und Kampflos-Mitteilungen</text></g>
 <g id="speech-test-priority">
 <rect x="18" y="135" width="1244" height="48" rx="10" class="urgent"/>
 <text x="40" y="166" class="body"><tspan font-weight="750">2 · Sprachtest immer vorbereiten</tspan><tspan> · auch ohne Anforderung; angeforderte Hörproben ebenfalls hier</tspan></text>
@@ -68,31 +68,31 @@ text{font-family:system-ui,sans-serif;fill:#163047} .title{font-size:23px;font-w
 <g data-panel="reserve"><rect x="18" y="408" width="486" height="468" rx="14" class="reserve"/>
 <text x="40" y="444" class="title">Nur wenn sonst keine Arbeit wartet</text>
 <text x="40" y="471" class="small">Vorrat: erst im Leerlauf in die Auftragsliste aufnehmen</text>
-<text x="40" y="516" class="rank">6</text><text x="76" y="516" class="body" font-weight="700">Aufrufkandidaten</text>
-<text x="76" y="541" class="small">Nach ihrer Kandidatenreihenfolge</text>
+<g id="candidate-priority"><text x="40" y="516" class="rank">6</text><text x="76" y="516" class="body" font-weight="700">Aufrufkandidaten</text>
+<text x="76" y="541" class="small">Nach ihrer Kandidatenreihenfolge</text></g>
 <line x1="40" y1="560" x2="482" y2="560" class="divider"/>
-<text x="40" y="589" class="rank">7</text><text x="76" y="589" class="body" font-weight="700">Weitere nicht zugewiesene Spiele</text>
-<text x="76" y="614" class="small">Nach der Reihenfolge im BTS-Spielplan</text>
+<g id="planned-priority"><text x="40" y="589" class="rank">7</text><text x="76" y="589" class="body" font-weight="700">Weitere nicht zugewiesene Spiele</text>
+<text x="76" y="614" class="small">Nach der Reihenfolge im BTS-Spielplan</text></g>
 <line x1="40" y1="633" x2="482" y2="633" class="divider"/>
-<text x="40" y="662" class="rank">8</text><text x="76" y="662" class="body" font-weight="700">Weitere Disziplinen / Auslosungen</text>
+<g id="draws-priority"><text x="40" y="662" class="rank">8</text><text x="76" y="662" class="body" font-weight="700">Weitere Disziplinen / Auslosungen</text>
 <text x="76" y="687" class="small">Ab erster Auslosung · nach Spielansetzungen</text>
-<text x="76" y="712" class="small">Namen zugleich für Tabletansagen nutzbar</text>
+<text x="76" y="712" class="small">Namen zugleich für Tabletansagen nutzbar</text></g>
 <line x1="40" y1="731" x2="482" y2="731" class="divider"/>
-<text x="40" y="760" class="rank">9</text><text x="76" y="760" class="body" font-weight="700">Zusätzlicher Tablet-Vorrat</text>
-<text x="76" y="785" class="small">Übrige Teams laufender Disziplinen</text>
+<g id="tablet-priority"><text x="40" y="760" class="rank">9</text><text x="76" y="760" class="body" font-weight="700">Zusätzlicher Tablet-Vorrat</text>
+<text x="76" y="785" class="small">Übrige Teams laufender Disziplinen</text></g>
 <line x1="40" y1="804" x2="482" y2="804" class="divider"/>
-<text x="34" y="833" class="rank">10</text><text x="76" y="833" class="body" font-weight="700">Übrige bekannte Personen und Teams</text>
-<text x="76" y="858" class="small">Weitere Namen; keine erfundenen Paarungen</text></g>
+<g id="people-priority"><text x="34" y="833" class="rank">10</text><text x="76" y="833" class="body" font-weight="700">Übrige bekannte Personen und Teams</text>
+<text x="76" y="858" class="small">Weitere Namen; keine erfundenen Paarungen</text></g></g>
 <g data-panel="needed"><rect x="522" y="408" width="486" height="468" rx="14" class="need"/>
 <text x="544" y="444" class="title">Benötigte Ansagen</text>
 <text x="544" y="471" class="small">Spiele ab Aufruf; Offiziellenliste vollständig</text>
-<text x="544" y="516" class="rank green">3</text><text x="580" y="516" class="body" font-weight="700">Laufende Spiele</text>
+<g id="running-priority"><text x="544" y="516" class="rank green">3</text><text x="580" y="516" class="body" font-weight="700">Laufende Spiele</text>
 <text x="580" y="543" class="body">Nach ihrer Aufrufzeit</text>
-<text x="580" y="569" class="small">Früher aufgerufen → früher vervollständigen</text>
+<text x="580" y="569" class="small">Früher aufgerufen → früher vervollständigen</text></g>
 <line x1="544" y1="590" x2="986" y2="590" class="divider"/>
-<text x="544" y="622" class="rank green">4</text><text x="580" y="622" class="body" font-weight="700">Spiele in Vorbereitung</text>
+<g id="preparation-priority"><text x="544" y="622" class="rank green">4</text><text x="580" y="622" class="body" font-weight="700">Spiele in Vorbereitung</text>
 <text x="580" y="649" class="body">Nach Zeitpunkt des Vorbereitungsaufrufs</text>
-<text x="580" y="675" class="small">Für den nächsten Feldaufruf vervollständigen</text>
+<text x="580" y="675" class="small">Für den nächsten Feldaufruf vervollständigen</text></g>
 <line x1="544" y1="696" x2="986" y2="696" class="divider"/>
 <g id="officials-priority">
 <text x="544" y="727" class="rank green">5</text><text x="580" y="727" class="body" font-weight="700">Alle technischen Offiziellen</text>

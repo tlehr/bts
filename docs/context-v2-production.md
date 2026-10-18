@@ -96,6 +96,28 @@ Die separate aufklappbare **Auftragsliste** zeigt die tatsächlichen
 Sprachaufnahmen, Schnitte und Aufbereitung in Abarbeitungsreihenfolge, einschließlich
 Quellverknüpfungen und Probehören.
 
+## Live-Planung im eigenen Tab
+
+**Adminmenü → Sprachplanung · live** öffnet die Planungsgrafik für das aktuelle
+Turnier in einem neuen Browser-Tab. Turnierphase, Anzahl der Spiele je Zustand
+und Fortschritt aktualisieren sich alle zwei Sekunden. Blaue Rahmen markieren
+vorhandene Spielzustände; Gold markiert den gerade bearbeiteten oder nächsten
+Auftragsbereich. Ein laufender Auftrag eines anderen Turniers wird eigens angezeigt.
+
+Die vereinfachten Balken zeigen **bereit / in der Queue / gesamt**: Grün zählt
+fertige Abspielbausteine, Orange fehlende Bausteine mit Auftrag, Grau den noch
+nicht beauftragten geplanten Vorrat. „Gesamt“ umfasst diese drei Gruppen. Die
+Zahlen stehen zusätzlich je Planungsbereich unter der Grafik. Gemeinsame Teile
+zählen einmal beim ersten, vorrangigen Bedarf; Quellaufnahmen werden nicht
+zusätzlich zu ihren Ausschnitten gezählt. Optionaler Vorrat der anderen Stimme
+steht in einem eigenen Bereich. Die Werte beziehen sich auf den aktuellen Plan
+und können sich bei Änderungen am Turnier ändern.
+
+Die Seite liest den vorhandenen Plan und die Warteschlange; sie legt keine
+zusätzlichen Sprachaufträge an. Bei Verbindungsverlust werden die aktuellen
+Markierungen entfernt und die Verbindung automatisch wiederhergestellt.
+Die bisherigen manuellen Spielzustandsfilter und der Grafikexport bleiben verfügbar.
+
 ## Fehler und Wiederholungen
 
 Fehleranzeigen nennen den betroffenen Schritt, den Grund, die Anzahl der
