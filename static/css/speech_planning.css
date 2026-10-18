@@ -8,11 +8,6 @@
 .speech_plan_ready { background: #21804b; }
 .speech_plan_queued { background: #e88925; }
 .speech_plan_bar span { display: block; height: 100%; flex-shrink: 0; }
-.speech_plan_grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }
-.speech_plan_card { background: white; padding: 12px; border: 2px solid #dce5ec; border-radius: 8px; }
-.speech_plan_card[hidden] { display: none; }
-.speech_plan_card h3 { font-size: 16px; margin: 0; }
-.speech_plan_card p { font-size: 14px; }
-.speech_plan_card.is-current { border-color: #d48815; background: #fff9e9; }
-.speech_plan_follow_status { color: #163047; font-size: 17px; font-weight: 700; }
-@media print { .speech_plan_live, .speech_plan_stages { break-inside: avoid; } }
+.speech_plan_follow_status { position: sticky; top: 0; z-index: 5; padding: 10px 14px; border: 1px solid #bdcad4; border-left: 4px solid #9eafbd; border-radius: 8px; background: #f2f5f7; color: #163047; font-size: 17px; font-weight: 700; }
+.speech_plan_follow_status[data-active="true"] { border-color: #d48815; background: #fff8e8; }
+@media print { .speech_plan_live { break-inside: avoid; } .speech_plan_follow_status { position: static; } }

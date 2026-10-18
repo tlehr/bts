@@ -1,155 +1,257 @@
 <!doctype html>
 <html lang="de">
+<head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>BTS · Reihenfolge der Sprachgenerierung</title>
+<title>BTS · Ablauf der Sprachvorbereitung</title>
 <style>
-*{box-sizing:border-box}body{margin:0;background:#f2f5f7;color:#163047;font:17px/1.5 system-ui,sans-serif}main{max-width:1340px;margin:auto;padding:28px 24px 40px}h1{font-size:clamp(25px,3vw,36px);line-height:1.2;margin:8px 0 12px}p{margin:10px 0}.eyebrow{font-size:13px;font-weight:750;letter-spacing:.08em;text-transform:uppercase;color:#52687c}.intro{max-width:950px}.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin:20px 0 12px}button,a.download{font:inherit;font-size:15px;border:1px solid #bdcad4;border-radius:8px;padding:8px 12px;background:white;color:#163047;cursor:pointer;text-decoration:none}button:hover,a.download:hover{background:#eaf1f7}button[aria-pressed=true]{background:#163047;color:white;border-color:#163047}button:focus-visible,a:focus-visible{outline:3px solid #e99522;outline-offset:3px}.diagram{background:white;border:1px solid #dce5ec;border-radius:16px;overflow:auto;padding:4px;box-shadow:0 8px 24px #1e3a4c09}.diagram svg{display:block;width:100%;min-width:940px;height:auto}.detail{border-left:5px solid #15803d;border-radius:5px;background:white;padding:16px 20px;margin-top:16px;min-height:135px}.detail h2{font-size:21px;margin:0 0 7px}.detail p{margin:5px 0}.detail .tag{font-weight:750;font-size:14px;color:#52687c}.footer{display:flex;flex-wrap:wrap;justify-content:space-between;gap:10px;margin-top:18px;font-size:14px;color:#52687c}a{color:#155da2}@media(max-width:600px){main{padding:18px 12px}body{font-size:16px}.detail{padding:12px 14px}.toolbar button{flex:1 1 140px}}@media print{body{background:white}main{max-width:none;padding:0}.toolbar,.footer{display:none}.diagram{border:0;box-shadow:none;padding:0;overflow:visible}.diagram svg{min-width:0}.detail{break-inside:avoid}}
+* { box-sizing: border-box; }
+body { margin: 0; background: #f2f5f7; color: #163047; font: 16px/1.5 system-ui,sans-serif; }
+main { max-width: 960px; margin: auto; padding: 28px 24px 40px; }
+h1 { font-size: clamp(26px,4vw,36px); line-height: 1.2; margin: 8px 0 12px; }
+p { margin: 8px 0; }
+.eyebrow { font-size: 13px; font-weight: 750; letter-spacing: .08em; text-transform: uppercase; color: #52687c; }
+.intro { max-width: 800px; }
+.diagram { margin-top: 20px; padding: 24px; background: white; border: 1px solid #dce5ec; border-radius: 16px; }
+.flow-heading { margin: 0; font-size: 22px; }
+.flow-hint { color: #52687c; font-size: 14px; margin-bottom: 24px; }
+.speech_flow { max-width: 760px; margin: auto; }
+.flow-start,.flow-end { border: 1px solid #9eafbd; border-radius: 40px; background: #f3f6f9; padding: 10px 20px; text-align: center; font-weight: 700; }
+.flow-group { margin: 0; color: #52687c; font-size: 14px; text-align: center; text-transform: uppercase; letter-spacing: .04em; }
+.flow-link { height: 28px; position: relative; }
+.flow-link::before { content: ''; display: block; position: absolute; left: 50%; height: 20px; border-left: 2px solid #a6b8c6; }
+.flow-link::after { content: ''; position: absolute; left: calc(50% - 5px); top: 18px; border: 6px solid transparent; border-top-color: #a6b8c6; }
+.flow-step { border: 1px solid #d4dfe7; border-left: 4px solid #c0cdd8; border-radius: 10px; background: #fff; padding: 14px 18px; break-inside: avoid; }
+.flow-step.is-skipped { background: #f5f7f9; border-style: dashed; color: #667a89; }
+.flow-step.live-current { border: 2px solid #d48815; border-left-width: 5px; background: #fff8e8; box-shadow: 0 0 0 3px #d4881512; }
+.flow-title { display: flex; flex-wrap: wrap; align-items: baseline; gap: 5px 12px; }
+.flow-title h3 { font-size: 18px; margin: 0; flex: 1 1 260px; }
+.flow-number { color: #52687c; font-size: 14px; font-variant-numeric: tabular-nums; }
+.flow-status { font-size: 13px; font-weight: 700; color: #52687c; }
+.live-current .flow-status { color: #995b00; }
+.flow-step[data-status=ready] .flow-status { color: #21804b; }
+.flow-step[data-status=failed] .flow-status { color: #b33a2c; }
+.flow-description,.flow-counts { color: #52687c; font-size: 14px; }
+.flow-current-text { margin: 12px 0 0; padding-top: 10px; border-top: 1px solid #e8d1a4; overflow-wrap: anywhere; }
+.flow-progress { height: 8px; display: flex; overflow: hidden; border-radius: 4px; background: #cbd5e1; }
+.flow-ready { background: #21804b; }
+.flow-queued { background: #e88925; }
+.flow-progress span { display: block; height: 100%; flex-shrink: 0; }
+.flow-gate { border: 1px solid #aac5d8; background: #f3f8fc; border-radius: 10px; padding: 12px 18px; break-inside: avoid; }
+.flow-gate h3 { font-size: 16px; margin: 0; }
+.flow-gate h3::before { content: '◇'; color: #2475b4; font-size: 23px; margin-right: 8px; vertical-align: -1px; }
+.flow-gate p { font-size: 14px; color: #52687c; }
+.flow-answer { font-weight: 700; color: #163047 !important; }
+.flow-loop { text-align: center; font-size: 14px; color: #52687c; margin-top: 16px; }
+.footer { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; margin-top: 20px; font-size: 14px; color: #52687c; }
+button { font: inherit; border: 1px solid #bdcad4; border-radius: 8px; padding: 8px 12px; background: white; color: #163047; cursor: pointer; }
+button:hover { background: #eaf1f7; }
+button:focus-visible { outline: 3px solid #e99522; outline-offset: 3px; }
+[hidden] { display: none !important; }
+@media(max-width:600px) { main { padding: 18px 12px; } .diagram { padding: 18px 12px; } .flow-step,.flow-gate { padding: 12px; } .flow-title h3 { flex-basis: 200px; } }
+@media print { body { background: white; } main { max-width: none; padding: 0; } .diagram { border: 0; padding: 0; } .footer { display: none; } .flow-step,.flow-gate { box-shadow: none; } }
 </style>
+</head>
+<body>
 <main>
-<div class="eyebrow">BTS · v2 · Planungsentwurf zur Abstimmung</div>
-<h1>Wann brauchen wir welche Sprachaufnahmen?</h1>
-<p class="intro">Der Spielzustand bestimmt den Bedarf. Die <strong>Prioritätsnummer</strong> bestimmt die Reihenfolge:
-je kleiner, desto früher. Klicke auf einen Spielzustand, um seine Aufgaben hervorzuheben.</p>
-<div class="toolbar" aria-label="Spielzustand auswählen">
-<button data-select="all" aria-pressed="true">Gesamtübersicht</button><button data-select="planned" aria-pressed="false">Spiel geplant</button>
-<button data-select="candidate" aria-pressed="false">Aufrufkandidat</button><button data-select="preparation" aria-pressed="false">In Vorbereitung</button>
-<button data-select="oncourt" aria-pressed="false">Auf dem Feld</button><button data-select="finished" aria-pressed="false">Abgeschlossen</button>
-</div>
-<div class="diagram">
-<svg id="overview" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 1436" role="img" aria-labelledby="diagram-title diagram-desc">
-<title id="diagram-title">Generierungsreihenfolge abhängig vom Spielzustand</title>
-<desc id="diagram-desc">Ausgelöste Turnierdurchsagen haben Priorität eins, der Sprachtest immer Priorität zwei. Nach gemeinsamen Orts- und Feldstücken hat vor der ersten Auslosung die Anmeldevorarbeit Vorrang. Ab der ersten Auslosung kommen laufende und vorbereitete Spiele samt wahrscheinlichen Tabletbedienern zuerst. Danach werden alle bekannten technischen Offiziellen auch ohne Spielzuordnung auf Priorität fünf vorbereitet, vor Aufrufkandidaten auf Priorität sechs. Im Leerlauf nach weiteren angesetzten Spielen folgt auf Priorität acht die Sprachvorbereitung weiterer Disziplinen und Auslosungen vor zusätzlichem Tablet-Vorrat. Ihre Namen werden für Tabletansagen geteilt. Die Anmeldevorarbeit beginnt mit allgemeinen Teilen, bevorzugt geöffnete oder weiter fortgeschrittene Disziplinen und ordnet sie nach Spielansetzungen. Je Gruppe kommen Landesverbände, Vereine und zuletzt offene Spieler oder Paarungen. Fertiges Audio bleibt gespeichert. Optional folgt die andere Stimme auf Priorität elf erst bei vollständigem Leerlauf.</desc>
-<defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0L8 4L0 8Z" fill="#8799a8"/></marker></defs>
-<style>
-text{font-family:system-ui,sans-serif;fill:#163047} .title{font-size:23px;font-weight:750}.body{font-size:18px}.small{font-size:16px;fill:#536b7d}.label{font-size:14px;font-weight:750;letter-spacing:.5px}.rank{font-size:20px;font-weight:800}.urgent{fill:#fff3df;stroke:#db8b20;stroke-width:1.5}.state{fill:#f3f5f7;stroke:#c4d0d9;stroke-width:1.5}.need{fill:#edf8ef;stroke:#86b894;stroke-width:1.5}.cache{fill:#edf4fd;stroke:#9ebae1;stroke-width:1.5}.reserve{fill:#f3f5f7;stroke:#bfcbd4;stroke-width:1.5}.base{fill:#f5f0ff;stroke:#b9a4de;stroke-width:1.5}.line{fill:none;stroke:#8799a8;stroke-width:2;marker-end:url(#arrow)}.phase{cursor:pointer}.phase:hover rect,.phase.active rect{stroke:#163047;stroke-width:3}.dimmed{opacity:.3}.focus{stroke:#163047;stroke-width:3}.divider{stroke:#d8e2e9;stroke-width:1}.pill{fill:#fff;stroke:#d8e2e9;stroke-width:1}.green{fill:#166534}.blue{fill:#1d4ed8}.orange{fill:#a6550a}
-</style>
-<g id="urgent-priority"><rect x="18" y="20" width="1244" height="104" rx="14" class="urgent"/>
-<text x="40" y="52" class="label orange">IMMER VORRANG · AUCH WÄHREND DER GRUNDVORBEREITUNG</text>
-<text x="40" y="86" class="title">1 · Tatsächlich ausgelöste Turnierdurchsagen</text>
-<text x="40" y="111" class="small">Fehlendes Audio in Auslösereihenfolge · auch Anmeldung, freie Ansagen und Kampflos-Mitteilungen</text></g>
-<g id="speech-test-priority">
-<rect x="18" y="135" width="1244" height="48" rx="10" class="urgent"/>
-<text x="40" y="166" class="body"><tspan font-weight="750">2 · Sprachtest immer vorbereiten</tspan><tspan> · auch ohne Anforderung; angeforderte Hörproben ebenfalls hier</tspan></text>
-</g>
-<g id="location-field-priority">
-<rect x="18" y="195" width="1244" height="120" rx="12" class="base"/>
-<text x="40" y="228" class="title">Zuerst vorbereiten: gemeinsame Bausteine für Spielorte und Felder</text>
-<text x="40" y="260" class="body">B01 Feldanfang + Feldende → B02 „Für Spielfeld …!“ → Hallen- und Treffpunkttexte</text>
-<text x="40" y="288" class="small">Vor der Anmeldevorarbeit, unabhängig von der Auslosung. Nur eingerichtete Orte/Felder und tatsächlich verwendete Textvarianten.</text>
-</g>
-<g id="registration-priority">
-<rect x="18" y="328" width="1244" height="146" rx="12" fill="#fff9df" stroke="#c7a34d" stroke-width="1.5"/>
-<text x="40" y="358" class="title">Danach, vor der ersten Auslosung: Anmeldevorarbeit</text>
-<text x="40" y="387" class="small">Solange keine Disziplin ausgelost ist, vor Spielvorrat. Ausgelöste Turnieransagen und der Sprachtest bleiben vorrangig.</text>
-<text id="registration-order" x="40" y="419" class="body" font-weight="700">Allgemeine Teile → offene Landesverbände → offene Vereine → offene Spieler / Paarungen</text>
-<text x="40" y="451" class="small">Geöffnete / fortgeschrittene Disziplinen zuerst, darin nach erster Spielansetzung; je Gruppe obige Reihenfolge. Ab erster Auslosung: Stufe 8.</text>
-</g>
-<g transform="translate(0 288)">
-<text x="22" y="217" class="label">FORTSCHRITT EINES SPIELS →</text>
-<path d="M374 253V230H865V253" class="line" stroke-dasharray="5 4"/>
-<rect x="545" y="216" width="154" height="24" fill="white"/>
-<text x="554" y="234" class="small">Direktaufruf möglich</text>
-<g class="phase" data-state="planned"><rect x="18" y="253" width="234" height="119" rx="12" class="state"/>
-<text x="36" y="286" class="title">Spiel geplant</text><text x="36" y="314" class="body">Noch nicht zugewiesen</text><text x="36" y="346" class="label">VORRAT · PRIORITÄT 7</text></g>
-<path d="M253 311H267" class="line"/>
-<g class="phase" data-state="candidate"><rect x="270" y="253" width="234" height="119" rx="12" class="state"/>
-<text x="288" y="286" class="title">Aufrufkandidat</text><text x="288" y="314" class="body">Bald an der Reihe</text><text x="288" y="346" class="label">VORRAT · PRIORITÄT 6</text></g>
-<path d="M505 311H519" class="line"/>
-<g class="phase" data-state="preparation"><rect x="522" y="253" width="234" height="119" rx="12" class="need"/>
-<text x="540" y="286" class="title">In Vorbereitung</text><text x="540" y="314" class="body">Vorbereitung gerufen</text><text x="540" y="346" class="label green">BENÖTIGT · PRIORITÄT 4</text></g>
-<path d="M757 311H771" class="line"/>
-<g class="phase" data-state="oncourt"><rect x="774" y="253" width="234" height="119" rx="12" class="need"/>
-<text x="792" y="286" class="title">Auf dem Feld</text><text x="792" y="314" class="body">Spiel aufgerufen / läuft</text><text x="792" y="346" class="label green">BENÖTIGT · PRIORITÄT 3</text></g>
-<path d="M1009 311H1023" class="line"/>
-<g class="phase" data-state="finished"><rect x="1026" y="253" width="234" height="119" rx="12" class="cache"/>
-<text x="1044" y="286" class="title">Abgeschlossen</text><text x="1044" y="314" class="body">Spielbedarf entfällt</text><text x="1044" y="346" class="label blue">AUFNAHMEN BLEIBEN</text></g>
-<path d="M135 373V399" class="line"/><path d="M387 373V399" class="line"/><path d="M639 373V399" class="line"/><path d="M891 373V399" class="line"/><path d="M1143 373V399" class="line"/>
-<g data-panel="reserve"><rect x="18" y="408" width="486" height="468" rx="14" class="reserve"/>
-<text x="40" y="444" class="title">Nur wenn sonst keine Arbeit wartet</text>
-<text x="40" y="471" class="small">Vorrat: erst im Leerlauf in die Auftragsliste aufnehmen</text>
-<g id="candidate-priority"><text x="40" y="516" class="rank">6</text><text x="76" y="516" class="body" font-weight="700">Aufrufkandidaten</text>
-<text x="76" y="541" class="small">Nach ihrer Kandidatenreihenfolge</text></g>
-<line x1="40" y1="560" x2="482" y2="560" class="divider"/>
-<g id="planned-priority"><text x="40" y="589" class="rank">7</text><text x="76" y="589" class="body" font-weight="700">Weitere nicht zugewiesene Spiele</text>
-<text x="76" y="614" class="small">Nach der Reihenfolge im BTS-Spielplan</text></g>
-<line x1="40" y1="633" x2="482" y2="633" class="divider"/>
-<g id="draws-priority"><text x="40" y="662" class="rank">8</text><text x="76" y="662" class="body" font-weight="700">Weitere Disziplinen / Auslosungen</text>
-<text x="76" y="687" class="small">Ab erster Auslosung · nach Spielansetzungen</text>
-<text x="76" y="712" class="small">Namen zugleich für Tabletansagen nutzbar</text></g>
-<line x1="40" y1="731" x2="482" y2="731" class="divider"/>
-<g id="tablet-priority"><text x="40" y="760" class="rank">9</text><text x="76" y="760" class="body" font-weight="700">Zusätzlicher Tablet-Vorrat</text>
-<text x="76" y="785" class="small">Übrige Teams laufender Disziplinen</text></g>
-<line x1="40" y1="804" x2="482" y2="804" class="divider"/>
-<g id="people-priority"><text x="34" y="833" class="rank">10</text><text x="76" y="833" class="body" font-weight="700">Übrige bekannte Personen und Teams</text>
-<text x="76" y="858" class="small">Weitere Namen; keine erfundenen Paarungen</text></g></g>
-<g data-panel="needed"><rect x="522" y="408" width="486" height="468" rx="14" class="need"/>
-<text x="544" y="444" class="title">Benötigte Ansagen</text>
-<text x="544" y="471" class="small">Spiele ab Aufruf; Offiziellenliste vollständig</text>
-<g id="running-priority"><text x="544" y="516" class="rank green">3</text><text x="580" y="516" class="body" font-weight="700">Laufende Spiele</text>
-<text x="580" y="543" class="body">Nach ihrer Aufrufzeit</text>
-<text x="580" y="569" class="small">Früher aufgerufen → früher vervollständigen</text></g>
-<line x1="544" y1="590" x2="986" y2="590" class="divider"/>
-<g id="preparation-priority"><text x="544" y="622" class="rank green">4</text><text x="580" y="622" class="body" font-weight="700">Spiele in Vorbereitung</text>
-<text x="580" y="649" class="body">Nach Zeitpunkt des Vorbereitungsaufrufs</text>
-<text x="580" y="675" class="small">Für den nächsten Feldaufruf vervollständigen</text></g>
-<line x1="544" y1="696" x2="986" y2="696" class="divider"/>
-<g id="officials-priority">
-<text x="544" y="727" class="rank green">5</text><text x="580" y="727" class="body" font-weight="700">Alle technischen Offiziellen</text>
-<text x="580" y="753" class="small">Namen und Rollen, auch ohne Spielzuordnung</text>
-</g>
-<g id="likely-tablet-priority">
-<text x="544" y="810" class="body" font-weight="700">Wahrscheinliche Tabletbediener zuerst</text>
-<text x="544" y="835" class="small">Teams dieser Spiele und wartende Tabletliste.</text>
-</g>
-</g>
-<g data-panel="cache"><rect x="1026" y="408" width="234" height="468" rx="14" class="cache"/>
-<text x="1044" y="444" class="title">Cache behalten</text>
-<text x="1044" y="485" class="body">Nicht mehr nötige,</text><text x="1044" y="511" class="body">noch nicht gestartete</text><text x="1044" y="537" class="body">Aufträge entfernen.</text>
-<text x="1044" y="582" class="body" font-weight="700">Fertige Aufnahmen</text><text x="1044" y="608" class="body" font-weight="700">bleiben gespeichert.</text>
-<text x="1044" y="651" class="small">Personen können später</text><text x="1044" y="676" class="small">Tabletbediener werden.</text>
-<text x="1044" y="719" class="small">Neue Zuordnung →</text><text x="1044" y="744" class="small">neuen Bedarf prüfen.</text></g>
-<g id="other-voice-priority">
-<rect x="18" y="900" width="1244" height="85" rx="12" class="reserve"/>
-<text x="40" y="931" class="title">11 · Andere Stimme auf Vorrat · optionale Checkbox, zunächst aus</text>
-<text x="40" y="962" class="small">Erst wenn Bedarf und gesamter Vorrat der gewählten Stimme fertig sind. Neue Arbeit geht vor; fertiges Audio bleibt im Cache.</text>
-</g>
-<text x="22" y="1016" class="body" font-weight="750">Vor jedem Auftrag: Cache prüfen → nur fehlende Teile bearbeiten.</text>
-<text x="22" y="1043" class="small">Fertiges Stück: sofort bereit. Quelle vorhanden: fehlende Ausschnitte / Aufbereitung wiederverwenden.</text>
-<text x="22" y="1075" class="small">Gewählte Stimme zuerst · andere Stimme optional als letzter Vorrat · ein Serverauftrag zur Zeit, danach neu priorisieren.</text>
-<text x="22" y="1101" class="small">Je Spiel zuerst die nächste Durchsage vervollständigen: Spielangaben → Teams → fehlende zugeordnete Offizielle.</text>
-<text x="22" y="1129" class="small">Ortsunabhängige gemeinsame Texte wie B12 „Bitte mit dem Spielen beginnen!“ beim ersten Bedarf vorbereiten und teilen.</text>
-</g>
-</svg>
-</div>
-<section id="detail" class="detail" aria-live="polite"><h2 id="detail-title"></h2><div id="detail-tag" class="tag"></div><p id="detail-text"></p><p id="detail-example"></p></section>
-<div class="footer"><span>Reihenfolge zur Abstimmung · v2 und Checkbox für die andere Stimme auf feat/localTts umgesetzt.</span><span><button id="download" type="button">Grafik als SVG herunterladen</button> <button id="print" type="button">Drucken / PDF</button></span></div>
+<div class="eyebrow">BTS · Sprachplanung</div>
+<h1>Ablauf der Sprachvorbereitung</h1>
+<p class="intro">Von oben nach unten: höchste Priorität zuerst. BTS bearbeitet den nächsten möglichen Auftrag und prüft danach wieder von oben.</p>
+<p class="speech_plan_follow_status" aria-live="polite">Die Live-Ansicht zeigt hier den aktuellen Schritt.</p>
+<section class="diagram" aria-labelledby="flow-heading">
+<h2 id="flow-heading" class="flow-heading">Prüfreihenfolge · höchste Priorität oben</h2>
+<p class="flow-hint">Grün: bereit · Orange: in der Queue · Grau: noch ohne Auftrag. Ein goldener Rahmen zeigt ausschließlich den aktuellen oder nächsten Auftrag.</p>
+<div id="overview" class="speech_flow automatic" aria-label="Ablaufplan der Sprachvorbereitung"></div>
+<p class="flow-loop">↺ Nach jedem Auftrag wieder oben prüfen. Neue dringende Arbeit hat Vorrang; ein laufender Auftrag wird zuerst beendet.</p>
+</section>
+<div class="footer"><span>Planungsübersicht · Bausteine werden wiederverwendet.</span><span><button id="download" type="button">Ablaufplan als SVG</button> <button id="print" type="button">Drucken / PDF</button></span></div>
 </main>
 <script>
-const explanations={
-all:{title:'Die Nummer bestimmt die Priorität, nicht die Position im Spielablauf.',tag:'Benötigt: grün · Leerlaufvorrat: grau · gespeicherte Aufnahmen: blau',text:'Turnierdurchsagen haben Priorität 1, der Sprachtest immer 2. Nach Orts- und Feldstücken kommt vor der ersten Auslosung die Anmeldevorarbeit. Im Spielbetrieb stehen laufende und vorbereitete Spiele samt wahrscheinlichen Tabletbedienern vorne. Danach werden auf Priorität 5 alle bekannten technischen Offiziellen vorbereitet, einschließlich noch nicht zugeordneter Personen. Im Leerlauf folgen Aufrufkandidaten auf 6 und weitere angesetzte Spiele auf 7. Weitere Disziplinen / Auslosungen kommen auf 8 vor zusätzlichem Tablet-Vorrat auf 9 und übrigen Personen auf 10. Optional folgt die andere Stimme als letzter Vorrat auf 11, wenn für die gewählte Stimme wirklich nichts mehr offen ist.',example:'Die Namen der Offiziellen werden einmal erzeugt und mit gemeinsamen Rollenstücken kombiniert. Vorhandene Spieler- oder Offiziellennamen werden aus dem Cache übernommen; eine fehlende Spielzuordnung verzögert ihre Vorbereitung nicht. Die weitere Disziplinvorbereitung nutzt vorhandene Spielansetzungen und liefert gleichzeitig Namen für Tabletansagen.'},
-planned:{title:'Spiel geplant: Vorrat mit Priorität 7',tag:'Nur im Leerlauf · Reihenfolge im BTS-Spielplan',text:'Das Spiel ist noch nicht aufgerufen und noch kein unmittelbarer Aufrufkandidat. Seine bekannten Angaben und Teams können im Leerlauf vorbereitet werden. Ein unbekannter Gegner wird nicht ergänzt; fehlende Teilnehmer blockieren keine anderen bereiten Spiele.',example:'Danach folgt auf Stufe 8 die Sprachvorbereitung weiterer Disziplinen / Auslosungen, bevor zusätzlicher Tablet-Vorrat entsteht. Das früheste schon angesetzte Spiel einer Disziplin bestimmt innerhalb ihrer Anmeldegruppe deren Reihenfolge. Fertige Namen werden für Spiel-, Anmelde- und Tabletansagen geteilt.'},
-candidate:{title:'Aufrufkandidat: Vorrat mit Priorität 6',tag:'Nur im Leerlauf · nach allen technischen Offiziellen',text:'Diese Spiele werden voraussichtlich als Nächstes benötigt. Ihr Vorrat folgt nach laufenden und vorbereiteten Spielen sowie der vollständigen Vorbereitung aller bekannten technischen Offiziellen. Die Kandidatenreihenfolge bestimmt ihre Reihenfolge.',example:'Ein Klick auf „In Vorbereitung“ oder ein direkter Feldaufruf macht den konkreten Bedarf sofort dringlich. Fehlende Teile des ausgelösten Aufrufs erhalten Priorität 1.'},
-preparation:{title:'In Vorbereitung: benötigter Bestand mit Priorität 4',tag:'Nach dem Zeitpunkt des Vorbereitungsaufrufs',text:'Ab dem Vorbereitungsaufruf können die vollständigen Ansagen dieses Spiels in den benötigten Bestand aufgenommen werden. Ein tatsächlich ausgelöster Aufruf mit fehlendem Audio hat Priorität 1; danach wird vor allem der nächste Feldaufruf abgesichert.',example:'B02 „Für Spielfeld …!“ wird nur abgespielt, wenn bereits ein Feld zugewiesen ist. Ohne Feld entfällt dieser Satz; die übrige Vorbereitung bleibt verwendbar. Zugeordnete Offizielle und beide Teams für mögliche Tabletbedienung einbeziehen.'},
-oncourt:{title:'Auf dem Feld: benötigter Bestand mit Priorität 3',tag:'Nach der Aufrufzeit · früher aufgerufen zuerst',text:'Laufende oder bereits auf das Feld gerufene Spiele werden vor Spielen in Vorbereitung abgesichert. Benötigt werden unter anderem Spielbeginn, mögliche Zweitaufrufe und die passenden Namen und Rollen. Der konkrete manuelle Aufruf überholt mit Priorität 1.',example:'Beide vollständigen Teamquellen können bereits Namensstücke für eine spätere Tabletbedienung liefern. Dafür wird keine neue vollständige Rollen-/Namensaufnahme je möglicher Kombination erzeugt.'},
-finished:{title:'Abgeschlossen: Spielbedarf entfernen, Aufnahmen behalten',tag:'Kein weiterer Vorrat für das abgeschlossene Spiel',text:'Nicht mehr benötigte, noch nicht gestartete Aufgaben dieses Spiels entfallen, sofern keine andere Durchsage sie weiterhin benötigt. Fertige Quellen und Bausteine bleiben dauerhaft gespeichert. Ein laufender Serverauftrag wird fertiggestellt.',example:'Die Personen oder Teams können später als Tabletbediener gebraucht werden. Ihre vorhandenen Aufnahmen werden dann wiederverwendet; ein neuer Auftrag richtet sich nach der neuen Zuordnung und ihrem aktuellen Bedarf.'}
-};
-const svg=document.querySelector('#overview');
-function select(state,fromLive=false){
- if(svg.classList.contains('automatic')&&!fromLive)return;
- const item=explanations[state]||explanations.all;
- document.querySelector('#detail-title').textContent=item.title;document.querySelector('#detail-tag').textContent=item.tag;
- document.querySelector('#detail-text').textContent=item.text;document.querySelector('#detail-example').textContent=item.example;
- document.querySelectorAll('[data-select]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.select===state)));
- svg.querySelectorAll('.phase').forEach(g=>{g.classList.toggle('active',g.dataset.state===state);g.classList.toggle('dimmed',state!=='all'&&g.dataset.state!==state);});
- const relevant=state==='finished'?'cache':['planned','candidate'].includes(state)?'reserve':'needed';
- svg.querySelectorAll('[data-panel]').forEach(g=>g.classList.toggle('dimmed',state!=='all'&&g.dataset.panel!==relevant));
- document.querySelector('#detail').style.borderColor=state==='finished'?'#2563eb':['planned','candidate'].includes(state)?'#64748b':'#15803d';
-}
-window.btsSpeechPlanningDiagram={select:state=>select(state,true)};
-document.querySelectorAll('[data-select]').forEach(b=>b.addEventListener('click',()=>select(b.dataset.select)));
-svg.querySelectorAll('.phase').forEach(g=>{g.setAttribute('tabindex','0');g.setAttribute('role','button');g.setAttribute('aria-label',explanations[g.dataset.state].title);g.addEventListener('click',()=>select(g.dataset.state));g.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();select(g.dataset.state);}});});
-document.querySelector('#download').onclick=()=>{const copy=svg.cloneNode(true);copy.querySelectorAll('.dimmed,.active').forEach(g=>g.classList.remove('dimmed','active'));const blob=new Blob([new XMLSerializer().serializeToString(copy)],{type:'image/svg+xml;charset=utf-8'});const url=URL.createObjectURL(blob);const link=document.createElement('a');link.href=url;link.download='bts-sprachgenerierung-reihenfolge.svg';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};
-document.querySelector('#print').onclick=()=>{select('all');window.print();};select('all');
+'use strict';
+(function() {
+    const flow = document.getElementById('overview'), rows = new Map();
+    const make = (parent, tag, cls, text) => {
+        const node = document.createElement(tag);
+        if (cls) node.className = cls;
+        if (text) node.textContent = text;
+        parent.appendChild(node); return node;
+    };
+    const setText = (node, value) => { if (node.textContent !== value) node.textContent = value; };
+    const link = () => make(flow, 'div', 'flow-link').setAttribute('aria-hidden', 'true');
+    function block(tag, cls, text) { link(); return make(flow, tag, cls, text); }
+    function group(text) { block('h2', 'flow-group', text); }
+    function gate(id, question, explanation) {
+        const node = block('section', 'flow-gate'); node.id = id;
+        make(node, 'h3', '', question); make(node, 'p', '', explanation);
+        return make(node, 'p', 'flow-answer');
+    }
+    function step(id, nodeId, title, description) {
+        const node = block('section', 'flow-step live-step'); node.id = nodeId; node.dataset.stage = id;
+        const heading = make(node, 'div', 'flow-title');
+        const rank = make(heading, 'span', 'flow-number');
+        make(heading, 'h3', '', title);
+        const status = make(heading, 'span', 'flow-status');
+        make(node, 'p', 'flow-description', description);
+        const counts = make(node, 'p', 'flow-counts', 'Fortschritt in der Live-Ansicht');
+        const track = make(node, 'div', 'flow-progress'); track.setAttribute('role', 'img');
+        track.setAttribute('aria-label', 'Noch kein Live-Stand');
+        const ready = make(track, 'span', 'flow-ready'), queued = make(track, 'span', 'flow-queued');
+        const text = make(node, 'p', 'flow-current-text'); text.hidden = true;
+        rows.set(id, { node, rank, status, counts, track, ready, queued, text });
+    }
+    make(flow, 'div', 'flow-start', 'Nächsten möglichen Auftrag auswählen');
+    group('Sofort und gemeinsame Vorbereitung');
+    step('urgent', 'urgent-priority', 'Ausgelöste Durchsagen', 'Fehlende Teile tatsächlich ausgelöster Durchsagen zuerst, in Auslösereihenfolge.');
+    step('test', 'speech-test-priority', 'Sprachtest und angeforderte Proben', 'Den Sprachtest immer vorbereiten, auch ohne Anforderung.');
+    step('shared', 'location-field-priority', 'Spielorte, Felder und gemeinsame Bausteine', 'Feldanfang und Feldende, „Für Spielfeld …!“, Hallen-, Treffpunkt- und gemeinsame Texte.');
+    const draw = gate('draw-decision', 'Ist bereits eine Disziplin ausgelost?', 'Nein → Anmeldevorarbeit zuerst. Ja → diesen Schritt überspringen und mit dem Spielbetrieb fortfahren.');
+    step('registration', 'registration-priority', 'Anmeldevorarbeit', 'Allgemeine Teile zuerst. Geöffnete oder fortgeschrittene Disziplinen bevorzugen; darin Landesverbände → Vereine → Spieler / Paarungen.');
+    group('Konkret benötigte Ansagen');
+    step('oncourt', 'running-priority', 'Laufende Spiele', 'Nach ihrer Aufrufzeit. Vollständige Ansagen und beide Teams für eine mögliche Tabletbedienung.');
+    step('preparation', 'preparation-priority', 'Spiele in Vorbereitung', 'Nach Zeitpunkt des Vorbereitungsaufrufs. Vollständige Ansagen für den nächsten Feldaufruf.');
+    step('officials', 'officials-priority', 'Technische Offizielle', 'Alle bekannten Offiziellen mit Namen und Rollen, auch ohne Spielzuordnung.');
+    step('additional', 'additional-priority', 'Weitere angeforderte Aufgaben', 'Zusätzlicher konkreter Bedarf, der keinem der übrigen Bereiche zugeordnet ist.');
+    rows.get('additional').node.hidden = true;
+    const idle = gate('idle-decision', 'Sind die benötigten Ansagen fertig?', 'Ja → Vorrat im Leerlauf vorbereiten. Nein → zuerst die benötigten Ansagen fertigstellen. Andere Turniere können den Server weiterhin benötigen.');
+    group('Nur im Leerlauf · nach wahrscheinlichem Bedarf');
+    step('candidate', 'candidate-priority', 'Aufrufkandidaten', 'Die voraussichtlich nächsten Spiele in ihrer Kandidatenreihenfolge.');
+    step('tablet_waiting', 'likely-tablet-priority', 'Wartende Tabletbediener', 'Die bereits vorhandene Tabletliste vor weiteren nicht zugewiesenen Spielen berücksichtigen.');
+    step('planned', 'planned-priority', 'Weitere angesetzte Spiele', 'Nach Reihenfolge im BTS-Spielplan. Unbekannte Teilnehmer werden nicht ergänzt.');
+    step('registration_reserve', 'draws-priority', 'Weitere Disziplinen und Auslosungen', 'Ab der ersten Auslosung. Nach bereits angesetzten Spielen priorisieren; Namen zugleich für Tabletansagen verwenden.');
+    step('tablet', 'tablet-priority', 'Zusätzlicher Tablet-Vorrat', 'Weitere bekannte Teams der laufenden Disziplinen.');
+    step('people', 'people-priority', 'Übrige Personen und Teams', 'Weitere mögliche Tabletbediener zuletzt, auch aus anderen Disziplinen und abgeschlossenen Spielen.');
+    const spare = gate('spare-decision', 'Gewählte Stimme und ihr Vorrat vollständig fertig?', 'Die andere Stimme folgt nur bei aktivierter Option und vollständigem Leerlauf aller Turniere.');
+    step('spare', 'other-voice-priority', 'Andere Stimme auf Vorrat', 'Optionaler letzter Schritt. Neue Arbeit für die gewählte Stimme erhält wieder Vorrang.');
+    const end = block('div', 'flow-end', 'Auf neuen Bedarf warten');
+    const needed = ['urgent', 'test', 'shared', 'registration', 'oncourt', 'preparation', 'officials', 'additional'];
+    let latest;
+    function counts(value) { return value.ready + ' bereit · ' + value.queued + ' in der Queue · ' + value.total + ' gesamt'; }
+    function update(snapshot) {
+        latest = snapshot;
+        flow.dataset.phase = snapshot?.phase || 'unknown';
+        const connected = snapshot && snapshot.state !== 'disconnected';
+        const active = connected && !['disabled', 'complete'].includes(snapshot.state) ? snapshot.active_stage : null;
+        const stages = new Map((snapshot?.stages || []).map(row => [row.id, row]));
+        const following = !!(active && rows.has(active));
+        if (flow.classList.contains('live-follow') !== following) flow.classList.toggle('live-follow', following);
+        if (following) {
+            if (flow.dataset.followStage !== active) flow.dataset.followStage = active;
+        } else if (flow.dataset.followStage) delete flow.dataset.followStage;
+        let rank = 0;
+        for (const [id, row] of rows) {
+            const value = stages.get(id), current = following && active === id;
+            const skipped = id === 'registration' && snapshot?.phase === 'competition' ||
+                id === 'spare' && snapshot && !stages.has('spare') ||
+                id === 'registration_reserve' && snapshot?.phase === 'registration';
+            row.node.hidden = id === 'additional' && !current && !value?.total;
+            if (!row.node.hidden) setText(row.rank, String(++rank).padStart(2, '0'));
+            row.node.classList.toggle('live-current', current);
+            row.node.classList.toggle('is-skipped', !!skipped && !current);
+            if (current) row.node.setAttribute('aria-current', 'step'); else row.node.removeAttribute('aria-current');
+            const state = current ? (snapshot.current?.running ? 'working' : 'waiting') : skipped ? 'skipped' :
+                value?.failed ? 'failed' : value?.total && value.ready === value.total ? 'ready' :
+                value?.queued ? 'queued' : value?.total ? 'reserve' : 'empty';
+            row.node.dataset.status = state;
+            const labels = { working: 'Wird bearbeitet', waiting: 'Als Nächstes', skipped: 'Derzeit übersprungen',
+                failed: 'Fehler offen', ready: 'Bereit', queued: 'In der Queue', reserve: 'Vorgemerkt', empty: 'Aktuell kein Bedarf' };
+            setText(row.status, snapshot ? labels[state] : '');
+            if (value) {
+                setText(row.counts, counts(value)); row.track.setAttribute('aria-label', counts(value));
+                row.ready.style.width = value.ready * 100 / (value.total || 1) + '%';
+                row.queued.style.width = value.queued * 100 / (value.total || 1) + '%';
+                row.node.dataset.ready = value.ready; row.node.dataset.queued = value.queued; row.node.dataset.total = value.total;
+            } else if (snapshot) {
+                const text = id === 'spare' ? 'Option ausgeschaltet' : 'Für diesen Schritt derzeit kein Auftrag';
+                setText(row.counts, text); row.track.setAttribute('aria-label', text);
+                row.ready.style.width = '0%'; row.queued.style.width = '0%';
+                delete row.node.dataset.total;
+            }
+            row.text.hidden = !current || !snapshot.current?.text;
+            setText(row.text, current ? snapshot.current?.text || '' : '');
+        }
+        const unknown = !connected || snapshot.state === 'updating';
+        const paused = connected && snapshot.state === 'disabled';
+        setText(draw, !snapshot ? '' : unknown ? 'Turnierstand wird ermittelt …' :
+            snapshot.phase === 'competition' ? 'Ja · Anmeldevorarbeit hier überspringen' :
+                snapshot.phase === 'registration' ? 'Nein · Anmeldevorarbeit hat Vorrang' : 'Turnierphase noch unbekannt');
+        setText(idle, !snapshot ? '' : paused ? 'Lokale Sprachvorbereitung ausgeschaltet' : unknown ? 'Planungsstand derzeit unbekannt' : needed.some(id => {
+            const value = stages.get(id); return value && value.ready < value.total;
+        }) ? 'Nein · benötigte Ansagen sind noch offen' : 'Ja · Vorrat kann folgen, sobald der Server frei ist');
+        const selected = [...stages.values()].filter(row => row.id !== 'spare');
+        setText(spare, !snapshot ? '' : paused ? 'Lokale Sprachvorbereitung ausgeschaltet' : unknown ? 'Planungsstand derzeit unbekannt' : !stages.has('spare') ? 'Option ausgeschaltet' :
+            selected.some(row => row.ready < row.total) ? 'Noch nicht · gewählte Stimme zuerst' : 'Gewählte Stimme bereit · vollständigen Leerlauf abwarten');
+        setText(end, !snapshot ? 'Auf neuen Bedarf warten' : !connected ? 'Verbindung unterbrochen · Status unbekannt' :
+            snapshot.state === 'complete' ? 'Alles bereit · auf neuen Bedarf warten' :
+                active ? 'Nach diesem Auftrag wieder oben prüfen' :
+                    snapshot.state === 'failed' ? 'Fehler offen · kein Auftrag läuft' :
+                        snapshot.state === 'disabled' ? 'Lokale Sprachvorbereitung ausgeschaltet' : 'Auf den nächsten möglichen Auftrag warten');
+    }
+    function exportSVG() {
+        const ns = 'http://www.w3.org/2000/svg', svg = document.createElementNS(ns, 'svg');
+        const add = (tag, attrs, text) => {
+            const node = document.createElementNS(ns, tag);
+            for (const [name, value] of Object.entries(attrs)) node.setAttribute(name, value);
+            if (text) node.textContent = text;
+            svg.appendChild(node); return node;
+        };
+        const wrap = text => {
+            const lines = []; let line = '';
+            for (const word of text.trim().split(/\s+/)) {
+                if (line && line.length + word.length > 78) { lines.push(line); line = ''; }
+                line += (line ? ' ' : '') + word;
+            }
+            if (line) lines.push(line); return lines;
+        };
+        let y = 24;
+        const text = (value, size = 16, weight = 400) => {
+            for (const line of wrap(value)) {
+                y += 23; add('text', { x: 74, y, 'font-size': size, 'font-weight': weight, fill: '#163047' }, line);
+            }
+        };
+        add('title', {}, 'BTS · Sprachvorbereitung · höchste Priorität oben');
+        svg.setAttribute('font-family', 'system-ui,sans-serif');
+        text('Sprachvorbereitung · höchste Priorität oben', 23, 700);
+        if (latest) text(document.querySelector('.speech_plan_follow_status').textContent);
+        y += 20;
+        for (const node of flow.children) {
+            if (node.hidden || node.classList.contains('flow-link')) continue;
+            const start = y, current = node.classList.contains('live-current');
+            const values = node.classList.contains('flow-step') ?
+                [node.querySelector('.flow-number').textContent + ' · ' + node.querySelector('h3').textContent + ' · ' + node.querySelector('.flow-status').textContent,
+                    node.querySelector('.flow-description').textContent, node.querySelector('.flow-counts').textContent,
+                    node.querySelector('.flow-current-text').textContent].filter(Boolean) :
+                node.classList.contains('flow-gate') ? [...node.querySelectorAll('h3,p')].map(item => item.textContent).filter(Boolean) : [node.textContent];
+            const rectangle = add('rect', { x: 52, y: start, width: 796, height: 1, rx: 10,
+                fill: current ? '#fff8e8' : node.classList.contains('flow-gate') ? '#f3f8fc' : '#fff',
+                stroke: current ? '#d48815' : '#b7c8d5', 'stroke-width': current ? 3 : 1 });
+            y += 8;
+            values.forEach((value, index) => text(value, index === 0 ? 18 : 15, index === 0 ? 700 : 400));
+            if (node.classList.contains('flow-step') && node.dataset.total !== undefined) {
+                y += 12; const total = Number(node.dataset.total) || 1;
+                add('rect', { x: 74, y, width: 752, height: 7, rx: 3, fill: '#cbd5e1' });
+                const ready = Number(node.dataset.ready) * 752 / total;
+                add('rect', { x: 74, y, width: ready, height: 7, fill: '#21804b' });
+                add('rect', { x: 74 + ready, y, width: Number(node.dataset.queued) * 752 / total, height: 7, fill: '#e88925' });
+                y += 7;
+            }
+            y += 16; rectangle.setAttribute('height', y - start);
+            add('path', { d: 'M450 ' + (y + 3) + 'v15m-4-4 4 4 4-4', stroke: '#92a8ba', fill: 'none' }); y += 24;
+        }
+        text('Nach jedem Auftrag wieder oben prüfen.', 15);
+        svg.setAttribute('viewBox', '0 0 900 ' + (y + 24)); svg.setAttribute('width', 900); svg.setAttribute('height', y + 24);
+        return new XMLSerializer().serializeToString(svg);
+    }
+    window.btsSpeechPlanningDiagram = { update, exportSVG, disconnect() {
+        update({ ...latest, state: 'disconnected', active_stage: null, current: null });
+    } };
+    document.getElementById('download').onclick = () => {
+        const url = URL.createObjectURL(new Blob([exportSVG()], { type: 'image/svg+xml;charset=utf-8' }));
+        const anchor = document.createElement('a'); anchor.href = url; anchor.download = 'bts-sprachvorbereitung.svg'; anchor.click();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+    };
+    document.getElementById('print').onclick = () => window.print();
+    update();
+})();
 </script>
+</body>
 </html>

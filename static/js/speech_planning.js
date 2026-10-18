@@ -3,10 +3,9 @@
 (function() {
     const match = /^\/admin\/t\/([^/]+)\/speech-planning\/?$/.exec(window.location.pathname);
     if (!match) return;
-    const key = decodeURIComponent(match[1]), main = document.querySelector('main'), svg = document.getElementById('overview');
-    const svgNS = 'http://www.w3.org/2000/svg';
-    const nodes = new Map(), pending = new Map();
-    let socket, serial = 0, stopped = false, reconnect, poll, loading = false, latest, selectedPhase = null;
+    const key = decodeURIComponent(match[1]), main = document.querySelector('main');
+    const diagram = window.btsSpeechPlanningDiagram, pending = new Map();
+    let socket, serial = 0, stopped = false, reconnect, poll, loading = false;
     const make = (parent, tag, cls, text) => {
         const node = document.createElement(tag);
         if (cls) node.className = cls;
@@ -14,109 +13,32 @@
         parent.appendChild(node); return node;
     };
     document.querySelector('.eyebrow').textContent = 'BTS · Sprachplanung · Live';
-    document.querySelector('.intro').textContent = 'Der Spielzustand bestimmt den Bedarf, die Prioritätsnummer die Reihenfolge. Die Grafik folgt automatisch der aktuellen oder nächsten Generierungsaufgabe.';
     document.querySelector('.footer > span').textContent = 'Aktueller BTS-Stand · automatische Aktualisierung alle zwei Sekunden.';
-    const live = make(main, 'section', 'speech_plan_live');
-    main.insertBefore(live, document.querySelector('.toolbar'));
+    const followStatus = document.querySelector('.speech_plan_follow_status');
+    const live = make(main, 'section', 'speech_plan_live'); main.insertBefore(live, followStatus);
     const title = make(live, 'h2', '', 'Verbindung zu BTS wird aufgebaut …');
     const state = make(live, 'p', 'speech_plan_state'); state.setAttribute('aria-live', 'polite');
     const phase = make(live, 'p');
     const counts = make(live, 'p', 'speech_plan_counts');
-    const overall = bar(live);
+    const track = make(live, 'div', 'speech_plan_bar'); track.setAttribute('role', 'img');
+    const ready = make(track, 'span', 'speech_plan_ready'), queued = make(track, 'span', 'speech_plan_queued');
     const current = make(live, 'p', 'speech_plan_current');
-    make(live, 'p', 'speech_plan_help', 'Grün: bereit · Orange: in der Queue · Grau: noch ohne Auftrag. Gemeinsame Bausteine zählen einmal, beim vorrangigen Bedarf. Gold markiert die aktuelle oder nächste Aufgabe, Blau den zugehörigen Spielzustand. Abgeblendete Bereiche sind derzeit nicht aktiv.');
-    const followStatus = make(main, 'p', 'speech_plan_follow_status');
-    main.insertBefore(followStatus, document.querySelector('.toolbar'));
-    followStatus.setAttribute('aria-live', 'polite');
-    document.querySelector('.toolbar').remove();
-    svg.classList.add('automatic');
-    svg.querySelectorAll('.phase').forEach(node => { node.removeAttribute('tabindex'); node.removeAttribute('role'); });
-    svg.querySelectorAll('g[id$="-priority"]').forEach(node => node.classList.add('live-step'));
-    const stages = make(main, 'section', 'speech_plan_stages');
-    main.insertBefore(stages, document.getElementById('detail'));
-    make(stages, 'h2', '', 'Fortschritt nach Planungsbereich');
-    const grid = make(stages, 'div', 'speech_plan_grid');
-    const anchors = {
-        urgent: [40, 117, 1200], test: [40, 177, 1200], shared: [40, 305, 1200], registration: [40, 463, 1200],
-        oncourt: [580, 580, 380], preparation: [580, 685, 380], officials: [580, 776, 380],
-        candidate: [76, 550, 400], planned: [76, 623, 400], registration_reserve: [76, 721, 400],
-        tablet_waiting: [544, 849, 440], tablet: [76, 794, 400], people: [76, 867, 400], spare: [40, 975, 1200],
-    };
-    function bar(parent) {
-        const track = make(parent, 'div', 'speech_plan_bar'); track.setAttribute('role', 'img');
-        const ready = make(track, 'span', 'speech_plan_ready'), queued = make(track, 'span', 'speech_plan_queued');
-        return { track, ready, queued };
-    }
-    function label(value) { return value.ready + ' bereit · ' + value.queued + ' in der Queue · ' + value.total + ' gesamt'; }
-    function paintBar(row, value) {
-        row.track.setAttribute('aria-label', label(value));
-        row.ready.style.width = (value.ready * 100 / (value.total || 1)) + '%';
-        row.queued.style.width = (value.queued * 100 / (value.total || 1)) + '%';
-    }
-    function svgEl(parent, tag, attrs) {
-        const node = document.createElementNS(svgNS, tag);
-        for (const [name, value] of Object.entries(attrs)) node.setAttribute(name, value);
-        parent.appendChild(node); return node;
-    }
-    // Keep live highlights in SVG exports as well as on the HTML page.
-    svgEl(svg, 'style', {}).textContent = '.live-outline{display:none;fill:none;stroke:#d48815;stroke-width:3;pointer-events:none}' +
-        '.live-current>.live-outline{display:block}.live-current{opacity:1!important}' +
-        '.automatic .live-step:not(.live-current){opacity:.28}.automatic .phase:not(.active){opacity:.35}' +
-        '.automatic .phase{pointer-events:none;cursor:default}' +
-        '.automatic .phase.active>rect{stroke:#2475b4;stroke-dasharray:6 3;stroke-width:3}';
-    function follow() {
-        const connected = live.dataset.connected === 'true';
-        const active = connected && latest?.stages.find(row => row.id === latest.active_stage);
-        const following = !!(active && nodes.get(active.id)?.node);
-        if (svg.classList.contains('live-follow') !== following) svg.classList.toggle('live-follow', following);
-        if (following) {
-            if (svg.dataset.followStage !== active.id) svg.dataset.followStage = active.id;
-        } else if (svg.dataset.followStage) delete svg.dataset.followStage;
-        const target = ['oncourt', 'preparation', 'candidate', 'planned'].includes(active?.id) ? active.id : 'all';
-        if (selectedPhase !== target) {
-            window.btsSpeechPlanningDiagram.select(target); selectedPhase = target;
-        }
-        const inactive = { complete: 'Keine Generierung aktiv – alles bereit.',
-            updating: 'Plan wird aktualisiert – keine Generierung aktiv.',
-            disabled: 'Lokale Sprachgenerierung ausgeschaltet.',
-            failed: 'Keine Generierung aktiv – fehlgeschlagene Aufträge sind offen.',
-            idle_pending: 'Keine Generierung aktiv – weitere Vorarbeit wartet auf Leerlauf.',
-            busy_elsewhere: 'Sprachserver arbeitet für ein anderes Turnier.',
-            waiting: 'Keine Generierung aktiv – Aufträge warten.' };
-        const caption = !connected ? (live.dataset.connected === 'false' ? 'Verbindung unterbrochen – aktueller Generierungsstatus unbekannt.' : 'Warte auf aktuelle Daten …') :
-            active ? (latest.current?.running ? 'Ansicht folgt: ' : 'Als Nächstes: ') + active.label : inactive[latest?.state] || 'Planungsstand wird ermittelt …';
-        if (followStatus.textContent !== caption) followStatus.textContent = caption;
-    }
-    follow();
-    function stageRow(value) {
-        if (nodes.has(value.id)) return nodes.get(value.id);
-        const card = make(grid, 'section', 'speech_plan_card'); card.dataset.stage = value.id;
-        const heading = make(card, 'h3', '', value.label), caption = make(card, 'p');
-        const progress = bar(card);
-        const node = value.node ? svg.getElementById(value.node) : null;
-        let mini;
-        if (node && anchors[value.id]) {
-            const [x, y, width] = anchors[value.id], box = node.getBBox();
-            const outline = svgEl(node, 'rect', { x: box.x - 6, y: box.y - 4, width: box.width + 12, height: box.height + 8, rx: 6, class: 'live-outline' });
-            node.insertBefore(outline, node.firstChild);
-            const group = svgEl(node, 'g', { class: 'live-progress', role: 'img' });
-            svgEl(group, 'rect', { x, y, width, height: 5, rx: 2, fill: '#cbd5e1' });
-            const ready = svgEl(group, 'rect', { x, y, width: 0, height: 5, fill: '#21804b' });
-            const queued = svgEl(group, 'rect', { x, y, width: 0, height: 5, fill: '#e88925' });
-            const tooltip = svgEl(group, 'title', {});
-            mini = { group, x, width, ready, queued, tooltip };
-        }
-        const row = { card, heading, caption, ...progress, node, mini };
-        nodes.set(value.id, row); return row;
-    }
+    make(live, 'p', 'speech_plan_help', 'Gemeinsame Bausteine zählen einmal, beim vorrangigen Bedarf. Die Balken zählen abspielbare Teile; Quellaufnahmen zählen nicht zusätzlich.');
+    const inactive = { complete: 'Keine Generierung aktiv – alles bereit.',
+        updating: 'Plan wird aktualisiert – keine Generierung aktiv.',
+        disabled: 'Lokale Sprachgenerierung ausgeschaltet.',
+        failed: 'Keine Generierung aktiv – fehlgeschlagene Aufträge sind offen.',
+        idle_pending: 'Keine Generierung aktiv – weitere Vorarbeit wartet auf Leerlauf.',
+        busy_elsewhere: 'Sprachserver arbeitet für ein anderes Turnier.',
+        waiting: 'Keine Generierung aktiv – Aufträge warten.' };
     function disconnected(text) {
-        live.dataset.connected = 'false'; state.textContent = text;
-        svg.querySelectorAll('.live-current').forEach(node => node.classList.remove('live-current'));
-        for (const row of nodes.values()) row.card.classList.remove('is-current');
-        follow();
+        live.dataset.connected = 'false'; state.textContent = text; current.textContent = '';
+        followStatus.dataset.active = 'false';
+        followStatus.textContent = 'Verbindung unterbrochen – aktueller Generierungsstatus unbekannt.';
+        diagram.disconnect();
     }
     function render(snapshot) {
-        live.dataset.connected = 'true';
+        live.dataset.connected = 'true'; live.dataset.state = snapshot.state;
         title.textContent = snapshot.title;
         const labels = { disabled: 'Lokale Sprachvorbereitung ist ausgeschaltet.', updating: 'BTS aktualisiert den Plan …',
             working: 'Sprachserver bearbeitet einen Auftrag.', busy_elsewhere: 'Der Sprachserver bearbeitet einen Auftrag eines anderen Turniers.',
@@ -127,26 +49,19 @@
         phase.textContent = (snapshot.phase === 'registration' ? 'Vor der ersten Auslosung' : snapshot.phase === 'competition' ? 'Spielbetrieb' : 'Turnierphase wird ermittelt') +
             ' · ' + (snapshot.voice === 'hallensprecher' ? 'Hallensprecher' : 'Hallensprecherin') + ' · ' +
             Object.entries(snapshot.games).map(([id, n]) => n + ' ' + gameLabels[id]).join(' · ');
-        counts.textContent = label(snapshot.total); paintBar(overall, snapshot.total);
-        const active = snapshot.stages.find(row => row.id === snapshot.active_stage);
-        current.textContent = active ? (snapshot.current?.running ? 'Aktuell: ' : 'Als Nächstes: ') + active.label +
-            (snapshot.current ? ' — ' + snapshot.current.text : '') : '';
-        if (snapshot.current?.retry_at > Date.now()) current.textContent += ' · frühestens ' + new Date(snapshot.current.retry_at).toLocaleTimeString('de-DE');
-        live.dataset.state = snapshot.state;
-        for (const row of nodes.values()) { row.card.hidden = true; row.node?.classList.remove('live-current'); }
-        for (const value of snapshot.stages) {
-            const row = stageRow(value); row.card.hidden = false;
-            row.caption.textContent = label(value); paintBar(row, value);
-            row.card.classList.toggle('is-current', value.id === snapshot.active_stage);
-            row.node?.classList.toggle('live-current', value.id === snapshot.active_stage);
-            if (row.mini) {
-                const { mini } = row, ready = value.ready * mini.width / (value.total || 1), queued = value.queued * mini.width / (value.total || 1);
-                mini.ready.setAttribute('width', ready); mini.queued.setAttribute('x', mini.x + ready); mini.queued.setAttribute('width', queued);
-                mini.group.setAttribute('aria-label', label(value)); mini.tooltip.textContent = value.label + ': ' + label(value);
-            }
-        }
+        const value = snapshot.total;
+        counts.textContent = value.ready + ' bereit · ' + value.queued + ' in der Queue · ' + value.total + ' gesamt';
+        track.setAttribute('aria-label', counts.textContent);
+        ready.style.width = value.ready * 100 / (value.total || 1) + '%';
+        queued.style.width = value.queued * 100 / (value.total || 1) + '%';
+        const active = ['disabled', 'complete'].includes(snapshot.state) ? null : snapshot.stages.find(row => row.id === snapshot.active_stage);
+        followStatus.dataset.active = String(!!active);
+        const caption = active ? (snapshot.current?.running ? 'Aktuell: ' : 'Als Nächstes: ') + active.label : inactive[snapshot.state] || 'Planungsstand wird ermittelt …';
+        if (followStatus.textContent !== caption) followStatus.textContent = caption;
+        current.textContent = snapshot.current?.retry_at > Date.now() ? 'Nächster Versuch frühestens ' +
+            new Date(snapshot.current.retry_at).toLocaleTimeString('de-DE') : '';
+        diagram.update(snapshot);
         live.dataset.updatedAt = snapshot.updated_at;
-        latest = snapshot; follow();
     }
     function request(values) {
         return new Promise((resolve, reject) => {

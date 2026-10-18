@@ -995,7 +995,7 @@ suite('BTS / actual FastAPI / native Chrome speech integration', function() {
             const snapshot = () => live.evaluate('(() => { const panel = document.querySelector(\'.speech_plan_live\'); return {' +
                 'connected:panel?.dataset.connected, state:panel?.dataset.state, phase:panel?.querySelector(\'p:nth-of-type(2)\').textContent, ' +
                 'counts:document.querySelector(\'.speech_plan_counts\')?.textContent, ' +
-                'cards:document.querySelectorAll(\'.speech_plan_card\').length, bars:document.querySelectorAll(\'.live-progress\').length, ' +
+                'cards:document.querySelectorAll(\'.flow-step\').length, bars:document.querySelectorAll(\'.flow-progress\').length, ' +
                 'active:document.querySelector(\'.live-current\')?.id, updated:panel?.dataset.updatedAt}; })()');
             await until(async () => (await snapshot()).connected === 'true');
             const initial = await snapshot();
@@ -1010,8 +1010,7 @@ suite('BTS / actual FastAPI / native Chrome speech integration', function() {
             await app.db.matches.update_async({ _id: match._id }, { $set: { 'setup.state': 'oncourt', 'setup.called_timestamp': Date.now() } }, {});
             await app.speech.prefetch.refresh('default');
             await until(async () => (await snapshot()).phase.includes('1 auf dem Feld'));
-            assert.strictEqual(await live.evaluate('document.querySelectorAll(\'.phase.live-present\').length'), 0,
-                'the presence of a running game must not highlight an inactive speech stage');
+            assert(await live.evaluate('document.querySelector(\'#draw-decision .flow-answer\').textContent.startsWith(\'Ja\')'));
 
             const model = app.speech.prefetch.planning.get('default');
             const voice = app.speech.prefetch.settings('default').voice;
@@ -1023,7 +1022,7 @@ suite('BTS / actual FastAPI / native Chrome speech integration', function() {
             Object.assign(entry, { status: 'processing', local: false, retry_at: 0 });
             broker.current = { entry, request: { voice: entry.voice } };
             await until(async () => (await snapshot()).active === 'location-field-priority');
-            const caption = await live.evaluate('document.querySelector(\'[data-stage="shared"] p\').textContent');
+            const caption = await live.evaluate('document.querySelector(\'[data-stage="shared"] .flow-counts\').textContent');
             assert(/\b[1-9]\d* in der Queue/.test(caption), caption);
             if (process.env.BTS_SPEECH_PLANNING_SCREENSHOT) {
                 const shot = await live.call('Page.captureScreenshot', { format: 'png', captureBeyondViewport: true });
@@ -1034,7 +1033,7 @@ suite('BTS / actual FastAPI / native Chrome speech integration', function() {
             await until(async () => (await snapshot()).updated !== update);
             for (const ws of app.wss.clients) if (ws.speech_planning_last) ws.close();
             await until(async () => (await snapshot()).connected === 'false');
-            assert.strictEqual(await live.evaluate('document.querySelectorAll(\'.live-current,.live-present\').length'), 0);
+            assert.strictEqual(await live.evaluate('document.querySelectorAll(\'.live-current,[aria-current="step"]\').length'), 0);
             await until(async () => (await snapshot()).connected === 'true');
             assert.strictEqual(fs.readFileSync(path.join(directory, 'received.jsonl'), 'utf8'), before,
                 'opening and polling the graphic must not submit synthesis');
@@ -1077,22 +1076,29 @@ suite('BTS / actual FastAPI / native Chrome speech integration', function() {
                 'const interval = window.setInterval.bind(window); window.setInterval = (fn, ms, ...args) => interval(fn, ms === 2000 ? 100 : ms, ...args);' });
             await live.call('Page.navigate', { url: 'http://127.0.0.1:' + server.address().port + '/admin/t/default/speech-planning/' });
             const view = () => live.evaluate('(() => { const svg = document.querySelector(\'#overview\'); return {' +
-                'stage:svg?.dataset.followStage, phase:svg?.querySelector(\'.phase.active\')?.dataset.state || \'all\', ' +
+                'stage:svg?.dataset.followStage, phase:svg?.dataset.phase, ' +
                 'auto:svg?.classList.contains(\'automatic\'), following:svg?.classList.contains(\'live-follow\'), ' +
                 'updated:document.querySelector(\'.speech_plan_live\')?.dataset.updatedAt, ' +
                 'label:document.querySelector(\'.speech_plan_follow_status\')?.textContent}; })()');
             await until(async () => (await view()).stage === 'oncourt');
-            assert.strictEqual(await live.evaluate('document.querySelectorAll(\'.toolbar,[data-select],#speech-plan-auto-follow,.phase[tabindex],.phase[role="button"]\').length'), 0);
-            for (const [id, , node] of STAGES.filter(([, , node]) => node)) {
+            assert.strictEqual(await live.evaluate('document.querySelectorAll(\'input,select,[data-select],.flow-step[role="button"]\').length'), 0);
+            const positions = await live.evaluate('[...document.querySelectorAll(\'.flow-step\')].filter(node => !node.hidden).map(node => {' +
+                'const box = node.getBoundingClientRect(); return {stage:node.dataset.stage,x:box.x,y:box.y,bottom:box.bottom}; })');
+            assert.deepStrictEqual(positions.map(row => row.stage), ['urgent', 'test', 'shared', 'registration', 'oncourt', 'preparation',
+                'officials', 'additional', 'candidate', 'tablet_waiting', 'planned', 'registration_reserve', 'tablet', 'people', 'spare']);
+            for (let i = 1; i < positions.length; i++) {
+                assert(positions[i].y > positions[i - 1].bottom, 'read each lower-priority step below the previous one');
+                assert.strictEqual(positions[i].x, positions[0].x, 'keep one column');
+            }
+            for (const [id] of STAGES) {
                 response.active_stage = id;
                 await until(async () => (await view()).stage === id);
                 const current = await view();
-                assert.strictEqual(current.phase, ['oncourt', 'preparation', 'candidate', 'planned'].includes(id) ? id : 'all');
+                assert.strictEqual(current.phase, 'competition');
                 assert(current.auto && current.following);
-                assert.strictEqual(await live.evaluate('(() => { let opacity = 1, node = document.getElementById(' + JSON.stringify(node) + '); ' +
-                    'while(node && node.id !== \'overview\') {opacity *= Number(getComputedStyle(node).opacity); node = node.parentElement;} return opacity; })()'), 1);
+                assert.strictEqual(await live.evaluate('document.querySelectorAll(\'.live-current\').length'), 1);
+                assert.strictEqual(await live.evaluate('document.querySelector(\'[aria-current="step"]\').dataset.stage'), id);
             }
-            assert(Number(await live.evaluate('getComputedStyle(document.getElementById(\'running-priority\')).opacity')) < 0.5);
             await live.evaluate('window.__followChanges = 0; window.__followObserver = new MutationObserver(records => window.__followChanges += records.length); ' +
                 'window.__followObserver.observe(document.getElementById(\'overview\'), {attributes:true, attributeFilter:[\'class\',\'data-follow-stage\']})');
             const unchanged = Number((await view()).updated);
@@ -1101,19 +1107,16 @@ suite('BTS / actual FastAPI / native Chrome speech integration', function() {
             await live.evaluate('window.__followObserver.disconnect()');
             response.active_stage = 'oncourt';
             await until(async () => (await view()).stage === 'oncourt');
-            await live.evaluate('document.querySelector(\'.phase[data-state="preparation"]\').dispatchEvent(new MouseEvent(\'click\', {bubbles:true}))');
-            await live.evaluate('document.querySelector(\'.phase[data-state="candidate"]\').dispatchEvent(new KeyboardEvent(\'keydown\', {key:\'Enter\',bubbles:true}))');
-            assert.strictEqual((await view()).phase, 'oncourt');
             assert((await view()).auto && (await view()).following);
             response.active_stage = null; response.current = null; response.state = 'complete';
             response.total = { ready: STAGES.length, queued: 0, total: STAGES.length };
             for (const row of response.stages) { row.ready = 1; row.queued = 0; }
             await until(async () => !(await view()).following);
-            assert.strictEqual((await view()).phase, 'all');
+            assert.strictEqual((await view()).phase, 'competition');
             assert.strictEqual((await view()).auto, true);
             assert((await view()).label.includes('Keine Generierung aktiv') && (await view()).label.includes('alles bereit'));
-            assert(await live.evaluate('[...document.querySelectorAll(\'.live-step,.phase\')].every(node => Number(getComputedStyle(node).opacity) < .5)'));
-            assert.strictEqual(await live.evaluate('document.querySelectorAll(\'.phase.active,.phase.live-present,.live-current\').length'), 0);
+            assert.strictEqual(await live.evaluate('document.querySelectorAll(\'.live-current,[aria-current="step"]\').length'), 0);
+            assert(await live.evaluate('document.querySelector(\'.flow-end\').textContent.includes(\'Alles bereit\')'));
             if (process.env.BTS_SPEECH_IDLE_SCREENSHOT) {
                 const shot = await live.call('Page.captureScreenshot', { format: 'png', captureBeyondViewport: true });
                 fs.writeFileSync(process.env.BTS_SPEECH_IDLE_SCREENSHOT, Buffer.from(shot.data, 'base64'));
@@ -1122,22 +1125,41 @@ suite('BTS / actual FastAPI / native Chrome speech integration', function() {
                 response.state = status;
                 await until(async () => (await view()).label.includes(label));
                 assert.strictEqual((await view()).following, false);
-                assert(await live.evaluate('[...document.querySelectorAll(\'.live-step,.phase\')].every(node => Number(getComputedStyle(node).opacity) < .5)'));
+                assert.strictEqual(await live.evaluate('document.querySelectorAll(\'.live-current,[aria-current="step"]\').length'), 0);
+                if (status === 'disabled') assert(await live.evaluate('document.querySelector(\'#idle-decision .flow-answer\').textContent.includes(\'ausgeschaltet\')'));
             }
+            response.phase = 'registration'; response.state = 'idle_pending';
+            await until(async () => (await view()).phase === 'registration');
+            assert(await live.evaluate('document.querySelector(\'#draw-decision .flow-answer\').textContent.startsWith(\'Nein\')'));
+            assert(await live.evaluate('document.querySelector(\'[data-stage="registration_reserve"]\').classList.contains(\'is-skipped\')'));
+            assert.strictEqual(await live.evaluate('document.querySelector(\'[data-stage="registration"]\').classList.contains(\'is-skipped\')'), false);
+            response.phase = 'competition';
             response.active_stage = 'preparation'; response.state = 'waiting'; response.current = { text: 'Nächste Aufnahme', running: false };
             Object.assign(response.stages.find(row => row.id === 'preparation'), { ready: 0, queued: 1 });
             response.total = { ready: STAGES.length - 1, queued: 1, total: STAGES.length };
             await until(async () => (await view()).stage === 'preparation');
             assert((await view()).label.startsWith('Als Nächstes:'));
+            assert(await live.evaluate('document.querySelector(\'#idle-decision .flow-answer\').textContent.startsWith(\'Nein\')'));
+            assert(await live.evaluate('document.querySelector(\'[data-stage="registration"]\').classList.contains(\'is-skipped\')'));
+            assert(await live.evaluate('(() => {const svg = new DOMParser().parseFromString(btsSpeechPlanningDiagram.exportSVG(), \'image/svg+xml\'); ' +
+                'return !svg.querySelector(\'parsererror\') && svg.documentElement.localName === \'svg\' && svg.querySelectorAll(\'rect\').length > 15 && svg.documentElement.textContent.includes(\'Spiele in Vorbereitung\');})()'));
             if (process.env.BTS_SPEECH_FOLLOW_SCREENSHOT) {
                 const shot = await live.call('Page.captureScreenshot', { format: 'png', captureBeyondViewport: true });
                 fs.writeFileSync(process.env.BTS_SPEECH_FOLLOW_SCREENSHOT, Buffer.from(shot.data, 'base64'));
             }
             for (const ws of app.wss.clients) if (ws.speech_planning_test) ws.close();
             await until(async () => !(await view()).following);
-            assert.strictEqual((await view()).phase, 'all');
+            assert.strictEqual(await live.evaluate('document.querySelectorAll(\'[aria-current="step"]\').length'), 0);
             assert((await view()).label.includes('Verbindung unterbrochen'));
             await until(async () => (await view()).stage === 'preparation');
+            await live.call('Emulation.setDeviceMetricsOverride', { width: 390, height: 844, deviceScaleFactor: 1, mobile: false });
+            assert(await live.evaluate('document.documentElement.scrollWidth <= document.documentElement.clientWidth'));
+            await live.evaluate('document.querySelector(\'[aria-current="step"]\').scrollIntoView({block:\'center\'})');
+            assert(await live.evaluate('document.querySelector(\'.speech_plan_follow_status\').getBoundingClientRect().top >= 0'));
+            if (process.env.BTS_SPEECH_FLOW_MOBILE_SCREENSHOT) {
+                const shot = await live.call('Page.captureScreenshot', { format: 'png' });
+                fs.writeFileSync(process.env.BTS_SPEECH_FLOW_MOBILE_SCREENSHOT, Buffer.from(shot.data, 'base64'));
+            }
             assert.deepStrictEqual(live.events.filter(event => event.method === 'Runtime.exceptionThrown'), []);
         } finally {
             admin.handle_speech_planning = original;

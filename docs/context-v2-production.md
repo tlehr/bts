@@ -98,16 +98,18 @@ Quellverknüpfungen und Probehören.
 
 ## Live-Planung im eigenen Tab
 
-**Adminmenü → Sprachplanung · live** öffnet die Planungsgrafik für das aktuelle
-Turnier in einem neuen Browser-Tab. Turnierphase, Anzahl der Spiele je Zustand
-und Fortschritt aktualisieren sich alle zwei Sekunden. Ein blauer Rahmen markiert
-den Spielzustand der aktuellen oder nächsten Aufgabe; Gold markiert ihren
-Auftragsbereich. Ein laufender Auftrag eines anderen Turniers wird eigens angezeigt.
+**Adminmenü → Sprachplanung · live** öffnet den Ablaufplan für das aktuelle
+Turnier in einem neuen Browser-Tab. Die Prüfreihenfolge läuft in einer Spalte
+von oben nach unten: höchste Priorität zuerst. Nach jedem Auftrag prüft BTS
+wieder von oben. Turnierphase, Anzahl der Spiele je Zustand, Bedingungen und
+Fortschritt aktualisieren sich alle zwei Sekunden. Gold markiert ausschließlich
+den aktuellen oder nächsten Auftrag. Ein laufender Auftrag eines anderen
+Turniers wird eigens angezeigt.
 
 Die vereinfachten Balken zeigen **bereit / in der Queue / gesamt**: Grün zählt
 fertige Abspielbausteine, Orange fehlende Bausteine mit Auftrag, Grau den noch
 nicht beauftragten geplanten Vorrat. „Gesamt“ umfasst diese drei Gruppen. Die
-Zahlen stehen zusätzlich je Planungsbereich unter der Grafik. Gemeinsame Teile
+Zahlen und Balken stehen direkt im jeweiligen Schritt. Gemeinsame Teile
 zählen einmal beim ersten, vorrangigen Bedarf; Quellaufnahmen werden nicht
 zusätzlich zu ihren Ausschnitten gezählt. Optionaler Vorrat der anderen Stimme
 steht in einem eigenen Bereich. Die Werte beziehen sich auf den aktuellen Plan
@@ -116,16 +118,22 @@ und können sich bei Änderungen am Turnier ändern.
 Die Seite liest den vorhandenen Plan und die Warteschlange; sie legt keine
 zusätzlichen Sprachaufträge an. Bei Verbindungsverlust werden die aktuellen
 Markierungen entfernt und die Verbindung automatisch wiederhergestellt.
-Der Grafikexport bleibt verfügbar.
-Die Grafik folgt standardmäßig der aktuellen Aufgabe: Der passende Spielzustand
-wird gewählt, der Arbeitsbereich hervorgehoben und andere Bereiche abgeblendet.
-Ortsbausteine, Anmeldung, Offizielle und weitere übergreifende Aufgaben bleiben
-in der Gesamtübersicht sichtbar. Ohne aktuelle oder nächste Aufgabe sind alle
-Arbeitsbereiche abgeblendet. Der Status nennt ausdrücklich, ob alles bereit ist,
-weitere Arbeit wartet, Fehler offen sind oder die Verbindung fehlt. Vorhandene
-Spiele je Zustand bleiben in den Turnierzahlen sichtbar; sie erhalten allein
-dadurch keine Aktivitätsmarkierung in der Grafik.
-Die Zustandswahl in der Live-Grafik erfolgt vollständig automatisch.
+Der Ablaufplan lässt sich als eigenständiges SVG oder über Drucken/PDF exportieren.
+Die Bedingungen zeigen, ob schon ausgelost wurde, ob benötigte Ansagen noch offen
+sind und ob Vorrat der anderen Stimme möglich ist. Übersprungene Schritte bleiben
+beschriftet sichtbar. Laufende und vorbereitete Spiele enthalten ihre möglichen
+Tabletbediener; die wartende Tabletliste folgt im Leerlauf nach Aufrufkandidaten
+und vor weiteren angesetzten Spielen. Zusätzlicher konkreter Bedarf steht vor
+der Vorarbeit im Leerlauf.
+
+Jeder Schritt zeigt seinen Status; die aktuelle Aufnahme steht direkt beim
+aktiven Schritt. Ohne aktuelle oder nächste Aufgabe wird kein Arbeitsbereich
+markiert. Der Status nennt ausdrücklich, ob alles bereit ist, weitere Arbeit
+wartet, Fehler offen sind oder die Verbindung fehlt. Die getrennte Kartenübersicht
+entfällt. Auf schmalen Bildschirmen bleibt der Ablauf einspaltig und ohne
+horizontales Scrollen lesbar. Die aktuelle Tätigkeit bleibt beim Scrollen am oberen
+Rand sichtbar. Die Darstellung folgt vollständig automatisch;
+sie ändert weder die Auftragsreihenfolge noch den Sprachbedarf.
 
 ## Fehler und Wiederholungen
 
