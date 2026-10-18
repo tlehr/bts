@@ -15,7 +15,7 @@ const CALLS = [
 
 function renderer(tournament, locale, parts) {
     return create({
-        local: tournament.speech?.context_version === 'bts-context-v1',
+        local: ['bts-context-v1', 'bts-context-v2'].includes(tournament.speech?.context_version),
         tournament,
         translate: (key, data, fallback) => translate(locale, key, data, fallback),
         window: { localStorage: { getItem: () => 'true' } },
@@ -100,7 +100,7 @@ function prepare_waiting_tabletoperators(texts, tournament) {
 
 function prepare(tournament, matches, locale = 'de', options = {}) {
     const shared = options.shared !== false;
-    if (tournament.speech?.context_version === 'bts-context-v1' && locale === 'de') {
+    if (['bts-context-v1', 'bts-context-v2'].includes(tournament.speech?.context_version) && locale === 'de') {
         const parts = [];
         const texts = renderer(tournament, locale, parts);
         const warm = (name, setup) => parts.push(...contextPlan(texts, tournament, name, setup).parts);
@@ -113,7 +113,7 @@ function prepare(tournament, matches, locale = 'de', options = {}) {
             if (!setup) continue;
             const complete = setup.teams?.length >= 2 && setup.teams.slice(0, 2)
                 .every(team => team.players?.length && team.players.every(player => player.name?.trim()));
-            if (complete) {
+            if (complete || tournament.speech?.context_version === 'bts-context-v2') {
                 try { warm('prepareGame', setup); } catch (_) { /* No partial block with unknown game data. */ }
             }
             prepare_tabletoperators(texts, tournament, setup,

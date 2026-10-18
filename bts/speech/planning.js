@@ -37,17 +37,22 @@ function matchParts(tournament, match) {
     return prepare(tournament, [match], 'de', { shared: false, tablet_candidates: true });
 }
 
-function requiredPlan(tournament, matches) {
+function requiredPlan(tournament, matches, umpires = []) {
     const games = new Map();
     for (const match of matches.filter(isRequired).sort(compare)) {
         games.set(match._id, { match: { _id: match._id, setup: match.setup }, parts: matchParts(tournament, match) });
+    }
+    if (tournament.speech?.context_version === 'bts-context-v2') {
+        const inventory = require('./v2_inventory');
+        return { games, shared: inventory.bootstrap(tournament), officials: inventory.officials(tournament, umpires),
+            registration: inventory.firstDrawn(tournament, matches) ? [] : inventory.registration(tournament, matches) };
     }
     return { games, shared: prepare(tournament, [], 'de', { waiting: false }) };
 }
 
 function requiredParts(plan) {
     const games = [...plan.games.values()].sort((a, b) => compare(a.match, b.match));
-    return [...new Set([...plan.shared, ...games.flatMap(game => game.parts)])];
+    return [...new Set([...plan.shared, ...(plan.registration || []), ...games.flatMap(game => game.parts), ...(plan.officials || [])])];
 }
 
 module.exports = { isOpen, isRequired, tier, compare, matchParts, requiredPlan, requiredParts };

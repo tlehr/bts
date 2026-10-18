@@ -9,7 +9,7 @@ const GROUPS = [
     ['D06', 'Schiedsrichter'], ['D07', 'Aufschlagrichter'], ['D08', 'Tablet- / Klapptafelbedienung'],
     ['D09', 'Schiedsrichter in Vorbereitung'], ['D10', 'Aufschlagrichter in Vorbereitung'],
     ['D11', 'Tablet- / Klapptafelbedienung in Vorbereitung'], ['D12', 'Kampfloser Sieg'],
-    ['D13', 'Freie Ansagen'], ['D14', 'Sprachtest'], ['other', 'Weitere Bausteine'],
+    ['registration', 'Anmeldung / Auslosung'], ['D13', 'Freie Ansagen'], ['D14', 'Sprachtest'], ['other', 'Weitere Bausteine'],
 ];
 const STATES = ['stock', 'prepared', 'cached', 'generated', 'ordered', 'potential'];
 
@@ -57,7 +57,7 @@ async function plan(tournament, matches, umpires = []) {
     for (const court of tournament.courts || []) if (court.is_active !== false) {
         const setup = { court_id: court._id, location_id: court.location_id };
         call('D03', 'announceBeginnToPlay', setup);
-        const fields = tournament.speech?.context_version === 'bts-context-v1' ?
+        const fields = ['bts-context-v1', 'bts-context-v2'].includes(tournament.speech?.context_version) ?
             contextPlan(texts, tournament, 'prepareFields', setup).parts : [texts.createFieldAnnouncement(setup)].filter(Boolean);
         for (const part of fields) add(part, 'D01');
         if (fields[1]) add(fields[1], 'D04');
@@ -76,6 +76,9 @@ async function plan(tournament, matches, umpires = []) {
         const setup = { tabletoperators: group };
         call('D08', 'announceSecondCallTabletoperator', setup);
         for (const hall of halls(setup)) call('D11', 'announceSecondPreparationCallTabletoperator', hall);
+    }
+    if (tournament.speech?.context_version === 'bts-context-v2') {
+        for (const part of require('./v2_inventory').registration(tournament, matches)) add(part, 'registration');
     }
     add(translate('de', 'announcements:speechcheck:text'), 'D14');
     return targets;

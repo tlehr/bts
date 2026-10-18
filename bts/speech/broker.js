@@ -94,7 +94,7 @@ class SpeechBroker {
                 if (saved && JSON.parse(saved.identity)[0] === TEXT_VERSION && Array.isArray(saved.voices)) {
                     this.identity = saved.identity;
                     this.voices = saved.voices;
-                    this.context_version = saved.context_version === context.VERSION ? context.VERSION : null;
+                    this.context_version = context.SUPPORTED.includes(saved.context_version) ? saved.context_version : null;
                     this.playback_profile = saved.playback_profile === PLAYBACK_PROFILE ? PLAYBACK_PROFILE : null;
                     this.playback_version = this.playback_profile ? saved.playback_version : null;
                 }
@@ -141,7 +141,7 @@ class SpeechBroker {
 
     set_team_fallback(entry, stage, cache_only = false) {
         const original = context.decode(entry.part, this.config.max_text);
-        const recipe = stage === 'name' ? { before: '', text: entry.text, after: '', kind: 'team' } : original;
+        const recipe = stage === 'name' ? { before: '', text: entry.text, after: '', kind: 'team', version: original.version } : original;
         const part = context.sourcePart(recipe);
         const key = this.key('team-fallback-' + stage + '-v1:' + part, entry.voice, entry.language);
         let source = this.entries.get(key);
@@ -152,7 +152,7 @@ class SpeechBroker {
             source = { key, part, text: recipe.before + recipe.text + recipe.after, context: context.decode(part, this.config.max_text),
                 source_key: null, voice: entry.voice, language: entry.language, priority: entry.priority,
                 status: 'unsubmitted', created: entry.created, used: this.now(), retry_at: 0, next_poll: 0, busy: false,
-                tournaments: new Set(), fallback_source: stage, ...(stage === 'context' ? { source_seed: 43 } : {}) };
+                tournaments: new Set(), fallback_source: stage, ...(stage === 'context' ? { source_seed: original.version === context.V2 ? 45 : 43 } : {}) };
             this.entries.set(key, source);
             this.restore(source);
         }
@@ -229,7 +229,7 @@ class SpeechBroker {
             parts.some(text => {
                 if (typeof text !== 'string' || !text.trim() || text.length > this.config.max_text * 4 + 512) return true;
                 const recipe = context.decode(text, this.config.max_text);
-                return recipe ? this.context_version !== context.VERSION : spellNumbers(text).length > this.config.max_text;
+                return recipe ? this.context_version !== recipe.version : spellNumbers(text).length > this.config.max_text;
             })) {
             throw new Error('invalid_speech_parts');
         }
@@ -606,7 +606,7 @@ class SpeechBroker {
         }
         const state = health.status === 'fulfilled' ? health.value : health.reason.response;
         if (state?.model_revision) {
-            const next_context = state.context_version === context.VERSION ? context.VERSION : null;
+            const next_context = context.SUPPORTED.includes(state.context_version) ? state.context_version : null;
             if (next_context !== this.context_version) {
                 this.context_version = next_context;
                 this.entries.clear();
@@ -676,6 +676,13 @@ class SpeechBroker {
             entry.retry_at = this.now() + 30000;
             this.last_error = 'speech_generation_failed';
             if (!entry.detached && entry.context?.kind === 'team' && response.error?.code === 'alignment_failed') this.advance_team_fallback(entry);
+            if (response.error?.code === 'source_quality_failed') {
+                entry.terminal_failure = true;
+                for (const child of this.entries.values()) if (child.source_key === entry.key) {
+                    if (child.context?.kind === 'team') this.advance_team_fallback(child);
+                    else { child.terminal_failure = true; child.status = 'failed'; }
+                }
+            }
             this.failed_fallback_source(entry);
         }
     }
@@ -697,7 +704,7 @@ class SpeechBroker {
                 // The server protocol has three priorities. Admission and the
                 // additional idle tier are managed exclusively here in BTS.
                 priority: entry.priority >= PRIORITY.idle ? 'low' : Object.keys(PRIORITY)[entry.priority],
-                ...(entry.context ? { profile: context.VERSION } : {}),
+                ...(entry.context ? { profile: entry.context.version || context.VERSION } : {}),
                 ...(this.playback_profile && entry.context?.kind !== 'source' ? { playback_profile: this.playback_profile } : {}),
                 ...(entry.source_seed === undefined ? {} : { source_seed: entry.source_seed }),
                 ...(entry.source_key ? { context: { audio_id: this.entries.get(entry.source_key).audio_id,

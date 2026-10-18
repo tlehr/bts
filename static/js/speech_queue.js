@@ -76,7 +76,7 @@ function createSpeechQueue({ root, service, onSnapshot = () => {} }) {
     element(coverage_details, 'p', 'speech_queue_help',
         'Grau umfasst auch Spiele mit unbekannten Teilnehmern und mögliche Bediener aus allen Disziplinen. ' +
         'Nur im Leerlauf: Aufrufkandidaten, wartende Tabletbediener und weitere Spiele in der Reihenfolge der BTS-Liste, ' +
-        'übrige Teams laufender Disziplinen, bekannte Offizielle und zuletzt alle übrigen möglichen Tabletbediener. ' +
+        'weitere Anmeldungen/Auslosungen, übrige Teams laufender Disziplinen und zuletzt alle übrigen möglichen Tabletbediener. ' +
         'Unbekannte Teilnehmer bleiben ohne Auftrag. Türkis zeigt seit dem letzten BTS-Start neu erzeugten, ' +
         'noch nie konkret benötigten Vorrat; übriger fertiger Vorrat erscheint blau. ' +
         'Neuladen der Seite setzt diese Sitzung nicht zurück. Sobald ein Baustein benötigt wird, zählt er grün. ' +

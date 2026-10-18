@@ -1,6 +1,6 @@
 # BTS-Kontextstrategie v2 – gemeinsame Festlegungen
 
-Diese Datei hält die schrittweise festgelegte neue BTS-Strategie fest. Sie beschreibt den vorgesehenen automatischen Aufbau im BTS; dafür ist keine Bedienung des Kontexteditors vorgesehen. Die bereits gesicherte und laufende v1 bleibt bis zur Umsetzung der neuen Strategie der dokumentierte bisherige Stand. Das [v1-Arbeitsdokument](durchsagen-arbeitsdokument.md) und die [gemessenen v2-Versuche](context-v2-experiments.md) bleiben getrennt nachvollziehbar.
+Diese Datei hält die schrittweise festgelegte neue BTS-Strategie fest. **Die Umsetzung für den Turnierbetrieb ist unter [Kontext v2 im BTS](context-v2-production.md) beschrieben.** Sie beschreibt den vorgesehenen automatischen Aufbau im BTS; dafür ist keine Bedienung des Kontexteditors vorgesehen. Die gesicherte v1 bleibt als bisheriger Stand und Rückkehrmöglichkeit dokumentiert. Das [v1-Arbeitsdokument](durchsagen-arbeitsdokument.md) und die [gemessenen v2-Versuche](context-v2-experiments.md) bleiben getrennt nachvollziehbar.
 
 ## 1. Festgelegt: eine Kontextaufnahme je tatsächlichem Team
 

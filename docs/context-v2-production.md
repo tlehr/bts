@@ -1,0 +1,66 @@
+# Lokale Sprachausgabe mit Kontext v2
+
+v2 verwendet die gemeinsam abgestimmten Hörlabor-Bausteine im normalen BTS.
+Der HTTP-Vertrag bleibt unter `/v1`; das Syntheseprofil heißt `bts-context-v2`.
+BTS übernimmt Auswahl, Reihenfolge und Zusammensetzen. Der Sprachserver
+verarbeitet weiterhin genau einen Auftrag und lehnt weitere mit `429/busy` ab.
+
+## Wiederverwendung
+
+| Baustein | Aufnahme | Verwendung |
+|---|---|---|
+| Feldanfang/-ende | Vollständiger Referenzaufruf je Feld | Beide Feldpositionen aus derselben Aufnahme |
+| Feld in Vorbereitung | `Für Spielfeld [F]!` | Ganzer Satz je Feld |
+| Spielnummer | `Spielnummer [N] ist als nächstes an der Reihe.` | Bis vor „ist“ |
+| Disziplin/Alter | `Im [Disziplin] [Alter] erwarten wir spannende Spiele!` | Zwischen „Im“ und „erwarten“; Disziplin mit Leerzeichen |
+| Runde | `[Runde]!` | Ganzer Satz |
+| Team/Name/Verein/Verband | `[Name] spielt jetzt gegen [Name]!` | Erste Position, zweite Position oder „gegen“ mit zweiter Position |
+| Offiziellenrolle | Im Hörlabor gewählter vollständiger Rollen-Kontext | Rolle mit wiederverwendetem Namen |
+| Vorbereitung | Standortabhängiger Kontextaufruf | Anfang und Abschluss aus derselben Quelle |
+| Anmeldung/Zweitaufrufe/Kampflos | Im Hörlabor festgelegte Kontextaufnahmen | Gemeinsame Wörter mit Team-/Namensausschnitten |
+
+Die vollständigen festen Rezepte stehen in `static/js/speech_context_v2.js`.
+Die Browserstimme behält ihre Texte. Ziffern bleiben in der Anzeige erhalten;
+BTS schreibt sie erst für die Anfrage an den Sprachserver aus.
+Freie Texte und der Sprachtest bleiben vollständige Äußerungen, die bestehende
+Evakuierungsdatei bleibt unverändert.
+
+## Reihenfolge
+
+1. Tatsächlich ausgelöste Durchsage; anschließend Sprachtest und angeforderte Proben.
+2. Standort- und Feldbausteine, danach weitere gemeinsame Bausteine.
+3. Vor der ersten Auslosung: Anmeldevorarbeit; gemeinsame Texte vor Bezeichnungen.
+   Geöffnete/fortgeschrittene Disziplinen zuerst, Landesverbände vor Vereinen vor Personen/Paarungen.
+4. Laufende Spiele nach Aufrufzeit; danach Spiele in Vorbereitung nach Vorbereitungsaufrufzeit.
+5. Alle bekannten technischen Offiziellen, auch ohne Spielzuordnung.
+6. Nur im Leerlauf: Aufrufkandidaten, weitere angesetzte Spiele, weitere
+   Anmeldungen/Auslosungen nach Spielreihenfolge, weitere Teams laufender
+   Disziplinen, verbleibende mögliche Tabletbediener.
+7. Optional, erst nach vollständigem Leerlauf aller Turniere: andere Stimme.
+
+Die Checkbox **„Andere Stimme nur bei vollständigem Leerlauf auf Vorrat vorbereiten“**
+steht unter **Einstellungen → Aufrufe** und ist zunächst ausgeschaltet.
+Ein laufender Auftrag wird beendet; danach wird die aktuelle Reihenfolge neu
+bewertet. Entfallene ungesendete Aufträge werden entfernt, fertige Dateien bleiben.
+
+## Cache, Qualität und Betrieb
+
+Quellaufnahme, Ausschnitt und pegel-/pausenbearbeitete Abspielkopie haben getrennte,
+persistente Cache-Einträge. v1-Dateien werden nicht gelöscht. v2-Schlüssel enthalten
+das Profil und die Schnittimplementierung; Stimmen und Referenzen bleiben getrennt.
+Passende Hörlabor-Quellen werden nur bei identischer Stimme, Modell, Parametern,
+Text und überprüftem WAV-Hash übernommen. Dadurch entfällt eine erneute Synthese.
+Die Schnitte verwenden immer die Wortzeiten der tatsächlichen Quelldatei.
+
+Die im Hörlabor gewählte Vorbereitungsreferenz gilt für die Hallensprecherin.
+Die Männerreferenz bleibt unverändert. Alle lokalen Abspielbausteine verwenden
+die gemeinsame Pegelanpassung und maximal 100 ms Ruhe innerhalb eines Satzes;
+Pausen zwischen Sätzen haben eigene Ziele. Quellen mit auffälligen langen Pausen
+werden höchstens dreimal versucht. Danach bleibt der Fehler sichtbar;
+Team-Ausschnitte nutzen die begrenzte Kontext-/Einzelnamen-Rückfallebene.
+
+Der Server wird mit `BTS_CONTEXT_VERSION=bts-context-v2` aktiviert. Der weiterhin
+vorhandene v1-Stand ist mit `bts-context-v1-stable` markiert. Für eine vollständige
+Rückkehr müssen v1-Konfiguration, Stimmen und Datenverzeichnis aus dem gesicherten
+Stand verwendet werden; die Details stehen im v1-Baseline-Dokument des Sprachservers.
+Nach der Umstellung offene BTS-Browserseiten neu laden.

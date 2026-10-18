@@ -26,6 +26,8 @@ async function idlePlan(tournament, matches, umpires = [], preferred_ids = []) {
     // At a quiet tournament start, warm the next discipline, not every later
     // discipline merely because it already has entries in BTP.
     if (!active.size && open.length && discipline(open[0].setup)) active.add(discipline(open[0].setup));
+    const v2 = tournament.speech?.context_version === 'bts-context-v2';
+    const inventory = v2 ? require('./v2_inventory') : null;
     const parts = [], texts = renderer(tournament, 'de', parts);
     let work = 0;
     const yieldWork = async () => { if (++work % 16 === 0) await new Promise(resolve => setImmediate(resolve)); };
@@ -40,7 +42,7 @@ async function idlePlan(tournament, matches, umpires = [], preferred_ids = []) {
         // Future game blocks, assigned officials and hall variants are reserve
         // too. Shared court/common pieces already belong to the required plan.
         parts.push(...prepare(tournament, [match], 'de', { shared: false }));
-        if (active.has(discipline(match.setup))) addTeams(match.setup);
+        if (active.has(discipline(match.setup)) && (!v2 || tier(match, preferred) < 3)) addTeams(match.setup);
     }
     if (!waiting_added) prepare_waiting_tabletoperators(texts, tournament);
     // Teams with a known next game come first. Registered teams without a
@@ -48,6 +50,10 @@ async function idlePlan(tournament, matches, umpires = [], preferred_ids = []) {
     const active_order = [...active];
     const active_events = events.filter(event => active.has(eventKey(event)))
         .sort((a, b) => active_order.indexOf(eventKey(a)) - active_order.indexOf(eventKey(b)));
+    if (v2) {
+        parts.push(...inventory.registration(tournament, matches));
+        for (const match of open) if (active.has(discipline(match.setup)) && tier(match, preferred) === 3) addTeams(match.setup);
+    }
     for (const event of active_events) for (const stage of event.stages || []) {
         for (const entry of stage.entries || []) {
             await yieldWork();
@@ -56,7 +62,7 @@ async function idlePlan(tournament, matches, umpires = [], preferred_ids = []) {
     }
     // Unassigned officials are useful reserve too; assigned officials are
     // already in the ordinary game plans. Use the same context recipes.
-    for (const official of umpires) {
+    for (const official of v2 ? [] : umpires) {
         await yieldWork();
         if (!official.name?.trim()) continue;
         for (const [role, suffix] of [['umpire', 'Umpire'], ['service_judge', 'ServiceJudge']]) {

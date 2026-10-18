@@ -1,4 +1,4 @@
-/* global createAnnouncementTexts, btsSpeechService */
+/* global createAnnouncementTexts, createV2SpeechPlan, btsSpeechService */
 function announcementTexts() {
     return createAnnouncementTexts({
         tournament: curt, translate: ci18n, announce, window,
@@ -675,6 +675,10 @@ function processAnnouncementPlaybackQueue() {
 }
 
 function announce(callArray, local, claimKey, options) {
+    if (!options?.localParts && curt.speech?.context_version === 'bts-context-v2' && callArray.length === 1) {
+        const plan = createV2SpeechPlan.registration(callArray[0]);
+        if (plan) options = { ...options, localParts: plan.parts, localPauses: plan.pauses };
+    }
     const enqueue = (enqueueOptions) => {
         const resolvedOptions = enqueueOptions || {};
         announcementPlaybackQueue.push({

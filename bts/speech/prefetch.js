@@ -11,7 +11,8 @@ const EVENTS = new Set([
     'location_changed', 'locations_changed', 'court_changed', 'courts_changed',
     'normalization_add', 'normalization_remove', 'normalizations_changed', 'props',
     'umpire_updated', 'umpires_changed', 'tabletoperator_updated', 'tabletoperator_add',
-    'update_btp_events',
+    'update_btp_events', 'registration_player_status', 'registration_player_status_reset',
+    'registration_open_events', 'registration_completed_events',
 ]);
 const CALL_EVENTS = new Set(['match_preparation_call', 'match_called_on_court']);
 
@@ -136,7 +137,7 @@ class Prefetcher {
             if (this.dirty.has(key)) return;
             const context = { ...tournament, locations, courts, normalizations, tabletoperators,
                 speech: { context_version: this.broker.context_version } };
-            const required = requiredPlan(context, matches), parts = requiredParts(required);
+            const required = requiredPlan(context, matches, umpires), parts = requiredParts(required);
             // Retain only the context and active game recipes needed by an
             // immediate call; the registration inventory is rebuilt separately.
             this.contexts.set(key, { context: { ...context, events: undefined }, settings: speech_settings, required });

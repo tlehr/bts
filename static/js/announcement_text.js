@@ -55,7 +55,7 @@ function createAnnouncementTexts(context) {
             const boundary = part.after + (plan[index + 1]?.before || '');
             return /[.!?]/.test(boundary) ? 250 : /[,;:]/.test(boundary) ? 120 : 0;
         });
-        if (activeCall && curt.speech?.context_version === 'bts-context-v1' && ci18n('announcements:lang') === 'de-DE') {
+        if (activeCall && ['bts-context-v1', 'bts-context-v2'].includes(curt.speech?.context_version) && ci18n('announcements:lang') === 'de-DE') {
             const planner = typeof module !== 'undefined' && module.exports ? require('./speech_context') : createContextSpeechPlan;
             const recipe = planner(api, curt, activeCall.name, activeCall.setup, activeCall.args, parts);
             if (recipe) { prepared = recipe.parts; pauses = recipe.pauses; }

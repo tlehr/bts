@@ -1,7 +1,12 @@
 /* exported createContextSpeechPlan */
+/* global createV2SpeechPlan */
 'use strict';
 
 function createContextSpeechPlan(texts, tournament, name, setup = {}, args = [], browserParts = []) {
+    if (tournament.speech?.context_version === 'bts-context-v2') {
+        const planner = typeof module !== 'undefined' && module.exports ? require('./speech_context_v2') : createV2SpeechPlan;
+        return planner(texts, tournament, name, setup, args, browserParts);
+    }
     const PREFIX = '~bts-context-v1~';
     const example1 = 'Nina Keo Boun Khoune', example2 = 'LeandraGalowicz';
     const reference = `Spiel 189.  Mädcheneinzel U19.  Achtelfinale! ${example1} gegen ${example2}.`;
