@@ -3714,6 +3714,13 @@ h2.edit {
 .speech_queue_source_text mark { background: #fef08a; color: #1f2937; font-weight: bold; }
 .speech_queue_results ul { padding-left: 1.25rem; margin: 0.35rem 0 0; }
 .speech_queue_results li + li { margin-top: 0.35rem; }
+.speech_queue_failure { margin-top: 0.6rem; padding: 0.6rem; border-left: 3px solid #b45309; background: #fff7ed; color: #7c2d12; font-size: 0.8rem; line-height: 1.45; overflow-wrap: anywhere; }
+.speech_queue_failure[hidden] { display: none; }
+.speech_queue_failure p { margin: 0.3rem 0; }
+.speech_queue_failure details { margin-top: 0.4rem; }
+.speech_queue_failure summary { cursor: pointer; }
+.speech_queue_failure ul { margin: 0.4rem 0 0; padding-left: 1.2rem; }
+.speech_queue_failure li + li { margin-top: 0.35rem; }
 .speech_queue_meta { margin-top: 0.4rem; font-size: 0.75rem; color: #526176; line-height: 1.4; }
 .speech_queue_row[data-status="completed"] .speech_queue_order { color: #18733c; }
 .speech_queue_row[data-status="failed"] .speech_queue_meta { color: #b42318; }
@@ -3812,3 +3819,23 @@ h2.edit {
     margin-top: 0.3em;
     line-height: 1.4;
 }
+
+.speech_inventory_section { margin-top: 1rem; }
+.speech_inventory_section > summary { font-size: 1.15rem; font-weight: bold; cursor: pointer; }
+.speech_inventory_group { border-top: 1px solid #cbd5e1; padding-top: 0.65rem; margin-top: 0.65rem; }
+.speech_inventory_group > summary { font-weight: bold; cursor: pointer; margin-bottom: 0.5rem; }
+.speech_inventory_entries { margin: 0.6rem 0; }
+.speech_inventory_entries > summary { cursor: pointer; color: #334155; }
+.speech_inventory_list { margin: 0.5rem 0; padding: 0; list-style: none; max-height: 32rem; overflow: auto; }
+.speech_inventory_item { background: #fff; border: 1px solid #d5dce4; border-left: 4px solid var(--inventory-color, #cbd0d7); padding: 0.65rem; overflow-wrap: anywhere; }
+.speech_inventory_item + .speech_inventory_item { margin-top: 0.35rem; }
+.speech_inventory_item[data-state="stock"] { --inventory-color: #3b82b8; }
+.speech_inventory_item[data-state="prepared"] { --inventory-color: #39a9a0; }
+.speech_inventory_item[data-state="cached"] { --inventory-color: #166534; }
+.speech_inventory_item[data-state="generated"] { --inventory-color: #78bf82; }
+.speech_inventory_item[data-state="ordered"] { --inventory-color: #e88928; }
+.speech_inventory_text { margin: 0.3rem 0; }
+.speech_inventory_status, .speech_inventory_note, .speech_inventory_dependencies { color: #526176; font-size: 0.8rem; margin-top: 0.3rem; }
+.speech_inventory_error { color: #b42318; font-size: 0.8rem; margin-top: 0.3rem; }
+.speech_queue_jobs { margin-top: 1rem; }
+.speech_queue_jobs > summary { font-weight: bold; cursor: pointer; }

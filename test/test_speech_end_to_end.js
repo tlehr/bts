@@ -98,7 +98,7 @@ suite('BTS / actual FastAPI / native Chrome speech integration', function() {
     async function openSpeechSettings() {
         await devtools.evaluate('crouting.navigate_to(\'t/default/edit\')');
         await until(() => devtools.evaluate('!!document.querySelector(\'.tournament_settings .local_speech_controls\')'));
-        await devtools.evaluate('document.querySelector(\'.speech_settings_layout\').scrollIntoView({block:\'start\'})');
+        await devtools.evaluate('document.querySelector(\'.speech_settings_layout\').scrollIntoView({block:\'start\'}); if(document.querySelector(\'.speech_queue_jobs\')) document.querySelector(\'.speech_queue_jobs\').open = true');
     }
 
     async function closeSpeechSettings() {
@@ -706,6 +706,87 @@ suite('BTS / actual FastAPI / native Chrome speech integration', function() {
             admin.handle_speech_queue = original;
         }
     });
+    it('shows repeated failure reasons and preserves expanded history through live updates', async function() {
+        const response = await rpc(client, { type: 'speech_queue', tournament_key: 'default' });
+        const base = response.queue.items.find(item => item.status === 'completed');
+        const item = { ...base, status: 'failed', terminal_failure: true, diagnostics: {
+            failure_count: 3, transport_count: 0, last_failure_at: 1700000000,
+            recent_failures: [{ event_id: 'failure-one', code: 'source_quality_failed', reason: 'long_internal_pause',
+                stage: 'source_quality', created_at: 1700000000, seed: 43,
+                pauses: [{ kind: 'word', duration_ms: 810, limit_ms: 500, start_ms: 1200 }] }],
+        } };
+        response.queue.items = [item]; response.queue.coverage = null;
+        const original = admin.handle_speech_queue;
+        admin.handle_speech_queue = (_app, ws, msg) => ws.respond(msg, null, { speech: response.speech, queue: response.queue });
+        try {
+            await openSpeechSettings();
+            await until(() => devtools.evaluate('document.querySelector(\'.speech_queue_failure\')?.textContent.includes(\'3 Fehlversuche\')'));
+            const text = await devtools.evaluate('document.querySelector(\'.speech_queue_failure\').textContent');
+            assert(text.includes('wiederholt') && text.includes('810 ms') && text.includes('Grenze 500 ms'));
+            assert(text.includes('Keine weiteren automatischen Versuche'));
+            await devtools.evaluate('window.__failureRow = document.querySelector(\'.speech_queue_row\'); document.querySelector(\'.speech_queue_failure details\').open = true');
+            item.status = 'completed'; item.terminal_failure = false;
+            await devtools.evaluate('[...document.querySelectorAll(\'.local_speech_controls button\')].find(button => button.textContent === \'Cache-Status aktualisieren\').click()');
+            await until(() => devtools.evaluate('document.querySelector(\'.speech_queue_failure\').textContent.includes(\'inzwischen fertig\')'));
+            assert(await devtools.evaluate('window.__failureRow === document.querySelector(\'.speech_queue_row\') && document.querySelector(\'.speech_queue_failure details\').open'));
+        } finally {
+            admin.handle_speech_queue = original;
+            await closeSpeechSettings();
+        }
+    });
+
+    it('separates components from complete calls and loads group lists only when expanded', async function() {
+        await closeSpeechSettings();
+        let reads = 0;
+        const original = admin.handle_speech_inventory;
+        admin.handle_speech_inventory = (...args) => { reads++; return original(...args); };
+        try {
+            await openSpeechSettings();
+            await until(() => devtools.evaluate('document.querySelectorAll(\'.speech_inventory_section\').length === 2'));
+            assert.strictEqual(reads, 0, 'closed inventories must not fetch or render all announcement texts');
+            const selector = '.speech_inventory_group[data-inventory-kind="announcements"][data-coverage-group="D01"]';
+            await devtools.evaluate('document.querySelector(' + JSON.stringify(selector) + ').open = true');
+            await until(() => devtools.evaluate('document.querySelector(' + JSON.stringify(selector) + ').querySelectorAll(\'.speech_inventory_item\').length > 0'));
+            const list = await devtools.evaluate('[...document.querySelector(' + JSON.stringify(selector) + ').querySelectorAll(\'.speech_inventory_item\')].map(node => node.textContent)');
+            assert(list.length <= 30);
+            assert(list.some(text => text.includes('Spiel') && text.includes('Teile bereit')));
+            assert(reads > 0);
+            if (process.env.BTS_SPEECH_INVENTORY_SCREENSHOT) {
+                await devtools.call('Emulation.setDeviceMetricsOverride',
+                    { width: 1280, height: 1100, deviceScaleFactor: 1, mobile: false });
+                await devtools.evaluate('document.querySelectorAll(\'.speech_inventory_section\')[1].scrollIntoView({block:\'start\'})');
+                const shot = await devtools.call('Page.captureScreenshot', { format: 'png' });
+                fs.writeFileSync(process.env.BTS_SPEECH_INVENTORY_SCREENSHOT, Buffer.from(shot.data, 'base64'));
+            }
+            await devtools.evaluate(`(() => {
+                const row = document.querySelector(${JSON.stringify(selector)}).querySelector('.speech_inventory_item');
+                row.querySelector('.speech_inventory_dependencies').open = true;
+                window.__inventoryTracked = row;
+                const queue = btsSpeechService.queue, inventory = btsSpeechService.inventory;
+                window.__restoreInventoryMethods = () => { btsSpeechService.queue = queue; btsSpeechService.inventory = inventory; };
+                btsSpeechService.queue = async () => {
+                    const response = await queue();
+                    response.queue.coverage.revision += '-inventory-refresh-test';
+                    return response;
+                };
+                btsSpeechService.inventory = async (...args) => {
+                    const page = await inventory(...args);
+                    const item = page?.kind === 'announcements' && page.items.find(item => item.id === row.dataset.inventoryId);
+                    if (item) item.text = 'Aktualisierter Volltext: ' + item.text;
+                    return page;
+                };
+                window.dispatchEvent(new Event('bts-speech-cache-changed'));
+            })()`);
+            await until(() => devtools.evaluate('window.__inventoryTracked.textContent.includes(\'Aktualisierter Volltext\')'));
+            assert(await devtools.evaluate('window.__inventoryTracked.isConnected && window.__inventoryTracked.querySelector(\'.speech_inventory_dependencies\').open'),
+                'same-count plan changes must update the existing row while retaining its expanded components');
+        } finally {
+            admin.handle_speech_inventory = original;
+            await devtools.evaluate('window.__restoreInventoryMethods?.()');
+            await closeSpeechSettings();
+        }
+    });
+
     it('renders six proportional coverage segments and updates them without generating or rebuilding the bars', async function() {
         const response = await rpc(client, { type: 'speech_queue', tournament_key: 'default' });
         response.queue.items = [{ ...response.queue.items.find(item => item.status === 'completed'), priority: 'idle', idle: true }];

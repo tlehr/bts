@@ -33,7 +33,7 @@ function officials(tournament, umpires) {
     return [...new Set(parts)];
 }
 
-function registration(tournament, matches) {
+function registration(tournament, matches, onCall) {
     const parts = [], texts = renderer(tournament, 'de', []);
     const warmName = players => {
         if (!players?.length || players.some(player => !player?.name?.trim())) return;
@@ -46,7 +46,9 @@ function registration(tournament, matches) {
                 kind === 'state' || kind === 'club' ?
                     `Bitte ein Vertreter ${kind === 'state' ? 'aus' : 'vom Verein'} ${normal} zur ${target}. Ein Vertreter ${kind === 'state' ? 'aus' : 'vom Verein'} ${normal} bitte!` :
                     `${normal} bitte zur ${target}. ${normal} bitte!`;
-            parts.push(...v2.registration(full).parts);
+            const planned = v2.registration(full).parts;
+            parts.push(...planned);
+            onCall?.(kind, label, full, planned);
         }
     };
     // Fixed registration phrases precede every label; their context examples

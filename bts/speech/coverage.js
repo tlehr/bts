@@ -2,6 +2,9 @@
 
 const { renderer, potential_tabletoperator_groups } = require('./text');
 const contextPlan = require('../../static/js/speech_context');
+const inventory = require('./inventory');
+const { isRequired } = require('./planning');
+const crypto = require('crypto');
 const { _translate: translate } = require('../../static/js/ci18n');
 const GROUPS = [
     ['D01', 'Spielaufruf'], ['D02', 'Vorbereitungsaufruf'], ['D03', 'Spielbeginn'],
@@ -17,6 +20,8 @@ const STATES = ['stock', 'prepared', 'cached', 'generated', 'ordered', 'potentia
 // Unknown games use one shared placeholder until their real text is known.
 async function plan(tournament, matches, umpires = []) {
     const targets = new Map(), output = [], texts = renderer(tournament, 'de', output);
+    const calls = [], browserOutput = [], browser = renderer({ ...tournament, speech: {} }, 'de', browserOutput);
+    let scope = { id: 'shared', label: '', needed: false };
     let work = 0;
     const yieldWork = async () => { if (++work % 32 === 0) await new Promise(resolve => setImmediate(resolve)); };
     const add = (part, group, placeholder) => {
@@ -25,9 +30,18 @@ async function plan(tournament, matches, umpires = []) {
         targets.get(id).groups.add(group);
     };
     const call = (group, name, setup, ...args) => {
-        output.length = 0;
-        try { texts[name](setup, ...args); } catch (_) { return; }
+        output.length = 0; browserOutput.length = 0;
+        try { texts[name](setup, ...args); browser[name](setup, ...args); } catch (_) { return; }
+        if (!['bts-context-v1', 'bts-context-v2'].includes(tournament.speech?.context_version)) {
+            output.splice(0, output.length, ...texts.localParts(output));
+        }
+        if (!output.length) return;
         for (const part of output) add(part, group);
+        const text = browserOutput.join(' ').replace(/([.!?])(?=[A-ZÄÖÜ])/g, '$1 ');
+        const id = crypto.createHash('sha256').update(JSON.stringify([scope.id, group, name, setup.court_id, setup.location_id, args,
+            setup.umpire?.name, setup.service_judge?.name, setup.tabletoperators?.map(p => p.name)])).digest('hex');
+        calls.push({ id, group, label: scope.label, text, parts: [...new Set(output)], needed: scope.needed,
+            ...(['D01', 'D04'].includes(group) && !setup.court_id ? { unresolved: 'Spielfeld noch nicht zugewiesen' } : {}) });
     };
     const halls = setup => setup.location_id || !tournament.locations?.length ? [setup] :
         tournament.locations.map(location => ({ ...setup, location_id: location._id }));
@@ -36,8 +50,13 @@ async function plan(tournament, matches, umpires = []) {
         await yieldWork();
         const setup = match.setup;
         if (!setup || setup.is_match === false) continue;
+        scope = { id: match._id, label: 'Spiel ' + (setup.match_num ?? 'ohne Nummer') + (setup.event_name ? ' · ' + setup.event_name : ''), needed: isRequired(match) };
         if (!setup.teams?.slice(0, 2).every(known) || setup.teams.length < 2) {
-            for (const group of ['D01', 'D02', 'D04', 'D05', 'D12']) add(null, group, 'unknown-game:' + match._id);
+            for (const group of ['D01', 'D02', 'D04', 'D05', 'D12']) {
+                add(null, group, 'unknown-game:' + match._id);
+                calls.push({ id: group + ':unknown:' + match._id, group, label: scope.label, text: 'Teilnehmer stehen noch nicht vollständig fest.',
+                    parts: [], unresolved: 'Teilnehmer noch unbekannt', needed: scope.needed });
+            }
             continue;
         }
         call('D01', 'announceNewMatch', setup);
@@ -56,9 +75,10 @@ async function plan(tournament, matches, umpires = []) {
     // Field pieces are shared by games and are counted only once overall.
     for (const court of tournament.courts || []) if (court.is_active !== false) {
         const setup = { court_id: court._id, location_id: court.location_id };
+        scope = { id: court._id, label: texts.createFieldAnnouncement(setup), needed: true };
         call('D03', 'announceBeginnToPlay', setup);
         const fields = ['bts-context-v1', 'bts-context-v2'].includes(tournament.speech?.context_version) ?
-            contextPlan(texts, tournament, 'prepareFields', setup).parts : [texts.createFieldAnnouncement(setup)].filter(Boolean);
+            contextPlan(texts, tournament, 'prepareFields', setup).parts : texts.localParts([texts.createFieldAnnouncement(setup)].filter(Boolean));
         for (const part of fields) add(part, 'D01');
         if (fields[1]) add(fields[1], 'D04');
     }
@@ -67,6 +87,7 @@ async function plan(tournament, matches, umpires = []) {
     ]) {
         await yieldWork();
         if (!official.name?.trim()) continue;
+        scope = { id: 'official:' + role + ':' + official.name, label: official.name, needed: true };
         call(group, 'announceSecondCall' + name, { [role]: official });
         for (const hall of halls({ [role]: official })) call('D' + String(Number(group.slice(1)) + 3).padStart(2, '0'),
             'announceSecondPreparationCall' + name, hall);
@@ -74,13 +95,20 @@ async function plan(tournament, matches, umpires = []) {
     for (const group of potential_tabletoperator_groups(tournament, matches)) {
         await yieldWork();
         const setup = { tabletoperators: group };
+        scope = { id: 'tablet:' + group.map(person => person.name).join('|'), label: group.map(person => person.name).join(' und '), needed: false };
         call('D08', 'announceSecondCallTabletoperator', setup);
         for (const hall of halls(setup)) call('D11', 'announceSecondPreparationCallTabletoperator', hall);
     }
     if (tournament.speech?.context_version === 'bts-context-v2') {
-        for (const part of require('./v2_inventory').registration(tournament, matches)) add(part, 'registration');
+        for (const part of require('./v2_inventory').registration(tournament, matches, (kind, label, text, parts) => {
+            calls.push({ id: 'registration:' + crypto.createHash('sha256').update(text).digest('hex'), group: 'registration',
+                label: ({ state: 'Verband', club: 'Verein', player: 'Person', pair: 'Paarung' })[kind] + ': ' + label, text, parts, needed: false });
+        })) add(part, 'registration');
     }
-    add(translate('de', 'announcements:speechcheck:text'), 'D14');
+    const test = translate('de', 'announcements:speechcheck:text');
+    add(test, 'D14');
+    calls.push({ id: 'speech-test', group: 'D14', label: 'Sprachtest', text: test, parts: [test], needed: true });
+    targets.announcements = [...new Map(calls.map(row => [row.id, row])).values()];
     return targets;
 }
 
@@ -118,7 +146,12 @@ class SpeechCoverage {
     async set_plan(tournament, voice, targets) {
         const values = new Map();
         for (const [id, target] of targets) values.set(target.part ? this.broker.key(target.part, voice, 'de-DE') : id, target);
-        this.plans.set(tournament, { voice, values });
+        const calls = (targets.announcements || []).map(call => {
+            const { parts, ...rest } = call;
+            return { ...rest, keys: [...new Set(parts.map(part => this.broker.key(part, voice, 'de-DE')))] };
+        });
+        this.plans.set(tournament, { voice, values, calls,
+            revision: crypto.createHash('sha256').update(JSON.stringify(calls)).digest('hex') });
         await this.remember();
     }
 
@@ -139,8 +172,8 @@ class SpeechCoverage {
                 const previous = this.history.get(id);
                 const groups = [...new Set([...(previous?.groups || []), ...target.groups])];
                 this.history.set(id, { identity: broker.identity, tournament, voice: current.voice, key, groups,
-                    entry, generated: saved?.generated_for?.includes(tournament) || entry?.generated_for?.has(tournament) || false });
-                if (saved) updates.push({ key, tournament, voice: current.voice, groups });
+                    entry, part: target.part, generated: saved?.generated_for?.includes(tournament) || entry?.generated_for?.has(tournament) || false });
+                if (saved) updates.push({ key, tournament, voice: current.voice, groups, part: target.part });
             }
         }
         if (updates.length) {
@@ -152,7 +185,7 @@ class SpeechCoverage {
     summary(tournament, voice) {
         const broker = this.broker, current = this.plans.get(tournament);
         if (!current || current.voice !== voice) return null;
-        const candidates = new Map([...current.values].map(([key, target]) => [key, { groups: new Set(target.groups) }]));
+        const candidates = new Map([...current.values].map(([key, target]) => [key, { groups: new Set(target.groups), part: target.part }]));
         const add = item => {
             if (item.identity !== broker.identity || item.tournament !== tournament || item.voice !== voice) return;
             if (!candidates.has(item.key)) candidates.set(item.key, { groups: new Set() });
@@ -170,6 +203,7 @@ class SpeechCoverage {
             candidates.set(entry.key, { groups: new Set([entry.context ? 'other' : 'D13']) });
         }
         const empty = () => ({ total: 0, failed: 0, ...Object.fromEntries(STATES.map(state => [state, 0])) });
+        const componentRows = [];
         const total = empty(), groups = new Map(GROUPS.map(([id, label]) => [id, { id, label, ...empty() }]));
         for (const [key, value] of candidates) {
             const entry = broker.check_local(broker.entries.get(key));
@@ -185,13 +219,41 @@ class SpeechCoverage {
             const state = ready ? needed ? generated ? 'generated' : 'cached' : prepared ? 'prepared' : 'stock' :
                 requested ? 'ordered' : 'potential';
             const failed = requested && entry?.status === 'failed' ? 1 : 0;
+            const target = current.values.get(key);
+            if (target?.part || entry || saved || value.archived) {
+                const part = target?.part || entry?.part || saved?.part || value.archived?.part;
+                componentRows.push({ id: key, part, ...inventory.description(part, value.groups), state, failed: !!failed,
+                    diagnostics: broker.failures?.get(broker.identity, key) || null, status: ready ? 'completed' : entry?.status || 'missing',
+                    retry_at: Math.max(entry?.retry_at || 0, entry?.server_retry_at || 0, broker.post_retry_at || 0),
+                    terminal_failure: entry?.terminal_failure === true, fallback_stage: entry?.fallback_stage });
+            }
             for (const counts of [total, ...[...value.groups].map(group => groups.get(group)).filter(Boolean)]) {
                 counts.total++; counts[state]++; counts.failed += failed;
             }
         }
-        return { total: { id: 'total', label: 'Gesamt · eindeutige Bausteine und Potenzial', ...total },
+        const free = componentRows.filter(row => row.group === 'free').map(row => ({ id: 'free:' + row.id, group: 'D13',
+            label: 'Freie Durchsage', text: row.text, keys: [row.id], needed: ['cached', 'generated', 'ordered'].includes(row.state) }));
+        current.inventory = inventory.build(componentRows, [...(current.calls || []), ...free], GROUPS);
+        return { ...current.inventory.summary, revision: current.revision,
+            total: { id: 'total', label: 'Gesamt · eindeutige Bausteine und Potenzial', ...total },
             groups: [...groups.values()].filter(group => group.id !== 'other' || group.total),
             verifying: !!broker.disk && !broker.disk.verified };
+    }
+
+    inventories(tournament, voice, queries) {
+        if (!Array.isArray(queries) || !queries.length || queries.length > 8) throw new Error('invalid_inventory_request');
+        for (const { kind, group = 'all', offset = 0, limit = 30 } of queries) {
+            if (!['components', 'announcements'].includes(kind) || typeof group !== 'string' || group.length > 64 || !/^[a-zA-Z0-9_]+$/.test(group) ||
+                !Number.isSafeInteger(offset) || offset < 0 || !Number.isSafeInteger(limit) || limit < 1 || limit > 50) throw new Error('invalid_inventory_request');
+        }
+        this.summary(tournament, voice);
+        const current = this.plans.get(tournament);
+        return queries.map(({ kind, group = 'all', offset = 0, limit = 30 }) =>
+            current?.voice === voice && current.inventory ? inventory.page(current.inventory, kind, group, offset, limit) : null);
+    }
+
+    inventory(tournament, voice, kind, group = 'all', offset = 0, limit = 30) {
+        return this.inventories(tournament, voice, [{ kind, group, offset, limit }])[0];
     }
 }
 

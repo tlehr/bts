@@ -1,5 +1,55 @@
 /* exported createSpeechQueue */
+/* global createSpeechInventory */
 'use strict';
+
+function describeSpeechFailures(item, now = Date.now()) {
+    const info = item.diagnostics;
+    if (!info || !info.failure_count && !info.transport_count) return null;
+    const reasons = {
+        long_internal_pause: 'Pause innerhalb der Aufnahme zu lang', silent_audio: 'Aufnahme enthält keine hörbare Sprache',
+        word_anchor_missing: 'Wortgrenze für den Schnitt nicht zuverlässig erkannt',
+        word_times_inconsistent: 'Erkannte Wortzeiten passen nicht zur Schnittgrenze',
+        cut_inside_speech: 'Kein sicherer Schnitt außerhalb der gesprochenen Silbe',
+        cut_inside_word: 'Schnitt würde ein Wort abschneiden', empty_excerpt: 'Der Ausschnitt wäre leer',
+        silent_excerpt: 'Der ausgeschnittene Teil enthält keine hörbare Sprache', source_text_mismatch: 'Text passt nicht zur Quellaufnahme',
+        team_anchors_missing: 'Die Kontextwörter „spielt jetzt gegen“ wurden nicht sicher erkannt',
+        discipline_prefix_unconfirmed: 'Der Anfang nach „Im“ wurde nicht sicher erkannt',
+        engine_timeout: 'Sprachmodell hat die Zeitgrenze überschritten', worker_exited: 'Sprachmodell wurde unerwartet beendet',
+        invalid_audio: 'Das Sprachmodell hat ungültige Audiodaten geliefert', file_access_failed: 'Datei konnte nicht gelesen oder gespeichert werden',
+        sentence_boundary_unconfirmed: 'Satzgrenze für die Pausenbearbeitung nicht sicher erkannt',
+        connection_failed: 'Sprachserver nicht erreichbar oder Verbindung abgebrochen',
+        recognition_disagrees: 'Zwei Erkennungsläufe widersprechen sich an der Schnittstelle',
+        connector_unconfirmed: 'Das Verbindungswort an der Schnittgrenze wurde nicht sicher erkannt',
+        context_suffix_unconfirmed: 'Die Wörter hinter dem gewünschten Ausschnitt wurden nicht sicher erkannt',
+        age_class_unconfirmed: 'Die Altersklasse wurde vor dem Kontextende nicht vollständig erkannt',
+        no_quiet_cut: 'Keine ausreichend ruhige Stelle für einen sicheren Schnitt gefunden',
+    };
+    const codes = { alignment_failed: 'Keine zuverlässige Schnittgrenze gefunden', generation_failed: 'Spracherzeugung fehlgeschlagen',
+        source_quality_failed: 'Aufnahme hat die Qualitätsprüfung nicht bestanden',
+        playback_processing_failed: 'Aufbereitung für die Wiedergabe fehlgeschlagen', cache_full: 'Sprachserver-Cache ist voll',
+        configuration_changed: 'Sprachserver-Einstellungen haben sich geändert', audio_unavailable: 'Quellaufnahme nicht mehr verfügbar',
+        unauthorized: 'API-Schlüssel wurde vom Sprachserver abgewiesen', speech_unavailable: 'Sprachserver derzeit nicht erreichbar',
+        audio_failed: 'Audiodatei konnte nicht geladen oder gespeichert werden' };
+    const stage = { source_quality: 'Qualitätsprüfung', synthesis: 'Sprachaufnahme', excerpt: 'Ausschneiden', processing: 'Aufbereitung', transport: 'Verbindung' };
+    const events = info.recent_failures || [], last = events.at(-1);
+    const explain = event => reasons[event.reason] || codes[event.code] || 'Verarbeitung fehlgeschlagen';
+    const summary = [info.failure_count ? info.failure_count + (info.failure_count === 1 ? ' Fehlversuch' : ' Fehlversuche · wiederholt') : '',
+        info.transport_count ? info.transport_count + (info.transport_count === 1 ? ' Verbindungs-/Abruffehler' : ' Verbindungs-/Abruffehler · wiederholt') : '']
+        .filter(Boolean).join(' · ') + (item.status === 'completed' ? ' · inzwischen fertig' : '');
+    let next = item.status === 'completed' ? 'Erfolgreich abgeschlossen.' : item.terminal_failure ? 'Keine weiteren automatischen Versuche.' :
+        item.fallback_stage === 'name' ? 'Nächster Schritt: vollständigen Namen einzeln aufnehmen.' :
+        item.fallback_stage === 'context' ? 'Nächster Schritt: neue Kontextaufnahme mit anderem Zufallswert.' :
+        item.retry_at > now ? 'Erneuter Versuch ab ' + new Date(item.retry_at).toLocaleTimeString('de-DE') + '.' :
+        'BTS führt den Auftrag in der Warteschlange weiter.';
+    const details = [...events].reverse().map(event => {
+        const pauses = (event.pauses || []).map(p => 'Pause ' + Math.round(p.duration_ms) + ' ms bei ' +
+            (p.start_ms / 1000).toLocaleString('de-DE', { maximumFractionDigits: 2 }) + ' s (Grenze ' + Math.round(p.limit_ms) + ' ms)').join('; ');
+        return new Date(event.created_at * 1000).toLocaleString('de-DE') + ' · ' + (stage[event.stage] || 'Verarbeitung') + ': ' + explain(event) +
+            (event.seed != null ? ' · Seed ' + event.seed : '') + (pauses ? ' · ' + pauses : '') +
+            (event.legacy ? ' · älterer Eintrag ohne genauere Messwerte' : '') + ' [' + event.code + ']';
+    });
+    return { summary, reason: last ? explain(last) : 'Fehlerdetails werden vom Sprachserver nachgeladen.', next, details };
+}
 
 function createSpeechQueue({ root, service, onSnapshot = () => {} }) {
     const document = root.ownerDocument;
@@ -72,18 +122,12 @@ function createSpeechQueue({ root, service, onSnapshot = () => {} }) {
     const coverage_details = element(root, 'details', 'speech_coverage_details');
     coverage_details.open = true;
     coverage_details.hidden = true;
-    element(coverage_details, 'summary', '', 'Vorbereitung nach Aufrufart');
-    element(coverage_details, 'p', 'speech_queue_help',
-        'Grau umfasst auch Spiele mit unbekannten Teilnehmern und mögliche Bediener aus allen Disziplinen. ' +
-        'Nur im Leerlauf: Aufrufkandidaten, wartende Tabletbediener und weitere Spiele in der Reihenfolge der BTS-Liste, ' +
-        'weitere Anmeldungen/Auslosungen, übrige Teams laufender Disziplinen und zuletzt alle übrigen möglichen Tabletbediener. ' +
-        'Unbekannte Teilnehmer bleiben ohne Auftrag. Türkis zeigt seit dem letzten BTS-Start neu erzeugten, ' +
-        'noch nie konkret benötigten Vorrat; übriger fertiger Vorrat erscheint blau. ' +
-        'Neuladen der Seite setzt diese Sitzung nicht zurück. Sobald ein Baustein benötigt wird, zählt er grün. ' +
-        'Die Balken zählen wiederverwendbare Bausteine und noch unbekannte Spiele. ' +
-        'Gemeinsame Bausteine erscheinen bei mehreren Aufrufarten und im Gesamtbalken nur einmal.');
+    element(coverage_details, 'summary', '', 'Bausteine und vollständige Durchsagen');
+    element(coverage_details, 'p', 'speech_queue_help', 'Bausteine werden wiederverwendet; Durchsagen zeigen die vollständige Zusammensetzung. Listen und Untergruppen lassen sich einzeln aufklappen.');
     const coverage_list = element(coverage_details, 'div', 'speech_coverage_list');
-    const list = element(root, 'ol', 'speech_queue_list');
+    const jobs = element(root, 'details', 'speech_queue_jobs');
+    element(jobs, 'summary', '', 'Aufträge an den Sprachserver · Erzeugung und Verarbeitung');
+    const list = element(jobs, 'ol', 'speech_queue_list');
     list.setAttribute('aria-label', 'Sprachaufnahmen und Verarbeitung in Abarbeitungsreihenfolge');
     const feedback = element(root, 'p', 'speech_queue_feedback');
     feedback.setAttribute('aria-live', 'polite');
@@ -120,9 +164,11 @@ function createSpeechQueue({ root, service, onSnapshot = () => {} }) {
         failure.textContent = counts.failed ? counts.failed + ' beauftragte Bausteine fehlgeschlagen' : '';
     }
 
-    function paintCoverage(coverage, fallback) {
-        const total = coverage?.total || fallback;
-        progress_title.textContent = coverage ? 'Gesamt · eindeutige Bausteine und Potenzial' : 'Aktuelle Aufträge';
+    let inventoryView;
+    let previousItems = new Map();
+    function paintCoverage(coverage, fallback, items) {
+        const total = coverage?.components?.total || coverage?.total || fallback;
+        progress_title.textContent = coverage?.components ? 'Gesamt · Bausteine' : coverage ? 'Gesamt · eindeutige Bausteine und Potenzial' : 'Aktuelle Aufträge';
         paintBar(progress, total, progress_title.textContent, progress_counts, progress_failure);
         const ready = total.cached + total.generated, needed = ready + total.ordered;
         progress_label.textContent = coverage?.verifying ? 'Gespeicherter Bestand wird geprüft …' :
@@ -130,6 +176,21 @@ function createSpeechQueue({ root, service, onSnapshot = () => {} }) {
         progress_container.hidden = !total.total;
         coverage_details.hidden = !coverage;
         if (!coverage) return;
+        if (coverage?.components && coverage?.announcements) {
+            if (!inventoryView) inventoryView = createSpeechInventory({ root: coverage_list, service, progress: progress_container,
+                paintBar, describeFailures: describeSpeechFailures });
+            const changed = new Set();
+            const next = new Map(items.map(item => [item.key, JSON.stringify([item.status, item.retry_at,
+                item.diagnostics?.failure_count, item.diagnostics?.transport_count, item.fallback_stage])]));
+            for (const [key, value] of next) if (previousItems.get(key) !== value) changed.add(key);
+            for (const key of previousItems.keys()) if (!next.has(key)) changed.add(key);
+            previousItems = next;
+            inventoryView.render(coverage, version, changed);
+            for (const row of coverage_rows.values()) row.node.hidden = true;
+            return;
+        }
+        inventoryView?.hide();
+        root.insertBefore(progress_container, cache_status);
         const used = new Set();
         for (const group of coverage.groups) {
             used.add(group.id);
@@ -144,6 +205,7 @@ function createSpeechQueue({ root, service, onSnapshot = () => {} }) {
                 row = { node, title, bar, counts, failure };
                 coverage_rows.set(group.id, row);
             }
+            row.node.hidden = false;
             row.title.textContent = group.id === 'other' ? group.label : group.id + ' · ' + group.label;
             paintBar(row.bar, group, row.title.textContent, row.counts, row.failure);
         }
@@ -163,7 +225,7 @@ function createSpeechQueue({ root, service, onSnapshot = () => {} }) {
         }[type] :
             item.status === 'queued' ? 'Beim Sprachserver' : 'Wird übermittelt / geprüft';
         if (item.status === 'completed') return 'Fertig';
-        if (item.status === 'failed') return item.terminal_failure ? 'Auch Einzelaufnahme fehlgeschlagen; automatische Versuche beendet' :
+        if (item.status === 'failed') return item.terminal_failure ? 'Automatische Versuche beendet' :
             type === 'synthesis' ? 'Sprachaufnahme fehlgeschlagen' : 'Verarbeitung fehlgeschlagen';
         if (source && source.status !== 'completed') return 'Wartet auf ' + recordingLabel(source.key) +
             (source.status === 'failed' ? ' (fehlgeschlagen)' : '');
@@ -194,11 +256,19 @@ function createSpeechQueue({ root, service, onSnapshot = () => {} }) {
         const results = element(content, 'details', 'speech_queue_results');
         const results_summary = element(results, 'summary');
         const results_list = element(results, 'ul');
+        const failure = element(content, 'div', 'speech_queue_failure');
+        const failure_summary = element(failure, 'strong');
+        const failure_reason = element(failure, 'p');
+        const failure_next = element(failure, 'p');
+        const failure_details = element(failure, 'details');
+        element(failure_details, 'summary', '', 'Letzte Fehler anzeigen');
+        const failure_list = element(failure_details, 'ul');
         const meta = element(content, 'div', 'speech_queue_meta');
         const button = element(node, 'button', 'speech_queue_preview', '🔊');
         button.type = 'button';
         row = { node, order, action, purpose, explanation, text, source_info, source_link, source_details,
-            before, selected, after, results, results_summary, results_list, meta, button, item };
+            before, selected, after, results, results_summary, results_list, failure, failure_summary, failure_reason, failure_next,
+            failure_details, failure_list, meta, button, item };
         rows.set(item.key, row);
         source_link.addEventListener('click', event => {
             event.preventDefault();
@@ -275,13 +345,14 @@ function createSpeechQueue({ root, service, onSnapshot = () => {} }) {
         processing_counts.textContent = 'Ausschneiden / Aufbereiten: ' + countLabel(items.filter(item => operation(item) !== 'synthesis'));
         paintCoverage(response.queue.coverage, { total: items.length, stock: idle.filter(item => item.status === 'completed').length,
             prepared: 0, cached: ready, generated: 0,
-            ordered: needed.length - ready + idle.filter(item => item.status !== 'completed').length, potential: 0, failed });
+            ordered: needed.length - ready + idle.filter(item => item.status !== 'completed').length, potential: 0, failed }, items);
         const persistent = response.speech.persistent_cache;
         cache_status.hidden = !persistent?.enabled;
         cache_status.textContent = persistent?.error ? 'Dauerhaft gespeicherter Bestand derzeit nicht verfügbar.' :
             Number.isInteger(persistent?.stored) ? 'Dauerhaft im BTS-Cache: ' + persistent.stored.toLocaleString('de-DE') +
                 (persistent.stored === 1 ? ' Aufnahme oder Baustein' : ' Aufnahmen und Bausteine') +
                 ' (alle Turniere und Stimmen).' : 'Dauerhaft gespeicherter Bestand wird geprüft …';
+        if (persistent?.diagnostics_error) cache_status.textContent += ' Fehlerverlauf konnte nicht dauerhaft gespeichert werden.';
         onSnapshot(response, counts);
         const used = new Set(items.map(item => item.key));
         for (const [key, row] of rows) {
@@ -336,6 +407,19 @@ function createSpeechQueue({ root, service, onSnapshot = () => {} }) {
                 for (const child of derived) element(row.results_list, 'li', '', partLabel(child) + ': ' + child.text);
                 row.result_signature = result_signature;
             }
+            const diagnostic = describeSpeechFailures(item);
+            row.failure.hidden = !diagnostic;
+            if (diagnostic) {
+                row.failure_summary.textContent = diagnostic.summary;
+                row.failure_reason.textContent = diagnostic.reason;
+                row.failure_next.textContent = diagnostic.next;
+                const signature = JSON.stringify(diagnostic.details);
+                if (signature !== row.failure_signature) {
+                    row.failure_list.textContent = '';
+                    for (const detail of diagnostic.details) element(row.failure_list, 'li', '', detail);
+                    row.failure_signature = signature;
+                }
+            }
             const voice = item.voice === 'hallensprecher' ? 'Hallensprecher' : 'Hallensprecherin';
             const stage = item.kind === 'source' ? 'Kontextaufnahme' : item.kind === 'field_start' ? 'Feldanfang · Ausschnitt' :
                 item.kind === 'field_end' ? 'Feldende · Ausschnitt' : item.kind === 'game' ? 'Spielblock · Audiobearbeitung' :
@@ -380,6 +464,7 @@ function createSpeechQueue({ root, service, onSnapshot = () => {} }) {
         window.removeEventListener('bts-speech-cache-changed', scheduleRefresh);
         document.removeEventListener('visibilitychange', scheduleRefresh);
         observer.disconnect();
+        inventoryView?.stop();
         if (playing) service.cancelPreview();
     }
     const observer = new MutationObserver(() => { if (!root.isConnected) stop(); });
@@ -394,4 +479,7 @@ function createSpeechQueue({ root, service, onSnapshot = () => {} }) {
     return { refresh, stop };
 }
 
-if (typeof module !== 'undefined' && module.exports) module.exports = createSpeechQueue;
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = createSpeechQueue;
+    module.exports.describeFailures = describeSpeechFailures;
+}

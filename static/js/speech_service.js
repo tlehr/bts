@@ -19,6 +19,23 @@ function createSpeechService(context) {
     let audio_ready = false;
     let audio_error = null;
     let last_result = null;
+    const inventory_waiters = [];
+    let inventory_scheduled = false;
+    async function flushInventory() {
+        inventory_scheduled = false;
+        const waiters = inventory_waiters.splice(0, 8);
+        if (!waiters.length) return;
+        const value = settings();
+        const current = waiters.filter(row => {
+            if (value.key === row.settings.key && value.voice === row.settings.voice) return true;
+            row.resolve(null); return false;
+        });
+        if (current.length) {
+            const response = await context.request('speech_inventory', { tournament_key: value.key, requests: current.map(row => row.query) }, 3000).catch(() => null);
+            current.forEach((row, i) => row.resolve(settings().key === row.settings.key && settings().voice === row.settings.voice ? response?.inventories?.[i] || null : null));
+        }
+        if (inventory_waiters.length) { inventory_scheduled = true; void Promise.resolve().then(flushInventory); }
+    }
     const now = context.now || Date.now;
     const getAudio = () => audio || (audio = context.makeAudio());
     const settings = () => ({ ...context.settings(), audio_ready, audio_error });
@@ -363,6 +380,14 @@ function createSpeechService(context) {
             if (settings().key !== value.key) return null;
             rememberMetadata(response);
             return response;
+        },
+        inventory: (kind, group = 'all', offset = 0, limit = 30) => {
+            const value = settings();
+            if (!value.enabled || !value.key) return Promise.resolve(null);
+            return new Promise(resolve => {
+                inventory_waiters.push({ query: { kind, group, offset, limit }, settings: value, resolve });
+                if (!inventory_scheduled) { inventory_scheduled = true; void Promise.resolve().then(flushInventory); }
+            });
         },
         outputMessage: () => settings().mode === 'browser' ? 'Browser-TTS ist ausgewählt.' :
             last_result ? (last_result.status === 'playing' ? 'Aktuelle Ausgabe: ' : 'Letzte Ausgabe: ') + describeResult(last_result) :

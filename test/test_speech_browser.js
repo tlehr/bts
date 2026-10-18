@@ -46,6 +46,31 @@ function harness(options = {}) {
 }
 
 describe('Browser local speech provider', function() {
+    it('batches read-only inventory pages and keeps them separate from preparation and playback', async function() {
+        const h = harness({ request: async (type, values) => {
+            assert.strictEqual(type, 'speech_inventory');
+            assert(values.requests.length <= 8);
+            return { inventories: values.requests.map(query => ({ ...query, items: [] })) };
+        } });
+        const queries = Array.from({ length: 10 }, (_value, i) => h.service.inventory('announcements', 'D01', i * 30));
+        const result = await Promise.all(queries);
+        assert.strictEqual(h.requests.length, 2);
+        assert.deepStrictEqual(result.map(page => page.offset), Array.from({ length: 10 }, (_value, i) => i * 30));
+        assert.strictEqual(h.played.length, 0);
+    });
+
+    it('drops inventory requests for a previous tournament before submitting the batch', async function() {
+        const h = harness({ request: async (_type, values) => ({ inventories: values.requests.map(query => query) }) });
+        const old = h.service.inventory('components');
+        h.settings.key = 'other';
+        const current = h.service.inventory('announcements');
+        assert.strictEqual(await old, null);
+        assert.strictEqual((await current).kind, 'announcements');
+        assert.strictEqual(h.requests.length, 1);
+        assert.strictEqual(h.requests[0][1].tournament_key, 'other');
+        assert.strictEqual(h.requests[0][1].requests.length, 1);
+    });
+
     it('reuses the same recording at sentence endings and waits before playing the next clip', async function() {
         const h = harness();
         const times = [];

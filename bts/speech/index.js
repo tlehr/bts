@@ -54,7 +54,10 @@ function handle(app, ws, msg) {
     const selected = speech.prefetch.settings?.(key) || resolveSettings({}, broker.config);
     const configuration = public_config(broker, selected);
     try {
-        if (msg.type === 'speech_queue') {
+        if (msg.type === 'speech_inventory') {
+            if (msg.requests !== undefined) reply({ speech: configuration, inventories: broker.coverage.inventories(key, selected.voice, msg.requests) });
+            else reply({ speech: configuration, inventory: broker.coverage.inventory(key, selected.voice, msg.kind, msg.group, msg.offset, msg.limit) });
+        } else if (msg.type === 'speech_queue') {
             reply({ speech: configuration, queue: broker.queue(key, selected.voice) });
         } else if (msg.type !== 'speech_status') {
             broker.validate(msg.parts, { voice: msg.voice, language: msg.language });

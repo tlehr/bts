@@ -39,6 +39,7 @@ class SpeechDiskCache {
         this.index = path.join(this.directory, 'index-' + namespace + '.json');
         this.records = new Map();
         this.generation = new Map();
+        this.diagnostics = new Map();
         this.valid = new Map();
         this.files = new Map();
         this.state = null;
@@ -49,6 +50,17 @@ class SpeechDiskCache {
             const saved = JSON.parse(fs.readFileSync(this.index, 'utf8'));
             if (saved.version === 1 && saved.endpoint === config.base_url && Array.isArray(saved.records)) {
                 this.state = saved.state;
+                for (const pair of (Array.isArray(saved.diagnostics) ? saved.diagnostics : []).slice(-4096)) {
+                    if (!Array.isArray(pair) || pair.length !== 2 || !HASH.test(pair[0])) continue;
+                    const row = pair[1];
+                    if (!row || !row.families || typeof row.families !== 'object' || Array.isArray(row.families) ||
+                        Object.keys(row.families).length > 16 || Object.entries(row.families).some(([key, count]) =>
+                            !/^[0-9a-f]{32,64}$/.test(key) || !Number.isSafeInteger(count) || count < 0) ||
+                        !Array.isArray(row.recent_failures) || row.recent_failures.length > 8 ||
+                        ![row.archived || 0, row.transport_count || 0, row.last_failure_at].every(value => Number.isFinite(value) && value >= 0)) continue;
+                    const { cleanEvent } = require('./failures');
+                    this.diagnostics.set(pair[0], { ...row, recent_failures: row.recent_failures.map(cleanEvent).filter(Boolean) });
+                }
                 for (const item of saved.records) if (this.recordValid(item)) this.records.set(this.key(item.identity, item.key), item);
                 for (const item of (Array.isArray(saved.generation) ? saved.generation : []).slice(0, 8192)) if (item && typeof item.identity === 'string' &&
                     item.identity.length < 1048576 && HASH.test(item.key) && Array.isArray(item.tournaments) &&
@@ -82,7 +94,8 @@ class SpeechDiskCache {
             (item.usage === undefined || Array.isArray(item.usage) && item.usage.length <= 256 && item.usage.every(value =>
                 value && typeof value.tournament === 'string' && value.tournament.length <= 256 &&
                 ['hallensprecher', 'hallensprecherin'].includes(value.voice) && Array.isArray(value.groups) &&
-                value.groups.length <= 16 && value.groups.every(group => /^(D(?:0[1-9]|1[0-4])|other)$/.test(group)))) &&
+                value.groups.length <= 16 && value.groups.every(group => /^(D(?:0[1-9]|1[0-4])|registration|other)$/.test(group)))) &&
+            (item.part === undefined || typeof item.part === 'string' && item.part.length <= 41000) &&
             (item.fallback_stage === undefined || ['context', 'name'].includes(item.fallback_stage));
     }
 
@@ -161,9 +174,10 @@ class SpeechDiskCache {
     async tag_progress(identity, updates) {
         await this.ready;
         let changed = false;
-        for (const { key, tournament, groups, voice } of updates) {
+        for (const { key, tournament, groups, voice, part } of updates) {
             const item = this.lookup(identity, key);
             if (!item) continue;
+            if (part && item.part !== part) { item.part = part; changed = true; }
             item.usage ||= [];
             let usage = item.usage.find(value => value.tournament === tournament && value.voice === voice);
             if (!usage) { usage = { tournament, voice, groups: [] }; item.usage.push(usage); }
@@ -179,7 +193,7 @@ class SpeechDiskCache {
             try {
                 handle = await fsp.open(temporary, 'wx', 0o600);
                 await handle.writeFile(JSON.stringify({ version: 1, endpoint: this.config.base_url, state: this.state,
-                    records: [...this.records.values()], generation: [...this.generation.values()] }));
+                    records: [...this.records.values()], generation: [...this.generation.values()], diagnostics: [...this.diagnostics.entries()] }));
                 await handle.sync(); await handle.close(); handle = null;
                 await fsp.rename(temporary, this.index);
                 await this.syncDirectory(this.directory);
@@ -279,6 +293,7 @@ class SpeechDiskCache {
                 sha256: file.sha256, size_bytes: file.size_bytes, file: name, processed: audio.processed === true,
                 playback_profile: audio.playback_profile || null,
                 leading_quiet_ms: audio.leading_quiet_ms || 0, trailing_quiet_ms: audio.trailing_quiet_ms || 0, storage,
+                ...(response.part || previous?.part ? { part: response.part || previous.part } : {}),
                 generated_for: [...new Set([...(previous?.generated_for || []), ...this.origin(identity, key), ...(response.generated_for || [])])],
                 ...(previous?.usage ? { usage: previous.usage } : {}),
                 ...(response.fallback_stage ? { fallback_stage: response.fallback_stage } : {}) };

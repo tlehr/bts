@@ -64,3 +64,52 @@ vorhandene v1-Stand ist mit `bts-context-v1-stable` markiert. Für eine vollstä
 Rückkehr müssen v1-Konfiguration, Stimmen und Datenverzeichnis aus dem gesicherten
 Stand verwendet werden; die Details stehen im v1-Baseline-Dokument des Sprachservers.
 Nach der Umstellung offene BTS-Browserseiten neu laden.
+
+## Übersicht im Einstellungsbereich „Aufrufe“
+
+Die Übersicht trennt zwei aufklappbare Bereiche:
+
+- **Bausteine:** eindeutige abspielbare Audioteile, gruppiert nach Spielfeld,
+  Spielnummer, Disziplin/Alter, Runde, Namen, Rollen und weiteren Textarten.
+  Ein gemeinsamer Baustein zählt hier einmal.
+- **Durchsagen:** vollständige mögliche Aufrufe, gruppiert nach D01–D14 sowie
+  Anmeldung/Auslosung. Jede Spiel-, Team-, Orts- oder Personenvariante zählt als
+  eigene Durchsage. Bereit bedeutet: alle zugehörigen Bausteine sind vorhanden
+  und die erforderlichen Angaben stehen fest. Ein unbekanntes Spielfeld oder
+  unbekannte Teilnehmer bleiben als solcher Hinweis sichtbar.
+
+Jeder Bereich hat einen Gesamtbalken, jede Untergruppe einen eigenen Balken.
+Darunter lässt sich die jeweilige Statusliste mit zunächst 30 Einträgen öffnen
+und schrittweise erweitern. Eine Durchsage zeigt zusätzlich ihre Bausteine und
+deren Status. Die Listen lesen ausschließlich den vorhandenen Stand; das Öffnen
+erzeugt keine Sprachaufträge. Bei Statusänderungen werden geöffnete Listen
+aktualisiert, aufgeklappte Einträge bleiben erhalten.
+
+Blau bezeichnet fertigen Vorrat, Türkis den in dieser BTS-Sitzung vorsorglich
+erstellten Vorrat. Dunkelgrün bezeichnet benötigte Teile aus dem Cache,
+Hellgrün benötigte neu erstellte Teile, Orange beauftragte fehlende Teile und
+Grau bekannte Möglichkeiten ohne Auftrag. Bei vollständigen Durchsagen beziehen
+sich die Farben auf den Stand ihrer Bausteine. Noch unbekannte Spiele erscheinen
+unter Durchsagen; daraus werden keine erfundenen Bausteine gezählt.
+
+Die separate aufklappbare **Auftragsliste** zeigt die tatsächlichen
+Sprachaufnahmen, Schnitte und Aufbereitung in Abarbeitungsreihenfolge, einschließlich
+Quellverknüpfungen und Probehören.
+
+## Fehler und Wiederholungen
+
+Fehleranzeigen nennen den betroffenen Schritt, den Grund, die Anzahl der
+Fehlversuche und den nächsten Wiederholungs- oder Fallback-Schritt. Die letzten
+acht Ereignisse enthalten Zeitpunkte und – soweit vorhanden – Seed und
+gemessene Pausen samt Grenzwerten. Drei verworfene Aufnahmekandidaten zählen
+als drei Fehlversuche; wiederholte Statusabfragen erhöhen den Zähler nicht.
+Verbindungs-/Abruffehler werden getrennt gezählt, ein ausgelasteter Server
+(`429/busy`) gilt als normaler Wartezustand.
+
+Die Historie bleibt auch nach erfolgreicher Fertigstellung sichtbar. BTS speichert
+sie mit dem persistenten Cache, auch für Aufträge ohne fertige Audiodatei;
+es hält höchstens 4096 Bausteinhistorien. Ohne aktivierten Festplattencache gilt
+sie für die laufende BTS-Sitzung. Bei älteren Servereinträgen sind teilweise nur
+Fehlercode und Versuchsanzahl vorhanden; die Anzeige kennzeichnet fehlende Details.
+Der aktualisierte Sprachserver liefert die genaueren Gründe nach seinem Neustart.
+Diese Diagnoseänderungen erhalten die bestehenden v2-Audioschlüssel und Aufnahmen.

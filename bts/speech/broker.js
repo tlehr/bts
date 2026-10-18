@@ -5,6 +5,7 @@ const fs = require('fs');
 const path = require('path');
 const { request } = require('./http');
 const SpeechDiskCache = require('./disk_cache');
+const { SpeechFailures } = require('./failures');
 const { SpeechCoverage } = require('./coverage');
 const { spellNumbers, VERSION: TEXT_VERSION } = require('./numbers');
 const context = require('./context');
@@ -109,6 +110,18 @@ class SpeechBroker {
                 }).catch(() => { this.cache_error = 'speech_cache_unavailable'; });
             } catch (_) { this.cache_error = 'speech_cache_unavailable'; }
         }
+        this.failures = new SpeechFailures(this.disk, this.now);
+    }
+
+    record_diagnostics(entry, response, error) {
+        const targets = [entry, ...[...this.entries.values()].filter(child => child.source_key === entry.key)];
+        let changed = false;
+        for (const target of targets) {
+            if (error && !response?.diagnostics) changed = this.failures.transport(this.identity, target.key, error,
+                entry.source_key ? 'processing' : 'transport') || changed;
+            else changed = this.failures.observe(this.identity, target.key, response) || changed;
+        }
+        return changed;
     }
 
     public_config(voice = this.config.voice) {
@@ -123,7 +136,7 @@ class SpeechBroker {
             preparing: entries.filter(item => ['unsubmitted', 'queued', 'processing'].includes(item.status)).length,
             ready: entries.filter(item => item.status === 'completed').length,
             persistent_cache: { enabled: !!this.disk, ready: entries.filter(item => item.status === 'completed' && item.local).length,
-                stored: this.disk?.count() ?? null, error: this.cache_error },
+                stored: this.disk?.count() ?? null, error: this.cache_error, diagnostics_error: this.diagnostics_error === true },
         };
     }
 
@@ -554,12 +567,13 @@ class SpeechBroker {
                     !entry.prefetch_tournaments?.has(tournament_key) && !entry.foreground_tournaments?.has(tournament_key),
                 spare: entry.spare_tournaments?.has(tournament_key) === true && entry.priority === PRIORITY.spare,
                 position: entry === current ? 0 : positions.get(entry) ?? null,
-                current: entry === current, retry_at: Math.max(entry.retry_at, this.post_retry_at),
+                current: entry === current, retry_at: Math.max(entry.retry_at, this.post_retry_at, entry.server_retry_at || 0),
                 audio_url: entry.status === 'completed' ? this.audio_url(tournament_key, entry.audio_id, entry) : null,
                 kind: entry.context?.kind || 'text',
                 local: entry.local === true,
                 ...(entry.fallback_stage || entry.fallback_source ? { fallback_stage: entry.fallback_stage || entry.fallback_source } : {}),
                 ...(entry.terminal_failure ? { terminal_failure: true } : {}),
+                diagnostics: this.failures.get(this.identity, entry.key),
                 operation: !entry.source_key ? 'synthesis' : entry.context.before || entry.context.after ? 'excerpt' : 'processing',
                 ...(entry.source_key ? { source_key: entry.source_key, source_range: {
                     start: entry.context.before.length, end: entry.context.before.length + entry.text.length,
@@ -663,8 +677,10 @@ class SpeechBroker {
 
     update(entry, response) {
         this.validate_response(entry, response);
+        this.record_diagnostics(entry, response);
         entry.job_id = response.job_id;
         entry.status = response.status;
+        entry.server_retry_at = Number.isFinite(response.retry_at) ? response.retry_at * 1000 : 0;
         entry.checked = this.now();
         entry.next_poll = this.now() + this.config.poll_interval_ms;
         if (response.status === 'completed') {
@@ -737,6 +753,9 @@ class SpeechBroker {
                     '/v1/jobs/' + current.job_id + (current.request.playback_profile ? '?playback_profile=' + current.request.playback_profile : ''), undefined, this.config.timeout_ms);
             }
             this.validate_response(entry, response);
+            if (current.identity === this.identity && this.record_diagnostics(entry, response)) {
+                try { await this.failures.persist(); this.diagnostics_error = false; } catch (_) { this.diagnostics_error = true; }
+            }
             if (post && current.identity === this.identity && response.cache_hit === false) {
                 entry.generated_for ||= new Set();
                 for (const key of entry.tournaments) entry.generated_for.add(key);
@@ -752,7 +771,7 @@ class SpeechBroker {
                 // Completion means both the WAV and its index have reached disk.
                 // Keep the current job occupied until publication finishes.
                 try {
-                    await this.disk.store(this.identity, entry.key, { ...response, fallback_stage: entry.fallback_stage,
+                    await this.disk.store(this.identity, entry.key, { ...response, part: entry.part, fallback_stage: entry.fallback_stage,
                         generated_for: [...(entry.generated_for || [])] });
                     this.cache_error = null;
                 } catch (error) { this.cache_error = 'speech_cache_unavailable'; throw error; }
@@ -765,6 +784,12 @@ class SpeechBroker {
             if (post) this.last_post_voice.set(entry.priority, entry.voice);
             if (['completed', 'failed'].includes(response.status)) this.current = null;
         } catch (error) {
+            if (current.identity === this.identity) {
+                const details = error.response?.diagnostics ? { ...error.response, cache_key: error.response.cache_key || entry.job_id || current.job_id } : null;
+                if (this.record_diagnostics(entry, details, error)) {
+                    try { await this.failures.persist(); this.diagnostics_error = false; } catch (_) { this.diagnostics_error = true; }
+                }
+            }
             if (post && entry.fallback_source && [400, 413, 422].includes(error.status)) {
                 entry.status = 'failed';
                 this.failed_fallback_source(entry);
