@@ -2,6 +2,35 @@
 
 Wortlaut, Reihenfolge und Stückelung der Turnierdurchsagen bearbeiten wir im [Arbeitsdokument zu den Durchsagen](durchsagen-arbeitsdokument.md).
 
+## Gemeinsame Wiedergabeaufbereitung im Experimentierbranch
+
+Der aktualisierte BTS nutzt das vom Sprachserver angebotene Profil
+`bts-playback-v1` für alle tatsächlich abgespielten lokalen Ansagearten und beide
+Stimmen. Es kürzt fast vollständige innere Satzpausen über 100 ms auf etwa 80 ms
+und gleicht jeden Baustein nach EBU R128 ab (Hallensprecher −23 LUFS,
+Hallensprecherin −22 LUFS, höchstens −1,5 dBTP). Erkannte Satzpausen bleiben erhalten.
+Text, Synthesestrategie, Stimmenreferenzen und Tempo ändern sich dadurch nicht.
+
+Die aufbereiteten Aufnahmen werden dauerhaft gespeichert und bei weiteren
+Aufrufen sowie nach Neustarts direkt wiederverwendet. Eine erneute Bearbeitung
+ist nur beim ersten Bedarf oder bei einer neuen Verarbeitungsversion nötig.
+Bereits vorhandenes Originalaudio wird dafür ohne neue Synthese verwendet.
+Vollständige Kontextquellen zum späteren Ausschneiden bleiben zusätzlich erhalten.
+
+BTS verhandelt Profil und Verarbeitungsversion über `/health`, fordert sie bei
+POST und Polling an und prüft die Bestätigung in der fertigen Antwort. Die
+Verarbeitungsversion gehört zur BTS-Cacheidentität. Alte unbearbeitete Dateien
+werden erhalten, aber nicht als bereits aufbereitete Wiedergabe ausgegeben.
+Vorherige männliche Proxy-Pausenkürzung entfällt für diese Kopien.
+
+Bei gemeinsamem Speicher liegt die Wiedergabekopie unter
+`shared_audio_dir/playback/{audio_id}.wav`; BTS verwendet weiterhin Hardlinks und
+seinen dauerhaften Offline-Cache. Ein Neustart erfordert weder erneuten
+Audioabruf noch erneute Aufbereitung gespeicherter Dateien. Ältere Sprachserver
+ohne Profilangebot behalten ihre bisherige Anbindung. Browser-TTS ist unverändert.
+Die Implementierung liegt auf `feat/localTts-context-v2-experiments`; die
+gesicherte v1 wird dadurch nicht umgestellt.
+
 Auf **feat/localTts** ist der BTS-Sprachserver jetzt tatsächlich angebunden. Das Backend bereitet künftige Ansageteile vor, fragt fertige WAVs ab und liefert sie über signierte URLs aus. Die vorhandene Ansage-Queue, Standortauswahl, Tab-Leader und Browser-TTS bleiben erhalten.
 
 ## Lokal einrichten und aktivieren

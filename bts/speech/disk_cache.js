@@ -76,6 +76,7 @@ class SpeechDiskCache {
             (!item.file || item.file === item.sha256 + '.wav' || item.file === 'id-' + item.audio_id + '.wav') &&
             typeof item.processed === 'boolean' && [item.leading_quiet_ms, item.trailing_quiet_ms].every(value =>
                 Number.isFinite(value) && value >= 0 && value <= 60000) &&
+            (item.playback_profile === undefined || item.playback_profile === null || item.playback_profile === 'bts-playback-v1') &&
             (item.generated_for === undefined || Array.isArray(item.generated_for) && item.generated_for.length <= 128 &&
                 item.generated_for.every(key => typeof key === 'string' && key.length <= 256)) &&
             (item.usage === undefined || Array.isArray(item.usage) && item.usage.length <= 256 && item.usage.every(value =>
@@ -114,7 +115,7 @@ class SpeechDiskCache {
         if (this.config.shared_audio_dir) for (const item of this.valid.values()) {
             if (item.storage === 'hardlink' && item.file === 'id-' + item.audio_id + '.wav') continue;
             try {
-                const source = path.join(path.resolve(this.config.shared_audio_dir), item.audio_id + '.wav');
+                const source = path.join(path.resolve(this.config.shared_audio_dir), item.playback_profile ? 'playback' : '', item.audio_id + '.wav');
                 const stat = await fsp.lstat(source);
                 if (stat.isFile() && !stat.isSymbolicLink()) await this.save(item.identity, item.key,
                     { job_id: item.job_id, audio: item, fallback_stage: item.fallback_stage });
@@ -238,7 +239,7 @@ class SpeechDiskCache {
         let storage = 'download';
         try {
             if (this.config.shared_audio_dir) {
-                const source = path.join(path.resolve(this.config.shared_audio_dir), audio.audio_id + '.wav');
+                const source = path.join(path.resolve(this.config.shared_audio_dir), audio.playback_profile ? 'playback' : '', audio.audio_id + '.wav');
                 try {
                     const stat = await fsp.lstat(source);
                     if (!stat.isFile() || stat.isSymbolicLink()) throw new Error('invalid_shared_audio');
@@ -276,6 +277,7 @@ class SpeechDiskCache {
             const previous = this.records.get(record_key);
             const item = { identity, key, job_id: response.job_id, audio_id: audio.audio_id,
                 sha256: file.sha256, size_bytes: file.size_bytes, file: name, processed: audio.processed === true,
+                playback_profile: audio.playback_profile || null,
                 leading_quiet_ms: audio.leading_quiet_ms || 0, trailing_quiet_ms: audio.trailing_quiet_ms || 0, storage,
                 generated_for: [...new Set([...(previous?.generated_for || []), ...this.origin(identity, key), ...(response.generated_for || [])])],
                 ...(previous?.usage ? { usage: previous.usage } : {}),

@@ -10,6 +10,7 @@ const { spellNumbers, VERSION: TEXT_VERSION } = require('./numbers');
 const context = require('./context');
 const PRIORITY = { high: 0, normal: 1, low: 2, idle: 3 };
 const ID = /^[0-9a-f]{32}$/;
+const PLAYBACK_PROFILE = 'bts-playback-v1';
 
 function bounded(value, fallback, min, max) {
     return Number.isInteger(value) && value >= min && value <= max ? value : fallback;
@@ -79,6 +80,8 @@ class SpeechBroker {
         this.last_metadata = 0;
         this.audio_clients = 0;
         this.context_version = null;
+        this.playback_profile = null;
+        this.playback_version = null;
         this.disk = null;
         this.cache_error = null;
         this.coverage = new SpeechCoverage(this);
@@ -90,6 +93,8 @@ class SpeechBroker {
                     this.identity = saved.identity;
                     this.voices = saved.voices;
                     this.context_version = saved.context_version === context.VERSION ? context.VERSION : null;
+                    this.playback_profile = saved.playback_profile === PLAYBACK_PROFILE ? PLAYBACK_PROFILE : null;
+                    this.playback_version = this.playback_profile ? saved.playback_version : null;
                 }
                 void this.disk.ready.then(() => {
                     const changed = new Set();
@@ -109,6 +114,7 @@ class SpeechBroker {
             enabled: this.config.enabled, mode: this.config.mode, voice: this.config.voice,
             deadline_ms: this.config.deadline_ms, max_text: this.config.max_text,
             max_part_length: this.config.max_text * 4 + 512, context_version: this.context_version,
+            playback_profile: this.playback_profile, playback_version: this.playback_version,
             voices: this.voices, last_error: this.last_error,
             cache_version: this.identity ? crypto.createHash('sha256').update(this.identity).digest('hex') : null,
             preparing: entries.filter(item => ['unsubmitted', 'queued', 'processing'].includes(item.status)).length,
@@ -121,8 +127,10 @@ class SpeechBroker {
     restore(entry) {
         const saved = this.disk?.lookup(this.identity, entry.key);
         if (!saved) return false;
+        if (this.playback_profile && entry.context?.kind !== 'source' && saved.playback_profile !== this.playback_profile) return false;
         if (saved.fallback_stage && entry.context?.kind === 'team' && !this.set_team_fallback(entry, saved.fallback_stage, true)) return false;
         Object.assign(entry, { status: 'completed', job_id: saved.job_id, audio_id: saved.audio_id, processed: saved.processed,
+            playback_profile: saved.playback_profile || null,
             leading_quiet_ms: saved.leading_quiet_ms, trailing_quiet_ms: saved.trailing_quiet_ms,
             checked: this.now(), local: true, revalidate: false });
         entry.generated_for = new Set(saved.generated_for || []);
@@ -533,7 +541,7 @@ class SpeechBroker {
 
     audio_url(tournament_key, audio_id, entry) {
         const expires = Math.floor(this.now() / 1000) + this.config.audio_url_ttl_seconds;
-        const playback = !entry?.context && entry?.voice === 'hallensprecher' ? /[,;:.!?\r\n]/.test(entry.text) ? 'edges-v1' : 'words-v1' : '';
+        const playback = !entry?.playback_profile && !entry?.context && entry?.voice === 'hallensprecher' ? /[,;:.!?\r\n]/.test(entry.text) ? 'edges-v1' : 'words-v1' : '';
         return '/h/' + encodeURIComponent(tournament_key) + '/speech/audio/' + audio_id +
             '?expires=' + expires + '&signature=' + this.signature(tournament_key, audio_id, expires, playback) +
             (playback ? '&playback=' + playback : '');
@@ -572,7 +580,10 @@ class SpeechBroker {
                 this.idle_plans.clear();
                 this.prefetch_plans.clear();
             }
-            const identity = JSON.stringify([TEXT_VERSION, state.configuration_version, state.backend, state.model, state.model_revision, this.voices, next_context]);
+            this.playback_profile = state.playback_profile === PLAYBACK_PROFILE && /^[0-9a-f]{64}$/.test(state.playback_version) ? PLAYBACK_PROFILE : null;
+            this.playback_version = this.playback_profile ? state.playback_version : null;
+            const identity = JSON.stringify([TEXT_VERSION, state.configuration_version, state.backend, state.model, state.model_revision, this.voices, next_context,
+                ...(this.playback_profile ? [this.playback_profile, this.playback_version] : [])]);
             if (this.identity && identity !== this.identity) {
                 for (const entry of this.entries.values()) {
                     if (entry.fallback_stage) {
@@ -591,7 +602,8 @@ class SpeechBroker {
             this.identity = identity;
             if (this.disk) {
                 try {
-                    await this.disk.setState({ identity, voices: this.voices, context_version: next_context });
+                    await this.disk.setState({ identity, voices: this.voices, context_version: next_context,
+                        playback_profile: this.playback_profile, playback_version: this.playback_version });
                     this.cache_error = null;
                 }
                 catch (_) { this.cache_error = 'speech_cache_unavailable'; }
@@ -607,7 +619,8 @@ class SpeechBroker {
             throw new Error('speech_invalid_response');
         }
         if (response.status === 'completed' && (!ID.test(response.audio?.audio_id) ||
-            entry.source_key && response.audio?.processed !== true)) {
+            entry.source_key && response.audio?.processed !== true || this.playback_profile && entry.context?.kind !== 'source' &&
+            (response.audio?.playback_profile !== this.playback_profile || response.audio?.playback_version !== this.playback_version))) {
             throw new Error('speech_invalid_audio');
         }
     }
@@ -621,6 +634,7 @@ class SpeechBroker {
         if (response.status === 'completed') {
             entry.audio_id = response.audio.audio_id;
             entry.processed = response.audio.processed === true;
+            entry.playback_profile = response.audio.playback_profile || null;
             entry.leading_quiet_ms = response.audio.leading_quiet_ms || 0;
             entry.trailing_quiet_ms = response.audio.trailing_quiet_ms || 0;
             this.last_error = null;
@@ -649,6 +663,7 @@ class SpeechBroker {
                 // additional idle tier are managed exclusively here in BTS.
                 priority: entry.priority === PRIORITY.idle ? 'low' : Object.keys(PRIORITY)[entry.priority],
                 ...(entry.context ? { profile: context.VERSION } : {}),
+                ...(this.playback_profile && entry.context?.kind !== 'source' ? { playback_profile: this.playback_profile } : {}),
                 ...(entry.source_seed === undefined ? {} : { source_seed: entry.source_seed }),
                 ...(entry.source_key ? { context: { audio_id: this.entries.get(entry.source_key).audio_id,
                     before: spellNumbers(entry.context.before), after: spellNumbers(entry.context.after), kind: entry.context.kind } } : {}),
@@ -675,7 +690,7 @@ class SpeechBroker {
                     current.request, this.config.timeout_ms);
             } else {
                 response = await this.request(this.config.base_url, this.config.api_key, 'GET',
-                    '/v1/jobs/' + current.job_id, undefined, this.config.timeout_ms);
+                    '/v1/jobs/' + current.job_id + (current.request.playback_profile ? '?playback_profile=' + current.request.playback_profile : ''), undefined, this.config.timeout_ms);
             }
             this.validate_response(entry, response);
             if (post && current.identity === this.identity && response.cache_hit === false) {

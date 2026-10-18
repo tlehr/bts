@@ -893,3 +893,23 @@ Einzelproben verwenden dieselben Pegel wie die Teile der zusammengesetzten Ansag
 Die aktuellen Proben samt Vorher-/Nachher-Vergleich stehen weiterhin unter
 `http://127.0.0.1:8084/vorbereitung-abschluss/`. Der vorherige Pegelstand ist unter
 `/vorbereitung-pegel-alt/` archiviert. Es ist keine neue Sprachgenerierung nötig.
+
+## 18. Gemeinsame Regeln für alle lokalen Ansagearten
+
+Auf Wunsch des Betreibers gelten der Pegelabgleich aus Abschnitt 17 und die
+100-ms-Regel innerhalb eines Satzes aus Abschnitt 16 jetzt als gemeinsame
+Wiedergabeaufbereitung für alle lokalen Ansagearten und beide Stimmen im
+Experimentierbranch. Das umfasst auch direkte/freie Texte und vollständige
+Spielblöcke. Echte Satzpausen werden anhand lokaler Wortanker erhalten; die
+geplanten Übergangspausen zwischen Bausteinen bleiben bestehen.
+
+Die fertig bearbeiteten Aufnahmen werden dauerhaft gespeichert und direkt
+wiederverwendet, auch nach Neustart. Bereits vorhandene Originalaufnahmen
+benötigen keine neue Sprachgenerierung. Die Originale bleiben für weitere
+Schnitte erhalten. Künftige v2-Hörlaborläufe verwenden dieselbe Verarbeitung und
+denselben dauerhaften Wiedergabecache. Alte Hörvergleiche werden nicht überschrieben.
+
+BTS und Sprachserver verhandeln `bts-playback-v1` mit eigener
+Verarbeitungsversion. Das ändert weder die Syntheseschlüssel noch die vereinbarte
+Textstrategie. Technische Integration: [Lokale Sprachausgabe](local-tts-integration.md).
+Die gesicherte v1 und laufende Produktivprozesse werden dadurch nicht automatisch ersetzt.

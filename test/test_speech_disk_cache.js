@@ -14,9 +14,9 @@ const KEY = 'durable-test-key-' + 'x'.repeat(32);
 const close = server => new Promise(resolve => server.close(resolve));
 const listen = server => new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
 
-async function fixture(directory, shared = false, context = false) {
+async function fixture(directory, shared = false, context = false, playback = false) {
     const jobs = new Map(), requests = [], body = wave([[10, 0], [40, 1000], [10, 0]]);
-    const state = { revision: 'a'.repeat(40), corrupt: false, failCuts: false };
+    const state = { revision: 'a'.repeat(40), corrupt: false, failCuts: false, playbackVersion: playback ? 'c'.repeat(64) : null };
     const shared_directory = path.join(directory, 'shared');
     fs.mkdirSync(shared_directory);
     const server = http.createServer((req, res) => {
@@ -24,7 +24,8 @@ async function fixture(directory, shared = false, context = false) {
         requests.push({ method: req.method, url: req.url });
         const json = value => { res.writeHead(200, { 'Content-Type': 'application/json' }); res.end(JSON.stringify(value)); };
         if (req.url === '/health') return json({ model: 'test-model', model_revision: state.revision,
-            configuration_version: 'test-configuration', ...(context ? { context_version: 'bts-context-v1' } : {}) });
+            configuration_version: 'test-configuration', ...(context ? { context_version: 'bts-context-v1' } : {}),
+            ...(state.playbackVersion ? { playback_profile: 'bts-playback-v1', playback_version: state.playbackVersion } : {}) });
         if (req.url === '/v1/voices') return json({ voices: [
             { voice_id: 'hallensprecherin', version: '1', languages: ['de-DE'] },
             { voice_id: 'hallensprecher', version: '1', languages: ['de-DE'] },
@@ -32,21 +33,26 @@ async function fixture(directory, shared = false, context = false) {
         if (req.url.startsWith('/v1/audio/')) {
             res.writeHead(200, { 'Content-Type': 'audio/wav' }); res.end(state.corrupt ? 'broken' : body); return;
         }
-        if (req.url.startsWith('/v1/jobs/')) return json(jobs.get(req.url.split('/').pop()));
+        if (req.url.startsWith('/v1/jobs/')) return json(jobs.get(req.url.split('/').pop().split('?')[0]));
         const chunks = [];
         req.on('data', data => chunks.push(data));
         req.on('end', () => {
             const request = JSON.parse(Buffer.concat(chunks));
+            requests[requests.length - 1].body = request;
             const job_id = crypto.randomBytes(16).toString('hex');
             const result = { ...request, job_id, status: 'completed', cache_hit: state.cacheHit === true, audio: { audio_id: job_id, size_bytes: body.length,
                 sha256: crypto.createHash('sha256').update(body).digest('hex'), processed: !!request.context,
-                leading_quiet_ms: request.context ? 10 : 0, trailing_quiet_ms: request.context ? 10 : 0 } };
+                leading_quiet_ms: request.context ? 10 : 0, trailing_quiet_ms: request.context ? 10 : 0,
+                ...(request.playback_profile ? { playback_profile: request.playback_profile, playback_version: state.playbackVersion } : {}) } };
             if (state.pending) { result.status = 'queued'; result.audio = null; }
             if (state.failCuts && request.context?.before &&
                 (state.failCuts !== 'original' || jobs.get(request.context.audio_id).source_seed !== 43)) {
                 result.status = 'failed'; result.error = { code: 'alignment_failed' }; delete result.audio;
             }
-            if (shared) fs.writeFileSync(path.join(shared_directory, job_id + '.wav'), body);
+            if (shared) {
+                const folder = request.playback_profile ? path.join(shared_directory, 'playback') : shared_directory;
+                fs.mkdirSync(folder, { recursive: true }); fs.writeFileSync(path.join(folder, job_id + '.wav'), body);
+            }
             jobs.set(job_id, result); json(result);
         });
     });
@@ -75,6 +81,57 @@ describe('Durable BTS speech cache', function() {
         if (upstream?.server.listening) await close(upstream.server);
         fs.rmSync(directory, { recursive: true, force: true });
         localServer = upstream = null;
+    });
+
+    for (const shared of [false, true]) it('retains normalized playback offline for both voices (' + (shared ? 'shared' : 'download') + ')', async function() {
+        upstream = await fixture(directory, shared, false, true);
+        const first = new SpeechBroker({ ...upstream.config, submit_interval_ms: 0 }); await first.refresh();
+        for (const voice of ['hallensprecher', 'hallensprecherin']) {
+            first.prepare(['In Vorbereitung!'], { voice }, 'default'); await first.step();
+            const clip = first.views(['In Vorbereitung!'], { voice }, 'default')[0];
+            assert(clip.local && !clip.audio_url.includes('playback='), 'already normalized audio is never compacted twice');
+            assert.strictEqual(upstream.posts().at(-1).body.playback_profile, 'bts-playback-v1');
+            if (shared) {
+                const entry = first.entries.get(first.key('In Vorbereitung!', voice, 'de-DE'));
+                const source = path.join(upstream.shared_directory, 'playback', entry.audio_id + '.wav');
+                assert.strictEqual(fs.statSync(source).ino, fs.statSync(first.disk.file(entry.audio_id).path).ino);
+            }
+        }
+        const count = upstream.requests.length;
+        await close(upstream.server);
+        const fresh = new SpeechBroker(upstream.config); await fresh.disk.ready;
+        assert.strictEqual(fresh.playback_profile, 'bts-playback-v1');
+        for (const voice of ['hallensprecher', 'hallensprecherin']) {
+            fresh.prepare(['In Vorbereitung!'], { voice }, 'default'); await fresh.step();
+            assert(fresh.views(['In Vorbereitung!'], { voice }, 'default')[0].local);
+        }
+        assert.strictEqual(upstream.requests.length, count);
+    });
+
+    it('requests normalization for a cut while retaining the complete context original', async function() {
+        upstream = await fixture(directory, true, true, true);
+        const broker = new SpeechBroker({ ...upstream.config, submit_interval_ms: 0 }); await broker.refresh();
+        const part = '~bts-context-v1~' + JSON.stringify({ before: 'Anfang. ', text: 'In Vorbereitung!', after: ' Ende.', kind: 'generic' });
+        broker.prepare([part], {}, 'default'); await broker.step(); await broker.step();
+        assert.strictEqual(upstream.posts().length, 2);
+        assert.strictEqual(upstream.posts()[0].body.playback_profile, undefined);
+        assert.strictEqual(upstream.posts()[1].body.playback_profile, 'bts-playback-v1');
+        assert(broker.views([part], {}, 'default')[0].local);
+    });
+
+    it('keeps the requested playback profile when polling a queued job', async function() {
+        upstream = await fixture(directory, false, false, true);
+        upstream.state.pending = true;
+        let clock = 1000;
+        const broker = new SpeechBroker(upstream.config, { now: () => clock }); await broker.refresh();
+        broker.prepare(['Ein Satz.'], {}, 'default'); await broker.step();
+        const job = [...upstream.jobs.values()][0];
+        job.status = 'completed'; job.audio = { audio_id: job.job_id, size_bytes: upstream.body.length,
+            sha256: crypto.createHash('sha256').update(upstream.body).digest('hex'),
+            playback_profile: 'bts-playback-v1', playback_version: upstream.state.playbackVersion };
+        clock += 2000; await broker.step();
+        assert(upstream.requests.some(item => item.url.endsWith('?playback_profile=bts-playback-v1')));
+        assert(broker.views(['Ein Satz.'], {}, 'default')[0].local);
     });
 
     it('finishes more idle inventory than fits in memory, preserves ordinary cache entries and reuses all files after restart', async function() {
