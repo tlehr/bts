@@ -1,6 +1,10 @@
 # Kontextbasierte Turnierdurchsagen
 
-Stand: 16.10.2026 · Branch: `feat/localTts`
+Historische v1-Beschreibung · Stand: 16.10.2026
+
+**Aktuell läuft Kontext v2 auf `feat/localTts`.** Der aktuelle Bausteinaufbau,
+die Prioritäten und die Aktivierung stehen in [Kontext v2 im BTS](context-v2-production.md).
+Die folgenden v1-Details bleiben zur Nachvollziehbarkeit erhalten.
 
 Der in [unserem Arbeitsdokument](durchsagen-arbeitsdokument.md) vereinbarte Aufbau wird jetzt für die deutsche lokale Sprachausgabe verwendet, wenn der Sprachserver `context_version: bts-context-v1` meldet. Browser-TTS behält seine bisherigen zusammenhängenden Texte. Anwesenheitskontrolle, freie Texte und Sprachtest bleiben eigenständig.
 

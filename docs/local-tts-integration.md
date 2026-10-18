@@ -2,7 +2,7 @@
 
 Wortlaut, Reihenfolge und Stückelung der Turnierdurchsagen bearbeiten wir im [Arbeitsdokument zu den Durchsagen](durchsagen-arbeitsdokument.md).
 
-## Gemeinsame Wiedergabeaufbereitung im Experimentierbranch
+## Kontext v2 und gemeinsame Wiedergabeaufbereitung
 
 Der aktualisierte BTS nutzt das vom Sprachserver angebotene Profil
 `bts-playback-v1` für alle tatsächlich abgespielten lokalen Ansagearten und beide
@@ -28,8 +28,9 @@ Bei gemeinsamem Speicher liegt die Wiedergabekopie unter
 seinen dauerhaften Offline-Cache. Ein Neustart erfordert weder erneuten
 Audioabruf noch erneute Aufbereitung gespeicherter Dateien. Ältere Sprachserver
 ohne Profilangebot behalten ihre bisherige Anbindung. Browser-TTS ist unverändert.
-Die Implementierung liegt auf `feat/localTts-context-v2-experiments`; die
-gesicherte v1 wird dadurch nicht umgestellt.
+Die geprüfte v2-Implementierung ist auf `feat/localTts` übernommen. Bausteine,
+Prioritäten und Betrieb sind in [Kontext v2 im BTS](context-v2-production.md)
+beschrieben; die gesicherte v1 bleibt als Rückkehrmöglichkeit erhalten.
 
 Auf **feat/localTts** ist der BTS-Sprachserver jetzt tatsächlich angebunden. Das Backend bereitet künftige Ansageteile vor, fragt fertige WAVs ab und liefert sie über signierte URLs aus. Die vorhandene Ansage-Queue, Standortauswahl, Tab-Leader und Browser-TTS bleiben erhalten.
 
