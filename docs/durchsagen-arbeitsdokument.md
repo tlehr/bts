@@ -756,3 +756,23 @@ höchstens zwei Wiederholungen mit anderem Seed und derselben Stimme. Erst eine
 bestandene Aufnahme wird übernommen; nach drei Ablehnungen bleibt der Auftrag
 sichtbar unvollständig. Ablehnungen werden gespeichert, damit dieselben Kandidaten
 beim nächsten Lauf nicht erneut berechnet werden. Gute Aufnahmen bleiben erhalten.
+
+## 12. B12 im v2-Hörlabor: Startanweisung
+
+Für beide Stimmen ist die folgende Kontextaufnahme als Hörprobe erstellt:
+
+```text
+Auf Spielfeld acht! Bitte mit dem Spielen beginnen!
+```
+
+Nur **„Bitte mit dem Spielen beginnen!“** wird als B12 ausgeschnitten. Der fertige
+D03-Aufruf setzt **den bisherigen B01-Feldanfang → B12** zusammen. Das erste
+Feldstück der neuen D03-Aufnahme wird dafür nicht zusätzlich verwendet. Ein B12
+pro Stimme reicht für alle Felder; es gibt keine Generierung pro Feld oder Spiel.
+
+Die gemeinsame Hörseite `http://127.0.0.1:8084/spielbeginn/` enthält für beide
+Sprecher den zusammengesetzten Aufruf, B12 allein und die vollständige Kontextquelle.
+Genau zwei neue Aufnahmen waren nötig; die vorhandenen Feldstücke bleiben bytegleich.
+Die Pausenprüfung gilt im ausdrücklich gekennzeichneten neuen Hörplan für beide
+Stimmen. Referenzen und Tempo bleiben wie zuvor. Die Klangabnahme von B12 ist offen;
+der produktive Stand wird durch diesen Hörversuch nicht umgestellt.
