@@ -1245,3 +1245,52 @@ gezeigten D02-Vorbereitungsaufrufe für beide Stimmen abgenommen. Die Festlegung
 bleibt: ein vollständiger Satz je Feld, ohne zusätzlichen Kontextsatz und ohne
 Textschnitte, mit den gemeinsamen Qualitäts-, Pausen- und Lautheitsregeln.
 Vorhandene automatische Befunde der wiederverwendeten Stücke bleiben dokumentiert.
+
+## 24. Entwurf: Generierungsreihenfolge nach Turnierfortschritt
+
+Die vorgeschlagene Reihenfolge ist als [interaktive Ablaufgrafik](sprachgenerierung-reihenfolge.html)
+festgehalten. Im laufenden Hörlabor ist sie unter
+`http://127.0.0.1:8084/prioritaeten/` erreichbar. Ein Klick auf einen Spielzustand
+erläutert dessen Bedarf. Die Grafik lässt sich als eigenständige SVG herunterladen
+oder über die Druckfunktion als PDF speichern. Sie ist ein Entwurf zur Abstimmung;
+die produktive Warteschlange wird dadurch nicht geändert.
+
+Die Prioritätsnummern gelten über alle Spiele hinweg, unabhängig von der
+chronologischen Position eines Spiels in der Grafik:
+
+| Priorität | Anlass / Spielzustand | Reihenfolge innerhalb der Gruppe |
+| --- | --- | --- |
+| 1 | Tatsächlich ausgelöste Durchsage mit fehlendem Audio | Auslösereihenfolge; einschließlich Anmeldung, freier Ansagen und Kampflos-Mitteilungen |
+| 2 | Ausdrücklich angeforderte Hörprobe oder Sprachtest | Nach wartenden echten Durchsagen |
+| 3 | Auf das Feld gerufene und laufende Spiele | Zeitpunkt des Feldaufrufs, ältester zuerst |
+| 4 | Spiele in Vorbereitung | Zeitpunkt des Vorbereitungsaufrufs, ältester zuerst |
+| 5 | Aufrufkandidaten, nur im Leerlauf | Kandidatenreihenfolge |
+| 6 | Weitere nicht zugewiesene Spiele, nur im Leerlauf | Reihenfolge im BTS-Spielplan |
+| 7 | Übrige Teams laufender Disziplinen für mögliche Tabletbedienung, nur im Leerlauf | Teams mit bekanntem nächstem Spiel zuerst |
+| 8 | Übrige bekannte Personen, Teams und Offizielle, nur im Leerlauf | Letzter Vorrat; keine unbekannten Paarungen ergänzen |
+
+Spiele in Vorbereitung und auf dem Feld gehören ab ihrem tatsächlichen Aufruf
+vollständig zum benötigten Bestand. Kandidaten, spätere Spiele und weitere
+Personen werden erst bei freiem Server als Vorrat beauftragt. Je Spiel wird
+zunächst die nächste vollständige Durchsage abgesichert: Spielnummer,
+Disziplin/Altersklasse, Runde, Teams und fehlende zugeordnete Offizielle. Beide
+Teams liefern bereits wiederverwendbare Namen für eine spätere Tabletbedienung.
+Ein direkter Feldaufruf darf die Vorbereitungsphase überspringen. B02 entfällt,
+solange kein Feld zugewiesen ist.
+
+Bei leerem Cache beginnt der Grundbestand mit B01-Anfang und -Ende für alle
+Felder, danach B12 „Bitte mit dem Spielen beginnen!“ einmal und B02 „Für
+Spielfeld …!“ für alle Felder. Ein tatsächlicher Aufruf mit fehlendem Audio
+hat auch während dieser Vorbereitung Vorrang. Gemeinsame Texte werden beim
+ersten Bedarf geteilt. Ob Anmelde-Vorarbeit während der Anmeldephase vor dem
+Spielvorrat liegt, ist noch abzustimmen und wird in der Grafik ausdrücklich
+als offen markiert. Tatsächlich ausgelöste Anmeldeaufrufe haben stets Priorität 1.
+
+Vor jedem Auftrag werden vorhandene Quellen und Wiedergabestücke geprüft.
+Eine vorhandene Quelle braucht höchstens fehlende Ausschnitte oder Aufbereitung;
+fertige Stücke sind unmittelbar verwendbar. BTS hält die Reihenfolge und sendet
+jeweils nur einen Serverauftrag. Ein laufender Auftrag wird fertiggestellt,
+danach wird die Priorität neu ermittelt. Nicht mehr benötigte, noch nicht
+gestartete Aufträge werden entfernt, sofern keine andere Durchsage sie braucht.
+Fertige Quellen und Bausteine bleiben auch nach Spielabschluss gespeichert.
+Im Turnierbetrieb wird nur die zentral gewählte Stimme vorbereitet.

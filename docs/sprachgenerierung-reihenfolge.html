@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="de">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>BTS · Reihenfolge der Sprachgenerierung</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#f2f5f7;color:#163047;font:17px/1.5 system-ui,sans-serif}main{max-width:1340px;margin:auto;padding:28px 24px 40px}h1{font-size:clamp(25px,3vw,36px);line-height:1.2;margin:8px 0 12px}p{margin:10px 0}.eyebrow{font-size:13px;font-weight:750;letter-spacing:.08em;text-transform:uppercase;color:#52687c}.intro{max-width:950px}.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin:20px 0 12px}button,a.download{font:inherit;font-size:15px;border:1px solid #bdcad4;border-radius:8px;padding:8px 12px;background:white;color:#163047;cursor:pointer;text-decoration:none}button:hover,a.download:hover{background:#eaf1f7}button[aria-pressed=true]{background:#163047;color:white;border-color:#163047}button:focus-visible,a:focus-visible{outline:3px solid #e99522;outline-offset:3px}.diagram{background:white;border:1px solid #dce5ec;border-radius:16px;overflow:auto;padding:4px;box-shadow:0 8px 24px #1e3a4c09}.diagram svg{display:block;width:100%;min-width:940px;height:auto}.detail{border-left:5px solid #15803d;border-radius:5px;background:white;padding:16px 20px;margin-top:16px;min-height:135px}.detail h2{font-size:21px;margin:0 0 7px}.detail p{margin:5px 0}.detail .tag{font-weight:750;font-size:14px;color:#52687c}.footer{display:flex;flex-wrap:wrap;justify-content:space-between;gap:10px;margin-top:18px;font-size:14px;color:#52687c}a{color:#155da2}@media(max-width:600px){main{padding:18px 12px}body{font-size:16px}.detail{padding:12px 14px}.toolbar button{flex:1 1 140px}}@media print{body{background:white}main{max-width:none;padding:0}.toolbar,.footer{display:none}.diagram{border:0;box-shadow:none;padding:0;overflow:visible}.diagram svg{min-width:0}.detail{break-inside:avoid}}
+</style>
+<main>
+<div class="eyebrow">BTS · v2 · Planungsentwurf zur Abstimmung</div>
+<h1>Wann brauchen wir welche Sprachaufnahmen?</h1>
+<p class="intro">Der Spielzustand bestimmt den Bedarf. Die <strong>Prioritätsnummer</strong> bestimmt die Reihenfolge:
+je kleiner, desto früher. Klicke auf einen Spielzustand, um seine Aufgaben hervorzuheben.</p>
+<div class="toolbar" aria-label="Spielzustand auswählen">
+<button data-select="all" aria-pressed="true">Gesamtübersicht</button><button data-select="planned" aria-pressed="false">Spiel geplant</button>
+<button data-select="candidate" aria-pressed="false">Aufrufkandidat</button><button data-select="preparation" aria-pressed="false">In Vorbereitung</button>
+<button data-select="oncourt" aria-pressed="false">Auf dem Feld</button><button data-select="finished" aria-pressed="false">Abgeschlossen</button>
+</div>
+<div class="diagram">
+<svg id="overview" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 1040" role="img" aria-labelledby="diagram-title diagram-desc">
+<title id="diagram-title">Generierungsreihenfolge abhängig vom Spielzustand</title>
+<desc id="diagram-desc">Ausgelöste Durchsagen haben Priorität eins. Laufende Spiele und Spiele in Vorbereitung sind benötigte Arbeit; Kandidaten und spätere Spiele sind Leerlaufvorrat. Abgeschlossene Spiele verlieren ihren Spielbedarf, ihre Aufnahmen bleiben gespeichert.</desc>
+<defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0L8 4L0 8Z" fill="#8799a8"/></marker></defs>
+<style>
+text{font-family:system-ui,sans-serif;fill:#163047} .title{font-size:23px;font-weight:750}.body{font-size:18px}.small{font-size:16px;fill:#536b7d}.label{font-size:14px;font-weight:750;letter-spacing:.5px}.rank{font-size:20px;font-weight:800}.urgent{fill:#fff3df;stroke:#db8b20;stroke-width:1.5}.state{fill:#f3f5f7;stroke:#c4d0d9;stroke-width:1.5}.need{fill:#edf8ef;stroke:#86b894;stroke-width:1.5}.cache{fill:#edf4fd;stroke:#9ebae1;stroke-width:1.5}.reserve{fill:#f3f5f7;stroke:#bfcbd4;stroke-width:1.5}.base{fill:#f5f0ff;stroke:#b9a4de;stroke-width:1.5}.open{fill:#fffdf2;stroke:#c7b878;stroke-width:1.5;stroke-dasharray:6 4}.line{fill:none;stroke:#8799a8;stroke-width:2;marker-end:url(#arrow)}.phase{cursor:pointer}.phase:hover rect,.phase.active rect{stroke:#163047;stroke-width:3}.dimmed{opacity:.3}.focus{stroke:#163047;stroke-width:3}.divider{stroke:#d8e2e9;stroke-width:1}.pill{fill:#fff;stroke:#d8e2e9;stroke-width:1}.green{fill:#166534}.blue{fill:#1d4ed8}.orange{fill:#a6550a}
+</style>
+<rect x="18" y="20" width="1244" height="104" rx="14" class="urgent"/>
+<text x="40" y="52" class="label orange">IMMER VORRANG · AUCH WÄHREND DER GRUNDVORBEREITUNG</text>
+<text x="40" y="86" class="title">1 · Tatsächlich ausgelöste Durchsagen</text>
+<text x="40" y="111" class="small">Fehlendes Audio in Auslösereihenfolge · auch Anmeldung, freie Ansagen und Kampflos-Mitteilungen</text>
+<rect x="18" y="135" width="1244" height="48" rx="10" class="urgent"/>
+<text x="40" y="166" class="body"><tspan font-weight="750">2 · Ausdrücklich angeforderte Hörprobe / Sprachtest</tspan><tspan> · nach wartenden echten Durchsagen</tspan></text>
+<text x="22" y="217" class="label">FORTSCHRITT EINES SPIELS →</text>
+<path d="M374 253V230H865V253" class="line" stroke-dasharray="5 4"/>
+<rect x="545" y="216" width="154" height="24" fill="white"/>
+<text x="554" y="234" class="small">Direktaufruf möglich</text>
+<g class="phase" data-state="planned"><rect x="18" y="253" width="234" height="119" rx="12" class="state"/>
+<text x="36" y="286" class="title">Spiel geplant</text><text x="36" y="314" class="body">Noch nicht zugewiesen</text><text x="36" y="346" class="label">VORRAT · PRIORITÄT 6</text></g>
+<path d="M253 311H267" class="line"/>
+<g class="phase" data-state="candidate"><rect x="270" y="253" width="234" height="119" rx="12" class="state"/>
+<text x="288" y="286" class="title">Aufrufkandidat</text><text x="288" y="314" class="body">Bald an der Reihe</text><text x="288" y="346" class="label">VORRAT · PRIORITÄT 5</text></g>
+<path d="M505 311H519" class="line"/>
+<g class="phase" data-state="preparation"><rect x="522" y="253" width="234" height="119" rx="12" class="need"/>
+<text x="540" y="286" class="title">In Vorbereitung</text><text x="540" y="314" class="body">Vorbereitung gerufen</text><text x="540" y="346" class="label green">BENÖTIGT · PRIORITÄT 4</text></g>
+<path d="M757 311H771" class="line"/>
+<g class="phase" data-state="oncourt"><rect x="774" y="253" width="234" height="119" rx="12" class="need"/>
+<text x="792" y="286" class="title">Auf dem Feld</text><text x="792" y="314" class="body">Spiel aufgerufen / läuft</text><text x="792" y="346" class="label green">BENÖTIGT · PRIORITÄT 3</text></g>
+<path d="M1009 311H1023" class="line"/>
+<g class="phase" data-state="finished"><rect x="1026" y="253" width="234" height="119" rx="12" class="cache"/>
+<text x="1044" y="286" class="title">Abgeschlossen</text><text x="1044" y="314" class="body">Spielbedarf entfällt</text><text x="1044" y="346" class="label blue">AUFNAHMEN BLEIBEN</text></g>
+<path d="M135 373V399" class="line"/><path d="M387 373V399" class="line"/><path d="M639 373V399" class="line"/><path d="M891 373V399" class="line"/><path d="M1143 373V399" class="line"/>
+<g data-panel="reserve"><rect x="18" y="408" width="486" height="370" rx="14" class="reserve"/>
+<text x="40" y="444" class="title">Nur wenn sonst keine Arbeit wartet</text>
+<text x="40" y="471" class="small">Vorrat: erst im Leerlauf in die Auftragsliste aufnehmen</text>
+<text x="40" y="516" class="rank">5</text><text x="76" y="516" class="body" font-weight="700">Aufrufkandidaten</text>
+<text x="76" y="541" class="small">Nach ihrer Kandidatenreihenfolge</text>
+<line x1="40" y1="560" x2="482" y2="560" class="divider"/>
+<text x="40" y="589" class="rank">6</text><text x="76" y="589" class="body" font-weight="700">Weitere nicht zugewiesene Spiele</text>
+<text x="76" y="614" class="small">Nach der Reihenfolge im BTS-Spielplan</text>
+<line x1="40" y1="633" x2="482" y2="633" class="divider"/>
+<text x="40" y="662" class="rank">7</text><text x="76" y="662" class="body" font-weight="700">Teams laufender Disziplinen</text>
+<text x="76" y="687" class="small">Als mögliche Tabletbediener; mit nächstem Spiel zuerst</text>
+<line x1="40" y1="706" x2="482" y2="706" class="divider"/>
+<text x="40" y="735" class="rank">8</text><text x="76" y="735" class="body" font-weight="700">Übrige bekannte Personen und Teams</text>
+<text x="76" y="760" class="small">Auch weitere Offizielle; keine erfundenen Paarungen</text></g>
+<g data-panel="needed"><rect x="522" y="408" width="486" height="370" rx="14" class="need"/>
+<text x="544" y="444" class="title">Benötigte Ansagen</text>
+<text x="544" y="471" class="small">Ab dem Aufruf vollständig in die Bedarfsplanung</text>
+<text x="544" y="516" class="rank green">3</text><text x="580" y="516" class="body" font-weight="700">Laufende Spiele</text>
+<text x="580" y="543" class="body">Nach ihrer Aufrufzeit</text>
+<text x="580" y="569" class="small">Früher aufgerufen → früher vervollständigen</text>
+<line x1="544" y1="590" x2="986" y2="590" class="divider"/>
+<text x="544" y="622" class="rank green">4</text><text x="580" y="622" class="body" font-weight="700">Spiele in Vorbereitung</text>
+<text x="580" y="649" class="body">Nach Zeitpunkt des Vorbereitungsaufrufs</text>
+<text x="580" y="675" class="small">Für den nächsten Feldaufruf vervollständigen</text>
+<line x1="544" y1="696" x2="986" y2="696" class="divider"/>
+<text x="544" y="727" class="small">Spielteile, zugeordnete Offizielle und passende</text>
+<text x="544" y="753" class="small">Teamstücke für mögliche Tabletbedienung einschließen.</text></g>
+<g data-panel="cache"><rect x="1026" y="408" width="234" height="370" rx="14" class="cache"/>
+<text x="1044" y="444" class="title">Cache behalten</text>
+<text x="1044" y="485" class="body">Nicht mehr nötige,</text><text x="1044" y="511" class="body">noch nicht gestartete</text><text x="1044" y="537" class="body">Aufträge entfernen.</text>
+<text x="1044" y="582" class="body" font-weight="700">Fertige Aufnahmen</text><text x="1044" y="608" class="body" font-weight="700">bleiben gespeichert.</text>
+<text x="1044" y="651" class="small">Personen können später</text><text x="1044" y="676" class="small">Tabletbediener werden.</text>
+<text x="1044" y="719" class="small">Neue Zuordnung →</text><text x="1044" y="744" class="small">neuen Bedarf prüfen.</text></g>
+<rect x="18" y="800" width="890" height="101" rx="12" class="base"/>
+<text x="40" y="833" class="title">Grundbestand · vor dem ersten Spiel bei leerem Cache</text>
+<text x="40" y="863" class="body">B01 für alle Felder: Anfang + Ende → B12 einmal → B02 für alle Felder</text>
+<text x="40" y="887" class="small">Danach die nächsten Aufrufe vervollständigen; gemeinsame Texte beim ersten Bedarf teilen.</text>
+<rect x="926" y="800" width="334" height="101" rx="12" class="open"/>
+<text x="946" y="831" class="body" font-weight="750">Noch abzustimmen</text><text x="946" y="857" class="small">Vorrang der Anmelde-Vorarbeit.</text><text x="946" y="883" class="small">Ausgelöste Anmeldeaufrufe: immer 1.</text>
+<text x="22" y="938" class="body" font-weight="750">Vor jedem Auftrag: Cache prüfen → nur fehlende Teile bearbeiten.</text>
+<text x="22" y="965" class="small">Fertiges Stück: sofort bereit. Quelle vorhanden: fehlende Ausschnitte / Aufbereitung wiederverwenden.</text>
+<text x="22" y="997" class="small">Nur die zentral gewählte Stimme · Ein Serverauftrag zur Zeit · Laufenden Auftrag fertigstellen, danach neu priorisieren.</text>
+<text x="22" y="1023" class="small">Je Spiel zuerst die nächste Durchsage vervollständigen: Spielangaben → Teams → fehlende zugeordnete Offizielle.</text>
+</svg>
+</div>
+<section id="detail" class="detail" aria-live="polite"><h2 id="detail-title"></h2><div id="detail-tag" class="tag"></div><p id="detail-text"></p><p id="detail-example"></p></section>
+<div class="footer"><span>Entwurf zur Abstimmung · keine Änderung der laufenden Warteschlange.</span><span><button id="download" type="button">Grafik als SVG herunterladen</button> <button id="print" type="button">Drucken / PDF</button></span></div>
+</main>
+<script>
+const explanations={
+all:{title:'Die Nummer bestimmt die Priorität, nicht die Position im Spielablauf.',tag:'Benötigt: grün · Leerlaufvorrat: grau · gespeicherte Aufnahmen: blau',text:'Ein Spiel wandert im Ablauf von links nach rechts. Sobald es vorbereitet oder aufgerufen wird, gehören seine Ansagen zum benötigten Bestand. Ein echter Aufruf mit fehlendem Audio überholt alle normalen Vorbereitungen.',example:'Auch ohne Vorbereitungsphase ist ein direkter Feldaufruf möglich. Innerhalb jeder Gruppe werden nur tatsächlich fehlende Quellen oder Ausschnitte angefordert.'},
+planned:{title:'Spiel geplant: Vorrat mit Priorität 6',tag:'Nur im Leerlauf · Reihenfolge im BTS-Spielplan',text:'Das Spiel ist noch nicht aufgerufen und noch kein unmittelbarer Aufrufkandidat. Seine bekannten Angaben und Teams können im Leerlauf vorbereitet werden. Ein unbekannter Gegner wird nicht ergänzt; fehlende Teilnehmer blockieren keine anderen bereiten Spiele.',example:'Feld und spätere Offizielle sind noch nicht nötig, um wiederverwendbare Spielnummern-, Disziplin-, Runden- und Teamstücke vorzubereiten.'},
+candidate:{title:'Aufrufkandidat: Vorrat mit Priorität 5',tag:'Nur im Leerlauf · vor weiteren nicht zugewiesenen Spielen',text:'Diese Spiele werden voraussichtlich als Nächstes benötigt. Ihr Vorrat kommt zuerst, sobald keine benötigten Aufträge oder echten Anforderungen warten. Die Kandidatenreihenfolge bestimmt ihre Reihenfolge.',example:'Ein Klick auf „In Vorbereitung“ oder ein direkter Feldaufruf macht den konkreten Bedarf sofort dringlich. Fehlende Teile des ausgelösten Aufrufs erhalten Priorität 1.'},
+preparation:{title:'In Vorbereitung: benötigter Bestand mit Priorität 4',tag:'Nach dem Zeitpunkt des Vorbereitungsaufrufs',text:'Ab dem Vorbereitungsaufruf können die vollständigen Ansagen dieses Spiels in den benötigten Bestand aufgenommen werden. Ein tatsächlich ausgelöster Aufruf mit fehlendem Audio hat Priorität 1; danach wird vor allem der nächste Feldaufruf abgesichert.',example:'B02 „Für Spielfeld …!“ wird nur abgespielt, wenn bereits ein Feld zugewiesen ist. Ohne Feld entfällt dieser Satz; die übrige Vorbereitung bleibt verwendbar. Zugeordnete Offizielle und beide Teams für mögliche Tabletbedienung einbeziehen.'},
+oncourt:{title:'Auf dem Feld: benötigter Bestand mit Priorität 3',tag:'Nach der Aufrufzeit · früher aufgerufen zuerst',text:'Laufende oder bereits auf das Feld gerufene Spiele werden vor Spielen in Vorbereitung abgesichert. Benötigt werden unter anderem Spielbeginn, mögliche Zweitaufrufe und die passenden Namen und Rollen. Der konkrete manuelle Aufruf überholt mit Priorität 1.',example:'Beide vollständigen Teamquellen können bereits Namensstücke für eine spätere Tabletbedienung liefern. Dafür wird keine neue vollständige Rollen-/Namensaufnahme je möglicher Kombination erzeugt.'},
+finished:{title:'Abgeschlossen: Spielbedarf entfernen, Aufnahmen behalten',tag:'Kein weiterer Vorrat für das abgeschlossene Spiel',text:'Nicht mehr benötigte, noch nicht gestartete Aufgaben dieses Spiels entfallen, sofern keine andere Durchsage sie weiterhin benötigt. Fertige Quellen und Bausteine bleiben dauerhaft gespeichert. Ein laufender Serverauftrag wird fertiggestellt.',example:'Die Personen oder Teams können später als Tabletbediener gebraucht werden. Ihre vorhandenen Aufnahmen werden dann wiederverwendet; ein neuer Auftrag richtet sich nach der neuen Zuordnung und ihrem aktuellen Bedarf.'}
+};
+const svg=document.querySelector('#overview');
+function select(state){
+ const item=explanations[state]||explanations.all;
+ document.querySelector('#detail-title').textContent=item.title;document.querySelector('#detail-tag').textContent=item.tag;
+ document.querySelector('#detail-text').textContent=item.text;document.querySelector('#detail-example').textContent=item.example;
+ document.querySelectorAll('[data-select]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.select===state)));
+ svg.querySelectorAll('.phase').forEach(g=>{g.classList.toggle('active',g.dataset.state===state);g.classList.toggle('dimmed',state!=='all'&&g.dataset.state!==state);});
+ const relevant=state==='finished'?'cache':['planned','candidate'].includes(state)?'reserve':'needed';
+ svg.querySelectorAll('[data-panel]').forEach(g=>g.classList.toggle('dimmed',state!=='all'&&g.dataset.panel!==relevant));
+ document.querySelector('#detail').style.borderColor=state==='finished'?'#2563eb':['planned','candidate'].includes(state)?'#64748b':'#15803d';
+}
+document.querySelectorAll('[data-select]').forEach(b=>b.addEventListener('click',()=>select(b.dataset.select)));
+svg.querySelectorAll('.phase').forEach(g=>{g.setAttribute('tabindex','0');g.setAttribute('role','button');g.setAttribute('aria-label',explanations[g.dataset.state].title);g.addEventListener('click',()=>select(g.dataset.state));g.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();select(g.dataset.state);}});});
+document.querySelector('#download').onclick=()=>{const copy=svg.cloneNode(true);copy.querySelectorAll('.dimmed,.active').forEach(g=>g.classList.remove('dimmed','active'));const blob=new Blob([new XMLSerializer().serializeToString(copy)],{type:'image/svg+xml;charset=utf-8'});const url=URL.createObjectURL(blob);const link=document.createElement('a');link.href=url;link.download='bts-sprachgenerierung-reihenfolge.svg';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};
+document.querySelector('#print').onclick=()=>{select('all');window.print();};select('all');
+</script>
+</html>

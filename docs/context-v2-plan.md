@@ -399,6 +399,18 @@ mit beiden Stimmen klanglich bestätigt („Passt!“). B02 ist für diesen Hör
 abgenommen; der vollständige direkte Satz je Feld und die bestehenden
 Qualitätsregeln sind damit festgelegt. Die produktive v2-Einbindung folgt separat.
 
+### 5.0.7 Entwurf der Generierungsprioritäten
+
+Für die Abstimmung der späteren v2-Einbindung gibt es eine
+[interaktive Ablaufgrafik](sprachgenerierung-reihenfolge.html), im Hörlabor unter
+`http://127.0.0.1:8084/prioritaeten/`. Sie verbindet den Spielablauf mit den
+Prioritäten für echte Aufrufe, benötigte Ansagen und Vorrat im Leerlauf.
+Zeitpunkte von Feld- und Vorbereitungsaufrufen bestimmen die Reihenfolge ihrer
+jeweiligen Gruppe. Fertiges Audio bleibt nach Abschluss gespeichert;
+entfallener offener Bedarf wird entfernt. Der Rang der Anmelde-Vorarbeit bleibt
+offen. Der Vorschlag ist noch nicht als produktive Warteschlange umgesetzt.
+[Prioritätstabelle und Regeln](durchsagen-arbeitsdokument.md#24-entwurf-generierungsreihenfolge-nach-turnierfortschritt).
+
 ### 5.1 Erster B01-Hörsatz: Spielfeld acht, beide Stimmen
 
 `scripts/tts-field-context-plan.js` ergänzt den gespeicherten, bestätigten Spielblockplan um genau eine vollständige Feldreferenz pro Feld und Stimme. Für diesen ersten Hörtest wird nur Feld acht verwendet. Die Referenz hält die Spielnummer ohne „Nummer“, Satzzeichen und Doppel-Leerzeichen aus der bisherigen festen Vorlage bei; für v2 gilt die bereits gewählte gesprochene Schreibweise `Mädchen Einzel`. Die archivierte v1-Referenz bleibt unverändert.
