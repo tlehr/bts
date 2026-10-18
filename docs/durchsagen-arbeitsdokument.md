@@ -913,3 +913,16 @@ BTS und Sprachserver verhandeln `bts-playback-v1` mit eigener
 Verarbeitungsversion. Das ändert weder die Syntheseschlüssel noch die vereinbarte
 Textstrategie. Technische Integration: [Lokale Sprachausgabe](local-tts-integration.md).
 Die gesicherte v1 und laufende Produktivprozesse werden dadurch nicht automatisch ersetzt.
+
+## 19. B08 in v2: Rollenaufnahme wiederverwenden
+
+Für die Offiziellen wird in v2 bevorzugt eine gemeinsame Rollenbezeichnung aus
+einem vollständigen Kontext gewonnen und mit vorhandenen Namens-/Teamstücken
+verbunden. Der Betreiber bevorzugt diese Variante ausdrücklich wegen des
+geringeren Generierungsaufwands. Zunächst wird die Tabletbedienung mit beiden
+Stimmen und Einzel-/Doppelteam geprüft. Der bisherige v1-Entwurf in Abschnitt
+7.3 B bleibt als Vergleich erhalten; eine zusätzliche Rollen-/Namensgenerierung
+ist in v2 nur bei einem im Hörtest belegten Bedarf vorgesehen.
+
+Aufbau und geplanter Hörvergleich stehen im
+[v2-Plan, Abschnitt 5.0](context-v2-plan.md#50-bevorzugter-b08-aufbau-gemeinsame-rolle--vorhandenes-team).

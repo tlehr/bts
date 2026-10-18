@@ -123,11 +123,66 @@ Der Spielblock B03 → B04 → B05 → B07 bleibt in seinem bestätigten Aufbau 
 | 1 | B01 Feldanfang und Feldende | Vollständiger Referenz-Spielaufruf mit derselben Feldansage am Anfang und Schluss; beide Positionen getrennt ausschneiden. Zuerst Feld acht und Übergänge zum bestätigten Spielblock prüfen. Die feste v1-Referenz aus Abschnitt 7.1 des Arbeitsdokuments bleibt als Vergleich erhalten. |
 | 2 | B12 Spielbeginn | `Auf Spielfeld acht! Bitte mit dem Spielen beginnen!`; daraus die vollständige Startanweisung gewinnen und mit B01-Anfang prüfen. |
 | 3 | B02, B09, B10 Vorbereitung, Halle und Treffpunkt | Vollständiger Vorbereitungsaufruf; Anfang und Abschluss sowie Einzahl-/Mehrzahlformen der Hallen- und Treffpunkttexte abstimmen. |
-| 4 | B08 Schiedsrichter, Aufschlagrichter, Tablet-/Klapptafelbedienung | Vollständige Aufrufe mit Rolle und tatsächlichem vollständigem Namen beziehungsweise Bedien-Team; Rolle mit Namen möglichst zusammenhalten. |
+| 4 | B08 Schiedsrichter, Aufschlagrichter, Tablet-/Klapptafelbedienung | Bevorzugt gemeinsame Rollenbezeichnung aus einem vollständigen Kontext ausschneiden und mit vorhandenen Namens-/Teamaufnahmen verbinden. Zuerst Tabletbedienung mit beiden Stimmen prüfen; zusätzliche Rollen-/Namensaufnahmen nur bei belegtem klanglichem Bedarf. |
 | 5 | B11 Zweitaufruf-Präfixe | `Zweiter Aufruf für:` und `Zweiter Aufruf In Vorbereitung für:` im Zusammenhang mit Team beziehungsweise Rolle und Namen gewinnen. Passende Quellen aus den vorherigen Bereichen zuerst verwenden. |
 | 6 | D12 Kampflos-Klausel | `Das Spiel geht kampflos an` mit Siegerteam in einem vollständigen Kontext erzeugen und mit dem bestätigten Spielblock und vorhandenen Teamaufnahmen prüfen. |
 
 Freie Ansagen und der Sprachtest bleiben vollständige Äußerungen. Die Evakuierung bleibt die bestehende Aufnahme. Dafür ist in diesem Schritt kein neuer Kontextsatz vorgesehen.
+
+### 5.0 Bevorzugter B08-Aufbau: gemeinsame Rolle + vorhandenes Team
+
+Der Betreiber bevorzugt ausdrücklich Variante 2, um zusätzliche Generierungen
+je Rollen-/Namenskombination zu vermeiden. Für B08 wird zunächst nur die
+Rollenbezeichnung im Kontext aufgenommen. Der vollständige Name beziehungsweise
+das Doppelteam kommt aus den vorhandenen Teamaufnahmen, ohne „gegen“ und ohne
+Aufteilung in Einzelwörter. Diese neue v2-Festlegung ersetzt den bisherigen
+Prüfvorschlag „Rolle mit Namen zusammenhalten“; die gesicherte v1 bleibt erhalten.
+
+Der erste Hörversuch beginnt mit `Tabletbedienung:` und beiden Stimmen:
+
+```text
+Auf Spielfeld acht! Zweiter Aufruf für:Tabletbedienung:[vorhandenes Beispielteam]
+```
+
+Aus einer solchen Quelle je Stimme werden die gemeinsame Rolle und zusätzlich
+das Präfix `Zweiter Aufruf für:` ausgeschnitten. Die im Kontext gesprochenen
+Beispielnamen werden beim späteren Zusammenbau durch vorhandene Namens- und
+Teamstücke ersetzt. Dieselbe Rollenaufnahme wird unabhängig von Spiel, Feld,
+Einzelperson oder Doppelteam wiederverwendet. Es gibt keine neue Synthese je
+Tabletzuordnung oder Name.
+
+Der Hörvergleich prüft Rolle + Einzelperson, Rolle + Doppelteam, einen
+vollständigen D01-Spielaufruf und D08-Zweitaufrufe mit den vorhandenen Feld- und
+Spielstücken. Das erste Pausenziel zwischen Rolle und Name beträgt 80 ms;
+Randstille wird angerechnet. Die zentralen Pausen- und Lautheitsregeln gelten.
+Die Variante wird erst nach der Klangprüfung bestätigt; daraus folgt keine
+automatische neue Tabletzuordnung oder produktive v2-Umschaltung.
+
+Reproduzierbarer Generierungsplan: `scripts/tts-tablet-role-plan.js` mit einem
+vorhandenen v2-Feld-/Teamplan als Eingabe. Für den ersten Test sind genau eine
+neue Rollen-Kontextquelle je Stimme und keine zusätzlichen Namensquellen vorgesehen.
+
+Der erste tatsächlich veröffentlichte Hörsatz liegt unter
+`http://127.0.0.1:8084/tabletbedienung/`: zwölf Proben mit beiden Stimmen,
+gemeinsamer Rolle, vorhandenem Einzel-/Doppelteam und vollständigen D01-Aufrufen.
+Für beide Bedienformen wird je Stimme exakt dieselbe Rollenaufnahme verwendet.
+Die Beispiele verändern keine Tabletzuordnungen des Turniers.
+
+Die Männerquelle aus dem normalen Zweitaufruf besteht beim ersten Versuch und
+liefert zusätzlich den später nutzbaren B11-Ausschnitt. Bei der Hallensprecherin
+werden drei Kandidaten dieses langen Kontextes wegen überlanger Pausen verworfen.
+Der kürzere Kontext `Die Tabletbedienung übernimmt Max Hahn.` besteht beim ersten
+Versuch; nur `Tabletbedienung` wird ausgeschnitten. „Die“ und „übernimmt Max Hahn.“
+gehören ausschließlich zur Quelle. Der Doppelpunkt wird nicht gesprochen.
+
+Damit entstehen zwei verwendete Rollenquellen aus insgesamt fünf
+Aufnahmekandidaten; zusätzliche Team-/Namensquellen entstehen nicht.
+Vorhandene Aufnahmen für Max Hahn und Emil Hermann und Konrad Wendt werden
+wiederverwendet. Die v2-Quellen und das Tempo des Hallensprechers bleiben erhalten;
+die Hallensprecherin verwendet die bestätigte Vorbereitungsreferenz.
+Die gemeinsamen Pausen-/LUFS-Regeln werden auf die dauerhaft gespeicherten
+Wiedergabestücke angewendet. Die Klangabnahme des Rollen-/Namensübergangs ist offen.
+Die vollständigen D08-Hörproben folgen mit den gemeinsamen B11-Präfixen.
 
 ### 5.1 Erster B01-Hörsatz: Spielfeld acht, beide Stimmen
 
