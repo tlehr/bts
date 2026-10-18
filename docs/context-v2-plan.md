@@ -240,9 +240,18 @@ seine eigene Einzelnamensquelle.
 Hörvergleich: `http://127.0.0.1:8084/offizielle-namen/` mit beiden Stimmen.
 „Tim Lehr“ wird einmal je Stimme erzeugt und für Schiedsrichter sowie
 Aufschlagrichter geteilt. „Max Hahn“ kommt aus dem vorhandenen Spieler-Namenscache.
-Diese expliziten Hörbeispiele verändern keine Turnierzuordnungen. Bei der
-Hallensprecherin bleibt der neue Tim-Lehr-Schnitt als aktive Schnittgrenze
-zur Hörprüfung markiert. Es gibt noch keine produktive v2-Umschaltung.
+Diese expliziten Hörbeispiele verändern keine Turnierzuordnungen. Der Betreiber
+hat den vollständigen Hörvergleich mit beiden Stimmen bestätigt („passt alles!“),
+einschließlich des markierten Tim-Lehr-Schnitts der Hallensprecherin. Der
+automatische Schnittbefund bleibt als Herkunftsinformation erhalten; die
+Hörbestätigung gilt diesen konkreten Aufnahmen, nicht künftigen Namensschnitten.
+Es gibt noch keine produktive v2-Umschaltung.
+
+Als nächster Hörbereich folgt B11: normales Zweitaufruf-Präfix und
+Vorbereitungs-Präfix, kombiniert mit den bestätigten Team- und Rollenstücken.
+Der vorhandene männliche B11-Ausschnitt wird zuerst verwendet. Geprüft werden
+Team-Zweitaufrufe D04/D05 sowie die Offiziellen-Zweitaufrufe D06–D11 mit den
+jeweiligen Location-/Treffpunktvarianten. Anschließend folgt die D12-Kampflos-Klausel.
 
 ### 5.1 Erster B01-Hörsatz: Spielfeld acht, beide Stimmen
 

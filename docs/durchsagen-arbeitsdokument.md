@@ -932,8 +932,9 @@ für Schiedsrichter, Aufschlagrichter und Klapptafelbedienung liegen mit beiden
 Stimmen unter `http://127.0.0.1:8084/offizielle/`. Je Rolle und Stimme gibt es
 eine Quelle; alle sechs Quellen bestehen im ersten Versuch. Vorhandene Namen,
 Teams, Spiel- und Feldstücke werden bytegleich wiederverwendet. Die Seite zeigt
-28 Proben, nach Rolle und Aufbau filterbar. Die Klangabnahme dieser weiteren
-Rollen ist offen; die gesicherte v1 bleibt unverändert.
+28 Proben, nach Rolle und Aufbau filterbar. Der anschließende Namensvergleich
+einschließlich dieser Rollen wurde mit beiden Stimmen bestätigt („passt alles!“);
+die gesicherte v1 bleibt unverändert.
 
 Fehlende Namen technischer Offizieller werden im v2-Labor jetzt nach demselben
 Muster wie Spielernamen geplant: `[Name] spielt jetzt gegen [Name]!`.
@@ -945,3 +946,8 @@ Der Vergleich unter `http://127.0.0.1:8084/offizielle-namen/` zeigt den neuen
 Namen Tim Lehr bei beiden Richterrollen und Max Hahn als Cache-Treffer, jeweils
 mit beiden Stimmen. Details und Schnittwarnungen stehen im
 [v2-Plan, Abschnitt 5.0.2](context-v2-plan.md#502-fehlende-namen-technischer-offizieller).
+
+Die aktuellen Proben sind mit beiden Stimmen klanglich bestätigt, einschließlich
+des markierten Namensanfangs von Tim Lehr bei der Hallensprecherin. Die Bestätigung
+gilt den konkreten Aufnahmen. Als nächster Hörbereich sind B11-Zweitaufrufe mit
+vorhandenen Teams, Rollen und Location-Texten vorgesehen; danach die D12-Kampflos-Klausel.
