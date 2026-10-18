@@ -290,6 +290,51 @@ Die warmen Wiederholungsläufe benötigen keine Synthese und spielen bytegleiche
 Bausteine. Die gemeinsame 100-ms-/LUFS-Aufbereitung, Stimmenreferenzen und Tempo
 bleiben erhalten. Der Produktivbetrieb bleibt v1; D12 ist der nächste Hörbereich.
 
+### 5.0.4 D12: gemeinsame Kampflos-Formulierung und Siegerteam nach „gegen“
+
+Hörseite: `http://127.0.0.1:8084/kampflos/`. Der Betreiber wünscht für das Siegerteam
+die Position nach „gegen“. Im aktuellen Hörsatz gewinnt jeweils die zweite Seite:
+Max Hahn bei Spiel 161 sowie Emil Hermann und Konrad Wendt bei Spiel 381. Für den
+Sieger wird das zweite vollständige Teamvorkommen aus der wiederholten Teamquelle
+verwendet, ohne „gegen“, ohne Zerteilen der Namen und ohne neue Namensgenerierung.
+
+Je Stimme erzeugt eine neue Kontextquelle:
+
+```text
+Spielnummer einhunderteinundsechzig. Jungen Einzel U siebzehn. Achtelfinale! Muhammad Sytsh Abdulquddus gegen Max Hahn. Das Spiel geht kampflos an Max Hahn!
+```
+
+Daraus wird nur `Das Spiel geht kampflos an` übernommen. Der in der Quelle
+mitgesprochene Sieger bleibt Kontext; die Montagen verwenden die vorhandene
+Teamaufnahme nach „gegen“. Derselbe Kampflos-Baustein wird mit dem bestehenden
+Spielblock und Siegerteam des Einzels sowie des Doppels verbunden. D12 enthält
+keine Feldansage und keine Offiziellen. Die Spielangaben bleiben in der bestätigten
+v2-Fassung, die Kampflos-Wörter kommen aus der vorhandenen Browserübersetzung.
+
+`scripts/tts-walkover-plan.js` prüft Spielblockfolge, rechte Siegerseite, die
+vollständige Position ohne „gegen“, Quellenbindung, Ausspracheidentität und den
+Ergebniswortlaut. Neue Generierungen bleiben auf eine Kontextquelle je Stimme
+beschränkt. Die 11 benötigten Spiel-/Teamstücke je Stimme stammen aus vorhandenen
+Aufnahmen. Sieben waren bereits für die gemeinsame Wiedergabe aufbereitet; vier
+weitere Doppel-Spielstücke bekommen erstmals dauerhafte Kopien mit denselben
+100-ms-/LUFS-Regeln. Originale, Schnitte und bereits bestätigte Wiedergabestücke
+bleiben erhalten. Es entsteht kein neuer Spielblock und keine neue Teamquelle.
+
+Pausenziele sind 300 ms nach dem Spielblock und 100 ms zwischen Kampflos-Klausel
+und Siegerteam einschließlich Randstille; innere Spielblockübergänge bleiben
+erhalten. Es gibt zwölf Proben: je Stimme zwei vollständige D12, zwei kurze
+Ergebnissätze, die gemeinsame Klausel und die Kontextreferenz.
+
+Beide Quellen bestehen die Pausenprüfung mit Seed 42. Bei der Hallensprecherin
+verhindert die etwa 930 ms lange Satzpause vor „Das Spiel …“ zunächst den
+generischen Schnitt. Ein ausschließlich im v2-Labor verwendeter Schnitt bestätigt
+die vollständige Klausel und beide Nachbarwörter in zwei Erkennungen und schneidet
+in echter Stille vor dem Wortanfang; keine neue Synthese und keine übernommenen
+historischen Frames. Der so bestimmte Schnitt bleibt zur Hörprüfung markiert.
+Bei beiden Stimmen liegt das Ende von „an“ in aktiver Sprache und wird zusätzlich
+markiert. Die Klangabnahme ist offen. Wiederholungsläufe brauchen keine Synthese;
+produktive v1, Browsertexte und Turnierergebnisse bleiben unverändert.
+
 ### 5.1 Erster B01-Hörsatz: Spielfeld acht, beide Stimmen
 
 `scripts/tts-field-context-plan.js` ergänzt den gespeicherten, bestätigten Spielblockplan um genau eine vollständige Feldreferenz pro Feld und Stimme. Für diesen ersten Hörtest wird nur Feld acht verwendet. Die Referenz hält die Spielnummer ohne „Nummer“, Satzzeichen und Doppel-Leerzeichen aus der bisherigen festen Vorlage bei; für v2 gilt die bereits gewählte gesprochene Schreibweise `Mädchen Einzel`. Die archivierte v1-Referenz bleibt unverändert.

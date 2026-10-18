@@ -977,3 +977,26 @@ Präfix, 80 ms nach der Rolle, bei Klapptafeln 180 ms; 320 ms vor dem wiederholt
 Namen. Der Betreiber hat diesen Hörsatz für beide Stimmen klanglich bestätigt
 („Passt!“). Die Bestätigung gilt den konkreten Aufnahmen und dem gespeicherten
 Location-Stand. Als nächster offener Hörbereich folgt D12.
+
+## 21. D12 im v2-Hörlabor: Siegerteam nach „gegen“
+
+`http://127.0.0.1:8084/kampflos/` enthält die Kampflos-Hörproben mit beiden
+Stimmen. Auf Wunsch wird das Siegerteam aus der zweiten Position seiner
+`[Team] spielt jetzt gegen [Team]!`-Quelle übernommen, ohne „gegen“. Im Einzel
+gewinnt Max Hahn, im Doppel Emil Hermann und Konrad Wendt, jeweils die zweite
+Seite der vorhandenen Beispielbegegnung. Es werden keine Ergebnisse eingetragen.
+
+Je Stimme liefert eine vollständige Kontextaufnahme mit Spiel 161 den gemeinsamen
+Ausschnitt `Das Spiel geht kampflos an`. Die tatsächlichen Montagen verwenden die
+vorhandenen Spiel- und Siegerteamstücke, keine neuen Namensaufnahmen. Aufbau:
+bestätigter Spielblock → Kampflos-Klausel → zweiter Team-Ausschnitt. Pausenziele:
+300 ms vor der Klausel und 100 ms zum Sieger einschließlich vorhandener Randstille.
+Es gibt zwölf Proben mit vollständigen Ansagen, kurzen Ergebnissätzen, der Klausel
+allein und den Kontextreferenzen. Nummern bleiben in der Anzeige Ziffern.
+
+Beide neuen Quellen bestehen mit Seed 42. Der Schnitt der Hallensprecherin wird
+wegen einer längeren Satzpause vor der Klausel anhand unabhängiger lokaler
+Wortanker bestimmt, aus derselben Aufnahme und ohne zusätzliche Synthese. Das
+Ende von „an“ liegt bei beiden Stimmen in aktiver Sprache; diese Übergänge sind
+zur Hörprüfung markiert. Bestehende Schnittwarnungen bleiben ebenfalls sichtbar.
+Die Klangabnahme steht aus. Details im [v2-Plan](context-v2-plan.md#504-d12-gemeinsame-kampflos-formulierung-und-siegerteam-nach-gegen).
