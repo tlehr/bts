@@ -355,6 +355,11 @@ Kontexte zum Vergleich bereit. PSV Bremen und Bremen sind gekennzeichnete
 Hörbeispiele, keine Turnierzuweisungen. Details und Stückzählung stehen in
 [Abschnitt 22.5 des Arbeitsdokuments](durchsagen-arbeitsdokument.md#225-erster-anmelde-hörsatz-mit-beiden-stimmen).
 
+Der Betreiber hat den aktuellen Hörsatz für beide Stimmen klanglich bestätigt
+(„Passt!“): alle vier Aufrufarten, beide Ziele und die Übergänge mit den vorhandenen
+vollständigen Namen-/Teamstücken. Die Anmeldebausteine sind damit für diesen
+Hörstand abgenommen; automatische Schnittbefunde bleiben erhalten.
+
 ### 5.1 Erster B01-Hörsatz: Spielfeld acht, beide Stimmen
 
 `scripts/tts-field-context-plan.js` ergänzt den gespeicherten, bestätigten Spielblockplan um genau eine vollständige Feldreferenz pro Feld und Stimme. Für diesen ersten Hörtest wird nur Feld acht verwendet. Die Referenz hält die Spielnummer ohne „Nummer“, Satzzeichen und Doppel-Leerzeichen aus der bisherigen festen Vorlage bei; für v2 gilt die bereits gewählte gesprochene Schreibweise `Mädchen Einzel`. Die archivierte v1-Referenz bleibt unverändert.

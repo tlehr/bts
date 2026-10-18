@@ -1137,3 +1137,8 @@ aus `ctournament.js` in einer isolierten VM und vergleicht jede Montage mit dess
 Ausgabe. Die Browsertexte werden nicht verändert. Die Hörseite zeigt für jedes
 Stück Quelle, Kontextmarkierung, Schnitt und Rohaufnahme. Dies ist die Hörprüfung
 der Anmeldebausteine; die produktive Anmelde-Warteschlange bleibt noch unverändert.
+
+Der Betreiber hat diesen Anmelde-Hörsatz für beide Stimmen klanglich bestätigt
+(„Passt!“). Die Bestätigung umfasst die vier Aufrufarten mit beiden Zielorten,
+die gemeinsamen festen Stücke und die Wiederverwendung der vollständigen Namen
+vor „bitte“. Vorhandene automatische Schnittbefunde bleiben dokumentiert.
