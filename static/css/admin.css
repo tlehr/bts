@@ -3671,6 +3671,10 @@ h2.edit {
 .speech_coverage_failure { margin-top: 0.3rem; color: #b42318; font-size: 0.85rem; }
 .speech_coverage_legend { display: flex; flex-wrap: wrap; gap: 0.4rem 1rem; margin-top: 0.75rem; font-size: 0.8rem; }
 .speech_coverage_legend > span { display: inline-flex; align-items: center; gap: 0.35rem; }
+.speech_coverage_legend > label { display: inline-flex; align-items: center; gap: 0.35rem; cursor: pointer; }
+.speech_coverage_legend > label[data-disabled="true"] > span { opacity: 0.5; }
+.speech_coverage_legend > label[data-disabled="true"] > span:last-child { text-decoration: line-through; }
+.speech_coverage_legend input { margin: 0; accent-color: #166534; }
 .speech_coverage_swatch { display: inline-block; width: 0.85rem; height: 0.85rem; border-radius: 0.15rem; background: var(--coverage-color); }
 .speech_coverage_details { margin-bottom: 1rem; }
 .speech_coverage_row { margin: 0 0 1rem; }

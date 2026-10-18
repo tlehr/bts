@@ -1,7 +1,7 @@
 /* exported createSpeechInventory */
 'use strict';
 
-function createSpeechInventory({ root, service, progress, paintBar, describeFailures }) {
+function createSpeechInventory({ root, service, progress, paintBar, describeFailures, getStates }) {
     const document = root.ownerDocument;
     const groups = new Map(), sections = new Map();
     let stopped = false, version, planRevision;
@@ -104,7 +104,8 @@ function createSpeechInventory({ root, service, progress, paintBar, describeFail
     function paintSelection(section) {
         const state = section.listing;
         const category = state.group === 'all' ? section.total.label : groups.get(state.kind + ':' + state.group)?.label || section.total.label;
-        state.title.textContent = category + (state.filter === 'all' ? ' · alle Status' : ' · ' + filterLabels[state.filter]);
+        state.title.textContent = category + (state.filter === 'all' ?
+            (getStates().length === 6 ? ' · alle Status' : ' · ausgewählte Status') : ' · ' + filterLabels[state.filter]);
         state.reset.hidden = state.group === 'all' && state.filter === 'all';
         state.node.dataset.coverageGroup = state.group;
         state.node.dataset.coverageState = state.filter;
@@ -120,9 +121,9 @@ function createSpeechInventory({ root, service, progress, paintBar, describeFail
         }
     }
 
-    function select(kind, group, filter = 'all') {
+    function select(kind, group, filter = 'all', force = false) {
         const section = sections.get(kind), state = section.listing;
-        if (state.group !== group || state.filter !== filter) {
+        if (force || state.group !== group || state.filter !== filter) {
             state.group = group; state.filter = filter; state.selection++; state.wanted = 30;
             state.items = []; state.refs.clear(); state.nodes.clear(); state.list.textContent = '';
             state.more.hidden = true;
@@ -184,13 +185,13 @@ function createSpeechInventory({ root, service, progress, paintBar, describeFail
         if (stopped || !state.dirty || state.loading || !service.inventory) return;
         state.loading = true;
         const captured = version, revision = state.revision, selection = state.selection;
-        const group = state.group, filter = state.filter;
+        const group = state.group, filter = state.filter, states = getStates();
         state.note.textContent = 'Status wird geladen …'; state.more.disabled = true;
         const items = [];
         let last;
         try {
             for (let offset = 0; offset < state.wanted; offset += 30) {
-                const page = await service.inventory(state.kind, group, offset, 30, filter);
+                const page = await service.inventory(state.kind, group, offset, 30, filter, states);
                 if (stopped || captured !== version || selection !== state.selection) return;
                 if (!page) { state.note.textContent = 'Liste derzeit nicht verfügbar.'; return; }
                 items.push(...page.items); last = page;
@@ -251,6 +252,12 @@ function createSpeechInventory({ root, service, progress, paintBar, describeFail
             planRevision = coverage.revision;
         },
         hide() { host.hidden = true; },
+        filtersChanged() {
+            const visible = getStates();
+            for (const [kind, { listing: state }] of sections) {
+                select(kind, state.group, state.filter === 'all' || visible.includes(state.filter) ? state.filter : 'all', true);
+            }
+        },
         stop() { stopped = true; },
     };
 }

@@ -813,6 +813,66 @@ suite('BTS / actual FastAPI / native Chrome speech integration', function() {
         }
     });
 
+    it('toggles status colors for every bar and list, keeps headings filtered and remembers the selection', async function() {
+        await closeSpeechSettings();
+        const storage = 'bts_speech_inventory_hidden_states';
+        const saved = await devtools.evaluate('localStorage.getItem(' + JSON.stringify(storage) + ')');
+        const section = '.speech_inventory_section[data-inventory-kind="components"]';
+        const legend = '.speech_coverage_legend input';
+        try {
+            await openSpeechSettings();
+            await until(() => devtools.evaluate('document.querySelectorAll(' + JSON.stringify(legend) + ').length === 6'));
+            const response = await rpc(client, { type: 'speech_queue', tournament_key: 'default' });
+            const totals = response.queue.coverage.components.total;
+            const selected = ['stock', 'prepared', 'cached', 'generated', 'ordered', 'potential'].find(state => totals[state] > 0);
+            assert(selected, 'the real inventory must contain at least one selectable category');
+            await click(legend + '[value="' + selected + '"]');
+            await click(section + ' > .speech_queue_progress_container > .speech_inventory_filter');
+            await until(() => devtools.evaluate(`(() => {
+                const lists = [...document.querySelectorAll('.speech_inventory_entries')];
+                return lists.length === 2 && lists.every(node => !node.querySelector('.speech_inventory_note').textContent.includes('geladen') &&
+                    [...node.querySelectorAll('.speech_inventory_item')].every(row => row.dataset.state !== ${JSON.stringify(selected)})) &&
+                    [...document.querySelectorAll('.speech_coverage_segment[data-coverage-state="${selected}"]')].every(node => node.hidden);
+            })()`));
+            await devtools.evaluate(`document.querySelectorAll(${JSON.stringify(legend)}).forEach(input => { if (input.checked) input.click(); })`);
+            await until(() => devtools.evaluate(`(() => {
+                const lists = [...document.querySelectorAll('.speech_inventory_entries')];
+                return lists.length === 2 && lists.every(node => node.querySelector('.speech_inventory_note').textContent.includes('Keine Einträge') &&
+                    node.querySelectorAll('.speech_inventory_item').length === 0) &&
+                    [...document.querySelectorAll('.speech_coverage_segment')].every(node => node.hidden);
+            })()`));
+            await click(legend + '[value="' + selected + '"]');
+            await until(() => devtools.evaluate(`(() => {
+                const list = document.querySelector(${JSON.stringify(section)}).querySelector('.speech_inventory_entries');
+                return list.querySelectorAll('.speech_inventory_item').length > 0 &&
+                    [...list.querySelectorAll('.speech_inventory_item')].every(row => row.dataset.state === ${JSON.stringify(selected)});
+            })()`));
+            assert(await devtools.evaluate(`document.querySelector(${JSON.stringify(section)}).querySelector('.speech_coverage_segment[data-coverage-state="${selected}"]').style.width === '100%'`));
+            const category = response.queue.coverage.components.groups.find(group => group[selected] > 0).id;
+            await click(section + ' .speech_inventory_breakdown > summary');
+            await click(section + ' .speech_inventory_group[data-coverage-group="' + category + '"] .speech_inventory_filter');
+            await until(() => devtools.evaluate(`(() => {
+                const list = document.querySelector(${JSON.stringify(section)}).querySelector('.speech_inventory_entries');
+                return list.dataset.coverageGroup === ${JSON.stringify(category)} && list.dataset.coverageState === 'all' &&
+                    list.querySelectorAll('.speech_inventory_item').length > 0 &&
+                    [...list.querySelectorAll('.speech_inventory_item')].every(row => row.dataset.state === ${JSON.stringify(selected)});
+            })()`));
+            await closeSpeechSettings();
+            await openSpeechSettings();
+            await until(() => devtools.evaluate(`document.querySelectorAll(${JSON.stringify(legend)}).length === 6`));
+            assert.deepStrictEqual(await devtools.evaluate(`[...document.querySelectorAll(${JSON.stringify(legend)})].filter(input => input.checked).map(input => input.value)`), [selected]);
+            if (process.env.BTS_SPEECH_FILTER_SCREENSHOT) {
+                await devtools.evaluate('document.querySelector(' + JSON.stringify(section) + ').scrollIntoView({block:"start"})');
+                const shot = await devtools.call('Page.captureScreenshot', { format: 'png' });
+                fs.writeFileSync(process.env.BTS_SPEECH_FILTER_SCREENSHOT, Buffer.from(shot.data, 'base64'));
+            }
+        } finally {
+            await devtools.evaluate(saved === null ? 'localStorage.removeItem(' + JSON.stringify(storage) + ')' :
+                'localStorage.setItem(' + JSON.stringify(storage) + ',' + JSON.stringify(saved) + ')');
+            await closeSpeechSettings();
+        }
+    });
+
     it('renders six proportional coverage segments and updates them without generating or rebuilding the bars', async function() {
         const response = await rpc(client, { type: 'speech_queue', tournament_key: 'default' });
         response.queue.items = [{ ...response.queue.items.find(item => item.status === 'completed'), priority: 'idle', idle: true }];

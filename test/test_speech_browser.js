@@ -52,11 +52,12 @@ describe('Browser local speech provider', function() {
             assert(values.requests.length <= 8);
             return { inventories: values.requests.map(query => ({ ...query, items: [] })) };
         } });
-        const queries = Array.from({ length: 10 }, (_value, i) => h.service.inventory('announcements', 'D01', i * 30, 30, 'cached'));
+        const queries = Array.from({ length: 10 }, (_value, i) => h.service.inventory('announcements', 'D01', i * 30, 30, 'cached', ['cached', 'generated']));
         const result = await Promise.all(queries);
         assert.strictEqual(h.requests.length, 2);
         assert.deepStrictEqual(result.map(page => page.offset), Array.from({ length: 10 }, (_value, i) => i * 30));
         assert(result.every(page => page.group === 'D01' && page.state === 'cached'));
+        assert(result.every(page => JSON.stringify(page.states) === JSON.stringify(['cached', 'generated'])));
         assert.strictEqual(h.played.length, 0);
     });
 

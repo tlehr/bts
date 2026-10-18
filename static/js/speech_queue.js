@@ -63,6 +63,14 @@ function createSpeechQueue({ root, service, onSnapshot = () => {} }) {
         ['cached', 'Benötigt · aus Cache'], ['generated', 'Benötigt · neu erzeugt'],
         ['ordered', 'Beauftragt'], ['potential', 'Noch ohne Auftrag'],
     ];
+    const filter_storage_key = 'bts_speech_inventory_hidden_states';
+    const hidden_states = new Set();
+    try {
+        const saved = JSON.parse(window.localStorage.getItem(filter_storage_key));
+        if (Array.isArray(saved)) for (const [state] of coverage_states) if (saved.includes(state)) hidden_states.add(state);
+    } catch (_) { /* Display filters also work without browser storage. */ }
+    const visibleStates = () => coverage_states.map(([state]) => state).filter(state => !hidden_states.has(state));
+    let coverage_snapshot = null;
     let next_recording = 1;
     const priorities = { high: 'Hoch · aktueller Aufruf', normal: 'Normal · benötigt', low: 'Niedrig · angeforderter Text',
         idle: 'Nur bei Leerlauf · mögliche spätere Ansage', spare: 'Andere Stimme · letzter Vorrat' };
@@ -111,8 +119,21 @@ function createSpeechQueue({ root, service, onSnapshot = () => {} }) {
     const progress_failure = element(progress_container, 'div', 'speech_coverage_failure');
     const progress_label = element(progress_container, 'div', 'speech_queue_progress_label');
     const coverage_legend = element(progress_container, 'div', 'speech_coverage_legend');
+    coverage_legend.setAttribute('role', 'group');
+    coverage_legend.setAttribute('aria-label', 'Sichtbare Statuskategorien in Balken und Listen');
     for (const [state, label] of coverage_states) {
-        const item = element(coverage_legend, 'span');
+        const item = element(coverage_legend, 'label');
+        const checkbox = element(item, 'input');
+        checkbox.type = 'checkbox'; checkbox.value = state; checkbox.checked = !hidden_states.has(state);
+        item.dataset.disabled = String(!checkbox.checked);
+        checkbox.addEventListener('change', () => {
+            if (checkbox.checked) hidden_states.delete(state); else hidden_states.add(state);
+            item.dataset.disabled = String(!checkbox.checked);
+            try { window.localStorage.setItem(filter_storage_key, JSON.stringify([...hidden_states])); }
+            catch (_) { /* Keep the current selection when storage is unavailable. */ }
+            inventoryView?.filtersChanged();
+            if (coverage_snapshot) paintCoverage(...coverage_snapshot);
+        });
         const swatch = element(item, 'span', 'speech_coverage_swatch');
         swatch.dataset.coverageState = state;
         swatch.setAttribute('aria-hidden', 'true');
@@ -125,6 +146,7 @@ function createSpeechQueue({ root, service, onSnapshot = () => {} }) {
     element(coverage_details, 'h3', '', 'Bausteine und vollständige Durchsagen');
     element(coverage_details, 'p', 'speech_queue_help', 'Bausteine werden wiederverwendet; Durchsagen zeigen die vollständige Zusammensetzung. ' +
         'Ein Klick auf einen Balkenabschnitt filtert die gemeinsame Liste nach Kategorie und Status. Die Überschrift zeigt alle Einträge der Kategorie.');
+    element(coverage_details, 'p', 'speech_queue_help', 'Über die Häkchen in der Farblegende lassen sich Statuskategorien für alle Balken und Listen ausblenden.');
     const coverage_list = element(coverage_details, 'div', 'speech_coverage_list');
     const jobs = element(root, 'details', 'speech_queue_jobs');
     element(jobs, 'summary', '', 'Aufträge an den Sprachserver · Erzeugung und Verarbeitung');
@@ -135,7 +157,9 @@ function createSpeechQueue({ root, service, onSnapshot = () => {} }) {
 
     function paintBar(bar, counts, label, caption, failure) {
         counts = { prepared: 0, ...counts };
-        const signature = JSON.stringify(counts);
+        const visible = coverage_states.filter(([state]) => !hidden_states.has(state));
+        const visible_total = visible.reduce((sum, [state]) => sum + counts[state], 0);
+        const signature = JSON.stringify({ ...counts, hidden_states: [...hidden_states] });
         if (bar.dataset.signature === signature) return;
         bar.dataset.signature = signature;
         let segments = bar_segments.get(bar);
@@ -149,18 +173,18 @@ function createSpeechQueue({ root, service, onSnapshot = () => {} }) {
             }
             bar_segments.set(bar, segments);
         }
-        const detail = coverage_states.map(([state, text]) => text + ': ' + counts[state]).join(' · ');
+        const detail = visible.map(([state, text]) => text + ': ' + counts[state]).join(' · ');
         bar.setAttribute('role', bar.dataset.inventoryKind ? 'group' : 'img');
         bar.setAttribute('aria-label', label + ' · ' + detail);
         bar.dataset.ready = counts.cached + counts.generated;
         bar.dataset.needed = counts.cached + counts.generated + counts.ordered;
         for (const [state, text] of coverage_states) {
             const segment = segments.get(state);
-            segment.hidden = !counts[state];
-            segment.style.width = (counts[state] * 100 / (counts.total || 1)) + '%';
+            segment.hidden = hidden_states.has(state) || !counts[state];
+            segment.style.width = (segment.hidden ? 0 : counts[state] * 100 / (visible_total || 1)) + '%';
             segment.title = text + ': ' + counts[state];
         }
-        caption.textContent = counts.total ? detail : 'Noch keine Bausteine oder Personen bekannt.';
+        caption.textContent = !visible.length ? 'Keine Statuskategorie ausgewählt.' : counts.total ? detail : 'Noch keine Bausteine oder Personen bekannt.';
         failure.hidden = !counts.failed;
         failure.textContent = counts.failed ? counts.failed + ' beauftragte Bausteine fehlgeschlagen' : '';
     }
@@ -168,6 +192,7 @@ function createSpeechQueue({ root, service, onSnapshot = () => {} }) {
     let inventoryView;
     let previousItems = new Map();
     function paintCoverage(coverage, fallback, items) {
+        coverage_snapshot = [coverage, fallback, items];
         const total = coverage?.components?.total || coverage?.total || fallback;
         progress_title.textContent = coverage?.components ? 'Gesamt · Bausteine' : coverage ? 'Gesamt · eindeutige Bausteine und Potenzial' : 'Aktuelle Aufträge';
         paintBar(progress, total, progress_title.textContent, progress_counts, progress_failure);
@@ -179,7 +204,7 @@ function createSpeechQueue({ root, service, onSnapshot = () => {} }) {
         if (!coverage) return;
         if (coverage?.components && coverage?.announcements) {
             if (!inventoryView) inventoryView = createSpeechInventory({ root: coverage_list, service, progress: progress_container,
-                paintBar, describeFailures: describeSpeechFailures });
+                paintBar, describeFailures: describeSpeechFailures, getStates: visibleStates });
             const changed = new Set();
             const next = new Map(items.map(item => [item.key, JSON.stringify([item.status, item.retry_at,
                 item.diagnostics?.failure_count, item.diagnostics?.transport_count, item.fallback_stage])]));

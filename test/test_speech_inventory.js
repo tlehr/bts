@@ -93,7 +93,9 @@ describe('Separate component and announcement inventory', function() {
         assert.strictEqual(values[0].items.length, 1); assert.strictEqual(values[0].next_offset, 1);
         assert.strictEqual(values[1].items.length, 2); assert.strictEqual(broker.entries.size, before);
         for (const query of [{ kind: 'sources' }, { kind: 'components', limit: 500 }, { kind: 'components', offset: -1 },
-            { kind: 'components', state: 'invalid' }, { kind: 'components', state: ['cached'] }]) {
+            { kind: 'components', state: 'invalid' }, { kind: 'components', state: ['cached'] },
+            { kind: 'components', states: 'cached' }, { kind: 'components', states: null },
+            { kind: 'components', states: ['invalid'] }, { kind: 'components', states: Array(7).fill('cached') }]) {
             assert.throws(() => broker.coverage.inventories(current.key, 'hallensprecher', [query]));
         }
         const responses = [];
@@ -113,18 +115,19 @@ describe('Separate component and announcement inventory', function() {
             const groups = kind === 'components' ? ['all', 'names', 'rounds'] : ['all', 'D01', 'D12'];
             for (const group of groups) {
                 const full = broker.coverage.inventory(current.key, 'hallensprecher', kind, group, 0, 50).items;
-                for (const state of ['stock', 'prepared', 'cached', 'generated', 'ordered', 'potential']) {
-                    const expected = full.filter(row => row.state === state);
-                    const pages = [];
-                    for (let offset = 0; offset < Math.max(1, expected.length); offset += 2) {
-                        const page = broker.coverage.inventory(current.key, 'hallensprecher', kind, group, offset, 2, state);
-                        assert.strictEqual(page.total, expected.length);
-                        assert.strictEqual(page.state, state);
-                        assert.strictEqual(page.next_offset, offset + 2 < expected.length ? offset + 2 : null);
-                        pages.push(...page.items);
+                for (const state of ['all', 'stock', 'prepared', 'cached', 'generated', 'ordered', 'potential'])
+                    for (const states of [[], ['stock', 'generated'], ['cached', 'generated', 'ordered', 'potential']]) {
+                        const expected = full.filter(row => (state === 'all' || row.state === state) && states.includes(row.state));
+                        const pages = [];
+                        for (let offset = 0; offset < Math.max(1, expected.length); offset += 2) {
+                            const page = broker.coverage.inventory(current.key, 'hallensprecher', kind, group, offset, 2, state, states);
+                            assert.strictEqual(page.total, expected.length);
+                            assert.strictEqual(page.state, state);
+                            assert.strictEqual(page.next_offset, offset + 2 < expected.length ? offset + 2 : null);
+                            pages.push(...page.items);
+                        }
+                        assert.deepStrictEqual(pages, expected);
                     }
-                    assert.deepStrictEqual(pages, expected);
-                }
             }
         }
         assert.strictEqual(broker.entries.size, before);
