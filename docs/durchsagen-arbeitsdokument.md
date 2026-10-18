@@ -727,3 +727,14 @@ Jede bereits passende Quelle und jeder passende Ausschnitt überspringt den betr
 Ein bereits laufender Auftrag wird fertiggestellt. BTS verwaltet die Reihenfolge und hält **höchstens einen offenen Generierungsauftrag** beim Sprachserver. Quellen werden bei mehreren wartenden Durchsagen nur einmal erzeugt. Fehlende Schnitte aus vorhandenem Audio benötigen keinen Modellauftrag und werden direkt bereitgestellt; danach wird der verfügbare Bestand aktualisiert. Neue Paarungen, Ansetzungen oder Zuordnungen ordnen nur noch offene Arbeit neu. Die Spielplanreihenfolge gilt für die regulären Spielblock-Vormerkungen; ein konkreter ausgelöster Aufruf darf die für ihn fehlende Quelle vorziehen.
 
 Diese Reihenfolge ist der optimierte Planungsentwurf. Kontextgenerierung, Schnitt und Cache-Nutzung werden erst nach unserer Abstimmung in die Anwendung übertragen.
+
+## 11. Stimmenwahl im v2-Hörlabor (18. Oktober 2026)
+
+Für die weiteren Versuche mit der **Hallensprecherin verwenden wir einheitlich
+`hallensprecherin_vorbereitung.wav`**, auch für Spielaufrufe. Die neue Aufrufreferenz
+bleibt als Vergleich erhalten. Gemeinsame Nummern-, Disziplin- und Teamstücke
+werden damit nicht nach Durchsageart verdoppelt.
+
+**Der Hallensprecher bleibt unverändert.** Die Auswahl gilt zunächst für das
+isolierte Hörlabor; die produktive v1 und der Planungsentwurf oben werden dadurch
+nicht umgestellt. Die vorhandenen Frauenproben bleiben zum Vergleich erhalten.
