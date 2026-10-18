@@ -258,7 +258,9 @@ jeweiligen Location-/Treffpunktvarianten. Anschließend folgt die D12-Kampflos-K
 Hörseite: `http://127.0.0.1:8084/zweitaufrufe/`. Pro Stimme gibt es 20 vollständige
 Durchsagen für D04–D11, drei Einzelbausteine und zwei Kontextreferenzen. Insgesamt
 sind es 50 Proben. Einzelnamen, Doppelteams, alle vier Rollen sowie Offiziellen-
-Zweitaufrufe ohne Feldzuweisung werden geprüft. Die Klangabnahme ist offen.
+Zweitaufrufe ohne Feldzuweisung werden geprüft. Der Betreiber hat den aktuellen
+Hörsatz für beide Stimmen klanglich bestätigt („Passt!“). Die Bestätigung gilt
+den konkreten Aufnahmen und dem dokumentierten Location-Stand.
 
 `scripts/tts-second-call-plan.js` verwendet für Wortlaut und Satzfolge die
 Browser-Textfunktionen. Ein Tokenvergleich nach Zahlenausschreibung verhindert

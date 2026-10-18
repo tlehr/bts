@@ -974,4 +974,6 @@ Location-Varianten und Einzahl-/Mehrzahlformen sind im Planer berücksichtigt.
 Der aktuelle D11-Wortlaut bleibt auch bei Klapptafeln erhalten. Das Hörlabor
 schreibt keine Browsertexte um. Pausen rechnen Randstille an: 140 ms nach dem
 Präfix, 80 ms nach der Rolle, bei Klapptafeln 180 ms; 320 ms vor dem wiederholten
-Namen. Die Klangabnahme dieses Hörsatzes ist offen. Danach folgt D12.
+Namen. Der Betreiber hat diesen Hörsatz für beide Stimmen klanglich bestätigt
+(„Passt!“). Die Bestätigung gilt den konkreten Aufnahmen und dem gespeicherten
+Location-Stand. Als nächster offener Hörbereich folgt D12.
