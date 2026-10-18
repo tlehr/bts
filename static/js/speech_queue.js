@@ -120,11 +120,11 @@ function createSpeechQueue({ root, service, onSnapshot = () => {} }) {
     }
     const cache_status = element(root, 'p', 'speech_queue_cache_status speech_queue_help');
     cache_status.hidden = true;
-    const coverage_details = element(root, 'details', 'speech_coverage_details');
-    coverage_details.open = true;
+    const coverage_details = element(root, 'div', 'speech_coverage_details');
     coverage_details.hidden = true;
-    element(coverage_details, 'summary', '', 'Bausteine und vollständige Durchsagen');
-    element(coverage_details, 'p', 'speech_queue_help', 'Bausteine werden wiederverwendet; Durchsagen zeigen die vollständige Zusammensetzung. Listen und Untergruppen lassen sich einzeln aufklappen.');
+    element(coverage_details, 'h3', '', 'Bausteine und vollständige Durchsagen');
+    element(coverage_details, 'p', 'speech_queue_help', 'Bausteine werden wiederverwendet; Durchsagen zeigen die vollständige Zusammensetzung. ' +
+        'Ein Klick auf einen Balkenabschnitt filtert die gemeinsame Liste nach Kategorie und Status. Die Überschrift zeigt alle Einträge der Kategorie.');
     const coverage_list = element(coverage_details, 'div', 'speech_coverage_list');
     const jobs = element(root, 'details', 'speech_queue_jobs');
     element(jobs, 'summary', '', 'Aufträge an den Sprachserver · Erzeugung und Verarbeitung');
@@ -150,7 +150,7 @@ function createSpeechQueue({ root, service, onSnapshot = () => {} }) {
             bar_segments.set(bar, segments);
         }
         const detail = coverage_states.map(([state, text]) => text + ': ' + counts[state]).join(' · ');
-        bar.setAttribute('role', 'img');
+        bar.setAttribute('role', bar.dataset.inventoryKind ? 'group' : 'img');
         bar.setAttribute('aria-label', label + ' · ' + detail);
         bar.dataset.ready = counts.cached + counts.generated;
         bar.dataset.needed = counts.cached + counts.generated + counts.ordered;

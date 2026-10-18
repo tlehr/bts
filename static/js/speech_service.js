@@ -381,11 +381,11 @@ function createSpeechService(context) {
             rememberMetadata(response);
             return response;
         },
-        inventory: (kind, group = 'all', offset = 0, limit = 30) => {
+        inventory: (kind, group = 'all', offset = 0, limit = 30, state = 'all') => {
             const value = settings();
             if (!value.enabled || !value.key) return Promise.resolve(null);
             return new Promise(resolve => {
-                inventory_waiters.push({ query: { kind, group, offset, limit }, settings: value, resolve });
+                inventory_waiters.push({ query: { kind, group, offset, limit, state }, settings: value, resolve });
                 if (!inventory_scheduled) { inventory_scheduled = true; void Promise.resolve().then(flushInventory); }
             });
         },

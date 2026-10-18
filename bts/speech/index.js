@@ -56,7 +56,7 @@ function handle(app, ws, msg) {
     try {
         if (msg.type === 'speech_inventory') {
             if (msg.requests !== undefined) reply({ speech: configuration, inventories: broker.coverage.inventories(key, selected.voice, msg.requests) });
-            else reply({ speech: configuration, inventory: broker.coverage.inventory(key, selected.voice, msg.kind, msg.group, msg.offset, msg.limit) });
+            else reply({ speech: configuration, inventory: broker.coverage.inventory(key, selected.voice, msg.kind, msg.group, msg.offset, msg.limit, msg.state) });
         } else if (msg.type === 'speech_queue') {
             reply({ speech: configuration, queue: broker.queue(key, selected.voice) });
         } else if (msg.type !== 'speech_status') {

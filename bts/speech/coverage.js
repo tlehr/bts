@@ -247,18 +247,19 @@ class SpeechCoverage {
 
     inventories(tournament, voice, queries) {
         if (!Array.isArray(queries) || !queries.length || queries.length > 8) throw new Error('invalid_inventory_request');
-        for (const { kind, group = 'all', offset = 0, limit = 30 } of queries) {
+        for (const { kind, group = 'all', offset = 0, limit = 30, state = 'all' } of queries) {
             if (!['components', 'announcements'].includes(kind) || typeof group !== 'string' || group.length > 64 || !/^[a-zA-Z0-9_]+$/.test(group) ||
+                !['all', ...STATES].includes(state) ||
                 !Number.isSafeInteger(offset) || offset < 0 || !Number.isSafeInteger(limit) || limit < 1 || limit > 50) throw new Error('invalid_inventory_request');
         }
         this.summary(tournament, voice);
         const current = this.plans.get(tournament);
-        return queries.map(({ kind, group = 'all', offset = 0, limit = 30 }) =>
-            current?.voice === voice && current.inventory ? inventory.page(current.inventory, kind, group, offset, limit) : null);
+        return queries.map(({ kind, group = 'all', offset = 0, limit = 30, state = 'all' }) =>
+            current?.voice === voice && current.inventory ? inventory.page(current.inventory, kind, group, offset, limit, state) : null);
     }
 
-    inventory(tournament, voice, kind, group = 'all', offset = 0, limit = 30) {
-        return this.inventories(tournament, voice, [{ kind, group, offset, limit }])[0];
+    inventory(tournament, voice, kind, group = 'all', offset = 0, limit = 30, state = 'all') {
+        return this.inventories(tournament, voice, [{ kind, group, offset, limit, state }])[0];
     }
 }
 

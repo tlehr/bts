@@ -61,9 +61,9 @@ function build(components, calls, groups) {
         announcements: section(announcements, groups.filter(([id]) => id !== 'other'), 'Gesamt · vollständige Durchsagen') } };
 }
 
-function page(snapshot, kind, group, offset, limit) {
+function page(snapshot, kind, group, offset, limit, state = 'all') {
     const rank = row => row.failed ? 0 : row.state === 'ordered' ? 1 : ['cached', 'generated'].includes(row.state) ? 2 : row.state === 'potential' ? 3 : 4;
-    const source = snapshot[kind].filter(row => group === 'all' || row.group === group)
+    const source = snapshot[kind].filter(row => (group === 'all' || row.group === group) && (state === 'all' || row.state === state))
         .sort((a, b) => rank(a) - rank(b) || (kind === 'components' ? a.text : a.label || a.text)
             .localeCompare(kind === 'components' ? b.text : b.label || b.text, 'de', { numeric: true }));
     const components = new Map(snapshot.components.map(row => [row.id, row]));
@@ -72,7 +72,7 @@ function page(snapshot, kind, group, offset, limit) {
         const { keys, ...value } = row;
         return { ...value, components: keys.map(key => components.get(key)).filter(Boolean) };
     });
-    return { kind, group, offset, total: source.length, items: rows,
+    return { kind, group, state, offset, total: source.length, items: rows,
         next_offset: offset + limit < source.length ? offset + limit : null };
 }
 

@@ -3673,7 +3673,6 @@ h2.edit {
 .speech_coverage_legend > span { display: inline-flex; align-items: center; gap: 0.35rem; }
 .speech_coverage_swatch { display: inline-block; width: 0.85rem; height: 0.85rem; border-radius: 0.15rem; background: var(--coverage-color); }
 .speech_coverage_details { margin-bottom: 1rem; }
-.speech_coverage_details > summary { cursor: pointer; font-weight: bold; }
 .speech_coverage_row { margin: 0 0 1rem; }
 
 .speech_queue_list {
@@ -3821,11 +3820,20 @@ h2.edit {
 }
 
 .speech_inventory_section { margin-top: 1rem; }
-.speech_inventory_section > summary { font-size: 1.15rem; font-weight: bold; cursor: pointer; }
+.speech_inventory_section > h4 { font-size: 1.15rem; margin: 1rem 0 0.6rem; }
 .speech_inventory_group { border-top: 1px solid #cbd5e1; padding-top: 0.65rem; margin-top: 0.65rem; }
-.speech_inventory_group > summary { font-weight: bold; cursor: pointer; margin-bottom: 0.5rem; }
-.speech_inventory_entries { margin: 0.6rem 0; }
-.speech_inventory_entries > summary { cursor: pointer; color: #334155; }
+.speech_inventory_filter { cursor: pointer; width: fit-content; }
+.speech_inventory_filter:hover { text-decoration: underline; }
+.speech_inventory_filter[aria-pressed="true"] { text-decoration: underline; text-underline-offset: 0.2em; }
+.speech_coverage_bar[data-inventory-kind] .speech_coverage_segment { cursor: pointer; }
+.speech_coverage_bar[data-inventory-kind] .speech_coverage_segment:hover { filter: brightness(1.1); }
+.speech_coverage_bar[data-inventory-kind] .speech_coverage_segment[aria-pressed="true"] { box-shadow: inset 0 0 0 2px #172b4d; }
+.speech_inventory_filter:focus-visible, .speech_coverage_segment:focus-visible { outline: 2px solid #172b4d; outline-offset: -2px; }
+.speech_inventory_breakdown { margin: 0.7rem 0 1rem; }
+.speech_inventory_breakdown > summary { cursor: pointer; color: #334155; }
+.speech_inventory_entries { margin: 1rem 0; border-top: 1px solid #cbd5e1; padding-top: 0.7rem; }
+.speech_inventory_selection { margin: 0 0 0.4rem; font-size: 0.95rem; }
+.speech_inventory_reset { font-size: 0.85rem; }
 .speech_inventory_list { margin: 0.5rem 0; padding: 0; list-style: none; max-height: 32rem; overflow: auto; }
 .speech_inventory_item { background: #fff; border: 1px solid #d5dce4; border-left: 4px solid var(--inventory-color, #cbd0d7); padding: 0.65rem; overflow-wrap: anywhere; }
 .speech_inventory_item + .speech_inventory_item { margin-top: 0.35rem; }

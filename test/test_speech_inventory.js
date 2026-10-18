@@ -92,7 +92,8 @@ describe('Separate component and announcement inventory', function() {
         ]);
         assert.strictEqual(values[0].items.length, 1); assert.strictEqual(values[0].next_offset, 1);
         assert.strictEqual(values[1].items.length, 2); assert.strictEqual(broker.entries.size, before);
-        for (const query of [{ kind: 'sources' }, { kind: 'components', limit: 500 }, { kind: 'components', offset: -1 }]) {
+        for (const query of [{ kind: 'sources' }, { kind: 'components', limit: 500 }, { kind: 'components', offset: -1 },
+            { kind: 'components', state: 'invalid' }, { kind: 'components', state: ['cached'] }]) {
             assert.throws(() => broker.coverage.inventories(current.key, 'hallensprecher', [query]));
         }
         const responses = [];
@@ -100,6 +101,32 @@ describe('Separate component and announcement inventory', function() {
             { speech_tournament_key: current.key, respond: (_msg, _error, value) => responses.push(value) },
             { type: 'speech_inventory', tournament_key: current.key, requests: [{ kind: 'announcements', group: 'D01', limit: 1 }] });
         assert.strictEqual(responses[0].inventories[0].items.length, 1);
+        assert.strictEqual(broker.entries.size, before);
+        broker.stop();
+    });
+
+    it('filters group and status before pagination without queuing any synthesis', async function() {
+        const { broker, current } = await fixture();
+        const before = broker.entries.size;
+        const kinds = ['components', 'announcements'];
+        for (const kind of kinds) {
+            const groups = kind === 'components' ? ['all', 'names', 'rounds'] : ['all', 'D01', 'D12'];
+            for (const group of groups) {
+                const full = broker.coverage.inventory(current.key, 'hallensprecher', kind, group, 0, 50).items;
+                for (const state of ['stock', 'prepared', 'cached', 'generated', 'ordered', 'potential']) {
+                    const expected = full.filter(row => row.state === state);
+                    const pages = [];
+                    for (let offset = 0; offset < Math.max(1, expected.length); offset += 2) {
+                        const page = broker.coverage.inventory(current.key, 'hallensprecher', kind, group, offset, 2, state);
+                        assert.strictEqual(page.total, expected.length);
+                        assert.strictEqual(page.state, state);
+                        assert.strictEqual(page.next_offset, offset + 2 < expected.length ? offset + 2 : null);
+                        pages.push(...page.items);
+                    }
+                    assert.deepStrictEqual(pages, expected);
+                }
+            }
+        }
         assert.strictEqual(broker.entries.size, before);
         broker.stop();
     });

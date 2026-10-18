@@ -735,7 +735,7 @@ suite('BTS / actual FastAPI / native Chrome speech integration', function() {
         }
     });
 
-    it('separates components from complete calls and loads group lists only when expanded', async function() {
+    it('shows grouped bars behind one disclosure and filters one shared list while preserving live updates', async function() {
         await closeSpeechSettings();
         let reads = 0;
         const original = admin.handle_speech_inventory;
@@ -743,14 +743,38 @@ suite('BTS / actual FastAPI / native Chrome speech integration', function() {
         try {
             await openSpeechSettings();
             await until(() => devtools.evaluate('document.querySelectorAll(\'.speech_inventory_section\').length === 2'));
-            assert.strictEqual(reads, 0, 'closed inventories must not fetch or render all announcement texts');
-            const selector = '.speech_inventory_group[data-inventory-kind="announcements"][data-coverage-group="D01"]';
-            await devtools.evaluate('document.querySelector(' + JSON.stringify(selector) + ').open = true');
+            await until(() => devtools.evaluate('[...document.querySelectorAll(\'.speech_inventory_entries\')].every(node => node.querySelectorAll(\'.speech_inventory_item\').length > 0)'));
+            assert(await devtools.evaluate(`(() => {
+                const sections = [...document.querySelectorAll('.speech_inventory_section')];
+                return document.querySelector('.speech_coverage_details').tagName === 'DIV' && sections.every(node =>
+                    node.tagName === 'SECTION' && !node.querySelector('.speech_inventory_breakdown').open &&
+                    node.querySelectorAll('.speech_inventory_entries').length === 1 &&
+                    [...node.querySelectorAll('.speech_inventory_group')].every(group => group.tagName === 'DIV') &&
+                    !!(node.querySelector('.speech_inventory_breakdown').compareDocumentPosition(node.querySelector('.speech_inventory_entries')) & Node.DOCUMENT_POSITION_FOLLOWING));
+            })()`), 'totals stay visible; one disclosure reveals all bars, followed by one list per section');
+            const section = '.speech_inventory_section[data-inventory-kind="announcements"]';
+            const group = section + ' .speech_inventory_group[data-coverage-group="D01"]';
+            const selector = section + ' .speech_inventory_entries';
+            await click(section + ' .speech_inventory_breakdown > summary');
+            await click(group + ' .speech_inventory_filter');
+            await until(() => devtools.evaluate('document.querySelector(' + JSON.stringify(selector) + ').dataset.coverageGroup === "D01"'));
             await until(() => devtools.evaluate('document.querySelector(' + JSON.stringify(selector) + ').querySelectorAll(\'.speech_inventory_item\').length > 0'));
             const list = await devtools.evaluate('[...document.querySelector(' + JSON.stringify(selector) + ').querySelectorAll(\'.speech_inventory_item\')].map(node => node.textContent)');
             assert(list.length <= 30);
             assert(list.some(text => text.includes('Spiel') && text.includes('Teile bereit')));
             assert(reads > 0);
+            const selected = await devtools.evaluate('document.querySelector(' + JSON.stringify(group) + ').querySelector(\'.speech_coverage_segment:not([hidden])\').dataset.coverageState');
+            await click(group + ' .speech_coverage_segment[data-coverage-state="' + selected + '"]');
+            await until(() => devtools.evaluate(`(() => {
+                const node = document.querySelector(${JSON.stringify(selector)});
+                return node.dataset.coverageState === ${JSON.stringify(selected)} && node.querySelectorAll('.speech_inventory_item').length > 0 &&
+                    [...node.querySelectorAll('.speech_inventory_item')].every(row => row.dataset.state === ${JSON.stringify(selected)});
+            })()`));
+            assert(await devtools.evaluate('document.querySelector(' + JSON.stringify(group) + ').querySelector(\'[aria-pressed="true"][data-coverage-state]\') !== null'));
+            await devtools.evaluate('document.querySelector(' + JSON.stringify(group) + ').querySelector(\'.speech_inventory_filter\').focus()');
+            await devtools.call('Input.dispatchKeyEvent', { type: 'keyDown', key: 'Enter', code: 'Enter', windowsVirtualKeyCode: 13 });
+            await devtools.call('Input.dispatchKeyEvent', { type: 'keyUp', key: 'Enter', code: 'Enter', windowsVirtualKeyCode: 13 });
+            await until(() => devtools.evaluate('document.querySelector(' + JSON.stringify(selector) + ').dataset.coverageState === "all" && document.querySelector(' + JSON.stringify(selector) + ').querySelectorAll(\'.speech_inventory_item\').length > 0'));
             if (process.env.BTS_SPEECH_INVENTORY_SCREENSHOT) {
                 await devtools.call('Emulation.setDeviceMetricsOverride',
                     { width: 1280, height: 1100, deviceScaleFactor: 1, mobile: false });
@@ -780,6 +804,8 @@ suite('BTS / actual FastAPI / native Chrome speech integration', function() {
             await until(() => devtools.evaluate('window.__inventoryTracked.textContent.includes(\'Aktualisierter Volltext\')'));
             assert(await devtools.evaluate('window.__inventoryTracked.isConnected && window.__inventoryTracked.querySelector(\'.speech_inventory_dependencies\').open'),
                 'same-count plan changes must update the existing row while retaining its expanded components');
+            await click(selector + ' .speech_inventory_reset');
+            await until(() => devtools.evaluate('document.querySelector(' + JSON.stringify(selector) + ').dataset.coverageGroup === "all" && document.querySelector(' + JSON.stringify(selector) + ').querySelectorAll(\'.speech_inventory_item\').length > 0'));
         } finally {
             admin.handle_speech_inventory = original;
             await devtools.evaluate('window.__restoreInventoryMethods?.()');
