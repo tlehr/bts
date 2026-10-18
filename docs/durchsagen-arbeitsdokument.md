@@ -1103,8 +1103,9 @@ in eine gemeinsame, vom Browser und Backend verwendbare Text-/Bausteinplanung
 überführt werden. Der Browserwortlaut bleibt dabei die Referenz. Angeforderte
 Aufrufe werden sofort vervollständigt; weitere Vorarbeit richtet sich nach den
 aktiven Anmeldedisziplinen und den noch offenen Personen. Weiterer Vorrat kommt
-erst im Leerlauf. Ergänzende Festlegung: Solange noch keine Disziplin ausgelost
-ist, hat die Anmeldevorarbeit Vorrang vor Feldgrundbestand und Spielvorrat.
+erst im Leerlauf. Ergänzende Festlegung: Spielort- und feldabhängige gemeinsame
+Bausteine werden zuerst vorbereitet. Danach hat die Anmeldevorarbeit Vorrang
+vor Spielvorrat, solange noch keine Disziplin ausgelost ist.
 Ab der ersten ausgelosten Disziplin gilt die Reihenfolge für den Spielbetrieb
 aus Abschnitt 24. Tatsächlich ausgelöste Aufrufe behalten ihren sofortigen Vorrang.
 Bereits fertig erzeugte Aufnahmen bleiben im dauerhaften Cache. Das ist noch
@@ -1265,7 +1266,8 @@ chronologischen Position eines Spiels in der Grafik:
 | --- | --- | --- |
 | 1 | Tatsächlich ausgelöste Durchsage mit fehlendem Audio | Auslösereihenfolge; einschließlich Anmeldung, freier Ansagen und Kampflos-Mitteilungen |
 | 2 | Ausdrücklich angeforderte Hörprobe oder Sprachtest | Nach wartenden echten Durchsagen |
-| Vor erster Auslosung | Anmeldevorarbeit, solange noch keine Disziplin ausgelost ist | Vor Feldgrundbestand und Spielvorrat; echte Aufrufe und angeforderte Hörproben bleiben vorrangig |
+| Vorarbeit zuerst | Gemeinsame spielort- und feldabhängige Bausteine | Vor Anmeldevorarbeit, unabhängig von der Auslosung; echte Aufrufe und Hörproben bleiben vorrangig |
+| Vor erster Auslosung | Anmeldevorarbeit, solange noch keine Disziplin ausgelost ist | Nach Orts-/Feldbausteinen, vor Spielvorrat |
 | 3 | Auf das Feld gerufene und laufende Spiele | Zeitpunkt des Feldaufrufs, ältester zuerst |
 | 4 | Spiele in Vorbereitung | Zeitpunkt des Vorbereitungsaufrufs, ältester zuerst |
 | 5 | Aufrufkandidaten, nur im Leerlauf | Kandidatenreihenfolge |
@@ -1282,19 +1284,28 @@ Teams liefern bereits wiederverwendbare Namen für eine spätere Tabletbedienung
 Ein direkter Feldaufruf darf die Vorbereitungsphase überspringen. B02 entfällt,
 solange kein Feld zugewiesen ist.
 
-Solange noch keine Disziplin ausgelost ist, hat die Anmeldevorarbeit Vorrang
-vor Feldgrundbestand und Spielvorrat. Diese Bedingung gilt für das gesamte Turnier:
+Die Vorarbeit beginnt unabhängig von der Auslosung mit den gemeinsamen
+spielort- und feldabhängigen Bausteinen. Sie werden für alle eingerichteten
+Spielorte und Felder vorbereitet: zuerst B01-Anfang und -Ende je Feld, danach
+B02 „Für Spielfeld …!“ je Feld, anschließend die tatsächlich verwendeten
+Hallen-/Vorbereitungszusätze und Treffpunkttexte. Benötigte Einzahl- und
+Mehrzahlformen richten sich nach den vorhandenen Location-Einstellungen;
+leere oder ausgeschaltete Treffpunkte erzeugen keine zusätzlichen Ortsvarianten.
+Gleiche gesprochene Texte teilen ihre Aufnahme. Es entstehen keine
+vollständigen Spielaufrufe je Feld oder Ort. Fertige Bausteine werden beim
+Aufruf mit den Spiel- und Namensstücken zusammengesetzt.
+
+Danach hat die Anmeldevorarbeit Vorrang vor Spielvorrat, solange noch keine
+Disziplin ausgelost ist. Diese Bedingung gilt für das gesamte Turnier:
 Sobald mindestens eine Disziplin ausgelost ist, entfällt dieser besondere Vorrang
 und die Reihenfolge für den Spielbetrieb greift. Tatsächlich ausgelöste
 Anmeldeaufrufe haben unabhängig vom Turnierfortschritt stets Priorität 1;
 ausdrücklich angeforderte Hörproben behalten Priorität 2.
 
-Bei leerem Cache beginnt der anschließend vorbereitete Grundbestand mit B01-Anfang und -Ende für alle
-Felder, danach B12 „Bitte mit dem Spielen beginnen!“ einmal und B02 „Für
-Spielfeld …!“ für alle Felder. Ein tatsächlicher Aufruf mit fehlendem Audio
-hat auch während dieser Vorbereitung Vorrang. Gemeinsame Texte werden beim
-ersten Bedarf geteilt. Ist die vorrangige Anmeldevorarbeit bereits fertig,
-kann dieser Grundbestand auch vor der ersten Auslosung vorbereitet werden.
+Ortsunabhängige gemeinsame Texte wie B12 „Bitte mit dem
+Spielen beginnen!“ werden beim ersten Bedarf einmal vorbereitet und geteilt;
+sie verzögern nicht die vorrangigen Orts-/Feldbausteine. Tatsächlich ausgelöste
+Durchsagen mit fehlendem Audio haben auch während der gesamten Vorarbeit Vorrang.
 
 Vor jedem Auftrag werden vorhandene Quellen und Wiedergabestücke geprüft.
 Eine vorhandene Quelle braucht höchstens fehlende Ausschnitte oder Aufbereitung;
