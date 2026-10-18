@@ -878,3 +878,18 @@ vorhandene Aufnahme mit Seed 43. Anfang und Abschluss stammen weiterhin jeweils
 aus derselben Kontextaufnahme. Der aktuelle Hörstand steht unter
 `http://127.0.0.1:8084/vorbereitung-abschluss/`; der vorherige Stand bleibt als
 Vergleich unter `/vorbereitung-pausen-alt/` erhalten.
+
+## 17. Pegelabgleich je Baustein
+
+Der aktuelle Hörstand gleicht jeden Wiedergabebaustein vor dem Zusammensetzen
+nach EBU-R128-Lautheit ab. Der Hallensprecher verwendet −23 LUFS, die Hallensprecherin
+erhält mit −22 LUFS eine zusätzliche Anhebung um 1 dB. Die True-Peak-Obergrenze
+liegt bei −1,5 dBTP. Die fertige Montage erhält keinen erneuten RMS-Abgleich,
+damit die Abstimmung der Bausteine und Stimmen bestehen bleibt.
+
+Der Abgleich verändert ausschließlich die Verstärkung der Wiedergabekopien.
+Schnittpositionen, Tempo, Pausen und Kontextquellen bleiben erhalten. Die
+Einzelproben verwenden dieselben Pegel wie die Teile der zusammengesetzten Ansage.
+Die aktuellen Proben samt Vorher-/Nachher-Vergleich stehen weiterhin unter
+`http://127.0.0.1:8084/vorbereitung-abschluss/`. Der vorherige Pegelstand ist unter
+`/vorbereitung-pegel-alt/` archiviert. Es ist keine neue Sprachgenerierung nötig.
