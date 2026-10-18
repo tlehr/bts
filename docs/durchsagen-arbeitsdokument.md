@@ -841,15 +841,23 @@ ausgeschaltet oder der zugehörige Treffpunkttext leer ist. Ein nichtleerer akti
 Treffpunkt wird weiterhin verwendet. Gezielt ausgelöste Zweitaufrufe sind eigene
 Vorlagen und werden durch diese Änderung nicht umgeschrieben.
 
-`http://127.0.0.1:8084/vorbereitung-abschluss/` vergleicht den bisherigen und den
-neuen Abschluss mit beiden Stimmen. Je Stimme liefert eine neue vollständige
-Kontextaufnahme den Abschlussausschnitt:
+`http://127.0.0.1:8084/vorbereitung-abschluss/` vergleicht die bisherige und die
+korrigierte Montage mit beiden Stimmen. Eine vollständige Kontextaufnahme je
+Stimme liefert beide Ausschnitte für Anfang und Abschluss:
 
 ```text
 In Vorbereitung! Spielnummer einhunderteinundsechzig. Jungen Einzel U siebzehn. Achtelfinale! Muhammad Sytsh Abdulquddus gegen Max Hahn. Das Spiel ist in Vorbereitung!
 ```
 
-Die Montage verwendet den vorhandenen Anfang mit `!`, den bereits bestätigten
-Spielblock und den neuen Abschluss. Der Vergleich verändert ausschließlich den
-letzten Baustein. Originale und Schnittstellen sind auf der Hörseite sichtbar.
-Die Klangabnahme ist offen. Die Änderung liegt im v2-Experimentierbranch.
+Die Montage verwendet Anfang und Abschluss aus derselben vollständigen
+Kontextaufnahme sowie den bereits bestätigten Spielblock. Eine Quellaufnahme je
+Stimme liefert beide Ausschnitte.
+Die Quelle lag bereits im Cache: Für diese Korrektur musste nur der Anfang neu
+ausgeschnitten werden, ohne weitere Sprachgenerierung.
+
+Der vorherige Versuch hatte für den Vergleich nur den Schluss ersetzt und den
+Anfang aus einer älteren Kontextaufnahme übernommen. Er bleibt unter
+`/vorbereitung-abschluss-getrennt/` als früherer Vergleich erhalten. Die aktuelle
+Hörseite vergleicht diese Montage mit der korrigierten gemeinsamen Quelle.
+Originale und Schnittstellen sind sichtbar. Die Klangabnahme ist offen;
+die Änderung liegt im v2-Experimentierbranch.
