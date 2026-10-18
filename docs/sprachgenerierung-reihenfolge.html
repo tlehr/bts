@@ -135,7 +135,8 @@ oncourt:{title:'Auf dem Feld: benötigter Bestand mit Priorität 3',tag:'Nach de
 finished:{title:'Abgeschlossen: Spielbedarf entfernen, Aufnahmen behalten',tag:'Kein weiterer Vorrat für das abgeschlossene Spiel',text:'Nicht mehr benötigte, noch nicht gestartete Aufgaben dieses Spiels entfallen, sofern keine andere Durchsage sie weiterhin benötigt. Fertige Quellen und Bausteine bleiben dauerhaft gespeichert. Ein laufender Serverauftrag wird fertiggestellt.',example:'Die Personen oder Teams können später als Tabletbediener gebraucht werden. Ihre vorhandenen Aufnahmen werden dann wiederverwendet; ein neuer Auftrag richtet sich nach der neuen Zuordnung und ihrem aktuellen Bedarf.'}
 };
 const svg=document.querySelector('#overview');
-function select(state){
+function select(state,fromLive=false){
+ if(svg.classList.contains('automatic')&&!fromLive)return;
  const item=explanations[state]||explanations.all;
  document.querySelector('#detail-title').textContent=item.title;document.querySelector('#detail-tag').textContent=item.tag;
  document.querySelector('#detail-text').textContent=item.text;document.querySelector('#detail-example').textContent=item.example;
@@ -145,6 +146,7 @@ function select(state){
  svg.querySelectorAll('[data-panel]').forEach(g=>g.classList.toggle('dimmed',state!=='all'&&g.dataset.panel!==relevant));
  document.querySelector('#detail').style.borderColor=state==='finished'?'#2563eb':['planned','candidate'].includes(state)?'#64748b':'#15803d';
 }
+window.btsSpeechPlanningDiagram={select:state=>select(state,true)};
 document.querySelectorAll('[data-select]').forEach(b=>b.addEventListener('click',()=>select(b.dataset.select)));
 svg.querySelectorAll('.phase').forEach(g=>{g.setAttribute('tabindex','0');g.setAttribute('role','button');g.setAttribute('aria-label',explanations[g.dataset.state].title);g.addEventListener('click',()=>select(g.dataset.state));g.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();select(g.dataset.state);}});});
 document.querySelector('#download').onclick=()=>{const copy=svg.cloneNode(true);copy.querySelectorAll('.dimmed,.active').forEach(g=>g.classList.remove('dimmed','active'));const blob=new Blob([new XMLSerializer().serializeToString(copy)],{type:'image/svg+xml;charset=utf-8'});const url=URL.createObjectURL(blob);const link=document.createElement('a');link.href=url;link.download='bts-sprachgenerierung-reihenfolge.svg';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};

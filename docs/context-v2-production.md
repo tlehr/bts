@@ -116,7 +116,13 @@ und können sich bei Änderungen am Turnier ändern.
 Die Seite liest den vorhandenen Plan und die Warteschlange; sie legt keine
 zusätzlichen Sprachaufträge an. Bei Verbindungsverlust werden die aktuellen
 Markierungen entfernt und die Verbindung automatisch wiederhergestellt.
-Die bisherigen manuellen Spielzustandsfilter und der Grafikexport bleiben verfügbar.
+Der Grafikexport bleibt verfügbar.
+Die Grafik folgt standardmäßig der aktuellen Aufgabe: Der passende Spielzustand
+wird gewählt, der Arbeitsbereich hervorgehoben und andere Bereiche abgeblendet.
+Ortsbausteine, Anmeldung, Offizielle und weitere übergreifende Aufgaben bleiben
+in der Gesamtübersicht sichtbar. Ohne aktuelle oder nächste Aufgabe sowie bei
+Verbindungsverlust wechselt die Automatik zurück zur Gesamtübersicht.
+Die Zustandswahl in der Live-Grafik erfolgt vollständig automatisch.
 
 ## Fehler und Wiederholungen
 

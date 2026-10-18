@@ -1049,6 +1049,84 @@ suite('BTS / actual FastAPI / native Chrome speech integration', function() {
         }
     });
 
+    it('automatically follows generation stages without manual selection and resets on idle or disconnect', async function() {
+        const { STAGES } = require('../bts/speech/planning_status');
+        const original = admin.handle_speech_planning;
+        const response = { title: 'Automatische Sprachplanung', voice: 'hallensprecher', phase: 'competition',
+            games: { oncourt: 1, preparation: 1, candidate: 1, planned: 1, finished: 0 }, state: 'working',
+            active_stage: 'oncourt', current: { text: 'Aktuelle Aufnahme', running: true },
+            total: { ready: 0, queued: STAGES.length, total: STAGES.length },
+            stages: STAGES.map(([id, label, node]) => ({ id, label, node, ready: 0, queued: 1, total: 1 })) };
+        let targetId, socket, sequence = 0;
+        admin.handle_speech_planning = (_app, ws, msg) => {
+            ws.speech_planning_test = true;
+            ws.respond(msg, null, { planning: { ...response, updated_at: ++sequence } });
+        };
+        try {
+            ({ targetId } = await devtools.call('Target.createTarget', { url: 'about:blank' }));
+            const page = (await (await fetch('http://' + devtoolsHost + '/json/list')).json()).find(page => page.id === targetId);
+            socket = new WebSocket(page.webSocketDebuggerUrl);
+            await new Promise(resolve => socket.once('open', resolve));
+            const live = new CDP(socket);
+            await live.call('Runtime.enable');
+            await live.call('Page.bringToFront');
+            await live.call('Emulation.setDeviceMetricsOverride', { width: 1340, height: 1500, deviceScaleFactor: 1, mobile: false });
+            await live.call('Page.addScriptToEvaluateOnNewDocument', { source:
+                'const interval = window.setInterval.bind(window); window.setInterval = (fn, ms, ...args) => interval(fn, ms === 2000 ? 100 : ms, ...args);' });
+            await live.call('Page.navigate', { url: 'http://127.0.0.1:' + server.address().port + '/admin/t/default/speech-planning/' });
+            const view = () => live.evaluate('(() => { const svg = document.querySelector(\'#overview\'); return {' +
+                'stage:svg?.dataset.followStage, phase:svg?.querySelector(\'.phase.active\')?.dataset.state || \'all\', ' +
+                'auto:svg?.classList.contains(\'automatic\'), following:svg?.classList.contains(\'live-follow\'), ' +
+                'updated:document.querySelector(\'.speech_plan_live\')?.dataset.updatedAt, ' +
+                'label:document.querySelector(\'.speech_plan_follow_status\')?.textContent}; })()');
+            await until(async () => (await view()).stage === 'oncourt');
+            assert.strictEqual(await live.evaluate('document.querySelectorAll(\'.toolbar,[data-select],#speech-plan-auto-follow,.phase[tabindex],.phase[role="button"]\').length'), 0);
+            for (const [id, , node] of STAGES.filter(([, , node]) => node)) {
+                response.active_stage = id;
+                await until(async () => (await view()).stage === id);
+                const current = await view();
+                assert.strictEqual(current.phase, ['oncourt', 'preparation', 'candidate', 'planned'].includes(id) ? id : 'all');
+                assert(current.auto && current.following);
+                assert.strictEqual(await live.evaluate('(() => { let opacity = 1, node = document.getElementById(' + JSON.stringify(node) + '); ' +
+                    'while(node && node.id !== \'overview\') {opacity *= Number(getComputedStyle(node).opacity); node = node.parentElement;} return opacity; })()'), 1);
+            }
+            assert(Number(await live.evaluate('getComputedStyle(document.getElementById(\'running-priority\')).opacity')) < 0.5);
+            await live.evaluate('window.__followChanges = 0; window.__followObserver = new MutationObserver(records => window.__followChanges += records.length); ' +
+                'window.__followObserver.observe(document.getElementById(\'overview\'), {attributes:true, attributeFilter:[\'class\',\'data-follow-stage\']})');
+            const unchanged = Number((await view()).updated);
+            await until(async () => Number((await view()).updated) >= unchanged + 2);
+            assert.strictEqual(await live.evaluate('window.__followChanges'), 0, 'unchanged updates must not reset the focus');
+            await live.evaluate('window.__followObserver.disconnect()');
+            response.active_stage = 'oncourt';
+            await until(async () => (await view()).stage === 'oncourt');
+            await live.evaluate('document.querySelector(\'.phase[data-state="preparation"]\').dispatchEvent(new MouseEvent(\'click\', {bubbles:true}))');
+            await live.evaluate('document.querySelector(\'.phase[data-state="candidate"]\').dispatchEvent(new KeyboardEvent(\'keydown\', {key:\'Enter\',bubbles:true}))');
+            assert.strictEqual((await view()).phase, 'oncourt');
+            assert((await view()).auto && (await view()).following);
+            response.active_stage = null; response.current = null; response.state = 'complete';
+            await until(async () => !(await view()).following);
+            assert.strictEqual((await view()).phase, 'all');
+            assert.strictEqual((await view()).auto, true);
+            response.active_stage = 'preparation'; response.state = 'waiting'; response.current = { text: 'Nächste Aufnahme', running: false };
+            await until(async () => (await view()).stage === 'preparation');
+            assert((await view()).label.startsWith('Als Nächstes:'));
+            if (process.env.BTS_SPEECH_FOLLOW_SCREENSHOT) {
+                const shot = await live.call('Page.captureScreenshot', { format: 'png', captureBeyondViewport: true });
+                fs.writeFileSync(process.env.BTS_SPEECH_FOLLOW_SCREENSHOT, Buffer.from(shot.data, 'base64'));
+            }
+            for (const ws of app.wss.clients) if (ws.speech_planning_test) ws.close();
+            await until(async () => !(await view()).following);
+            assert.strictEqual((await view()).phase, 'all');
+            await until(async () => (await view()).stage === 'preparation');
+            assert.deepStrictEqual(live.events.filter(event => event.method === 'Runtime.exceptionThrown'), []);
+        } finally {
+            admin.handle_speech_planning = original;
+            socket?.close();
+            if (targetId) await devtools.call('Target.closeTarget', { targetId });
+            await devtools.call('Page.bringToFront');
+        }
+    });
+
     it('keeps shared audio green and plays it after BTS adapter restart with the actual FastAPI process stopped', async function() {
         app.speech.stop();
         await until(async () => {
