@@ -232,7 +232,10 @@ Der Planer `scripts/tts-official-name-plan.js` erhält einen vorhandenen v2-Plan
 und explizite Aufträge mit `setup.umpire.name` / `setup.service_judge.name`.
 Er normalisiert Namen wie der Spielerplan, fasst gleiche gesprochene Namen
 rollenübergreifend zusammen und übernimmt vorhandene passende Stücke unverändert.
-Er bereitet keine gesamte Offiziellenliste vor. Leere Zuordnungen und „kein Spiel“
+Dieser Laborplan bereitet bislang keine gesamte Offiziellenliste automatisch vor.
+Für die spätere BTS-Einbindung ist in Abschnitt 5.0.7 die Vorbereitung aller
+bekannten technischen Offiziellen auf Priorität 5 festgelegt, auch ohne
+Spielzuordnung. Leere Zuordnungen und „kein Spiel“
 enthalten keine Namensaufträge. Aus Doppelteams werden keine Einzelpersonen
 herausgeschnitten; ein nur im Doppel vorhandener Offizieller erhält bei Bedarf
 seine eigene Einzelnamensquelle.
@@ -425,11 +428,16 @@ angesetzte Spiel nach BTS-Spielplan die Disziplinreihenfolge. Ohne Ansetzung
 folgt die Disziplin innerhalb ihrer Gruppe in stabiler vorhandener Reihenfolge.
 Sobald mindestens eine Disziplin ausgelost ist, greift die Reihenfolge für den
 Spielbetrieb: laufende und vorbereitete Spiele sowie ihre wahrscheinlichen
-Tabletbediener stehen vorne. Nach Aufrufkandidaten und weiteren bereits
-angesetzten Spielen kommt im Leerlauf auf Stufe 7 die Anmelde-/Auslosungsvorarbeit
+Tabletbediener stehen vorne. Zwischen Spielen in Vorbereitung und Aufrufkandidaten
+werden auf Priorität 5 alle bekannten technischen Offiziellen vorbereitet,
+auch noch nicht zugeordnete Personen. Namen werden einmal mit den vorhandenen
+Kontexten erzeugt oder aus dem Cache übernommen und rollenübergreifend geteilt.
+Gemeinsame Rollenstücke werden ebenfalls vorbereitet. Aufrufkandidaten folgen
+auf Stufe 6, weitere bereits angesetzte Spiele auf 7. Danach kommt im Leerlauf
+auf Stufe 8 die Anmelde-/Auslosungsvorarbeit
 weiterer Disziplinen. Deren bekannte Namen-/Teamstücke werden zugleich für
 Tabletansagen verwendet. Erst danach folgen zusätzlicher Tablet-Vorrat und
-übrige Personen auf Stufen 8 und 9. Unbekannte Paarungen werden nicht ergänzt;
+übrige Personen auf Stufen 9 und 10. Unbekannte Paarungen werden nicht ergänzt;
 die Sprachvorbereitung führt keine Auslosung oder Bedienerzuweisung aus.
 Tatsächlich ausgelöste Turnierdurchsagen haben
 Priorität 1. Der Sprachtest hat immer Priorität 2, unabhängig von einer Anforderung:

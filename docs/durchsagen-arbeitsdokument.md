@@ -1289,11 +1289,12 @@ chronologischen Position eines Spiels in der Grafik:
 | Vor erster Auslosung | Anmeldevorarbeit, solange noch keine Disziplin ausgelost ist | Nach Orts-/Feldbausteinen, vor Spielvorrat; allgemeine Teile zuerst, danach geöffnete/weiter fortgeschrittene Disziplinen vor noch nicht geöffneten; je Gruppe Landesverbände → Vereine → Spieler/Paarungen |
 | 3 | Auf das Feld gerufene und laufende Spiele | Zeitpunkt des Feldaufrufs, ältester zuerst |
 | 4 | Spiele in Vorbereitung | Zeitpunkt des Vorbereitungsaufrufs, ältester zuerst |
-| 5 | Aufrufkandidaten, nur im Leerlauf | Kandidatenreihenfolge |
-| 6 | Weitere nicht zugewiesene Spiele, nur im Leerlauf | Reihenfolge im BTS-Spielplan |
-| 7 | Anmelde-/Auslosungsvorarbeit weiterer Disziplinen, ab erster Auslosung nur im Leerlauf | Vor zusätzlichem Tablet-Vorrat; geöffnete/fortgeschrittene Disziplinen bevorzugen, innerhalb der Gruppen nach frühester vorhandener Spielansetzung; Namen auch für Tabletansagen teilen |
-| 8 | Zusätzlicher Tablet-Vorrat: übrige Teams laufender Disziplinen, nur im Leerlauf | Nach weiterer Disziplinvorbereitung; Teams mit bekanntem nächstem Spiel zuerst |
-| 9 | Übrige bekannte Personen, Teams und Offizielle, nur im Leerlauf | Letzter Vorrat; keine unbekannten Paarungen ergänzen |
+| 5 | Alle bekannten technischen Offiziellen | Nach Spielen in Vorbereitung, vor Aufrufkandidaten; Namen und gemeinsame Rollenstücke auch ohne Spielzuordnung vorbereiten |
+| 6 | Aufrufkandidaten, nur im Leerlauf | Kandidatenreihenfolge |
+| 7 | Weitere nicht zugewiesene Spiele, nur im Leerlauf | Reihenfolge im BTS-Spielplan |
+| 8 | Anmelde-/Auslosungsvorarbeit weiterer Disziplinen, ab erster Auslosung nur im Leerlauf | Vor zusätzlichem Tablet-Vorrat; geöffnete/fortgeschrittene Disziplinen bevorzugen, innerhalb der Gruppen nach frühester vorhandener Spielansetzung; Namen auch für Tabletansagen teilen |
+| 9 | Zusätzlicher Tablet-Vorrat: übrige Teams laufender Disziplinen, nur im Leerlauf | Nach weiterer Disziplinvorbereitung; Teams mit bekanntem nächstem Spiel zuerst |
+| 10 | Übrige bekannte Personen und Teams, nur im Leerlauf | Letzter Vorrat; keine unbekannten Paarungen ergänzen |
 
 Spiele in Vorbereitung und auf dem Feld gehören ab ihrem tatsächlichen Aufruf
 vollständig zum benötigten Bestand. Kandidaten, spätere Spiele und weitere
@@ -1311,6 +1312,19 @@ Aufrufkandidaten behalten ihre frühere Stufe vor späterem Spielvorrat. Bloß
 irgendwann mögliche weitere Personen werden dadurch nicht sofort zu benötigter
 Arbeit; deren Vorrat folgt erst nach der weiteren Disziplinvorbereitung.
 
+**Alle bekannten technischen Offiziellen werden auf Priorität 5 vorbereitet,**
+unmittelbar nach Spielen in Vorbereitung und vor Aufrufkandidaten. Das umfasst
+die vollständige bekannte Offiziellenliste, auch Personen ohne Spielzuordnung.
+Benötigt werden ihre vollständigen Namensstücke und die zugehörigen gemeinsamen
+Rollenstücke, insbesondere für Schiedsrichter und Aufschlagrichter. Die
+vorhandenen Namen-/Rollenkontexte und Qualitätsregeln gelten weiter. Ein Name
+wird rollen- und spielübergreifend geteilt; passende Spieler- oder
+Offiziellenaufnahmen aus dem Cache werden wiederverwendet. Unzugeordnete
+Offizielle warten damit nicht auf den letzten Personen-Vorrat. Bereits für eine
+konkrete vorrangige Durchsage benötigte Offizielle bleiben Bestandteil dieses
+Aufrufs. Die breitere Vorbereitung der Offiziellenliste macht nicht sämtliche
+Spieler zu benötigten möglichen Tabletbedienern.
+
 Die Vorarbeit beginnt unabhängig von der Auslosung mit den gemeinsamen
 spielort- und feldabhängigen Bausteinen. Sie werden für alle eingerichteten
 Spielorte und Felder vorbereitet: zuerst B01-Anfang und -Ende je Feld, danach
@@ -1327,8 +1341,10 @@ Disziplin ausgelost ist. Diese Bedingung gilt für das gesamte Turnier:
 Sobald mindestens eine Disziplin ausgelost ist, entfällt dieser besondere Vorrang
 und die Reihenfolge für den Spielbetrieb greift. Laufende und vorbereitete Spiele
 samt wahrscheinlichen Tabletbedienern stehen dann vor weiterer Anmelde- oder
-Auslosungsvorarbeit. Diese folgt im Leerlauf auf Stufe 7, vor dem zusätzlichen
-Tablet-Vorrat der Stufen 8 und 9. Tatsächlich ausgelöste
+Auslosungsvorarbeit. Alle bekannten technischen Offiziellen werden nach Spielen
+in Vorbereitung auf Stufe 5 vorbereitet, vor Aufrufkandidaten auf Stufe 6.
+Die weitere Disziplinvorbereitung folgt im Leerlauf auf Stufe 8, vor dem
+zusätzlichen Tablet-Vorrat und übrigen Personen der Stufen 9 und 10. Tatsächlich ausgelöste
 Anmeldeaufrufe haben unabhängig vom Turnierfortschritt stets Priorität 1;
 der Sprachtest hat immer Priorität 2, auch ohne Anforderung. Ausdrücklich
 angeforderte Hörproben gehören ebenfalls zu Priorität 2.
@@ -1373,10 +1389,10 @@ Aufrufzeit laufender Spiele und der Vorbereitungszeitpunkt vorbereiteter Spiele
 bleiben für deren vorrangige Stufen 3 und 4 maßgeblich.
 
 **Ab der ersten Auslosung: weitere Disziplinen vor zusätzlichem Tablet-Vorrat.**
-Auf Stufe 7 werden die noch fehlenden Sprachbausteine für weitere Anmeldungen
+Auf Stufe 8 werden die noch fehlenden Sprachbausteine für weitere Anmeldungen
 und Auslosungen vorbereitet. Dazu gehören die allgemeinen Anmeldeteile und
 bekannten Bezeichnungen in der festgelegten Reihenfolge sowie die bereits
-bekannten Spielangaben und Teams der Disziplin. Bereits unter Stufe 5 oder 6
+bekannten Spielangaben und Teams der Disziplin. Bereits unter Stufe 6 oder 7
 abgedeckte Teile werden wiederverwendet. Bekannte Teams können mit ihrem
 vereinbarten Namenskontext auch ohne bekannten nächsten Gegner erzeugt werden;
 unbekannte Paarungen werden nicht ergänzt. „Auslosung vorbereiten“ bezeichnet

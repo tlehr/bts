@@ -19,7 +19,7 @@ je kleiner, desto früher. Klicke auf einen Spielzustand, um seine Aufgaben herv
 <div class="diagram">
 <svg id="overview" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 1346" role="img" aria-labelledby="diagram-title diagram-desc">
 <title id="diagram-title">Generierungsreihenfolge abhängig vom Spielzustand</title>
-<desc id="diagram-desc">Ausgelöste Turnierdurchsagen haben Priorität eins, der Sprachtest immer Priorität zwei. Nach gemeinsamen Orts- und Feldstücken hat vor der ersten Auslosung die Anmeldevorarbeit Vorrang. Ab der ersten Auslosung kommen laufende und vorbereitete Spiele samt wahrscheinlichen Tabletbedienern zuerst. Im Leerlauf nach weiteren bereits angesetzten Spielen folgt auf Priorität sieben die Sprachvorbereitung weiterer Disziplinen und Auslosungen vor zusätzlichem Tablet-Vorrat. Ihre Namen werden für Tabletansagen geteilt. Die Anmeldevorarbeit beginnt mit allgemeinen Teilen, bevorzugt dann geöffnete oder weiter fortgeschrittene Disziplinen vor noch nicht geöffneten und ordnet diese nach vorhandenen Spielansetzungen. Je Gruppe kommen Landesverbände, Vereine und zuletzt offene Spieler oder Paarungen. Fertiges Audio bleibt gespeichert.</desc>
+<desc id="diagram-desc">Ausgelöste Turnierdurchsagen haben Priorität eins, der Sprachtest immer Priorität zwei. Nach gemeinsamen Orts- und Feldstücken hat vor der ersten Auslosung die Anmeldevorarbeit Vorrang. Ab der ersten Auslosung kommen laufende und vorbereitete Spiele samt wahrscheinlichen Tabletbedienern zuerst. Danach werden alle bekannten technischen Offiziellen auch ohne Spielzuordnung auf Priorität fünf vorbereitet, vor Aufrufkandidaten auf Priorität sechs. Im Leerlauf nach weiteren angesetzten Spielen folgt auf Priorität acht die Sprachvorbereitung weiterer Disziplinen und Auslosungen vor zusätzlichem Tablet-Vorrat. Ihre Namen werden für Tabletansagen geteilt. Die Anmeldevorarbeit beginnt mit allgemeinen Teilen, bevorzugt geöffnete oder weiter fortgeschrittene Disziplinen und ordnet sie nach Spielansetzungen. Je Gruppe kommen Landesverbände, Vereine und zuletzt offene Spieler oder Paarungen. Fertiges Audio bleibt gespeichert.</desc>
 <defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0L8 4L0 8Z" fill="#8799a8"/></marker></defs>
 <style>
 text{font-family:system-ui,sans-serif;fill:#163047} .title{font-size:23px;font-weight:750}.body{font-size:18px}.small{font-size:16px;fill:#536b7d}.label{font-size:14px;font-weight:750;letter-spacing:.5px}.rank{font-size:20px;font-weight:800}.urgent{fill:#fff3df;stroke:#db8b20;stroke-width:1.5}.state{fill:#f3f5f7;stroke:#c4d0d9;stroke-width:1.5}.need{fill:#edf8ef;stroke:#86b894;stroke-width:1.5}.cache{fill:#edf4fd;stroke:#9ebae1;stroke-width:1.5}.reserve{fill:#f3f5f7;stroke:#bfcbd4;stroke-width:1.5}.base{fill:#f5f0ff;stroke:#b9a4de;stroke-width:1.5}.line{fill:none;stroke:#8799a8;stroke-width:2;marker-end:url(#arrow)}.phase{cursor:pointer}.phase:hover rect,.phase.active rect{stroke:#163047;stroke-width:3}.dimmed{opacity:.3}.focus{stroke:#163047;stroke-width:3}.divider{stroke:#d8e2e9;stroke-width:1}.pill{fill:#fff;stroke:#d8e2e9;stroke-width:1}.green{fill:#166534}.blue{fill:#1d4ed8}.orange{fill:#a6550a}
@@ -43,7 +43,7 @@ text{font-family:system-ui,sans-serif;fill:#163047} .title{font-size:23px;font-w
 <text x="40" y="358" class="title">Danach, vor der ersten Auslosung: Anmeldevorarbeit</text>
 <text x="40" y="387" class="small">Solange keine Disziplin ausgelost ist, vor Spielvorrat. Ausgelöste Turnieransagen und der Sprachtest bleiben vorrangig.</text>
 <text id="registration-order" x="40" y="419" class="body" font-weight="700">Allgemeine Teile → offene Landesverbände → offene Vereine → offene Spieler / Paarungen</text>
-<text x="40" y="451" class="small">Geöffnete / fortgeschrittene Disziplinen zuerst, darin nach erster Spielansetzung; je Gruppe obige Reihenfolge. Ab erster Auslosung: Stufe 7.</text>
+<text x="40" y="451" class="small">Geöffnete / fortgeschrittene Disziplinen zuerst, darin nach erster Spielansetzung; je Gruppe obige Reihenfolge. Ab erster Auslosung: Stufe 8.</text>
 </g>
 <g transform="translate(0 288)">
 <text x="22" y="217" class="label">FORTSCHRITT EINES SPIELS →</text>
@@ -51,10 +51,10 @@ text{font-family:system-ui,sans-serif;fill:#163047} .title{font-size:23px;font-w
 <rect x="545" y="216" width="154" height="24" fill="white"/>
 <text x="554" y="234" class="small">Direktaufruf möglich</text>
 <g class="phase" data-state="planned"><rect x="18" y="253" width="234" height="119" rx="12" class="state"/>
-<text x="36" y="286" class="title">Spiel geplant</text><text x="36" y="314" class="body">Noch nicht zugewiesen</text><text x="36" y="346" class="label">VORRAT · PRIORITÄT 6</text></g>
+<text x="36" y="286" class="title">Spiel geplant</text><text x="36" y="314" class="body">Noch nicht zugewiesen</text><text x="36" y="346" class="label">VORRAT · PRIORITÄT 7</text></g>
 <path d="M253 311H267" class="line"/>
 <g class="phase" data-state="candidate"><rect x="270" y="253" width="234" height="119" rx="12" class="state"/>
-<text x="288" y="286" class="title">Aufrufkandidat</text><text x="288" y="314" class="body">Bald an der Reihe</text><text x="288" y="346" class="label">VORRAT · PRIORITÄT 5</text></g>
+<text x="288" y="286" class="title">Aufrufkandidat</text><text x="288" y="314" class="body">Bald an der Reihe</text><text x="288" y="346" class="label">VORRAT · PRIORITÄT 6</text></g>
 <path d="M505 311H519" class="line"/>
 <g class="phase" data-state="preparation"><rect x="522" y="253" width="234" height="119" rx="12" class="need"/>
 <text x="540" y="286" class="title">In Vorbereitung</text><text x="540" y="314" class="body">Vorbereitung gerufen</text><text x="540" y="346" class="label green">BENÖTIGT · PRIORITÄT 4</text></g>
@@ -68,24 +68,24 @@ text{font-family:system-ui,sans-serif;fill:#163047} .title{font-size:23px;font-w
 <g data-panel="reserve"><rect x="18" y="408" width="486" height="468" rx="14" class="reserve"/>
 <text x="40" y="444" class="title">Nur wenn sonst keine Arbeit wartet</text>
 <text x="40" y="471" class="small">Vorrat: erst im Leerlauf in die Auftragsliste aufnehmen</text>
-<text x="40" y="516" class="rank">5</text><text x="76" y="516" class="body" font-weight="700">Aufrufkandidaten</text>
+<text x="40" y="516" class="rank">6</text><text x="76" y="516" class="body" font-weight="700">Aufrufkandidaten</text>
 <text x="76" y="541" class="small">Nach ihrer Kandidatenreihenfolge</text>
 <line x1="40" y1="560" x2="482" y2="560" class="divider"/>
-<text x="40" y="589" class="rank">6</text><text x="76" y="589" class="body" font-weight="700">Weitere nicht zugewiesene Spiele</text>
+<text x="40" y="589" class="rank">7</text><text x="76" y="589" class="body" font-weight="700">Weitere nicht zugewiesene Spiele</text>
 <text x="76" y="614" class="small">Nach der Reihenfolge im BTS-Spielplan</text>
 <line x1="40" y1="633" x2="482" y2="633" class="divider"/>
-<text x="40" y="662" class="rank">7</text><text x="76" y="662" class="body" font-weight="700">Weitere Disziplinen / Auslosungen</text>
+<text x="40" y="662" class="rank">8</text><text x="76" y="662" class="body" font-weight="700">Weitere Disziplinen / Auslosungen</text>
 <text x="76" y="687" class="small">Ab erster Auslosung · nach Spielansetzungen</text>
 <text x="76" y="712" class="small">Namen zugleich für Tabletansagen nutzbar</text>
 <line x1="40" y1="731" x2="482" y2="731" class="divider"/>
-<text x="40" y="760" class="rank">8</text><text x="76" y="760" class="body" font-weight="700">Zusätzlicher Tablet-Vorrat</text>
+<text x="40" y="760" class="rank">9</text><text x="76" y="760" class="body" font-weight="700">Zusätzlicher Tablet-Vorrat</text>
 <text x="76" y="785" class="small">Übrige Teams laufender Disziplinen</text>
 <line x1="40" y1="804" x2="482" y2="804" class="divider"/>
-<text x="40" y="833" class="rank">9</text><text x="76" y="833" class="body" font-weight="700">Übrige bekannte Personen und Teams</text>
-<text x="76" y="858" class="small">Auch weitere Offizielle; keine erfundenen Paarungen</text></g>
+<text x="34" y="833" class="rank">10</text><text x="76" y="833" class="body" font-weight="700">Übrige bekannte Personen und Teams</text>
+<text x="76" y="858" class="small">Weitere Namen; keine erfundenen Paarungen</text></g>
 <g data-panel="needed"><rect x="522" y="408" width="486" height="468" rx="14" class="need"/>
 <text x="544" y="444" class="title">Benötigte Ansagen</text>
-<text x="544" y="471" class="small">Ab dem Aufruf vollständig in die Bedarfsplanung</text>
+<text x="544" y="471" class="small">Spiele ab Aufruf; Offiziellenliste vollständig</text>
 <text x="544" y="516" class="rank green">3</text><text x="580" y="516" class="body" font-weight="700">Laufende Spiele</text>
 <text x="580" y="543" class="body">Nach ihrer Aufrufzeit</text>
 <text x="580" y="569" class="small">Früher aufgerufen → früher vervollständigen</text>
@@ -94,8 +94,10 @@ text{font-family:system-ui,sans-serif;fill:#163047} .title{font-size:23px;font-w
 <text x="580" y="649" class="body">Nach Zeitpunkt des Vorbereitungsaufrufs</text>
 <text x="580" y="675" class="small">Für den nächsten Feldaufruf vervollständigen</text>
 <line x1="544" y1="696" x2="986" y2="696" class="divider"/>
-<text x="544" y="727" class="small">Spielteile, zugeordnete Offizielle und passende</text>
-<text x="544" y="753" class="small">Teamstücke für mögliche Tabletbedienung einschließen.</text>
+<g id="officials-priority">
+<text x="544" y="727" class="rank green">5</text><text x="580" y="727" class="body" font-weight="700">Alle technischen Offiziellen</text>
+<text x="580" y="753" class="small">Namen und Rollen, auch ohne Spielzuordnung</text>
+</g>
 <g id="likely-tablet-priority">
 <text x="544" y="810" class="body" font-weight="700">Wahrscheinliche Tabletbediener zuerst</text>
 <text x="544" y="835" class="small">Teams dieser Spiele und wartende Tabletliste.</text>
@@ -120,9 +122,9 @@ text{font-family:system-ui,sans-serif;fill:#163047} .title{font-size:23px;font-w
 </main>
 <script>
 const explanations={
-all:{title:'Die Nummer bestimmt die Priorität, nicht die Position im Spielablauf.',tag:'Benötigt: grün · Leerlaufvorrat: grau · gespeicherte Aufnahmen: blau',text:'Turnierdurchsagen haben Priorität 1, der Sprachtest immer 2. Nach gemeinsamen Orts- und Feldstücken kommt vor der ersten Auslosung die Anmeldevorarbeit. Ab der ersten Auslosung stehen laufende und vorbereitete Spiele samt wahrscheinlichen Tabletbedienern vorne. Im Leerlauf folgen Aufrufkandidaten und weitere angesetzte Spiele. Bevor zusätzlicher Tablet-Vorrat entsteht, werden auf Stufe 7 weitere Disziplinen und Auslosungen sprachlich vorbereitet. Deren Namen liefern gleichzeitig Audio für Tabletansagen.',example:'Für die weitere Disziplinvorbereitung bleiben allgemeine Teile zuerst und geöffnete / weiter fortgeschrittene Disziplinen vor noch nicht geöffneten. Innerhalb dieser Gruppen bestimmt das früheste angesetzte Spiel die Disziplinreihenfolge. Ohne Ansetzung folgt die Disziplin später in stabiler vorhandener Reihenfolge. Landesverbände, Vereine und Spieler/Paarungen werden wie vereinbart geordnet. Unbekannte Gegner werden nicht erfunden; bekannte Teamnamen können schon vor der Auslosung vorbereitet und später geteilt werden.'},
-planned:{title:'Spiel geplant: Vorrat mit Priorität 6',tag:'Nur im Leerlauf · Reihenfolge im BTS-Spielplan',text:'Das Spiel ist noch nicht aufgerufen und noch kein unmittelbarer Aufrufkandidat. Seine bekannten Angaben und Teams können im Leerlauf vorbereitet werden. Ein unbekannter Gegner wird nicht ergänzt; fehlende Teilnehmer blockieren keine anderen bereiten Spiele.',example:'Danach folgt auf Stufe 7 die Sprachvorbereitung weiterer Disziplinen / Auslosungen, bevor zusätzlicher Tablet-Vorrat entsteht. Das früheste schon angesetzte Spiel einer Disziplin bestimmt innerhalb ihrer Anmeldegruppe deren Reihenfolge. Fertige Namen werden für Spiel-, Anmelde- und Tabletansagen geteilt.'},
-candidate:{title:'Aufrufkandidat: Vorrat mit Priorität 5',tag:'Nur im Leerlauf · vor weiteren nicht zugewiesenen Spielen',text:'Diese Spiele werden voraussichtlich als Nächstes benötigt. Ihr Vorrat kommt zuerst, sobald keine benötigten Aufträge oder echten Anforderungen warten. Die Kandidatenreihenfolge bestimmt ihre Reihenfolge.',example:'Ein Klick auf „In Vorbereitung“ oder ein direkter Feldaufruf macht den konkreten Bedarf sofort dringlich. Fehlende Teile des ausgelösten Aufrufs erhalten Priorität 1.'},
+all:{title:'Die Nummer bestimmt die Priorität, nicht die Position im Spielablauf.',tag:'Benötigt: grün · Leerlaufvorrat: grau · gespeicherte Aufnahmen: blau',text:'Turnierdurchsagen haben Priorität 1, der Sprachtest immer 2. Nach Orts- und Feldstücken kommt vor der ersten Auslosung die Anmeldevorarbeit. Im Spielbetrieb stehen laufende und vorbereitete Spiele samt wahrscheinlichen Tabletbedienern vorne. Danach werden auf Priorität 5 alle bekannten technischen Offiziellen vorbereitet, einschließlich noch nicht zugeordneter Personen. Im Leerlauf folgen Aufrufkandidaten auf 6 und weitere angesetzte Spiele auf 7. Weitere Disziplinen / Auslosungen kommen auf 8 vor zusätzlichem Tablet-Vorrat auf 9 und übrigen Personen auf 10.',example:'Die Namen der Offiziellen werden einmal erzeugt und mit gemeinsamen Rollenstücken kombiniert. Vorhandene Spieler- oder Offiziellennamen werden aus dem Cache übernommen; eine fehlende Spielzuordnung verzögert ihre Vorbereitung nicht. Die weitere Disziplinvorbereitung nutzt vorhandene Spielansetzungen und liefert gleichzeitig Namen für Tabletansagen.'},
+planned:{title:'Spiel geplant: Vorrat mit Priorität 7',tag:'Nur im Leerlauf · Reihenfolge im BTS-Spielplan',text:'Das Spiel ist noch nicht aufgerufen und noch kein unmittelbarer Aufrufkandidat. Seine bekannten Angaben und Teams können im Leerlauf vorbereitet werden. Ein unbekannter Gegner wird nicht ergänzt; fehlende Teilnehmer blockieren keine anderen bereiten Spiele.',example:'Danach folgt auf Stufe 8 die Sprachvorbereitung weiterer Disziplinen / Auslosungen, bevor zusätzlicher Tablet-Vorrat entsteht. Das früheste schon angesetzte Spiel einer Disziplin bestimmt innerhalb ihrer Anmeldegruppe deren Reihenfolge. Fertige Namen werden für Spiel-, Anmelde- und Tabletansagen geteilt.'},
+candidate:{title:'Aufrufkandidat: Vorrat mit Priorität 6',tag:'Nur im Leerlauf · nach allen technischen Offiziellen',text:'Diese Spiele werden voraussichtlich als Nächstes benötigt. Ihr Vorrat folgt nach laufenden und vorbereiteten Spielen sowie der vollständigen Vorbereitung aller bekannten technischen Offiziellen. Die Kandidatenreihenfolge bestimmt ihre Reihenfolge.',example:'Ein Klick auf „In Vorbereitung“ oder ein direkter Feldaufruf macht den konkreten Bedarf sofort dringlich. Fehlende Teile des ausgelösten Aufrufs erhalten Priorität 1.'},
 preparation:{title:'In Vorbereitung: benötigter Bestand mit Priorität 4',tag:'Nach dem Zeitpunkt des Vorbereitungsaufrufs',text:'Ab dem Vorbereitungsaufruf können die vollständigen Ansagen dieses Spiels in den benötigten Bestand aufgenommen werden. Ein tatsächlich ausgelöster Aufruf mit fehlendem Audio hat Priorität 1; danach wird vor allem der nächste Feldaufruf abgesichert.',example:'B02 „Für Spielfeld …!“ wird nur abgespielt, wenn bereits ein Feld zugewiesen ist. Ohne Feld entfällt dieser Satz; die übrige Vorbereitung bleibt verwendbar. Zugeordnete Offizielle und beide Teams für mögliche Tabletbedienung einbeziehen.'},
 oncourt:{title:'Auf dem Feld: benötigter Bestand mit Priorität 3',tag:'Nach der Aufrufzeit · früher aufgerufen zuerst',text:'Laufende oder bereits auf das Feld gerufene Spiele werden vor Spielen in Vorbereitung abgesichert. Benötigt werden unter anderem Spielbeginn, mögliche Zweitaufrufe und die passenden Namen und Rollen. Der konkrete manuelle Aufruf überholt mit Priorität 1.',example:'Beide vollständigen Teamquellen können bereits Namensstücke für eine spätere Tabletbedienung liefern. Dafür wird keine neue vollständige Rollen-/Namensaufnahme je möglicher Kombination erzeugt.'},
 finished:{title:'Abgeschlossen: Spielbedarf entfernen, Aufnahmen behalten',tag:'Kein weiterer Vorrat für das abgeschlossene Spiel',text:'Nicht mehr benötigte, noch nicht gestartete Aufgaben dieses Spiels entfallen, sofern keine andere Durchsage sie weiterhin benötigt. Fertige Quellen und Bausteine bleiben dauerhaft gespeichert. Ein laufender Serverauftrag wird fertiggestellt.',example:'Die Personen oder Teams können später als Tabletbediener gebraucht werden. Ihre vorhandenen Aufnahmen werden dann wiederverwendet; ein neuer Auftrag richtet sich nach der neuen Zuordnung und ihrem aktuellen Bedarf.'}
