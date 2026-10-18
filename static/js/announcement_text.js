@@ -404,11 +404,12 @@ function createAnnouncementTexts(context) {
             } else if (round.indexOf('/') !== -1) {
                 var roundParts = round.split('/');
                 var diff = roundParts[1] - roundParts[0];
-                if (diff > 1) {
-                    round = ci18n('announcements:round_for_places') + roundParts[0] + ci18n('announcements:to') + roundParts[1];
-                } else {
-                    round = ci18n('announcements:game_for_place') + roundParts[0] + ci18n('announcements:and') + roundParts[1];
-                }
+                round = [
+                    ci18n(diff > 1 ? 'announcements:round_for_places' : 'announcements:game_for_place'),
+                    roundParts[0],
+                    ci18n(diff > 1 ? 'announcements:to' : 'announcements:and'),
+                    roundParts[1],
+                ].map(part => part.trim()).join(' ');
             } else if (round.indexOf('-') !== -1) {
                 round = ci18n('announcements:intermediate_round');
             } else {

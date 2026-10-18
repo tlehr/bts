@@ -93,7 +93,7 @@ describe('Shared announcement text and preparation', function() {
     });
 
     for (const locale of ['de', 'en']) for (const flags of [0, 1, 7]) {
-        it('preserves legacy text except corrected sentence separators: ' + locale + '/' + flags, function() {
+        it('preserves legacy text except corrected spacing: ' + locale + '/' + flags, function() {
             const current = tournament(flags);
             current.normalizations = [{ origin: 'Johann', replace: 'Hans', language: 'de-DE' }];
             for (const match of [setup(), setup({ court_id: null }), setup({ match_name: '3/4' }),
@@ -107,12 +107,14 @@ describe('Shared announcement text and preparation', function() {
                     };
                     const old = baseline({ ...context, announce: values => before.push(values) });
                     old[call](match, 0);
-                    // The frozen legacy fixture deliberately retains the reported
-                    // missing space. Only these four joins gain a separator.
+                    // The frozen legacy fixture retains the old missing spaces
+                    // at sentence boundaries and within placement round names.
                     const field = old.createFieldAnnouncement(match);
                     if (SPACED_FIELD_CALLS.has(call) && field) {
                         before[0][0] = field + ' ' + before[0][0].slice(field.length);
                     }
+                    before[0] = before[0].map(text => typeof text === 'string' ?
+                        text.replace(/\b(Platz|places)(?=\d)/g, '$1 ').replace(/(\d)(bis|to)(?=\d)/g, '$1 $2 ') : text);
                     create(context)[call](match, 0);
                     assert.deepStrictEqual(Buffer.from(JSON.stringify(after)), Buffer.from(JSON.stringify(before)), call);
                     const local = [];

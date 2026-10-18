@@ -208,6 +208,13 @@ class SpeechCoverage {
         for (const [key, value] of candidates) {
             const entry = broker.check_local(broker.entries.get(key));
             const saved = broker.disk?.lookup(broker.identity, key);
+            const target = current.values.get(key);
+            const part = target?.part || entry?.part || saved?.part || value.archived?.part;
+            const description = inventory.description(part, value.groups);
+            // Old placement templates cannot be called by the corrected renderer.
+            // Retain their audio files while omitting the obsolete inventory rows.
+            if (!current.values.has(key) && description.group === 'rounds' &&
+                /^(?:Spiel|Runde) um Platz(?:\d|.*\d(?:bis|und)\d)/.test(description.text)) continue;
             const ready = !!saved || entry?.status === 'completed' ||
                 !broker.disk && value.archived?.entry?.status === 'completed';
             const needed = !!entry?.tournaments.has(tournament) && (!entry.idle_tournaments?.has(tournament) && !entry.spare_tournaments?.has(tournament) ||
@@ -219,10 +226,8 @@ class SpeechCoverage {
             const state = ready ? needed ? generated ? 'generated' : 'cached' : prepared ? 'prepared' : 'stock' :
                 requested ? 'ordered' : 'potential';
             const failed = requested && entry?.status === 'failed' ? 1 : 0;
-            const target = current.values.get(key);
             if (target?.part || entry || saved || value.archived) {
-                const part = target?.part || entry?.part || saved?.part || value.archived?.part;
-                componentRows.push({ id: key, part, ...inventory.description(part, value.groups), state, failed: !!failed,
+                componentRows.push({ id: key, part, ...description, state, failed: !!failed,
                     diagnostics: broker.failures?.get(broker.identity, key) || null, status: ready ? 'completed' : entry?.status || 'missing',
                     retry_at: Math.max(entry?.retry_at || 0, entry?.server_retry_at || 0, broker.post_retry_at || 0),
                     terminal_failure: entry?.terminal_failure === true, fallback_stage: entry?.fallback_stage });
