@@ -110,7 +110,7 @@ Der abschließende reine Cache-Lauf trifft alle 13 Quellen und 19 Wiedergabebaus
 
 Aktuell gewinnt `static/js/speech_context.js` die Team-Ausschnitte aus dem vollständigen tatsächlichen Spielblock (`gamePieces` / `teamPiece`). Die neue Festlegung ersetzt für die künftige v2-Teamquelle diese Bindung an den jeweiligen Spielgegner durch den wiederholten eigenen Teamkontext. Sie schaltet noch nicht eigenständig die gesamte Strategie um; der übrige Aufbau und die genaue Schnittverwendung werden weiter festgelegt.
 
-Der Sprachserver unterstützt bereits vollständige Kontextquellen und quellengebundene Ausschnitte. Die spätere BTS-Planung muss passende Quellen deduplizieren, ihre Positionsausschnitte referenzieren und weiterhin nur einen Sprachserverauftrag zur Zeit senden. Die bestehende Priorisierung wird durch diese Festlegung nicht neu geordnet. Die Anwesenheitskontrolle bleibt außerhalb des Umfangs.
+Der Sprachserver unterstützt bereits vollständige Kontextquellen und quellengebundene Ausschnitte. Die spätere BTS-Planung muss passende Quellen deduplizieren, ihre Positionsausschnitte referenzieren und weiterhin nur einen Sprachserverauftrag zur Zeit senden. Die bestehende Priorisierung wird durch diese Festlegung nicht neu geordnet. Die zunächst ausgeklammerte Anmeldung/Anwesenheitskontrolle wird auf Wunsch jetzt zusätzlich geplant; Bestandsaufnahme und Prüfentwurf stehen in [Abschnitt 22 des Arbeitsdokuments](durchsagen-arbeitsdokument.md#22-anmeldung--anwesenheitskontrolle-bestandsaufnahme-und-v2-entwurf). Ihre produktive Umsetzung und Sprachgenerierung sind noch nicht erfolgt.
 
 ## 5. Weitere Hörvergleiche mit beiden Stimmen
 

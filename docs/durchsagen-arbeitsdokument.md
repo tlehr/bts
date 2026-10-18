@@ -4,7 +4,7 @@ Stand: 16.10.2026 · Branch: `feat/localTts`
 
 Diese Datei ist unsere gemeinsame Grundlage, um Wortlaut, Reihenfolge und Stückelung der Turnierdurchsagen zu bearbeiten. Die Kennungen D01–D15 und B01–B12 bleiben bei Überarbeitungen erhalten, damit wir einzelne Stellen eindeutig benennen können.
 
-Die Anwesenheitskontrolle bleibt vorerst außerhalb dieser Betrachtung. Die Datei beschreibt den aktuellen Programmstand, hält in Abschnitt 7.1 und 7.2 unsere Vereinbarungen fest und plant in Abschnitt 7.3 die übrigen Ansagen nach derselben Logik. Der vereinbarte Kontextaufbau ist jetzt in BTS und Sprachserver umgesetzt, einschließlich der Korrekturen für D05, D08 und D12. [Betrieb, Verarbeitung und Prüfungen](context-tts.md) beschreiben den implementierten Stand. Weitere Änderungen dieser Datei werden ausdrücklich in die Anwendung übertragen; BTS liest diese Markdown-Datei nicht als Konfiguration. Die Klangabnahme weiterer Namen und Kombinationen bleibt ein Hörtest.
+Die Anwesenheitskontrolle war zunächst ausgeklammert; Abschnitt 22 ergänzt jetzt ihre Bestandsaufnahme und einen v2-Planungsentwurf. Die Datei beschreibt den aktuellen Programmstand, hält in Abschnitt 7.1 und 7.2 unsere Vereinbarungen fest und plant in Abschnitt 7.3 die übrigen Ansagen nach derselben Logik. Der vereinbarte Kontextaufbau ist jetzt in BTS und Sprachserver umgesetzt, einschließlich der Korrekturen für D05, D08 und D12. [Betrieb, Verarbeitung und Prüfungen](context-tts.md) beschreiben den implementierten Stand. Weitere Änderungen dieser Datei werden ausdrücklich in die Anwendung übertragen; BTS liest diese Markdown-Datei nicht als Konfiguration. Die Klangabnahme weiterer Namen und Kombinationen bleibt ein Hörtest.
 
 ## 1. Ziel und bisherige Hörentscheidung
 
@@ -1003,3 +1003,109 @@ Der Betreiber hat diese konkreten Einzel- und Doppelproben mit beiden Stimmen
 klanglich bestätigt („Passt so!“), einschließlich der markierten Übergänge zum
 Siegerteam. Die Schnittbefunde bleiben dokumentiert. Details im
 [v2-Plan](context-v2-plan.md#504-d12-gemeinsame-kampflos-formulierung-und-siegerteam-nach-gegen).
+
+## 22. Anmeldung / Anwesenheitskontrolle: Bestandsaufnahme und v2-Entwurf
+
+Auf Wunsch wird die Anmeldung jetzt zusätzlich betrachtet. Dieser Abschnitt
+erfasst vorhandene Texte und schlägt ihre Stückelung vor. Noch keine neue
+Generierung, produktive Textänderung oder Anmeldung-/Statusänderung.
+
+### 22.1 Vorhandene Aufrufe
+
+Quelle: `static/js/ctournament.js`, `registration_control_announcement_text`.
+Die vier Aufrufarten haben jeweils zwei Ziele: `Anmeldung` und `Turnierleitung`.
+Damit bestehen acht Vorlagen, jeweils mit den vollständigen tatsächlichen Namen.
+
+| Aufrufart | Aktueller Wortlaut; `{Ziel}` ist Anmeldung oder Turnierleitung |
+| --- | --- |
+| Spieler | `{Name} bitte zur {Ziel}. {Name} bitte!` |
+| Paarung | `Die Paarung {Name 1} und {Name 2} bitte zur {Ziel}. {Name 1} und {Name 2} bitte!` |
+| Verein | `Bitte ein Vertreter vom Verein {Verein} zur {Ziel}. Ein Vertreter vom Verein {Verein} bitte!` |
+| Bundesland | `Bitte ein Vertreter aus {Bundesland} zur {Ziel}. Ein Vertreter aus {Bundesland} bitte!` |
+
+Der Dialog bietet genau die beiden Ziele an. Personen, Paarungen, Vereine und
+Bundesländer sind über die jeweiligen Tabellenzellen aufrufbar. Die Paarung
+wird gesprochen mit „und“ verbunden, auch wenn die Tabelle einen Schrägstrich
+anzeigt. Disziplin, Altersklasse und Runde werden derzeit nicht gesprochen;
+der übergebene Event-Parameter wird vom Textbuilder nicht verwendet.
+Die bestehenden Ausspracheersetzungen werden auf das aufgerufene Label angewendet.
+
+`trigger_registration_announcement` sendet den vollständig zusammengesetzten Text
+als `free_announce`; `static/js/change.js` gibt ihn über den Pfad für freie Ansagen
+aus. Die v2-Bausteinplanung und gezielte Vorabvorbereitung dieser Vorlagen fehlen
+noch. Die bestehenden Freigaben für freie Ansagen bleiben maßgeblich.
+
+### 22.2 Bereits wiederverwendbar
+
+Vollständige Spieler- und Paarungsaufnahmen werden zuerst im v2-Namenscache
+gesucht, mit passender Stimme, Aussprache und Position. Beide Namen eines Doppels
+bleiben zusammen. Ein nur innerhalb eines Doppelteams vorhandener Einzelspieler
+bekommt bei Bedarf seinen eigenen vollständigen Namenskontext; Einzelwörter oder
+Personen werden nicht aus Doppelaufnahmen herausgeschnitten.
+
+Vor „bitte“ sollte zunächst die bereits gewonnene erste Position aus
+`[Name/Team] spielt jetzt gegen [Name/Team]!` geprüft werden. Die zweite Position
+ist ebenfalls vorhanden beziehungsweise ohne neue Synthese aus derselben Quelle
+gewinnbar. Welche Position hier natürlicher klingt, ist ein neuer Hörvergleich;
+die D12-Entscheidung für das Siegerteam legt diese Anmeldungssituation nicht fest.
+
+### 22.3 Feste Stücke und Kontextquellen als Prüfentwurf
+
+Zehn gemeinsame Wiedergabestücke je Stimme reichen als erster Prüfentwurf für
+alle acht Vorlagen, zusätzlich zu den variablen Namen beziehungsweise Labels:
+
+| Nr. | Vorgeschlagenes festes Stück |
+| --- | --- |
+| 1 | `bitte zur Anmeldung.` |
+| 2 | `bitte zur Turnierleitung.` |
+| 3 | `zur Anmeldung.` |
+| 4 | `zur Turnierleitung.` |
+| 5 | `Die Paarung` |
+| 6 | `Bitte ein Vertreter vom Verein` |
+| 7 | `Ein Vertreter vom Verein` |
+| 8 | `Bitte ein Vertreter aus` |
+| 9 | `Ein Vertreter aus` |
+| 10 | `bitte!` |
+
+Die Stücke mit und ohne „bitte“ sind nötig, weil beim Vereins-/Bundeslandaufruf
+das erste „Bitte“ bereits in der Einleitung steht. Dieselbe Zielaufnahme samt
+einem zusätzlichen „bitte“ würde den heutigen Wortlaut verändern. Beide
+Zielvarianten können dennoch aus derselben vollständigen Quelle ausgeschnitten
+werden. Der Satzanfang `Bitte ein Vertreter …` und die Wiederholung
+`Ein Vertreter …` erhalten ebenfalls ihre tatsächlichen Positionen im Kontext.
+
+Für einen ersten Hörsatz eignen sich vier vollständige Kontexttypen:
+
+1. Person zur Anmeldung: liefert beide Anmelde-Zielstücke sowie `bitte!`.
+2. Paarung zur Turnierleitung: liefert `Die Paarung` und beide Turnierleitungs-Zielstücke.
+3. Vereinsaufruf: liefert beide Vereins-Einleitungen und den Vereinsnamen in beiden Positionen.
+4. Bundeslandaufruf: liefert beide Bundesland-Einleitungen und das Bundesland in beiden Positionen.
+
+Die Quellen verwenden den vollständigen heutigen Aufruf mit Wiederholung.
+Die variablen Namen werden in den Montagen aus ihrem passenden vorhandenen Cache
+eingesetzt. Die erste nötige Vereins-/Bundeslandaufnahme kann zugleich die
+gemeinsamen Einleitungen liefern; dafür soll keine separate Generierung erfolgen.
+Weitere bislang fehlende Vereins-/Bundeslandlabels benötigen nur ihren eigenen
+vollständigen Kontext, gemeinsam für beide Zielorte. Eine Quelle kann beide
+Positionsausschnitte liefern. Es entsteht kein Auftrag je Kombination von Name,
+Ziel und Durchsage.
+
+Die zehn Stücke sind ein Hörentwurf, keine klanglich bestätigte Gesamtzahl.
+Übergänge vor „bitte“ und „zur“ sowie beide Namenswiederholungen müssen mit beiden
+Stimmen geprüft werden. Zahlen werden wie bisher vor der lokalen Synthese
+ausgeschrieben; Anzeige und Browserwortlaut bleiben erhalten. Die gemeinsamen
+100-ms-/LUFS-Regeln gelten auch für diese künftigen lokalen Bausteine.
+
+### 22.4 Vorabplanung
+
+Für die spätere Integration müssen diese Vorlagen zuerst aus dem freien Textpfad
+in eine gemeinsame, vom Browser und Backend verwendbare Text-/Bausteinplanung
+überführt werden. Der Browserwortlaut bleibt dabei die Referenz. Angeforderte
+Aufrufe werden sofort vervollständigt; weitere Vorarbeit richtet sich nach den
+aktiven Anmeldedisziplinen und den noch offenen Personen. Weiterer Vorrat kommt
+erst im Leerlauf, unter Beibehaltung der bestehenden Priorisierung der Spielansagen.
+Bereits fertig erzeugte Aufnahmen bleiben im dauerhaften Cache. Das ist noch
+kein implementierter Warteschlangenauftrag.
+
+Die Bestandsaufnahme wurde direkt mit den acht vorhandenen Textbuilder-Ausgaben
+geprüft. Produktionscode und bestehende D01–D15/B01–B12 wurden nicht verändert.
