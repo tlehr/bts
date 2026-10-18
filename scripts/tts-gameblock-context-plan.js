@@ -157,4 +157,4 @@ if (require.main === module) {
     }
 }
 
-module.exports = { gameblocks, examples, disciplinePronunciationTrials, spokenDiscipline, repeatedTeam };
+module.exports = { gameblocks, examples, disciplinePronunciationTrials, spokenDiscipline, repeatedTeam, excerpt };

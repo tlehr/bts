@@ -339,6 +339,22 @@ Schnittbefunde bleiben als Herkunftsinformation erhalten. Wiederholungsläufe
 brauchen keine Synthese; produktive v1, Browsertexte und Turnierergebnisse
 bleiben unverändert.
 
+### 5.0.5 Anmeldung: vier Aufrufarten mit zwei Zielorten
+
+Hörseite: `http://127.0.0.1:8084/anmeldung/`. Der wieder geöffnete Anmeldebereich
+verwendet exakt die Wörter der vorhandenen Browserfunktion für Personen, Paarungen,
+Vereine und Bundesländer, jeweils zur Anmeldung oder Turnierleitung. Der isolierte
+Plan `scripts/tts-registration-plan.js` liest diesen Builder direkt aus und prüft
+alle acht Montagen. Es gibt keine Änderung des produktiven freien Ansagepfads.
+
+Je Stimme werden vier vollständige Kontextaufnahmen für zehn gemeinsame feste
+Stücke und die beiden Positionsstücke eines Vereins-/Bundeslandlabels erzeugt.
+Zwei bestehende vollständige Namen-/Teamstücke vor „spielt“ bleiben bytegleich.
+Je Stimme stehen acht Montagen, 14 neue Einzelstücke und vier vollständige
+Kontexte zum Vergleich bereit. PSV Bremen und Bremen sind gekennzeichnete
+Hörbeispiele, keine Turnierzuweisungen. Details und Stückzählung stehen in
+[Abschnitt 22.5 des Arbeitsdokuments](durchsagen-arbeitsdokument.md#225-erster-anmelde-hörsatz-mit-beiden-stimmen).
+
 ### 5.1 Erster B01-Hörsatz: Spielfeld acht, beide Stimmen
 
 `scripts/tts-field-context-plan.js` ergänzt den gespeicherten, bestätigten Spielblockplan um genau eine vollständige Feldreferenz pro Feld und Stimme. Für diesen ersten Hörtest wird nur Feld acht verwendet. Die Referenz hält die Spielnummer ohne „Nummer“, Satzzeichen und Doppel-Leerzeichen aus der bisherigen festen Vorlage bei; für v2 gilt die bereits gewählte gesprochene Schreibweise `Mädchen Einzel`. Die archivierte v1-Referenz bleibt unverändert.

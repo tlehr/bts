@@ -1109,3 +1109,31 @@ kein implementierter Warteschlangenauftrag.
 
 Die Bestandsaufnahme wurde direkt mit den acht vorhandenen Textbuilder-Ausgaben
 geprüft. Produktionscode und bestehende D01–D15/B01–B12 wurden nicht verändert.
+
+### 22.5 Erster Anmelde-Hörsatz mit beiden Stimmen
+
+Hörseite: `http://127.0.0.1:8084/anmeldung/`. Die vier Aufrufarten stehen jeweils
+für Anmeldung und Turnierleitung zur Verfügung. Person: Muhammad Sytsh Abdulquddus;
+Paarung: Ben Hensel und Max Wächtler. „PSV Bremen“ und „Bremen“ sind ausdrücklich
+Hörbeispiele für Verein und Bundesland; es werden keine Turnierzuordnungen gesetzt.
+
+Der Hörsatz verwendet die zehn festen Stücke aus 22.3. Vier vollständige
+Kontextaufnahmen pro Stimme liefern diese Stücke sowie Vereinsname und Bundesland
+an ihren jeweils zwei tatsächlichen Positionen. Der Einzelname und das ganze
+Doppelteam werden bytegleich wiederverwendet, beide vor „bitte“ aus der ersten
+Position ihrer vorhandenen `[Team] spielt jetzt gegen [Team]!`-Aufnahme.
+Die Personen-/Teamwörter in den neuen Kontextquellen dienen ausschließlich als
+Kontext und ersetzen diese bestehenden Namensstücke nicht.
+
+Pro Stimme: acht zusammengebaute Aufrufe, 14 neue Stücke einzeln und vier vollständige
+Kontextreferenzen, insgesamt 26 Hörproben. Es entstehen 18 neue Schnitt-/Referenzstücke;
+zwei vorhandene Namens-/Teamstücke werden übernommen. Es gibt keine separate
+Generierung pro Kombination von Name, Ziel und Aufrufart. Pausenziele einschließlich
+Randstille: 80 ms innerhalb eines Satzes, 320 ms zwischen beiden Sätzen. Die gemeinsamen
+100-ms-/LUFS-Regeln sowie Stimmenreferenzen und Tempo bleiben erhalten.
+
+`scripts/tts-registration-plan.js` liest den echten bestehenden Browserbuilder
+aus `ctournament.js` in einer isolierten VM und vergleicht jede Montage mit dessen
+Ausgabe. Die Browsertexte werden nicht verändert. Die Hörseite zeigt für jedes
+Stück Quelle, Kontextmarkierung, Schnitt und Rohaufnahme. Dies ist die Hörprüfung
+der Anmeldebausteine; die produktive Anmelde-Warteschlange bleibt noch unverändert.
