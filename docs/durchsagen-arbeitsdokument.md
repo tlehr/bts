@@ -774,5 +774,6 @@ Die gemeinsame Hörseite `http://127.0.0.1:8084/spielbeginn/` enthält für beid
 Sprecher den zusammengesetzten Aufruf, B12 allein und die vollständige Kontextquelle.
 Genau zwei neue Aufnahmen waren nötig; die vorhandenen Feldstücke bleiben bytegleich.
 Die Pausenprüfung gilt im ausdrücklich gekennzeichneten neuen Hörplan für beide
-Stimmen. Referenzen und Tempo bleiben wie zuvor. Die Klangabnahme von B12 ist offen;
-der produktive Stand wird durch diesen Hörversuch nicht umgestellt.
+Stimmen. Referenzen und Tempo bleiben wie zuvor. Am 18. Oktober 2026 hat der Betreiber
+B12 und den zusammengesetzten D03-Aufruf für beide Stimmen klanglich bestätigt
+(„passt beides!“). Der produktive Stand wird durch diesen Hörversuch nicht umgestellt.
