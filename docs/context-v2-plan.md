@@ -181,8 +181,35 @@ Vorhandene Aufnahmen für Max Hahn und Emil Hermann und Konrad Wendt werden
 wiederverwendet. Die v2-Quellen und das Tempo des Hallensprechers bleiben erhalten;
 die Hallensprecherin verwendet die bestätigte Vorbereitungsreferenz.
 Die gemeinsamen Pausen-/LUFS-Regeln werden auf die dauerhaft gespeicherten
-Wiedergabestücke angewendet. Die Klangabnahme des Rollen-/Namensübergangs ist offen.
+Wiedergabestücke angewendet. Die Rollen-/Namensübergänge der Tabletbedienung sind
+vom Betreiber klanglich bestätigt („Top! Weiter!“). Die bestätigten Stücke
+bleiben für die folgenden Rollenvergleiche unverändert erhalten.
 Die vollständigen D08-Hörproben folgen mit den gemeinsamen B11-Präfixen.
+
+### 5.0.1 Weitere B08-Rollen nach demselben Muster
+
+Nach Bestätigung der Tabletbedienung folgen Schiedsrichter, Aufschlagrichter
+und Klapptafelbedienung. Je Rolle und Stimme entsteht eine gemeinsame Quelle:
+
+| Rolle | Kontextsatz | Verwendeter Ausschnitt |
+| --- | --- | --- |
+| Schiedsrichter | `Der Schiedsrichter ist Max Hahn.` | `Schiedsrichter` |
+| Aufschlagrichter | `Der Aufschlagrichter ist Max Hahn.` | `Aufschlagrichter` |
+| Klapptafelbedienung | `Die Klapptafelbedienung übernimmt Max Hahn.` | `Klapptafelbedienung` |
+
+Die Personenbezeichnung im Kontext ist ein vorhandener vollständiger
+Einzelname aus dem Testplan. Nur die Rolle wird übernommen; Artikel und
+Nachsatz werden verworfen. Vorhandene Namens-, Team-, Spiel- und Feldstücke
+aus dem bestätigten Tablet-Hörsatz bleiben bytegleich. Für eine andere
+Rollen-/Namenskombination wird keine weitere Quelle erzeugt. Klapptafel und
+Tablet werden als alternative Bedienformen geprüft, nicht gemeinsam zugeordnet.
+
+`scripts/tts-official-role-plan.js` erzeugt den Plan. Der Hörsatz vergleicht
+die beiden Richterrollen mit einer Einzelperson und die Klapptafelbedienung
+mit einer Einzelperson sowie einem Doppelteam. Jeweils gibt es Rolle + Name,
+einen vollständigen D01-Spielaufruf, die Rolle allein und den vollständigen
+Kontext. Die vorgesehenen 28 Proben für beide Stimmen sind nach Rolle filterbar.
+Die 80-ms-Übergangspause und die zentralen Wiedergaberegeln bleiben erhalten.
 
 ### 5.1 Erster B01-Hörsatz: Spielfeld acht, beide Stimmen
 

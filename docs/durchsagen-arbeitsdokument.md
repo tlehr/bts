@@ -926,3 +926,11 @@ ist in v2 nur bei einem im Hörtest belegten Bedarf vorgesehen.
 
 Aufbau und geplanter Hörvergleich stehen im
 [v2-Plan, Abschnitt 5.0](context-v2-plan.md#50-bevorzugter-b08-aufbau-gemeinsame-rolle--vorhandenes-team).
+
+Die Tablet-Hörprobe wurde bestätigt. Die folgenden gemeinsamen Rollenstücke
+für Schiedsrichter, Aufschlagrichter und Klapptafelbedienung liegen mit beiden
+Stimmen unter `http://127.0.0.1:8084/offizielle/`. Je Rolle und Stimme gibt es
+eine Quelle; alle sechs Quellen bestehen im ersten Versuch. Vorhandene Namen,
+Teams, Spiel- und Feldstücke werden bytegleich wiederverwendet. Die Seite zeigt
+28 Proben, nach Rolle und Aufbau filterbar. Die Klangabnahme dieser weiteren
+Rollen ist offen; die gesicherte v1 bleibt unverändert.
