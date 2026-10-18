@@ -420,8 +420,18 @@ Gruppe folgen Landesverbände, Vereine und zuletzt Spieler oder Paarungen.
 Der Disziplinfortschritt hebt erledigte Einzelanmeldungen nicht auf. Gemeinsame
 Labels erhalten den Vorrang ihres dringlichsten offenen Bedarfs. Vorhandene
 passende Quellen und Bausteine werden wiederverwendet.
-Sobald mindestens eine Disziplin ausgelost ist, greift die
-Reihenfolge für den Spielbetrieb. Tatsächlich ausgelöste Turnierdurchsagen haben
+Innerhalb der Disziplingruppen bestimmt, soweit vorhanden, das früheste bereits
+angesetzte Spiel nach BTS-Spielplan die Disziplinreihenfolge. Ohne Ansetzung
+folgt die Disziplin innerhalb ihrer Gruppe in stabiler vorhandener Reihenfolge.
+Sobald mindestens eine Disziplin ausgelost ist, greift die Reihenfolge für den
+Spielbetrieb: laufende und vorbereitete Spiele sowie ihre wahrscheinlichen
+Tabletbediener stehen vorne. Nach Aufrufkandidaten und weiteren bereits
+angesetzten Spielen kommt im Leerlauf auf Stufe 7 die Anmelde-/Auslosungsvorarbeit
+weiterer Disziplinen. Deren bekannte Namen-/Teamstücke werden zugleich für
+Tabletansagen verwendet. Erst danach folgen zusätzlicher Tablet-Vorrat und
+übrige Personen auf Stufen 8 und 9. Unbekannte Paarungen werden nicht ergänzt;
+die Sprachvorbereitung führt keine Auslosung oder Bedienerzuweisung aus.
+Tatsächlich ausgelöste Turnierdurchsagen haben
 Priorität 1. Der Sprachtest hat immer Priorität 2, unabhängig von einer Anforderung:
 Die vollständige Testaufnahme für die zentral gewählte Stimme wird automatisch
 vorbereitet oder aus dem Cache übernommen. Angeforderte Hörproben gehören ebenfalls

@@ -1121,7 +1121,12 @@ die noch nicht geöffneten. Je Disziplingruppe gilt: Landesverbände, dann Verei
 zuletzt Spieler und Paarungen. Der Disziplinfortschritt ersetzt nicht die
 Prüfung, ob die einzelne Anmeldung noch offen ist.
 Ab der ersten ausgelosten Disziplin gilt die Reihenfolge für den Spielbetrieb
-aus Abschnitt 24. Tatsächlich ausgelöste Aufrufe behalten ihren sofortigen Vorrang.
+aus Abschnitt 24: Spiele und ihre wahrscheinlichen Tabletbediener kommen zuerst.
+Weitere Anmelde-/Auslosungsvorarbeit folgt im Leerlauf vor zusätzlichem
+Tablet-Vorrat. Innerhalb der Disziplingruppen bestimmt, soweit vorhanden, das
+früheste angesetzte Spiel die Reihenfolge der Disziplinen. Die Namensaufnahmen
+werden auch für Tabletansagen geteilt. Tatsächlich ausgelöste Aufrufe behalten
+ihren sofortigen Vorrang.
 Bereits fertig erzeugte Aufnahmen bleiben im dauerhaften Cache. Das ist noch
 kein implementierter Warteschlangenauftrag.
 
@@ -1286,8 +1291,9 @@ chronologischen Position eines Spiels in der Grafik:
 | 4 | Spiele in Vorbereitung | Zeitpunkt des Vorbereitungsaufrufs, ältester zuerst |
 | 5 | Aufrufkandidaten, nur im Leerlauf | Kandidatenreihenfolge |
 | 6 | Weitere nicht zugewiesene Spiele, nur im Leerlauf | Reihenfolge im BTS-Spielplan |
-| 7 | Übrige Teams laufender Disziplinen für mögliche Tabletbedienung, nur im Leerlauf | Teams mit bekanntem nächstem Spiel zuerst |
-| 8 | Übrige bekannte Personen, Teams und Offizielle, nur im Leerlauf | Letzter Vorrat; keine unbekannten Paarungen ergänzen |
+| 7 | Anmelde-/Auslosungsvorarbeit weiterer Disziplinen, ab erster Auslosung nur im Leerlauf | Vor zusätzlichem Tablet-Vorrat; geöffnete/fortgeschrittene Disziplinen bevorzugen, innerhalb der Gruppen nach frühester vorhandener Spielansetzung; Namen auch für Tabletansagen teilen |
+| 8 | Zusätzlicher Tablet-Vorrat: übrige Teams laufender Disziplinen, nur im Leerlauf | Nach weiterer Disziplinvorbereitung; Teams mit bekanntem nächstem Spiel zuerst |
+| 9 | Übrige bekannte Personen, Teams und Offizielle, nur im Leerlauf | Letzter Vorrat; keine unbekannten Paarungen ergänzen |
 
 Spiele in Vorbereitung und auf dem Feld gehören ab ihrem tatsächlichen Aufruf
 vollständig zum benötigten Bestand. Kandidaten, spätere Spiele und weitere
@@ -1297,6 +1303,13 @@ Disziplin/Altersklasse, Runde, Teams und fehlende zugeordnete Offizielle. Beide
 Teams liefern bereits wiederverwendbare Namen für eine spätere Tabletbedienung.
 Ein direkter Feldaufruf darf die Vorbereitungsphase überspringen. B02 entfällt,
 solange kein Feld zugewiesen ist.
+
+Mit den vorrangigen Spielen werden auch ihre **wahrscheinlichen Tabletbediener**
+abgesichert: beide bekannten Teams laufender oder vorbereiteter Spiele,
+die bereits wartende Tabletliste und tatsächlich zugeordnete Bediener.
+Aufrufkandidaten behalten ihre frühere Stufe vor späterem Spielvorrat. Bloß
+irgendwann mögliche weitere Personen werden dadurch nicht sofort zu benötigter
+Arbeit; deren Vorrat folgt erst nach der weiteren Disziplinvorbereitung.
 
 Die Vorarbeit beginnt unabhängig von der Auslosung mit den gemeinsamen
 spielort- und feldabhängigen Bausteinen. Sie werden für alle eingerichteten
@@ -1312,7 +1325,10 @@ Aufruf mit den Spiel- und Namensstücken zusammengesetzt.
 Danach hat die Anmeldevorarbeit Vorrang vor Spielvorrat, solange noch keine
 Disziplin ausgelost ist. Diese Bedingung gilt für das gesamte Turnier:
 Sobald mindestens eine Disziplin ausgelost ist, entfällt dieser besondere Vorrang
-und die Reihenfolge für den Spielbetrieb greift. Tatsächlich ausgelöste
+und die Reihenfolge für den Spielbetrieb greift. Laufende und vorbereitete Spiele
+samt wahrscheinlichen Tabletbedienern stehen dann vor weiterer Anmelde- oder
+Auslosungsvorarbeit. Diese folgt im Leerlauf auf Stufe 7, vor dem zusätzlichen
+Tablet-Vorrat der Stufen 8 und 9. Tatsächlich ausgelöste
 Anmeldeaufrufe haben unabhängig vom Turnierfortschritt stets Priorität 1;
 der Sprachtest hat immer Priorität 2, auch ohne Anforderung. Ausdrücklich
 angeforderte Hörproben gehören ebenfalls zu Priorität 2.
@@ -1347,8 +1363,37 @@ pauschal aus. Er öffnet aber keine bereits abgeschlossene Anmeldung erneut.
 Diese interne Bevorzugung gilt auch nach der ersten Auslosung, wenn
 Anmeldevorarbeit neben den vorrangigen Aufgaben des Spielbetriebs ansteht.
 
-Die variablen Bezeichnungen richten sich damit nach dem aktuellen offenen
-Anmeldebestand; abgeschlossene Anmeldungen erzeugen keine weitere Vorarbeit.
+Innerhalb jeder dieser Disziplingruppen wird, soweit vorhanden, die Reihenfolge
+der **bereits angesetzten Spiele** verwendet. Maßgeblich ist das früheste
+angesetzte Spiel der jeweiligen Disziplin nach derselben Sortierung wie im
+BTS-Spielplan. Disziplinen ohne vorhandene Ansetzung folgen innerhalb ihrer
+Gruppe in stabiler vorhandener Disziplinreihenfolge. Die übergeordnete Bevorzugung
+bereits geöffneter oder fortgeschrittener Disziplinen bleibt erhalten. Die
+Aufrufzeit laufender Spiele und der Vorbereitungszeitpunkt vorbereiteter Spiele
+bleiben für deren vorrangige Stufen 3 und 4 maßgeblich.
+
+**Ab der ersten Auslosung: weitere Disziplinen vor zusätzlichem Tablet-Vorrat.**
+Auf Stufe 7 werden die noch fehlenden Sprachbausteine für weitere Anmeldungen
+und Auslosungen vorbereitet. Dazu gehören die allgemeinen Anmeldeteile und
+bekannten Bezeichnungen in der festgelegten Reihenfolge sowie die bereits
+bekannten Spielangaben und Teams der Disziplin. Bereits unter Stufe 5 oder 6
+abgedeckte Teile werden wiederverwendet. Bekannte Teams können mit ihrem
+vereinbarten Namenskontext auch ohne bekannten nächsten Gegner erzeugt werden;
+unbekannte Paarungen werden nicht ergänzt. „Auslosung vorbereiten“ bezeichnet
+hier die Sprachvorbereitung und löst keine Turnierauslosung oder Zuweisung aus.
+
+Die erzeugten vollständigen Namens-/Teamstücke stehen gleichzeitig für
+Tabletansagen zur Verfügung. Dafür wird kein weiterer Namenauftrag angelegt
+und keine Person automatisch als Bediener zugewiesen. Erst wenn diese weitere
+Disziplinvorbereitung nichts mehr zu tun hat, folgt zusätzlicher Tablet-Vorrat
+für die übrigen Teams laufender Disziplinen und danach weitere Personen.
+Neuer vorrangiger Bedarf unterbricht die Aufnahme weiterer Vorratsaufträge nach
+Abschluss des gerade laufenden Serverauftrags.
+
+Für Anmeldeaufrufe richten sich die variablen Bezeichnungen nach dem aktuellen
+offenen Anmeldebestand; abgeschlossene Anmeldungen allein erzeugen keine weitere
+Anmeldevorarbeit. Namen für kommende Spiele oder Tabletansagen dürfen unabhängig
+davon vorbereitet werden, auch wenn ihre Anmeldung bereits erledigt ist.
 Vor jeder Stufe wird der Cache geprüft. Gleiche Labels oder Namen werden einmal
 vorbereitet und für mehrere Aufrufe geteilt. Die allgemeinen Teile behalten
 ihre vereinbarte Erzeugung aus vollständigen Kontextaufnahmen; die Priorisierung
