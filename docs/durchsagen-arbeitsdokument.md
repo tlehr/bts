@@ -857,7 +857,24 @@ ausgeschnitten werden, ohne weitere Sprachgenerierung.
 
 Der vorherige Versuch hatte für den Vergleich nur den Schluss ersetzt und den
 Anfang aus einer älteren Kontextaufnahme übernommen. Er bleibt unter
-`/vorbereitung-abschluss-getrennt/` als früherer Vergleich erhalten. Die aktuelle
-Hörseite vergleicht diese Montage mit der korrigierten gemeinsamen Quelle.
+`/vorbereitung-abschluss-getrennt/` als früherer Vergleich erhalten. Der Vergleich
+mit der korrigierten gemeinsamen Quelle liegt unter `/vorbereitung-pausen-alt/`.
 Originale und Schnittstellen sind sichtbar. Die Klangabnahme ist offen;
 die Änderung liegt im v2-Experimentierbranch.
+
+## 16. Pausen innerhalb der Satzstücke: höchstens 100 ms
+
+Für die abgespielten Satzstücke gilt eine Obergrenze von 100 ms für zusammenhängende
+fast vollständige Stille. Überlange stille Innenbereiche werden in Wiedergabekopien
+auf etwa 80 ms gekürzt; Sprechtempo, aktive Sprachanteile und Satzgrenzen bleiben
+erhalten. Die Pausen zwischen vollständigen Sätzen werden gesondert behandelt.
+Die unveränderten Rohaufnahmen bleiben zum Vergleich und für spätere Schnitte erhalten.
+
+Die zuvor als Q07 angezeigte Männerquelle hatte zwischen „In“ und „Vorbereitung“
+150 ms fast vollständige Stille. Die neue Quellprüfung verwirft in dieser Wendung
+bereits Pausen über 100 ms, auch in vorhandenen Cache-Aufnahmen. Nach dem ebenfalls
+verworfenen Seed 43 wurde Seed 44 übernommen. Die Hallensprecherin verwendet ihre
+vorhandene Aufnahme mit Seed 43. Anfang und Abschluss stammen weiterhin jeweils
+aus derselben Kontextaufnahme. Der aktuelle Hörstand steht unter
+`http://127.0.0.1:8084/vorbereitung-abschluss/`; der vorherige Stand bleibt als
+Vergleich unter `/vorbereitung-pausen-alt/` erhalten.
