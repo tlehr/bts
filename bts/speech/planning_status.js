@@ -84,7 +84,8 @@ class PlanningStatus {
         if (!enabled) for (const row of stages) row.active = false;
         return { title: this.title, voice: settings.voice, mode: settings.mode,
             phase: this.drawn ? 'competition' : 'registration', games: this.games, stages, total,
-            state: !enabled ? 'disabled' : updating ? 'updating' : ownCurrent ? 'working' : current ? 'busy_elsewhere' : active ? 'waiting' :
+            updating: !!updating,
+            state: !enabled ? 'disabled' : ownCurrent ? 'working' : current ? 'busy_elsewhere' : active ? 'waiting' :
                 total.failed ? 'failed' : total.ready < total.total ? 'idle_pending' : 'complete',
             active_stage: enabled ? activeStage : null,
             current: enabled && active ? { text: active.text, status: active.status, running: !!ownCurrent,

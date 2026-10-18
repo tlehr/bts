@@ -39,6 +39,8 @@ p { margin: 8px 0; }
 .flow-trace summary { cursor: pointer; font-weight: 700; }
 .flow-trace li { margin: 8px 0; }
 .flow-step.is-skipped { background: #f5f7f9; border-style: dashed; color: #667a89; }
+.flow-state.is-complete { background: #e7f4e8; }
+.flow-step.is-complete { border-color: #79a986; }
 .flow-step.live-current { border: 2px solid #d48815; border-left-width: 5px; background: #fff8e8; box-shadow: 0 0 0 3px #d4881512; }
 .flow-title { display: flex; flex-wrap: wrap; align-items: baseline; gap: 3px 8px; }
 .flow-title h3 { font-size: 17px; margin: 0; flex: 1 1 220px; }
@@ -80,7 +82,7 @@ button:focus-visible { outline: 3px solid #e99522; outline-offset: 3px; }
 <p class="speech_plan_follow_status" aria-live="polite">Die Live-Ansicht zeigt hier den aktuellen Schritt.</p>
 <section class="diagram" aria-labelledby="flow-heading">
 <h2 id="flow-heading" class="flow-heading">Zustandsübergangsdiagramm · vom Start zum aktuellen Zustand</h2>
-<p class="flow-hint">Blau zeigt den Auswahlweg und seine Ja/Nein-Entscheidungen. Gold markiert den aktuellen Zustand oder den nächsten vorgemerkten Bereich. Die Rauten prüfen, aus welchem Bereich der ausgewählte Auftrag stammt. Balken: bereit / in der Queue / gesamt. Auf schmalen Bildschirmen lässt sich das Netz seitlich verschieben.</p>
+<p class="flow-hint">Blau zeigt den Auswahlweg und seine Ja/Nein-Entscheidungen. Ein goldener Rahmen markiert den aktuellen Zustand oder den nächsten vorgemerkten Bereich. Hellgrün: alle aktuell für dieses Turnier geplanten Teile des Bereichs sind fertig. Die Rauten prüfen, aus welchem Bereich der ausgewählte Auftrag stammt. Balken: bereit / in der Queue / gesamt. Auf schmalen Bildschirmen lässt sich das Netz seitlich verschieben.</p>
 <div class="flow-viewport" tabindex="0" aria-label="Verschiebbarer Ablaufplan"><div class="flow-canvas"><div id="overview" class="speech_flow automatic" aria-label="Zustandsübergangsdiagramm der Sprachvorbereitung"></div></div></div>
 <details class="flow-trace"><summary id="decision-summary">Entscheidungsweg · wartet auf BTS</summary><ol id="decision-trace"></ol></details>
 </section>
@@ -97,6 +99,15 @@ button:focus-visible { outline: 3px solid #e99522; outline-offset: 3px; }
         parent.appendChild(node); return node;
     };
     const setText = (node, value) => { if (node.textContent !== value) node.textContent = value; };
+    const toggleClass = (node, name, value) => {
+        if (node.classList.contains(name) !== !!value) node.classList.toggle(name, !!value);
+    };
+    const attribute = (node, name, value) => {
+        if (value === null || value === undefined) {
+            if (node.hasAttribute(name)) node.removeAttribute(name);
+        } else if (node.getAttribute(name) !== String(value)) node.setAttribute(name, value);
+    };
+    const style = (node, name, value) => { if (node.style[name] !== value) node.style[name] = value; };
     const ns = 'http://www.w3.org/2000/svg', nodes = new Map(), diagramWidth = 1260;
     const element = (id, cls, kind) => {
         const node = make(flow, 'div', 'flow-node ' + cls); node.id = id;
@@ -178,6 +189,14 @@ button:focus-visible { outline: 3px solid #e99522; outline-offset: 3px; }
     const edgeLayer = document.createElementNS(ns, 'svg');
     edgeLayer.setAttribute('class', 'flow-edges'); edgeLayer.setAttribute('aria-hidden', 'true');
     flow.prepend(edgeLayer);
+    const renderedEdges = new Map(), defs = document.createElementNS(ns, 'defs');
+    for (const [id, color] of [['arrow', '#8394a2'], ['arrow-traversed', '#2475b4']]) {
+        const marker = document.createElementNS(ns, 'marker');
+        for (const [key, value] of Object.entries({ id, viewBox: '0 0 10 10', refX: 9, refY: 5, markerWidth: 7, markerHeight: 7, orient: 'auto-start-reverse' })) marker.setAttribute(key, value);
+        const path = document.createElementNS(ns, 'path'); path.setAttribute('d', 'M0 0L10 5L0 10Z'); path.setAttribute('fill', color);
+        marker.appendChild(path); defs.appendChild(marker);
+    }
+    edgeLayer.appendChild(defs);
     const traceList = document.getElementById('decision-trace'), traceSummary = document.getElementById('decision-summary');
     let latest, scheduled = false, geometry = '', traceSignature = '', diagramHeight = 0;
     const viewport = flow.closest('.flow-viewport'), canvas = flow.parentElement;
@@ -253,17 +272,15 @@ button:focus-visible { outline: 3px solid #e99522; outline-offset: 3px; }
             if (!next) break;
             route.push(next); id = next.to;
         }
+        const selectedDecisions = new Map(decisions.map(item => [item.node.id, item]));
         for (const node of nodes.values()) {
-            node.classList.toggle('is-traversed', visited.has(node.id));
+            toggleClass(node, 'is-traversed', visited.has(node.id));
             const current = !!latest && node.id === value.target;
-            node.classList.toggle('is-current-state', current);
-            if (current && !node.dataset.stage) node.setAttribute('aria-current', 'true');
-            else if (!node.dataset.stage) node.removeAttribute('aria-current');
-            node.removeAttribute('title'); delete node.dataset.answer;
-        }
-        for (const decision of decisions) {
-            decision.node.dataset.answer = decision.answer;
-            decision.node.title = decision.node.querySelector('h3').textContent + ' ' + decision.answer + ' ' + decision.reason;
+            toggleClass(node, 'is-current-state', current);
+            if (!node.dataset.stage) attribute(node, 'aria-current', current ? 'true' : null);
+            const decision = selectedDecisions.get(node.id);
+            attribute(node, 'data-answer', decision?.answer);
+            attribute(node, 'title', decision ? node.querySelector('h3').textContent + ' ' + decision.answer + ' ' + decision.reason : null);
         }
         for (const edge of edges) edge.traversed = route.includes(edge);
         const trace = JSON.stringify({ target: latest ? value.target : null, decisions: decisions.map(item => [item.node.id, item.answer, item.reason]) });
@@ -272,13 +289,13 @@ button:focus-visible { outline: 3px solid #e99522; outline-offset: 3px; }
             setText(traceSummary, latest ? 'Entscheidungsweg → ' + nodes.get(value.target).querySelector('h3').textContent : 'Entscheidungsweg · wartet auf BTS');
             for (const item of decisions) make(traceList, 'li', '', item.node.querySelector('h3').textContent + ' ' + item.answer + ' ' + item.reason);
         }
-        if (latest) flow.dataset.routeTarget = value.target; else delete flow.dataset.routeTarget;
+        attribute(flow, 'data-route-target', latest ? value.target : null);
     }
     function layout() {
         const boxes = new Map(), edges = [];
         const place = (node, x, y, w, h) => {
-            node.style.left = x + 'px'; node.style.top = y + 'px'; node.style.width = w + 'px';
-            if (h !== undefined) node.style.height = h + 'px';
+            style(node, 'left', x + 'px'); style(node, 'top', y + 'px'); style(node, 'width', w + 'px');
+            if (h !== undefined) style(node, 'height', h + 'px');
             const box = { x, y, w, h: node.offsetHeight }; boxes.set(node.id, box); return box;
         };
         const anchor = (id, side) => {
@@ -373,35 +390,48 @@ button:focus-visible { outline: 3px solid #e99522; outline-offset: 3px; }
         markRoute(edges);
         const signature = JSON.stringify({ boxes: [...boxes], edges });
         if (signature === geometry) return;
-        geometry = signature; edgeLayer.replaceChildren();
-        edgeLayer.setAttribute('width', diagramWidth); edgeLayer.setAttribute('height', diagramHeight);
-        const defs = document.createElementNS(ns, 'defs');
-        for (const [id, color] of [['arrow', '#8394a2'], ['arrow-traversed', '#2475b4']]) {
-            const marker = document.createElementNS(ns, 'marker');
-            for (const [key, value] of Object.entries({ id, viewBox: '0 0 10 10', refX: 9, refY: 5, markerWidth: 7, markerHeight: 7, orient: 'auto-start-reverse' })) marker.setAttribute(key, value);
-            const path = document.createElementNS(ns, 'path'); path.setAttribute('d', 'M0 0L10 5L0 10Z'); path.setAttribute('fill', color);
-            marker.appendChild(path); defs.appendChild(marker);
-        }
-        edgeLayer.appendChild(defs);
+        geometry = signature;
+        attribute(edgeLayer, 'width', diagramWidth); attribute(edgeLayer, 'height', diagramHeight);
+        const keep = new Set();
         for (const edge of edges) {
-            const path = document.createElementNS(ns, 'path');
-            path.setAttribute('class', 'flow-edge' + (edge.traversed ? ' is-traversed' : ''));
-            path.setAttribute('d', edge.points.map((point, i) => (i ? 'L' : 'M') + point.join(' ')).join(' '));
-            path.setAttribute('marker-end', 'url(#' + (edge.traversed ? 'arrow-traversed' : 'arrow') + ')');
-            path.dataset.from = edge.from; path.dataset.to = edge.to; if (edge.guard) path.dataset.guard = edge.guard;
-            edgeLayer.appendChild(path);
-            if (edge.guard) {
-                const label = document.createElementNS(ns, 'text'); label.setAttribute('class', 'flow-guard' + (edge.traversed ? ' is-traversed' : ''));
-                label.setAttribute('x', edge.label[0]); label.setAttribute('y', edge.label[1]); label.textContent = edge.guard;
-                edgeLayer.appendChild(label);
+            const key = edge.from + ':' + edge.to; keep.add(key);
+            let rendered = renderedEdges.get(key);
+            if (!rendered) {
+                const path = document.createElementNS(ns, 'path');
+                edgeLayer.appendChild(path);
+                const label = edge.guard ? document.createElementNS(ns, 'text') : null;
+                if (label) edgeLayer.appendChild(label);
+                rendered = { path, label }; renderedEdges.set(key, rendered);
             }
+            attribute(rendered.path, 'class', 'flow-edge' + (edge.traversed ? ' is-traversed' : ''));
+            attribute(rendered.path, 'd', edge.points.map((point, i) => (i ? 'L' : 'M') + point.join(' ')).join(' '));
+            attribute(rendered.path, 'marker-end', 'url(#' + (edge.traversed ? 'arrow-traversed' : 'arrow') + ')');
+            attribute(rendered.path, 'data-from', edge.from); attribute(rendered.path, 'data-to', edge.to);
+            attribute(rendered.path, 'data-guard', edge.guard || null);
+            if (rendered.label) {
+                attribute(rendered.label, 'class', 'flow-guard' + (edge.traversed ? ' is-traversed' : ''));
+                attribute(rendered.label, 'x', edge.label[0]); attribute(rendered.label, 'y', edge.label[1]);
+                setText(rendered.label, edge.guard);
+            }
+        }
+        for (const [key, rendered] of renderedEdges) if (!keep.has(key)) {
+            rendered.path.remove(); rendered.label?.remove(); renderedEdges.delete(key);
         }
     }
     new ResizeObserver(scheduleLayout).observe(viewport);
     function counts(value) { return value.ready + ' bereit · ' + value.queued + ' in der Queue · ' + value.total + ' gesamt'; }
+    function presentation(snapshot) {
+        // Older BTS processes also use "updating" while a complete plan and a
+        // running job are available. Keep this read-only view usable immediately.
+        if (snapshot?.state !== 'updating' || !['registration', 'competition'].includes(snapshot.phase)) return snapshot;
+        const state = snapshot.current?.running ? 'working' : snapshot.active_stage ? 'waiting' :
+            snapshot.total.failed ? 'failed' : snapshot.total.ready < snapshot.total.total ? 'idle_pending' : 'complete';
+        return { ...snapshot, state, updating: true };
+    }
     function update(snapshot) {
-        latest = snapshot;
-        flow.dataset.phase = snapshot?.phase || 'unknown';
+        snapshot = presentation(snapshot); latest = snapshot;
+        attribute(flow, 'data-phase', snapshot?.phase || 'unknown');
+        attribute(flow, 'data-updating', !!snapshot?.updating);
         const { active, stages } = selection(), following = !!active;
         if (flow.classList.contains('live-follow') !== following) flow.classList.toggle('live-follow', following);
         if (following) {
@@ -415,10 +445,11 @@ button:focus-visible { outline: 3px solid #e99522; outline-offset: 3px; }
                 id === 'registration_reserve' && snapshot?.phase === 'registration';
             row.node.hidden = id === 'additional' && !current && !value?.total;
             if (!row.node.hidden) setText(row.rank, String(++rank).padStart(2, '0'));
-            row.node.classList.toggle('live-current', current);
-            row.node.classList.toggle('is-skipped', !!skipped && !current);
-            row.check.classList.toggle('is-skipped', !!skipped && !current);
-            if (current) row.node.setAttribute('aria-current', 'step'); else row.node.removeAttribute('aria-current');
+            toggleClass(row.node, 'live-current', current);
+            toggleClass(row.node, 'is-skipped', !!skipped && !current);
+            toggleClass(row.check, 'is-skipped', !!skipped && !current);
+            toggleClass(row.node, 'is-complete', !current && value?.total > 0 && value.ready === value.total && !value.queued && !value.failed);
+            attribute(row.node, 'aria-current', current ? 'step' : null);
             const state = current ? (snapshot.current?.running ? 'working' : 'waiting') : skipped ? 'skipped' :
                 value?.failed ? 'failed' : value?.total && value.ready === value.total ? 'ready' :
                 value?.queued ? 'queued' : value?.total ? 'reserve' : 'empty';
@@ -457,9 +488,11 @@ button:focus-visible { outline: 3px solid #e99522; outline-offset: 3px; }
         setText(unknown.text, snapshot?.state === 'disconnected' ? 'Verbindung unterbrochen · Status unbekannt' : 'Plan wird aktualisiert oder noch geladen');
         setText(disabled.text, 'Aktuell wird kein lokales Audio vorbereitet.');
         setText(readyState.text, 'Alles bereit · auf neuen Bedarf warten');
+        toggleClass(readyState.node, 'is-complete', snapshot?.state === 'complete');
         setText(waiting.text, snapshot?.state === 'failed' ? 'Fehlgeschlagene Aufgaben sind noch offen.' :
             snapshot?.state === 'busy_elsewhere' ? 'Der Sprachserver arbeitet für ein anderes Turnier.' : 'Weitere Vorarbeit wartet auf Leerlauf oder einen neuen Versuch.');
         scheduleLayout();
+        return snapshot;
     }
     function exportSVG() {
         // Export the measured network, including its actual branches, as pure SVG.

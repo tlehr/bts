@@ -1160,8 +1160,29 @@ suite('BTS / actual FastAPI / native Chrome speech integration', function() {
             assert.strictEqual(await live.evaluate('window.__followChanges'), 0, 'unchanged updates must not reset the focus');
             await live.evaluate('window.__followObserver.disconnect()');
             response.active_stage = 'oncourt';
-            await until(async () => (await view()).stage === 'oncourt');
+            await until(async () => (await view()).stage === 'oncourt' && (await view()).target === 'running-priority');
             assert((await view()).auto && (await view()).following);
+            await live.evaluate('window.__steadyPath = [...document.querySelectorAll(\'.flow-edge\')]; ' +
+                'window.__steadyMarkers = document.querySelector(\'.flow-edges defs\'); window.__stateChanges = []; ' +
+                'window.__stateObserver = new MutationObserver(records => window.__stateChanges.push(...records.map(r => r.target.id))); ' +
+                'window.__stateObserver.observe(document.querySelector(\'#overview\'), {subtree:true,attributes:true,attributeFilter:[\'class\',\'aria-current\']})');
+            response.updating = true;
+            const beforeRefresh = Number((await view()).updated);
+            await until(async () => Number((await view()).updated) >= beforeRefresh + 2);
+            assert.strictEqual((await view()).target, 'running-priority');
+            response.state = 'updating';
+            const beforeLegacyRefresh = Number((await view()).updated);
+            await until(async () => Number((await view()).updated) >= beforeLegacyRefresh + 2);
+            assert.strictEqual((await view()).stage, 'oncourt');
+            assert.strictEqual((await view()).target, 'running-priority');
+            assert((await view()).label.startsWith('Aktuell:'));
+            assert(await live.evaluate('document.querySelector(\'.speech_plan_live\').dataset.state === \'working\''));
+            response.state = 'working'; response.updating = false;
+            await until(() => live.evaluate('document.querySelector(\'#overview\').dataset.updating === \'false\''));
+            assert.deepStrictEqual(await live.evaluate('window.__stateChanges'), [], 'background refresh must not reset state or path markers');
+            assert(await live.evaluate('window.__steadyPath.every((edge,i) => document.querySelectorAll(\'.flow-edge\')[i] === edge) && ' +
+                'window.__steadyMarkers === document.querySelector(\'.flow-edges defs\')'));
+            await live.evaluate('window.__stateObserver.disconnect()');
             response.active_stage = null; response.current = null; response.state = 'complete';
             response.total = { ready: STAGES.length, queued: 0, total: STAGES.length };
             for (const row of response.stages) { row.ready = 1; row.queued = 0; }
@@ -1172,18 +1193,40 @@ suite('BTS / actual FastAPI / native Chrome speech integration', function() {
             assert.strictEqual(await live.evaluate('document.querySelectorAll(\'.live-current,[aria-current="step"]\').length'), 0);
             assert.strictEqual(await live.evaluate('document.querySelector(\'.is-current-state\').id'), 'ready-state');
             assert(await live.evaluate('document.querySelector(\'#ready-state .flow-end\').textContent.includes(\'Alles bereit\')'));
+            assert.strictEqual(await live.evaluate('document.querySelectorAll(\'.flow-step.is-complete\').length'), STAGES.length);
+            assert(await live.evaluate('[...document.querySelectorAll(\'.flow-step.is-complete,#ready-state\')].every(node => ' +
+                'getComputedStyle(node).backgroundColor === \'rgb(231, 244, 232)\')'), 'completed areas use a light green background');
             if (process.env.BTS_SPEECH_IDLE_SCREENSHOT) {
                 const shot = await live.call('Page.captureScreenshot', { format: 'png', captureBeyondViewport: true });
                 fs.writeFileSync(process.env.BTS_SPEECH_IDLE_SCREENSHOT, Buffer.from(shot.data, 'base64'));
             }
-            for (const [status, label] of [['failed', 'fehlgeschlagene'], ['idle_pending', 'Leerlauf'], ['updating', 'aktualisiert'], ['disabled', 'ausgeschaltet']]) {
+            const empty = response.stages.find(row => row.id === 'officials'), incomplete = response.stages.find(row => row.id === 'shared');
+            Object.assign(empty, { total: 0, ready: 0 }); Object.assign(incomplete, { ready: 0, queued: 1 });
+            response.state = 'waiting'; response.active_stage = 'shared'; response.current = { text: 'Neuer Bedarf', running: false };
+            response.total = { ready: STAGES.length - 2, queued: 1, total: STAGES.length - 1 };
+            await until(async () => (await view()).target === 'location-field-priority');
+            assert(await live.evaluate('!document.querySelector(\'[data-stage="officials"]\').classList.contains(\'is-complete\') && ' +
+                '!document.querySelector(\'[data-stage="shared"]\').classList.contains(\'is-complete\') && ' +
+                'document.querySelector(\'[data-stage="oncourt"]\').classList.contains(\'is-complete\')'));
+            const preservedEdge = await live.evaluate('window.__steadyPath[0] === document.querySelector(\'.flow-edge\')');
+            assert(preservedEdge, 'moving the route and changing card heights must reuse existing SVG edges');
+            response.state = 'failed'; response.active_stage = null; response.current = null;
+            Object.assign(incomplete, { failed: 1, queued: 0 }); response.total.failed = 1; response.total.queued = 0;
+            await until(async () => (await view()).target === 'waiting-state');
+            assert(await live.evaluate('!document.querySelector(\'[data-stage="shared"]\').classList.contains(\'is-complete\')'));
+            for (const row of response.stages) Object.assign(row, { total: 1, ready: 1, queued: 0, failed: 0 });
+            response.total = { ready: STAGES.length, queued: 0, total: STAGES.length, failed: 0 };
+            for (const [status, label] of [['failed', 'fehlgeschlagene'], ['idle_pending', 'Leerlauf'], ['disabled', 'ausgeschaltet']]) {
                 response.state = status;
                 await until(async () => (await view()).label.includes(label));
-                await until(async () => (await view()).target === (status === 'updating' ? 'unknown-state' : status === 'disabled' ? 'disabled-state' : 'waiting-state'));
+                await until(async () => (await view()).target === (status === 'disabled' ? 'disabled-state' : 'waiting-state'));
                 assert.strictEqual((await view()).following, false);
                 assert.strictEqual(await live.evaluate('document.querySelectorAll(\'.live-current,[aria-current="step"]\').length'), 0);
                 if (status === 'disabled') assert(await live.evaluate('document.querySelector(\'#idle-decision .flow-answer\').textContent.includes(\'ausgeschaltet\')'));
             }
+            response.state = 'updating'; response.phase = 'unknown';
+            await until(async () => (await view()).target === 'unknown-state');
+            assert((await view()).label.includes('aktualisiert'));
             response.phase = 'registration'; response.state = 'idle_pending';
             await until(async () => (await view()).phase === 'registration');
             assert(await live.evaluate('document.querySelector(\'#draw-decision .flow-answer\').textContent.startsWith(\'Nein\')'));
@@ -1200,7 +1243,8 @@ suite('BTS / actual FastAPI / native Chrome speech integration', function() {
             assert(await live.evaluate('(() => {const svg = new DOMParser().parseFromString(btsSpeechPlanningDiagram.exportSVG(), \'image/svg+xml\'); ' +
                 'return !svg.querySelector(\'parsererror\') && !svg.querySelector(\'foreignObject\') && svg.documentElement.localName === \'svg\' && ' +
                 'svg.querySelectorAll(\'rect\').length > 15 && svg.querySelectorAll(\'polygon\').length > 15 && ' +
-                'svg.querySelectorAll(\'.flow-edge.is-traversed\').length > 3 && svg.documentElement.textContent.includes(\'Spiele in Vorbereitung\');})()'));
+                'svg.querySelectorAll(\'.flow-edge.is-traversed\').length > 3 && svg.querySelector(\'rect[fill="rgb(231, 244, 232)"]\') && ' +
+                'svg.documentElement.textContent.includes(\'Spiele in Vorbereitung\');})()'));
             if (process.env.BTS_SPEECH_FOLLOW_SCREENSHOT) {
                 const shot = await live.call('Page.captureScreenshot', { format: 'png', captureBeyondViewport: true });
                 fs.writeFileSync(process.env.BTS_SPEECH_FOLLOW_SCREENSHOT, Buffer.from(shot.data, 'base64'));

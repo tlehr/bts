@@ -38,6 +38,7 @@
         diagram.disconnect();
     }
     function render(snapshot) {
+        snapshot = diagram.update(snapshot);
         live.dataset.connected = 'true'; live.dataset.state = snapshot.state;
         title.textContent = snapshot.title;
         const labels = { disabled: 'Lokale Sprachvorbereitung ist ausgeschaltet.', updating: 'BTS aktualisiert den Plan …',
@@ -60,7 +61,6 @@
         if (followStatus.textContent !== caption) followStatus.textContent = caption;
         current.textContent = snapshot.current?.retry_at > Date.now() ? 'Nächster Versuch frühestens ' +
             new Date(snapshot.current.retry_at).toLocaleTimeString('de-DE') : '';
-        diagram.update(snapshot);
         live.dataset.updatedAt = snapshot.updated_at;
     }
     function request(values) {

@@ -3,6 +3,7 @@
 const assert = require('assert');
 const { SpeechBroker, configuration } = require('../bts/speech/broker');
 const { PlanningStatus } = require('../bts/speech/planning_status');
+const { Prefetcher } = require('../bts/speech/prefetch');
 const { requiredPlan } = require('../bts/speech/planning');
 const idlePlan = require('../bts/speech/idle_plan');
 const { handle } = require('../bts/speech');
@@ -16,6 +17,35 @@ const broker = () => new SpeechBroker(configuration({ enabled: true, cache_enabl
 const game = (id, state, overrides = {}) => ({ _id: id, setup: setup({ state, ...overrides }) });
 
 describe('Live speech planning', function() {
+    it('retains known work and readiness while the tournament plan refreshes in the background', function() {
+        const b = broker(), prefetch = new Prefetcher({}, b), model = new PlanningStatus(tournament(), [], required());
+        prefetch.subscriptions.set(key, settings);
+        b.pending_plans.add(key);
+        assert.strictEqual(prefetch.planning_status(key).state, 'updating');
+        assert.strictEqual(prefetch.planning_status(key).phase, 'unknown');
+        model.parts.clear(); model.add('shared', ['Feldansage']);
+        prefetch.planning.set(key, model);
+        b.prepare(['Feldansage'], { voice, priority: 'normal', prefetch: true }, key);
+        const entry = b.entries.get(b.key('Feldansage', voice, 'de-DE'));
+        const queued = prefetch.planning_status(key);
+        assert.strictEqual(queued.updating, true);
+        assert.strictEqual(queued.state, 'waiting');
+        assert.strictEqual(queued.active_stage, 'shared');
+        entry.status = 'processing'; b.current = { entry, request: { voice } };
+        const running = prefetch.planning_status(key);
+        assert.strictEqual(running.updating, true);
+        assert.strictEqual(running.state, 'working');
+        assert.strictEqual(running.current.running, true);
+        assert.strictEqual(running.active_stage, queued.active_stage);
+        b.current = null; entry.status = 'completed';
+        const complete = prefetch.planning_status(key);
+        assert.strictEqual(complete.state, 'complete');
+        assert.strictEqual(complete.updating, true);
+        assert.deepStrictEqual([complete.total.ready, complete.total.total], [1, 1]);
+        b.pending_plans.delete(key);
+        assert.strictEqual(prefetch.planning_status(key).updating, false);
+    });
+
     it('reports actual simultaneous game states, candidates and finished no-match results', function() {
         const model = new PlanningStatus({ ...tournament(), name: 'Live-Test' }, [
             game('field', 'oncourt'), game('prep', 'preparation'), game('candidate', 'scheduled'),

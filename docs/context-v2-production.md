@@ -107,13 +107,29 @@ Kleine gefüllte Kreise führen alternative Wege zusammen. Höhere Prioritäten
 stehen weiter oben; Anmeldung und Spielbetrieb bilden getrennte Wege.
 
 Blau markiert einen zusammenhängenden Auswahlweg vom Start durch die
-Entscheidungen bis zum aktuellen Zustand. Gold markiert genau diesen Zustand
+Entscheidungen bis zum aktuellen Zustand. Ein goldener Rahmen markiert diesen Zustand
 oder, wenn noch kein Auftrag läuft, den nächsten vorgemerkten Bereich. Der
 Auftragstext und das Erzeugen, Ausschneiden oder Aufbereiten gehören in den
 Zustand; eine zusätzliche Bearbeitungs- oder Rücksprungschleife entfällt.
 Eigene Zustände zeigen „Alles bereit“, Warten, ausgeschaltete Generierung oder
 einen unbekannten Planungsstand. Bei Verbindungsverlust ersetzt der Weg zum
 unbekannten Planungsstand den bisherigen Auswahlweg.
+
+Während der Hintergrund-Neuberechnung bleibt ein bereits bekannter Plan
+sichtbar. Die Statusantwort meldet die Neuberechnung separat als `updating`;
+der tatsächliche Arbeitszustand und die Auftragsauswahl bleiben verfügbar.
+Die Browseransicht verarbeitet auch die bisherigen Antworten eines noch
+laufenden BTS-Prozesses entsprechend, wenn dessen Turnierphase bereits bekannt
+ist. Ohne vollständigen Plan beim ersten Laden oder nach einem
+Verbindungsverlust bleibt „Planungsstand unbekannt“ erhalten. Unveränderte
+Markierungen, SVG-Pfeile und Pfeilspitzen werden wiederverwendet.
+
+Hellgrüne Zustandsflächen kennzeichnen Bereiche, deren sämtliche aktuell für
+dieses Turnier geplanten Teile fertig sind. Bereiche ohne geplante Aufgaben
+oder mit offenen, fehlgeschlagenen beziehungsweise laufenden Aufträgen erhalten
+diese Fläche nicht. Neuer Bedarf entfernt die Fertigmarkierung wieder;
+Fortschritt und Bereitschaft werden weiterhin live aktualisiert. Die Farben
+erscheinen auch im SVG-Export.
 
 Der Auswahlweg ergibt sich aus der aktuellen Turnierphase und der vom Scheduler
 gemeldeten Auftragsauswahl. Er ist keine gespeicherte Ablaufhistorie.
