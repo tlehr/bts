@@ -42,7 +42,8 @@ class Prefetcher {
     configure(tournament, schedule = true) {
         const selected = resolveSettings(tournament, this.broker.config);
         const previous = this.subscriptions.get(tournament.key);
-        if (previous?.voice === selected.voice && previous?.mode === selected.mode) return;
+        if (previous?.voice === selected.voice && previous?.mode === selected.mode &&
+            previous?.warm_other_voice === selected.warm_other_voice) return;
         this.subscriptions.set(tournament.key, selected);
         this.contexts.delete(tournament.key);
         clearTimeout(this.lease_timers.get(tournament.key));
@@ -156,7 +157,7 @@ class Prefetcher {
             const idle_parts = (await idlePlan(context, matches, umpires, this.preferred.get(key)))
                 .filter(part => !needed.has(part));
             if (!this.dirty.has(key) && this.subscriptions.get(key) === speech_settings) {
-                const retry = this.broker.reconcile_prefetch(key, parts, { voice: speech_settings.voice, language: 'de-DE', idle_parts });
+                const retry = this.broker.reconcile_prefetch(key, parts, { ...speech_settings, language: 'de-DE', idle_parts });
                 await this.broker.coverage.set_plan(key, speech_settings.voice, coverage);
                 this.broker.on_change([key]);
                 clearTimeout(this.lease_timers.get(key));

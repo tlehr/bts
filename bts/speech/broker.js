@@ -8,7 +8,7 @@ const SpeechDiskCache = require('./disk_cache');
 const { SpeechCoverage } = require('./coverage');
 const { spellNumbers, VERSION: TEXT_VERSION } = require('./numbers');
 const context = require('./context');
-const PRIORITY = { high: 0, normal: 1, low: 2, idle: 3 };
+const PRIORITY = { high: 0, normal: 1, low: 2, idle: 3, spare: 4 };
 const ID = /^[0-9a-f]{32}$/;
 const PLAYBACK_PROFILE = 'bts-playback-v1';
 
@@ -63,9 +63,11 @@ class SpeechBroker {
         this.on_change = options.onChange || (() => {});
         this.entries = new Map();
         this.idle_plans = new Map();
+        this.spare_plans = new Map();
         this.prefetch_plans = new Map();
         this.pending_plans = new Set();
         this.last_idle_tournament = null;
+        this.last_spare_tournament = null;
         this.signing_key = crypto.randomBytes(32);
         this.voices = [];
         this.identity = null;
@@ -156,7 +158,7 @@ class SpeechBroker {
         }
         for (const tournament of entry.tournaments) {
             source.tournaments.add(tournament);
-            for (const group of ['prefetch_tournaments', 'foreground_tournaments', 'idle_tournaments']) if (entry[group]?.has(tournament)) {
+            for (const group of ['prefetch_tournaments', 'foreground_tournaments', 'idle_tournaments', 'spare_tournaments']) if (entry[group]?.has(tournament)) {
                 source[group] ||= new Set();
                 source[group].add(tournament);
             }
@@ -186,6 +188,7 @@ class SpeechBroker {
         for (const key of entry.tournaments) {
             if (entry.prefetch_tournaments?.has(key)) this.prepare([source], { ...options, prefetch: true }, key);
             if (entry.idle_tournaments?.has(key)) this.prepare([source], { ...options, priority: 'idle', prefetch: true }, key);
+            if (entry.spare_tournaments?.has(key)) this.prepare([source], { ...options, priority: 'spare', prefetch: true }, key);
             if (entry.foreground_tournaments?.has(key)) this.prepare([source],
                 { ...options, foreground_until: entry.foreground_expiry?.get(key) }, key);
         }
@@ -270,15 +273,17 @@ class SpeechBroker {
                 this.restore(entry);
                 if (!entry.generated_for) entry.generated_for = new Set(this.disk?.origin(this.identity, key) || []);
             }
+            entry.retired = false;
+            if (normalized.priority === 'spare') entry.spare_cached = true;
             this.check_local(entry);
             if (entry.status !== 'completed' && !entry.busy && entry !== this.current?.entry) this.restore(entry);
-            const interests = options.prefetch ? normalized.priority === 'idle' ? 'idle_tournaments' :
-                'prefetch_tournaments' : 'foreground_tournaments';
+            const interests = options.prefetch ? normalized.priority === 'spare' ? 'spare_tournaments' :
+                normalized.priority === 'idle' ? 'idle_tournaments' : 'prefetch_tournaments' : 'foreground_tournaments';
             if (tournament_key) {
                 entry.tournaments.add(tournament_key);
                 entry[interests] ||= new Set();
                 entry[interests].add(tournament_key);
-                if (normalized.priority !== 'idle') this.coverage.mark_needed(entry, tournament_key);
+                if (PRIORITY[normalized.priority] < PRIORITY.idle) this.coverage.mark_needed(entry, tournament_key);
                 if (!options.prefetch && entry.context) {
                     entry.foreground_expiry ||= new Map();
                     entry.foreground_expiry.set(tournament_key, Math.max(entry.foreground_expiry.get(tournament_key) || 0,
@@ -341,9 +346,11 @@ class SpeechBroker {
     }
 
     select_voice(tournament_key, voice) {
+        this.spare_plans.delete(tournament_key);
         if (this.idle_plans.get(tournament_key)?.voice !== voice) this.idle_plans.delete(tournament_key);
         if (this.prefetch_plans.get(tournament_key)?.voice !== voice) this.prefetch_plans.delete(tournament_key);
         for (const [key, entry] of this.entries) {
+            entry.spare_tournaments?.delete(tournament_key);
             if (!entry.tournaments.has(tournament_key) || entry.voice === voice) continue;
             entry.tournaments.delete(tournament_key);
             entry.prefetch_tournaments?.delete(tournament_key);
@@ -352,7 +359,11 @@ class SpeechBroker {
             entry.foreground_expiry?.delete(tournament_key);
             // A submitted request retains its independent current slot until it
             // finishes. Removing its local cache entry never opens another slot.
-            if (!entry.tournaments.size) this.entries.delete(key);
+            if (!entry.tournaments.size) {
+                if (entry === this.current?.entry) entry.detached = true;
+                entry.retired = true;
+                if (entry.status !== 'completed' || this.disk || !entry.spare_cached) this.entries.delete(key);
+            }
         }
     }
 
@@ -361,9 +372,9 @@ class SpeechBroker {
             positions: new Map(parts.map((part, index) => [this.key(part, voice, language), index])) });
     }
 
-    reconcile_prefetch(tournament_key, parts, { voice, language = 'de-DE', idle_parts = [] }) {
-        const expand = values => {
-            const wanted = new Set(values.map(part => this.key(part, voice, language))), stack = [...wanted];
+    reconcile_prefetch(tournament_key, parts, { voice, language = 'de-DE', idle_parts = [], warm_other_voice = false }) {
+        const expand = (values, selected_voice = voice) => {
+            const wanted = new Set(values.map(part => this.key(part, selected_voice, language))), stack = [...wanted];
             while (stack.length) {
                 const source = this.entries.get(stack.pop())?.source_key;
                 if (source && !wanted.has(source)) { wanted.add(source); stack.push(source); }
@@ -374,11 +385,18 @@ class SpeechBroker {
         this.set_prefetch_order(tournament_key, parts, { voice, language });
         this.idle_plans.set(tournament_key, { voice, language, parts: idle_parts, cursor: 0,
             positions: new Map(idle_parts.map((part, index) => [this.key(part, voice, language), index])) });
+        const spare_voice = voice === 'hallensprecher' ? 'hallensprecherin' : 'hallensprecher';
+        const spare_parts = warm_other_voice ? [...new Set([...parts, ...idle_parts])] : [];
+        const spare = expand(spare_parts, spare_voice);
+        if (warm_other_voice) this.spare_plans.set(tournament_key, { voice: spare_voice, language, parts: spare_parts, cursor: 0,
+            positions: new Map(spare_parts.map((part, index) => [this.key(part, spare_voice, language), index])) });
+        else this.spare_plans.delete(tournament_key);
         let changed = false, retry_after = null;
         for (const [key, entry] of this.entries) {
             if (!entry.tournaments.has(tournament_key)) continue;
             if (!wanted.has(key)) entry.prefetch_tournaments?.delete(tournament_key);
             if (!idle.has(key) || wanted.has(key)) entry.idle_tournaments?.delete(tournament_key);
+            if (!spare.has(key)) entry.spare_tournaments?.delete(tournament_key);
             if (!wanted.has(key) && entry.context && entry.foreground_tournaments?.has(tournament_key)) {
                 const remaining = (entry.foreground_expiry?.get(tournament_key) || 0) - this.now();
                 if (remaining > 0) retry_after = Math.min(retry_after ?? Infinity, remaining);
@@ -389,8 +407,10 @@ class SpeechBroker {
             }
             if (entry.idle_tournaments?.size && !entry.prefetch_tournaments?.size && !entry.foreground_tournaments?.size) {
                 entry.priority = PRIORITY.idle;
+            } else if (entry.spare_tournaments?.size && !entry.prefetch_tournaments?.size && !entry.foreground_tournaments?.size) {
+                entry.priority = PRIORITY.spare;
             }
-            if (entry.prefetch_tournaments?.has(tournament_key) || entry.idle_tournaments?.has(tournament_key) ||
+            if (entry.prefetch_tournaments?.has(tournament_key) || entry.idle_tournaments?.has(tournament_key) || entry.spare_tournaments?.has(tournament_key) ||
                 entry.foreground_tournaments?.has(tournament_key)) continue;
             entry.tournaments.delete(tournament_key);
             changed = true;
@@ -398,24 +418,33 @@ class SpeechBroker {
                 // A submitted request still owns the one current slot until
                 // completion. Its output may be archived, but never retried.
                 if (entry === this.current?.entry) entry.detached = true;
-                this.entries.delete(key);
+                entry.retired = true;
+                if (entry.status !== 'completed' || this.disk || !entry.spare_cached) this.entries.delete(key);
             }
         }
         if (changed) this.on_change([tournament_key]);
         return retry_after;
     }
 
-    regular_work_pending() {
+    regular_work_pending(before = PRIORITY.idle) {
         const entries = [...this.entries.values()];
-        return this.pending_plans.size > 0 || entries.some(entry => entry.priority < PRIORITY.idle &&
+        return this.pending_plans.size > 0 || entries.some(entry => !entry.retired && entry.priority < before &&
             (entry.revalidate || ['unsubmitted', 'queued', 'processing'].includes(entry.status) ||
                 entry.status === 'failed' && !entry.terminal_failure && (!entry.fallback_source ||
                     entries.some(child => child.source_key === entry.key && !child.terminal_failure))));
     }
 
-    admit_idle() {
+    spare_work_allowed() {
+        return !this.regular_work_pending(PRIORITY.spare) &&
+            [...this.idle_plans.values()].every(plan => plan.cursor >= plan.parts.length);
+    }
+
+    admit_idle(priority = 'idle') {
+        if (priority === 'spare' && !this.spare_work_allowed()) return;
+        const inventory = priority === 'spare' ? this.spare_plans : this.idle_plans;
+        const last = priority === 'spare' ? 'last_spare_tournament' : 'last_idle_tournament';
         // Round-robin between tournaments; each plan itself follows likely use.
-        const plans = [...this.idle_plans].sort(([a], [b]) => Number(a === this.last_idle_tournament) - Number(b === this.last_idle_tournament));
+        const plans = [...inventory].sort(([a], [b]) => Number(a === this[last]) - Number(b === this[last]));
         for (const [tournament, plan] of plans) while (plan.cursor < plan.parts.length) {
             const part = plan.parts[plan.cursor], key = this.key(part, plan.voice, plan.language);
             let entry = this.check_local(this.entries.get(key));
@@ -424,7 +453,7 @@ class SpeechBroker {
             // more inventory than the bounded broker can hold, including a source.
             if (!entry && this.entries.size + 2 > this.config.max_entries) {
                 for (const [saved_key, saved] of this.entries) {
-                    if (saved.priority !== PRIORITY.idle || saved.status !== 'completed' || !saved.local ||
+                    if (saved.priority < PRIORITY.idle && !saved.retired || saved.status !== 'completed' || !saved.local ||
                         saved === this.current?.entry || saved.busy ||
                         [...this.entries.values()].some(child => child.source_key === saved_key && child.status !== 'completed')) continue;
                     this.entries.delete(saved_key);
@@ -432,10 +461,10 @@ class SpeechBroker {
                 }
                 if (this.entries.size + 2 > this.config.max_entries) return;
             }
-            this.prepare([part], { voice: plan.voice, language: plan.language, priority: 'idle', prefetch: true }, tournament);
+            this.prepare([part], { voice: plan.voice, language: plan.language, priority, prefetch: true }, tournament);
             entry = this.entries.get(key);
             if (!entry) return;
-            this.last_idle_tournament = tournament;
+            this[last] = tournament;
             if (entry.status === 'completed' || entry.terminal_failure) { plan.cursor++; continue; }
             if (entry.status === 'failed' && entry.retry_at > this.now()) { plan.cursor++; continue; }
             const source = this.entries.get(entry.source_key);
@@ -446,13 +475,15 @@ class SpeechBroker {
 
     pending_order(now = this.now()) {
         const regular_pending = this.regular_work_pending();
+        const spare_allowed = this.spare_work_allowed();
         const positions = new Map();
         for (const entry of this.entries.values()) {
             if (entry.priority === PRIORITY.high || entry.status === 'completed' && !entry.revalidate) continue;
-            const idle = entry.priority === PRIORITY.idle;
+            const spare = entry.priority === PRIORITY.spare, idle = entry.priority >= PRIORITY.idle;
             if (idle && regular_pending) continue;
-            for (const tournament of (idle ? entry.idle_tournaments : entry.prefetch_tournaments) || []) {
-                const position = (idle ? this.idle_plans : this.prefetch_plans).get(tournament)?.positions.get(entry.key);
+            if (spare && !spare_allowed) continue;
+            for (const tournament of (spare ? entry.spare_tournaments : idle ? entry.idle_tournaments : entry.prefetch_tournaments) || []) {
+                const position = (spare ? this.spare_plans : idle ? this.idle_plans : this.prefetch_plans).get(tournament)?.positions.get(entry.key);
                 if (position === undefined) continue;
                 // A source inherits the earliest still-needed cut's place.
                 // Call timestamps and revised plans also reorder admitted work.
@@ -465,12 +496,13 @@ class SpeechBroker {
         }
         const compare = (a, b) => (a.priority !== PRIORITY.high ?
             (positions.get(a.key) ?? Infinity) - (positions.get(b.key) ?? Infinity) : 0) || a.created - b.created;
-        const eligible = [...this.entries.values()].filter(entry => entry !== this.current?.entry && !entry.busy &&
-            (entry.priority !== PRIORITY.idle || !regular_pending) &&
+        const eligible = [...this.entries.values()].filter(entry => !entry.retired && entry !== this.current?.entry && !entry.busy &&
+            (entry.priority < PRIORITY.idle || !regular_pending) &&
+            (entry.priority !== PRIORITY.spare || spare_allowed) &&
             (!entry.source_key || this.entries.get(entry.source_key)?.status === 'completed') &&
             (entry.status === 'unsubmitted' || entry.revalidate) && entry.retry_at <= now);
         const ordered = [];
-        for (const priority of [0, 1, 2, 3]) {
+        for (const priority of Object.values(PRIORITY)) {
             const voices = new Map();
             for (const entry of eligible.filter(item => item.priority === priority).sort(compare)) {
                 if (!voices.has(entry.voice)) voices.set(entry.voice, []);
@@ -517,8 +549,9 @@ class SpeechBroker {
             items: ordered.filter(entry => entry.tournaments.has(tournament_key)).map(entry => ({
                 key: entry.key, text: entry.text, voice: entry.voice, language: entry.language, tournament_key,
                 priority: Object.keys(PRIORITY)[entry.priority], status: entry.status,
-                idle: entry.idle_tournaments?.has(tournament_key) === true &&
+                idle: (entry.idle_tournaments?.has(tournament_key) === true || entry.spare_tournaments?.has(tournament_key) === true) &&
                     !entry.prefetch_tournaments?.has(tournament_key) && !entry.foreground_tournaments?.has(tournament_key),
+                spare: entry.spare_tournaments?.has(tournament_key) === true && entry.priority === PRIORITY.spare,
                 position: entry === current ? 0 : positions.get(entry) ?? null,
                 current: entry === current, retry_at: Math.max(entry.retry_at, this.post_retry_at),
                 audio_url: entry.status === 'completed' ? this.audio_url(tournament_key, entry.audio_id, entry) : null,
@@ -578,6 +611,7 @@ class SpeechBroker {
                 this.context_version = next_context;
                 this.entries.clear();
                 this.idle_plans.clear();
+                this.spare_plans.clear();
                 this.prefetch_plans.clear();
             }
             this.playback_profile = state.playback_profile === PLAYBACK_PROFILE && /^[0-9a-f]{64}$/.test(state.playback_version) ? PLAYBACK_PROFILE : null;
@@ -654,6 +688,7 @@ class SpeechBroker {
         if (!this.current) {
             if (now < this.post_retry_at || now - this.last_post < this.config.submit_interval_ms) return;
             if (!this.regular_work_pending()) this.admit_idle();
+            if (this.spare_work_allowed()) this.admit_idle('spare');
             const pending = this.pending_order(now);
             const entry = pending[0];
             if (!entry) return;
@@ -661,7 +696,7 @@ class SpeechBroker {
                 text: spellNumbers(entry.text), voice: entry.voice, language: entry.language,
                 // The server protocol has three priorities. Admission and the
                 // additional idle tier are managed exclusively here in BTS.
-                priority: entry.priority === PRIORITY.idle ? 'low' : Object.keys(PRIORITY)[entry.priority],
+                priority: entry.priority >= PRIORITY.idle ? 'low' : Object.keys(PRIORITY)[entry.priority],
                 ...(entry.context ? { profile: context.VERSION } : {}),
                 ...(this.playback_profile && entry.context?.kind !== 'source' ? { playback_profile: this.playback_profile } : {}),
                 ...(entry.source_seed === undefined ? {} : { source_seed: entry.source_seed }),

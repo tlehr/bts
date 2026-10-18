@@ -444,7 +444,13 @@ Priorität 1. Der Sprachtest hat immer Priorität 2, unabhängig von einer Anfor
 Die vollständige Testaufnahme für die zentral gewählte Stimme wird automatisch
 vorbereitet oder aus dem Cache übernommen. Angeforderte Hörproben gehören ebenfalls
 zu Priorität 2. Die Vorbereitung startet keine Wiedergabe.
-Die Planung ist noch nicht als produktive Warteschlange umgesetzt.
+Als letzte optionale Stufe 11 kann die andere Stimme vorbereitet werden, sobald
+auch der gesamte Vorrat der gewählten Stimme fertig ist. Die Checkbox ist
+zunächst ausgeschaltet und wird zentral mit dem Turnier gespeichert. Diese
+zusätzliche Brokerstufe ist im Experimentbranch bereits für den bestehenden
+Vorbereitungspfad umgesetzt; neue Arbeit der gewählten Stimme geht stets vor.
+Die übrige v2-Planung ist noch nicht als produktive Warteschlange umgesetzt.
+[Checkbox und Laufzeitregeln](durchsagen-arbeitsdokument.md#25-option-andere-stimme-bei-vollständigem-leerlauf-vorbereiten).
 [Prioritätstabelle und Regeln](durchsagen-arbeitsdokument.md#24-entwurf-generierungsreihenfolge-nach-turnierfortschritt).
 
 ### 5.1 Erster B01-Hörsatz: Spielfeld acht, beide Stimmen

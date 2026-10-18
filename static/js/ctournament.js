@@ -1296,6 +1296,11 @@ var ctournament = (function() {
 				['hallensprecherin', 'Hallensprecherin'], ['hallensprecher', 'Hallensprecher'],
 			]) uiu.el(voice, 'option', { value }, label);
 			voice.value = btsSpeechService.settings().voice;
+			const spareLabel = uiu.el(controls, 'label', { class: 'local_speech_spare_option' });
+			const spare = uiu.el(spareLabel, 'input', { type: 'checkbox', name: 'announcement_speech_warm_other_voice' });
+			spare.checked = btsSpeechService.settings().warm_other_voice === true;
+			uiu.el(spareLabel, 'span', {}, 'Andere Stimme nur bei vollständigem Leerlauf auf Vorrat vorbereiten');
+			uiu.el(controls, 'small', {}, 'Zuerst wird der gesamte Bedarf und Vorrat der gewählten Stimme vorbereitet. Fertige Aufnahmen beider Stimmen bleiben im Cache.');
 			const status = uiu.el(controls, 'div', { class: 'local_speech_status', 'aria-live': 'polite' }, 'Cache-Status wird geladen …');
 			render_local_speech_output_status(controls);
 			const paintStatus = (response, counts) => {
@@ -1318,6 +1323,7 @@ var ctournament = (function() {
 			};
 			bind_live_prop(mode, 'announcement_speech_mode', { on_success: changed });
 			bind_live_prop(voice, 'announcement_speech_voice', { on_success: changed });
+			bind_live_prop(spare, 'announcement_speech_warm_other_voice', { on_success: () => { refreshQueue?.(); } });
 			uiu.el(controls, 'small', {}, 'Stimme und Modus gelten für alle Clients dieses Turniers. Lokales Audio wird automatisch vorbereitet. Falls der Browser Audio sperrt, genügt ein normaler Klick oder Tastendruck im BTS.');
 			uiu.el(controls, 'button', { type: 'button' }, 'Ansage auf diesem Gerät stoppen')
 				.addEventListener('click', cancelAnnouncementPlayback);
@@ -3765,7 +3771,7 @@ var ctournament = (function() {
 		{
 			const call_div = uiu.el(form, 'div', 'settings speech_settings_section');
 			uiu.el(call_div, 'h2', 'edit', ci18n('tournament:edit:calls'));
-			uiu.el(call_div, 'p', {}, 'Sprachausgabe für alle Clients dieses Turniers. Änderungen werden automatisch gespeichert. Es wird nur die ausgewählte lokale Stimme vorbereitet.');
+			uiu.el(call_div, 'p', {}, 'Sprachausgabe für alle Clients dieses Turniers. Änderungen werden automatisch gespeichert. Die ausgewählte lokale Stimme wird vorrangig vorbereitet. Optional folgt die andere Stimme bei vollständigem Leerlauf.');
 			const layout = uiu.el(call_div, 'div', 'speech_settings_layout');
 			const speech_controls = uiu.el(layout, 'div');
 			let queue;

@@ -993,7 +993,7 @@ describe('Server speech adapter and protected audio', function() {
             await app.speech.prefetch.refresh('default');
             assert([...app.speech.broker.entries.values()].every(entry => entry.voice === 'hallensprecher'));
             assert.deepStrictEqual(resolveSettings({ ...current, speech: { voice: 'hallensprecherin', mode: 'auto' } }),
-                { voice: 'hallensprecher', mode: 'server' });
+                { voice: 'hallensprecher', mode: 'server', warm_other_voice: false });
             await db.tournaments.update_async({ key: 'default' }, { $set: { announcement_speech_mode: 'browser' } }, {});
             app.speech.configure({ ...current, announcement_speech_mode: 'browser' });
             await app.speech.prefetch.refresh('default');
@@ -1043,11 +1043,20 @@ describe('Server speech adapter and protected audio', function() {
             assert.strictEqual((await db.tournaments.findOne_async({ key: 'default' })).announcement_speech_voice, 'hallensprecher');
             assert.strictEqual(app.speech.prefetch.settings('default').voice, 'hallensprecher');
             await edit({ type: 'tournament_edit_props', props: { announcement_speech_mode: 'server', announcement_speech_voice: 'hallensprecherin' } });
-            assert.deepStrictEqual(app.speech.prefetch.settings('default'), { mode: 'server', voice: 'hallensprecherin' });
+            assert.deepStrictEqual(app.speech.prefetch.settings('default'), { mode: 'server', voice: 'hallensprecherin', warm_other_voice: false });
+            await edit({ type: 'tournament_edit_prop', field: 'announcement_speech_warm_other_voice', value: true });
+            assert.strictEqual((await db.tournaments.findOne_async({ key: 'default' })).announcement_speech_warm_other_voice, true);
+            assert.strictEqual(app.speech.prefetch.settings('default').warm_other_voice, true);
+            await assert.rejects(edit({ type: 'tournament_edit_prop', field: 'announcement_speech_warm_other_voice', value: 'false' }));
+            await assert.rejects(edit({ type: 'tournament_edit_props', props: {
+                announcement_speech_voice: 'hallensprecher', announcement_speech_warm_other_voice: 1,
+            } }));
+            assert.strictEqual((await db.tournaments.findOne_async({ key: 'default' })).announcement_speech_voice, 'hallensprecherin');
+            await edit({ type: 'tournament_edit_props', props: { announcement_speech_warm_other_voice: false } });
             await assert.rejects(edit({ type: 'tournament_edit_prop', field: 'announcement_speech_voice', value: 'unknown' }));
             await assert.rejects(edit({ type: 'tournament_edit_props', props: { announcement_speech_voice: 'hallensprecher', announcement_speech_mode: 'unknown' } }));
             assert.deepStrictEqual(resolveSettings(await db.tournaments.findOne_async({ key: 'default' })),
-                { mode: 'server', voice: 'hallensprecherin' });
+                { mode: 'server', voice: 'hallensprecherin', warm_other_voice: false });
         } finally { app.speech.stop(); }
     });
 });

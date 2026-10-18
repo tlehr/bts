@@ -136,6 +136,20 @@ describe('Browser local speech provider', function() {
         assert.strictEqual(h.requests.length, 1);
     });
 
+    it('previews cached other-voice reserve only while opted in and keeps the announcement voice unchanged', async function() {
+        const h = harness({ request: async () => previewResponse() });
+        await h.service.queue();
+        const reserve = { ...previewClip(), voice: 'hallensprecher', spare: true, idle: true };
+        assert.strictEqual((await h.service.preview(reserve, 'one')).status, 'unavailable');
+        h.settings.warm_other_voice = true;
+        assert.strictEqual((await h.service.preview(reserve, 'one')).status, 'ok');
+        assert.strictEqual(h.settings.voice, 'hallensprecherin');
+        assert.strictEqual((await h.service.preview({ ...reserve, spare: false }, 'one')).status, 'unavailable');
+        h.settings.warm_other_voice = false;
+        assert.strictEqual((await h.service.preview(reserve, 'one')).status, 'unavailable');
+        assert.strictEqual(h.requests.length, 1, 'preview never generates the other voice');
+    });
+
     it('never interrupts an actual announcement to preview and closing a preview does not stop an announcement', async function() {
         const h = harness({ fail: 'held' });
         const announcement = h.service.speak([TEXT], 'actual', h.fallback);

@@ -35,6 +35,125 @@ function service(options = {}) {
 }
 
 describe('Speech preparation only during idle time', function() {
+    it('keeps other-voice preparation opt-in and behind every selected-voice inventory item', async function() {
+        const { broker, posts, advance } = service();
+        const parts = ['Benötigt'], idle_parts = ['Früher Vorrat', 'Später Vorrat'];
+        broker.prepare(parts, { voice, priority: 'normal', prefetch: true }, key);
+        broker.reconcile_prefetch(key, parts, { voice, idle_parts });
+        for (let i = 0; i < 5; i++) { await broker.step(); advance(); }
+        assert.strictEqual(posts.length, 3);
+        assert(posts.every(post => post.voice === voice));
+        broker.reconcile_prefetch(key, parts, { voice, idle_parts, warm_other_voice: true });
+        assert(!broker.queue(key).items.some(item => item.spare), 'enabling inventory must not enqueue the whole second voice');
+        for (let i = 0; i < 5; i++) { await broker.step(); advance(); }
+        assert.deepStrictEqual(posts.map(post => [post.voice, post.text]), [
+            ...[...parts, ...idle_parts].map(text => [voice, text]),
+            ...[...parts, ...idle_parts].map(text => ['hallensprecherin', text]),
+        ]);
+        assert(posts.every(post => ['normal', 'low'].includes(post.priority)), 'internal spare priority must not reach the server');
+        assert(broker.queue(key).items.filter(item => item.spare).every(item => item.idle && item.priority === 'spare'));
+    });
+
+    it('waits for selected-voice retries and pending plans in any tournament before the other voice', async function() {
+        const { broker, posts, advance } = service();
+        broker.reconcile_prefetch(key, [], { voice, idle_parts: ['Vorrat'], warm_other_voice: true });
+        broker.admit_idle();
+        const entry = broker.entries.get(broker.key('Vorrat', voice, 'de-DE'));
+        entry.status = 'failed'; entry.retry_at = 10000;
+        await broker.step(); advance();
+        assert.strictEqual(posts.length, 0, 'a retry delay is not complete idle time');
+        entry.status = 'completed';
+        broker.pending_plans.add('other-tournament');
+        await broker.step(); advance();
+        assert.strictEqual(posts.length, 0);
+        broker.pending_plans.clear();
+        broker.reconcile_prefetch('other-tournament', [], { voice, idle_parts: ['Anderes Turnier'] });
+        await broker.step(); advance();
+        assert.strictEqual(posts[0].text, 'Anderes Turnier');
+        assert.strictEqual(posts[0].voice, voice);
+        await broker.step();
+        assert.strictEqual(posts[1].voice, 'hallensprecherin');
+    });
+
+    it('does not mistake a full selected-voice queue for completion of its idle inventory', async function() {
+        const { broker, posts } = service({ max_entries: 32 });
+        broker.reconcile_prefetch(key, [], { voice, idle_parts: ['Fehlt noch'], warm_other_voice: true });
+        broker.prepare(Array.from({ length: 32 }, (_, i) => 'Im Speicher ' + i), { voice, prefetch: true }, key);
+        for (const entry of broker.entries.values()) entry.status = 'completed';
+        await broker.step();
+        assert.strictEqual(posts.length, 0);
+        assert(![...broker.entries.values()].some(entry => entry.voice !== voice));
+    });
+
+    it('finishes a running other-voice job alone and then prioritizes even selected-voice idle work', async function() {
+        const { broker, posts, advance } = service();
+        broker.reconcile_prefetch(key, [], { voice, idle_parts: ['Fertig'], warm_other_voice: true });
+        await broker.step(); advance();
+        let active, finish = false;
+        broker.request = async (_base, _key, method, _route, body) => {
+            if (method === 'POST') {
+                assert(!active, 'one outstanding server job');
+                posts.push(body); active = { ...body, job_id: id(), status: 'processing' };
+            }
+            if (!finish) return active;
+            const completed = { ...active, status: 'completed', audio: { audio_id: id() } };
+            active = null; return completed;
+        };
+        await broker.step(); advance(3000);
+        assert.strictEqual(posts[1].voice, 'hallensprecherin');
+        broker.reconcile_prefetch(key, [], { voice, idle_parts: ['Fertig', 'Neu nötig'], warm_other_voice: true });
+        await broker.step(); advance(3000);
+        assert.strictEqual(posts.length, 2);
+        finish = true;
+        await broker.step(); advance();
+        await broker.step(); advance();
+        assert.deepStrictEqual([posts[2].voice, posts[2].text], [voice, 'Neu nötig']);
+        broker.prepare(['Jetzt aufrufen'], { voice, priority: 'high' }, key);
+        await broker.step();
+        assert.strictEqual(posts[3].text, 'Jetzt aufrufen');
+    });
+
+    it('retires unsent other-voice work when unchecked and reuses its completed recordings when enabled or selected', async function() {
+        const { broker, posts, advance } = service();
+        const options = { voice, idle_parts: ['Fertig', 'Noch offen'], warm_other_voice: true };
+        broker.reconcile_prefetch(key, [], options);
+        for (let i = 0; i < 3; i++) { await broker.step(); advance(); }
+        assert.strictEqual(posts[2].voice, 'hallensprecherin');
+        broker.admit_idle('spare');
+        assert(broker.queue(key).items.some(item => item.spare && item.status === 'unsubmitted'));
+        broker.reconcile_prefetch(key, [], { ...options, warm_other_voice: false });
+        await broker.step(); advance();
+        assert.strictEqual(posts.length, 3);
+        assert(!broker.queue(key).items.some(item => item.spare));
+        broker.reconcile_prefetch(key, [], options);
+        await broker.step(); advance();
+        assert.deepStrictEqual([posts[3].voice, posts[3].text], ['hallensprecherin', 'Noch offen']);
+        broker.select_voice(key, 'hallensprecherin');
+        broker.prepare(['Fertig', 'Noch offen'], { voice: 'hallensprecherin', prefetch: true }, key);
+        assert(broker.views(['Fertig', 'Noch offen'], { voice: 'hallensprecherin' }, key).every(clip => clip.status === 'completed'));
+        await broker.step();
+        assert.strictEqual(posts.length, 4, 'a later voice switch must reuse the spare audio');
+    });
+
+    it('keeps contextual sources and name fallbacks in the other-voice reserve tier', async function() {
+        const { broker, posts, advance } = service();
+        const part = '~bts-context-v1~' + JSON.stringify({ before: '', text: 'Ein Team', after: ' gegen Andere.', kind: 'team' });
+        broker.prepare([part], { voice, prefetch: true }, key);
+        await broker.step(); advance(); await broker.step(); advance();
+        broker.reconcile_prefetch(key, [part], { voice, warm_other_voice: true });
+        broker.admit_idle('spare');
+        const spare = broker.entries.get(broker.key(part, 'hallensprecherin', 'de-DE'));
+        assert.strictEqual(spare.priority, 4);
+        assert.strictEqual(broker.entries.get(spare.source_key).priority, 4);
+        broker.set_team_fallback(spare, 'context');
+        const source = broker.entries.get(spare.source_key);
+        assert.strictEqual(source.priority, 4);
+        assert(source.spare_tournaments.has(key));
+        broker.prepare(['Vorrang'], { voice, prefetch: true, priority: 'normal' }, key);
+        await broker.step();
+        assert.strictEqual(posts.at(-1).text, 'Vorrang');
+    });
+
     it('prepares imminent tablet candidates before later games and remaining registrations of active disciplines', async function() {
         const current = selected();
         current.events = { events: [
@@ -391,6 +510,34 @@ describe('Speech preparation only during idle time', function() {
             await broker.step();
             assert.strictEqual(posts.length, count, 'the actual late call only reuses ready recordings and cuts');
             assert(broker.queue(key).items.some(item => item.key === reserve.key && !item.idle));
+        } finally { prefetch.stop(); }
+    });
+
+    it('builds the other-voice inventory only from the saved opt-in setting and clears it on opt-out or browser mode', async function() {
+        const db = await database.init_test();
+        const current = { ...selected(), announcement_speech_voice: voice, announcement_speech_warm_other_voice: true };
+        const fixture = { tournaments: [current], matches: [], courts: current.courts, locations: current.locations };
+        for (const [collection, docs] of Object.entries(fixture)) {
+            await promisify(db[collection].insert.bind(db[collection]))(docs.map(doc => ({ ...doc, tournament_key: key })));
+        }
+        const { broker } = service();
+        const prefetch = new Prefetcher({ db }, broker);
+        prefetch.configure(current, false);
+        try {
+            await prefetch.refresh(key);
+            assert.strictEqual(broker.spare_plans.get(key).voice, 'hallensprecherin');
+            assert(broker.spare_plans.get(key).parts.length > 0);
+            assert([...broker.entries.values()].every(entry => entry.voice === voice), 'inventory must not enqueue second-voice work');
+            await db.tournaments.update_async({ key }, { $set: { announcement_speech_warm_other_voice: false } }, {});
+            prefetch.configure({ ...current, announcement_speech_warm_other_voice: false }, false);
+            assert.strictEqual(prefetch.settings(key).warm_other_voice, false);
+            await prefetch.refresh(key);
+            assert.strictEqual(broker.spare_plans.size, 0);
+            await db.tournaments.update_async({ key }, { $set: { announcement_speech_mode: 'browser', announcement_speech_warm_other_voice: true } }, {});
+            prefetch.configure({ ...current, announcement_speech_mode: 'browser' }, false);
+            await prefetch.refresh(key);
+            assert.strictEqual(broker.spare_plans.size, 0);
+            assert.strictEqual(broker.queue(key).items.length, 0);
         } finally { prefetch.stop(); }
     });
 });

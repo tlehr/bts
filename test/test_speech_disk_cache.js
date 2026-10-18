@@ -119,6 +119,26 @@ describe('Durable BTS speech cache', function() {
         assert(broker.views([part], {}, 'default')[0].local);
     });
 
+    it('retains opted-in other-voice recordings after opt-out and restart without contacting the speech server', async function() {
+        upstream = await fixture(directory, true);
+        const config = { ...upstream.config, submit_interval_ms: 0 };
+        const first = new SpeechBroker(config); await first.refresh();
+        const voice = 'hallensprecher', part = 'Bitte mit dem Spielen beginnen!';
+        first.prepare([part], { voice, prefetch: true }, 'default');
+        first.reconcile_prefetch('default', [part], { voice, warm_other_voice: true });
+        await first.step(); await first.step();
+        assert.deepStrictEqual(upstream.posts().map(post => post.body.voice), [voice, 'hallensprecherin']);
+        first.reconcile_prefetch('default', [part], { voice, warm_other_voice: false });
+        assert(!first.queue('default').items.some(item => item.spare));
+        const count = upstream.requests.length;
+        await close(upstream.server);
+        const fresh = new SpeechBroker(config); await fresh.disk.ready;
+        fresh.prepare([part], { voice: 'hallensprecherin', prefetch: true }, 'default');
+        await fresh.step();
+        assert(fresh.views([part], { voice: 'hallensprecherin' }, 'default')[0].local);
+        assert.strictEqual(upstream.requests.length, count);
+    });
+
     it('keeps the requested playback profile when polling a queued job', async function() {
         upstream = await fixture(directory, false, false, true);
         upstream.state.pending = true;

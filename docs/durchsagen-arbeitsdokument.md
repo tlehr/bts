@@ -287,7 +287,7 @@ Strukturelle Satzzeichen werden überwiegend als Wiedergabegrenzen behandelt, st
 
 Die lokale Anfrage schreibt Zahlen aus, während die Liste im BTS weiterhin die Ziffern zeigt. Gleiche Texte derselben Stimme und Synthesekonfiguration verwenden vorhandene Aufnahmen. So wird beispielsweise `Spiel Nummer 189` beim normalen Spielaufruf und bei der kampflosen Entscheidung wiederverwendet; die unterschiedlichen Satzgrenzen gehören zur Wiedergabe.
 
-BTS behält die Warteschlange und schickt höchstens einen offenen Generierungsauftrag an den Sprachserver. Tatsächliche Aufrufe haben Vorrang vor unmittelbar bevorstehenden und weiter entfernten Vorbereitungen. Für ein Turnier wird nur die zentral gewählte lokale Stimme vorbereitet. Abspielen und Vorbereiten sind getrennte Vorgänge.
+BTS behält die Warteschlange und schickt höchstens einen offenen Generierungsauftrag an den Sprachserver. Tatsächliche Aufrufe haben Vorrang vor unmittelbar bevorstehenden und weiter entfernten Vorbereitungen. Für ein Turnier wird vorrangig die zentral gewählte lokale Stimme vorbereitet. Optional kann die andere Stimme bei vollständigem Leerlauf als letzter Vorrat folgen (Abschnitt 25). Abspielen und Vorbereiten sind getrennte Vorgänge.
 
 ### 6.4 Bisheriger Hörversuch mit längeren Stücken
 
@@ -1295,6 +1295,7 @@ chronologischen Position eines Spiels in der Grafik:
 | 8 | Anmelde-/Auslosungsvorarbeit weiterer Disziplinen, ab erster Auslosung nur im Leerlauf | Vor zusätzlichem Tablet-Vorrat; geöffnete/fortgeschrittene Disziplinen bevorzugen, innerhalb der Gruppen nach frühester vorhandener Spielansetzung; Namen auch für Tabletansagen teilen |
 | 9 | Zusätzlicher Tablet-Vorrat: übrige Teams laufender Disziplinen, nur im Leerlauf | Nach weiterer Disziplinvorbereitung; Teams mit bekanntem nächstem Spiel zuerst |
 | 10 | Übrige bekannte Personen und Teams, nur im Leerlauf | Letzter Vorrat; keine unbekannten Paarungen ergänzen |
+| 11 | Andere lokale Stimme, nur bei eingeschalteter Checkbox | Erst nach Bedarf und vollständigem Vorrat der gewählten Stimme; zunächst ausgeschaltet, Cache wiederverwenden |
 
 Spiele in Vorbereitung und auf dem Feld gehören ab ihrem tatsächlichen Aufruf
 vollständig zum benötigten Bestand. Kandidaten, spätere Spiele und weitere
@@ -1428,4 +1429,50 @@ jeweils nur einen Serverauftrag. Ein laufender Auftrag wird fertiggestellt,
 danach wird die Priorität neu ermittelt. Nicht mehr benötigte, noch nicht
 gestartete Aufträge werden entfernt, sofern keine andere Durchsage sie braucht.
 Fertige Quellen und Bausteine bleiben auch nach Spielabschluss gespeichert.
-Im Turnierbetrieb wird nur die zentral gewählte Stimme vorbereitet.
+Im Turnierbetrieb wird die zentral gewählte Stimme vorrangig vorbereitet.
+Die andere Stimme kann per Checkbox als letzte Vorratsstufe folgen, siehe Abschnitt 25.
+
+## 25. Option: andere Stimme bei vollständigem Leerlauf vorbereiten
+
+In den zentralen Turniereinstellungen unter **Aufrufe**, direkt bei der lokalen
+Stimmenwahl, steht die zunächst ausgeschaltete Checkbox:
+
+> Andere Stimme nur bei vollständigem Leerlauf auf Vorrat vorbereiten
+
+Sie wird als `announcement_speech_warm_other_voice` mit dem Turnier gespeichert
+und gilt für alle Clients. Die gewählte Ansagestimme bleibt unverändert.
+Bei Browser-TTS entstehen weiterhin keine lokalen Vorbereitungsaufträge.
+
+Ist die Option eingeschaltet, wird nach dem vollständigen Bedarf **und** dem
+gesamten Leerlaufvorrat der gewählten Stimme derselbe aktuelle Bausteinbestand
+für die jeweils andere Stimme vorbereitet. In der abgestimmten v2-Übersicht ist
+dies Stufe 11. Im vorhandenen BTS-Broker ist dafür eine getrennte letzte Stufe
+`spare` eingebaut; gegenüber dem Sprachserver bleibt die Protokollpriorität
+`low`. Das verändert nicht die noch separat zu integrierenden v2-Kontextpläne.
+
+Auch verzögerte Wiederholungsaufträge, noch nicht abgeschlossene Planprüfungen
+und unerledigte Vorräte anderer Turniere gehen vor. Es wird jeweils nur das
+nächste fehlende Stück zugelassen. Neue Arbeit der gewählten Stimme pausiert
+die Aufnahme weiterer Zweitstimmenaufträge. Ein schon übermittelter Auftrag
+wird allein fertiggestellt; BTS hält weiterhin höchstens einen offenen
+Serverauftrag. Quellen, Ausschnitte und gegebenenfalls Namens-Fallbacks behalten
+diese letzte Priorität.
+
+Beim Ausschalten, Stimmwechsel oder Wechsel zu Browser-TTS entfallen die nicht
+mehr benötigten offenen Zweitstimmenaufträge. Fertiges Audio bleibt im Cache.
+Bei aktivem dauerhaftem BTS-Cache steht es nach einem Neustart und einem
+späteren Stimmwechsel ohne erneute Synthese zur Verfügung. Die Cache-Schlüssel
+beider Stimmen bleiben getrennt. Die Warteliste kennzeichnet die Aufträge mit
+**Andere Stimme · letzter Vorrat**; fertige Einträge können probegehört werden,
+ohne die zentrale Ansagestimme zu ändern. Die Fortschrittsbalken der gewählten
+Stimme zählen den optionalen Vorrat der anderen Stimme nicht mit.
+
+Validierung im Experimentbranch: 219 reguläre Sprachtests und alle 18 optionalen
+Browser-Integrationsfälle mit Chrome, echter FastAPI und kleinem Mockmodell
+bestanden. Geprüft sind insbesondere Vorrang vor der zweiten Stimme auch bei
+Wiederholungsfristen, unverändert ein offener Serverauftrag, Deaktivierung,
+Stimmwechsel, Quellen-/Fallback-Priorität sowie Wiederverwendung nach Neustart.
+Der Checkbox-Fall prüft Speichern über den bestehenden Einstellungsweg, Lesen
+durch einen zweiten Client, erneutes Öffnen und die eigene Wartelistenkennzeichnung.
+Desktop- und Handyansicht sind kontrolliert; es wurden keine realen Stimmen neu
+erzeugt oder produktive Turniereinstellungen geändert.

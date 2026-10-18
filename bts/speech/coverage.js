@@ -107,7 +107,7 @@ class SpeechCoverage {
             this.session_generated.add(this.session_key(entry.key, tournament));
             // Work may have been scheduled before the first health response
             // established the cache identity. Preserve its ordinary need too.
-            if (!entry.idle_tournaments?.has(tournament) || entry.prefetch_tournaments?.has(tournament) ||
+            if (!entry.idle_tournaments?.has(tournament) && !entry.spare_tournaments?.has(tournament) || entry.prefetch_tournaments?.has(tournament) ||
                 entry.foreground_tournaments?.has(tournament)) this.mark_needed(entry, tournament);
         }
     }
@@ -173,7 +173,7 @@ class SpeechCoverage {
             const saved = broker.disk?.lookup(broker.identity, key);
             const ready = !!saved || entry?.status === 'completed' ||
                 !broker.disk && value.archived?.entry?.status === 'completed';
-            const needed = !!entry?.tournaments.has(tournament) && (!entry.idle_tournaments?.has(tournament) ||
+            const needed = !!entry?.tournaments.has(tournament) && (!entry.idle_tournaments?.has(tournament) && !entry.spare_tournaments?.has(tournament) ||
                 entry.prefetch_tournaments?.has(tournament) || entry.foreground_tournaments?.has(tournament));
             const requested = !!entry?.tournaments.has(tournament);
             const generated = saved?.generated_for?.includes(tournament) || entry?.generated_for?.has(tournament) || value.archived?.generated;

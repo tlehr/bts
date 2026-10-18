@@ -15,7 +15,7 @@ function createSpeechQueue({ root, service, onSnapshot = () => {} }) {
     ];
     let next_recording = 1;
     const priorities = { high: 'Hoch · aktueller Aufruf', normal: 'Normal · benötigt', low: 'Niedrig · angeforderter Text',
-        idle: 'Nur bei Leerlauf · mögliche spätere Ansage' };
+        idle: 'Nur bei Leerlauf · mögliche spätere Ansage', spare: 'Andere Stimme · letzter Vorrat' };
     const operation = item => item.operation || (['source', 'text'].includes(item.kind || 'text') ? 'synthesis' :
         item.kind === 'game' ? 'processing' : 'excerpt');
     const operation_labels = { synthesis: 'Sprachaufnahme erzeugen', excerpt: 'Aus Aufnahme ausschneiden', processing: 'Aufnahme aufbereiten' };
@@ -251,7 +251,8 @@ function createSpeechQueue({ root, service, onSnapshot = () => {} }) {
                 children.get(item.source_key).push(item);
             }
         }
-        const needed = items.filter(item => !item.idle), idle = items.filter(item => item.idle);
+        const needed = items.filter(item => !item.idle), idle = items.filter(item => item.idle && !item.spare);
+        const spare = items.filter(item => item.spare);
         const ready = needed.filter(item => item.status === 'completed').length;
         const failed = needed.filter(item => item.status === 'failed').length;
         const fields = needed.filter(item => item.source_usage?.type === 'field').length;
@@ -263,6 +264,8 @@ function createSpeechQueue({ root, service, onSnapshot = () => {} }) {
             (fields || games ? ' · ' + fields + ' Feldreferenzen · ' + games + ' Spielblöcke' : '') : 'Aktuell keine Aufträge benötigt.') +
             (idle.length ? ' · Leerlauf-Vorrat: ' + idle.filter(item => item.status === 'completed').length + ' bereit, ' +
                 idle.filter(item => item.status !== 'completed').length + ' offen' : '') +
+            (spare.length ? ' · Andere Stimme: ' + spare.filter(item => item.status === 'completed').length + ' bereit, ' +
+                spare.filter(item => item.status !== 'completed').length + ' offen' : '') +
             (response.queue.busy_elsewhere ?
                 ' · Ein bereits laufender anderer Auftrag wird noch abgeschlossen.' : '');
         if (summary.textContent !== summary_text) summary.textContent = summary_text;
@@ -337,7 +340,7 @@ function createSpeechQueue({ root, service, onSnapshot = () => {} }) {
             const stage = item.kind === 'source' ? 'Kontextaufnahme' : item.kind === 'field_start' ? 'Feldanfang · Ausschnitt' :
                 item.kind === 'field_end' ? 'Feldende · Ausschnitt' : item.kind === 'game' ? 'Spielblock · Audiobearbeitung' :
                 item.excerpt_position === 'start' ? 'Anfang · Ausschnitt' : item.excerpt_position === 'end' ? 'Ende · Ausschnitt' : '';
-            row.meta.textContent = voice + ' · ' + priorities[item.idle ? 'idle' : item.priority] + ' · ' +
+            row.meta.textContent = voice + ' · ' + priorities[item.spare ? 'spare' : item.idle ? 'idle' : item.priority] + ' · ' +
                 (stage ? stage + ' · ' : '') + status(item, source);
             row.button.setAttribute('aria-label', 'Probehören: ' + voice + (stage ? ' (' + stage + ')' : '') + ' – ' + item.text);
             row.button.title = item.status === 'completed' ? 'Lokale Aufnahme probehören (' + voice + ')' :

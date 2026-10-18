@@ -3630,6 +3630,20 @@ h2.edit {
     margin-bottom: 1rem;
 }
 
+.local_speech_controls .local_speech_spare_option {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 0.5rem;
+    margin: 0.75rem 0;
+}
+
+.local_speech_controls .local_speech_spare_option input {
+    flex: 0 0 auto;
+    width: auto;
+    margin-top: 0.3rem;
+}
+
 .speech_queue { min-width: 0; }
 .speech_queue h3 { margin: 0.5rem 0; }
 .speech_queue_help, .speech_queue_summary, .speech_queue_feedback {

@@ -483,6 +483,43 @@ suite('BTS / actual FastAPI / native Chrome speech integration', function() {
         assert.strictEqual(fs.readFileSync(path.join(directory, 'received.jsonl'), 'utf8'), received);
     });
 
+    it('persists the opt-in checkbox for other-voice reserve and shows its own queue label in the native browser', async function() {
+        const field = '[name="announcement_speech_warm_other_voice"]';
+        await openSpeechSettings();
+        assert.strictEqual(await devtools.evaluate('document.querySelector(' + JSON.stringify(field) + ').checked'), false);
+        try {
+            await click(field);
+            await until(async () => (await app.db.tournaments.findOne_async({ key: 'default' })).announcement_speech_warm_other_voice === true);
+            assert.strictEqual(app.speech.prefetch.settings('default').warm_other_voice, true);
+            const loaded = await rpc(client, { type: 'tournament_get', key: 'default' });
+            assert.strictEqual(loaded.tournament.speech.warm_other_voice, true, 'another client reads the same saved setting');
+            await until(() => app.speech.broker.queue('default').items.some(item => item.spare));
+            await until(() => devtools.evaluate('[...document.querySelectorAll(".speech_queue_meta")].some(el => el.textContent.includes("Andere Stimme · letzter Vorrat"))'));
+            assert.strictEqual(await devtools.evaluate('btsSpeechService.settings().voice'), loaded.tournament.speech.voice);
+            await closeSpeechSettings();
+            await openSpeechSettings();
+            await until(() => devtools.evaluate('!!document.querySelector(' + JSON.stringify(field) + ')'));
+            assert.strictEqual(await devtools.evaluate('document.querySelector(' + JSON.stringify(field) + ').checked'), true);
+            if (process.env.BTS_SPEECH_UI_SCREENSHOT) {
+                await devtools.evaluate('document.querySelector(".local_speech_controls").scrollIntoView({block:"start"})');
+                const screenshot = await devtools.call('Page.captureScreenshot', { format: 'png' });
+                fs.writeFileSync(process.env.BTS_SPEECH_UI_SCREENSHOT, Buffer.from(screenshot.data, 'base64'));
+                await devtools.call('Emulation.setDeviceMetricsOverride', { width: 390, height: 844, deviceScaleFactor: 1, mobile: false });
+                await devtools.evaluate('document.querySelector(".local_speech_controls").scrollIntoView({block:"start"})');
+                const mobile = await devtools.call('Page.captureScreenshot', { format: 'png' });
+                fs.writeFileSync(process.env.BTS_SPEECH_UI_SCREENSHOT.replace(/\.png$/, '-mobile.png'), Buffer.from(mobile.data, 'base64'));
+                await devtools.call('Emulation.setDeviceMetricsOverride', { width: 1280, height: 1100, deviceScaleFactor: 1, mobile: false });
+            }
+            await click(field);
+            await until(async () => (await app.db.tournaments.findOne_async({ key: 'default' })).announcement_speech_warm_other_voice === false);
+            assert.strictEqual(app.speech.broker.spare_plans.size, 0);
+            assert(!app.speech.broker.queue('default').items.some(item => item.spare));
+        } finally {
+            await rpc(client, { type: 'tournament_edit_prop', key: 'default', field: 'announcement_speech_warm_other_voice', value: false });
+            await closeSpeechSettings();
+        }
+    });
+
     it('updates cache counts and progress from completion events even when periodic polling is delayed', async function() {
         const broker = app.speech.broker;
         const events = [];
