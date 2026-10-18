@@ -360,6 +360,18 @@ Der Betreiber hat den aktuellen Hörsatz für beide Stimmen klanglich bestätigt
 vollständigen Namen-/Teamstücken. Die Anmeldebausteine sind damit für diesen
 Hörstand abgenommen; automatische Schnittbefunde bleiben erhalten.
 
+Aktuelle Änderung auf Wunsch des Betreibers: Vereine und Bundesländer werden
+ebenfalls mit `[Bezeichnung] spielt jetzt gegen [Bezeichnung]!` erzeugt. Ihr
+erstes Vorkommen wird wie bei Namen vor „spielt“ ausgeschnitten und an beiden
+Positionen sowie für beide Ziele wiederverwendet. Für den aktualisierten Hörsatz
+`http://127.0.0.1:8084/anmeldung-namenskontext/` entstehen nur zwei neue Quellen
+je Stimme. Die zehn festen Stücke, die vorhandenen Personen-/Teamstücke und
+vier vollständige ursprüngliche Kontexte bleiben bytegleich; insgesamt werden
+16 Stücke wiederverwendet. Die neuen Bezeichnungen und ihre beiden vollständigen
+Kontexte ersetzen die vier bisherigen Vereins-/Bundesland-Positionsstücke.
+Der vorherige bestätigte Hörsatz bleibt als Vergleich erhalten. Aktuelle
+Stückzählung: [Abschnitt 22.6](durchsagen-arbeitsdokument.md#226-aktueller-stand-vereine-und-bundesländer-im-namenskontext).
+
 ### 5.1 Erster B01-Hörsatz: Spielfeld acht, beide Stimmen
 
 `scripts/tts-field-context-plan.js` ergänzt den gespeicherten, bestätigten Spielblockplan um genau eine vollständige Feldreferenz pro Feld und Stimme. Für diesen ersten Hörtest wird nur Feld acht verwendet. Die Referenz hält die Spielnummer ohne „Nummer“, Satzzeichen und Doppel-Leerzeichen aus der bisherigen festen Vorlage bei; für v2 gilt die bereits gewählte gesprochene Schreibweise `Mädchen Einzel`. Die archivierte v1-Referenz bleibt unverändert.

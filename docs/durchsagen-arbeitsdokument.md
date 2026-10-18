@@ -1142,3 +1142,38 @@ Der Betreiber hat diesen Anmelde-Hörsatz für beide Stimmen klanglich bestätig
 („Passt!“). Die Bestätigung umfasst die vier Aufrufarten mit beiden Zielorten,
 die gemeinsamen festen Stücke und die Wiederverwendung der vollständigen Namen
 vor „bitte“. Vorhandene automatische Schnittbefunde bleiben dokumentiert.
+
+### 22.6 Aktueller Stand: Vereine und Bundesländer im Namenskontext
+
+Auf Wunsch des Betreibers verwenden auch Vereinsnamen und Bundesländer denselben
+Kontextsatz wie Personen und Teams:
+
+```text
+[Bezeichnung] spielt jetzt gegen [Bezeichnung]!
+```
+
+Für den Hörtest werden `PSV Bremen spielt jetzt gegen PSV Bremen!` und
+`Bremen spielt jetzt gegen Bremen!` mit beiden Stimmen erzeugt. Jeweils das erste
+vollständige Vorkommen vor „spielt“ wird ausgeschnitten. Dasselbe Stück wird
+sowohl vor dem Zieltext als auch vor dem abschließenden „bitte!“ verwendet.
+Damit reicht je Verein oder Bundesland ein Stück für beide Wiederholungen und
+beide Ziele. Die Kontextwörter „spielt jetzt gegen“ werden nicht mit abgespielt.
+Dies ersetzt die beiden bisherigen Positionsstücke aus dem eigentlichen
+Vereins-/Bundeslandaufruf in 22.3 und 22.5. Deren klangliche Bestätigung bleibt
+für den vorherigen Hörstand dokumentiert.
+
+Die zehn festen Aufrufstücke, die beiden vorhandenen Namen-/Teamstücke und die
+vier vollständigen ursprünglichen Aufrufkontexte bleiben bytegleich im Cache.
+Für diese Änderung werden je Stimme nur zwei neue Kontextquellen benötigt.
+Sie liefern zwei Bezeichnungsstücke und zwei vollständige Vergleichsreferenzen.
+Alle acht montierten Aufrufe behalten ihren Browserwortlaut und ihre Pausenziele.
+Die bestehenden 100-ms-/LUFS-Regeln gelten auch für die neuen Stücke.
+
+Aktuelle Hörseite: `http://127.0.0.1:8084/anmeldung-namenskontext/`.
+Der vorige Hörsatz bleibt unter `anmeldung/` zum Vergleich verfügbar.
+Pro Stimme gibt es weiterhin 26 Proben: acht Aufrufe, zwölf einzelne feste oder
+variable Stücke und sechs Kontextreferenzen. Insgesamt 20 Wiedergabestücke:
+zehn feste Stücke, vier Bezeichnungen einschließlich Person und Paarung sowie
+sechs vollständige Referenzen. 16 davon werden für diese Änderung wiederverwendet,
+vier neu aus den zwei Bezeichnungsquellen gewonnen. Weitere Bezeichnungen können
+dieselbe Namensplanung und denselben Cache nutzen.
