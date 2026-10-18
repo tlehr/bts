@@ -23,10 +23,6 @@ function preparation(existing, tournament, sampleId = 'beispiel-189-two') {
     if (!['B03', 'B04', 'B05'].every((profile, index) => parts[index].profile === 'lab-v2/' + profile)) {
         throw new Error('The existing sample must start with number, discipline and round');
     }
-    const sentence = text => /[.!?]$/.test(text) ? text : text + '.';
-    const middle = parts.slice(0, 3).map(p => sentence(p.text)).join(' ') + ' ' +
-        sentence(parts.slice(3).map(p => p.text).join(' '));
-    const middleDisplay = sentence(game.display);
     const normalizations = tournament.normalizations || existing.pronunciation.normalizations || [];
     const texts = create({ tournament: { ...tournament, normalizations }, translate: (key, data, fallback) => translate('de', key, data, fallback),
         window: { localStorage: { getItem: () => 'true' } }, announce: () => {} });
@@ -35,8 +31,12 @@ function preparation(existing, tournament, sampleId = 'beispiel-189-two') {
             locations.some(location => location._id !== null && typeof location._id !== 'string')) {
         throw new Error('Unique location IDs are required');
     }
-    const addPiece = (source, before, text, after, profile, display) => {
-        const item = { source, before, text, after, kind: 'generic', profile: 'lab-v2/' + profile, display };
+    const direct = display => {
+        // Use the browser's complete wording and punctuation. Only the already
+        // agreed speech-only number expansion is applied, without extra context.
+        const text = spellNumbers(display);
+        const source = plan.source(text, 'lab-v2/location-direct', display);
+        const item = { source, before: '', text, after: '', kind: 'generic', profile: 'lab-v2/location-sentence', display };
         const id = 'p-' + digest(item).slice(0, 20);
         plan.pieces.set(id, { id, ...item });
         return id;
@@ -47,17 +47,8 @@ function preparation(existing, tournament, sampleId = 'beispiel-189-two') {
         const opening = texts.createPreparationAnnouncement(setup, true).trim();
         const ending = (tournament.preparation_meetingpoint_enabled ?
             texts.createMeetingPointAnnouncement(setup, true) : opening).trim();
-        const spoken = text => spellNumbers(texts.normalizeNames(text));
-        const start = spoken(opening), end = spoken(ending);
-        const separator = /[.!?:;]$/.test(start) ? ' ' : ': ';
-        const closingMark = end && !/[.!?]$/.test(end) ? '!' : '';
-        const full = start + separator + middle + (end ? ' ' + end + closingMark : '');
-        const shown = opening + separator + middleDisplay + (ending ? ' ' + ending + closingMark : '');
-        const source = plan.source(full, 'lab-v2/preparation-location-reference', shown);
-        const b09 = addPiece(source, '', start, full.slice(start.length), 'B09-opening', opening);
-        const b10 = end ? addPiece(source, start + separator + middle + ' ', end, closingMark,
-            tournament.preparation_meetingpoint_enabled ? 'B10-meeting' : 'B09-closing', ending) : null;
-        const reference = addPiece(source, '', full, '', 'preparation-full-reference', shown);
+        const b09 = direct(opening);
+        const b10 = ending ? direct(ending) : null;
         const locationId = 'loc-' + digest(location._id).slice(0, 12);
         const label = location.name || 'Unbenannte Location';
         const entries = game.pieces.map(row => ({ ...row }));
@@ -66,18 +57,18 @@ function preparation(existing, tournament, sampleId = 'beispiel-189-two') {
             ['assembled', 'D02 · zusammengesetzter Vorbereitungsaufruf',
                 [{ piece: b09, pause_ms: 250 }, ...entries, ...(b10 ? [{ piece: b10, pause_ms: 0 }] : [])],
                 [opening, game.display, ending].filter(Boolean).join(' ')],
-            ['opening', 'B09 · Vorbereitungsanfang', [{ piece: b09, pause_ms: 0 }], opening],
-            ...(b10 ? [['closing', tournament.preparation_meetingpoint_enabled ? 'B10 · Treffpunkt' : 'B09 · Vorbereitungsabschluss',
-                [{ piece: b10, pause_ms: 0 }], ending]] : []),
-            ['reference', 'Vollständige D02-Kontextaufnahme', [{ piece: reference, pause_ms: 0 }], shown],
+            ['sentences', b09 === b10 ? 'B09 · Vorbereitungsanfang und Abschluss · dieselbe Aufnahme' : 'B09 · Vorbereitungsanfang',
+                [{ piece: b09, pause_ms: 0 }], opening],
+            ...(b10 && b10 !== b09 ? [['sentences', 'B10 · Treffpunkt', [{ piece: b10, pause_ms: 0 }], ending]] : []),
         ]) {
-            plan.cases.push({ id: `${locationId}-${group}`, experiment: group, label: label + ' · ' + description,
+            plan.cases.push({ id: `${locationId}-${group}${group === 'sentences' ? '-' + rows[0].piece : ''}`, experiment: group, label: label + ' · ' + description,
                 location_id: location._id, display, pieces: rows, subjective_quality: 'not-rated' });
         }
         summaries.push({ location_id: location._id, name: label, preparation_addition: location.preparation_addition || '',
             meetingpoint_announcement: location.meetingpoint_announcement || '', opening, ending,
-            ending_kind: tournament.preparation_meetingpoint_enabled ? (end ? 'meeting' : 'empty') : 'preparation',
-            source, opening_piece: b09, closing_piece: b10, reference_piece: reference });
+            ending_kind: tournament.preparation_meetingpoint_enabled ? (ending ? 'meeting' : 'empty') : 'preparation',
+            opening_source: plan.pieces.get(b09).source, closing_source: b10 ? plan.pieces.get(b10).source : null,
+            opening_piece: b09, closing_piece: b10 });
     }
     const result = plan.export();
     result.strategy = 'bts-context-v2-lab-only';
@@ -85,9 +76,10 @@ function preparation(existing, tournament, sampleId = 'beispiel-189-two') {
     result.generator_sha256 = require('crypto').createHash('sha256').update(fs.readFileSync(__filename)).digest('hex');
     result.scope = { purpose: 'Location-aware D02 hearing trial only; no production activation', without_court: true,
         source_gameblock_plan_sha256: digest(existing), game_case_id: game.id, game_pieces: game.pieces.map(p => p.piece),
-        location_normalizations_sha256: digest(normalizations),
+        location_strategy: 'direct-browser-text-v1', browser_texts_unchanged: true,
         preparation_meetingpoint_enabled: !!tournament.preparation_meetingpoint_enabled,
-        locations: summaries, distinct_location_sources_per_voice: new Set(summaries.map(l => l.source)).size,
+        locations: summaries, distinct_location_sources_per_voice: new Set(summaries.flatMap(l =>
+            [l.opening_source, l.closing_source].filter(Boolean))).size,
         existing_gameblocks_unchanged: true, boundary_pause_target_ms: 250 };
     return result;
 }

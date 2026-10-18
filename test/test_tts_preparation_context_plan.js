@@ -2,6 +2,9 @@
 const assert = require('assert');
 const { gameblocks } = require('../scripts/tts-gameblock-context-plan');
 const { preparation } = require('../scripts/tts-preparation-context-plan');
+const create = require('../static/js/announcement_text');
+const { _translate: translate } = require('../static/js/ci18n');
+const { spellNumbers } = require('../bts/speech/numbers');
 
 const games = () => gameblocks({}, [{ id: 'beispiel-189', label: 'Testspiel', setup: {
     match_num: 189, event_name: 'ME U19', match_name: 'R16',
@@ -21,7 +24,7 @@ describe('location-aware preparation hearing plan', function() {
         assert.strictEqual(plan.scope.locations[0].opening, 'In Vorbereitung für Halle 2!');
         assert.strictEqual(plan.scope.locations[0].ending, 'Bitte meldet euch in Halle 2!');
         assert.strictEqual(plan.scope.locations[1].ending, 'Bitte kommt zur Turnierleitung!');
-        assert.strictEqual(plan.scope.distinct_location_sources_per_voice, 2);
+        assert.strictEqual(plan.scope.distinct_location_sources_per_voice, 4);
         assert(!plan.sources.some(s => /\d/.test(s.text)));
         for (const call of plan.cases.filter(c => c.experiment === 'assembled')) {
             const middle = call.pieces.slice(1, -1);
@@ -29,11 +32,16 @@ describe('location-aware preparation hearing plan', function() {
             for (const row of middle) assert.deepStrictEqual(plan.pieces.find(p => p.id === row.piece),
                 existing.pieces.find(p => p.id === row.piece));
         }
-        assert.strictEqual(plan.sources.length, 7, 'five cached game sources plus two location contexts');
+        assert.strictEqual(plan.sources.length, 9, 'five cached game sources plus four complete browser sentences');
+        for (const piece of plan.pieces.filter(p => p.profile === 'lab-v2/location-sentence')) {
+            assert.strictEqual(piece.before, '');
+            assert.strictEqual(piece.after, '');
+            assert.strictEqual(piece.text, plan.sources.find(s => s.id === piece.source).text);
+        }
         assert(!plan.sources.some(s => /Spielfeld/.test(s.text)), 'no hypothetical court variants');
     });
 
-    it('shares identical location text and makes separate opening/closing cuts when meeting points are off', function() {
+    it('shares one complete recording for identical beginnings, endings and locations', function() {
         const input = { locations: [hall('a'), hall('b', '  ', 'Unused meeting point!')] };
         const plan = preparation(games(), input);
         assert.strictEqual(plan.scope.distinct_location_sources_per_voice, 1);
@@ -42,16 +50,18 @@ describe('location-aware preparation hearing plan', function() {
         assert.strictEqual(a.ending, 'In Vorbereitung');
         assert.strictEqual(a.opening_piece, b.opening_piece);
         assert.strictEqual(a.closing_piece, b.closing_piece);
-        assert.notStrictEqual(a.opening_piece, a.closing_piece);
+        assert.strictEqual(a.opening_piece, a.closing_piece);
         assert(!plan.sources.some(s => s.text.includes('Unused')));
-        assert(plan.sources.some(s => s.text.startsWith('In Vorbereitung: ') && s.text.endsWith('In Vorbereitung!')));
+        assert(plan.sources.some(s => s.text === 'In Vorbereitung'));
+        assert(!plan.sources.some(s => s.profile === 'lab-v2/preparation-location-reference'));
+        assert.strictEqual(plan.cases.filter(c => c.experiment === 'sentences').length, 2, 'one sentence card per location');
     });
 
     it('honors an explicitly empty meeting point instead of inventing a location or default ending', function() {
         const plan = preparation(games(), { preparation_meetingpoint_enabled: true, locations: [hall('empty')] });
         assert.strictEqual(plan.scope.locations[0].ending_kind, 'empty');
         assert.strictEqual(plan.scope.locations[0].closing_piece, null);
-        assert.strictEqual(plan.cases.length, 3);
+        assert.strictEqual(plan.cases.length, 2);
         assert.strictEqual(plan.cases[0].pieces.length, 6);
         assert.strictEqual(plan.cases[0].pieces.at(-1).pause_ms, 0);
         assert(!plan.sources.some(s => /Meetingpoint|Halle zwei/.test(s.text)));
@@ -63,14 +73,42 @@ describe('location-aware preparation hearing plan', function() {
         assert.strictEqual(plan.scope.locations[0].location_id, null);
     });
 
-    it('changing one location changes only its own reference and keeps game and other location pieces', function() {
+    it('changing a meeting text keeps the opening, game and other location recordings', function() {
         const a = { preparation_meetingpoint_enabled: true, locations: [hall('a', 'links', 'Hier treffen!'), hall('b', 'rechts', 'Dort treffen!')] };
         const before = preparation(games(), a);
         a.locations[0].meetingpoint_announcement = 'Bitte zum Eingang!';
         const after = preparation(games(), a);
-        assert.notStrictEqual(before.scope.locations[0].source, after.scope.locations[0].source);
+        assert.notStrictEqual(before.scope.locations[0].closing_source, after.scope.locations[0].closing_source);
+        assert.strictEqual(before.scope.locations[0].opening_source, after.scope.locations[0].opening_source);
         assert.deepStrictEqual(before.scope.locations[1], after.scope.locations[1]);
         assert.deepStrictEqual(before.scope.game_pieces, after.scope.game_pieces);
+    });
+
+    it('matches the actual browser output without invented words or sentence punctuation', function() {
+        for (const enabled of [false, true]) {
+            const tournament = { preparation_meetingpoint_enabled: enabled, locations: [
+                hall('a', 'für Halle 2:', 'Bitte {melde dich/meldet euch} am Eingang.'),
+                hall('b', '', ''),
+            ] };
+            const plan = preparation(games(), tournament);
+            let browser;
+            const texts = create({ tournament, translate: (key, data, fallback) => translate('de', key, data, fallback),
+                window: { localStorage: { getItem: () => 'true' } }, claim: () => null,
+                announce: parts => { browser = parts; } });
+            for (const location of plan.scope.locations) {
+                texts.announcePreparationMatch({ location_id: location.location_id, match_num: 189, event_name: 'ME U19',
+                    match_name: 'R16', teams: ['Nina Keo Boun Khoune', 'Leandra Galowicz'].map(name => ({ players: [{ name }] })) });
+                assert.strictEqual(location.opening, browser[0].trim());
+                assert.strictEqual(location.ending, browser.at(-1).trim());
+                for (const [key, expected] of [['opening_piece', browser[0]], ['closing_piece', browser.at(-1)]]) {
+                    if (!expected.trim()) { assert.strictEqual(location[key], null); continue; }
+                    const piece = plan.pieces.find(p => p.id === location[key]);
+                    assert.strictEqual(piece.display, expected.trim());
+                    assert.strictEqual(piece.text, spellNumbers(expected.trim()));
+                    assert.strictEqual(piece.before + piece.after, '');
+                }
+            }
+        }
     });
 
     it('refuses v1, unknown samples, duplicate locations and invalid source boundaries', function() {

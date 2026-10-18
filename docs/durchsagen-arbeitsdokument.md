@@ -780,31 +780,33 @@ B12 und den zusammengesetzten D03-Aufruf für beide Stimmen klanglich bestätigt
 
 ## 13. Vorbereitung nach Location im v2-Hörlabor
 
-Der neue isolierte Generator `scripts/tts-preparation-context-plan.js` übernimmt
-Vorbereitungszusatz und Treffpunkt aus den tatsächlichen Locations des BTS-Exports.
-Die bestehenden Textfunktionen lösen die Mehrzahlform auf und berücksichtigen den
-Schalter für die Treffpunktfunktion. Ein Location-Name ist keine Ansagetextvorlage.
+**Korrektur: Vollständige Location-Texte werden direkt erzeugt, mit demselben
+Wortlaut und denselben Satzzeichen wie bei der Browserstimme.** Zusätzliche
+Kontextsätze und Ausschnitte sind für diese Bausteine nicht vorgesehen. Nur die
+vereinbarte Zahlenausschreibung bleibt eine lokale Synthesevorbereitung.
 
-Je unterschiedlicher benötigter Location-Fassung wird eine vollständige
-D02-Kontextquelle mit Beispiel-Spielblock erzeugt. Sie liefert B09-Anfang und
-B10-Treffpunkt oder B09-Abschluss. Die fertige Montage setzt diese um die bereits
-bestätigten Spielbausteine; diese behalten ihre IDs und Schnittrezepte. Identische
-Location-Texte teilen die Aufnahme. Weder ein anderes Spiel noch dessen spätere
-Feldzuweisung erzeugt zusätzliche Location-Varianten in diesem Versuch.
+`scripts/tts-preparation-context-plan.js` übernimmt die tatsächlichen Locations
+und den Schalter für die Treffpunktfunktion aus dem BTS-Export. Die bestehenden
+Browser-Textfunktionen liefern den Vorbereitungsanfang und den Mehrzahl-Treffpunkt.
+Der Location-Name ist keine Ansagetextvorlage. Zusätzliche Satzzeichen werden nicht
+angehängt. Ein leer hinterlegter aktiver Treffpunkt bleibt leer; der Browserstandard
+`Treffen am Meetingpoint!` gilt nur ohne angelegte Location.
 
-Die erste Stufe hat noch kein festes Spielfeld und keine Offiziellen. Bei
-ausgeschaltetem Treffpunkt wird die Vorbereitung am Schluss wiederholt, mit einem
-eigenen positionsabhängigen Ausschnitt. Ein ausdrücklich leer hinterlegter aktiver
-Treffpunkt bleibt leer. Der BTS-Standard `Treffen am Meetingpoint!` wird nur ohne
-angelegte Location verwendet.
+Jeder unterschiedliche vollständige Location-Text wird je Stimme als eine verwendbare Aufnahme erzeugt
+oder aus dem Cache übernommen. Gleiche Texte teilen dieselbe Quelle und dieselbe
+Aufnahme, auch für Anfang und Ende. Die fertige D02-Montage setzt diese Aufnahmen
+um den bereits bestätigten Spielblock, dessen IDs, Schnitte und Kontexte bleiben
+unverändert. Diese erste Stufe enthält noch kein festes Spielfeld und keine
+Offiziellen. Einzahlformen für gezielte Zweitaufrufe folgen später.
 
-Am 18. Oktober 2026 ist `Campus Helleweg` mit leerem Vorbereitungszusatz und leerem
-Treffpunkt hinterlegt; die Treffpunktfunktion ist ausgeschaltet. Die Hörprobe
-verwendet deshalb `In Vorbereitung → vorhandener Spielblock 161 → In Vorbereitung`.
-Eine neue vollständige Quelle pro Stimme liefert beide äußeren Stücke. Zusätzliche
-Kandidaten entstehen nur bei einer Ablehnung durch die bestehende Pausenprüfung.
+Am 18. Oktober 2026 ist `Campus Helleweg` mit leeren Location-Ansagetexten und
+abgeschalteter Treffpunktfunktion gespeichert. Wie im Browser lautet der
+Location-Text deshalb exakt `In Vorbereitung`, ohne zusätzliche Satzzeichen.
+Eine direkte Aufnahme je Stimme wird am Anfang und am Ende abgespielt; dazwischen
+steht der vorhandene Spielblock 161. Der frühere Kontextversuch ist abgelöst.
 
 `http://127.0.0.1:8084/vorbereitung/` zeigt beide Stimmen, die Location-Einstellungen,
-vollständige Quellen, Einzelstücke und Montage. Die Seite verwendet den eingelesenen
+die direkten Aufnahmen und ihre Montage. Die historische Kontextfassung bleibt
+unter `/vorbereitung-kontext/` erhalten. Die Seite verwendet den eingelesenen
 Stand; geänderte Einstellungen erfordern einen neuen Plan/Lauf. Die Klangabnahme
-dieser D02-Stufe ist offen. Der produktive BTS bleibt auf v1.
+der direkten Location-Aufnahme ist offen. Der produktive BTS bleibt auf v1.
