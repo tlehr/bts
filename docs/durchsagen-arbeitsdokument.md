@@ -747,3 +747,12 @@ deren verworfener Kontext wird wegen dieser Namenskorrektur nicht erneut erzeugt
 Lange gemessene Ruhebereiche im Disziplinbaustein und im korrigierten Teamkontext
 werden gezielt gekürzt. Das Sprechtempo und die beiden bereits gut befundenen
 Spielbeispiele bleiben unverändert.
+
+Für weitere Frauen-v2-Versuche werden Quellaufnahmen vor dem Schnitt automatisch
+auf überlange innere Ruhe geprüft, einschließlich vorhandener Cache-Treffer.
+Grenzen: 500 ms innerhalb eines Satzteils, 800 ms an belegten Komma-/Doppelpunkt-
+oder Semikolongrenzen, 1.200 ms an belegten Satzgrenzen. Nach einer Ablehnung folgen
+höchstens zwei Wiederholungen mit anderem Seed und derselben Stimme. Erst eine
+bestandene Aufnahme wird übernommen; nach drei Ablehnungen bleibt der Auftrag
+sichtbar unvollständig. Ablehnungen werden gespeichert, damit dieselben Kandidaten
+beim nächsten Lauf nicht erneut berechnet werden. Gute Aufnahmen bleiben erhalten.
