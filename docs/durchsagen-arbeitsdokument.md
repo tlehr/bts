@@ -1116,7 +1116,10 @@ Bausteine werden zuerst vorbereitet. Danach hat die Anmeldevorarbeit Vorrang
 vor Spielvorrat, solange noch keine Disziplin ausgelost ist.
 Innerhalb der Anmeldevorarbeit kommen zuerst die allgemeinen Teile der
 verwendeten Aufrufvorlagen. Anschließend folgen für noch offene Anmeldungen
-zuerst Landesverbände, dann Vereine, zuletzt Spieler und Paarungen.
+zuerst die bereits geöffneten oder weiter fortgeschrittenen Disziplinen, danach
+die noch nicht geöffneten. Je Disziplingruppe gilt: Landesverbände, dann Vereine,
+zuletzt Spieler und Paarungen. Der Disziplinfortschritt ersetzt nicht die
+Prüfung, ob die einzelne Anmeldung noch offen ist.
 Ab der ersten ausgelosten Disziplin gilt die Reihenfolge für den Spielbetrieb
 aus Abschnitt 24. Tatsächlich ausgelöste Aufrufe behalten ihren sofortigen Vorrang.
 Bereits fertig erzeugte Aufnahmen bleiben im dauerhaften Cache. Das ist noch
@@ -1278,7 +1281,7 @@ chronologischen Position eines Spiels in der Grafik:
 | 1 | Tatsächlich ausgelöste Turnierdurchsage mit fehlendem Audio | Auslösereihenfolge; einschließlich Anmeldung, freier Ansagen und Kampflos-Mitteilungen |
 | 2 | Sprachtest immer; ausdrücklich angeforderte Hörproben ebenfalls | Fehlende Testaufnahme automatisch auch ohne Anforderung vorbereiten, nach wartenden tatsächlichen Turnierdurchsagen |
 | Vorarbeit zuerst | Gemeinsame spielort- und feldabhängige Bausteine | Vor Anmeldevorarbeit, unabhängig von der Auslosung; tatsächliche Turnieraufrufe, Sprachtest und angeforderte Hörproben bleiben vorrangig |
-| Vor erster Auslosung | Anmeldevorarbeit, solange noch keine Disziplin ausgelost ist | Nach Orts-/Feldbausteinen, vor Spielvorrat; intern allgemeine Teile → offene Landesverbände → offene Vereine → offene Spieler/Paarungen |
+| Vor erster Auslosung | Anmeldevorarbeit, solange noch keine Disziplin ausgelost ist | Nach Orts-/Feldbausteinen, vor Spielvorrat; allgemeine Teile zuerst, danach geöffnete/weiter fortgeschrittene Disziplinen vor noch nicht geöffneten; je Gruppe Landesverbände → Vereine → Spieler/Paarungen |
 | 3 | Auf das Feld gerufene und laufende Spiele | Zeitpunkt des Feldaufrufs, ältester zuerst |
 | 4 | Spiele in Vorbereitung | Zeitpunkt des Vorbereitungsaufrufs, ältester zuerst |
 | 5 | Aufrufkandidaten, nur im Leerlauf | Kandidatenreihenfolge |
@@ -1321,13 +1324,28 @@ Passendes Audio aus dem dauerhaften Cache ist unmittelbar bereit und braucht
 keine neue Generierung. Auch nach einem Klick auf den Sprachtest bleibt dessen
 Generierung auf Priorität 2. Die automatische Vorbereitung startet keine Wiedergabe.
 
-Innerhalb der Anmeldevorarbeit gilt verbindlich diese Reihenfolge:
+Innerhalb der Anmeldevorarbeit werden zuerst die **allgemeinen Teile** vorbereitet:
+gemeinsame Einleitungen, Zieltexte für Anmeldung und Turnierleitung sowie „bitte!“
+aus den verwendeten Anmeldevorlagen. Danach bestimmt der Disziplinfortschritt
+den Vorrang der variablen Bezeichnungen:
 
-1. **Allgemeine Teile:** gemeinsame Einleitungen, Zieltexte für Anmeldung und
-   Turnierleitung sowie „bitte!“ aus den verwendeten Anmeldevorlagen.
-2. **Landesverbände** mit noch offenen Anmeldungen.
-3. **Vereine** mit noch offenen Anmeldungen.
-4. **Spieler und Paarungen**, deren Anmeldung noch offen ist.
+1. **Bereits geöffnete oder weiter fortgeschrittene Disziplinen:** zuerst
+   Landesverbände mit offenen Anmeldungen, dann Vereine mit offenen Anmeldungen,
+   zuletzt Spieler und Paarungen, deren Anmeldung noch offen ist.
+2. **Noch nicht geöffnete Disziplinen:** danach in derselben Reihenfolge
+   Landesverbände, Vereine und Spieler/Paarungen für noch offene Anmeldungen
+   vorbereiten.
+
+Die Disziplingruppe hat bei variablen Bezeichnungen Vorrang vor der Aufrufart:
+Ein noch fehlender Spielername einer bereits geöffneten Disziplin kommt vor
+einem Landesverband, der ausschließlich für noch nicht geöffnete Disziplinen
+gebraucht wird. Ein gemeinsamer Verband, Verein oder Name erhält den Vorrang
+seines aktuell dringlichsten offenen Bedarfs und wird weiterhin nur einmal
+erzeugt. Ein weiter fortgeschrittener Disziplinstatus, beispielsweise bereits
+ausgelost oder laufend, schließt tatsächlich verbliebenen Anmeldebedarf nicht
+pauschal aus. Er öffnet aber keine bereits abgeschlossene Anmeldung erneut.
+Diese interne Bevorzugung gilt auch nach der ersten Auslosung, wenn
+Anmeldevorarbeit neben den vorrangigen Aufgaben des Spielbetriebs ansteht.
 
 Die variablen Bezeichnungen richten sich damit nach dem aktuellen offenen
 Anmeldebestand; abgeschlossene Anmeldungen erzeugen keine weitere Vorarbeit.

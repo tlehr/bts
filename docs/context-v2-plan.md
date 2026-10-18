@@ -414,8 +414,12 @@ Treffpunktvarianten). Sie werden unabhängig von konkreten Spielen vorbereitet
 und teilen bei gleichem gesprochenem Text ihre Aufnahme. Danach hat die
 Anmeldevorarbeit Vorrang vor Spielvorrat, solange noch keine Disziplin ausgelost
 ist. Ihre interne Reihenfolge ist festgelegt: allgemeine Teile zuerst,
-anschließend für offene Anmeldungen Landesverbände, Vereine und zuletzt Spieler
-oder Paarungen. Vorhandene passende Quellen und Bausteine werden wiederverwendet.
+danach offener Anmeldebedarf bereits geöffneter oder weiter fortgeschrittener
+Disziplinen vor dem Bedarf noch nicht geöffneter Disziplinen. Innerhalb jeder
+Gruppe folgen Landesverbände, Vereine und zuletzt Spieler oder Paarungen.
+Der Disziplinfortschritt hebt erledigte Einzelanmeldungen nicht auf. Gemeinsame
+Labels erhalten den Vorrang ihres dringlichsten offenen Bedarfs. Vorhandene
+passende Quellen und Bausteine werden wiederverwendet.
 Sobald mindestens eine Disziplin ausgelost ist, greift die
 Reihenfolge für den Spielbetrieb. Tatsächlich ausgelöste Turnierdurchsagen haben
 Priorität 1. Der Sprachtest hat immer Priorität 2, unabhängig von einer Anforderung:
