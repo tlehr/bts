@@ -407,8 +407,11 @@ Für die Abstimmung der späteren v2-Einbindung gibt es eine
 Prioritäten für echte Aufrufe, benötigte Ansagen und Vorrat im Leerlauf.
 Zeitpunkte von Feld- und Vorbereitungsaufrufen bestimmen die Reihenfolge ihrer
 jeweiligen Gruppe. Fertiges Audio bleibt nach Abschluss gespeichert;
-entfallener offener Bedarf wird entfernt. Der Rang der Anmelde-Vorarbeit bleibt
-offen. Der Vorschlag ist noch nicht als produktive Warteschlange umgesetzt.
+entfallener offener Bedarf wird entfernt. Festgelegte Ergänzung: Solange noch
+keine Disziplin ausgelost ist, hat die Anmeldevorarbeit Vorrang vor Feldgrundbestand
+und Spielvorrat. Sobald mindestens eine Disziplin ausgelost ist, greift die
+Reihenfolge für den Spielbetrieb. Echte Aufrufe und angeforderte Hörproben behalten
+ihre höheren Prioritäten. Die Planung ist noch nicht als produktive Warteschlange umgesetzt.
 [Prioritätstabelle und Regeln](durchsagen-arbeitsdokument.md#24-entwurf-generierungsreihenfolge-nach-turnierfortschritt).
 
 ### 5.1 Erster B01-Hörsatz: Spielfeld acht, beide Stimmen

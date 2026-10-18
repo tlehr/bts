@@ -17,12 +17,12 @@ je kleiner, desto früher. Klicke auf einen Spielzustand, um seine Aufgaben herv
 <button data-select="oncourt" aria-pressed="false">Auf dem Feld</button><button data-select="finished" aria-pressed="false">Abgeschlossen</button>
 </div>
 <div class="diagram">
-<svg id="overview" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 1040" role="img" aria-labelledby="diagram-title diagram-desc">
+<svg id="overview" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 1130" role="img" aria-labelledby="diagram-title diagram-desc">
 <title id="diagram-title">Generierungsreihenfolge abhängig vom Spielzustand</title>
-<desc id="diagram-desc">Ausgelöste Durchsagen haben Priorität eins. Laufende Spiele und Spiele in Vorbereitung sind benötigte Arbeit; Kandidaten und spätere Spiele sind Leerlaufvorrat. Abgeschlossene Spiele verlieren ihren Spielbedarf, ihre Aufnahmen bleiben gespeichert.</desc>
+<desc id="diagram-desc">Ausgelöste Durchsagen haben Priorität eins. Solange keine Disziplin ausgelost ist, hat Anmeldevorarbeit Vorrang vor Feldgrundbestand und Spielvorrat. Laufende Spiele und Spiele in Vorbereitung sind benötigte Arbeit; Kandidaten und spätere Spiele sind Leerlaufvorrat. Abgeschlossene Spiele verlieren ihren Spielbedarf, ihre Aufnahmen bleiben gespeichert.</desc>
 <defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0L8 4L0 8Z" fill="#8799a8"/></marker></defs>
 <style>
-text{font-family:system-ui,sans-serif;fill:#163047} .title{font-size:23px;font-weight:750}.body{font-size:18px}.small{font-size:16px;fill:#536b7d}.label{font-size:14px;font-weight:750;letter-spacing:.5px}.rank{font-size:20px;font-weight:800}.urgent{fill:#fff3df;stroke:#db8b20;stroke-width:1.5}.state{fill:#f3f5f7;stroke:#c4d0d9;stroke-width:1.5}.need{fill:#edf8ef;stroke:#86b894;stroke-width:1.5}.cache{fill:#edf4fd;stroke:#9ebae1;stroke-width:1.5}.reserve{fill:#f3f5f7;stroke:#bfcbd4;stroke-width:1.5}.base{fill:#f5f0ff;stroke:#b9a4de;stroke-width:1.5}.open{fill:#fffdf2;stroke:#c7b878;stroke-width:1.5;stroke-dasharray:6 4}.line{fill:none;stroke:#8799a8;stroke-width:2;marker-end:url(#arrow)}.phase{cursor:pointer}.phase:hover rect,.phase.active rect{stroke:#163047;stroke-width:3}.dimmed{opacity:.3}.focus{stroke:#163047;stroke-width:3}.divider{stroke:#d8e2e9;stroke-width:1}.pill{fill:#fff;stroke:#d8e2e9;stroke-width:1}.green{fill:#166534}.blue{fill:#1d4ed8}.orange{fill:#a6550a}
+text{font-family:system-ui,sans-serif;fill:#163047} .title{font-size:23px;font-weight:750}.body{font-size:18px}.small{font-size:16px;fill:#536b7d}.label{font-size:14px;font-weight:750;letter-spacing:.5px}.rank{font-size:20px;font-weight:800}.urgent{fill:#fff3df;stroke:#db8b20;stroke-width:1.5}.state{fill:#f3f5f7;stroke:#c4d0d9;stroke-width:1.5}.need{fill:#edf8ef;stroke:#86b894;stroke-width:1.5}.cache{fill:#edf4fd;stroke:#9ebae1;stroke-width:1.5}.reserve{fill:#f3f5f7;stroke:#bfcbd4;stroke-width:1.5}.base{fill:#f5f0ff;stroke:#b9a4de;stroke-width:1.5}.line{fill:none;stroke:#8799a8;stroke-width:2;marker-end:url(#arrow)}.phase{cursor:pointer}.phase:hover rect,.phase.active rect{stroke:#163047;stroke-width:3}.dimmed{opacity:.3}.focus{stroke:#163047;stroke-width:3}.divider{stroke:#d8e2e9;stroke-width:1}.pill{fill:#fff;stroke:#d8e2e9;stroke-width:1}.green{fill:#166534}.blue{fill:#1d4ed8}.orange{fill:#a6550a}
 </style>
 <rect x="18" y="20" width="1244" height="104" rx="14" class="urgent"/>
 <text x="40" y="52" class="label orange">IMMER VORRANG · AUCH WÄHREND DER GRUNDVORBEREITUNG</text>
@@ -30,6 +30,12 @@ text{font-family:system-ui,sans-serif;fill:#163047} .title{font-size:23px;font-w
 <text x="40" y="111" class="small">Fehlendes Audio in Auslösereihenfolge · auch Anmeldung, freie Ansagen und Kampflos-Mitteilungen</text>
 <rect x="18" y="135" width="1244" height="48" rx="10" class="urgent"/>
 <text x="40" y="166" class="body"><tspan font-weight="750">2 · Ausdrücklich angeforderte Hörprobe / Sprachtest</tspan><tspan> · nach wartenden echten Durchsagen</tspan></text>
+<g id="registration-priority">
+<rect x="18" y="195" width="1244" height="78" rx="12" fill="#fff9df" stroke="#c7a34d" stroke-width="1.5"/>
+<text x="40" y="225" class="title">Vor der ersten Auslosung: Anmeldevorarbeit zuerst</text>
+<text x="40" y="254" class="small">Solange keine Disziplin ausgelost ist, vor Feldgrundbestand und Spielvorrat. Ausgelöste Ansagen und Hörproben bleiben vorrangig.</text>
+</g>
+<g transform="translate(0 90)">
 <text x="22" y="217" class="label">FORTSCHRITT EINES SPIELS →</text>
 <path d="M374 253V230H865V253" class="line" stroke-dasharray="5 4"/>
 <rect x="545" y="216" width="154" height="24" fill="white"/>
@@ -82,16 +88,15 @@ text{font-family:system-ui,sans-serif;fill:#163047} .title{font-size:23px;font-w
 <text x="1044" y="582" class="body" font-weight="700">Fertige Aufnahmen</text><text x="1044" y="608" class="body" font-weight="700">bleiben gespeichert.</text>
 <text x="1044" y="651" class="small">Personen können später</text><text x="1044" y="676" class="small">Tabletbediener werden.</text>
 <text x="1044" y="719" class="small">Neue Zuordnung →</text><text x="1044" y="744" class="small">neuen Bedarf prüfen.</text></g>
-<rect x="18" y="800" width="890" height="101" rx="12" class="base"/>
+<rect x="18" y="800" width="1244" height="101" rx="12" class="base"/>
 <text x="40" y="833" class="title">Grundbestand · vor dem ersten Spiel bei leerem Cache</text>
 <text x="40" y="863" class="body">B01 für alle Felder: Anfang + Ende → B12 einmal → B02 für alle Felder</text>
 <text x="40" y="887" class="small">Danach die nächsten Aufrufe vervollständigen; gemeinsame Texte beim ersten Bedarf teilen.</text>
-<rect x="926" y="800" width="334" height="101" rx="12" class="open"/>
-<text x="946" y="831" class="body" font-weight="750">Noch abzustimmen</text><text x="946" y="857" class="small">Vorrang der Anmelde-Vorarbeit.</text><text x="946" y="883" class="small">Ausgelöste Anmeldeaufrufe: immer 1.</text>
 <text x="22" y="938" class="body" font-weight="750">Vor jedem Auftrag: Cache prüfen → nur fehlende Teile bearbeiten.</text>
 <text x="22" y="965" class="small">Fertiges Stück: sofort bereit. Quelle vorhanden: fehlende Ausschnitte / Aufbereitung wiederverwenden.</text>
 <text x="22" y="997" class="small">Nur die zentral gewählte Stimme · Ein Serverauftrag zur Zeit · Laufenden Auftrag fertigstellen, danach neu priorisieren.</text>
 <text x="22" y="1023" class="small">Je Spiel zuerst die nächste Durchsage vervollständigen: Spielangaben → Teams → fehlende zugeordnete Offizielle.</text>
+</g>
 </svg>
 </div>
 <section id="detail" class="detail" aria-live="polite"><h2 id="detail-title"></h2><div id="detail-tag" class="tag"></div><p id="detail-text"></p><p id="detail-example"></p></section>
@@ -99,7 +104,7 @@ text{font-family:system-ui,sans-serif;fill:#163047} .title{font-size:23px;font-w
 </main>
 <script>
 const explanations={
-all:{title:'Die Nummer bestimmt die Priorität, nicht die Position im Spielablauf.',tag:'Benötigt: grün · Leerlaufvorrat: grau · gespeicherte Aufnahmen: blau',text:'Ein Spiel wandert im Ablauf von links nach rechts. Sobald es vorbereitet oder aufgerufen wird, gehören seine Ansagen zum benötigten Bestand. Ein echter Aufruf mit fehlendem Audio überholt alle normalen Vorbereitungen.',example:'Auch ohne Vorbereitungsphase ist ein direkter Feldaufruf möglich. Innerhalb jeder Gruppe werden nur tatsächlich fehlende Quellen oder Ausschnitte angefordert.'},
+all:{title:'Die Nummer bestimmt die Priorität, nicht die Position im Spielablauf.',tag:'Benötigt: grün · Leerlaufvorrat: grau · gespeicherte Aufnahmen: blau',text:'Solange noch keine Disziplin ausgelost ist, wird die Anmeldevorarbeit vor Feldgrundbestand und Spielvorrat erledigt. Ab der ersten ausgelosten Disziplin greift die Reihenfolge für den Spielbetrieb. Ein echter Aufruf mit fehlendem Audio sowie angeforderte Hörproben bleiben vorrangig.',example:'Ein Spiel wandert von links nach rechts. Ab dem Vorbereitungs- oder Feldaufruf gehören seine Ansagen zum benötigten Bestand. Auch ein direkter Feldaufruf ist möglich. Es werden nur tatsächlich fehlende Quellen oder Ausschnitte angefordert.'},
 planned:{title:'Spiel geplant: Vorrat mit Priorität 6',tag:'Nur im Leerlauf · Reihenfolge im BTS-Spielplan',text:'Das Spiel ist noch nicht aufgerufen und noch kein unmittelbarer Aufrufkandidat. Seine bekannten Angaben und Teams können im Leerlauf vorbereitet werden. Ein unbekannter Gegner wird nicht ergänzt; fehlende Teilnehmer blockieren keine anderen bereiten Spiele.',example:'Feld und spätere Offizielle sind noch nicht nötig, um wiederverwendbare Spielnummern-, Disziplin-, Runden- und Teamstücke vorzubereiten.'},
 candidate:{title:'Aufrufkandidat: Vorrat mit Priorität 5',tag:'Nur im Leerlauf · vor weiteren nicht zugewiesenen Spielen',text:'Diese Spiele werden voraussichtlich als Nächstes benötigt. Ihr Vorrat kommt zuerst, sobald keine benötigten Aufträge oder echten Anforderungen warten. Die Kandidatenreihenfolge bestimmt ihre Reihenfolge.',example:'Ein Klick auf „In Vorbereitung“ oder ein direkter Feldaufruf macht den konkreten Bedarf sofort dringlich. Fehlende Teile des ausgelösten Aufrufs erhalten Priorität 1.'},
 preparation:{title:'In Vorbereitung: benötigter Bestand mit Priorität 4',tag:'Nach dem Zeitpunkt des Vorbereitungsaufrufs',text:'Ab dem Vorbereitungsaufruf können die vollständigen Ansagen dieses Spiels in den benötigten Bestand aufgenommen werden. Ein tatsächlich ausgelöster Aufruf mit fehlendem Audio hat Priorität 1; danach wird vor allem der nächste Feldaufruf abgesichert.',example:'B02 „Für Spielfeld …!“ wird nur abgespielt, wenn bereits ein Feld zugewiesen ist. Ohne Feld entfällt dieser Satz; die übrige Vorbereitung bleibt verwendbar. Zugeordnete Offizielle und beide Teams für mögliche Tabletbedienung einbeziehen.'},

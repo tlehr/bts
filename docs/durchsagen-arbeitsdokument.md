@@ -1103,7 +1103,10 @@ in eine gemeinsame, vom Browser und Backend verwendbare Text-/Bausteinplanung
 überführt werden. Der Browserwortlaut bleibt dabei die Referenz. Angeforderte
 Aufrufe werden sofort vervollständigt; weitere Vorarbeit richtet sich nach den
 aktiven Anmeldedisziplinen und den noch offenen Personen. Weiterer Vorrat kommt
-erst im Leerlauf, unter Beibehaltung der bestehenden Priorisierung der Spielansagen.
+erst im Leerlauf. Ergänzende Festlegung: Solange noch keine Disziplin ausgelost
+ist, hat die Anmeldevorarbeit Vorrang vor Feldgrundbestand und Spielvorrat.
+Ab der ersten ausgelosten Disziplin gilt die Reihenfolge für den Spielbetrieb
+aus Abschnitt 24. Tatsächlich ausgelöste Aufrufe behalten ihren sofortigen Vorrang.
 Bereits fertig erzeugte Aufnahmen bleiben im dauerhaften Cache. Das ist noch
 kein implementierter Warteschlangenauftrag.
 
@@ -1262,6 +1265,7 @@ chronologischen Position eines Spiels in der Grafik:
 | --- | --- | --- |
 | 1 | Tatsächlich ausgelöste Durchsage mit fehlendem Audio | Auslösereihenfolge; einschließlich Anmeldung, freier Ansagen und Kampflos-Mitteilungen |
 | 2 | Ausdrücklich angeforderte Hörprobe oder Sprachtest | Nach wartenden echten Durchsagen |
+| Vor erster Auslosung | Anmeldevorarbeit, solange noch keine Disziplin ausgelost ist | Vor Feldgrundbestand und Spielvorrat; echte Aufrufe und angeforderte Hörproben bleiben vorrangig |
 | 3 | Auf das Feld gerufene und laufende Spiele | Zeitpunkt des Feldaufrufs, ältester zuerst |
 | 4 | Spiele in Vorbereitung | Zeitpunkt des Vorbereitungsaufrufs, ältester zuerst |
 | 5 | Aufrufkandidaten, nur im Leerlauf | Kandidatenreihenfolge |
@@ -1278,13 +1282,19 @@ Teams liefern bereits wiederverwendbare Namen für eine spätere Tabletbedienung
 Ein direkter Feldaufruf darf die Vorbereitungsphase überspringen. B02 entfällt,
 solange kein Feld zugewiesen ist.
 
-Bei leerem Cache beginnt der Grundbestand mit B01-Anfang und -Ende für alle
+Solange noch keine Disziplin ausgelost ist, hat die Anmeldevorarbeit Vorrang
+vor Feldgrundbestand und Spielvorrat. Diese Bedingung gilt für das gesamte Turnier:
+Sobald mindestens eine Disziplin ausgelost ist, entfällt dieser besondere Vorrang
+und die Reihenfolge für den Spielbetrieb greift. Tatsächlich ausgelöste
+Anmeldeaufrufe haben unabhängig vom Turnierfortschritt stets Priorität 1;
+ausdrücklich angeforderte Hörproben behalten Priorität 2.
+
+Bei leerem Cache beginnt der anschließend vorbereitete Grundbestand mit B01-Anfang und -Ende für alle
 Felder, danach B12 „Bitte mit dem Spielen beginnen!“ einmal und B02 „Für
 Spielfeld …!“ für alle Felder. Ein tatsächlicher Aufruf mit fehlendem Audio
 hat auch während dieser Vorbereitung Vorrang. Gemeinsame Texte werden beim
-ersten Bedarf geteilt. Ob Anmelde-Vorarbeit während der Anmeldephase vor dem
-Spielvorrat liegt, ist noch abzustimmen und wird in der Grafik ausdrücklich
-als offen markiert. Tatsächlich ausgelöste Anmeldeaufrufe haben stets Priorität 1.
+ersten Bedarf geteilt. Ist die vorrangige Anmeldevorarbeit bereits fertig,
+kann dieser Grundbestand auch vor der ersten Auslosung vorbereitet werden.
 
 Vor jedem Auftrag werden vorhandene Quellen und Wiedergabestücke geprüft.
 Eine vorhandene Quelle braucht höchstens fehlende Ausschnitte oder Aufbereitung;
