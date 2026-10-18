@@ -110,7 +110,7 @@ Der abschließende reine Cache-Lauf trifft alle 13 Quellen und 19 Wiedergabebaus
 
 Aktuell gewinnt `static/js/speech_context.js` die Team-Ausschnitte aus dem vollständigen tatsächlichen Spielblock (`gamePieces` / `teamPiece`). Die neue Festlegung ersetzt für die künftige v2-Teamquelle diese Bindung an den jeweiligen Spielgegner durch den wiederholten eigenen Teamkontext. Sie schaltet noch nicht eigenständig die gesamte Strategie um; der übrige Aufbau und die genaue Schnittverwendung werden weiter festgelegt.
 
-Der Sprachserver unterstützt bereits vollständige Kontextquellen und quellengebundene Ausschnitte. Die spätere BTS-Planung muss passende Quellen deduplizieren, ihre Positionsausschnitte referenzieren und weiterhin nur einen Sprachserverauftrag zur Zeit senden. Die bestehende Priorisierung wird durch diese Festlegung nicht neu geordnet. Die zunächst ausgeklammerte Anmeldung/Anwesenheitskontrolle wird auf Wunsch jetzt zusätzlich geplant; Bestandsaufnahme und Prüfentwurf stehen in [Abschnitt 22 des Arbeitsdokuments](durchsagen-arbeitsdokument.md#22-anmeldung--anwesenheitskontrolle-bestandsaufnahme-und-v2-entwurf). Ihre produktive Umsetzung und Sprachgenerierung sind noch nicht erfolgt.
+Der Sprachserver unterstützt bereits vollständige Kontextquellen und quellengebundene Ausschnitte. Die spätere BTS-Planung muss passende Quellen deduplizieren, ihre Positionsausschnitte referenzieren und weiterhin nur einen Sprachserverauftrag zur Zeit senden. Die bestehende Priorisierung wird durch diese Festlegung nicht neu geordnet. Die zunächst ausgeklammerte Anmeldung/Anwesenheitskontrolle wird auf Wunsch jetzt zusätzlich geplant; Bestandsaufnahme und Hörproben stehen in [Abschnitt 22 des Arbeitsdokuments](durchsagen-arbeitsdokument.md#22-anmeldung--anwesenheitskontrolle-bestandsaufnahme-und-v2-entwurf). Ihre Hörproben sind erzeugt; die produktive Einbindung steht noch aus.
 
 ## 5. Weitere Hörvergleiche mit beiden Stimmen
 
@@ -371,6 +371,28 @@ vier vollständige ursprüngliche Kontexte bleiben bytegleich; insgesamt werden
 Kontexte ersetzen die vier bisherigen Vereins-/Bundesland-Positionsstücke.
 Der vorherige bestätigte Hörsatz bleibt als Vergleich erhalten. Aktuelle
 Stückzählung: [Abschnitt 22.6](durchsagen-arbeitsdokument.md#226-aktueller-stand-vereine-und-bundesländer-im-namenskontext).
+
+### 5.0.6 B02: vollständige Sätze für alle vorhandenen Felder
+
+Auf Wunsch des Betreibers wird `Für Spielfeld [Nummer]!` vollständig und direkt
+erzeugt, ohne zusätzlichen Kontext und ohne Textschnitte. Die bestehenden
+Qualitätsprüfungen, Wiederholungsgrenzen und dauerhaften 100-ms-/LUFS-Regeln
+gelten für beide Stimmen. Zahlen werden für die Synthese ausgeschrieben.
+
+Der gespeicherte Turnierstand enthält Feld 1 bis 13. Der neue Laborplan
+`scripts/tts-preparation-field-plan.js` verwendet dafür die echte Browserfunktion
+und tatsächliche Feld-IDs. Jeder unterschiedliche Feldsatz benötigt pro Stimme
+genau eine Quelle, unabhängig von Spiel, Location und Offiziellen. Bereits fertige
+Feldsätze werden wiederverwendet; neue Felder ergänzen nur ihren eigenen Satz.
+
+Hörseite `http://127.0.0.1:8084/vorbereitung-spielfeld/`: jeweils 13 Feldsätze und
+13 vollständige D02-Montagen pro Stimme. Die vollständigen Aufrufe verwenden die
+vorhandenen Stücke von Spiel 161, drei Rollen und deren Namen sowie den bestätigten
+Vorbereitungsanfang und -abschluss. Alle 13 gemeinsamen Stücke pro Stimme bleiben
+bytegleich. Der vorhandene Abschluss wird wie der Anfang anhand seiner gemessenen
+Pausen-/Lautheitsregeln ohne erneute Verarbeitung übernommen. Feld- und Probenwahl
+erleichtern den Stimmenvergleich. Produktive v1 bleibt bis zur späteren Integration
+erhalten. [Details und Stückzählung](durchsagen-arbeitsdokument.md#23-b02-vollständiger-feldsatz-für-vorbereitete-spiele).
 
 ### 5.1 Erster B01-Hörsatz: Spielfeld acht, beide Stimmen
 

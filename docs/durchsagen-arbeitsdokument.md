@@ -342,7 +342,7 @@ Anfang und Ende sind trotz identischen Wortlauts zwei unterschiedliche Cache-Bau
 
 Die Schnittstellen müssen für jede Quellaufnahme ermittelt werden, damit keine Wortenden abgeschnitten oder benachbarte Wörter mit übernommen werden. Die festen Zeiten des bisherigen Feld-8-Hörtests sind keine allgemeine Schnittvorgabe. Quellaufnahme und Schnittinformationen bleiben als Herkunft der Ausschnitte erhalten.
 
-**Noch offen:** Ob und wie wir aus den Referenzaufnahmen zusätzlich andere Bausteine gewinnen, legen wir bei den nächsten Schritten fest. B02 („Für Spielfeld …!“) ist durch diese Festlegung noch nicht abgedeckt.
+**Noch offen:** Ob und wie wir aus den Referenzaufnahmen zusätzlich andere Bausteine gewinnen, legen wir bei den nächsten Schritten fest. B02 („Für Spielfeld …!“) wird getrennt als vollständiger Satz je Feld erzeugt; die aktuelle Festlegung steht in Abschnitt 23.
 
 ### 7.2 Festgelegt: Ein vollständiger Spielblock je Spiel mit zwei Team-Ausschnitten
 
@@ -1177,3 +1177,64 @@ zehn feste Stücke, vier Bezeichnungen einschließlich Person und Paarung sowie
 sechs vollständige Referenzen. 16 davon werden für diese Änderung wiederverwendet,
 vier neu aus den zwei Bezeichnungsquellen gewonnen. Weitere Bezeichnungen können
 dieselbe Namensplanung und denselben Cache nutzen.
+
+## 23. B02: vollständiger Feldsatz für vorbereitete Spiele
+
+Der Betreiber legt fest: `Für Spielfeld [Nummer]!` wird als vollständiger Satz
+für jedes vorhandene Feld erzeugt. Ein zusätzlicher Kontextsatz und Textschnitte
+sind dafür nicht nötig. Es gelten die vorhandenen Qualitätsprüfungen und die
+gemeinsame dauerhafte 100-ms-/LUFS-Aufbereitung.
+
+`scripts/tts-preparation-field-plan.js` liest die tatsächlichen Feld-IDs und
+übernimmt den vollständigen Text aus derselben Browserfunktion
+`createFieldPreparationAnnouncement`. Die Zahl wird nur vor der Synthese
+ausgeschrieben. Die Anzeige behält Ziffern. Gleiche gesprochene Feldsätze teilen
+ihre Quelle; Spiel, Halle, Namen und Offizielle erzeugen keine weiteren
+Varianten desselben Feldsatzes. Ein weiteres Feld benötigt nur seinen fehlenden
+Satz pro Stimme. Vorhandene Aufnahmen bleiben im Cache.
+
+Der gespeicherte Turnierstand enthält die Felder 1 bis 13. Für den Hörvergleich
+werden beide Stimmen vorbereitet: 13 Quellen und 13 vollständige Wiedergabestücke
+je Stimme, insgesamt 26. Der laufende Turnierbetrieb wird weiterhin erst bei der
+späteren Integration auf die neue Strategie umgestellt und bereitet dann nur
+die zentral gewählte Stimme vor.
+
+Hörseite: `http://127.0.0.1:8084/vorbereitung-spielfeld/`.
+Sie enthält je Stimme 13 einzelne Feldsätze und 13 vollständige Vorbereitungsaufrufe.
+Feld und Probe sind auswählbar; zunächst ist Feld 8 mit beiden Stimmen sichtbar.
+Die zusätzlichen Vorbereitungsaufnahmen sind reine Montagen und brauchen keine
+weitere Synthese:
+
+```text
+In Vorbereitung!
+→ Für Spielfeld [Nummer]!
+→ Spielnummer 161. Jungen Einzel U17. Achtelfinale!
+→ Muhammad Sytsh Abdulquddus gegen Max Hahn.
+→ Schiedsrichter: Tim Lehr.
+→ Aufschlagrichter: Max Hahn.
+→ Tabletbedienung: Emil Hermann und Konrad Wendt.
+→ Das Spiel ist in Vorbereitung!
+```
+
+Die Rollenbesetzungen sind Hörbeispiele. Die gespeicherte Location hat keinen
+Vorbereitungszusatz und keinen aktiven Treffpunkttext. Alle 13 gemeinsamen
+Spiel-, Rollen-, Namens- und Vorbereitungsstücke je Stimme bleiben bytegleich.
+Für diese Montagen werden keine Namen, Spielblöcke oder Offiziellen neu erzeugt.
+Für B02 beträgt das Pausenziel davor und danach 250 ms einschließlich Randstille;
+Spielblock und Rollen behalten ihre bestätigten inneren Pausenziele.
+
+Die bisherigen Vorbereitungsstücke entstanden bereits mit denselben Lautheits-
+und Pausenregeln vor dem dauerhaften Cache-Wrapper. Ihre gemessene Regelidentität
+wird vor dem Wiederverwenden geprüft; auch der vorhandene Abschluss wird ohne
+erneute Bearbeitung übernommen. Originale, frühere Hörseiten und produktive v1
+bleiben erhalten.
+
+Der Hörsatz ist vollständig erzeugt: Alle 13 Feldquellen beider Stimmen bestehen
+die unveränderte Qualitätsprüfung. Beim Hallensprecher wird Feld 10 einmal
+wiederholt. Bei der Hallensprecherin benötigen Feld 7 und 9 nach jeweils drei
+verworfenen Kandidaten eine weitere begrenzte Passage mit gezielt anderem
+Startseed. Nur diese fehlenden Quellen werden neu erzeugt; die elf bereits
+fertigen bleiben bytegleich. Tatsächlicher Aufwand: 14 männliche und 22 weibliche
+Kandidaten, davon einer beziehungsweise neun verworfen. Beide Stimmen liefern
+danach 13 gültige Feldaufnahmen. Die vollständigen Montagen und reinen Cache-Läufe
+sind geprüft; beim Wiederholen entstehen keine neuen Synthesen.
