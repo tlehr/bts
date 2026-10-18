@@ -100,8 +100,8 @@ Quellverknüpfungen und Probehören.
 
 **Adminmenü → Sprachplanung · live** öffnet die Planungsgrafik für das aktuelle
 Turnier in einem neuen Browser-Tab. Turnierphase, Anzahl der Spiele je Zustand
-und Fortschritt aktualisieren sich alle zwei Sekunden. Blaue Rahmen markieren
-vorhandene Spielzustände; Gold markiert den gerade bearbeiteten oder nächsten
+und Fortschritt aktualisieren sich alle zwei Sekunden. Ein blauer Rahmen markiert
+den Spielzustand der aktuellen oder nächsten Aufgabe; Gold markiert ihren
 Auftragsbereich. Ein laufender Auftrag eines anderen Turniers wird eigens angezeigt.
 
 Die vereinfachten Balken zeigen **bereit / in der Queue / gesamt**: Grün zählt
@@ -120,8 +120,11 @@ Der Grafikexport bleibt verfügbar.
 Die Grafik folgt standardmäßig der aktuellen Aufgabe: Der passende Spielzustand
 wird gewählt, der Arbeitsbereich hervorgehoben und andere Bereiche abgeblendet.
 Ortsbausteine, Anmeldung, Offizielle und weitere übergreifende Aufgaben bleiben
-in der Gesamtübersicht sichtbar. Ohne aktuelle oder nächste Aufgabe sowie bei
-Verbindungsverlust wechselt die Automatik zurück zur Gesamtübersicht.
+in der Gesamtübersicht sichtbar. Ohne aktuelle oder nächste Aufgabe sind alle
+Arbeitsbereiche abgeblendet. Der Status nennt ausdrücklich, ob alles bereit ist,
+weitere Arbeit wartet, Fehler offen sind oder die Verbindung fehlt. Vorhandene
+Spiele je Zustand bleiben in den Turnierzahlen sichtbar; sie erhalten allein
+dadurch keine Aktivitätsmarkierung in der Grafik.
 Die Zustandswahl in der Live-Grafik erfolgt vollständig automatisch.
 
 ## Fehler und Wiederholungen

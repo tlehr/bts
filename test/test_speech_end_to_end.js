@@ -1010,7 +1010,8 @@ suite('BTS / actual FastAPI / native Chrome speech integration', function() {
             await app.db.matches.update_async({ _id: match._id }, { $set: { 'setup.state': 'oncourt', 'setup.called_timestamp': Date.now() } }, {});
             await app.speech.prefetch.refresh('default');
             await until(async () => (await snapshot()).phase.includes('1 auf dem Feld'));
-            assert(await live.evaluate('document.querySelector(\'.phase[data-state="oncourt"]\').classList.contains(\'live-present\')'));
+            assert.strictEqual(await live.evaluate('document.querySelectorAll(\'.phase.live-present\').length'), 0,
+                'the presence of a running game must not highlight an inactive speech stage');
 
             const model = app.speech.prefetch.planning.get('default');
             const voice = app.speech.prefetch.settings('default').voice;
@@ -1070,6 +1071,7 @@ suite('BTS / actual FastAPI / native Chrome speech integration', function() {
             const live = new CDP(socket);
             await live.call('Runtime.enable');
             await live.call('Page.bringToFront');
+            await live.call('Page.enable');
             await live.call('Emulation.setDeviceMetricsOverride', { width: 1340, height: 1500, deviceScaleFactor: 1, mobile: false });
             await live.call('Page.addScriptToEvaluateOnNewDocument', { source:
                 'const interval = window.setInterval.bind(window); window.setInterval = (fn, ms, ...args) => interval(fn, ms === 2000 ? 100 : ms, ...args);' });
@@ -1104,10 +1106,27 @@ suite('BTS / actual FastAPI / native Chrome speech integration', function() {
             assert.strictEqual((await view()).phase, 'oncourt');
             assert((await view()).auto && (await view()).following);
             response.active_stage = null; response.current = null; response.state = 'complete';
+            response.total = { ready: STAGES.length, queued: 0, total: STAGES.length };
+            for (const row of response.stages) { row.ready = 1; row.queued = 0; }
             await until(async () => !(await view()).following);
             assert.strictEqual((await view()).phase, 'all');
             assert.strictEqual((await view()).auto, true);
+            assert((await view()).label.includes('Keine Generierung aktiv') && (await view()).label.includes('alles bereit'));
+            assert(await live.evaluate('[...document.querySelectorAll(\'.live-step,.phase\')].every(node => Number(getComputedStyle(node).opacity) < .5)'));
+            assert.strictEqual(await live.evaluate('document.querySelectorAll(\'.phase.active,.phase.live-present,.live-current\').length'), 0);
+            if (process.env.BTS_SPEECH_IDLE_SCREENSHOT) {
+                const shot = await live.call('Page.captureScreenshot', { format: 'png', captureBeyondViewport: true });
+                fs.writeFileSync(process.env.BTS_SPEECH_IDLE_SCREENSHOT, Buffer.from(shot.data, 'base64'));
+            }
+            for (const [status, label] of [['failed', 'fehlgeschlagene'], ['idle_pending', 'Leerlauf'], ['updating', 'aktualisiert'], ['disabled', 'ausgeschaltet']]) {
+                response.state = status;
+                await until(async () => (await view()).label.includes(label));
+                assert.strictEqual((await view()).following, false);
+                assert(await live.evaluate('[...document.querySelectorAll(\'.live-step,.phase\')].every(node => Number(getComputedStyle(node).opacity) < .5)'));
+            }
             response.active_stage = 'preparation'; response.state = 'waiting'; response.current = { text: 'Nächste Aufnahme', running: false };
+            Object.assign(response.stages.find(row => row.id === 'preparation'), { ready: 0, queued: 1 });
+            response.total = { ready: STAGES.length - 1, queued: 1, total: STAGES.length };
             await until(async () => (await view()).stage === 'preparation');
             assert((await view()).label.startsWith('Als Nächstes:'));
             if (process.env.BTS_SPEECH_FOLLOW_SCREENSHOT) {
@@ -1117,6 +1136,7 @@ suite('BTS / actual FastAPI / native Chrome speech integration', function() {
             for (const ws of app.wss.clients) if (ws.speech_planning_test) ws.close();
             await until(async () => !(await view()).following);
             assert.strictEqual((await view()).phase, 'all');
+            assert((await view()).label.includes('Verbindung unterbrochen'));
             await until(async () => (await view()).stage === 'preparation');
             assert.deepStrictEqual(live.events.filter(event => event.method === 'Runtime.exceptionThrown'), []);
         } finally {

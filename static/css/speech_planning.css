@@ -14,5 +14,5 @@
 .speech_plan_card h3 { font-size: 16px; margin: 0; }
 .speech_plan_card p { font-size: 14px; }
 .speech_plan_card.is-current { border-color: #d48815; background: #fff9e9; }
-.speech_plan_follow_status { color: #52687c; font-size: 15px; }
+.speech_plan_follow_status { color: #163047; font-size: 17px; font-weight: 700; }
 @media print { .speech_plan_live, .speech_plan_stages { break-inside: avoid; } }

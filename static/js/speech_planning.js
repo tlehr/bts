@@ -24,13 +24,14 @@
     const counts = make(live, 'p', 'speech_plan_counts');
     const overall = bar(live);
     const current = make(live, 'p', 'speech_plan_current');
-    make(live, 'p', 'speech_plan_help', 'Grün: bereit · Orange: in der Queue · Grau: noch ohne Auftrag. Gemeinsame Bausteine zählen einmal, beim vorrangigen Bedarf. Gold markiert die aktuelle oder nächste Aufgabe; blaue Rahmen zeigen vorhandene Spielzustände.');
+    make(live, 'p', 'speech_plan_help', 'Grün: bereit · Orange: in der Queue · Grau: noch ohne Auftrag. Gemeinsame Bausteine zählen einmal, beim vorrangigen Bedarf. Gold markiert die aktuelle oder nächste Aufgabe, Blau den zugehörigen Spielzustand. Abgeblendete Bereiche sind derzeit nicht aktiv.');
     const followStatus = make(main, 'p', 'speech_plan_follow_status');
     main.insertBefore(followStatus, document.querySelector('.toolbar'));
     followStatus.setAttribute('aria-live', 'polite');
     document.querySelector('.toolbar').remove();
     svg.classList.add('automatic');
     svg.querySelectorAll('.phase').forEach(node => { node.removeAttribute('tabindex'); node.removeAttribute('role'); });
+    svg.querySelectorAll('g[id$="-priority"]').forEach(node => node.classList.add('live-step'));
     const stages = make(main, 'section', 'speech_plan_stages');
     main.insertBefore(stages, document.getElementById('detail'));
     make(stages, 'h2', '', 'Fortschritt nach Planungsbereich');
@@ -60,9 +61,9 @@
     // Keep live highlights in SVG exports as well as on the HTML page.
     svgEl(svg, 'style', {}).textContent = '.live-outline{display:none;fill:none;stroke:#d48815;stroke-width:3;pointer-events:none}' +
         '.live-current>.live-outline{display:block}.live-current{opacity:1!important}' +
-        '.live-follow .live-step:not(.live-current){opacity:.28}.live-follow .phase:not(.active){opacity:.35}' +
+        '.automatic .live-step:not(.live-current){opacity:.28}.automatic .phase:not(.active){opacity:.35}' +
         '.automatic .phase{pointer-events:none;cursor:default}' +
-        '.phase.live-present>rect{stroke:#2475b4;stroke-dasharray:6 3;stroke-width:3}';
+        '.automatic .phase.active>rect{stroke:#2475b4;stroke-dasharray:6 3;stroke-width:3}';
     function follow() {
         const connected = live.dataset.connected === 'true';
         const active = connected && latest?.stages.find(row => row.id === latest.active_stage);
@@ -75,8 +76,15 @@
         if (selectedPhase !== target) {
             window.btsSpeechPlanningDiagram.select(target); selectedPhase = target;
         }
-        const caption = !connected ? 'Warte auf aktuelle Daten …' : active ?
-            (latest.current?.running ? 'Ansicht folgt: ' : 'Als Nächstes: ') + active.label : 'Gesamtübersicht';
+        const inactive = { complete: 'Keine Generierung aktiv – alles bereit.',
+            updating: 'Plan wird aktualisiert – keine Generierung aktiv.',
+            disabled: 'Lokale Sprachgenerierung ausgeschaltet.',
+            failed: 'Keine Generierung aktiv – fehlgeschlagene Aufträge sind offen.',
+            idle_pending: 'Keine Generierung aktiv – weitere Vorarbeit wartet auf Leerlauf.',
+            busy_elsewhere: 'Sprachserver arbeitet für ein anderes Turnier.',
+            waiting: 'Keine Generierung aktiv – Aufträge warten.' };
+        const caption = !connected ? (live.dataset.connected === 'false' ? 'Verbindung unterbrochen – aktueller Generierungsstatus unbekannt.' : 'Warte auf aktuelle Daten …') :
+            active ? (latest.current?.running ? 'Ansicht folgt: ' : 'Als Nächstes: ') + active.label : inactive[latest?.state] || 'Planungsstand wird ermittelt …';
         if (followStatus.textContent !== caption) followStatus.textContent = caption;
     }
     follow();
@@ -86,7 +94,6 @@
         const heading = make(card, 'h3', '', value.label), caption = make(card, 'p');
         const progress = bar(card);
         const node = value.node ? svg.getElementById(value.node) : null;
-        node?.classList.add('live-step');
         let mini;
         if (node && anchors[value.id]) {
             const [x, y, width] = anchors[value.id], box = node.getBBox();
@@ -104,7 +111,7 @@
     }
     function disconnected(text) {
         live.dataset.connected = 'false'; state.textContent = text;
-        svg.querySelectorAll('.live-current,.live-present').forEach(node => node.classList.remove('live-current', 'live-present'));
+        svg.querySelectorAll('.live-current').forEach(node => node.classList.remove('live-current'));
         for (const row of nodes.values()) row.card.classList.remove('is-current');
         follow();
     }
@@ -138,7 +145,6 @@
                 mini.group.setAttribute('aria-label', label(value)); mini.tooltip.textContent = value.label + ': ' + label(value);
             }
         }
-        svg.querySelectorAll('.phase').forEach(node => node.classList.toggle('live-present', (snapshot.games[node.dataset.state] || 0) > 0));
         live.dataset.updatedAt = snapshot.updated_at;
         latest = snapshot; follow();
     }
