@@ -14,7 +14,7 @@ const GROUPS = [
     ['D11', 'Tablet- / Klapptafelbedienung in Vorbereitung'], ['D12', 'Kampfloser Sieg'],
     ['registration', 'Anmeldung / Auslosung'], ['D13', 'Freie Ansagen'], ['D14', 'Sprachtest'], ['other', 'Weitere Bausteine'],
 ];
-const STATES = ['stock', 'prepared', 'cached', 'generated', 'ordered', 'potential'];
+const { STATES } = inventory;
 
 // Describe possible playback pieces without submitting them to the broker.
 // Unknown games use one shared placeholder until their real text is known.
@@ -52,6 +52,13 @@ async function plan(tournament, matches, umpires = []) {
         if (!setup || setup.is_match === false) continue;
         scope = { id: match._id, label: 'Spiel ' + (setup.match_num ?? 'ohne Nummer') + (setup.event_name ? ' · ' + setup.event_name : ''), needed: isRequired(match) };
         if (!setup.teams?.slice(0, 2).every(known) || setup.teams.length < 2) {
+            // V2 knows numbers, disciplines and rounds independently of teams.
+            // Include their real recipes as potential, without requesting audio.
+            if (tournament.speech?.context_version === 'bts-context-v2') {
+                for (const part of contextPlan(texts, tournament, 'prepareGame', { ...setup, event_name: setup.event_name || '' }).parts) {
+                    for (const group of ['D01', 'D02', 'D12']) add(part, group);
+                }
+            }
             for (const group of ['D01', 'D02', 'D04', 'D05', 'D12']) {
                 add(null, group, 'unknown-game:' + match._id);
                 calls.push({ id: group + ':unknown:' + match._id, group, label: scope.label, text: 'Teilnehmer stehen noch nicht vollständig fest.',
@@ -223,7 +230,8 @@ class SpeechCoverage {
             const generated = saved?.generated_for?.includes(tournament) || entry?.generated_for?.has(tournament) || value.archived?.generated;
             const session = this.session_key(key, tournament);
             const prepared = this.session_generated.has(session) && !this.session_needed.has(session);
-            const state = ready ? needed ? generated ? 'generated' : 'cached' : prepared ? 'prepared' : 'stock' :
+            const state = ready ? needed ? generated ? 'generated' : 'cached' : prepared ? 'prepared' :
+                target ? 'tournament_stock' : 'stock' :
                 requested ? 'ordered' : 'potential';
             const failed = requested && entry?.status === 'failed' ? 1 : 0;
             if (target?.part || entry || saved || value.archived) {

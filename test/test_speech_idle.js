@@ -440,7 +440,7 @@ describe('Speech preparation only during idle time', function() {
         await broker.step();
         assert.strictEqual(posts.length, 1);
         broker.reconcile_prefetch(key, [], { voice, idle_parts: ['Reserve'] });
-        assert.strictEqual(broker.queue(key).coverage.total.stock, 1);
+        assert.strictEqual(broker.queue(key).coverage.total.tournament_stock, 1);
         assert.strictEqual(broker.queue(key).coverage.total.prepared, 0, 'previously needed audio is no longer unused reserve');
     });
 
@@ -466,7 +466,7 @@ describe('Speech preparation only during idle time', function() {
         await broker.step();
         assert.strictEqual(broker.queue(key).coverage.total.generated, 1);
         broker.reconcile_prefetch(key, [], { voice });
-        assert.strictEqual(broker.queue(key).coverage.total.stock, 1);
+        assert.strictEqual(broker.queue(key).coverage.total.tournament_stock, 1);
         assert.strictEqual(broker.queue(key).coverage.total.prepared, 0);
     });
 

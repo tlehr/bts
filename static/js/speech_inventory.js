@@ -5,11 +5,14 @@ function createSpeechInventory({ root, service, progress, paintBar, describeFail
     const document = root.ownerDocument;
     const groups = new Map(), sections = new Map();
     let stopped = false, version, planRevision;
-    const statuses = { stock: 'Im Cache · Vorrat', prepared: 'Vorsorglich vorbereitet', cached: 'Benötigt · aus Cache bereit',
+    const statuses = { stock: 'Im Cache · übriger Vorrat', tournament_stock: 'Im Cache · für dieses Turnier verwendbar',
+        prepared: 'Vorsorglich vorbereitet', cached: 'Benötigt · aus Cache bereit',
         generated: 'Benötigt · bereit', ordered: 'Wird vorbereitet', potential: 'Noch ohne Auftrag' };
-    const callStatuses = { ...statuses, stock: 'Aus Bausteinen bereit · Vorrat', prepared: 'Vorsorglich aus Bausteinen bereit',
+    const callStatuses = { ...statuses, stock: 'Aus Bausteinen bereit · übriger Vorrat',
+        tournament_stock: 'Aus Bausteinen bereit · für dieses Turnier verwendbar', prepared: 'Vorsorglich aus Bausteinen bereit',
         cached: 'Benötigt · alle Teile aus Cache', generated: 'Benötigt · aus Bausteinen bereit' };
-    const filterLabels = { stock: 'Vorrat im Cache', prepared: 'Vorsorglich erzeugt · diese Sitzung', cached: 'Benötigt · aus Cache',
+    const filterLabels = { stock: 'Übriger Vorrat im Cache', tournament_stock: 'Vorrat im Cache · dieses Turnier',
+        prepared: 'Vorsorglich erzeugt · diese Sitzung', cached: 'Benötigt · aus Cache',
         generated: 'Benötigt · neu erzeugt', ordered: 'Beauftragt', potential: 'Noch ohne Auftrag' };
     function el(parent, tag, cls, text) {
         const node = document.createElement(tag);
@@ -105,7 +108,7 @@ function createSpeechInventory({ root, service, progress, paintBar, describeFail
         const state = section.listing;
         const category = state.group === 'all' ? section.total.label : groups.get(state.kind + ':' + state.group)?.label || section.total.label;
         state.title.textContent = category + (state.filter === 'all' ?
-            (getStates().length === 6 ? ' · alle Status' : ' · ausgewählte Status') : ' · ' + filterLabels[state.filter]);
+            (getStates().length === Object.keys(statuses).length ? ' · alle Status' : ' · ausgewählte Status') : ' · ' + filterLabels[state.filter]);
         state.reset.hidden = state.group === 'all' && state.filter === 'all';
         state.node.dataset.coverageGroup = state.group;
         state.node.dataset.coverageState = state.filter;

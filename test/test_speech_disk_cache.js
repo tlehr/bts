@@ -206,7 +206,8 @@ describe('Durable BTS speech cache', function() {
         fresh.reconcile_prefetch('default', [], { voice, idle_parts: parts });
         await fresh.step();
         assert.strictEqual(upstream.requests.length, count, 'a restarted BTS must check disk without requesting the speech server again');
-        assert.strictEqual(fresh.queue('default').coverage.total.stock, 71);
+        assert.strictEqual(fresh.queue('default').coverage.total.stock, 1);
+        assert.strictEqual(fresh.queue('default').coverage.total.tournament_stock, 70);
         assert.strictEqual(fresh.queue('default').coverage.total.prepared, 0, 'a new BTS session treats all existing files as old stock');
     });
 
@@ -222,13 +223,13 @@ describe('Durable BTS speech cache', function() {
         await first.step();
         assert.strictEqual(first.queue('default').coverage.total.prepared, 1);
         assert.strictEqual(first.queue('other').coverage.total.prepared, 0);
-        assert.strictEqual(first.queue('other').coverage.total.stock, 1, 'another tournament reuses already existing audio');
+        assert.strictEqual(first.queue('other').coverage.total.tournament_stock, 1, 'another tournament reuses already existing audio');
         const count = upstream.requests.length;
         first.prepare([part], { voice, priority: 'normal', prefetch: true }, 'default');
         assert.strictEqual(first.queue('default').coverage.total.generated, 1);
         first.reconcile_prefetch('default', [], { voice });
         assert.strictEqual(first.entries.size, 0);
-        assert.strictEqual(first.queue('default').coverage.total.stock, 1);
+        assert.strictEqual(first.queue('default').coverage.total.tournament_stock, 1);
         assert.strictEqual(first.queue('default').coverage.total.prepared, 0);
         first.reconcile_prefetch('default', [], { voice, idle_parts: [part] });
         await first.step();
@@ -244,7 +245,7 @@ describe('Durable BTS speech cache', function() {
         first.reconcile_prefetch('default', [], { voice, idle_parts: [part] });
         await first.step();
         const coverage = first.queue('default').coverage;
-        assert.strictEqual(coverage.total.stock, 1);
+        assert.strictEqual(coverage.total.tournament_stock, 1);
         assert.strictEqual(coverage.total.prepared, 0);
     });
 
@@ -256,7 +257,7 @@ describe('Durable BTS speech cache', function() {
         first.prepare([...targets.keys()], { prefetch: true }, 'default'); await first.step();
         assert.strictEqual(first.queue('default').coverage.total.generated, 1);
         first.reconcile_prefetch('default', [], { voice: upstream.config.voice });
-        assert.strictEqual(first.queue('default').coverage.total.stock, 1);
+        assert.strictEqual(first.queue('default').coverage.total.tournament_stock, 1);
         const count = upstream.requests.length;
         const fresh = new SpeechBroker(upstream.config); await fresh.disk.ready;
         await fresh.coverage.set_plan('default', upstream.config.voice, new Map());

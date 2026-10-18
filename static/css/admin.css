@@ -3661,6 +3661,7 @@ h2.edit {
 .speech_coverage_segment { display: block; flex-shrink: 0; height: 100%; background: var(--coverage-color); }
 .speech_coverage_segment[hidden] { display: none; }
 [data-coverage-state="stock"] { --coverage-color: #3b82b8; }
+[data-coverage-state="tournament_stock"] { --coverage-color: #7ebadd; }
 [data-coverage-state="prepared"] { --coverage-color: #39a9a0; }
 [data-coverage-state="cached"] { --coverage-color: #166534; }
 [data-coverage-state="generated"] { --coverage-color: #78bf82; }
@@ -3842,6 +3843,7 @@ h2.edit {
 .speech_inventory_item { background: #fff; border: 1px solid #d5dce4; border-left: 4px solid var(--inventory-color, #cbd0d7); padding: 0.65rem; overflow-wrap: anywhere; }
 .speech_inventory_item + .speech_inventory_item { margin-top: 0.35rem; }
 .speech_inventory_item[data-state="stock"] { --inventory-color: #3b82b8; }
+.speech_inventory_item[data-state="tournament_stock"] { --inventory-color: #7ebadd; }
 .speech_inventory_item[data-state="prepared"] { --inventory-color: #39a9a0; }
 .speech_inventory_item[data-state="cached"] { --inventory-color: #166534; }
 .speech_inventory_item[data-state="generated"] { --inventory-color: #78bf82; }

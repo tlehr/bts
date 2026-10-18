@@ -59,7 +59,8 @@ function createSpeechQueue({ root, service, onSnapshot = () => {} }) {
     const coverage_rows = new Map();
     const bar_segments = new WeakMap();
     const coverage_states = [
-        ['stock', 'Vorrat im Cache'], ['prepared', 'Vorsorglich erzeugt · diese Sitzung'],
+        ['stock', 'Übriger Vorrat im Cache'], ['tournament_stock', 'Vorrat im Cache · dieses Turnier'],
+        ['prepared', 'Vorsorglich erzeugt · diese Sitzung'],
         ['cached', 'Benötigt · aus Cache'], ['generated', 'Benötigt · neu erzeugt'],
         ['ordered', 'Beauftragt'], ['potential', 'Noch ohne Auftrag'],
     ];
@@ -147,6 +148,7 @@ function createSpeechQueue({ root, service, onSnapshot = () => {} }) {
     element(coverage_details, 'p', 'speech_queue_help', 'Bausteine werden wiederverwendet; Durchsagen zeigen die vollständige Zusammensetzung. ' +
         'Ein Klick auf einen Balkenabschnitt filtert die gemeinsame Liste nach Kategorie und Status. Die Überschrift zeigt alle Einträge der Kategorie.');
     element(coverage_details, 'p', 'speech_queue_help', 'Über die Häkchen in der Farblegende lassen sich Statuskategorien für alle Balken und Listen ausblenden.');
+    element(coverage_details, 'p', 'speech_queue_help', 'Der Vorrat für dieses Turnier umfasst passende Bausteine aller Turnierspiele, auch bereits gespielter.');
     const coverage_list = element(coverage_details, 'div', 'speech_coverage_list');
     const jobs = element(root, 'details', 'speech_queue_jobs');
     element(jobs, 'summary', '', 'Aufträge an den Sprachserver · Erzeugung und Verarbeitung');
@@ -156,7 +158,7 @@ function createSpeechQueue({ root, service, onSnapshot = () => {} }) {
     feedback.setAttribute('aria-live', 'polite');
 
     function paintBar(bar, counts, label, caption, failure) {
-        counts = { prepared: 0, ...counts };
+        counts = { tournament_stock: 0, prepared: 0, ...counts };
         const visible = coverage_states.filter(([state]) => !hidden_states.has(state));
         const visible_total = visible.reduce((sum, [state]) => sum + counts[state], 0);
         const signature = JSON.stringify({ ...counts, hidden_states: [...hidden_states] });

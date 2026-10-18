@@ -51,13 +51,15 @@ describe('Separate component and announcement inventory', function() {
         broker.stop();
     });
 
-    it('keeps unknown games in announcements without counting invented components', async function() {
+    it('keeps unknown games with their known numbers without inventing participant audio', async function() {
         const { broker, current, matches, targets } = await fixture();
         const count = broker.coverage.summary(current.key, 'hallensprecher').components.total.total;
         const unknown = { _id: 'unknown', setup: setup({ teams: [null, null], court_id: null }) };
         const updated = await plan(current, [...matches, unknown]);
         await broker.coverage.set_plan(current.key, 'hallensprecher', updated);
-        assert.strictEqual(broker.coverage.summary(current.key, 'hallensprecher').components.total.total, count);
+        assert.strictEqual(broker.coverage.summary(current.key, 'hallensprecher').components.total.total, count + 1);
+        const numbers = broker.coverage.inventory(current.key, 'hallensprecher', 'components', 'numbers');
+        assert.strictEqual(numbers.items.find(row => row.text === 'Spielnummer 17').state, 'potential');
         const list = broker.coverage.inventory(current.key, 'hallensprecher', 'announcements', 'D01');
         assert.strictEqual(list.total, 3);
         assert(list.items.some(item => item.unresolved && item.state === 'potential' && !item.components.length));
@@ -84,6 +86,20 @@ describe('Separate component and announcement inventory', function() {
         broker.stop();
     });
 
+    it('keeps completed games and no-match results ready as tournament reserve', async function() {
+        const { broker, current, matches } = await fixture();
+        const completed = matches.map((match, i) => ({ ...match, setup: { ...match.setup, state: 'finished' },
+            ...(i ? { score_status: 'no_match' } : { team1_won: true }) }));
+        await broker.coverage.set_plan(current.key, 'hallensprecher', await plan(current, completed));
+        broker.reconcile_prefetch(current.key, [], { voice: 'hallensprecher' });
+        const calls = broker.coverage.inventory(current.key, 'hallensprecher', 'announcements', 'D01');
+        assert.strictEqual(calls.total, 2);
+        assert(calls.items.every(row => row.ready && row.state === 'tournament_stock'));
+        const filtered = broker.coverage.inventory(current.key, 'hallensprecher', 'announcements', 'D01', 0, 30, 'all', ['tournament_stock']);
+        assert.deepStrictEqual(filtered.items, calls.items);
+        broker.stop();
+    });
+
     it('loads bounded pages without preparing speech and validates every batch query', async function() {
         const { broker, current } = await fixture();
         const before = broker.entries.size;
@@ -95,7 +111,7 @@ describe('Separate component and announcement inventory', function() {
         for (const query of [{ kind: 'sources' }, { kind: 'components', limit: 500 }, { kind: 'components', offset: -1 },
             { kind: 'components', state: 'invalid' }, { kind: 'components', state: ['cached'] },
             { kind: 'components', states: 'cached' }, { kind: 'components', states: null },
-            { kind: 'components', states: ['invalid'] }, { kind: 'components', states: Array(7).fill('cached') }]) {
+            { kind: 'components', states: ['invalid'] }, { kind: 'components', states: Array(8).fill('cached') }]) {
             assert.throws(() => broker.coverage.inventories(current.key, 'hallensprecher', [query]));
         }
         const responses = [];
@@ -115,8 +131,8 @@ describe('Separate component and announcement inventory', function() {
             const groups = kind === 'components' ? ['all', 'names', 'rounds'] : ['all', 'D01', 'D12'];
             for (const group of groups) {
                 const full = broker.coverage.inventory(current.key, 'hallensprecher', kind, group, 0, 50).items;
-                for (const state of ['all', 'stock', 'prepared', 'cached', 'generated', 'ordered', 'potential'])
-                    for (const states of [[], ['stock', 'generated'], ['cached', 'generated', 'ordered', 'potential']]) {
+                for (const state of ['all', 'stock', 'tournament_stock', 'prepared', 'cached', 'generated', 'ordered', 'potential'])
+                    for (const states of [[], ['stock', 'tournament_stock', 'generated'], ['cached', 'generated', 'ordered', 'potential']]) {
                         const expected = full.filter(row => (state === 'all' || row.state === state) && states.includes(row.state));
                         const pages = [];
                         for (let offset = 0; offset < Math.max(1, expected.length); offset += 2) {

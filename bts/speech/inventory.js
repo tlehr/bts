@@ -7,8 +7,8 @@ const COMPONENTS = [
     ['locations', 'Vorbereitung und Treffpunkte'], ['registration', 'Anmeldetexte'],
     ['instructions', 'Allgemeine Ansageteile'], ['test', 'Sprachtest'], ['free', 'Freie Texte'], ['other', 'Weitere Bausteine'],
 ];
-const STATES = ['stock', 'prepared', 'cached', 'generated', 'ordered', 'potential'];
-const READY = new Set(['stock', 'prepared', 'cached', 'generated']);
+const STATES = ['stock', 'tournament_stock', 'prepared', 'cached', 'generated', 'ordered', 'potential'];
+const READY = new Set(['stock', 'tournament_stock', 'prepared', 'cached', 'generated']);
 const empty = () => ({ total: 0, failed: 0, ...Object.fromEntries(STATES.map(state => [state, 0])) });
 const add = (counts, item) => { counts.total++; counts[item.state]++; counts.failed += item.failed ? 1 : 0; };
 
@@ -53,7 +53,8 @@ function build(components, calls, groups) {
         const missing = dependencies.filter(row => !READY.has(row.state));
         const state = !complete ? !call.unresolved && missing.some(row => row.state === 'ordered') ? 'ordered' : 'potential' :
             call.needed ? dependencies.some(row => row.state === 'generated') ? 'generated' : 'cached' :
-                dependencies.some(row => row.state === 'prepared') ? 'prepared' : 'stock';
+                dependencies.some(row => row.state === 'prepared') ? 'prepared' :
+                    dependencies.some(row => row.state === 'stock') ? 'stock' : 'tournament_stock';
         return { ...call, state, ready: complete, ready_parts: dependencies.filter(row => READY.has(row.state)).length,
             total_parts: call.keys.length, failed: !complete && missing.some(row => row.failed) };
     });
@@ -77,4 +78,4 @@ function page(snapshot, kind, group, offset, limit, state = 'all', states = STAT
         next_offset: offset + limit < source.length ? offset + limit : null };
 }
 
-module.exports = { COMPONENTS, description, build, page };
+module.exports = { COMPONENTS, STATES, description, build, page };
