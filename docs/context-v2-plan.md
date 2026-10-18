@@ -417,8 +417,12 @@ ist. Ihre interne Reihenfolge ist festgelegt: allgemeine Teile zuerst,
 anschließend für offene Anmeldungen Landesverbände, Vereine und zuletzt Spieler
 oder Paarungen. Vorhandene passende Quellen und Bausteine werden wiederverwendet.
 Sobald mindestens eine Disziplin ausgelost ist, greift die
-Reihenfolge für den Spielbetrieb. Echte Aufrufe und angeforderte Hörproben behalten
-ihre höheren Prioritäten. Die Planung ist noch nicht als produktive Warteschlange umgesetzt.
+Reihenfolge für den Spielbetrieb. Tatsächlich ausgelöste Turnierdurchsagen haben
+Priorität 1. Der Sprachtest hat immer Priorität 2, unabhängig von einer Anforderung:
+Die vollständige Testaufnahme für die zentral gewählte Stimme wird automatisch
+vorbereitet oder aus dem Cache übernommen. Angeforderte Hörproben gehören ebenfalls
+zu Priorität 2. Die Vorbereitung startet keine Wiedergabe.
+Die Planung ist noch nicht als produktive Warteschlange umgesetzt.
 [Prioritätstabelle und Regeln](durchsagen-arbeitsdokument.md#24-entwurf-generierungsreihenfolge-nach-turnierfortschritt).
 
 ### 5.1 Erster B01-Hörsatz: Spielfeld acht, beide Stimmen

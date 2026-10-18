@@ -251,7 +251,11 @@ Die Oberfläche bietet das Abspielen auf diesem Gerät und das Senden an die fre
 Dies ist ein Test der Sprachausgabe.
 ```
 
-Der Test verwendet den gewählten Sprachmodus. Lokal wird der vollständige Testtext als eine Aufnahme vorbereitet.
+Der Test verwendet den gewählten Sprachmodus. Lokal wird der vollständige Testtext
+als eine Aufnahme vorbereitet. Für die v2-Planung gilt: Die Vorbereitung hat immer
+Priorität 2, auch ohne Anforderung. Ein angeforderter Sprachtest bleibt ebenfalls
+auf Priorität 2. Vorhandenes passendes Audio wird wiederverwendet; die Vorbereitung
+startet keine Wiedergabe.
 
 ### D15 – Evakuierungsdurchsage
 
@@ -674,6 +678,10 @@ Damit erhöht sich der Grundbestand um **W + X + Z Wiedergabestücke** und **X +
 
 ### 10.4 Reihenfolge der Generierung
 
+Die aktuelle Priorisierung steht in [Abschnitt 24](#24-entwurf-generierungsreihenfolge-nach-turnierfortschritt).
+Der Sprachtest hat dort immer Priorität 2, auch ohne Anforderung. Die folgende
+Vorarbeitstabelle dokumentiert den früheren Entwurf der vollständigen Spielblöcke.
+
 **Leitlinie:** Zuerst die nächsten Durchsagen vollständig abspielbar machen. Ein früh erzeugter Spielblock hilft erst dann für den ganzen Aufruf, wenn dessen übrige benötigte Teile ebenfalls bereitstehen. Deshalb werden Hallen- und Offiziellen-Quellen zwischen Spielblöcke eingeschoben; es werden nicht erst alle S Spielblöcke abgearbeitet.
 
 **Annahme zum üblichen Ablauf:** Zu Beginn werden Spiele direkt auf freie Felder gerufen. Im laufenden Turnier steht vor dem Feldaufruf häufig der Vorbereitungsaufruf. Die Startaufforderung kann kurz danach nötig werden; Zweitaufrufe betreffen vor allem gerade aufgerufene oder vorbereitete Spiele. Kampflose Entscheidungen sind seltener und zeitlich nicht sicher vorhersehbar. Tatsächliche Turnierzustände und manuelle Anforderungen haben Vorrang vor dieser Annahme.
@@ -692,7 +700,7 @@ Die Vormerkungen der regulären Spielblöcke behalten dabei turnierweit ihre Ans
 | 4 | **Zweitaufrufe für die gerade aufgerufenen und nahen Spiele absichern** | Die Teamstücke und normalen Offiziellen-Zweitaufrufe sind überwiegend schon vorhanden. Nur fehlende Präfixe, passende Einzahl-/Mehrzahlformen und Bedienaufforderungen ergänzen; Quellen mit mehreren benötigten Ausschnitten zuerst. |
 | 5 | **Gemeinsame Kampflos-Formulierung** | Ein vollständiges D12-Beispiel liefert einmal `Das Spiel geht kampflos an`. Diese gemeinsame Absicherung kommt vor weit entfernten Spielblöcken. Den jeweiligen Spielblock vollständig wiederverwenden. |
 | 6 | **Weitere bereite Spiele samt ihren benötigten Zusatzteilen** | Den Vorrat in Spielplanreihenfolge erweitern. Für jedes Spiel wiederum die nächste Ansage vervollständigen, vorhandene Hallen-/Rollenstücke teilen. Bei neuem nahen Bedarf zurück zu Priorität 3 beziehungsweise 4. |
-| 7 | **Weitere tatsächlich benötigte Sonderformen und automatischer Sprachtest** | Verbleibende Hallen-/Bedienformen für spätere Einsätze und die Testaufnahme nachrangig vorbereiten. Keine hypothetischen Team-, Rollen- oder Hallenkombinationen erzeugen. Ein ausdrücklich angeforderter Sprachtest wartet nicht auf diese Gruppe. |
+| 7 | **Weitere tatsächlich benötigte Sonderformen** | Verbleibende Hallen-/Bedienformen für spätere Einsätze nachrangig vorbereiten. Keine hypothetischen Team-, Rollen- oder Hallenkombinationen erzeugen. Der Sprachtest gehört immer zur vorrangigen Stufe 2. |
 
 **Welche Zusatzteile ein nahes Spiel benötigt:**
 
@@ -721,7 +729,7 @@ Jede bereits passende Quelle und jeder passende Ausschnitt überspringt den betr
 **Vorrang während des Betriebs:**
 
 1. **Tatsächlich ausgelöste Durchsagen mit fehlendem Audio:** Die fehlenden Quellen und Schnitte vervollständigen den konkreten Aufruf vor jeder noch nicht gestarteten Vorarbeit. Das gilt auch für abgesendete freie Ansagen und tatsächliche kampflose Ergebnisse. Mehrere wartende tatsächliche Durchsagen behalten ihre Auslösereihenfolge; vorbereitende Aufträge drängen sich nicht dazwischen.
-2. **Ausdrücklich angeforderte Hörprobe oder Sprachtest:** Fehlendes Audio nach bereits wartenden tatsächlichen Durchsagen, vor normaler Vorarbeit erzeugen. Dadurch lässt sich die Stimme auch vor Abschluss der Feldstufe prüfen.
+2. **Sprachtest immer, Hörproben auf Anforderung:** Die fehlende Testaufnahme auch ohne Anforderung nach bereits wartenden tatsächlichen Turnierdurchsagen und vor normaler Vorarbeit erzeugen. Angeforderte Hörproben gehören ebenfalls zu dieser Priorität. Dadurch lässt sich die Stimme auch vor Abschluss der Feldstufe prüfen.
 3. **Die normale Vorarbeit aus der Tabelle:** Nach jedem fertigen Auftrag den nächsten tatsächlichen Bedarf neu prüfen. Ein stabiler freier Textentwurf darf nach den nahen Aufrufen und vor ferner Vorarbeit vorbereitet werden; überholte, noch nicht gestartete Entwürfe entfallen. Allein die Generierung löst keine Wiedergabe aus.
 
 Ein bereits laufender Auftrag wird fertiggestellt. BTS verwaltet die Reihenfolge und hält **höchstens einen offenen Generierungsauftrag** beim Sprachserver. Quellen werden bei mehreren wartenden Durchsagen nur einmal erzeugt. Fehlende Schnitte aus vorhandenem Audio benötigen keinen Modellauftrag und werden direkt bereitgestellt; danach wird der verfügbare Bestand aktualisiert. Neue Paarungen, Ansetzungen oder Zuordnungen ordnen nur noch offene Arbeit neu. Die Spielplanreihenfolge gilt für die regulären Spielblock-Vormerkungen; ein konkreter ausgelöster Aufruf darf die für ihn fehlende Quelle vorziehen.
@@ -1267,9 +1275,9 @@ chronologischen Position eines Spiels in der Grafik:
 
 | Priorität | Anlass / Spielzustand | Reihenfolge innerhalb der Gruppe |
 | --- | --- | --- |
-| 1 | Tatsächlich ausgelöste Durchsage mit fehlendem Audio | Auslösereihenfolge; einschließlich Anmeldung, freier Ansagen und Kampflos-Mitteilungen |
-| 2 | Ausdrücklich angeforderte Hörprobe oder Sprachtest | Nach wartenden echten Durchsagen |
-| Vorarbeit zuerst | Gemeinsame spielort- und feldabhängige Bausteine | Vor Anmeldevorarbeit, unabhängig von der Auslosung; echte Aufrufe und Hörproben bleiben vorrangig |
+| 1 | Tatsächlich ausgelöste Turnierdurchsage mit fehlendem Audio | Auslösereihenfolge; einschließlich Anmeldung, freier Ansagen und Kampflos-Mitteilungen |
+| 2 | Sprachtest immer; ausdrücklich angeforderte Hörproben ebenfalls | Fehlende Testaufnahme automatisch auch ohne Anforderung vorbereiten, nach wartenden tatsächlichen Turnierdurchsagen |
+| Vorarbeit zuerst | Gemeinsame spielort- und feldabhängige Bausteine | Vor Anmeldevorarbeit, unabhängig von der Auslosung; tatsächliche Turnieraufrufe, Sprachtest und angeforderte Hörproben bleiben vorrangig |
 | Vor erster Auslosung | Anmeldevorarbeit, solange noch keine Disziplin ausgelost ist | Nach Orts-/Feldbausteinen, vor Spielvorrat; intern allgemeine Teile → offene Landesverbände → offene Vereine → offene Spieler/Paarungen |
 | 3 | Auf das Feld gerufene und laufende Spiele | Zeitpunkt des Feldaufrufs, ältester zuerst |
 | 4 | Spiele in Vorbereitung | Zeitpunkt des Vorbereitungsaufrufs, ältester zuerst |
@@ -1303,7 +1311,15 @@ Disziplin ausgelost ist. Diese Bedingung gilt für das gesamte Turnier:
 Sobald mindestens eine Disziplin ausgelost ist, entfällt dieser besondere Vorrang
 und die Reihenfolge für den Spielbetrieb greift. Tatsächlich ausgelöste
 Anmeldeaufrufe haben unabhängig vom Turnierfortschritt stets Priorität 1;
-ausdrücklich angeforderte Hörproben behalten Priorität 2.
+der Sprachtest hat immer Priorität 2, auch ohne Anforderung. Ausdrücklich
+angeforderte Hörproben gehören ebenfalls zu Priorität 2.
+
+Die vollständige Testaufnahme `Dies ist ein Test der Sprachausgabe.` gehört
+für die zentral gewählte lokale Stimme automatisch zum benötigten Bestand.
+Fehlt sie, wird sie vor der Orts-/Feld- und Anmeldevorarbeit vorbereitet.
+Passendes Audio aus dem dauerhaften Cache ist unmittelbar bereit und braucht
+keine neue Generierung. Auch nach einem Klick auf den Sprachtest bleibt dessen
+Generierung auf Priorität 2. Die automatische Vorbereitung startet keine Wiedergabe.
 
 Innerhalb der Anmeldevorarbeit gilt verbindlich diese Reihenfolge:
 
