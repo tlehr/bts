@@ -413,7 +413,10 @@ eingerichteten Orte und Felder (B01, B02, tatsächlich verwendete Hallen- und
 Treffpunktvarianten). Sie werden unabhängig von konkreten Spielen vorbereitet
 und teilen bei gleichem gesprochenem Text ihre Aufnahme. Danach hat die
 Anmeldevorarbeit Vorrang vor Spielvorrat, solange noch keine Disziplin ausgelost
-ist. Sobald mindestens eine Disziplin ausgelost ist, greift die
+ist. Ihre interne Reihenfolge ist festgelegt: allgemeine Teile zuerst,
+anschließend für offene Anmeldungen Landesverbände, Vereine und zuletzt Spieler
+oder Paarungen. Vorhandene passende Quellen und Bausteine werden wiederverwendet.
+Sobald mindestens eine Disziplin ausgelost ist, greift die
 Reihenfolge für den Spielbetrieb. Echte Aufrufe und angeforderte Hörproben behalten
 ihre höheren Prioritäten. Die Planung ist noch nicht als produktive Warteschlange umgesetzt.
 [Prioritätstabelle und Regeln](durchsagen-arbeitsdokument.md#24-entwurf-generierungsreihenfolge-nach-turnierfortschritt).

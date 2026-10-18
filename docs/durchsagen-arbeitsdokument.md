@@ -1106,6 +1106,9 @@ aktiven Anmeldedisziplinen und den noch offenen Personen. Weiterer Vorrat kommt
 erst im Leerlauf. Ergänzende Festlegung: Spielort- und feldabhängige gemeinsame
 Bausteine werden zuerst vorbereitet. Danach hat die Anmeldevorarbeit Vorrang
 vor Spielvorrat, solange noch keine Disziplin ausgelost ist.
+Innerhalb der Anmeldevorarbeit kommen zuerst die allgemeinen Teile der
+verwendeten Aufrufvorlagen. Anschließend folgen für noch offene Anmeldungen
+zuerst Landesverbände, dann Vereine, zuletzt Spieler und Paarungen.
 Ab der ersten ausgelosten Disziplin gilt die Reihenfolge für den Spielbetrieb
 aus Abschnitt 24. Tatsächlich ausgelöste Aufrufe behalten ihren sofortigen Vorrang.
 Bereits fertig erzeugte Aufnahmen bleiben im dauerhaften Cache. Das ist noch
@@ -1267,7 +1270,7 @@ chronologischen Position eines Spiels in der Grafik:
 | 1 | Tatsächlich ausgelöste Durchsage mit fehlendem Audio | Auslösereihenfolge; einschließlich Anmeldung, freier Ansagen und Kampflos-Mitteilungen |
 | 2 | Ausdrücklich angeforderte Hörprobe oder Sprachtest | Nach wartenden echten Durchsagen |
 | Vorarbeit zuerst | Gemeinsame spielort- und feldabhängige Bausteine | Vor Anmeldevorarbeit, unabhängig von der Auslosung; echte Aufrufe und Hörproben bleiben vorrangig |
-| Vor erster Auslosung | Anmeldevorarbeit, solange noch keine Disziplin ausgelost ist | Nach Orts-/Feldbausteinen, vor Spielvorrat |
+| Vor erster Auslosung | Anmeldevorarbeit, solange noch keine Disziplin ausgelost ist | Nach Orts-/Feldbausteinen, vor Spielvorrat; intern allgemeine Teile → offene Landesverbände → offene Vereine → offene Spieler/Paarungen |
 | 3 | Auf das Feld gerufene und laufende Spiele | Zeitpunkt des Feldaufrufs, ältester zuerst |
 | 4 | Spiele in Vorbereitung | Zeitpunkt des Vorbereitungsaufrufs, ältester zuerst |
 | 5 | Aufrufkandidaten, nur im Leerlauf | Kandidatenreihenfolge |
@@ -1301,6 +1304,22 @@ Sobald mindestens eine Disziplin ausgelost ist, entfällt dieser besondere Vorra
 und die Reihenfolge für den Spielbetrieb greift. Tatsächlich ausgelöste
 Anmeldeaufrufe haben unabhängig vom Turnierfortschritt stets Priorität 1;
 ausdrücklich angeforderte Hörproben behalten Priorität 2.
+
+Innerhalb der Anmeldevorarbeit gilt verbindlich diese Reihenfolge:
+
+1. **Allgemeine Teile:** gemeinsame Einleitungen, Zieltexte für Anmeldung und
+   Turnierleitung sowie „bitte!“ aus den verwendeten Anmeldevorlagen.
+2. **Landesverbände** mit noch offenen Anmeldungen.
+3. **Vereine** mit noch offenen Anmeldungen.
+4. **Spieler und Paarungen**, deren Anmeldung noch offen ist.
+
+Die variablen Bezeichnungen richten sich damit nach dem aktuellen offenen
+Anmeldebestand; abgeschlossene Anmeldungen erzeugen keine weitere Vorarbeit.
+Vor jeder Stufe wird der Cache geprüft. Gleiche Labels oder Namen werden einmal
+vorbereitet und für mehrere Aufrufe geteilt. Die allgemeinen Teile behalten
+ihre vereinbarte Erzeugung aus vollständigen Kontextaufnahmen; die Priorisierung
+ändert weder deren Wortlaut noch die Schnittstrategie. Nicht mehr nötige offene
+Aufträge entfallen, vorhandene Aufnahmen bleiben gespeichert.
 
 Ortsunabhängige gemeinsame Texte wie B12 „Bitte mit dem
 Spielen beginnen!“ werden beim ersten Bedarf einmal vorbereitet und geteilt;
