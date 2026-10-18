@@ -99,9 +99,21 @@ Quellverknüpfungen und Probehören.
 ## Live-Planung im eigenen Tab
 
 **Adminmenü → Sprachplanung · live** öffnet den Ablaufplan für das aktuelle
-Turnier in einem neuen Browser-Tab. Die Prüfreihenfolge läuft in einer Spalte
-von oben nach unten: höchste Priorität zuerst. Nach jedem Auftrag prüft BTS
-wieder von oben. Turnierphase, Anzahl der Spiele je Zustand, Bedingungen und
+Turnier in einem neuen Browser-Tab. Das Netz orientiert sich an der
+[UML-Aktivitätsnotation](https://www.omg.org/spec/UML/ISO/19505-2/PDF): gefüllter
+Startkreis, abgerundete Aktionsrechtecke, Entscheidungsrauten und gerichtete
+Kontrollflüsse mit `[ja]`/`[nein]` als Bedingungen. Höhere Prioritäten stehen
+weiter oben. Nach jeder Aktion folgt eine eigene Entscheidungsraute.
+Anmeldevorarbeit und Spielbetrieb bilden alternative Wege abhängig von der
+ersten Auslosung. Kleine Rauten führen alternative Wege zusammen, bevor eine
+gemeinsame Aktion beginnt; sie bedeuten keine parallele Verarbeitung.
+
+Ein ausführbarer Auftrag führt zur gemeinsamen Bearbeitung rechts im Netz.
+Nach seiner Beendigung prüft BTS wieder von oben. Solange die Verarbeitung
+läuft, bleibt sie beim selben Auftrag. Sind keine Aufgaben ausführbar, wartet
+der Ablauf auf neuen Bedarf oder eine fällige Wiederholung und prüft erneut.
+Der Dauerbetrieb hat deshalb keinen abschließenden Endknoten.
+Turnierphase, Anzahl der Spiele je Zustand, Bedingungen und
 Fortschritt aktualisieren sich alle zwei Sekunden. Gold markiert ausschließlich
 den aktuellen oder nächsten Auftrag. Ein laufender Auftrag eines anderen
 Turniers wird eigens angezeigt.
@@ -118,7 +130,8 @@ und können sich bei Änderungen am Turnier ändern.
 Die Seite liest den vorhandenen Plan und die Warteschlange; sie legt keine
 zusätzlichen Sprachaufträge an. Bei Verbindungsverlust werden die aktuellen
 Markierungen entfernt und die Verbindung automatisch wiederhergestellt.
-Der Ablaufplan lässt sich als eigenständiges SVG oder über Drucken/PDF exportieren.
+Der Ablaufplan lässt sich als eigenständiges SVG mit denselben Verzweigungen
+oder über Drucken/PDF exportieren.
 Die Bedingungen zeigen, ob schon ausgelost wurde, ob benötigte Ansagen noch offen
 sind und ob Vorrat der anderen Stimme möglich ist. Übersprungene Schritte bleiben
 beschriftet sichtbar. Laufende und vorbereitete Spiele enthalten ihre möglichen
@@ -130,8 +143,9 @@ Jeder Schritt zeigt seinen Status; die aktuelle Aufnahme steht direkt beim
 aktiven Schritt. Ohne aktuelle oder nächste Aufgabe wird kein Arbeitsbereich
 markiert. Der Status nennt ausdrücklich, ob alles bereit ist, weitere Arbeit
 wartet, Fehler offen sind oder die Verbindung fehlt. Die getrennte Kartenübersicht
-entfällt. Auf schmalen Bildschirmen bleibt der Ablauf einspaltig und ohne
-horizontales Scrollen lesbar. Die aktuelle Tätigkeit bleibt beim Scrollen am oberen
+entfällt. Auf schmalen Bildschirmen lässt sich das Netz innerhalb der Grafik
+seitlich verschieben; die übrige Seite bleibt in Bildschirmbreite.
+Die aktuelle Tätigkeit bleibt beim Scrollen am oberen
 Rand sichtbar. Die Darstellung folgt vollständig automatisch;
 sie ändert weder die Auftragsreihenfolge noch den Sprachbedarf.
 

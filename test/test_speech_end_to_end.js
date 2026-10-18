@@ -1081,15 +1081,45 @@ suite('BTS / actual FastAPI / native Chrome speech integration', function() {
                 'updated:document.querySelector(\'.speech_plan_live\')?.dataset.updatedAt, ' +
                 'label:document.querySelector(\'.speech_plan_follow_status\')?.textContent}; })()');
             await until(async () => (await view()).stage === 'oncourt');
+            await live.evaluate('new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))');
             assert.strictEqual(await live.evaluate('document.querySelectorAll(\'input,select,[data-select],.flow-step[role="button"]\').length'), 0);
             const positions = await live.evaluate('[...document.querySelectorAll(\'.flow-step\')].filter(node => !node.hidden).map(node => {' +
                 'const box = node.getBoundingClientRect(); return {stage:node.dataset.stage,x:box.x,y:box.y,bottom:box.bottom}; })');
             assert.deepStrictEqual(positions.map(row => row.stage), ['urgent', 'test', 'shared', 'registration', 'oncourt', 'preparation',
                 'officials', 'additional', 'candidate', 'tablet_waiting', 'planned', 'registration_reserve', 'tablet', 'people', 'spare']);
-            for (let i = 1; i < positions.length; i++) {
-                assert(positions[i].y > positions[i - 1].bottom, 'read each lower-priority step below the previous one');
-                assert.strictEqual(positions[i].x, positions[0].x, 'keep one column');
+            assert(new Set(positions.map(row => row.x)).size > 1, 'show separate registration and competition branches');
+            const registration = positions.find(row => row.stage === 'registration');
+            const oncourt = positions.find(row => row.stage === 'oncourt');
+            assert.strictEqual(registration.y, oncourt.y, 'the tournament phase selects alternative paths');
+            const competition = positions.filter(row => row.stage !== 'registration');
+            for (let i = 1; i < competition.length; i++) {
+                assert(competition[i].y > competition[i - 1].bottom, 'keep descending priority within a path: ' +
+                    competition[i - 1].stage + ' → ' + competition[i].stage);
             }
+            const network = await live.evaluate('(() => {' +
+                'const nodes = [...document.querySelectorAll(\'#overview [data-kind]\')].filter(n => !n.hidden);' +
+                'const edges = [...document.querySelectorAll(\'.flow-edge\')].map(n => ({from:n.dataset.from,to:n.dataset.to,guard:n.dataset.guard}));' +
+                'return {nodes:nodes.map(n => ({id:n.id,kind:n.dataset.kind,after:n.dataset.afterStage})),edges};})()');
+            const kinds = new Map(network.nodes.map(node => [node.id, node.kind]));
+            for (const node of network.nodes) {
+                const outgoing = network.edges.filter(edge => edge.from === node.id);
+                if (node.kind === 'action') {
+                    assert.strictEqual(outgoing.length, 1, 'an action has one control-flow successor: ' + node.id);
+                    assert.strictEqual(kinds.get(outgoing[0].to), 'decision', 'every action is followed by a real decision');
+                    assert.strictEqual(network.edges.filter(edge => edge.to === node.id).length, 1,
+                        'alternative inputs must merge before the action: ' + node.id);
+                } else if (node.kind === 'decision') {
+                    assert.deepStrictEqual(outgoing.map(edge => edge.guard).sort(), ['[ja]', '[nein]'], node.id);
+                    assert.strictEqual(network.edges.filter(edge => edge.to === node.id).length, 1, 'decisions have one input');
+                } else if (node.kind === 'merge') {
+                    assert.strictEqual(outgoing.length, 1, 'merges have one output');
+                    assert(network.edges.filter(edge => edge.to === node.id).length >= 2, 'merges combine alternative inputs');
+                }
+            }
+            assert.strictEqual(network.nodes.filter(node => node.after).length, STAGES.length);
+            assert(network.edges.some(edge => edge.from === 'job-done' && edge.to === 'priority-merge' && edge.guard === '[ja]'));
+            assert(network.edges.some(edge => edge.from === 'wake-decision' && edge.to === 'priority-merge' && edge.guard === '[ja]'));
+            for (const edge of network.edges) assert(kinds.has(edge.from) && kinds.has(edge.to), 'every edge has existing endpoints');
             for (const [id] of STAGES) {
                 response.active_stage = id;
                 await until(async () => (await view()).stage === id);
@@ -1142,7 +1172,9 @@ suite('BTS / actual FastAPI / native Chrome speech integration', function() {
             assert(await live.evaluate('document.querySelector(\'#idle-decision .flow-answer\').textContent.startsWith(\'Nein\')'));
             assert(await live.evaluate('document.querySelector(\'[data-stage="registration"]\').classList.contains(\'is-skipped\')'));
             assert(await live.evaluate('(() => {const svg = new DOMParser().parseFromString(btsSpeechPlanningDiagram.exportSVG(), \'image/svg+xml\'); ' +
-                'return !svg.querySelector(\'parsererror\') && svg.documentElement.localName === \'svg\' && svg.querySelectorAll(\'rect\').length > 15 && svg.documentElement.textContent.includes(\'Spiele in Vorbereitung\');})()'));
+                'return !svg.querySelector(\'parsererror\') && !svg.querySelector(\'foreignObject\') && svg.documentElement.localName === \'svg\' && ' +
+                'svg.querySelectorAll(\'rect\').length > 15 && svg.querySelectorAll(\'polygon\').length > 20 && ' +
+                'svg.querySelectorAll(\'.flow-edge[data-guard="[ja]"]\').length > 15 && svg.documentElement.textContent.includes(\'Spiele in Vorbereitung\');})()'));
             if (process.env.BTS_SPEECH_FOLLOW_SCREENSHOT) {
                 const shot = await live.call('Page.captureScreenshot', { format: 'png', captureBeyondViewport: true });
                 fs.writeFileSync(process.env.BTS_SPEECH_FOLLOW_SCREENSHOT, Buffer.from(shot.data, 'base64'));
@@ -1153,9 +1185,13 @@ suite('BTS / actual FastAPI / native Chrome speech integration', function() {
             assert((await view()).label.includes('Verbindung unterbrochen'));
             await until(async () => (await view()).stage === 'preparation');
             await live.call('Emulation.setDeviceMetricsOverride', { width: 390, height: 844, deviceScaleFactor: 1, mobile: false });
+            await live.evaluate('new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))');
             assert(await live.evaluate('document.documentElement.scrollWidth <= document.documentElement.clientWidth'));
-            await live.evaluate('document.querySelector(\'[aria-current="step"]\').scrollIntoView({block:\'center\'})');
+            await live.evaluate('document.querySelector(\'[aria-current="step"]\').scrollIntoView({block:\'center\',inline:\'center\'})');
             assert(await live.evaluate('document.querySelector(\'.speech_plan_follow_status\').getBoundingClientRect().top >= 0'));
+            assert(await live.evaluate('(() => { const card = document.querySelector(\'[aria-current="step"]\').getBoundingClientRect(); ' +
+                'const viewport = document.querySelector(\'.flow-viewport\').getBoundingClientRect(); ' +
+                'return card.left >= viewport.left && card.right <= viewport.right; })()'), 'keep the focused action readable when panning on mobile');
             if (process.env.BTS_SPEECH_FLOW_MOBILE_SCREENSHOT) {
                 const shot = await live.call('Page.captureScreenshot', { format: 'png' });
                 fs.writeFileSync(process.env.BTS_SPEECH_FLOW_MOBILE_SCREENSHOT, Buffer.from(shot.data, 'base64'));
