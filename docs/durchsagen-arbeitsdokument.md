@@ -738,3 +738,12 @@ werden damit nicht nach Durchsageart verdoppelt.
 **Der Hallensprecher bleibt unverändert.** Die Auswahl gilt zunächst für das
 isolierte Hörlabor; die produktive v1 und der Planungsentwurf oben werden dadurch
 nicht umgestellt. Die vorhandenen Frauenproben bleiben zum Vergleich erhalten.
+
+Im ersten aktuellen v2-Spielbeispiel heißt das zweite Team nach der Korrektur
+**Leandra Galowicz**, mit Leerzeichen. Der neue Teamkontext lautet
+`Leandra Galowicz spielt jetzt gegen Leandra Galowicz!`. Die historischen
+Referenztexte und die bereits aufgenommenen Feldanfänge/-enden bleiben erhalten;
+deren verworfener Kontext wird wegen dieser Namenskorrektur nicht erneut erzeugt.
+Lange gemessene Ruhebereiche im Disziplinbaustein und im korrigierten Teamkontext
+werden gezielt gekürzt. Das Sprechtempo und die beiden bereits gut befundenen
+Spielbeispiele bleiben unverändert.

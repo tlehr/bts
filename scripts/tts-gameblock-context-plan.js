@@ -98,7 +98,7 @@ function gameblocks(tournament, samples) {
 function examples(tournament) {
     const names = name => ({ players: [{ name }] });
     const samples = [{ id: 'beispiel-189', label: 'Beispielspiel 189 · Mädcheneinzel U19', origin: 'Established hearing fixture, not current tournament match 189',
-        setup: { match_num: 189, event_name: 'ME U19', match_name: 'R16', teams: [names('Nina Keo Boun Khoune'), names('LeandraGalowicz')] } }];
+        setup: { match_num: 189, event_name: 'ME U19', match_name: 'R16', teams: [names('Nina Keo Boun Khoune'), names('Leandra Galowicz')] } }];
     for (const [number, event] of [[161, 'JE U17'], [381, 'JD U13']]) {
         const match = (tournament.matches || []).find(item => Number(item.setup?.match_num) === number && item.setup.event_name === event);
         if (!match) throw new Error(`Saved sample ${number} (${event}) not found`);
