@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>BTS · Ablauf der Sprachvorbereitung</title>
+<title>BTS · Zustandsübergänge der Sprachvorbereitung</title>
 <style>
 * { box-sizing: border-box; }
 body { margin: 0; background: #f2f5f7; color: #163047; font: 16px/1.5 system-ui,sans-serif; }
@@ -17,20 +17,27 @@ p { margin: 8px 0; }
 .flow-hint { color: #52687c; font-size: 14px; margin-bottom: 24px; }
 .flow-viewport { overflow: auto; max-width: 100%; }
 .flow-canvas { position: relative; }
-.speech_flow { position: relative; width: 1380px; font-size: 15px; }
+.speech_flow { position: relative; width: 1260px; font-size: 15px; }
 .flow-node { position: absolute; z-index: 1; }
 .flow-edges { position: absolute; inset: 0; overflow: visible; pointer-events: none; }
-.flow-edge { fill: none; stroke: #6f8292; stroke-width: 1.5; }
-.flow-edge.is-active { stroke: #b77409; stroke-width: 2.5; }
+.flow-edge { fill: none; stroke: #8394a2; stroke-width: 1.5; }
+.flow-edge.is-traversed { stroke: #2475b4; stroke-width: 2.8; }
+.flow-guard.is-traversed { fill: #185e92; font-weight: 700; }
 .flow-guard { font-size: 13px; fill: #344e62; paint-order: stroke; stroke: white; stroke-width: 5px; stroke-linejoin: round; }
 .flow-initial { width: 20px; height: 20px; border-radius: 50%; background: #263d4e; }
-.flow-merge { width: 18px; height: 18px; }
+.flow-junction { border-radius: 50%; background: #263d4e; }
+.flow-initial.is-traversed,.flow-junction.is-traversed { background: #2475b4; }
 .flow-label { color: #52687c; font-size: 14px; }
 .flow-label p { margin: 5px 0; }
-.flow-step,.flow-action { border: 1.5px solid #637b8d; border-radius: 14px; background: #fff; padding: 13px 16px; break-inside: avoid; }
-.flow-action h3 { font-size: 16px; margin: 0; }
-.flow-action p { font-size: 14px; color: #52687c; }
-.flow-action[data-active=true] { border-color: #b77409; background: #fff8e8; }
+.flow-state { border: 1.5px solid #637b8d; border-radius: 14px; background: #fff; padding: 13px 16px; break-inside: avoid; }
+.flow-status-state h3 { font-size: 16px; margin: 0; }
+.flow-status-state p { font-size: 14px; color: #52687c; }
+.flow-state.is-current-state { border: 2px solid #d48815; background: #fff8e8; }
+.flow-operation { margin: 10px -16px -13px; padding: 9px 16px 12px; border-top: 1px solid #a8b8c5; font-size: 13px; color: #52687c; }
+.flow-operation p { margin: 0; }
+.flow-trace { margin-top: 20px; font-size: 14px; }
+.flow-trace summary { cursor: pointer; font-weight: 700; }
+.flow-trace li { margin: 8px 0; }
 .flow-step.is-skipped { background: #f5f7f9; border-style: dashed; color: #667a89; }
 .flow-step.live-current { border: 2px solid #d48815; border-left-width: 5px; background: #fff8e8; box-shadow: 0 0 0 3px #d4881512; }
 .flow-title { display: flex; flex-wrap: wrap; align-items: baseline; gap: 3px 8px; }
@@ -41,7 +48,7 @@ p { margin: 8px 0; }
 .flow-step[data-status=ready] .flow-status { color: #21804b; }
 .flow-step[data-status=failed] .flow-status { color: #b33a2c; }
 .flow-description,.flow-counts { color: #52687c; font-size: 14px; }
-.flow-current-text { margin: 8px 0 0; padding-top: 8px; border-top: 1px solid #e8d1a4; overflow-wrap: anywhere; }
+.flow-operation .flow-current-text { margin-top: 8px; font-size: 15px; color: #163047; overflow-wrap: anywhere; }
 .flow-progress { height: 8px; display: flex; overflow: hidden; border-radius: 4px; background: #cbd5e1; }
 .flow-ready { background: #21804b; }
 .flow-queued { background: #e88925; }
@@ -49,12 +56,13 @@ p { margin: 8px 0; }
 .flow-decision { display: flex; align-items: center; justify-content: center; text-align: center; }
 .flow-shape { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; z-index: -1; }
 .flow-shape polygon { fill: white; stroke: #637b8d; stroke-width: 1.5; vector-effect: non-scaling-stroke; }
-.flow-decision[data-active=true] polygon { fill: #fff8e8; stroke: #b77409; stroke-width: 2.5; }
+.flow-decision.is-traversed polygon { fill: #edf6fd; stroke: #2475b4; stroke-width: 2; }
+.flow-decision.is-skipped polygon { stroke-dasharray: 5 4; }
 .flow-decision h3 { font-size: 14px; font-weight: 600; line-height: 1.3; margin: 0; width: 62%; }
 .flow-gate h3 { font-size: 15px; }
-.flow-answer { position: absolute; top: -4px; left: calc(100% + 26px); width: 280px; margin: 0; font-size: 13px; color: #52687c; text-align: left; }
+.flow-answer { position: absolute; top: -35px; right: calc(100% + 24px); width: 260px; margin: 0; font-size: 13px; color: #52687c; text-align: right; }
+#known-decision .flow-answer,#enabled-decision .flow-answer { display: none; }
 .flow-end { text-align: center; font-size: 14px; color: #52687c; }
-.flow-loop { text-align: center; font-size: 14px; color: #52687c; margin-top: 16px; }
 .footer { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; margin-top: 20px; font-size: 14px; color: #52687c; }
 button { font: inherit; border: 1px solid #bdcad4; border-radius: 8px; padding: 8px 12px; background: white; color: #163047; cursor: pointer; }
 button:hover { background: #eaf1f7; }
@@ -67,16 +75,16 @@ button:focus-visible { outline: 3px solid #e99522; outline-offset: 3px; }
 <body>
 <main>
 <div class="eyebrow">BTS · Sprachplanung</div>
-<h1>Ablauf der Sprachvorbereitung</h1>
-<p class="intro">Von oben nach unten: höchste Priorität zuerst. BTS bearbeitet den nächsten möglichen Auftrag und prüft danach wieder von oben.</p>
+<h1>Zustandsübergänge der Sprachvorbereitung</h1>
+<p class="intro">Der aktuelle Auswahlweg führt vom Start über Entscheidungen zum gewählten Zustand. Höchste Priorität oben; die Auftragsbearbeitung gehört zum Zustand.</p>
 <p class="speech_plan_follow_status" aria-live="polite">Die Live-Ansicht zeigt hier den aktuellen Schritt.</p>
 <section class="diagram" aria-labelledby="flow-heading">
-<h2 id="flow-heading" class="flow-heading">Aktivitätsdiagramm · höchste Priorität oben</h2>
-<p class="flow-hint">Abgerundete Rechtecke: Aktionen · Rauten: Entscheidungen oder Zusammenführungen · Pfeile mit Bedingungen: mögliche Wege. Gold zeigt den aktuellen oder nächsten Auftrag. Balken: bereit / in der Queue / gesamt. Auf schmalen Bildschirmen lässt sich das Netz seitlich verschieben.</p>
-<div class="flow-viewport" tabindex="0" aria-label="Verschiebbarer Ablaufplan"><div class="flow-canvas"><div id="overview" class="speech_flow automatic" aria-label="Ablaufplan der Sprachvorbereitung"></div></div></div>
-<p class="flow-loop">↺ Nach jedem Auftrag wieder oben prüfen. Neue dringende Arbeit hat Vorrang; ein laufender Auftrag wird zuerst beendet.</p>
+<h2 id="flow-heading" class="flow-heading">Zustandsübergangsdiagramm · vom Start zum aktuellen Zustand</h2>
+<p class="flow-hint">Blau zeigt den Auswahlweg und seine Ja/Nein-Entscheidungen. Gold markiert den aktuellen Zustand oder den nächsten vorgemerkten Bereich. Die Rauten prüfen, aus welchem Bereich der ausgewählte Auftrag stammt. Balken: bereit / in der Queue / gesamt. Auf schmalen Bildschirmen lässt sich das Netz seitlich verschieben.</p>
+<div class="flow-viewport" tabindex="0" aria-label="Verschiebbarer Ablaufplan"><div class="flow-canvas"><div id="overview" class="speech_flow automatic" aria-label="Zustandsübergangsdiagramm der Sprachvorbereitung"></div></div></div>
+<details class="flow-trace"><summary id="decision-summary">Entscheidungsweg · wartet auf BTS</summary><ol id="decision-trace"></ol></details>
 </section>
-<div class="footer"><span>Planungsübersicht · Bausteine werden wiederverwendet.</span><span><button id="download" type="button">Ablaufplan als SVG</button> <button id="print" type="button">Drucken / PDF</button></span></div>
+<div class="footer"><span>Planungsübersicht · Bausteine werden wiederverwendet.</span><span><button id="download" type="button">Zustandsdiagramm als SVG</button> <button id="print" type="button">Drucken / PDF</button></span></div>
 </main>
 <script>
 'use strict';
@@ -89,7 +97,7 @@ button:focus-visible { outline: 3px solid #e99522; outline-offset: 3px; }
         parent.appendChild(node); return node;
     };
     const setText = (node, value) => { if (node.textContent !== value) node.textContent = value; };
-    const ns = 'http://www.w3.org/2000/svg', nodes = new Map();
+    const ns = 'http://www.w3.org/2000/svg', nodes = new Map(), diagramWidth = 1260;
     const element = (id, cls, kind) => {
         const node = make(flow, 'div', 'flow-node ' + cls); node.id = id;
         node.dataset.kind = kind; nodes.set(id, node); return node;
@@ -105,11 +113,9 @@ button:focus-visible { outline: 3px solid #e99522; outline-offset: 3px; }
         const node = element(id, 'flow-decision ' + cls, 'decision');
         diamond(node); make(node, 'h3', '', question); return node;
     }
-    function gate(id, question) {
-        return make(decision(id, question, 'flow-gate'), 'p', 'flow-answer');
-    }
-    function step(id, nodeId, title, description) {
-        const node = element(nodeId, 'flow-step live-step', 'action'); node.dataset.stage = id;
+    function gate(id, question) { return make(decision(id, question, 'flow-gate'), 'p', 'flow-answer'); }
+    function step(id, nodeId, title, description, question) {
+        const node = element(nodeId, 'flow-state flow-step live-step', 'state'); node.dataset.stage = id;
         const heading = make(node, 'div', 'flow-title');
         const rank = make(heading, 'span', 'flow-number');
         make(heading, 'h3', '', title);
@@ -119,198 +125,258 @@ button:focus-visible { outline: 3px solid #e99522; outline-offset: 3px; }
         const track = make(node, 'div', 'flow-progress'); track.setAttribute('role', 'img');
         track.setAttribute('aria-label', 'Noch kein Live-Stand');
         const ready = make(track, 'span', 'flow-ready'), queued = make(track, 'span', 'flow-queued');
-        const text = make(node, 'p', 'flow-current-text'); text.hidden = true;
-        const check = decision(id + '-job-decision', 'Auftrag jetzt ausführbar?');
-        check.dataset.afterStage = id;
-        rows.set(id, { node, rank, status, counts, track, ready, queued, text, check });
+        const body = make(node, 'div', 'flow-operation');
+        const activity = make(body, 'p', '', 'do / Fehlende Bausteine erzeugen oder aufbereiten');
+        const text = make(body, 'p', 'flow-current-text'); text.hidden = true;
+        const check = decision(id + '-selection', question);
+        check.dataset.selectsStage = id;
+        rows.set(id, { node, rank, status, counts, track, ready, queued, text, activity, check });
     }
-    function merge(id) { const node = element(id, 'flow-merge', 'merge'); diamond(node); return node; }
+    function statusState(id, title, activity) {
+        const node = element(id, 'flow-state flow-status-state', 'state');
+        make(node, 'h3', '', title);
+        const body = make(node, 'div', 'flow-operation');
+        make(body, 'p', '', 'do / ' + activity);
+        return { node, text: make(body, 'p', 'flow-end') };
+    }
     function note(id, text) { return element(id, 'flow-label', 'note').appendChild(document.createTextNode(text)).parentElement; }
     const initial = element('initial', 'flow-initial', 'initial');
-    const priorityMerge = merge('priority-merge');
-    const workMerge = merge('work-entry');
-    note('start-label', 'Prioritäten neu prüfen');
-    note('return-label', 'Nach jedem beendeten Auftrag: wieder oben prüfen');
-    note('branch-label', 'Vor der ersten Auslosung');
-    note('competition-label', 'Ab der ersten Auslosung');
-    note('idle-label', 'Vorrat nur im Leerlauf · nach wahrscheinlichem Bedarf');
-    note('worker-label', 'Gemeinsame Bearbeitung · ein Auftrag zur Zeit');
-    const worker = element('process-job', 'flow-action', 'action');
-    make(worker, 'h3', '', 'Einen Auftrag bearbeiten');
-    make(worker, 'p', '', 'Aufnahme erzeugen oder vorhandene Aufnahme ausschneiden / aufbereiten. Ergebnis und Fehler speichern.');
-    const workDone = decision('job-done', 'Verarbeitung beendet?');
-    note('work-result', 'Auch nach einem Fehler: neu priorisieren und Wiederholungsfrist beachten.');
-    step('urgent', 'urgent-priority', 'Ausgelöste Durchsagen prüfen', 'Fehlende Teile tatsächlich ausgelöster Durchsagen zuerst, in Auslösereihenfolge.');
-    step('test', 'speech-test-priority', 'Sprachtest und Proben prüfen', 'Den Sprachtest immer vorbereiten, auch ohne Anforderung.');
-    step('shared', 'location-field-priority', 'Spielorte und Felder prüfen', 'Feldanfang und Feldende, „Für Spielfeld …!“, Hallen-, Treffpunkt- und gemeinsame Texte.');
+    note('start-label', 'Start · aktuellen Zustand bestimmen');
+    const known = gate('known-decision', 'Planungsstand bekannt?');
+    const unknown = statusState('unknown-state', 'Planungsstand unbekannt', 'Auf einen aktuellen BTS-Stand warten');
+    const enabled = gate('enabled-decision', 'Lokale Generierung aktiv?');
+    const disabled = statusState('disabled-state', 'Lokale Generierung ausgeschaltet', 'Auf geänderte Spracheinstellungen warten');
+    step('urgent', 'urgent-priority', 'Ausgelöste Durchsagen', 'Tatsächlich ausgelöste Durchsagen zuerst, in Auslösereihenfolge.', 'Ausgelöste Durchsage?');
+    step('test', 'speech-test-priority', 'Sprachtest und Proben', 'Den Sprachtest immer vorbereiten, auch ohne Anforderung.', 'Sprachtest oder Probe?');
+    step('shared', 'location-field-priority', 'Spielorte und Felder', 'Feldanfang und Feldende, „Für Spielfeld …!“, Hallen-, Treffpunkt- und gemeinsame Texte.', 'Spielort- oder Feldansage?');
     const draw = gate('draw-decision', 'Disziplin bereits ausgelost?');
-    step('registration', 'registration-priority', 'Anmeldevorarbeit prüfen', 'Allgemeine Teile zuerst. Geöffnete Disziplinen bevorzugen; darin Landesverbände → Vereine → Spieler / Paarungen.');
-    step('oncourt', 'running-priority', 'Laufende Spiele prüfen', 'Nach ihrer Aufrufzeit. Vollständige Ansagen und beide Teams für eine mögliche Tabletbedienung.');
-    step('preparation', 'preparation-priority', 'Spiele in Vorbereitung prüfen', 'Nach Zeitpunkt des Vorbereitungsaufrufs. Vollständige Ansagen für den nächsten Feldaufruf.');
-    const phaseMerge = merge('phase-merge');
-    step('officials', 'officials-priority', 'Technische Offizielle prüfen', 'Alle bekannten Offiziellen mit Namen und Rollen, auch ohne Spielzuordnung.');
-    step('additional', 'additional-priority', 'Weitere angeforderte Aufgaben prüfen', 'Zusätzlicher konkreter Bedarf, der keinem der übrigen Bereiche zugeordnet ist.');
-    rows.get('additional').node.hidden = true;
-    const idle = gate('idle-decision', 'Vorrangige Arbeit erledigt?');
-    step('candidate', 'candidate-priority', 'Aufrufkandidaten prüfen', 'Die voraussichtlich nächsten Spiele in ihrer Kandidatenreihenfolge.');
-    step('tablet_waiting', 'likely-tablet-priority', 'Wartende Tabletbediener prüfen', 'Die vorhandene Tabletliste vor weiteren nicht zugewiesenen Spielen berücksichtigen.');
-    step('planned', 'planned-priority', 'Weitere angesetzte Spiele prüfen', 'Nach Reihenfolge im BTS-Spielplan. Unbekannte Teilnehmer werden nicht ergänzt.');
-    step('registration_reserve', 'draws-priority', 'Weitere Disziplinen prüfen', 'Ab der ersten Auslosung. Nach angesetzten Spielen priorisieren; Namen zugleich für Tabletansagen verwenden.');
-    step('tablet', 'tablet-priority', 'Zusätzlichen Tablet-Vorrat prüfen', 'Weitere bekannte Teams der laufenden Disziplinen.');
-    step('people', 'people-priority', 'Übrige Personen und Teams prüfen', 'Weitere mögliche Tabletbediener zuletzt, auch aus anderen Disziplinen und abgeschlossenen Spielen.');
+    note('branch-label', 'Vor der ersten Auslosung');
+    note('competition-label', 'Spielbetrieb');
+    step('registration', 'registration-priority', 'Anmeldevorarbeit', 'Allgemeine Teile zuerst. Geöffnete Disziplinen bevorzugen; darin Landesverbände → Vereine → Spieler / Paarungen.', 'Anmeldung vorbereiten?');
+    step('oncourt', 'running-priority', 'Laufende Spiele', 'Nach ihrer Aufrufzeit. Vollständige Ansagen und beide Teams für eine mögliche Tabletbedienung.', 'Laufendes Spiel?');
+    step('preparation', 'preparation-priority', 'Spiele in Vorbereitung', 'Nach Zeitpunkt des Vorbereitungsaufrufs. Vollständige Ansagen für den nächsten Feldaufruf.', 'Spiel in Vorbereitung?');
+    const phaseJoin = element('phase-junction', 'flow-junction', 'junction');
+    step('officials', 'officials-priority', 'Technische Offizielle', 'Alle bekannten Offiziellen mit Namen und Rollen, auch ohne Spielzuordnung.', 'Technische Offizielle?');
+    step('additional', 'additional-priority', 'Weitere angeforderte Aufgaben', 'Zusätzlicher konkreter Bedarf, der keinem der übrigen Bereiche zugeordnet ist.', 'Weiterer konkreter Bedarf?');
+    const idle = gate('idle-decision', 'Vorrat jetzt an der Reihe?');
+    note('idle-label', 'Vorrat · nach wahrscheinlichem Bedarf');
+    step('candidate', 'candidate-priority', 'Aufrufkandidaten', 'Die voraussichtlich nächsten Spiele in ihrer Kandidatenreihenfolge.', 'Aufrufkandidat?');
+    step('tablet_waiting', 'likely-tablet-priority', 'Wartende Tabletbediener', 'Die vorhandene Tabletliste vor weiteren nicht zugewiesenen Spielen berücksichtigen.', 'Wartender Tabletbediener?');
+    step('planned', 'planned-priority', 'Weitere angesetzte Spiele', 'Nach Reihenfolge im BTS-Spielplan. Unbekannte Teilnehmer werden nicht ergänzt.', 'Weiteres angesetztes Spiel?');
+    step('registration_reserve', 'draws-priority', 'Weitere Disziplinen', 'Ab der ersten Auslosung. Nach angesetzten Spielen priorisieren; Namen zugleich für Tabletansagen verwenden.', 'Weitere Auslosung?');
+    step('tablet', 'tablet-priority', 'Zusätzlicher Tablet-Vorrat', 'Weitere bekannte Teams der laufenden Disziplinen.', 'Zusätzlicher Tablet-Vorrat?');
+    step('people', 'people-priority', 'Übrige Personen und Teams', 'Weitere mögliche Tabletbediener zuletzt, auch aus anderen Disziplinen und abgeschlossenen Spielen.', 'Übrige Person oder Team?');
     const spare = gate('spare-decision', 'Andere Stimme erlaubt?');
-    step('spare', 'other-voice-priority', 'Andere Stimme prüfen', 'Option eingeschaltet, gewählte Stimme vollständig vorbereitet und alle Turniere im Leerlauf.');
-    const waitMerge = merge('wait-merge');
-    const waitResumeMerge = merge('wait-resume');
-    const wait = element('wait-for-work', 'flow-action', 'action');
-    make(wait, 'h3', '', 'Auf Änderung oder Wiederholung warten');
-    const end = make(wait, 'p', 'flow-end', 'Auf neuen Bedarf warten');
-    const wake = decision('wake-decision', 'Neuer Bedarf oder Frist erreicht?');
-    note('notation-label', 'Dauerbetrieb: Nach dem Warten erneut prüfen. Kleine Rauten führen alternative Wege zusammen. Kreuzende Linien sind ohne Raute nicht verbunden.');
+    step('spare', 'other-voice-priority', 'Andere Stimme auf Vorrat', 'Option eingeschaltet, gewählte Stimme vollständig vorbereitet und alle Turniere im Leerlauf.', 'Andere Stimme?');
+    const readyJoin = element('ready-junction', 'flow-junction', 'junction');
+    const readyAnswer = gate('ready-decision', 'Alle geplanten Teile bereit?');
+    const readyState = statusState('ready-state', 'Alles bereit', 'Gespeichertes Audio bereithalten');
+    const waiting = statusState('waiting-state', 'Warten', 'Auf freien Server, neuen Bedarf oder Wiederholungsfrist warten');
+    note('notation-label', 'Bearbeitung ist die interne Tätigkeit „do / …“ des gewählten Zustands. Bei geändertem Bedarf wird der Auswahlweg automatisch neu ermittelt.');
+    const needed = ['urgent', 'test', 'shared', 'registration', 'oncourt', 'preparation', 'officials', 'additional'];
+    const inventory = ['candidate', 'tablet_waiting', 'planned', 'registration_reserve', 'tablet', 'people', 'spare'];
     const edgeLayer = document.createElementNS(ns, 'svg');
     edgeLayer.setAttribute('class', 'flow-edges'); edgeLayer.setAttribute('aria-hidden', 'true');
     flow.prepend(edgeLayer);
-    let scheduled = false, geometry = '', diagramHeight = 0;
+    const traceList = document.getElementById('decision-trace'), traceSummary = document.getElementById('decision-summary');
+    let latest, scheduled = false, geometry = '', traceSignature = '', diagramHeight = 0;
     const viewport = flow.closest('.flow-viewport'), canvas = flow.parentElement;
-    const position = (node, x, y, width, height) => {
-        node.style.left = x + 'px'; node.style.top = y + 'px'; node.style.width = width + 'px';
-        if (height !== undefined) node.style.height = height + 'px';
-        return { x, y, w: width, h: node.offsetHeight };
-    };
     function scheduleLayout() {
         if (scheduled) return;
         scheduled = true; requestAnimationFrame(() => { scheduled = false; layout(); });
     }
+    function selection() {
+        const snapshot = latest, state = snapshot?.state;
+        const known = !!snapshot && !['disconnected', 'updating'].includes(state) && ['registration', 'competition'].includes(snapshot.phase);
+        const enabled = state !== 'disabled';
+        const active = known && enabled && ['working', 'waiting', 'busy_elsewhere'].includes(state) && rows.has(snapshot.active_stage) ? snapshot.active_stage : null;
+        const stages = new Map((snapshot?.stages || []).map(row => [row.id, row]));
+        const open = ids => ids.some(id => { const value = stages.get(id); return value && value.ready < value.total; });
+        const selectedReady = !open([...rows.keys()].filter(id => id !== 'spare'));
+        return { known, enabled, active, stages, selectedReady,
+            target: !known ? 'unknown-state' : !enabled ? 'disabled-state' : active ? rows.get(active).node.id :
+                state === 'complete' ? 'ready-state' : 'waiting-state',
+            idle: inventory.includes(active) || state === 'complete' || !open(needed) && state !== 'busy_elsewhere',
+            spare: active === 'spare' || stages.has('spare') && selectedReady,
+            // An already running registration job may finish after the first draw.
+            phase: active === 'registration' && snapshot.current?.running ? 'registration' : snapshot?.phase };
+    }
+    function reason(node, answer, value) {
+        const id = node.dataset.selectsStage;
+        if (id) {
+            const row = value.stages.get(id);
+            if (answer === '[ja]') return latest.current?.running ? 'Der laufende Auftrag gehört zu diesem Bereich.' :
+                latest.state === 'busy_elsewhere' ? 'Dieser Bereich ist als Nächstes ausgewählt; der Server arbeitet noch für ein anderes Turnier.' :
+                    'Der nächste vorgemerkte Auftrag gehört zu diesem Bereich.';
+            if (node.classList.contains('is-skipped')) return 'Dieser Bereich ist in der aktuellen Turnierphase übersprungen.';
+            if (!row?.total) return 'Für diesen Bereich sind aktuell keine Aufgaben geplant.';
+            if (row.ready === row.total) return 'Alle ' + row.total + ' geplanten Bausteine dieses Bereichs sind bereits bereit.';
+            if (!value.active) return 'Aufgaben sind noch offen; aktuell ist kein ausführbarer Auftrag ausgewählt.';
+            return latest.current?.running ? 'Für den laufenden Auftrag wurde ein anderer Bereich ausgewählt. Nach dessen Ende wird neu priorisiert.' :
+                'Dieser Bereich ist für den angezeigten nächsten Auftrag nicht ausgewählt.';
+        }
+        if (node.id === 'known-decision') return value.known ? 'Ein aktueller Turnier- und Planungsstand liegt vor.' :
+            latest?.state === 'disconnected' ? 'Die Verbindung zu BTS ist unterbrochen.' : 'BTS ermittelt den Planungsstand.';
+        if (node.id === 'enabled-decision') return value.enabled ? 'Ein lokaler Sprachmodus ist eingeschaltet.' : 'Die lokale Sprachgenerierung ist ausgeschaltet.';
+        if (node.id === 'draw-decision') return value.phase !== latest.phase ? 'Die Anmeldevorarbeit läuft noch und wird vor dem Wechsel in den Spielbetrieb beendet.' :
+            value.phase === 'competition' ? 'Mindestens eine Disziplin ist ausgelost; der Weg führt in den Spielbetrieb.' : 'Die Anmeldevorarbeit hat vor der ersten Auslosung Vorrang.';
+        if (node.id === 'idle-decision') return value.idle ? 'Der angezeigte Auswahlweg führt zur Vorarbeit auf Vorrat.' :
+            'Vorrangiger Bedarf oder ein anderweitig beschäftigter Server verhindert die Vorarbeit auf Vorrat.';
+        if (node.id === 'spare-decision') return !value.stages.has('spare') ? 'Die Option für Vorrat mit der anderen Stimme ist ausgeschaltet.' :
+            value.active === 'spare' && !value.selectedReady ? latest.current?.running ?
+                'Der Auftrag für die andere Stimme läuft bereits. Neuer Bedarf der gewählten Stimme folgt nach dessen Ende.' :
+                'Der nächste vorgemerkte Auftrag gehört zur anderen Stimme; die Prioritäten werden vor der Bearbeitung erneut geprüft.' :
+            value.spare ? 'Die gewählte Stimme ist vorbereitet; die andere Stimme darf im Leerlauf folgen.' : 'Die gewählte Stimme und ihr Vorrat erhalten zuerst Vorrang.';
+        return latest.state === 'complete' ? 'Alle aktuell geplanten Bausteine sind bereit.' :
+            latest.state === 'failed' ? 'Fehlgeschlagene Aufgaben sind noch offen.' : 'Noch offene Vorarbeit wartet auf freie Kapazität oder einen neuen Versuch.';
+    }
+    function markRoute(edges) {
+        const value = selection(), outgoing = new Map(), answers = new Map();
+        for (const edge of edges) {
+            if (!outgoing.has(edge.from)) outgoing.set(edge.from, []);
+            outgoing.get(edge.from).push(edge);
+        }
+        for (const [id, row] of rows) answers.set(row.check.id, value.active === id ? '[ja]' : '[nein]');
+        answers.set('known-decision', value.known ? '[ja]' : '[nein]');
+        answers.set('enabled-decision', value.enabled ? '[ja]' : '[nein]');
+        answers.set('draw-decision', value.phase === 'competition' ? '[ja]' : '[nein]');
+        answers.set('idle-decision', value.idle ? '[ja]' : '[nein]');
+        answers.set('spare-decision', value.spare ? '[ja]' : '[nein]');
+        answers.set('ready-decision', latest?.state === 'complete' ? '[ja]' : '[nein]');
+        const visited = new Set(), route = [], decisions = [];
+        let id = latest ? 'initial' : null;
+        while (id && !visited.has(id)) {
+            visited.add(id);
+            const node = nodes.get(id), answer = answers.get(id);
+            if (node.dataset.kind === 'decision') decisions.push({ node, answer, reason: reason(node, answer, value) });
+            const next = (outgoing.get(id) || []).find(edge => !edge.guard || edge.guard === answer);
+            if (!next) break;
+            route.push(next); id = next.to;
+        }
+        for (const node of nodes.values()) {
+            node.classList.toggle('is-traversed', visited.has(node.id));
+            const current = !!latest && node.id === value.target;
+            node.classList.toggle('is-current-state', current);
+            if (current && !node.dataset.stage) node.setAttribute('aria-current', 'true');
+            else if (!node.dataset.stage) node.removeAttribute('aria-current');
+            node.removeAttribute('title'); delete node.dataset.answer;
+        }
+        for (const decision of decisions) {
+            decision.node.dataset.answer = decision.answer;
+            decision.node.title = decision.node.querySelector('h3').textContent + ' ' + decision.answer + ' ' + decision.reason;
+        }
+        for (const edge of edges) edge.traversed = route.includes(edge);
+        const trace = JSON.stringify({ target: latest ? value.target : null, decisions: decisions.map(item => [item.node.id, item.answer, item.reason]) });
+        if (trace !== traceSignature) {
+            traceSignature = trace; traceList.replaceChildren();
+            setText(traceSummary, latest ? 'Entscheidungsweg → ' + nodes.get(value.target).querySelector('h3').textContent : 'Entscheidungsweg · wartet auf BTS');
+            for (const item of decisions) make(traceList, 'li', '', item.node.querySelector('h3').textContent + ' ' + item.answer + ' ' + item.reason);
+        }
+        if (latest) flow.dataset.routeTarget = value.target; else delete flow.dataset.routeTarget;
+    }
     function layout() {
-        const boxes = new Map(), edges = [], taps = [];
-        const place = (node, x, y, w, h) => { const box = position(node, x, y, w, h); boxes.set(node.id, box); return box; };
+        const boxes = new Map(), edges = [];
+        const place = (node, x, y, w, h) => {
+            node.style.left = x + 'px'; node.style.top = y + 'px'; node.style.width = w + 'px';
+            if (h !== undefined) node.style.height = h + 'px';
+            const box = { x, y, w, h: node.offsetHeight }; boxes.set(node.id, box); return box;
+        };
         const anchor = (id, side) => {
             const b = boxes.get(id);
             return side === 't' ? [b.x + b.w / 2, b.y] : side === 'b' ? [b.x + b.w / 2, b.y + b.h] :
                 side === 'l' ? [b.x, b.y + b.h / 2] : [b.x + b.w, b.y + b.h / 2];
         };
-        const connect = (from, to, points, guard = '', label, active = false) => {
-            edges.push({ from, to, points, guard, label, active });
-        };
+        const connect = (from, to, points, guard = '', label) => edges.push({ from, to, points, guard, label });
         const downward = (from, to, guard = '') => {
-            const a = anchor(from, 'b'), b = anchor(to, 't'), y = b[1] - 30;
-            connect(from, to, [a, [a[0], y], [b[0], y], b], guard, [a[0] + 10, a[1] + 20]);
+            const a = anchor(from, 'b'), b = anchor(to, 't'), y = b[1] - 28;
+            connect(from, to, [a, [a[0], y], [b[0], y], b], guard, [a[0] + 10, a[1] + 22]);
         };
-        const pair = (id, y, branch = false) => {
+        const gateAt = (id, y) => place(nodes.get(id), 420, y, 220, 142);
+        const pair = (id, y) => {
             const row = rows.get(id); row.check.hidden = row.node.hidden;
             if (row.node.hidden) return null;
-            const b = place(row.node, branch ? 30 : 380, y, branch ? 290 : 400);
-            const d = place(row.check, branch ? 85 : 830, branch ? y + b.h + 35 : y + (b.h - 112) / 2, 180, 112);
-            connect(row.node.id, row.check.id, branch ? [anchor(row.node.id, 'b'), anchor(row.check.id, 't')] :
-                [anchor(row.node.id, 'r'), anchor(row.check.id, 'l')]);
-            taps.push({ id: row.check.id, y: d.y + d.h / 2, active: row.node.classList.contains('live-current') });
-            return Math.max(b.y + b.h, d.y + d.h) + 95;
+            const state = place(row.node, 800, y, 400);
+            place(row.check, 420, y + Math.max(0, (state.h - 132) / 2), 220, 132);
+            connect(row.check.id, row.node.id, [anchor(row.check.id, 'r'), anchor(row.node.id, 'l')], '[ja]', [680, y + state.h / 2 - 12]);
+            return Math.max(state.y + state.h, boxes.get(row.check.id).y + 132) + 86;
         };
-        place(initial, 570, 20, 20, 20); place(priorityMerge, 571, 81, 18, 18);
-        place(nodes.get('start-label'), 350, 43, 460);
-        place(nodes.get('return-label'), 750, 48, 580);
-        connect('initial', 'priority-merge', [anchor('initial', 'b'), anchor('priority-merge', 't')]);
-        place(worker, 1110, 165, 250);
-        place(workMerge, 1226, 121, 18, 18);
-        connect(workMerge.id, worker.id, [anchor(workMerge.id, 'b'), anchor(worker.id, 't')]);
-        const wb = boxes.get(worker.id);
-        place(workDone, 1145, wb.y + wb.h + 42, 180, 112);
-        downward(worker.id, workDone.id);
-        const resultY = boxes.get(workDone.id).y + 150;
-        place(nodes.get('work-result'), 1115, resultY, 230);
-        place(nodes.get('worker-label'), 1110, resultY + 100, 240);
-        const finish = anchor(workDone.id, 'b');
-        connect(workDone.id, priorityMerge.id, [finish, [finish[0], finish[1] + 25], [1370, finish[1] + 25], [1370, 90], anchor(priorityMerge.id, 'r')], '[ja]', [finish[0] + 10, finish[1] + 20]);
-        const pending = anchor(workDone.id, 'r'), resume = anchor(workMerge.id, 'r');
-        connect(workDone.id, workMerge.id, [pending, [1345, pending[1]], [1345, resume[1]], resume], '[nein]', [pending[0] + 5, pending[1] - 12]);
-        let y = 150, previous = priorityMerge.id;
+        place(initial, 520, 20, 20, 20); place(nodes.get('start-label'), 160, 25, 340);
+        gateAt('known-decision', 95);
+        place(unknown.node, 30, 100, 320);
+        downward('initial', 'known-decision');
+        connect('known-decision', unknown.node.id, [anchor('known-decision', 'l'), anchor(unknown.node.id, 'r')], '[nein]', [365, 150]);
+        gateAt('enabled-decision', 300);
+        place(disabled.node, 800, 305, 400);
+        downward('known-decision', 'enabled-decision', '[ja]');
+        connect('enabled-decision', disabled.node.id, [anchor('enabled-decision', 'r'), anchor(disabled.node.id, 'l')], '[nein]', [680, 350]);
+        let y = 515, previous = 'enabled-decision';
         for (const id of ['urgent', 'test', 'shared']) {
-            y = pair(id, y); downward(previous, rows.get(id).node.id, previous === priorityMerge.id ? '' : '[nein]');
-            previous = rows.get(id).check.id;
-        }
-        place(nodes.get('draw-decision'), 460, y, 240, 146);
-        downward(previous, 'draw-decision', '[nein]');
-        y += 240;
-        place(nodes.get('branch-label'), 35, y - 40, 280);
-        place(nodes.get('competition-label'), 390, y - 40, 360);
-        const registrationEnd = pair('registration', y, true);
-        let rightEnd = pair('oncourt', y);
-        const left = anchor('draw-decision', 'l'), right = anchor('draw-decision', 'r');
-        const reg = anchor(rows.get('registration').node.id, 't'), sport = anchor(rows.get('oncourt').node.id, 't');
-        connect('draw-decision', rows.get('registration').node.id, [left, [175, left[1]], reg], '[nein]', [285, left[1] - 12]);
-        connect('draw-decision', rows.get('oncourt').node.id, [right, [760, right[1]], [760, sport[1] - 22], [580, sport[1] - 22], sport], '[ja]', [715, right[1] - 12]);
-        y = Math.max(rightEnd, registrationEnd + 30);
-        rightEnd = pair('preparation', y);
-        downward(rows.get('oncourt').check.id, rows.get('preparation').node.id, '[nein]');
-        y = rightEnd;
-        place(phaseMerge, 571, y, 18, 18);
-        downward(rows.get('preparation').check.id, phaseMerge.id, '[nein]');
-        const regDone = anchor(rows.get('registration').check.id, 'b'), joined = anchor(phaseMerge.id, 'l');
-        connect(rows.get('registration').check.id, phaseMerge.id, [regDone, [regDone[0], joined[1]], joined], '[nein]', [regDone[0] + 10, regDone[1] + 20]);
-        y += 70; previous = phaseMerge.id;
-        for (const id of ['officials', 'additional']) {
             const next = pair(id, y);
-            if (next === null) continue;
-            downward(previous, rows.get(id).node.id, previous === phaseMerge.id ? '' : '[nein]');
+            downward(previous, rows.get(id).check.id, previous === 'enabled-decision' ? '[ja]' : '[nein]');
             previous = rows.get(id).check.id; y = next;
         }
-        place(nodes.get('idle-decision'), 460, y, 240, 146); downward(previous, 'idle-decision', '[nein]');
-        const idleExit = anchor('idle-decision', 'r');
-        y += 245;
-        place(nodes.get('idle-label'), 45, y - 40, 500);
+        gateAt('draw-decision', y); downward(previous, 'draw-decision', '[nein]');
+        y += 240;
+        place(nodes.get('branch-label'), 50, y - 40, 300);
+        place(nodes.get('competition-label'), 430, y - 40, 250);
+        const reg = rows.get('registration');
+        reg.check.hidden = false;
+        const regChoice = place(reg.check, 80, y + 25, 220, 132);
+        const regState = place(reg.node, 30, y + 235, 320);
+        downward(reg.check.id, reg.node.id, '[ja]');
+        const drawLeft = anchor('draw-decision', 'l');
+        connect('draw-decision', reg.check.id, [drawLeft, [190, drawLeft[1]], anchor(reg.check.id, 't')], '[nein]', [265, drawLeft[1] - 12]);
+        let next = pair('oncourt', y);
+        downward('draw-decision', rows.get('oncourt').check.id, '[ja]');
+        y = next; next = pair('preparation', y);
+        downward(rows.get('oncourt').check.id, rows.get('preparation').check.id, '[nein]');
+        y = Math.max(next, regState.y + regState.h + 65);
+        place(phaseJoin, 525, y, 10, 10);
+        downward(rows.get('preparation').check.id, phaseJoin.id, '[nein]');
+        const regExit = anchor(reg.check.id, 'l'), joined = anchor(phaseJoin.id, 'l');
+        connect(reg.check.id, phaseJoin.id, [regExit, [12, regChoice.y + regChoice.h / 2], [12, joined[1]], joined], '[nein]', [25, regExit[1] - 12]);
+        y += 70; previous = phaseJoin.id;
+        for (const id of ['officials', 'additional']) {
+            next = pair(id, y);
+            if (next === null) continue;
+            downward(previous, rows.get(id).check.id, previous === phaseJoin.id ? '' : '[nein]');
+            previous = rows.get(id).check.id; y = next;
+        }
+        gateAt('idle-decision', y); downward(previous, 'idle-decision', '[nein]');
+        const idleExit = anchor('idle-decision', 'l');
+        y += 240;
+        place(nodes.get('idle-label'), 35, y - 40, 450);
         previous = 'idle-decision';
         for (const id of ['candidate', 'tablet_waiting', 'planned', 'registration_reserve', 'tablet', 'people']) {
-            y = pair(id, y); downward(previous, rows.get(id).node.id, previous === 'idle-decision' ? '[ja]' : '[nein]');
-            previous = rows.get(id).check.id;
+            next = pair(id, y); downward(previous, rows.get(id).check.id, previous === 'idle-decision' ? '[ja]' : '[nein]');
+            previous = rows.get(id).check.id; y = next;
         }
-        place(nodes.get('spare-decision'), 460, y, 240, 146); downward(previous, 'spare-decision', '[nein]');
+        gateAt('spare-decision', y); downward(previous, 'spare-decision', '[nein]');
         const spareExit = anchor('spare-decision', 'l');
-        y = pair('spare', y + 245); downward('spare-decision', rows.get('spare').node.id, '[ja]');
-        place(waitMerge, 571, y, 18, 18);
-        downward(rows.get('spare').check.id, waitMerge.id, '[nein]');
-        const waitRight = anchor(waitMerge.id, 'r'), waitLeft = anchor(waitMerge.id, 'l');
-        connect('idle-decision', waitMerge.id, [idleExit, [1025, idleExit[1]], [1025, waitRight[1]], waitRight], '[nein]', [720, idleExit[1] - 12]);
-        connect('spare-decision', waitMerge.id, [spareExit, [340, spareExit[1]], [340, waitLeft[1]], waitLeft], '[nein]', [355, spareExit[1] - 12]);
-        y += 60; place(waitResumeMerge, 571, y, 18, 18); downward(waitMerge.id, waitResumeMerge.id);
-        y += 60; const waiting = place(wait, 380, y, 400); downward(waitResumeMerge.id, wait.id);
-        y += waiting.h + 50; place(wake, 475, y, 210, 126); downward(wait.id, wake.id);
-        const wakeYes = anchor(wake.id, 'l');
-        connect(wake.id, priorityMerge.id, [wakeYes, [12, wakeYes[1]], [12, 90], anchor(priorityMerge.id, 'l')], '[ja]', [390, wakeYes[1] - 12]);
-        const wakeNo = anchor(wake.id, 'r'), waitResume = anchor(waitResumeMerge.id, 'r');
-        connect(wake.id, waitResumeMerge.id, [wakeNo, [800, wakeNo[1]], [800, waitResume[1]], waitResume], '[nein]', [710, wakeNo[1] - 12]);
-        place(nodes.get('notation-label'), 270, y + 170, 700);
-        // Each branch enters an explicit merge on the upward processing path.
-        // Crossing lines elsewhere do not join.
-        taps.sort((a, b) => a.y - b.y);
-        const activeTap = taps.findIndex(tap => tap.active);
-        taps.forEach((tap, index) => {
-            if (index === taps.length - 1) {
-                const previousMerge = 'work-merge-' + (index - 1);
-                connect(tap.id, previousMerge, [anchor(tap.id, 'r'), [1050, tap.y], anchor(previousMerge, 'b')], '[ja]',
-                    [anchor(tap.id, 'r')[0] + 8, tap.y - 12], tap.active);
-                return;
-            }
-            const id = 'work-merge-' + index;
-            boxes.set(id, { x: 1041, y: tap.y - 9, w: 18, h: 18 });
-            connect(tap.id, id, [anchor(tap.id, 'r'), anchor(id, 'l')], '[ja]', [anchor(tap.id, 'r')[0] + 8, tap.y - 12], tap.active);
-            if (index) connect(id, 'work-merge-' + (index - 1), [anchor(id, 't'), anchor('work-merge-' + (index - 1), 'b')], '', null, activeTap >= index);
-            else {
-                const point = anchor(id, 't'), target = anchor(workMerge.id, 'l');
-                connect(id, workMerge.id, [point, [1050, target[1]], target], '', null, activeTap >= 0);
-            }
-        });
-        diagramHeight = y + 240; flow.style.height = diagramHeight + 'px';
-        const scale = Math.max(matchMedia('print').matches ? 0 : .8, Math.min(1, viewport.clientWidth / 1380));
+        y = pair('spare', y + 240); downward('spare-decision', rows.get('spare').check.id, '[ja]');
+        place(readyJoin, 525, y, 10, 10);
+        downward(rows.get('spare').check.id, readyJoin.id, '[nein]');
+        const spareBypass = anchor(readyJoin.id, 'l');
+        connect('spare-decision', readyJoin.id, [spareExit, [375, spareExit[1]], [375, spareBypass[1]], spareBypass], '[nein]', [385, spareExit[1] - 12]);
+        y += 75; gateAt('ready-decision', y); downward(readyJoin.id, 'ready-decision');
+        place(waiting.node, 30, y + 12, 320); place(readyState.node, 800, y + 12, 400);
+        connect('ready-decision', readyState.node.id, [anchor('ready-decision', 'r'), anchor(readyState.node.id, 'l')], '[ja]', [680, y + 58]);
+        connect('ready-decision', waiting.node.id, [anchor('ready-decision', 'l'), anchor(waiting.node.id, 'r')], '[nein]', [365, y + 58]);
+        const waitLeft = anchor(waiting.node.id, 'l');
+        connect('idle-decision', waiting.node.id, [idleExit, [12, idleExit[1]], [12, waitLeft[1]], waitLeft], '[nein]', [305, idleExit[1] - 12]);
+        y += Math.max(190, waiting.node.offsetHeight + 50, readyState.node.offsetHeight + 50);
+        place(nodes.get('notation-label'), 260, y, 740);
+        diagramHeight = y + 100; flow.style.height = diagramHeight + 'px';
+        const scale = Math.max(matchMedia('print').matches ? 0 : .8, Math.min(1, viewport.clientWidth / diagramWidth));
         flow.style.zoom = scale;
-        canvas.style.width = 1380 * scale + 'px'; canvas.style.height = diagramHeight * scale + 'px';
-        worker.dataset.active = String(!!latest?.current?.running && !!flow.dataset.followStage);
-        workDone.dataset.active = worker.dataset.active;
+        canvas.style.width = diagramWidth * scale + 'px'; canvas.style.height = diagramHeight * scale + 'px';
+        markRoute(edges);
         const signature = JSON.stringify({ boxes: [...boxes], edges });
         if (signature === geometry) return;
         geometry = signature; edgeLayer.replaceChildren();
-        edgeLayer.setAttribute('width', 1380); edgeLayer.setAttribute('height', diagramHeight);
+        edgeLayer.setAttribute('width', diagramWidth); edgeLayer.setAttribute('height', diagramHeight);
         const defs = document.createElementNS(ns, 'defs');
-        for (const [id, color] of [['arrow', '#6f8292'], ['arrow-active', '#b77409']]) {
+        for (const [id, color] of [['arrow', '#8394a2'], ['arrow-traversed', '#2475b4']]) {
             const marker = document.createElementNS(ns, 'marker');
             for (const [key, value] of Object.entries({ id, viewBox: '0 0 10 10', refX: 9, refY: 5, markerWidth: 7, markerHeight: 7, orient: 'auto-start-reverse' })) marker.setAttribute(key, value);
             const path = document.createElementNS(ns, 'path'); path.setAttribute('d', 'M0 0L10 5L0 10Z'); path.setAttribute('fill', color);
@@ -319,50 +385,39 @@ button:focus-visible { outline: 3px solid #e99522; outline-offset: 3px; }
         edgeLayer.appendChild(defs);
         for (const edge of edges) {
             const path = document.createElementNS(ns, 'path');
-            path.setAttribute('class', 'flow-edge' + (edge.active ? ' is-active' : ''));
+            path.setAttribute('class', 'flow-edge' + (edge.traversed ? ' is-traversed' : ''));
             path.setAttribute('d', edge.points.map((point, i) => (i ? 'L' : 'M') + point.join(' ')).join(' '));
-            path.setAttribute('marker-end', 'url(#' + (edge.active ? 'arrow-active' : 'arrow') + ')');
+            path.setAttribute('marker-end', 'url(#' + (edge.traversed ? 'arrow-traversed' : 'arrow') + ')');
             path.dataset.from = edge.from; path.dataset.to = edge.to; if (edge.guard) path.dataset.guard = edge.guard;
             edgeLayer.appendChild(path);
             if (edge.guard) {
-                const label = document.createElementNS(ns, 'text'); label.setAttribute('class', 'flow-guard');
+                const label = document.createElementNS(ns, 'text'); label.setAttribute('class', 'flow-guard' + (edge.traversed ? ' is-traversed' : ''));
                 label.setAttribute('x', edge.label[0]); label.setAttribute('y', edge.label[1]); label.textContent = edge.guard;
                 edgeLayer.appendChild(label);
             }
         }
-        taps.forEach((tap, index) => {
-            if (index === taps.length - 1) return;
-            const polygon = document.createElementNS(ns, 'polygon'); polygon.id = 'work-merge-' + index;
-            polygon.dataset.kind = 'merge'; polygon.setAttribute('points', '1050,' + (tap.y - 9) + ' 1059,' + tap.y + ' 1050,' + (tap.y + 9) + ' 1041,' + tap.y);
-            polygon.setAttribute('fill', 'white'); polygon.setAttribute('stroke', '#637b8d'); polygon.setAttribute('stroke-width', 1.5); edgeLayer.appendChild(polygon);
-        });
     }
     new ResizeObserver(scheduleLayout).observe(viewport);
-    const needed = ['urgent', 'test', 'shared', 'registration', 'oncourt', 'preparation', 'officials', 'additional'];
-    let latest;
     function counts(value) { return value.ready + ' bereit · ' + value.queued + ' in der Queue · ' + value.total + ' gesamt'; }
     function update(snapshot) {
         latest = snapshot;
         flow.dataset.phase = snapshot?.phase || 'unknown';
-        const connected = snapshot && snapshot.state !== 'disconnected';
-        const active = connected && !['disabled', 'complete'].includes(snapshot.state) ? snapshot.active_stage : null;
-        const stages = new Map((snapshot?.stages || []).map(row => [row.id, row]));
-        const following = !!(active && rows.has(active));
+        const { active, stages } = selection(), following = !!active;
         if (flow.classList.contains('live-follow') !== following) flow.classList.toggle('live-follow', following);
         if (following) {
             if (flow.dataset.followStage !== active) flow.dataset.followStage = active;
         } else if (flow.dataset.followStage) delete flow.dataset.followStage;
         let rank = 0;
         for (const [id, row] of rows) {
-            const value = stages.get(id), current = following && active === id;
+            const value = stages.get(id), current = active === id;
             const skipped = id === 'registration' && snapshot?.phase === 'competition' ||
                 id === 'spare' && snapshot && !stages.has('spare') ||
                 id === 'registration_reserve' && snapshot?.phase === 'registration';
             row.node.hidden = id === 'additional' && !current && !value?.total;
             if (!row.node.hidden) setText(row.rank, String(++rank).padStart(2, '0'));
             row.node.classList.toggle('live-current', current);
-            row.check.dataset.active = String(current);
             row.node.classList.toggle('is-skipped', !!skipped && !current);
+            row.check.classList.toggle('is-skipped', !!skipped && !current);
             if (current) row.node.setAttribute('aria-current', 'step'); else row.node.removeAttribute('aria-current');
             const state = current ? (snapshot.current?.running ? 'working' : 'waiting') : skipped ? 'skipped' :
                 value?.failed ? 'failed' : value?.total && value.ready === value.total ? 'ready' :
@@ -377,37 +432,40 @@ button:focus-visible { outline: 3px solid #e99522; outline-offset: 3px; }
                 row.queued.style.width = value.queued * 100 / (value.total || 1) + '%';
                 row.node.dataset.ready = value.ready; row.node.dataset.queued = value.queued; row.node.dataset.total = value.total;
             } else if (snapshot) {
-                const text = id === 'spare' ? 'Option ausgeschaltet' : 'Für diesen Schritt derzeit kein Auftrag';
+                const text = id === 'spare' ? 'Option ausgeschaltet' : 'Für diesen Bereich derzeit kein Auftrag';
                 setText(row.counts, text); row.track.setAttribute('aria-label', text);
                 row.ready.style.width = '0%'; row.queued.style.width = '0%';
                 delete row.node.dataset.total;
             }
+            setText(row.activity, current && !snapshot.current?.running ? snapshot.state === 'busy_elsewhere' ?
+                'do / Auf freien Sprachserver warten' : 'do / Auf Bearbeitung oder Wiederholungsfrist warten' :
+                'do / Fehlende Bausteine erzeugen oder aufbereiten');
             row.text.hidden = !current || !snapshot.current?.text;
             setText(row.text, current ? snapshot.current?.text || '' : '');
         }
-        const unknown = !connected || snapshot.state === 'updating';
-        const paused = connected && snapshot.state === 'disabled';
-        setText(draw, !snapshot ? '' : unknown ? 'Turnierstand wird ermittelt …' :
-            snapshot.phase === 'competition' ? 'Ja · Anmeldevorarbeit hier überspringen' :
-                snapshot.phase === 'registration' ? 'Nein · Anmeldevorarbeit hat Vorrang' : 'Turnierphase noch unbekannt');
-        setText(idle, !snapshot ? '' : paused ? 'Lokale Sprachvorbereitung ausgeschaltet' : unknown ? 'Planungsstand derzeit unbekannt' : needed.some(id => {
-            const value = stages.get(id); return value && value.ready < value.total;
-        }) ? 'Nein · benötigte Ansagen sind noch offen' : 'Ja · Vorrat kann folgen, sobald der Server frei ist');
-        const selected = [...stages.values()].filter(row => row.id !== 'spare');
-        setText(spare, !snapshot ? '' : paused ? 'Lokale Sprachvorbereitung ausgeschaltet' : unknown ? 'Planungsstand derzeit unbekannt' : !stages.has('spare') ? 'Option ausgeschaltet' :
-            selected.some(row => row.ready < row.total) ? 'Noch nicht · gewählte Stimme zuerst' : 'Gewählte Stimme bereit · vollständigen Leerlauf abwarten');
-        setText(end, !snapshot ? 'Auf neuen Bedarf warten' : !connected ? 'Verbindung unterbrochen · Status unbekannt' :
-            snapshot.state === 'complete' ? 'Alles bereit · auf neuen Bedarf warten' :
-                active ? 'Erst bei fehlendem ausführbarem Auftrag warten' :
-                    snapshot.state === 'failed' ? 'Fehler offen · kein Auftrag läuft' :
-                        snapshot.state === 'disabled' ? 'Lokale Sprachvorbereitung ausgeschaltet' : 'Auf den nächsten möglichen Auftrag warten');
+        const value = selection();
+        setText(known, !snapshot ? '' : value.known ? 'Ja · aktueller BTS-Stand liegt vor' : 'Nein · Status wird ermittelt');
+        setText(enabled, !snapshot ? '' : value.enabled ? 'Ja · lokaler Sprachmodus' : 'Nein · lokale Generierung ausgeschaltet');
+        setText(draw, !snapshot ? '' : value.phase !== snapshot.phase ? 'Nein · laufende Anmeldevorarbeit noch beenden' : snapshot.phase === 'competition' ? 'Ja · Spielbetrieb' :
+            snapshot.phase === 'registration' ? 'Nein · Anmeldevorarbeit hat Vorrang' : 'Turnierphase unbekannt');
+        setText(idle, !snapshot ? '' : !value.enabled ? 'Lokale Sprachvorbereitung ausgeschaltet' :
+            value.idle ? 'Ja · Auswahlweg führt zum Vorrat' : 'Nein · Vorrang oder Serverbelegung beachten');
+        setText(spare, !snapshot ? '' : !stages.has('spare') ? 'Option ausgeschaltet' :
+            active === 'spare' && !value.selectedReady ? snapshot.current?.running ? 'Ja · laufenden Vorratsauftrag beenden' : 'Ja · andere Stimme vorgemerkt' :
+            value.spare ? 'Ja · gewählte Stimme fertig' : 'Noch nicht · gewählte Stimme zuerst');
+        setText(readyAnswer, !snapshot ? '' : snapshot.state === 'complete' ? 'Ja · alles bereit' : 'Nein · offene Aufgaben bleiben');
+        setText(unknown.text, snapshot?.state === 'disconnected' ? 'Verbindung unterbrochen · Status unbekannt' : 'Plan wird aktualisiert oder noch geladen');
+        setText(disabled.text, 'Aktuell wird kein lokales Audio vorbereitet.');
+        setText(readyState.text, 'Alles bereit · auf neuen Bedarf warten');
+        setText(waiting.text, snapshot?.state === 'failed' ? 'Fehlgeschlagene Aufgaben sind noch offen.' :
+            snapshot?.state === 'busy_elsewhere' ? 'Der Sprachserver arbeitet für ein anderes Turnier.' : 'Weitere Vorarbeit wartet auf Leerlauf oder einen neuen Versuch.');
         scheduleLayout();
     }
     function exportSVG() {
         // Export the measured network, including its actual branches, as pure SVG.
         layout();
         const svg = edgeLayer.cloneNode(true); svg.removeAttribute('class'); svg.removeAttribute('aria-hidden');
-        svg.setAttribute('xmlns', ns); svg.setAttribute('viewBox', '0 0 1380 ' + diagramHeight);
+        svg.setAttribute('xmlns', ns); svg.setAttribute('viewBox', '0 0 ' + diagramWidth + ' ' + diagramHeight);
         const add = (tag, attrs, text) => {
             const node = document.createElementNS(ns, tag);
             for (const [name, value] of Object.entries(attrs)) node.setAttribute(name, value);
@@ -415,12 +473,12 @@ button:focus-visible { outline: 3px solid #e99522; outline-offset: 3px; }
             svg.appendChild(node); return node;
         };
         const background = document.createElementNS(ns, 'rect');
-        for (const [name, value] of Object.entries({ width: 1380, height: diagramHeight, fill: 'white' })) background.setAttribute(name, value);
+        for (const [name, value] of Object.entries({ width: diagramWidth, height: diagramHeight, fill: 'white' })) background.setAttribute(name, value);
         svg.prepend(background);
-        const style = add('style', {}, '.flow-edge{fill:none;stroke:#6f8292;stroke-width:1.5}.flow-edge.is-active{stroke:#b77409;stroke-width:2.5}.flow-guard{font:13px system-ui,sans-serif;fill:#344e62;paint-order:stroke;stroke:white;stroke-width:5px;stroke-linejoin:round}');
+        const style = add('style', {}, '.flow-edge{fill:none;stroke:#8394a2;stroke-width:1.5}.flow-edge.is-traversed{stroke:#2475b4;stroke-width:2.8}.flow-guard.is-traversed{fill:#185e92;font-weight:700}.flow-guard{font:13px system-ui,sans-serif;fill:#344e62;paint-order:stroke;stroke:white;stroke-width:5px;stroke-linejoin:round}');
         svg.prepend(style);
-        add('title', {}, 'BTS · Sprachvorbereitung · UML-Aktivitätsdiagramm');
-        const scale = flow.getBoundingClientRect().width / 1380, origin = flow.getBoundingClientRect();
+        add('title', {}, 'BTS · Sprachvorbereitung · Zustandsübergangsdiagramm');
+        const scale = flow.getBoundingClientRect().width / diagramWidth, origin = flow.getBoundingClientRect();
         const box = node => {
             const r = node.getBoundingClientRect();
             return { x: (r.x - origin.x) / scale, y: (r.y - origin.y) / scale, w: r.width / scale, h: r.height / scale };
@@ -428,12 +486,14 @@ button:focus-visible { outline: 3px solid #e99522; outline-offset: 3px; }
         for (const node of nodes.values()) {
             if (node.hidden) continue;
             const b = box(node), kind = node.dataset.kind, css = getComputedStyle(node);
-            if (kind === 'action') add('rect', { x: b.x, y: b.y, width: b.w, height: b.h, rx: 14,
-                fill: css.backgroundColor, stroke: css.borderTopColor, 'stroke-width': node.classList.contains('live-current') ? 2.5 : 1.5 });
-            else if (kind === 'decision' || kind === 'merge') add('polygon', {
+            if (kind === 'state') add('rect', { x: b.x, y: b.y, width: b.w, height: b.h, rx: 14,
+                fill: css.backgroundColor, stroke: css.borderTopColor, 'stroke-width': node.classList.contains('is-current-state') ? 2.5 : 1.5 });
+            else if (kind === 'decision') add('polygon', {
                 points: [[b.x + b.w / 2, b.y], [b.x + b.w, b.y + b.h / 2], [b.x + b.w / 2, b.y + b.h], [b.x, b.y + b.h / 2]].map(p => p.join(',')).join(' '),
-                fill: node.dataset.active === 'true' ? '#fff8e8' : 'white', stroke: node.dataset.active === 'true' ? '#b77409' : '#637b8d', 'stroke-width': 1.5 });
-            else if (kind === 'initial') add('circle', { cx: b.x + b.w / 2, cy: b.y + b.h / 2, r: b.w / 2, fill: '#263d4e' });
+                fill: node.classList.contains('is-traversed') ? '#edf6fd' : 'white', stroke: node.classList.contains('is-traversed') ? '#2475b4' : '#637b8d', 'stroke-width': 1.5 });
+            else if (kind === 'initial' || kind === 'junction') add('circle', { cx: b.x + b.w / 2, cy: b.y + b.h / 2, r: b.w / 2, fill: node.classList.contains('is-traversed') ? '#2475b4' : '#263d4e' });
+            const operation = node.querySelector('.flow-operation');
+            if (operation) { const r = box(operation); add('path', { d: 'M' + r.x + ' ' + r.y + 'h' + r.w, fill: 'none', stroke: '#a8b8c5' }); }
             const walker = document.createTreeWalker(node, NodeFilter.SHOW_TEXT);
             let leaf;
             while ((leaf = walker.nextNode())) {

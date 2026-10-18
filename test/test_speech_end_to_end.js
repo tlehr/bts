@@ -1049,7 +1049,7 @@ suite('BTS / actual FastAPI / native Chrome speech integration', function() {
         }
     });
 
-    it('automatically follows generation stages without manual selection and resets on idle or disconnect', async function() {
+    it('automatically follows the decision path from start to the selected state without a processing loop', async function() {
         const { STAGES } = require('../bts/speech/planning_status');
         const original = admin.handle_speech_planning;
         const response = { title: 'Automatische Sprachplanung', voice: 'hallensprecher', phase: 'competition',
@@ -1076,7 +1076,7 @@ suite('BTS / actual FastAPI / native Chrome speech integration', function() {
                 'const interval = window.setInterval.bind(window); window.setInterval = (fn, ms, ...args) => interval(fn, ms === 2000 ? 100 : ms, ...args);' });
             await live.call('Page.navigate', { url: 'http://127.0.0.1:' + server.address().port + '/admin/t/default/speech-planning/' });
             const view = () => live.evaluate('(() => { const svg = document.querySelector(\'#overview\'); return {' +
-                'stage:svg?.dataset.followStage, phase:svg?.dataset.phase, ' +
+                'stage:svg?.dataset.followStage, target:svg?.dataset.routeTarget, phase:svg?.dataset.phase, ' +
                 'auto:svg?.classList.contains(\'automatic\'), following:svg?.classList.contains(\'live-follow\'), ' +
                 'updated:document.querySelector(\'.speech_plan_live\')?.dataset.updatedAt, ' +
                 'label:document.querySelector(\'.speech_plan_follow_status\')?.textContent}; })()');
@@ -1090,7 +1090,7 @@ suite('BTS / actual FastAPI / native Chrome speech integration', function() {
             assert(new Set(positions.map(row => row.x)).size > 1, 'show separate registration and competition branches');
             const registration = positions.find(row => row.stage === 'registration');
             const oncourt = positions.find(row => row.stage === 'oncourt');
-            assert.strictEqual(registration.y, oncourt.y, 'the tournament phase selects alternative paths');
+            assert(registration.x < oncourt.x, 'the tournament phase selects alternative paths');
             const competition = positions.filter(row => row.stage !== 'registration');
             for (let i = 1; i < competition.length; i++) {
                 assert(competition[i].y > competition[i - 1].bottom, 'keep descending priority within a path: ' +
@@ -1099,36 +1099,60 @@ suite('BTS / actual FastAPI / native Chrome speech integration', function() {
             const network = await live.evaluate('(() => {' +
                 'const nodes = [...document.querySelectorAll(\'#overview [data-kind]\')].filter(n => !n.hidden);' +
                 'const edges = [...document.querySelectorAll(\'.flow-edge\')].map(n => ({from:n.dataset.from,to:n.dataset.to,guard:n.dataset.guard}));' +
-                'return {nodes:nodes.map(n => ({id:n.id,kind:n.dataset.kind,after:n.dataset.afterStage})),edges};})()');
+                'return {nodes:nodes.map(n => ({id:n.id,kind:n.dataset.kind,stage:n.dataset.stage,selects:n.dataset.selectsStage})),edges};})()');
             const kinds = new Map(network.nodes.map(node => [node.id, node.kind]));
             for (const node of network.nodes) {
                 const outgoing = network.edges.filter(edge => edge.from === node.id);
-                if (node.kind === 'action') {
-                    assert.strictEqual(outgoing.length, 1, 'an action has one control-flow successor: ' + node.id);
-                    assert.strictEqual(kinds.get(outgoing[0].to), 'decision', 'every action is followed by a real decision');
-                    assert.strictEqual(network.edges.filter(edge => edge.to === node.id).length, 1,
-                        'alternative inputs must merge before the action: ' + node.id);
+                if (node.kind === 'state') {
+                    assert.strictEqual(outgoing.length, 0, 'processing stays inside the state; its return loop is omitted');
+                    assert(network.edges.some(edge => edge.to === node.id), 'every state is reachable');
                 } else if (node.kind === 'decision') {
                     assert.deepStrictEqual(outgoing.map(edge => edge.guard).sort(), ['[ja]', '[nein]'], node.id);
                     assert.strictEqual(network.edges.filter(edge => edge.to === node.id).length, 1, 'decisions have one input');
-                } else if (node.kind === 'merge') {
-                    assert.strictEqual(outgoing.length, 1, 'merges have one output');
-                    assert(network.edges.filter(edge => edge.to === node.id).length >= 2, 'merges combine alternative inputs');
+                } else if (node.kind === 'junction') {
+                    assert.strictEqual(outgoing.length, 1, 'junctions have one output');
+                    assert(network.edges.filter(edge => edge.to === node.id).length >= 2, 'junctions combine alternative paths');
                 }
             }
-            assert.strictEqual(network.nodes.filter(node => node.after).length, STAGES.length);
-            assert(network.edges.some(edge => edge.from === 'job-done' && edge.to === 'priority-merge' && edge.guard === '[ja]'));
-            assert(network.edges.some(edge => edge.from === 'wake-decision' && edge.to === 'priority-merge' && edge.guard === '[ja]'));
+            assert.strictEqual(network.nodes.filter(node => node.selects).length, STAGES.length);
+            assert.strictEqual(await live.evaluate('document.querySelectorAll(\'#process-job,#job-done,.flow-action,.flow-loop\').length'), 0);
             for (const edge of network.edges) assert(kinds.has(edge.from) && kinds.has(edge.to), 'every edge has existing endpoints');
+            const path = () => live.evaluate('[...document.querySelectorAll(\'.flow-edge.is-traversed\')].map(edge => ' +
+                '({from:edge.dataset.from,to:edge.dataset.to,guard:edge.dataset.guard}))');
             for (const [id] of STAGES) {
-                response.active_stage = id;
-                await until(async () => (await view()).stage === id);
+                response.active_stage = id; response.phase = id === 'registration' ? 'registration' : 'competition';
+                const target = network.nodes.find(node => node.stage === id).id;
+                await until(async () => (await view()).stage === id && (await view()).target === target);
                 const current = await view();
-                assert.strictEqual(current.phase, 'competition');
+                assert.strictEqual(current.phase, response.phase);
                 assert(current.auto && current.following);
                 assert.strictEqual(await live.evaluate('document.querySelectorAll(\'.live-current\').length'), 1);
                 assert.strictEqual(await live.evaluate('document.querySelector(\'[aria-current="step"]\').dataset.stage'), id);
+                assert.strictEqual(await live.evaluate('document.querySelectorAll(\'.is-current-state\').length'), 1);
+                const selected = await path(), seen = new Set();
+                let cursor = 'initial';
+                while (cursor !== target) {
+                    assert(!seen.has(cursor), 'the visible path must not loop'); seen.add(cursor);
+                    const next = selected.filter(edge => edge.from === cursor);
+                    assert.strictEqual(next.length, 1, 'highlight one continuous path from start to the selected state');
+                    cursor = next[0].to;
+                }
+                assert.strictEqual(selected.length, seen.size, 'no unrelated branches may be highlighted');
+                assert(selected.some(edge => edge.to === target && edge.guard === '[ja]'));
+                if (id === 'preparation') {
+                    assert(selected.some(edge => edge.from === 'draw-decision' && edge.guard === '[ja]'));
+                    assert(selected.some(edge => edge.from === 'oncourt-selection' && edge.guard === '[nein]'));
+                    assert(!selected.some(edge => edge.from === 'registration-selection'));
+                }
+                if (id === 'spare') {
+                    assert(await live.evaluate('document.querySelector(\'#spare-decision\').title.includes(\'läuft bereits\')'),
+                        'new demand must not be described as completed while another-voice job is still running');
+                }
             }
+            response.active_stage = 'registration'; response.phase = 'competition';
+            await until(async () => (await view()).target === 'registration-priority');
+            assert(await live.evaluate('document.querySelector(\'#draw-decision\').dataset.answer === \'[nein]\''));
+            assert(await live.evaluate('document.querySelector(\'#draw-decision .flow-answer\').textContent.includes(\'Anmeldevorarbeit\')'));
             await live.evaluate('window.__followChanges = 0; window.__followObserver = new MutationObserver(records => window.__followChanges += records.length); ' +
                 'window.__followObserver.observe(document.getElementById(\'overview\'), {attributes:true, attributeFilter:[\'class\',\'data-follow-stage\']})');
             const unchanged = Number((await view()).updated);
@@ -1141,12 +1165,13 @@ suite('BTS / actual FastAPI / native Chrome speech integration', function() {
             response.active_stage = null; response.current = null; response.state = 'complete';
             response.total = { ready: STAGES.length, queued: 0, total: STAGES.length };
             for (const row of response.stages) { row.ready = 1; row.queued = 0; }
-            await until(async () => !(await view()).following);
+            await until(async () => !(await view()).following && (await view()).target === 'ready-state');
             assert.strictEqual((await view()).phase, 'competition');
             assert.strictEqual((await view()).auto, true);
             assert((await view()).label.includes('Keine Generierung aktiv') && (await view()).label.includes('alles bereit'));
             assert.strictEqual(await live.evaluate('document.querySelectorAll(\'.live-current,[aria-current="step"]\').length'), 0);
-            assert(await live.evaluate('document.querySelector(\'.flow-end\').textContent.includes(\'Alles bereit\')'));
+            assert.strictEqual(await live.evaluate('document.querySelector(\'.is-current-state\').id'), 'ready-state');
+            assert(await live.evaluate('document.querySelector(\'#ready-state .flow-end\').textContent.includes(\'Alles bereit\')'));
             if (process.env.BTS_SPEECH_IDLE_SCREENSHOT) {
                 const shot = await live.call('Page.captureScreenshot', { format: 'png', captureBeyondViewport: true });
                 fs.writeFileSync(process.env.BTS_SPEECH_IDLE_SCREENSHOT, Buffer.from(shot.data, 'base64'));
@@ -1154,6 +1179,7 @@ suite('BTS / actual FastAPI / native Chrome speech integration', function() {
             for (const [status, label] of [['failed', 'fehlgeschlagene'], ['idle_pending', 'Leerlauf'], ['updating', 'aktualisiert'], ['disabled', 'ausgeschaltet']]) {
                 response.state = status;
                 await until(async () => (await view()).label.includes(label));
+                await until(async () => (await view()).target === (status === 'updating' ? 'unknown-state' : status === 'disabled' ? 'disabled-state' : 'waiting-state'));
                 assert.strictEqual((await view()).following, false);
                 assert.strictEqual(await live.evaluate('document.querySelectorAll(\'.live-current,[aria-current="step"]\').length'), 0);
                 if (status === 'disabled') assert(await live.evaluate('document.querySelector(\'#idle-decision .flow-answer\').textContent.includes(\'ausgeschaltet\')'));
@@ -1167,20 +1193,22 @@ suite('BTS / actual FastAPI / native Chrome speech integration', function() {
             response.active_stage = 'preparation'; response.state = 'waiting'; response.current = { text: 'Nächste Aufnahme', running: false };
             Object.assign(response.stages.find(row => row.id === 'preparation'), { ready: 0, queued: 1 });
             response.total = { ready: STAGES.length - 1, queued: 1, total: STAGES.length };
-            await until(async () => (await view()).stage === 'preparation');
+            await until(async () => (await view()).stage === 'preparation' && (await view()).target === 'preparation-priority');
             assert((await view()).label.startsWith('Als Nächstes:'));
-            assert(await live.evaluate('document.querySelector(\'#idle-decision .flow-answer\').textContent.startsWith(\'Nein\')'));
+            assert(!(await path()).some(edge => edge.from === 'idle-decision'), 'stop at the active state before scanning lower priorities');
             assert(await live.evaluate('document.querySelector(\'[data-stage="registration"]\').classList.contains(\'is-skipped\')'));
             assert(await live.evaluate('(() => {const svg = new DOMParser().parseFromString(btsSpeechPlanningDiagram.exportSVG(), \'image/svg+xml\'); ' +
                 'return !svg.querySelector(\'parsererror\') && !svg.querySelector(\'foreignObject\') && svg.documentElement.localName === \'svg\' && ' +
-                'svg.querySelectorAll(\'rect\').length > 15 && svg.querySelectorAll(\'polygon\').length > 20 && ' +
-                'svg.querySelectorAll(\'.flow-edge[data-guard="[ja]"]\').length > 15 && svg.documentElement.textContent.includes(\'Spiele in Vorbereitung\');})()'));
+                'svg.querySelectorAll(\'rect\').length > 15 && svg.querySelectorAll(\'polygon\').length > 15 && ' +
+                'svg.querySelectorAll(\'.flow-edge.is-traversed\').length > 3 && svg.documentElement.textContent.includes(\'Spiele in Vorbereitung\');})()'));
             if (process.env.BTS_SPEECH_FOLLOW_SCREENSHOT) {
                 const shot = await live.call('Page.captureScreenshot', { format: 'png', captureBeyondViewport: true });
                 fs.writeFileSync(process.env.BTS_SPEECH_FOLLOW_SCREENSHOT, Buffer.from(shot.data, 'base64'));
             }
             for (const ws of app.wss.clients) if (ws.speech_planning_test) ws.close();
             await until(async () => !(await view()).following);
+            await until(async () => (await view()).target === 'unknown-state');
+            assert((await path()).every(edge => ['initial', 'known-decision'].includes(edge.from)), 'clear the previous decision path on disconnect');
             assert.strictEqual(await live.evaluate('document.querySelectorAll(\'[aria-current="step"]\').length'), 0);
             assert((await view()).label.includes('Verbindung unterbrochen'));
             await until(async () => (await view()).stage === 'preparation');

@@ -54,7 +54,7 @@
         track.setAttribute('aria-label', counts.textContent);
         ready.style.width = value.ready * 100 / (value.total || 1) + '%';
         queued.style.width = value.queued * 100 / (value.total || 1) + '%';
-        const active = ['disabled', 'complete'].includes(snapshot.state) ? null : snapshot.stages.find(row => row.id === snapshot.active_stage);
+        const active = ['working', 'waiting', 'busy_elsewhere'].includes(snapshot.state) ? snapshot.stages.find(row => row.id === snapshot.active_stage) : null;
         followStatus.dataset.active = String(!!active);
         const caption = active ? (snapshot.current?.running ? 'Aktuell: ' : 'Als Nächstes: ') + active.label : inactive[snapshot.state] || 'Planungsstand wird ermittelt …';
         if (followStatus.textContent !== caption) followStatus.textContent = caption;

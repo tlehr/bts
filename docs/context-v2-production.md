@@ -98,56 +98,61 @@ Quellverknüpfungen und Probehören.
 
 ## Live-Planung im eigenen Tab
 
-**Adminmenü → Sprachplanung · live** öffnet den Ablaufplan für das aktuelle
-Turnier in einem neuen Browser-Tab. Das Netz orientiert sich an der
-[UML-Aktivitätsnotation](https://www.omg.org/spec/UML/ISO/19505-2/PDF): gefüllter
-Startkreis, abgerundete Aktionsrechtecke, Entscheidungsrauten und gerichtete
-Kontrollflüsse mit `[ja]`/`[nein]` als Bedingungen. Höhere Prioritäten stehen
-weiter oben. Nach jeder Aktion folgt eine eigene Entscheidungsraute.
-Anmeldevorarbeit und Spielbetrieb bilden alternative Wege abhängig von der
-ersten Auslosung. Kleine Rauten führen alternative Wege zusammen, bevor eine
-gemeinsame Aktion beginnt; sie bedeuten keine parallele Verarbeitung.
+**Adminmenü → Sprachplanung · live** öffnet das vereinfachte
+Zustandsübergangsdiagramm für das aktuelle Turnier in einem neuen Browser-Tab.
+Es orientiert sich an der [UML-Zustandsnotation](https://www.omg.org/spec/UML/ISO/19505-2/PDF):
+gefüllter Startkreis, abgerundete Zustände mit einem eigenen Bereich für die
+interne Tätigkeit (do / …), Entscheidungsrauten und Übergänge mit [ja]/[nein].
+Kleine gefüllte Kreise führen alternative Wege zusammen. Höhere Prioritäten
+stehen weiter oben; Anmeldung und Spielbetrieb bilden getrennte Wege.
 
-Ein ausführbarer Auftrag führt zur gemeinsamen Bearbeitung rechts im Netz.
-Nach seiner Beendigung prüft BTS wieder von oben. Solange die Verarbeitung
-läuft, bleibt sie beim selben Auftrag. Sind keine Aufgaben ausführbar, wartet
-der Ablauf auf neuen Bedarf oder eine fällige Wiederholung und prüft erneut.
-Der Dauerbetrieb hat deshalb keinen abschließenden Endknoten.
-Turnierphase, Anzahl der Spiele je Zustand, Bedingungen und
-Fortschritt aktualisieren sich alle zwei Sekunden. Gold markiert ausschließlich
-den aktuellen oder nächsten Auftrag. Ein laufender Auftrag eines anderen
-Turniers wird eigens angezeigt.
+Blau markiert einen zusammenhängenden Auswahlweg vom Start durch die
+Entscheidungen bis zum aktuellen Zustand. Gold markiert genau diesen Zustand
+oder, wenn noch kein Auftrag läuft, den nächsten vorgemerkten Bereich. Der
+Auftragstext und das Erzeugen, Ausschneiden oder Aufbereiten gehören in den
+Zustand; eine zusätzliche Bearbeitungs- oder Rücksprungschleife entfällt.
+Eigene Zustände zeigen „Alles bereit“, Warten, ausgeschaltete Generierung oder
+einen unbekannten Planungsstand. Bei Verbindungsverlust ersetzt der Weg zum
+unbekannten Planungsstand den bisherigen Auswahlweg.
+
+Der Auswahlweg ergibt sich aus der aktuellen Turnierphase und der vom Scheduler
+gemeldeten Auftragsauswahl. Er ist keine gespeicherte Ablaufhistorie.
+Die aufklappbare Erklärung nennt die durchlaufenen Entscheidungen mit ihren
+Antworten und Begründungen. Bereits fertige oder ungeplante Bereiche werden
+entsprechend benannt. Wenn während eines laufenden Auftrags höherer Bedarf
+hinzukommt, wird dieser nicht fälschlich als erledigt dargestellt: Neue
+Prioritäten greifen nach dem laufenden Auftrag. Eine bereits laufende
+Anmeldevorarbeit bleibt auch nach der ersten Auslosung als aktueller Zustand
+sichtbar, bis sie beendet ist.
+
+Turnierphase, Anzahl der Spiele je Zustand, Bedingungen und Fortschritt
+aktualisieren sich alle zwei Sekunden. Ein laufender Auftrag eines anderen
+Turniers wird eigens angezeigt; im vorgemerkten Zustand steht dann das Warten
+auf einen freien Sprachserver als interne Tätigkeit.
 
 Die vereinfachten Balken zeigen **bereit / in der Queue / gesamt**: Grün zählt
 fertige Abspielbausteine, Orange fehlende Bausteine mit Auftrag, Grau den noch
 nicht beauftragten geplanten Vorrat. „Gesamt“ umfasst diese drei Gruppen. Die
-Zahlen und Balken stehen direkt im jeweiligen Schritt. Gemeinsame Teile
+Zahlen und Balken stehen direkt im jeweiligen Zustand. Gemeinsame Teile
 zählen einmal beim ersten, vorrangigen Bedarf; Quellaufnahmen werden nicht
 zusätzlich zu ihren Ausschnitten gezählt. Optionaler Vorrat der anderen Stimme
-steht in einem eigenen Bereich. Die Werte beziehen sich auf den aktuellen Plan
+steht in einem eigenen Zustand. Die Werte beziehen sich auf den aktuellen Plan
 und können sich bei Änderungen am Turnier ändern.
 
 Die Seite liest den vorhandenen Plan und die Warteschlange; sie legt keine
-zusätzlichen Sprachaufträge an. Bei Verbindungsverlust werden die aktuellen
-Markierungen entfernt und die Verbindung automatisch wiederhergestellt.
-Der Ablaufplan lässt sich als eigenständiges SVG mit denselben Verzweigungen
-oder über Drucken/PDF exportieren.
-Die Bedingungen zeigen, ob schon ausgelost wurde, ob benötigte Ansagen noch offen
-sind und ob Vorrat der anderen Stimme möglich ist. Übersprungene Schritte bleiben
-beschriftet sichtbar. Laufende und vorbereitete Spiele enthalten ihre möglichen
-Tabletbediener; die wartende Tabletliste folgt im Leerlauf nach Aufrufkandidaten
-und vor weiteren angesetzten Spielen. Zusätzlicher konkreter Bedarf steht vor
-der Vorarbeit im Leerlauf.
+zusätzlichen Sprachaufträge an. Nach einem Abbruch wird die Verbindung
+automatisch wiederhergestellt. Das Zustandsdiagramm lässt sich als
+eigenständiges SVG mit markiertem Auswahlweg oder über Drucken/PDF exportieren.
+Übersprungene Bereiche bleiben beschriftet sichtbar. Laufende und vorbereitete
+Spiele enthalten ihre möglichen Tabletbediener; die wartende Tabletliste folgt
+im Leerlauf nach Aufrufkandidaten und vor weiteren angesetzten Spielen.
+Zusätzlicher konkreter Bedarf steht vor der Vorarbeit im Leerlauf.
 
-Jeder Schritt zeigt seinen Status; die aktuelle Aufnahme steht direkt beim
-aktiven Schritt. Ohne aktuelle oder nächste Aufgabe wird kein Arbeitsbereich
-markiert. Der Status nennt ausdrücklich, ob alles bereit ist, weitere Arbeit
-wartet, Fehler offen sind oder die Verbindung fehlt. Die getrennte Kartenübersicht
-entfällt. Auf schmalen Bildschirmen lässt sich das Netz innerhalb der Grafik
-seitlich verschieben; die übrige Seite bleibt in Bildschirmbreite.
-Die aktuelle Tätigkeit bleibt beim Scrollen am oberen
-Rand sichtbar. Die Darstellung folgt vollständig automatisch;
-sie ändert weder die Auftragsreihenfolge noch den Sprachbedarf.
+Auf schmalen Bildschirmen lässt sich das Netz innerhalb der Grafik seitlich
+verschieben; die übrige Seite bleibt in Bildschirmbreite. Die aktuelle
+Tätigkeit bleibt beim Scrollen am oberen Rand sichtbar. Die Darstellung folgt
+vollständig automatisch; sie ändert weder die Auftragsreihenfolge noch den
+Sprachbedarf.
 
 ## Fehler und Wiederholungen
 
