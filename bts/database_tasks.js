@@ -53,15 +53,18 @@ function attach(store, collection) {
 		const source = !traces.capture() && traces.enabled() ? origin() : '';
 		const task_name = name_of(store, task) + (source ? '@' + source : '');
 		const health_entry = state.health.enqueue(task_name);
+		const foreground = require('./foreground_work'), owner = foreground.capture();
 		const ordered = { ...barrier_task, fn: function(...args) {
-			state.health.start(health_entry);
-			const callback = args[args.length - 1];
-			args[args.length - 1] = function(...results) {
-				try { return traces.with_context(health_entry.context, () => callback.apply(this, results)); }
-				finally { state.health.finish(health_entry, results[0]); }
-			};
-			try { return traces.with_context(health_entry.context, () => traces.run(health_entry.run_span, () => barrier_task.fn.apply(this, args))); }
-			catch (error) { state.health.finish(health_entry, error); throw error; }
+			return foreground.run(owner, () => {
+				state.health.start(health_entry);
+				const callback = args[args.length - 1];
+				args[args.length - 1] = function(...results) {
+					try { return foreground.run(owner, () => traces.with_context(health_entry.context, () => callback.apply(this, results))); }
+					finally { state.health.finish(health_entry, results[0]); }
+				};
+				try { return traces.with_context(health_entry.context, () => traces.run(health_entry.run_span, () => barrier_task.fn.apply(this, args))); }
+				catch (error) { state.health.finish(health_entry, error); throw error; }
+			});
 		} };
 		if (!enabled() && !traces.enabled()) {
 			state.active = null; state.last = null;

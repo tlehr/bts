@@ -1,0 +1,170 @@
+{
+  "voice": "hallensprecher",
+  "seed": 42,
+  "http_requests": 0,
+  "production_cache_modified": false,
+  "cases": [
+    {
+      "id": "placement",
+      "recipe": {
+        "before": "Spielnummer einhunderteinundsechzig. Jungen Einzel U siebzehn. ",
+        "text": "Spiel um Platz fünf und sechs!",
+        "after": " Max Mustermann gegen Hans Dampf.",
+        "kind": "generic"
+      },
+      "source_text": "Spielnummer einhunderteinundsechzig. Jungen Einzel U siebzehn. Spiel um Platz fünf und sechs! Max Mustermann gegen Hans Dampf.",
+      "status": "ok",
+      "file": "placement.wav",
+      "duration_s": 1.6105416666666668,
+      "source_quality": "accepted",
+      "seed": 42,
+      "audit": {
+        "pause_policy": {
+          "version": "sentence-quiet-1",
+          "window_ms": 10,
+          "threshold_dbfs": -48,
+          "peak_ceiling_dbfs": -38,
+          "maximum_ms": 100,
+          "target_ms": 80
+        },
+        "pause_compaction": "applied",
+        "pause_edits": [],
+        "sentence_gaps": [],
+        "loudness_matching": {
+          "method": "EBU R128 measured constant gain",
+          "policy": {
+            "version": "piece-loudness-1",
+            "target_lufs": -23,
+            "true_peak_cap_dbfs": -1.5,
+            "voice_trim_db": {
+              "hallensprecher": 0,
+              "hallensprecherin": 1
+            }
+          },
+          "target_lufs": -23,
+          "input": {
+            "integrated_lufs": -19.69,
+            "true_peak_dbfs": -1.85,
+            "analysis_repetitions": 1
+          },
+          "gain_db": -3.3099999999999987,
+          "limited_by_peak": false,
+          "predicted_lufs": -23.0,
+          "predicted_true_peak_dbfs": -5.159999999999998
+        },
+        "leading_quiet_ms": 0.0,
+        "trailing_quiet_ms": 45.0
+      },
+      "elapsed_s": 37.339
+    },
+    {
+      "id": "preparation-field",
+      "recipe": {
+        "before": "In Vorbereitung! ",
+        "text": "Für Spielfeld vier!",
+        "after": " Spielnummer einhunderteinundsechzig. Jungen Einzel U siebzehn. Achtelfinale! Max Mustermann gegen Hans Dampf. Das Spiel ist in Vorbereitung!",
+        "kind": "generic"
+      },
+      "source_text": "In Vorbereitung! Für Spielfeld vier! Spielnummer einhunderteinundsechzig. Jungen Einzel U siebzehn. Achtelfinale! Max Mustermann gegen Hans Dampf. Das Spiel ist in Vorbereitung!",
+      "status": "ok",
+      "file": "preparation-field.wav",
+      "duration_s": 1.2719583333333333,
+      "source_quality": "accepted",
+      "seed": 42,
+      "audit": {
+        "pause_policy": {
+          "version": "sentence-quiet-1",
+          "window_ms": 10,
+          "threshold_dbfs": -48,
+          "peak_ceiling_dbfs": -38,
+          "maximum_ms": 100,
+          "target_ms": 80
+        },
+        "pause_compaction": "applied",
+        "pause_edits": [],
+        "sentence_gaps": [],
+        "loudness_matching": {
+          "method": "EBU R128 measured constant gain",
+          "policy": {
+            "version": "piece-loudness-1",
+            "target_lufs": -23,
+            "true_peak_cap_dbfs": -1.5,
+            "voice_trim_db": {
+              "hallensprecher": 0,
+              "hallensprecherin": 1
+            }
+          },
+          "target_lufs": -23,
+          "input": {
+            "integrated_lufs": -15.43,
+            "true_peak_dbfs": 0.01,
+            "analysis_repetitions": 1
+          },
+          "gain_db": -7.57,
+          "limited_by_peak": false,
+          "predicted_lufs": -23.0,
+          "predicted_true_peak_dbfs": -7.5600000000000005
+        },
+        "leading_quiet_ms": 35.0,
+        "trailing_quiet_ms": 20.0
+      },
+      "elapsed_s": 49.546
+    },
+    {
+      "id": "meetingpoint",
+      "recipe": {
+        "before": "Zweiter Aufruf In Vorbereitung für:Hans Dampf! Hans Dampf, ",
+        "text": "Bitte melde dich bei der Turnierleitung!",
+        "after": "",
+        "kind": "generic"
+      },
+      "source_text": "Zweiter Aufruf In Vorbereitung für:Hans Dampf! Hans Dampf, Bitte melde dich bei der Turnierleitung!",
+      "status": "ok",
+      "file": "meetingpoint.wav",
+      "duration_s": 1.62,
+      "source_quality": "accepted",
+      "seed": 42,
+      "audit": {
+        "pause_policy": {
+          "version": "sentence-quiet-1",
+          "window_ms": 10,
+          "threshold_dbfs": -48,
+          "peak_ceiling_dbfs": -38,
+          "maximum_ms": 100,
+          "target_ms": 80
+        },
+        "pause_compaction": "applied",
+        "pause_edits": [],
+        "sentence_gaps": [],
+        "loudness_matching": {
+          "method": "EBU R128 measured constant gain",
+          "policy": {
+            "version": "piece-loudness-1",
+            "target_lufs": -23,
+            "true_peak_cap_dbfs": -1.5,
+            "voice_trim_db": {
+              "hallensprecher": 0,
+              "hallensprecherin": 1
+            }
+          },
+          "target_lufs": -23,
+          "input": {
+            "integrated_lufs": -17.91,
+            "true_peak_dbfs": -1.73,
+            "analysis_repetitions": 1
+          },
+          "gain_db": -5.09,
+          "limited_by_peak": false,
+          "predicted_lufs": -23.0,
+          "predicted_true_peak_dbfs": -6.82
+        },
+        "leading_quiet_ms": 35.0,
+        "trailing_quiet_ms": 45.0
+      },
+      "elapsed_s": 30.801
+    }
+  ],
+  "threads": 2,
+  "decoder_threads": 2,
+  "subjective_quality": "not-rated"
+}

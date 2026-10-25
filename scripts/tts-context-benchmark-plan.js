@@ -53,11 +53,11 @@ function baseline(normalizations = []) {
         courts: [{ _id: 'default_8', num: 8, location_id: 'default_h1', is_active: true }] };
     const setup = { state: 'preparation', event_name: 'ME U19', match_name: 'R16', match_num: 189,
         court_id: 'default_8', location_id: 'default_h1',
-        teams: [{ players: [{ name: 'Nina Keo Boun Khoune' }] }, { players: [{ name: 'LeandraGalowicz' }] }] };
+        teams: [{ players: [{ name: 'Max Mustermann' }] }, { players: [{ name: 'Hans Dampf' }] }] };
     for (const [id, name, changes, tournament_changes, args] of [
         ['D01', 'announceNewMatch', {}, {}, []],
         ['D05', 'announceSecondPreparationCallTeamOne', {}, {}, []],
-        ['D08', 'announceSecondCallTabletoperator', { tabletoperators: [{ name: 'Lena Fischer' }, { name: 'Tom Schneider' }] },
+        ['D08', 'announceSecondCallTabletoperator', { tabletoperators: [{ name: 'Erika Musterfrau' }, { name: 'Otto Normalverbraucher' }] },
             { tabletoperator_use_manual_counting_boards_enabled: true }, []],
         ['D12', 'announceNoMatchWin', {}, {}, [0]],
     ]) {

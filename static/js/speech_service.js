@@ -16,6 +16,7 @@ function createSpeechService(context) {
     };
     let test_id = 0;
     let cache_version;
+    let audio_endpoint;
     let audio_ready = false;
     let audio_error = null;
     let last_result = null;
@@ -45,11 +46,24 @@ function createSpeechService(context) {
     const key = (text, value) => JSON.stringify([value.key, value.voice, value.language, text]);
     const changed = () => context.onStateChange?.();
 
+    function audioURL(path) {
+        const endpoint = audio_endpoint === undefined ? settings().audio_endpoint : audio_endpoint;
+        if (!endpoint) return path;
+        const base = new URL(context.page_url);
+        if (endpoint.origin) return new URL(path, endpoint.origin).href;
+        base.protocol = endpoint.protocol;
+        base.port = String(endpoint.port);
+        return new URL(path, base).href;
+    }
+
     function rememberMetadata(response) {
         context.onMetadata?.(response?.speech);
-        if (cache_version !== response?.speech?.cache_version) {
-            prepared.clear();
-            cache_version = response?.speech?.cache_version;
+        if (response?.speech) {
+            audio_endpoint = response.speech.audio_endpoint || null;
+            if (cache_version !== response.speech.cache_version) {
+                prepared.clear();
+                cache_version = response.speech.cache_version;
+            }
         }
         if (response?.speech_error || response?.speech?.enabled === false) prepared.clear();
     }
@@ -137,7 +151,7 @@ function createSpeechService(context) {
             signal.addEventListener('abort', abort, { once: true });
             const timer = setTimeout(abort, 3000);
             let data;
-            try { data = await context.fetchAudio(clip.audio_url, controller.signal); }
+            try { data = await context.fetchAudio(audioURL(clip.audio_url), controller.signal); }
             finally { clearTimeout(timer); signal.removeEventListener('abort', abort); }
             bytes += data.byteLength;
             if (bytes > 32 * 1024 * 1024) throw new Error('audio_failed');
@@ -209,7 +223,7 @@ function createSpeechService(context) {
                 };
                 player.onended = () => finish();
                 player.onerror = () => finish(new Error('audio_failed'));
-                player.src = clip.audio_url;
+                player.src = audioURL(clip.audio_url);
                 player.playbackRate = clip.processed ? (value.rate || 1) / 1.05 :
                     (value.rate || 1) * (value.voice === 'hallensprecher' ? 1.1 : 1);
                 player.preservesPitch = true;
@@ -242,18 +256,30 @@ function createSpeechService(context) {
         return { status: 'ok', provider: 'server', started };
     }
 
-    async function speak(parts, playback_id, browser, localParts = parts, localPauses = []) {
+    async function status(signal, timeout_ms = 1500) {
+        const value = settings();
+        if (!value.enabled || !value.key) return { speech: { enabled: false } };
+        const response = await context.request('speech_status',
+            { tournament_key: value.key, voice: value.voice }, timeout_ms, signal).catch(() => null);
+        if (signal?.aborted || settings().key !== value.key || settings().voice !== value.voice) return null;
+        rememberMetadata(response);
+        return response;
+    }
+
+    async function speak(parts, playback_id, browser, localParts = parts, localPauses = [], buildLocalPlan) {
         parts = parts.filter(Boolean);
         localParts = localParts.filter(Boolean);
         if (history.has(playback_id)) return { status: 'skipped', provider: 'none', started: false };
         history.set(playback_id, true);
         while (history.size > 1024) history.delete(history.keys().next().value);
         preview_controller?.abort();
-        const value = settings();
+        let value = settings();
         const controller = new AbortController();
         active = controller;
+        if (typeof window !== 'undefined') window.btsDiagnostics?.record('info', 'Durchsage gestartet', { playback_id });
         let result;
         const useBrowser = async reason => {
+            if (typeof window !== 'undefined') window.btsDiagnostics?.record('warn', 'Sprach-Fallback auf Browser', { reason, playback_id });
             if (controller.signal.aborted) return { status: 'cancelled', started: false };
             last_result = { status: 'playing', provider: 'browser', fallback_reason: reason };
             changed();
@@ -263,7 +289,22 @@ function createSpeechService(context) {
         try {
             if (value.mode === 'browser') result = await useBrowser('browser_mode');
             else {
-                const resolved = await ready(localParts, value, controller.signal);
+                let metadata_failed = false;
+                if (buildLocalPlan && value.enabled && value.key && languageSupported(value)) {
+                    if (value.context_version == null) {
+                        // Read-only: do not admit obsolete individual snippets
+                        // while this window still lacks the worker's metadata.
+                        const response = await status(controller.signal, value.deadline_ms);
+                        metadata_failed = !response?.speech || !!response.speech_error;
+                    }
+                    if (settings().key !== value.key || settings().voice !== value.voice) controller.abort();
+                    value = settings();
+                    if (!controller.signal.aborted && !metadata_failed) {
+                        const plan = buildLocalPlan(value);
+                        localParts = plan.parts; localPauses = plan.pauses;
+                    }
+                }
+                const resolved = metadata_failed ? { reason: 'speech_request_failed' } : await ready(localParts, value, controller.signal);
                 if (controller.signal.aborted) result = { status: 'cancelled', started: false };
                 else if (!resolved.clips) {
                     result = value.mode === 'auto' ? await useBrowser(resolved.reason) :
@@ -285,6 +326,8 @@ function createSpeechService(context) {
         } finally { if (active === controller) active = null; }
         // Claims may fail over to another tab only if no output began.
         result.allowRetry = !result.started && ['error', 'suspicious'].includes(result.status);
+        if (typeof window !== 'undefined') window.btsDiagnostics?.record('info', 'Durchsage beendet', { playback_id, status: result.status,
+            provider: result.provider, reason: result.fallback_reason || result.reason || null });
         last_result = result;
         changed();
         return result;
@@ -371,6 +414,7 @@ function createSpeechService(context) {
 
     return {
         settings, prepare, speak, cancel, unlock, ensureAudio, describeResult, preview,
+        isBusy: () => !!(active || preview_controller),
         settingsChanged() { prepared.clear(); preview_controller?.abort(); changed(); void ensureAudio(); },
         cancelPreview: () => preview_controller?.abort(),
         queue: async () => {
@@ -404,9 +448,7 @@ function createSpeechService(context) {
                 clip.status === 'completed' && !usable(clip) ? { status: 'unavailable' } : clip);
             return response;
         },
-        status: () => !settings().enabled ? Promise.resolve({ speech: { enabled: false } }) :
-            context.request('speech_status',
-                { tournament_key: settings().key, voice: settings().voice }, 1500).catch(() => null),
+        status,
         testId: () => 'speech-test:' + (++test_id),
     };
 }
@@ -427,6 +469,7 @@ else {
             };
         },
         makeAudio: () => new Audio(),
+        page_url: window.location.href,
         makeAudioContext: () => {
             const AudioClock = window.AudioContext || window.webkitAudioContext;
             return AudioClock ? new AudioClock() : null;

@@ -9,6 +9,8 @@ const uuidv4 = require('uuid/v4');
 const {promisify} = require('util');
 const registration_xlsx = require('./registration_xlsx');
 const { text: _registration_xlsx_text, norm: _registration_xlsx_norm } = require('./registration_xlsx/parse');
+const dbv_ranking = require('./dbv_ranking');
+const { collect_candidates: collect_dbv_candidates, event_family: dbv_event_family, event_key: dbv_event_key } = require('./dbv_ranking/parse');
 
 const btp_manager = require('./btp_manager');
 const update_queue = require('./update_queue');
@@ -889,40 +891,11 @@ async function preparation_selection_response(app, ws, msg) {
 		return;
 	}
 
-	const selections = await match_automation.fetch_all_location_preparation_selections(app, msg.tournament_key, {
-		now_ts: now_ms(app),
-		cooperative: true,
+	const selections = await require('./preparation_selection/admin_reads').read(app, msg.tournament_key, {
+		now_ts: now_ms(app), cache: typeof ws.respond_background === 'function',
 	});
-	app.speech?.prefetch.schedule(msg.tournament_key, selections.flatMap(selection =>
-		selection.selected_matches.map(match => match._id)));
 	return (ws.respond_background || ws.respond).call(ws, msg, null, {
-		selections: selections.map((selection) => ({
-			location_id: selection.location_id,
-			required_preparation_count: selection.required_preparation_count,
-			current_preparation_count: selection.current_preparation_count,
-			missing_preparation_count: selection.missing_preparation_count,
-			effective_required_preparation_count: selection.effective_required_preparation_count,
-			effective_missing_preparation_count: selection.effective_missing_preparation_count,
-			candidate_match_ids: selection.candidates.map((match) => match?._id).filter((id) => id != null),
-			candidate_match_nums: selection.candidates.map((match) => match?.setup?.match_num).filter((num) => num != null),
-			selected_match_ids: selection.selected_matches.map((match) => match?._id).filter((id) => id != null),
-			selected_match_nums: selection.selected_matches.map((match) => match?.setup?.match_num).filter((num) => num != null),
-			auto_selected_match_ids: selection.auto_selected_matches.map((match) => match?._id).filter((id) => id != null),
-			auto_selected_match_nums: selection.auto_selected_matches.map((match) => match?.setup?.match_num).filter((num) => num != null),
-			display_candidate_match_ids: selection.display_candidates.map((match) => match?._id).filter((id) => id != null),
-			display_candidate_match_nums: selection.display_candidates.map((match) => match?.setup?.match_num).filter((num) => num != null),
-			display_frontier_match_id: selection.display_frontier?._id || null,
-			display_frontier_match_num: selection.display_frontier?.setup?.match_num ?? null,
-			display_cutoff_match_id: selection.display_cutoff?._id || null,
-			display_cutoff_match_num: selection.display_cutoff?.setup?.match_num ?? null,
-			diagnostics_by_match_id: selection.diagnostics_by_match_id || {},
-			call_on_court_diagnostics_by_match_id: selection.call_on_court_diagnostics_by_match_id || {},
-			field_selection_debug: selection.field_selection_debug || {},
-			successor_court_ids: Array.isArray(selection.successor_court_ids) ? selection.successor_court_ids : [],
-			successor_match_ids: Array.isArray(selection.successor_match_ids) ? selection.successor_match_ids : [],
-			free_court_ids: Array.isArray(selection.free_court_ids) ? selection.free_court_ids : [],
-			demand_court_ids: Array.isArray(selection.demand_court_ids) ? selection.demand_court_ids : [],
-		})),
+		selections,
 	});
 }
 
@@ -1008,6 +981,7 @@ async function reset_tournament_to_empty_default(app, tournament_key) {
 		name: 'Default',
 		events: { events: [] },
 		certificate_exports: {},
+		registration_dbv_rankings: {},
 		btp_enabled: false,
 		btp_autofetch_enabled: false,
 		last_reset_ts: reset_ts,
@@ -1161,6 +1135,17 @@ async function reset_player_pause_times(app, tournament_key) {
 		player_count: players_to_update.length,
 		changed_matches,
 	};
+}
+
+async function handle_court_assignments_reset(app, ws, msg) {
+	if (!_require_msg(ws, msg, ['tournament_key'])) return;
+	try {
+		const result = await require('./court_assignments_reset').reset(app, msg.tournament_key,
+			value => notify_change(app, msg.tournament_key, 'court_assignments_reset', value));
+		return ws.respond(msg, null, result);
+	} catch (err) {
+		return ws.respond(msg, err);
+	}
 }
 
 async function handle_player_pause_reset(app, ws, msg) {
@@ -2845,7 +2830,8 @@ function handle_match_edit(app, ws, msg) {
 											]);
 											match_utils.queue_reconcile_player_court_flags(app, tournament_key);
 											if (msg.btp_update) {
-												btp_manager.update_score(app, changed_match);
+												btp_manager.update_score(app, court_changed && !changed_match.setup.court_id
+													? { ...changed_match, btp_clear_court: true } : changed_match);
 												for (const related_match of related_matches) {
 													btp_manager.update_score(app, related_match);
 												}
@@ -5448,6 +5434,65 @@ async function async_handle_registration_xlsx_upload(app, ws, msg) {
 	return ws.respond(msg, null, { metadata });
 }
 
+async function async_handle_registration_dbv_catalog(app, ws, msg) {
+	try {
+		const versions = await dbv_ranking.catalog(msg.family);
+		return ws.respond(msg, null, { versions });
+	} catch (err) {
+		return ws.respond(msg, { message: err.message });
+	}
+}
+
+async function async_handle_registration_dbv_import(app, ws, msg) {
+	if (!_require_msg(ws, msg, ['tournament_key', 'family', 'version'])) return;
+	try {
+		dbv_ranking.download_path(msg.family, msg.version);
+		const tournament = await app.db.tournaments.findOne_async({ key: msg.tournament_key });
+		if (!tournament) throw new Error('Turnier wurde nicht gefunden.');
+		const events = tournament.events?.events || [];
+		const event_keys = msg.event_keys === undefined ? events.filter(event => dbv_event_family(event) === msg.family).map(dbv_event_key) : msg.event_keys;
+		if (!Array.isArray(event_keys) || !event_keys.length || event_keys.some(key =>
+			typeof key !== 'string' || !/^[a-z0-9_-]+$/i.test(key) || !events.some(event => dbv_event_key(event) === key))) {
+			throw new Error('Bitte gültige Konkurrenzen für den Import auswählen.');
+		}
+		const candidates = collect_dbv_candidates(tournament, msg.family, event_keys);
+		if (!candidates.length) throw new Error('Keine passenden ' + msg.family.toUpperCase() + '-Meldungen vorhanden.');
+		const metadata = await dbv_ranking.load(msg.family, msg.version, candidates);
+		const current = await app.db.tournaments.findOne_async({ key: msg.tournament_key });
+		if (!current || current.last_reset_ts !== tournament.last_reset_ts ||
+			JSON.stringify(collect_dbv_candidates(current, msg.family, event_keys)) !== JSON.stringify(candidates)) {
+			throw new Error('Die Meldungen wurden während des Imports geändert. Bitte den Import erneut starten.');
+		}
+		metadata.imported_at = now_iso(app);
+		const rankings = {}, patch = {};
+		for (const key of new Set(event_keys)) {
+			const keys = candidates.filter(candidate => candidate.event_key === key).map(candidate => candidate.key);
+			const by_registration_key = Object.fromEntries(Object.entries(metadata.by_registration_key).filter(([key]) => keys.includes(key)));
+			const unmatched = metadata.unmatched.filter(item => item.event_key === key);
+			const source = {
+				...metadata,
+				event_key: key,
+				event_name: events.find(event => dbv_event_key(event) === key).name,
+				by_registration_key, unmatched,
+				candidate_count: keys.length,
+				matched_count: keys.length - unmatched.length,
+				unmatched_count: unmatched.length,
+			};
+			rankings['event_' + key] = source;
+			patch['registration_dbv_rankings.event_' + key] = source;
+		}
+		const [count] = await app.db.tournaments.update_async({
+			key: msg.tournament_key,
+			last_reset_ts: tournament.last_reset_ts === undefined ? { $exists: false } : tournament.last_reset_ts,
+		}, { $set: patch }, {});
+		if (!count) throw new Error('Das Turnier wurde während des Imports zurückgesetzt. Bitte erneut importieren.');
+		notify_change(app, msg.tournament_key, 'registration_dbv_rankings', { rankings });
+		return ws.respond(msg, null, { rankings });
+	} catch (err) {
+		return ws.respond(msg, { message: err.message });
+	}
+}
+
 const all_admins = [];
 function _notify_queue_hang(payload) {
 	for (const admin_ws of all_admins) {
@@ -5528,14 +5573,15 @@ function notify_change(app, tournament_key, ctype, val) {
 			now_on_court: payload?.now_on_court,
 		});
 	}
+	const message = { type: 'change', tournament_key, ctype, val: payload };
+	const shared_enabled = require('./offload/profile').enabled('admin_broadcast_shared');
+	let packet;
 	for (const admin_ws of all_admins) {
 		if (admin_ws.performance_probe) continue;
-		admin_ws.sendmsg({
-			type: 'change',
-			tournament_key,
-			ctype,
-			val: payload,
-		});
+		if (shared_enabled && admin_ws.send_broadcast) {
+			packet ||= require('./admin_response/outbox').prepare_broadcast(message);
+			admin_ws.send_broadcast(packet);
+		} else admin_ws.sendmsg({ ...message });
 	}
 }
 
@@ -5578,6 +5624,12 @@ function handle_debug_performance_stats(app, ws, msg) {
 function on_connect(app, ws) {
 	all_admins.push(ws);
 	update_queue.instance().set_hang_reporter(_notify_queue_hang);
+}
+
+function handle_speech_health_subscribe(app, ws, msg) {
+	ws.speech_health_subscribed = true;
+	app.speech?.health?.send(ws);
+	ws.respond(msg, null, { speech_health_supported: !!app.speech?.health });
 }
 
 function on_close(app, ws) {
@@ -5686,12 +5738,23 @@ async function async_handle_tournament_upload_location_logo(app, ws, msg) {
 }
 
 module.exports = {
+	handle_diagnostics_snapshot: require('./diagnostics').handle,
+	handle_diagnostics_logs: require('./diagnostics').handle,
+	handle_diagnostics_reload: require('./diagnostics').handle,
+	handle_diagnostics_cancel: require('./diagnostics').handle,
+	handle_diagnostics_verbose: require('./diagnostics').handle,
 	handle_speech_prepare: require('./speech').handle,
 	handle_speech_resolve: require('./speech').handle,
 	handle_speech_status: require('./speech').handle,
 	handle_speech_queue: require('./speech').handle,
 	handle_speech_inventory: require('./speech').handle,
 	handle_speech_planning: require('./speech').handle,
+	handle_speech_games: require('./speech').handle,
+	handle_speech_helpers: require('./speech').handle,
+	handle_speech_helper_bundle: require('./speech').handle,
+	handle_speech_helper_test: require('./speech').handle,
+	handle_speech_helper_control: require('./speech').handle,
+	handle_speech_health_subscribe,
 	handle_edit_display_setting,
 	handle_create_display_setting,
 	async_handle_delete_display_setting,
@@ -5720,6 +5783,7 @@ module.exports = {
 	handle_create_tournament,
 	handle_tournament_reset,
 	handle_player_pause_reset,
+	handle_court_assignments_reset,
 	handle_courts_add,
 	handle_court_edit,
 	handle_location_changed,
@@ -5739,6 +5803,8 @@ module.exports = {
 	handle_registration_stage_comment_read,
 	handle_registration_open_event,
 	async_handle_registration_xlsx_upload,
+	async_handle_registration_dbv_catalog,
+	async_handle_registration_dbv_import,
 	handle_ticker_pushall,
 	handle_ticker_reset,
 	handle_free_announce,

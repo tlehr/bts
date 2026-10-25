@@ -15,6 +15,7 @@ var ci18n_nl = Object.assign(
 	'Umpire Panel': 'Scheidsrechterpaneel',
 	'edit tournament': 'wijzig toernooi',
 	'Court': 'Baan',
+	'Court / Location': 'Baan / Locatie',
 	'Match': 'Wedstrijd',
 	'Players': 'Spelers',
 	'Umpire': 'Scheidsrechter',
@@ -163,6 +164,10 @@ var ci18n_nl = Object.assign(
 	'tournament:edit:reset:prompt': 'Voer toernooi-id "{key}" in om te resetten.',
 	'tournament:edit:reset:cancelled': 'Reset afgebroken: de ingevoerde toernooi-id klopt niet.',
 	'tournament:edit:player_pause_reset': 'Speler-pauzetijden resetten',
+	'tournament:edit:court_assignments_reset': 'Banen van nog niet gestarte wedstrijden wissen',
+	'tournament:edit:court_assignments_reset:hint': 'Zet de baan van nog niet gestarte wedstrijden in dit toernooi in BTS en BTP op “Niet toegewezen”. BTP moet met schrijfrechten verbonden zijn.',
+	'tournament:edit:court_assignments_reset:confirm': 'Alle baantoewijzingen van nog niet gestarte wedstrijden in dit toernooi in BTS en BTP op “Niet toegewezen” zetten? Lopende en afgeronde wedstrijden behouden hun banen.',
+	'tournament:edit:court_assignments_reset:done': 'Baantoewijzingen gewist – BTS: {count}, BTP: {btp_count}. Vanwege de huidige BTP-status overgeslagen: {skipped}.',
 	'tournament:edit:player_pause_reset:hint': 'Reset alle speler-pauzetijden lokaal en in BTP. Alleen beschikbaar wanneer BTP met schrijfrechten verbonden is.',
 	'tournament:edit:player_pause_reset:confirm': 'Alle speler-pauzetijden worden lokaal en in BTP gereset. Doorgaan?',
 

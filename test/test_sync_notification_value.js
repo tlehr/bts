@@ -9,6 +9,15 @@ describe('committed sync notification values', function() {
 	const umpire = { _id: 'official', name: 'Current' };
 	const state = { courts: [{ _id: 'court' }], locations: [], umpires: [umpire] };
 
+	it('keeps numeric court order when replacing a planned list with committed court records', function() {
+		const numbers = [13, 11, 8, 12, 6, 1, 2, 3, 4, 5, 7, 9, 10];
+		const courts = numbers.map(num => ({ _id: 'court-' + num, num: String(num), match_id: 'match-' + num }));
+		const actual = resolve({ value: { all_courts: [] } }, null, null, { ...state, courts });
+		assert.deepStrictEqual(actual.all_courts.map(court => Number(court.num)), Array.from({ length: 13 }, (_, i) => i + 1));
+		assert.deepStrictEqual(courts.map(court => Number(court.num)), numbers, 'do not reorder the committed snapshot in place');
+		assert(actual.all_courts.every(court => courts.includes(court)), 'retain the committed court records without recopying them');
+	});
+
 	it('preserves the full payload for match, wrapper, player, official and collection notifications', function() {
 		for (const [value, match, official] of [
 			[{ _id: 'one', setup: { state: 'scheduled' }, presses: [] }, current, null],
@@ -48,7 +57,8 @@ describe('committed sync notification values', function() {
 		const notification = { value: { match: obsolete, all_courts: [obsolete], marker: { active: true } } };
 		const actual = resolve(notification, current, null, state);
 		assert.strictEqual(actual.match, current);
-		assert.strictEqual(actual.all_courts, state.courts);
+		assert.deepStrictEqual(actual.all_courts, state.courts);
+		assert.strictEqual(actual.all_courts[0], state.courts[0]);
 		assert.notStrictEqual(actual.marker, notification.value.marker);
 		assert.strictEqual(resolve({ value: { match__id: 'one', setup: obsolete } }, current, null, state).setup, current.setup);
 		assert.strictEqual(resolve({ value: obsolete }, current, null, state), current);

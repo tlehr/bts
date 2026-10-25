@@ -13,9 +13,9 @@ function catalogue(tabletColon = true) {
     for (const [profile, text, display = text] of [
         ['B09-opening', 'In Vorbereitung!'], ['B09-closing', 'Das Spiel ist in Vorbereitung!'],
         ['B03', 'Spielnummer einhunderteinundsechzig', 'Spielnummer 161'], ['B04', 'Jungen Einzel U siebzehn', 'Jungeneinzel U17'],
-        ['B05', 'Achtelfinale!'], ['team-before-plays', 'Muhammad Sytsh Abdulquddus'], ['team-after-with-gegen', 'gegen Max Hahn'],
-        ['B08-role-umpire', 'Schiedsrichter'], ['team-after-gegen', 'Tim Lehr'], ['B08-role-service', 'Aufschlagrichter'],
-        ['team-after-gegen', 'Max Hahn'], ['B08-role', 'Tabletbedienung' + (tabletColon ? ':' : '')], ['team-after-gegen', 'Emil Hermann und Konrad Wendt'],
+        ['B05', 'Achtelfinale!'], ['team-before-plays', 'Max Mustermann'], ['team-after-with-gegen', 'gegen Hans Dampf'],
+        ['B08-role-umpire', 'Schiedsrichter'], ['team-after-gegen', 'Max Mustermann'], ['B08-role-service', 'Aufschlagrichter'],
+        ['team-after-gegen', 'Hans Dampf'], ['B08-role', 'Tabletbedienung' + (tabletColon ? ':' : '')], ['team-after-gegen', 'Erika Musterfrau und Otto Normalverbraucher'],
     ]) {
         const source = plan.source(text, 'fixture', display);
         const part = { source, before: '', text, after: '', kind: 'generic', profile: 'lab-v2/' + profile, display };
@@ -74,7 +74,7 @@ describe('complete B02 field sentences', function() {
             const field = plan.scope.fields.find(f => f.court_id === call.court_id);
             assert.strictEqual(call.pieces[1].piece, field.piece);
             assert(call.display.includes('Jungen Einzel U17.'));
-            assert(call.display.includes('Tabletbedienung: Emil Hermann und Konrad Wendt.'));
+            assert(call.display.includes('Tabletbedienung: Erika Musterfrau und Otto Normalverbraucher.'));
         }
         const repeatedNumbers = { ...input, courts: [...input.courts, { _id: 'second_8' }] };
         const duplicates = withPreparation(fieldSentences(repeatedNumbers), old, repeatedNumbers);

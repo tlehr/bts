@@ -8,7 +8,7 @@ const { _translate: translate } = require('../static/js/ci18n');
 const { spellNumbers } = require('../bts/speech/numbers');
 const { Plan, digest } = require('./tts-context-benchmark-plan');
 
-const REFERENCE = 'Spiel einhundertneunundachtzig.  Mädcheneinzel U neunzehn.  Achtelfinale! Nina Keo Boun Khoune gegen LeandraGalowicz.';
+const REFERENCE = 'Spiel einhundertneunundachtzig.  Mädcheneinzel U neunzehn.  Achtelfinale! Max Mustermann gegen Hans Dampf.';
 
 function fields(existing, courtNumbers = [8]) {
     if (existing.strategy !== 'bts-context-v2-lab-only' || !existing.cases?.length) {

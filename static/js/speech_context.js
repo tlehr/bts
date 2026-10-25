@@ -8,7 +8,8 @@ function createContextSpeechPlan(texts, tournament, name, setup = {}, args = [],
         return planner(texts, tournament, name, setup, args, browserParts);
     }
     const PREFIX = '~bts-context-v1~';
-    const example1 = 'Nina Keo Boun Khoune', example2 = 'LeandraGalowicz';
+    // Shared context uses fictional filler; actual teams keep their own names.
+    const example1 = 'Max Mustermann', example2 = 'Hans Dampf';
     const reference = `Spiel 189.  Mädcheneinzel U19.  Achtelfinale! ${example1} gegen ${example2}.`;
     const field = texts.createFieldAnnouncement(setup);
     const fieldReference = texts.createFieldAnnouncement({ court_id: 'default_8' });
@@ -70,7 +71,7 @@ function createContextSpeechPlan(texts, tournament, name, setup = {}, args = [],
     // Always the same reference supplies the shared prefix, independent of the
     // current opponent or the number of people addressed by the hall addition.
     const commonPrefix = () => piece(`${prep}${example1} in Halle 2! ${example1} Bitte melde dich bei der Turnierleitung!`, prep, 'prep_prefix');
-    const normalSource = `${fieldReference} ${normal}Schiedsrichter:Alexandra Becker`;
+    const normalSource = `${fieldReference} ${normal}Schiedsrichter:Erika Musterfrau`;
     const result = (parts, pauses = []) => ({ parts: parts.filter(Boolean), pauses: parts.filter(Boolean).map((_, index, all) =>
         index === all.length - 1 ? 0 : pauses[index] ?? 250) });
     const officials = () => ['umpire', 'judge', 'tablet'].map(role => official(role)?.role).filter(Boolean);
@@ -118,12 +119,12 @@ function createContextSpeechPlan(texts, tournament, name, setup = {}, args = [],
         if (roles[suffix] === 'tablet') {
             const names = texts.createSingleTeam(setup.tabletoperators);
             request = String(browserParts[1] || '').slice(names.length).replace(/^[,\s]+/, '');
-            const example = 'Lena Fischer und Tom Schneider';
+            const example = 'Erika Musterfrau und Otto Normalverbraucher';
             const source = `${prep}Tabletbedienung:${example}! ${example}, ${request}`;
             return result([commonPrefix(), value.role, value.names, piece(source, request, 'generic', true)], [60, 250, 120]);
         }
         request = tournament.preparation_meetingpoint_enabled ? meeting(false) : 'In Vorbereitung!';
-        const source = `${prep}Schiedsrichter:Alexandra Becker! Alexandra Becker ${request}`;
+        const source = `${prep}Schiedsrichter:Erika Musterfrau! Erika Musterfrau ${request}`;
         return result([commonPrefix(), value.role, value.names, tournament.preparation_meetingpoint_enabled ?
             secondHall(false).meeting : piece(source, request, 'generic', true)], [60, 250, 60]);
     }

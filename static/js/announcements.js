@@ -670,7 +670,7 @@ function processAnnouncementPlaybackQueue() {
         }, pauseMs);
     };
     btsSpeechService.speak(nextBatch.callArray, nextBatch.playbackId,
-        (parts, signal) => browserAnnouncementBatch(parts, signal, nextBatch.claimKey), nextBatch.localParts, nextBatch.localPauses)
+        (parts, signal) => browserAnnouncementBatch(parts, signal, nextBatch.claimKey), nextBatch.localParts, nextBatch.localPauses, nextBatch.buildLocalPlan)
         .then(finish, () => finish({ status: 'error', started: false, allowRetry: false }));
 }
 
@@ -685,6 +685,7 @@ function announce(callArray, local, claimKey, options) {
             callArray,
             localParts: resolvedOptions.localParts,
             localPauses: resolvedOptions.localPauses,
+            buildLocalPlan: resolvedOptions.buildLocalPlan,
             claimKey,
             playbackId: claimKey || ANNOUNCEMENT_TAB_ID + ":" + (++announcementPlaybackSequence),
             retryCount: resolvedOptions.retryCount || 0,

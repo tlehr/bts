@@ -1,0 +1,249 @@
+{
+  "source_file": "bts-test-21.json",
+  "started_at": "2026-10-24T12:24:00.585Z",
+  "runtime_ms": 42736,
+  "stop_reason": "interrupted",
+  "scenario": "stability",
+  "initial_state": {
+    "matches": 373,
+    "finished_matches": 87,
+    "active_matches": 13,
+    "active_courts": 13
+  },
+  "server_offloading": {
+    "server_id": "1255854-1792844601617",
+    "run_label": null,
+    "features": {
+      "btp_decode": true,
+      "sync_plan": true,
+      "sync_plan_patch_return": true,
+      "device_info": false,
+      "xlsx_import": false,
+      "compaction": true,
+      "compaction_reads": true,
+      "score_idle_reads": true,
+      "score_readonly_reads": true,
+      "score_direct_writes": true,
+      "preparation_reads": true,
+      "preparation_candidates": true,
+      "sync_batch_writes": false,
+      "sync_prepared_tournament": true,
+      "sync_prepared_matches": true,
+      "admin_response_background": true,
+      "admin_response_priority": true,
+      "admin_match_revision_cache": true,
+      "admin_broadcast_shared": true,
+      "admin_response_worker": false,
+      "compaction_staged": true
+    }
+  },
+  "tablet_to_tv_ms": {
+    "count": 101,
+    "mean": 17.1,
+    "min": 2,
+    "p50": 12,
+    "p95": 49,
+    "p99": 61,
+    "max": 90,
+    "over_50_ms": 5,
+    "over_100_ms": 0,
+    "over_200_ms": 0,
+    "sent_updates": 101,
+    "unmatched_updates": 0,
+    "coverage": 1
+  },
+  "tablet_to_admin_ms": {
+    "count": 101,
+    "mean": 21.5,
+    "min": 4,
+    "p50": 15,
+    "p95": 59,
+    "p99": 70,
+    "max": 106,
+    "over_50_ms": 9,
+    "over_100_ms": 1,
+    "over_200_ms": 0,
+    "sent_updates": 101,
+    "unmatched_updates": 0,
+    "coverage": 1
+  },
+  "traces": 732,
+  "trace_names": {
+    "speech_request": 74,
+    "speech_snapshot": 35,
+    "admin_tournament_get": 91,
+    "periodic_official_pause": 42,
+    "periodic_preparation_age": 42,
+    "periodic_preparation_pause": 42,
+    "handle_score_update_v2": 99,
+    "admin_preparation_selection": 294,
+    "periodic_player_court_reconciliation": 3,
+    "database_compaction": 1,
+    "handle_match_player_check_in": 8,
+    "btp_fetch": 1
+  },
+  "speech_resolve": [
+    {
+      "start_ts": 1792844666382,
+      "duration_ms": 13.9
+    },
+    {
+      "start_ts": 1792844666706,
+      "duration_ms": 158.9
+    }
+  ],
+  "span_statistics": {
+    "speech_snapshot_collect": {
+      "count": 35,
+      "p50_ms": 0.1,
+      "p95_ms": 0.3,
+      "max_ms": 0.3
+    },
+    "speech_bridge_send": {
+      "count": 339,
+      "p50_ms": 0.1,
+      "p95_ms": 0.5,
+      "max_ms": 6.9
+    },
+    "preparation_selection_sync_start": {
+      "count": 118,
+      "p50_ms": 9,
+      "p95_ms": 25,
+      "max_ms": 35.3
+    },
+    "admin_broadcast_encode": {
+      "count": 411,
+      "p50_ms": 0,
+      "p95_ms": 0.2,
+      "max_ms": 6.2
+    }
+  },
+  "max_event_loop_timer_ms": 94.961663,
+  "max_event_loop_utilization": 0.9993951574356524,
+  "latest_speech_process": {
+    "execution": "process",
+    "running": true,
+    "pid": 1255874,
+    "thread_id": null,
+    "pending_requests": 0,
+    "sent": 469,
+    "send_total_ms": 85.46684699999999,
+    "send_max_ms": 6.927192,
+    "snapshots": 38
+  },
+  "cache_evidence": {
+    "match_num": 102,
+    "context_version": "bts-context-v2",
+    "reconstructed_context_parts": 7,
+    "files": [
+      {
+        "part_index": 1,
+        "identity_current": true,
+        "processed": true,
+        "file_exists": true,
+        "mtime_utc": "2026-10-22T18:09:39.494351+00:00"
+      },
+      {
+        "part_index": 2,
+        "identity_current": true,
+        "processed": true,
+        "file_exists": true,
+        "mtime_utc": "2026-10-22T21:44:08.261249+00:00"
+      },
+      {
+        "part_index": 3,
+        "identity_current": true,
+        "processed": true,
+        "file_exists": true,
+        "mtime_utc": "2026-10-22T20:47:32.770335+00:00"
+      },
+      {
+        "part_index": 4,
+        "identity_current": true,
+        "processed": true,
+        "file_exists": true,
+        "mtime_utc": "2026-10-22T21:44:26.054112+00:00"
+      },
+      {
+        "part_index": 5,
+        "identity_current": true,
+        "processed": true,
+        "file_exists": true,
+        "mtime_utc": "2026-10-22T19:01:43.925005+00:00"
+      },
+      {
+        "part_index": 6,
+        "identity_current": true,
+        "processed": true,
+        "file_exists": true,
+        "mtime_utc": "2026-10-22T20:50:55.454020+00:00"
+      },
+      {
+        "part_index": 7,
+        "identity_current": true,
+        "processed": true,
+        "file_exists": true,
+        "mtime_utc": "2026-10-22T18:09:42.157333+00:00"
+      }
+    ],
+    "unexpected_legacy_jobs": [
+      {
+        "part_kind": "match_number",
+        "status": "completed",
+        "created_at_utc": "2026-10-24T12:24:26.493132+00:00",
+        "completed_at_utc": "2026-10-24T12:24:48.437581+00:00"
+      },
+      {
+        "part_kind": "placement_round",
+        "status": "completed",
+        "created_at_utc": "2026-10-24T12:24:50.804963+00:00",
+        "completed_at_utc": "2026-10-24T12:25:04.703043+00:00"
+      },
+      {
+        "part_kind": "player_name_a",
+        "status": "completed",
+        "created_at_utc": "2026-10-24T12:25:05.908559+00:00",
+        "completed_at_utc": "2026-10-24T12:25:17.487061+00:00"
+      },
+      {
+        "part_kind": "player_name_b",
+        "status": "completed",
+        "created_at_utc": "2026-10-24T12:25:19.979616+00:00",
+        "completed_at_utc": "2026-10-24T12:25:30.828486+00:00"
+      }
+    ],
+    "methods": [
+      "Read existing BTS cache index and WAV file metadata without mutation.",
+      "Read the local speech server SQLite database with mode=ro."
+    ],
+    "limits": [
+      "The report has no original browser request payloads or fallback reason.",
+      "The cache audit reconstructs the call from the current tournament data.",
+      "The original browser JavaScript version cannot be recovered from this report."
+    ]
+  },
+  "reproduction": {
+    "first_call_before": "browser",
+    "first_call_after": "server",
+    "new_legacy_generation_after": false,
+    "checkin_requests": 4,
+    "occupied_v2_tv_courts": 13,
+    "v2_context_reads_before": 108,
+    "v2_context_reads_after": 0,
+    "persisted_checkins_after": 4,
+    "admin_match_changes_after": 4,
+    "limitations": [
+      "Temporary databases and WebSocket test doubles.",
+      "Follow-up auto call is replaced with neutral callbacks in the check-in reproduction.",
+      "Read count reduction is not an overall live latency claim."
+    ]
+  },
+  "validation": {
+    "broad_regression_tests_passed": 368,
+    "focused_followup_tests_passed": 99,
+    "native_chrome_fastapi_checks_passed": 4,
+    "final_focused_tests_passed": 75,
+    "source_syntax_and_lint_passed": true,
+    "diff_check_passed": true
+  }
+}

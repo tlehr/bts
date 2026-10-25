@@ -59,6 +59,7 @@ async function fixture() {
 		score_status_network_score: [[21, 19]],
 		presses: [{ type: 'point', team: 0 }],
 		end_ts: 987650000,
+		tabletoperator_finish_ts: 987650000,
 		setup: {
 			event_name: 'MD U17',
 			match_num: 44,
@@ -115,6 +116,7 @@ describe('admin match reactivation', function() {
 		assert.strictEqual(changed.btp_winner, undefined);
 		assert.strictEqual(changed.score_status_network_score, undefined);
 		assert.strictEqual(changed.end_ts, undefined);
+		assert.strictEqual(changed.tabletoperator_finish_ts, undefined);
 		assert.deepStrictEqual(changed.network_score, [[21, 19]]);
 		assert.deepStrictEqual(changed.presses, [{ type: 'point', team: 0 }]);
 		assert.strictEqual(changed.setup.now_on_court, true);

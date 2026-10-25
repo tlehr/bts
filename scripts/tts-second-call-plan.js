@@ -37,10 +37,10 @@ function secondCalls(existing, tournament) {
     };
     const text = id => plan.pieces.get(id).text;
     const names = existing.pieces.filter(p => p.profile === 'lab-v2/team-after-gegen');
-    const singlePart = names.find(p => p.text === 'Max Hahn') || names.find(p => !p.text.includes(' und '));
+    const singlePart = names.find(p => p.text === 'Hans Dampf') || names.find(p => !p.text.includes(' und '));
     const doublePart = names.find(p => p.text.includes(' und '));
     const single = importPiece(singlePart), double = importPiece(doublePart);
-    const umpire = names.find(p => p.text === 'Tim Lehr') ? importPiece(names.find(p => p.text === 'Tim Lehr')) : single;
+    const umpire = names.find(p => p.text === 'Max Mustermann') ? importPiece(names.find(p => p.text === 'Max Mustermann')) : single;
     const roles = { umpire: find('lab-v2/B08-role-umpire'), service: find('lab-v2/B08-role-service'),
         tablet: find('lab-v2/B08-role'), board: find('lab-v2/B08-role-board') };
     const fieldStart = find('lab-v2/field_start'), fieldEnd = find('lab-v2/field_end');

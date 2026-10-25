@@ -1,0 +1,1232 @@
+{
+  "source_file": "bts-test-19.json",
+  "started_at": "2026-10-23T19:47:05.248Z",
+  "runtime_ms": 322232,
+  "stop_reason": "interrupted",
+  "initial_state": {
+    "matches": 373,
+    "finished_matches": 77,
+    "active_matches": 13,
+    "active_courts": 13,
+    "pending_player_checkins": 4,
+    "check_in_per_match": true
+  },
+  "reported_profile": {
+    "server_id": "1112062-1792784503200",
+    "run_label": null,
+    "features": {
+      "btp_decode": true,
+      "sync_plan": true,
+      "sync_plan_patch_return": true,
+      "device_info": false,
+      "xlsx_import": false,
+      "compaction": true,
+      "compaction_reads": true,
+      "score_idle_reads": true,
+      "score_direct_writes": true,
+      "preparation_reads": true,
+      "preparation_candidates": true,
+      "sync_batch_writes": false,
+      "sync_prepared_tournament": true,
+      "sync_prepared_matches": true,
+      "admin_response_background": true,
+      "admin_response_priority": true,
+      "admin_match_revision_cache": true,
+      "admin_broadcast_shared": true,
+      "admin_response_worker": false,
+      "compaction_staged": true
+    }
+  },
+  "tablet_to_tv_ms": {
+    "count": 762,
+    "mean": 10.3,
+    "min": 2,
+    "p50": 5,
+    "p95": 32,
+    "p99": 53,
+    "max": 85,
+    "over_50_ms": 10,
+    "over_100_ms": 0,
+    "over_200_ms": 0,
+    "sent_updates": 762,
+    "unmatched_updates": 0,
+    "coverage": 1
+  },
+  "tablet_to_admin_ms": {
+    "count": 762,
+    "mean": 13.3,
+    "min": 4,
+    "p50": 8,
+    "p95": 35,
+    "p99": 59,
+    "max": 88,
+    "over_50_ms": 14,
+    "over_100_ms": 0,
+    "over_200_ms": 0,
+    "sent_updates": 762,
+    "unmatched_updates": 0,
+    "coverage": 1
+  },
+  "trace_records": 5601,
+  "score_handler_trace_records": 761,
+  "telemetry_samples": 321,
+  "probe_failures": 1,
+  "archive_dropped": {
+    "samples": 0,
+    "traces": 0,
+    "events": 0
+  },
+  "trace_gaps": 0,
+  "pause_drain": null,
+  "last_pending": {
+    "Locks:": 0,
+    "DB matches:": 0,
+    "DB tournaments:": 0
+  },
+  "spans": {
+    "preparation_selection_sync_start": {
+      "count": 855,
+      "p50_ms": 8.1,
+      "p95_ms": 12.6,
+      "p99_ms": 19.5,
+      "max_ms": 28.8
+    },
+    "speech_snapshot_collect": {
+      "count": 273,
+      "p50_ms": 0.1,
+      "p95_ms": 0.3,
+      "p99_ms": 0.6,
+      "max_ms": 0.9
+    },
+    "speech_bridge_send": {
+      "count": 2555,
+      "p50_ms": 0.1,
+      "p95_ms": 0.3,
+      "p99_ms": 0.6,
+      "max_ms": 4.9
+    },
+    "admin_broadcast_encode": {
+      "count": 3332,
+      "p50_ms": 0,
+      "p95_ms": 0.2,
+      "p99_ms": 0.8,
+      "max_ms": 6.5
+    }
+  },
+  "slow_updates": [
+    {
+      "update_number": 345,
+      "operation_id": 2596,
+      "tv_ms": 85,
+      "admin_ms": 88,
+      "before_handler_ms": 3,
+      "lock_wait_ms": 74.6,
+      "context_ms": 0.9,
+      "update_ms": 3.2,
+      "lock_blockers": [
+        {
+          "task": "fetch_sync_apply",
+          "operation_id": 2576
+        }
+      ]
+    },
+    {
+      "update_number": 420,
+      "operation_id": 3193,
+      "tv_ms": 70,
+      "admin_ms": 77,
+      "before_handler_ms": 37,
+      "lock_wait_ms": 14.5,
+      "context_ms": 11.7,
+      "update_ms": 4.6,
+      "lock_blockers": []
+    },
+    {
+      "update_number": 687,
+      "operation_id": 5117,
+      "tv_ms": 70,
+      "admin_ms": 76,
+      "before_handler_ms": 26,
+      "lock_wait_ms": 23.7,
+      "context_ms": 15.4,
+      "update_ms": 3.8,
+      "lock_blockers": []
+    },
+    {
+      "update_number": 688,
+      "operation_id": 5123,
+      "tv_ms": 71,
+      "admin_ms": 75,
+      "before_handler_ms": 17,
+      "lock_wait_ms": 10.6,
+      "context_ms": 4.6,
+      "update_ms": 37.3,
+      "lock_blockers": []
+    },
+    {
+      "update_number": 35,
+      "operation_id": 260,
+      "tv_ms": 64,
+      "admin_ms": 71,
+      "before_handler_ms": 25,
+      "lock_wait_ms": 5.2,
+      "context_ms": 0.8,
+      "update_ms": 23.8,
+      "lock_blockers": []
+    },
+    {
+      "update_number": 490,
+      "operation_id": 3673,
+      "tv_ms": 65,
+      "admin_ms": 71,
+      "before_handler_ms": 16,
+      "lock_wait_ms": 4.9,
+      "context_ms": 29.8,
+      "update_ms": 12,
+      "lock_blockers": []
+    },
+    {
+      "update_number": 211,
+      "operation_id": 1541,
+      "tv_ms": 60,
+      "admin_ms": 65,
+      "before_handler_ms": 14,
+      "lock_wait_ms": 2.8,
+      "context_ms": 11.6,
+      "update_ms": 22.3,
+      "lock_blockers": []
+    },
+    {
+      "update_number": 210,
+      "operation_id": 1539,
+      "tv_ms": 48,
+      "admin_ms": 59,
+      "before_handler_ms": 11,
+      "lock_wait_ms": 8.7,
+      "context_ms": 4.4,
+      "update_ms": 22.7,
+      "lock_blockers": []
+    },
+    {
+      "update_number": 308,
+      "operation_id": 2278,
+      "tv_ms": 50,
+      "admin_ms": 56,
+      "before_handler_ms": 20,
+      "lock_wait_ms": 9.6,
+      "context_ms": 8.2,
+      "update_ms": 9.3,
+      "lock_blockers": []
+    },
+    {
+      "update_number": 491,
+      "operation_id": 3675,
+      "tv_ms": 53,
+      "admin_ms": 55,
+      "before_handler_ms": 3,
+      "lock_wait_ms": 0.2,
+      "context_ms": 23,
+      "update_ms": 25.5,
+      "lock_blockers": []
+    },
+    {
+      "update_number": 309,
+      "operation_id": 2283,
+      "tv_ms": 44,
+      "admin_ms": 54,
+      "before_handler_ms": 13,
+      "lock_wait_ms": 1.2,
+      "context_ms": 5.3,
+      "update_ms": 19.4,
+      "lock_blockers": []
+    },
+    {
+      "update_number": 410,
+      "operation_id": 3123,
+      "tv_ms": 51,
+      "admin_ms": 53,
+      "before_handler_ms": 5,
+      "lock_wait_ms": 12.2,
+      "context_ms": 7.9,
+      "update_ms": 24.2,
+      "lock_blockers": []
+    },
+    {
+      "update_number": 671,
+      "operation_id": 5012,
+      "tv_ms": 52,
+      "admin_ms": 53,
+      "before_handler_ms": 13,
+      "lock_wait_ms": 12.6,
+      "context_ms": 0.4,
+      "update_ms": 24.1,
+      "lock_blockers": []
+    },
+    {
+      "update_number": 421,
+      "operation_id": 3196,
+      "tv_ms": 47,
+      "admin_ms": 52,
+      "before_handler_ms": 10,
+      "lock_wait_ms": 2.3,
+      "context_ms": 9,
+      "update_ms": 23.3,
+      "lock_blockers": []
+    }
+  ],
+  "speech_latest": {
+    "execution": "process",
+    "running": true,
+    "pid": 1112080,
+    "thread_id": null,
+    "pending_requests": 0,
+    "sent": 2967,
+    "send_total_ms": 354.0201599999991,
+    "send_max_ms": 7.371809,
+    "snapshots": 289
+  },
+  "isolated_feature_comparison": {
+    "pairs": 12,
+    "summary": {
+      "before": {
+        "point_tv_ms": {
+          "n": 12,
+          "median": 16.914,
+          "p95": 76.181,
+          "min": 11.396,
+          "max": 76.181
+        },
+        "admin_event_ms": {
+          "n": 12,
+          "median": 17.227,
+          "p95": 78.944,
+          "min": 11.596,
+          "max": 78.944
+        },
+        "admin_batch_ms": {
+          "n": 12,
+          "median": 50.804,
+          "p95": 195.202,
+          "min": 32.234,
+          "max": 195.202
+        },
+        "timer_max_ms": {
+          "n": 12,
+          "median": 11.944,
+          "p95": 62.48,
+          "min": 6.72,
+          "max": 62.48
+        },
+        "context_max_queue_wait_ms": {
+          "n": 12,
+          "median": 3.05,
+          "p95": 9,
+          "min": 1.8,
+          "max": 9
+        },
+        "decisions": {
+          "no_active_compaction": 36
+        }
+      },
+      "after": {
+        "point_tv_ms": {
+          "n": 12,
+          "median": 19.519,
+          "p95": 27.597,
+          "min": 10.105,
+          "max": 27.597
+        },
+        "admin_event_ms": {
+          "n": 12,
+          "median": 19.966,
+          "p95": 27.926,
+          "min": 10.419,
+          "max": 27.926
+        },
+        "admin_batch_ms": {
+          "n": 12,
+          "median": 58.38,
+          "p95": 84.112,
+          "min": 33.846,
+          "max": 84.112
+        },
+        "timer_max_ms": {
+          "n": 12,
+          "median": 14.206,
+          "p95": 22.769,
+          "min": 7.614,
+          "max": 22.769
+        },
+        "context_max_queue_wait_ms": {
+          "n": 12,
+          "median": 0.1,
+          "p95": 0.3,
+          "min": 0,
+          "max": 0.3
+        },
+        "decisions": {
+          "read_only_store": 36
+        }
+      }
+    },
+    "all_persisted_states_equal": true,
+    "all_paired_states_equal": true,
+    "samples": [
+      {
+        "mode": "point",
+        "variant": "before",
+        "matches": 373,
+        "active": 13,
+        "point_tv_ms": 76.18096399307251,
+        "admin_event_ms": 78.9444329738617,
+        "admin_batch_ms": 195.20228499174118,
+        "timer_max_ms": 62.48014199733734,
+        "digest": "095bb40a03754405f8ba9a4b79d68f5a01b86b1ec8b95214a3b221a6a755796c",
+        "persisted_digest": "095bb40a03754405f8ba9a4b79d68f5a01b86b1ec8b95214a3b221a6a755796c",
+        "context": [
+          {
+            "part": "match",
+            "db_queue_wait_ms": 8.9,
+            "read_ms": 0.5,
+            "model_read_decision": "no_active_compaction",
+            "model_read_bypassed": false
+          },
+          {
+            "part": "tournament",
+            "db_queue_wait_ms": 9,
+            "read_ms": 0.1,
+            "model_read_decision": "no_active_compaction",
+            "model_read_bypassed": false
+          },
+          {
+            "part": "court",
+            "db_queue_wait_ms": 9,
+            "read_ms": 0.1,
+            "model_read_decision": "no_active_compaction",
+            "model_read_bypassed": false
+          }
+        ]
+      },
+      {
+        "mode": "point",
+        "variant": "after",
+        "matches": 373,
+        "active": 13,
+        "point_tv_ms": 26.159583032131195,
+        "admin_event_ms": 26.632927000522614,
+        "admin_batch_ms": 84.11227601766586,
+        "timer_max_ms": 20.661489009857178,
+        "digest": "095bb40a03754405f8ba9a4b79d68f5a01b86b1ec8b95214a3b221a6a755796c",
+        "persisted_digest": "095bb40a03754405f8ba9a4b79d68f5a01b86b1ec8b95214a3b221a6a755796c",
+        "context": [
+          {
+            "part": "match",
+            "db_queue_wait_ms": 0.3,
+            "read_ms": 0.3,
+            "model_read_decision": "read_only_store",
+            "model_read_bypassed": true
+          },
+          {
+            "part": "tournament",
+            "db_queue_wait_ms": 0.1,
+            "read_ms": 0,
+            "model_read_decision": "read_only_store",
+            "model_read_bypassed": true
+          },
+          {
+            "part": "court",
+            "db_queue_wait_ms": 0.1,
+            "read_ms": 0,
+            "model_read_decision": "read_only_store",
+            "model_read_bypassed": true
+          }
+        ]
+      },
+      {
+        "mode": "point",
+        "variant": "after",
+        "matches": 373,
+        "active": 13,
+        "point_tv_ms": 24.02224200963974,
+        "admin_event_ms": 24.4933420419693,
+        "admin_batch_ms": 73.91553300619125,
+        "timer_max_ms": 17.545020043849945,
+        "digest": "095bb40a03754405f8ba9a4b79d68f5a01b86b1ec8b95214a3b221a6a755796c",
+        "persisted_digest": "095bb40a03754405f8ba9a4b79d68f5a01b86b1ec8b95214a3b221a6a755796c",
+        "context": [
+          {
+            "part": "match",
+            "db_queue_wait_ms": 0.1,
+            "read_ms": 0.3,
+            "model_read_decision": "read_only_store",
+            "model_read_bypassed": true
+          },
+          {
+            "part": "tournament",
+            "db_queue_wait_ms": 0.1,
+            "read_ms": 0,
+            "model_read_decision": "read_only_store",
+            "model_read_bypassed": true
+          },
+          {
+            "part": "court",
+            "db_queue_wait_ms": 0.1,
+            "read_ms": 0,
+            "model_read_decision": "read_only_store",
+            "model_read_bypassed": true
+          }
+        ]
+      },
+      {
+        "mode": "point",
+        "variant": "before",
+        "matches": 373,
+        "active": 13,
+        "point_tv_ms": 25.51010298728943,
+        "admin_event_ms": 25.92631697654724,
+        "admin_batch_ms": 79.07683002948761,
+        "timer_max_ms": 18.9234299659729,
+        "digest": "095bb40a03754405f8ba9a4b79d68f5a01b86b1ec8b95214a3b221a6a755796c",
+        "persisted_digest": "095bb40a03754405f8ba9a4b79d68f5a01b86b1ec8b95214a3b221a6a755796c",
+        "context": [
+          {
+            "part": "match",
+            "db_queue_wait_ms": 4.4,
+            "read_ms": 0.3,
+            "model_read_decision": "no_active_compaction",
+            "model_read_bypassed": false
+          },
+          {
+            "part": "tournament",
+            "db_queue_wait_ms": 4.7,
+            "read_ms": 0,
+            "model_read_decision": "no_active_compaction",
+            "model_read_bypassed": false
+          },
+          {
+            "part": "court",
+            "db_queue_wait_ms": 4.6,
+            "read_ms": 0.1,
+            "model_read_decision": "no_active_compaction",
+            "model_read_bypassed": false
+          }
+        ]
+      },
+      {
+        "mode": "point",
+        "variant": "before",
+        "matches": 373,
+        "active": 13,
+        "point_tv_ms": 11.615168988704681,
+        "admin_event_ms": 11.842065989971161,
+        "admin_batch_ms": 37.16524302959442,
+        "timer_max_ms": 7.665578007698059,
+        "digest": "095bb40a03754405f8ba9a4b79d68f5a01b86b1ec8b95214a3b221a6a755796c",
+        "persisted_digest": "095bb40a03754405f8ba9a4b79d68f5a01b86b1ec8b95214a3b221a6a755796c",
+        "context": [
+          {
+            "part": "match",
+            "db_queue_wait_ms": 1.8,
+            "read_ms": 0.2,
+            "model_read_decision": "no_active_compaction",
+            "model_read_bypassed": false
+          },
+          {
+            "part": "tournament",
+            "db_queue_wait_ms": 1.9,
+            "read_ms": 0,
+            "model_read_decision": "no_active_compaction",
+            "model_read_bypassed": false
+          },
+          {
+            "part": "court",
+            "db_queue_wait_ms": 2,
+            "read_ms": 0,
+            "model_read_decision": "no_active_compaction",
+            "model_read_bypassed": false
+          }
+        ]
+      },
+      {
+        "mode": "point",
+        "variant": "after",
+        "matches": 373,
+        "active": 13,
+        "point_tv_ms": 16.51615399122238,
+        "admin_event_ms": 16.921085953712463,
+        "admin_batch_ms": 52.10049897432327,
+        "timer_max_ms": 11.17097395658493,
+        "digest": "095bb40a03754405f8ba9a4b79d68f5a01b86b1ec8b95214a3b221a6a755796c",
+        "persisted_digest": "095bb40a03754405f8ba9a4b79d68f5a01b86b1ec8b95214a3b221a6a755796c",
+        "context": [
+          {
+            "part": "match",
+            "db_queue_wait_ms": 0.1,
+            "read_ms": 0.4,
+            "model_read_decision": "read_only_store",
+            "model_read_bypassed": true
+          },
+          {
+            "part": "tournament",
+            "db_queue_wait_ms": 0.1,
+            "read_ms": 0,
+            "model_read_decision": "read_only_store",
+            "model_read_bypassed": true
+          },
+          {
+            "part": "court",
+            "db_queue_wait_ms": 0.1,
+            "read_ms": 0,
+            "model_read_decision": "read_only_store",
+            "model_read_bypassed": true
+          }
+        ]
+      },
+      {
+        "mode": "point",
+        "variant": "after",
+        "matches": 373,
+        "active": 13,
+        "point_tv_ms": 20.459806978702545,
+        "admin_event_ms": 20.959442019462585,
+        "admin_batch_ms": 64.28101003170013,
+        "timer_max_ms": 14.383799016475677,
+        "digest": "095bb40a03754405f8ba9a4b79d68f5a01b86b1ec8b95214a3b221a6a755796c",
+        "persisted_digest": "095bb40a03754405f8ba9a4b79d68f5a01b86b1ec8b95214a3b221a6a755796c",
+        "context": [
+          {
+            "part": "match",
+            "db_queue_wait_ms": 0.1,
+            "read_ms": 0.2,
+            "model_read_decision": "read_only_store",
+            "model_read_bypassed": true
+          },
+          {
+            "part": "tournament",
+            "db_queue_wait_ms": 0,
+            "read_ms": 0,
+            "model_read_decision": "read_only_store",
+            "model_read_bypassed": true
+          },
+          {
+            "part": "court",
+            "db_queue_wait_ms": 0,
+            "read_ms": 0,
+            "model_read_decision": "read_only_store",
+            "model_read_bypassed": true
+          }
+        ]
+      },
+      {
+        "mode": "point",
+        "variant": "before",
+        "matches": 373,
+        "active": 13,
+        "point_tv_ms": 11.395776987075806,
+        "admin_event_ms": 11.5956169962883,
+        "admin_batch_ms": 36.961484014987946,
+        "timer_max_ms": 7.389975011348724,
+        "digest": "095bb40a03754405f8ba9a4b79d68f5a01b86b1ec8b95214a3b221a6a755796c",
+        "persisted_digest": "095bb40a03754405f8ba9a4b79d68f5a01b86b1ec8b95214a3b221a6a755796c",
+        "context": [
+          {
+            "part": "match",
+            "db_queue_wait_ms": 2,
+            "read_ms": 0.1,
+            "model_read_decision": "no_active_compaction",
+            "model_read_bypassed": false
+          },
+          {
+            "part": "tournament",
+            "db_queue_wait_ms": 2,
+            "read_ms": 0,
+            "model_read_decision": "no_active_compaction",
+            "model_read_bypassed": false
+          },
+          {
+            "part": "court",
+            "db_queue_wait_ms": 2,
+            "read_ms": 0,
+            "model_read_decision": "no_active_compaction",
+            "model_read_bypassed": false
+          }
+        ]
+      },
+      {
+        "mode": "point",
+        "variant": "before",
+        "matches": 373,
+        "active": 13,
+        "point_tv_ms": 15.105563998222351,
+        "admin_event_ms": 15.30496495962143,
+        "admin_batch_ms": 40.852441012859344,
+        "timer_max_ms": 12.773253977298737,
+        "digest": "095bb40a03754405f8ba9a4b79d68f5a01b86b1ec8b95214a3b221a6a755796c",
+        "persisted_digest": "095bb40a03754405f8ba9a4b79d68f5a01b86b1ec8b95214a3b221a6a755796c",
+        "context": [
+          {
+            "part": "match",
+            "db_queue_wait_ms": 2,
+            "read_ms": 0.1,
+            "model_read_decision": "no_active_compaction",
+            "model_read_bypassed": false
+          },
+          {
+            "part": "tournament",
+            "db_queue_wait_ms": 2,
+            "read_ms": 0,
+            "model_read_decision": "no_active_compaction",
+            "model_read_bypassed": false
+          },
+          {
+            "part": "court",
+            "db_queue_wait_ms": 1.9,
+            "read_ms": 0,
+            "model_read_decision": "no_active_compaction",
+            "model_read_bypassed": false
+          }
+        ]
+      },
+      {
+        "mode": "point",
+        "variant": "after",
+        "matches": 373,
+        "active": 13,
+        "point_tv_ms": 10.105496048927307,
+        "admin_event_ms": 10.418508052825928,
+        "admin_batch_ms": 33.845633029937744,
+        "timer_max_ms": 7.6138229966163635,
+        "digest": "095bb40a03754405f8ba9a4b79d68f5a01b86b1ec8b95214a3b221a6a755796c",
+        "persisted_digest": "095bb40a03754405f8ba9a4b79d68f5a01b86b1ec8b95214a3b221a6a755796c",
+        "context": [
+          {
+            "part": "match",
+            "db_queue_wait_ms": 0,
+            "read_ms": 0.1,
+            "model_read_decision": "read_only_store",
+            "model_read_bypassed": true
+          },
+          {
+            "part": "tournament",
+            "db_queue_wait_ms": 0,
+            "read_ms": 0,
+            "model_read_decision": "read_only_store",
+            "model_read_bypassed": true
+          },
+          {
+            "part": "court",
+            "db_queue_wait_ms": 0,
+            "read_ms": 0,
+            "model_read_decision": "read_only_store",
+            "model_read_bypassed": true
+          }
+        ]
+      },
+      {
+        "mode": "point",
+        "variant": "after",
+        "matches": 373,
+        "active": 13,
+        "point_tv_ms": 13.958384990692139,
+        "admin_event_ms": 14.276802957057953,
+        "admin_batch_ms": 49.090689957141876,
+        "timer_max_ms": 8.497622966766357,
+        "digest": "095bb40a03754405f8ba9a4b79d68f5a01b86b1ec8b95214a3b221a6a755796c",
+        "persisted_digest": "095bb40a03754405f8ba9a4b79d68f5a01b86b1ec8b95214a3b221a6a755796c",
+        "context": [
+          {
+            "part": "match",
+            "db_queue_wait_ms": 0,
+            "read_ms": 0.2,
+            "model_read_decision": "read_only_store",
+            "model_read_bypassed": true
+          },
+          {
+            "part": "tournament",
+            "db_queue_wait_ms": 0,
+            "read_ms": 0,
+            "model_read_decision": "read_only_store",
+            "model_read_bypassed": true
+          },
+          {
+            "part": "court",
+            "db_queue_wait_ms": 0,
+            "read_ms": 0,
+            "model_read_decision": "read_only_store",
+            "model_read_bypassed": true
+          }
+        ]
+      },
+      {
+        "mode": "point",
+        "variant": "before",
+        "matches": 373,
+        "active": 13,
+        "point_tv_ms": 17.58391296863556,
+        "admin_event_ms": 17.973809957504272,
+        "admin_batch_ms": 53.42760896682739,
+        "timer_max_ms": 7.997818052768707,
+        "digest": "095bb40a03754405f8ba9a4b79d68f5a01b86b1ec8b95214a3b221a6a755796c",
+        "persisted_digest": "095bb40a03754405f8ba9a4b79d68f5a01b86b1ec8b95214a3b221a6a755796c",
+        "context": [
+          {
+            "part": "match",
+            "db_queue_wait_ms": 1.7,
+            "read_ms": 0.1,
+            "model_read_decision": "no_active_compaction",
+            "model_read_bypassed": false
+          },
+          {
+            "part": "tournament",
+            "db_queue_wait_ms": 1.8,
+            "read_ms": 0,
+            "model_read_decision": "no_active_compaction",
+            "model_read_bypassed": false
+          },
+          {
+            "part": "court",
+            "db_queue_wait_ms": 1.8,
+            "read_ms": 0,
+            "model_read_decision": "no_active_compaction",
+            "model_read_bypassed": false
+          }
+        ]
+      },
+      {
+        "mode": "point",
+        "variant": "before",
+        "matches": 373,
+        "active": 13,
+        "point_tv_ms": 16.244340002536774,
+        "admin_event_ms": 16.479492962360382,
+        "admin_batch_ms": 54.24381798505783,
+        "timer_max_ms": 11.864530980587006,
+        "digest": "095bb40a03754405f8ba9a4b79d68f5a01b86b1ec8b95214a3b221a6a755796c",
+        "persisted_digest": "095bb40a03754405f8ba9a4b79d68f5a01b86b1ec8b95214a3b221a6a755796c",
+        "context": [
+          {
+            "part": "match",
+            "db_queue_wait_ms": 2.4,
+            "read_ms": 0.2,
+            "model_read_decision": "no_active_compaction",
+            "model_read_bypassed": false
+          },
+          {
+            "part": "tournament",
+            "db_queue_wait_ms": 2.6,
+            "read_ms": 0,
+            "model_read_decision": "no_active_compaction",
+            "model_read_bypassed": false
+          },
+          {
+            "part": "court",
+            "db_queue_wait_ms": 2.6,
+            "read_ms": 0,
+            "model_read_decision": "no_active_compaction",
+            "model_read_bypassed": false
+          }
+        ]
+      },
+      {
+        "mode": "point",
+        "variant": "after",
+        "matches": 373,
+        "active": 13,
+        "point_tv_ms": 27.596714973449707,
+        "admin_event_ms": 27.925906002521515,
+        "admin_batch_ms": 73.32989698648453,
+        "timer_max_ms": 22.76874703168869,
+        "digest": "095bb40a03754405f8ba9a4b79d68f5a01b86b1ec8b95214a3b221a6a755796c",
+        "persisted_digest": "095bb40a03754405f8ba9a4b79d68f5a01b86b1ec8b95214a3b221a6a755796c",
+        "context": [
+          {
+            "part": "match",
+            "db_queue_wait_ms": 0,
+            "read_ms": 0.2,
+            "model_read_decision": "read_only_store",
+            "model_read_bypassed": true
+          },
+          {
+            "part": "tournament",
+            "db_queue_wait_ms": 0,
+            "read_ms": 0,
+            "model_read_decision": "read_only_store",
+            "model_read_bypassed": true
+          },
+          {
+            "part": "court",
+            "db_queue_wait_ms": 0,
+            "read_ms": 0,
+            "model_read_decision": "read_only_store",
+            "model_read_bypassed": true
+          }
+        ]
+      },
+      {
+        "mode": "point",
+        "variant": "after",
+        "matches": 373,
+        "active": 13,
+        "point_tv_ms": 15.745599031448364,
+        "admin_event_ms": 16.01410800218582,
+        "admin_batch_ms": 47.77233701944351,
+        "timer_max_ms": 12.767731010913849,
+        "digest": "095bb40a03754405f8ba9a4b79d68f5a01b86b1ec8b95214a3b221a6a755796c",
+        "persisted_digest": "095bb40a03754405f8ba9a4b79d68f5a01b86b1ec8b95214a3b221a6a755796c",
+        "context": [
+          {
+            "part": "match",
+            "db_queue_wait_ms": 0,
+            "read_ms": 0.2,
+            "model_read_decision": "read_only_store",
+            "model_read_bypassed": true
+          },
+          {
+            "part": "tournament",
+            "db_queue_wait_ms": 0,
+            "read_ms": 0,
+            "model_read_decision": "read_only_store",
+            "model_read_bypassed": true
+          },
+          {
+            "part": "court",
+            "db_queue_wait_ms": 0,
+            "read_ms": 0,
+            "model_read_decision": "read_only_store",
+            "model_read_bypassed": true
+          }
+        ]
+      },
+      {
+        "mode": "point",
+        "variant": "before",
+        "matches": 373,
+        "active": 13,
+        "point_tv_ms": 25.101536989212036,
+        "admin_event_ms": 25.52342998981476,
+        "admin_batch_ms": 69.19864803552628,
+        "timer_max_ms": 15.225528955459595,
+        "digest": "095bb40a03754405f8ba9a4b79d68f5a01b86b1ec8b95214a3b221a6a755796c",
+        "persisted_digest": "095bb40a03754405f8ba9a4b79d68f5a01b86b1ec8b95214a3b221a6a755796c",
+        "context": [
+          {
+            "part": "match",
+            "db_queue_wait_ms": 5.5,
+            "read_ms": 0.3,
+            "model_read_decision": "no_active_compaction",
+            "model_read_bypassed": false
+          },
+          {
+            "part": "tournament",
+            "db_queue_wait_ms": 5.8,
+            "read_ms": 0,
+            "model_read_decision": "no_active_compaction",
+            "model_read_bypassed": false
+          },
+          {
+            "part": "court",
+            "db_queue_wait_ms": 5.8,
+            "read_ms": 0,
+            "model_read_decision": "no_active_compaction",
+            "model_read_bypassed": false
+          }
+        ]
+      },
+      {
+        "mode": "point",
+        "variant": "before",
+        "matches": 373,
+        "active": 13,
+        "point_tv_ms": 19.962333023548126,
+        "admin_event_ms": 20.332677006721497,
+        "admin_batch_ms": 57.35834497213364,
+        "timer_max_ms": 13.08627599477768,
+        "digest": "095bb40a03754405f8ba9a4b79d68f5a01b86b1ec8b95214a3b221a6a755796c",
+        "persisted_digest": "095bb40a03754405f8ba9a4b79d68f5a01b86b1ec8b95214a3b221a6a755796c",
+        "context": [
+          {
+            "part": "match",
+            "db_queue_wait_ms": 3.1,
+            "read_ms": 0.3,
+            "model_read_decision": "no_active_compaction",
+            "model_read_bypassed": false
+          },
+          {
+            "part": "tournament",
+            "db_queue_wait_ms": 3.3,
+            "read_ms": 0,
+            "model_read_decision": "no_active_compaction",
+            "model_read_bypassed": false
+          },
+          {
+            "part": "court",
+            "db_queue_wait_ms": 3.3,
+            "read_ms": 0.1,
+            "model_read_decision": "no_active_compaction",
+            "model_read_bypassed": false
+          }
+        ]
+      },
+      {
+        "mode": "point",
+        "variant": "after",
+        "matches": 373,
+        "active": 13,
+        "point_tv_ms": 18.578073024749756,
+        "admin_event_ms": 18.97319197654724,
+        "admin_batch_ms": 52.47824501991272,
+        "timer_max_ms": 14.027687013149261,
+        "digest": "095bb40a03754405f8ba9a4b79d68f5a01b86b1ec8b95214a3b221a6a755796c",
+        "persisted_digest": "095bb40a03754405f8ba9a4b79d68f5a01b86b1ec8b95214a3b221a6a755796c",
+        "context": [
+          {
+            "part": "match",
+            "db_queue_wait_ms": 0.1,
+            "read_ms": 0.4,
+            "model_read_decision": "read_only_store",
+            "model_read_bypassed": true
+          },
+          {
+            "part": "tournament",
+            "db_queue_wait_ms": 0.1,
+            "read_ms": 0,
+            "model_read_decision": "read_only_store",
+            "model_read_bypassed": true
+          },
+          {
+            "part": "court",
+            "db_queue_wait_ms": 0,
+            "read_ms": 0,
+            "model_read_decision": "read_only_store",
+            "model_read_bypassed": true
+          }
+        ]
+      },
+      {
+        "mode": "point",
+        "variant": "after",
+        "matches": 373,
+        "active": 13,
+        "point_tv_ms": 25.50891798734665,
+        "admin_event_ms": 25.895015001296997,
+        "admin_batch_ms": 65.03305405378342,
+        "timer_max_ms": 18.414774000644684,
+        "digest": "095bb40a03754405f8ba9a4b79d68f5a01b86b1ec8b95214a3b221a6a755796c",
+        "persisted_digest": "095bb40a03754405f8ba9a4b79d68f5a01b86b1ec8b95214a3b221a6a755796c",
+        "context": [
+          {
+            "part": "match",
+            "db_queue_wait_ms": 0.1,
+            "read_ms": 0.4,
+            "model_read_decision": "read_only_store",
+            "model_read_bypassed": true
+          },
+          {
+            "part": "tournament",
+            "db_queue_wait_ms": 0,
+            "read_ms": 0,
+            "model_read_decision": "read_only_store",
+            "model_read_bypassed": true
+          },
+          {
+            "part": "court",
+            "db_queue_wait_ms": 0,
+            "read_ms": 0,
+            "model_read_decision": "read_only_store",
+            "model_read_bypassed": true
+          }
+        ]
+      },
+      {
+        "mode": "point",
+        "variant": "before",
+        "matches": 373,
+        "active": 13,
+        "point_tv_ms": 19.227783977985382,
+        "admin_event_ms": 19.611212968826294,
+        "admin_batch_ms": 47.93758898973465,
+        "timer_max_ms": 12.023139953613281,
+        "digest": "095bb40a03754405f8ba9a4b79d68f5a01b86b1ec8b95214a3b221a6a755796c",
+        "persisted_digest": "095bb40a03754405f8ba9a4b79d68f5a01b86b1ec8b95214a3b221a6a755796c",
+        "context": [
+          {
+            "part": "match",
+            "db_queue_wait_ms": 3,
+            "read_ms": 0.3,
+            "model_read_decision": "no_active_compaction",
+            "model_read_bypassed": false
+          },
+          {
+            "part": "tournament",
+            "db_queue_wait_ms": 3.2,
+            "read_ms": 0,
+            "model_read_decision": "no_active_compaction",
+            "model_read_bypassed": false
+          },
+          {
+            "part": "court",
+            "db_queue_wait_ms": 3.2,
+            "read_ms": 0,
+            "model_read_decision": "no_active_compaction",
+            "model_read_bypassed": false
+          }
+        ]
+      },
+      {
+        "mode": "point",
+        "variant": "before",
+        "matches": 373,
+        "active": 13,
+        "point_tv_ms": 14.148842990398407,
+        "admin_event_ms": 14.415049970149994,
+        "admin_batch_ms": 48.17975699901581,
+        "timer_max_ms": 8.71330201625824,
+        "digest": "095bb40a03754405f8ba9a4b79d68f5a01b86b1ec8b95214a3b221a6a755796c",
+        "persisted_digest": "095bb40a03754405f8ba9a4b79d68f5a01b86b1ec8b95214a3b221a6a755796c",
+        "context": [
+          {
+            "part": "match",
+            "db_queue_wait_ms": 2.7,
+            "read_ms": 0.2,
+            "model_read_decision": "no_active_compaction",
+            "model_read_bypassed": false
+          },
+          {
+            "part": "tournament",
+            "db_queue_wait_ms": 2.9,
+            "read_ms": 0,
+            "model_read_decision": "no_active_compaction",
+            "model_read_bypassed": false
+          },
+          {
+            "part": "court",
+            "db_queue_wait_ms": 2.9,
+            "read_ms": 0.1,
+            "model_read_decision": "no_active_compaction",
+            "model_read_bypassed": false
+          }
+        ]
+      },
+      {
+        "mode": "point",
+        "variant": "after",
+        "matches": 373,
+        "active": 13,
+        "point_tv_ms": 13.542195975780487,
+        "admin_event_ms": 13.738864004611969,
+        "admin_batch_ms": 39.610873997211456,
+        "timer_max_ms": 9.402643978595734,
+        "digest": "095bb40a03754405f8ba9a4b79d68f5a01b86b1ec8b95214a3b221a6a755796c",
+        "persisted_digest": "095bb40a03754405f8ba9a4b79d68f5a01b86b1ec8b95214a3b221a6a755796c",
+        "context": [
+          {
+            "part": "match",
+            "db_queue_wait_ms": 0,
+            "read_ms": 0.1,
+            "model_read_decision": "read_only_store",
+            "model_read_bypassed": true
+          },
+          {
+            "part": "tournament",
+            "db_queue_wait_ms": 0,
+            "read_ms": 0,
+            "model_read_decision": "read_only_store",
+            "model_read_bypassed": true
+          },
+          {
+            "part": "court",
+            "db_queue_wait_ms": 0,
+            "read_ms": 0,
+            "model_read_decision": "read_only_store",
+            "model_read_bypassed": true
+          }
+        ]
+      },
+      {
+        "mode": "point",
+        "variant": "after",
+        "matches": 373,
+        "active": 13,
+        "point_tv_ms": 24.3904709815979,
+        "admin_event_ms": 24.759590983390808,
+        "admin_batch_ms": 67.13698697090149,
+        "timer_max_ms": 16.49411702156067,
+        "digest": "095bb40a03754405f8ba9a4b79d68f5a01b86b1ec8b95214a3b221a6a755796c",
+        "persisted_digest": "095bb40a03754405f8ba9a4b79d68f5a01b86b1ec8b95214a3b221a6a755796c",
+        "context": [
+          {
+            "part": "match",
+            "db_queue_wait_ms": 0.1,
+            "read_ms": 0.5,
+            "model_read_decision": "read_only_store",
+            "model_read_bypassed": true
+          },
+          {
+            "part": "tournament",
+            "db_queue_wait_ms": 0.1,
+            "read_ms": 0,
+            "model_read_decision": "read_only_store",
+            "model_read_bypassed": true
+          },
+          {
+            "part": "court",
+            "db_queue_wait_ms": 0,
+            "read_ms": 0,
+            "model_read_decision": "read_only_store",
+            "model_read_bypassed": true
+          }
+        ]
+      },
+      {
+        "mode": "point",
+        "variant": "before",
+        "matches": 373,
+        "active": 13,
+        "point_tv_ms": 13.348239004611969,
+        "admin_event_ms": 13.496994972229004,
+        "admin_batch_ms": 32.23424303531647,
+        "timer_max_ms": 6.720117032527924,
+        "digest": "095bb40a03754405f8ba9a4b79d68f5a01b86b1ec8b95214a3b221a6a755796c",
+        "persisted_digest": "095bb40a03754405f8ba9a4b79d68f5a01b86b1ec8b95214a3b221a6a755796c",
+        "context": [
+          {
+            "part": "match",
+            "db_queue_wait_ms": 4.5,
+            "read_ms": 0.2,
+            "model_read_decision": "no_active_compaction",
+            "model_read_bypassed": false
+          },
+          {
+            "part": "tournament",
+            "db_queue_wait_ms": 4.7,
+            "read_ms": 0,
+            "model_read_decision": "no_active_compaction",
+            "model_read_bypassed": false
+          },
+          {
+            "part": "court",
+            "db_queue_wait_ms": 4.7,
+            "read_ms": 0,
+            "model_read_decision": "no_active_compaction",
+            "model_read_bypassed": false
+          }
+        ]
+      }
+    ],
+    "limitations": [
+      "Feature on/off comparison includes the new queue observer in both variants.",
+      "Frozen older copy of the tournament: 373 games, 13 active.",
+      "Six preparation UI requests enqueue 36 snapshot reads before a real BUP score update.",
+      "Cold starts are included; first sample is substantially slower.",
+      "Read queue waiting is reduced; overall point latency improvement is not established.",
+      "No actual network delivery, browser rendering, speech synthesis or BTP exchange.",
+      "Only temporary copies are written."
+    ]
+  },
+  "validation": {
+    "regression_tests_passed": 285,
+    "new_tests": 10,
+    "source_lint_passed": true,
+    "diff_check_passed": true
+  }
+}

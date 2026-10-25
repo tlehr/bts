@@ -11,6 +11,10 @@ Use [bup](https://github.com/phihag/bup/) at tournaments.
 docker run -p 4000:4000 phihag/bts
 ```
 
+For local speech, also publish the worker's audio port (`-p 4001:4001` with
+the default HTTP configuration). Browsers fetch audio directly from that worker.
+See [local speech setup](docs/local-tts-integration.md).
+
 ## Manual installation
 
 To install, type
@@ -22,7 +26,18 @@ To start, type
 	make run  # Production mode
 	make dev  # Development mode
 
-The server is quiet during normal operation; actual errors remain visible.
+`make dev` prints supervisor startup/restart messages and watches `bts/`.
+Editing tests or helper scripts does not restart the tournament server.
+Supervisor's “crashing child” means a restart requested by its file watcher;
+it does not by itself mean an application crash. With both `make dev` and
+`make run`, server diagnostics follow the saved tournament settings in the UI.
+Without enabled diagnostics, the server is quiet; actual errors remain visible.
+Speech failures are also shown in a prominent banner in every admin window,
+including newly opened windows, until the service recovers. Clients subscribe
+to the status protocol before receiving notifications; older windows
+need a reload to display the new banner and receive no unknown message types.
+Worker failures restart only speech management. Causes are logged regardless of diagnostics;
+identical repeated speech errors are logged at most once per 30 seconds.
 Under tournament settings → Debug, **detailed server diagnostics** enables
 sync measurements, slow queue reports, render acknowledgement diagnostics and
 tablet operator audit output. The setting takes effect immediately and is saved
@@ -33,7 +48,8 @@ any tournament. Other existing debug switches remain independent.
 `BTS_SERVER_DIAGNOSTICS=0` disables the new diagnostics setting globally.
 Explicit diagnostic environment variables such as `BTS_BTP_SYNC_TIMING=1`,
 `BTS_TABLETOPERATOR_AUDIT=1` or `BTS_SCORE_PRESS_TIMING=1` still enable their own
-output. Leave these variables unset to control logging through the admin menu.
+output. Leave these variables unset to control logging through the admin menu
+with either `make dev` or `make run`.
 
 ## Development checks
 

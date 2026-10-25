@@ -269,6 +269,40 @@ describe('BTP fetch and integration pipeline', function() {
 		});
 	}
 
+	for (const phase of ['receiving', 'queued']) {
+		it(`discards an older ${phase} import after clearing courts and accepts the next fresh import`, async function() {
+			const { conn, state, sent } = current;
+			const resetter = require('../bts/btp_court_assignments_reset');
+			const original = resetter.reset;
+			resetter.reset = async () => ({ allowed_match_ids: [], btp_changed_matches: 0, skipped_matches: 0 });
+			const blocker = phase === 'queued' ? await block_tournament(conn) : null;
+			const fetch = conn.fetch(conn, true);
+			try {
+				await sent;
+				if (phase === 'queued') {
+					state.reply(RESPONSE);
+					await wait_for_integration(conn);
+				}
+				await conn.clear_court_assignments([]);
+				if (phase === 'receiving') state.reply(RESPONSE);
+			} finally {
+				resetter.reset = original;
+				blocker?.release();
+			}
+			assert.strictEqual(await fetch, null);
+			if (blocker) await blocker.done;
+			assert.strictEqual(state.applies, 0);
+			assert.strictEqual(state.preparations, 0);
+			assert.strictEqual(conn.last_applied_fetch_response_hash, null);
+			assert.strictEqual(state.schedules, 1, 'automatic imports must continue after the obsolete snapshot was discarded');
+			const fresh = conn.fetch(conn, true);
+			while (state.sends < 2) await turn();
+			state.reply(RESPONSE);
+			assert.strictEqual(await fresh, true);
+			assert.strictEqual(state.applies, 1);
+		});
+	}
+
 	it('rechecks local edits after waiting even for an identical response', async function() {
 		const { conn, state, sent } = current;
 		conn.last_applied_fetch_response_hash = _hash_fetch_response(RESPONSE);

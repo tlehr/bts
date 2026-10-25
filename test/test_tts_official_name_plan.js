@@ -4,7 +4,7 @@ const { gameblocks } = require('../scripts/tts-gameblock-context-plan');
 const { officialNames } = require('../scripts/tts-official-name-plan');
 
 const team = (...names) => ({ players: names.map(name => ({ name })) });
-const existing = (normalizations = [], teams = [team('Max Hahn'), team('Andere Person')]) => gameblocks({ normalizations }, [
+const existing = (normalizations = [], teams = [team('Hans Dampf'), team('Andere Person')]) => gameblocks({ normalizations }, [
     { id: 'actual', label: 'Actual', setup: { match_num: 1, event_name: 'JE U17', match_name: 'R16', teams } },
 ]);
 
@@ -12,20 +12,20 @@ describe('Demand-driven v2 official names', function() {
     it('shares one new source across roles and games and preserves an existing player-name excerpt exactly', function() {
         const base = existing(), snapshot = JSON.stringify(base);
         const plan = officialNames(base, [
-            { _id: 'one', setup: { umpire: { name: 'Tim Lehr' }, service_judge: { name: 'Max Hahn' } } },
-            { _id: 'two', setup: { service_judge: { name: 'Tim Lehr' }, umpire: { name: 'Tim Lehr' } } },
+            { _id: 'one', setup: { umpire: { name: 'Max Mustermann' }, service_judge: { name: 'Hans Dampf' } } },
+            { _id: 'two', setup: { service_judge: { name: 'Max Mustermann' }, umpire: { name: 'Max Mustermann' } } },
         ]);
         assert.strictEqual(JSON.stringify(base), snapshot);
         assert.strictEqual(plan.sources.length, 2);
         assert.strictEqual(plan.pieces.length, 2, 'only the required second positions are prepared');
         assert.strictEqual(plan.scope.sources_not_in_existing_plan, 1);
-        const tim = plan.scope.official_names.find(n => n.spoken === 'Tim Lehr');
+        const tim = plan.scope.official_names.find(n => n.spoken === 'Max Mustermann');
         assert.deepStrictEqual(tim.roles, ['umpire', 'service']);
         assert.strictEqual(tim.requests.length, 3);
-        const max = plan.scope.official_names.find(n => n.spoken === 'Max Hahn');
-        const cached = base.pieces.find(p => p.text === 'Max Hahn' && p.profile === 'lab-v2/team-after-gegen');
+        const max = plan.scope.official_names.find(n => n.spoken === 'Hans Dampf');
+        const cached = base.pieces.find(p => p.text === 'Hans Dampf' && p.profile === 'lab-v2/team-after-gegen');
         assert.deepStrictEqual(plan.pieces.find(p => p.id === max.piece), cached);
-        assert(plan.sources.some(s => s.text === 'Tim Lehr spielt jetzt gegen Tim Lehr!'));
+        assert(plan.sources.some(s => s.text === 'Max Mustermann spielt jetzt gegen Max Mustermann!'));
         for (const p of plan.pieces) {
             assert.strictEqual(p.before, p.text + ' spielt jetzt gegen ');
             assert.strictEqual(p.after, '!');
@@ -41,10 +41,10 @@ describe('Demand-driven v2 official names', function() {
         assert.strictEqual(result.sources[0].profile, 'lab-v2/team-repeat-plays-now');
     });
     it('does not extract an individual from a doubles context or import unrelated roster names', function() {
-        const result = officialNames(existing([], [team('Max Hahn', 'Partner Eins'), team('Andere', 'Partner Zwei')]),
-            [{ umpire: { name: 'Max Hahn' } }]);
+        const result = officialNames(existing([], [team('Hans Dampf', 'Partner Eins'), team('Andere', 'Partner Zwei')]),
+            [{ umpire: { name: 'Hans Dampf' } }]);
         assert.strictEqual(result.sources.length, 1);
-        assert.strictEqual(result.sources[0].text, 'Max Hahn spielt jetzt gegen Max Hahn!');
+        assert.strictEqual(result.sources[0].text, 'Hans Dampf spielt jetzt gegen Hans Dampf!');
         assert.strictEqual(result.scope.sources_not_in_existing_plan, 1);
         assert(!result.sources[0].text.includes('Partner'));
     });
@@ -60,8 +60,8 @@ describe('Demand-driven v2 official names', function() {
         const wrong = existing(); wrong.pronunciation.numbers = 'outdated';
         assert.throws(() => officialNames(wrong, []), /pronunciation/);
         const bad = existing();
-        const piece = bad.pieces.find(p => p.text === 'Max Hahn' && p.profile === 'lab-v2/team-after-gegen');
+        const piece = bad.pieces.find(p => p.text === 'Hans Dampf' && p.profile === 'lab-v2/team-after-gegen');
         bad.sources.find(s => s.id === piece.source).text = 'Different context';
-        assert.strictEqual(officialNames(bad, [{ umpire: { name: 'Max Hahn' } }]).scope.sources_not_in_existing_plan, 1);
+        assert.strictEqual(officialNames(bad, [{ umpire: { name: 'Hans Dampf' } }]).scope.sources_not_in_existing_plan, 1);
     });
 });

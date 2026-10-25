@@ -9,7 +9,8 @@ const RECOVERY_POLICY = 'context-recovery-v1';
 
 function cleanRecovery(value) {
     if (!value || value.policy !== RECOVERY_POLICY || ![null, 'context', 'name'].includes(value.stage) || typeof value.terminal !== 'boolean') return null;
-    return { policy: RECOVERY_POLICY, stage: value.stage, terminal: value.terminal };
+    return { policy: RECOVERY_POLICY, stage: value.stage, terminal: value.terminal,
+        ...(typeof value.source_key === 'string' && /^[0-9a-f]{64}$/.test(value.source_key) ? { source_key: value.source_key } : {}) };
 }
 
 function cleanEvent(row) {
@@ -77,8 +78,9 @@ class SpeechFailures {
 
     recovery(identity, key) { return cleanRecovery(this.records.get(this.id(identity, key))?.recovery); }
 
-    remember_recovery(identity, key, stage, terminal) {
-        return this.save(identity, key, row => { row.recovery = { policy: RECOVERY_POLICY, stage: stage || null, terminal }; });
+    remember_recovery(identity, key, stage, terminal, source_key) {
+        return this.save(identity, key, row => { row.recovery = { policy: RECOVERY_POLICY, stage: stage || null, terminal,
+            ...(source_key ? { source_key } : {}) }; });
     }
 
     save(identity, key, update) {

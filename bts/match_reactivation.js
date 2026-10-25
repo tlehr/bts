@@ -16,6 +16,7 @@ module.exports = function reset_finished_result(app, tournament, match, callback
 			btp_winner: true,
 			score_status_network_score: true,
 			end_ts: true,
+			tabletoperator_finish_ts: true,
 		},
 	}, { returnUpdatedDocs: true }, (err, count, updated) => {
 		if (err) return callback(err);

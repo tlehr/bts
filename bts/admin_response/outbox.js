@@ -79,6 +79,16 @@ module.exports = function outbox(ws, encode = require('./encoder').encode) {
 			const entry = { encoded, details, queued: performance.now(), ...tracked(message) };
 			if (active) pending.push(entry); else send(encoded, details, entry);
 		},
+		shared(packet) {
+			if (closed) return;
+			// One immutable text payload for a broadcast, with each socket's own
+			// reservation, wait span and delivery event. Retain bytes, not live DTOs.
+			const details = ws.listenerCount('bts:message_sent') ? { rid: packet.rid, ctype: packet.ctype,
+				bytes: packet.bytes.length, elapsed_ms: packet.elapsed_ms } : null;
+			const message = { type: packet.type, ctype: packet.ctype };
+			const entry = { encoded: packet.bytes, details, message, queued: performance.now(), ...tracked(message) };
+			if (active) pending.push(entry); else send(packet.bytes, details, entry);
+		},
 		large(message, key) {
 			if (closed) return;
 			pending.push({ message, key, encode: true, queued: performance.now(), ...tracked(message) });
@@ -97,4 +107,15 @@ module.exports = function outbox(ws, encode = require('./encoder').encode) {
 			drain();
 		},
 	};
+};
+
+// Created afresh for each notify_change call, never cached across revisions.
+// Server WebSockets send an unmasked text frame and do not mutate this Buffer.
+module.exports.prepare_broadcast = function(message) {
+	const span = traces.begin('admin_broadcast_encode', 'encoding'), started = performance.now();
+	try {
+		const bytes = Buffer.from(JSON.stringify(message));
+		const packet = { bytes, rid: message.rid, type: message.type, ctype: message.ctype, elapsed_ms: performance.now() - started };
+		traces.end(span); return packet;
+	} catch (error) { traces.end(span, error); throw error; }
 };

@@ -34,6 +34,7 @@ function snapshot(app, sockets, key, trace_cursor) {
 		lock, database, workers: registry.snapshots().filter(row => row.enqueued_count > 0),
 		event_loop: last_loop ? { ...last_loop, gc: gc.snapshot(now) } : null,
 		processing: require('./traces').snapshot(trace_cursor),
+		speech: app.speech?.diagnostics?.() || { execution: app.speech?.broker?.config?.enabled ? 'inline' : 'disabled' },
 		admin_encoding_cache: require('../admin_response/match_cache').stats(),
 		outgoing: { sockets: outgoing.length, pending: outgoing.reduce((n, s) => n + s.pending, 0),
 			active: outgoing.reduce((n, s) => n + s.active, 0),

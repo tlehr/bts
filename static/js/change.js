@@ -617,6 +617,18 @@ var change = (function() {
 				rerender();
 			}
 			break;
+		case 'court_assignments_reset': {
+			const setups = new Map(c.val.matches.map(match => [match._id, match.setup]));
+			for (const match of curt.matches) {
+				if (setups.has(match._id)) match.setup = setups.get(match._id);
+			}
+			const courts = new Map(c.val.courts.map(court => [court._id, court]));
+			curt.courts = curt.courts.map(court => courts.get(court._id) || court);
+			curt.courts_by_id = Object.fromEntries(curt.courts.map(court => [court._id, court]));
+			// Keep the settings form and its pending action/status intact.
+			if (current_view !== 'edit') ctournament.refresh_current_view();
+			break;
+		}
 		case 'player_pause_reset':
 			if (ctournament && typeof ctournament.refresh_current_view === 'function') {
 				ctournament.refresh_current_view();

@@ -9,6 +9,23 @@ function extract_first_match_status(req) {
 }
 
 _describe('btp_proto update_request', () => {
+	_it('preserves the imported match order in ordinary match updates, including zero', () => {
+		for (const order of [0, 7, 42]) {
+			const request = btp_proto.update_request({
+				btp_match_ids: [{ id: 1, draw: 2, planning: 3 }], setup: {}, match_order: order,
+			}, 'session');
+			assert.strictEqual(request.Update.Tournament.Matches[0].Match.MatchOrder, order);
+		}
+	});
+
+	_it('sends explicit zero court assignments and leaves unspecified courts out', () => {
+		const match = { btp_match_ids: [{ id: 1, draw: 2, planning: 3 }], setup: {} };
+		for (const court of [0, 7]) {
+			assert.strictEqual(btp_proto.update_request(match, 'session', null, null, null, court)
+				.Update.Tournament.Matches[0].Match.CourtID, court);
+		}
+		assert(!('CourtID' in btp_proto.update_request(match, 'session').Update.Tournament.Matches[0].Match));
+	});
 	_it('sends a no-match result without inventing a winner or score', () => {
 		const req = btp_proto.update_request({
 			btp_match_ids: [{ id: 1, draw: 2, planning: 3 }],

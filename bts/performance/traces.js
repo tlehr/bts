@@ -12,7 +12,8 @@ const TYPES = ['point', 'finish', 'sync', 'calling', 'admin', 'other'];
 const is_db = row => row.kind.startsWith('db_');
 function db_name(name) {
 	const [collection, task = 'other'] = name.split(':');
-	const operation = ['find', 'findOne', 'insert', 'update', 'remove', 'compact', 'loadDatabase'].includes(task) ? task
+	const operation = task === 'score_update_write' ? 'update'
+		: ['find', 'findOne', 'insert', 'update', 'remove', 'compact', 'loadDatabase'].includes(task) ? task
 		: /score_context|sync_snapshot|overview|read/.test(task) ? 'model_read' : 'other';
 	return collection + ':' + operation;
 }
@@ -66,7 +67,7 @@ function clean(details = {}) {
 			'compaction_read_decision', 'model_read_bypassed', 'model_read_decision', 'db_queue_wait_ms', 'read_ms', 'queue_depth_at_enqueue',
 			'compaction_pending_at_enqueue', 'snapshot_encode_ms', 'stage_write_ms', 'commit_queue_wait_ms',
 			'commit_start_ts', 'commit_end_ts', 'commit_locked_ms', 'input_documents', 'catchup_documents',
-			'commit_documents'].includes(key)) continue;
+			'commit_documents', 'part_count', 'context_part_count', 'completed_count'].includes(key)) continue;
 		if (typeof value === 'string') result[key] = value.slice(0, 200);
 		else if (typeof value === 'number' || typeof value === 'boolean' || value === null) result[key] = value;
 		else if (Array.isArray(value)) { result[key] = value.slice(0, 40).map(item => typeof item === 'string' ? item.slice(0, 200)

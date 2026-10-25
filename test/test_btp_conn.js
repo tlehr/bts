@@ -12,6 +12,37 @@ const {
 } = require('../bts/btp_conn');
 
 describe('btp_conn', function() {
+	it('retains repaired positions when ordinary game updates pass through the connection', async function() {
+		const db = await require('../bts/database').init_test();
+		await new Promise((resolve, reject) => db.tournaments.insert({ key: 'test' }, error => error ? reject(error) : resolve()));
+		const conn = Object.create(BTPConn.prototype);
+		Object.assign(conn, { app: { db }, tkey: 'test', key_unicode: 'session' });
+		for (const order of [9, 13, 0]) {
+			const request = await new Promise(resolve => {
+				conn.send = (value, callback) => { resolve(value); callback({ Action: [{ Result: [1] }] }); };
+				conn.update_score({ btp_match_ids: [{ id: 48, draw: 2, planning: 3 }], match_order: order, setup: {} });
+			});
+			assert.strictEqual(request.Update.Tournament.Matches[0].Match.MatchOrder, order);
+		}
+	});
+
+	it('transmits an explicit editor court removal without clearing unspecified courts', async function() {
+		const db = await require('../bts/database').init_test();
+		await new Promise((resolve, reject) => db.tournaments.insert({ key: 'test' }, error => error ? reject(error) : resolve()));
+		const conn = Object.create(BTPConn.prototype);
+		conn.app = { db };
+		conn.tkey = 'test';
+		conn.key_unicode = 'session';
+		for (const clear of [false, true]) {
+			const request = await new Promise(resolve => {
+				conn.send = (request, callback) => { resolve(request); callback({ Action: [{ Result: [1] }] }); };
+				conn.update_score({ btp_match_ids: [{ id: 1, draw: 2, planning: 3 }], setup: { court_id: null }, btp_clear_court: clear });
+			});
+			const match = request.Update.Tournament.Matches[0].Match;
+			assert.strictEqual(match.CourtID, clear ? 0 : undefined);
+		}
+	});
+
 	it('retries pending no-match results without a winner after reconnecting', function() {
 		const result = { _id: 'no-winner', score_status: 'no_match', btp_needsync: true };
 		const normal = { _id: 'normal', team1_won: false, btp_needsync: true };

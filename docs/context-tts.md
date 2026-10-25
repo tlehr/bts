@@ -20,9 +20,20 @@ Für B01 benötigen `F` Felder und `S` bekannte Spiele also `F` feste Feldrefere
 
 `speech_context.js` plant die Ausschnitte gemeinsam für Browser, Bereitschaftsanzeigen und Backend. Seine internen Beschreibungen bleiben in der Übertragung; die Einstellungen zeigen die lesbaren Zieltexte. Zahlen bleiben dort Ziffern und werden erst vor der Anfrage an den Sprachserver ausgeschrieben.
 
+## Fiktive Namen in gemeinsamen Kontexten
+
+Die festen Beispiel- und Kontextquellen verwenden Max Mustermann, Hans Dampf
+sowie Erika Musterfrau und Otto Normalverbraucher. Diese Namen sind fiktive
+Platzhalter für die Sprachmelodie. Tatsächliche Team- und Offiziellennamen werden
+weiterhin aus den jeweiligen Turnierdaten übernommen.
+
+Geänderte Kontexttexte bekommen neue Cache-Schlüssel und werden gegen ihre neue
+Aufnahme geschnitten. Bereits gespeicherte Audio- und Laboraufnahmen werden durch
+die Änderung der Vorlagen nicht gelöscht oder umbeschriftet.
+
 ## Reihenfolge und Cache
 
-Beide Teams, die gerade auf einem Feld spielen (`oncourt` mit Feldzuweisung), werden als mögliche nächste Tabletbediener mit normaler Priorität vorbereitet. Nur angesetzte oder in Vorbereitung befindliche Teams erzeugen keine zusätzlichen möglichen Tabletrollen. Zusätzlich liest BTS die gespeicherte Warteliste der Bediener; deren noch offene Dienstgruppen werden als Vorrat vorbereitet, auch wenn das zugehörige Spiel schon beendet ist oder BTS neu gestartet wurde. Bereits beendete Dienste erzeugen keine zusätzliche Vorbereitung. Die beiden möglichen Gruppen erhalten keine echten Bedienerzuweisungen durch diese Planung. Tatsächliche Zuordnung und Ansagetexte bleiben unverändert. Nach jeder Vorabplanung entfallen nicht mehr benötigte Hintergrundaufträge aus der Warteschlange. Ein bestätigtes Spielende löst dies auch über das tatsächliche `score`-Ereignis aus; normale Punkte lösen keine zusätzliche Planung aus. Eine ausdrücklich angeforderte Kontextansage bleibt zehn Sekunden geschützt und wird danach ebenfalls entfernt, falls sie nicht mehr benötigt wird. Freie Texte und Aufträge anderer Turniere bleiben erhalten; ein laufender Auftrag wird abgeschlossen, fertige Dateien bleiben im dauerhaften Cache.
+Beide Teams, die gerade auf einem Feld spielen (`oncourt` mit Feldzuweisung), werden als mögliche nächste Tabletbediener mit normaler Priorität vorbereitet. Nur angesetzte oder in Vorbereitung befindliche Teams erzeugen keine zusätzlichen möglichen Tabletrollen. Zusätzlich liest BTS die gespeicherte Warteliste der Bediener; deren noch offene Dienstgruppen werden vor den laufenden Spielen mit normaler Priorität vorbereitet, auch wenn das zugehörige Spiel schon beendet ist oder BTS neu gestartet wurde. Bereits beendete Dienste erzeugen keine zusätzliche Vorbereitung. Die beiden möglichen Gruppen erhalten keine echten Bedienerzuweisungen durch diese Planung. Tatsächliche Zuordnung und Ansagetexte bleiben unverändert. Nach jeder Vorabplanung entfallen nicht mehr benötigte Hintergrundaufträge aus der Warteschlange. Ein bestätigtes Spielende löst dies auch über das tatsächliche `score`-Ereignis aus; normale Punkte lösen keine zusätzliche Planung aus. Eine ausdrücklich angeforderte Kontextansage bleibt zehn Sekunden geschützt und wird danach ebenfalls entfernt, falls sie nicht mehr benötigt wird. Freie Texte und Aufträge anderer Turniere bleiben erhalten; ein laufender Auftrag wird abgeschlossen, fertige Dateien bleiben im dauerhaften Cache.
 
 Zuerst kommen die Feldaufnahmen für alle aktiven Felder und B12. Anschließend werden die nahen Aufrufe einschließlich fehlender Hallen-/Offiziellen-Teile vervollständigt. Die regulären Spielblöcke folgen ihrer Spielnummer. Weitere Spiele mit bekannten Teams werden ebenfalls vorgemerkt; die Zahl der nahen Spiele steuert `prefetch_matches`, die Gesamtvormerkung bleibt durch `max_entries` begrenzt (Standard jetzt 4096).
 

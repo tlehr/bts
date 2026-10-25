@@ -1,0 +1,344 @@
+/* stylelint-disable no-descending-specificity */
+:root {
+	font-family: system-ui, sans-serif;
+	color: #243d46;
+	background: #f3f6f7;
+}
+
+* {
+	box-sizing: border-box;
+}
+
+body {
+	margin: 0;
+}
+
+main {
+	max-width: 1600px;
+	margin: auto;
+	padding: 24px;
+}
+
+header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	gap: 20px;
+}
+
+h1 {
+	margin: 6px 0;
+	font-size: 28px;
+}
+
+h2 {
+	font-size: 20px;
+	margin-top: 28px;
+}
+
+p {
+	line-height: 1.5;
+}
+
+a {
+	color: #236c78;
+}
+
+.eyebrow {
+	text-transform: uppercase;
+	letter-spacing: 0.1em;
+	font-size: 12px;
+}
+
+nav {
+	display: flex;
+	gap: 8px;
+	margin: 22px 0;
+}
+
+button,
+input,
+select {
+	font: inherit;
+}
+
+button {
+	cursor: pointer;
+	padding: 8px 12px;
+	border: 1px solid #cbd8dd;
+	border-radius: 6px;
+	color: #244b58;
+	background: white;
+}
+
+button:hover {
+	background: #edf5f7;
+}
+
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+summary:focus-visible {
+	outline: 3px solid #2b8595;
+	outline-offset: 2px;
+}
+
+button[aria-pressed=true] {
+	color: white;
+	background: #326978;
+}
+
+section {
+	border: 1px solid #d6e0e4;
+	border-radius: 10px;
+	background: white;
+	padding: 20px;
+	min-width: 0;
+}
+
+[hidden] {
+	display: none !important;
+}
+
+.toolbar {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: end;
+	gap: 14px;
+	margin-bottom: 14px;
+}
+
+label {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	font-size: 13px;
+}
+
+label:has(input[type=checkbox]) {
+	flex-direction: row;
+	align-items: center;
+}
+
+input,
+select {
+	border: 1px solid #cad7dd;
+	border-radius: 5px;
+	padding: 7px;
+	min-width: 0;
+}
+
+.hint,
+small,
+.empty,
+#log-summary,
+#device-summary {
+	color: #5e7681;
+	font-size: 12px;
+}
+
+#connection {
+	padding: 10px 14px;
+	border-radius: 6px;
+	background: #e3f0e9;
+}
+
+#error {
+	padding: 12px;
+	border: 1px solid #dc8881;
+	border-radius: 6px;
+	background: #fff0ee;
+	color: #87342d;
+}
+
+#logs {
+	list-style: none;
+	padding: 0;
+	margin: 20px 0 0;
+}
+
+#logs li {
+	border-top: 1px solid #e0e7eb;
+}
+
+summary {
+	cursor: pointer;
+	padding: 13px 6px;
+}
+
+summary > * {
+	margin-right: 12px;
+}
+
+summary strong {
+	font-size: 13px;
+	font-weight: 500;
+	overflow-wrap: anywhere;
+}
+
+summary time,
+.source {
+	color: #60747e;
+	font-size: 12px;
+}
+
+.severity,
+.online {
+	border-radius: 4px;
+	padding: 4px 7px;
+	font-size: 12px;
+	display: inline-block;
+}
+
+.severity.error,
+.online.no {
+	background: #ffebe9;
+	color: #9b342a;
+}
+
+.severity.warn {
+	background: #fff2cf;
+	color: #815913;
+}
+
+.severity.info,
+.online.yes {
+	background: #e6f1ea;
+	color: #2f6346;
+}
+
+.severity.debug {
+	background: #e7edf5;
+	color: #3e5e81;
+}
+
+.log-body {
+	padding: 0 10px 12px;
+}
+
+pre {
+	white-space: pre-wrap;
+	overflow-wrap: anywhere;
+	font: 12px/1.6 monospace;
+	background: #f5f7f9;
+	padding: 14px;
+	border-radius: 6px;
+}
+
+.log-body p {
+	font-size: 12px;
+	color: #536d78;
+	overflow-wrap: anywhere;
+}
+
+table {
+	width: 100%;
+	border-collapse: collapse;
+	font-size: 13px;
+}
+
+th,
+td {
+	text-align: left;
+	vertical-align: top;
+	padding: 12px 10px;
+	border-bottom: 1px solid #dce5e9;
+	overflow-wrap: anywhere;
+}
+
+td small {
+	display: block;
+	margin-top: 6px;
+}
+
+td button {
+	display: block;
+	margin-bottom: 6px;
+	font-size: 12px;
+}
+
+article {
+	padding: 14px;
+	background: #f6f9fa;
+	border: 1px solid #dce4e8;
+	border-radius: 8px;
+	margin: 12px 0;
+}
+
+.command-heading {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	flex-wrap: wrap;
+	gap: 10px;
+}
+
+article ul {
+	padding: 0;
+	list-style: none;
+}
+
+article li {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 12px;
+	border-top: 1px solid #dce4e8;
+	padding: 10px 0;
+	font-size: 12px;
+	overflow-wrap: anywhere;
+}
+
+@media (max-width: 850px) {
+
+	main {
+		padding: 12px;
+	}
+
+	section {
+		padding: 12px;
+	}
+
+	header {
+		flex-direction: column;
+		align-items: start;
+	}
+
+	table,
+	tbody,
+	tr,
+	td {
+		display: block;
+	}
+
+	thead {
+		display: none;
+	}
+
+	tr {
+		border-bottom: 2px solid #cad8de;
+		padding-bottom: 12px;
+	}
+
+	td {
+		border: 0;
+		padding: 7px 0;
+	}
+
+	td button {
+		display: inline-block;
+		margin: 0 5px 5px 0;
+	}
+
+	.toolbar {
+		align-items: stretch;
+	}
+
+	label {
+		max-width: 100%;
+	}
+
+	summary > * {
+		display: inline-block;
+		margin-bottom: 6px;
+	}
+}

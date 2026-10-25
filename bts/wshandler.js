@@ -10,6 +10,7 @@ function handle(mod, app, ws) {
 		outbox.send(msg);
 	}
 	ws.sendmsg = _ws_sendmsg;
+	ws.send_broadcast = outbox.shared;
 
 	function response_message(request, err, response) {
 		if (err) {

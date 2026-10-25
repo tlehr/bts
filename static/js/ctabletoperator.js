@@ -205,7 +205,7 @@ function bind_resize_handler_once() {
 	}
 	resize_handler_bound = true;
 	window.addEventListener('resize', () => {
-		schedule_fit_unassigned_tableoperators(uiu.qs('.unassigned_tableoperators_container'));
+		schedule_fit_unassigned_tableoperators(document.querySelector('.unassigned_tableoperators_container'));
 	});
 }
 
@@ -217,7 +217,7 @@ function observe_unassigned_tableoperator_layout(container) {
 		fit_resize_observer.disconnect();
 	}
 	fit_resize_observer = new ResizeObserver(() => {
-		schedule_fit_unassigned_tableoperators(uiu.qs('.unassigned_tableoperators_container'));
+		schedule_fit_unassigned_tableoperators(document.querySelector('.unassigned_tableoperators_container'));
 	});
 	const parent = container.parentNode;
 	fit_resize_observer.observe(parent);

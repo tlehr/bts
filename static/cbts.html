@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="{{static_path}}css/ctabletoperator.css" />
     <link rel="stylesheet" href="{{static_path}}css/court.css" />
     <link rel="stylesheet" href="{{static_path}}css/cumpires.css" />
+    <link rel="stylesheet" href="{{static_path}}css/speech_health.css" />
     <style id="printing_orientation"></style>
 </head>
 <body id="bts-data-holder" data-app-root="{{app_root}}" data-error-reporting="{{error_reporting}}">
@@ -20,10 +21,12 @@
     <div class="toprow"></div>
 
     <div class="main"></div>
+    <footer style="padding:12px"><a href="/admin/diagnostics/" target="_blank" rel="noopener">Logs &amp; Geräte</a></footer>
 
 
     <!-- error handling first -->
     <script src="{{static_path}}js/cerror.js"></script>
+    <script src="{{static_path}}js/speech_health.js"></script>
     <script src="{{static_path}}vendor/xlsx.full.min.js"></script>
 
     <!-- only used for bup -->

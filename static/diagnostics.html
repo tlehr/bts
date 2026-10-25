@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="de">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>BTS · Logs &amp; Geräte</title>
+    <link rel="stylesheet" href="/static/css/diagnostics.css">
+</head>
+<body>
+<main>
+    <header><div><span class="eyebrow">BTS · Diagnose</span><h1>Logs &amp; Geräte</h1><p>Gemeinsamer Verlauf und zentrale Aktualisierung der verbundenen Seiten.</p></div><a href="/admin/">Zur Turnierleitung</a></header>
+    <p id="connection" role="status">Verbindung wird aufgebaut …</p>
+    <nav aria-label="Diagnoseansicht"><button type="button" data-tab="logs" aria-pressed="true">Logs</button><button type="button" data-tab="devices" aria-pressed="false">Geräte &amp; Seiten</button></nav>
+    <p id="error" role="alert" hidden></p>
+    <section id="logs-panel" aria-label="Zentrale Logs">
+        <div class="toolbar">
+            <label>Suche<input id="search" type="search" placeholder="Meldung, Spiel oder Gerätekennung"></label>
+            <label>Quelle<select id="source"><option value="all">Alle Quellen</option><option value="server">BTS-Server / BTP-Abgleich</option><option value="speech">Sprachprozess</option><option value="admin">Adminseiten</option><option value="umpire">Zähltablets</option><option value="display">Anzeigen</option><option value="speech-planning">Sprachvorbereitung</option><option value="control">Fernsteuerung</option><option value="client">Weitere Clients</option><option value="diagnostics">Diagnoseseiten</option></select></label>
+            <label>Stufe<select id="level"><option value="all">Alle Stufen</option><option value="error">Fehler</option><option value="warn">Warnungen</option><option value="info">Informationen</option><option value="debug">Details</option></select></label>
+            <label>Von<input id="since" type="datetime-local"></label><label>Bis<input id="until" type="datetime-local"></label>
+            <button id="pause" type="button" aria-pressed="false">Live-Ansicht pausieren</button><button id="export" type="button">Gefilterte Logs exportieren</button>
+        </div>
+        <div class="toolbar"><label><input id="verbose" type="checkbox"> Detailprotokoll für zehn Minuten</label><span id="log-summary"></span><button id="clear-page" type="button" hidden>Filter auf einzelne Seite aufheben</button></div>
+        <p class="hint">Zeiten stammen vom Empfang auf dem Server. Wiederholte Meldungen werden zusammengefasst. Clients liefern gepufferte Meldungen nach einer Wiederverbindung nach.</p>
+        <ol id="logs" aria-label="Meldungen, neueste zuerst"></ol><p id="empty-logs" class="empty">Logs werden geladen …</p>
+    </section>
+    <section id="devices-panel" aria-label="Verbundene Geräte und Seiten" hidden>
+        <div class="toolbar"><label>Zielgruppe<select id="reload-scope"><option value="all">Alle bekannten Seiten</option><option value="role">Seitentyp</option><option value="tournament">Turnier</option></select></label><label id="reload-value-label" hidden>Auswahl<select id="reload-value"></select></label><button id="reload-group" type="button">Gruppe neu laden</button><span id="device-summary"></span></div>
+        <p class="hint">Seiten starten zeitlich versetzt neu. Ungespeicherte Formulare und Durchsagen verzögern die Aktualisierung. Zähltablets warten bis zum bestätigten Spielabschluss. Bereits geöffnete ältere Seiten erscheinen nach ihrem ersten manuellen Neuladen.</p>
+        <div class="table-wrap"><table><thead><tr><th>Gerät / Seite</th><th>Ansicht</th><th>Turnier / Spiel / Feld</th><th>Verbindung / Version</th><th>Aktionen</th></tr></thead><tbody id="devices"></tbody></table></div>
+        <h2>Neuladeaufträge</h2><div id="commands"></div>
+    </section>
+</main>
+<script src="/static/js/diagnostics.js"></script>
+</body>
+</html>

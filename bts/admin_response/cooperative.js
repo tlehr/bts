@@ -42,13 +42,19 @@ module.exports = async function encode(message) {
 				parts.push(JSON.stringify(key) + ':'); await object(child, 'tournament');
 			} else if (kind === 'response' && key === 'selections' && Array.isArray(child) && !child.toJSON) {
 				if (!first) parts.push(','); first = false;
-				parts.push(JSON.stringify(key) + ':[');
-				for (let i = 0; i < child.length; i++) {
-					if (i) parts.push(',');
-					if (child[i] && Object.getPrototypeOf(child[i]) === Object.prototype && !child[i].toJSON) await object(child[i], 'selection');
-					else parts.push(array_item(child[i], i));
-				}
-				parts.push(']');
+				parts.push(JSON.stringify(key) + ':');
+				const encoded = await require('./selection_cache').encode(child, async () => {
+					const start = parts.length;
+					parts.push('[');
+					for (let i = 0; i < child.length; i++) {
+						if (i) parts.push(',');
+						if (child[i] && Object.getPrototypeOf(child[i]) === Object.prototype && !child[i].toJSON) await object(child[i], 'selection');
+						else parts.push(array_item(child[i], i));
+					}
+					parts.push(']');
+					return parts.splice(start).join('');
+				});
+				parts.push(encoded);
 			} else if (kind === 'selection' && ['diagnostics_by_match_id', 'call_on_court_diagnostics_by_match_id'].includes(key) &&
 				child && Object.getPrototypeOf(child) === Object.prototype && !child.toJSON) {
 				if (!first) parts.push(','); first = false;

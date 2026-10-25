@@ -9,6 +9,7 @@ const { decode, sourcePart } = require('../bts/speech/context');
 const { SpeechBroker, configuration } = require('../bts/speech/broker');
 const { tournament, setup } = require('./test_speech_text');
 const createService = require('../static/js/speech_service');
+const contextPlan = require('../static/js/speech_context');
 
 function capture(current, match, call, winner = 0) {
     let observed;
@@ -20,6 +21,31 @@ function capture(current, match, call, winner = 0) {
 }
 
 describe('Context speech in tournament calls', function() {
+    for (const version of ['bts-context-v1', 'bts-context-v2']) {
+        it('uses fictional filler while preserving the announced tournament names (' + version + ')', function() {
+            const current = { ...tournament(), speech: { context_version: version } };
+            const texts = create({ tournament: current, translate: (key, values) => translate('de', key, values) });
+            const match = setup({ teams: [
+                { players: [{ name: 'Teilnehmer Alpha' }] },
+                { players: [{ name: 'Teilnehmer Beta' }] },
+            ] });
+            const before = JSON.stringify(match);
+            const references = contextPlan(texts, current, 'prepareFields', match).parts.map(part => decode(part, 1200))
+                .filter(reference => ['field_start', 'field_end'].includes(reference.kind));
+            assert.strictEqual(references.length, 2);
+            for (const reference of references) {
+                const full = reference.before + reference.text + reference.after;
+                assert(full.includes('Max Mustermann gegen Hans Dampf.'));
+                assert(!full.includes('Teilnehmer Alpha') && !full.includes('Teilnehmer Beta'));
+                assert(!reference.text.includes('Mustermann') && !reference.text.includes('Dampf'));
+            }
+            const played = capture(current, match, 'announceNewMatch').localParts.map(part => decode(part, 1200).text).join(' ');
+            assert(played.includes('Teilnehmer Alpha') && played.includes('Teilnehmer Beta'));
+            assert(!played.includes('Max Mustermann') && !played.includes('Hans Dampf'));
+            assert.strictEqual(JSON.stringify(match), before);
+        });
+    }
+
     for (const doubles of [false, true]) for (const split of [false, true]) for (const boards of [false, true]) {
         it('warms late tablet assignment from both on-court teams across fields and halls (' + [doubles, split, boards].join('/') + ')', async function() {
             let clock = 1000;

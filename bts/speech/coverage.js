@@ -15,11 +15,15 @@ const GROUPS = [
     ['registration', 'Anmeldung / Auslosung'], ['D13', 'Freie Ansagen'], ['D14', 'Sprachtest'], ['other', 'Weitere Bausteine'],
 ];
 const { STATES } = inventory;
+const { describeGames, GameStatus } = require('./game_status');
+const { ParticipantPools, preparationFields, known } = require('./game_variants');
 
 // Describe possible playback pieces without submitting them to the broker.
-// Unknown games use one shared placeholder until their real text is known.
-async function plan(tournament, matches, umpires = []) {
+// Unknown games use the complete V2 discipline roster, or a placeholder when
+// the roster is incomplete or the voice profile requires a concrete opponent.
+async function plan(tournament, matches, umpires = [], candidates = []) {
     const targets = new Map(), output = [], texts = renderer(tournament, 'de', output);
+    const participants = new ParticipantPools(tournament, matches, texts);
     const calls = [], browserOutput = [], browser = renderer({ ...tournament, speech: {} }, 'de', browserOutput);
     let scope = { id: 'shared', label: '', needed: false };
     let work = 0;
@@ -36,22 +40,42 @@ async function plan(tournament, matches, umpires = []) {
             output.splice(0, output.length, ...texts.localParts(output));
         }
         if (!output.length) return;
-        for (const part of output) add(part, group);
-        const text = browserOutput.join(' ').replace(/([.!?])(?=[A-ZÄÖÜ])/g, '$1 ');
+        const roster = scope.participants?.parts[group];
+        const parts = [...new Set([...output, ...(roster || [])])];
+        for (const part of parts) add(part, group);
+        const text = roster ? 'Begegnung noch offen. Geprüft werden die Bausteine für alle Teilnehmer der Disziplin ' + scope.participants.label + '.' :
+            browserOutput.join(' ').replace(/([.!?])(?=[A-ZÄÖÜ])/g, '$1 ');
         const id = crypto.createHash('sha256').update(JSON.stringify([scope.id, group, name, setup.court_id, setup.location_id, args,
             setup.umpire?.name, setup.service_judge?.name, setup.tabletoperators?.map(p => p.name)])).digest('hex');
-        calls.push({ id, group, label: scope.label, text, parts: [...new Set(output)], needed: scope.needed,
-            ...(['D01', 'D04'].includes(group) && !setup.court_id ? { unresolved: 'Spielfeld noch nicht zugewiesen' } : {}) });
+        const variant = [];
+        if (scope.variant) variant.push(scope.variant);
+        if (roster) variant.push('Alle Teilnehmer der Disziplin');
+        if (/Team(One|Two)$/.test(name)) variant.push(name.endsWith('One') ? 'Team 1' : 'Team 2');
+        if (name === 'announceNoMatchWin') variant.push('Sieg für Team ' + (args[0] + 1));
+        if (['D02', 'D05', 'D09', 'D10', 'D11'].includes(group) && setup.location_id) {
+            variant.push(tournament.locations?.find(location => location._id === setup.location_id)?.name || setup.location_id);
+        }
+        calls.push({ id, group, label: scope.label, text, parts, needed: scope.needed,
+            ...(variant.length ? { variant: variant.join(' · ') } : {}),
+            ...(scope.match_id ? { match_id: scope.match_id } : {}), court_id: setup.court_id || null, location_id: setup.location_id || null,
+            ...(['D01', 'D04'].includes(group) && !setup.court_id ?
+                { unresolved: 'Spielfeld noch nicht zugewiesen', unresolved_kind: 'court' } : {}) });
     };
     const halls = setup => setup.location_id || !tournament.locations?.length ? [setup] :
         tournament.locations.map(location => ({ ...setup, location_id: location._id }));
-    const known = team => team?.players?.length && team.players.every(player => player.name?.trim());
     for (const match of matches) {
         await yieldWork();
-        const setup = match.setup;
+        let setup = match.setup;
         if (!setup || setup.is_match === false) continue;
-        scope = { id: match._id, label: 'Spiel ' + (setup.match_num ?? 'ohne Nummer') + (setup.event_name ? ' · ' + setup.event_name : ''), needed: isRequired(match) };
-        if (!setup.teams?.slice(0, 2).every(known) || setup.teams.length < 2) {
+        scope = { id: match._id, match_id: match._id, label: 'Spiel ' + (setup.match_num ?? 'ohne Nummer') + (setup.event_name ? ' · ' + setup.event_name : ''), needed: isRequired(match) };
+        const count = setup.is_doubles ? 2 : 1;
+        const complete = setup.teams?.length >= 2 && setup.teams.slice(0, 2).every(team => known(team, count));
+        const roster = !complete && participants.get(setup);
+        if (roster) {
+            scope.participants = roster;
+            setup = { ...setup, teams: [0, 1].map(side => known(setup.teams?.[side], count) ? setup.teams[side] : roster.team) };
+        }
+        if (!complete && !roster) {
             // V2 knows numbers, disciplines and rounds independently of teams.
             // Include their real recipes as potential, without requesting audio.
             if (tournament.speech?.context_version === 'bts-context-v2') {
@@ -61,7 +85,7 @@ async function plan(tournament, matches, umpires = []) {
             }
             for (const group of ['D01', 'D02', 'D04', 'D05', 'D12']) {
                 add(null, group, 'unknown-game:' + match._id);
-                calls.push({ id: group + ':unknown:' + match._id, group, label: scope.label, text: 'Teilnehmer stehen noch nicht vollständig fest.',
+                calls.push({ id: group + ':unknown:' + match._id, group, match_id: match._id, label: scope.label, text: 'Teilnehmer stehen noch nicht vollständig fest.',
                     parts: [], unresolved: 'Teilnehmer noch unbekannt', needed: scope.needed });
             }
             continue;
@@ -82,12 +106,21 @@ async function plan(tournament, matches, umpires = []) {
     // Field pieces are shared by games and are counted only once overall.
     for (const court of tournament.courts || []) if (court.is_active !== false) {
         const setup = { court_id: court._id, location_id: court.location_id };
-        scope = { id: court._id, label: texts.createFieldAnnouncement(setup), needed: true };
+        scope = { id: court._id, label: texts.createFieldAnnouncement(setup), needed: true,
+            variant: 'Feld ' + (court.num ?? court.name ?? court._id.split('_').pop()) };
         call('D03', 'announceBeginnToPlay', setup);
         const fields = ['bts-context-v1', 'bts-context-v2'].includes(tournament.speech?.context_version) ?
             contextPlan(texts, tournament, 'prepareFields', setup).parts : texts.localParts([texts.createFieldAnnouncement(setup)].filter(Boolean));
         for (const part of fields) add(part, 'D01');
         if (fields[1]) add(fields[1], 'D04');
+        // Opening and closing field pieces are independent of the game.
+        // Keep their pool shared rather than expanding every field/game pair.
+        const opening = fields.slice(0, 1), closing = fields.slice(1, 2);
+        const preparation = preparationFields(tournament, texts, court, halls({}), fields);
+        for (const variant of preparation) for (const part of variant.parts) add(part, 'D02');
+        targets.fields ||= [];
+        targets.fields.push({ court_id: court._id, location_id: court.location_id || null,
+            opening, closing: closing.length ? closing : opening, preparation });
     }
     for (const official of umpires) for (const [group, role, name] of [
         ['D06', 'umpire', 'Umpire'], ['D07', 'service_judge', 'ServiceJudge'],
@@ -116,6 +149,7 @@ async function plan(tournament, matches, umpires = []) {
     add(test, 'D14');
     calls.push({ id: 'speech-test', group: 'D14', label: 'Sprachtest', text: test, parts: [test], needed: true });
     targets.announcements = [...new Map(calls.map(row => [row.id, row])).values()];
+    targets.games = describeGames(tournament, matches, candidates);
     return targets;
 }
 
@@ -123,6 +157,7 @@ class SpeechCoverage {
     constructor(broker) {
         this.broker = broker;
         this.plans = new Map();
+        this.game_plans = new Map();
         this.history = new Map();
         // Session means this broker's lifetime, shared by all browser clients.
         // Keep these markers outside queue entries so eviction cannot erase
@@ -150,16 +185,32 @@ class SpeechCoverage {
         }
     }
 
-    async set_plan(tournament, voice, targets) {
+    set_game_plan(tournament, voice, targets) {
         const values = new Map();
         for (const [id, target] of targets) values.set(target.part ? this.broker.key(target.part, voice, 'de-DE') : id, target);
         const calls = (targets.announcements || []).map(call => {
             const { parts, ...rest } = call;
             return { ...rest, keys: [...new Set(parts.map(part => this.broker.key(part, voice, 'de-DE')))] };
         });
-        this.plans.set(tournament, { voice, values, calls,
-            revision: crypto.createHash('sha256').update(JSON.stringify(calls)).digest('hex') });
+        const fields = (targets.fields || []).map(field => ({ ...field,
+            opening: field.opening.map(part => this.broker.key(part, voice, 'de-DE')),
+            closing: field.closing.map(part => this.broker.key(part, voice, 'de-DE')),
+            preparation: field.preparation.map(variant => ({ ...variant, parts: variant.parts.map(part => this.broker.key(part, voice, 'de-DE')) })) }));
+        const current = { voice, values, calls, games: new GameStatus(targets.games || [], calls, GROUPS, values, fields),
+            revision: crypto.createHash('sha256').update(JSON.stringify(calls)).digest('hex') };
+        this.game_plans.set(tournament, current);
+        return current;
+    }
+
+    async set_plan(tournament, voice, targets, prepared = this.set_game_plan(tournament, voice, targets)) {
+        this.plans.set(tournament, prepared);
         await this.remember();
+    }
+
+    async game_status(tournament, voice, matchId, revision) {
+        const current = this.game_plans.get(tournament);
+        if (!current || current.voice !== voice) return { voice, items: [], detail: null, updating: true };
+        return current.games.snapshot(this.broker, tournament, voice, matchId, revision);
     }
 
     async remember() {

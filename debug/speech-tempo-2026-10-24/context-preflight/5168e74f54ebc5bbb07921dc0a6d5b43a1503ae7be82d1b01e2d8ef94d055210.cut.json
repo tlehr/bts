@@ -1,0 +1,13 @@
+{
+  "version": "bts-context-v1",
+  "source_sha256": "d77adf210c19e68fbbd1c5e3012e74f0eca85602966fb465d6c770b680b802d9",
+  "alignment_model": "6e77144b13a6a5de756138d80d099c4f66d93144de27f635fc9cdd71d6b3a236",
+  "source_audio_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "start_frame": 121296,
+  "end_frame": 170880,
+  "source_rate": 24000,
+  "kind": "generic",
+  "text": "Bitte melde dich bei der Turnierleitung!",
+  "start_10ms_rms": 0.00011738693962098814,
+  "end_10ms_rms": 2.1216485203668427e-05
+}

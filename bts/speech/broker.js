@@ -37,6 +37,10 @@ function configuration(config = {}, env = process.env) {
     return {
         enabled: configured && !!base_url && /^[\x20-\x7e]{32,}$/.test(api_key),
         configured, api_key, base_url,
+        worker: env.BTS_SPEECH_WORKER === undefined ? config.worker !== false : env.BTS_SPEECH_WORKER !== '0',
+        worker_type: (env.BTS_SPEECH_WORKER_TYPE || config.worker_type) === 'thread' ? 'thread' : 'process',
+        audio_port: bounded(env.BTS_SPEECH_AUDIO_PORT === undefined ? config.audio_port : Number(env.BTS_SPEECH_AUDIO_PORT), null, 0, 65535),
+        audio_origin: config.audio_origin || null,
         cache_enabled: env.BTS_SPEECH_CACHE_ENABLED === undefined ? config.cache_enabled !== false : env.BTS_SPEECH_CACHE_ENABLED !== 'false',
         cache_dir: env.BTS_SPEECH_CACHE_DIR || config.cache_dir || null,
         shared_audio_dir: env.BTS_SPEECH_SHARED_AUDIO_DIR || config.shared_audio_dir || null,
@@ -61,6 +65,7 @@ class SpeechBroker {
         this.config = config;
         this.request = options.request || request;
         this.now = options.now || Date.now;
+        this.health = options.health || new (require('./health').SpeechHealth)({}, this.now);
         this.on_change = options.onChange || (() => {});
         this.entries = new Map();
         this.idle_plans = new Map();
@@ -107,8 +112,8 @@ class SpeechBroker {
                     }
                     for (const entry of this.entries.values()) { this.restore_recovery(entry); this.ensure_source(entry); }
                     if (changed.size) this.on_change([...changed]);
-                }).catch(() => { this.cache_error = 'speech_cache_unavailable'; });
-            } catch (_) { this.cache_error = 'speech_cache_unavailable'; }
+                }).catch(error => { this.cache_error = 'speech_cache_unavailable'; this.health.fail('cache', error); });
+            } catch (error) { this.cache_error = 'speech_cache_unavailable'; this.health.fail('cache', error); }
         }
         this.failures = new SpeechFailures(this.disk, this.now);
     }
@@ -129,6 +134,7 @@ class SpeechBroker {
         return {
             enabled: this.config.enabled, mode: this.config.mode, voice: this.config.voice,
             deadline_ms: this.config.deadline_ms, max_text: this.config.max_text,
+            audio_endpoint: null,
             max_part_length: this.config.max_text * 4 + 512, context_version: this.context_version,
             playback_profile: this.playback_profile, playback_version: this.playback_version,
             voices: this.voices, last_error: this.last_error,
@@ -145,6 +151,8 @@ class SpeechBroker {
         if (!saved) return false;
         if (this.playback_profile && entry.context?.kind !== 'source' && saved.playback_profile !== this.playback_profile) return false;
         if (saved.fallback_stage && entry.source_key && !this.set_fallback(entry, saved.fallback_stage, true)) return false;
+        if (saved.fallback_stage === 'name' && entry.context?.version === context.V2 &&
+            saved.fallback_source_key !== entry.source_key) return false;
         Object.assign(entry, { status: 'completed', job_id: saved.job_id, audio_id: saved.audio_id, processed: saved.processed,
             playback_profile: saved.playback_profile || null,
             leading_quiet_ms: saved.leading_quiet_ms, trailing_quiet_ms: saved.trailing_quiet_ms,
@@ -159,8 +167,14 @@ class SpeechBroker {
         const original = context.decode(entry.part, this.config.max_text);
         if (!original || original.kind === 'source' || stage === 'name' && original.kind !== 'team') return false;
         const recipe = stage === 'name' ? { before: '', text: entry.text, after: '', kind: 'team', version: original.version } : original;
+        if (stage === 'name' && original.version === context.V2) Object.assign(recipe, {
+            before: /^gegen\s/i.test(entry.text) ? 'Max Mustermann spielt ' : 'Wir erwarten ',
+            after: /^gegen\s/i.test(entry.text) ? '. Das nächste Spiel beginnt in Kürze.' :
+                ' zum nächsten Spiel. Der nächste Aufruf folgt in Kürze.',
+        });
         const part = context.sourcePart(recipe);
-        const key = this.key((original.kind === 'team' ? 'team' : 'context') + '-fallback-' + stage + '-v1:' + part, entry.voice, entry.language);
+        const version = stage === 'name' && original.version === context.V2 ? 'v2' : 'v1';
+        const key = this.key((original.kind === 'team' ? 'team' : 'context') + '-fallback-' + stage + '-' + version + ':' + part, entry.voice, entry.language);
         let source = this.entries.get(key);
         Object.assign(entry, { context: recipe, source_key: key, fallback_stage: stage });
         if (!source && cache_only && !this.disk?.lookup(this.identity, key)) return true;
@@ -213,7 +227,8 @@ class SpeechBroker {
 
     remember_recovery(entry) {
         if (!entry.source_key || !this.failures || !entry.fallback_stage && !entry.terminal_failure && !this.failures.recovery(this.identity, entry.key)) return;
-        if (this.failures.remember_recovery(this.identity, entry.key, entry.fallback_stage, entry.terminal_failure === true)) this.recovery_dirty = true;
+        if (this.failures.remember_recovery(this.identity, entry.key, entry.fallback_stage, entry.terminal_failure === true,
+            entry.source_key)) this.recovery_dirty = true;
     }
 
     restore_recovery(entry) {
@@ -222,14 +237,15 @@ class SpeechBroker {
         const state = this.failures.recovery(this.identity, entry.key);
         if (!state) return;
         if (state.stage && !this.set_fallback(entry, state.stage, state.terminal)) return;
-        if (state.terminal) Object.assign(entry, { status: 'failed', terminal_failure: true, retry_at: 0 });
+        const changed_name_context = state.stage === 'name' && entry.context?.version === context.V2 && state.source_key !== entry.source_key;
+        if (state.terminal && !changed_name_context) Object.assign(entry, { status: 'failed', terminal_failure: true, retry_at: 0 });
     }
 
     async persist_recovery() {
         if (!this.recovery_dirty) return;
         this.recovery_dirty = false;
-        try { await this.failures.persist(); this.diagnostics_error = false; }
-        catch (_) { this.recovery_dirty = true; this.diagnostics_error = true; }
+        try { await this.failures.persist(); this.diagnostics_error = false; this.health.clear('diagnostics'); }
+        catch (error) { this.recovery_dirty = true; this.diagnostics_error = true; this.health.fail('diagnostics', error); }
     }
 
     advance_fallback(entry) {
@@ -376,7 +392,17 @@ class SpeechBroker {
     inspect(parts, options, tournament_key) {
         const { voice, language } = this.validate(parts, options);
         return parts.map(text => {
-            const entry = this.check_local(this.entries.get(this.key(text, voice, language)));
+            const key = this.key(text, voice, language);
+            let entry = this.check_local(this.entries.get(key));
+            if (entry?.status !== 'completed') {
+                const saved = this.disk?.lookup(this.identity, key);
+                const recipe = context.decode(text, this.config.max_text);
+                if (saved && (!this.playback_profile || recipe?.kind === 'source' || saved.playback_profile === this.playback_profile)) {
+                    // Readiness must include finished recordings outside the
+                    // bounded work queue, without admitting new speech work.
+                    entry = { ...saved, status: 'completed', local: true, voice, context: recipe, text: recipe?.text || text };
+                }
+            }
             return { status: entry?.status || 'missing',
                 ...(entry?.status === 'completed' && tournament_key ?
                     { audio_url: this.audio_url(tournament_key, entry.audio_id, entry), processed: entry.processed || false,
@@ -467,9 +493,9 @@ class SpeechBroker {
         return retry_after;
     }
 
-    regular_work_pending(before = PRIORITY.idle) {
+    regular_work_pending(before = PRIORITY.idle, { include_plans = true } = {}) {
         const entries = [...this.entries.values()];
-        return this.pending_plans.size > 0 || entries.some(entry => !entry.retired && entry.priority < before &&
+        return include_plans && this.pending_plans.size > 0 || entries.some(entry => !entry.retired && entry.priority < before &&
             (entry.revalidate || ['unsubmitted', 'queued', 'processing'].includes(entry.status) ||
                 entry.status === 'failed' && !entry.terminal_failure && (!entry.fallback_source ||
                     entries.some(child => child.source_key === entry.key && !child.terminal_failure))));
@@ -480,16 +506,48 @@ class SpeechBroker {
             [...this.idle_plans.values()].every(plan => plan.cursor >= plan.parts.length);
     }
 
-    admit_idle(priority = 'idle') {
+    fill_idle_queue() {
+        if (this.regular_work_pending()) return;
+        // Keep one waiting job per generator while current work runs. This
+        // bounded batch can continue if another planning refresh starts.
+        const limit = Math.min(32, 1 + (this.helpers?.parallelism || 0));
+        const waiting = new Set(this.pending_order().filter(entry => entry.priority === PRIORITY.idle).map(entry => entry.key));
+        while (waiting.size < limit) {
+            const entry = this.admit_idle('idle', { accept: work => !waiting.has(work.key) });
+            if (!entry) break;
+            waiting.add(entry.key);
+        }
+    }
+
+    admit_idle(priority = 'idle', { accept = () => true } = {}) {
         if (priority === 'spare' && !this.spare_work_allowed()) return;
         const inventory = priority === 'spare' ? this.spare_plans : this.idle_plans;
         const last = priority === 'spare' ? 'last_spare_tournament' : 'last_idle_tournament';
         // Round-robin between tournaments; each plan itself follows likely use.
         const plans = [...inventory].sort(([a], [b]) => Number(a === this[last]) - Number(b === this[last]));
-        for (const [tournament, plan] of plans) while (plan.cursor < plan.parts.length) {
-            const part = plan.parts[plan.cursor], key = this.key(part, plan.voice, plan.language);
+        for (const [tournament, plan] of plans) for (let index = plan.cursor; index < plan.parts.length; index++) {
+            const part = plan.parts[index], key = this.key(part, plan.voice, plan.language);
+            // The cursor acknowledges completed/skipped parts only. Look past
+            // assigned dependencies without losing them from the inventory.
+            const advance = () => { if (index === plan.cursor) plan.cursor++; };
             let entry = this.check_local(this.entries.get(key));
-            if (entry?.status === 'completed' || this.disk?.lookup(this.identity, key)) { plan.cursor++; continue; }
+            if (entry?.status === 'completed' || this.disk?.lookup(this.identity, key) || entry?.terminal_failure) { advance(); continue; }
+            const recipe = entry?.context || context.decode(part, this.config.max_text);
+            const source_key = entry?.source_key || (recipe && recipe.kind !== 'source' ?
+                this.key(context.sourcePart(recipe), plan.voice, plan.language) : null);
+            const source = this.check_local(this.entries.get(source_key));
+            if (entry?.status === 'failed' && entry.retry_at > this.now() || source?.status === 'failed' && source.retry_at > this.now()) {
+                advance(); continue;
+            }
+            const source_ready = source?.status === 'completed' || source_key && this.disk?.lookup(this.identity, source_key);
+            const candidate = source_key && !source_ready ? source || { key: source_key,
+                text: recipe.before + recipe.text + recipe.after, context: { kind: 'source', version: recipe.version },
+                voice: plan.voice, language: plan.language } : entry || { key, text: recipe?.text || part,
+                context: recipe, source_key, voice: plan.voice, language: plan.language };
+            const available = work => work && work !== this.current?.entry && !work.busy && !work.terminal_failure &&
+                (!work.status || ['unsubmitted', 'failed'].includes(work.status) || work.revalidate) &&
+                !(work.retry_at > this.now()) && accept(work);
+            if (!available(candidate)) continue;
             // Idle preparation must not evict ordinary work or churn through
             // more inventory than the bounded broker can hold, including a source.
             if (!entry && this.entries.size + 2 > this.config.max_entries) {
@@ -506,16 +564,17 @@ class SpeechBroker {
             entry = this.entries.get(key);
             if (!entry) return;
             this[last] = tournament;
-            if (entry.status === 'completed' || entry.terminal_failure) { plan.cursor++; continue; }
-            if (entry.status === 'failed' && entry.retry_at > this.now()) { plan.cursor++; continue; }
-            const source = this.entries.get(entry.source_key);
-            if (source?.status === 'failed' && source.retry_at > this.now()) { plan.cursor++; continue; }
-            return;
+            if (entry.status === 'completed' || entry.terminal_failure) { advance(); continue; }
+            const dependency = this.entries.get(entry.source_key);
+            const work = dependency && dependency.status !== 'completed' ? dependency : entry;
+            if (available(work)) return work;
         }
     }
 
     pending_order(now = this.now()) {
-        const regular_pending = this.regular_work_pending();
+        // A refresh pauses admission of new inventory, not work already in
+        // the bounded queue. Real foreground jobs still preempt those jobs.
+        const regular_pending = this.regular_work_pending(PRIORITY.idle, { include_plans: false });
         const spare_allowed = this.spare_work_allowed();
         const positions = new Map();
         for (const entry of this.entries.values()) {
@@ -563,7 +622,22 @@ class SpeechBroker {
         return ordered;
     }
 
-    queue(tournament_key, voice = this.coverage.plans.get(tournament_key)?.voice || this.config.voice) {
+    execution(entry) {
+        return this.helpers?.execution?.(entry) || (entry === this.current?.entry ?
+            { kind: 'server', name: 'Sprachserver', phase: entry.source_key ? 'excerpt' : 'synthesis', running: true } : null);
+    }
+
+    active_entries() {
+        const current = this.current?.entry;
+        return [...(current ? [current] : []), ...[...this.entries.values()].filter(entry =>
+            entry !== current && this.execution(entry)?.running)];
+    }
+
+    display_retry_at(entry) {
+        return Math.max(entry.waiting_for_server ? 0 : entry.retry_at || 0, entry.server_retry_at || 0);
+    }
+
+    queue(tournament_key, voice = this.coverage.plans.get(tournament_key)?.voice || this.config.voice, { pending_only = false } = {}) {
         for (const entry of this.entries.values()) this.check_local(entry);
         // Describe a source by its actual consumers. A full field reference
         // contains a fixed example game, but only supplies the reusable edges.
@@ -576,25 +650,29 @@ class SpeechBroker {
                 source_usage.set(child.source_key, { type: 'game' });
             }
         }
-        const current = this.current?.entry;
+        const active = this.active_entries(), running = new Set(active);
+        const assigned = [...this.entries.values()].filter(entry => !running.has(entry) && this.execution(entry));
         const pending = this.pending_order();
-        const scheduled = new Set([current, ...pending]);
+        const scheduled = new Set([...active, ...assigned, ...pending]);
         const rest = [...this.entries.values()].filter(entry => !scheduled.has(entry))
             .sort((a, b) => Number(a.status === 'completed') - Number(b.status === 'completed') ||
                 a.priority - b.priority || a.created - b.created);
-        const ordered = [...(current ? [current] : []), ...pending, ...rest];
+        const ordered = [...active, ...assigned, ...pending, ...rest];
         const positions = new Map(pending.map((entry, index) => [entry, index + 1]));
         return {
-            coverage: this.coverage.summary(tournament_key, voice),
-            busy_elsewhere: !!current && !current.tournaments.has(tournament_key),
-            items: ordered.filter(entry => entry.tournaments.has(tournament_key)).map(entry => ({
+            ...(!pending_only ? { coverage: this.coverage.summary(tournament_key, voice) } : {}),
+            busy_elsewhere: active.some(entry => !entry.tournaments.has(tournament_key)),
+            items: ordered.filter(entry => entry.tournaments.has(tournament_key) && (!pending_only || entry.status !== 'completed')).map(entry => ({
                 key: entry.key, text: entry.text, voice: entry.voice, language: entry.language, tournament_key,
                 priority: Object.keys(PRIORITY)[entry.priority], status: entry.status,
                 idle: (entry.idle_tournaments?.has(tournament_key) === true || entry.spare_tournaments?.has(tournament_key) === true) &&
                     !entry.prefetch_tournaments?.has(tournament_key) && !entry.foreground_tournaments?.has(tournament_key),
                 spare: entry.spare_tournaments?.has(tournament_key) === true && entry.priority === PRIORITY.spare,
-                position: entry === current ? 0 : positions.get(entry) ?? null,
-                current: entry === current, retry_at: Math.max(entry.retry_at, this.post_retry_at, entry.server_retry_at || 0),
+                position: running.has(entry) ? 0 : positions.get(entry) ?? null,
+                current: running.has(entry), retry_at: this.display_retry_at(entry),
+                execution: this.execution(entry), waiting_for_server: entry.waiting_for_server === true,
+                waiting_for_source: !!entry.source_key && entry.status !== 'completed' &&
+                    this.entries.get(entry.source_key)?.status !== 'completed' && !this.disk?.lookup(this.identity, entry.source_key),
                 audio_url: entry.status === 'completed' ? this.audio_url(tournament_key, entry.audio_id, entry) : null,
                 kind: entry.context?.kind || 'text',
                 local: entry.local === true,
@@ -642,12 +720,26 @@ class SpeechBroker {
             this.request(this.config.base_url, this.config.api_key, 'GET', '/health', undefined, this.config.timeout_ms),
             this.request(this.config.base_url, this.config.api_key, 'GET', '/v1/voices', undefined, this.config.timeout_ms),
         ]);
+        this.helper_generation_profile = health.status === 'fulfilled' && health.value.status === 'ready' &&
+            /^[a-f0-9]{64}$/.test(health.value.helper_generation_profile || '') ? health.value.helper_generation_profile : null;
+        const state = health.status === 'fulfilled' ? health.value : health.reason.response;
+        // /health deliberately returns 503 while loading the model. This is
+        // an explicit lifecycle state, unlike an unqualified HTTP 503 error.
+        const starting = state?.status === 'starting' && (health.status === 'fulfilled' || health.reason.status === 503);
+        for (const [source, result] of [['upstream_health', health], ['upstream_voices', voices]]) {
+            if (source === 'upstream_health' && starting) this.health.clear(source);
+            else if (result.status === 'rejected') this.health.fail(source, result.reason, true, { endpoint: this.config.base_url });
+            else if (source === 'upstream_health' && result.value?.status === 'error') this.health.fail(source, new Error('speech_server_error'));
+            else this.health.clear(source);
+        }
+        if (health.status === 'fulfilled' && state?.status === 'ready' && voices.status === 'fulfilled' &&
+            this.health.issues?.get('upstream_request')?.kind === 'upstream_connection') this.health.clear('upstream_request');
         if (voices.status === 'fulfilled' && Array.isArray(voices.value.voices)) {
             this.voices = voices.value.voices.filter(voice =>
                 ['hallensprecherin', 'hallensprecher'].includes(voice.voice_id) && voice.languages?.includes('de-DE'));
         }
-        const state = health.status === 'fulfilled' ? health.value : health.reason.response;
-        if (health.status === 'fulfilled' && state?.model_revision) this.metadata_verified = true;
+        if (starting) this.metadata_verified = false;
+        else if (health.status === 'fulfilled' && state?.model_revision) this.metadata_verified = true;
         if (state?.model_revision) {
             const next_context = context.SUPPORTED.includes(state.context_version) ? state.context_version : null;
             if (next_context !== this.context_version) {
@@ -683,8 +775,9 @@ class SpeechBroker {
                     await this.disk.setState({ identity, voices: this.voices, context_version: next_context,
                         playback_profile: this.playback_profile, playback_version: this.playback_version });
                     this.cache_error = null;
+                    this.health.clear('cache');
                 }
-                catch (_) { this.cache_error = 'speech_cache_unavailable'; }
+                catch (error) { this.cache_error = 'speech_cache_unavailable'; this.health.fail('cache', error); }
             }
             this.last_error = state.status === 'starting' || state.status === 'error' ? 'speech_unavailable' : null;
         } else this.last_error = 'speech_unavailable';
@@ -708,10 +801,12 @@ class SpeechBroker {
         this.record_diagnostics(entry, response);
         entry.job_id = response.job_id;
         entry.status = response.status;
+        delete entry.waiting_for_server;
         entry.server_retry_at = Number.isFinite(response.retry_at) ? response.retry_at * 1000 : 0;
         entry.checked = this.now();
         entry.next_poll = this.now() + this.config.poll_interval_ms;
         if (response.status === 'completed') {
+            if (![...this.entries.values()].some(value => value.status === 'failed')) this.health.clear('generation');
             delete entry.terminal_failure;
             entry.audio_id = response.audio.audio_id;
             entry.processed = response.audio.processed === true;
@@ -732,7 +827,49 @@ class SpeechBroker {
                 }
             }
             this.failed_fallback_source(entry);
+            const failure = this.failures.get(this.identity, entry.key)?.recent_failures.at(-1);
+            const recovery = entry.detached ? 'Auftrag nicht mehr benötigt' : entry.terminal_failure ? 'Keine weitere Ersatzaufnahme' :
+                entry.status === 'unsubmitted' && entry.fallback_stage ?
+                    (entry.fallback_stage === 'context' ? 'Ersatz: neue Kontextaufnahme' : entry.context?.version === context.V2 ?
+                        'Ersatz: anderer Namenskontext' : 'Ersatz: Einzelaufnahme') : 'Erneuter Versuch in 30 s';
+            // A rejected upstream job has no local exception stack. Report its
+            // actual identity and the recovery chosen above, without raw payloads.
+            this.health.fail('generation', {
+                code: response.error?.code || 'speech_generation_failed',
+                message: [entry.voice, 'Job ' + response.job_id, failure?.reason, recovery, JSON.stringify(entry.text.slice(0, 80))]
+                    .filter(Boolean).join(' · '),
+            }, !entry.terminal_failure && !entry.detached);
         }
+    }
+
+    request_for(entry) {
+        return {
+            text: spellNumbers(entry.text), voice: entry.voice, language: entry.language,
+            // The server protocol has three priorities. Admission and the
+            // additional idle tier are managed exclusively here in BTS.
+            priority: entry.priority >= PRIORITY.idle ? 'low' : Object.keys(PRIORITY)[entry.priority],
+            ...(entry.context ? { profile: entry.context.version || context.VERSION } : {}),
+            ...(this.playback_profile && entry.context?.kind !== 'source' ? { playback_profile: this.playback_profile } : {}),
+            ...(entry.source_seed === undefined ? {} : { source_seed: entry.source_seed }),
+            ...(entry.source_key ? { context: { audio_id: this.entries.get(entry.source_key).audio_id,
+                before: spellNumbers(entry.context.before), after: spellNumbers(entry.context.after), kind: entry.context.kind } } : {}),
+        };
+    }
+
+    async publish(entry, response, identity) {
+        this.validate_response(entry, response);
+        if (identity !== this.identity || entry.retired || this.entries.get(entry.key) !== entry) return;
+        if (response.status === 'completed' && this.disk) {
+            await this.disk.store(identity, entry.key, { ...response, part: entry.part, fallback_stage: entry.fallback_stage,
+                ...(entry.fallback_stage ? { fallback_source_key: entry.source_key } : {}),
+                generated_for: [...(entry.generated_for || [])] });
+            entry.local = true;
+            this.cache_error = null;
+            this.health.clear('cache');
+        }
+        this.update(entry, response);
+        if (response.status === 'completed') await this.coverage.remember();
+        if (entry.tournaments.size) this.on_change([...entry.tournaments]);
     }
 
     async step() {
@@ -748,17 +885,7 @@ class SpeechBroker {
             const pending = this.pending_order(now);
             const entry = pending[0];
             if (!entry) return;
-            this.current = { entry, identity: this.identity, job_id: null, request: {
-                text: spellNumbers(entry.text), voice: entry.voice, language: entry.language,
-                // The server protocol has three priorities. Admission and the
-                // additional idle tier are managed exclusively here in BTS.
-                priority: entry.priority >= PRIORITY.idle ? 'low' : Object.keys(PRIORITY)[entry.priority],
-                ...(entry.context ? { profile: entry.context.version || context.VERSION } : {}),
-                ...(this.playback_profile && entry.context?.kind !== 'source' ? { playback_profile: this.playback_profile } : {}),
-                ...(entry.source_seed === undefined ? {} : { source_seed: entry.source_seed }),
-                ...(entry.source_key ? { context: { audio_id: this.entries.get(entry.source_key).audio_id,
-                    before: spellNumbers(entry.context.before), after: spellNumbers(entry.context.after), kind: entry.context.kind } } : {}),
-            } };
+            this.current = { entry, identity: this.identity, job_id: null, request: this.request_for(entry) };
         }
         const current = this.current;
         const entry = current.entry;
@@ -785,7 +912,8 @@ class SpeechBroker {
             }
             this.validate_response(entry, response);
             if (current.identity === this.identity && this.record_diagnostics(entry, response)) {
-                try { await this.failures.persist(); this.diagnostics_error = false; } catch (_) { this.diagnostics_error = true; }
+                try { await this.failures.persist(); this.diagnostics_error = false; this.health.clear('diagnostics'); }
+                catch (error) { this.diagnostics_error = true; this.health.fail('diagnostics', error); }
             }
             if (post && current.identity === this.identity && response.cache_hit === false) {
                 entry.generated_for ||= new Set();
@@ -796,15 +924,17 @@ class SpeechBroker {
             current.job_id = response.job_id;
             if (post && current.identity === this.identity && response.cache_hit === false && response.status !== 'completed' && this.disk) {
                 try { await this.disk.mark_generated(current.identity, entry.key, [...(entry.generated_for || [])]); }
-                catch (_) { this.cache_error = 'speech_cache_unavailable'; }
+                catch (error) { this.cache_error = 'speech_cache_unavailable'; this.health.fail('cache', error); }
             }
             if (current.identity === this.identity && response.status === 'completed' && this.disk) {
                 // Completion means both the WAV and its index have reached disk.
                 // Keep the current job occupied until publication finishes.
                 try {
                     await this.disk.store(this.identity, entry.key, { ...response, part: entry.part, fallback_stage: entry.fallback_stage,
+                        ...(entry.fallback_stage ? { fallback_source_key: entry.source_key } : {}),
                         generated_for: [...(entry.generated_for || [])] });
                     this.cache_error = null;
+                    this.health.clear('cache');
                 } catch (error) { this.cache_error = 'speech_cache_unavailable'; throw error; }
                 entry.local = true;
             }
@@ -813,12 +943,15 @@ class SpeechBroker {
             if (current.identity === this.identity && response.status === 'completed') await this.coverage.remember();
             current.job_id = response.job_id;
             if (post) this.last_post_voice.set(entry.priority, entry.voice);
+            this.health.clear('upstream_request');
             if (['completed', 'failed'].includes(response.status)) this.current = null;
         } catch (error) {
+            if (error.status !== 429 && error.response?.error?.code !== 'busy') this.health.fail('upstream_request', error, true, { endpoint: this.config.base_url });
             if (current.identity === this.identity) {
                 const details = error.response?.diagnostics ? { ...error.response, cache_key: error.response.cache_key || entry.job_id || current.job_id } : null;
                 if (this.record_diagnostics(entry, details, error)) {
-                    try { await this.failures.persist(); this.diagnostics_error = false; } catch (_) { this.diagnostics_error = true; }
+                    try { await this.failures.persist(); this.diagnostics_error = false; this.health.clear('diagnostics'); }
+                    catch (error) { this.diagnostics_error = true; this.health.fail('diagnostics', error); }
                 }
             }
             if (post && entry.fallback_source && [400, 413, 422].includes(error.status)) {
@@ -841,6 +974,7 @@ class SpeechBroker {
             // Retrying it uses API single-flight rather than opening a second job.
             entry.retry_at = this.now() + delay;
             entry.next_poll = entry.retry_at;
+            entry.waiting_for_server = error.status === 429 && error.response?.error?.code === 'busy';
         } finally {
             if (this.recovery_dirty) await this.persist_recovery();
             entry.busy = false;
@@ -859,8 +993,13 @@ class SpeechBroker {
                 if (this.last_metadata + 15000 <= this.now()) await this.refresh();
                 // Restored metadata supports offline playback, but must not
                 // submit an old context plan while a new service starts.
-                if (this.metadata_verified) await this.step();
-            } catch (_) { this.last_error = 'speech_unavailable'; }
+                if (this.metadata_verified) {
+                    this.fill_idle_queue();
+                    if (this.helpers) await this.helpers.step();
+                    await this.step();
+                }
+                this.health.clear('broker_loop');
+            } catch (error) { this.last_error = 'speech_unavailable'; this.health.fail('broker_loop', error); }
             if (!this.stopped) this.timer = setTimeout(tick, 100);
             this.timer?.unref();
         };

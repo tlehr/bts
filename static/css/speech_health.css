@@ -1,0 +1,36 @@
+.speech_health_banner {
+	position: sticky;
+	top: 0;
+	z-index: 10000;
+	box-sizing: border-box;
+	width: 100%;
+	max-height: 35vh;
+	overflow: auto;
+	padding: 14px 20px;
+	border: 3px solid #a32116;
+	background: #fff0ed;
+	color: #721c13;
+	font: 16px/1.4 system-ui, sans-serif;
+	box-shadow: 0 3px 10px #0003;
+}
+
+.speech_health_banner[hidden] { display: none; }
+.speech_health_banner strong {
+	display: block;
+	font-size: 20px;
+}
+.speech_health_banner p { margin: 6px 0; }
+.speech_health_banner ul {
+	margin: 6px 0 0;
+	padding-left: 24px;
+	overflow-wrap: anywhere;
+}
+.speech_health_active .toprow,
+.speech_health_active .speech_plan_follow_status { top: var(--speech-health-height, 130px); }
+
+@media print {
+	.speech_health_banner {
+		position: static;
+		max-height: none;
+	}
+}

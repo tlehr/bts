@@ -3,9 +3,9 @@
 const http = require('http');
 const https = require('https');
 
-function request(base, api_key, method, pathname, body, timeout_ms = 2500) {
+function request(base, api_key, method, pathname, body, timeout_ms = 2500, headers = {}) {
     const target = new URL(pathname, base);
-    const payload = body === undefined ? null : Buffer.from(JSON.stringify(body));
+    const payload = body === undefined ? null : Buffer.isBuffer(body) ? body : Buffer.from(JSON.stringify(body));
     return new Promise((resolve, reject) => {
         const transport = target.protocol === 'https:' ? https : http;
         const req = transport.request(target, {
@@ -14,6 +14,7 @@ function request(base, api_key, method, pathname, body, timeout_ms = 2500) {
                 'X-API-Key': api_key,
                 Accept: 'application/json',
                 ...(payload ? { 'Content-Type': 'application/json', 'Content-Length': payload.length } : {}),
+                ...headers,
             },
         }, res => {
             const chunks = [];

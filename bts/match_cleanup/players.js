@@ -55,19 +55,21 @@ async function players(app, key, id, end_ts, provided, helpers) {
 async function tablets(app, key, id, end_ts, provided, helpers) {
 	const { match: current, tournament } = await reads.context(app, key, id, provided);
 	await new Promise((resolve, reject) => helpers.close_tabletoperator_assignment_on_court(app, key, current?.setup?.court_id, end_ts,
-		error => error ? reject(error) : resolve()));
+		error => error ? reject(error) : resolve(), id));
 	const ids = helpers.setup_tabletoperator_btp_ids(current?.setup);
 	if (!ids.length) return;
 	const wanted = new Set(ids.map(String));
 	// Read after player cleanup so a dual-role participant keeps its updated
 	// check-in and pause timestamps.
 	const matches = await reads.matches(app, key, ids, false);
+	const active = new Set(matches.filter(match => match._id !== id && match.setup?.now_on_court === true)
+		.flatMap(match => helpers.setup_tabletoperator_btp_ids(match.setup)).map(String));
 	const edits = [];
 	for (const match of matches) {
 		if (match.setup?.now_on_court === true && match._id !== id) continue;
 		const patch = {};
 		for (const { player, path } of slots(match.setup, true)) {
-			if (!wanted.has(String(player.btp_id))) continue;
+			if (!wanted.has(String(player.btp_id)) || active.has(String(player.btp_id))) continue;
 			if (player.now_tablet_on_court && player.now_tablet_on_court !== true &&
 				player.now_tablet_on_court !== current.setup.court_id) continue;
 			const before = JSON.stringify(player);

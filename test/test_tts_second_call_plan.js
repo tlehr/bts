@@ -4,11 +4,11 @@ const { Plan, digest } = require('../scripts/tts-context-benchmark-plan');
 const { repeatedTeam } = require('../scripts/tts-gameblock-context-plan');
 const { secondCalls, lexemes } = require('../scripts/tts-second-call-plan');
 
-function catalogue(cachedNormal = true, single = 'Max Hahn') {
+function catalogue(cachedNormal = true, single = 'Hans Dampf') {
     const plan = new Plan();
     repeatedTeam(plan, single, single);
-    repeatedTeam(plan, 'Emil Hermann und Konrad Wendt', 'Emil Hermann und Konrad Wendt');
-    repeatedTeam(plan, 'Tim Lehr', 'Tim Lehr');
+    repeatedTeam(plan, 'Erika Musterfrau und Otto Normalverbraucher', 'Erika Musterfrau und Otto Normalverbraucher');
+    repeatedTeam(plan, 'Max Mustermann', 'Max Mustermann');
     function part(text, profile, before = '', after = '', kind = 'generic', display = text) {
         const source = plan.source(before + text + after, 'fixture');
         const value = { source, before, text, after, kind, profile, display }, id = 'p-' + digest(value).slice(0, 20);
@@ -22,8 +22,8 @@ function catalogue(cachedNormal = true, single = 'Max Hahn') {
     part('Auf Spielfeld acht!', 'lab-v2/field_end', 'Auf Spielfeld acht! Spiel eins. ', '', 'field_end', 'Auf Spielfeld 8!');
     part('In Vorbereitung!', 'lab-v2/B09-opening', '', ' Spiel eins. Das Spiel ist in Vorbereitung!');
     if (cachedNormal) {
-        const full = 'Auf Spielfeld acht! Zweiter Aufruf für:Tabletbedienung:Max Hahn';
-        part('Zweiter Aufruf für:', 'lab-v2/B11-normal', 'Auf Spielfeld acht! ', 'Tabletbedienung:Max Hahn');
+        const full = 'Auf Spielfeld acht! Zweiter Aufruf für:Tabletbedienung:Hans Dampf';
+        part('Zweiter Aufruf für:', 'lab-v2/B11-normal', 'Auf Spielfeld acht! ', 'Tabletbedienung:Hans Dampf');
         part(full, 'lab-v2/role-full-reference', '', '', 'game');
     }
     return { ...plan.export(), strategy: 'bts-context-v2-lab-only',
@@ -74,15 +74,15 @@ describe('B11 second calls from browser texts and approved audio', function() {
         assert(d11.display.includes('Bitte melde dich am Eingangmelden!'), 'do not silently repair legacy browser grammar in local audio');
     });
     it('keeps numbers in displayed names while expanding only the synthesized text', function() {
-        const existing = catalogue(false, 'Max Hahn 2');
-        for (const p of existing.pieces.filter(p => p.display?.includes('Max Hahn 2'))) {
+        const existing = catalogue(false, 'Hans Dampf 2');
+        for (const p of existing.pieces.filter(p => p.display?.includes('Hans Dampf 2'))) {
             const source = existing.sources.find(s => s.id === p.source);
-            for (const key of ['text', 'before', 'after']) p[key] = p[key].replaceAll('Hahn 2', 'Hahn zwei');
-            source.text = source.text.replaceAll('Hahn 2', 'Hahn zwei');
+            for (const key of ['text', 'before', 'after']) p[key] = p[key].replaceAll('Dampf 2', 'Dampf zwei');
+            source.text = source.text.replaceAll('Dampf 2', 'Dampf zwei');
         }
         const plan = secondCalls(existing, current);
-        assert(plan.cases.find(c => c.id === 'D04-single').display.includes('Max Hahn 2'));
-        assert(plan.sources.some(s => s.text.includes('Max Hahn zwei')));
+        assert(plan.cases.find(c => c.id === 'D04-single').display.includes('Hans Dampf 2'));
+        assert(plan.sources.some(s => s.text.includes('Hans Dampf zwei')));
     });
     it('rejects incomplete cached audio or changed pronunciation versions', function() {
         assert.throws(() => secondCalls({ strategy: 'v1' }, current), /v2/);

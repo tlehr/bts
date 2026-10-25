@@ -13,6 +13,7 @@ const { fix_player } = require('./name_fixup');
 const match_changes = require('./btp_match_changes');
 const integrated_btp_match = require('./btp_match_changes/integrated_match');
 const normalization_fingerprints = require('./tournament_model/normalization_fingerprints');
+const { cmp_scheduled_match_order } = require('./match_automation');
 
 function now_ms(app) {
 	return app?.clock ? app.clock.now_ms() : Date.now();
@@ -1289,7 +1290,11 @@ function mergeLocalMatchIntoBtpMatch(current_match, match) {
 		match.setup.state = 'blocked';
 	}
 
-	if (!match.setup.court_id && current_match.setup && current_match.setup.court_id) {
+	// A missing planned court in BTP also removes the old local assignment.
+	// Keep local allocations only while a match is on court or as result history.
+	if (!match.setup.court_id && current_match.setup?.court_id &&
+		(has_result || current_match.setup.now_on_court === true ||
+			['oncourt', 'finished'].includes(current_match.setup.state))) {
 		match.setup.court_id = current_match.setup.court_id;
 	}
 
@@ -1719,6 +1724,7 @@ function build_match_update_fields(match) {
 		presses: match.presses,
 		duration_ms: match.duration_ms,
 		end_ts: match.end_ts,
+		tabletoperator_finish_ts: match.tabletoperator_finish_ts,
 		shuttle_count: match.shuttle_count,
 		match_order: match.match_order,
 	};
@@ -1998,6 +2004,8 @@ function btp_match_needs_local_status_cleanup(current_match, bm) {
 	if (!current_match || current_match.btp_needsync === true) {
 		return false;
 	}
+	if (require('./court_assignments_reset').can_reset(current_match) &&
+		current_match.setup.court_id && !bm.CourtID?.[0]) return true;
 	const remote = btp_result_signature_from_raw_match(bm);
 	const remote_score_status = remote ? remote.score_status : 0;
 	if (remote_score_status === 4 && current_match.score_status === 'no_match' &&
@@ -2254,6 +2262,9 @@ function sync_hidden_empty_bye_branch_winners(btp_manager, app, tkey, btp_state,
 		const match = {
 			tournament_key: tkey,
 			btp_id: `${tkey}_hidden_${bm.ID[0]}`,
+			// Winner-only updates still replace BTP's display position. Carry it
+			// across just like ordinary imported games, including an explicit zero.
+			match_order: bm.DisplayOrder?.[0] ?? 0,
 			btp_match_ids: [{
 				id: bm.ID[0],
 				nr: bm.MatchNr && bm.MatchNr[0],
@@ -2712,6 +2723,7 @@ async function integrate_matches(app, tkey, btp_state, scoring_formats, location
 							delete match.presses;
 							delete match.duration_ms;
 							delete match.end_ts;
+							delete match.tabletoperator_finish_ts;
 							match.setup.state = btp_setup_state;
 							match.setup.now_on_court = btp_now_on_court;
 							if (btp_court_id) {
@@ -2752,6 +2764,7 @@ async function integrate_matches(app, tkey, btp_state, scoring_formats, location
 							match.presses = current_match.presses;
 							match.duration_ms = current_match.duration_ms;
 							match.end_ts = current_match.end_ts;
+							match.tabletoperator_finish_ts = current_match.tabletoperator_finish_ts;
 						}
 
 						if (match.setup.now_on_court === false && !btp_clears_local_normal_result) {
@@ -2797,16 +2810,11 @@ async function integrate_matches(app, tkey, btp_state, scoring_formats, location
 							match_player_changed = setup_player_assignment_changed(current_match.setup, match.setup);
 							copy_checked_in_by_btp_id(current_match_for_check_in_compare.setup, match.setup);
 
-							if (!current_match.team1_won && current_match.team1_won != match.team1_won) {
+							if (typeof current_match.team1_won !== 'boolean' && typeof match.team1_won === 'boolean') {
 							if (!match.end_ts) {
 								result_enterd_in_btp = true;
 								match.setup.warmup = 'none';
 								match.end_ts = now_ms(app);
-
-								if ((tournament.tabletoperator_enabled && tournament.tabletoperator_enabled == true)) {
-									const match_utils = require('./match_utils');
-									await match_utils.reset_player_tabletoperator(app, tkey, match._id, match.end_ts);
-								}
 							}
 						}
 
@@ -2849,10 +2857,17 @@ async function integrate_matches(app, tkey, btp_state, scoring_formats, location
 						}
 						delete match._btp_auto_bye_winner_sync;
 
-						app.db.matches.update({ _id: current_match._id }, update_ops, {}, (err) => {
+						app.db.matches.update({ _id: current_match._id }, update_ops, {}, async (err) => {
 							if (err) {
 								cb(err);
 								return;
+							}
+							if (result_enterd_in_btp && tournament.tabletoperator_enabled) {
+								try {
+									// Cleanup must see the committed winner, end time and teams.
+									await require('./match_utils').reset_player_tabletoperator(app, tkey, match._id, match.end_ts);
+									match = await get_current_match_for_btp_sync(app, tkey, match);
+								} catch (cleanup_error) { return cb(cleanup_error); }
 							}
 							remember_match(match);
 							delta.remember_local(match);
@@ -4020,6 +4035,7 @@ function integrate_events(app, tkey, btp_state, callback) {
 	}
 	const started_at = Date.now();
 	const match_counts = btp_event_match_counts(btp_state);
+	const { first_matches, first_round_numbers } = btp_event_planning(btp_state);
 	// Results do not affect registration lists. Include every other source used
 	// by the payload builder. Convert the top-level Maps and the nested player
 	// entry-status Maps once, avoiding a JSON replacer visit for every property.
@@ -4029,7 +4045,7 @@ function integrate_events(app, tkey, btp_state, callback) {
 		id, player?.entries instanceof Map ? { ...player, entries: Array.from(player.entries) } : player,
 	]) : btp_state.players;
 	const signature = crypto.createHash('sha256').update(JSON.stringify([
-		...source_maps, players, Array.from(match_counts),
+		...source_maps, players, Array.from(match_counts), Array.from(first_matches), Array.from(first_round_numbers),
 	])).digest('hex');
 	const tournaments = app.db.tournaments;
 	let cache = event_integration_cache.get(tournaments);
@@ -4038,7 +4054,7 @@ function integrate_events(app, tkey, btp_state, callback) {
 		event_integration_cache.set(tournaments, cache);
 	}
 	const cached = cache.get(tkey);
-	const rebuild = () => integrate_changed_events(app, tkey, btp_state, match_counts, (err, payload_json) => {
+	const rebuild = () => integrate_changed_events(app, tkey, btp_state, match_counts, first_matches, first_round_numbers, (err, payload_json) => {
 		if (!err) cache.set(tkey, { signature, payload_json });
 		log_btp_sync_timing(tkey, 'integrate_events_details', Date.now() - started_at, { skipped: false });
 		callback(err);
@@ -4076,7 +4092,44 @@ function btp_event_match_counts(btp_state) {
 	return counts;
 }
 
-function integrate_changed_events(app, tkey, btp_state, matchCountByEventId, callback) {
+function btp_event_planning(btp_state) {
+	const first = new Map(), rounds = new Map();
+	if (!(btp_state.draws instanceof Map)) return { first_matches: first, first_round_numbers: rounds };
+	const unwrap = value => Array.isArray(value) ? value[0] : value;
+	// Undrawn brackets already have match numbers and planned times. They need
+	// not be playable or imported as BTS matches to establish discipline order.
+	const source = btp_state.planning_nodes?.size ? btp_state.planning_nodes : btp_state.matches || [];
+	const nodes = source instanceof Map ? source.values() : source;
+	for (const node of nodes) {
+		const number = Number(unwrap(node?.MatchNr));
+		if (unwrap(node?.IsMatch) !== true || !Number.isFinite(number) || number <= 0 || node.EntryID || node.Link) continue;
+		const draw_id = unwrap(node.DrawID);
+		const draw = btp_state.draws.get(draw_id) || btp_state.draws.get(Number(draw_id)) || btp_state.draws.get(String(draw_id));
+		const event_id = Number(unwrap(draw?.EventID));
+		if (!Number.isFinite(event_id)) continue;
+		const planned = unwrap(node.PlannedTime), order = unwrap(node.DisplayOrder);
+		const setup = { match_num: number };
+		if (planned && planned.year > 0 && planned.month > 0 && planned.day > 0 && Number.isFinite(planned.hour) && Number.isFinite(planned.minute)) {
+			setup.scheduled_date = date_str(planned); setup.scheduled_time_str = time_str(planned);
+		}
+		const match = { setup, ...(order != null && Number.isFinite(Number(order)) ? { match_order: Number(order) } : {}) };
+		if (!first.has(event_id) || cmp_scheduled_match_order(match, first.get(event_id)) < 0) first.set(event_id, match);
+		const round = Number(unwrap(node.Round));
+		if (!Number.isSafeInteger(round) || round <= 0 || !Number.isSafeInteger(number)) continue;
+		if (!rounds.has(event_id) || round < rounds.get(event_id).round) rounds.set(event_id, { round, matches: [] });
+		if (round === rounds.get(event_id).round) rounds.get(event_id).matches.push(match);
+	}
+	const first_matches = new Map([...first].sort(([a], [b]) => a - b).map(([id, match]) => [id, {
+		number: match.setup.match_num,
+		...(match.setup.scheduled_date ? { date: match.setup.scheduled_date, time: match.setup.scheduled_time_str } : {}),
+		...(match.match_order != null ? { order: match.match_order } : {}),
+	}]));
+	const first_round_numbers = new Map([...rounds].sort(([a], [b]) => a - b).map(([id, { matches }]) =>
+		[id, [...new Set(matches.sort(cmp_scheduled_match_order).map(match => match.setup.match_num))]]));
+	return { first_matches, first_round_numbers };
+}
+
+function integrate_changed_events(app, tkey, btp_state, matchCountByEventId, firstMatchesByEventId, firstRoundNumbersByEventId, callback) {
 	const admin = require("./admin"); // avoid dependency cycle
 	const unwrap = (v) => (Array.isArray(v) && v.length === 1 ? v[0] : v);
 
@@ -4154,6 +4207,8 @@ function integrate_changed_events(app, tkey, btp_state, matchCountByEventId, cal
 		...ev,
 		is_drawn: (matchCountByEventId.get(ev.id) || 0) > 0,
 		match_count: matchCountByEventId.get(ev.id) || 0,
+		...(firstMatchesByEventId.has(ev.id) ? { first_planned_match: firstMatchesByEventId.get(ev.id) } : {}),
+		...(firstRoundNumbersByEventId.has(ev.id) ? { first_round_match_numbers: firstRoundNumbersByEventId.get(ev.id) } : {}),
 		stages: stagesByEventId.get(ev.id) || [],
 		})),
 		// optional: keep a flat list too, if you prefer later

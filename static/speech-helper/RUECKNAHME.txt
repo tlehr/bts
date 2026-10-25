@@ -1,0 +1,30 @@
+BTS-Sprachhelfer - Stoppen und Entfernen
+
+1. Stoppen im Helferfenster beendet die Arbeit. Modelle und Download bleiben
+   fuer den naechsten Start erhalten. Es gibt keinen Windows-Autostart.
+   Eine gerade laufende WSL-Installation oder ein Import wird zuerst beendet.
+
+2. Helfer entfernen im selben Fenster loescht nach einer Bestaetigung den
+   eigenen Download, Modelle, Sitzungsdaten und die eigene WSL-Laufzeit fuer
+   diesen BTS. Andere WSL-Distributionen werden nicht entfernt.
+   Die heruntergeladene EXE nach dem Schliessen anschliessend selbst loeschen.
+   Bereits uebertragene Aufnahmen und Rechnerangaben bleiben im BTS erhalten.
+
+3. WSL ist eine Windows-Komponente, die auch andere Software verwenden kann.
+   Der Helfer entfernt sie deshalb nicht automatisch. Falls WSL eigens fuer
+   den Helfer eingerichtet wurde und sonst nicht benoetigt wird, kann WSL in
+   Windows unter Einstellungen > Apps > Installierte Apps deinstalliert werden.
+   Aktivierte Windows-Funktionen (z.B. Plattform fuer virtuelle Computer)
+   werden dadurch nicht zwingend deaktiviert. Diese lassen sich bei Bedarf
+   ueber Windows-Features aktivieren oder deaktivieren zuruecknehmen.
+   Vorher pruefen, ob z.B. Docker oder andere WSL-Programme sie benoetigen.
+   Windows kann Administratorrechte und einen Neustart verlangen.
+
+Microsoft-Dokumentation zum gezielten Entfernen einer WSL-Distribution:
+https://learn.microsoft.com/windows/wsl/basic-commands#unregister-or-uninstall-a-linux-distribution
+Ubuntu-Dokumentation zur Deinstallation von WSL und Windows-Funktionen:
+https://ubuntu.com/wsl/docs/stable/howto/uninstalling/
+
+Der Eintrag des Rechners und seine Testaufnahmen lassen sich unabhaengig
+vom lokalen Helfer auf dem BTS verwalten. Eine lokale Entfernung loescht
+keine Daten des Turniers und aendert BTP nicht.

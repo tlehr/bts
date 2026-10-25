@@ -134,7 +134,7 @@ suite('BTS / actual FastAPI / native Chrome speech integration', function() {
         })) await promisify(db[collection].insert.bind(db[collection]))(values);
         app = create_app({
             port: 0, host: '127.0.0.1', bup_location: 'static/bup/dev', report_errors: false,
-            speech: { enabled: true, url: 'http://127.0.0.1:' + port, api_key: key },
+            speech: { enabled: true, worker: false, url: 'http://127.0.0.1:' + port, api_key: key },
         }, db);
         // Accelerated mock generation, while the real deployment retains its rate limit.
         app.speech.broker.config.submit_interval_ms = 0;
@@ -1010,7 +1010,7 @@ suite('BTS / actual FastAPI / native Chrome speech integration', function() {
             await app.db.matches.update_async({ _id: match._id }, { $set: { 'setup.state': 'oncourt', 'setup.called_timestamp': Date.now() } }, {});
             await app.speech.prefetch.refresh('default');
             await until(async () => (await snapshot()).phase.includes('1 auf dem Feld'));
-            assert(await live.evaluate('document.querySelector(\'#draw-decision .flow-answer\').textContent.startsWith(\'Ja\')'));
+            assert(await live.evaluate('!document.querySelector(\'#draw-decision\') && document.querySelector(\'#registration-priority .flow-description\').textContent.startsWith(\'Geöffnete Anmeldungen zuerst\')'));
 
             const model = app.speech.prefetch.planning.get('default');
             const voice = app.speech.prefetch.settings('default').voice;
@@ -1049,18 +1049,516 @@ suite('BTS / actual FastAPI / native Chrome speech integration', function() {
         }
     });
 
-    it('automatically follows the decision path from start to the selected state without a processing loop', async function() {
+    it('keeps all 13 court slots fixed through finishes, late result edits and reassignments', async function() {
+        let targetId, socket;
+        const original = await app.db.matches.findOne_async({ _id: 'match1' });
+        const courts = await app.db.courts.find_async({ tournament_key: 'default' });
+        const added = Array.from({ length: 13 }, (_, i) => i + 1).filter(num => !courts.some(court => court._id === 'default_' + num));
+        const change = async (court, finished = false) => {
+            const setup = { ...original.setup, court_id: 'default_' + court, now_on_court: !finished, state: finished ? 'finished' : 'oncourt' };
+            await app.db.matches.update_async({ _id: original._id }, { $set: { setup, network_score: finished ? [[21, 3], [21, 4]] : [],
+                ...(finished ? { team1_won: true } : {}) }, ...(!finished ? { $unset: { team1_won: true } } : {}) }, {});
+            const match = await app.db.matches.findOne_async({ _id: original._id });
+            admin.notify_change(app, 'default', 'match_edit', { match__id: original._id, match });
+            return match;
+        };
+        try {
+            for (const num of added) await promisify(app.db.courts.insert.bind(app.db.courts))({ _id: 'default_' + num,
+                tournament_key: 'default', num, location_id: 'default_h1', is_active: true });
+            await change(4);
+            ({ targetId } = await devtools.call('Target.createTarget', { url: 'about:blank' }));
+            const target = (await (await fetch('http://' + devtoolsHost + '/json/list')).json()).find(page => page.id === targetId);
+            socket = new WebSocket(target.webSocketDebuggerUrl); await new Promise(resolve => socket.once('open', resolve));
+            const live = new CDP(socket); await live.call('Runtime.enable'); await live.call('Page.enable');
+            await live.call('Page.navigate', { url: 'http://127.0.0.1:' + server.address().port + '/admin/t/default/' });
+            await until(() => live.evaluate('document.querySelectorAll(\'.court_row\').length === 13'));
+            await live.evaluate('window.__fixedCourts = [...document.querySelectorAll(\'.court_row\')]');
+            const assertFixed = async () => {
+                assert.deepStrictEqual(await live.evaluate('[...document.querySelectorAll(\'.court_row\')].map(row => row.dataset.court_id)'),
+                    Array.from({ length: 13 }, (_, i) => 'default_' + (i + 1)));
+                assert(await live.evaluate('window.__fixedCourts.every((row,i) => row === document.querySelectorAll(\'.court_row\')[i])'),
+                    'incremental changes must reuse the fixed court rows');
+            };
+            let currentCourt = 4;
+            for (const nextCourt of [13, 9, 6, 1, 8, 4]) {
+                const match = await change(currentCourt, true);
+                await until(() => live.evaluate('document.querySelector(\'.finished_container .match[data-match_id="match1"]\') !== null'));
+                assert.strictEqual(await live.evaluate('document.querySelectorAll(\'.court_row[data-match_id="match1"]\').length'), 0);
+                // The subsequent result edit used to find the stale court row,
+                // repaint it and move it according to finished-game ordering.
+                admin.notify_change(app, 'default', 'match_edit', { match__id: original._id, match: { ...match, shuttle_count: nextCourt } });
+                await until(() => live.evaluate('curt.matches.find(m => m._id === \'match1\').shuttle_count === ' + nextCourt));
+                await assertFixed();
+                await change(nextCourt);
+                await until(() => live.evaluate('document.querySelector(\'.court_row[data-court_id="default_' + nextCourt + '"]\')?.dataset.match_id === \'match1\''));
+                await assertFixed(); currentCourt = nextCourt;
+            }
+            await live.evaluate('cmatch.update_court({_id:\'filtered-out\',num:14,is_active:true})');
+            assert.deepStrictEqual(live.events.filter(event => event.method === 'Runtime.exceptionThrown'), []);
+        } finally {
+            socket?.close(); if (targetId) await devtools.call('Target.closeTarget', { targetId });
+            await app.db.matches.update_async({ _id: original._id }, original, {});
+            for (const num of added) await app.db.courts.remove_async({ _id: 'default_' + num }, {});
+        }
+    });
+
+    it('shows all games in schedule order with live call details and updates only changed rows', async function() {
+        const broker = app.speech.broker, wasRunning = !broker.stopped;
+        broker.stop();
+        await until(async () => {
+            if (broker.current && !broker.stepping) { broker.current.entry.next_poll = 0; await broker.step(); }
+            return !broker.current && !broker.stepping;
+        });
+        const base = await app.db.matches.findOne_async({ _id: 'match1' });
+        const originalTournament = await app.db.tournaments.findOne_async({ key: 'default' });
+        const originalContext = broker.context_version;
+        const statuses = new Map([...broker.entries].map(([key, entry]) => [key, { status: entry.status, local: entry.local }]));
+        const added = [16, 18, 19].map(number => ({ _id: 'status-' + number, tournament_key: 'default', match_order: 0,
+            presses: [], setup: { ...base.setup, match_num: number, state: number === 16 ? 'finished' : 'scheduled',
+                court_id: number === 18 ? null : base.setup.court_id, incomplete: number === 19,
+                teams: number === 19 ? [{ players: [] }, { players: [] }] : [{ players: [{ name: 'Anna <script>window.__gameInjected=true</script>' }] },
+                    { players: [{ name: 'Berta Muster' }] }] } }));
+        let targetId, socket, live;
+        const originalClock = app.clock;
+        try {
+            // Status proofs use modular V2 clips. The engine stays stopped;
+            // this view must not submit any generation or play an announcement.
+            broker.context_version = 'bts-context-v2';
+            await promisify(app.db.matches.insert.bind(app.db.matches))(added);
+            await app.db.matches.update_async({ _id: base._id }, { $set: { 'setup.state': 'oncourt', 'setup.now_on_court': true } }, {});
+            await app.speech.prefetch.refresh('default');
+            const current = broker.coverage.plans.get('default'), voice = current.voice;
+            for (const target of current.values.values()) if (target.part) broker.prepare([target.part], { voice }, 'default');
+            for (const entry of broker.entries.values()) { entry.status = 'completed'; entry.local = false; }
+            const otherKeys = new Set(current.calls.filter(call => call.match_id !== 'status-18').flatMap(call => call.keys));
+            const missingKey = current.calls.find(call => call.match_id === 'status-18' && call.group === 'D01').keys.find(key => !otherKeys.has(key));
+            assert(missingKey);
+            const pending = broker.entries.get(missingKey); pending.status = 'processing';
+            const received = fs.readFileSync(path.join(directory, 'received.jsonl'), 'utf8');
+            ({ targetId } = await devtools.call('Target.createTarget', { url: 'about:blank' }));
+            const page = (await (await fetch('http://' + devtoolsHost + '/json/list')).json()).find(page => page.id === targetId);
+            socket = new WebSocket(page.webSocketDebuggerUrl);
+            await new Promise(resolve => socket.once('open', resolve));
+            live = new CDP(socket); await live.call('Runtime.enable'); await live.call('Page.enable');
+            await live.call('Emulation.setDeviceMetricsOverride', { width: 1560, height: 1250, deviceScaleFactor: 1, mobile: false });
+            const address = 'http://127.0.0.1:' + server.address().port + '/admin/t/default/speech-planning/';
+            await live.call('Page.navigate', { url: address });
+            await until(() => live.evaluate('!!document.querySelector(\'#view-games\')'));
+            await live.evaluate('document.querySelector(\'#view-games\').click()');
+            const rowSelector = '#games-panel tbody[data-game-id="status-18"]';
+            await until(() => live.evaluate('document.querySelectorAll(\'#games-panel tbody\').length === 4'));
+            assert.deepStrictEqual(await live.evaluate('[...document.querySelectorAll(\'#games-panel tbody\')].map(node=>node.dataset.gameId)'),
+                ['status-16', 'match1', 'status-18', 'status-19']);
+            assert(await live.evaluate('document.querySelector(\'.plan\').hidden && document.querySelector(\'#queue\').hidden'));
+            assert(await live.evaluate('document.querySelector(\'tbody[data-game-id="match1"]\').dataset.speechState === \'ready\''));
+            assert(await live.evaluate('document.querySelector(\'tbody[data-game-id="match1"]\').dataset.matchState === \'oncourt\''));
+            assert(await live.evaluate('document.querySelector(\'tbody[data-game-id="match1"] .game-court-icon\').textContent === \'4\''));
+            assert(await live.evaluate('getComputedStyle(document.querySelector(\'tbody[data-game-id="match1"] .game-match-status\')).backgroundColor === \'rgb(251, 228, 77)\''));
+            assert(await live.evaluate('document.querySelector(\'.games-state-legend\').textContent.includes(\'Aufrufkandidaten\')'));
+            assert(await live.evaluate('document.querySelector(\'tbody[data-game-id="status-16"] .game-match-status\').textContent.includes(\'Beendet auf Feld\')'));
+            await live.evaluate('document.querySelector(\'.games-state-filter\').value=\'unfinished\';document.querySelector(\'.games-state-filter\').dispatchEvent(new Event(\'change\'))');
+            assert.strictEqual(await live.evaluate('[...document.querySelectorAll(\'#games-panel tbody\')].filter(node=>!node.hidden).length'), 3);
+            assert(await live.evaluate('document.querySelector(\'tbody[data-game-id="status-16"]\').hidden'));
+            await live.evaluate('document.querySelector(\'.games-state-filter\').value=\'all\';document.querySelector(\'.games-state-filter\').dispatchEvent(new Event(\'change\'))');
+            assert(await live.evaluate('document.querySelector(\'tbody[data-game-id="status-19"]\').dataset.speechState === \'blocked\''));
+            assert(await live.evaluate('!window.__gameInjected && !document.querySelector(\'#games-panel script\')'));
+            await live.evaluate('document.querySelector(' + JSON.stringify(rowSelector + ' button') + ').click()');
+            await until(() => live.evaluate('document.querySelectorAll(' + JSON.stringify(rowSelector + ' .game-announcement') + ').length > 0'));
+            assert(await live.evaluate('document.querySelector(' + JSON.stringify(rowSelector) + ').textContent.includes(\'Alle möglichen Felder\')'));
+            assert(await live.evaluate('document.querySelector(' + JSON.stringify(rowSelector) + ').dataset.speechState === \'processing\''));
+            assert(await live.evaluate('!document.querySelector(' + JSON.stringify(rowSelector) + ').textContent.includes(\'Angaben fehlen\')'));
+            await live.evaluate('document.querySelector(' + JSON.stringify(rowSelector + ' .game-announcement') + ').open=true;' +
+                'window.__gameRow=document.querySelector(' + JSON.stringify(rowSelector) + ');' +
+                'window.__gameCall=document.querySelector(' + JSON.stringify(rowSelector + ' .game-announcement') + ');' +
+                'window.__gameChanges=[];window.__gameObserver=new MutationObserver(records=>records.forEach(record=>{' +
+                'const row=(record.target.nodeType===1?record.target:record.target.parentElement).closest(\'tbody\');if(row)window.__gameChanges.push(row.dataset.gameId)}));' +
+                'window.__gameObserver.observe(document.querySelector(\'.games-table\'),{subtree:true,childList:true});');
+            const beforeRevision = (await rpc(client, { type: 'speech_games', tournament_key: 'default' })).games.revision;
+            pending.status = 'completed';
+            await until(() => live.evaluate('document.querySelector(' + JSON.stringify(rowSelector + ' td:nth-child(4) small') + ').textContent.match(/^(\\d+)\\/\\1 Bausteine bereit$/) !== null'));
+            assert(await live.evaluate('document.querySelector(' + JSON.stringify(rowSelector) + ').dataset.speechState === \'ready\''));
+            assert(await live.evaluate('window.__gameChanges.length>0 && window.__gameChanges.every(id=>id===\'status-18\')'));
+            assert(await live.evaluate('window.__gameRow===document.querySelector(' + JSON.stringify(rowSelector) + ') && ' +
+                'window.__gameCall===document.querySelector(' + JSON.stringify(rowSelector + ' .game-announcement') + ') && window.__gameCall.open'));
+            const after = (await rpc(client, { type: 'speech_games', tournament_key: 'default', revision: beforeRevision })).games;
+            assert.notStrictEqual(after.revision, beforeRevision);
+            if (process.env.BTS_SPEECH_GAMES_SCREENSHOT) {
+                const shot = await live.call('Page.captureScreenshot', { format: 'png', captureBeyondViewport: true });
+                fs.writeFileSync(process.env.BTS_SPEECH_GAMES_SCREENSHOT, Buffer.from(shot.data, 'base64'));
+            }
+            await live.evaluate('window.__gameObserver.disconnect()');
+            await app.db.tournaments.update_async({ key: 'default' }, { $set: { events: { events: [{ name: base.setup.event_name,
+                stages: [{ stage_type: 1, entries: [base.setup.teams[0], base.setup.teams[1], ...added[1].setup.teams]
+                    .map(team => ({ team })) }] }] } } }, {});
+            await app.speech.prefetch.refresh('default');
+            for (const target of broker.coverage.game_plans.get('default').values.values()) if (target.part) broker.prepare([target.part], { voice }, 'default');
+            for (const entry of broker.entries.values()) { entry.status = 'completed'; entry.local = false; }
+            await until(() => live.evaluate('document.querySelector(\'tbody[data-game-id="status-19"]\').dataset.speechState === \'ready\''));
+            assert(await live.evaluate('document.querySelector(\'tbody[data-game-id="status-19"]\').dataset.matchState === \'incomplete\''));
+            await live.evaluate('document.querySelector(\'tbody[data-game-id="status-19"] button\').click()');
+            await until(() => live.evaluate('document.querySelector(\'tbody[data-game-id="status-19"]\').textContent.includes(\'Alle Teilnehmer der Disziplin\')'));
+            const frozenNow = Date.now();
+            app.clock = { now_ms: () => frozenNow, get_state: () => ({ mode: 'fixed' }) };
+            await app.db.matches.update_async({ _id: base._id }, { $set: { 'setup.state': 'preparation', 'setup.now_on_court': false,
+                'setup.preparation_call_timestamp': frozenNow - 65000, 'setup.highlight': 6 } }, {});
+            await app.speech.prefetch.refresh('default');
+            await until(() => live.evaluate('document.querySelector(\'tbody[data-game-id="match1"] .game-preparation-time\')?.textContent === \'1:05\''));
+            assert(await live.evaluate('getComputedStyle(document.querySelector(\'tbody[data-game-id="match1"] .game-match-status\')).backgroundColor === \'rgb(197, 107, 255)\''));
+            assert(await live.evaluate('document.querySelector(\'tbody[data-game-id="match1"] .game-match-status\').textContent.includes(\'[für Feld 4]\')'));
+            await live.evaluate('new Promise(resolve=>setTimeout(resolve,1200))');
+            assert(await live.evaluate('document.querySelector(\'tbody[data-game-id="match1"] .game-preparation-time\').textContent === \'1:05\''), 'a fixed BTS clock must not advance the preparation timer');
+            await live.evaluate('document.querySelector(\'.games-search\').value=\'19\';document.querySelector(\'.games-search\').dispatchEvent(new Event(\'input\'))');
+            assert.strictEqual(await live.evaluate('[...document.querySelectorAll(\'#games-panel tbody\')].filter(node=>!node.hidden).length'), 1);
+            await live.evaluate('document.querySelector(\'.games-search\').value=\'\';document.querySelector(\'.games-search\').dispatchEvent(new Event(\'input\'))');
+            await live.call('Emulation.setDeviceMetricsOverride', { width: 390, height: 844, deviceScaleFactor: 1, mobile: false });
+            await live.evaluate('new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)))');
+            assert(await live.evaluate('document.documentElement.scrollWidth <= innerWidth'), 'the mobile view must fit without horizontal page scrolling');
+            await live.call('Page.reload');
+            await until(() => live.evaluate('document.querySelector(\'#view-games\')?.getAttribute(\'aria-selected\') === \'true\''));
+            await until(() => live.evaluate('document.querySelectorAll(\'#games-panel tbody\').length === 4'));
+            assert.strictEqual(fs.readFileSync(path.join(directory, 'received.jsonl'), 'utf8'), received, 'the game view must not submit synthesis');
+            assert.deepStrictEqual(live.events.filter(event => event.method === 'Runtime.exceptionThrown'), []);
+        } finally {
+            app.clock = originalClock;
+            broker.context_version = originalContext;
+            if (live) await live.evaluate('localStorage.removeItem(\'bts-speech-planning-view\')').catch(() => {});
+            socket?.close(); if (targetId) await devtools.call('Target.closeTarget', { targetId });
+            for (const [key, values] of statuses) if (broker.entries.has(key)) Object.assign(broker.entries.get(key), values);
+            for (const match of added) await promisify(app.db.matches.remove.bind(app.db.matches))({ _id: match._id }, {});
+            await app.db.tournaments.update_async({ key: 'default' }, { $set: { events: originalTournament.events } }, {});
+            await app.db.matches.update_async({ _id: base._id }, { $set: { setup: base.setup } }, {});
+            await app.speech.prefetch.refresh('default');
+            if (wasRunning) broker.start();
+        }
+    });
+
+    it('collects browser logs centrally and reloads a chosen page after its unsaved form is closed', async function() {
+        const hub = app.diagnostics;
+        await until(() => hub?.ready);
+        const original = await devtools.evaluate('btsDiagnostics.context()');
+        assert.strictEqual(original.role, 'admin');
+        const marker = 'browser-central-test-' + Date.now();
+        await devtools.evaluate('console.warn(' + JSON.stringify(marker) + ', {api_key:\'do-not-export-this\',reason:\'speech_timeout\'});' +
+            'const form=document.createElement(\'form\');form.id=\'diagnostics-unsaved\';form.innerHTML=\'<input name="test" value="before">\';document.body.appendChild(form);' +
+            'const input=form.querySelector(\'input\');input.focus();input.value=\'after\';input.dispatchEvent(new Event(\'input\',{bubbles:true}));');
+        let targetId, socket;
+        try {
+            ({ targetId } = await devtools.call('Target.createTarget', { url: 'about:blank' }));
+            const target = (await (await fetch('http://' + devtoolsHost + '/json/list')).json()).find(page => page.id === targetId);
+            socket = new WebSocket(target.webSocketDebuggerUrl); await new Promise(resolve => socket.once('open', resolve));
+            const live = new CDP(socket); await live.call('Runtime.enable'); await live.call('Page.enable');
+            await live.call('Emulation.setDeviceMetricsOverride', { width: 1450, height: 1100, deviceScaleFactor: 1, mobile: false });
+            await live.call('Page.navigate', { url: 'http://127.0.0.1:' + server.address().port + '/admin/diagnostics/' });
+            await until(() => live.evaluate('document.querySelector(\'#connection\')?.textContent.includes(\'Logprozess aktiv\')'));
+            await live.evaluate('document.querySelector(\'#search\').value=' + JSON.stringify(marker) + ';document.querySelector(\'#search\').dispatchEvent(new Event(\'input\'));');
+            await until(() => live.evaluate('document.querySelector(\'#logs\').textContent.includes(' + JSON.stringify(marker) + ')'));
+            assert(await live.evaluate('!document.querySelector(\'#logs\').textContent.includes(\'do-not-export-this\')'));
+            assert(await live.evaluate('document.querySelector(\'#logs\').textContent.includes(\'speech_timeout\')'));
+            const exportsPath = path.join(directory, 'exports'); fs.mkdirSync(exportsPath, { recursive: true });
+            await live.call('Page.setDownloadBehavior', { behavior: 'allow', downloadPath: exportsPath });
+            await live.evaluate('document.querySelector(\'#export\').click()');
+            const exported = await until(() => fs.readdirSync(exportsPath).find(name => name.endsWith('.json')));
+            const report = JSON.parse(fs.readFileSync(path.join(exportsPath, exported), 'utf8'));
+            assert(report.items.some(row => row.message.includes(marker))); assert(!JSON.stringify(report).includes('do-not-export-this'));
+            await live.evaluate('document.querySelector(\'[data-tab="devices"]\').click()');
+            const selector = '[data-reload="page"][data-value="' + original.page_id + '"]';
+            await until(() => live.evaluate('!!document.querySelector(' + JSON.stringify(selector) + ')'));
+            await live.evaluate('document.querySelector(' + JSON.stringify(selector) + ').click()');
+            await until(() => [...hub.commands.values()].some(command => command.targets.some(target => target.page_id === original.page_id && target.state === 'waiting')));
+            assert(await devtools.evaluate('!!document.querySelector(\'#diagnostics-unsaved\')'));
+            assert.strictEqual(await devtools.evaluate('btsDiagnostics.context().instance'), original.instance);
+            await devtools.evaluate('document.querySelector(\'#diagnostics-unsaved\').remove()');
+            await until(() => [...hub.commands.values()].some(command => command.targets.some(target => target.page_id === original.page_id && target.state === 'reconnected')));
+            await until(() => devtools.evaluate('!!window.btsDiagnostics && btsDiagnostics.context().instance !== ' + JSON.stringify(original.instance)));
+            const after = await devtools.evaluate('btsDiagnostics.context()');
+            assert.strictEqual(after.page_id, original.page_id); assert.strictEqual(after.device_id, original.device_id);
+            assert.strictEqual(after.version, hub.version);
+            await until(() => live.evaluate('document.querySelector(\'#commands\').textContent.includes(\'Wieder verbunden\')'));
+            if (process.env.BTS_DIAGNOSTICS_SCREENSHOT) {
+                const shot = await live.call('Page.captureScreenshot', { format: 'png', captureBeyondViewport: true });
+                fs.writeFileSync(process.env.BTS_DIAGNOSTICS_SCREENSHOT, Buffer.from(shot.data, 'base64'));
+            }
+            await live.call('Emulation.setDeviceMetricsOverride', { width: 390, height: 844, deviceScaleFactor: 1, mobile: false });
+            await live.evaluate('new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)))');
+            assert(await live.evaluate('document.documentElement.scrollWidth <= innerWidth'), 'the device view must fit a phone');
+            assert.deepStrictEqual(live.events.filter(event => event.method === 'Runtime.exceptionThrown'), []);
+        } finally {
+            await devtools.evaluate('document.querySelector(\'#diagnostics-unsaved\')?.remove()').catch(() => {});
+            socket?.close(); if (targetId) await devtools.call('Target.closeTarget', { targetId });
+        }
+    });
+
+    it('registers an actual BUP display and centrally reloads it with its browser identity preserved', async function() {
+        let targetId, socket;
+        try {
+            ({ targetId } = await devtools.call('Target.createTarget', { url: 'about:blank' }));
+            const target = (await (await fetch('http://' + devtoolsHost + '/json/list')).json()).find(page => page.id === targetId);
+            socket = new WebSocket(target.webSocketDebuggerUrl); await new Promise(resolve => socket.once('open', resolve));
+            const live = new CDP(socket); await live.call('Runtime.enable'); await live.call('Page.enable');
+            await live.call('Page.navigate', { url: 'http://127.0.0.1:' + server.address().port + '/bup/bup.html#btsh_e=default&display' });
+            await until(() => live.evaluate('!!window.btsDiagnostics && typeof state !== \'undefined\' && !!state.ui?.displaymode_visible && btsDiagnostics.context().role === \'display\''));
+            const before = await live.evaluate('btsDiagnostics.context()');
+            assert.strictEqual(before.role, 'display');
+            await until(() => app.diagnostics.pages.get(before.page_id)?.role === 'display');
+            const command = app.diagnostics.reload('page', before.page_id);
+            await until(() => command.targets[0].state === 'reconnected');
+            await until(() => live.evaluate('!!window.btsDiagnostics && btsDiagnostics.context().role === \'display\' && btsDiagnostics.context().instance !== ' + JSON.stringify(before.instance)));
+            const after = await live.evaluate('btsDiagnostics.context()');
+            assert.strictEqual(after.page_id, before.page_id); assert.strictEqual(after.device_id, before.device_id);
+            assert.strictEqual(after.role, 'display'); assert.strictEqual(after.version, app.diagnostics.version);
+        } finally { socket?.close(); if (targetId) await devtools.call('Target.closeTarget', { targetId }); }
+    });
+
+    it('shows speech faults prominently in every admin page and in newly opened planning windows, then clears them after recovery', async function() {
+        let targetId, socket, legacySocket;
+        const health = app.speech.health;
+        for (const source of health.issues.keys()) health.clear(source);
+        try {
+            const legacyMessages = [];
+            legacySocket = new WebSocket('ws://127.0.0.1:' + server.address().port + '/ws/admin', 'bts-admin');
+            legacySocket.on('message', data => legacyMessages.push(JSON.parse(data)));
+            await new Promise(resolve => legacySocket.once('open', resolve));
+            await devtools.call('Page.navigate', { url: 'http://127.0.0.1:' + server.address().port + '/admin/' });
+            await until(() => devtools.evaluate('document.querySelector(\'.speech_health_banner\')?.hidden === true'));
+            health.fail('worker', Object.assign(new Error('fixture processing failed <script>window.__healthInjected=true</script>'),
+                { code: 'playback_processing_failed' }));
+            await until(() => devtools.evaluate('document.querySelector(\'.speech_health_banner\')?.hidden === false'));
+            await rpc(legacySocket, { type: 'debug_queue_stats' });
+            assert(!legacyMessages.some(message => message.type === 'speech_health'), 'do not push unsupported messages to a legacy admin window');
+            assert(await devtools.evaluate('document.querySelector(\'.speech_health_banner\').textContent.includes(\'Turnierbetrieb läuft weiter\')'));
+            assert(await devtools.evaluate('document.querySelector(\'.speech_health_banner\').textContent.includes(\'playback_processing_failed\')'));
+            assert(await devtools.evaluate('document.querySelector(\'.speech_health_banner\').getAttribute(\'role\') === \'alert\''));
+            assert(await devtools.evaluate('!document.querySelector(\'.speech_health_banner script\') && !window.__healthInjected'));
+            ({ targetId } = await devtools.call('Target.createTarget', { url: 'about:blank' }));
+            const page = (await (await fetch('http://' + devtoolsHost + '/json/list')).json()).find(page => page.id === targetId);
+            socket = new WebSocket(page.webSocketDebuggerUrl);
+            await new Promise(resolve => socket.once('open', resolve));
+            const live = new CDP(socket); await live.call('Runtime.enable'); await live.call('Page.enable');
+            await live.call('Emulation.setDeviceMetricsOverride', { width: 390, height: 844, deviceScaleFactor: 1, mobile: false });
+            await live.call('Page.navigate', { url: 'http://127.0.0.1:' + server.address().port + '/admin/t/default/speech-planning/' });
+            await until(() => live.evaluate('document.querySelector(\'.speech_health_banner\')?.hidden === false'));
+            await live.evaluate('window.scrollTo(0,1000); new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))');
+            assert(await live.evaluate('(() => {const b=document.querySelector(\'.speech_health_banner\').getBoundingClientRect(); ' +
+                'return b.top >= 0 && b.bottom <= innerHeight && document.documentElement.scrollWidth <= document.documentElement.clientWidth;})()'),
+                'the mobile fault banner remains visible while scrolling without horizontal overflow');
+            if (process.env.BTS_SPEECH_HEALTH_SCREENSHOT) {
+                const shot = await live.call('Page.captureScreenshot', { format: 'png' });
+                fs.writeFileSync(process.env.BTS_SPEECH_HEALTH_SCREENSHOT, Buffer.from(shot.data, 'base64'));
+            }
+            health.clear('worker');
+            await until(() => live.evaluate('document.querySelector(\'.speech_health_banner\')?.hidden === true'));
+            await until(() => devtools.evaluate('document.querySelector(\'.speech_health_banner\')?.hidden === true'));
+            assert.deepStrictEqual(live.events.filter(event => event.method === 'Runtime.exceptionThrown'), []);
+        } finally {
+            health.clear('worker'); socket?.close(); legacySocket?.close();
+            if (targetId) await devtools.call('Target.closeTarget', { targetId });
+        }
+    });
+
+    it('shows parallel speech work by executor and separates normal waiting from actual retries', async function() {
+        const originalPlanning = admin.handle_speech_planning, originalQueue = admin.handle_speech_queue;
+        const base = app.speech.prefetch.planning_status('default');
+        const items = [
+            { key: 'parallel-server', text: 'Lokale Kontextaufnahme', current: true, status: 'processing', execution: { kind: 'server', name: 'Sprachserver', phase: 'synthesis' } },
+            { key: 'parallel-helper', text: 'Externe Kontextaufnahme', current: true, status: 'processing', execution: { kind: 'helper', name: 'Testhost', phase: 'synthesis' } },
+            { key: 'parallel-quality', text: 'Fertige Helferaufnahme', current: false, status: 'processing', execution: { kind: 'server', name: 'Sprachserver', phase: 'waiting_validation' } },
+            { key: 'parallel-busy', text: 'Warte auf freien Server', current: false, status: 'unsubmitted', waiting_for_server: true },
+            { key: 'parallel-failed', text: 'Tatsächlich fehlgeschlagen', current: false, status: 'failed', retry_at: Date.now() + 60000 },
+            { key: 'parallel-source-ready', text: 'Quelle bereits fertig', current: false, status: 'unsubmitted', source_key: 'ready-source', position: null, waiting_for_source: false },
+            { key: 'parallel-source-missing', text: 'Quelle noch offen', current: false, status: 'unsubmitted', source_key: 'missing-source', position: null, waiting_for_source: true },
+        ].map(item => ({ priority: 'normal', voice: 'hallensprecher', retry_at: 0, operation: 'synthesis',
+            planning: { stage: 'shared', reason: 'Gemeinsamer Sprachvorrat' }, ...item }));
+        let count = 2;
+        admin.handle_speech_planning = (_app, ws, msg) => ws.respond(msg, null, { planning: { ...base,
+            state: count ? 'working' : 'idle_pending', active_stage: count ? 'shared' : null, running_count: count, updating: !count,
+            current: count ? { text: items[0].text, status: 'processing', running: true, planning: items[0].planning } : null, updated_at: Date.now() } });
+        admin.handle_speech_queue = (_app, ws, msg) => ws.respond(msg, null, { queue: { items, busy_elsewhere: false } });
+        try {
+            await devtools.call('Page.navigate', { url: 'http://127.0.0.1:' + server.address().port + '/admin/t/default/speech-planning/' });
+            await until(() => devtools.evaluate('document.querySelector(\'#queue-running\')?.textContent === \'2 laufen\''));
+            assert.strictEqual(await devtools.evaluate('document.querySelectorAll(\'.speech_plan_queue_item[data-current="true"]\').length'), 2);
+            assert(await devtools.evaluate('document.querySelector(\'#now-state\').textContent.includes(\'2 Aufträge parallel\')'));
+            assert(await devtools.evaluate('document.querySelectorAll(\'.speech_plan_queue_meta\')[1].textContent.includes(\'Testhost\')'));
+            assert.strictEqual(await devtools.evaluate('document.querySelectorAll(\'.speech_plan_queue_status\')[2].textContent'), 'Wartet auf zentrale Prüfung');
+            assert.strictEqual(await devtools.evaluate('document.querySelectorAll(\'.speech_plan_queue_status\')[3].textContent'), 'Wartet auf Sprachserver');
+            assert(await devtools.evaluate('document.querySelectorAll(\'.speech_plan_queue_status\')[4].textContent.includes(\'erneuter Versuch\')'));
+            assert.strictEqual(await devtools.evaluate('document.querySelectorAll(\'.speech_plan_queue_status\')[5].textContent'), 'Wartet auf Aufbereitung');
+            assert.strictEqual(await devtools.evaluate('document.querySelectorAll(\'.speech_plan_queue_status\')[6].textContent'), 'Wartet auf Quellaufnahme');
+            if (process.env.BTS_PARALLEL_QUEUE_SCREENSHOT) {
+                const shot = await devtools.call('Page.captureScreenshot', { format: 'png' });
+                fs.writeFileSync(process.env.BTS_PARALLEL_QUEUE_SCREENSHOT, Buffer.from(shot.data, 'base64'));
+            }
+            await devtools.evaluate('window.__parallelHelperNode=document.querySelectorAll(\'.speech_plan_queue_item\')[1]');
+            count = 1; items[1].current = false; items[1].execution.phase = 'waiting_validation';
+            await until(() => devtools.evaluate('document.querySelector(\'#queue-running\')?.textContent === \'1 läuft\''));
+            assert(await devtools.evaluate('window.__parallelHelperNode === document.querySelectorAll(\'.speech_plan_queue_item\')[1]'));
+            assert.strictEqual(await devtools.evaluate('document.querySelectorAll(\'.speech_plan_queue_status\')[1].textContent'), 'Wartet auf zentrale Prüfung');
+            count = 0; items[0].current = false;
+            await until(() => devtools.evaluate('document.querySelector(\'#now-name\')?.textContent === \'Plan wird aktualisiert\''));
+            assert(await devtools.evaluate('document.querySelector(\'#now-why\').textContent.includes(\'aktualisierte Reihenfolge\')'));
+        } finally { admin.handle_speech_planning = originalPlanning; admin.handle_speech_queue = originalQueue; }
+    });
+
+    it('shows regular helper jobs, central validation and required updates without exposing raw audio as ready', async function() {
+        const previous = app.speech.helpers;
+        const job = { id: 'a'.repeat(32), kind: 'source', voice: 'hallensprecher', state: 'completed', worker_id: 'worker',
+            text: 'Wir erwarten <script>window.__helperInjected=true</script> zum Spiel.', attempt: 1, created_at: Date.now() };
+        const state = { runtime: { id: 'b'.repeat(64), size_bytes: 2 * 1024 ** 3 }, generation: { ready: true }, mode: 'production',
+            workers: [{ id: 'worker', name: 'Testhost', platform: 'Linux', threads: 2, memory_limit_mib: 3584,
+                online: true, completed: 1, job_id: job.id, text: job.text }], jobs: [job] };
+        app.speech.helpers = { snapshot: async () => state };
+        try {
+            await devtools.call('Page.navigate', { url: 'http://127.0.0.1:' + server.address().port + '/admin/t/default/speech-helpers/' });
+            await until(() => devtools.evaluate('document.querySelector(\'#connection\')?.textContent.includes(\'automatisch verteilt\')'));
+            assert(await devtools.evaluate('document.querySelector(\'#jobs\').textContent.includes(\'Wartet auf zentrale Prüfung\')'));
+            assert(await devtools.evaluate('document.querySelector(\'#jobs\').textContent.includes(\'Kontextaufnahme\')'));
+            assert(await devtools.evaluate('document.querySelector(\'#workers\').textContent.includes(\'Wir erwarten <script>\')'));
+            assert(await devtools.evaluate('!window.__helperInjected && !document.querySelector(\'#jobs script, #workers script, #jobs audio\')'));
+            job.publication = 'ready';
+            await until(() => devtools.evaluate('document.querySelector(\'#jobs strong\')?.textContent === \'Bereit\''));
+            state.generation = { ready: false, reason: 'helper_profile_mismatch' };
+            state.workers[0].job_id = null; state.workers[0].update_required = true;
+            await until(() => devtools.evaluate('document.querySelector(\'#connection\')?.textContent.includes(\'Helferpaket passt nicht\')'));
+            assert(await devtools.evaluate('document.querySelector(\'#workers\').textContent.includes(\'Neuen Starter herunterladen\')'));
+            if (process.env.BTS_HELPERS_SCREENSHOT) {
+                const shot = await devtools.call('Page.captureScreenshot', { format: 'png' });
+                fs.writeFileSync(process.env.BTS_HELPERS_SCREENSHOT, Buffer.from(shot.data, 'base64'));
+            }
+        } finally { app.speech.helpers = previous; }
+    });
+
+    it('explains an unreachable speech server in the admin and helper pages and automatically clears the notice after recovery', async function() {
+        let targetId, socket;
+        const broker = app.speech.broker, originalRequest = broker.request;
+        const endpoint = broker.config.base_url;
+        try {
+            broker.request = async (...args) => {
+                if (['/health', '/v1/voices'].includes(args[3])) throw Object.assign(new Error('connect failed ' + key), { code: 'ECONNREFUSED' });
+                return originalRequest(...args);
+            };
+            await broker.refresh();
+            await devtools.call('Page.navigate', { url: 'http://127.0.0.1:' + server.address().port + '/admin/' });
+            await until(() => devtools.evaluate('document.querySelector(\'.speech_health_banner\')?.hidden === false'));
+            assert(await devtools.evaluate('document.querySelector(\'.speech_health_banner strong\').textContent.startsWith(\'Sprachserver nicht erreichbar\')'));
+            assert(await devtools.evaluate('document.querySelector(\'.speech_health_banner\').textContent.includes(\'„make dev“ startet nur BTS\')'));
+            assert(await devtools.evaluate('document.querySelector(\'.speech_health_banner\').textContent.includes(' + JSON.stringify(endpoint) + ')'));
+            assert.strictEqual(await devtools.evaluate('document.querySelector(\'.speech_health_banner details\').open'), false);
+            assert.strictEqual(await devtools.evaluate('document.querySelector(\'.speech_health_banner\').textContent.includes(' + JSON.stringify(key) + ')'), false);
+            assert.strictEqual(await devtools.evaluate('[...document.querySelectorAll(\'.speech_health_banner > p\')].filter(p=>p.textContent.startsWith(\'Sprachserver:\')).length'), 1,
+                'health and voices share one explanation');
+            await devtools.evaluate('document.querySelector(\'.speech_health_banner details\').open=true');
+            assert(await devtools.evaluate('document.querySelector(\'.speech_health_banner details\').textContent.includes(\'ECONNREFUSED\')'));
+
+            ({ targetId } = await devtools.call('Target.createTarget', { url: 'about:blank' }));
+            const page = (await (await fetch('http://' + devtoolsHost + '/json/list')).json()).find(page => page.id === targetId);
+            socket = new WebSocket(page.webSocketDebuggerUrl); await new Promise(resolve => socket.once('open', resolve));
+            const live = new CDP(socket); await live.call('Runtime.enable'); await live.call('Page.enable');
+            await live.call('Emulation.setDeviceMetricsOverride', { width: 390, height: 844, deviceScaleFactor: 1, mobile: false });
+            await live.call('Page.navigate', { url: 'http://127.0.0.1:' + server.address().port + '/admin/t/default/speech-helpers/' });
+            await until(() => live.evaluate('document.querySelector(\'.speech_health_banner\')?.hidden === false'));
+            assert(await live.evaluate('document.querySelector(\'.speech_health_banner strong\').textContent.startsWith(\'Sprachserver nicht erreichbar\')'));
+            assert(await live.evaluate('document.documentElement.scrollWidth<=innerWidth'), 'connection guidance fits a phone');
+            if (process.env.BTS_SPEECH_HEALTH_SCREENSHOT) {
+                const shot = await live.call('Page.captureScreenshot', { format: 'png' });
+                fs.writeFileSync(process.env.BTS_SPEECH_HEALTH_SCREENSHOT, Buffer.from(shot.data, 'base64'));
+            }
+            broker.request = originalRequest; await broker.refresh();
+            await until(() => live.evaluate('document.querySelector(\'.speech_health_banner\')?.hidden === true'));
+            await until(() => devtools.evaluate('document.querySelector(\'.speech_health_banner\')?.hidden === true'));
+            assert.deepStrictEqual(live.events.filter(event => event.method === 'Runtime.exceptionThrown'), []);
+        } finally {
+            broker.request = originalRequest; await broker.refresh();
+            socket?.close(); if (targetId) await devtools.call('Target.closeTarget', { targetId });
+        }
+    });
+
+    it('shows the live planning design in both views with shared selection, complete connections and read-only updates', async function() {
         const { STAGES } = require('../bts/speech/planning_status');
-        const original = admin.handle_speech_planning;
-        const response = { title: 'Automatische Sprachplanung', voice: 'hallensprecher', phase: 'competition',
+        const original = admin.handle_speech_planning, originalQueue = admin.handle_speech_queue;
+        const response = { title: 'Automatische Sprachplanung', voice: 'hallensprecher', phase: 'competition', has_officials: true,
             games: { oncourt: 1, preparation: 1, candidate: 1, planned: 1, finished: 0 }, state: 'working',
             active_stage: 'oncourt', current: { text: 'Aktuelle Aufnahme', running: true },
             total: { ready: 0, queued: STAGES.length, total: STAGES.length },
             stages: STAGES.map(([id, label, node]) => ({ id, label, node, ready: 0, queued: 1, total: 1 })) };
         let targetId, socket, sequence = 0;
+        const queueItems = [
+            { key: 'current', text: 'Aktuelle Aufnahme', current: true, position: 0, status: 'processing', priority: 'normal', voice: 'hallensprecher', operation: 'synthesis' },
+            { key: 'next', text: 'Auf Spielfeld 4', position: 1, status: 'unsubmitted', priority: 'high', voice: 'hallensprecher', operation: 'synthesis' },
+            { key: 'later', text: 'Musterverein spielt jetzt gegen Musterverein!', position: 2, status: 'unsubmitted', priority: 'normal', voice: 'hallensprecher', operation: 'synthesis' },
+            { key: 'failed', text: '<script>Kein HTML ausführen</script>', status: 'failed', priority: 'low', voice: 'hallensprecherin', terminal_failure: true },
+            { key: 'done', text: 'Bereits fertige Aufnahme', status: 'completed', priority: 'normal', voice: 'hallensprecher' },
+        ];
+        response.registration_order = [
+            { id: 'open', name: 'JE U17', order: 1, btp_order: 2, state: 'open', counts: { state: 2, club: 3, player: 8, pair: 0, team: 8 } },
+            { id: 'open-two', name: 'JD U19', order: 2, btp_order: 3, state: 'open', counts: { state: 1, club: 2, player: 8, pair: 4, team: 4 } },
+            { id: 'completed', name: 'ME U15', order: null, btp_order: 4, state: 'completed', counts: {} },
+            { id: 'later', name: 'ME U19', order: 3, btp_order: 1, state: 'closed', counts: { state: 1, club: 2, player: 6, pair: 0, team: 6 } },
+            { id: 'later-two', name: 'MD U19', order: 4, btp_order: 5, state: 'closed', counts: { state: 2, club: 3, player: 8, pair: 4, team: 4 } },
+            { id: 'drawn', name: 'DE U17', order: null, btp_order: 6, state: 'drawn', counts: {} },
+        ];
+        response.registration_order[0].first_game = { number: 25, date: '2026-09-26', time: '10:00' };
+        response.registration_order[1].first_game = { number: 396, date: '2026-09-27', time: '12:00' };
+        response.registration_progress = [
+            { id: 'common', ready: 2, queued: 0, failed: 0, total: 2, events: [] },
+            { id: 'open_states', ready: 3, queued: 0, failed: 0, total: 3, events: [
+                { id: 'open', ready: 2, queued: 0, failed: 0, total: 2 }, { id: 'open-two', ready: 1, queued: 0, failed: 0, total: 1 },
+            ] },
+            { id: 'open_clubs', ready: 1, queued: 4, failed: 0, total: 5, events: [
+                { id: 'open', ready: 1, queued: 2, failed: 0, total: 3 }, { id: 'open-two', ready: 0, queued: 2, failed: 0, total: 2 },
+            ] },
+            { id: 'open_people', ready: 0, queued: 12, failed: 0, total: 12, events: [
+                { id: 'open', ready: 0, queued: 8, failed: 0, total: 8 }, { id: 'open-two', ready: 0, queued: 4, failed: 0, total: 4 },
+            ] },
+            { id: 'open_numbers', ready: 4, queued: 4, failed: 0, total: 8, events: [
+                { id: 'open', ready: 4, queued: 0, failed: 0, total: 4 }, { id: 'open-two', ready: 0, queued: 4, failed: 0, total: 4 },
+            ] },
+            { id: 'closed_states', ready: 0, queued: 3, failed: 0, total: 3, events: [
+                { id: 'later', ready: 0, queued: 1, failed: 0, total: 1 }, { id: 'later-two', ready: 0, queued: 2, failed: 0, total: 2 },
+            ] },
+            { id: 'closed_clubs', ready: 0, queued: 5, failed: 0, total: 5, events: [
+                { id: 'later', ready: 0, queued: 2, failed: 0, total: 2 }, { id: 'later-two', ready: 0, queued: 3, failed: 0, total: 3 },
+            ] },
+            { id: 'closed_people', ready: 0, queued: 16, failed: 0, total: 16, events: [
+                { id: 'later', ready: 0, queued: 6, failed: 0, total: 6 }, { id: 'later-two', ready: 0, queued: 10, failed: 0, total: 10 },
+            ] },
+            { id: 'closed_numbers', ready: 0, queued: 8, failed: 0, total: 8, events: [
+                { id: 'later', ready: 0, queued: 4, failed: 0, total: 4 }, { id: 'later-two', ready: 0, queued: 4, failed: 0, total: 4 },
+            ] },
+        ];
+        for (const event of response.registration_order.filter(event => ['open', 'closed'].includes(event.state))) event.counts.number = 4;
+        response.registration_groups = [
+            { id: 'open', ready: 8, queued: 20, failed: 0, total: 28 },
+            { id: 'closed', ready: 0, queued: 32, failed: 0, total: 32 },
+        ];
+        response.tablet_progress = [
+            { id: 'tablet-one', name: 'MX U15', order: 1, btp_order: 5, next_game: { number: 17, time: '10:00' }, ready: 5, queued: 0, failed: 0, total: 5 },
+            { id: 'tablet-two', name: 'MD U19', order: 2, btp_order: 3, next_game: { number: 21, time: '10:30' }, ready: 1, queued: 2, failed: 0, total: 3 },
+            { id: 'tablet-empty', name: 'ME U17', order: 3, btp_order: 6, ready: 0, queued: 0, failed: 0, total: 0 },
+        ];
+        for (const event of response.tablet_progress) event.counts = { state: 1, club: 2, player: 4, pair: 2, team: 2, number: event.total ? 4 : 0 };
+        response.tablet_phases = ['states', 'clubs', 'people'].map(id => ({ id,
+            ready: id === 'people' ? 6 : 8, queued: id === 'people' ? 2 : 0, failed: 0, total: 8,
+            events: response.tablet_progress.map(event => ({ ...event,
+                ...(id !== 'people' ? { ready: event.total, queued: 0 } : {}) })),
+        }));
+        response.tablet_phases.push({ id: 'numbers', ready: 4, queued: 4, failed: 0, total: 8,
+            events: response.tablet_progress.map((event, index) => ({ id: event.id, ready: index === 0 ? 4 : 0,
+                queued: index === 1 ? 4 : 0, failed: 0, total: event.counts.number })) });
+        for (const [index, event] of response.tablet_progress.entries()) {
+            event.total += event.counts.number;
+            if (index === 0) event.ready += event.counts.number;
+            else event.queued += event.counts.number;
+        }
+        queueItems[2].planning = { stage: 'registration', event_id: 'open', kind: 'club', registration_phase: 'open_clubs',
+            reason: 'Anmeldevorarbeit → 2. Vereine aller offenen Anmeldungen → Disziplin 1: JE U17 (Anmeldung geöffnet) → Verein 2: Musterverein · Quellaufnahme vor dem benötigten Ausschnitt.' };
         admin.handle_speech_planning = (_app, ws, msg) => {
             ws.speech_planning_test = true;
             ws.respond(msg, null, { planning: { ...response, updated_at: ++sequence } });
+        };
+        admin.handle_speech_queue = (app, ws, msg) => {
+            if (!ws.speech_planning_test) return originalQueue(app, ws, msg);
+            assert.strictEqual(msg.pending_only, true);
+            ws.respond(msg, null, { queue: { items: queueItems, busy_elsewhere: false } });
         };
         try {
             ({ targetId } = await devtools.call('Target.createTarget', { url: 'about:blank' }));
@@ -1068,209 +1566,273 @@ suite('BTS / actual FastAPI / native Chrome speech integration', function() {
             socket = new WebSocket(page.webSocketDebuggerUrl);
             await new Promise(resolve => socket.once('open', resolve));
             const live = new CDP(socket);
-            await live.call('Runtime.enable');
-            await live.call('Page.bringToFront');
-            await live.call('Page.enable');
-            await live.call('Emulation.setDeviceMetricsOverride', { width: 1340, height: 1500, deviceScaleFactor: 1, mobile: false });
+            await live.call('Runtime.enable'); await live.call('Page.enable');
             await live.call('Page.addScriptToEvaluateOnNewDocument', { source:
-                'const interval = window.setInterval.bind(window); window.setInterval = (fn, ms, ...args) => interval(fn, ms === 2000 ? 100 : ms, ...args);' });
-            await live.call('Page.navigate', { url: 'http://127.0.0.1:' + server.address().port + '/admin/t/default/speech-planning/' });
-            const view = () => live.evaluate('(() => { const svg = document.querySelector(\'#overview\'); return {' +
-                'stage:svg?.dataset.followStage, target:svg?.dataset.routeTarget, phase:svg?.dataset.phase, ' +
-                'auto:svg?.classList.contains(\'automatic\'), following:svg?.classList.contains(\'live-follow\'), ' +
-                'updated:document.querySelector(\'.speech_plan_live\')?.dataset.updatedAt, ' +
-                'label:document.querySelector(\'.speech_plan_follow_status\')?.textContent}; })()');
-            await until(async () => (await view()).stage === 'oncourt');
-            await live.evaluate('new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))');
-            assert.strictEqual(await live.evaluate('document.querySelectorAll(\'input,select,[data-select],.flow-step[role="button"]\').length'), 0);
-            const positions = await live.evaluate('[...document.querySelectorAll(\'.flow-step\')].filter(node => !node.hidden).map(node => {' +
-                'const box = node.getBoundingClientRect(); return {stage:node.dataset.stage,x:box.x,y:box.y,bottom:box.bottom}; })');
-            assert.deepStrictEqual(positions.map(row => row.stage), ['urgent', 'test', 'shared', 'registration', 'oncourt', 'preparation',
-                'officials', 'additional', 'candidate', 'tablet_waiting', 'planned', 'registration_reserve', 'tablet', 'people', 'spare']);
-            assert(new Set(positions.map(row => row.x)).size > 1, 'show separate registration and competition branches');
-            const registration = positions.find(row => row.stage === 'registration');
-            const oncourt = positions.find(row => row.stage === 'oncourt');
-            assert(registration.x < oncourt.x, 'the tournament phase selects alternative paths');
-            const competition = positions.filter(row => row.stage !== 'registration');
-            for (let i = 1; i < competition.length; i++) {
-                assert(competition[i].y > competition[i - 1].bottom, 'keep descending priority within a path: ' +
-                    competition[i - 1].stage + ' → ' + competition[i].stage);
+                'const interval=window.setInterval.bind(window);window.setInterval=(fn,ms,...args)=>interval(fn,ms===2000?100:ms,...args);' });
+            await live.call('Emulation.setDeviceMetricsOverride', { width: 1680, height: 1250, deviceScaleFactor: 1, mobile: false });
+            const address = 'http://127.0.0.1:' + server.address().port + '/admin/t/default/speech-planning/';
+            const received = fs.readFileSync(path.join(directory, 'received.jsonl'), 'utf8');
+            await live.call('Page.navigate', { url: address });
+            const updated = () => live.evaluate('document.querySelector(\'.speech_plan_live\')?.dataset.updatedAt');
+            const nextUpdate = async () => { const old = await updated(); await until(async () => (await updated()) !== old); };
+            await until(() => live.evaluate('document.querySelector(\'.speech_plan_live\')?.dataset.connected === \'true\''));
+            assert(await live.evaluate('document.querySelector(\'#view-overview\').getAttribute(\'aria-selected\') === \'true\''));
+            assert(await live.evaluate('document.querySelector(\'.plan-step[aria-pressed="true"]\').dataset.stage === \'oncourt\''));
+            assert(await live.evaluate('!document.body.textContent.includes(\'ausschließlich Beispieldaten\') && !document.querySelector(\'#scenario,#error-toggle,iframe\')'));
+            assert.strictEqual(await live.evaluate('typeof btsSpeechService'), 'undefined', 'the planning page must not load an audio client');
+            const stageNumbers = () => live.evaluate('[...document.querySelectorAll(\'.plan-step\')].map(node=>[node.dataset.stage,node.querySelector(\'.number\').textContent])');
+            assert.deepStrictEqual(await stageNumbers(), [
+                ['urgent', '01'], ['test', '02'], ['shared', '03'], ['officials', '04'],
+                ['tablet_waiting', '05'], ['oncourt', '06'], ['preparation', '07'], ['additional', ''],
+                ['candidate', '08'], ['planned', '09'], ['tablet', '10'], ['registration', '11'], ['people', '12'], ['spare', '13'],
+            ]);
+            const queueTexts = () => live.evaluate('[...document.querySelectorAll(\'.speech_plan_queue_text\')].map(node=>node.textContent)');
+            assert.deepStrictEqual(await queueTexts(), queueItems.slice(0, 4).map(item => item.text));
+            assert(await live.evaluate('document.querySelector(\'.speech_plan_queue_summary\').textContent.includes(\'1 läuft · 2 warten · 1 fehlgeschlagen\')'));
+            assert.strictEqual(await live.evaluate('document.querySelector(\'.speech_plan_queue_text script\')'), null);
+            await live.evaluate('document.querySelector(\'.plan-step[data-stage="registration"]\').click()');
+            assert(await live.evaluate('document.querySelector(\'.detail-description\').textContent.startsWith(\'Geöffnete Anmeldungen zuerst\')'));
+            assert(await live.evaluate('document.querySelector(\'.flow-registration-next\').textContent === \'Danach → Übrige Personen und Teams\''));
+            const additional = response.stages.find(row => row.id === 'additional');
+            Object.assign(additional, { total: 0, queued: 0 }); await nextUpdate();
+            assert.deepStrictEqual(await stageNumbers(), [
+                ['urgent', '01'], ['test', '02'], ['shared', '03'], ['officials', '04'],
+                ['tablet_waiting', '05'], ['oncourt', '06'], ['preparation', '07'], ['candidate', '08'], ['planned', '09'],
+                ['tablet', '10'], ['registration', '11'], ['people', '12'], ['spare', '13'],
+            ], 'the normal competition order must match the approved draft');
+            assert.deepStrictEqual(await live.evaluate('[...document.querySelectorAll(\'.plan-group h3\')].map(node=>node.textContent)'), [
+                'Turniervorarbeit', 'Aktueller Spielbetrieb', 'Vorbereitung des Spielbetriebs', 'Weitere Vorbereitung', 'Nur bei vollständigem Leerlauf',
+            ], 'preserve the draft group headings');
+            assert(await live.evaluate('document.querySelector(\'.detail-number\').textContent === \'11\' && document.querySelector(\'.next-step button\').textContent.startsWith(\'12 \')'));
+            assert(await live.evaluate('!document.querySelector(\'.plan-group h3 .number,.flow-work-group > .flow-title .flow-number\')'), 'group headings must remain unnumbered as in the draft');
+            Object.assign(additional, { total: 1, queued: 1 }); await nextUpdate();
+            assert.strictEqual(await live.evaluate('document.querySelectorAll(\'.detail .area\').length'), 2);
+            assert.deepStrictEqual(await live.evaluate('[...document.querySelectorAll(\'.detail .area:first-of-type .matrix tbody .event-name\')].map(n=>n.textContent)'), ['1.JE U17', '2.JD U19']);
+            assert(await live.evaluate('document.querySelector(\'.detail .phase-summary\').textContent.includes(\'3 bereit\')'));
+            assert.deepStrictEqual(await live.evaluate('[...document.querySelectorAll(\'.detail .area:first-of-type .phase-name\')].map(node=>node.textContent)'),
+                ['Landesverbände', 'Vereine', 'Spieler/Paarungen', 'Spielnummern · erste Runde']);
+            assert(await live.evaluate('document.querySelector(\'.cell[data-area="open"][data-phase="numbers"][data-event="open"]\').textContent.includes(\'4 bereit\')'));
+            assert(await live.evaluate('(() => {const nodes=[...document.querySelectorAll(\'#registration-phase-open_people .registration-flow-state\')];return nodes.map(node=>node.dataset.subphase+\':\'+node.dataset.eventId).join(\',\')===\'open_people:open,open_numbers:open,open_people:open-two,open_numbers:open-two\';})()'));
+            assert(await live.evaluate('document.querySelector(\'.registration-flow-state[data-subphase="open_numbers"][data-event-id="open"]\').dataset.ready===\'4\' && document.querySelector(\'.registration-flow-state[data-subphase="open_people"][data-event-id="open"]\').dataset.ready===\'0\''));
+            await live.evaluate('document.querySelector(\'.cell[data-area="open"][data-phase="numbers"][data-event="open"]\').click()');
+            assert(await live.evaluate('document.querySelector(\'.selection h3\').textContent.includes(\'JE U17 · Spielnummern · erste Runde\')'));
+            await live.evaluate('document.querySelector(\'#view-diagram\').click()');
+            await until(() => live.evaluate('document.querySelector(\'.registration-flow-state.plan-selected\')?.dataset.subphase === \'open_numbers\''));
+            assert(await live.evaluate('document.querySelector(\'.registration-flow-state.plan-selected\').dataset.eventId===\'open\''));
+            await live.evaluate('new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)))');
+            assert(await live.evaluate(`(() => {
+                const cards=[...document.querySelectorAll('#registration-phase-open_people .registration-flow-state')].map(node=>node.getBoundingClientRect());
+                const [people,numbers,nextPeople,nextNumbers]=cards;
+                return Math.abs(people.top-numbers.top)<1 && numbers.left>people.right &&
+                    nextPeople.top>Math.max(people.bottom,numbers.bottom) && Math.abs(nextPeople.left-people.left)<1 &&
+                    Math.abs(nextPeople.top-nextNumbers.top)<1 && nextNumbers.left>nextPeople.right;
+            })()`), 'each discipline must run left to right, returning to the left in the next row');
+            if (process.env.BTS_SPEECH_NUMBER_SEPARATION_SCREENSHOT) {
+                const clip = await live.evaluate('(() => {const r=document.querySelector(\'#registration-area-open\').getBoundingClientRect();return {x:r.x+scrollX,y:r.y+scrollY,width:r.width,height:Math.min(r.height,1600),scale:1};})()');
+                const shot = await live.call('Page.captureScreenshot', { format: 'png', captureBeyondViewport: true, clip });
+                fs.writeFileSync(process.env.BTS_SPEECH_NUMBER_SEPARATION_SCREENSHOT, Buffer.from(shot.data, 'base64'));
             }
-            const network = await live.evaluate('(() => {' +
-                'const nodes = [...document.querySelectorAll(\'#overview [data-kind]\')].filter(n => !n.hidden);' +
-                'const edges = [...document.querySelectorAll(\'.flow-edge\')].map(n => ({from:n.dataset.from,to:n.dataset.to,guard:n.dataset.guard}));' +
-                'return {nodes:nodes.map(n => ({id:n.id,kind:n.dataset.kind,stage:n.dataset.stage,selects:n.dataset.selectsStage})),edges};})()');
-            const kinds = new Map(network.nodes.map(node => [node.id, node.kind]));
-            for (const node of network.nodes) {
-                const outgoing = network.edges.filter(edge => edge.from === node.id);
-                if (node.kind === 'state') {
-                    assert.strictEqual(outgoing.length, 0, 'processing stays inside the state; its return loop is omitted');
-                    assert(network.edges.some(edge => edge.to === node.id), 'every state is reachable');
-                } else if (node.kind === 'decision') {
-                    assert.deepStrictEqual(outgoing.map(edge => edge.guard).sort(), ['[ja]', '[nein]'], node.id);
-                    assert.strictEqual(network.edges.filter(edge => edge.to === node.id).length, 1, 'decisions have one input');
-                } else if (node.kind === 'junction') {
-                    assert.strictEqual(outgoing.length, 1, 'junctions have one output');
-                    assert(network.edges.filter(edge => edge.to === node.id).length >= 2, 'junctions combine alternative paths');
+            await live.evaluate('document.querySelector(\'.registration-flow-state[data-subphase="open_numbers"][data-event-id="open-two"]\').click();document.querySelector(\'#diagram-details\').click()');
+            assert(await live.evaluate('document.querySelector(\'.selection h3\').textContent.includes(\'JD U19 · Spielnummern · erste Runde\')'));
+            const cell = '.detail .cell[data-area="open"][data-phase="clubs"][data-event="open"]';
+            await live.evaluate('document.querySelector(' + JSON.stringify(cell) + ').click();document.querySelector(' + JSON.stringify(cell) + ').focus()');
+            assert(await live.evaluate('document.querySelector(\'.selection h3\').textContent.includes(\'JE U17 · Vereine\')'));
+            assert(await live.evaluate('document.querySelector(\'.sample-parts\').textContent.includes(\'Musterverein\')'));
+            response.registration_progress.find(row => row.id === 'open_clubs').events[0].ready = 2;
+            await nextUpdate();
+            assert(await live.evaluate('document.activeElement.dataset.focusKey === \'cell:open:clubs:open\''), 'keep keyboard focus across progress updates');
+            assert(await live.evaluate('document.querySelector(\'.plan-step[aria-pressed="true"]\').dataset.stage === \'registration\''), 'keep a manual selection while another area is active');
+            await live.evaluate('document.querySelector(\'#view-diagram\').click()');
+            await until(() => live.evaluate('document.querySelectorAll(\'.flow-edge\').length > 0'));
+            assert(await live.evaluate('document.querySelector(\'.speech_plan_queue\').getBoundingClientRect().left > document.querySelector(\'#diagram-panel\').getBoundingClientRect().right'));
+            assert(await live.evaluate('document.querySelector(\'.registration-flow-state.plan-selected\').dataset.eventId === \'open\''));
+            await live.evaluate('document.querySelector(\'.tablet-flow-state[data-tablet-phase="clubs"][data-event-id="tablet-two"]\').click();document.querySelector(\'#diagram-details\').click()');
+            assert(await live.evaluate('document.querySelector(\'.selection h3\').textContent.includes(\'MD U19 · Vereine\')'));
+            assert(await live.evaluate('document.querySelector(\'.matrix .event-meta\').textContent.includes(\'4 anwesende Spieler\')'));
+            await live.evaluate('document.querySelector(\'.cell[data-area="tablet"][data-phase="numbers"][data-event="tablet-one"]\').click()');
+            assert(await live.evaluate('document.querySelector(\'.selection h3\').textContent.includes(\'MX U15 · Spielnummern · erste Runde\')'));
+            assert.strictEqual(await live.evaluate('document.querySelector(\'#now-name\').textContent'), response.current.text, 'a manual selection must not change the current job');
+            await live.evaluate('document.querySelector(\'#view-diagram\').click()');
+            await until(() => live.evaluate('document.querySelectorAll(\'.flow-edge\').length > 0'));
+            await live.evaluate('new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)))');
+            assert.deepStrictEqual(await live.evaluate('[...document.querySelectorAll(\'#tablet-event-tablet-one .tablet-flow-state\')].map(node=>node.dataset.tabletPhase)'),
+                ['states', 'clubs', 'people', 'numbers']);
+            assert(await live.evaluate('(() => {const root=document.querySelector(\'#tablet-event-tablet-one\'),people=root.querySelector(\'[data-tablet-phase="people"]\').getBoundingClientRect(),numbers=root.querySelector(\'[data-tablet-phase="numbers"]\').getBoundingClientRect();return Math.abs(people.top-numbers.top)<1&&numbers.left>people.right;})()'));
+            assert(await live.evaluate('document.querySelector(\'.tablet-flow-state.plan-selected\').dataset.tabletPhase===\'numbers\''));
+            if (process.env.BTS_SPEECH_COMPLETED_NUMBERS_SCREENSHOT) {
+                const clip = await live.evaluate('(() => {const r=document.querySelector(\'#tablet-event-tablet-one\').getBoundingClientRect();return {x:r.x+scrollX,y:r.y+scrollY,width:r.width,height:r.height,scale:1};})()');
+                const shot = await live.call('Page.captureScreenshot', { format: 'png', captureBeyondViewport: true, clip });
+                fs.writeFileSync(process.env.BTS_SPEECH_COMPLETED_NUMBERS_SCREENSHOT, Buffer.from(shot.data, 'base64'));
+            }
+            // Verify actual border attachment, clear routing and a complete
+            // connection chain in every main category and nested subcategory.
+            const geometry = () => live.evaluate(`(() => {
+                const errors=[],near=(a,b)=>Math.abs(a-b)<1.2;
+                const types='.flow-state,.registration-flow-area,.registration-flow-phase,.tablet-flow-event,.registration-flow-state,.tablet-flow-state';
+                const states=[...document.querySelectorAll(types)].filter(n=>n.getBoundingClientRect().width>0);
+                for(const path of document.querySelectorAll('.flow-edge,.work-flow-edge,.sub-flow-edge')){
+                    const coords=path.getAttribute('d').match(/[-+]?(?:\\d*\\.)?\\d+(?:e[-+]?\\d+)?/gi).map(Number),points=[];
+                    for(let i=0;i<coords.length;i+=2)points.push(new DOMPoint(coords[i],coords[i+1]).matrixTransform(path.getScreenCTM()));
+                    const from=document.getElementById(path.dataset.from),to=document.getElementById(path.dataset.to),id=from.id+' → '+to.id;
+                    const onBorder=(p,n)=>{const r=n.getBoundingClientRect();return ((near(p.x,r.left)||near(p.x,r.right))&&p.y>=r.top-1&&p.y<=r.bottom+1)||((near(p.y,r.top)||near(p.y,r.bottom))&&p.x>=r.left-1&&p.x<=r.right+1);};
+                    if(!onBorder(points[0],from)||!onBorder(points.at(-1),to))errors.push(id+' detached');
+                    for(let i=1;i<points.length;i++){
+                        const a=points[i-1],b=points[i];
+                        if(!near(a.x,b.x)&&!near(a.y,b.y))errors.push(id+' diagonal');
+                        for(const node of states){
+                            if(node===from||node===to||node.contains(from)||node.contains(to)||from.contains(node)||to.contains(node))continue;
+                            const r=node.getBoundingClientRect();
+                            const crosses=near(a.x,b.x)?a.x>r.left+2&&a.x<r.right-2&&Math.max(a.y,b.y)>r.top+2&&Math.min(a.y,b.y)<r.bottom-2:
+                                a.y>r.top+2&&a.y<r.bottom-2&&Math.max(a.x,b.x)>r.left+2&&Math.min(a.x,b.x)<r.right-2;
+                            if(crosses)errors.push(id+' crosses '+node.className);
+                        }
+                    }
                 }
+                for(const flow of document.querySelectorAll('.sub-flow,.work-flow')){
+                    const body=flow.querySelector(':scope>.sub-flow-body,:scope>.work-flow-body');
+                    const children=[...body.children].filter(n=>!n.hidden).map(n=>n.matches('.work-flow-column')?n.firstElementChild:n);
+                    const sequence=[flow.querySelector(':scope>.is-start'),...children,flow.querySelector(':scope>.is-end')];
+                    const edges=[...flow.querySelectorAll(':scope>svg>path')];
+                    if(edges.length!==sequence.length-1)errors.push('incomplete category');
+                    for(let i=1;i<sequence.length;i++)if(!edges.some(p=>p.dataset.from===sequence[i-1].id&&p.dataset.to===sequence[i].id))errors.push('missing connection');
+                }
+                const viewport=document.querySelector('.flow-viewport'),parent=document.querySelector('#prework-priority');
+                if(document.documentElement.scrollWidth>document.documentElement.clientWidth)errors.push('page overflow');
+                if(viewport.scrollWidth>viewport.clientWidth+1)errors.push('diagram overflow');
+                if(parent.getBoundingClientRect().width<viewport.clientWidth*.72)errors.push('unused diagram width');
+                return [...new Set(errors)];
+            })()`);
+            const settle = () => live.evaluate('new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)))');
+            const scrollingRegions = () => live.evaluate(`(() => {
+                const result={horizontal:[],vertical:[]},root=document.scrollingElement;
+                if(root.scrollWidth>root.clientWidth+1)result.horizontal.push('page');
+                if(root.scrollHeight>root.clientHeight+1)result.vertical.push('page');
+                for(const node of document.querySelectorAll('body *')){
+                    if(!node.getBoundingClientRect().width||!node.getBoundingClientRect().height)continue;
+                    const css=getComputedStyle(node),name=node.id||node.className;
+                    if(/^(auto|scroll)$/.test(css.overflowX)&&node.scrollWidth>node.clientWidth+1)result.horizontal.push(name);
+                    if(/^(auto|scroll)$/.test(css.overflowY)&&node.scrollHeight>node.clientHeight+1)result.vertical.push(name);
+                }
+                return result;
+            })()`);
+            for (const width of [2560, 1680, 1340, 1024, 760, 390, 360]) {
+                await live.call('Emulation.setDeviceMetricsOverride', { width, height: 1250, deviceScaleFactor: 1, mobile: false });
+                await settle(); assert.deepStrictEqual(await geometry(), [], 'diagram geometry at width ' + width);
+                await live.evaluate('document.querySelector(\'.flow-trace\').open=true'); await settle();
+                assert.deepStrictEqual(await scrollingRegions(), { horizontal: [], vertical: ['page'] }, 'only the page may scroll in the diagram, including its expanded trace, at ' + width);
+                await live.evaluate('document.querySelector(\'#diagram-details\').click()'); await settle();
+                assert.deepStrictEqual(await scrollingRegions(), { horizontal: [], vertical: ['page'] }, 'tables, navigation and queue must not add scrollbars at ' + width);
+                if (width === 390) {
+                    const mobile = '.detail .cell[data-area="tablet"][data-phase="clubs"][data-event="tablet-two"]';
+                    await live.evaluate('document.querySelector(' + JSON.stringify(mobile) + ').focus();window.__scroll=window.scrollY');
+                    response.tablet_phases[1].events[1].ready = 2; await nextUpdate();
+                    assert(await live.evaluate('document.activeElement.dataset.focusKey === \'cell:tablet:clubs:tablet-two\' && Math.abs(window.scrollY-window.__scroll)<2'), 'preserve focus and page position across live updates');
+                    assert(await live.evaluate('getComputedStyle(document.querySelector(\'.cell-phase\')).display === \'block\''), 'stacked phases must retain their labels');
+                    assert(await live.evaluate('[...document.querySelectorAll(\'.matrix th\')].every(node=>Math.abs(node.getBoundingClientRect().width-node.closest(\'.matrix\').getBoundingClientRect().width)<2)'), 'phase summaries must use the full available width when stacked');
+                    await live.evaluate('btsSpeechHealth.update({issues:Array.from({length:30},(_,i)=>({source:\'generation\',code:\'Testfehler \'+i,message:\'Lange Fehlermeldung zur Prüfung des Seitenflusses\'}))})'); await settle();
+                    assert.deepStrictEqual(await scrollingRegions(), { horizontal: [], vertical: ['page'] }, 'even long health messages must use the page scrollbar');
+                    await live.evaluate('document.querySelector(\'.speech_health_banner li:last-child\').scrollIntoView({block:\'center\'})'); await settle();
+                    assert(await live.evaluate('(() => {const r=document.querySelector(\'.speech_health_banner li:last-child\').getBoundingClientRect();return r.top>=0&&r.bottom<=innerHeight;})()'), 'the last error must remain reachable using the page scrollbar');
+                    await live.evaluate('btsSpeechHealth.update({issues:[]})');
+                }
+                await live.evaluate('document.querySelector(\'.plan-step[data-stage="registration"]\').click()'); await settle();
+                assert.deepStrictEqual(await scrollingRegions(), { horizontal: [], vertical: ['page'] }, 'both registration tables must fit without their own scrollbars at ' + width);
+                await live.evaluate('document.querySelector(\'.plan-step[data-stage="tablet"]\').click();document.querySelector(\'#view-diagram\').click()'); await settle();
             }
-            assert.strictEqual(network.nodes.filter(node => node.selects).length, STAGES.length);
-            assert.strictEqual(await live.evaluate('document.querySelectorAll(\'#process-job,#job-done,.flow-action,.flow-loop\').length'), 0);
-            for (const edge of network.edges) assert(kinds.has(edge.from) && kinds.has(edge.to), 'every edge has existing endpoints');
-            const path = () => live.evaluate('[...document.querySelectorAll(\'.flow-edge.is-traversed\')].map(edge => ' +
-                '({from:edge.dataset.from,to:edge.dataset.to,guard:edge.dataset.guard}))');
-            for (const [id] of STAGES) {
-                response.active_stage = id; response.phase = id === 'registration' ? 'registration' : 'competition';
-                const target = network.nodes.find(node => node.stage === id).id;
-                await until(async () => (await view()).stage === id && (await view()).target === target);
-                const current = await view();
-                assert.strictEqual(current.phase, response.phase);
-                assert(current.auto && current.following);
+            await live.call('Emulation.setDeviceMetricsOverride', { width: 1680, height: 1250, deviceScaleFactor: 1, mobile: false });
+            await settle();
+            await live.evaluate('window.__edge=document.querySelector(\'.flow-edge\');window.__queueRow=document.querySelectorAll(\'.speech_plan_queue_item\')[1]');
+            Object.assign(queueItems[0], { current: false, status: 'completed' });
+            Object.assign(queueItems[1], { current: true, position: 0, status: 'processing' });
+            await until(async () => (await queueTexts())[0] === queueItems[1].text);
+            assert(await live.evaluate('window.__queueRow === document.querySelector(\'.speech_plan_queue_item\')'), 'reuse queue rows when their position changes');
+            const targets = { urgent: 'prework-priority', test: 'prework-priority', shared: 'prework-priority', officials: 'prework-priority',
+                tablet_waiting: 'competition-priority', oncourt: 'competition-priority', preparation: 'competition-priority',
+                candidate: 'competition-preparation-priority', planned: 'competition-preparation-priority', tablet: 'competition-preparation-priority',
+                registration: 'registration-priority', registration_reserve: 'registration-priority', people: 'people-priority', spare: 'other-voice-priority', additional: 'additional-priority' };
+            for (const [stage, target] of Object.entries(targets)) {
+                response.active_stage = stage; response.phase = stage === 'registration' ? 'registration' : 'competition';
+                response.current = { text: 'Auftrag ' + stage, running: true, planning: stage === 'tablet' ? { stage, event_id: 'tablet-two', tablet_phase: 'people' } :
+                    stage.startsWith('registration') ? { ...queueItems[2].planning, stage } : { stage } };
+                await until(() => live.evaluate('document.querySelector(\'#overview\').dataset.followStage === ' + JSON.stringify(stage)));
+                await settle();
+                assert.strictEqual(await live.evaluate('document.querySelector(\'#overview\').dataset.routeTarget'), target);
+                assert(await live.evaluate('(() => {const path=[...document.querySelectorAll(\'.flow-edge.is-traversed\')];let id=\'initial\',n=0;while(id!==' + JSON.stringify(target) + '&&n++<30){const next=path.filter(p=>p.dataset.from===id);if(next.length!==1)return false;id=next[0].dataset.to;}return id===' + JSON.stringify(target) + '&&n===path.length;})()'));
+                assert.deepStrictEqual(await geometry(), [], 'route and geometry for ' + stage);
+                assert(await live.evaluate('[...document.querySelectorAll(\'.plan-step\')].every(node=>node.querySelector(\'.number\').textContent===document.querySelector(\'.flow-step[data-stage="\'+node.dataset.stage+\'"] > .flow-title .flow-number\').textContent)'), 'stage numbers must agree in both views');
+                assert(await live.evaluate('!document.querySelector(\'.plan-group h3 .number,.flow-work-group > .flow-title .flow-number\')'), 'group headings must remain unnumbered in both views');
+                assert(await live.evaluate('window.__edge===document.querySelector(\'.flow-edge\')'));
                 assert.strictEqual(await live.evaluate('document.querySelectorAll(\'.live-current\').length'), 1);
-                assert.strictEqual(await live.evaluate('document.querySelector(\'[aria-current="step"]\').dataset.stage'), id);
-                assert.strictEqual(await live.evaluate('document.querySelectorAll(\'.is-current-state\').length'), 1);
-                const selected = await path(), seen = new Set();
-                let cursor = 'initial';
-                while (cursor !== target) {
-                    assert(!seen.has(cursor), 'the visible path must not loop'); seen.add(cursor);
-                    const next = selected.filter(edge => edge.from === cursor);
-                    assert.strictEqual(next.length, 1, 'highlight one continuous path from start to the selected state');
-                    cursor = next[0].to;
-                }
-                assert.strictEqual(selected.length, seen.size, 'no unrelated branches may be highlighted');
-                assert(selected.some(edge => edge.to === target && edge.guard === '[ja]'));
-                if (id === 'preparation') {
-                    assert(selected.some(edge => edge.from === 'draw-decision' && edge.guard === '[ja]'));
-                    assert(selected.some(edge => edge.from === 'oncourt-selection' && edge.guard === '[nein]'));
-                    assert(!selected.some(edge => edge.from === 'registration-selection'));
-                }
-                if (id === 'spare') {
-                    assert(await live.evaluate('document.querySelector(\'#spare-decision\').title.includes(\'läuft bereits\')'),
-                        'new demand must not be described as completed while another-voice job is still running');
-                }
             }
-            response.active_stage = 'registration'; response.phase = 'competition';
-            await until(async () => (await view()).target === 'registration-priority');
-            assert(await live.evaluate('document.querySelector(\'#draw-decision\').dataset.answer === \'[nein]\''));
-            assert(await live.evaluate('document.querySelector(\'#draw-decision .flow-answer\').textContent.includes(\'Anmeldevorarbeit\')'));
-            await live.evaluate('window.__followChanges = 0; window.__followObserver = new MutationObserver(records => window.__followChanges += records.length); ' +
-                'window.__followObserver.observe(document.getElementById(\'overview\'), {attributes:true, attributeFilter:[\'class\',\'data-follow-stage\']})');
-            const unchanged = Number((await view()).updated);
-            await until(async () => Number((await view()).updated) >= unchanged + 2);
-            assert.strictEqual(await live.evaluate('window.__followChanges'), 0, 'unchanged updates must not reset the focus');
-            await live.evaluate('window.__followObserver.disconnect()');
-            response.active_stage = 'oncourt';
-            await until(async () => (await view()).stage === 'oncourt' && (await view()).target === 'running-priority');
-            assert((await view()).auto && (await view()).following);
-            await live.evaluate('window.__steadyPath = [...document.querySelectorAll(\'.flow-edge\')]; ' +
-                'window.__steadyMarkers = document.querySelector(\'.flow-edges defs\'); window.__stateChanges = []; ' +
-                'window.__stateObserver = new MutationObserver(records => window.__stateChanges.push(...records.map(r => r.target.id))); ' +
-                'window.__stateObserver.observe(document.querySelector(\'#overview\'), {subtree:true,attributes:true,attributeFilter:[\'class\',\'aria-current\']})');
-            response.updating = true;
-            const beforeRefresh = Number((await view()).updated);
-            await until(async () => Number((await view()).updated) >= beforeRefresh + 2);
-            assert.strictEqual((await view()).target, 'running-priority');
-            response.state = 'updating';
-            const beforeLegacyRefresh = Number((await view()).updated);
-            await until(async () => Number((await view()).updated) >= beforeLegacyRefresh + 2);
-            assert.strictEqual((await view()).stage, 'oncourt');
-            assert.strictEqual((await view()).target, 'running-priority');
-            assert((await view()).label.startsWith('Aktuell:'));
-            assert(await live.evaluate('document.querySelector(\'.speech_plan_live\').dataset.state === \'working\''));
-            response.state = 'working'; response.updating = false;
-            await until(() => live.evaluate('document.querySelector(\'#overview\').dataset.updating === \'false\''));
-            assert.deepStrictEqual(await live.evaluate('window.__stateChanges'), [], 'background refresh must not reset state or path markers');
-            assert(await live.evaluate('window.__steadyPath.every((edge,i) => document.querySelectorAll(\'.flow-edge\')[i] === edge) && ' +
-                'window.__steadyMarkers === document.querySelector(\'.flow-edges defs\')'));
-            await live.evaluate('window.__stateObserver.disconnect()');
-            response.active_stage = null; response.current = null; response.state = 'complete';
-            response.total = { ready: STAGES.length, queued: 0, total: STAGES.length };
-            for (const row of response.stages) { row.ready = 1; row.queued = 0; }
-            await until(async () => !(await view()).following && (await view()).target === 'ready-state');
-            assert.strictEqual((await view()).phase, 'competition');
-            assert.strictEqual((await view()).auto, true);
-            assert((await view()).label.includes('Keine Generierung aktiv') && (await view()).label.includes('alles bereit'));
-            assert.strictEqual(await live.evaluate('document.querySelectorAll(\'.live-current,[aria-current="step"]\').length'), 0);
-            assert.strictEqual(await live.evaluate('document.querySelector(\'.is-current-state\').id'), 'ready-state');
-            assert(await live.evaluate('document.querySelector(\'#ready-state .flow-end\').textContent.includes(\'Alles bereit\')'));
-            assert.strictEqual(await live.evaluate('document.querySelectorAll(\'.flow-step.is-complete\').length'), STAGES.length);
-            assert(await live.evaluate('[...document.querySelectorAll(\'.flow-step.is-complete,#ready-state\')].every(node => ' +
-                'getComputedStyle(node).backgroundColor === \'rgb(231, 244, 232)\')'), 'completed areas use a light green background');
-            if (process.env.BTS_SPEECH_IDLE_SCREENSHOT) {
+            assert(await live.evaluate('document.querySelector(\'#registration-priority\').getBoundingClientRect().top > document.querySelector(\'#competition-preparation-priority\').getBoundingClientRect().bottom'));
+            response.phase = 'registration'; response.active_stage = 'registration'; response.current = { text: 'Musterverein', running: true, planning: queueItems[2].planning };
+            await until(() => live.evaluate('document.querySelector(\'#overview\').dataset.phase === \'registration\'')); await settle();
+            assert(await live.evaluate('document.querySelector(\'#registration-priority\').getBoundingClientRect().top > document.querySelector(\'#competition-preparation-priority\').getBoundingClientRect().bottom'));
+            assert.deepStrictEqual(await stageNumbers(), [
+                ['urgent', '01'], ['test', '02'], ['shared', '03'], ['officials', '04'],
+                ['tablet_waiting', '05'], ['oncourt', '06'], ['preparation', '07'], ['additional', ''],
+                ['candidate', '08'], ['planned', '09'], ['tablet', '10'], ['registration', '11'], ['people', '12'], ['spare', '13'],
+            ], 'the first draw must not change the order or numbers, including when additional requests exist');
+            Object.assign(additional, { total: 0, queued: 0 }); await nextUpdate(); await settle();
+            assert.deepStrictEqual(await stageNumbers(), [
+                ['urgent', '01'], ['test', '02'], ['shared', '03'], ['officials', '04'],
+                ['tablet_waiting', '05'], ['oncourt', '06'], ['preparation', '07'], ['candidate', '08'], ['planned', '09'],
+                ['tablet', '10'], ['registration', '11'], ['people', '12'], ['spare', '13'],
+            ], 'the standard draft order must apply before the first draw as well');
+            assert.deepStrictEqual(await live.evaluate('[...document.querySelectorAll(\'.plan-group h3\')].map(node=>node.textContent)'), [
+                'Turniervorarbeit', 'Aktueller Spielbetrieb', 'Vorbereitung des Spielbetriebs', 'Weitere Vorbereitung', 'Nur bei vollständigem Leerlauf',
+            ]);
+            assert(await live.evaluate('document.querySelector(\'.registration-flow-phase[data-current="true"]\').dataset.subphase === \'open_clubs\''));
+            assert(await live.evaluate('document.querySelector(\'.registration-flow-state[data-current="true"]\').dataset.eventId === \'open\''));
+            assert(await live.evaluate('document.querySelector(\'.flow-registration-next\').textContent === \'Danach → Übrige Personen und Teams\''));
+            await live.evaluate('document.querySelector(\'#diagram-current\').click()'); await settle();
+            assert(await live.evaluate('(() => {const r=document.querySelector(\'#registration-priority\').getBoundingClientRect();return scrollY>0&&r.top>=0&&r.top<innerHeight;})()'), 'jump to the current job using the page scrollbar');
+            await live.evaluate('document.querySelector(\'#diagram-start\').click()'); await settle();
+            assert(await live.evaluate('(() => {const r=document.querySelector(\'#initial\').getBoundingClientRect();return r.top>=0&&r.bottom<=innerHeight;})()'), 'the start button must work without an internal diagram scrollbar');
+            await live.evaluate('document.querySelector(\'#diagram-current\').click()'); await settle();
+            const originalQueueSize = queueItems.length;
+            queueItems.push(...Array.from({ length: 25 }, (_, index) => ({ key: 'scroll-' + index, text: 'Zusätzlicher Testauftrag ' + index,
+                status: 'unsubmitted', priority: 'normal', voice: 'hallensprecher', operation: 'synthesis' })));
+            await nextUpdate(); await settle();
+            assert.deepStrictEqual(await scrollingRegions(), { horizontal: [], vertical: ['page'] }, 'a long queue must not add an independent scrollbar');
+            queueItems.splice(originalQueueSize); await nextUpdate();
+            await live.evaluate('document.querySelector(\'#diagram-details\').click()');
+            assert(await live.evaluate('document.querySelector(\'.detail-number\').textContent === \'11\''));
+            assert(await live.evaluate('document.querySelector(\'.next-step button\').dataset.stage === \'people\' && document.querySelector(\'.next-step button\').textContent.startsWith(\'12 \')'));
+            await live.evaluate('document.querySelector(\'#view-diagram\').click()'); await settle();
+            if (process.env.BTS_SPEECH_PLANNING_DESIGN_SCREENSHOT) {
                 const shot = await live.call('Page.captureScreenshot', { format: 'png', captureBeyondViewport: true });
-                fs.writeFileSync(process.env.BTS_SPEECH_IDLE_SCREENSHOT, Buffer.from(shot.data, 'base64'));
+                fs.writeFileSync(process.env.BTS_SPEECH_PLANNING_DESIGN_SCREENSHOT, Buffer.from(shot.data, 'base64'));
             }
-            const empty = response.stages.find(row => row.id === 'officials'), incomplete = response.stages.find(row => row.id === 'shared');
-            Object.assign(empty, { total: 0, ready: 0 }); Object.assign(incomplete, { ready: 0, queued: 1 });
-            response.state = 'waiting'; response.active_stage = 'shared'; response.current = { text: 'Neuer Bedarf', running: false };
-            response.total = { ready: STAGES.length - 2, queued: 1, total: STAGES.length - 1 };
-            await until(async () => (await view()).target === 'location-field-priority');
-            assert(await live.evaluate('!document.querySelector(\'[data-stage="officials"]\').classList.contains(\'is-complete\') && ' +
-                '!document.querySelector(\'[data-stage="shared"]\').classList.contains(\'is-complete\') && ' +
-                'document.querySelector(\'[data-stage="oncourt"]\').classList.contains(\'is-complete\')'));
-            const preservedEdge = await live.evaluate('window.__steadyPath[0] === document.querySelector(\'.flow-edge\')');
-            assert(preservedEdge, 'moving the route and changing card heights must reuse existing SVG edges');
-            response.state = 'failed'; response.active_stage = null; response.current = null;
-            Object.assign(incomplete, { failed: 1, queued: 0 }); response.total.failed = 1; response.total.queued = 0;
-            await until(async () => (await view()).target === 'waiting-state');
-            assert(await live.evaluate('!document.querySelector(\'[data-stage="shared"]\').classList.contains(\'is-complete\')'));
-            for (const row of response.stages) Object.assign(row, { total: 1, ready: 1, queued: 0, failed: 0 });
-            response.total = { ready: STAGES.length, queued: 0, total: STAGES.length, failed: 0 };
-            for (const [status, label] of [['failed', 'fehlgeschlagene'], ['idle_pending', 'Leerlauf'], ['disabled', 'ausgeschaltet']]) {
-                response.state = status;
-                await until(async () => (await view()).label.includes(label));
-                await until(async () => (await view()).target === (status === 'disabled' ? 'disabled-state' : 'waiting-state'));
-                assert.strictEqual((await view()).following, false);
-                assert.strictEqual(await live.evaluate('document.querySelectorAll(\'.live-current,[aria-current="step"]\').length'), 0);
-                if (status === 'disabled') assert(await live.evaluate('document.querySelector(\'#idle-decision .flow-answer\').textContent.includes(\'ausgeschaltet\')'));
+            await live.evaluate('document.querySelector(\'#diagram-fit\').click()'); await settle(); assert.deepStrictEqual(await geometry(), []);
+            const svg = await live.evaluate('(() => {const svg=new DOMParser().parseFromString(btsSpeechPlanningDiagram.exportSVG(),\'image/svg+xml\');return {valid:!svg.querySelector(\'parsererror,foreignObject\'),paths:svg.querySelectorAll(\'.sub-flow-edge\').length,boundaries:svg.querySelectorAll(\'circle[data-boundary]\').length,expected:document.querySelectorAll(\'.flow-point\').length};})()');
+            assert(svg.valid); assert(svg.paths > 40); assert.strictEqual(svg.boundaries, svg.expected);
+            response.active_stage = null; response.current = null;
+            for (const row of response.stages) Object.assign(row, { ready: row.total, queued: 0, failed: 0 });
+            for (const [state, target] of [['complete', 'result-state'], ['failed', 'result-state'], ['idle_pending', 'result-state'], ['disabled', 'disabled-state']]) {
+                response.state = state;
+                await until(() => live.evaluate('document.querySelector(\'.speech_plan_live\').dataset.state === ' + JSON.stringify(state)));
+                await settle(); assert.strictEqual(await live.evaluate('document.querySelector(\'#overview\').dataset.routeTarget'), target);
+                assert.strictEqual(await live.evaluate('document.querySelectorAll(\'.live-current\').length'), 0);
             }
-            response.state = 'updating'; response.phase = 'unknown';
-            await until(async () => (await view()).target === 'unknown-state');
-            assert((await view()).label.includes('aktualisiert'));
-            response.phase = 'registration'; response.state = 'idle_pending';
-            await until(async () => (await view()).phase === 'registration');
-            assert(await live.evaluate('document.querySelector(\'#draw-decision .flow-answer\').textContent.startsWith(\'Nein\')'));
-            assert(await live.evaluate('document.querySelector(\'[data-stage="registration_reserve"]\').classList.contains(\'is-skipped\')'));
-            assert.strictEqual(await live.evaluate('document.querySelector(\'[data-stage="registration"]\').classList.contains(\'is-skipped\')'), false);
-            response.phase = 'competition';
-            response.active_stage = 'preparation'; response.state = 'waiting'; response.current = { text: 'Nächste Aufnahme', running: false };
-            Object.assign(response.stages.find(row => row.id === 'preparation'), { ready: 0, queued: 1 });
-            response.total = { ready: STAGES.length - 1, queued: 1, total: STAGES.length };
-            await until(async () => (await view()).stage === 'preparation' && (await view()).target === 'preparation-priority');
-            assert((await view()).label.startsWith('Als Nächstes:'));
-            assert(!(await path()).some(edge => edge.from === 'idle-decision'), 'stop at the active state before scanning lower priorities');
-            assert(await live.evaluate('document.querySelector(\'[data-stage="registration"]\').classList.contains(\'is-skipped\')'));
-            assert(await live.evaluate('(() => {const svg = new DOMParser().parseFromString(btsSpeechPlanningDiagram.exportSVG(), \'image/svg+xml\'); ' +
-                'return !svg.querySelector(\'parsererror\') && !svg.querySelector(\'foreignObject\') && svg.documentElement.localName === \'svg\' && ' +
-                'svg.querySelectorAll(\'rect\').length > 15 && svg.querySelectorAll(\'polygon\').length > 15 && ' +
-                'svg.querySelectorAll(\'.flow-edge.is-traversed\').length > 3 && svg.querySelector(\'rect[fill="rgb(231, 244, 232)"]\') && ' +
-                'svg.documentElement.textContent.includes(\'Spiele in Vorbereitung\');})()'));
-            if (process.env.BTS_SPEECH_FOLLOW_SCREENSHOT) {
-                const shot = await live.call('Page.captureScreenshot', { format: 'png', captureBeyondViewport: true });
-                fs.writeFileSync(process.env.BTS_SPEECH_FOLLOW_SCREENSHOT, Buffer.from(shot.data, 'base64'));
-            }
+            response.state = 'updating'; response.phase = 'unknown'; await nextUpdate(); await settle();
+            assert.strictEqual(await live.evaluate('document.querySelector(\'#overview\').dataset.routeTarget'), 'unknown-state');
+            response.state = 'working'; response.phase = 'competition'; response.active_stage = 'tablet';
+            response.current = { text: 'Auftrag nach Wiederverbinden', running: true, planning: { stage: 'tablet', event_id: 'tablet-two', tablet_phase: 'people' } };
+            await until(() => live.evaluate('document.querySelector(\'#overview\').dataset.followStage === \'tablet\''));
             for (const ws of app.wss.clients) if (ws.speech_planning_test) ws.close();
-            await until(async () => !(await view()).following);
-            await until(async () => (await view()).target === 'unknown-state');
-            assert((await path()).every(edge => ['initial', 'known-decision'].includes(edge.from)), 'clear the previous decision path on disconnect');
-            assert.strictEqual(await live.evaluate('document.querySelectorAll(\'[aria-current="step"]\').length'), 0);
-            assert((await view()).label.includes('Verbindung unterbrochen'));
-            await until(async () => (await view()).stage === 'preparation');
-            await live.call('Emulation.setDeviceMetricsOverride', { width: 390, height: 844, deviceScaleFactor: 1, mobile: false });
-            await live.evaluate('new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))');
-            assert(await live.evaluate('document.documentElement.scrollWidth <= document.documentElement.clientWidth'));
-            await live.evaluate('document.querySelector(\'[aria-current="step"]\').scrollIntoView({block:\'center\',inline:\'center\'})');
-            assert(await live.evaluate('document.querySelector(\'.speech_plan_follow_status\').getBoundingClientRect().top >= 0'));
-            assert(await live.evaluate('(() => { const card = document.querySelector(\'[aria-current="step"]\').getBoundingClientRect(); ' +
-                'const viewport = document.querySelector(\'.flow-viewport\').getBoundingClientRect(); ' +
-                'return card.left >= viewport.left && card.right <= viewport.right; })()'), 'keep the focused action readable when panning on mobile');
-            if (process.env.BTS_SPEECH_FLOW_MOBILE_SCREENSHOT) {
-                const shot = await live.call('Page.captureScreenshot', { format: 'png' });
-                fs.writeFileSync(process.env.BTS_SPEECH_FLOW_MOBILE_SCREENSHOT, Buffer.from(shot.data, 'base64'));
-            }
+            await until(() => live.evaluate('document.querySelector(\'.speech_plan_live\').dataset.connected === \'false\''));
+            assert.strictEqual(await live.evaluate('document.querySelectorAll(\'.live-current\').length'), 0);
+            assert.strictEqual(await live.evaluate('document.querySelectorAll(\'.speech_plan_queue_item\').length'), 0);
+            await until(() => live.evaluate('document.querySelector(\'.speech_plan_live\').dataset.connected === \'true\''));
+            await live.call('Page.reload');
+            await until(() => live.evaluate('document.querySelector(\'.speech_plan_live\')?.dataset.connected === \'true\''));
+            assert(await live.evaluate('document.querySelector(\'#view-diagram\').getAttribute(\'aria-selected\') === \'true\''), 'remember the selected view');
+            assert.strictEqual(fs.readFileSync(path.join(directory, 'received.jsonl'), 'utf8'), received, 'the planning page must never submit synthesis');
             assert.deepStrictEqual(live.events.filter(event => event.method === 'Runtime.exceptionThrown'), []);
         } finally {
             admin.handle_speech_planning = original;
+            admin.handle_speech_queue = originalQueue;
             socket?.close();
             if (targetId) await devtools.call('Target.closeTarget', { targetId });
             await devtools.call('Page.bringToFront');
@@ -1320,6 +1882,10 @@ suite('BTS / actual FastAPI / native Chrome speech integration', function() {
             await devtools.evaluate('(() => { const target = document.createElement(\'button\'); target.type = \'button\'; ' +
                 'target.id = \'durable-ready-test\'; target.textContent = \'Gespeicherte Ansage\'; document.body.appendChild(target); ' +
                 'target.scrollIntoView({block:\'center\'}); btsSpeechReadiness.trackText(target, () => [' + JSON.stringify(text) + ']); })()');
+            // This cache test must establish its own real audio gesture rather
+            // than depend on playback permission left by earlier browser tests.
+            await click('#durable-ready-test');
+            await until(() => devtools.evaluate('btsSpeechService.settings().audio_ready'));
             await devtools.evaluate('btsSpeechReadiness.refresh(true)');
             assert.strictEqual(await devtools.evaluate('document.getElementById(\'durable-ready-test\').dataset.speechState'), 'ready');
             const result = await devtools.evaluate('btsSpeechService.speak([' + JSON.stringify(text) + '], \'durable-offline-test\', ' +

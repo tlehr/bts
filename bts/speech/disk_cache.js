@@ -83,6 +83,10 @@ class SpeechDiskCache {
     }
     recordFilename(item) { return item.file || item.sha256 + '.wav'; }
     recordValid(item) {
+        // V2 formerly rendered the final name fallback in isolation. Keep its
+        // WAV on disk, but require contextual provenance before reusing the cut.
+        if (item?.fallback_stage === 'name' && typeof item.part === 'string' &&
+            item.part.startsWith('~bts-context-v2~') && !item.fallback_source_key) return false;
         return item && HASH.test(item.key) && typeof item.identity === 'string' && item.identity.length < 1048576 &&
             ID.test(item.audio_id) && ID.test(item.job_id) && HASH.test(item.sha256) &&
             Number.isSafeInteger(item.size_bytes) && item.size_bytes > 44 && item.size_bytes <= MAX_BYTES &&
@@ -97,7 +101,8 @@ class SpeechDiskCache {
                 ['hallensprecher', 'hallensprecherin'].includes(value.voice) && Array.isArray(value.groups) &&
                 value.groups.length <= 16 && value.groups.every(group => /^(D(?:0[1-9]|1[0-4])|registration|other)$/.test(group)))) &&
             (item.part === undefined || typeof item.part === 'string' && item.part.length <= 41000) &&
-            (item.fallback_stage === undefined || ['context', 'name'].includes(item.fallback_stage));
+            (item.fallback_stage === undefined || ['context', 'name'].includes(item.fallback_stage)) &&
+            (item.fallback_source_key === undefined || HASH.test(item.fallback_source_key));
     }
 
     async inspect(filename, expected = {}) {
@@ -297,7 +302,9 @@ class SpeechDiskCache {
                 ...(response.part || previous?.part ? { part: response.part || previous.part } : {}),
                 generated_for: [...new Set([...(previous?.generated_for || []), ...this.origin(identity, key), ...(response.generated_for || [])])],
                 ...(previous?.usage ? { usage: previous.usage } : {}),
-                ...(response.fallback_stage ? { fallback_stage: response.fallback_stage } : {}) };
+                ...(response.fallback_stage ? { fallback_stage: response.fallback_stage,
+                    ...(response.fallback_source_key || previous?.fallback_source_key ?
+                        { fallback_source_key: response.fallback_source_key || previous.fallback_source_key } : {}) } : {}) };
             if (!this.recordValid(item)) throw new Error('invalid_cache_record');
             this.records.set(record_key, item);
             this.generation.delete(record_key);
@@ -314,3 +321,4 @@ class SpeechDiskCache {
 }
 
 module.exports = SpeechDiskCache;
+module.exports.wav = wav;

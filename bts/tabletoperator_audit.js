@@ -19,6 +19,8 @@ function compact_doc(doc) {
 		_id: doc._id,
 		tournament_key: doc.tournament_key,
 		match_id: doc.match_id,
+		assigned_match_id: doc.assigned_match_id,
+		source_match_end_ts: doc.source_match_end_ts,
 		court: doc.court,
 		played_on_court: doc.played_on_court,
 		start_ts: doc.start_ts,

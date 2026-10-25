@@ -31,12 +31,16 @@ async function hold(lock) {
 	await started.promise; return { release: gate.resolve, done };
 }
 let sequence = 0;
-async function fixture() {
+async function fixture(ordered = false) {
 	const db = await database.init_test(), key = 'ordering-' + ++sequence;
 	const app = { db, wss: { clients: [] }, clock: { now_ms: () => 1000000, real_now_ms: Date.now } };
 	await promisify(db.tournaments.insert.bind(db.tournaments))({ key, btp_enabled: true, btp_readonly: true,
 		call_preparation_matches_automatically_enabled: false, official_rotation_mode: 'disabled' });
-	await btp_sync.sync_btp_data(app, key, response(3));
+	const initial = response(3);
+	if (ordered) for (const match of initial.Result[0].Tournament[0].Matches[0].Match) {
+		if (match.IsMatch[0]) match.DisplayOrder = [match.ID[0]];
+	}
+	await btp_sync.sync_btp_data(app, key, initial);
 	const matches = await db.matches.find_async({ tournament_key: key });
 	const match = matches.find(match => match.setup.match_num === 1);
 	const changed = matches.find(match => match.setup.match_num === 2);
@@ -55,13 +59,19 @@ async function drain(key) {
 describe('ordering sync concurrency', function() {
 	this.timeout(10000);
 	it('lets a real unrelated call finish during ordering apply and preserves its state', async function() {
-		const f = await fixture(), entered = deferred(), gate = deferred();
+		const f = await fixture(true), entered = deferred(), gate = deferred();
 		const original = f.app.db.matches.update_async;
 		f.app.db.matches.update_async = async (...args) => {
-			if (args[0]._id === f.changed._id && args[1].$set?.['setup.match_num']) { entered.resolve(); await gate.promise; }
+			if (args[0]._id === f.changed._id && args[1].$set?.match_order) { entered.resolve(); await gate.promise; }
 			return original(...args);
 		};
-		const sync = btp_sync.sync_btp_data(f.app, f.key, response(3, true));
+		// Renumbering also changes the first-round speech inventory in events.
+		// Change only display positions to exercise the ordering-only lock scope.
+		const reordered = response(3);
+		for (const match of reordered.Result[0].Tournament[0].Matches[0].Match) {
+			if (match.IsMatch[0]) match.DisplayOrder = [match.ID[0] + (match.ID[0] > 1 ? 10000 : 0)];
+		}
+		const sync = btp_sync.sync_btp_data(f.app, f.key, reordered);
 		try {
 			await within(entered.promise);
 			const active = update_queue.stats().active_tasks.find(task => task.locks.includes(keys.sync(f.key)));
@@ -73,7 +83,7 @@ describe('ordering sync concurrency', function() {
 		const match = await f.app.db.matches.findOne_async({ _id: f.match._id });
 		assert.strictEqual(match.setup.state, 'oncourt');
 		assert.strictEqual((await f.app.db.courts.findOne_async({ _id: f.court._id })).match_id, match._id);
-		assert.strictEqual((await f.app.db.matches.findOne_async({ _id: f.changed._id })).setup.match_num, 10002);
+		assert.strictEqual((await f.app.db.matches.findOne_async({ _id: f.changed._id })).match_order, 10002);
 	});
 	it('finishes a call while its automatic preparation follow-up waits for selection', async function() {
 		const f = await fixture();

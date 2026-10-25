@@ -1,46 +1,46 @@
 /* exported createV2SpeechPlan */
 'use strict';
 
-// Exact, approved hearing-lab recipes. Raw sources remain independently cached.
+// Shared context recipes use fictional filler names. Raw sources are cached by text.
 const speechV2Fixed = {
     'lab-v2/B08-role': {
         'before': 'Die ',
         'text': 'Tabletbedienung',
-        'after': ' übernimmt Max Hahn.',
+        'after': ' übernimmt Hans Dampf.',
         'kind': 'generic',
     },
     'lab-v2/B08-role-umpire': {
         'before': 'Der ',
         'text': 'Schiedsrichter',
-        'after': ' ist Max Hahn.',
+        'after': ' ist Hans Dampf.',
         'kind': 'generic',
     },
     'lab-v2/B08-role-service': {
         'before': 'Der ',
         'text': 'Aufschlagrichter',
-        'after': ' ist Max Hahn.',
+        'after': ' ist Hans Dampf.',
         'kind': 'generic',
     },
     'lab-v2/B08-role-board': {
         'before': 'Die ',
         'text': 'Klapptafelbedienung',
-        'after': ' übernimmt Max Hahn.',
+        'after': ' übernimmt Hans Dampf.',
         'kind': 'generic',
     },
     'lab-v2/B11-normal': {
         'before': '',
         'text': 'Zweiter Aufruf für:',
-        'after': 'Max Hahn. Auf Spielfeld acht!',
+        'after': 'Hans Dampf. Auf Spielfeld acht!',
         'kind': 'generic',
     },
     'lab-v2/B11-preparation': {
         'before': '',
         'text': 'Zweiter Aufruf In Vorbereitung für:',
-        'after': 'Tabletbedienung:Max Hahn! Max Hahn, bitte als Tabletbedienung.',
+        'after': 'Tabletbedienung:Hans Dampf! Hans Dampf, bitte als Tabletbedienung.',
         'kind': 'generic',
     },
     'lab-v2/D11-request': {
-        'before': 'Zweiter Aufruf In Vorbereitung für:Tabletbedienung:Max Hahn! Max Hahn, ',
+        'before': 'Zweiter Aufruf In Vorbereitung für:Tabletbedienung:Hans Dampf! Hans Dampf, ',
         'text': 'bitte als Tabletbedienung',
         'after': '.',
         'kind': 'generic',
@@ -48,55 +48,55 @@ const speechV2Fixed = {
     'lab-v2/B09-opening': {
         'before': '',
         'text': 'In Vorbereitung!',
-        'after': ' Spielnummer einhunderteinundsechzig. Jungen Einzel U siebzehn. Achtelfinale! Muhammad Sytsh Abdulquddus gegen Max Hahn. Das Spiel ist in Vorbereitung!',
+        'after': ' Spielnummer einhunderteinundsechzig. Jungen Einzel U siebzehn. Achtelfinale! Max Mustermann gegen Hans Dampf. Das Spiel ist in Vorbereitung!',
         'kind': 'generic',
     },
     'lab-v2/B09-closing': {
-        'before': 'In Vorbereitung! Spielnummer einhunderteinundsechzig. Jungen Einzel U siebzehn. Achtelfinale! Muhammad Sytsh Abdulquddus gegen Max Hahn. ',
+        'before': 'In Vorbereitung! Spielnummer einhunderteinundsechzig. Jungen Einzel U siebzehn. Achtelfinale! Max Mustermann gegen Hans Dampf. ',
         'text': 'Das Spiel ist in Vorbereitung!',
         'after': '',
         'kind': 'generic',
     },
     'lab-v2/D12-clause': {
-        'before': 'Spielnummer einhunderteinundsechzig. Jungen Einzel U siebzehn. Achtelfinale! Muhammad Sytsh Abdulquddus gegen Max Hahn. ',
+        'before': 'Spielnummer einhunderteinundsechzig. Jungen Einzel U siebzehn. Achtelfinale! Max Mustermann gegen Hans Dampf. ',
         'text': 'Das Spiel geht kampflos an',
-        'after': ' Max Hahn!',
+        'after': ' Hans Dampf!',
         'kind': 'generic',
     },
     'lab-v2/registration-target-Anmeldung': {
-        'before': 'Muhammad Sytsh Abdulquddus ',
+        'before': 'Max Mustermann ',
         'text': 'bitte zur Anmeldung.',
-        'after': ' Muhammad Sytsh Abdulquddus bitte!',
+        'after': ' Max Mustermann bitte!',
         'kind': 'generic',
     },
     'lab-v2/registration-bare-target-Anmeldung': {
-        'before': 'Muhammad Sytsh Abdulquddus bitte ',
+        'before': 'Max Mustermann bitte ',
         'text': 'zur Anmeldung.',
-        'after': ' Muhammad Sytsh Abdulquddus bitte!',
+        'after': ' Max Mustermann bitte!',
         'kind': 'generic',
     },
     'lab-v2/registration-closing': {
-        'before': 'Muhammad Sytsh Abdulquddus bitte zur Anmeldung. Muhammad Sytsh Abdulquddus ',
+        'before': 'Max Mustermann bitte zur Anmeldung. Max Mustermann ',
         'text': 'bitte!',
         'after': '',
         'kind': 'generic',
     },
     'lab-v2/registration-target-Turnierleitung': {
-        'before': 'Die Paarung Ben Hensel und Max Wächtler ',
+        'before': 'Die Paarung Max Mustermann und Hans Dampf ',
         'text': 'bitte zur Turnierleitung.',
-        'after': ' Ben Hensel und Max Wächtler bitte!',
+        'after': ' Max Mustermann und Hans Dampf bitte!',
         'kind': 'generic',
     },
     'lab-v2/registration-bare-target-Turnierleitung': {
-        'before': 'Die Paarung Ben Hensel und Max Wächtler bitte ',
+        'before': 'Die Paarung Max Mustermann und Hans Dampf bitte ',
         'text': 'zur Turnierleitung.',
-        'after': ' Ben Hensel und Max Wächtler bitte!',
+        'after': ' Max Mustermann und Hans Dampf bitte!',
         'kind': 'generic',
     },
     'lab-v2/registration-pair-prefix': {
         'before': '',
         'text': 'Die Paarung',
-        'after': ' Ben Hensel und Max Wächtler bitte zur Turnierleitung. Ben Hensel und Max Wächtler bitte!',
+        'after': ' Max Mustermann und Hans Dampf bitte zur Turnierleitung. Max Mustermann und Hans Dampf bitte!',
         'kind': 'generic',
     },
     'lab-v2/registration-club-opening': {
@@ -133,7 +133,6 @@ function createV2SpeechPlan(texts, tournament, name, setup = {}, args = [], brow
         if (at < 0) throw new Error('context_piece_missing');
         return encode({ before: source.slice(0, at), text, after: source.slice(at + text.length), kind });
     };
-    const direct = text => text?.trim() ? piece(text.trim(), text.trim()) : null;
     const fixed = profile => speechV2Fixed['lab-v2/' + profile] ? encode(speechV2Fixed['lab-v2/' + profile]) : null;
     const end = text => String(text || '').replace(/[\s.!?:]+$/, '');
     const result = (parts, gaps = []) => {
@@ -141,12 +140,26 @@ function createV2SpeechPlan(texts, tournament, name, setup = {}, args = [], brow
         const entries = parts.map((part, i) => ({ part, gap: gaps[i] ?? 250 })).filter(row => row.part);
         return { parts: entries.map(row => row.part), pauses: entries.map((row, i) => i + 1 === entries.length ? 0 : row.gap) };
     };
-    const example = 'Max Hahn';
-    const reference = 'Spielnummer 161. Jungen Einzel U17. Achtelfinale! Muhammad Sytsh Abdulquddus gegen Max Hahn.';
+    const example = 'Hans Dampf';
+    const reference = 'Spielnummer 161. Jungen Einzel U17. Achtelfinale! Max Mustermann gegen Hans Dampf.';
+    const roundPiece = text => {
+        if (!text) return null;
+        const spoken = end(text) + '!';
+        return piece(`Spielnummer 161. Jungen Einzel U17. ${spoken} Max Mustermann gegen Hans Dampf.`, spoken);
+    };
+    const preparationField = () => {
+        const text = texts.createFieldPreparationAnnouncement(setup);
+        return text ? piece(`In Vorbereitung! ${text} ${reference} Das Spiel ist in Vorbereitung!`, text) : null;
+    };
+    const meetingPiece = (text, plural = false) => {
+        if (!text?.trim()) return null;
+        const audience = plural ? 'Max Mustermann und Hans Dampf' : example;
+        return piece(`Zweiter Aufruf In Vorbereitung für:${audience}! ${audience}, ${text}`, text, 'generic', true);
+    };
     const field = texts.createFieldAnnouncement(setup);
     const fieldPiece = closing => {
         if (!field) return null;
-        const middle = 'Spiel einhundertneunundachtzig.  Mädchen Einzel U neunzehn.  Achtelfinale! Nina Keo Boun Khoune gegen LeandraGalowicz.';
+        const middle = 'Spiel einhundertneunundachtzig.  Mädchen Einzel U neunzehn.  Achtelfinale! Max Mustermann gegen Hans Dampf.';
         return piece(`${field} ${middle} ${field}`, field, closing ? 'field_end' : 'field_start', closing);
     };
     const team = (players, position = 'second') => {
@@ -156,15 +169,18 @@ function createV2SpeechPlan(texts, tournament, name, setup = {}, args = [], brow
         return position === 'first' ? piece(full, text, 'team') : position === 'against' ?
             piece(full, 'gegen ' + text, 'team', true) : piece(full, text, 'team', true);
     };
-    const game = () => {
+    const matchNumber = () => {
         const number = tournament.annoncement_include_matchnumber && setup.match_num != null ? `Spielnummer ${setup.match_num}` : '';
+        return number ? piece(`${number} ist als nächstes an der Reihe.`, number) : null;
+    };
+    const game = () => {
         const event = String(texts.createEventAnnouncement(setup) || '').replaceAll('Maedchen', 'Mädchen')
             .replace(/^(Jungen|Mädchen|Herren|Damen)(einzel|doppel)\b/i,
                 (_all, first, second) => first + ' ' + second[0].toUpperCase() + second.slice(1));
         const round = setup.match_name ? texts.createRoundAnnouncement(setup) : null;
-        return [number ? piece(`${number} ist als nächstes an der Reihe.`, number) : null,
+        return [matchNumber(),
             event ? piece(`Im ${event} erwarten wir spannende Spiele!`, event) : null,
-            round ? direct(end(round) + '!') : null,
+            roundPiece(round),
             team(setup.teams?.[0]?.players, 'first'), team(setup.teams?.[1]?.players, 'against')];
     };
     const roleName = role => role === 'umpire' ? 'Schiedsrichter' : role === 'service' ? 'Aufschlagrichter' :
@@ -189,17 +205,18 @@ function createV2SpeechPlan(texts, tournament, name, setup = {}, args = [], brow
     };
     const prepPrefix = () => fixed('B11-preparation');
     const normal = () => fixed('B11-normal');
-    if (name === 'prepareFields') return result([fieldPiece(false), fieldPiece(true), direct(texts.createFieldPreparationAnnouncement(setup))]);
+    if (name === 'prepareFields') return result([fieldPiece(false), fieldPiece(true), preparationField()]);
     if (name === 'prepareInstruction') return result([piece('Auf Spielfeld acht! Bitte mit dem Spielen beginnen!', 'Bitte mit dem Spielen beginnen!')]);
     if (name === 'prepareCommon') return result([normal(), prepPrefix(), fixed('D12-clause')]);
     if (name === 'prepareLocation') return result([...preparation(false), ...preparation(true)]);
     if (name === 'prepareName') return result([team(setup.players, 'first'), team(setup.players), team(setup.players, 'against')]);
+    if (name === 'prepareMatchNumber') return result([matchNumber()]);
     if (name === 'prepareGame') return result(game(), [250, 250, 250, 60]);
     if (name === 'announceNewMatch') return result([fieldPiece(false), ...game(), ...officials(), fieldPiece(true)],
         [250, 250, 250, 250, 60, 250, ...officialsGaps(), 0]);
     if (name === 'announcePreparationMatch') {
         const [opening, ending] = preparation(true);
-        const court = direct(texts.createFieldPreparationAnnouncement(setup));
+        const court = preparationField();
         return result([opening, court, ...game(), ...officials(), ending],
             [250, 250, 250, 250, 250, 60, 250, ...officialsGaps(), 0]);
     }
@@ -215,7 +232,7 @@ function createV2SpeechPlan(texts, tournament, name, setup = {}, args = [], brow
         const prefix = texts.createSecondPreparationCallAnnouncement();
         const full = `${prefix}${example}${addition ? ' ' + addition : ''}! ${example} ${request}`;
         return result([prepPrefix(), team(players), addition ? piece(full, addition, 'hall') : null,
-            team(players), tournament.preparation_meetingpoint_enabled ? direct(request) : null], [140, 120, 320, 160]);
+            team(players), tournament.preparation_meetingpoint_enabled ? meetingPiece(request, plural) : null], [140, 120, 320, 160]);
     }
     if (name === 'announceNoMatchWin') return result([...game(), fixed('D12-clause'), team(setup.teams?.[args[0]]?.players)],
         [250, 250, 250, 60, 300, 100]);
@@ -231,10 +248,10 @@ function createV2SpeechPlan(texts, tournament, name, setup = {}, args = [], brow
             const label = texts.createSingleTeam(people);
             const target = String(browserParts[1] || '').slice(label.length).replace(/^[,\s]+/, '').replace(/[.!?]+$/, '');
             const prefix = texts.createSecondPreparationCallAnnouncement();
-            const donor = people.length > 1 ? 'Ben Hensel und Max Wächtler' : example;
+            const donor = people.length > 1 ? 'Max Mustermann und Hans Dampf' : example;
             const full = `${prefix}${roleName(role)}:${donor}! ${donor}, ${target}.`;
             request = piece(full, target, 'generic', true);
-        } else request = tournament.preparation_meetingpoint_enabled ? direct(meeting(false)) : direct('In Vorbereitung!');
+        } else request = meetingPiece(tournament.preparation_meetingpoint_enabled ? meeting(false) : 'In Vorbereitung!');
         return result([prepPrefix(), rolePiece(role), names, names, request], [140, roleGap, 320, 160]);
     }
     return null;

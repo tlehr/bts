@@ -49,6 +49,51 @@ function singleMatchBtpState(overrides = {}) {
 }
 
 _describe('btp_sync', () => {
+	_it('retains the tablet finish identity through BTP result corrections and clears it for a genuine result reset', async () => {
+		const db = await database.init_test();
+		const app = { db, wss: { clients: [] }, _btp_sync_effects: [] };
+		await insert(db, 'tournaments', { key: 'default', btp_settings: {}, tabletoperator_enabled: true });
+		const state = singleMatchBtpState();
+		const sync = () => new Promise((resolve, reject) => btp_sync._integrate_matches(
+			app, 'default', state, new Map(), new Map(), new Map(), err => err ? reject(err) : resolve()));
+		await sync();
+		const id = 'btp_default_MX U17_1';
+		await db.matches.update_async({ _id: id }, { $set: {
+			team1_won: false, btp_winner: 2, end_ts: 50000, tabletoperator_finish_ts: 50000,
+			network_score: [[19, 21], [15, 21]], 'setup.state': 'finished', 'setup.now_on_court': false,
+		} }, {});
+		Object.assign(state.matches[0], { Winner: [2], Sets: [{ Set: [
+			{ T1: [19], T2: [21] }, { T1: [15], T2: [21] },
+		] }] });
+		await sync();
+		assert.strictEqual((await db.matches.findOne_async({ _id: id })).tabletoperator_finish_ts, 50000);
+		await db.matches.update_async({ _id: id }, { $set: { end_ts: 51217 } }, {});
+		state.matches[0].DisplayOrder = [7];
+		await sync();
+		let current = await db.matches.findOne_async({ _id: id });
+		assert.strictEqual(current.end_ts, 51217);
+		assert.strictEqual(current.tabletoperator_finish_ts, 50000);
+		delete state.matches[0].Winner;
+		delete state.matches[0].Sets;
+		await sync();
+		current = await db.matches.findOne_async({ _id: id });
+		assert.strictEqual(current.end_ts, undefined);
+		assert.strictEqual(current.tabletoperator_finish_ts, undefined);
+		assert.deepStrictEqual(await db.tabletoperators.find_async({ tournament_key: 'default' }), []);
+		// The next actual result must create a new duty from the newly stored loser.
+		Object.assign(state.matches[0], { Winner: [2], Sets: [{ Set: [{ T1: [19], T2: [21] }] }] });
+		app.clock = { now_ms: () => 60000 };
+		await sync();
+		current = await db.matches.findOne_async({ _id: id });
+		assert.strictEqual(current.tabletoperator_finish_ts, 60000);
+		const entries = await db.tabletoperators.find_async({ tournament_key: 'default', match_id: id });
+		assert.strictEqual(entries.length, 1);
+		assert.deepStrictEqual(entries[0].tabletoperator.map(player => player.btp_id), [1]);
+		assert.strictEqual(entries[0].source_match_end_ts, 60000);
+		await sync();
+		assert.strictEqual((await db.tabletoperators.find_async({ tournament_key: 'default', match_id: id })).length, 1);
+	});
+
 	_it('keeps a no-match result without a winner finished through import and later syncs', async () => {
 		const db = await database.init_test();
 		const app = { db, wss: { clients: [] } };
@@ -1173,6 +1218,7 @@ _describe('btp_sync', () => {
 		};
 		const hiddenBye1 = {
 			ID: [201],
+			DisplayOrder: [7],
 			DrawID: [10],
 			PlanningID: [4001],
 			EntryID: [20101],
@@ -1184,6 +1230,7 @@ _describe('btp_sync', () => {
 		};
 		const hiddenBye2 = {
 			ID: [202],
+			DisplayOrder: [0],
 			DrawID: [10],
 			PlanningID: [4002],
 			EntryID: [20201],
@@ -1256,6 +1303,7 @@ _describe('btp_sync', () => {
 		btp_manager.update_score = (_app, match) => pushed.push({
 			id: match.btp_match_ids[0].id,
 			match_num: match.btp_match_ids[0].nr,
+			transmitted_order: require('../bts/btp_proto').update_request(match, 'session').Update.Tournament.Matches[0].Match.MatchOrder,
 			winner_only: match.btp_winner_only_update,
 			team1_won: match.team1_won,
 			network_score: match.network_score,
@@ -1276,6 +1324,7 @@ _describe('btp_sync', () => {
 			{
 				id: 201,
 				match_num: undefined,
+				transmitted_order: 7,
 				winner_only: true,
 				team1_won: true,
 				network_score: undefined,
@@ -1284,6 +1333,7 @@ _describe('btp_sync', () => {
 			{
 				id: 202,
 				match_num: undefined,
+				transmitted_order: 0,
 				winner_only: true,
 				team1_won: true,
 				network_score: undefined,
@@ -1378,6 +1428,69 @@ _describe('btp_sync', () => {
 				break_before_set_duration_ms: 120000,
 			},
 		});
+	});
+
+	_it('imports planned BTP courts even when the local assignment was explicitly emptied', () => {
+		for (const state of ['scheduled', 'incomplete', 'preparation']) {
+			const current = { setup: { state, now_on_court: false, court_id: null, teams: [] } };
+			const incoming = { setup: { state, now_on_court: false, court_id: 'court_7', teams: [] } };
+			const merged = btp_sync._merge_local_match_into_btp_match(current, structuredClone(incoming));
+			assert.strictEqual(merged.setup.court_id, 'court_7');
+			assert.strictEqual(merged.setup.state, state);
+			const called = btp_sync._merge_local_match_into_btp_match(current, {
+				setup: { ...incoming.setup, now_on_court: true, state: 'oncourt' },
+			});
+			assert.strictEqual(called.setup.court_id, 'court_7');
+			assert.strictEqual(called.setup.now_on_court, true);
+			const assigned = btp_sync._merge_local_match_into_btp_match({ setup: { ...current.setup, court_id: 'court_8' } },
+				structuredClone(incoming));
+			assert.strictEqual(assigned.setup.court_id, 'court_7');
+			const imported = btp_sync._merge_local_match_into_btp_match({ setup: { state, teams: [] } },
+				structuredClone(incoming));
+			assert.strictEqual(imported.setup.court_id, 'court_7');
+			assert.strictEqual(current.setup.court_id, null);
+		}
+	});
+
+	_it('removes obsolete planned courts on import and keeps explicit preparation locations', () => {
+		for (const state of ['scheduled', 'incomplete', 'preparation', 'blocked']) {
+			const current = { setup: { state, court_id: 'court_7', now_on_court: false, location_id: 'hall',
+				preparation_call_timestamp: state === 'preparation' ? 123 : undefined, teams: [] } };
+			const incoming = { setup: { state, now_on_court: false, location_id: 'hall', teams: [] } };
+			const merged = btp_sync._merge_local_match_into_btp_match(current, incoming);
+			assert(!merged.setup.court_id);
+			assert.strictEqual(merged.setup.location_id, 'hall');
+			assert.strictEqual(merged.setup.state, state);
+		}
+		const running = { setup: { state: 'oncourt', now_on_court: true, court_id: 'court_7', teams: [] } };
+		assert.strictEqual(btp_sync._merge_local_match_into_btp_match(running,
+			{ setup: { state: 'scheduled', now_on_court: false, teams: [] } }).setup.court_id, 'court_7');
+	});
+
+	_it('cleans stale local courts even when the last imported BTP signature is unchanged', async () => {
+		const db = await database.init_test();
+		const app = { db, wss: { clients: [] } };
+		await insert(db, 'tournaments', { key: 'default', btp_settings: {} });
+		const state = singleMatchBtpState({ CourtID: [7], LocationID: [5] });
+		const sync = () => new Promise((resolve, reject) => btp_sync._integrate_matches(
+			app, 'default', state, new Map(), new Map([[5, 'hall']]), new Map([[7, 'court_7']]),
+			err => err ? reject(err) : resolve()));
+		await sync();
+		const id = 'btp_default_MX U17_1';
+		assert.strictEqual((await db.matches.findOne_async({ _id: id })).setup.court_id, 'court_7');
+		delete state.matches[0].CourtID;
+		await sync();
+		let match = await db.matches.findOne_async({ _id: id });
+		assert(!match.setup.court_id);
+		assert.strictEqual(match.setup.location_id, 'hall');
+		const signature = match._btp_sync_signature;
+		await db.matches.update_async({ _id: id }, { $set: { 'setup.court_id': 'court_7' } }, {});
+		await sync();
+		match = await db.matches.findOne_async({ _id: id });
+		assert(!match.setup.court_id);
+		assert.strictEqual(match._btp_sync_signature, signature);
+		await sync();
+		assert(!(await db.matches.findOne_async({ _id: id })).setup.court_id);
 	});
 
 	_it('keeps the local court on finished matches when BTP no longer sends a court', () => {

@@ -3,10 +3,10 @@
 // Fixed listening fixture for the composition agreed in the working document.
 // This does not change the production announcement builders.
 const { spellNumbers } = require('../bts/speech/numbers');
-const game = 'Spiel 189.  Mädcheneinzel U19.  Achtelfinale! Nina Keo Boun Khoune gegen LeandraGalowicz.';
-const team1 = 'Nina Keo Boun Khoune';
-const team2 = 'LeandraGalowicz';
-const operators = 'Lena Fischer und Tom Schneider';
+const game = 'Spiel 189.  Mädcheneinzel U19.  Achtelfinale! Max Mustermann gegen Hans Dampf.';
+const team1 = 'Max Mustermann';
+const team2 = 'Hans Dampf';
+const operators = 'Erika Musterfrau und Otto Normalverbraucher';
 const meeting = 'Bitte meldet euch bei der Turnierleitung!';
 const singleMeeting = 'Bitte melde dich bei der Turnierleitung!';
 const normal = 'Zweiter Aufruf für:';
@@ -17,14 +17,14 @@ const sources = [
     ['begin', 'Auf Spielfeld 8! Bitte mit dem Spielen beginnen!'],
     ['game', game],
     ['preparation', `In Vorbereitung ${hall} Für Spielfeld 8! ${game} ${meeting}`],
-    ['umpire', `Auf Spielfeld 8! ${normal}Schiedsrichter:Alexandra Becker`],
-    ['judge', `Auf Spielfeld 8! ${normal}Aufschlagrichter:Martin Hoffmann`],
+    ['umpire', `Auf Spielfeld 8! ${normal}Schiedsrichter:Erika Musterfrau`],
+    ['judge', `Auf Spielfeld 8! ${normal}Aufschlagrichter:Max Mustermann`],
     ['tablet', `Auf Spielfeld 8! ${normal}Tabletbedienung:${operators}`],
     ['board', `Auf Spielfeld 8! ${normal}Klapptafelbedienung:${operators}`],
     ['prep_team', `${prep}${team1} ${hall}! ${team1} ${singleMeeting}`],
     ['prep_operator', `${prep}Tabletbedienung:${operators}! ${operators}, bitte als Tabletbedienung bei der Turnierleitungmelden!`],
     ['prep_operator_no_meeting', `${prep}Tabletbedienung:${operators}! ${operators}, bitte als Tabletbedienung`],
-    ['prep_umpire_no_meeting', `${prep}Schiedsrichter:Alexandra Becker! Alexandra Becker In Vorbereitung!`],
+    ['prep_umpire_no_meeting', `${prep}Schiedsrichter:Erika Musterfrau! Erika Musterfrau In Vorbereitung!`],
     ['preparation_no_meeting', `In Vorbereitung ${hall} Für Spielfeld 8! ${game} In Vorbereitung ${hall}`],
     ['walkover', `Spiel 189, Mädcheneinzel U19, Achtelfinale! ${team1} gegen ${team2}. Das Spiel geht kampflos an: ${team1}!`],
 ];
@@ -50,8 +50,8 @@ piece('meeting_single', 'prep_team', singleMeeting);
 piece('prep_prefix', 'prep_team', prep);
 piece('normal_prefix', 'umpire', normal);
 for (const [id, source, role, names] of [
-    ['umpire', 'umpire', 'Schiedsrichter', 'Alexandra Becker'],
-    ['judge', 'judge', 'Aufschlagrichter', 'Martin Hoffmann'],
+    ['umpire', 'umpire', 'Schiedsrichter', 'Erika Musterfrau'],
+    ['judge', 'judge', 'Aufschlagrichter', 'Max Mustermann'],
     ['tablet', 'tablet', 'Tabletbedienung', operators],
     ['board', 'board', 'Klapptafelbedienung', operators],
 ]) {
@@ -110,7 +110,7 @@ for (let team = 1; team <= 2; team++) call(`d12-sieger-${team}`, `D12 · Kampflo
 function plan() {
     return { title: 'Spiel 189 · Alle spielbezogenen Durchsagen',
         fixture: { court: 8, hall: 2, game: 189, team1, team2, operators,
-            umpire: 'Alexandra Becker', service_judge: 'Martin Hoffmann' },
+            umpire: 'Erika Musterfrau', service_judge: 'Max Mustermann' },
         parameters: { voice: 'hallensprecher', speed: 1.155, temperature: 0.8, top_k: 50, top_p: 0.8, seed: 42 },
         note: 'Fester Hörtext wie im bisherigen Vergleich: „Spiel 189“, Mädcheneinzel U19, Achtelfinale. ' +
             'Alle 14 spielbezogenen Auslöser, beide Sieger und beschriftete Einstellungsvarianten. ' +

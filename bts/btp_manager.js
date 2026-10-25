@@ -160,7 +160,14 @@ function get_status(tkey) {
 	};
 }
 
+async function clear_court_assignments(tkey, matches) {
+	const connection = conns_by_tkey.get(tkey);
+	if (!connection) throw new Error('BTP-Verbindung ist nicht bereit.');
+	return connection.clear_court_assignments(matches);
+}
+
 module.exports = {
+	clear_court_assignments,
 	fetch,
 	get_status,
 	init,

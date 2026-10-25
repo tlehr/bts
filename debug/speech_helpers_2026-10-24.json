@@ -1,0 +1,64 @@
+{
+  "date": "2026-10-24",
+  "status": "completed",
+  "started_at": "2026-10-24T21:09:13.299Z",
+  "finished_at": "2026-10-24T21:11:37.822Z",
+  "scope": "Private speech process, memory-only test tournament, two actual packaged Linux helpers in bubblewrap; no production DB or BTP",
+  "runtime": {
+    "schema": 1,
+    "id": "d013205182d40408fb2788d99943ab538c45bdd240697010f5d80aef195058cd",
+    "sha256": "770cc85c3a92ed566170e0ef064f1b4cc047b3d016d242887059ba618b1cc186",
+    "size_bytes": 2167797760,
+    "platform": "linux-x64",
+    "cpu_flags": [
+      "avx2",
+      "fma",
+      "bmi2",
+      "f16c",
+      "sse4_2",
+      "popcnt"
+    ],
+    "private_voice_profiles": true
+  },
+  "workers": 2,
+  "simultaneous_processing_observed": true,
+  "cpu_note": "Both helpers were constrained to one logical CPU each and selected the same core on this host; this is a protocol/runtime test, not a distributed-speed benchmark.",
+  "tests": {
+    "bts_helpers_cache_worker_passed": 56,
+    "python_helper_passed": 3,
+    "powershell": "7.6.7 Linux parser and compiled C# downloader; certificate rejected before credentials, download and Range resume checked"
+  },
+  "steps": [
+    "Admin IPC, authenticated starter ZIP, two queued tests",
+    "Two packaged native agents simultaneously generated actual speech with one CPU each",
+    "TLS certificate pinned before sending credentials; lease heartbeats and PCM16 return; signed HTTPS playback"
+  ],
+  "audio": [
+    {
+      "voice": "hallensprecher",
+      "state": "completed",
+      "attempt": 1,
+      "elapsed_ms": 135010.3,
+      "size_bytes": 405164,
+      "audio_seconds": 8.44,
+      "sample_rate": 24000,
+      "channels": 1,
+      "bits_per_sample": 16,
+      "sha256": "d1374bdfa3bf26b217298b243bb967b2c12cf59e6fe25e7204088a18c71a0ebc"
+    },
+    {
+      "voice": "hallensprecher",
+      "state": "completed",
+      "attempt": 1,
+      "elapsed_ms": 135217.4,
+      "size_bytes": 405164,
+      "audio_seconds": 8.44,
+      "sample_rate": 24000,
+      "channels": 1,
+      "bits_per_sample": 16,
+      "sha256": "d1374bdfa3bf26b217298b243bb967b2c12cf59e6fe25e7204088a18c71a0ebc"
+    }
+  ],
+  "windows_execution_verified": false,
+  "regular_preparation_distributed": false
+}

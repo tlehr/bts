@@ -1,0 +1,1284 @@
+{
+  "source_file": "bts-test-25.json",
+  "source_sha256": "f991562aa1ee3b0133eafa054f5279e55778a36e1a011ad41473db5bb0f5ed5c",
+  "started_at": "2026-10-24T15:08:18.047Z",
+  "runtime_ms": 120907,
+  "stop_reason": "interrupted",
+  "failure": null,
+  "scenario": "benchmark",
+  "seed": "519",
+  "initial_state": {
+    "matches": 373,
+    "finished_matches": 87,
+    "active_matches": 13,
+    "active_courts": 13
+  },
+  "server_offloading": {
+    "server_id": "1276515-1792850296953",
+    "run_label": null,
+    "features": {
+      "btp_decode": true,
+      "sync_plan": true,
+      "sync_plan_patch_return": true,
+      "device_info": false,
+      "xlsx_import": false,
+      "compaction": true,
+      "compaction_reads": true,
+      "score_idle_reads": true,
+      "score_readonly_reads": true,
+      "score_direct_writes": true,
+      "preparation_reads": true,
+      "preparation_candidates": true,
+      "sync_batch_writes": false,
+      "sync_prepared_tournament": true,
+      "sync_prepared_matches": true,
+      "admin_response_background": true,
+      "admin_response_priority": true,
+      "admin_match_revision_cache": true,
+      "admin_broadcast_shared": true,
+      "admin_response_worker": false,
+      "compaction_staged": true
+    }
+  },
+  "tablet_to_tv_ms": {
+    "count": 301,
+    "mean": 9.5,
+    "min": 2,
+    "p50": 5,
+    "p95": 29,
+    "p99": 57,
+    "max": 71,
+    "over_50_ms": 5,
+    "over_100_ms": 0,
+    "over_200_ms": 0,
+    "sent_updates": 301,
+    "unmatched_updates": 0,
+    "coverage": 1
+  },
+  "tablet_to_admin_ms": {
+    "count": 301,
+    "mean": 12.2,
+    "min": 4,
+    "p50": 7,
+    "p95": 35,
+    "p99": 63,
+    "max": 84,
+    "over_50_ms": 6,
+    "over_100_ms": 0,
+    "over_200_ms": 0,
+    "sent_updates": 301,
+    "unmatched_updates": 0,
+    "coverage": 1
+  },
+  "archive": {
+    "samples": 121,
+    "traces": 2169,
+    "probe_failures": 1,
+    "trace_gaps": 0,
+    "dropped": {
+      "samples": 0,
+      "traces": 0,
+      "events": 0
+    },
+    "drain": null,
+    "max_event_loop_ms": 65.994751
+  },
+  "counts": {
+    "periodic_player_court_reconciliation": 9,
+    "speech_snapshot": 112,
+    "admin_tournament_get": 305,
+    "periodic_official_pause": 120,
+    "periodic_preparation_pause": 120,
+    "periodic_preparation_age": 120,
+    "handle_score_update_v2": 300,
+    "admin_preparation_selection": 904,
+    "btp_fetch": 4,
+    "speech_request": 148,
+    "post_sync_auto_call_apply": 8,
+    "handle_match_player_check_in": 16,
+    "database_compaction": 3
+  },
+  "phase_stats": {
+    "preparation_selection_sync_start": {
+      "count": 340,
+      "total_ms": 2566.3,
+      "p50": 7.6,
+      "p95": 11.1,
+      "p99": 21.8,
+      "max": 28.9
+    },
+    "speech_snapshot_collect": {
+      "count": 112,
+      "total_ms": 16.6,
+      "p50": 0.1,
+      "p95": 0.2,
+      "p99": 0.3,
+      "max": 0.3
+    },
+    "speech_bridge_send": {
+      "count": 1003,
+      "total_ms": 101.4,
+      "p50": 0.1,
+      "p95": 0.2,
+      "p99": 0.5,
+      "max": 4
+    },
+    "admin_broadcast_encode": {
+      "count": 1328,
+      "total_ms": 107.8,
+      "p50": 0,
+      "p95": 0.2,
+      "p99": 0.5,
+      "max": 4.5
+    }
+  },
+  "speech_resolves": [
+    {
+      "elapsed_ms": 5393.0,
+      "duration_ms": 85.6,
+      "part_count": 9,
+      "context_part_count": 9,
+      "completed_count": 9,
+      "reason": null
+    },
+    {
+      "elapsed_ms": 22328.0,
+      "duration_ms": 4.7,
+      "part_count": 7,
+      "context_part_count": 7,
+      "completed_count": 7,
+      "reason": null
+    },
+    {
+      "elapsed_ms": 53714.0,
+      "duration_ms": 120.9,
+      "part_count": 9,
+      "context_part_count": 9,
+      "completed_count": 9,
+      "reason": null
+    },
+    {
+      "elapsed_ms": 87516.0,
+      "duration_ms": 8,
+      "part_count": 7,
+      "context_part_count": 7,
+      "completed_count": 7,
+      "reason": null
+    },
+    {
+      "elapsed_ms": 103810.0,
+      "duration_ms": 2.2,
+      "part_count": 7,
+      "context_part_count": 7,
+      "completed_count": 7,
+      "reason": null
+    },
+    {
+      "elapsed_ms": 120284.0,
+      "duration_ms": 4.4,
+      "part_count": 7,
+      "context_part_count": 7,
+      "completed_count": 7,
+      "reason": null
+    }
+  ],
+  "speech_playback_log_source": "BTS data/diagnostics/events*.jsonl, read-only; client timestamps; event start lies in test window",
+  "speech_playbacks": [
+    {
+      "kind": "match_called_on_court",
+      "client_start_elapsed_ms": 5391.0,
+      "client_end_elapsed_ms": 20325.0,
+      "provider": "server",
+      "status": "ok",
+      "reason": null
+    },
+    {
+      "kind": "match_preparation_call",
+      "client_start_elapsed_ms": 22327.0,
+      "client_end_elapsed_ms": 35785.0,
+      "provider": "server",
+      "status": "ok",
+      "reason": null
+    },
+    {
+      "kind": "match_called_on_court",
+      "client_start_elapsed_ms": 53705.0,
+      "client_end_elapsed_ms": 72251.0,
+      "provider": "server",
+      "status": "ok",
+      "reason": null
+    },
+    {
+      "kind": "match_preparation_call",
+      "client_start_elapsed_ms": 87510.0,
+      "client_end_elapsed_ms": 101808.0,
+      "provider": "server",
+      "status": "ok",
+      "reason": null
+    },
+    {
+      "kind": "match_preparation_call",
+      "client_start_elapsed_ms": 103809.0,
+      "client_end_elapsed_ms": 118277.0,
+      "provider": "server",
+      "status": "ok",
+      "reason": null
+    },
+    {
+      "kind": "match_preparation_call",
+      "client_start_elapsed_ms": 120278.0,
+      "client_end_elapsed_ms": 134384.0,
+      "provider": "server",
+      "status": "ok",
+      "reason": null
+    },
+    {
+      "kind": "match_called_on_court",
+      "client_start_elapsed_ms": 136387.0,
+      "client_end_elapsed_ms": 155802.0,
+      "provider": "server",
+      "status": "ok",
+      "reason": null
+    }
+  ],
+  "slow_points": [
+    {
+      "sequence": 7,
+      "elapsed_ms": 5817.0,
+      "tv_ms": 67,
+      "admin_ms": 84,
+      "before_handler_ms": 47,
+      "spans": [
+        {
+          "name": "handle_score_update_v2",
+          "kind": "lock_wait",
+          "start_after_send_ms": 47,
+          "duration_ms": 9.7,
+          "blocker_tasks": []
+        },
+        {
+          "name": "handle_score_update_v2",
+          "kind": "lock_hold",
+          "start_after_send_ms": 57,
+          "duration_ms": 47.2,
+          "blocker_tasks": []
+        },
+        {
+          "name": "load_context",
+          "kind": "phase",
+          "start_after_send_ms": 57.1,
+          "duration_ms": 0.9,
+          "blocker_tasks": []
+        },
+        {
+          "name": "matches:score_update_write",
+          "kind": "db_wait",
+          "start_after_send_ms": 59,
+          "duration_ms": 0.7,
+          "blocker_tasks": []
+        },
+        {
+          "name": "matches:score_update_write",
+          "kind": "db_run",
+          "start_after_send_ms": 60,
+          "duration_ms": 14.2,
+          "blocker_tasks": []
+        },
+        {
+          "name": "db_update_match",
+          "kind": "phase",
+          "start_after_send_ms": 58.5,
+          "duration_ms": 7.5,
+          "blocker_tasks": []
+        },
+        {
+          "name": "committed_display_points",
+          "kind": "phase",
+          "start_after_send_ms": 66,
+          "duration_ms": 5.9,
+          "blocker_tasks": []
+        }
+      ]
+    },
+    {
+      "sequence": 4,
+      "elapsed_ms": 4650.0,
+      "tv_ms": 71,
+      "admin_ms": 79,
+      "before_handler_ms": 9,
+      "spans": [
+        {
+          "name": "handle_score_update_v2",
+          "kind": "lock_wait",
+          "start_after_send_ms": 9,
+          "duration_ms": 17.9,
+          "blocker_tasks": []
+        },
+        {
+          "name": "handle_score_update_v2",
+          "kind": "lock_hold",
+          "start_after_send_ms": 27,
+          "duration_ms": 68.1,
+          "blocker_tasks": []
+        },
+        {
+          "name": "load_context",
+          "kind": "phase",
+          "start_after_send_ms": 27.5,
+          "duration_ms": 1.5,
+          "blocker_tasks": []
+        },
+        {
+          "name": "matches:score_update_write",
+          "kind": "db_wait",
+          "start_after_send_ms": 30,
+          "duration_ms": 7.5,
+          "blocker_tasks": [
+            "matches:find@bupws_v2.js:1109>bupws_v2.js:2150"
+          ]
+        },
+        {
+          "name": "matches:score_update_write",
+          "kind": "db_run",
+          "start_after_send_ms": 37,
+          "duration_ms": 35.4,
+          "blocker_tasks": []
+        },
+        {
+          "name": "db_update_match",
+          "kind": "phase",
+          "start_after_send_ms": 29.7,
+          "duration_ms": 41.2,
+          "blocker_tasks": []
+        },
+        {
+          "name": "committed_display_points",
+          "kind": "phase",
+          "start_after_send_ms": 71.1,
+          "duration_ms": 0.9,
+          "blocker_tasks": []
+        }
+      ]
+    },
+    {
+      "sequence": 82,
+      "elapsed_ms": 35283.0,
+      "tv_ms": 57,
+      "admin_ms": 64,
+      "before_handler_ms": 14,
+      "spans": [
+        {
+          "name": "handle_score_update_v2",
+          "kind": "lock_wait",
+          "start_after_send_ms": 14,
+          "duration_ms": 17.9,
+          "blocker_tasks": []
+        },
+        {
+          "name": "handle_score_update_v2",
+          "kind": "lock_hold",
+          "start_after_send_ms": 32,
+          "duration_ms": 58.2,
+          "blocker_tasks": []
+        },
+        {
+          "name": "load_context",
+          "kind": "phase",
+          "start_after_send_ms": 32.8,
+          "duration_ms": 1.2,
+          "blocker_tasks": []
+        },
+        {
+          "name": "matches:score_update_write",
+          "kind": "db_wait",
+          "start_after_send_ms": 34,
+          "duration_ms": 4.9,
+          "blocker_tasks": []
+        },
+        {
+          "name": "matches:score_update_write",
+          "kind": "db_run",
+          "start_after_send_ms": 39,
+          "duration_ms": 24,
+          "blocker_tasks": []
+        },
+        {
+          "name": "db_update_match",
+          "kind": "phase",
+          "start_after_send_ms": 34.4,
+          "duration_ms": 19.6,
+          "blocker_tasks": []
+        },
+        {
+          "name": "committed_display_points",
+          "kind": "phase",
+          "start_after_send_ms": 53.9,
+          "duration_ms": 5,
+          "blocker_tasks": []
+        }
+      ]
+    },
+    {
+      "sequence": 129,
+      "elapsed_ms": 53677.0,
+      "tv_ms": 60,
+      "admin_ms": 63,
+      "before_handler_ms": 17,
+      "spans": [
+        {
+          "name": "handle_score_update_v2",
+          "kind": "lock_wait",
+          "start_after_send_ms": 17,
+          "duration_ms": 10.7,
+          "blocker_tasks": []
+        },
+        {
+          "name": "handle_score_update_v2",
+          "kind": "lock_hold",
+          "start_after_send_ms": 28,
+          "duration_ms": 46.7,
+          "blocker_tasks": []
+        },
+        {
+          "name": "load_context",
+          "kind": "phase",
+          "start_after_send_ms": 27.7,
+          "duration_ms": 15.3,
+          "blocker_tasks": []
+        },
+        {
+          "name": "matches:score_update_write",
+          "kind": "db_wait",
+          "start_after_send_ms": 43,
+          "duration_ms": 6.3,
+          "blocker_tasks": [
+            "matches:display_context_match"
+          ]
+        },
+        {
+          "name": "matches:score_update_write",
+          "kind": "db_run",
+          "start_after_send_ms": 50,
+          "duration_ms": 12.2,
+          "blocker_tasks": []
+        },
+        {
+          "name": "db_update_match",
+          "kind": "phase",
+          "start_after_send_ms": 43,
+          "duration_ms": 16,
+          "blocker_tasks": []
+        },
+        {
+          "name": "committed_display_points",
+          "kind": "phase",
+          "start_after_send_ms": 59,
+          "duration_ms": 2,
+          "blocker_tasks": []
+        }
+      ]
+    },
+    {
+      "sequence": 128,
+      "elapsed_ms": 53644.0,
+      "tv_ms": 51,
+      "admin_ms": 60,
+      "before_handler_ms": 14,
+      "spans": [
+        {
+          "name": "handle_score_update_v2",
+          "kind": "lock_wait",
+          "start_after_send_ms": 14,
+          "duration_ms": 11.3,
+          "blocker_tasks": []
+        },
+        {
+          "name": "handle_score_update_v2",
+          "kind": "lock_hold",
+          "start_after_send_ms": 25,
+          "duration_ms": 57.3,
+          "blocker_tasks": []
+        },
+        {
+          "name": "load_context",
+          "kind": "phase",
+          "start_after_send_ms": 25.3,
+          "duration_ms": 0.7,
+          "blocker_tasks": []
+        },
+        {
+          "name": "matches:score_update_write",
+          "kind": "db_wait",
+          "start_after_send_ms": 26,
+          "duration_ms": 6.2,
+          "blocker_tasks": []
+        },
+        {
+          "name": "matches:score_update_write",
+          "kind": "db_run",
+          "start_after_send_ms": 33,
+          "duration_ms": 20.5,
+          "blocker_tasks": []
+        },
+        {
+          "name": "db_update_match",
+          "kind": "phase",
+          "start_after_send_ms": 26.2,
+          "duration_ms": 23.8,
+          "blocker_tasks": []
+        },
+        {
+          "name": "committed_display_points",
+          "kind": "phase",
+          "start_after_send_ms": 50,
+          "duration_ms": 1.9,
+          "blocker_tasks": []
+        }
+      ]
+    },
+    {
+      "sequence": 8,
+      "elapsed_ms": 6077.0,
+      "tv_ms": 48,
+      "admin_ms": 52,
+      "before_handler_ms": 17,
+      "spans": [
+        {
+          "name": "handle_score_update_v2",
+          "kind": "lock_wait",
+          "start_after_send_ms": 17,
+          "duration_ms": 26.7,
+          "blocker_tasks": []
+        },
+        {
+          "name": "handle_score_update_v2",
+          "kind": "lock_hold",
+          "start_after_send_ms": 43,
+          "duration_ms": 54.1,
+          "blocker_tasks": []
+        },
+        {
+          "name": "load_context",
+          "kind": "phase",
+          "start_after_send_ms": 44.1,
+          "duration_ms": 0.9,
+          "blocker_tasks": []
+        },
+        {
+          "name": "matches:score_update_write",
+          "kind": "db_wait",
+          "start_after_send_ms": 45,
+          "duration_ms": 0.5,
+          "blocker_tasks": []
+        },
+        {
+          "name": "matches:score_update_write",
+          "kind": "db_run",
+          "start_after_send_ms": 46,
+          "duration_ms": 5.1,
+          "blocker_tasks": []
+        },
+        {
+          "name": "db_update_match",
+          "kind": "phase",
+          "start_after_send_ms": 45.4,
+          "duration_ms": 2.6,
+          "blocker_tasks": []
+        },
+        {
+          "name": "committed_display_points",
+          "kind": "phase",
+          "start_after_send_ms": 47.9,
+          "duration_ms": 2,
+          "blocker_tasks": []
+        }
+      ]
+    }
+  ],
+  "memory": {
+    "first": {
+      "rss": 319721472,
+      "heapTotal": 86040576,
+      "heapUsed": 49588920,
+      "external": 8892178,
+      "arrayBuffers": 5438419,
+      "uptime_s": 4201
+    },
+    "last": {
+      "rss": 464769024,
+      "heapTotal": 191332352,
+      "heapUsed": 144053496,
+      "external": 32592126,
+      "arrayBuffers": 29114565,
+      "uptime_s": 4322
+    },
+    "interpretation": "No idle/drain phase; growth alone is not proof of a leak."
+  },
+  "benchmark": {
+    "scope": "preparation-selection-candidate-and-diagnostic-turns",
+    "matches": 373,
+    "courts": 13,
+    "locations": 1,
+    "samples_per_variant": 18,
+    "warmups_per_variant": 3,
+    "order": "alternating",
+    "source_sha256": [
+      {
+        "name": "courts",
+        "sha256": "e2b71f638592e13f0c106d31721da860a5c997cbf19cda0f1d518391d04373ef"
+      },
+      {
+        "name": "locations",
+        "sha256": "30bd3a304c2fda1cb70f723478692f3c9a9820aadbaefa9dccc17b5f40b103db"
+      },
+      {
+        "name": "event",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "matches",
+        "sha256": "58c07e9eb4a975af41742a2f30a823d8083b577b7fac465da54d9081973bb2ae"
+      },
+      {
+        "name": "tournaments",
+        "sha256": "c0586ccac07fb16cb5a4acec6926d96d8c93934557d88299542dcb060be9753f"
+      },
+      {
+        "name": "umpires",
+        "sha256": "4dc88735319d45cf2e0a8fd2291bdbaca500dea2fc293494a831a4b7ae17f24f"
+      },
+      {
+        "name": "logs",
+        "sha256": "a5d55a0e3c4791766300c1d804eb406d9ddf0309ca7bb6ec01df371703534f81"
+      },
+      {
+        "name": "tabletoperators",
+        "sha256": "01966d8bd9eeba9f6eb8b15e34bce410f2637d9df70106a131a77174e9c98c48"
+      },
+      {
+        "name": "displaysettings",
+        "sha256": "a3c31867ddb7bcd9893d860147d9ffaf182ff96fe06f6d8b6acd7b773471dd43"
+      },
+      {
+        "name": "display_court_displaysettings",
+        "sha256": "b9b2920fd491b35e66609c42c11d889a3b185efece15df0ad6511ba195d4a4fd"
+      },
+      {
+        "name": "normalizations",
+        "sha256": "bca0ff1b25f04cf2a2f9ed151f54e1a8045d128a80cbdcd0847eb88153c0e528"
+      },
+      {
+        "name": "advertisements",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "app_settings",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    ],
+    "unchanged_results": true,
+    "no_live_writes": true,
+    "limitations": [
+      "Fixed read-only snapshot; no network, live points, BTP, filesystem score writes or audio.",
+      "max_turn_ms measures observed setImmediate gaps, including scheduling and GC; it is not pure CPU time."
+    ],
+    "summary": {
+      "before": {
+        "duration_ms": {
+          "n": 18,
+          "p50": 14.52,
+          "p95": 34.59,
+          "max": 34.59
+        },
+        "initial_ms": {
+          "n": 18,
+          "p50": 4.04,
+          "p95": 7.87,
+          "max": 7.87
+        },
+        "max_turn_ms": {
+          "n": 18,
+          "p50": 6.5,
+          "p95": 9.9,
+          "max": 9.9
+        }
+      },
+      "after": {
+        "duration_ms": {
+          "n": 18,
+          "p50": 14.55,
+          "p95": 22.67,
+          "max": 22.67
+        },
+        "initial_ms": {
+          "n": 18,
+          "p50": 0.08,
+          "p95": 0.18,
+          "max": 0.18
+        },
+        "max_turn_ms": {
+          "n": 18,
+          "p50": 3.17,
+          "p95": 5.78,
+          "max": 5.78
+        }
+      }
+    },
+    "samples": {
+      "before": [
+        {
+          "duration_ms": 34.59366798400879,
+          "initial_ms": 7.865424990653992,
+          "max_turn_ms": 9.90037202835083,
+          "ticks": 11
+        },
+        {
+          "duration_ms": 16.479982018470764,
+          "initial_ms": 4.988328039646149,
+          "max_turn_ms": 7.0279499888420105,
+          "ticks": 5
+        },
+        {
+          "duration_ms": 16.712280988693237,
+          "initial_ms": 3.8561179637908936,
+          "max_turn_ms": 5.905948996543884,
+          "ticks": 6
+        },
+        {
+          "duration_ms": 16.80606496334076,
+          "initial_ms": 5.8259559869766235,
+          "max_turn_ms": 7.866837978363037,
+          "ticks": 5
+        },
+        {
+          "duration_ms": 16.776030004024506,
+          "initial_ms": 4.17603600025177,
+          "max_turn_ms": 7.503190040588379,
+          "ticks": 5
+        },
+        {
+          "duration_ms": 14.999929010868073,
+          "initial_ms": 4.041453003883362,
+          "max_turn_ms": 7.2715529799461365,
+          "ticks": 4
+        },
+        {
+          "duration_ms": 14.524381041526794,
+          "initial_ms": 4.645255029201508,
+          "max_turn_ms": 6.699766993522644,
+          "ticks": 4
+        },
+        {
+          "duration_ms": 17.69570803642273,
+          "initial_ms": 6.394804000854492,
+          "max_turn_ms": 8.444433033466339,
+          "ticks": 5
+        },
+        {
+          "duration_ms": 14.718042016029358,
+          "initial_ms": 3.8361510038375854,
+          "max_turn_ms": 5.874966025352478,
+          "ticks": 5
+        },
+        {
+          "duration_ms": 13.29637998342514,
+          "initial_ms": 4.461636960506439,
+          "max_turn_ms": 6.504443049430847,
+          "ticks": 4
+        },
+        {
+          "duration_ms": 13.031771957874298,
+          "initial_ms": 3.9162150025367737,
+          "max_turn_ms": 5.9653210043907166,
+          "ticks": 4
+        },
+        {
+          "duration_ms": 13.01698100566864,
+          "initial_ms": 3.790318012237549,
+          "max_turn_ms": 5.841154992580414,
+          "ticks": 4
+        },
+        {
+          "duration_ms": 12.869869947433472,
+          "initial_ms": 3.818692982196808,
+          "max_turn_ms": 5.879477024078369,
+          "ticks": 4
+        },
+        {
+          "duration_ms": 15.350807964801788,
+          "initial_ms": 3.984468996524811,
+          "max_turn_ms": 6.0276870131492615,
+          "ticks": 5
+        },
+        {
+          "duration_ms": 13.766038000583649,
+          "initial_ms": 4.457665026187897,
+          "max_turn_ms": 6.495618999004364,
+          "ticks": 4
+        },
+        {
+          "duration_ms": 12.001846015453339,
+          "initial_ms": 3.7775440216064453,
+          "max_turn_ms": 5.802748024463654,
+          "ticks": 4
+        },
+        {
+          "duration_ms": 13.993124961853027,
+          "initial_ms": 4.487686991691589,
+          "max_turn_ms": 6.532125949859619,
+          "ticks": 4
+        },
+        {
+          "duration_ms": 12.711641013622284,
+          "initial_ms": 3.1907860040664673,
+          "max_turn_ms": 6.402401983737946,
+          "ticks": 4
+        }
+      ],
+      "after": [
+        {
+          "duration_ms": 22.665844976902008,
+          "initial_ms": 0.10896199941635132,
+          "max_turn_ms": 3.2923280000686646,
+          "ticks": 9
+        },
+        {
+          "duration_ms": 16.2082279920578,
+          "initial_ms": 0.08669203519821167,
+          "max_turn_ms": 2.836697995662689,
+          "ticks": 7
+        },
+        {
+          "duration_ms": 17.577494025230408,
+          "initial_ms": 0.10467803478240967,
+          "max_turn_ms": 5.777186036109924,
+          "ticks": 6
+        },
+        {
+          "duration_ms": 15.397095024585724,
+          "initial_ms": 0.11305403709411621,
+          "max_turn_ms": 2.445964992046356,
+          "ticks": 7
+        },
+        {
+          "duration_ms": 13.153442025184631,
+          "initial_ms": 0.06561905145645142,
+          "max_turn_ms": 2.242299973964691,
+          "ticks": 6
+        },
+        {
+          "duration_ms": 14.284847974777222,
+          "initial_ms": 0.07800298929214478,
+          "max_turn_ms": 3.1719849705696106,
+          "ticks": 6
+        },
+        {
+          "duration_ms": 18.167492985725403,
+          "initial_ms": 0.07463598251342773,
+          "max_turn_ms": 3.6381459832191467,
+          "ticks": 7
+        },
+        {
+          "duration_ms": 20.3490189909935,
+          "initial_ms": 0.10417497158050537,
+          "max_turn_ms": 4.27546501159668,
+          "ticks": 8
+        },
+        {
+          "duration_ms": 19.52557200193405,
+          "initial_ms": 0.08045095205307007,
+          "max_turn_ms": 5.690597951412201,
+          "ticks": 7
+        },
+        {
+          "duration_ms": 14.549774050712585,
+          "initial_ms": 0.1783210039138794,
+          "max_turn_ms": 3.2863930463790894,
+          "ticks": 6
+        },
+        {
+          "duration_ms": 12.853900015354156,
+          "initial_ms": 0.06780904531478882,
+          "max_turn_ms": 2.915426015853882,
+          "ticks": 5
+        },
+        {
+          "duration_ms": 12.64425802230835,
+          "initial_ms": 0.09374600648880005,
+          "max_turn_ms": 3.1586899757385254,
+          "ticks": 5
+        },
+        {
+          "duration_ms": 14.751462996006012,
+          "initial_ms": 0.06733298301696777,
+          "max_turn_ms": 3.621141016483307,
+          "ticks": 6
+        },
+        {
+          "duration_ms": 20.094914972782135,
+          "initial_ms": 0.07295900583267212,
+          "max_turn_ms": 3.834201991558075,
+          "ticks": 8
+        },
+        {
+          "duration_ms": 12.74117398262024,
+          "initial_ms": 0.06743896007537842,
+          "max_turn_ms": 3.149681031703949,
+          "ticks": 5
+        },
+        {
+          "duration_ms": 11.426015019416809,
+          "initial_ms": 0.07757198810577393,
+          "max_turn_ms": 3.3637489676475525,
+          "ticks": 4
+        },
+        {
+          "duration_ms": 13.788203001022339,
+          "initial_ms": 0.07267701625823975,
+          "max_turn_ms": 3.075119972229004,
+          "ticks": 6
+        },
+        {
+          "duration_ms": 11.422559976577759,
+          "initial_ms": 0.0841209888458252,
+          "max_turn_ms": 2.775129020214081,
+          "ticks": 5
+        }
+      ]
+    }
+  },
+  "benchmark_with_traces": {
+    "scope": "preparation-selection-candidate-and-diagnostic-turns",
+    "matches": 373,
+    "courts": 13,
+    "locations": 1,
+    "samples_per_variant": 18,
+    "warmups_per_variant": 3,
+    "order": "alternating",
+    "source_sha256": [
+      {
+        "name": "courts",
+        "sha256": "e2b71f638592e13f0c106d31721da860a5c997cbf19cda0f1d518391d04373ef"
+      },
+      {
+        "name": "locations",
+        "sha256": "30bd3a304c2fda1cb70f723478692f3c9a9820aadbaefa9dccc17b5f40b103db"
+      },
+      {
+        "name": "event",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "matches",
+        "sha256": "58c07e9eb4a975af41742a2f30a823d8083b577b7fac465da54d9081973bb2ae"
+      },
+      {
+        "name": "tournaments",
+        "sha256": "c0586ccac07fb16cb5a4acec6926d96d8c93934557d88299542dcb060be9753f"
+      },
+      {
+        "name": "umpires",
+        "sha256": "4dc88735319d45cf2e0a8fd2291bdbaca500dea2fc293494a831a4b7ae17f24f"
+      },
+      {
+        "name": "logs",
+        "sha256": "a5d55a0e3c4791766300c1d804eb406d9ddf0309ca7bb6ec01df371703534f81"
+      },
+      {
+        "name": "tabletoperators",
+        "sha256": "01966d8bd9eeba9f6eb8b15e34bce410f2637d9df70106a131a77174e9c98c48"
+      },
+      {
+        "name": "displaysettings",
+        "sha256": "a3c31867ddb7bcd9893d860147d9ffaf182ff96fe06f6d8b6acd7b773471dd43"
+      },
+      {
+        "name": "display_court_displaysettings",
+        "sha256": "b9b2920fd491b35e66609c42c11d889a3b185efece15df0ad6511ba195d4a4fd"
+      },
+      {
+        "name": "normalizations",
+        "sha256": "bca0ff1b25f04cf2a2f9ed151f54e1a8045d128a80cbdcd0847eb88153c0e528"
+      },
+      {
+        "name": "advertisements",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "app_settings",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    ],
+    "unchanged_results": true,
+    "no_live_writes": true,
+    "trace_enabled": true,
+    "limitations": [
+      "Fixed read-only snapshot; no network, live points, BTP, filesystem score writes or audio.",
+      "max_turn_ms measures observed setImmediate gaps, including scheduling and GC; it is not pure CPU time."
+    ],
+    "summary": {
+      "before": {
+        "duration_ms": {
+          "n": 18,
+          "p50": 14.7,
+          "p95": 22.64,
+          "max": 22.64
+        },
+        "initial_ms": {
+          "n": 18,
+          "p50": 4.22,
+          "p95": 6.74,
+          "max": 6.74
+        },
+        "max_turn_ms": {
+          "n": 18,
+          "p50": 6.26,
+          "p95": 10,
+          "max": 10
+        }
+      },
+      "after": {
+        "duration_ms": {
+          "n": 18,
+          "p50": 14.6,
+          "p95": 23.83,
+          "max": 23.83
+        },
+        "initial_ms": {
+          "n": 18,
+          "p50": 0.13,
+          "p95": 0.2,
+          "max": 0.2
+        },
+        "max_turn_ms": {
+          "n": 18,
+          "p50": 3.39,
+          "p95": 6.29,
+          "max": 6.29
+        }
+      }
+    },
+    "samples": {
+      "before": [
+        {
+          "duration_ms": 22.63661903142929,
+          "initial_ms": 6.246917009353638,
+          "max_turn_ms": 10.00154197216034,
+          "ticks": 7
+        },
+        {
+          "duration_ms": 15.929198980331421,
+          "initial_ms": 4.4275529980659485,
+          "max_turn_ms": 6.4742990136146545,
+          "ticks": 5
+        },
+        {
+          "duration_ms": 13.64391803741455,
+          "initial_ms": 3.4054960012435913,
+          "max_turn_ms": 5.452603995800018,
+          "ticks": 4
+        },
+        {
+          "duration_ms": 14.352898001670837,
+          "initial_ms": 4.218881964683533,
+          "max_turn_ms": 6.260497987270355,
+          "ticks": 4
+        },
+        {
+          "duration_ms": 14.230657041072845,
+          "initial_ms": 3.380913019180298,
+          "max_turn_ms": 5.447834014892578,
+          "ticks": 5
+        },
+        {
+          "duration_ms": 13.747716009616852,
+          "initial_ms": 4.334321022033691,
+          "max_turn_ms": 6.423611998558044,
+          "ticks": 4
+        },
+        {
+          "duration_ms": 15.063679039478302,
+          "initial_ms": 4.602950990200043,
+          "max_turn_ms": 6.649029970169067,
+          "ticks": 5
+        },
+        {
+          "duration_ms": 17.236823976039886,
+          "initial_ms": 4.856706976890564,
+          "max_turn_ms": 6.901250004768372,
+          "ticks": 5
+        },
+        {
+          "duration_ms": 16.544952988624573,
+          "initial_ms": 6.347723960876465,
+          "max_turn_ms": 9.756078004837036,
+          "ticks": 4
+        },
+        {
+          "duration_ms": 17.274057030677795,
+          "initial_ms": 6.32742702960968,
+          "max_turn_ms": 9.981988966464996,
+          "ticks": 4
+        },
+        {
+          "duration_ms": 15.961995959281921,
+          "initial_ms": 6.735147953033447,
+          "max_turn_ms": 8.803656995296478,
+          "ticks": 4
+        },
+        {
+          "duration_ms": 15.426984965801239,
+          "initial_ms": 3.884793996810913,
+          "max_turn_ms": 5.933899998664856,
+          "ticks": 5
+        },
+        {
+          "duration_ms": 14.701555013656616,
+          "initial_ms": 4.152148008346558,
+          "max_turn_ms": 6.1831260323524475,
+          "ticks": 4
+        },
+        {
+          "duration_ms": 17.643858015537262,
+          "initial_ms": 3.1342950463294983,
+          "max_turn_ms": 5.197697997093201,
+          "ticks": 6
+        },
+        {
+          "duration_ms": 12.923683941364288,
+          "initial_ms": 3.2897769808769226,
+          "max_turn_ms": 5.453006982803345,
+          "ticks": 4
+        },
+        {
+          "duration_ms": 12.514141023159027,
+          "initial_ms": 3.6309040188789368,
+          "max_turn_ms": 5.675352990627289,
+          "ticks": 4
+        },
+        {
+          "duration_ms": 13.183988988399506,
+          "initial_ms": 3.4075719714164734,
+          "max_turn_ms": 5.499040007591248,
+          "ticks": 4
+        },
+        {
+          "duration_ms": 12.817258954048157,
+          "initial_ms": 4.694265961647034,
+          "max_turn_ms": 6.738985002040863,
+          "ticks": 3
+        }
+      ],
+      "after": [
+        {
+          "duration_ms": 23.8329119682312,
+          "initial_ms": 0.12712997198104858,
+          "max_turn_ms": 6.291266024112701,
+          "ticks": 8
+        },
+        {
+          "duration_ms": 19.48946702480316,
+          "initial_ms": 0.1493319869041443,
+          "max_turn_ms": 5.028497993946075,
+          "ticks": 7
+        },
+        {
+          "duration_ms": 15.209720015525818,
+          "initial_ms": 0.19536399841308594,
+          "max_turn_ms": 3.379190981388092,
+          "ticks": 6
+        },
+        {
+          "duration_ms": 13.862308979034424,
+          "initial_ms": 0.14581900835037231,
+          "max_turn_ms": 3.005686044692993,
+          "ticks": 6
+        },
+        {
+          "duration_ms": 18.706636011600494,
+          "initial_ms": 0.10189801454544067,
+          "max_turn_ms": 2.6492769718170166,
+          "ticks": 8
+        },
+        {
+          "duration_ms": 15.891506016254425,
+          "initial_ms": 0.12657302618026733,
+          "max_turn_ms": 3.6751100420951843,
+          "ticks": 6
+        },
+        {
+          "duration_ms": 17.82942396402359,
+          "initial_ms": 0.14248895645141602,
+          "max_turn_ms": 4.023422002792358,
+          "ticks": 6
+        },
+        {
+          "duration_ms": 18.63982802629471,
+          "initial_ms": 0.13655900955200195,
+          "max_turn_ms": 2.5450080037117004,
+          "ticks": 8
+        },
+        {
+          "duration_ms": 13.517463982105255,
+          "initial_ms": 0.13078999519348145,
+          "max_turn_ms": 3.173276960849762,
+          "ticks": 6
+        },
+        {
+          "duration_ms": 14.33209103345871,
+          "initial_ms": 0.12894701957702637,
+          "max_turn_ms": 3.5625680088996887,
+          "ticks": 6
+        },
+        {
+          "duration_ms": 14.59819096326828,
+          "initial_ms": 0.10134494304656982,
+          "max_turn_ms": 3.3898229598999023,
+          "ticks": 6
+        },
+        {
+          "duration_ms": 13.992932975292206,
+          "initial_ms": 0.1436139941215515,
+          "max_turn_ms": 3.355877995491028,
+          "ticks": 6
+        },
+        {
+          "duration_ms": 23.558055996894836,
+          "initial_ms": 0.1354600191116333,
+          "max_turn_ms": 3.4116740226745605,
+          "ticks": 10
+        },
+        {
+          "duration_ms": 13.658047020435333,
+          "initial_ms": 0.1210070252418518,
+          "max_turn_ms": 2.804513990879059,
+          "ticks": 6
+        },
+        {
+          "duration_ms": 12.089474022388458,
+          "initial_ms": 0.10329699516296387,
+          "max_turn_ms": 2.4459309577941895,
+          "ticks": 5
+        },
+        {
+          "duration_ms": 14.04092800617218,
+          "initial_ms": 0.16321402788162231,
+          "max_turn_ms": 3.527431011199951,
+          "ticks": 6
+        },
+        {
+          "duration_ms": 21.609600007534027,
+          "initial_ms": 0.11944401264190674,
+          "max_turn_ms": 4.1668789982795715,
+          "ticks": 7
+        },
+        {
+          "duration_ms": 13.79221498966217,
+          "initial_ms": 0.12792199850082397,
+          "max_turn_ms": 4.413269996643066,
+          "ticks": 5
+        }
+      ]
+    }
+  }
+}

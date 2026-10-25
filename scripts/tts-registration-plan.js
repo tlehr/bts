@@ -36,8 +36,8 @@ function registration(existing) {
         return part.id;
     };
     const samples = [
-        { kind: 'player', title: 'Person', text: 'Muhammad Sytsh Abdulquddus', destination: 'check' },
-        { kind: 'pair', title: 'Paarung', text: 'Ben Hensel und Max Wächtler', destination: 'control' },
+        { kind: 'player', title: 'Person', text: 'Max Mustermann', destination: 'check' },
+        { kind: 'pair', title: 'Paarung', text: 'Max Mustermann und Hans Dampf', destination: 'control' },
         { kind: 'club', title: 'Verein', text: 'PSV Bremen', destination: 'check', example: true },
         { kind: 'state', title: 'Bundesland', text: 'Bremen', destination: 'control', example: true },
     ];

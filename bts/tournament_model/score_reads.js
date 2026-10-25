@@ -15,7 +15,8 @@ module.exports = function attach_score_reads(model) {
 		const store = model.db[collection];
 		const enqueued = process.hrtime.bigint();
 		const idle = profile.enabled('score_idle_reads') ? read_barrier.inspect_idle(store) : { allowed: false };
-		const bypass = idle.allowed ? idle : profile.enabled('compaction_reads') ? read_barrier.inspect(store)
+		const readonly = !idle.allowed && profile.enabled('score_readonly_reads') ? read_barrier.inspect_readonly(store) : { allowed: false };
+		const bypass = idle.allowed ? idle : readonly.allowed ? readonly : profile.enabled('compaction_reads') ? read_barrier.inspect(store)
 			: { allowed: false, reason: 'disabled' };
 		const extra = {
 			read_source: 'object_model',

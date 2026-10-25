@@ -5,8 +5,8 @@ const { certify_read } = require('../database_read_barrier');
 
 function project_match(doc) {
 	if (!doc) return null;
-	const { _id, tournament_key, setup, btp_id, btp_match_ids, btp_winner, btp_needsync, team1_won, network_score } = doc;
-	return deepCopy({ _id, tournament_key, setup, btp_id, btp_match_ids, btp_winner, btp_needsync, team1_won, network_score });
+	const { _id, tournament_key, setup, btp_id, btp_match_ids, btp_winner, btp_needsync, team1_won, network_score, tabletoperator_finish_ts } = doc;
+	return deepCopy({ _id, tournament_key, setup, btp_id, btp_match_ids, btp_winner, btp_needsync, team1_won, network_score, tabletoperator_finish_ts });
 }
 
 function ordered(db, collection, read, callback) {

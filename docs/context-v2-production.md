@@ -10,33 +10,76 @@ verarbeitet weiterhin genau einen Auftrag und lehnt weitere mit `429/busy` ab.
 | Baustein | Aufnahme | Verwendung |
 |---|---|---|
 | Feldanfang/-ende | Vollständiger Referenzaufruf je Feld | Beide Feldpositionen aus derselben Aufnahme |
-| Feld in Vorbereitung | `Für Spielfeld [F]!` | Ganzer Satz je Feld |
+| Feld in Vorbereitung | Vollständiger Vorbereitungsaufruf mit `Für Spielfeld [F]!` | Nur der Feldhinweis je Feld |
 | Spielnummer | `Spielnummer [N] ist als nächstes an der Reihe.` | Bis vor „ist“ |
 | Disziplin/Alter | `Im [Disziplin] [Alter] erwarten wir spannende Spiele!` | Zwischen „Im“ und „erwarten“; Disziplin mit Leerzeichen |
-| Runde | `[Runde]!` | Ganzer Satz |
+| Runde | Vollständiger Referenzaufruf mit Spielnummer, Disziplin, Runde und fiktiver Begegnung | Nur `[Runde]!` |
 | Team/Name/Verein/Verband | `[Name] spielt jetzt gegen [Name]!` | Erste Position, zweite Position oder „gegen“ mit zweiter Position |
 | Offiziellenrolle | Im Hörlabor gewählter vollständiger Rollen-Kontext | Rolle mit wiederverwendetem Namen |
 | Vorbereitung | Standortabhängiger Kontextaufruf | Anfang und Abschluss aus derselben Quelle |
 | Anmeldung/Zweitaufrufe/Kampflos | Im Hörlabor festgelegte Kontextaufnahmen | Gemeinsame Wörter mit Team-/Namensausschnitten |
 
 Die vollständigen festen Rezepte stehen in `static/js/speech_context_v2.js`.
+Ihre festen Personennamen sind fiktive Platzhalter wie Max Mustermann und
+Hans Dampf. Sie dienen nur als Kontext für gemeinsame Bausteine. Die tatsächlichen
+Namens- und Teamstücke stammen weiterhin aus dem Turnier. Neue Kontexttexte
+erhalten eigene Cache-Schlüssel und neue Schnittgrenzen; alte Audioaufnahmen
+werden nicht automatisch gelöscht oder nachträglich umbeschriftet.
 Die Browserstimme behält ihre Texte. Ziffern bleiben in der Anzeige erhalten;
 BTS schreibt sie erst für die Anfrage an den Sprachserver aus.
 Freie Texte und der Sprachtest bleiben vollständige Äußerungen, die bestehende
 Evakuierungsdatei bleibt unverändert.
 
+Auch Treffpunkt-Aufforderungen werden aus längeren Aufrufen ausgeschnitten.
+Der letzte V2-Ersatzversuch für einen problematischen Namen verwendet einen
+anderen Kontextsatz; er erzeugt keinen nackten Namensclip mehr. Die Zahl der
+Wiederholungen bleibt begrenzt. Gespeicherte V2-Einzelaufnahmen aus diesem
+früheren letzten Ersatzversuch werden neu vorbereitet; passende Kontextaufnahmen
+bleiben wiederverwendbar. Ein alter endgültiger Fehler darf den geänderten
+Kontext einmal versuchen; derselbe ausgeschöpfte Kontext bleibt auch nach
+einem Neustart gesperrt. Der explizite V1-Rollback behält sein bisheriges
+Verhalten. Die [Tempo-Prüfung](speech-tempo-preflight.md) vergleicht den
+vorbereiteten Vorrat vor dem Einsatz; Änderungen der Kontextrezepte erhalten
+eigene Cache-Schlüssel und benötigen neue Aufnahmen der betroffenen Teile.
+
 ## Reihenfolge
 
 1. Tatsächlich ausgelöste Durchsage; anschließend Sprachtest und angeforderte Proben.
 2. Standort- und Feldbausteine, danach weitere gemeinsame Bausteine.
-3. Vor der ersten Auslosung: Anmeldevorarbeit; gemeinsame Texte vor Bezeichnungen.
-   Geöffnete/fortgeschrittene Disziplinen zuerst, Landesverbände vor Vereinen vor Personen/Paarungen.
-4. Laufende Spiele nach Aufrufzeit; danach Spiele in Vorbereitung nach Vorbereitungsaufrufzeit.
-5. Alle bekannten technischen Offiziellen, auch ohne Spielzuordnung.
-6. Nur im Leerlauf: Aufrufkandidaten, weitere angesetzte Spiele, weitere
-   Anmeldungen/Auslosungen nach Spielreihenfolge, weitere Teams laufender
-   Disziplinen, verbleibende mögliche Tabletbediener.
-7. Optional, erst nach vollständigem Leerlauf aller Turniere: andere Stimme.
+3. Alle bekannten technischen Offiziellen, auch ohne Spielzuordnung.
+4. Vor der ersten Auslosung: Anmeldevorarbeit; gemeinsame Texte vor Bezeichnungen.
+   Zuerst Landesverbände aller offenen Anmeldungen, dann Vereine aller offenen
+   Anmeldungen, danach je Disziplin ihre Spieler/Paarungen und direkt anschließend
+   die bekannten Spielnummern ihrer ersten Runde. Spieler/Paarungen und Spielnummern
+   erscheinen als getrennte Zustände mit eigenen Fortschrittsbalken. Im Diagramm
+   bilden sie je Disziplin eine Zeile: Spieler/Paarungen links, Spielnummern rechts.
+   Danach führt der Pfeil nach links zu den Spielern der nächsten Disziplin.
+   Auf schmalen Bildschirmen stehen die Karten untereinander. Die Tabelle
+   trennt sie in Schritt 3a und 3b. Die Nummern stammen aus den
+   BTP-Planungsdaten und werden schon vor der Auslosung vorbereitet, auch ohne
+   bekannte Gegner. Die Nummernvorbereitung folgt der Einstellung für Spielnummern
+   in Durchsagen und verwendet dieselben Audiobausteine wie die späteren Aufrufe.
+   Je Phase gilt die Reihenfolge des ersten angesetzten Spiels, auch vor der Auslosung;
+   ohne Planungsdaten die BTP-Listenreihenfolge. Danach folgen noch nicht geöffnete
+   Anmeldungen. Abgeschlossene Anmeldungen gehören zur allgemeinen Disziplinvorbereitung.
+5. Wartende Tabletbediener: noch offene Dienstgruppen der gespeicherten Warteliste.
+   Sie gehören zur regulären Vorbereitung, auch ohne zugewiesenes nächstes Spiel.
+6. Laufende Spiele nach Aufrufzeit; danach Spiele in Vorbereitung nach Vorbereitungsaufrufzeit.
+7. Nur im Leerlauf: Aufrufkandidaten, weitere angesetzte Spiele, Vorbereitung
+   angemeldeter Disziplinen ab abgeschlossener Anmeldung bis zum Disziplinende.
+   Disziplinen folgen ihrem nächsten oder ersten angesetzten Spiel; ohne bekannte
+   Spielplanung der BTP-Listenreihenfolge. Jede Disziplin wird vollständig in der
+   Reihenfolge Landesverbände → Vereine → Spieler/Paarungen → Spielnummern der ersten Runde
+   vorbereitet, bevor die nächste beginnt. Vor der Auslosung zählen anwesend erfasste
+   Spieler und vollständig anwesende Paarungen. Nach der Auslosung gelten alle
+   gelosten Spieler und Paarungen für die Sprachvorbereitung als anwesend.
+   Reserve- und ausgeschlossene Meldungen werden daraus nicht zusätzlich übernommen.
+   Allgemeine Namensvarianten werden auch ohne aktivierte Tabletbedienung vorbereitet.
+   Bei verbandsbezogener Bedienung gehören die Tabletaufrufe zur Landesverbandsphase.
+   Innerhalb einer Disziplin folgen Teams ohne bekanntes nächstes Spiel auf die bereits angesetzten Paarungen.
+   Anschließend weitere Anmeldungen/Auslosungen,
+   verbleibende mögliche Tabletbediener.
+8. Optional, erst nach vollständigem Leerlauf aller Turniere: andere Stimme.
 
 Die Checkbox **„Andere Stimme nur bei vollständigem Leerlauf auf Vorrat vorbereiten“**
 steht unter **Einstellungen → Aufrufe** und ist zunächst ausgeschaltet.
@@ -57,7 +100,8 @@ Die Männerreferenz bleibt unverändert. Alle lokalen Abspielbausteine verwenden
 die gemeinsame Pegelanpassung und maximal 100 ms Ruhe innerhalb eines Satzes;
 Pausen zwischen Sätzen haben eigene Ziele. Quellen mit auffälligen langen Pausen
 werden höchstens dreimal versucht. Danach bleibt der Fehler sichtbar;
-Team-Ausschnitte nutzen die begrenzte Kontext-/Einzelnamen-Rückfallebene.
+Team-Ausschnitte nutzen die begrenzte Rückfallebene mit einer neuen
+Kontextaufnahme und bei V2 anschließend einem anderen Namenskontext.
 
 Der Server wird mit `BTS_CONTEXT_VERSION=bts-context-v2` aktiviert. Der weiterhin
 vorhandene v1-Stand ist mit `bts-context-v1-stable` markiert. Für eine vollständige

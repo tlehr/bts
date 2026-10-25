@@ -19,7 +19,7 @@ function restore(effect) {
 		const { target, method, args } = effect.command;
 		if (target === 'bupws' && method === 'notify_courts') {
 			const notify = require('./bupws').handle_score_change;
-			notify(app, args[0], args[1]);
+			notify(app, args[0], args[1], args[3]);
 			if (args[2]) notify(app, args[0], args[2]);
 			return;
 		}

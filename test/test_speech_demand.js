@@ -12,7 +12,7 @@ const { tournament, setup } = require('./test_speech_text');
 const key = 'default', voice = 'hallensprecher';
 const team = name => ({ players: [{ name }] });
 function game(id, state, timestamp, number) {
-    return { _id: id, tournament_key: key, setup: setup({ state, match_num: number,
+    return { _id: id, tournament_key: key, setup: setup({ state, is_match: true, match_num: number,
         called_timestamp: state === 'oncourt' ? timestamp : undefined,
         preparation_call_timestamp: state === 'preparation' ? timestamp : undefined,
         teams: [team(id + ' A'), team(id + ' B')], tabletoperators: null, umpire: null, service_judge: null,
@@ -27,7 +27,7 @@ async function fixture(matches, context_version = 'bts-context-v1') {
     for (const [collection, docs] of Object.entries(collections)) {
         await promisify(db[collection].insert.bind(db[collection]))(docs.map(doc => ({ ...doc, tournament_key: key })));
     }
-    const app = { db, config: { speech: { enabled: true, api_key: 'demand-test-' + 'x'.repeat(32) } } };
+    const app = { db, config: { speech: { enabled: true, worker: false, api_key: 'demand-test-' + 'x'.repeat(32) } } };
     app.speech = create(app);
     const { broker, prefetch } = app.speech;
     broker.context_version = context_version;
@@ -46,6 +46,30 @@ async function fixture(matches, context_version = 'bts-context-v1') {
 }
 
 describe('Required announcements versus idle inventory', function() {
+    it('publishes current game states and field associations even if every generation pass is superseded', async function() {
+        const f = await fixture([game('live-state', 'scheduled', undefined, 17)], 'bts-context-v2');
+        try {
+            await f.prefetch.refresh(key);
+            const previous = f.broker.coverage.plans.get(key), jobs = f.broker.entries.size;
+            f.app.speech_snapshot = async () => {
+                const values = await Promise.all(['tournaments', 'locations', 'courts', 'matches', 'normalizations', 'tabletoperators', 'umpires']
+                    .map(name => name === 'tournaments' ? f.db[name].findOne_async({ key }) : f.db[name].find_async({ tournament_key: key })));
+                f.prefetch.schedule(key); // A newer notification invalidates generation, not this status snapshot.
+                return values;
+            };
+            for (const state of ['preparation', 'oncourt', 'finished']) {
+                await f.db.matches.update_async({ _id: 'live-state' }, { $set: { 'setup.state': state,
+                    'setup.now_on_court': state === 'oncourt', 'setup.court_id': 'default_4' } }, {});
+                await f.prefetch.refresh(key);
+                const status = await f.broker.coverage.game_status(key, voice, 'live-state');
+                assert.strictEqual(status.items[0].match_state, state);
+                assert.strictEqual(status.items[0].court_id, 'default_4');
+                assert(!status.detail.announcements.some(call => call.unresolved?.includes('Spielfeld')));
+                assert.strictEqual(f.broker.coverage.plans.get(key), previous, 'do not commit a superseded generation plan');
+                assert.strictEqual(f.broker.entries.size, jobs, 'publishing status must not enqueue audio');
+            }
+        } finally { f.close(); }
+    });
     it('uses actual field/preparation calls before schedule, with deterministic handling of missing timestamps', function() {
         const matches = [game('field late', 'oncourt', '200', 1), game('field early', 'oncourt', 100, 99),
             game('prep late', 'preparation', 400, 2), game('prep early', 'preparation', '300', 98),
@@ -59,12 +83,11 @@ describe('Required announcements versus idle inventory', function() {
     });
 
     for (const context_version of ['bts-context-v1', null]) {
-        it('fully requires called games and both possible tablet teams while leaving all other games/operators idle: ' + context_version, async function() {
+        it('requires waiting tablet operators before called games and leaves future games idle: ' + context_version, async function() {
             const matches = [game('onfield', 'oncourt', 100, 90), game('prepared', 'preparation', 200, 80),
                 game('candidate', 'scheduled', undefined, 1), game('future', 'scheduled', undefined, 2)];
             const f = await fixture(matches, context_version);
             try {
-                f.prefetch.preferred.set(key, ['candidate']);
                 await f.prefetch.refresh(key);
                 const items = f.broker.queue(key).items;
                 assert(items.some(item => item.text.includes('onfield A') && !item.idle));
@@ -74,14 +97,17 @@ describe('Required announcements versus idle inventory', function() {
                         assert(f.broker.entries.has(f.broker.key(part, voice, 'de-DE')), 'every active-game recipe must already be admitted');
                     }
                 }
-                assert(!items.some(item => /candidate [AB]|future [AB]|Wartende Bedienung/.test(item.text)),
-                    'neither the candidate horizon nor the tablet waiting list creates regular work');
+                assert(!items.some(item => /candidate [AB]|future [AB]/.test(item.text)),
+                    'the candidate horizon must still remain idle work');
+                assert(items.some(item => item.text.includes('Wartende Bedienung') && item.priority === 'normal' && !item.idle),
+                    'the real tablet waiting list must be prepared as regular work');
                 assert(items.every(item => !item.idle));
                 const idle = f.broker.idle_plans.get(key).parts.join('\n');
-                for (const text of ['candidate A', 'future A', 'Wartende Bedienung']) assert(idle.includes(text), text);
+                for (const text of ['candidate A', 'future A']) assert(idle.includes(text), text);
+                assert(!idle.includes('Wartende Bedienung'), 'waiting operators must not be admitted again as idle inventory');
                 const candidate = f.broker.idle_plans.get(key).parts.findIndex(part => part.includes('candidate A'));
                 const future = f.broker.idle_plans.get(key).parts.findIndex(part => part.includes('future A'));
-                assert(candidate < future);
+                assert(candidate < future, 'prepare call candidates before other scheduled games in idle inventory');
                 if (context_version) for (const name of ['onfield A', 'onfield B', 'prepared A', 'prepared B']) {
                     assert(items.some(item => item.text === 'Tabletbedienung:' + name && item.priority === 'normal'));
                 }

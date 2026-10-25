@@ -113,6 +113,61 @@ describe('background admin response output', function() {
 			if (previous === undefined) delete process.env.BTS_ADMIN_RESPONSE_PRIORITY; else process.env.BTS_ADMIN_RESPONSE_PRIORITY = previous;
 		}
 	});
+	it('prioritizes the locked BTP commit and automatic call commit, and releases priority on failure', async function() {
+		const previous = process.env.BTS_ADMIN_RESPONSE_PRIORITY;
+		process.env.BTS_ADMIN_RESPONSE_PRIORITY = '1';
+		const { ResourceLockQueue } = require('../bts/resource_lock_queue'), update_queue = require('../bts/update_queue');
+		try {
+			for (const name of ['fetch_sync_apply', 'post_sync_auto_call_apply']) {
+				const queue = new ResourceLockQueue();
+				let entered, release;
+				const started = new Promise(resolve => { entered = resolve; });
+				const hold = new Promise(resolve => { release = resolve; });
+				const running = queue.execute(update_queue.named(name, async () => {
+					entered(); await hold;
+					await foreground.background_idle(); // Never wait for our own priority token.
+					throw new Error('commit failed');
+				}), { locks: ['sync:test'] });
+				const failed = assert.rejects(running, /commit failed/);
+				await started;
+				let encoded = false;
+				const encoding = encoder.encode({ tournament: { matches: [] } }).then(() => { encoded = true; });
+				try {
+					await tick(); assert.strictEqual(encoded, false);
+					assert(foreground.busy());
+				} finally { release(); await failed; await encoding; }
+				assert.strictEqual(foreground.busy(), false);
+			}
+			process.env.BTS_ADMIN_RESPONSE_PRIORITY = '0';
+			assert.strictEqual(foreground.begin('fetch_sync_apply'), null);
+			assert.strictEqual(foreground.begin('post_sync_auto_call_apply'), null);
+		} finally {
+			if (previous === undefined) delete process.env.BTS_ADMIN_RESPONSE_PRIORITY; else process.env.BTS_ADMIN_RESPONSE_PRIORITY = previous;
+		}
+	});
+	it('hands priority to an already queued point before resuming background work', async function() {
+		const { ResourceLockQueue } = require('../bts/resource_lock_queue'), update_queue = require('../bts/update_queue');
+		const queue = new ResourceLockQueue();
+		let start_first, start_next, release_first, release_next;
+		const started = new Promise(resolve => { start_first = resolve; });
+		const next_started = new Promise(resolve => { start_next = resolve; });
+		const first_gate = new Promise(resolve => { release_first = resolve; });
+		const next_gate = new Promise(resolve => { release_next = resolve; });
+		const first = queue.execute(update_queue.named('handle_score_update_finish_probe', async () => {
+			start_first(); await first_gate;
+		}), { locks: ['court:test:handoff'] });
+		await started;
+		let resumed = false;
+		const background = foreground.idle().then(() => { resumed = true; });
+		const next = queue.execute(update_queue.named('handle_score_update_v2', async () => {
+			start_next(); await next_gate;
+		}), { locks: ['court:test:handoff'] });
+		try {
+			release_first(); await first; await next_started;
+			assert.strictEqual(resumed, false);
+		} finally { release_first(); release_next(); await next; await background; }
+		assert.strictEqual(foreground.busy(), false);
+	});
 	it('retains CPU priority until asynchronous display publication, without retaining court locks or waiting for itself', async function() {
 		const previous = process.env.BTS_ADMIN_RESPONSE_PRIORITY;
 		process.env.BTS_ADMIN_RESPONSE_PRIORITY = '1';

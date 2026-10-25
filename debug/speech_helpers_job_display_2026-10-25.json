@@ -1,0 +1,38 @@
+{
+  "feature": "Local speech helper current job display",
+  "date": "2026-10-25",
+  "mode": "test_recordings_only",
+  "windows": {
+    "persistent_job_card": true,
+    "fields": ["text", "voice", "short_job_id", "elapsed_time", "phase"],
+    "phases": ["generating", "uploading", "completed", "failed", "cancelled", "waiting", "paused"],
+    "powershell_parser_and_actual_ui_functions_tested": true,
+    "worker_event_transport_tested": true,
+    "native_windows_forms_layout_tested": false
+  },
+  "linux": {
+    "real_downloaded_shell_starter_tested": true,
+    "local_text_voice_and_phase_output_tested": true,
+    "controlled_stop_restart_and_scoped_removal_tested": true,
+    "threads": 2,
+    "memory_limit_mib": 3584,
+    "generation_ms": 45575,
+    "audio_bytes": 405164,
+    "fixture_report": "/tmp/bts-linux-helper-probe-CYcwcB/report.json"
+  },
+  "checks": {
+    "agent_pytest_cases": 10,
+    "linux_starter_unittest_cases": 12,
+    "pool_and_bundle_mocha_cases": 11,
+    "javascript_eslint": "passed",
+    "additional_status_http_requests": 0,
+    "credentials_in_job_events": false,
+    "production_tournament_or_btp_used": false
+  },
+  "runtime": {
+    "id": "fa398c2384d70618ae2ea893cebdc04c7096d54a755aaf044e759bd5dece7322",
+    "sha256": "3a1e6bb149523e1f3335481381c863c7cee62d1b773bab1c8c234efee7e87761",
+    "size_bytes": 2167797760,
+    "requires_new_starter_and_runtime_download": true
+  }
+}

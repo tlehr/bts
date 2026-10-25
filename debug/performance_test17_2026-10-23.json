@@ -1,0 +1,1191 @@
+{
+  "started_at": "2026-10-23T19:10:22.127Z",
+  "runtime_ms": 395010,
+  "stop_reason": "interrupted",
+  "server_offloading": {
+    "server_id": "1098951-1792781809265",
+    "run_label": null,
+    "features": {
+      "btp_decode": true,
+      "sync_plan": true,
+      "sync_plan_patch_return": true,
+      "device_info": false,
+      "xlsx_import": false,
+      "compaction": true,
+      "compaction_reads": true,
+      "score_idle_reads": true,
+      "score_direct_writes": true,
+      "preparation_reads": true,
+      "preparation_candidates": true,
+      "sync_batch_writes": false,
+      "sync_prepared_tournament": true,
+      "sync_prepared_matches": true,
+      "admin_response_background": true,
+      "admin_response_priority": true,
+      "admin_match_revision_cache": true,
+      "admin_broadcast_shared": true,
+      "admin_response_worker": false,
+      "compaction_staged": true
+    }
+  },
+  "tablet_to_tv_ms": {
+    "count": 877,
+    "mean": 17.9,
+    "min": 2,
+    "p50": 11,
+    "p95": 59,
+    "p99": 93,
+    "max": 183,
+    "over_50_ms": 63,
+    "over_100_ms": 6,
+    "over_200_ms": 0,
+    "sent_updates": 877,
+    "unmatched_updates": 0,
+    "coverage": 1
+  },
+  "tablet_to_admin_ms": {
+    "count": 877,
+    "mean": 22.5,
+    "min": 4,
+    "p50": 16,
+    "p95": 64,
+    "p99": 108,
+    "max": 195,
+    "over_50_ms": 86,
+    "over_100_ms": 10,
+    "over_200_ms": 0,
+    "sent_updates": 877,
+    "unmatched_updates": 0,
+    "coverage": 1
+  },
+  "phases": [
+    {
+      "name": "cycle-1:checkin-and-play",
+      "start_ms": 0,
+      "end_ms": 120000,
+      "idle": false,
+      "cycle": 1,
+      "actual_start_ms": 0,
+      "actual_end_ms": 120099,
+      "points": 283,
+      "score_updates": 287,
+      "finish_confirmations": 4,
+      "repair_score_updates": 0,
+      "player_checkins": 20,
+      "checkin_errors": 0,
+      "tablet_to_tv_ms": {
+        "count": 287,
+        "mean": 25.3,
+        "p50": 16,
+        "p95": 71,
+        "p99": 170,
+        "max": 183,
+        "sent_updates": 287,
+        "unmatched_updates": 0,
+        "coverage": 1,
+        "over_50_ms": 33,
+        "over_100_ms": 5,
+        "over_200_ms": 0
+      },
+      "tablet_to_admin_ms": {
+        "count": 287,
+        "mean": 31.1,
+        "p50": 23,
+        "p95": 78,
+        "p99": 175,
+        "max": 195,
+        "sent_updates": 287,
+        "unmatched_updates": 0,
+        "coverage": 1,
+        "over_50_ms": 48,
+        "over_100_ms": 7,
+        "over_200_ms": 0
+      },
+      "occupied_courts": {
+        "count": 92,
+        "mean": 12.9,
+        "p50": 13,
+        "p95": 13,
+        "p99": 13,
+        "max": 13
+      },
+      "free_courts": {
+        "count": 92,
+        "mean": 0.1,
+        "p50": 0,
+        "p95": 0,
+        "p99": 2,
+        "max": 2
+      }
+    },
+    {
+      "name": "cycle-1:load",
+      "start_ms": 120000,
+      "end_ms": 360000,
+      "idle": false,
+      "cycle": 1,
+      "actual_start_ms": 120099,
+      "actual_end_ms": 360182,
+      "points": 582,
+      "score_updates": 590,
+      "finish_confirmations": 8,
+      "repair_score_updates": 0,
+      "player_checkins": 16,
+      "checkin_errors": 0,
+      "tablet_to_tv_ms": {
+        "count": 590,
+        "mean": 14.3,
+        "p50": 7,
+        "p95": 51,
+        "p99": 83,
+        "max": 120,
+        "sent_updates": 590,
+        "unmatched_updates": 0,
+        "coverage": 1,
+        "over_50_ms": 30,
+        "over_100_ms": 1,
+        "over_200_ms": 0
+      },
+      "tablet_to_admin_ms": {
+        "count": 590,
+        "mean": 18.3,
+        "p50": 12,
+        "p95": 58,
+        "p99": 91,
+        "max": 127,
+        "sent_updates": 590,
+        "unmatched_updates": 0,
+        "coverage": 1,
+        "over_50_ms": 38,
+        "over_100_ms": 3,
+        "over_200_ms": 0
+      },
+      "occupied_courts": {
+        "count": 204,
+        "mean": 12.4,
+        "p50": 13,
+        "p95": 13,
+        "p99": 13,
+        "max": 13
+      },
+      "free_courts": {
+        "count": 204,
+        "mean": 0.6,
+        "p50": 0,
+        "p95": 2,
+        "p99": 2,
+        "max": 2
+      }
+    },
+    {
+      "name": "cycle-1:idle",
+      "start_ms": 360000,
+      "end_ms": 480000,
+      "idle": true,
+      "cycle": 1,
+      "actual_start_ms": 360182,
+      "actual_end_ms": 395010,
+      "points": 0,
+      "score_updates": 0,
+      "finish_confirmations": 0,
+      "repair_score_updates": 0,
+      "player_checkins": 0,
+      "checkin_errors": 0,
+      "tablet_to_tv_ms": {
+        "count": 0,
+        "mean": null,
+        "p50": null,
+        "p95": null,
+        "p99": null,
+        "max": null,
+        "sent_updates": 0,
+        "unmatched_updates": 0,
+        "coverage": null,
+        "over_50_ms": 0,
+        "over_100_ms": 0,
+        "over_200_ms": 0
+      },
+      "tablet_to_admin_ms": {
+        "count": 0,
+        "mean": null,
+        "p50": null,
+        "p95": null,
+        "p99": null,
+        "max": null,
+        "sent_updates": 0,
+        "unmatched_updates": 0,
+        "coverage": null,
+        "over_50_ms": 0,
+        "over_100_ms": 0,
+        "over_200_ms": 0
+      },
+      "occupied_courts": {
+        "count": 28,
+        "mean": 13,
+        "p50": 13,
+        "p95": 13,
+        "p99": 13,
+        "max": 13
+      },
+      "free_courts": {
+        "count": 28,
+        "mean": 0,
+        "p50": 0,
+        "p95": 0,
+        "p99": 0,
+        "max": 0
+      }
+    }
+  ],
+  "drain": {
+    "started": 1792782982310,
+    "clear_since": 1792782985559,
+    "finished_ms": 3249
+  },
+  "trace_gaps": 0,
+  "archive_dropped": {
+    "samples": 0,
+    "traces": 0,
+    "events": 0
+  },
+  "source": "bts-test-17.json",
+  "initial_state": {
+    "matches": 373,
+    "finished_matches": 65,
+    "active_matches": 13,
+    "active_courts": 13
+  },
+  "speech_latest_cumulative_since_start": {
+    "execution": "process",
+    "running": true,
+    "pid": 1098975,
+    "thread_id": null,
+    "pending_requests": 0,
+    "sent": 3878,
+    "send_total_ms": 833.9947579999996,
+    "send_max_ms": 15.034009,
+    "snapshots": 355
+  },
+  "speech_and_broadcast_spans": {
+    "speech_bridge_send": {
+      "count": 2837,
+      "median_ms": 0.1,
+      "p95_ms": 0.6,
+      "p99_ms": 3.9,
+      "max_ms": 15
+    },
+    "speech_snapshot_collect": {
+      "count": 325,
+      "median_ms": 0.1,
+      "p95_ms": 0.3,
+      "p99_ms": 1,
+      "max_ms": 1.6
+    },
+    "admin_broadcast_encode": {
+      "count": 3775,
+      "median_ms": 0,
+      "p95_ms": 0.2,
+      "p99_ms": 2.8,
+      "max_ms": 11.4
+    }
+  },
+  "largest_spikes": [
+    {
+      "sequence": 132,
+      "tv_ms": 183,
+      "admin_ms": 195,
+      "server_start_delay_ms": 26,
+      "client_point_log_delay_ms": 0,
+      "stages": [
+        {
+          "name": "handle_score_update_v2",
+          "kind": "lock_wait",
+          "duration_ms": 89.9,
+          "blockers": [
+            "fetch_sync_apply"
+          ]
+        },
+        {
+          "name": "load_context",
+          "kind": "phase",
+          "duration_ms": 1.2
+        },
+        {
+          "name": "db_update_match",
+          "kind": "phase",
+          "duration_ms": 59.5
+        },
+        {
+          "name": "committed_display_points",
+          "kind": "phase",
+          "duration_ms": 10.7
+        }
+      ]
+    },
+    {
+      "sequence": 133,
+      "tv_ms": 170,
+      "admin_ms": 178,
+      "server_start_delay_ms": 53,
+      "client_point_log_delay_ms": 1,
+      "stages": [
+        {
+          "name": "handle_score_update_v2",
+          "kind": "lock_wait",
+          "duration_ms": 2
+        },
+        {
+          "name": "load_context",
+          "kind": "phase",
+          "duration_ms": 69.8
+        },
+        {
+          "name": "db_update_match",
+          "kind": "phase",
+          "duration_ms": 43
+        },
+        {
+          "name": "committed_display_points",
+          "kind": "phase",
+          "duration_ms": 1.2
+        }
+      ]
+    },
+    {
+      "sequence": 131,
+      "tv_ms": 173,
+      "admin_ms": 175,
+      "server_start_delay_ms": 7,
+      "client_point_log_delay_ms": 0,
+      "stages": [
+        {
+          "name": "handle_score_update_v2",
+          "kind": "lock_wait",
+          "duration_ms": 141,
+          "blockers": [
+            "fetch_sync_apply"
+          ]
+        },
+        {
+          "name": "load_context",
+          "kind": "phase",
+          "duration_ms": 3.5
+        },
+        {
+          "name": "db_update_match",
+          "kind": "phase",
+          "duration_ms": 9.1
+        },
+        {
+          "name": "committed_display_points",
+          "kind": "phase",
+          "duration_ms": 2.3
+        }
+      ]
+    },
+    {
+      "sequence": 291,
+      "tv_ms": 120,
+      "admin_ms": 127,
+      "server_start_delay_ms": 15,
+      "client_point_log_delay_ms": 1,
+      "stages": [
+        {
+          "name": "handle_score_update_v2",
+          "kind": "lock_wait",
+          "duration_ms": 12
+        },
+        {
+          "name": "load_context",
+          "kind": "phase",
+          "duration_ms": 84
+        },
+        {
+          "name": "db_update_match",
+          "kind": "phase",
+          "duration_ms": 7.4
+        },
+        {
+          "name": "committed_display_points",
+          "kind": "phase",
+          "duration_ms": 3.5
+        }
+      ]
+    },
+    {
+      "sequence": 61,
+      "tv_ms": 121,
+      "admin_ms": 123,
+      "server_start_delay_ms": 14,
+      "client_point_log_delay_ms": 2,
+      "stages": [
+        {
+          "name": "handle_score_update_v2",
+          "kind": "lock_wait",
+          "duration_ms": 104.2,
+          "blockers": [
+            "handle_score_update_v2"
+          ]
+        },
+        {
+          "name": "load_context",
+          "kind": "phase",
+          "duration_ms": 0.4
+        },
+        {
+          "name": "db_update_match",
+          "kind": "phase",
+          "duration_ms": 1.4
+        },
+        {
+          "name": "committed_display_points",
+          "kind": "phase",
+          "duration_ms": 0.9
+        }
+      ]
+    },
+    {
+      "sequence": 162,
+      "tv_ms": 108,
+      "admin_ms": 117,
+      "server_start_delay_ms": 56,
+      "client_point_log_delay_ms": 5,
+      "stages": [
+        {
+          "name": "handle_score_update_v2",
+          "kind": "lock_wait",
+          "duration_ms": 15.2
+        },
+        {
+          "name": "load_context",
+          "kind": "phase",
+          "duration_ms": 3.7
+        },
+        {
+          "name": "db_update_match",
+          "kind": "phase",
+          "duration_ms": 30.6
+        },
+        {
+          "name": "committed_display_points",
+          "kind": "phase",
+          "duration_ms": 8.4
+        }
+      ]
+    },
+    {
+      "sequence": 63,
+      "tv_ms": 95,
+      "admin_ms": 108,
+      "server_start_delay_ms": 9,
+      "client_point_log_delay_ms": 1,
+      "stages": [
+        {
+          "name": "handle_score_update_v2",
+          "kind": "lock_wait",
+          "duration_ms": 4.4
+        },
+        {
+          "name": "load_context",
+          "kind": "phase",
+          "duration_ms": 67.8
+        },
+        {
+          "name": "db_update_match",
+          "kind": "phase",
+          "duration_ms": 12.1
+        },
+        {
+          "name": "committed_display_points",
+          "kind": "phase",
+          "duration_ms": 6.1
+        }
+      ]
+    },
+    {
+      "sequence": 333,
+      "tv_ms": 93,
+      "admin_ms": 108,
+      "server_start_delay_ms": 64,
+      "client_point_log_delay_ms": 1,
+      "stages": [
+        {
+          "name": "handle_score_update_v2",
+          "kind": "lock_wait",
+          "duration_ms": 12.3
+        },
+        {
+          "name": "load_context",
+          "kind": "phase",
+          "duration_ms": 7.8
+        },
+        {
+          "name": "db_update_match",
+          "kind": "phase",
+          "duration_ms": 4.6
+        },
+        {
+          "name": "committed_display_points",
+          "kind": "phase",
+          "duration_ms": 1.2
+        }
+      ]
+    }
+  ],
+  "event_loop_max_ms": 83.886079,
+  "isolated_diagnostics": {
+    "cpu_profile_window_ms": 1605.0920000000033,
+    "self_samples": [
+      {
+        "function": "dispatch",
+        "source": "",
+        "line": 0,
+        "sampled_ms": 403.032
+      },
+      {
+        "function": "",
+        "source": "file:///tmp/bts-test17-profile.js",
+        "line": 55,
+        "sampled_ms": 204.489
+      },
+      {
+        "function": "deepCopy",
+        "source": "node_modules/nedb/lib/model.js",
+        "line": 109,
+        "sampled_ms": 67.437
+      },
+      {
+        "function": "(garbage collector)",
+        "source": "",
+        "line": 0,
+        "sampled_ms": 58.682
+      },
+      {
+        "function": "checkObject",
+        "source": "node_modules/nedb/lib/model.js",
+        "line": 45,
+        "sampled_ms": 55.883
+      },
+      {
+        "function": "",
+        "source": "node_modules/nedb/lib/model.js",
+        "line": 53,
+        "sampled_ms": 52.255
+      },
+      {
+        "function": "calculate_match_preparation_diagnostics",
+        "source": "bts/match_automation.js",
+        "line": 2111,
+        "sampled_ms": 33.329
+      },
+      {
+        "function": "diagnose",
+        "source": "bts/match_automation.js",
+        "line": 2448,
+        "sampled_ms": 29.796
+      },
+      {
+        "function": "object",
+        "source": "bts/admin_response/cooperative.js",
+        "line": 22,
+        "sampled_ms": 27.903
+      },
+      {
+        "function": "checkKey",
+        "source": "node_modules/nedb/lib/model.js",
+        "line": 26,
+        "sampled_ms": 24.797
+      },
+      {
+        "function": "encode",
+        "source": "bts/admin_response/cooperative.js",
+        "line": 6,
+        "sampled_ms": 24.704
+      },
+      {
+        "function": "(program)",
+        "source": "",
+        "line": 0,
+        "sampled_ms": 18.646
+      },
+      {
+        "function": "",
+        "source": "node_modules/nedb/lib/model.js",
+        "line": 128,
+        "sampled_ms": 15.012
+      },
+      {
+        "function": "(idle)",
+        "source": "",
+        "line": 0,
+        "sampled_ms": 14.3
+      },
+      {
+        "function": "Module._load",
+        "source": "node:internal/modules/cjs/loader",
+        "line": 900,
+        "sampled_ms": 12.992
+      },
+      {
+        "function": "_replace",
+        "source": "bts/tournament_model/participation.js",
+        "line": 15,
+        "sampled_ms": 12.889
+      },
+      {
+        "function": "_refresh_profile",
+        "source": "bts/tournament_model/player.js",
+        "line": 40,
+        "sampled_ms": 11.739
+      },
+      {
+        "function": "canonical",
+        "source": "bts/tournament_model/fingerprints.js",
+        "line": 10,
+        "sampled_ms": 11.331
+      },
+      {
+        "function": "blocked_players",
+        "source": "static/js/btp_entry_status.js",
+        "line": 39,
+        "sampled_ms": 10.068
+      },
+      {
+        "function": "revise",
+        "source": "bts/tournament_model/relations.js",
+        "line": 19,
+        "sampled_ms": 9.616
+      },
+      {
+        "function": "player_ids",
+        "source": "bts/tournament_model/player_ids.js",
+        "line": 7,
+        "sampled_ms": 8.807
+      },
+      {
+        "function": "Hash",
+        "source": "",
+        "line": 0,
+        "sampled_ms": 8.568
+      },
+      {
+        "function": "",
+        "source": "bts/tournament_model/datastore.js",
+        "line": 71,
+        "sampled_ms": 8.546
+      },
+      {
+        "function": "get_frontier_match_distance",
+        "source": "bts/match_automation.js",
+        "line": 1871,
+        "sampled_ms": 8.284
+      },
+      {
+        "function": "get_match_players",
+        "source": "bts/match_automation.js",
+        "line": 483,
+        "sampled_ms": 7.524
+      },
+      {
+        "function": "run",
+        "source": "",
+        "line": 0,
+        "sampled_ms": 7.504
+      },
+      {
+        "function": "_profile",
+        "source": "bts/tournament_model/player.js",
+        "line": 19,
+        "sampled_ms": 7.503
+      },
+      {
+        "function": "add_preparation_diagnostic_rule",
+        "source": "bts/match_automation.js",
+        "line": 1776,
+        "sampled_ms": 6.898
+      },
+      {
+        "function": "capture",
+        "source": "bts/tournament_model/datastore.js",
+        "line": 56,
+        "sampled_ms": 6.619
+      },
+      {
+        "function": "send_v2_payload",
+        "source": "bts/bupws_v2.js",
+        "line": 761,
+        "sampled_ms": 6.544
+      }
+    ],
+    "inclusive_samples": [
+      {
+        "function": "run",
+        "source": "bts/foreground_work.js",
+        "line": 46,
+        "sampled_ms": 393.041
+      },
+      {
+        "function": "with_context",
+        "source": "bts/performance/traces.js",
+        "line": 53,
+        "sampled_ms": 387.662
+      },
+      {
+        "function": "run",
+        "source": "bts/performance/traces.js",
+        "line": 136,
+        "sampled_ms": 373.34
+      },
+      {
+        "function": "",
+        "source": "bts/database_tasks.js",
+        "line": 58,
+        "sampled_ms": 366.61
+      },
+      {
+        "function": "fn",
+        "source": "bts/database_tasks.js",
+        "line": 57,
+        "sampled_ms": 366.61
+      },
+      {
+        "function": "",
+        "source": "bts/database_tasks.js",
+        "line": 65,
+        "sampled_ms": 360.156
+      },
+      {
+        "function": "fn",
+        "source": "bts/database_read_barrier.js",
+        "line": 22,
+        "sampled_ms": 358.026
+      },
+      {
+        "function": "fn",
+        "source": "bts/btp_planner/refresh_writes.js",
+        "line": 69,
+        "sampled_ms": 291.406
+      },
+      {
+        "function": "apply",
+        "source": "bts/btp_planner/refresh_writes.js",
+        "line": 34,
+        "sampled_ms": 285.028
+      },
+      {
+        "function": "cooperate",
+        "source": "bts/preparation_selection/cooperative.js",
+        "line": 5,
+        "sampled_ms": 154.905
+      },
+      {
+        "function": "datastore.<computed>",
+        "source": "bts/tournament_model/datastore.js",
+        "line": 17,
+        "sampled_ms": 133.765
+      },
+      {
+        "function": "diagnose",
+        "source": "bts/match_automation.js",
+        "line": 2448,
+        "sampled_ms": 126.172
+      },
+      {
+        "function": "_upsert",
+        "source": "bts/tournament_model/model.js",
+        "line": 34,
+        "sampled_ms": 114.607
+      },
+      {
+        "function": "",
+        "source": "bts/tournament_model/datastore.js",
+        "line": 25,
+        "sampled_ms": 103.32
+      },
+      {
+        "function": "calculate_match_preparation_diagnostics",
+        "source": "bts/match_automation.js",
+        "line": 2111,
+        "sampled_ms": 96.376
+      },
+      {
+        "function": "read",
+        "source": "bts/preparation_selection/admin_reads.js",
+        "line": 32,
+        "sampled_ms": 77.462
+      },
+      {
+        "function": "calculate_location_preparation_selection",
+        "source": "bts/match_automation.js",
+        "line": 2384,
+        "sampled_ms": 59.678
+      },
+      {
+        "function": "calculate_all_location_preparation_selections",
+        "source": "bts/match_automation.js",
+        "line": 2597,
+        "sampled_ms": 59.169
+      },
+      {
+        "function": "",
+        "source": "bts/match_automation.js",
+        "line": 2600,
+        "sampled_ms": 47.104
+      },
+      {
+        "function": "fingerprint",
+        "source": "bts/tournament_model/fingerprints.js",
+        "line": 25,
+        "sampled_ms": 43.639
+      },
+      {
+        "function": "fingerprint",
+        "source": "bts/tournament_model/entity.js",
+        "line": 18,
+        "sampled_ms": 43.639
+      },
+      {
+        "function": "calculate",
+        "source": "bts/tournament_model/fingerprints.js",
+        "line": 21,
+        "sampled_ms": 39.36
+      },
+      {
+        "function": "run",
+        "source": "bts/btp_sync_plan.js",
+        "line": 328,
+        "sampled_ms": 37.653
+      },
+      {
+        "function": "_links",
+        "source": "bts/tournament_model/match.js",
+        "line": 18,
+        "sampled_ms": 36.42
+      },
+      {
+        "function": "hash",
+        "source": "bts/tournament_model/fingerprints.js",
+        "line": 17,
+        "sampled_ms": 33.949
+      },
+      {
+        "function": "_replace",
+        "source": "bts/tournament_model/participation.js",
+        "line": 15,
+        "sampled_ms": 32.143
+      },
+      {
+        "function": "find_location_preparation_candidates",
+        "source": "bts/match_automation.js",
+        "line": 2286,
+        "sampled_ms": 29.002
+      },
+      {
+        "function": "",
+        "source": "bts/match_automation.js",
+        "line": 2306,
+        "sampled_ms": 29.002
+      },
+      {
+        "function": "object",
+        "source": "bts/admin_response/cooperative.js",
+        "line": 22,
+        "sampled_ms": 28.969
+      },
+      {
+        "function": "args.<computed>",
+        "source": "bts/database_tasks.js",
+        "line": 61,
+        "sampled_ms": 28.731
+      },
+      {
+        "function": "args.<computed>",
+        "source": "bts/database_read_barrier.js",
+        "line": 25,
+        "sampled_ms": 28.731
+      },
+      {
+        "function": "encode",
+        "source": "bts/admin_response/cooperative.js",
+        "line": 6,
+        "sampled_ms": 26.808
+      },
+      {
+        "function": "executor.push",
+        "source": "bts/database_tasks.js",
+        "line": 48,
+        "sampled_ms": 23.974
+      },
+      {
+        "function": "is_match_eligible_for_preparation",
+        "source": "bts/match_automation.js",
+        "line": 1632,
+        "sampled_ms": 22.587
+      },
+      {
+        "function": "",
+        "source": "bts/match_automation.js",
+        "line": 2472,
+        "sampled_ms": 21.218
+      },
+      {
+        "function": "diagnose",
+        "source": "bts/match_automation.js",
+        "line": 2471,
+        "sampled_ms": 21.218
+      },
+      {
+        "function": "calculate_match_call_on_court_diagnostics",
+        "source": "bts/match_automation.js",
+        "line": 1932,
+        "sampled_ms": 21.218
+      },
+      {
+        "function": "capture",
+        "source": "bts/tournament_model/datastore.js",
+        "line": 56,
+        "sampled_ms": 20.479
+      },
+      {
+        "function": "_profile",
+        "source": "bts/tournament_model/player.js",
+        "line": 19,
+        "sampled_ms": 20.32
+      },
+      {
+        "function": "fn",
+        "source": "bts/btp_planner/batch_writes.js",
+        "line": 46,
+        "sampled_ms": 19.704
+      }
+    ],
+    "paired_point_delivery": [
+      {
+        "mode": "point",
+        "before_ms": 69.90701603889465,
+        "after_ms": 66.31398397684097
+      },
+      {
+        "mode": "sync",
+        "before_ms": 16.592612981796265,
+        "after_ms": 21.00581794977188
+      },
+      {
+        "mode": "finish",
+        "before_ms": 29.17016500234604,
+        "after_ms": 49.565751016139984
+      },
+      {
+        "mode": "point",
+        "before_ms": 7.850488007068634,
+        "after_ms": 6.270810008049011
+      },
+      {
+        "mode": "sync",
+        "before_ms": 7.73588103055954,
+        "after_ms": 13.261187970638275
+      },
+      {
+        "mode": "finish",
+        "before_ms": 15.9427889585495,
+        "after_ms": 15.14978301525116
+      },
+      {
+        "mode": "point",
+        "before_ms": 4.988546013832092,
+        "after_ms": 9.251883029937744
+      },
+      {
+        "mode": "sync",
+        "before_ms": 6.156984984874725,
+        "after_ms": 6.0579909682273865
+      },
+      {
+        "mode": "finish",
+        "before_ms": 21.0526020526886,
+        "after_ms": 15.493468999862671
+      },
+      {
+        "mode": "point",
+        "before_ms": 8.307605028152466,
+        "after_ms": 5.597154021263123
+      },
+      {
+        "mode": "sync",
+        "before_ms": 11.990994989871979,
+        "after_ms": 5.795256018638611
+      },
+      {
+        "mode": "finish",
+        "before_ms": 16.119736969470978,
+        "after_ms": 11.377245008945465
+      },
+      {
+        "mode": "point",
+        "before_ms": 39.40006500482559,
+        "after_ms": 64.48031598329544
+      },
+      {
+        "mode": "sync",
+        "before_ms": 13.94545704126358,
+        "after_ms": 23.720939993858337
+      },
+      {
+        "mode": "finish",
+        "before_ms": 24.798447012901306,
+        "after_ms": 45.25006401538849
+      },
+      {
+        "mode": "point",
+        "before_ms": 7.349512994289398,
+        "after_ms": 8.378813028335571
+      },
+      {
+        "mode": "sync",
+        "before_ms": 9.576458990573883,
+        "after_ms": 14.121164977550507
+      },
+      {
+        "mode": "finish",
+        "before_ms": 23.137372970581055,
+        "after_ms": 48.83844196796417
+      },
+      {
+        "mode": "point",
+        "before_ms": 7.26909202337265,
+        "after_ms": 8.835405051708221
+      },
+      {
+        "mode": "sync",
+        "before_ms": 9.80114895105362,
+        "after_ms": 18.13273996114731
+      },
+      {
+        "mode": "finish",
+        "before_ms": 33.569604992866516,
+        "after_ms": 89.5762130022049
+      },
+      {
+        "mode": "point",
+        "before_ms": 15.379885971546173,
+        "after_ms": 9.025305032730103
+      },
+      {
+        "mode": "sync",
+        "before_ms": 14.719430029392242,
+        "after_ms": 11.348541021347046
+      },
+      {
+        "mode": "finish",
+        "before_ms": 26.948565006256104,
+        "after_ms": 10.66405200958252
+      },
+      {
+        "mode": "point",
+        "before_ms": 70.59923696517944,
+        "after_ms": 61.45729100704193
+      },
+      {
+        "mode": "sync",
+        "before_ms": 22.566367030143738,
+        "after_ms": 28.705132007598877
+      },
+      {
+        "mode": "finish",
+        "before_ms": 28.83701801300049,
+        "after_ms": 63.61541396379471
+      },
+      {
+        "mode": "point",
+        "before_ms": 4.941495954990387,
+        "after_ms": 13.994641959667206
+      },
+      {
+        "mode": "sync",
+        "before_ms": 7.524217963218689,
+        "after_ms": 11.47965794801712
+      },
+      {
+        "mode": "finish",
+        "before_ms": 11.860198974609375,
+        "after_ms": 15.24499100446701
+      },
+      {
+        "mode": "point",
+        "before_ms": 6.904426991939545,
+        "after_ms": 5.104542016983032
+      },
+      {
+        "mode": "sync",
+        "before_ms": 8.778126955032349,
+        "after_ms": 7.1025150418281555
+      },
+      {
+        "mode": "finish",
+        "before_ms": 28.85064798593521,
+        "after_ms": 12.256220996379852
+      },
+      {
+        "mode": "point",
+        "before_ms": 9.613116025924683,
+        "after_ms": 8.87441897392273
+      },
+      {
+        "mode": "sync",
+        "before_ms": 10.77487599849701,
+        "after_ms": 14.689513027668
+      },
+      {
+        "mode": "finish",
+        "before_ms": 32.50924301147461,
+        "after_ms": 24.193939983844757
+      }
+    ],
+    "valid_repetitions": [
+      0,
+      1,
+      2
+    ],
+    "excluded_repetitions": [
+      {
+        "repetition": 3,
+        "reason": "Profiling overlapped the final before probe; the complete pair is excluded."
+      }
+    ],
+    "all_full_persisted_end_states_equal": true
+  },
+  "isolated_limitations": [
+    "Three complete before/after repetitions, 36 paired point receptions, disposable 373-match/13-active-match snapshot. End states including persisted reloads all identical.",
+    "Cases: point with six UI requests; point queued behind a same-match sync; second finish while the first finish cleanup runs.",
+    "These cases check correctness under concurrent work; they do not specifically recreate every unrelated-point/active-sync ownership collision.",
+    "Diagnostic sampling profile is from the owned benchmark, not the live server. It includes mock JSON decoding and profiler overhead; inclusive samples overlap and are not additive.",
+    "Final repetition 3 excluded because its before probe overlapped the separate profiler. No profiler run used for before/after timing claims.",
+    "No reliable general latency improvement established; live impact of the ownership fix remains unverified."
+  ],
+  "checks": {
+    "regression_tests_passed": 251,
+    "targeted_tests_after_new_trace": 34,
+    "new_context_tests": 6,
+    "new_context_tests_with_old_code": {
+      "passing": 1,
+      "failing": 5
+    },
+    "eslint": "passed",
+    "diff_check": "passed"
+  },
+  "source_sha256": {
+    "bts/foreground_work.js": "9b52264918e076ab79331bfdde67b44d1e5e78b964ff7bd90f6ab590cca5f1c5",
+    "bts/database_tasks.js": "64838687aebfd5bbae6a7c2ec328e45e23e43b96f8c1feda3a33de6b496b354d",
+    "bts/preparation_selection/admin_reads.js": "8c360acfa742a5080a142f99ea8c2a910af5bb1e074161ef764a9dea663ba1f0",
+    "test/test_foreground_context.js": "9833dd6785d6559cd887ed4d931c333cdd0413cbd565a97e53d498514c407f8b"
+  },
+  "benchmark_source_sha256": {
+    "bts-test17-paired-benchmark.js": "e3e1b9f5fc297a61b11a464f41e1bdc9b1095590851421973681dc33a4cebeae",
+    "bts-test17-profile.js": "3da6c2549c1ec90850498637f4fec073888c86fcb829dc460d90905e06d527a8"
+  },
+  "limitations": [
+    "373 matches instead of 128 in test 15; different initial state and shorter interrupted run prevent a controlled live regression comparison.",
+    "Queues drained after 3249 ms during the beginning of the pause, but the full first cycle was interrupted.",
+    "No evidence establishes speech as the sole cause or the ownership bug as the sole source of the observed outliers."
+  ]
+}

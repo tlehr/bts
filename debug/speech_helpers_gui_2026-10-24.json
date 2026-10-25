@@ -1,0 +1,45 @@
+{
+  "date": "2026-10-24",
+  "scope": "GUI source/parser and real background transport; simulated Windows WSL process/registry; packaged Linux runtime tests. Actual new Windows Forms window not executed on this host.",
+  "windows_console_user_test": {
+    "confirmed_by_user": true,
+    "generation_seconds": 25.1,
+    "listening_feedback": "very good"
+  },
+  "tests": {
+    "bts_helpers_worker_disk_cache": 57,
+    "python_helper": 5,
+    "starter_probe": "PowerShell 7.6.7: all PS scripts parsed; real C# transport compiled; TLS rejected before credentials, progress, Range resume, background cancellation, local resource forwarding, refusal for foreign registry path, removal without following directory links"
+  },
+  "runtime": {
+    "schema": 1,
+    "id": "b913cb1f10da593404e9ee09ff59eb18705efa2643839c7cb7e3c47632c3ce47",
+    "sha256": "b89e665391be3c8be0758cc684dc2e17ab1270e2501ebe0049bf67f585e00d0c",
+    "size_bytes": 2167797760,
+    "platform": "linux-x64",
+    "cpu_flags": [
+      "avx2",
+      "fma",
+      "bmi2",
+      "f16c",
+      "sse4_2",
+      "popcnt"
+    ],
+    "private_voice_profiles": true
+  },
+  "parallel_native_test": {
+    "status": "completed",
+    "runtime_id": "1e9af750823e4b4a4e680b8a4db3015eacfd060059a2f5e507ca20026f5117f1",
+    "overlap": true,
+    "jobs": 2
+  },
+  "owner_eof_test": {
+    "status": "completed",
+    "runtime_id": "b913cb1f10da593404e9ee09ff59eb18705efa2643839c7cb7e3c47632c3ce47",
+    "after_eof_ms": 2006,
+    "exit_code": 0,
+    "job_state": "failed"
+  },
+  "gui_windows_executed": false,
+  "production_preparation_distributed": false
+}

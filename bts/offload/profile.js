@@ -10,6 +10,8 @@ const flags = {
 	compaction: ['BTS_COMPACTION_WORKER', true],
 	compaction_reads: ['BTS_COMPACTION_MODEL_READS', true],
 	score_idle_reads: ['BTS_SCORE_MODEL_IDLE_READS', true],
+	score_readonly_reads: ['BTS_SCORE_MODEL_READONLY_READS', true],
+	score_direct_writes: ['BTS_SCORE_DIRECT_WRITES', true],
 	preparation_reads: ['BTS_PREPARATION_MODEL_READS', true],
 	preparation_candidates: ['BTS_PREPARATION_CANDIDATES_LIGHT', true],
 	sync_batch_writes: ['BTS_SYNC_BATCH_WRITES', false],
@@ -18,6 +20,7 @@ const flags = {
 	admin_response_background: ['BTS_ADMIN_RESPONSE_BACKGROUND', true],
 	admin_response_priority: ['BTS_ADMIN_RESPONSE_PRIORITY', true],
 	admin_match_revision_cache: ['BTS_ADMIN_MATCH_REVISION_CACHE', true],
+	admin_broadcast_shared: ['BTS_ADMIN_BROADCAST_SHARED', true],
 	admin_response_worker: ['BTS_ADMIN_RESPONSE_ENCODER', false],
 	compaction_staged: ['BTS_COMPACTION_STAGED', true],
 };

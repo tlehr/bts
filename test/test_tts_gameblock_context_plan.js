@@ -8,7 +8,7 @@ const sample = (id, number, teams) => ({ id, label: id, origin: 'test fixture',
 
 describe('Requested context game-block listening plan', function() {
     it('cuts numbers and disciplines from context, generates rounds directly and keeps the team positions distinct', function() {
-        const plan = gameblocks({}, [sample('one', 189, [team('Nina Keo Boun Khoune'), team('LeandraGalowicz')])]);
+        const plan = gameblocks({}, [sample('one', 189, [team('Max Mustermann'), team('Hans Dampf')])]);
         assert.strictEqual(plan.strategy, 'bts-context-v2-lab-only');
         assert.strictEqual(plan.production_strategy, 'bts-context-v1');
         const pieces = new Map(plan.pieces.map(piece => [piece.id, piece]));
@@ -28,7 +28,7 @@ describe('Requested context game-block listening plan', function() {
         assert.strictEqual(event.text, 'Mädchen Einzel U neunzehn');
         assert.strictEqual(event.after, ' erwarten wir spannende Spiele!');
         assert.strictEqual(event.display, 'Mädcheneinzel U19');
-        const positions = plan.pieces.filter(piece => piece.text === 'Nina Keo Boun Khoune');
+        const positions = plan.pieces.filter(piece => piece.text === 'Max Mustermann');
         assert.strictEqual(positions.length, 2);
         assert.notStrictEqual(positions[0].id, positions[1].id);
         assert.strictEqual(positions[0].source, positions[1].source);
@@ -39,9 +39,9 @@ describe('Requested context game-block listening plan', function() {
         assert(plan.cases.every(item => !item.pieces.some(entry => pieces.get(entry.piece).text.includes('ist als nächstes'))));
         assert(plan.cases.every(item => !item.pieces.some(entry => pieces.get(entry.piece).text.includes('spielt jetzt'))));
         const encounter = plan.cases.map(item => item.pieces.slice(3).map(entry => pieces.get(entry.piece).text).join(' '));
-        assert.deepStrictEqual(encounter, ['Nina Keo Boun Khoune gegen LeandraGalowicz', 'Nina Keo Boun Khoune gegen LeandraGalowicz']);
-        assert.strictEqual(pieces.get(plan.cases[0].pieces[3].piece).after, ' spielt jetzt gegen Nina Keo Boun Khoune!');
-        assert.strictEqual(pieces.get(plan.cases[0].pieces[4].piece).before, 'LeandraGalowicz spielt jetzt ');
+        assert.deepStrictEqual(encounter, ['Max Mustermann gegen Hans Dampf', 'Max Mustermann gegen Hans Dampf']);
+        assert.strictEqual(pieces.get(plan.cases[0].pieces[3].piece).after, ' spielt jetzt gegen Max Mustermann!');
+        assert.strictEqual(pieces.get(plan.cases[0].pieces[4].piece).before, 'Hans Dampf spielt jetzt ');
         assert(plan.sources.every(source => !/\d/.test(source.text)));
     });
 

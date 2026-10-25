@@ -1,0 +1,101 @@
+{
+  "node": "v19.9.0",
+  "matches": 519,
+  "samples": 6,
+  "created_at": "2026-10-19T20:54:01.825Z",
+  "method": "519 synthetic matches with 180 score-history entries each, eight prepared games, alternating pairs; 2-ms main-thread heartbeat. Scheduling debounce included equally. No inference, live data, browser, score persistence or TV transport.",
+  "full_document_bytes": 4542723,
+  "speech_snapshot_bytes": 168370,
+  "inline": [
+    {
+      "elapsed_ms": 2259.1243259981275,
+      "heartbeat_max_delay_ms": 198.646669998765,
+      "ticks": 181
+    },
+    {
+      "elapsed_ms": 1960.2509709969163,
+      "heartbeat_max_delay_ms": 172.43544399738312,
+      "ticks": 186
+    },
+    {
+      "elapsed_ms": 2045.4102379977703,
+      "heartbeat_max_delay_ms": 167.507174000144,
+      "ticks": 184
+    },
+    {
+      "elapsed_ms": 2078.6977489963174,
+      "heartbeat_max_delay_ms": 193.73945700377226,
+      "ticks": 178
+    },
+    {
+      "elapsed_ms": 2029.719193994999,
+      "heartbeat_max_delay_ms": 159.6388529986143,
+      "ticks": 187
+    },
+    {
+      "elapsed_ms": 2232.863340996206,
+      "heartbeat_max_delay_ms": 188.2818209975958,
+      "ticks": 168
+    }
+  ],
+  "worker": [
+    {
+      "elapsed_ms": 2226.370451003313,
+      "heartbeat_max_delay_ms": 2.9242499992251396,
+      "ticks": 1060
+    },
+    {
+      "elapsed_ms": 1949.7603410035372,
+      "heartbeat_max_delay_ms": 0.7818659991025925,
+      "ticks": 941
+    },
+    {
+      "elapsed_ms": 2214.121104001999,
+      "heartbeat_max_delay_ms": 4.835727006196976,
+      "ticks": 1060
+    },
+    {
+      "elapsed_ms": 2195.873461998999,
+      "heartbeat_max_delay_ms": 1.9715479984879494,
+      "ticks": 1052
+    },
+    {
+      "elapsed_ms": 1987.0544760003686,
+      "heartbeat_max_delay_ms": 1.8597109988331795,
+      "ticks": 954
+    },
+    {
+      "elapsed_ms": 1981.5533519983292,
+      "heartbeat_max_delay_ms": 5.909932002425194,
+      "ticks": 926
+    }
+  ],
+  "cold_start": {
+    "elapsed_ms": 1836.086030997336,
+    "heartbeat_max_delay_ms": 5.36379100382328,
+    "ticks": 823
+  },
+  "unchanged_snapshot_documents_transferred": 0,
+  "summary": {
+    "inline": {
+      "elapsed_ms": {
+        "median": 2078.6977489963174,
+        "max": 2259.1243259981275
+      },
+      "heartbeat_max_delay_ms": {
+        "median": 188.2818209975958,
+        "max": 198.646669998765
+      }
+    },
+    "worker": {
+      "elapsed_ms": {
+        "median": 2195.873461998999,
+        "max": 2226.370451003313
+      },
+      "heartbeat_max_delay_ms": {
+        "median": 2.9242499992251396,
+        "max": 5.909932002425194
+      }
+    }
+  }
+}

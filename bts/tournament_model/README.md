@@ -105,6 +105,17 @@ weiterhin im Executor. `compaction_read_bypassed` und `compaction_read_decision`
 nennen die Entscheidung. Erfolgreiche schnelle Reads werden bei Timing-Logging
 als `database:compaction_model_read` protokolliert.
 
+Punkte können außerdem reine Leseaufträge passieren, wenn sämtliche früheren
+laufenden und wartenden Aufträge als Leser erkannt sind. Die Beobachtung behält
+die Identität eines Auftrags bis zur tatsächlichen Freigabe seines Queue-Slots;
+das schließt NeDBs Verzögerung nach dem Datastore-Callback ein. Unbekannte oder
+nicht beobachtete Aufträge, frühere Writes, Reloads und TTL-fähige Leser sperren
+diesen Pfad. Auch ein erst während des Wartens hinzugefügter TTL-Index wird
+berücksichtigt. Ein späterer Write bleibt im Executor; die Punktabfrage erhält
+die bereits erstellte, isolierte Kopie asynchron. `BTS_SCORE_MODEL_READONLY_READS=0`
+schaltet diese Erweiterung aus. Das Performance-Profil nennt
+`score_readonly_reads`, eine schnelle Abfrage `model_read_decision: read_only_store`.
+
 Die automatische Vorbereitung verwendet standardmäßig geordnete Modell-Snapshots
 für Bedarf, automatische Kandidaten, Zulässigkeit und die Prüfung des Aufrufabstands.
 Unveränderte Historien und Meldedaten werden dafür nicht kopiert. Die konfigurierten

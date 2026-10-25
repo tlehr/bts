@@ -1,0 +1,7047 @@
+{
+  "status": "completed",
+  "started_at": "2026-10-24T19:10:32.339Z",
+  "finished_at": "2026-10-24T19:22:53.989Z",
+  "directory": "/tmp/bts-speech-load-dJ3a1I",
+  "options": {
+    "seconds": 60,
+    "rounds": 2,
+    "point_ms": 80,
+    "matches": 373,
+    "fake": false,
+    "speech_repository": "/home/tim/repos/bts-sprachserver",
+    "variants": [
+      "idle",
+      "normal",
+      "two-threads",
+      "low-priority"
+    ],
+    "output": "/tmp/bts-speech-load-real-20261024-a.json"
+  },
+  "node": "v19.9.0",
+  "cpu": "Intel(R) Core(TM) i7-4770 CPU @ 3.40GHz",
+  "logical_cpus": 8,
+  "available_parallelism": 8,
+  "method": "Identical 373-match fixtures and fixed score sequences, real file-backed BTS handlers and 13 TV/tablet sockets plus 11 admin sockets. A separate production SpeechBroker and real temporary speech API create native context sources, cuts and both audio caches. Idle keeps the same model resident. Four variants, reversed order in alternating rounds. The controlled BTS has speech management disabled in every variant, isolating external generation/resource load from its database. No BTP, browser painting or audible output.",
+  "limitations": [
+    "Alternating score states keep the same thirteen matches active; this is not a full tournament or a live latency forecast.",
+    "Linux process I/O counters include page-cache traffic. Read/write bytes are not disk saturation or per-request disk service time.",
+    "CPU counters cover the long-lived measured processes; short-lived alignment/ffmpeg children may be absent.",
+    "Wall-time spans include callback/scheduling delays and may overlap. No live server or production cache is used."
+  ],
+  "source_sha256": {
+    "debug/speech_load_benchmark.js": "72d47ac1079dda55413dd5fe452ac08100133207bfeef6ed31324a503c8e843d",
+    "debug/speech_load/server.js": "33220c356fce43fbb57dcae50546867f00e8933cff3d769a9e894ce2d2226701",
+    "debug/speech_load/fixture.js": "a7e594659fbe116e63056f653fbe2905658a95d11fa91626aa469bab1e242998",
+    "debug/speech_load/generator.js": "65cb7ed6cf98e9ec7836ec84bae35800635f5a900b450c4a451cb9cc1930c12e",
+    "debug/speech_load/api.py": "a92a43df493b3e49952c8ba855787751cf1a3da14d807eed7b9a0a6a055057bc",
+    "debug/speech_load/resources.js": "1b6b42e687cd9fa681aa40d259128367cabc4e91d57a5247f7097a3d64f85281",
+    "bts/bupws_v2.js": "2ee614154cf3cca19d9d7e29e98a5dc70912573b087ccd9946db7dee5b0f80bc",
+    "bts/score_write.js": "503b3bc7cf6230a7945cb6be3c85216cc7b5e15f1f9f2864aea20579088b4a3b",
+    "bts/database_tasks.js": "64838687aebfd5bbae6a7c2ec328e45e23e43b96f8c1feda3a33de6b496b354d",
+    "bts/update_queue.js": "35720439f48a43b9f95f79bd38c5679988f07eb5f61bf2e95f2dfb6f6e60a587",
+    "bts/speech/broker.js": "a186da3e472e45fff93bcf724dcc55e14faa73269bc9a73fb39447270b5ff9a7",
+    "bts/speech/disk_cache.js": "99e520339a9ee25da5cb18699a7aeac9d2b578fe596f02c3f22aa02a948404f6",
+    "package-lock.json": "8b396138d41ac4594985e858d7376dc84a554cf789aedf7055a1be6017586a73"
+  },
+  "summary": [
+    {
+      "id": "idle",
+      "tv_ms": {
+        "count": 1500,
+        "mean": 7.973582514762878,
+        "p50": 6.109798014163971,
+        "p95": 14.588263988494873,
+        "p99": 27.531201004981995,
+        "max": 320.68388295173645
+      },
+      "admin_ms": {
+        "count": 1500,
+        "mean": 9.36458762383461,
+        "p50": 7.014847040176392,
+        "p95": 17.4186270236969,
+        "p99": 37.3016420006752,
+        "max": 371.2786740064621
+      },
+      "individual_p99": [
+        {
+          "tv": 32.65548396110535,
+          "admin": 43.206803023815155
+        },
+        {
+          "tv": 24.577647984027863,
+          "admin": 31.8439000248909
+        }
+      ]
+    },
+    {
+      "id": "normal",
+      "tv_ms": {
+        "count": 1500,
+        "mean": 7.5400466239055,
+        "p50": 5.796159982681274,
+        "p95": 17.46476900577545,
+        "p99": 26.816762030124664,
+        "max": 67.86516499519348
+      },
+      "admin_ms": {
+        "count": 1500,
+        "mean": 9.037270946582158,
+        "p50": 6.756717026233673,
+        "p95": 19.979317009449005,
+        "p99": 38.22091901302338,
+        "max": 238.99946200847626
+      },
+      "individual_p99": [
+        {
+          "tv": 22.810608983039856,
+          "admin": 35.27304297685623
+        },
+        {
+          "tv": 28.30665498971939,
+          "admin": 40.596854984760284
+        }
+      ]
+    },
+    {
+      "id": "two-threads",
+      "tv_ms": {
+        "count": 1500,
+        "mean": 5.370656705379486,
+        "p50": 4.2790849804878235,
+        "p95": 12.188300013542175,
+        "p99": 22.452125012874603,
+        "max": 39.700811982154846
+      },
+      "admin_ms": {
+        "count": 1500,
+        "mean": 6.510376385609309,
+        "p50": 4.952667951583862,
+        "p95": 14.20355999469757,
+        "p99": 30.67151004076004,
+        "max": 144.60065698623657
+      },
+      "individual_p99": [
+        {
+          "tv": 22.892076015472412,
+          "admin": 28.082031965255737
+        },
+        {
+          "tv": 22.214018046855927,
+          "admin": 30.69316703081131
+        }
+      ]
+    },
+    {
+      "id": "low-priority",
+      "tv_ms": {
+        "count": 1500,
+        "mean": 6.621613809108734,
+        "p50": 5.518042027950287,
+        "p95": 13.73904800415039,
+        "p99": 21.23319798707962,
+        "max": 43.52330803871155
+      },
+      "admin_ms": {
+        "count": 1500,
+        "mean": 7.922753443519275,
+        "p50": 6.4259079694747925,
+        "p95": 15.103645980358124,
+        "p99": 28.544282972812653,
+        "max": 156.08254301548004
+      },
+      "individual_p99": [
+        {
+          "tv": 21.125923991203308,
+          "admin": 27.299264013767242
+        },
+        {
+          "tv": 21.476597011089325,
+          "admin": 31.375992000102997
+        }
+      ]
+    }
+  ],
+  "raw_report": "/tmp/bts-speech-load-real-20261024-a.json",
+  "notes": [
+    "The server.loop field in the original controlled run also included final database reload/validation. Excluded from this compact comparison. Reception latencies and process resource deltas were captured before validation. No historical cache or live tournament was touched."
+  ],
+  "cases": [
+    {
+      "round": 0,
+      "variant": {
+        "id": "idle",
+        "threads": 4,
+        "nice": 0,
+        "generate": false
+      },
+      "fake": false,
+      "pid_settings": {
+        "event": "ready",
+        "ts": 1792869058101.6125,
+        "port": 32807,
+        "pid": 1340053,
+        "native_pid": 1340070,
+        "nice": 0,
+        "threads": 4,
+        "fake": false
+      },
+      "fixture_sha256": "21e9ae7bcf5fd973ff8cbeca79146df8d3d4abf826a2248094ff84e76a6c5c3a",
+      "input_sha256": "6d540996d6f3fb821a7dd968b5c4afbfb85ef2c69cf3ae57a26d6c540b1d3483",
+      "total": 750,
+      "wall_start": 1792869060444,
+      "wall_end": 1792869120443,
+      "tv_ms": {
+        "count": 750,
+        "mean": 8.869488701502481,
+        "p50": 8.111063003540039,
+        "p95": 17.083542943000793,
+        "p99": 32.65548396110535,
+        "max": 162.33339601755142
+      },
+      "admin_ms": {
+        "count": 750,
+        "mean": 10.403137602329254,
+        "p50": 9.268579006195068,
+        "p95": 20.763800024986267,
+        "p99": 43.206803023815155,
+        "max": 204.3181450366974
+      },
+      "send_lag_ms": {
+        "count": 750,
+        "mean": 0.6266610587437947,
+        "p50": 0.52742600440979,
+        "p95": 1.740388035774231,
+        "p99": 5.740717053413391,
+        "max": 16.056596040725708
+      },
+      "process_resources": {
+        "client": {
+          "available": true,
+          "wall_ms": 60001,
+          "cpu_ms": 9030,
+          "cpu_percent_one_core": 15.049749170847152,
+          "nice": 0,
+          "io": {
+            "rchar": 270261586,
+            "wchar": 10139495,
+            "syscr": 26845,
+            "syscw": 2544,
+            "read_bytes": 0,
+            "write_bytes": 12288,
+            "cancelled_write_bytes": 0
+          }
+        },
+        "bts": {
+          "available": true,
+          "wall_ms": 60001,
+          "cpu_ms": 22280,
+          "cpu_percent_one_core": 37.13271445475909,
+          "nice": 0,
+          "io": {
+            "rchar": 10413414,
+            "wchar": 280828118,
+            "syscr": 4843,
+            "syscw": 35809,
+            "read_bytes": 0,
+            "write_bytes": 10776576,
+            "cancelled_write_bytes": 0
+          }
+        },
+        "api": {
+          "available": true,
+          "wall_ms": 60000,
+          "cpu_ms": 160,
+          "cpu_percent_one_core": 0.26666666666666666,
+          "nice": 0,
+          "io": {
+            "rchar": 0,
+            "wchar": 0,
+            "syscr": 0,
+            "syscw": 0,
+            "read_bytes": 0,
+            "write_bytes": 0,
+            "cancelled_write_bytes": 0
+          }
+        },
+        "native": {
+          "available": true,
+          "wall_ms": 60000,
+          "cpu_ms": 0,
+          "cpu_percent_one_core": 0,
+          "nice": 0,
+          "io": {
+            "rchar": 0,
+            "wchar": 0,
+            "syscr": 0,
+            "syscw": 0,
+            "read_bytes": 0,
+            "write_bytes": 0,
+            "cancelled_write_bytes": 0
+          }
+        }
+      },
+      "generation": null,
+      "inference_overlap_ms": 0,
+      "server": {
+        "final_state_sha256": "be4ce9360dc0bea8f3581aa0b93ffc81cb4742863c9705e16e4830b1e2da961a",
+        "cpu_ms": {
+          "user": 20864.665,
+          "system": 1435.829,
+          "wall": 60010.15534299612
+        },
+        "event_loop_utilization": 0.2627776283056713,
+        "phase_ms": {
+          "phase:admin_tournament_snapshot": {
+            "count": 31,
+            "mean": 22.78709677419355,
+            "p50": 21.1,
+            "p95": 32.1,
+            "p99": 142.5,
+            "max": 142.5
+          },
+          "send_wait:admin:snapshot": {
+            "count": 31,
+            "mean": 22.780645161290323,
+            "p50": 21.1,
+            "p95": 32,
+            "p99": 142.5,
+            "max": 142.5
+          },
+          "db_wait:tournaments:admin_tournament_read": {
+            "count": 31,
+            "mean": 2.4870967741935477,
+            "p50": 2.7,
+            "p95": 4.7,
+            "p99": 9.1,
+            "max": 9.1
+          },
+          "db_run:tournaments:admin_tournament_read": {
+            "count": 31,
+            "mean": 0.39032258064516134,
+            "p50": 0.4,
+            "p95": 0.8,
+            "p99": 0.8,
+            "max": 0.8
+          },
+          "db_wait:displaysettings:find": {
+            "count": 31,
+            "mean": 0.4870967741935484,
+            "p50": 0.4,
+            "p95": 0.9,
+            "p99": 3.3,
+            "max": 3.3
+          },
+          "db_run:displaysettings:find": {
+            "count": 31,
+            "mean": 1.4000000000000001,
+            "p50": 0.6,
+            "p95": 5.1,
+            "p99": 5.6,
+            "max": 5.6
+          },
+          "db_wait:displaysettings:findOne": {
+            "count": 33,
+            "mean": 2.8878787878787873,
+            "p50": 2.7,
+            "p95": 6.6,
+            "p99": 6.7,
+            "max": 6.7
+          },
+          "db_run:displaysettings:findOne": {
+            "count": 33,
+            "mean": 3.9545454545454546,
+            "p50": 2.5,
+            "p95": 8.7,
+            "p99": 10,
+            "max": 10
+          },
+          "db_wait:displaysettings:insert": {
+            "count": 3,
+            "mean": 0.7000000000000001,
+            "p50": 0.1,
+            "p95": 1.9,
+            "p99": 1.9,
+            "max": 1.9
+          },
+          "db_run:displaysettings:insert": {
+            "count": 3,
+            "mean": 3.366666666666667,
+            "p50": 3.6,
+            "p95": 3.8,
+            "p99": 3.8,
+            "max": 3.8
+          },
+          "db_wait:tournaments:update": {
+            "count": 1,
+            "mean": 1.2,
+            "p50": 1.2,
+            "p95": 1.2,
+            "p99": 1.2,
+            "max": 1.2
+          },
+          "db_run:tournaments:update": {
+            "count": 1,
+            "mean": 21.5,
+            "p50": 21.5,
+            "p95": 21.5,
+            "p99": 21.5,
+            "max": 21.5
+          },
+          "db_wait:locations:find": {
+            "count": 31,
+            "mean": 2.5935483870967744,
+            "p50": 2.1,
+            "p95": 4.8,
+            "p99": 11.4,
+            "max": 11.4
+          },
+          "db_wait:courts:find": {
+            "count": 31,
+            "mean": 2.4935483870967747,
+            "p50": 2,
+            "p95": 4.7,
+            "p99": 11.3,
+            "max": 11.3
+          },
+          "db_wait:umpires:find": {
+            "count": 31,
+            "mean": 2.4838709677419355,
+            "p50": 2,
+            "p95": 4.6,
+            "p99": 11.2,
+            "max": 11.2
+          },
+          "db_wait:tabletoperators:find": {
+            "count": 31,
+            "mean": 2.435483870967742,
+            "p50": 2,
+            "p95": 4.5,
+            "p99": 11.2,
+            "max": 11.2
+          },
+          "phase:admin_match_read": {
+            "count": 31,
+            "mean": 3.6322580645161286,
+            "p50": 1.8,
+            "p95": 5.7,
+            "p99": 50.5,
+            "max": 50.5
+          },
+          "db_wait:matches:admin_match_overview": {
+            "count": 31,
+            "mean": 2.7580645161290325,
+            "p50": 0.7,
+            "p95": 4.4,
+            "p99": 49.4,
+            "max": 49.4
+          },
+          "db_wait:display_court_displaysettings:find": {
+            "count": 31,
+            "mean": 4.074193548387097,
+            "p50": 4.5,
+            "p95": 7.9,
+            "p99": 10.2,
+            "max": 10.2
+          },
+          "db_wait:normalizations:find": {
+            "count": 31,
+            "mean": 2.3612903225806456,
+            "p50": 2,
+            "p95": 5.4,
+            "p99": 10.7,
+            "max": 10.7
+          },
+          "db_wait:advertisements:find": {
+            "count": 31,
+            "mean": 2.3129032258064517,
+            "p50": 1.9,
+            "p95": 5.4,
+            "p99": 10.6,
+            "max": 10.6
+          },
+          "db_run:display_court_displaysettings:find": {
+            "count": 31,
+            "mean": 1.2419354838709677,
+            "p50": 1,
+            "p95": 2.4,
+            "p99": 7.5,
+            "max": 7.5
+          },
+          "db_run:locations:find": {
+            "count": 31,
+            "mean": 2.3806451612903223,
+            "p50": 2.3,
+            "p95": 4.2,
+            "p99": 7.8,
+            "max": 7.8
+          },
+          "db_run:courts:find": {
+            "count": 31,
+            "mean": 2.541935483870968,
+            "p50": 2.5,
+            "p95": 4.3,
+            "p99": 8.3,
+            "max": 8.3
+          },
+          "db_run:umpires:find": {
+            "count": 31,
+            "mean": 2.6064516129032262,
+            "p50": 2.6,
+            "p95": 4.5,
+            "p99": 8.4,
+            "max": 8.4
+          },
+          "db_run:tabletoperators:find": {
+            "count": 31,
+            "mean": 2.6193548387096777,
+            "p50": 2.5,
+            "p95": 4.5,
+            "p99": 8.5,
+            "max": 8.5
+          },
+          "db_run:normalizations:find": {
+            "count": 31,
+            "mean": 2.3483870967741933,
+            "p50": 1.7,
+            "p95": 4.5,
+            "p99": 8.5,
+            "max": 8.5
+          },
+          "db_run:advertisements:find": {
+            "count": 31,
+            "mean": 2.3741935483870966,
+            "p50": 1.7,
+            "p95": 4.5,
+            "p99": 8.6,
+            "max": 8.6
+          },
+          "db_run:matches:admin_match_overview": {
+            "count": 31,
+            "mean": 1.2064516129032257,
+            "p50": 0.8,
+            "p95": 1.8,
+            "p99": 13,
+            "max": 13
+          },
+          "phase:admin_match_copy": {
+            "count": 31,
+            "mean": 0.4677419354838707,
+            "p50": 0.5,
+            "p95": 0.9,
+            "p99": 1.1,
+            "max": 1.1
+          },
+          "encoding:admin_snapshot_encode": {
+            "count": 31,
+            "mean": 19.23548387096774,
+            "p50": 16.5,
+            "p95": 46.4,
+            "p99": 53.8,
+            "max": 53.8
+          },
+          "send_enqueue:admin:message": {
+            "count": 31,
+            "mean": 2.883870967741936,
+            "p50": 3,
+            "p95": 5.1,
+            "p99": 5.2,
+            "max": 5.2
+          },
+          "lock_wait:handle_score_update_v2": {
+            "count": 362,
+            "mean": 0.24419889502762449,
+            "p50": 0.1,
+            "p95": 0.3,
+            "p99": 1,
+            "max": 29.5
+          },
+          "lock_hold:handle_score_update_v2": {
+            "count": 362,
+            "mean": 16.958287292817676,
+            "p50": 16.6,
+            "p95": 31.7,
+            "p99": 49.5,
+            "max": 135.8
+          },
+          "phase:owner_check": {
+            "count": 362,
+            "mean": 0.00027624309392265195,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "max": 0.1
+          },
+          "phase:duplicate_check": {
+            "count": 362,
+            "mean": 0.3171270718232045,
+            "p50": 0.3,
+            "p95": 0.6,
+            "p99": 0.7,
+            "max": 0.8
+          },
+          "db_wait:matches:score_context_match": {
+            "count": 3,
+            "mean": 51.633333333333326,
+            "p50": 48.8,
+            "p95": 94.8,
+            "p99": 94.8,
+            "max": 94.8
+          },
+          "db_wait:tournaments:score_context_tournament": {
+            "count": 1,
+            "mean": 60.8,
+            "p50": 60.8,
+            "p95": 60.8,
+            "p99": 60.8,
+            "max": 60.8
+          },
+          "phase:load_context_court": {
+            "count": 362,
+            "mean": 0.3480662983425409,
+            "p50": 0.4,
+            "p95": 0.7,
+            "p99": 0.9,
+            "max": 1.9
+          },
+          "db_run:tournaments:score_context_tournament": {
+            "count": 1,
+            "mean": 0.2,
+            "p50": 0.2,
+            "p95": 0.2,
+            "p99": 0.2,
+            "max": 0.2
+          },
+          "phase:load_context_tournament": {
+            "count": 362,
+            "mean": 0.5922651933701647,
+            "p50": 0.4,
+            "p95": 0.8,
+            "p99": 1.1,
+            "max": 61.1
+          },
+          "db_run:matches:score_context_match": {
+            "count": 3,
+            "mean": 0.16666666666666666,
+            "p50": 0.2,
+            "p95": 0.2,
+            "p99": 0.2,
+            "max": 0.2
+          },
+          "phase:load_context_match": {
+            "count": 362,
+            "mean": 1.1453038674033154,
+            "p50": 0.8,
+            "p95": 1.4,
+            "p99": 1.8,
+            "max": 95.1
+          },
+          "phase:load_context": {
+            "count": 362,
+            "mean": 1.3950276243093926,
+            "p50": 1,
+            "p95": 1.8,
+            "p99": 2.7,
+            "max": 95.3
+          },
+          "phase:validate": {
+            "count": 362,
+            "mean": 0.6085635359116028,
+            "p50": 0.6,
+            "p95": 1.1,
+            "p99": 1.4,
+            "max": 2.3
+          },
+          "phase:build_update": {
+            "count": 362,
+            "mean": 0.07596685082872943,
+            "p50": 0.1,
+            "p95": 0.1,
+            "p99": 0.2,
+            "max": 0.2
+          },
+          "db_wait:matches:score_update_write": {
+            "count": 362,
+            "mean": 0.6748618784530387,
+            "p50": 0.2,
+            "p95": 1.1,
+            "p99": 16.3,
+            "max": 32.4
+          },
+          "db_run:matches:score_update_write": {
+            "count": 362,
+            "mean": 5.855524861878455,
+            "p50": 6,
+            "p95": 9.8,
+            "p99": 19.8,
+            "max": 32.3
+          },
+          "storage_wait_ms": {
+            "count": 362,
+            "mean": 1.1477900552486178,
+            "p50": 0.8,
+            "p95": 2.3,
+            "p99": 13.5,
+            "max": 25.5
+          },
+          "serialization_ms": {
+            "count": 362,
+            "mean": 0.7179558011049725,
+            "p50": 0.7,
+            "p95": 1.3,
+            "p99": 1.8,
+            "max": 2.2
+          },
+          "callback_ms": {
+            "count": 362,
+            "mean": 2.617127071823206,
+            "p50": 2.7,
+            "p95": 4.7,
+            "p99": 5.7,
+            "max": 6.7
+          },
+          "phase:db_update_match": {
+            "count": 362,
+            "mean": 4.007458563535913,
+            "p50": 3.5,
+            "p95": 9.6,
+            "p99": 20.9,
+            "max": 34.3
+          },
+          "send_enqueue:tv:display_points_update": {
+            "count": 362,
+            "mean": 0.2088397790055241,
+            "p50": 0.2,
+            "p95": 0.4,
+            "p99": 0.5,
+            "max": 0.9
+          },
+          "phase:committed_display_points": {
+            "count": 362,
+            "mean": 0.5290055248618797,
+            "p50": 0.5,
+            "p95": 0.9,
+            "p99": 1.1,
+            "max": 1.3
+          },
+          "db_wait:tournaments:display_context_tournament": {
+            "count": 362,
+            "mean": 2.073756906077346,
+            "p50": 2,
+            "p95": 3.9,
+            "p99": 7.6,
+            "max": 11.4
+          },
+          "db_wait:courts:display_context_court": {
+            "count": 362,
+            "mean": 2.5113259668508277,
+            "p50": 2.5,
+            "p95": 4.8,
+            "p99": 8.2,
+            "max": 12.1
+          },
+          "encoding:admin_broadcast_encode": {
+            "count": 1086,
+            "mean": 0.30672191528544984,
+            "p50": 0.2,
+            "p95": 0.8,
+            "p99": 1,
+            "max": 1.7
+          },
+          "send_wait:admin:score": {
+            "count": 3982,
+            "mean": 0.2821697639377197,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "max": 75.5
+          },
+          "send_enqueue:admin:score": {
+            "count": 3982,
+            "mean": 0.04691109994977246,
+            "p50": 0,
+            "p95": 0.1,
+            "p99": 0.2,
+            "max": 0.6
+          },
+          "phase:notify_score_and_display_fanout_start": {
+            "count": 362,
+            "mean": 2.366298342541438,
+            "p50": 2.4,
+            "p95": 4.3,
+            "p99": 5.3,
+            "max": 6.1
+          },
+          "db_run:tournaments:display_context_tournament": {
+            "count": 362,
+            "mean": 0.16436464088397754,
+            "p50": 0.1,
+            "p95": 0.3,
+            "p99": 0.4,
+            "max": 0.4
+          },
+          "phase:score_change_group_panels": {
+            "count": 362,
+            "mean": 2.5353591160220965,
+            "p50": 2.5,
+            "p95": 4.8,
+            "p99": 8.3,
+            "max": 12.3
+          },
+          "phase:score_change_direct_refreshes": {
+            "count": 362,
+            "mean": 0.05497237569060777,
+            "p50": 0.1,
+            "p95": 0.1,
+            "p99": 0.1,
+            "max": 0.1
+          },
+          "db_run:courts:display_context_court": {
+            "count": 362,
+            "mean": 0.13756906077348033,
+            "p50": 0.1,
+            "p95": 0.3,
+            "p99": 0.3,
+            "max": 0.4
+          },
+          "db_wait:matches:display_context_match": {
+            "count": 362,
+            "mean": 3.319613259668508,
+            "p50": 3,
+            "p95": 6.2,
+            "p99": 13.7,
+            "max": 31.9
+          },
+          "phase:finish_cleanup": {
+            "count": 362,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "max": 0
+          },
+          "phase:validate_court_reference": {
+            "count": 362,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "max": 0
+          },
+          "send_wait:admin:court_current_match": {
+            "count": 3982,
+            "mean": 0.2590657960823706,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "max": 72.2
+          },
+          "send_enqueue:admin:court_current_match": {
+            "count": 3982,
+            "mean": 0.047815168257155795,
+            "p50": 0,
+            "p95": 0.1,
+            "p99": 0.2,
+            "max": 11.2
+          },
+          "phase:notify_court_current_match": {
+            "count": 362,
+            "mean": 1.4417127071823206,
+            "p50": 1.3,
+            "p95": 2.8,
+            "p99": 4.1,
+            "max": 12.1
+          },
+          "phase:highlight_update": {
+            "count": 362,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "max": 0
+          },
+          "phase:ticker_update": {
+            "count": 362,
+            "mean": 0.0013812154696132596,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "max": 0.4
+          },
+          "phase:court_clear_after_finish": {
+            "count": 362,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "max": 0
+          },
+          "phase:auto_preparation": {
+            "count": 362,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "max": 0
+          },
+          "phase:auto_call_free_courts": {
+            "count": 362,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "max": 0
+          },
+          "db_wait:display_court_displaysettings:findOne": {
+            "count": 362,
+            "mean": 2.0591160220994458,
+            "p50": 1.6,
+            "p95": 4.1,
+            "p99": 11.6,
+            "max": 29.8
+          },
+          "db_run:display_court_displaysettings:findOne": {
+            "count": 362,
+            "mean": 0.6325966850828723,
+            "p50": 0.3,
+            "p95": 2.5,
+            "p99": 5.8,
+            "max": 23.9
+          },
+          "send_wait:admin:display_status_changed": {
+            "count": 3982,
+            "mean": 0.21145153189352084,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "max": 64.2
+          },
+          "send_enqueue:admin:display_status_changed": {
+            "count": 3982,
+            "mean": 0.033751883475639725,
+            "p50": 0,
+            "p95": 0.1,
+            "p99": 0.1,
+            "max": 4.1
+          },
+          "phase:device_info_hostname": {
+            "count": 362,
+            "mean": 0.014917127071823195,
+            "p50": 0,
+            "p95": 0.1,
+            "p99": 0.1,
+            "max": 0.1
+          },
+          "phase:device_info_settings_read": {
+            "count": 362,
+            "mean": 2.881215469613259,
+            "p50": 2.4,
+            "p95": 7.1,
+            "p99": 16.2,
+            "max": 30.3
+          },
+          "phase:device_info_notify": {
+            "count": 362,
+            "mean": 0.8616022099447518,
+            "p50": 0.8,
+            "p95": 1.7,
+            "p99": 2.3,
+            "max": 4.5
+          },
+          "phase:device_info": {
+            "count": 362,
+            "mean": 4.083149171270718,
+            "p50": 3.7,
+            "p95": 8.8,
+            "p99": 16.7,
+            "max": 31.6
+          },
+          "db_run:matches:display_context_match": {
+            "count": 362,
+            "mean": 0.33784530386740275,
+            "p50": 0.3,
+            "p95": 0.7,
+            "p99": 0.8,
+            "max": 2.3
+          },
+          "phase:score_change_court_panels": {
+            "count": 362,
+            "mean": 4.6491712707182336,
+            "p50": 4.3,
+            "p95": 8.6,
+            "p99": 16.5,
+            "max": 33.4
+          },
+          "send_enqueue:tv:display_timer_update": {
+            "count": 26,
+            "mean": 0.18076923076923077,
+            "p50": 0.2,
+            "p95": 0.3,
+            "p99": 0.3,
+            "max": 0.3
+          }
+        },
+        "failed_traces": [],
+        "validated_persisted_reload": true
+      },
+      "audio_write_ms": [],
+      "inference_ms": [],
+      "worst_admin_receptions": [
+        {
+          "index": 0,
+          "sent": 28157.65733897686,
+          "send_lag_ms": 2.1320260167121887,
+          "tv_ms": 162.33339601755142,
+          "admin_ms": 204.3181450366974
+        },
+        {
+          "index": 1,
+          "sent": 28234.865047991276,
+          "send_lag_ms": -0.7847169637680054,
+          "tv_ms": 90.75479698181152,
+          "admin_ms": 127.324383020401
+        },
+        {
+          "index": 12,
+          "sent": 29115.650125980377,
+          "send_lag_ms": 0.7110650539398193,
+          "tv_ms": 13.005646049976349,
+          "admin_ms": 59.39946800470352
+        },
+        {
+          "index": 420,
+          "sent": 61754.753849983215,
+          "send_lag_ms": -0.46828997135162354,
+          "tv_ms": 9.049040019512177,
+          "admin_ms": 52.91471999883652
+        },
+        {
+          "index": 2,
+          "sent": 28314.676989018917,
+          "send_lag_ms": -1.1911649703979492,
+          "tv_ms": 17.185862958431244,
+          "admin_ms": 47.68071496486664
+        }
+      ]
+    },
+    {
+      "round": 0,
+      "variant": {
+        "id": "normal",
+        "threads": 4,
+        "nice": 0,
+        "generate": true
+      },
+      "fake": false,
+      "pid_settings": {
+        "event": "ready",
+        "ts": 1792869146749.3977,
+        "port": 38097,
+        "pid": 1340364,
+        "native_pid": 1340378,
+        "nice": 0,
+        "threads": 4,
+        "fake": false
+      },
+      "fixture_sha256": "21e9ae7bcf5fd973ff8cbeca79146df8d3d4abf826a2248094ff84e76a6c5c3a",
+      "input_sha256": "6d540996d6f3fb821a7dd968b5c4afbfb85ef2c69cf3ae57a26d6c540b1d3483",
+      "total": 750,
+      "wall_start": 1792869149192,
+      "wall_end": 1792869209191,
+      "tv_ms": {
+        "count": 750,
+        "mean": 7.00366522026062,
+        "p50": 5.4118510484695435,
+        "p95": 16.26070499420166,
+        "p99": 22.810608983039856,
+        "max": 61.90037298202515
+      },
+      "admin_ms": {
+        "count": 750,
+        "mean": 8.355350081523259,
+        "p50": 6.299916982650757,
+        "p95": 18.081646978855133,
+        "p99": 35.27304297685623,
+        "max": 184.9464830160141
+      },
+      "send_lag_ms": {
+        "count": 750,
+        "mean": 0.5780936519304911,
+        "p50": 0.3863160014152527,
+        "p95": 2.8666419982910156,
+        "p99": 5.456434011459351,
+        "max": 21.179890990257263
+      },
+      "process_resources": {
+        "client": {
+          "available": true,
+          "wall_ms": 60001,
+          "cpu_ms": 5550,
+          "cpu_percent_one_core": 9.249845835902734,
+          "nice": 0,
+          "io": {
+            "rchar": 265153735,
+            "wchar": 10137948,
+            "syscr": 26701,
+            "syscw": 2577,
+            "read_bytes": 0,
+            "write_bytes": 12288,
+            "cancelled_write_bytes": 0
+          }
+        },
+        "bts": {
+          "available": true,
+          "wall_ms": 60001,
+          "cpu_ms": 14970,
+          "cpu_percent_one_core": 24.949584173597106,
+          "nice": 0,
+          "io": {
+            "rchar": 10414630,
+            "wchar": 275447732,
+            "syscr": 5229,
+            "syscw": 35630,
+            "read_bytes": 0,
+            "write_bytes": 10547200,
+            "cancelled_write_bytes": 0
+          }
+        },
+        "api": {
+          "available": true,
+          "wall_ms": 60001,
+          "cpu_ms": 2130,
+          "cpu_percent_one_core": 3.549940834319428,
+          "nice": 0,
+          "io": {
+            "rchar": 104430172,
+            "wchar": 3670886,
+            "syscr": 5927,
+            "syscw": 950,
+            "read_bytes": 417792,
+            "write_bytes": 2084864,
+            "cancelled_write_bytes": 1286144
+          }
+        },
+        "native": {
+          "available": true,
+          "wall_ms": 60001,
+          "cpu_ms": 201160,
+          "cpu_percent_one_core": 335.26107898201695,
+          "nice": 0,
+          "io": {
+            "rchar": 497,
+            "wchar": 1285145,
+            "syscr": 1,
+            "syscw": 266,
+            "read_bytes": 0,
+            "write_bytes": 1282048,
+            "cancelled_write_bytes": 0
+          }
+        },
+        "generator": {
+          "available": true,
+          "wall_ms": 60001,
+          "cpu_ms": 270,
+          "cpu_percent_one_core": 0.4499925001249979,
+          "nice": 0,
+          "io": {
+            "rchar": 2503545,
+            "wchar": 857690,
+            "syscr": 268,
+            "syscw": 240,
+            "read_bytes": 0,
+            "write_bytes": 864256,
+            "cancelled_write_bytes": 0
+          }
+        }
+      },
+      "generation": {
+        "cache_store_ms": [
+          {
+            "elapsed_ms": 121.77576,
+            "completed_at": 1792869191566
+          },
+          {
+            "elapsed_ms": 67.638155,
+            "completed_at": 1792869193916
+          },
+          {
+            "elapsed_ms": 95.790671,
+            "completed_at": 1792869196290
+          }
+        ],
+        "completed": 3,
+        "failed": 0,
+        "preparing": 230
+      },
+      "inference_overlap_ms": 54260.780517578125,
+      "server": {
+        "final_state_sha256": "be4ce9360dc0bea8f3581aa0b93ffc81cb4742863c9705e16e4830b1e2da961a",
+        "cpu_ms": {
+          "user": 13946.701,
+          "system": 1021.112,
+          "wall": 60006.34987103939
+        },
+        "event_loop_utilization": 0.2077366199321074,
+        "phase_ms": {
+          "phase:admin_tournament_snapshot": {
+            "count": 31,
+            "mean": 18.596774193548384,
+            "p50": 13,
+            "p95": 33.7,
+            "p99": 134.6,
+            "max": 134.6
+          },
+          "send_wait:admin:snapshot": {
+            "count": 31,
+            "mean": 18.59032258064516,
+            "p50": 13,
+            "p95": 33.7,
+            "p99": 134.7,
+            "max": 134.7
+          },
+          "db_wait:tournaments:admin_tournament_read": {
+            "count": 31,
+            "mean": 1.9903225806451617,
+            "p50": 1.5,
+            "p95": 5.1,
+            "p99": 6.7,
+            "max": 6.7
+          },
+          "db_run:tournaments:admin_tournament_read": {
+            "count": 31,
+            "mean": 0.30967741935483867,
+            "p50": 0.3,
+            "p95": 0.7,
+            "p99": 1.1,
+            "max": 1.1
+          },
+          "db_wait:displaysettings:find": {
+            "count": 31,
+            "mean": 1.0419354838709676,
+            "p50": 0.3,
+            "p95": 5.4,
+            "p99": 8,
+            "max": 8
+          },
+          "db_run:displaysettings:find": {
+            "count": 31,
+            "mean": 1.3193548387096774,
+            "p50": 0.5,
+            "p95": 3.8,
+            "p99": 6.5,
+            "max": 6.5
+          },
+          "db_wait:displaysettings:findOne": {
+            "count": 33,
+            "mean": 1.3575757575757577,
+            "p50": 1.7,
+            "p95": 3.7,
+            "p99": 3.8,
+            "max": 3.8
+          },
+          "db_run:displaysettings:findOne": {
+            "count": 33,
+            "mean": 2.057575757575757,
+            "p50": 1,
+            "p95": 8.4,
+            "p99": 8.7,
+            "max": 8.7
+          },
+          "db_wait:displaysettings:insert": {
+            "count": 3,
+            "mean": 0.3666666666666667,
+            "p50": 0,
+            "p95": 1.1,
+            "p99": 1.1,
+            "max": 1.1
+          },
+          "db_run:displaysettings:insert": {
+            "count": 3,
+            "mean": 0.5,
+            "p50": 0.4,
+            "p95": 0.7,
+            "p99": 0.7,
+            "max": 0.7
+          },
+          "db_wait:tournaments:update": {
+            "count": 1,
+            "mean": 0.1,
+            "p50": 0.1,
+            "p95": 0.1,
+            "p99": 0.1,
+            "max": 0.1
+          },
+          "db_run:tournaments:update": {
+            "count": 1,
+            "mean": 28.3,
+            "p50": 28.3,
+            "p95": 28.3,
+            "p99": 28.3,
+            "max": 28.3
+          },
+          "db_wait:locations:find": {
+            "count": 31,
+            "mean": 2.351612903225807,
+            "p50": 1.5,
+            "p95": 8.9,
+            "p99": 15.9,
+            "max": 15.9
+          },
+          "db_wait:courts:find": {
+            "count": 31,
+            "mean": 2.009677419354839,
+            "p50": 1.3,
+            "p95": 4.9,
+            "p99": 15.9,
+            "max": 15.9
+          },
+          "db_wait:umpires:find": {
+            "count": 31,
+            "mean": 2.2096774193548385,
+            "p50": 1.5,
+            "p95": 4.8,
+            "p99": 15.9,
+            "max": 15.9
+          },
+          "db_wait:tabletoperators:find": {
+            "count": 31,
+            "mean": 2.190322580645162,
+            "p50": 1.5,
+            "p95": 4.7,
+            "p99": 15.9,
+            "max": 15.9
+          },
+          "phase:admin_match_read": {
+            "count": 31,
+            "mean": 4,
+            "p50": 3.3,
+            "p95": 14.7,
+            "p99": 17.1,
+            "max": 17.1
+          },
+          "db_wait:matches:admin_match_overview": {
+            "count": 31,
+            "mean": 3.203225806451613,
+            "p50": 2.6,
+            "p95": 12.4,
+            "p99": 15.6,
+            "max": 15.6
+          },
+          "db_wait:display_court_displaysettings:find": {
+            "count": 31,
+            "mean": 3.096774193548387,
+            "p50": 2.4,
+            "p95": 8.2,
+            "p99": 17.1,
+            "max": 17.1
+          },
+          "db_wait:normalizations:find": {
+            "count": 31,
+            "mean": 2.096774193548387,
+            "p50": 1.2,
+            "p95": 4.1,
+            "p99": 17.1,
+            "max": 17.1
+          },
+          "db_wait:advertisements:find": {
+            "count": 31,
+            "mean": 2.0193548387096776,
+            "p50": 1.2,
+            "p95": 4.2,
+            "p99": 17,
+            "max": 17
+          },
+          "db_run:locations:find": {
+            "count": 31,
+            "mean": 1.9903225806451617,
+            "p50": 1.4,
+            "p95": 6.9,
+            "p99": 9.4,
+            "max": 9.4
+          },
+          "db_run:courts:find": {
+            "count": 31,
+            "mean": 2.1096774193548384,
+            "p50": 1.4,
+            "p95": 7.3,
+            "p99": 9.4,
+            "max": 9.4
+          },
+          "db_run:umpires:find": {
+            "count": 31,
+            "mean": 2.106451612903226,
+            "p50": 1.5,
+            "p95": 7.4,
+            "p99": 9.3,
+            "max": 9.3
+          },
+          "db_run:tabletoperators:find": {
+            "count": 31,
+            "mean": 2.1129032258064515,
+            "p50": 1.5,
+            "p95": 7.5,
+            "p99": 9.3,
+            "max": 9.3
+          },
+          "db_run:matches:admin_match_overview": {
+            "count": 31,
+            "mean": 0.8483870967741933,
+            "p50": 0.6,
+            "p95": 2.6,
+            "p99": 2.9,
+            "max": 2.9
+          },
+          "phase:admin_match_copy": {
+            "count": 31,
+            "mean": 0.3838709677419355,
+            "p50": 0.3,
+            "p95": 0.9,
+            "p99": 1.8,
+            "max": 1.8
+          },
+          "db_run:display_court_displaysettings:find": {
+            "count": 31,
+            "mean": 1.3903225806451616,
+            "p50": 0.8,
+            "p95": 8.7,
+            "p99": 9.3,
+            "max": 9.3
+          },
+          "db_run:normalizations:find": {
+            "count": 31,
+            "mean": 2.1129032258064515,
+            "p50": 1.4,
+            "p95": 9.4,
+            "p99": 9.5,
+            "max": 9.5
+          },
+          "db_run:advertisements:find": {
+            "count": 31,
+            "mean": 2.9258064516129036,
+            "p50": 1.4,
+            "p95": 9.8,
+            "p99": 32.1,
+            "max": 32.1
+          },
+          "encoding:admin_snapshot_encode": {
+            "count": 31,
+            "mean": 15.119354838709677,
+            "p50": 13.6,
+            "p95": 32.7,
+            "p99": 33.5,
+            "max": 33.5
+          },
+          "send_enqueue:admin:message": {
+            "count": 31,
+            "mean": 2.5935483870967735,
+            "p50": 2.3,
+            "p95": 5.4,
+            "p99": 8,
+            "max": 8
+          },
+          "lock_wait:handle_score_update_v2": {
+            "count": 362,
+            "mean": 0.14558011049723818,
+            "p50": 0.1,
+            "p95": 0.2,
+            "p99": 0.9,
+            "max": 3.9
+          },
+          "lock_hold:handle_score_update_v2": {
+            "count": 362,
+            "mean": 13.363812154696141,
+            "p50": 11.2,
+            "p95": 28.4,
+            "p99": 36.1,
+            "max": 46.5
+          },
+          "phase:owner_check": {
+            "count": 362,
+            "mean": 0.0008287292817679559,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "max": 0.2
+          },
+          "phase:duplicate_check": {
+            "count": 362,
+            "mean": 0.19309392265193487,
+            "p50": 0.2,
+            "p95": 0.2,
+            "p99": 0.3,
+            "max": 1
+          },
+          "phase:load_context_match": {
+            "count": 362,
+            "mean": 0.4853591160220994,
+            "p50": 0.4,
+            "p95": 0.8,
+            "p99": 1,
+            "max": 1.6
+          },
+          "phase:load_context_tournament": {
+            "count": 362,
+            "mean": 0.2580110497237572,
+            "p50": 0.2,
+            "p95": 0.5,
+            "p99": 0.6,
+            "max": 1.2
+          },
+          "phase:load_context_court": {
+            "count": 362,
+            "mean": 0.22458563535911683,
+            "p50": 0.2,
+            "p95": 0.4,
+            "p99": 0.6,
+            "max": 1
+          },
+          "phase:load_context": {
+            "count": 362,
+            "mean": 0.6414364640883959,
+            "p50": 0.6,
+            "p95": 1.1,
+            "p99": 1.6,
+            "max": 3
+          },
+          "phase:validate": {
+            "count": 362,
+            "mean": 0.3522099447513817,
+            "p50": 0.3,
+            "p95": 0.4,
+            "p99": 1.4,
+            "max": 4.5
+          },
+          "phase:build_update": {
+            "count": 362,
+            "mean": 0.08204419889502797,
+            "p50": 0.1,
+            "p95": 0.1,
+            "p99": 0.2,
+            "max": 0.9
+          },
+          "db_wait:matches:score_update_write": {
+            "count": 362,
+            "mean": 0.5085635359116024,
+            "p50": 0.1,
+            "p95": 1.3,
+            "p99": 10.1,
+            "max": 29.2
+          },
+          "db_run:matches:score_update_write": {
+            "count": 362,
+            "mean": 4.722928176795581,
+            "p50": 3.6,
+            "p95": 10.8,
+            "p99": 18,
+            "max": 25.8
+          },
+          "storage_wait_ms": {
+            "count": 362,
+            "mean": 1.206629834254143,
+            "p50": 0.5,
+            "p95": 4.6,
+            "p99": 11.7,
+            "max": 18.6
+          },
+          "serialization_ms": {
+            "count": 362,
+            "mean": 0.4629834254143659,
+            "p50": 0.4,
+            "p95": 0.6,
+            "p99": 2.8,
+            "max": 4
+          },
+          "callback_ms": {
+            "count": 362,
+            "mean": 1.9762430939226503,
+            "p50": 1.7,
+            "p95": 3.7,
+            "p99": 7.9,
+            "max": 9.8
+          },
+          "phase:db_update_match": {
+            "count": 362,
+            "mean": 3.3563535911602216,
+            "p50": 2.1,
+            "p95": 9.8,
+            "p99": 18.6,
+            "max": 30.7
+          },
+          "send_enqueue:tv:display_points_update": {
+            "count": 362,
+            "mean": 0.19392265193370206,
+            "p50": 0.2,
+            "p95": 0.3,
+            "p99": 0.9,
+            "max": 2.4
+          },
+          "phase:committed_display_points": {
+            "count": 362,
+            "mean": 0.4455801104972378,
+            "p50": 0.4,
+            "p95": 0.7,
+            "p99": 2.1,
+            "max": 3.8
+          },
+          "db_wait:tournaments:display_context_tournament": {
+            "count": 362,
+            "mean": 1.5773480662983386,
+            "p50": 1.2,
+            "p95": 3.9,
+            "p99": 6,
+            "max": 9.2
+          },
+          "db_wait:courts:display_context_court": {
+            "count": 362,
+            "mean": 1.9975138121546978,
+            "p50": 1.5,
+            "p95": 5.4,
+            "p99": 8.5,
+            "max": 9.5
+          },
+          "encoding:admin_broadcast_encode": {
+            "count": 1086,
+            "mean": 0.20653775322283732,
+            "p50": 0.2,
+            "p95": 0.3,
+            "p99": 1.5,
+            "max": 5.3
+          },
+          "send_wait:admin:score": {
+            "count": 3982,
+            "mean": 0.24758915118031138,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "max": 167.6
+          },
+          "send_enqueue:admin:score": {
+            "count": 3982,
+            "mean": 0.017026619789050797,
+            "p50": 0,
+            "p95": 0.1,
+            "p99": 0.2,
+            "max": 3.5
+          },
+          "phase:notify_score_and_display_fanout_start": {
+            "count": 362,
+            "mean": 1.68314917127072,
+            "p50": 1.4,
+            "p95": 2.9,
+            "p99": 5.8,
+            "max": 8.1
+          },
+          "db_run:tournaments:display_context_tournament": {
+            "count": 362,
+            "mean": 0.15469613259668574,
+            "p50": 0.1,
+            "p95": 0.2,
+            "p99": 2.4,
+            "max": 3
+          },
+          "phase:score_change_group_panels": {
+            "count": 362,
+            "mean": 1.9651933701657482,
+            "p50": 1.5,
+            "p95": 4.8,
+            "p99": 7.2,
+            "max": 9.5
+          },
+          "phase:score_change_direct_refreshes": {
+            "count": 362,
+            "mean": 0.03425414364640881,
+            "p50": 0,
+            "p95": 0.1,
+            "p99": 0.3,
+            "max": 2.3
+          },
+          "db_run:courts:display_context_court": {
+            "count": 362,
+            "mean": 0.11906077348066366,
+            "p50": 0.1,
+            "p95": 0.1,
+            "p99": 0.2,
+            "max": 4.6
+          },
+          "db_wait:matches:display_context_match": {
+            "count": 362,
+            "mean": 2.8406077348066305,
+            "p50": 2,
+            "p95": 8,
+            "p99": 13.1,
+            "max": 16.4
+          },
+          "phase:finish_cleanup": {
+            "count": 362,
+            "mean": 0.0008287292817679559,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "max": 0.2
+          },
+          "phase:validate_court_reference": {
+            "count": 362,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "max": 0
+          },
+          "send_wait:admin:court_current_match": {
+            "count": 3982,
+            "mean": 0.22599196383726775,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "max": 164.9
+          },
+          "send_enqueue:admin:court_current_match": {
+            "count": 3982,
+            "mean": 0.026795580110497312,
+            "p50": 0,
+            "p95": 0.1,
+            "p99": 0.2,
+            "max": 8.2
+          },
+          "phase:notify_court_current_match": {
+            "count": 362,
+            "mean": 1.1773480662983424,
+            "p50": 0.8,
+            "p95": 3.8,
+            "p99": 5.9,
+            "max": 11.7
+          },
+          "phase:highlight_update": {
+            "count": 362,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "max": 0
+          },
+          "phase:ticker_update": {
+            "count": 362,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "max": 0
+          },
+          "phase:court_clear_after_finish": {
+            "count": 362,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "max": 0
+          },
+          "phase:auto_preparation": {
+            "count": 362,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "max": 0
+          },
+          "phase:auto_call_free_courts": {
+            "count": 362,
+            "mean": 0.0019337016574585634,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "max": 0.3
+          },
+          "db_wait:display_court_displaysettings:findOne": {
+            "count": 362,
+            "mean": 1.8359116022099442,
+            "p50": 1.2,
+            "p95": 5.3,
+            "p99": 9.9,
+            "max": 13.7
+          },
+          "db_run:matches:display_context_match": {
+            "count": 362,
+            "mean": 0.31160220994475085,
+            "p50": 0.2,
+            "p95": 0.5,
+            "p99": 2.9,
+            "max": 4.6
+          },
+          "phase:score_change_court_panels": {
+            "count": 362,
+            "mean": 3.9903314917127064,
+            "p50": 2.9,
+            "p95": 9.5,
+            "p99": 14.2,
+            "max": 18.1
+          },
+          "db_run:display_court_displaysettings:findOne": {
+            "count": 362,
+            "mean": 0.6466850828729284,
+            "p50": 0.2,
+            "p95": 4.2,
+            "p99": 6.9,
+            "max": 10.4
+          },
+          "send_wait:admin:display_status_changed": {
+            "count": 3982,
+            "mean": 0.17541436464088397,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "max": 162.4
+          },
+          "send_enqueue:admin:display_status_changed": {
+            "count": 3982,
+            "mean": 0.015745856353591228,
+            "p50": 0,
+            "p95": 0.1,
+            "p99": 0.1,
+            "max": 3.4
+          },
+          "phase:device_info_hostname": {
+            "count": 362,
+            "mean": 0.006353591160220994,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0.1,
+            "max": 1.1
+          },
+          "phase:device_info_settings_read": {
+            "count": 362,
+            "mean": 2.648895027624312,
+            "p50": 1.6,
+            "p95": 7.9,
+            "p99": 13.7,
+            "max": 20.4
+          },
+          "phase:device_info_notify": {
+            "count": 362,
+            "mean": 0.6698895027624296,
+            "p50": 0.5,
+            "p95": 1.5,
+            "p99": 3.7,
+            "max": 7.7
+          },
+          "phase:device_info": {
+            "count": 362,
+            "mean": 3.601657458563533,
+            "p50": 2.5,
+            "p95": 9,
+            "p99": 15,
+            "max": 21.4
+          },
+          "send_enqueue:tv:display_timer_update": {
+            "count": 26,
+            "mean": 0.15384615384615388,
+            "p50": 0.1,
+            "p95": 0.3,
+            "p99": 0.9,
+            "max": 0.9
+          }
+        },
+        "failed_traces": [],
+        "validated_persisted_reload": true
+      },
+      "audio_write_ms": [
+        14.985991001594812,
+        30.864637985359877,
+        11.174418963491917,
+        26.295205985661596,
+        27.565260999836028
+      ],
+      "inference_ms": [
+        41537.876137997955
+      ],
+      "worst_admin_receptions": [
+        {
+          "index": 0,
+          "sent": 116905.57019799948,
+          "send_lag_ms": 1.5649070143699646,
+          "tv_ms": 7.400048017501831,
+          "admin_ms": 184.9464830160141
+        },
+        {
+          "index": 1,
+          "sent": 116984.54818999767,
+          "send_lag_ms": 0.6674019694328308,
+          "tv_ms": 61.90037298202515,
+          "admin_ms": 106.50163698196411
+        },
+        {
+          "index": 276,
+          "sent": 138989.62751197815,
+          "send_lag_ms": 5.928308010101318,
+          "tv_ms": 8.566256999969482,
+          "admin_ms": 52.73562902212143
+        },
+        {
+          "index": 144,
+          "sent": 128424.53624302149,
+          "send_lag_ms": 0.73813396692276,
+          "tv_ms": 19.631492972373962,
+          "admin_ms": 47.23567098379135
+        },
+        {
+          "index": 682,
+          "sent": 171466.6077579856,
+          "send_lag_ms": 2.662432014942169,
+          "tv_ms": 38.037477016448975,
+          "admin_ms": 40.15139204263687
+        }
+      ]
+    },
+    {
+      "round": 0,
+      "variant": {
+        "id": "two-threads",
+        "threads": 2,
+        "nice": 0,
+        "generate": true
+      },
+      "fake": false,
+      "pid_settings": {
+        "event": "ready",
+        "ts": 1792869244229.614,
+        "port": 60441,
+        "pid": 1341267,
+        "native_pid": 1341319,
+        "nice": 0,
+        "threads": 2,
+        "fake": false
+      },
+      "fixture_sha256": "21e9ae7bcf5fd973ff8cbeca79146df8d3d4abf826a2248094ff84e76a6c5c3a",
+      "input_sha256": "6d540996d6f3fb821a7dd968b5c4afbfb85ef2c69cf3ae57a26d6c540b1d3483",
+      "total": 750,
+      "wall_start": 1792869246826,
+      "wall_end": 1792869306826,
+      "tv_ms": {
+        "count": 750,
+        "mean": 5.501607003370921,
+        "p50": 4.290500998497009,
+        "p95": 13.286921977996826,
+        "p99": 22.892076015472412,
+        "max": 35.2434019446373
+      },
+      "admin_ms": {
+        "count": 750,
+        "mean": 6.636211891889572,
+        "p50": 4.973152995109558,
+        "p95": 15.124876022338867,
+        "p99": 28.082031965255737,
+        "max": 144.60065698623657
+      },
+      "send_lag_ms": {
+        "count": 750,
+        "mean": 0.2009831661383311,
+        "p50": 0.011904001235961914,
+        "p95": 1.3491730093955994,
+        "p99": 4.514737010002136,
+        "max": 8.873111009597778
+      },
+      "process_resources": {
+        "client": {
+          "available": true,
+          "wall_ms": 60001,
+          "cpu_ms": 4830,
+          "cpu_percent_one_core": 8.049865835569408,
+          "nice": 0,
+          "io": {
+            "rchar": 265166037,
+            "wchar": 10137536,
+            "syscr": 26936,
+            "syscw": 2523,
+            "read_bytes": 0,
+            "write_bytes": 16384,
+            "cancelled_write_bytes": 0
+          }
+        },
+        "bts": {
+          "available": true,
+          "wall_ms": 60001,
+          "cpu_ms": 13540,
+          "cpu_percent_one_core": 22.56629056182397,
+          "nice": 0,
+          "io": {
+            "rchar": 10417301,
+            "wchar": 275462916,
+            "syscr": 5566,
+            "syscw": 36003,
+            "read_bytes": 0,
+            "write_bytes": 10551296,
+            "cancelled_write_bytes": 0
+          }
+        },
+        "api": {
+          "available": true,
+          "wall_ms": 60001,
+          "cpu_ms": 1680,
+          "cpu_percent_one_core": 2.7999533341110983,
+          "nice": 0,
+          "io": {
+            "rchar": 100815521,
+            "wchar": 1808410,
+            "syscr": 4581,
+            "syscw": 376,
+            "read_bytes": 0,
+            "write_bytes": 1433600,
+            "cancelled_write_bytes": 1286144
+          }
+        },
+        "native": {
+          "available": true,
+          "wall_ms": 60001,
+          "cpu_ms": 111940,
+          "cpu_percent_one_core": 186.56355727404542,
+          "nice": 0,
+          "io": {
+            "rchar": 0,
+            "wchar": 1281355,
+            "syscr": 0,
+            "syscw": 190,
+            "read_bytes": 0,
+            "write_bytes": 1282048,
+            "cancelled_write_bytes": 0
+          }
+        },
+        "generator": {
+          "available": true,
+          "wall_ms": 60001,
+          "cpu_ms": 210,
+          "cpu_percent_one_core": 0.3499941667638873,
+          "nice": 0,
+          "io": {
+            "rchar": 1941802,
+            "wchar": 652490,
+            "syscr": 172,
+            "syscw": 141,
+            "read_bytes": 0,
+            "write_bytes": 651264,
+            "cancelled_write_bytes": 0
+          }
+        }
+      },
+      "generation": {
+        "cache_store_ms": [
+          {
+            "elapsed_ms": 80.628611,
+            "completed_at": 1792869305242
+          }
+        ],
+        "completed": 1,
+        "failed": 0,
+        "preparing": 232
+      },
+      "inference_overlap_ms": 58099.24267578125,
+      "server": {
+        "final_state_sha256": "be4ce9360dc0bea8f3581aa0b93ffc81cb4742863c9705e16e4830b1e2da961a",
+        "cpu_ms": {
+          "user": 12637.128,
+          "system": 906.386,
+          "wall": 60002.83241802454
+        },
+        "event_loop_utilization": 0.16622148620911276,
+        "phase_ms": {
+          "phase:admin_tournament_snapshot": {
+            "count": 31,
+            "mean": 15.5,
+            "p50": 12,
+            "p95": 26,
+            "p99": 103.4,
+            "max": 103.4
+          },
+          "send_wait:admin:snapshot": {
+            "count": 31,
+            "mean": 15.490322580645161,
+            "p50": 12,
+            "p95": 26,
+            "p99": 103.5,
+            "max": 103.5
+          },
+          "db_wait:tournaments:admin_tournament_read": {
+            "count": 31,
+            "mean": 1.6548387096774193,
+            "p50": 1.4,
+            "p95": 5.3,
+            "p99": 5.3,
+            "max": 5.3
+          },
+          "db_run:tournaments:admin_tournament_read": {
+            "count": 31,
+            "mean": 0.3483870967741936,
+            "p50": 0.2,
+            "p95": 1.1,
+            "p99": 2.4,
+            "max": 2.4
+          },
+          "db_wait:displaysettings:find": {
+            "count": 31,
+            "mean": 0.5032258064516129,
+            "p50": 0.2,
+            "p95": 2,
+            "p99": 3.8,
+            "max": 3.8
+          },
+          "db_run:displaysettings:find": {
+            "count": 31,
+            "mean": 1.1903225806451614,
+            "p50": 1.4,
+            "p95": 2.9,
+            "p99": 3.7,
+            "max": 3.7
+          },
+          "db_wait:displaysettings:findOne": {
+            "count": 33,
+            "mean": 1.5757575757575755,
+            "p50": 1.5,
+            "p95": 5.7,
+            "p99": 6.5,
+            "max": 6.5
+          },
+          "db_run:displaysettings:findOne": {
+            "count": 33,
+            "mean": 1.312121212121212,
+            "p50": 0.8,
+            "p95": 4.8,
+            "p99": 5.4,
+            "max": 5.4
+          },
+          "db_wait:displaysettings:insert": {
+            "count": 3,
+            "mean": 0.7666666666666667,
+            "p50": 0.1,
+            "p95": 2.2,
+            "p99": 2.2,
+            "max": 2.2
+          },
+          "db_run:displaysettings:insert": {
+            "count": 3,
+            "mean": 1.2,
+            "p50": 0.5,
+            "p95": 2.7,
+            "p99": 2.7,
+            "max": 2.7
+          },
+          "db_wait:tournaments:update": {
+            "count": 1,
+            "mean": 0.1,
+            "p50": 0.1,
+            "p95": 0.1,
+            "p99": 0.1,
+            "max": 0.1
+          },
+          "db_run:tournaments:update": {
+            "count": 1,
+            "mean": 19.7,
+            "p50": 19.7,
+            "p95": 19.7,
+            "p99": 19.7,
+            "max": 19.7
+          },
+          "db_wait:locations:find": {
+            "count": 31,
+            "mean": 2.141935483870968,
+            "p50": 1.3,
+            "p95": 9.6,
+            "p99": 12.1,
+            "max": 12.1
+          },
+          "db_wait:courts:find": {
+            "count": 31,
+            "mean": 2.083870967741935,
+            "p50": 1.3,
+            "p95": 10.5,
+            "p99": 12.1,
+            "max": 12.1
+          },
+          "db_wait:umpires:find": {
+            "count": 31,
+            "mean": 1.9193548387096775,
+            "p50": 1.3,
+            "p95": 9.5,
+            "p99": 12.1,
+            "max": 12.1
+          },
+          "db_wait:tabletoperators:find": {
+            "count": 31,
+            "mean": 1.8999999999999997,
+            "p50": 1.3,
+            "p95": 9.5,
+            "p99": 12,
+            "max": 12
+          },
+          "phase:admin_match_read": {
+            "count": 31,
+            "mean": 3.245161290322581,
+            "p50": 1.8,
+            "p95": 12.7,
+            "p99": 20.2,
+            "max": 20.2
+          },
+          "db_wait:matches:admin_match_overview": {
+            "count": 31,
+            "mean": 2.738709677419355,
+            "p50": 1.3,
+            "p95": 11.7,
+            "p99": 19.6,
+            "max": 19.6
+          },
+          "db_wait:display_court_displaysettings:find": {
+            "count": 31,
+            "mean": 2.7193548387096773,
+            "p50": 1.9,
+            "p95": 9.4,
+            "p99": 12.7,
+            "max": 12.7
+          },
+          "db_wait:normalizations:find": {
+            "count": 31,
+            "mean": 2.035483870967742,
+            "p50": 1.4,
+            "p95": 9.5,
+            "p99": 12.7,
+            "max": 12.7
+          },
+          "db_wait:advertisements:find": {
+            "count": 31,
+            "mean": 2.0193548387096776,
+            "p50": 1.4,
+            "p95": 9.4,
+            "p99": 12.6,
+            "max": 12.6
+          },
+          "db_run:locations:find": {
+            "count": 31,
+            "mean": 1.5709677419354837,
+            "p50": 1.1,
+            "p95": 4.8,
+            "p99": 5.6,
+            "max": 5.6
+          },
+          "db_run:courts:find": {
+            "count": 31,
+            "mean": 1.7225806451612902,
+            "p50": 1.2,
+            "p95": 5.3,
+            "p99": 9.6,
+            "max": 9.6
+          },
+          "db_run:umpires:find": {
+            "count": 31,
+            "mean": 1.7935483870967743,
+            "p50": 1.2,
+            "p95": 5.4,
+            "p99": 9.6,
+            "max": 9.6
+          },
+          "db_run:tabletoperators:find": {
+            "count": 31,
+            "mean": 1.803225806451613,
+            "p50": 1.2,
+            "p95": 5.4,
+            "p99": 9.6,
+            "max": 9.6
+          },
+          "db_run:matches:admin_match_overview": {
+            "count": 31,
+            "mean": 0.532258064516129,
+            "p50": 0.5,
+            "p95": 1,
+            "p99": 1,
+            "max": 1
+          },
+          "phase:admin_match_copy": {
+            "count": 31,
+            "mean": 0.27096774193548384,
+            "p50": 0.3,
+            "p95": 0.4,
+            "p99": 0.6,
+            "max": 0.6
+          },
+          "db_run:display_court_displaysettings:find": {
+            "count": 31,
+            "mean": 1.2741935483870968,
+            "p50": 0.6,
+            "p95": 7.2,
+            "p99": 9.7,
+            "max": 9.7
+          },
+          "db_run:normalizations:find": {
+            "count": 31,
+            "mean": 1.696774193548387,
+            "p50": 0.8,
+            "p95": 8,
+            "p99": 10,
+            "max": 10
+          },
+          "db_run:advertisements:find": {
+            "count": 31,
+            "mean": 2.1548387096774193,
+            "p50": 0.8,
+            "p95": 10,
+            "p99": 22.5,
+            "max": 22.5
+          },
+          "encoding:admin_snapshot_encode": {
+            "count": 31,
+            "mean": 10.819354838709678,
+            "p50": 9.7,
+            "p95": 23.7,
+            "p99": 24.3,
+            "max": 24.3
+          },
+          "send_enqueue:admin:message": {
+            "count": 31,
+            "mean": 1.8645161290322578,
+            "p50": 2,
+            "p95": 2.5,
+            "p99": 2.8,
+            "max": 2.8
+          },
+          "lock_wait:handle_score_update_v2": {
+            "count": 362,
+            "mean": 0.10911602209944812,
+            "p50": 0.1,
+            "p95": 0.1,
+            "p99": 0.2,
+            "max": 3.8
+          },
+          "lock_hold:handle_score_update_v2": {
+            "count": 362,
+            "mean": 10.51629834254144,
+            "p50": 8.4,
+            "p95": 27,
+            "p99": 39.6,
+            "max": 72.5
+          },
+          "phase:owner_check": {
+            "count": 362,
+            "mean": 0.00027624309392265195,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "max": 0.1
+          },
+          "phase:duplicate_check": {
+            "count": 362,
+            "mean": 0.15303867403314986,
+            "p50": 0.2,
+            "p95": 0.2,
+            "p99": 0.2,
+            "max": 0.4
+          },
+          "phase:load_context_match": {
+            "count": 362,
+            "mean": 0.4058011049723762,
+            "p50": 0.4,
+            "p95": 0.6,
+            "p99": 0.8,
+            "max": 4.3
+          },
+          "phase:load_context_tournament": {
+            "count": 362,
+            "mean": 0.2259668508287295,
+            "p50": 0.2,
+            "p95": 0.4,
+            "p99": 0.7,
+            "max": 4.2
+          },
+          "phase:load_context_court": {
+            "count": 362,
+            "mean": 0.18232044198895048,
+            "p50": 0.2,
+            "p95": 0.3,
+            "p99": 0.4,
+            "max": 2.2
+          },
+          "phase:load_context": {
+            "count": 362,
+            "mean": 0.5232044198895013,
+            "p50": 0.5,
+            "p95": 0.8,
+            "p99": 1,
+            "max": 4.6
+          },
+          "phase:validate": {
+            "count": 362,
+            "mean": 0.2875690607734804,
+            "p50": 0.3,
+            "p95": 0.4,
+            "p99": 0.5,
+            "max": 2.2
+          },
+          "phase:build_update": {
+            "count": 362,
+            "mean": 0.041160220994475034,
+            "p50": 0,
+            "p95": 0.1,
+            "p99": 0.1,
+            "max": 0.2
+          },
+          "db_wait:matches:score_update_write": {
+            "count": 362,
+            "mean": 0.44806629834254175,
+            "p50": 0.1,
+            "p95": 2.1,
+            "p99": 12.5,
+            "max": 20.5
+          },
+          "db_run:matches:score_update_write": {
+            "count": 362,
+            "mean": 4.0295580110497236,
+            "p50": 2.9,
+            "p95": 11.8,
+            "p99": 23.8,
+            "max": 29.6
+          },
+          "storage_wait_ms": {
+            "count": 362,
+            "mean": 1.1814917127071822,
+            "p50": 0.4,
+            "p95": 5.7,
+            "p99": 12.2,
+            "max": 26.4
+          },
+          "serialization_ms": {
+            "count": 362,
+            "mean": 0.4027624309392274,
+            "p50": 0.4,
+            "p95": 0.5,
+            "p99": 3.4,
+            "max": 7.5
+          },
+          "callback_ms": {
+            "count": 362,
+            "mean": 1.5162983425414382,
+            "p50": 1.4,
+            "p95": 2.4,
+            "p99": 6.2,
+            "max": 8
+          },
+          "phase:db_update_match": {
+            "count": 362,
+            "mean": 2.972651933701656,
+            "p50": 1.6,
+            "p95": 10.8,
+            "p99": 21.3,
+            "max": 28.1
+          },
+          "send_enqueue:tv:display_points_update": {
+            "count": 362,
+            "mean": 0.15220994475138178,
+            "p50": 0.1,
+            "p95": 0.2,
+            "p99": 0.6,
+            "max": 3.7
+          },
+          "phase:committed_display_points": {
+            "count": 362,
+            "mean": 0.35828729281767985,
+            "p50": 0.3,
+            "p95": 0.6,
+            "p99": 0.9,
+            "max": 4.2
+          },
+          "db_wait:tournaments:display_context_tournament": {
+            "count": 362,
+            "mean": 1.2522099447513804,
+            "p50": 1,
+            "p95": 2.5,
+            "p99": 7.5,
+            "max": 14.2
+          },
+          "db_wait:courts:display_context_court": {
+            "count": 362,
+            "mean": 1.518508287292816,
+            "p50": 1.2,
+            "p95": 3.2,
+            "p99": 8.1,
+            "max": 14.4
+          },
+          "encoding:admin_broadcast_encode": {
+            "count": 1086,
+            "mean": 0.17421731123388662,
+            "p50": 0.2,
+            "p95": 0.3,
+            "p99": 1.4,
+            "max": 6.3
+          },
+          "send_wait:admin:score": {
+            "count": 3982,
+            "mean": 0.19105976896032148,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "max": 125
+          },
+          "send_enqueue:admin:score": {
+            "count": 3982,
+            "mean": 0.010396785534907083,
+            "p50": 0,
+            "p95": 0.1,
+            "p99": 0.1,
+            "max": 4.9
+          },
+          "phase:notify_score_and_display_fanout_start": {
+            "count": 362,
+            "mean": 1.354143646408838,
+            "p50": 1.2,
+            "p95": 2.1,
+            "p99": 6,
+            "max": 7.7
+          },
+          "db_run:tournaments:display_context_tournament": {
+            "count": 362,
+            "mean": 0.106906077348067,
+            "p50": 0.1,
+            "p95": 0.2,
+            "p99": 0.2,
+            "max": 1
+          },
+          "phase:score_change_group_panels": {
+            "count": 362,
+            "mean": 1.5149171270718222,
+            "p50": 1.2,
+            "p95": 2.8,
+            "p99": 8,
+            "max": 14.4
+          },
+          "phase:score_change_direct_refreshes": {
+            "count": 362,
+            "mean": 0.016022099447513816,
+            "p50": 0,
+            "p95": 0.1,
+            "p99": 0.1,
+            "max": 3.4
+          },
+          "db_run:courts:display_context_court": {
+            "count": 362,
+            "mean": 0.08895027624309422,
+            "p50": 0.1,
+            "p95": 0.1,
+            "p99": 0.2,
+            "max": 3.2
+          },
+          "db_wait:matches:display_context_match": {
+            "count": 362,
+            "mean": 2.1312154696132595,
+            "p50": 1.5,
+            "p95": 5.9,
+            "p99": 10,
+            "max": 41.3
+          },
+          "phase:finish_cleanup": {
+            "count": 362,
+            "mean": 0.006077348066298343,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "max": 2.2
+          },
+          "phase:validate_court_reference": {
+            "count": 362,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "max": 0
+          },
+          "send_wait:admin:court_current_match": {
+            "count": 3982,
+            "mean": 0.17132094424912103,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "max": 123.4
+          },
+          "send_enqueue:admin:court_current_match": {
+            "count": 3982,
+            "mean": 0.013535911602209955,
+            "p50": 0,
+            "p95": 0.1,
+            "p99": 0.1,
+            "max": 6.5
+          },
+          "phase:notify_court_current_match": {
+            "count": 362,
+            "mean": 0.8897790055248638,
+            "p50": 0.7,
+            "p95": 2.7,
+            "p99": 5.2,
+            "max": 7.7
+          },
+          "phase:highlight_update": {
+            "count": 362,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "max": 0
+          },
+          "phase:ticker_update": {
+            "count": 362,
+            "mean": 0.0013812154696132596,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "max": 0.5
+          },
+          "phase:court_clear_after_finish": {
+            "count": 362,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "max": 0
+          },
+          "phase:auto_preparation": {
+            "count": 362,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "max": 0
+          },
+          "phase:auto_call_free_courts": {
+            "count": 362,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "max": 0
+          },
+          "db_wait:display_court_displaysettings:findOne": {
+            "count": 362,
+            "mean": 1.3541436464088392,
+            "p50": 1,
+            "p95": 3.6,
+            "p99": 8.2,
+            "max": 36.2
+          },
+          "db_run:matches:display_context_match": {
+            "count": 362,
+            "mean": 0.2116022099447516,
+            "p50": 0.2,
+            "p95": 0.3,
+            "p99": 0.7,
+            "max": 3
+          },
+          "phase:score_change_court_panels": {
+            "count": 362,
+            "mean": 2.9339779005524846,
+            "p50": 2.3,
+            "p95": 6.9,
+            "p99": 11.1,
+            "max": 45.1
+          },
+          "db_run:display_court_displaysettings:findOne": {
+            "count": 362,
+            "mean": 0.431767955801105,
+            "p50": 0.2,
+            "p95": 1.6,
+            "p99": 4.8,
+            "max": 14.6
+          },
+          "send_wait:admin:display_status_changed": {
+            "count": 3982,
+            "mean": 0.13184329482672022,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "max": 121.7
+          },
+          "send_enqueue:admin:display_status_changed": {
+            "count": 3982,
+            "mean": 0.006278252134605726,
+            "p50": 0,
+            "p95": 0.1,
+            "p99": 0.1,
+            "max": 1.9
+          },
+          "phase:device_info_hostname": {
+            "count": 362,
+            "mean": 0.027624309392265192,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0.1,
+            "max": 8.6
+          },
+          "phase:device_info_settings_read": {
+            "count": 362,
+            "mean": 1.9132596685082885,
+            "p50": 1.3,
+            "p95": 5.6,
+            "p99": 9.1,
+            "max": 36.6
+          },
+          "phase:device_info_notify": {
+            "count": 362,
+            "mean": 0.4712707182320431,
+            "p50": 0.4,
+            "p95": 0.7,
+            "p99": 1,
+            "max": 3.8
+          },
+          "phase:device_info": {
+            "count": 362,
+            "mean": 2.608563535911603,
+            "p50": 2,
+            "p95": 6.5,
+            "p99": 10.4,
+            "max": 37.6
+          },
+          "send_enqueue:tv:display_timer_update": {
+            "count": 26,
+            "mean": 0.07692307692307694,
+            "p50": 0.1,
+            "p95": 0.1,
+            "p99": 0.1,
+            "max": 0.1
+          }
+        },
+        "failed_traces": [],
+        "validated_persisted_reload": true
+      },
+      "audio_write_ms": [
+        38.959592988248914
+      ],
+      "inference_ms": [
+        58107.96847898746
+      ],
+      "worst_admin_receptions": [
+        {
+          "index": 0,
+          "sent": 214540.07065200806,
+          "send_lag_ms": 1.53199303150177,
+          "tv_ms": 9.513092994689941,
+          "admin_ms": 144.60065698623657
+        },
+        {
+          "index": 1,
+          "sent": 214618.59111398458,
+          "send_lag_ms": 0.2451300024986267,
+          "tv_ms": 31.89316999912262,
+          "admin_ms": 66.427561044693
+        },
+        {
+          "index": 276,
+          "sent": 236620.42529201508,
+          "send_lag_ms": 5.8008100390434265,
+          "tv_ms": 22.452125012874603,
+          "admin_ms": 58.22155600786209
+        },
+        {
+          "index": 420,
+          "sent": 248138.02114999294,
+          "send_lag_ms": -0.41933900117874146,
+          "tv_ms": 6.2354090213775635,
+          "admin_ms": 39.288663029670715
+        },
+        {
+          "index": 269,
+          "sent": 236058.07623302937,
+          "send_lag_ms": -0.24806296825408936,
+          "tv_ms": 35.2434019446373,
+          "admin_ms": 36.0941059589386
+        }
+      ]
+    },
+    {
+      "round": 0,
+      "variant": {
+        "id": "low-priority",
+        "threads": 4,
+        "nice": 10,
+        "generate": true
+      },
+      "fake": false,
+      "pid_settings": {
+        "event": "ready",
+        "ts": 1792869335897.509,
+        "port": 52227,
+        "pid": 1342226,
+        "native_pid": 1342239,
+        "nice": 10,
+        "threads": 4,
+        "fake": false
+      },
+      "fixture_sha256": "21e9ae7bcf5fd973ff8cbeca79146df8d3d4abf826a2248094ff84e76a6c5c3a",
+      "input_sha256": "6d540996d6f3fb821a7dd968b5c4afbfb85ef2c69cf3ae57a26d6c540b1d3483",
+      "total": 750,
+      "wall_start": 1792869338257,
+      "wall_end": 1792869398257,
+      "tv_ms": {
+        "count": 750,
+        "mean": 6.544911551316579,
+        "p50": 5.540853977203369,
+        "p95": 13.201259970664978,
+        "p99": 21.125923991203308,
+        "max": 43.13532596826553
+      },
+      "admin_ms": {
+        "count": 750,
+        "mean": 7.778191339095433,
+        "p50": 6.352087020874023,
+        "p95": 14.723555982112885,
+        "p99": 27.299264013767242,
+        "max": 153.85305899381638
+      },
+      "send_lag_ms": {
+        "count": 750,
+        "mean": 0.4714270626703898,
+        "p50": 0.21515405178070068,
+        "p95": 2.7514920234680176,
+        "p99": 4.069952011108398,
+        "max": 7.658410012722015
+      },
+      "process_resources": {
+        "client": {
+          "available": true,
+          "wall_ms": 60001,
+          "cpu_ms": 5240,
+          "cpu_percent_one_core": 8.733187780203663,
+          "nice": 0,
+          "io": {
+            "rchar": 265158356,
+            "wchar": 10138228,
+            "syscr": 26669,
+            "syscw": 2609,
+            "read_bytes": 0,
+            "write_bytes": 16384,
+            "cancelled_write_bytes": 0
+          }
+        },
+        "bts": {
+          "available": true,
+          "wall_ms": 60002,
+          "cpu_ms": 14310,
+          "cpu_percent_one_core": 23.849205026499117,
+          "nice": 0,
+          "io": {
+            "rchar": 10412788,
+            "wchar": 275449970,
+            "syscr": 5001,
+            "syscw": 35418,
+            "read_bytes": 0,
+            "write_bytes": 10551296,
+            "cancelled_write_bytes": 0
+          }
+        },
+        "api": {
+          "available": true,
+          "wall_ms": 60002,
+          "cpu_ms": 2270,
+          "cpu_percent_one_core": 3.7832072264257857,
+          "nice": 10,
+          "io": {
+            "rchar": 104430176,
+            "wchar": 3670887,
+            "syscr": 5921,
+            "syscw": 950,
+            "read_bytes": 0,
+            "write_bytes": 2084864,
+            "cancelled_write_bytes": 1286144
+          }
+        },
+        "native": {
+          "available": true,
+          "wall_ms": 60002,
+          "cpu_ms": 193790,
+          "cpu_percent_one_core": 322.9725675810806,
+          "nice": 10,
+          "io": {
+            "rchar": 497,
+            "wchar": 1285145,
+            "syscr": 1,
+            "syscw": 266,
+            "read_bytes": 0,
+            "write_bytes": 1282048,
+            "cancelled_write_bytes": 0
+          }
+        },
+        "generator": {
+          "available": true,
+          "wall_ms": 60002,
+          "cpu_ms": 260,
+          "cpu_percent_one_core": 0.43331888937035434,
+          "nice": 0,
+          "io": {
+            "rchar": 2504129,
+            "wchar": 857932,
+            "syscr": 260,
+            "syscw": 229,
+            "read_bytes": 0,
+            "write_bytes": 864256,
+            "cancelled_write_bytes": 0
+          }
+        }
+      },
+      "generation": {
+        "cache_store_ms": [
+          {
+            "elapsed_ms": 70.595474,
+            "completed_at": 1792869384592
+          },
+          {
+            "elapsed_ms": 62.136068,
+            "completed_at": 1792869388941
+          },
+          {
+            "elapsed_ms": 89.945595,
+            "completed_at": 1792869391295
+          }
+        ],
+        "completed": 3,
+        "failed": 0,
+        "preparing": 230
+      },
+      "inference_overlap_ms": 53005.7265625,
+      "server": {
+        "final_state_sha256": "be4ce9360dc0bea8f3581aa0b93ffc81cb4742863c9705e16e4830b1e2da961a",
+        "cpu_ms": {
+          "user": 13363.481,
+          "system": 947.161,
+          "wall": 60003.689283013344
+        },
+        "event_loop_utilization": 0.1989029887523105,
+        "phase_ms": {
+          "phase:admin_tournament_snapshot": {
+            "count": 31,
+            "mean": 18.096774193548388,
+            "p50": 13.7,
+            "p95": 33.4,
+            "p99": 115.9,
+            "max": 115.9
+          },
+          "send_wait:admin:snapshot": {
+            "count": 31,
+            "mean": 18.093548387096774,
+            "p50": 13.7,
+            "p95": 33.4,
+            "p99": 116,
+            "max": 116
+          },
+          "db_wait:tournaments:admin_tournament_read": {
+            "count": 31,
+            "mean": 1.5225806451612904,
+            "p50": 1.5,
+            "p95": 2.6,
+            "p99": 3,
+            "max": 3
+          },
+          "db_run:tournaments:admin_tournament_read": {
+            "count": 31,
+            "mean": 0.2903225806451613,
+            "p50": 0.2,
+            "p95": 0.8,
+            "p99": 1.2,
+            "max": 1.2
+          },
+          "db_wait:displaysettings:find": {
+            "count": 31,
+            "mean": 0.9032258064516129,
+            "p50": 0.3,
+            "p95": 4.3,
+            "p99": 5.1,
+            "max": 5.1
+          },
+          "db_run:displaysettings:find": {
+            "count": 31,
+            "mean": 0.8870967741935484,
+            "p50": 0.3,
+            "p95": 3.3,
+            "p99": 3.9,
+            "max": 3.9
+          },
+          "db_wait:displaysettings:findOne": {
+            "count": 33,
+            "mean": 0.8939393939393939,
+            "p50": 0.1,
+            "p95": 3.1,
+            "p99": 3.4,
+            "max": 3.4
+          },
+          "db_run:displaysettings:findOne": {
+            "count": 33,
+            "mean": 2.1666666666666665,
+            "p50": 0.8,
+            "p95": 7.9,
+            "p99": 8,
+            "max": 8
+          },
+          "db_wait:displaysettings:insert": {
+            "count": 3,
+            "mean": 0.26666666666666666,
+            "p50": 0,
+            "p95": 0.8,
+            "p99": 0.8,
+            "max": 0.8
+          },
+          "db_run:displaysettings:insert": {
+            "count": 3,
+            "mean": 0.4666666666666666,
+            "p50": 0.4,
+            "p95": 0.7,
+            "p99": 0.7,
+            "max": 0.7
+          },
+          "db_wait:tournaments:update": {
+            "count": 1,
+            "mean": 0.1,
+            "p50": 0.1,
+            "p95": 0.1,
+            "p99": 0.1,
+            "max": 0.1
+          },
+          "db_run:tournaments:update": {
+            "count": 1,
+            "mean": 22.1,
+            "p50": 22.1,
+            "p95": 22.1,
+            "p99": 22.1,
+            "max": 22.1
+          },
+          "db_wait:locations:find": {
+            "count": 31,
+            "mean": 2.3935483870967738,
+            "p50": 1.3,
+            "p95": 15.5,
+            "p99": 17.6,
+            "max": 17.6
+          },
+          "db_wait:courts:find": {
+            "count": 31,
+            "mean": 2.1548387096774193,
+            "p50": 0.9,
+            "p95": 15.5,
+            "p99": 17.5,
+            "max": 17.5
+          },
+          "db_wait:umpires:find": {
+            "count": 31,
+            "mean": 2.512903225806452,
+            "p50": 1.3,
+            "p95": 15.5,
+            "p99": 17.4,
+            "max": 17.4
+          },
+          "db_wait:tabletoperators:find": {
+            "count": 31,
+            "mean": 2.480645161290323,
+            "p50": 1.2,
+            "p95": 15.5,
+            "p99": 17.3,
+            "max": 17.3
+          },
+          "phase:admin_match_read": {
+            "count": 31,
+            "mean": 5.096774193548387,
+            "p50": 2.6,
+            "p95": 18.7,
+            "p99": 24.6,
+            "max": 24.6
+          },
+          "db_wait:matches:admin_match_overview": {
+            "count": 31,
+            "mean": 4.32258064516129,
+            "p50": 1.9,
+            "p95": 17,
+            "p99": 23.8,
+            "max": 23.8
+          },
+          "db_wait:display_court_displaysettings:find": {
+            "count": 31,
+            "mean": 3.4451612903225803,
+            "p50": 2.4,
+            "p95": 16.4,
+            "p99": 18.7,
+            "max": 18.7
+          },
+          "db_wait:normalizations:find": {
+            "count": 31,
+            "mean": 2.3193548387096774,
+            "p50": 1.3,
+            "p95": 12.6,
+            "p99": 18.7,
+            "max": 18.7
+          },
+          "db_wait:advertisements:find": {
+            "count": 31,
+            "mean": 2.3193548387096774,
+            "p50": 1.3,
+            "p95": 12.6,
+            "p99": 18.6,
+            "max": 18.6
+          },
+          "db_run:locations:find": {
+            "count": 31,
+            "mean": 2.6032258064516127,
+            "p50": 1.6,
+            "p95": 8.8,
+            "p99": 10.8,
+            "max": 10.8
+          },
+          "db_run:courts:find": {
+            "count": 31,
+            "mean": 2.5741935483870964,
+            "p50": 1.6,
+            "p95": 8.8,
+            "p99": 11.1,
+            "max": 11.1
+          },
+          "db_run:umpires:find": {
+            "count": 31,
+            "mean": 2.5774193548387094,
+            "p50": 1.7,
+            "p95": 8.8,
+            "p99": 11.1,
+            "max": 11.1
+          },
+          "db_run:tabletoperators:find": {
+            "count": 31,
+            "mean": 2.593548387096774,
+            "p50": 1.7,
+            "p95": 8.9,
+            "p99": 11.2,
+            "max": 11.2
+          },
+          "db_run:matches:admin_match_overview": {
+            "count": 31,
+            "mean": 0.8903225806451615,
+            "p50": 0.7,
+            "p95": 2.8,
+            "p99": 3.6,
+            "max": 3.6
+          },
+          "phase:admin_match_copy": {
+            "count": 31,
+            "mean": 0.4129032258064516,
+            "p50": 0.3,
+            "p95": 1,
+            "p99": 2.3,
+            "max": 2.3
+          },
+          "db_run:display_court_displaysettings:find": {
+            "count": 31,
+            "mean": 1.667741935483871,
+            "p50": 0.6,
+            "p95": 9,
+            "p99": 11.3,
+            "max": 11.3
+          },
+          "db_run:normalizations:find": {
+            "count": 31,
+            "mean": 2.703225806451613,
+            "p50": 1.7,
+            "p95": 9.6,
+            "p99": 12,
+            "max": 12
+          },
+          "db_run:advertisements:find": {
+            "count": 31,
+            "mean": 3.2580645161290325,
+            "p50": 1.7,
+            "p95": 12.3,
+            "p99": 25.5,
+            "max": 25.5
+          },
+          "encoding:admin_snapshot_encode": {
+            "count": 31,
+            "mean": 16.590322580645164,
+            "p50": 14.3,
+            "p95": 30.8,
+            "p99": 51.7,
+            "max": 51.7
+          },
+          "send_enqueue:admin:message": {
+            "count": 31,
+            "mean": 3.003225806451612,
+            "p50": 2.3,
+            "p95": 8.8,
+            "p99": 9.3,
+            "max": 9.3
+          },
+          "lock_wait:handle_score_update_v2": {
+            "count": 362,
+            "mean": 0.13121546961326028,
+            "p50": 0.1,
+            "p95": 0.2,
+            "p99": 0.6,
+            "max": 0.8
+          },
+          "lock_hold:handle_score_update_v2": {
+            "count": 362,
+            "mean": 13.29254143646409,
+            "p50": 11.3,
+            "p95": 24.8,
+            "p99": 32.3,
+            "max": 75.8
+          },
+          "phase:owner_check": {
+            "count": 362,
+            "mean": 0.00027624309392265195,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "max": 0.1
+          },
+          "phase:duplicate_check": {
+            "count": 362,
+            "mean": 0.22707182320442096,
+            "p50": 0.2,
+            "p95": 0.2,
+            "p99": 1.2,
+            "max": 7.4
+          },
+          "phase:load_context_match": {
+            "count": 362,
+            "mean": 0.479558011049723,
+            "p50": 0.4,
+            "p95": 0.8,
+            "p99": 1.1,
+            "max": 1.2
+          },
+          "phase:load_context_tournament": {
+            "count": 362,
+            "mean": 0.272375690607735,
+            "p50": 0.2,
+            "p95": 0.5,
+            "p99": 0.6,
+            "max": 3.2
+          },
+          "phase:load_context_court": {
+            "count": 362,
+            "mean": 0.2372928176795585,
+            "p50": 0.2,
+            "p95": 0.4,
+            "p99": 0.6,
+            "max": 3.5
+          },
+          "phase:load_context": {
+            "count": 362,
+            "mean": 0.6538674033149157,
+            "p50": 0.6,
+            "p95": 1.1,
+            "p99": 1.5,
+            "max": 4.2
+          },
+          "phase:validate": {
+            "count": 362,
+            "mean": 0.36132596685082946,
+            "p50": 0.3,
+            "p95": 0.5,
+            "p99": 1.5,
+            "max": 3.6
+          },
+          "phase:build_update": {
+            "count": 362,
+            "mean": 0.07569060773480682,
+            "p50": 0.1,
+            "p95": 0.1,
+            "p99": 0.2,
+            "max": 1.6
+          },
+          "db_wait:matches:score_update_write": {
+            "count": 362,
+            "mean": 0.5182320441988952,
+            "p50": 0.1,
+            "p95": 2.6,
+            "p99": 9.6,
+            "max": 22.3
+          },
+          "db_run:matches:score_update_write": {
+            "count": 362,
+            "mean": 4.673204419889504,
+            "p50": 3.7,
+            "p95": 10.3,
+            "p99": 14.2,
+            "max": 22.1
+          },
+          "storage_wait_ms": {
+            "count": 362,
+            "mean": 1.0519337016574581,
+            "p50": 0.5,
+            "p95": 4,
+            "p99": 7.8,
+            "max": 14.3
+          },
+          "serialization_ms": {
+            "count": 362,
+            "mean": 0.48977900552486275,
+            "p50": 0.4,
+            "p95": 0.7,
+            "p99": 3.5,
+            "max": 5.4
+          },
+          "callback_ms": {
+            "count": 362,
+            "mean": 2.0533149171270706,
+            "p50": 1.7,
+            "p95": 4.3,
+            "p99": 7.2,
+            "max": 9.5
+          },
+          "phase:db_update_match": {
+            "count": 362,
+            "mean": 3.213535911602211,
+            "p50": 2.1,
+            "p95": 9,
+            "p99": 14.5,
+            "max": 23.4
+          },
+          "send_enqueue:tv:display_points_update": {
+            "count": 362,
+            "mean": 0.20552486187845298,
+            "p50": 0.2,
+            "p95": 0.5,
+            "p99": 0.8,
+            "max": 3
+          },
+          "phase:committed_display_points": {
+            "count": 362,
+            "mean": 0.450828729281768,
+            "p50": 0.4,
+            "p95": 0.9,
+            "p99": 1.5,
+            "max": 3.3
+          },
+          "db_wait:tournaments:display_context_tournament": {
+            "count": 362,
+            "mean": 1.7361878453038668,
+            "p50": 1.2,
+            "p95": 4.7,
+            "p99": 7.6,
+            "max": 22.2
+          },
+          "db_wait:courts:display_context_court": {
+            "count": 362,
+            "mean": 2.180662983425416,
+            "p50": 1.5,
+            "p95": 5.7,
+            "p99": 8.9,
+            "max": 22.5
+          },
+          "encoding:admin_broadcast_encode": {
+            "count": 1086,
+            "mean": 0.2122467771639055,
+            "p50": 0.2,
+            "p95": 0.4,
+            "p99": 2.4,
+            "max": 4.6
+          },
+          "send_wait:admin:score": {
+            "count": 3982,
+            "mean": 0.26217980914113515,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "max": 138.7
+          },
+          "send_enqueue:admin:score": {
+            "count": 3982,
+            "mean": 0.028453038674033256,
+            "p50": 0,
+            "p95": 0.1,
+            "p99": 0.4,
+            "max": 5.5
+          },
+          "phase:notify_score_and_display_fanout_start": {
+            "count": 362,
+            "mean": 1.8284530386740347,
+            "p50": 1.5,
+            "p95": 4,
+            "p99": 6.2,
+            "max": 9.2
+          },
+          "db_run:tournaments:display_context_tournament": {
+            "count": 362,
+            "mean": 0.181491712707183,
+            "p50": 0.1,
+            "p95": 0.2,
+            "p99": 3,
+            "max": 3.6
+          },
+          "phase:score_change_group_panels": {
+            "count": 362,
+            "mean": 2.1193370165745873,
+            "p50": 1.5,
+            "p95": 5.6,
+            "p99": 7.9,
+            "max": 22.5
+          },
+          "phase:score_change_direct_refreshes": {
+            "count": 362,
+            "mean": 0.03425414364640882,
+            "p50": 0,
+            "p95": 0.1,
+            "p99": 0.9,
+            "max": 2.1
+          },
+          "db_run:courts:display_context_court": {
+            "count": 362,
+            "mean": 0.10773480662983484,
+            "p50": 0.1,
+            "p95": 0.2,
+            "p99": 0.3,
+            "max": 2.4
+          },
+          "db_wait:matches:display_context_match": {
+            "count": 362,
+            "mean": 2.8359116022099444,
+            "p50": 2,
+            "p95": 7.1,
+            "p99": 11.3,
+            "max": 37.9
+          },
+          "phase:finish_cleanup": {
+            "count": 362,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "max": 0
+          },
+          "phase:validate_court_reference": {
+            "count": 362,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "max": 0
+          },
+          "send_wait:admin:court_current_match": {
+            "count": 3982,
+            "mean": 0.23420391762933201,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "max": 136.8
+          },
+          "send_enqueue:admin:court_current_match": {
+            "count": 3982,
+            "mean": 0.023129080863887545,
+            "p50": 0,
+            "p95": 0.1,
+            "p99": 0.3,
+            "max": 6.8
+          },
+          "phase:notify_court_current_match": {
+            "count": 362,
+            "mean": 1.141160220994476,
+            "p50": 0.8,
+            "p95": 3.5,
+            "p99": 5.1,
+            "max": 7.7
+          },
+          "phase:highlight_update": {
+            "count": 362,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "max": 0
+          },
+          "phase:ticker_update": {
+            "count": 362,
+            "mean": 0.00027624309392265195,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "max": 0.1
+          },
+          "phase:court_clear_after_finish": {
+            "count": 362,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "max": 0
+          },
+          "phase:auto_preparation": {
+            "count": 362,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "max": 0
+          },
+          "phase:auto_call_free_courts": {
+            "count": 362,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "max": 0
+          },
+          "db_wait:display_court_displaysettings:findOne": {
+            "count": 362,
+            "mean": 1.8124309392265185,
+            "p50": 1.2,
+            "p95": 4.9,
+            "p99": 10,
+            "max": 36.8
+          },
+          "db_run:matches:display_context_match": {
+            "count": 362,
+            "mean": 0.2759668508287291,
+            "p50": 0.2,
+            "p95": 0.4,
+            "p99": 1.8,
+            "max": 4.4
+          },
+          "phase:score_change_court_panels": {
+            "count": 362,
+            "mean": 3.9378453038674057,
+            "p50": 3,
+            "p95": 8.9,
+            "p99": 12.2,
+            "max": 49
+          },
+          "db_run:display_court_displaysettings:findOne": {
+            "count": 362,
+            "mean": 0.6132596685082875,
+            "p50": 0.2,
+            "p95": 4,
+            "p99": 7.7,
+            "max": 9.9
+          },
+          "send_wait:admin:display_status_changed": {
+            "count": 3982,
+            "mean": 0.1857106981416374,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "max": 135.1
+          },
+          "send_enqueue:admin:display_status_changed": {
+            "count": 3982,
+            "mean": 0.018533400301356168,
+            "p50": 0,
+            "p95": 0.1,
+            "p99": 0.2,
+            "max": 3.2
+          },
+          "phase:device_info_hostname": {
+            "count": 362,
+            "mean": 0.002486187845303867,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0.1,
+            "max": 0.1
+          },
+          "phase:device_info_settings_read": {
+            "count": 362,
+            "mean": 2.5917127071823205,
+            "p50": 1.6,
+            "p95": 7.9,
+            "p99": 13.9,
+            "max": 39
+          },
+          "phase:device_info_notify": {
+            "count": 362,
+            "mean": 0.6491712707182301,
+            "p50": 0.5,
+            "p95": 1.7,
+            "p99": 3.5,
+            "max": 3.8
+          },
+          "phase:device_info": {
+            "count": 362,
+            "mean": 3.529558011049726,
+            "p50": 2.4,
+            "p95": 8.9,
+            "p99": 14.8,
+            "max": 39.7
+          },
+          "send_enqueue:tv:display_timer_update": {
+            "count": 26,
+            "mean": 0.13461538461538464,
+            "p50": 0.1,
+            "p95": 0.4,
+            "p99": 0.4,
+            "max": 0.4
+          }
+        },
+        "failed_traces": [],
+        "validated_persisted_reload": true
+      },
+      "audio_write_ms": [
+        16.726416011806577,
+        27.781041048001498,
+        10.00585500150919,
+        10.59283601352945,
+        23.521355993580073
+      ],
+      "inference_ms": [
+        46216.659262019675
+      ],
+      "worst_admin_receptions": [
+        {
+          "index": 0,
+          "sent": 305970.8006849885,
+          "send_lag_ms": 1.4673140048980713,
+          "tv_ms": 7.825694024562836,
+          "admin_ms": 153.85305899381638
+        },
+        {
+          "index": 1,
+          "sent": 306049.42810600996,
+          "send_lag_ms": 0.16292202472686768,
+          "tv_ms": 43.13532596826553,
+          "admin_ms": 76.15976399183273
+        },
+        {
+          "index": 144,
+          "sent": 317489.30438899994,
+          "send_lag_ms": 0.24675202369689941,
+          "tv_ms": 13.73904800415039,
+          "admin_ms": 52.431358993053436
+        },
+        {
+          "index": 552,
+          "sent": 350129.51360702515,
+          "send_lag_ms": 0.5891700387001038,
+          "tv_ms": 14.30946797132492,
+          "admin_ms": 43.9510959982872
+        },
+        {
+          "index": 12,
+          "sent": 306929.9134169817,
+          "send_lag_ms": 3.974091053009033,
+          "tv_ms": 8.020898997783661,
+          "admin_ms": 43.49486702680588
+        }
+      ]
+    },
+    {
+      "round": 1,
+      "variant": {
+        "id": "low-priority",
+        "threads": 4,
+        "nice": 10,
+        "generate": true
+      },
+      "fake": false,
+      "pid_settings": {
+        "event": "ready",
+        "ts": 1792869427660.7605,
+        "port": 59013,
+        "pid": 1343081,
+        "native_pid": 1343101,
+        "nice": 10,
+        "threads": 4,
+        "fake": false
+      },
+      "fixture_sha256": "21e9ae7bcf5fd973ff8cbeca79146df8d3d4abf826a2248094ff84e76a6c5c3a",
+      "input_sha256": "6d540996d6f3fb821a7dd968b5c4afbfb85ef2c69cf3ae57a26d6c540b1d3483",
+      "total": 750,
+      "wall_start": 1792869430055,
+      "wall_end": 1792869490056,
+      "tv_ms": {
+        "count": 750,
+        "mean": 6.698316066900889,
+        "p50": 5.510564982891083,
+        "p95": 14.240482985973358,
+        "p99": 21.476597011089325,
+        "max": 43.52330803871155
+      },
+      "admin_ms": {
+        "count": 750,
+        "mean": 8.067315547943116,
+        "p50": 6.453987956047058,
+        "p95": 15.889786005020142,
+        "p99": 31.375992000102997,
+        "max": 156.08254301548004
+      },
+      "send_lag_ms": {
+        "count": 750,
+        "mean": 0.5888622325261433,
+        "p50": 0.25430095195770264,
+        "p95": 3.155938982963562,
+        "p99": 5.244301974773407,
+        "max": 9.42068499326706
+      },
+      "process_resources": {
+        "client": {
+          "available": true,
+          "wall_ms": 60002,
+          "cpu_ms": 5360,
+          "cpu_percent_one_core": 8.93303556548115,
+          "nice": 0,
+          "io": {
+            "rchar": 265167955,
+            "wchar": 10138132,
+            "syscr": 26328,
+            "syscw": 2597,
+            "read_bytes": 0,
+            "write_bytes": 16384,
+            "cancelled_write_bytes": 0
+          }
+        },
+        "bts": {
+          "available": true,
+          "wall_ms": 60002,
+          "cpu_ms": 14400,
+          "cpu_percent_one_core": 23.99920002666578,
+          "nice": 0,
+          "io": {
+            "rchar": 10412125,
+            "wchar": 275457722,
+            "syscr": 4902,
+            "syscw": 35338,
+            "read_bytes": 0,
+            "write_bytes": 10551296,
+            "cancelled_write_bytes": 0
+          }
+        },
+        "api": {
+          "available": true,
+          "wall_ms": 60002,
+          "cpu_ms": 2280,
+          "cpu_percent_one_core": 3.799873337555415,
+          "nice": 10,
+          "io": {
+            "rchar": 104430176,
+            "wchar": 3670886,
+            "syscr": 5937,
+            "syscw": 950,
+            "read_bytes": 0,
+            "write_bytes": 2084864,
+            "cancelled_write_bytes": 1286144
+          }
+        },
+        "native": {
+          "available": true,
+          "wall_ms": 60002,
+          "cpu_ms": 186650,
+          "cpu_percent_one_core": 311.0729642345255,
+          "nice": 10,
+          "io": {
+            "rchar": 497,
+            "wchar": 1285145,
+            "syscr": 1,
+            "syscw": 266,
+            "read_bytes": 0,
+            "write_bytes": 1282048,
+            "cancelled_write_bytes": 0
+          }
+        },
+        "generator": {
+          "available": true,
+          "wall_ms": 60002,
+          "cpu_ms": 250,
+          "cpu_percent_one_core": 0.41665277824072533,
+          "nice": 0,
+          "io": {
+            "rchar": 2503339,
+            "wchar": 857747,
+            "syscr": 276,
+            "syscw": 245,
+            "read_bytes": 0,
+            "write_bytes": 864256,
+            "cancelled_write_bytes": 0
+          }
+        }
+      },
+      "generation": {
+        "cache_store_ms": [
+          {
+            "elapsed_ms": 92.054528,
+            "completed_at": 1792869478475
+          },
+          {
+            "elapsed_ms": 66.709628,
+            "completed_at": 1792869482804
+          },
+          {
+            "elapsed_ms": 89.781114,
+            "completed_at": 1792869485177
+          }
+        ],
+        "completed": 3,
+        "failed": 0,
+        "preparing": 230
+      },
+      "inference_overlap_ms": 51405.554443359375,
+      "server": {
+        "final_state_sha256": "be4ce9360dc0bea8f3581aa0b93ffc81cb4742863c9705e16e4830b1e2da961a",
+        "cpu_ms": {
+          "user": 13412.601,
+          "system": 991.229,
+          "wall": 60004.791799008846
+        },
+        "event_loop_utilization": 0.19850930190892496,
+        "phase_ms": {
+          "phase:admin_tournament_snapshot": {
+            "count": 31,
+            "mean": 17.870967741935484,
+            "p50": 12.7,
+            "p95": 41.5,
+            "p99": 116,
+            "max": 116
+          },
+          "send_wait:admin:snapshot": {
+            "count": 31,
+            "mean": 17.870967741935484,
+            "p50": 12.7,
+            "p95": 41.5,
+            "p99": 116.1,
+            "max": 116.1
+          },
+          "db_wait:tournaments:admin_tournament_read": {
+            "count": 31,
+            "mean": 2.2516129032258063,
+            "p50": 1.6,
+            "p95": 5.1,
+            "p99": 19.8,
+            "max": 19.8
+          },
+          "db_run:tournaments:admin_tournament_read": {
+            "count": 31,
+            "mean": 0.3580645161290323,
+            "p50": 0.2,
+            "p95": 0.7,
+            "p99": 3.3,
+            "max": 3.3
+          },
+          "db_wait:displaysettings:find": {
+            "count": 31,
+            "mean": 1.1451612903225807,
+            "p50": 0.3,
+            "p95": 4.5,
+            "p99": 4.8,
+            "max": 4.8
+          },
+          "db_run:displaysettings:find": {
+            "count": 31,
+            "mean": 1.1677419354838707,
+            "p50": 0.3,
+            "p95": 3.9,
+            "p99": 13.2,
+            "max": 13.2
+          },
+          "db_wait:displaysettings:findOne": {
+            "count": 33,
+            "mean": 0.9424242424242423,
+            "p50": 0.1,
+            "p95": 4.7,
+            "p99": 5.9,
+            "max": 5.9
+          },
+          "db_run:displaysettings:findOne": {
+            "count": 33,
+            "mean": 1.4000000000000001,
+            "p50": 0.2,
+            "p95": 6.6,
+            "p99": 8.2,
+            "max": 8.2
+          },
+          "db_wait:displaysettings:insert": {
+            "count": 3,
+            "mean": 0.26666666666666666,
+            "p50": 0,
+            "p95": 0.8,
+            "p99": 0.8,
+            "max": 0.8
+          },
+          "db_run:displaysettings:insert": {
+            "count": 3,
+            "mean": 0.5,
+            "p50": 0.4,
+            "p95": 0.7,
+            "p99": 0.7,
+            "max": 0.7
+          },
+          "db_wait:tournaments:update": {
+            "count": 1,
+            "mean": 0.1,
+            "p50": 0.1,
+            "p95": 0.1,
+            "p99": 0.1,
+            "max": 0.1
+          },
+          "db_run:tournaments:update": {
+            "count": 1,
+            "mean": 17.8,
+            "p50": 17.8,
+            "p95": 17.8,
+            "p99": 17.8,
+            "max": 17.8
+          },
+          "db_wait:locations:find": {
+            "count": 31,
+            "mean": 2.0387096774193547,
+            "p50": 1.3,
+            "p95": 5,
+            "p99": 17.3,
+            "max": 17.3
+          },
+          "db_wait:courts:find": {
+            "count": 31,
+            "mean": 1.8709677419354838,
+            "p50": 1.1,
+            "p95": 5,
+            "p99": 17.3,
+            "max": 17.3
+          },
+          "db_wait:umpires:find": {
+            "count": 31,
+            "mean": 2.064516129032258,
+            "p50": 1.3,
+            "p95": 5.1,
+            "p99": 17.4,
+            "max": 17.4
+          },
+          "db_wait:tabletoperators:find": {
+            "count": 31,
+            "mean": 1.993548387096774,
+            "p50": 1.2,
+            "p95": 5.1,
+            "p99": 17.4,
+            "max": 17.4
+          },
+          "phase:admin_match_read": {
+            "count": 31,
+            "mean": 4.683870967741936,
+            "p50": 3.8,
+            "p95": 11.5,
+            "p99": 19.3,
+            "max": 19.3
+          },
+          "db_wait:matches:admin_match_overview": {
+            "count": 31,
+            "mean": 3.561290322580645,
+            "p50": 2.4,
+            "p95": 9.3,
+            "p99": 17.2,
+            "max": 17.2
+          },
+          "db_wait:display_court_displaysettings:find": {
+            "count": 31,
+            "mean": 2.6193548387096777,
+            "p50": 1.7,
+            "p95": 6.2,
+            "p99": 19.4,
+            "max": 19.4
+          },
+          "db_wait:normalizations:find": {
+            "count": 31,
+            "mean": 1.8935483870967742,
+            "p50": 1.1,
+            "p95": 5.5,
+            "p99": 19.5,
+            "max": 19.5
+          },
+          "db_wait:advertisements:find": {
+            "count": 31,
+            "mean": 1.9419354838709677,
+            "p50": 1.1,
+            "p95": 5.5,
+            "p99": 19.4,
+            "max": 19.4
+          },
+          "db_run:locations:find": {
+            "count": 31,
+            "mean": 2.7354838709677423,
+            "p50": 1.4,
+            "p95": 9.9,
+            "p99": 18.2,
+            "max": 18.2
+          },
+          "db_run:courts:find": {
+            "count": 31,
+            "mean": 2.7774193548387096,
+            "p50": 1.3,
+            "p95": 10,
+            "p99": 18.4,
+            "max": 18.4
+          },
+          "db_run:umpires:find": {
+            "count": 31,
+            "mean": 2.8193548387096765,
+            "p50": 1.3,
+            "p95": 10.1,
+            "p99": 18.4,
+            "max": 18.4
+          },
+          "db_run:tabletoperators:find": {
+            "count": 31,
+            "mean": 2.8290322580645157,
+            "p50": 1.3,
+            "p95": 10.1,
+            "p99": 18.4,
+            "max": 18.4
+          },
+          "db_run:matches:admin_match_overview": {
+            "count": 31,
+            "mean": 0.9806451612903225,
+            "p50": 0.7,
+            "p95": 2.8,
+            "p99": 3,
+            "max": 3
+          },
+          "phase:admin_match_copy": {
+            "count": 31,
+            "mean": 0.5064516129032258,
+            "p50": 0.3,
+            "p95": 2.3,
+            "p99": 2.4,
+            "max": 2.4
+          },
+          "db_run:display_court_displaysettings:find": {
+            "count": 31,
+            "mean": 2.225806451612903,
+            "p50": 0.7,
+            "p95": 10.2,
+            "p99": 15.6,
+            "max": 15.6
+          },
+          "db_run:normalizations:find": {
+            "count": 31,
+            "mean": 2.954838709677419,
+            "p50": 1.4,
+            "p95": 10.5,
+            "p99": 17.4,
+            "max": 17.4
+          },
+          "db_run:advertisements:find": {
+            "count": 31,
+            "mean": 3.516129032258064,
+            "p50": 1.4,
+            "p95": 15.7,
+            "p99": 25.3,
+            "max": 25.3
+          },
+          "encoding:admin_snapshot_encode": {
+            "count": 31,
+            "mean": 16.29032258064516,
+            "p50": 15.3,
+            "p95": 31.8,
+            "p99": 38.4,
+            "max": 38.4
+          },
+          "send_enqueue:admin:message": {
+            "count": 31,
+            "mean": 2.2354838709677414,
+            "p50": 2.2,
+            "p95": 3.7,
+            "p99": 3.9,
+            "max": 3.9
+          },
+          "lock_wait:handle_score_update_v2": {
+            "count": 362,
+            "mean": 0.19558011049723814,
+            "p50": 0.1,
+            "p95": 0.2,
+            "p99": 0.8,
+            "max": 21
+          },
+          "lock_hold:handle_score_update_v2": {
+            "count": 362,
+            "mean": 13.240331491712718,
+            "p50": 11.5,
+            "p95": 26.1,
+            "p99": 36,
+            "max": 45.3
+          },
+          "phase:owner_check": {
+            "count": 362,
+            "mean": 0.0005524861878453039,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "max": 0.1
+          },
+          "phase:duplicate_check": {
+            "count": 362,
+            "mean": 0.18867403314917236,
+            "p50": 0.2,
+            "p95": 0.2,
+            "p99": 0.3,
+            "max": 0.4
+          },
+          "phase:load_context_match": {
+            "count": 362,
+            "mean": 0.497237569060773,
+            "p50": 0.4,
+            "p95": 0.8,
+            "p99": 1.1,
+            "max": 4.8
+          },
+          "phase:load_context_tournament": {
+            "count": 362,
+            "mean": 0.27348066298342544,
+            "p50": 0.2,
+            "p95": 0.4,
+            "p99": 0.8,
+            "max": 4.6
+          },
+          "phase:load_context_court": {
+            "count": 362,
+            "mean": 0.26160220994475203,
+            "p50": 0.2,
+            "p95": 0.4,
+            "p99": 3.5,
+            "max": 4.5
+          },
+          "phase:load_context": {
+            "count": 362,
+            "mean": 0.6651933701657438,
+            "p50": 0.6,
+            "p95": 1,
+            "p99": 4.1,
+            "max": 5.4
+          },
+          "phase:validate": {
+            "count": 362,
+            "mean": 0.3820441988950286,
+            "p50": 0.3,
+            "p95": 0.5,
+            "p99": 2.8,
+            "max": 5.3
+          },
+          "phase:build_update": {
+            "count": 362,
+            "mean": 0.08066298342541461,
+            "p50": 0.1,
+            "p95": 0.1,
+            "p99": 0.2,
+            "max": 2.7
+          },
+          "db_wait:matches:score_update_write": {
+            "count": 362,
+            "mean": 0.38011049723756946,
+            "p50": 0.1,
+            "p95": 0.8,
+            "p99": 5.2,
+            "max": 21.8
+          },
+          "db_run:matches:score_update_write": {
+            "count": 362,
+            "mean": 4.796408839779003,
+            "p50": 3.7,
+            "p95": 10.8,
+            "p99": 17.3,
+            "max": 25.4
+          },
+          "storage_wait_ms": {
+            "count": 362,
+            "mean": 1.2044198895027616,
+            "p50": 0.5,
+            "p95": 5.5,
+            "p99": 9.4,
+            "max": 15.4
+          },
+          "serialization_ms": {
+            "count": 362,
+            "mean": 0.46022099447513903,
+            "p50": 0.4,
+            "p95": 0.7,
+            "p99": 1.9,
+            "max": 5.5
+          },
+          "callback_ms": {
+            "count": 362,
+            "mean": 2.0019337016574577,
+            "p50": 1.7,
+            "p95": 4,
+            "p99": 7.4,
+            "max": 8.9
+          },
+          "phase:db_update_match": {
+            "count": 362,
+            "mean": 3.252762430939227,
+            "p50": 2.1,
+            "p95": 8.6,
+            "p99": 16.3,
+            "max": 23.4
+          },
+          "send_enqueue:tv:display_points_update": {
+            "count": 362,
+            "mean": 0.21933701657458582,
+            "p50": 0.2,
+            "p95": 0.6,
+            "p99": 1.2,
+            "max": 3.7
+          },
+          "phase:committed_display_points": {
+            "count": 362,
+            "mean": 0.46049723756906114,
+            "p50": 0.4,
+            "p95": 0.9,
+            "p99": 1.6,
+            "max": 3.9
+          },
+          "db_wait:tournaments:display_context_tournament": {
+            "count": 362,
+            "mean": 1.616298342541433,
+            "p50": 1.2,
+            "p95": 3.7,
+            "p99": 7,
+            "max": 12.6
+          },
+          "db_wait:courts:display_context_court": {
+            "count": 362,
+            "mean": 2.045303867403318,
+            "p50": 1.5,
+            "p95": 5.1,
+            "p99": 9.1,
+            "max": 12.9
+          },
+          "encoding:admin_broadcast_encode": {
+            "count": 1086,
+            "mean": 0.2341620626151024,
+            "p50": 0.2,
+            "p95": 0.4,
+            "p99": 2.8,
+            "max": 6.5
+          },
+          "send_wait:admin:score": {
+            "count": 3982,
+            "mean": 0.2355600200904068,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "max": 137.9
+          },
+          "send_enqueue:admin:score": {
+            "count": 3982,
+            "mean": 0.02338021094927179,
+            "p50": 0,
+            "p95": 0.1,
+            "p99": 0.4,
+            "max": 3.9
+          },
+          "phase:notify_score_and_display_fanout_start": {
+            "count": 362,
+            "mean": 1.7734806629834268,
+            "p50": 1.5,
+            "p95": 3.7,
+            "p99": 7,
+            "max": 8.7
+          },
+          "db_run:tournaments:display_context_tournament": {
+            "count": 362,
+            "mean": 0.14337016574585706,
+            "p50": 0.1,
+            "p95": 0.2,
+            "p99": 2,
+            "max": 3.1
+          },
+          "phase:score_change_group_panels": {
+            "count": 362,
+            "mean": 1.9977900552486205,
+            "p50": 1.5,
+            "p95": 4.4,
+            "p99": 7.5,
+            "max": 12.9
+          },
+          "phase:score_change_direct_refreshes": {
+            "count": 362,
+            "mean": 0.020441988950276244,
+            "p50": 0,
+            "p95": 0.1,
+            "p99": 0.1,
+            "max": 1.5
+          },
+          "db_run:courts:display_context_court": {
+            "count": 362,
+            "mean": 0.11878453038674099,
+            "p50": 0.1,
+            "p95": 0.1,
+            "p99": 0.3,
+            "max": 3.3
+          },
+          "db_wait:matches:display_context_match": {
+            "count": 362,
+            "mean": 2.8917127071823203,
+            "p50": 2.1,
+            "p95": 6.8,
+            "p99": 12.9,
+            "max": 24.3
+          },
+          "phase:finish_cleanup": {
+            "count": 362,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "max": 0
+          },
+          "phase:validate_court_reference": {
+            "count": 362,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "max": 0
+          },
+          "send_wait:admin:court_current_match": {
+            "count": 3982,
+            "mean": 0.21155198392767452,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "max": 136
+          },
+          "send_enqueue:admin:court_current_match": {
+            "count": 3982,
+            "mean": 0.023505775991963893,
+            "p50": 0,
+            "p95": 0.1,
+            "p99": 0.3,
+            "max": 4.7
+          },
+          "phase:notify_court_current_match": {
+            "count": 362,
+            "mean": 1.2151933701657458,
+            "p50": 0.8,
+            "p95": 3.8,
+            "p99": 5,
+            "max": 7.3
+          },
+          "phase:highlight_update": {
+            "count": 362,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "max": 0
+          },
+          "phase:ticker_update": {
+            "count": 362,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "max": 0
+          },
+          "phase:court_clear_after_finish": {
+            "count": 362,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "max": 0
+          },
+          "phase:auto_preparation": {
+            "count": 362,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "max": 0
+          },
+          "phase:auto_call_free_courts": {
+            "count": 362,
+            "mean": 0.00027624309392265195,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "max": 0.1
+          },
+          "db_wait:display_court_displaysettings:findOne": {
+            "count": 362,
+            "mean": 1.7740331491712702,
+            "p50": 1.2,
+            "p95": 5,
+            "p99": 11.4,
+            "max": 20.8
+          },
+          "db_run:matches:display_context_match": {
+            "count": 362,
+            "mean": 0.27845303867403265,
+            "p50": 0.2,
+            "p95": 0.3,
+            "p99": 1.6,
+            "max": 5.6
+          },
+          "phase:score_change_court_panels": {
+            "count": 362,
+            "mean": 3.970718232044196,
+            "p50": 3,
+            "p95": 8.4,
+            "p99": 14.9,
+            "max": 25.1
+          },
+          "db_run:display_court_displaysettings:findOne": {
+            "count": 362,
+            "mean": 0.6179558011049725,
+            "p50": 0.2,
+            "p95": 3.9,
+            "p99": 8,
+            "max": 10.2
+          },
+          "send_wait:admin:display_status_changed": {
+            "count": 3982,
+            "mean": 0.15999497739829233,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "max": 134.1
+          },
+          "send_enqueue:admin:display_status_changed": {
+            "count": 3982,
+            "mean": 0.015067805123053796,
+            "p50": 0,
+            "p95": 0.1,
+            "p99": 0.1,
+            "max": 4
+          },
+          "phase:device_info_hostname": {
+            "count": 362,
+            "mean": 0.015193370165745856,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0.1,
+            "max": 4.8
+          },
+          "phase:device_info_settings_read": {
+            "count": 362,
+            "mean": 2.5748618784530395,
+            "p50": 1.6,
+            "p95": 6.5,
+            "p99": 12.6,
+            "max": 21
+          },
+          "phase:device_info_notify": {
+            "count": 362,
+            "mean": 0.6400552486187832,
+            "p50": 0.5,
+            "p95": 1.2,
+            "p99": 3.3,
+            "max": 4.4
+          },
+          "phase:device_info": {
+            "count": 362,
+            "mean": 3.541436464088397,
+            "p50": 2.5,
+            "p95": 8.3,
+            "p99": 13.7,
+            "max": 21.7
+          },
+          "send_enqueue:tv:display_timer_update": {
+            "count": 26,
+            "mean": 0.1884615384615385,
+            "p50": 0.1,
+            "p95": 0.2,
+            "p99": 1.7,
+            "max": 1.7
+          }
+        },
+        "failed_traces": [],
+        "validated_persisted_reload": true
+      },
+      "audio_write_ms": [
+        23.072440992109478,
+        9.442793962080032,
+        16.450186958536506,
+        98.22734503541142,
+        32.93759800726548
+      ],
+      "inference_ms": [
+        46644.592129974626
+      ],
+      "worst_admin_receptions": [
+        {
+          "index": 0,
+          "sent": 397768.83702397346,
+          "send_lag_ms": 1.483702003955841,
+          "tv_ms": 7.518374025821686,
+          "admin_ms": 156.08254301548004
+        },
+        {
+          "index": 144,
+          "sent": 409287.174225986,
+          "send_lag_ms": 0.1536329984664917,
+          "tv_ms": 38.745185017585754,
+          "admin_ms": 80.07052999734879
+        },
+        {
+          "index": 696,
+          "sent": 453446.87005501986,
+          "send_lag_ms": -0.33163905143737793,
+          "tv_ms": 16.942097008228302,
+          "admin_ms": 78.34405899047852
+        },
+        {
+          "index": 1,
+          "sent": 397847.37949597836,
+          "send_lag_ms": 0.06286996603012085,
+          "tv_ms": 43.52330803871155,
+          "admin_ms": 77.93477404117584
+        },
+        {
+          "index": 552,
+          "sent": 441927.3973339796,
+          "send_lag_ms": 0.20209497213363647,
+          "tv_ms": 17.218277037143707,
+          "admin_ms": 48.06824004650116
+        }
+      ]
+    },
+    {
+      "round": 1,
+      "variant": {
+        "id": "two-threads",
+        "threads": 2,
+        "nice": 0,
+        "generate": true
+      },
+      "fake": false,
+      "pid_settings": {
+        "event": "ready",
+        "ts": 1792869526233.7314,
+        "port": 38441,
+        "pid": 1343935,
+        "native_pid": 1343963,
+        "nice": 0,
+        "threads": 2,
+        "fake": false
+      },
+      "fixture_sha256": "21e9ae7bcf5fd973ff8cbeca79146df8d3d4abf826a2248094ff84e76a6c5c3a",
+      "input_sha256": "6d540996d6f3fb821a7dd968b5c4afbfb85ef2c69cf3ae57a26d6c540b1d3483",
+      "total": 750,
+      "wall_start": 1792869528711,
+      "wall_end": 1792869588711,
+      "tv_ms": {
+        "count": 750,
+        "mean": 5.239706407388051,
+        "p50": 4.261978983879089,
+        "p95": 10.902095019817352,
+        "p99": 22.214018046855927,
+        "max": 39.700811982154846
+      },
+      "admin_ms": {
+        "count": 750,
+        "mean": 6.3845408793290455,
+        "p50": 4.932938992977142,
+        "p95": 13.467540979385376,
+        "p99": 30.69316703081131,
+        "max": 142.25304698944092
+      },
+      "send_lag_ms": {
+        "count": 750,
+        "mean": 0.2029559267361959,
+        "p50": 0.17925900220870972,
+        "p95": 1.072405993938446,
+        "p99": 3.1439160108566284,
+        "max": 8.424530982971191
+      },
+      "process_resources": {
+        "client": {
+          "available": true,
+          "wall_ms": 60001,
+          "cpu_ms": 4920,
+          "cpu_percent_one_core": 8.199863335611074,
+          "nice": 0,
+          "io": {
+            "rchar": 265187405,
+            "wchar": 10137472,
+            "syscr": 27263,
+            "syscw": 2515,
+            "read_bytes": 0,
+            "write_bytes": 8192,
+            "cancelled_write_bytes": 0
+          }
+        },
+        "bts": {
+          "available": true,
+          "wall_ms": 60001,
+          "cpu_ms": 13140,
+          "cpu_percent_one_core": 21.899635006083233,
+          "nice": 0,
+          "io": {
+            "rchar": 10412477,
+            "wchar": 275479142,
+            "syscr": 4963,
+            "syscw": 35450,
+            "read_bytes": 0,
+            "write_bytes": 10543104,
+            "cancelled_write_bytes": 0
+          }
+        },
+        "api": {
+          "available": true,
+          "wall_ms": 60001,
+          "cpu_ms": 1720,
+          "cpu_percent_one_core": 2.866618889685172,
+          "nice": 0,
+          "io": {
+            "rchar": 100815521,
+            "wchar": 1808408,
+            "syscr": 4585,
+            "syscw": 376,
+            "read_bytes": 0,
+            "write_bytes": 1433600,
+            "cancelled_write_bytes": 1286144
+          }
+        },
+        "native": {
+          "available": true,
+          "wall_ms": 60001,
+          "cpu_ms": 109720,
+          "cpu_percent_one_core": 182.86361893968433,
+          "nice": 0,
+          "io": {
+            "rchar": 0,
+            "wchar": 1281356,
+            "syscr": 0,
+            "syscw": 190,
+            "read_bytes": 0,
+            "write_bytes": 1282048,
+            "cancelled_write_bytes": 0
+          }
+        },
+        "generator": {
+          "available": true,
+          "wall_ms": 60001,
+          "cpu_ms": 220,
+          "cpu_percent_one_core": 0.3666605556574057,
+          "nice": 0,
+          "io": {
+            "rchar": 1941959,
+            "wchar": 652618,
+            "syscr": 185,
+            "syscw": 159,
+            "read_bytes": 0,
+            "write_bytes": 651264,
+            "cancelled_write_bytes": 0
+          }
+        }
+      },
+      "generation": {
+        "cache_store_ms": [
+          {
+            "elapsed_ms": 99.507241,
+            "completed_at": 1792869587069
+          }
+        ],
+        "completed": 1,
+        "failed": 0,
+        "preparing": 232
+      },
+      "inference_overlap_ms": 56891.8349609375,
+      "server": {
+        "final_state_sha256": "be4ce9360dc0bea8f3581aa0b93ffc81cb4742863c9705e16e4830b1e2da961a",
+        "cpu_ms": {
+          "user": 12197.2,
+          "system": 937.63,
+          "wall": 60003.28292900324
+        },
+        "event_loop_utilization": 0.16412448759801673,
+        "phase_ms": {
+          "phase:admin_tournament_snapshot": {
+            "count": 31,
+            "mean": 14.841935483870968,
+            "p50": 10.3,
+            "p95": 30.8,
+            "p99": 106.1,
+            "max": 106.1
+          },
+          "send_wait:admin:snapshot": {
+            "count": 31,
+            "mean": 14.841935483870968,
+            "p50": 10.3,
+            "p95": 30.8,
+            "p99": 106.1,
+            "max": 106.1
+          },
+          "db_wait:tournaments:admin_tournament_read": {
+            "count": 31,
+            "mean": 1.3548387096774193,
+            "p50": 1.2,
+            "p95": 2.2,
+            "p99": 5.3,
+            "max": 5.3
+          },
+          "db_run:tournaments:admin_tournament_read": {
+            "count": 31,
+            "mean": 0.2419354838709678,
+            "p50": 0.2,
+            "p95": 0.5,
+            "p99": 0.7,
+            "max": 0.7
+          },
+          "db_wait:displaysettings:find": {
+            "count": 31,
+            "mean": 0.5193548387096775,
+            "p50": 0.2,
+            "p95": 2.7,
+            "p99": 5.8,
+            "max": 5.8
+          },
+          "db_run:displaysettings:find": {
+            "count": 31,
+            "mean": 1.025806451612903,
+            "p50": 0.3,
+            "p95": 2.4,
+            "p99": 3.1,
+            "max": 3.1
+          },
+          "db_wait:displaysettings:findOne": {
+            "count": 33,
+            "mean": 1.421212121212121,
+            "p50": 1.5,
+            "p95": 3.4,
+            "p99": 4.4,
+            "max": 4.4
+          },
+          "db_run:displaysettings:findOne": {
+            "count": 33,
+            "mean": 1.493939393939394,
+            "p50": 0.8,
+            "p95": 4.3,
+            "p99": 9.5,
+            "max": 9.5
+          },
+          "db_wait:displaysettings:insert": {
+            "count": 3,
+            "mean": 0.4000000000000001,
+            "p50": 0.2,
+            "p95": 0.9,
+            "p99": 0.9,
+            "max": 0.9
+          },
+          "db_run:displaysettings:insert": {
+            "count": 3,
+            "mean": 0.8000000000000002,
+            "p50": 0.8,
+            "p95": 1.1,
+            "p99": 1.1,
+            "max": 1.1
+          },
+          "db_wait:tournaments:update": {
+            "count": 1,
+            "mean": 0.1,
+            "p50": 0.1,
+            "p95": 0.1,
+            "p99": 0.1,
+            "max": 0.1
+          },
+          "db_run:tournaments:update": {
+            "count": 1,
+            "mean": 20.9,
+            "p50": 20.9,
+            "p95": 20.9,
+            "p99": 20.9,
+            "max": 20.9
+          },
+          "db_wait:locations:find": {
+            "count": 31,
+            "mean": 1.9129032258064511,
+            "p50": 1.3,
+            "p95": 8.4,
+            "p99": 12.1,
+            "max": 12.1
+          },
+          "db_wait:courts:find": {
+            "count": 31,
+            "mean": 1.8258064516129031,
+            "p50": 1.2,
+            "p95": 8.5,
+            "p99": 12.1,
+            "max": 12.1
+          },
+          "db_wait:umpires:find": {
+            "count": 31,
+            "mean": 1.8516129032258064,
+            "p50": 1.2,
+            "p95": 8.5,
+            "p99": 12,
+            "max": 12
+          },
+          "db_wait:tabletoperators:find": {
+            "count": 31,
+            "mean": 1.8354838709677417,
+            "p50": 1.2,
+            "p95": 8.3,
+            "p99": 12,
+            "max": 12
+          },
+          "phase:admin_match_read": {
+            "count": 31,
+            "mean": 3.4838709677419355,
+            "p50": 1.9,
+            "p95": 12.7,
+            "p99": 20.3,
+            "max": 20.3
+          },
+          "db_wait:matches:admin_match_overview": {
+            "count": 31,
+            "mean": 2.948387096774194,
+            "p50": 1.3,
+            "p95": 11.9,
+            "p99": 19.6,
+            "max": 19.6
+          },
+          "db_wait:display_court_displaysettings:find": {
+            "count": 31,
+            "mean": 2.767741935483871,
+            "p50": 2,
+            "p95": 8.1,
+            "p99": 12.7,
+            "max": 12.7
+          },
+          "db_wait:normalizations:find": {
+            "count": 31,
+            "mean": 1.9193548387096775,
+            "p50": 1.2,
+            "p95": 8.1,
+            "p99": 12.7,
+            "max": 12.7
+          },
+          "db_wait:advertisements:find": {
+            "count": 31,
+            "mean": 1.9,
+            "p50": 1.2,
+            "p95": 8.1,
+            "p99": 12.6,
+            "max": 12.6
+          },
+          "db_run:locations:find": {
+            "count": 31,
+            "mean": 1.4806451612903222,
+            "p50": 1.1,
+            "p95": 4.4,
+            "p99": 4.6,
+            "max": 4.6
+          },
+          "db_run:courts:find": {
+            "count": 31,
+            "mean": 1.4774193548387096,
+            "p50": 1.2,
+            "p95": 3.6,
+            "p99": 5,
+            "max": 5
+          },
+          "db_run:umpires:find": {
+            "count": 31,
+            "mean": 1.5870967741935484,
+            "p50": 1.3,
+            "p95": 4.4,
+            "p99": 5,
+            "max": 5
+          },
+          "db_run:tabletoperators:find": {
+            "count": 31,
+            "mean": 1.5999999999999999,
+            "p50": 1.3,
+            "p95": 4.4,
+            "p99": 5.1,
+            "max": 5.1
+          },
+          "db_run:matches:admin_match_overview": {
+            "count": 31,
+            "mean": 0.5967741935483872,
+            "p50": 0.5,
+            "p95": 1,
+            "p99": 1.8,
+            "max": 1.8
+          },
+          "phase:admin_match_copy": {
+            "count": 31,
+            "mean": 0.296774193548387,
+            "p50": 0.3,
+            "p95": 0.4,
+            "p99": 0.6,
+            "max": 0.6
+          },
+          "db_run:display_court_displaysettings:find": {
+            "count": 31,
+            "mean": 0.9225806451612903,
+            "p50": 0.7,
+            "p95": 2.6,
+            "p99": 6.1,
+            "max": 6.1
+          },
+          "db_run:normalizations:find": {
+            "count": 31,
+            "mean": 1.4870967741935481,
+            "p50": 1.1,
+            "p95": 4.4,
+            "p99": 6.8,
+            "max": 6.8
+          },
+          "db_run:advertisements:find": {
+            "count": 31,
+            "mean": 1.9645161290322577,
+            "p50": 1.1,
+            "p95": 4.5,
+            "p99": 21.3,
+            "max": 21.3
+          },
+          "encoding:admin_snapshot_encode": {
+            "count": 31,
+            "mean": 13.080645161290319,
+            "p50": 10.4,
+            "p95": 29.4,
+            "p99": 30,
+            "max": 30
+          },
+          "send_enqueue:admin:message": {
+            "count": 31,
+            "mean": 2.083870967741935,
+            "p50": 2.1,
+            "p95": 3.5,
+            "p99": 6.9,
+            "max": 6.9
+          },
+          "lock_wait:handle_score_update_v2": {
+            "count": 362,
+            "mean": 0.10718232044198962,
+            "p50": 0.1,
+            "p95": 0.2,
+            "p99": 0.3,
+            "max": 0.6
+          },
+          "lock_hold:handle_score_update_v2": {
+            "count": 362,
+            "mean": 9.4732044198895,
+            "p50": 8.2,
+            "p95": 18.4,
+            "p99": 32.6,
+            "max": 41.8
+          },
+          "phase:owner_check": {
+            "count": 362,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "max": 0
+          },
+          "phase:duplicate_check": {
+            "count": 362,
+            "mean": 0.14806629834254212,
+            "p50": 0.1,
+            "p95": 0.2,
+            "p99": 0.2,
+            "max": 0.3
+          },
+          "phase:load_context_match": {
+            "count": 362,
+            "mean": 0.3900552486187847,
+            "p50": 0.4,
+            "p95": 0.6,
+            "p99": 0.8,
+            "max": 1.7
+          },
+          "phase:load_context_tournament": {
+            "count": 362,
+            "mean": 0.22099447513812173,
+            "p50": 0.2,
+            "p95": 0.4,
+            "p99": 0.5,
+            "max": 2.8
+          },
+          "phase:load_context_court": {
+            "count": 362,
+            "mean": 0.178729281767956,
+            "p50": 0.2,
+            "p95": 0.3,
+            "p99": 0.4,
+            "max": 2.8
+          },
+          "phase:load_context": {
+            "count": 362,
+            "mean": 0.5121546961325953,
+            "p50": 0.5,
+            "p95": 0.8,
+            "p99": 1,
+            "max": 3.2
+          },
+          "phase:validate": {
+            "count": 362,
+            "mean": 0.28121546961325916,
+            "p50": 0.3,
+            "p95": 0.4,
+            "p99": 0.5,
+            "max": 4.4
+          },
+          "phase:build_update": {
+            "count": 362,
+            "mean": 0.036187845303867316,
+            "p50": 0,
+            "p95": 0.1,
+            "p99": 0.2,
+            "max": 0.2
+          },
+          "db_wait:matches:score_update_write": {
+            "count": 362,
+            "mean": 0.29751381215469636,
+            "p50": 0.1,
+            "p95": 0.4,
+            "p99": 4.5,
+            "max": 19.4
+          },
+          "db_run:matches:score_update_write": {
+            "count": 362,
+            "mean": 3.4262430939226522,
+            "p50": 2.9,
+            "p95": 6.1,
+            "p99": 16.5,
+            "max": 26.7
+          },
+          "storage_wait_ms": {
+            "count": 362,
+            "mean": 0.7364640883977905,
+            "p50": 0.4,
+            "p95": 2.6,
+            "p99": 8.2,
+            "max": 18.9
+          },
+          "serialization_ms": {
+            "count": 362,
+            "mean": 0.35414364640884083,
+            "p50": 0.4,
+            "p95": 0.5,
+            "p99": 1,
+            "max": 3.5
+          },
+          "callback_ms": {
+            "count": 362,
+            "mean": 1.486740331491716,
+            "p50": 1.4,
+            "p95": 2.3,
+            "p99": 4.1,
+            "max": 6.4
+          },
+          "phase:db_update_match": {
+            "count": 362,
+            "mean": 2.2770718232044183,
+            "p50": 1.7,
+            "p95": 5.4,
+            "p99": 13.9,
+            "max": 25
+          },
+          "send_enqueue:tv:display_points_update": {
+            "count": 362,
+            "mean": 0.1494475138121553,
+            "p50": 0.1,
+            "p95": 0.2,
+            "p99": 0.8,
+            "max": 3.4
+          },
+          "phase:committed_display_points": {
+            "count": 362,
+            "mean": 0.34364640883977926,
+            "p50": 0.3,
+            "p95": 0.5,
+            "p99": 0.9,
+            "max": 3.7
+          },
+          "db_wait:tournaments:display_context_tournament": {
+            "count": 362,
+            "mean": 1.231491712707181,
+            "p50": 1,
+            "p95": 2.2,
+            "p99": 6.7,
+            "max": 10.8
+          },
+          "db_wait:courts:display_context_court": {
+            "count": 362,
+            "mean": 1.4997237569060755,
+            "p50": 1.3,
+            "p95": 3.8,
+            "p99": 7.3,
+            "max": 11
+          },
+          "encoding:admin_broadcast_encode": {
+            "count": 1086,
+            "mean": 0.15239410681399745,
+            "p50": 0.2,
+            "p95": 0.3,
+            "p99": 0.4,
+            "max": 3.2
+          },
+          "send_wait:admin:score": {
+            "count": 3982,
+            "mean": 0.2061024610748368,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "max": 123.7
+          },
+          "send_enqueue:admin:score": {
+            "count": 3982,
+            "mean": 0.010145655449522862,
+            "p50": 0,
+            "p95": 0.1,
+            "p99": 0.1,
+            "max": 3.3
+          },
+          "phase:notify_score_and_display_fanout_start": {
+            "count": 362,
+            "mean": 1.327900552486186,
+            "p50": 1.2,
+            "p95": 2,
+            "p99": 3.9,
+            "max": 6.2
+          },
+          "db_run:tournaments:display_context_tournament": {
+            "count": 362,
+            "mean": 0.10745856353591231,
+            "p50": 0.1,
+            "p95": 0.1,
+            "p99": 0.2,
+            "max": 1.3
+          },
+          "phase:score_change_group_panels": {
+            "count": 362,
+            "mean": 1.500552486187844,
+            "p50": 1.3,
+            "p95": 3.1,
+            "p99": 7.3,
+            "max": 11.1
+          },
+          "phase:score_change_direct_refreshes": {
+            "count": 362,
+            "mean": 0.0138121546961326,
+            "p50": 0,
+            "p95": 0.1,
+            "p99": 0.1,
+            "max": 2.4
+          },
+          "db_run:courts:display_context_court": {
+            "count": 362,
+            "mean": 0.08370165745856396,
+            "p50": 0.1,
+            "p95": 0.1,
+            "p99": 0.1,
+            "max": 0.2
+          },
+          "db_wait:matches:display_context_match": {
+            "count": 362,
+            "mean": 1.7928176795580102,
+            "p50": 1.5,
+            "p95": 3.9,
+            "p99": 6.4,
+            "max": 15.3
+          },
+          "phase:finish_cleanup": {
+            "count": 362,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "max": 0
+          },
+          "phase:validate_court_reference": {
+            "count": 362,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "max": 0
+          },
+          "send_wait:admin:court_current_match": {
+            "count": 3982,
+            "mean": 0.18867403314917125,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "max": 121.7
+          },
+          "send_enqueue:admin:court_current_match": {
+            "count": 3982,
+            "mean": 0.010572576594676053,
+            "p50": 0,
+            "p95": 0.1,
+            "p99": 0.1,
+            "max": 4.8
+          },
+          "phase:notify_court_current_match": {
+            "count": 362,
+            "mean": 0.7906077348066329,
+            "p50": 0.7,
+            "p95": 1.1,
+            "p99": 3.8,
+            "max": 5.7
+          },
+          "phase:highlight_update": {
+            "count": 362,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "max": 0
+          },
+          "phase:ticker_update": {
+            "count": 362,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "max": 0
+          },
+          "phase:court_clear_after_finish": {
+            "count": 362,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "max": 0
+          },
+          "phase:auto_preparation": {
+            "count": 362,
+            "mean": 0.0011049723756906078,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "max": 0.4
+          },
+          "phase:auto_call_free_courts": {
+            "count": 362,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "max": 0
+          },
+          "db_wait:display_court_displaysettings:findOne": {
+            "count": 362,
+            "mean": 1.18342541436464,
+            "p50": 1,
+            "p95": 2.6,
+            "p99": 5.8,
+            "max": 12.9
+          },
+          "db_run:matches:display_context_match": {
+            "count": 362,
+            "mean": 0.21215469613259708,
+            "p50": 0.2,
+            "p95": 0.3,
+            "p99": 0.6,
+            "max": 4.2
+          },
+          "phase:score_change_court_panels": {
+            "count": 362,
+            "mean": 2.6171270718232043,
+            "p50": 2.3,
+            "p95": 5.5,
+            "p99": 7.9,
+            "max": 16
+          },
+          "db_run:display_court_displaysettings:findOne": {
+            "count": 362,
+            "mean": 0.4582872928176797,
+            "p50": 0.2,
+            "p95": 1.7,
+            "p99": 7.8,
+            "max": 12.9
+          },
+          "send_wait:admin:display_status_changed": {
+            "count": 3982,
+            "mean": 0.15313912606730282,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "max": 119.6
+          },
+          "send_enqueue:admin:display_status_changed": {
+            "count": 3982,
+            "mean": 0.00858864892014064,
+            "p50": 0,
+            "p95": 0.1,
+            "p99": 0.1,
+            "max": 3.8
+          },
+          "phase:device_info_hostname": {
+            "count": 362,
+            "mean": 0.0013812154696132596,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0.1,
+            "max": 0.2
+          },
+          "phase:device_info_settings_read": {
+            "count": 362,
+            "mean": 1.7781767955801109,
+            "p50": 1.3,
+            "p95": 4.8,
+            "p99": 10.4,
+            "max": 20
+          },
+          "phase:device_info_notify": {
+            "count": 362,
+            "mean": 0.498342541436463,
+            "p50": 0.4,
+            "p95": 0.8,
+            "p99": 1.8,
+            "max": 4.9
+          },
+          "phase:device_info": {
+            "count": 362,
+            "mean": 2.4740331491712713,
+            "p50": 2,
+            "p95": 5.8,
+            "p99": 11.2,
+            "max": 21.1
+          },
+          "send_enqueue:tv:display_timer_update": {
+            "count": 26,
+            "mean": 0.09230769230769234,
+            "p50": 0.1,
+            "p95": 0.1,
+            "p99": 0.2,
+            "max": 0.2
+          }
+        },
+        "failed_traces": [],
+        "validated_persisted_reload": true
+      },
+      "audio_write_ms": [
+        21.6637960402295
+      ],
+      "inference_ms": [
+        56939.97556803515
+      ],
+      "worst_admin_receptions": [
+        {
+          "index": 0,
+          "sent": 496424.30349701643,
+          "send_lag_ms": 1.4990180134773254,
+          "tv_ms": 7.661257982254028,
+          "admin_ms": 142.25304698944092
+        },
+        {
+          "index": 1,
+          "sent": 496503.6300550103,
+          "send_lag_ms": 0.9909650087356567,
+          "tv_ms": 32.53917598724365,
+          "admin_ms": 63.347472965717316
+        },
+        {
+          "index": 276,
+          "sent": 518502.99587100744,
+          "send_lag_ms": 0.3151950240135193,
+          "tv_ms": 5.258567988872528,
+          "admin_ms": 47.20830202102661
+        },
+        {
+          "index": 696,
+          "sent": 552103.3223779798,
+          "send_lag_ms": 0.7376360297203064,
+          "tv_ms": 8.049755036830902,
+          "admin_ms": 42.323384046554565
+        },
+        {
+          "index": 96,
+          "sent": 504103.30405801535,
+          "send_lag_ms": 0.7200430035591125,
+          "tv_ms": 39.700811982154846,
+          "admin_ms": 39.94380700588226
+        }
+      ]
+    },
+    {
+      "round": 1,
+      "variant": {
+        "id": "normal",
+        "threads": 4,
+        "nice": 0,
+        "generate": true
+      },
+      "fake": false,
+      "pid_settings": {
+        "event": "ready",
+        "ts": 1792869618081.2683,
+        "port": 53367,
+        "pid": 1345046,
+        "native_pid": 1345085,
+        "nice": 0,
+        "threads": 4,
+        "fake": false
+      },
+      "fixture_sha256": "21e9ae7bcf5fd973ff8cbeca79146df8d3d4abf826a2248094ff84e76a6c5c3a",
+      "input_sha256": "6d540996d6f3fb821a7dd968b5c4afbfb85ef2c69cf3ae57a26d6c540b1d3483",
+      "total": 750,
+      "wall_start": 1792869620511,
+      "wall_end": 1792869680512,
+      "tv_ms": {
+        "count": 750,
+        "mean": 8.07642802755038,
+        "p50": 6.270296990871429,
+        "p95": 18.93138200044632,
+        "p99": 28.30665498971939,
+        "max": 67.86516499519348
+      },
+      "admin_ms": {
+        "count": 750,
+        "mean": 9.719191811641057,
+        "p50": 7.348129034042358,
+        "p95": 21.50263500213623,
+        "p99": 40.596854984760284,
+        "max": 238.99946200847626
+      },
+      "send_lag_ms": {
+        "count": 750,
+        "mean": 0.80037668744723,
+        "p50": 0.32553696632385254,
+        "p95": 3.8437960147857666,
+        "p99": 8.34631198644638,
+        "max": 16.88970696926117
+      },
+      "process_resources": {
+        "client": {
+          "available": true,
+          "wall_ms": 60001,
+          "cpu_ms": 5650,
+          "cpu_percent_one_core": 9.416509724837919,
+          "nice": 0,
+          "io": {
+            "rchar": 265151917,
+            "wchar": 10138596,
+            "syscr": 25795,
+            "syscw": 2658,
+            "read_bytes": 0,
+            "write_bytes": 16384,
+            "cancelled_write_bytes": 0
+          }
+        },
+        "bts": {
+          "available": true,
+          "wall_ms": 60002,
+          "cpu_ms": 14550,
+          "cpu_percent_one_core": 24.249191693610214,
+          "nice": 0,
+          "io": {
+            "rchar": 10411948,
+            "wchar": 275441085,
+            "syscr": 4894,
+            "syscw": 35281,
+            "read_bytes": 0,
+            "write_bytes": 10547200,
+            "cancelled_write_bytes": 0
+          }
+        },
+        "api": {
+          "available": true,
+          "wall_ms": 60002,
+          "cpu_ms": 2350,
+          "cpu_percent_one_core": 3.9165361154628178,
+          "nice": 0,
+          "io": {
+            "rchar": 104430172,
+            "wchar": 3670886,
+            "syscr": 5929,
+            "syscw": 950,
+            "read_bytes": 0,
+            "write_bytes": 2084864,
+            "cancelled_write_bytes": 1286144
+          }
+        },
+        "native": {
+          "available": true,
+          "wall_ms": 60002,
+          "cpu_ms": 189160,
+          "cpu_percent_one_core": 315.2561581280624,
+          "nice": 0,
+          "io": {
+            "rchar": 497,
+            "wchar": 1285146,
+            "syscr": 1,
+            "syscw": 266,
+            "read_bytes": 0,
+            "write_bytes": 1282048,
+            "cancelled_write_bytes": 0
+          }
+        },
+        "generator": {
+          "available": true,
+          "wall_ms": 60002,
+          "cpu_ms": 260,
+          "cpu_percent_one_core": 0.43331888937035434,
+          "nice": 0,
+          "io": {
+            "rchar": 2503290,
+            "wchar": 857715,
+            "syscr": 268,
+            "syscw": 239,
+            "read_bytes": 0,
+            "write_bytes": 864256,
+            "cancelled_write_bytes": 0
+          }
+        }
+      },
+      "generation": {
+        "cache_store_ms": [
+          {
+            "elapsed_ms": 100.351642,
+            "completed_at": 1792869668981
+          },
+          {
+            "elapsed_ms": 64.444932,
+            "completed_at": 1792869673305
+          },
+          {
+            "elapsed_ms": 101.011434,
+            "completed_at": 1792869675673
+          }
+        ],
+        "completed": 3,
+        "failed": 0,
+        "preparing": 230
+      },
+      "inference_overlap_ms": 52174.725830078125,
+      "server": {
+        "final_state_sha256": "be4ce9360dc0bea8f3581aa0b93ffc81cb4742863c9705e16e4830b1e2da961a",
+        "cpu_ms": {
+          "user": 13543.665,
+          "system": 1006.4,
+          "wall": 60003.3746330142
+        },
+        "event_loop_utilization": 0.2294403910952459,
+        "phase_ms": {
+          "phase:admin_tournament_snapshot": {
+            "count": 31,
+            "mean": 19.690322580645166,
+            "p50": 13.3,
+            "p95": 31.9,
+            "p99": 139.9,
+            "max": 139.9
+          },
+          "send_wait:admin:snapshot": {
+            "count": 31,
+            "mean": 19.680645161290325,
+            "p50": 13.3,
+            "p95": 31.9,
+            "p99": 140,
+            "max": 140
+          },
+          "db_wait:tournaments:admin_tournament_read": {
+            "count": 31,
+            "mean": 1.5290322580645161,
+            "p50": 1.5,
+            "p95": 2.4,
+            "p99": 5.8,
+            "max": 5.8
+          },
+          "db_run:tournaments:admin_tournament_read": {
+            "count": 31,
+            "mean": 0.38064516129032255,
+            "p50": 0.3,
+            "p95": 1.3,
+            "p99": 2.4,
+            "max": 2.4
+          },
+          "db_wait:displaysettings:find": {
+            "count": 31,
+            "mean": 0.896774193548387,
+            "p50": 0.2,
+            "p95": 3.9,
+            "p99": 4.9,
+            "max": 4.9
+          },
+          "db_run:displaysettings:find": {
+            "count": 31,
+            "mean": 1.2580645161290323,
+            "p50": 0.7,
+            "p95": 3.4,
+            "p99": 4.6,
+            "max": 4.6
+          },
+          "db_wait:displaysettings:findOne": {
+            "count": 33,
+            "mean": 1.7939393939393937,
+            "p50": 0.3,
+            "p95": 8.2,
+            "p99": 8.4,
+            "max": 8.4
+          },
+          "db_run:displaysettings:findOne": {
+            "count": 33,
+            "mean": 1.6333333333333333,
+            "p50": 0.9,
+            "p95": 5.9,
+            "p99": 12.4,
+            "max": 12.4
+          },
+          "db_wait:displaysettings:insert": {
+            "count": 3,
+            "mean": 0.43333333333333335,
+            "p50": 0.1,
+            "p95": 1.1,
+            "p99": 1.1,
+            "max": 1.1
+          },
+          "db_run:displaysettings:insert": {
+            "count": 3,
+            "mean": 0.5333333333333333,
+            "p50": 0.5,
+            "p95": 0.8,
+            "p99": 0.8,
+            "max": 0.8
+          },
+          "db_wait:tournaments:update": {
+            "count": 1,
+            "mean": 0.1,
+            "p50": 0.1,
+            "p95": 0.1,
+            "p99": 0.1,
+            "max": 0.1
+          },
+          "db_run:tournaments:update": {
+            "count": 1,
+            "mean": 19.9,
+            "p50": 19.9,
+            "p95": 19.9,
+            "p99": 19.9,
+            "max": 19.9
+          },
+          "db_wait:locations:find": {
+            "count": 31,
+            "mean": 2.5870967741935487,
+            "p50": 1.7,
+            "p95": 8.6,
+            "p99": 20.2,
+            "max": 20.2
+          },
+          "db_wait:courts:find": {
+            "count": 31,
+            "mean": 2.4548387096774196,
+            "p50": 1.6,
+            "p95": 8.5,
+            "p99": 20.2,
+            "max": 20.2
+          },
+          "db_wait:umpires:find": {
+            "count": 31,
+            "mean": 2.351612903225807,
+            "p50": 1.6,
+            "p95": 4.5,
+            "p99": 20.2,
+            "max": 20.2
+          },
+          "db_wait:tabletoperators:find": {
+            "count": 31,
+            "mean": 2.3193548387096774,
+            "p50": 1.6,
+            "p95": 4.5,
+            "p99": 20.4,
+            "max": 20.4
+          },
+          "phase:admin_match_read": {
+            "count": 31,
+            "mean": 4.516129032258065,
+            "p50": 2.7,
+            "p95": 21.5,
+            "p99": 21.6,
+            "max": 21.6
+          },
+          "db_wait:matches:admin_match_overview": {
+            "count": 31,
+            "mean": 3.7,
+            "p50": 1.8,
+            "p95": 16.7,
+            "p99": 20.2,
+            "max": 20.2
+          },
+          "db_wait:display_court_displaysettings:find": {
+            "count": 31,
+            "mean": 3.232258064516129,
+            "p50": 2.5,
+            "p95": 13.3,
+            "p99": 21.8,
+            "max": 21.8
+          },
+          "db_wait:normalizations:find": {
+            "count": 31,
+            "mean": 2.5903225806451613,
+            "p50": 1.9,
+            "p95": 4.2,
+            "p99": 21.7,
+            "max": 21.7
+          },
+          "db_wait:advertisements:find": {
+            "count": 31,
+            "mean": 2.5870967741935487,
+            "p50": 1.9,
+            "p95": 4.2,
+            "p99": 21.7,
+            "max": 21.7
+          },
+          "db_run:locations:find": {
+            "count": 31,
+            "mean": 2.293548387096774,
+            "p50": 1.8,
+            "p95": 7.2,
+            "p99": 9.1,
+            "max": 9.1
+          },
+          "db_run:courts:find": {
+            "count": 31,
+            "mean": 2.4806451612903224,
+            "p50": 1.8,
+            "p95": 7.7,
+            "p99": 9.3,
+            "max": 9.3
+          },
+          "db_run:umpires:find": {
+            "count": 31,
+            "mean": 2.512903225806452,
+            "p50": 1.9,
+            "p95": 7.8,
+            "p99": 9.2,
+            "max": 9.2
+          },
+          "db_run:tabletoperators:find": {
+            "count": 31,
+            "mean": 2.574193548387097,
+            "p50": 1.9,
+            "p95": 7.6,
+            "p99": 9.5,
+            "max": 9.5
+          },
+          "db_run:matches:admin_match_overview": {
+            "count": 31,
+            "mean": 1.006451612903226,
+            "p50": 0.7,
+            "p95": 3.5,
+            "p99": 5.3,
+            "max": 5.3
+          },
+          "phase:admin_match_copy": {
+            "count": 31,
+            "mean": 0.5129032258064515,
+            "p50": 0.3,
+            "p95": 1.5,
+            "p99": 4.3,
+            "max": 4.3
+          },
+          "db_run:display_court_displaysettings:find": {
+            "count": 31,
+            "mean": 2.2838709677419353,
+            "p50": 1,
+            "p95": 8.5,
+            "p99": 9,
+            "max": 9
+          },
+          "db_run:normalizations:find": {
+            "count": 31,
+            "mean": 2.3838709677419354,
+            "p50": 1.3,
+            "p95": 8.3,
+            "p99": 9.1,
+            "max": 9.1
+          },
+          "db_run:advertisements:find": {
+            "count": 31,
+            "mean": 3.193548387096774,
+            "p50": 1.4,
+            "p95": 8.1,
+            "p99": 33,
+            "max": 33
+          },
+          "encoding:admin_snapshot_encode": {
+            "count": 31,
+            "mean": 17.754838709677422,
+            "p50": 14.6,
+            "p95": 31.4,
+            "p99": 71.7,
+            "max": 71.7
+          },
+          "send_enqueue:admin:message": {
+            "count": 31,
+            "mean": 2.7741935483870974,
+            "p50": 2.4,
+            "p95": 7.2,
+            "p99": 7.5,
+            "max": 7.5
+          },
+          "lock_wait:handle_score_update_v2": {
+            "count": 362,
+            "mean": 0.13287292817679625,
+            "p50": 0.1,
+            "p95": 0.2,
+            "p99": 0.7,
+            "max": 2.1
+          },
+          "lock_hold:handle_score_update_v2": {
+            "count": 362,
+            "mean": 15.63508287292819,
+            "p50": 13.7,
+            "p95": 31.8,
+            "p99": 45.5,
+            "max": 48.6
+          },
+          "phase:owner_check": {
+            "count": 362,
+            "mean": 0.0033149171270718232,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "max": 1.2
+          },
+          "phase:duplicate_check": {
+            "count": 362,
+            "mean": 0.2011049723756915,
+            "p50": 0.2,
+            "p95": 0.2,
+            "p99": 0.5,
+            "max": 2.5
+          },
+          "phase:load_context_match": {
+            "count": 362,
+            "mean": 0.5229281767955793,
+            "p50": 0.4,
+            "p95": 0.8,
+            "p99": 4.1,
+            "max": 4.9
+          },
+          "phase:load_context_tournament": {
+            "count": 362,
+            "mean": 0.29088397790055237,
+            "p50": 0.2,
+            "p95": 0.5,
+            "p99": 1,
+            "max": 5.1
+          },
+          "phase:load_context_court": {
+            "count": 362,
+            "mean": 0.2593922651933707,
+            "p50": 0.2,
+            "p95": 0.4,
+            "p99": 2.7,
+            "max": 5
+          },
+          "phase:load_context": {
+            "count": 362,
+            "mean": 0.6911602209944733,
+            "p50": 0.6,
+            "p95": 1.1,
+            "p99": 5,
+            "max": 5.4
+          },
+          "phase:validate": {
+            "count": 362,
+            "mean": 0.36988950276243177,
+            "p50": 0.3,
+            "p95": 0.5,
+            "p99": 1.5,
+            "max": 4.5
+          },
+          "phase:build_update": {
+            "count": 362,
+            "mean": 0.07541436464088419,
+            "p50": 0.1,
+            "p95": 0.1,
+            "p99": 0.3,
+            "max": 0.9
+          },
+          "db_wait:matches:score_update_write": {
+            "count": 362,
+            "mean": 0.7218232044198897,
+            "p50": 0.1,
+            "p95": 2.6,
+            "p99": 15.6,
+            "max": 32.9
+          },
+          "db_run:matches:score_update_write": {
+            "count": 362,
+            "mean": 5.62292817679558,
+            "p50": 4.3,
+            "p95": 14.9,
+            "p99": 18.4,
+            "max": 32
+          },
+          "storage_wait_ms": {
+            "count": 362,
+            "mean": 1.6041436464088397,
+            "p50": 0.5,
+            "p95": 8.4,
+            "p99": 13.2,
+            "max": 18.5
+          },
+          "serialization_ms": {
+            "count": 362,
+            "mean": 0.5160220994475146,
+            "p50": 0.4,
+            "p95": 0.7,
+            "p99": 3.9,
+            "max": 14.6
+          },
+          "callback_ms": {
+            "count": 362,
+            "mean": 2.286464088397788,
+            "p50": 1.8,
+            "p95": 5.3,
+            "p99": 9.2,
+            "max": 12
+          },
+          "phase:db_update_match": {
+            "count": 362,
+            "mean": 4.112154696132595,
+            "p50": 2.4,
+            "p95": 14.9,
+            "p99": 18.2,
+            "max": 34.8
+          },
+          "send_enqueue:tv:display_points_update": {
+            "count": 362,
+            "mean": 0.22486187845303862,
+            "p50": 0.2,
+            "p95": 0.5,
+            "p99": 1,
+            "max": 4.2
+          },
+          "phase:committed_display_points": {
+            "count": 362,
+            "mean": 0.48480662983425454,
+            "p50": 0.4,
+            "p95": 0.9,
+            "p99": 1.7,
+            "max": 4.6
+          },
+          "db_wait:tournaments:display_context_tournament": {
+            "count": 362,
+            "mean": 2.0798342541436474,
+            "p50": 1.3,
+            "p95": 5.7,
+            "p99": 12.6,
+            "max": 18
+          },
+          "db_wait:courts:display_context_court": {
+            "count": 362,
+            "mean": 2.5582872928176794,
+            "p50": 1.6,
+            "p95": 6.9,
+            "p99": 12.9,
+            "max": 18.3
+          },
+          "encoding:admin_broadcast_encode": {
+            "count": 1086,
+            "mean": 0.26399631675874885,
+            "p50": 0.2,
+            "p95": 0.5,
+            "p99": 3,
+            "max": 8.3
+          },
+          "send_wait:admin:score": {
+            "count": 3982,
+            "mean": 0.29731290808638877,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "max": 210.9
+          },
+          "send_enqueue:admin:score": {
+            "count": 3982,
+            "mean": 0.03420391762933205,
+            "p50": 0,
+            "p95": 0.1,
+            "p99": 0.5,
+            "max": 7.1
+          },
+          "phase:notify_score_and_display_fanout_start": {
+            "count": 362,
+            "mean": 2.0267955801104973,
+            "p50": 1.6,
+            "p95": 4.6,
+            "p99": 8.8,
+            "max": 11.8
+          },
+          "db_run:tournaments:display_context_tournament": {
+            "count": 362,
+            "mean": 0.15552486187845377,
+            "p50": 0.1,
+            "p95": 0.2,
+            "p99": 1.2,
+            "max": 7.5
+          },
+          "phase:score_change_group_panels": {
+            "count": 362,
+            "mean": 2.4751381215469612,
+            "p50": 1.6,
+            "p95": 6.6,
+            "p99": 13,
+            "max": 18.4
+          },
+          "phase:score_change_direct_refreshes": {
+            "count": 362,
+            "mean": 0.037016574585635335,
+            "p50": 0,
+            "p95": 0.1,
+            "p99": 0.2,
+            "max": 3.3
+          },
+          "db_run:courts:display_context_court": {
+            "count": 362,
+            "mean": 0.16187845303867454,
+            "p50": 0.1,
+            "p95": 0.2,
+            "p99": 2.2,
+            "max": 9.7
+          },
+          "db_wait:matches:display_context_match": {
+            "count": 362,
+            "mean": 3.079281767955804,
+            "p50": 2.1,
+            "p95": 7.7,
+            "p99": 11.2,
+            "max": 14.2
+          },
+          "phase:finish_cleanup": {
+            "count": 362,
+            "mean": 0.0027624309392265192,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "max": 1
+          },
+          "phase:validate_court_reference": {
+            "count": 362,
+            "mean": 0.007734806629834254,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "max": 2.8
+          },
+          "send_wait:admin:court_current_match": {
+            "count": 3982,
+            "mean": 0.27378201908588656,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "max": 208.2
+          },
+          "send_enqueue:admin:court_current_match": {
+            "count": 3982,
+            "mean": 0.028980411853340104,
+            "p50": 0,
+            "p95": 0.1,
+            "p99": 0.3,
+            "max": 8.1
+          },
+          "phase:notify_court_current_match": {
+            "count": 362,
+            "mean": 1.4091160220994483,
+            "p50": 0.9,
+            "p95": 4.1,
+            "p99": 7.6,
+            "max": 9.6
+          },
+          "phase:highlight_update": {
+            "count": 362,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "max": 0
+          },
+          "phase:ticker_update": {
+            "count": 362,
+            "mean": 0.006077348066298343,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "max": 2.1
+          },
+          "phase:court_clear_after_finish": {
+            "count": 362,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "max": 0
+          },
+          "phase:auto_preparation": {
+            "count": 362,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "max": 0
+          },
+          "phase:auto_call_free_courts": {
+            "count": 362,
+            "mean": 0.004696132596685083,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "max": 1.7
+          },
+          "db_wait:display_court_displaysettings:findOne": {
+            "count": 362,
+            "mean": 1.9803867403314908,
+            "p50": 1.3,
+            "p95": 6.1,
+            "p99": 10.2,
+            "max": 16.1
+          },
+          "db_run:matches:display_context_match": {
+            "count": 362,
+            "mean": 0.432044198895027,
+            "p50": 0.2,
+            "p95": 1.3,
+            "p99": 4,
+            "max": 10.7
+          },
+          "phase:score_change_court_panels": {
+            "count": 362,
+            "mean": 4.502209944751381,
+            "p50": 3.4,
+            "p95": 10.1,
+            "p99": 14.9,
+            "max": 20.4
+          },
+          "db_run:display_court_displaysettings:findOne": {
+            "count": 362,
+            "mean": 0.7328729281767955,
+            "p50": 0.2,
+            "p95": 4.4,
+            "p99": 10,
+            "max": 18.1
+          },
+          "send_wait:admin:display_status_changed": {
+            "count": 3982,
+            "mean": 0.2119537920642893,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "max": 205.7
+          },
+          "send_enqueue:admin:display_status_changed": {
+            "count": 3982,
+            "mean": 0.022576594676042255,
+            "p50": 0,
+            "p95": 0.1,
+            "p99": 0.2,
+            "max": 5.1
+          },
+          "phase:device_info_hostname": {
+            "count": 362,
+            "mean": 0.024309392265193373,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0.1,
+            "max": 2.8
+          },
+          "phase:device_info_settings_read": {
+            "count": 362,
+            "mean": 2.901104972375692,
+            "p50": 1.7,
+            "p95": 9.2,
+            "p99": 14,
+            "max": 31.2
+          },
+          "phase:device_info_notify": {
+            "count": 362,
+            "mean": 0.80745856353591,
+            "p50": 0.5,
+            "p95": 2.9,
+            "p99": 5.1,
+            "max": 7.3
+          },
+          "phase:device_info": {
+            "count": 362,
+            "mean": 4.073756906077348,
+            "p50": 2.8,
+            "p95": 10.5,
+            "p99": 17.3,
+            "max": 32.2
+          },
+          "send_enqueue:tv:display_timer_update": {
+            "count": 26,
+            "mean": 0.16153846153846158,
+            "p50": 0.1,
+            "p95": 0.6,
+            "p99": 1,
+            "max": 1
+          }
+        },
+        "failed_traces": [],
+        "validated_persisted_reload": true
+      },
+      "audio_write_ms": [
+        28.853189025539905,
+        16.146063047926873,
+        12.40643102210015,
+        28.52413197979331,
+        31.873046944383532
+      ],
+      "inference_ms": [
+        47499.35522599844
+      ],
+      "worst_admin_receptions": [
+        {
+          "index": 0,
+          "sent": 588225.0052250028,
+          "send_lag_ms": 1.5072320103645325,
+          "tv_ms": 7.684680998325348,
+          "admin_ms": 238.99946200847626
+        },
+        {
+          "index": 1,
+          "sent": 588303.658946991,
+          "send_lag_ms": 1.4506019949913025,
+          "tv_ms": 67.86516499519348,
+          "admin_ms": 160.75024300813675
+        },
+        {
+          "index": 2,
+          "sent": 588384.0459110141,
+          "send_lag_ms": 0.6555469632148743,
+          "tv_ms": 15.705909013748169,
+          "admin_ms": 80.83907699584961
+        },
+        {
+          "index": 481,
+          "sent": 626709.4766120315,
+          "send_lag_ms": 6.293151021003723,
+          "tv_ms": 49.94951194524765,
+          "admin_ms": 50.397307991981506
+        },
+        {
+          "index": 276,
+          "sent": 610303.2501109838,
+          "send_lag_ms": 0.0227699875831604,
+          "tv_ms": 13.304551005363464,
+          "admin_ms": 44.80501103401184
+        }
+      ]
+    },
+    {
+      "round": 1,
+      "variant": {
+        "id": "idle",
+        "threads": 4,
+        "nice": 0,
+        "generate": false
+      },
+      "fake": false,
+      "pid_settings": {
+        "event": "ready",
+        "ts": 1792869710775.5854,
+        "port": 35551,
+        "pid": 1346025,
+        "native_pid": 1346038,
+        "nice": 0,
+        "threads": 4,
+        "fake": false
+      },
+      "fixture_sha256": "21e9ae7bcf5fd973ff8cbeca79146df8d3d4abf826a2248094ff84e76a6c5c3a",
+      "input_sha256": "6d540996d6f3fb821a7dd968b5c4afbfb85ef2c69cf3ae57a26d6c540b1d3483",
+      "total": 750,
+      "wall_start": 1792869712942,
+      "wall_end": 1792869772941,
+      "tv_ms": {
+        "count": 750,
+        "mean": 7.077676328023275,
+        "p50": 4.948625981807709,
+        "p95": 11.847696006298065,
+        "p99": 24.577647984027863,
+        "max": 320.68388295173645
+      },
+      "admin_ms": {
+        "count": 750,
+        "mean": 8.326037645339966,
+        "p50": 5.781867980957031,
+        "p95": 13.67194801568985,
+        "p99": 31.8439000248909,
+        "max": 371.2786740064621
+      },
+      "send_lag_ms": {
+        "count": 750,
+        "mean": 0.2569819231033325,
+        "p50": 0.24949699640274048,
+        "p95": 1.4111829996109009,
+        "p99": 2.628642976284027,
+        "max": 5.516601026058197
+      },
+      "process_resources": {
+        "client": {
+          "available": true,
+          "wall_ms": 59999,
+          "cpu_ms": 6270,
+          "cpu_percent_one_core": 10.450174169569493,
+          "nice": 0,
+          "io": {
+            "rchar": 274191467,
+            "wchar": 10141286,
+            "syscr": 26723,
+            "syscw": 2594,
+            "read_bytes": 0,
+            "write_bytes": 16384,
+            "cancelled_write_bytes": 0
+          }
+        },
+        "bts": {
+          "available": true,
+          "wall_ms": 59999,
+          "cpu_ms": 16190,
+          "cpu_percent_one_core": 26.98378306305105,
+          "nice": 0,
+          "io": {
+            "rchar": 10418834,
+            "wchar": 284952039,
+            "syscr": 5353,
+            "syscw": 36717,
+            "read_bytes": 0,
+            "write_bytes": 10973184,
+            "cancelled_write_bytes": 0
+          }
+        },
+        "api": {
+          "available": true,
+          "wall_ms": 59999,
+          "cpu_ms": 110,
+          "cpu_percent_one_core": 0.18333638893981566,
+          "nice": 0,
+          "io": {
+            "rchar": 0,
+            "wchar": 0,
+            "syscr": 0,
+            "syscw": 0,
+            "read_bytes": 0,
+            "write_bytes": 0,
+            "cancelled_write_bytes": 0
+          }
+        },
+        "native": {
+          "available": true,
+          "wall_ms": 59999,
+          "cpu_ms": 0,
+          "cpu_percent_one_core": 0,
+          "nice": 0,
+          "io": {
+            "rchar": 0,
+            "wchar": 0,
+            "syscr": 0,
+            "syscw": 0,
+            "read_bytes": 0,
+            "write_bytes": 0,
+            "cancelled_write_bytes": 0
+          }
+        }
+      },
+      "generation": null,
+      "inference_overlap_ms": 0,
+      "server": {
+        "final_state_sha256": "be4ce9360dc0bea8f3581aa0b93ffc81cb4742863c9705e16e4830b1e2da961a",
+        "cpu_ms": {
+          "user": 15109.195,
+          "system": 1077.263,
+          "wall": 60002.1091260314
+        },
+        "event_loop_utilization": 0.20950558567434446,
+        "phase_ms": {
+          "phase:admin_tournament_snapshot": {
+            "count": 31,
+            "mean": 17.361290322580647,
+            "p50": 10.9,
+            "p95": 23.8,
+            "p99": 188.1,
+            "max": 188.1
+          },
+          "send_wait:admin:snapshot": {
+            "count": 31,
+            "mean": 17.348387096774193,
+            "p50": 10.9,
+            "p95": 23.8,
+            "p99": 188.2,
+            "max": 188.2
+          },
+          "db_wait:tournaments:admin_tournament_read": {
+            "count": 31,
+            "mean": 1.7387096774193551,
+            "p50": 1.8,
+            "p95": 2.9,
+            "p99": 2.9,
+            "max": 2.9
+          },
+          "db_run:tournaments:admin_tournament_read": {
+            "count": 31,
+            "mean": 0.22580645161290325,
+            "p50": 0.2,
+            "p95": 0.6,
+            "p99": 1,
+            "max": 1
+          },
+          "db_wait:displaysettings:find": {
+            "count": 31,
+            "mean": 0.4645161290322581,
+            "p50": 0.2,
+            "p95": 2.2,
+            "p99": 2.6,
+            "max": 2.6
+          },
+          "db_run:displaysettings:find": {
+            "count": 31,
+            "mean": 1.0225806451612902,
+            "p50": 0.2,
+            "p95": 3.7,
+            "p99": 4.9,
+            "max": 4.9
+          },
+          "db_wait:displaysettings:findOne": {
+            "count": 33,
+            "mean": 1.7272727272727273,
+            "p50": 1.3,
+            "p95": 4.2,
+            "p99": 4.8,
+            "max": 4.8
+          },
+          "db_run:displaysettings:findOne": {
+            "count": 33,
+            "mean": 2.0212121212121215,
+            "p50": 1.6,
+            "p95": 5.3,
+            "p99": 6.9,
+            "max": 6.9
+          },
+          "db_wait:displaysettings:insert": {
+            "count": 3,
+            "mean": 2.1,
+            "p50": 1.9,
+            "p95": 3.2,
+            "p99": 3.2,
+            "max": 3.2
+          },
+          "db_run:displaysettings:insert": {
+            "count": 3,
+            "mean": 4.366666666666667,
+            "p50": 4.9,
+            "p95": 5.4,
+            "p99": 5.4,
+            "max": 5.4
+          },
+          "db_wait:tournaments:update": {
+            "count": 1,
+            "mean": 1,
+            "p50": 1,
+            "p95": 1,
+            "p99": 1,
+            "max": 1
+          },
+          "db_run:tournaments:update": {
+            "count": 1,
+            "mean": 23,
+            "p50": 23,
+            "p95": 23,
+            "p99": 23,
+            "max": 23
+          },
+          "db_wait:locations:find": {
+            "count": 31,
+            "mean": 1.854838709677419,
+            "p50": 1.4,
+            "p95": 3.3,
+            "p99": 13.1,
+            "max": 13.1
+          },
+          "db_wait:courts:find": {
+            "count": 31,
+            "mean": 1.8387096774193545,
+            "p50": 1.3,
+            "p95": 3.3,
+            "p99": 13,
+            "max": 13
+          },
+          "db_wait:umpires:find": {
+            "count": 31,
+            "mean": 1.8129032258064515,
+            "p50": 1.3,
+            "p95": 3.2,
+            "p99": 12.9,
+            "max": 12.9
+          },
+          "db_wait:tabletoperators:find": {
+            "count": 31,
+            "mean": 1.7967741935483872,
+            "p50": 1.3,
+            "p95": 3.2,
+            "p99": 12.8,
+            "max": 12.8
+          },
+          "phase:admin_match_read": {
+            "count": 31,
+            "mean": 3.8000000000000003,
+            "p50": 1.2,
+            "p95": 4,
+            "p99": 73.5,
+            "max": 73.5
+          },
+          "db_wait:matches:admin_match_overview": {
+            "count": 31,
+            "mean": 3.1451612903225805,
+            "p50": 0.5,
+            "p95": 3.1,
+            "p99": 72,
+            "max": 72
+          },
+          "db_wait:display_court_displaysettings:find": {
+            "count": 31,
+            "mean": 3.032258064516129,
+            "p50": 1.8,
+            "p95": 9,
+            "p99": 17.3,
+            "max": 17.3
+          },
+          "db_wait:normalizations:find": {
+            "count": 31,
+            "mean": 1.7935483870967746,
+            "p50": 1.4,
+            "p95": 3.7,
+            "p99": 12.4,
+            "max": 12.4
+          },
+          "db_wait:advertisements:find": {
+            "count": 31,
+            "mean": 1.7870967741935486,
+            "p50": 1.4,
+            "p95": 3.7,
+            "p99": 12.4,
+            "max": 12.4
+          },
+          "db_run:locations:find": {
+            "count": 31,
+            "mean": 1.603225806451613,
+            "p50": 1.2,
+            "p95": 4.7,
+            "p99": 5.2,
+            "max": 5.2
+          },
+          "db_run:courts:find": {
+            "count": 31,
+            "mean": 1.7322580645161292,
+            "p50": 1.3,
+            "p95": 5,
+            "p99": 5.6,
+            "max": 5.6
+          },
+          "db_run:umpires:find": {
+            "count": 31,
+            "mean": 1.7516129032258065,
+            "p50": 1.3,
+            "p95": 5,
+            "p99": 5.7,
+            "max": 5.7
+          },
+          "db_run:tabletoperators:find": {
+            "count": 31,
+            "mean": 1.767741935483871,
+            "p50": 1.3,
+            "p95": 5,
+            "p99": 5.8,
+            "max": 5.8
+          },
+          "db_run:normalizations:find": {
+            "count": 31,
+            "mean": 1.567741935483871,
+            "p50": 1.1,
+            "p95": 5,
+            "p99": 5.9,
+            "max": 5.9
+          },
+          "db_run:advertisements:find": {
+            "count": 31,
+            "mean": 1.5677419354838709,
+            "p50": 1.1,
+            "p95": 4.9,
+            "p99": 5.9,
+            "max": 5.9
+          },
+          "db_run:display_court_displaysettings:find": {
+            "count": 31,
+            "mean": 0.8451612903225807,
+            "p50": 0.6,
+            "p95": 2.1,
+            "p99": 4.8,
+            "max": 4.8
+          },
+          "db_run:matches:admin_match_overview": {
+            "count": 31,
+            "mean": 1.0806451612903225,
+            "p50": 0.5,
+            "p95": 1.6,
+            "p99": 15,
+            "max": 15
+          },
+          "phase:admin_match_copy": {
+            "count": 31,
+            "mean": 0.3709677419354838,
+            "p50": 0.3,
+            "p95": 0.7,
+            "p99": 1,
+            "max": 1
+          },
+          "encoding:admin_snapshot_encode": {
+            "count": 31,
+            "mean": 17.138709677419353,
+            "p50": 12.9,
+            "p95": 24.5,
+            "p99": 166.2,
+            "max": 166.2
+          },
+          "send_enqueue:admin:message": {
+            "count": 31,
+            "mean": 2.193548387096774,
+            "p50": 2.1,
+            "p95": 4,
+            "p99": 4.7,
+            "max": 4.7
+          },
+          "lock_wait:handle_score_update_v2": {
+            "count": 362,
+            "mean": 1.4936464088397798,
+            "p50": 0.1,
+            "p95": 0.2,
+            "p99": 29,
+            "max": 241.6
+          },
+          "lock_hold:handle_score_update_v2": {
+            "count": 362,
+            "mean": 11.311325966850834,
+            "p50": 9.6,
+            "p95": 20.1,
+            "p99": 72.3,
+            "max": 81.1
+          },
+          "phase:owner_check": {
+            "count": 362,
+            "mean": 0.00027624309392265195,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "max": 0.1
+          },
+          "phase:duplicate_check": {
+            "count": 362,
+            "mean": 0.20883977900552417,
+            "p50": 0.2,
+            "p95": 0.5,
+            "p99": 0.6,
+            "max": 0.7
+          },
+          "db_wait:matches:score_context_match": {
+            "count": 5,
+            "mean": 41.67999999999999,
+            "p50": 48,
+            "p95": 48.7,
+            "p99": 48.7,
+            "max": 48.7
+          },
+          "phase:load_context_tournament": {
+            "count": 362,
+            "mean": 0.2646408839778997,
+            "p50": 0.2,
+            "p95": 0.6,
+            "p99": 0.9,
+            "max": 1.1
+          },
+          "phase:load_context_court": {
+            "count": 362,
+            "mean": 0.21657458563535867,
+            "p50": 0.2,
+            "p95": 0.5,
+            "p99": 0.7,
+            "max": 0.9
+          },
+          "db_run:matches:score_context_match": {
+            "count": 5,
+            "mean": 0.24000000000000005,
+            "p50": 0.2,
+            "p95": 0.3,
+            "p99": 0.3,
+            "max": 0.3
+          },
+          "phase:load_context_match": {
+            "count": 362,
+            "mean": 1.0469613259668504,
+            "p50": 0.4,
+            "p95": 1.1,
+            "p99": 43.8,
+            "max": 49.2
+          },
+          "phase:load_context": {
+            "count": 362,
+            "mean": 1.208011049723756,
+            "p50": 0.5,
+            "p95": 1.5,
+            "p99": 43.8,
+            "max": 49.3
+          },
+          "phase:validate": {
+            "count": 362,
+            "mean": 0.38784530386740246,
+            "p50": 0.3,
+            "p95": 0.9,
+            "p99": 1.2,
+            "max": 1.5
+          },
+          "phase:build_update": {
+            "count": 362,
+            "mean": 0.05497237569060761,
+            "p50": 0,
+            "p95": 0.1,
+            "p99": 0.2,
+            "max": 2.9
+          },
+          "db_wait:matches:score_update_write": {
+            "count": 362,
+            "mean": 0.5295580110497238,
+            "p50": 0.1,
+            "p95": 1.1,
+            "p99": 21.2,
+            "max": 23.9
+          },
+          "db_run:matches:score_update_write": {
+            "count": 362,
+            "mean": 3.7049723756906117,
+            "p50": 3.1,
+            "p95": 7.3,
+            "p99": 10.1,
+            "max": 14.7
+          },
+          "storage_wait_ms": {
+            "count": 362,
+            "mean": 0.6519337016574579,
+            "p50": 0.4,
+            "p95": 1.2,
+            "p99": 6.7,
+            "max": 9.2
+          },
+          "serialization_ms": {
+            "count": 362,
+            "mean": 0.432872928176795,
+            "p50": 0.3,
+            "p95": 1,
+            "p99": 1.4,
+            "max": 1.5
+          },
+          "callback_ms": {
+            "count": 362,
+            "mean": 1.7063535911602208,
+            "p50": 1.4,
+            "p95": 3.7,
+            "p99": 4.4,
+            "max": 5.5
+          },
+          "phase:db_update_match": {
+            "count": 362,
+            "mean": 2.591436464088398,
+            "p50": 1.7,
+            "p95": 5.3,
+            "p99": 22.8,
+            "max": 26
+          },
+          "send_enqueue:tv:display_points_update": {
+            "count": 362,
+            "mean": 0.14696132596685108,
+            "p50": 0.1,
+            "p95": 0.3,
+            "p99": 0.4,
+            "max": 0.9
+          },
+          "phase:committed_display_points": {
+            "count": 362,
+            "mean": 0.35883977900552433,
+            "p50": 0.3,
+            "p95": 0.7,
+            "p99": 0.9,
+            "max": 1.1
+          },
+          "db_wait:tournaments:display_context_tournament": {
+            "count": 362,
+            "mean": 1.338674033149171,
+            "p50": 1,
+            "p95": 2.9,
+            "p99": 4.3,
+            "max": 11
+          },
+          "db_wait:courts:display_context_court": {
+            "count": 362,
+            "mean": 1.6240331491712694,
+            "p50": 1.2,
+            "p95": 3.6,
+            "p99": 5.5,
+            "max": 11.7
+          },
+          "encoding:admin_broadcast_encode": {
+            "count": 1086,
+            "mean": 0.1874769797421732,
+            "p50": 0.2,
+            "p95": 0.6,
+            "p99": 0.8,
+            "max": 1.1
+          },
+          "send_wait:admin:score": {
+            "count": 3982,
+            "mean": 0.2074334505273732,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "max": 41.5
+          },
+          "send_enqueue:admin:score": {
+            "count": 3982,
+            "mean": 0.01991461577096951,
+            "p50": 0,
+            "p95": 0.1,
+            "p99": 0.1,
+            "max": 3.9
+          },
+          "phase:notify_score_and_display_fanout_start": {
+            "count": 362,
+            "mean": 1.5348066298342535,
+            "p50": 1.3,
+            "p95": 3.4,
+            "p99": 4,
+            "max": 5.3
+          },
+          "db_run:tournaments:display_context_tournament": {
+            "count": 362,
+            "mean": 0.11519337016574611,
+            "p50": 0.1,
+            "p95": 0.2,
+            "p99": 0.4,
+            "max": 0.4
+          },
+          "phase:score_change_group_panels": {
+            "count": 362,
+            "mean": 1.6392265193370152,
+            "p50": 1.3,
+            "p95": 3.6,
+            "p99": 5.3,
+            "max": 11.8
+          },
+          "phase:score_change_direct_refreshes": {
+            "count": 362,
+            "mean": 0.020718232044198866,
+            "p50": 0,
+            "p95": 0.1,
+            "p99": 0.1,
+            "max": 0.1
+          },
+          "db_run:courts:display_context_court": {
+            "count": 362,
+            "mean": 0.08812154696132596,
+            "p50": 0.1,
+            "p95": 0.2,
+            "p99": 0.3,
+            "max": 1.2
+          },
+          "db_wait:matches:display_context_match": {
+            "count": 362,
+            "mean": 2.1533149171270716,
+            "p50": 1.6,
+            "p95": 4.8,
+            "p99": 10.8,
+            "max": 18.1
+          },
+          "phase:finish_cleanup": {
+            "count": 362,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "max": 0
+          },
+          "phase:validate_court_reference": {
+            "count": 362,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "max": 0
+          },
+          "send_wait:admin:court_current_match": {
+            "count": 3982,
+            "mean": 0.1948769462581617,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "max": 38.2
+          },
+          "send_enqueue:admin:court_current_match": {
+            "count": 3982,
+            "mean": 0.018935208437971005,
+            "p50": 0,
+            "p95": 0.1,
+            "p99": 0.1,
+            "max": 3.1
+          },
+          "phase:notify_court_current_match": {
+            "count": 362,
+            "mean": 0.895303867403314,
+            "p50": 0.7,
+            "p95": 2,
+            "p99": 2.6,
+            "max": 3.9
+          },
+          "phase:highlight_update": {
+            "count": 362,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "max": 0
+          },
+          "phase:ticker_update": {
+            "count": 362,
+            "mean": 0.0005524861878453039,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "max": 0.2
+          },
+          "phase:court_clear_after_finish": {
+            "count": 362,
+            "mean": 0.014640883977900553,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "max": 5.2
+          },
+          "phase:auto_preparation": {
+            "count": 362,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "max": 0
+          },
+          "phase:auto_call_free_courts": {
+            "count": 362,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "max": 0
+          },
+          "db_wait:display_court_displaysettings:findOne": {
+            "count": 362,
+            "mean": 1.3113259668508277,
+            "p50": 1,
+            "p95": 2.9,
+            "p99": 6,
+            "max": 10.4
+          },
+          "db_run:display_court_displaysettings:findOne": {
+            "count": 362,
+            "mean": 0.40138121546961264,
+            "p50": 0.2,
+            "p95": 1.6,
+            "p99": 3.8,
+            "max": 5
+          },
+          "send_wait:admin:display_status_changed": {
+            "count": 3982,
+            "mean": 0.16207935710698143,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "max": 36.2
+          },
+          "send_enqueue:admin:display_status_changed": {
+            "count": 3982,
+            "mean": 0.013837267704671136,
+            "p50": 0,
+            "p95": 0.1,
+            "p99": 0.1,
+            "max": 2.5
+          },
+          "phase:device_info_hostname": {
+            "count": 362,
+            "mean": 0.005248618784530388,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0.1,
+            "max": 0.2
+          },
+          "phase:device_info_settings_read": {
+            "count": 362,
+            "mean": 1.8447513812154692,
+            "p50": 1.4,
+            "p95": 4.6,
+            "p99": 7.4,
+            "max": 10.9
+          },
+          "phase:device_info_notify": {
+            "count": 362,
+            "mean": 0.5627071823204414,
+            "p50": 0.4,
+            "p95": 1.3,
+            "p99": 1.7,
+            "max": 3
+          },
+          "phase:device_info": {
+            "count": 362,
+            "mean": 2.6546961325966856,
+            "p50": 2.2,
+            "p95": 6,
+            "p99": 8.4,
+            "max": 11.9
+          },
+          "db_run:matches:display_context_match": {
+            "count": 362,
+            "mean": 0.23618784530386694,
+            "p50": 0.2,
+            "p95": 0.5,
+            "p99": 0.7,
+            "max": 2.7
+          },
+          "phase:score_change_court_panels": {
+            "count": 362,
+            "mean": 3.0613259668508284,
+            "p50": 2.4,
+            "p95": 6.1,
+            "p99": 12,
+            "max": 18.8
+          },
+          "send_enqueue:tv:display_timer_update": {
+            "count": 26,
+            "mean": 0.11538461538461543,
+            "p50": 0.1,
+            "p95": 0.2,
+            "p99": 0.2,
+            "max": 0.2
+          }
+        },
+        "failed_traces": [],
+        "validated_persisted_reload": true
+      },
+      "audio_write_ms": [],
+      "inference_ms": [],
+      "worst_admin_receptions": [
+        {
+          "index": 0,
+          "sent": 680655.3919420242,
+          "send_lag_ms": 1.5988079905509949,
+          "tv_ms": 320.68388295173645,
+          "admin_ms": 371.2786740064621
+        },
+        {
+          "index": 1,
+          "sent": 680734.48932302,
+          "send_lag_ms": 0.7181379795074463,
+          "tv_ms": 246.64874696731567,
+          "admin_ms": 292.3493160009384
+        },
+        {
+          "index": 2,
+          "sent": 680814.0940639973,
+          "send_lag_ms": 0.2480260133743286,
+          "tv_ms": 174.18253499269485,
+          "admin_ms": 212.93923097848892
+        },
+        {
+          "index": 3,
+          "sent": 680893.260217011,
+          "send_lag_ms": -0.5684199929237366,
+          "tv_ms": 99.27731502056122,
+          "admin_ms": 133.9349769949913
+        },
+        {
+          "index": 4,
+          "sent": 680974.0804240108,
+          "send_lag_ms": 0.11187899112701416,
+          "tv_ms": 25.260136008262634,
+          "admin_ms": 53.30059897899628
+        }
+      ]
+    }
+  ]
+}

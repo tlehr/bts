@@ -1153,7 +1153,7 @@ function handle_command_done(app, ws, msg) {
 	admin.notify_change(app, msg.tournament_key, 'display_is_done', {'ctype': msg.wait_for_command.ctype, 'val' : msg.wait_for_command.val, 'client_id': ws.client_id});
 }
 
-function handle_score_change(app, tournament_key, court_id) {
+function handle_score_change(app, tournament_key, court_id, options = {}) {
 	debug_flags.log(app, tournament_key, '[bts] auto_call_trace:bup_handle_score_change', {
 		ts: now_ms(app),
 		tournament_key,
@@ -1164,7 +1164,7 @@ function handle_score_change(app, tournament_key, court_id) {
 	if (all_matches_delivery()) {
 		matches_handler(app, null, tournament_key, undefined);
 	}
-	bupws_v2.handle_score_change(app, tournament_key, court_id).catch((err) => {
+	bupws_v2.handle_score_change(app, tournament_key, court_id, options).catch((err) => {
 		console.error('[bup v2] score change hook failed', err);
 	});
 }
@@ -1227,6 +1227,9 @@ function cmp_bup_matches(a, b, prefer_finished_first) {
 }
 
 function matches_handler(app, ws, tournament_key, court_id) {
+	// Match the recipient condition in notify_change_ws before copying a full
+	// tournament and its score histories, including when only V2 is connected.
+	if (!ws && !all_panels.some(panel => panel.court_id === court_id)) return;
 	const now = now_ms(app);
 	const show_still = now - 60000;
 	const query = {

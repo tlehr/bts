@@ -1,0 +1,1087 @@
+{
+  "started_at": "2026-10-23T18:40:36.265Z",
+  "runtime_ms": 686560,
+  "stop_reason": "interrupted",
+  "server_offloading": {
+    "server_id": "1095014-1792780767153",
+    "run_label": null,
+    "features": {
+      "btp_decode": true,
+      "sync_plan": true,
+      "sync_plan_patch_return": true,
+      "device_info": false,
+      "xlsx_import": false,
+      "compaction": true,
+      "compaction_reads": true,
+      "score_idle_reads": true,
+      "score_direct_writes": true,
+      "preparation_reads": true,
+      "preparation_candidates": true,
+      "sync_batch_writes": false,
+      "sync_prepared_tournament": true,
+      "sync_prepared_matches": true,
+      "admin_response_background": true,
+      "admin_response_priority": true,
+      "admin_match_revision_cache": true,
+      "admin_response_worker": false,
+      "compaction_staged": true
+    }
+  },
+  "tablet_to_tv_ms": {
+    "count": 1421,
+    "mean": 8.2,
+    "min": 2,
+    "p50": 4,
+    "p95": 24,
+    "p99": 35,
+    "max": 103,
+    "over_50_ms": 3,
+    "over_100_ms": 1,
+    "over_200_ms": 0,
+    "sent_updates": 1421,
+    "unmatched_updates": 0,
+    "coverage": 1
+  },
+  "tablet_to_admin_ms": {
+    "count": 1421,
+    "mean": 11.8,
+    "min": 4,
+    "p50": 8,
+    "p95": 29,
+    "p99": 40,
+    "max": 106,
+    "over_50_ms": 4,
+    "over_100_ms": 2,
+    "over_200_ms": 0,
+    "sent_updates": 1421,
+    "unmatched_updates": 0,
+    "coverage": 1
+  },
+  "phases": [
+    {
+      "name": "cycle-1:checkin-and-play",
+      "start_ms": 0,
+      "end_ms": 120000,
+      "idle": false,
+      "cycle": 1,
+      "actual_start_ms": 0,
+      "actual_end_ms": 120172,
+      "points": 305,
+      "score_updates": 306,
+      "finish_confirmations": 1,
+      "repair_score_updates": 0,
+      "player_checkins": 8,
+      "checkin_errors": 0,
+      "tablet_to_tv_ms": {
+        "count": 306,
+        "mean": 9.5,
+        "p50": 5,
+        "p95": 26,
+        "p99": 35,
+        "max": 103,
+        "sent_updates": 306,
+        "unmatched_updates": 0,
+        "coverage": 1,
+        "over_50_ms": 1,
+        "over_100_ms": 1,
+        "over_200_ms": 0
+      },
+      "tablet_to_admin_ms": {
+        "count": 306,
+        "mean": 13.2,
+        "p50": 9,
+        "p95": 29,
+        "p99": 41,
+        "max": 106,
+        "sent_updates": 306,
+        "unmatched_updates": 0,
+        "coverage": 1,
+        "over_50_ms": 1,
+        "over_100_ms": 1,
+        "over_200_ms": 0
+      },
+      "occupied_courts": {
+        "count": 108,
+        "mean": 13,
+        "p50": 13,
+        "p95": 13,
+        "p99": 13,
+        "max": 13
+      },
+      "free_courts": {
+        "count": 108,
+        "mean": 0,
+        "p50": 0,
+        "p95": 0,
+        "p99": 0,
+        "max": 0
+      }
+    },
+    {
+      "name": "cycle-1:load",
+      "start_ms": 120000,
+      "end_ms": 360000,
+      "idle": false,
+      "cycle": 1,
+      "actual_start_ms": 120172,
+      "actual_end_ms": 360048,
+      "points": 580,
+      "score_updates": 586,
+      "finish_confirmations": 6,
+      "repair_score_updates": 0,
+      "player_checkins": 36,
+      "checkin_errors": 0,
+      "tablet_to_tv_ms": {
+        "count": 586,
+        "mean": 8,
+        "p50": 4,
+        "p95": 23,
+        "p99": 38,
+        "max": 59,
+        "sent_updates": 586,
+        "unmatched_updates": 0,
+        "coverage": 1,
+        "over_50_ms": 1,
+        "over_100_ms": 0,
+        "over_200_ms": 0
+      },
+      "tablet_to_admin_ms": {
+        "count": 586,
+        "mean": 11.6,
+        "p50": 8,
+        "p95": 28,
+        "p99": 41,
+        "max": 64,
+        "sent_updates": 586,
+        "unmatched_updates": 0,
+        "coverage": 1,
+        "over_50_ms": 2,
+        "over_100_ms": 0,
+        "over_200_ms": 0
+      },
+      "occupied_courts": {
+        "count": 214,
+        "mean": 12.5,
+        "p50": 13,
+        "p95": 13,
+        "p99": 13,
+        "max": 13
+      },
+      "free_courts": {
+        "count": 214,
+        "mean": 0.5,
+        "p50": 0,
+        "p95": 2,
+        "p99": 2,
+        "max": 2
+      }
+    },
+    {
+      "name": "cycle-1:idle",
+      "start_ms": 360000,
+      "end_ms": 480000,
+      "idle": true,
+      "cycle": 1,
+      "actual_start_ms": 360048,
+      "actual_end_ms": 480013,
+      "points": 0,
+      "score_updates": 0,
+      "finish_confirmations": 0,
+      "repair_score_updates": 0,
+      "player_checkins": 0,
+      "checkin_errors": 0,
+      "tablet_to_tv_ms": {
+        "count": 0,
+        "mean": null,
+        "p50": null,
+        "p95": null,
+        "p99": null,
+        "max": null,
+        "sent_updates": 0,
+        "unmatched_updates": 0,
+        "coverage": null,
+        "over_50_ms": 0,
+        "over_100_ms": 0,
+        "over_200_ms": 0
+      },
+      "tablet_to_admin_ms": {
+        "count": 0,
+        "mean": null,
+        "p50": null,
+        "p95": null,
+        "p99": null,
+        "max": null,
+        "sent_updates": 0,
+        "unmatched_updates": 0,
+        "coverage": null,
+        "over_50_ms": 0,
+        "over_100_ms": 0,
+        "over_200_ms": 0
+      },
+      "occupied_courts": {
+        "count": 99,
+        "mean": 13,
+        "p50": 13,
+        "p95": 13,
+        "p99": 13,
+        "max": 13
+      },
+      "free_courts": {
+        "count": 99,
+        "mean": 0,
+        "p50": 0,
+        "p95": 0,
+        "p99": 0,
+        "max": 0
+      }
+    },
+    {
+      "name": "cycle-1:load-after-idle",
+      "start_ms": 480000,
+      "end_ms": 600000,
+      "idle": false,
+      "cycle": 1,
+      "actual_start_ms": 480013,
+      "actual_end_ms": 600000,
+      "points": 293,
+      "score_updates": 299,
+      "finish_confirmations": 6,
+      "repair_score_updates": 0,
+      "player_checkins": 12,
+      "checkin_errors": 0,
+      "tablet_to_tv_ms": {
+        "count": 299,
+        "mean": 7.9,
+        "p50": 4,
+        "p95": 25,
+        "p99": 34,
+        "max": 43,
+        "sent_updates": 299,
+        "unmatched_updates": 0,
+        "coverage": 1,
+        "over_50_ms": 0,
+        "over_100_ms": 0,
+        "over_200_ms": 0
+      },
+      "tablet_to_admin_ms": {
+        "count": 299,
+        "mean": 11.5,
+        "p50": 8,
+        "p95": 29,
+        "p99": 39,
+        "max": 48,
+        "sent_updates": 299,
+        "unmatched_updates": 0,
+        "coverage": 1,
+        "over_50_ms": 0,
+        "over_100_ms": 0,
+        "over_200_ms": 0
+      },
+      "occupied_courts": {
+        "count": 107,
+        "mean": 12.7,
+        "p50": 13,
+        "p95": 13,
+        "p99": 13,
+        "max": 13
+      },
+      "free_courts": {
+        "count": 107,
+        "mean": 0.3,
+        "p50": 0,
+        "p95": 1,
+        "p99": 1,
+        "max": 1
+      }
+    },
+    {
+      "name": "cycle-2:checkin-and-play",
+      "start_ms": 600000,
+      "end_ms": 720000,
+      "idle": false,
+      "cycle": 2,
+      "actual_start_ms": 600000,
+      "actual_end_ms": 686560,
+      "points": 230,
+      "score_updates": 230,
+      "finish_confirmations": 0,
+      "repair_score_updates": 0,
+      "player_checkins": 8,
+      "checkin_errors": 0,
+      "tablet_to_tv_ms": {
+        "count": 230,
+        "mean": 7.5,
+        "p50": 3,
+        "p95": 24,
+        "p99": 32,
+        "max": 98,
+        "sent_updates": 230,
+        "unmatched_updates": 0,
+        "coverage": 1,
+        "over_50_ms": 1,
+        "over_100_ms": 0,
+        "over_200_ms": 0
+      },
+      "tablet_to_admin_ms": {
+        "count": 230,
+        "mean": 10.8,
+        "p50": 7,
+        "p95": 28,
+        "p99": 37,
+        "max": 102,
+        "sent_updates": 230,
+        "unmatched_updates": 0,
+        "coverage": 1,
+        "over_50_ms": 1,
+        "over_100_ms": 1,
+        "over_200_ms": 0
+      },
+      "occupied_courts": {
+        "count": 77,
+        "mean": 13,
+        "p50": 13,
+        "p95": 13,
+        "p99": 13,
+        "max": 13
+      },
+      "free_courts": {
+        "count": 77,
+        "mean": 0,
+        "p50": 0,
+        "p95": 0,
+        "p99": 1,
+        "max": 1
+      }
+    }
+  ],
+  "source": "bts-test-15.json",
+  "initial_state": {
+    "matches": 128,
+    "finished_matches": 52,
+    "active_matches": 13,
+    "active_courts": 13
+  },
+  "speech_latest_cumulative_since_start": {
+    "execution": "process",
+    "running": true,
+    "pid": 1095049,
+    "thread_id": null,
+    "pending_requests": 0,
+    "sent": 5369,
+    "send_total_ms": 546.2160459999993,
+    "send_max_ms": 10.627648,
+    "snapshots": 683
+  },
+  "speech_spans": {
+    "speech_bridge_send": {
+      "count": 5185,
+      "median_ms": 0.1,
+      "p95_ms": 0.2,
+      "p99_ms": 0.5,
+      "max_ms": 10.6
+    },
+    "speech_snapshot_collect": {
+      "count": 679,
+      "median_ms": 0.1,
+      "p95_ms": 0.2,
+      "p99_ms": 0.3,
+      "max_ms": 0.9
+    }
+  },
+  "spikes": [
+    {
+      "point_sequence": 224,
+      "sent_ts": 1792780925022,
+      "tv_ms": 103,
+      "admin_ms": 106,
+      "server_start_delay_ms": 1,
+      "stages": [
+        {
+          "name": "handle_score_update_v2",
+          "kind": "lock_wait",
+          "offset_ms": 1,
+          "duration_ms": 96.1,
+          "blockers": [
+            "fetch_sync_apply"
+          ]
+        },
+        {
+          "name": "load_context",
+          "kind": "phase",
+          "offset_ms": 98,
+          "duration_ms": 2
+        },
+        {
+          "name": "db_update_match",
+          "kind": "phase",
+          "offset_ms": 99.4,
+          "duration_ms": 2.6
+        },
+        {
+          "name": "committed_display_points",
+          "kind": "phase",
+          "offset_ms": 102.8,
+          "duration_ms": 2.1
+        },
+        {
+          "name": "notify_score_and_display_fanout_start",
+          "kind": "phase",
+          "offset_ms": 102.9,
+          "duration_ms": 3.1
+        }
+      ]
+    },
+    {
+      "point_sequence": 1259,
+      "sent_ts": 1792781462386,
+      "tv_ms": 98,
+      "admin_ms": 102,
+      "server_start_delay_ms": 83,
+      "stages": [
+        {
+          "name": "handle_score_update_v2",
+          "kind": "lock_wait",
+          "offset_ms": 83,
+          "duration_ms": 0.1
+        },
+        {
+          "name": "load_context",
+          "kind": "phase",
+          "offset_ms": 82.5,
+          "duration_ms": 0.5
+        },
+        {
+          "name": "db_update_match",
+          "kind": "phase",
+          "offset_ms": 83.5,
+          "duration_ms": 13.5
+        },
+        {
+          "name": "committed_display_points",
+          "kind": "phase",
+          "offset_ms": 96.9,
+          "duration_ms": 2.1
+        },
+        {
+          "name": "notify_score_and_display_fanout_start",
+          "kind": "phase",
+          "offset_ms": 97.5,
+          "duration_ms": 3.4
+        }
+      ]
+    },
+    {
+      "point_sequence": 456,
+      "sent_ts": 1792781017919,
+      "tv_ms": 59,
+      "admin_ms": 64,
+      "server_start_delay_ms": 28,
+      "stages": [
+        {
+          "name": "handle_score_update_v2",
+          "kind": "lock_wait",
+          "offset_ms": 28,
+          "duration_ms": 9.4
+        },
+        {
+          "name": "load_context",
+          "kind": "phase",
+          "offset_ms": 37.6,
+          "duration_ms": 17.4
+        },
+        {
+          "name": "db_update_match",
+          "kind": "phase",
+          "offset_ms": 55.8,
+          "duration_ms": 3.2
+        },
+        {
+          "name": "committed_display_points",
+          "kind": "phase",
+          "offset_ms": 59.1,
+          "duration_ms": 2.9
+        },
+        {
+          "name": "notify_score_and_display_fanout_start",
+          "kind": "phase",
+          "offset_ms": 58.4,
+          "duration_ms": 4.6
+        }
+      ]
+    },
+    {
+      "point_sequence": 756,
+      "sent_ts": 1792781141599,
+      "tv_ms": 47,
+      "admin_ms": 52,
+      "server_start_delay_ms": 24,
+      "stages": [
+        {
+          "name": "handle_score_update_v2",
+          "kind": "lock_wait",
+          "offset_ms": 24,
+          "duration_ms": 12.2
+        },
+        {
+          "name": "load_context",
+          "kind": "phase",
+          "offset_ms": 36,
+          "duration_ms": 7
+        },
+        {
+          "name": "db_update_match",
+          "kind": "phase",
+          "offset_ms": 43.1,
+          "duration_ms": 2.8
+        },
+        {
+          "name": "committed_display_points",
+          "kind": "phase",
+          "offset_ms": 46.7,
+          "duration_ms": 1.3
+        },
+        {
+          "name": "notify_score_and_display_fanout_start",
+          "kind": "phase",
+          "offset_ms": 46.3,
+          "duration_ms": 2.7
+        }
+      ]
+    }
+  ],
+  "event_loop_max_ms": 110.034943,
+  "observed_idle_drain_ms": 700,
+  "testclient_example": {
+    "point_sequence": 1259,
+    "recorded_sent_ts": 1792781462386,
+    "point_log_ts": 1792781462468,
+    "server_handler_ts": 1792781462469,
+    "tv_received_ts": 1792781462484,
+    "admin_received_ts": 1792781462488,
+    "boundary": "record_score_sent timestamps before a synchronous archive append and before handing the message to the socket transport; actual worker wire-send time is not recorded."
+  },
+  "controlled_broadcast_benchmark": {
+    "created_at": "2026-10-23T18:58:09.506Z",
+    "node": "v19.9.0",
+    "recipients": 11,
+    "bytes": 446320,
+    "pairs": [
+      {
+        "repetition": 0,
+        "samples": [
+          {
+            "shared": false,
+            "elapsed_ms": 47.03117901086807,
+            "process_cpu_ms": 47.031
+          },
+          {
+            "shared": true,
+            "elapsed_ms": 3.9239659905433655,
+            "process_cpu_ms": 3.921
+          }
+        ]
+      },
+      {
+        "repetition": 1,
+        "samples": [
+          {
+            "shared": true,
+            "elapsed_ms": 4.083966970443726,
+            "process_cpu_ms": 4.098
+          },
+          {
+            "shared": false,
+            "elapsed_ms": 44.4069060087204,
+            "process_cpu_ms": 44.694
+          }
+        ]
+      },
+      {
+        "repetition": 2,
+        "samples": [
+          {
+            "shared": false,
+            "elapsed_ms": 45.547155022621155,
+            "process_cpu_ms": 45.992
+          },
+          {
+            "shared": true,
+            "elapsed_ms": 4.635555982589722,
+            "process_cpu_ms": 4.638
+          }
+        ]
+      },
+      {
+        "repetition": 3,
+        "samples": [
+          {
+            "shared": true,
+            "elapsed_ms": 4.955300033092499,
+            "process_cpu_ms": 4.956
+          },
+          {
+            "shared": false,
+            "elapsed_ms": 44.32853502035141,
+            "process_cpu_ms": 44.852
+          }
+        ]
+      },
+      {
+        "repetition": 4,
+        "samples": [
+          {
+            "shared": false,
+            "elapsed_ms": 42.269728004932404,
+            "process_cpu_ms": 42.705
+          },
+          {
+            "shared": true,
+            "elapsed_ms": 3.976932942867279,
+            "process_cpu_ms": 3.957
+          }
+        ]
+      },
+      {
+        "repetition": 5,
+        "samples": [
+          {
+            "shared": true,
+            "elapsed_ms": 4.259211003780365,
+            "process_cpu_ms": 4.256
+          },
+          {
+            "shared": false,
+            "elapsed_ms": 38.29840397834778,
+            "process_cpu_ms": 38.296
+          }
+        ]
+      },
+      {
+        "repetition": 6,
+        "samples": [
+          {
+            "shared": false,
+            "elapsed_ms": 40.44630300998688,
+            "process_cpu_ms": 40.919
+          },
+          {
+            "shared": true,
+            "elapsed_ms": 3.414546012878418,
+            "process_cpu_ms": 3.413
+          }
+        ]
+      },
+      {
+        "repetition": 7,
+        "samples": [
+          {
+            "shared": true,
+            "elapsed_ms": 3.733789026737213,
+            "process_cpu_ms": 3.733
+          },
+          {
+            "shared": false,
+            "elapsed_ms": 36.81043803691864,
+            "process_cpu_ms": 36.813
+          }
+        ]
+      },
+      {
+        "repetition": 8,
+        "samples": [
+          {
+            "shared": false,
+            "elapsed_ms": 37.616409957408905,
+            "process_cpu_ms": 37.619
+          },
+          {
+            "shared": true,
+            "elapsed_ms": 11.048615992069244,
+            "process_cpu_ms": 35.393
+          }
+        ]
+      },
+      {
+        "repetition": 9,
+        "samples": [
+          {
+            "shared": true,
+            "elapsed_ms": 3.6292290091514587,
+            "process_cpu_ms": 3.628
+          },
+          {
+            "shared": false,
+            "elapsed_ms": 35.341410994529724,
+            "process_cpu_ms": 35.341
+          }
+        ]
+      },
+      {
+        "repetition": 10,
+        "samples": [
+          {
+            "shared": false,
+            "elapsed_ms": 36.95115900039673,
+            "process_cpu_ms": 37.245
+          },
+          {
+            "shared": true,
+            "elapsed_ms": 6.8488450050354,
+            "process_cpu_ms": 29.959
+          }
+        ]
+      },
+      {
+        "repetition": 11,
+        "samples": [
+          {
+            "shared": true,
+            "elapsed_ms": 5.805322051048279,
+            "process_cpu_ms": 5.806
+          },
+          {
+            "shared": false,
+            "elapsed_ms": 42.41577500104904,
+            "process_cpu_ms": 42.658
+          }
+        ]
+      },
+      {
+        "repetition": 12,
+        "samples": [
+          {
+            "shared": false,
+            "elapsed_ms": 36.528730034828186,
+            "process_cpu_ms": 36.528
+          },
+          {
+            "shared": true,
+            "elapsed_ms": 6.359636962413788,
+            "process_cpu_ms": 25.53
+          }
+        ]
+      },
+      {
+        "repetition": 13,
+        "samples": [
+          {
+            "shared": true,
+            "elapsed_ms": 5.241456985473633,
+            "process_cpu_ms": 8.305
+          },
+          {
+            "shared": false,
+            "elapsed_ms": 46.62650901079178,
+            "process_cpu_ms": 46.937
+          }
+        ]
+      },
+      {
+        "repetition": 14,
+        "samples": [
+          {
+            "shared": false,
+            "elapsed_ms": 39.9045450091362,
+            "process_cpu_ms": 40.266
+          },
+          {
+            "shared": true,
+            "elapsed_ms": 3.521391987800598,
+            "process_cpu_ms": 3.522
+          }
+        ]
+      },
+      {
+        "repetition": 15,
+        "samples": [
+          {
+            "shared": true,
+            "elapsed_ms": 3.472564995288849,
+            "process_cpu_ms": 3.471
+          },
+          {
+            "shared": false,
+            "elapsed_ms": 37.525018990039825,
+            "process_cpu_ms": 37.922
+          }
+        ]
+      },
+      {
+        "repetition": 16,
+        "samples": [
+          {
+            "shared": false,
+            "elapsed_ms": 41.69147402048111,
+            "process_cpu_ms": 62.446
+          },
+          {
+            "shared": true,
+            "elapsed_ms": 3.383769989013672,
+            "process_cpu_ms": 3.382
+          }
+        ]
+      },
+      {
+        "repetition": 17,
+        "samples": [
+          {
+            "shared": true,
+            "elapsed_ms": 3.159539043903351,
+            "process_cpu_ms": 3.158
+          },
+          {
+            "shared": false,
+            "elapsed_ms": 44.243901014328,
+            "process_cpu_ms": 44.559
+          }
+        ]
+      },
+      {
+        "repetition": 18,
+        "samples": [
+          {
+            "shared": false,
+            "elapsed_ms": 46.93316704034805,
+            "process_cpu_ms": 47.3
+          },
+          {
+            "shared": true,
+            "elapsed_ms": 6.510085999965668,
+            "process_cpu_ms": 26.088
+          }
+        ]
+      },
+      {
+        "repetition": 19,
+        "samples": [
+          {
+            "shared": true,
+            "elapsed_ms": 3.5494289994239807,
+            "process_cpu_ms": 6.546
+          },
+          {
+            "shared": false,
+            "elapsed_ms": 35.67242395877838,
+            "process_cpu_ms": 35.95
+          }
+        ]
+      },
+      {
+        "repetition": 20,
+        "samples": [
+          {
+            "shared": false,
+            "elapsed_ms": 35.67663300037384,
+            "process_cpu_ms": 36.115
+          },
+          {
+            "shared": true,
+            "elapsed_ms": 6.891140997409821,
+            "process_cpu_ms": 28.619
+          }
+        ]
+      },
+      {
+        "repetition": 21,
+        "samples": [
+          {
+            "shared": true,
+            "elapsed_ms": 5.956115007400513,
+            "process_cpu_ms": 9.854
+          },
+          {
+            "shared": false,
+            "elapsed_ms": 35.53677302598953,
+            "process_cpu_ms": 35.905
+          }
+        ]
+      },
+      {
+        "repetition": 22,
+        "samples": [
+          {
+            "shared": false,
+            "elapsed_ms": 36.849377036094666,
+            "process_cpu_ms": 37.197
+          },
+          {
+            "shared": true,
+            "elapsed_ms": 3.4877700209617615,
+            "process_cpu_ms": 3.487
+          }
+        ]
+      },
+      {
+        "repetition": 23,
+        "samples": [
+          {
+            "shared": true,
+            "elapsed_ms": 3.6976919770240784,
+            "process_cpu_ms": 3.697
+          },
+          {
+            "shared": false,
+            "elapsed_ms": 40.36405295133591,
+            "process_cpu_ms": 40.898
+          }
+        ]
+      }
+    ],
+    "summary": [
+      {
+        "shared": false,
+        "count": 24,
+        "median_ms": 39.9045450091362,
+        "p95_ms": 46.93316704034805,
+        "max_ms": 47.03117901086807
+      },
+      {
+        "shared": true,
+        "count": 24,
+        "median_ms": 3.976932942867279,
+        "p95_ms": 6.891140997409821,
+        "max_ms": 11.048615992069244
+      }
+    ],
+    "validation": "Every recipient receives identical full native JSON as a text frame in every probe.",
+    "limitations": [
+      "Synthetic event DTO, normal production admin/outbox path and installed ws server framing.",
+      "No actual socket writes, network reception, browser rendering, speech synthesis or database commits measured.",
+      "Local diagnostic comparison, no promise for live p99 or total sync lock duration."
+    ]
+  },
+  "ordinary_bup_comparison": {
+    "all_complete_persisted_final_states_equal": true,
+    "cases_per_variant": 6,
+    "samples": [
+      {
+        "mode": "point",
+        "point_tv_ms": 38.707908034324646,
+        "admin_event_ms": 41.87857902050018,
+        "total_ms": 102.95701199769974,
+        "timer_max_ms": 14.37043297290802,
+        "shared": false
+      },
+      {
+        "mode": "sync",
+        "point_tv_ms": 85.94193798303604,
+        "admin_event_ms": 86.41714495420456,
+        "commit_ms": 79.97849500179291,
+        "total_ms": 327.89145797491074,
+        "timer_max_ms": 76.11592000722885,
+        "shared": false
+      },
+      {
+        "mode": "finish",
+        "point_tv_ms": 47.49374604225159,
+        "admin_event_ms": 48.02213501930237,
+        "finish_cleanup_ms": 37.13131898641586,
+        "total_ms": 166.94709795713425,
+        "timer_max_ms": 10.266017973423004,
+        "shared": false
+      },
+      {
+        "mode": "point",
+        "point_tv_ms": 8.656135022640228,
+        "admin_event_ms": 9.04543000459671,
+        "total_ms": 61.62188899517059,
+        "timer_max_ms": 15.361397981643677,
+        "shared": false
+      },
+      {
+        "mode": "sync",
+        "point_tv_ms": 77.80304300785065,
+        "admin_event_ms": 78.1066899895668,
+        "commit_ms": 75.49806398153305,
+        "total_ms": 239.9251109957695,
+        "timer_max_ms": 65.81968599557877,
+        "shared": false
+      },
+      {
+        "mode": "finish",
+        "point_tv_ms": 32.0807049870491,
+        "admin_event_ms": 32.48106199502945,
+        "finish_cleanup_ms": 24.32262098789215,
+        "total_ms": 116.76955300569534,
+        "timer_max_ms": 6.434794008731842,
+        "shared": false
+      },
+      {
+        "mode": "point",
+        "point_tv_ms": 60.70706897974014,
+        "admin_event_ms": 69.41845601797104,
+        "total_ms": 161.98471796512604,
+        "timer_max_ms": 25.19634300470352,
+        "shared": true
+      },
+      {
+        "mode": "sync",
+        "point_tv_ms": 32.624439001083374,
+        "admin_event_ms": 33.12140601873398,
+        "commit_ms": 23.02625995874405,
+        "total_ms": 305.09201204776764,
+        "timer_max_ms": 79.15891897678375,
+        "shared": true
+      },
+      {
+        "mode": "finish",
+        "point_tv_ms": 68.20011299848557,
+        "admin_event_ms": 68.85871601104736,
+        "finish_cleanup_ms": 52.36362701654434,
+        "total_ms": 208.3499349951744,
+        "timer_max_ms": 13.1577969789505,
+        "shared": true
+      },
+      {
+        "mode": "point",
+        "point_tv_ms": 8.738757014274597,
+        "admin_event_ms": 9.225907981395721,
+        "total_ms": 56.45863002538681,
+        "timer_max_ms": 14.293878972530365,
+        "shared": true
+      },
+      {
+        "mode": "sync",
+        "point_tv_ms": 33.32739996910095,
+        "admin_event_ms": 33.621760964393616,
+        "commit_ms": 27.054731011390686,
+        "total_ms": 273.7112919688225,
+        "timer_max_ms": 75.00038301944733,
+        "shared": true
+      },
+      {
+        "mode": "finish",
+        "point_tv_ms": 15.484489023685455,
+        "admin_event_ms": 15.70704299211502,
+        "finish_cleanup_ms": 11.867581963539124,
+        "total_ms": 123.27253901958466,
+        "timer_max_ms": 15.04628700017929,
+        "shared": true
+      }
+    ],
+    "limitations": [
+      "Functional comparison on an existing disposable tournament snapshot with actual BUP/plan/UI paths and eleven framed mock sockets.",
+      "Synthetic extra event notification during sync; no BTP TCP fetch or actual socket writes.",
+      "Only two probes per scenario, including cold startup effects; no general latency prediction."
+    ]
+  },
+  "checks": {
+    "regression_tests_passed": 206,
+    "eslint": "passed for small changed modules, benchmark and new tests",
+    "syntax_admin": "passed",
+    "diff_check": "passed"
+  },
+  "source_sha256": {
+    "bts/admin.js": "3c791d52021901e7c047378f897d06cb9fc5548c913dc81a2e609e82134f64a3",
+    "bts/admin_response/outbox.js": "b0e599f380a7262ff79785a4c3db89c958dce1177a056cbd7503cd604c33195a",
+    "bts/wshandler.js": "3f0b0965b441a38e524b539c7f680fedf9cacfca96a8d45df02a02cd152bf3bf",
+    "bts/offload/profile.js": "d8fc5951f739d3bd552ec156a780d70374d250caf252e5aa4a8060c81b5072ba",
+    "test/test_admin_broadcast.js": "a539743caab75676b2df5e77db2c5123ba7e96a07dbd9aae47b6662375c7664b",
+    "debug/admin_broadcast_benchmark.js": "9e241cd3ad51bf3ba6914426d04aebd3636afa4c9223b755af1693a14f723fc5"
+  },
+  "limitations": [
+    "First ten-minute cycle completed, overall run interrupted during cycle two.",
+    "Different initial state and duration prevent a controlled causal comparison against test 13.",
+    "Live results of shared admin broadcasts remain unverified."
+  ]
+}

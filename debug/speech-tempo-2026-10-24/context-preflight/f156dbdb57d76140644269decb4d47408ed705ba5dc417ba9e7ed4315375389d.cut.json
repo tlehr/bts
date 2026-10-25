@@ -1,0 +1,13 @@
+{
+  "version": "bts-context-v1",
+  "source_sha256": "192e6b4e38c7316790cacdf21cea490d310981e98db798b710b36ac39d6bb099",
+  "alignment_model": "6e77144b13a6a5de756138d80d099c4f66d93144de27f635fc9cdd71d6b3a236",
+  "source_audio_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "start_frame": 104261,
+  "end_frame": 150823,
+  "source_rate": 24000,
+  "kind": "generic",
+  "text": "Spiel um Platz fünf und sechs!",
+  "start_10ms_rms": 0.005831121168224526,
+  "end_10ms_rms": 0.00016185588627475956
+}

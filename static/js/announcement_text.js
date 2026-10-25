@@ -50,17 +50,26 @@ function createAnnouncementTexts(context) {
 
     function announce(parts, local, claim) {
         const plan = localPlan(parts);
-        let prepared = plan.map(part => part.text);
-        let pauses = plan.map((part, index) => {
-            const boundary = part.after + (plan[index + 1]?.before || '');
-            return /[.!?]/.test(boundary) ? 250 : /[,;:]/.test(boundary) ? 120 : 0;
+        const call = activeCall;
+        // The browser may load before the speech worker advertises its recipe
+        // version. Build again at playback, after metadata has been synchronized.
+        const buildLocalPlan = speech => {
+            const current = speech ? { ...curt, speech: { ...curt.speech, ...speech } } : curt;
+            if (call && ['bts-context-v1', 'bts-context-v2'].includes(current.speech?.context_version) && ci18n('announcements:lang') === 'de-DE') {
+                const planner = typeof module !== 'undefined' && module.exports ? require('./speech_context') : createContextSpeechPlan;
+                const recipe = planner(api, current, call.name, call.setup, call.args, parts);
+                if (recipe) return recipe;
+            }
+            return { parts: plan.map(part => part.text), pauses: plan.map((part, index) => {
+                const boundary = part.after + (plan[index + 1]?.before || '');
+                return /[.!?]/.test(boundary) ? 250 : /[,;:]/.test(boundary) ? 120 : 0;
+            }) };
+        };
+        const prepared = buildLocalPlan();
+        context.announce(context.local ? prepared.parts : parts, local, claim, {
+            localParts: prepared.parts, localPauses: prepared.pauses,
+            ...(!context.local && call ? { buildLocalPlan } : {}),
         });
-        if (activeCall && ['bts-context-v1', 'bts-context-v2'].includes(curt.speech?.context_version) && ci18n('announcements:lang') === 'de-DE') {
-            const planner = typeof module !== 'undefined' && module.exports ? require('./speech_context') : createContextSpeechPlan;
-            const recipe = planner(api, curt, activeCall.name, activeCall.setup, activeCall.args, parts);
-            if (recipe) { prepared = recipe.parts; pauses = recipe.pauses; }
-        }
-        context.announce(context.local ? prepared : parts, local, claim, { localParts: prepared, localPauses: pauses });
     }
     const window = context.window;
     const buildAnnouncementClaimKey = context.claim;

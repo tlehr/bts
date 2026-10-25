@@ -1,0 +1,33 @@
+{
+  "date": "2026-10-25",
+  "scope": "CPU-only single Windows EXE and self-contained Linux SH; private fixtures, no production tournament or BTP access",
+  "windows": {
+    "target": "net48 GUI / AnyCPU",
+    "launcher_bytes": 8192,
+    "launcher_sha256": "5411d9a6171e9b6f359c419dcd98113735df22a0fe59a62de3b85dd5e62719a3",
+    "reference_assemblies": "Microsoft.NETFramework.ReferenceAssemblies.net48 1.0.3",
+    "reference_package_sha256": "8a7e348538e7eb91351696911689f49e3d4f63f8bab517432bbe159b8b1104a2",
+    "payload_tested": ["GUI PE format", "personal configuration", "payload SHA256", "actual C# extraction", "corruption rejection", "traversal rejection", "temporary cleanup"],
+    "authenticode_signed": false,
+    "temporary_untrusted_authenticode_fixture_tested": true,
+    "windows_exe_launched": false
+  },
+  "linux": {
+    "platform_tested": "Ubuntu 24.04 x86_64 / Python 3.12 / Bubblewrap 0.9.0",
+    "full_probe_report": "/tmp/bts-linux-helper-probe-9agOeJ/report.json",
+    "runtime_id": "b913cb1f10da593404e9ee09ff59eb18705efa2643839c7cb7e3c47632c3ce47",
+    "runtime_download_bytes": 2167797760,
+    "first_run_ms": 64861,
+    "native_generation_ms": 41913,
+    "threads": 2,
+    "memory_limit_mib": 3584,
+    "pcm16_wav_bytes": 405164,
+    "controlled_stop": true,
+    "cached_restart": true,
+    "cancelled_job_state": "failed",
+    "own_installation_removed": true,
+    "other_distributions_tested": false
+  },
+  "tests": { "bts_helpers_worker_cache": 59, "linux_starter": 12, "powershell_and_exe_probe": "passed" },
+  "production_preparation_distributed": false
+}

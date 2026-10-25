@@ -17,6 +17,7 @@ const displaysettings_defaults = require('./displaysettings_defaults');
 const event_loop_probe = require('./timing/event_loop_probe');
 const timed_steps = require('./timing/steps');
 const publish_committed_points = require('./score_publication/committed_points');
+const write_score = require('./score_write');
 
 const all_panels = [];
 const active_umpire_match_owners = new Map();
@@ -3017,9 +3018,8 @@ async function handle_score_update(app, ws, msg) {
 		initial_tournament_key,
 		initial_score_data.match_id || initial_score_data.court_id || '<unknown>',
 	].join(':');
-	const score_task_locks = update_queue.lock_keys.score_update(initial_tournament_key, initial_score_data, {
-		finish: !!(initial_score_data.finish_confirmed || initial_score_data.end_ts || typeof initial_score_data.team1_won === 'boolean'),
-	});
+	const finish_locks = !!(initial_score_data.finish_confirmed || initial_score_data.end_ts || typeof initial_score_data.team1_won === 'boolean');
+	const score_task_locks = update_queue.lock_keys.score_update(initial_tournament_key, initial_score_data, { finish: finish_locks });
 	const score_task = update_queue.named('handle_score_update_v2', () => new Promise((resolve) => {
 		const processing_start_ns = timing_now_ns();
 		const match_utils = require('./match_utils');
@@ -3286,7 +3286,7 @@ async function handle_score_update(app, ws, msg) {
 			async.waterfall([
 				(cb) => {
 					const start_ns = timing_now_ns();
-					db.matches.update(match_query, { $set: update }, { returnUpdatedDocs: true }, (err, _numAffected, updated_match) => {
+					write_score(db.matches, match_query, update, (err, _numAffected, updated_match) => {
 						score_phase('db_update_match', start_ns, {
 							updated: !!updated_match,
 							error: err ? err.message || String(err) : null,
@@ -3324,7 +3324,10 @@ async function handle_score_update(app, ws, msg) {
 							court_id: updated_match.setup && updated_match.setup.court_id,
 							now_on_court: updated_match.setup && updated_match.setup.now_on_court,
 						});
-						require('./foreground_work').release();
+						// Finish cleanup still holds shared participant/preparation locks.
+						// Keep UI work paused until those locks are released, so another
+						// court's next point is not delayed by background reads/copying.
+						if (!finish_locks) require('./foreground_work').release();
 					}
 					score_phase('notify_score_and_display_fanout_start', start_ns, {
 						updated: !!updated_match,
@@ -3537,7 +3540,20 @@ async function handle_score_change(app, tournament_key, court_id, options = {}) 
 	};
 	const score_phase = create_score_phase_logger(app, tournament_key, 'bup_v2', score_timing_score_data);
 	const phase_start_ns = timing_now_ns();
-	const matching_panels = all_panels.filter((ws) => ws && ws.last_tournament_key === tournament_key);
+	const changed_match = id => id === options.changed_match_id || id === 'bts_' + options.changed_match_id;
+	const matching_panels = all_panels.filter((ws) => {
+		if (!ws || ws.last_tournament_key !== tournament_key) return false;
+		if (court_id || !options.changed_match_id) return true;
+		if (ws.panel_devicemode === 'umpire') return false;
+		if (!ws.court_id) return true;
+		// An edit/check-in for a fieldless match is not a score change on every
+		// occupied court. Keep pickers and displays of that match up to date.
+		if (ws.v2_multi_court_display) {
+			const ids = ws.last_v2_match_ids_by_court;
+			return !(ids instanceof Map) || ids.size === 0 || [...ids.values()].some(changed_match);
+		}
+		return !ws.last_v2_match_id || changed_match(ws.last_v2_match_id);
+	});
 	if (matching_panels.length === 0) return;
 	const panels_by_court = new Map();
 	const multi_panels = [];

@@ -320,7 +320,7 @@ Die erste Vorbereitungsstufe erstellt die beiden Spielfeldaufnahmen für **alle 
 **Festgelegter Mittelteil für sämtliche Felder:**
 
 ```text
-Spiel einhundertneunundachtzig.  Mädcheneinzel U neunzehn.  Achtelfinale! Nina Keo Boun Khoune gegen LeandraGalowicz.
+Spiel einhundertneunundachtzig. Mädcheneinzel U neunzehn. Achtelfinale! Nina Keo Boun Khoune gegen LeandraGalowicz.
 ```
 
 Dieser Beispiel-Spielblock bleibt immer gleich. Er muss keinem tatsächlichen Turnierspiel entsprechen. Schreibweisen, Satzzeichen und die beiden Doppel-Leerzeichen nach den ersten beiden Punkten bleiben exakt erhalten. Insbesondere bleiben `LeandraGalowicz` zusammengeschrieben und `Spiel einhundertneunundachtzig.` ohne das Wort „Nummer“.

@@ -99,6 +99,156 @@ describe('targeted match finish cleanup', function() {
 		assert(waiting.every(entry => entry.tabletoperator[0].checked_in === false && entry.tabletoperator[0].last_time_on_court_ts === 50000));
 	});
 
+	it('assigns the new losing pair despite waiting, assigned or retired entries from an earlier finish', async function() {
+		for (const court of [null, 'old-court', -1]) {
+			for (const source_match_end_ts of [undefined, 10000]) {
+				const { db, tournament, app } = await cleanup_fixture();
+				await db.tournaments.update_async({ key: 'test' }, { $set: {
+					tabletoperator_enabled: true, tabletoperator_assignment_scope: 'same_court',
+				} }, {});
+				await db.matches.update_async({ _id: 'one' }, { $set: {
+					'setup.teams.1': { players: [4, 5].map(btp_id => ({ btp_id, checked_in: true })) },
+				} }, {});
+				const previous = { _id: 'old-entry', tournament_key: 'test', match_id: 'one',
+					tabletoperator: [{ btp_id: 99 }], played_on_court: 'other-court',
+					start_ts: 10000, end_ts: null, court,
+					...(source_match_end_ts === undefined ? {} : { source_match_end_ts }),
+				};
+				await insert(db.tabletoperators, previous);
+				await match_utils.reset_player_tabletoperator(app, 'test', 'one', 50000);
+				assert.deepStrictEqual(tournament.tabletoperators.get('old-entry').data, previous);
+				const selected = await match_utils.fetch_tabletoperator(require('../bts/admin'), app,
+					{ key: 'test', tabletoperator_assignment_scope: 'same_court' }, 'court');
+				assert.deepStrictEqual((selected || []).map(player => player.btp_id), [4, 5]);
+				const added = [...tournament.tabletoperators.values()].map(entry => entry.data)
+					.filter(entry => entry.match_id === 'one' && entry._id !== 'old-entry');
+				assert.strictEqual(added.length, 1);
+				assert.strictEqual(added[0].start_ts, 80000);
+				assert.strictEqual(added[0].source_match_end_ts, 50000);
+			}
+		}
+	});
+
+	it('does not duplicate the same finish after queue reordering, assignment or removal', async function() {
+		const { db, tournament, app } = await cleanup_fixture();
+		await db.tournaments.update_async({ key: 'test' }, { $set: { tabletoperator_enabled: true } }, {});
+		await db.matches.update_async({ _id: 'one' }, { $set: {
+			'setup.teams.1': { players: [{ btp_id: 4 }] },
+		} }, {});
+		const add = () => promisify(match_utils.add_player_to_tabletoperator_list)(app, 'test', 'one', 50000);
+		await add();
+		const current = () => [...tournament.tabletoperators.values()].map(entry => entry.data).filter(entry => entry.match_id === 'one');
+		const id = current()[0]._id;
+		for (const court of [null, 'next-court', -1]) {
+			await db.tabletoperators.update_async({ _id: id }, { $set: { court, start_ts: 1 } }, {});
+			await add();
+			assert.strictEqual(current().length, 1);
+			assert.strictEqual(current()[0]._id, id);
+			assert.strictEqual(current()[0].court, court);
+		}
+	});
+
+	it('keeps the losing pair on the successor when the old match finishes again with a corrected end time', async function() {
+		const { db, tournament, app } = await cleanup_fixture();
+		await db.tournaments.update_async({ key: 'test' }, { $set: { tabletoperator_enabled: true } }, {});
+		await db.matches.update_async({ _id: 'one' }, { $set: {
+			'setup.teams.1': { players: [4, 5].map(btp_id => ({ btp_id })) }, end_ts: 50000,
+		} }, {});
+		await match_utils.reset_player_tabletoperator(app, 'test', 'one', 50000);
+		const operators = await match_utils.fetch_tabletoperator(require('../bts/admin'), app,
+			{ key: 'test' }, 'court', 'next');
+		assert.deepStrictEqual(operators.map(player => player.btp_id), [4, 5]);
+		const next = match('next', [20]);
+		next.setup = { ...next.setup, now_on_court: true, state: 'oncourt', tabletoperators: operators };
+		await insert(db.matches, next);
+		await db.courts.update_async({ _id: 'court' }, { $set: { match_id: 'next' } }, {});
+		await db.matches.update_async({ _id: 'one' }, { $set: { end_ts: 51217 } }, {});
+		await match_utils.reset_player_tabletoperator(app, 'test', 'one', 51217);
+		const entries = [...tournament.tabletoperators.values()].map(entry => entry.data).filter(entry => entry.match_id === 'one');
+		assert.strictEqual(entries.length, 1);
+		assert.strictEqual(entries[0].court, 'court');
+		assert.strictEqual(entries[0].assigned_match_id, 'next');
+		assert.strictEqual(entries[0].end_ts, null);
+		assert.strictEqual(entries[0].source_match_end_ts, 50000);
+		assert.strictEqual(tournament.matches.get('one').data.tabletoperator_finish_ts, 50000);
+		assert.strictEqual(tournament.matches.get('one').data.end_ts, 51217);
+		assert.deepStrictEqual(tournament.matches.get('next').data.setup.tabletoperators, operators);
+	});
+
+	it('serializes overlapping finishes with different timestamps into a single tablet duty', async function() {
+		const { db, tournament, app } = await cleanup_fixture();
+		await db.tournaments.update_async({ key: 'test' }, { $set: { tabletoperator_enabled: true } }, {});
+		await db.matches.update_async({ _id: 'one' }, { $set: {
+			'setup.teams.1': { players: [{ btp_id: 4 }] },
+		} }, {});
+		await Promise.all([50000, 51217, 52000].map(ts => match_utils.reset_player_tabletoperator(app, 'test', 'one', ts)));
+		const entries = [...tournament.tabletoperators.values()].map(entry => entry.data).filter(entry => entry.match_id === 'one');
+		assert.strictEqual(entries.length, 1);
+		assert.strictEqual(entries[0].source_match_end_ts, 50000);
+	});
+
+	it('preserves successor tablet duties and player flags when an old match is cleaned up again', async function() {
+		for (const assigned_match_id of [undefined, 'next']) {
+			const { db, tournament, app } = await cleanup_fixture();
+			const next = match('next', [20]);
+			next.setup = { ...next.setup, state: 'oncourt', now_on_court: true,
+				tabletoperators: [{ btp_id: 3, now_tablet_on_court: 'court', checked_in: true }] };
+			await insert(db.matches, next);
+			await db.courts.update_async({ _id: 'court' }, { $set: { match_id: 'next' } }, {});
+			await db.tabletoperators.update_async({ _id: 'assigned' }, { $set: {
+				tabletoperator: next.setup.tabletoperators, ...(assigned_match_id ? { assigned_match_id } : {}),
+			} }, {});
+			const before = tournament.tabletoperators.get('assigned').data;
+			await promisify(match_utils.remove_tablet_on_court)(app, 'test', 'one', 51217);
+			assert.deepStrictEqual(tournament.tabletoperators.get('assigned').data, before);
+			assert.strictEqual(tournament.matches.get('two').data.setup.teams[0].players[2].now_tablet_on_court, 'court');
+			assert.strictEqual(tournament.matches.get('two').data.setup.teams[0].players[2].checked_in, true);
+			// The explicit assignment also survives a temporarily empty court reference.
+			if (assigned_match_id) {
+				await db.courts.update_async({ _id: 'court' }, { $set: { match_id: null } }, {});
+				await promisify(match_utils.remove_tablet_on_court)(app, 'test', 'one', 52000);
+				assert.deepStrictEqual(tournament.tabletoperators.get('assigned').data, before);
+			}
+		}
+	});
+
+	it('creates a fresh split waitlist for a later finish of the same match without changing its history', async function() {
+		const { db, tournament, app } = await cleanup_fixture();
+		await db.tournaments.update_async({ key: 'test' }, { $set: {
+			tabletoperator_enabled: true, tabletoperator_split_doubles: true,
+		} }, {});
+		await db.matches.update_async({ _id: 'one' }, { $set: {
+			'setup.teams.1': { players: [4, 5].map(btp_id => ({ btp_id })) },
+		} }, {});
+		const add = end_ts => promisify(match_utils.add_player_to_tabletoperator_list)(app, 'test', 'one', end_ts);
+		await add(50000);
+		await db.tabletoperators.update_async({ match_id: 'one' }, { $set: { court: -1 } }, { multi: true });
+		const history = [...tournament.tabletoperators.values()].map(entry => entry.data).filter(entry => entry.match_id === 'one');
+		await add(100000);
+		await add(100000);
+		const current = [...tournament.tabletoperators.values()].map(entry => entry.data)
+			.filter(entry => entry.match_id === 'one' && entry.court === null);
+		assert.strictEqual(current.length, 2);
+		assert.deepStrictEqual(current.map(entry => entry.tabletoperator[0].btp_id).sort(), [4, 5]);
+		assert(current.every(entry => entry.start_ts === 130000 && entry.source_match_end_ts === 100000));
+		for (const entry of history) assert.deepStrictEqual(tournament.tabletoperators.get(entry._id).data, entry);
+	});
+
+	it('preserves an existing active legacy entry from the current finish', async function() {
+		const { db, tournament, app } = await cleanup_fixture();
+		await db.tournaments.update_async({ key: 'test' }, { $set: { tabletoperator_enabled: true } }, {});
+		await db.matches.update_async({ _id: 'one' }, { $set: {
+			'setup.teams.1': { players: [{ btp_id: 4 }] },
+		} }, {});
+		await insert(db.tabletoperators, { _id: 'legacy', tournament_key: 'test', match_id: 'one',
+			tabletoperator: [{ btp_id: 4 }], start_ts: 80000, court: null,
+		});
+		await promisify(match_utils.add_player_to_tabletoperator_list)(app, 'test', 'one', 50000);
+		const current = [...tournament.tabletoperators.values()].map(entry => entry.data).filter(entry => entry.match_id === 'one');
+		assert.strictEqual(current.length, 1);
+		assert.strictEqual(current[0]._id, 'legacy');
+	});
+
 	it('does not write unchanged participant flags when cleanup is repeated', async function() {
 		const { db, app } = await cleanup_fixture();
 		await promisify(match_utils.remove_player_on_court)(app, 'test', 'one', 50000);

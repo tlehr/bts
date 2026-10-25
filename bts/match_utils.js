@@ -1708,7 +1708,7 @@ async function add_tabletoperators(app, tournament, match, callback) {
         if (is_tournament_automation_enabled(tournament) && (tournament.tabletoperator_enabled && tournament.tabletoperator_enabled == true)) {
             if (!setup.tabletoperators || setup.tabletoperators == null) {
                 
-				const fetch_result = await fetch_tabletoperator(admin, app, tournament, court_id);
+				const fetch_result = await fetch_tabletoperator(admin, app, tournament, court_id, match_id);
 				let value = [];
 				if (tournament.tabletoperator_with_state_from_match_enabled && typeof(fetch_result) == "undefined") {
 					value.push({
@@ -1856,12 +1856,13 @@ function notify_change_match_called_on_court (app, match, callback) {
 }
 
 function notify_bupws(app, match, old_court, callback) {
+	const options = { changed_match_id: match._id };
 	if (require('./btp_sync_effects').capture(app, real_app => {
 		const bupws = require('./bupws');
-		bupws.handle_score_change(real_app, match.tournament_key, match.setup.court_id);
+		bupws.handle_score_change(real_app, match.tournament_key, match.setup.court_id, options);
 		if (old_court) bupws.handle_score_change(real_app, match.tournament_key, old_court);
 	}, { courts: [match.setup.court_id, old_court] },
-		{ target: 'bupws', method: 'notify_courts', args: [match.tournament_key, match.setup.court_id, old_court] })) {
+		{ target: 'bupws', method: 'notify_courts', args: [match.tournament_key, match.setup.court_id, old_court, options] })) {
 		return callback(null);
 	}
 	const bupws = require('./bupws');
@@ -1876,7 +1877,7 @@ function notify_bupws(app, match, old_court, callback) {
 		called_timestamp: match && match.setup && match.setup.called_timestamp,
 	});
 
-	bupws.handle_score_change(app, match.tournament_key, match.setup.court_id);
+	bupws.handle_score_change(app, match.tournament_key, match.setup.court_id, options);
 	
 	if(old_court) {
 		bupws.handle_score_change(app, match.tournament_key, old_court);
@@ -1896,7 +1897,7 @@ function serialized(fn) {
 
 const fetch_tabletoperator = serialized(get_last_looser_on_court);
 
-function get_last_looser_on_court(admin, app, tournament, court_id) {
+function get_last_looser_on_court(admin, app, tournament, court_id, match_id) {
 	return new Promise((resolve, reject) => {
 		const tkey = tournament?.key || tournament;
 		const tabletoperator_querry = { 'tournament_key': tkey, court: null, start_ts: { $lte: now_ms(app) } };
@@ -1913,7 +1914,8 @@ function get_last_looser_on_court(admin, app, tournament, court_id) {
 			}
 			if (selected_tabletoperator) {
 				returnvalue = selected_tabletoperator.tabletoperator
-				app.db.tabletoperators.update({ _id: selected_tabletoperator._id, tournament_key: tkey }, { $set: { court: court_id } }, { returnUpdatedDocs: true }, function (err, numAffected, changed_tabletoperator) {
+				const assignment = { court: court_id, ...(match_id ? { assigned_match_id: match_id } : {}) };
+				app.db.tabletoperators.update({ _id: selected_tabletoperator._id, tournament_key: tkey }, { $set: assignment }, { returnUpdatedDocs: true }, function (err, numAffected, changed_tabletoperator) {
 					if (err) {
 						return reject(err);
 					}
@@ -2084,7 +2086,22 @@ function add_player_to_tabletoperator_list(app, tournament_key, cur_match_id, en
 function add_player_to_tabletoperator_list_by_match(app, tournament, tournament_key, cur_match, end_ts, callback) {
 	if (cur_match?.network_score && cur_match?.setup) {
 		// walkovers and retirements will not be recorgnized.
-		app.db.tabletoperators.findOne({ 'tournament_key': tournament_key, 'match_id': cur_match._id }, (err, no_tabletoperator) => {
+		const source_match_end_ts = Number(end_ts);
+		const has_finish_timestamp = end_ts != null && Number.isFinite(source_match_end_ts) && source_match_end_ts > 0;
+		const existing_query = { tournament_key, match_id: cur_match._id };
+		if (has_finish_timestamp) {
+			// A replayed match keeps its ID. Deduplicate only this finish, even
+			// after its operators have served or were removed from the queue.
+			existing_query.$or = [
+				{ source_match_end_ts },
+				// Legacy records have no finish identity. Only a still-active
+				// entry created for this finish may prevent another insertion.
+				{ source_match_end_ts: { $exists: false }, court: { $ne: -1 }, start_ts: { $gte: source_match_end_ts } },
+			];
+		} else {
+			existing_query.court = { $ne: -1 };
+		}
+		app.db.tabletoperators.findOne(existing_query, (err, no_tabletoperator) => {
 			if (err) {
 				return callback(err);
 			}
@@ -2139,6 +2156,7 @@ function add_player_to_tabletoperator_list_by_match(app, tournament, tournament_
 							tournament_key,
 							tabletoperator,
 							'match_id': cur_match._id,
+							...(has_finish_timestamp ? { source_match_end_ts } : {}),
 							'start_ts': tabletoperator_ready_ts,
 							'end_ts': null,
 							'court': null,
@@ -2237,17 +2255,20 @@ function remove_tablet_on_court(app, tkey, match_id, end_ts, context, callback) 
 	}).then(() => callback(null), callback);
 }
 
-function close_tabletoperator_assignment_on_court(app, tkey, court_id, end_ts, callback) {
+function close_tabletoperator_assignment_on_court(app, tkey, court_id, end_ts, callback, match_id) {
 	if (!court_id) {
 		return callback(null);
 	}
 	const service_end_ts = Number.isFinite(Number(end_ts)) ? Number(end_ts) : now_ms(app);
 	const admin = require('./admin'); // avoid dependency cycle
-	app.db.tabletoperators.find({ tournament_key: tkey, court: court_id }, (err, tabletoperators) => {
+	const find_court = match_id ? app.db.courts.findOne_async({ tournament_key: tkey, _id: court_id }) : Promise.resolve(null);
+	find_court.then(court => app.db.tabletoperators.find({ tournament_key: tkey, court: court_id }, (err, tabletoperators) => {
 		if (err) {
 			return callback(err);
 		}
-		async.each(tabletoperators || [], (tabletoperator, cb) => {
+		const owned = (tabletoperators || []).filter(entry => !match_id ||
+			(entry.assigned_match_id ? entry.assigned_match_id === match_id : !court?.match_id || court.match_id === match_id));
+		async.each(owned, (tabletoperator, cb) => {
 			app.db.tabletoperators.update(
 				{ _id: tabletoperator._id, tournament_key: tkey },
 				{ $set: { court: -1, end_ts: service_end_ts } },
@@ -2260,10 +2281,10 @@ function close_tabletoperator_assignment_on_court(app, tkey, court_id, end_ts, c
 						admin.notify_change(app, tkey, 'tabletoperator_removed', { tabletoperator: changed_tabletoperator });
 					}
 					return cb(null);
-				}
+				},
 			);
 		}, callback);
-	});
+	}), callback);
 }
 
 function reset_tabletoperator_settings_at_player(app, tkey, tournament, player, end_ts, notify_btp = true) {

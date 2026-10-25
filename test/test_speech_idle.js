@@ -35,6 +35,97 @@ function service(options = {}) {
 }
 
 describe('Speech preparation only during idle time', function() {
+    it('refills inventory before the game overview has finished calculating its coverage', async function() {
+        const { broker, posts } = service(), current = { ...selected(), announcement_speech_voice: voice };
+        const upcoming = game('upcoming', { state: 'scheduled', teams: [team('Anna'), team('Berta')] });
+        const prefetch = new Prefetcher({ speech_snapshot: async () =>
+            [current, current.locations, current.courts, [upcoming], [], [], []] }, broker);
+        let reached, release;
+        const entered = new Promise(resolve => { reached = resolve; });
+        const held = new Promise(resolve => { release = resolve; });
+        const publish = broker.coverage.set_game_plan.bind(broker.coverage);
+        broker.coverage.set_game_plan = (...args) => { reached(); return publish(...args); };
+        const persist = broker.coverage.set_plan.bind(broker.coverage);
+        broker.coverage.set_plan = async (...args) => { await held; return persist(...args); };
+        prefetch.configure(current, false);
+        const building = prefetch.refresh(key);
+        try {
+            await entered;
+            assert.strictEqual(prefetch.running.has(key), true);
+            assert.strictEqual(broker.pending_plans.has(key), false, 'a published inventory must not wait for overview persistence');
+            assert(prefetch.planning.has(key), 'the new generation plan is visible before the overview finishes');
+            for (const entry of broker.entries.values()) entry.status = 'completed';
+            await broker.step();
+            assert.strictEqual(posts.length, 1, 'free generators can take the next missing inventory item');
+            prefetch.schedule(key);
+            assert.strictEqual(broker.pending_plans.has(key), true, 'a later committed change still invalidates admission');
+        } finally { release(); await building; prefetch.stop(); }
+    });
+
+    it('keeps a bounded next batch ready for all generators and consumes it during a plan refresh', async function() {
+        for (const helpers of [0, 1, 3]) {
+            const { broker, posts, advance } = service();
+            broker.helpers = { parallelism: helpers };
+            const parts = Array.from({ length: 40 }, (_, i) => 'Reserve ' + String.fromCharCode(65 + i));
+            broker.reconcile_prefetch(key, [], { voice, idle_parts: parts });
+            broker.fill_idle_queue();
+            assert.strictEqual(broker.entries.size, helpers + 1, 'one waiting job per generator, rather than the full inventory');
+            broker.pending_plans.add(key);
+            for (let i = 0; i <= helpers; i++) { await broker.step(); advance(); }
+            assert.deepStrictEqual(posts.map(post => post.text), parts.slice(0, helpers + 1));
+            broker.fill_idle_queue();
+            assert.strictEqual(broker.entries.size, helpers + 1, 'pending plans do not admit unvalidated new inventory');
+        }
+    });
+
+    it('keeps urgent announcements ahead of the buffered inventory', async function() {
+        const { broker, posts } = service();
+        broker.helpers = { parallelism: 1 };
+        broker.reconcile_prefetch(key, [], { voice, idle_parts: ['Reserve A', 'Reserve B', 'Reserve C'] });
+        broker.fill_idle_queue();
+        broker.prepare(['Jetzt benötigt'], { voice, priority: 'high' }, key);
+        broker.fill_idle_queue();
+        assert.strictEqual(broker.entries.size, 3, 'foreground work prevents further speculative admission');
+        await broker.step();
+        assert.deepStrictEqual(posts.map(post => post.text), ['Jetzt benötigt']);
+    });
+
+    it('does not pause a current inventory when another page loads the same tournament', async function() {
+        const { broker, posts } = service(), current = { ...selected(), announcement_speech_voice: voice };
+        const prefetch = new Prefetcher({ speech_snapshot: async () =>
+            [current, current.locations, current.courts, [], [], [], []] }, broker);
+        prefetch.configure(current, false);
+        try {
+            await prefetch.refresh(key);
+            for (const entry of broker.entries.values()) entry.status = 'completed';
+            broker.reconcile_prefetch(key, [], { voice, idle_parts: ['Noch vorzubereiten'] });
+            for (let i = 0; i < 10; i++) prefetch.subscribe(key, current);
+            assert.strictEqual(broker.pending_plans.has(key), false, 'reading an unchanged tournament must not invalidate the current plan');
+            await broker.step();
+            assert.strictEqual(posts.at(-1).text, 'Noch vorzubereiten');
+            prefetch.subscribe(key, undefined, { refresh: true });
+            assert.strictEqual(broker.pending_plans.has(key), true, 'new foreground work still asks for reconciliation');
+        } finally { prefetch.stop(); }
+    });
+
+    it('does not discard the first plan when pages subscribe while its snapshot is being read', async function() {
+        const { broker } = service(), current = { ...selected(), announcement_speech_voice: voice };
+        let release;
+        const snapshot = new Promise(resolve => { release = resolve; });
+        const prefetch = new Prefetcher({ speech_snapshot: () => snapshot }, broker);
+        prefetch.configure(current, false);
+        try {
+            const building = prefetch.refresh(key);
+            await new Promise(resolve => setImmediate(resolve));
+            for (let i = 0; i < 10; i++) prefetch.subscribe(key, current);
+            release([current, current.locations, current.courts, [], [], [], []]);
+            await building;
+            assert(prefetch.planning.has(key), 'page subscriptions must not cancel the captured plan');
+            assert.strictEqual(broker.pending_plans.has(key), false);
+            assert.strictEqual(prefetch.timers.has(key), false);
+        } finally { prefetch.stop(); }
+    });
+
     it('keeps other-voice preparation opt-in and behind every selected-voice inventory item', async function() {
         const { broker, posts, advance } = service();
         const parts = ['Benötigt'], idle_parts = ['Früher Vorrat', 'Später Vorrat'];
@@ -238,10 +329,11 @@ describe('Speech preparation only during idle time', function() {
         const current = selected();
         const doubles = { players: [{ btp_id: 1, name: 'Erste' }, { btp_id: 2, name: 'Zweite' }] };
         current.events = { events: [
-            { id: 1, name: 'Aktiv', stages: [{ id: 11, entries: [{ team: team('Aktive Reserve') }] }] },
+            { id: 1, name: 'Aktiv', stages: [{ id: 11, entries: [{ entry_id: 'active-reserve', team: team('Aktive Reserve') }] }] },
             { id: 2, name: 'Später', stages: [{ id: 22, entries: [{ team: doubles },
                 { team: doubles }, { team: team('Ohne Spiel') }] }] },
         ] };
+        current.registration_player_statuses = { 'active-reserve:0': { status: 'present' } };
         current.tabletoperators = [{ court: 'default_4', end_ts: 100, tabletoperator: team('Frühere Bedienung').players }];
         const matches = [
             game('active', { stage_id: 11, state: 'preparation', teams: [team('Aktiv A'), team('Aktiv B')], court_id: null }),
@@ -358,6 +450,28 @@ describe('Speech preparation only during idle time', function() {
         } finally { prefetch.stop(); }
         await broker.step();
         assert.strictEqual(posts[1].text, 'Reserve');
+    });
+
+    it('finishes an admitted excerpt during replanning without admitting more inventory', async function() {
+        const { broker, posts, advance } = service();
+        const recipe = '~bts-context-v1~' + JSON.stringify({ before: 'Wir erwarten ', text: 'Ein Team', after: ' zum Spiel.', kind: 'team' });
+        broker.reconcile_prefetch(key, [], { voice, idle_parts: [recipe, 'Weitere Reserve'] });
+        await broker.step(); advance();
+        const entry = broker.entries.get(broker.key(recipe, voice, 'de-DE'));
+        assert.strictEqual(broker.entries.get(entry.source_key).status, 'completed');
+        broker.pending_plans.add(key);
+        assert.strictEqual(broker.regular_work_pending(), true, 'new inventory still waits for the pending plan');
+        broker.prepare(['Jetzt aufrufen'], { voice, priority: 'high' }, key);
+        await broker.step(); advance();
+        assert.strictEqual(posts.at(-1).text, 'Jetzt aufrufen', 'actual calls keep priority');
+        await broker.step(); advance();
+        assert.strictEqual(entry.status, 'completed', 'an admitted cut must not wait for another plan');
+        assert.strictEqual(posts.at(-1).text, 'Ein Team');
+        await broker.step(); advance();
+        assert(!posts.some(post => post.text === 'Weitere Reserve'), 'do not admit new inventory while replanning');
+        broker.pending_plans.delete(key);
+        await broker.step();
+        assert.strictEqual(posts.at(-1).text, 'Weitere Reserve');
     });
 
     it('does not let an exhausted name fallback block all useful idle work forever', async function() {

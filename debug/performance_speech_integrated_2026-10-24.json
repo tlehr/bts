@@ -1,0 +1,2297 @@
+{
+  "status": "completed",
+  "directory": "/tmp/bts-speech-load-dQB5M2",
+  "variant": {
+    "id": "low-priority",
+    "threads": 4,
+    "nice": 10,
+    "generate": true
+  },
+  "seconds": 600,
+  "fake": false,
+  "method": "Unmodified tournament test client and reception worker, 373 fictional matches, 13 tablets/TVs, ten additional admin connections, real file-backed BTS and integrated speech process. Planning, queue and game overview polled every two seconds. Real disposable Kitten API. No BTP, browser painting or audible output.",
+  "preflight": {
+    "finished": "game-1",
+    "automatic_successor": "game-14",
+    "court": "court-1"
+  },
+  "fixture_sha256": "3cff1fdd67678c96311956dab73e054c570460c1de7452eb35e9eeab01558e1f",
+  "start": 1792870591956,
+  "end": 1792871195254,
+  "inference_overlap_ms": 504667.2585449219,
+  "pid_settings": {
+    "event": "ready",
+    "ts": 1792870588453.504,
+    "port": 49549,
+    "pid": 1350453,
+    "native_pid": 1350482,
+    "nice": 10,
+    "threads": 4,
+    "fake": false
+  },
+  "resources": {
+    "controller": {
+      "available": true,
+      "wall_ms": 603300,
+      "cpu_ms": 13670,
+      "cpu_percent_one_core": 2.2658710425990387,
+      "nice": 0,
+      "io": {
+        "rchar": 226287120,
+        "wchar": 154204,
+        "syscr": 265277,
+        "syscw": 7290,
+        "read_bytes": 0,
+        "write_bytes": 86016,
+        "cancelled_write_bytes": 0
+      }
+    },
+    "bts": {
+      "available": true,
+      "wall_ms": 603299,
+      "cpu_ms": 99870,
+      "cpu_percent_one_core": 16.55398069613906,
+      "nice": 0,
+      "io": {
+        "rchar": 9373139,
+        "wchar": 1234454686,
+        "syscr": 38789,
+        "syscw": 433461,
+        "read_bytes": 0,
+        "write_bytes": 5111808,
+        "cancelled_write_bytes": 0
+      }
+    },
+    "api": {
+      "available": true,
+      "wall_ms": 603299,
+      "cpu_ms": 20300,
+      "cpu_percent_one_core": 3.364832363388635,
+      "nice": 10,
+      "io": {
+        "rchar": 192959695,
+        "wchar": 40308675,
+        "syscr": 26894,
+        "syscw": 10787,
+        "read_bytes": 0,
+        "write_bytes": 24399872,
+        "cancelled_write_bytes": 14512128
+      }
+    },
+    "native": {
+      "available": true,
+      "wall_ms": 603299,
+      "cpu_ms": 1894350,
+      "cpu_percent_one_core": 313.9985314081409,
+      "nice": 10,
+      "io": {
+        "rchar": 6311,
+        "wchar": 14465667,
+        "syscr": 17,
+        "syscw": 3091,
+        "read_bytes": 0,
+        "write_bytes": 14430208,
+        "cancelled_write_bytes": 0
+      }
+    },
+    "speech": {
+      "available": true,
+      "wall_ms": 603299,
+      "cpu_ms": 392490,
+      "cpu_percent_one_core": 65.05729331558646,
+      "nice": 0,
+      "io": {
+        "rchar": 27945583,
+        "wchar": 40404294,
+        "syscr": 8848,
+        "syscw": 10466,
+        "read_bytes": 0,
+        "write_bytes": 11599872,
+        "cancelled_write_bytes": 0
+      }
+    },
+    "client": {
+      "available": true,
+      "wall_ms": 603299,
+      "cpu_ms": 112590,
+      "cpu_percent_one_core": 18.662387970144156,
+      "nice": 0,
+      "io": {
+        "rchar": 1125364410,
+        "wchar": 303821555,
+        "syscr": 133715,
+        "syscw": 100841,
+        "read_bytes": 0,
+        "write_bytes": 296046592,
+        "cancelled_write_bytes": 40960
+      }
+    }
+  },
+  "server_log": "[bts speech] generation: alignment_failed hallensprecher \u00b7 Job e771a88314d44bfc87146eddf02ac427 \u00b7 cut_inside_speech \u00b7 Ersatz: neue Kontextaufnahme \u00b7 \"In Vorbereitung\"\n",
+  "errors": [],
+  "finished_at": "2026-10-24T19:46:36.606Z",
+  "client": {
+    "scenario": "benchmark",
+    "seed": "speech-load-confirmation",
+    "runtime_ms": 600226,
+    "failure": null,
+    "stop_reason": "completed",
+    "initial_state": {
+      "matches": 373,
+      "finished_matches": 1,
+      "active_matches": 13,
+      "active_courts": 13,
+      "pending_player_checkins": 0,
+      "pending_players": 0,
+      "state_sha256": "74227bca7a4c0860e53078e93ad749c0eabaf8837284dc598ac254a32f763de7"
+    },
+    "points": 1231,
+    "checkins": 0,
+    "settings": {
+      "tournament": "default",
+      "base_url": "http://127.0.0.1:45205",
+      "point_interval_ms": [
+        3200,
+        6400
+      ],
+      "score_gap_ms": [
+        0,
+        0
+      ],
+      "pause_visible_ms": 3000,
+      "score_all_active": true,
+      "legacy_loopback_devices": false,
+      "server_telemetry": true,
+      "processing_traces": true,
+      "score_probability": [
+        0.4,
+        0.6
+      ]
+    },
+    "tablet_to_tv_ms": {
+      "count": 1235,
+      "mean": 6.5,
+      "min": 2,
+      "p50": 5,
+      "p95": 18,
+      "p99": 28,
+      "max": 48,
+      "over_50_ms": 0,
+      "over_100_ms": 0,
+      "over_200_ms": 0,
+      "sent_updates": 1235,
+      "unmatched_updates": 0,
+      "coverage": 1
+    },
+    "tablet_to_admin_ms": {
+      "count": 1235,
+      "mean": 7.6,
+      "min": 2,
+      "p50": 6,
+      "p95": 19,
+      "p99": 29,
+      "max": 51,
+      "over_50_ms": 1,
+      "over_100_ms": 0,
+      "over_200_ms": 0,
+      "sent_updates": 1235,
+      "unmatched_updates": 0,
+      "coverage": 1
+    },
+    "phases": [
+      {
+        "name": "checkin-and-play",
+        "start_ms": 0,
+        "end_ms": 120000,
+        "idle": false,
+        "actual_start_ms": 0,
+        "actual_end_ms": 120170,
+        "points": 303,
+        "score_updates": 303,
+        "finish_confirmations": 0,
+        "repair_score_updates": 0,
+        "player_checkins": 0,
+        "checkin_errors": 0,
+        "tablet_to_tv_ms": {
+          "count": 303,
+          "mean": 7.3,
+          "p50": 5,
+          "p95": 19,
+          "p99": 29,
+          "max": 39,
+          "sent_updates": 303,
+          "unmatched_updates": 0,
+          "coverage": 1,
+          "over_50_ms": 0,
+          "over_100_ms": 0,
+          "over_200_ms": 0
+        },
+        "tablet_to_admin_ms": {
+          "count": 303,
+          "mean": 8.4,
+          "p50": 6,
+          "p95": 21,
+          "p99": 31,
+          "max": 39,
+          "sent_updates": 303,
+          "unmatched_updates": 0,
+          "coverage": 1,
+          "over_50_ms": 0,
+          "over_100_ms": 0,
+          "over_200_ms": 0
+        },
+        "occupied_courts": {
+          "count": 99,
+          "mean": 13,
+          "p50": 13,
+          "p95": 13,
+          "p99": 13,
+          "max": 13
+        },
+        "free_courts": {
+          "count": 99,
+          "mean": 0,
+          "p50": 0,
+          "p95": 0,
+          "p99": 0,
+          "max": 0
+        }
+      },
+      {
+        "name": "load",
+        "start_ms": 120000,
+        "end_ms": 360000,
+        "idle": false,
+        "actual_start_ms": 120170,
+        "actual_end_ms": 360137,
+        "points": 621,
+        "score_updates": 624,
+        "finish_confirmations": 3,
+        "repair_score_updates": 0,
+        "player_checkins": 0,
+        "checkin_errors": 0,
+        "tablet_to_tv_ms": {
+          "count": 624,
+          "mean": 6.4,
+          "p50": 5,
+          "p95": 17,
+          "p99": 29,
+          "max": 48,
+          "sent_updates": 624,
+          "unmatched_updates": 0,
+          "coverage": 1,
+          "over_50_ms": 0,
+          "over_100_ms": 0,
+          "over_200_ms": 0
+        },
+        "tablet_to_admin_ms": {
+          "count": 624,
+          "mean": 7.4,
+          "p50": 6,
+          "p95": 18,
+          "p99": 31,
+          "max": 51,
+          "sent_updates": 624,
+          "unmatched_updates": 0,
+          "coverage": 1,
+          "over_50_ms": 1,
+          "over_100_ms": 0,
+          "over_200_ms": 0
+        },
+        "occupied_courts": {
+          "count": 208,
+          "mean": 13,
+          "p50": 13,
+          "p95": 13,
+          "p99": 13,
+          "max": 13
+        },
+        "free_courts": {
+          "count": 208,
+          "mean": 0,
+          "p50": 0,
+          "p95": 0,
+          "p99": 0,
+          "max": 0
+        }
+      },
+      {
+        "name": "idle",
+        "start_ms": 360000,
+        "end_ms": 480000,
+        "idle": true,
+        "actual_start_ms": 360137,
+        "actual_end_ms": 480109,
+        "points": 0,
+        "score_updates": 0,
+        "finish_confirmations": 0,
+        "repair_score_updates": 0,
+        "player_checkins": 0,
+        "checkin_errors": 0,
+        "tablet_to_tv_ms": {
+          "count": 0,
+          "mean": null,
+          "p50": null,
+          "p95": null,
+          "p99": null,
+          "max": null,
+          "sent_updates": 0,
+          "unmatched_updates": 0,
+          "coverage": null,
+          "over_50_ms": 0,
+          "over_100_ms": 0,
+          "over_200_ms": 0
+        },
+        "tablet_to_admin_ms": {
+          "count": 0,
+          "mean": null,
+          "p50": null,
+          "p95": null,
+          "p99": null,
+          "max": null,
+          "sent_updates": 0,
+          "unmatched_updates": 0,
+          "coverage": null,
+          "over_50_ms": 0,
+          "over_100_ms": 0,
+          "over_200_ms": 0
+        },
+        "occupied_courts": {
+          "count": 98,
+          "mean": 13,
+          "p50": 13,
+          "p95": 13,
+          "p99": 13,
+          "max": 13
+        },
+        "free_courts": {
+          "count": 98,
+          "mean": 0,
+          "p50": 0,
+          "p95": 0,
+          "p99": 0,
+          "max": 0
+        }
+      },
+      {
+        "name": "load-after-idle",
+        "start_ms": 480000,
+        "end_ms": 600000,
+        "idle": false,
+        "actual_start_ms": 480109,
+        "actual_end_ms": 600226,
+        "points": 307,
+        "score_updates": 308,
+        "finish_confirmations": 1,
+        "repair_score_updates": 0,
+        "player_checkins": 0,
+        "checkin_errors": 0,
+        "tablet_to_tv_ms": {
+          "count": 308,
+          "mean": 6.1,
+          "p50": 5,
+          "p95": 15,
+          "p99": 25,
+          "max": 40,
+          "sent_updates": 308,
+          "unmatched_updates": 0,
+          "coverage": 1,
+          "over_50_ms": 0,
+          "over_100_ms": 0,
+          "over_200_ms": 0
+        },
+        "tablet_to_admin_ms": {
+          "count": 308,
+          "mean": 7.2,
+          "p50": 6,
+          "p95": 16,
+          "p99": 28,
+          "max": 39,
+          "sent_updates": 308,
+          "unmatched_updates": 0,
+          "coverage": 1,
+          "over_50_ms": 0,
+          "over_100_ms": 0,
+          "over_200_ms": 0
+        },
+        "occupied_courts": {
+          "count": 108,
+          "mean": 13,
+          "p50": 13,
+          "p95": 13,
+          "p99": 13,
+          "max": 13
+        },
+        "free_courts": {
+          "count": 108,
+          "mean": 0,
+          "p50": 0,
+          "p95": 0,
+          "p99": 0,
+          "max": 0
+        }
+      }
+    ],
+    "latency_endpoint": "client-websocket-message-received-before-json-parse",
+    "server_offloading": {
+      "server_id": "1350527-1792870589302",
+      "run_label": null,
+      "features": {
+        "btp_decode": true,
+        "sync_plan": true,
+        "sync_plan_patch_return": true,
+        "device_info": false,
+        "xlsx_import": false,
+        "compaction": true,
+        "compaction_reads": true,
+        "score_idle_reads": true,
+        "score_readonly_reads": true,
+        "score_direct_writes": true,
+        "preparation_reads": true,
+        "preparation_candidates": true,
+        "sync_batch_writes": false,
+        "sync_prepared_tournament": true,
+        "sync_prepared_matches": true,
+        "admin_response_background": true,
+        "admin_response_priority": true,
+        "admin_match_revision_cache": true,
+        "admin_broadcast_shared": true,
+        "admin_response_worker": false,
+        "compaction_staged": true
+      }
+    },
+    "server_profiles": [
+      {
+        "elapsed_ms": 0,
+        "profile": {
+          "server_id": "1350527-1792870589302",
+          "run_label": null,
+          "features": {
+            "btp_decode": true,
+            "sync_plan": true,
+            "sync_plan_patch_return": true,
+            "device_info": false,
+            "xlsx_import": false,
+            "compaction": true,
+            "compaction_reads": true,
+            "score_idle_reads": true,
+            "score_readonly_reads": true,
+            "score_direct_writes": true,
+            "preparation_reads": true,
+            "preparation_candidates": true,
+            "sync_batch_writes": false,
+            "sync_prepared_tournament": true,
+            "sync_prepared_matches": true,
+            "admin_response_background": true,
+            "admin_response_priority": true,
+            "admin_match_revision_cache": true,
+            "admin_broadcast_shared": true,
+            "admin_response_worker": false,
+            "compaction_staged": true
+          }
+        }
+      }
+    ],
+    "mixed_server_profiles": false
+  },
+  "server": {
+    "final_state_sha256": "5d534b9451c34f181fc50ce3fa4f0747c99ef3a3739e8221ce2c478b1f86a652",
+    "cpu_ms": {
+      "user": 90862.386,
+      "system": 9009.69,
+      "wall": 603488.3553669453
+    },
+    "event_loop_utilization": 0.13633089720864316,
+    "loop": {
+      "p99_ms": 18.022399,
+      "max_ms": 37.879807
+    },
+    "phase_ms": {
+      "phase:admin_tournament_snapshot": {
+        "count": 1653,
+        "mean": 3.89939503932245,
+        "p50": 3.3,
+        "p95": 7.9,
+        "p99": 12.6,
+        "max": 40.1
+      },
+      "send_wait:admin:snapshot": {
+        "count": 1653,
+        "mean": 3.8847549909255976,
+        "p50": 3.3,
+        "p95": 7.9,
+        "p99": 12.6,
+        "max": 40.1
+      },
+      "db_wait:tournaments:admin_tournament_read": {
+        "count": 1653,
+        "mean": 0.1464609800362942,
+        "p50": 0.1,
+        "p95": 0.2,
+        "p99": 0.9,
+        "max": 5.3
+      },
+      "db_run:tournaments:admin_tournament_read": {
+        "count": 1653,
+        "mean": 0.20629159104657854,
+        "p50": 0.2,
+        "p95": 0.4,
+        "p99": 0.6,
+        "max": 1.3
+      },
+      "db_wait:displaysettings:find": {
+        "count": 1657,
+        "mean": 0.1980687990343963,
+        "p50": 0.1,
+        "p95": 0.3,
+        "p99": 2.4,
+        "max": 10.7
+      },
+      "db_run:displaysettings:find": {
+        "count": 1658,
+        "mean": 0.20253317249698186,
+        "p50": 0.2,
+        "p95": 0.3,
+        "p99": 0.7,
+        "max": 10.2
+      },
+      "db_wait:displaysettings:findOne": {
+        "count": 1664,
+        "mean": 0.07842548076923081,
+        "p50": 0,
+        "p95": 0.1,
+        "p99": 0.6,
+        "max": 9.2
+      },
+      "db_run:displaysettings:findOne": {
+        "count": 1661,
+        "mean": 0.13437688139674586,
+        "p50": 0.1,
+        "p95": 0.2,
+        "p99": 0.5,
+        "max": 5.2
+      },
+      "db_wait:locations:find": {
+        "count": 1653,
+        "mean": 0.49945553539019777,
+        "p50": 0.4,
+        "p95": 0.9,
+        "p99": 2.8,
+        "max": 6.7
+      },
+      "db_wait:courts:find": {
+        "count": 1656,
+        "mean": 0.491606280193234,
+        "p50": 0.4,
+        "p95": 0.9,
+        "p99": 2.8,
+        "max": 6.7
+      },
+      "db_wait:umpires:find": {
+        "count": 1653,
+        "mean": 0.47011494252873226,
+        "p50": 0.4,
+        "p95": 0.8,
+        "p99": 2.8,
+        "max": 6.7
+      },
+      "db_wait:tabletoperators:find": {
+        "count": 1653,
+        "mean": 0.45396249243798753,
+        "p50": 0.4,
+        "p95": 0.8,
+        "p99": 2.8,
+        "max": 6.8
+      },
+      "phase:admin_match_read": {
+        "count": 1653,
+        "mean": 0.8474289171203705,
+        "p50": 0.7,
+        "p95": 1.5,
+        "p99": 3.8,
+        "max": 7.4
+      },
+      "db_wait:matches:admin_match_overview": {
+        "count": 1653,
+        "mean": 0.4038112522685997,
+        "p50": 0.3,
+        "p95": 0.7,
+        "p99": 2.7,
+        "max": 6.7
+      },
+      "db_wait:display_court_displaysettings:find": {
+        "count": 1653,
+        "mean": 0.851179673321222,
+        "p50": 0.7,
+        "p95": 1.5,
+        "p99": 4,
+        "max": 23.9
+      },
+      "db_wait:normalizations:find": {
+        "count": 1653,
+        "mean": 0.8384754990925487,
+        "p50": 0.7,
+        "p95": 1.6,
+        "p99": 4,
+        "max": 7.4
+      },
+      "db_wait:advertisements:find": {
+        "count": 1653,
+        "mean": 0.8278886872353223,
+        "p50": 0.7,
+        "p95": 1.6,
+        "p99": 4,
+        "max": 7.5
+      },
+      "db_run:locations:find": {
+        "count": 1653,
+        "mean": 0.9885662431941854,
+        "p50": 0.8,
+        "p95": 1.9,
+        "p99": 4.7,
+        "max": 12.9
+      },
+      "db_run:courts:find": {
+        "count": 1655,
+        "mean": 1.083806646525677,
+        "p50": 0.9,
+        "p95": 2.2,
+        "p99": 4.8,
+        "max": 13
+      },
+      "db_run:umpires:find": {
+        "count": 1653,
+        "mean": 1.103327283726556,
+        "p50": 0.9,
+        "p95": 2.3,
+        "p99": 4.9,
+        "max": 13.2
+      },
+      "db_run:tabletoperators:find": {
+        "count": 1653,
+        "mean": 1.115668481548699,
+        "p50": 0.9,
+        "p95": 2.3,
+        "p99": 5,
+        "max": 13.2
+      },
+      "db_run:matches:admin_match_overview": {
+        "count": 1653,
+        "mean": 0.42952208106472867,
+        "p50": 0.4,
+        "p95": 0.7,
+        "p99": 1.5,
+        "max": 5.9
+      },
+      "phase:admin_match_copy": {
+        "count": 1653,
+        "mean": 0.254748941318816,
+        "p50": 0.2,
+        "p95": 0.4,
+        "p99": 0.7,
+        "max": 5.8
+      },
+      "db_run:display_court_displaysettings:find": {
+        "count": 1653,
+        "mean": 0.8313974591651562,
+        "p50": 0.7,
+        "p95": 1.7,
+        "p99": 4.8,
+        "max": 11.2
+      },
+      "db_run:normalizations:find": {
+        "count": 1653,
+        "mean": 1.1627949183303083,
+        "p50": 0.9,
+        "p95": 2.8,
+        "p99": 5.3,
+        "max": 19.2
+      },
+      "db_run:advertisements:find": {
+        "count": 1653,
+        "mean": 1.465275257108295,
+        "p50": 1.2,
+        "p95": 3.3,
+        "p99": 6,
+        "max": 19.6
+      },
+      "encoding:speech_bridge_send": {
+        "count": 4477,
+        "mean": 0.08847442483805866,
+        "p50": 0.1,
+        "p95": 0.2,
+        "p99": 0.5,
+        "max": 5.7
+      },
+      "encoding:admin_snapshot_encode": {
+        "count": 2472,
+        "mean": 6.579490291262128,
+        "p50": 7.3,
+        "p95": 15.8,
+        "p99": 24.3,
+        "max": 62
+      },
+      "send_enqueue:admin:message": {
+        "count": 2476,
+        "mean": 1.4592487883683427,
+        "p50": 1.6,
+        "p95": 3.3,
+        "p99": 6,
+        "max": 12.3
+      },
+      "phase:speech_snapshot_collect": {
+        "count": 511,
+        "mean": 0.13718199608610684,
+        "p50": 0.1,
+        "p95": 0.2,
+        "p99": 0.4,
+        "max": 1.8
+      },
+      "send_wait:admin:answer": {
+        "count": 819,
+        "mean": 0.017094017094017096,
+        "p50": 0,
+        "p95": 0,
+        "p99": 0.5,
+        "max": 3.7
+      },
+      "lock_wait:handle_score_update_v2": {
+        "count": 1099,
+        "mean": 0.23812556869881626,
+        "p50": 0.1,
+        "p95": 0.2,
+        "p99": 4.9,
+        "max": 13.6
+      },
+      "lock_hold:handle_score_update_v2": {
+        "count": 1099,
+        "mean": 13.319017288444039,
+        "p50": 11,
+        "p95": 27.4,
+        "p99": 41.6,
+        "max": 70.6
+      },
+      "phase:owner_check": {
+        "count": 1099,
+        "mean": 0.002001819836214741,
+        "p50": 0,
+        "p95": 0,
+        "p99": 0,
+        "max": 1.8
+      },
+      "phase:duplicate_check": {
+        "count": 1099,
+        "mean": 0.05777979981801693,
+        "p50": 0.1,
+        "p95": 0.1,
+        "p99": 0.2,
+        "max": 0.7
+      },
+      "phase:load_context_match": {
+        "count": 1099,
+        "mean": 0.3486806187443141,
+        "p50": 0.3,
+        "p95": 0.6,
+        "p99": 1.3,
+        "max": 3.4
+      },
+      "phase:load_context_tournament": {
+        "count": 1099,
+        "mean": 0.2316651501364891,
+        "p50": 0.2,
+        "p95": 0.4,
+        "p99": 0.9,
+        "max": 5.3
+      },
+      "phase:load_context_court": {
+        "count": 1099,
+        "mean": 0.1911737943585084,
+        "p50": 0.2,
+        "p95": 0.3,
+        "p99": 0.6,
+        "max": 5.3
+      },
+      "phase:load_context": {
+        "count": 1099,
+        "mean": 0.483712465878074,
+        "p50": 0.4,
+        "p95": 0.8,
+        "p99": 1.7,
+        "max": 5.7
+      },
+      "phase:validate": {
+        "count": 1099,
+        "mean": 0.10163785259326716,
+        "p50": 0.1,
+        "p95": 0.2,
+        "p99": 0.3,
+        "max": 1.6
+      },
+      "phase:build_update": {
+        "count": 1099,
+        "mean": 0.05559599636032809,
+        "p50": 0.1,
+        "p95": 0.1,
+        "p99": 0.1,
+        "max": 1.1
+      },
+      "db_wait:matches:score_update_write": {
+        "count": 1089,
+        "mean": 0.48117539026629913,
+        "p50": 0.1,
+        "p95": 3.5,
+        "p99": 7.6,
+        "max": 17.7
+      },
+      "db_run:matches:score_update_write": {
+        "count": 1095,
+        "mean": 3.835890410958906,
+        "p50": 2.6,
+        "p95": 10.4,
+        "p99": 18.1,
+        "max": 42.2
+      },
+      "storage_wait_ms": {
+        "count": 1095,
+        "mean": 1.552876712328767,
+        "p50": 0.4,
+        "p95": 7.4,
+        "p99": 14.9,
+        "max": 36.5
+      },
+      "serialization_ms": {
+        "count": 1095,
+        "mean": 0.16337899543379145,
+        "p50": 0.1,
+        "p95": 0.3,
+        "p99": 0.5,
+        "max": 3.3
+      },
+      "callback_ms": {
+        "count": 1095,
+        "mean": 1.482739726027395,
+        "p50": 1.3,
+        "p95": 3,
+        "p99": 4.4,
+        "max": 6.2
+      },
+      "phase:db_update_match": {
+        "count": 1099,
+        "mean": 2.8778889899909004,
+        "p50": 1.3,
+        "p95": 11.9,
+        "p99": 18.9,
+        "max": 40.1
+      },
+      "send_enqueue:tv:display_points_update": {
+        "count": 1099,
+        "mean": 0.1681528662420396,
+        "p50": 0.1,
+        "p95": 0.4,
+        "p99": 0.9,
+        "max": 3.9
+      },
+      "phase:committed_display_points": {
+        "count": 1099,
+        "mean": 0.40846223839854584,
+        "p50": 0.4,
+        "p95": 0.8,
+        "p99": 1.4,
+        "max": 4.2
+      },
+      "db_wait:tournaments:display_context_tournament": {
+        "count": 1096,
+        "mean": 1.1037408759124077,
+        "p50": 0.9,
+        "p95": 2.6,
+        "p99": 5.5,
+        "max": 10.4
+      },
+      "db_wait:courts:display_context_court": {
+        "count": 1099,
+        "mean": 1.38571428571429,
+        "p50": 1.1,
+        "p95": 3.2,
+        "p99": 6.2,
+        "max": 11
+      },
+      "encoding:admin_broadcast_encode": {
+        "count": 3337,
+        "mean": 0.06613724902606954,
+        "p50": 0.1,
+        "p95": 0.2,
+        "p99": 0.3,
+        "max": 3.2
+      },
+      "send_wait:admin:score": {
+        "count": 12089,
+        "mean": 0.0011828935395814377,
+        "p50": 0,
+        "p95": 0,
+        "p99": 0,
+        "max": 8.1
+      },
+      "send_enqueue:admin:score": {
+        "count": 12089,
+        "mean": 0.014360162130862756,
+        "p50": 0,
+        "p95": 0.1,
+        "p99": 0.2,
+        "max": 3.3
+      },
+      "phase:notify_score_and_display_fanout_start": {
+        "count": 1099,
+        "mean": 1.3108280254777112,
+        "p50": 1.1,
+        "p95": 2.7,
+        "p99": 4.1,
+        "max": 5.9
+      },
+      "db_run:tournaments:display_context_tournament": {
+        "count": 1089,
+        "mean": 0.10523415977961317,
+        "p50": 0.1,
+        "p95": 0.1,
+        "p99": 0.3,
+        "max": 2.3
+      },
+      "phase:score_change_group_panels": {
+        "count": 1103,
+        "mean": 1.3779691749773377,
+        "p50": 1.1,
+        "p95": 3.1,
+        "p99": 6.2,
+        "max": 10.9
+      },
+      "phase:score_change_direct_refreshes": {
+        "count": 1099,
+        "mean": 0.22338489535941763,
+        "p50": 0,
+        "p95": 0.1,
+        "p99": 3.4,
+        "max": 35.6
+      },
+      "db_run:courts:display_context_court": {
+        "count": 1089,
+        "mean": 0.0710743801652896,
+        "p50": 0.1,
+        "p95": 0.1,
+        "p99": 0.2,
+        "max": 2.4
+      },
+      "db_wait:matches:display_context_match": {
+        "count": 1096,
+        "mean": 2.841970802919709,
+        "p50": 1.8,
+        "p95": 7.9,
+        "p99": 15,
+        "max": 34.9
+      },
+      "phase:finish_cleanup": {
+        "count": 1099,
+        "mean": 0.05295723384895359,
+        "p50": 0,
+        "p95": 0,
+        "p99": 0,
+        "max": 23.9
+      },
+      "phase:validate_court_reference": {
+        "count": 1099,
+        "mean": 0.00018198362147406734,
+        "p50": 0,
+        "p95": 0,
+        "p99": 0,
+        "max": 0.2
+      },
+      "send_wait:admin:court_current_match": {
+        "count": 12089,
+        "mean": 0.001009181900901646,
+        "p50": 0,
+        "p95": 0,
+        "p99": 0,
+        "max": 5.8
+      },
+      "send_enqueue:admin:court_current_match": {
+        "count": 12089,
+        "mean": 0.024137645793696733,
+        "p50": 0,
+        "p95": 0.1,
+        "p99": 0.4,
+        "max": 5.9
+      },
+      "phase:notify_court_current_match": {
+        "count": 1099,
+        "mean": 0.7960873521383101,
+        "p50": 0.5,
+        "p95": 2.6,
+        "p99": 4,
+        "max": 6.4
+      },
+      "phase:highlight_update": {
+        "count": 1099,
+        "mean": 0.002183803457688808,
+        "p50": 0,
+        "p95": 0,
+        "p99": 0,
+        "max": 2.3
+      },
+      "phase:ticker_update": {
+        "count": 1099,
+        "mean": 0.0028207461328480436,
+        "p50": 0,
+        "p95": 0,
+        "p99": 0,
+        "max": 1.5
+      },
+      "phase:court_clear_after_finish": {
+        "count": 1099,
+        "mean": 0.009554140127388535,
+        "p50": 0,
+        "p95": 0,
+        "p99": 0,
+        "max": 4.7
+      },
+      "phase:auto_preparation": {
+        "count": 1099,
+        "mean": 0.013375796178343948,
+        "p50": 0,
+        "p95": 0,
+        "p99": 0.2,
+        "max": 6.3
+      },
+      "phase:auto_call_free_courts": {
+        "count": 1099,
+        "mean": 0.00027297543221110106,
+        "p50": 0,
+        "p95": 0,
+        "p99": 0,
+        "max": 0.2
+      },
+      "db_wait:display_court_displaysettings:findOne": {
+        "count": 1100,
+        "mean": 3.131363636363634,
+        "p50": 2.4,
+        "p95": 7.9,
+        "p99": 13.6,
+        "max": 32.6
+      },
+      "db_run:matches:display_context_match": {
+        "count": 1089,
+        "mean": 0.1828282828282841,
+        "p50": 0.1,
+        "p95": 0.3,
+        "p99": 2,
+        "max": 3.8
+      },
+      "phase:score_change_court_panels": {
+        "count": 1103,
+        "mean": 4.585131459655483,
+        "p50": 3.6,
+        "p95": 10.4,
+        "p99": 17.7,
+        "max": 38.6
+      },
+      "db_run:display_court_displaysettings:findOne": {
+        "count": 1105,
+        "mean": 1.68606334841629,
+        "p50": 0.2,
+        "p95": 7.9,
+        "p99": 14.8,
+        "max": 35.6
+      },
+      "send_wait:admin:display_status_changed": {
+        "count": 12155,
+        "mean": 5.7589469354175236e-05,
+        "p50": 0,
+        "p95": 0,
+        "p99": 0,
+        "max": 0.2
+      },
+      "send_enqueue:admin:display_status_changed": {
+        "count": 12155,
+        "mean": 0.024294529000411083,
+        "p50": 0,
+        "p95": 0.1,
+        "p99": 0.4,
+        "max": 5.6
+      },
+      "phase:device_info_hostname": {
+        "count": 1099,
+        "mean": 0.01565059144676979,
+        "p50": 0,
+        "p95": 0,
+        "p99": 0.2,
+        "max": 2.9
+      },
+      "phase:device_info_settings_read": {
+        "count": 1099,
+        "mean": 4.961601455868975,
+        "p50": 3.1,
+        "p95": 14.4,
+        "p99": 23.9,
+        "max": 40.7
+      },
+      "phase:device_info_notify": {
+        "count": 1099,
+        "mean": 0.6630573248407668,
+        "p50": 0.5,
+        "p95": 1.6,
+        "p99": 3.2,
+        "max": 6
+      },
+      "phase:device_info": {
+        "count": 1099,
+        "mean": 5.899818016378525,
+        "p50": 4.1,
+        "p95": 15.9,
+        "p99": 24.9,
+        "max": 42.2
+      },
+      "db_wait:tournaments:findOne": {
+        "count": 34,
+        "mean": 1.7676470588235293,
+        "p50": 1,
+        "p95": 5.9,
+        "p99": 7.4,
+        "max": 7.4
+      },
+      "db_run:tournaments:findOne": {
+        "count": 32,
+        "mean": 1.6000000000000003,
+        "p50": 1.3,
+        "p95": 5.7,
+        "p99": 6.4,
+        "max": 6.4
+      },
+      "db_run:display_court_displaysettings:update": {
+        "count": 20,
+        "mean": 1.4949999999999999,
+        "p50": 1,
+        "p95": 1.6,
+        "p99": 10.5,
+        "max": 10.5
+      },
+      "db_wait:display_court_displaysettings:update": {
+        "count": 10,
+        "mean": 1.3800000000000001,
+        "p50": 0.6,
+        "p95": 7.8,
+        "p99": 7.8,
+        "max": 7.8
+      },
+      "send_enqueue:tv:court_picker_state": {
+        "count": 6,
+        "mean": 0.4666666666666666,
+        "p50": 0.4,
+        "p95": 0.8,
+        "p99": 0.8,
+        "max": 0.8
+      },
+      "send_wait:admin:display_wait_for_done": {
+        "count": 162,
+        "mean": 0,
+        "p50": 0,
+        "p95": 0,
+        "p99": 0,
+        "max": 0
+      },
+      "send_enqueue:admin:display_wait_for_done": {
+        "count": 158,
+        "mean": 0.02341772151898734,
+        "p50": 0,
+        "p95": 0.1,
+        "p99": 0.4,
+        "max": 0.4
+      },
+      "db_run:matches:find": {
+        "count": 4,
+        "mean": 1.6749999999999998,
+        "p50": 0.6,
+        "p95": 4.3,
+        "p99": 4.3,
+        "max": 4.3
+      },
+      "send_enqueue:tv:display_timer_update": {
+        "count": 101,
+        "mean": 0.21782178217821774,
+        "p50": 0.1,
+        "p95": 0.6,
+        "p99": 2.9,
+        "max": 3.2
+      },
+      "db_wait:matches:score_context_match": {
+        "count": 1,
+        "mean": 1.3,
+        "p50": 1.3,
+        "p95": 1.3,
+        "p99": 1.3,
+        "max": 1.3
+      },
+      "db_run:matches:score_context_match": {
+        "count": 1,
+        "mean": 0.1,
+        "p50": 0.1,
+        "p95": 0.1,
+        "p99": 0.1,
+        "max": 0.1
+      },
+      "lock_wait:auto_execute_preparation_selections": {
+        "count": 17,
+        "mean": 4.358823529411764,
+        "p50": 3.3,
+        "p95": 13.3,
+        "p99": 13.3,
+        "max": 13.3
+      },
+      "lock_hold:auto_execute_preparation_selections": {
+        "count": 17,
+        "mean": 1.488235294117647,
+        "p50": 0.7,
+        "p95": 7.5,
+        "p99": 7.5,
+        "max": 7.5
+      },
+      "db_wait:tournaments:sync_snapshot_tournaments": {
+        "count": 17,
+        "mean": 1.3941176470588235,
+        "p50": 0.2,
+        "p95": 7.2,
+        "p99": 7.2,
+        "max": 7.2
+      },
+      "db_run:tournaments:sync_snapshot_tournaments": {
+        "count": 13,
+        "mean": 0.10769230769230768,
+        "p50": 0.1,
+        "p95": 0.5,
+        "p99": 0.5,
+        "max": 0.5
+      },
+      "lock_wait:auto_assign_technical_officials_when_available": {
+        "count": 17,
+        "mean": 0.7058823529411765,
+        "p50": 0.1,
+        "p95": 3.4,
+        "p99": 3.4,
+        "max": 3.4
+      },
+      "lock_hold:auto_assign_technical_officials_when_available": {
+        "count": 17,
+        "mean": 4.935294117647058,
+        "p50": 4.3,
+        "p95": 10.2,
+        "p99": 10.2,
+        "max": 10.2
+      },
+      "phase:finish_cleanup_context": {
+        "count": 4,
+        "mean": 5.375,
+        "p50": 3.4,
+        "p95": 9.5,
+        "p99": 9.5,
+        "max": 9.5
+      },
+      "send_wait:admin:update_player_status": {
+        "count": 44,
+        "mean": 0,
+        "p50": 0,
+        "p95": 0,
+        "p99": 0,
+        "max": 0
+      },
+      "send_enqueue:admin:update_player_status": {
+        "count": 44,
+        "mean": 0.03636363636363637,
+        "p50": 0,
+        "p95": 0.2,
+        "p99": 0.8,
+        "max": 0.8
+      },
+      "phase:finish_cleanup_players": {
+        "count": 4,
+        "mean": 5.449999999999999,
+        "p50": 4.8,
+        "p95": 8.9,
+        "p99": 8.9,
+        "max": 8.9
+      },
+      "phase:finish_cleanup_tablets": {
+        "count": 4,
+        "mean": 1.325,
+        "p50": 1,
+        "p95": 1.9,
+        "p99": 1.9,
+        "max": 1.9
+      },
+      "phase:finish_cleanup_officials": {
+        "count": 4,
+        "mean": 0.30000000000000004,
+        "p50": 0.1,
+        "p95": 0.8,
+        "p99": 0.8,
+        "max": 0.8
+      },
+      "phase:finish_cleanup_tablet_waitlist": {
+        "count": 4,
+        "mean": 0.05,
+        "p50": 0,
+        "p95": 0.2,
+        "p99": 0.2,
+        "max": 0.2
+      },
+      "phase:finish_cleanup_btp_courts": {
+        "count": 4,
+        "mean": 1.075,
+        "p50": 0.8,
+        "p95": 1.8,
+        "p99": 1.8,
+        "max": 1.8
+      },
+      "send_wait:admin:court_changed": {
+        "count": 44,
+        "mean": 0,
+        "p50": 0,
+        "p95": 0,
+        "p99": 0,
+        "max": 0
+      },
+      "send_enqueue:admin:court_changed": {
+        "count": 44,
+        "mean": 0.009090909090909092,
+        "p50": 0,
+        "p95": 0.1,
+        "p99": 0.2,
+        "max": 0.2
+      },
+      "queue_wait:sync_serialization": {
+        "count": 4,
+        "mean": 0,
+        "p50": 0,
+        "p95": 0,
+        "p99": 0,
+        "max": 0
+      },
+      "db_wait:matches:sync_snapshot_matches": {
+        "count": 4,
+        "mean": 2.675,
+        "p50": 1.8,
+        "p95": 5.7,
+        "p99": 5.7,
+        "max": 5.7
+      },
+      "db_wait:locations:sync_snapshot_locations": {
+        "count": 4,
+        "mean": 2.325,
+        "p50": 2.2,
+        "p95": 2.7,
+        "p99": 2.7,
+        "max": 2.7
+      },
+      "db_wait:umpires:sync_snapshot_umpires": {
+        "count": 4,
+        "mean": 2.425,
+        "p50": 2.4,
+        "p95": 2.8,
+        "p99": 2.8,
+        "max": 2.8
+      },
+      "db_wait:tabletoperators:sync_snapshot_tabletoperators": {
+        "count": 4,
+        "mean": 2.45,
+        "p50": 2.5,
+        "p95": 2.8,
+        "p99": 2.8,
+        "max": 2.8
+      },
+      "phase:auto_call_precheck": {
+        "count": 4,
+        "mean": 6.5,
+        "p50": 5,
+        "p95": 10,
+        "p99": 10,
+        "max": 10
+      },
+      "phase:incremental_fingerprint": {
+        "count": 4,
+        "mean": 0,
+        "p50": 0,
+        "p95": 0,
+        "p99": 0,
+        "max": 0
+      },
+      "phase:incremental_snapshot": {
+        "count": 4,
+        "mean": 0,
+        "p50": 0,
+        "p95": 0,
+        "p99": 0,
+        "max": 0
+      },
+      "offload:sync_plan": {
+        "count": 4,
+        "mean": 99.07499999999999,
+        "p50": 90.5,
+        "p95": 137.6,
+        "p99": 137.6,
+        "max": 137.6
+      },
+      "offload:sync_plan_worker": {
+        "count": 4,
+        "mean": 98,
+        "p50": 89.3,
+        "p95": 136,
+        "p99": 136,
+        "max": 136
+      },
+      "worker_wait:sync_plan_worker": {
+        "count": 4,
+        "mean": 0.05,
+        "p50": 0,
+        "p95": 0.1,
+        "p99": 0.1,
+        "max": 0.1
+      },
+      "worker_run:sync_plan_worker": {
+        "count": 4,
+        "mean": 97.65,
+        "p50": 89,
+        "p95": 135.5,
+        "p99": 135.5,
+        "max": 135.5
+      },
+      "phase:incremental_worker_plan": {
+        "count": 4,
+        "mean": 99.25,
+        "p50": 91,
+        "p95": 137,
+        "p99": 137,
+        "max": 137
+      },
+      "phase:incremental_prepare_writes": {
+        "count": 4,
+        "mean": 0.25,
+        "p50": 0,
+        "p95": 1,
+        "p99": 1,
+        "max": 1
+      },
+      "phase:incremental_diff": {
+        "count": 4,
+        "mean": 2,
+        "p50": 1,
+        "p95": 4,
+        "p99": 4,
+        "max": 4
+      },
+      "phase:incremental_plan": {
+        "count": 4,
+        "mean": 109.25,
+        "p50": 99,
+        "p95": 148,
+        "p99": 148,
+        "max": 148
+      },
+      "lock_wait:post_sync_auto_call_apply": {
+        "count": 4,
+        "mean": 0.07500000000000001,
+        "p50": 0.1,
+        "p95": 0.1,
+        "p99": 0.1,
+        "max": 0.1
+      },
+      "lock_hold:post_sync_auto_call_apply": {
+        "count": 4,
+        "mean": 13.100000000000001,
+        "p50": 7.5,
+        "p95": 21,
+        "p99": 21,
+        "max": 21
+      },
+      "phase:integration_lock_wait": {
+        "count": 4,
+        "mean": 0.25,
+        "p50": 0,
+        "p95": 1,
+        "p99": 1,
+        "max": 1
+      },
+      "db_wait:tournaments:sync_validate_tournaments": {
+        "count": 3,
+        "mean": 0.4666666666666666,
+        "p50": 0.5,
+        "p95": 0.6,
+        "p99": 0.6,
+        "max": 0.6
+      },
+      "db_wait:locations:sync_validate_locations": {
+        "count": 3,
+        "mean": 0.6333333333333333,
+        "p50": 0.6,
+        "p95": 0.9,
+        "p99": 0.9,
+        "max": 0.9
+      },
+      "db_wait:courts:sync_validate_courts": {
+        "count": 4,
+        "mean": 0.6,
+        "p50": 0.5,
+        "p95": 0.9,
+        "p99": 0.9,
+        "max": 0.9
+      },
+      "db_wait:matches:sync_validate_matches": {
+        "count": 4,
+        "mean": 0.575,
+        "p50": 0.5,
+        "p95": 1,
+        "p99": 1,
+        "max": 1
+      },
+      "db_wait:umpires:sync_validate_umpires": {
+        "count": 4,
+        "mean": 1.025,
+        "p50": 0.9,
+        "p95": 1.8,
+        "p99": 1.8,
+        "max": 1.8
+      },
+      "db_wait:tabletoperators:sync_validate_tabletoperators": {
+        "count": 4,
+        "mean": 1.2000000000000002,
+        "p50": 1,
+        "p95": 2.2,
+        "p99": 2.2,
+        "max": 2.2
+      },
+      "db_run:matches:sync_validate_matches": {
+        "count": 3,
+        "mean": 0.4333333333333333,
+        "p50": 0.4,
+        "p95": 0.6,
+        "p99": 0.6,
+        "max": 0.6
+      },
+      "phase:incremental_validate": {
+        "count": 4,
+        "mean": 1.25,
+        "p50": 1,
+        "p95": 3,
+        "p99": 3,
+        "max": 3
+      },
+      "db_run:courts:update": {
+        "count": 4,
+        "mean": 0.65,
+        "p50": 0.6,
+        "p95": 0.9,
+        "p99": 0.9,
+        "max": 0.9
+      },
+      "db_run:matches:sync_batch_write": {
+        "count": 4,
+        "mean": 4.275,
+        "p50": 1.1,
+        "p95": 13.7,
+        "p99": 13.7,
+        "max": 13.7
+      },
+      "phase:incremental_writes": {
+        "count": 4,
+        "mean": 5.75,
+        "p50": 2,
+        "p95": 15,
+        "p99": 15,
+        "max": 15
+      },
+      "send_wait:admin:match_edit": {
+        "count": 44,
+        "mean": 0,
+        "p50": 0,
+        "p95": 0,
+        "p99": 0,
+        "max": 0
+      },
+      "send_enqueue:admin:match_edit": {
+        "count": 44,
+        "mean": 0.009090909090909092,
+        "p50": 0,
+        "p95": 0.1,
+        "p99": 0.1,
+        "max": 0.1
+      },
+      "send_wait:admin:match_called_on_court": {
+        "count": 44,
+        "mean": 0,
+        "p50": 0,
+        "p95": 0,
+        "p99": 0,
+        "max": 0
+      },
+      "send_enqueue:admin:match_called_on_court": {
+        "count": 44,
+        "mean": 0.03409090909090909,
+        "p50": 0,
+        "p95": 0.1,
+        "p99": 0.3,
+        "max": 0.3
+      },
+      "phase:incremental_publish": {
+        "count": 4,
+        "mean": 2.75,
+        "p50": 2,
+        "p95": 6,
+        "p99": 6,
+        "max": 6
+      },
+      "phase:incremental_cache": {
+        "count": 4,
+        "mean": 0,
+        "p50": 0,
+        "p95": 0,
+        "p99": 0,
+        "max": 0
+      },
+      "phase:incremental_apply": {
+        "count": 4,
+        "mean": 9.25,
+        "p50": 4,
+        "p95": 18,
+        "p99": 18,
+        "max": 18
+      },
+      "phase:total_incremental": {
+        "count": 4,
+        "mean": 123,
+        "p50": 108,
+        "p95": 167,
+        "p99": 167,
+        "max": 167
+      },
+      "db_run:courts:findOne": {
+        "count": 6,
+        "mean": 0.35000000000000003,
+        "p50": 0.3,
+        "p95": 0.6,
+        "p99": 0.6,
+        "max": 0.6
+      },
+      "encoding:admin_update_encode": {
+        "count": 4,
+        "mean": 0.1,
+        "p50": 0.1,
+        "p95": 0.1,
+        "p99": 0.1,
+        "max": 0.1
+      },
+      "send_wait:admin:score-update": {
+        "count": 4,
+        "mean": 0,
+        "p50": 0,
+        "p95": 0,
+        "p99": 0,
+        "max": 0
+      },
+      "send_enqueue:tv:display_state": {
+        "count": 4,
+        "mean": 0.125,
+        "p50": 0.1,
+        "p95": 0.2,
+        "p99": 0.2,
+        "max": 0.2
+      },
+      "db_wait:courts:sync_snapshot_courts": {
+        "count": 3,
+        "mean": 0.4666666666666666,
+        "p50": 0.5,
+        "p95": 0.5,
+        "p99": 0.5,
+        "max": 0.5
+      },
+      "db_run:matches:sync_snapshot_matches": {
+        "count": 3,
+        "mean": 0.5,
+        "p50": 0.5,
+        "p95": 0.5,
+        "p99": 0.5,
+        "max": 0.5
+      },
+      "db_run:matches:findOne": {
+        "count": 2,
+        "mean": 0.35,
+        "p50": 0.3,
+        "p95": 0.4,
+        "p99": 0.4,
+        "max": 0.4
+      },
+      "db_wait:courts:findOne": {
+        "count": 3,
+        "mean": 2.2666666666666666,
+        "p50": 0.3,
+        "p95": 6.2,
+        "p99": 6.2,
+        "max": 6.2
+      },
+      "db_wait:matches:find": {
+        "count": 2,
+        "mean": 0.2,
+        "p50": 0.2,
+        "p95": 0.2,
+        "p99": 0.2,
+        "max": 0.2
+      }
+    },
+    "failed_traces": [],
+    "validated_persisted_reload": true
+  },
+  "polls": {
+    "count": 302,
+    "max_elapsed_ms": 755
+  },
+  "synthesis_events": [
+    {
+      "event": "inference_start",
+      "ts": 1792870571990.8384,
+      "warmup": true
+    },
+    {
+      "event": "inference_end",
+      "ts": 1792870588453.4043,
+      "warmup": true,
+      "elapsed_ms": 16462.518741027452
+    },
+    {
+      "event": "ready",
+      "ts": 1792870588453.504,
+      "port": 49549,
+      "pid": 1350453,
+      "native_pid": 1350482,
+      "nice": 10,
+      "threads": 4,
+      "fake": false
+    },
+    {
+      "event": "inference_start",
+      "ts": 1792870591646.7148,
+      "warmup": false
+    },
+    {
+      "event": "inference_end",
+      "ts": 1792870608783.671,
+      "warmup": false,
+      "elapsed_ms": 17136.916825955268
+    },
+    {
+      "event": "audio_write",
+      "ts": 1792870608806.5398,
+      "elapsed_ms": 22.507926041726023
+    },
+    {
+      "event": "audio_write",
+      "ts": 1792870610881.432,
+      "elapsed_ms": 33.19419897161424
+    },
+    {
+      "event": "inference_start",
+      "ts": 1792870611526.27,
+      "warmup": false
+    },
+    {
+      "event": "inference_end",
+      "ts": 1792870651142.9446,
+      "warmup": false,
+      "elapsed_ms": 39616.62558297394
+    },
+    {
+      "event": "audio_write",
+      "ts": 1792870651202.6633,
+      "elapsed_ms": 16.153816017322242
+    },
+    {
+      "event": "audio_write",
+      "ts": 1792870653670.9666,
+      "elapsed_ms": 17.606428009457886
+    },
+    {
+      "event": "audio_write",
+      "ts": 1792870654012.566,
+      "elapsed_ms": 8.541232964489609
+    },
+    {
+      "event": "audio_write",
+      "ts": 1792870654290.766,
+      "elapsed_ms": 7.350343046709895
+    },
+    {
+      "event": "audio_write",
+      "ts": 1792870656418.3516,
+      "elapsed_ms": 13.0032779998146
+    },
+    {
+      "event": "inference_start",
+      "ts": 1792870656887.6482,
+      "warmup": false
+    },
+    {
+      "event": "inference_end",
+      "ts": 1792870695256.8894,
+      "warmup": false,
+      "elapsed_ms": 38369.209545024205
+    },
+    {
+      "event": "audio_write",
+      "ts": 1792870696618.4424,
+      "elapsed_ms": 21.76939696073532
+    },
+    {
+      "event": "audio_write",
+      "ts": 1792870698786.2607,
+      "elapsed_ms": 11.379172967281193
+    },
+    {
+      "event": "audio_write",
+      "ts": 1792870700898.2603,
+      "elapsed_ms": 29.097964987158775
+    },
+    {
+      "event": "inference_start",
+      "ts": 1792870701181.306,
+      "warmup": false
+    },
+    {
+      "event": "inference_end",
+      "ts": 1792870733591.3818,
+      "warmup": false,
+      "elapsed_ms": 32410.03945900593
+    },
+    {
+      "event": "audio_write",
+      "ts": 1792870734841.2966,
+      "elapsed_ms": 37.97774499980733
+    },
+    {
+      "event": "inference_start",
+      "ts": 1792870737403.9192,
+      "warmup": false
+    },
+    {
+      "event": "inference_end",
+      "ts": 1792870775792.1987,
+      "warmup": false,
+      "elapsed_ms": 38388.21863097837
+    },
+    {
+      "event": "audio_write",
+      "ts": 1792870777141.858,
+      "elapsed_ms": 39.668506011366844
+    },
+    {
+      "event": "audio_write",
+      "ts": 1792870778092.665,
+      "elapsed_ms": 30.04353295546025
+    },
+    {
+      "event": "audio_write",
+      "ts": 1792870780220.1301,
+      "elapsed_ms": 25.082083011511713
+    },
+    {
+      "event": "audio_write",
+      "ts": 1792870780726.2202,
+      "elapsed_ms": 14.74482100456953
+    },
+    {
+      "event": "audio_write",
+      "ts": 1792870782792.6265,
+      "elapsed_ms": 12.995675031561404
+    },
+    {
+      "event": "inference_start",
+      "ts": 1792870783309.8704,
+      "warmup": false
+    },
+    {
+      "event": "inference_end",
+      "ts": 1792870822731.4595,
+      "warmup": false,
+      "elapsed_ms": 39421.55069496948
+    },
+    {
+      "event": "audio_write",
+      "ts": 1792870824151.1755,
+      "elapsed_ms": 18.844812002498657
+    },
+    {
+      "event": "audio_write",
+      "ts": 1792870825511.3877,
+      "elapsed_ms": 14.490419998764992
+    },
+    {
+      "event": "audio_write",
+      "ts": 1792870827645.0679,
+      "elapsed_ms": 22.219364996999502
+    },
+    {
+      "event": "audio_write",
+      "ts": 1792870827923.0586,
+      "elapsed_ms": 13.405087986029685
+    },
+    {
+      "event": "audio_write",
+      "ts": 1792870830267.1873,
+      "elapsed_ms": 17.01125002000481
+    },
+    {
+      "event": "inference_start",
+      "ts": 1792870830492.5051,
+      "warmup": false
+    },
+    {
+      "event": "inference_end",
+      "ts": 1792870868383.2288,
+      "warmup": false,
+      "elapsed_ms": 37890.5924919527
+    },
+    {
+      "event": "audio_write",
+      "ts": 1792870869750.6702,
+      "elapsed_ms": 39.312639040872455
+    },
+    {
+      "event": "audio_write",
+      "ts": 1792870870662.7966,
+      "elapsed_ms": 22.907614998985082
+    },
+    {
+      "event": "audio_write",
+      "ts": 1792870872912.571,
+      "elapsed_ms": 33.23799400823191
+    },
+    {
+      "event": "audio_write",
+      "ts": 1792870873193.9082,
+      "elapsed_ms": 12.70622102310881
+    },
+    {
+      "event": "audio_write",
+      "ts": 1792870875304.1487,
+      "elapsed_ms": 11.516301019582897
+    },
+    {
+      "event": "audio_write",
+      "ts": 1792870875726.9614,
+      "elapsed_ms": 23.811987019144
+    },
+    {
+      "event": "audio_write",
+      "ts": 1792870879168.7468,
+      "elapsed_ms": 9.179326996672899
+    },
+    {
+      "event": "audio_write",
+      "ts": 1792870880588.0945,
+      "elapsed_ms": 13.508849020581692
+    },
+    {
+      "event": "inference_start",
+      "ts": 1792870881157.3643,
+      "warmup": false
+    },
+    {
+      "event": "inference_end",
+      "ts": 1792870899639.43,
+      "warmup": false,
+      "elapsed_ms": 18482.03402897343
+    },
+    {
+      "event": "audio_write",
+      "ts": 1792870900333.7178,
+      "elapsed_ms": 33.50765904178843
+    },
+    {
+      "event": "audio_write",
+      "ts": 1792870902534.6345,
+      "elapsed_ms": 8.726897009182721
+    },
+    {
+      "event": "audio_write",
+      "ts": 1792870904586.7754,
+      "elapsed_ms": 11.29311800468713
+    },
+    {
+      "event": "inference_start",
+      "ts": 1792870905102.3508,
+      "warmup": false
+    },
+    {
+      "event": "inference_end",
+      "ts": 1792870930227.8328,
+      "warmup": false,
+      "elapsed_ms": 25125.448512961157
+    },
+    {
+      "event": "audio_write",
+      "ts": 1792870931175.915,
+      "elapsed_ms": 22.345926030538976
+    },
+    {
+      "event": "audio_write",
+      "ts": 1792870932955.683,
+      "elapsed_ms": 101.66273103095591
+    },
+    {
+      "event": "audio_write",
+      "ts": 1792870934957.2234,
+      "elapsed_ms": 18.482388055417687
+    },
+    {
+      "event": "inference_start",
+      "ts": 1792870935501.1365,
+      "warmup": false
+    },
+    {
+      "event": "inference_end",
+      "ts": 1792870970194.4722,
+      "warmup": false,
+      "elapsed_ms": 34693.07642697822
+    },
+    {
+      "event": "audio_write",
+      "ts": 1792870970257.2742,
+      "elapsed_ms": 29.03292200062424
+    },
+    {
+      "event": "audio_write",
+      "ts": 1792870973082.2925,
+      "elapsed_ms": 11.506894021295011
+    },
+    {
+      "event": "audio_write",
+      "ts": 1792870974081.4207,
+      "elapsed_ms": 6.86112797120586
+    },
+    {
+      "event": "inference_start",
+      "ts": 1792870974629.7483,
+      "warmup": false
+    },
+    {
+      "event": "inference_end",
+      "ts": 1792870989600.6423,
+      "warmup": false,
+      "elapsed_ms": 14970.792159962002
+    },
+    {
+      "event": "audio_write",
+      "ts": 1792870989652.2373,
+      "elapsed_ms": 36.91285697277635
+    },
+    {
+      "event": "audio_write",
+      "ts": 1792870992556.8198,
+      "elapsed_ms": 8.987467968836427
+    },
+    {
+      "event": "audio_write",
+      "ts": 1792870994073.5193,
+      "elapsed_ms": 13.10703600756824
+    },
+    {
+      "event": "inference_start",
+      "ts": 1792870994442.4966,
+      "warmup": false
+    },
+    {
+      "event": "inference_end",
+      "ts": 1792871011021.0376,
+      "warmup": false,
+      "elapsed_ms": 16578.479189018253
+    },
+    {
+      "event": "audio_write",
+      "ts": 1792871011071.4792,
+      "elapsed_ms": 18.700796004850417
+    },
+    {
+      "event": "audio_write",
+      "ts": 1792871012733.1985,
+      "elapsed_ms": 9.054483030922711
+    },
+    {
+      "event": "audio_write",
+      "ts": 1792871014053.2869,
+      "elapsed_ms": 21.10421098768711
+    },
+    {
+      "event": "inference_start",
+      "ts": 1792871014492.607,
+      "warmup": false
+    },
+    {
+      "event": "inference_end",
+      "ts": 1792871042137.4727,
+      "warmup": false,
+      "elapsed_ms": 27644.801014044788
+    },
+    {
+      "event": "audio_write",
+      "ts": 1792871042190.0037,
+      "elapsed_ms": 28.161922993604094
+    },
+    {
+      "event": "audio_write",
+      "ts": 1792871045194.7593,
+      "elapsed_ms": 20.80348797608167
+    },
+    {
+      "event": "audio_write",
+      "ts": 1792871046489.8982,
+      "elapsed_ms": 23.570246004965156
+    },
+    {
+      "event": "inference_start",
+      "ts": 1792871046695.4336,
+      "warmup": false
+    },
+    {
+      "event": "inference_end",
+      "ts": 1792871072788.9873,
+      "warmup": false,
+      "elapsed_ms": 26093.486437981483
+    },
+    {
+      "event": "audio_write",
+      "ts": 1792871072828.4214,
+      "elapsed_ms": 15.511517995037138
+    },
+    {
+      "event": "audio_write",
+      "ts": 1792871075255.7773,
+      "elapsed_ms": 29.669379990082234
+    },
+    {
+      "event": "audio_write",
+      "ts": 1792871076446.3909,
+      "elapsed_ms": 11.646147002466023
+    },
+    {
+      "event": "inference_start",
+      "ts": 1792871076788.3987,
+      "warmup": false
+    },
+    {
+      "event": "inference_end",
+      "ts": 1792871099738.708,
+      "warmup": false,
+      "elapsed_ms": 22950.205652974546
+    },
+    {
+      "event": "audio_write",
+      "ts": 1792871099788.3784,
+      "elapsed_ms": 22.2824199590832
+    },
+    {
+      "event": "audio_write",
+      "ts": 1792871102853.1042,
+      "elapsed_ms": 14.33911599451676
+    },
+    {
+      "event": "audio_write",
+      "ts": 1792871104093.7622,
+      "elapsed_ms": 12.995830969884992
+    },
+    {
+      "event": "audio_write",
+      "ts": 1792871104661.1536,
+      "elapsed_ms": 28.943212004378438
+    },
+    {
+      "event": "audio_write",
+      "ts": 1792871106763.2085,
+      "elapsed_ms": 28.486638970207423
+    },
+    {
+      "event": "audio_write",
+      "ts": 1792871107347.0762,
+      "elapsed_ms": 8.050551055930555
+    },
+    {
+      "event": "audio_write",
+      "ts": 1792871109432.1357,
+      "elapsed_ms": 11.470970988739282
+    },
+    {
+      "event": "inference_start",
+      "ts": 1792871109806.0444,
+      "warmup": false
+    },
+    {
+      "event": "inference_end",
+      "ts": 1792871136909.388,
+      "warmup": false,
+      "elapsed_ms": 27103.31401397707
+    },
+    {
+      "event": "audio_write",
+      "ts": 1792871137918.2441,
+      "elapsed_ms": 14.288670965470374
+    },
+    {
+      "event": "audio_write",
+      "ts": 1792871140109.7925,
+      "elapsed_ms": 31.9851620006375
+    },
+    {
+      "event": "audio_write",
+      "ts": 1792871142441.446,
+      "elapsed_ms": 12.039705994538963
+    },
+    {
+      "event": "inference_start",
+      "ts": 1792871142642.519,
+      "warmup": false
+    },
+    {
+      "event": "inference_end",
+      "ts": 1792871176640.0833,
+      "warmup": false,
+      "elapsed_ms": 33997.527413011994
+    },
+    {
+      "event": "audio_write",
+      "ts": 1792871177953.0999,
+      "elapsed_ms": 20.455527992453426
+    },
+    {
+      "event": "audio_write",
+      "ts": 1792871178652.2837,
+      "elapsed_ms": 51.58718803431839
+    },
+    {
+      "event": "audio_write",
+      "ts": 1792871180953.9973,
+      "elapsed_ms": 11.75060699461028
+    },
+    {
+      "event": "inference_start",
+      "ts": 1792871181150.9512,
+      "warmup": false
+    },
+    {
+      "event": "inference_end",
+      "ts": 1792871196022.9724,
+      "warmup": false,
+      "elapsed_ms": 14871.974751004018
+    },
+    {
+      "event": "audio_write",
+      "ts": 1792871196065.0107,
+      "elapsed_ms": 29.573920997790992
+    }
+  ],
+  "raw_report": "/tmp/bts-speech-integrated-real-20261024-b.json",
+  "limitations": [
+    "Fictional full-roster tournament with no pending check-ins or BTP synchronization; not the original Test-30 dataset. No browser painting or audible output.",
+    "One integrated confirmation run with Nice 10; not a paired integrated A/B estimate of improvement.",
+    "Earlier integrated trial was stopped because synthetic matches lacked external identifiers consulted by automatic calls. Added synthetic references and preflight finish/successor validation before repeating."
+  ]
+}

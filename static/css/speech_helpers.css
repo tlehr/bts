@@ -1,0 +1,26 @@
+:root { color-scheme: light; font-family: system-ui, sans-serif; color: #263942; background: #f4f6f6; }
+* { box-sizing: border-box; }
+body { margin: 0; }
+main { max-width: 1200px; margin: 24px auto; padding: 0 18px 36px; }
+h1 { margin-bottom: 8px; } h2 { font-size: 1.15rem; margin: 0 0 14px; }
+p { line-height: 1.5; }
+section { background: white; border: 1px solid #dce4e5; border-radius: 10px; padding: 20px; margin: 20px 0; }
+label { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+input, select, button { font: inherit; border: 1px solid #c5d2d5; border-radius: 5px; padding: 9px 12px; }
+input { min-width: 260px; flex: 1; }
+button { cursor: pointer; background: #edf5f5; color: #28565c; margin: 3px; }
+button:disabled { cursor: default; opacity: .5; }
+a { color: #315f67; }
+.hint, small, #runtime { color: #657a83; font-size: .9rem; }
+small { display: block; margin-top: 4px; }
+.heading { display: flex; align-items: center; flex-wrap: wrap; gap: 16px; }
+.heading h2 { flex: 1; margin: 0; }
+.scroll { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; margin-top: 18px; }
+td, th { text-align: left; padding: 12px 8px; border-bottom: 1px solid #e5eaea; }
+th { font-size: .85rem; color: #657a83; }
+.status { display: inline-block; border-radius: 5px; padding: 4px 8px; background: #edf1f3; }
+.online { background: #e7f2e9; color: #37654b; }.working { background: #f1e6fd; color: #663993; }
+.failed, #error { color: #9d3c3c; background: #fceeee; padding: 12px; border-radius: 6px; }
+.job { border-top: 1px solid #e5eaea; padding: 15px 0; }
+.job p { margin: 8px 0; }.job audio { max-width: 100%; }

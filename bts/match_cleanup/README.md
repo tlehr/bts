@@ -32,6 +32,20 @@ Die Aufrufer halten weiterhin ihre Ressourcen-Locks. Die Bereinigung erwirbt
 keine verschachtelten Locks; Folgeaufträge zur automatischen Zuweisung werden
 eingereiht und laufen nach der Freigabe der bestehenden Locks.
 
+Wiederholte Abschlüsse desselben Matches laufen nacheinander. Nach dem Einreihen
+der Verlierer hält `tabletoperator_finish_ts` fest, dass der Tabletbedarf dieses
+Spieldurchlaufs bereits behandelt wurde. Eine korrigierte Endzeit erzeugt keinen
+weiteren Dienst. Eine ausdrückliche Reaktivierung oder Ergebnisrücknahme in BTP
+entfernt die Kennung, damit ein wirklich erneut gespieltes Match neu eingereiht
+werden kann. BTP-Ergebnisse werden vor der Bereinigung gespeichert; ein
+entferntes Ergebnis gilt auch nach einem Sieg von Team 2 nicht als neuer Abschluss.
+
+Eine automatische Tabletzuweisung speichert das bediente Match unter
+`assigned_match_id`; `match_id` bleibt das Herkunftsspiel. Beim Abschluss werden
+nur die Dienste dieses Matches beendet. Für ältere Einträge ohne Einsatzkennung
+wird die aktuelle Feldbelegung geprüft. Spielerflags einer bereits laufenden
+Folgezuweisung bleiben auch dann erhalten, wenn diese dasselbe Feld verwendet.
+
 Teilnehmeränderungen werden in Gruppen von höchstens vier Matches gespeichert.
 Zwischen den Gruppen können bereits wartende Punkte und Reads anderer Felder
 laufen. Die vorbereiteten Änderungen entstehen gegen den aktuellen Datensatz im

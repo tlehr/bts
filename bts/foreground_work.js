@@ -1,16 +1,21 @@
 'use strict';
 
-// Background admin copying/encoding yields while an actual score task is
-// running. Short CPU slices alone can still delay the multiple asynchronous
-// filesystem callbacks needed to persist a point.
+// Background admin work yields while points or validated sync commits hold
+// their resource locks. Delaying their filesystem callbacks also blocks the
+// next point waiting for those locks. Network fetching/planning stays background.
 let active = 0;
 const waiting = new Set();
 const active_tasks = new WeakSet();
 const context = new (require('async_hooks').AsyncLocalStorage)();
 function busy() { return active > 0; }
-function idle() {
-	if (!active) return Promise.resolve();
-	return new Promise(resolve => waiting.add(resolve));
+function background_busy() { return busy() && !active_tasks.has(context.getStore()); }
+async function idle() {
+	while (active) {
+		await new Promise(resolve => waiting.add(resolve));
+		// Releasing resource locks schedules the next queued point for the next
+		// turn. Let it claim priority before waking every waiting admin window.
+		await new Promise(resolve => setImmediate(resolve));
+	}
 }
 function background_idle() {
 	// An operation must never wait for its own completion. Released point
@@ -18,7 +23,8 @@ function background_idle() {
 	return active_tasks.has(context.getStore()) ? Promise.resolve() : idle();
 }
 function begin(name) {
-	if (!(name.startsWith('handle_score_update') || name === 'confirm_match_finished_from_admin') ||
+	if (!(name.startsWith('handle_score_update') || name === 'confirm_match_finished_from_admin' ||
+		name === 'fetch_sync_apply' || name === 'post_sync_auto_call_apply') ||
 		!require('./offload/profile').enabled('admin_response_priority')) return null;
 	active++;
 	let finished = false;
@@ -34,7 +40,11 @@ function begin(name) {
 	return end;
 }
 
-const run = (end, work) => end ? context.run(end, work) : work();
+// Queues can dispatch the next job in the previous job's async context.
+// Explicitly restore even an absent owner, so background work cannot inherit
+// another point's priority or release that point's token.
+const capture = () => context.getStore();
+const run = (end, work) => context.run(end, work);
 const release = () => context.getStore()?.();
 
 function publication(work) {
@@ -46,4 +56,4 @@ function publication(work) {
 	catch (error) { end?.(); throw error; }
 }
 
-module.exports = { begin, busy, idle, background_idle, run, release, publication };
+module.exports = { begin, busy, background_busy, idle, background_idle, run, capture, release, publication };

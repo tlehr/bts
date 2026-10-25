@@ -7,7 +7,7 @@ const { lexemes } = require('../scripts/tts-second-call-plan');
 
 function catalogue(normalizations = []) {
     const plan = new Plan(normalizations);
-    for (const text of ['Muhammad Sytsh Abdulquddus', 'Ben Hensel und Max Wächtler']) repeatedTeam(plan, text, text, ['first']);
+    for (const text of ['Max Mustermann', 'Max Mustermann und Hans Dampf']) repeatedTeam(plan, text, text, ['first']);
     const result = plan.export(); result.strategy = 'bts-context-v2-lab-only';
     result.origins = Object.fromEntries(result.pieces.map(p => [p.id, { run: '/approved', sha256: 'a'.repeat(64) }]));
     return result;

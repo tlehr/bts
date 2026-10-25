@@ -1,0 +1,402 @@
+{
+  "created_at": "2026-10-23T18:09:15.001Z",
+  "input_report": "bts-test-11.json",
+  "live": {
+    "started_at": "2026-10-23T17:57:49.985Z",
+    "runtime_ms": 136591,
+    "stop_reason": "interrupted",
+    "tablet_to_tv_ms": {
+      "count": 337,
+      "mean": 10.3,
+      "min": 2,
+      "p50": 4,
+      "p95": 28,
+      "p99": 94,
+      "max": 124,
+      "over_50_ms": 6,
+      "over_100_ms": 2,
+      "over_200_ms": 0,
+      "sent_updates": 337,
+      "unmatched_updates": 0,
+      "coverage": 1
+    },
+    "tablet_to_admin_ms": {
+      "count": 337,
+      "mean": 14.3,
+      "min": 5,
+      "p50": 9,
+      "p95": 34,
+      "p99": 99,
+      "max": 132,
+      "over_50_ms": 6,
+      "over_100_ms": 3,
+      "over_200_ms": 0,
+      "sent_updates": 337,
+      "unmatched_updates": 0,
+      "coverage": 1
+    }
+  },
+  "slow_updates": [
+    {
+      "update_number": 248,
+      "tv_ms": 123,
+      "admin_ms": 132,
+      "phases": [
+        {
+          "name": "handle_score_update_v2",
+          "duration_ms": 18.6
+        },
+        {
+          "name": "load_context",
+          "duration_ms": 23.1
+        },
+        {
+          "name": "db_update_match",
+          "duration_ms": 64.1
+        },
+        {
+          "name": "finish_cleanup",
+          "duration_ms": 0
+        }
+      ]
+    },
+    {
+      "update_number": 249,
+      "tv_ms": 124,
+      "admin_ms": 127,
+      "phases": [
+        {
+          "name": "handle_score_update_v2",
+          "duration_ms": 0.3
+        },
+        {
+          "name": "load_context",
+          "duration_ms": 5.4
+        },
+        {
+          "name": "db_update_match",
+          "duration_ms": 98.5
+        },
+        {
+          "name": "finish_cleanup",
+          "duration_ms": 0
+        }
+      ]
+    },
+    {
+      "update_number": 251,
+      "tv_ms": 96,
+      "admin_ms": 105,
+      "phases": [
+        {
+          "name": "handle_score_update_v2",
+          "duration_ms": 1.3
+        },
+        {
+          "name": "load_context",
+          "duration_ms": 31.1
+        },
+        {
+          "name": "db_update_match",
+          "duration_ms": 59.8
+        },
+        {
+          "name": "finish_cleanup",
+          "duration_ms": 0
+        }
+      ]
+    },
+    {
+      "update_number": 167,
+      "tv_ms": 94,
+      "admin_ms": 99,
+      "phases": [
+        {
+          "name": "handle_score_update_v2",
+          "duration_ms": 1.2
+        },
+        {
+          "name": "load_context",
+          "duration_ms": 38.2
+        },
+        {
+          "name": "db_update_match",
+          "duration_ms": 38.2
+        },
+        {
+          "name": "finish_cleanup",
+          "duration_ms": 0
+        }
+      ]
+    },
+    {
+      "update_number": 250,
+      "tv_ms": 91,
+      "admin_ms": 96,
+      "phases": [
+        {
+          "name": "handle_score_update_v2",
+          "duration_ms": 6.4
+        },
+        {
+          "name": "load_context",
+          "duration_ms": 41.1
+        },
+        {
+          "name": "db_update_match",
+          "duration_ms": 22.3
+        },
+        {
+          "name": "finish_cleanup",
+          "duration_ms": 0
+        }
+      ]
+    },
+    {
+      "update_number": 166,
+      "tv_ms": 75,
+      "admin_ms": 84,
+      "phases": [
+        {
+          "name": "handle_score_update_v2",
+          "duration_ms": 21.3
+        },
+        {
+          "name": "load_context",
+          "duration_ms": 10.7
+        },
+        {
+          "name": "db_update_match",
+          "duration_ms": 32.5
+        },
+        {
+          "name": "finish_cleanup",
+          "duration_ms": 0
+        }
+      ]
+    }
+  ],
+  "speech_causation": "Not established: the input report has no speech bridge timings or speech execution mode. The largest point delays include database queue and persistence callback waits. These include event-loop delivery time and do not identify physical disk time alone.",
+  "pool_isolation": {
+    "created_at": "2026-10-23T18:09:15.001Z",
+    "node": "v19.9.0",
+    "threadpool_size": "1",
+    "method": "Six alternating pairs after warm-up; one libuv pool thread for controlled contention. Cache case writes ten synthetic ~3 MB metadata indexes. Contention case queues one PBKDF2 job before the persisted NeDB append. This proves pool separation, not speech causation in a live report. No live data, speech API, BTP, audio playback or browser.",
+    "validation": "Every append verified after reloading its disposable file.",
+    "summary": {
+      "cache-persistence": {
+        "thread": {
+          "count": 6,
+          "median_ms": 0.3469650149345398,
+          "max_ms": 0.38720202445983887
+        },
+        "process": {
+          "count": 6,
+          "median_ms": 0.3929799795150757,
+          "max_ms": 0.5254359841346741
+        }
+      },
+      "pool-contention": {
+        "thread": {
+          "count": 6,
+          "median_ms": 265.13865399360657,
+          "max_ms": 288.3996230363846
+        },
+        "process": {
+          "count": 6,
+          "median_ms": 1.342248022556305,
+          "max_ms": 1.7371020317077637
+        }
+      }
+    },
+    "rows": [
+      {
+        "execution": "thread",
+        "kind": "cache-persistence",
+        "pair": 0,
+        "point_append_ms": 0.3607059717178345
+      },
+      {
+        "execution": "thread",
+        "kind": "pool-contention",
+        "pair": 0,
+        "point_append_ms": 263.9619169831276
+      },
+      {
+        "execution": "process",
+        "kind": "cache-persistence",
+        "pair": 0,
+        "point_append_ms": 0.4563699960708618
+      },
+      {
+        "execution": "process",
+        "kind": "pool-contention",
+        "pair": 0,
+        "point_append_ms": 1.7371020317077637
+      },
+      {
+        "execution": "process",
+        "kind": "cache-persistence",
+        "pair": 1,
+        "point_append_ms": 0.3929799795150757
+      },
+      {
+        "execution": "process",
+        "kind": "pool-contention",
+        "pair": 1,
+        "point_append_ms": 1.4953050017356873
+      },
+      {
+        "execution": "thread",
+        "kind": "cache-persistence",
+        "pair": 1,
+        "point_append_ms": 0.30140799283981323
+      },
+      {
+        "execution": "thread",
+        "kind": "pool-contention",
+        "pair": 1,
+        "point_append_ms": 242.21802002191544
+      },
+      {
+        "execution": "thread",
+        "kind": "cache-persistence",
+        "pair": 2,
+        "point_append_ms": 0.3469650149345398
+      },
+      {
+        "execution": "thread",
+        "kind": "pool-contention",
+        "pair": 2,
+        "point_append_ms": 236.0655819773674
+      },
+      {
+        "execution": "process",
+        "kind": "cache-persistence",
+        "pair": 2,
+        "point_append_ms": 0.5254359841346741
+      },
+      {
+        "execution": "process",
+        "kind": "pool-contention",
+        "pair": 2,
+        "point_append_ms": 1.2414699792861938
+      },
+      {
+        "execution": "process",
+        "kind": "cache-persistence",
+        "pair": 3,
+        "point_append_ms": 0.30234700441360474
+      },
+      {
+        "execution": "process",
+        "kind": "pool-contention",
+        "pair": 3,
+        "point_append_ms": 1.342248022556305
+      },
+      {
+        "execution": "thread",
+        "kind": "cache-persistence",
+        "pair": 3,
+        "point_append_ms": 0.3168419599533081
+      },
+      {
+        "execution": "thread",
+        "kind": "pool-contention",
+        "pair": 3,
+        "point_append_ms": 265.13865399360657
+      },
+      {
+        "execution": "thread",
+        "kind": "cache-persistence",
+        "pair": 4,
+        "point_append_ms": 0.2466079592704773
+      },
+      {
+        "execution": "thread",
+        "kind": "pool-contention",
+        "pair": 4,
+        "point_append_ms": 265.704087972641
+      },
+      {
+        "execution": "process",
+        "kind": "cache-persistence",
+        "pair": 4,
+        "point_append_ms": 0.2823699712753296
+      },
+      {
+        "execution": "process",
+        "kind": "pool-contention",
+        "pair": 4,
+        "point_append_ms": 0.511288046836853
+      },
+      {
+        "execution": "process",
+        "kind": "cache-persistence",
+        "pair": 5,
+        "point_append_ms": 0.28441500663757324
+      },
+      {
+        "execution": "process",
+        "kind": "pool-contention",
+        "pair": 5,
+        "point_append_ms": 1.2589550018310547
+      },
+      {
+        "execution": "thread",
+        "kind": "cache-persistence",
+        "pair": 5,
+        "point_append_ms": 0.38720202445983887
+      },
+      {
+        "execution": "thread",
+        "kind": "pool-contention",
+        "pair": 5,
+        "point_append_ms": 288.3996230363846
+      }
+    ]
+  },
+  "synthetic_planning": {
+    "method": "519 synthetic matches with 180 score-history entries each, eight prepared games, alternating pairs; 2-ms main-thread heartbeat. Scheduling debounce included equally. No inference, live data, browser, score persistence or TV transport.",
+    "matches": 519,
+    "samples_per_execution": 6,
+    "before_thread": {
+      "elapsed_ms": {
+        "median": 1273.6843820214272,
+        "max": 1417.8463419675827
+      },
+      "heartbeat_max_delay_ms": {
+        "median": 1.255323052406311,
+        "max": 3.2210749983787537
+      },
+      "cold_start": {
+        "elapsed_ms": 1408.6608009934425,
+        "heartbeat_max_delay_ms": 1.816996991634369,
+        "ticks": 659
+      }
+    },
+    "after_process": {
+      "elapsed_ms": {
+        "median": 1230.559376001358,
+        "max": 1341.0580170154572
+      },
+      "heartbeat_max_delay_ms": {
+        "median": 1.4750449657440186,
+        "max": 2.9100449681282043
+      },
+      "cold_start": {
+        "elapsed_ms": 1553.1714240312576,
+        "heartbeat_max_delay_ms": 4.105990052223206,
+        "ticks": 716
+      }
+    },
+    "unchanged_snapshot_documents": 0
+  },
+  "validation": {
+    "network": "Only temporary local fixtures; no live BTS, BTP, speech server or real data writes.",
+    "browser_scenarios_passed": 24,
+    "browser_validation": "23 native scenarios passed together; the last offline-cache case also failed on the saved baseline due to a missing browser audio gesture, then passed alone with an independent real click. The legacy native suite uses its inline test adapter; separate process HTTP/HTTPS, WebSocket, restart and parent-exit coverage passed in the module run.",
+    "module_passed": 341,
+    "module_opt_in_cases_skipped": 24
+  }
+}

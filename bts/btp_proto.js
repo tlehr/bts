@@ -208,7 +208,7 @@ function update_request(match, key_unicode, password, umpire_btp_id, service_jud
 		if (service_judge_btp_id) {
 			m.Official2ID = service_judge_btp_id;
 		}
-		if (court_btp_id) {
+		if (court_btp_id != null) {
 			m.CourtID = court_btp_id;
 		}
 		if (shuttle_count) {
@@ -345,6 +345,23 @@ function update_stage_entries_request(stage_entries, key_unicode, password) {
 		stage_entries_list.push({StageEntry: update});
 	}
 	return res;
+}
+
+function reset_court_assignments_request(updates, key_unicode, password) {
+	assert(updates.length);
+	// Keep the same match-update envelope as the editor. BTP needs Status
+	// together with an explicit CourtID=0 to remove a planned assignment.
+	const request = update_request({ btp_match_ids: updates, setup: {} },
+		key_unicode, password, null, null, 0, { write_match_check_in_status: false });
+	for (const [index, row] of request.Update.Tournament.Matches.entries()) {
+		row.Match.Status = updates[index].status ?? 0;
+		row.Match.Highlight = updates[index].highlight ?? 0;
+		// BTP resets DisplayOrder to zero when MatchOrder is omitted, even
+		// for a court-only update. Preserve the value from the fresh BTP read.
+		assert(updates[index].match_order != null);
+		row.Match.MatchOrder = updates[index].match_order;
+	}
+	return request;
 }
 
 function update_courts_request(courts, key_unicode, password){
@@ -525,6 +542,7 @@ module.exports = {
 	update_players_request,
 	update_stage_entries_request,
 	update_courts_request,
+	reset_court_assignments_request,
 	// Tests only
 	_req2xml: req2xml,
 };

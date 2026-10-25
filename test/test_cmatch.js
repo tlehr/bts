@@ -15,6 +15,7 @@ function createFakeElement(tagName) {
 		tagName,
 		children: [],
 		attributes: {},
+		dataset: {},
 		style: {},
 		textContent: '',
 		className: '',
@@ -41,12 +42,14 @@ function createFakeElement(tagName) {
 		},
 		setAttribute(name, value) {
 			this.attributes[name] = String(value);
+			if (name.startsWith('data-')) this.dataset[name.slice(5)] = String(value);
 		},
 		getAttribute(name) {
 			return Object.prototype.hasOwnProperty.call(this.attributes, name) ? this.attributes[name] : null;
 		},
 		removeAttribute(name) {
 			delete this.attributes[name];
+			if (name.startsWith('data-')) delete this.dataset[name.slice(5)];
 		},
 		appendChild(child) {
 			this.children.push(child);
@@ -56,18 +59,21 @@ function createFakeElement(tagName) {
 	};
 }
 
-function loadCmatchForUpdateCourtTest(tr, curt, history) {
+function loadCmatchForUpdateCourtTest(tr, curt, history, query_each, search = '') {
 	const source = fs.readFileSync(path.join(__dirname, '..', 'static', 'js', 'cmatch.js'), 'utf8');
 	const routes = [];
 	const ci18n = (key) => key;
 	ci18n.get_lang = () => 'de-DE';
 	const context = {
 		console,
+		URLSearchParams,
 		setTimeout() { return 1; },
 		clearTimeout() {},
 		requestAnimationFrame() {},
 		window: {
 			innerWidth: 1200,
+			location: { search },
+			localStorage: { getItem() { return null; } },
 			addEventListener() {},
 			getComputedStyle() {
 				return {
@@ -79,6 +85,7 @@ function loadCmatchForUpdateCourtTest(tr, curt, history) {
 		},
 		document: {
 			querySelectorAll() { return []; },
+			getElementsByClassName() { return []; },
 		},
 		curt,
 		cmatch_history: history,
@@ -88,7 +95,7 @@ function loadCmatchForUpdateCourtTest(tr, curt, history) {
 		ci18n,
 		cerror: { net() {}, silent() {} },
 		cflags: { render_flag_el() {} },
-		cbts_utils: { cmp(a, b) { return a === b ? 0 : (a < b ? -1 : 1); } },
+		cbts_utils: require('../static/js/cbts_utils'),
 		ctabletoperator: { add_to_tabletoperator() {} },
 		calc,
 		btp_entry_status: require('../static/js/btp_entry_status'),
@@ -106,13 +113,17 @@ function loadCmatchForUpdateCourtTest(tr, curt, history) {
 			},
 		},
 		uiu: {
+			empty(element) { element.children.length = 0; },
 			qs(selector) {
 				if (selector === `tr[data-court_id="${tr.getAttribute('data-court_id')}"]`) {
 					return tr;
 				}
 				return null;
 			},
-			qsEach() {},
+			qsEach(selector, callback) {
+				if (query_each) query_each(selector, callback);
+				else if (selector === `tr[data-court_id="${tr.getAttribute('data-court_id')}"]`) callback(tr);
+			},
 			el(parent, tagName, attrsOrClass, text) {
 				const el = createFakeElement(tagName);
 				if (typeof attrsOrClass === 'string') {
@@ -145,6 +156,107 @@ function loadCmatchForUpdateCourtTest(tr, curt, history) {
 }
 
 _describe('cmatch', () => {
+	_it('renders courts numerically from an unordered live list, including two-digit numbers and location filters', () => {
+		const numbers = [13, 11, 8, 12, 6, 1, 2, 3, 4, 5, 7, 9, 10];
+		const courts = numbers.map(num => ({ _id: 'court-' + num, num: String(num), is_active: num !== 8,
+			location_id: num % 2 ? 'hall-one' : 'hall-two' }));
+		for (const search of ['', '?location=First']) {
+			const container = createFakeElement('div');
+			const cmatch = loadCmatchForUpdateCourtTest(createFakeElement('tr'), { courts, matches: [],
+				locations: [{ _id: 'hall-one', name: 'First' }, { _id: 'hall-two', name: 'Second' }],
+			}, null, null, search);
+			cmatch.render_courts(container);
+			const ids = container.children[0].children[0].children.map(row => row.getAttribute('data-court_id'));
+			const expected = Array.from({ length: 13 }, (_, i) => i + 1).filter(num => !search || num % 2);
+			assert.deepStrictEqual(ids, expected.map(num => 'court-' + num));
+			assert.deepStrictEqual(courts.map(court => Number(court.num)), numbers, 'rendering must not mutate its input list');
+		}
+	});
+
+	_it('refreshes preparation permissions without rebuilding rows or unchanged call buttons', () => {
+		const location = { _id: 'hall' };
+		const matches = [1, 2].map(id => ({ _id: 'm' + id, setup: { state: 'scheduled', is_match: true,
+			teams: [{ players: [{ btp_id: id * 2 }] }, { players: [{ btp_id: id * 2 + 1 }] }] } }));
+		let removed = 0;
+		const cells = matches.map(() => {
+			const cell = { buttons: [], querySelectorAll() { return this.buttons; } };
+			const button = { dataset: { location_id: 'hall' }, remove() { removed++; cell.buttons = []; } };
+			cell.buttons.push(button);
+			return cell;
+		});
+		const rows = matches.map((match, index) => ({ dataset: { match_id: match._id }, querySelector() { return cells[index]; } }));
+		const container = { querySelectorAll() { return rows; } };
+		const unchanged_button = cells[1].buttons[0];
+		const cmatch = loadCmatchForUpdateCourtTest(createFakeElement('tr'), {
+			matches, locations: [location], location_preparation_selection_by_location_id: {
+				hall: { diagnostics_by_match_id: { m1: { manual_eligible: false }, m2: { manual_eligible: true } } },
+			},
+		}, null, (selector, callback) => { if (selector === '.unassigned_container') callback(container); });
+		cmatch.refresh_unassigned_preparation_context();
+		assert.strictEqual(removed, 1);
+		assert.deepStrictEqual(cells[0].buttons, []);
+		assert.strictEqual(cells[1].buttons[0], unchanged_button);
+		cmatch.refresh_unassigned_preparation_context();
+		assert.strictEqual(removed, 1);
+		assert.strictEqual(cells[1].buttons[0], unchanged_button);
+	});
+
+	_it('moves existing scheduled rows in both directions without rebuilding cells or touching already sorted rows', () => {
+		const matches = [1, 2, 3].map(id => ({ _id: 'm' + id, match_order: id + 1,
+			setup: { match_num: id, scheduled_date: '2026-10-23', scheduled_time_str: '10:30' } }));
+		let moves = 0;
+		const tbody = { tagName: 'TBODY', children: [], insertBefore(row, before) {
+			moves++;
+			this.children.splice(this.children.indexOf(row), 1);
+			const index = before ? this.children.indexOf(before) : this.children.length;
+			this.children.splice(index, 0, row);
+		} };
+		const rows = matches.map(match => {
+			const row = { dataset: { match_id: match._id }, parentElement: tbody, cells: [match._id] };
+			Object.defineProperty(row, 'nextElementSibling', { get: () => tbody.children[tbody.children.indexOf(row) + 1] || null });
+			Object.defineProperty(row, 'innerHTML', { set() { throw new Error('row was rebuilt'); } });
+			return row;
+		});
+		tbody.children.push(...rows);
+		const cmatch = loadCmatchForUpdateCourtTest(createFakeElement('tr'), { matches }, null,
+			(selector, callback) => {
+				for (const row of rows) if (selector === 'tr[data-match_id=' + JSON.stringify(row.dataset.match_id) + ']') callback(row);
+			});
+		matches[2].match_order = 1;
+		cmatch.reorder_match_row(matches[2], 'unassigned');
+		assert.deepStrictEqual(tbody.children, [rows[2], rows[0], rows[1]]);
+		assert.strictEqual(moves, 1);
+		cmatch.reorder_match_row(matches[2], 'unassigned');
+		assert.strictEqual(moves, 1);
+		matches[2].match_order = 0;
+		cmatch.reorder_match_row(matches[2], 'unassigned');
+		assert.deepStrictEqual(tbody.children, rows);
+		assert.strictEqual(moves, 2);
+		assert.deepStrictEqual(rows.map(row => row.cells), [['m1'], ['m2'], ['m3']]);
+		cmatch.reorder_match_row(matches[2], 'court_c1');
+		assert.strictEqual(moves, 2, 'court positions must remain fixed');
+		matches.forEach((match, index) => { match.end_ts = 3 - index; });
+		matches[2].end_ts = 4;
+		cmatch.reorder_match_row(matches[2], 'finished');
+		assert.deepStrictEqual(tbody.children, [rows[2], rows[0], rows[1]]);
+		assert.strictEqual(moves, 3);
+	});
+
+	_it('keeps unassigned BTP positions after explicitly ordered games in both browser and automation', () => {
+		const matches = Array.from({ length: 13 }, (_, index) => ({ _id: String(index + 40), match_order: index < 8 ? index + 1 : 0,
+			setup: { state: 'scheduled', match_num: index + 40, scheduled_date: '2026-09-26', scheduled_time_str: '11:00' } }));
+		const cmatch = loadCmatchForUpdateCourtTest(createFakeElement('tr'), { matches }, null);
+		const compare = require('../bts/match_automation').cmp_scheduled_match_order;
+		const shuffled = [...matches.slice(8), ...matches.slice(0, 8)];
+		const before = JSON.stringify(shuffled);
+		for (const comparator of [cmatch.cmp_match_order, compare]) {
+			assert.deepStrictEqual([...shuffled].sort(comparator).map(match => match.setup.match_num), matches.map(match => match.setup.match_num));
+		}
+		assert.strictEqual(JSON.stringify(shuffled), before, 'sorting must not rewrite positions sent back to BTP');
+		matches[12].match_order = undefined;
+		assert.strictEqual(compare(matches[0], matches[12]), -1);
+	});
+
 	_it('lists no-match results under finished even without a winner or with older setup state', () => {
 		const cmatch = loadCmatchForUpdateCourtTest(createFakeElement('tr'), {});
 		for (const state of ['scheduled', 'preparation', 'oncourt', 'finished']) {
@@ -447,6 +559,34 @@ _describe('cmatch', () => {
 		assert.strictEqual(tr.children.length, 3);
 		assert.strictEqual(tr.children[1].classList.contains('court_number'), true);
 		assert.strictEqual(tr.children[2].classList.contains('empty_element'), true);
+	});
+	_it('detaches the old match immediately when freeing its fixed court slot', () => {
+		const row = createFakeElement('tr'), court = { _id: 'court-1', num: '1', is_active: true };
+		row.setAttribute('data-court_id', court._id); row.setAttribute('data-match_id', 'match-1');
+		const match = { _id: 'match-1', setup: { state: 'finished' } };
+		const cmatch = loadCmatchForUpdateCourtTest(row, { courts: [court], matches: [match] }, null, (selector, cb) => {
+			if (selector === '.court_row[data-court_id="court-1"]') cb(row);
+		});
+		cmatch.remove_match_from_gui(match, 'court_court-1');
+		assert.strictEqual(row.getAttribute('data-match_id'), null);
+		assert.strictEqual(row.getAttribute('data-court_id'), court._id);
+		assert.strictEqual(row.children[2].classList.contains('empty_element'), true);
+	});
+	_it('never repurposes or reorders a court slot during result updates even with an old match binding', () => {
+		const row = createFakeElement('tr');
+		row.setAttribute('data-court_id', 'court-1'); row.setAttribute('data-match_id', 'match-1');
+		Object.defineProperty(row, 'innerHTML', { set() { throw Error('court slot was repainted as a result'); } });
+		row.parentElement = { tagName: 'TBODY', get children() { throw Error('court slots were sorted by game order'); } };
+		const match = { _id: 'match-1', setup: { state: 'finished' } };
+		const cmatch = loadCmatchForUpdateCourtTest(row, { matches: [match] }, null, (selector, cb) => {
+			if (selector === 'tr[data-match_id="match-1"]') cb(row);
+		});
+		cmatch.reorder_match_row(match, 'finished');
+		cmatch.update_match(match, 'finished', 'finished');
+	});
+	_it('ignores court changes when that field is absent from a filtered admin view', () => {
+		const cmatch = loadCmatchForUpdateCourtTest(createFakeElement('tr'), { matches: [] }, null, () => {});
+		cmatch.update_court({ _id: 'hidden-court', num: '14', is_active: true });
 	});
 
 	_it('keeps the court match row when the referenced match is still on court', () => {

@@ -69,14 +69,15 @@ module.exports = function audio_proxy(req, res) {
     }
     broker.audio_clients++;
     let upstream, released = false;
-    const fail = () => {
+    const fail = error => {
+        if (error instanceof Error) broker.health?.fail('audio', error);
         if (res.writableEnded || res.destroyed) return;
         if (!res.headersSent) res.status(503).json({ error: 'audio_unavailable' });
         else res.destroy();
     };
     const timer = setTimeout(() => {
         if (res.writableEnded) { if (!res.writableFinished) res.destroy(); }
-        else fail();
+        else fail(new Error('speech_audio_timeout'));
         upstream?.destroy();
     }, broker.config.audio_timeout_ms);
     const release = () => {
@@ -108,12 +109,13 @@ module.exports = function audio_proxy(req, res) {
             void fs.promises.readFile(local.path).then(data => {
                 if (res.writableEnded || res.destroyed) return;
                 playbackResponse(req, res, cachePlayback(cache, cacheKey, compactWav(data, playback === 'words-v1')));
+                broker.health?.clear('audio');
             }).catch(fail);
         } else {
             res.setHeader('Content-Type', 'audio/wav');
             res.setHeader('ETag', '"' + local.sha256 + '"');
             res.sendFile(local.path, { cacheControl: false, lastModified: false }, error => {
-                if (!error) return;
+                if (!error) { broker.health?.clear('audio'); return; }
                 if (error.status === 416 && !res.headersSent) {
                     res.setHeader('Content-Range', 'bytes */' + local.size_bytes);
                     res.status(416).end();
@@ -152,9 +154,12 @@ module.exports = function audio_proxy(req, res) {
             });
             audio.on('end', () => {
                 if (res.writableEnded || res.destroyed) return;
-                const body = compactWav(Buffer.concat(chunks), playback === 'words-v1');
-                const record = cachePlayback(cache, cacheKey, body);
-                headers(); playbackResponse(req, res, record);
+                try {
+                    const body = compactWav(Buffer.concat(chunks), playback === 'words-v1');
+                    const record = cachePlayback(cache, cacheKey, body);
+                    headers(); playbackResponse(req, res, record);
+                    broker.health?.clear('audio');
+                } catch (error) { fail(error); }
             });
         } else {
             res.status(audio.statusCode);
@@ -162,6 +167,7 @@ module.exports = function audio_proxy(req, res) {
                 if (audio.headers[header]) res.setHeader(header, audio.headers[header]);
             }
             headers(); audio.pipe(res);
+            audio.once('end', () => broker.health?.clear('audio'));
         }
     });
     upstream.on('error', fail);

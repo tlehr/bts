@@ -1,0 +1,651 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Entwurf · BTS Sprachvorbereitung</title>
+<style>
+:root { color-scheme: light; --ink:#1c303a; --muted:#65757c; --line:#dce3e4; --paper:#fff; --bg:#f4f6f6; --green:#2d7658; --green-bg:#edf5ef; --amber:#b97614; --amber-bg:#fff5e4; --teal:#176c70; --teal-bg:#eaf4f4; --red:#ae3934; --gray:#e1e6e8; }
+* { box-sizing:border-box; }
+body { margin:0; background:var(--bg); color:var(--ink); font:14px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif; }
+button,select,input { font:inherit; }
+button,select { color:inherit; }
+button { cursor:pointer; }
+button:focus-visible,summary:focus-visible,select:focus-visible { outline:3px solid #228e9b; outline-offset:3px; }
+button:disabled { cursor:default; }
+[hidden] { display:none!important; }
+h1,h2,h3,h4,p { margin:0; }
+h1 { font-size:30px; line-height:1.2; font-weight:700; letter-spacing:-1px; }
+h2 { font-size:21px; line-height:1.3; letter-spacing:-.4px; }
+h3 { font-size:16px; line-height:1.4; }
+h4 { font-size:14px; }
+small,.small { font-size:12px; }
+strong { font-weight:650; }
+.muted { color:var(--muted); }
+.mono { font-variant-numeric:tabular-nums; }
+.eyebrow { color:var(--muted); font-size:10px; font-weight:750; letter-spacing:1.2px; text-transform:uppercase; }
+.pill { display:inline-flex; align-items:center; gap:6px; border-radius:30px; padding:4px 9px; background:#f0f3f3; font-size:11px; font-weight:650; white-space:nowrap; }
+.pill.ready { color:var(--green); background:var(--green-bg); }
+.pill.active { color:#8d580e; background:#ffedc9; }
+.pill.waiting { color:var(--muted); background:#f0f3f3; }
+.dot { width:6px; height:6px; flex:none; display:inline-block; border-radius:50%; background:currentColor; }
+.outline-button { background:var(--paper); border:1px solid #cdd9db; border-radius:7px; padding:7px 11px; font-size:12px; }
+.outline-button:hover { background:var(--teal-bg); border-color:#9fc3c5; }
+.text-button { border:0; padding:0; background:none; color:var(--teal); font-weight:650; text-align:left; }
+.app { max-width:1880px; margin:auto; padding:24px 30px 32px; }
+.masthead { display:flex; align-items:center; justify-content:space-between; gap:20px; padding-bottom:19px; border-bottom:1px solid var(--line); }
+.brand { display:flex; gap:11px; align-items:center; font-size:12px; }
+.brand-mark { display:grid; place-items:center; width:37px; height:37px; color:white; background:var(--ink); border-radius:9px; font-size:13px; font-weight:800; letter-spacing:-1px; }
+.brand-copy { display:grid; gap:1px; }
+.draft-label { color:#805b20; background:#fff4d8; border:1px solid #e8d7ac; padding:6px 12px; border-radius:6px; font-size:11px; }
+.page-heading { display:flex; justify-content:space-between; align-items:end; gap:24px; margin:23px 0 19px; }
+.subtitle { color:var(--muted); margin-top:6px; font-size:13px; }
+.demo-controls { display:flex; gap:9px; align-items:center; flex-wrap:wrap; justify-content:end; }
+.demo-controls label { color:var(--muted); font-size:11px; display:grid; gap:3px; }
+select { height:34px; min-width:170px; background:white; border:1px solid #cdd9db; border-radius:6px; padding:4px 25px 4px 9px; }
+.conditions { display:flex; gap:18px; align-items:center; flex-wrap:wrap; margin-bottom:18px; color:var(--muted); font-size:11px; }
+.conditions span { display:inline-flex; align-items:center; gap:6px; }
+.conditions .good { color:var(--green); }
+.conditions .separator { color:#bac6ca; }
+.health-banner { display:flex; align-items:start; gap:12px; border:1px solid #e7aba4; border-left:4px solid var(--red); background:#fff0ed; color:#882f2b; border-radius:8px; padding:13px 17px; margin-bottom:18px; }
+.health-banner p { margin-top:3px; font-size:12px; }
+.health-banner .pill { margin-left:auto; background:#fff; color:#882f2b; }
+.now { display:grid; grid-template-columns:minmax(0,1.2fr) minmax(310px,1fr) auto; align-items:center; gap:28px; background:#1f373e; color:#fff; padding:20px 25px; border-radius:11px; margin-bottom:23px; }
+.now .eyebrow { color:#a9c9c7; display:flex; gap:8px; align-items:center; margin-bottom:7px; }
+.now h2 { font-size:24px; letter-spacing:-.5px; }
+.now .sub { color:#b9cdcf; font-size:12px; margin-top:3px; }
+.now .why { border-left:1px solid #496065; padding-left:25px; }
+.now .why strong { font-size:12px; display:block; margin-bottom:5px; }
+.now .why p { color:#c6d8d7; font-size:12px; line-height:1.65; }
+.now .outline-button { background:#315059; color:#fff; border-color:#52717a; white-space:nowrap; }
+.now .outline-button:hover { background:#406570; }
+.now .live-dot { color:#bde5c9; }
+.view-bar { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px 20px; margin:0 0 18px; }
+.view-switch { display:flex; padding:3px; background:#e8eeee; border:1px solid #d9e2e3; border-radius:9px; gap:3px; }
+.view-switch button { background:none; border:1px solid transparent; border-radius:6px; padding:8px 16px; font-size:12px; color:var(--muted); font-weight:600; }
+.view-switch button[aria-selected=true] { background:#fff; border-color:#d7e1e1; color:var(--teal); box-shadow:0 1px 3px #1c303a0c; }
+.view-bar p { color:var(--muted); font-size:11px; }
+.diagram-panel { min-width:0; width:100%; overflow:hidden; }
+.diagram-panel .panel-header { display:flex; align-items:center; justify-content:space-between; gap:15px; flex-wrap:wrap; }
+.diagram-panel h2 { font-size:18px; }
+.diagram-tools { display:flex; align-items:center; gap:7px; flex-wrap:wrap; padding:12px 18px; border-bottom:1px solid var(--line); background:#fafcfc; }
+.diagram-tools .outline-button { font-size:11px; padding:6px 10px; }
+.diagram-tools .diagram-selection { margin-left:auto; font-size:11px; color:var(--muted); }
+.diagram-panel iframe { display:block; border:0; width:100%; height:1040px; background:white; }
+.diagram-legend { display:flex; align-items:center; flex-wrap:wrap; gap:14px; padding:11px 18px; border-bottom:1px solid var(--line); font-size:10px; color:var(--muted); }
+.diagram-legend span { display:flex; gap:5px; align-items:center; }
+.diagram-legend i { width:7px; height:7px; border-radius:2px; display:inline-block; }
+.workspace { display:grid; grid-template-columns:258px minmax(500px,1fr) 300px; gap:23px; align-items:start; }
+.panel { background:var(--paper); border:1px solid var(--line); border-radius:10px; min-width:0; }
+.panel-header { padding:18px 20px; border-bottom:1px solid var(--line); }
+.panel-header .eyebrow { margin-bottom:5px; }
+.panel-header p { margin-top:6px; font-size:12px; color:var(--muted); }
+.plan-heading { display:flex; justify-content:space-between; align-items:center; gap:10px; padding-bottom:11px; }
+.plan-heading h2 { font-size:15px; letter-spacing:0; }
+.plan-subtitle { color:var(--muted); font-size:11px; margin-bottom:17px; }
+.plan-group { margin-top:16px; }
+.plan-group:first-child { margin-top:0; }
+.plan-group h3 { margin:0 0 6px 9px; font-size:10px; font-weight:750; color:var(--muted); text-transform:uppercase; letter-spacing:.7px; }
+.plan-step { width:100%; border:1px solid transparent; background:none; display:grid; grid-template-columns:23px minmax(0,1fr) 17px; gap:7px; text-align:left; padding:8px 8px; margin:2px 0; border-radius:7px; }
+.plan-step:hover { background:#eaf0f0; }
+.plan-step .number { padding-top:2px; font-size:10px; color:#8b989e; font-variant-numeric:tabular-nums; }
+.plan-step .title { display:block; font-size:12px; font-weight:600; line-height:1.4; }
+.plan-step .note { display:block; color:var(--muted); font-size:10px; margin-top:3px; }
+.plan-step .symbol { color:var(--green); font-size:14px; padding-top:1px; }
+.plan-step[data-status=empty] .title,.plan-step[data-status=empty] .symbol { color:#87969d; }
+.plan-step[data-current=true] { background:var(--amber-bg); border-color:#ecd7ae; }
+.plan-step[data-current=true] .symbol,.plan-step[data-current=true] .note { color:#966115; }
+.plan-step[aria-pressed=true] { box-shadow:inset 3px 0 0 var(--teal); border-color:#b2cece; }
+.plan-step[aria-pressed=true]:not([data-current=true]) { background:var(--teal-bg); }
+.plan-footer { padding:12px 9px 0; margin-top:16px; border-top:1px solid var(--line); color:var(--muted); font-size:11px; }
+.plan-footer strong { color:var(--ink); }
+.detail-header { padding:21px 23px 17px; }
+.detail-title { display:flex; flex-wrap:wrap; align-items:start; justify-content:space-between; gap:14px; }
+.detail-title h2 { display:flex; gap:10px; align-items:baseline; }
+.detail-number { color:#8b989e; font-size:18px; font-weight:400; }
+.detail-description { font-size:12px; color:var(--muted); margin:9px 0 14px; max-width:690px; }
+.metrics { display:flex; align-items:center; flex-wrap:wrap; gap:15px; font-size:11px; color:var(--muted); }
+.metrics strong { font-size:15px; color:var(--ink); margin-right:3px; font-variant-numeric:tabular-nums; }
+.metrics .ready-count strong { color:var(--green); }
+.metrics .queue-count strong { color:#a76b17; }
+.bar { display:flex; height:5px; border-radius:8px; background:var(--gray); overflow:hidden; min-width:40px; }
+.bar .ready { background:var(--green); }
+.bar .queued { background:#db9a3a; }
+.bar span { display:block; flex-shrink:0; }
+.detail-header > .bar { height:7px; margin-top:12px; }
+.detail-content { padding:0 23px 20px; }
+.rule-strip { display:flex; gap:9px; align-items:start; padding:11px 13px; margin-bottom:17px; color:#4a6269; background:#f3f7f7; border:1px solid #e2eaea; border-radius:7px; font-size:11px; }
+.rule-strip .rule-icon { font-size:15px; color:var(--teal); line-height:1.3; }
+.matrix-wrap { container-type:inline-size; container-name:speech-matrix; }
+.cell-phase { display:none; }
+.matrix-scroll-hint { display:none; color:var(--muted); font-size:10px; margin-bottom:8px; }
+.matrix { border-collapse:separate; border-spacing:0; width:100%; min-width:560px; table-layout:fixed; font-size:11px; }
+.matrix th { text-align:left; vertical-align:top; background:#f5f7f7; padding:12px 9px; border-bottom:1px solid var(--line); }
+.matrix th:first-child { width:26%; border-top-left-radius:7px; }
+.matrix th:last-child { border-top-right-radius:7px; }
+.matrix th:not(:first-child) { width:24.666%; }
+.phase-heading { display:block; width:100%; border:0; padding:0; background:none; text-align:left; }
+.phase-heading .phase-order { color:var(--muted); font-size:10px; }
+.phase-heading .phase-name { display:block; font-size:11px; font-weight:700; margin:3px 0 7px; }
+.phase-heading .phase-summary { display:block; color:var(--muted); font-size:9px; font-weight:400; margin-top:5px; }
+.matrix th[data-current=true] { background:var(--amber-bg); box-shadow:inset 0 3px 0 #d99a3b; }
+.matrix th[data-complete=true] { background:var(--green-bg); }
+.matrix td { padding:9px 7px; border-bottom:1px solid #e7ecec; vertical-align:middle; }
+.matrix td:first-child { padding:13px 9px; }
+.event-name { display:block; font-size:12px; margin-bottom:4px; }
+.event-position { color:#8a999e; font-weight:400; margin-right:5px; }
+.event-time { display:block; font-size:10px; color:#4c656f; line-height:1.55; }
+.event-meta { display:block; margin-top:5px; font-size:9px; color:var(--muted); line-height:1.5; }
+.cell { display:block; width:100%; border:1px solid transparent; border-radius:7px; background:none; padding:10px 7px; text-align:left; }
+.cell:hover { border-color:#bbd0d0; }
+.cell.complete { background:var(--green-bg); }
+.cell.active { border-color:#dfb261; background:var(--amber-bg); }
+.cell[aria-pressed=true] { outline:2px solid var(--teal); outline-offset:1px; }
+.cell .cell-title { display:flex; justify-content:space-between; align-items:baseline; gap:4px; margin-bottom:7px; font-size:11px; font-weight:650; font-variant-numeric:tabular-nums; }
+.cell .cell-state { font-size:9px; font-weight:600; color:var(--green); }
+.cell.active .cell-state { color:#a36912; }
+.cell .cell-counts { display:block; margin-top:6px; font-size:9px; color:var(--muted); line-height:1.5; }
+.cell .cell-remaining { display:block; margin-top:2px; font-size:9px; color:var(--muted); }
+.matrix-footnote { color:var(--muted); font-size:10px; margin:11px 0 17px; }
+.legend { display:flex; gap:12px; flex-wrap:wrap; color:var(--muted); font-size:10px; margin-bottom:11px; }
+.legend span { display:flex; align-items:center; gap:5px; }
+.legend i { height:7px; width:7px; border-radius:2px; background:var(--gray); }
+.legend .green { background:var(--green); }
+.legend .orange { background:#db9a3a; }
+.selection { border:1px solid #b9d3d4; border-radius:8px; overflow:hidden; margin-top:16px; }
+.selection-header { background:#f1f7f7; padding:12px 15px; display:flex; gap:12px; align-items:center; justify-content:space-between; }
+.selection-header .eyebrow { color:var(--teal); font-size:9px; margin-bottom:3px; }
+.selection-header h3 { font-size:13px; }
+.selection-body { display:grid; grid-template-columns:1.1fr 1fr; }
+.selection-reason { padding:13px 15px; border-right:1px solid var(--line); }
+.selection-reason h4 { font-size:11px; margin-bottom:7px; }
+.selection-reason ol { padding:0 0 0 16px; margin:0; color:#5c7077; font-size:11px; }
+.selection-reason li+li { margin-top:5px; }
+.sample-parts { padding:12px 15px; }
+.part-line { display:grid; grid-template-columns:8px 1fr auto; gap:7px; align-items:start; padding:7px 0; border-bottom:1px solid #edf0f0; font-size:11px; }
+.part-line:last-child { border:0; }
+.part-line .dot { margin-top:5px; background:#c9d2d5; }
+.part-line.active .dot { background:#d3993e; }
+.part-line.ready .dot { background:var(--green); }
+.part-line small { color:var(--muted); font-size:9px; }
+.part-line .part-state { color:#997022; font-size:9px; }
+.next-step { display:flex; align-items:center; justify-content:space-between; gap:15px; margin-top:18px; padding:13px 0 0; border-top:1px solid var(--line); }
+.next-step p { font-size:10px; color:var(--muted); }
+.next-step button { background:#f1f6f6; border:1px solid #cadbdb; border-radius:7px; padding:9px 13px; font-size:11px; color:var(--teal); font-weight:650; white-space:nowrap; }
+.next-step button:hover { background:#dfeded; }
+.area { margin-top:20px; }
+.area-heading { display:flex; align-items:center; gap:10px; justify-content:space-between; margin-bottom:9px; }
+.area-heading h3 { font-size:14px; }
+.area-heading p { color:var(--muted); font-size:10px; margin-top:2px; }
+details { border-top:1px solid var(--line); margin-top:15px; padding-top:12px; }
+summary { cursor:pointer; color:#4b666e; font-size:11px; font-weight:650; }
+details p,details li { font-size:11px; color:var(--muted); margin-top:7px; }
+details ul { padding-left:17px; margin:0; }
+.queue { padding:18px; }
+.queue-heading { display:flex; justify-content:space-between; align-items:center; gap:8px; }
+.queue-heading h2 { font-size:15px; letter-spacing:0; }
+.queue > p { font-size:11px; margin:6px 0 17px; color:var(--muted); }
+.queue-card { border:1px solid var(--line); border-radius:8px; padding:13px; margin-top:10px; background:#fff; }
+.queue-card.current { border-color:#e0b66a; background:var(--amber-bg); }
+.queue-label { display:flex; align-items:center; gap:7px; font-size:10px; color:var(--muted); margin-bottom:7px; }
+.queue-card.current .queue-label { color:#9b681e; }
+.queue-card h3 { font-size:13px; }
+.queue-card p { color:var(--muted); font-size:10px; margin-top:5px; line-height:1.6; }
+.queue-card .crumb { margin-top:9px; padding-top:8px; border-top:1px solid #e5dfd2; font-size:10px; color:#6b6a5d; }
+.queue-card .jump { display:block; margin-top:8px; font-size:10px; }
+.queue-blocked { border-left:2px solid #cdd8dc; margin:10px 0 14px 12px; padding:2px 0 2px 12px; color:var(--muted); font-size:10px; }
+.queue-blocked strong { display:block; color:#5c7077; font-size:11px; }
+.queue-next-label { margin:19px 0 6px; }
+.queue .reuse { margin-top:17px; padding:11px; background:var(--green-bg); border-radius:7px; color:#496b54; font-size:10px; }
+.queue .error-item { color:var(--red); background:#fff1ed; border-color:#ecc8c2; }
+.queue .error-item p { color:#96554e; }
+.rules { margin-top:18px; padding:15px 20px; }
+.rules details { margin:0; padding:0; border:0; }
+.rules summary { color:var(--ink); font-size:12px; }
+.rules-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:22px; margin-top:14px; }
+.rules-grid strong { display:block; font-size:11px; }
+.rules-grid p { font-size:11px; color:var(--muted); margin-top:5px; }
+.simple-row { display:flex; align-items:center; justify-content:space-between; gap:20px; padding:14px 0; border-bottom:1px solid var(--line); }
+.simple-row h3 { font-size:13px; }
+.simple-row p { font-size:11px; color:var(--muted); margin-top:3px; }
+.simple-row .bar { width:120px; margin-top:7px; }
+.empty-box { padding:22px; border:1px dashed #c8d2d5; background:#f2f4f5; border-radius:8px; margin:10px 0 20px; }
+.empty-box p { margin-top:7px; color:var(--muted); font-size:12px; }
+.footer { color:var(--muted); font-size:10px; padding-top:20px; display:flex; justify-content:space-between; gap:20px; }
+@media(min-width:1500px) { .workspace { grid-template-columns:275px minmax(600px,1fr) 322px; gap:26px; } .matrix th { padding:14px 11px; } .phase-heading .phase-name { font-size:12px; } .cell { padding:12px 9px; } .cell .cell-counts { font-size:10px; } }
+@media(max-width:1180px) { .app { padding:18px; } .workspace { grid-template-columns:220px minmax(0,1fr); gap:18px; } .queue { grid-column:2; } .now { grid-template-columns:1fr auto; } .now .why { grid-column:1/-1; grid-row:2; padding:12px 0 0; border-left:0; border-top:1px solid #496065; } .page-heading { align-items:start; } }
+@media(max-width:760px) { h1 { font-size:25px; } .app { padding:13px; } .page-heading,.masthead { align-items:start; } .page-heading { flex-direction:column; gap:15px; } .demo-controls { justify-content:start; } .draft-label { max-width:155px; font-size:10px; } .conditions { gap:8px 14px; } .conditions .separator { display:none; } .workspace { display:flex; flex-direction:column; gap:18px; } .plan { width:100%; } #plan-list { display:flex; gap:12px; overflow:auto; max-height:250px; padding-bottom:7px; } .plan-group { flex:0 0 235px; margin-top:0; } .plan-group h3 { position:sticky; top:0; background:var(--bg); } .plan-footer { margin-top:7px; } .detail,.queue { width:100%; } .now { gap:14px; padding:17px; } .now h2 { font-size:20px; } .now .outline-button { font-size:10px; padding:8px; } .detail-header { padding:18px 16px; } .detail-content { padding:0 16px 16px; } .selection-body { display:block; } .selection-reason { border-right:0; border-bottom:1px solid var(--line); } .next-step { align-items:start; flex-direction:column; } .rules-grid { grid-template-columns:1fr; gap:13px; } .footer { flex-direction:column; gap:5px; } }
+@media print { .app { max-width:none; padding:0; } .demo-controls { display:none; } .workspace { grid-template-columns:220px 1fr; } .queue { grid-column:2; } .now { break-inside:avoid; } }
+@media(max-width:760px) { .matrix-scroll-hint { display:block; } .matrix th:first-child,.matrix td:first-child { position:sticky; left:0; z-index:2; background:white; box-shadow:1px 0 0 #e0e7e8; } .matrix th:first-child { background:#f5f7f7; } }
+@media(min-width:761px) { .workspace.diagram-mode { grid-template-columns:minmax(0,1fr) 300px; } .workspace.diagram-mode .queue { grid-column:2; } }
+@media(min-width:1500px) { .workspace.diagram-mode { grid-template-columns:minmax(0,1fr) 322px; } }
+@media(max-width:760px) { .view-switch { width:100%; } .view-switch button { flex:1; padding:8px 10px; } .diagram-tools .diagram-selection { width:100%; margin-left:0; } .diagram-panel iframe { height:840px; } }
+@container speech-matrix (max-width:559px) {
+  .matrix { display:block; min-width:0; }
+  .matrix thead,.matrix tbody,.matrix tr,.matrix th,.matrix td { display:block; width:100%; }
+  .matrix th:not(:first-child) { width:100%; }
+  .matrix th:first-child,.matrix td:first-child { position:static; width:100%; box-shadow:none; }
+  .matrix tbody tr { margin-top:14px; padding-bottom:10px; border-bottom:1px solid var(--line); }
+  .matrix td { padding:4px 0; border:0; }
+  .matrix td:first-child { padding:8px 0; }
+  .cell-phase { display:block; margin-bottom:7px; font-weight:700; }
+}
+@media(max-width:760px) {
+  #plan-list { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(220px,100%),1fr)); overflow:visible; max-height:none; }
+  .plan-group h3 { position:static; }
+  .matrix-scroll-hint { display:none; }
+  .matrix th:first-child,.matrix td:first-child { position:static; box-shadow:none; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="masthead">
+    <div class="brand"><div class="brand-mark">BTS</div><div class="brand-copy"><strong>Turnierleitung</strong><span class="muted small">Musterturnier · 26. / 27. September 2026</span></div></div>
+    <div class="draft-label"><strong>ENTWURF</strong> · ausschließlich Beispieldaten</div>
+  </header>
+  <div class="page-heading">
+    <div><h1>Sprachvorbereitung</h1><p class="subtitle">Was ist als Nächstes dran – und warum?</p></div>
+    <div class="demo-controls">
+      <label for="scenario">Beispielsituation ansehen<select id="scenario"><option value="competition">Spielbetrieb läuft</option><option value="registration">Vor der ersten Auslosung</option></select></label>
+      <button type="button" class="outline-button" id="error-toggle" aria-pressed="false">Fehlerbeispiel anzeigen</button>
+    </div>
+  </div>
+  <div class="conditions" aria-label="Voraussetzungen">
+    <span class="good"><i class="dot"></i>Planungsstand bekannt</span><span class="good"><i class="dot"></i>Lokale Generierung aktiv</span><span class="separator">/</span><span id="phase-label">Spielbetrieb · erste Auslosung erfolgt</span><span class="separator">/</span><span>Stimme: Hallensprecher</span><span id="game-summary">6 laufende · 3 in Vorbereitung</span>
+  </div>
+  <div id="health-banner" class="health-banner" role="status" hidden><strong>!</strong><div><strong>Sprachserver nicht erreichbar. Die Ansagenvorbereitung wartet.</strong><p>Fehlerbeispiel: HTTP 503 · Der BTS-Spielbetrieb läuft weiter. Der Hinweis wäre in allen Adminfenstern sichtbar.</p></div><span class="pill">Nur simuliert</span></div>
+  <section class="now" aria-label="Aktueller Auftrag">
+    <div><div class="eyebrow"><i class="dot live-dot"></i><span id="now-state">Wird gerade vorbereitet</span></div><h2 id="now-name">Max Mustermann</h2><p id="now-subtitle" class="sub">Quellaufnahme für einen Namensbaustein · Hallensprecher</p></div>
+    <div class="why"><strong>Warum gerade dieser Auftrag?</strong><p id="now-why"></p></div>
+    <button type="button" class="outline-button" id="jump-current">Im Plan ansehen ↗</button>
+  </section>
+  <div class="view-bar">
+    <div class="view-switch" role="tablist" aria-label="Darstellung wählen">
+      <button type="button" role="tab" id="view-overview" data-view="overview" aria-selected="true" aria-controls="detail-column">Übersicht</button>
+      <button type="button" role="tab" id="view-diagram" data-view="diagram" aria-selected="false" aria-controls="diagram-panel">Zustandsdiagramm</button>
+    </div>
+    <p id="view-note">Prioritäten, Disziplinen und Begründungen im Überblick.</p>
+  </div>
+  <main class="workspace">
+    <nav class="plan" aria-label="Priorisierte Vorbereitungsbereiche">
+      <div class="plan-heading"><h2>Bearbeitungsreihenfolge</h2><span class="pill waiting">oben zuerst</span></div>
+      <p class="plan-subtitle">Bereich auswählen, um alle Details zu sehen.</p>
+      <div id="plan-list"></div>
+      <div class="plan-footer" id="plan-total"></div>
+    </nav>
+    <div class="detail" id="detail-column" role="tabpanel" aria-labelledby="view-overview">
+      <section class="panel" aria-labelledby="detail-title">
+        <div class="detail-header" id="detail-header"></div>
+        <div class="detail-content" id="detail-content"></div>
+      </section>
+      <section class="panel rules">
+        <details><summary>So entsteht die Reihenfolge · Bedingungen und Zählweise</summary><div class="rules-grid">
+          <div><strong>1. Voraussetzungen</strong><p>Ohne bekannten Plan wird gewartet. Bei ausgeschalteter lokaler Generierung werden keine lokalen Sprachaufträge gestartet. Bei einem Sprachserverfehler bleibt der BTS-Spielbetrieb verfügbar.</p></div>
+          <div><strong>2. Auswahl nach Priorität</strong><p>Der erste Bereich mit fehlenden Bausteinen kommt zum Zug. Fertige Bereiche und Bereiche ohne Bedarf werden übersprungen. Die Reihenfolge bleibt in allen Turnierphasen gleich: Vorbereitung angemeldeter Disziplinen vor Anmeldevorarbeit. Zusätzliche konkret angeforderte Aufgaben ohne Bereichszuordnung würden vor den Vorratsaufgaben erscheinen.</p></div>
+          <div><strong>3. Konkreter Auftrag</strong><p>Innerhalb des Bereichs gelten dessen Phasen, Disziplinen und Spielreihenfolgen. Eine Quellaufnahme muss vor den daraus benötigten Ausschnitten fertig sein. Danach wird die Priorität neu geprüft.</p></div>
+          <div><strong>Bereit, Queue, Gesamt</strong><p>Grün: abspielbar. Orange: Auftrag vorgemerkt. Grau: geplant, noch nicht beauftragt. Fehlgeschlagene Aufträge erhalten einen eigenen Hinweis. Quellaufnahmen zählen nicht zusätzlich als fertige Abspielbausteine.</p></div>
+          <div><strong>Geteilte Bausteine</strong><p>Ein Name kann für mehrere Disziplinen und Ansagen genutzt werden. Tabellenzeilen zeigen ihren jeweiligen Bedarf; die Bereichssumme zählt gemeinsame Bausteine nur einmal. Zeilen dürfen deshalb nicht einfach addiert werden.</p></div>
+          <div><strong>Andere Stimme und andere Turniere</strong><p>Eine andere Stimme wird nur bei eingeschalteter Option und vollständigem Leerlauf vorbereitet. Bei einem Auftrag für ein anderes Turnier bleibt der eigene Bedarf sichtbar und wartet auf den Sprachserver.</p></div>
+        </div></details>
+      </section>
+    </div>
+    <section class="panel diagram-panel" id="diagram-panel" role="tabpanel" aria-labelledby="view-diagram" hidden>
+      <div class="panel-header"><div><div class="eyebrow">Derselbe Plan · andere Darstellung</div><h2>Zustandsdiagramm</h2><p>Unser vollständiger Ablauf mit Entscheidungen und Unterzuständen. Ein Klick wählt einen Bereich für die Übersicht aus.</p></div><span class="pill waiting">Beispieldaten</span></div>
+      <div class="diagram-tools"><button type="button" class="outline-button" id="diagram-start">Zum Anfang ↑</button><button type="button" class="outline-button" id="diagram-current">Aktueller Auftrag ↗</button><button type="button" class="outline-button" id="diagram-fit" aria-pressed="false">Gesamtbreite</button><button type="button" class="outline-button" id="diagram-details">Auswahl in Übersicht öffnen →</button><span class="diagram-selection" id="diagram-selection"></span></div>
+      <div class="diagram-legend"><span><i style="background:var(--green)"></i>fertig</span><span><i style="background:var(--amber)"></i>aktueller Bedarf</span><span><i style="background:var(--teal)"></i>geprüfter Auswahlweg</span><span>Passt sich der verfügbaren Breite an · Auswahl erhält einen Petrolrahmen.</span></div>
+      <iframe id="diagram-frame" title="Bisheriges Zustandsdiagramm im neuen Erscheinungsbild"></iframe>
+    </section>
+    <aside class="panel queue" id="queue" aria-label="Aktuelle Warteschlange"></aside>
+  </main>
+  <footer class="footer"><span>Bedienbarer Gestaltungsentwurf · Bereiche und Tabellenzellen lassen sich auswählen.</span><span>Alle Namen sind erfunden. Keine Serververbindung, keine echten Sprachaufträge.</span></footer>
+</div>
+<script>
+'use strict';
+(() => {
+    const $ = id => document.getElementById(id);
+    const esc = value => String(value).replace(/[&<>"]/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[char]));
+    const phases = [['states', 'Landesverbände'], ['clubs', 'Vereine'], ['people', 'Spieler/Paarungen']];
+    const availability = new Map();
+    function cell(prefix, total, ready = total, queued = total - ready) {
+        return Array.from({ length: total }, (_, index) => {
+            const key = prefix + ':' + index;
+            if (!availability.has(key)) availability.set(key, index < ready ? 'ready' : index < ready + queued ? 'queued' : 'planned');
+            return key;
+        });
+    }
+    function progress(keys) {
+        const unique = new Set(keys), result = { total: unique.size, ready: 0, queued: 0, planned: 0 };
+        for (const key of unique) result[availability.get(key)]++;
+        return result;
+    }
+    const empty = { total: 0, ready: 0, queued: 0, planned: 0 };
+    const complete = value => value.total > 0 && value.ready === value.total;
+    function bar(value) {
+        return `<div class="bar" role="img" aria-label="${value.ready} bereit, ${value.queued} in der Queue, ${value.total} gesamt"><span class="ready" style="width:${value.ready * 100 / (value.total || 1)}%"></span><span class="queued" style="width:${value.queued * 100 / (value.total || 1)}%"></span></div>`;
+    }
+    function metrics(value) {
+        return `<div class="metrics"><span class="ready-count"><strong>${value.ready}</strong> bereit</span><span class="queue-count"><strong>${value.queued}</strong> in der Queue</span><span><strong>${value.total}</strong> gesamt</span>${value.planned ? `<span>${value.planned} noch nicht beauftragt</span>` : ''}</div>`;
+    }
+    const tabletEvents = [
+        { id: 'mx13', name: 'MX U13', btp: 5, game: 12, date: '26.09.', time: '09:30', players: 43, pairs: 19, teams: 25, states: 9, clubs: 27, ready: 116, total: 116 },
+        { id: 'mx15', name: 'MX U15', btp: 10, game: 18, date: '26.09.', time: '10:00', players: 52, pairs: 21, teams: 31, states: 8, clubs: 37, ready: 139, total: 139 },
+        { id: 'mx17', name: 'MX U17', btp: 11, game: 83, first: true, date: '26.09.', time: '14:00', players: 44, pairs: 22, teams: 22, states: 6, clubs: 18, ready: 66, total: 66 },
+        { id: 'md17', name: 'MD U17', btp: 14, game: 396, date: '27.09.', time: '10:30', players: 31, pairs: 15, teams: 16, states: 8, clubs: 22, ready: 33, total: 82 },
+        { id: 'mx19', name: 'MX U19', btp: 20, game: 402, date: '27.09.', time: '11:00', players: 53, pairs: 19, teams: 34, states: 8, clubs: 35, ready: 4, total: 144 },
+    ].map(event => ({ ...event, cells: {
+        states: cell('tablet-states', event.states * 3),
+        clubs: cell('tablet-clubs', event.clubs * 3),
+        people: cell('tablet-' + event.id, event.total, event.ready),
+    } }));
+    const registrationAreas = [
+        { id: 'open', name: 'Geöffnete Anmeldungen', note: 'Alle Verbände → alle Vereine → alle Spieler/Paarungen', events: [
+            { id: 'me15', name: 'ME U15', btp: 7, game: 25, date: '26.09.', time: '10:00', players: 38, pairs: 0, teams: 38, states: 6, clubs: 14,
+                cells: { states: cell('open-states', 18), clubs: cell('open-clubs', 42, 17), people: cell('open-me15', 136, 8, 24) } },
+            { id: 'de15', name: 'DE U15', btp: 3, game: 80, date: '26.09.', time: '13:00', players: 30, pairs: 0, teams: 30, states: 5, clubs: 13,
+                cells: { states: cell('open-states', 15), clubs: cell('open-clubs', 39, 17), people: cell('open-de15', 108, 4, 12) } },
+        ] },
+        { id: 'closed', name: 'Noch nicht geöffnete Anmeldungen', note: 'Anschließend ebenfalls Verbände → Vereine → Spieler/Paarungen', events: [
+            { id: 'md19', name: 'MD U19', btp: 16, game: 95, date: '27.09.', time: '09:00', players: 40, pairs: 20, teams: 20, states: 6, clubs: 16,
+                cells: { states: cell('closed-states', 18, 0, 0), clubs: cell('closed-clubs', 48, 0, 0), people: cell('closed-md19', 142, 0, 0) } },
+            { id: 'de19', name: 'DE U19', btp: 18, players: 22, pairs: 0, teams: 22, states: 5, clubs: 11,
+                cells: { states: cell('closed-states', 15, 0, 0), clubs: cell('closed-clubs', 33, 0, 0), people: cell('closed-de19', 82, 0, 0) } },
+        ] },
+    ];
+    const allKeys = events => events.flatMap(event => phases.flatMap(([phase]) => event.cells[phase]));
+    const registrationCommon = cell('registration-common', 12);
+    const registrationKeys = [...registrationCommon, ...registrationAreas.flatMap(area => allKeys(area.events))];
+    const tabletKeys = allKeys(tabletEvents);
+    const stages = new Map([
+        ['urgent', { title: 'Ausgelöste Durchsagen', keys: cell('urgent', 43), description: 'Tatsächlich ausgelöste Durchsagen zuerst, in ihrer Auslösereihenfolge.', rule: 'Ein neuer Aufruf erhält Vorrang, sobald der laufende Auftrag beendet ist.', items: ['Bereits ausgelöste Feldaufrufe und Wiederholungen', 'Auslösereihenfolge bleibt innerhalb dieser Priorität erhalten'] }],
+        ['test', { title: 'Sprachtest und Proben', keys: cell('test', 1), description: 'Der Sprachtest wird immer vorbereitet, auch ohne ausdrückliche Anforderung.', rule: 'Manuell angeforderte Testtexte erscheinen ebenfalls in diesem Bereich.', items: ['Sprachtest: „Dies ist ein Test der Sprachausgabe.“'] }],
+        ['shared', { title: 'Spielorte und Felder', keys: cell('shared', 43), description: 'Gemeinsame Texte für die aktiven Felder, Hallen und Treffpunkte.', rule: 'Diese Bausteine werden für viele Ansagen wiederverwendet.', items: ['Feldanfang und Feldende', '„Für Spielfeld …!“ und „Bitte mit dem Spielen beginnen!“', 'Hallenvarianten und Treffpunkttexte, jeweils in Einzahl und Mehrzahl'] }],
+        ['officials', { title: 'Technische Offizielle', keys: [], description: 'Alle bekannten Offiziellen mit ihren Namen und Rollen, auch ohne Spielzuordnung.', rule: 'Im Beispielturnier sind keine technischen Offiziellen hinterlegt. Der Bereich wird übersprungen.', items: [] }],
+        ['waiting', { title: 'Wartende Tabletbediener', keys: cell('waiting', 25), description: 'Offene Dienstgruppen der gespeicherten Tablet-Warteliste.', rule: 'Wartende Bediener werden vor den laufenden Spielen vorbereitet, auch ohne zugewiesenes nächstes Spiel.', items: ['Vorgemerkte Dienstgruppe für Feld 1', 'Weitere offene Dienstgruppen ohne Feldzuordnung'] }],
+        ['running', { title: 'Laufende Spiele', keys: cell('running', 125), description: 'Laufende Spiele, geordnet nach dem Zeitpunkt ihres Feldaufrufs.', rule: 'Vollständige Ansagen sowie beide Teams für eine mögliche Tabletbedienung.', items: ['Spiel 14 · Feld 1 · Aufruf 09:12', 'Spiel 16 · Feld 3 · Aufruf 09:15', 'Weitere 4 laufende Spiele · nach ihrer Aufrufzeit'] }],
+        ['preparation', { title: 'Spiele in Vorbereitung', keys: cell('preparation', 86), description: 'Spiele in Vorbereitung, geordnet nach dem Zeitpunkt des Vorbereitungsaufrufs.', rule: 'Bereitet die vollständigen Ansagen für den nächsten Feldaufruf vor.', items: ['Spiel 21 · Vorbereitungsaufruf 09:17', 'Spiel 24 · Vorbereitungsaufruf 09:19', 'Spiel 27 · Vorbereitungsaufruf 09:20'] }],
+        ['candidate', { title: 'Aufrufkandidaten', keys: cell('candidate', 42), description: 'Die voraussichtlich nächsten Spiele in der aktuellen Kandidatenreihenfolge.', rule: 'Vorrat wird erst vorbereitet, wenn in allen Turnieren keine reguläre Sprachaufgabe oder Planungsaktualisierung ansteht.', items: ['Spiel 28 · erster Aufrufkandidat', 'Spiel 31 · zweiter Aufrufkandidat'] }],
+        ['planned', { title: 'Weitere angesetzte Spiele', keys: cell('planned', 84), description: 'Weitere Spiele in der Reihenfolge des BTS-Spielplans.', rule: 'Nur bekannte Teilnehmer und Angaben werden vorbereitet; unbekannte Paarungen werden nicht ergänzt.', items: ['Spiel 35 · 26.09. · 10:15 · Teilnehmer bekannt', 'Spiel 37 · 26.09. · 10:30 · Teilnehmer bekannt', 'Unbekannte Teilnehmer bleiben offen'] }],
+        ['tablet', { title: 'Vorbereitung angemeldeter Disziplinen', keys: tabletKeys, description: 'Anwesende Spieler und vollständig anwesende Paarungen aller noch nicht beendeten Disziplinen ab abgeschlossener Anmeldung. Enthält alle wiederverwendbaren Namensvarianten und die konfigurierten Tabletaufrufe.', rule: 'Disziplinen nach ihrem nächsten oder ersten angesetzten Spiel. Jede Disziplin vollständig vorbereiten: Landesverbände → Vereine → Spieler/Paarungen. Erst danach kommt die nächste Disziplin. Ohne bekannte Spielplanung gilt die BTP-Reihenfolge.' }],
+        ['registration', { title: 'Anmeldevorarbeit', keys: registrationKeys, description: 'Geöffnete Anmeldungen zuerst, danach noch nicht geöffnete Anmeldungen. Abgeschlossene Anmeldungen gehören vollständig zur Vorbereitung angemeldeter Disziplinen.', rule: 'In jedem Bereich erst Landesverbände aller Disziplinen, dann Vereine, dann Spieler/Paarungen. Disziplinen folgen ihrem ersten angesetzten Spiel – auch vor der Auslosung. Ohne bekannte Spielplanung gilt die BTP-Listenreihenfolge.' }],
+        ['people', { title: 'Übrige Personen und Teams', keys: cell('other-people', 150, 16, 0), description: 'Verbleibende mögliche Tabletbediener aus allen bekannten Personen und Paarungen.', rule: 'Dieser letzte Vorrat kann auch andere Disziplinen und abgeschlossene Spiele umfassen. Er ergänzt die enger gefilterte Tabletvorbereitung.', items: ['Verbleibende bekannte Einzelpersonen', 'Bekannte Paarungen und frühere Dienstgruppen', 'Bereits vorhandene Namen werden wiederverwendet'] }],
+        ['spare', { title: 'Andere Stimme auf Vorrat', keys: cell('spare', 619, 0, 0), description: 'Optionaler Vorrat für die andere Stimme.', rule: 'Nur wenn die Option aktiviert ist, die gewählte Stimme vollständig vorbereitet ist und alle Turniere im Leerlauf sind.', items: ['Option im Beispiel: eingeschaltet', 'Gewählte Stimme vollständig bereit: nein', 'Vollständiger Leerlauf aller Turniere: nein', 'Ergebnis: derzeit nicht an der Reihe'] }],
+    ]);
+    let scenario = 'competition', selected = 'tablet', selectedArea = 'tablet', selectedPhase = 'people', selectedEvent = 'md17', error = false;
+    let view = 'overview', diagramFit = false;
+    try { if (localStorage.getItem('bts-speech-draft-view') === 'diagram') view = 'diagram'; } catch { /* File previews may disable storage. */ }
+    const frame = $('diagram-frame'), origin = location.protocol === 'file:' ? '*' : location.origin;
+    const stageAliases = { waiting: 'tablet_waiting', running: 'oncourt' };
+    const activeStage = () => scenario === 'registration' ? 'registration' : 'tablet';
+    const activePhase = () => scenario === 'registration' ? 'clubs' : 'people';
+    const activeEvent = () => scenario === 'registration' ? 'me15' : 'md17';
+    const activeArea = () => scenario === 'registration' ? 'open' : 'tablet';
+    function groups() {
+        const rows = [
+            ['Turniervorarbeit', ['urgent', 'test', 'shared', 'officials']],
+            ['Aktueller Spielbetrieb', ['waiting', 'running', 'preparation']],
+            ['Vorbereitung des Spielbetriebs', ['candidate', 'planned', 'tablet']],
+            ['Weitere Vorbereitung', ['registration', 'people']],
+            ['Nur bei vollständigem Leerlauf', ['spare']],
+        ];
+        return rows;
+    }
+    const order = () => groups().flatMap(([, ids]) => ids);
+    const number = id => String(order().indexOf(id) + 1).padStart(2, '0');
+    function stageProgress(id) {
+        if (scenario === 'registration' && ['waiting', 'running', 'preparation', 'candidate', 'planned', 'tablet'].includes(id)) return empty;
+        return progress(stages.get(id).keys);
+    }
+    function pill(text, type = 'waiting') { return `<span class="pill ${type}">${esc(text)}</span>`; }
+    function status(id, value) {
+        if (id === activeStage()) return error ? ['Wartet auf Sprachserver', 'active'] : ['Wird bearbeitet', 'active'];
+        if (id === 'spare') return ['Bedingungen nicht erfüllt', 'waiting'];
+        if (!value.total) return [id === 'officials' ? 'Keine Offiziellen' : 'Kein Bedarf', 'waiting'];
+        return complete(value) ? ['Bereit', 'ready'] : ['Später an der Reihe', 'waiting'];
+    }
+    function renderPlan() {
+        $('plan-list').innerHTML = groups().map(([title, ids]) => `<section class="plan-group"><h3>${title}</h3>${ids.map(id => {
+            const stage = stages.get(id), value = stageProgress(id), current = id === activeStage();
+            const note = current ? error ? 'Wartet auf Sprachserver' : 'Wird gerade bearbeitet' : id === 'spare' ? 'Bedingungen nicht erfüllt' :
+                value.total ? `${value.ready} / ${value.total} bereit` : id === 'officials' ? 'Im Turnier nicht vorhanden' : 'Aktuell kein Bedarf';
+            return `<button type="button" class="plan-step" data-stage="${id}" data-current="${current}" data-status="${value.total ? 'work' : 'empty'}" aria-pressed="${id === selected}"><span class="number">${number(id)}</span><span><span class="title">${stage.title}</span><span class="note">${note}</span></span><span class="symbol" aria-hidden="true">${current ? '●' : complete(value) ? '✓' : value.total ? '·' : '—'}</span></button>`;
+        }).join('')}</section>`).join('');
+        const value = progress(order().filter(id => id !== 'spare' && stageProgress(id).total).flatMap(id => stages.get(id).keys));
+        $('plan-total').innerHTML = `<strong>${value.ready} / ${value.total}</strong> Bausteine der gewählten Stimme bereit${bar(value)}<p style="margin-top:8px">Fertig oder kein Bedarf? Dann geht es direkt zum nächsten Bereich. Nach jedem Auftrag wird neu priorisiert.</p>`;
+    }
+    function matrix(events, area = 'tablet') {
+        const columns = phases;
+        return `<div class="matrix-wrap" role="region" aria-label="Fortschritt je Disziplin und Phase"><table class="matrix"><caption hidden>${esc(area === 'tablet' ? 'Tabletvorbereitung' : registrationAreas.find(item => item.id === area).name)}: Disziplinen in Generierungsreihenfolge</caption><thead><tr><th>Disziplin<br><span class="muted small" style="font-weight:400;font-size:10px">Reihenfolge des Bedarfs</span></th>${columns.map(([phase, title], index) => {
+            const value = progress(events.flatMap(event => event.cells[phase]));
+            const current = area !== 'tablet' && selected === activeStage() && area === activeArea() && phase === activePhase();
+            return `<th data-current="${current}" data-complete="${complete(value) && !current}"><button type="button" class="phase-heading" data-phase="${phase}" data-area="${area}"><span class="phase-order">${`Schritt ${index + 1} ${index < 2 ? '→' : ''}`}</span><span class="phase-name">${title}</span>${bar(value)}<span class="phase-summary">${value.ready} bereit · ${value.queued} Queue · ${value.total} gesamt</span></button></th>`;
+        }).join('')}</tr></thead><tbody>${events.map((event, index) => `<tr><td><strong class="event-name"><span class="event-position">${index + 1}.</span>${event.name}</strong><span class="event-time">${event.game ? `${area !== 'tablet' || event.first ? 'Erstes Spiel' : 'Nächstes Spiel'} ${event.game}<br>${event.date} · ${event.time}` : 'Kein bekanntes nächstes Spiel'}</span><span class="event-meta">BTP-Position ${event.btp}<br>${event.players} ${area === 'tablet' ? 'anwesende Spieler' : 'Spieler'} · ${event.pairs} Paarungen<br>${event.teams} bekannte Teams</span></td>${columns.map(([phase, title], phaseIndex) => {
+            const value = progress(event.cells[phase]), current = selected === activeStage() && area === activeArea() && phase === activePhase() && event.id === activeEvent();
+            const focus = selectedArea === area && selectedPhase === phase && selectedEvent === event.id;
+            const state = current ? error ? 'Wartet' : 'Aktuell' : complete(value) ? '✓' : !value.total ? 'Kein Bedarf' : '';
+            const labels = phase === 'states' ? event.states + ' Verbände' : phase === 'clubs' ? event.clubs + ' Vereine' : event.players + ' Spieler · ' + event.pairs + ' Paarungen';
+            return `<td><button type="button" class="cell${complete(value) ? ' complete' : ''}${current ? ' active' : ''}" data-phase="${phase}" data-event="${event.id}" data-area="${area}" aria-label="${esc(event.name + ', ' + phases.find(([id]) => id === phase)[1] + ': ' + value.ready + ' bereit, ' + value.queued + ' in der Queue, ' + value.total + ' gesamt')}" aria-pressed="${focus}"><span class="cell-phase" aria-hidden="true">${phaseIndex + 1}. ${title}</span><span class="cell-title">${value.ready} bereit<span class="cell-state">${state}</span></span>${bar(value)}<span class="cell-counts">${value.queued} Queue · ${value.total} gesamt</span><span class="cell-remaining">${labels}${value.planned ? `<br>${value.planned} noch nicht beauftragt` : ''}</span></button></td>`;
+        }).join('')}</tr>`).join('')}</tbody></table></div>`;
+    }
+    function selectionDetails(events) {
+        const event = events.find(item => item.id === selectedEvent) || events[0];
+        if (!event) return '';
+        const phaseName = phases.find(([phase]) => phase === selectedPhase)[1], value = progress(event.cells[selectedPhase]);
+        const current = selected === activeStage() && selectedArea === activeArea() && selectedPhase === activePhase() && event.id === activeEvent();
+        const scope = selectedArea === 'tablet' ? 'tablet' : selectedArea;
+        const sampleNames = {
+            tablet: { states: ['Musterverband Nord', 'Musterverband Süd', 'Musterverband Mitte'], clubs: ['Musterverein Nord', 'Musterverein Süd', 'Musterverein West'],
+                people: { mx13: ['Alma Beispiel', 'Bela Beispiel', 'Clara Beispiel und David Beispiel'], mx15: ['Ella Beispiel', 'Felix Beispiel', 'Greta Beispiel und Henry Beispiel'],
+                    mx17: ['Toni Beispiel und Uli Beispiel', 'Vera Beispiel und Wanja Beispiel', 'Xaver Beispiel und Yara Beispiel'],
+                    md17: ['Max Mustermann', 'Hans Dampf', 'Erika Musterfrau und Otto Normalverbraucher'], mx19: ['Ida Beispiel', 'Jan Beispiel', 'Klara Beispiel und Lars Beispiel'] } },
+            open: { states: ['Beispielverband Ost', 'Beispielverband West', 'Beispielverband Zentrum'], clubs: ['Beispielverein Ost', 'Beispielverein Mitte', 'Beispielverein West'],
+                people: ['Mara Beispiel', 'Noah Beispiel', 'Oda Beispiel'] },
+            closed: { states: ['Beispielverband Küste', 'Beispielverband Berge', 'Beispielverband Tal'], clubs: ['Beispielverein Tal', 'Beispielverein Berg', 'Beispielverein Wald'],
+                people: ['Paul Beispiel', 'Quinn Beispiel', 'Rita Beispiel und Sam Beispiel'] },
+        };
+        const examples = sampleNames[scope][selectedPhase], names = Array.isArray(examples) ? examples : examples[event.id];
+        return `<section class="selection"><div class="selection-header"><div><div class="eyebrow">Ausgewählte Tabellenzelle · ${value.ready} / ${value.total} bereit</div><h3>${esc(event.name)} · ${phaseName}</h3></div>${current ? pill(error ? 'Wartet' : 'Aktueller Bedarf', 'active') : complete(value) ? pill('Vollständig bereit', 'ready') : pill('Vorgemerkt')}</div><div class="selection-body"><div class="selection-reason"><h4>Warum diese Position?</h4><ol>
+            <li>${selected === 'tablet' ? 'Anmeldung abgeschlossen, Disziplin noch nicht beendet. Es zählen nur anwesende Spieler und vollständig anwesende Paarungen.' : `Zuerst ${selectedArea === 'open' ? 'geöffnete' : 'noch nicht geöffnete'} Anmeldungen, jeweils in drei Phasen.`}</li>
+            <li>${selected === 'tablet' ? 'Erst diese Disziplin fertigstellen: Landesverbände → Vereine → Spieler/Paarungen. Dann folgt die nächste Disziplin.' : selectedPhase === 'people' ? 'Alle Landesverbände und Vereine dieses Anmeldebereichs stehen davor.' : selectedPhase === 'clubs' ? 'Alle Landesverbände dieses Anmeldebereichs stehen davor; Spieler/Paarungen folgen danach.' : 'Landesverbände aller offenen Disziplinen stehen vor deren Vereinen und Spielern/Paarungen.'}</li>
+            <li>${event.game ? `${selected === 'tablet' ? 'Nächstes bekanntes Spiel' : 'Erstes angesetztes Spiel'}: ${event.game}, ${event.date} um ${event.time}.` : 'Ohne bekanntes Spiel: nach den Disziplinen mit Spielplanung, in BTP-Reihenfolge.'}</li>
+            <li>Innerhalb der Disziplin gilt die vorhandene Melde- und Teamreihenfolge; fertige oder geteilte Bausteine werden wiederverwendet.</li>
+        </ol></div><div class="sample-parts"><div class="eyebrow">Bausteine · beispielhafter Auszug</div>${names.map((name, index) => {
+            const done = complete(value), running = current && index === 0;
+            return `<div class="part-line${running ? ' active' : done ? ' ready' : ''}"><i class="dot"></i><div><strong>${name}</strong><br><small>${selectedPhase === 'people' ? index === 2 ? 'Paarungsaufruf' : 'Namensbaustein für Tabletbedienung' : 'Geteilte Namensvarianten für Ansagen'}</small></div><span class="part-state">${running ? error ? 'Wartet' : 'Quelle läuft' : done ? 'Bereit' : 'Vorgemerkt'}</span></div>`;
+        }).join('')}</div></div></section>`;
+    }
+    function renderDetail() {
+        const stage = stages.get(selected), value = stageProgress(selected), [label, type] = status(selected, value);
+        $('detail-header').innerHTML = `<div class="eyebrow" style="margin-bottom:7px">${selected === activeStage() ? 'Aktuell bearbeiteter Bereich' : 'Ausgewählter Bereich'}</div><div class="detail-title"><h2 id="detail-title"><span class="detail-number">${number(selected)}</span>${stage.title}</h2>${pill(label, type)}</div><p class="detail-description">${stage.description}</p>${metrics(value)}${bar(value)}`;
+        let content = `<div class="rule-strip"><span class="rule-icon">↳</span><span>${stage.rule}</span></div>`;
+        if (selected === 'tablet' && value.total) {
+            content += matrix(tabletEvents);
+            content += '<p class="matrix-footnote">Zeilenweise bearbeiten: innerhalb einer Disziplin von links nach rechts, dann zur nächsten Zeile. Disziplinen folgen ihrem nächsten oder ersten angesetzten Spiel. Zahlen beziehen sich auf Abspielbausteine; gemeinsam genutzte Namen zählen in der Bereichssumme nur einmal.</p>';
+            content += selectionDetails(tabletEvents);
+            content += '<details><summary>Auswahl der Spieler und Einstellungen</summary><ul><li>Nur anwesend erfasste Spieler; bei Paarungen müssen alle Spieler anwesend sein.</li><li>Disziplin ab abgeschlossener Anmeldung und bis zum Ende ihrer wirklichen Spiele; auch bereits ausgeloste Disziplinen sind enthalten.</li><li>Im Beispiel: Spieler-/Paarungsaufrufe, Doppel nicht aufgeteilt, keine Klapptafeln. Verbandsbezogene Tabletaufrufe würden zur Landesverbandsphase gehören.</li><li>Alle noch fehlenden Namen einer Disziplin werden vor der nächsten Disziplin vorbereitet. Bereits vorhandene Bausteine werden wiederverwendet.</li></ul></details>';
+        } else if (selected === 'registration') {
+            content += `<div class="simple-row"><div><h3>Allgemeine Anmeldetexte</h3><p>Gemeinsame Formulierungen und Ziele stehen vor den Namen.</p></div>${pill('12 / 12 bereit', 'ready')}</div>`;
+            for (const area of registrationAreas) {
+                const counts = progress(allKeys(area.events));
+                content += `<section class="area"><div class="area-heading"><div><h3>${area.name}</h3><p>${area.note}</p></div><span class="muted small">${counts.ready} / ${counts.total} bereit</span></div>${matrix(area.events, area.id)}</section>`;
+                if (selectedArea === area.id) content += selectionDetails(area.events);
+            }
+            content += '<p class="matrix-footnote">Bereits ausgeloste Disziplinen werden hier übersprungen. Anwesenheit oder Abwesenheit erfasster Personen beendet deren Einzelaufrufe; bekannte Teamstücke für die Auslosung bleiben wiederverwendbar. Eine Paarung wird noch aufgerufen, solange mindestens eine Person offen ist.</p><details><summary>Welche Disziplinen entfallen und warum?</summary><p>MX U13, MX U15, MD U17 und MX U19 sind im Beispiel des laufenden Spielbetriebs bereits ausgelost. Sie erscheinen in der Vorbereitung angemeldeter Disziplinen. MX U17 gehört trotz noch ausstehender Auslosung bereits ebenfalls dorthin. Die Reihenfolge bleibt auch vor der ersten Auslosung gleich; Bereiche ohne Bedarf werden übersprungen.</p></details>';
+        } else if (selected === 'officials') {
+            content += '<div class="empty-box"><h3>Keine technischen Offiziellen im Turnier</h3><p>Es sind keine Namen und Rollen hinterlegt. Hier gibt es nichts vorzubereiten; der nächste Bereich folgt automatisch.</p></div>';
+        } else if (!value.total) {
+            content += '<div class="empty-box"><h3>Aktuell kein Bedarf</h3><p>In dieser Beispielsituation gibt es für diesen Bereich noch keine Spiele oder Dienstgruppen. Der Bereich wird übersprungen.</p></div>';
+        } else {
+            content += stage.items.map((text, index) => `<div class="simple-row"><div><h3>${index + 1}. ${text}</h3><p>${selected === 'spare' ? 'Voraussetzung für die optionale Vorbereitung' : complete(value) ? 'Die benötigten Bausteine sind abspielbar.' : 'Bekannter Bedarf; startet nach den vorherigen Prioritäten.'}</p></div>${selected === 'spare' ? pill('Bedingung') : complete(value) ? pill('Bereit', 'ready') : pill('Später')}</div>`).join('');
+        }
+        const ids = order(), next = ids[ids.indexOf(selected) + 1];
+        content += `<div class="next-step"><div><strong class="small">Wo geht es danach weiter?</strong><p>Nach diesem Bereich folgt die nächste Priorität mit fehlendem Bedarf.<br>Ein neuer Aufruf kann nach dem laufenden Auftrag vorgezogen werden.</p></div>${next ? `<button type="button" data-stage="${next}">${number(next)} ${stages.get(next).title} →</button>` : '<span class="pill waiting">Warten auf neuen Bedarf</span>'}</div>`;
+        content += '<div class="legend" style="margin-top:16px;margin-bottom:0"><span><i class="green"></i>bereit</span><span><i class="orange"></i>in der Queue</span><span><i></i>noch nicht beauftragt</span><span>Rahmen in Petrol: deine Auswahl</span><span>Gold: aktueller Bedarf</span></div>';
+        $('detail-content').innerHTML = content;
+    }
+    function renderQueue() {
+        const registration = scenario === 'registration', name = registration ? 'Beispielverein Ost' : 'Max Mustermann';
+        const area = registration ? 'Anmeldevorarbeit' : 'Vorbereitung angemeldeter Disziplinen', phase = registration ? 'Vereine' : 'Spieler/Paarungen';
+        const event = registration ? 'ME U15' : 'MD U17';
+        $('now-name').textContent = name;
+        $('now-state').textContent = error ? 'Wartet auf den Sprachserver' : 'Wird gerade vorbereitet';
+        $('now-subtitle').textContent = 'Quellaufnahme für einen ' + (registration ? 'Vereinsnamen' : 'Namensbaustein') + ' · Hallensprecher';
+        $('now-why').textContent = registration ? 'Die vorherigen Bereiche sind fertig oder haben noch keinen Bedarf. Die Verbände der Anmeldung sind fertig; jetzt folgen die Vereine. ME U15 ist wegen Spiel 25 zuerst an der Reihe.' : 'Die früheren Disziplinen sind bereit, ebenso Verbände und Vereine von MD U17. Jetzt folgen deren Spieler/Paarungen für Spiel 396 am 27.09. um 10:30. Erst danach kommt MX U19.';
+        $('queue').innerHTML = `<div class="queue-heading"><h2>Konkrete Queue</h2>${pill(error ? 'Wartet' : '1 läuft', error ? 'waiting' : 'active')}</div><p>Auszug der nächsten Aufträge · gewählte Stimme<br>Die genaue Reihenfolge kann sich nach jedem Auftrag ändern.</p>
+            <article class="queue-card current"><div class="queue-label"><i class="dot"></i>${error ? 'Angehalten · Verbindungsfehler' : 'Jetzt · Quellaufnahme'}</div><h3>${name}</h3><p>Aufnahme: „${name} spielt jetzt gegen ${name}!“</p><p>Die Quelle muss vor dem daraus benötigten Namensausschnitt fertig sein.</p><div class="crumb">${number(activeStage())} ${area}<br>→ ${registration ? phase + ' → ' + event : event + ' → ' + phase}</div><button type="button" class="text-button jump" data-current-jump>Begründung im Plan ansehen ↗</button></article>
+            <div class="queue-blocked"><strong>Wartet auf diese Quelle</strong>Namensausschnitt „${name}“<br>Wird danach aus der Aufnahme aufbereitet.</div>
+            <div class="eyebrow queue-next-label">Danach vorgemerkt</div>
+            <article class="queue-card"><div class="queue-label">1 · nächste Quellaufnahme</div><h3>${registration ? 'Beispielverein Mitte' : 'Hans Dampf'}</h3><p>${event} · ${phase}<br>Gleiche Disziplin, nächster Name in Meldereihenfolge.</p></article>
+            <article class="queue-card"><div class="queue-label">2 · nächste Quellaufnahme</div><h3>${registration ? 'Beispielverein West' : 'Erika Musterfrau und Otto Normalverbraucher'}</h3><p>${event} · ${registration ? 'Vereinsname' : 'Paarungsname'}<br>Fertige Bausteine werden übersprungen.</p></article>
+            <article class="queue-card"><div class="queue-label">Später · nächste Disziplin</div><h3>${registration ? 'DE U15' : 'MX U19'}</h3><p>${registration ? 'Erstes Spiel 80 · 26.09. · 13:00' : 'Nächstes Spiel 402 · 27.09. · 11:00'}<br>${registration ? 'Spieler/Paarungen beginnen erst, wenn die Vereine aller offenen Anmeldungen fertig sind.' : 'Nach dem früheren Bedarf aus MD U17; Teams ohne bekanntes nächstes Spiel kommen anschließend.'}</p></article>
+            ${error ? '<article class="queue-card error-item"><div class="queue-label">Fehlerbeispiel · Wiederholung offen</div><h3>Sprachserver antwortet mit HTTP 503</h3><p>Offene Aufträge bleiben vorgemerkt. Nach Wiederherstellung wird neu priorisiert; fertige Audiodaten bleiben verfügbar.</p></article>' : ''}
+            <div class="reuse"><strong>Bereits fertig wird wiederverwendet</strong><br>Verbands- und Vereinsnamen aus vorherigen Ansagen brauchen keine neue Aufnahme.</div>
+            <details><summary>Prioritäten und andere Turniere</summary><p>Ausgelöste Ansagen und angeforderte Testtexte haben Vorrang. Läuft eine Aufnahme für ein anderes Turnier, zeigt der eigene Plan „Wartet auf Sprachserver“. Eine bereits laufende Aufnahme wird nicht durch neu hinzukommenden Vorrat verdrängt.</p></details>`;
+    }
+    function render() {
+        $('health-banner').hidden = !error;
+        $('error-toggle').setAttribute('aria-pressed', String(error));
+        $('error-toggle').textContent = error ? 'Fehlerbeispiel ausblenden' : 'Fehlerbeispiel anzeigen';
+        $('phase-label').textContent = scenario === 'registration' ? 'Anmeldung · noch keine Auslosung' : 'Spielbetrieb · erste Auslosung erfolgt';
+        $('game-summary').textContent = scenario === 'registration' ? 'Noch keine laufenden Spiele' : '6 laufende · 3 in Vorbereitung';
+        renderPlan(); renderDetail(); renderQueue(); syncDiagram();
+    }
+    function selectStage(id) {
+        selected = id;
+        if (id === 'registration') { selectedArea = 'open'; selectedEvent = 'me15'; selectedPhase = 'clubs'; }
+        if (id === 'tablet') { selectedArea = 'tablet'; selectedEvent = 'md17'; selectedPhase = 'people'; }
+        render();
+    }
+    function jumpCurrent() {
+        selected = activeStage(); selectedArea = activeArea(); selectedPhase = activePhase(); selectedEvent = activeEvent();
+        render();
+        if (view === 'diagram') { syncDiagram('current'); $('diagram-panel').scrollIntoView({ block: 'start', behavior: 'smooth' }); }
+        else $('detail-column').scrollIntoView({ block: 'start', behavior: 'smooth' });
+    }
+    function diagramSnapshot() {
+        const values = order().map(id => ({ id: stageAliases[id] || id, ...stageProgress(id), failed: 0 }));
+        const registration = values.find(value => value.id === 'registration');
+        values.push({ ...registration, id: 'registration_reserve' });
+        Object.assign(registration, empty);
+        const eventProgress = event => ({ id: event.id, name: event.name, btp_order: event.btp,
+            next_game: event.game && !event.first ? { number: event.game, time: event.date + ' ' + event.time } : null,
+            first_game: event.first ? { number: event.game, date: '2026-09-' + event.date.slice(0, 2), time: event.time } : null,
+            ...progress(allKeys([event])), failed: 0 });
+        let registrationOrder = 0;
+        const registration_order = registrationAreas.flatMap(area => area.events.map(event => ({
+            id: event.id, name: event.name, btp_order: event.btp, order: ++registrationOrder, state: area.id,
+            first_game: event.game ? { number: event.game, date: '2026-09-' + event.date.slice(0, 2), time: event.time } : null,
+            counts: { state: event.states || 0, club: event.clubs || 0, player: event.players, pair: event.pairs, team: event.teams },
+        })));
+        const registration_progress = [{ id: 'common', ...progress(registrationCommon), failed: 0, events: [] },
+            ...registrationAreas.flatMap(area => phases.map(([phase]) => ({
+                id: area.id + '_' + phase,
+                ...progress(area.events.flatMap(event => event.cells[phase])), failed: 0,
+                events: area.events.map(event => ({ id: event.id, ...progress(event.cells[phase]), failed: 0 })),
+            })))];
+        const tablet_progress = tabletEvents.map((event, index) => ({ ...eventProgress(event), order: index + 1,
+            phases: phases.map(([id, label]) => ({ id, label, ...progress(event.cells[id]), failed: 0 })) }));
+        const active = activeStage(), planning = { stage: active, event_id: activeEvent(), event_name: active === 'tablet' ? 'MD U17' : 'ME U15',
+            tablet_phase: activePhase(), registration_phase: 'open_' + activePhase(), reason: $('now-why').textContent };
+        return { title: 'Musterturnier', voice: 'hallensprecher', mode: 'local', phase: scenario,
+            state: error ? 'waiting' : 'working', active_stage: active, has_officials: false,
+            games: scenario === 'competition' ? { oncourt: 6, preparation: 3, candidate: 2, planned: 5, finished: 12 } :
+                { oncourt: 0, preparation: 0, candidate: 0, planned: 0, finished: 0 },
+            stages: values, total: values.reduce((sum, value) => {
+                for (const field of ['ready', 'queued', 'total']) sum[field] += value[field];
+                return sum;
+            }, { ready: 0, queued: 0, total: 0, failed: 0 }),
+            current: { text: $('now-name').textContent, running: !error, status: error ? 'queued' : 'processing', planning },
+            tablet_progress: scenario === 'registration' ? [] : tablet_progress, tablet_phases: scenario === 'registration' ? [] : phases.map(([id, label]) => ({ id, label,
+                ...progress(tabletEvents.flatMap(event => event.cells[id])), failed: 0,
+                events: tabletEvents.map((event, index) => ({ ...eventProgress(event), order: index + 1, ...progress(event.cells[id]) })),
+            })),
+            registration_order, registration_progress,
+            registration_groups: registrationAreas.map(area => ({ id: area.id, ...progress(allKeys(area.events)), failed: 0 })),
+        };
+    }
+    function syncDiagram(focus = null) {
+        $('diagram-selection').textContent = 'Auswahl: ' + number(selected) + ' ' + stages.get(selected).title;
+        if (!frame.contentWindow || !frame.hasAttribute('src')) return;
+        frame.contentWindow.postMessage({ type: 'bts-draft-plan', snapshot: diagramSnapshot(), focus, fit: diagramFit,
+            selection: { stage: stageAliases[selected] || selected, phase: selectedPhase, area: selectedArea, event: selectedEvent },
+            numbers: Object.fromEntries(order().map(id => [stageAliases[id] || id, number(id)])),
+        }, origin);
+    }
+    function setView(value, remember = true) {
+        view = value === 'diagram' ? 'diagram' : 'overview';
+        const diagram = view === 'diagram';
+        document.querySelector('.workspace').classList.toggle('diagram-mode', diagram);
+        document.querySelector('.plan').hidden = diagram; $('detail-column').hidden = diagram; $('diagram-panel').hidden = !diagram;
+        for (const id of ['overview', 'diagram']) {
+            const tab = $('view-' + id); tab.setAttribute('aria-selected', String(id === view)); tab.tabIndex = id === view ? 0 : -1;
+        }
+        $('view-note').textContent = diagram ? 'Vollständiger Ablauf · dieselben Daten, Farben und Prioritäten.' : 'Prioritäten, Disziplinen und Begründungen im Überblick.';
+        if (diagram && !frame.hasAttribute('src')) frame.src = 'sprachplanung-zustandsdiagramm.html';
+        syncDiagram(diagram ? 'selection' : null);
+        if (remember) try { localStorage.setItem('bts-speech-draft-view', view); } catch { /* Storage is optional. */ }
+    }
+    frame.addEventListener('load', () => syncDiagram('selection'));
+    window.addEventListener('message', event => {
+        if (event.source !== frame.contentWindow || (location.protocol !== 'file:' && event.origin !== location.origin)) return;
+        if (event.data?.type === 'bts-draft-ready') { syncDiagram('selection'); return; }
+        if (event.data?.type === 'bts-draft-layout' && Number.isFinite(event.data.height) && event.data.height > 0) {
+            frame.style.height = Math.ceil(event.data.height) + 'px'; return;
+        }
+        if (event.data?.type === 'bts-draft-focus' && Number.isFinite(event.data.top)) {
+            window.scrollTo({ top: window.scrollY + frame.getBoundingClientRect().top + event.data.top - 25 }); return;
+        }
+        if (event.data?.type !== 'bts-draft-selection') return;
+        const info = event.data.selection, id = Object.keys(stageAliases).find(id => stageAliases[id] === info?.stage) || info?.stage;
+        if (!stages.has(id)) return;
+        selected = id;
+        if (['tablet', 'registration'].includes(id)) {
+            const area = id === 'tablet' ? 'tablet' : info.area || 'open';
+            const events = area === 'tablet' ? tabletEvents : registrationAreas.find(item => item.id === area)?.events;
+            if (events?.length) {
+                selectedArea = area; selectedPhase = phases.some(([phase]) => phase === info.phase) ? info.phase : 'clubs';
+                selectedEvent = events.some(item => item.id === info.event) ? info.event : events[0].id;
+            }
+        }
+        render();
+    });
+    document.addEventListener('click', event => {
+        const mode = event.target.closest('[data-view]');
+        if (mode) { setView(mode.dataset.view); return; }
+        const stage = event.target.closest('[data-stage]');
+        if (stage) { selectStage(stage.dataset.stage); return; }
+        const part = event.target.closest('[data-phase]');
+        if (part) {
+            selectedPhase = part.dataset.phase; selectedArea = part.dataset.area;
+            const events = selectedArea === 'tablet' ? tabletEvents : registrationAreas.find(area => area.id === selectedArea).events;
+            selectedEvent = part.dataset.event || events[0].id;
+            renderDetail(); syncDiagram(); return;
+        }
+        if (event.target.closest('[data-current-jump]')) jumpCurrent();
+    });
+    $('scenario').addEventListener('change', event => {
+        scenario = event.target.value;
+        selected = activeStage(); selectedArea = activeArea(); selectedPhase = activePhase(); selectedEvent = activeEvent();
+        render();
+    });
+    $('error-toggle').addEventListener('click', () => { error = !error; render(); });
+    $('jump-current').addEventListener('click', jumpCurrent);
+    $('diagram-current').addEventListener('click', () => syncDiagram('current'));
+    $('diagram-start').addEventListener('click', () => syncDiagram('start'));
+    $('diagram-fit').addEventListener('click', () => {
+        diagramFit = !diagramFit; $('diagram-fit').setAttribute('aria-pressed', String(diagramFit));
+        $('diagram-fit').textContent = diagramFit ? 'Lesbare Größe' : 'Gesamtbreite'; syncDiagram('current');
+    });
+    $('diagram-details').addEventListener('click', () => { setView('overview'); $('detail-column').scrollIntoView({ block: 'start', behavior: 'smooth' }); });
+    document.querySelector('.view-switch').addEventListener('keydown', event => {
+        if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
+        event.preventDefault();
+        setView(event.key === 'Home' ? 'overview' : event.key === 'End' ? 'diagram' : view === 'overview' ? 'diagram' : 'overview');
+        $('view-' + view).focus();
+    });
+    render();
+    setView(view, false);
+})();
+</script>
+</body>
+</html>

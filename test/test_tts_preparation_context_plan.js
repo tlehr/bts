@@ -8,7 +8,7 @@ const { spellNumbers } = require('../bts/speech/numbers');
 
 const games = () => gameblocks({}, [{ id: 'beispiel-189', label: 'Testspiel', setup: {
     match_num: 189, event_name: 'ME U19', match_name: 'R16',
-    teams: ['Nina Keo Boun Khoune', 'Leandra Galowicz'].map(name => ({ players: [{ name }] })),
+    teams: ['Max Mustermann', 'Hans Dampf'].map(name => ({ players: [{ name }] })),
 } }]);
 const hall = (id, addition = '', meeting = '') => ({ _id: id, name: id,
     preparation_addition: addition, meetingpoint_announcement: meeting });
@@ -98,7 +98,7 @@ describe('location-aware preparation hearing plan', function() {
                 announce: parts => { browser = parts; } });
             for (const location of plan.scope.locations) {
                 texts.announcePreparationMatch({ location_id: location.location_id, match_num: 189, event_name: 'ME U19',
-                    match_name: 'R16', teams: ['Nina Keo Boun Khoune', 'Leandra Galowicz'].map(name => ({ players: [{ name }] })) });
+                    match_name: 'R16', teams: ['Max Mustermann', 'Hans Dampf'].map(name => ({ players: [{ name }] })) });
                 assert.strictEqual(location.opening, browser[0].trim());
                 assert.strictEqual(location.ending, browser.at(-1).trim());
                 for (const [key, expected] of [['opening_piece', browser[0]], ['closing_piece', browser.at(-1)]]) {

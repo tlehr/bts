@@ -30,16 +30,16 @@ describe('Shared B08 role hearing plan', function() {
     });
     it('can use a fluent short context while leaving cached team names independent', function() {
         const value = existing();
-        value.sources.push({ id: 'single', text: 'Max Hahn spielt jetzt gegen Max Hahn!' });
-        value.pieces.push({ id: 'name', source: 'single', before: 'Max Hahn spielt jetzt gegen ',
-            text: 'Max Hahn', after: '!', kind: 'team', profile: 'lab-v2/team-after-gegen' });
+        value.sources.push({ id: 'single', text: 'Hans Dampf spielt jetzt gegen Hans Dampf!' });
+        value.pieces.push({ id: 'name', source: 'single', before: 'Hans Dampf spielt jetzt gegen ',
+            text: 'Hans Dampf', after: '!', kind: 'team', profile: 'lab-v2/team-after-gegen' });
         const plan = tabletRole(value, { natural: true });
         assert.strictEqual(plan.sources.length, 1);
-        assert.strictEqual(plan.sources[0].text, 'Die Tabletbedienung übernimmt Max Hahn.');
+        assert.strictEqual(plan.sources[0].text, 'Die Tabletbedienung übernimmt Hans Dampf.');
         const role = plan.pieces.find(p => p.profile === 'lab-v2/B08-role');
         assert.strictEqual(role.before, 'Die ');
         assert.strictEqual(role.text, 'Tabletbedienung');
-        assert.strictEqual(role.after, ' übernimmt Max Hahn.');
+        assert.strictEqual(role.after, ' übernimmt Hans Dampf.');
         assert(!plan.pieces.some(p => p.profile === 'lab-v2/B11-normal'));
         assert.strictEqual(plan.scope.names_from_existing_team_audio, true);
     });

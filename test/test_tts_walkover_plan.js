@@ -6,8 +6,8 @@ const { walkover } = require('../scripts/tts-walkover-plan');
 function catalogue() {
     const team = (...names) => ({ players: names.map(name => ({ name })) });
     const plan = gameblocks({}, [
-        { id: 'single', label: 'Einzel', setup: { match_num: 161, event_name: 'JE U17', match_name: 'R16', teams: [team('Muhammad Sytsh Abdulquddus'), team('Max Hahn')] } },
-        { id: 'double', label: 'Doppel', setup: { match_num: 381, event_name: 'JD U13', match_name: 'R16', teams: [team('Ben Hensel', 'Max Wächtler'), team('Emil Hermann', 'Konrad Wendt')] } },
+        { id: 'single', label: 'Einzel', setup: { match_num: 161, event_name: 'JE U17', match_name: 'R16', teams: [team('Max Mustermann'), team('Hans Dampf')] } },
+        { id: 'double', label: 'Doppel', setup: { match_num: 381, event_name: 'JD U13', match_name: 'R16', teams: [team('Max Mustermann', 'Hans Dampf'), team('Erika Musterfrau', 'Otto Normalverbraucher')] } },
     ]);
     plan.origins = Object.fromEntries(plan.pieces.map(p => [p.id, { run: '/approved', sha256: 'a'.repeat(64) }]));
     plan.games = plan.cases.filter(c => c.id.endsWith('-two')).map(c => {
@@ -38,8 +38,8 @@ describe('D12 common clause and after-gegen winner', function() {
             assert.strictEqual(c.pieces.at(-1).piece, winner.id);
             assert(!c.display.includes('Auf Spielfeld'));
         }
-        assert(plan.cases.find(c => c.id === 'single-two-assembled').display.endsWith('Das Spiel geht kampflos an Max Hahn!'));
-        assert(plan.cases.find(c => c.id === 'double-two-assembled').display.endsWith('Das Spiel geht kampflos an Emil Hermann und Konrad Wendt!'));
+        assert(plan.cases.find(c => c.id === 'single-two-assembled').display.endsWith('Das Spiel geht kampflos an Hans Dampf!'));
+        assert(plan.cases.find(c => c.id === 'double-two-assembled').display.endsWith('Das Spiel geht kampflos an Erika Musterfrau und Otto Normalverbraucher!'));
         for (const id of Object.keys(plan.scope.reused_piece_origins)) assert.deepStrictEqual(plan.pieces.find(p => p.id === id), old.pieces.find(p => p.id === id));
     });
     it('generates spelled numbers in context, retains numeric display, and preserves exact source substrings', function() {

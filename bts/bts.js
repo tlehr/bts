@@ -69,12 +69,28 @@ function main() {
 
 function cadmin_router() {
 	const router = express.Router();
+	router.get('/t/:tournament_key/speech-helpers/', function(req, res, next) {
+		fs.readFile(path.join(utils.root_dir(), 'static', 'speech_helpers.html'), 'utf8', function(error, html) {
+			if (error) return next(error);
+			res.set('Cache-Control', 'no-store');
+			res.type('html').send(req.app.diagnostics ? require('./diagnostics/pages').html(html, req.app.diagnostics.version) : html);
+		});
+	});
+	router.get('/diagnostics/', function(req, res, next) {
+		fs.readFile(path.join(utils.root_dir(), 'static', 'diagnostics.html'), 'utf8', function(error, html) {
+			if (error) return next(error);
+			res.set('Cache-Control', 'no-store');
+			res.type('html').send(req.app.diagnostics ? require('./diagnostics/pages').html(html, req.app.diagnostics.version) : html);
+		});
+	});
 	router.get('/t/:tournament_key/speech-planning/', function(req, res, next) {
 		fs.readFile(path.join(utils.root_dir(), 'docs', 'sprachgenerierung-reihenfolge.html'), 'utf8', function(err, html) {
 			if (err) return next(err);
 			res.set('Cache-Control', 'no-store');
-			res.type('html').send(html.replace('</style>', '</style><link rel="stylesheet" href="/static/css/speech_planning.css">')
-				.replace('</html>', '<script src="/static/js/speech_planning.js"></script></html>'));
+			html = html.replace('</style>', '</style><link rel="stylesheet" href="/static/css/speech_planning.css">')
+				.replace('</head>', '<link rel="stylesheet" href="/static/css/speech_health.css"></head>')
+				.replace('</html>', '<script src="/static/js/speech_health.js"></script><script src="/static/js/speech_planning_games.js"></script><script src="/static/js/speech_planning.js"></script></html>');
+			res.type('html').send(req.app.diagnostics ? require('./diagnostics/pages').html(html, req.app.diagnostics.version) : html);
 		});
 	});
 	router.use(function(req, res, next) {
@@ -89,7 +105,7 @@ function cadmin_router() {
 			html = html.replace(/{{static_path}}/g, '/static/');
 			html = html.replace(/{{root_path}}/g, '/');
 			html = html.replace(/{{app_root}}/g, '/admin/');
-			res.send(html);
+			res.send(req.app.diagnostics ? require('./diagnostics/pages').html(html, req.app.diagnostics.version) : html);
 		});
 	});
 	return router;
@@ -100,8 +116,11 @@ function create_app(config, db) {
 	const app = express();
 	app.config = config;
 	app.db = db;
+	if (config.diagnostics?.enabled !== false) app.diagnostics = new (require('./diagnostics').Diagnostics)(app, require('./diagnostics/pages').buildVersion(config));
 	app.speech = require('./speech').create(app);
+	app.use('/bup/', require('./diagnostics/pages').bup(config.bup_location, config.bup_index));
 	app.use('/bup/', express.static(config.bup_location, {index: config.bup_index}));
+	app.use('/bupdev/', require('./diagnostics/pages').bup(path.join(utils.root_dir(), 'static/bup/dev/')));
 	app.use('/bupdev/', express.static(path.join(utils.root_dir(), 'static/bup/dev/')));
 	app.use('/static/', express.static('static/', {}));
 	app.use('/admin/', cadmin_router());
@@ -116,7 +135,7 @@ function create_app(config, db) {
 	app.get('/h/:tournament_key/m/:match_id/info', http_api.matchinfo_handler);
 	app.get('/h/:tournament_key/logo/:logo_id', http_api.logo_handler);
 	app.get('/h/preview/display/:variant.json', http_api.display_preview_handler);
-	app.get('/h/:tournament_key/speech/audio/:audio_id', require('./speech/proxy'));
+	if (!app.speech.request) app.get('/h/:tournament_key/speech/audio/:audio_id', require('./speech/proxy'));
 
 	var server = null;
 	if (config.enable_https) {
@@ -131,11 +150,16 @@ function create_app(config, db) {
 	
 	const wss = new ws_module.Server({ server: server });
 	app.speech.start();
-	server.once('close', () => app.speech.stop());
+	server.once('close', () => { app.speech.stop(); app.diagnostics?.close(); });
 	app.wss = wss;
 	wss.on('connection', function connection(ws, req) {
 		const location = url.parse(req.url, true);
-		if (location.path === '/ws/admin') {
+		if (location.path === '/ws/diagnostics') {
+			let sameOrigin = !req.headers.origin;
+			try { if (req.headers.origin) sameOrigin = new URL(req.headers.origin).host === req.headers.host; } catch (_) { /* Reject malformed origins. */ }
+			if (!app.diagnostics || !sameOrigin) return ws.close(1008, 'diagnostics unavailable');
+			return app.diagnostics.connect(ws);
+		} else if (location.path === '/ws/admin') {
 			return wshandler.handle(admin, app, ws);
 		} else if (location.path === '/ws/bup') {
 			return wshandler.handle(bupws, app, ws);

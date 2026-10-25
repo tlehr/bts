@@ -380,7 +380,7 @@ function render_match_table_header(table) {
 	const thead = uiu.el(table, 'thead');
 	const title_tr = uiu.el(thead, 'tr');
 	uiu.el(title_tr, 'th');
-	uiu.el(title_tr, 'th', {}, ci18n('Court'));
+	uiu.el(title_tr, 'th', {}, ci18n('Court / Location'));
 	uiu.el(title_tr, 'th', 'match_num', '#');
 	uiu.el(title_tr, 'th', {}, ci18n('Match'));
 	uiu.el(title_tr, 'th', {
@@ -404,9 +404,6 @@ function render_match_row(tr, match, court, style, show_player_status, show_add_
 	}
 
 	court = resolve_match_court(match, court);
-	if (style === 'unasigned') {
-		court = null;
-	}
 
 	const completeMatch = (match.setup.teams[0].players.length >= 1 && match.setup.teams[1].players.length >= 1);
 	const entry_blocked = btp_entry_status.blocked_players(match).length > 0;
@@ -451,21 +448,24 @@ function render_match_row(tr, match, court, style, show_player_status, show_add_
 	}
 
 	if (style === 'default' || style === 'unasigned') {
+		const locations = curt.locations || [];
+		const location_id = setup.location_id || court?.location_id;
+		const location = utils.find(locations, l => l._id === location_id);
 		const court_number_td = uiu.el(tr, 'td','court_number');
 		if(court) {
 			uiu.el(court_number_td, 'span', 'court_history', court.num);
-		} else if (match.setup.location_id){
-			const location = utils.find(curt.locations, l => l._id === match.setup.location_id);
-			uiu.el(court_number_td, 'span', 'location', "[" + (location?.short_name || location?.name || match.setup.location_id) + "]");
+		} else if (location_id){
+			uiu.el(court_number_td, 'span', { class: 'location', title: location?.name || location_id },
+				'[' + (location?.short_name || location?.name || location_id) + ']');
 		}
 
-		if(match.setup.location_id) {
-			tr.setAttribute('data-location_id', match.setup.location_id);
+		if(location_id) {
+			tr.setAttribute('data-location_id', location_id);
 		} else {
 			tr.removeAttribute('data-location_id');
 		}
 
-		if (match.setup.location_id && !(window.localStorage.getItem('show_location_courts_' + match.setup.location_id) !== 'false')) {
+		if (location_id && window.localStorage.getItem('show_location_courts_' + location_id) === 'false') {
 			tr.classList.add('do_not_show');
 		} else {
 			tr.classList.remove('do_not_show');
@@ -857,6 +857,7 @@ function create_match_prepparation_button(targetEl, cssClass, title, listener, m
 	if (typeof btsSpeechReadiness !== 'undefined') {
 		btsSpeechReadiness.trackMatch(btn, matchId, title, true, location._id);
 	}
+	return btn;
 }
 
 		function _add_match_dom_id(ids, id) {
@@ -1685,6 +1686,9 @@ function insert_new_match_row(m, section) {
 
 function update_match_row(m, new_section) {
 	uiu.qsEach('tr[data-match_id=' + JSON.stringify(m._id) + ']', (match_row_el) => {
+		// A field is a fixed slot, even if an older client left the previous
+		// match ID on it. Result/list updates must never repurpose that slot.
+		if (match_row_el.dataset?.court_id != null && new_section !== 'court_' + match_row_el.dataset.court_id) return;
 		match_row_el.innerHTML = '';
 
 		switch (new_section) {
@@ -1695,6 +1699,7 @@ function update_match_row(m, new_section) {
 			case 'unassigned':
 				match_row_el.setAttribute('class', 'match highlight_' + (m.setup.highlight ? m.setup.highlight : 0));
 				render_match_row(match_row_el, m, null, 'unasigned', true, curt.tabletoperator_enabled);
+				reorder_match_row(m, new_section);
 				break;
 			default:
 				const court = utils.find(curt.courts, c => c._id === m.setup.court_id);
@@ -1710,22 +1715,29 @@ function update_match_row(m, new_section) {
 }
 
 function reorder_finished_match_row(m) {
-	uiu.qsEach('.finished_container .match_table > tbody', (tbody) => {
-		const match_row_el = tbody.querySelector('.match[data-match_id=' + JSON.stringify(m._id) + ']');
-		if (!match_row_el) {
-			return;
-		}
+	reorder_match_row(m, 'finished');
+}
+
+function reorder_match_row(m, section) {
+	if (section !== 'unassigned' && section !== 'finished') return;
+	const compare = section === 'finished' ? cmp_finished_match_order : cmp_scheduled_match_order;
+	const matches = new Map(curt.matches.map(match => [match._id, match]));
+	uiu.qsEach('tr[data-match_id=' + JSON.stringify(m._id) + ']', (match_row_el) => {
+		if (match_row_el.dataset?.court_id != null) return;
+		const tbody = match_row_el.parentElement;
+		if (!tbody || tbody.tagName !== 'TBODY') return;
+		let before = null;
 		for (const child of tbody.children) {
 			if (child === match_row_el) {
 				continue;
 			}
-			const child_match = utils.find(curt.matches, candidate => candidate._id === child.dataset.match_id);
-			if (child_match && cmp_finished_match_order(m, child_match) < 0) {
-				tbody.insertBefore(match_row_el, child);
-				return;
+			const child_match = matches.get(child.dataset.match_id);
+			if (child_match && compare(m, child_match) < 0) {
+				before = child;
+				break;
 			}
 		}
-		tbody.appendChild(match_row_el);
+		if (match_row_el.nextElementSibling !== before) tbody.insertBefore(match_row_el, before);
 	});
 }
 
@@ -1914,10 +1926,10 @@ function cmp_scheduled_match_order(m1, m2) {
 	const cmp2 = cbts_utils.cmp(time_str1, time_str2);
 	if (cmp2 != 0) return cmp2;
 
-	if ((m1.match_order !== undefined) && (m2.match_order !== undefined)) {
-		const cmp_result = cbts_utils.cmp(m1.match_order, m2.match_order);
-		if (cmp_result != 0) return cmp_result;
-	}
+	const position1 = Number(m1.match_order), position2 = Number(m2.match_order);
+	const order_cmp = cbts_utils.cmp(Number.isFinite(position1) && position1 > 0 ? position1 : Infinity,
+		Number.isFinite(position2) && position2 > 0 ? position2 : Infinity);
+	if (order_cmp != 0) return order_cmp;
 
 	return cbts_utils.cmp(m1.setup.match_num, m2.setup.match_num);
 }
@@ -3533,10 +3545,13 @@ function format_call_on_court_debug_tooltip(match, entries) {
 }
 
 function render_debug_icon(td, css_class, title) {
-	uiu.el(td, 'span', {
-		class: 'preparation_debug_icon ' + css_class,
-		title,
-	}, 'i');
+	const existing = td.querySelector('.preparation_debug_icon');
+	if (existing) {
+		if (existing.className !== 'preparation_debug_icon ' + css_class) existing.className = 'preparation_debug_icon ' + css_class;
+		if (existing.title !== title) existing.title = title;
+	} else {
+		uiu.el(td, 'span', { class: 'preparation_debug_icon ' + css_class, title }, 'i');
+	}
 }
 
 function render_call_on_court_debug_cell(tr, match) {
@@ -3597,25 +3612,16 @@ function preparation_call_debug_data_enabled() {
 	return preparation_call_debug_text_enabled() || preparation_call_debug_icons_enabled();
 }
 
-function render_unassigned(container) {
-	invalidate_tabletoperator_status_index();
-	invalidate_player_status_match_index();
-	uiu.empty(container);
-	render_manual_btp_stage_status_warnings(container);
-	uiu.el(container, 'h3', 'section', ci18n('Unassigned Matches'));
-
-	if (preparation_call_debug_data_enabled()
-		&& curt
-		&& !curt.location_preparation_selection_by_location_id
-		&& ctournament
-		&& typeof ctournament.request_location_preparation_selections === 'function') {
-		ctournament.request_location_preparation_selections();
-	}
-
+function render_preparation_debug_header(container) {
 	const frontier_debug_entries = preparation_call_debug_text_enabled() ? get_preparation_frontier_debug_entries() : [];
 	const skip_debug_entries = preparation_call_debug_text_enabled() ? get_visible_preparation_selection_skip_debug_entries() : [];
 	if (preparation_call_debug_text_enabled()) {
-		const debug_container = uiu.el(container, 'div', 'preparation_frontier_debug');
+		const signature = JSON.stringify([frontier_debug_entries, skip_debug_entries, !!curt.locations?.length]);
+		let debug_container = container.querySelector('.preparation_frontier_debug');
+		if (debug_container?.dataset.signature === signature) return;
+		if (!debug_container) debug_container = uiu.el(container, 'div', 'preparation_frontier_debug');
+		else uiu.empty(debug_container);
+		debug_container.dataset.signature = signature;
 		uiu.el(debug_container, 'span', 'preparation_frontier_debug_label', 'Vorbereitungs-Debug:');
 		if (frontier_debug_entries.length) {
 			frontier_debug_entries.forEach((entry) => {
@@ -3643,6 +3649,68 @@ function render_unassigned(container) {
 			);
 		}
 	}
+}
+
+function refresh_unassigned_preparation_context() {
+	const matches = new Map(curt.matches.map(match => [String(match._id), match]));
+	const debug = preparation_call_debug_icons_enabled();
+	const callable = debug ? get_preparation_callable_match_ids() : new Set();
+	const cutoff = debug ? get_preparation_cutoff_match_ids() : new Set();
+	const frontier = debug ? get_preparation_frontier_match_ids() : new Set();
+	uiu.qsEach('.unassigned_container', container => {
+		render_preparation_debug_header(container);
+		for (const row of container.querySelectorAll('tbody > tr[data-match_id]')) {
+			const match = matches.get(row.dataset.match_id);
+			const td = row.querySelector('td.call_td');
+			if (!match || !td) continue;
+			const wanted = new Map((curt.locations || []).filter(location => match_has_complete_teams(match) &&
+				window.localStorage.getItem('show_location_courts_' + location._id) !== 'false' &&
+				is_manual_preparation_call_allowed_for_location(match, location)).map(location => [String(location._id), location]));
+			for (const button of td.querySelectorAll('.match_preparation_call_button')) {
+				const id = button.dataset.location_id;
+				if (wanted.has(id)) wanted.delete(id);
+				else button.remove();
+			}
+			for (const location of wanted.values()) {
+				const button = create_match_prepparation_button(td, 'vlink match_preparation_call_button',
+					'match:preparationcall', on_announce_preparation_matchbutton_click, match._id, location);
+				td.insertBefore(button, td.querySelector('.preparation_debug_icon'));
+			}
+			if (!debug) continue;
+			const window_status = get_preparation_debug_window_status(match);
+			const call_status = match.setup.state === 'preparation' ? get_call_on_court_debug_status(match) : null;
+			for (const [name, active] of Object.entries({
+				preparation_callable: callable.has(String(match._id)),
+				preparation_frontier: frontier.has(String(match._id)),
+				preparation_call_cutoff: cutoff.has(String(match._id)),
+				preparation_debug_window_ok: window_status === 'ok',
+				preparation_debug_window_blocked: window_status === 'blocked',
+				call_on_court_debug_ready: call_status === 'ready',
+				call_on_court_debug_blocked: call_status === 'blocked',
+			})) row.classList.toggle(name, active);
+			if (callable.has(String(match._id))) row.setAttribute('data-preparation-callable', 'true');
+			else row.removeAttribute('data-preparation-callable');
+			render_preparation_debug_cell(row, match);
+		}
+	});
+}
+
+function render_unassigned(container) {
+	invalidate_tabletoperator_status_index();
+	invalidate_player_status_match_index();
+	uiu.empty(container);
+	render_manual_btp_stage_status_warnings(container);
+	uiu.el(container, 'h3', 'section', ci18n('Unassigned Matches'));
+
+	if (preparation_call_debug_data_enabled()
+		&& curt
+		&& !curt.location_preparation_selection_by_location_id
+		&& ctournament
+		&& typeof ctournament.request_location_preparation_selections === 'function') {
+		ctournament.request_location_preparation_selections();
+	}
+
+	render_preparation_debug_header(container);
 
 	const unassigned_matches = curt.matches.filter((m) => {
 		if (calc_section(m) !== 'unassigned') {
@@ -3830,7 +3898,7 @@ function render_courts(container, style) {
 
 		// Location vorhanden → muss matchen
 		return loc.name === param_location;
-	});
+	}).sort((a, b) => cbts_utils.natcmp(String(a.num), String(b.num)));
 
 	for (const c of courts) {
 		const expected_section = 'court_' + c._id;
@@ -3888,6 +3956,9 @@ function update_tables(location_id, enabled) {
 }
 
 function render_empty_court_row(tr, court, style, is_droppable) {
+	tr.removeAttribute('data-match_id');
+	tr.removeAttribute('draggable');
+	tr.classList.remove('preparation_call_deferred');
 	tr.setAttribute("data-style", style);
 
 	if (!court) {
@@ -3941,24 +4012,16 @@ function render_empty_court_row(tr, court, style, is_droppable) {
 }
 
 function update_court(court) {
-	const tr = uiu.qs(`tr[data-court_id="${court._id}"]`);
-	if (!tr) {
-		return;
-	}
-	const match_id = tr.getAttribute('data-match_id');
-	const style = tr.getAttribute("data-style");
-	tr.innerHTML = "";
-	if(match_id == null) {
-		render_empty_court_row(tr, court, style, true);
-		return;
-	}
-	const m = utils.find(curt.matches, m => m._id === match_id);
-	if (!m || !m.setup || m.setup.now_on_court !== true || ['finished'].includes(m.setup.state)) {
-		tr.removeAttribute('data-match_id');
-		render_empty_court_row(tr, court, style, true);
-		return;
-	}
-	render_match_row(tr, m, court, style);
+	// A filtered or different admin view may have no row for this field.
+	uiu.qsEach(`tr[data-court_id="${court._id}"]`, tr => {
+		const match_id = tr.getAttribute('data-match_id');
+		const style = tr.getAttribute('data-style');
+		const match = utils.find(curt.matches, match => match._id === match_id);
+		tr.innerHTML = '';
+		if (!match || calc_section(match) !== 'court_' + court._id) {
+			render_empty_court_row(tr, court, style, true);
+		} else render_match_row(tr, match, court, style);
+	});
 }
 
 
@@ -5176,6 +5239,7 @@ return {
 	render_create,
 	render_finished,
 	render_unassigned,
+	refresh_unassigned_preparation_context,
 	render_courts,
 	_get_preparation_callable_match_ids: get_preparation_callable_match_ids,
 	_is_manual_preparation_call_allowed_for_location: is_manual_preparation_call_allowed_for_location,
@@ -5187,6 +5251,7 @@ return {
 	count_match_score_targets,
 	count_match_timer_targets,
 	update_match,
+	reorder_match_row,
 	remove_match_from_gui,
 	update_players,
 	update_player_status_indicators_for_match_players,

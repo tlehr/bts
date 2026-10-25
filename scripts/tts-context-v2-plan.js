@@ -52,7 +52,7 @@ function inventory(tournament) {
         try {
             const block = game(texts, tournament, setup);
             v1.add(spellNumbers(block)); known++;
-            const reference = { ...setup, teams: [{ players: [{ name: 'Nina Keo Boun Khoune' }] }, { players: [{ name: 'LeandraGalowicz' }] }] };
+            const reference = { ...setup, teams: [{ players: [{ name: 'Max Mustermann' }] }, { players: [{ name: 'Hans Dampf' }] }] };
             heads.add(spellNumbers(game(texts, tournament, reference)));
             for (const team of setup.teams.slice(0, 2)) {
                 const value = texts.createSingleTeam(team.players);
@@ -83,10 +83,9 @@ function experiments(tournament, baseline) {
         pieces: ids.map((piece, index) => ({ piece, pause_ms: index === ids.length - 1 ? 0 : pauses[index] ?? 60 })),
         subjective_quality: 'not-rated' });
 
-    // A: the requested exact name, a shorter example, and the difficult name
-    // already used by the existing BTS tests. Only actual pronunciation rules.
+    // A: clearly fictional example names; existing pronunciation rules still apply.
     const names = [
-        ['long', 'Johann Bjarne Schöttmer'], ['short', 'Lena Fischer'], ['difficult', 'Muhammad Sytsh Abdulquddus'],
+        ['long', 'Max Emil Mustermann'], ['short', 'Erika Musterfrau'], ['difficult', 'Max Mustermann'],
     ].map(([id, name]) => dual(plan, texts.normalizeNames(name), name, 'name', id));
     for (const value of names) {
         add('A-' + value.id + '-dual', value.display + ' · zweimal im Kontext', [value.full], 'A', 'context-reference');

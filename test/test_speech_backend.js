@@ -90,6 +90,7 @@ describe('Server speech adapter and protected audio', function() {
     it('reacts to confirmed score finishes through the real admin notification path without replanning for every point', async function() {
         const db = await database.init_test(), scheduled = [];
         const app = { db, config: { speech: { enabled: true, api_key: KEY } } };
+        app.config.speech.worker = false;
         app.speech = create(app);
         app.speech.prefetch.schedule = key => scheduled.push(key);
         admin.notify_change(app, 'default', 'score', { now_on_court: true });
@@ -397,6 +398,38 @@ describe('Server speech adapter and protected audio', function() {
         assert.strictEqual(responses[2].speech_error, 'tournament_not_loaded');
     });
 
+    it('distinguishes waiting for a source from waiting to process an already complete source', function() {
+        const broker = new SpeechBroker(config());
+        broker.context_version = 'bts-context-v2';
+        const recipe = '~bts-context-v2~' + JSON.stringify({ before: 'Wir erwarten ', text: 'Ein Team', after: ' zum Spiel.', kind: 'team' });
+        broker.prepare([recipe], {}, 'default');
+        const entry = broker.entries.get(broker.key(recipe, 'hallensprecherin', 'de-DE'));
+        const queued = () => broker.queue('default', undefined, { pending_only: true }).items.find(item => item.key === entry.key);
+        assert.strictEqual(queued().waiting_for_source, true);
+        broker.entries.get(entry.source_key).status = 'completed';
+        broker.pending_plans.add('default');
+        assert.strictEqual(queued().waiting_for_source, false);
+        assert.strictEqual(queued().position, 1);
+    });
+
+    it('does not invalidate a speech plan for repeatedly requested ready recordings', async function() {
+        const broker = new SpeechBroker(config());
+        broker.prepare(['Vorhanden'], {}, 'default');
+        broker.entries.get(broker.key('Vorhanden', 'hallensprecherin', 'de-DE')).status = 'completed';
+        let subscriptions = 0;
+        const app = { speech: { broker, prefetch: { subscribe() { subscriptions++; } } } };
+        const request = parts => new Promise(resolve => handle(app,
+            { speech_tournament_key: 'default', respond: (_msg, error, response) => { assert.ifError(error); resolve(response); } },
+            { type: 'speech_prepare', tournament_key: 'default', parts }));
+        for (let i = 0; i < 3; i++) {
+            const response = await request(['Vorhanden']);
+            assert.strictEqual(response.clips[0].status, 'completed');
+        }
+        assert.strictEqual(subscriptions, 0, 'cache hits must not pause the background inventory with another refresh');
+        await request(['Noch offen']);
+        assert.strictEqual(subscriptions, 1, 'new work still triggers reconciliation');
+    });
+
     it('bounds the local queue and validates both content and voice/language', function() {
         const broker = new SpeechBroker(config({ max_entries: 32 }));
         broker.prepare(Array.from({ length: 40 }, (_, i) => 'text ' + i));
@@ -405,6 +438,28 @@ describe('Server speech adapter and protected audio', function() {
         assert.throws(() => broker.prepare([TEXT], { voice: '../../voices' }));
         assert.throws(() => broker.prepare([TEXT], { language: 'en-GB' }));
         assert.throws(() => broker.prepare(Array(65).fill(TEXT)));
+    });
+
+    it('returns a read-only pending queue without completed recordings or inventory calculation', function() {
+        const broker = new SpeechBroker(config());
+        broker.prepare(['Laufend', 'Als Nächstes', 'Bereits fertig'], {}, 'default');
+        broker.prepare(['Anderes Turnier'], {}, 'other');
+        const current = [...broker.entries.values()].find(entry => entry.text === 'Laufend');
+        current.status = 'processing'; broker.current = { entry: current, request: { voice: current.voice } };
+        const completed = [...broker.entries.values()].find(entry => entry.text === 'Bereits fertig');
+        completed.status = 'completed'; completed.audio_id = id();
+        const expected = broker.queue('default').items.filter(item => item.status !== 'completed');
+        const before = JSON.stringify([...broker.entries.values()]);
+        broker.coverage.summary = () => { throw new Error('the pending queue must not build the inventory'); };
+        const app = { speech: { broker, prefetch: { subscribe() { throw new Error('queue reads must not prepare work'); } } } };
+        let response;
+        handle(app, { speech_tournament_key: 'default', respond: (_msg, _error, value) => { response = value; } },
+            { type: 'speech_queue', tournament_key: 'default', pending_only: true });
+        assert.deepStrictEqual(response.queue.items, expected);
+        assert.strictEqual(response.queue.items[0].current, true);
+        assert.strictEqual(response.queue.coverage, undefined);
+        assert.strictEqual(JSON.stringify([...broker.entries.values()]), before);
+        assert.strictEqual(broker.current.entry, current);
     });
 
     it('spells numbers for both upstream voices while queue, status and playback use the original text', async function() {
@@ -446,6 +501,20 @@ describe('Server speech adapter and protected audio', function() {
         broker.prepare(['Auf Spielfeld 8']);
         await broker.step();
         assert.strictEqual(broker.views(['Auf Spielfeld 8'], {}, 'default')[0].audio_url, null);
+    });
+
+    it('keeps capacity backoff internal and shows retry times only for actual failures', async function() {
+        let time = Date.now(), busy = true;
+        const broker = new SpeechBroker(config(), { now: () => time,
+            request: async () => { throw busy ? Object.assign(new Error('busy'), { status: 429, response: { error: { code: 'busy' } } }) :
+                Object.assign(new Error('unavailable'), { status: 503 }); } });
+        broker.prepare(['first', 'second'], {}, 'default');
+        await broker.step();
+        assert(broker.post_retry_at > time, 'scheduling must still back off');
+        assert(broker.queue('default').items.some(item => item.waiting_for_server));
+        assert(broker.queue('default').items.every(item => item.retry_at === 0));
+        time += 1001; busy = false; await broker.step();
+        assert.strictEqual(broker.queue('default').items.filter(item => item.retry_at > time).length, 1);
     });
 
     it('backs off all new parts together when the server rejects a busy request', async function() {
@@ -946,10 +1015,14 @@ describe('Server speech adapter and protected audio', function() {
             await prefetch.refresh('default');
             const roles = [...broker.entries.values()].filter(entry => entry.text.startsWith('Tabletbedienung:'));
             assert(roles.some(entry => entry.text.includes('Johann') && entry.priority === 1));
-            assert(!roles.some(entry => entry.text === 'Tabletbedienung:Wartende Bedienung'), 'unassigned waiting operators are idle inventory');
+            assert(roles.some(entry => entry.text === 'Tabletbedienung:Wartende Bedienung' && entry.priority === 1),
+                'unassigned waiting operators must be prepared as regular work');
             assert(!roles.some(entry => /Nächste [AB]/.test(entry.text)), 'future games are not speculative tablet candidates');
             assert(roles.every(entry => entry.voice === 'hallensprecher'));
             while (broker.pending_order().length) { await broker.step(); clock += 1000; }
+            const waitingPost = sent.findIndex(post => post.text.includes('Wartende Bedienung'));
+            const gamePost = sent.findIndex(post => previous.teams.every(team => post.text.includes(team.players[0].name)));
+            assert(waitingPost >= 0 && gamePost > waitingPost, 'submit the waiting operator before the on-court game');
             while ([...broker.idle_plans.values()].some(plan => plan.cursor < plan.parts.length) || broker.pending_order().length) {
                 await broker.step(); clock += 1000;
             }
@@ -978,6 +1051,7 @@ describe('Server speech adapter and protected audio', function() {
         const current = { ...tournament(), announcement_speech_voice: 'hallensprecher', announcement_speech_mode: 'server' };
         await promisify(db.tournaments.insert.bind(db.tournaments))(current);
         const app = { db, config: { speech: { enabled: true, api_key: KEY } } };
+        app.config.speech.worker = false;
         app.speech = create(app);
         try {
             const loaded = { ...current }, responses = [];
@@ -1035,6 +1109,7 @@ describe('Server speech adapter and protected audio', function() {
         const db = await database.init_test();
         await promisify(db.tournaments.insert.bind(db.tournaments))({ key: 'default', displaysettings_general: 'display', displaysettings_general_tablet: 'tablet' });
         const app = { db, config: { speech: { enabled: true, api_key: KEY } } };
+        app.config.speech.worker = false;
         app.speech = create(app);
         const edit = msg => new Promise((resolve, reject) => admin['handle_' + msg.type](app,
             { respond: (_msg, error) => error ? reject(error) : resolve() }, { key: 'default', ...msg }));

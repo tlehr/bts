@@ -24,7 +24,7 @@ async function fixture(directory, shared = false, context = false, playback = fa
         requests.push({ method: req.method, url: req.url });
         const json = value => { res.writeHead(200, { 'Content-Type': 'application/json' }); res.end(JSON.stringify(value)); };
         if (req.url === '/health') return json({ model: 'test-model', model_revision: state.revision,
-            configuration_version: 'test-configuration', ...(context ? { context_version: 'bts-context-v1' } : {}),
+            configuration_version: 'test-configuration', ...(context ? { context_version: typeof context === 'string' ? context : 'bts-context-v1' } : {}),
             ...(state.playbackVersion ? { playback_profile: 'bts-playback-v1', playback_version: state.playbackVersion } : {}) });
         if (req.url === '/v1/voices') return json({ voices: [
             { voice_id: 'hallensprecherin', version: '1', languages: ['de-DE'] },
@@ -81,6 +81,52 @@ describe('Durable BTS speech cache', function() {
         if (upstream?.server.listening) await close(upstream.server);
         fs.rmSync(directory, { recursive: true, force: true });
         localServer = upstream = null;
+    });
+
+    it('reports durable recordings ready without admitting them to the work queue, including after restart', async function() {
+        upstream = await fixture(directory, false, true, true);
+        const first = new SpeechBroker({ ...upstream.config, submit_interval_ms: 0 });
+        await first.refresh();
+        const part = '~bts-context-v1~' + JSON.stringify({ before: 'Im ', text: 'Gemischten Doppel U17',
+            after: ' erwarten wir spannende Spiele!', kind: 'generic' });
+        const parts = ['Lucy Kopec', part];
+        const voices = ['hallensprecher', 'hallensprecherin'];
+        for (const voice of voices) {
+            first.prepare(parts, { voice }, 'default');
+            for (let step = 0; step < 4; step++) await first.step();
+            assert(first.views(parts, { voice }, 'default').every(clip => clip.local));
+        }
+        first.entries.clear();
+        const requests = upstream.requests.length;
+        const fresh = new SpeechBroker(upstream.config, { request: async () => { throw new Error('inspection must stay offline'); } });
+        await fresh.disk.ready;
+        for (const broker of [first, fresh]) {
+            for (const voice of voices) {
+                const clips = broker.inspect(parts, { voice }, 'default');
+                assert(clips.every(clip => clip.status === 'completed' && clip.local));
+                assert(clips[1].processed);
+                assert.strictEqual(clips[1].leading_quiet_ms, 10);
+                assert.strictEqual(clips[1].trailing_quiet_ms, 10);
+                for (const clip of clips) {
+                    const url = new URL(clip.audio_url, 'http://localhost');
+                    assert(broker.authorize('default', url.pathname.split('/').pop(),
+                        url.searchParams.get('expires'), url.searchParams.get('signature')));
+                }
+                assert.deepStrictEqual(broker.inspect(parts, { voice }).map(clip => clip.audio_url), [undefined, undefined]);
+            }
+            assert.strictEqual(broker.entries.size, 0);
+            assert.strictEqual(broker.current, null);
+            assert.strictEqual(broker.pending_order().length, 0);
+            assert.strictEqual(broker.inspect(['Nicht vorhanden'], {})[0].status, 'missing');
+        }
+        fresh.playback_profile = 'another-profile';
+        assert.strictEqual(fresh.inspect(parts, { voice: voices[0] })[0].status, 'missing');
+        fresh.playback_profile = first.playback_profile;
+        const saved = fresh.disk.lookup(fresh.identity, fresh.key(part, voices[0], 'de-DE'));
+        fs.unlinkSync(fresh.disk.file(saved.audio_id).path);
+        assert.strictEqual(fresh.inspect([part], { voice: voices[0] })[0].status, 'missing');
+        assert.strictEqual(upstream.requests.length, requests);
+        first.stop(); fresh.stop();
     });
 
     for (const shared of [false, true]) it('retains a successful non-name context recovery offline (' + (shared ? 'shared' : 'download') + ')', async function() {
@@ -380,6 +426,42 @@ describe('Durable BTS speech cache', function() {
         assert.strictEqual(source.text.slice(row.source_range.start, row.source_range.end), row.text);
         if (stage === 'context') assert.strictEqual(source.source_seed, 43);
         assert.strictEqual(upstream.posts().length, count);
+    });
+
+    it('retains the new V2 name context offline and excludes old isolated fallback cuts from readiness', async function() {
+        upstream = await fixture(directory, false, 'bts-context-v2');
+        const first = new SpeechBroker({ ...upstream.config, submit_interval_ms: 0 }); await first.refresh();
+        const part = '~bts-context-v2~' + JSON.stringify({ before: '', text: 'Ein Beispielname',
+            after: ' spielt jetzt gegen Ein Beispielname!', kind: 'team' });
+        const options = { voice: 'hallensprecher' }, key = first.key(part, options.voice, 'de-DE');
+        first.prepare([part], options, 'default');
+        first.set_fallback(first.entries.get(key), 'name');
+        for (let step = 0; step < 6; step++) await first.step();
+        assert(first.views([part], options, 'default')[0].local);
+        const saved = first.disk.lookup(first.identity, key);
+        assert.strictEqual(saved.fallback_source_key, first.entries.get(key).source_key);
+        const filename = first.disk.file(saved.audio_id).path;
+        first.stop(); await first.disk.writes;
+        const fresh = new SpeechBroker(upstream.config); await fresh.disk.ready;
+        const count = upstream.posts().length;
+        assert.strictEqual(fresh.inspect([part], options)[0].status, 'completed');
+        fresh.prepare([part], options, 'default'); await fresh.step();
+        assert(fresh.views([part], options, 'default')[0].local);
+        assert(fresh.entries.get(key).context.before && fresh.entries.get(key).context.after);
+        assert.strictEqual(upstream.posts().length, count);
+        fresh.stop(); await fresh.disk.writes;
+
+        // Simulate an index from before contextual final-name recovery.
+        const index = JSON.parse(fs.readFileSync(first.disk.index, 'utf8'));
+        delete index.records.find(row => row.key === key).fallback_source_key;
+        fs.writeFileSync(first.disk.index, JSON.stringify(index));
+        const migrated = new SpeechBroker(upstream.config); await migrated.disk.ready;
+        assert.strictEqual(migrated.disk.lookup(migrated.identity, key), null);
+        assert.strictEqual(migrated.inspect([part], options)[0].status, 'missing');
+        assert(fs.existsSync(filename), 'migration retains existing audio files');
+        migrated.prepare([part], options, 'default');
+        assert.notStrictEqual(migrated.entries.get(key).status, 'completed');
+        migrated.stop();
     });
 
     for (const shared of [false, true]) it('restores completed audio after BTS restart and serves it with the speech server stopped (' +

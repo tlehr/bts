@@ -108,6 +108,79 @@ td.battery-status-charging {
 	justify-content: flex-end;
 }
 
+.registration_dbv_import {
+	position: relative;
+	align-self: flex-start;
+}
+
+.registration_dbv_import > summary {
+	padding: 0.5rem 0.65rem;
+	border: 1px solid #9facb7;
+	border-radius: 5px;
+	background: #fff;
+	font-weight: bold;
+	cursor: pointer;
+}
+
+.registration_dbv_content {
+	position: absolute;
+	top: calc(100% + 0.4rem);
+	right: 0;
+	z-index: 10;
+	box-sizing: border-box;
+	width: min(44rem, calc(100vw - 2rem));
+	max-height: 70vh;
+	overflow: auto;
+	padding: 0.85rem;
+	border: 1px solid #9facb7;
+	border-radius: 5px;
+	background: #fff;
+	box-shadow: 0 4px 14px #0002;
+}
+
+.registration_dbv_content p {
+	margin: 0 0 0.75rem;
+}
+
+.registration_dbv_controls {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.5rem;
+}
+
+.registration_dbv_controls label {
+	display: flex;
+	align-items: center;
+	gap: 0.25rem;
+}
+
+.registration_dbv_status {
+	margin-top: 0.75rem;
+}
+
+.registration_dbv_scope {
+	margin-top: 0.75rem;
+	border: 1px solid #9facb7;
+}
+
+.registration_dbv_event_list {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
+	gap: 0.35rem;
+	margin-top: 0.5rem;
+}
+
+.registration_dbv_event_list label {
+	display: flex;
+	align-items: center;
+	gap: 0.35rem;
+}
+
+.registration_dbv_status details {
+	margin-bottom: 0.75rem;
+}
+
 .registration_xlsx_import {
 	display: grid;
 	grid-template-columns: auto auto;
@@ -672,7 +745,9 @@ td.battery-status-charging {
 }
 
 .registration_control_sort_button {
-	display: block;
+	display: flex;
+	align-items: center;
+	gap: 0.2rem;
 	width: 100%;
 	margin: 0;
 	padding: 0 0.45rem 0 0;
@@ -683,6 +758,67 @@ td.battery-status-charging {
 	font-weight: inherit;
 	text-align: left;
 	cursor: pointer;
+}
+
+.registration_control_sort_label {
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.registration_control_sort_icon {
+	display: inline-flex;
+	flex-shrink: 0;
+	align-items: center;
+	gap: 0.12em;
+	margin-left: auto;
+	color: #174967;
+}
+
+.registration_control_sort_letters,
+.registration_control_sort_bars {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+}
+
+.registration_control_sort_letters {
+	font-size: 0.6em;
+	line-height: 1;
+	font-weight: bold;
+}
+
+.registration_control_sort_bars {
+	width: 0.8em;
+	gap: 0.15em;
+}
+
+.registration_control_sort_bars span {
+	height: 0.14em;
+	border-radius: 1px;
+	background: currentColor;
+}
+
+.registration_control_sort_bars span:nth-child(1) {
+	width: 30%;
+}
+
+.registration_control_sort_bars span:nth-child(2) {
+	width: 65%;
+}
+
+.registration_control_sort_bars span:nth-child(3) {
+	width: 100%;
+}
+
+.registration_control_sort_button[data-sort-direction="desc"] .registration_control_sort_bars {
+	flex-direction: column-reverse;
+}
+
+.registration_control_table th[aria-sort="ascending"],
+.registration_control_table th[aria-sort="descending"] {
+	background: #cbddeb;
+	box-shadow: inset 0 -2px #255a78;
 }
 
 .registration_control_resize_handle {
@@ -878,16 +1014,16 @@ td.battery-status-charging {
 .registration_control_col_nr,
 .registration_control_col_seed,
 .registration_control_col_gender {
-	width: var(--registration-control-col-nr, 1.8rem);
+	width: var(--registration-control-col-nr, 2.8rem);
 	text-align: right;
 }
 
 .registration_control_col_seed {
-	width: var(--registration-control-col-seed, 2.5rem);
+	width: var(--registration-control-col-seed, 3.3rem);
 }
 
 .registration_control_col_gender {
-	width: var(--registration-control-col-gender, 1.6rem);
+	width: var(--registration-control-col-gender, 2.6rem);
 }
 
 .registration_control_col_name {
@@ -932,6 +1068,11 @@ td.battery-status-charging {
 
 .registration_control_col_points {
 	width: var(--registration-control-col-points, 4.2rem);
+}
+
+.registration_control_col_pair_points {
+	width: var(--registration-control-col-pair-points, 8.4rem);
+	font-weight: bold;
 }
 
 .registration_control_col_date {

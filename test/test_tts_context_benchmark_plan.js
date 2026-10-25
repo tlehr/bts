@@ -17,15 +17,15 @@ describe('Isolated context v1 benchmark plan', function() {
         const by_id = id => plan.cases.find(item => item.id === id);
         const spoken = id => by_id(id).pieces.map(item => pieces.get(item.piece).text);
         assert(spoken('D12-v1').includes('Das Spiel geht kampflos an'));
-        assert(spoken('D08-v1').some(text => text.includes('Klapptafelbedienung:Lena Fischer und Tom Schneider')));
+        assert(spoken('D08-v1').some(text => text.includes('Klapptafelbedienung:Erika Musterfrau und Otto Normalverbraucher')));
         assert.deepStrictEqual(by_id('D05-v1').pieces.slice(0, -1).map(item => item.pause_ms), [140, 120, 320, 160]);
         assert.strictEqual(spoken('D01-v1')[0], spoken('D01-v1').at(-1));
         assert.notStrictEqual(by_id('D01-v1').pieces[0].piece, by_id('D01-v1').pieces.at(-1).piece);
     });
 
     it('applies the real pronunciation substitutions without guessing name pronunciation', function() {
-        const plan = baseline([{ origin: 'LeandraGalowicz', replace: 'Leandra Galowitsch', language: 'de-DE' }]);
-        assert(plan.sources.some(source => source.text.includes('Leandra Galowitsch')));
+        const plan = baseline([{ origin: 'Hans Dampf', replace: 'Hanns Dampf', language: 'de-DE' }]);
+        assert(plan.sources.some(source => source.text.includes('Hanns Dampf')));
         assert(plan.pronunciation.normalizations_sha256);
     });
 });

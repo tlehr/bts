@@ -1,0 +1,13 @@
+{
+  "version": "bts-context-v1",
+  "source_sha256": "eccc86193fae4f5e96b7181e10c740b41b195e8964d7dde188b1890f8c3de455",
+  "alignment_model": "6e77144b13a6a5de756138d80d099c4f66d93144de27f635fc9cdd71d6b3a236",
+  "source_audio_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "start_frame": 31301,
+  "end_frame": 70539,
+  "source_rate": 24000,
+  "kind": "generic",
+  "text": "Für Spielfeld vier!",
+  "start_10ms_rms": 0.00140514862676234,
+  "end_10ms_rms": 0.00014577268860847416
+}

@@ -30,6 +30,7 @@ function harness(options = {}) {
     const service = create({
         settings: () => settings,
         makeAudio: () => player,
+        page_url: options.page_url,
         request: async (type, values) => {
             requests.push([type, values]);
             if (options.request) return options.request(type, values);
@@ -46,6 +47,25 @@ function harness(options = {}) {
 }
 
 describe('Browser local speech provider', function() {
+    it('fetches audio directly from the worker listener using the page hostname and TLS', async function() {
+        const h = harness({ page_url: 'https://bts.example:4433/admin/', request: async (_type, values) => ({
+            clips: values.parts.map(() => clip()), speech: { enabled: true, audio_endpoint: { port: 4434, protocol: 'https:' } },
+        }) });
+        const result = await h.service.speak([TEXT], 'worker-audio', h.fallback);
+        assert.strictEqual(result.provider, 'server');
+        assert.strictEqual(h.played[0], 'https://bts.example:4434' + clip().audio_url);
+        assert.deepStrictEqual(h.browser, []);
+    });
+
+    it('supports an explicit worker origin behind a reverse proxy', async function() {
+        const h = harness({ page_url: 'https://bts.example/admin/', request: async (_type, values) => ({
+            clips: values.parts.map(() => clip()), speech: { enabled: true,
+                audio_endpoint: { origin: 'https://audio.example', port: 4001, protocol: 'http:' } },
+        }) });
+        await h.service.speak([TEXT], 'worker-proxy', h.fallback);
+        assert.strictEqual(h.played[0], 'https://audio.example' + clip().audio_url);
+    });
+
     it('batches read-only inventory pages and keeps them separate from preparation and playback', async function() {
         const h = harness({ request: async (type, values) => {
             assert.strictEqual(type, 'speech_inventory');

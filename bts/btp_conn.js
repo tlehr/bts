@@ -64,7 +64,7 @@ function request_fetch(connection, reschedule_fetch) {
 	});
 }
 
-async function queue_fetch_sync_task(connection, response, fetch_reset_ts, response_hash, fetch_start_ms) {
+async function queue_fetch_sync_task(connection, response, fetch_reset_ts, response_hash, fetch_start_ms, court_assignments_revision) {
 	const state = await fetch_response_state(connection, fetch_reset_ts);
 	if (!state.ok) {
 		log_ignored_fetch_response(connection, state.reason, real_now_ms(connection.app) - fetch_start_ms);
@@ -74,12 +74,13 @@ async function queue_fetch_sync_task(connection, response, fetch_reset_ts, respo
 	// itself queues only the resources its validated writes actually affect.
 	const value = await btp_sync.sync_btp_data(connection.app, connection.tkey, response, {
 		expected_reset_ts: fetch_reset_ts,
-		is_current: () => !connection.terminated,
+		is_current: () => !connection.terminated && (connection.court_assignments_revision || 0) === court_assignments_revision,
 		...(require('./btp_decode/response_hashes').get(response) ? {
 			source_hash: require('./btp_decode/response_hashes').get(response).sha256,
 			source_json: require('./btp_decode/response_hashes').get(response).json,
 		} : {}),
 	});
+	if ((connection.court_assignments_revision || 0) !== court_assignments_revision) return null;
 	if (value === true || value?.reason === 'no_sync_changes') {
 		connection.last_applied_fetch_response_hash = response_hash;
 		connection.last_applied_fetch_reset_ts = fetch_reset_ts;
@@ -441,6 +442,7 @@ class BTPConn {
 	async _fetch_once_measured() {
 		if (this.terminated) return { value: null, reschedule: false };
 		const connection = this;
+		const court_assignments_revision = this.court_assignments_revision || 0;
 		const fetch_start_ms = real_now_ms(this.app);
 		const traces = require('./performance/traces');
 		const transport = traces.begin('btp_request_response', 'transport');
@@ -448,6 +450,7 @@ class BTPConn {
 		try { snapshot = await this._fetch_response(fetch_start_ms); traces.end(transport, !snapshot); }
 		catch (error) { traces.end(transport, error); throw error; }
 		if (!snapshot) return { value: null, reschedule: false };
+		if ((this.court_assignments_revision || 0) !== court_assignments_revision) return { value: null, reschedule: true };
 		const { response, fetch_reset_ts } = snapshot;
 		const response_state = await fetch_response_state(this, fetch_reset_ts);
 		if (!response_state.ok) {
@@ -464,7 +467,8 @@ class BTPConn {
 		}
 		// Fetching and planning hold no resource lock. The backend validates
 		// local changes and reset/enable state under its affected resource locks.
-		const value = await queue_fetch_sync_task(this, response, fetch_reset_ts, response_hash, fetch_start_ms);
+		const value = await queue_fetch_sync_task(this, response, fetch_reset_ts, response_hash, fetch_start_ms, court_assignments_revision);
+		if ((this.court_assignments_revision || 0) !== court_assignments_revision) return { value: null, reschedule: true };
 		if (value?.skipped) traces.annotate({ skipped: true, reason: value.reason });
 		if (value === true && !this.terminated) {
 			const total_ms = real_now_ms(this.app) - fetch_start_ms;
@@ -616,6 +620,17 @@ class BTPConn {
 		admin.notify_change(this.app, this.tkey, 'btp_status', msg);
 	}
 
+	async clear_court_assignments(matches) {
+		try {
+			return await require('./btp_court_assignments_reset').reset(this, matches);
+		} finally {
+			// A fetch received before/during this action must never restore its
+			// old planned courts after waiting behind the maintenance lock.
+			this.court_assignments_revision = (this.court_assignments_revision || 0) + 1;
+			this.last_applied_fetch_response_hash = null;
+		}
+	}
+
 	update_score(match) {
 		if (this.readonly) {
 			return;
@@ -680,7 +695,7 @@ class BTPConn {
 			},
 			(umpire_btp_id, service_judge_btp_id, cb) => {
 				if (!match.setup || !match.setup.court_id) {
-					return cb(null, umpire_btp_id, service_judge_btp_id, null);
+					return cb(null, umpire_btp_id, service_judge_btp_id, match.btp_clear_court === true ? 0 : null);
 				}
 
 				this.app.db.courts.findOne({

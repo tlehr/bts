@@ -43,6 +43,7 @@ describe('admin tournament reset', function() {
 			displaysettings_general: 'display-a',
 			displaysettings_general_tablet: 'tablet-a',
 			events: { events: [{ id: 1, name: 'HE' }] },
+			registration_dbv_rankings: { event_1: { by_registration_key: { '3:4': { points: 123 } } } },
 		});
 		await insert(db, 'matches', { _id: 'm1', tournament_key: 'default' });
 		await insert(db, 'tabletoperators', { _id: 'to1', tournament_key: 'default' });
@@ -95,6 +96,7 @@ describe('admin tournament reset', function() {
 
 		const tournament = await db.tournaments.findOne_async({ key: 'default' });
 		assert.strictEqual(tournament.name, 'Default');
+		assert.deepStrictEqual(tournament.registration_dbv_rankings, {});
 		assert.strictEqual(tournament.tguid, undefined);
 		assert.strictEqual(tournament.btp_enabled, false);
 		assert.strictEqual(tournament.btp_autofetch_enabled, false);

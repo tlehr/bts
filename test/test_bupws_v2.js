@@ -383,6 +383,39 @@ _describe('bupws v2 score fanout', () => {
 			await running; await require('../bts/foreground_work').idle(); cleanup();
 		}
 	});
+	_it('keeps background admin work paused through finish cleanup while delivering the final score immediately', async () => {
+		const { app, panel, cleanup } = await fixture();
+		const tablet = panel('finish-source'); tablet.panel_devicemode = 'umpire';
+		const tv = panel('finish-tv'); tv.panel_devicemode = 'display';
+		const foreground = require('../bts/foreground_work'), helpers = require('../bts/match_utils');
+		const reset = helpers.reset_player_tabletoperator, publication = foreground.publication;
+		let display_publication;
+		foreground.publication = work => (display_publication = publication(work));
+		let entered, release;
+		const started = new Promise(resolve => { entered = resolve; });
+		const hold = new Promise(resolve => { release = resolve; });
+		helpers.reset_player_tabletoperator = async (...args) => { entered(); await hold; return reset(...args); };
+		const delivered = wait_for_points([tv]);
+		const running = bupws_v2.handle_score_update(app, tablet, { tournament_key: 'fanout-test',
+			score: { match_id: 'match-1', court_id: 'court-1', network_score: [[21, 0], [21, 0]],
+				team1_won: true, finish_confirmed: true, end_ts: Date.now(), presses: [] },
+		});
+		try {
+			await started; await delivered; await display_publication;
+			assert.strictEqual(foreground.busy(), true);
+			let resumed = false;
+			const background = foreground.idle().then(() => { resumed = true; });
+			await new Promise(resolve => setImmediate(resolve));
+			assert.strictEqual(resumed, false);
+			release(); await running; await background;
+			assert(!tablet.messages.some(message => message.type === 'error'));
+			assert.strictEqual((await app.db.matches.findOne_async({ _id: 'match-1' })).setup.state, 'finished');
+			assert.strictEqual((await app.db.courts.findOne_async({ _id: 'court-1' })).match_id, null);
+		} finally {
+			release(); helpers.reset_player_tabletoperator = reset; foreground.publication = publication;
+			await running; await foreground.idle(); cleanup();
+		}
+	});
 	_it('sends single and multi-court TV updates while a tablet refresh is blocked', async () => {
 		const { app, panel, cleanup } = await fixture();
 		const tablet = panel('slow-tablet');

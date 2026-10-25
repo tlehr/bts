@@ -393,6 +393,18 @@ var ctournament = (function() {
 		cmatch.add_match(m, new_section);
 	}
 
+	function match_sort_order_changed(match, incoming) {
+		return match.match_order !== incoming.match_order ||
+			['scheduled_date', 'scheduled_time_str', 'match_num'].some(field => match.setup?.[field] !== incoming.setup?.[field]);
+	}
+
+	function match_row_content_equal(match, incoming) {
+		return utils.plucked_deep_equal(match, incoming, [
+			'setup', 'network_score', 'presses', 'team1_won', 'shuttle_count', 'score_status',
+			'forward_loser', 'score_status_network_score', 'no_match_losing_team', 'end_ts', 'btp_winner',
+		]);
+	}
+
 	function update_match(c) {
 		const cval = c.val;
 		const match_id = cval.match__id;
@@ -414,7 +426,10 @@ var ctournament = (function() {
 			return;
 		}
 			const old_section = cmatch.calc_section(m);
+			const order_changed = cval.match && match_sort_order_changed(m, cval.match);
+			const content_unchanged = cval.match && match_row_content_equal(m, cval.match);
 			if (cval.match) {
+				m.match_order = cval.match.match_order;
 				if('network_score' in cval.match){
 					m.network_score = cval.match.network_score;
 				} else if (cval.match.score_status === 'normal' || cval.match.score_status === 'no_match') {
@@ -443,10 +458,15 @@ var ctournament = (function() {
 				m.btp_winner = cval.match.btp_winner;
 			}
 			const new_section = cmatch.calc_section(m);
+			if (order_changed) curt.matches.sort(cmatch.cmp_match_order);
 			invalidate_match_lookup_index();
-			cmatch.update_match(m, old_section, new_section);
-			cmatch.update_player_status_indicators_for_match_players(m);
-			update_location_preparation_need_labels();
+			if (content_unchanged) {
+				if (order_changed) cmatch.reorder_match_row(m, new_section);
+			} else {
+				cmatch.update_match(m, old_section, new_section);
+				cmatch.update_player_status_indicators_for_match_players(m);
+			}
+			if (order_changed || !content_unchanged) update_location_preparation_need_labels();
 
 		return old_section;
 	}
@@ -485,6 +505,8 @@ var ctournament = (function() {
 			return;
 			}
 			const old_section = cmatch.calc_section(m);
+			const order_changed = match_sort_order_changed(m, cval.match);
+			m.match_order = cval.match.match_order;
 			if('network_score' in cval.match) {
 				m.network_score = cval.match.network_score;
 			} else if (cval.match.score_status === 'normal' || cval.match.score_status === 'no_match') {
@@ -507,6 +529,7 @@ var ctournament = (function() {
 		m.setup = cval.match.setup;
 		m.btp_winner = cval.match.btp_winner;
 		const new_section = cmatch.calc_section(m);
+		if (order_changed) curt.matches.sort(cmatch.cmp_match_order);
 		invalidate_match_lookup_index();
 		cmatch.update_match(m, old_section, new_section);
 		update_location_preparation_need_labels();
@@ -576,6 +599,9 @@ var ctournament = (function() {
 
 	function add_normalization(c) {
 		curt.normalizations.push(c.val.normalization);
+		// Keep the same ID order as a fresh NeDB query and the speech worker,
+		// including when a live addition precedes an overlapping existing rule.
+		curt.normalizations.sort((a, b) => a._id < b._id ? -1 : a._id > b._id ? 1 : 0);
 		update_normalization_values(c)
 	}
 
@@ -591,6 +617,7 @@ var ctournament = (function() {
 			div_el.innerHTML = "";
 			render_normalisation_values(div_el);
 		});
+		if (typeof btsSpeechReadiness !== 'undefined') btsSpeechReadiness.changed();
 	}
 
 	function add_advertisement(c) {
@@ -691,6 +718,8 @@ var ctournament = (function() {
 		_set_disabled_by_name('btp_timezone', !btp_enabled);
 		_set_disabled_by_name('btp_autofetch_timeout_intervall', !btp_enabled || !curt.btp_autofetch_enabled);
 		_set_disabled_by_name('player_pause_reset', !btp_enabled || !!curt.btp_readonly);
+		const court_reset_pending = document.querySelector('[name="court_assignments_reset"]')?.dataset.pending === 'true';
+		_set_disabled_by_name('court_assignments_reset', !btp_enabled || !!curt.btp_readonly || court_reset_pending);
 
 		const ticker_enabled = !!curt.ticker_enabled;
 		_set_disabled_by_name('ticker_url', !ticker_enabled);
@@ -1542,9 +1571,7 @@ var ctournament = (function() {
 			if (labels.length) {
 				update_location_preparation_need_labels(false);
 			}
-			uiu.qsEach('.unassigned_container', (unassigned_container) => {
-				cmatch.render_unassigned(unassigned_container);
-			});
+			cmatch.refresh_unassigned_preparation_context();
 			if (typeof cmatch.update_preparation_demand_court_markers === 'function') {
 				cmatch.update_preparation_demand_court_markers();
 			}
@@ -1807,6 +1834,11 @@ var ctournament = (function() {
 			href: base_path + '/speech-planning/',
 			target: '_blank',
 			class: 'speech_planning_link',
+		}, {
+			label: 'Logs & Geräte',
+			href: '/admin/diagnostics/',
+			target: '_blank',
+			class: 'diagnostics_link',
 		}];
 		if (curt.btp_enabled) {
 			items.push({
@@ -3105,6 +3137,7 @@ var ctournament = (function() {
 		registration_stage_comment: update_registration_stage_comment,
 		registration_stage_comment_read: update_registration_stage_comment_read,
 		registration_xlsx_metadata: update_registration_xlsx_metadata,
+		registration_dbv_rankings: update_registration_dbv_rankings,
 	}));
 
 	_route_single(/t\/([a-z0-9]+)\/certificate_export$/, ui_certificate_export, change.default_handler(ui_certificate_export, {
@@ -3777,6 +3810,7 @@ var ctournament = (function() {
 			const call_div = uiu.el(form, 'div', 'settings speech_settings_section');
 			uiu.el(call_div, 'h2', 'edit', ci18n('tournament:edit:calls'));
 			uiu.el(call_div, 'p', {}, 'Sprachausgabe für alle Clients dieses Turniers. Änderungen werden automatisch gespeichert. Die ausgewählte lokale Stimme wird vorrangig vorbereitet. Optional folgt die andere Stimme bei vollständigem Leerlauf.');
+			uiu.el(call_div, 'a', { href: '/admin/t/' + encodeURIComponent(curt.key) + '/speech-helpers/', target: '_blank', rel: 'noopener' }, 'Sprachhelfer auf weiteren Rechnern');
 			const layout = uiu.el(call_div, 'div', 'speech_settings_layout');
 			const speech_controls = uiu.el(layout, 'div');
 			let queue;
@@ -3987,6 +4021,33 @@ var ctournament = (function() {
 							return cerror.net(err);
 						}
 						refresh_current_view();
+					});
+				});
+
+				uiu.el(save_div, 'p', {
+					class: 'court_assignments_reset_hint',
+				}, ci18n('tournament:edit:court_assignments_reset:hint'));
+				const court_reset_btn = uiu.el(save_div, 'button', {
+					type: 'button',
+					name: 'court_assignments_reset',
+					class: 'court_assignments_reset_button',
+				}, ci18n('tournament:edit:court_assignments_reset'));
+				const court_reset_status = uiu.el(save_div, 'p', { role: 'status' });
+				court_reset_btn.addEventListener('click', () => {
+					if (court_reset_btn.disabled || !window.confirm(ci18n('tournament:edit:court_assignments_reset:confirm'))) return;
+					court_reset_btn.disabled = true;
+					court_reset_btn.dataset.pending = 'true';
+					uiu.text(court_reset_status, '');
+					send_with_live_status({
+						type: 'court_assignments_reset',
+						tournament_key: curt.key,
+					}, (err, result) => {
+						delete court_reset_btn.dataset.pending;
+						court_reset_btn.disabled = !curt.btp_enabled || !!curt.btp_readonly;
+						if (err) return cerror.net(err);
+						uiu.text(court_reset_status, ci18n('tournament:edit:court_assignments_reset:done', {
+							count: result.changed_matches, btp_count: result.btp_changed_matches, skipped: result.skipped_matches,
+						}));
 					});
 				});
 
@@ -10823,7 +10884,13 @@ function update_officials() {
 	}
 
 	function render_registration_empty(container) {
-		uiu.el(container, 'div', 'registration_empty', 'Keine BTP-Meldelisten gefunden.');
+		const empty = uiu.el(container, 'div', 'registration_empty', 'Keine BTP-Meldelisten gefunden.');
+		uiu.el(empty, 'p', {}, curt.btp_enabled
+			? 'Lade die Turnierdaten aus BTP, damit hier die Meldungen erscheinen.'
+			: 'Die BTP-Anbindung ist ausgeschaltet. Aktiviere sie in den Turniereinstellungen und lade anschließend die Turnierdaten aus BTP.');
+		uiu.el(empty, 'a', {
+			href: '/admin/t/' + encodeURIComponent(curt.key) + '/edit',
+		}, 'Turniereinstellungen öffnen');
 	}
 
 	function render_registration_check(container) {
@@ -10836,7 +10903,11 @@ function update_officials() {
 			if (all_events.length === 0) {
 				render_registration_empty(container);
 			} else {
-				uiu.el(container, 'div', 'registration_empty', 'Aktuell sind keine Meldungen freigegeben.');
+				const empty = uiu.el(container, 'div', 'registration_empty', 'Aktuell sind keine Meldungen freigegeben.');
+				uiu.el(empty, 'p', {}, 'Die Disziplinen werden in der Hauptfeld-Kontrolle für die Anmeldung geöffnet.');
+				uiu.el(empty, 'a', {
+					href: '/admin/t/' + encodeURIComponent(curt.key) + '/registration_control',
+				}, 'Hauptfeld-Kontrolle öffnen');
 			}
 			return;
 		}
@@ -11138,7 +11209,10 @@ function update_officials() {
 
 	function registration_xlsx_metadata_for_player(entry, player, player_index) {
 		const key = registration_player_status_key(entry, player, player_index);
-		return curt?.registration_xlsx_metadata?.by_registration_key?.[key] || null;
+		const btp = curt?.registration_xlsx_metadata?.by_registration_key?.[key];
+		const dbv = Object.values(curt?.registration_dbv_rankings || {})
+			.map(source => source.by_registration_key?.[key]).find(Boolean);
+		return dbv ? { ...btp, points: dbv.points, ranking_place: dbv.ranking_place } : btp || null;
 	}
 
 	function registration_control_player_xlsx_stack_value(row, field) {
@@ -11152,6 +11226,7 @@ function update_officials() {
 		if (value === undefined || value === null || value === '') {
 			return null;
 		}
+		if (typeof value === 'number') return Number.isFinite(value) ? value : null;
 		const normalized = String(value)
 			.replace(/\./g, '')
 			.replace(',', '.')
@@ -11166,9 +11241,8 @@ function update_officials() {
 				registration_control_numeric_xlsx_value(
 					registration_xlsx_metadata_for_player(row.entry, player, player_index)?.points
 				)
-			)
-			.filter((value) => value !== null);
-		if (values.length === 0) {
+			);
+		if (values.length === 0 || values.some(value => value === null)) {
 			return null;
 		}
 		return values.reduce((sum, value) => sum + value, 0);
@@ -11218,6 +11292,8 @@ function update_officials() {
 				return registration_control_player_xlsx_stack_value(row, 'ranking_place');
 			case 'points':
 				return registration_control_player_xlsx_stack_value(row, 'points');
+			case 'pair_points':
+				return row.players.length > 1 ? registration_control_entry_points(row) : '';
 			case 'birth':
 				return registration_control_player_stack_value(row.players, 'date_of_birth');
 			case 'club':
@@ -11390,6 +11466,9 @@ function update_officials() {
 				: []),
 			...(registration_control_has_xlsx_value(rows, 'points')
 				? [{ key: 'points', label: 'Punkte', class_name: 'registration_control_col_points', min_width: 48 }]
+				: []),
+			...(rows.some(row => row.players.length > 1) && registration_control_has_xlsx_value(rows, 'points')
+				? [{ key: 'pair_points', label: 'Paarungspunkte', class_name: 'registration_control_col_pair_points', min_width: 80 }]
 				: []),
 			{ key: 'birth', label: 'Geb.', class_name: 'registration_control_col_birth', min_width: 60 },
 			{ key: 'club', label: 'Verein', class_name: 'registration_control_col_club', min_width: 80 },
@@ -11599,6 +11678,42 @@ function update_officials() {
 		return match[3] + '.' + match[2] + '.' + match[1];
 	}
 
+	function registration_control_default_sort_direction(key) {
+		return ['name', 'gender', 'club', 'association', 'state', 'country', 'list', 'seed'].includes(key) ? 'asc' : 'desc';
+	}
+
+	function render_registration_control_sort_header(button, sort_key, sort_direction) {
+		const label = button.getAttribute('data-label') || '';
+		const key = button.getAttribute('data-sort-key');
+		const active = key === sort_key;
+		const text_column = ['name', 'gender', 'club', 'association', 'state', 'country', 'list'].includes(key);
+		const date_column = key === 'birth' || key === 'date';
+		const order_label = direction => {
+			if (text_column) return direction === 'asc' ? 'A bis Z' : 'Z bis A';
+			if (date_column) return direction === 'asc' ? 'älteste zuerst' : 'neueste zuerst';
+			return direction === 'asc' ? 'kleinste zuerst' : 'größte zuerst';
+		};
+		const next_direction = key === 'seed' || !active ? registration_control_default_sort_direction(key) : sort_direction === 'desc' ? 'asc' : 'desc';
+		const current_order = active ? 'Sortiert: ' + order_label(sort_direction) + '. ' : '';
+		button.title = label + ': ' + current_order + 'Klicken: ' + order_label(next_direction) + '.';
+		button.setAttribute('aria-label', button.title);
+		button.setAttribute('data-sort-direction', active ? sort_direction : 'none');
+		button.closest('th').setAttribute('aria-sort', active ? (sort_direction === 'asc' ? 'ascending' : 'descending') : 'none');
+		uiu.empty(button);
+		uiu.el(button, 'span', 'registration_control_sort_label', label);
+		if (!active) return;
+		const icon = uiu.el(button, 'span', { 'class': 'registration_control_sort_icon', 'aria-hidden': 'true' });
+		if (text_column) {
+			const letters = uiu.el(icon, 'span', 'registration_control_sort_letters');
+			uiu.el(letters, 'span', {}, sort_direction === 'asc' ? 'A' : 'Z');
+			uiu.el(letters, 'span', {}, sort_direction === 'asc' ? 'Z' : 'A');
+		} else {
+			const bars = uiu.el(icon, 'span', 'registration_control_sort_bars');
+			for (let i = 0; i < 3; i++) uiu.el(bars, 'span');
+		}
+		uiu.el(icon, 'span', 'registration_control_sort_arrow', '↓');
+	}
+
 	function render_registration_control_table(container, event, rows, options) {
 		options = options || {};
 		const table_wrap = uiu.el(container, 'div', 'registration_control_table_wrap');
@@ -11607,8 +11722,8 @@ function update_officials() {
 		const header_row = uiu.el(thead, 'tr');
 		const columns = options.columns || registration_control_table_columns(rows);
 		const has_column = (key) => columns.some((column) => column.key === key);
-		let sort_key = 'nr';
-		let sort_direction = 'asc';
+		let sort_key = has_column('pair_points') && rows.some(row => row.players.length > 1) ? 'pair_points' : has_column('points') ? 'points' : 'nr';
+		let sort_direction = sort_key === 'nr' ? 'asc' : 'desc';
 		columns.forEach((column) => {
 			const th = uiu.el(header_row, 'th', column.class_name);
 			const button = uiu.el(th, 'button', {
@@ -11626,7 +11741,7 @@ function update_officials() {
 					sort_direction = sort_direction === 'asc' ? 'desc' : 'asc';
 				} else {
 					sort_key = column.key;
-					sort_direction = 'asc';
+					sort_direction = registration_control_default_sort_direction(column.key);
 				}
 				render_body();
 			});
@@ -11717,7 +11832,11 @@ function update_officials() {
 			}
 			if (has_column('points')) {
 				render_registration_control_stack_cell(tr, 'registration_control_col_points', players.map((player, player_index) =>
-					registration_xlsx_metadata_for_player(row.entry, player, player_index)?.points || ''));
+					registration_xlsx_metadata_for_player(row.entry, player, player_index)?.points ?? ''));
+			}
+			if (has_column('pair_points')) {
+				const pair_points = row.players.length > 1 ? registration_control_entry_points(row) : null;
+				uiu.el(tr, 'td', 'registration_control_col_pair_points', pair_points ?? '');
 			}
 			render_registration_control_stack_cell(tr, 'registration_control_col_birth',
 				players.map((player) => format_registration_birth_date(player?.date_of_birth || '')));
@@ -11754,9 +11873,7 @@ function update_officials() {
 		}
 		function render_body() {
 			table.querySelectorAll('.registration_control_sort_button').forEach((button) => {
-				const label = button.getAttribute('data-label') || '';
-				const key = button.getAttribute('data-sort-key');
-				uiu.text(button, label + (key === sort_key ? ' ' + String.fromCharCode(sort_direction === 'asc' ? 8593 : 8595) : ''));
+				render_registration_control_sort_header(button, sort_key, sort_direction);
 			});
 			uiu.empty(tbody);
 			const sorted_rows = sort_registration_control_rows(rows, sort_key, sort_direction);
@@ -12222,6 +12339,124 @@ function update_officials() {
 		};
 	}
 
+	const registration_dbv_import_states = new Map();
+	function registration_dbv_default_event_keys(family) {
+		return (curt.events?.events || []).filter(event => {
+			const age = /\bU\s*(\d{1,2})\b/i.exec(event.name || '');
+			const youth = age ? Number(age[1]) <= 19 : Number(event.max_age) > 0 && Number(event.max_age) <= 19;
+			return (family === 'u19') === youth;
+		}).map(event => String(event.id ?? event.name));
+	}
+
+	function render_registration_dbv_import(parent) {
+		const tournament_key = curt.key;
+		if (!registration_dbv_import_states.has(tournament_key)) {
+			const family = registration_dbv_default_event_keys('u19').length ? 'u19' : 'o19';
+			registration_dbv_import_states.set(tournament_key, {
+				family, event_keys: registration_dbv_default_event_keys(family),
+				version: 'current', versions: [], open: false, busy: false, error: '',
+			});
+		}
+		const state = registration_dbv_import_states.get(tournament_key);
+		const panel = uiu.el(parent, 'details', 'registration_dbv_import');
+		panel.open = state.open;
+		panel.addEventListener('toggle', () => { state.open = panel.open; });
+		uiu.el(panel, 'summary', {}, 'Punkte aus DBV-Rangliste beziehen');
+		const content = uiu.el(panel, 'div', 'registration_dbv_content');
+		uiu.el(content, 'p', {}, 'Standard: U19 für Jugendkonkurrenzen bis U19, O19 ab U22 und für die Altersklassen. Die Auswahl kann angepasst werden. Übernommen werden Rang und Punkte der jeweiligen Disziplin. Spieler ohne Ranglisteneintrag erhalten 0 Punkte; bei Paarungen werden die Spielerpunkte addiert.');
+		const controls = uiu.el(content, 'div', 'registration_dbv_controls');
+		const family_label = uiu.el(controls, 'label', {}, 'Rangliste ');
+		const family = uiu.el(family_label, 'select', { 'aria-label': 'DBV-Rangliste' });
+		uiu.el(family, 'option', { value: 'u19' }, 'DBV U19');
+		uiu.el(family, 'option', { value: 'o19' }, 'DBV O19');
+		family.value = state.family;
+		const version_label = uiu.el(controls, 'label', {}, 'Stand ');
+		const version = uiu.el(version_label, 'select', { 'aria-label': 'Ranglistenstand' });
+		uiu.el(version, 'option', { value: 'current' }, 'Aktuelle Rangliste');
+		state.versions.filter(item => item.id !== 'current').forEach(item => uiu.el(version, 'option', { value: item.id }, item.label));
+		version.value = state.version;
+		const archive = uiu.el(controls, 'button', { type: 'button' }, 'Archiv laden');
+		const import_button = uiu.el(controls, 'button', { type: 'button' }, state.busy ? 'Lade Rangliste…' : 'Punkte übernehmen');
+		[family, version, archive, import_button].forEach(el => { el.disabled = state.busy; });
+		const refresh = () => {
+			if (curt.key === tournament_key && current_view === 'registration_control') ui_registration_control();
+		};
+		const scope = uiu.el(content, 'fieldset', 'registration_dbv_scope');
+		scope.disabled = state.busy;
+		uiu.el(scope, 'legend', {}, 'Gilt für Disziplinen / Altersklassen');
+		const shortcuts = uiu.el(scope, 'div', 'registration_dbv_controls');
+		for (const [label, selected] of [
+			['Standardauswahl', () => registration_dbv_default_event_keys(state.family)],
+			['Alle', () => (curt.events?.events || []).map(event => String(event.id ?? event.name))],
+			['Keine', () => []],
+		]) {
+			uiu.el(shortcuts, 'button', { type: 'button' }, label).addEventListener('click', () => { state.event_keys = selected(); refresh(); });
+		}
+		const event_list = uiu.el(scope, 'div', 'registration_dbv_event_list');
+		for (const event of curt.events?.events || []) {
+			const key = String(event.id ?? event.name);
+			const label = uiu.el(event_list, 'label');
+			const checkbox = uiu.el(label, 'input', { type: 'checkbox', value: key });
+			checkbox.checked = state.event_keys.includes(key);
+			uiu.el(label, 'span', {}, event.name);
+			checkbox.addEventListener('change', () => {
+				state.event_keys = state.event_keys.filter(id => id !== key);
+				if (checkbox.checked) state.event_keys.push(key);
+				import_button.disabled = state.busy || state.event_keys.length === 0;
+			});
+		}
+		import_button.disabled = state.busy || state.event_keys.length === 0;
+		family.addEventListener('change', () => {
+			state.family = family.value;
+			state.event_keys = registration_dbv_default_event_keys(state.family);
+			state.version = 'current';
+			state.versions = [];
+			state.error = '';
+			refresh();
+		});
+		version.addEventListener('change', () => { state.version = version.value; state.error = ''; });
+		archive.addEventListener('click', () => {
+			state.busy = true;
+			state.error = '';
+			refresh();
+			send({ type: 'registration_dbv_catalog', tournament_key, family: state.family }, (err, response) => {
+				state.busy = false;
+				if (err) state.error = 'Archiv konnte nicht geladen werden: ' + err.message;
+				else state.versions = response.versions;
+				refresh();
+			});
+		});
+		import_button.addEventListener('click', () => {
+			state.busy = true;
+			state.error = '';
+			refresh();
+			send({ type: 'registration_dbv_import', tournament_key, family: state.family, version: state.version, event_keys: state.event_keys.slice() }, (err, response) => {
+				state.busy = false;
+				if (err) state.error = 'Import fehlgeschlagen: ' + err.message;
+				else if (curt.key === tournament_key) {
+					curt.registration_dbv_rankings = { ...curt.registration_dbv_rankings, ...response.rankings };
+				}
+				refresh();
+			});
+		});
+		const status = uiu.el(content, 'div', { 'class': 'registration_dbv_status', role: 'status', 'aria-live': 'polite' }, state.error);
+		for (const source of Object.values(curt.registration_dbv_rankings || {})) {
+			uiu.el(status, 'p', {}, source.event_name + ' · ' + source.label + ': ' + source.matched_count + ' / ' + source.candidate_count +
+				' Spielermeldungen zugeordnet · abgerufen: ' + format_certificate_export_timestamp(source.imported_at));
+			if (source.unmatched_count) {
+				const unresolved = uiu.el(status, 'details');
+				uiu.el(unresolved, 'summary', {}, source.unmatched_count + ' Meldungen ohne Ranglisteneintrag oder mit Klärungsbedarf');
+				const list = uiu.el(unresolved, 'ul');
+				(source.unmatched || []).forEach(item => uiu.el(list, 'li', {}, item.event_name + ': ' + item.player_name + ' – ' + item.reason));
+			}
+		}
+	}
+
+	function update_registration_dbv_rankings(c) {
+		curt.registration_dbv_rankings = { ...curt.registration_dbv_rankings, ...c.val.rankings };
+		if (current_view === 'registration_control') ui_registration_control();
+	}
+
 	function render_registration_control(container) {
 		const events = get_registration_events({ include_reserve: true });
 		if (events.length === 0) {
@@ -12266,6 +12501,7 @@ function update_officials() {
 		const xlsx_status = uiu.el(xlsx_group, 'span', 'registration_xlsx_status');
 		render_registration_xlsx_import_status(xlsx_status, curt.registration_xlsx_metadata);
 		xlsx_input.addEventListener('change', () => upload_registration_xlsx(xlsx_input, xlsx_status));
+		render_registration_dbv_import(header_actions);
 		const reset_btn = uiu.el(header_actions, 'button', {
 			type: 'button',
 			'class': 'registration_clear_button',
@@ -13442,6 +13678,7 @@ function update_officials() {
 		registration_stage_comment: update_registration_stage_comment,
 		registration_stage_comment_read: update_registration_stage_comment_read,
 		registration_xlsx_metadata: update_registration_xlsx_metadata,
+		registration_dbv_rankings: update_registration_dbv_rankings,
 	}));
 
 	_route_single(/t\/([a-z0-9]+)\/registration_control/, ui_registration_control, change.default_handler(ui_registration_control, {
@@ -13454,6 +13691,7 @@ function update_officials() {
 		registration_stage_comment: update_registration_stage_comment,
 		registration_stage_comment_read: update_registration_stage_comment_read,
 		registration_xlsx_metadata: update_registration_xlsx_metadata,
+		registration_dbv_rankings: update_registration_dbv_rankings,
 	}));
 
 

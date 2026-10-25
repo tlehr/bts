@@ -2,11 +2,12 @@
 
 const { plan } = require('./coverage');
 const idlePlan = require('./idle_plan');
-const { isRequired, matchParts, requiredPlan, requiredParts } = require('./planning');
+const { isRequired, matchParts, requiredPlan, requiredParts, callCandidates } = require('./planning');
 const reads = require('../preparation_selection/model_reads');
 const resolveSettings = require('../../static/js/speech_settings');
 const { PlanningStatus } = require('./planning_status');
 const EVENTS = new Set([
+	'court_assignments_reset',
     'match_edit', 'match_added', 'match_delete', 'match_preparation_call', 'match_called_on_court',
     'court_current_match', 'match_finished', 'matches_changed', 'prop_changed',
     'location_changed', 'locations_changed', 'court_changed', 'courts_changed',
@@ -17,6 +18,11 @@ const EVENTS = new Set([
 ]);
 const CALL_EVENTS = new Set(['match_preparation_call', 'match_called_on_court']);
 
+function affectsPlan(type, value) {
+    return CALL_EVENTS.has(type) || type === 'score' && (value?.now_on_court === false || typeof value?.team1_won === 'boolean') ||
+        EVENTS.has(type) || ['normalization', 'tabletoperator', 'umpire', 'servicejudge'].some(part => type.includes(part));
+}
+
 function read_normalizations(db) {
     return new Promise((resolve, reject) => db.normalizations.find({}, (error, values) =>
         error ? reject(error) : resolve(values)));
@@ -26,12 +32,13 @@ class Prefetcher {
     constructor(app, broker) {
         this.app = app;
         this.broker = broker;
+        this.health = require('./health').health(app);
         this.subscriptions = new Map();
         this.timers = new Map();
         this.lease_timers = new Map();
         this.running = new Set();
+        this.refresh_phases = new Map();
         this.dirty = new Set();
-        this.preferred = new Map();
         this.contexts = new Map();
         this.planning = new Map();
         this.urgent = new Set();
@@ -44,7 +51,8 @@ class Prefetcher {
 
     planning_status(key) {
         const settings = this.settings(key), model = this.planning.get(key);
-        if (model) return model.snapshot(this.broker, key, settings, this.broker.pending_plans.has(key));
+        if (model) return { ...model.snapshot(this.broker, key, settings, this.broker.pending_plans.has(key)),
+            refresh: { phase: this.refresh_phases.get(key) || (this.timers.has(key) ? 'scheduled' : null), dirty: this.dirty.has(key) } };
         return { title: key, state: !this.broker.config.enabled || settings.mode === 'browser' ? 'disabled' : 'updating',
             phase: 'unknown', voice: settings.voice, mode: settings.mode, games: {}, stages: [],
             total: { ready: 0, queued: 0, total: 0, failed: 0 }, current: null, active_stage: null, updated_at: this.broker.now() };
@@ -64,16 +72,21 @@ class Prefetcher {
         if (schedule) this.schedule(tournament.key);
     }
 
-    subscribe(key, tournament = {}) {
+    subscribe(key, tournament, { refresh = false } = {}) {
         if (!this.broker.config.enabled || this.subscriptions.size >= 128 && !this.subscriptions.has(key)) return;
-        if (!this.subscriptions.has(key)) this.configure({ ...tournament, key }, false);
-        this.schedule(key);
+        const previous = this.subscriptions.get(key);
+        if (tournament || !previous) this.configure({ ...tournament, key }, false);
+        const changed = previous !== this.subscriptions.get(key);
+        const needs_plan = !this.planning.has(key) ||
+            this.contexts.get(key)?.context.speech.context_version !== this.broker.context_version;
+        // Loading an unchanged tournament is a subscription, not a committed
+        // data change. In particular it must not cancel an in-flight snapshot.
+        if (refresh || changed || needs_plan && !this.running.has(key) && !this.timers.has(key)) this.schedule(key);
     }
 
-    schedule(key, candidates, urgent = false) {
+    schedule(key, _candidates, urgent = false) {
         if (!this.broker.config.enabled || !this.subscriptions.has(key)) return;
         this.broker.pending_plans.add(key);
-        if (candidates) this.preferred.set(key, candidates.slice(0, this.broker.config.max_entries));
         if (this.running.has(key)) {
             this.dirty.add(key);
             if (urgent) this.urgent.add(key);
@@ -85,7 +98,9 @@ class Prefetcher {
         }
         const timer = setTimeout(() => {
             this.timers.delete(key);
-            void this.refresh(key).catch(() => { this.broker.last_error = 'prefetch_unavailable'; });
+            void this.refresh(key).then(() => this.health.clear('prefetch:' + key)).catch(error => {
+                this.broker.last_error = 'prefetch_unavailable'; this.health.fail('prefetch:' + key, error);
+            });
         }, urgent ? 0 : 500);
         timer.unref();
         this.timers.set(key, timer);
@@ -106,7 +121,8 @@ class Prefetcher {
                     for (let i = 0; i < parts.length; i += 64) this.broker.prepare(parts.slice(i, i + 64),
                         { ...cached.settings, language: 'de-DE', priority: 'normal', prefetch: true }, key);
                     this.broker.on_change([key]);
-                } catch (_) { this.broker.last_error = 'prefetch_unavailable'; }
+                    this.health.clear('immediate_prefetch:' + key);
+                } catch (error) { this.broker.last_error = 'prefetch_unavailable'; this.health.fail('immediate_prefetch:' + key, error); }
             }
             this.schedule(key, undefined, true);
             return;
@@ -122,8 +138,10 @@ class Prefetcher {
         this.broker.pending_plans.add(key);
         const revision = this.subscriptions.get(key);
         try {
+            this.refresh_phases.set(key, 'snapshot');
             await require('../foreground_work').idle();
-            const [tournament, locations, courts, matches, normalizations, tabletoperators, umpires] = await Promise.all([
+            const [tournament, locations, courts, matches, normalizations, tabletoperators, umpires] = this.app.speech_snapshot ?
+                await this.app.speech_snapshot(key) : await Promise.all([
                 reads.read(this.app, key, 'tournaments', true),
                 reads.read(this.app, key, 'locations', true),
                 reads.read(this.app, key, 'courts', true),
@@ -146,15 +164,15 @@ class Prefetcher {
                 this.broker.reconcile_prefetch(key, [], speech_settings);
                 return;
             }
-            if (this.dirty.has(key)) return;
             const context = { ...tournament, locations, courts, normalizations, tabletoperators,
                 speech: { context_version: this.broker.context_version } };
             const required = requiredPlan(context, matches, umpires), parts = requiredParts(required);
-            const planning = new PlanningStatus(context, matches, required, this.preferred.get(key));
+            const candidates = callCandidates({ ...context, umpires }, matches, {
+                now_ts: tournament.speech_now_ts ?? this.app.clock?.now_ms() ?? this.broker.now(),
+            });
+            const planning = new PlanningStatus(context, matches, required, candidates);
             // Retain only the context and active game recipes needed by an
             // immediate call; the registration inventory is rebuilt separately.
-            this.contexts.set(key, { context: { ...context, events: undefined }, settings: speech_settings, required });
-            this.broker.set_prefetch_order(key, parts, speech_settings);
             const warm = async (texts, priority) => {
                 for (let i = 0; i < texts.length; i += 64) {
                     if (this.subscriptions.get(key) !== speech_settings) return;
@@ -164,27 +182,49 @@ class Prefetcher {
                     await new Promise(resolve => setImmediate(resolve));
                 }
             };
-            await warm(parts, 'normal');
-            if (this.dirty.has(key) || this.subscriptions.get(key) !== speech_settings) return;
-            const coverage = await plan(context, matches, umpires);
-            const needed = new Set(parts);
-            const idle_parts = (await idlePlan(context, matches, umpires, this.preferred.get(key), (stage, values) => planning.add(stage, values)))
-                .filter(part => !needed.has(part));
+            this.refresh_phases.set(key, 'required');
+            if (!this.dirty.has(key)) {
+                this.contexts.set(key, { context: { ...context, events: undefined }, settings: speech_settings, required });
+                this.broker.set_prefetch_order(key, parts, speech_settings);
+                await warm(parts, 'normal');
+            }
+            let published = false;
             if (!this.dirty.has(key) && this.subscriptions.get(key) === speech_settings) {
-                const retry = this.broker.reconcile_prefetch(key, parts, { ...speech_settings, language: 'de-DE', idle_parts });
-                await this.broker.coverage.set_plan(key, speech_settings.voice, coverage);
-                if (!this.dirty.has(key) && this.subscriptions.get(key) === speech_settings) this.planning.set(key, planning);
-                this.broker.on_change([key]);
-                clearTimeout(this.lease_timers.get(key));
-                this.lease_timers.delete(key);
-                if (retry !== null) {
-                    const timer = setTimeout(() => { this.lease_timers.delete(key); this.schedule(key); }, retry);
-                    timer.unref();
-                    this.lease_timers.set(key, timer);
+                const needed = new Set(parts);
+                this.refresh_phases.set(key, 'inventory');
+                const idle_parts = (await idlePlan(context, matches, umpires, candidates, (stage, values, detail) => planning.add(stage, values, detail)))
+                    .filter(part => !needed.has(part));
+                if (!this.dirty.has(key) && this.subscriptions.get(key) === speech_settings) {
+                    this.refresh_phases.set(key, 'publish');
+                    const retry = this.broker.reconcile_prefetch(key, parts, { ...speech_settings, language: 'de-DE', idle_parts });
+                    this.planning.set(key, planning);
+                    // Generation only needs the reconciled inventory. Building
+                    // and persisting every game's overview must not hold up a
+                    // free generator. A later committed change sets this again.
+                    this.broker.pending_plans.delete(key);
+                    published = true;
+                    this.broker.on_change([key]);
+                    clearTimeout(this.lease_timers.get(key));
+                    this.lease_timers.delete(key);
+                    if (retry !== null) {
+                        const timer = setTimeout(() => { this.lease_timers.delete(key); this.schedule(key); }, retry);
+                        timer.unref();
+                        this.lease_timers.set(key, timer);
+                    }
                 }
+            }
+            // Publish each captured game state even when a newer event cancels
+            // generation, so its status cannot remain minutes behind live play.
+            this.refresh_phases.set(key, 'coverage');
+            const coverage = await plan(context, matches, umpires, candidates);
+            if (this.subscriptions.get(key) !== speech_settings) return;
+            const game_plan = this.broker.coverage.set_game_plan(key, speech_settings.voice, coverage);
+            if (published && !this.dirty.has(key)) {
+                await this.broker.coverage.set_plan(key, speech_settings.voice, coverage, game_plan);
             }
         } finally {
             this.running.delete(key);
+            this.refresh_phases.delete(key);
             if (this.dirty.delete(key)) this.schedule(key, undefined, this.urgent.delete(key));
             else this.broker.pending_plans.delete(key);
         }
@@ -198,8 +238,9 @@ class Prefetcher {
         this.interval.unref();
         // Warm tournaments without requiring an announcement-capable browser to be open.
         this.app.db.tournaments.find({}, (error, tournaments) => {
-            if (error) return;
-            for (const tournament of tournaments) this.subscribe(tournament.key, tournament);
+            if (error) { this.health.fail('prefetch', error); return; }
+            try { for (const tournament of tournaments) this.subscribe(tournament.key, tournament); }
+            catch (error) { this.health.fail('prefetch', error); }
         });
     }
 
@@ -211,6 +252,7 @@ class Prefetcher {
         for (const timer of this.lease_timers.values()) clearTimeout(timer);
         this.lease_timers.clear();
         this.dirty.clear();
+        this.refresh_phases.clear();
         this.contexts.clear();
         this.planning.clear();
         this.urgent.clear();
@@ -218,4 +260,4 @@ class Prefetcher {
     }
 }
 
-module.exports = { Prefetcher };
+module.exports = { Prefetcher, affectsPlan, CALL_EVENTS };

@@ -119,6 +119,101 @@ _describe('BTP event integration cache', () => {
 		assert.deepStrictEqual(await stored(), expected);
 	});
 
+	_it('retains first planned games from unplayable BTP brackets without marking their disciplines drawn', async () => {
+		const { app, state, sync, stored } = await fixture();
+		const planned = (day, hour) => ({ year: 2026, month: 9, day, hour, minute: 0 });
+		state.matches = [];
+		state.draws.set(200, { ID: [200], EventID: ['2'] });
+		state.planning_nodes = new Map([
+			['md', { DrawID: [100], IsMatch: [true], MatchNr: [396], PlannedTime: [planned(27, 12)], DisplayOrder: [0] }],
+			['mx-later', { DrawID: ['200'], IsMatch: [true], MatchNr: [50], PlannedTime: [planned(26, 14)], DisplayOrder: [0] }],
+			['mx', { DrawID: [200], IsMatch: [true], MatchNr: [25], PlannedTime: [planned(26, 10)], DisplayOrder: [0] }],
+			['entry', { DrawID: [100], IsMatch: [false], EntryID: [30], MatchNr: [1], PlannedTime: [planned(25, 9)] }],
+			['link', { DrawID: [100], IsMatch: [true], Link: ['winner'], MatchNr: [2], PlannedTime: [planned(25, 9)] }],
+		]);
+		await sync();
+		const events = (await stored()).events;
+		assert.deepStrictEqual(events.map(event => [event.is_drawn, event.match_count]), [[false, 0], [false, 0]]);
+		assert.deepStrictEqual(events[0].first_planned_match, { number: 396, date: '2026-09-27', time: '12:00', order: 0 });
+		assert.deepStrictEqual(events[1].first_planned_match, { number: 25, date: '2026-09-26', time: '10:00', order: 0 });
+		assert.strictEqual(await promisify(app.db.matches.count.bind(app.db.matches))({}), 0, 'schedule hints must not create matches or participant demand');
+		const update = app.db.tournaments.update;
+		app.db.tournaments.update = () => assert.fail('results and later slot changes must retain the registration fast path');
+		try {
+			state.planning_nodes.get('mx').Winner = [1];
+			state.planning_nodes.get('mx-later').PlannedTime = [planned(26, 15)];
+			await sync();
+		} finally { app.db.tournaments.update = update; }
+	});
+
+	_it('retains only first-round numbers before the draw and refreshes changed numbers without rebuilding for later results', async () => {
+		const { app, state, sync, stored } = await fixture();
+		const planned = hour => ({ year: 2026, month: 9, day: 26, hour, minute: 0 });
+		const node = (number, round, hour, extra = {}) => ({ DrawID: [100], IsMatch: [true],
+			MatchNr: [number], Round: [round], PlannedTime: [planned(hour)], ...extra });
+		state.matches = [];
+		state.draws.set(200, { ID: [200], EventID: [2] });
+		state.planning_nodes = new Map([
+			['later-round', node(1, 2, 11)],
+			['first', node(40, 1, 9)],
+			['second', node(60, 1, 10, { DisplayOrder: [1] })],
+			['third', node(50, 1, 10, { DisplayOrder: [2], IsPlayable: [false] })],
+			['duplicate', node(40, 1, 9)],
+			['other-event', node(90, 1, 9, { DrawID: ['200'] })],
+			['entry', node(2, 1, 8, { EntryID: [30] })],
+			['link', node(3, 1, 8, { Link: ['winner'] })],
+			['hidden', node(4, 1, 8, { IsMatch: [false] })],
+			['invalid-round', node(5, 0, 8)],
+			['invalid-number', node(0, 1, 8)],
+		]);
+		await sync();
+		let events = (await stored()).events;
+		assert.deepStrictEqual(events.map(event => event.first_round_match_numbers), [[40, 60, 50], [90]]);
+		assert(events.every(event => !event.is_drawn && event.match_count === 0));
+		assert.strictEqual(await promisify(app.db.matches.count.bind(app.db.matches))({}), 0);
+		const update = app.db.tournaments.update;
+		app.db.tournaments.update = () => assert.fail('later-round changes must keep the registration fast path');
+		try {
+			state.planning_nodes.get('later-round').Winner = [1];
+			state.planning_nodes.get('later-round').PlannedTime = [planned(12)];
+			await sync();
+		} finally { app.db.tournaments.update = update; }
+		state.planning_nodes.get('third').MatchNr = [55];
+		await sync();
+		assert.deepStrictEqual((await stored()).events[0].first_round_match_numbers, [40, 60, 55]);
+		state.planning_nodes.get('third').Round = [2];
+		await sync();
+		assert.deepStrictEqual((await stored()).events[0].first_round_match_numbers, [40, 60]);
+		state.planning_nodes.clear();
+		await sync();
+		events = (await stored()).events;
+		assert(events.every(event => event.first_round_match_numbers === undefined), 'remove stale numbers when BTP removes the bracket');
+	});
+
+	_it('refreshes first-game ordering when the BTP time, display order or available slots change', async () => {
+		const { state, sync, stored } = await fixture();
+		const planned = hour => ({ year: 2026, month: 9, day: 26, hour, minute: 0 });
+		state.matches = [];
+		state.planning_nodes = new Map([
+			['manual', { DrawID: [100], IsMatch: [true], MatchNr: [50], PlannedTime: [planned(10)], DisplayOrder: [1] }],
+			['number', { DrawID: [100], IsMatch: [true], MatchNr: [25], PlannedTime: [planned(10)], DisplayOrder: [2] }],
+			['midnight', { DrawID: [100], IsMatch: [true], MatchNr: [1], PlannedTime: [planned(0)] }],
+		]);
+		const first = async () => (await stored()).events[0].first_planned_match;
+		await sync();
+		assert.strictEqual((await first()).number, 50, 'manual order breaks a same-time tie before the match number');
+		state.planning_nodes.get('manual').DisplayOrder = [3];
+		await sync();
+		assert.strictEqual((await first()).number, 25);
+		state.planning_nodes.get('manual').PlannedTime = [planned(9)];
+		await sync();
+		assert.strictEqual((await first()).number, 50);
+		assert.strictEqual((await first()).time, '09:00');
+		state.planning_nodes.clear();
+		await sync();
+		assert.strictEqual(await first(), undefined, 'remove stale planning hints when BTP removes the schedule');
+	});
+
 	_it('keeps tournament and datastore caches separate and retries after read or write failures', async () => {
 		const first = await fixture();
 		await first.sync();

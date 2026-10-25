@@ -1,5 +1,17 @@
 # Wiederholbarer Live-Benchmark
 
+Für die Geschwindigkeit der eigentlichen Ansagen gibt es zusätzlich eine
+[offline Tempo-Prüfung](../docs/speech-tempo-preflight.md) mit Messwerten und
+Hörvergleich. Der [Bericht zu Test 28](performance_test28_2026-10-24.md) trennt
+diese Audioeigenschaft von den gemessenen TV-/Admin-Empfangslatenzen.
+Der [Vergleich von Test 29 mit Test 28](performance_test29_2026-10-24.md)
+untersucht die erneut höheren Latenzen anhand konkreter Warteketten.
+Der [Bericht zu Test 30](performance_test30_2026-10-24.md) zeigt die wieder
+gesunkenen Wartezeiten und untersucht den verbleibenden höchsten Ausreißer.
+Der [isolierte Sprachlastvergleich](performance_speech_contention_2026-10-24.md)
+misst vier Varianten mit echter nativer Synthese und dokumentiert die
+CPU-Priorität als Schutzmaßnahme. [Aufruf und Grenzen](speech_load/README.md).
+
 Der Live-Testclient und das Webdashboard liegen jetzt im eigenen Repository
 `bts-testclient` neben diesem BTS-Checkout. Dort `git submodule update --init
 --recursive` und `npm ci` ausfuehren; `npm start` oeffnet den lokalen Dashboard-
@@ -22,7 +34,7 @@ npm run debug:dashboard
 [http://127.0.0.1:4444](http://127.0.0.1:4444) öffnen. Die Oberfläche startet erst
 beim Klick auf **Test starten** eine Simulation. Serveradresse und Turnier
 eintragen; **Verbindung prüfen** lädt die verfügbaren Turniere als Vorschläge.
-Zur Auswahl stehen die bisherige feste zehnminütige Sequenz und der freie Test.
+as Zur Auswahl stehen die bisherige feste zehnminütige Sequenz und der freie Test.
 **Weitere Einstellungen** enthält sämtliche Simulationsparameter, einschließlich
 Punktabständen, erwarteter Spielanzahl, Seed, Check-in-Abständen, Punktverteilung,
 Tablet-Akku und simulierter TV-Verarbeitungszeit. Die feste Sequenz behält ihre
@@ -60,9 +72,18 @@ Sequenz verschiedener Serverprofile läuft weiterhin über ihren bestehenden
 Konsolenbefehl. Der Browser lädt Berichte herunter, statt einen beliebigen
 Dateipfad im Testclient anzugeben.
 
-Für den normalen Betrieb genügt `make dev` oder `make run`: Ohne aktivierte
-Debugoptionen gibt BTS keine normalen Betriebs- oder Diagnosemeldungen aus.
-Echte Fehler bleiben sichtbar. Auch der Supervisor von `make dev` startet still.
+`make dev` zeigt die Start- und Neustartmeldungen des Supervisors.
+Er überwacht nur den Servercode in `bts/`; Änderungen an Tests oder
+Hilfsskripten starten den Server nicht neu. „crashing child“ bezeichnet einen
+vom Watcher angeforderten Neustart und belegt keinen Anwendungsabsturz.
+Echte Ansagenfehler werden unabhängig von der Diagnoseeinstellung mit Ursache
+ausgegeben und in allen Adminfenstern als auffällige Störung angezeigt.
+Nur der Ansagen-Worker wird bei einem Ausfall neu gestartet. Identische Fehler
+werden im Terminal höchstens alle 30 Sekunden wiederholt.
+Die Serverdiagnose wird sowohl bei `make dev` als auch bei `make run` über die
+gespeicherte Einstellung in der UI gesteuert. Ohne aktivierte Debugoptionen
+gibt BTS keine normalen Betriebs- oder Diagnosemeldungen aus.
+Echte Fehler und die Supervisor-Meldungen bleiben sichtbar.
 Die Option **Ausführliche Serverdiagnose aktivieren** unter Turniereinstellungen
 → Debug schaltet Sync-Messungen, langsame Queue-Aufgaben, Render-Bestätigungen,
 DB-Diagnosen und Tabletoperator-Audits ein. Ein- und Ausschalten wirkt sofort;
@@ -73,8 +94,8 @@ Alternativ aktiviert `BTS_SERVER_DIAGNOSTICS=1` diese Stufe serverweit.
 Explizite einzelne Diagnosevariablen übersteuern weiterhin ihre jeweilige
 Kategorie; insbesondere aktivieren `BTS_TABLETOPERATOR_AUDIT=1` die Audits und
 `BTS_BTP_SYNC_TIMING=1` die Sync-Messungen unabhängig vom Menü. Ohne gesetzte
-Variablen steuert das Menü die Ausgaben. `BTS_TABLETOPERATOR_AUDIT=0` ist für
-einen normalen Start nicht mehr erforderlich.
+Variablen steuert das Menü die Ausgaben bei `make dev` und `make run`.
+`BTS_TABLETOPERATOR_AUDIT=0` ist für einen normalen Start nicht erforderlich.
 
 Server wie bisher mit Timing-Ausgaben starten:
 
@@ -209,6 +230,20 @@ DB- und Worker-Zähler arbeiten unabhängig von ausführlichen Log-Einstellungen
 Die Ereignisansicht verwendet die schon vorhandenen letzten Lock-Aufgaben
 (ab 100 ms Wartezeit, 500 ms Laufzeit oder Fehler) und `queue_hang_warning`.
 Sie aktiviert keine zusätzlichen Logs und leitet keine rohe Konsolenausgabe um.
+
+Gleichzeitige Admin-Abfragen der Vorbereitungsauswahl teilen ihre Berechnung
+und JSON-Aufbereitung für höchstens 250 ms, solange alle beteiligten
+DB-Dokumente unverändert sind. Jede Anfrage durchläuft weiterhin die
+DB-Lesebarrieren; vorher eingereihte Änderungen an Spielen, Check-in, Feldern
+oder Einstellungen werden vor einer Wiederverwendung berücksichtigt.
+Zeitabhängige Hinweise in dieser Anzeige können bis zu 250 ms alt sein.
+Die tatsächliche Aufrufautomatik berechnet ihre Auswahl weiterhin frisch.
+Anfrage-IDs und Versandfolge bleiben je Admin-Verbindung getrennt.
+
+Bei gleicher Spielzeit stehen Spiele mit positiver BTP-Position vor Spielen
+mit Position 0 oder ohne Position. Letztere folgen nach Spielnummer. Diese
+Sortierregel gilt für Anzeige und Aufrufautomatik; die gespeicherten und an BTP
+übertragenen Positionswerte bleiben unverändert, einschließlich Position 0.
 
 Beim Pausieren misst der Test, wann alle **wartenden** beobachteten Queues
 mindestens drei Sekunden leer bleiben. Laufende Hintergrundaufgaben und neue
@@ -375,6 +410,55 @@ etwa beim Bereinigen eines Turniers, gehören nicht zu diesem Zeitplan. Ein
 einzelner großer Match-Datensatzbestand kann seine eigene Queue weiterhin
 blockieren. Die Änderung verhindert die bisherige gleichzeitige automatische
 Kompaktierung sämtlicher Sammlungen; der nächste Live-Test prüft die Auswirkung.
+
+BUP-v2-Punkte nutzen standardmäßig einen direkten NeDB-Executor-Auftrag, der
+zusätzliche Schleifendurchläufe des allgemeinen Updates spart. Schreibreihenfolge,
+Validierung, Index-Hooks und Persistenz bleiben erhalten. Der Schalter
+`BTS_SCORE_DIRECT_WRITES=0` aktiviert den bisherigen Weg; das Performance-Profil
+nennt `score_direct_writes`. Ein isolierter Vergleich mit temporären Dateien ist
+mit `node debug/score_write_benchmark.js` reproduzierbar. Messung und Grenzen
+stehen in [der Auswertung von Test 13](performance_test13_2026-10-23.md).
+
+Admin-Änderungen werden standardmäßig einmal in JSON und UTF-8 codiert und
+anschließend als gemeinsamer Buffer an die getrennten Outboxes übergeben. Ihre
+reservierten Antworten und die Reihenfolge bleiben je Fenster erhalten.
+`BTS_ADMIN_BROADCAST_SHARED=0` aktiviert die bisherige Codierung pro Empfänger;
+das Profil nennt `admin_broadcast_shared`, die Traces `admin_broadcast_encode`.
+`node debug/admin_broadcast_benchmark.js` vergleicht beide Varianten mit
+synthetischen Daten ohne Serverzugriff. Details und Messgrenzen stehen in
+[der Auswertung von Test 15](performance_test15_2026-10-23.md).
+
+Datastore-Aufträge stellen den beim Einreihen erfassten Prioritätsbesitzer
+sowohl bei Ausführung als auch bei Callback-Zustellung wieder her. Auch ein
+fehlender Besitzer wird ausdrücklich gesetzt; ein fremder Scheduler-Kontext
+darf keine Punktpriorität übernehmen oder freigeben. Bei aktivierten Traces
+misst `preparation_selection_dispatch` den Startaufwand und
+`preparation_selection_turn` die einzelnen Rechenabschnitte der
+Vorbereitungsauskunft. Kandidatensuche und Diagnose geben zwischen ihren
+Arbeitsschritten die Ereignisschleife frei. Ältere Berichte verwenden
+`preparation_selection_sync_start` für den damals ungeteilten Anfang
+der Vorbereitungsberechnung. Der Start-Trace nennt außerdem `input_documents`.
+Die gesamte Dauer der Vorbereitungsauskunft umfasst auch beabsichtigtes Prioritäts-Warten.
+Reproduktion, Tests und verbleibende Grenzen stehen in
+[der Auswertung von Test 17](performance_test17_2026-10-23.md) und
+[der Auswertung von Test 25](performance_test25_2026-10-24.md).
+
+Punktabfragen können jetzt auch eine vollständig beobachtete Warteschlange aus
+reinen Lesern passieren. Frühere Writes und unbekannte oder TTL-fähige Aufgaben
+bleiben Sperren; Punkte werden weiterhin vor ihrer Veröffentlichung gespeichert.
+`BTS_SCORE_MODEL_READONLY_READS=0` deaktiviert den neuen Pfad, das Profil nennt
+`score_readonly_reads` und die Kontextmessung `read_only_store`. Die Beobachtung
+erfasst dazu die Queue-Freigabe nach dem Datastore-Callback. Messungen,
+Funktionsprüfungen und Grenzen stehen in
+[der Auswertung von Test 19](performance_test19_2026-10-23.md).
+
+Die erste Durchsage synchronisiert jetzt eine noch unbekannte Kontextversion,
+bevor sie ihre lokale Zusammensetzung erstellt. Fertige Kontext-Bausteine dürfen
+nicht durch neue Einzeltext-Aufträge ersetzt werden, nur weil das Browserfenster
+noch Startmetadaten hält. Änderungen an einem Spiel ohne Feld aktualisieren
+außerdem gezielt die betroffenen V2-Anzeigen; V1-Pakete werden nur bei passenden
+Empfängern aufgebaut. Reproduktion, Zeitstempel und Prüfungen stehen in
+[der Auswertung von Test 21](performance_test21_2026-10-24.md).
 
 Mit `BTS_SCORE_PRESS_TIMING=1` oder `BTS_BTP_SYNC_TIMING=1` beobachtet
 `bts/database_tasks.js` zusätzlich die Datastore-Aufgaben, ohne ihre Reihenfolge
@@ -671,3 +755,16 @@ DB-Arbeit und vollständiges Leeren der Queues werden exportiert. Kein laufender
 Server erforderlich, keine Änderung am Live-Turnier. Details und Grenzen:
 [queue_responsiveness.md](queue_responsiveness.md); Messergebnisse:
 [performance_queue_2026-10-11.md](performance_queue_2026-10-11.md).
+
+## Dateiarbeitspool der Sprachverwaltung
+
+```sh
+node debug/speech_io_isolation_benchmark.js
+```
+
+Vergleicht Worker-Thread und Sprachprozess mit synthetischen Cache-Schreibvorgängen
+und kontrollierter Belegung eines libuv-Pools. Echte NeDB-Appends auf temporären
+Dateien werden nach erneutem Laden überprüft. Keine Verbindung zu BTS, BTP oder
+Sprachserver. Der absichtlich begrenzte Pool belegt die Trennung; daraus folgt
+keine Zuordnung von Live-Ausreißern zur Sprachausgabe. Details:
+[performance_test11_2026-10-23.md](performance_test11_2026-10-23.md).

@@ -1,0 +1,860 @@
+{
+  "started_at": "2026-10-24T16:31:25.332Z",
+  "runtime_ms": 600154,
+  "stop_reason": "completed",
+  "failure": null,
+  "points": 1144,
+  "checkins": 48,
+  "tablet_to_tv_ms": {
+    "count": 1157,
+    "mean": 8,
+    "min": 2,
+    "p50": 5,
+    "p95": 24,
+    "p99": 41,
+    "max": 75,
+    "over_50_ms": 4,
+    "over_100_ms": 0,
+    "over_200_ms": 0,
+    "sent_updates": 1157,
+    "unmatched_updates": 0,
+    "coverage": 1
+  },
+  "tablet_to_admin_ms": {
+    "count": 1157,
+    "mean": 10.7,
+    "min": 3,
+    "p50": 7,
+    "p95": 28,
+    "p99": 43,
+    "max": 76,
+    "over_50_ms": 6,
+    "over_100_ms": 0,
+    "over_200_ms": 0,
+    "sent_updates": 1157,
+    "unmatched_updates": 0,
+    "coverage": 1
+  },
+  "phases": [
+    {
+      "name": "checkin-and-play",
+      "start_ms": 0,
+      "end_ms": 120000,
+      "idle": false,
+      "actual_start_ms": 0,
+      "actual_end_ms": 120248,
+      "points": 285,
+      "score_updates": 288,
+      "finish_confirmations": 3,
+      "repair_score_updates": 0,
+      "player_checkins": 24,
+      "checkin_errors": 0,
+      "tablet_to_tv_ms": {
+        "count": 288,
+        "mean": 6.9,
+        "p50": 4,
+        "p95": 17,
+        "p99": 28,
+        "max": 43,
+        "sent_updates": 288,
+        "unmatched_updates": 0,
+        "coverage": 1,
+        "over_50_ms": 0,
+        "over_100_ms": 0,
+        "over_200_ms": 0
+      },
+      "tablet_to_admin_ms": {
+        "count": 288,
+        "mean": 9.2,
+        "p50": 7,
+        "p95": 20,
+        "p99": 33,
+        "max": 51,
+        "sent_updates": 288,
+        "unmatched_updates": 0,
+        "coverage": 1,
+        "over_50_ms": 1,
+        "over_100_ms": 0,
+        "over_200_ms": 0
+      },
+      "occupied_courts": {
+        "count": 102,
+        "mean": 12.5,
+        "p50": 13,
+        "p95": 13,
+        "p99": 13,
+        "max": 13
+      },
+      "free_courts": {
+        "count": 102,
+        "mean": 0.5,
+        "p50": 0,
+        "p95": 2,
+        "p99": 2,
+        "max": 2
+      }
+    },
+    {
+      "name": "load",
+      "start_ms": 120000,
+      "end_ms": 360000,
+      "idle": false,
+      "actual_start_ms": 120248,
+      "actual_end_ms": 360047,
+      "points": 550,
+      "score_updates": 560,
+      "finish_confirmations": 10,
+      "repair_score_updates": 0,
+      "player_checkins": 16,
+      "checkin_errors": 0,
+      "tablet_to_tv_ms": {
+        "count": 560,
+        "mean": 7.8,
+        "p50": 4,
+        "p95": 22,
+        "p99": 41,
+        "max": 75,
+        "sent_updates": 560,
+        "unmatched_updates": 0,
+        "coverage": 1,
+        "over_50_ms": 4,
+        "over_100_ms": 0,
+        "over_200_ms": 0
+      },
+      "tablet_to_admin_ms": {
+        "count": 560,
+        "mean": 10.5,
+        "p50": 7,
+        "p95": 27,
+        "p99": 43,
+        "max": 76,
+        "sent_updates": 560,
+        "unmatched_updates": 0,
+        "coverage": 1,
+        "over_50_ms": 4,
+        "over_100_ms": 0,
+        "over_200_ms": 0
+      },
+      "occupied_courts": {
+        "count": 211,
+        "mean": 11.7,
+        "p50": 12,
+        "p95": 13,
+        "p99": 13,
+        "max": 13
+      },
+      "free_courts": {
+        "count": 211,
+        "mean": 1.3,
+        "p50": 1,
+        "p95": 3,
+        "p99": 3,
+        "max": 3
+      }
+    },
+    {
+      "name": "idle",
+      "start_ms": 360000,
+      "end_ms": 480000,
+      "idle": true,
+      "actual_start_ms": 360047,
+      "actual_end_ms": 480165,
+      "points": 0,
+      "score_updates": 0,
+      "finish_confirmations": 0,
+      "repair_score_updates": 0,
+      "player_checkins": 0,
+      "checkin_errors": 0,
+      "tablet_to_tv_ms": {
+        "count": 0,
+        "mean": null,
+        "p50": null,
+        "p95": null,
+        "p99": null,
+        "max": null,
+        "sent_updates": 0,
+        "unmatched_updates": 0,
+        "coverage": null,
+        "over_50_ms": 0,
+        "over_100_ms": 0,
+        "over_200_ms": 0
+      },
+      "tablet_to_admin_ms": {
+        "count": 0,
+        "mean": null,
+        "p50": null,
+        "p95": null,
+        "p99": null,
+        "max": null,
+        "sent_updates": 0,
+        "unmatched_updates": 0,
+        "coverage": null,
+        "over_50_ms": 0,
+        "over_100_ms": 0,
+        "over_200_ms": 0
+      },
+      "occupied_courts": {
+        "count": 105,
+        "mean": 12.7,
+        "p50": 13,
+        "p95": 13,
+        "p99": 13,
+        "max": 13
+      },
+      "free_courts": {
+        "count": 105,
+        "mean": 0.3,
+        "p50": 0,
+        "p95": 1,
+        "p99": 1,
+        "max": 1
+      }
+    },
+    {
+      "name": "load-after-idle",
+      "start_ms": 480000,
+      "end_ms": 600000,
+      "idle": false,
+      "actual_start_ms": 480165,
+      "actual_end_ms": 600154,
+      "points": 309,
+      "score_updates": 309,
+      "finish_confirmations": 0,
+      "repair_score_updates": 0,
+      "player_checkins": 8,
+      "checkin_errors": 0,
+      "tablet_to_tv_ms": {
+        "count": 309,
+        "mean": 9.4,
+        "p50": 5,
+        "p95": 28,
+        "p99": 41,
+        "max": 48,
+        "sent_updates": 309,
+        "unmatched_updates": 0,
+        "coverage": 1,
+        "over_50_ms": 0,
+        "over_100_ms": 0,
+        "over_200_ms": 0
+      },
+      "tablet_to_admin_ms": {
+        "count": 309,
+        "mean": 12.2,
+        "p50": 8,
+        "p95": 34,
+        "p99": 45,
+        "max": 61,
+        "sent_updates": 309,
+        "unmatched_updates": 0,
+        "coverage": 1,
+        "over_50_ms": 1,
+        "over_100_ms": 0,
+        "over_200_ms": 0
+      },
+      "occupied_courts": {
+        "count": 101,
+        "mean": 13,
+        "p50": 13,
+        "p95": 13,
+        "p99": 13,
+        "max": 13
+      },
+      "free_courts": {
+        "count": 101,
+        "mean": 0,
+        "p50": 0,
+        "p95": 0,
+        "p99": 0,
+        "max": 0
+      }
+    }
+  ],
+  "assessment": {
+    "version": 1,
+    "thresholds": {
+      "p99_ms": 30,
+      "max_ms": 50,
+      "min_samples": 100
+    },
+    "final": true,
+    "level": "ERROR",
+    "summary": "Mindestens ein Ziel ist verletzt.",
+    "criteria": [
+      {
+        "id": "tv_p99",
+        "label": "TV · p99 im gesamten Lauf",
+        "level": "ERROR",
+        "value": "41 ms",
+        "target": "< 30 ms",
+        "detail": "1157 zugeordnete Updates."
+      },
+      {
+        "id": "tv_reception",
+        "label": "TV · Eventempfang",
+        "level": "OK",
+        "value": "1157 / 1157",
+        "target": "Alle gesendeten Updates zugeordnet",
+        "detail": "Vollständige Zuordnung."
+      },
+      {
+        "id": "tv_max",
+        "label": "TV · Maximum",
+        "level": "WARN",
+        "value": "75 ms",
+        "target": "Wunschziel < 50 ms",
+        "detail": "Ein einzelner Ausreißer verletzt nicht automatisch das p99-Ziel. Updates über 50 ms: 4."
+      },
+      {
+        "id": "admin_p99",
+        "label": "Admin · p99 im gesamten Lauf",
+        "level": "ERROR",
+        "value": "43 ms",
+        "target": "< 30 ms",
+        "detail": "1157 zugeordnete Updates."
+      },
+      {
+        "id": "admin_reception",
+        "label": "Admin · Eventempfang",
+        "level": "OK",
+        "value": "1157 / 1157",
+        "target": "Alle gesendeten Updates zugeordnet",
+        "detail": "Vollständige Zuordnung."
+      },
+      {
+        "id": "admin_max",
+        "label": "Admin · Maximum",
+        "level": "WARN",
+        "value": "76 ms",
+        "target": "Wunschziel < 50 ms",
+        "detail": "Ein einzelner Ausreißer verletzt nicht automatisch das p99-Ziel. Updates über 50 ms: 6."
+      },
+      {
+        "id": "queues",
+        "label": "Server-Warteschlangen",
+        "level": "OK",
+        "value": "Kein anhaltender Rückstau",
+        "target": "Kein wachsender Rückstau / keine Queue-Fehler",
+        "detail": "Bewertung anhand der bestehenden Rückstau-Erkennung; kurze Spitzen sind erlaubt."
+      }
+    ],
+    "queue_incidents": []
+  },
+  "source_file": "bts-test-28.json",
+  "initial_state": {
+    "matches": 373,
+    "finished_matches": 105,
+    "active_matches": 13,
+    "active_courts": 13
+  },
+  "archive": {
+    "probe_failures": 0,
+    "trace_gaps": 0,
+    "archive_dropped": {
+      "samples": 0,
+      "traces": 0,
+      "events": 0
+    },
+    "drain": {
+      "started": 1792859845379,
+      "clear_since": 1792859846334,
+      "finished_ms": 955
+    },
+    "telemetry_samples": 598,
+    "traces": 9711
+  },
+  "phase_measurements": {
+    "speech_snapshot_collect": {
+      "count": 365,
+      "p50": 0.1,
+      "p95": 0.3,
+      "p99": 0.6,
+      "max": 3.3
+    },
+    "speech_bridge_send": {
+      "count": 4616,
+      "p50": 0.1,
+      "p95": 0.2,
+      "p99": 0.5,
+      "max": 9.9
+    },
+    "preparation_selection_dispatch": {
+      "count": 1250,
+      "p50": 0.1,
+      "p95": 0.1,
+      "p99": 0.2,
+      "max": 3.5
+    },
+    "preparation_selection_turn": {
+      "count": 11573,
+      "p50": 2,
+      "p95": 4,
+      "p99": 5.3,
+      "max": 19
+    }
+  },
+  "slow_updates": [
+    {
+      "elapsed_ms": 192681,
+      "tv_ms": 75,
+      "admin_ms": 76,
+      "trace_id": 3646,
+      "operation_ms": 94,
+      "longest_spans": [
+        {
+          "name": "handle_score_update_v2",
+          "kind": "lock_wait",
+          "duration_ms": 61.4,
+          "blocker_tasks": [
+            "fetch_sync_apply"
+          ]
+        },
+        {
+          "name": "handle_score_update_v2",
+          "kind": "lock_hold",
+          "duration_ms": 32.4,
+          "blocker_tasks": []
+        },
+        {
+          "name": "device_info",
+          "kind": "phase",
+          "duration_ms": 13,
+          "blocker_tasks": []
+        },
+        {
+          "name": "device_info_settings_read",
+          "kind": "phase",
+          "duration_ms": 11.3,
+          "blocker_tasks": []
+        },
+        {
+          "name": "matches:score_update_write",
+          "kind": "db_run",
+          "duration_ms": 10,
+          "blocker_tasks": []
+        },
+        {
+          "name": "db_update_match",
+          "kind": "phase",
+          "duration_ms": 9,
+          "blocker_tasks": []
+        }
+      ]
+    },
+    {
+      "elapsed_ms": 348777,
+      "tv_ms": 68,
+      "admin_ms": 68,
+      "trace_id": 6571,
+      "operation_ms": 87.4,
+      "longest_spans": [
+        {
+          "name": "handle_score_update_v2",
+          "kind": "lock_hold",
+          "duration_ms": 73.2,
+          "blocker_tasks": []
+        },
+        {
+          "name": "db_update_match",
+          "kind": "phase",
+          "duration_ms": 40.6,
+          "blocker_tasks": []
+        },
+        {
+          "name": "matches:score_update_write",
+          "kind": "db_run",
+          "duration_ms": 32.1,
+          "blocker_tasks": []
+        },
+        {
+          "name": "score_change_court_panels",
+          "kind": "phase",
+          "duration_ms": 31.5,
+          "blocker_tasks": []
+        },
+        {
+          "name": "matches:display_context_match",
+          "kind": "db_wait",
+          "duration_ms": 29.1,
+          "blocker_tasks": [
+            "matches:score_update_write"
+          ]
+        },
+        {
+          "name": "device_info",
+          "kind": "phase",
+          "duration_ms": 14.5,
+          "blocker_tasks": []
+        }
+      ]
+    },
+    {
+      "elapsed_ms": 348813,
+      "tv_ms": 58,
+      "admin_ms": 66,
+      "trace_id": 6572,
+      "operation_ms": 109,
+      "longest_spans": [
+        {
+          "name": "handle_score_update_v2",
+          "kind": "lock_hold",
+          "duration_ms": 100.9,
+          "blocker_tasks": []
+        },
+        {
+          "name": "device_info",
+          "kind": "phase",
+          "duration_ms": 35.4,
+          "blocker_tasks": []
+        },
+        {
+          "name": "device_info_settings_read",
+          "kind": "phase",
+          "duration_ms": 26.8,
+          "blocker_tasks": []
+        },
+        {
+          "name": "load_context",
+          "kind": "phase",
+          "duration_ms": 23.3,
+          "blocker_tasks": []
+        },
+        {
+          "name": "load_context_match",
+          "kind": "phase",
+          "duration_ms": 23.2,
+          "blocker_tasks": []
+        },
+        {
+          "name": "matches:score_context_match",
+          "kind": "db_wait",
+          "duration_ms": 22.3,
+          "blocker_tasks": [
+            "matches:score_update_write"
+          ]
+        }
+      ]
+    },
+    {
+      "elapsed_ms": 538214,
+      "tv_ms": 48,
+      "admin_ms": 61,
+      "trace_id": 8645,
+      "operation_ms": 95.4,
+      "longest_spans": [
+        {
+          "name": "handle_score_update_v2",
+          "kind": "lock_hold",
+          "duration_ms": 72.4,
+          "blocker_tasks": []
+        },
+        {
+          "name": "device_info",
+          "kind": "phase",
+          "duration_ms": 46.1,
+          "blocker_tasks": []
+        },
+        {
+          "name": "device_info_settings_read",
+          "kind": "phase",
+          "duration_ms": 42,
+          "blocker_tasks": []
+        },
+        {
+          "name": "admin:display_wait_for_done",
+          "kind": "send_wait",
+          "duration_ms": 32.5,
+          "blocker_tasks": []
+        },
+        {
+          "name": "admin:score",
+          "kind": "send_wait",
+          "duration_ms": 32.4,
+          "blocker_tasks": []
+        },
+        {
+          "name": "admin:court_current_match",
+          "kind": "send_wait",
+          "duration_ms": 25.6,
+          "blocker_tasks": []
+        }
+      ]
+    },
+    {
+      "elapsed_ms": 185097,
+      "tv_ms": 54,
+      "admin_ms": 56,
+      "trace_id": 3506,
+      "operation_ms": 16.6,
+      "longest_spans": [
+        {
+          "name": "handle_score_update_v2",
+          "kind": "lock_hold",
+          "duration_ms": 16.4,
+          "blocker_tasks": []
+        },
+        {
+          "name": "score_change_court_panels",
+          "kind": "phase",
+          "duration_ms": 7.5,
+          "blocker_tasks": []
+        },
+        {
+          "name": "device_info",
+          "kind": "phase",
+          "duration_ms": 6.5,
+          "blocker_tasks": []
+        },
+        {
+          "name": "device_info_settings_read",
+          "kind": "phase",
+          "duration_ms": 5,
+          "blocker_tasks": []
+        },
+        {
+          "name": "display_court_displaysettings:findOne",
+          "kind": "db_wait",
+          "duration_ms": 4.7,
+          "blocker_tasks": []
+        },
+        {
+          "name": "matches:score_update_write",
+          "kind": "db_run",
+          "duration_ms": 4.6,
+          "blocker_tasks": []
+        }
+      ]
+    },
+    {
+      "elapsed_ms": 80982,
+      "tv_ms": 43,
+      "admin_ms": 51,
+      "trace_id": 1496,
+      "operation_ms": 53.5,
+      "longest_spans": [
+        {
+          "name": "handle_score_update_v2",
+          "kind": "lock_hold",
+          "duration_ms": 50.6,
+          "blocker_tasks": []
+        },
+        {
+          "name": "matches:score_update_write",
+          "kind": "db_run",
+          "duration_ms": 36.6,
+          "blocker_tasks": []
+        },
+        {
+          "name": "db_update_match",
+          "kind": "phase",
+          "duration_ms": 31.4,
+          "blocker_tasks": []
+        },
+        {
+          "name": "device_info",
+          "kind": "phase",
+          "duration_ms": 8.3,
+          "blocker_tasks": []
+        },
+        {
+          "name": "score_change_court_panels",
+          "kind": "phase",
+          "duration_ms": 8.2,
+          "blocker_tasks": []
+        },
+        {
+          "name": "device_info_settings_read",
+          "kind": "phase",
+          "duration_ms": 6.8,
+          "blocker_tasks": []
+        }
+      ]
+    },
+    {
+      "elapsed_ms": 506446,
+      "tv_ms": 46,
+      "admin_ms": 48,
+      "trace_id": 8114,
+      "operation_ms": 69,
+      "longest_spans": [
+        {
+          "name": "handle_score_update_v2",
+          "kind": "lock_hold",
+          "duration_ms": 66,
+          "blocker_tasks": []
+        },
+        {
+          "name": "matches:score_update_write",
+          "kind": "db_run",
+          "duration_ms": 31.4,
+          "blocker_tasks": []
+        },
+        {
+          "name": "db_update_match",
+          "kind": "phase",
+          "duration_ms": 30.3,
+          "blocker_tasks": []
+        },
+        {
+          "name": "device_info",
+          "kind": "phase",
+          "duration_ms": 18,
+          "blocker_tasks": []
+        },
+        {
+          "name": "score_change_court_panels",
+          "kind": "phase",
+          "duration_ms": 16.9,
+          "blocker_tasks": []
+        },
+        {
+          "name": "device_info_settings_read",
+          "kind": "phase",
+          "duration_ms": 15.7,
+          "blocker_tasks": []
+        }
+      ]
+    },
+    {
+      "elapsed_ms": 489319,
+      "tv_ms": 47,
+      "admin_ms": 47,
+      "trace_id": 7827,
+      "operation_ms": 50.7,
+      "longest_spans": [
+        {
+          "name": "handle_score_update_v2",
+          "kind": "lock_hold",
+          "duration_ms": 34.6,
+          "blocker_tasks": []
+        },
+        {
+          "name": "handle_score_update_v2",
+          "kind": "lock_wait",
+          "duration_ms": 15.9,
+          "blocker_tasks": []
+        },
+        {
+          "name": "device_info",
+          "kind": "phase",
+          "duration_ms": 14.5,
+          "blocker_tasks": []
+        },
+        {
+          "name": "device_info_settings_read",
+          "kind": "phase",
+          "duration_ms": 13.5,
+          "blocker_tasks": []
+        },
+        {
+          "name": "db_update_match",
+          "kind": "phase",
+          "duration_ms": 9.6,
+          "blocker_tasks": []
+        },
+        {
+          "name": "score_change_court_panels",
+          "kind": "phase",
+          "duration_ms": 8.5,
+          "blocker_tasks": []
+        }
+      ]
+    },
+    {
+      "elapsed_ms": 573066,
+      "tv_ms": 41,
+      "admin_ms": 45,
+      "trace_id": 9256,
+      "operation_ms": 38.7,
+      "longest_spans": [
+        {
+          "name": "handle_score_update_v2",
+          "kind": "lock_hold",
+          "duration_ms": 24.1,
+          "blocker_tasks": []
+        },
+        {
+          "name": "handle_score_update_v2",
+          "kind": "lock_wait",
+          "duration_ms": 14.4,
+          "blocker_tasks": []
+        },
+        {
+          "name": "matches:score_update_write",
+          "kind": "db_run",
+          "duration_ms": 10.3,
+          "blocker_tasks": []
+        },
+        {
+          "name": "db_update_match",
+          "kind": "phase",
+          "duration_ms": 10.3,
+          "blocker_tasks": []
+        },
+        {
+          "name": "device_info",
+          "kind": "phase",
+          "duration_ms": 7.7,
+          "blocker_tasks": []
+        },
+        {
+          "name": "device_info_settings_read",
+          "kind": "phase",
+          "duration_ms": 6.3,
+          "blocker_tasks": []
+        }
+      ]
+    },
+    {
+      "elapsed_ms": 354522,
+      "tv_ms": 44,
+      "admin_ms": 44,
+      "trace_id": 6675,
+      "operation_ms": 66,
+      "longest_spans": [
+        {
+          "name": "handle_score_update_v2",
+          "kind": "lock_hold",
+          "duration_ms": 60.3,
+          "blocker_tasks": []
+        },
+        {
+          "name": "device_info",
+          "kind": "phase",
+          "duration_ms": 25.5,
+          "blocker_tasks": []
+        },
+        {
+          "name": "db_update_match",
+          "kind": "phase",
+          "duration_ms": 21.9,
+          "blocker_tasks": []
+        },
+        {
+          "name": "device_info_settings_read",
+          "kind": "phase",
+          "duration_ms": 21.1,
+          "blocker_tasks": []
+        },
+        {
+          "name": "matches:score_update_write",
+          "kind": "db_run",
+          "duration_ms": 19.5,
+          "blocker_tasks": []
+        },
+        {
+          "name": "display_court_displaysettings:findOne",
+          "kind": "db_wait",
+          "duration_ms": 17.8,
+          "blocker_tasks": [
+            "display_court_displaysettings:findOne@bupws_v2.js:1095>bupws_v2.js:1821"
+          ]
+        }
+      ]
+    }
+  ],
+  "interpretation": {
+    "sustained_queue_backlog": false,
+    "audio_caused_delays_proven": false,
+    "limits": "Recorded spans overlap and include waiting; they are not additive CPU time. This export includes no browser playback/fallback log."
+  }
+}

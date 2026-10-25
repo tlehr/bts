@@ -62,7 +62,7 @@ def main():
          "text": source["field"]["text"].replace("Spielfeld acht", "Spielfeld (((acht)))"),
          "purpose": "Hervorhebung der Feldnummer im vollständigen Referenzaufruf"},
         {"id": "walkover_pause", "display": source["walkover"]["display"],
-         "text": source["walkover"]["text"].replace("geht kampflos an Nina", "geht kampflos an <pause> Nina"),
+         "text": source["walkover"]["text"].replace("geht kampflos an: Max", "geht kampflos an: <pause> Max"),
          "purpose": "Aussprechbares Ende der gemeinsamen Kampflos-Klausel vor dem Beispiel-Sieger"},
     ]
     report = {"engine": identity, "worker_sha256": file_digest(worker), "expression_conditioning": "{emo: 1}",

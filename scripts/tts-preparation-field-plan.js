@@ -57,11 +57,11 @@ function withPreparation(plan, existing, tournament) {
     };
     const opening = take('lab-v2/B09-opening', 'In Vorbereitung!'), closing = take('lab-v2/B09-closing', 'Das Spiel ist in Vorbereitung!');
     const game = [['lab-v2/B03', 'Spielnummer einhunderteinundsechzig'], ['lab-v2/B04', 'Jungen Einzel U siebzehn'],
-        ['lab-v2/B05', 'Achtelfinale!'], ['lab-v2/team-before-plays', 'Muhammad Sytsh Abdulquddus'],
-        ['lab-v2/team-after-with-gegen', 'gegen Max Hahn']].map(([profile, text]) => take(profile, text));
-    const officials = [['lab-v2/B08-role-umpire', 'Schiedsrichter'], ['lab-v2/team-after-gegen', 'Tim Lehr'],
-        ['lab-v2/B08-role-service', 'Aufschlagrichter'], ['lab-v2/team-after-gegen', 'Max Hahn'],
-        ['lab-v2/B08-role'], ['lab-v2/team-after-gegen', 'Emil Hermann und Konrad Wendt']]
+        ['lab-v2/B05', 'Achtelfinale!'], ['lab-v2/team-before-plays', 'Max Mustermann'],
+        ['lab-v2/team-after-with-gegen', 'gegen Hans Dampf']].map(([profile, text]) => take(profile, text));
+    const officials = [['lab-v2/B08-role-umpire', 'Schiedsrichter'], ['lab-v2/team-after-gegen', 'Max Mustermann'],
+        ['lab-v2/B08-role-service', 'Aufschlagrichter'], ['lab-v2/team-after-gegen', 'Hans Dampf'],
+        ['lab-v2/B08-role'], ['lab-v2/team-after-gegen', 'Erika Musterfrau und Otto Normalverbraucher']]
         .map(([profile, text]) => take(profile, text));
     const get = key => result.pieces.find(p => p.id === key);
     const texts = create({ tournament: { ...tournament, normalizations: plan.pronunciation.normalizations,

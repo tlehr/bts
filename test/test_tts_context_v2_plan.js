@@ -18,10 +18,10 @@ describe('Laboratory-only context v2 plans', function() {
         assert.strictEqual(plan.production_strategy, 'bts-context-v1');
         const dual = plan.sources.filter(source => source.profile === 'lab-v2/name-dual-position');
         assert.strictEqual(dual.length, 3);
-        assert(dual.some(source => source.text === 'Johann Bjarne Schöttmer gegen Johann Bjarne Schöttmer.'));
+        assert(dual.some(source => source.text === 'Max Emil Mustermann gegen Max Emil Mustermann.'));
         const sources = new Map(plan.sources.map(source => [source.id, source]));
         for (const piece of plan.pieces) assert.strictEqual(piece.before + piece.text + piece.after, sources.get(piece.source).text);
-        const names = plan.pieces.filter(piece => piece.profile.startsWith('lab-v2/name-') && piece.text === 'Johann Bjarne Schöttmer');
+        const names = plan.pieces.filter(piece => piece.profile.startsWith('lab-v2/name-') && piece.text === 'Max Emil Mustermann');
         assert.strictEqual(names.length, 2);
         assert.notStrictEqual(names[0].id, names[1].id, 'prosodic positions must never share the same key');
         assert.strictEqual(names[0].source, names[1].source, 'one source supplies both complete positions');
@@ -57,7 +57,7 @@ describe('Laboratory-only context v2 plans', function() {
         assert.strictEqual(changed.sources.filter(item => !before.has(item.id)).length, 1, 'only the full reference needs a new source');
         const pieces = new Map(changed.pieces.map(item => [item.id, item]));
         const text = changed.cases[2].pieces.map(item => pieces.get(item.piece).text).join(' ');
-        assert(text.includes('Johann Bjarne Schöttmer gegen Muhammad Sytsh Abdulquddus.'));
+        assert(text.includes('Max Emil Mustermann gegen Max Mustermann.'));
         assert(text.includes('Spiel Nummer einunddreißig.'));
         assert(text.includes('Jungeneinzel U siebzehn.'));
         assert.strictEqual(changed.expected_new_source_counts_when_primed.v2_assembly, 0);

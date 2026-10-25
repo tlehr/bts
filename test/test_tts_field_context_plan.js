@@ -5,7 +5,7 @@ const { gameblocks } = require('../scripts/tts-gameblock-context-plan');
 const { fields, REFERENCE } = require('../scripts/tts-field-context-plan');
 
 function baseline(normalizations = []) {
-    const teams = [{ players: [{ name: 'Nina Keo Boun Khoune' }] }, { players: [{ name: 'LeandraGalowicz' }] }];
+    const teams = [{ players: [{ name: 'Max Mustermann' }] }, { players: [{ name: 'Hans Dampf' }] }];
     return gameblocks({ normalizations }, [{ id: 'test', label: 'Test', origin: 'fixture',
         setup: { match_num: 189, event_name: 'ME U19', match_name: 'R16', teams } }]);
 }
@@ -44,11 +44,11 @@ describe('B01 field-context hearing plan', function() {
     });
 
     it('deduplicates courts, applies existing name rules and rejects invalid requests', function() {
-        const existing = baseline([{ language: 'de-DE', origin: 'Nina', replace: 'Niena' }]);
+        const existing = baseline([{ language: 'de-DE', origin: 'Mustermann', replace: 'Mustermahn' }]);
         const plan = fields(existing, [8, 8, 9]);
         assert.strictEqual(plan.sources.length, existing.sources.length + 2);
         const sources = plan.sources.filter(item => item.profile === 'lab-v2/field-reference');
-        assert(sources.every(item => item.text.includes('Niena Keo Boun Khoune')));
+        assert(sources.every(item => item.text.includes('Max Mustermahn')));
         assert(sources[1].text.startsWith('Auf Spielfeld neun!'));
         assert(sources[1].text.endsWith('Auf Spielfeld neun!'));
         for (const courts of [[], [0], [-1], [1.5], ['8']]) assert.throws(() => fields(existing, courts), /court numbers/);

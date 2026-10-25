@@ -1,6 +1,7 @@
 'use strict';
 
 const { deepCopy } = require('nedb/lib/model');
+const { natcmp } = require('../utils');
 
 // Resolve the committed versions before copying the remaining envelope. In
 // particular, discarded match histories and court lists must not be traversed.
@@ -16,7 +17,9 @@ module.exports = function notification_value(notification, current_match, curren
 		else { source = current_match; committed = true; }
 	}
 	for (const [field, collection] of [['all_courts', 'courts'], ['all_locations', 'locations'], ['all_umpires', 'umpires']]) {
-		if (source?.[field]) replacements[field] = state[collection];
+		if (source?.[field]) replacements[field] = field === 'all_courts'
+			? state.courts.slice().sort((a, b) => natcmp(String(a.num), String(b.num)))
+			: state[collection];
 	}
 	if (!Object.keys(replacements).length) return committed ? source : deepCopy(source);
 	const result = {};

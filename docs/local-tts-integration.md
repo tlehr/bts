@@ -2,6 +2,173 @@
 
 Wortlaut, Reihenfolge und Stückelung der Turnierdurchsagen bearbeiten wir im [Arbeitsdokument zu den Durchsagen](durchsagen-arbeitsdokument.md).
 
+Die Ansageverwaltung läuft jetzt standardmäßig in einem eigenen Worker. Er
+übernimmt auch Audioabruf, WAV-Aufbereitung und direkte Auslieferung zum Browser;
+der BTS-Hauptthread transportiert keine Audiodaten. Dafür muss zusätzlich der
+Audioport erreichbar sein: standardmäßig BTS-Port + 1, also HTTP 4001 oder HTTPS
+4434. HTTPS verwendet dieselben Zertifikate wie BTS. Einstellungen und
+Cache-Steuerung bleiben auf dem vorhandenen WebSocket. Nach dem Update BTS neu
+starten und alle Browserseiten neu laden. Konfiguration, Referenz-/Kopierverhalten,
+Tests und Rückwechsel beschreibt [Ansagen im eigenen Worker](../bts/speech/README.md).
+
+Die Live-Planungsansicht zeigt rechts neben dem Diagramm die **Aktuelle Queue**:
+laufender Auftrag zuerst, danach die vorgemerkten Texte mit Reihenfolge,
+Priorität, Stimme und Status. Fertige Aufnahmen sind ausgeblendet; fehlgeschlagene
+oder zurückgestellte Aufträge bleiben erkennbar. Diagramm und Liste werden alle
+zwei Sekunden über denselben Admin-WebSocket abgefragt, ohne Generierung
+auszulösen. Für die Spalte werden nur offene Einträge ohne vollständige
+Inventarauswertung übertragen. Auf schmalen Bildschirmen steht sie unter dem
+Diagramm; bei Verbindungsabbruch wird die alte Queue entfernt. Nach dem Update
+BTS neu starten und die Planungsseite neu laden.
+
+Die Live-Queue nennt für jeden bekannten Auftrag den Planbereich und für
+Anmeldevorarbeit zusätzlich Disziplin, deren Rang und Status sowie die Art und
+Position der Bezeichnung, etwa „Disziplin 1: JE U17 → Verein 2: Musterverein“.
+Quellaufnahmen erben den Grund ihres frühesten noch benötigten Ausschnitts;
+der Name im vollständigen Quelltext allein erklärt den Bedarf nicht.
+Die Anmeldung enthält im Zustandsdiagramm einen eigenen Unterablauf:
+gemeinsame Texte → Geöffnete Anmeldungen → gegebenenfalls Abgeschlossene
+Anmeldungen → Noch nicht geöffnete Anmeldungen. Die beiden Bereiche für offene
+und noch nicht geöffnete Anmeldungen enthalten jeweils drei Phasen:
+Landesverbände → Vereine → Spieler/Paarungen. Jede Phase enthält die zugehörigen
+Disziplinen nach ihrem ersten angesetzten Spiel, verbunden durch Pfeile. Dafür
+übernimmt BTS aus BTP auch die Zeitplanung noch nicht ausgeloster Disziplinen.
+Die Einträge zeigen Spielnummer und Termin; ohne Planungsdaten gilt die
+BTP-Listenreihenfolge. Diese Planungsdaten ändern den Auslosungsstatus nicht.
+Abgeschlossene Anmeldungen behalten einen eigenen Schritt für die bekannten
+Teams zur Auslosung. Der blaue Auswahlweg reicht durch die Bereichsüberschrift
+bis zur aktuellen Phase und Disziplin. Bereich, Phase und Disziplin sind
+zusätzlich goldfarben markiert. Jeder Bereich, jede Phase und Disziplin besitzt
+einen Fortschrittsbalken mit bereit / in der Queue / gesamt. Er zählt abspielbare
+Bausteine; fertig erzeugte Quellaufnahmen
+allein machen einen noch ausstehenden Ausschnitt nicht bereit. Vollständig
+vorbereitete Unterzustände sind hellgrün hinterlegt. Die BTP-Zeile nennt weiterhin
+die Zahl der Bezeichnungen. Gleiche Bausteine zählen in jeder benötigenden
+Disziplin, innerhalb der übergeordneten Phase und des Bereichs einmal.
+Die Verfügbarkeit wird je Abfrage nur einmal pro Baustein geprüft; diese Anzeige
+verändert keine Aufträge.
+Die Anmeldevorarbeit liegt in der breiteren rechten Spalte; laufende Spiele und deren
+Vorbereitung stehen links. Davor werden die noch offenen Dienstgruppen der
+Tablet-Warteliste mit normaler Priorität vorbereitet. Sie erhalten Vorrang vor
+laufenden und vorbereiteten Spielen; vor der ersten Auslosung bleibt die
+Anmeldevorarbeit vorrangig.
+Wartende Tablet-Dienste bleiben auch ohne erste Auslosung als direkter Bedarf
+erreichbar, sobald die vorrangige Anmeldevorarbeit bereit ist. Sie gehören nicht
+zur Vorarbeit im Leerlauf.
+Technische Offizielle werden unmittelbar nach
+Spielort- und Feldansagen vorbereitet. Diese Reihenfolge gilt auch für bereits
+vorgemerkte Aufträge; ein laufender Auftrag wird noch beendet. Nach der
+Turniervorarbeit führt der Auswahlweg ohne zusätzliche Raute zum aktuellen
+Spielbetrieb, weiter zu dessen Vorbereitung und dann zur Anmeldevorarbeit.
+Bereiche ohne Bedarf werden direkt übersprungen. Der Vorrang der Anmeldung vor
+der ersten Auslosung steht im Zustand und im Entscheidungsweg; die tatsächliche
+Priorisierung im Worker bleibt erhalten. Auch weitere angeforderte Aufgaben
+und Vorarbeit auf Vorrat stehen links. Der Auswahlweg nutzt die freie linke
+Spalte neben dem langen Anmeldezustand.
+Die Anmeldevorarbeit wird rechts nur einmal dargestellt. Die Spielbetriebsvorbereitung
+führt nach dem zusätzlichen Tablet-Vorrat zurück in diesen gemeinsamen Zustand.
+Sein einziger Nachfolger ist „Übrige Personen und Teams“. Der doppelte Zustand
+„Weitere Disziplinen“ entfällt. Die sichtbaren Zustände sind in Reihenfolge des
+Auswahlwegs lückenlos nummeriert: ohne zusätzliche angeforderte Aufgaben
+01–04 Turniervorarbeit, 05–07 aktueller Spielbetrieb, 08–10 Vorbereitung,
+11 Anmeldevorarbeit, 12 übrige Personen und Teams, 13 andere Stimme.
+Links bleibt Platz für die weiteren Zustände. Die abschließenden Warte- und
+Bereitschaftszustände liegen unter beiden Spalten. Die Live-Seite nutzt auch
+breite Browserfenster aus.
+Die Hauptbereiche sind links bündig angeordnet; Spielbetrieb, Vorbereitung und
+die nachfolgenden Zustände nutzen dieselbe Breite. Die Turniervorarbeit beginnt
+ebenfalls links und nutzt mehr Breite für ihre vier Unterzustände. Zur Anmeldung
+rechts bleiben getrennte Pfeilspuren mit größerem Abstand. Beschriftungen wie
+„10 → 11“ und „11 → 12“ zeigen den Weg zur Anmeldung und ihren Nachfolger;
+die Nummern passen sich an die sichtbaren Bereiche an. Die Hinweise sind auch
+im SVG-Export enthalten.
+Sind weder benannte technische Offizielle hinterlegt noch einem Spiel
+zugeordnet, ist der Offiziellen-Zustand grau hinterlegt und zeigt „Keine
+Offiziellen im Turnier“. Der Null-Fortschrittsbalken entfällt; stattdessen steht
+dort, dass keine Vorbereitung erforderlich ist. Diese Aussage kommt aus den
+Turnierdaten und wird nicht aus der Zahl noch offener Audiobausteine abgeleitet.
+Sobald Offizielle erfasst sind, erscheinen wieder die normalen Fortschrittswerte.
+Die drei Phasen Landesverbände, Vereine und Spieler/Paarungen stehen auf
+Desktopbildschirmen nebeneinander. Innerhalb einer Phase stehen die Disziplinen
+untereinander; danach geht der Pfeil zur nächsten nummerierten Phase.
+Die Bereiche stehen untereinander und sind jeweils eingerahmt. Der breitere Block
+verringert so die Höhe, ohne Disziplinen oder Fortschrittswerte auszublenden.
+Beim Wechsel des aktiven Blocks oder der Fensterbreite wird der horizontale
+Diagrammausschnitt bei Bedarf angepasst; unveränderte Live-Aktualisierungen
+lassen manuelles Verschieben bestehen. Auf schmalen Bildschirmen stehen alle
+Phasen untereinander, und die Breite des Anmeldezustands passt in den
+verschiebbaren Diagrammausschnitt. Die gemeinsame Anmeldevorarbeit bleibt vor
+der ersten Auslosung vorrangig; offene Aufgaben anderer Bereiche werden dabei
+weiterhin als offen angezeigt. Eine bereits laufende Anmeldevorarbeit wird auch
+nach der ersten Auslosung noch beendet. Der Unterablauf ist
+auch im SVG-Export und beim Drucken enthalten.
+Im Vorrat folgen auf die Aufrufkandidaten die übrigen angesetzten Spiele,
+der zusätzliche Tablet-Vorrat und dann die gemeinsame Anmeldevorarbeit.
+Diagramm und Generierung verwenden dieselbe Reihenfolge.
+Aufrufkandidaten, weitere angesetzte Spiele und zusätzlicher Tablet-Vorrat stehen
+gemeinsam im Sammelzustand „Vorbereitung des aktuellen Spielbetriebs“. Die drei
+Unterzustände erscheinen nebeneinander, auf schmalen Bildschirmen untereinander.
+Jeder Unterzustand und die Kategorie zeigen ihren Fortschritt; fertige Bereiche
+sind hellgrün hinterlegt. Der innere Ablauf hat einen eigenen Anfang und ein Ende.
+Die äußeren Pfeile verbinden den Rahmen der Kategorie.
+Der zusätzliche Tablet-Vorrat umfasst alle noch nicht beendeten Disziplinen ab
+abgeschlossener Anmeldung, auch vor der Auslosung oder ohne laufendes Spiel.
+Die abgeschlossene Anmeldung ergibt sich aus dem Hauptfeld: Alle Spieler sind
+als anwesend oder abwesend erfasst. Disziplinen mit ausschließlich beendeten
+echten Spielen entfallen; eine Auslosung ohne geladene Spieldaten gilt noch
+nicht als beendet. Teams folgen ihren nächsten Spielen, danach die Teams ohne
+bekanntes nächstes Spiel. Identische Bausteine behalten ihren früheren Bedarf.
+Für diesen Vorrat werden ausschließlich als anwesend erfasste Spieler verwendet.
+Eine gemeinsam angesagte Paarung setzt die Anwesenheit aller Spieler voraus;
+bei eingeschalteten Einzelaufrufen werden nur die anwesenden Mitglieder
+vorbereitet. Unbekannte und als abwesend erfasste Personen werden ausgelassen.
+Im Tablet-Zustand stehen die Disziplinen als nummerierte Unterpunkte wie in der
+Anmeldevorarbeit. Jeder Eintrag zeigt BTP-Position, nächstes Spiel oder fehlende
+Spielzuordnung und einen Fortschrittsbalken. Fertige Einträge sind hellgrün,
+der aktuell ausgewählte Eintrag goldfarben; Disziplinen ohne zusätzlichen Bedarf
+sind grau. Die Nummerierung folgt dem ersten Auftreten im tatsächlichen Plan,
+nicht dem Alphabet. Spätere Spiele können erneut zu einer früheren Disziplin
+gehören; Teams ohne nächstes Spiel folgen nach allen bekannten nächsten Spielen.
+Gemeinsame Audiobausteine zählen in jeder benötigenden Disziplin einmal und
+werden wiederverwendet. Die Queue nennt die Disziplin und das nächste Spiel auch
+für die zugehörige Quellaufnahme. Die Anzeige verändert keine Aufträge.
+Die Leerlaufbedingung steht direkt im Vorbereitungszustand: Neue Vorratsaufträge
+beginnen erst ohne reguläre Arbeit und Planungsaktualisierungen in allen
+Turnieren. Dafür gibt es keine zusätzliche Raute. Fertige Bereiche werden in der
+Prioritätsfolge übersprungen; offene Aufgaben bleiben bei blockierter Generierung
+im Wartezustand vorgemerkt. Auch reguläre Aufträge mit ausstehender Wiederholung
+haben weiterhin Vorrang.
+
+Für die Anmeldung gelten diese Regeln:
+
+1. Gemeinsame Anmeldetexte vor allen Bezeichnungen.
+2. Über alle offenen Anmeldungen werden zuerst sämtliche Landesverbände und danach
+   sämtliche Vereine vorbereitet. Erst anschließend folgen die Spieler/Paarungen
+   und die Namens-/Teamstücke aus allen offenen Disziplinen. Jede dieser Phasen
+   durchläuft die offenen Disziplinen nach ihrem ersten angesetzten Spiel.
+   Bei gleichem Termin gelten die bestehende manuelle Spielreihenfolge und
+   Spielnummer; ohne Planungsdaten folgt die ursprüngliche BTP-Listenreihenfolge.
+3. In der Spielerphase folgen je Disziplin einzelne Spieler, anschließend je
+   bekannter Meldung gegebenenfalls der Paarungsaufruf und die Namens-/Teamstücke.
+   Innerhalb der Gruppen gilt die BTP-Reihenfolge von Liste, Meldung und Person,
+   keine alphabetische Sortierung. Nach den offenen Disziplinen folgen bekannte
+   Teams abgeschlossener Anmeldungen. Die noch nicht geöffneten Anmeldungen
+   durchlaufen danach dieselben drei Phasen über alle zugehörigen Disziplinen:
+   zunächst alle Landesverbände, dann alle Vereine, dann Spieler/Paarungen.
+   Ausgeloste Disziplinen werden übersprungen.
+4. Für als anwesend/abwesend erfasste Personen entstehen keine Einzelaufrufe mehr.
+   Der Aufruf einer vollständig bekannten Paarung bleibt nötig, solange mindestens
+   eine ihrer Personen noch offen ist. Bei abgeschlossener Anmeldung bleiben die
+   bekannten Teams für die Auslosung relevant. Bereits fertige gleiche Bausteine
+   werden wiederverwendet.
+
+Die Liste zeigt ausführbare Aufträge vor noch blockierten Ausschnitten.
+Ein laufender Auftrag wird beendet; ausgelöste Durchsagen haben Vorrang.
+Innerhalb einer Priorität wechseln sich Stimmen ab. Positionsnummern beziehen
+sich auf die gemeinsame Queue aller Turniere, auch wenn nur dieses Turnier
+angezeigt wird. Die zusätzlichen Erklärungen entstehen im Sprachworker direkt
+aus dem bestehenden Plan und verändern die Sortierung nicht.
+
 ## Kontext v2 und gemeinsame Wiedergabeaufbereitung
 
 Der aktualisierte BTS nutzt das vom Sprachserver angebotene Profil
@@ -64,6 +231,13 @@ BTS meldet fertige oder fehlgeschlagene Teilstücke über die bestehende Admin-V
 Der Fortschrittsbalken zeigt **fertige Aufnahmen / aktuell vorgemerkte Texte** für die gewählte Stimme dieses Turniers, ergänzt um Anzahl und Prozentwert. Die Zahl links stammt aus derselben Abfrage wie die Liste und der Balken. Fehlgeschlagene Texte werden separat genannt und zählen weiterhin zum noch offenen Vorrat. 100 % erscheinen erst, wenn alle enthaltenen Texte fertig sind. Ohne vorgemerkte Texte oder bei fehlendem Status bleibt der Balken ausgeblendet. Die Anzeige bezieht sich auf den aktuell vom BTS verwalteten Cache und Vorbereitungshorizont, kein vollständiges Archiv des Sprachservers.
 
 Die CPU muss die Vorbereitungen zunächst abarbeiten. Bereits bekannte Texte werden automatisch frühzeitig erzeugt; bei einem ersten Kaltstart oder bisher unbekannten Namen kann trotzdem ein Fallback erforderlich sein. Generierung selbst löst keine Wiedergabe aus.
+
+Der reguläre Sprachserverstart setzt die CPU-Priorität der API und ihrer neuen
+Kindprozesse standardmäßig auf Nice 10 (`BTS_PROCESS_NICE`, 0 deaktiviert die
+Anpassung). Bei Konkurrenz um Rechenzeit erhält BTS damit Vorrang. Das ist
+keine CPU-Obergrenze. Die Einstellung verändert weder die Threadzahl noch
+Audio-Cache-Schlüssel; vorhandene Aufnahmen bleiben gültig. Sie wirkt beim
+nächsten Sprachserverstart. [Vergleichsmessung und Grenzen](../debug/performance_speech_contention_2026-10-24.md).
 
 ## Lokale Bereitschaft einzelner Durchsagen
 
@@ -286,15 +460,15 @@ Spielnummer und angesetzte Uhrzeit ändern diese Aufrufreihenfolge nicht. Bei gl
 Erst wenn keine reguläre Arbeit mehr offen ist, werden zusätzlich vorbereitet:
 
 1. Aufrufkandidaten mit ihren vollständigen Spielpaketen und möglichen Tabletbedienern.
-2. Noch nicht zugewiesene Bediener aus der Tablet-Warteliste.
-3. Weitere bekannte Spielblöcke und Ansagen in der Reihenfolge der BTS-Liste; Tabletansagen weiterer Teams bleiben auf laufende Disziplinen begrenzt.
-4. Weitere gemeldete Teams laufender Disziplinen ohne anstehende bekannte Paarung.
-5. Weitere bekannte Schiedsrichter und Aufschlagrichter, einschließlich ihrer Vorbereitungsaufrufe und Hallenvarianten.
+2. Weitere bekannte Spielblöcke und Ansagen in der Reihenfolge der BTS-Liste.
+3. Zusätzlicher Tablet-Vorrat: anwesende Spieler und vollständig anwesende Paarungen aller noch nicht beendeten Disziplinen ab abgeschlossener Anmeldung, einschließlich ausgeloster und laufender Disziplinen. Sie folgen der Reihenfolge ihrer nächsten Spiele nach der BTS-Sortierung. Bei mehrfach vorkommenden Teams zählt das nächste Spiel; Teams ohne bekanntes nächstes Spiel folgen danach. Noch offene und nicht geöffnete Anmeldungen gehören nicht zu diesem Bereich.
+4. Weitere Disziplinen mit ihren Anmeldephasen, sobald die erste Auslosung erfolgt ist.
+5. Bei älteren Kontextversionen: weitere bekannte Schiedsrichter und Aufschlagrichter, einschließlich ihrer Vorbereitungsaufrufe und Hallenvarianten.
 6. Alle übrigen bekannten möglichen Tablet-/Klapptafelbediener: Einzelpersonen und konfigurierte Paarungen aus sämtlichen Disziplinen, auch ohne anstehendes Spiel oder nach bereits abgeschlossenen Spielen. Dazu gehören die Einzelpersonen einer Doppelpaarung auch dann, wenn die üblichen Spielpakete die Paarung gemeinsam aufrufen. Vorbereitungsaufrufe und Hallenvarianten werden ebenfalls vorbereitet.
 
 Diese späteren Spiele und Personen werden vorher nicht automatisch als benötigt vorgemerkt. Für Aufrufkandidaten und weitere Spiele gilt die BTS-Sortierung: geplanter Termin, bei gleichem Termin eine vorhandene manuelle Reihenfolge, danach Spielnummer. Bekannte Teams unvollständiger Paarungen behalten die Position ihres Spiels; unbekannte Namen werden ausgelassen. Die Platzhalterzeit `00:00` und fehlende Uhrzeiten folgen den vorhandenen Regeln der Spielliste. Kommt ein Team in mehreren Paketen vor, zählt sein dringendster Bedarf; identische Ansagen werden nur einmal vorbereitet.
 
-Eine Disziplin gilt hier als laufend, wenn sie ein Spiel auf dem Feld, in Vorbereitung oder unter den aktuellen Aufrufkandidaten hat. BTS ordnet die BTP-Stufen der jeweiligen Disziplin zu; ohne Stufeninformationen verwendet es den Disziplinnamen. Gibt es noch keine aktiven Spiele, beginnt es mit der nächsten anstehenden Disziplin. Teams dieser Disziplinen behalten ihren Vorrang; Kandidaten anderer Disziplinen und zusätzliche Einzelpersonen folgen erst in der letzten Stufe. Diese letzte Stufe verwendet dieselbe Kandidatenliste wie die Fortschrittsanzeige und erzeugt nur bekannte Namen beziehungsweise Landesverbände. Doppelaufteilung, Landesverbandsansagen, Klapptafeln, Namensnormalisierung und die bestehenden Kontextaufnahmen gelten auch im Leerlauf. Unbekannte Gegner oder freie Ansagetexte werden nicht erfunden.
+Die Spielpakete für Spiele auf dem Feld, in Vorbereitung und unter den aktuellen Aufrufkandidaten behalten ihre möglichen Tabletbediener im jeweiligen früheren Bereich. Der zusätzliche Vorrat ist darüber hinaus für alle Disziplinen mit abgeschlossener Anmeldung oder vorhandener Auslosung vorgesehen, solange deren echte Spiele nicht vollständig beendet sind. BTS ordnet die BTP-Stufen der jeweiligen Disziplin zu; ohne Stufeninformationen verwendet es den Disziplinnamen. Zusätzliche Einzelpersonen und alle übrigen Kandidaten folgen erst in der letzten Stufe. Diese letzte Stufe verwendet dieselbe Kandidatenliste wie die Fortschrittsanzeige und erzeugt nur bekannte Namen beziehungsweise Landesverbände. Doppelaufteilung, Landesverbandsansagen, Klapptafeln, Namensnormalisierung und die bestehenden Kontextaufnahmen gelten auch im Leerlauf. Unbekannte Gegner oder freie Ansagetexte werden nicht erfunden.
 
 Der Leerlaufplan bleibt zunächst ein Inventar möglicher Texte. Erst ohne offene reguläre Arbeit übernimmt der Broker jeweils einen Baustein samt benötigter Quellaufnahme. Eine geänderte Spielreihenfolge gilt auch für bereits vorgemerkte Leerlaufbausteine und deren Quellen, solange diese noch nicht gestartet wurden. Auch Wartezeiten auf die Wiederholung fehlgeschlagener regulärer Arbeit werden nicht mit zusätzlicher Synthese gefüllt. Ein neuer regulärer Auftrag hat vor dem nächsten Leerlaufauftrag Vorrang; eine bereits angenommene Aufnahme oder eine Anfrage mit ungewissem Ausgang behält den einzigen Serverplatz bis zur Klärung. BTS verwendet intern die zusätzliche Priorität `idle`, an den unveränderten Sprachserver geht dafür `low`.
 

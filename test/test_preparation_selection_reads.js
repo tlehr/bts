@@ -34,6 +34,56 @@ describe('preparation status model reads and timing', function() {
 			if (value === undefined) delete process.env[flag]; else process.env[flag] = value;
 		}
 	});
+	it('waits for points before even discovering UI candidates', async function() {
+		const foreground = require('../bts/foreground_work');
+		let reads = 0, completed = false;
+		const input = { locations: [], get matches() { reads++; return []; } };
+		const end = foreground.begin('handle_score_update_v2');
+		const pending = rules.calculate_all_location_preparation_selections(input, { cooperative: true })
+			.then(rows => { completed = true; return rows; });
+		try {
+			await turn();
+			assert.strictEqual(reads, 0);
+			assert.strictEqual(completed, false);
+		} finally { end(); }
+		assert.deepStrictEqual(await pending, []);
+		assert(reads > 0);
+	});
+	it('pauses candidate discovery when a point starts between calculation stages', async function() {
+		const foreground = require('../bts/foreground_work');
+		let end, locations_read = 0;
+		const input = {
+			get matches() { end ||= foreground.begin('handle_score_update_v2'); return []; },
+			get locations() { locations_read++; return [{ _id: 'hall' }]; },
+			courts: [],
+		};
+		const pending = rules.calculate_all_location_preparation_selections(input, { cooperative: true, now_ts: 1000000 });
+		try {
+			await turn();
+			assert(end);
+			assert.strictEqual(locations_read, 0);
+		} finally { end?.(); }
+		assert.strictEqual((await pending)[0].location_id, 'hall');
+	});
+	it('still gives I/O a turn when a priority owner awaits its own selection helper', async function() {
+		const foreground = require('../bts/foreground_work');
+		const cooperate = require('../bts/preparation_selection/cooperative');
+		const end = foreground.begin('handle_score_update_v2');
+		let observed = false;
+		function* steps() {
+			for (let i = 0; i < 3; i++) {
+				const start = process.hrtime.bigint();
+				while (process.hrtime.bigint() - start < 3000000n) { /* Exercise a computation longer than a batch. */ }
+				yield;
+			}
+			return 'ready';
+		}
+		try {
+			setImmediate(() => { observed = true; });
+			assert.strictEqual(await foreground.run(end, () => cooperate(steps())), 'ready');
+			assert.strictEqual(observed, true);
+		} finally { end(); }
+	});
 	it('preserves all public diagnostics with frozen model inputs and yields while explaining many games', async function() {
 		const f = await fixture();
 		for (let i = 0; i < 70; i++) await f.insert('matches', {

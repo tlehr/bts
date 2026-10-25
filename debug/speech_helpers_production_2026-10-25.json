@@ -1,0 +1,40 @@
+{
+  "directory": "/tmp/bts-regular-helper-probe-MI2WLX",
+  "started_at": "2026-10-25T00:28:58.452Z",
+  "status": "completed",
+  "operator_services_used": false,
+  "total_ms": 44223,
+  "runtime_id": "58d38290c6c33b570769392408ce00769fc2b3a824d787a65e622b9ce1dd5617",
+  "generation_profile": "2ab0a5e9e019902d10ca46093b31f5c91b5022ddc4de8034d8bdc95e74928e16",
+  "helper": {
+    "job_id": "da437b73438fa4176befe0f764516c38",
+    "generation_ms": 35123.42040904332,
+    "threads": 2,
+    "publication": "ready"
+  },
+  "source": {
+    "audio_id": "67a22b99d08a49258d54cf8d3af640e0",
+    "seed": 42,
+    "duration_seconds": 7.12
+  },
+  "excerpt": {
+    "audio_id": "754538fad96935ec61b8893625822bce",
+    "text": "Bitte meldet euch bei der Turnierleitung!",
+    "processed": true,
+    "playback_profile": "bts-playback-v1",
+    "local": true
+  },
+  "finished_at": "2026-10-25T00:29:56.363Z",
+  "helper_output": "Mit BTS verbunden. Maximal 2 CPU-Kerne, 3584 MiB Modell-RAM-Abbruchgrenze. Niedrige Priorität. Strg+C beendet den Helfer.\nAudio wird erzeugt - Auftrag da437b73438fa4176befe0f764516c38\nStimme: Hallensprecher\nText: Wir erwarten euch zum nächsten Spiel. Bitte meldet euch bei der Turnierleitung! Der nächste Aufruf folgt in Kürze.\nAufnahme wird an BTS uebertragen - Auftrag da437b73438fa4176befe0f764516c38\nAuftrag abgeschlossen - Auftrag da437b73438fa4176befe0f764516c38\n",
+  "upstream_output": "INFO:bts_sprachserver.service:Completed job 67a22b99d08a49258d54cf8d3af640e0\nINFO:bts_sprachserver.service:Completed job f8c40abbc8a74e80a70d2f72498f7732\n",
+  "windows_gui_tested": false,
+  "checks": {
+    "node_tests_passed": 116,
+    "speech_api_and_agent_tests_passed": 56,
+    "linux_starter_tests_passed": 12,
+    "chrome_tests_passed": 2,
+    "powershell_starter_probe": "passed",
+    "eslint": "passed"
+  },
+  "published_runtime_sha256": "6868a19ea7f5ee970f91ac7fa8947c8660881da4018370dddcfbe1c13552e500"
+}

@@ -16,5 +16,5 @@ RUN make install-bup-dev
 
 ADD . .
 
-EXPOSE 4000
+EXPOSE 4000 4001
 CMD make run

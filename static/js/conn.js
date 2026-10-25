@@ -1,4 +1,5 @@
 'use strict';
+/* global btsSpeechHealth */
 var conn = (function(on_status, on_change) {
 var ws;
 var reconnect_duration = 500;
@@ -182,6 +183,9 @@ function handle_message(ws_msg) {
 	}
 
 	switch (msg.type) {
+	case 'speech_health':
+		if (typeof btsSpeechHealth !== 'undefined') btsSpeechHealth.update(msg.health);
+		break;
 	case 'answer': {
 			const cb = callback_handlers[msg.rid];
 			if (! cb) {
@@ -233,12 +237,14 @@ function connect() {
 
 	ws = new WebSocket(_construct_url(WS_PATH), 'bts-admin');
 	ws.onopen = function() {
+		if (typeof btsSpeechHealth !== 'undefined') send({ type: 'speech_health_subscribe' }, () => {});
 		on_status({
 			code: 'connected',
 		});
 	};
 	ws.onmessage = handle_message;
 	ws.onclose = function() {
+		if (typeof btsSpeechHealth !== 'undefined') btsSpeechHealth.disconnected();
 		// Clear callback handlers
 		utils.values(callback_handlers).forEach(function(cb) {
 			cb({

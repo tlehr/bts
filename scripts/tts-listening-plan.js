@@ -5,9 +5,9 @@ const { spellNumbers } = require('../bts/speech/numbers');
 const compactWav = require('../bts/speech/playback');
 const context = require('./tts-listening-context.json');
 
-const source = 'Auf Spielfeld 8! Spiel 189.  Mädcheneinzel U19.  Achtelfinale! Nina Keo Boun Khoune gegen LeandraGalowicz. Auf Spielfeld 8!';
+const source = 'Auf Spielfeld 8! Spiel 189.  Mädcheneinzel U19.  Achtelfinale! Max Mustermann gegen Hans Dampf. Auf Spielfeld 8!';
 const phrases = ['Auf Spielfeld 8!', 'Spiel 189.', 'Mädcheneinzel U19.', 'Achtelfinale!',
-    'Nina Keo Boun Khoune', 'gegen', 'LeandraGalowicz', 'Auf Spielfeld 8!'];
+    'Max Mustermann', 'gegen', 'Hans Dampf', 'Auf Spielfeld 8!'];
 const gameBlock = source.slice(phrases[0].length + 1, -phrases[7].length - 1);
 
 function plan() {
