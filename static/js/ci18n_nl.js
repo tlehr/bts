@@ -233,6 +233,8 @@ var ci18n_nl = Object.assign(
 	'tournament:edit:tabletoperator_with_state_enabled': 'Roep bond/club op i.p.v. speler',
 	'tournament:edit:tabletoperator_with_state_from_match_enabled': 'Roep bond/club op van eerste speler in wedstrijd',
 	'tournament:edit:tabletoperator_with_umpire_enabled': 'Kondig scheidsrechter en tabletgebruiker aan',
+	'tournament:edit:tabletoperator_release_on_umpire_enabled': 'Tabletbediener vrijgeven bij een baanoproep met scheidsrechter',
+	'tournament:edit:tabletoperator_release_on_umpire_enabled:hint': 'Geef de gereserveerde bediener of de volgende wachtende van deze baan vrij als geen extra tabletbediener nodig is. Er wordt geen tabletpauze toegevoegd.',
 	'tournament:edit:tabletoperator_use_manual_counting_boards_enabled': 'Gebruik scoreborden i.p.v. tablets',
 	'tournament:edit:annoncement_include_event': 'Kondig onderdeel aan',
 	'tournament:edit:annoncement_include_round': 'Kondig ronde van toernooi aan',

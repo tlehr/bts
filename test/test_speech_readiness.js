@@ -35,6 +35,23 @@ function harness() {
 }
 
 describe('Announcement cache readiness indicators', function() {
+    it('shows remote generation readiness independently of this device audio permission and preserves button labels', async function() {
+        const h = harness(), local = element(), remote = element();
+        local.textContent = 'Lokal Abspielen'; remote.textContent = 'Remote Abspielen';
+        h.controller.trackText(local, () => ['Text']);
+        h.controller.trackText(remote, () => ['Text'], false, { remote: true });
+        h.ready('Text'); h.settings.audio_error = 'audio_blocked'; h.settings.audio_ready = false;
+        await h.controller.refresh();
+        assert.strictEqual(local.dataset.speechState, 'locked');
+        assert.strictEqual(remote.dataset.speechState, 'ready');
+        assert(remote.title.includes('Serveraudio bereit'));
+        assert.strictEqual(local.textContent, 'Lokal Abspielen');
+        assert.strictEqual(remote.textContent, 'Remote Abspielen');
+        h.statuses.delete(h.settings.voice + 'Text');
+        await h.controller.refresh(true);
+        assert.strictEqual(remote.dataset.speechState, 'missing');
+    });
+
     it('rehydrates rebuilt buttons immediately and never rewrites unchanged ready indicators', async function() {
         const h = harness(), old = element(), other = element();
         h.controller.trackText(old, () => ['One']); h.controller.trackText(other, () => ['Two']);

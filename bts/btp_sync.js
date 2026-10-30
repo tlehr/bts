@@ -2019,6 +2019,11 @@ function btp_match_clears_local_normal_result(current_match, bm) {
 	if (!current_match || current_match.btp_needsync === true) {
 		return false;
 	}
+	// The last point sets end_ts before the panel confirms the result.
+	// Keep that live score until an explicit confirmation reaches BTS.
+	if (local_match_is_live_without_confirmed_result(current_match)) {
+		return false;
+	}
 	const remote = btp_result_signature_from_raw_match(bm);
 	if (remote) {
 		return false;

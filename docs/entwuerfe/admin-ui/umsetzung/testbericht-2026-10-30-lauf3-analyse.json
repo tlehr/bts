@@ -1,0 +1,561 @@
+{
+  "source": "bts-test-3.json",
+  "source_sha256": "baec3ce4d2c186ffb5be2bfdb68a60ec11f16d6d0638a1cee92104f6fe2e6c56",
+  "started_at": "2026-10-30T00:04:27.154Z",
+  "exported_at": "2026-10-30T00:16:14.401Z",
+  "runtime_ms": 600285,
+  "stop_reason": "completed",
+  "failure": null,
+  "server_id": "2746265-1793317803438",
+  "mixed_server_profiles": false,
+  "initial_state": {
+    "matches": 373,
+    "finished_matches": 99,
+    "active_matches": 13,
+    "active_courts": 15,
+    "pending_player_checkins": 0,
+    "pending_players": 0,
+    "check_in_per_match": true,
+    "state_sha256": "015c196b811e55c706f6c56a62fdb56b6abf1f151fa5480f2530d1956df97568"
+  },
+  "settings": {
+    "tournament": "default",
+    "base_url": "https://localhost:4433",
+    "point_interval_ms": [
+      3200,
+      6400
+    ],
+    "score_gap_ms": [
+      0,
+      0
+    ],
+    "pause_visible_ms": 3000,
+    "score_all_active": true,
+    "legacy_loopback_devices": false,
+    "server_telemetry": true,
+    "processing_traces": true,
+    "score_probability": [
+      0.4,
+      0.6
+    ]
+  },
+  "points": 1217,
+  "score_updates": 1228,
+  "finish_confirmations": 11,
+  "tablet_to_admin_ms": {
+    "count": 1228,
+    "mean": 305.1,
+    "min": 30,
+    "p50": 183,
+    "p95": 915,
+    "p99": 2149,
+    "max": 3342,
+    "over_50_ms": 1164,
+    "over_100_ms": 1010,
+    "over_200_ms": 562,
+    "sent_updates": 1228,
+    "unmatched_updates": 0,
+    "coverage": 1
+  },
+  "tablet_to_tv_ms": {
+    "count": 1228,
+    "mean": 6.7,
+    "min": 2,
+    "p50": 4,
+    "p95": 17,
+    "p99": 30,
+    "max": 80,
+    "over_50_ms": 4,
+    "over_100_ms": 0,
+    "over_200_ms": 0,
+    "sent_updates": 1228,
+    "unmatched_updates": 0,
+    "coverage": 1
+  },
+  "score_presentation_outcomes": {
+    "presented": 1228
+  },
+  "all_admin_receipt_outcomes": {
+    "presented": 45921,
+    "superseded": 13
+  },
+  "admin_stages": {
+    "queue_ms": {
+      "count": 1228,
+      "mean": 83.94,
+      "min": 0,
+      "p50": 10.1,
+      "p95": 372.1,
+      "p99": 598.6,
+      "max": 1750
+    },
+    "handler_ms": {
+      "count": 1228,
+      "mean": 0.92,
+      "min": 0,
+      "p50": 0.7,
+      "p95": 1.6,
+      "p99": 4.5,
+      "max": 16.5
+    },
+    "render_ms": {
+      "count": 1228,
+      "mean": 89.54,
+      "min": 24.8,
+      "p50": 82.7,
+      "p95": 179.2,
+      "p99": 252.8,
+      "max": 398.2
+    },
+    "total_ms": {
+      "count": 1228,
+      "mean": 215.5,
+      "min": 25.9,
+      "p50": 120,
+      "p95": 661.2,
+      "p99": 1735,
+      "max": 2779.4
+    }
+  },
+  "admin_ingress_ms": {
+    "count": 1228,
+    "mean": 89.64,
+    "min": 3,
+    "p50": 54,
+    "p95": 332,
+    "p99": 794,
+    "max": 1047
+  },
+  "admin_additional_wait_ms": {
+    "count": 1228,
+    "mean": 41.1,
+    "min": 0,
+    "p50": 0,
+    "p95": 192.0,
+    "p99": 984.8,
+    "max": 2179.9
+  },
+  "additional_wait_definition": "total_ms minus queue_ms, handler_ms and render_ms, clamped at zero for rounding. Covers unresolved UI/callback dependencies and scheduling; the report does not identify individual browser jobs.",
+  "server_score_operation_ms": {
+    "count": 1228,
+    "mean": 14.53,
+    "min": 5.5,
+    "p50": 12,
+    "p95": 29.3,
+    "p99": 65.5,
+    "max": 169.4
+  },
+  "server_queue_status": {
+    "level": "OK",
+    "reasons": [
+      "No sustained backlog observed"
+    ]
+  },
+  "assessment": {
+    "version": 1,
+    "thresholds": {
+      "p99_ms": 30,
+      "max_ms": 50,
+      "min_samples": 100,
+      "admin_render_p99_ms": 100,
+      "admin_render_max_ms": 250
+    },
+    "final": true,
+    "level": "ERROR",
+    "summary": "Mindestens ein Ziel ist verletzt.",
+    "criteria": [
+      {
+        "id": "tv_p99",
+        "label": "TV · p99 im gesamten Lauf",
+        "level": "ERROR",
+        "value": "30 ms",
+        "target": "< 30 ms",
+        "detail": "1228 zugeordnete Updates."
+      },
+      {
+        "id": "tv_reception",
+        "label": "TV · Eventempfang",
+        "level": "OK",
+        "value": "1228 / 1228",
+        "target": "Alle gesendeten Updates zugeordnet",
+        "detail": "Vollständige Zuordnung."
+      },
+      {
+        "id": "tv_max",
+        "label": "TV · Maximum",
+        "level": "WARN",
+        "value": "80 ms",
+        "target": "Wunschziel < 50 ms",
+        "detail": "Ein einzelner Ausreißer verletzt nicht automatisch das p99-Ziel. Updates über 50 ms: 4."
+      },
+      {
+        "id": "admin_p99",
+        "label": "Admin · p99 im gesamten Lauf",
+        "level": "ERROR",
+        "value": "2149 ms",
+        "target": "< 100 ms",
+        "detail": "1228 zugeordnete Updates."
+      },
+      {
+        "id": "admin_reception",
+        "label": "Admin · Darstellung quittiert",
+        "level": "OK",
+        "value": "1228 / 1228",
+        "target": "Alle gesendeten Updates zugeordnet",
+        "detail": "Vollständige Zuordnung."
+      },
+      {
+        "id": "admin_max",
+        "label": "Admin · Maximum",
+        "level": "WARN",
+        "value": "3342 ms",
+        "target": "Wunschziel < 250 ms",
+        "detail": "Ein einzelner Ausreißer verletzt nicht automatisch das p99-Ziel. Updates über 50 ms: 1164."
+      },
+      {
+        "id": "queues",
+        "label": "Server-Warteschlangen",
+        "level": "OK",
+        "value": "Kein anhaltender Rückstau",
+        "target": "Kein wachsender Rückstau / keine Queue-Fehler",
+        "detail": "Bewertung anhand der bestehenden Rückstau-Erkennung; kurze Spitzen sind erlaubt."
+      }
+    ],
+    "queue_incidents": []
+  },
+  "phases": [
+    {
+      "name": "checkin-and-play",
+      "points": 283,
+      "score_updates": 286,
+      "tablet_to_admin_ms": {
+        "count": 286,
+        "mean": 335.8,
+        "p50": 185,
+        "p95": 1608,
+        "p99": 2220,
+        "max": 2420,
+        "sent_updates": 286,
+        "unmatched_updates": 0,
+        "coverage": 1,
+        "over_50_ms": 271,
+        "over_100_ms": 235,
+        "over_200_ms": 132
+      },
+      "tablet_to_tv_ms": {
+        "count": 286,
+        "mean": 6.7,
+        "p50": 5,
+        "p95": 17,
+        "p99": 27,
+        "max": 35,
+        "sent_updates": 286,
+        "unmatched_updates": 0,
+        "coverage": 1,
+        "over_50_ms": 0,
+        "over_100_ms": 0,
+        "over_200_ms": 0
+      }
+    },
+    {
+      "name": "load",
+      "points": 624,
+      "score_updates": 631,
+      "tablet_to_admin_ms": {
+        "count": 631,
+        "mean": 311.3,
+        "p50": 181,
+        "p95": 889,
+        "p99": 2673,
+        "max": 3342,
+        "sent_updates": 631,
+        "unmatched_updates": 0,
+        "coverage": 1,
+        "over_50_ms": 599,
+        "over_100_ms": 521,
+        "over_200_ms": 291
+      },
+      "tablet_to_tv_ms": {
+        "count": 631,
+        "mean": 6.9,
+        "p50": 4,
+        "p95": 19,
+        "p99": 31,
+        "max": 80,
+        "sent_updates": 631,
+        "unmatched_updates": 0,
+        "coverage": 1,
+        "over_50_ms": 4,
+        "over_100_ms": 0,
+        "over_200_ms": 0
+      }
+    },
+    {
+      "name": "idle",
+      "points": 0,
+      "score_updates": 0,
+      "tablet_to_admin_ms": {
+        "count": 0,
+        "mean": null,
+        "p50": null,
+        "p95": null,
+        "p99": null,
+        "max": null,
+        "sent_updates": 0,
+        "unmatched_updates": 0,
+        "coverage": null,
+        "over_50_ms": 0,
+        "over_100_ms": 0,
+        "over_200_ms": 0
+      },
+      "tablet_to_tv_ms": {
+        "count": 0,
+        "mean": null,
+        "p50": null,
+        "p95": null,
+        "p99": null,
+        "max": null,
+        "sent_updates": 0,
+        "unmatched_updates": 0,
+        "coverage": null,
+        "over_50_ms": 0,
+        "over_100_ms": 0,
+        "over_200_ms": 0
+      }
+    },
+    {
+      "name": "load-after-idle",
+      "points": 310,
+      "score_updates": 311,
+      "tablet_to_admin_ms": {
+        "count": 311,
+        "mean": 264.4,
+        "p50": 184,
+        "p95": 692,
+        "p99": 1751,
+        "max": 2166,
+        "sent_updates": 311,
+        "unmatched_updates": 0,
+        "coverage": 1,
+        "over_50_ms": 294,
+        "over_100_ms": 254,
+        "over_200_ms": 139
+      },
+      "tablet_to_tv_ms": {
+        "count": 311,
+        "mean": 6.2,
+        "p50": 4,
+        "p95": 15,
+        "p99": 25,
+        "max": 37,
+        "sent_updates": 311,
+        "unmatched_updates": 0,
+        "coverage": 1,
+        "over_50_ms": 0,
+        "over_100_ms": 0,
+        "over_200_ms": 0
+      }
+    }
+  ],
+  "slowest_score": {
+    "record": {
+      "trace_id": "live-drill-2749673-mvu7qe3i-426",
+      "sent_ts": 1793318836446,
+      "court_id": "default_8",
+      "match_id": "btp_default_MX U13_440",
+      "tv_ms": 80,
+      "tv_received_ts": 1793318836526,
+      "admin_ms": 3342,
+      "admin_received_ts": 1793318837008,
+      "admin_applied_ts": 1793318839578,
+      "admin_presented_ts": 1793318839788,
+      "admin_presentation_status": "presented",
+      "admin_ui_ms": {
+        "queue_ms": 1750,
+        "handler_ms": 1.1,
+        "render_ms": 209.5,
+        "total_ms": 2779.4
+      },
+      "admin_measurement_method": "dom-and-render-opportunity"
+    },
+    "server_operation_ms": 102.1,
+    "admin_send_stages": [
+      {
+        "name": "admin:score",
+        "kind": "send_wait",
+        "offset_ms": 78,
+        "duration_ms": 0
+      },
+      {
+        "name": "admin:score",
+        "kind": "send_enqueue",
+        "offset_ms": 78,
+        "duration_ms": 0
+      },
+      {
+        "name": "admin:score",
+        "kind": "send_wait",
+        "offset_ms": 78,
+        "duration_ms": 0
+      },
+      {
+        "name": "admin:score",
+        "kind": "send_enqueue",
+        "offset_ms": 78,
+        "duration_ms": 0
+      },
+      {
+        "name": "admin:score",
+        "kind": "send_wait",
+        "offset_ms": 78,
+        "duration_ms": 0
+      },
+      {
+        "name": "admin:score",
+        "kind": "send_enqueue",
+        "offset_ms": 78,
+        "duration_ms": 0
+      },
+      {
+        "name": "admin:score",
+        "kind": "send_wait",
+        "offset_ms": 78,
+        "duration_ms": 21
+      },
+      {
+        "name": "admin:score",
+        "kind": "send_wait",
+        "offset_ms": 78,
+        "duration_ms": 0
+      },
+      {
+        "name": "admin:score",
+        "kind": "send_enqueue",
+        "offset_ms": 78,
+        "duration_ms": 0
+      },
+      {
+        "name": "admin:score",
+        "kind": "send_enqueue",
+        "offset_ms": 99,
+        "duration_ms": 0
+      }
+    ],
+    "decomposition_ms": {
+      "sent_to_browser_callback": 562,
+      "queue_ms": 1750,
+      "handler_ms": 1.1,
+      "render_ms": 209.5,
+      "additional_wait": 818.8
+    }
+  },
+  "comparison": {
+    "source": "bts-test-1 (4).json",
+    "admin": {
+      "count": {
+        "previous": 987,
+        "current": 1228
+      },
+      "sent_updates": {
+        "previous": 1116,
+        "current": 1228
+      },
+      "coverage": {
+        "previous": 0.884,
+        "current": 1
+      },
+      "mean": {
+        "previous": 511.8,
+        "current": 305.1
+      },
+      "p50": {
+        "previous": 183,
+        "current": 183
+      },
+      "p95": {
+        "previous": 2714,
+        "current": 915
+      },
+      "p99": {
+        "previous": 4189,
+        "current": 2149
+      },
+      "max": {
+        "previous": 6523,
+        "current": 3342
+      }
+    },
+    "previous_initial_state": {
+      "matches": 128,
+      "finished_matches": 74,
+      "active_matches": 15,
+      "active_courts": 15,
+      "pending_player_checkins": 0,
+      "pending_players": 0,
+      "check_in_per_match": true,
+      "state_sha256": "c6b8cb012627b3f1b81e1bbea84e002a287fbdd66a8a15694e5eb3fe02c5dbd2"
+    },
+    "limitations": [
+      "Different initial data: previous 128 matches / 74 finished, current 373 / 99. The previous run added 245 matches and included a court reset. No controlled A/B comparison.",
+      "Previous percentile values describe 987 successful point receipts out of 1116; current values describe all 1228."
+    ]
+  },
+  "payload_counts": {
+    "change:display_is_done": 19659,
+    "change:display_wait_for_done": 19659,
+    "change:display_status_changed": 2300,
+    "change:display_render_stats": 1258,
+    "change:court_current_match": 1228,
+    "change:score": 1228,
+    "answer": 860,
+    "change:update_player_status": 182,
+    "change:match_edit": 163,
+    "change:speech_cache_changed": 112,
+    "change:btp_status": 57,
+    "change:tabletoperator_removed": 23,
+    "change:match_called_on_court": 13,
+    "change:match_preparation_call": 12,
+    "change:court_changed": 11,
+    "change:tabletoperator_add": 11,
+    "change:umpire_updated": 8,
+    "change:update_btp_events": 8,
+    "change:umpires_changed": 2
+  },
+  "code_findings": [
+    {
+      "file": "static/js/admin_update_observer.js",
+      "lines": [
+        61,
+        67,
+        70,
+        94
+      ],
+      "finding": "captureUI takes every pending promise from cleitstand and ctournament, including work already pending before the measured update. wrapCallback can capture more work after a reply. Finishing unrelated work can move applied_at after the actual point DOM change.",
+      "status": "Confirmed mechanism from source. Per-point attribution to particular jobs is not available in this report."
+    },
+    {
+      "file": "../bts-testclient/src/live_tournament_drill.js",
+      "lines": [
+        950,
+        2062
+      ],
+      "finding": "The test loop requests tournament_get to determine the next simulation action. The 793 server snapshot requests must not be equated with 793 browser list rebuilds."
+    }
+  ],
+  "interpretation": [
+    "All 1228 score updates were successfully matched to presentation receipts; no score timeouts, capacity failures or missing score receipts. Thirteen superseded receipts belong to other monitored messages.",
+    "Large latency outliers are smaller than in the preceding uploaded report, while median end-to-end latency remains 183 ms. The admin p99 target below 100 ms is still missed.",
+    "Synchronous point handling is small: median 0.7 ms and maximum 16.5 ms. Waiting for browser processing, tracked async UI work and render opportunities dominates the observed end-to-end latency.",
+    "The remaining async dependency wait must be attributed to individual requested UI jobs before treating it all as visible point-update delay. A point receipt must still wait for its own required DOM/layout work.",
+    "Browser WebSocket callback times include delayed callback delivery under main-thread load and are not pure network latency.",
+    "The report records DOM completion and two render opportunities, not physical screen output. It does not contain separate timestamps for the successor green marker."
+  ],
+  "next_investigation": "Track ownership and timings of already-pending vs newly-requested UI jobs, then distinguish jobs needed for the score from independent preparation/clock jobs. Preserve the existing presentation endpoint and verify with targeted browser tests before changing behavior.",
+  "validation": {
+    "score_counts_consistent": true,
+    "score_receipts_all_presented": true,
+    "end_to_end_timestamps_consistent_within_1ms": true,
+    "production_code_changed": false,
+    "live_services_changed": false
+  }
+}

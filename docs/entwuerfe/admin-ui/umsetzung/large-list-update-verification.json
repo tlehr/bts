@@ -1,0 +1,809 @@
+{
+  "date": "2026-10-30",
+  "scope": "Isolierter Dauerlasttest mit nativer Empfangswarteschlange, laufenden Spielerpausen, Punkten und Gerätemeldungen. Synthetische Daten, keine Live-Dienste oder Netzwerk-Latenzmessung.",
+  "matchCount": 373,
+  "finishedCount": 85,
+  "courtCount": 15,
+  "deviceCount": 30,
+  "timerCount": 200,
+  "regressions": {
+    "clockStable": true,
+    "officialStable": true,
+    "shortened": true
+  },
+  "stats": {
+    "applied": {
+      "count": 52,
+      "p50": 0.6000000238418579,
+      "p95": 4.300000071525574,
+      "max": 11.899999976158142
+    },
+    "independent": {
+      "count": 52,
+      "p50": 38,
+      "p95": 56.699999928474426,
+      "max": 58.39999997615814
+    },
+    "ack": {
+      "count": 52,
+      "p50": 38.1,
+      "p95": 56.7,
+      "max": 58.6
+    }
+  },
+  "types": {
+    "display_wait_for_done": {
+      "count": 642,
+      "handler": 264.09999999999906,
+      "total": 22.396573208722735
+    },
+    "display_is_done": {
+      "count": 642,
+      "handler": 194.99999999999991,
+      "total": 22.364018691588775
+    },
+    "display_status_changed": {
+      "count": 80,
+      "handler": 64.29999999999998,
+      "total": 35.01375000000001
+    },
+    "display_render_stats": {
+      "count": 80,
+      "handler": 35.7,
+      "total": 34.96374999999999
+    },
+    "score": {
+      "count": 52,
+      "handler": 27.6,
+      "total": 38.775000000000006
+    },
+    "court_current_match": {
+      "count": 52,
+      "handler": 3.8000000000000007,
+      "total": 38.87307692307692
+    }
+  },
+  "outcomes": {
+    "presented": 1548
+  },
+  "pending": {
+    "pending": 0,
+    "subscribers": 1,
+    "callbackErrors": 0
+  },
+  "limits": {
+    "point_median_ms": 100,
+    "point_p95_ms": 500,
+    "point_max_ms": 1000
+  },
+  "measurements": [
+    {
+      "id": 1,
+      "applied": 11.899999976158142,
+      "independent": 41.800000071525574,
+      "seen": true,
+      "status": "presented",
+      "ack": {
+        "queue_ms": 0.2,
+        "handler_ms": 11.7,
+        "ui_wait_ms": 0,
+        "render_ms": 30.1,
+        "total_ms": 42
+      }
+    },
+    {
+      "id": 2,
+      "applied": 0.8000000715255737,
+      "independent": 51.5,
+      "seen": true,
+      "status": "presented",
+      "ack": {
+        "queue_ms": 0.3,
+        "handler_ms": 0.6,
+        "ui_wait_ms": 0,
+        "render_ms": 50.6,
+        "total_ms": 51.5
+      }
+    },
+    {
+      "id": 3,
+      "applied": 0.7000000476837158,
+      "independent": 36.200000047683716,
+      "seen": true,
+      "status": "presented",
+      "ack": {
+        "queue_ms": 0.2,
+        "handler_ms": 0.4,
+        "ui_wait_ms": 0.1,
+        "render_ms": 35.6,
+        "total_ms": 36.3
+      }
+    },
+    {
+      "id": 4,
+      "applied": 4.300000071525574,
+      "independent": 43.5,
+      "seen": true,
+      "status": "presented",
+      "ack": {
+        "queue_ms": 3.8,
+        "handler_ms": 0.5,
+        "ui_wait_ms": 0,
+        "render_ms": 39.2,
+        "total_ms": 43.5
+      }
+    },
+    {
+      "id": 5,
+      "applied": 0.8999999761581421,
+      "independent": 34.39999997615814,
+      "seen": true,
+      "status": "presented",
+      "ack": {
+        "queue_ms": 0.3,
+        "handler_ms": 0.6,
+        "ui_wait_ms": 0,
+        "render_ms": 33.5,
+        "total_ms": 34.4
+      }
+    },
+    {
+      "id": 6,
+      "applied": 1.3000000715255737,
+      "independent": 27.5,
+      "seen": true,
+      "status": "presented",
+      "ack": {
+        "queue_ms": 1,
+        "handler_ms": 0.3,
+        "ui_wait_ms": 0,
+        "render_ms": 26.4,
+        "total_ms": 27.7
+      }
+    },
+    {
+      "id": 7,
+      "applied": 0.7000000476837158,
+      "independent": 30.40000009536743,
+      "seen": true,
+      "status": "presented",
+      "ack": {
+        "queue_ms": 0.2,
+        "handler_ms": 0.5,
+        "ui_wait_ms": 0,
+        "render_ms": 29.7,
+        "total_ms": 30.4
+      }
+    },
+    {
+      "id": 8,
+      "applied": 2.3000000715255737,
+      "independent": 39.800000071525574,
+      "seen": true,
+      "status": "presented",
+      "ack": {
+        "queue_ms": 2,
+        "handler_ms": 0.3,
+        "ui_wait_ms": 0,
+        "render_ms": 37.6,
+        "total_ms": 39.9
+      }
+    },
+    {
+      "id": 9,
+      "applied": 0.40000009536743164,
+      "independent": 38,
+      "seen": true,
+      "status": "presented",
+      "ack": {
+        "queue_ms": 0.1,
+        "handler_ms": 0.3,
+        "ui_wait_ms": 0,
+        "render_ms": 37.7,
+        "total_ms": 38.1
+      }
+    },
+    {
+      "id": 10,
+      "applied": 0.7000000476837158,
+      "independent": 58.39999997615814,
+      "seen": true,
+      "status": "presented",
+      "ack": {
+        "queue_ms": 0.2,
+        "handler_ms": 0.5,
+        "ui_wait_ms": 0,
+        "render_ms": 57.9,
+        "total_ms": 58.6
+      }
+    },
+    {
+      "id": 11,
+      "applied": 0.6999999284744263,
+      "independent": 33,
+      "seen": true,
+      "status": "presented",
+      "ack": {
+        "queue_ms": 0.2,
+        "handler_ms": 0.4,
+        "ui_wait_ms": 0,
+        "render_ms": 32.4,
+        "total_ms": 33
+      }
+    },
+    {
+      "id": 12,
+      "applied": 0.6000000238418579,
+      "independent": 35.90000009536743,
+      "seen": true,
+      "status": "presented",
+      "ack": {
+        "queue_ms": 0.2,
+        "handler_ms": 0.5,
+        "ui_wait_ms": 0,
+        "render_ms": 35.2,
+        "total_ms": 35.9
+      }
+    },
+    {
+      "id": 13,
+      "applied": 0.7000000476837158,
+      "independent": 38.300000071525574,
+      "seen": true,
+      "status": "presented",
+      "ack": {
+        "queue_ms": 0.3,
+        "handler_ms": 0.4,
+        "ui_wait_ms": 0,
+        "render_ms": 37.7,
+        "total_ms": 38.4
+      }
+    },
+    {
+      "id": 14,
+      "applied": 0.5999999046325684,
+      "independent": 30.899999976158142,
+      "seen": true,
+      "status": "presented",
+      "ack": {
+        "queue_ms": 0.3,
+        "handler_ms": 0.3,
+        "ui_wait_ms": 0,
+        "render_ms": 30.4,
+        "total_ms": 31
+      }
+    },
+    {
+      "id": 15,
+      "applied": 0.7000000476837158,
+      "independent": 39.40000009536743,
+      "seen": true,
+      "status": "presented",
+      "ack": {
+        "queue_ms": 0.3,
+        "handler_ms": 0.4,
+        "ui_wait_ms": 0,
+        "render_ms": 38.8,
+        "total_ms": 39.5
+      }
+    },
+    {
+      "id": 16,
+      "applied": 0.5,
+      "independent": 31.40000009536743,
+      "seen": true,
+      "status": "presented",
+      "ack": {
+        "queue_ms": 0.2,
+        "handler_ms": 0.3,
+        "ui_wait_ms": 0,
+        "render_ms": 30.9,
+        "total_ms": 31.4
+      }
+    },
+    {
+      "id": 17,
+      "applied": 0.5,
+      "independent": 41.5,
+      "seen": true,
+      "status": "presented",
+      "ack": {
+        "queue_ms": 0.2,
+        "handler_ms": 0.4,
+        "ui_wait_ms": 0,
+        "render_ms": 41,
+        "total_ms": 41.6
+      }
+    },
+    {
+      "id": 18,
+      "applied": 0.6000000238418579,
+      "independent": 40.10000002384186,
+      "seen": true,
+      "status": "presented",
+      "ack": {
+        "queue_ms": 0.4,
+        "handler_ms": 0.2,
+        "ui_wait_ms": 0,
+        "render_ms": 39.6,
+        "total_ms": 40.2
+      }
+    },
+    {
+      "id": 19,
+      "applied": 0.3999999761581421,
+      "independent": 28.5,
+      "seen": true,
+      "status": "presented",
+      "ack": {
+        "queue_ms": 0.2,
+        "handler_ms": 0.2,
+        "ui_wait_ms": 0,
+        "render_ms": 28.2,
+        "total_ms": 28.6
+      }
+    },
+    {
+      "id": 20,
+      "applied": 0.40000009536743164,
+      "independent": 31,
+      "seen": true,
+      "status": "presented",
+      "ack": {
+        "queue_ms": 0.3,
+        "handler_ms": 0.1,
+        "ui_wait_ms": 0,
+        "render_ms": 30.7,
+        "total_ms": 31.1
+      }
+    },
+    {
+      "id": 21,
+      "applied": 0.40000009536743164,
+      "independent": 30.100000023841858,
+      "seen": true,
+      "status": "presented",
+      "ack": {
+        "queue_ms": 0.2,
+        "handler_ms": 0.2,
+        "ui_wait_ms": 0,
+        "render_ms": 29.7,
+        "total_ms": 30.1
+      }
+    },
+    {
+      "id": 22,
+      "applied": 0.5,
+      "independent": 34.5,
+      "seen": true,
+      "status": "presented",
+      "ack": {
+        "queue_ms": 0.2,
+        "handler_ms": 0.3,
+        "ui_wait_ms": 0,
+        "render_ms": 34.2,
+        "total_ms": 34.7
+      }
+    },
+    {
+      "id": 23,
+      "applied": 0.40000009536743164,
+      "independent": 39.60000002384186,
+      "seen": true,
+      "status": "presented",
+      "ack": {
+        "queue_ms": 0.1,
+        "handler_ms": 0.3,
+        "ui_wait_ms": 0,
+        "render_ms": 39.3,
+        "total_ms": 39.7
+      }
+    },
+    {
+      "id": 24,
+      "applied": 0.6999999284744263,
+      "independent": 45.59999990463257,
+      "seen": true,
+      "status": "presented",
+      "ack": {
+        "queue_ms": 0.3,
+        "handler_ms": 0.3,
+        "ui_wait_ms": 0,
+        "render_ms": 44.9,
+        "total_ms": 45.5
+      }
+    },
+    {
+      "id": 25,
+      "applied": 3.8000000715255737,
+      "independent": 46.40000009536743,
+      "seen": true,
+      "status": "presented",
+      "ack": {
+        "queue_ms": 3.6,
+        "handler_ms": 0.2,
+        "ui_wait_ms": 0,
+        "render_ms": 42.7,
+        "total_ms": 46.5
+      }
+    },
+    {
+      "id": 26,
+      "applied": 0.40000009536743164,
+      "independent": 30.700000047683716,
+      "seen": true,
+      "status": "presented",
+      "ack": {
+        "queue_ms": 0.2,
+        "handler_ms": 0.2,
+        "ui_wait_ms": 0,
+        "render_ms": 30.3,
+        "total_ms": 30.7
+      }
+    },
+    {
+      "id": 27,
+      "applied": 4.799999952316284,
+      "independent": 56.699999928474426,
+      "seen": true,
+      "status": "presented",
+      "ack": {
+        "queue_ms": 4.4,
+        "handler_ms": 0.4,
+        "ui_wait_ms": 0,
+        "render_ms": 51.9,
+        "total_ms": 56.7
+      }
+    },
+    {
+      "id": 28,
+      "applied": 0.40000009536743164,
+      "independent": 57.700000047683716,
+      "seen": true,
+      "status": "presented",
+      "ack": {
+        "queue_ms": 0.2,
+        "handler_ms": 0.2,
+        "ui_wait_ms": 0,
+        "render_ms": 57.4,
+        "total_ms": 57.8
+      }
+    },
+    {
+      "id": 29,
+      "applied": 0.5,
+      "independent": 48.700000047683716,
+      "seen": true,
+      "status": "presented",
+      "ack": {
+        "queue_ms": 0.3,
+        "handler_ms": 0.2,
+        "ui_wait_ms": 0,
+        "render_ms": 48.2,
+        "total_ms": 48.7
+      }
+    },
+    {
+      "id": 30,
+      "applied": 0.40000009536743164,
+      "independent": 45.300000071525574,
+      "seen": true,
+      "status": "presented",
+      "ack": {
+        "queue_ms": 0.2,
+        "handler_ms": 0.2,
+        "ui_wait_ms": 0,
+        "render_ms": 44.9,
+        "total_ms": 45.3
+      }
+    },
+    {
+      "id": 31,
+      "applied": 3.100000023841858,
+      "independent": 38,
+      "seen": true,
+      "status": "presented",
+      "ack": {
+        "queue_ms": 2.4,
+        "handler_ms": 0.6,
+        "ui_wait_ms": 0,
+        "render_ms": 35,
+        "total_ms": 38
+      }
+    },
+    {
+      "id": 32,
+      "applied": 0.5,
+      "independent": 37.799999952316284,
+      "seen": true,
+      "status": "presented",
+      "ack": {
+        "queue_ms": 0.3,
+        "handler_ms": 0.2,
+        "ui_wait_ms": 0,
+        "render_ms": 37.4,
+        "total_ms": 37.9
+      }
+    },
+    {
+      "id": 33,
+      "applied": 0.40000009536743164,
+      "independent": 38.700000047683716,
+      "seen": true,
+      "status": "presented",
+      "ack": {
+        "queue_ms": 0.2,
+        "handler_ms": 0.2,
+        "ui_wait_ms": 0,
+        "render_ms": 38.3,
+        "total_ms": 38.7
+      }
+    },
+    {
+      "id": 34,
+      "applied": 0.6999999284744263,
+      "independent": 30.09999990463257,
+      "seen": true,
+      "status": "presented",
+      "ack": {
+        "queue_ms": 0.3,
+        "handler_ms": 0.3,
+        "ui_wait_ms": 0,
+        "render_ms": 29.4,
+        "total_ms": 30
+      }
+    },
+    {
+      "id": 35,
+      "applied": 0.6000000238418579,
+      "independent": 51.90000009536743,
+      "seen": true,
+      "status": "presented",
+      "ack": {
+        "queue_ms": 0.3,
+        "handler_ms": 0.3,
+        "ui_wait_ms": 0,
+        "render_ms": 51.4,
+        "total_ms": 52
+      }
+    },
+    {
+      "id": 36,
+      "applied": 0.40000009536743164,
+      "independent": 36.200000047683716,
+      "seen": true,
+      "status": "presented",
+      "ack": {
+        "queue_ms": 0.1,
+        "handler_ms": 0.3,
+        "ui_wait_ms": 0,
+        "render_ms": 35.9,
+        "total_ms": 36.3
+      }
+    },
+    {
+      "id": 37,
+      "applied": 0.5,
+      "independent": 29.899999976158142,
+      "seen": true,
+      "status": "presented",
+      "ack": {
+        "queue_ms": 0.3,
+        "handler_ms": 0.1,
+        "ui_wait_ms": 0,
+        "render_ms": 29.4,
+        "total_ms": 29.8
+      }
+    },
+    {
+      "id": 38,
+      "applied": 0.30000007152557373,
+      "independent": 28.100000023841858,
+      "seen": true,
+      "status": "presented",
+      "ack": {
+        "queue_ms": 0.1,
+        "handler_ms": 0.2,
+        "ui_wait_ms": 0,
+        "render_ms": 27.8,
+        "total_ms": 28.1
+      }
+    },
+    {
+      "id": 39,
+      "applied": 0.5,
+      "independent": 44,
+      "seen": true,
+      "status": "presented",
+      "ack": {
+        "queue_ms": 0.3,
+        "handler_ms": 0.2,
+        "ui_wait_ms": 0,
+        "render_ms": 43.6,
+        "total_ms": 44.1
+      }
+    },
+    {
+      "id": 40,
+      "applied": 0.8999999761581421,
+      "independent": 48.700000047683716,
+      "seen": true,
+      "status": "presented",
+      "ack": {
+        "queue_ms": 0.5,
+        "handler_ms": 0.3,
+        "ui_wait_ms": 0,
+        "render_ms": 47.8,
+        "total_ms": 48.6
+      }
+    },
+    {
+      "id": 41,
+      "applied": 3.600000023841858,
+      "independent": 45.60000002384186,
+      "seen": true,
+      "status": "presented",
+      "ack": {
+        "queue_ms": 3.3,
+        "handler_ms": 0.3,
+        "ui_wait_ms": 0,
+        "render_ms": 42.1,
+        "total_ms": 45.7
+      }
+    },
+    {
+      "id": 42,
+      "applied": 0.5999999046325684,
+      "independent": 36.09999990463257,
+      "seen": true,
+      "status": "presented",
+      "ack": {
+        "queue_ms": 0.2,
+        "handler_ms": 0.3,
+        "ui_wait_ms": 0,
+        "render_ms": 35.5,
+        "total_ms": 36
+      }
+    },
+    {
+      "id": 43,
+      "applied": 0.5999999046325684,
+      "independent": 43.299999952316284,
+      "seen": true,
+      "status": "presented",
+      "ack": {
+        "queue_ms": 0.2,
+        "handler_ms": 0.3,
+        "ui_wait_ms": 0.1,
+        "render_ms": 42.8,
+        "total_ms": 43.4
+      }
+    },
+    {
+      "id": 44,
+      "applied": 0.40000009536743164,
+      "independent": 32.90000009536743,
+      "seen": true,
+      "status": "presented",
+      "ack": {
+        "queue_ms": 0.2,
+        "handler_ms": 0.2,
+        "ui_wait_ms": 0,
+        "render_ms": 32.6,
+        "total_ms": 33
+      }
+    },
+    {
+      "id": 45,
+      "applied": 0.6999999284744263,
+      "independent": 29.09999990463257,
+      "seen": true,
+      "status": "presented",
+      "ack": {
+        "queue_ms": 0.3,
+        "handler_ms": 0.3,
+        "ui_wait_ms": 0,
+        "render_ms": 28.5,
+        "total_ms": 29.1
+      }
+    },
+    {
+      "id": 46,
+      "applied": 0.6000000238418579,
+      "independent": 45,
+      "seen": true,
+      "status": "presented",
+      "ack": {
+        "queue_ms": 0.3,
+        "handler_ms": 0.3,
+        "ui_wait_ms": 0,
+        "render_ms": 44.4,
+        "total_ms": 45
+      }
+    },
+    {
+      "id": 47,
+      "applied": 0.5999999046325684,
+      "independent": 34.5,
+      "seen": true,
+      "status": "presented",
+      "ack": {
+        "queue_ms": 0.2,
+        "handler_ms": 0.3,
+        "ui_wait_ms": 0,
+        "render_ms": 33.9,
+        "total_ms": 34.4
+      }
+    },
+    {
+      "id": 48,
+      "applied": 2.0999999046325684,
+      "independent": 32.199999928474426,
+      "seen": true,
+      "status": "presented",
+      "ack": {
+        "queue_ms": 1.6,
+        "handler_ms": 0.4,
+        "ui_wait_ms": 0,
+        "render_ms": 30.2,
+        "total_ms": 32.2
+      }
+    },
+    {
+      "id": 49,
+      "applied": 2,
+      "independent": 39.299999952316284,
+      "seen": true,
+      "status": "presented",
+      "ack": {
+        "queue_ms": 1.7,
+        "handler_ms": 0.3,
+        "ui_wait_ms": 0,
+        "render_ms": 37.4,
+        "total_ms": 39.4
+      }
+    },
+    {
+      "id": 50,
+      "applied": 2.299999952316284,
+      "independent": 40.299999952316284,
+      "seen": true,
+      "status": "presented",
+      "ack": {
+        "queue_ms": 2,
+        "handler_ms": 0.3,
+        "ui_wait_ms": 0,
+        "render_ms": 38.1,
+        "total_ms": 40.4
+      }
+    },
+    {
+      "id": 51,
+      "applied": 0.40000009536743164,
+      "independent": 31.300000071525574,
+      "seen": true,
+      "status": "presented",
+      "ack": {
+        "queue_ms": 0.2,
+        "handler_ms": 0.2,
+        "ui_wait_ms": 0,
+        "render_ms": 31,
+        "total_ms": 31.4
+      }
+    },
+    {
+      "id": 52,
+      "applied": 0.40000009536743164,
+      "independent": 34,
+      "seen": true,
+      "status": "presented",
+      "ack": {
+        "queue_ms": 0.1,
+        "handler_ms": 0.3,
+        "ui_wait_ms": 0,
+        "render_ms": 33.6,
+        "total_ms": 34
+      }
+    }
+  ]
+}

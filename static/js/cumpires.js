@@ -2,6 +2,47 @@
 
 var cumpires = (function() {
 
+	function rotation_lists(tournament) {
+		const waiting = { umpire: [], service_judge: [] }, unavailable = [];
+		const assigned = new Set();
+		for (const match of tournament.matches || []) {
+			const setup = match.setup || {};
+			if (setup.state === 'finished' || match.btp_winner !== undefined) continue;
+			for (const role of ['umpire', 'service_judge']) {
+				if (setup[role]?._id) assigned.add(setup[role]._id);
+			}
+		}
+		const present = value => value !== null && value !== undefined;
+		const order = (official, role) => Number(official[`${role}_wait`] ?? official[`${role}_pause`] ?? official.last_time_on_court_ts) || 0;
+		for (const official of tournament.umpires || []) {
+			if (!official?._id || assigned.has(official._id) || present(official.umpire_on_court) || present(official.service_judge_on_court) || official.is_planed_as_umpire || official.is_planed_as_service_judge) continue;
+			// Older snapshots have only the legacy status instead of the assignment fields.
+			if (official.umpire_on_court === undefined && official.service_judge_on_court === undefined && ['oncourt', 'standby'].includes(official.status)) continue;
+			// BTP also uses inactive_list for newly imported people without a role.
+			// Those have not been manually paused and remain visible in waiting.
+			if ((present(official.inactive_list) && (official.is_umpire || official.is_service_judge)) || present(official.umpire_manual_pause) || present(official.service_judge_manual_pause)) {
+				unavailable.push(official);
+				continue;
+			}
+			let included = false;
+			for (const role of ['umpire', 'service_judge']) {
+				if (present(official[`${role}_wait`]) || present(official[`${role}_pause`])) {
+					waiting[role].push(official);
+					included = true;
+				}
+			}
+			if (!included) waiting[official.is_service_judge && !official.is_umpire ? 'service_judge' : 'umpire'].push(official);
+		}
+		if (tournament.official_rotation_mode === 'umpire_only') {
+			waiting.umpire.push(...waiting.service_judge);
+			waiting.umpire = [...new Map(waiting.umpire.map(official => [official._id, official])).values()];
+			waiting.service_judge = [];
+		}
+		for (const role of ['umpire', 'service_judge']) waiting[role].sort((a, b) => order(a, role) - order(b, role) || String(a._id).localeCompare(String(b._id)));
+		unavailable.sort((a, b) => Number(a.inactive_list ?? a.umpire_manual_pause ?? a.service_judge_manual_pause) - Number(b.inactive_list ?? b.umpire_manual_pause ?? b.service_judge_manual_pause));
+		return { waiting, unavailable };
+	}
+
 	function _ui_render_table(container, umpires) {
 		const table = uiu.el(container, 'table');
 		const tbody = uiu.el(table, 'tbody');
@@ -36,6 +77,11 @@ var cumpires = (function() {
 
 
 	function ui_status(container) {
+		if (!container) return;
+		if (typeof ctournament.render_official_rotation === 'function') {
+			ctournament.render_official_rotation(container);
+			return;
+		}
 		uiu.empty(container);
 		var umpires = curt.umpires;
 		if (umpires.length > 0) {
@@ -88,6 +134,7 @@ var cumpires = (function() {
 
 	return {
 		ui_status,
+		rotation_lists,
 	};
 
 })();

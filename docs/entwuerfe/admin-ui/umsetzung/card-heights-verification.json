@@ -1,0 +1,27 @@
+{
+  "date": "2026-10-30",
+  "checks": [
+    "Existing layouts keep automatic sidebar heights and equal heights above the games",
+    "Height handles are available only for the right column in the layout editor",
+    "Dragging the bottom handle changes only the card height without starting a card drag",
+    "A constrained log card scrolls its content while retaining the heading and resize handle",
+    "Done saves individual heights locally and leaves the original rows and controls connected",
+    "Reload restores fixed heights and keeps the short right column sticky",
+    "Escape cancels a height drag and releases pointer capture",
+    "Keyboard resizing adjusts the height by ten pixels",
+    "Cancel restores the saved heights without changing storage",
+    "Moving a resized card above the games restores the unchanged common row height",
+    "Moving the card back to the right restores its remembered height",
+    "Live tablet additions remain within the fixed card with a single scrolling content area",
+    "A height exceeding the viewport lets the sidebar scroll with the page",
+    "Reducing the combined card heights makes the sidebar sticky again",
+    "Refreshing the operator queue retains the constrained content container",
+    "Auto restores natural growth and removes the fixed content container",
+    "The right-column height can also be changed by touch in a narrow window",
+    "Standard resets card heights along with their positions",
+    "Cancel after Standard restores the previously saved heights",
+    "Stored heights accept valid known cards and ignore malformed or out-of-range values",
+    "Height changes produce no browser exceptions"
+  ],
+  "exceptions": 0
+}

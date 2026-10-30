@@ -1,0 +1,1544 @@
+{
+  "date": "2026-10-30",
+  "source": "Eigener vollständiger Live-Benchmark, Dashboard-Lauf 7",
+  "source_archive": "/home/tim/repos/bts-testclient/reports/run-2026-10-30T00-54-22-176Z-Bbw3Qc",
+  "source_copy": "/tmp/bts-optimization-run7.json",
+  "started_at": "2026-10-30T00:54:26.452Z",
+  "runtime_ms": 600187,
+  "stop_reason": "completed",
+  "failure": null,
+  "initial_state": {
+    "matches": 373,
+    "finished_matches": 120,
+    "active_matches": 15,
+    "active_courts": 15,
+    "pending_player_checkins": 0,
+    "pending_players": 0,
+    "check_in_per_match": true,
+    "state_sha256": "fa42a1faab7d221abd8a46a56255d79ca026ee91a4a96655910343da67c34756"
+  },
+  "settings": {
+    "tournament": "default",
+    "base_url": "https://localhost:4433",
+    "point_interval_ms": [
+      3200,
+      6400
+    ],
+    "score_gap_ms": [
+      0,
+      0
+    ],
+    "pause_visible_ms": 3000,
+    "score_all_active": true,
+    "legacy_loopback_devices": false,
+    "server_telemetry": true,
+    "processing_traces": true,
+    "score_probability": [
+      0.4,
+      0.6
+    ]
+  },
+  "points": 1265,
+  "tablet_to_admin_ms": {
+    "count": 1279,
+    "mean": 101,
+    "min": 30,
+    "p50": 71,
+    "p95": 250,
+    "p99": 588,
+    "max": 1179,
+    "over_50_ms": 1029,
+    "over_100_ms": 350,
+    "over_200_ms": 86,
+    "sent_updates": 1279,
+    "unmatched_updates": 0,
+    "coverage": 1
+  },
+  "tablet_to_tv_ms": {
+    "count": 1279,
+    "mean": 5.8,
+    "min": 2,
+    "p50": 4,
+    "p95": 16,
+    "p99": 29,
+    "max": 50,
+    "over_50_ms": 0,
+    "over_100_ms": 0,
+    "over_200_ms": 0,
+    "sent_updates": 1279,
+    "unmatched_updates": 0,
+    "coverage": 1
+  },
+  "server_profiles": [
+    {
+      "elapsed_ms": 0,
+      "profile": {
+        "server_id": "2767523-1793321606411",
+        "run_label": null,
+        "features": {
+          "btp_decode": true,
+          "sync_plan": true,
+          "sync_plan_patch_return": true,
+          "device_info": false,
+          "xlsx_import": false,
+          "compaction": true,
+          "compaction_reads": true,
+          "score_idle_reads": true,
+          "score_readonly_reads": true,
+          "score_direct_writes": true,
+          "preparation_reads": true,
+          "preparation_candidates": true,
+          "sync_batch_writes": false,
+          "sync_prepared_tournament": true,
+          "sync_prepared_matches": true,
+          "admin_response_background": true,
+          "admin_response_priority": true,
+          "admin_match_revision_cache": true,
+          "admin_broadcast_shared": true,
+          "admin_response_worker": false,
+          "compaction_staged": true
+        }
+      }
+    }
+  ],
+  "mixed_server_profiles": false,
+  "assessment": {
+    "version": 1,
+    "thresholds": {
+      "p99_ms": 30,
+      "max_ms": 50,
+      "min_samples": 100,
+      "admin_render_p99_ms": 100,
+      "admin_render_max_ms": 250
+    },
+    "final": true,
+    "level": "ERROR",
+    "summary": "Mindestens ein Ziel ist verletzt.",
+    "criteria": [
+      {
+        "id": "tv_p99",
+        "label": "TV · p99 im gesamten Lauf",
+        "level": "OK",
+        "value": "29 ms",
+        "target": "< 30 ms",
+        "detail": "1279 zugeordnete Updates."
+      },
+      {
+        "id": "tv_reception",
+        "label": "TV · Eventempfang",
+        "level": "OK",
+        "value": "1279 / 1279",
+        "target": "Alle gesendeten Updates zugeordnet",
+        "detail": "Vollständige Zuordnung."
+      },
+      {
+        "id": "tv_max",
+        "label": "TV · Maximum",
+        "level": "WARN",
+        "value": "50 ms",
+        "target": "Wunschziel < 50 ms",
+        "detail": "Ein einzelner Ausreißer verletzt nicht automatisch das p99-Ziel. Updates über 50 ms: 0."
+      },
+      {
+        "id": "admin_p99",
+        "label": "Admin · p99 im gesamten Lauf",
+        "level": "ERROR",
+        "value": "588 ms",
+        "target": "< 100 ms",
+        "detail": "1279 zugeordnete Updates."
+      },
+      {
+        "id": "admin_reception",
+        "label": "Admin · Darstellung quittiert",
+        "level": "OK",
+        "value": "1279 / 1279",
+        "target": "Alle gesendeten Updates zugeordnet",
+        "detail": "Vollständige Zuordnung."
+      },
+      {
+        "id": "admin_max",
+        "label": "Admin · Maximum",
+        "level": "WARN",
+        "value": "1179 ms",
+        "target": "Wunschziel < 250 ms",
+        "detail": "Ein einzelner Ausreißer verletzt nicht automatisch das p99-Ziel. Updates über 50 ms: 1029."
+      },
+      {
+        "id": "queues",
+        "label": "Server-Warteschlangen",
+        "level": "OK",
+        "value": "Kein anhaltender Rückstau",
+        "target": "Kein wachsender Rückstau / keine Queue-Fehler",
+        "detail": "Bewertung anhand der bestehenden Rückstau-Erkennung; kurze Spitzen sind erlaubt."
+      }
+    ],
+    "queue_incidents": []
+  },
+  "score_presentation_outcomes": {
+    "presented": 1279
+  },
+  "admin_stages": {
+    "queue_ms": {
+      "count": 1279,
+      "mean": 15.07,
+      "p50": 0.7,
+      "p95": 66,
+      "p99": 183.1,
+      "max": 777.6
+    },
+    "handler_ms": {
+      "count": 1279,
+      "mean": 1.05,
+      "p50": 0.8,
+      "p95": 1.9,
+      "p99": 11.1,
+      "max": 22.1
+    },
+    "ui_wait_ms": {
+      "count": 1279,
+      "mean": 2.19,
+      "p50": 0,
+      "p95": 5.7,
+      "p99": 128.4,
+      "max": 197.9
+    },
+    "render_ms": {
+      "count": 1279,
+      "mean": 49.32,
+      "p50": 46.3,
+      "p95": 70,
+      "p99": 135.6,
+      "max": 269.6
+    },
+    "total_ms": {
+      "count": 1279,
+      "mean": 67.63,
+      "p50": 52.1,
+      "p95": 152.1,
+      "p99": 370.3,
+      "max": 831.1
+    }
+  },
+  "admin_ingress_ms": {
+    "count": 1279,
+    "mean": 33.34,
+    "p50": 16,
+    "p95": 97,
+    "p99": 319,
+    "max": 801
+  },
+  "measured_admin": [
+    {
+      "method": "browser-dom-and-render-opportunity",
+      "control_method": "independent-websocket",
+      "viewport": {
+        "width": 1920,
+        "height": 1080
+      },
+      "receipts": 48341,
+      "outcomes": {
+        "presented": 48336,
+        "superseded": 5
+      },
+      "ui_updates": {
+        "display_status_changed": {
+          "count": 2309,
+          "queue_ms": {
+            "mean": 29.24,
+            "max": 777.3
+          },
+          "handler_ms": {
+            "mean": 1.19,
+            "max": 9.8
+          },
+          "ui_wait_ms": {
+            "mean": 0,
+            "max": 0.2
+          },
+          "render_ms": {
+            "mean": 44.55,
+            "max": 354.6
+          },
+          "total_ms": {
+            "mean": 74.99,
+            "max": 830.9
+          }
+        },
+        "display_wait_for_done": {
+          "count": 20706,
+          "queue_ms": {
+            "mean": 13.15,
+            "max": 777.4
+          },
+          "handler_ms": {
+            "mean": 0.34,
+            "max": 11.8
+          },
+          "ui_wait_ms": {
+            "mean": 0,
+            "max": 3.2
+          },
+          "render_ms": {
+            "mean": 31.8,
+            "max": 320.9
+          },
+          "total_ms": {
+            "mean": 45.28,
+            "max": 831
+          }
+        },
+        "display_render_stats": {
+          "count": 1311,
+          "queue_ms": {
+            "mean": 23.86,
+            "max": 779.3
+          },
+          "handler_ms": {
+            "mean": 0.44,
+            "max": 4.1
+          },
+          "ui_wait_ms": {
+            "mean": 0,
+            "max": 0.1
+          },
+          "render_ms": {
+            "mean": 44.33,
+            "max": 266.4
+          },
+          "total_ms": {
+            "mean": 68.64,
+            "max": 831.4
+          }
+        },
+        "display_is_done": {
+          "count": 20706,
+          "queue_ms": {
+            "mean": 17.69,
+            "max": 779.9
+          },
+          "handler_ms": {
+            "mean": 0.24,
+            "max": 10.7
+          },
+          "ui_wait_ms": {
+            "mean": 0,
+            "max": 0.1
+          },
+          "render_ms": {
+            "mean": 34.2,
+            "max": 318.7
+          },
+          "total_ms": {
+            "mean": 52.14,
+            "max": 831.4
+          }
+        },
+        "btp_status": {
+          "count": 436,
+          "queue_ms": {
+            "mean": 0.04,
+            "max": 0.3
+          },
+          "handler_ms": {
+            "mean": 0.7,
+            "max": 2.8
+          },
+          "ui_wait_ms": {
+            "mean": 0,
+            "max": 0.2
+          },
+          "render_ms": {
+            "mean": 21.02,
+            "max": 110.2
+          },
+          "total_ms": {
+            "mean": 21.77,
+            "max": 111
+          }
+        },
+        "speech_cache_changed": {
+          "count": 109,
+          "queue_ms": {
+            "mean": 37.73,
+            "max": 718.9
+          },
+          "handler_ms": {
+            "mean": 15.8,
+            "max": 31.3
+          },
+          "ui_wait_ms": {
+            "mean": 0,
+            "max": 0.1
+          },
+          "render_ms": {
+            "mean": 20.01,
+            "max": 85.5
+          },
+          "total_ms": {
+            "mean": 73.54,
+            "max": 757
+          }
+        },
+        "score": {
+          "count": 1279,
+          "queue_ms": {
+            "mean": 15.07,
+            "max": 777.6
+          },
+          "handler_ms": {
+            "mean": 1.05,
+            "max": 22.1
+          },
+          "ui_wait_ms": {
+            "mean": 2.19,
+            "max": 197.9
+          },
+          "render_ms": {
+            "mean": 49.32,
+            "max": 269.6
+          },
+          "total_ms": {
+            "mean": 67.63,
+            "max": 831.1
+          }
+        },
+        "court_current_match": {
+          "count": 1279,
+          "queue_ms": {
+            "mean": 18.45,
+            "max": 778.3
+          },
+          "handler_ms": {
+            "mean": 1.22,
+            "max": 60.6
+          },
+          "ui_wait_ms": {
+            "mean": 5.49,
+            "max": 1384
+          },
+          "render_ms": {
+            "mean": 47.02,
+            "max": 269.4
+          },
+          "total_ms": {
+            "mean": 72.17,
+            "max": 1709.4
+          }
+        },
+        "match_preparation_call": {
+          "count": 17,
+          "queue_ms": {
+            "mean": 0.08,
+            "max": 0.2
+          },
+          "handler_ms": {
+            "mean": 54.56,
+            "max": 68.4
+          },
+          "ui_wait_ms": {
+            "mean": 339,
+            "max": 818.1
+          },
+          "render_ms": {
+            "mean": 79.57,
+            "max": 321.7
+          },
+          "total_ms": {
+            "mean": 473.21,
+            "max": 1206.6
+          }
+        },
+        "match_edit": {
+          "count": 47,
+          "queue_ms": {
+            "mean": 52.23,
+            "max": 283
+          },
+          "handler_ms": {
+            "mean": 33.4,
+            "max": 51
+          },
+          "ui_wait_ms": {
+            "mean": 386.36,
+            "max": 1261.3
+          },
+          "render_ms": {
+            "mean": 63.39,
+            "max": 149.6
+          },
+          "total_ms": {
+            "mean": 535.39,
+            "max": 1709.8
+          }
+        },
+        "update_player_status": {
+          "count": 62,
+          "queue_ms": {
+            "mean": 140.99,
+            "max": 366.4
+          },
+          "handler_ms": {
+            "mean": 1.59,
+            "max": 8.8
+          },
+          "ui_wait_ms": {
+            "mean": 19.47,
+            "max": 63.8
+          },
+          "render_ms": {
+            "mean": 148.7,
+            "max": 252.2
+          },
+          "total_ms": {
+            "mean": 310.75,
+            "max": 599.1
+          }
+        },
+        "tabletoperator_removed": {
+          "count": 27,
+          "queue_ms": {
+            "mean": 103.2,
+            "max": 632.3
+          },
+          "handler_ms": {
+            "mean": 29.98,
+            "max": 71.9
+          },
+          "ui_wait_ms": {
+            "mean": 467.9,
+            "max": 919.3
+          },
+          "render_ms": {
+            "mean": 86.93,
+            "max": 169
+          },
+          "total_ms": {
+            "mean": 688.01,
+            "max": 1709.8
+          }
+        },
+        "tabletoperator_add": {
+          "count": 14,
+          "queue_ms": {
+            "mean": 184.11,
+            "max": 477.4
+          },
+          "handler_ms": {
+            "mean": 26.32,
+            "max": 40.3
+          },
+          "ui_wait_ms": {
+            "mean": 554.16,
+            "max": 1476.4
+          },
+          "render_ms": {
+            "mean": 61.08,
+            "max": 136.7
+          },
+          "total_ms": {
+            "mean": 825.66,
+            "max": 1761.9
+          }
+        },
+        "court_changed": {
+          "count": 14,
+          "queue_ms": {
+            "mean": 325.86,
+            "max": 647.6
+          },
+          "handler_ms": {
+            "mean": 24.64,
+            "max": 38.6
+          },
+          "ui_wait_ms": {
+            "mean": 402.91,
+            "max": 1274.7
+          },
+          "render_ms": {
+            "mean": 61.68,
+            "max": 137.4
+          },
+          "total_ms": {
+            "mean": 815.09,
+            "max": 1709.9
+          }
+        },
+        "match_called_on_court": {
+          "count": 13,
+          "queue_ms": {
+            "mean": 0.08,
+            "max": 0.2
+          },
+          "handler_ms": {
+            "mean": 0.11,
+            "max": 0.4
+          },
+          "ui_wait_ms": {
+            "mean": 0,
+            "max": 0
+          },
+          "render_ms": {
+            "mean": 286.87,
+            "max": 376.8
+          },
+          "total_ms": {
+            "mean": 287.05,
+            "max": 376.9
+          }
+        },
+        "umpire_updated": {
+          "count": 9,
+          "queue_ms": {
+            "mean": 188.96,
+            "max": 626.4
+          },
+          "handler_ms": {
+            "mean": 4.43,
+            "max": 7.9
+          },
+          "ui_wait_ms": {
+            "mean": 9.18,
+            "max": 44.6
+          },
+          "render_ms": {
+            "mean": 114.77,
+            "max": 183.5
+          },
+          "total_ms": {
+            "mean": 317.33,
+            "max": 736.5
+          }
+        },
+        "umpires_changed": {
+          "count": 3,
+          "queue_ms": {
+            "mean": 370.5,
+            "max": 630.4
+          },
+          "handler_ms": {
+            "mean": 3.17,
+            "max": 4.1
+          },
+          "ui_wait_ms": {
+            "mean": 3.7,
+            "max": 11.1
+          },
+          "render_ms": {
+            "mean": 92.03,
+            "max": 104
+          },
+          "total_ms": {
+            "mean": 469.4,
+            "max": 736.4
+          }
+        }
+      },
+      "ui_jobs": {
+        "timers.fit": {
+          "count": 158,
+          "queue_ms": {
+            "mean": 16.73,
+            "max": 67.3
+          },
+          "work_ms": {
+            "mean": 12.56,
+            "max": 124.6
+          },
+          "elapsed_ms": {
+            "mean": 29.29,
+            "max": 151.3
+          }
+        },
+        "names.layout": {
+          "count": 176,
+          "queue_ms": {
+            "mean": 25.3,
+            "max": 147.7
+          },
+          "work_ms": {
+            "mean": 34.95,
+            "max": 180.7
+          },
+          "elapsed_ms": {
+            "mean": 60.27,
+            "max": 272.2
+          }
+        },
+        "lists.counts": {
+          "count": 106,
+          "queue_ms": {
+            "mean": 8.1,
+            "max": 20.9
+          },
+          "work_ms": {
+            "mean": 9.06,
+            "max": 29.7
+          },
+          "elapsed_ms": {
+            "mean": 17.17,
+            "max": 40.4
+          }
+        },
+        "preparation.diagnosis": {
+          "count": 150,
+          "queue_ms": {
+            "mean": 156.99,
+            "max": 781
+          },
+          "work_ms": {
+            "mean": 21.23,
+            "max": 53.2
+          },
+          "elapsed_ms": {
+            "mean": 418.53,
+            "max": 1449.2
+          }
+        },
+        "locations.labels": {
+          "count": 242,
+          "queue_ms": {
+            "mean": 37.59,
+            "max": 264.9
+          },
+          "work_ms": {
+            "mean": 0.82,
+            "max": 1.7
+          },
+          "elapsed_ms": {
+            "mean": 38.42,
+            "max": 265.8
+          }
+        },
+        "finished.sort": {
+          "count": 28,
+          "queue_ms": {
+            "mean": 11.79,
+            "max": 34
+          },
+          "work_ms": {
+            "mean": 3.91,
+            "max": 6.9
+          },
+          "elapsed_ms": {
+            "mean": 15.71,
+            "max": 39.1
+          }
+        }
+      },
+      "slow_ui_jobs": [
+        {
+          "type": "tabletoperator_removed",
+          "received_at": 1793322170424,
+          "name": "names.layout",
+          "requested_ms": 913.6,
+          "queue_ms": 3.4,
+          "work_ms": 47.6,
+          "elapsed_ms": 51,
+          "status": "complete"
+        },
+        {
+          "type": "score",
+          "match_id": "btp_default_ME U13_635",
+          "received_at": 1793322171444,
+          "name": "names.layout",
+          "requested_ms": 85.7,
+          "queue_ms": 16.4,
+          "work_ms": 111.4,
+          "elapsed_ms": 127.8,
+          "status": "complete"
+        },
+        {
+          "type": "update_player_status",
+          "match_id": "btp_default_ME U19_1117",
+          "received_at": 1793322171445,
+          "name": "names.layout",
+          "requested_ms": 347,
+          "queue_ms": 30.5,
+          "work_ms": 34.3,
+          "elapsed_ms": 64.8,
+          "status": "complete"
+        },
+        {
+          "type": "tabletoperator_add",
+          "received_at": 1793322170425,
+          "name": "preparation.diagnosis",
+          "requested_ms": 132,
+          "queue_ms": 781,
+          "work_ms": 16.9,
+          "elapsed_ms": 1449.2,
+          "status": "complete"
+        },
+        {
+          "type": "court_current_match",
+          "match_id": "btp_default_MX U19_272",
+          "received_at": 1793322170478,
+          "name": "names.layout",
+          "requested_ms": 161,
+          "queue_ms": 26.8,
+          "work_ms": 26,
+          "elapsed_ms": 52.8,
+          "status": "complete"
+        },
+        {
+          "type": "court_current_match",
+          "match_id": "btp_default_MX U19_272",
+          "received_at": 1793322170478,
+          "name": "preparation.diagnosis",
+          "requested_ms": 171.9,
+          "queue_ms": 688.5,
+          "work_ms": 16.9,
+          "elapsed_ms": 1356.7,
+          "status": "complete"
+        },
+        {
+          "type": "court_changed",
+          "received_at": 1793322170478,
+          "name": "preparation.diagnosis",
+          "requested_ms": 281,
+          "queue_ms": 579.2,
+          "work_ms": 16.9,
+          "elapsed_ms": 1247.4,
+          "status": "complete"
+        },
+        {
+          "type": "court_changed",
+          "received_at": 1793322170478,
+          "name": "names.layout",
+          "requested_ms": 298.9,
+          "queue_ms": 88.6,
+          "work_ms": 153,
+          "elapsed_ms": 241.6,
+          "status": "complete"
+        },
+        {
+          "type": "match_edit",
+          "match_id": "btp_default_JE U15_721",
+          "received_at": 1793322170478,
+          "name": "timers.fit",
+          "requested_ms": 285.9,
+          "queue_ms": 16.3,
+          "work_ms": 84.9,
+          "elapsed_ms": 101.2,
+          "status": "complete"
+        },
+        {
+          "type": "match_edit",
+          "match_id": "btp_default_JE U15_721",
+          "received_at": 1793322170478,
+          "name": "names.layout",
+          "requested_ms": 287.9,
+          "queue_ms": 99.4,
+          "work_ms": 153,
+          "elapsed_ms": 252.4,
+          "status": "complete"
+        },
+        {
+          "type": "match_edit",
+          "match_id": "btp_default_JE U15_721",
+          "received_at": 1793322170478,
+          "name": "preparation.diagnosis",
+          "requested_ms": 294.2,
+          "queue_ms": 565.8,
+          "work_ms": 16.9,
+          "elapsed_ms": 1234,
+          "status": "complete"
+        },
+        {
+          "type": "tabletoperator_removed",
+          "received_at": 1793322170478,
+          "name": "preparation.diagnosis",
+          "requested_ms": 635.9,
+          "queue_ms": 223.8,
+          "work_ms": 16.9,
+          "elapsed_ms": 892,
+          "status": "complete"
+        },
+        {
+          "type": "tabletoperator_removed",
+          "received_at": 1793322171445,
+          "name": "preparation.diagnosis",
+          "requested_ms": 308.9,
+          "queue_ms": 252.7,
+          "work_ms": 15.8,
+          "elapsed_ms": 560.1,
+          "status": "complete"
+        },
+        {
+          "type": "tabletoperator_add",
+          "received_at": 1793322171445,
+          "name": "preparation.diagnosis",
+          "requested_ms": 352.5,
+          "queue_ms": 208.7,
+          "work_ms": 15.8,
+          "elapsed_ms": 516.1,
+          "status": "complete"
+        },
+        {
+          "type": "court_current_match",
+          "match_id": "btp_default_ME U13_635",
+          "received_at": 1793322171445,
+          "name": "names.layout",
+          "requested_ms": 356.3,
+          "queue_ms": 20.7,
+          "work_ms": 34.3,
+          "elapsed_ms": 55,
+          "status": "complete"
+        },
+        {
+          "type": "court_current_match",
+          "match_id": "btp_default_ME U13_635",
+          "received_at": 1793322171445,
+          "name": "preparation.diagnosis",
+          "requested_ms": 363.9,
+          "queue_ms": 197.1,
+          "work_ms": 15.8,
+          "elapsed_ms": 504.5,
+          "status": "complete"
+        },
+        {
+          "type": "court_changed",
+          "received_at": 1793322171446,
+          "name": "preparation.diagnosis",
+          "requested_ms": 458.2,
+          "queue_ms": 102.7,
+          "work_ms": 15.8,
+          "elapsed_ms": 410.1,
+          "status": "complete"
+        },
+        {
+          "type": "match_preparation_call",
+          "match_id": "btp_default_JE U15_717",
+          "received_at": 1793322202165,
+          "name": "names.layout",
+          "requested_ms": 6.9,
+          "queue_ms": 38.9,
+          "work_ms": 39.2,
+          "elapsed_ms": 78.1,
+          "status": "complete"
+        },
+        {
+          "type": "match_preparation_call",
+          "match_id": "btp_default_JE U15_717",
+          "received_at": 1793322202165,
+          "name": "preparation.diagnosis",
+          "requested_ms": 17.2,
+          "queue_ms": 0,
+          "work_ms": 21,
+          "elapsed_ms": 235.7,
+          "status": "complete"
+        },
+        {
+          "type": "match_preparation_call",
+          "match_id": "btp_default_JE U15_717",
+          "received_at": 1793322202165,
+          "name": "preparation.diagnosis",
+          "requested_ms": 17.8,
+          "queue_ms": 235.2,
+          "work_ms": 23.6,
+          "elapsed_ms": 412.2,
+          "status": "complete"
+        },
+        {
+          "type": "match_edit",
+          "match_id": "btp_default_JE U15_717",
+          "received_at": 1793322202666,
+          "name": "names.layout",
+          "requested_ms": 13.4,
+          "queue_ms": 25.3,
+          "work_ms": 27.9,
+          "elapsed_ms": 53.2,
+          "status": "complete"
+        },
+        {
+          "type": "match_edit",
+          "match_id": "btp_default_JE U15_717",
+          "received_at": 1793322202666,
+          "name": "preparation.diagnosis",
+          "requested_ms": 19.2,
+          "queue_ms": 0,
+          "work_ms": 27.2,
+          "elapsed_ms": 275.6,
+          "status": "complete"
+        },
+        {
+          "type": "match_edit",
+          "match_id": "btp_default_JE U15_717",
+          "received_at": 1793322202666,
+          "name": "names.layout",
+          "requested_ms": 132.3,
+          "queue_ms": 25.8,
+          "work_ms": 23.5,
+          "elapsed_ms": 49.3,
+          "status": "complete"
+        },
+        {
+          "type": "match_edit",
+          "match_id": "btp_default_JE U15_717",
+          "received_at": 1793322202666,
+          "name": "preparation.diagnosis",
+          "requested_ms": 139.9,
+          "queue_ms": 154.8,
+          "work_ms": 14.2,
+          "elapsed_ms": 293.3,
+          "status": "complete"
+        },
+        {
+          "type": "match_preparation_call",
+          "match_id": "btp_default_ME U15_794",
+          "received_at": 1793322212157,
+          "name": "names.layout",
+          "requested_ms": 4.2,
+          "queue_ms": 20,
+          "work_ms": 17.7,
+          "elapsed_ms": 37.7,
+          "status": "complete"
+        },
+        {
+          "type": "match_preparation_call",
+          "match_id": "btp_default_ME U15_794",
+          "received_at": 1793322212157,
+          "name": "preparation.diagnosis",
+          "requested_ms": 9.2,
+          "queue_ms": 129.1,
+          "work_ms": 18.7,
+          "elapsed_ms": 300.8,
+          "status": "complete"
+        },
+        {
+          "type": "match_edit",
+          "match_id": "btp_default_ME U15_794",
+          "received_at": 1793322212532,
+          "name": "names.layout",
+          "requested_ms": 14.8,
+          "queue_ms": 26.5,
+          "work_ms": 23.2,
+          "elapsed_ms": 49.7,
+          "status": "complete"
+        },
+        {
+          "type": "match_edit",
+          "match_id": "btp_default_ME U15_794",
+          "received_at": 1793322212532,
+          "name": "preparation.diagnosis",
+          "requested_ms": 21.5,
+          "queue_ms": 0,
+          "work_ms": 24.9,
+          "elapsed_ms": 244.1,
+          "status": "complete"
+        },
+        {
+          "type": "match_edit",
+          "match_id": "btp_default_ME U15_794",
+          "received_at": 1793322212538,
+          "name": "preparation.diagnosis",
+          "requested_ms": 120.6,
+          "queue_ms": 139.2,
+          "work_ms": 34,
+          "elapsed_ms": 263.2,
+          "status": "complete"
+        },
+        {
+          "type": "match_preparation_call",
+          "match_id": "btp_default_ME U15_795",
+          "received_at": 1793322227854,
+          "name": "names.layout",
+          "requested_ms": 7.2,
+          "queue_ms": 29.6,
+          "work_ms": 23.1,
+          "elapsed_ms": 52.8,
+          "status": "complete"
+        },
+        {
+          "type": "match_preparation_call",
+          "match_id": "btp_default_ME U15_795",
+          "received_at": 1793322227854,
+          "name": "preparation.diagnosis",
+          "requested_ms": 16.9,
+          "queue_ms": 0,
+          "work_ms": 28.3,
+          "elapsed_ms": 222.8,
+          "status": "complete"
+        },
+        {
+          "type": "match_preparation_call",
+          "match_id": "btp_default_ME U15_795",
+          "received_at": 1793322227854,
+          "name": "preparation.diagnosis",
+          "requested_ms": 17.5,
+          "queue_ms": 222.2,
+          "work_ms": 22.5,
+          "elapsed_ms": 337.6,
+          "status": "complete"
+        },
+        {
+          "type": "match_edit",
+          "match_id": "btp_default_ME U15_795",
+          "received_at": 1793322228332,
+          "name": "preparation.diagnosis",
+          "requested_ms": 99.9,
+          "queue_ms": 0,
+          "work_ms": 21.4,
+          "elapsed_ms": 181.2,
+          "status": "complete"
+        },
+        {
+          "type": "match_edit",
+          "match_id": "btp_default_ME U15_795",
+          "received_at": 1793322228332,
+          "name": "preparation.diagnosis",
+          "requested_ms": 180.2,
+          "queue_ms": 100.8,
+          "work_ms": 17.8,
+          "elapsed_ms": 217.4,
+          "status": "complete"
+        },
+        {
+          "type": "match_preparation_call",
+          "match_id": "btp_default_ME U15_796",
+          "received_at": 1793322246450,
+          "name": "names.layout",
+          "requested_ms": 4.8,
+          "queue_ms": 23.8,
+          "work_ms": 22.3,
+          "elapsed_ms": 46.1,
+          "status": "complete"
+        },
+        {
+          "type": "match_preparation_call",
+          "match_id": "btp_default_ME U15_796",
+          "received_at": 1793322246450,
+          "name": "preparation.diagnosis",
+          "requested_ms": 11.3,
+          "queue_ms": 0,
+          "work_ms": 20.9,
+          "elapsed_ms": 160.7,
+          "status": "complete"
+        },
+        {
+          "type": "match_preparation_call",
+          "match_id": "btp_default_ME U15_796",
+          "received_at": 1793322246450,
+          "name": "preparation.diagnosis",
+          "requested_ms": 11.6,
+          "queue_ms": 160.4,
+          "work_ms": 16.9,
+          "elapsed_ms": 314.1,
+          "status": "complete"
+        },
+        {
+          "type": "match_edit",
+          "match_id": "btp_default_ME U15_796",
+          "received_at": 1793322246967,
+          "name": "names.layout",
+          "requested_ms": 47.2,
+          "queue_ms": 23.8,
+          "work_ms": 16.6,
+          "elapsed_ms": 40.4,
+          "status": "complete"
+        },
+        {
+          "type": "match_edit",
+          "match_id": "btp_default_ME U15_796",
+          "received_at": 1793322246967,
+          "name": "preparation.diagnosis",
+          "requested_ms": 55.1,
+          "queue_ms": 0,
+          "work_ms": 25.5,
+          "elapsed_ms": 264.2,
+          "status": "complete"
+        },
+        {
+          "type": "match_edit",
+          "match_id": "btp_default_ME U15_796",
+          "received_at": 1793322247031,
+          "name": "preparation.diagnosis",
+          "requested_ms": 74.7,
+          "queue_ms": 180.5,
+          "work_ms": 17.5,
+          "elapsed_ms": 294.6,
+          "status": "complete"
+        }
+      ],
+      "slow_ui_job_limit": 40
+    }
+  ],
+  "server_queue_status": {
+    "level": "OK",
+    "reasons": [
+      "No sustained backlog observed"
+    ]
+  },
+  "phases": [
+    {
+      "name": "checkin-and-play",
+      "points": 325,
+      "score_updates": 327,
+      "tablet_to_admin_ms": {
+        "count": 327,
+        "mean": 98.4,
+        "p50": 71,
+        "p95": 215,
+        "p99": 550,
+        "max": 597,
+        "sent_updates": 327,
+        "unmatched_updates": 0,
+        "coverage": 1,
+        "over_50_ms": 265,
+        "over_100_ms": 95,
+        "over_200_ms": 19
+      },
+      "tablet_to_tv_ms": {
+        "count": 327,
+        "mean": 6.9,
+        "p50": 5,
+        "p95": 20,
+        "p99": 28,
+        "max": 44,
+        "sent_updates": 327,
+        "unmatched_updates": 0,
+        "coverage": 1,
+        "over_50_ms": 0,
+        "over_100_ms": 0,
+        "over_200_ms": 0
+      }
+    },
+    {
+      "name": "load",
+      "points": 605,
+      "score_updates": 615,
+      "tablet_to_admin_ms": {
+        "count": 615,
+        "mean": 99.1,
+        "p50": 69,
+        "p95": 284,
+        "p99": 579,
+        "max": 733,
+        "sent_updates": 615,
+        "unmatched_updates": 0,
+        "coverage": 1,
+        "over_50_ms": 496,
+        "over_100_ms": 147,
+        "over_200_ms": 47
+      },
+      "tablet_to_tv_ms": {
+        "count": 615,
+        "mean": 5.4,
+        "p50": 4,
+        "p95": 13,
+        "p99": 24,
+        "max": 37,
+        "sent_updates": 615,
+        "unmatched_updates": 0,
+        "coverage": 1,
+        "over_50_ms": 0,
+        "over_100_ms": 0,
+        "over_200_ms": 0
+      }
+    },
+    {
+      "name": "idle",
+      "points": 0,
+      "score_updates": 0,
+      "tablet_to_admin_ms": {
+        "count": 0,
+        "mean": null,
+        "p50": null,
+        "p95": null,
+        "p99": null,
+        "max": null,
+        "sent_updates": 0,
+        "unmatched_updates": 0,
+        "coverage": null,
+        "over_50_ms": 0,
+        "over_100_ms": 0,
+        "over_200_ms": 0
+      },
+      "tablet_to_tv_ms": {
+        "count": 0,
+        "mean": null,
+        "p50": null,
+        "p95": null,
+        "p99": null,
+        "max": null,
+        "sent_updates": 0,
+        "unmatched_updates": 0,
+        "coverage": null,
+        "over_50_ms": 0,
+        "over_100_ms": 0,
+        "over_200_ms": 0
+      }
+    },
+    {
+      "name": "load-after-idle",
+      "points": 335,
+      "score_updates": 337,
+      "tablet_to_admin_ms": {
+        "count": 337,
+        "mean": 107.1,
+        "p50": 75,
+        "p95": 219,
+        "p99": 1014,
+        "max": 1179,
+        "sent_updates": 337,
+        "unmatched_updates": 0,
+        "coverage": 1,
+        "over_50_ms": 268,
+        "over_100_ms": 108,
+        "over_200_ms": 20
+      },
+      "tablet_to_tv_ms": {
+        "count": 337,
+        "mean": 5.6,
+        "p50": 4,
+        "p95": 15,
+        "p99": 35,
+        "max": 50,
+        "sent_updates": 337,
+        "unmatched_updates": 0,
+        "coverage": 1,
+        "over_50_ms": 0,
+        "over_100_ms": 0,
+        "over_200_ms": 0
+      }
+    }
+  ],
+  "slowest_points": [
+    {
+      "trace_id": "live-drill-2767821-mvu9pus3-1015",
+      "sent_ts": 1793322170643,
+      "court_id": "default_4",
+      "match_id": "btp_default_ME U13_635",
+      "tv_ms": 6,
+      "tv_received_ts": 1793322170649,
+      "admin_ms": 1179,
+      "admin_received_ts": 1793322171444,
+      "admin_applied_ts": 1793322171658,
+      "admin_presented_ts": 1793322171822,
+      "admin_presentation_status": "presented",
+      "admin_ui_ms": {
+        "queue_ms": 80.8,
+        "handler_ms": 9.4,
+        "ui_wait_ms": 123.3,
+        "render_ms": 163.8,
+        "total_ms": 377.3
+      },
+      "admin_measurement_method": "dom-and-render-opportunity",
+      "admin_ui_jobs": [
+        {
+          "name": "lists.counts",
+          "requested_ms": 83,
+          "queue_ms": 7.5,
+          "work_ms": 7.1,
+          "elapsed_ms": 14.6,
+          "status": "complete"
+        },
+        {
+          "name": "names.layout",
+          "requested_ms": 85.7,
+          "queue_ms": 16.4,
+          "work_ms": 111.4,
+          "elapsed_ms": 127.8,
+          "status": "complete"
+        },
+        {
+          "name": "finished.sort",
+          "requested_ms": 86.4,
+          "queue_ms": 11.2,
+          "work_ms": 2.4,
+          "elapsed_ms": 13.6,
+          "status": "complete"
+        }
+      ]
+    },
+    {
+      "trace_id": "live-drill-2767821-mvu9pv9c-1020",
+      "sent_ts": 1793322171264,
+      "court_id": "default_9",
+      "match_id": "btp_default_ME U13_637",
+      "tv_ms": 5,
+      "tv_received_ts": 1793322171269,
+      "admin_ms": 1021,
+      "admin_received_ts": 1793322171454,
+      "admin_applied_ts": 1793322172233,
+      "admin_presented_ts": 1793322172285,
+      "admin_presentation_status": "presented",
+      "admin_ui_ms": {
+        "queue_ms": 777.6,
+        "handler_ms": 0.9,
+        "ui_wait_ms": 0,
+        "render_ms": 52.6,
+        "total_ms": 831.1
+      },
+      "admin_measurement_method": "dom-and-render-opportunity",
+      "admin_ui_jobs": []
+    },
+    {
+      "trace_id": "live-drill-2767821-mvu9pv6v-1018",
+      "sent_ts": 1793322171175,
+      "court_id": "default_6",
+      "match_id": "btp_default_JE U15_716",
+      "tv_ms": 12,
+      "tv_received_ts": 1793322171187,
+      "admin_ms": 1014,
+      "admin_received_ts": 1793322171451,
+      "admin_applied_ts": 1793322172086,
+      "admin_presented_ts": 1793322172189,
+      "admin_presentation_status": "presented",
+      "admin_ui_ms": {
+        "queue_ms": 634.7,
+        "handler_ms": 0.5,
+        "ui_wait_ms": 0,
+        "render_ms": 102.9,
+        "total_ms": 738.1
+      },
+      "admin_measurement_method": "dom-and-render-opportunity",
+      "admin_ui_jobs": []
+    },
+    {
+      "trace_id": "live-drill-2767821-mvu9pv7y-1019",
+      "sent_ts": 1793322171214,
+      "court_id": "default_8",
+      "match_id": "btp_default_JE U15_714",
+      "tv_ms": 5,
+      "tv_received_ts": 1793322171219,
+      "admin_ms": 1014,
+      "admin_received_ts": 1793322171452,
+      "admin_applied_ts": 1793322172185,
+      "admin_presented_ts": 1793322172228,
+      "admin_presentation_status": "presented",
+      "admin_ui_ms": {
+        "queue_ms": 731.9,
+        "handler_ms": 0.3,
+        "ui_wait_ms": 0.1,
+        "render_ms": 43.4,
+        "total_ms": 775.7
+      },
+      "admin_measurement_method": "dom-and-render-opportunity",
+      "admin_ui_jobs": []
+    },
+    {
+      "trace_id": "live-drill-2767821-mvu9pv4z-1016",
+      "sent_ts": 1793322171107,
+      "court_id": "default_10",
+      "match_id": "btp_default_MX U17_98",
+      "tv_ms": 10,
+      "tv_received_ts": 1793322171117,
+      "admin_ms": 984,
+      "admin_received_ts": 1793322171448,
+      "admin_applied_ts": 1793322171978,
+      "admin_presented_ts": 1793322172091,
+      "admin_presentation_status": "presented",
+      "admin_ui_ms": {
+        "queue_ms": 527.7,
+        "handler_ms": 1.6,
+        "ui_wait_ms": 0,
+        "render_ms": 113.8,
+        "total_ms": 643.1
+      },
+      "admin_measurement_method": "dom-and-render-opportunity",
+      "admin_ui_jobs": []
+    }
+  ],
+  "comparison": {
+    "count": {
+      "uploaded_run3": 1228,
+      "optimized_run7": 1279
+    },
+    "sent_updates": {
+      "uploaded_run3": 1228,
+      "optimized_run7": 1279
+    },
+    "coverage": {
+      "uploaded_run3": 1,
+      "optimized_run7": 1
+    },
+    "mean": {
+      "uploaded_run3": 305.1,
+      "optimized_run7": 101,
+      "reduction_percent": 66.9
+    },
+    "p50": {
+      "uploaded_run3": 183,
+      "optimized_run7": 71,
+      "reduction_percent": 61.2
+    },
+    "p95": {
+      "uploaded_run3": 915,
+      "optimized_run7": 250,
+      "reduction_percent": 72.7
+    },
+    "p99": {
+      "uploaded_run3": 2149,
+      "optimized_run7": 588,
+      "reduction_percent": 72.6
+    },
+    "max": {
+      "uploaded_run3": 3342,
+      "optimized_run7": 1179,
+      "reduction_percent": 64.7
+    }
+  },
+  "comparison_limits": [
+    "Different initial data: uploaded run 3 starts with 373 matches / 99 finished / 13 active; run 7 starts with 373 / 120 / 15. Same fixed scenario and seed, but no controlled A/B comparison.",
+    "Simulator control requests now use a separate WebSocket and do not run through the measurement page. The Admin score endpoint still waits for actual DOM work and two visible render opportunities.",
+    "Local tablet/TV/browser simulation. Does not measure physical screen output or a real tablet Wi-Fi path."
+  ],
+  "verification": {
+    "frontend_node_tests": 145,
+    "server_tests_after_btp_fix": 213,
+    "testclient_transport_and_metrics_tests": 13,
+    "browser_surface_checks": 284,
+    "performance_update_paths": 78,
+    "performance_failures": 0,
+    "ui_job_ownership_checks": 11,
+    "preparation_stability_checks": 4,
+    "header_cache_checks": 4,
+    "large_load_checks": 8,
+    "code_unchanged_during_run": true,
+    "all_score_updates_presented": true,
+    "no_server_restart_during_run": true
+  },
+  "code_sha256": {
+    "/home/tim/repos/bts/static/js/admin_update_observer.js": "ddd44cfd0acf3e951f95d41cadf7cb8e9691c84feb14e9848c018b7047abeca4",
+    "/home/tim/repos/bts/static/js/cleitstand.js": "a22142a8dcb1760b3459f90f853eef2120c86655d246e4b57b6eb19117938996",
+    "/home/tim/repos/bts/static/js/ctournament.js": "b550e6b2e76e9d393af695acce0b3d5790a7adb8db1dd9fe4b6d8600dde58cc5",
+    "/home/tim/repos/bts/static/js/cmatch.js": "06850d66412614469827048d1772db7f7b1086694079d72533311e4d0b77e271",
+    "/home/tim/repos/bts/static/js/timer_updates.js": "828b08be37378de1d6984a8a53fe5423038b8c24732a97b30c543d5dd7ca03d6",
+    "/home/tim/repos/bts/static/css/leitstand.css": "e6e8fa14531f58a490819bbbe7089b5ad2c2f0fca5c19ea6dd31f711f4930703",
+    "/home/tim/repos/bts/static/cbts.html": "ad51d63302c1b2d42504944dd1b02a92e11311a557a0cb195e30428cb443b103",
+    "/home/tim/repos/bts-testclient/src/reception/browser_admin.js": "d503220130d80a9e9f51a3503a9ecc7b15a6b8933c6f0315bb38c8b25dc73bbf",
+    "/home/tim/repos/bts-testclient/src/live_tournament_drill.js": "fb7d5b7a4f474da68a4654b3362f6709d52fae2ef9e16a2fdc4c4a3199b87a9c",
+    "/home/tim/repos/bts/bts/btp_conn.js": "694bfa21c717d0069f355318d906b3a044c76b41feeab67c7b9a20821f0c047e"
+  },
+  "changes": [
+    "Explicit ownership of deferred UI jobs, including shared batches and their children; independent completion of queued preparation diagnoses.",
+    "Unchanged preparation diagnostics preserve controls, boundary labels and DOM attributes without scheduling another layout.",
+    "Cached header height and BTP font measurements; static board page state selectors.",
+    "A shared 100-ms scheduler for local clock ticks; at most 99 ms additional tick delay and synchronous point/state updates.",
+    "Named UI jobs and update-type processing summaries in test reports.",
+    "Simulator requests on a separate connection; control score changes cannot count as presented.",
+    "Guard missing BTP player/court replies after transport failure; preserve ordinary error handling and reconnect."
+  ],
+  "rejected_experiment": {
+    "name": "Size/layout containment of timer text fields",
+    "report": "timer-containment-verification.json",
+    "layout_ratio": 1.089209647832727,
+    "production_applied": false
+  },
+  "prior_runs": [
+    {
+      "run": 4,
+      "result": "Stopped for diagnosis after 237769 ms; not a complete benchmark.",
+      "report": "testbericht-2026-10-30-lauf4-diagnose.json"
+    },
+    {
+      "run": 6,
+      "result": "Failed after 62920 ms due to a BTP null-response crash, subsequently fixed and tested.",
+      "report": "testbericht-2026-10-30-lauf6-abbruch.json"
+    }
+  ],
+  "remaining": [
+    "Admin p99 588 ms and maximum 1179 ms remain above the 100/250-ms goals.",
+    "Remaining slow samples include waiting before browser message handling and structural updates such as new preparation/court/operator assignments and name layout. Synchronous point updates remain small."
+  ]
+}

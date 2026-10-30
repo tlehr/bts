@@ -163,7 +163,7 @@ _describe('match utils player state helpers', () => {
 		assert.strictEqual(match.setup.teams[1].players[0].checked_in, false);
 	});
 
-	_it('does not rewrite unchanged on-court and tablet player flags', async () => {
+	_it('clears the previous role once and does not rewrite an unchanged exclusive activity', async () => {
 		const match = make_match();
 		match.setup.state = 'blocked';
 		const player = match.setup.teams[0].players[0];
@@ -173,7 +173,15 @@ _describe('match utils player state helpers', () => {
 		player.checked_in = false;
 		assert.strictEqual(await match_utils.calc_match_set_player_on_court(match, {
 			court_id: 'court-1', teams: [{ players: [{ btp_id: 11 }] }],
+		}), match);
+		assert.strictEqual(player.now_tablet_on_court, false);
+		assert.strictEqual(await match_utils.calc_match_set_player_on_court(match, {
+			court_id: 'court-1', teams: [{ players: [{ btp_id: 11 }] }],
 		}), null);
+		assert.strictEqual(await match_utils.calc_match_set_player_on_tablet(match, {
+			court_id: 'court-2', tabletoperators: [{ btp_id: 11 }],
+		}), match);
+		assert.strictEqual(player.now_playing_on_court, false);
 		assert.strictEqual(await match_utils.calc_match_set_player_on_tablet(match, {
 			court_id: 'court-2', tabletoperators: [{ btp_id: 11 }],
 		}), null);

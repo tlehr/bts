@@ -3,9 +3,11 @@
 const { promisify } = require('util');
 const reads = require('../preparation_selection/model_reads');
 const flags = require('./player_flags');
+const tablets = require('./tablet_queue');
 const queue = require('../update_queue');
 
-async function apply(app, key, matches, expected) {
+async function apply(app, key, matches, expected, waiting = []) {
+	await tablets.apply(app, key, waiting, new Set([...expected.playing.keys(), ...expected.tablets.keys()].map(String)));
 	let changed = false;
 	for (const match of matches) {
 		const { set, changed_players } = flags.repair(match, expected);
@@ -32,13 +34,16 @@ async function run(app, key) {
 			queue.lock_keys.tabletoperators(key), queue.lock_keys.umpires(key)],
 		queue.named('player_court_reconciliation_' + key, async () => {
 			const matches = await promisify(app.db.matches.find.bind(app.db.matches))({ tournament_key: key });
-			await apply(app, key, matches, flags.expected(matches));
+			const waiting = await promisify(app.db.tabletoperators.find.bind(app.db.tabletoperators))({ tournament_key: key, court: null });
+			await apply(app, key, matches, flags.expected(matches), waiting);
 		}));
 	}
 	const matches = await reads.read(app, key, 'matches', true);
 	const expected = flags.expected(matches);
 	const candidates = matches.filter(match => Object.keys(flags.repair(match, expected).set).length);
-	if (!candidates.length) return;
+	const waiting = await reads.read(app, key, 'tabletoperators', true);
+	const busy = tablets.busy_ids(matches);
+	if (!candidates.length && !waiting.some(entry => tablets.repair(entry, busy))) return;
 	// Assignment/check-in/finish writers already hold these allocation locks.
 	// Normal points on unrelated courts need none of them and remain runnable.
 	const locks = [queue.lock_keys.preparation(key), queue.lock_keys.auto_call(key),
@@ -48,8 +53,9 @@ async function run(app, key) {
 		// Recompute after waiting. A finish or reassignment may have made the old
 		// suspected flag correct, or removed/moved its match in the meantime.
 		const fresh = await reads.read(app, key, 'matches', true);
+		const fresh_waiting = await reads.read(app, key, 'tabletoperators', true);
 		const wanted = new Set(candidates.map(match => match._id));
-		await apply(app, key, fresh.filter(match => wanted.has(match._id)), flags.expected(fresh));
+		await apply(app, key, fresh.filter(match => wanted.has(match._id)), flags.expected(fresh), fresh_waiting);
 	}));
 }
 

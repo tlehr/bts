@@ -1,0 +1,40 @@
+{
+  "checks": 8,
+  "matchCount": 373,
+  "timerCount": 200,
+  "regressions": {
+    "clockStable": true,
+    "officialStable": true,
+    "shortened": true
+  },
+  "stats": {
+    "applied": {
+      "count": 50,
+      "p50": 1.3000000715255737,
+      "p95": 33,
+      "max": 86.90000009536743
+    },
+    "independent": {
+      "count": 50,
+      "p50": 36.59999990463257,
+      "p95": 91.5,
+      "max": 119.20000004768372
+    },
+    "ack": {
+      "count": 50,
+      "p50": 36.6,
+      "p95": 91.5,
+      "max": 119.2
+    }
+  },
+  "outcomes": {
+    "presented": 1276
+  },
+  "pending": {
+    "pending": 0,
+    "subscribers": 1,
+    "callbackErrors": 0
+  },
+  "date": "2026-10-29",
+  "scope": "Gesicherte Zusammenfassung des damaligen isolierten Dauerlasttests nach Einführung der Größen-Caches; aus dessen originalem Testprotokoll übernommen."
+}

@@ -9,6 +9,7 @@ const {_describe, _it} = require('./tutils.js');
 
 const calc = require('../static/bup/dev/js/calc');
 const match_scoring = require('../static/js/match_scoring');
+const timer = require('../static/bup/dev/js/timer');
 
 function createFakeElement(tagName) {
 	return {
@@ -55,19 +56,21 @@ function createFakeElement(tagName) {
 			this.children.push(child);
 			return child;
 		},
+		querySelectorAll() { return []; },
 		addEventListener() {},
 	};
 }
 
-function loadCmatchForUpdateCourtTest(tr, curt, history, query_each, search = '') {
+function loadCmatchForUpdateCourtTest(tr, curt, history, query_each, search = '', contains = () => true) {
 	const source = fs.readFileSync(path.join(__dirname, '..', 'static', 'js', 'cmatch.js'), 'utf8');
 	const routes = [];
+	const timeouts = [];
 	const ci18n = (key) => key;
 	ci18n.get_lang = () => 'de-DE';
 	const context = {
 		console,
 		URLSearchParams,
-		setTimeout() { return 1; },
+		setTimeout(callback) { timeouts.push(callback); return timeouts.length; },
 		clearTimeout() {},
 		requestAnimationFrame() {},
 		window: {
@@ -84,6 +87,7 @@ function loadCmatchForUpdateCourtTest(tr, curt, history, query_each, search = ''
 			},
 		},
 		document: {
+			body: { contains },
 			querySelectorAll() { return []; },
 			getElementsByClassName() { return []; },
 		},
@@ -98,6 +102,8 @@ function loadCmatchForUpdateCourtTest(tr, curt, history, query_each, search = ''
 		cbts_utils: require('../static/js/cbts_utils'),
 		ctabletoperator: { add_to_tabletoperator() {} },
 		calc,
+		match_scoring,
+		timer,
 		btp_entry_status: require('../static/js/btp_entry_status'),
 		utils: {
 			find(list, predicate) {
@@ -113,6 +119,7 @@ function loadCmatchForUpdateCourtTest(tr, curt, history, query_each, search = ''
 			},
 		},
 		uiu: {
+			text(element, text) { element.textContent = text; },
 			empty(element) { element.children.length = 0; },
 			qs(selector) {
 				if (selector === `tr[data-court_id="${tr.getAttribute('data-court_id')}"]`) {
@@ -152,6 +159,7 @@ function loadCmatchForUpdateCourtTest(tr, curt, history, query_each, search = ''
 	vm.createContext(context);
 	vm.runInContext(source, context, { filename: 'cmatch.js' });
 	context.cmatch.test_routes = routes;
+	context.cmatch.test_timeouts = timeouts;
 	return context.cmatch;
 }
 
@@ -387,6 +395,103 @@ _describe('cmatch', () => {
 
 		assert.strictEqual(timerState, null);
 	});
+	_it('uses the field timer warning thresholds for warmup, intervals and set breaks, including overtime and resets', () => {
+		const tournament = { test_clock: { mode: 'fixed', fixed_ts: 1770000000000 } };
+		const cmatch = loadCmatchForUpdateCourtTest(createFakeElement('tr'), tournament);
+		const start = tournament.test_clock.fixed_ts;
+		const setup = {
+			match_id: 'timer-test', is_match: true, is_doubles: false, counting: '3x21',
+			scoring_format: calc.scoring_format_from_counting('3x21'),
+			teams: [{ players: ['Alice Example'] }, { players: ['Bob Example'] }],
+			warmup: 'call-down', warmup_start: 180, warmup_ready: 120, called_timestamp: start,
+		};
+		const presses = [
+			{ type: 'pick_side', timestamp: start + 1000, team1_left: true },
+			{ type: 'love-all', timestamp: start + 2000 },
+		];
+		const scenarios = [{ name: 'configured warmup', state: cmatch._extract_match_timer_state({ setup, presses: [] }), threshold: 60499 }];
+		for (let point = 1; point <= 21; point++) {
+			presses.push({ type: 'score', timestamp: start + 2000 + point * 1000, side: 'left' });
+			if (point === 11 || point === 21) scenarios.push({
+				name: point === 11 ? 'interval' : 'set break',
+				state: cmatch._extract_match_timer_state({ setup, presses: [...presses] }), threshold: 25000,
+			});
+		}
+		for (const { name, state, threshold } of scenarios) {
+			assert.strictEqual(state.timer.exigent, threshold, name);
+			const parent = createFakeElement('td');
+			tournament.test_clock.fixed_ts = state.timer.start + state.timer.duration - threshold - 1000;
+			const handle = cmatch.create_timer(state, parent, '#cccccc', '#ff0000');
+			const node = parent.children[0];
+			assert.strictEqual(node.classList.contains('timer_exigent'), false, name + ' before warning');
+			for (const remaining of [threshold, 40000, 20000, 1, 0, -1, -12000, threshold + 1000]) {
+				tournament.test_clock.fixed_ts = state.timer.start + state.timer.duration - remaining;
+				cmatch.test_timeouts[handle.timeout - 1]();
+				const field = timer.calc(state, tournament.test_clock.fixed_ts);
+				const warning = !!(field.exigent || field.ms <= 0);
+				assert.strictEqual(node.classList.contains('timer_exigent'), warning, name + ' at ' + remaining + 'ms');
+				assert.strictEqual(node.classList.contains('timer_overdue'), field.ms < 0, name + ' at ' + remaining + 'ms');
+				assert.strictEqual(node.style.color, warning ? '#ff0000' : '#cccccc', name);
+				assert.strictEqual(node.textContent, field.str, name);
+			}
+		}
+	});
+	_it('keeps elapsed preparation and call-up timers outside the countdown warning state', () => {
+		const start = 1770000000000;
+		const tournament = { test_clock: { mode: 'fixed', fixed_ts: start + 600000 } };
+		const cmatch = loadCmatchForUpdateCourtTest(createFakeElement('tr'), tournament);
+		const parent = createFakeElement('td');
+		const handle = cmatch.create_timer({ settings: {}, timer: { start, upwards: true } }, parent, '#cccccc', '#ff0000');
+		for (const elapsed of [0, 600000]) {
+			tournament.test_clock.fixed_ts = start + elapsed;
+			cmatch.test_timeouts[handle.timeout - 1]();
+			assert.strictEqual(parent.children[0].classList.contains('timer_exigent'), false);
+			assert.strictEqual(parent.children[0].classList.contains('timer_overdue'), false);
+			assert.strictEqual(parent.children[0].style.color, '#cccccc');
+		}
+	});
+	_it('cancels a stopped timer without letting an already queued callback restart it', () => {
+		const start = 1770000000000, tournament = { test_clock: { mode: 'fixed', fixed_ts: start } };
+		const cmatch = loadCmatchForUpdateCourtTest(createFakeElement('tr'), tournament);
+		const parent = createFakeElement('td');
+		const handle = cmatch.create_timer({ settings: {}, timer: { start, upwards: true } }, parent, '#cccccc', '#ff0000');
+		const callback = cmatch.test_timeouts[handle.timeout - 1], before = parent.children[0].textContent;
+		const count = cmatch.test_timeouts.length;
+		handle.stop();tournament.test_clock.fixed_ts += 30000;callback();
+		assert.strictEqual(handle.timeout, null);
+		assert.strictEqual(parent.children[0].textContent, before);
+		assert.strictEqual(cmatch.test_timeouts.length, count);
+	});
+	_it('updates an existing timer state and clears an obsolete background without replacing its element', () => {
+		const start = 1770000000000, tournament = { test_clock: { mode: 'fixed', fixed_ts: start + 30000 } };
+		const cmatch = loadCmatchForUpdateCourtTest(createFakeElement('tr'), tournament);
+		const parent = createFakeElement('td');
+		const handle = cmatch.create_timer({ settings: {}, timer: { start, duration: 60000 }, bgColor: '#ff0000' }, parent, '#ffffff', '#ffffff');
+		const element = handle.element;
+		const extended = { settings: {}, timer: { start, duration: 120000 }, bgColor: '#0000ff' };
+		handle.setState(extended);
+		assert.strictEqual(handle.element, element);
+		assert.strictEqual(parent.children.length, 1);
+		assert.strictEqual(element.textContent, timer.calc(extended, tournament.test_clock.fixed_ts).str);
+		assert.strictEqual(element.style.backgroundColor, '#0000ff');
+		const without_background = { settings: {}, timer: { start, upwards: true } };
+		handle.setState(without_background);
+		assert.strictEqual(element.style.backgroundColor, '');
+		assert.strictEqual(element.textContent, timer.calc(without_background, tournament.test_clock.fixed_ts).str);
+		handle.stop();
+	});
+	_it('stops a timer discarded before its first attachment and does not resurrect it on a late callback', () => {
+		const start = 1770000000000, tournament = { test_clock: { mode: 'fixed', fixed_ts: start } };
+		let attached = false;
+		const cmatch = loadCmatchForUpdateCourtTest(createFakeElement('tr'), tournament, null, null, '', () => attached);
+		const handle = cmatch.create_timer({ settings: {}, timer: { start, upwards: true } }, createFakeElement('td'), '#cccccc', '#ff0000');
+		const callback = cmatch.test_timeouts[handle.timeout - 1], count = cmatch.test_timeouts.length;
+		callback();
+		assert.strictEqual(handle.timeout, null);
+		assert.strictEqual(cmatch.test_timeouts.length, count);
+		attached = true;callback();
+		assert.strictEqual(cmatch.test_timeouts.length, count);
+	});
 
 	_it('allows manual preparation calls for deferred matches with tablet operators', () => {
 		const cmatch = loadCmatchForUpdateCourtTest(createFakeElement('tr'), {
@@ -571,6 +676,82 @@ _describe('cmatch', () => {
 		assert.strictEqual(row.getAttribute('data-match_id'), null);
 		assert.strictEqual(row.getAttribute('data-court_id'), court._id);
 		assert.strictEqual(row.children[2].classList.contains('empty_element'), true);
+	});
+	_it('keeps a finished court green through confirmation and clears it for the next live match', () => {
+		const row = createFakeElement('tr');
+		row.setAttribute('data-court_id', 'court-1');
+		const match = {
+			_id: 'match-1', network_score: [[21, 15], [20, 18]],
+			setup: { court_id: 'court-1', now_on_court: true, state: 'oncourt' },
+		};
+		const tournament = {
+			courts: [{ _id: 'court-1', is_active: true }], matches: [match],
+			location_preparation_selection_by_location_id: {},
+		};
+		const cmatch = loadCmatchForUpdateCourtTest(row, tournament, null, (selector, callback) => {
+			if (selector === '.court_row[data-court_id]' || selector === '.court_row[data-court_id="court-1"]') callback(row);
+		});
+		const marked = () => row.classList.contains('preparation_demand_court');
+		cmatch.update_preparation_demand_court_markers();
+		assert.strictEqual(marked(), false);
+		match.network_score[1] = [21, 18];
+		cmatch.update_match_score(match);
+		assert.strictEqual(marked(), true, 'the final live point needs a successor without fresh selection data');
+		assert.strictEqual(row.getAttribute('data-preparation-demand-court'), 'true');
+		match.team1_won = true;
+		match.setup.state = 'finished';
+		match.setup.now_on_court = false;
+		cmatch.update_match(match, 'finished', 'finished');
+		assert.strictEqual(marked(), true, 'confirmation must not clear the empty field');
+		tournament.matches.push({
+			_id: 'match-2', network_score: [[0, 0]],
+			setup: { court_id: 'court-1', now_on_court: true, state: 'oncourt' },
+		});
+		cmatch.update_preparation_demand_court_markers();
+		assert.strictEqual(marked(), false, 'a new live game replaces the finished game');
+		assert.strictEqual(row.getAttribute('data-preparation-demand-court'), null);
+		match.setup.now_on_court = true;
+		cmatch.update_preparation_demand_court_markers();
+		assert.strictEqual(marked(), false, 'an old confirmed result cannot mark its successor green');
+	});
+	_it('updates only the affected field with the point flag and ignores stale demand diagnostics', () => {
+		const row = createFakeElement('tr'), neighbor = createFakeElement('tr');
+		row.setAttribute('data-court_id', 'court-1');neighbor.setAttribute('data-court_id', 'court-2');
+		const match = { _id: 'match-1', network_score: [[21, 18], [9, 7]],
+			setup: { court_id: 'court-1', now_on_court: true, state: 'oncourt', needs_preparation_successor: false } };
+		const tournament = { courts: [{ _id: 'court-1', is_active: true }, { _id: 'court-2', is_active: true }], matches: [match],
+			location_preparation_selection_by_location_id: { hall: { demand_court_ids: [] } } };
+		let neighborUpdates = 0;
+		const cmatch = loadCmatchForUpdateCourtTest(row, tournament, null, (selector, callback) => {
+			if (selector === '.court_row[data-court_id="court-1"]') callback(row);
+			if (selector === '.court_row[data-court_id="court-2"]' || selector === '.court_row[data-court_id]') neighborUpdates++;
+		});
+		cmatch.update_match_score(match);
+		assert.strictEqual(row.classList.contains('preparation_demand_court'), false);
+		match.network_score[1][0] = 10;match.setup.needs_preparation_successor = true;
+		cmatch.update_match_score(match);
+		assert.strictEqual(row.classList.contains('preparation_demand_court'), true);
+		assert.strictEqual(neighborUpdates, 0);
+		match.network_score[1][0] = 9;match.setup.needs_preparation_successor = false;
+		tournament.location_preparation_selection_by_location_id.hall.demand_court_ids = ['court-1'];
+		cmatch.update_match_score(match);
+		assert.strictEqual(row.classList.contains('preparation_demand_court'), false, 'an older positive diagnosis must not override the new point');
+		assert.strictEqual(row.getAttribute('data-preparation-demand-court'), null);
+	});
+	_it('marks free active courts but excludes disabled courts from successor demand', () => {
+		const active = createFakeElement('tr'), inactive = createFakeElement('tr');
+		active.setAttribute('data-court_id', 'court-1');
+		inactive.setAttribute('data-court_id', 'court-2');
+		const tournament = {
+			courts: [{ _id: 'court-1', is_active: true }, { _id: 'court-2', is_active: false }],
+			matches: [], location_preparation_selection_by_location_id: { hall: { demand_court_ids: ['court-2'] } },
+		};
+		const cmatch = loadCmatchForUpdateCourtTest(active, tournament, null, (selector, callback) => {
+			if (selector === '.court_row[data-court_id]') [active, inactive].forEach(callback);
+		});
+		cmatch.update_preparation_demand_court_markers();
+		assert.strictEqual(active.classList.contains('preparation_demand_court'), true);
+		assert.strictEqual(inactive.classList.contains('preparation_demand_court'), false);
 	});
 	_it('never repurposes or reorders a court slot during result updates even with an old match binding', () => {
 		const row = createFakeElement('tr');

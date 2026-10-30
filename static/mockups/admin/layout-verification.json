@@ -1,0 +1,248 @@
+{
+  "date": "2026-10-27",
+  "scope": "Lokales Admin-Mockup: Kachelanordnung und rechte Sidebar",
+  "routes": [
+    {
+      "route": "leitstand",
+      "variant": "a",
+      "width": 1920,
+      "height": 940,
+      "viewport": 1920,
+      "body": 1905,
+      "tableOverflow": [
+        false,
+        false,
+        false
+      ],
+      "title": "Turnierleitung"
+    },
+    {
+      "route": "leitstand",
+      "variant": "a",
+      "width": 1920,
+      "height": 940,
+      "viewport": 1920,
+      "body": 1905,
+      "tableOverflow": [
+        false,
+        false,
+        false
+      ],
+      "title": "Turnierleitung"
+    },
+    {
+      "route": "leitstand",
+      "variant": "a",
+      "width": 1600,
+      "height": 1050,
+      "viewport": 1600,
+      "body": 1585,
+      "tableOverflow": [
+        false,
+        false,
+        false
+      ],
+      "title": "Turnierleitung"
+    },
+    {
+      "route": "leitstand",
+      "variant": "b",
+      "width": 1920,
+      "height": 940,
+      "viewport": 1920,
+      "body": 1905,
+      "tableOverflow": [
+        false,
+        false,
+        false
+      ],
+      "title": "Turnierleitung"
+    },
+    {
+      "route": "leitstand",
+      "variant": "b",
+      "width": 1600,
+      "height": 1050,
+      "viewport": 1600,
+      "body": 1585,
+      "tableOverflow": [
+        false,
+        false,
+        false
+      ],
+      "title": "Turnierleitung"
+    },
+    {
+      "route": "leitstand",
+      "variant": "a",
+      "width": 1536,
+      "height": 750,
+      "viewport": 1536,
+      "body": 1521,
+      "tableOverflow": [
+        true,
+        false,
+        false
+      ],
+      "title": "Turnierleitung"
+    },
+    {
+      "route": "leitstand",
+      "variant": "a",
+      "width": 390,
+      "height": 844,
+      "viewport": 390,
+      "body": 375,
+      "tableOverflow": [
+        true,
+        true,
+        true
+      ],
+      "title": "Turnierleitung"
+    },
+    {
+      "route": "leitstand",
+      "variant": "a",
+      "width": 1920,
+      "height": 940,
+      "viewport": 1920,
+      "body": 1905,
+      "tableOverflow": [
+        false,
+        false,
+        false
+      ],
+      "title": "Turnierleitung"
+    },
+    {
+      "route": "leitstand",
+      "variant": "a",
+      "width": 1920,
+      "height": 940,
+      "viewport": 1920,
+      "body": 1905,
+      "tableOverflow": [
+        false,
+        false,
+        false
+      ],
+      "title": "Turnierleitung"
+    },
+    {
+      "route": "leitstand",
+      "variant": "a",
+      "width": 1920,
+      "height": 940,
+      "viewport": 1920,
+      "body": 1905,
+      "tableOverflow": [
+        false,
+        false,
+        false
+      ],
+      "title": "Turnierleitung"
+    },
+    {
+      "route": "leitstand",
+      "variant": "a",
+      "width": 1920,
+      "height": 940,
+      "viewport": 1920,
+      "body": 1905,
+      "tableOverflow": [
+        false,
+        false,
+        false
+      ],
+      "title": "Turnierleitung"
+    },
+    {
+      "route": "leitstand",
+      "variant": "a",
+      "width": 1600,
+      "height": 1050,
+      "viewport": 1600,
+      "body": 1585,
+      "tableOverflow": [
+        false,
+        false,
+        false
+      ],
+      "title": "Turnierleitung"
+    },
+    {
+      "route": "leitstand",
+      "variant": "b",
+      "width": 1600,
+      "height": 1050,
+      "viewport": 1600,
+      "body": 1585,
+      "tableOverflow": [
+        false,
+        false,
+        false
+      ],
+      "title": "Turnierleitung"
+    },
+    {
+      "route": "leitstand",
+      "variant": "a",
+      "width": 1920,
+      "height": 1200,
+      "viewport": 1920,
+      "body": 1905,
+      "tableOverflow": [
+        false,
+        false,
+        false
+      ],
+      "title": "Turnierleitung"
+    },
+    {
+      "route": "leitstand",
+      "variant": "a",
+      "width": 390,
+      "height": 844,
+      "viewport": 390,
+      "body": 375,
+      "tableOverflow": [
+        true,
+        true,
+        true
+      ],
+      "title": "Turnierleitung"
+    }
+  ],
+  "checks": [
+    "Standard bleibt ohne Sidebar und Ziehgriffe",
+    "Full HD zeigt alle Felder und die ersten beiden vorbereiteten Spiele",
+    "Bearbeitungsmodus bietet beide Ablagebereiche",
+    "Ziehen am Titel markiert die Kachelmitte zum Tauschen",
+    "Nicht benachbarte Kacheln tauschen ihre genauen Plätze; übrige Kacheln bleiben unverändert",
+    "Ziehen beginnt auch an freier Kachelfläche statt nur am Griff",
+    "Eingabefelder starten keinen Kachel-Drag",
+    "Kachelziehen markiert die Sidebar ohne Spiel-Zuweisungsleiste",
+    "Tausch zwischen oberer Reihe und Sidebar ist markiert",
+    "Genauer Positionstausch funktioniert zwischen beiden Bereichen und innerhalb der Sidebar",
+    "Vertikale Einfügekante in der Sidebar",
+    "Pfeilknöpfe sortieren in beiden Bereichen; Tastaturaktivierung funktioniert",
+    "Verschieben erhält Eingaben und Schalter",
+    "Escape bricht das Ziehen einer Kachel ab",
+    "Alle vier Kacheln können rechts stehen",
+    "Speichern beendet den Bearbeitungsmodus",
+    "Full HD mit Sidebar bleibt ohne Tabellenüberlauf",
+    "Sidebar bleibt beim Scrollen erreichbar",
+    "Abbrechen stellt die vorherige Anordnung ohne Eingabeverlust her",
+    "Neuladen stellt die gespeicherte Anordnung wieder her",
+    "Spielziehen funktioniert neben den seitlichen Kacheln weiter",
+    "Ablegen eines Spiels öffnet die richtige Feldzuweisung",
+    "Auf schmalen Fenstern stehen Sidebar-Kacheln vor den Spielen",
+    "Mobile Bearbeitung bleibt ohne Seitenüberlauf",
+    "Getauschte Positionen bleiben nach Speichern und echtem Neuladen erhalten",
+    "Standard stellt die volle Tabellenbreite wieder her",
+    "Ungültige gespeicherte Einträge werden bereinigt; jede Kachel bleibt einmal erhalten"
+  ],
+  "exceptions": 0,
+  "failedRequests": 0,
+  "overflow": []
+}

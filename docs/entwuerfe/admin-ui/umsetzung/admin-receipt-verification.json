@@ -1,0 +1,16 @@
+{
+  "checks": 10,
+  "scope": "Echte Browserseite, echter lokaler WebSocket, isolierte Fixture; keine laufenden Dienste.",
+  "slow_update_ms": {
+    "queue_ms": 1.2,
+    "handler_ms": 83.6,
+    "render_ms": 14.4,
+    "total_ms": 99.2
+  },
+  "outcomes": [
+    "presented",
+    "hidden",
+    "superseded",
+    "presented"
+  ]
+}

@@ -1,5 +1,5 @@
 'use strict';
-/* global btsSpeechHealth */
+/* global btsSpeechHealth, btsAdminUpdates */
 var conn = (function(on_status, on_change) {
 var ws;
 var reconnect_duration = 500;
@@ -83,7 +83,7 @@ function change_coalesce_key(msg) {
 function dispatch_change(msg) {
 	const start_ms = _now_ms();
 	try {
-		on_change(msg);
+		if (typeof btsAdminUpdates !== 'undefined') btsAdminUpdates.dispatch(msg, on_change);else on_change(msg);
 	} catch (err) {
 		console.error('[bts admin] change handler failed', {
 			ctype: msg.ctype,
@@ -132,8 +132,8 @@ function process_change_queue() {
 	const start_ms = _now_ms();
 	let processed = 0;
 	while (queued_change_count() > 0) {
-		dispatch_change(change_queue[change_queue_head]);
-		change_queue_head++;
+		const message = change_queue[change_queue_head++];
+		dispatch_change(message);
 		processed++;
 		if (processed >= CHANGE_BATCH_MAX_MESSAGES || (_now_ms() - start_ms) >= CHANGE_BATCH_MAX_MS) {
 			break;
@@ -162,8 +162,10 @@ function enqueue_change(msg) {
 	if (key) {
 		for (let i = change_queue.length - 1; i >= change_queue_head; i--) {
 			if (change_coalesce_key(change_queue[i]) === key) {
-				change_queue[i] = msg;
-				return;
+				// Keep the newest event at its arrival position: an intervening full
+				// match snapshot must be applied before this newer score or status.
+				change_queue.splice(i, 1);
+				break;
 			}
 		}
 	}
@@ -172,6 +174,7 @@ function enqueue_change(msg) {
 }
 
 function handle_message(ws_msg) {
+	const received_at = { monotonic: _now_ms(), wall: Date.now() };
 	var msg_json = ws_msg.data;
 	debug.log('>', msg_json.substring(0, 100));
 	var msg = JSON.parse(msg_json);
@@ -211,6 +214,7 @@ function handle_message(ws_msg) {
 		});
 		break;
 	case 'change':
+		if (typeof btsAdminUpdates !== 'undefined') btsAdminUpdates.received(msg, received_at);
 		if (msg.ctype === 'score' && _debug_enabled()) {
 			console.log('[bts admin] score change received', {
 				tournament_key: msg.tournament_key,
@@ -244,6 +248,7 @@ function connect() {
 	};
 	ws.onmessage = handle_message;
 	ws.onclose = function() {
+		if (typeof btsAdminUpdates !== 'undefined') btsAdminUpdates.reset();
 		if (typeof btsSpeechHealth !== 'undefined') btsSpeechHealth.disconnected();
 		// Clear callback handlers
 		utils.values(callback_handlers).forEach(function(cb) {
@@ -267,7 +272,7 @@ function send(msg, cb) {
 		request_id++;
 	}
 	if (cb) {
-		callback_handlers[msg.rid] = cb;
+		callback_handlers[msg.rid] = typeof btsAdminUpdates !== 'undefined' ? btsAdminUpdates.wrapCallback(cb) : cb;
 	}
 	const msg_json = JSON.stringify(msg);
 	debug.log('<', msg.type?.startsWith('speech_') ? msg.type : msg_json);

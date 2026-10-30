@@ -271,6 +271,8 @@ var ci18n_en = Object.assign(
 	'tournament:edit:tabletoperator_with_state_enabled': 'Call up national association instead of player',
 	'tournament:edit:tabletoperator_with_state_from_match_enabled': 'Call up national association of first player in match',
 	'tournament:edit:tabletoperator_with_umpire_enabled': 'Announce Umpire and Tabletoperator ',
+	'tournament:edit:tabletoperator_release_on_umpire_enabled': 'Release the tablet operator when a match with an umpire is called onto court',
+	'tournament:edit:tabletoperator_release_on_umpire_enabled:hint': 'Release the reserved operator or the next waiting operator from this court if no additional tablet operator is needed. No tablet service break is added.',
 	'tournament:edit:tabletoperator_use_manual_counting_boards_enabled': 'Usage of Counting Boards instead of Tablets',
 	'tournament:edit:official_rotation_mode': 'Technical officials rotation:',
 	'tournament:edit:official_rotation_mode:disabled': 'disabled',

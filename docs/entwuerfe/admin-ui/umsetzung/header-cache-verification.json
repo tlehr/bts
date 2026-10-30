@@ -1,0 +1,117 @@
+{
+  "date": "2026-10-30",
+  "checks": 16,
+  "repeated": {
+    "headerReads": 0,
+    "fontReads": 0,
+    "styleWrites": 0,
+    "position": "sticky",
+    "pageClass": true
+  },
+  "resized": {
+    "sidebarCorrect": true,
+    "newFontReads": 1
+  },
+  "remount": {
+    "removed": true,
+    "restored": true
+  },
+  "scrollSamples": [
+    {
+      "width": 1920,
+      "scrollY": 0,
+      "top": 0,
+      "height": 45,
+      "visible": true,
+      "sidebarOffset": 53
+    },
+    {
+      "width": 1920,
+      "scrollY": 1200,
+      "top": 0,
+      "height": 45,
+      "visible": true,
+      "sidebarOffset": 53
+    },
+    {
+      "width": 1920,
+      "scrollY": 5000,
+      "top": 0,
+      "height": 45,
+      "visible": true,
+      "sidebarOffset": 53
+    },
+    {
+      "width": 1920,
+      "scrollY": 12161,
+      "top": 0,
+      "height": 45,
+      "visible": true,
+      "sidebarOffset": 53
+    },
+    {
+      "width": 1000,
+      "scrollY": 0,
+      "top": 0,
+      "height": 88,
+      "visible": true,
+      "sidebarOffset": 96
+    },
+    {
+      "width": 1000,
+      "scrollY": 1200,
+      "top": 0,
+      "height": 88,
+      "visible": true,
+      "sidebarOffset": 96
+    },
+    {
+      "width": 1000,
+      "scrollY": 5000,
+      "top": 0,
+      "height": 88,
+      "visible": true,
+      "sidebarOffset": 96
+    },
+    {
+      "width": 1000,
+      "scrollY": 12749,
+      "top": 0,
+      "height": 88,
+      "visible": true,
+      "sidebarOffset": 96
+    },
+    {
+      "width": 390,
+      "scrollY": 0,
+      "top": 0,
+      "height": 121,
+      "visible": true,
+      "sidebarOffset": 129
+    },
+    {
+      "width": 390,
+      "scrollY": 1200,
+      "top": 0,
+      "height": 121,
+      "visible": true,
+      "sidebarOffset": 129
+    },
+    {
+      "width": 390,
+      "scrollY": 5000,
+      "top": 0,
+      "height": 121,
+      "visible": true,
+      "sidebarOffset": 129
+    },
+    {
+      "width": 390,
+      "scrollY": 13263,
+      "top": 0,
+      "height": 121,
+      "visible": true,
+      "sidebarOffset": 129
+    }
+  ]
+}

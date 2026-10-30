@@ -1,0 +1,83 @@
+'use strict';
+/* eslint-disable no-console -- Browser verification reports its results to the runner. */
+const fs=require('fs'),path=require('path');
+
+module.exports=async function({c,check,click,open,metrics,key,delay,previews}) {
+ const passed=[],verify=async(name,expression)=>{await check(name,expression);passed.push(name);};
+ const edit='.board-toolbar-actions [data-action="layout-edit"]',done='[data-layout-editor] [data-action="layout-edit"]';
+ const card=id=>'[data-board-card="'+id+'"]',handle=id=>card(id)+' .card-resize-handle';
+ const press=async(id,value,code,numeric)=>{await c.evaluate(`document.querySelector(${JSON.stringify(handle(id))}).focus()`);await key(value,code,numeric);};
+ const load=async(...args)=>{await open(...args);await c.evaluate('window.__cardHeight=id=>document.querySelector("[data-board-card="+id+"]").getBoundingClientRect().height');};
+ const saved='JSON.parse(localStorage.getItem("bts-admin-card-layout-v1"))';
+ await load(1920,1080);
+ await c.evaluate('localStorage.setItem(\'bts-admin-card-layout-v1\',JSON.stringify({top:[\'operators\',\'announcement\',\'device\',\'automation\',\'logs\'],sidebar:[\'rotation\',\'tablets\'],hidden:[]}))');
+ await load(1920,1080);
+ await c.evaluate('window.__heightNodes={rows:[...document.querySelectorAll(\'.court_row\')],rotation:document.querySelector(\'.umpire_container\'),tablets:[...document.querySelectorAll(\'[data-tablet-client-id]\')],writes:__writes.length};window.__cardHeight=id=>document.querySelector(\'[data-board-card="\'+id+\'"]\').getBoundingClientRect().height');
+ await verify('Existing layouts keep automatic sidebar heights and equal heights above the games','!document.querySelector(\'.has-fixed-height\')&&new Set([...document.querySelectorAll(\'[data-card-zone="top"] .control-card\')].map(node=>node.offsetHeight)).size===1&&[...document.querySelectorAll(\'.card-size-controls\')].every(node=>!node.getClientRects().length)');
+ await click(edit);
+ await verify('Height handles are available only for the right column in the layout editor','[...document.querySelectorAll(\'[data-card-zone="sidebar"] .card-resize-handle\')].every(node=>node.getClientRects().length>0)&&!document.querySelector(\'[data-card-zone="top"] .card-resize-handle\')');
+ await click(card('logs')+' [data-action="layout-card-zone"]');
+ await c.evaluate('for(let index=0;index<30;index++)cerror.on_error(\'Protokollmeldung \'+index);window.__heightLog=document.querySelector(\'.errors\')');
+ const drag=async(id,height,{cancel=false,touch=false}={})=>{
+  await c.evaluate(`document.querySelector(${JSON.stringify(handle(id))}).scrollIntoView({block:'center'})`);await delay(100);
+  const point=await c.evaluate(`(()=>{const node=document.querySelector(${JSON.stringify(handle(id))}),box=node.getBoundingClientRect();return{x:box.left+box.width/2,y:box.top+box.height/2,delta:${height}-node.closest('[data-board-card]').offsetHeight}})()`);
+  if(touch) {
+   await c.call('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:point.x,y:point.y}]});
+   await c.call('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:point.x,y:point.y+point.delta}]});
+   await c.call('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
+  } else {
+   await c.call('Input.dispatchMouseEvent',{type:'mouseMoved',x:point.x,y:point.y});
+   await c.call('Input.dispatchMouseEvent',{type:'mousePressed',x:point.x,y:point.y,button:'left',buttons:1,clickCount:1});
+   await c.call('Input.dispatchMouseEvent',{type:'mouseMoved',x:point.x,y:point.y+point.delta,button:'left',buttons:1});
+   if(cancel)await key('Escape','Escape',27);
+   await c.call('Input.dispatchMouseEvent',{type:'mouseReleased',x:point.x,y:point.y+point.delta,button:'left',buttons:0,clickCount:1});
+  }
+ };
+ await drag('logs',220);
+ await verify('Dragging the bottom handle changes only the card height without starting a card drag',`Math.abs(__cardHeight('logs')-220)<1&&!document.querySelector('.card-drag-source')&&!document.querySelector('.resizing-board-card')&&document.querySelector('.errors')===__heightLog&&!${saved}.heights`);
+ await press('logs','Home','Home',36);
+ await verify('A constrained log card scrolls its content while retaining the heading and resize handle','(()=>{const card=document.querySelector(\'[data-board-card="logs"]\'),content=card.querySelector(\'.card-content\'),heading=card.querySelector(\'h2\'),before=heading.getBoundingClientRect().top;content.scrollTop=content.scrollHeight;return __cardHeight(\'logs\')===140&&content.scrollHeight>content.clientHeight&&content.scrollTop>0&&heading.getBoundingClientRect().top===before&&getComputedStyle(card.querySelector(\'.errors_scroll_left\')).overflowY===\'visible\'&&!card.querySelector(\'.card-empty-message\').getClientRects().length})()');
+ await drag('logs',220);
+ await press('rotation','Home','Home',36);
+ await click(done);
+ await verify('Done saves individual heights locally and leaves the original rows and controls connected',`${saved}.heights.logs===220&&${saved}.heights.rotation===140&&__heightNodes.rows.every(node=>node.isConnected)&&document.querySelector('.umpire_container')===__heightNodes.rotation&&__heightNodes.tablets.every(node=>node.isConnected)&&__writes.length===__heightNodes.writes&&[...document.querySelectorAll('.card-size-controls')].every(node=>!node.getClientRects().length)`);
+ await load(1920,1080);
+ await verify('Reload restores fixed heights and keeps the short right column sticky','document.querySelector(\'[data-board-card="logs"]\').offsetHeight===220&&document.querySelector(\'[data-board-card="rotation"]\').offsetHeight===140&&getComputedStyle(document.querySelector(\'.board-sidebar\')).position===\'sticky\'');
+ await click(edit);
+ await drag('logs',290,{cancel:true});
+ await verify('Escape cancels a height drag and releases pointer capture','__cardHeight(\'logs\')===220&&!document.querySelector(\'.resizing-board-card\')&&document.querySelector(\'[data-board-card="logs"]\').draggable');
+ await press('logs','ArrowDown','ArrowDown',40);
+ await verify('Keyboard resizing adjusts the height by ten pixels','__cardHeight(\'logs\')===230');
+ await click('[data-action="layout-cancel"]');
+ await verify('Cancel restores the saved heights without changing storage',`__cardHeight('logs')===220&&${saved}.heights.logs===220`);
+ await click(edit);
+ await click(card('logs')+' [data-action="layout-card-zone"]');
+ await verify('Moving a resized card above the games restores the unchanged common row height','!document.querySelector(\'[data-card-zone="top"] .has-fixed-height\')&&!document.querySelector(\'[data-board-card="logs"] .card-content\')&&document.querySelector(\'[data-board-card="logs"]\').style.getPropertyValue(\'--card-height\')===\'\'&&new Set([...document.querySelectorAll(\'[data-card-zone="top"] .control-card\')].map(node=>node.offsetHeight)).size===1');
+ await click(card('logs')+' [data-action="layout-card-zone"]');
+ await verify('Moving the card back to the right restores its remembered height','__cardHeight(\'logs\')===220&&!!document.querySelector(\'[data-board-card="logs"]>.card-content\')');
+ await press('tablets','Home','Home',36);
+ await c.evaluate('window.__fixedTabletList=document.querySelector(\'.ls-tablet-list\');for(let index=0;index<25;index++)crouting.on_change({ctype:\'display_status_changed\',tournament_key:\'preview\',val:{display_court_displaysetting:{client_id:\'resized-\'+index,online:true,panel_devicemode:\'umpire\',hostname:\'Tablet \'+index,battery:{level:.5,charging:false}}}})');
+ await verify('Live tablet additions remain within the fixed card with a single scrolling content area','(()=>{const card=document.querySelector(\'[data-board-card="tablets"]\'),content=card.querySelector(\'.card-content\');return card.offsetHeight===140&&content.scrollHeight>content.clientHeight&&getComputedStyle(__fixedTabletList).overflowY===\'visible\'&&document.querySelector(\'[data-tablet-count]\').textContent===\'29\'&&document.querySelector(\'.ls-tablet-list\')===__fixedTabletList})()');
+ await press('rotation','End','End',35);
+ await verify('A height exceeding the viewport lets the sidebar scroll with the page','__cardHeight(\'rotation\')===2400&&getComputedStyle(document.querySelector(\'.board-sidebar\')).position===\'static\'');
+ await press('rotation','Home','Home',36);
+ await verify('Reducing the combined card heights makes the sidebar sticky again','getComputedStyle(document.querySelector(\'.board-sidebar\')).position===\'sticky\'');
+ await click(card('operators')+' [data-action="layout-card-zone"]');await press('operators','Home','Home',36);
+ await c.evaluate('cleitstand.refreshOperators();ctabletoperator.render_unassigned(document.querySelector(\'.unassigned_tableoperators_container\'))');
+ await verify('Refreshing the operator queue retains the constrained content container','!!document.querySelector(\'[data-board-card="operators"]>.card-content>.unassigned_tableoperators_container\')&&__cardHeight(\'operators\')===140');
+ await click(card('logs')+' [data-action="layout-card-height-auto"]');
+ await verify('Auto restores natural growth and removes the fixed content container','!document.querySelector(\'[data-board-card="logs"]\').classList.contains(\'has-fixed-height\')&&!document.querySelector(\'[data-board-card="logs"] .card-content\')&&document.querySelector(\'[data-board-card="logs"] [data-action="layout-card-height-auto"]\').disabled');
+ await metrics(390,844);await drag('tablets',190,{touch:true});
+ await verify('The right-column height can also be changed by touch in a narrow window','Math.abs(__cardHeight(\'tablets\')-190)<2&&document.documentElement.scrollWidth<=innerWidth&&getComputedStyle(document.querySelector(\'.board-sidebar\')).position===\'static\'&&!document.querySelector(\'.resizing-board-card\')');
+ await click('[data-action="layout-reset"]');
+ await verify('Standard resets card heights along with their positions','!document.querySelector(\'.has-fixed-height\')&&document.querySelectorAll(\'[data-card-zone="top"] [data-board-card]\').length===7');
+ await click('[data-action="layout-cancel"]');
+ await verify('Cancel after Standard restores the previously saved heights',`${saved}.heights.logs===220&&document.querySelector('[data-board-card="logs"]').offsetHeight===220`);
+ await c.evaluate('localStorage.setItem(\'bts-admin-card-layout-v1\',JSON.stringify({top:[\'operators\',\'announcement\',\'device\',\'automation\'],sidebar:[\'rotation\',\'tablets\',\'logs\'],hidden:[],heights:{rotation:-1,tablets:\'200\',logs:220,unknown:300}}))');
+ await load(1920,1080);
+ await verify('Stored heights accept valid known cards and ignore malformed or out-of-range values','!document.querySelector(\'[data-board-card="rotation"]\').classList.contains(\'has-fixed-height\')&&!document.querySelector(\'[data-board-card="tablets"]\').classList.contains(\'has-fixed-height\')&&document.querySelector(\'[data-board-card="logs"]\').offsetHeight===220');
+ const exceptions=c.events.filter(event=>event.method==='Runtime.exceptionThrown');
+ await verify('Height changes produce no browser exceptions',String(exceptions.length===0));
+ fs.writeFileSync(path.join(previews,'card-heights-verification.json'),JSON.stringify({date:'2026-10-30',checks:passed,exceptions:exceptions.length},null,2)+'\n');
+ console.log(JSON.stringify({checks:passed.length,exceptions:exceptions.length}));
+};

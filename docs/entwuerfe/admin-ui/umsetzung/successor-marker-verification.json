@@ -1,0 +1,120 @@
+{
+  "date": "2026-10-30",
+  "scope": "Isolierter Browser mit nativer Empfangswarteschlange. Vorbereitungsdiagnosen werden bewusst zurückgehalten und mit veraltetem Bedarf beantwortet. Punktmeldungen enthalten den auf dem Server berechneten Zustand; keine Live-Dienste.",
+  "checks": [
+    "The successor marker and point change in the same native score handler",
+    "The green field is rendered while the separate server diagnosis is still unanswered",
+    "A delayed negative diagnosis cannot remove the current positive point flag",
+    "Correcting the threshold point clears green in the same handler",
+    "A delayed positive diagnosis cannot re-enable the corrected field",
+    "A point with unchanged successor state makes no marker attribute changes",
+    "A successor-only snapshot patches the marker without rebuilding names or scores",
+    "Older score messages clear stale flags and retain diagnostic compatibility",
+    "All native messages receive successful presentation receipts after their UI work",
+    "Point and marker handlers meet the small-update processing budget"
+  ],
+  "samples": [
+    {
+      "id": 1,
+      "ctype": "score",
+      "handler_ms": 0.6000000238418579,
+      "green": true,
+      "score": "21:18 10:7",
+      "same": true,
+      "neighbor": true
+    },
+    {
+      "id": 2,
+      "ctype": "score",
+      "handler_ms": 0.2999999523162842,
+      "green": false,
+      "score": "21:18 9:7",
+      "same": true,
+      "neighbor": true
+    },
+    {
+      "id": 3,
+      "ctype": "score",
+      "handler_ms": 0.20000004768371582,
+      "green": false,
+      "score": "21:18 9:8",
+      "same": true,
+      "neighbor": true
+    },
+    {
+      "id": 4,
+      "ctype": "court_current_match",
+      "handler_ms": 0.2999999523162842,
+      "green": true,
+      "score": "21:18 9:8",
+      "same": true,
+      "neighbor": true
+    },
+    {
+      "id": 5,
+      "ctype": "score",
+      "handler_ms": 0.30000007152557373,
+      "green": true,
+      "score": "21:18 8:7",
+      "same": true,
+      "neighbor": true
+    }
+  ],
+  "receipts": [
+    {
+      "type": "score",
+      "status": "presented",
+      "timings": {
+        "queue_ms": 0.5,
+        "handler_ms": 0.6,
+        "ui_wait_ms": 0,
+        "render_ms": 29.2,
+        "total_ms": 30.3
+      }
+    },
+    {
+      "type": "score",
+      "status": "presented",
+      "timings": {
+        "queue_ms": 0.2,
+        "handler_ms": 0.4,
+        "ui_wait_ms": 0,
+        "render_ms": 31.5,
+        "total_ms": 32.1
+      }
+    },
+    {
+      "type": "score",
+      "status": "presented",
+      "timings": {
+        "queue_ms": 0.1,
+        "handler_ms": 0.2,
+        "ui_wait_ms": 0,
+        "render_ms": 31.1,
+        "total_ms": 31.4
+      }
+    },
+    {
+      "type": "court_current_match",
+      "status": "presented",
+      "timings": {
+        "queue_ms": 0.1,
+        "handler_ms": 0.4,
+        "ui_wait_ms": 18.4,
+        "render_ms": 27.9,
+        "total_ms": 46.8
+      }
+    },
+    {
+      "type": "score",
+      "status": "presented",
+      "timings": {
+        "queue_ms": 0.2,
+        "handler_ms": 0.4,
+        "ui_wait_ms": 0.1,
+        "render_ms": 31.5,
+        "total_ms": 32.2
+      }
+    }
+  ]
+}

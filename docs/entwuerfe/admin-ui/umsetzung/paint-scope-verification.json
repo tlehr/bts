@@ -1,0 +1,120 @@
+{
+  "scope": "Alternating synthetic browser comparison on identical rows; 200 clock changes per 100 ms and an overdue warning. Tracing is diagnostic overhead, not end-to-end latency acceptance.",
+  "matchCount": 373,
+  "timerCount": 200,
+  "samples": [
+    {
+      "mode": "original",
+      "paint": {
+        "count": 176,
+        "total_ms": 3226,
+        "max_ms": 30.1
+      },
+      "layout": {
+        "count": 85,
+        "total_ms": 735.5,
+        "max_ms": 33.3
+      },
+      "style": {
+        "count": 86,
+        "total_ms": 11.3,
+        "max_ms": 0.2
+      }
+    },
+    {
+      "mode": "scoped",
+      "paint": {
+        "count": 292,
+        "total_ms": 1816.3,
+        "max_ms": 27.2
+      },
+      "layout": {
+        "count": 144,
+        "total_ms": 847.4,
+        "max_ms": 26.9
+      },
+      "style": {
+        "count": 145,
+        "total_ms": 21.9,
+        "max_ms": 0.7
+      }
+    },
+    {
+      "mode": "composited",
+      "paint": {
+        "count": 90,
+        "total_ms": 1473.1,
+        "max_ms": 23.9
+      },
+      "layout": {
+        "count": 43,
+        "total_ms": 727.3,
+        "max_ms": 26.5
+      },
+      "style": {
+        "count": 44,
+        "total_ms": 5.2,
+        "max_ms": 0.9
+      }
+    },
+    {
+      "mode": "original",
+      "paint": {
+        "count": 136,
+        "total_ms": 3104.1,
+        "max_ms": 71.4
+      },
+      "layout": {
+        "count": 66,
+        "total_ms": 789.9,
+        "max_ms": 111.3
+      },
+      "style": {
+        "count": 66,
+        "total_ms": 12.3,
+        "max_ms": 3.4
+      }
+    },
+    {
+      "mode": "scoped",
+      "paint": {
+        "count": 282,
+        "total_ms": 1883.7,
+        "max_ms": 23.7
+      },
+      "layout": {
+        "count": 135,
+        "total_ms": 852.8,
+        "max_ms": 21.9
+      },
+      "style": {
+        "count": 136,
+        "total_ms": 21.5,
+        "max_ms": 0.4
+      }
+    },
+    {
+      "mode": "composited",
+      "paint": {
+        "count": 106,
+        "total_ms": 1783.7,
+        "max_ms": 28
+      },
+      "layout": {
+        "count": 51,
+        "total_ms": 770.2,
+        "max_ms": 22
+      },
+      "style": {
+        "count": 52,
+        "total_ms": 4.3,
+        "max_ms": 0.2
+      }
+    }
+  ],
+  "mean_paint_ms": {
+    "original": 3165.05,
+    "scoped": 1850,
+    "composited": 1628.4
+  }
+}

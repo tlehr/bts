@@ -1,3 +1,4 @@
+/* global cleitstand */
 'use strict';
 
 var ctabletoperator = (function() {
@@ -24,6 +25,7 @@ function render_unassigned(container) {
 	const tableoperator_content = uiu.el(container, 'div', 'unassigned_tableoperators_content');
 	render_tabletoperator_table(tableoperator_content, unassigned_tabletoperators);
 	render_tabletoperator_formular(container);
+	if (typeof cleitstand !== 'undefined') cleitstand.operatorQueue(container);
 	schedule_fit_unassigned_tableoperators(container);
 	bind_resize_handler_once();
 	observe_unassigned_tableoperator_layout(container);
@@ -47,6 +49,56 @@ function render_tabletoperator_table_header(table) {
 	const title_tr = uiu.el(thead, 'tr');
 	uiu.el(title_tr, 'th', {}, ci18n('tabletoperator:name'));
 }
+
+function source_court(entry, tournament = curt) {
+	const court_by_id = id => tournament?.courts_by_id?.[id] ||
+		(tournament?.courts || []).find(court => String(court._id) === String(id)) || null;
+	if (entry?.played_on_court) {
+		return court_by_id(entry.played_on_court);
+	}
+	const participant_key = player => {
+		const id = player?.btp_id;
+		if (id != null && id !== '' && Number.isFinite(Number(id)) && Number(id) >= 0) {
+			return 'id:' + Number(id);
+		}
+		const name = String(player?.name || [player?.firstname, player?.lastname].filter(Boolean).join(' '))
+			.normalize('NFC').trim().replace(/\s+/g, ' ').toLocaleLowerCase();
+		return name ? 'name:' + name : null;
+	};
+	const participants = record => Array.isArray(record?.tabletoperator) ? record.tabletoperator : [];
+	const people = participants(entry).map(participant_key);
+	if (!people.length || people.some(key => !key)) {
+		return null;
+	}
+	const last_played = record => Math.max(0, ...participants(record).map(player => Number(player?.last_time_on_court_ts) || 0));
+	const limit = Number(entry.source_match_end_ts) || last_played(entry);
+	const assignments = new Map();
+	for (const record of tournament?.tabletoperators || []) {
+		if (!record?.assigned_match_id) continue;
+		const members = new Set(participants(record).map(participant_key));
+		if (!people.every(key => members.has(key))) continue;
+		const previous = assignments.get(record.assigned_match_id) || [];
+		previous.push(record);assignments.set(record.assigned_match_id, previous);
+	}
+	// Withdrawal creates a fresh queue entry for the recalled match. Follow its
+	// previous assignment back to the original finish, including repeated recalls.
+	const pending = [entry], seen = new Set(), sources = [];
+	while (pending.length) {
+		const record = pending.pop();
+		if (seen.has(record)) continue;
+		seen.add(record);
+		if (record.played_on_court) {
+			const timestamp = Number(record.source_match_end_ts) || last_played(record);
+			if (!limit || timestamp <= limit) sources.push({ id: record.played_on_court, timestamp });
+		} else {
+			pending.push(...(assignments.get(record.match_id) || []));
+		}
+	}
+	const latest = Math.max(0, ...sources.map(source => source.timestamp));
+	const ids = new Set(sources.filter(source => source.timestamp === latest).map(source => String(source.id)));
+	return ids.size === 1 ? court_by_id([...ids][0]) : null;
+}
+
 function render_tabletoperator_row(tr, tabletoperator, is_fist_entry, is_last_entry) {
 	if (!tabletoperator) {
 		return;
@@ -66,7 +118,7 @@ function render_tabletoperator_row(tr, tabletoperator, is_fist_entry, is_last_en
 
 	}
 
-	const court = curt && curt.courts_by_id ? curt.courts_by_id[tabletoperator.played_on_court] : null;
+	const court = source_court(tabletoperator);
 	const court_td = uiu.el(tr, 'td', 'court_played');
 	
 	
@@ -250,6 +302,13 @@ function fit_unassigned_tableoperators(container, allow_second_pass) {
 	if (!parent || !content || !heading || !form_container) {
 		return;
 	}
+	if (container.closest('.leitstand')) {
+		container.style.height = '';
+		container.style.maxHeight = '';
+		content.style.height = '';
+		content.style.maxHeight = '52px';
+		return;
+	}
 	const previous_container_height = container.style.height;
 	const previous_container_max_height = container.style.maxHeight;
 	const previous_container_position = container.style.position;
@@ -301,7 +360,8 @@ function fit_unassigned_tableoperators(container, allow_second_pass) {
 
 return {
 	render_unassigned,
-	add_to_tabletoperator
+	add_to_tabletoperator,
+	source_court,
 };
 
 })();

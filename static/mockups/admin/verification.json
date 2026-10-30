@@ -1,0 +1,1014 @@
+{
+  "date": "2026-10-26",
+  "routes": [
+    {
+      "route": "leitstand",
+      "variant": "a",
+      "width": 1600,
+      "height": 1050,
+      "viewport": 1600,
+      "body": 1585,
+      "tableOverflow": [
+        false,
+        false,
+        false
+      ],
+      "title": "Turnierleitung"
+    },
+    {
+      "route": "einstellungen/allgemein",
+      "variant": "a",
+      "width": 1600,
+      "height": 1050,
+      "viewport": 1600,
+      "body": 1600,
+      "tableOverflow": [],
+      "title": "Einstellungen"
+    },
+    {
+      "route": "sprache",
+      "variant": "a",
+      "width": 1600,
+      "height": 1050,
+      "viewport": 1600,
+      "body": 1585,
+      "tableOverflow": [
+        false
+      ],
+      "title": "Sprachvorbereitung"
+    },
+    {
+      "route": "sprachspiele",
+      "variant": "a",
+      "width": 1600,
+      "height": 1050,
+      "viewport": 1600,
+      "body": 1585,
+      "tableOverflow": [
+        false
+      ],
+      "title": "Sprachvorbereitung"
+    },
+    {
+      "route": "sprachdiagramm",
+      "variant": "a",
+      "width": 1600,
+      "height": 1050,
+      "viewport": 1600,
+      "body": 1585,
+      "tableOverflow": [],
+      "title": "Sprachvorbereitung"
+    },
+    {
+      "route": "helfer",
+      "variant": "a",
+      "width": 1600,
+      "height": 1050,
+      "viewport": 1600,
+      "body": 1600,
+      "tableOverflow": [
+        false
+      ],
+      "title": "Sprachhelfer"
+    },
+    {
+      "route": "hoerlabor",
+      "variant": "a",
+      "width": 1600,
+      "height": 1050,
+      "viewport": 1600,
+      "body": 1600,
+      "tableOverflow": [],
+      "title": "Hörlabor"
+    },
+    {
+      "route": "kontexteditor",
+      "variant": "a",
+      "width": 1600,
+      "height": 1050,
+      "viewport": 1600,
+      "body": 1585,
+      "tableOverflow": [],
+      "title": "Kontexteditor"
+    },
+    {
+      "route": "anmeldung",
+      "variant": "a",
+      "width": 1600,
+      "height": 1050,
+      "viewport": 1600,
+      "body": 1585,
+      "tableOverflow": [
+        false
+      ],
+      "title": "Anmeldung & Meldungen"
+    },
+    {
+      "route": "geraete",
+      "variant": "a",
+      "width": 1600,
+      "height": 1050,
+      "viewport": 1600,
+      "body": 1585,
+      "tableOverflow": [
+        false
+      ],
+      "title": "Geräte & Seiten"
+    },
+    {
+      "route": "logs",
+      "variant": "a",
+      "width": 1600,
+      "height": 1050,
+      "viewport": 1600,
+      "body": 1585,
+      "tableOverflow": [],
+      "title": "Zentrale Logs"
+    },
+    {
+      "route": "testlabor",
+      "variant": "a",
+      "width": 1600,
+      "height": 1050,
+      "viewport": 1600,
+      "body": 1585,
+      "tableOverflow": [],
+      "title": "Testlabor"
+    },
+    {
+      "route": "einstellungen/btp",
+      "variant": "a",
+      "width": 1600,
+      "height": 1050,
+      "viewport": 1600,
+      "body": 1600,
+      "tableOverflow": [],
+      "title": "Einstellungen"
+    },
+    {
+      "route": "einstellungen/ablauf",
+      "variant": "a",
+      "width": 1600,
+      "height": 1050,
+      "viewport": 1600,
+      "body": 1600,
+      "tableOverflow": [],
+      "title": "Einstellungen"
+    },
+    {
+      "route": "einstellungen/felder",
+      "variant": "a",
+      "width": 1600,
+      "height": 1050,
+      "viewport": 1600,
+      "body": 1585,
+      "tableOverflow": [
+        false
+      ],
+      "title": "Einstellungen"
+    },
+    {
+      "route": "einstellungen/sprache",
+      "variant": "a",
+      "width": 1600,
+      "height": 1050,
+      "viewport": 1600,
+      "body": 1600,
+      "tableOverflow": [],
+      "title": "Einstellungen"
+    },
+    {
+      "route": "einstellungen/anzeigen",
+      "variant": "a",
+      "width": 1600,
+      "height": 1050,
+      "viewport": 1600,
+      "body": 1600,
+      "tableOverflow": [],
+      "title": "Einstellungen"
+    },
+    {
+      "route": "einstellungen/wertung",
+      "variant": "a",
+      "width": 1600,
+      "height": 1050,
+      "viewport": 1600,
+      "body": 1600,
+      "tableOverflow": [],
+      "title": "Einstellungen"
+    },
+    {
+      "route": "einstellungen/wartung",
+      "variant": "a",
+      "width": 1600,
+      "height": 1050,
+      "viewport": 1600,
+      "body": 1600,
+      "tableOverflow": [],
+      "title": "Einstellungen"
+    },
+    {
+      "route": "leitstand",
+      "variant": "b",
+      "width": 1600,
+      "height": 1050,
+      "viewport": 1600,
+      "body": 1585,
+      "tableOverflow": [
+        false,
+        false,
+        false
+      ],
+      "title": "Turnierleitung"
+    },
+    {
+      "route": "einstellungen/allgemein",
+      "variant": "b",
+      "width": 1600,
+      "height": 1050,
+      "viewport": 1600,
+      "body": 1600,
+      "tableOverflow": [],
+      "title": "Einstellungen"
+    },
+    {
+      "route": "sprache",
+      "variant": "b",
+      "width": 1600,
+      "height": 1050,
+      "viewport": 1600,
+      "body": 1585,
+      "tableOverflow": [
+        false
+      ],
+      "title": "Sprachvorbereitung"
+    },
+    {
+      "route": "sprachspiele",
+      "variant": "b",
+      "width": 1600,
+      "height": 1050,
+      "viewport": 1600,
+      "body": 1585,
+      "tableOverflow": [
+        false
+      ],
+      "title": "Sprachvorbereitung"
+    },
+    {
+      "route": "sprachdiagramm",
+      "variant": "b",
+      "width": 1600,
+      "height": 1050,
+      "viewport": 1600,
+      "body": 1585,
+      "tableOverflow": [],
+      "title": "Sprachvorbereitung"
+    },
+    {
+      "route": "helfer",
+      "variant": "b",
+      "width": 1600,
+      "height": 1050,
+      "viewport": 1600,
+      "body": 1600,
+      "tableOverflow": [
+        false
+      ],
+      "title": "Sprachhelfer"
+    },
+    {
+      "route": "hoerlabor",
+      "variant": "b",
+      "width": 1600,
+      "height": 1050,
+      "viewport": 1600,
+      "body": 1585,
+      "tableOverflow": [],
+      "title": "Hörlabor"
+    },
+    {
+      "route": "kontexteditor",
+      "variant": "b",
+      "width": 1600,
+      "height": 1050,
+      "viewport": 1600,
+      "body": 1585,
+      "tableOverflow": [],
+      "title": "Kontexteditor"
+    },
+    {
+      "route": "anmeldung",
+      "variant": "b",
+      "width": 1600,
+      "height": 1050,
+      "viewport": 1600,
+      "body": 1585,
+      "tableOverflow": [
+        false
+      ],
+      "title": "Anmeldung & Meldungen"
+    },
+    {
+      "route": "geraete",
+      "variant": "b",
+      "width": 1600,
+      "height": 1050,
+      "viewport": 1600,
+      "body": 1585,
+      "tableOverflow": [
+        false
+      ],
+      "title": "Geräte & Seiten"
+    },
+    {
+      "route": "logs",
+      "variant": "b",
+      "width": 1600,
+      "height": 1050,
+      "viewport": 1600,
+      "body": 1585,
+      "tableOverflow": [],
+      "title": "Zentrale Logs"
+    },
+    {
+      "route": "testlabor",
+      "variant": "b",
+      "width": 1600,
+      "height": 1050,
+      "viewport": 1600,
+      "body": 1585,
+      "tableOverflow": [],
+      "title": "Testlabor"
+    },
+    {
+      "route": "einstellungen/btp",
+      "variant": "b",
+      "width": 1600,
+      "height": 1050,
+      "viewport": 1600,
+      "body": 1600,
+      "tableOverflow": [],
+      "title": "Einstellungen"
+    },
+    {
+      "route": "einstellungen/ablauf",
+      "variant": "b",
+      "width": 1600,
+      "height": 1050,
+      "viewport": 1600,
+      "body": 1600,
+      "tableOverflow": [],
+      "title": "Einstellungen"
+    },
+    {
+      "route": "einstellungen/felder",
+      "variant": "b",
+      "width": 1600,
+      "height": 1050,
+      "viewport": 1600,
+      "body": 1585,
+      "tableOverflow": [
+        false
+      ],
+      "title": "Einstellungen"
+    },
+    {
+      "route": "einstellungen/sprache",
+      "variant": "b",
+      "width": 1600,
+      "height": 1050,
+      "viewport": 1600,
+      "body": 1600,
+      "tableOverflow": [],
+      "title": "Einstellungen"
+    },
+    {
+      "route": "einstellungen/anzeigen",
+      "variant": "b",
+      "width": 1600,
+      "height": 1050,
+      "viewport": 1600,
+      "body": 1600,
+      "tableOverflow": [],
+      "title": "Einstellungen"
+    },
+    {
+      "route": "einstellungen/wertung",
+      "variant": "b",
+      "width": 1600,
+      "height": 1050,
+      "viewport": 1600,
+      "body": 1600,
+      "tableOverflow": [],
+      "title": "Einstellungen"
+    },
+    {
+      "route": "einstellungen/wartung",
+      "variant": "b",
+      "width": 1600,
+      "height": 1050,
+      "viewport": 1600,
+      "body": 1600,
+      "tableOverflow": [],
+      "title": "Einstellungen"
+    },
+    {
+      "route": "leitstand",
+      "variant": "a",
+      "width": 1920,
+      "height": 1200,
+      "viewport": 1920,
+      "body": 1905,
+      "tableOverflow": [
+        false,
+        false,
+        false
+      ],
+      "title": "Turnierleitung"
+    },
+    {
+      "route": "leitstand",
+      "variant": "a",
+      "width": 390,
+      "height": 844,
+      "viewport": 390,
+      "body": 375,
+      "tableOverflow": [
+        true,
+        true,
+        true
+      ],
+      "title": "Turnierleitung"
+    },
+    {
+      "route": "einstellungen/allgemein",
+      "variant": "a",
+      "width": 390,
+      "height": 844,
+      "viewport": 390,
+      "body": 375,
+      "tableOverflow": [],
+      "title": "Einstellungen"
+    },
+    {
+      "route": "sprache",
+      "variant": "a",
+      "width": 390,
+      "height": 844,
+      "viewport": 390,
+      "body": 375,
+      "tableOverflow": [
+        true
+      ],
+      "title": "Sprachvorbereitung"
+    },
+    {
+      "route": "sprachspiele",
+      "variant": "a",
+      "width": 390,
+      "height": 844,
+      "viewport": 390,
+      "body": 375,
+      "tableOverflow": [
+        true
+      ],
+      "title": "Sprachvorbereitung"
+    },
+    {
+      "route": "sprachdiagramm",
+      "variant": "a",
+      "width": 390,
+      "height": 844,
+      "viewport": 390,
+      "body": 375,
+      "tableOverflow": [],
+      "title": "Sprachvorbereitung"
+    },
+    {
+      "route": "helfer",
+      "variant": "a",
+      "width": 390,
+      "height": 844,
+      "viewport": 390,
+      "body": 375,
+      "tableOverflow": [
+        true
+      ],
+      "title": "Sprachhelfer"
+    },
+    {
+      "route": "hoerlabor",
+      "variant": "a",
+      "width": 390,
+      "height": 844,
+      "viewport": 390,
+      "body": 375,
+      "tableOverflow": [],
+      "title": "Hörlabor"
+    },
+    {
+      "route": "kontexteditor",
+      "variant": "a",
+      "width": 390,
+      "height": 844,
+      "viewport": 390,
+      "body": 375,
+      "tableOverflow": [],
+      "title": "Kontexteditor"
+    },
+    {
+      "route": "anmeldung",
+      "variant": "a",
+      "width": 390,
+      "height": 844,
+      "viewport": 390,
+      "body": 375,
+      "tableOverflow": [
+        true
+      ],
+      "title": "Anmeldung & Meldungen"
+    },
+    {
+      "route": "geraete",
+      "variant": "a",
+      "width": 390,
+      "height": 844,
+      "viewport": 390,
+      "body": 375,
+      "tableOverflow": [
+        true
+      ],
+      "title": "Geräte & Seiten"
+    },
+    {
+      "route": "logs",
+      "variant": "a",
+      "width": 390,
+      "height": 844,
+      "viewport": 390,
+      "body": 375,
+      "tableOverflow": [],
+      "title": "Zentrale Logs"
+    },
+    {
+      "route": "testlabor",
+      "variant": "a",
+      "width": 390,
+      "height": 844,
+      "viewport": 390,
+      "body": 375,
+      "tableOverflow": [],
+      "title": "Testlabor"
+    },
+    {
+      "route": "leitstand",
+      "variant": "b",
+      "width": 390,
+      "height": 844,
+      "viewport": 390,
+      "body": 375,
+      "tableOverflow": [
+        true,
+        true,
+        true
+      ],
+      "title": "Turnierleitung"
+    },
+    {
+      "route": "einstellungen/allgemein",
+      "variant": "b",
+      "width": 390,
+      "height": 844,
+      "viewport": 390,
+      "body": 375,
+      "tableOverflow": [],
+      "title": "Einstellungen"
+    },
+    {
+      "route": "sprache",
+      "variant": "b",
+      "width": 390,
+      "height": 844,
+      "viewport": 390,
+      "body": 375,
+      "tableOverflow": [
+        true
+      ],
+      "title": "Sprachvorbereitung"
+    },
+    {
+      "route": "sprachspiele",
+      "variant": "b",
+      "width": 390,
+      "height": 844,
+      "viewport": 390,
+      "body": 375,
+      "tableOverflow": [
+        true
+      ],
+      "title": "Sprachvorbereitung"
+    },
+    {
+      "route": "sprachdiagramm",
+      "variant": "b",
+      "width": 390,
+      "height": 844,
+      "viewport": 390,
+      "body": 375,
+      "tableOverflow": [],
+      "title": "Sprachvorbereitung"
+    },
+    {
+      "route": "helfer",
+      "variant": "b",
+      "width": 390,
+      "height": 844,
+      "viewport": 390,
+      "body": 375,
+      "tableOverflow": [
+        true
+      ],
+      "title": "Sprachhelfer"
+    },
+    {
+      "route": "hoerlabor",
+      "variant": "b",
+      "width": 390,
+      "height": 844,
+      "viewport": 390,
+      "body": 375,
+      "tableOverflow": [],
+      "title": "Hörlabor"
+    },
+    {
+      "route": "kontexteditor",
+      "variant": "b",
+      "width": 390,
+      "height": 844,
+      "viewport": 390,
+      "body": 375,
+      "tableOverflow": [],
+      "title": "Kontexteditor"
+    },
+    {
+      "route": "anmeldung",
+      "variant": "b",
+      "width": 390,
+      "height": 844,
+      "viewport": 390,
+      "body": 375,
+      "tableOverflow": [
+        true
+      ],
+      "title": "Anmeldung & Meldungen"
+    },
+    {
+      "route": "geraete",
+      "variant": "b",
+      "width": 390,
+      "height": 844,
+      "viewport": 390,
+      "body": 375,
+      "tableOverflow": [
+        true
+      ],
+      "title": "Geräte & Seiten"
+    },
+    {
+      "route": "logs",
+      "variant": "b",
+      "width": 390,
+      "height": 844,
+      "viewport": 390,
+      "body": 375,
+      "tableOverflow": [],
+      "title": "Zentrale Logs"
+    },
+    {
+      "route": "testlabor",
+      "variant": "b",
+      "width": 390,
+      "height": 844,
+      "viewport": 390,
+      "body": 375,
+      "tableOverflow": [],
+      "title": "Testlabor"
+    },
+    {
+      "route": "leitstand",
+      "variant": "a",
+      "width": 1600,
+      "height": 1050,
+      "viewport": 1600,
+      "body": 1585,
+      "tableOverflow": [
+        false,
+        false,
+        false
+      ],
+      "title": "Turnierleitung"
+    },
+    {
+      "route": "leitstand",
+      "variant": "b",
+      "width": 1600,
+      "height": 1050,
+      "viewport": 1600,
+      "body": 1585,
+      "tableOverflow": [
+        false,
+        false,
+        false
+      ],
+      "title": "Turnierleitung"
+    },
+    {
+      "route": "sprachspiele",
+      "variant": "a",
+      "width": 1600,
+      "height": 1050,
+      "viewport": 1600,
+      "body": 1585,
+      "tableOverflow": [
+        false
+      ],
+      "title": "Sprachvorbereitung"
+    },
+    {
+      "route": "sprache",
+      "variant": "a",
+      "width": 1600,
+      "height": 1050,
+      "viewport": 1600,
+      "body": 1585,
+      "tableOverflow": [
+        false
+      ],
+      "title": "Sprachvorbereitung"
+    },
+    {
+      "route": "einstellungen/allgemein",
+      "variant": "a",
+      "width": 1600,
+      "height": 1050,
+      "viewport": 1600,
+      "body": 1600,
+      "tableOverflow": [],
+      "title": "Einstellungen"
+    },
+    {
+      "route": "einstellungen/wartung",
+      "variant": "a",
+      "width": 1600,
+      "height": 1050,
+      "viewport": 1600,
+      "body": 1600,
+      "tableOverflow": [],
+      "title": "Einstellungen"
+    },
+    {
+      "route": "helfer",
+      "variant": "a",
+      "width": 1600,
+      "height": 1050,
+      "viewport": 1600,
+      "body": 1600,
+      "tableOverflow": [
+        false
+      ],
+      "title": "Sprachhelfer"
+    },
+    {
+      "route": "anmeldung",
+      "variant": "a",
+      "width": 1600,
+      "height": 1050,
+      "viewport": 1600,
+      "body": 1585,
+      "tableOverflow": [
+        false
+      ],
+      "title": "Anmeldung & Meldungen"
+    },
+    {
+      "route": "logs",
+      "variant": "a",
+      "width": 1600,
+      "height": 1050,
+      "viewport": 1600,
+      "body": 1585,
+      "tableOverflow": [],
+      "title": "Zentrale Logs"
+    },
+    {
+      "route": "geraete",
+      "variant": "a",
+      "width": 1600,
+      "height": 1050,
+      "viewport": 1600,
+      "body": 1585,
+      "tableOverflow": [
+        false
+      ],
+      "title": "Geräte & Seiten"
+    },
+    {
+      "route": "leitstand",
+      "variant": "a",
+      "width": 1920,
+      "height": 940,
+      "viewport": 1920,
+      "body": 1905,
+      "tableOverflow": [
+        false,
+        false,
+        false
+      ],
+      "title": "Turnierleitung"
+    },
+    {
+      "route": "anmeldung",
+      "variant": "a",
+      "width": 1450,
+      "height": 940,
+      "viewport": 1450,
+      "body": 1435,
+      "tableOverflow": [
+        false
+      ],
+      "title": "Anmeldung & Meldungen"
+    },
+    {
+      "route": "leitstand",
+      "variant": "a",
+      "width": 1600,
+      "height": 1050,
+      "viewport": 1600,
+      "body": 1585,
+      "tableOverflow": [
+        false,
+        false,
+        false
+      ],
+      "title": "Turnierleitung"
+    },
+    {
+      "route": "sprachspiele",
+      "variant": "a",
+      "width": 1600,
+      "height": 1050,
+      "viewport": 1600,
+      "body": 1585,
+      "tableOverflow": [
+        false
+      ],
+      "title": "Sprachvorbereitung"
+    },
+    {
+      "route": "einstellungen/felder",
+      "variant": "a",
+      "width": 1600,
+      "height": 1050,
+      "viewport": 1600,
+      "body": 1585,
+      "tableOverflow": [
+        false
+      ],
+      "title": "Einstellungen"
+    },
+    {
+      "route": "leitstand",
+      "variant": "a",
+      "width": 1600,
+      "height": 1050,
+      "viewport": 1600,
+      "body": 1585,
+      "tableOverflow": [
+        false,
+        false,
+        false
+      ],
+      "title": "Turnierleitung"
+    },
+    {
+      "route": "sprachspiele",
+      "variant": "a",
+      "width": 1600,
+      "height": 1050,
+      "viewport": 1600,
+      "body": 1585,
+      "tableOverflow": [
+        false
+      ],
+      "title": "Sprachvorbereitung"
+    }
+  ],
+  "interactions": [
+    "Seitentitel und Turniername stehen gemeinsam in der Kopfzeile",
+    "Titelzeile und Statuslegende entfallen zugunsten der rechts stehenden Werkzeuge",
+    "13 Spielfelder vollständig und in Nummernreihenfolge",
+    "Alle v stehen auf derselben Mittelachse der Begegnungsspalte",
+    "Paarungen stehen links und rechts neben dem v",
+    "Die Statusangabe vor den Namen entfällt und die Aktionen bleiben erhalten",
+    "Live-Ergebnisse sind deutlich größer als der Begleittext",
+    "Alle Satzergebnisse haben unabhängig vom Spielstatus dieselbe Größe",
+    "Ergebnisse und Spaltenüberschrift sind linksbündig",
+    "Alle Spielstände verwenden dieselbe Schriftfarbe und Schriftstärke",
+    "Die Doppelpunkte stehen für jeden Satz über alle Spielzeilen untereinander",
+    "Ergebnisse wachsen bei mehr verfügbarem Platz",
+    "Auch bei maximaler Ergebnisgröße bleiben alle Sätze im Tabellenfeld",
+    "Laufende Spiele bleiben ohne Handlungsbedarf neutral",
+    "Die freien Felder 4 und 13 ziehen mit Gelb Aufmerksamkeit auf sich",
+    "Ergebnisbestätigung ist grün mit weißer Schrift",
+    "Die hervorgehobenen Felder entsprechen der vorhandenen BTS-Regelberechnung",
+    "Der grüne Vorbereitungsrand bleibt gerade und auf die letzte Zelle begrenzt",
+    "Ziehen markiert nur passende freie Felder als Ablageziel",
+    "Das aktive Ablageziel erhält die stärkste gelbe Hervorhebung",
+    "Ablegen öffnet nur den Demo-Dialog mit Spiel 45 und Feld 4",
+    "Manuelle Zuweisung bleibt hallenübergreifend möglich und Abbrechen räumt Markierungen auf",
+    "Zuweisen bleibt als Alternative per Tastatur erreichbar",
+    "Check-in erscheint nur bei nicht zugewiesenen Personen",
+    "Einzelne Spieler einer Paarung haben unterschiedliche Anwesenheit",
+    "Check-in ändert nur die gewählte Person im gewählten Spiel",
+    "Tabletbediener haben ihren eigenen Rollen-Check-in",
+    "BTP-Sperre bleibt an der betroffenen Person und verhindert den Check-in",
+    "Aktive und wartende Tabletbindung werden getrennt ohne Check-in-Klick dargestellt",
+    "Anderer Feldeinsatz und Restpause sind eigene Hinweise",
+    "Fehlender Check-in verhindert nicht den manuellen Vorbereitungsaufruf",
+    "Unbekannte Teilnehmer erhalten keinen falschen Check-in und keine Spielaktionen",
+    "Teams und Offizielle können in Vorbereitung getrennt aufgerufen werden",
+    "Einzelaufruf nennt Team und Phase",
+    "Erneute Feldaufrufe und Beginn-Durchsage gibt es nur vor dem ersten Punkt",
+    "Fehlendes Audio wird separat angezeigt und lässt den Aufruf bedienbar",
+    "Bestätigung gehört ausschließlich zum vollständigen noch unbestätigten Ergebnis",
+    "Ein gemeinsamer Spielknopf ersetzt die drei Zeilenwerkzeuge",
+    "Der gemeinsame Dialog öffnet die Bearbeitung des ausgewählten Spiels",
+    "Schiedsrichterzettel ist im selben Fenster als eigener Bereich erreichbar",
+    "Rohdaten gehören zum ausgewählten Spiel und werden getrennt vom Zettel angezeigt",
+    "Reiterwechsel erhalten begonnene Formulareingaben",
+    "Pfeiltasten wechseln die Spielreiter und bewegen den Fokus mit",
+    "Escape schließt den Dialog und gibt den Fokus an die Spielzeile zurück",
+    "Bei unbekannten Teilnehmern sind Bearbeitung und Rohdaten erreichbar und der Zettel erklärt gesperrt",
+    "Tastaturnavigation überspringt den nicht verfügbaren Zettel",
+    "Der gemeinsame Spiel-Dialog bleibt auf schmalen Bildschirmen im Fenster bedienbar",
+    "Timer und Ballverbrauch bleiben sichtbar",
+    "Timer stehen mit kurzem Abstand direkt hinter den Punkten",
+    "Timer haben schwarzen Hintergrund, weiße Uhr und die vorhandene Siebensegmentschrift",
+    "Auch null und einstellige Minuten haben mindestens das Format 0:00",
+    "Auch vollständige noch nicht vorbereitete Spiele bleiben manuell ziehbar",
+    "Bekannte BTP-Sperren werden nicht als gültige Ablagequelle angeboten",
+    "Komfortmodus vergrößert Tabellenzeilen",
+    "Automatik lässt sich pausieren",
+    "match öffnet einen benannten Dialog",
+    "history öffnet einen benannten Dialog",
+    "views öffnet einen benannten Dialog",
+    "tools öffnet einen benannten Dialog",
+    "mapping öffnet einen benannten Dialog",
+    "boundary öffnet einen benannten Dialog",
+    "Evakuierung bleibt direkt erreichbar und ist nur simuliert",
+    "Tabletwarteliste lässt sich umsortieren",
+    "Tabletwarteliste lässt sich bearbeiten",
+    "Seitennavigation lässt sich einklappen",
+    "Vorbereitungsbereich bleibt in Unteransicht markiert",
+    "Filter noch nicht beendet blendet beendete Spiele aus",
+    "Suche und Spielstatusfilter wirken gemeinsam",
+    "Alle dreizehn Vorbereitungsbereiche sind anwählbar",
+    "Formular zeigt Rückmeldung zur simulierten Änderung",
+    "Feldzuweisungsdialog berücksichtigt BTP und laufende Spiele",
+    "Sprachhelfer zeigt Pause",
+    "Helferdownload erklärt lokale Ressourcenwahl",
+    "Ranglistenimport zeigt U19 O19 und Nullpunkte",
+    "Warnungsfilter der zentralen Logs",
+    "Zentrales Neuladen erklärt geschützte laufende Tätigkeiten",
+    "Full HD zeigt alle 13 Felder und die ersten zwei vorbereiteten Spiele gleichzeitig",
+    "Die kompakte Ansicht behält alle direkten Bedienfunktionen",
+    "Eine lange Tabletwarteliste verdrängt weder die Felder noch die Spielquellen",
+    "Tiefer gelegene Spielquelle ist sichtbar, während ursprüngliche freie Felder außerhalb liegen",
+    "Echtes Ziehen öffnet erreichbare freie Felder unter der festen Navigation",
+    "Beim Scrollen während des Ziehens bleibt die Feldleiste sichtbar",
+    "Die feste Feldleiste zeigt das tatsächliche Ablageziel an",
+    "Echtes Ablegen überträgt das gewählte Spiel und Feld in die Demo-Zuweisung",
+    "Escape entfernt Feldleiste und Drag-Markierungen ohne Zuweisung",
+    "Direktes Ziehen vom vorbereiteten Spiel auf die sichtbare Feldzeile bleibt möglich",
+    "Direktes Ablegen weist Spiel 45 dem ursprünglichen Feldziel 4 zu",
+    "Bei weniger Platz wie mit 125 Prozent Zoom bleiben freie Ziele sichtbar",
+    "Auch ein langer Seitenname lässt Navigation und Dienststatus frei",
+    "Alle sieben Highlightklassen entsprechen den bestehenden BTS BTP Werten",
+    "Zwei Hallen haben denselben Vorbereitungsstatus bei unterschiedlichen BTP Farben",
+    "Aufrufkandidaten ohne Highlight bleiben im neutralen Streifenmuster",
+    "Auch die Sprachspieleansicht färbt laufende Spiele nicht gelb",
+    "Beendete Spiele ohne Highlight bleiben im neutralen Streifenmuster",
+    "Spielstatus bleiben durch neutrale Beschriftung und Symbole erkennbar",
+    "Geänderte Hallenfarbe gilt in der Turnierleitung",
+    "Dieselbe Hallenfarbe gilt auch in der Sprachspieleansicht",
+    "Galerie zeigt alle zwölf Seiten mit geladenen Vorschauen",
+    "Galerie bleibt auf schmalen Bildschirmen im Viewport",
+    "Mockup funktioniert direkt als lokale HTML-Datei ohne Server",
+    "Die Siebensegmentschrift lädt auch beim direkten Öffnen der HTML-Datei"
+  ],
+  "exceptions": [],
+  "failedRequests": [],
+  "overflow": [],
+  "nonStaticRequests": []
+}

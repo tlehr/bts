@@ -1,0 +1,900 @@
+{
+  "started_at": "2026-10-29T19:58:18.312Z",
+  "runtime_ms": 600384,
+  "stop_reason": "completed",
+  "failure": null,
+  "initial_state": {
+    "matches": 128,
+    "finished_matches": 74,
+    "active_matches": 15,
+    "active_courts": 15,
+    "pending_player_checkins": 0,
+    "pending_players": 0,
+    "check_in_per_match": true,
+    "state_sha256": "c6b8cb012627b3f1b81e1bbea84e002a287fbdd66a8a15694e5eb3fe02c5dbd2"
+  },
+  "tablet_to_admin_ms": {
+    "count": 987,
+    "mean": 511.8,
+    "min": 28,
+    "p50": 183,
+    "p95": 2714,
+    "p99": 4189,
+    "max": 6523,
+    "over_50_ms": 923,
+    "over_100_ms": 697,
+    "over_200_ms": 465,
+    "sent_updates": 1116,
+    "unmatched_updates": 129,
+    "coverage": 0.884
+  },
+  "tablet_to_tv_ms": {
+    "count": 1116,
+    "mean": 10,
+    "min": 2,
+    "p50": 6,
+    "p95": 32,
+    "p99": 53,
+    "max": 119,
+    "over_50_ms": 15,
+    "over_100_ms": 2,
+    "over_200_ms": 0,
+    "sent_updates": 1116,
+    "unmatched_updates": 0,
+    "coverage": 1
+  },
+  "admin_presentation_outcomes": {
+    "superseded": 21,
+    "timeout": 100,
+    "capacity": 8
+  },
+  "source": "bts-test-1 (4).json",
+  "comparison_source": "bts-test-1 (3).json",
+  "admin_stages": {
+    "queue_ms": {
+      "count": 987,
+      "mean": 227.21,
+      "p50": 11.8,
+      "p95": 1080.2,
+      "p99": 2965,
+      "max": 5054.6
+    },
+    "handler_ms": {
+      "count": 987,
+      "mean": 1.01,
+      "p50": 0.8,
+      "p95": 2,
+      "p99": 6.5,
+      "max": 11.8
+    },
+    "render_ms": {
+      "count": 987,
+      "mean": 110.96,
+      "p50": 73.5,
+      "p95": 310.3,
+      "p99": 534.8,
+      "max": 736.7
+    },
+    "total_ms": {
+      "count": 987,
+      "mean": 382.62,
+      "p50": 115.7,
+      "p95": 2024.4,
+      "p99": 3351,
+      "max": 5936
+    }
+  },
+  "admin_ingress_ms": {
+    "count": 987,
+    "mean": 129.22,
+    "p50": 52,
+    "p95": 623,
+    "p99": 1185,
+    "max": 1642
+  },
+  "receipt_outcomes": {
+    "presented": 37251,
+    "superseded": 25,
+    "timeout": 4753,
+    "capacity": 768
+  },
+  "admin_types": {
+    "change:display_is_done": 18045,
+    "change:display_wait_for_done": 18045,
+    "change:display_status_changed": 2155,
+    "change:display_render_stats": 1147,
+    "change:court_current_match": 1116,
+    "change:score": 1116,
+    "answer": 604,
+    "change:match_edit": 499,
+    "change:match_add": 245,
+    "change:speech_cache_changed": 173,
+    "change:update_player_status": 114,
+    "change:btp_status": 57,
+    "change:tabletoperator_removed": 22,
+    "change:court_changed": 11,
+    "change:match_called_on_court": 11,
+    "change:tabletoperator_add": 11,
+    "change:umpire_updated": 10,
+    "change:match_preparation_call": 9,
+    "change:update_btp_events": 7,
+    "change:umpires_changed": 3,
+    "change:court_assignments_reset": 1
+  },
+  "server_point_operation_ms": {
+    "count": 1116,
+    "mean": 19.68,
+    "p50": 15.1,
+    "p95": 46.2,
+    "p99": 77.5,
+    "max": 165.8
+  },
+  "server_queue_status": {
+    "level": "OK",
+    "reasons": [
+      "No sustained backlog observed"
+    ]
+  },
+  "phases": [
+    {
+      "name": "checkin-and-play",
+      "points": 330,
+      "score_updates": 332,
+      "tablet_to_admin_ms": {
+        "count": 332,
+        "mean": 135.3,
+        "p50": 85,
+        "p95": 376,
+        "p99": 1331,
+        "max": 1719,
+        "sent_updates": 332,
+        "unmatched_updates": 0,
+        "coverage": 1,
+        "over_50_ms": 288,
+        "over_100_ms": 141,
+        "over_200_ms": 40
+      },
+      "tablet_to_tv_ms": {
+        "count": 332,
+        "mean": 6,
+        "p50": 4,
+        "p95": 14,
+        "p99": 40,
+        "max": 60,
+        "sent_updates": 332,
+        "unmatched_updates": 0,
+        "coverage": 1,
+        "over_50_ms": 2,
+        "over_100_ms": 0,
+        "over_200_ms": 0
+      }
+    },
+    {
+      "name": "load",
+      "points": 480,
+      "score_updates": 489,
+      "tablet_to_admin_ms": {
+        "count": 390,
+        "mean": 628.9,
+        "p50": 204,
+        "p95": 2859,
+        "p99": 4189,
+        "max": 6523,
+        "sent_updates": 489,
+        "unmatched_updates": 99,
+        "coverage": 0.798,
+        "over_50_ms": 374,
+        "over_100_ms": 303,
+        "over_200_ms": 197
+      },
+      "tablet_to_tv_ms": {
+        "count": 489,
+        "mean": 10.2,
+        "p50": 6,
+        "p95": 30,
+        "p99": 51,
+        "max": 119,
+        "sent_updates": 489,
+        "unmatched_updates": 0,
+        "coverage": 1,
+        "over_50_ms": 5,
+        "over_100_ms": 2,
+        "over_200_ms": 0
+      }
+    },
+    {
+      "name": "idle",
+      "points": 0,
+      "score_updates": 0,
+      "tablet_to_admin_ms": {
+        "count": 0,
+        "mean": null,
+        "p50": null,
+        "p95": null,
+        "p99": null,
+        "max": null,
+        "sent_updates": 0,
+        "unmatched_updates": 0,
+        "coverage": null,
+        "over_50_ms": 0,
+        "over_100_ms": 0,
+        "over_200_ms": 0
+      },
+      "tablet_to_tv_ms": {
+        "count": 0,
+        "mean": null,
+        "p50": null,
+        "p95": null,
+        "p99": null,
+        "max": null,
+        "sent_updates": 0,
+        "unmatched_updates": 0,
+        "coverage": null,
+        "over_50_ms": 0,
+        "over_100_ms": 0,
+        "over_200_ms": 0
+      }
+    },
+    {
+      "name": "load-after-idle",
+      "points": 295,
+      "score_updates": 295,
+      "tablet_to_admin_ms": {
+        "count": 265,
+        "mean": 811.1,
+        "p50": 480,
+        "p95": 3260,
+        "p99": 6194,
+        "max": 6281,
+        "sent_updates": 295,
+        "unmatched_updates": 30,
+        "coverage": 0.898,
+        "over_50_ms": 261,
+        "over_100_ms": 253,
+        "over_200_ms": 228
+      },
+      "tablet_to_tv_ms": {
+        "count": 295,
+        "mean": 14.3,
+        "p50": 10,
+        "p95": 42,
+        "p99": 60,
+        "max": 63,
+        "sent_updates": 295,
+        "unmatched_updates": 0,
+        "coverage": 1,
+        "over_50_ms": 8,
+        "over_100_ms": 0,
+        "over_200_ms": 0
+      }
+    }
+  ],
+  "mid_run_court_reset": [
+    {
+      "offset_ms": 437848,
+      "duration_ms": 4474.5,
+      "status": "ok"
+    }
+  ],
+  "interpretation": [
+    "Messendpunkt enthält DOM-Änderung und Render-Gelegenheit; keine physische Bildschirmausgabe bestätigt.",
+    "Nicht erfolgreich quittierte Punkte sind kein Beweis verlorener Serverdaten; der TV-Empfang war vollständig.",
+    "Die Läufe haben verschiedene Anfangszustände und zusätzlich Synchronisierung sowie einen Feldreset im zweiten Lauf; kein kontrollierter A/B-Vergleich."
+  ],
+  "local_followup": {
+    "scope": "Synthetische Browser-Nachstellung; kein neuer Live-Turniertest. Initiale undefined-Felder werden wie im Netzwerk serialisiert.",
+    "same_fixture_before": {
+      "match_count": 373,
+      "timer_count": 200,
+      "stats": {
+        "applied": {
+          "count": 21,
+          "p50": 74.20000004768372,
+          "p95": 150.39999997615814,
+          "max": 170.29999995231628
+        },
+        "independent": {
+          "count": 21,
+          "p50": 152.39999997615814,
+          "p95": 283.59999990463257,
+          "max": 323.5
+        },
+        "ack": {
+          "count": 21,
+          "p50": 247.1,
+          "p95": 405.1,
+          "max": 462.2
+        }
+      },
+      "point_count": 21,
+      "outcomes": {
+        "presented": 202
+      },
+      "completed_minimum_point_count": false
+    },
+    "same_fixture_after": {
+      "match_count": 373,
+      "timer_count": 200,
+      "stats": {
+        "applied": {
+          "count": 46,
+          "p50": 3.200000047683716,
+          "p95": 65.10000002384186,
+          "max": 135.60000002384186
+        },
+        "independent": {
+          "count": 46,
+          "p50": 88.39999997615814,
+          "p95": 180.5,
+          "max": 186.90000009536743
+        },
+        "ack": {
+          "count": 46,
+          "p50": 96.9,
+          "p95": 201.4,
+          "max": 255.1
+        }
+      }
+    },
+    "permanent_regression_test": {
+      "file": "large-list-update-verification.json",
+      "match_count": 373,
+      "timer_count": 200,
+      "stats": {
+        "applied": {
+          "count": 48,
+          "p50": 1.2000000476837158,
+          "p95": 59.700000047683716,
+          "max": 150.29999995231628
+        },
+        "independent": {
+          "count": 48,
+          "p50": 59.700000047683716,
+          "p95": 153,
+          "max": 195.29999995231628
+        },
+        "ack": {
+          "count": 48,
+          "p50": 63.4,
+          "p95": 195.5,
+          "max": 198.1
+        }
+      },
+      "outcomes": {
+        "presented": 918
+      },
+      "regressions": {
+        "clockStable": true,
+        "officialStable": true,
+        "shortened": true
+      }
+    }
+  },
+  "corrections": [
+    "Timer ändern vorhandene Textknoten, statt sie pro Ziffernwechsel zu ersetzen.",
+    "Vorbereitungsdetails erhalten eine eigene Layoutanforderung; unveränderte Offiziellennamen werden dadurch nicht neu vermessen.",
+    "Dauerlasttest zusätzlich mit 373 Spielen und realistisch serialisierten Ausgangsdaten; gezielte Prüfungen für beide DOM-Regressionen."
+  ],
+  "verification": {
+    "node_tests": 123,
+    "update_paths": 78,
+    "update_paths_all_final_budgets_met": true,
+    "initial_performance_failures": [
+      {
+        "type": "court_assignments_reset",
+        "message": "Update exceeds full budget: {\"samples\":3,\"handler_ms\":279.2,\"total_ms\":1133,\"max_ms\":1144.4,\"budget\":{\"handler_ms\":250,\"total_ms\":1000}}",
+        "samples": [
+          {
+            "status": "presented",
+            "presented_at": 1793305636172,
+            "timings": {
+              "queue_ms": 1.4,
+              "handler_ms": 279.2,
+              "render_ms": 273.1,
+              "total_ms": 1133
+            },
+            "error": null
+          },
+          {
+            "status": "presented",
+            "presented_at": 1793305638840,
+            "timings": {
+              "queue_ms": 0.9,
+              "handler_ms": 287.6,
+              "render_ms": 305.8,
+              "total_ms": 1108.2
+            },
+            "error": null
+          },
+          {
+            "status": "presented",
+            "presented_at": 1793305641406,
+            "timings": {
+              "queue_ms": 1.1,
+              "handler_ms": 247.2,
+              "render_ms": 288.3,
+              "total_ms": 1144.4
+            },
+            "error": null
+          }
+        ]
+      },
+      {
+        "type": "match_preparation_call",
+        "message": "Update exceeds structural budget: {\"samples\":3,\"handler_ms\":11,\"total_ms\":504.9,\"max_ms\":578,\"budget\":{\"handler_ms\":100,\"total_ms\":500}}",
+        "samples": [
+          {
+            "status": "presented",
+            "presented_at": 1793305752359,
+            "timings": {
+              "queue_ms": 0.1,
+              "handler_ms": 17,
+              "render_ms": 65.7,
+              "total_ms": 578
+            },
+            "error": null
+          },
+          {
+            "status": "presented",
+            "presented_at": 1793305753925,
+            "timings": {
+              "queue_ms": 0.1,
+              "handler_ms": 11,
+              "render_ms": 62.7,
+              "total_ms": 313
+            },
+            "error": null
+          },
+          {
+            "status": "presented",
+            "presented_at": 1793305755822,
+            "timings": {
+              "queue_ms": 0.2,
+              "handler_ms": 11,
+              "render_ms": 72.9,
+              "total_ms": 504.9
+            },
+            "error": null
+          }
+        ]
+      },
+      {
+        "type": "player_pause_reset",
+        "message": "Update exceeds full budget: {\"samples\":3,\"handler_ms\":328.9,\"total_ms\":1186.3,\"max_ms\":1323.1,\"budget\":{\"handler_ms\":250,\"total_ms\":1000}}",
+        "samples": [
+          {
+            "status": "presented",
+            "presented_at": 1793305782478,
+            "timings": {
+              "queue_ms": 0.2,
+              "handler_ms": 332.7,
+              "render_ms": 275.6,
+              "total_ms": 1186.3
+            },
+            "error": null
+          },
+          {
+            "status": "presented",
+            "presented_at": 1793305784876,
+            "timings": {
+              "queue_ms": 0.1,
+              "handler_ms": 303.3,
+              "render_ms": 237,
+              "total_ms": 994.3
+            },
+            "error": null
+          },
+          {
+            "status": "presented",
+            "presented_at": 1793305787756,
+            "timings": {
+              "queue_ms": 0.3,
+              "handler_ms": 328.9,
+              "render_ms": 316.5,
+              "total_ms": 1323.1
+            },
+            "error": null
+          }
+        ]
+      }
+    ],
+    "focused_current": {
+      "paths": [
+        {
+          "type": "match_preparation_call",
+          "kind": "structural",
+          "samples": 3,
+          "handler_ms": 7.2,
+          "total_ms": 251.7,
+          "max_ms": 455.8,
+          "budget": {
+            "handler_ms": 100,
+            "total_ms": 500
+          },
+          "measurements": [
+            {
+              "status": "presented",
+              "presented_at": 1793306020728,
+              "timings": {
+                "queue_ms": 0.1,
+                "handler_ms": 15.7,
+                "render_ms": 58.6,
+                "total_ms": 455.8
+              },
+              "error": null
+            },
+            {
+              "status": "presented",
+              "presented_at": 1793306022216,
+              "timings": {
+                "queue_ms": 0.2,
+                "handler_ms": 7.2,
+                "render_ms": 51,
+                "total_ms": 251.7
+              },
+              "error": null
+            },
+            {
+              "status": "presented",
+              "presented_at": 1793306023578,
+              "timings": {
+                "queue_ms": 0,
+                "handler_ms": 6.3,
+                "render_ms": 36.3,
+                "total_ms": 229.8
+              },
+              "error": null
+            }
+          ]
+        },
+        {
+          "type": "player_pause_reset",
+          "kind": "full",
+          "samples": 3,
+          "handler_ms": 186.3,
+          "total_ms": 691.7,
+          "max_ms": 881.9,
+          "budget": {
+            "handler_ms": 250,
+            "total_ms": 1000
+          },
+          "measurements": [
+            {
+              "status": "presented",
+              "presented_at": 1793306025986,
+              "timings": {
+                "queue_ms": 0.2,
+                "handler_ms": 126.1,
+                "render_ms": 196.7,
+                "total_ms": 680.2
+              },
+              "error": null
+            },
+            {
+              "status": "presented",
+              "presented_at": 1793306027572,
+              "timings": {
+                "queue_ms": 0,
+                "handler_ms": 186.3,
+                "render_ms": 168.5,
+                "total_ms": 691.7
+              },
+              "error": null
+            },
+            {
+              "status": "presented",
+              "presented_at": 1793306029420,
+              "timings": {
+                "queue_ms": 0.1,
+                "handler_ms": 202.8,
+                "render_ms": 257,
+                "total_ms": 881.9
+              },
+              "error": null
+            }
+          ]
+        }
+      ],
+      "failures": [
+        {
+          "type": "court_assignments_reset",
+          "message": "Update exceeds full budget: {\"samples\":3,\"handler_ms\":345,\"total_ms\":1245.6,\"max_ms\":1355.6,\"budget\":{\"handler_ms\":250,\"total_ms\":1000}}",
+          "samples": [
+            {
+              "status": "presented",
+              "presented_at": 1793306013027,
+              "timings": {
+                "queue_ms": 2,
+                "handler_ms": 393.4,
+                "render_ms": 296.6,
+                "total_ms": 1355.6
+              },
+              "error": null
+            },
+            {
+              "status": "presented",
+              "presented_at": 1793306015787,
+              "timings": {
+                "queue_ms": 1,
+                "handler_ms": 304.1,
+                "render_ms": 294.1,
+                "total_ms": 1220.4
+              },
+              "error": null
+            },
+            {
+              "status": "presented",
+              "presented_at": 1793306018352,
+              "timings": {
+                "queue_ms": 1.6,
+                "handler_ms": 345,
+                "render_ms": 342,
+                "total_ms": 1245.6
+              },
+              "error": null
+            }
+          ]
+        }
+      ]
+    },
+    "court_reset_nine_samples": [
+      {
+        "type": "court_assignments_reset",
+        "kind": "full",
+        "samples": 9,
+        "handler_ms": 217.7,
+        "total_ms": 936.1,
+        "max_ms": 1412.1,
+        "budget": {
+          "handler_ms": 250,
+          "total_ms": 1000
+        },
+        "measurements": [
+          {
+            "status": "presented",
+            "presented_at": 1793306133842,
+            "timings": {
+              "queue_ms": 2.4,
+              "handler_ms": 432.6,
+              "render_ms": 326.2,
+              "total_ms": 1412.1
+            },
+            "error": null
+          },
+          {
+            "status": "presented",
+            "presented_at": 1793306136477,
+            "timings": {
+              "queue_ms": 0.7,
+              "handler_ms": 157,
+              "render_ms": 298.7,
+              "total_ms": 1040.8
+            },
+            "error": null
+          },
+          {
+            "status": "presented",
+            "presented_at": 1793306138904,
+            "timings": {
+              "queue_ms": 1.2,
+              "handler_ms": 366.8,
+              "render_ms": 207.2,
+              "total_ms": 999.3
+            },
+            "error": null
+          },
+          {
+            "status": "presented",
+            "presented_at": 1793306140880,
+            "timings": {
+              "queue_ms": 27.8,
+              "handler_ms": 185.2,
+              "render_ms": 235.5,
+              "total_ms": 937.5
+            },
+            "error": null
+          },
+          {
+            "status": "presented",
+            "presented_at": 1793306142981,
+            "timings": {
+              "queue_ms": 1.2,
+              "handler_ms": 254.1,
+              "render_ms": 226.4,
+              "total_ms": 936.1
+            },
+            "error": null
+          },
+          {
+            "status": "presented",
+            "presented_at": 1793306144891,
+            "timings": {
+              "queue_ms": 1.7,
+              "handler_ms": 185.1,
+              "render_ms": 246.8,
+              "total_ms": 818.4
+            },
+            "error": null
+          },
+          {
+            "status": "presented",
+            "presented_at": 1793306146614,
+            "timings": {
+              "queue_ms": 0.8,
+              "handler_ms": 263.6,
+              "render_ms": 209.8,
+              "total_ms": 854.9
+            },
+            "error": null
+          },
+          {
+            "status": "presented",
+            "presented_at": 1793306148184,
+            "timings": {
+              "queue_ms": 0.8,
+              "handler_ms": 217.7,
+              "render_ms": 165.5,
+              "total_ms": 757.7
+            },
+            "error": null
+          },
+          {
+            "status": "presented",
+            "presented_at": 1793306150071,
+            "timings": {
+              "queue_ms": 0.7,
+              "handler_ms": 208.9,
+              "render_ms": 204,
+              "total_ms": 798.1
+            },
+            "error": null
+          }
+        ]
+      }
+    ],
+    "previous_frontend_comparison": {
+      "paths": [
+        {
+          "type": "court_assignments_reset",
+          "kind": "full",
+          "samples": 3,
+          "handler_ms": 192.2,
+          "total_ms": 758.2,
+          "max_ms": 763.1,
+          "budget": {
+            "handler_ms": 250,
+            "total_ms": 1000
+          },
+          "measurements": [
+            {
+              "status": "presented",
+              "presented_at": 1793306059138,
+              "timings": {
+                "queue_ms": 1.6,
+                "handler_ms": 195.1,
+                "render_ms": 186.4,
+                "total_ms": 758.2
+              },
+              "error": null
+            },
+            {
+              "status": "presented",
+              "presented_at": 1793306060740,
+              "timings": {
+                "queue_ms": 1,
+                "handler_ms": 135.2,
+                "render_ms": 164.9,
+                "total_ms": 642.9
+              },
+              "error": null
+            },
+            {
+              "status": "presented",
+              "presented_at": 1793306062423,
+              "timings": {
+                "queue_ms": 0.6,
+                "handler_ms": 192.2,
+                "render_ms": 225.3,
+                "total_ms": 763.1
+              },
+              "error": null
+            }
+          ]
+        }
+      ],
+      "failures": [
+        {
+          "type": "match_preparation_call",
+          "message": "Update exceeds structural budget: {\"samples\":3,\"handler_ms\":9.5,\"total_ms\":600.7,\"max_ms\":643.4,\"budget\":{\"handler_ms\":100,\"total_ms\":500}}",
+          "samples": [
+            {
+              "status": "presented",
+              "presented_at": 1793306065352,
+              "timings": {
+                "queue_ms": 0.1,
+                "handler_ms": 12.6,
+                "render_ms": 148.7,
+                "total_ms": 387.4
+              },
+              "error": null
+            },
+            {
+              "status": "presented",
+              "presented_at": 1793306067204,
+              "timings": {
+                "queue_ms": 0,
+                "handler_ms": 9.5,
+                "render_ms": 153.2,
+                "total_ms": 600.7
+              },
+              "error": null
+            },
+            {
+              "status": "presented",
+              "presented_at": 1793306069311,
+              "timings": {
+                "queue_ms": 0.2,
+                "handler_ms": 7.4,
+                "render_ms": 149.6,
+                "total_ms": 643.4
+              },
+              "error": null
+            }
+          ]
+        },
+        {
+          "type": "player_pause_reset",
+          "message": "Update exceeds full budget: {\"samples\":3,\"handler_ms\":389.1,\"total_ms\":1291.8,\"max_ms\":1402.8,\"budget\":{\"handler_ms\":250,\"total_ms\":1000}}",
+          "samples": [
+            {
+              "status": "presented",
+              "presented_at": 1793306073197,
+              "timings": {
+                "queue_ms": 0.5,
+                "handler_ms": 284.5,
+                "render_ms": 325.2,
+                "total_ms": 1232.7
+              },
+              "error": null
+            },
+            {
+              "status": "presented",
+              "presented_at": 1793306076114,
+              "timings": {
+                "queue_ms": 0.3,
+                "handler_ms": 394.3,
+                "render_ms": 303.3,
+                "total_ms": 1291.8
+              },
+              "error": null
+            },
+            {
+              "status": "presented",
+              "presented_at": 1793306079108,
+              "timings": {
+                "queue_ms": 0.3,
+                "handler_ms": 389.1,
+                "render_ms": 354,
+                "total_ms": 1402.8
+              },
+              "error": null
+            }
+          ]
+        }
+      ]
+    },
+    "small_stream_checks": 8,
+    "large_stream_checks": 8,
+    "browser_surface_checks": 284,
+    "live_rerun": false,
+    "browser_exceptions": 0,
+    "failed_assets": 0
+  },
+  "current_host_observation": {
+    "scope": "Lesende Stichprobe während lokaler Nachprüfung, nicht aus dem hochgeladenen Lauf abgeleitet.",
+    "logical_cpus": 8,
+    "speech_worker_cpu_percent": 362,
+    "bts_cpu_percent": 105,
+    "observation": "Gleichzeitige Last kann Laufzeitmessungen beeinflussen; Dienste wurden nicht verändert oder beendet."
+  }
+}

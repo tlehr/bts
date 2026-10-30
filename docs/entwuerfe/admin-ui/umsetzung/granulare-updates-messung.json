@@ -1,0 +1,473 @@
+{
+  "date": "2026-10-29",
+  "scope": "Isolierte statische Chrome-Vorschau mit nur gelesener Kopie der lokalen Turnierdaten und simulierten Serverantworten. Keine Verbindung zu laufenden BTS- oder Sprachdiensten.",
+  "method": "Je 30 Punkte nach zwei nicht mitgezählten Aufwärm-Durchläufen. Je Punkt werden score, court_current_match und update_player_status lokal serialisiert und durch die echte Empfangswarteschlange geschickt. Gemessen ab der ersten Meldung bis zu zwei requestAnimationFrame-Callbacks nach leerer Warteschlange, anschließend 70 ms Abstand. MutationObserver erfasst Änderungen in der betroffenen Spielzeile. Identische eingefrorene Daten für beide Fassungen.",
+  "limitations": [
+    "Keine Messung eines physischen Tablet-Klicks, echten Netzwerkverkehrs oder bestätigter physischer Bildausgabe. Zwei Animationsframes sind eine Näherung für die sichtbare Aktualisierung.",
+    "Kurzer Vergleich auf lokaler Hardware; keine belastbare Aussage über p99 oder andere Endgeräte.",
+    "Die in der Spielzeile nebenher laufenden Uhren werden bei der Mutationserfassung nicht ausgefiltert. Ein Nachher-Durchlauf enthält sechs statt zwei DOM-Änderungen. Die separate kontrollierte Regressionprüfung bestätigt genau einen geänderten Punkt-Textknoten plus eine ARIA-Beschriftung."
+  ],
+  "fixture": {
+    "matches": 128,
+    "courts": 15,
+    "players": 364
+  },
+  "before": {
+    "samples": 30,
+    "median_ms": 74.4,
+    "mean_ms": 77.4,
+    "max_ms": 99.6,
+    "median_dom_mutations": 70.0,
+    "max_dom_mutations": 70,
+    "dom_mutation_distribution": {
+      "70": 30
+    },
+    "measurements": [
+      {
+        "elapsed_ms": 75.6,
+        "mutations": {
+          "attributes": 47,
+          "childList": 23
+        }
+      },
+      {
+        "elapsed_ms": 74.2,
+        "mutations": {
+          "attributes": 47,
+          "childList": 23
+        }
+      },
+      {
+        "elapsed_ms": 99.6,
+        "mutations": {
+          "attributes": 47,
+          "childList": 23
+        }
+      },
+      {
+        "elapsed_ms": 74.5,
+        "mutations": {
+          "attributes": 47,
+          "childList": 23
+        }
+      },
+      {
+        "elapsed_ms": 73.3,
+        "mutations": {
+          "attributes": 47,
+          "childList": 23
+        }
+      },
+      {
+        "elapsed_ms": 83,
+        "mutations": {
+          "attributes": 47,
+          "childList": 23
+        }
+      },
+      {
+        "elapsed_ms": 75.6,
+        "mutations": {
+          "attributes": 47,
+          "childList": 23
+        }
+      },
+      {
+        "elapsed_ms": 72.9,
+        "mutations": {
+          "attributes": 47,
+          "childList": 23
+        }
+      },
+      {
+        "elapsed_ms": 71.4,
+        "mutations": {
+          "attributes": 47,
+          "childList": 23
+        }
+      },
+      {
+        "elapsed_ms": 80,
+        "mutations": {
+          "attributes": 47,
+          "childList": 23
+        }
+      },
+      {
+        "elapsed_ms": 70.5,
+        "mutations": {
+          "attributes": 47,
+          "childList": 23
+        }
+      },
+      {
+        "elapsed_ms": 73,
+        "mutations": {
+          "attributes": 47,
+          "childList": 23
+        }
+      },
+      {
+        "elapsed_ms": 72.9,
+        "mutations": {
+          "attributes": 47,
+          "childList": 23
+        }
+      },
+      {
+        "elapsed_ms": 73.6,
+        "mutations": {
+          "attributes": 47,
+          "childList": 23
+        }
+      },
+      {
+        "elapsed_ms": 91.1,
+        "mutations": {
+          "attributes": 47,
+          "childList": 23
+        }
+      },
+      {
+        "elapsed_ms": 74.3,
+        "mutations": {
+          "attributes": 47,
+          "childList": 23
+        }
+      },
+      {
+        "elapsed_ms": 73.7,
+        "mutations": {
+          "attributes": 47,
+          "childList": 23
+        }
+      },
+      {
+        "elapsed_ms": 74.7,
+        "mutations": {
+          "attributes": 47,
+          "childList": 23
+        }
+      },
+      {
+        "elapsed_ms": 77.9,
+        "mutations": {
+          "attributes": 47,
+          "childList": 23
+        }
+      },
+      {
+        "elapsed_ms": 73.4,
+        "mutations": {
+          "attributes": 47,
+          "childList": 23
+        }
+      },
+      {
+        "elapsed_ms": 74.1,
+        "mutations": {
+          "attributes": 47,
+          "childList": 23
+        }
+      },
+      {
+        "elapsed_ms": 72.2,
+        "mutations": {
+          "attributes": 47,
+          "childList": 23
+        }
+      },
+      {
+        "elapsed_ms": 76.3,
+        "mutations": {
+          "attributes": 47,
+          "childList": 23
+        }
+      },
+      {
+        "elapsed_ms": 72.3,
+        "mutations": {
+          "attributes": 47,
+          "childList": 23
+        }
+      },
+      {
+        "elapsed_ms": 75.8,
+        "mutations": {
+          "attributes": 47,
+          "childList": 23
+        }
+      },
+      {
+        "elapsed_ms": 71.7,
+        "mutations": {
+          "attributes": 47,
+          "childList": 23
+        }
+      },
+      {
+        "elapsed_ms": 74.8,
+        "mutations": {
+          "attributes": 47,
+          "childList": 23
+        }
+      },
+      {
+        "elapsed_ms": 98.4,
+        "mutations": {
+          "attributes": 47,
+          "childList": 23
+        }
+      },
+      {
+        "elapsed_ms": 85.9,
+        "mutations": {
+          "attributes": 47,
+          "childList": 23
+        }
+      },
+      {
+        "elapsed_ms": 85.9,
+        "mutations": {
+          "attributes": 47,
+          "childList": 23
+        }
+      }
+    ]
+  },
+  "after": {
+    "samples": 30,
+    "median_ms": 43.9,
+    "mean_ms": 45.7,
+    "max_ms": 68.4,
+    "median_dom_mutations": 2.0,
+    "max_dom_mutations": 6,
+    "dom_mutation_distribution": {
+      "2": 29,
+      "6": 1
+    },
+    "measurements": [
+      {
+        "elapsed_ms": 44.2,
+        "mutations": {
+          "characterData": 1,
+          "attributes": 1
+        }
+      },
+      {
+        "elapsed_ms": 38.2,
+        "mutations": {
+          "characterData": 1,
+          "attributes": 1
+        }
+      },
+      {
+        "elapsed_ms": 41.2,
+        "mutations": {
+          "characterData": 1,
+          "attributes": 1
+        }
+      },
+      {
+        "elapsed_ms": 43.8,
+        "mutations": {
+          "characterData": 1,
+          "attributes": 1
+        }
+      },
+      {
+        "elapsed_ms": 41.3,
+        "mutations": {
+          "characterData": 1,
+          "attributes": 1
+        }
+      },
+      {
+        "elapsed_ms": 43.8,
+        "mutations": {
+          "characterData": 1,
+          "attributes": 1
+        }
+      },
+      {
+        "elapsed_ms": 44.6,
+        "mutations": {
+          "characterData": 1,
+          "attributes": 1
+        }
+      },
+      {
+        "elapsed_ms": 47.4,
+        "mutations": {
+          "characterData": 1,
+          "attributes": 1
+        }
+      },
+      {
+        "elapsed_ms": 45.9,
+        "mutations": {
+          "characterData": 1,
+          "attributes": 1
+        }
+      },
+      {
+        "elapsed_ms": 43.6,
+        "mutations": {
+          "characterData": 1,
+          "attributes": 1
+        }
+      },
+      {
+        "elapsed_ms": 41.6,
+        "mutations": {
+          "characterData": 1,
+          "attributes": 1
+        }
+      },
+      {
+        "elapsed_ms": 47,
+        "mutations": {
+          "characterData": 1,
+          "attributes": 1
+        }
+      },
+      {
+        "elapsed_ms": 40.8,
+        "mutations": {
+          "characterData": 1,
+          "attributes": 1
+        }
+      },
+      {
+        "elapsed_ms": 38.3,
+        "mutations": {
+          "characterData": 1,
+          "attributes": 1
+        }
+      },
+      {
+        "elapsed_ms": 39,
+        "mutations": {
+          "characterData": 1,
+          "attributes": 1
+        }
+      },
+      {
+        "elapsed_ms": 42.1,
+        "mutations": {
+          "characterData": 1,
+          "attributes": 1
+        }
+      },
+      {
+        "elapsed_ms": 38.7,
+        "mutations": {
+          "characterData": 1,
+          "attributes": 1
+        }
+      },
+      {
+        "elapsed_ms": 41.2,
+        "mutations": {
+          "characterData": 1,
+          "attributes": 1
+        }
+      },
+      {
+        "elapsed_ms": 40.1,
+        "mutations": {
+          "characterData": 1,
+          "attributes": 1
+        }
+      },
+      {
+        "elapsed_ms": 56.1,
+        "mutations": {
+          "characterData": 1,
+          "attributes": 1
+        }
+      },
+      {
+        "elapsed_ms": 40.3,
+        "mutations": {
+          "characterData": 1,
+          "attributes": 1
+        }
+      },
+      {
+        "elapsed_ms": 44.1,
+        "mutations": {
+          "characterData": 1,
+          "attributes": 1
+        }
+      },
+      {
+        "elapsed_ms": 60,
+        "mutations": {
+          "characterData": 1,
+          "attributes": 1
+        }
+      },
+      {
+        "elapsed_ms": 45.9,
+        "mutations": {
+          "characterData": 1,
+          "attributes": 1
+        }
+      },
+      {
+        "elapsed_ms": 47.9,
+        "mutations": {
+          "characterData": 1,
+          "attributes": 1
+        }
+      },
+      {
+        "elapsed_ms": 62.8,
+        "mutations": {
+          "characterData": 1,
+          "attributes": 1
+        }
+      },
+      {
+        "elapsed_ms": 68.4,
+        "mutations": {
+          "characterData": 1,
+          "attributes": 1
+        }
+      },
+      {
+        "elapsed_ms": 48.7,
+        "mutations": {
+          "characterData": 1,
+          "attributes": 1
+        }
+      },
+      {
+        "elapsed_ms": 45.2,
+        "mutations": {
+          "characterData": 1,
+          "attributes": 1
+        }
+      },
+      {
+        "elapsed_ms": 48.2,
+        "mutations": {
+          "characterData": 1,
+          "attributes": 3,
+          "childList": 2
+        }
+      }
+    ]
+  },
+  "validation": {
+    "node_tests": 106,
+    "browser_checks": 284,
+    "exceptions": 0,
+    "unexpected_console_errors": 0,
+    "failed_assets": 0,
+    "new_browser_checks": 14,
+    "legacy_lint_new_findings": 0,
+    "new_frontend_module_lint": "clean"
+  }
+}

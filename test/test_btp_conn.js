@@ -12,6 +12,25 @@ const {
 } = require('../bts/btp_conn');
 
 describe('btp_conn', function() {
+	for (const [method,values,label] of [
+		['update_players',[{btp_id:23,firstname:'Test',lastname:'Player'}],'Player'],
+		['update_courts',[{btp_id:5,num:'5'}],'Courts'],
+	]) {
+		it(method + ' handles absent or malformed BTP replies without throwing', function() {
+			const serror=require('../bts/serror'),silent=serror.silent,errors=[];
+			const conn=Object.create(BTPConn.prototype);conn.key_unicode='session';serror.silent=message=>errors.push(message);
+			try {
+				for(const response of [null,undefined,{}, {Action:[]},{Action:[{}]},{Action:[{Result:[]}]}]) {
+					conn.send=(_request,callback)=>callback(response);
+					assert.doesNotThrow(()=>conn[method](values));
+				}
+				assert.strictEqual(errors.length,6);assert(errors.every(error=>error==='Update '+label+' failed with error code no-result'));
+				conn.send=(_request,callback)=>callback({Action:[{Result:[1]}]});conn[method](values);assert.strictEqual(errors.length,6);
+				conn.send=(_request,callback)=>callback({Action:[{Result:[2]}]});conn[method](values);assert.strictEqual(errors.at(-1),'Update '+label+' failed with error code 2');
+			} finally {serror.silent=silent;}
+		});
+	}
+
 	it('retains repaired positions when ordinary game updates pass through the connection', async function() {
 		const db = await require('../bts/database').init_test();
 		await new Promise((resolve, reject) => db.tournaments.insert({ key: 'test' }, error => error ? reject(error) : resolve()));

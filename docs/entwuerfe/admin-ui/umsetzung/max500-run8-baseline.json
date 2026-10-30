@@ -1,0 +1,334 @@
+{
+  "run": 8,
+  "scope": "Isolated full server + tablet simulator + real browser, frozen replica of 373 matches and 15 courts; BTP/ticker/external speech disabled; no writes to the live tournament.",
+  "runtime_ms": 600126,
+  "stop_reason": "completed",
+  "failure": null,
+  "scores": {
+    "count": 1334,
+    "mean": 72.8,
+    "min": 26,
+    "p50": 55,
+    "p95": 164,
+    "p99": 393,
+    "max": 593,
+    "over_50_ms": 800,
+    "over_100_ms": 184,
+    "over_200_ms": 47,
+    "sent_updates": 1334,
+    "unmatched_updates": 0,
+    "coverage": 1
+  },
+  "tv": {
+    "count": 1334,
+    "mean": 4.8,
+    "min": 2,
+    "p50": 4,
+    "p95": 10,
+    "p99": 21,
+    "max": 136,
+    "over_50_ms": 1,
+    "over_100_ms": 1,
+    "over_200_ms": 0,
+    "sent_updates": 1334,
+    "unmatched_updates": 0,
+    "coverage": 1
+  },
+  "target_max_ms": 500,
+  "target_met": false,
+  "source": "/tmp/bts-under500-run-8.json",
+  "code_sha256": {
+    "static/js/cleitstand.js": "45f9097784537c6d97bf720aaa4be420d3e107e8e3390009c9a6040257e3ff92",
+    "static/js/cmatch.js": "11e500dffd41ad21256d5d59b2a12a2bdb7a42c1e040833453ff634294aabd70",
+    "static/js/ctournament.js": "266c316995cbfce2ec1274af8a1d156f8deeabaaa6c60c117a4abceb095e69ec",
+    "static/js/conn.js": "b87ecc10d7c3cf9c3d6201e2a4d401e6ddcf12d2cde8163fb162ebf500ad7b21",
+    "static/js/admin_update_observer.js": "ddd44cfd0acf3e951f95d41cadf7cb8e9691c84feb14e9848c018b7047abeca4"
+  },
+  "server_profiles": [
+    {
+      "elapsed_ms": 0,
+      "profile": {
+        "server_id": "2917865-1793363564072",
+        "run_label": null,
+        "features": {
+          "btp_decode": true,
+          "sync_plan": true,
+          "sync_plan_patch_return": true,
+          "device_info": false,
+          "xlsx_import": false,
+          "compaction": true,
+          "compaction_reads": true,
+          "score_idle_reads": true,
+          "score_readonly_reads": true,
+          "score_direct_writes": true,
+          "preparation_reads": true,
+          "preparation_candidates": true,
+          "sync_batch_writes": false,
+          "sync_prepared_tournament": true,
+          "sync_prepared_matches": true,
+          "admin_response_background": true,
+          "admin_response_priority": true,
+          "admin_match_revision_cache": true,
+          "admin_broadcast_shared": true,
+          "admin_response_worker": false,
+          "compaction_staged": true
+        }
+      }
+    }
+  ],
+  "mixed_server_profiles": false,
+  "stages": {
+    "queue_ms": {
+      "count": 1334,
+      "p50": 0.4,
+      "p95": 39.2,
+      "max": 396.5
+    },
+    "handler_ms": {
+      "count": 1334,
+      "p50": 0.8,
+      "p95": 1.8,
+      "max": 17.4
+    },
+    "ui_wait_ms": {
+      "count": 1334,
+      "p50": 0,
+      "p95": 4.3,
+      "max": 192.5
+    },
+    "render_ms": {
+      "count": 1334,
+      "p50": 39.7,
+      "p95": 62.5,
+      "max": 212.8
+    },
+    "total_ms": {
+      "count": 1334,
+      "p50": 42.9,
+      "p95": 97.6,
+      "max": 450.4
+    }
+  },
+  "slowest": [
+    {
+      "trace_id": "live-drill-2918036-mvuyf2nc-136",
+      "sent_ts": 1793363658025,
+      "court_id": "default_9",
+      "match_id": "btp_default_ME U13_637",
+      "tv_ms": 4,
+      "tv_received_ts": 1793363658029,
+      "admin_ms": 593,
+      "admin_received_ts": 1793363658199,
+      "admin_applied_ts": 1793363658548,
+      "admin_presented_ts": 1793363658618,
+      "admin_presentation_status": "presented",
+      "admin_ui_ms": {
+        "queue_ms": 348,
+        "handler_ms": 1.2,
+        "ui_wait_ms": 0,
+        "render_ms": 70.4,
+        "total_ms": 419.6
+      },
+      "admin_measurement_method": "dom-and-render-opportunity",
+      "admin_ui_jobs": []
+    },
+    {
+      "trace_id": "live-drill-2918036-mvuyf2m7-135",
+      "sent_ts": 1793363657983,
+      "court_id": "default_15",
+      "match_id": "btp_default_JE U15_715",
+      "tv_ms": 6,
+      "tv_received_ts": 1793363657989,
+      "admin_ms": 559,
+      "admin_received_ts": 1793363658197,
+      "admin_applied_ts": 1793363658456,
+      "admin_presented_ts": 1793363658542,
+      "admin_presentation_status": "presented",
+      "admin_ui_ms": {
+        "queue_ms": 256.7,
+        "handler_ms": 2.2,
+        "ui_wait_ms": 0,
+        "render_ms": 85.9,
+        "total_ms": 344.8
+      },
+      "admin_measurement_method": "dom-and-render-opportunity",
+      "admin_ui_jobs": []
+    },
+    {
+      "trace_id": "live-drill-2918036-mvuyfhjy-195",
+      "sent_ts": 1793363677342,
+      "court_id": "default_4",
+      "match_id": "btp_default_JE U15_717",
+      "tv_ms": 3,
+      "tv_received_ts": 1793363677345,
+      "admin_ms": 530,
+      "admin_received_ts": 1793363677785,
+      "admin_applied_ts": 1793363677799,
+      "admin_presented_ts": 1793363677872,
+      "admin_presentation_status": "presented",
+      "admin_ui_ms": {
+        "queue_ms": 12,
+        "handler_ms": 1.4,
+        "ui_wait_ms": 0,
+        "render_ms": 72.8,
+        "total_ms": 86.2
+      },
+      "admin_measurement_method": "dom-and-render-opportunity",
+      "admin_ui_jobs": []
+    },
+    {
+      "trace_id": "live-drill-2918036-mvuyfkiv-209",
+      "sent_ts": 1793363681192,
+      "court_id": "default_6",
+      "match_id": "btp_default_JE U15_716",
+      "tv_ms": 3,
+      "tv_received_ts": 1793363681195,
+      "admin_ms": 529,
+      "admin_received_ts": 1793363681362,
+      "admin_applied_ts": 1793363681638,
+      "admin_presented_ts": 1793363681721,
+      "admin_presentation_status": "presented",
+      "admin_ui_ms": {
+        "queue_ms": 274.3,
+        "handler_ms": 0.7,
+        "ui_wait_ms": 0,
+        "render_ms": 83.6,
+        "total_ms": 358.6
+      },
+      "admin_measurement_method": "dom-and-render-opportunity",
+      "admin_ui_jobs": []
+    },
+    {
+      "trace_id": "live-drill-2918036-mvuyp32y-1095",
+      "sent_ts": 1793364125146,
+      "court_id": "default_6",
+      "match_id": "btp_default_ME U15_801",
+      "tv_ms": 3,
+      "tv_received_ts": 1793364125149,
+      "admin_ms": 514,
+      "admin_received_ts": 1793364125421,
+      "admin_applied_ts": 1793364125578,
+      "admin_presented_ts": 1793364125660,
+      "admin_presentation_status": "presented",
+      "admin_ui_ms": {
+        "queue_ms": 155.8,
+        "handler_ms": 1.5,
+        "ui_wait_ms": 0,
+        "render_ms": 82.6,
+        "total_ms": 239.9
+      },
+      "admin_measurement_method": "dom-and-render-opportunity",
+      "admin_ui_jobs": []
+    },
+    {
+      "trace_id": "live-drill-2918036-mvuyi13z-531",
+      "sent_ts": 1793363795999,
+      "court_id": "default_9",
+      "match_id": "btp_default_ME U13_637",
+      "tv_ms": 9,
+      "tv_received_ts": 1793363796008,
+      "admin_ms": 478,
+      "admin_received_ts": 1793363796027,
+      "admin_applied_ts": 1793363796425,
+      "admin_presented_ts": 1793363796477,
+      "admin_presentation_status": "presented",
+      "admin_ui_ms": {
+        "queue_ms": 396.5,
+        "handler_ms": 1.6,
+        "ui_wait_ms": 0,
+        "render_ms": 52.3,
+        "total_ms": 450.4
+      },
+      "admin_measurement_method": "dom-and-render-opportunity",
+      "admin_ui_jobs": []
+    },
+    {
+      "trace_id": "live-drill-2918036-mvuyhh6q-459",
+      "sent_ts": 1793363770178,
+      "court_id": "default_2",
+      "match_id": "btp_default_ME U15_794",
+      "tv_ms": 10,
+      "tv_received_ts": 1793363770188,
+      "admin_ms": 475,
+      "admin_received_ts": 1793363770423,
+      "admin_applied_ts": 1793363770589,
+      "admin_presented_ts": 1793363770653,
+      "admin_presentation_status": "presented",
+      "admin_ui_ms": {
+        "queue_ms": 164.2,
+        "handler_ms": 1.2,
+        "ui_wait_ms": 0,
+        "render_ms": 64.2,
+        "total_ms": 229.6
+      },
+      "admin_measurement_method": "dom-and-render-opportunity",
+      "admin_ui_jobs": []
+    },
+    {
+      "trace_id": "live-drill-2918036-mvuyfkht-208",
+      "sent_ts": 1793363681153,
+      "court_id": "default_4",
+      "match_id": "btp_default_JE U15_717",
+      "tv_ms": 4,
+      "tv_received_ts": 1793363681157,
+      "admin_ms": 473,
+      "admin_received_ts": 1793363681361,
+      "admin_applied_ts": 1793363681542,
+      "admin_presented_ts": 1793363681626,
+      "admin_presentation_status": "presented",
+      "admin_ui_ms": {
+        "queue_ms": 180,
+        "handler_ms": 1.5,
+        "ui_wait_ms": 0,
+        "render_ms": 84.1,
+        "total_ms": 265.6
+      },
+      "admin_measurement_method": "dom-and-render-opportunity",
+      "admin_ui_jobs": []
+    },
+    {
+      "trace_id": "live-drill-2918036-mvuyikom-600",
+      "sent_ts": 1793363821366,
+      "court_id": "default_2",
+      "match_id": "btp_default_ME U15_794",
+      "tv_ms": 13,
+      "tv_received_ts": 1793363821379,
+      "admin_ms": 427,
+      "admin_received_ts": 1793363821579,
+      "admin_applied_ts": 1793363821723,
+      "admin_presented_ts": 1793363821793,
+      "admin_presentation_status": "presented",
+      "admin_ui_ms": {
+        "queue_ms": 142,
+        "handler_ms": 1.7,
+        "ui_wait_ms": 0,
+        "render_ms": 69.9,
+        "total_ms": 213.6
+      },
+      "admin_measurement_method": "dom-and-render-opportunity",
+      "admin_ui_jobs": []
+    },
+    {
+      "trace_id": "live-drill-2918036-mvuyjxul-772",
+      "sent_ts": 1793363885085,
+      "court_id": "default_6",
+      "match_id": "btp_default_ME U15_801",
+      "tv_ms": 6,
+      "tv_received_ts": 1793363885091,
+      "admin_ms": 427,
+      "admin_received_ts": 1793363885300,
+      "admin_applied_ts": 1793363885453,
+      "admin_presented_ts": 1793363885512,
+      "admin_presentation_status": "presented",
+      "admin_ui_ms": {
+        "queue_ms": 151.2,
+        "handler_ms": 1.7,
+        "ui_wait_ms": 0,
+        "render_ms": 59.4,
+        "total_ms": 212.3
+      },
+      "admin_measurement_method": "dom-and-render-opportunity",
+      "admin_ui_jobs": []
+    }
+  ]
+}

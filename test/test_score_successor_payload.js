@@ -1,0 +1,62 @@
+'use strict';
+
+const assert = require('assert');
+const database = require('../bts/database');
+const admin = require('../bts/admin');
+const bupws = require('../bts/bupws');
+const bupwsV2 = require('../bts/bupws_v2');
+
+async function fixture(key) {
+	const db = await database.init_test();
+	const insert = (store, value) => new Promise((resolve, reject) => db[store].insert(value, error => error ? reject(error) : resolve()));
+	await insert('tournaments', { key, preparation_successor_rally_count: 11 });
+	await insert('courts', { _id: 'court-1', tournament_key: key, match_id: 'match-1', is_active: true });
+	await insert('matches', { _id: 'match-1', tournament_key: key, network_score: [[0, 0]], presses: [],
+		setup: { court_id: 'court-1', now_on_court: true, state: 'oncourt', counting: '3x21', warmup: 'none',
+			teams: [{ players: [] }, { players: [] }], scoring_format: { numSets: 3, set_points: { end_points: 21, max_points: 30 }, last_set_points: { end_points: 21, max_points: 30 } } },
+	});
+	const messages = [];
+	const ws = { readyState: 1, client_id: key, court_id: 'court-1', panel_devicemode: 'umpire',
+		sendmsg(message) { messages.push(message); }, send(raw) { messages.push(JSON.parse(raw)); } };
+	return { app: { db }, ws, messages };
+}
+
+describe('Scores include committed preparation successor state', function() {
+	for (const [name, handler] of [['legacy', bupws.handle_score_update], ['v2', bupwsV2.handle_score_update]]) {
+		it(name + ' publishes points and the current successor flag together, including corrections', async function() {
+			const key = 'successor-' + name, { app, ws, messages } = await fixture(key);
+			const notify = admin.notify_change, points = [];
+			admin.notify_change = (_app, tournament, type, payload) => { if (tournament === key && type === 'score') points.push(structuredClone(payload)); };
+			try {
+				for (const [value, needed] of [[9, false], [10, true], [9, false], [11, true]]) {
+					const score = [[21, 18], [value, 7]], before = points.length;
+					await handler(app, ws, { tournament_key: key, score: { match_id: 'match-1', court_id: 'court-1', network_score: score, presses: [] } });
+					assert.strictEqual(points.length, before + 1);
+					const match = await app.db.matches.findOne_async({ _id: 'match-1' }), payload = points.at(-1);
+					assert.deepStrictEqual(payload.network_score, score);
+					assert.strictEqual(payload.needs_preparation_successor, needed);
+					assert.strictEqual(payload.needs_preparation_successor, match.setup.needs_preparation_successor);
+					assert.strictEqual(payload.needs_preparation_successor_ts, match.setup.needs_preparation_successor_ts);
+					if (needed) assert(Number.isFinite(payload.needs_preparation_successor_ts));
+					else assert.strictEqual(payload.needs_preparation_successor_ts, null);
+				}
+				assert(!messages.some(message => message.type === 'error'));
+			} finally { admin.notify_change = notify; }
+		});
+	}
+
+	it('includes the cleared successor state in an admin finish confirmation', async function() {
+		const key = 'successor-confirmation', { app } = await fixture(key), notify = admin.notify_change;
+		await app.db.matches.update_async({ _id: 'match-1' }, { $set: { network_score: [[21, 18], [21, 15]], team1_won: true,
+			'setup.needs_preparation_successor': true, 'setup.needs_preparation_successor_ts': 12345 } }, {});
+		let points;
+		admin.notify_change = (_app, tournament, type, payload) => { if (tournament === key && type === 'score') points = payload; };
+		try {
+			await bupws.confirm_match_finished_from_admin(app, key, 'match-1', 'court-1');
+			assert(points);
+			assert.strictEqual(points.needs_preparation_successor, false);
+			assert.strictEqual(points.needs_preparation_successor_ts, null);
+			assert.strictEqual(points.now_on_court, false);
+		} finally { admin.notify_change = notify; }
+	});
+});

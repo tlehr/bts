@@ -1,0 +1,25 @@
+{
+  "date": "2026-10-30",
+  "checks": 4,
+  "scope": "Isolierte native Oberfläche: identische Diagnosen, geänderte Grenze und wechselnde Aufrufberechtigung.",
+  "repeated": {
+    "handler_ms": 1.2000000476837158,
+    "mutations": 0,
+    "childChanges": 0,
+    "sameBoundary": true,
+    "sameInfo": true,
+    "samePlayer": true,
+    "layout": false
+  },
+  "changed": {
+    "same": true,
+    "updated": true,
+    "sameInfo": true,
+    "sameLabel": true
+  },
+  "permission": {
+    "removed": true,
+    "restored": true,
+    "sameInfo": true
+  }
+}

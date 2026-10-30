@@ -1,0 +1,398 @@
+{
+  "date": "2026-10-30",
+  "scope": "Native Turnierleitungsseite mit 128 synthetischen Spielen und simulierten Serverantworten; keine Verbindung zu laufenden Diensten.",
+  "method": "Frische Browserseite je Nachrichtentyp, jeweils drei Updates durch die echte Empfangswarteschlange. Messung endet erst mit einer Quittierung nach abgeschlossener UI-Arbeit und zwei sichtbaren Browserframes. Neuaufbau vor jeder Probe liegt außerhalb der Messung.",
+  "limits": {
+    "small": {
+      "handler_ms": 16,
+      "total_ms": 100
+    },
+    "structural": {
+      "handler_ms": 100,
+      "total_ms": 500
+    },
+    "full": {
+      "handler_ms": 250,
+      "total_ms": 1000
+    }
+  },
+  "paths": [
+    {
+      "type": "court_changed",
+      "kind": "structural",
+      "samples": 3,
+      "handler_ms": 3,
+      "total_ms": 87,
+      "max_ms": 115.4,
+      "budget": {
+        "handler_ms": 100,
+        "total_ms": 500
+      },
+      "measurements": [
+        {
+          "status": "presented",
+          "presented_at": 1793315352728,
+          "timings": {
+            "queue_ms": 0.6,
+            "handler_ms": 6.5,
+            "render_ms": 52.4,
+            "total_ms": 87
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793315353556,
+          "timings": {
+            "queue_ms": 0.2,
+            "handler_ms": 2,
+            "render_ms": 50.1,
+            "total_ms": 82.1
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793315354423,
+          "timings": {
+            "queue_ms": 0.1,
+            "handler_ms": 3,
+            "render_ms": 66.3,
+            "total_ms": 115.4
+          },
+          "error": null
+        }
+      ]
+    },
+    {
+      "type": "court_current_match",
+      "kind": "small",
+      "samples": 3,
+      "handler_ms": 0.7,
+      "total_ms": 32.3,
+      "max_ms": 34.1,
+      "budget": {
+        "handler_ms": 16,
+        "total_ms": 100
+      },
+      "measurements": [
+        {
+          "status": "presented",
+          "presented_at": 1793315355989,
+          "timings": {
+            "queue_ms": 0.2,
+            "handler_ms": 4.6,
+            "render_ms": 26.8,
+            "total_ms": 31.7
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793315356790,
+          "timings": {
+            "queue_ms": 0.1,
+            "handler_ms": 0.7,
+            "render_ms": 31.5,
+            "total_ms": 32.3
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793315357608,
+          "timings": {
+            "queue_ms": 0.1,
+            "handler_ms": 0.6,
+            "render_ms": 33.4,
+            "total_ms": 34.1
+          },
+          "error": null
+        }
+      ]
+    },
+    {
+      "type": "match_edit",
+      "kind": "structural",
+      "samples": 3,
+      "handler_ms": 8.4,
+      "total_ms": 82.2,
+      "max_ms": 112.9,
+      "budget": {
+        "handler_ms": 100,
+        "total_ms": 500
+      },
+      "measurements": [
+        {
+          "status": "presented",
+          "presented_at": 1793315359173,
+          "timings": {
+            "queue_ms": 0.2,
+            "handler_ms": 10.3,
+            "render_ms": 43.6,
+            "total_ms": 82.2
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793315360095,
+          "timings": {
+            "queue_ms": 0.3,
+            "handler_ms": 8.4,
+            "render_ms": 35.7,
+            "total_ms": 112.9
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793315360872,
+          "timings": {
+            "queue_ms": 0.1,
+            "handler_ms": 7,
+            "render_ms": 32.6,
+            "total_ms": 65.3
+          },
+          "error": null
+        }
+      ]
+    },
+    {
+      "type": "match_preparation_call",
+      "kind": "structural",
+      "samples": 3,
+      "handler_ms": 7,
+      "total_ms": 219.4,
+      "max_ms": 239.6,
+      "budget": {
+        "handler_ms": 100,
+        "total_ms": 500
+      },
+      "measurements": [
+        {
+          "status": "presented",
+          "presented_at": 1793315362668,
+          "timings": {
+            "queue_ms": 0.2,
+            "handler_ms": 13.8,
+            "render_ms": 34.7,
+            "total_ms": 239.6
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793315363843,
+          "timings": {
+            "queue_ms": 0.1,
+            "handler_ms": 7,
+            "render_ms": 53.4,
+            "total_ms": 198.1
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793315365206,
+          "timings": {
+            "queue_ms": 0.1,
+            "handler_ms": 6,
+            "render_ms": 38.2,
+            "total_ms": 219.4
+          },
+          "error": null
+        }
+      ]
+    },
+    {
+      "type": "match_remove",
+      "kind": "structural",
+      "samples": 3,
+      "handler_ms": 0.5,
+      "total_ms": 88.8,
+      "max_ms": 95.3,
+      "budget": {
+        "handler_ms": 100,
+        "total_ms": 500
+      },
+      "measurements": [
+        {
+          "status": "presented",
+          "presented_at": 1793315366936,
+          "timings": {
+            "queue_ms": 0.2,
+            "handler_ms": 3.6,
+            "render_ms": 91.4,
+            "total_ms": 95.3
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793315367836,
+          "timings": {
+            "queue_ms": 0.1,
+            "handler_ms": 0.4,
+            "render_ms": 88.3,
+            "total_ms": 88.8
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793315368679,
+          "timings": {
+            "queue_ms": 0.1,
+            "handler_ms": 0.5,
+            "render_ms": 88.1,
+            "total_ms": 88.7
+          },
+          "error": null
+        }
+      ]
+    },
+    {
+      "type": "player_pause_reset",
+      "kind": "structural",
+      "samples": 3,
+      "handler_ms": 5.1,
+      "total_ms": 87.6,
+      "max_ms": 96.6,
+      "budget": {
+        "handler_ms": 100,
+        "total_ms": 500
+      },
+      "measurements": [
+        {
+          "status": "presented",
+          "presented_at": 1793315370395,
+          "timings": {
+            "queue_ms": 0.1,
+            "handler_ms": 10.1,
+            "render_ms": 34.5,
+            "total_ms": 96.6
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793315371205,
+          "timings": {
+            "queue_ms": 0.2,
+            "handler_ms": 5.1,
+            "render_ms": 50.8,
+            "total_ms": 87.6
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793315372022,
+          "timings": {
+            "queue_ms": 0.2,
+            "handler_ms": 3.3,
+            "render_ms": 48.1,
+            "total_ms": 81.8
+          },
+          "error": null
+        }
+      ]
+    },
+    {
+      "type": "score",
+      "kind": "small",
+      "samples": 3,
+      "handler_ms": 0.6,
+      "total_ms": 37.2,
+      "max_ms": 38.6,
+      "budget": {
+        "handler_ms": 16,
+        "total_ms": 100
+      },
+      "measurements": [
+        {
+          "status": "presented",
+          "presented_at": 1793315373562,
+          "timings": {
+            "queue_ms": 0.3,
+            "handler_ms": 3.9,
+            "render_ms": 34.4,
+            "total_ms": 38.6
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793315374394,
+          "timings": {
+            "queue_ms": 0.2,
+            "handler_ms": 0.6,
+            "render_ms": 36.4,
+            "total_ms": 37.2
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793315375223,
+          "timings": {
+            "queue_ms": 0.2,
+            "handler_ms": 0.5,
+            "render_ms": 32.8,
+            "total_ms": 33.5
+          },
+          "error": null
+        }
+      ]
+    },
+    {
+      "type": "update_btp_settings",
+      "kind": "structural",
+      "samples": 3,
+      "handler_ms": 12.1,
+      "total_ms": 144.6,
+      "max_ms": 173.8,
+      "budget": {
+        "handler_ms": 100,
+        "total_ms": 500
+      },
+      "measurements": [
+        {
+          "status": "presented",
+          "presented_at": 1793315377532,
+          "timings": {
+            "queue_ms": 0.2,
+            "handler_ms": 12.1,
+            "render_ms": 40.5,
+            "total_ms": 144.6
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793315378522,
+          "timings": {
+            "queue_ms": 0.2,
+            "handler_ms": 5.5,
+            "render_ms": 46.9,
+            "total_ms": 98.7
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793315379611,
+          "timings": {
+            "queue_ms": 4.8,
+            "handler_ms": 14.9,
+            "render_ms": 47.7,
+            "total_ms": 173.8
+          },
+          "error": null
+        }
+      ]
+    }
+  ],
+  "failures": []
+}

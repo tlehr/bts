@@ -77,7 +77,7 @@ function createSpeechReadiness(context) {
     function display(element, item, state, settings, completed, total) {
         const voice = settings.voice === 'hallensprecher' ? 'Hallensprecher' : 'Hallensprecherin';
         const count = total === undefined ? '' : ' · ' + completed + '/' + total + ' Ansageteile bereit.';
-        let detail = labels[state] + ' · ' + voice + count;
+        let detail = (item.remote && state === 'ready' ? 'Serveraudio bereit' : labels[state]) + ' · ' + voice + count;
         if (settings.mode === 'browser') detail += ' Auf diesem Gerät ist Browser-TTS ausgewählt.';
         if (state === 'locked') detail += ' Ein normaler Klick oder Tastendruck im BTS gibt Audio automatisch frei.';
         const rendered = JSON.stringify([state, detail, item.title, item.label]);
@@ -103,9 +103,9 @@ function createSpeechReadiness(context) {
             else if (value.settings.language !== 'de-DE' || parts.some(text => text.length > (value.settings.max_part_length || value.settings.max_text))) state = 'unsupported';
             else if (!parts.length) state = 'empty';
             else if (unavailable && !locallyReady || states.includes('unavailable')) state = 'unavailable';
-            else if (value.settings.audio_error && value.settings.audio_error !== 'audio_blocked') state = 'audio_error';
-            else if (value.settings.audio_error === 'audio_blocked') state = 'locked';
-            else if (value.settings.audio_ready === false) state = 'checking';
+            else if (!item.remote && value.settings.audio_error && value.settings.audio_error !== 'audio_blocked') state = 'audio_error';
+            else if (!item.remote && value.settings.audio_error === 'audio_blocked') state = 'locked';
+            else if (!item.remote && value.settings.audio_ready === false) state = 'checking';
             else if (states.includes('failed')) state = 'failed';
             else if (completed === parts.length) state = 'ready';
             else if (states.some(status => ['unsubmitted', 'queued', 'processing'].includes(status))) state = 'preparing';
@@ -212,7 +212,7 @@ function createSpeechReadiness(context) {
             if (running) { refreshAgain = true; forceAgain ||= force; }
             else schedule(force);
         },
-        trackText(element, read, label = false) { track(element, { read, label }); },
+        trackText(element, read, label = false, options = {}) { track(element, { read, label, remote: options.remote === true }); },
         trackMatch(element, matchId, title, preparation = false, locationId) {
             let call = calls[title];
             if (!call) return;

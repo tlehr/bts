@@ -58,6 +58,16 @@ describe('shared admin change delivery', function() {
 		assert.strictEqual(shared.messages[0].val._announcement_ts, 123);
 		assert.deepStrictEqual(probe.messages, []); assert.strictEqual(notifications.length, 2);
 	});
+	it('preserves explicit free-announcement output choices and ignores unsupported modes', function() {
+		const recipient = socket(), replies = [];
+		const requester = { respond: msg => replies.push(msg.rid) };
+		for (const mode of ['server', 'browser', 'unknown', undefined]) {
+			admin.handle_free_announce({}, requester, { rid: mode || 'legacy', tournament_key: 'test', text: 'Durchsage', speech_mode: mode });
+		}
+		assert.deepStrictEqual(recipient.messages.map(message => message.val.speech_mode), ['server', 'browser', undefined, undefined]);
+		assert(recipient.messages.every(message => message.ctype === 'free_announce' && message.val.text === 'Durchsage'));
+		assert.strictEqual(replies.length, 4);
+	});
 	it('retains delivery metadata, continues other sockets after a disconnect, and drops closed queues', function() {
 		const held = socket(), live = socket(), delivery = [];
 		held.reserve_response({ rid: 'closed', key: 'test' }); live.on('bts:message_sent', details => delivery.push(details));

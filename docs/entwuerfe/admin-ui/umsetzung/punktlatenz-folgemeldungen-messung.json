@@ -1,0 +1,149 @@
+{
+  "date": "2026-10-29",
+  "scope": "Isolierte statische Chrome-Vorschau mit gelesener Kopie von 128 lokalen Spielen und simulierten Serverantworten. Keine Verbindung zu laufenden BTS- oder Sprachdiensten.",
+  "method": "24 Punkte mit Empfangswarteschlange und anschließenden court_current_match/update_player_status-Meldungen; je 90 ms Abstand nach der vorherigen Messung. Gemessen ab Einspeisen der ersten Nachricht bis zu zwei requestAnimationFrame-Callbacks nach leerer Empfangswarteschlange. CPU-Profiler bei allen Vergleichsläufen aktiv.",
+  "fixture": {
+    "matches": 128,
+    "courts": 15,
+    "player_elements": 364,
+    "finished_histories_deferred": true
+  },
+  "limitations": [
+    "Keine Messung eines physischen Tablet-Klicks oder der echten Netzwerkstrecke. Zwei Animationsframes sind eine Näherung für sichtbare Aktualisierung, keine bestätigte physische Bildausgabe.",
+    "Kurzer lokaler Vergleich auf derselben Hardware; keine Aussage über p99 oder andere Endgeräte.",
+    "Identische Spiel-/Status-Folgemeldungen werden für jeden Punkt nachgebildet, ohne echte Spielfortschritte oder Serverdaten zu ändern."
+  ],
+  "before": {
+    "samples": 24,
+    "median_ms": 397.4,
+    "mean_ms": 432.0,
+    "max_ms": 663.4,
+    "samples_ms": [
+      371.7,
+      387.5,
+      368.0,
+      438.0,
+      395.7,
+      426.2,
+      362.6,
+      376.9,
+      377.4,
+      368.8,
+      379.9,
+      393.8,
+      436.6,
+      414.7,
+      457.1,
+      496.4,
+      612.6,
+      656.3,
+      663.4,
+      452.2,
+      377.7,
+      404.1,
+      351.3,
+      399.1
+    ],
+    "profile_inclusive_ms": {
+      "refreshNames": 8416.9,
+      "refreshOfficialsLayout": 1376.5,
+      "fitTimer": 908.7,
+      "measureTimer": 0,
+      "timerDisplay": 925.1
+    }
+  },
+  "after": {
+    "samples": 24,
+    "median_ms": 54.4,
+    "mean_ms": 55.3,
+    "max_ms": 66.0,
+    "samples_ms": [
+      63.1,
+      54.8,
+      54.6,
+      53.6,
+      53.9,
+      56.6,
+      55.8,
+      57.4,
+      54.6,
+      52.2,
+      57.0,
+      54.4,
+      52.5,
+      54.5,
+      53.2,
+      66.0,
+      53.3,
+      53.3,
+      55.9,
+      52.8,
+      53.4,
+      53.5,
+      57.4,
+      54.4
+    ],
+    "profile_inclusive_ms": {
+      "refreshNames": 348.3,
+      "refreshOfficialsLayout": 0,
+      "fitTimer": 2.2,
+      "measureTimer": 77.0,
+      "timerDisplay": 1.1
+    }
+  },
+  "targeted_names_only": {
+    "samples": 24,
+    "median_ms": 63.4,
+    "mean_ms": 68.3,
+    "max_ms": 93.4,
+    "samples_ms": [
+      79.3,
+      86.5,
+      63.2,
+      92.2,
+      60.9,
+      63.2,
+      62.6,
+      59.2,
+      63.7,
+      75.5,
+      66.8,
+      67.8,
+      64.9,
+      63.0,
+      62.9,
+      76.2,
+      71.2,
+      60.9,
+      64.3,
+      59.6,
+      60.9,
+      60.4,
+      93.4,
+      60.5
+    ],
+    "profile_inclusive_ms": {
+      "refreshNames": 395.3,
+      "refreshOfficialsLayout": 0,
+      "fitTimer": 301.7,
+      "measureTimer": 0,
+      "timerDisplay": 307.1
+    }
+  },
+  "validation": {
+    "node_tests": 102,
+    "browser_checks": 270,
+    "exceptions": 0,
+    "unexpected_console_errors": 0,
+    "failed_assets": 0,
+    "regression_old_behavior": {
+      "unrelated_name_groups": 30,
+      "layout_reads": 58,
+      "result": "expected_failure"
+    },
+    "regression_corrected_behavior": {
+      "layout_reads": 0,
+      "result": "pass"
+    }
+  }
+}

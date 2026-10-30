@@ -1,0 +1,336 @@
+{
+  "date": "2026-10-30",
+  "scope": "Isolierter Browser mit nativer Empfangswarteschlange und synthetischen Spielen; keine Live-Dienste.",
+  "checks": [
+    "Pause-duration changes retain every row, player and name text node",
+    "Pause-duration changes reuse and update the existing clock",
+    "Pause-duration changes use cached bindings without per-ID row queries",
+    "Repeated settings preserve rows and clocks without removing those elements",
+    "Shortening a pause hides its existing clock without replacing the row or name",
+    "Extending a pause reactivates the same clock without a duplicate timer",
+    "Disabling official check-in retains names and immediately disables their existing buttons",
+    "Re-enabling official check-in reuses the same working click handler",
+    "Timer-language changes retain all rows, names and player clocks",
+    "Pause reset clears the local pause values and clock while retaining all rows and names",
+    "Pause reset uses cached bindings without per-ID row queries",
+    "Plan, number, round and discipline update their existing cells without replacing players or score nodes",
+    "Metadata patches preserve text objects and scores and update the accessible match label",
+    "A metadata patch updates an active search filter without rebuilding the game",
+    "A changed preparation timer start updates its existing clock and preserves every player and name",
+    "Sorting moves the existing row and its player elements",
+    "Sorting finds its row through the existing binding index",
+    "A second rendering added in the same task is immediately included in cached score updates",
+    "Newly inserted match renderings require no full per-ID document search",
+    "Alternate match identifiers resolve every existing rendering through the same index",
+    "Changing a binding ID updates the cache before the next update in the same task",
+    "Removed rows are evicted and receive no further score changes",
+    "Updating a field retains its fixed row and finds it through the field index",
+    "A full view change evicts old bindings and updates only the newly mounted score",
+    "A discipline change updates blocking explanations while retaining their player, name and badge",
+    "All native update receipts follow completed UI work without failures"
+  ],
+  "measurements": {
+    "pause": {
+      "same": true,
+      "sameClock": true,
+      "changed": true,
+      "lookups": 0,
+      "timings": {
+        "queue_ms": 0.7,
+        "handler_ms": 4.6,
+        "render_ms": 23.1,
+        "total_ms": 48.4
+      }
+    },
+    "repeated": {
+      "same": true,
+      "removed": 0
+    },
+    "hidden": {
+      "same": true,
+      "clock": true,
+      "hidden": true
+    },
+    "resumed": {
+      "same": true,
+      "clock": true,
+      "shown": true
+    },
+    "mode": {
+      "same": true,
+      "locked": true,
+      "noWrite": true
+    },
+    "unlock": {
+      "same": true,
+      "wrote": true
+    },
+    "lang": {
+      "same": true,
+      "clock": true,
+      "timings": {
+        "queue_ms": 0.1,
+        "handler_ms": 2.4,
+        "render_ms": 29.2,
+        "total_ms": 31.7
+      }
+    },
+    "reset": {
+      "same": true,
+      "cleared": true,
+      "hidden": true,
+      "lookups": 0,
+      "timings": {
+        "queue_ms": 0.2,
+        "handler_ms": 1.8,
+        "render_ms": 27.7,
+        "total_ms": 48.4
+      }
+    },
+    "metadata": {
+      "same": true,
+      "text": [
+        "144",
+        "12:34",
+        "12",
+        ":",
+        "34",
+        "MX U19",
+        "Finale",
+        "5:5"
+      ],
+      "title": "Spiel 144 öffnen",
+      "aria": "Spiel 144 öffnen",
+      "childChanges": 0,
+      "scoreChanges": 0,
+      "lookups": 0,
+      "timings": {
+        "queue_ms": 0.2,
+        "handler_ms": 1.2,
+        "render_ms": 33.3,
+        "total_ms": 48
+      }
+    },
+    "filter": {
+      "before": true,
+      "hidden": true,
+      "restored": true,
+      "same": true
+    },
+    "preparationClock": {
+      "same": true,
+      "changed": true,
+      "count": 1,
+      "lookups": 0,
+      "timings": {
+        "queue_ms": 0.2,
+        "handler_ms": 0.4,
+        "render_ms": 33.2,
+        "total_ms": 48.2
+      }
+    },
+    "sorting": {
+      "same": true,
+      "first": true,
+      "lookups": 0
+    },
+    "duplicate": {
+      "count": 2,
+      "score": "6:7",
+      "lookups": 0
+    },
+    "alias": {
+      "count": 2,
+      "lookups": 0
+    },
+    "rekey": {
+      "original": 1,
+      "rekeyed": 1,
+      "score": "8:9"
+    },
+    "removed": {
+      "count": 0,
+      "unchanged": true
+    },
+    "court": {
+      "same": true,
+      "inactive": true,
+      "lookups": 0
+    },
+    "rerender": {
+      "oldDetached": true,
+      "count": 1,
+      "current": "9:10",
+      "lookups": 0
+    },
+    "blocked": {
+      "same": true,
+      "title": "DNS in BTP für Neue Disziplin: Spielaufruf und Check-in sind gesperrt. Den DNS-Status im BTP-Hauptprogramm entfernen, damit der Spieler wieder teilnehmen kann.",
+      "badgeTitle": "DNS in BTP für Neue Disziplin: Spielaufruf und Check-in sind gesperrt. Den DNS-Status im BTP-Hauptprogramm entfernen, damit der Spieler wieder teilnehmen kann.",
+      "aria": "DNS in BTP für Neue Disziplin: Spielaufruf und Check-in sind gesperrt. Den DNS-Status im BTP-Hauptprogramm entfernen, damit der Spieler wieder teilnehmen kann.",
+      "childChanges": 0
+    }
+  },
+  "receipts": [
+    {
+      "type": "update_btp_settings",
+      "status": "presented",
+      "timings": {
+        "queue_ms": 0.7,
+        "handler_ms": 4.6,
+        "render_ms": 23.1,
+        "total_ms": 48.4
+      }
+    },
+    {
+      "type": "update_btp_settings",
+      "status": "presented",
+      "timings": {
+        "queue_ms": 0.2,
+        "handler_ms": 0,
+        "render_ms": 31,
+        "total_ms": 31.2
+      }
+    },
+    {
+      "type": "update_btp_settings",
+      "status": "presented",
+      "timings": {
+        "queue_ms": 0.2,
+        "handler_ms": 3.7,
+        "render_ms": 22,
+        "total_ms": 48.3
+      }
+    },
+    {
+      "type": "update_btp_settings",
+      "status": "presented",
+      "timings": {
+        "queue_ms": 0.1,
+        "handler_ms": 3.1,
+        "render_ms": 26,
+        "total_ms": 48.3
+      }
+    },
+    {
+      "type": "update_btp_settings",
+      "status": "presented",
+      "timings": {
+        "queue_ms": 0.2,
+        "handler_ms": 0.5,
+        "render_ms": 30.9,
+        "total_ms": 31.6
+      }
+    },
+    {
+      "type": "update_btp_settings",
+      "status": "presented",
+      "timings": {
+        "queue_ms": 0.1,
+        "handler_ms": 0.3,
+        "render_ms": 31.1,
+        "total_ms": 31.5
+      }
+    },
+    {
+      "type": "update_btp_settings",
+      "status": "presented",
+      "timings": {
+        "queue_ms": 0.1,
+        "handler_ms": 2.4,
+        "render_ms": 29.2,
+        "total_ms": 31.7
+      }
+    },
+    {
+      "type": "player_pause_reset",
+      "status": "presented",
+      "timings": {
+        "queue_ms": 0.2,
+        "handler_ms": 1.8,
+        "render_ms": 27.7,
+        "total_ms": 48.4
+      }
+    },
+    {
+      "type": "match_edit",
+      "status": "presented",
+      "timings": {
+        "queue_ms": 0.2,
+        "handler_ms": 1.2,
+        "render_ms": 33.3,
+        "total_ms": 48
+      }
+    },
+    {
+      "type": "match_edit",
+      "status": "presented",
+      "timings": {
+        "queue_ms": 0.3,
+        "handler_ms": 0.4,
+        "render_ms": 33.3,
+        "total_ms": 49.9
+      }
+    },
+    {
+      "type": "match_edit",
+      "status": "presented",
+      "timings": {
+        "queue_ms": 0.2,
+        "handler_ms": 0.4,
+        "render_ms": 33.2,
+        "total_ms": 48.2
+      }
+    },
+    {
+      "type": "match_edit",
+      "status": "presented",
+      "timings": {
+        "queue_ms": 0.1,
+        "handler_ms": 0.5,
+        "render_ms": 33,
+        "total_ms": 48.3
+      }
+    },
+    {
+      "type": "court_changed",
+      "status": "presented",
+      "timings": {
+        "queue_ms": 0.2,
+        "handler_ms": 2.8,
+        "render_ms": 40.1,
+        "total_ms": 60
+      }
+    },
+    {
+      "type": "score",
+      "status": "presented",
+      "timings": {
+        "queue_ms": 0.3,
+        "handler_ms": 0.4,
+        "render_ms": 32.5,
+        "total_ms": 33.2
+      }
+    },
+    {
+      "type": "match_edit",
+      "status": "presented",
+      "timings": {
+        "queue_ms": 0.2,
+        "handler_ms": 6.9,
+        "render_ms": 26.2,
+        "total_ms": 53.7
+      }
+    },
+    {
+      "type": "match_edit",
+      "status": "presented",
+      "timings": {
+        "queue_ms": 0.3,
+        "handler_ms": 0.4,
+        "render_ms": 32.3,
+        "total_ms": 49.7
+      }
+    }
+  ]
+}

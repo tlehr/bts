@@ -1,4 +1,5 @@
 'use strict';
+/* global btsAdminUpdates */
 
 /*
 vpath in this mode is t/12/edit.
@@ -31,6 +32,11 @@ function _resolve_vpath(vpath, keys) {
 }
 
 function on_change(c) {
+	if (typeof btsAdminUpdates !== 'undefined' && !btsAdminUpdates.isActive(c)) return btsAdminUpdates.dispatch(c, route_change);
+	return route_change(c);
+}
+
+function route_change(c) {
 	if (!cur_route) {
 		if (c && c.ctype === 'score' && window.curt && window.curt.bts_debug_output_enabled === true) {
 			console.log('[bts admin] score change dropped: no active route', {
@@ -38,7 +44,7 @@ function on_change(c) {
 				current_path: window.location.pathname,
 			});
 		}
-		return;
+		return false;
 	}
 
 	if (!curt || (c.tournament_key !== curt.key)) {
@@ -49,7 +55,7 @@ function on_change(c) {
 				current_path: window.location.pathname,
 			});
 		}
-		return;
+		return false;
 	}
 
 	if (c && c.ctype === 'score' && window.curt && window.curt.bts_debug_output_enabled === true) {
@@ -78,6 +84,7 @@ function on_change(c) {
 		}
 		change.apply_score_patch(c);
 	}
+	return true;
 }
 
 // Go to the handler for the specific URL

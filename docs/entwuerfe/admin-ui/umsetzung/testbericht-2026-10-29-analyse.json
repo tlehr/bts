@@ -1,0 +1,197 @@
+{
+  "source": "bts-test-1 (3).json",
+  "started_at": "2026-10-29T19:17:05.984Z",
+  "runtime_ms": 604316,
+  "stop_reason": "error",
+  "failure": "Browser presentation receipts did not drain",
+  "initial_state": {
+    "matches": 128,
+    "finished_matches": 59,
+    "active_courts": 15
+  },
+  "tablet_to_admin_ms": {
+    "count": 1125,
+    "mean": 1323.1,
+    "min": 47,
+    "p50": 835,
+    "p95": 3847,
+    "p99": 4647,
+    "max": 5532,
+    "over_50_ms": 1124,
+    "over_100_ms": 1123,
+    "over_200_ms": 1091,
+    "sent_updates": 1250,
+    "unmatched_updates": 125,
+    "coverage": 0.9
+  },
+  "tablet_to_tv_ms": {
+    "count": 1250,
+    "mean": 9.8,
+    "min": 2,
+    "p50": 7,
+    "p95": 27,
+    "p99": 42,
+    "max": 144,
+    "over_50_ms": 7,
+    "over_100_ms": 1,
+    "over_200_ms": 0,
+    "sent_updates": 1250,
+    "unmatched_updates": 0,
+    "coverage": 1
+  },
+  "admin_presentation_outcomes": {
+    "timeout": 37,
+    "superseded": 29,
+    "capacity": 59
+  },
+  "receipt_outcomes": {
+    "presented": 43251,
+    "superseded": 34,
+    "timeout": 1039,
+    "capacity": 3024
+  },
+  "admin_stages": {
+    "queue_ms": {
+      "count": 1125,
+      "mean": 794.51,
+      "p50": 497.3,
+      "p95": 2784.4,
+      "p99": 3878,
+      "max": 5152.4
+    },
+    "handler_ms": {
+      "count": 1125,
+      "mean": 0.81,
+      "p50": 0.7,
+      "p95": 1.6,
+      "p99": 3.1,
+      "max": 10.3
+    },
+    "render_ms": {
+      "count": 1125,
+      "mean": 367.95,
+      "p50": 143.1,
+      "p95": 1496.2,
+      "p99": 2628.4,
+      "max": 3906.8
+    },
+    "total_ms": {
+      "count": 1125,
+      "mean": 1163.27,
+      "p50": 702.8,
+      "p95": 3644.3,
+      "p99": 4372.9,
+      "max": 5319.3
+    }
+  },
+  "admin_types": {
+    "change:display_is_done": 20278,
+    "change:display_wait_for_done": 20278,
+    "change:display_status_changed": 2401,
+    "change:display_render_stats": 1277,
+    "change:court_current_match": 1250,
+    "change:score": 1250,
+    "answer": 723,
+    "change:speech_cache_changed": 187,
+    "change:match_edit": 171,
+    "change:update_player_status": 91,
+    "change:btp_status": 57,
+    "change:tabletoperator_removed": 28,
+    "change:court_changed": 15,
+    "change:match_called_on_court": 15,
+    "change:tabletoperator_add": 15,
+    "change:match_preparation_call": 13,
+    "change:update_btp_events": 10,
+    "change:umpire_updated": 9,
+    "change:umpires_changed": 3
+  },
+  "server_queue_status": {
+    "level": "OK",
+    "reasons": [
+      "No sustained backlog observed"
+    ]
+  },
+  "server_point_operation_ms": {
+    "count": 1250,
+    "mean": 21.38,
+    "p50": 17.7,
+    "p95": 44.5,
+    "p99": 72.4,
+    "max": 183.1
+  },
+  "local_reproduction": {
+    "scope": "Lokale synthetische Nachstellung mit CPU-Profiling; kein erneuter Live-Turniertest. Der abschließende Dauerlasttest wird separat gespeichert.",
+    "before": {
+      "independent": {
+        "count": 32,
+        "mean": 93.2,
+        "p50": 103,
+        "p95": 174.90000009536743,
+        "p99": 175.79999995231628,
+        "max": 175.79999995231628
+      },
+      "ack": {
+        "count": 32,
+        "mean": 1143.97,
+        "p50": 933.5,
+        "p95": 2426.9,
+        "p99": 2440.2,
+        "max": 2440.2
+      }
+    },
+    "before_outcomes": {
+      "presented": 3820,
+      "capacity": 2272
+    },
+    "after": {
+      "timer_count": 216,
+      "stats": {
+        "applied": {
+          "count": 41,
+          "p50": 1.399999976158142,
+          "p95": 52.39999997615814,
+          "max": 107
+        },
+        "independent": {
+          "count": 41,
+          "p50": 55.40000009536743,
+          "p95": 172.70000004768372,
+          "max": 228.60000002384186
+        },
+        "ack": {
+          "count": 41,
+          "p50": 55.4,
+          "p95": 278.2,
+          "max": 323
+        }
+      },
+      "outcomes": {
+        "presented": 820
+      },
+      "pending": {
+        "pending": 0,
+        "subscribers": 1,
+        "callbackErrors": 0
+      },
+      "profiling": false
+    },
+    "before_profiling": true
+  },
+  "corrections": [
+    "Quittierungen an erfasste UI-Jobs statt globale Ruhe gekoppelt",
+    "Lokale Timerquittierungen nur explizit aktiviert",
+    "Timermaße bis zu Größen- oder Schriftänderungen zwischengespeichert",
+    "Unveränderte Timerstile erhalten",
+    "Akkukachel bei reinen Gerätequittierungen und Renderdiagnosen nicht neu aktualisiert",
+    "Testabschluss wartet auf bereits empfangene Updates"
+  ],
+  "verification": {
+    "targeted_node_tests": 123,
+    "client_tests": 56,
+    "browser_surface_checks": 284,
+    "update_performance_paths": 78,
+    "mixed_load_checks": 6,
+    "browser_transport_checks": 10,
+    "live_tournament_rerun": false
+  }
+}

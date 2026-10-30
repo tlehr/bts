@@ -265,6 +265,10 @@ var change = (function() {
 		if (cval.now_on_court !== undefined) {
 			m.setup.now_on_court = cval.now_on_court;
 		}
+		for (const field of ['needs_preparation_successor', 'needs_preparation_successor_ts']) {
+			if (field in cval) m.setup[field] = cval[field];
+			else delete m.setup[field];
+		}
 		return m;
 	}
 
@@ -314,7 +318,7 @@ var change = (function() {
 				if (!(window.localStorage.getItem('enable_free_announcements') === 'true')) {
 					return;
 				}
-				announce([c.val.text], false, _announcement_claim_key(c, 'free_announce'));
+				announce([c.val.text], false, _announcement_claim_key(c, 'free_announce'), { speechMode: c.val.speech_mode });
 			});
 			break;
 		case 'emergency_announce':
@@ -626,15 +630,20 @@ var change = (function() {
 			curt.courts = curt.courts.map(court => courts.get(court._id) || court);
 			curt.courts_by_id = Object.fromEntries(curt.courts.map(court => [court._id, court]));
 			// Keep the settings form and its pending action/status intact.
-			if (current_view !== 'edit') ctournament.refresh_current_view();
+			if (current_view !== 'edit') ctournament.refresh_current_view({matchListsOnly:true});
 			break;
 		}
 		case 'player_pause_reset':
-			if (ctournament && typeof ctournament.refresh_current_view === 'function') {
-				ctournament.refresh_current_view();
-			} else {
-				rerender();
+			// The notification contains counts, not refreshed match snapshots.
+			// Apply the same pause-field reset to the existing local participants.
+			for (const match of curt.matches || []) for (const team of match.setup?.teams || []) for (const player of team.players || []) {
+				if (!player) continue;
+				delete player.last_time_on_court_ts;
+				delete player.tablet_last_time_on_court_ts;
+				delete player.tablet_break_until_ts;
+				if (player.tablet_break_active !== undefined) player.tablet_break_active = false;
 			}
+			ctournament.refresh_player_pauses();
 			break;
 		case 'normalization_add':
 			ctournament.add_normalization(c);
@@ -765,15 +774,13 @@ var change = (function() {
 				if(!curt.btp_settings) {
 					curt.btp_settings = {};
 				}
-				const previous_check_in_per_match = curt.btp_settings.check_in_per_match;
 				const btp_settings = c.val.btp_settings;
+				const changed_fields = [];
 				for (const [key, value] of Object.entries(btp_settings)) {
+					if (!utils.deep_equal(curt.btp_settings[key], value)) changed_fields.push(key);
 					curt.btp_settings[key] = value;
 				}
-				ctournament.update_btp_settings_ui();
-				if (previous_check_in_per_match !== curt.btp_settings.check_in_per_match) {
-					ctournament.refresh_current_view();
-				}
+				if (changed_fields.length) ctournament.update_btp_settings_ui(changed_fields);
 				break;
 			case 'update_btp_scoring_formats':
 				if(!curt.scoring_formats) {
@@ -912,16 +919,11 @@ var change = (function() {
 			if (!d) {
 				curt.displays[curt.displays.length] = display_setting;
 				curt.displays.sort(utils.cmp_key('client_id'));
+				ctournament.update_display(display_setting);
 				return;
 			} else {
-				d.court_id = display_setting.court_id;
-				d.displaysetting_id = display_setting.displaysetting_id;
-				d.online = display_setting.online;
-				if(display_setting.battery){
-					d.battery = display_setting.battery;
-				}
-				if (display_setting.display_render_stats) {
-					d.display_render_stats = display_setting.display_render_stats;
+				for (const field of ['court_id', 'displaysetting_id', 'online', 'hostname', 'panel_devicemode', 'client_ip', 'ip', 'battery', 'display_render_stats']) {
+					if (Object.prototype.hasOwnProperty.call(display_setting, field)) d[field] = display_setting[field];
 				}
 				
 				if(d.displaysetting_id != last_d.displaysetting_id){
@@ -932,11 +934,12 @@ var change = (function() {
 				cerror.silent('Display ' + display_setting.client_id + ' is ' + (display_setting.online ? 'online' : 'offline'));
 			}
 			if(!utils.deep_equal(d, last_d)){		
-				ctournament.update_display(d);
+				const tablet_fields = ['court_id', 'displaysetting_id', 'online', 'hostname', 'panel_devicemode', 'client_ip', 'ip', 'battery'];
+				ctournament.update_display(d, {tablets: !utils.plucked_deep_equal(d, last_d, tablet_fields)});
 			}
 			break;
 		case 'delete_display':
-			const client_id = c.val && c.val.client_id ? c.val.client_id : c.val;
+			const client_id = c.val && c.val.client_id != null ? c.val.client_id : c.val;
 			const display = utils.find(curt.displays, m => m.client_id === client_id);
 			if (display) {
 				utils.remove(curt.displays, display);
@@ -948,9 +951,10 @@ var change = (function() {
 			if (!d) {
 				break;
 			}
+			const became_online = d.online !== true;
 			d.online = true;
 			d.display_render_stats = c.val.display_render_stats;
-			ctournament.update_display(d);
+			ctournament.update_display(d, {tablets: became_online});
 			break;
 		case 'display_wait_for_done':
 			var d = utils.find(curt.displays, m => m.client_id === c.val.client_id);
@@ -961,7 +965,7 @@ var change = (function() {
 			d.wait_for_message_id = c.val.message_id || null;
 			if(!d.wait_for_done) {
 				d.wait_for_done = true;
-				ctournament.update_display(d);
+				ctournament.update_display(d, {tablets: false});
 			}
 			break;
 		case 'display_is_done':
@@ -973,7 +977,7 @@ var change = (function() {
 			if(d.wait_for_done && d.wait_for_ctype == c.val.ctype && message_id_matches) {
 				d.wait_for_done = false;
 				d.wait_for_message_id = null;
-				ctournament.update_display(d);
+				ctournament.update_display(d, {tablets: false});
 			}
 			break;
 		default:

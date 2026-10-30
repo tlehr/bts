@@ -1,0 +1,97 @@
+'use strict';
+/* eslint-disable no-console -- Report browser verification to the runner. */
+const fs=require('fs'),path=require('path');
+
+module.exports=async function({c,check,click,open,metrics,key,previews}) {
+ const passed=[],verify=async(name,expression)=>{await check(name,expression);passed.push(name);};
+ const search=async value=>c.evaluate(`(()=>{const input=document.querySelector('[data-board-search]');input.value=${JSON.stringify(value)};input.dispatchEvent(new Event('input',{bubbles:true}))})()`);
+ const sort=column=>click('.finished_container [data-action="finished-sort"][data-sort-key="'+column+'"]');
+ const toggle=(list,date)=>click('.'+list+' .ls-date-row[data-date="'+date+'"] .ls-date-toggle');
+ await open(1920,1080);
+ await c.evaluate(`
+  window.__dateKeys=container=>[...document.querySelectorAll('.'+container+' .ls-date-row')].map(row=>row.dataset.date).join('|');
+  window.__dateShown=(list,id)=>!!document.querySelector('.'+list+' tr[data-match_id="'+id+'"]').getBoundingClientRect().height;
+  window.__dateOpen=(list,date)=>[...document.querySelectorAll('.'+list+' .ls-date-row[data-date="'+date+'"] button')].every(button=>button.getAttribute('aria-expanded')==='true');
+  window.__dateEdit=(id,values,top={})=>{const match=structuredClone(curt.matches.find(match=>match._id===id));Object.assign(match.setup,values);Object.assign(match,top);crouting.on_change({ctype:'match_edit',tournament_key:'preview',val:{match__id:id,match}})};
+  window.__plannedRows=[...document.querySelectorAll('.unassigned_container tr[data-match_id]')];
+  window.__plannedNames=__plannedRows.map(row=>row.querySelector('.player'));
+  window.__plannedHeights=__plannedRows.map(row=>row.getBoundingClientRect().height);window.__dateWrites=__writes.length;
+ `);
+ await verify('Lists without stored dates do not guess a day from their clock times','!document.querySelector(\'.ls-date-row\')');
+ await c.evaluate('for(const match of curt.matches.filter(match=>cmatch.calc_section(match)===\'unassigned\')){match.setup.scheduled_date=\'2026-10-30\';cmatch.update_match_metadata(match,[\'scheduled_date\'])}');
+ await verify('Even a single recorded day keeps its visible date heading and starts expanded','__dateKeys(\'unassigned_container\')===\'2026-10-30\'&&__dateOpen(\'unassigned_container\',\'2026-10-30\')&&__plannedRows.every(row=>row.getBoundingClientRect().height>0)');
+ await c.evaluate('for(const [index,row] of __plannedRows.entries()){const match=curt.matches.find(match=>match._id===row.dataset.match_id);Object.assign(match.setup,{scheduled_date:index<3?\'2026-10-30\':\'2026-10-31\',match_name:index<3?\'Tag30\':\'Tag31\'});cmatch.update_match_metadata(match,[\'scheduled_date\',\'match_name\'])}');
+ await verify('Date changes add full weekday headings with accessible expand buttons','__dateKeys(\'unassigned_container\')===\'2026-10-30|2026-10-31\'&&[...document.querySelectorAll(\'.unassigned_container .ls-date-row\')].every(row=>row.querySelectorAll(\'.ico\').length===2&&row.querySelector(\'time\').dateTime===row.dataset.date&&row.querySelector(\'button\').type===\'button\'&&row.querySelector(\'button\').getAttribute(\'aria-controls\').split(\' \').every(id=>!!document.getElementById(id)))&&document.querySelector(\'.unassigned_container .ls-date-row\').textContent.includes(\'Freitag\')');
+ await verify('Unassigned games open only the earliest day without losing any rows, names or count','__dateOpen(\'unassigned_container\',\'2026-10-30\')&&!__dateOpen(\'unassigned_container\',\'2026-10-31\')&&__plannedRows.every((row,index)=>row.isConnected&&row.querySelector(\'.player\')===__plannedNames[index]&&(index<3?Math.abs(row.getBoundingClientRect().height-__plannedHeights[index])<.2:row.getBoundingClientRect().height===0))&&document.querySelector(\'[data-unassigned-count]\').textContent.trim()===\'9\'&&!document.querySelector(\'.courts_container .ls-date-row\')');
+ await c.evaluate('for(const id of [\'match-47\',\'match-50\'])document.querySelector(\'.unassigned_container tr[data-match_id="\'+id+\'"]\').classList.add(\'preparation_call_cutoff\');curt.location_preparation_selection_by_location_id={CH:{display_cutoff_match_id:\'match-47\',diagnostics_by_match_id:{}},SN:{display_cutoff_match_id:\'match-50\',diagnostics_by_match_id:{}}};cleitstand.refreshUnassigned(document.querySelector(\'.unassigned_container\'),{controlsChanged:false})');
+ await verify('Call limits stay with their game and collapse with a later day','document.querySelector(\'.unassigned_container tr[data-match_id="match-47"]\').nextElementSibling.classList.contains(\'ls-call-boundary\')&&document.querySelector(\'.ls-call-boundary[data-match-id="match-47"]\').getBoundingClientRect().height>0&&document.querySelector(\'.ls-call-boundary[data-match-id="match-50"]\').getBoundingClientRect().height===0');
+ await toggle('unassigned_container','2026-10-31');
+ await verify('A date click reveals the original future games and their call limit','__dateOpen(\'unassigned_container\',\'2026-10-31\')&&__plannedRows.every((row,index)=>Math.abs(row.getBoundingClientRect().height-__plannedHeights[index])<.2)&&document.querySelector(\'.ls-call-boundary[data-match-id="match-50"]\').getBoundingClientRect().height>0');
+ await toggle('unassigned_container','2026-10-31');await toggle('unassigned_container','2026-10-30');
+ await verify('Both days can be collapsed while their controls and total count stay visible','__plannedRows.every(row=>row.getBoundingClientRect().height===0)&&document.querySelectorAll(\'.unassigned_container .ls-date-row\').length===2&&document.querySelector(\'[data-unassigned-count]\').textContent.trim()===\'9\'');
+ await c.evaluate('document.querySelector(\'.unassigned_container .ls-date-toggle\').focus()');await key('Enter','Enter',13,'\r');
+ await verify('The keyboard reopens a day with its focus and chevron state preserved','__dateOpen(\'unassigned_container\',\'2026-10-30\')&&document.activeElement.classList.contains(\'ls-date-toggle\')&&document.activeElement.getAttribute(\'aria-expanded\')===\'true\'&&__dateShown(\'unassigned_container\',\'match-45\')');
+ await search('Tag31');
+ await verify('Searching finds games inside a collapsed day and temporarily opens its heading','__dateKeys(\'unassigned_container\')===\'2026-10-31\'&&__dateOpen(\'unassigned_container\',\'2026-10-31\')&&__dateShown(\'unassigned_container\',\'match-50\')&&document.querySelector(\'[data-unassigned-count]\').textContent.trim()===\'6 von 9\'&&document.querySelector(\'.ls-call-boundary[data-match-id="match-50"]\').getBoundingClientRect().height>0&&document.querySelector(\'.ls-call-boundary[data-match-id="match-47"]\').getBoundingClientRect().height===0');
+ await search('kein solches Spiel');
+ await verify('An empty search result leaves no orphan date headings or call limits','!document.querySelector(\'.ls-date-row\')&&[...document.querySelectorAll(\'.ls-call-boundary\')].every(row=>row.getBoundingClientRect().height===0)');
+ await search('');
+ await verify('Clearing search restores manual day choices around the existing rows','__dateKeys(\'unassigned_container\')===\'2026-10-30|2026-10-31\'&&__dateOpen(\'unassigned_container\',\'2026-10-30\')&&!__dateOpen(\'unassigned_container\',\'2026-10-31\')&&__plannedRows.every(row=>row.isConnected)');
+ await c.evaluate('__dateEdit(\'match-45\',{scheduled_date:\'2026-11-01\'})');
+ await verify('A live date correction retains the game and collapses its new future day','__dateKeys(\'unassigned_container\')===\'2026-10-30|2026-10-31|2026-11-01\'&&__plannedRows[0].isConnected&&!__dateShown(\'unassigned_container\',\'match-45\')&&document.querySelector(\'.unassigned_container tr[data-match_id="match-45"]\').previousElementSibling.dataset.date===\'2026-11-01\'');
+ await c.evaluate('__dateEdit(\'match-45\',{scheduled_date:\'2026-10-30\'});__dateEdit(\'match-47\',{}, {match_order:1})');
+ await verify('Native row reordering keeps the first date heading before the new first game','__dateKeys(\'unassigned_container\')===\'2026-10-30|2026-10-31\'&&document.querySelector(\'.unassigned_container .ls-date-row\').nextElementSibling.dataset.match_id===\'match-47\'&&__dateOpen(\'unassigned_container\',\'2026-10-30\')');
+ await c.evaluate('__dateEdit(\'match-53\',{scheduled_date:\'2026-02-30\'})');
+ await verify('An invalid date remains visible in an explicit unknown-date group','new Set(__dateKeys(\'unassigned_container\').split(\'|\')).size===3&&document.querySelector(\'.unassigned_container .ls-date-row[data-date=""]\').textContent===\'Datum nicht erfasst\'&&__dateShown(\'unassigned_container\',\'match-53\')');
+ await c.evaluate('cmatch.remove_match_from_gui(curt.matches.find(match=>match._id===\'match-53\'),\'unassigned\')');
+ await verify('Removing a game removes its empty group and leaves other expansion choices intact','__dateKeys(\'unassigned_container\')===\'2026-10-30|2026-10-31\'&&!document.querySelector(\'.unassigned_container tr[data-match_id="match-53"]\')&&!__dateOpen(\'unassigned_container\',\'2026-10-31\')');
+ await c.evaluate(`
+  __dateEdit('match-53',{scheduled_date:'2026-10-31'});
+  window.__dateFinished=(id,number,planned,start,end)=>__dateEdit(id,{state:'finished',now_on_court:false,match_num:number,scheduled_date:planned,scheduled_time_str:'09:00'},{team1_won:true,btp_winner:1,end_ts:Date.parse(end),duration_ms:Date.parse(end)-Date.parse(start),presses:[]});
+  __dateFinished('match-37',10,'2026-10-28','2026-10-30T22:40:00Z','2026-10-30T23:10:00Z');
+ `);
+ await verify('The first finished day remains labelled when sorting even a one-game list','__dateKeys(\'finished_container\')===\'2026-10-31\'&&__dateShown(\'finished_container\',\'match-37\')');
+ await sort('number');
+ await verify('Sorting finished games never removes the only known date','__dateKeys(\'finished_container\')===\'2026-10-31\'&&__dateOpen(\'finished_container\',\'2026-10-31\')');
+ await c.evaluate(`
+  __dateFinished('match-40',20,'2026-10-29','2026-10-30T18:00:00Z','2026-10-30T18:30:00Z');
+  __dateFinished('match-32',30,'2026-10-28','2026-10-30T23:20:00Z','2026-10-30T23:50:00Z');
+  window.__dateFinishedRows=[...document.querySelectorAll('.finished_container tr[data-match_id]')];window.__dateFinishedPlayers=__dateFinishedRows.map(row=>row.querySelector('.player'));
+ `);
+ await verify('Number sorting retains its requested order, repeats dates, and opens only the latest day','__dateKeys(\'finished_container\')===\'2026-10-31|2026-10-30|2026-10-31\'&&[...document.querySelectorAll(\'.finished_container tr[data-match_id] .match_num\')].map(node=>node.textContent).join(\',\')===\'10,20,30\'&&__dateShown(\'finished_container\',\'match-37\')&&!__dateShown(\'finished_container\',\'match-40\')&&__dateShown(\'finished_container\',\'match-32\')');
+ await toggle('finished_container','2026-10-31');
+ await verify('Repeated headings for the same day toggle all its games together','!__dateOpen(\'finished_container\',\'2026-10-31\')&&!__dateShown(\'finished_container\',\'match-37\')&&!__dateShown(\'finished_container\',\'match-32\')&&document.querySelector(\'[data-finished-count]\').textContent.trim()===\'3\'');
+ await toggle('finished_container','2026-10-31');
+ await sort('start');
+ await verify('Start sorting follows real start dates across midnight and keeps the latest date open','__dateKeys(\'finished_container\')===\'2026-10-30|2026-10-31\'&&!__dateShown(\'finished_container\',\'match-37\')&&!__dateShown(\'finished_container\',\'match-40\')&&__dateShown(\'finished_container\',\'match-32\')');
+ await sort('plan');
+ await verify('Plan sorting opens the latest planned date regardless of ascending row order','__dateKeys(\'finished_container\')===\'2026-10-28|2026-10-29\'&&!__dateShown(\'finished_container\',\'match-37\')&&__dateShown(\'finished_container\',\'match-40\')&&!__dateShown(\'finished_container\',\'match-32\')');
+ await toggle('finished_container','2026-10-28');await sort('plan');
+ await verify('A manually opened date remains open after reversing the sort without replacing rows or players','__dateKeys(\'finished_container\')===\'2026-10-29|2026-10-28\'&&__dateOpen(\'finished_container\',\'2026-10-28\')&&__dateFinishedRows.every((row,index)=>row.isConnected&&row.querySelector(\'.player\')===__dateFinishedPlayers[index])');
+ await c.evaluate('cmatch.render_finished(document.querySelector(\'.finished_container\'))');
+ await verify('A native table rebuild also preserves the manually opened date','__dateKeys(\'finished_container\')===\'2026-10-29|2026-10-28\'&&__dateOpen(\'finished_container\',\'2026-10-28\')&&__dateShown(\'finished_container\',\'match-37\')');
+ await c.evaluate('__dateEdit(\'match-40\',{scheduled_date:\'\'})');
+ await verify('Missing planned dates fall back to the saved actual date when sorting Plan','__dateKeys(\'finished_container\').split(\'|\').sort().join(\'|\')===\'2026-10-28|2026-10-30\'&&!!document.querySelector(\'.finished_container .ls-date-row[data-date="2026-10-30"]\')');
+ await c.evaluate('__dateEdit(\'match-40\',{scheduled_date:\'2026-10-29\'});const match=curt.matches.find(match=>match._id===\'match-37\');match.shuttle_count=3;cmatch.update_match_score(match)');
+ await verify('The optional ball column updates all date spans without counting headers as games','[...document.querySelectorAll(\'.finished_container .ls-date-row\')].every(row=>row.firstChild.colSpan===12)&&document.querySelector(\'[data-finished-count]\').textContent.trim()===\'3\'');
+ await sort('end');
+ await c.evaluate('window.__stableDateRows=[...document.querySelectorAll(\'.ls-date-row\')];window.__dateMutations=[];window.__dateObserver=new MutationObserver(records=>__dateMutations.push(...records));for(const body of document.querySelectorAll(\'.unassigned_container tbody,.finished_container tbody\'))__dateObserver.observe(body,{childList:true});cleitstand.refreshFinished();cleitstand.refreshUnassigned(document.querySelector(\'.unassigned_container\'),{controlsChanged:false})');
+ await verify('Unchanged list updates reuse date headings without moving game rows','__stableDateRows.every(row=>row.isConnected)&&__dateMutations.every(record=>record.addedNodes.length===0&&record.removedNodes.length===0)');
+ await c.evaluate('__dateObserver.disconnect();__dateEdit(\'match-40\',{match_name:\'NurFertig20\'})');await search('NurFertig20');
+ await verify('A search opens an older finished day with its full date still visible','__dateKeys(\'finished_container\')===\'2026-10-30\'&&__dateShown(\'finished_container\',\'match-40\')&&__dateOpen(\'finished_container\',\'2026-10-30\')');
+ await search('');
+ await verify('Clearing a finished search restores the collapsed older day','!__dateOpen(\'finished_container\',\'2026-10-30\')&&!__dateShown(\'finished_container\',\'match-40\')');
+ await c.evaluate('__dateFinished(\'match-36\',40,\'2026-11-01\',\'2026-11-01T10:00:00Z\',\'2026-11-01T10:30:00Z\')');
+ await verify('A new latest finished day opens automatically and closes untouched older dates','__dateShown(\'finished_container\',\'match-36\')&&!__dateShown(\'finished_container\',\'match-40\')');
+ for(const width of [1920,1536,390]) {
+  await metrics(width,1080);
+  await c.evaluate('for(const wrap of document.querySelectorAll(\'.unassigned_container .table-wrap,.finished_container .table-wrap\'))wrap.scrollLeft=200');
+  await verify('Date controls remain compact and visible while horizontally scrolling at '+width+' pixels','(()=>{return document.documentElement.scrollWidth<=innerWidth&&[...document.querySelectorAll(\'.ls-date-label\')].every(label=>{const box=label.getBoundingClientRect(),wrap=label.closest(\'.table-wrap\').getBoundingClientRect();return box.left>=wrap.left&&box.right<=Math.min(wrap.right,innerWidth)&&label.closest(\'tr\').getBoundingClientRect().height<=24})})()');
+ }
+ await verify('Day choices, searches and sorting never write to the tournament','__writes.length===__dateWrites');
+ await metrics(1920,1080);await c.evaluate('window.scrollTo(0,0);for(const wrap of document.querySelectorAll(\'.table-wrap\'))wrap.scrollLeft=0');
+ const clip=await c.evaluate('(()=>{const box=document.querySelector(\'.unassigned_container\').getBoundingClientRect();return {x:box.left+scrollX,y:box.top+scrollY,width:box.width,height:box.height,scale:1}})()');
+ const shot=await c.call('Page.captureScreenshot',{format:'png',captureBeyondViewport:true,clip});fs.writeFileSync(path.join(previews,'datumstrenner.png'),Buffer.from(shot.data,'base64'));
+ const exceptions=c.events.filter(event=>event.method==='Runtime.exceptionThrown');await verify('Date groups produce no browser exceptions',String(exceptions.length===0));
+ fs.writeFileSync(path.join(previews,'date-groups-verification.json'),JSON.stringify({date:'2026-10-30',checks:passed,exceptions:exceptions.length},null,2)+'\n');console.log(JSON.stringify({checks:passed.length,exceptions:exceptions.length}));
+};

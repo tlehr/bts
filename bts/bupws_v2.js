@@ -3323,6 +3323,8 @@ async function handle_score_update(app, ws, msg) {
 							end_ts: updated_match.end_ts,
 							court_id: updated_match.setup && updated_match.setup.court_id,
 							now_on_court: updated_match.setup && updated_match.setup.now_on_court,
+							needs_preparation_successor: updated_match.setup?.needs_preparation_successor,
+							needs_preparation_successor_ts: updated_match.setup?.needs_preparation_successor_ts,
 						});
 						// Finish cleanup still holds shared participant/preparation locks.
 						// Keep UI work paused until those locks are released, so another

@@ -49,6 +49,60 @@ function singleMatchBtpState(overrides = {}) {
 }
 
 _describe('btp_sync', () => {
+	_it('preserves an unconfirmed final score and avoids a repeated BTP court call while automation is paused', async () => {
+		const db = await database.init_test();
+		const app = { db, wss: { clients: [] }, _btp_sync_effects: [], clock: { now_ms: () => 1000000 } };
+		await insert(db, 'tournaments', {
+			key: 'default', btp_enabled: false, automation_enabled: false, btp_settings: {}, official_rotation_mode: 'disabled',
+		});
+		await insert(db, 'courts', {
+			_id: 'court-13', tournament_key: 'default', num: 13, btp_id: 21, is_active: true, match_id: null,
+		});
+		const state = singleMatchBtpState({ CourtID: [21] });
+		state.courts.set(21, { ID: [21], MatchID: [1] });
+		const sync = () => new Promise((resolve, reject) => btp_sync._integrate_matches(
+			app, 'default', state, new Map(), new Map(), new Map([[21, 'court-13']]), err => err ? reject(err) : resolve()));
+		const admin = require('../bts/admin');
+		const original_notify = admin.notify_change;
+		const original_highlight = btp_manager.update_highlight;
+		const notifications = [];
+		admin.notify_change = (_app, _key, type) => notifications.push(type);
+		btp_manager.update_highlight = () => {};
+		try {
+			await sync();
+			const id = 'btp_default_MX U17_1';
+			const score = [[21, 14], [15, 21], [21, 19]];
+			const presses = [{ type: 'score', side: 'left', timestamp: 999000 }];
+			await db.matches.update_async({ _id: id }, { $set: {
+				network_score: score, presses, end_ts: 999000, btp_needsync: false,
+				'setup.state': 'oncourt', 'setup.now_on_court': true, 'setup.called_timestamp': 1000,
+			} }, {});
+			const pending = await db.matches.findOne_async({ _id: id });
+			assert.strictEqual(pending.btp_winner, undefined);
+			assert.strictEqual(pending.team1_won, undefined);
+			assert.strictEqual(btp_sync._btp_match_clears_local_normal_result(pending, state.matches[0]), false);
+			await sync();
+			await sync();
+			notifications.length = 0;
+			await new Promise((resolve, reject) => btp_sync._integrate_now_on_court(
+				app, 'default', err => err ? reject(err) : resolve()));
+			const current = await db.matches.findOne_async({ _id: id });
+			assert.deepStrictEqual(current.network_score, score);
+			assert.deepStrictEqual(current.presses, presses);
+			assert.strictEqual(current.end_ts, 999000);
+			assert.strictEqual(current.btp_winner, undefined);
+			assert.strictEqual(current.team1_won, undefined);
+			assert.strictEqual(current.setup.now_on_court, true);
+			assert.strictEqual(current.setup.state, 'oncourt');
+			assert.strictEqual(current.setup.called_timestamp, 1000);
+			assert.strictEqual((await db.tournaments.findOne_async({ key: 'default' })).automation_enabled, false);
+			assert(!notifications.includes('match_called_on_court'));
+		} finally {
+			admin.notify_change = original_notify;
+			btp_manager.update_highlight = original_highlight;
+		}
+	});
+
 	_it('retains the tablet finish identity through BTP result corrections and clears it for a genuine result reset', async () => {
 		const db = await database.init_test();
 		const app = { db, wss: { clients: [] }, _btp_sync_effects: [] };

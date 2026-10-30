@@ -1,0 +1,562 @@
+{
+  "scope": "Tablet send to real browser presentation receipt; full isolated server benchmark. External BTP, ticker and speech services disabled.",
+  "runtime_ms": 600262,
+  "stop_reason": "completed",
+  "failure": null,
+  "target_max_ms": 350,
+  "target_max_inclusive": true,
+  "target_p95_ms": 120,
+  "complete": true,
+  "all_scores_presented": true,
+  "stable_server": true,
+  "maximum_matches_report": true,
+  "percentile_matches_report": true,
+  "target_met": true,
+  "admin": {
+    "count": 1331,
+    "mean": 41.7,
+    "min": 19,
+    "p50": 34,
+    "p95": 75,
+    "p99": 217,
+    "max": 302,
+    "over_50_ms": 176,
+    "over_100_ms": 50,
+    "over_200_ms": 17,
+    "sent_updates": 1331,
+    "unmatched_updates": 0,
+    "coverage": 1
+  },
+  "tv": {
+    "count": 1331,
+    "mean": 4.6,
+    "min": 2,
+    "p50": 4,
+    "p95": 10,
+    "p99": 20,
+    "max": 39,
+    "over_50_ms": 0,
+    "over_100_ms": 0,
+    "over_200_ms": 0,
+    "sent_updates": 1331,
+    "unmatched_updates": 0,
+    "coverage": 1
+  },
+  "maxima_over_target": 0,
+  "worst": [
+    {
+      "trace_id": "live-drill-2954753-mvv2wpmu-1091",
+      "sent_ts": 1793371199430,
+      "court_id": "default_12",
+      "match_id": "btp_default_JE U17_876",
+      "tv_ms": 36,
+      "tv_received_ts": 1793371199466,
+      "admin_ms": 302,
+      "admin_received_ts": 1793371199685,
+      "admin_applied_ts": 1793371199705,
+      "admin_presented_ts": 1793371199732,
+      "admin_presentation_status": "presented",
+      "admin_ui_ms": {
+        "queue_ms": 18.4,
+        "handler_ms": 1.6,
+        "ui_wait_ms": 0,
+        "render_ms": 27.4,
+        "total_ms": 47.4
+      },
+      "admin_measurement_method": "dom-and-render-opportunity",
+      "admin_ui_jobs": []
+    },
+    {
+      "trace_id": "live-drill-2954753-mvv2mgpi-106",
+      "sent_ts": 1793370721302,
+      "court_id": "default_9",
+      "match_id": "btp_default_ME U13_637",
+      "tv_ms": 7,
+      "tv_received_ts": 1793370721309,
+      "admin_ms": 296,
+      "admin_received_ts": 1793370721413,
+      "admin_applied_ts": 1793370721483,
+      "admin_presented_ts": 1793370721598,
+      "admin_presentation_status": "presented",
+      "admin_ui_ms": {
+        "queue_ms": 68.4,
+        "handler_ms": 0.9,
+        "ui_wait_ms": 0,
+        "render_ms": 115.8,
+        "total_ms": 185.1
+      },
+      "admin_measurement_method": "dom-and-render-opportunity",
+      "admin_ui_jobs": []
+    },
+    {
+      "trace_id": "live-drill-2954753-mvv2xqs3-1237",
+      "sent_ts": 1793371247571,
+      "court_id": "default_8",
+      "match_id": "btp_default_ME U15_797",
+      "tv_ms": 21,
+      "tv_received_ts": 1793371247592,
+      "admin_ms": 284,
+      "admin_received_ts": 1793371247706,
+      "admin_applied_ts": 1793371247767,
+      "admin_presented_ts": 1793371247855,
+      "admin_presentation_status": "presented",
+      "admin_ui_ms": {
+        "queue_ms": 60.2,
+        "handler_ms": 0.9,
+        "ui_wait_ms": 0,
+        "render_ms": 88.2,
+        "total_ms": 149.3
+      },
+      "admin_measurement_method": "dom-and-render-opportunity",
+      "admin_ui_jobs": []
+    },
+    {
+      "trace_id": "live-drill-2954753-mvv2xeuv-1189",
+      "sent_ts": 1793371232119,
+      "court_id": "default_12",
+      "match_id": "btp_default_JE U17_876",
+      "tv_ms": 24,
+      "tv_received_ts": 1793371232143,
+      "admin_ms": 277,
+      "admin_received_ts": 1793371232334,
+      "admin_applied_ts": 1793371232379,
+      "admin_presented_ts": 1793371232396,
+      "admin_presentation_status": "presented",
+      "admin_ui_ms": {
+        "queue_ms": 43.4,
+        "handler_ms": 1.1,
+        "ui_wait_ms": 0,
+        "render_ms": 17,
+        "total_ms": 61.5
+      },
+      "admin_measurement_method": "dom-and-render-opportunity",
+      "admin_ui_jobs": []
+    },
+    {
+      "trace_id": "live-drill-2954753-mvv2rbec-736",
+      "sent_ts": 1793370947700,
+      "court_id": "default_8",
+      "match_id": "btp_default_ME U15_797",
+      "tv_ms": 4,
+      "tv_received_ts": 1793370947704,
+      "admin_ms": 274,
+      "admin_received_ts": 1793370947819,
+      "admin_applied_ts": 1793370947925,
+      "admin_presented_ts": 1793370947974,
+      "admin_presentation_status": "presented",
+      "admin_ui_ms": {
+        "queue_ms": 105.4,
+        "handler_ms": 1.2,
+        "ui_wait_ms": 0,
+        "render_ms": 49.2,
+        "total_ms": 155.8
+      },
+      "admin_measurement_method": "dom-and-render-opportunity",
+      "admin_ui_jobs": []
+    },
+    {
+      "trace_id": "live-drill-2954753-mvv2n36j-194",
+      "sent_ts": 1793370750427,
+      "court_id": "default_1",
+      "match_id": "btp_default_ME U13_639",
+      "tv_ms": 3,
+      "tv_received_ts": 1793370750430,
+      "admin_ms": 270,
+      "admin_received_ts": 1793370750459,
+      "admin_applied_ts": 1793370750556,
+      "admin_presented_ts": 1793370750697,
+      "admin_presentation_status": "presented",
+      "admin_ui_ms": {
+        "queue_ms": 2.7,
+        "handler_ms": 9.8,
+        "ui_wait_ms": 83.7,
+        "render_ms": 140.9,
+        "total_ms": 237.1
+      },
+      "admin_measurement_method": "dom-and-render-opportunity",
+      "admin_ui_jobs": [
+        {
+          "name": "lists.counts",
+          "requested_ms": 4.9,
+          "queue_ms": 8.1,
+          "work_ms": 8.2,
+          "elapsed_ms": 16.3,
+          "status": "complete"
+        },
+        {
+          "name": "names.layout",
+          "requested_ms": 7.7,
+          "queue_ms": 16.2,
+          "work_ms": 72.3,
+          "elapsed_ms": 88.5,
+          "status": "complete"
+        },
+        {
+          "name": "finished.sort",
+          "requested_ms": 8.4,
+          "queue_ms": 12.8,
+          "work_ms": 2.4,
+          "elapsed_ms": 15.2,
+          "status": "complete"
+        }
+      ]
+    },
+    {
+      "trace_id": "live-drill-2954753-mvv2n7mv-210",
+      "sent_ts": 1793370756199,
+      "court_id": "default_11",
+      "match_id": "btp_default_ME U13_636",
+      "tv_ms": 5,
+      "tv_received_ts": 1793370756204,
+      "admin_ms": 267,
+      "admin_received_ts": 1793370756389,
+      "admin_applied_ts": 1793370756403,
+      "admin_presented_ts": 1793370756466,
+      "admin_presentation_status": "presented",
+      "admin_ui_ms": {
+        "queue_ms": 12.1,
+        "handler_ms": 1.4,
+        "ui_wait_ms": 0,
+        "render_ms": 62.7,
+        "total_ms": 76.2
+      },
+      "admin_measurement_method": "dom-and-render-opportunity",
+      "admin_ui_jobs": []
+    },
+    {
+      "trace_id": "live-drill-2954753-mvv2q8j6-605",
+      "sent_ts": 1793370897330,
+      "court_id": "default_4",
+      "match_id": "btp_default_JE U15_717",
+      "tv_ms": 6,
+      "tv_received_ts": 1793370897336,
+      "admin_ms": 266,
+      "admin_received_ts": 1793370897471,
+      "admin_applied_ts": 1793370897516,
+      "admin_presented_ts": 1793370897596,
+      "admin_presentation_status": "presented",
+      "admin_ui_ms": {
+        "queue_ms": 44,
+        "handler_ms": 0.5,
+        "ui_wait_ms": 0,
+        "render_ms": 80.3,
+        "total_ms": 124.8
+      },
+      "admin_measurement_method": "dom-and-render-opportunity",
+      "admin_ui_jobs": []
+    },
+    {
+      "trace_id": "live-drill-2954753-mvv2wpo6-1092",
+      "sent_ts": 1793371199478,
+      "court_id": "default_8",
+      "match_id": "btp_default_ME U15_797",
+      "tv_ms": 26,
+      "tv_received_ts": 1793371199504,
+      "admin_ms": 255,
+      "admin_received_ts": 1793371199685,
+      "admin_applied_ts": 1793371199709,
+      "admin_presented_ts": 1793371199733,
+      "admin_presentation_status": "presented",
+      "admin_ui_ms": {
+        "queue_ms": 22.7,
+        "handler_ms": 0.9,
+        "ui_wait_ms": 0,
+        "render_ms": 24,
+        "total_ms": 47.6
+      },
+      "admin_measurement_method": "dom-and-render-opportunity",
+      "admin_ui_jobs": []
+    },
+    {
+      "trace_id": "live-drill-2954753-mvv2xew4-1190",
+      "sent_ts": 1793371232164,
+      "court_id": "default_13",
+      "match_id": "btp_default_ME U15_800",
+      "tv_ms": 6,
+      "tv_received_ts": 1793371232170,
+      "admin_ms": 246,
+      "admin_received_ts": 1793371232335,
+      "admin_applied_ts": 1793371232393,
+      "admin_presented_ts": 1793371232410,
+      "admin_presentation_status": "presented",
+      "admin_ui_ms": {
+        "queue_ms": 56.8,
+        "handler_ms": 0.9,
+        "ui_wait_ms": 0,
+        "render_ms": 16.9,
+        "total_ms": 74.6
+      },
+      "admin_measurement_method": "dom-and-render-opportunity",
+      "admin_ui_jobs": []
+    }
+  ],
+  "ui_jobs": {
+    "timers.fit": {
+      "count": 127,
+      "queue_ms": {
+        "mean": 14.58,
+        "max": 112.8
+      },
+      "work_ms": {
+        "mean": 1.04,
+        "max": 9
+      },
+      "elapsed_ms": {
+        "mean": 82.03,
+        "max": 399.4
+      }
+    },
+    "names.layout": {
+      "count": 192,
+      "queue_ms": {
+        "mean": 12.49,
+        "max": 34.5
+      },
+      "work_ms": {
+        "mean": 32.46,
+        "max": 144.9
+      },
+      "elapsed_ms": {
+        "mean": 44.96,
+        "max": 164.6
+      }
+    },
+    "lists.counts": {
+      "count": 111,
+      "queue_ms": {
+        "mean": 7.03,
+        "max": 18.6
+      },
+      "work_ms": {
+        "mean": 8.4,
+        "max": 19.4
+      },
+      "elapsed_ms": {
+        "mean": 15.44,
+        "max": 28.4
+      }
+    },
+    "preparation.diagnosis": {
+      "count": 153,
+      "queue_ms": {
+        "mean": 134.49,
+        "max": 620.2
+      },
+      "work_ms": {
+        "mean": 20.25,
+        "max": 42.9
+      },
+      "elapsed_ms": {
+        "mean": 301.6,
+        "max": 797.7
+      }
+    },
+    "locations.labels": {
+      "count": 247,
+      "queue_ms": {
+        "mean": 28.44,
+        "max": 157.1
+      },
+      "work_ms": {
+        "mean": 0.65,
+        "max": 2.3
+      },
+      "elapsed_ms": {
+        "mean": 29.11,
+        "max": 158.1
+      }
+    },
+    "finished.sort": {
+      "count": 34,
+      "queue_ms": {
+        "mean": 9.99,
+        "max": 17.2
+      },
+      "work_ms": {
+        "mean": 3.96,
+        "max": 5.6
+      },
+      "elapsed_ms": {
+        "mean": 13.95,
+        "max": 22.5
+      }
+    }
+  },
+  "date": "2026-10-30",
+  "source": "/tmp/bts-under500-run-18.json",
+  "source_archive": "/home/tim/repos/bts-testclient/reports/run-2026-10-30T14-31-17-979Z-b9n1Ag",
+  "initial_state": {
+    "matches": 373,
+    "finished_matches": 134,
+    "active_matches": 15,
+    "active_courts": 15,
+    "pending_player_checkins": 0,
+    "pending_players": 0,
+    "check_in_per_match": true,
+    "state_sha256": "9af30ec98e135eb3fe0eafb5f424f2e99496ccf878022820c8b93073250c104a"
+  },
+  "settings": {
+    "tournament": "under500lab",
+    "base_url": "http://127.0.0.1:45433",
+    "point_interval_ms": [
+      3200,
+      6400
+    ],
+    "score_gap_ms": [
+      0,
+      0
+    ],
+    "pause_visible_ms": 3000,
+    "score_all_active": true,
+    "legacy_loopback_devices": false,
+    "server_telemetry": true,
+    "processing_traces": true,
+    "score_probability": [
+      0.4,
+      0.6
+    ]
+  },
+  "code_sha256": {
+    "static/js/cleitstand.js": "1a26c6c007cee4d6587a5038ddb46c07f98d077893cc0d03fb3a25b9ac6a5b8d",
+    "static/js/cmatch.js": "11e500dffd41ad21256d5d59b2a12a2bdb7a42c1e040833453ff634294aabd70",
+    "static/js/ctournament.js": "27e396605909195061e575e44d0b174585259f69cbcf144ebcec1e5309e40ce7",
+    "static/js/conn.js": "b87ecc10d7c3cf9c3d6201e2a4d401e6ddcf12d2cde8163fb162ebf500ad7b21",
+    "static/js/admin_update_observer.js": "ddd44cfd0acf3e951f95d41cadf7cb8e9691c84feb14e9848c018b7047abeca4",
+    "static/css/leitstand.css": "2f9cf1e0373230e0db94165d9cfacfb47da24c3720261b6d178382b421371b60"
+  },
+  "optimization": [
+    "Limit table paint/layout invalidation and composite overdue-clock opacity instead of repainting changing strokes.",
+    "Measure name stages in independent, hidden copies with the same CSS ancestry outside the real tables.",
+    "Cache intrinsic name-stage widths, batch all visible label writes after geometry reads, and keep resize notifications from remeasuring intrinsic official widths.",
+    "Fit new clocks from their ResizeObserver geometry; retain the same owned fitting job until the observation and fitting complete.",
+    "Cache preparation-control widths by labels/font and keep a mounted device-table reference for acknowledgement traffic."
+  ],
+  "comparison": {
+    "baseline_run": 9,
+    "baseline_max_ms": 463,
+    "optimized_max_ms": 302,
+    "baseline_p95_ms": 160,
+    "optimized_p95_ms": 75,
+    "identical_initial_state": true,
+    "identical_settings": true,
+    "identical_match_court_sequence": false,
+    "note": "Same initial state and configuration; asynchronous execution produces different point sequences and counts."
+  },
+  "attempts": [
+    {
+      "run": 12,
+      "optimization": "Paint containment and composited overdue warning",
+      "source": "/tmp/bts-under500-run-12.json",
+      "runtime_ms": 228641,
+      "stop_reason": "interrupted",
+      "admin": {
+        "count": 637,
+        "mean": 49.4,
+        "min": 21,
+        "p50": 37,
+        "p95": 93,
+        "p99": 287,
+        "max": 668,
+        "over_50_ms": 119,
+        "over_100_ms": 29,
+        "over_200_ms": 15,
+        "sent_updates": 637,
+        "unmatched_updates": 0,
+        "coverage": 1
+      },
+      "accepted": false,
+      "diagnostic_instrumentation": false
+    },
+    {
+      "run": 14,
+      "optimization": "Contained name probes, cached stage widths, batched labels and cached device table",
+      "source": "/tmp/bts-under500-run-14.json",
+      "runtime_ms": 343478,
+      "stop_reason": "interrupted",
+      "admin": {
+        "count": 949,
+        "mean": 46.3,
+        "min": 17,
+        "p50": 35,
+        "p95": 85,
+        "p99": 319,
+        "max": 688,
+        "over_50_ms": 132,
+        "over_100_ms": 40,
+        "over_200_ms": 24,
+        "sent_updates": 949,
+        "unmatched_updates": 0,
+        "coverage": 1
+      },
+      "accepted": false,
+      "diagnostic_instrumentation": true
+    },
+    {
+      "run": 16,
+      "optimization": "Observed clock geometry and cached preparation-control widths",
+      "source": "/tmp/bts-under500-run-16.json",
+      "runtime_ms": 310499,
+      "stop_reason": "interrupted",
+      "admin": {
+        "count": 871,
+        "mean": 47.5,
+        "min": 16,
+        "p50": 37,
+        "p95": 98,
+        "p99": 277,
+        "max": 467,
+        "over_50_ms": 171,
+        "over_100_ms": 42,
+        "over_200_ms": 20,
+        "sent_updates": 871,
+        "unmatched_updates": 0,
+        "coverage": 1
+      },
+      "accepted": false,
+      "diagnostic_instrumentation": false
+    }
+  ],
+  "verification": {
+    "frontend_and_acceptance_node_tests": 97,
+    "browser_cache_checks": 28,
+    "browser_ownership_checks": 13,
+    "browser_surface_checks": 284,
+    "browser_device_table_cache_checks": 6,
+    "structural_stress": {
+      "match_count": 373,
+      "timer_count": 200,
+      "structural_changes": 7,
+      "stats": {
+        "applied": {
+          "count": 52,
+          "p50": 0.6000000238418579,
+          "p95": 12.399999976158142,
+          "max": 53.39999997615814
+        },
+        "independent": {
+          "count": 52,
+          "p50": 26.199999928474426,
+          "p95": 126.60000002384186,
+          "max": 183.39999997615814
+        },
+        "ack": {
+          "count": 52,
+          "p50": 26.2,
+          "p95": 126.6,
+          "max": 183.5
+        }
+      },
+      "outcomes": {
+        "presented": 1407
+      },
+      "scope": "Additional synthetic test with full-column changes every 2.6 seconds; the 120 ms end-to-end percentile is validated in the complete real-server run."
+    },
+    "frozen_code_hashes_preserved": true,
+    "isolated_server_stopped": true
+  },
+  "limitations": [
+    "Isolated local replica. External BTP, ticker and speech services disabled; real Wi-Fi, live BTP and physical screen output are not measured.",
+    "All score updates, including game finishes, remain in the acceptance population. Receipts wait for owned UI work, clock observation/fitting and two rendering opportunities.",
+    "A passing finite benchmark demonstrates this run, not a guaranteed latency bound under arbitrary system or network load."
+  ]
+}

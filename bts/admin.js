@@ -156,7 +156,8 @@ function handle_tournament_edit_props(app, ws, msg) {
 		'tabletoperator_set_break_after_tabletservice','tabletoperator_with_state_enabled',
 		'tabletoperator_with_state_from_match_enabled',
 		'tabletoperator_winner_of_quaterfinals_enabled','tabletoperator_split_doubles',
-		'tabletoperator_use_manual_counting_boards_enabled', 'tabletoperator_with_umpire_enabled', 
+		'tabletoperator_use_manual_counting_boards_enabled', 'tabletoperator_with_umpire_enabled',
+		'tabletoperator_release_on_umpire_enabled',
 		'annoncement_include_event', 'annoncement_include_round','annoncement_include_matchnumber',
 		'no_match_cascade_announcements_enabled',
 		'preparation_meetingpoint_enabled', 'preparation_tabletoperator_setup_enabled',
@@ -309,6 +310,7 @@ function handle_tournament_edit_prop(app, ws, msg) {
 		'tabletoperator_winner_of_quaterfinals_enabled', 'tabletoperator_split_doubles',
 		'tabletoperator_assignment_scope',
 		'tabletoperator_use_manual_counting_boards_enabled', 'tabletoperator_with_umpire_enabled',
+		'tabletoperator_release_on_umpire_enabled',
 		'annoncement_include_event', 'annoncement_include_round', 'annoncement_include_matchnumber',
 		'no_match_cascade_announcements_enabled',
 		'preparation_meetingpoint_enabled', 'preparation_tabletoperator_setup_enabled',
@@ -1443,6 +1445,9 @@ function handle_tabletoperator_add(app, ws, msg) {
 
 		}
 		if (team != null) {
+			try {
+				await require('./match_reconciliation/tablet_queue').assert_available(app, tournament_key, team.players);
+			} catch (activity_error) { return ws.respond(msg, activity_error); }
 			team.players.forEach((player) => {
 				var tabletoperator = [];
 				if (tournament.tabletoperator_with_state_enabled && player.state) {
@@ -1491,6 +1496,7 @@ function _normalize_tabletoperator_participants_for_assignment(tabletoperators, 
 	return _clone_match_tabletoperators(tabletoperators).map((participant) => ({
 		...participant,
 		now_tablet_on_court: court_id || false,
+		now_playing_on_court: false,
 		tablet_break_active: false,
 	}));
 }
@@ -1499,6 +1505,7 @@ function _normalize_tabletoperator_participants_for_waiting_list(tabletoperators
 	return _clone_match_tabletoperators(tabletoperators).map((participant) => ({
 		...participant,
 		now_tablet_on_court: false,
+		now_playing_on_court: false,
 		tablet_break_active: false,
 	}));
 }
@@ -1740,8 +1747,9 @@ function _set_tabletoperator_player_flags(app, tournament_key, assigned_tabletop
 					if (!_tabletoperator_participant_matches(player, assigned_match_keys)) {
 						return;
 					}
-					if (player.now_tablet_on_court !== court_id || player.checked_in !== false || player.tablet_break_active !== false) {
+					if (player.now_tablet_on_court !== court_id || player.now_playing_on_court || player.checked_in !== false || player.tablet_break_active !== false) {
 						player.now_tablet_on_court = court_id;
+						player.now_playing_on_court = false;
 						player.checked_in = false;
 						player.tablet_break_active = false;
 						players_to_update.push(player);
@@ -1778,7 +1786,8 @@ function _set_tabletoperator_player_flags(app, tournament_key, assigned_tabletop
 			}
 			const match_utils = require('./match_utils');
 			match_utils.queue_reconcile_player_court_flags(app, tournament_key);
-			return callback(null);
+			require('./match_reconciliation/tablet_queue').remove_waiting(app, tournament_key, assigned_tabletoperators)
+				.then(() => callback(null), callback);
 		});
 	});
 }
@@ -1790,7 +1799,7 @@ function _replace_match_edit_tabletoperator(app, tournament_key, old_match, setu
 	const release_participant_index = _tabletoperator_release_participant_index(tabletoperator_assignment_id);
 	const assignment_court_id = setup?.court_id || old_match?.setup?.court_id || false;
 
-	_find_tabletoperator_replacement_participant(app, tournament_key, replacement_name, replacement_btp_id, (find_err, replacement_participant) => {
+	_find_tabletoperator_replacement_participant(app, tournament_key, replacement_name, replacement_btp_id, async (find_err, replacement_participant) => {
 		if (find_err) {
 			return callback(find_err);
 		}
@@ -1812,6 +1821,10 @@ function _replace_match_edit_tabletoperator(app, tournament_key, old_match, setu
 		const next_tabletoperators = replace_single
 			? current_tabletoperators.map((participant, index) => index === release_participant_index ? replacement_participant : participant)
 			: [replacement_participant];
+		try {
+			await require('./match_reconciliation/tablet_queue').validate_match(app, tournament_key,
+				{ _id: old_match._id, setup: { ...setup, tabletoperators: next_tabletoperators } });
+		} catch (activity_error) { return callback(activity_error); }
 
 		setup.tabletoperators = _normalize_tabletoperator_participants_for_assignment(next_tabletoperators, assignment_court_id);
 		if (!assignment_court_id) {
@@ -1864,7 +1877,7 @@ function _apply_match_edit_tabletoperator_assignment(app, tournament_key, old_ma
 		_id: tabletoperator_assignment_id,
 		tournament_key,
 		court: null,
-	}, (find_err, queued_entry) => {
+	}, async (find_err, queued_entry) => {
 		if (find_err) {
 			return callback(find_err);
 		}
@@ -1873,6 +1886,10 @@ function _apply_match_edit_tabletoperator_assignment(app, tournament_key, old_ma
 		}
 
 		const selected_tabletoperators = _normalize_tabletoperator_participants_for_assignment(queued_entry.tabletoperator, setup.court_id);
+		try {
+			await require('./match_reconciliation/tablet_queue').validate_match(app, tournament_key,
+				{ _id: old_match._id, setup: { ...setup, tabletoperators: selected_tabletoperators } });
+		} catch (activity_error) { return callback(activity_error); }
 		const previous_tabletoperators = _normalize_tabletoperator_participants_for_waiting_list(old_match?.setup?.tabletoperators);
 		setup.tabletoperators = selected_tabletoperators;
 		const previous_tabletoperator_ids = [...new Set(previous_tabletoperators
@@ -3323,12 +3340,26 @@ function handle_match_participant_check_in(app, ws, msg) {
 						participant_found = true;
 					}
 				} else if (msg.role === 'tabletoperator' && Array.isArray(match.setup.tabletoperators)) {
-					match.setup.tabletoperators.forEach((participant) => {
-						if (participant.btp_id == msg.participant_id) {
-							participant.checked_in = checked_in;
-							participant_found = true;
+					if (msg.participant_ids !== undefined) {
+						const participants = match.setup.tabletoperators;
+						const ids = Array.isArray(msg.participant_ids) ? msg.participant_ids.map(String) : [];
+						const expected = participants.map(person => String(person.btp_id));
+						if (tournament?.tabletoperator_split_doubles || participants.length < 2 ||
+							ids.length !== expected.length || new Set(ids).size !== ids.length ||
+							participants.some(person => person.btp_id == null || Number(person.btp_id) < 0) ||
+							!expected.every(id => ids.includes(id))) {
+							return reject(new Error('Tablet operator pairing has changed or is called individually'));
 						}
-					});
+						participants.forEach(participant => { participant.checked_in = checked_in; });
+						participant_found = true;
+					} else {
+						match.setup.tabletoperators.forEach((participant) => {
+							if (participant.btp_id == msg.participant_id) {
+								participant.checked_in = checked_in;
+								participant_found = true;
+							}
+						});
+					}
 				}
 
 				if (!participant_found) {
@@ -3412,6 +3443,7 @@ function handle_free_announce(app, ws, msg) {
 
 	notify_change(app, tournament_key, 'free_announce', {
 		text,
+		...(['server', 'browser'].includes(msg.speech_mode) ? {speech_mode: msg.speech_mode} : {}),
 		...(announcement_claim_key ? {_announcement_claim_key: announcement_claim_key} : {}),
 	});
 

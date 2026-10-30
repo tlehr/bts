@@ -1,0 +1,24 @@
+{
+  "date": "2026-10-30",
+  "checks": [
+    "The log card offers a filter, descending time order and an empty disabled reset",
+    "Newest-first sorting uses the full date across midnight and stable IDs for equal timestamps",
+    "Filtering is case-insensitive and displays the matching and total counts",
+    "Live messages respect the active filter without replacing existing rows or the focused input",
+    "The time button switches to oldest-first order and remembers the choice on this device",
+    "A newly received older timestamp is inserted at its chronological position",
+    "Clearing the filter and reversing the sort restores all rows with their existing DOM nodes",
+    "An unmatched filter explains the empty result while keeping reset available",
+    "Reset clears all local messages including filtered-out entries",
+    "New messages appear after reset without restoring earlier messages",
+    "Moving and resizing the card keeps the controls, messages and game rows intact",
+    "Hidden log cards continue receiving entries without becoming visible",
+    "Remount restores history and filter with one active log subscription",
+    "A live message after remount appears exactly once",
+    "Log messages and filtering treat markup as text",
+    "The filter and buttons remain inside the card at mobile width",
+    "Reload retains the selected time sort and starts a fresh browser log history",
+    "Log controls produce no browser exceptions"
+  ],
+  "exceptions": 0
+}

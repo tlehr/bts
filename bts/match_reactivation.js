@@ -23,6 +23,7 @@ module.exports = function reset_finished_result(app, tournament, match, callback
 		if (count !== 1) return callback(new Error('Cannot find match ' + match._id + ' of tournament ' + tournament.key + ' in database'));
 		// Preserve the latest stored point data and the requested field/setup.
 		updated.setup = match.setup;
-		callback(null, updated);
+		require('./match_reconciliation/tablet_queue').remove_waiting(app, tournament.key,
+			(match.setup.teams || []).flatMap(team => team.players || [])).then(() => callback(null, updated), callback);
 	});
 };

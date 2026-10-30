@@ -1,0 +1,36 @@
+{
+  "date": "2026-10-30",
+  "scope": "Isolierter Browser, abwechselnd deaktivierte/aktivierte Layoutbegrenzung auf derselben großen Liste. Vier Durchläufe mit je 30 Frames und 200 Uhraktualisierungen pro Frame. Zusätzliche Geometrieabfrage erzwingt die Layoutberechnung. Keine Live-Dienste.",
+  "checks": 4,
+  "matchCount": 373,
+  "timerCount": 200,
+  "samples": [
+    {
+      "contain": "none",
+      "layout_ms": 413.23699999999997,
+      "style_ms": 0.18800000000000067,
+      "layouts": 34
+    },
+    {
+      "contain": "size layout",
+      "layout_ms": 457.10999999999996,
+      "style_ms": 0.19299999999999873,
+      "layouts": 32
+    },
+    {
+      "contain": "none",
+      "layout_ms": 400.66599999999994,
+      "style_ms": 0.07000000000000062,
+      "layouts": 32
+    },
+    {
+      "contain": "size layout",
+      "layout_ms": 429.4009999999999,
+      "style_ms": 0.2930000000000016,
+      "layouts": 33
+    }
+  ],
+  "mean_layout_ms_before": 406.95149999999995,
+  "mean_layout_ms_after": 443.2554999999999,
+  "layout_ratio": 1.089209647832727
+}

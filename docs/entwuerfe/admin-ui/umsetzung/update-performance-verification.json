@@ -1,0 +1,3913 @@
+{
+  "date": "2026-10-30",
+  "scope": "Native Turnierleitungsseite mit 128 synthetischen Spielen und simulierten Serverantworten; keine Verbindung zu laufenden Diensten.",
+  "method": "Frische Browserseite je Nachrichtentyp, jeweils drei Updates durch die echte Empfangswarteschlange. Messung endet erst mit einer Quittierung nach abgeschlossener UI-Arbeit und zwei sichtbaren Browserframes. Neuaufbau vor jeder Probe liegt außerhalb der Messung.",
+  "limits": {
+    "small": {
+      "handler_ms": 16,
+      "total_ms": 100
+    },
+    "structural": {
+      "handler_ms": 100,
+      "total_ms": 500
+    },
+    "full": {
+      "handler_ms": 250,
+      "total_ms": 1000
+    }
+  },
+  "paths": [
+    {
+      "type": "advertisement_add",
+      "kind": "small",
+      "samples": 3,
+      "handler_ms": 0.2,
+      "total_ms": 32.3,
+      "max_ms": 32.4,
+      "budget": {
+        "handler_ms": 16,
+        "total_ms": 100
+      },
+      "measurements": [
+        {
+          "status": "presented",
+          "presented_at": 1793321005447,
+          "timings": {
+            "queue_ms": 0.7,
+            "handler_ms": 1.6,
+            "ui_wait_ms": 0.1,
+            "render_ms": 29.9,
+            "total_ms": 32.3
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321006113,
+          "timings": {
+            "queue_ms": 0.2,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 0,
+            "render_ms": 32,
+            "total_ms": 32.4
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321006763,
+          "timings": {
+            "queue_ms": 0.1,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 0,
+            "render_ms": 32,
+            "total_ms": 32.3
+          },
+          "error": null
+        }
+      ]
+    },
+    {
+      "type": "advertisement_removed",
+      "kind": "small",
+      "samples": 3,
+      "handler_ms": 0.2,
+      "total_ms": 32.2,
+      "max_ms": 32.3,
+      "budget": {
+        "handler_ms": 16,
+        "total_ms": 100
+      },
+      "measurements": [
+        {
+          "status": "presented",
+          "presented_at": 1793321008300,
+          "timings": {
+            "queue_ms": 0.5,
+            "handler_ms": 0.5,
+            "ui_wait_ms": 0,
+            "render_ms": 18.6,
+            "total_ms": 19.6
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321008963,
+          "timings": {
+            "queue_ms": 0.2,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 0,
+            "render_ms": 31.9,
+            "total_ms": 32.3
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321009630,
+          "timings": {
+            "queue_ms": 0,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 0.1,
+            "render_ms": 31.9,
+            "total_ms": 32.2
+          },
+          "error": null
+        }
+      ]
+    },
+    {
+      "type": "begin_to_play_call",
+      "kind": "small",
+      "samples": 3,
+      "handler_ms": 0.1,
+      "total_ms": 32.1,
+      "max_ms": 32.1,
+      "budget": {
+        "handler_ms": 16,
+        "total_ms": 100
+      },
+      "measurements": [
+        {
+          "status": "presented",
+          "presented_at": 1793321011147,
+          "timings": {
+            "queue_ms": 0.2,
+            "handler_ms": 0.3,
+            "ui_wait_ms": 0,
+            "render_ms": 31.6,
+            "total_ms": 32.1
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321011896,
+          "timings": {
+            "queue_ms": 0.1,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 0,
+            "render_ms": 23.6,
+            "total_ms": 23.8
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321012580,
+          "timings": {
+            "queue_ms": 0.1,
+            "handler_ms": 0,
+            "ui_wait_ms": 0,
+            "render_ms": 32,
+            "total_ms": 32.1
+          },
+          "error": null
+        }
+      ]
+    },
+    {
+      "type": "btp_status",
+      "kind": "small",
+      "samples": 3,
+      "handler_ms": 0.5,
+      "total_ms": 29.1,
+      "max_ms": 32.2,
+      "budget": {
+        "handler_ms": 16,
+        "total_ms": 100
+      },
+      "measurements": [
+        {
+          "status": "presented",
+          "presented_at": 1793321014084,
+          "timings": {
+            "queue_ms": 0.1,
+            "handler_ms": 0.5,
+            "ui_wait_ms": 0,
+            "render_ms": 28.5,
+            "total_ms": 29.1
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321014713,
+          "timings": {
+            "queue_ms": 0.1,
+            "handler_ms": 0.3,
+            "ui_wait_ms": 0.1,
+            "render_ms": 31.7,
+            "total_ms": 32.2
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321015346,
+          "timings": {
+            "queue_ms": 0.1,
+            "handler_ms": 0.7,
+            "ui_wait_ms": 0,
+            "render_ms": 19.7,
+            "total_ms": 20.5
+          },
+          "error": null
+        }
+      ]
+    },
+    {
+      "type": "bts_status",
+      "kind": "small",
+      "samples": 3,
+      "handler_ms": 0.7,
+      "total_ms": 31.7,
+      "max_ms": 32.3,
+      "budget": {
+        "handler_ms": 16,
+        "total_ms": 100
+      },
+      "measurements": [
+        {
+          "status": "presented",
+          "presented_at": 1793321016946,
+          "timings": {
+            "queue_ms": 0.1,
+            "handler_ms": 0.7,
+            "ui_wait_ms": 0.1,
+            "render_ms": 31.4,
+            "total_ms": 32.3
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321017683,
+          "timings": {
+            "queue_ms": 0.1,
+            "handler_ms": 0.8,
+            "ui_wait_ms": 0,
+            "render_ms": 26.3,
+            "total_ms": 27.2
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321018513,
+          "timings": {
+            "queue_ms": 0,
+            "handler_ms": 0.6,
+            "ui_wait_ms": 0,
+            "render_ms": 31.1,
+            "total_ms": 31.7
+          },
+          "error": null
+        }
+      ]
+    },
+    {
+      "type": "clock_changed",
+      "kind": "full",
+      "samples": 3,
+      "handler_ms": 0.1,
+      "total_ms": 43.2,
+      "max_ms": 46,
+      "budget": {
+        "handler_ms": 250,
+        "total_ms": 1000
+      },
+      "measurements": [
+        {
+          "status": "presented",
+          "presented_at": 1793321020233,
+          "timings": {
+            "queue_ms": 0.3,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 0,
+            "render_ms": 42.8,
+            "total_ms": 43.2
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321020905,
+          "timings": {
+            "queue_ms": 0.2,
+            "handler_ms": 0,
+            "ui_wait_ms": 0,
+            "render_ms": 40.8,
+            "total_ms": 41
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321021627,
+          "timings": {
+            "queue_ms": 0.2,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 0,
+            "render_ms": 45.7,
+            "total_ms": 46
+          },
+          "error": null
+        }
+      ]
+    },
+    {
+      "type": "court_assignments_reset",
+      "kind": "full",
+      "samples": 3,
+      "handler_ms": 161.3,
+      "total_ms": 609,
+      "max_ms": 662,
+      "budget": {
+        "handler_ms": 250,
+        "total_ms": 1000
+      },
+      "measurements": [
+        {
+          "status": "presented",
+          "presented_at": 1793321023708,
+          "timings": {
+            "queue_ms": 1.3,
+            "handler_ms": 161.3,
+            "ui_wait_ms": 379.8,
+            "render_ms": 66.6,
+            "total_ms": 609
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321025026,
+          "timings": {
+            "queue_ms": 0.6,
+            "handler_ms": 240.7,
+            "ui_wait_ms": 341,
+            "render_ms": 79.7,
+            "total_ms": 662
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321026197,
+          "timings": {
+            "queue_ms": 0.5,
+            "handler_ms": 146.3,
+            "ui_wait_ms": 305.5,
+            "render_ms": 77.8,
+            "total_ms": 530.1
+          },
+          "error": null
+        }
+      ]
+    },
+    {
+      "type": "court_changed",
+      "kind": "structural",
+      "samples": 3,
+      "handler_ms": 3,
+      "total_ms": 51.5,
+      "max_ms": 90,
+      "budget": {
+        "handler_ms": 100,
+        "total_ms": 500
+      },
+      "measurements": [
+        {
+          "status": "presented",
+          "presented_at": 1793321027780,
+          "timings": {
+            "queue_ms": 0.3,
+            "handler_ms": 7,
+            "ui_wait_ms": 48.3,
+            "render_ms": 34.4,
+            "total_ms": 90
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321028546,
+          "timings": {
+            "queue_ms": 0.1,
+            "handler_ms": 2.5,
+            "ui_wait_ms": 20.6,
+            "render_ms": 25.5,
+            "total_ms": 48.7
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321029282,
+          "timings": {
+            "queue_ms": 0.3,
+            "handler_ms": 3,
+            "ui_wait_ms": 20.2,
+            "render_ms": 28,
+            "total_ms": 51.5
+          },
+          "error": null
+        }
+      ]
+    },
+    {
+      "type": "court_current_match",
+      "kind": "small",
+      "samples": 3,
+      "handler_ms": 0.8,
+      "total_ms": 35.9,
+      "max_ms": 44,
+      "budget": {
+        "handler_ms": 16,
+        "total_ms": 100
+      },
+      "measurements": [
+        {
+          "status": "presented",
+          "presented_at": 1793321030782,
+          "timings": {
+            "queue_ms": 0.3,
+            "handler_ms": 5.3,
+            "ui_wait_ms": 0,
+            "render_ms": 29.3,
+            "total_ms": 34.9
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321031530,
+          "timings": {
+            "queue_ms": 0.4,
+            "handler_ms": 0.8,
+            "ui_wait_ms": 0,
+            "render_ms": 42.8,
+            "total_ms": 44
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321032266,
+          "timings": {
+            "queue_ms": 0.2,
+            "handler_ms": 0.4,
+            "ui_wait_ms": 0,
+            "render_ms": 35.3,
+            "total_ms": 35.9
+          },
+          "error": null
+        }
+      ]
+    },
+    {
+      "type": "courts_changed",
+      "kind": "full",
+      "samples": 3,
+      "handler_ms": 183.2,
+      "total_ms": 588.7,
+      "max_ms": 632.6,
+      "budget": {
+        "handler_ms": 250,
+        "total_ms": 1000
+      },
+      "measurements": [
+        {
+          "status": "presented",
+          "presented_at": 1793321034347,
+          "timings": {
+            "queue_ms": 0.2,
+            "handler_ms": 165.4,
+            "ui_wait_ms": 371.3,
+            "render_ms": 23.7,
+            "total_ms": 560.6
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321035579,
+          "timings": {
+            "queue_ms": 0.2,
+            "handler_ms": 215.3,
+            "ui_wait_ms": 394.1,
+            "render_ms": 23,
+            "total_ms": 632.6
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321036829,
+          "timings": {
+            "queue_ms": 0.2,
+            "handler_ms": 183.2,
+            "ui_wait_ms": 371.1,
+            "render_ms": 34.2,
+            "total_ms": 588.7
+          },
+          "error": null
+        }
+      ]
+    },
+    {
+      "type": "delete_display",
+      "kind": "small",
+      "samples": 3,
+      "handler_ms": 0.6,
+      "total_ms": 35.2,
+      "max_ms": 37.6,
+      "budget": {
+        "handler_ms": 16,
+        "total_ms": 100
+      },
+      "measurements": [
+        {
+          "status": "presented",
+          "presented_at": 1793321038270,
+          "timings": {
+            "queue_ms": 0.3,
+            "handler_ms": 1,
+            "ui_wait_ms": 0,
+            "render_ms": 31.3,
+            "total_ms": 32.6
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321038898,
+          "timings": {
+            "queue_ms": 0.1,
+            "handler_ms": 0.5,
+            "ui_wait_ms": 0,
+            "render_ms": 34.6,
+            "total_ms": 35.2
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321039603,
+          "timings": {
+            "queue_ms": 0.2,
+            "handler_ms": 0.6,
+            "ui_wait_ms": 0,
+            "render_ms": 36.8,
+            "total_ms": 37.6
+          },
+          "error": null
+        }
+      ]
+    },
+    {
+      "type": "delete_display_setting",
+      "kind": "small",
+      "samples": 3,
+      "handler_ms": 0.6,
+      "total_ms": 34.1,
+      "max_ms": 38.9,
+      "budget": {
+        "handler_ms": 16,
+        "total_ms": 100
+      },
+      "measurements": [
+        {
+          "status": "presented",
+          "presented_at": 1793321041098,
+          "timings": {
+            "queue_ms": 0.3,
+            "handler_ms": 0.7,
+            "ui_wait_ms": 0.1,
+            "render_ms": 33,
+            "total_ms": 34.1
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321041714,
+          "timings": {
+            "queue_ms": 0.2,
+            "handler_ms": 0.6,
+            "ui_wait_ms": 0,
+            "render_ms": 28.6,
+            "total_ms": 29.4
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321042335,
+          "timings": {
+            "queue_ms": 0.1,
+            "handler_ms": 0.4,
+            "ui_wait_ms": 0,
+            "render_ms": 38.4,
+            "total_ms": 38.9
+          },
+          "error": null
+        }
+      ]
+    },
+    {
+      "type": "display_is_done",
+      "kind": "small",
+      "samples": 3,
+      "handler_ms": 0.4,
+      "total_ms": 25.5,
+      "max_ms": 31.9,
+      "budget": {
+        "handler_ms": 16,
+        "total_ms": 100
+      },
+      "measurements": [
+        {
+          "status": "presented",
+          "presented_at": 1793321043895,
+          "timings": {
+            "queue_ms": 0.2,
+            "handler_ms": 0.4,
+            "ui_wait_ms": 0.1,
+            "render_ms": 24.8,
+            "total_ms": 25.5
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321044628,
+          "timings": {
+            "queue_ms": 0.2,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 0,
+            "render_ms": 31.5,
+            "total_ms": 31.9
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321045547,
+          "timings": {
+            "queue_ms": 0.2,
+            "handler_ms": 0.4,
+            "ui_wait_ms": 0,
+            "render_ms": 18.8,
+            "total_ms": 19.4
+          },
+          "error": null
+        }
+      ]
+    },
+    {
+      "type": "display_render_stats",
+      "kind": "small",
+      "samples": 3,
+      "handler_ms": 0.3,
+      "total_ms": 32.2,
+      "max_ms": 32.2,
+      "budget": {
+        "handler_ms": 16,
+        "total_ms": 100
+      },
+      "measurements": [
+        {
+          "status": "presented",
+          "presented_at": 1793321047045,
+          "timings": {
+            "queue_ms": 0.4,
+            "handler_ms": 0.4,
+            "ui_wait_ms": 0,
+            "render_ms": 31.4,
+            "total_ms": 32.2
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321047684,
+          "timings": {
+            "queue_ms": 0.4,
+            "handler_ms": 0.3,
+            "ui_wait_ms": 0,
+            "render_ms": 28.9,
+            "total_ms": 29.6
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321048312,
+          "timings": {
+            "queue_ms": 0.2,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 0,
+            "render_ms": 31.8,
+            "total_ms": 32.2
+          },
+          "error": null
+        }
+      ]
+    },
+    {
+      "type": "display_status_changed",
+      "kind": "small",
+      "samples": 3,
+      "handler_ms": 1,
+      "total_ms": 39.4,
+      "max_ms": 41.5,
+      "budget": {
+        "handler_ms": 16,
+        "total_ms": 100
+      },
+      "measurements": [
+        {
+          "status": "presented",
+          "presented_at": 1793321049855,
+          "timings": {
+            "queue_ms": 0.3,
+            "handler_ms": 1.1,
+            "ui_wait_ms": 0,
+            "render_ms": 33.8,
+            "total_ms": 35.2
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321050536,
+          "timings": {
+            "queue_ms": 0.1,
+            "handler_ms": 0.9,
+            "ui_wait_ms": 0,
+            "render_ms": 38.4,
+            "total_ms": 39.4
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321051258,
+          "timings": {
+            "queue_ms": 0.2,
+            "handler_ms": 1,
+            "ui_wait_ms": 0,
+            "render_ms": 40.3,
+            "total_ms": 41.5
+          },
+          "error": null
+        }
+      ]
+    },
+    {
+      "type": "display_wait_for_done",
+      "kind": "small",
+      "samples": 3,
+      "handler_ms": 0,
+      "total_ms": 32.2,
+      "max_ms": 32.3,
+      "budget": {
+        "handler_ms": 16,
+        "total_ms": 100
+      },
+      "measurements": [
+        {
+          "status": "presented",
+          "presented_at": 1793321052712,
+          "timings": {
+            "queue_ms": 0.1,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 0,
+            "render_ms": 32.1,
+            "total_ms": 32.3
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321053363,
+          "timings": {
+            "queue_ms": 0.1,
+            "handler_ms": 0,
+            "ui_wait_ms": 0,
+            "render_ms": 27.5,
+            "total_ms": 27.6
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321054045,
+          "timings": {
+            "queue_ms": 0.1,
+            "handler_ms": 0,
+            "ui_wait_ms": 0,
+            "render_ms": 32.1,
+            "total_ms": 32.2
+          },
+          "error": null
+        }
+      ]
+    },
+    {
+      "type": "emergency_announce",
+      "kind": "small",
+      "samples": 3,
+      "handler_ms": 0.2,
+      "total_ms": 32.4,
+      "max_ms": 34.7,
+      "budget": {
+        "handler_ms": 16,
+        "total_ms": 100
+      },
+      "measurements": [
+        {
+          "status": "presented",
+          "presented_at": 1793321055550,
+          "timings": {
+            "queue_ms": 0.2,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 0,
+            "render_ms": 30.9,
+            "total_ms": 31.3
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321056162,
+          "timings": {
+            "queue_ms": 0,
+            "handler_ms": 0.3,
+            "ui_wait_ms": 0,
+            "render_ms": 32.1,
+            "total_ms": 32.4
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321056816,
+          "timings": {
+            "queue_ms": 0.1,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 0,
+            "render_ms": 34.4,
+            "total_ms": 34.7
+          },
+          "error": null
+        }
+      ]
+    },
+    {
+      "type": "free_announce",
+      "kind": "small",
+      "samples": 3,
+      "handler_ms": 0,
+      "total_ms": 32.3,
+      "max_ms": 32.4,
+      "budget": {
+        "handler_ms": 16,
+        "total_ms": 100
+      },
+      "measurements": [
+        {
+          "status": "presented",
+          "presented_at": 1793321058228,
+          "timings": {
+            "queue_ms": 0.1,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 0,
+            "render_ms": 32.2,
+            "total_ms": 32.4
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321058912,
+          "timings": {
+            "queue_ms": 0.1,
+            "handler_ms": 0,
+            "ui_wait_ms": 0,
+            "render_ms": 27.6,
+            "total_ms": 27.7
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321059528,
+          "timings": {
+            "queue_ms": 0,
+            "handler_ms": 0,
+            "ui_wait_ms": 0,
+            "render_ms": 32.3,
+            "total_ms": 32.3
+          },
+          "error": null
+        }
+      ]
+    },
+    {
+      "type": "location_changed",
+      "kind": "structural",
+      "samples": 3,
+      "handler_ms": 0,
+      "total_ms": 32.1,
+      "max_ms": 32.2,
+      "budget": {
+        "handler_ms": 100,
+        "total_ms": 500
+      },
+      "measurements": [
+        {
+          "status": "presented",
+          "presented_at": 1793321061078,
+          "timings": {
+            "queue_ms": 0.3,
+            "handler_ms": 0,
+            "ui_wait_ms": 0,
+            "render_ms": 26.4,
+            "total_ms": 26.7
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321061711,
+          "timings": {
+            "queue_ms": 0.2,
+            "handler_ms": 0,
+            "ui_wait_ms": 0,
+            "render_ms": 31.9,
+            "total_ms": 32.1
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321062361,
+          "timings": {
+            "queue_ms": 0,
+            "handler_ms": 0,
+            "ui_wait_ms": 0.1,
+            "render_ms": 32.1,
+            "total_ms": 32.2
+          },
+          "error": null
+        }
+      ]
+    },
+    {
+      "type": "location_highlight_changed",
+      "kind": "full",
+      "samples": 3,
+      "handler_ms": 12.2,
+      "total_ms": 113.5,
+      "max_ms": 115.3,
+      "budget": {
+        "handler_ms": 250,
+        "total_ms": 1000
+      },
+      "measurements": [
+        {
+          "status": "presented",
+          "presented_at": 1793321063978,
+          "timings": {
+            "queue_ms": 0.3,
+            "handler_ms": 20.4,
+            "ui_wait_ms": 74.6,
+            "render_ms": 20,
+            "total_ms": 115.3
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321064828,
+          "timings": {
+            "queue_ms": 0.2,
+            "handler_ms": 12.2,
+            "ui_wait_ms": 69.9,
+            "render_ms": 31.2,
+            "total_ms": 113.5
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321065578,
+          "timings": {
+            "queue_ms": 0.1,
+            "handler_ms": 11.2,
+            "ui_wait_ms": 53.4,
+            "render_ms": 17.5,
+            "total_ms": 82.2
+          },
+          "error": null
+        }
+      ]
+    },
+    {
+      "type": "location_logo_changed",
+      "kind": "small",
+      "samples": 3,
+      "handler_ms": 0,
+      "total_ms": 27.7,
+      "max_ms": 32.4,
+      "budget": {
+        "handler_ms": 16,
+        "total_ms": 100
+      },
+      "measurements": [
+        {
+          "status": "presented",
+          "presented_at": 1793321067128,
+          "timings": {
+            "queue_ms": 0.3,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 0,
+            "render_ms": 23.9,
+            "total_ms": 24.3
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321067778,
+          "timings": {
+            "queue_ms": 0.2,
+            "handler_ms": 0,
+            "ui_wait_ms": 0,
+            "render_ms": 32.2,
+            "total_ms": 32.4
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321068494,
+          "timings": {
+            "queue_ms": 0.3,
+            "handler_ms": 0,
+            "ui_wait_ms": 0,
+            "render_ms": 27.4,
+            "total_ms": 27.7
+          },
+          "error": null
+        }
+      ]
+    },
+    {
+      "type": "locations_changed",
+      "kind": "full",
+      "samples": 3,
+      "handler_ms": 236.7,
+      "total_ms": 657.8,
+      "max_ms": 749.7,
+      "budget": {
+        "handler_ms": 250,
+        "total_ms": 1000
+      },
+      "measurements": [
+        {
+          "status": "presented",
+          "presented_at": 1793321070568,
+          "timings": {
+            "queue_ms": 0.3,
+            "handler_ms": 207.3,
+            "ui_wait_ms": 348.5,
+            "render_ms": 49.3,
+            "total_ms": 605.4
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321071986,
+          "timings": {
+            "queue_ms": 0.2,
+            "handler_ms": 236.7,
+            "ui_wait_ms": 337.8,
+            "render_ms": 83.1,
+            "total_ms": 657.8
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321073428,
+          "timings": {
+            "queue_ms": 0.1,
+            "handler_ms": 262.2,
+            "ui_wait_ms": 426.2,
+            "render_ms": 61.2,
+            "total_ms": 749.7
+          },
+          "error": null
+        }
+      ]
+    },
+    {
+      "type": "logo_changed",
+      "kind": "small",
+      "samples": 3,
+      "handler_ms": 0.1,
+      "total_ms": 32.2,
+      "max_ms": 32.4,
+      "budget": {
+        "handler_ms": 16,
+        "total_ms": 100
+      },
+      "measurements": [
+        {
+          "status": "presented",
+          "presented_at": 1793321075061,
+          "timings": {
+            "queue_ms": 0.2,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 0,
+            "render_ms": 32.1,
+            "total_ms": 32.4
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321075711,
+          "timings": {
+            "queue_ms": 0,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 0,
+            "render_ms": 32.1,
+            "total_ms": 32.2
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321076461,
+          "timings": {
+            "queue_ms": 0.1,
+            "handler_ms": 0,
+            "ui_wait_ms": 0,
+            "render_ms": 23.5,
+            "total_ms": 23.6
+          },
+          "error": null
+        }
+      ]
+    },
+    {
+      "type": "match_add",
+      "kind": "structural",
+      "samples": 3,
+      "handler_ms": 2.9,
+      "total_ms": 165.6,
+      "max_ms": 196.9,
+      "budget": {
+        "handler_ms": 100,
+        "total_ms": 500
+      },
+      "measurements": [
+        {
+          "status": "presented",
+          "presented_at": 1793321078047,
+          "timings": {
+            "queue_ms": 0.3,
+            "handler_ms": 4.2,
+            "ui_wait_ms": 94.4,
+            "render_ms": 53.5,
+            "total_ms": 152.4
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321078810,
+          "timings": {
+            "queue_ms": 0.2,
+            "handler_ms": 2.9,
+            "ui_wait_ms": 115.3,
+            "render_ms": 47.2,
+            "total_ms": 165.6
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321079714,
+          "timings": {
+            "queue_ms": 0.2,
+            "handler_ms": 2.7,
+            "ui_wait_ms": 121.3,
+            "render_ms": 72.7,
+            "total_ms": 196.9
+          },
+          "error": null
+        }
+      ]
+    },
+    {
+      "type": "match_called_on_court",
+      "kind": "small",
+      "samples": 3,
+      "handler_ms": 0.1,
+      "total_ms": 31.9,
+      "max_ms": 32,
+      "budget": {
+        "handler_ms": 16,
+        "total_ms": 100
+      },
+      "measurements": [
+        {
+          "status": "presented",
+          "presented_at": 1793321081244,
+          "timings": {
+            "queue_ms": 0.1,
+            "handler_ms": 0.3,
+            "ui_wait_ms": 0,
+            "render_ms": 31.6,
+            "total_ms": 32
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321081860,
+          "timings": {
+            "queue_ms": 0,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 0,
+            "render_ms": 31.8,
+            "total_ms": 31.9
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321082530,
+          "timings": {
+            "queue_ms": 0.1,
+            "handler_ms": 0,
+            "ui_wait_ms": 0,
+            "render_ms": 26.5,
+            "total_ms": 26.6
+          },
+          "error": null
+        }
+      ]
+    },
+    {
+      "type": "match_delete",
+      "kind": "full",
+      "samples": 3,
+      "handler_ms": 178.8,
+      "total_ms": 582,
+      "max_ms": 631.8,
+      "budget": {
+        "handler_ms": 250,
+        "total_ms": 1000
+      },
+      "measurements": [
+        {
+          "status": "presented",
+          "presented_at": 1793321084543,
+          "timings": {
+            "queue_ms": 0.2,
+            "handler_ms": 178.8,
+            "ui_wait_ms": 382.7,
+            "render_ms": 20.3,
+            "total_ms": 582
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321085796,
+          "timings": {
+            "queue_ms": 0.2,
+            "handler_ms": 151.2,
+            "ui_wait_ms": 390,
+            "render_ms": 33.8,
+            "total_ms": 575.2
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321087043,
+          "timings": {
+            "queue_ms": 0.2,
+            "handler_ms": 217.8,
+            "ui_wait_ms": 390.8,
+            "render_ms": 23,
+            "total_ms": 631.8
+          },
+          "error": null
+        }
+      ]
+    },
+    {
+      "type": "match_edit",
+      "kind": "structural",
+      "samples": 3,
+      "handler_ms": 0.8,
+      "total_ms": 48.6,
+      "max_ms": 48.7,
+      "budget": {
+        "handler_ms": 100,
+        "total_ms": 500
+      },
+      "measurements": [
+        {
+          "status": "presented",
+          "presented_at": 1793321088527,
+          "timings": {
+            "queue_ms": 0.4,
+            "handler_ms": 3.9,
+            "ui_wait_ms": 11.6,
+            "render_ms": 32.8,
+            "total_ms": 48.7
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321089361,
+          "timings": {
+            "queue_ms": 0.3,
+            "handler_ms": 0.8,
+            "ui_wait_ms": 13.1,
+            "render_ms": 30.9,
+            "total_ms": 45.1
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321090077,
+          "timings": {
+            "queue_ms": 0.1,
+            "handler_ms": 0.6,
+            "ui_wait_ms": 15.1,
+            "render_ms": 32.8,
+            "total_ms": 48.6
+          },
+          "error": null
+        }
+      ]
+    },
+    {
+      "type": "match_no_match_announcement",
+      "kind": "small",
+      "samples": 3,
+      "handler_ms": 0.1,
+      "total_ms": 31.9,
+      "max_ms": 32.3,
+      "budget": {
+        "handler_ms": 16,
+        "total_ms": 100
+      },
+      "measurements": [
+        {
+          "status": "presented",
+          "presented_at": 1793321091677,
+          "timings": {
+            "queue_ms": 0.1,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 0,
+            "render_ms": 26.6,
+            "total_ms": 26.8
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321092327,
+          "timings": {
+            "queue_ms": 0,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 0,
+            "render_ms": 31.8,
+            "total_ms": 31.9
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321092977,
+          "timings": {
+            "queue_ms": 0.1,
+            "handler_ms": 0,
+            "ui_wait_ms": 0,
+            "render_ms": 32.2,
+            "total_ms": 32.3
+          },
+          "error": null
+        }
+      ]
+    },
+    {
+      "type": "match_preparation_call",
+      "kind": "structural",
+      "samples": 3,
+      "handler_ms": 7.6,
+      "total_ms": 98,
+      "max_ms": 98.6,
+      "budget": {
+        "handler_ms": 100,
+        "total_ms": 500
+      },
+      "measurements": [
+        {
+          "status": "presented",
+          "presented_at": 1793321094510,
+          "timings": {
+            "queue_ms": 0.1,
+            "handler_ms": 10.1,
+            "ui_wait_ms": 55.5,
+            "render_ms": 32.3,
+            "total_ms": 98
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321095260,
+          "timings": {
+            "queue_ms": 0,
+            "handler_ms": 5.5,
+            "ui_wait_ms": 27.7,
+            "render_ms": 32.2,
+            "total_ms": 65.4
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321096043,
+          "timings": {
+            "queue_ms": 0.1,
+            "handler_ms": 7.6,
+            "ui_wait_ms": 58.7,
+            "render_ms": 32.2,
+            "total_ms": 98.6
+          },
+          "error": null
+        }
+      ]
+    },
+    {
+      "type": "match_remove",
+      "kind": "structural",
+      "samples": 3,
+      "handler_ms": 0.6,
+      "total_ms": 91.1,
+      "max_ms": 98.2,
+      "budget": {
+        "handler_ms": 100,
+        "total_ms": 500
+      },
+      "measurements": [
+        {
+          "status": "presented",
+          "presented_at": 1793321097670,
+          "timings": {
+            "queue_ms": 0.3,
+            "handler_ms": 3.8,
+            "ui_wait_ms": 0,
+            "render_ms": 83.1,
+            "total_ms": 87.2
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321098509,
+          "timings": {
+            "queue_ms": 0.1,
+            "handler_ms": 0.6,
+            "ui_wait_ms": 0,
+            "render_ms": 97.5,
+            "total_ms": 98.2
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321099418,
+          "timings": {
+            "queue_ms": 0.2,
+            "handler_ms": 0.4,
+            "ui_wait_ms": 0,
+            "render_ms": 90.5,
+            "total_ms": 91.1
+          },
+          "error": null
+        }
+      ]
+    },
+    {
+      "type": "normalization_add",
+      "kind": "small",
+      "samples": 3,
+      "handler_ms": 0.3,
+      "total_ms": 32.1,
+      "max_ms": 32.3,
+      "budget": {
+        "handler_ms": 16,
+        "total_ms": 100
+      },
+      "measurements": [
+        {
+          "status": "presented",
+          "presented_at": 1793321100976,
+          "timings": {
+            "queue_ms": 0.4,
+            "handler_ms": 0.5,
+            "ui_wait_ms": 0,
+            "render_ms": 31.4,
+            "total_ms": 32.3
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321101593,
+          "timings": {
+            "queue_ms": 0.1,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 0.1,
+            "render_ms": 31.7,
+            "total_ms": 32.1
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321102228,
+          "timings": {
+            "queue_ms": 0.2,
+            "handler_ms": 0.3,
+            "ui_wait_ms": 0,
+            "render_ms": 20.5,
+            "total_ms": 21
+          },
+          "error": null
+        }
+      ]
+    },
+    {
+      "type": "normalization_removed",
+      "kind": "small",
+      "samples": 3,
+      "handler_ms": 0.3,
+      "total_ms": 29.6,
+      "max_ms": 32.1,
+      "budget": {
+        "handler_ms": 16,
+        "total_ms": 100
+      },
+      "measurements": [
+        {
+          "status": "presented",
+          "presented_at": 1793321103726,
+          "timings": {
+            "queue_ms": 0.3,
+            "handler_ms": 0.4,
+            "ui_wait_ms": 0,
+            "render_ms": 31.4,
+            "total_ms": 32.1
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321104359,
+          "timings": {
+            "queue_ms": 0.2,
+            "handler_ms": 0.3,
+            "ui_wait_ms": 0,
+            "render_ms": 22.7,
+            "total_ms": 23.2
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321104993,
+          "timings": {
+            "queue_ms": 0.3,
+            "handler_ms": 0.3,
+            "ui_wait_ms": 0,
+            "render_ms": 29,
+            "total_ms": 29.6
+          },
+          "error": null
+        }
+      ]
+    },
+    {
+      "type": "official_edit",
+      "kind": "structural",
+      "samples": 3,
+      "handler_ms": 2,
+      "total_ms": 48.7,
+      "max_ms": 57.6,
+      "budget": {
+        "handler_ms": 100,
+        "total_ms": 500
+      },
+      "measurements": [
+        {
+          "status": "presented",
+          "presented_at": 1793321106710,
+          "timings": {
+            "queue_ms": 0.7,
+            "handler_ms": 2.2,
+            "ui_wait_ms": 7.7,
+            "render_ms": 47,
+            "total_ms": 57.6
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321107493,
+          "timings": {
+            "queue_ms": 0.2,
+            "handler_ms": 2,
+            "ui_wait_ms": 7.1,
+            "render_ms": 31.9,
+            "total_ms": 41.2
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321108159,
+          "timings": {
+            "queue_ms": 0.1,
+            "handler_ms": 1.8,
+            "ui_wait_ms": 14.9,
+            "render_ms": 31.9,
+            "total_ms": 48.7
+          },
+          "error": null
+        }
+      ]
+    },
+    {
+      "type": "official_list_move",
+      "kind": "structural",
+      "samples": 3,
+      "handler_ms": 1.6,
+      "total_ms": 62.5,
+      "max_ms": 83.9,
+      "budget": {
+        "handler_ms": 100,
+        "total_ms": 500
+      },
+      "measurements": [
+        {
+          "status": "presented",
+          "presented_at": 1793321109706,
+          "timings": {
+            "queue_ms": 0.2,
+            "handler_ms": 1.9,
+            "ui_wait_ms": 0,
+            "render_ms": 60.4,
+            "total_ms": 62.5
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321110612,
+          "timings": {
+            "queue_ms": 0.3,
+            "handler_ms": 1.6,
+            "ui_wait_ms": 0,
+            "render_ms": 82,
+            "total_ms": 83.9
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321111339,
+          "timings": {
+            "queue_ms": 0.2,
+            "handler_ms": 1.2,
+            "ui_wait_ms": 0,
+            "render_ms": 60.2,
+            "total_ms": 61.6
+          },
+          "error": null
+        }
+      ]
+    },
+    {
+      "type": "player_pause_reset",
+      "kind": "structural",
+      "samples": 3,
+      "handler_ms": 4.8,
+      "total_ms": 48.9,
+      "max_ms": 75.4,
+      "budget": {
+        "handler_ms": 100,
+        "total_ms": 500
+      },
+      "measurements": [
+        {
+          "status": "presented",
+          "presented_at": 1793321113059,
+          "timings": {
+            "queue_ms": 0.3,
+            "handler_ms": 10.9,
+            "ui_wait_ms": 40.3,
+            "render_ms": 23.9,
+            "total_ms": 75.4
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321113792,
+          "timings": {
+            "queue_ms": 0.2,
+            "handler_ms": 4,
+            "ui_wait_ms": 16.7,
+            "render_ms": 27.9,
+            "total_ms": 48.8
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321114592,
+          "timings": {
+            "queue_ms": 0.2,
+            "handler_ms": 4.8,
+            "ui_wait_ms": 17.3,
+            "render_ms": 26.6,
+            "total_ms": 48.9
+          },
+          "error": null
+        }
+      ]
+    },
+    {
+      "type": "prop_changed",
+      "kind": "small",
+      "samples": 3,
+      "handler_ms": 1.7,
+      "total_ms": 37.3,
+      "max_ms": 37.4,
+      "budget": {
+        "handler_ms": 16,
+        "total_ms": 100
+      },
+      "measurements": [
+        {
+          "status": "presented",
+          "presented_at": 1793321116064,
+          "timings": {
+            "queue_ms": 0.3,
+            "handler_ms": 1.8,
+            "ui_wait_ms": 0,
+            "render_ms": 35.2,
+            "total_ms": 37.3
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321116731,
+          "timings": {
+            "queue_ms": 0.2,
+            "handler_ms": 1.3,
+            "ui_wait_ms": 0,
+            "render_ms": 35.9,
+            "total_ms": 37.4
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321117329,
+          "timings": {
+            "queue_ms": 0.2,
+            "handler_ms": 1.7,
+            "ui_wait_ms": 0,
+            "render_ms": 34.1,
+            "total_ms": 36
+          },
+          "error": null
+        }
+      ]
+    },
+    {
+      "type": "props",
+      "kind": "small",
+      "samples": 3,
+      "handler_ms": 1.3,
+      "total_ms": 29.3,
+      "max_ms": 38.4,
+      "budget": {
+        "handler_ms": 16,
+        "total_ms": 100
+      },
+      "measurements": [
+        {
+          "status": "presented",
+          "presented_at": 1793321118815,
+          "timings": {
+            "queue_ms": 0.3,
+            "handler_ms": 1.2,
+            "ui_wait_ms": 0,
+            "render_ms": 27.6,
+            "total_ms": 29.1
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321119432,
+          "timings": {
+            "queue_ms": 0.2,
+            "handler_ms": 1.3,
+            "ui_wait_ms": 0,
+            "render_ms": 36.9,
+            "total_ms": 38.4
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321120079,
+          "timings": {
+            "queue_ms": 0.1,
+            "handler_ms": 1.3,
+            "ui_wait_ms": 0,
+            "render_ms": 27.9,
+            "total_ms": 29.3
+          },
+          "error": null
+        }
+      ]
+    },
+    {
+      "type": "queue_hang_warning",
+      "kind": "small",
+      "samples": 3,
+      "handler_ms": 0,
+      "total_ms": 32.4,
+      "max_ms": 32.4,
+      "budget": {
+        "handler_ms": 16,
+        "total_ms": 100
+      },
+      "measurements": [
+        {
+          "status": "presented",
+          "presented_at": 1793321121509,
+          "timings": {
+            "queue_ms": 0.2,
+            "handler_ms": 0,
+            "ui_wait_ms": 0,
+            "render_ms": 32.2,
+            "total_ms": 32.4
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321122196,
+          "timings": {
+            "queue_ms": 0.1,
+            "handler_ms": 0,
+            "ui_wait_ms": 0,
+            "render_ms": 29.9,
+            "total_ms": 30
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321122875,
+          "timings": {
+            "queue_ms": 0,
+            "handler_ms": 0,
+            "ui_wait_ms": 0,
+            "render_ms": 32.4,
+            "total_ms": 32.4
+          },
+          "error": null
+        }
+      ]
+    },
+    {
+      "type": "registration_dbv_rankings",
+      "kind": "small",
+      "samples": 3,
+      "handler_ms": 0,
+      "total_ms": 32,
+      "max_ms": 32.4,
+      "budget": {
+        "handler_ms": 16,
+        "total_ms": 100
+      },
+      "measurements": [
+        {
+          "status": "presented",
+          "presented_at": 1793321124392,
+          "timings": {
+            "queue_ms": 0.2,
+            "handler_ms": 0,
+            "ui_wait_ms": 0.1,
+            "render_ms": 24.8,
+            "total_ms": 25.1
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321125009,
+          "timings": {
+            "queue_ms": 0.2,
+            "handler_ms": 0,
+            "ui_wait_ms": 0,
+            "render_ms": 31.8,
+            "total_ms": 32
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321125642,
+          "timings": {
+            "queue_ms": 0.1,
+            "handler_ms": 0,
+            "ui_wait_ms": 0,
+            "render_ms": 32.3,
+            "total_ms": 32.4
+          },
+          "error": null
+        }
+      ]
+    },
+    {
+      "type": "registration_open_events",
+      "kind": "small",
+      "samples": 3,
+      "handler_ms": 0.8,
+      "total_ms": 32.2,
+      "max_ms": 32.3,
+      "budget": {
+        "handler_ms": 16,
+        "total_ms": 100
+      },
+      "measurements": [
+        {
+          "status": "presented",
+          "presented_at": 1793321127109,
+          "timings": {
+            "queue_ms": 0.2,
+            "handler_ms": 0.8,
+            "ui_wait_ms": 0.1,
+            "render_ms": 31.1,
+            "total_ms": 32.2
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321127725,
+          "timings": {
+            "queue_ms": 0.2,
+            "handler_ms": 0.9,
+            "ui_wait_ms": 0,
+            "render_ms": 31.2,
+            "total_ms": 32.3
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321128325,
+          "timings": {
+            "queue_ms": 0.2,
+            "handler_ms": 0.7,
+            "ui_wait_ms": 0.1,
+            "render_ms": 31.2,
+            "total_ms": 32.2
+          },
+          "error": null
+        }
+      ]
+    },
+    {
+      "type": "registration_player_comment",
+      "kind": "small",
+      "samples": 3,
+      "handler_ms": 0.7,
+      "total_ms": 26.2,
+      "max_ms": 32.3,
+      "budget": {
+        "handler_ms": 16,
+        "total_ms": 100
+      },
+      "measurements": [
+        {
+          "status": "presented",
+          "presented_at": 1793321129858,
+          "timings": {
+            "queue_ms": 0.2,
+            "handler_ms": 0.7,
+            "ui_wait_ms": 0,
+            "render_ms": 25.3,
+            "total_ms": 26.2
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321130442,
+          "timings": {
+            "queue_ms": 0.1,
+            "handler_ms": 0.9,
+            "ui_wait_ms": 0,
+            "render_ms": 31.3,
+            "total_ms": 32.3
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321131062,
+          "timings": {
+            "queue_ms": 0.1,
+            "handler_ms": 0.7,
+            "ui_wait_ms": 0,
+            "render_ms": 24.5,
+            "total_ms": 25.3
+          },
+          "error": null
+        }
+      ]
+    },
+    {
+      "type": "registration_player_comment_read",
+      "kind": "small",
+      "samples": 3,
+      "handler_ms": 1,
+      "total_ms": 32.2,
+      "max_ms": 32.3,
+      "budget": {
+        "handler_ms": 16,
+        "total_ms": 100
+      },
+      "measurements": [
+        {
+          "status": "presented",
+          "presented_at": 1793321132492,
+          "timings": {
+            "queue_ms": 0.2,
+            "handler_ms": 1,
+            "ui_wait_ms": 0,
+            "render_ms": 31.1,
+            "total_ms": 32.3
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321133110,
+          "timings": {
+            "queue_ms": 0.2,
+            "handler_ms": 1.3,
+            "ui_wait_ms": 0,
+            "render_ms": 27.5,
+            "total_ms": 29
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321133792,
+          "timings": {
+            "queue_ms": 0.2,
+            "handler_ms": 0.6,
+            "ui_wait_ms": 0,
+            "render_ms": 31.4,
+            "total_ms": 32.2
+          },
+          "error": null
+        }
+      ]
+    },
+    {
+      "type": "registration_player_status",
+      "kind": "small",
+      "samples": 3,
+      "handler_ms": 0.8,
+      "total_ms": 26.5,
+      "max_ms": 32.2,
+      "budget": {
+        "handler_ms": 16,
+        "total_ms": 100
+      },
+      "measurements": [
+        {
+          "status": "presented",
+          "presented_at": 1793321135342,
+          "timings": {
+            "queue_ms": 0.2,
+            "handler_ms": 0.8,
+            "ui_wait_ms": 0,
+            "render_ms": 22.8,
+            "total_ms": 23.8
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321135992,
+          "timings": {
+            "queue_ms": 0.1,
+            "handler_ms": 0.9,
+            "ui_wait_ms": 0,
+            "render_ms": 31.2,
+            "total_ms": 32.2
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321136659,
+          "timings": {
+            "queue_ms": 0.1,
+            "handler_ms": 0.7,
+            "ui_wait_ms": 0,
+            "render_ms": 25.7,
+            "total_ms": 26.5
+          },
+          "error": null
+        }
+      ]
+    },
+    {
+      "type": "registration_player_status_reset",
+      "kind": "small",
+      "samples": 3,
+      "handler_ms": 1,
+      "total_ms": 32.2,
+      "max_ms": 32.3,
+      "budget": {
+        "handler_ms": 16,
+        "total_ms": 100
+      },
+      "measurements": [
+        {
+          "status": "presented",
+          "presented_at": 1793321138125,
+          "timings": {
+            "queue_ms": 0.1,
+            "handler_ms": 0.9,
+            "ui_wait_ms": 0,
+            "render_ms": 31.3,
+            "total_ms": 32.3
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321138744,
+          "timings": {
+            "queue_ms": 0.3,
+            "handler_ms": 1.2,
+            "ui_wait_ms": 0,
+            "render_ms": 27.8,
+            "total_ms": 29.3
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321139375,
+          "timings": {
+            "queue_ms": 0.3,
+            "handler_ms": 1,
+            "ui_wait_ms": 0,
+            "render_ms": 30.9,
+            "total_ms": 32.2
+          },
+          "error": null
+        }
+      ]
+    },
+    {
+      "type": "registration_stage_comment",
+      "kind": "small",
+      "samples": 3,
+      "handler_ms": 0.9,
+      "total_ms": 32.1,
+      "max_ms": 32.2,
+      "budget": {
+        "handler_ms": 16,
+        "total_ms": 100
+      },
+      "measurements": [
+        {
+          "status": "presented",
+          "presented_at": 1793321140991,
+          "timings": {
+            "queue_ms": 0.2,
+            "handler_ms": 0.9,
+            "ui_wait_ms": 0,
+            "render_ms": 21.8,
+            "total_ms": 22.9
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321141625,
+          "timings": {
+            "queue_ms": 0.1,
+            "handler_ms": 0.9,
+            "ui_wait_ms": 0,
+            "render_ms": 31.1,
+            "total_ms": 32.1
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321142241,
+          "timings": {
+            "queue_ms": 0.1,
+            "handler_ms": 0.6,
+            "ui_wait_ms": 0,
+            "render_ms": 31.5,
+            "total_ms": 32.2
+          },
+          "error": null
+        }
+      ]
+    },
+    {
+      "type": "registration_stage_comment_read",
+      "kind": "small",
+      "samples": 3,
+      "handler_ms": 1,
+      "total_ms": 32.3,
+      "max_ms": 32.4,
+      "budget": {
+        "handler_ms": 16,
+        "total_ms": 100
+      },
+      "measurements": [
+        {
+          "status": "presented",
+          "presented_at": 1793321143675,
+          "timings": {
+            "queue_ms": 0.3,
+            "handler_ms": 1,
+            "ui_wait_ms": 0.1,
+            "render_ms": 30.7,
+            "total_ms": 32.1
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321144325,
+          "timings": {
+            "queue_ms": 0.1,
+            "handler_ms": 1,
+            "ui_wait_ms": 0,
+            "render_ms": 31.3,
+            "total_ms": 32.4
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321144924,
+          "timings": {
+            "queue_ms": 0.2,
+            "handler_ms": 0.8,
+            "ui_wait_ms": 0,
+            "render_ms": 31.3,
+            "total_ms": 32.3
+          },
+          "error": null
+        }
+      ]
+    },
+    {
+      "type": "registration_xlsx_metadata",
+      "kind": "small",
+      "samples": 3,
+      "handler_ms": 1.1,
+      "total_ms": 31.6,
+      "max_ms": 32.4,
+      "budget": {
+        "handler_ms": 16,
+        "total_ms": 100
+      },
+      "measurements": [
+        {
+          "status": "presented",
+          "presented_at": 1793321146679,
+          "timings": {
+            "queue_ms": 0.5,
+            "handler_ms": 1.6,
+            "ui_wait_ms": 0,
+            "render_ms": 29.5,
+            "total_ms": 31.6
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321147741,
+          "timings": {
+            "queue_ms": 0.2,
+            "handler_ms": 1.1,
+            "ui_wait_ms": 0,
+            "render_ms": 31.1,
+            "total_ms": 32.4
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321148391,
+          "timings": {
+            "queue_ms": 0.3,
+            "handler_ms": 0.7,
+            "ui_wait_ms": 0,
+            "render_ms": 30.5,
+            "total_ms": 31.5
+          },
+          "error": null
+        }
+      ]
+    },
+    {
+      "type": "score",
+      "kind": "small",
+      "samples": 3,
+      "handler_ms": 0.7,
+      "total_ms": 33.4,
+      "max_ms": 35.6,
+      "budget": {
+        "handler_ms": 16,
+        "total_ms": 100
+      },
+      "measurements": [
+        {
+          "status": "presented",
+          "presented_at": 1793321149909,
+          "timings": {
+            "queue_ms": 0.3,
+            "handler_ms": 4.3,
+            "ui_wait_ms": 0,
+            "render_ms": 28.8,
+            "total_ms": 33.4
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321150628,
+          "timings": {
+            "queue_ms": 0.2,
+            "handler_ms": 0.7,
+            "ui_wait_ms": 0,
+            "render_ms": 34.7,
+            "total_ms": 35.6
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321151325,
+          "timings": {
+            "queue_ms": 0.3,
+            "handler_ms": 0.5,
+            "ui_wait_ms": 0,
+            "render_ms": 32.1,
+            "total_ms": 32.9
+          },
+          "error": null
+        }
+      ]
+    },
+    {
+      "type": "scoring_format_changed",
+      "kind": "small",
+      "samples": 3,
+      "handler_ms": 0.7,
+      "total_ms": 23.3,
+      "max_ms": 32.2,
+      "budget": {
+        "handler_ms": 16,
+        "total_ms": 100
+      },
+      "measurements": [
+        {
+          "status": "presented",
+          "presented_at": 1793321152874,
+          "timings": {
+            "queue_ms": 0.2,
+            "handler_ms": 1.1,
+            "ui_wait_ms": 0,
+            "render_ms": 21.9,
+            "total_ms": 23.2
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321153524,
+          "timings": {
+            "queue_ms": 0.2,
+            "handler_ms": 0.7,
+            "ui_wait_ms": 0,
+            "render_ms": 31.3,
+            "total_ms": 32.2
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321154142,
+          "timings": {
+            "queue_ms": 0.2,
+            "handler_ms": 0.7,
+            "ui_wait_ms": 0,
+            "render_ms": 22.4,
+            "total_ms": 23.3
+          },
+          "error": null
+        }
+      ]
+    },
+    {
+      "type": "second_call_servicejudge",
+      "kind": "small",
+      "samples": 3,
+      "handler_ms": 0.1,
+      "total_ms": 32.3,
+      "max_ms": 35.1,
+      "budget": {
+        "handler_ms": 16,
+        "total_ms": 100
+      },
+      "measurements": [
+        {
+          "status": "presented",
+          "presented_at": 1793321155574,
+          "timings": {
+            "queue_ms": 0.1,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 0,
+            "render_ms": 32,
+            "total_ms": 32.3
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321156228,
+          "timings": {
+            "queue_ms": 0.1,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 0,
+            "render_ms": 34.9,
+            "total_ms": 35.1
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321156874,
+          "timings": {
+            "queue_ms": 0,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 0,
+            "render_ms": 32.1,
+            "total_ms": 32.2
+          },
+          "error": null
+        }
+      ]
+    },
+    {
+      "type": "second_call_tabletoperator",
+      "kind": "small",
+      "samples": 3,
+      "handler_ms": 0.1,
+      "total_ms": 32,
+      "max_ms": 32.1,
+      "budget": {
+        "handler_ms": 16,
+        "total_ms": 100
+      },
+      "measurements": [
+        {
+          "status": "presented",
+          "presented_at": 1793321158357,
+          "timings": {
+            "queue_ms": 0.1,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 0.1,
+            "render_ms": 26.4,
+            "total_ms": 26.7
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321158991,
+          "timings": {
+            "queue_ms": 0.1,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 0,
+            "render_ms": 31.8,
+            "total_ms": 32
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321159691,
+          "timings": {
+            "queue_ms": 0,
+            "handler_ms": 0,
+            "ui_wait_ms": 0,
+            "render_ms": 32.1,
+            "total_ms": 32.1
+          },
+          "error": null
+        }
+      ]
+    },
+    {
+      "type": "second_call_team_one",
+      "kind": "small",
+      "samples": 3,
+      "handler_ms": 0.1,
+      "total_ms": 31.8,
+      "max_ms": 32.1,
+      "budget": {
+        "handler_ms": 16,
+        "total_ms": 100
+      },
+      "measurements": [
+        {
+          "status": "presented",
+          "presented_at": 1793321161210,
+          "timings": {
+            "queue_ms": 0,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 0,
+            "render_ms": 26.1,
+            "total_ms": 26.3
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321161824,
+          "timings": {
+            "queue_ms": 0,
+            "handler_ms": 0,
+            "ui_wait_ms": 0,
+            "render_ms": 32.1,
+            "total_ms": 32.1
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321162440,
+          "timings": {
+            "queue_ms": 0,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 0,
+            "render_ms": 31.7,
+            "total_ms": 31.8
+          },
+          "error": null
+        }
+      ]
+    },
+    {
+      "type": "second_call_team_two",
+      "kind": "small",
+      "samples": 3,
+      "handler_ms": 0.1,
+      "total_ms": 32.3,
+      "max_ms": 32.3,
+      "budget": {
+        "handler_ms": 16,
+        "total_ms": 100
+      },
+      "measurements": [
+        {
+          "status": "presented",
+          "presented_at": 1793321163940,
+          "timings": {
+            "queue_ms": 0.1,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 0,
+            "render_ms": 32,
+            "total_ms": 32.2
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321164607,
+          "timings": {
+            "queue_ms": 0.1,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 0,
+            "render_ms": 32.1,
+            "total_ms": 32.3
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321165207,
+          "timings": {
+            "queue_ms": 0.1,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 0,
+            "render_ms": 32.1,
+            "total_ms": 32.3
+          },
+          "error": null
+        }
+      ]
+    },
+    {
+      "type": "second_call_umpire",
+      "kind": "small",
+      "samples": 3,
+      "handler_ms": 0.1,
+      "total_ms": 24.8,
+      "max_ms": 32.2,
+      "budget": {
+        "handler_ms": 16,
+        "total_ms": 100
+      },
+      "measurements": [
+        {
+          "status": "presented",
+          "presented_at": 1793321166740,
+          "timings": {
+            "queue_ms": 0.1,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 0,
+            "render_ms": 24.5,
+            "total_ms": 24.8
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321167374,
+          "timings": {
+            "queue_ms": 0,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 0,
+            "render_ms": 32.1,
+            "total_ms": 32.2
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321168007,
+          "timings": {
+            "queue_ms": 0.1,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 0,
+            "render_ms": 13.9,
+            "total_ms": 14.1
+          },
+          "error": null
+        }
+      ]
+    },
+    {
+      "type": "second_preparation_call_servicejudge",
+      "kind": "small",
+      "samples": 3,
+      "handler_ms": 0,
+      "total_ms": 28,
+      "max_ms": 31.8,
+      "budget": {
+        "handler_ms": 16,
+        "total_ms": 100
+      },
+      "measurements": [
+        {
+          "status": "presented",
+          "presented_at": 1793321169474,
+          "timings": {
+            "queue_ms": 0.1,
+            "handler_ms": 0,
+            "ui_wait_ms": 0.1,
+            "render_ms": 31.6,
+            "total_ms": 31.8
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321170307,
+          "timings": {
+            "queue_ms": 0,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 0,
+            "render_ms": 26.7,
+            "total_ms": 26.9
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321171023,
+          "timings": {
+            "queue_ms": 0.1,
+            "handler_ms": 0,
+            "ui_wait_ms": 0.1,
+            "render_ms": 27.8,
+            "total_ms": 28
+          },
+          "error": null
+        }
+      ]
+    },
+    {
+      "type": "second_preparation_call_tabletoperator",
+      "kind": "small",
+      "samples": 3,
+      "handler_ms": 0.1,
+      "total_ms": 32,
+      "max_ms": 32.1,
+      "budget": {
+        "handler_ms": 16,
+        "total_ms": 100
+      },
+      "measurements": [
+        {
+          "status": "presented",
+          "presented_at": 1793321172740,
+          "timings": {
+            "queue_ms": 0.1,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 0,
+            "render_ms": 26.2,
+            "total_ms": 26.5
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321173407,
+          "timings": {
+            "queue_ms": 0.1,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 0,
+            "render_ms": 31.9,
+            "total_ms": 32.1
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321174057,
+          "timings": {
+            "queue_ms": 0.1,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 0,
+            "render_ms": 31.8,
+            "total_ms": 32
+          },
+          "error": null
+        }
+      ]
+    },
+    {
+      "type": "second_preparation_call_team_one",
+      "kind": "small",
+      "samples": 3,
+      "handler_ms": 0.1,
+      "total_ms": 32,
+      "max_ms": 32.3,
+      "budget": {
+        "handler_ms": 16,
+        "total_ms": 100
+      },
+      "measurements": [
+        {
+          "status": "presented",
+          "presented_at": 1793321175540,
+          "timings": {
+            "queue_ms": 0.1,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 0,
+            "render_ms": 32.1,
+            "total_ms": 32.3
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321176173,
+          "timings": {
+            "queue_ms": 0.2,
+            "handler_ms": 0,
+            "ui_wait_ms": 0,
+            "render_ms": 31.8,
+            "total_ms": 32
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321176790,
+          "timings": {
+            "queue_ms": 0.1,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 0,
+            "render_ms": 31.7,
+            "total_ms": 31.9
+          },
+          "error": null
+        }
+      ]
+    },
+    {
+      "type": "second_preparation_call_team_two",
+      "kind": "small",
+      "samples": 3,
+      "handler_ms": 0,
+      "total_ms": 25.4,
+      "max_ms": 32.2,
+      "budget": {
+        "handler_ms": 16,
+        "total_ms": 100
+      },
+      "measurements": [
+        {
+          "status": "presented",
+          "presented_at": 1793321178307,
+          "timings": {
+            "queue_ms": 0.2,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 0,
+            "render_ms": 25,
+            "total_ms": 25.4
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321178990,
+          "timings": {
+            "queue_ms": 0.1,
+            "handler_ms": 0,
+            "ui_wait_ms": 0,
+            "render_ms": 32.1,
+            "total_ms": 32.2
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321179623,
+          "timings": {
+            "queue_ms": 0.1,
+            "handler_ms": 0,
+            "ui_wait_ms": 0,
+            "render_ms": 17.1,
+            "total_ms": 17.2
+          },
+          "error": null
+        }
+      ]
+    },
+    {
+      "type": "second_preparation_call_umpire",
+      "kind": "small",
+      "samples": 3,
+      "handler_ms": 0,
+      "total_ms": 32.1,
+      "max_ms": 32.3,
+      "budget": {
+        "handler_ms": 16,
+        "total_ms": 100
+      },
+      "measurements": [
+        {
+          "status": "presented",
+          "presented_at": 1793321181106,
+          "timings": {
+            "queue_ms": 0.1,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 0,
+            "render_ms": 31.8,
+            "total_ms": 32.1
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321181776,
+          "timings": {
+            "queue_ms": 0.1,
+            "handler_ms": 0,
+            "ui_wait_ms": 0,
+            "render_ms": 25.3,
+            "total_ms": 25.4
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321182373,
+          "timings": {
+            "queue_ms": 0.1,
+            "handler_ms": 0,
+            "ui_wait_ms": 0,
+            "render_ms": 32.2,
+            "total_ms": 32.3
+          },
+          "error": null
+        }
+      ]
+    },
+    {
+      "type": "speech_cache_changed",
+      "kind": "small",
+      "samples": 3,
+      "handler_ms": 0.2,
+      "total_ms": 29.7,
+      "max_ms": 32.3,
+      "budget": {
+        "handler_ms": 16,
+        "total_ms": 100
+      },
+      "measurements": [
+        {
+          "status": "presented",
+          "presented_at": 1793321184090,
+          "timings": {
+            "queue_ms": 0.2,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 0,
+            "render_ms": 26.7,
+            "total_ms": 27.1
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321184723,
+          "timings": {
+            "queue_ms": 0.1,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 0,
+            "render_ms": 32.1,
+            "total_ms": 32.3
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321185373,
+          "timings": {
+            "queue_ms": 0.2,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 0,
+            "render_ms": 29.3,
+            "total_ms": 29.7
+          },
+          "error": null
+        }
+      ]
+    },
+    {
+      "type": "tabletoperator_add",
+      "kind": "structural",
+      "samples": 3,
+      "handler_ms": 1.8,
+      "total_ms": 48.4,
+      "max_ms": 48.8,
+      "budget": {
+        "handler_ms": 100,
+        "total_ms": 500
+      },
+      "measurements": [
+        {
+          "status": "presented",
+          "presented_at": 1793321186856,
+          "timings": {
+            "queue_ms": 0.3,
+            "handler_ms": 1.8,
+            "ui_wait_ms": 14.2,
+            "render_ms": 32.5,
+            "total_ms": 48.8
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321187509,
+          "timings": {
+            "queue_ms": 0.2,
+            "handler_ms": 1.9,
+            "ui_wait_ms": 12.3,
+            "render_ms": 34,
+            "total_ms": 48.4
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321188156,
+          "timings": {
+            "queue_ms": 0.2,
+            "handler_ms": 1.8,
+            "ui_wait_ms": 12.4,
+            "render_ms": 32.7,
+            "total_ms": 47.1
+          },
+          "error": null
+        }
+      ]
+    },
+    {
+      "type": "tabletoperator_moved_down",
+      "kind": "structural",
+      "samples": 3,
+      "handler_ms": 2.2,
+      "total_ms": 48.6,
+      "max_ms": 48.7,
+      "budget": {
+        "handler_ms": 100,
+        "total_ms": 500
+      },
+      "measurements": [
+        {
+          "status": "presented",
+          "presented_at": 1793321189724,
+          "timings": {
+            "queue_ms": 0.2,
+            "handler_ms": 1.5,
+            "ui_wait_ms": 13.6,
+            "render_ms": 29.8,
+            "total_ms": 45.1
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321190373,
+          "timings": {
+            "queue_ms": 0.2,
+            "handler_ms": 2.2,
+            "ui_wait_ms": 13.5,
+            "render_ms": 32.8,
+            "total_ms": 48.7
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321191039,
+          "timings": {
+            "queue_ms": 0.1,
+            "handler_ms": 2.5,
+            "ui_wait_ms": 13.1,
+            "render_ms": 32.9,
+            "total_ms": 48.6
+          },
+          "error": null
+        }
+      ]
+    },
+    {
+      "type": "tabletoperator_moved_up",
+      "kind": "structural",
+      "samples": 3,
+      "handler_ms": 1.8,
+      "total_ms": 48.7,
+      "max_ms": 49,
+      "budget": {
+        "handler_ms": 100,
+        "total_ms": 500
+      },
+      "measurements": [
+        {
+          "status": "presented",
+          "presented_at": 1793321192541,
+          "timings": {
+            "queue_ms": 0.3,
+            "handler_ms": 1.6,
+            "ui_wait_ms": 8.6,
+            "render_ms": 32.2,
+            "total_ms": 42.7
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321193189,
+          "timings": {
+            "queue_ms": 0.2,
+            "handler_ms": 1.8,
+            "ui_wait_ms": 14.1,
+            "render_ms": 32.9,
+            "total_ms": 49
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321193822,
+          "timings": {
+            "queue_ms": 0.3,
+            "handler_ms": 2.7,
+            "ui_wait_ms": 12.8,
+            "render_ms": 32.9,
+            "total_ms": 48.7
+          },
+          "error": null
+        }
+      ]
+    },
+    {
+      "type": "tabletoperator_removed",
+      "kind": "structural",
+      "samples": 3,
+      "handler_ms": 1.4,
+      "total_ms": 44.8,
+      "max_ms": 49,
+      "budget": {
+        "handler_ms": 100,
+        "total_ms": 500
+      },
+      "measurements": [
+        {
+          "status": "presented",
+          "presented_at": 1793321195442,
+          "timings": {
+            "queue_ms": 0.3,
+            "handler_ms": 1.9,
+            "ui_wait_ms": 10.2,
+            "render_ms": 32.4,
+            "total_ms": 44.8
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321196072,
+          "timings": {
+            "queue_ms": 0.2,
+            "handler_ms": 1.4,
+            "ui_wait_ms": 14.7,
+            "render_ms": 32.7,
+            "total_ms": 49
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321196756,
+          "timings": {
+            "queue_ms": 0.1,
+            "handler_ms": 1.3,
+            "ui_wait_ms": 7.3,
+            "render_ms": 30.9,
+            "total_ms": 39.6
+          },
+          "error": null
+        }
+      ]
+    },
+    {
+      "type": "ticker_status",
+      "kind": "small",
+      "samples": 3,
+      "handler_ms": 0.5,
+      "total_ms": 32,
+      "max_ms": 32.3,
+      "budget": {
+        "handler_ms": 16,
+        "total_ms": 100
+      },
+      "measurements": [
+        {
+          "status": "presented",
+          "presented_at": 1793321198206,
+          "timings": {
+            "queue_ms": 0,
+            "handler_ms": 0.4,
+            "ui_wait_ms": 0,
+            "render_ms": 31.9,
+            "total_ms": 32.3
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321198842,
+          "timings": {
+            "queue_ms": 0.1,
+            "handler_ms": 0.5,
+            "ui_wait_ms": 0,
+            "render_ms": 28,
+            "total_ms": 28.6
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321199439,
+          "timings": {
+            "queue_ms": 0,
+            "handler_ms": 0.5,
+            "ui_wait_ms": 0,
+            "render_ms": 31.5,
+            "total_ms": 32
+          },
+          "error": null
+        }
+      ]
+    },
+    {
+      "type": "tournament_reset",
+      "kind": "full",
+      "samples": 3,
+      "handler_ms": 29.8,
+      "total_ms": 58.5,
+      "max_ms": 60.9,
+      "budget": {
+        "handler_ms": 250,
+        "total_ms": 1000
+      },
+      "measurements": [
+        {
+          "status": "presented",
+          "presented_at": 1793321201142,
+          "timings": {
+            "queue_ms": 0.3,
+            "handler_ms": 33.1,
+            "ui_wait_ms": 6.1,
+            "render_ms": 21.4,
+            "total_ms": 60.9
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321201822,
+          "timings": {
+            "queue_ms": 0.2,
+            "handler_ms": 29.8,
+            "ui_wait_ms": 6.2,
+            "render_ms": 10.5,
+            "total_ms": 46.7
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321202510,
+          "timings": {
+            "queue_ms": 0.2,
+            "handler_ms": 28.8,
+            "ui_wait_ms": 5.3,
+            "render_ms": 24.2,
+            "total_ms": 58.5
+          },
+          "error": null
+        }
+      ]
+    },
+    {
+      "type": "umpire_add",
+      "kind": "structural",
+      "samples": 3,
+      "handler_ms": 3.2,
+      "total_ms": 66.1,
+      "max_ms": 75.2,
+      "budget": {
+        "handler_ms": 100,
+        "total_ms": 500
+      },
+      "measurements": [
+        {
+          "status": "presented",
+          "presented_at": 1793321204006,
+          "timings": {
+            "queue_ms": 0.2,
+            "handler_ms": 3.2,
+            "ui_wait_ms": 14.4,
+            "render_ms": 48.3,
+            "total_ms": 66.1
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321204675,
+          "timings": {
+            "queue_ms": 0.2,
+            "handler_ms": 3.8,
+            "ui_wait_ms": 8.8,
+            "render_ms": 62.4,
+            "total_ms": 75.2
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321205339,
+          "timings": {
+            "queue_ms": 0.2,
+            "handler_ms": 3.1,
+            "ui_wait_ms": 14.1,
+            "render_ms": 48.1,
+            "total_ms": 65.5
+          },
+          "error": null
+        }
+      ]
+    },
+    {
+      "type": "umpire_removed",
+      "kind": "structural",
+      "samples": 3,
+      "handler_ms": 1.8,
+      "total_ms": 54.9,
+      "max_ms": 56.3,
+      "budget": {
+        "handler_ms": 100,
+        "total_ms": 500
+      },
+      "measurements": [
+        {
+          "status": "presented",
+          "presented_at": 1793321207118,
+          "timings": {
+            "queue_ms": 0.2,
+            "handler_ms": 2,
+            "ui_wait_ms": 0,
+            "render_ms": 52.7,
+            "total_ms": 54.9
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321207746,
+          "timings": {
+            "queue_ms": 0.1,
+            "handler_ms": 1.6,
+            "ui_wait_ms": 0,
+            "render_ms": 54.6,
+            "total_ms": 56.3
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321208399,
+          "timings": {
+            "queue_ms": 0.2,
+            "handler_ms": 1.8,
+            "ui_wait_ms": 0,
+            "render_ms": 52.8,
+            "total_ms": 54.8
+          },
+          "error": null
+        }
+      ]
+    },
+    {
+      "type": "umpire_updated",
+      "kind": "structural",
+      "samples": 3,
+      "handler_ms": 2.3,
+      "total_ms": 48.8,
+      "max_ms": 48.9,
+      "budget": {
+        "handler_ms": 100,
+        "total_ms": 500
+      },
+      "measurements": [
+        {
+          "status": "presented",
+          "presented_at": 1793321209839,
+          "timings": {
+            "queue_ms": 0.2,
+            "handler_ms": 2.3,
+            "ui_wait_ms": 14.9,
+            "render_ms": 31.4,
+            "total_ms": 48.8
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321210506,
+          "timings": {
+            "queue_ms": 0.2,
+            "handler_ms": 2.2,
+            "ui_wait_ms": 13.7,
+            "render_ms": 31.8,
+            "total_ms": 47.9
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321211138,
+          "timings": {
+            "queue_ms": 0.1,
+            "handler_ms": 2.5,
+            "ui_wait_ms": 14.2,
+            "render_ms": 32.1,
+            "total_ms": 48.9
+          },
+          "error": null
+        }
+      ]
+    },
+    {
+      "type": "umpires_changed",
+      "kind": "structural",
+      "samples": 3,
+      "handler_ms": 2.5,
+      "total_ms": 46.7,
+      "max_ms": 48.9,
+      "budget": {
+        "handler_ms": 100,
+        "total_ms": 500
+      },
+      "measurements": [
+        {
+          "status": "presented",
+          "presented_at": 1793321212639,
+          "timings": {
+            "queue_ms": 0.3,
+            "handler_ms": 2.2,
+            "ui_wait_ms": 13.2,
+            "render_ms": 26.8,
+            "total_ms": 42.5
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321213255,
+          "timings": {
+            "queue_ms": 0.2,
+            "handler_ms": 2.5,
+            "ui_wait_ms": 14.4,
+            "render_ms": 31.8,
+            "total_ms": 48.9
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321213909,
+          "timings": {
+            "queue_ms": 0.2,
+            "handler_ms": 2.9,
+            "ui_wait_ms": 8.5,
+            "render_ms": 35.1,
+            "total_ms": 46.7
+          },
+          "error": null
+        }
+      ]
+    },
+    {
+      "type": "update_btp_events",
+      "kind": "small",
+      "samples": 3,
+      "handler_ms": 1.2,
+      "total_ms": 30.1,
+      "max_ms": 32.2,
+      "budget": {
+        "handler_ms": 16,
+        "total_ms": 100
+      },
+      "measurements": [
+        {
+          "status": "presented",
+          "presented_at": 1793321215405,
+          "timings": {
+            "queue_ms": 0.2,
+            "handler_ms": 1.3,
+            "ui_wait_ms": 0.1,
+            "render_ms": 30.6,
+            "total_ms": 32.2
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321216039,
+          "timings": {
+            "queue_ms": 0.1,
+            "handler_ms": 1.2,
+            "ui_wait_ms": 0,
+            "render_ms": 28.8,
+            "total_ms": 30.1
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321216655,
+          "timings": {
+            "queue_ms": 0.1,
+            "handler_ms": 0.8,
+            "ui_wait_ms": 0,
+            "render_ms": 25.6,
+            "total_ms": 26.5
+          },
+          "error": null
+        }
+      ]
+    },
+    {
+      "type": "update_btp_scoring_formats",
+      "kind": "small",
+      "samples": 3,
+      "handler_ms": 0.7,
+      "total_ms": 32,
+      "max_ms": 32.1,
+      "budget": {
+        "handler_ms": 16,
+        "total_ms": 100
+      },
+      "measurements": [
+        {
+          "status": "presented",
+          "presented_at": 1793321218155,
+          "timings": {
+            "queue_ms": 0.2,
+            "handler_ms": 0.7,
+            "ui_wait_ms": 0.1,
+            "render_ms": 24.3,
+            "total_ms": 25.3
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321218772,
+          "timings": {
+            "queue_ms": 0.1,
+            "handler_ms": 0.7,
+            "ui_wait_ms": 0,
+            "render_ms": 31.2,
+            "total_ms": 32
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321219405,
+          "timings": {
+            "queue_ms": 0.1,
+            "handler_ms": 1,
+            "ui_wait_ms": 0,
+            "render_ms": 31,
+            "total_ms": 32.1
+          },
+          "error": null
+        }
+      ]
+    },
+    {
+      "type": "update_btp_settings",
+      "kind": "structural",
+      "samples": 3,
+      "handler_ms": 4.9,
+      "total_ms": 49.5,
+      "max_ms": 73,
+      "budget": {
+        "handler_ms": 100,
+        "total_ms": 500
+      },
+      "measurements": [
+        {
+          "status": "presented",
+          "presented_at": 1793321220989,
+          "timings": {
+            "queue_ms": 0.3,
+            "handler_ms": 8.6,
+            "ui_wait_ms": 36.7,
+            "render_ms": 27.4,
+            "total_ms": 73
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321221705,
+          "timings": {
+            "queue_ms": 0.2,
+            "handler_ms": 4.7,
+            "ui_wait_ms": 15.6,
+            "render_ms": 29,
+            "total_ms": 49.5
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321222455,
+          "timings": {
+            "queue_ms": 0.1,
+            "handler_ms": 4.9,
+            "ui_wait_ms": 14.3,
+            "render_ms": 29.4,
+            "total_ms": 48.7
+          },
+          "error": null
+        }
+      ]
+    },
+    {
+      "type": "update_display_setting",
+      "kind": "small",
+      "samples": 3,
+      "handler_ms": 0.4,
+      "total_ms": 33.6,
+      "max_ms": 34.4,
+      "budget": {
+        "handler_ms": 16,
+        "total_ms": 100
+      },
+      "measurements": [
+        {
+          "status": "presented",
+          "presented_at": 1793321223945,
+          "timings": {
+            "queue_ms": 0.2,
+            "handler_ms": 0.5,
+            "ui_wait_ms": 0,
+            "render_ms": 30.3,
+            "total_ms": 31
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321224556,
+          "timings": {
+            "queue_ms": 0.3,
+            "handler_ms": 0.4,
+            "ui_wait_ms": 0,
+            "render_ms": 32.9,
+            "total_ms": 33.6
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321225223,
+          "timings": {
+            "queue_ms": 0.2,
+            "handler_ms": 0.4,
+            "ui_wait_ms": 0,
+            "render_ms": 33.8,
+            "total_ms": 34.4
+          },
+          "error": null
+        }
+      ]
+    },
+    {
+      "type": "update_player_status",
+      "kind": "small",
+      "samples": 3,
+      "handler_ms": 1.7,
+      "total_ms": 48.5,
+      "max_ms": 48.6,
+      "budget": {
+        "handler_ms": 16,
+        "total_ms": 100
+      },
+      "measurements": [
+        {
+          "status": "presented",
+          "presented_at": 1793321226704,
+          "timings": {
+            "queue_ms": 0.3,
+            "handler_ms": 6.5,
+            "ui_wait_ms": 9.2,
+            "render_ms": 32.5,
+            "total_ms": 48.5
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321227438,
+          "timings": {
+            "queue_ms": 0.2,
+            "handler_ms": 1.7,
+            "ui_wait_ms": 12.5,
+            "render_ms": 32.4,
+            "total_ms": 46.8
+          },
+          "error": null
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321228138,
+          "timings": {
+            "queue_ms": 0.2,
+            "handler_ms": 1.6,
+            "ui_wait_ms": 14.1,
+            "render_ms": 32.7,
+            "total_ms": 48.6
+          },
+          "error": null
+        }
+      ]
+    },
+    {
+      "type": "timer_count_up",
+      "kind": "small",
+      "samples": 3,
+      "handler_ms": 0.2,
+      "total_ms": 28.9,
+      "max_ms": 39.5,
+      "budget": {
+        "handler_ms": 16,
+        "total_ms": 100
+      },
+      "measurements": [
+        {
+          "status": "presented",
+          "presented_at": 1793321229704,
+          "timings": {
+            "queue_ms": 0,
+            "handler_ms": 0.4,
+            "ui_wait_ms": 8,
+            "render_ms": 31.1,
+            "total_ms": 39.5
+          }
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321230721,
+          "timings": {
+            "queue_ms": 0,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 0,
+            "render_ms": 20.8,
+            "total_ms": 21
+          }
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321231729,
+          "timings": {
+            "queue_ms": 0,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 0.1,
+            "render_ms": 28.6,
+            "total_ms": 28.9
+          }
+        }
+      ]
+    },
+    {
+      "type": "timer_count_down",
+      "kind": "small",
+      "samples": 3,
+      "handler_ms": 0.1,
+      "total_ms": 18.3,
+      "max_ms": 48.6,
+      "budget": {
+        "handler_ms": 16,
+        "total_ms": 100
+      },
+      "measurements": [
+        {
+          "status": "presented",
+          "presented_at": 1793321233254,
+          "timings": {
+            "queue_ms": 0,
+            "handler_ms": 0.4,
+            "ui_wait_ms": 15.6,
+            "render_ms": 32.6,
+            "total_ms": 48.6
+          }
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321233504,
+          "timings": {
+            "queue_ms": 0,
+            "handler_ms": 0,
+            "ui_wait_ms": 0,
+            "render_ms": 3.6,
+            "total_ms": 3.6
+          }
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321234318,
+          "timings": {
+            "queue_ms": 0,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 0,
+            "render_ms": 18.2,
+            "total_ms": 18.3
+          }
+        }
+      ]
+    },
+    {
+      "type": "timer_overdue",
+      "kind": "small",
+      "samples": 3,
+      "handler_ms": 0.1,
+      "total_ms": 30.7,
+      "max_ms": 44.1,
+      "budget": {
+        "handler_ms": 16,
+        "total_ms": 100
+      },
+      "measurements": [
+        {
+          "status": "presented",
+          "presented_at": 1793321235856,
+          "timings": {
+            "queue_ms": 0.1,
+            "handler_ms": 0.3,
+            "ui_wait_ms": 11.8,
+            "render_ms": 31.9,
+            "total_ms": 44.1
+          }
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321236920,
+          "timings": {
+            "queue_ms": 0.1,
+            "handler_ms": 0,
+            "ui_wait_ms": 0,
+            "render_ms": 19.5,
+            "total_ms": 19.6
+          }
+        },
+        {
+          "status": "presented",
+          "presented_at": 1793321237930,
+          "timings": {
+            "queue_ms": 0.1,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 0,
+            "render_ms": 30.5,
+            "total_ms": 30.7
+          }
+        }
+      ]
+    }
+  ],
+  "failures": []
+}

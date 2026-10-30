@@ -1,0 +1,403 @@
+{
+  "scope": "Tablet send to real browser presentation receipt; full isolated server benchmark. External BTP, ticker and speech services disabled.",
+  "runtime_ms": 600082,
+  "stop_reason": "completed",
+  "failure": null,
+  "target_max_ms": 500,
+  "complete": true,
+  "all_scores_presented": true,
+  "stable_server": true,
+  "maximum_matches_report": true,
+  "target_met": true,
+  "admin": {
+    "count": 1334,
+    "mean": 69.5,
+    "min": 27,
+    "p50": 55,
+    "p95": 160,
+    "p99": 327,
+    "max": 463,
+    "over_50_ms": 800,
+    "over_100_ms": 149,
+    "over_200_ms": 40,
+    "sent_updates": 1334,
+    "unmatched_updates": 0,
+    "coverage": 1
+  },
+  "tv": {
+    "count": 1334,
+    "mean": 4.8,
+    "min": 2,
+    "p50": 4,
+    "p95": 10,
+    "p99": 18,
+    "max": 53,
+    "over_50_ms": 1,
+    "over_100_ms": 0,
+    "over_200_ms": 0,
+    "sent_updates": 1334,
+    "unmatched_updates": 0,
+    "coverage": 1
+  },
+  "maxima_over_target": 0,
+  "worst": [
+    {
+      "trace_id": "live-drill-2923171-mvuz99vm-999",
+      "sent_ts": 1793365067074,
+      "court_id": "default_11",
+      "match_id": "btp_default_JE U17_874",
+      "tv_ms": 6,
+      "tv_received_ts": 1793365067080,
+      "admin_ms": 463,
+      "admin_received_ts": 1793365067437,
+      "admin_applied_ts": 1793365067496,
+      "admin_presented_ts": 1793365067537,
+      "admin_presentation_status": "presented",
+      "admin_ui_ms": {
+        "queue_ms": 56.2,
+        "handler_ms": 2.6,
+        "ui_wait_ms": 0,
+        "render_ms": 40.8,
+        "total_ms": 99.6
+      },
+      "admin_measurement_method": "dom-and-render-opportunity",
+      "admin_ui_jobs": []
+    },
+    {
+      "trace_id": "live-drill-2923171-mvuz99wk-1000",
+      "sent_ts": 1793365067108,
+      "court_id": "default_13",
+      "match_id": "btp_default_ME U15_800",
+      "tv_ms": 3,
+      "tv_received_ts": 1793365067111,
+      "admin_ms": 463,
+      "admin_received_ts": 1793365067482,
+      "admin_applied_ts": 1793365067534,
+      "admin_presented_ts": 1793365067571,
+      "admin_presentation_status": "presented",
+      "admin_ui_ms": {
+        "queue_ms": 51.4,
+        "handler_ms": 0.8,
+        "ui_wait_ms": 0,
+        "render_ms": 37.1,
+        "total_ms": 89.3
+      },
+      "admin_measurement_method": "dom-and-render-opportunity",
+      "admin_ui_jobs": []
+    },
+    {
+      "trace_id": "live-drill-2923171-mvuz99xm-1001",
+      "sent_ts": 1793365067146,
+      "court_id": "default_8",
+      "match_id": "btp_default_ME U15_797",
+      "tv_ms": 7,
+      "tv_received_ts": 1793365067153,
+      "admin_ms": 454,
+      "admin_received_ts": 1793365067484,
+      "admin_applied_ts": 1793365067570,
+      "admin_presented_ts": 1793365067600,
+      "admin_presentation_status": "presented",
+      "admin_ui_ms": {
+        "queue_ms": 85.5,
+        "handler_ms": 0.7,
+        "ui_wait_ms": 0,
+        "render_ms": 30.3,
+        "total_ms": 116.5
+      },
+      "admin_measurement_method": "dom-and-render-opportunity",
+      "admin_ui_jobs": []
+    },
+    {
+      "trace_id": "live-drill-2923171-mvuz3jwx-603",
+      "sent_ts": 1793364800146,
+      "court_id": "default_7",
+      "match_id": "btp_default_JE U15_721",
+      "tv_ms": 7,
+      "tv_received_ts": 1793364800153,
+      "admin_ms": 452,
+      "admin_received_ts": 1793364800357,
+      "admin_applied_ts": 1793364800552,
+      "admin_presented_ts": 1793364800598,
+      "admin_presentation_status": "presented",
+      "admin_ui_ms": {
+        "queue_ms": 192.7,
+        "handler_ms": 1.9,
+        "ui_wait_ms": 0,
+        "render_ms": 46.3,
+        "total_ms": 240.9
+      },
+      "admin_measurement_method": "dom-and-render-opportunity",
+      "admin_ui_jobs": []
+    },
+    {
+      "trace_id": "live-drill-2923171-mvuz0ejq-193",
+      "sent_ts": 1793364653222,
+      "court_id": "default_6",
+      "match_id": "btp_default_JE U15_716",
+      "tv_ms": 5,
+      "tv_received_ts": 1793364653227,
+      "admin_ms": 412,
+      "admin_received_ts": 1793364653341,
+      "admin_applied_ts": 1793364653560,
+      "admin_presented_ts": 1793364653634,
+      "admin_presentation_status": "presented",
+      "admin_ui_ms": {
+        "queue_ms": 218.3,
+        "handler_ms": 0.7,
+        "ui_wait_ms": 0,
+        "render_ms": 73.9,
+        "total_ms": 292.9
+      },
+      "admin_measurement_method": "dom-and-render-opportunity",
+      "admin_ui_jobs": []
+    },
+    {
+      "trace_id": "live-drill-2923171-mvuz00w6-137",
+      "sent_ts": 1793364635526,
+      "court_id": "default_4",
+      "match_id": "btp_default_JE U15_717",
+      "tv_ms": 4,
+      "tv_received_ts": 1793364635530,
+      "admin_ms": 404,
+      "admin_received_ts": 1793364635860,
+      "admin_applied_ts": 1793364635874,
+      "admin_presented_ts": 1793364635930,
+      "admin_presentation_status": "presented",
+      "admin_ui_ms": {
+        "queue_ms": 12.7,
+        "handler_ms": 1.3,
+        "ui_wait_ms": 0,
+        "render_ms": 56.1,
+        "total_ms": 70.1
+      },
+      "admin_measurement_method": "dom-and-render-opportunity",
+      "admin_ui_jobs": []
+    },
+    {
+      "trace_id": "live-drill-2923171-mvuz2fuh-462",
+      "sent_ts": 1793364748217,
+      "court_id": "default_4",
+      "match_id": "btp_default_JE U15_717",
+      "tv_ms": 7,
+      "tv_received_ts": 1793364748224,
+      "admin_ms": 387,
+      "admin_received_ts": 1793364748378,
+      "admin_applied_ts": 1793364748549,
+      "admin_presented_ts": 1793364748604,
+      "admin_presentation_status": "presented",
+      "admin_ui_ms": {
+        "queue_ms": 170.1,
+        "handler_ms": 1.5,
+        "ui_wait_ms": 0,
+        "render_ms": 54.3,
+        "total_ms": 225.9
+      },
+      "admin_measurement_method": "dom-and-render-opportunity",
+      "admin_ui_jobs": []
+    },
+    {
+      "trace_id": "live-drill-2923171-mvuzbdr9-1285",
+      "sent_ts": 1793365165413,
+      "court_id": "default_8",
+      "match_id": "btp_default_ME U15_797",
+      "tv_ms": 7,
+      "tv_received_ts": 1793365165420,
+      "admin_ms": 379,
+      "admin_received_ts": 1793365165585,
+      "admin_applied_ts": 1793365165691,
+      "admin_presented_ts": 1793365165792,
+      "admin_presentation_status": "presented",
+      "admin_ui_ms": {
+        "queue_ms": 105,
+        "handler_ms": 1.3,
+        "ui_wait_ms": 0,
+        "render_ms": 101.5,
+        "total_ms": 207.8
+      },
+      "admin_measurement_method": "dom-and-render-opportunity",
+      "admin_ui_jobs": []
+    },
+    {
+      "trace_id": "live-drill-2923171-mvuza118-1097",
+      "sent_ts": 1793365102268,
+      "court_id": "default_6",
+      "match_id": "btp_default_ME U15_801",
+      "tv_ms": 6,
+      "tv_received_ts": 1793365102274,
+      "admin_ms": 367,
+      "admin_received_ts": 1793365102421,
+      "admin_applied_ts": 1793365102557,
+      "admin_presented_ts": 1793365102635,
+      "admin_presentation_status": "presented",
+      "admin_ui_ms": {
+        "queue_ms": 134.8,
+        "handler_ms": 1.9,
+        "ui_wait_ms": 0,
+        "render_ms": 77.3,
+        "total_ms": 214
+      },
+      "admin_measurement_method": "dom-and-render-opportunity",
+      "admin_ui_jobs": []
+    },
+    {
+      "trace_id": "live-drill-2923171-mvuz0jcg-210",
+      "sent_ts": 1793364659440,
+      "court_id": "default_11",
+      "match_id": "btp_default_ME U13_636",
+      "tv_ms": 7,
+      "tv_received_ts": 1793364659447,
+      "admin_ms": 362,
+      "admin_received_ts": 1793364659659,
+      "admin_applied_ts": 1793364659744,
+      "admin_presented_ts": 1793364659802,
+      "admin_presentation_status": "presented",
+      "admin_ui_ms": {
+        "queue_ms": 83.7,
+        "handler_ms": 1.4,
+        "ui_wait_ms": 0,
+        "render_ms": 57.7,
+        "total_ms": 142.8
+      },
+      "admin_measurement_method": "dom-and-render-opportunity",
+      "admin_ui_jobs": []
+    }
+  ],
+  "ui_jobs": {
+    "timers.fit": {
+      "count": 126,
+      "queue_ms": {
+        "mean": 17.51,
+        "max": 121.3
+      },
+      "work_ms": {
+        "mean": 10.56,
+        "max": 105.4
+      },
+      "elapsed_ms": {
+        "mean": 28.08,
+        "max": 124.7
+      }
+    },
+    "names.layout": {
+      "count": 188,
+      "queue_ms": {
+        "mean": 21.24,
+        "max": 122.2
+      },
+      "work_ms": {
+        "mean": 31.3,
+        "max": 112.4
+      },
+      "elapsed_ms": {
+        "mean": 52.55,
+        "max": 143.8
+      }
+    },
+    "lists.counts": {
+      "count": 111,
+      "queue_ms": {
+        "mean": 7.66,
+        "max": 16.5
+      },
+      "work_ms": {
+        "mean": 8.25,
+        "max": 22.4
+      },
+      "elapsed_ms": {
+        "mean": 15.91,
+        "max": 38.5
+      }
+    },
+    "preparation.diagnosis": {
+      "count": 153,
+      "queue_ms": {
+        "mean": 149.27,
+        "max": 519.5
+      },
+      "work_ms": {
+        "mean": 21.37,
+        "max": 102.4
+      },
+      "elapsed_ms": {
+        "mean": 347.94,
+        "max": 896.2
+      }
+    },
+    "locations.labels": {
+      "count": 247,
+      "queue_ms": {
+        "mean": 31.16,
+        "max": 134.6
+      },
+      "work_ms": {
+        "mean": 0.79,
+        "max": 4.1
+      },
+      "elapsed_ms": {
+        "mean": 31.95,
+        "max": 135.6
+      }
+    },
+    "finished.sort": {
+      "count": 34,
+      "queue_ms": {
+        "mean": 9.65,
+        "max": 18.2
+      },
+      "work_ms": {
+        "mean": 4.29,
+        "max": 8.3
+      },
+      "elapsed_ms": {
+        "mean": 13.96,
+        "max": 22.6
+      }
+    }
+  },
+  "date": "2026-10-30",
+  "source": "/tmp/bts-under500-run-9.json",
+  "source_archive": "/home/tim/repos/bts-testclient/reports/run-2026-10-30T12-49-41-561Z-5ENysM",
+  "initial_state": {
+    "matches": 373,
+    "finished_matches": 134,
+    "active_matches": 15,
+    "active_courts": 15,
+    "pending_player_checkins": 0,
+    "pending_players": 0,
+    "check_in_per_match": true,
+    "state_sha256": "9af30ec98e135eb3fe0eafb5f424f2e99496ccf878022820c8b93073250c104a"
+  },
+  "code_sha256": {
+    "static/js/cleitstand.js": "357388e7ed4068e17794fd800f0e05374a4f5f2bfae41afe34322e75faf2e128",
+    "static/js/cmatch.js": "11e500dffd41ad21256d5d59b2a12a2bdb7a42c1e040833453ff634294aabd70",
+    "static/js/ctournament.js": "266c316995cbfce2ec1274af8a1d156f8deeabaaa6c60c117a4abceb095e69ec",
+    "static/js/conn.js": "b87ecc10d7c3cf9c3d6201e2a4d401e6ddcf12d2cde8163fb162ebf500ad7b21",
+    "static/js/admin_update_observer.js": "ddd44cfd0acf3e951f95d41cadf7cb8e9691c84feb14e9848c018b7047abeca4",
+    "static/css/leitstand.css": "29e23065597d9256778d5ccb70a9c703f0c804a6cc1fbf8bb9a4017c3feecc7e"
+  },
+  "optimization": [
+    "Cache intrinsic widths per official cell; only changed cells temporarily use full names for measurement.",
+    "Resolve changed name groups by walking existing ancestors instead of testing every group."
+  ],
+  "comparison": {
+    "baseline_run": 8,
+    "baseline_max_ms": 593,
+    "optimized_max_ms": 463,
+    "reduction_percent": 21.9,
+    "identical_initial_state": true,
+    "identical_settings": true,
+    "identical_match_court_sequence": false
+  },
+  "verification": {
+    "frontend_node_tests": 93,
+    "acceptance_node_tests": 2,
+    "browser_cache_checks": 22,
+    "browser_surface_checks": 284,
+    "frozen_code_hashes_preserved": true,
+    "isolated_server_stopped": true
+  },
+  "limitations": [
+    "Local isolated replica of the real tournament. BTP, ticker and external speech services disabled. Does not verify live BTP/network/Wi-Fi latency or physical screen output.",
+    "Two animation frames and requested UI jobs remain part of the presentation receipt. No missing score receipt is excluded from acceptance."
+  ]
+}

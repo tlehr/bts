@@ -266,14 +266,19 @@ function createSpeechService(context) {
         return response;
     }
 
-    async function speak(parts, playback_id, browser, localParts = parts, localPauses = [], buildLocalPlan) {
+    async function speak(parts, playback_id, browser, localParts = parts, localPauses = [], buildLocalPlan, speechMode) {
         parts = parts.filter(Boolean);
         localParts = localParts.filter(Boolean);
         if (history.has(playback_id)) return { status: 'skipped', provider: 'none', started: false };
         history.set(playback_id, true);
         while (history.size > 1024) history.delete(history.keys().next().value);
         preview_controller?.abort();
-        let value = settings();
+        const playbackSettings = () => {
+            const value = settings();
+            if (speechMode === 'server' || speechMode === 'browser' && ['auto', 'browser'].includes(value.mode)) value.mode = speechMode;
+            return value;
+        };
+        let value = playbackSettings();
         const controller = new AbortController();
         active = controller;
         if (typeof window !== 'undefined') window.btsDiagnostics?.record('info', 'Durchsage gestartet', { playback_id });
@@ -298,7 +303,7 @@ function createSpeechService(context) {
                         metadata_failed = !response?.speech || !!response.speech_error;
                     }
                     if (settings().key !== value.key || settings().voice !== value.voice) controller.abort();
-                    value = settings();
+                    value = playbackSettings();
                     if (!controller.signal.aborted && !metadata_failed) {
                         const plan = buildLocalPlan(value);
                         localParts = plan.parts; localPauses = plan.pauses;

@@ -1,0 +1,710 @@
+{
+  "started_at": "2026-10-30T00:49:13.589Z",
+  "runtime_ms": 62920,
+  "stop_reason": "error",
+  "failure": "connect ECONNREFUSED 127.0.0.1:4433",
+  "initial_state": {
+    "matches": 373,
+    "finished_matches": 119,
+    "active_matches": 15,
+    "active_courts": 15,
+    "pending_player_checkins": 0,
+    "pending_players": 0,
+    "check_in_per_match": true,
+    "state_sha256": "dc9a98faad25acabfc2f7944986d0bb8bffdac4767eb4f09652891f0a8bef872"
+  },
+  "tablet_to_admin_ms": {
+    "count": 164,
+    "mean": 88.8,
+    "min": 30,
+    "p50": 64,
+    "p95": 162,
+    "p99": 637,
+    "max": 676,
+    "over_50_ms": 123,
+    "over_100_ms": 40,
+    "over_200_ms": 6,
+    "sent_updates": 164,
+    "unmatched_updates": 0,
+    "coverage": 1
+  },
+  "tablet_to_tv_ms": {
+    "count": 164,
+    "mean": 5.5,
+    "min": 2,
+    "p50": 4,
+    "p95": 14,
+    "p99": 24,
+    "max": 46,
+    "over_50_ms": 0,
+    "over_100_ms": 0,
+    "over_200_ms": 0,
+    "sent_updates": 164,
+    "unmatched_updates": 0,
+    "coverage": 1
+  },
+  "scope": "Eigener Live-Lauf mit allen Frontendoptimierungen und separater Simulatorverbindung. Nach rund 63 Sekunden durch BTS-Absturz abgebrochen; kein vollständiger Zehn-Minuten-Benchmark.",
+  "source_archive": "/home/tim/repos/bts-testclient/reports/run-2026-10-30T00-49-09-221Z-LxdRPj",
+  "source_copy": "/tmp/bts-optimization-run6.json",
+  "completed_benchmark": false,
+  "root_cause": "Uncaught TypeError in bts/btp_conn.js:805: update_players dereferenced response.Action after send() returned null on a BTP connection timeout.",
+  "fix": "Guard response.Action and Result in update_players and update_courts. Preserve explicit BTP result codes and the existing reconnect behavior.",
+  "server_tests_after_fix": 213,
+  "measured_admin": [
+    {
+      "method": "browser-dom-and-render-opportunity",
+      "control_method": "independent-websocket",
+      "viewport": {
+        "width": 1920,
+        "height": 1080
+      },
+      "receipts": 6163,
+      "outcomes": {
+        "presented": 6163
+      },
+      "ui_updates": {
+        "btp_status": {
+          "count": 45,
+          "queue_ms": {
+            "mean": 0.05,
+            "max": 0.3
+          },
+          "handler_ms": {
+            "mean": 2.2,
+            "max": 69.8
+          },
+          "ui_wait_ms": {
+            "mean": 0,
+            "max": 0.1
+          },
+          "render_ms": {
+            "mean": 33.5,
+            "max": 154.3
+          },
+          "total_ms": {
+            "mean": 35.75,
+            "max": 224.5
+          }
+        },
+        "display_status_changed": {
+          "count": 351,
+          "queue_ms": {
+            "mean": 42.19,
+            "max": 653.4
+          },
+          "handler_ms": {
+            "mean": 1.37,
+            "max": 5.7
+          },
+          "ui_wait_ms": {
+            "mean": 0,
+            "max": 0.1
+          },
+          "render_ms": {
+            "mean": 42.32,
+            "max": 235.2
+          },
+          "total_ms": {
+            "mean": 85.89,
+            "max": 729.1
+          }
+        },
+        "display_wait_for_done": {
+          "count": 2622,
+          "queue_ms": {
+            "mean": 13.62,
+            "max": 599.3
+          },
+          "handler_ms": {
+            "mean": 0.31,
+            "max": 4.6
+          },
+          "ui_wait_ms": {
+            "mean": 0,
+            "max": 0.2
+          },
+          "render_ms": {
+            "mean": 28.78,
+            "max": 235.3
+          },
+          "total_ms": {
+            "mean": 42.71,
+            "max": 683.4
+          }
+        },
+        "display_render_stats": {
+          "count": 179,
+          "queue_ms": {
+            "mean": 21.1,
+            "max": 425.7
+          },
+          "handler_ms": {
+            "mean": 0.38,
+            "max": 2
+          },
+          "ui_wait_ms": {
+            "mean": 0,
+            "max": 0.1
+          },
+          "render_ms": {
+            "mean": 40.85,
+            "max": 107
+          },
+          "total_ms": {
+            "mean": 62.33,
+            "max": 519
+          }
+        },
+        "display_is_done": {
+          "count": 2622,
+          "queue_ms": {
+            "mean": 15.62,
+            "max": 599.5
+          },
+          "handler_ms": {
+            "mean": 0.2,
+            "max": 5.4
+          },
+          "ui_wait_ms": {
+            "mean": 0,
+            "max": 0.1
+          },
+          "render_ms": {
+            "mean": 32.42,
+            "max": 236.8
+          },
+          "total_ms": {
+            "mean": 48.24,
+            "max": 683.4
+          }
+        },
+        "score": {
+          "count": 164,
+          "queue_ms": {
+            "mean": 12.61,
+            "max": 423.2
+          },
+          "handler_ms": {
+            "mean": 0.92,
+            "max": 12.2
+          },
+          "ui_wait_ms": {
+            "mean": 1.19,
+            "max": 143.4
+          },
+          "render_ms": {
+            "mean": 44.62,
+            "max": 185.8
+          },
+          "total_ms": {
+            "mean": 59.35,
+            "max": 615.8
+          }
+        },
+        "court_current_match": {
+          "count": 164,
+          "queue_ms": {
+            "mean": 16.61,
+            "max": 473.1
+          },
+          "handler_ms": {
+            "mean": 0.98,
+            "max": 40.2
+          },
+          "ui_wait_ms": {
+            "mean": 4.63,
+            "max": 758.3
+          },
+          "render_ms": {
+            "mean": 42.34,
+            "max": 93
+          },
+          "total_ms": {
+            "mean": 64.56,
+            "max": 1327.6
+          }
+        },
+        "speech_cache_changed": {
+          "count": 6,
+          "queue_ms": {
+            "mean": 68.03,
+            "max": 407.4
+          },
+          "handler_ms": {
+            "mean": 16.63,
+            "max": 22.6
+          },
+          "ui_wait_ms": {
+            "mean": 0.02,
+            "max": 0.1
+          },
+          "render_ms": {
+            "mean": 14.38,
+            "max": 47.7
+          },
+          "total_ms": {
+            "mean": 99.07,
+            "max": 477.7
+          }
+        },
+        "update_player_status": {
+          "count": 4,
+          "queue_ms": {
+            "mean": 273.05,
+            "max": 361.3
+          },
+          "handler_ms": {
+            "mean": 2.45,
+            "max": 3.5
+          },
+          "ui_wait_ms": {
+            "mean": 56.78,
+            "max": 65.1
+          },
+          "render_ms": {
+            "mean": 141.38,
+            "max": 143.5
+          },
+          "total_ms": {
+            "mean": 473.65,
+            "max": 542
+          }
+        },
+        "match_preparation_call": {
+          "count": 1,
+          "queue_ms": {
+            "mean": 0.2,
+            "max": 0.2
+          },
+          "handler_ms": {
+            "mean": 106.3,
+            "max": 106.3
+          },
+          "ui_wait_ms": {
+            "mean": 941.7,
+            "max": 941.7
+          },
+          "render_ms": {
+            "mean": 55.5,
+            "max": 55.5
+          },
+          "total_ms": {
+            "mean": 1103.7,
+            "max": 1103.7
+          }
+        },
+        "tabletoperator_removed": {
+          "count": 1,
+          "queue_ms": {
+            "mean": 364.7,
+            "max": 364.7
+          },
+          "handler_ms": {
+            "mean": 20.7,
+            "max": 20.7
+          },
+          "ui_wait_ms": {
+            "mean": 910.3,
+            "max": 910.3
+          },
+          "render_ms": {
+            "mean": 55.8,
+            "max": 55.8
+          },
+          "total_ms": {
+            "mean": 1351.5,
+            "max": 1351.5
+          }
+        },
+        "tabletoperator_add": {
+          "count": 1,
+          "queue_ms": {
+            "mean": 419,
+            "max": 419
+          },
+          "handler_ms": {
+            "mean": 19.8,
+            "max": 19.8
+          },
+          "ui_wait_ms": {
+            "mean": 833.8,
+            "max": 833.8
+          },
+          "render_ms": {
+            "mean": 55.8,
+            "max": 55.8
+          },
+          "total_ms": {
+            "mean": 1328.4,
+            "max": 1328.4
+          }
+        },
+        "court_changed": {
+          "count": 1,
+          "queue_ms": {
+            "mean": 599.8,
+            "max": 599.8
+          },
+          "handler_ms": {
+            "mean": 23,
+            "max": 23
+          },
+          "ui_wait_ms": {
+            "mean": 648.5,
+            "max": 648.5
+          },
+          "render_ms": {
+            "mean": 56.6,
+            "max": 56.6
+          },
+          "total_ms": {
+            "mean": 1327.9,
+            "max": 1327.9
+          }
+        },
+        "match_edit": {
+          "count": 2,
+          "queue_ms": {
+            "mean": 186.5,
+            "max": 229.8
+          },
+          "handler_ms": {
+            "mean": 38.6,
+            "max": 39.5
+          },
+          "ui_wait_ms": {
+            "mean": 420.4,
+            "max": 463
+          },
+          "render_ms": {
+            "mean": 55.4,
+            "max": 55.6
+          },
+          "total_ms": {
+            "mean": 700.9,
+            "max": 700.9
+          }
+        }
+      },
+      "ui_jobs": {
+        "timers.fit": {
+          "count": 15,
+          "queue_ms": {
+            "mean": 25.3,
+            "max": 61.9
+          },
+          "work_ms": {
+            "mean": 2.79,
+            "max": 7.8
+          },
+          "elapsed_ms": {
+            "mean": 28.09,
+            "max": 65.7
+          }
+        },
+        "lists.counts": {
+          "count": 6,
+          "queue_ms": {
+            "mean": 9.78,
+            "max": 18.8
+          },
+          "work_ms": {
+            "mean": 8.2,
+            "max": 11.8
+          },
+          "elapsed_ms": {
+            "mean": 17.98,
+            "max": 30.6
+          }
+        },
+        "names.layout": {
+          "count": 11,
+          "queue_ms": {
+            "mean": 32.86,
+            "max": 62.4
+          },
+          "work_ms": {
+            "mean": 29.85,
+            "max": 132
+          },
+          "elapsed_ms": {
+            "mean": 62.73,
+            "max": 149.5
+          }
+        },
+        "finished.sort": {
+          "count": 2,
+          "queue_ms": {
+            "mean": 11.8,
+            "max": 13.4
+          },
+          "work_ms": {
+            "mean": 3.95,
+            "max": 5.4
+          },
+          "elapsed_ms": {
+            "mean": 15.75,
+            "max": 18.8
+          }
+        },
+        "preparation.diagnosis": {
+          "count": 8,
+          "queue_ms": {
+            "mean": 297.59,
+            "max": 582.4
+          },
+          "work_ms": {
+            "mean": 25.36,
+            "max": 73
+          },
+          "elapsed_ms": {
+            "mean": 713.59,
+            "max": 1028.9
+          }
+        },
+        "locations.labels": {
+          "count": 13,
+          "queue_ms": {
+            "mean": 37.43,
+            "max": 132.7
+          },
+          "work_ms": {
+            "mean": 0.63,
+            "max": 1.1
+          },
+          "elapsed_ms": {
+            "mean": 38.08,
+            "max": 133.6
+          }
+        }
+      },
+      "slow_ui_jobs": [
+        {
+          "type": "score",
+          "match_id": "btp_default_MX U19_268",
+          "received_at": 1793321406289,
+          "name": "names.layout",
+          "requested_ms": 10.3,
+          "queue_ms": 17.5,
+          "work_ms": 132,
+          "elapsed_ms": 149.5,
+          "status": "complete"
+        },
+        {
+          "type": "update_player_status",
+          "match_id": "btp_default_MX U19_268",
+          "received_at": 1793321406291,
+          "name": "names.layout",
+          "requested_ms": 243.5,
+          "queue_ms": 35.2,
+          "work_ms": 28.4,
+          "elapsed_ms": 63.6,
+          "status": "complete"
+        },
+        {
+          "type": "update_player_status",
+          "match_id": "btp_default_ME U19_1117",
+          "received_at": 1793321406291,
+          "name": "names.layout",
+          "requested_ms": 244.5,
+          "queue_ms": 34.1,
+          "work_ms": 28.4,
+          "elapsed_ms": 62.5,
+          "status": "complete"
+        },
+        {
+          "type": "update_player_status",
+          "match_id": "btp_default_JE U19_1038",
+          "received_at": 1793321406291,
+          "name": "names.layout",
+          "requested_ms": 246.8,
+          "queue_ms": 31.7,
+          "work_ms": 28.4,
+          "elapsed_ms": 60.1,
+          "status": "complete"
+        },
+        {
+          "type": "match_preparation_call",
+          "match_id": "btp_default_ME U13_635",
+          "received_at": 1793321406539,
+          "name": "names.layout",
+          "requested_ms": 5.2,
+          "queue_ms": 25.6,
+          "work_ms": 28.4,
+          "elapsed_ms": 54,
+          "status": "complete"
+        },
+        {
+          "type": "match_preparation_call",
+          "match_id": "btp_default_ME U13_635",
+          "received_at": 1793321406539,
+          "name": "preparation.diagnosis",
+          "requested_ms": 16.3,
+          "queue_ms": 0,
+          "work_ms": 73,
+          "elapsed_ms": 583.5,
+          "status": "complete"
+        },
+        {
+          "type": "match_preparation_call",
+          "match_id": "btp_default_ME U13_635",
+          "received_at": 1793321406539,
+          "name": "preparation.diagnosis",
+          "requested_ms": 17.4,
+          "queue_ms": 582.4,
+          "work_ms": 15.9,
+          "elapsed_ms": 1028.9,
+          "status": "complete"
+        },
+        {
+          "type": "match_preparation_call",
+          "match_id": "btp_default_ME U13_635",
+          "received_at": 1793321406539,
+          "name": "locations.labels",
+          "requested_ms": 528,
+          "queue_ms": 132.7,
+          "work_ms": 0.9,
+          "elapsed_ms": 133.6,
+          "status": "complete"
+        },
+        {
+          "type": "tabletoperator_removed",
+          "received_at": 1793321406291,
+          "name": "preparation.diagnosis",
+          "requested_ms": 369.5,
+          "queue_ms": 477.8,
+          "work_ms": 15.9,
+          "elapsed_ms": 924.3,
+          "status": "complete"
+        },
+        {
+          "type": "tabletoperator_add",
+          "received_at": 1793321406314,
+          "name": "preparation.diagnosis",
+          "requested_ms": 422.9,
+          "queue_ms": 401.3,
+          "work_ms": 15.9,
+          "elapsed_ms": 847.8,
+          "status": "complete"
+        },
+        {
+          "type": "court_current_match",
+          "match_id": "btp_default_MX U19_268",
+          "received_at": 1793321406315,
+          "name": "names.layout",
+          "requested_ms": 481.1,
+          "queue_ms": 37.6,
+          "work_ms": 27.9,
+          "elapsed_ms": 65.6,
+          "status": "complete"
+        },
+        {
+          "type": "court_current_match",
+          "match_id": "btp_default_MX U19_268",
+          "received_at": 1793321406315,
+          "name": "preparation.diagnosis",
+          "requested_ms": 497.4,
+          "queue_ms": 325.8,
+          "work_ms": 15.9,
+          "elapsed_ms": 772.3,
+          "status": "complete"
+        },
+        {
+          "type": "court_changed",
+          "received_at": 1793321406316,
+          "name": "preparation.diagnosis",
+          "requested_ms": 606.9,
+          "queue_ms": 216,
+          "work_ms": 15.9,
+          "elapsed_ms": 662.5,
+          "status": "complete"
+        },
+        {
+          "type": "match_edit",
+          "match_id": "btp_default_ME U13_635",
+          "received_at": 1793321407197,
+          "name": "names.layout",
+          "requested_ms": 147.9,
+          "queue_ms": 26.7,
+          "work_ms": 17.6,
+          "elapsed_ms": 44.3,
+          "status": "complete"
+        },
+        {
+          "type": "match_edit",
+          "match_id": "btp_default_ME U13_635",
+          "received_at": 1793321407197,
+          "name": "preparation.diagnosis",
+          "requested_ms": 157.4,
+          "queue_ms": 231.3,
+          "work_ms": 25.2,
+          "elapsed_ms": 487.3,
+          "status": "complete"
+        },
+        {
+          "type": "match_edit",
+          "match_id": "btp_default_ME U13_635",
+          "received_at": 1793321407197,
+          "name": "names.layout",
+          "requested_ms": 236.9,
+          "queue_ms": 56.1,
+          "work_ms": 22,
+          "elapsed_ms": 78.1,
+          "status": "complete"
+        },
+        {
+          "type": "match_edit",
+          "match_id": "btp_default_ME U13_635",
+          "received_at": 1793321407197,
+          "name": "preparation.diagnosis",
+          "requested_ms": 242.2,
+          "queue_ms": 146.1,
+          "work_ms": 25.2,
+          "elapsed_ms": 402.1,
+          "status": "complete"
+        }
+      ],
+      "slow_ui_job_limit": 40
+    },
+    {
+      "method": "browser-dom-and-render-opportunity",
+      "control_method": "independent-websocket",
+      "viewport": {
+        "width": 1920,
+        "height": 1080
+      },
+      "receipts": 1,
+      "outcomes": {
+        "presented": 1
+      },
+      "ui_updates": {
+        "speech_cache_changed": {
+          "count": 1,
+          "queue_ms": {
+            "mean": 241.3,
+            "max": 241.3
+          },
+          "handler_ms": {
+            "mean": 23.7,
+            "max": 23.7
+          },
+          "ui_wait_ms": {
+            "mean": 0.2,
+            "max": 0.2
+          },
+          "render_ms": {
+            "mean": 32.7,
+            "max": 32.7
+          },
+          "total_ms": {
+            "mean": 297.9,
+            "max": 297.9
+          }
+        }
+      },
+      "ui_jobs": {},
+      "slow_ui_jobs": [],
+      "slow_ui_job_limit": 40
+    }
+  ]
+}

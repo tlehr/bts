@@ -1,0 +1,168 @@
+{
+  "date": "2026-10-29",
+  "scope": "Isolierte statische Vorschau mit echter Turnieroberfläche; nur gelesene Kopie der lokalen Turnierdaten. Keine Verbindung zu laufenden BTS- oder Sprachdiensten.",
+  "diagnostic_export": {
+    "file": "bts-test-38.json",
+    "method": "isolated-websocket-reception",
+    "points": 998,
+    "admin_receipts": 1008,
+    "admin_mean_ms": 8.4,
+    "admin_p99_ms": 37,
+    "admin_max_ms": 72,
+    "dom_rendering_measured": false
+  },
+  "browser_fixture": {
+    "matches": 128,
+    "courts": 15,
+    "name_elements": 488,
+    "finished_histories_deferred": true
+  },
+  "method": "15 gezielte Punkteänderungen über crouting.on_change; Dauer bis zwei requestAnimationFrame-Callbacks nach dem Update. Vergleich derselben eingefrorenen Daten vor und nach der Optimierung von timerDisplay/fitTimer. Die Empfangswarteschlange wird separat funktional geprüft.",
+  "before": {
+    "samples": 15,
+    "median_ms": 70.6,
+    "mean_ms": 96,
+    "max_ms": 184.5
+  },
+  "after": {
+    "samples": 15,
+    "median_ms": 33.4,
+    "mean_ms": 39.5,
+    "max_ms": 92.1
+  },
+  "samples_before": [
+    {
+      "dispatch": 6.199999928474426,
+      "paint": 184.5
+    },
+    {
+      "dispatch": 2.1999999284744263,
+      "paint": 56.60000002384186
+    },
+    {
+      "dispatch": 4,
+      "paint": 60.60000002384186
+    },
+    {
+      "dispatch": 2.399999976158142,
+      "paint": 117.39999997615814
+    },
+    {
+      "dispatch": 3.8000000715255737,
+      "paint": 71.70000004768372
+    },
+    {
+      "dispatch": 4.600000023841858,
+      "paint": 66.60000002384186
+    },
+    {
+      "dispatch": 3.899999976158142,
+      "paint": 50.799999952316284
+    },
+    {
+      "dispatch": 2.6999999284744263,
+      "paint": 70.60000002384186
+    },
+    {
+      "dispatch": 6,
+      "paint": 177.09999990463257
+    },
+    {
+      "dispatch": 3,
+      "paint": 51.40000009536743
+    },
+    {
+      "dispatch": 2.299999952316284,
+      "paint": 49.799999952316284
+    },
+    {
+      "dispatch": 2.100000023841858,
+      "paint": 130.10000002384186
+    },
+    {
+      "dispatch": 1.5,
+      "paint": 67.19999992847443
+    },
+    {
+      "dispatch": 1.7000000476837158,
+      "paint": 143.70000004768372
+    },
+    {
+      "dispatch": 4.900000095367432,
+      "paint": 141.20000004768372
+    }
+  ],
+  "samples_after": [
+    {
+      "dispatch": 5,
+      "paint": 33.59999990463257
+    },
+    {
+      "dispatch": 3.100000023841858,
+      "paint": 42.10000002384186
+    },
+    {
+      "dispatch": 2.399999976158142,
+      "paint": 33.299999952316284
+    },
+    {
+      "dispatch": 2,
+      "paint": 92.10000002384186
+    },
+    {
+      "dispatch": 1.8000000715255737,
+      "paint": 41.200000047683716
+    },
+    {
+      "dispatch": 2,
+      "paint": 33.39999997615814
+    },
+    {
+      "dispatch": 2,
+      "paint": 33.10000002384186
+    },
+    {
+      "dispatch": 2.200000047683716,
+      "paint": 33.5
+    },
+    {
+      "dispatch": 2,
+      "paint": 33.200000047683716
+    },
+    {
+      "dispatch": 1.7999999523162842,
+      "paint": 33.200000047683716
+    },
+    {
+      "dispatch": 1.5999999046325684,
+      "paint": 33.299999952316284
+    },
+    {
+      "dispatch": 2.100000023841858,
+      "paint": 33.39999997615814
+    },
+    {
+      "dispatch": 2.399999976158142,
+      "paint": 33.200000047683716
+    },
+    {
+      "dispatch": 2.8000000715255737,
+      "paint": 46.60000002384186
+    },
+    {
+      "dispatch": 2.399999976158142,
+      "paint": 36.800000071525574
+    }
+  ],
+  "limitations": [
+    "Kurzer lokaler Vergleich; keine belastbare Aussage über p99 oder die Latenz eines laufenden Turniers auf anderer Hardware.",
+    "Die Browsermessung umfasst weder das echte Netzwerk noch hörbare Sprachausgabe. Zwei Animationsframes sind eine Näherung für die sichtbare Aktualisierung, keine bestätigte physische Bildausgabe."
+  ],
+  "validation": {
+    "node_tests": 102,
+    "browser_checks": 268,
+    "exceptions": 0,
+    "unexpected_console_errors": 0,
+    "failed_assets": 0
+  }
+}

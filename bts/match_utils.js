@@ -527,6 +527,7 @@ async function uncall_match(app, tournament, match, old_court, callback) {
 
 
 async function call_match(app, tournament, match, old_court, callback, options = {}) {
+	let tabletoperator_release = null;
     if (!match.setup.court_id || !match._id) {
 		return callback("Match cannot be called court_id or _id not given.");
     }
@@ -589,7 +590,9 @@ async function call_match(app, tournament, match, old_court, callback, options =
 		if (current_is_finished && options.reactivate !== true) {
 			return finish_call(new Error('Match ' + match._id + ' is already finished and cannot be called.'));
 		}
-	async.waterfall([	(wcb) => ensure_match_not_already_on_other_court(app, tournament.key, match, wcb),
+	async.waterfall([
+		(wcb) => require('./match_reconciliation/tablet_queue').validate_match(app, tournament.key, match).then(() => wcb(null), wcb),
+		(wcb) => ensure_match_not_already_on_other_court(app, tournament.key, match, wcb),
 		(wcb) => ensure_court_available_for_match(app, tournament.key, match, wcb),
 		(wcb) => {
 			if (options.reactivate !== true) return wcb(null);
@@ -621,12 +624,19 @@ async function call_match(app, tournament, match, old_court, callback, options =
 			});
 		}, { allow_on_match_call: true }),
 		(wcb) => drop_unsupported_court_officials(app, tournament, match, wcb),
+		(wcb) => {
+			tabletoperator_release = require('./tabletoperator_umpire_release').prepare(tournament, match);
+			wcb(null);
+		},
+		(wcb) => require('./match_reconciliation/tablet_queue').remove_waiting(app, tournament.key,
+			(match.setup.teams || []).flatMap(team => team.players || [])).then(() => wcb(null), wcb),
 		(wcb) => add_tabletoperators(app, tournament, match, wcb),
 		(wcb) => set_umpires_on_court(app, tournament, match, wcb),
 		(wcb) => remove_highlight_preparation(match, wcb),
 		(wcb) => update_match_btp(app, match, wcb),
 		(wcb) => update_match_db(app, match, wcb),
 		(wcb) => update_court_db(app, match, wcb),
+		(wcb) => require('./tabletoperator_umpire_release').apply(app, tournament, match, tabletoperator_release).then(() => wcb(null), wcb),
 		(wcb) => notify_change_match_edit(app, match, wcb),
 		(wcb) => notify_bupws(app, match, old_court, wcb),
 		(wcb) => notify_change_match_called_on_court(app, match, wcb),
@@ -716,6 +726,7 @@ async function switch_court(app, tournament, match, old_court, callback) {
 		return callback("Match cannot be switched to another court: one or more Teams are not set.");
 	}
 	async.waterfall([
+		(wcb) => require('./match_reconciliation/tablet_queue').validate_match(app, tournament.key, match).then(() => wcb(null), wcb),
 		(wcb) => ensure_court_available_for_match(app, tournament.key, match, wcb),
 		(wcb) => add_tabletoperators(app, tournament, match, wcb),
 		(wcb) => set_umpires_on_court(app, tournament, match, wcb),
@@ -1706,7 +1717,8 @@ async function add_tabletoperators(app, tournament, match, callback) {
 
 	try {
         if (is_tournament_automation_enabled(tournament) && (tournament.tabletoperator_enabled && tournament.tabletoperator_enabled == true)) {
-            if (!setup.tabletoperators || setup.tabletoperators == null) {
+            if ((!setup.tabletoperators || setup.tabletoperators.length === 0) &&
+                (!require('./tabletoperator_umpire_release').has_umpire(setup) || tournament.tabletoperator_with_umpire_enabled === true)) {
                 
 				const fetch_result = await fetch_tabletoperator(admin, app, tournament, court_id, match_id);
 				let value = [];
@@ -1908,7 +1920,8 @@ function get_last_looser_on_court(admin, app, tournament, court_id, match_id) {
 			var returnvalue = undefined;
 			let selected_tabletoperator = null;
 			try {
-				selected_tabletoperator = await select_tabletoperator_for_court(app, tournament, tabletoperator, court_id);
+				const available = await require('./match_reconciliation/tablet_queue').available(app, tkey, tabletoperator);
+				selected_tabletoperator = await select_tabletoperator_for_court(app, tournament, available, court_id);
 			} catch (selection_err) {
 				return reject(selection_err);
 			}
@@ -1920,7 +1933,7 @@ function get_last_looser_on_court(admin, app, tournament, court_id, match_id) {
 						return reject(err);
 					}
 					admin.notify_change(app, tkey, 'tabletoperator_removed', { tabletoperator: changed_tabletoperator });
-					return resolve(returnvalue);
+					require('./match_reconciliation/tablet_queue').remove_waiting(app, tkey, returnvalue).then(() => resolve(returnvalue), reject);
 				});
 			} else { 
 				return resolve(returnvalue);
@@ -1931,7 +1944,7 @@ function get_last_looser_on_court(admin, app, tournament, court_id, match_id) {
 
 function calc_match_set_player_on_tablet(match, match_on_court_setup) {
 	return new Promise((resolve) => {
-		if(match?.setup?.now_on_court == false) {
+		if (match?.setup?.state === 'finished' || typeof match?.team1_won === 'boolean' || match?.btp_winner) {
 			return resolve(null);
 		}
 
@@ -1944,10 +1957,11 @@ function calc_match_set_player_on_tablet(match, match_on_court_setup) {
 
 		for_each_setup_player(match?.setup, (player) => {
 			if (player?.btp_id != null && tablet_operatorns_btp_ids.includes(player.btp_id)) {
-				if (player.now_tablet_on_court === match_on_court_setup.court_id && player.checked_in === false) {
+				if (player.now_tablet_on_court === match_on_court_setup.court_id && player.checked_in === false && !player.now_playing_on_court) {
 					return;
 				}
 				player.now_tablet_on_court = match_on_court_setup.court_id;
+				player.now_playing_on_court = false;
 				player.checked_in = false;
 				change = true;
 			}
@@ -1973,7 +1987,7 @@ function calc_match_set_player_on_court(match, match_on_court_setup, match_on_co
 		if (match_on_court_id != null && match?._id === match_on_court_id) {
 			return resolve(null);
 		}
-		if(match?.setup?.now_on_court == false) {
+		if (match?.setup?.state === 'finished' || typeof match?.team1_won === 'boolean' || match?.btp_winner) {
 			return resolve(null);
 		}
 
@@ -1987,10 +2001,11 @@ function calc_match_set_player_on_court(match, match_on_court_setup, match_on_co
 		for_each_setup_player(match?.setup, (player) => {
 			if (player?.btp_id != null && on_court_btp_ids.includes(player.btp_id)) {
 				if (player.now_playing_on_court === match_on_court_setup.court_id &&
-					player.tablet_break_active === false && match.setup.state === 'blocked') {
+					player.tablet_break_active === false && !player.now_tablet_on_court && match.setup.state === 'blocked') {
 					return;
 				}
 				player.now_playing_on_court = match_on_court_setup.court_id;
+				player.now_tablet_on_court = false;
 				player.tablet_break_active = false;
 				match.setup.state = 'blocked';
 				change = true;
@@ -2060,7 +2075,9 @@ function update_player_court_states(app, tkey, assignments, callback) {
 			});
 		})).then((results) => {
 			const failure = results.find(result => result.status === 'rejected');
-			callback(failure ? failure.reason : null);
+			if (failure) return callback(failure.reason);
+			require('./match_reconciliation/tablet_queue').remove_waiting(app, tkey,
+				[...players].map(btp_id => ({ btp_id }))).then(() => callback(null), callback);
 		}, callback);
 	});
 }
@@ -2364,7 +2381,6 @@ function start_player_court_reconciliation_manager(app) {
 	}
 	const reconcile_all_tournaments = require('./preparation_selection/periodic_reads').runner(app,
 		'periodic_player_court_reconciliation', {}, tournament => {
-			if (!is_tournament_automation_enabled(tournament)) return;
 			return new Promise((resolve, reject) => queue_reconcile_player_court_flags(app, tournament.key,
 				error => error ? reject(error) : resolve()));
 		});
@@ -3381,7 +3397,7 @@ async function call_match_in_preparation(app, tournament, match, location_id, ca
 				if (is_tournament_automation_enabled(tournament) && tournament.preparation_tabletoperator_setup_enabled) {
 					if (!setup.umpire || (tournament.tabletoperator_with_umpire_enabled && tournament.tabletoperator_with_umpire_enabled == true)) {
 						if (!setup.tabletoperators || setup.tabletoperators == null) {
-							const fetch_result = await fetch_tabletoperator(admin, app, tournament, "prep_call");
+							const fetch_result = await fetch_tabletoperator(admin, app, tournament, "prep_call", match_id);
 							let value = [];
 							if (tournament.tabletoperator_with_state_from_match_enabled && typeof(fetch_result) == "undefined") {
 								value.push({

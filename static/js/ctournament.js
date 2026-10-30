@@ -1,9 +1,10 @@
-/* global btsSpeechReadiness */
+/* global btsSpeechReadiness, cleitstand, btsAdminUpdates */
 'use strict';
-/* global btsSpeechService, cancelAnnouncementPlayback, createSpeechQueue */
+/* global btsSpeechService, cancelAnnouncementPlayback, createSpeechQueue, createFreeAnnouncementForm */
 
 var curt; // current tournament
 let current_view = null;
+let display_table_body = null;
 let scoring_formats_main = null;
 let live_settings_status_el = null;
 let live_settings_pending_requests = 0;
@@ -34,6 +35,15 @@ let test_clock_status_interval = null;
 const ANNOUNCEMENT_SPEECH_CHECK_STATE_STORAGE_KEY = 'bts_announcement_speech_check_state';
 
 var ctournament = (function() {
+	const pending_ui_updates = new Set();
+	let preparation_selection_pending_complete = null, preparation_labels_complete = null, recovery_complete = null;
+	const untracked_ui_update = Object.assign(() => {}, {claim:()=>{},run:callback=>callback()});
+	function track_ui_update(name) {
+		if (typeof btsAdminUpdates === 'undefined' || !btsAdminUpdates.hasSubscribers()) return untracked_ui_update;
+		const job = btsAdminUpdates.createJob(name);pending_ui_updates.add(job.promise);
+		const complete = () => {pending_ui_updates.delete(job.promise);job.complete();};
+		complete.claim=job.claim;complete.run=job.run;return complete;
+	}
 	function admin_live_debug(label, data) {
 		if (curt && curt.bts_debug_output_enabled === true) {
 			if (typeof data === 'function') {
@@ -84,21 +94,24 @@ var ctournament = (function() {
 	}
 
 	function request_tournament_refresh_after_missed_change(reason) {
-		if (!curt || !curt.key || tournament_refresh_after_missed_change_pending) {
+		if (!curt || !curt.key) {
 			return;
 		}
+		if (tournament_refresh_after_missed_change_pending) {recovery_complete?.claim();return;}
 		tournament_refresh_after_missed_change_pending = true;
+		const complete = recovery_complete = track_ui_update('tournament.recover');
 		setTimeout(() => {
 			const tournament_key = curt && curt.key;
 			if (!tournament_key) {
-				tournament_refresh_after_missed_change_pending = false;
+				tournament_refresh_after_missed_change_pending = false;recovery_complete=null;complete();
 				return;
 			}
-			send({
+			complete.run(()=>send({
 				type: 'tournament_get',
 				key: tournament_key,
 				defer_finished_history: true,
 			}, function(err, response) {
+				try {complete.run(()=>{
 				tournament_refresh_after_missed_change_pending = false;
 				if (err) {
 					return cerror.net(err);
@@ -110,7 +123,8 @@ var ctournament = (function() {
 				invalidate_match_lookup_index();
 				cerror.silent('Turnierdaten nach verpasster Live-Aktualisierung neu geladen: ' + reason);
 				refresh_current_view();
-			});
+				});} finally {recovery_complete=null;complete();}
+			}));
 		}, 100);
 	}
 
@@ -320,6 +334,10 @@ var ctournament = (function() {
 			if (cval.now_on_court !== undefined) {
 				m.setup.now_on_court = cval.now_on_court;
 			}
+			for (const field of ['needs_preparation_successor', 'needs_preparation_successor_ts']) {
+				if (field in cval) m.setup[field] = cval[field];
+				else delete m.setup[field];
+			}
 			const new_section = cmatch.calc_section(m);
 
 			if (old_section === new_section) {
@@ -365,10 +383,12 @@ var ctournament = (function() {
 				request_tournament_refresh_after_missed_change('player status ' + match_id);
 				return;
 			}
+			if (utils.deep_equal(m.setup, cval.setup) && m.btp_winner === cval.btp_winner) return;
+			const previous_setup = m.setup;
 			m.btp_winner = cval.btp_winner;
 			m.setup = cval.setup;
 
-			cmatch.update_player_status_indicators_for_match_players(m);
+			cmatch.update_player_status_indicators_for_match_players(m, { previous_setup });
 		}
 
 	function remove_match(c) {
@@ -401,8 +421,25 @@ var ctournament = (function() {
 	function match_row_content_equal(match, incoming) {
 		return utils.plucked_deep_equal(match, incoming, [
 			'setup', 'network_score', 'presses', 'team1_won', 'shuttle_count', 'score_status',
-			'forward_loser', 'score_status_network_score', 'no_match_losing_team', 'end_ts', 'btp_winner',
+			'forward_loser', 'score_status_network_score', 'no_match_losing_team', 'end_ts', 'duration_ms', 'btp_winner',
 		]);
+	}
+
+	const match_metadata_fields = new Set(['scheduled_date', 'scheduled_time_str', 'match_num', 'match_name', 'event_name']);
+	const match_clock_fields = new Set(['preparation_call_timestamp']);
+	const match_successor_fields = new Set(['needs_preparation_successor', 'needs_preparation_successor_ts']);
+	function match_row_patch_fields(match, incoming) {
+		if (!incoming || !utils.plucked_deep_equal(match, incoming, [
+			'btp_winner', 'team1_won', 'score_status', 'forward_loser', 'no_match_losing_team',
+		])) return null;
+		const before = match.setup || {}, after = incoming.setup || {}, fields = [];
+		for (const field of new Set([...Object.keys(before), ...Object.keys(after)])) {
+			if (utils.deep_equal(before[field], after[field])) continue;
+			// Unknown dependencies retain the existing structural update path.
+			if (!match_metadata_fields.has(field) && !match_clock_fields.has(field) && !match_successor_fields.has(field)) return null;
+			fields.push(field);
+		}
+		return fields;
 	}
 
 	function update_match(c) {
@@ -426,8 +463,13 @@ var ctournament = (function() {
 			return;
 		}
 			const old_section = cmatch.calc_section(m);
+			const previous_setup = m.setup;
 			const order_changed = cval.match && match_sort_order_changed(m, cval.match);
 			const content_unchanged = cval.match && match_row_content_equal(m, cval.match);
+			const patch_fields = content_unchanged ? [] : match_row_patch_fields(m, cval.match);
+			const values_changed = !content_unchanged && cval.match && !utils.plucked_deep_equal(m, cval.match, [
+				'network_score', 'presses', 'shuttle_count', 'score_status_network_score', 'end_ts', 'duration_ms',
+			]);
 			if (cval.match) {
 				m.match_order = cval.match.match_order;
 				if('network_score' in cval.match){
@@ -454,19 +496,26 @@ var ctournament = (function() {
 				if ('end_ts' in cval.match) {
 					m.end_ts = cval.match.end_ts;
 				}
+				if ('duration_ms' in cval.match) m.duration_ms = cval.match.duration_ms;
 				m.setup = cval.match.setup;
 				m.btp_winner = cval.match.btp_winner;
 			}
 			const new_section = cmatch.calc_section(m);
 			if (order_changed) curt.matches.sort(cmatch.cmp_match_order);
-			invalidate_match_lookup_index();
+			if (!patch_fields) invalidate_match_lookup_index();
 			if (content_unchanged) {
+				if (order_changed) cmatch.reorder_match_row(m, new_section);
+			} else if (patch_fields && old_section === new_section) {
+				const metadata = patch_fields.filter(field => match_metadata_fields.has(field));
+				if (metadata.length) cmatch.update_match_metadata(m, metadata);
+				if (values_changed || patch_fields.some(field => match_clock_fields.has(field))) cmatch.update_match_score(m);
+				else if (patch_fields.includes('needs_preparation_successor')) cmatch.update_preparation_demand_court_markers(m);
 				if (order_changed) cmatch.reorder_match_row(m, new_section);
 			} else {
 				cmatch.update_match(m, old_section, new_section);
-				cmatch.update_player_status_indicators_for_match_players(m);
+				cmatch.update_player_status_indicators_for_match_players(m, { previous_setup });
 			}
-			if (order_changed || !content_unchanged) update_location_preparation_need_labels();
+			if (order_changed || patch_fields?.length || (!content_unchanged && (!patch_fields || old_section !== new_section))) update_location_preparation_need_labels();
 
 		return old_section;
 	}
@@ -526,6 +575,7 @@ var ctournament = (function() {
 		if ('end_ts' in cval.match) {
 			m.end_ts = cval.match.end_ts;
 		}
+		if ('duration_ms' in cval.match) m.duration_ms = cval.match.duration_ms;
 		m.setup = cval.match.setup;
 		m.btp_winner = cval.match.btp_winner;
 		const new_section = cmatch.calc_section(m);
@@ -546,13 +596,20 @@ var ctournament = (function() {
 			curt.tabletoperators = [];
 		}
 		const existing = utils.find(curt.tabletoperators, m => m && m._id === tabletoperator._id);
+		const previous_participants = existing?.tabletoperator || [];
 		if (existing) {
 			Object.assign(existing, tabletoperator);
 		} else {
 			curt.tabletoperators.push(tabletoperator);
 		}
 		_show_render_tabletoperators();
+		refresh_tabletoperator_player_status(previous_participants, tabletoperator.tabletoperator);
 		request_location_preparation_selections();
+	}
+
+	function refresh_tabletoperator_player_status(before = [], after = []) {
+		const ids = new Set([...before, ...after].filter(person => person?.btp_id != null && Number(person.btp_id) >= 0).map(person => String(person.btp_id)));
+		cmatch.update_player_status_indicators_for_player_ids(ids);
 	}
 
 	function tabletoperator_moved_up(c) {
@@ -590,10 +647,12 @@ var ctournament = (function() {
 		}
 		self_check_in_tabletoperator_waiting_ids = null;
 		const changed_t = utils.find(curt.tabletoperators, m => m && m._id === tabletoperator._id);
+		const previous_participants = changed_t?.tabletoperator || [];
 		if (changed_t) {
 			Object.assign(changed_t, tabletoperator);
 		}
 		_show_render_tabletoperators();
+		refresh_tabletoperator_player_status(previous_participants, tabletoperator.tabletoperator);
 		request_location_preparation_selections();
 	}
 
@@ -658,13 +717,18 @@ var ctournament = (function() {
 		update_general_displaysettings(uiu.qs('.general_displaysettings'));
 	}
 
-	function refresh_current_view() {
+	function refresh_current_view({matchListsOnly = false} = {}) {
 		switch (current_view) {
 			case 'edit':
 				ui_edit();
 				break;
 			case 'show':
-				ui_show();
+				// A reset changes the lists, not the surrounding controls or layout.
+				// Preserve the mounted board and refresh its native data sections.
+				if (matchListsOnly) {
+					_update_all_ui_elements();
+					_show_render_umpires();
+				} else ui_show();
 				break;
 			case 'upcoming':
 				ui_upcoming();
@@ -738,6 +802,7 @@ var ctournament = (function() {
 			'tabletoperator_set_break_after_tabletservice',
 			'tabletoperator_break_seconds',
 		].forEach(field_name => _set_disabled_by_name(field_name, !tabletoperator_enabled));
+		_set_disabled_by_name('tabletoperator_release_on_umpire_enabled', !tabletoperator_enabled || !!curt.tabletoperator_with_umpire_enabled);
 		uiu.qsEach('[name="tabletoperator_enabled"]', function(el) {
 			const box = el.closest('.automation_group_box');
 			if (box) {
@@ -1080,13 +1145,17 @@ var ctournament = (function() {
 		} else if (container) {
 			container.remove();
 		}
+		if (typeof cleitstand !== 'undefined') cleitstand.refreshOperators();
 	}
 
-	function update_btp_settings_ui() {
+	function update_btp_settings_ui(changed_fields = ['pause_duration_ms', 'check_in_per_match', 'language']) {
 		switch (current_view) {
 			case 'show':
-				_show_render_matches();
-				_show_render_umpires();
+				cmatch.refresh_match_settings(changed_fields);
+				if (changed_fields.includes('pause_duration_ms')) {
+					_show_render_umpires();
+					request_location_preparation_selections();
+				}
 				break;
 			case 'upcoming':
 				_update_all_ui_elements_upcoming();
@@ -1103,6 +1172,13 @@ var ctournament = (function() {
 			default:
 				break;
 		}
+	}
+
+	function refresh_player_pauses() {
+		if (current_view === 'show') {
+			cmatch.refresh_player_pause_timers();
+			request_location_preparation_selections();
+		} else if (current_view !== 'edit') refresh_current_view({matchListsOnly:true});
 	}
 
 	function _show_render_umpires() {
@@ -1173,54 +1249,40 @@ var ctournament = (function() {
 			type: 'textarea',
 			id: 'custom_announcement',
 			name: 'custom_announcement',
+			'aria-label': 'Text der freien Durchsage',
 			cols: '50',
 			rows: '4',
 			maxlength: '175'
 		});
-		let draft_timer;
-		textarea.addEventListener('input', function() {
-			clearTimeout(draft_timer);
-			draft_timer = setTimeout(() => {
-				// Match the existing free-announcement submit formatting exactly.
-				const text = textarea.value.trim();
-				if (text && typeof btsSpeechService !== 'undefined') void btsSpeechService.prepare([text]);
-			}, 1500);
-		});
-
 		const btn_container = uiu.el(form, 'div', 'announcements_btn_container');
 
-		// Button: Lokal Abspielen
+		// Button: Lokal
 		const local_btn = uiu.el(btn_container, 'button', {
 			type: 'button',
 			class: 'announce_button',
 			id: 'local_announce_btn'
-		}, 'Lokal Abspielen');
+		}, 'Lokal');
 
-		// Button: Remote Abspielen
+		// Button: Remote
 		const remote_btn = uiu.el(btn_container, 'button', {
 			type: 'submit',
 			class: 'announce_button',
 			id: 'remote_announce_btn'
-		}, 'Remote Abspielen');
-		if (typeof btsSpeechReadiness !== 'undefined') {
-			const readiness = uiu.el(form, 'span', 'local_speech_readiness');
-			btsSpeechReadiness.trackText(readiness, () => [textarea.value.trim()], true);
-			textarea.addEventListener('input', () => btsSpeechReadiness.changed());
-		}
-
+		}, 'Remote');
 		const emergency_btn = uiu.el(btn_container, 'button', {
-			type: 'submit',
+			type: 'button',
 			class: !curt.enable_emergency ? 'announce_emergency_button' : 'stop_emergency_button',
 			id: 'announce_emergency_btn'
-		}, !curt.enable_emergency ? 'Evakuierung Abspielen' : 'Evakuierung Stoppen');
+		}, !curt.enable_emergency ? 'Evakuierung' : 'Evakuierung Stoppen');
 
-		// Lokales Abspielen (z. B. mit deiner announce-Funktion)
-		local_btn.addEventListener('click', function () {
-			const text = textarea.value.trim();
-			if (!text) return;
-
-			// Lokale Ansage abspielen
-			announce([text], true);  // ← Diese Funktion muss bei dir lokal definiert sein
+		createFreeAnnouncementForm({
+			form, textarea, localButton: local_btn, remoteButton: remote_btn,
+			service: btsSpeechService, readiness: typeof btsSpeechReadiness === 'undefined' ? null : btsSpeechReadiness,
+			playLocal: (text, speechMode) => announce([text], true, null, { speechMode }),
+			playRemote: (text, speechMode) => send({
+				type: 'free_announce', tournament_key: curt.key, text,
+				...(speechMode ? { speech_mode: speechMode } : {}),
+			}, err => { if (err) cerror.net(err); }),
 		});
 
 		emergency_btn.addEventListener("click", () => {
@@ -1239,21 +1301,6 @@ var ctournament = (function() {
   			}
 		});
 
-		// Remote Abspielen
-		form_utils.onsubmit(form, function (d) {
-			const text = d.custom_announcement?.trim();
-			if (!text) return;
-
-			send({
-				type: 'free_announce',
-				tournament_key: curt.key,
-				text: text,
-			}, function (err) {
-				if (err) {
-					return cerror.net(err);
-				}
-			});
-		});
 	}
 
 	function update_emergency_btn() {
@@ -1267,7 +1314,7 @@ var ctournament = (function() {
 		} else {
 			btn.classList.remove('stop_emergency_button');
 			btn.classList.add('announce_emergency_button');
-			btn.textContent = 'Evakuierung Abspielen';
+			btn.textContent = 'Evakuierung';
 		}
 	}
 
@@ -1537,6 +1584,7 @@ var ctournament = (function() {
 			uiu.empty(courts_container);
 			render_enable_location_courts_content(courts_container, locations);
 		}
+		if (typeof cleitstand !== 'undefined') cleitstand.deviceLocations();
 	}
 
 	function request_location_preparation_selections() {
@@ -1545,21 +1593,19 @@ var ctournament = (function() {
 		}
 		if (preparation_selection_request_inflight) {
 			preparation_selection_request_pending = true;
+			preparation_selection_pending_complete ||= track_ui_update('preparation.diagnosis');
+			preparation_selection_pending_complete.claim();
 			return;
 		}
 		preparation_selection_request_inflight = true;
-		send({
+		const complete = preparation_selection_pending_complete || track_ui_update('preparation.diagnosis');
+		preparation_selection_pending_complete = null;
+		complete.run(()=>send({
 			type: 'preparation_selection_get',
 			tournament_key: curt.key,
 		}, function(err, response) {
-			preparation_selection_request_inflight = false;
-			if (err) {
-				if (preparation_selection_request_pending) {
-					preparation_selection_request_pending = false;
-					request_location_preparation_selections();
-				}
-				return;
-			}
+			try {complete.run(()=>{
+			if (err) return;
 			const selection_by_location_id = {};
 			(response.selections || []).forEach((selection) => {
 				if (selection && selection.location_id != null) {
@@ -1575,11 +1621,14 @@ var ctournament = (function() {
 			if (typeof cmatch.update_preparation_demand_court_markers === 'function') {
 				cmatch.update_preparation_demand_court_markers();
 			}
-			if (preparation_selection_request_pending) {
-				preparation_selection_request_pending = false;
-				request_location_preparation_selections();
+			});} finally {
+				preparation_selection_request_inflight = false;complete();
+				if (preparation_selection_request_pending) {
+					preparation_selection_request_pending = false;
+					request_location_preparation_selections();
+				}
 			}
-		});
+		}));
 	}
 
 	function format_location_courts_label(location) {
@@ -1614,14 +1663,15 @@ var ctournament = (function() {
 			request_location_preparation_selections();
 		}
 		if (preparation_need_label_update_frame != null) {
+			preparation_labels_complete?.claim();
 			return;
 		}
 		const schedule = (typeof window !== 'undefined' && window.requestAnimationFrame)
 			? window.requestAnimationFrame.bind(window)
 			: (fn) => setTimeout(fn, 0);
+		const complete = preparation_labels_complete = track_ui_update('locations.labels');
 		preparation_need_label_update_frame = schedule(() => {
-			preparation_need_label_update_frame = null;
-			update_location_preparation_need_labels_now();
+			try {complete.run(()=>{preparation_need_label_update_frame = null;preparation_labels_complete=null;update_location_preparation_need_labels_now();});} finally {complete();}
 		});
 	}
 
@@ -1762,6 +1812,7 @@ var ctournament = (function() {
 				}
 			});
 		});
+		if (typeof cleitstand !== 'undefined') cleitstand.automation(container);
 	}
 
 	function update_show_automation_controls() {
@@ -2867,7 +2918,7 @@ var ctournament = (function() {
 		while (badge.firstChild) {
 			badge.removeChild(badge.firstChild);
 		}
-		uiu.el(badge, 'span', 'toprow_service_badge_prefix', 'Sync in:');
+		uiu.el(badge, 'span', 'toprow_service_badge_prefix', 'in');
 		uiu.el(badge, 'span', 'toprow_service_badge_timer', format_btp_next_fetch_remaining(ms_remaining));
 	}
 
@@ -2876,9 +2927,9 @@ var ctournament = (function() {
 			case 'connected':
 				return 'aktiv';
 			case 'connecting':
-				return 'connecting';
+				return 'wartet';
 			case 'error':
-				return 'error';
+				return 'Fehler';
 			case 'deactivated':
 				return 'aus';
 			case 'waiting':
@@ -2889,25 +2940,7 @@ var ctournament = (function() {
 	}
 
 	function speech_output_badge_text(status_name) {
-		switch (status_name) {
-			case 'active':
-			case 'ok':
-				return 'aktiv';
-			case 'running':
-				return 'sync...';
-			case 'untested':
-				return 'offen';
-			case 'unsupported':
-				return 'kein support';
-			case 'suspicious':
-				return 'unsicher';
-			case 'timeout':
-				return 'timeout';
-			case 'error':
-				return 'error';
-			default:
-				return status_name || 'offen';
-		}
+		return ['active', 'ok', 'running'].includes(status_name) ? 'aktiv' : 'aus';
 	}
 
 	function speech_output_badge_class(status_name) {
@@ -2938,7 +2971,9 @@ var ctournament = (function() {
 		uiu.qsEach('.' + badge_class, (badge_el) => {
 			badge_el.className = 'toprow_service_badge ' + badge_class + ' status_' + c.val.status;
 			badge_el.title = c.val.message || '';
-			set_badge_text(badge_el, service_badge_text(c.val.status));
+			set_badge_text(badge_el, (service_id === 'status' || service_id === 'ticker_status')
+				? (c.val.status === 'connected' ? 'aktiv' : 'aus')
+				: service_badge_text(c.val.status));
 		});
 	}
 
@@ -3006,6 +3041,9 @@ var ctournament = (function() {
 
 	function format_btp_next_fetch_remaining(ms_remaining) {
 		const total_seconds = Math.max(0, Math.ceil(ms_remaining / 1000));
+		if (!(Number(curt.btp_autofetch_timeout_intervall) > 99)) {
+			return total_seconds + ' s';
+		}
 		const minutes = Math.floor(total_seconds / 60);
 		const seconds = total_seconds % 60;
 		return minutes + ':' + String(seconds).padStart(2, '0');
@@ -3017,6 +3055,7 @@ var ctournament = (function() {
 			return;
 		}
 		const btp_status = curt.btp_status || {};
+		if (typeof cleitstand !== 'undefined') cleitstand.btpSync();
 		const next_fetch_ts = btp_status.next_fetch_ts;
 		const status_name = btp_status.status;
 		countdown.className = 'toprow_service_badge btp_status_badge';
@@ -3029,19 +3068,19 @@ var ctournament = (function() {
 			return;
 		}
 		if (status_name === 'error') {
-			set_badge_text(countdown, 'error');
+			set_badge_text(countdown, 'Fehler');
 			countdown.title = btp_status.message || 'BTP-Fehler';
 			countdown.classList.add('status_error');
 			return;
 		}
 		if (status_name === 'connecting') {
-			set_badge_text(countdown, 'connecting');
+			set_badge_text(countdown, 'wartet');
 			countdown.title = btp_status.message || 'BTP verbindet';
 			countdown.classList.add('status_connecting');
 			return;
 		}
 		if (btp_status.fetch_in_progress) {
-			set_badge_text(countdown, 'sync...');
+			set_badge_text(countdown, 'läuft');
 			countdown.title = 'BTP-Aktualisierung laeuft';
 			countdown.classList.add('status_connected', 'is-fetching');
 			return;
@@ -3065,6 +3104,7 @@ var ctournament = (function() {
 		btp_next_fetch_countdown_interval = setInterval(update_btp_next_fetch_countdown, 1000);
 	}
 	function ui_show() {
+		if (typeof cleitstand !== 'undefined') cleitstand.unmount();
 		current_view = 'show'
 		crouting.set('t/:key/', { key: curt.key });
 		render_show_toprow();
@@ -3111,6 +3151,15 @@ var ctournament = (function() {
 
 		_show_render_tabletoperators();
 		_show_render_umpires();
+		if (typeof cleitstand !== 'undefined') cleitstand.mount(main, curt, {
+			syncBtp: ui_btp_fetch,
+			testlab: () => {
+				ui_edit();
+				const clock_mode = main.querySelector('[name="test_clock_mode"]');
+				clock_mode?.closest('.settings')?.scrollIntoView({block: 'start'});
+				clock_mode?.focus({preventScroll: true});
+			},
+		});
 	}
 	_route_single(/t\/([a-z0-9]+)\/$/, ui_show, change.default_handler(_update_all_ui_elements, {
 		score: update_score,
@@ -3779,6 +3828,8 @@ var ctournament = (function() {
 			uiu.el(tablet_legend, 'span', {}, ci18n('tournament:edit:tabletoperator_enabled'));
 			bind_live_prop(input.tabletoperator_enabled, 'tabletoperator_enabled');
 			input.tabletoperator_with_umpire_enabled                = create_checkbox(curt, tablet_fieldset, 'tabletoperator_with_umpire_enabled');
+			input.tabletoperator_release_on_umpire_enabled          = create_checkbox(curt, tablet_fieldset, 'tabletoperator_release_on_umpire_enabled');
+			input.tabletoperator_release_on_umpire_enabled.title    = ci18n('tournament:edit:tabletoperator_release_on_umpire_enabled:hint');
 			input.tabletoperator_winner_of_quaterfinals_enabled     = create_checkbox(curt, tablet_fieldset, 'tabletoperator_winner_of_quaterfinals_enabled');
 			input.tabletoperator_use_manual_counting_boards_enabled = create_checkbox(curt, tablet_fieldset, 'tabletoperator_use_manual_counting_boards_enabled');
 			input.tabletoperator_split_doubles                      = create_checkbox(curt, tablet_fieldset, 'tabletoperator_split_doubles');
@@ -4086,6 +4137,7 @@ var ctournament = (function() {
 	}));
 
 		function update_scoring_formats() {
+		if (typeof cleitstand !== 'undefined') cleitstand.refreshScoreLayout();
 		if (!scoring_formats_main) {
 			if (typeof debug !== "undefined" && debug?.log) {
 				debug.log("update_scoring_formats: main container not initialized");
@@ -4446,6 +4498,7 @@ var ctournament = (function() {
 	}
 
 	function update_stages_scoring_formats() {
+		if (typeof cleitstand !== 'undefined') cleitstand.refreshScoreLayout();
 		if (!scoring_formats_main) {
 			if (typeof debug !== "undefined" && debug?.log) {
 				debug.log("update_scoring_formats: main container not initialized");
@@ -7507,6 +7560,7 @@ var ctournament = (function() {
 
 	function update_general_displaysettings(c)
 	{
+		if (typeof cleitstand !== 'undefined') cleitstand.refreshTablets();
 		//const general_displaysettings_div = uiu.qs('.general_displaysettings');
 		const general_displaysettings_div = document.querySelector(".general_displaysettings");
 		if(general_displaysettings_div) {
@@ -7519,7 +7573,7 @@ var ctournament = (function() {
 		uiu.el(general_displaysettings_div, 'h3', 'edit', ci18n('tournament:edit:displays'));
 
 		const display_table = uiu.el(general_displaysettings_div, 'table');
-		const display_tbody = uiu.el(display_table, 'tbody', 'display_tbody');
+		const display_tbody = display_table_body = uiu.el(display_table, 'tbody', 'display_tbody');
 		const tr = uiu.el(display_tbody, 'tr');
 		uiu.el(tr, 'th', {}, ci18n('tournament:edit:displays:num'));
 		uiu.el(tr, 'th', {}, ci18n('tournament:edit:displays:hostname'));
@@ -7596,9 +7650,10 @@ var ctournament = (function() {
 		delete_display_client_ids(client_ids);
 	}
 
-	function update_display(display) {
+	function update_display(display, options = {}) {
+		if (options.tablets !== false && typeof cleitstand !== 'undefined') cleitstand.refreshTablets();
 		// Do this function only if the Display view (in on edit) is open
-		if(!document.querySelectorAll('.display_tbody').length) {
+		if(!display_table_body?.isConnected) {
 			return;
 		}
 
@@ -7618,7 +7673,8 @@ var ctournament = (function() {
 	}
 
 	function new_display(display) {
-		const display_tbody = document.querySelector(".display_tbody");
+		const display_tbody = display_table_body;
+		if (!display_tbody?.isConnected) return;
 		const tr = uiu.el(display_tbody, 'tr', { 'data-display_id': display.client_id });
 		render_display(tr, display);
 
@@ -7694,7 +7750,9 @@ var ctournament = (function() {
 	}
 
 	function delete_display(c) {
-		uiu.qsEach('[data-display_id=' + JSON.stringify(c.val) + ']', function (display_tr) {
+		if (typeof cleitstand !== 'undefined') cleitstand.refreshTablets();
+		const client_id = c.val && c.val.client_id != null ? c.val.client_id : c.val;
+		uiu.qsEach('[data-display_id=' + JSON.stringify(String(client_id)) + ']', function (display_tr) {
 			display_tr.parentNode.removeChild(display_tr);
 		});
 	}
@@ -8754,76 +8812,85 @@ function enable_preparation_official_dragdrop(preparation_table, lower_tbodies, 
   }
 }
 
-function update_official_tables(officials_host) {
+function update_official_tables(officials_host, { compact = false } = {}) {
+  if (!officials_host) return;
+  if (official_drag_active) {
+    official_drag_refresh_pending = true;
+    return;
+  }
+  clear_official_dragdrop();
   officials_host.innerHTML = '';
+  officials_host.style.display = 'block';
 
   const official_rotation_mode = curt.official_rotation_mode || 'umpire_and_service_judge';
-  const include_service_judges = official_rotation_mode === 'umpire_and_service_judge';
-  const officials_div = uiu.el(officials_host, 'div', 'settings');
+  const include_service_judges = compact ? official_rotation_mode !== 'umpire_only' : official_rotation_mode === 'umpire_and_service_judge';
+  const officials_div = uiu.el(officials_host, 'div', compact ? 'settings official_rotation_compact' : 'settings');
   if (!include_service_judges) {
     officials_div.classList.add('official_rotation_mode_umpire_only');
   }
-  uiu.el(officials_div, 'h2', 'edit', ci18n('Technical officials rotation:'));
-  const official_rotation_mode_label = uiu.el(officials_div, 'label', 'official_rotation_mode_control');
-  uiu.el(official_rotation_mode_label, 'span', {}, ci18n('tournament:edit:official_rotation_mode'));
-  const official_rotation_mode_select = uiu.el(official_rotation_mode_label, 'select', {
-    name: 'official_rotation_mode',
-  });
-  [
-    'disabled',
-    'umpire_only',
-    'umpire_and_service_judge',
-  ].forEach((mode) => {
-    const attrs = { value: mode };
-    if (official_rotation_mode === mode) {
-      attrs.selected = 'selected';
-    }
-    uiu.el(official_rotation_mode_select, 'option', attrs, ci18n(`tournament:edit:official_rotation_mode:${mode}`));
-  });
-  bind_live_prop(official_rotation_mode_select, 'official_rotation_mode');
+  if (!compact) {
+    uiu.el(officials_div, 'h2', 'edit', ci18n('Technical officials rotation:'));
+    const official_rotation_mode_label = uiu.el(officials_div, 'label', 'official_rotation_mode_control');
+    uiu.el(official_rotation_mode_label, 'span', {}, ci18n('tournament:edit:official_rotation_mode'));
+    const official_rotation_mode_select = uiu.el(official_rotation_mode_label, 'select', {
+      name: 'official_rotation_mode',
+    });
+    [
+      'disabled',
+      'umpire_only',
+      'umpire_and_service_judge',
+    ].forEach((mode) => {
+      const attrs = { value: mode };
+      if (official_rotation_mode === mode) {
+        attrs.selected = 'selected';
+      }
+      uiu.el(official_rotation_mode_select, 'option', attrs, ci18n(`tournament:edit:official_rotation_mode:${mode}`));
+    });
+    bind_live_prop(official_rotation_mode_select, 'official_rotation_mode');
 
-  if (official_rotation_mode === 'disabled') {
-    return;
+    if (official_rotation_mode === 'disabled') {
+      return;
+    }
+
+    const technical_official_auto_assignment_mode = curt.technical_official_auto_assignment_mode || 'manual_only';
+    const technical_official_auto_assignment_mode_label = uiu.el(officials_div, 'label', 'official_rotation_mode_control');
+    uiu.el(technical_official_auto_assignment_mode_label, 'span', {}, ci18n('tournament:edit:technical_official_auto_assignment_mode'));
+    const technical_official_auto_assignment_mode_select = uiu.el(technical_official_auto_assignment_mode_label, 'select', {
+      name: 'technical_official_auto_assignment_mode',
+    });
+    [
+      'manual_only',
+      'on_match_call_if_possible',
+      'on_preparation_call',
+      'when_available',
+    ].forEach((mode) => {
+      const attrs = { value: mode };
+      if (technical_official_auto_assignment_mode === mode) {
+        attrs.selected = 'selected';
+      }
+      uiu.el(
+        technical_official_auto_assignment_mode_select,
+        'option',
+        attrs,
+        ci18n(`tournament:edit:technical_official_auto_assignment_mode:${mode}`)
+      );
+    });
+    bind_live_prop(technical_official_auto_assignment_mode_select, 'technical_official_auto_assignment_mode');
+
+    const technical_official_break_after_assignment_seconds_label = uiu.el(officials_div, 'label', 'official_rotation_mode_control');
+    uiu.el(technical_official_break_after_assignment_seconds_label, 'span', {}, ci18n('tournament:edit:technical_official_break_after_assignment_seconds'));
+    const technical_official_break_after_assignment_seconds_input = uiu.el(technical_official_break_after_assignment_seconds_label, 'input', {
+      type: 'number',
+      name: 'technical_official_break_after_assignment_seconds',
+      value: curt.technical_official_break_after_assignment_seconds || 0,
+      min: 0,
+      max: 3600,
+      step: 1,
+    });
+    bind_live_prop(technical_official_break_after_assignment_seconds_input, 'technical_official_break_after_assignment_seconds', {
+      get_value: input_el => Number(input_el.value),
+    });
   }
-
-  const technical_official_auto_assignment_mode = curt.technical_official_auto_assignment_mode || 'manual_only';
-  const technical_official_auto_assignment_mode_label = uiu.el(officials_div, 'label', 'official_rotation_mode_control');
-  uiu.el(technical_official_auto_assignment_mode_label, 'span', {}, ci18n('tournament:edit:technical_official_auto_assignment_mode'));
-  const technical_official_auto_assignment_mode_select = uiu.el(technical_official_auto_assignment_mode_label, 'select', {
-    name: 'technical_official_auto_assignment_mode',
-  });
-  [
-    'manual_only',
-    'on_match_call_if_possible',
-    'on_preparation_call',
-    'when_available',
-  ].forEach((mode) => {
-    const attrs = { value: mode };
-    if (technical_official_auto_assignment_mode === mode) {
-      attrs.selected = 'selected';
-    }
-    uiu.el(
-      technical_official_auto_assignment_mode_select,
-      'option',
-      attrs,
-      ci18n(`tournament:edit:technical_official_auto_assignment_mode:${mode}`)
-    );
-  });
-  bind_live_prop(technical_official_auto_assignment_mode_select, 'technical_official_auto_assignment_mode');
-
-  const technical_official_break_after_assignment_seconds_label = uiu.el(officials_div, 'label', 'official_rotation_mode_control');
-  uiu.el(technical_official_break_after_assignment_seconds_label, 'span', {}, ci18n('tournament:edit:technical_official_break_after_assignment_seconds'));
-  const technical_official_break_after_assignment_seconds_input = uiu.el(technical_official_break_after_assignment_seconds_label, 'input', {
-    type: 'number',
-    name: 'technical_official_break_after_assignment_seconds',
-    value: curt.technical_official_break_after_assignment_seconds || 0,
-    min: 0,
-    max: 3600,
-    step: 1,
-  });
-  bind_live_prop(technical_official_break_after_assignment_seconds_input, 'technical_official_break_after_assignment_seconds', {
-    get_value: input_el => Number(input_el.value),
-  });
 
   const all_officials = (curt.umpires || []).filter((official) => {
     if (!(official && official._id)) {
@@ -8862,7 +8929,9 @@ function update_official_tables(officials_host) {
     return Number(manual_pause) || 0;
   };
   const create_official_pause_timer_state = (official, role) => {
-    const pause_target_ts = Number(official?.[`${role}_pause`]);
+    const target = official?.[`${role}_pause`] ?? (compact ? official?.[`${role === 'umpire' ? 'service_judge' : 'umpire'}_pause`] : null);
+    if (target == null) return null;
+    const pause_target_ts = Number(target);
     if (!Number.isFinite(pause_target_ts)) {
       return null;
     }
@@ -8899,7 +8968,7 @@ function update_official_tables(officials_host) {
     if (!!official.is_umpire && !!official.is_service_judge) return 'all';
     if (!!official.is_umpire) return 'umpire_only';
     if (!!official.is_service_judge) return 'service_only';
-    return 'all';
+    return compact ? 'none' : 'all';
   };
   const cycle_role_state = (official, current_state) => {
     if (current_state === 'all') {
@@ -8939,6 +9008,7 @@ function update_official_tables(officials_host) {
     }
   };
   const set_source_placeholder_state = (state) => {
+    if (compact) return;
     if (!dragged_meta?.source_card) return;
     const card = dragged_meta.source_card;
     const in_stack = !!dragged_meta.source_stack;
@@ -8998,6 +9068,7 @@ function update_official_tables(officials_host) {
     drop._officialCanDrop = can_drop;
   };
   const update_source_placeholder_suppression = () => {
+    if (compact) return;
     document.querySelectorAll('.official_card_drop_suppressed').forEach((drop) => {
       drop.classList.remove('official_card_drop_suppressed');
     });
@@ -9068,6 +9139,7 @@ function update_official_tables(officials_host) {
     });
   };
   const freeze_stack_section_heights = () => {
+    if (compact) return;
     officials_div.querySelectorAll('.official_section_body_stacklist').forEach((section) => {
       section.style.height = `${Math.ceil(section.getBoundingClientRect().height)}px`;
     });
@@ -9088,7 +9160,7 @@ function update_official_tables(officials_host) {
     if (official_drag_refresh_pending) {
       official_drag_refresh_pending = false;
       setTimeout(() => {
-        if (current_view === 'edit') {
+        if (current_view === 'edit' || current_view === 'show') {
           ctournament.update_officials();
         }
       }, 0);
@@ -9150,11 +9222,18 @@ function update_official_tables(officials_host) {
     card.draggable = !!drag_meta_factory;
     uiu.el(card, 'div', `official_card_icon ${icon_class}`);
     uiu.el(card, 'div', 'official_card_name', official_display_name(official));
+    if (compact) card.title = official_display_name(official);
     if (timer_state) {
       const timer_host = uiu.el(card, 'div', 'official_card_timer');
       cmatch.create_timer(timer_state, timer_host, '#ffffff', '#ffffff');
     }
     const icon_trail = uiu.el(card, 'div', 'official_card_trail');
+    if (compact) {
+      icon_trail.setAttribute('role', 'button');
+      icon_trail.tabIndex = 0;
+      icon_trail.title = 'Zugelassene Rollen wechseln';
+      icon_trail.setAttribute('aria-label', 'Zugelassene Rollen für ' + official_display_name(official) + ' wechseln');
+    }
     icon_trail.setAttribute('data-state', role_state_from_official(official));
     icon_trail.draggable = false;
     uiu.el(icon_trail, 'div', 'official_card_trail_icon umpire');
@@ -9249,6 +9328,7 @@ function update_official_tables(officials_host) {
         }
         const same_stack_drag = !!dragged_meta.source_stack && dragged_meta.source_stack === parent;
         const can_drop_here = stack_drop_options && stack_drop_options.can_drop(dragged_meta);
+        if (compact && !can_drop_here) return;
         if (!same_stack_drag && !can_drop_here) {
           return;
         }
@@ -9260,6 +9340,7 @@ function update_official_tables(officials_host) {
           return;
         }
         e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
         const rect = card.getBoundingClientRect();
         const midpoint = rect.top + rect.height / 2;
         const deadzone = Math.min(8, rect.height * 0.2);
@@ -9305,6 +9386,7 @@ function update_official_tables(officials_host) {
       drop.addEventListener('dragover', (e) => {
         if (!dragged_meta || !options.can_drop(dragged_meta)) return;
         e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
         set_drop_highlight(drop, true);
       });
       drop.addEventListener('dragleave', () => {
@@ -9325,7 +9407,7 @@ function update_official_tables(officials_host) {
       render_official_card(
         parent,
         official,
-        icon_class,
+        typeof icon_class === 'function' ? icon_class(official) : icon_class,
         options.drag_meta_factory,
         options,
         options.variant || 'list',
@@ -9339,6 +9421,12 @@ function update_official_tables(officials_host) {
     return uiu.el(officials_div, 'div', 'official_section_body');
   };
   const send_list_reorder = (meta, to_list, virtual_ids, error_handler = cerror.net) => {
+    // The existing move endpoint clears the moved official's automatic rest. Only
+    // explicit manual unavailability overrides that rest; queue drags must retain it.
+    if (compact && to_list.endsWith('_wait')) {
+      if (meta.source_zone === 'waiting' && (meta.official.umpire_pause != null || meta.official.service_judge_pause != null)) return;
+      virtual_ids = virtual_ids.filter(id => id === meta.official_id || (officialById.get(id)?.umpire_pause == null && officialById.get(id)?.service_judge_pause == null));
+    }
     const idx = virtual_ids.indexOf(meta.official_id);
     const prev_id = idx > 0 ? virtual_ids[idx - 1] : null;
     const next_id = idx >= 0 && idx < virtual_ids.length - 1 ? virtual_ids[idx + 1] : null;
@@ -9382,9 +9470,10 @@ function update_official_tables(officials_host) {
   };
   const meta_can_drop_to_list = (meta, to_list) => {
     if (!meta) return false;
-    if (to_list === 'inactive_list') {
+    if (to_list === 'inactive_list' || (compact && to_list === 'umpire_pause')) {
       return meta.source_type === 'list' || meta.source_type === 'preparation' || meta.source_type === 'assigned';
     }
+    if (compact && meta.source_zone === 'waiting' && (meta.official?.umpire_pause != null || meta.official?.service_judge_pause != null)) return false;
     const role = role_from_list_name(to_list);
     return !!role && meta_can_fill_role(meta, role);
   };
@@ -9477,11 +9566,22 @@ function update_official_tables(officials_host) {
     const row = uiu.el(section, 'div', `official_on_court_row${include_service_judges ? '' : ' official_on_court_row_single_role'}${row_class ? ' ' + row_class : ''}`);
     uiu.el(row, 'div', 'official_on_court_leading official_preparation_leading');
     specs.forEach((spec) => {
-      const stack = uiu.el(row, 'div', 'official_card_stack');
+      let parent = row;
+      if (compact && spec.to_list.endsWith('_wait')) {
+        parent = uiu.el(row, 'div', 'official_queue_column');
+        const service = spec.to_list === 'service_judge_wait';
+        parent.dataset.nextRole = service ? 'service_judge' : 'umpire';
+        const heading = uiu.el(parent, 'h4', 'official_queue_heading');
+        uiu.el(heading, 'span', 'official_queue_role_icon ' + (service ? 'service_judge' : 'umpire'));
+        uiu.el(heading, 'span', {}, service ? 'Aufschlagrichter' : 'Schiedsrichter');
+      }
+      const stack = uiu.el(parent, 'div', 'official_card_stack');
+      stack.dataset.officialList = spec.to_list;
+      if (compact) stack.setAttribute('aria-label', spec.to_list === 'umpire_wait' ? 'Schiedsrichter Warteliste' : spec.to_list === 'service_judge_wait' ? 'Aufschlagrichter Warteliste' : 'Pause / nicht verfügbar');
       spec.items.forEach(mark_visible);
       render_card_stack_with_drops(stack, spec.icon_class, spec.items, {
         can_drop: (meta) => meta_can_drop_to_list(meta, spec.to_list),
-        drag_meta_factory: (official) => ({ source_type: 'list', official_id: official._id, from_list: spec.to_list, official }),
+        drag_meta_factory: spec.drag_meta_factory || ((official) => ({ source_type: 'list', official_id: official._id, from_list: spec.to_list, official })),
         variant: spec.variant || 'list',
         timer_state_factory: spec.timer_state_factory,
         on_drop: (meta, before_official_id) => {
@@ -9492,9 +9592,26 @@ function update_official_tables(officials_host) {
           send_list_reorder(meta, spec.to_list, build_reordered_ids(stack, meta.official_id, before_official_id));
         }
       });
+      if (compact && !spec.items.length) stack.querySelector('.official_card_drop').textContent = spec.to_list.endsWith('_wait') ? (spec.to_list === 'umpire_wait' ? 'Schiedsrichter hier ablegen' : 'Aufschlagrichter hier ablegen') : 'Hier manuell ablegen';
     });
     return { section, row };
   };
+  if (compact) {
+    const lists = cumpires.rotation_lists(curt);
+    const waiting = render_vertical_list_section('Warteliste', ['umpire', ...(include_service_judges ? ['service_judge'] : [])].map(role => ({
+      items: lists.waiting[role], icon_class: role, to_list: `${role}_wait`,
+      timer_state_factory: official => create_official_pause_timer_state(official, role),
+      drag_meta_factory: official => ({ source_type: 'list', source_zone: 'waiting', official_id: official._id, from_list: `${role}_wait`, official }),
+    })));
+    waiting.section.dataset.rotationSection = 'waiting';
+    const unavailable = render_vertical_list_section('Pause / nicht verfügbar', [{
+      items: lists.unavailable, icon_class: official => official.is_service_judge && !official.is_umpire ? 'service_judge' : 'umpire', to_list: 'umpire_pause',
+      drag_meta_factory: official => ({ source_type: 'list', source_zone: 'unavailable', official_id: official._id, from_list: official.umpire_manual_pause != null ? 'umpire_manual_pause' : official.service_judge_manual_pause != null ? 'service_judge_manual_pause' : 'inactive_list', official }),
+    }]);
+    unavailable.section.dataset.rotationSection = 'unavailable';
+    if (typeof cleitstand !== 'undefined') cleitstand.rotationIcons(officials_div);
+    return;
+  }
   const on_court_placeholder_row = create_official_section(ci18n('On court:'));
   sorted_courts.forEach((court) => {
     const court_umpire = curt.umpires.find((official) => official.umpire_on_court === court._id);
@@ -9622,7 +9739,24 @@ function update_official_tables(officials_host) {
   apply_stack_section_base_heights();
 }
 
+function clear_official_dragdrop() {
+  if (update_official_tables._document_drop_cleanup) document.removeEventListener('drop', update_official_tables._document_drop_cleanup, true);
+  if (update_official_tables._window_dragend_cleanup) window.removeEventListener('dragend', update_official_tables._window_dragend_cleanup, true);
+  update_official_tables._document_drop_cleanup = null;
+  update_official_tables._window_dragend_cleanup = null;
+  official_drag_active = false;
+  official_drag_refresh_pending = false;
+}
+
+function render_official_rotation(container) {
+  update_official_tables(container, { compact: true });
+}
+
 function update_officials() {
+	if (current_view === 'show') {
+		render_official_rotation(document.querySelector('.umpire_container'));
+		return;
+	}
 	if(current_view === 'edit') {
 		if (official_drag_active) {
 			official_drag_refresh_pending = true;
@@ -12532,6 +12666,7 @@ function update_officials() {
 
 	function update_show_registration_events(c) {
 		apply_btp_events_change(c);
+		if (typeof cleitstand !== 'undefined') cleitstand.refreshScoreLayout();
 		cmatch.refresh_unassigned_status_context();
 	}
 
@@ -13897,6 +14032,8 @@ function update_officials() {
 		add_match,
 		update_match,
 		update_officials,
+		render_official_rotation,
+		clear_official_dragdrop,
 		update_upcoming_match,
 		update_location_preparation_need_labels,
 		update_logo,
@@ -13922,9 +14059,12 @@ function update_officials() {
 			update_metadata_settings,
 			update_edit_dependencies,
 			update_btp_settings_ui,
+			refresh_player_pauses,
 			update_show_tabletoperators,
 			update_show_automation_controls,
 			request_location_preparation_selections,
+			pendingUpdates: () => [...pending_ui_updates],
+			isUpdating: () => tournament_refresh_after_missed_change_pending || preparation_selection_request_inflight || preparation_selection_request_pending || preparation_need_label_update_frame != null,
 			update_test_clock_controls,
 			close_scoring_format_dialog_if_open,
 			refresh_current_view,

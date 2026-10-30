@@ -47,6 +47,33 @@ function harness(options = {}) {
 }
 
 describe('Browser local speech provider', function() {
+    it('honors an explicit browser choice immediately without changing the configured mode', async function() {
+        const h = harness();
+        const result = await h.service.speak([TEXT], 'explicit-browser', h.fallback, undefined, [], undefined, 'browser');
+        assert.strictEqual(result.provider, 'browser');
+        assert.deepStrictEqual(h.requests, []);
+        assert.deepStrictEqual(h.played, []);
+        assert.deepStrictEqual(h.browser, [[TEXT]]);
+        assert.strictEqual(h.settings.mode, 'auto');
+    });
+
+    it('never falls back to the browser after explicitly waiting for server audio', async function() {
+        const h = harness({ request: async () => ({ clips: [{ status: 'queued' }], speech: { enabled: true } }) });
+        const result = await h.service.speak([TEXT], 'wait-for-server', h.fallback, undefined, [], undefined, 'server');
+        assert.strictEqual(result.status, 'unavailable');
+        assert.strictEqual(result.provider, 'server');
+        assert.deepStrictEqual(h.browser, []);
+        assert.strictEqual(h.settings.mode, 'auto');
+    });
+
+    it('rejects a browser override when browser fallback is disabled', async function() {
+        const h = harness({ mode: 'server' });
+        const result = await h.service.speak([TEXT], 'no-browser-fallback', h.fallback, undefined, [], undefined, 'browser');
+        assert.strictEqual(result.provider, 'server');
+        assert.deepStrictEqual(h.browser, []);
+        assert.strictEqual(h.settings.mode, 'server');
+    });
+
     it('fetches audio directly from the worker listener using the page hostname and TLS', async function() {
         const h = harness({ page_url: 'https://bts.example:4433/admin/', request: async (_type, values) => ({
             clips: values.parts.map(() => clip()), speech: { enabled: true, audio_endpoint: { port: 4434, protocol: 'https:' } },

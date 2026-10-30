@@ -26,7 +26,7 @@ function ui_on_status(status) {
 }
 
 function ui_on_change(c) {
-	crouting.on_change(c);
+	return crouting.on_change(c);
 }
 
 function ui_connect() {
