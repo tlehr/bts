@@ -1,0 +1,521 @@
+{
+  "date": "2026-10-31",
+  "scope": "Isolated frontend with synthetic check-in updates, cached gradients and delayed preparation diagnostics; no live services.",
+  "checks": [
+    "Correct initial call locations for prepared game check-in",
+    "No transient buttons from another location during prepared game check-in",
+    "The cached gradient never disappears or changes while diagnostics are delayed for prepared game check-in",
+    "Check-in updates keep the action cell, call button and player node for prepared game check-in",
+    "The check-in action updates the player and preserves the assigned call locations for prepared game check-in",
+    "Correct initial call locations for prepared game check-out",
+    "No transient buttons from another location during prepared game check-out",
+    "The cached gradient never disappears or changes while diagnostics are delayed for prepared game check-out",
+    "Check-in updates keep the action cell, call button and player node for prepared game check-out",
+    "The check-in action updates the player and preserves the assigned call locations for prepared game check-out",
+    "Correct initial call locations for scheduled game with a location",
+    "No transient buttons from another location during scheduled game with a location",
+    "The cached gradient never disappears or changes while diagnostics are delayed for scheduled game with a location",
+    "Check-in updates keep the action cell, call button and player node for scheduled game with a location",
+    "The check-in action updates the player and preserves the assigned call locations for scheduled game with a location",
+    "Correct initial call locations for scheduled game with a court only",
+    "No transient buttons from another location during scheduled game with a court only",
+    "The cached gradient never disappears or changes while diagnostics are delayed for scheduled game with a court only",
+    "Check-in updates keep the action cell, call button and player node for scheduled game with a court only",
+    "The check-in action updates the player and preserves the assigned call locations for scheduled game with a court only",
+    "Correct initial call locations for game moved to another location",
+    "No transient buttons from another location during game moved to another location",
+    "The cached gradient never disappears or changes while diagnostics are delayed for game moved to another location",
+    "Check-in updates keep the action cell, call button and player node for game moved to another location",
+    "The check-in action updates the player and preserves the assigned call locations for game moved to another location",
+    "Correct initial call locations for game without a location or court",
+    "No transient buttons from another location during game without a location or court",
+    "The cached gradient never disappears or changes while diagnostics are delayed for game without a location or court",
+    "Check-in updates keep the action cell, call button and player node for game without a location or court",
+    "The check-in action updates the player and preserves the assigned call locations for game without a location or court",
+    "A genuinely changed diagnosis updates the gradient immediately on the same action cell",
+    "Official check-in retains the action cell and cached gradient before a delayed diagnosis returns",
+    "Delayed preparation responses and check-in changes produce no browser exceptions"
+  ],
+  "observations": [
+    {
+      "name": "prepared game check-in",
+      "held": 1,
+      "frames": [
+        [
+          "CH"
+        ],
+        [
+          "CH"
+        ],
+        [
+          "CH"
+        ],
+        [
+          "CH"
+        ],
+        [
+          "CH"
+        ],
+        [
+          "CH"
+        ]
+      ],
+      "wrongAdditions": [],
+      "gradientBefore": [
+        "linear-gradient(to right, rgba(83, 158, 92, 0), rgba(83, 158, 92, 0.46) 55%, rgba(83, 158, 92, 0.92))",
+        "rgb(47, 102, 56) -3px 0px 0px 0px inset",
+        "83,158,92"
+      ],
+      "gradientFrames": [
+        [
+          "linear-gradient(to right, rgba(83, 158, 92, 0), rgba(83, 158, 92, 0.46) 55%, rgba(83, 158, 92, 0.92))",
+          "rgb(47, 102, 56) -3px 0px 0px 0px inset",
+          "83,158,92"
+        ],
+        [
+          "linear-gradient(to right, rgba(83, 158, 92, 0), rgba(83, 158, 92, 0.46) 55%, rgba(83, 158, 92, 0.92))",
+          "rgb(47, 102, 56) -3px 0px 0px 0px inset",
+          "83,158,92"
+        ],
+        [
+          "linear-gradient(to right, rgba(83, 158, 92, 0), rgba(83, 158, 92, 0.46) 55%, rgba(83, 158, 92, 0.92))",
+          "rgb(47, 102, 56) -3px 0px 0px 0px inset",
+          "83,158,92"
+        ],
+        [
+          "linear-gradient(to right, rgba(83, 158, 92, 0), rgba(83, 158, 92, 0.46) 55%, rgba(83, 158, 92, 0.92))",
+          "rgb(47, 102, 56) -3px 0px 0px 0px inset",
+          "83,158,92"
+        ],
+        [
+          "linear-gradient(to right, rgba(83, 158, 92, 0), rgba(83, 158, 92, 0.46) 55%, rgba(83, 158, 92, 0.92))",
+          "rgb(47, 102, 56) -3px 0px 0px 0px inset",
+          "83,158,92"
+        ],
+        [
+          "linear-gradient(to right, rgba(83, 158, 92, 0), rgba(83, 158, 92, 0.46) 55%, rgba(83, 158, 92, 0.92))",
+          "rgb(47, 102, 56) -3px 0px 0px 0px inset",
+          "83,158,92"
+        ],
+        [
+          "linear-gradient(to right, rgba(83, 158, 92, 0), rgba(83, 158, 92, 0.46) 55%, rgba(83, 158, 92, 0.92))",
+          "rgb(47, 102, 56) -3px 0px 0px 0px inset",
+          "83,158,92"
+        ]
+      ],
+      "sameCell": true,
+      "sameButton": true,
+      "samePlayer": true,
+      "presentationMs": 88.60000002384186,
+      "request": {
+        "type": "match_player_check_in",
+        "match_id": "match-45",
+        "player_id": 35,
+        "checked_in": true,
+        "tournament_key": "preview"
+      }
+    },
+    {
+      "name": "prepared game check-out",
+      "held": 1,
+      "frames": [
+        [
+          "CH"
+        ],
+        [
+          "CH"
+        ],
+        [
+          "CH"
+        ],
+        [
+          "CH"
+        ],
+        [
+          "CH"
+        ],
+        [
+          "CH"
+        ]
+      ],
+      "wrongAdditions": [],
+      "gradientBefore": [
+        "linear-gradient(to right, rgba(205, 88, 79, 0), rgba(205, 88, 79, 0.46) 55%, rgba(205, 88, 79, 0.92))",
+        "rgb(142, 53, 46) -3px 0px 0px 0px inset",
+        "205,88,79"
+      ],
+      "gradientFrames": [
+        [
+          "linear-gradient(to right, rgba(205, 88, 79, 0), rgba(205, 88, 79, 0.46) 55%, rgba(205, 88, 79, 0.92))",
+          "rgb(142, 53, 46) -3px 0px 0px 0px inset",
+          "205,88,79"
+        ],
+        [
+          "linear-gradient(to right, rgba(205, 88, 79, 0), rgba(205, 88, 79, 0.46) 55%, rgba(205, 88, 79, 0.92))",
+          "rgb(142, 53, 46) -3px 0px 0px 0px inset",
+          "205,88,79"
+        ],
+        [
+          "linear-gradient(to right, rgba(205, 88, 79, 0), rgba(205, 88, 79, 0.46) 55%, rgba(205, 88, 79, 0.92))",
+          "rgb(142, 53, 46) -3px 0px 0px 0px inset",
+          "205,88,79"
+        ],
+        [
+          "linear-gradient(to right, rgba(205, 88, 79, 0), rgba(205, 88, 79, 0.46) 55%, rgba(205, 88, 79, 0.92))",
+          "rgb(142, 53, 46) -3px 0px 0px 0px inset",
+          "205,88,79"
+        ],
+        [
+          "linear-gradient(to right, rgba(205, 88, 79, 0), rgba(205, 88, 79, 0.46) 55%, rgba(205, 88, 79, 0.92))",
+          "rgb(142, 53, 46) -3px 0px 0px 0px inset",
+          "205,88,79"
+        ],
+        [
+          "linear-gradient(to right, rgba(205, 88, 79, 0), rgba(205, 88, 79, 0.46) 55%, rgba(205, 88, 79, 0.92))",
+          "rgb(142, 53, 46) -3px 0px 0px 0px inset",
+          "205,88,79"
+        ],
+        [
+          "linear-gradient(to right, rgba(205, 88, 79, 0), rgba(205, 88, 79, 0.46) 55%, rgba(205, 88, 79, 0.92))",
+          "rgb(142, 53, 46) -3px 0px 0px 0px inset",
+          "205,88,79"
+        ]
+      ],
+      "sameCell": true,
+      "sameButton": true,
+      "samePlayer": true,
+      "presentationMs": 95.20000004768372,
+      "request": {
+        "type": "match_player_check_in",
+        "match_id": "match-45",
+        "player_id": 35,
+        "checked_in": false,
+        "tournament_key": "preview"
+      }
+    },
+    {
+      "name": "scheduled game with a location",
+      "held": 1,
+      "frames": [
+        [
+          "CH"
+        ],
+        [
+          "CH"
+        ],
+        [
+          "CH"
+        ],
+        [
+          "CH"
+        ],
+        [
+          "CH"
+        ],
+        [
+          "CH"
+        ]
+      ],
+      "wrongAdditions": [],
+      "gradientBefore": [
+        "linear-gradient(to right, rgba(139, 199, 232, 0), rgba(139, 199, 232, 0.46) 55%, rgba(139, 199, 232, 0.92))",
+        "rgb(38, 95, 125) -3px 0px 0px 0px inset",
+        "139,199,232"
+      ],
+      "gradientFrames": [
+        [
+          "linear-gradient(to right, rgba(139, 199, 232, 0), rgba(139, 199, 232, 0.46) 55%, rgba(139, 199, 232, 0.92))",
+          "rgb(38, 95, 125) -3px 0px 0px 0px inset",
+          "139,199,232"
+        ],
+        [
+          "linear-gradient(to right, rgba(139, 199, 232, 0), rgba(139, 199, 232, 0.46) 55%, rgba(139, 199, 232, 0.92))",
+          "rgb(38, 95, 125) -3px 0px 0px 0px inset",
+          "139,199,232"
+        ],
+        [
+          "linear-gradient(to right, rgba(139, 199, 232, 0), rgba(139, 199, 232, 0.46) 55%, rgba(139, 199, 232, 0.92))",
+          "rgb(38, 95, 125) -3px 0px 0px 0px inset",
+          "139,199,232"
+        ],
+        [
+          "linear-gradient(to right, rgba(139, 199, 232, 0), rgba(139, 199, 232, 0.46) 55%, rgba(139, 199, 232, 0.92))",
+          "rgb(38, 95, 125) -3px 0px 0px 0px inset",
+          "139,199,232"
+        ],
+        [
+          "linear-gradient(to right, rgba(139, 199, 232, 0), rgba(139, 199, 232, 0.46) 55%, rgba(139, 199, 232, 0.92))",
+          "rgb(38, 95, 125) -3px 0px 0px 0px inset",
+          "139,199,232"
+        ],
+        [
+          "linear-gradient(to right, rgba(139, 199, 232, 0), rgba(139, 199, 232, 0.46) 55%, rgba(139, 199, 232, 0.92))",
+          "rgb(38, 95, 125) -3px 0px 0px 0px inset",
+          "139,199,232"
+        ],
+        [
+          "linear-gradient(to right, rgba(139, 199, 232, 0), rgba(139, 199, 232, 0.46) 55%, rgba(139, 199, 232, 0.92))",
+          "rgb(38, 95, 125) -3px 0px 0px 0px inset",
+          "139,199,232"
+        ]
+      ],
+      "sameCell": true,
+      "sameButton": true,
+      "samePlayer": true,
+      "presentationMs": 89.39999997615814,
+      "request": {
+        "type": "match_player_check_in",
+        "match_id": "match-45",
+        "player_id": 35,
+        "checked_in": true,
+        "tournament_key": "preview"
+      }
+    },
+    {
+      "name": "scheduled game with a court only",
+      "held": 1,
+      "frames": [
+        [
+          "CH"
+        ],
+        [
+          "CH"
+        ],
+        [
+          "CH"
+        ],
+        [
+          "CH"
+        ],
+        [
+          "CH"
+        ],
+        [
+          "CH"
+        ]
+      ],
+      "wrongAdditions": [],
+      "gradientBefore": [
+        "linear-gradient(to right, rgba(205, 88, 79, 0), rgba(205, 88, 79, 0.46) 55%, rgba(205, 88, 79, 0.92))",
+        "rgb(142, 53, 46) -3px 0px 0px 0px inset",
+        "205,88,79"
+      ],
+      "gradientFrames": [
+        [
+          "linear-gradient(to right, rgba(205, 88, 79, 0), rgba(205, 88, 79, 0.46) 55%, rgba(205, 88, 79, 0.92))",
+          "rgb(142, 53, 46) -3px 0px 0px 0px inset",
+          "205,88,79"
+        ],
+        [
+          "linear-gradient(to right, rgba(205, 88, 79, 0), rgba(205, 88, 79, 0.46) 55%, rgba(205, 88, 79, 0.92))",
+          "rgb(142, 53, 46) -3px 0px 0px 0px inset",
+          "205,88,79"
+        ],
+        [
+          "linear-gradient(to right, rgba(205, 88, 79, 0), rgba(205, 88, 79, 0.46) 55%, rgba(205, 88, 79, 0.92))",
+          "rgb(142, 53, 46) -3px 0px 0px 0px inset",
+          "205,88,79"
+        ],
+        [
+          "linear-gradient(to right, rgba(205, 88, 79, 0), rgba(205, 88, 79, 0.46) 55%, rgba(205, 88, 79, 0.92))",
+          "rgb(142, 53, 46) -3px 0px 0px 0px inset",
+          "205,88,79"
+        ],
+        [
+          "linear-gradient(to right, rgba(205, 88, 79, 0), rgba(205, 88, 79, 0.46) 55%, rgba(205, 88, 79, 0.92))",
+          "rgb(142, 53, 46) -3px 0px 0px 0px inset",
+          "205,88,79"
+        ],
+        [
+          "linear-gradient(to right, rgba(205, 88, 79, 0), rgba(205, 88, 79, 0.46) 55%, rgba(205, 88, 79, 0.92))",
+          "rgb(142, 53, 46) -3px 0px 0px 0px inset",
+          "205,88,79"
+        ],
+        [
+          "linear-gradient(to right, rgba(205, 88, 79, 0), rgba(205, 88, 79, 0.46) 55%, rgba(205, 88, 79, 0.92))",
+          "rgb(142, 53, 46) -3px 0px 0px 0px inset",
+          "205,88,79"
+        ]
+      ],
+      "sameCell": true,
+      "sameButton": true,
+      "samePlayer": true,
+      "presentationMs": 89.19999992847443,
+      "request": {
+        "type": "match_player_check_in",
+        "match_id": "match-45",
+        "player_id": 35,
+        "checked_in": false,
+        "tournament_key": "preview"
+      }
+    },
+    {
+      "name": "game moved to another location",
+      "held": 1,
+      "frames": [
+        [
+          "SN"
+        ],
+        [
+          "SN"
+        ],
+        [
+          "SN"
+        ],
+        [
+          "SN"
+        ],
+        [
+          "SN"
+        ],
+        [
+          "SN"
+        ]
+      ],
+      "wrongAdditions": [],
+      "gradientBefore": [
+        "linear-gradient(to right, rgba(83, 158, 92, 0), rgba(83, 158, 92, 0.46) 55%, rgba(83, 158, 92, 0.92))",
+        "rgb(47, 102, 56) -3px 0px 0px 0px inset",
+        "83,158,92"
+      ],
+      "gradientFrames": [
+        [
+          "linear-gradient(to right, rgba(83, 158, 92, 0), rgba(83, 158, 92, 0.46) 55%, rgba(83, 158, 92, 0.92))",
+          "rgb(47, 102, 56) -3px 0px 0px 0px inset",
+          "83,158,92"
+        ],
+        [
+          "linear-gradient(to right, rgba(83, 158, 92, 0), rgba(83, 158, 92, 0.46) 55%, rgba(83, 158, 92, 0.92))",
+          "rgb(47, 102, 56) -3px 0px 0px 0px inset",
+          "83,158,92"
+        ],
+        [
+          "linear-gradient(to right, rgba(83, 158, 92, 0), rgba(83, 158, 92, 0.46) 55%, rgba(83, 158, 92, 0.92))",
+          "rgb(47, 102, 56) -3px 0px 0px 0px inset",
+          "83,158,92"
+        ],
+        [
+          "linear-gradient(to right, rgba(83, 158, 92, 0), rgba(83, 158, 92, 0.46) 55%, rgba(83, 158, 92, 0.92))",
+          "rgb(47, 102, 56) -3px 0px 0px 0px inset",
+          "83,158,92"
+        ],
+        [
+          "linear-gradient(to right, rgba(83, 158, 92, 0), rgba(83, 158, 92, 0.46) 55%, rgba(83, 158, 92, 0.92))",
+          "rgb(47, 102, 56) -3px 0px 0px 0px inset",
+          "83,158,92"
+        ],
+        [
+          "linear-gradient(to right, rgba(83, 158, 92, 0), rgba(83, 158, 92, 0.46) 55%, rgba(83, 158, 92, 0.92))",
+          "rgb(47, 102, 56) -3px 0px 0px 0px inset",
+          "83,158,92"
+        ],
+        [
+          "linear-gradient(to right, rgba(83, 158, 92, 0), rgba(83, 158, 92, 0.46) 55%, rgba(83, 158, 92, 0.92))",
+          "rgb(47, 102, 56) -3px 0px 0px 0px inset",
+          "83,158,92"
+        ]
+      ],
+      "sameCell": true,
+      "sameButton": true,
+      "samePlayer": true,
+      "presentationMs": 86.59999990463257,
+      "request": {
+        "type": "match_player_check_in",
+        "match_id": "match-45",
+        "player_id": 35,
+        "checked_in": true,
+        "tournament_key": "preview"
+      }
+    },
+    {
+      "name": "game without a location or court",
+      "held": 1,
+      "frames": [
+        [
+          "CH",
+          "SN"
+        ],
+        [
+          "CH",
+          "SN"
+        ],
+        [
+          "CH",
+          "SN"
+        ],
+        [
+          "CH",
+          "SN"
+        ],
+        [
+          "CH",
+          "SN"
+        ],
+        [
+          "CH",
+          "SN"
+        ]
+      ],
+      "wrongAdditions": [],
+      "gradientBefore": [
+        "linear-gradient(to right, rgba(205, 88, 79, 0), rgba(205, 88, 79, 0.46) 55%, rgba(205, 88, 79, 0.92))",
+        "rgb(142, 53, 46) -3px 0px 0px 0px inset",
+        "205,88,79"
+      ],
+      "gradientFrames": [
+        [
+          "linear-gradient(to right, rgba(205, 88, 79, 0), rgba(205, 88, 79, 0.46) 55%, rgba(205, 88, 79, 0.92))",
+          "rgb(142, 53, 46) -3px 0px 0px 0px inset",
+          "205,88,79"
+        ],
+        [
+          "linear-gradient(to right, rgba(205, 88, 79, 0), rgba(205, 88, 79, 0.46) 55%, rgba(205, 88, 79, 0.92))",
+          "rgb(142, 53, 46) -3px 0px 0px 0px inset",
+          "205,88,79"
+        ],
+        [
+          "linear-gradient(to right, rgba(205, 88, 79, 0), rgba(205, 88, 79, 0.46) 55%, rgba(205, 88, 79, 0.92))",
+          "rgb(142, 53, 46) -3px 0px 0px 0px inset",
+          "205,88,79"
+        ],
+        [
+          "linear-gradient(to right, rgba(205, 88, 79, 0), rgba(205, 88, 79, 0.46) 55%, rgba(205, 88, 79, 0.92))",
+          "rgb(142, 53, 46) -3px 0px 0px 0px inset",
+          "205,88,79"
+        ],
+        [
+          "linear-gradient(to right, rgba(205, 88, 79, 0), rgba(205, 88, 79, 0.46) 55%, rgba(205, 88, 79, 0.92))",
+          "rgb(142, 53, 46) -3px 0px 0px 0px inset",
+          "205,88,79"
+        ],
+        [
+          "linear-gradient(to right, rgba(205, 88, 79, 0), rgba(205, 88, 79, 0.46) 55%, rgba(205, 88, 79, 0.92))",
+          "rgb(142, 53, 46) -3px 0px 0px 0px inset",
+          "205,88,79"
+        ],
+        [
+          "linear-gradient(to right, rgba(205, 88, 79, 0), rgba(205, 88, 79, 0.46) 55%, rgba(205, 88, 79, 0.92))",
+          "rgb(142, 53, 46) -3px 0px 0px 0px inset",
+          "205,88,79"
+        ]
+      ],
+      "sameCell": true,
+      "sameButton": true,
+      "samePlayer": true,
+      "presentationMs": 90.89999997615814,
+      "request": {
+        "type": "match_player_check_in",
+        "match_id": "match-45",
+        "player_id": 35,
+        "checked_in": false,
+        "tournament_key": "preview"
+      }
+    }
+  ],
+  "structural": {
+    "held": 1,
+    "replaced": false,
+    "stable": true
+  },
+  "exceptions": 0
+}

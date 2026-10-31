@@ -29,6 +29,12 @@ function handle_match_edit(app, msg) {
 	});
 }
 
+function reopen(app, id = 'match-44', tournament_key = 'default') {
+ return new Promise((resolve, reject) => admin.handle_match_reopen(app,
+  {respond: (_msg, err, response) => err ? reject(err) : resolve(response.match)},
+  {tournament_key, match_id: id}));
+}
+
 function clone(value) {
 	return JSON.parse(JSON.stringify(value));
 }
@@ -83,15 +89,52 @@ function reactivation_message(retired_match) {
 	edited.setup.now_on_court = true;
 	edited.score_status = 'normal';
 	edited.forward_loser = false;
+	delete edited.setup.preparation_call_deferred;
 	return { type: 'match_edit', id: retired_match._id, tournament_key: 'default',
 		match: edited, old_court: 'court-1', btp_update: false };
 }
 
 describe('admin match reactivation', function() {
+	it('rejects reopening through the ordinary edit endpoint', async function() {
+		const {db, app, retired_match} = await fixture();
+		await assert.rejects(handle_match_edit(app, reactivation_message(retired_match)), /Abschluss zurücknehmen/);
+		assert.deepStrictEqual(await db.matches.findOne_async({_id: 'match-44'}), retired_match);
+	});
+	it('reopens explicitly into deferred status, preserving history and assignments while leaving an occupied court alone', async function() {
+		const {db, app, retired_match} = await fixture();
+		await db.courts.update_async({_id: 'court-1'}, {$set: {match_id: 'next-game'}}, {});
+		const reopened = await reopen(app);
+		assert.strictEqual(reopened.setup.state, 'scheduled');
+		assert.strictEqual(reopened.setup.preparation_call_deferred, true);
+		assert.strictEqual(reopened.setup.now_on_court, false);
+		assert.strictEqual(reopened.setup.court_id, retired_match.setup.court_id);
+		for (const key of ['team1_won', 'btp_winner', 'end_ts', 'tabletoperator_finish_ts', 'score_status_network_score']) assert.strictEqual(reopened[key], undefined);
+		assert.deepStrictEqual(reopened.presses, retired_match.presses);
+		assert.deepStrictEqual(reopened.network_score, retired_match.network_score);
+		assert.strictEqual((await db.courts.findOne_async({_id: 'court-1'})).match_id, 'next-game');
+	});
+	it('serializes duplicate reopen requests and rejects the second without changing the first result', async function() {
+		const {db, app} = await fixture();
+		const attempts = await Promise.allSettled([reopen(app), reopen(app)]);
+		assert.strictEqual(attempts.filter(result => result.status === 'fulfilled').length, 1);
+		assert.strictEqual(attempts.filter(result => result.status === 'rejected').length, 1);
+		assert.deepStrictEqual(await db.matches.findOne_async({_id: 'match-44'}), attempts.find(result => result.status === 'fulfilled').value);
+	});
+	it('rejects a different tournament and missing match without touching the original', async function() {
+		const {db, app, retired_match} = await fixture();
+		await assert.rejects(reopen(app, 'match-44', 'other'), /nicht gefunden/);
+		await assert.rejects(reopen(app, 'missing'), /nicht gefunden/);
+		assert.deepStrictEqual(await db.matches.findOne_async({_id: 'match-44'}), retired_match);
+	});
+	it('retains scores stored only on a special result', async function() {
+		const {db, app, retired_match} = await fixture();
+		await db.matches.update_async({_id: 'match-44'}, {$unset: {network_score: true}}, {});
+		assert.deepStrictEqual((await reopen(app)).network_score, retired_match.score_status_network_score);
+	});
 	it('puts an accidentally retired match back on the same court for tablet scoring', async function() {
-		const { db, app, retired_match } = await fixture();
+		const { db, app } = await fixture();
 		const canonical = db.model.tournament('default').matches.get('match-44');
-		const edited_match = clone(retired_match);
+		const edited_match = clone(await reopen(app));
 		edited_match.setup.now_on_court = true;
 		edited_match.score_status = 'normal';
 		edited_match.forward_loser = false;
@@ -142,27 +185,29 @@ describe('admin match reactivation', function() {
 		assert.strictEqual(canonical.data.team1_won, undefined);
 	});
 
-	it('keeps the finished result intact if the court is occupied', async function() {
-		const { db, app, retired_match } = await fixture();
+	it('keeps the reopened game and point history intact if the court is occupied', async function() {
+		const { db, app } = await fixture();
 		await insert(db, 'matches', { _id: 'other', tournament_key: 'default', setup: {
 			state: 'oncourt', now_on_court: true, court_id: 'court-1',
 		} });
 		await db.courts.update_async({ _id: 'court-1' }, { $set: { match_id: 'other' } }, {});
-		await assert.rejects(handle_match_edit(app, reactivation_message(retired_match)), /already occupied by match other/);
-		assert.deepStrictEqual(await db.matches.findOne_async({ _id: 'match-44' }), retired_match);
+		const reopened = await reopen(app);
+		await assert.rejects(handle_match_edit(app, reactivation_message(reopened)), /already occupied by match other/);
+		assert.deepStrictEqual(await db.matches.findOne_async({ _id: 'match-44' }), reopened);
 		assert.strictEqual((await db.courts.findOne_async({ _id: 'court-1' })).match_id, 'other');
 		// The rejected attempt must release its call lock so a retry can succeed.
 		await db.matches.remove_async({ _id: 'other' }, {});
-		await handle_match_edit(app, reactivation_message(retired_match));
+		await handle_match_edit(app, reactivation_message(reopened));
 		assert.strictEqual((await db.matches.findOne_async({ _id: 'match-44' })).setup.state, 'oncourt');
 	});
 
-	it('keeps the finished result intact if a team is missing', async function() {
-		const { db, app, retired_match } = await fixture();
-		const message = reactivation_message(retired_match);
+	it('keeps the reopened game and point history intact if a team is missing', async function() {
+		const { db, app } = await fixture();
+		const reopened = await reopen(app);
+		const message = reactivation_message(reopened);
 		message.match.setup.teams[1].players = [];
 		await assert.rejects(handle_match_edit(app, message), err => String(err).includes('one or more Teams are not set'));
-		assert.deepStrictEqual(await db.matches.findOne_async({ _id: 'match-44' }), retired_match);
+		assert.deepStrictEqual(await db.matches.findOne_async({ _id: 'match-44' }), reopened);
 	});
 
 	it('requires explicit admin reactivation before calling a finished match', async function() {
@@ -180,7 +225,7 @@ describe('admin match reactivation', function() {
 			network_team1_left: false, network_team1_serving: true, network_teams_player1_even: [true, false],
 		} }, {});
 		const finished = await db.matches.findOne_async({ _id: 'match-44' });
-		await handle_match_edit(app, reactivation_message(finished));
+		await handle_match_edit(app, reactivation_message(await reopen(app)));
 		const changed = await db.matches.findOne_async({ _id: 'match-44' });
 		assert.strictEqual(changed.setup.state, 'oncourt');
 		assert.strictEqual(changed.team1_won, undefined);

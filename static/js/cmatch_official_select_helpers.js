@@ -18,7 +18,8 @@ var cmatch_official_select_helpers = (function() {
 				entries.push({
 					type: 'option',
 					value: official.name,
-					label: secondary_mode ? with_role_label(official, role) : official.name
+					label: secondary_mode ? with_role_label(official, role) : official.name,
+					role,
 				});
 			}
 		};
@@ -151,8 +152,8 @@ var cmatch_official_select_helpers = (function() {
 				return natcmp_fn(a.name || '', b.name || '');
 			});
 		const officials = [
-			...sort_wait_list(primary_wait_field).map((u) => ({ official: u, label: u.name })),
-			...sort_wait_list(secondary_wait_field).map((u) => ({ official: u, label: with_role_label(u, secondary_wait_field === 'umpire_wait' ? 'umpire' : 'service_judge') }))
+			...sort_wait_list(primary_wait_field).map((u) => ({ official: u, label: u.name, role: primary_role })),
+			...sort_wait_list(secondary_wait_field).map((u) => ({ official: u, label: with_role_label(u, secondary_role), role: secondary_role }))
 		];
 		const primary_count = sort_wait_list(primary_wait_field).length;
 		const secondary_label = secondary_wait_field === 'umpire_wait'
@@ -165,7 +166,8 @@ var cmatch_official_select_helpers = (function() {
 			entries.push({
 				type: 'option',
 				value: entry.official.name,
-				label: entry.label
+				label: entry.label,
+				role: entry.role,
 			});
 		}
 		return entries;

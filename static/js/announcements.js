@@ -85,6 +85,15 @@ let emergencyInterval = null;
 let emergencyAudio = null;
 const ANNOUNCEMENT_DEDUP_TTL_MS = 2500;
 const ANNOUNCEMENT_TAB_ID = `${Date.now()}_${Math.random().toString(36).slice(2)}`;
+const ANNOUNCEMENT_DEVICE_ID = (() => {
+    const key = 'bts-audio-device-id-v1';
+    try {
+        const saved = window.localStorage.getItem(key);
+        if (saved) return saved;
+        const id = window.crypto?.randomUUID?.() || 'audio_' + ANNOUNCEMENT_TAB_ID;
+        window.localStorage.setItem(key, id);return id;
+    } catch (_) { return 'audio_' + ANNOUNCEMENT_TAB_ID; }
+})();
 const ANNOUNCEMENT_LEADER_KEY = 'bts_announcement_leader';
 const ANNOUNCEMENT_LEADER_LEASE_MS = 500;
 const ANNOUNCEMENT_LEADER_HEARTBEAT_MS = 200;
@@ -653,6 +662,11 @@ function processAnnouncementPlaybackQueue() {
     const finish = (result) => {
         if (generation !== announcementPlaybackGeneration) return;
         if (result.status === 'ok') {
+            if (result.started && ['server', 'browser'].includes(result.provider) &&
+                createAnnouncementTexts.parseClaim(nextBatch.claimKey)) {
+                send({ type: 'match_protocol_playback', tournament_key: nextBatch.tournamentKey,
+                    claim_key: nextBatch.claimKey, provider: result.provider, device_id: ANNOUNCEMENT_DEVICE_ID }, () => {});
+            }
             setAnnouncementSpeechCheckState('active', btsSpeechService.describeResult(result));
         } else if (result.status === 'suspicious') {
             setAnnouncementSpeechCheckState('suspicious', ci18n('announcements:speechcheck:suspicious'));
@@ -684,6 +698,7 @@ function announce(callArray, local, claimKey, options) {
     const enqueue = (enqueueOptions) => {
         const resolvedOptions = enqueueOptions || {};
         announcementPlaybackQueue.push({
+            tournamentKey: curt.key,
             callArray,
             localParts: resolvedOptions.localParts,
             localPauses: resolvedOptions.localPauses,

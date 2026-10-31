@@ -1,0 +1,132 @@
+'use strict';
+/* eslint-disable no-console -- Report isolated browser verification. */
+const fs=require('fs'),path=require('path');
+
+module.exports=async function({c,check,click,open,metrics,key,delay,previews}) {
+ const passed=[],verify=async(name,expression)=>{await check(name,expression);passed.push(name);};
+ const frameFits='(()=>{const box=document.querySelector(\'.ls-match-dialog\').getBoundingClientRect();return box.width<=630.1&&box.left>=15.9&&box.right<=innerWidth-15.9&&box.top>=15.9&&box.bottom<=innerHeight-15.9&&Math.abs(box.left+box.width/2-innerWidth/2)<.6&&Math.abs(box.top+box.height/2-innerHeight/2)<.6})()';
+ const contentFits='(()=>{const dialog=document.querySelector(\'.ls-match-dialog\');return dialog.scrollWidth<=dialog.clientWidth&&[...dialog.querySelectorAll(\'.ls-dialog-context,.ls-dialog-meta-row,.ls-dialog-content,.ls-protocol-panel,.ls-protocol-list,.ls-protocol-entry,.edit_match_container,.match_edit_card,.match_edit_teams_grid,.match_edit_player_line\')].filter(node=>node.getClientRects().length).every(node=>node.scrollWidth<=node.clientWidth+1)})()';
+ const capture=async(name,viewport=false)=>{
+  const clip=viewport?undefined:await c.evaluate('(()=>{const r=document.querySelector(\'.ls-match-dialog\').getBoundingClientRect();return{x:r.left+scrollX-2,y:r.top+scrollY-2,width:r.width+4,height:r.height+4,scale:1}})()');
+  const shot=await c.call('Page.captureScreenshot',{format:'png',captureBeyondViewport:false,...(clip?{clip}:{})});fs.writeFileSync(path.join(previews,name+'.png'),Buffer.from(shot.data,'base64'));
+ };
+ await require('./tablet-picker-check')({c,verify,click,metrics,key,capture,open});
+ await require('./delete-confirmation-check')({c,verify,click,metrics,key,delay,capture,open});
+ await require('./dialog-action-check')({c,verify,click,metrics,key,delay,capture,open});
+ await require('./choice-picker-check')({c,verify,click,metrics,key,delay,capture,open});
+ await require('./match-place-check')({c,verify,click,metrics,capture,open});
+ await require('./finished-match-check')({c,verify,click,metrics,key,capture,open});
+ await open(1920,1080);
+ await c.evaluate('window.confirm=()=>true');
+ await c.evaluate('curt.btp_enabled=true;curt.matches.find(match=>match._id===\'match-45\').setup.scheduled_date=\'2026-10-30\';window.__dialogWrites=__writes.length;window.scrollTo(0,250);window.__dialogRows=[...document.querySelectorAll(\'.ls-match\')];');
+ await click('tr[data-match_id="match-45"] .ls-match-open');
+ await verify('The real match editor opens as a centered window capped at 630 pixels',frameFits);
+ await verify('The window uses rounded borders and a shadow over the translucent blurred board','(()=>{const dialog=getComputedStyle(document.querySelector(\'.ls-match-dialog\')),overlay=getComputedStyle(document.querySelector(\'.match_edit_dialog\'));return dialog.borderTopLeftRadius===\'12px\'&&dialog.boxShadow!==\'none\'&&overlay.backdropFilter===\'blur(2px)\'&&overlay.backgroundColor===\'rgba(21, 41, 31, 0.4)\'&&getComputedStyle(document.body).overflowY===\'hidden\'})()');
+ await verify('Desktop fields and player rows fit the smaller window without horizontal scrolling',contentFits);
+ await verify('The fixed head shows date, time, discipline, round and both complete pairings as text','(()=>{const context=document.querySelector(\'.ls-dialog-context\'),match=curt.matches.find(match=>match._id===\'match-45\'),meta=context.querySelector(\'.ls-dialog-meta\').textContent;return [\'30.10.2026\',\'11:00\',\'MX U15\',\'9/16\'].every(value=>meta.includes(value))&&match.setup.teams.every(team=>team.players.every(person=>context.querySelector(\'.ls-dialog-pairing\').textContent.includes(person.name)))&&!context.querySelector(\'input\')&&context.querySelector(\'.ls-dialog-status\').textContent.includes(\'In Vorbereitung\')&&document.querySelector(\'.match_edit_overview_card\').hidden&&document.querySelector(\'.match_edit_teams_grid\').hidden})()');
+ await verify('All four tabs use icons with an underline on the active tab','[...document.querySelectorAll(\'.ls-dialog-tabs button\')].every(button=>button.querySelector(\'svg\')&&getComputedStyle(button).borderTopWidth===\'0px\')&&getComputedStyle(document.querySelector(\'#ls-match-tab-0\')).borderBottomColor===\'rgb(23, 90, 80)\'');
+ await verify('Game history is the first selected tab followed by editing, scoresheet and raw data','JSON.stringify([...document.querySelectorAll(\'.ls-dialog-tabs button\')].map(tab=>tab.textContent))===JSON.stringify([\'Spielprotokoll\',\'Bearbeiten\',\'Schiedsrichterzettel\',\'Rohdaten\'])&&document.querySelector(\'#ls-match-tab-0\').getAttribute(\'aria-selected\')===\'true\'&&!document.querySelector(\'.ls-protocol-panel\').hidden');
+ await verify('The organisational history shows preparation from its actual timestamp without inventing attendance','document.querySelectorAll(\'.ls-protocol-entry\').length===1&&document.querySelector(\'.ls-protocol-list\').textContent.includes(\'Spiel in Vorbereitung aufgerufen\')&&!document.querySelector(\'.ls-protocol-list\').textContent.includes(\'vollständig anwesend\')&&__protocolRequests===1');
+ await click('#ls-match-tab-1');
+ await verify('Prepared games leave the game summary free of a score','document.querySelector(\'.ls-dialog-score\').hidden');
+ await c.evaluate('window.__backgroundScroll=scrollY;window.__fixedContext=document.querySelector(\'.ls-dialog-context\')');
+ await c.call('Input.dispatchMouseEvent',{type:'mouseWheel',x:5,y:5,deltaX:0,deltaY:500});await delay(100);
+ await verify('Mouse wheel over the backdrop does not move the tournament board','scrollY===__backgroundScroll');
+
+ await c.evaluate('document.querySelector(\'.match_edit_dialog form\').elements.court_id.value=\'CH_13\';window.__dialogForm=document.querySelector(\'.match_edit_dialog form\');window.__dialogDraft=document.querySelector(\'.ls-match-dialog\');');
+ await capture('spiel-dialog-fenster',true);await capture('spiel-dialog-bearbeiten');
+ await require('./tablet-assignment-check')({c,verify,metrics,capture});
+ await require('./official-picker-check')({c,verify,click,metrics,key,delay,capture});
+ await click('#ls-match-tab-3');
+ await verify('Raw data uses the same window and its own scrolling content','!document.querySelector(\'.ls-raw-panel\').hidden&&document.querySelector(\'.ls-raw-panel pre\').textContent.includes(\'match-45\')&&document.querySelector(\'.ls-match-dialog\')===__dialogDraft&&document.querySelector(\'.ls-dialog-context\')===__fixedContext&&__fixedContext.getBoundingClientRect().height>0&&'+frameFits);
+ await click('#ls-match-tab-1');
+ await verify('Tab switching preserves the original form and unsaved field choice','document.querySelector(\'.match_edit_dialog form\')===__dialogForm&&__dialogForm.elements.court_id.value===\'CH_13\'');
+ await click('#ls-match-tab-2');
+ for(let i=0;i<100&&!await c.evaluate('!!document.querySelector(\'.ls-sheet-panel svg\')');i++)await delay(100);
+ await verify('The scoresheet and its PDF and print controls remain in the same window','!!document.querySelector(\'.ls-sheet-panel .single_scoresheet\')&&document.querySelectorAll(\'.match_scoresheet_buttons button\').length===2&&'+frameFits);
+ await require('./match-dialog-window-check')({c,verify,click,metrics,key,capture});
+ await c.call('Emulation.setEmulatedMedia',{media:'print'});
+ await verify('Printing removes the window frame and scroll limits from the scoresheet','(()=>{const dialog=getComputedStyle(document.querySelector(\'.ls-match-dialog\')),content=getComputedStyle(document.querySelector(\'.ls-dialog-content\'));return dialog.position===\'static\'&&dialog.display===\'block\'&&dialog.maxHeight===\'none\'&&dialog.overflow===\'visible\'&&dialog.boxShadow===\'none\'&&content.overflow===\'visible\'&&getComputedStyle(document.querySelector(\'.ls-dialog-tabs\')).display===\'none\'&&getComputedStyle(document.querySelector(\'.ls-dialog-context\')).display===\'none\'})()');
+ await c.call('Emulation.setEmulatedMedia',{media:''});await click('#ls-match-tab-1');
+ for(const [width,height] of [[1536,864],[1000,720],[390,844],[320,568],[844,390]]) {
+  await metrics(width,height);
+  await verify('Window and controls fit without horizontal overflow at '+width+' by '+height,frameFits+'&&'+contentFits);
+  await c.evaluate('document.querySelector(\'.edit_match_container\').scrollTop=0;window.__dialogFixed=[\'.ls-dialog-heading\',\'.ls-dialog-context\',\'.ls-dialog-tabs\',\'.match_edit_actions\'].map(selector=>document.querySelector(selector).getBoundingClientRect().top);document.querySelector(\'.edit_match_container\').scrollTop=100000;');
+  await verify('Only form content scrolls while title, match summary, tabs and actions stay in place at '+width+' by '+height,'[\'.ls-dialog-heading\',\'.ls-dialog-context\',\'.ls-dialog-tabs\',\'.match_edit_actions\'].every((selector,index)=>Math.abs(document.querySelector(selector).getBoundingClientRect().top-__dialogFixed[index])<.2)&&[...document.querySelectorAll(\'.match_edit_actions button\')].every(button=>{const rect=button.getBoundingClientRect();return rect.top>=0&&rect.bottom<=innerHeight})');
+  if(width===390) {await c.evaluate('document.querySelector(\'.edit_match_container\').scrollTop=0');await capture('spiel-dialog-fenster-mobil',true);}
+ }
+ await metrics(390,844);await click('#ls-match-tab-3');
+ await verify('Raw data also fits a mobile window without horizontal overflow',frameFits+'&&'+contentFits);
+ await c.evaluate('document.querySelector(\'#ls-match-tab-3\').focus()');await key('ArrowLeft','ArrowLeft',37);
+ await verify('Keyboard tab navigation still opens the scoresheet with focus retained','document.activeElement.id===\'ls-match-tab-2\'&&document.querySelector(\'#ls-match-tab-2\').getAttribute(\'aria-selected\')===\'true\'');
+ await click('#ls-match-tab-1');
+ await verify('Opening and resizing never rebuilds match rows or changes the draft','__dialogRows.every(row=>row.isConnected)&&document.querySelector(\'.match_edit_dialog form\')===__dialogForm&&__dialogForm.elements.court_id.value===\'CH_13\'&&__writes.length===__dialogWrites');
+ await c.evaluate('document.querySelector(\'.match_edit_dialog form\').querySelector(\'[data-field="court_id"] .ls-choice-trigger\').focus();window.__beforeEscapeScroll=scrollY');await key('Escape','Escape',27);
+ await verify('Escape asks before discarding the changed game through the yellow warning',"!!document.querySelector('.bts-confirm-dialog.is-warning')");
+ await click('.bts-confirm-accept');
+ await verify('Escape works inside a form field, unlocks scrolling and restores focus to its game','!document.querySelector(\'.match_edit_dialog\')&&getComputedStyle(document.body).overflowY!==\'hidden\'&&document.activeElement.matches(\'tr[data-match_id="match-45"] .ls-match-open\')&&scrollY===__beforeEscapeScroll');
+ await metrics(1920,1080);await click('tr[data-match_id="match-51"] .ls-match-open');
+ await verify('Incomplete pairings retain disabled scoresheet and enabled raw-data tabs','document.querySelector(\'#ls-match-tab-2\').disabled&&!document.querySelector(\'#ls-match-tab-3\').disabled&&'+frameFits);
+ await click('.ls-dialog-close');
+ await c.evaluate('window.scrollTo(0,80);window.__beforeDialogScroll=scrollY');
+ await click('tr[data-match_id="match-45"] .ls-match-open');await click('.ls-dialog-close');
+ await verify('Opening and closing at the same viewport retains the board scroll position','scrollY===__beforeDialogScroll');
+ await click('tr[data-match_id="match-45"] .ls-match-open');await click('#ls-match-tab-1');
+ await c.evaluate('document.querySelector(\'.match_edit_dialog form\').elements.court_id.value=\'CH_13\'');
+ await click('#ls-match-tab-0');
+ await click('.match_save_button');
+ await verify('Saving from the history tab always requests BTP updates and submits field and official identities','!document.querySelector(\'.match_edit_dialog\')&&__writes.some(message=>message.type===\'match_edit\'&&message.id===\'match-45\'&&message.btp_update===true&&message.match.setup.court_id===\'CH_13\'&&message.match.setup.umpire._id===\'official-1\'&&message.match.setup.service_judge._id===\'official-2\')&&!document.querySelector(\'.ls-official-options\')&&getComputedStyle(document.body).overflowY!==\'hidden\'');
+ await c.evaluate('curt.btp_enabled=false');
+ await click('tr[data-match_id="match-45"] .ls-match-open');
+ await c.evaluate('const field=document.querySelector(\'.match_edit_dialog form\').elements.court_id;field.value=\'CH_13\';field.dispatchEvent(new Event(\'change\',{bubbles:true}))');
+ await click('#ls-match-tab-3');await click('.match_save_button');
+ await verify('Saving with no BTP integration keeps BTP updates disabled','!document.querySelector(\'.match_edit_dialog\')&&__writes.at(-1).type===\'match_edit\'&&__writes.at(-1).btp_update===false');
+ await c.evaluate('curt.btp_enabled=true');
+
+ await c.evaluate('(()=>{window.__teamMatch=structuredClone(curt.matches.find(match=>match._id===\'match-44\'));const match=curt.matches.find(match=>match._id===\'match-44\');curt.is_team=true;match.setup.is_doubles=false;match.setup.teams[0].name=\'Team Nord\';match.setup.teams[1].name=\'Team Süd\';match.setup.teams[0].players=[{firstname:\'Muhammad Sytsh\',lastname:\'Abdulquddus\',name:\'Muhammad Sytsh Abdulquddus\',nationality:\'INA\'}];match.setup.teams[1].players=[{firstname:\'Emil\',lastname:\'Dörschner\',name:\'Emil Dörschner\',nationality:\'GER\'}]})()');
+ await click('tr[data-match_id="match-44"] .ls-match-open');
+ await click('#ls-match-tab-1');
+ await verify('Singles show just their players and country codes while editable team names remain in the form','document.querySelector(\'.ls-dialog-pairing\').textContent.includes(\'Muhammad Sytsh Abdulquddus\')&&document.querySelector(\'.ls-dialog-pairing\').textContent.includes(\'Emil Dörschner\')&&document.querySelector(\'.ls-dialog-pairing\').textContent.includes(\'INA\')&&document.querySelector(\'.ls-dialog-pairing\').textContent.includes(\'GER\')&&[...document.querySelectorAll(\'.match_edit_team_name input\')].every(input=>!input.disabled&&input.getBoundingClientRect().height>0)&&[...document.querySelectorAll(\'.match_edit_player_line\')].every(line=>line.hidden)&&document.querySelector(\'.ls-dialog-status\').textContent===\'Auf dem Feld\'');
+ await verify('A running game shows its score beside the game metadata below the title','!document.querySelector(\'.ls-dialog-score\').hidden&&document.querySelector(\'.ls-dialog-score\').getAttribute(\'aria-label\')===\'5:5\'&&document.querySelector(\'.ls-dialog-score\').parentElement===document.querySelector(\'.ls-dialog-meta-row\')');
+ await c.evaluate('(()=>{window.__dialogPoint=(id,sets,extra={})=>crouting.on_change({ctype:\'score\',tournament_key:\'preview\',val:{match_id:id,network_score:sets,presses:[],...extra}});window.__scoreDialog=document.querySelector(\'.ls-match-dialog\');window.__scoreHead=document.querySelector(\'.ls-dialog-context\');window.__scoreForm=document.querySelector(\'.match_edit_dialog form\');window.__scoreElement=document.querySelector(\'.ls-dialog-score\');window.__scorePoint=__scoreElement.querySelector(\'.score-home\').firstChild;__scoreForm.elements.court_id.value=\'CH_13\';__scoreForm.querySelector(\'[data-field="court_id"] .ls-choice-trigger\').focus();window.__scoreMutations=[];window.__scoreObserver=new MutationObserver(records=>__scoreMutations.push(...records));__scoreObserver.observe(__scoreDialog,{subtree:true,childList:true,characterData:true,attributes:true})})()');
+ await c.evaluate('(async()=>{const start=performance.now();__dialogPoint(\'match-44\',[[6,5]]);await new Promise(requestAnimationFrame);await new Promise(requestAnimationFrame);window.__dialogPointMs=performance.now()-start})()');
+ await verify('A native point changes only its cached header digit and accessible score without rebuilding the dialog','__scoreElement.getAttribute(\'aria-label\')===\'6:5\'&&__scorePoint.nodeValue===\'6\'&&__scoreElement.querySelector(\'.score-home\').firstChild===__scorePoint&&__scoreMutations.filter(record=>record.type===\'characterData\').length===1&&__scoreMutations.filter(record=>record.type===\'childList\').length===0&&document.querySelector(\'.ls-match-dialog\')===__scoreDialog&&document.querySelector(\'.ls-dialog-context\')===__scoreHead&&document.querySelector(\'.match_edit_dialog form\')===__scoreForm&&__scoreForm.elements.court_id.value===\'CH_13\'&&document.activeElement===__scoreForm.querySelector(\'[data-field="court_id"] .ls-choice-trigger\')&&__dialogPointMs<500');
+ await c.evaluate('__scoreMutations=[];__dialogPoint(\'match-43\',[[10,10]]);__dialogPoint(\'match-44\',[[6,5]])');
+ await verify('Unrelated and repeated point updates leave the header and form untouched','__scoreMutations.length===0');
+ await click('#ls-match-tab-3');
+ await c.evaluate('__dialogPoint(\'match-44\',[[21,19],[7,8]])');
+ await verify('A new set is appended while the original score and selected tab are retained','__scoreElement.querySelectorAll(\'.ls-set-score\').length===2&&__scoreElement.querySelector(\'.score-home\').firstChild===__scorePoint&&__scoreElement.getAttribute(\'aria-label\')===\'21:19 7:8\'&&document.querySelector(\'#ls-match-tab-3\').getAttribute(\'aria-selected\')===\'true\'&&__scoreForm.elements.court_id.value===\'CH_13\'');
+ await c.evaluate('__dialogPoint(\'match-44\',[[21,18]])');
+ await verify('A corrected set removes only the extra result and retains the score element','document.querySelector(\'.ls-dialog-score\')===__scoreElement&&__scoreElement.querySelectorAll(\'.ls-set-score\').length===1&&__scoreElement.querySelector(\'.score-home\').firstChild===__scorePoint&&__scoreElement.getAttribute(\'aria-label\')===\'21:18\'');
+ await c.evaluate('__dialogPoint(\'match-44\',[])');
+ await verify('An on-court game with no scored points shows zero to zero','!__scoreElement.hidden&&__scoreElement.getAttribute(\'aria-label\')===\'0:0\'');
+ await c.evaluate('__dialogPoint(\'match-44\',[[21,19],[17,21],[8,6]]);__scoreObserver.disconnect()');
+ await click('#ls-match-tab-1');
+ for(const width of [1920,390,320]) {
+  await metrics(width,width===1920?1080:844);
+  await verify('All set scores fit beside the game metadata below the title at '+width+' pixels','(()=>{const meta=document.querySelector(\'.ls-dialog-meta\').getBoundingClientRect(),score=__scoreElement.getBoundingClientRect(),heading=document.querySelector(\'.ls-dialog-heading\').getBoundingClientRect(),row=document.querySelector(\'.ls-dialog-meta-row\'),pairing=document.querySelector(\'.ls-dialog-pairing\').getBoundingClientRect();return score.left>=meta.right+11.9&&Math.abs(score.right-row.getBoundingClientRect().right)<.2&&score.top>=heading.bottom&&score.bottom<=pairing.top&&meta.width>0&&row.scrollWidth<=row.clientWidth&&[...__scoreElement.querySelectorAll(\'.ls-set-score\')].every(set=>{const r=set.getBoundingClientRect();return r.left>=score.left-.1&&r.right<=score.right+.1})})()&&'+frameFits+'&&'+contentFits);
+  if(width===1920)await capture('spiel-dialog-spielstand');
+ }
+ await c.evaluate('__dialogPoint(\'match-44\',[[21,19],[17,21],[21,18],[19,21],[8,6]])');
+ await verify('Long results wrap between sets without overflowing the narrow game summary','document.querySelector(\'.ls-dialog-meta-row\').scrollWidth<=document.querySelector(\'.ls-dialog-meta-row\').clientWidth&&__scoreElement.querySelectorAll(\'.ls-set-score\').length===5&&'+frameFits+'&&'+contentFits);
+ await metrics(1920,1080);
+ await require('./match-protocol-check')({c,verify,click,metrics,capture,contentFits,frameFits});
+ await click('.ls-dialog-close');
+ await c.evaluate('(()=>{curt.is_team=false;Object.assign(curt.matches.find(match=>match._id===\'match-44\'),__teamMatch);const match=structuredClone(curt.matches.find(match=>match._id===\'match-37\'));Object.assign(match,{team1_won:true,btp_winner:1,end_ts:Date.now()});Object.assign(match.setup,{state:\'finished\',now_on_court:false});crouting.on_change({ctype:\'match_edit\',tournament_key:\'preview\',val:{match__id:match._id,match}})})()');
+ await click('.finished_container tr[data-match_id="match-37"] .ls-match-open');
+ await verify('Finished games show their actual finished state in the fixed summary','document.querySelector(\'.ls-dialog-status\').textContent===\'Beendet\'&&document.querySelector(\'.ls-dialog-meta\').textContent.includes(\'Feld 2\')');
+ await verify('Finished games display their complete saved result in the header','document.querySelector(\'.ls-dialog-score\').getAttribute(\'aria-label\')===\'23:21 21:11\'&&!document.querySelector(\'.ls-dialog-score\').hidden');
+ await c.evaluate('__dialogPoint(\'match-37\',[[21,18],[21,16]],{team1_won:true})');
+ await verify('Live corrections also update the result of a finished game','document.querySelector(\'.ls-dialog-score\').getAttribute(\'aria-label\')===\'21:18 21:16\'');
+ await c.evaluate('__dialogPoint(\'match-37\',[],{team1_won:true,score_status:\'no_match\'})');
+ await verify('Special results use the same wording as the match table','document.querySelector(\'.ls-dialog-score\').textContent===\'kein Spiel\'');
+ await c.evaluate('__dialogPoint(\'match-37\',[],{team1_won:true,score_status:\'normal\',score_status_network_score:[]})');
+ await verify('A finished game without a recorded score shows a dash','document.querySelector(\'.ls-dialog-score\').textContent===\'—\'');
+ await c.evaluate('window.__closedDialogScore=document.querySelector(\'.ls-dialog-score\')');
+
+ await click('.ls-dialog-close');
+ await c.evaluate('__dialogPoint(\'match-37\',[[21,19],[21,15]],{team1_won:true})');
+ await verify('Closed dialogs are released and receive no further score changes','!__closedDialogScore.isConnected&&__closedDialogScore.textContent===\'—\'');
+ const exceptions=c.events.filter(event=>event.method==='Runtime.exceptionThrown');await verify('The window produces no browser exceptions',String(exceptions.length===0));
+ fs.writeFileSync(path.join(previews,'match-dialog-verification.json'),JSON.stringify({date:'2026-10-31',scope:'Isolated real frontend with synthetic tournament data; no live BTS or speech server.',checks:passed,exceptions:exceptions.length,localPointPresentationMs:await c.evaluate('__dialogPointMs')},null,2)+'\n');console.log(JSON.stringify({checks:passed.length,exceptions:exceptions.length}));
+};

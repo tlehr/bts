@@ -1,0 +1,71 @@
+'use strict';
+
+module.exports=async function({c,verify,click,metrics,capture,contentFits,frameFits}) {
+ await c.evaluate(`(()=>{
+  window.__protocolBase=Date.now()-80000;
+  window.__protocolPresses=[{type:'pick_side',team1_left:true,timestamp:__protocolBase-1000},{type:'love-all',timestamp:__protocolBase},{type:'score',side:'left',timestamp:__protocolBase+1000}];
+  window.__sendProtocolPoint=(score,presses=__protocolPresses)=>__dialogPoint('match-44',score,{presses:structuredClone(presses)});
+  window.__emitProtocol=(id,type,text,time,key='preview',match_id='match-44')=>{
+   const event={_id:id,type,text,timestamp:time,tournament_key:key,match_id};
+   if(key==='preview'&&match_id==='match-44')__protocolEvents.push(event);
+   crouting.on_change({ctype:'match_protocol_event',tournament_key:key,val:{match_id,event}});
+  };
+  __sendProtocolPoint([[1,0]]);
+  __emitProtocol('prep','preparation_called','Spiel in Vorbereitung aufgerufen',__protocolBase-50000);
+  __emitProtocol('present','players_present','Paarungen vollständig anwesend',__protocolBase-40000);
+  __emitProtocol('assigned','assignment','Feld und Tabletbedienung zugewiesen · Feld 1 · Theo Lang / Marie Frank',__protocolBase-10000);
+  __emitProtocol('audio-atlantis','audio_played','Spielaufruf mit Serveraudio abgespielt · atlantis (192.168.1.10)',__protocolBase-3000);
+  __emitProtocol('audio-borealis','audio_played','Spielaufruf mit Serveraudio abgespielt · borealis (192.168.1.11)',__protocolBase-2000);
+ })()`);
+ await click('#ls-match-tab-0');
+ await verify('The first tab shows chronological organisational milestones with clock icons and full times','(()=>{const rows=[...document.querySelectorAll(\'.ls-protocol-entry\')],text=rows.map(row=>row.textContent);return rows.length===7&&text[0].includes(\'Spiel in Vorbereitung aufgerufen\')&&text[1].includes(\'Paarungen vollständig anwesend\')&&text.at(-1).includes(\'Spiel begonnen\')&&rows.every(row=>row.querySelector(\'svg\')&&/^[0-9]{2}:[0-9]{2}:[0-9]{2}$/.test(row.querySelector(\'time\').textContent))&&!text.some(text=>text.includes(\'Punkt links\')||text.includes(\'Seitenwahl\'))})()');
+ await verify('Each audio device has its own labelled playback entry','[...document.querySelectorAll(\'.ls-protocol-entry\')].filter(row=>row.textContent.includes(\'Serveraudio\')).length===2&&document.querySelector(\'.ls-protocol-list\').textContent.includes(\'atlantis (192.168.1.10)\')&&document.querySelector(\'.ls-protocol-list\').textContent.includes(\'borealis (192.168.1.11)\')');
+ await c.evaluate('window.__protocolList=document.querySelector(\'.ls-protocol-list\');window.__protocolRows=[...__protocolList.children];window.__protocolForm=document.querySelector(\'.match_edit_dialog form\');window.__protocolMutations=[];window.__protocolObserver=new MutationObserver(records=>__protocolMutations.push(...records));__protocolObserver.observe(document.querySelector(\'.ls-protocol-panel\'),{subtree:true,childList:true,characterData:true,attributes:true});window.__protocolStart=performance.now();__protocolPresses.push({type:\'score\',side:\'left\',timestamp:__protocolBase+2000});__sendProtocolPoint([[2,0]]);');
+ await verify('A new point produces no protocol mutations and retains the form and unsaved court choice','__protocolMutations.length===0&&__protocolRows.every((row,index)=>row===__protocolList.children[index])&&document.querySelector(\'.match_edit_dialog form\')===__protocolForm&&__protocolForm.elements.court_id.value===\'CH_13\'&&performance.now()-__protocolStart<500');
+ await c.evaluate('__sendProtocolPoint([[2,0]]);__dialogPoint(\'match-43\',[[11,10]]);__emitProtocol(\'present\',\'players_present\',\'Paarungen vollständig anwesend\',__protocolBase-40000);__emitProtocol(\'foreign\',\'players_present\',\'Fremdes Turnier\',__protocolBase,\'other\');__emitProtocol(\'another\',\'players_present\',\'Anderes Spiel\',__protocolBase,\'preview\',\'match-43\')');
+ await verify('Repeated events and other games or tournaments leave the timeline untouched','__protocolMutations.length===0');
+ await c.evaluate('__protocolObserver.disconnect();__protocolPresses=__protocolPresses.slice(0,2);for(let point=0;point<19;point++)for(const side of [\'left\',\'right\'])__protocolPresses.push({type:\'score\',side,timestamp:__protocolBase+__protocolPresses.length*1000});for(let point=0;point<2;point++)__protocolPresses.push({type:\'score\',side:\'left\',timestamp:__protocolBase+__protocolPresses.length*1000});__protocolPresses.push({type:\'postgame-confirm\',timestamp:__protocolBase+__protocolPresses.length*1000});__sendProtocolPoint([[21,19],[0,0]])');
+ await verify('Only a completed set adds an entry while its individual rallies stay absent','__protocolList.children.length===8&&__protocolList.lastElementChild.textContent.includes(\'Satz 1 abgeschlossen · 21:19\')&&__protocolRows.every((row,index)=>row===__protocolList.children[index])');
+ await c.evaluate('__sendProtocolPoint([[21,19]],[...__protocolPresses,{type:\'undo\',timestamp:__protocolBase+50000}])');
+ await verify('Undoing a set confirmation removes that milestone while preserving all organisational events','__protocolList.children.length===7&&__protocolRows.every((row,index)=>row===__protocolList.children[index])');
+ await click('#ls-match-tab-1');
+ await c.evaluate('__emitProtocol(\'hidden\',\'preparation_deferred\',\'Vorbereitung wieder freigegeben\',__protocolBase+55000)');
+ await verify('Hidden history defers rendering while its live events are retained','__protocolList.children.length===7&&document.querySelector(\'#ls-match-tab-1\').getAttribute(\'aria-selected\')===\'true\'&&__protocolForm.elements.court_id.value===\'CH_13\'');
+ await click('#ls-match-tab-0');
+ await verify('Returning to the protocol displays the deferred event without rebuilding earlier entries','__protocolList.children.length===8&&__protocolRows.every((row,index)=>row===__protocolList.children[index])&&__protocolList.lastElementChild.textContent.includes(\'Vorbereitung wieder freigegeben\')');
+ await capture('spiel-dialog-spielprotokoll');
+ await c.evaluate('__emitProtocol(\'note\',\'assignment\',\'Tabletbedienung zugewiesen · <img src=x> Name\',__protocolBase+56000)');
+ await verify('Device and participant names are rendered as plain text','__protocolList.textContent.includes(\'<img src=x> Name\')&&!__protocolList.querySelector(\'img\')');
+ await c.evaluate('for(let index=0;index<100;index++)__emitProtocol(\'entry-\'+index,\'preparation_deferred\',index%2?\'Vorbereitung zurückgestellt\':\'Vorbereitung wieder freigegeben\',__protocolBase+57000+index*1000)');
+ for(const [width,height] of [[1920,1080],[390,844],[320,568]]) {
+  await metrics(width,height);
+  await c.evaluate('window.__protocolHeaderTop=document.querySelector(\'.ls-dialog-heading\').getBoundingClientRect().top;document.querySelector(\'.ls-protocol-panel\').scrollTop=100000');
+  await verify('Organisational history scrolls inside the fixed dialog at '+width+' pixels','(()=>{const panel=document.querySelector(\'.ls-protocol-panel\');return panel.scrollTop>0&&panel.scrollHeight>panel.clientHeight&&document.querySelector(\'.ls-dialog-heading\').getBoundingClientRect().top===__protocolHeaderTop})()&&'+frameFits+'&&'+contentFits);
+ }
+ await metrics(1920,1080);
+ await click('.ls-dialog-close');
+ await c.evaluate('window.__holdProtocolResponse=true');
+ await click('tr[data-match_id="match-44"] .ls-match-open');
+ await c.evaluate('__emitProtocol(\'during-load\',\'assignment\',\'Schiedsrichter zugewiesen · Neue Person\',__protocolBase+200000);__heldProtocolResponse();window.__holdProtocolResponse=false');
+ await verify('A live event arriving during loading survives an older history response','document.querySelector(\'.ls-protocol-list\').textContent.includes(\'Neue Person\')&&document.querySelectorAll(\'.ls-protocol-entry\').length===110');
+ await click('.ls-dialog-close');
+ await c.evaluate('window.__holdProtocolResponse=true');
+ await click('tr[data-match_id="match-44"] .ls-match-open');
+ await click('.ls-dialog-close');
+ await c.evaluate('__heldProtocolResponse();window.__holdProtocolResponse=false;window.__protocolEvents=[]');
+ await click('tr[data-match_id="match-51"] .ls-match-open');
+ await verify('An empty protocol is explicit and a late response cannot reopen a closed dialog','document.querySelector(\'.ls-protocol-empty\').textContent===\'Noch keine Ereignisse protokolliert.\'&&!document.querySelector(\'.ls-protocol-empty\').hidden&&document.querySelector(\'.ls-protocol-list\').hidden&&document.querySelector(\'.ls-dialog-heading\').textContent.includes(\'51\')');
+ await click('.ls-dialog-close');
+ await click('tr[data-match_id="match-44"] .ls-match-open');
+ await c.evaluate('curt.announcement_pause_time_ms=.001;window.__speechPlaybackGate=true;window.__playbackReceipts=()=>__writes.filter(message=>message.type===\'match_protocol_playback\');window.__receiptsBefore=__playbackReceipts().length;announce([\'Test-Spielaufruf\'],true,\'match_called_on_court:match-44:1001\')');
+ await verify('An audio call is not reported before playback has completed','__playbackReceipts().length===__receiptsBefore&&typeof __releaseSpeechPlayback===\'function\'');
+ await c.evaluate('window.__speechPlaybackGate=false;__releaseSpeechPlayback()');
+ await verify('Successful playback reports its actual provider and persistent device identity','__playbackReceipts().length===__receiptsBefore+1&&__playbackReceipts().at(-1).provider===\'server\'&&__playbackReceipts().at(-1).tournament_key===\'preview\'&&__playbackReceipts().at(-1).claim_key===\'match_called_on_court:match-44:1001\'&&__playbackReceipts().at(-1).device_id===localStorage.getItem(\'bts-audio-device-id-v1\')');
+ await c.evaluate('window.__speechPlaybackResult={status:\'ok\',provider:\'browser\',started:true};announce([\'Zweiter Test-Spielaufruf\'],true,\'match_called_on_court:match-44:1002\')');
+ await verify('A browser fallback keeps the same device identity and names its actual provider','__playbackReceipts().length===__receiptsBefore+2&&__playbackReceipts().at(-1).provider===\'browser\'&&__playbackReceipts().at(-1).device_id===__playbackReceipts().at(-2).device_id');
+ await c.evaluate('window.__speechPlaybackResult={status:\'error\',provider:\'server\',started:true};announce([\'Fehlgeschlagener Test\'],true,\'match_called_on_court:match-44:1003\')');
+ await c.evaluate('(async()=>{const until=performance.now()+2000;while(!__localAnnouncements.some(call=>call.parts.includes(\'Fehlgeschlagener Test\'))&&performance.now()<until)await new Promise(resolve=>setTimeout(resolve,20));})()');
+ await verify('An unsuccessful playback creates no success receipt','__localAnnouncements.some(call=>call.parts.includes(\'Fehlgeschlagener Test\'))&&__playbackReceipts().length===__receiptsBefore+2');
+ await c.evaluate('delete window.__speechPlaybackResult');
+ await require('./match-call-playback-check')({c,verify,capture});
+};

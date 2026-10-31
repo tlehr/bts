@@ -1,4 +1,4 @@
-/* global btsSpeechReadiness, cleitstand, btsAdminUpdates, btsTimerUpdates */
+/* global btsSpeechReadiness, cleitstand, btsAdminUpdates, btsTimerUpdates, btsDialogActions, btsMatchEditRules */
 'use strict';
 
 var cmatch = (function() {
@@ -26,6 +26,7 @@ const match_score_states = new WeakMap();
 const player_view_states = new WeakMap();
 const player_views = new WeakMap();
 const participant_views = new WeakMap();
+const row_content_views = new WeakMap();
 
 function forget_match_element(element) {
 	for (const { index, keys } of dom_bindings) {
@@ -828,6 +829,7 @@ function render_match_row(tr, match, court, style, show_player_status, show_add_
 	}
 
 	if (typeof cleitstand !== 'undefined') cleitstand.row(tr, match, style);
+	row_content_views.set(tr, {previous: JSON.parse(JSON.stringify(match.setup)), match_id: match._id});
 	return resizable_elements;
 }
 
@@ -1333,7 +1335,7 @@ function render_players_el(parentNode, setup, team_id, match, show_player_status
 		render_player_el(parentNode, team.players[0], match._id, setup.now_on_court, show_player_status, style, team.players.length > 1 ? true : false, match);
 	} else {
 		const dependency = _format_participant_dependency(match, team_id, curt.matches);
-		uiu.el(parentNode, 'span', {}, dependency);
+		uiu.el(parentNode, 'span', 'ls-participant-dependency', dependency);
 	}
 
 	if (team.players.length > 1) {
@@ -1365,6 +1367,7 @@ function update_participant_check_in(element, participant, view) {
 	element.classList.toggle('can_check_in', editable && !checked);
 	element.classList.toggle('can_check_out', editable && checked);
 	view.name.classList.toggle('person_status_target', editable);
+	if (typeof cleitstand !== 'undefined') cleitstand.participant?.(element);
 }
 
 function render_match_participant_el(parentNode, participant, match_id, role, icon_class, show_check_in_status = true) {
@@ -1458,7 +1461,8 @@ function render_player_el(parentNode, player, match_id, now_on_court, show_playe
 		const current_player = (current_match?.setup?.teams || []).flatMap(t => t.players || [])
 			.find(p => String(p.btp_id) === String(player.btp_id)) || player;
 		const current_status = get_player_status(current_player, current_match?.setup?.now_on_court, show_player_status, current_match);
-		if(curt.btp_settings.check_in_per_match && !is_player_check_in_locked(current_player, current_match)) {
+		const board_locked = typeof cleitstand !== 'undefined' && cleitstand.active(player_element) && !player_element.hasAttribute('data-check-in-action');
+		if(curt.btp_settings.check_in_per_match && !board_locked && !is_player_check_in_locked(current_player, current_match)) {
 			send({
 				type: 'match_player_check_in',
 				match_id,
@@ -1498,6 +1502,7 @@ function render_player_el(parentNode, player, match_id, now_on_court, show_playe
 	}
 	player_view_states.set(player_element, player_view_signature(player, now_on_court, show_player_status, match));
 	player_views.set(player_element, { now_on_court, show_player_status });
+	return player_element;
 }
 
 function is_player_waiting_as_tabletoperator(player) {
@@ -1733,6 +1738,7 @@ function refresh_match_settings(changed_fields) {
 		if (fields.has('language')) update_match_score(match);
 		if (!fields.has('check_in_per_match')) continue;
 		_for_each_match_bound_data_element(match, element => {
+			if (element.classList.contains('player') && typeof cleitstand !== 'undefined') cleitstand.player(element);
 			const view = participant_views.get(element);
 			if (!view) return;
 			const participant = view.role === 'tabletoperator'
@@ -1865,11 +1871,188 @@ function update_match_metadata(match, fields) {
 	});
 }
 
+function row_text(node, value) {
+	const text = String(value ?? '');
+	const child = [...node.childNodes].find(child => child.nodeType === 3);
+	if (child) {if (child.nodeValue !== text) child.nodeValue = text;}
+	else node.prepend(document.createTextNode(text));
+}
+
+function row_class(node, name, enabled) {
+	if (node.classList.contains(name) !== enabled) node.classList.toggle(name, enabled);
+}
+
+function row_children(parent, wanted) {
+	const keep = new Set(wanted);
+	for (const child of [...parent.childNodes]) if (!keep.has(child)) child.remove();
+	let next = parent.firstChild;
+	for (const child of wanted) {
+		if (child !== next) parent.insertBefore(child, next);
+		next = child.nextSibling;
+	}
+}
+
+function row_button(parent, selector, wanted, title, handler, match) {
+	let button = parent.querySelector(selector);
+	if (!wanted) {button?.remove();return null;}
+	if (!button) button = create_match_button(parent, 'vlink '+selector.slice(1), title, handler, match._id);
+	return button;
+}
+
+function patch_row_team(parent, match, index, previous, show_status, show_add_tabletoperator) {
+	const setup = match.setup, team = setup.teams[index], blocked = btp_entry_status.blocked_players(match).length > 0;
+	const key = (id, index) => id == null || id === 'undefined' || id === 'null' ? 'index:'+index : String(id);
+	const players = new Map([...parent.querySelectorAll('.player')].map((node, index) => [key(node.dataset.btp_id, index), node]));
+	const wanted = [], style = parent.closest('tr').dataset.style, planned = style === 'unasigned';
+	const second = row_button(parent, '.match_second_call_button', !show_add_tabletoperator && !blocked,
+		index ? 'match:secondcallteamtwo' : 'match:secondcallteamone', index ? on_second_call_team_two_button_click : on_second_call_team_one_button_click, match);
+	const preparation = row_button(parent, '.match_second_preparation_call_button', planned && setup.highlight >= 1 && !blocked,
+		index ? 'match:secondcallteamtwo' : 'match:secondcallteamone', index ? on_second_preparation_call_team_two_button_click : on_second_preparation_call_team_one_button_click, match);
+	if (!index) wanted.push(...[second, preparation].filter(Boolean));
+	let separator = [...parent.children].find(node => node.classList.contains('ls-team-separator') || node.textContent.trim() === '/');
+	const flags = [...parent.querySelectorAll('img[data-nationality]')];
+	for (const [number, person] of (team.players || []).entries()) {
+		if (number) {separator ||= document.createElement('span');separator.classList.add('ls-team-separator');row_text(separator, ' / ');wanted.push(separator);}
+		if (curt.is_nation_competition && person.nationality && (!number || person.nationality !== team.players[0].nationality)) {
+			let flag = flags.find(node => node.dataset.nationality === person.nationality && !wanted.includes(node));
+			if (!flag) {const holder = document.createElement('span');cflags.render_flag_el(holder, person.nationality);flag = holder.firstElementChild;}
+			wanted.push(flag);
+		}
+		let player = players.get(key(person.btp_id, number));
+		players.delete(key(person.btp_id, number));
+		if (!player) {
+			player = render_player_el(parent, person, match._id, setup.now_on_court, show_status, style, team.players.length > 1, match);
+			cleitstand.player(player);
+		}
+		else {
+			const old = previous?.players?.find(item => String(item.btp_id) === String(person.btp_id));
+			if (!old || old.name !== person.name || old.firstname !== person.firstname || old.lastname !== person.lastname || old.surname !== person.surname) row_text(player, (person.name || short_name(person.firstname, person.lastname || person.surname)).replace(' ', '\xa0'));
+		}
+		wanted.push(player);
+	}
+	if (!team.players?.length) {
+		const dependency = parent.querySelector('.ls-participant-dependency') || document.createElement('span');
+		dependency.classList.add('ls-participant-dependency');row_text(dependency, _format_participant_dependency(match, index, curt.matches));wanted.push(dependency);
+	}
+	if (index) wanted.push(...[preparation, second].filter(Boolean));
+	row_children(parent, wanted);
+	row_class(parent, 'incomplete', !team.players?.length);
+	row_class(parent, 'match_team_won', match.team1_won === (index === 0));
+}
+
+function row_person_content(person) {
+	if (!person) return null;
+	const {checked_in, ...content} = person;
+	return content;
+}
+
+function patch_row_officials(cell, match, previous, style) {
+	const setup = match.setup, show_status = style === 'unasigned', planned = show_status && setup.highlight >= 1;
+	const wanted = [];
+	for (const [role, symbol, second_title, second_handler, preparation_handler] of [
+		['umpire', 'umpire', 'match:secondcallumpire', on_second_call_umpire_button_click, on_second_preparation_call_umpire_button_click],
+		['service_judge', 'service_judge', 'match:secondcallservicejudge', on_second_call_servicejudge_button_click, on_second_preparation_call_servicejudge_button_click],
+	]) {
+		const person = setup[role], permitted = person?.name && (role !== 'service_judge' || setup.umpire?.name);
+		let node = [...cell.querySelectorAll(':scope > .person')].find(node => participant_views.get(node)?.role === role);
+		if (!permitted) {node?.remove();continue;}
+		if (node && !utils.deep_equal(row_person_content(previous?.[role]), row_person_content(person))) {
+			// Keep the role's existing name and handler when the identity survives.
+			if (String(node.dataset.btp_id) === String(person.btp_id)) row_text(participant_views.get(node).name, person.name);
+			else {node.remove();node = null;}
+		}
+		node ||= render_match_participant_el(cell, person, match._id, role, symbol, show_status);
+		update_participant_check_in(node, person, participant_views.get(node));
+		if (role === 'umpire') {
+			const icon = node.querySelector('.umpire'), can_add = !setup.service_judge?.name;
+			icon.classList.toggle('can_add_service_judge', can_add);
+			icon.removeEventListener('click', on_add_service_judge_button);
+			if (can_add) {
+				icon.title = ci18n('match:add_service_judge');icon.dataset.match_id = match._id;
+				icon.addEventListener('click', on_add_service_judge_button);
+			} else icon.removeAttribute('title');
+		}
+		row_button(node, '.match_second_preparation_call_button', planned, second_title, preparation_handler, match);
+		row_button(node, '.match_second_call_button', true, second_title, second_handler, match);
+		wanted.push(node);
+	}
+	let tablet = cell.querySelector(':scope > .tablet_operator');
+	if (setup.tabletoperators?.length) {
+		if (!tablet) {tablet = uiu.el(cell, 'div', 'tablet_operator');uiu.el(tablet, 'div', 'operators');}
+		const people = tablet.querySelector('.operators');
+		if (!utils.deep_equal((previous?.tabletoperators || []).map(row_person_content), setup.tabletoperators.map(row_person_content))) {
+			// Only a changed tablet assignment rebuilds its own participant list.
+			for (const child of [...people.childNodes]) child.remove();
+			for (const person of setup.tabletoperators) render_match_participant_el(people, person, match._id, 'tabletoperator', 'tablet', show_status);
+		} else for (const node of people.querySelectorAll('.person')) {
+			const view = participant_views.get(node), person = setup.tabletoperators.find(person => String(person.btp_id) === node.dataset.btp_id);
+			if (view && person) update_participant_check_in(node, person, view);
+		}
+		row_button(tablet, '.match_second_preparation_call_button', planned, 'match:secondcaltabletoperator', on_second_preparation_call_tabletoperator_button_click, match);
+		row_button(tablet, '.match_second_call_button', true, 'match:secondcaltabletoperator', on_second_call_tabletoperator_button_click, match);
+		wanted.push(tablet);
+	}
+	if (!setup.umpire && !setup.tabletoperators?.length) {
+		let empty = cell.querySelector('.no_umpire')?.closest('.person');
+		if (!empty) {empty = uiu.el(cell, 'span', 'person');create_match_button(empty, 'vlink no_umpire'+(show_status ? ' no_umpire_add' : ''), 'match:add_umpire', on_add_officials_button, match._id);uiu.el(empty, 'span', 'match_no_umpire', ci18n('No umpire'));}
+		wanted.push(empty);
+	}
+	row_children(cell, wanted);
+}
+
+function patch_board_match_row(row, match, section) {
+	if (typeof cleitstand === 'undefined' || !cleitstand.active(row) || !row.classList.contains('ls-match')) return false;
+	// A mounted board owns these cells for the lifetime of this rendering.
+	// Compare the last rendered setup and reconcile only changed contents;
+	// keep DOM objects, handlers, focus and layout caches for everything else.
+	const view = row_content_views.get(row) || {previous: {}, match_id: match._id};
+	view.cells ||= {
+		teams: [row.querySelector('.team-one'), row.querySelector('.team-two')], officials: row.querySelector('.umpire_and_tablet'),
+		calls: row.querySelector('.call_td'), shuttles: row.querySelector('.match_shuttle_count'),
+		score: row.querySelector('.match_score'), properties: [...row.querySelectorAll('.match_properties,.match_discipline,.match_round')],
+	};
+	const before = view.previous, setup = match.setup, planned = section === 'unassigned', style = row.dataset.style;
+	const player_fields = ['teams', 'links', 'now_on_court', 'highlight', 'is_doubles'];
+	const players = player_fields.some(field => !utils.deep_equal(before[field], setup[field]));
+	const officials = ['umpire', 'service_judge', 'tabletoperators', 'highlight'].some(field => !utils.deep_equal(before[field], setup[field]));
+	const place = ['court_id', 'location_id', 'preparation_call_deferred'].some(field => before[field] !== setup[field]);
+	if (players) for (const [index, cell] of view.cells.teams.entries()) if (cell) patch_row_team(cell, match, index, before.teams?.[index], planned, !!curt.tabletoperator_enabled && (planned || section === 'finished'));
+	for (const [index, cell] of view.cells.teams.entries()) if (cell) row_class(cell, 'match_team_won', match.team1_won === (index === 0));
+	if (officials && view.cells.officials) patch_row_officials(view.cells.officials, match, before, style);
+	for (const name of [...row.classList]) if (name.startsWith('highlight_') && name !== 'highlight_'+(setup.highlight || 0)) row.classList.remove(name);
+	row_class(row, 'highlight_'+(setup.highlight || 0), true);
+	row_class(row, 'preparation_call_deferred', setup.preparation_call_deferred === true);
+	const complete = match_has_complete_teams(match);
+	for (const cell of view.cells.properties) row_class(cell, 'incomplete', !complete);
+	if (view.cells.score) row_class(view.cells.score, 'match_score_current', setup.now_on_court === true);
+	if (planned) {
+		if (row.draggable !== complete) row.draggable = complete;row_class(row, 'complete', complete);
+		if (complete) {row.addEventListener('dragstart', drag);row.addEventListener('dragend', dragend);}
+		else {row.removeEventListener('dragstart', drag);row.removeEventListener('dragend', dragend);}
+	}
+	if (!planned && section !== 'finished' && view.cells.calls) {
+		const allowed = !btp_entry_status.blocked_players(match).length;
+		row_button(view.cells.calls, '.match_manual_call_button', allowed, 'match:manualcall', on_announce_match_manually_button_click, match);
+		row_button(view.cells.calls, '.match_begin_to_play_button', allowed, 'match:begintoplay', on_begin_to_play_button_click, match);
+	}
+	if (view.cells.shuttles) {
+		row_class(view.cells.shuttles, 'match_shuttle_count_display_active', !!match.shuttle_count);
+		const number = view.cells.shuttles.querySelector('.match_shuttle_count_number');if (number) row_text(number, match.shuttle_count || '');
+	}
+	const metadata = ['scheduled_date', 'scheduled_time_str', 'match_num', 'event_name', 'match_name'].filter(field => before[field] !== setup[field]);
+	cleitstand.refreshRow(row, match, {players, officials, place, metadata});
+	if (['counting', 'scoring_format'].some(field => !utils.deep_equal(before[field], setup[field]))) cleitstand.refreshScoreLayout();
+	view.previous = JSON.parse(JSON.stringify(setup));row_content_views.set(row, view);
+	update_match_score(match);
+	return true;
+}
+
 function update_match_row(m, new_section) {
 	_for_each_match_bound_element('tr', m, (match_row_el) => {
 		// A field is a fixed slot, even if an older client left the previous
 		// match ID on it. Result/list updates must never repurpose that slot.
 		if (match_row_el.dataset?.court_id != null && new_section !== 'court_' + match_row_el.dataset.court_id) return;
+		if (patch_board_match_row(match_row_el, m, new_section)) {reorder_match_row(m, new_section);return;}
 		match_row_el.innerHTML = '';
 
 		switch (new_section) {
@@ -1880,6 +2063,10 @@ function update_match_row(m, new_section) {
 			case 'unassigned':
 				match_row_el.setAttribute('class', 'match highlight_' + (m.setup.highlight ? m.setup.highlight : 0));
 				render_match_row(match_row_el, m, null, 'unasigned', true, curt.tabletoperator_enabled);
+				if (preparation_call_debug_icons_enabled()) {
+					update_preparation_row_status(match_row_el, m);
+					if (typeof cleitstand !== 'undefined') cleitstand.decorateControls(match_row_el);
+				}
 				reorder_match_row(m, new_section);
 				break;
 			default:
@@ -1934,6 +2121,7 @@ function update_match(m, old_section, new_section) {
 		update_match_row(m, new_section);
 	}
 	refresh_unassigned_status_context();
+	if (new_section === 'unassigned') refresh_unassigned_preparation_context();
 	update_preparation_demand_court_markers();
 }
 
@@ -2299,6 +2487,7 @@ function on_second_call_tabletoperator_button_click(e) {
 		send({
 			type: 'second_call_tabletoperator',
 			tournament_key: curt.key,
+			match_id: match._id,
 			setup: match.setup,
 		}, err => {
 			if (err) {
@@ -2313,6 +2502,7 @@ function on_second_preparation_call_tabletoperator_button_click(e) {
 		send({
 			type: 'second_preparation_call_tabletoperator',
 			tournament_key: curt.key,
+			match_id: match._id,
 			setup: match.setup,
 		}, err => {
 			if (err) {
@@ -2328,6 +2518,7 @@ function on_second_call_umpire_button_click(e) {
 		send({
 			type: 'second_call_umpire',
 			tournament_key: curt.key,
+			match_id: match._id,
 			setup: match.setup,
 		}, err => {
 			if (err) {
@@ -2344,6 +2535,7 @@ function on_second_preparation_call_umpire_button_click(e) {
 		send({
 			type: 'second_preparation_call_umpire',
 			tournament_key: curt.key,
+			match_id: match._id,
 			setup: match.setup,
 		}, err => {
 			if (err) {
@@ -2359,6 +2551,7 @@ function on_second_call_servicejudge_button_click(e) {
 		send({
 			type: 'second_call_servicejudge',
 			tournament_key: curt.key,
+			match_id: match._id,
 			setup: match.setup,
 		}, err => {
 			if (err) {
@@ -2375,6 +2568,7 @@ function on_second_preparation_call_servicejudge_button_click(e) {
 		send({
 			type: 'second_preparation_call_servicejudge',
 			tournament_key: curt.key,
+			match_id: match._id,
 			setup: match.setup,
 		}, err => {
 			if (err) {
@@ -2487,6 +2681,20 @@ function _parse_match_status_form_value(d) {
 	};
 }
 
+// The combined place selector keeps court IDs intact; location-only choices
+// never reach the server as court IDs.
+function _parse_match_place_form_value(d) {
+	const value = d.court_id || '';
+	const location_only = value.startsWith('location:');
+	const court_id = location_only ? '' : value;
+	const status = _parse_match_status_form_value(d);
+	const locations = curt?.locations || [];
+	const location_id = location_only ? value.slice('location:'.length)
+		: get_court_location_id(court_id) || status.preparation_location_id ||
+			(status.status === 'preparation' && locations.length === 1 ? locations[0]._id : null);
+	return { court_id, location_id };
+}
+
 function _is_dbv_special_result_status(score_status) {
 	return score_status === 'retired' || score_status === 'disqualified' || score_status === 'no_match';
 }
@@ -2525,6 +2733,7 @@ function _score_status_select_value(match) {
 }
 
 function _score_status_from_match_status_form(match_status, source_match) {
+	if (match_status === 'finished') return source_match?.score_status || 'normal';
 	if (match_status === 'no_match_team1' || match_status === 'no_match_team2') {
 		return match_status;
 	}
@@ -2811,8 +3020,9 @@ function _update_setup(setup, d) {
 
 	const match_status_state = _parse_match_status_form_value(d);
 	const match_status = match_status_state.status;
-	const preparation_location_id = match_status_state.preparation_location_id;
-	result.court_id           = d.court_id;
+	const place = _parse_match_place_form_value(d);
+	const preparation_location_id = place.location_id;
+	result.court_id           = place.court_id;
 	result.now_on_court       = match_status === 'on_court';
 	if (match_status === 'deferred') {
 		result.state = 'scheduled';
@@ -2833,6 +3043,13 @@ function _update_setup(setup, d) {
 		result.state = 'scheduled';
 		result.highlight = 0;
 		delete result.location_id;
+		delete result.preparation_call_timestamp;
+	}
+	if (place.location_id) result.location_id = place.location_id;
+	else delete result.location_id;
+	if (match_status === 'finished') {
+		result.state = 'finished';
+		result.highlight = 0;
 		delete result.preparation_call_timestamp;
 	}
 
@@ -2888,9 +3105,11 @@ function _make_setup(d) {
 
 	const match_status_state = _parse_match_status_form_value(d);
 	const match_status = match_status_state.status;
-	const preparation_location_id = match_status_state.preparation_location_id;
+	const place = _parse_match_place_form_value(d);
+	const preparation_location_id = place.location_id;
 	const setup = {
-		court_id: d.court_id,
+		court_id: place.court_id,
+		location_id: place.location_id || undefined,
 		now_on_court: match_status === 'on_court',
 		match_num: parseInt(d.match_num),
 		match_name: d.match_name,
@@ -2915,11 +3134,15 @@ function _make_setup(d) {
 	return setup;
 }
 
-function _cancel_ui_edit() {
+async function _cancel_ui_edit(force) {
 	const dlg = document.querySelector('.match_edit_dialog');
 	if (!dlg) {
 		return; // Already cancelled
 	}
+	const actions = typeof btsDialogActions === 'undefined' ? undefined : btsDialogActions.get(dlg.querySelector('form'));
+	if (actions && force !== true && !await actions.canClose()) return;
+	if (!dlg.isConnected || (force !== true && actions?.state().busy)) return;
+	actions?.destroy();
 	_remove_tabletoperator_replacement_suggestions();
 	cbts_utils.esc_stack_pop();
 	uiu.remove(dlg);
@@ -2929,28 +3152,67 @@ function _cancel_ui_edit() {
 }
 
 function _remove_tabletoperator_replacement_suggestions() {
-	uiu.qsEach('.tabletoperator_replacement_suggestions, .tabletoperator_assignment_suggestions', (suggestions_el) => {
-		uiu.remove(suggestions_el);
-	});
+	if (typeof cleitstand !== 'undefined') cleitstand.clearDialogPickers?.();
+	destroy_tabletoperator_pickers(document.querySelector('.match_edit_dialog'));
 }
 
-function _delete_match_btn_click(e) {
-	const match_id = e.target.getAttribute('data-match_id');
-	if (! confirm(ci18n('match:delete:really', {match_id}))) return;
+async function _delete_match_btn_click(e) {
+	const button = e.currentTarget;
+	const match_id = button.getAttribute('data-match_id');
+	const match = curt.matches.find(candidate => candidate._id === match_id);
+	const actions = typeof btsDialogActions === 'undefined' ? undefined : btsDialogActions.get(button.form);
+	if (actions?.state().busy) return;
+	const tournament_key = curt.key;
+	button.focus({preventScroll: true});
+	const approved = await btsDialogActions.confirm({
+		owner: button.form,
+		title: ci18n('match:delete:really', {match_id: match?.setup.match_num || match_id}),
+		message: ci18n('match:delete:consequences'),
+		confirmLabel: ci18n('match:delete:confirm'), cancelLabel: ci18n('Cancel'), danger: true,
+	});
+	if (!approved || !button.isConnected || curt.key !== tournament_key) return;
+	if (actions && !actions.begin('delete')) return;
 
 	send({
 		type: 'match_delete',
 		id: match_id,
-		tournament_key: curt.key,
+		tournament_key,
 	}, function (err) {
+		if (button.isConnected === false) return;
+		actions?.end();
 		if (err) {
 			return cerror.net(err);
 		}
-		_cancel_ui_edit();
+		_cancel_ui_edit(true);
+	});
+}
+
+async function _reopen_match_btn_click(e) {
+	const button = e.currentTarget, form = button.form;
+	const actions = btsDialogActions.get(form);
+	if (actions?.state().busy || actions?.state().dirty) return;
+	const match_id = button.dataset.match_id, tournament_key = curt.key;
+	const approved = await btsDialogActions.confirm({owner: form, warning: true, returnFocus: button,
+		title: ci18n('match:reopen:title'), message: ci18n('match:reopen:details'),
+		confirmLabel: ci18n('match:reopen:confirm'), cancelLabel: ci18n('Cancel')});
+	if (!approved || !button.isConnected || curt.key !== tournament_key || actions?.state().dirty) return;
+	if (actions && !actions.begin('reopen')) return;
+	send({type: 'match_reopen', tournament_key, match_id}, (err, response) => {
+		if (!button.isConnected) return;
+		actions?.end();
+		if (err) return cerror.net(err);
+		if (!response?.match || response.match._id !== match_id) return cerror.silent(ci18n('match:reopen:error'));
+		crouting.on_change({ctype: 'match_edit', tournament_key, val: {match__id: match_id, match: response.match}});
+		if (button.isConnected) ui_edit(match_id);
+		document.querySelector('.match_edit_dialog #ls-match-tab-1')?.click();
 	});
 }
 	function _finish_ui_edit(e) {
-		const match_id = e.target.getAttribute('data-match_id');
+		const button = e.currentTarget;
+		if (button.disabled) return;
+		const actions = typeof btsDialogActions === 'undefined' ? undefined : btsDialogActions.get(button.form);
+		if (actions && !actions.begin('finish')) return;
+		const match_id = button.getAttribute('data-match_id');
 		const match = utils.find(curt.matches, m => m._id === match_id);
 		if (match) {
 			send({
@@ -2959,12 +3221,15 @@ function _delete_match_btn_click(e) {
 				tournament_key: match.tournament_key,
 				court_id: match.setup.court_id
 			}, function (err) {
+				if (button.isConnected === false) return;
+				actions?.end();
 				if (err) {
 					return cerror.net(err);
 				}
+				_cancel_ui_edit(true);
 			});
 		}
-		_cancel_ui_edit();
+		else actions?.end();
 	}
 
 function ui_edit(match_id) {
@@ -2979,12 +3244,13 @@ function ui_edit(match_id) {
 	}
 	const old_dialog = document.querySelector('.match_edit_dialog');
 	if (old_dialog) {
+		if (typeof btsDialogActions !== 'undefined') btsDialogActions.get(old_dialog.querySelector('form'))?.destroy();
 		_remove_tabletoperator_replacement_suggestions();
 		cbts_utils.esc_stack_pop();
 		uiu.remove(old_dialog);
 	}
 
-	const match = structuredClone(source_match);
+	let match = structuredClone(source_match);
 	let old_court = structuredClone(match.setup.court_id);
 
 	if(!old_court) {
@@ -3013,56 +3279,52 @@ function ui_edit(match_id) {
 	render_edit(form, match);
 
 	const buttons = uiu.el(form, 'div', 'match_edit_actions');
-	if (curt.btp_enabled) {
-		const sendbtp_label = uiu.el(buttons, 'label', 'match_edit_btp_update');
-
-		uiu.el(sendbtp_label, 'input', {
-			type: 'checkbox',
-			name: 'btp_update',
-			checked: 'true',
-		});
-		sendbtp_label.appendChild(document.createTextNode('auch in BTP ändern'));
-	}
 
 	const btn = uiu.el(buttons, 'button', {
 		'class': 'match_save_button match_edit_action_button match_edit_action_primary',
-		role: 'submit',
+		type: 'submit',
 	}, ci18n('Change'));
 
 	form_utils.onsubmit(form, function(d) {
+		// A disabled selected option is omitted by FormData. Finished is a
+		// read-only status, but must survive edits to officials or the place.
+		d.match_status = form.elements.match_status.value;
 		if (!d.umpire_name && d.service_judge_name) {
+			form.dispatchEvent(new Event('bts-dialog-invalid'));
 			cerror.silent(ci18n('match:edit:error:service_judge_requires_umpire'));
 			return;
 		}
-		const previous_setup = structuredClone(match.setup);
-		match.setup = _update_setup(match.setup, d);
-		const raw_score_status = _score_status_from_match_status_form(d.match_status, source_match);
-		match.score_status = _normalize_match_score_status_from_form(raw_score_status);
-		match.forward_loser = _score_status_forwards_loser_from_form(raw_score_status);
-		const no_match_losing_team = _no_match_losing_team_from_form(raw_score_status);
-		if (no_match_losing_team == null) {
-			delete match.no_match_losing_team;
-			if ((source_match.score_status || 'normal') !== 'normal') {
-				delete match.team1_won;
-				delete match.btp_winner;
+		const actions = typeof btsDialogActions === 'undefined' ? undefined : btsDialogActions.get(form);
+		if (actions && !actions.begin('save')) return;
+		const current_match = curt.matches.find(candidate => candidate._id === match_id);
+		if (btsMatchEditRules.finished(current_match)) {
+			match = structuredClone(current_match);
+			const updated_setup = _update_setup(structuredClone(match.setup), d);
+			match.setup.override_colors = updated_setup.override_colors;
+		} else {
+			match.setup = _update_setup(match.setup, d);
+			const raw_score_status = _score_status_from_match_status_form(d.match_status, source_match);
+			match.score_status = _normalize_match_score_status_from_form(raw_score_status);
+			match.forward_loser = _score_status_forwards_loser_from_form(raw_score_status);
+			const no_match_losing_team = d.match_status === 'finished'
+				? (source_match.no_match_losing_team ?? _no_match_losing_team_from_form(_score_status_select_value(source_match)))
+				: _no_match_losing_team_from_form(raw_score_status);
+			if (no_match_losing_team == null) {
+				delete match.no_match_losing_team;
+				if ((source_match.score_status || 'normal') !== match.score_status) {
+					delete match.team1_won;
+					delete match.btp_winner;
+					delete match.network_score;
+					delete match.score_status_network_score;
+				}
+			} else {
+				match.no_match_losing_team = no_match_losing_team;
+				match.team1_won = no_match_losing_team === 1;
+				match.btp_winner = match.team1_won ? 1 : 2;
 				delete match.network_score;
 				delete match.score_status_network_score;
 			}
-		} else {
-			match.no_match_losing_team = no_match_losing_team;
-			match.team1_won = no_match_losing_team === 1;
-			match.btp_winner = match.team1_won ? 1 : 2;
-			delete match.network_score;
-			delete match.score_status_network_score;
 		}
-		const force_btp_update =
-			(previous_setup.state || null) !== (match.setup.state || null) ||
-			(previous_setup.location_id || null) !== (match.setup.location_id || null) ||
-			(previous_setup.highlight || 0) !== (match.setup.highlight || 0) ||
-			(source_match.score_status || 'normal') !== match.score_status ||
-			(source_match.no_match_losing_team == null ? null : source_match.no_match_losing_team) !== (match.no_match_losing_team == null ? null : match.no_match_losing_team) ||
-			(source_match.team1_won == null ? null : source_match.team1_won) !== (match.team1_won == null ? null : match.team1_won) ||
-			(source_match.forward_loser === true) !== match.forward_loser;
 		btn.setAttribute('disabled', 'disabled');
 		send({
 			type: 'match_edit',
@@ -3073,13 +3335,15 @@ function ui_edit(match_id) {
 			tabletoperator_assignment_id: d.tabletoperator_assignment_id || null,
 			tabletoperator_replacement_name: d.tabletoperator_replacement_name || null,
 			tabletoperator_replacement_btp_id: d.tabletoperator_replacement_btp_id || null,
-			btp_update: (curt.btp_enabled && (!! d.btp_update || force_btp_update)),
+			btp_update: !!curt.btp_enabled,
 		}, function match_edit_callback(err) {
+			if (btn.isConnected === false) return;
 			btn.removeAttribute('disabled');
+			actions?.end();
 			if (err) {
 				return cerror.net(err);
 			}
-			_cancel_ui_edit();
+			_cancel_ui_edit(true);
 		});
 	});
 
@@ -3092,17 +3356,22 @@ function ui_edit(match_id) {
 
 	const finish_btn = uiu.el(buttons, 'button', {
 		type: 'button',
-		'class': 'match_edit_action_button match_edit_action_secondary',
+		'class': 'match_edit_finish_button match_edit_action_button match_edit_action_secondary',
 		'data-match_id': match._id
 	}, ci18n('Confirm_Finish'));
 	finish_btn.addEventListener('click', _finish_ui_edit);
+	const reopen_btn = uiu.el(buttons, 'button', {
+		type: 'button', class: 'match_edit_reopen_button match_edit_action_button match_edit_action_secondary',
+		'data-match_id': match_id,
+	}, ci18n('match:reopen:confirm'));
+	reopen_btn.addEventListener('click', _reopen_match_btn_click);
 
 	const cancel_btn = uiu.el(buttons, 'button', {
 		type: 'button',
-		class: 'match_edit_action_button match_edit_action_secondary',
+		class: 'match_edit_cancel_button match_edit_action_button match_edit_action_secondary',
 	}, ci18n('Cancel'));
 	cancel_btn.addEventListener('click', _cancel_ui_edit);
-	if (typeof cleitstand !== 'undefined') cleitstand.matchDialog(dialog, source_match, target => ui_scoresheet(match_id, target));
+	if (typeof cleitstand !== 'undefined') cleitstand.matchDialog(dialog, source_match, (target, options) => ui_scoresheet(match_id, target, options));
 }
 crouting.register(/t\/([a-z0-9]+)\/m\/([-a-zA-Z0-9_ ]+)\/edit$/, function(m) {
 	ctournament.switch_tournament(m[1], function() {
@@ -3129,14 +3398,15 @@ function _cancel_ui_scoresheet() {
 	ctournament.ui_show();
 }
 
-function ui_scoresheet(match_id, embedded_target) {
+function ui_scoresheet(match_id, embedded_target, embedded_options = {}) {
+	embedded_options.onState?.('loading');
 	const match = utils.find(curt.matches, m => m._id === match_id);
 	if (!match) {
 		cerror.silent('Match ' + match_id + ' konnte nicht gefunden werden');
 		return;
 	}
 	if (match.presses_deferred === true) {
-		cmatch_history.load(match, () => ui_scoresheet(match_id, embedded_target));
+		cmatch_history.load(match, () => ui_scoresheet(match_id, embedded_target, embedded_options));
 		return;
 	}
 	if (!embedded_target) {
@@ -3150,7 +3420,7 @@ function ui_scoresheet(match_id, embedded_target) {
 		'data-match_id': match_id,
 	});
 
-	const container = uiu.el(dialog, 'div');
+	const container = uiu.el(dialog, 'div', embedded_target ? 'ls-sheet-page' : '');
 	const lang = ci18n.get_lang();
 	const pseudo_state = {
 		settings: {
@@ -3167,37 +3437,48 @@ function ui_scoresheet(match_id, embedded_target) {
 	try {
 		s = calc.remote_state(pseudo_state, setup, match.presses);
 	} catch (err) {
+		embedded_options.onState?.('error');
 		console.error(`[bts] scoresheet remote_state failed for #${setup.match_num || '?'} (${match._id})`, err);
 		return cerror.silent(`Scoresheet for #${setup.match_num || '?'} cannot be rendered: ${err.message}`);
 	}
 	s.ui = {};
 
 	printing.set_orientation('landscape');
-	scoresheet.load_sheet(scoresheet.sheet_name(s.setup), function(xml) {
-		var svg = scoresheet.make_sheet_node(s, xml);
-		svg.setAttribute('class', 'scoresheet single_scoresheet');
-		// Usually we'd call importNode here to import the document here, but IE/Edge then ignores the styles
-		container.appendChild(svg);
-		scoresheet.sheet_render(s, svg);
-	}, '/bupdev/');
-
-	const scoresheet_buttons = uiu.el(dialog, 'div', 'match_scoresheet_buttons');
+	const scoresheet_buttons = embedded_options.controls || uiu.el(dialog, 'div', 'match_scoresheet_buttons');
 
 	if (!embedded_target) {
 		const cancel_btn = uiu.el(scoresheet_buttons, 'div', 'vlink', ci18n('Back'));
 		cancel_btn.addEventListener('click', _cancel_ui_scoresheet);
 	}
 
-	const pdf_btn = uiu.el(scoresheet_buttons, 'button', {}, ci18n('PDF'));
+	const pdf_btn = uiu.el(scoresheet_buttons, 'button', {type: 'button'}, ci18n('PDF'));
 	pdf_btn.addEventListener('click', function() {
 		const svg_nodes = document.querySelectorAll('.single_scoresheet');
 		scoresheet.save_pdf(s, svg_nodes);
 	});
 
-	const print_btn = uiu.el(scoresheet_buttons, 'button', {}, ci18n('Print'));
+	const print_btn = uiu.el(scoresheet_buttons, 'button', {type: 'button'}, ci18n('Print'));
 	print_btn.addEventListener('click', function() {
 		window.print();
 	});
+	embedded_options.onState?.('loading');
+	scoresheet.load_sheet(scoresheet.sheet_name(s.setup), function(xml) {
+		if (embedded_target && !embedded_target.isConnected) return;
+		try {
+			const svg = scoresheet.make_sheet_node(s, xml);
+			svg.setAttribute('class', 'scoresheet single_scoresheet');
+			if (embedded_target) {
+				const box = svg.viewBox.baseVal;
+				if (box.width > 0 && box.height > 0) container.style.setProperty('--ls-sheet-ratio', box.width / box.height);
+			}
+			container.appendChild(svg);
+			scoresheet.sheet_render(s, svg);
+			embedded_options.onState?.('ready');
+		} catch (err) {
+			embedded_options.onState?.('error');
+			cerror.silent(`Scoresheet for #${setup.match_num || '?'} cannot be rendered: ${err.message}`);
+		}
+	}, '/bupdev/');
 }
 crouting.register(/t\/([a-z0-9]+)\/m\/([-a-zA-Z0-9_ ]+)\/scoresheet$/, function(m) {
 	ctournament.switch_tournament(m[1], function() {
@@ -3364,6 +3645,9 @@ function get_preparation_debug_diagnostics_for_match_and_location(match, locatio
 
 function is_manual_preparation_call_allowed_for_location(match, location) {
 	if (btp_entry_status.blocked_players(match).length) return false;
+	// A cached diagnosis may precede the current location/court assignment.
+	// Never create a button for another hall while its replacement is pending.
+	if (!match_matches_preparation_location(match, location)) return false;
 	const diagnostics = get_preparation_debug_diagnostics_for_match_and_location(match, location);
 	if (diagnostics && diagnostics.manual_eligible != null) {
 		return diagnostics.manual_eligible === true;
@@ -3377,7 +3661,6 @@ function is_manual_preparation_call_allowed_for_location(match, location) {
 	if (!match_has_complete_teams(match)) return false;
 	if (match?.team1_won !== undefined && match?.team1_won !== null) return false;
 	if (setup.now_on_court === true) return false;
-	if (!match_matches_preparation_location(match, location)) return false;
 	if (has_inactive_special_result_player_for_manual_preparation(match)) return false;
 	if (get_match_players_for_manual_preparation(match).some((player) => player && player.now_playing_on_court)) return false;
 	return true;
@@ -3925,6 +4208,25 @@ function render_preparation_debug_header(container) {
 	}
 }
 
+function update_preparation_row_status(row, match, {
+	callable = get_preparation_callable_match_ids(), cutoff = get_preparation_cutoff_match_ids(), frontier = get_preparation_frontier_match_ids(),
+} = {}) {
+	const window_status = get_preparation_debug_window_status(match);
+	const call_status = match.setup.state === 'preparation' ? get_call_on_court_debug_status(match) : null;
+	for (const [name, active] of Object.entries({
+		preparation_callable: callable.has(String(match._id)),
+		preparation_frontier: frontier.has(String(match._id)),
+		preparation_call_cutoff: cutoff.has(String(match._id)),
+		preparation_debug_window_ok: window_status === 'ok',
+		preparation_debug_window_blocked: window_status === 'blocked',
+		call_on_court_debug_ready: call_status === 'ready',
+		call_on_court_debug_blocked: call_status === 'blocked',
+	})) if (row.classList.contains(name) !== active) row.classList.toggle(name, active);
+	if (callable.has(String(match._id))) {if (row.getAttribute('data-preparation-callable') !== 'true') row.setAttribute('data-preparation-callable', 'true');}
+	else if (row.hasAttribute('data-preparation-callable')) row.removeAttribute('data-preparation-callable');
+	render_preparation_debug_cell(row, match);
+}
+
 function refresh_unassigned_preparation_context() {
 	const matches = new Map(curt.matches.map(match => [String(match._id), match]));
 	const debug = preparation_call_debug_icons_enabled();
@@ -3953,20 +4255,7 @@ function refresh_unassigned_preparation_context() {
 				td.insertBefore(button, td.querySelector('.preparation_debug_icon'));
 			}
 			if (!debug) continue;
-			const window_status = get_preparation_debug_window_status(match);
-			const call_status = match.setup.state === 'preparation' ? get_call_on_court_debug_status(match) : null;
-			for (const [name, active] of Object.entries({
-				preparation_callable: callable.has(String(match._id)),
-				preparation_frontier: frontier.has(String(match._id)),
-				preparation_call_cutoff: cutoff.has(String(match._id)),
-				preparation_debug_window_ok: window_status === 'ok',
-				preparation_debug_window_blocked: window_status === 'blocked',
-				call_on_court_debug_ready: call_status === 'ready',
-				call_on_court_debug_blocked: call_status === 'blocked',
-			})) if(row.classList.contains(name)!==active)row.classList.toggle(name, active);
-			if (callable.has(String(match._id))) {if(row.getAttribute('data-preparation-callable')!=='true')row.setAttribute('data-preparation-callable', 'true');}
-			else if(row.hasAttribute('data-preparation-callable'))row.removeAttribute('data-preparation-callable');
-			render_preparation_debug_cell(row, match);
+			update_preparation_row_status(row, match, {callable, cutoff, frontier});
 			if (typeof cleitstand !== 'undefined') cleitstand.decorateControls(row);
 		}
 		if (typeof cleitstand !== 'undefined') cleitstand.refreshUnassigned(container,{controlsChanged:controls_changed});
@@ -4298,6 +4587,16 @@ function update_court(court) {
 		const match_id = tr.getAttribute('data-match_id');
 		const style = tr.getAttribute('data-style');
 		const match = utils.find(curt.matches, match => match._id === match_id);
+		if (match && calc_section(match) === 'court_'+court._id && patch_board_match_row(tr, match, 'court_'+court._id)) {
+			const graphic = tr.querySelector('.court_number .court_num,.court_number .court_inactive');
+			if (graphic) {
+				graphic.classList.toggle('court_num', court.is_active);graphic.classList.toggle('court_inactive', !court.is_active);
+				row_text(graphic, court.is_active ? court.num : '');graphic.title = ci18n(court.is_active ? 'inactivate_court' : 'activate_court');
+				graphic.removeEventListener('click', on_inactivate_court_button_click);graphic.removeEventListener('click', on_activate_court_button_click);
+				graphic.addEventListener('click', court.is_active ? on_inactivate_court_button_click : on_activate_court_button_click);
+			}
+			return;
+		}
 		tr.innerHTML = '';
 		if (!match || calc_section(match) !== 'court_' + court._id) {
 			render_empty_court_row(tr, court, style, true);
@@ -4564,15 +4863,14 @@ function render_edit(form, match) {
 	const assigned = uiu.el(edit_match_container, 'section', 'match_edit_card match_edit_form_grid');
 	uiu.el(assigned, 'h4', 'match_edit_card_title', ci18n('match:edit:section:status'));
 	const locations = Array.isArray(curt && curt.locations) ? curt.locations : [];
-	const current_match_status = setup.preparation_call_deferred
+	const finished = btsMatchEditRules.finished(match);
+	const current_match_status = finished ? 'finished' : setup.preparation_call_deferred
 		? 'deferred'
 		: (setup.now_on_court ? 'on_court' : (setup.state === 'preparation' ? 'preparation' : 'scheduled'));
 	const current_score_status = _score_status_select_value(match);
-	const current_status_value = ((match.score_status || 'normal') === 'no_match' || (match.score_status || 'normal') === 'walkover')
+	const current_status_value = current_match_status === 'finished' ? 'finished' : ((match.score_status || 'normal') === 'no_match' || (match.score_status || 'normal') === 'walkover')
 		? current_score_status
-		: (current_match_status === 'preparation'
-			? `preparation:${setup.location_id || (locations[0] && locations[0]._id) || ''}`
-			: current_match_status);
+		: current_match_status;
 	const status_field = uiu.el(assigned, 'label', 'match_edit_field');
 	uiu.el(status_field, 'span', 'match_edit_field_label', ci18n('match:edit:status'));
 	const status_select = uiu.el(status_field, 'select', {
@@ -4581,17 +4879,8 @@ function render_edit(form, match) {
 	});
 	const status_options = [
 		['scheduled', ci18n('match:edit:status:scheduled')],
+		['preparation', ci18n('match:edit:status:preparation')],
 	];
-	if (locations.length > 0) {
-		locations.forEach((location) => {
-			status_options.push([
-				`preparation:${location._id}`,
-				ci18n('match:edit:in_preparation_for', { location_name: location.name || location._id }),
-			]);
-		});
-	} else {
-		status_options.push(['preparation:', ci18n('match:edit:status:preparation')]);
-	}
 	status_options.push(
 		['on_court', ci18n('match:edit:status:on_court')],
 		['deferred', ci18n('match:edit:status:deferred')],
@@ -4608,8 +4897,10 @@ function render_edit(form, match) {
 			}),
 		],
 	);
+	if (current_match_status === 'finished') status_options.push(['finished', ci18n('match:edit:status:finished')]);
 	status_options.forEach(([value, label]) => {
-		const attrs = { value };
+		const attrs = { value, 'data-icon': ({scheduled: 'info', preparation: 'mic', on_court: 'play', deferred: 'pause', finished: 'check'})[value] || 'close' };
+		if (value === 'finished') attrs.disabled = 'disabled';
 		if (value === current_status_value) {
 			attrs.selected = 'selected';
 		}
@@ -4628,7 +4919,7 @@ function render_edit(form, match) {
 	status_select.addEventListener('change', update_manual_btp_status_hint);
 	update_manual_btp_status_hint();
 	const court_field = uiu.el(assigned, 'label', 'match_edit_field');
-	uiu.el(court_field, 'span', 'match_edit_field_label', 'Court:');
+	uiu.el(court_field, 'span', 'match_edit_field_label', ci18n('match:edit:place'));
 	const court_select = uiu.el(court_field, 'select', {
 		'class': 'court_selector',
 		name: 'court_id',
@@ -4636,18 +4927,50 @@ function render_edit(form, match) {
 	});
 	uiu.el(court_select, 'option', {
 		value: '',
+		'data-icon': 'close',
 	}, ci18n('Not assigned'));
-	if (curt) {
-		for (const court of curt.courts) {
-			const attrs = {
-				value: court._id,
-			};
-			if (court._id === setup.court_id) {
-				attrs.selected = 'selected';
-			}
-			uiu.el(court_select, 'option', attrs, court.num);
+	const add_court = (court, location) => uiu.el(court_select, 'option', {
+		value: court._id,
+		'data-kind': 'court',
+		'data-court-number': court.num,
+		'data-level': location ? '1' : '0',
+		'data-context': location ? location.name || location._id : '',
+		...(String(court._id) === String(setup.court_id) ? {selected: 'selected'} : {}),
+	}, ci18n('match:edit:court', {number: court.num}));
+	const courts = curt?.courts || [];
+	if (locations.length > 1) {
+		for (const location of locations) {
+			const name = location.name || location._id;
+			uiu.el(court_select, 'option', {
+				value: 'location:' + location._id,
+				'data-kind': 'location',
+				'data-icon': 'home',
+				...(!setup.court_id && String(location._id) === String(setup.location_id) ? {selected: 'selected'} : {}),
+			}, name);
+			courts.filter(court => String(court.location_id) === String(location._id)).forEach(court => add_court(court, location));
 		}
+		courts.filter(court => !locations.some(location => String(location._id) === String(court.location_id))).forEach(court => add_court(court));
+	} else courts.forEach(court => add_court(court));
+	let court_picker;
+	const validate_place = () => {
+		const place = _parse_match_place_form_value({match_status: status_select.value, court_id: court_select.value});
+		const has_location = locations.some(location => String(location._id) === String(place.location_id));
+		const has_court = courts.some(court => String(court._id) === String(place.court_id));
+		const error = status_select.value === 'preparation' && !has_location ? 'preparation_requires_location'
+			: status_select.value === 'on_court' && !has_court ? 'on_court_requires_court' : null;
+		court_select.setCustomValidity(error ? ci18n('match:edit:error:' + error) : '');
+		court_select.setAttribute('aria-required', String(['preparation', 'on_court'].includes(status_select.value)));
+		court_picker?.refresh();
+	};
+	status_select.addEventListener('change', validate_place);
+	court_select.addEventListener('change', validate_place);
+	validate_place();
+	let status_picker;
+	if (typeof cleitstand !== 'undefined') {
+		status_picker = cleitstand.choicePicker?.(status_select);
+		court_picker = cleitstand.choicePicker?.(court_select);
 	}
+	assigned.append(manual_btp_status_hint);
 	// TO stuff
 	const tos_container = uiu.el(edit_match_container, 'section', 'match_edit_card match_edit_form_grid');
 	uiu.el(tos_container, 'h4', 'match_edit_card_title', ci18n('match:edit:section:officials'));
@@ -4675,6 +4998,9 @@ function render_edit(form, match) {
 		name: 'show_all_officials',
 	});
 	show_all_officials_label.appendChild(document.createTextNode(' ' + ci18n('match:edit:show_all_officials')));
+	const umpire_picker = typeof cleitstand !== 'undefined' ? cleitstand.officialPicker?.(umpire_select, false, () => rerender_official_selects()) : null;
+	const service_judge_picker = typeof cleitstand !== 'undefined' ? cleitstand.officialPicker?.(service_judge_select, true, () => rerender_official_selects()) : null;
+	if (umpire_picker) {show_all_officials_checkbox.checked = true;show_all_officials_label.hidden = true;}
 	let current_umpire_value = (setup.umpire && setup.umpire.name) ? setup.umpire.name : '';
 	let current_service_judge_value = (setup.service_judge && setup.service_judge.name) ? setup.service_judge.name : '';
 	const rerender_official_selects = () => {
@@ -4700,6 +5026,7 @@ function render_edit(form, match) {
 			umpire_value
 		);
 		service_judge_select.disabled = !umpire_value;
+		umpire_picker?.refresh();service_judge_picker?.refresh();
 	};
 	show_all_officials_checkbox.addEventListener('change', rerender_official_selects);
 	umpire_select.addEventListener('change', () => {
@@ -4750,6 +5077,28 @@ function render_edit(form, match) {
 	const appearance_container = uiu.el(edit_match_container, 'section', 'match_edit_card');
 	uiu.el(appearance_container, 'h4', 'match_edit_card_title', ci18n('match:edit:section:appearance'));
 	render_override_colors(appearance_container, setup);
+	form.lockFinishedMatch = current => {
+		if (form.dataset.finishedLocked) return;
+		form.dataset.finishedLocked = 'true';
+		const current_setup = current.setup || {};
+		if (![...status_select.options].some(option => option.value === 'finished')) uiu.el(status_select, 'option', {value: 'finished', disabled: 'disabled', 'data-icon': 'check'}, ci18n('match:edit:status:finished'));
+		status_select.value = 'finished';
+		court_select.value = current_setup.court_id || (locations.length > 1 && current_setup.location_id ? 'location:' + current_setup.location_id : '');
+		court_select.setCustomValidity('');
+		court_select.setAttribute('aria-required', 'false');
+		for (const [select, official] of [[umpire_select, current_setup.umpire], [service_judge_select, current_setup.service_judge]]) {
+			const name = official?.name || '';
+			if (![...select.options].some(option => option.value === name)) uiu.el(select, 'option', {value: name}, name);
+			select.value = name;
+		}
+		for (const name of btsMatchEditRules.controls) {const input = form.elements[name];if (input) input.disabled = true;}
+		const tablet = form.querySelector('.tabletoperator_assignment_input');
+		if (tablet) {tablet.value = _tabletoperator_participants_label(current_setup.tabletoperators || []);tablet.disabled = true;}
+		for (const picker of [status_picker, court_picker, umpire_picker, service_judge_picker]) picker?.refresh();
+		if (typeof cleitstand !== 'undefined') cleitstand.closeDialogPickers?.();
+		hide_tabletoperator_pickers(form);
+	};
+	if (finished) form.lockFinishedMatch(match);
 }
 
 function _tabletoperator_status_court_number(court_id) {
@@ -4799,7 +5148,7 @@ function _tabletoperator_participant_key(participant) {
 		return '';
 	}
 	const btp_id = Number(participant.btp_id);
-	if (Number.isFinite(btp_id) && btp_id !== -1) {
+	if (participant.btp_id != null && participant.btp_id !== '' && Number.isFinite(btp_id) && btp_id >= 0) {
 		return 'btp:' + btp_id;
 	}
 	return 'name:' + _normalize_tabletoperator_suggestion_text(_tabletoperator_participant_name(participant));
@@ -4807,19 +5156,30 @@ function _tabletoperator_participant_key(participant) {
 
 function _tabletoperator_icon(parent, kind, text) {
 	const icon = uiu.el(parent, 'span', 'tabletoperator_assignment_icon');
+	if (typeof cleitstand !== 'undefined' && cleitstand.tabletAssignmentIcon?.(icon, kind, text)) return icon;
 	if (kind === 'current') {
 		uiu.el(icon, 'span', 'tablet_inline', text || '');
 	} else if (kind === 'waitlist') {
 		uiu.el(icon, 'span', 'tabletoperator_waitlist_badge', text || '');
 	} else if (kind === 'clear') {
 		uiu.el(icon, 'span', 'tabletoperator_clear_icon');
+	} else if (kind === 'playing') {
+		uiu.el(icon, 'span', 'court', text || '');
+	} else if (kind === 'preparation') {
+		uiu.el(icon, 'span', 'tabletoperator_preparation_icon');
 	}
 	return icon;
 }
 
+function _tabletoperator_suggestion_icons(parent, participant) {
+	if (participant.now_playing_on_court) _tabletoperator_icon(parent, 'playing', _tabletoperator_status_court_number(participant.now_playing_on_court));
+	if (participant.now_tablet_on_court) _tabletoperator_icon(parent, 'current', _tabletoperator_status_court_number(participant.now_tablet_on_court));
+	if (participant.now_preparing) _tabletoperator_icon(parent, 'preparation');
+}
+
 function _tabletoperator_upcoming_match_info(match) {
 	const setup = match && match.setup ? match.setup : {};
-	if (!setup || setup.now_on_court || setup.end_ts || (match && match.end_ts)) {
+	if (!setup || setup.now_on_court || _match_has_finished_result(match)) {
 		return null;
 	}
 	if (['done', 'finished', 'completed'].includes(setup.state)) {
@@ -4827,7 +5187,7 @@ function _tabletoperator_upcoming_match_info(match) {
 	}
 	const ts = zoned_time_to_utc_timestamp(setup.scheduled_date, setup.scheduled_time_str, 'Europe/Berlin');
 	return {
-		ts: Number.isFinite(ts) ? ts : Number.MAX_SAFE_INTEGER,
+		ts: Number.isFinite(ts) && ts > 0 ? ts : null,
 		label: [
 			setup.scheduled_time_str || '',
 			setup.match_num != null ? ('#' + setup.match_num) : '',
@@ -4836,12 +5196,14 @@ function _tabletoperator_upcoming_match_info(match) {
 }
 
 function _tabletoperator_better_next_match(current_info, next_info) {
-	if (!next_info || !next_info.label) {
+	if (!next_info) {
 		return current_info || null;
 	}
 	if (!current_info) {
 		return next_info;
 	}
+	if (next_info.ts == null) return current_info;
+	if (current_info.ts == null) return next_info;
 	if (next_info.ts !== current_info.ts) {
 		return next_info.ts < current_info.ts ? next_info : current_info;
 	}
@@ -4853,40 +5215,74 @@ function _tabletoperator_search_option_label(participant) {
 	return next_match_label ? participant.name + ' (' + next_match_label + ')' : participant.name;
 }
 
+const tabletoperator_pickers = new Set();
+let tabletoperator_picker_sequence = 0;
+
+function destroy_tabletoperator_pickers(container) {
+	if (!container) return;
+	for (const picker of tabletoperator_pickers) if (container.contains(picker.input)) picker.destroy();
+}
+
+function hide_tabletoperator_pickers(container) {
+	for (const picker of tabletoperator_pickers) if (!container || container.contains(picker.input)) picker.close();
+}
+
 function _render_tabletoperator_assignment_picker(container, options) {
 	options = options || {};
+	const participant_only = !!options.participant_only;
 	const current_tabletoperators = options.current_tabletoperators || [];
 	const current_assignment = _tabletoperator_participants_label(current_tabletoperators);
-	const input_wrap = uiu.el(container, 'span', 'tabletoperator_assignment_picker');
-	const selected_icon = uiu.el(input_wrap, 'span', 'tabletoperator_assignment_selected_icon');
+	const input_wrap = uiu.el(container, 'span', 'tabletoperator_picker ' + (participant_only ? 'tabletoperator_player_picker' : 'tabletoperator_assignment_picker'));
+	const selected_icon = uiu.el(input_wrap, 'span', 'tabletoperator_selected_icon ' + (participant_only ? 'tabletoperator_player_selected_icon' : 'tabletoperator_assignment_selected_icon'));
 	const visible_input = uiu.el(input_wrap, 'input', {
 		type: 'text',
-		class: 'match_edit_search_input tabletoperator_assignment_input',
-		placeholder: ci18n('tabletoperator:assignment_placeholder'),
+		class: (options.input_class || 'match_edit_search_input') + ' tabletoperator_search_input' + (participant_only ? '' : ' tabletoperator_assignment_input'),
+		...(participant_only ? {name: options.input_name || 'tabletoperator_player_name'} : {}),
+		placeholder: options.placeholder || ci18n(participant_only ? 'tabletoperator:replacement_placeholder' : 'match:edit:tabletoperator_assignment_clear_option'),
 		autocomplete: 'off',
-		value: current_assignment || ci18n('match:edit:tabletoperator_assignment_clear_option'),
+		value: current_assignment || '',
+		...(options.input_style ? {style: options.input_style} : {}),
 	});
 	const initial_visible_value = visible_input.value;
-	const assignment_input = uiu.el(input_wrap, 'input', {
+	const assignment_input = participant_only ? null : uiu.el(input_wrap, 'input', {
 		type: 'hidden',
 		name: 'tabletoperator_assignment_id',
 		value: '',
 	});
-	const replacement_input = uiu.el(input_wrap, 'input', {
+	const replacement_input = participant_only ? visible_input : uiu.el(input_wrap, 'input', {
 		type: 'hidden',
 		name: 'tabletoperator_replacement_name',
 		value: '',
 	});
 	const replacement_btp_id_input = uiu.el(input_wrap, 'input', {
 		type: 'hidden',
-		name: 'tabletoperator_replacement_btp_id',
+		name: participant_only ? options.btp_id_name || 'tabletoperator_player_btp_id' : 'tabletoperator_replacement_btp_id',
 		value: '',
 	});
 	const suggestion_list = uiu.el(uiu.qs('body'), 'div', {
-		class: 'tabletoperator_assignment_suggestions',
+		class: 'tabletoperator_suggestions ' + (participant_only ? 'tabletoperator_replacement_suggestions' : 'tabletoperator_assignment_suggestions'),
+		id: 'tabletoperator-suggestions-' + (++tabletoperator_picker_sequence),
+		role: 'listbox',
 		style: 'display: none; position: fixed; width: 420px; max-height: 18em; overflow: auto; background: white; border: 1px solid #999; box-shadow: 0 2px 6px rgba(0,0,0,0.25); z-index: 20000; text-align: left;',
 	});
-	const player_suggestions = _tabletoperator_player_suggestions();
+	visible_input.setAttribute('role', 'combobox');
+	visible_input.setAttribute('aria-autocomplete', 'list');
+	visible_input.setAttribute('aria-controls', suggestion_list.id);
+	visible_input.setAttribute('aria-expanded', 'false');
+	const lifetime = new AbortController();
+	const {signal} = lifetime;
+	let rows = [], active = -1, blur_timer, select_timer;
+	const activate = (index, scroll = false) => {
+		if (active !== index) {
+			if (rows[active]) {rows[active].node.classList.remove('is-active');rows[active].node.setAttribute('aria-selected', 'false');}
+			active = index;
+			if (rows[active]) {rows[active].node.classList.add('is-active');rows[active].node.setAttribute('aria-selected', 'true');}
+		}
+		if (rows[active]) {
+			visible_input.setAttribute('aria-activedescendant', rows[active].node.id);
+			if (scroll) rows[active].node.scrollIntoView({block: 'nearest'});
+		} else visible_input.removeAttribute('aria-activedescendant');
+	};
 	const current_participant_keys = new Set();
 	const unavailable_participant_keys = new Set();
 	current_tabletoperators.forEach((participant) => {
@@ -4909,14 +5305,16 @@ function _render_tabletoperator_assignment_picker(container, options) {
 		_tabletoperator_icon(selected_icon, kind, text);
 	};
 	const select_option = (option) => {
-		visible_input.value = option.selected_label || option.replacement_name || option.label;
-		assignment_input.value = option.assignment_id || '';
+		visible_input.value = option.assignment_id === '__release_tabletoperators__' ? '' : option.selected_label || option.replacement_name || option.label;
+		if (assignment_input) assignment_input.value = option.assignment_id || '';
 		replacement_input.value = option.replacement_name || '';
 		replacement_btp_id_input.value = option.btp_id || '';
-		set_selected_icon(option.icon_kind, option.icon_text);
-		suggestion_list.style.display = 'none';
+		set_selected_icon(option.icon_kind || 'search', option.icon_text);
+		hide_suggestions();
+		(assignment_input || visible_input).dispatchEvent(new Event('change', {bubbles: true}));
 	};
 	const action_options = () => {
+		if (participant_only) return [];
 		const result = [];
 		if (current_assignment) {
 			result.push({
@@ -4964,25 +5362,37 @@ function _render_tabletoperator_assignment_picker(container, options) {
 		return result;
 	};
 	const hide_suggestions = () => {
+		clearTimeout(blur_timer);
 		suggestion_list.style.display = 'none';
+		visible_input.setAttribute('aria-expanded', 'false');
+		activate(-1);
 	};
-	const remove_suggestions_if_detached = () => {
-		if (!document.body.contains(visible_input) && suggestion_list.parentNode) {
-			suggestion_list.parentNode.removeChild(suggestion_list);
-		}
-	};
+	const view = {input: visible_input, btp_id_input: replacement_btp_id_input, close: hide_suggestions, destroy: () => {
+		lifetime.abort();clearTimeout(blur_timer);clearTimeout(select_timer);suggestion_list.remove();tabletoperator_pickers.delete(view);
+	}};
+	for (const picker of tabletoperator_pickers) if (!picker.input.isConnected) picker.destroy();
+	tabletoperator_pickers.add(view);
 	const position_suggestions = () => {
+		if (!visible_input.isConnected) {view.destroy();return;}
+		if (suggestion_list.style.display === 'none') return;
 		const input_rect = visible_input.getBoundingClientRect();
+		const panel = visible_input.closest('.edit_match_container,.card-content')?.getBoundingClientRect();
+		if (!visible_input.getClientRects().length || input_rect.bottom < Math.max(0, panel?.top || 0) || input_rect.top > Math.min(innerHeight, panel?.bottom ?? innerHeight)) {hide_suggestions();return;}
 		const below_space = window.innerHeight - input_rect.bottom;
 		const above_space = input_rect.top;
 		const open_up = below_space < 290 && above_space > below_space;
 		const max_height = Math.max(130, Math.min(290, (open_up ? above_space : below_space) - 20));
+		if (document.body.classList.contains('leitstand-view')) suggestion_list.style.width = input_rect.width + 'px';
 		suggestion_list.style.left = input_rect.left + 'px';
 		suggestion_list.style.top = (open_up ? input_rect.top - max_height : input_rect.bottom) + 'px';
 		suggestion_list.style.maxHeight = max_height + 'px';
 	};
 	const render_option_row = (option) => {
-		const row = uiu.el(suggestion_list, 'div', 'tabletoperator_assignment_option');
+		const row = uiu.el(suggestion_list, 'div', 'tabletoperator_option ' + (participant_only ? 'tabletoperator_player_option' : 'tabletoperator_assignment_option'));
+		row.id = suggestion_list.id + '-option-' + rows.length;
+		row.setAttribute('role', 'option');row.setAttribute('aria-selected', 'false');
+		const index = rows.length;rows.push({node: row, option});
+		row.addEventListener('mouseenter', () => activate(index));
 		row.addEventListener('mousedown', (ev) => {
 			ev.preventDefault();
 			select_option(option);
@@ -4990,18 +5400,17 @@ function _render_tabletoperator_assignment_picker(container, options) {
 		if (option.icon_kind) {
 			_tabletoperator_icon(row, option.icon_kind, option.icon_text);
 		} else {
-			const icon = uiu.el(row, 'span', 'tabletoperator_assignment_icon');
-			if (option.participant && option.participant.now_playing_on_court) {
-				uiu.el(icon, 'div', 'court', _tabletoperator_status_court_number(option.participant.now_playing_on_court));
-			}
-			if (option.participant && option.participant.now_tablet_on_court) {
-				uiu.el(icon, 'div', 'tablet_inline', _tabletoperator_status_court_number(option.participant.now_tablet_on_court));
-			}
+			_tabletoperator_suggestion_icons(row, option.participant);
+			if (!option.participant.now_playing_on_court && !option.participant.now_tablet_on_court && !option.participant.now_preparing) uiu.el(row, 'span', 'tabletoperator_assignment_icon');
 		}
 		uiu.el(row, 'span', 'tabletoperator_assignment_label', option.label);
 	};
 	const render_suggestions = () => {
-		remove_suggestions_if_detached();
+		if (typeof cleitstand !== 'undefined') cleitstand.closeDialogPickers?.();
+		if (!visible_input.isConnected) {view.destroy();return;}
+		clearTimeout(blur_timer);
+		for (const picker of tabletoperator_pickers) if (picker !== view) picker.close();
+		activate(-1);rows = [];
 		uiu.empty(suggestion_list);
 		const actions = action_options();
 		const clear_actions = actions.filter((option) => option.type === 'clear' && option.assignment_id === '__release_tabletoperators__');
@@ -5010,9 +5419,11 @@ function _render_tabletoperator_assignment_picker(container, options) {
 			.forEach(render_option_row);
 		const needle = _normalize_tabletoperator_suggestion_text(visible_input.value);
 		if (needle.length >= 2) {
-			player_suggestions
+			const available = options.available_participants?.() || (() => true);
+			_tabletoperator_player_suggestions()
 				.filter((participant) => _normalize_tabletoperator_suggestion_text(participant.name).includes(needle))
 				.filter((participant) => !unavailable_participant_keys.has(_tabletoperator_participant_key(participant)))
+				.filter(available)
 				.forEach((participant) => {
 					const btp_id = Number(participant.btp_id);
 					render_option_row({
@@ -5027,133 +5438,51 @@ function _render_tabletoperator_assignment_picker(container, options) {
 				});
 		}
 		clear_actions.forEach(render_option_row);
-		position_suggestions();
 		suggestion_list.style.display = suggestion_list.children.length ? '' : 'none';
+		visible_input.setAttribute('aria-expanded', String(!!rows.length));
+		const first_player = rows.findIndex(row => row.option.type === 'player');
+		activate(first_player >= 0 ? first_player : rows.length ? 0 : -1);
+		position_suggestions();
 	};
 
-	set_selected_icon(current_assignment ? 'current' : 'clear', current_assignment ? _tabletoperator_status_court_number((current_tabletoperators[0] && current_tabletoperators[0].now_tablet_on_court) || options.court_id) : '');
+	set_selected_icon(current_assignment ? 'current' : participant_only ? 'search' : 'clear', current_assignment ? _tabletoperator_status_court_number((current_tabletoperators[0] && current_tabletoperators[0].now_tablet_on_court) || options.court_id) : '');
 	visible_input.addEventListener('input', () => {
-		assignment_input.value = '';
+		if (assignment_input) assignment_input.value = '';
 		replacement_btp_id_input.value = '';
 		replacement_input.value = visible_input.value;
 		uiu.empty(selected_icon);
 		render_suggestions();
-	});
+	}, {signal});
 	visible_input.addEventListener('focus', () => {
 		render_suggestions();
-		window.setTimeout(() => visible_input.select(), 0);
-	});
+		const value = visible_input.value;
+		select_timer = window.setTimeout(() => {if (document.activeElement === visible_input && visible_input.value === value) visible_input.select();}, 0);
+	}, {signal});
+	visible_input.addEventListener('click', () => {if (suggestion_list.style.display === 'none') render_suggestions();}, {signal});
 	visible_input.addEventListener('blur', () => {
-		if (!assignment_input.value && !replacement_input.value && !replacement_btp_id_input.value) {
+		if (!assignment_input?.value && !replacement_input.value && !replacement_btp_id_input.value) {
 			visible_input.value = initial_visible_value;
-			set_selected_icon(current_assignment ? 'current' : 'clear', current_assignment ? _tabletoperator_status_court_number((current_tabletoperators[0] && current_tabletoperators[0].now_tablet_on_court) || options.court_id) : '');
+			set_selected_icon(current_assignment ? 'current' : participant_only ? 'search' : 'clear', current_assignment ? _tabletoperator_status_court_number((current_tabletoperators[0] && current_tabletoperators[0].now_tablet_on_court) || options.court_id) : '');
 		}
-		setTimeout(hide_suggestions, 150);
-	});
-	window.addEventListener('resize', position_suggestions);
-	document.querySelector('.match_edit_dialog')?.addEventListener('scroll', position_suggestions, true);
+		blur_timer = setTimeout(hide_suggestions, 150);
+	}, {signal});
+	visible_input.addEventListener('keydown', event => {
+		const open = suggestion_list.style.display !== 'none';
+		if (event.key === 'Escape' && open) {event.preventDefault();event.stopPropagation();hide_suggestions();return;}
+		if (event.key === 'Enter' && open && rows[active]) {event.preventDefault();event.stopPropagation();select_option(rows[active].option);return;}
+		if (!['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(event.key) || !open && !event.key.startsWith('Arrow')) return;
+		event.preventDefault();event.stopPropagation();
+		if (!open) render_suggestions();
+		if (!rows.length) return;
+		activate(event.key === 'Home' ? 0 : event.key === 'End' ? rows.length - 1 : !open ? event.key === 'ArrowUp' ? rows.length - 1 : 0 : (active + (event.key === 'ArrowUp' ? -1 : 1) + rows.length) % rows.length, true);
+	}, {signal});
+	window.addEventListener('resize', position_suggestions, {signal});
+	document.addEventListener('scroll', position_suggestions, {capture: true, signal});
+	return view;
 }
 
 function render_tabletoperator_player_picker(container, options) {
-	options = options || {};
-	const input_wrap = uiu.el(container, 'span', {
-		style: 'display: inline-block; position: relative;',
-	});
-	const replacement_input = uiu.el(input_wrap, 'input', {
-		type: 'text',
-		class: options.input_class || '',
-		name: options.input_name || 'tabletoperator_player_name',
-		placeholder: options.placeholder || ci18n('tabletoperator:replacement_placeholder'),
-		autocomplete: 'off',
-		style: options.input_style || 'width: 268px;',
-	});
-	const replacement_btp_id_input = uiu.el(input_wrap, 'input', {
-		type: 'hidden',
-		name: options.btp_id_name || 'tabletoperator_player_btp_id',
-		value: '',
-	});
-	const suggestion_list = uiu.el(uiu.qs('body'), 'div', {
-		class: 'tabletoperator_replacement_suggestions',
-		style: 'display: none; position: fixed; width: 360px; max-height: 16em; overflow: auto; background: white; border: 1px solid #999; box-shadow: 0 2px 6px rgba(0,0,0,0.25); z-index: 20000; text-align: left;',
-	});
-	const hide_suggestions = () => {
-		suggestion_list.style.display = 'none';
-	};
-	const remove_suggestions_if_detached = () => {
-		if (!document.body.contains(replacement_input) && suggestion_list.parentNode) {
-			suggestion_list.parentNode.removeChild(suggestion_list);
-		}
-	};
-	const position_suggestions = () => {
-		const input_rect = replacement_input.getBoundingClientRect();
-		const below_space = window.innerHeight - input_rect.bottom;
-		const above_space = input_rect.top;
-		const open_up = below_space < 260 && above_space > below_space;
-		const max_height = Math.max(120, Math.min(260, (open_up ? above_space : below_space) - 20));
-		suggestion_list.style.left = input_rect.left + 'px';
-		suggestion_list.style.top = (open_up ? input_rect.top - max_height : input_rect.bottom) + 'px';
-		suggestion_list.style.maxHeight = max_height + 'px';
-	};
-	const render_suggestions = () => {
-		remove_suggestions_if_detached();
-		uiu.empty(suggestion_list);
-		const needle = _normalize_tabletoperator_suggestion_text(replacement_input.value);
-		if (needle.length < 2) {
-			hide_suggestions();
-			return;
-		}
-		const suggestions = _tabletoperator_player_suggestions();
-		const filtered = suggestions
-			.filter((participant) => _normalize_tabletoperator_suggestion_text(participant.name).includes(needle));
-		if (!filtered.length) {
-			hide_suggestions();
-			return;
-		}
-		filtered.forEach((participant) => {
-			const row = uiu.el(suggestion_list, 'div', {
-				style: 'display: flex; align-items: center; gap: 0.35em; padding: 0.15em 0.35em; cursor: pointer; white-space: nowrap;',
-			});
-			row.addEventListener('mouseover', () => {
-				row.style.backgroundColor = '#eef';
-			});
-			row.addEventListener('mouseout', () => {
-				row.style.backgroundColor = '';
-			});
-			row.addEventListener('mousedown', (ev) => {
-				ev.preventDefault();
-				replacement_input.value = participant.name;
-				const btp_id = Number(participant.btp_id);
-				replacement_btp_id_input.value = Number.isFinite(btp_id) && btp_id !== -1 ? String(btp_id) : '';
-				hide_suggestions();
-			});
-			uiu.el(row, 'span', {
-				style: 'flex: 1; overflow: hidden; text-overflow: ellipsis;',
-			}, participant.name);
-			if (participant.now_playing_on_court) {
-				uiu.el(row, 'div', 'court', _tabletoperator_status_court_number(participant.now_playing_on_court));
-			}
-			if (participant.now_tablet_on_court) {
-				uiu.el(row, 'div', 'tablet_inline', _tabletoperator_status_court_number(participant.now_tablet_on_court));
-			}
-		});
-		position_suggestions();
-		suggestion_list.style.display = '';
-	};
-
-	replacement_input.addEventListener('input', () => {
-		replacement_btp_id_input.value = '';
-		render_suggestions();
-	});
-	replacement_input.addEventListener('focus', render_suggestions);
-	replacement_input.addEventListener('blur', () => {
-		setTimeout(hide_suggestions, 150);
-	});
-	window.addEventListener('resize', position_suggestions);
-	document.querySelector('.match_edit_dialog')?.addEventListener('scroll', position_suggestions, true);
-	return {
-		input: replacement_input,
-		btp_id_input: replacement_btp_id_input,
-	};
+	return _render_tabletoperator_assignment_picker(container, {...options, participant_only: true});
 }
 
 function _tabletoperator_player_suggestions() {
@@ -5167,15 +5496,18 @@ function _tabletoperator_player_suggestions() {
 		if (!name) {
 			return;
 		}
-		const btp_id = Number(participant.btp_id);
-		const key = Number.isFinite(btp_id) && btp_id !== -1 ? 'btp:' + btp_id : 'name:' + name.toLocaleLowerCase();
-		const next_playing_court = status.now_playing_on_court || participant.now_playing_on_court;
-		const next_tablet_court = status.now_tablet_on_court || participant.now_tablet_on_court;
-		const next_match = status.next_match || participant.next_match || null;
+		const key = _tabletoperator_participant_key(participant);
+		// Historical participant snapshots retain old role flags. Only the match
+		// that currently occupies a court can establish a playing/tablet role.
+		const next_playing_court = status.now_playing_on_court || false;
+		const next_tablet_court = status.now_tablet_on_court || false;
+		const next_match = status.next_match || null;
 		const existing = by_key.get(key);
 		if (existing) {
 			existing.now_playing_on_court = existing.now_playing_on_court || next_playing_court;
 			existing.now_tablet_on_court = existing.now_tablet_on_court || next_tablet_court;
+			existing.now_preparing = existing.now_preparing || !!status.now_preparing;
+			existing.preparation_call_timestamp = Math.max(existing.preparation_call_timestamp, status.preparation_call_timestamp || 0);
 			existing.next_match = _tabletoperator_better_next_match(existing.next_match, next_match);
 			return;
 		}
@@ -5183,31 +5515,59 @@ function _tabletoperator_player_suggestions() {
 			name,
 			firstname: participant.firstname,
 			lastname: participant.lastname,
+			state: participant.state,
 			btp_id: participant.btp_id,
 			now_playing_on_court: next_playing_court,
 			now_tablet_on_court: next_tablet_court,
+			now_preparing: !!status.now_preparing,
+			preparation_call_timestamp: status.preparation_call_timestamp || 0,
 			next_match,
 		});
 	};
 	(curt.matches || []).forEach((candidate_match) => {
 		const setup = candidate_match.setup || {};
-		const playing_court = setup.now_on_court && setup.court_id ? setup.court_id : false;
+		const playing_court = !_match_has_finished_result(candidate_match) && setup.now_on_court && setup.court_id ? setup.court_id : false;
+		const preparing = !_match_has_finished_result(candidate_match) && !setup.now_on_court && setup.state === 'preparation' && !setup.preparation_call_deferred;
 		const next_match = _tabletoperator_upcoming_match_info(candidate_match);
 		((candidate_match.setup && candidate_match.setup.teams) || []).forEach((team) => {
 			(team.players || []).forEach((player) => {
 				add_participant(player, {
 					now_playing_on_court: playing_court,
+					now_preparing: preparing,
+					preparation_call_timestamp: preparing ? Number(setup.preparation_call_timestamp) || 0 : 0,
 					next_match,
 				});
 			});
 		});
 		(setup.tabletoperators || []).forEach((participant) => {
 			add_participant(participant, {
-				now_tablet_on_court: participant.now_tablet_on_court || setup.court_id || false,
+				now_tablet_on_court: playing_court,
 			});
 		});
 	});
-	return [...by_key.values()].sort((a, b) => String(a.name).localeCompare(String(b.name)));
+	const compare = new Intl.Collator('de', { numeric: true, sensitivity: 'base' }).compare;
+	const courts = new Map((curt.courts || []).map(court => [String(court._id), court]));
+	const activity_court = person => person.now_playing_on_court || person.now_tablet_on_court;
+	const group = person => activity_court(person) ? 3 : person.now_preparing ? 2 : person.next_match ? 1 : 0;
+	return [...by_key.values()].sort((a, b) => {
+		const category = group(a), difference = category - group(b);
+		if (difference) return difference;
+		if (category === 1) {
+			const left = a.next_match.ts, right = b.next_match.ts;
+			// A missing plan time stays in the scheduled group, behind known times.
+			if (left == null && right != null) return 1;
+			if (right == null && left != null) return -1;
+			if (left !== right) return right - left;
+		} else if (category === 2) {
+			const called = b.preparation_call_timestamp - a.preparation_call_timestamp;
+			if (called) return called;
+		} else if (category === 3) {
+			const left = String(activity_court(a)), right = String(activity_court(b));
+			const field = compare(String(courts.get(left)?.num ?? _tabletoperator_status_court_number(left)), String(courts.get(right)?.num ?? _tabletoperator_status_court_number(right))) || compare(left, right);
+			if (field) return field;
+		}
+		return compare(a.name, b.name) || compare(_tabletoperator_participant_key(a), _tabletoperator_participant_key(b));
+	});
 }
 
 function render_override_colors(outer_container, setup) {
@@ -5289,7 +5649,8 @@ function build_official_select_entries(tournament, is_service_judge, show_all_of
 			entries.push({
 				type: 'option',
 				value: official.name,
-				label: secondary_mode ? with_role_label(official, role) : official.name
+				label: secondary_mode ? with_role_label(official, role) : official.name,
+				role,
 			});
 		}
 	};
@@ -5420,8 +5781,8 @@ function build_official_select_entries(tournament, is_service_judge, show_all_of
 			return cbts_utils.natcmp(a.name || '', b.name || '');
 		});
 	const officials = [
-		...sort_wait_list(primary_wait_field).map((u) => ({ official: u, label: u.name })),
-		...sort_wait_list(secondary_wait_field).map((u) => ({ official: u, label: with_role_label(u, secondary_wait_field === 'umpire_wait' ? 'umpire' : 'service_judge') }))
+		...sort_wait_list(primary_wait_field).map((u) => ({ official: u, label: u.name, role: primary_role })),
+		...sort_wait_list(secondary_wait_field).map((u) => ({ official: u, label: with_role_label(u, secondary_role), role: secondary_role }))
 	];
 	const primary_count = sort_wait_list(primary_wait_field).length;
 	const secondary_label = secondary_wait_field === 'umpire_wait'
@@ -5437,7 +5798,8 @@ function build_official_select_entries(tournament, is_service_judge, show_all_of
 		entries.push({
 			type: 'option',
 			value: entry.official.name,
-			label: entry.label
+			label: entry.label,
+			role: entry.role,
 		});
 	}
 	return entries;
@@ -5474,6 +5836,7 @@ function render_umpire_options(select, curval, is_service_judge, show_all_offici
 		}
 		const attrs = {
 			value: entry.value,
+			'data-official-role': entry.role,
 		};
 		if (disabled_value && entry.value === disabled_value && entry.value !== curval && entry.value !== swap_value) {
 			attrs.disabled = 'disabled';
@@ -5554,7 +5917,10 @@ return {
 	_extract_match_timer_state,
 	_should_hide_admin_match_timer,
 	_active_tabletoperator_court_for_player: active_tabletoperator_court_for_player,
+	_tabletoperator_player_suggestions,
 	render_tabletoperator_player_picker,
+	destroy_tabletoperator_pickers,
+	hide_tabletoperator_pickers,
 	refresh_unassigned_status_context,
 };
 

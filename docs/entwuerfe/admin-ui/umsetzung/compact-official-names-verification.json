@@ -1,0 +1,104 @@
+{
+  "date": "2026-10-31",
+  "checks": [
+    "Wide official columns keep both full names",
+    "The first given name also shortens before the last surname is clipped",
+    "Shared space preserves full hover names and row height",
+    "Unavoidable surname clipping happens after both given names are initials",
+    "Returning to a known width restores fully visible surnames",
+    "A known width reuses the cached abbreviation and person proportions",
+    "Live points retain official labels, name objects and shared widths",
+    "Live points do not measure the same official names again",
+    "Resizing retains shared abbreviation and the same objects",
+    "More space restores both complete names",
+    "Switching to Normal restores independent name groups",
+    "Switching back to compact rebuilds only the fitting cache",
+    "Separate tablet operators share the official name budget before clipping",
+    "Paired tablet operators retain their separator and all four full-name tooltips",
+    "Shared name fitting leaves no probes or browser exceptions"
+  ],
+  "exceptions": 0,
+  "samples": [
+    {
+      "kind": "wide",
+      "labels": [
+        "Bertha Baller",
+        "Maximilian Mustermann"
+      ],
+      "height": 24,
+      "cellWidth": 500,
+      "people": [
+        {
+          "label": "Bertha Baller",
+          "full": "Bertha Baller",
+          "width": 167.953125,
+          "textWidth": 75.15625,
+          "fits": true,
+          "title": ""
+        },
+        {
+          "label": "Maximilian Mustermann",
+          "full": "Maximilian Mustermann",
+          "width": 276.03125,
+          "textWidth": 137.265625,
+          "fits": true,
+          "title": ""
+        }
+      ]
+    },
+    {
+      "kind": "narrow",
+      "labels": [
+        "B. Baller",
+        "M. Mustermann"
+      ],
+      "height": 24,
+      "cellWidth": 220,
+      "people": [
+        {
+          "label": "B. Baller",
+          "full": "Bertha Baller",
+          "width": 61.359375,
+          "textWidth": 49.140625,
+          "fits": true,
+          "title": "Bertha Baller"
+        },
+        {
+          "label": "M. Mustermann",
+          "full": "Maximilian Mustermann",
+          "width": 102.625,
+          "textWidth": 90.3125,
+          "fits": true,
+          "title": "Maximilian Mustermann"
+        }
+      ]
+    },
+    {
+      "kind": "too narrow",
+      "labels": [
+        "B. Baller",
+        "M. Mustermann"
+      ],
+      "height": 24,
+      "cellWidth": 150,
+      "people": [
+        {
+          "label": "B. Baller",
+          "full": "Bertha Baller",
+          "width": 33.296875,
+          "textWidth": 49.140625,
+          "fits": false,
+          "title": "Bertha Baller"
+        },
+        {
+          "label": "M. Mustermann",
+          "full": "Maximilian Mustermann",
+          "width": 60.6875,
+          "textWidth": 90.3125,
+          "fits": false,
+          "title": "Maximilian Mustermann"
+        }
+      ]
+    }
+  ]
+}

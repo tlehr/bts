@@ -38,6 +38,18 @@ function harness() {
 }
 
 describe('live tournament match ordering', function() {
+	it('clears completion timestamps from an authoritative reopened snapshot without replacing the match object', function() {
+		const h = harness(), match = h.matches[0];
+		Object.assign(match, {end_ts: 1234, duration_ms: 7890, btp_winner: 1, team1_won: true});match.setup.state = 'finished';
+		const reopened = structuredClone(match);
+		for (const key of ['end_ts', 'duration_ms', 'btp_winner', 'team1_won']) delete reopened[key];
+		reopened.setup.state = 'scheduled';reopened.setup.preparation_call_deferred = true;
+		h.update({val: {match__id: match._id, match: reopened}});
+		assert.strictEqual(h.matches[0], match);
+		assert.strictEqual(match.end_ts, undefined);assert.strictEqual(match.duration_ms, undefined);
+		assert.strictEqual(match.btp_winner, undefined);assert.strictEqual(match.team1_won, undefined);
+		assert.strictEqual(match.setup.state, 'scheduled');
+	});
 	it('keeps device acknowledgement traffic out of document searches while the device table is unmounted', function() {
 		const h = harness();
 		h.context.document.querySelectorAll = () => assert.fail('No device table lookup is needed without a mounted device table');
@@ -94,6 +106,59 @@ describe('live tournament match ordering', function() {
         assert.strictEqual(h.calls.players.length, 0);
         h.update({ val: { match__id: match._id, match: structuredClone(incoming) } });
         assert.strictEqual(h.calls.score.length, 1, 'an identical follow-up is a no-op');
+    });
+
+    for (const count of [1, 2]) {
+        it('patches check-in and check-out for '+(count===1?'singles':'doubles')+' without rebuilding the row or its actions', function() {
+            const h = harness(), match = h.matches[0];
+            match.setup.teams = [0, 1].map(team => ({name: 'Team '+team, players: Array.from({length: count}, (_, index) =>
+                ({btp_id: team*2+index+1, name: 'Player '+team+' '+index, checked_in: false}))}));
+            for (const checked_in of [true, false]) {
+                const previous_setup = match.setup, incoming = structuredClone(match);
+                incoming.setup.teams[0].players[0].checked_in = checked_in;
+                h.update({val: {match__id: match._id, match: incoming}});
+                assert.strictEqual(match.setup.teams[0].players[0].checked_in, checked_in);
+                assert.strictEqual(h.calls.players.at(-1)[0], match);
+                assert.strictEqual(h.calls.players.at(-1)[1].previous_setup, previous_setup);
+                assert.strictEqual(h.calls.update.length, 0);
+                assert.strictEqual(h.calls.score.length, 0);
+                assert.strictEqual(h.calls.metadata.length, 0);
+                assert.strictEqual(h.calls.reorder.length, 0);
+                const calls = h.calls.players.length;
+                h.update({val: {match__id: match._id, match: structuredClone(incoming)}});
+                assert.strictEqual(h.calls.players.length, calls, 'Repeated check-in snapshots must be a no-op');
+            }
+        });
+    }
+
+    it('combines a check-in with metadata and score changes without rebuilding the row', function() {
+        const h = harness(), match = h.matches[0];
+        match.setup.teams = [{players: [{btp_id: 1, checked_in: false}]}, {players: [{btp_id: 2}]}];
+        const incoming = structuredClone(match);
+        incoming.setup.teams[0].players[0].checked_in = true;
+        incoming.setup.match_name = 'Finale';incoming.network_score = [[5, 6]];
+        h.update({val: {match__id: match._id, match: incoming}});
+        assert.strictEqual(h.calls.players.length, 1);
+        assert.deepStrictEqual(h.calls.metadata, [[match, ['match_name']]]);
+        assert.deepStrictEqual(h.calls.score, [[match]]);
+        assert.strictEqual(h.calls.update.length, 0);
+    });
+
+    it('retains structural updates for participant changes beyond check-in', function() {
+        for (const change of [
+            teams => {teams[0].players[0].btp_id = 99;},
+            teams => {teams[0].players[0].name = 'New name';},
+            teams => {teams[0].players[0].now_playing_on_court = 'court';},
+            teams => {teams[0].players.push({btp_id: 3});},
+            teams => {teams[0].name = 'New team';},
+            teams => {teams.reverse();},
+        ]) {
+            const h = harness(), match = h.matches[0];
+            match.setup.teams = [{players: [{btp_id: 1, name: 'One'}]}, {players: [{btp_id: 2, name: 'Two'}]}];
+            const incoming = structuredClone(match);change(incoming.setup.teams);
+            h.update({val: {match__id: match._id, match: incoming}});
+            assert.deepStrictEqual(h.calls.update, [[match, 'unassigned', 'unassigned']]);
+        }
     });
 
     it('keeps the existing setup and player nodes untouched for identical player status messages', function() {

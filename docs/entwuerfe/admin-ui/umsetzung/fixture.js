@@ -39,13 +39,14 @@
  const displaysettings=[{id:'tablet-profile',devicemode:'umpire',tablet_mode:'umpire'},{id:'display-profile',devicemode:'display'}];
  const fixture={key,name:'Jugend-Rangliste 2026',language:'de',btp_enabled:false,btp_settings:{check_in_per_match:true,pause_duration_ms:120000},automation_enabled:true,call_preparation_matches_automatically_enabled:true,call_next_possible_scheduled_match_in_preparation:true,tabletoperator_enabled:true,tabletoperator_split_doubles:false,official_rotation_mode:'umpire_and_service_judge',locations,courts,matches,umpires,displays,displaysettings,events:{events:[]},normalizations:[],scoring_formats:[],tabletoperators:[{_id:'tablet-1',tabletoperator:team(6).players,played_on_court:'CH_13',start_ts:1},{_id:'tablet-2',tabletoperator:team(14).players,played_on_court:'CH_4',start_ts:2}],status:{status:'connected',message:''},btp_status:{status:'deactivated',message:''},ticker_status:{status:'deactivated',message:''}};
  window.__writes=[];
+ window.__protocolEvents=[];window.__protocolRequests=0;
  window.__speechFixture={status:'completed',settings:{enabled:true,key,mode:'auto',voice:'hallensprecherin',language:'de-DE',audio_ready:true,max_text:1200}};
  window.__localAnnouncements=[];window.__speechPrepared=[];
  window.btsSpeechService={
   settings:()=>({...window.__speechFixture.settings}),ensureAudio:async()=>{},
   prepare:async parts=>{window.__speechPrepared.push([...parts]);},
   inspect:async parts=>({speech:{enabled:true,cache_version:'fixture'},clips:parts.map(()=>({status:window.__speechFixture.status,local:true}))}),
-  speak:async(parts,_id,_browser,_localParts,_pauses,_plan,speechMode)=>{window.__localAnnouncements.push({parts:[...parts],speechMode});return{status:'ok',provider:speechMode==='browser'?'browser':'server',started:true};},
+  speak:async(parts,_id,_browser,_localParts,_pauses,_plan,speechMode)=>{window.__localAnnouncements.push({parts:[...parts],speechMode});if(window.__speechPlaybackGate)await new Promise(resolve=>{window.__releaseSpeechPlayback=resolve;});return{status:'ok',provider:speechMode==='browser'?'browser':'server',started:true,...window.__speechPlaybackResult};},
   describeResult:()=> 'Serveraudio bereit',outputMessage:()=> 'Serveraudio bereit · Queue leer',
  };
  window.btsSpeechReadiness=createSpeechReadiness({
@@ -55,6 +56,13 @@
  });
  window.btsSpeechReadiness.trackMatch=()=>{};
  window.send=(message,callback)=>{
+  if(message.type==='match_protocol_get') {
+   window.__protocolRequests++;
+   const events=structuredClone(window.__protocolEvents.filter(event=>event.match_id===message.match_id));
+   const respond=()=>callback?.(null,{tournament_key:message.tournament_key,match_id:message.match_id,events});
+   if(window.__holdProtocolResponse)window.__heldProtocolResponse=respond;else setTimeout(respond,0);
+   return;
+  }
   if(message.type==='tournament_get')return setTimeout(()=>callback?.(null,{tournament:structuredClone(fixture)}),0);
   if(message.type==='preparation_selection_get')return setTimeout(()=>callback?.(null,{selections:[{location_id:'CH',demand_court_ids:['CH_4','CH_5','CH_7','CH_13'],current_preparation_count:2,required_preparation_count:4,missing_preparation_count:2,diagnostics_by_match_id:{},call_on_court_diagnostics_by_match_id:{}}]}),0);
   window.__writes.push(structuredClone(message));if(callback)setTimeout(()=>callback(null,{}),0);

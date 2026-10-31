@@ -493,6 +493,41 @@ _describe('cmatch', () => {
 		assert.strictEqual(cmatch.test_timeouts.length, count);
 	});
 
+	for (const assignment of [{location_id: 'hall'}, {court_id: 'court'}]) {
+		_it('keeps the current '+Object.keys(assignment)[0]+' authoritative over stale preparation diagnostics', () => {
+			const match = {_id: 'match', setup: {state: 'preparation', is_match: true, ...assignment,
+				teams: [{players: [{btp_id: 1}]}, {players: [{btp_id: 2}]}]}};
+			const tournament = {matches: [match], courts: [{_id: 'court', location_id: 'hall'}],
+				location_preparation_selection_by_location_id: {
+					hall: {diagnostics_by_match_id: {match: {manual_eligible: true}}},
+					other: {diagnostics_by_match_id: {match: {manual_eligible: true}}},
+				}};
+			const cmatch = loadCmatchForUpdateCourtTest(createFakeElement('tr'), tournament);
+			for (const checked_in of [false, true, false]) {
+				match.setup.teams[0].players[0].checked_in = checked_in;
+				assert.strictEqual(cmatch._is_manual_preparation_call_allowed_for_location(match, {_id: 'hall'}), true);
+				assert.strictEqual(cmatch._is_manual_preparation_call_allowed_for_location(match, {_id: 'other'}), false);
+			}
+			delete tournament.location_preparation_selection_by_location_id;
+			assert.strictEqual(cmatch._is_manual_preparation_call_allowed_for_location(match, {_id: 'other'}), false);
+		});
+	}
+
+	_it('keeps all locations available for unassigned games and respects a diagnostic denial for the assigned location', () => {
+		const match = {_id: 'match', setup: {state: 'scheduled', is_match: true,
+			teams: [{players: [{btp_id: 1}]}, {players: [{btp_id: 2}]}]}};
+		const tournament = {matches: [match], courts: [], location_preparation_selection_by_location_id: {
+			hall: {diagnostics_by_match_id: {match: {manual_eligible: true}}},
+			other: {diagnostics_by_match_id: {match: {manual_eligible: true}}},
+		}};
+		const cmatch = loadCmatchForUpdateCourtTest(createFakeElement('tr'), tournament);
+		for (const id of ['hall', 'other']) assert.strictEqual(cmatch._is_manual_preparation_call_allowed_for_location(match, {_id: id}), true);
+		match.setup.location_id = 'hall';
+		tournament.location_preparation_selection_by_location_id.hall.diagnostics_by_match_id.match.manual_eligible = false;
+		assert.strictEqual(cmatch._is_manual_preparation_call_allowed_for_location(match, {_id: 'hall'}), false);
+		assert.strictEqual(cmatch._is_manual_preparation_call_allowed_for_location(match, {_id: 'other'}), false);
+	});
+
 	_it('allows manual preparation calls for deferred matches with tablet operators', () => {
 		const cmatch = loadCmatchForUpdateCourtTest(createFakeElement('tr'), {
 			matches: [],
@@ -558,6 +593,130 @@ _describe('cmatch', () => {
 			cmatch._active_tabletoperator_court_for_player({ btp_id: 7 }),
 			'default_3'
 		);
+	});
+
+	_it('never presents historical playing or tablet assignments as current suggestion roles', () => {
+		for (const terminal of [
+			{ setup: { state: 'finished' } }, { team1_won: true }, { team1_won: false },
+			{ btp_winner: 1 }, { end_ts: 123 }, { setup: { end_ts: 123 } }, { score_status: 'walkover' },
+		]) {
+			for (const reverse of [false, true]) {
+				const person = { btp_id: 300, name: 'Karl Maximilian Weyand', now_tablet_on_court: 'court_1', now_playing_on_court: 'court_2' };
+				const old = { ...terminal, _id: 'old', setup: { now_on_court: true, court_id: 'court_1',
+					teams: [{ players: [person] }], tabletoperators: [person], ...terminal.setup } };
+				const preparation = { _id: 'preparation', setup: { state: 'preparation', match_num: 230,
+					scheduled_date: '2026-10-30', scheduled_time_str: '18:00', teams: [{ players: [person] }] } };
+				const cmatch = loadCmatchForUpdateCourtTest(createFakeElement('tr'), { matches: reverse ? [preparation, old] : [old, preparation] });
+				const suggestions = cmatch._tabletoperator_player_suggestions();
+				assert.strictEqual(suggestions.length, 1);
+				assert.strictEqual(suggestions[0].now_tablet_on_court, false);
+				assert.strictEqual(suggestions[0].now_playing_on_court, false);
+				assert.strictEqual(suggestions[0].now_preparing, true);
+				assert.strictEqual(suggestions[0].next_match.label, '18:00 #230');
+			}
+		}
+	});
+
+	_it('uses actual court occupants for suggestions and distinguishes preparation from a planned tablet assignment', () => {
+		const person = (btp_id, name) => ({ btp_id, name, now_tablet_on_court: 'obsolete_99', now_playing_on_court: 'obsolete_99' });
+		const playing = person(1, 'Playing'), tablet = person(2, 'Tablet'), preparing = person(3, 'Preparing'), planned = person(4, 'Planned tablet');
+		const cmatch = loadCmatchForUpdateCourtTest(createFakeElement('tr'), { matches: [
+			{ setup: { now_on_court: true, court_id: 'court_6', teams: [{ players: [playing] }], tabletoperators: [tablet] } },
+			{ setup: { state: 'preparation', court_id: 'court_7', teams: [{ players: [preparing] }], tabletoperators: [planned] } },
+		] });
+		const suggestions = cmatch._tabletoperator_player_suggestions(), get = id => suggestions.find(person => person.btp_id === id);
+		assert.strictEqual(get(1).now_playing_on_court, 'court_6');assert.strictEqual(get(1).now_tablet_on_court, false);
+		assert.strictEqual(get(2).now_tablet_on_court, 'court_6');assert.strictEqual(get(2).now_playing_on_court, false);
+		assert.strictEqual(get(3).now_preparing, true);assert.strictEqual(get(3).now_tablet_on_court, false);
+		assert.strictEqual(get(4).now_preparing, false);assert.strictEqual(get(4).now_tablet_on_court, false);
+	});
+
+	_it('refreshes suggestion roles after withdrawal, court call and match completion without reloading the dialog', () => {
+		const setup = { state: 'preparation', teams: [{ players: [{ btp_id: 1, name: 'Player' }] }], tabletoperators: [{ btp_id: 2, name: 'Tablet' }] };
+		const match = { setup }, cmatch = loadCmatchForUpdateCourtTest(createFakeElement('tr'), { matches: [match] });
+		const get = id => cmatch._tabletoperator_player_suggestions().find(person => person.btp_id === id);
+		assert.strictEqual(get(1).now_preparing, true);
+		setup.preparation_call_deferred = true;assert.strictEqual(get(1).now_preparing, false);
+		Object.assign(setup, { state: 'oncourt', now_on_court: true, court_id: 'court_9' });
+		assert.strictEqual(get(1).now_playing_on_court, 'court_9');assert.strictEqual(get(1).now_preparing, false);
+		assert.strictEqual(get(2).now_tablet_on_court, 'court_9');
+		match.team1_won = false;
+		assert.strictEqual(get(1).now_playing_on_court, false);assert.strictEqual(get(2).now_tablet_on_court, false);
+		assert.strictEqual(get(1).next_match, null);
+	});
+
+	_it('merges anonymous suggestion names consistently while retaining separate people with their own IDs', () => {
+		const cmatch = loadCmatchForUpdateCourtTest(createFakeElement('tr'), { matches: [
+			{ setup: { state: 'finished', teams: [{ players: [{ btp_id: -1, name: 'Max Guest', now_tablet_on_court: 'old_1' }] }] } },
+			{ setup: { state: 'preparation', teams: [{ players: [{ btp_id: -1, name: 'max guest' }, { btp_id: 7, name: 'Max Guest' }] }] } },
+		] });
+		const suggestions = cmatch._tabletoperator_player_suggestions();
+		assert.strictEqual(suggestions.length, 2);
+		assert(suggestions.every(person => person.now_preparing && !person.now_tablet_on_court));
+	});
+
+	_it('orders free, scheduled, prepared and occupied participants, using real field numbers for players and tablet operators', () => {
+		const person = (btp_id, name) => ({ btp_id, name });
+		const free = person(1, 'Zulu Free'), scheduled = person(2, 'Alpha Scheduled'), prepared = person(3, 'Bravo Prepared');
+		const playing = person(4, 'Charlie Playing'), tablet = person(5, 'Delta Tablet');
+		const cmatch = loadCmatchForUpdateCourtTest(createFakeElement('tr'), { courts: [{ _id: 'aaa', num: '10' }, { _id: 'zzz', num: '2' }], matches: [
+			{ setup: { now_on_court: true, court_id: 'aaa', teams: [{ players: [playing] }] } },
+			{ setup: { now_on_court: true, court_id: 'zzz', teams: [], tabletoperators: [tablet] } },
+			{ setup: { state: 'preparation', preparation_call_timestamp: 9999, teams: [{ players: [tablet] }] } },
+			{ setup: { state: 'preparation', preparation_call_timestamp: 1000, teams: [{ players: [prepared] }] } },
+			{ setup: { state: 'scheduled', scheduled_date: '2026-10-31', scheduled_time_str: '20:00', teams: [{ players: [scheduled] }] } },
+			{ setup: { state: 'finished', teams: [{ players: [free] }] } },
+		] });
+		assert.deepStrictEqual(Array.from(cmatch._tabletoperator_player_suggestions(), person => person.btp_id), [1, 2, 3, 5, 4]);
+	});
+
+	_it('ranks the longest time to the actual next game first, including dates and multiple upcoming games', () => {
+		const planned = (btp_id, date, time) => ({ setup: { state: 'scheduled', scheduled_date: date, scheduled_time_str: time,
+			teams: [{ players: [{ btp_id, name: 'Player ' + btp_id }] }] } });
+		const cmatch = loadCmatchForUpdateCourtTest(createFakeElement('tr'), { matches: [
+			planned(1, '2026-10-31', '09:00'), planned(2, '2026-10-30', '21:00'),
+			planned(3, '2026-10-31', '20:00'), planned(3, '2026-10-30', '19:00'), planned(4, '2026-10-31', '10:00'),
+		] });
+		const suggestions = cmatch._tabletoperator_player_suggestions();
+		assert.deepStrictEqual(Array.from(suggestions, person => person.btp_id), [4, 1, 2, 3]);
+		assert.strictEqual(suggestions[3].next_match.label, '19:00');
+	});
+
+	_it('ranks preparation by the latest actual call rather than planned time, with deterministic name ties', () => {
+		const preparation = (btp_id, name, call, time) => ({ setup: { state: 'preparation', preparation_call_timestamp: call,
+			scheduled_date: '2026-10-30', scheduled_time_str: time, teams: [{ players: [{ btp_id, name }] }] } });
+		const matches = [preparation(1, 'Latest', 100, '18:00'), preparation(2, 'Alpha', 200, '19:00'),
+			preparation(3, 'Zulu', 200, '20:00'), preparation(4, 'Unknown call time', undefined, '21:00'), preparation(1, 'Latest', 300, '18:00')];
+		for (const rows of [matches, [...matches].reverse()]) {
+			const cmatch = loadCmatchForUpdateCourtTest(createFakeElement('tr'), { matches: rows });
+			assert.deepStrictEqual(Array.from(cmatch._tabletoperator_player_suggestions(), person => person.btp_id), [1, 2, 3, 4]);
+		}
+	});
+
+	_it('keeps scheduled participants with missing plan times out of the free group and alphabetises equal ranks', () => {
+		const match = (name, setup) => ({ setup: { ...setup, teams: [{ players: [{ name }] }] } });
+		const cmatch = loadCmatchForUpdateCourtTest(createFakeElement('tr'), { matches: [
+			match('Zulu Unknown', { state: 'scheduled' }), match('Alpha Unknown', { state: 'scheduled', match_num: 7 }),
+			match('Zulu Free', { state: 'finished' }), match('Alpha Free', { state: 'finished' }),
+			match('Prepared', { state: 'preparation', preparation_call_timestamp: 10 }),
+			match('Known', { state: 'scheduled', scheduled_date: '2026-10-30', scheduled_time_str: '18:00' }),
+		] });
+		assert.deepStrictEqual(Array.from(cmatch._tabletoperator_player_suggestions(), person => person.name),
+			['Alpha Free', 'Zulu Free', 'Known', 'Alpha Unknown', 'Zulu Unknown', 'Prepared']);
+	});
+
+	_it('reorders an existing tournament after plan, preparation call and field changes', () => {
+		const a = { state: 'scheduled', scheduled_date: '2026-10-30', scheduled_time_str: '19:00', teams: [{ players: [{ btp_id: 1, name: 'Alpha' }] }] };
+		const z = { state: 'scheduled', scheduled_date: '2026-10-31', scheduled_time_str: '10:00', teams: [{ players: [{ btp_id: 2, name: 'Zulu' }] }] };
+		const cmatch = loadCmatchForUpdateCourtTest(createFakeElement('tr'), { matches: [{ setup: a }, { setup: z }] });
+		const order = () => Array.from(cmatch._tabletoperator_player_suggestions(), person => person.btp_id);
+		assert.deepStrictEqual(order(), [2, 1]);
+		Object.assign(a, { scheduled_date: '2026-10-31', scheduled_time_str: '20:00' });assert.deepStrictEqual(order(), [1, 2]);
+		Object.assign(a, { state: 'preparation', preparation_call_timestamp: 300 });assert.deepStrictEqual(order(), [2, 1]);
+		Object.assign(z, { state: 'preparation', preparation_call_timestamp: 200 });assert.deepStrictEqual(order(), [1, 2]);
+		z.preparation_call_timestamp = 400;assert.deepStrictEqual(order(), [2, 1]);
+		Object.assign(a, { now_on_court: true, court_id: 'court_2' });Object.assign(z, { now_on_court: true, court_id: 'court_10' });
+		assert.deepStrictEqual(order(), [1, 2]);
 	});
 
 	_it('marks preparation callable only when the automatic call window is eligible', () => {

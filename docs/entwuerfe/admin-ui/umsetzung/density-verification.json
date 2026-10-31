@@ -1,0 +1,21 @@
+{
+  "date": "2026-10-31",
+  "checks": [
+    "Normal is the default and replaces the old compact label",
+    "The next stage is Komfort with the existing larger row sizes",
+    "The third stage Kompakt uses its own smaller row sizes",
+    "The control identifies the current stage and the next choice",
+    "A full cycle returns to Normal without replacing games, players or name objects",
+    "Normal remains available on a narrow screen",
+    "Kompakt also reduces row heights on mobile",
+    "The new compact choice survives a page reload",
+    "The legacy compact preference becomes Normal",
+    "The legacy comfort preference becomes Komfort",
+    "A new preference takes precedence over the old comfort preference",
+    "An invalid saved stage falls back to the migrated Normal preference",
+    "A blocked storage write retains a usable stage throughout a view rebuild",
+    "Density switching and legacy migration produce no browser exceptions"
+  ],
+  "exceptions": 0,
+  "scope": "Isolated frontend: three density levels, compact dimensions, DOM retention and browser preference migration."
+}

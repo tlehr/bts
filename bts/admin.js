@@ -21,6 +21,7 @@ const utils = require('./utils');
 const match_automation = require('./match_automation');
 const debug_flags = require('./debug_flags');
 const displaysettings_defaults = require('./displaysettings_defaults');
+const tabletoperator_waiting = require('../static/js/tabletoperator_waiting');
 
 const TABLETOPERATOR_RELEASE_SELECTION = '__release_tabletoperators__';
 const TABLETOPERATOR_RELEASE_PARTICIPANT_PREFIX = '__release_tabletoperator__:';
@@ -127,6 +128,14 @@ function handle_confirm_match_finished(app, ws, msg) {
 		.catch((err) => {
 			ws.respond(msg, err);
 		});
+}
+
+async function handle_match_reopen(app, ws, msg) {
+	if (!_require_msg(ws, msg, ['tournament_key', 'match_id'])) return;
+	try {
+		const match = await require('./match_reopen')(app, msg.tournament_key, msg.match_id);
+		ws.respond(msg, null, {match});
+	} catch (err) { ws.respond(msg, err); }
 }
 
 function handle_tournament_edit_props(app, ws, msg) {
@@ -1399,90 +1408,53 @@ function handle_tabletoperator_remove(app, ws, msg) {
 }
 
 function handle_tabletoperator_add(app, ws, msg) {
-	if (!msg.tournament_key) {
-		return ws.respond(msg, { message: 'Missing tournament_key' });
-	}
+	if (!msg.tournament_key) return ws.respond(msg, { message: 'Missing tournament_key' });
 	const tournament_key = msg.tournament_key;
-	app.db.tournaments.findOne({ key: tournament_key }, async (err, tournament) => {
-		if (err) {
-			return ws.respond(err);
-		}
-
-		var team = null;
-		if (msg.match) {
-			const team_id = msg.team_id;
-			const match = msg.match
-			team = match.setup.teams[team_id];
-		} else if (msg.tabletoperator_name) {
-			let tabletoperator_participant = null;
-			try {
-				tabletoperator_participant = await new Promise((resolve, reject) => {
-					_find_tabletoperator_replacement_participant(app, tournament_key, msg.tabletoperator_name, msg.tabletoperator_btp_id, (find_err, participant) => {
-						if (find_err) {
-							return reject(find_err);
-						}
-						return resolve(participant);
-					});
+	// Check and insert under the same resource lock, including requests from
+	// different browsers. Court assignments use this lock as well.
+	return update_queue.execute_locked([update_queue.lock_keys.tabletoperators(tournament_key)],
+		update_queue.named('handle_tabletoperator_add', async () => {
+			const tournament = await promisify(app.db.tournaments.findOne.bind(app.db.tournaments))({ key: tournament_key });
+			if (!tournament) throw new Error('Tournament not found');
+			let players = msg.match?.setup?.teams?.[msg.team_id]?.players;
+			if (!players && msg.tabletoperator_name) {
+				const player = await new Promise((resolve, reject) => {
+					_find_tabletoperator_replacement_participant(app, tournament_key, msg.tabletoperator_name,
+						msg.tabletoperator_btp_id, (error, participant) => error ? reject(error) : resolve(participant));
 				});
-			} catch (find_err) {
-				return ws.respond(msg, find_err);
+				players = [{
+					asian_name: !!player?.asian_name,
+					name: _tabletoperator_display_name(player) || msg.tabletoperator_name,
+					firstname: player?.firstname || '', lastname: player?.lastname || '',
+					btp_id: tabletoperator_waiting.id(player) ?? -1, state: player?.state || null,
+				}];
 			}
-			const participant_name = _tabletoperator_display_name(tabletoperator_participant) || msg.tabletoperator_name;
-			const participant_btp_id = Number(tabletoperator_participant?.btp_id);
-			team = {
-				"players": [
-					{
-						"asian_name": !!tabletoperator_participant?.asian_name,
-						"name": participant_name,
-						"firstname": tabletoperator_participant?.firstname || "",
-						"lastname": tabletoperator_participant?.lastname || "",
-						"btp_id": Number.isFinite(participant_btp_id) ? participant_btp_id : -1,
-						"state": tabletoperator_participant?.state || null
-					}
-				],
-				"name": "N/N"
-			};
-
-		}
-		if (team != null) {
-			try {
-				await require('./match_reconciliation/tablet_queue').assert_available(app, tournament_key, team.players);
-			} catch (activity_error) { return ws.respond(msg, activity_error); }
-			team.players.forEach((player) => {
-				var tabletoperator = [];
-				if (tournament.tabletoperator_with_state_enabled && player.state) {
-					tabletoperator.push({
-						"asian_name": false,
-						"name": player.state,
-						"firstname": "",
-						"lastname": "",
-						"btp_id": -1
-					});
-				} else { 
-					tabletoperator.push(player);
-				}
-				const new_tabletoperator = {
-					tournament_key,
-					tabletoperator,
-					'match_id': 'manually_added',
-					'start_ts': now_ms(app),
-					'end_ts': null,
-					'court': null,
-					'played_on_court': null
-				};
-				app.db.tabletoperators.insert(new_tabletoperator, function (err, inserted_tabletoperator) {
-					if (err) {
-						ws.respond(msg, err);
-						return;
-					}
-					notify_change(app, tournament_key, 'tabletoperator_add', { tabletoperator: inserted_tabletoperator });
-					trigger_auto_call_after_readiness_change(app, tournament_key);
+			if (!players?.length) throw new Error('Not enough information to add a tablet operator to the list');
+			// This restriction applies to manual additions only. The finish path
+			// must enqueue the losing team even before old court flags are cleared.
+			const matches = await require('./preparation_selection/model_reads').read(app, tournament_key, 'matches', true);
+			const activity = tabletoperator_waiting.activity_index(matches);
+			if (players.some(player => activity.playing.has(player))) throw new Error('Player is already playing or operating a tablet on a court');
+			if (players.some(player => activity.preparing.has(player))) throw new Error('Player is already called in preparation');
+			const entries = await promisify(app.db.tabletoperators.find.bind(app.db.tabletoperators))({ tournament_key, court: null });
+			const waiting = tabletoperator_waiting.index(entries, tournament.tabletoperator_with_state_enabled);
+			const additions = [];
+			for (const player of players) {
+				if (waiting.has(player)) continue;
+				const participant = tabletoperator_waiting.participant(player, tournament.tabletoperator_with_state_enabled);
+				waiting.add(participant);
+				additions.push({
+					tournament_key, tabletoperator: [participant], match_id: 'manually_added',
+					start_ts: now_ms(app), end_ts: null, court: null, played_on_court: null,
 				});
-			});
-		} else {
-			return ws.respond(msg, { message: 'Not enough Information to add a tabletoperator to list' });
-		}
-	});
+			}
+			if (!additions.length) throw new Error('This person is already on the waiting list');
+			return promisify(app.db.tabletoperators.insert.bind(app.db.tabletoperators))(additions);
+		})).then(inserted => {
+		for (const tabletoperator of inserted) notify_change(app, tournament_key, 'tabletoperator_add', { tabletoperator });
+		trigger_auto_call_after_readiness_change(app, tournament_key);
+		ws.respond(msg);
+	}, error => ws.respond(msg, error));
 }
 
 function _clone_match_tabletoperators(tabletoperators) {
@@ -1567,8 +1539,8 @@ function _parse_tabletoperator_replacement_name(value, btp_id_value) {
 	if (!raw) {
 		return null;
 	}
-	const provided_btp_id = Number(btp_id_value);
-	if (Number.isFinite(provided_btp_id) && provided_btp_id !== -1) {
+	const provided_btp_id = tabletoperator_waiting.id({ btp_id: btp_id_value });
+	if (provided_btp_id != null) {
 		return {
 			name: raw,
 			btp_id: provided_btp_id,
@@ -2597,6 +2569,13 @@ function notify_cascaded_no_match_announcements(app, tournament_key, tournament,
 }
 
 function handle_match_edit(app, ws, msg) {
+	if (!_require_msg(ws, msg, ['tournament_key', 'id', 'match', 'old_court'])) return;
+	update_queue.execute_locked([update_queue.lock_keys.match(msg.tournament_key, msg.id)], () =>
+		new Promise((resolve, reject) => process_match_edit(app, {respond: (_msg, err, response) => err ? reject(err) : resolve(response)}, msg)))
+		.then(response => ws.respond(msg, null, response), err => ws.respond(msg, err));
+}
+
+function process_match_edit(app, ws, msg) {
 	const match_utils = require('./match_utils');
 	
 	if (!_require_msg(ws, msg, ['tournament_key', 'id', 'match', 'old_court'])) {
@@ -2615,7 +2594,7 @@ function handle_match_edit(app, ws, msg) {
 			return ws.respond(msg, err);
 		}
 
-		app.db.matches.findOne({_id: msg.id, tournament_key}, function(old_err, old_match) {
+		app.db.matches.findOne({_id: msg.id, tournament_key}, async function(old_err, old_match) {
 			if (old_err) {
 				ws.respond(msg, old_err);
 				return;
@@ -2626,6 +2605,20 @@ function handle_match_edit(app, ws, msg) {
 			}
 
 			const old_setup = old_match.setup || {};
+			try {
+				await require('./match_edit_place')(app, tournament_key, old_match, msg.match, msg);
+			} catch (place_error) { return ws.respond(msg, place_error); }
+			if (require('../static/js/match_edit_rules').finished(old_match)) {
+				const update = setup.override_colors == null ? {$unset: {'setup.override_colors': true}}
+					: {$set: {'setup.override_colors': setup.override_colors}};
+				return app.db.matches.update({_id: msg.id, tournament_key}, update, {returnUpdatedDocs: true}, (save_err, count, saved) => {
+					if (save_err) return ws.respond(msg, save_err);
+					if (count !== 1) return ws.respond(msg, new Error('Spiel nicht gefunden.'));
+					notify_change(app, tournament_key, 'match_edit', {match__id: msg.id, match: saved});
+					if (msg.btp_update) btp_manager.update_score(app, saved);
+					ws.respond(msg);
+				});
+			}
 			require('./match_entry_status').preserve(old_match, msg.match);
 			const is_no_match_result = normalize_match_score_status(msg.match.score_status) === 'no_match' &&
 				(setup.state === 'finished' || setup.now_on_court !== true);
@@ -2734,8 +2727,14 @@ function handle_match_edit(app, ws, msg) {
 					});
 				}
 
-				if (!will_be_on_court && was_called && !is_no_match_result) {
+				if (!will_be_on_court && old_setup.now_on_court === true && !is_no_match_result) {
+					const preparation_setup = will_be_in_preparation ? {...setup} : null;
+					if (preparation_setup) delete preparation_setup.called_timestamp;
 					return match_utils.uncall_match(app, tournament, msg.match, msg.old_court, (uncall_err) => {
+						if (!uncall_err && preparation_setup) {
+							return match_utils.call_match_in_preparation(app, tournament, msg.match, preparation_setup.location_id,
+								preparation_err => ws.respond(msg, preparation_err), {force: true, edited_setup: preparation_setup});
+						}
 						ws.respond(msg, uncall_err);
 					});
 				}
@@ -2743,7 +2742,7 @@ function handle_match_edit(app, ws, msg) {
 				if (will_be_in_preparation && !was_in_same_preparation) {
 					return match_utils.call_match_in_preparation(app, tournament, msg.match, setup.location_id, (preparation_err) => {
 						ws.respond(msg, preparation_err);
-					}, { force: true });
+					}, { force: true, edited_setup: setup });
 				}
 
 					const update_set = { setup, score_status, forward_loser };
@@ -3471,7 +3470,7 @@ function handle_second_call_tabletoperator(app, ws, msg) {
 	const tournament_key = msg.tournament_key;
 	const setup = _extract_setup(msg.setup);
 
-	notify_change(app, tournament_key, 'second_call_tabletoperator', {setup});
+	notify_change(app, tournament_key, 'second_call_tabletoperator', { match__id: msg.match_id || msg.setup._match_id, setup });
 	
 	ws.respond(msg);
 }
@@ -3484,7 +3483,7 @@ function handle_second_preparation_call_tabletoperator(app, ws, msg) {
 	const tournament_key = msg.tournament_key;
 	const setup = _extract_setup(msg.setup);
 
-	notify_change(app, tournament_key, 'second_preparation_call_tabletoperator', {setup});
+	notify_change(app, tournament_key, 'second_preparation_call_tabletoperator', { match__id: msg.match_id || msg.setup._match_id, setup });
 	
 	ws.respond(msg);
 }
@@ -3497,7 +3496,7 @@ function handle_second_call_umpire(app, ws, msg) {
 	const tournament_key = msg.tournament_key;
 	const setup = _extract_setup(msg.setup);
 
-	notify_change(app, tournament_key, 'second_call_umpire', { setup });
+	notify_change(app, tournament_key, 'second_call_umpire', { match__id: msg.match_id || msg.setup._match_id, setup });
 
 	ws.respond(msg);
 }
@@ -3510,7 +3509,7 @@ function handle_second_preparation_call_umpire(app, ws, msg) {
 	const tournament_key = msg.tournament_key;
 	const setup = _extract_setup(msg.setup);
 
-	notify_change(app, tournament_key, 'second_preparation_call_umpire', { setup });
+	notify_change(app, tournament_key, 'second_preparation_call_umpire', { match__id: msg.match_id || msg.setup._match_id, setup });
 
 	ws.respond(msg);
 }
@@ -3523,7 +3522,7 @@ function handle_second_call_servicejudge(app, ws, msg) {
 	const tournament_key = msg.tournament_key;
 	const setup = _extract_setup(msg.setup);
 
-	notify_change(app, tournament_key, 'second_call_servicejudge', { setup });
+	notify_change(app, tournament_key, 'second_call_servicejudge', { match__id: msg.match_id || msg.setup._match_id, setup });
 
 	ws.respond(msg);
 }
@@ -3536,7 +3535,7 @@ function handle_second_preparation_call_servicejudge(app, ws, msg) {
 	const tournament_key = msg.tournament_key;
 	const setup = _extract_setup(msg.setup);
 
-	notify_change(app, tournament_key, 'second_preparation_call_servicejudge', { setup });
+	notify_change(app, tournament_key, 'second_preparation_call_servicejudge', { match__id: msg.match_id || msg.setup._match_id, setup });
 
 	ws.respond(msg);
 }
@@ -5571,6 +5570,7 @@ function notify_change(app, tournament_key, ctype, val) {
 			_announcement_ts: now_ms(app),
 		};
 	}
+	payload = require('./match_protocol').identify_announcement(ctype, payload);
 	if (ctype === 'match_preparation_call' && payload && typeof payload === 'object') {
 		debug_flags.log(app, payload.match?.tournament_key || payload.match?.setup?.tournament_key || null, '[bts] debug:match_preparation_call_sent', {
 			match_id: payload.match__id || payload.match?._id || null,
@@ -5799,6 +5799,7 @@ module.exports = {
 	handle_announce_match_manually,
 	handle_btp_fetch,
 	handle_confirm_match_finished,
+	handle_match_reopen,
 	handle_normalization_add,
 	handle_normalization_remove,
 	handle_advertisement_add,
@@ -5866,6 +5867,8 @@ module.exports = {
 	handle_second_preparation_call_team_two,
 	handle_tournament_get,
 	handle_match_history_get: require('./admin_match_data').handle_match_history_get,
+	handle_match_protocol_get: require('./match_protocol').handle_get,
+	handle_match_protocol_playback: require('./match_protocol').handle_playback,
 	handle_tournament_list,
 	handle_tournament_edit_prop,
 	handle_tournament_edit_scoring_format,

@@ -131,6 +131,24 @@ class CDP {
   if(process.argv.includes('--row-retention-only')) {
    await require('./row-retention-check')({c,open,previews});return;
   }
+  if(process.argv.includes('--persistent-rows-only')) {
+   await require('./persistent-row-check')({c,check,open,previews});return;
+  }
+  if(process.argv.includes('--check-in-cursor-only')) {
+   await require('./check-in-cursor-check')({c,check,click,open,metrics,previews});return;
+  }
+  if(process.argv.includes('--density-only')) {
+   await require('./density-check')({c,check,click,open,metrics,previews});return;
+  }
+  if(process.argv.includes('--compact-density-only')) {
+   await require('./compact-density-check')({c,check,click,open,metrics,previews,capture:snap});return;
+  }
+  if(process.argv.includes('--compact-timers-only')) {
+   await require('./compact-timer-check')({c,check,click,open,metrics,previews,capture:snap});return;
+  }
+  if(process.argv.includes('--compact-official-names-only')) {
+   await require('./compact-official-names-check')({c,check,click,open,metrics,previews,capture:snap});return;
+  }
   if(process.argv.includes('--match-patches-only')) {
    await require('./match-patch-performance-check')({c,open,previews});return;
   }
@@ -142,6 +160,12 @@ class CDP {
   }
   if(process.argv.includes('--preparation-stability-only')) {
    await require('./preparation-stability-check')({c,open,previews});return;
+  }
+  if(process.argv.includes('--preparation-location-only')) {
+   await require('./preparation-location-check')({c,check,click,open,metrics,previews});return;
+  }
+  if(process.argv.includes('--deferred-matches-only')) {
+   await require('./deferred-match-check')({c,check,click,open,metrics,previews});return;
   }
   if(process.argv.includes('--header-cache-only')) {
    await require('./header-cache-check')({c,open,metrics,previews});return;
@@ -155,6 +179,21 @@ class CDP {
   if(process.argv.includes('--date-groups-only')) {
    await require('./date-groups-check')({c,check,click,open,metrics,key,previews});return;
   }
+  if(process.argv.includes('--match-dialog-only')) {
+   await require('./match-dialog-check')({c,check,click,open,metrics,key,delay,previews});return;
+  }
+  if(process.argv.includes('--match-place-only')) {
+   await require('./match-place-check')({c,verify:check,click,open,metrics});return;
+  }
+  if(process.argv.includes('--choice-picker-only')) {
+   await require('./choice-picker-check')({c,verify:check,click,open,metrics,key,delay});return;
+  }
+  if(process.argv.includes('--finished-match-only')) {
+   await require('./finished-match-check')({c,verify:check,click,open,metrics,key});return;
+  }
+  if(process.argv.includes('--delete-confirmation-only')) {
+   await require('./delete-confirmation-check')({c,verify:check,click,open,metrics,key,delay,capture:snap});return;
+  }
 
   if(process.env.BTS_UPDATE_PERFORMANCE_ONLY==='1'||process.argv.includes('--updates-only')) {
    await require('./update-performance-check')({c,check,open,delay,previews,onlyTypes:process.env.BTS_UPDATE_TYPES?.split(','),reportFile:process.env.BTS_UPDATE_REPORT||'update-performance-verification.json'});
@@ -167,7 +206,7 @@ class CDP {
   await metrics(1424,940);await delay(150);
   await c.evaluate(`window.__officialsBefore={width:document.querySelector('.unassigned_container .umpire_and_tablet').getBoundingClientRect().width,teams:document.querySelector('.unassigned_container .ls-teams').getBoundingClientRect().width,shortened:[...document.querySelectorAll('tr[data-match_id="match-45"] .team-one .player')].some(node=>node.title.includes(node.dataset.lsFullName))};window.__oldOfficials.remove()`);
   await delay(150);
-  await check('Freier Platz neben kurzen Offiziellennamen geht vollständig an zuvor gekürzte Spielernamen',`(()=>{const width=document.querySelector('.unassigned_container .umpire_and_tablet').getBoundingClientRect().width,teams=document.querySelector('.unassigned_container .ls-teams').getBoundingClientRect().width;return window.__officialsBefore.shortened&&width<180&&Math.abs((teams-window.__officialsBefore.teams)-(window.__officialsBefore.width-width))<.2&&[...document.querySelectorAll('tr[data-match_id="match-45"] .team-one .player')].every(node=>!node.title)&&!document.querySelector('.ls-officials-measuring')})()`);
+  await check('Freier Platz neben kurzen Offiziellennamen geht vollständig an zuvor gekürzte Spielernamen',`(()=>{const width=document.querySelector('.unassigned_container .umpire_and_tablet').getBoundingClientRect().width,teams=document.querySelector('.unassigned_container .ls-teams').getBoundingClientRect().width;return window.__officialsBefore.shortened&&width<180&&Math.abs((teams-window.__officialsBefore.teams)-(window.__officialsBefore.width-width))<.2&&[...document.querySelectorAll('tr[data-match_id="match-45"] .team-one .player')].every(node=>node.title===(node.dataset.checkInAction||''))&&!document.querySelector('.ls-officials-measuring')})()`);
   await snap('offizielle-inhalt',true);
   await metrics(1920,940);await delay(120);
   await c.evaluate(`window.__shortOfficialsWidth=document.querySelector('.unassigned_container .umpire_and_tablet').getBoundingClientRect().width;window.__shortOfficialMatch=structuredClone(curt.matches.find(match=>match._id==='match-47'));const changed=structuredClone(window.__shortOfficialMatch);Object.assign(changed.setup.umpire,{firstname:'Alexander Maximilian',lastname:'Keo Boun Khoune',surname:'Keo Boun Khoune',name:'Alexander Maximilian Keo Boun Khoune'});crouting.on_change({ctype:'match_edit',tournament_key:'preview',val:{match__id:changed._id,match:changed}})`);
@@ -440,7 +479,7 @@ class CDP {
   })()`);
   await until(()=>c.evaluate(`window.__tabletNames.querySelectorAll('.pair-member')[0].textContent.startsWith('A.')&&window.__tabletNames.querySelectorAll('.pair-member')[1].textContent.startsWith('N.')`));
   await c.evaluate(`window.__tabletNames.click()`);
-  await check('Tablet-Paarungen behalten bei gekürzten Namen den Trenner, vollständige Tooltips und ihren gemeinsamen Check-in',`window.__tabletNames.textContent.includes('/')&&[...window.__tabletNames.querySelectorAll('.pair-member')].every((node,index)=>node.title===window.__nameSteps[0][index])&&window.__writes.some(message=>message.type==='match_participant_check_in'&&message.match_id==='match-46'&&message.participant_ids.length===2&&message.checked_in===true)`);
+  await check('Tablet-Paarungen behalten bei gekürzten Namen den Trenner, vollständige Tooltips und ihren gemeinsamen Check-in',`window.__tabletNames.textContent.includes('/')&&[...window.__tabletNames.querySelectorAll('.pair-member')].every((node,index)=>node.title===window.__nameSteps[0][index]+' · '+window.__tabletNames.dataset.checkInAction)&&window.__writes.some(message=>message.type==='match_participant_check_in'&&message.match_id==='match-46'&&message.participant_ids.length===2&&message.checked_in===true)`);
   await c.evaluate(`(()=>{
     curt.tabletoperator_split_doubles=true;
     const changed=structuredClone(curt.matches.find(match=>match._id==='match-46'));changed.setup.tabletoperators[1].firstname='Marie';changed.setup.tabletoperators[1].name='Marie Hansen';
@@ -452,10 +491,10 @@ class CDP {
   await c.evaluate(`crouting.on_change({ctype:'match_edit',tournament_key:'preview',val:{match__id:window.__tabletNameOriginal._id,match:window.__tabletNameOriginal}})`);
   await c.evaluate(`window.__officialName=document.querySelector('tr[data-match_id="match-45"] .umpire_and_tablet > .person .name');window.__officialName.parentElement.style.width='100px'`);
   await until(()=>c.evaluate(`window.__officialName.textContent.replaceAll('\\xa0',' ')==='S. Weber'`));
-  await check('Offiziellennamen werden nur bei echtem Platzmangel gekürzt',`window.__officialName.title==='Sven Weber'`);
+  await check('Offiziellennamen werden nur bei echtem Platzmangel gekürzt',`window.__officialName.title==='Sven Weber · '+window.__officialName.dataset.checkInAction`);
   await c.evaluate(`window.__officialName.parentElement.style.width='250px'`);
   await until(()=>c.evaluate(`window.__officialName.textContent.replaceAll('\\xa0',' ')==='Sven Weber'`));
-  await check('Zusätzlicher Platz stellt auch bei Offiziellen den vollen Namen wieder her',`!window.__officialName.title`);
+  await check('Zusätzlicher Platz stellt auch bei Offiziellen den vollen Namen wieder her',`window.__officialName.title===window.__officialName.dataset.checkInAction`);
   await c.evaluate(`window.__officialName.parentElement.style.width=''`);
   await c.evaluate(`new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)))`);
   const fieldIconsKeepRowHeight=`(()=>{const board=document.querySelector('.leitstand'),comfort=board.classList.contains('comfort'),probe=document.createElement('style');probe.textContent='.leitstand .match_table .court_number :is(.court_num,.court_history,.court_inactive){display:none!important}';try{return [false,true].every(mode=>{board.classList.toggle('comfort',mode);const rows=[...document.querySelectorAll('.leitstand .match_table tbody > tr')],withIcons=rows.map(row=>row.getBoundingClientRect().height);document.head.append(probe);const withoutIcons=rows.map(row=>row.getBoundingClientRect().height);probe.remove();return withIcons.every((height,index)=>height<=withoutIcons[index]+.01)})}finally{probe.remove();board.classList.toggle('comfort',comfort)}})()`;
@@ -522,7 +561,7 @@ class CDP {
   await check('Bei mehr als zwei Einträgen bleiben beide Richtungspfeile nebeneinander und alle Einträge erreichbar',`(()=>{const rows=[...document.querySelectorAll('.tabletoperators_table tbody>tr')],middle=rows[1],up=middle.querySelector('.tabletoperator_move_up_button').getBoundingClientRect(),down=middle.querySelector('.tabletoperator_move_down_button').getBoundingClientRect(),list=document.querySelector('.unassigned_tableoperators_content');list.scrollTop=list.scrollHeight;return rows.length===3&&up.right<=down.left&&Math.abs(up.top-down.top)<.1&&rows.every(row=>row.getBoundingClientRect().height<=26)&&rows[2].getBoundingClientRect().bottom<=list.getBoundingClientRect().bottom+.5&&document.querySelector('[data-board-card="operators"] .operator-count').textContent==='3'})()`);
   await c.evaluate(`curt.tabletoperators=window.__queuedOperators;ctabletoperator.render_unassigned(document.querySelector('.unassigned_tableoperators_container'))`);
   await click('.tabletoperator_move_down_button');await click('.tabletoperator_move_up_button');await click('.tabletoperator_remove_button[data-tabletoperator_id="tablet-2"]');
-  await c.evaluate(`document.querySelector('.tabletoperator_add_custom_input').value='Probe Name'`);await click('.tabletoperator_add_custom_button');
+  await c.evaluate(`(()=>{const input=document.querySelector('.tabletoperator_add_custom_input');input.value='Probe Name';input.dispatchEvent(new Event('input',{bubbles:true}));})()`);await click('.tabletoperator_add_custom_button');
   await check('Kompakte Wartelisten-Aktionen behalten ihre echten Ziele und das Hinzufügen bei',`[['tabletoperator_move_down','tablet-1'],['tabletoperator_move_up','tablet-2'],['tabletoperator_remove','tablet-2']].every(([type,id])=>window.__writes.some(message=>message.type===type&&message.tabletoperator._id===id))&&window.__writes.some(message=>message.type==='tabletoperator_add'&&message.tabletoperator_name==='Probe Name')`);
   await c.evaluate(`document.querySelector('.tabletoperator_add_custom_input').value='';ctabletoperator.render_unassigned(document.querySelector('.unassigned_tableoperators_container'))`);
   await check('Live-Neuaufbau erhält die kompakte Warteliste und ihre Trennung von der Rotation',`document.querySelectorAll('.tabletoperators_table tbody>tr').length===2&&document.querySelectorAll('[data-board-card="operators"] .operator-count').length===1&&document.querySelector('[data-board-card="operators"] .operator-count').textContent==='2'&&document.querySelector('.tabletoperator_move_up_button').parentElement.cellIndex+1===document.querySelector('.tabletoperator_move_down_button').parentElement.cellIndex&&document.querySelector('[data-board-card="rotation"]>.umpire_container')===window.__rotationContainer&&!document.querySelector('[data-board-card="operators"] .umpire_container')`);
@@ -616,21 +655,21 @@ class CDP {
   await check('Suche filtert die Spielzeilen',`document.querySelector('.courts_container tbody tr[hidden]')&&document.querySelector('.courts_container tbody tr:not([hidden])')`);
   await c.evaluate(`document.querySelector('[data-board-search]').value='';document.querySelector('[data-board-search]').dispatchEvent(new Event('input',{bubbles:true}))`);
   await click('tr[data-match_id="match-45"] .ls-match-open');
-  await check('Drei-Punkte-Knopf öffnet den bestehenden Editor mit drei Reitern',`document.querySelector('.match_edit_dialog .ls-dialog-tabs').children.length===3&&!!document.querySelector('.match_edit_dialog input[name="match_num"]')`);
+  await check('Drei-Punkte-Knopf öffnet den bestehenden Editor mit vier Reitern',`document.querySelector('.match_edit_dialog .ls-dialog-tabs').children.length===4&&!!document.querySelector('.match_edit_dialog input[name="match_num"]')`);
   await c.evaluate(`document.querySelector('.match_edit_dialog input[name="match_num"]').value='145'`);
-  await click('#ls-match-tab-2');
+  await click('#ls-match-tab-3');
   await check('Rohdaten stehen im gleichen Dialog bereit',`document.querySelector('.ls-raw-panel pre').textContent.includes('match-45')&&!document.querySelector('.ls-raw-panel').hidden`);
-  await click('#ls-match-tab-0');
-  await check('Reiterwechsel erhält die Formulareingaben',`document.querySelector('.match_edit_dialog input[name="match_num"]').value==='145'`);
   await click('#ls-match-tab-1');
+  await check('Reiterwechsel erhält die Formulareingaben',`document.querySelector('.match_edit_dialog input[name="match_num"]').value==='145'`);
+  await click('#ls-match-tab-2');
   await until(()=>c.evaluate(`!!document.querySelector('.ls-sheet-panel svg')`),15000);
-  await check('Bestehender Schiedsrichterzettel rendert im selben Dialog',`!!document.querySelector('.ls-sheet-panel .single_scoresheet')&&document.querySelectorAll('.ls-sheet-panel .match_scoresheet_buttons button').length===2`);
+  await check('Bestehender Schiedsrichterzettel rendert im selben Dialog',`!!document.querySelector('.ls-sheet-panel .single_scoresheet')&&document.querySelectorAll('.match_edit_dialog .dialog-actions .match_scoresheet_buttons button').length===2`);
   await check('Der Spiel-Dialog zeigt einen Schließenknopf auch außerhalb des Bearbeiten-Reiters',`!!document.querySelector('.ls-dialog-close')&&document.querySelector('.ls-dialog-close').getClientRects().length>0&&![...document.querySelector('.match_edit_dialog').childNodes].some(node=>node.nodeType===3&&node.textContent.includes('[object Object]'))`);
   await snap('spiel-dialog');
   await click('.ls-dialog-close');
   await check('Dialogschließen gibt den Fokus an das richtige Spiel zurück',`!document.querySelector('.match_edit_dialog')&&document.activeElement.matches('tr[data-match_id="match-45"] .ls-match-open')`);
   await click('tr[data-match_id="match-51"] .ls-match-open');
-  await check('Unvollständige Teams sperren nur den Schiedsrichterzettel',`document.querySelector('#ls-match-tab-1').disabled&&!document.querySelector('#ls-match-tab-2').disabled`);
+  await check('Unvollständige Teams sperren nur den Schiedsrichterzettel',`document.querySelector('#ls-match-tab-2').disabled&&!document.querySelector('#ls-match-tab-3').disabled`);
   await click('.ls-dialog-close');
   await c.evaluate(`document.querySelector('#custom_announcement').value='Erhaltene Durchsage'`);
   await click('.board-toolbar-actions [data-action="layout-edit"]');

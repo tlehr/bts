@@ -1,0 +1,22 @@
+{
+  "date": "2026-10-31",
+  "scope": "Isolated real frontend with synthetic tournament data; no live services.",
+  "checks": [
+    "Deferred status sits beside the game number in the location column, separate from call icons",
+    "The existing location remains readable beside the deferred status",
+    "Deferred status remains fully visible at 1920 pixels in compact density",
+    "Deferred status remains fully visible at 1920 pixels in comfort density",
+    "Deferred status remains fully visible at 1280 pixels in compact density",
+    "Deferred status remains fully visible at 1280 pixels in comfort density",
+    "Deferred status remains fully visible at 390 pixels in compact density",
+    "Deferred status remains fully visible at 390 pixels in comfort density",
+    "A live deferred update without a location replaces the dash with one legible status",
+    "The status is under the real pointer and is not covered by another control",
+    "Repeated preparation diagnostics retain the same status node",
+    "Releasing a deferred game removes both status and gray row formatting",
+    "Deferring the same game again restores exactly one status without changing its players",
+    "The deferred status is also shown when a pairing is not yet complete",
+    "Deferred status changes produce no browser exceptions or server writes"
+  ],
+  "exceptions": 0
+}

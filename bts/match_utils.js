@@ -514,7 +514,7 @@ async function uncall_match(app, tournament, match, old_court, callback) {
 		(wcb) => remove_tablet_operator_to_list(app, tournament.key, match, wcb),
 		(wcb) => update_match_btp(app, match, wcb), 
 		(wcb) => update_match_db(app, match, wcb),
-		(wcb) => update_court_db(app, match, wcb),
+		(wcb) => release_match_courts(app, tournament.key, match._id, wcb),
 		(wcb) => notify_change_match_edit(app, match, wcb),
 		(wcb) => notify_bupws(app, match, old_court, wcb),
 		(wcb) => remove_player_on_court(app, tournament.key, match._id, null, wcb),
@@ -523,6 +523,20 @@ async function uncall_match(app, tournament, match, old_court, callback) {
 			return callback(err);
 		}
 	);
+}
+
+function release_match_courts(app, tournament_key, match_id, callback) {
+	app.db.courts.find({tournament_key, match_id}, (err, courts) => {
+		if (err) return callback(err);
+		async.each(courts, (court, done) => {
+			app.db.courts.update({_id: court._id, tournament_key, match_id}, {$set: {match_id: null}},
+				{returnUpdatedDocs: true}, (update_err, affected, updated) => {
+					if (update_err) return done(update_err);
+					if (affected) require('./admin').notify_change(app, tournament_key, 'court_changed', {...updated, court_id: court._id});
+					done(null);
+				});
+		}, callback);
+	});
 }
 
 
@@ -615,6 +629,7 @@ async function call_match(app, tournament, match, old_court, callback, options =
 					// Preserve transient on-court fields that are only persisted later in this waterfall.
 					refreshed_match.setup = refreshed_match.setup || {};
 					refreshed_match.setup.court_id = match.setup.court_id;
+					refreshed_match.setup.location_id = match.setup.location_id;
 					refreshed_match.setup.now_on_court = match.setup.now_on_court;
 					refreshed_match.setup.called_timestamp = match.setup.called_timestamp;
 					refreshed_match.setup.state = match.setup.state;
@@ -3315,7 +3330,9 @@ async function call_match_in_preparation(app, tournament, match, location_id, ca
 		if (!current_match) {
 			return finish(new Error('Cannot find match ' + match_id + ' of tournament ' + tournament_key + ' in database'));
 		}
-		const setup = current_match.setup || match.setup || {};
+		const setup = force && options.edited_setup
+			? { ...options.edited_setup }
+			: current_match.setup || match.setup || {};
 		const entry_error = require('../static/js/btp_entry_status').call_error(current_match);
 		if (entry_error) return finish(entry_error);
 		if (
@@ -3393,6 +3410,7 @@ async function call_match_in_preparation(app, tournament, match, location_id, ca
 					? (preparation_call_gap_checked ? now_ms(app) : await wait_for_preparation_call_gap(app, tournament))
 					: now_ms(app);
 				await add_preparation_call_timestamp(app, tournament_key, setup, location_id, preparation_call_timestamp);
+				if (force && options.edited_setup?.court_id) setup.court_id = options.edited_setup.court_id;
 
 				if (is_tournament_automation_enabled(tournament) && tournament.preparation_tabletoperator_setup_enabled) {
 					if (!setup.umpire || (tournament.tabletoperator_with_umpire_enabled && tournament.tabletoperator_with_umpire_enabled == true)) {

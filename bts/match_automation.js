@@ -391,7 +391,7 @@ function calculate_location_preparation_status(tournament, location_id) {
 	const matches = Array.isArray(tournament?.matches) ? tournament.matches : [];
 	const current_preparation_count = matches.filter((match) => {
 		const setup = match && match.setup;
-		return !!setup && setup.state === 'preparation' && setup.location_id === location_id;
+		return !!setup && setup.state === 'preparation' && setup.preparation_call_deferred !== true && setup.location_id === location_id;
 	}).length;
 
 	return {
@@ -1185,6 +1185,7 @@ function get_location_relevant_matches(tournament, location_id, options = {}) {
 	const courts_by_id = options.courts_by_id || get_courts_by_id(tournament);
 	return matches
 		.filter((match) => match?.setup?.state === 'scheduled' || match?.setup?.state === 'blocked')
+		.filter((match) => match.setup.preparation_call_deferred !== true)
 		.filter((match) => match_matches_location(match, location_id, courts_by_id))
 		.sort(cmp_scheduled_match_order);
 }
@@ -1195,6 +1196,7 @@ function get_location_display_relevant_matches(tournament, location_id, options 
 	return matches
 		.filter((match) => {
 			const setup = match?.setup || {};
+			if (setup.preparation_call_deferred === true && options.include_deferred !== true) return false;
 			if (setup.is_match !== true) return false;
 			if (match?.team1_won !== undefined && match?.team1_won !== null) return false;
 			if (setup.now_on_court === true) return false;
@@ -1211,6 +1213,7 @@ function get_location_display_cutoff_matches(tournament, location_id, options = 
 	return matches
 		.filter((match) => {
 			const setup = match?.setup || {};
+			if (setup.preparation_call_deferred === true) return false;
 			if (setup.is_match !== true) return false;
 			if (match?.team1_won !== undefined && match?.team1_won !== null) return false;
 			if (setup.now_on_court === true) return false;
@@ -1227,6 +1230,7 @@ function get_location_preparation_frontier_window_matches(tournament, location_i
 	return matches
 		.filter((match) => {
 			const setup = match?.setup || {};
+			if (setup.preparation_call_deferred === true) return false;
 			if (setup.is_match !== true) return false;
 			return true;
 		})
@@ -1344,6 +1348,7 @@ function get_call_on_court_relevant_matches(tournament, location_id, options = {
 	const only_preparation = tournament?.call_on_court_only_preparation_enabled === true;
 	return matches
 		.filter((match) => {
+			if (match?.setup?.preparation_call_deferred === true) return false;
 			const state = match?.setup?.state;
 			if (only_preparation) {
 				return state === 'preparation';
@@ -1762,7 +1767,10 @@ function get_location_preparation_display_window(tournament, location_id, option
 	options = { ...options, courts_by_id, matches_by_planning_id: options.matches_by_planning_id || build_matches_by_planning_id(tournament),
 		now_ts: resolve_now_ts(options) };
 	const frontier_window_matches = options.frontier_window_matches || get_location_preparation_frontier_window_matches(tournament, location_id, { courts_by_id });
-	const display_relevant_matches = get_location_display_relevant_matches(tournament, location_id, { courts_by_id });
+	// Keep deferred games inspectable without letting them define a frontier,
+	// consume a place in the call window or extend its displayed boundary.
+	const diagnostic_matches = get_location_display_relevant_matches(tournament, location_id, { courts_by_id, include_deferred: true });
+	const display_relevant_matches = diagnostic_matches.filter(match => match.setup.preparation_call_deferred !== true);
 	const display_frontier = find_display_preparation_frontier_match(tournament, location_id, {
 		...options, courts_by_id, display_relevant_matches,
 	});
@@ -1770,7 +1778,7 @@ function get_location_preparation_display_window(tournament, location_id, option
 	const base_cutoff = find_display_preparation_cutoff_match(tournament, display_frontier, display_relevant_matches, window_options);
 	const display_cutoff = extend_display_cutoff_to_prepared_block_end(tournament, base_cutoff, display_frontier,
 		get_location_display_cutoff_matches(tournament, location_id, { courts_by_id }), window_options);
-	return { display_relevant_matches, display_frontier, display_cutoff };
+	return { display_relevant_matches, display_frontier, display_cutoff, diagnostic_matches };
 }
 
 function add_preparation_diagnostic_rule(rules, key, passed, detail, enabled = true, group = 'criteria') {
@@ -2321,6 +2329,7 @@ function get_global_relevant_matches(tournament) {
 	const matches = Array.isArray(tournament?.matches) ? tournament.matches : [];
 	return matches
 		.filter((match) => match?.setup?.state === 'scheduled' || match?.setup?.state === 'blocked')
+		.filter((match) => match.setup.preparation_call_deferred !== true)
 		.sort(cmp_scheduled_match_order);
 }
 
@@ -2443,7 +2452,7 @@ function* location_preparation_selection_steps(tournament, location_id, options 
 	}
 	const field_selection_debug = calculate_location_field_selection_debug(tournament, location_id, status);
 	yield;
-	const { display_relevant_matches, display_frontier, display_cutoff } = get_location_preparation_display_window(tournament, location_id, {
+	const { display_relevant_matches, display_frontier, display_cutoff, diagnostic_matches } = get_location_preparation_display_window(tournament, location_id, {
 		...options, courts_by_id, matches_by_planning_id, now_ts, frontier_window_matches,
 	});
 	yield;
@@ -2460,7 +2469,7 @@ function* location_preparation_selection_steps(tournament, location_id, options 
 		});
 		yield;
 		const diagnostics_by_match_id = {};
-		display_relevant_matches.forEach((match) => {
+		diagnostic_matches.forEach((match) => {
 			if (!match || match._id == null) {
 				return;
 			}

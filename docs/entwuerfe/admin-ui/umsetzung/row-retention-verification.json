@@ -36,10 +36,11 @@
       "changed": true,
       "lookups": 0,
       "timings": {
-        "queue_ms": 0.7,
-        "handler_ms": 4.6,
-        "render_ms": 23.1,
-        "total_ms": 48.4
+        "queue_ms": 1,
+        "handler_ms": 7.2,
+        "ui_wait_ms": 23.4,
+        "render_ms": 22.5,
+        "total_ms": 54.1
       }
     },
     "repeated": {
@@ -69,10 +70,11 @@
       "same": true,
       "clock": true,
       "timings": {
-        "queue_ms": 0.1,
-        "handler_ms": 2.4,
-        "render_ms": 29.2,
-        "total_ms": 31.7
+        "queue_ms": 0.4,
+        "handler_ms": 14.3,
+        "ui_wait_ms": 0.3,
+        "render_ms": 13.3,
+        "total_ms": 28.3
       }
     },
     "reset": {
@@ -82,9 +84,10 @@
       "lookups": 0,
       "timings": {
         "queue_ms": 0.2,
-        "handler_ms": 1.8,
-        "render_ms": 27.7,
-        "total_ms": 48.4
+        "handler_ms": 1.5,
+        "ui_wait_ms": 10.5,
+        "render_ms": 27.6,
+        "total_ms": 39.8
       }
     },
     "metadata": {
@@ -105,10 +108,11 @@
       "scoreChanges": 0,
       "lookups": 0,
       "timings": {
-        "queue_ms": 0.2,
-        "handler_ms": 1.2,
-        "render_ms": 33.3,
-        "total_ms": 48
+        "queue_ms": 0.1,
+        "handler_ms": 1.4,
+        "ui_wait_ms": 21.5,
+        "render_ms": 24.9,
+        "total_ms": 47.9
       }
     },
     "filter": {
@@ -124,9 +128,10 @@
       "lookups": 0,
       "timings": {
         "queue_ms": 0.2,
-        "handler_ms": 0.4,
-        "render_ms": 33.2,
-        "total_ms": 48.2
+        "handler_ms": 0.7,
+        "ui_wait_ms": 13.3,
+        "render_ms": 33.1,
+        "total_ms": 47.3
       }
     },
     "sorting": {
@@ -176,20 +181,22 @@
       "type": "update_btp_settings",
       "status": "presented",
       "timings": {
-        "queue_ms": 0.7,
-        "handler_ms": 4.6,
-        "render_ms": 23.1,
-        "total_ms": 48.4
+        "queue_ms": 1,
+        "handler_ms": 7.2,
+        "ui_wait_ms": 23.4,
+        "render_ms": 22.5,
+        "total_ms": 54.1
       }
     },
     {
       "type": "update_btp_settings",
       "status": "presented",
       "timings": {
-        "queue_ms": 0.2,
+        "queue_ms": 0.3,
         "handler_ms": 0,
-        "render_ms": 31,
-        "total_ms": 31.2
+        "ui_wait_ms": 0,
+        "render_ms": 30.8,
+        "total_ms": 31.1
       }
     },
     {
@@ -197,49 +204,54 @@
       "status": "presented",
       "timings": {
         "queue_ms": 0.2,
-        "handler_ms": 3.7,
-        "render_ms": 22,
-        "total_ms": 48.3
+        "handler_ms": 3.8,
+        "ui_wait_ms": 34,
+        "render_ms": 25.7,
+        "total_ms": 63.7
       }
     },
     {
       "type": "update_btp_settings",
       "status": "presented",
       "timings": {
-        "queue_ms": 0.1,
-        "handler_ms": 3.1,
-        "render_ms": 26,
-        "total_ms": 48.3
+        "queue_ms": 2,
+        "handler_ms": 6.5,
+        "ui_wait_ms": 30.5,
+        "render_ms": 25.4,
+        "total_ms": 64.4
       }
     },
     {
       "type": "update_btp_settings",
       "status": "presented",
       "timings": {
-        "queue_ms": 0.2,
-        "handler_ms": 0.5,
-        "render_ms": 30.9,
-        "total_ms": 31.6
+        "queue_ms": 0.3,
+        "handler_ms": 2.2,
+        "ui_wait_ms": 7.4,
+        "render_ms": 32.1,
+        "total_ms": 42
       }
     },
     {
       "type": "update_btp_settings",
       "status": "presented",
       "timings": {
-        "queue_ms": 0.1,
-        "handler_ms": 0.3,
-        "render_ms": 31.1,
-        "total_ms": 31.5
+        "queue_ms": 0.6,
+        "handler_ms": 1.9,
+        "ui_wait_ms": 5.8,
+        "render_ms": 29.6,
+        "total_ms": 37.9
       }
     },
     {
       "type": "update_btp_settings",
       "status": "presented",
       "timings": {
-        "queue_ms": 0.1,
-        "handler_ms": 2.4,
-        "render_ms": 29.2,
-        "total_ms": 31.7
+        "queue_ms": 0.4,
+        "handler_ms": 14.3,
+        "ui_wait_ms": 0.3,
+        "render_ms": 13.3,
+        "total_ms": 28.3
       }
     },
     {
@@ -247,39 +259,10 @@
       "status": "presented",
       "timings": {
         "queue_ms": 0.2,
-        "handler_ms": 1.8,
-        "render_ms": 27.7,
-        "total_ms": 48.4
-      }
-    },
-    {
-      "type": "match_edit",
-      "status": "presented",
-      "timings": {
-        "queue_ms": 0.2,
-        "handler_ms": 1.2,
-        "render_ms": 33.3,
-        "total_ms": 48
-      }
-    },
-    {
-      "type": "match_edit",
-      "status": "presented",
-      "timings": {
-        "queue_ms": 0.3,
-        "handler_ms": 0.4,
-        "render_ms": 33.3,
-        "total_ms": 49.9
-      }
-    },
-    {
-      "type": "match_edit",
-      "status": "presented",
-      "timings": {
-        "queue_ms": 0.2,
-        "handler_ms": 0.4,
-        "render_ms": 33.2,
-        "total_ms": 48.2
+        "handler_ms": 1.5,
+        "ui_wait_ms": 10.5,
+        "render_ms": 27.6,
+        "total_ms": 39.8
       }
     },
     {
@@ -287,29 +270,76 @@
       "status": "presented",
       "timings": {
         "queue_ms": 0.1,
-        "handler_ms": 0.5,
-        "render_ms": 33,
-        "total_ms": 48.3
+        "handler_ms": 1.4,
+        "ui_wait_ms": 21.5,
+        "render_ms": 24.9,
+        "total_ms": 47.9
+      }
+    },
+    {
+      "type": "match_edit",
+      "status": "presented",
+      "timings": {
+        "queue_ms": 0.3,
+        "handler_ms": 0.4,
+        "ui_wait_ms": 18.7,
+        "render_ms": 30.3,
+        "total_ms": 49.7
+      }
+    },
+    {
+      "type": "match_edit",
+      "status": "presented",
+      "timings": {
+        "queue_ms": 0.2,
+        "handler_ms": 0.7,
+        "ui_wait_ms": 13.3,
+        "render_ms": 33.1,
+        "total_ms": 47.3
+      }
+    },
+    {
+      "type": "match_edit",
+      "status": "presented",
+      "timings": {
+        "queue_ms": 0.3,
+        "handler_ms": 0.8,
+        "ui_wait_ms": 13.7,
+        "render_ms": 32.7,
+        "total_ms": 47.5
       }
     },
     {
       "type": "court_changed",
       "status": "presented",
       "timings": {
-        "queue_ms": 0.2,
-        "handler_ms": 2.8,
-        "render_ms": 40.1,
-        "total_ms": 60
+        "queue_ms": 0.1,
+        "handler_ms": 2.5,
+        "ui_wait_ms": 22.4,
+        "render_ms": 33.4,
+        "total_ms": 58.4
       }
     },
     {
       "type": "score",
       "status": "presented",
       "timings": {
-        "queue_ms": 0.3,
-        "handler_ms": 0.4,
-        "render_ms": 32.5,
-        "total_ms": 33.2
+        "queue_ms": 1.4,
+        "handler_ms": 0.6,
+        "ui_wait_ms": 0,
+        "render_ms": 34.5,
+        "total_ms": 36.5
+      }
+    },
+    {
+      "type": "match_edit",
+      "status": "presented",
+      "timings": {
+        "queue_ms": 0.1,
+        "handler_ms": 4.9,
+        "ui_wait_ms": 17.9,
+        "render_ms": 23.3,
+        "total_ms": 46.2
       }
     },
     {
@@ -317,19 +347,10 @@
       "status": "presented",
       "timings": {
         "queue_ms": 0.2,
-        "handler_ms": 6.9,
-        "render_ms": 26.2,
-        "total_ms": 53.7
-      }
-    },
-    {
-      "type": "match_edit",
-      "status": "presented",
-      "timings": {
-        "queue_ms": 0.3,
-        "handler_ms": 0.4,
-        "render_ms": 32.3,
-        "total_ms": 49.7
+        "handler_ms": 0.5,
+        "ui_wait_ms": 16.2,
+        "render_ms": 33,
+        "total_ms": 49.9
       }
     }
   ]

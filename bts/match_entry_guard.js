@@ -22,7 +22,7 @@ async function announce(app, ws, msg, type, setup_only = true, extract = setup =
 			if (!current) throw new Error('Match not found');
 			const error = status.call_error(current);
 			if (error) throw error;
-			require('./admin').notify_change(app, msg.tournament_key, type, setup_only ? { setup: extract(current.setup) } : current);
+			require('./admin').notify_change(app, msg.tournament_key, type, setup_only ? { match__id: current._id, setup: extract(current.setup) } : current);
 		});
 		ws.respond(msg);
 	} catch (error) { ws.respond(msg, error); }

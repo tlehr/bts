@@ -7,12 +7,20 @@ let resize_handler_bound = false;
 let fit_resize_observer = null;
 let fit_request_pending = false;
 let fit_second_pass_pending = false;
+const pending_additions = new Set();
+
+function waiting_index() {
+	return tabletoperator_waiting.index([
+		...(curt.tabletoperators || []),
+		...[...pending_additions].filter(entry => entry.tournament_key === curt.key),
+	], curt.tabletoperator_with_state_enabled);
+}
 
 function render_unassigned(container) {
 	if (!container) {
 		return;
 	}
-	remove_tabletoperator_suggestions();
+	remove_tabletoperator_suggestions(container);
 	uiu.empty(container);
 	uiu.el(container, 'h3', {}, ci18n('tabletoperator:unassigned'));
 	const tabletoperators = Array.isArray(curt && curt.tabletoperators) ? curt.tabletoperators : [];
@@ -212,24 +220,51 @@ function create_tabletoperator_button(targetEl, cssClass, title, listener, table
 function render_tabletoperator_formular(target) {
 		const announcements = uiu.el(target, 'div', '_tabletoperator_container');
 		const form = uiu.el(announcements, 'form');
-		cmatch.render_tabletoperator_player_picker(form, {
+		const picker = cmatch.render_tabletoperator_player_picker(form, {
 			input_name: 'tabletoperator_name',
 			btp_id_name: 'tabletoperator_btp_id',
 			placeholder: ci18n('tabletoperator:replacement_placeholder'),
 			input_class: 'tabletoperator_add_custom_input',
 			input_style: 'width: 290px;',
+			available_participants: () => {
+				const waiting = waiting_index();
+				const activity = tabletoperator_waiting.activity_index(curt.matches);
+				return participant => !waiting.has(participant) && !activity.playing.has(participant) && !activity.preparing.has(participant);
+			},
 		});
 		const btp_fetch_btn = uiu.el(form, 'button', {
 			class: 'vlink tabletoperator_add_custom_button',
 			role: 'submit',
 		});
+		const validate = () => {
+			const player = { name: picker.input.value, btp_id: picker.btp_id_input.value };
+			const activity = tabletoperator_waiting.activity_index(curt.matches);
+			const reason = waiting_index().has(player) ? ci18n('tabletoperator:already_waiting')
+				: activity.playing.has(player) ? ci18n('tabletoperator:already_playing')
+				: activity.preparing.has(player) ? ci18n('tabletoperator:already_preparing') : '';
+			picker.input.setCustomValidity(reason);
+			btp_fetch_btn.disabled = !picker.input.value.trim() || !!reason;
+			btp_fetch_btn.title = reason || ci18n('tabletoperator:add');
+		};
+		form.addEventListener('input', validate);
+		form.addEventListener('change', validate);
 		form_utils.onsubmit(form, function (d) {
-			add_to_tabletoperator(null, null, d.tabletoperator_name, d.tabletoperator_btp_id)
+			add_to_tabletoperator(null, null, d.tabletoperator_name, d.tabletoperator_btp_id, validate);
+			validate();
 		});
+		validate();
 }
 
-function add_to_tabletoperator(match, team_num, tabletoperator_name, tabletoperator_btp_id) {
+function add_to_tabletoperator(match, team_num, tabletoperator_name, tabletoperator_btp_id, complete) {
 	if (match != null || tabletoperator_name) {
+		const waiting = waiting_index();
+		const players = match?.setup?.teams?.[team_num]?.players || [{ name: tabletoperator_name, btp_id: tabletoperator_btp_id }];
+		if (players.every(player => waiting.has(player))) return;
+		const activity = tabletoperator_waiting.activity_index(curt.matches);
+		if (players.some(player => activity.playing.has(player) || activity.preparing.has(player))) return;
+		const pending = { tournament_key: curt.key, court: null,
+			tabletoperator: players.map(player => tabletoperator_waiting.participant(player, curt.tabletoperator_with_state_enabled)) };
+		pending_additions.add(pending);
 		send({
 			type: 'tabletoperator_add',
 			tournament_key: curt.key,
@@ -238,6 +273,8 @@ function add_to_tabletoperator(match, team_num, tabletoperator_name, tabletopera
 			tabletoperator_btp_id: tabletoperator_btp_id || null,
 			match: match,
 		}, err => {
+			pending_additions.delete(pending);
+			if (complete) complete();
 			if (err) {
 				return cerror.net(err);
 			}
@@ -245,10 +282,8 @@ function add_to_tabletoperator(match, team_num, tabletoperator_name, tabletopera
 	}
 }
 
-function remove_tabletoperator_suggestions() {
-	uiu.qsEach('.tabletoperator_replacement_suggestions', (suggestions_el) => {
-		uiu.remove(suggestions_el);
-	});
+function remove_tabletoperator_suggestions(container) {
+	cmatch.destroy_tabletoperator_pickers(container);
 }
 
 function bind_resize_handler_once() {
@@ -306,7 +341,7 @@ function fit_unassigned_tableoperators(container, allow_second_pass) {
 		container.style.height = '';
 		container.style.maxHeight = '';
 		content.style.height = '';
-		content.style.maxHeight = '52px';
+		content.style.maxHeight = '';
 		return;
 	}
 	const previous_container_height = container.style.height;
@@ -372,6 +407,7 @@ if ((typeof module !== 'undefined') && (typeof require !== 'undefined')) {
 	var ci18n = require('./ci18n.js');
 	var change = require('./change.js');
 	var cmatch = require('./cmatch.js');
+	var tabletoperator_waiting = require('./tabletoperator_waiting');
 	var crouting = require('./crouting.js');
 	var ctournament = require('./ctournament.js');
 	var toprow = require('./toprow.js');

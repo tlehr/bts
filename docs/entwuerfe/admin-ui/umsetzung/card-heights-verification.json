@@ -2,6 +2,7 @@
   "date": "2026-10-30",
   "checks": [
     "Existing layouts keep automatic sidebar heights and equal heights above the games",
+    "The operator search sits at the bottom of the equal-height top card",
     "Height handles are available only for the right column in the layout editor",
     "Dragging the bottom handle changes only the card height without starting a card drag",
     "A constrained log card scrolls its content while retaining the heading and resize handle",
@@ -16,6 +17,7 @@
     "A height exceeding the viewport lets the sidebar scroll with the page",
     "Reducing the combined card heights makes the sidebar sticky again",
     "Refreshing the operator queue retains the constrained content container",
+    "Only the long operator list scrolls while its search stays at the bottom of the resized card",
     "Auto restores natural growth and removes the fixed content container",
     "The right-column height can also be changed by touch in a narrow window",
     "Standard resets card heights along with their positions",

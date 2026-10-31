@@ -1,0 +1,32 @@
+{
+  "date": "2026-10-31",
+  "checks": [
+    "Players, umpires and service judges use the same hand and describe the next action",
+    "Player changes the tooltip immediately after check-in",
+    "Player sends the action described by its tooltip",
+    "Player changes the tooltip immediately after check-out",
+    "Player sends the action described by its tooltip",
+    "Umpire changes the tooltip immediately after check-in",
+    "Umpire sends the action described by its tooltip",
+    "Umpire changes the tooltip immediately after check-out",
+    "Umpire sends the action described by its tooltip",
+    "Service judge changes the tooltip immediately after check-in",
+    "Service judge sends the action described by its tooltip",
+    "Service judge changes the tooltip immediately after check-out",
+    "Service judge sends the action described by its tooltip",
+    "Shortened names retain the full name and action together in their tooltip",
+    "A changed action replaces its old tooltip without duplication",
+    "Disabling check-in removes the hand, action tooltip and keyboard target for players and officials",
+    "Disabled check-in targets send no request",
+    "Re-enabling check-in restores the current actions on the same nodes",
+    "An entry-blocked player uses the arrow and retains the blocking explanation",
+    "An entry-blocked player remains noninteractive",
+    "Clearing a block restores the action without stale warning text",
+    "Single tablet operators and paired operators share the hand and tooltip",
+    "Paired operator check-in updates every name tooltip on the existing target",
+    "An on-court player offers no check-in action",
+    "Cursor and tooltip updates produce no browser exceptions"
+  ],
+  "exceptions": 0,
+  "scope": "Isolated frontend: computed cursors, native tooltips, check-in requests, live changes and locked states."
+}

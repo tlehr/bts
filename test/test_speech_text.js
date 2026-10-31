@@ -50,6 +50,17 @@ function baseline(context) {
 }
 
 describe('Shared announcement text and preparation', function() {
+    for (const [name, { kind }] of Object.entries(create.calls)) it('retains the game playback claim in ' + name, function() {
+        const current = tournament(), match = setup({ _announcement_claim_key: kind + ':match1:123:button-one' }), observed = [];
+        const texts = create({ tournament: current, translate: (key, data) => translate('de', key, data),
+            window: { localStorage: { getItem: () => 'true' } },
+            claim: (setup, requested) => { assert.strictEqual(requested, kind);return setup._announcement_claim_key; },
+            announce: (_parts, _local, claim) => observed.push(claim) });
+        texts[name](match, 0);
+        assert.deepStrictEqual(observed, [match._announcement_claim_key]);
+        assert.strictEqual(create.parseClaim(observed[0]).kind, kind);
+    });
+
     it('uses the full no-meeting-point closing sentence in browser and local preparations', function() {
         for (const locale of ['de', 'en', 'nl']) for (const enabled of [false, true]) {
             for (const meeting of ['', '   ', 'Bitte meldet euch am Eingang!']) {

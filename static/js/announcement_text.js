@@ -51,6 +51,10 @@ function createAnnouncementTexts(context) {
     function announce(parts, local, claim) {
         const plan = localPlan(parts);
         const call = activeCall;
+        if (!claim && call) {
+            const kind = createAnnouncementTexts.calls[call.name]?.kind;
+            if (kind) claim = context.claim?.(call.setup, kind);
+        }
         // The browser may load before the speech worker advertises its recipe
         // version. Build again at playback, after metadata has been synchronized.
         const buildLocalPlan = speech => {
@@ -550,5 +554,30 @@ function createAnnouncementTexts(context) {
     }
     return api;
 }
+
+// Shared with playback receipts on the server so every game announcement
+// keeps the same identity and description from the button to the audio device.
+createAnnouncementTexts.calls = Object.freeze({
+    announceNewMatch: { kind: 'match_called_on_court', label: 'Spielaufruf' },
+    announcePreparationMatch: { kind: 'match_preparation_call', label: 'Vorbereitungsaufruf' },
+    announceBeginnToPlay: { kind: 'begin_to_play_call', label: 'Aufforderung zum Spielbeginn' },
+    announceSecondCallTeamOne: { kind: 'second_call_team_one', label: 'Nachaufruf Paarung 1' },
+    announceSecondCallTeamTwo: { kind: 'second_call_team_two', label: 'Nachaufruf Paarung 2' },
+    announceSecondCallTabletoperator: { kind: 'second_call_tabletoperator', label: 'Nachaufruf Tabletbedienung' },
+    announceSecondCallUmpire: { kind: 'second_call_umpire', label: 'Nachaufruf Schiedsrichter' },
+    announceSecondCallServiceJudge: { kind: 'second_call_servicejudge', label: 'Nachaufruf Aufschlagrichter' },
+    announceSecondPreparationCallTeamOne: { kind: 'second_preparation_call_team_one', label: 'Nachaufruf zur Vorbereitung · Paarung 1' },
+    announceSecondPreparationCallTeamTwo: { kind: 'second_preparation_call_team_two', label: 'Nachaufruf zur Vorbereitung · Paarung 2' },
+    announceSecondPreparationCallTabletoperator: { kind: 'second_preparation_call_tabletoperator', label: 'Nachaufruf zur Vorbereitung · Tabletbedienung' },
+    announceSecondPreparationCallUmpire: { kind: 'second_preparation_call_umpire', label: 'Nachaufruf zur Vorbereitung · Schiedsrichter' },
+    announceSecondPreparationCallServiceJudge: { kind: 'second_preparation_call_servicejudge', label: 'Nachaufruf zur Vorbereitung · Aufschlagrichter' },
+    announceNoMatchWin: { kind: 'match_no_match_announcement', label: 'Bekanntgabe kampfloses Ergebnis' },
+});
+createAnnouncementTexts.parseClaim = claim => {
+    const parts = /^([^:]+):([^:]+):([0-9]+)(?::([a-zA-Z0-9_-]+))?$/.exec(String(claim || ''));
+    if (!parts) return null;
+    const call = Object.values(createAnnouncementTexts.calls).find(call => call.kind === parts[1]);
+    return call ? { ...call, match_id: parts[2], requested_at: Number(parts[3]), id: String(claim) } : null;
+};
 
 if (typeof module !== 'undefined' && module.exports) { module.exports = createAnnouncementTexts; }

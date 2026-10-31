@@ -272,12 +272,10 @@
       "timerRects": 0,
       "preparationRects": 0,
       "nameRanges": 3,
-      "officialRanges": 2,
+      "officialRanges": 0,
       "officialIntrinsic": 0,
       "nameGroupContains": 0,
-      "officialCells": {
-        "match-45": 4
-      },
+      "officialCells": {},
       "liveNameWrites": 0
     },
     {

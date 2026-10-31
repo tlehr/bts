@@ -1,0 +1,438 @@
+{
+  "date": "2026-10-31",
+  "scope": "Isolated real frontend; existing row and cells must survive every update.",
+  "checks": [
+    "Unknown bookkeeping preserves the row and every existing cell",
+    "Round and discipline preserves the row and every existing cell",
+    "Player rename preserves the row and every existing cell",
+    "Player entry status preserves the row and every existing cell",
+    "DNS blocks the existing participants and call controls",
+    "Cleared player entry status preserves the row and every existing cell",
+    "Clearing DNS restores the existing participants without stale badges",
+    "Umpire check-out preserves the row and every existing cell",
+    "Umpire rename preserves the row and every existing cell",
+    "Umpire replacement preserves the row and every existing cell",
+    "Judge removal preserves the row and every existing cell",
+    "Judge addition preserves the row and every existing cell",
+    "Tablet pairing addition preserves the row and every existing cell",
+    "Tablet pairing check-in preserves the row and every existing cell",
+    "Tablet pairing replacement preserves the row and every existing cell",
+    "Tablet removal preserves the row and every existing cell",
+    "Location change preserves the row and every existing cell",
+    "Court change preserves the row and every existing cell",
+    "Deferred status preserves the row and every existing cell",
+    "Preparation restored preserves the row and every existing cell",
+    "Appearance override preserves the row and every existing cell",
+    "Score and timer change preserves the row and every existing cell",
+    "Renames, participant status and role updates retain all original player and name objects",
+    "The renamed player and replaced officials show the current values",
+    "Replacing one participant preserves the partner, opposing players and every cell",
+    "A newly inserted participant has a working check-in handler for the current game",
+    "Current game metadata retains all cells, players and name objects",
+    "Current game player rename retains all cells, players and name objects",
+    "Current game officials retains all cells, players and name objects",
+    "Current game tablet assignment retains all cells, players and name objects",
+    "Current game score and shuttle count retains all cells, players and name objects",
+    "Longer scoring format retains all cells, players and name objects",
+    "A longer format grows the shared score reservation",
+    "Restored scoring format retains all cells, players and name objects",
+    "A shorter format releases the shared score reservation",
+    "Current game retains recall controls after participant changes",
+    "A field update preserves the occupied row, its contents and field graphic",
+    "Reactivating the field restores its number on the existing row",
+    "Finished game metadata retains all cells, players and name objects",
+    "Finished game player rename retains all cells, players and name objects",
+    "Finished game officials retains all cells, players and name objects",
+    "Finished game court history retains all cells, players and name objects",
+    "Finished game winner and result correction retains all cells, players and name objects",
+    "A corrected result marks the current winner and court history on the same cells",
+    "An unresolved pairing updates only its own contents and disables dragging",
+    "A newly assigned blocked participant keeps its status badge and existing cells",
+    "An unchanged scoring format does not invalidate the whole board",
+    "Absent preparation boundaries need no global style measurement",
+    "Targeted row updates produce no browser exceptions"
+  ],
+  "exceptions": 0,
+  "measurements": [
+    {
+      "ctype": "match_edit",
+      "timings": {
+        "queue_ms": 1,
+        "handler_ms": 9.9,
+        "ui_wait_ms": 10.2,
+        "render_ms": 33.5,
+        "total_ms": 54.6
+      }
+    },
+    {
+      "ctype": "match_edit",
+      "timings": {
+        "queue_ms": 0.1,
+        "handler_ms": 1,
+        "ui_wait_ms": 14,
+        "render_ms": 33,
+        "total_ms": 48.1
+      }
+    },
+    {
+      "ctype": "match_edit",
+      "timings": {
+        "queue_ms": 0.2,
+        "handler_ms": 2.9,
+        "ui_wait_ms": 17.7,
+        "render_ms": 28.2,
+        "total_ms": 49
+      }
+    },
+    {
+      "ctype": "match_edit",
+      "timings": {
+        "queue_ms": 0.2,
+        "handler_ms": 3.3,
+        "ui_wait_ms": 23.9,
+        "render_ms": 20.8,
+        "total_ms": 48.2
+      }
+    },
+    {
+      "ctype": "match_edit",
+      "timings": {
+        "queue_ms": 0.4,
+        "handler_ms": 7,
+        "ui_wait_ms": 8.6,
+        "render_ms": 27.8,
+        "total_ms": 43.8
+      }
+    },
+    {
+      "ctype": "match_edit",
+      "timings": {
+        "queue_ms": 0.1,
+        "handler_ms": 4.6,
+        "ui_wait_ms": 11.7,
+        "render_ms": 32.1,
+        "total_ms": 48.5
+      }
+    },
+    {
+      "ctype": "match_edit",
+      "timings": {
+        "queue_ms": 0.1,
+        "handler_ms": 2.5,
+        "ui_wait_ms": 18.1,
+        "render_ms": 27.6,
+        "total_ms": 48.3
+      }
+    },
+    {
+      "ctype": "match_edit",
+      "timings": {
+        "queue_ms": 0.3,
+        "handler_ms": 7.2,
+        "ui_wait_ms": 17.9,
+        "render_ms": 21.8,
+        "total_ms": 47.2
+      }
+    },
+    {
+      "ctype": "match_edit",
+      "timings": {
+        "queue_ms": 0.1,
+        "handler_ms": 2.2,
+        "ui_wait_ms": 14.7,
+        "render_ms": 31.9,
+        "total_ms": 48.9
+      }
+    },
+    {
+      "ctype": "match_edit",
+      "timings": {
+        "queue_ms": 0.4,
+        "handler_ms": 3.8,
+        "ui_wait_ms": 21.9,
+        "render_ms": 23.8,
+        "total_ms": 49.9
+      }
+    },
+    {
+      "ctype": "match_edit",
+      "timings": {
+        "queue_ms": 0.4,
+        "handler_ms": 8.2,
+        "ui_wait_ms": 32.8,
+        "render_ms": 25,
+        "total_ms": 66.4
+      }
+    },
+    {
+      "ctype": "match_edit",
+      "timings": {
+        "queue_ms": 0.2,
+        "handler_ms": 2.2,
+        "ui_wait_ms": 12.6,
+        "render_ms": 32.9,
+        "total_ms": 47.9
+      }
+    },
+    {
+      "ctype": "match_edit",
+      "timings": {
+        "queue_ms": 0.4,
+        "handler_ms": 5.4,
+        "ui_wait_ms": 22.1,
+        "render_ms": 18.3,
+        "total_ms": 46.2
+      }
+    },
+    {
+      "ctype": "match_edit",
+      "timings": {
+        "queue_ms": 0.4,
+        "handler_ms": 5.6,
+        "ui_wait_ms": 6.5,
+        "render_ms": 33.2,
+        "total_ms": 45.7
+      }
+    },
+    {
+      "ctype": "match_edit",
+      "timings": {
+        "queue_ms": 0.4,
+        "handler_ms": 6.1,
+        "ui_wait_ms": 7.7,
+        "render_ms": 33,
+        "total_ms": 47.2
+      }
+    },
+    {
+      "ctype": "match_edit",
+      "timings": {
+        "queue_ms": 0.3,
+        "handler_ms": 4.1,
+        "ui_wait_ms": 8.9,
+        "render_ms": 32.5,
+        "total_ms": 45.8
+      }
+    },
+    {
+      "ctype": "match_edit",
+      "timings": {
+        "queue_ms": 0.2,
+        "handler_ms": 2.8,
+        "ui_wait_ms": 11,
+        "render_ms": 33.2,
+        "total_ms": 47.2
+      }
+    },
+    {
+      "ctype": "match_edit",
+      "timings": {
+        "queue_ms": 0.3,
+        "handler_ms": 5.3,
+        "ui_wait_ms": 25.7,
+        "render_ms": 32.9,
+        "total_ms": 64.2
+      }
+    },
+    {
+      "ctype": "match_edit",
+      "timings": {
+        "queue_ms": 0.3,
+        "handler_ms": 6.2,
+        "ui_wait_ms": 7.8,
+        "render_ms": 32.4,
+        "total_ms": 46.7
+      }
+    },
+    {
+      "ctype": "match_edit",
+      "timings": {
+        "queue_ms": 0.3,
+        "handler_ms": 1.7,
+        "ui_wait_ms": 11.9,
+        "render_ms": 37.9,
+        "total_ms": 51.8
+      }
+    },
+    {
+      "ctype": "match_edit",
+      "timings": {
+        "queue_ms": 0.2,
+        "handler_ms": 3.3,
+        "ui_wait_ms": 16.6,
+        "render_ms": 28.7,
+        "total_ms": 48.8
+      }
+    },
+    {
+      "ctype": "match_edit",
+      "timings": {
+        "queue_ms": 0.3,
+        "handler_ms": 0.9,
+        "ui_wait_ms": 4.6,
+        "render_ms": 32.5,
+        "total_ms": 38.3
+      }
+    },
+    {
+      "ctype": "match_edit",
+      "timings": {
+        "queue_ms": 0.2,
+        "handler_ms": 4.3,
+        "ui_wait_ms": 13.5,
+        "render_ms": 33.2,
+        "total_ms": 51.2
+      }
+    },
+    {
+      "ctype": "match_edit",
+      "timings": {
+        "queue_ms": 0.2,
+        "handler_ms": 2.9,
+        "ui_wait_ms": 22.7,
+        "render_ms": 20.7,
+        "total_ms": 46.5
+      }
+    },
+    {
+      "ctype": "match_edit",
+      "timings": {
+        "queue_ms": 0.1,
+        "handler_ms": 1.6,
+        "ui_wait_ms": 22.5,
+        "render_ms": 24.5,
+        "total_ms": 48.7
+      }
+    },
+    {
+      "ctype": "match_edit",
+      "timings": {
+        "queue_ms": 0.3,
+        "handler_ms": 1,
+        "ui_wait_ms": 0.1,
+        "render_ms": 30.3,
+        "total_ms": 31.7
+      }
+    },
+    {
+      "ctype": "match_edit",
+      "timings": {
+        "queue_ms": 0.4,
+        "handler_ms": 5.1,
+        "ui_wait_ms": 9,
+        "render_ms": 32.6,
+        "total_ms": 47.1
+      }
+    },
+    {
+      "ctype": "match_edit",
+      "timings": {
+        "queue_ms": 0.2,
+        "handler_ms": 2.9,
+        "ui_wait_ms": 11.8,
+        "render_ms": 32.4,
+        "total_ms": 47.3
+      }
+    },
+    {
+      "ctype": "court_changed",
+      "timings": {
+        "queue_ms": 0.1,
+        "handler_ms": 5,
+        "ui_wait_ms": 31.2,
+        "render_ms": 28.4,
+        "total_ms": 64.7
+      }
+    },
+    {
+      "ctype": "court_changed",
+      "timings": {
+        "queue_ms": 0.2,
+        "handler_ms": 2.8,
+        "ui_wait_ms": 25.4,
+        "render_ms": 31.9,
+        "total_ms": 60.3
+      }
+    },
+    {
+      "ctype": "match_edit",
+      "timings": {
+        "queue_ms": 0.4,
+        "handler_ms": 12,
+        "ui_wait_ms": 21.5,
+        "render_ms": 19.1,
+        "total_ms": 53
+      }
+    },
+    {
+      "ctype": "match_edit",
+      "timings": {
+        "queue_ms": 0.2,
+        "handler_ms": 0.5,
+        "ui_wait_ms": 12.3,
+        "render_ms": 33.2,
+        "total_ms": 46.2
+      }
+    },
+    {
+      "ctype": "match_edit",
+      "timings": {
+        "queue_ms": 0.2,
+        "handler_ms": 1.6,
+        "ui_wait_ms": 17.8,
+        "render_ms": 29.1,
+        "total_ms": 48.7
+      }
+    },
+    {
+      "ctype": "match_edit",
+      "timings": {
+        "queue_ms": 0.1,
+        "handler_ms": 1.6,
+        "ui_wait_ms": 23.4,
+        "render_ms": 23.7,
+        "total_ms": 48.8
+      }
+    },
+    {
+      "ctype": "match_edit",
+      "timings": {
+        "queue_ms": 0.3,
+        "handler_ms": 2.6,
+        "ui_wait_ms": 11.4,
+        "render_ms": 33,
+        "total_ms": 47.3
+      }
+    },
+    {
+      "ctype": "match_edit",
+      "timings": {
+        "queue_ms": 0.4,
+        "handler_ms": 2.5,
+        "ui_wait_ms": 10.4,
+        "render_ms": 33.6,
+        "total_ms": 46.9
+      }
+    },
+    {
+      "ctype": "match_edit",
+      "timings": {
+        "queue_ms": 0.8,
+        "handler_ms": 7.9,
+        "ui_wait_ms": 6.1,
+        "render_ms": 30.8,
+        "total_ms": 45.6
+      }
+    },
+    {
+      "ctype": "match_edit",
+      "timings": {
+        "queue_ms": 0.4,
+        "handler_ms": 3.1,
+        "ui_wait_ms": 9.2,
+        "render_ms": 28.6,
+        "total_ms": 41.3
+      }
+    }
+  ]
+}

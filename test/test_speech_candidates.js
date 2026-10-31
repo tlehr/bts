@@ -29,6 +29,18 @@ function fixture() {
 const select = current => callCandidates(current, current.matches, { now_ts: now });
 
 describe('Speech call candidates within the preparation boundary', function() {
+    it('excludes deferred games from speech candidates and the boundary, and includes them again after release', function() {
+        const current = { ...fixture(), preparation_call_matches_ahead_of_frontier_limit: 1,
+            matches: [game(1, { preparation_call_deferred: true }), game(2, { incomplete: true }),
+                game(3, { preparation_call_deferred: true }), game(4), game(5)] };
+        assert.deepStrictEqual(select(current), ['match-4']);
+        const selection = calculate_location_preparation_selection(current, 'hall', { now_ts: now });
+        assert.strictEqual(selection.display_frontier._id, 'match-2');
+        assert.strictEqual(selection.display_cutoff._id, 'match-4');
+        delete current.matches[2].setup.preparation_call_deferred;
+        assert.deepStrictEqual(select(current), ['match-3']);
+    });
+
     it('includes every known game through the boundary despite covered preparation demand and busy players', function() {
         const current = fixture();
         const ui = calculate_location_preparation_selection(current, 'hall', { now_ts: now });

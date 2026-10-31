@@ -511,7 +511,7 @@ var change = (function() {
 			break;
 		case 'match_preparation_call':
 			if (c.val && c.val.match && c.val.match.setup) {
-				c.val.match.setup._announcement_claim_key = `match_preparation_call:${c.val.match__id}:${c.val._announcement_ts || 'na'}`;
+				c.val.match.setup._announcement_claim_key = _announcement_claim_key(c, 'match_preparation_call');
 				c.val.match.setup._match_id = c.val.match__id;
 			}
 			if (current_view === 'show') {
@@ -540,7 +540,7 @@ var change = (function() {
 			break;
 		case 'match_no_match_announcement':
 			if (c.val && c.val.match && c.val.match.setup) {
-				c.val.match.setup._announcement_claim_key = `match_no_match_announcement:${c.val.match__id}:${c.val._announcement_ts || 'na'}`;
+				c.val.match.setup._announcement_claim_key = _announcement_claim_key(c, 'match_no_match_announcement');
 				c.val.match.setup._match_id = c.val.match__id;
 			}
 			_handle_announcement_event('match_no_match_announcement', c.val, () => {
@@ -945,6 +945,9 @@ var change = (function() {
 				utils.remove(curt.displays, display);
 			}
 			ctournament.delete_display(c);
+			break;
+		case 'match_protocol_event':
+			if (typeof cleitstand !== 'undefined') cleitstand.matchProtocolEvent(c);
 			break;
 		case 'display_render_stats':
 			var d = utils.find(curt.displays, m => m.client_id === c.val.client_id);

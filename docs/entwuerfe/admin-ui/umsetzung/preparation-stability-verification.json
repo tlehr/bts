@@ -3,7 +3,7 @@
   "checks": 4,
   "scope": "Isolierte native Oberfläche: identische Diagnosen, geänderte Grenze und wechselnde Aufrufberechtigung.",
   "repeated": {
-    "handler_ms": 1.2000000476837158,
+    "handler_ms": 1.7999999523162842,
     "mutations": 0,
     "childChanges": 0,
     "sameBoundary": true,

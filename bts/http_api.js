@@ -237,7 +237,7 @@ function matchinfo_handler(req, res) {
 		const [tournament] = tournaments;
 		const [match] = matches;
 		const event = bupws.create_event_representation(tournament);
-		const match_repr = bupws.create_match_representation(app, tournament, match);
+		const match_repr = bupws.create_match_representation(req.app, tournament, match);
 		if (match_repr.presses_json) {
 			// Parse JSON-in-JSON (for performance reasons) for nicer output
 			match_repr.presses = JSON.parse(match_repr.presses_json);

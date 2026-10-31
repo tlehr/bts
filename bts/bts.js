@@ -116,6 +116,7 @@ function create_app(config, db) {
 	const app = express();
 	app.config = config;
 	app.db = db;
+	require('./match_protocol').attach(app);
 	if (config.diagnostics?.enabled !== false) app.diagnostics = new (require('./diagnostics').Diagnostics)(app, require('./diagnostics/pages').buildVersion(config));
 	app.speech = require('./speech').create(app);
 	app.use('/bup/', require('./diagnostics/pages').bup(config.bup_location, config.bup_index));

@@ -428,6 +428,16 @@ var ctournament = (function() {
 	const match_metadata_fields = new Set(['scheduled_date', 'scheduled_time_str', 'match_num', 'match_name', 'event_name']);
 	const match_clock_fields = new Set(['preparation_call_timestamp']);
 	const match_successor_fields = new Set(['needs_preparation_successor', 'needs_preparation_successor_ts']);
+	function match_teams_check_in_equal(before, after) {
+		if (!Array.isArray(before) || !Array.isArray(after) || before.length !== after.length) return false;
+		return before.every((team, index) => {
+			const incoming = after[index];
+			return team && incoming && utils.deep_equal({...team, players: null}, {...incoming, players: null}) &&
+				Array.isArray(team.players) && Array.isArray(incoming.players) && team.players.length === incoming.players.length &&
+				team.players.every((player, player_index) => player && incoming.players[player_index] &&
+					utils.deep_equal({...player, checked_in: null}, {...incoming.players[player_index], checked_in: null}));
+		});
+	}
 	function match_row_patch_fields(match, incoming) {
 		if (!incoming || !utils.plucked_deep_equal(match, incoming, [
 			'btp_winner', 'team1_won', 'score_status', 'forward_loser', 'no_match_losing_team',
@@ -435,6 +445,7 @@ var ctournament = (function() {
 		const before = match.setup || {}, after = incoming.setup || {}, fields = [];
 		for (const field of new Set([...Object.keys(before), ...Object.keys(after)])) {
 			if (utils.deep_equal(before[field], after[field])) continue;
+			if (field === 'teams' && match_teams_check_in_equal(before.teams, after.teams)) { fields.push(field);continue; }
 			// Unknown dependencies retain the existing structural update path.
 			if (!match_metadata_fields.has(field) && !match_clock_fields.has(field) && !match_successor_fields.has(field)) return null;
 			fields.push(field);
@@ -495,8 +506,9 @@ var ctournament = (function() {
 				}
 				if ('end_ts' in cval.match) {
 					m.end_ts = cval.match.end_ts;
-				}
+				} else delete m.end_ts;
 				if ('duration_ms' in cval.match) m.duration_ms = cval.match.duration_ms;
+				else delete m.duration_ms;
 				m.setup = cval.match.setup;
 				m.btp_winner = cval.match.btp_winner;
 			}
@@ -508,6 +520,7 @@ var ctournament = (function() {
 			} else if (patch_fields && old_section === new_section) {
 				const metadata = patch_fields.filter(field => match_metadata_fields.has(field));
 				if (metadata.length) cmatch.update_match_metadata(m, metadata);
+				if (patch_fields.includes('teams')) cmatch.update_player_status_indicators_for_match_players(m, { previous_setup });
 				if (values_changed || patch_fields.some(field => match_clock_fields.has(field))) cmatch.update_match_score(m);
 				else if (patch_fields.includes('needs_preparation_successor')) cmatch.update_preparation_demand_court_markers(m);
 				if (order_changed) cmatch.reorder_match_row(m, new_section);
