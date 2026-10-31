@@ -16,6 +16,8 @@
     "test:admin-persistent-rows": "node docs/entwuerfe/admin-ui/umsetzung/browser-check.js --persistent-rows-only",
     "test:admin-check-in-cursor": "node docs/entwuerfe/admin-ui/umsetzung/browser-check.js --check-in-cursor-only",
     "test:admin-density": "node docs/entwuerfe/admin-ui/umsetzung/browser-check.js --density-only",
+    "test:admin-current-games-scroll": "node docs/entwuerfe/admin-ui/umsetzung/browser-check.js --current-games-scroll-only",
+    "test:admin-court-assignment": "node docs/entwuerfe/admin-ui/umsetzung/browser-check.js --court-assignment-only",
     "test:admin-compact-density": "node docs/entwuerfe/admin-ui/umsetzung/browser-check.js --compact-density-only",
     "test:admin-compact-timers": "node docs/entwuerfe/admin-ui/umsetzung/browser-check.js --compact-timers-only",
     "test:admin-compact-official-names": "node docs/entwuerfe/admin-ui/umsetzung/browser-check.js --compact-official-names-only",

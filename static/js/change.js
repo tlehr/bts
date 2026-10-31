@@ -7,6 +7,10 @@ var change = (function() {
 				c._bts_default_handler_seen = true;
 			}
 			default_handler_func(rerender, special_funcs, c);
+			if (typeof cleitstand !== 'undefined' && ['match_edit','match_add','match_delete','match_preparation_call','court_current_match','courts_changed','court_changed',
+				'tabletoperator_add','tabletoperator_removed','update_player_status','umpires_changed','umpire_updated','official_edit','update_btp_settings','score'].includes(c.ctype)) {
+				cleitstand.refreshCourtAssignment?.();
+			}
 		};
 	}
 

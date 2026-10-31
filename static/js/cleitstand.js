@@ -1,4 +1,4 @@
-/* global btsRemarksDialog, cerror, cmatch, ctournament, btp_entry_status, calc, btsAdminUpdates, btsOfficialPicker, btsChoicePicker, btsDialogActions, btsMatchEditRules, match_scoring, ci18n, btsScoresheetRemarks */
+/* global btsCourtAssignment, btsRemarksDialog, cerror, cmatch, ctournament, btp_entry_status, calc, btsAdminUpdates, btsOfficialPicker, btsChoicePicker, btsDialogActions, btsMatchEditRules, match_scoring, ci18n, btsScoresheetRemarks */
 'use strict';
 
 // The live tournament board. Existing controls and incremental match updates retain their handlers.
@@ -550,10 +550,10 @@ var cleitstand = (function() {
     }
     return {zone,before,container,card,after};
   }
-  function modal(title,build) {
+  function modal(title,build,symbol='info') {
     const opener=document.activeElement,dialog=el(document.body,'dialog','leitstand-dialog');
-    const heading=el(dialog,'div','dialog-heading'),caption=el(heading,'h2');caption.innerHTML=icon('info');el(caption,'span','',title);
-    const close=el(heading,'button','btn icon-only','×');close.type='button';close.setAttribute('aria-label','Schließen');
+    const heading=el(dialog,'div','dialog-heading'),caption=el(heading,'h2');caption.innerHTML=icon(symbol);el(caption,'span','',title);
+    const close=el(heading,'button','ls-dialog-close');close.innerHTML=icon('close');close.type='button';close.setAttribute('aria-label','Schließen');
     close.onclick=()=>dialog.close();
     dialog.addEventListener('close',()=>{dialog.remove();if(opener?.isConnected)opener.focus({preventScroll:true});},{once:true});
     const body=el(dialog,'div','dialog-content');build(body,dialog);dialog.showModal();return dialog;
@@ -569,15 +569,50 @@ var cleitstand = (function() {
     }
     sendMessage({type:'match_call_on_court',court_id:court._id,match_id:match._id},done);
   }
+  let assignmentView=null;
+  function refreshCourtAssignment() {
+    const view=assignmentView;if(!view)return;
+    if(!view.dialog.isConnected){assignmentView=null;return;}
+    const groups=btsCourtAssignment.groups(model,cmatch.cmp_match_order);
+    const selected=view.select.value;
+    const label=match=>[match.setup.match_num,match.setup.scheduled_time_str,match.setup.teams.map(team=>team.players.map(player=>player.name).join(' / ')).join(' v ')].filter(value=>value!==undefined&&value!==null&&value!=='').join(' · ');
+    const signature=JSON.stringify(groups.map(group=>[group.key,group.matches.map(match=>[match._id,label(match)])]));
+    if(signature!==view.signature) {
+      view.signature=signature;
+      const options=new Map([...view.select.querySelectorAll('option')].map(option=>[option.value,option]));
+      const sections=new Map([...view.select.children].map(group=>[group.dataset.group,group]));
+      const wanted=[];
+      for(const group of groups) {
+        if(!group.matches.length)continue;
+        const section=sections.get(group.key)||document.createElement('optgroup');section.dataset.group=group.key;section.label=group.label;
+        const children=group.matches.map(match=>{
+          const option=options.get(String(match._id))||document.createElement('option');option.value=match._id;
+          const text=label(match);
+          if(option.textContent!==text)option.textContent=text;return option;
+        });
+        section.replaceChildren(...children);wanted.push(section);
+      }
+      view.select.replaceChildren(...wanted);
+      if(view.initialized)view.select.value=selected;
+      view.initialized=true;
+    }
+    const court=model.courts.find(court=>String(court._id)===String(view.courtId));
+    const available=court?.is_active&&!model.matches.some(match=>cmatch.calc_section(match)==='court_'+court._id);
+    const reason=!available?'Das Feld ist inzwischen nicht mehr verfügbar.':!view.select.options.length?'Keine zuweisbaren Spiele vorhanden.':!view.select.value?'Bitte ein anderes Spiel auswählen.':'';
+    view.submit.disabled=!!reason;view.submit.title=reason;
+    view.empty.hidden=!reason;if(view.empty.textContent!==reason)view.empty.textContent=reason;
+  }
   function assignCourt(court) {
     modal('Spiel auf Feld '+court.num+' zuweisen',(body,dialog)=>{
       const form=el(body,'form'),label=el(form,'label','','Spiel auswählen'),select=el(label,'select');select.required=true;
-      const matches=model.matches.filter(match=>complete(match)&&match.setup.is_match&&cmatch.calc_section(match)==='unassigned'&&!btp_entry_status.blocked_players(match).length);
-      for(const match of matches) {const option=el(select,'option','',match.setup.match_num+' · '+match.setup.teams.map(team=>team.players.map(player=>player.name).join(' / ')).join(' v '));option.value=match._id;}
-      const submit=el(form,'button','btn attention','Zuweisen');submit.type='submit';submit.disabled=!matches.length;
-      if(!matches.length)el(form,'p','','Keine zuweisbaren Spiele vorhanden.');
-      form.onsubmit=event=>{event.preventDefault();callCourt(court._id,select.value,()=>dialog.close());};
-    });
+      const empty=el(form,'p');empty.setAttribute('role','status');
+      const footer=el(form,'div','ls-court-assignment-actions');
+      const submit=el(footer,'button','btn primary','Zuweisen');submit.type='submit';
+      const view=assignmentView={dialog,select,submit,empty,courtId:court._id,signature:null,initialized:false};
+      dialog.addEventListener('close',()=>{if(assignmentView===view)assignmentView=null;},{once:true});
+      select.onchange=refreshCourtAssignment;refreshCourtAssignment();
+      form.onsubmit=event=>{event.preventDefault();refreshCourtAssignment();if(!submit.disabled)callCourt(court._id,select.value,()=>dialog.close());};
+    },'speaker');
   }
   function setAttribute(node,name,value) {if(node.getAttribute(name)!==String(value))node.setAttribute(name,String(value));}
   function actionIcon(node,name,label) {
@@ -2138,6 +2173,7 @@ var cleitstand = (function() {
     viewObserver=new MutationObserver(()=>{if(root&&!root.isConnected)unmount();});viewObserver.observe(main,{childList:true});
   }
   function unmount() {
+    assignmentView?.dialog.close();assignmentView=null;
     clearDialogPickers();
     if(root)cmatch.destroy_tabletoperator_pickers(root);
     finishCardResize(true);
@@ -2151,7 +2187,7 @@ var cleitstand = (function() {
     timerObserver?.disconnect();timerObserver=null;timerValues.clear();dirtyTimers.clear();timerFittings.clear();preparationWidths.clear();if(timerFrame!==null)cancelAnimationFrame(timerFrame);timerFrame=null;timerComplete=null;
     document.querySelector('.leitstand-header')?.classList.remove('leitstand-header');root=null;searchControl=null;
   }
-  return {mount,unmount,active,row,refreshRow,emptyRow,updateScore,updateMatchMetadata,score,timerDisplay,timerVisibilityChanged,deviceLocations,automation,refreshOperators,refreshCounts,refreshFinished,refreshTablets,tabletDevices,refreshScoreLayout,maxSetCount,matchTimes,matchDay,sortFinishedMatches,nameStages,matchDrag,clearMatchDrag,decorateControls,matchDialog,matchProtocolEvent,updateMatchRemarks,restoreDialogFocus,officialPicker,choicePicker,clearDialogPickers,closeDialogPickers,tabletAssignmentIcon,operatorQueue,rotationIcons,player,participant,refreshUnassigned,refreshDates:refreshDateGroups,btpSync,
+  return {mount,unmount,active,row,refreshRow,emptyRow,updateScore,updateMatchMetadata,score,timerDisplay,timerVisibilityChanged,deviceLocations,automation,refreshOperators,refreshCounts,refreshFinished,refreshTablets,tabletDevices,refreshScoreLayout,maxSetCount,matchTimes,matchDay,sortFinishedMatches,nameStages,matchDrag,clearMatchDrag,decorateControls,matchDialog,matchProtocolEvent,updateMatchRemarks,refreshCourtAssignment,restoreDialogFocus,officialPicker,choicePicker,clearDialogPickers,closeDialogPickers,tabletAssignmentIcon,operatorQueue,rotationIcons,player,participant,refreshUnassigned,refreshDates:refreshDateGroups,btpSync,
     pendingUpdates:()=>[...pendingUpdates.keys()],
     isUpdating:()=>nameFrame!==null||timerFrame!==null||dirtyTimers.size>0||countsPending||finishedSortPending};
 })();

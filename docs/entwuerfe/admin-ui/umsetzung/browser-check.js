@@ -140,6 +140,12 @@ class CDP {
   if(process.argv.includes('--density-only')) {
    await require('./density-check')({c,check,click,open,metrics,previews});return;
   }
+  if(process.argv.includes('--current-games-scroll-only')) {
+   await require('./current-games-scroll-check')({c,check,click,open,metrics,previews});return;
+  }
+  if(process.argv.includes('--court-assignment-only')) {
+   await require('./court-assignment-check')({c,check,click,open,metrics,previews});return;
+  }
   if(process.argv.includes('--compact-density-only')) {
    await require('./compact-density-check')({c,check,click,open,metrics,previews,capture:snap});return;
   }

@@ -1,0 +1,26 @@
+{
+  "date": "2026-11-01",
+  "checks": [
+    "The assignment dropdown exposes the three groups in priority order",
+    "Preparation groups are ordered by longest waiting time, followed by normal scheduled order",
+    "Current players, current tablet operators, waiting-list partners, unknown teams and BTP blocks are absent",
+    "Old player flags and completed duties do not hide available players",
+    "A live check-in moves the same selected option into the ready group without changing selection",
+    "Check-out returns a prepared game to the correct position in the second group",
+    "An ordinary point does not rebuild or mutate the open assignment dropdown",
+    "A newly queued player removes their game while preserving another selected game",
+    "Removing a waiting entry restores its game at its original priority",
+    "A player taking a tablet removes a selected game and disables assignment instead of silently selecting another",
+    "Submitting a now-unavailable selection sends no court call",
+    "An explicit available selection re-enables assignment",
+    "Grouped assignment controls fit the viewport at 390",
+    "Grouped assignment controls fit the viewport at 320",
+    "Grouped assignment controls fit the viewport at 1920",
+    "Assignment sends the chosen game and actual destination court",
+    "An acknowledged assignment closes the window",
+    "A court filled by another client disables the open assignment form",
+    "Closing the assignment dialog releases its live-update view",
+    "Grouped court assignment produces no browser exceptions"
+  ],
+  "exceptions": 0
+}

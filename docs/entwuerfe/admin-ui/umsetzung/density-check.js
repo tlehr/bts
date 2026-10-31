@@ -40,6 +40,7 @@ module.exports=async function({c,check,click,open,metrics,previews}) {
  await c.evaluate(`(()=>{const native=Storage.prototype.setItem;Storage.prototype.setItem=function(){throw new Error('Storage blocked');};document.querySelector('${button}').click();Storage.prototype.setItem=native;ctournament.ui_show();})()`);
  await verify('A blocked storage write retains a usable stage throughout a view rebuild',`document.querySelector('.leitstand').dataset.density==='comfort'&&document.querySelector('${button}').textContent.trim()==='Komfort'`);
  const exceptions=c.events.filter(event=>event.method==='Runtime.exceptionThrown');await verify('Density switching and legacy migration produce no browser exceptions',String(exceptions.length===0));
+ await require('./current-games-scroll-check')({c,check,click,open,metrics,previews});
  fs.writeFileSync(path.join(previews,'density-verification.json'),JSON.stringify({date:'2026-10-31',checks,exceptions:exceptions.length,scope:'Isolated frontend: three density levels, compact dimensions, DOM retention and browser preference migration.'},null,2)+'\n');
  console.log(JSON.stringify({checks:checks.length,exceptions:exceptions.length}));
 };

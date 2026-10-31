@@ -608,7 +608,8 @@ body.leitstand-view .tabletoperator_suggestions .tabletoperator_assignment_icon 
 .leitstand :is(.courts_container,.unassigned_container,.finished_container) { overflow:visible; }
 /* Paint the frame over the clipped cell backgrounds, including the rounded corners. */
 .leitstand .table-wrap { width:100%; overflow-x:auto; contain:layout paint; border:1px solid #c5d2cd; border-radius:9px; outline:1px solid #c5d2cd; outline-offset:-1px; background:#fff; }
-.leitstand .unassigned_container .table-wrap { overflow-y:hidden; }
+/* Current games grow to all rows; glyph overflow must not add a vertical bar. */
+.leitstand :is(.courts_container,.unassigned_container) .table-wrap { overflow-y:hidden; }
 .leitstand .match_table tbody>tr.ls-call-boundary>td { height:17px!important; padding:2px 0; font-size:9px!important; color:var(--boundary-ink,#fff); text-align:center; background-color:var(--hall,#303638)!important; border-bottom:0; }
 .leitstand .ls-call-boundary-label { display:block; width:var(--boundary-width,100%); margin-left:var(--boundary-left,0px); padding:0 15px; text-align:center; }
 /* Balance the decorative icon's width so the text itself stays above the versus marker. */
@@ -706,6 +707,11 @@ body.leitstand-view .tabletoperator_suggestions .tabletoperator_assignment_icon 
 .leitstand-dialog :is(pre,select) { max-width:100%; white-space:pre-wrap; overflow-wrap:anywhere; }
 .leitstand-dialog label { display:grid; gap:6px; margin-bottom:15px; }
 .leitstand-dialog select { width:100%; padding:8px; }
+.leitstand-dialog .ls-court-assignment-actions { display:flex; justify-content:flex-end; }
+.leitstand-dialog .ls-court-assignment-actions>.btn { margin:0; }
+.leitstand-dialog .btn.primary { background:#0e5a63; border-color:#08474f; color:white; }
+.leitstand-dialog .btn.primary:not(:disabled):hover { background:#08474f; border-color:#08474f; }
+.leitstand-dialog .btn:disabled { color:#66736f; border-color:#cbd5d0; background:#edf1ef; cursor:default; }
 .bts-confirm-dialog { box-sizing:border-box; width:min(630px,calc(100vw - 32px)); max-width:calc(100vw - 32px); max-height:calc(100dvh - 32px); margin:auto; padding:0; overflow:hidden; border:2px solid #08474f; border-radius:12px; box-shadow:0 22px 100px #102f2033; background:white; color:#213235; text-align:left; font:13px/1.5 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; }
 .bts-confirm-dialog[open] { display:flex; flex-direction:column; }
 .bts-confirm-dialog::backdrop { background:#15291f66; backdrop-filter:blur(2px); }
