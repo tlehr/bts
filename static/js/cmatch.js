@@ -1,4 +1,4 @@
-/* global btsSpeechReadiness, cleitstand, btsAdminUpdates, btsTimerUpdates, btsDialogActions, btsMatchEditRules */
+/* global btsSpeechReadiness, cleitstand, btsAdminUpdates, btsTimerUpdates, btsDialogActions, btsMatchEditRules, btsScoresheetRemarks */
 'use strict';
 
 var cmatch = (function() {
@@ -3420,7 +3420,7 @@ function ui_scoresheet(match_id, embedded_target, embedded_options = {}) {
 		'data-match_id': match_id,
 	});
 
-	const container = uiu.el(dialog, 'div', embedded_target ? 'ls-sheet-page' : '');
+	const container = uiu.el(dialog, 'div', 'ls-sheet-page');
 	const lang = ci18n.get_lang();
 	const pseudo_state = {
 		settings: {
@@ -3453,7 +3453,7 @@ function ui_scoresheet(match_id, embedded_target, embedded_options = {}) {
 
 	const pdf_btn = uiu.el(scoresheet_buttons, 'button', {type: 'button'}, ci18n('PDF'));
 	pdf_btn.addEventListener('click', function() {
-		const svg_nodes = document.querySelectorAll('.single_scoresheet');
+		const svg_nodes = dialog.querySelectorAll('.single_scoresheet');
 		scoresheet.save_pdf(s, svg_nodes);
 	});
 
@@ -3461,6 +3461,15 @@ function ui_scoresheet(match_id, embedded_target, embedded_options = {}) {
 	print_btn.addEventListener('click', function() {
 		window.print();
 	});
+	let sheetSvg;
+	const renderRemarks = () => {
+		if (!sheetSvg || !dialog.isConnected || embedded_target?.hidden) return;
+		const currentSetup = {...utils.deep_copy(match.setup), tournament_name:curt.name};
+		s = calc.remote_state(pseudo_state, currentSetup, match.presses);
+		s.ui = {};
+		scoresheet.sheet_render(btsScoresheetRemarks.stateForReport(s, match), sheetSvg);
+	};
+	dialog.addEventListener('bts-remarks-preview',renderRemarks);
 	embedded_options.onState?.('loading');
 	scoresheet.load_sheet(scoresheet.sheet_name(s.setup), function(xml) {
 		if (embedded_target && !embedded_target.isConnected) return;
@@ -3472,7 +3481,8 @@ function ui_scoresheet(match_id, embedded_target, embedded_options = {}) {
 				if (box.width > 0 && box.height > 0) container.style.setProperty('--ls-sheet-ratio', box.width / box.height);
 			}
 			container.appendChild(svg);
-			scoresheet.sheet_render(s, svg);
+			sheetSvg = svg;
+			renderRemarks();
 			embedded_options.onState?.('ready');
 		} catch (err) {
 			embedded_options.onState?.('error');

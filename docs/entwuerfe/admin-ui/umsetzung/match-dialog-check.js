@@ -10,6 +10,7 @@ module.exports=async function({c,check,click,open,metrics,key,delay,previews}) {
   const clip=viewport?undefined:await c.evaluate('(()=>{const r=document.querySelector(\'.ls-match-dialog\').getBoundingClientRect();return{x:r.left+scrollX-2,y:r.top+scrollY-2,width:r.width+4,height:r.height+4,scale:1}})()');
   const shot=await c.call('Page.captureScreenshot',{format:'png',captureBeyondViewport:false,...(clip?{clip}:{})});fs.writeFileSync(path.join(previews,name+'.png'),Buffer.from(shot.data,'base64'));
  };
+ await require('./scoresheet-remarks-check')({c,check:verify,click,open,metrics,delay,previews});
  await require('./tablet-picker-check')({c,verify,click,metrics,key,capture,open});
  await require('./delete-confirmation-check')({c,verify,click,metrics,key,delay,capture,open});
  await require('./dialog-action-check')({c,verify,click,metrics,key,delay,capture,open});

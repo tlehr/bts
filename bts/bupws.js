@@ -411,7 +411,7 @@ async function handle_score_update(app, ws, msg) {
 				network_team1_left:score_data.network_team1_left,
 				network_team1_serving:score_data.network_team1_serving,
 				network_teams_player1_even:score_data.network_teams_player1_even,
-				presses:score_data.presses,
+				presses:require('./match_remarks').merge(match, score_data.presses),
 				duration_ms:score_data.duration_ms,
 				end_ts:bup_incoming_ts(app, score_data.end_ts),
 				'setup.now_on_court': true,
@@ -760,7 +760,9 @@ async function confirm_match_finished_from_admin(app, tournament_key, match_id, 
 			throw new Error('Match has no finished result to confirm');
 		}
 		const presses = Array.isArray(match.presses) ? match.presses.slice() : [];
-		if (!presses.length || presses[presses.length - 1].type !== 'postmatch-confirm') {
+		let last_action = presses.length - 1;
+		while (last_action >= 0 && presses[last_action].type === 'note') last_action--;
+		if (last_action < 0 || presses[last_action].type !== 'postmatch-confirm') {
 			presses.push({
 				type: 'postmatch-confirm',
 				timestamp: real_now_ms(app),

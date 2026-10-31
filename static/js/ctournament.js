@@ -1,4 +1,4 @@
-/* global btsSpeechReadiness, cleitstand, btsAdminUpdates */
+/* global btsSpeechReadiness, cleitstand, btsAdminUpdates, btsScoresheetRemarks */
 'use strict';
 /* global btsSpeechService, cancelAnnouncementPlayback, createSpeechQueue, createFreeAnnouncementForm */
 
@@ -13913,7 +13913,7 @@ function update_officials() {
 			svg.setAttribute('class', 'scoresheet single_scoresheet');
 			// Usually we'd call importNode here to import the document here, but IE/Edge then ignores the styles
 			container.appendChild(svg);
-			scoresheet.sheet_render(s, svg);
+			scoresheet.sheet_render(btsScoresheetRemarks.stateForReport(s, match), svg);
 
 			const title = (
 				tournament_name + ' ' + _pad(setup.match_num, 3, ' ') + ' ' +
@@ -13925,7 +13925,7 @@ function update_officials() {
 				subject: 'Schiedsrichterzettel',
 				creator: 'bts with bup (https://github.com/phihag/bts/)',
 			};
-			const pdf = svg2pdf.make([svg], props, 'landscape');
+			const pdf = svg2pdf.make([svg], props, 'landscape', 0.1);
 
 			const ab = pdf.output('arraybuffer');
 			zip.file(title.replace(/\s*\/\s*/g, ', ') + '.pdf', ab);

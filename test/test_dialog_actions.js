@@ -75,4 +75,13 @@ describe('Shared dialog action lifecycle', function() {
    values.color = 'green';controller.refresh();assert.strictEqual(controller.state().dirty, false);
   });
  }
+ it('identifies changed controls without re-reading the form on each score update', function() {
+  const form = new EventTarget(), values = {court_id:'1',umpire_note:''};let reads=0;
+  const controller = actions.create(form,{read:()=>{reads++;return JSON.stringify(Object.entries(values));},onUpdate(){},confirmDiscard(){return false;}});
+  values.umpire_note='New note';controller.refresh();
+  assert.deepStrictEqual(controller.changedFields(),['umpire_note']);
+  const count=reads;controller.changedFields();controller.changedFields();assert.strictEqual(reads,count);
+  values.court_id='2';controller.refresh();assert.deepStrictEqual(controller.changedFields(),['court_id','umpire_note']);
+ });
+
 });

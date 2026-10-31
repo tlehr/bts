@@ -1,4 +1,4 @@
-/* global btsSpeechService */
+/* global btsSpeechService, cleitstand */
 var change = (function() {
 
 	function default_handler(rerender, special_funcs) {
@@ -949,6 +949,24 @@ var change = (function() {
 		case 'match_protocol_event':
 			if (typeof cleitstand !== 'undefined') cleitstand.matchProtocolEvent(c);
 			break;
+		case 'match_remarks': {
+			const match = curt.matches.find(match => match._id === c.val.match_id);
+			if (match) {
+				if (match.presses_deferred || !Array.isArray(match.presses)) {
+					match.presses = c.val.presses;
+				} else {
+					// A delayed save receipt must not replace points or notes received meanwhile.
+					const known = new Set(match.presses.filter(press => press.note_id).map(press => press.note_id));
+					for (const press of c.val.presses) if (press.type === 'note' && press.note_id && !known.has(press.note_id)) {
+						match.presses.push(press);known.add(press.note_id);
+					}
+				}
+				delete match.presses_deferred;
+				delete match.scoresheet_notes;
+				if (typeof cleitstand !== 'undefined') cleitstand.updateMatchRemarks(match);
+			}
+			break;
+		}
 		case 'display_render_stats':
 			var d = utils.find(curt.displays, m => m.client_id === c.val.client_id);
 			if (!d) {

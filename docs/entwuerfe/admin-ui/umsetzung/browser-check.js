@@ -179,6 +179,9 @@ class CDP {
   if(process.argv.includes('--date-groups-only')) {
    await require('./date-groups-check')({c,check,click,open,metrics,key,previews});return;
   }
+  if(process.argv.includes('--scoresheet-remarks-only')) {
+   await require('./scoresheet-remarks-check')({c,check,click,open,metrics,delay,previews});return;
+  }
   if(process.argv.includes('--match-dialog-only')) {
    await require('./match-dialog-check')({c,check,click,open,metrics,key,delay,previews});return;
   }

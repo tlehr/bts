@@ -84,19 +84,23 @@ var btsDialogActions = (() => {
   attribute(node, 'title', reason || null);
  }
  function create(form, { onUpdate, confirmDiscard, ignore = [], read = () => snapshot(form, ignore) }) {
-  let baseline = read(), dirty = false, busy = null, destroyed = false;
+  let baseline = read(), currentSnapshot = baseline, dirty = false, busy = null, destroyed = false;
   const state = () => ({ dirty, busy });
   const notify = () => { onUpdate(state());return state(); };
-  const refresh = () => { dirty = read() !== baseline;return notify(); };
+  const refresh = () => { currentSnapshot = read();dirty = currentSnapshot !== baseline;return notify(); };
   const input = () => refresh();
   // Capture prevents duplicate submits before the existing form handler runs.
   const submit = event => { refresh();if (busy || !dirty) { event.preventDefault();event.stopImmediatePropagation(); } };
   form.addEventListener('input', input);form.addEventListener('change', input);form.addEventListener('submit', submit, true);
   const controller = {
    state, refresh,
+   changedFields() {
+    const before = new Map(JSON.parse(baseline)), after = new Map(JSON.parse(currentSnapshot));
+    return [...new Set([...before.keys(), ...after.keys()])].filter(name => before.get(name) !== after.get(name));
+   },
    begin(operation) { refresh();if (busy || (operation === 'save' && !dirty)) return false;busy = operation;notify();return true; },
    end() { busy = null;refresh(); },
-   accept() { baseline = read();dirty = false;busy = null;notify(); },
+   accept() { baseline = currentSnapshot = read();dirty = false;busy = null;notify(); },
    ignoreFields(names) {
     const excluded = new Set(names);
     for (const name of names) if (!ignore.includes(name)) ignore.push(name);

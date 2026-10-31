@@ -2570,8 +2570,13 @@ function notify_cascaded_no_match_announcements(app, tournament_key, tournament,
 
 function handle_match_edit(app, ws, msg) {
 	if (!_require_msg(ws, msg, ['tournament_key', 'id', 'match', 'old_court'])) return;
-	update_queue.execute_locked([update_queue.lock_keys.match(msg.tournament_key, msg.id)], () =>
-		new Promise((resolve, reject) => process_match_edit(app, {respond: (_msg, err, response) => err ? reject(err) : resolve(response)}, msg)))
+	update_queue.execute_locked([update_queue.lock_keys.match(msg.tournament_key, msg.id)], async () => {
+		const remarks = require('./match_remarks');
+		if (msg.remark !== undefined) await remarks.check(app, msg.tournament_key, msg.id, msg.remark, msg.remark_id, msg.remark_target, msg.remark_previous, {role:msg.remark_role,deleted:msg.remark_delete});
+		const response = await new Promise((resolve, reject) => process_match_edit(app, {respond: (_msg, err, result) => err ? reject(err) : resolve(result)}, msg));
+		if (msg.remark !== undefined) await remarks.save(app, msg.tournament_key, msg.id, msg.remark, msg.remark_id, msg.remark_target, msg.remark_previous, {role:msg.remark_role,deleted:msg.remark_delete});
+		return response;
+	})
 		.then(response => ws.respond(msg, null, response), err => ws.respond(msg, err));
 }
 
@@ -5630,7 +5635,7 @@ function handle_fetch_allscoresheets_data(app, ws, msg) {
 			return ws.respond(msg, err);
 		}
 		const interesting_matches = all_matches.filter(
-			m => (m.presses && (m.presses.length > 0))
+			m => (m.presses && (m.presses.length > 0)) || !!m.scoresheet_notes,
 		);
 
 		return ws.respond(msg, null, {
@@ -5822,6 +5827,7 @@ module.exports = {
 	handle_location_changed,
 	handle_match_add,
 	handle_match_edit,
+	handle_match_remarks_save: require('./match_remarks').handle_save,
 	handle_match_call_on_court,
 	handle_match_preparation_call,
 	async_handle_preparation_selection_get,

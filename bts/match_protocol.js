@@ -17,6 +17,12 @@ function transitions(before, after, timestamp, court_label = id => id) {
  if (!before?.setup || !after?.setup || before.tournament_key !== after.tournament_key) return [];
  const old = before.setup, setup = after.setup, events = [];
  const add = (type, text, time = timestamp) => events.push({ type, text, timestamp: Number(time) });
+ const lastPress = after.presses?.at(-1);
+ if (lastPress?.type === 'note' && JSON.stringify(lastPress) !== JSON.stringify(before.presses?.at(-1))) {
+  const role = require('../static/js/scoresheet_remarks').roleLabel(lastPress.note_role || 'umpire');
+  add(lastPress.note_deleted ? 'umpire_remarks_deleted' : lastPress.note_target ? 'umpire_remarks_changed' : 'umpire_remarks',
+   (lastPress.note_deleted ? 'Bemerkung gelöscht · ' : lastPress.note_target ? 'Bemerkung korrigiert · ' : 'Bemerkung ergänzt · ') + role + ': ' + lastPress.val, lastPress.timestamp || timestamp);
+ }
  const finished = setup.state === 'finished' || typeof after.team1_won === 'boolean';
  if (setup.state === 'preparation' && valid_time(setup.preparation_call_timestamp) && setup.preparation_call_timestamp !== old.preparation_call_timestamp) {
   add('preparation_called', 'Spiel in Vorbereitung aufgerufen', setup.preparation_call_timestamp);

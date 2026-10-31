@@ -25,7 +25,11 @@ module.exports=async function({c,verify,click,metrics,key,capture}) {
  await click('#ls-match-tab-0');
  await verify('Leaving the report clears expansion and hides its header button','!document.querySelector(\'.ls-match-dialog\').classList.contains(\'ls-sheet-expanded\')&&document.querySelector(\'.ls-dialog-expand\').hidden&&'+footerFits);
  await c.evaluate('document.querySelector(\'.ls-dialog-tabs button\').focus()');await key('Tab','Tab',9);
- await verify('Keyboard focus skips the hidden edit controls and reaches the common footer','document.activeElement===__sharedFooter.querySelector(\'.match_edit_cancel_button\')');
+ await verify('Keyboard focus skips the hidden edit controls and reaches the remarks action in the common footer','document.activeElement===__sharedFooter.querySelector(\'.ls-remarks-toggle\')');
+ await key('Enter','Enter',13,'\r');
+ await verify('Keyboard activation opens the separate remarks window without changing the parent draft','document.querySelector(\'.ls-remarks-dialog\').open&&__dialogForm.elements.court_id.value===\'CH_13\'');
+ await key('Escape','Escape',27);
+ await verify('Keyboard Escape closes only the pristine remarks window and restores its footer opener','!document.querySelector(\'.ls-remarks-dialog\')&&document.activeElement===__sharedFooter.querySelector(\'.ls-remarks-toggle\')&&__dialogForm.isConnected');
  await click('#ls-match-tab-3');
  await verify('The shared footer has no BTP opt-out and hidden edit fields remain part of the same form','!__sharedFooter.querySelector(\'input,label\')&&!__dialogForm.elements.btp_update&&new FormData(__dialogForm).get(\'court_id\')===\'CH_13\'');
  await click('#ls-match-tab-2');

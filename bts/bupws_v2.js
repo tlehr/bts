@@ -3188,7 +3188,8 @@ async function handle_score_update(app, ws, msg) {
 				send_error(ws, tournament_key, 'Score update rejected: stale panel state for this court.');
 				return finish();
 			}
-			if (!score_update_changes_match(match, score_data, app)) {
+			const incoming_presses = require('./match_remarks').merge(match, score_data.presses);
+			if (!score_update_changes_match(match, {...score_data, presses:incoming_presses}, app)) {
 				const device_info = score_data.device;
 				if (!device_info) {
 					score_phase('validate', phase_start_ns, {
@@ -3225,7 +3226,7 @@ async function handle_score_update(app, ws, msg) {
 				network_team1_left: score_data.network_team1_left,
 				network_team1_serving: score_data.network_team1_serving,
 				network_teams_player1_even: score_data.network_teams_player1_even,
-				presses: score_data.presses,
+				presses: incoming_presses,
 				duration_ms: score_data.duration_ms,
 				end_ts: incoming_ts(app, score_data.end_ts),
 				'setup.now_on_court': true,

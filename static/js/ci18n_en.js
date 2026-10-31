@@ -500,7 +500,7 @@ var ci18n_en = Object.assign(
 	'match:edit:swap_hint': 'Swap',
 	'match:delete:really': 'Delete match {match_id} locally from BTS?',
 	'match:delete:confirm': 'Delete match',
-	'match:delete:consequences': 'This means:\n\n• The local match record, including its result, scoring history and match times, is deleted. Its scoresheet can no longer be opened from that record.\n• Any current court occupancy for this match is cleared.\n• Deleting does not complete the match. Player, tablet operator and official status and tablet waiting lists are not specifically cleaned up. Subsequent matches are not adjusted.\n• Nothing is changed or deleted in BTP. A match imported from BTP may reappear after a later import; this does not restore the deleted local scoring history.\n\nSeparately stored log entries are retained. There is no undo action.',
+	'match:delete:consequences': 'This means:\n\n• The local match record, including its result, scoring history and match times, is deleted. Saved umpire remarks are also deleted. Its scoresheet can no longer be opened from that record.\n• Any current court occupancy for this match is cleared.\n• Deleting does not complete the match. Player, tablet operator and official status and tablet waiting lists are not specifically cleaned up. Subsequent matches are not adjusted.\n• Nothing is changed or deleted in BTP. A match imported from BTP may reappear after a later import; this does not restore the deleted local scoring history.\n\nSeparately stored log entries are retained. There is no undo action.',
 	'match:add_umpire': 'Add umpire',
 	'match:add_service_judge': 'Add service judge',
 	'tournament:edit:logo': 'Logo',

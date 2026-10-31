@@ -1,4 +1,4 @@
-/* global cerror, cmatch, ctournament, btp_entry_status, calc, btsAdminUpdates, btsOfficialPicker, btsChoicePicker, btsDialogActions, btsMatchEditRules, match_scoring, ci18n */
+/* global btsRemarksDialog, cerror, cmatch, ctournament, btp_entry_status, calc, btsAdminUpdates, btsOfficialPicker, btsChoicePicker, btsDialogActions, btsMatchEditRules, match_scoring, ci18n, btsScoresheetRemarks */
 'use strict';
 
 // The live tournament board. Existing controls and incremental match updates retain their handlers.
@@ -1658,7 +1658,7 @@ var cleitstand = (function() {
       const control=orbit.querySelector(selector);if(!control)continue;parts.append(control);control.innerHTML=icon(name)+'<span>'+label+'</span>';control.setAttribute('aria-pressed',String(control.classList.contains('is-active')));
     }
   }
-  function restoreDialogFocus() {matchDialogView=null;if(dialogOpener?.isConnected)dialogOpener.focus({preventScroll:true});}
+  function restoreDialogFocus() {btsRemarksDialog.dispose();matchDialogView=null;if(dialogOpener?.isConnected)dialogOpener.focus({preventScroll:true});}
   function updateMatchDialogScore(match) {
     const view=matchDialogView;if(!view)return;
     if(!view.dialog.isConnected){matchDialogView=null;return;}
@@ -1668,7 +1668,17 @@ var cleitstand = (function() {
     if(shown)score(view.score,cmatch.calc_score_str(match)||(finished?'—':'0:0'));
     view.match=match;
     view.actions?.updateMatch(match);
+    btsRemarksDialog.update(match);
+    if(view.sheetPanel&&btsScoresheetRemarks.signature(match)!==view.remarksSignature)updateMatchRemarks(match);
     if(view.protocol&&!view.protocol.panel.hidden)updateMatchDialogProtocol(view);
+  }
+  function updateMatchRemarks(match) {
+    const view=matchDialogView;
+    if(!view?.dialog.isConnected||view.id!==String(match._id))return;
+    view.match=match;view.remarksSignature=btsScoresheetRemarks.signature(match);
+    view.actions?.updateMatch(match);
+    btsRemarksDialog.update(match);
+    view.sheetPanel?.dispatchEvent(new Event('bts-remarks-preview'));
   }
   function updateMatchDialogProtocol(view) {
     const {match,protocol}=view,events=[...protocol.events.values()];
@@ -1780,6 +1790,9 @@ var cleitstand = (function() {
     const context=el(footer,'div','dialog-actions-context'),main=el(footer,'div','dialog-actions-main');
     context.append(remove);main.append(reopen,finish,cancel,save);
     const reports=el(context,'div','match_scoresheet_buttons');
+    const remarkButton=el(context,'button','ls-remarks-toggle','Bemerkungen');remarkButton.type='button';
+    remarkButton.setAttribute('aria-haspopup','dialog');
+    remarkButton.onclick=()=>btsRemarksDialog.open({owner:form,match:current,tournamentKey:model.key,opener:remarkButton});
     const hint=el(footer,'p','dialog-actions-hint');hint.id='ls-dialog-action-hint';hint.setAttribute('role','status');
     save.setAttribute('aria-describedby',hint.id);finish.setAttribute('aria-describedby',hint.id);reports.setAttribute('aria-describedby',hint.id);
     const close=dialog.querySelector('.ls-dialog-close'),expand=dialog.querySelector('.ls-dialog-expand'),edit=form.querySelector('.ls-edit-panel');
@@ -1790,7 +1803,8 @@ var cleitstand = (function() {
       const showFinish=!confirmed&&(current.setup.now_on_court||result);
       const finishReason=dirty?ci18n('dialog:save_first'):!current.setup.court_id?ci18n('dialog:missing_court'):!result?ci18n('dialog:unfinished_result'):'';
       const busyText=busy?ci18n('dialog:busy:'+busy):'';
-      const saveReason=form.elements.court_id.validationMessage;
+      const saveReason=form.elements.court_id.validationMessage||'';
+      btsDialogActions.control(remarkButton,{disabled:!!busy});
       btsDialogActions.control(save,{disabled:!!busy||!dirty||!!saveReason,label:busy==='save'?busyText:ci18n('dialog:save'),reason:busyText||saveReason||(!dirty?ci18n('dialog:no_changes'):'')});
       btsDialogActions.control(cancel,{disabled:!!busy,label:ci18n(dirty?'Cancel':'dialog:close'),reason:busyText});
       btsDialogActions.control(remove,{hidden:tab!==1,disabled:!!busy,label:busy==='delete'?busyText:ci18n('match:edit:delete'),reason:busyText});
@@ -1847,7 +1861,8 @@ var cleitstand = (function() {
     const empty=el(protocol,'p','ls-protocol-empty','Noch keine Ereignisse protokolliert.'),list=el(protocol,'ol','ls-protocol-list');list.hidden=true;
     matchDialogView.protocol={panel:protocol,notice,empty,list,events:new Map(),rows:new Map(),loading:false,loaded:false};
     const panels=[protocol,edit,sheet,raw],labels=['Spielprotokoll','Bearbeiten','Schiedsrichterzettel','Rohdaten'];
-    const footer=matchDialogFooter(dialog,form,actions,match);matchDialogView.actions=footer;
+    matchDialogView.sheetPanel=sheet;
+    const footer=matchDialogFooter(dialog,form,actions,match);matchDialogView.actions=footer;updateMatchRemarks(match);
     const setExpanded=expanded=>{
       dialog.classList.toggle('ls-sheet-expanded',expanded);
       if(expand){expand.innerHTML=icon(expanded?'minimize':'maximize');expand.setAttribute('aria-pressed',String(expanded));expand.title=expanded?'Spielbericht verkleinern':'Spielbericht vergrößern';expand.setAttribute('aria-label',expand.title);}
@@ -1864,6 +1879,7 @@ var cleitstand = (function() {
       footer.selectTab(index);
       if(index===0){loadMatchProtocol(matchDialogView);updateMatchDialogProtocol(matchDialogView);}
       if(index===2&&!sheet.dataset.loaded){sheet.dataset.loaded='true';renderSheet(sheet,footer.reportOptions);}
+      else if(index===2)sheet.dispatchEvent(new Event('bts-remarks-preview'));
       if(index===3&&!raw.dataset.loaded){raw.dataset.loaded='true';el(raw,'pre','',JSON.stringify(matchDialogView.match,null,2));}
     };
     form.addEventListener('invalid',event=>{if(edit.contains(event.target))select(1);},true);
@@ -2125,7 +2141,7 @@ var cleitstand = (function() {
     clearDialogPickers();
     if(root)cmatch.destroy_tabletoperator_pickers(root);
     finishCardResize(true);
-    matchDialogView=null;
+    btsRemarksDialog.dispose();matchDialogView=null;
     unsubscribeLogs?.();unsubscribeLogs=null;logView=null;
     if(root&&typeof ctournament!=='undefined')ctournament.clear_official_dragdrop?.();
     for(const complete of pendingUpdates.values())complete();
@@ -2135,7 +2151,7 @@ var cleitstand = (function() {
     timerObserver?.disconnect();timerObserver=null;timerValues.clear();dirtyTimers.clear();timerFittings.clear();preparationWidths.clear();if(timerFrame!==null)cancelAnimationFrame(timerFrame);timerFrame=null;timerComplete=null;
     document.querySelector('.leitstand-header')?.classList.remove('leitstand-header');root=null;searchControl=null;
   }
-  return {mount,unmount,active,row,refreshRow,emptyRow,updateScore,updateMatchMetadata,score,timerDisplay,timerVisibilityChanged,deviceLocations,automation,refreshOperators,refreshCounts,refreshFinished,refreshTablets,tabletDevices,refreshScoreLayout,maxSetCount,matchTimes,matchDay,sortFinishedMatches,nameStages,matchDrag,clearMatchDrag,decorateControls,matchDialog,matchProtocolEvent,restoreDialogFocus,officialPicker,choicePicker,clearDialogPickers,closeDialogPickers,tabletAssignmentIcon,operatorQueue,rotationIcons,player,participant,refreshUnassigned,refreshDates:refreshDateGroups,btpSync,
+  return {mount,unmount,active,row,refreshRow,emptyRow,updateScore,updateMatchMetadata,score,timerDisplay,timerVisibilityChanged,deviceLocations,automation,refreshOperators,refreshCounts,refreshFinished,refreshTablets,tabletDevices,refreshScoreLayout,maxSetCount,matchTimes,matchDay,sortFinishedMatches,nameStages,matchDrag,clearMatchDrag,decorateControls,matchDialog,matchProtocolEvent,updateMatchRemarks,restoreDialogFocus,officialPicker,choicePicker,clearDialogPickers,closeDialogPickers,tabletAssignmentIcon,operatorQueue,rotationIcons,player,participant,refreshUnassigned,refreshDates:refreshDateGroups,btpSync,
     pendingUpdates:()=>[...pendingUpdates.keys()],
     isUpdating:()=>nameFrame!==null||timerFrame!==null||dirtyTimers.size>0||countsPending||finishedSortPending};
 })();

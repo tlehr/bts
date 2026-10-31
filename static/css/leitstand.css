@@ -451,14 +451,14 @@ body.leitstand-view .tabletoperator_suggestions .tabletoperator_assignment_icon 
 .ls-match-dialog .match_edit_actions { flex:0 0 auto; gap:8px; margin:0; padding:12px 20px; border-color:#dce5e3; background:#fafcfb; }
 .ls-match-dialog .match_edit_action_button { min-height:32px; padding:6px 10px; border-radius:5px; }
 .ls-match-dialog .dialog-actions { display:grid; grid-template-columns:140px minmax(0,1fr); gap:8px; }
-.dialog-actions-context { display:flex; align-items:flex-end; min-width:0; min-height:32px; }
+.dialog-actions-context { display:flex; flex-wrap:wrap; align-items:flex-end; align-content:flex-end; gap:8px; min-width:0; min-height:72px; }
 .dialog-actions-main { display:flex; flex-wrap:wrap; align-items:flex-end; align-content:flex-end; justify-content:flex-end; gap:8px; min-width:0; min-height:32px; }
 .dialog-actions-hint { grid-column:1 / -1; min-height:1.4em; margin:0; color:#66736f; font-size:11px; line-height:1.4; text-align:right; overflow-wrap:anywhere; }
 .ls-match-dialog .match_save_button:not(:disabled) { border-color:#315e54; color:white; background:#315e54; font-weight:650; }
 .ls-match-dialog .match_save_button:not(:disabled):hover { background:#234b42; }
 .ls-match-dialog .match_edit_action_button:disabled,.dialog-actions a[aria-disabled=true] { opacity:1; color:#66736f; border-color:#cbd5d0; background:#edf1ef; cursor:default; box-shadow:none; }
 .dialog-actions-context .match_scoresheet_buttons { position:static; display:flex; gap:8px; width:auto; height:auto; font:inherit; }
-.dialog-actions-context .match_scoresheet_buttons>button { min-height:32px; min-width:0; margin:0; padding:6px 10px; border:1px solid #9d9d9d; border-radius:5px; color:#213235; background:#fafcfb; font:inherit; cursor:pointer; }
+.dialog-actions-context .match_scoresheet_buttons>button { height:32px; min-height:32px; min-width:0; margin:0; padding:6px 10px; border:1px solid #9d9d9d; border-radius:5px; color:#213235; background:#fafcfb; font:inherit; line-height:18px; cursor:pointer; }
 .dialog-actions-context .match_scoresheet_buttons>button:disabled { color:#66736f; border-color:#cbd5d0; background:#edf1ef; cursor:default; }
 .dialog-actions-context>a { display:inline-flex; align-items:center; text-decoration:none; }
 .ls-dialog-window-actions button:disabled { color:#85938c; cursor:default; }
@@ -495,6 +495,9 @@ body.leitstand-view .tabletoperator_suggestions .tabletoperator_assignment_icon 
 .ls-sheet-expanded .ls-sheet-panel { display:flex; flex-direction:column; gap:8px; }
 .ls-sheet-expanded .ls-sheet-page { display:flex; flex:1 1 auto; align-items:center; justify-content:center; min-height:0; container-type:size; }
 .ls-sheet-expanded .single_scoresheet { flex:0 0 auto; width:min(100cqw,calc(100cqh * var(--ls-sheet-ratio,1.41421356))); }
+.dialog-actions-context .ls-remarks-toggle { margin:0; max-width:100%; min-height:32px; padding:6px 10px; border:1px solid #9d9d9d; border-radius:5px; color:#213235; background:#fafcfb; font:inherit; cursor:pointer; }
+.dialog-actions-context .ls-remarks-toggle { height:32px; line-height:18px; }
+.dialog-actions-context .ls-remarks-toggle:disabled { color:#66736f; border-color:#cbd5d0; background:#edf1ef; cursor:default; }
 .ls-sheet-expanded .match_scoresheet_buttons { flex:0 0 auto; }
 /* The report repeats the match details; keep room for the page in landscape. */
 @media (max-height:520px) {
@@ -502,10 +505,15 @@ body.leitstand-view .tabletoperator_suggestions .tabletoperator_assignment_icon 
 }
 .ls-raw-panel pre { max-height:55vh; overflow:auto; white-space:pre-wrap; overflow-wrap:anywhere; text-align:left; font:11px/1.5 monospace; color:#fff; background:#000; padding:12px; border-radius:5px; }
 @media print {
+  body:has(.ls-sheet-panel:not([hidden])) { margin:0; padding:0; }
+  body:has(.ls-sheet-panel:not([hidden]))>:not(.match_edit_dialog) { display:none!important; }
   body:has(.ls-sheet-panel:not([hidden]))>:is(.main,.toprow,footer),.ls-match-dialog:has(.ls-sheet-panel:not([hidden])) :is(h3,.ls-dialog-heading,.ls-dialog-context,.ls-dialog-tabs,.match_scoresheet_buttons,.match_edit_actions,.ls-edit-panel) { display:none!important; }
   .match_edit_dialog:has(.ls-sheet-panel:not([hidden])),.match_edit_dialog:has(.ls-sheet-panel:not([hidden]))>.dialog { position:static; display:block; width:100%; height:auto; max-width:none; max-height:none; padding:0; margin:0; border:0; border-radius:0; background:white; box-shadow:none; overflow:visible; backdrop-filter:none; }
   .ls-match-dialog:has(.ls-sheet-panel:not([hidden])) :is(form,.ls-dialog-content,.ls-sheet-panel,.ls-sheet-page) { display:block; height:auto; max-height:none; padding:0; overflow:visible; contain:none; container-type:normal; }
-  .ls-match-dialog:has(.ls-sheet-panel:not([hidden])) .single_scoresheet { width:100%; }
+  /* Leave room for fractional A4 page rounding so each SVG occupies one printed page. */
+  .ls-match-dialog:has(.ls-sheet-panel:not([hidden])) .single_scoresheet { width:100%; height:209mm; }
+  .ls-sheet-panel .ls-sheet-page { break-inside:avoid; break-after:page; }
+  .ls-sheet-panel .ls-sheet-page:last-child { break-after:auto; }
   body.leitstand-view:has(.ls-sheet-panel:not([hidden])) { overflow:visible; }
 }
 .leitstand :is(.score-home,.score-colon,.score-away) { text-align:center; }
@@ -851,3 +859,38 @@ body.leitstand-view .leitstand-nav { display:flex; align-items:stretch; justify-
 }
 
 @media print { .board-layout-editor,.board-hidden-cards,.card-layout-controls,.leitstand-header,.board-sidebar,.leitstand .toolbar {display:none!important;} .board-workspace {display:block!important;} }
+
+/* Remarks use the same window frame and action lifecycle as other dialogs. */
+.ls-remarks-dialog { width:min(760px,calc(100vw - 32px)); }
+.ls-remarks-dialog .bts-confirm-title { flex:1; }
+.ls-remarks-icon { flex:0 0 22px; font-size:24px; line-height:1; }
+.ls-remarks-close { flex:0 0 auto; padding:0; border:0; color:white; background:none; font:inherit; font-size:24px; line-height:1; cursor:pointer; }
+.ls-remarks-form { display:flex; flex-direction:column; min-height:0; overflow:hidden; }
+.ls-remarks-current,.ls-remarks-help,.ls-remark-meta { color:#6d7d80; font-size:12px; }
+.ls-remarks-list { margin:0 0 18px; padding:0; list-style:none; }
+.ls-remark-entry { margin:10px 0; padding:12px; border:1px solid #dce5e3; border-radius:8px; background:#f6f8f7; }
+.ls-remark-entry.is-selected { border-color:#315e54; box-shadow:inset 3px 0 #315e54; }
+.ls-remark-entry.is-deleted { border-style:dashed; color:#6d7d80; }
+.ls-remark-entry.is-deleted>.ls-remark-text { text-decoration:line-through; }
+.ls-remarks-audit { display:flex; align-items:center; gap:8px; margin-bottom:12px; color:#6d7d80; font-size:12px; }
+.ls-remarks-audit[hidden],.ls-remark-entry[hidden] { display:none; }
+.ls-remarks-role-label { display:block; margin-bottom:6px; font-weight:650; }
+.ls-remarks-role { box-sizing:border-box; width:100%; min-height:36px; margin:0 0 14px; padding:6px 8px; border:1px solid #cbd8d4; border-radius:5px; color:#213235; background:white; font:inherit; }
+.ls-remarks-body .ls-remark-meta { margin:0 0 8px; }
+.ls-remark-text { overflow-wrap:anywhere; white-space:pre-wrap; }
+.ls-remark-select { padding:4px 8px; border:1px solid #cbd8d4; border-radius:4px; color:#315e54; background:white; font:inherit; cursor:pointer; }
+.ls-remark-history { margin-top:10px; font-size:12px; }
+.ls-remark-history summary { cursor:pointer; color:#315e54; }
+.ls-remark-versions { margin-top:8px; padding-left:10px; border-left:2px solid #cbd5d0; }
+.ls-remark-version+.ls-remark-version { margin-top:12px; }
+.ls-remarks-label { display:block; margin-bottom:8px; font-weight:650; }
+.ls-remarks-input { box-sizing:border-box; width:100%; min-height:100px; padding:8px; border:1px solid #cbd8d4; border-radius:5px; resize:vertical; color:#213235; background:white; font:inherit; line-height:1.5; text-align:left; }
+.ls-remarks-body .ls-remarks-help { margin:8px 0 0; }
+.ls-remarks-error { margin-top:12px!important; color:#a53c35; }
+.ls-remarks-hint { flex:0 0 auto; min-height:1.4em; margin:0; padding:0 20px 8px; color:#6d7d80; background:#fafcfb; font-size:12px; }
+.ls-remarks-dialog .bts-confirm-actions button:disabled { color:#66736f; border-color:#cbd5d0; background:#edf1ef; cursor:default; }
+@media(max-width:520px) {
+ .ls-remarks-dialog .bts-confirm-heading { padding:12px; }
+ .ls-remarks-dialog .bts-confirm-content,.ls-remarks-dialog .bts-confirm-actions { padding:12px; }
+ .ls-remarks-hint { padding-right:12px; padding-left:12px; }
+}
