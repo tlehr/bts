@@ -11,6 +11,7 @@ var change = (function() {
 				'tabletoperator_add','tabletoperator_removed','update_player_status','umpires_changed','umpire_updated','official_edit','update_btp_settings','score'].includes(c.ctype)) {
 				cleitstand.refreshCourtAssignment?.();
 			}
+			if (typeof cleitstand !== 'undefined') cleitstand.refreshCallStatus?.();
 		};
 	}
 

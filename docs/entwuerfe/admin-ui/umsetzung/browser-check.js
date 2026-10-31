@@ -146,6 +146,9 @@ class CDP {
   if(process.argv.includes('--court-assignment-only')) {
    await require('./court-assignment-check')({c,check,click,open,metrics,previews});return;
   }
+  if(process.argv.includes('--call-status-only')) {
+   await require('./call-status-check')({c,check,click,open,metrics,previews,key});return;
+  }
   if(process.argv.includes('--compact-density-only')) {
    await require('./compact-density-check')({c,check,click,open,metrics,previews,capture:snap});return;
   }
@@ -240,7 +243,7 @@ class CDP {
   const hallClick=await c.evaluate(`(()=>{const box=document.querySelector('tr[data-match_id="match-45"] .ls-call-location').getBoundingClientRect();return{x:box.x+box.width/2,y:box.y+box.height/2}})()`);
   for(const type of ['mousePressed','mouseReleased'])await c.call('Input.dispatchMouseEvent',{type,...hallClick,button:'left',clickCount:1});
   await click('tr[data-match_id="match-45"] .preparation_debug_icon');
-  await check('Klick auf das Hallenkürzel sendet den richtigen Vorbereitungsaufruf und Info öffnet weiterhin die Aufrufdetails',`window.__writes.some(message=>message.type==='match_preparation_call'&&message.match._id==='match-45'&&message.location_id==='CH')&&document.querySelector('.leitstand-dialog[open] h2').textContent==='Aufrufstatus'`);
+  await check('Klick auf das Hallenkürzel sendet den richtigen Vorbereitungsaufruf und Info öffnet weiterhin die Aufrufdetails',`window.__writes.some(message=>message.type==='match_preparation_call'&&message.match._id==='match-45'&&message.location_id==='CH')&&document.querySelector('.leitstand-dialog[open] h2').textContent==='Aufrufstatus · Spiel 45'`);
   await click('.leitstand-dialog .dialog-heading button');
   await c.evaluate(`window.scrollTo(0,0);window.__prepLocations=curt.locations.slice();curt.locations.push({_id:'WE',name:'Westhalle',short_name:'WE'},{_id:'OS',name:'Osthalle',short_name:'OS'});cmatch.refresh_unassigned_preparation_context()`);
   await check('Vier kompakte Hallenaufrufe nutzen den freien Timerplatz ohne Überdeckung',`document.querySelector('tr[data-match_id="match-50"] .ls-preparation-calls').children.length===4&&${preparationContentFits}`);

@@ -719,6 +719,111 @@ _describe('cmatch', () => {
 		assert.deepStrictEqual(order(), [1, 2]);
 	});
 
+	_describe('structured call status', () => {
+		const plain = value => JSON.parse(JSON.stringify(value));
+		const game = (setup = {}) => ({_id: 'game', setup: {state: 'scheduled', match_num: 9, ...setup}});
+		const rule = (key, passed = true, extra = {}) => ({key, passed, ...extra});
+		function status(match, selections = {}, extra = {}) {
+			return plain(loadCmatchForUpdateCourtTest(createFakeElement('tr'), {
+				matches: [match], courts: [], locations: [{_id: 'hall', name: 'Halle'}],
+				automation_enabled: true, call_preparation_matches_automatically_enabled: true, call_next_possible_scheduled_match_in_preparation: true,
+				location_preparation_selection_by_location_id: selections, ...extra,
+			}).get_call_status(match));
+		}
+		_it('distinguishes manual preparation from automatic pause and window restrictions', () => {
+			const result = status(game(), {hall: {diagnostics_by_match_id: {game: {
+				manual_eligible: true, eligible: false,
+				rules: [rule('participants_complete'), rule('player_pause', false, {detail: 'Anna: 2 Minuten'}),
+					rule('frontier_time_limit', false, {enabled: false, group: 'window'})],
+			}}}});
+			assert.deepStrictEqual(result.summary.map(value => value.state), ['ready', 'blocked']);
+			assert.strictEqual(result.locations[0].title, 'Halle');
+			assert.strictEqual(result.locations[0].groups[0].rules.length, 1);
+			assert.deepStrictEqual(result.locations[0].groups[1].rules.map(value => value.state), ['ready', 'blocked', 'disabled']);
+			assert.strictEqual(result.locations[0].groups[1].rules[1].detail, 'Anna: 2 Minuten');
+		});
+		_it('includes automatic call-window rules even when all ordinary criteria pass', () => {
+			const result = status(game(), {hall: {diagnostics_by_match_id: {game: {
+				criteria_eligible: true, within_call_window: false,
+				rules: [rule('participants_complete'), rule('frontier_match_limit', false, {group: 'window'})],
+			}}}});
+			assert.deepStrictEqual(result.summary.map(value => value.state), ['ready', 'blocked']);
+		});
+		_it('distinguishes disabled automation from rule failures while keeping manual calls available', () => {
+			const selections = {hall: {diagnostics_by_match_id: {game: {manual_eligible: true, eligible: true, rules: [rule('participants_complete')]}}}};
+			for (const settings of [{automation_enabled: false}, {call_preparation_matches_automatically_enabled: false}]) {
+				const result = status(game(), selections, settings);
+				assert.deepStrictEqual(result.summary.map(value => value.state), ['ready', 'disabled']);
+				assert(result.summary[1].note);
+				assert.strictEqual(result.locations[0].groups[1].state, 'ready');
+			}
+		});
+		_it('does not interpret missing or empty diagnostics as a release', () => {
+			for (const selections of [{}, {hall: {diagnostics_by_match_id: {game: {manual_eligible: true, eligible: true, rules: []}}}},
+				{hall: {call_on_court_diagnostics_by_match_id: {game: {eligible: true}}}}]) {
+				assert(status(game(), selections).summary.every(value => value.state === 'unknown'));
+				assert(status(game({state: 'preparation'}), selections).summary.every(value => value.state === 'unknown'));
+			}
+		});
+		_it('uses the current location or court over stale permissions for other locations', () => {
+			const selections = Object.fromEntries(['hall', 'other'].map(id => [id, {diagnostics_by_match_id: {game: {
+				manual_eligible: true, eligible: true, rules: [rule('participants_complete')],
+			}}}]));
+			assert.deepStrictEqual(status(game({location_id: 'hall'}), selections).locations.map(value => value.key), ['hall']);
+			assert.deepStrictEqual(status(game({court_id: 'court'}), selections, {
+				courts: [{_id: 'court', location_id: 'other'}],
+			}).locations.map(value => value.key), ['other']);
+			assert.strictEqual(status(game(), selections).locations.length, 2);
+			assert.strictEqual(status(game({location_id: ''}), selections).locations.length, 2);
+		});
+		_it('sorts field checks numerically and prefers an eligible free court', () => {
+			const match = game({state: 'preparation', location_id: 'hall'});
+			const courts = [10, 2, 1].map(num => ({_id: 'court-' + num, num, is_active: true, location_id: 'hall'}));
+			const occupied = game({now_on_court: true, court_id: 'court-1'});occupied._id = 'occupied';
+			const result = status(match, {hall: {call_on_court_diagnostics_by_match_id: {game: {eligible: true,
+				court_diagnostics: courts.map(court => ({court_id: court._id, court_num: court.num, eligible: true,
+					rules: [rule('players_checked_in')]})),
+			}}}}, {courts, matches: [match, occupied]});
+			const groups = result.locations[0].groups;
+			assert.deepStrictEqual(groups.map(value => value.title), ['Feld 1', 'Feld 2', 'Feld 10']);
+			assert.strictEqual(groups[0].state, 'blocked');
+			assert.strictEqual(groups[0].rules[0].detail, 'Feld ist belegt.');
+			assert.strictEqual(groups.find(value => value.preferred).state, 'ready');
+			assert.strictEqual(result.summary[0].state, 'ready');
+		});
+		_it('reports a blocked field call when every court is occupied or inactive', () => {
+			const match = game({state: 'preparation'}), occupied = game({now_on_court: true, court_id: 'court'});
+			for (const is_active of [false, true]) {
+				const result = status(match, {hall: {call_on_court_diagnostics_by_match_id: {game: {eligible: true,
+					court_diagnostics: [{court_id: 'court', court_num: 1, eligible: true, rules: [rule('players_checked_in')]}],
+				}}}}, {courts: [{_id: 'court', is_active}], matches: [match, occupied]});
+				assert.strictEqual(result.summary[0].state, 'blocked');
+			}
+		});
+		_it('ignores completed games with stale field occupancy and preserves unknown rule labels', () => {
+			const match = game({state: 'preparation'}), ended = game({now_on_court: true, court_id: 'court'});ended.team1_won = false;
+			const result = status(match, {hall: {call_on_court_diagnostics_by_match_id: {game: {
+				court_diagnostics: [{court_id: 'court', court_num: 1, rules: [rule('new_server_rule', true, {detail: '<script>text</script>'})]}],
+			}}}}, {courts: [{_id: 'court', is_active: true}], matches: [match, ended]});
+			assert.strictEqual(result.summary[0].state, 'ready');
+			assert.strictEqual(result.locations[0].groups[0].rules[1].label, 'new_server_rule');
+		});
+		_it('does not release a court removed since the last diagnosis', () => {
+			const result = status(game({state: 'preparation'}), {hall: {call_on_court_diagnostics_by_match_id: {game: {
+				court_diagnostics: [{court_id: 'removed', court_num: 8, eligible: true, rules: [rule('players_checked_in')]}],
+			}}}});
+			assert.strictEqual(result.summary[0].state, 'blocked');
+			assert.strictEqual(result.locations[0].groups[0].rules[0].detail, 'Feld ist nicht mehr vorhanden.');
+		});
+		_it('stops showing old permissions when a game has started, ended, or disappeared', () => {
+			for (const match of [game({now_on_court: true}), game({state: 'finished'}), {...game(), team1_won: false}, {...game(), score_status: 'no_match'}, undefined]) {
+				const cmatch = loadCmatchForUpdateCourtTest(createFakeElement('tr'), {courts: [], matches: []});
+				const result = cmatch.get_call_status(match);
+				assert(result.message);assert.strictEqual(result.locations.length, 0);assert.strictEqual(result.summary.length, 0);
+			}
+		});
+	});
+
 	_it('marks preparation callable only when the automatic call window is eligible', () => {
 		const cmatch = loadCmatchForUpdateCourtTest(createFakeElement('tr'), {
 			location_preparation_selection_by_location_id: {

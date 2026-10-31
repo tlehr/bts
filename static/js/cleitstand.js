@@ -550,13 +550,116 @@ var cleitstand = (function() {
     }
     return {zone,before,container,card,after};
   }
+  let modalSequence=0;
   function modal(title,build,symbol='info') {
     const opener=document.activeElement,dialog=el(document.body,'dialog','leitstand-dialog');
     const heading=el(dialog,'div','dialog-heading'),caption=el(heading,'h2');caption.innerHTML=icon(symbol);el(caption,'span','',title);
+    caption.id='ls-modal-title-'+(++modalSequence);dialog.setAttribute('aria-labelledby',caption.id);
     const close=el(heading,'button','ls-dialog-close');close.innerHTML=icon('close');close.type='button';close.setAttribute('aria-label','Schließen');
     close.onclick=()=>dialog.close();
     dialog.addEventListener('close',()=>{dialog.remove();if(opener?.isConnected)opener.focus({preventScroll:true});},{once:true});
     const body=el(dialog,'div','dialog-content');build(body,dialog);dialog.showModal();return dialog;
+  }
+  let callStatusView=null;
+  const callStateLabels={ready:'Erfüllt',blocked:'Nicht erfüllt',unknown:'Keine Detaildaten',disabled:'Deaktiviert'};
+  const callSummaryLabels={ready:'Möglich',blocked:'Derzeit blockiert',unknown:'Noch keine Daten',disabled:'Deaktiviert'};
+  function callState(node,value,summary=false) {
+    const state=value.state;
+    setAttribute(node,'data-state',state);
+    if(value.note)setAttribute(node,'title',value.note);else if(node.hasAttribute('title'))node.removeAttribute('title');
+    const text=(summary?callSummaryLabels:callStateLabels)[state];if(node.textContent!==text)node.textContent=text;
+  }
+  function createCallGroup(parent,value,onCourt) {
+    const node=el(parent,onCourt?'details':'section','ls-call-group');node.dataset.group=value.key;
+    if(onCourt)node.open=value.preferred;
+    const heading=el(node,onCourt?'summary':'h4','ls-call-group-heading');
+    const title=el(heading,'span'),status=el(heading,'span','ls-call-state');
+    const body=el(node,'div','ls-call-group-body');
+    const missing=el(body,'p','ls-call-empty','Keine Detailregeln empfangen. Eine Freigabe lässt sich daraus nicht ableiten.');
+    const blocked=el(body,'div','ls-call-blockers');el(blocked,'p','ls-call-section-title','Diese Voraussetzungen fehlen:');
+    const blockedList=el(blocked,'ul','ls-call-rules');
+    const passed=el(body,'details','ls-call-checks'),passedSummary=el(passed,'summary'),passedList=el(passed,'ul','ls-call-rules');
+    const disabled=el(body,'details','ls-call-checks'),disabledSummary=el(disabled,'summary'),disabledList=el(disabled,'ul','ls-call-rules');
+    return {node,title,status,missing,blocked,passed,passedSummary,disabled,disabledSummary,lists:{blocked:blockedList,ready:passedList,disabled:disabledList},rows:new Map()};
+  }
+  function updateCallGroup(view,value) {
+    if(view.title.textContent!==value.title)view.title.textContent=value.title;
+    callState(view.status,value);
+    const counts={blocked:0,ready:0,disabled:0},wanted=new Set(value.rules.map(rule=>rule.key));
+    for(const [key,row]of view.rows)if(!wanted.has(key)){row.remove();view.rows.delete(key);}
+    for(const rule of value.rules) {
+      let row=view.rows.get(rule.key);
+      if(!row) {
+        row=el(null,'li');el(row,'span','ls-call-rule-icon');
+        const wording=el(row,'span');el(wording,'span','ls-call-rule-label');el(wording,'span','ls-call-rule-detail');
+        view.rows.set(rule.key,row);
+      }
+      if(row.dataset.state!==rule.state) {
+        row.dataset.state=rule.state;row.querySelector('.ls-call-rule-icon').innerHTML=icon(rule.state==='ready'?'check':rule.state==='blocked'?'alert':'pause');
+      }
+      const label=row.querySelector('.ls-call-rule-label'),detail=row.querySelector('.ls-call-rule-detail');
+      if(label.textContent!==rule.label)label.textContent=rule.label;
+      if(detail.textContent!==rule.detail)detail.textContent=rule.detail;
+      detail.hidden=!rule.detail;
+      const list=view.lists[rule.state],index=counts[rule.state]++;
+      if(list.children[index]!==row)list.insertBefore(row,list.children[index]||null);
+    }
+    view.blocked.hidden=!counts.blocked;view.passed.hidden=!counts.ready;view.disabled.hidden=!counts.disabled;
+    const missing=value.state==='unknown'||(value.state==='blocked'&&!counts.blocked);
+    view.missing.hidden=!missing;
+    const message=value.state==='blocked'?'Weitere Aufrufvoraussetzungen sind noch nicht erfüllt.':'Keine Detailregeln empfangen. Eine Freigabe lässt sich daraus nicht ableiten.';
+    if(view.missing.textContent!==message)view.missing.textContent=message;
+    const passed='Erfüllte Prüfungen ('+counts.ready+')',disabled='Deaktivierte Prüfungen ('+counts.disabled+')';
+    if(view.passedSummary.textContent!==passed)view.passedSummary.textContent=passed;
+    if(view.disabledSummary.textContent!==disabled)view.disabledSummary.textContent=disabled;
+  }
+  function refreshCallStatus() {
+    const view=callStatusView;if(!view||!view.dialog.isConnected)return;
+    const match=model.matches.find(item=>String(item._id)===view.matchId),data=cmatch.get_call_status(match);
+    const signature=JSON.stringify(data);if(view.signature===signature)return;view.signature=signature;
+    const scroll=view.body.scrollTop;
+    const title='Aufrufstatus · Spiel '+(data.number??view.number);
+    const caption=view.dialog.querySelector('h2 span');if(caption.textContent!==title)caption.textContent=title;
+    view.message.hidden=!data.message;if(view.message.textContent!==data.message)view.message.textContent=data.message;
+    const summaryKeys=new Set(data.summary.map(item=>item.key));
+    for(const [key,item]of view.summaries)if(!summaryKeys.has(key)){item.node.remove();view.summaries.delete(key);}
+    data.summary.forEach((value,index)=>{
+      let item=view.summaries.get(value.key);
+      if(!item){const node=el(view.summary,'div','ls-call-summary-row');item={node,label:el(node,'strong'),status:el(node,'span','ls-call-state')};view.summaries.set(value.key,item);}
+      if(item.label.textContent!==value.title)item.label.textContent=value.title;
+      callState(item.status,value,true);if(view.summary.children[index]!==item.node)view.summary.insertBefore(item.node,view.summary.children[index]||null);
+    });
+    view.summary.hidden=!data.summary.length;
+    const locationKeys=new Set(data.locations.map(location=>location.key));
+    for(const [key,location]of view.locations)if(!locationKeys.has(key)){location.node.remove();view.locations.delete(key);}
+    data.locations.forEach((value,index)=>{
+      let location=view.locations.get(value.key);
+      if(!location){const node=el(view.content,'section','ls-call-location');node.dataset.locationId=value.key;location={node,title:el(node,'h3'),body:el(node,'div'),groups:new Map()};view.locations.set(value.key,location);}
+      if(location.title.textContent!==value.title)location.title.textContent=value.title;
+      if(view.content.children[index]!==location.node)view.content.insertBefore(location.node,view.content.children[index]||null);
+      const keys=new Set(value.groups.map(group=>group.key));
+      for(const [key,group]of location.groups)if(!keys.has(key)){group.node.remove();location.groups.delete(key);}
+      value.groups.forEach((group,index)=>{
+        let item=location.groups.get(group.key);
+        if(!item){item=createCallGroup(location.body,group,data.on_court);location.groups.set(group.key,item);}
+        if(location.body.children[index]!==item.node)location.body.insertBefore(item.node,location.body.children[index]||null);
+        updateCallGroup(item,group);
+      });
+    });
+    view.body.scrollTop=scroll;
+  }
+  function callStatus(matchId) {
+    if(callStatusView)return;
+    const match=model.matches.find(item=>String(item._id)===String(matchId));if(!match)return;
+    modal('Aufrufstatus · Spiel '+match.setup.match_num,(body,dialog)=>{
+      dialog.classList.add('ls-call-status-dialog');
+      const summary=el(body,'div','ls-call-summary');summary.setAttribute('role','status');summary.setAttribute('aria-live','polite');
+      const message=el(body,'p','ls-call-empty'),content=el(body,'div','ls-call-locations');
+      const footer=el(dialog,'div','ls-dialog-footer'),close=el(footer,'button','btn','Schließen');close.type='button';close.onclick=()=>dialog.close();
+      callStatusView={dialog,body,summary,message,content,matchId:String(matchId),number:match.setup.match_num,summaries:new Map(),locations:new Map()};
+      dialog.addEventListener('close',()=>{if(callStatusView?.dialog===dialog)callStatusView=null;},{once:true});
+      refreshCallStatus();
+    });
   }
   function sendMessage(message,done) {
     send({...message,tournament_key:model.key},error=>{if(error)return cerror.net(error);if(done)done();});
@@ -1057,7 +1160,7 @@ var cleitstand = (function() {
     });
     row.querySelectorAll('[data-check-in-action]').forEach(node=>{setAttribute(node,'tabindex',0);setAttribute(node,'role','button');});
     row.querySelectorAll('.match_confirm_button').forEach(node=>{for(const name of ['btn','success'])if(!node.classList.contains(name))node.classList.add(name);if(node.textContent!=='✓ Bestätigen')node.textContent='✓ Bestätigen';setAttribute(node,'role','button');setAttribute(node,'tabindex',0);});
-    row.querySelectorAll('.preparation_debug_icon').forEach(node=>{if(!node.dataset.lsInfo)node.innerHTML=icon('info');setAttribute(node,'role','button');setAttribute(node,'tabindex',0);setAttribute(node,'aria-label','Aufrufstatus anzeigen');if(!node.dataset.lsInfo){node.dataset.lsInfo='true';node.onclick=()=>modal('Aufrufstatus',body=>el(body,'pre','call-status-details',node.title));}});
+    row.querySelectorAll('.preparation_debug_icon').forEach(node=>{if(!node.dataset.lsInfo)node.innerHTML=icon('info');setAttribute(node,'role','button');setAttribute(node,'tabindex',0);setAttribute(node,'aria-label','Aufrufstatus anzeigen');if(!node.dataset.lsInfo){node.dataset.lsInfo='true';node.onclick=()=>callStatus(row.dataset.match_id);}});
     if(row.closest('.ls-planned-table')) {
       const calls=row.querySelector('td.call_td'),buttons=[...calls.querySelectorAll('.match_preparation_call_button')];
       let group=calls.querySelector('.ls-preparation-calls');
@@ -2174,6 +2277,7 @@ var cleitstand = (function() {
   }
   function unmount() {
     assignmentView?.dialog.close();assignmentView=null;
+    callStatusView?.dialog.close();callStatusView=null;
     clearDialogPickers();
     if(root)cmatch.destroy_tabletoperator_pickers(root);
     finishCardResize(true);
@@ -2187,7 +2291,7 @@ var cleitstand = (function() {
     timerObserver?.disconnect();timerObserver=null;timerValues.clear();dirtyTimers.clear();timerFittings.clear();preparationWidths.clear();if(timerFrame!==null)cancelAnimationFrame(timerFrame);timerFrame=null;timerComplete=null;
     document.querySelector('.leitstand-header')?.classList.remove('leitstand-header');root=null;searchControl=null;
   }
-  return {mount,unmount,active,row,refreshRow,emptyRow,updateScore,updateMatchMetadata,score,timerDisplay,timerVisibilityChanged,deviceLocations,automation,refreshOperators,refreshCounts,refreshFinished,refreshTablets,tabletDevices,refreshScoreLayout,maxSetCount,matchTimes,matchDay,sortFinishedMatches,nameStages,matchDrag,clearMatchDrag,decorateControls,matchDialog,matchProtocolEvent,updateMatchRemarks,refreshCourtAssignment,restoreDialogFocus,officialPicker,choicePicker,clearDialogPickers,closeDialogPickers,tabletAssignmentIcon,operatorQueue,rotationIcons,player,participant,refreshUnassigned,refreshDates:refreshDateGroups,btpSync,
+  return {mount,unmount,active,row,refreshRow,emptyRow,updateScore,updateMatchMetadata,score,timerDisplay,timerVisibilityChanged,deviceLocations,automation,refreshOperators,refreshCounts,refreshFinished,refreshTablets,tabletDevices,refreshScoreLayout,maxSetCount,matchTimes,matchDay,sortFinishedMatches,nameStages,matchDrag,clearMatchDrag,decorateControls,matchDialog,matchProtocolEvent,updateMatchRemarks,refreshCourtAssignment,refreshCallStatus,restoreDialogFocus,officialPicker,choicePicker,clearDialogPickers,closeDialogPickers,tabletAssignmentIcon,operatorQueue,rotationIcons,player,participant,refreshUnassigned,refreshDates:refreshDateGroups,btpSync,
     pendingUpdates:()=>[...pendingUpdates.keys()],
     isUpdating:()=>nameFrame!==null||timerFrame!==null||dirtyTimers.size>0||countsPending||finishedSortPending};
 })();

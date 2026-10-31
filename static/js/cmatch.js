@@ -3885,24 +3885,24 @@ function get_preparation_frontier_debug_entries() {
 
 const PREPARATION_DEBUG_RULE_LABELS = {
 	no_btp_inactive_player: 'Kein Spieler ist in BTP als DNS, WDN, FWDN oder DSQ eingetragen',
-	manual_state_callable: 'Status erlaubt haendischen Vorbereitungsaufruf',
+	manual_state_callable: 'Status erlaubt manuellen Vorbereitungsaufruf',
 	state_scheduled: 'Status ist angesetzt',
-	not_deferred: 'Vorbereitungsaufruf nicht zurueckgestellt',
+	not_deferred: 'Vorbereitungsaufruf nicht zurückgestellt',
 	score_status_normal: 'Keine Sonderwertung am Spiel',
 	is_match: 'Ist ein echtes Spiel',
-	not_incomplete: 'Spiel ist nicht unvollstaendig markiert',
+	not_incomplete: 'Spiel ist nicht unvollständig markiert',
 	participants_complete: 'Alle Teilnehmer stehen fest',
 	not_finished: 'Spiel ist nicht beendet',
 	not_on_court: 'Spiel ist noch nicht auf dem Feld',
 	location: 'Spiel passt zum Standort',
-	participant_dependencies: 'Keine offenen Vorgaenger oder frueheren Spielerteilnahmen',
+	participant_dependencies: 'Keine offenen Vorgänger oder früheren Spielerteilnahmen',
 	time_before_scheduled: 'Zeitfenster vor geplanter Startzeit erreicht',
 	special_result_same_discipline: 'Keine blockierende Sonderwertung in derselben Disziplin',
 	not_playing_on_court: 'Kein Spieler spielt gerade',
 	player_pause: 'Spielerpausen sind abgelaufen',
 	not_waiting_tabletoperator: 'Kein Spieler wartet als Tabletbediener',
 	not_active_tabletoperator: 'Kein Spieler bedient gerade ein Tablet',
-	technical_officials_available: 'Schiedsrichterregeln erfuellt',
+	technical_officials_available: 'Schiedsrichterregeln erfüllt',
 	frontier_block_limit: 'Blockgrenze ab Frontier eingehalten',
 	frontier_time_limit: 'Zeitgrenze ab Frontier eingehalten',
 	frontier_match_limit: 'Spielanzahlgrenze ab Frontier eingehalten',
@@ -3917,9 +3917,9 @@ const CALL_ON_COURT_DEBUG_RULE_LABELS = {
 	call_on_court_time_before_scheduled: 'Zeitfenster vor geplanter Startzeit erreicht',
 	players_checked_in: 'Alle Spieler sind eingecheckt',
 	call_on_court_officials_checked_in: 'Schiedsrichter sind eingecheckt',
-	call_on_court_officials_available: 'Schiedsrichter sind verfuegbar',
-	call_on_court_official_assignment_possible: 'Schiedsrichter koennen auf diesem Feld eingesetzt werden',
-	call_on_court_assigned_official_space: 'Feld hat Platz fuer zugewiesene Schiedsrichter',
+	call_on_court_officials_available: 'Schiedsrichter sind verfügbar',
+	call_on_court_official_assignment_possible: 'Schiedsrichter können auf diesem Feld eingesetzt werden',
+	call_on_court_assigned_official_space: 'Feld hat Platz für zugewiesene Schiedsrichter',
 	call_on_court_frontier_block_limit: 'Blockgrenze ab Aufruf-Frontier eingehalten',
 	call_on_court_frontier_time_limit: 'Zeitgrenze ab Aufruf-Frontier eingehalten',
 	call_on_court_frontier_match_limit: 'Spielanzahlgrenze ab Aufruf-Frontier eingehalten',
@@ -4042,6 +4042,79 @@ function select_call_on_court_debug_diagnostics(court_diagnostics) {
 		return count_failed_enabled_debug_rules(a_rules) - count_failed_enabled_debug_rules(b_rules);
 	});
 	return sorted[0] || null;
+}
+
+// Structured diagnostics for the board dialog; the server remains authoritative.
+function get_call_status(match) {
+	const setup = match?.setup || {};
+	const number = setup.match_num;
+	if (!match) return { number, message: 'Dieses Spiel ist nicht mehr vorhanden.', locations: [], summary: [] };
+	if (calc_section(match) === 'finished') {
+		return { number, message: 'Das Spiel ist beendet.', locations: [], summary: [] };
+	}
+	if (setup.now_on_court || setup.state === 'oncourt') {
+		return { number, message: 'Das Spiel ist bereits auf dem Feld.', locations: [], summary: [] };
+	}
+	const on_court = setup.state === 'preparation';
+	const entries = on_court ? get_call_on_court_debug_entries_for_match(match) : get_preparation_debug_diagnostics_for_match(match);
+	const court = (curt.courts || []).find(item => String(item._id) === String(setup.court_id));
+	const location_id = setup.location_id == null || setup.location_id === '' ? court?.location_id : setup.location_id;
+	const state = (eligible, rules) => {
+		if (!rules.some(Boolean)) return 'unknown';
+		return eligible !== false && preparation_debug_rules_pass(rules) ? 'ready' : 'blocked';
+	};
+	const group = (key, title, rules, eligible, preferred = false) => ({
+		key, title, state: state(eligible, rules), preferred,
+		rules: rules.filter(Boolean).map((rule, index) => ({
+			key: (rule.key || 'rule') + ':' + index,
+			label: CALL_ON_COURT_DEBUG_RULE_LABELS[rule.key] || rule.key || 'Weitere Voraussetzung',
+			detail: rule.detail || '',
+			state: rule.enabled === false ? 'disabled' : rule.passed === true ? 'ready' : 'blocked',
+		})),
+	});
+	const locations = entries.filter(entry => location_id == null || String(entry.location_id) === String(location_id)).map(entry => {
+		const diagnostics = entry.diagnostics || {};
+		let groups;
+		if (on_court) {
+			// Selection diagnostics omit availability. Show the live court state too.
+			const courts = (Array.isArray(diagnostics.court_diagnostics) ? diagnostics.court_diagnostics : []).map(value => {
+				const court = (curt.courts || []).find(item => String(item._id) === String(value.court_id));
+				const rules = Array.isArray(value.rules) ? [...value.rules] : [];
+				if (!rules.length) return {...value, rules};
+				const free = court?.is_active === true && !(curt.matches || []).some(item => calc_section(item) === 'court_' + court._id);
+				const availability = {key: 'court_active_free', passed: free,
+					detail: free ? null : !court ? 'Feld ist nicht mehr vorhanden.' : court.is_active ? 'Feld ist belegt.' : 'Feld ist deaktiviert.'};
+				const index = rules.findIndex(rule => rule?.key === 'court_active_free');
+				if (index < 0) rules.unshift(availability); else rules[index] = availability;
+				return {...value, court_num: court?.num ?? value.court_num, rules, eligible: free && (value.eligible ?? preparation_debug_rules_pass(rules))};
+			});
+			const preferred = select_call_on_court_debug_diagnostics(courts);
+			groups = [...courts].sort((a, b) => String(a.court_num ?? a.court_id).localeCompare(String(b.court_num ?? b.court_id), 'de', {numeric: true})).map(value =>
+				group(String(value.court_id), 'Feld ' + (value.court_num ?? value.court_id),
+					Array.isArray(value.rules) ? value.rules : [], value.eligible, value === preferred));
+			if (!groups.length) groups = [group('unknown', 'Aufruf aufs Feld', [], undefined, true)];
+		} else {
+			const rules = Array.isArray(diagnostics.rules) ? diagnostics.rules : [];
+			groups = [
+				group('manual', 'Manueller Vorbereitungsaufruf', rules.filter(is_manual_preparation_rule), diagnostics.manual_eligible),
+				group('automatic', 'Automatischer Vorbereitungsaufruf', rules,
+					diagnostics.eligible ?? (diagnostics.criteria_eligible != null && diagnostics.within_call_window != null
+						? diagnostics.criteria_eligible && diagnostics.within_call_window : undefined)),
+			];
+		}
+		return {key: String(entry.location_id), title: entry.location_name, groups};
+	});
+	const combined = groups => groups.some(value => value.state === 'ready') ? 'ready' :
+		!groups.length || groups.some(value => value.state === 'unknown') ? 'unknown' : 'blocked';
+	const summary = on_court
+		? [{key: 'court', title: 'Automatischer Aufruf aufs Feld', state: combined(locations.flatMap(location => location.groups))}]
+		: ['manual', 'automatic'].map(key => ({key, title: key === 'manual' ? 'Manueller Vorbereitungsaufruf' : 'Automatischer Vorbereitungsaufruf',
+			state: combined(locations.flatMap(location => location.groups.filter(value => value.key === key)))}));
+	const automatic = summary.find(item => item.key !== 'manual');
+	if (curt.automation_enabled === false || (on_court ? curt.call_next_possible_scheduled_match_in_preparation : curt.call_preparation_matches_automatically_enabled) !== true) {
+		automatic.state = 'disabled';automatic.note = curt.automation_enabled === false ? 'Die Automatik ist pausiert.' : 'Diese Aufrufautomatik ist ausgeschaltet.';
+	}
+	return {number, on_court, locations, summary, message: locations.length ? '' : 'Für dieses Spiel liegen noch keine Aufrufdetails vor.'};
 }
 
 function format_preparation_debug_tooltip(match, entries) {
@@ -4270,6 +4343,7 @@ function refresh_unassigned_preparation_context() {
 		}
 		if (typeof cleitstand !== 'undefined') cleitstand.refreshUnassigned(container,{controlsChanged:controls_changed});
 	});
+	if (typeof cleitstand !== 'undefined') cleitstand.refreshCallStatus?.();
 }
 
 function render_unassigned(container) {
@@ -5899,6 +5973,7 @@ return {
 	render_finished,
 	render_unassigned,
 	refresh_unassigned_preparation_context,
+	get_call_status,
 	render_courts,
 	_get_preparation_callable_match_ids: get_preparation_callable_match_ids,
 	_is_manual_preparation_call_allowed_for_location: is_manual_preparation_call_allowed_for_location,
