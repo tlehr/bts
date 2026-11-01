@@ -522,8 +522,8 @@ class CDP {
   await click('#local_announce_btn');
   await check('Unfertige lokale Durchsage öffnet die Auswahl ohne voreilig abzuspielen',`document.querySelector('.announcement-playback-menu').open&&!document.querySelector('.announcement-browser-button').hidden&&window.__localAnnouncements.length===0`);
   await snap('durchsage-auswahl');
-  await click('.announcement-wait-button');
-  await check('Warten bereitet den genauen Text vor und hält die Wiedergabe bis zur Fertigstellung zurück',`window.__speechPrepared.some(parts=>parts[0]==='Durchsage für Halle eins')&&window.__localAnnouncements.length===0&&document.querySelector('.announcement-playback-menu').open&&document.querySelector('#local_announce_btn').disabled`);
+  await click('.announcement-background-button');
+  await check('Hintergrundwarten bereitet den genauen Text vor, schließt den Dialog und wartet mit der Wiedergabe',`window.__speechPrepared.some(parts=>parts[0]==='Durchsage für Halle eins')&&window.__localAnnouncements.length===0&&!document.querySelector('.announcement-playback-menu').open&&!document.querySelector('.announcement-pending').hidden&&document.querySelector('#local_announce_btn').disabled`);
   await c.evaluate(`window.__speechFixture.status='completed'`);
   await until(()=>c.evaluate(`window.__localAnnouncements.length===1`));
   await check('Fertiges Audio startet genau einmal als Serveraudio und schließt die Auswahl',`window.__localAnnouncements[0].speechMode==='server'&&window.__localAnnouncements[0].parts[0]==='Durchsage für Halle eins'&&!document.querySelector('.announcement-playback-menu').open`);
@@ -536,13 +536,13 @@ class CDP {
   await c.evaluate(`window.__speechFixture.settings.mode='server';document.querySelector('#custom_announcement').value='Abgebrochene Durchsage';document.querySelector('#custom_announcement').dispatchEvent(new Event('input'));btsSpeechReadiness.refresh(true)`);
   await click('#local_announce_btn');
   await check('Bei deaktiviertem Browser-Fallback wird die Browseroption nicht angeboten',`document.querySelector('.announcement-playback-menu').open&&document.querySelector('.announcement-browser-button').hidden`);
-  await click('.announcement-wait-button');await click('.announcement-cancel-button');
+  await click('.announcement-background-button');await click('.announcement-pending-cancel');
   await c.evaluate(`window.__speechFixture.status='completed'`);await delay(1100);
   await check('Abbrechen verhindert eine spätere Wiedergabe auch nach Fertigstellung',`window.__localAnnouncements.length===2&&!document.querySelector('.announcement-playback-menu').open&&!document.querySelector('#local_announce_btn').disabled`);
   await c.evaluate(`window.__speechFixture.status='queued';document.querySelector('#custom_announcement').dispatchEvent(new Event('input'));btsSpeechReadiness.refresh(true)`);
-  await click('#remote_announce_btn');await click('.announcement-wait-button');
+  await click('#remote_announce_btn');
   await c.evaluate(`document.querySelector('#custom_announcement').value='Geänderter Text';document.querySelector('#custom_announcement').dispatchEvent(new Event('input'));window.__speechFixture.status='completed'`);await delay(1100);
-  await check('Eine Textänderung verwirft die wartende Remote-Durchsage',`window.__writes.filter(message=>message.type==='free_announce').length===1&&!document.querySelector('.announcement-playback-menu').open`);
+  await check('Eine Textänderung verwirft die unbestätigte Remote-Auswahl',`window.__writes.filter(message=>message.type==='free_announce').length===1&&!document.querySelector('.announcement-playback-menu').open`);
   await c.evaluate(`window.__speechFixture.settings.mode='auto';document.querySelector('#custom_announcement').dispatchEvent(new Event('input'));btsSpeechReadiness.refresh(true)`);
   await click('#remote_announce_btn');
   await check('Bereite Remote-Durchsagen starten direkt mit ihrem Text',`window.__writes.filter(message=>message.type==='free_announce').length===2&&window.__writes.filter(message=>message.type==='free_announce')[1].text==='Geänderter Text'&&!document.querySelector('.announcement-playback-menu').open`);

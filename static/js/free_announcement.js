@@ -51,9 +51,11 @@ function createFreeAnnouncementForm({ form, textarea, localButton, remoteButton,
     }
     const cancelButton = option('Abbrechen', 'announcement-cancel-button');
     const browserButton = option('Mit Browserstimme abspielen', 'announcement-browser-button');
-    const backgroundButton = option('Im Hintergrund warten und abspielen', 'announcement-background-button');
-    const waitButton = option('Warten und abspielen', 'announcement-wait-button primary');
-    waitButton.setAttribute('aria-describedby', detail.id);
+    const backgroundLabel = 'Im Hintergrund warten und abspielen';
+    const backgroundButton = option('', 'announcement-background-button primary');
+    const backgroundText = el(backgroundButton, 'span', 'announcement-action-label', backgroundLabel);
+    backgroundButton.dataset.sizingLabel = backgroundLabel;
+    backgroundButton.setAttribute('aria-describedby', detail.id);
     const pending = el(form, 'div', 'announcement-pending');pending.hidden = true;
     const pendingStatus = el(pending, 'p', 'announcement-pending-status');pendingStatus.id = prefix + '-pending-status';pendingStatus.setAttribute('role', 'status');
     const pendingText = el(pending, 'p', 'announcement-pending-text');pendingText.id = prefix + '-pending-text';
@@ -95,9 +97,6 @@ function createFreeAnnouncementForm({ form, textarea, localButton, remoteButton,
     function current(choice) {
         return selected === choice && form.isConnected && (background || readText() === choice.text) && signature() === choice.signature;
     }
-    function canWait(text) {
-        return !waitReason(text);
-    }
     function waitReason(text) {
         const value = service.settings();
         if (!value.enabled) return 'Die Sprachausgabe ist ausgeschaltet.';
@@ -123,11 +122,11 @@ function createFreeAnnouncementForm({ form, textarea, localButton, remoteButton,
         }
         const state = selected.button.dataset.speechState, ready = state === 'ready';
         if (ready) failure = null;
-        const reason = waitReason(selected.text), busy = !!waiting;
-        menu.classList.toggle('is-warning', busy || !ready);
-        const path = ready && !busy ? 'm5 12 4 4L20 5' : 'm12 3 10 18H2Z M12 9v5M12 17v1';
+        const reason = waitReason(selected.text);
+        menu.classList.toggle('is-warning', !ready);
+        const path = ready ? 'm5 12 4 4L20 5' : 'm12 3 10 18H2Z M12 9v5M12 17v1';
         if (headingIcon.getAttribute('d') !== path) headingIcon.setAttribute('d', path);
-        text(caption, busy ? 'Durchsage wird vorbereitet' : ready ? 'Durchsage ist bereit' : 'Durchsage noch nicht bereit');
+        text(caption, ready ? 'Durchsage ist bereit' : 'Durchsage noch nicht bereit');
         const messages = {
             preparing: 'Das Serveraudio wird noch vorbereitet.',
             checking: 'Die Verfügbarkeit des Serveraudios wird geprüft.',
@@ -136,20 +135,14 @@ function createFreeAnnouncementForm({ form, textarea, localButton, remoteButton,
             locked: 'Die Audioausgabe auf diesem Gerät wartet noch auf eine Freigabe.',
             audio_error: 'Das Serveraudio konnte auf diesem Gerät nicht abgespielt werden.',
         };
-        const error = !busy && !reason && !ready && (!!failure || ['failed', 'audio_error', 'unavailable'].includes(state));
-        text(detail, busy ? 'Serveraudio wird vorbereitet. Die Durchsage startet, sobald es bereit ist.' : reason ||
-            (ready ? 'Das Serveraudio ist bereit und kann jetzt abgespielt werden.' : failure || messages[state] || 'Für diesen Text liegt noch kein fertiges Serveraudio vor.'));
+        const error = !reason && !ready && ['failed', 'audio_error', 'unavailable'].includes(state);
+        text(detail, reason || (ready ? 'Das Serveraudio ist bereit und kann jetzt abgespielt werden.' :
+            messages[state] || 'Für diesen Text liegt noch kein fertiges Serveraudio vor.'));
         detail.classList.toggle('is-error', error);detail.setAttribute('role', error ? 'alert' : 'status');
-        waitButton.disabled = busy || !!reason;
-        waitButton.title = busy ? service.settings().mode === 'auto'
-            ? 'Die Vorbereitung läuft. Sie können abbrechen oder zur Browserstimme wechseln.'
-            : 'Die Vorbereitung läuft. Sie können abbrechen.' : reason;
-        waitButton.setAttribute('aria-busy', String(busy));
-        text(waitButton, busy ? 'Wird vorbereitet…' : ready ? 'Jetzt abspielen' : error ? 'Erneut versuchen' : 'Warten und abspielen');
-        backgroundButton.hidden = ready && !busy;
         backgroundButton.disabled = !!reason;
-        backgroundButton.title = reason || 'Dialog schließen und die bestätigte Durchsage abspielen, sobald das Serveraudio bereit ist.';
-        text(backgroundButton, busy ? 'Im Hintergrund weiter warten' : 'Im Hintergrund warten und abspielen');
+        backgroundButton.title = reason || (ready ? 'Die bestätigte Durchsage jetzt mit Serveraudio abspielen.' :
+            'Dialog schließen und die bestätigte Durchsage abspielen, sobald das Serveraudio bereit ist.');
+        text(backgroundText, ready ? 'Jetzt abspielen' : backgroundLabel);
         browserButton.hidden = service.settings().mode !== 'auto';
     }
     function play(choice, mode) {
@@ -175,7 +168,7 @@ function createFreeAnnouncementForm({ form, textarea, localButton, remoteButton,
         stateObserver.observe(button, {attributes: true, attributeFilter: ['data-speech-state', 'title']});
         ownerObserver.observe(doc.body, {childList: true, subtree: true});
         menu.showModal();
-        (waitButton.disabled ? browserButton.hidden ? cancelButton : browserButton : waitButton).focus();
+        (backgroundButton.disabled ? browserButton.hidden ? cancelButton : browserButton : backgroundButton).focus();
     }
     function minimize() {
         background = true;render();
@@ -183,10 +176,9 @@ function createFreeAnnouncementForm({ form, textarea, localButton, remoteButton,
         if (menu.open) menu.close();
         pendingCancel.focus({preventScroll: true});
     }
-    async function wait(inBackground = false) {
+    async function waitInBackground() {
         const choice = selected;
-        if (!choice || !current(choice) || !canWait(choice.text)) return;
-        if (waiting) { if (inBackground) minimize();return; }
+        if (!choice || !current(choice) || waitReason(choice.text) || waiting) return;
         if (!background && choice.button.dataset.speechState === 'ready') { play(choice, 'server');return; }
         if (!background) clearTimeout(draftTimer);
         failure = null;
@@ -195,7 +187,7 @@ function createFreeAnnouncementForm({ form, textarea, localButton, remoteButton,
         const active = () => !signal.aborted && waiting === controller && current(choice);
         choice.button.classList.add('is-waiting');
         updateButtons();
-        if (inBackground) minimize();else render();
+        minimize();
         try {
             const prepared = await service.prepare([choice.text], {urgent: true});
             if (signal.aborted) return;
@@ -250,9 +242,8 @@ function createFreeAnnouncementForm({ form, textarea, localButton, remoteButton,
     }
     localButton.addEventListener('click', () => choose(localButton, false), {signal: lifetimeSignal});
     form.addEventListener('submit', event => { event.preventDefault(); choose(remoteButton, true); }, {signal: lifetimeSignal});
-    waitButton.addEventListener('click', () => { void wait(); }, {signal: lifetimeSignal});
-    backgroundButton.addEventListener('click', () => { void wait(true); }, {signal: lifetimeSignal});
-    pendingRetry.addEventListener('click', () => { void wait(true); }, {signal: lifetimeSignal});
+    backgroundButton.addEventListener('click', () => { void waitInBackground(); }, {signal: lifetimeSignal});
+    pendingRetry.addEventListener('click', () => { void waitInBackground(); }, {signal: lifetimeSignal});
     pendingCancel.addEventListener('click', () => close(), {signal: lifetimeSignal});
     browserButton.addEventListener('click', () => { if (selected) play(selected, 'browser'); }, {signal: lifetimeSignal});
     cancelButton.addEventListener('click', () => close(), {signal: lifetimeSignal});

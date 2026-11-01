@@ -754,6 +754,10 @@ body:has(.announcement-playback-menu[open]) { overflow:hidden; }
 .announcement-playback-menu:not(.is-warning) .announcement-status { border-color:#0e5a63; background:#edf6f4; color:#265c55; }
 .announcement-playback-menu .ls-dialog-footer { flex-wrap:wrap; gap:8px; }
 .announcement-playback-menu .ls-dialog-footer .btn { max-width:100%; white-space:normal; }
+/* Reserve the longer label even when the action changes to immediate playback. */
+.announcement-playback-menu .ls-dialog-footer .announcement-background-button { display:inline-grid; grid-template-columns:minmax(0,1fr); place-items:center; }
+.announcement-playback-menu .announcement-background-button::before { content:attr(data-sizing-label); visibility:hidden; grid-area:1 / 1; }
+.announcement-playback-menu .announcement-action-label { grid-area:1 / 1; }
 .announcement-playback-menu [hidden] { display:none!important; }
 .leitstand .announcement-pending { margin-top:8px; padding:8px; border:1px solid #d6b958; border-radius:5px; background:#fff8dd; font-size:11px; }
 .leitstand .announcement-pending-status { margin:0; color:#614b13; font-weight:600; }

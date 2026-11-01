@@ -27,12 +27,11 @@ module.exports=async function({c,verify,click,eventually,pause,metrics}) {
  await verify('Remote background completion sends the selected text once with server output',String.raw`__writes.filter(message=>message.type==='free_announce').length===__announcementWriteCount+1&&__writes.filter(message=>message.type==='free_announce').at(-1).text==='Remote im Hintergrund, während ein anderer Dialog offen ist.'&&__writes.filter(message=>message.type==='free_announce').at(-1).speech_mode==='server'&&__localAnnouncements.length===__announcementPlayCount`);
  await click('.ls-call-status-dialog .ls-dialog-footer button');
 
- await set('Bereits gestartetes Warten im Hintergrund fortsetzen.');await c.evaluate(String.raw`__announcementBefore()`);
- await click('#local_announce_btn');await click('.announcement-wait-button');
+ await set('Doppelten Start im Hintergrund verhindern.');await c.evaluate(String.raw`__announcementBefore()`);
+ await click('#local_announce_btn');await click('.announcement-background-button');
  await c.evaluate(String.raw`window.__backgroundPrepareCount=__speechPrepared.length`);
- await verify('Foreground waiting offers moving the existing job to the background',String.raw`__announcementMenu().open&&__announcementMenu().querySelector('.announcement-background-button').textContent==='Im Hintergrund weiter warten'&&!__announcementMenu().querySelector('.announcement-background-button').disabled`);
- await click('.announcement-background-button');
- await verify('Moving an existing wait closes its dialog without restarting preparation',String.raw`!__announcementMenu().open&&!__announcementPending().hidden&&__speechPrepared.length===__backgroundPrepareCount`);
+ await c.evaluate(String.raw`__announcementMenu().querySelector('.announcement-background-button').click();__announcementMenu().querySelector('.announcement-background-button').click()`);
+ await verify('Repeated activation cannot restart an existing background preparation',String.raw`!__announcementMenu().open&&!__announcementPending().hidden&&__speechPrepared.length===__backgroundPrepareCount`);
  await click('.announcement-pending-cancel');await c.evaluate(String.raw`__speechFixture.status='completed'`);await pause();
  await verify('Cancelling in the card prevents later output and re-enables the playback controls',String.raw`__announcementPending().hidden&&!document.querySelector('#local_announce_btn').disabled&&!document.querySelector('#remote_announce_btn').disabled&&__localAnnouncements.length===__announcementPlayCount`);
 
