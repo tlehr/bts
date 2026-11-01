@@ -481,9 +481,23 @@ describe('Browser local speech provider', function() {
     it('preparation only sends exact deduplicated text, never plays', async function() {
         const h = harness();
         await h.service.prepare([TEXT, TEXT, null]);
+        assert.strictEqual(h.requests[0][0], 'speech_prepare');
         assert.deepStrictEqual(h.requests[0][1].parts, [TEXT]);
         assert.strictEqual(h.played.length, 0);
         assert.strictEqual(h.browser.length, 0);
+    });
+
+    it('promotes an explicitly awaited text through the actual-call route without playing it', async function() {
+        const h = harness();
+        await h.service.prepare([TEXT, TEXT], {urgent: true});
+        assert.strictEqual(h.requests[0][0], 'speech_resolve');
+        assert.deepStrictEqual(h.requests[0][1].parts, [TEXT]);
+        assert.strictEqual(h.requests[0][1].voice, 'hallensprecherin');
+        assert.strictEqual(h.played.length, 0);
+        assert.strictEqual(h.browser.length, 0);
+        h.settings.enabled = false;
+        await h.service.prepare([TEXT], {urgent: true});
+        assert.strictEqual(h.requests.length, 1);
     });
 
     it('keeps a disabled or older BTS backend free of unsupported speech requests', async function() {

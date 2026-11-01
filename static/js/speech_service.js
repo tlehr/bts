@@ -99,11 +99,13 @@ function createSpeechService(context) {
         return reasons[result.reason] || 'Lokales Server-Audio ist nicht verfügbar.';
     }
 
-    async function prepare(parts) {
+    async function prepare(parts, { urgent = false } = {}) {
         const value = settings();
         if (!value.enabled || !value.key || !languageSupported(value)) return null;
         const texts = parts.filter(part => typeof part === 'string' && part.length && part.length <= (value.max_part_length || value.max_text));
-        return context.request('speech_prepare', {
+        // Drafts are ordinary preparation; an explicit playback request has
+        // the same priority and planning visibility as other actual calls.
+        return context.request(urgent ? 'speech_resolve' : 'speech_prepare', {
             tournament_key: value.key, voice: value.voice, language: value.language,
             parts: [...new Set(texts)].slice(0, 64),
         }, 1500).catch(() => null);

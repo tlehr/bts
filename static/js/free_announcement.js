@@ -1,39 +1,73 @@
 /* exported createFreeAnnouncementForm */
 'use strict';
 
+let freeAnnouncementDialogSequence = 0;
+
 function createFreeAnnouncementForm({ form, textarea, localButton, remoteButton, service, readiness, playLocal, playRemote }) {
     const doc = form.ownerDocument;
     const buttons = [localButton, remoteButton];
     const readText = () => textarea.value.trim();
     const signature = () => {
         const value = service.settings();
-        return JSON.stringify([value.key, value.voice, value.language, value.mode, value.enabled]);
+        return JSON.stringify([value.key, value.voice, value.language, value.mode, value.enabled, value.max_part_length, value.max_text]);
     };
-    const menu = doc.createElement('dialog');
-    menu.className = 'announcement-playback-menu';
-    menu.id = 'free-announcement-playback-menu';
-    menu.setAttribute('aria-labelledby', 'free-announcement-playback-title');
-    const heading = doc.createElement('strong');
-    heading.id = 'free-announcement-playback-title';
-    menu.append(heading);
-    const detail = doc.createElement('p');
+    const prefix = 'free-announcement-playback-' + (++freeAnnouncementDialogSequence);
+    const lifetime = new AbortController(), { signal: lifetimeSignal } = lifetime;
+    function el(parent, tag, className, text) {
+        const node = doc.createElement(tag);
+        if (className) node.className = className;
+        if (text != null) node.textContent = text;
+        parent.append(node);
+        return node;
+    }
+    function text(node, value) { if (node.textContent !== value) node.textContent = value; }
+    function icon(parent, path) {
+        const node = doc.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        node.setAttribute('class', 'ico');node.setAttribute('viewBox', '0 0 24 24');node.setAttribute('aria-hidden', 'true');
+        const shape = doc.createElementNS('http://www.w3.org/2000/svg', 'path');shape.setAttribute('d', path);node.append(shape);parent.append(node);
+        return shape;
+    }
+    const menu = el(form, 'dialog', 'leitstand-dialog is-warning announcement-playback-menu');
+    menu.id = prefix;menu.setAttribute('role', 'alertdialog');
+    menu.setAttribute('aria-labelledby', prefix + '-title');menu.setAttribute('aria-describedby', prefix + '-status');
+    const header = el(menu, 'div', 'dialog-heading'), heading = el(header, 'h2');heading.id = prefix + '-title';
+    const headingIcon = icon(heading, 'm12 3 10 18H2Z M12 9v5M12 17v1');
+    const caption = el(heading, 'span');
+    const closeButton = el(header, 'button', 'ls-dialog-close');closeButton.type = 'button';closeButton.setAttribute('aria-label', 'Schließen');
+    icon(closeButton, 'm6 6 12 12M6 18 18 6');
+    const body = el(menu, 'div', 'dialog-content');
+    const target = el(body, 'p', 'announcement-target');el(target, 'strong', '', 'Ausgabeziel');
+    const targetText = el(target, 'span');
+    const preview = el(body, 'section', 'announcement-preview');
+    const previewHeading = el(preview, 'h3', '', 'Durchsagentext');previewHeading.id = prefix + '-preview';preview.setAttribute('aria-labelledby', previewHeading.id);
+    const previewText = el(preview, 'p', 'announcement-preview-text');
+    const detail = el(body, 'p', 'announcement-status');detail.id = prefix + '-status';
     detail.setAttribute('role', 'status');
-    menu.append(detail);
+    const footer = el(menu, 'div', 'ls-dialog-footer');
     function option(text, className) {
-        const button = doc.createElement('button');
+        const button = el(footer, 'button', 'btn ' + className, text);
         button.type = 'button';
-        button.className = className;
-        button.textContent = text;
-        menu.append(button);
         return button;
     }
-    const waitButton = option('Warten und abspielen', 'announcement-wait-button');
-    const browserButton = option('Browser verwenden', 'announcement-browser-button');
     const cancelButton = option('Abbrechen', 'announcement-cancel-button');
-    form.append(menu);
+    const browserButton = option('Mit Browserstimme abspielen', 'announcement-browser-button');
+    const backgroundButton = option('Im Hintergrund warten und abspielen', 'announcement-background-button');
+    const waitButton = option('Warten und abspielen', 'announcement-wait-button primary');
+    waitButton.setAttribute('aria-describedby', detail.id);
+    const pending = el(form, 'div', 'announcement-pending');pending.hidden = true;
+    const pendingStatus = el(pending, 'p', 'announcement-pending-status');pendingStatus.id = prefix + '-pending-status';pendingStatus.setAttribute('role', 'status');
+    const pendingText = el(pending, 'p', 'announcement-pending-text');pendingText.id = prefix + '-pending-text';
+    const pendingActions = el(pending, 'div', 'announcement-pending-actions');
+    const pendingRetry = el(pendingActions, 'button', 'btn announcement-pending-retry', 'Erneut versuchen');pendingRetry.type = 'button';
+    const pendingCancel = el(pendingActions, 'button', 'btn announcement-pending-cancel', 'Abbrechen');pendingCancel.type = 'button';
+    for (const button of [pendingRetry, pendingCancel]) button.setAttribute('aria-describedby', pendingStatus.id + ' ' + pendingText.id);
     let selected = null;
     let waiting = null;
+    let failure = null;
+    let background = false;
     let draftTimer;
+    const stateObserver = new MutationObserver(() => render());
+    const ownerObserver = new MutationObserver(() => { if (!form.isConnected) dispose(); });
 
     function updateButtons() {
         for (const button of buttons) button.disabled = !readText() || !!waiting;
@@ -46,27 +80,86 @@ function createFreeAnnouncementForm({ form, textarea, localButton, remoteButton,
     }
     function close(restoreFocus = true) {
         const trigger = selected?.button;
+        stateObserver.disconnect();ownerObserver.disconnect();
         stopWaiting();
         selected = null;
+        failure = null;
+        background = false;pending.hidden = true;
         buttons.forEach(button => button.setAttribute('aria-expanded', 'false'));
         if (menu.open) menu.close();
-        if (restoreFocus && trigger?.isConnected) trigger.focus();
+        if (restoreFocus && trigger) {
+            const target = trigger?.isConnected && !trigger.disabled ? trigger : textarea.isConnected ? textarea : null;
+            target?.focus({preventScroll: true});
+        }
     }
     function current(choice) {
-        return selected === choice && form.isConnected && readText() === choice.text && signature() === choice.signature;
+        return selected === choice && form.isConnected && (background || readText() === choice.text) && signature() === choice.signature;
     }
     function canWait(text) {
+        return !waitReason(text);
+    }
+    function waitReason(text) {
         const value = service.settings();
-        return value.enabled && value.mode !== 'browser' && value.language === 'de-DE' &&
-            text.length <= (value.max_part_length || value.max_text || 1200);
+        if (!value.enabled) return 'Die Sprachausgabe ist ausgeschaltet.';
+        if (!value.key) return 'Es ist kein Turnier für die Sprachausgabe ausgewählt.';
+        if (value.mode === 'browser') return 'Die Browserstimme ist ausgewählt.';
+        if (value.language !== 'de-DE') return 'Für die gewählte Sprache steht kein Serveraudio zur Verfügung.';
+        const limit = value.max_part_length || value.max_text || 1200;
+        return text.length > limit ? 'Der Text ist für das Serveraudio zu lang (maximal ' + limit + ' Zeichen).' : '';
+    }
+    function render() {
+        if (!selected) return;
+        if (!current(selected)) { close(false);return; }
+        if (background) {
+            pending.hidden = false;
+            const error = !!failure && !waiting;
+            pending.classList.toggle('is-error', error);pendingStatus.setAttribute('role', error ? 'alert' : 'status');
+            text(pendingStatus, (selected.remote ? 'Remote' : 'Lokal') + ' · ' + (error ? failure : 'Durchsage wartet im Hintergrund auf Serveraudio.'));
+            text(pendingText, selected.text);
+            pending.title = pendingStatus.textContent + '\n' + selected.text;
+            pendingRetry.hidden = !error;
+            const reason = waitReason(selected.text);pendingRetry.disabled = !!waiting || !!reason;pendingRetry.title = reason;
+            return;
+        }
+        const state = selected.button.dataset.speechState, ready = state === 'ready';
+        if (ready) failure = null;
+        const reason = waitReason(selected.text), busy = !!waiting;
+        menu.classList.toggle('is-warning', busy || !ready);
+        const path = ready && !busy ? 'm5 12 4 4L20 5' : 'm12 3 10 18H2Z M12 9v5M12 17v1';
+        if (headingIcon.getAttribute('d') !== path) headingIcon.setAttribute('d', path);
+        text(caption, busy ? 'Durchsage wird vorbereitet' : ready ? 'Durchsage ist bereit' : 'Durchsage noch nicht bereit');
+        const messages = {
+            preparing: 'Das Serveraudio wird noch vorbereitet.',
+            checking: 'Die Verfügbarkeit des Serveraudios wird geprüft.',
+            failed: 'Das Serveraudio konnte nicht erzeugt werden. Sie können es erneut versuchen.',
+            unavailable: 'Der Status des Serveraudios ist zurzeit nicht verfügbar.',
+            locked: 'Die Audioausgabe auf diesem Gerät wartet noch auf eine Freigabe.',
+            audio_error: 'Das Serveraudio konnte auf diesem Gerät nicht abgespielt werden.',
+        };
+        const error = !busy && !reason && !ready && (!!failure || ['failed', 'audio_error', 'unavailable'].includes(state));
+        text(detail, busy ? 'Serveraudio wird vorbereitet. Die Durchsage startet, sobald es bereit ist.' : reason ||
+            (ready ? 'Das Serveraudio ist bereit und kann jetzt abgespielt werden.' : failure || messages[state] || 'Für diesen Text liegt noch kein fertiges Serveraudio vor.'));
+        detail.classList.toggle('is-error', error);detail.setAttribute('role', error ? 'alert' : 'status');
+        waitButton.disabled = busy || !!reason;
+        waitButton.title = busy ? service.settings().mode === 'auto'
+            ? 'Die Vorbereitung läuft. Sie können abbrechen oder zur Browserstimme wechseln.'
+            : 'Die Vorbereitung läuft. Sie können abbrechen.' : reason;
+        waitButton.setAttribute('aria-busy', String(busy));
+        text(waitButton, busy ? 'Wird vorbereitet…' : ready ? 'Jetzt abspielen' : error ? 'Erneut versuchen' : 'Warten und abspielen');
+        backgroundButton.hidden = ready && !busy;
+        backgroundButton.disabled = !!reason;
+        backgroundButton.title = reason || 'Dialog schließen und die bestätigte Durchsage abspielen, sobald das Serveraudio bereit ist.';
+        text(backgroundButton, busy ? 'Im Hintergrund weiter warten' : 'Im Hintergrund warten und abspielen');
+        browserButton.hidden = service.settings().mode !== 'auto';
     }
     function play(choice, mode) {
         if (!current(choice)) { close(false); return; }
         if (mode === 'browser' && !['auto', 'browser'].includes(service.settings().mode)) return;
-        close();
+        close(!background);
         (choice.remote ? playRemote : playLocal)(choice.text, mode);
     }
     function choose(button, remote) {
+        if (waiting) return;
         const text = readText();
         if (!text) return;
         close(false);
@@ -75,43 +168,59 @@ function createFreeAnnouncementForm({ form, textarea, localButton, remoteButton,
             play(choice, service.settings().mode === 'browser' ? 'browser' : undefined);
             return;
         }
-        heading.textContent = (remote ? 'Remote' : 'Lokal') + ': Durchsage noch nicht bereit';
-        detail.textContent = canWait(text) ? 'Auf das Serveraudio warten oder die Ausgabe wählen.' :
-            'Serveraudio ist für diese Durchsage nicht verfügbar.';
-        waitButton.disabled = !canWait(text);
-        browserButton.hidden = service.settings().mode !== 'auto';
+        targetText.textContent = remote ? 'Geräte mit aktivierten freien Durchsagen' : 'Dieses Gerät';
+        previewText.textContent = text;
+        render();
         button.setAttribute('aria-expanded', 'true');
+        stateObserver.observe(button, {attributes: true, attributeFilter: ['data-speech-state', 'title']});
+        ownerObserver.observe(doc.body, {childList: true, subtree: true});
         menu.showModal();
-        const anchor = button.getBoundingClientRect(), rect = menu.getBoundingClientRect();
-        menu.style.left = Math.max(8, Math.min(anchor.left, doc.defaultView.innerWidth - rect.width - 8)) + 'px';
-        menu.style.top = Math.max(8, Math.min(anchor.bottom + 6, doc.defaultView.innerHeight - rect.height - 8)) + 'px';
         (waitButton.disabled ? browserButton.hidden ? cancelButton : browserButton : waitButton).focus();
     }
-    async function wait() {
+    function minimize() {
+        background = true;render();
+        buttons.forEach(button => button.setAttribute('aria-expanded', 'false'));
+        if (menu.open) menu.close();
+        pendingCancel.focus({preventScroll: true});
+    }
+    async function wait(inBackground = false) {
         const choice = selected;
-        if (!choice || !canWait(choice.text)) return;
-        stopWaiting();
+        if (!choice || !current(choice) || !canWait(choice.text)) return;
+        if (waiting) { if (inBackground) minimize();return; }
+        if (!background && choice.button.dataset.speechState === 'ready') { play(choice, 'server');return; }
+        if (!background) clearTimeout(draftTimer);
+        failure = null;
         const controller = waiting = new AbortController();
         const signal = controller.signal;
+        const active = () => !signal.aborted && waiting === controller && current(choice);
         choice.button.classList.add('is-waiting');
         updateButtons();
-        waitButton.disabled = true;
-        detail.textContent = 'Serveraudio wird vorbereitet. Die Durchsage startet, sobald es bereit ist.';
+        if (inBackground) minimize();else render();
         try {
-            await service.prepare([choice.text]);
+            const prepared = await service.prepare([choice.text], {urgent: true});
+            if (signal.aborted) return;
+            if (!current(choice)) { close(false);return; }
+            if (prepared === null || prepared?.speech_error || prepared?.speech?.enabled === false) {
+                failure = 'Serveraudio konnte nicht angefordert werden. Bitte erneut versuchen.';
+                return;
+            }
             while (!signal.aborted) {
                 if (!current(choice)) { close(false); return; }
                 const response = await service.inspect([choice.text]);
                 if (signal.aborted) return;
                 if (!current(choice)) { close(false); return; }
-                if (response?.clips?.length === 1 && response.clips[0].status === 'completed') {
+                if (!response || response.speech_error || response.speech?.enabled === false || !Array.isArray(response.clips) || response.clips.length !== 1 || !response.clips[0]) {
+                    failure = 'Der Status des Serveraudios konnte nicht abgerufen werden. Bitte erneut versuchen.';
+                    return;
+                }
+                if (response.clips[0].status === 'completed') {
                     readiness?.changed(true);
                     play(choice, 'server');
                     return;
                 }
-                if (response?.clips?.some(clip => clip.status === 'failed')) {
+                if (response.clips.some(clip => clip.status === 'failed')) {
                     readiness?.changed(true);
-                    detail.textContent = 'Die Vorbereitung ist fehlgeschlagen. Erneut versuchen oder die Ausgabe wechseln.';
+                    failure = 'Die Vorbereitung ist fehlgeschlagen. Bitte erneut versuchen.';
                     return;
                 }
                 await new Promise(resolve => {
@@ -121,13 +230,16 @@ function createFreeAnnouncementForm({ form, textarea, localButton, remoteButton,
                 });
             }
         } catch (_) {
-            if (!signal.aborted) detail.textContent = 'Serveraudio konnte nicht vorbereitet werden. Bitte erneut versuchen.';
+            if (active()) failure = 'Serveraudio konnte nicht vorbereitet werden. Bitte erneut versuchen.';
         } finally {
             if (waiting === controller) {
                 stopWaiting();
-                waitButton.disabled = !canWait(choice.text);
+                render();
             }
         }
+    }
+    function dispose() {
+        close(false);clearTimeout(draftTimer);lifetime.abort();menu.remove();pending.remove();
     }
     for (const button of buttons) {
         button.classList.add('announcement-playback-button');
@@ -136,14 +248,19 @@ function createFreeAnnouncementForm({ form, textarea, localButton, remoteButton,
         button.setAttribute('aria-expanded', 'false');
         readiness?.trackText(button, () => readText() ? [readText()] : [], false, { remote: button === remoteButton });
     }
-    localButton.addEventListener('click', () => choose(localButton, false));
-    form.addEventListener('submit', event => { event.preventDefault(); choose(remoteButton, true); });
-    waitButton.addEventListener('click', () => { void wait(); });
-    browserButton.addEventListener('click', () => { if (selected) play(selected, 'browser'); });
-    cancelButton.addEventListener('click', () => close());
-    menu.addEventListener('cancel', event => { event.preventDefault(); close(); });
+    localButton.addEventListener('click', () => choose(localButton, false), {signal: lifetimeSignal});
+    form.addEventListener('submit', event => { event.preventDefault(); choose(remoteButton, true); }, {signal: lifetimeSignal});
+    waitButton.addEventListener('click', () => { void wait(); }, {signal: lifetimeSignal});
+    backgroundButton.addEventListener('click', () => { void wait(true); }, {signal: lifetimeSignal});
+    pendingRetry.addEventListener('click', () => { void wait(true); }, {signal: lifetimeSignal});
+    pendingCancel.addEventListener('click', () => close(), {signal: lifetimeSignal});
+    browserButton.addEventListener('click', () => { if (selected) play(selected, 'browser'); }, {signal: lifetimeSignal});
+    cancelButton.addEventListener('click', () => close(), {signal: lifetimeSignal});
+    closeButton.addEventListener('click', () => close(), {signal: lifetimeSignal});
+    menu.addEventListener('cancel', event => { event.preventDefault(); close(); }, {signal: lifetimeSignal});
+    menu.addEventListener('close', () => { if (!menu.open && !background) close(); }, {signal: lifetimeSignal});
     textarea.addEventListener('input', () => {
-        close(false);
+        if (!background) close(false);
         readiness?.changed();
         clearTimeout(draftTimer);
         const draftSignature = signature();
@@ -152,8 +269,9 @@ function createFreeAnnouncementForm({ form, textarea, localButton, remoteButton,
             if (text && textarea.isConnected && signature() === draftSignature) void service.prepare([text]);
         }, 1500);
         updateButtons();
-    });
+    }, {signal: lifetimeSignal});
     updateButtons();
+    return {dispose};
 }
 
 if (typeof module !== 'undefined' && module.exports) module.exports = createFreeAnnouncementForm;

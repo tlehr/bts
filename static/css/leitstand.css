@@ -150,14 +150,6 @@
 .leitstand .announcement-playback-button:disabled:not(.is-waiting)::after { content:none; }
 .leitstand .announcements_btn_container .announcement-playback-button.is-waiting { background:#fff4cd; border-color:#d6b958; color:#665018; }
 .leitstand .announcements_btn_container .announcement-playback-button:not(:disabled):hover { filter:brightness(.95); }
-.leitstand .announcement-playback-menu { position:fixed; inset:auto; margin:0; width:330px; max-width:calc(100vw - 16px); max-height:calc(100dvh - 16px); overflow:auto; padding:13px; border:1px solid #bdcbc5; border-radius:8px; background:#fff; color:var(--ink); box-shadow:0 6px 24px #21323530; font:12px/1.45 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; }
-.leitstand .announcement-playback-menu::backdrop { background:#2132351a; }
-.leitstand .announcement-playback-menu strong { display:block; font-size:13px; }
-.leitstand .announcement-playback-menu p { margin:6px 0 10px; color:var(--muted); }
-.leitstand .announcement-playback-menu button { display:block; width:100%; padding:7px 10px; margin:5px 0 0; border:1px solid #d4dfdb; border-radius:5px; background:#f4f8f6; color:var(--ink); text-align:left; font:inherit; }
-.leitstand .announcement-playback-menu button:hover { background:#eaf1ee; }
-.leitstand .announcement-playback-menu .announcement-wait-button { background:#0e5a63; border-color:#08474f; color:#fff; }
-.leitstand .announcement-playback-menu button:disabled { background:#f1f4f3; border-color:#d4dfdb; color:#6d7d80; cursor:default; }
 .leitstand .announce_emergency_button { background:#bc4a41; color:white; border-color:#ad3c36!important; }
 .leitstand .local_speech_readiness { font-size:9px; }
 .leitstand .device-location-table { width:100%; table-layout:fixed; border-collapse:collapse; font-size:11px; }
@@ -702,6 +694,10 @@ body.leitstand-view .tabletoperator_suggestions .tabletoperator_assignment_icon 
 .leitstand-dialog .dialog-heading button { border:0; background:transparent; color:inherit; }
 .leitstand-dialog .dialog-heading button:hover { background:#ffffff26; }
 .leitstand-dialog .dialog-heading button:focus-visible { outline:2px solid white; }
+.leitstand-dialog.is-warning { border-color:#8a6400; }
+.leitstand-dialog.is-warning .dialog-heading { background:#f1c21b; border-color:#8a6400; color:#213235; }
+.leitstand-dialog.is-warning .dialog-heading button:hover { background:#21323514; }
+.leitstand-dialog.is-warning .dialog-heading button:focus-visible { outline-color:#213235; }
 .leitstand-dialog h2 { display:flex; align-items:center; gap:10px; margin:0; padding:0; color:inherit; font-size:17px; line-height:1.4; text-align:left; }
 .leitstand-dialog .dialog-content { flex:1 1 auto; min-height:0; padding:16px; overflow:auto; overscroll-behavior:contain; }
 .leitstand-dialog :is(pre,select) { max-width:100%; white-space:pre-wrap; overflow-wrap:anywhere; }
@@ -746,6 +742,35 @@ body.leitstand-view .tabletoperator_suggestions .tabletoperator_assignment_icon 
 .ls-call-status-dialog :is(summary,button):focus-visible { outline:2px solid #175a50; outline-offset:-2px; }
 .leitstand-dialog .ls-dialog-footer { display:flex; flex:0 0 auto; justify-content:flex-end; padding:12px 16px; border-top:1px solid #dce5e3; background:#f8faf9; }
 .leitstand-dialog .ls-dialog-footer .btn { min-height:32px; margin:0; padding:5px 12px; font-size:13px; }
+.announcement-playback-menu { text-align:left; }
+body:has(.announcement-playback-menu[open]) { overflow:hidden; }
+.announcement-playback-menu .dialog-content { display:flex; flex-direction:column; gap:14px; }
+.announcement-playback-menu .dialog-content>* { flex:0 0 auto; min-width:0; }
+.announcement-playback-menu .announcement-target { display:grid; gap:3px; margin:0; }
+.announcement-playback-menu .announcement-target strong,.announcement-playback-menu h3 { margin:0; color:#697c74; font-size:12px; font-weight:600; }
+.announcement-playback-menu .announcement-preview-text { margin:5px 0 0; padding:12px; border:1px solid #d5dfdb; border-radius:6px; background:#f6f8f7; white-space:pre-wrap; overflow-wrap:anywhere; }
+.announcement-playback-menu .announcement-status { margin:0; padding:10px 12px; border-left:3px solid #b58300; border-radius:3px; background:#fff8dd; color:#614b13; overflow-wrap:anywhere; }
+.announcement-playback-menu .announcement-status.is-error { border-color:#a54b36; background:#fff0e9; color:#843d2e; }
+.announcement-playback-menu:not(.is-warning) .announcement-status { border-color:#0e5a63; background:#edf6f4; color:#265c55; }
+.announcement-playback-menu .ls-dialog-footer { flex-wrap:wrap; gap:8px; }
+.announcement-playback-menu .ls-dialog-footer .btn { max-width:100%; white-space:normal; }
+.announcement-playback-menu [hidden] { display:none!important; }
+.leitstand .announcement-pending { margin-top:8px; padding:8px; border:1px solid #d6b958; border-radius:5px; background:#fff8dd; font-size:11px; }
+.leitstand .announcement-pending-status { margin:0; color:#614b13; font-weight:600; }
+.leitstand .announcement-pending-text { max-height:4.2em; margin:4px 0 0; overflow:auto; white-space:pre-wrap; overflow-wrap:anywhere; color:#536b60; }
+.leitstand .announcement-pending-actions { display:flex; flex-wrap:wrap; justify-content:flex-end; gap:5px; margin-top:6px; }
+.leitstand .announcement-pending.is-error { border-color:#c1665b; background:#fff0e9; }
+.leitstand .announcement-pending.is-error .announcement-pending-status { color:#843d2e; }
+/* Keep background jobs inside the existing text area footprint in the top row. */
+.leitstand [data-card-zone="top"] .announcements_container form { display:grid; grid-template-columns:minmax(0,1fr); gap:5px; }
+.leitstand [data-card-zone="top"] #custom_announcement { grid-area:1 / 1; margin:0; }
+.leitstand [data-card-zone="top"] .announcements_btn_container { grid-area:2 / 1; }
+.leitstand [data-card-zone="top"] form:has(.announcement-pending:not([hidden])) #custom_announcement { padding-bottom:34px; }
+.leitstand [data-card-zone="top"] .announcement-pending { grid-area:1 / 1; align-self:end; display:flex; align-items:center; gap:6px; z-index:1; min-width:0; height:28px; margin:0; padding:2px 4px; }
+.leitstand [data-card-zone="top"] .announcement-pending-status { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.leitstand [data-card-zone="top"] .announcement-pending-text { display:none; }
+.leitstand [data-card-zone="top"] .announcement-pending-actions { flex:0 0 auto; flex-wrap:nowrap; gap:4px; margin:0; }
+.leitstand [data-card-zone="top"] .announcement-pending .btn { min-height:22px; height:22px; padding:2px 6px; font-size:10px; }
 .bts-confirm-dialog { box-sizing:border-box; width:min(630px,calc(100vw - 32px)); max-width:calc(100vw - 32px); max-height:calc(100dvh - 32px); margin:auto; padding:0; overflow:hidden; border:2px solid #08474f; border-radius:12px; box-shadow:0 22px 100px #102f2033; background:white; color:#213235; text-align:left; font:13px/1.5 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; }
 .bts-confirm-dialog[open] { display:flex; flex-direction:column; }
 .bts-confirm-dialog::backdrop { background:#15291f66; backdrop-filter:blur(2px); }

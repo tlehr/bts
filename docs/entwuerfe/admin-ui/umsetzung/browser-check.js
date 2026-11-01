@@ -149,6 +149,9 @@ class CDP {
   if(process.argv.includes('--call-status-only')) {
    await require('./call-status-check')({c,check,click,open,metrics,previews,key});return;
   }
+  if(process.argv.includes('--announcement-dialog-only')) {
+   await require('./announcement-dialog-check')({c,check,click,open,metrics,previews,key});return;
+  }
   if(process.argv.includes('--compact-density-only')) {
    await require('./compact-density-check')({c,check,click,open,metrics,previews,capture:snap});return;
   }

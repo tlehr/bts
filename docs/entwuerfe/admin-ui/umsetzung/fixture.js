@@ -41,10 +41,10 @@
  window.__writes=[];
  window.__protocolEvents=[];window.__protocolRequests=0;
  window.__speechFixture={status:'completed',settings:{enabled:true,key,mode:'auto',voice:'hallensprecherin',language:'de-DE',audio_ready:true,max_text:1200}};
- window.__localAnnouncements=[];window.__speechPrepared=[];
+ window.__localAnnouncements=[];window.__speechPrepared=[];window.__speechPreparationRequests=[];
  window.btsSpeechService={
   settings:()=>({...window.__speechFixture.settings}),ensureAudio:async()=>{},
-  prepare:async parts=>{window.__speechPrepared.push([...parts]);},
+  prepare:async(parts,options={})=>{window.__speechPrepared.push([...parts]);window.__speechPreparationRequests.push({parts:[...parts],urgent:options.urgent===true});},
   inspect:async parts=>({speech:{enabled:true,cache_version:'fixture'},clips:parts.map(()=>({status:window.__speechFixture.status,local:true}))}),
   speak:async(parts,_id,_browser,_localParts,_pauses,_plan,speechMode)=>{window.__localAnnouncements.push({parts:[...parts],speechMode});if(window.__speechPlaybackGate)await new Promise(resolve=>{window.__releaseSpeechPlayback=resolve;});return{status:'ok',provider:speechMode==='browser'?'browser':'server',started:true,...window.__speechPlaybackResult};},
   describeResult:()=> 'Serveraudio bereit',outputMessage:()=> 'Serveraudio bereit · Queue leer',

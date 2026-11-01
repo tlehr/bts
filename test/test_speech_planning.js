@@ -9,6 +9,7 @@ const idlePlan = require('../bts/speech/idle_plan');
 const { handle } = require('../bts/speech');
 const { decode } = require('../bts/speech/context');
 const { tournament, setup } = require('./test_speech_text');
+const createSpeechService = require('../static/js/speech_service');
 
 const key = 'default', voice = 'hallensprecher';
 const settings = { mode: 'auto', voice };
@@ -42,6 +43,38 @@ async function registrationPlan(current) {
 }
 
 describe('Live speech planning', function() {
+    it('lists an explicitly awaited free announcement as an actual call while its draft stays ordinary preparation', async function() {
+        const b = broker(), model = new PlanningStatus(tournament(), [], required());
+        const selected = { ...settings, key, enabled: true, language: 'de-DE', max_text: 1200 };
+        const app = { speech: { broker: b, prefetch: { settings: () => selected, subscribe() {} } } };
+        const requests = [], ws = { speech_tournament_key: key };
+        const service = createSpeechService({ settings: () => selected,
+            request: (type, message) => new Promise(resolve => {
+                requests.push(type);
+                ws.respond = (_message, error, response) => { assert.ifError(error);resolve(response); };
+                void handle(app, ws, {type, ...message});
+            }),
+            makeAudio() { throw new Error('Preparation must not start playback'); },
+        });
+        const text = 'Hallo Welt das Ist ein Test';
+        await service.prepare([text]);
+        assert.strictEqual(model.snapshot(b, key, selected).stages.find(row => row.id === 'urgent').total, 0);
+        const entry = b.entries.get(b.key(text, voice, 'de-DE'));
+        assert.strictEqual(b.queue(key, voice).items.find(item => item.text === text).priority, 'low');
+
+        await service.prepare([text], {urgent: true});
+        const snapshot = model.snapshot(b, key, selected);
+        assert.strictEqual(snapshot.active_stage, 'urgent');
+        assert.strictEqual(snapshot.stages.find(row => row.id === 'urgent').total, 1);
+        const item = model.annotate_queue(b.queue(key, voice), b, key, selected).items.find(item => item.text === text);
+        assert.strictEqual(item.priority, 'high');
+        assert.strictEqual(item.planning.stage, 'urgent');
+        assert.strictEqual(item.planning.reason, 'Ausgelöste Durchsagen');
+        assert.strictEqual(b.entries.get(entry.key), entry, 'promote the existing draft instead of generating a second recording');
+        assert.strictEqual(b.entries.size, 1);
+        assert.deepStrictEqual(requests, ['speech_prepare', 'speech_resolve']);
+    });
+
     it('keeps registration behind completed disciplines before the first draw and skips empty earlier areas', async function() {
         for (const present of [true, false]) {
             const current = registrationTournament(), b = broker(); b.context_version = 'bts-context-v2';

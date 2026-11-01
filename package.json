@@ -19,6 +19,7 @@
     "test:admin-current-games-scroll": "node docs/entwuerfe/admin-ui/umsetzung/browser-check.js --current-games-scroll-only",
     "test:admin-court-assignment": "node docs/entwuerfe/admin-ui/umsetzung/browser-check.js --court-assignment-only",
     "test:admin-call-status": "node docs/entwuerfe/admin-ui/umsetzung/browser-check.js --call-status-only",
+    "test:admin-announcement-dialog": "node docs/entwuerfe/admin-ui/umsetzung/browser-check.js --announcement-dialog-only",
     "test:admin-compact-density": "node docs/entwuerfe/admin-ui/umsetzung/browser-check.js --compact-density-only",
     "test:admin-compact-timers": "node docs/entwuerfe/admin-ui/umsetzung/browser-check.js --compact-timers-only",
     "test:admin-compact-official-names": "node docs/entwuerfe/admin-ui/umsetzung/browser-check.js --compact-official-names-only",
