@@ -1,9 +1,10 @@
 /* exported createFreeAnnouncementForm */
+/* global btsAnnouncementEditor */
 'use strict';
 
 let freeAnnouncementDialogSequence = 0;
 
-function createFreeAnnouncementForm({ form, textarea, localButton, remoteButton, service, readiness, playLocal, playRemote }) {
+function createFreeAnnouncementForm({ form, textarea, localButton, remoteButton, service, readiness, playLocal, playRemote, getTournament = () => ({}) }) {
     const doc = form.ownerDocument;
     const buttons = [localButton, remoteButton];
     const readText = () => textarea.value.trim();
@@ -12,6 +13,7 @@ function createFreeAnnouncementForm({ form, textarea, localButton, remoteButton,
         return JSON.stringify([value.key, value.voice, value.language, value.mode, value.enabled, value.max_part_length, value.max_text]);
     };
     const prefix = 'free-announcement-playback-' + (++freeAnnouncementDialogSequence);
+    const editor = btsAnnouncementEditor.create({ textarea, getTournament, getKey: () => service.settings().key });
     const lifetime = new AbortController(), { signal: lifetimeSignal } = lifetime;
     function el(parent, tag, className, text) {
         const node = doc.createElement(tag);
@@ -149,14 +151,17 @@ function createFreeAnnouncementForm({ form, textarea, localButton, remoteButton,
         if (!current(choice)) { close(false); return; }
         if (mode === 'browser' && !['auto', 'browser'].includes(service.settings().mode)) return;
         close(!background);
-        (choice.remote ? playRemote : playLocal)(choice.text, mode);
+        const sent = (choice.remote ? playRemote : playLocal)(choice.text, mode);
+        const remember = () => editor.remember(choice.text, choice.key);
+        if (sent?.then) Promise.resolve(sent).then(remember, () => {});else if (sent !== false) remember();
     }
     function choose(button, remote) {
         if (waiting) return;
         const text = readText();
         if (!text) return;
+        editor.close();
         close(false);
-        const choice = selected = { button, remote, text, signature: signature() };
+        const choice = selected = { button, remote, text, key: service.settings().key, signature: signature() };
         if (button.dataset.speechState === 'ready' || service.settings().mode === 'browser') {
             play(choice, service.settings().mode === 'browser' ? 'browser' : undefined);
             return;
@@ -231,7 +236,7 @@ function createFreeAnnouncementForm({ form, textarea, localButton, remoteButton,
         }
     }
     function dispose() {
-        close(false);clearTimeout(draftTimer);lifetime.abort();menu.remove();pending.remove();
+        close(false);clearTimeout(draftTimer);lifetime.abort();editor.destroy();menu.remove();pending.remove();
     }
     for (const button of buttons) {
         button.classList.add('announcement-playback-button');

@@ -1290,12 +1290,13 @@ var ctournament = (function() {
 
 		createFreeAnnouncementForm({
 			form, textarea, localButton: local_btn, remoteButton: remote_btn,
+			getTournament: () => curt,
 			service: btsSpeechService, readiness: typeof btsSpeechReadiness === 'undefined' ? null : btsSpeechReadiness,
 			playLocal: (text, speechMode) => announce([text], true, null, { speechMode }),
-			playRemote: (text, speechMode) => send({
+			playRemote: (text, speechMode) => new Promise((resolve, reject) => send({
 				type: 'free_announce', tournament_key: curt.key, text,
 				...(speechMode ? { speech_mode: speechMode } : {}),
-			}, err => { if (err) cerror.net(err); }),
+			}, err => { if (err) { cerror.net(err);reject(err); } else resolve(); })),
 		});
 
 		emergency_btn.addEventListener("click", () => {

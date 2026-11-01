@@ -152,6 +152,9 @@ class CDP {
   if(process.argv.includes('--announcement-dialog-only')) {
    await require('./announcement-dialog-check')({c,check,click,open,metrics,previews,key});return;
   }
+  if(process.argv.includes('--announcement-editor-only')) {
+   await require('./announcement-editor-check')({c,check,click,open,metrics,previews,key});return;
+  }
   if(process.argv.includes('--compact-density-only')) {
    await require('./compact-density-check')({c,check,click,open,metrics,previews,capture:snap});return;
   }
