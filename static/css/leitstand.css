@@ -151,6 +151,7 @@
 .leitstand .announcements_btn_container .announcement-playback-button.is-waiting { background:#fff4cd; border-color:#d6b958; color:#665018; }
 .leitstand .announcements_btn_container .announcement-playback-button:not(:disabled):hover { filter:brightness(.95); }
 .leitstand .announce_emergency_button { background:#bc4a41; color:white; border-color:#ad3c36!important; }
+.leitstand .stop_emergency_button { background:#fff1a1; color:#493b08; border-color:#c8aa24!important; }
 .leitstand .local_speech_readiness { font-size:9px; }
 .leitstand .device-location-table { width:100%; table-layout:fixed; border-collapse:collapse; font-size:11px; }
 .leitstand .device-location-table th:first-child { width:40%; text-align:left; }

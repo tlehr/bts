@@ -1,6 +1,6 @@
 /* global btsSpeechReadiness, cleitstand, btsAdminUpdates, btsScoresheetRemarks */
 'use strict';
-/* global btsSpeechService, cancelAnnouncementPlayback, createSpeechQueue, createFreeAnnouncementForm */
+/* global btsSpeechService, cancelAnnouncementPlayback, createSpeechQueue, createFreeAnnouncementForm, btsDialogActions, subscribeEmergencyAudio */
 
 var curt; // current tournament
 let current_view = null;
@@ -77,6 +77,7 @@ var ctournament = (function() {
 				cancelAnnouncementPlayback();
 			}
 			curt = response.tournament;
+			if (typeof subscribeEmergencyAudio === 'function') subscribeEmergencyAudio(curt.key);
 			invalidate_match_lookup_index();
 			self_check_in_tabletoperator_waiting_ids = null;
 			preparation_selection_request_inflight = false;
@@ -120,6 +121,7 @@ var ctournament = (function() {
 					return;
 				}
 				curt = response.tournament;
+				if (typeof subscribeEmergencyAudio === 'function') subscribeEmergencyAudio(curt.key);
 				invalidate_match_lookup_index();
 				cerror.silent('Turnierdaten nach verpasster Live-Aktualisierung neu geladen: ' + reason);
 				refresh_current_view();
@@ -1286,7 +1288,7 @@ var ctournament = (function() {
 			type: 'button',
 			class: !curt.enable_emergency ? 'announce_emergency_button' : 'stop_emergency_button',
 			id: 'announce_emergency_btn'
-		}, !curt.enable_emergency ? 'Evakuierung' : 'Evakuierung Stoppen');
+		}, !curt.enable_emergency ? 'Evakuierung' : 'Evakuierung stoppen');
 
 		createFreeAnnouncementForm({
 			form, textarea, localButton: local_btn, remoteButton: remote_btn,
@@ -1299,20 +1301,40 @@ var ctournament = (function() {
 			}, err => { if (err) { cerror.net(err);reject(err); } else resolve(); })),
 		});
 
-		emergency_btn.addEventListener("click", () => {
-  			const bestaetigt = confirm(!curt.enable_emergency ? "Soll wirklich evakuiert werden?" : "Soll die Evakuierung wirklich abgebrochen werden?");
-
-  			if (bestaetigt) {
-    			send({
-					type: 'emergency_announce',
-					tournament_key: curt.key,
-					enable: !curt.enable_emergency
-				}, function (err) {
-					if (err) {
-						return cerror.net(err);
-					}
+		let emergency_pending = false;
+		emergency_btn.addEventListener('click', async () => {
+			if (emergency_pending) return;
+			emergency_pending = true;
+			const tournament_key = curt.key, was_enabled = !!curt.enable_emergency, enable = !was_enabled;
+			emergency_btn.dataset.emergencyConfirmState = String(was_enabled);
+			try {
+				const approved = await btsDialogActions.confirm({
+					owner: form, returnFocus: emergency_btn, danger: enable, warning: !enable,
+					title: enable ? 'Evakuierungsdurchsage starten?' : 'Evakuierungsdurchsage stoppen?',
+					message: enable
+						? 'Die hinterlegte Evakuierungsansage wird auf jedem Rechner mit verbundenen Turnierleitungsseiten dieses Turniers gestartet.\n\n• Pro Rechner spielt genau eine Seite die Ansage sofort ab, auch bei mehreren geöffneten Tabs oder Browsern.\n• Sie wiederholt sich alle 20 Sekunden bis zum ausdrücklichen Stoppen.\n\nBitte nur im Ernstfall auslösen.'
+						: 'Die Evakuierungsdurchsage wird auf den verbundenen Turnierleitungsseiten dieses Turniers gestoppt.\n\n• Eine laufende Wiedergabe wird beendet.\n• Die automatische Wiederholung alle 20 Sekunden wird beendet.\n\nÜber „Evakuierung“ kann die Durchsage später erneut gestartet werden.',
+					confirmLabel: enable ? 'Evakuierungsdurchsage starten' : 'Durchsage stoppen',
+					cancelLabel: enable ? 'Abbrechen' : 'Weiter abspielen',
 				});
-  			}
+				delete emergency_btn.dataset.emergencyConfirmState;
+				if (!approved || !emergency_btn.isConnected || curt.key !== tournament_key || !!curt.enable_emergency !== was_enabled) return;
+				emergency_btn.disabled = true;
+				emergency_btn.setAttribute('aria-busy', 'true');
+				emergency_btn.textContent = enable ? 'Wird gestartet…' : 'Wird gestoppt…';
+				await new Promise((resolve, reject) => send({ type: 'emergency_announce', tournament_key, enable }, err => err ? reject(err) : resolve()));
+			} catch (err) {
+				if (emergency_btn.isConnected && curt.key === tournament_key) cerror.net(err);
+			} finally {
+				emergency_pending = false;
+				delete emergency_btn.dataset.emergencyConfirmState;
+				emergency_btn.disabled = false;
+				emergency_btn.removeAttribute('aria-busy');
+				if (emergency_btn.isConnected && curt.key === tournament_key) {
+					update_emergency_btn();
+					if (document.activeElement === document.body) emergency_btn.focus({preventScroll: true});
+				}
+			}
 		});
 
 	}
@@ -1320,11 +1342,13 @@ var ctournament = (function() {
 	function update_emergency_btn() {
 		const btn = document.getElementById('announce_emergency_btn');
 		if (!btn) return;
+		if (btn.dataset.emergencyConfirmState != null && btn.dataset.emergencyConfirmState !== String(!!curt.enable_emergency)) btsDialogActions.dismissConfirmation(btn.form);
+		if (btn.getAttribute('aria-busy') === 'true') return;
 
 		if (curt.enable_emergency) {
 			btn.classList.remove('announce_emergency_button');
 			btn.classList.add('stop_emergency_button');
-			btn.textContent = 'Evakuierung Stoppen';
+			btn.textContent = 'Evakuierung stoppen';
 		} else {
 			btn.classList.remove('stop_emergency_button');
 			btn.classList.add('announce_emergency_button');

@@ -3461,9 +3461,22 @@ function handle_emergency_announce(app, ws, msg) {
 	}
 	const tournament_key = msg.tournament_key;
 	const enable = msg.enable;
+	if (typeof enable !== 'boolean') return ws.respond(msg, { message: 'enable must be a boolean' });
 
+	require('./emergency_audio')(app).set_enabled(tournament_key, enable);
 	notify_change(app, tournament_key, 'emergency_announce', enable);
 
+	ws.respond(msg);
+}
+
+function handle_emergency_audio_subscribe(app, ws, msg) {
+	if (typeof msg.tournament_key !== 'string' || !msg.tournament_key) return ws.respond(msg, { message: 'Missing tournament_key' });
+	require('./emergency_audio')(app).subscribe(ws, msg.tournament_key);
+	ws.respond(msg);
+}
+
+function handle_emergency_audio_release(app, ws, msg) {
+	require('./emergency_audio')(app).release(ws);
 	ws.respond(msg);
 }
 
@@ -5670,6 +5683,7 @@ function handle_speech_health_subscribe(app, ws, msg) {
 }
 
 function on_close(app, ws) {
+	require('./emergency_audio').release(app, ws);
 	if (! utils.remove(all_admins, ws)) {
 		serror.silent('Removing admin ws, but it was not connected!?');
 	}
@@ -5848,6 +5862,8 @@ module.exports = {
 	handle_ticker_reset,
 	handle_free_announce,
 	handle_emergency_announce,
+	handle_emergency_audio_subscribe,
+	handle_emergency_audio_release,
 	handle_official_list_move,
 	handle_official_edit,
 	handle_official_roles_edit,

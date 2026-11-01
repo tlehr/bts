@@ -155,6 +155,9 @@ class CDP {
   if(process.argv.includes('--announcement-editor-only')) {
    await require('./announcement-editor-check')({c,check,click,open,metrics,previews,key});return;
   }
+  if(process.argv.includes('--emergency-dialog-only')) {
+   await require('./emergency-dialog-check')({c,check,click,open,metrics,previews,key});return;
+  }
   if(process.argv.includes('--compact-density-only')) {
    await require('./compact-density-check')({c,check,click,open,metrics,previews,capture:snap});return;
   }
@@ -549,9 +552,9 @@ class CDP {
   await c.evaluate(`window.__speechFixture.settings.mode='auto';document.querySelector('#custom_announcement').dispatchEvent(new Event('input'));btsSpeechReadiness.refresh(true)`);
   await click('#remote_announce_btn');
   await check('Bereite Remote-Durchsagen starten direkt mit ihrem Text',`window.__writes.filter(message=>message.type==='free_announce').length===2&&window.__writes.filter(message=>message.type==='free_announce')[1].text==='Geänderter Text'&&!document.querySelector('.announcement-playback-menu').open`);
-  await c.evaluate(`window.__savedConfirm=window.confirm;window.confirm=()=>false`);await click('#announce_emergency_btn');
+  await click('#announce_emergency_btn');await click('.bts-confirm-cancel');
   await check('Die Evakuierungsschaltfläche löst keine freie Durchsage aus',`window.__writes.filter(message=>message.type==='free_announce').length===2`);
-  await c.evaluate(`window.confirm=window.__savedConfirm;document.querySelector('#custom_announcement').value='';document.querySelector('#custom_announcement').dispatchEvent(new Event('input'));localStorage.removeItem('enable_free_announcements');btsSpeechReadiness.refresh(true)`);
+  await c.evaluate(`document.querySelector('#custom_announcement').value='';document.querySelector('#custom_announcement').dispatchEvent(new Event('input'));localStorage.removeItem('enable_free_announcements');btsSpeechReadiness.refresh(true)`);
   await c.evaluate(`window.__oldBtp={enabled:curt.btp_enabled,autofetch:curt.btp_autofetch_enabled,interval:curt.btp_autofetch_timeout_intervall,status:curt.btp_status};curt.btp_enabled=true;curt.btp_autofetch_enabled=true;curt.btp_autofetch_timeout_intervall=30;ctournament.btp_status_changed({val:{status:'connected',next_fetch_ts:Date.now()+28000}})`);
   await c.evaluate(`window.__countdowns=[[30,18000],[99,99000],[100,99000],[100,18000],[3600,3599000]].map(([interval,remaining])=>{curt.btp_autofetch_timeout_intervall=interval;ctournament.btp_status_changed({val:{status:'connected',next_fetch_ts:Date.now()+remaining}});return{prefix:document.querySelector('.toprow_service_badge_prefix').textContent,value:document.querySelector('.toprow_service_badge_timer').textContent}})`);
   await check('Countdown verwendet bis 99 Sekunden Sekundenwerte und darüber dauerhaft Minuten und Sekunden',`window.__countdowns.every((entry,index)=>entry.prefix==='in'&&entry.value===['18 s','99 s','1:39','0:18','59:59'][index])`);

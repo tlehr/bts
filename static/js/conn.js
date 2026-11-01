@@ -186,6 +186,9 @@ function handle_message(ws_msg) {
 	}
 
 	switch (msg.type) {
+	case 'emergency_playback':
+		if (typeof emergency_announce === 'function') emergency_announce(msg.enable === true);
+		break;
 	case 'speech_health':
 		if (typeof btsSpeechHealth !== 'undefined') btsSpeechHealth.update(msg.health);
 		break;
@@ -248,6 +251,7 @@ function connect() {
 	};
 	ws.onmessage = handle_message;
 	ws.onclose = function() {
+		if (typeof emergency_announce === 'function') emergency_announce(false);
 		if (typeof btsAdminUpdates !== 'undefined') btsAdminUpdates.reset();
 		if (typeof btsSpeechHealth !== 'undefined') btsSpeechHealth.disconnected();
 		// Clear callback handlers

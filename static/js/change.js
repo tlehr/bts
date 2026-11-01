@@ -326,18 +326,22 @@ var change = (function() {
 				announce([c.val.text], false, _announcement_claim_key(c, 'free_announce'), { speechMode: c.val.speech_mode });
 			});
 			break;
-		case 'emergency_announce':
+		case 'emergency_announce': {
+			const changed = !!curt.enable_emergency !== c.val;
 			curt.enable_emergency = c.val;
-			_handle_announcement_event('emergency_announce', c.val, () => emergency_announce(c.val));
+			// Playback starts only on the server-selected page for this host.
+			// Always stop, including in registration and self-check-in views.
+			if (!c.val) emergency_announce(false);
 			if (current_view === 'show'){
 				ctournament.update_emergency_btn()
 			}
-			if(curt.enable_emergency) {
+			if (changed && curt.enable_emergency) {
 				cerror.silent('Evakuierungsdurchsage wird gestartet!');
-			} else {
+			} else if (changed) {
 				cerror.silent('Evakuierungsdurchsage wurde gestoppt');
 			}
 			break;
+		}
 			case 'props': {
 				for (const [field, value] of Object.entries(c.val)) {
 					_apply_tournament_field_change(field, value);

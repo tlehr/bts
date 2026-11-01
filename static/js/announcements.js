@@ -83,6 +83,8 @@ Object.assign(window, {
 
 let emergencyInterval = null;
 let emergencyAudio = null;
+let emergencyTournamentKey = null;
+let emergencyAudioBlocked = false;
 const ANNOUNCEMENT_DEDUP_TTL_MS = 2500;
 const ANNOUNCEMENT_TAB_ID = `${Date.now()}_${Math.random().toString(36).slice(2)}`;
 const ANNOUNCEMENT_DEVICE_ID = (() => {
@@ -328,41 +330,55 @@ function claimAnnouncementPlayback(callArray, claimKey) {
     });
 }
 
-function emergency_announce(enable) {
-
-
-    if (enable) {
-        // Verhindert mehrfaches Starten
-        if (emergencyInterval !== null) {
-            return;
-        }
-
-        emergencyAudio = new Audio('/static/audio/evakuierung.mp3');
-
-        // Sofort abspielen
-        emergencyAudio.play();
-
-        // Wiederholung alle 30 Sekunden
-        emergencyInterval = setInterval(() => {
-            emergencyAudio.currentTime = 0;
-            emergencyAudio.play();
-        }, 20_000);
-
-    } else {
-        // Timer stoppen
-        if (emergencyInterval !== null) {
-            clearInterval(emergencyInterval);
-            emergencyInterval = null;
-        }
-
-        // Audio stoppen
-        if (emergencyAudio) {
-            emergencyAudio.pause();
-            emergencyAudio.currentTime = 0;
-            emergencyAudio = null;
-        }
-    }
+function subscribeEmergencyAudio(tournamentKey) {
+    if (emergencyTournamentKey !== tournamentKey) emergency_announce(false);
+    emergencyTournamentKey = tournamentKey;
+    emergencyAudioBlocked = false;
+    try { send({ type: 'emergency_audio_subscribe', tournament_key: tournamentKey }, () => {}); }
+    catch (_) { emergencyAudioBlocked = true; } // Reconnect or user interaction can retry.
 }
+
+function releaseEmergencyAudio() {
+    emergency_announce(false);
+    try { send({ type: 'emergency_audio_release' }, () => {}); } catch (_) { /* Socket may already be closed. */ }
+}
+
+// Called only by the server's host-specific playback grant, never by the
+// tournament-wide state notification. Every other page remains on standby.
+function emergency_announce(enable) {
+    if (!enable) {
+        if (emergencyInterval !== null) clearInterval(emergencyInterval);
+        emergencyInterval = null;
+        const audio = emergencyAudio;
+        emergencyAudio = null;
+        if (audio) { audio.pause();audio.currentTime = 0; }
+        return;
+    }
+    if (emergencyAudio) return;
+    const audio = emergencyAudio = new Audio('/static/audio/evakuierung.mp3');
+    const failed = () => {
+        if (emergencyAudio !== audio) return; // A stopped, older play() may reject later.
+        emergencyAudioBlocked = true;
+        releaseEmergencyAudio();
+        cerror.silent('Evakuierungsdurchsage konnte auf dieser Seite nicht abgespielt werden. Eine andere geöffnete Seite auf diesem Rechner übernimmt, sofern verfügbar.');
+    };
+    const play = () => {
+        if (emergencyAudio !== audio) return;
+        audio.currentTime = 0;
+        try { Promise.resolve(audio.play()).catch(failed); } catch (_) { failed(); }
+    };
+    emergencyInterval = setInterval(play, 20_000);
+    play();
+}
+
+window.addEventListener('pagehide', releaseEmergencyAudio);
+window.addEventListener('pageshow', event => {
+    if (event.persisted && emergencyTournamentKey) subscribeEmergencyAudio(emergencyTournamentKey);
+});
+// A host whose browsers all rejected autoplay can join after user interaction.
+for (const event of ['pointerdown', 'keydown']) window.addEventListener(event, () => {
+    if (emergencyAudioBlocked && emergencyTournamentKey) subscribeEmergencyAudio(emergencyTournamentKey);
+});
 
 function getAnnouncementVoices() {
     if (announcementVoicesPromise) {
