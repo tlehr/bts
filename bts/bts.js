@@ -132,6 +132,9 @@ function create_app(config, db) {
 	app.use('/d(:courtnum)?', shortcuts.display_handler);
 	app.use('/u(:courtnum)?', shortcuts.umpire_handler);
 
+	const certificate_assets = require('./certificate_assets');
+	app.post('/h/:tournament_key/certificates/background', body_parser.raw({type: ['application/pdf', 'image/png', 'image/jpeg', 'application/octet-stream'], limit: certificate_assets.MAX_BYTES}), certificate_assets.upload);
+	app.get('/h/:tournament_key/certificates/background/:asset_id', certificate_assets.get);
 	app.use(body_parser.json());
 	app.get('/h/:tournament_key/m/:match_id/info', http_api.matchinfo_handler);
 	app.get('/h/:tournament_key/logo/:logo_id', http_api.logo_handler);

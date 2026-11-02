@@ -31,7 +31,7 @@ class CDP {
     res.writeHead(200,{'Content-Type':'text/html; charset=utf-8'});res.end(html);return;
    }
    if(!filename.startsWith(root+path.sep)){res.writeHead(403);res.end();return;}
-   try{if(fs.statSync(filename).isDirectory())filename=path.join(filename,'index.html');const ext=path.extname(filename);res.writeHead(200,{'Content-Type':({'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.svg':'image/svg+xml','.png':'image/png','.xml':'application/xml'}[ext]||'application/octet-stream'),'Cache-Control':'no-store'});fs.createReadStream(filename).pipe(res);}
+   try{if(fs.statSync(filename).isDirectory())filename=path.join(filename,'index.html');const ext=path.extname(filename);res.writeHead(200,{'Content-Type':({'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.mjs':'text/javascript; charset=utf-8','.wasm':'application/wasm','.css':'text/css; charset=utf-8','.svg':'image/svg+xml','.png':'image/png','.xml':'application/xml'}[ext]||'application/octet-stream'),'Cache-Control':'no-store'});fs.createReadStream(filename).pipe(res);}
    catch(error){res.writeHead(404);res.end();}
   });
   await new Promise(r=>server.listen(0,'127.0.0.1',r));
@@ -158,6 +158,12 @@ class CDP {
   if(process.argv.includes('--emergency-dialog-only')) {
    await require('./emergency-dialog-check')({c,check,click,open,metrics,previews,key});return;
   }
+  if(process.argv.includes('--certificate-designer-only')||process.argv.includes('--certificate-fonts-only')) {
+   await require('./certificate-designer-check')({c,check,click,open,metrics,previews,key});return;
+  }
+  if(process.argv.includes('--certificates-only')) {
+   await require('./certificates-check')({c,check,click,open,metrics,previews,key});return;
+  }
   if(process.argv.includes('--compact-density-only')) {
    await require('./compact-density-check')({c,check,click,open,metrics,previews,capture:snap});return;
   }
@@ -187,6 +193,9 @@ class CDP {
   }
   if(process.argv.includes('--header-cache-only')) {
    await require('./header-cache-check')({c,open,metrics,previews});return;
+  }
+  if(process.argv.includes('--navigation-responsive-only')) {
+   await require('./navigation-responsive-check')({c,open,metrics,check,key,previews});return;
   }
   if(process.argv.includes('--card-heights-only')) {
    await require('./card-heights-check')({c,check,click,open,metrics,key,delay,previews});return;

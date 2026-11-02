@@ -1,0 +1,2558 @@
+{
+  "date": "2026-11-02",
+  "checks": [
+    "Turnierleitung: navigation fits without clipping or overlap at 1920",
+    "Turnierleitung: tabs stay in the first header row at 1920",
+    "Turnierleitung: navigation fits without clipping or overlap at 1600",
+    "Turnierleitung: tabs stay in the first header row at 1600",
+    "Turnierleitung: navigation fits without clipping or overlap at 1440",
+    "Turnierleitung: tabs stay in the first header row at 1440",
+    "Turnierleitung: navigation fits without clipping or overlap at 1366",
+    "Turnierleitung: tabs stay in the first header row at 1366",
+    "Turnierleitung: navigation fits without clipping or overlap at 1280",
+    "Turnierleitung: tabs stay in the first header row at 1280",
+    "Turnierleitung: navigation fits without clipping or overlap at 1100",
+    "Turnierleitung: navigation fits without clipping or overlap at 1024",
+    "Turnierleitung: navigation fits without clipping or overlap at 800",
+    "Turnierleitung: navigation fits without clipping or overlap at 700",
+    "Turnierleitung: navigation fits without clipping or overlap at 640",
+    "Turnierleitung: navigation fits without clipping or overlap at 390",
+    "Turnierleitung: navigation fits without clipping or overlap at 320",
+    "Turnierleitung: compact navigation keeps the active name visible",
+    "Turnierleitung: the inline name expands through intermediate widths",
+    "Turnierleitung: hovering expands the normal inline tab while retaining the active name and header height",
+    "Turnierleitung: leaving the tab smoothly collapses its name again",
+    "Turnierleitung: keyboard focus reveals the name and all icon links remain accessible",
+    "Turnierleitung: inline expansion fits without covering icons or service indicators at 1024",
+    "Turnierleitung: inline expansion fits without covering icons or service indicators at 390",
+    "Turnierleitung: inline expansion fits without covering icons or service indicators at 320",
+    "Turnierleitung: resizing wider restores all names",
+    "Urkunden: navigation fits without clipping or overlap at 1920",
+    "Urkunden: tabs stay in the first header row at 1920",
+    "Urkunden: navigation fits without clipping or overlap at 1600",
+    "Urkunden: tabs stay in the first header row at 1600",
+    "Urkunden: navigation fits without clipping or overlap at 1440",
+    "Urkunden: tabs stay in the first header row at 1440",
+    "Urkunden: navigation fits without clipping or overlap at 1366",
+    "Urkunden: tabs stay in the first header row at 1366",
+    "Urkunden: navigation fits without clipping or overlap at 1280",
+    "Urkunden: tabs stay in the first header row at 1280",
+    "Urkunden: navigation fits without clipping or overlap at 1100",
+    "Urkunden: navigation fits without clipping or overlap at 1024",
+    "Urkunden: navigation fits without clipping or overlap at 800",
+    "Urkunden: navigation fits without clipping or overlap at 700",
+    "Urkunden: navigation fits without clipping or overlap at 640",
+    "Urkunden: navigation fits without clipping or overlap at 390",
+    "Urkunden: navigation fits without clipping or overlap at 320",
+    "Urkunden: compact navigation keeps the active name visible",
+    "Urkunden: the inline name expands through intermediate widths",
+    "Urkunden: hovering expands the normal inline tab while retaining the active name and header height",
+    "Urkunden: leaving the tab smoothly collapses its name again",
+    "Urkunden: keyboard focus reveals the name and all icon links remain accessible",
+    "Urkunden: inline expansion fits without covering icons or service indicators at 1024",
+    "Urkunden: inline expansion fits without covering icons or service indicators at 390",
+    "Urkunden: inline expansion fits without covering icons or service indicators at 320",
+    "Urkunden: resizing wider restores all names",
+    "Different font metrics trigger fitting without clipping on the certificate page",
+    "Returning to the board releases the old observer and restores expanded navigation"
+  ],
+  "samples": [
+    {
+      "page": "Turnierleitung",
+      "width": 1920,
+      "header": {
+        "left": 0,
+        "right": 1905,
+        "top": 0,
+        "bottom": 45,
+        "width": 1905,
+        "height": 45
+      },
+      "nav": {
+        "left": 365.75,
+        "right": 1527.703125,
+        "top": 0,
+        "bottom": 44,
+        "width": 1161.953125,
+        "height": 44
+      },
+      "status": {
+        "left": 1541.703125,
+        "right": 1891,
+        "top": 9,
+        "bottom": 35,
+        "width": 349.296875,
+        "height": 26
+      },
+      "stacked": false,
+      "compact": false,
+      "links": [
+        {
+          "label": "Turnierleitung",
+          "accessible": "Turnierleitung",
+          "active": true,
+          "visible": true,
+          "left": 648.765625,
+          "right": 749.625,
+          "top": 0,
+          "bottom": 44,
+          "width": 100.859375,
+          "height": 44
+        },
+        {
+          "label": "Anmeldung",
+          "accessible": "Anmeldung",
+          "active": false,
+          "visible": true,
+          "left": 752.625,
+          "right": 842.28125,
+          "top": 0,
+          "bottom": 44,
+          "width": 89.65625,
+          "height": 44
+        },
+        {
+          "label": "Urkunden",
+          "accessible": "Urkunden",
+          "active": false,
+          "visible": true,
+          "left": 845.28125,
+          "right": 926.984375,
+          "top": 0,
+          "bottom": 44,
+          "width": 81.703125,
+          "height": 44
+        },
+        {
+          "label": "Sprachsystem",
+          "accessible": "Sprachsystem",
+          "active": false,
+          "visible": true,
+          "left": 929.984375,
+          "right": 1033.6875,
+          "top": 0,
+          "bottom": 44,
+          "width": 103.703125,
+          "height": 44
+        },
+        {
+          "label": "Geräte & Logs",
+          "accessible": "Geräte & Logs",
+          "active": false,
+          "visible": true,
+          "left": 1036.6875,
+          "right": 1141.625,
+          "top": 0,
+          "bottom": 44,
+          "width": 104.9375,
+          "height": 44
+        },
+        {
+          "label": "Einstellungen",
+          "accessible": "Einstellungen",
+          "active": false,
+          "visible": true,
+          "left": 1144.625,
+          "right": 1244.6875,
+          "top": 0,
+          "bottom": 44,
+          "width": 100.0625,
+          "height": 44
+        }
+      ]
+    },
+    {
+      "page": "Turnierleitung",
+      "width": 1600,
+      "header": {
+        "left": 0,
+        "right": 1585,
+        "top": 0,
+        "bottom": 45,
+        "width": 1585,
+        "height": 45
+      },
+      "nav": {
+        "left": 365.75,
+        "right": 1207.703125,
+        "top": 0,
+        "bottom": 44,
+        "width": 841.953125,
+        "height": 44
+      },
+      "status": {
+        "left": 1221.703125,
+        "right": 1571,
+        "top": 9,
+        "bottom": 35,
+        "width": 349.296875,
+        "height": 26
+      },
+      "stacked": false,
+      "compact": false,
+      "links": [
+        {
+          "label": "Turnierleitung",
+          "accessible": "Turnierleitung",
+          "active": true,
+          "visible": true,
+          "left": 488.765625,
+          "right": 589.625,
+          "top": 0,
+          "bottom": 44,
+          "width": 100.859375,
+          "height": 44
+        },
+        {
+          "label": "Anmeldung",
+          "accessible": "Anmeldung",
+          "active": false,
+          "visible": true,
+          "left": 592.625,
+          "right": 682.28125,
+          "top": 0,
+          "bottom": 44,
+          "width": 89.65625,
+          "height": 44
+        },
+        {
+          "label": "Urkunden",
+          "accessible": "Urkunden",
+          "active": false,
+          "visible": true,
+          "left": 685.28125,
+          "right": 766.984375,
+          "top": 0,
+          "bottom": 44,
+          "width": 81.703125,
+          "height": 44
+        },
+        {
+          "label": "Sprachsystem",
+          "accessible": "Sprachsystem",
+          "active": false,
+          "visible": true,
+          "left": 769.984375,
+          "right": 873.6875,
+          "top": 0,
+          "bottom": 44,
+          "width": 103.703125,
+          "height": 44
+        },
+        {
+          "label": "Geräte & Logs",
+          "accessible": "Geräte & Logs",
+          "active": false,
+          "visible": true,
+          "left": 876.6875,
+          "right": 981.625,
+          "top": 0,
+          "bottom": 44,
+          "width": 104.9375,
+          "height": 44
+        },
+        {
+          "label": "Einstellungen",
+          "accessible": "Einstellungen",
+          "active": false,
+          "visible": true,
+          "left": 984.625,
+          "right": 1084.6875,
+          "top": 0,
+          "bottom": 44,
+          "width": 100.0625,
+          "height": 44
+        }
+      ]
+    },
+    {
+      "page": "Turnierleitung",
+      "width": 1440,
+      "header": {
+        "left": 0,
+        "right": 1425,
+        "top": 0,
+        "bottom": 45,
+        "width": 1425,
+        "height": 45
+      },
+      "nav": {
+        "left": 365.75,
+        "right": 1047.703125,
+        "top": 0,
+        "bottom": 44,
+        "width": 681.953125,
+        "height": 44
+      },
+      "status": {
+        "left": 1061.703125,
+        "right": 1411,
+        "top": 9,
+        "bottom": 35,
+        "width": 349.296875,
+        "height": 26
+      },
+      "stacked": false,
+      "compact": false,
+      "links": [
+        {
+          "label": "Turnierleitung",
+          "accessible": "Turnierleitung",
+          "active": true,
+          "visible": true,
+          "left": 408.765625,
+          "right": 509.625,
+          "top": 0,
+          "bottom": 44,
+          "width": 100.859375,
+          "height": 44
+        },
+        {
+          "label": "Anmeldung",
+          "accessible": "Anmeldung",
+          "active": false,
+          "visible": true,
+          "left": 512.625,
+          "right": 602.28125,
+          "top": 0,
+          "bottom": 44,
+          "width": 89.65625,
+          "height": 44
+        },
+        {
+          "label": "Urkunden",
+          "accessible": "Urkunden",
+          "active": false,
+          "visible": true,
+          "left": 605.28125,
+          "right": 686.984375,
+          "top": 0,
+          "bottom": 44,
+          "width": 81.703125,
+          "height": 44
+        },
+        {
+          "label": "Sprachsystem",
+          "accessible": "Sprachsystem",
+          "active": false,
+          "visible": true,
+          "left": 689.984375,
+          "right": 793.6875,
+          "top": 0,
+          "bottom": 44,
+          "width": 103.703125,
+          "height": 44
+        },
+        {
+          "label": "Geräte & Logs",
+          "accessible": "Geräte & Logs",
+          "active": false,
+          "visible": true,
+          "left": 796.6875,
+          "right": 901.625,
+          "top": 0,
+          "bottom": 44,
+          "width": 104.9375,
+          "height": 44
+        },
+        {
+          "label": "Einstellungen",
+          "accessible": "Einstellungen",
+          "active": false,
+          "visible": true,
+          "left": 904.625,
+          "right": 1004.6875,
+          "top": 0,
+          "bottom": 44,
+          "width": 100.0625,
+          "height": 44
+        }
+      ]
+    },
+    {
+      "page": "Turnierleitung",
+      "width": 1366,
+      "header": {
+        "left": 0,
+        "right": 1351,
+        "top": 0,
+        "bottom": 45,
+        "width": 1351,
+        "height": 45
+      },
+      "nav": {
+        "left": 365.75,
+        "right": 973.703125,
+        "top": 0,
+        "bottom": 44,
+        "width": 607.953125,
+        "height": 44
+      },
+      "status": {
+        "left": 987.703125,
+        "right": 1337,
+        "top": 9,
+        "bottom": 35,
+        "width": 349.296875,
+        "height": 26
+      },
+      "stacked": false,
+      "compact": false,
+      "links": [
+        {
+          "label": "Turnierleitung",
+          "accessible": "Turnierleitung",
+          "active": true,
+          "visible": true,
+          "left": 371.765625,
+          "right": 472.625,
+          "top": 0,
+          "bottom": 44,
+          "width": 100.859375,
+          "height": 44
+        },
+        {
+          "label": "Anmeldung",
+          "accessible": "Anmeldung",
+          "active": false,
+          "visible": true,
+          "left": 475.625,
+          "right": 565.28125,
+          "top": 0,
+          "bottom": 44,
+          "width": 89.65625,
+          "height": 44
+        },
+        {
+          "label": "Urkunden",
+          "accessible": "Urkunden",
+          "active": false,
+          "visible": true,
+          "left": 568.28125,
+          "right": 649.984375,
+          "top": 0,
+          "bottom": 44,
+          "width": 81.703125,
+          "height": 44
+        },
+        {
+          "label": "Sprachsystem",
+          "accessible": "Sprachsystem",
+          "active": false,
+          "visible": true,
+          "left": 652.984375,
+          "right": 756.6875,
+          "top": 0,
+          "bottom": 44,
+          "width": 103.703125,
+          "height": 44
+        },
+        {
+          "label": "Geräte & Logs",
+          "accessible": "Geräte & Logs",
+          "active": false,
+          "visible": true,
+          "left": 759.6875,
+          "right": 864.625,
+          "top": 0,
+          "bottom": 44,
+          "width": 104.9375,
+          "height": 44
+        },
+        {
+          "label": "Einstellungen",
+          "accessible": "Einstellungen",
+          "active": false,
+          "visible": true,
+          "left": 867.625,
+          "right": 967.6875,
+          "top": 0,
+          "bottom": 44,
+          "width": 100.0625,
+          "height": 44
+        }
+      ]
+    },
+    {
+      "page": "Turnierleitung",
+      "width": 1280,
+      "header": {
+        "left": 0,
+        "right": 1265,
+        "top": 0,
+        "bottom": 45,
+        "width": 1265,
+        "height": 45
+      },
+      "nav": {
+        "left": 365.75,
+        "right": 887.703125,
+        "top": 0,
+        "bottom": 44,
+        "width": 521.953125,
+        "height": 44
+      },
+      "status": {
+        "left": 901.703125,
+        "right": 1251,
+        "top": 9,
+        "bottom": 35,
+        "width": 349.296875,
+        "height": 26
+      },
+      "stacked": false,
+      "compact": true,
+      "links": [
+        {
+          "label": "Turnierleitung",
+          "accessible": "Turnierleitung",
+          "active": true,
+          "visible": true,
+          "left": 496.296875,
+          "right": 597.15625,
+          "top": 0,
+          "bottom": 44,
+          "width": 100.859375,
+          "height": 44
+        },
+        {
+          "label": "Anmeldung",
+          "accessible": "Anmeldung",
+          "active": false,
+          "visible": false,
+          "left": 600.15625,
+          "right": 629.15625,
+          "top": 0,
+          "bottom": 44,
+          "width": 29,
+          "height": 44
+        },
+        {
+          "label": "Urkunden",
+          "accessible": "Urkunden",
+          "active": false,
+          "visible": false,
+          "left": 632.15625,
+          "right": 661.15625,
+          "top": 0,
+          "bottom": 44,
+          "width": 29,
+          "height": 44
+        },
+        {
+          "label": "Sprachsystem",
+          "accessible": "Sprachsystem",
+          "active": false,
+          "visible": false,
+          "left": 664.15625,
+          "right": 693.15625,
+          "top": 0,
+          "bottom": 44,
+          "width": 29,
+          "height": 44
+        },
+        {
+          "label": "Geräte & Logs",
+          "accessible": "Geräte & Logs",
+          "active": false,
+          "visible": false,
+          "left": 696.15625,
+          "right": 725.15625,
+          "top": 0,
+          "bottom": 44,
+          "width": 29,
+          "height": 44
+        },
+        {
+          "label": "Einstellungen",
+          "accessible": "Einstellungen",
+          "active": false,
+          "visible": false,
+          "left": 728.15625,
+          "right": 757.15625,
+          "top": 0,
+          "bottom": 44,
+          "width": 29,
+          "height": 44
+        }
+      ]
+    },
+    {
+      "page": "Turnierleitung",
+      "width": 1100,
+      "header": {
+        "left": 0,
+        "right": 1085,
+        "top": 0,
+        "bottom": 45,
+        "width": 1085,
+        "height": 45
+      },
+      "nav": {
+        "left": 365.75,
+        "right": 707.703125,
+        "top": 0,
+        "bottom": 44,
+        "width": 341.953125,
+        "height": 44
+      },
+      "status": {
+        "left": 721.703125,
+        "right": 1071,
+        "top": 9,
+        "bottom": 35,
+        "width": 349.296875,
+        "height": 26
+      },
+      "stacked": false,
+      "compact": true,
+      "links": [
+        {
+          "label": "Turnierleitung",
+          "accessible": "Turnierleitung",
+          "active": true,
+          "visible": true,
+          "left": 406.296875,
+          "right": 507.15625,
+          "top": 0,
+          "bottom": 44,
+          "width": 100.859375,
+          "height": 44
+        },
+        {
+          "label": "Anmeldung",
+          "accessible": "Anmeldung",
+          "active": false,
+          "visible": false,
+          "left": 510.15625,
+          "right": 539.15625,
+          "top": 0,
+          "bottom": 44,
+          "width": 29,
+          "height": 44
+        },
+        {
+          "label": "Urkunden",
+          "accessible": "Urkunden",
+          "active": false,
+          "visible": false,
+          "left": 542.15625,
+          "right": 571.15625,
+          "top": 0,
+          "bottom": 44,
+          "width": 29,
+          "height": 44
+        },
+        {
+          "label": "Sprachsystem",
+          "accessible": "Sprachsystem",
+          "active": false,
+          "visible": false,
+          "left": 574.15625,
+          "right": 603.15625,
+          "top": 0,
+          "bottom": 44,
+          "width": 29,
+          "height": 44
+        },
+        {
+          "label": "Geräte & Logs",
+          "accessible": "Geräte & Logs",
+          "active": false,
+          "visible": false,
+          "left": 606.15625,
+          "right": 635.15625,
+          "top": 0,
+          "bottom": 44,
+          "width": 29,
+          "height": 44
+        },
+        {
+          "label": "Einstellungen",
+          "accessible": "Einstellungen",
+          "active": false,
+          "visible": false,
+          "left": 638.15625,
+          "right": 667.15625,
+          "top": 0,
+          "bottom": 44,
+          "width": 29,
+          "height": 44
+        }
+      ]
+    },
+    {
+      "page": "Turnierleitung",
+      "width": 1024,
+      "header": {
+        "left": 0,
+        "right": 1009,
+        "top": 0,
+        "bottom": 45,
+        "width": 1009,
+        "height": 45
+      },
+      "nav": {
+        "left": 365.75,
+        "right": 631.703125,
+        "top": 0,
+        "bottom": 44,
+        "width": 265.953125,
+        "height": 44
+      },
+      "status": {
+        "left": 645.703125,
+        "right": 995,
+        "top": 9,
+        "bottom": 35,
+        "width": 349.296875,
+        "height": 26
+      },
+      "stacked": false,
+      "compact": true,
+      "links": [
+        {
+          "label": "Turnierleitung",
+          "accessible": "Turnierleitung",
+          "active": true,
+          "visible": true,
+          "left": 368.296875,
+          "right": 469.15625,
+          "top": 0,
+          "bottom": 44,
+          "width": 100.859375,
+          "height": 44
+        },
+        {
+          "label": "Anmeldung",
+          "accessible": "Anmeldung",
+          "active": false,
+          "visible": false,
+          "left": 472.15625,
+          "right": 501.15625,
+          "top": 0,
+          "bottom": 44,
+          "width": 29,
+          "height": 44
+        },
+        {
+          "label": "Urkunden",
+          "accessible": "Urkunden",
+          "active": false,
+          "visible": false,
+          "left": 504.15625,
+          "right": 533.15625,
+          "top": 0,
+          "bottom": 44,
+          "width": 29,
+          "height": 44
+        },
+        {
+          "label": "Sprachsystem",
+          "accessible": "Sprachsystem",
+          "active": false,
+          "visible": false,
+          "left": 536.15625,
+          "right": 565.15625,
+          "top": 0,
+          "bottom": 44,
+          "width": 29,
+          "height": 44
+        },
+        {
+          "label": "Geräte & Logs",
+          "accessible": "Geräte & Logs",
+          "active": false,
+          "visible": false,
+          "left": 568.15625,
+          "right": 597.15625,
+          "top": 0,
+          "bottom": 44,
+          "width": 29,
+          "height": 44
+        },
+        {
+          "label": "Einstellungen",
+          "accessible": "Einstellungen",
+          "active": false,
+          "visible": false,
+          "left": 600.15625,
+          "right": 629.15625,
+          "top": 0,
+          "bottom": 44,
+          "width": 29,
+          "height": 44
+        }
+      ]
+    },
+    {
+      "page": "Turnierleitung",
+      "width": 800,
+      "header": {
+        "left": 0,
+        "right": 785,
+        "top": 0,
+        "bottom": 89,
+        "width": 785,
+        "height": 89
+      },
+      "nav": {
+        "left": 14,
+        "right": 771,
+        "top": 44,
+        "bottom": 88,
+        "width": 757,
+        "height": 44
+      },
+      "status": {
+        "left": 421.703125,
+        "right": 771,
+        "top": 9,
+        "bottom": 35,
+        "width": 349.296875,
+        "height": 26
+      },
+      "stacked": true,
+      "compact": false,
+      "links": [
+        {
+          "label": "Turnierleitung",
+          "accessible": "Turnierleitung",
+          "active": true,
+          "visible": true,
+          "left": 94.53125,
+          "right": 195.390625,
+          "top": 44,
+          "bottom": 88,
+          "width": 100.859375,
+          "height": 44
+        },
+        {
+          "label": "Anmeldung",
+          "accessible": "Anmeldung",
+          "active": false,
+          "visible": true,
+          "left": 198.390625,
+          "right": 288.046875,
+          "top": 44,
+          "bottom": 88,
+          "width": 89.65625,
+          "height": 44
+        },
+        {
+          "label": "Urkunden",
+          "accessible": "Urkunden",
+          "active": false,
+          "visible": true,
+          "left": 291.046875,
+          "right": 372.75,
+          "top": 44,
+          "bottom": 88,
+          "width": 81.703125,
+          "height": 44
+        },
+        {
+          "label": "Sprachsystem",
+          "accessible": "Sprachsystem",
+          "active": false,
+          "visible": true,
+          "left": 375.75,
+          "right": 479.453125,
+          "top": 44,
+          "bottom": 88,
+          "width": 103.703125,
+          "height": 44
+        },
+        {
+          "label": "Geräte & Logs",
+          "accessible": "Geräte & Logs",
+          "active": false,
+          "visible": true,
+          "left": 482.453125,
+          "right": 587.390625,
+          "top": 44,
+          "bottom": 88,
+          "width": 104.9375,
+          "height": 44
+        },
+        {
+          "label": "Einstellungen",
+          "accessible": "Einstellungen",
+          "active": false,
+          "visible": true,
+          "left": 590.390625,
+          "right": 690.453125,
+          "top": 44,
+          "bottom": 88,
+          "width": 100.0625,
+          "height": 44
+        }
+      ]
+    },
+    {
+      "page": "Turnierleitung",
+      "width": 700,
+      "header": {
+        "left": 0,
+        "right": 685,
+        "top": 0,
+        "bottom": 89,
+        "width": 685,
+        "height": 89
+      },
+      "nav": {
+        "left": 14,
+        "right": 671,
+        "top": 44,
+        "bottom": 88,
+        "width": 657,
+        "height": 44
+      },
+      "status": {
+        "left": 598.96875,
+        "right": 671,
+        "top": 9,
+        "bottom": 35,
+        "width": 72.03125,
+        "height": 26
+      },
+      "stacked": true,
+      "compact": false,
+      "links": [
+        {
+          "label": "Turnierleitung",
+          "accessible": "Turnierleitung",
+          "active": true,
+          "visible": true,
+          "left": 44.53125,
+          "right": 145.390625,
+          "top": 44,
+          "bottom": 88,
+          "width": 100.859375,
+          "height": 44
+        },
+        {
+          "label": "Anmeldung",
+          "accessible": "Anmeldung",
+          "active": false,
+          "visible": true,
+          "left": 148.390625,
+          "right": 238.046875,
+          "top": 44,
+          "bottom": 88,
+          "width": 89.65625,
+          "height": 44
+        },
+        {
+          "label": "Urkunden",
+          "accessible": "Urkunden",
+          "active": false,
+          "visible": true,
+          "left": 241.046875,
+          "right": 322.75,
+          "top": 44,
+          "bottom": 88,
+          "width": 81.703125,
+          "height": 44
+        },
+        {
+          "label": "Sprachsystem",
+          "accessible": "Sprachsystem",
+          "active": false,
+          "visible": true,
+          "left": 325.75,
+          "right": 429.453125,
+          "top": 44,
+          "bottom": 88,
+          "width": 103.703125,
+          "height": 44
+        },
+        {
+          "label": "Geräte & Logs",
+          "accessible": "Geräte & Logs",
+          "active": false,
+          "visible": true,
+          "left": 432.453125,
+          "right": 537.390625,
+          "top": 44,
+          "bottom": 88,
+          "width": 104.9375,
+          "height": 44
+        },
+        {
+          "label": "Einstellungen",
+          "accessible": "Einstellungen",
+          "active": false,
+          "visible": true,
+          "left": 540.390625,
+          "right": 640.453125,
+          "top": 44,
+          "bottom": 88,
+          "width": 100.0625,
+          "height": 44
+        }
+      ]
+    },
+    {
+      "page": "Turnierleitung",
+      "width": 640,
+      "header": {
+        "left": 0,
+        "right": 625,
+        "top": 0,
+        "bottom": 89,
+        "width": 625,
+        "height": 89
+      },
+      "nav": {
+        "left": 14,
+        "right": 611,
+        "top": 44,
+        "bottom": 88,
+        "width": 597,
+        "height": 44
+      },
+      "status": {
+        "left": 538.96875,
+        "right": 611,
+        "top": 9,
+        "bottom": 35,
+        "width": 72.03125,
+        "height": 26
+      },
+      "stacked": true,
+      "compact": false,
+      "links": [
+        {
+          "label": "Turnierleitung",
+          "accessible": "Turnierleitung",
+          "active": true,
+          "visible": true,
+          "left": 14.53125,
+          "right": 115.390625,
+          "top": 44,
+          "bottom": 88,
+          "width": 100.859375,
+          "height": 44
+        },
+        {
+          "label": "Anmeldung",
+          "accessible": "Anmeldung",
+          "active": false,
+          "visible": true,
+          "left": 118.390625,
+          "right": 208.046875,
+          "top": 44,
+          "bottom": 88,
+          "width": 89.65625,
+          "height": 44
+        },
+        {
+          "label": "Urkunden",
+          "accessible": "Urkunden",
+          "active": false,
+          "visible": true,
+          "left": 211.046875,
+          "right": 292.75,
+          "top": 44,
+          "bottom": 88,
+          "width": 81.703125,
+          "height": 44
+        },
+        {
+          "label": "Sprachsystem",
+          "accessible": "Sprachsystem",
+          "active": false,
+          "visible": true,
+          "left": 295.75,
+          "right": 399.453125,
+          "top": 44,
+          "bottom": 88,
+          "width": 103.703125,
+          "height": 44
+        },
+        {
+          "label": "Geräte & Logs",
+          "accessible": "Geräte & Logs",
+          "active": false,
+          "visible": true,
+          "left": 402.453125,
+          "right": 507.390625,
+          "top": 44,
+          "bottom": 88,
+          "width": 104.9375,
+          "height": 44
+        },
+        {
+          "label": "Einstellungen",
+          "accessible": "Einstellungen",
+          "active": false,
+          "visible": true,
+          "left": 510.390625,
+          "right": 610.453125,
+          "top": 44,
+          "bottom": 88,
+          "width": 100.0625,
+          "height": 44
+        }
+      ]
+    },
+    {
+      "page": "Turnierleitung",
+      "width": 390,
+      "header": {
+        "left": 0,
+        "right": 375,
+        "top": 0,
+        "bottom": 89,
+        "width": 375,
+        "height": 89
+      },
+      "nav": {
+        "left": 14,
+        "right": 361,
+        "top": 44,
+        "bottom": 88,
+        "width": 347,
+        "height": 44
+      },
+      "status": {
+        "left": 288.96875,
+        "right": 361,
+        "top": 9,
+        "bottom": 35,
+        "width": 72.03125,
+        "height": 26
+      },
+      "stacked": true,
+      "compact": true,
+      "links": [
+        {
+          "label": "Turnierleitung",
+          "accessible": "Turnierleitung",
+          "active": true,
+          "visible": true,
+          "left": 57.0625,
+          "right": 157.921875,
+          "top": 44,
+          "bottom": 88,
+          "width": 100.859375,
+          "height": 44
+        },
+        {
+          "label": "Anmeldung",
+          "accessible": "Anmeldung",
+          "active": false,
+          "visible": false,
+          "left": 160.921875,
+          "right": 189.921875,
+          "top": 44,
+          "bottom": 88,
+          "width": 29,
+          "height": 44
+        },
+        {
+          "label": "Urkunden",
+          "accessible": "Urkunden",
+          "active": false,
+          "visible": false,
+          "left": 192.921875,
+          "right": 221.921875,
+          "top": 44,
+          "bottom": 88,
+          "width": 29,
+          "height": 44
+        },
+        {
+          "label": "Sprachsystem",
+          "accessible": "Sprachsystem",
+          "active": false,
+          "visible": false,
+          "left": 224.921875,
+          "right": 253.921875,
+          "top": 44,
+          "bottom": 88,
+          "width": 29,
+          "height": 44
+        },
+        {
+          "label": "Geräte & Logs",
+          "accessible": "Geräte & Logs",
+          "active": false,
+          "visible": false,
+          "left": 256.921875,
+          "right": 285.921875,
+          "top": 44,
+          "bottom": 88,
+          "width": 29,
+          "height": 44
+        },
+        {
+          "label": "Einstellungen",
+          "accessible": "Einstellungen",
+          "active": false,
+          "visible": false,
+          "left": 288.921875,
+          "right": 317.921875,
+          "top": 44,
+          "bottom": 88,
+          "width": 29,
+          "height": 44
+        }
+      ]
+    },
+    {
+      "page": "Turnierleitung",
+      "width": 320,
+      "header": {
+        "left": 0,
+        "right": 305,
+        "top": 0,
+        "bottom": 89,
+        "width": 305,
+        "height": 89
+      },
+      "nav": {
+        "left": 14,
+        "right": 291,
+        "top": 44,
+        "bottom": 88,
+        "width": 277,
+        "height": 44
+      },
+      "status": {
+        "left": 218.96875,
+        "right": 291,
+        "top": 9,
+        "bottom": 35,
+        "width": 72.03125,
+        "height": 26
+      },
+      "stacked": true,
+      "compact": true,
+      "links": [
+        {
+          "label": "Turnierleitung",
+          "accessible": "Turnierleitung",
+          "active": true,
+          "visible": true,
+          "left": 22.0625,
+          "right": 122.921875,
+          "top": 44,
+          "bottom": 88,
+          "width": 100.859375,
+          "height": 44
+        },
+        {
+          "label": "Anmeldung",
+          "accessible": "Anmeldung",
+          "active": false,
+          "visible": false,
+          "left": 125.921875,
+          "right": 154.921875,
+          "top": 44,
+          "bottom": 88,
+          "width": 29,
+          "height": 44
+        },
+        {
+          "label": "Urkunden",
+          "accessible": "Urkunden",
+          "active": false,
+          "visible": false,
+          "left": 157.921875,
+          "right": 186.921875,
+          "top": 44,
+          "bottom": 88,
+          "width": 29,
+          "height": 44
+        },
+        {
+          "label": "Sprachsystem",
+          "accessible": "Sprachsystem",
+          "active": false,
+          "visible": false,
+          "left": 189.921875,
+          "right": 218.921875,
+          "top": 44,
+          "bottom": 88,
+          "width": 29,
+          "height": 44
+        },
+        {
+          "label": "Geräte & Logs",
+          "accessible": "Geräte & Logs",
+          "active": false,
+          "visible": false,
+          "left": 221.921875,
+          "right": 250.921875,
+          "top": 44,
+          "bottom": 88,
+          "width": 29,
+          "height": 44
+        },
+        {
+          "label": "Einstellungen",
+          "accessible": "Einstellungen",
+          "active": false,
+          "visible": false,
+          "left": 253.921875,
+          "right": 282.921875,
+          "top": 44,
+          "bottom": 88,
+          "width": 29,
+          "height": 44
+        }
+      ]
+    },
+    {
+      "page": "Urkunden",
+      "width": 1920,
+      "header": {
+        "left": 0,
+        "right": 1905,
+        "top": 0,
+        "bottom": 45,
+        "width": 1905,
+        "height": 45
+      },
+      "nav": {
+        "left": 332.078125,
+        "right": 1527.703125,
+        "top": 0,
+        "bottom": 44,
+        "width": 1195.625,
+        "height": 44
+      },
+      "status": {
+        "left": 1541.703125,
+        "right": 1891,
+        "top": 9,
+        "bottom": 35,
+        "width": 349.296875,
+        "height": 26
+      },
+      "stacked": false,
+      "compact": false,
+      "links": [
+        {
+          "label": "Turnierleitung",
+          "accessible": "Turnierleitung",
+          "active": false,
+          "visible": true,
+          "left": 631.921875,
+          "right": 732.78125,
+          "top": 0,
+          "bottom": 44,
+          "width": 100.859375,
+          "height": 44
+        },
+        {
+          "label": "Anmeldung",
+          "accessible": "Anmeldung",
+          "active": false,
+          "visible": true,
+          "left": 735.78125,
+          "right": 825.4375,
+          "top": 0,
+          "bottom": 44,
+          "width": 89.65625,
+          "height": 44
+        },
+        {
+          "label": "Urkunden",
+          "accessible": "Urkunden",
+          "active": true,
+          "visible": true,
+          "left": 828.4375,
+          "right": 910.140625,
+          "top": 0,
+          "bottom": 44,
+          "width": 81.703125,
+          "height": 44
+        },
+        {
+          "label": "Sprachsystem",
+          "accessible": "Sprachsystem",
+          "active": false,
+          "visible": true,
+          "left": 913.140625,
+          "right": 1016.84375,
+          "top": 0,
+          "bottom": 44,
+          "width": 103.703125,
+          "height": 44
+        },
+        {
+          "label": "Geräte & Logs",
+          "accessible": "Geräte & Logs",
+          "active": false,
+          "visible": true,
+          "left": 1019.84375,
+          "right": 1124.78125,
+          "top": 0,
+          "bottom": 44,
+          "width": 104.9375,
+          "height": 44
+        },
+        {
+          "label": "Einstellungen",
+          "accessible": "Einstellungen",
+          "active": false,
+          "visible": true,
+          "left": 1127.78125,
+          "right": 1227.84375,
+          "top": 0,
+          "bottom": 44,
+          "width": 100.0625,
+          "height": 44
+        }
+      ]
+    },
+    {
+      "page": "Urkunden",
+      "width": 1600,
+      "header": {
+        "left": 0,
+        "right": 1585,
+        "top": 0,
+        "bottom": 45,
+        "width": 1585,
+        "height": 45
+      },
+      "nav": {
+        "left": 332.078125,
+        "right": 1207.703125,
+        "top": 0,
+        "bottom": 44,
+        "width": 875.625,
+        "height": 44
+      },
+      "status": {
+        "left": 1221.703125,
+        "right": 1571,
+        "top": 9,
+        "bottom": 35,
+        "width": 349.296875,
+        "height": 26
+      },
+      "stacked": false,
+      "compact": false,
+      "links": [
+        {
+          "label": "Turnierleitung",
+          "accessible": "Turnierleitung",
+          "active": false,
+          "visible": true,
+          "left": 471.921875,
+          "right": 572.78125,
+          "top": 0,
+          "bottom": 44,
+          "width": 100.859375,
+          "height": 44
+        },
+        {
+          "label": "Anmeldung",
+          "accessible": "Anmeldung",
+          "active": false,
+          "visible": true,
+          "left": 575.78125,
+          "right": 665.4375,
+          "top": 0,
+          "bottom": 44,
+          "width": 89.65625,
+          "height": 44
+        },
+        {
+          "label": "Urkunden",
+          "accessible": "Urkunden",
+          "active": true,
+          "visible": true,
+          "left": 668.4375,
+          "right": 750.140625,
+          "top": 0,
+          "bottom": 44,
+          "width": 81.703125,
+          "height": 44
+        },
+        {
+          "label": "Sprachsystem",
+          "accessible": "Sprachsystem",
+          "active": false,
+          "visible": true,
+          "left": 753.140625,
+          "right": 856.84375,
+          "top": 0,
+          "bottom": 44,
+          "width": 103.703125,
+          "height": 44
+        },
+        {
+          "label": "Geräte & Logs",
+          "accessible": "Geräte & Logs",
+          "active": false,
+          "visible": true,
+          "left": 859.84375,
+          "right": 964.78125,
+          "top": 0,
+          "bottom": 44,
+          "width": 104.9375,
+          "height": 44
+        },
+        {
+          "label": "Einstellungen",
+          "accessible": "Einstellungen",
+          "active": false,
+          "visible": true,
+          "left": 967.78125,
+          "right": 1067.84375,
+          "top": 0,
+          "bottom": 44,
+          "width": 100.0625,
+          "height": 44
+        }
+      ]
+    },
+    {
+      "page": "Urkunden",
+      "width": 1440,
+      "header": {
+        "left": 0,
+        "right": 1425,
+        "top": 0,
+        "bottom": 45,
+        "width": 1425,
+        "height": 45
+      },
+      "nav": {
+        "left": 332.078125,
+        "right": 1047.703125,
+        "top": 0,
+        "bottom": 44,
+        "width": 715.625,
+        "height": 44
+      },
+      "status": {
+        "left": 1061.703125,
+        "right": 1411,
+        "top": 9,
+        "bottom": 35,
+        "width": 349.296875,
+        "height": 26
+      },
+      "stacked": false,
+      "compact": false,
+      "links": [
+        {
+          "label": "Turnierleitung",
+          "accessible": "Turnierleitung",
+          "active": false,
+          "visible": true,
+          "left": 391.921875,
+          "right": 492.78125,
+          "top": 0,
+          "bottom": 44,
+          "width": 100.859375,
+          "height": 44
+        },
+        {
+          "label": "Anmeldung",
+          "accessible": "Anmeldung",
+          "active": false,
+          "visible": true,
+          "left": 495.78125,
+          "right": 585.4375,
+          "top": 0,
+          "bottom": 44,
+          "width": 89.65625,
+          "height": 44
+        },
+        {
+          "label": "Urkunden",
+          "accessible": "Urkunden",
+          "active": true,
+          "visible": true,
+          "left": 588.4375,
+          "right": 670.140625,
+          "top": 0,
+          "bottom": 44,
+          "width": 81.703125,
+          "height": 44
+        },
+        {
+          "label": "Sprachsystem",
+          "accessible": "Sprachsystem",
+          "active": false,
+          "visible": true,
+          "left": 673.140625,
+          "right": 776.84375,
+          "top": 0,
+          "bottom": 44,
+          "width": 103.703125,
+          "height": 44
+        },
+        {
+          "label": "Geräte & Logs",
+          "accessible": "Geräte & Logs",
+          "active": false,
+          "visible": true,
+          "left": 779.84375,
+          "right": 884.78125,
+          "top": 0,
+          "bottom": 44,
+          "width": 104.9375,
+          "height": 44
+        },
+        {
+          "label": "Einstellungen",
+          "accessible": "Einstellungen",
+          "active": false,
+          "visible": true,
+          "left": 887.78125,
+          "right": 987.84375,
+          "top": 0,
+          "bottom": 44,
+          "width": 100.0625,
+          "height": 44
+        }
+      ]
+    },
+    {
+      "page": "Urkunden",
+      "width": 1366,
+      "header": {
+        "left": 0,
+        "right": 1351,
+        "top": 0,
+        "bottom": 45,
+        "width": 1351,
+        "height": 45
+      },
+      "nav": {
+        "left": 332.078125,
+        "right": 973.703125,
+        "top": 0,
+        "bottom": 44,
+        "width": 641.625,
+        "height": 44
+      },
+      "status": {
+        "left": 987.703125,
+        "right": 1337,
+        "top": 9,
+        "bottom": 35,
+        "width": 349.296875,
+        "height": 26
+      },
+      "stacked": false,
+      "compact": false,
+      "links": [
+        {
+          "label": "Turnierleitung",
+          "accessible": "Turnierleitung",
+          "active": false,
+          "visible": true,
+          "left": 354.921875,
+          "right": 455.78125,
+          "top": 0,
+          "bottom": 44,
+          "width": 100.859375,
+          "height": 44
+        },
+        {
+          "label": "Anmeldung",
+          "accessible": "Anmeldung",
+          "active": false,
+          "visible": true,
+          "left": 458.78125,
+          "right": 548.4375,
+          "top": 0,
+          "bottom": 44,
+          "width": 89.65625,
+          "height": 44
+        },
+        {
+          "label": "Urkunden",
+          "accessible": "Urkunden",
+          "active": true,
+          "visible": true,
+          "left": 551.4375,
+          "right": 633.140625,
+          "top": 0,
+          "bottom": 44,
+          "width": 81.703125,
+          "height": 44
+        },
+        {
+          "label": "Sprachsystem",
+          "accessible": "Sprachsystem",
+          "active": false,
+          "visible": true,
+          "left": 636.140625,
+          "right": 739.84375,
+          "top": 0,
+          "bottom": 44,
+          "width": 103.703125,
+          "height": 44
+        },
+        {
+          "label": "Geräte & Logs",
+          "accessible": "Geräte & Logs",
+          "active": false,
+          "visible": true,
+          "left": 742.84375,
+          "right": 847.78125,
+          "top": 0,
+          "bottom": 44,
+          "width": 104.9375,
+          "height": 44
+        },
+        {
+          "label": "Einstellungen",
+          "accessible": "Einstellungen",
+          "active": false,
+          "visible": true,
+          "left": 850.78125,
+          "right": 950.84375,
+          "top": 0,
+          "bottom": 44,
+          "width": 100.0625,
+          "height": 44
+        }
+      ]
+    },
+    {
+      "page": "Urkunden",
+      "width": 1280,
+      "header": {
+        "left": 0,
+        "right": 1265,
+        "top": 0,
+        "bottom": 45,
+        "width": 1265,
+        "height": 45
+      },
+      "nav": {
+        "left": 332.078125,
+        "right": 887.703125,
+        "top": 0,
+        "bottom": 44,
+        "width": 555.625,
+        "height": 44
+      },
+      "status": {
+        "left": 901.703125,
+        "right": 1251,
+        "top": 9,
+        "bottom": 35,
+        "width": 349.296875,
+        "height": 26
+      },
+      "stacked": false,
+      "compact": true,
+      "links": [
+        {
+          "label": "Turnierleitung",
+          "accessible": "Turnierleitung",
+          "active": false,
+          "visible": false,
+          "left": 489.03125,
+          "right": 518.03125,
+          "top": 0,
+          "bottom": 44,
+          "width": 29,
+          "height": 44
+        },
+        {
+          "label": "Anmeldung",
+          "accessible": "Anmeldung",
+          "active": false,
+          "visible": false,
+          "left": 521.03125,
+          "right": 550.03125,
+          "top": 0,
+          "bottom": 44,
+          "width": 29,
+          "height": 44
+        },
+        {
+          "label": "Urkunden",
+          "accessible": "Urkunden",
+          "active": true,
+          "visible": true,
+          "left": 553.03125,
+          "right": 634.734375,
+          "top": 0,
+          "bottom": 44,
+          "width": 81.703125,
+          "height": 44
+        },
+        {
+          "label": "Sprachsystem",
+          "accessible": "Sprachsystem",
+          "active": false,
+          "visible": false,
+          "left": 637.734375,
+          "right": 666.734375,
+          "top": 0,
+          "bottom": 44,
+          "width": 29,
+          "height": 44
+        },
+        {
+          "label": "Geräte & Logs",
+          "accessible": "Geräte & Logs",
+          "active": false,
+          "visible": false,
+          "left": 669.734375,
+          "right": 698.734375,
+          "top": 0,
+          "bottom": 44,
+          "width": 29,
+          "height": 44
+        },
+        {
+          "label": "Einstellungen",
+          "accessible": "Einstellungen",
+          "active": false,
+          "visible": false,
+          "left": 701.734375,
+          "right": 730.734375,
+          "top": 0,
+          "bottom": 44,
+          "width": 29,
+          "height": 44
+        }
+      ]
+    },
+    {
+      "page": "Urkunden",
+      "width": 1100,
+      "header": {
+        "left": 0,
+        "right": 1085,
+        "top": 0,
+        "bottom": 45,
+        "width": 1085,
+        "height": 45
+      },
+      "nav": {
+        "left": 332.078125,
+        "right": 707.703125,
+        "top": 0,
+        "bottom": 44,
+        "width": 375.625,
+        "height": 44
+      },
+      "status": {
+        "left": 721.703125,
+        "right": 1071,
+        "top": 9,
+        "bottom": 35,
+        "width": 349.296875,
+        "height": 26
+      },
+      "stacked": false,
+      "compact": true,
+      "links": [
+        {
+          "label": "Turnierleitung",
+          "accessible": "Turnierleitung",
+          "active": false,
+          "visible": false,
+          "left": 399.03125,
+          "right": 428.03125,
+          "top": 0,
+          "bottom": 44,
+          "width": 29,
+          "height": 44
+        },
+        {
+          "label": "Anmeldung",
+          "accessible": "Anmeldung",
+          "active": false,
+          "visible": false,
+          "left": 431.03125,
+          "right": 460.03125,
+          "top": 0,
+          "bottom": 44,
+          "width": 29,
+          "height": 44
+        },
+        {
+          "label": "Urkunden",
+          "accessible": "Urkunden",
+          "active": true,
+          "visible": true,
+          "left": 463.03125,
+          "right": 544.734375,
+          "top": 0,
+          "bottom": 44,
+          "width": 81.703125,
+          "height": 44
+        },
+        {
+          "label": "Sprachsystem",
+          "accessible": "Sprachsystem",
+          "active": false,
+          "visible": false,
+          "left": 547.734375,
+          "right": 576.734375,
+          "top": 0,
+          "bottom": 44,
+          "width": 29,
+          "height": 44
+        },
+        {
+          "label": "Geräte & Logs",
+          "accessible": "Geräte & Logs",
+          "active": false,
+          "visible": false,
+          "left": 579.734375,
+          "right": 608.734375,
+          "top": 0,
+          "bottom": 44,
+          "width": 29,
+          "height": 44
+        },
+        {
+          "label": "Einstellungen",
+          "accessible": "Einstellungen",
+          "active": false,
+          "visible": false,
+          "left": 611.734375,
+          "right": 640.734375,
+          "top": 0,
+          "bottom": 44,
+          "width": 29,
+          "height": 44
+        }
+      ]
+    },
+    {
+      "page": "Urkunden",
+      "width": 1024,
+      "header": {
+        "left": 0,
+        "right": 1009,
+        "top": 0,
+        "bottom": 45,
+        "width": 1009,
+        "height": 45
+      },
+      "nav": {
+        "left": 332.078125,
+        "right": 631.703125,
+        "top": 0,
+        "bottom": 44,
+        "width": 299.625,
+        "height": 44
+      },
+      "status": {
+        "left": 645.703125,
+        "right": 995,
+        "top": 9,
+        "bottom": 35,
+        "width": 349.296875,
+        "height": 26
+      },
+      "stacked": false,
+      "compact": true,
+      "links": [
+        {
+          "label": "Turnierleitung",
+          "accessible": "Turnierleitung",
+          "active": false,
+          "visible": false,
+          "left": 361.03125,
+          "right": 390.03125,
+          "top": 0,
+          "bottom": 44,
+          "width": 29,
+          "height": 44
+        },
+        {
+          "label": "Anmeldung",
+          "accessible": "Anmeldung",
+          "active": false,
+          "visible": false,
+          "left": 393.03125,
+          "right": 422.03125,
+          "top": 0,
+          "bottom": 44,
+          "width": 29,
+          "height": 44
+        },
+        {
+          "label": "Urkunden",
+          "accessible": "Urkunden",
+          "active": true,
+          "visible": true,
+          "left": 425.03125,
+          "right": 506.734375,
+          "top": 0,
+          "bottom": 44,
+          "width": 81.703125,
+          "height": 44
+        },
+        {
+          "label": "Sprachsystem",
+          "accessible": "Sprachsystem",
+          "active": false,
+          "visible": false,
+          "left": 509.734375,
+          "right": 538.734375,
+          "top": 0,
+          "bottom": 44,
+          "width": 29,
+          "height": 44
+        },
+        {
+          "label": "Geräte & Logs",
+          "accessible": "Geräte & Logs",
+          "active": false,
+          "visible": false,
+          "left": 541.734375,
+          "right": 570.734375,
+          "top": 0,
+          "bottom": 44,
+          "width": 29,
+          "height": 44
+        },
+        {
+          "label": "Einstellungen",
+          "accessible": "Einstellungen",
+          "active": false,
+          "visible": false,
+          "left": 573.734375,
+          "right": 602.734375,
+          "top": 0,
+          "bottom": 44,
+          "width": 29,
+          "height": 44
+        }
+      ]
+    },
+    {
+      "page": "Urkunden",
+      "width": 800,
+      "header": {
+        "left": 0,
+        "right": 785,
+        "top": 0,
+        "bottom": 89,
+        "width": 785,
+        "height": 89
+      },
+      "nav": {
+        "left": 14,
+        "right": 771,
+        "top": 44,
+        "bottom": 88,
+        "width": 757,
+        "height": 44
+      },
+      "status": {
+        "left": 421.703125,
+        "right": 771,
+        "top": 9,
+        "bottom": 35,
+        "width": 349.296875,
+        "height": 26
+      },
+      "stacked": true,
+      "compact": false,
+      "links": [
+        {
+          "label": "Turnierleitung",
+          "accessible": "Turnierleitung",
+          "active": false,
+          "visible": true,
+          "left": 94.53125,
+          "right": 195.390625,
+          "top": 44,
+          "bottom": 88,
+          "width": 100.859375,
+          "height": 44
+        },
+        {
+          "label": "Anmeldung",
+          "accessible": "Anmeldung",
+          "active": false,
+          "visible": true,
+          "left": 198.390625,
+          "right": 288.046875,
+          "top": 44,
+          "bottom": 88,
+          "width": 89.65625,
+          "height": 44
+        },
+        {
+          "label": "Urkunden",
+          "accessible": "Urkunden",
+          "active": true,
+          "visible": true,
+          "left": 291.046875,
+          "right": 372.75,
+          "top": 44,
+          "bottom": 88,
+          "width": 81.703125,
+          "height": 44
+        },
+        {
+          "label": "Sprachsystem",
+          "accessible": "Sprachsystem",
+          "active": false,
+          "visible": true,
+          "left": 375.75,
+          "right": 479.453125,
+          "top": 44,
+          "bottom": 88,
+          "width": 103.703125,
+          "height": 44
+        },
+        {
+          "label": "Geräte & Logs",
+          "accessible": "Geräte & Logs",
+          "active": false,
+          "visible": true,
+          "left": 482.453125,
+          "right": 587.390625,
+          "top": 44,
+          "bottom": 88,
+          "width": 104.9375,
+          "height": 44
+        },
+        {
+          "label": "Einstellungen",
+          "accessible": "Einstellungen",
+          "active": false,
+          "visible": true,
+          "left": 590.390625,
+          "right": 690.453125,
+          "top": 44,
+          "bottom": 88,
+          "width": 100.0625,
+          "height": 44
+        }
+      ]
+    },
+    {
+      "page": "Urkunden",
+      "width": 700,
+      "header": {
+        "left": 0,
+        "right": 685,
+        "top": 0,
+        "bottom": 89,
+        "width": 685,
+        "height": 89
+      },
+      "nav": {
+        "left": 14,
+        "right": 671,
+        "top": 44,
+        "bottom": 88,
+        "width": 657,
+        "height": 44
+      },
+      "status": {
+        "left": 598.96875,
+        "right": 671,
+        "top": 9,
+        "bottom": 35,
+        "width": 72.03125,
+        "height": 26
+      },
+      "stacked": true,
+      "compact": false,
+      "links": [
+        {
+          "label": "Turnierleitung",
+          "accessible": "Turnierleitung",
+          "active": false,
+          "visible": true,
+          "left": 44.53125,
+          "right": 145.390625,
+          "top": 44,
+          "bottom": 88,
+          "width": 100.859375,
+          "height": 44
+        },
+        {
+          "label": "Anmeldung",
+          "accessible": "Anmeldung",
+          "active": false,
+          "visible": true,
+          "left": 148.390625,
+          "right": 238.046875,
+          "top": 44,
+          "bottom": 88,
+          "width": 89.65625,
+          "height": 44
+        },
+        {
+          "label": "Urkunden",
+          "accessible": "Urkunden",
+          "active": true,
+          "visible": true,
+          "left": 241.046875,
+          "right": 322.75,
+          "top": 44,
+          "bottom": 88,
+          "width": 81.703125,
+          "height": 44
+        },
+        {
+          "label": "Sprachsystem",
+          "accessible": "Sprachsystem",
+          "active": false,
+          "visible": true,
+          "left": 325.75,
+          "right": 429.453125,
+          "top": 44,
+          "bottom": 88,
+          "width": 103.703125,
+          "height": 44
+        },
+        {
+          "label": "Geräte & Logs",
+          "accessible": "Geräte & Logs",
+          "active": false,
+          "visible": true,
+          "left": 432.453125,
+          "right": 537.390625,
+          "top": 44,
+          "bottom": 88,
+          "width": 104.9375,
+          "height": 44
+        },
+        {
+          "label": "Einstellungen",
+          "accessible": "Einstellungen",
+          "active": false,
+          "visible": true,
+          "left": 540.390625,
+          "right": 640.453125,
+          "top": 44,
+          "bottom": 88,
+          "width": 100.0625,
+          "height": 44
+        }
+      ]
+    },
+    {
+      "page": "Urkunden",
+      "width": 640,
+      "header": {
+        "left": 0,
+        "right": 625,
+        "top": 0,
+        "bottom": 89,
+        "width": 625,
+        "height": 89
+      },
+      "nav": {
+        "left": 14,
+        "right": 611,
+        "top": 44,
+        "bottom": 88,
+        "width": 597,
+        "height": 44
+      },
+      "status": {
+        "left": 538.96875,
+        "right": 611,
+        "top": 9,
+        "bottom": 35,
+        "width": 72.03125,
+        "height": 26
+      },
+      "stacked": true,
+      "compact": false,
+      "links": [
+        {
+          "label": "Turnierleitung",
+          "accessible": "Turnierleitung",
+          "active": false,
+          "visible": true,
+          "left": 14.53125,
+          "right": 115.390625,
+          "top": 44,
+          "bottom": 88,
+          "width": 100.859375,
+          "height": 44
+        },
+        {
+          "label": "Anmeldung",
+          "accessible": "Anmeldung",
+          "active": false,
+          "visible": true,
+          "left": 118.390625,
+          "right": 208.046875,
+          "top": 44,
+          "bottom": 88,
+          "width": 89.65625,
+          "height": 44
+        },
+        {
+          "label": "Urkunden",
+          "accessible": "Urkunden",
+          "active": true,
+          "visible": true,
+          "left": 211.046875,
+          "right": 292.75,
+          "top": 44,
+          "bottom": 88,
+          "width": 81.703125,
+          "height": 44
+        },
+        {
+          "label": "Sprachsystem",
+          "accessible": "Sprachsystem",
+          "active": false,
+          "visible": true,
+          "left": 295.75,
+          "right": 399.453125,
+          "top": 44,
+          "bottom": 88,
+          "width": 103.703125,
+          "height": 44
+        },
+        {
+          "label": "Geräte & Logs",
+          "accessible": "Geräte & Logs",
+          "active": false,
+          "visible": true,
+          "left": 402.453125,
+          "right": 507.390625,
+          "top": 44,
+          "bottom": 88,
+          "width": 104.9375,
+          "height": 44
+        },
+        {
+          "label": "Einstellungen",
+          "accessible": "Einstellungen",
+          "active": false,
+          "visible": true,
+          "left": 510.390625,
+          "right": 610.453125,
+          "top": 44,
+          "bottom": 88,
+          "width": 100.0625,
+          "height": 44
+        }
+      ]
+    },
+    {
+      "page": "Urkunden",
+      "width": 390,
+      "header": {
+        "left": 0,
+        "right": 375,
+        "top": 0,
+        "bottom": 89,
+        "width": 375,
+        "height": 89
+      },
+      "nav": {
+        "left": 14,
+        "right": 361,
+        "top": 44,
+        "bottom": 88,
+        "width": 347,
+        "height": 44
+      },
+      "status": {
+        "left": 288.96875,
+        "right": 361,
+        "top": 9,
+        "bottom": 35,
+        "width": 72.03125,
+        "height": 26
+      },
+      "stacked": true,
+      "compact": true,
+      "links": [
+        {
+          "label": "Turnierleitung",
+          "accessible": "Turnierleitung",
+          "active": false,
+          "visible": false,
+          "left": 66.640625,
+          "right": 95.640625,
+          "top": 44,
+          "bottom": 88,
+          "width": 29,
+          "height": 44
+        },
+        {
+          "label": "Anmeldung",
+          "accessible": "Anmeldung",
+          "active": false,
+          "visible": false,
+          "left": 98.640625,
+          "right": 127.640625,
+          "top": 44,
+          "bottom": 88,
+          "width": 29,
+          "height": 44
+        },
+        {
+          "label": "Urkunden",
+          "accessible": "Urkunden",
+          "active": true,
+          "visible": true,
+          "left": 130.640625,
+          "right": 212.34375,
+          "top": 44,
+          "bottom": 88,
+          "width": 81.703125,
+          "height": 44
+        },
+        {
+          "label": "Sprachsystem",
+          "accessible": "Sprachsystem",
+          "active": false,
+          "visible": false,
+          "left": 215.34375,
+          "right": 244.34375,
+          "top": 44,
+          "bottom": 88,
+          "width": 29,
+          "height": 44
+        },
+        {
+          "label": "Geräte & Logs",
+          "accessible": "Geräte & Logs",
+          "active": false,
+          "visible": false,
+          "left": 247.34375,
+          "right": 276.34375,
+          "top": 44,
+          "bottom": 88,
+          "width": 29,
+          "height": 44
+        },
+        {
+          "label": "Einstellungen",
+          "accessible": "Einstellungen",
+          "active": false,
+          "visible": false,
+          "left": 279.34375,
+          "right": 308.34375,
+          "top": 44,
+          "bottom": 88,
+          "width": 29,
+          "height": 44
+        }
+      ]
+    },
+    {
+      "page": "Urkunden",
+      "width": 320,
+      "header": {
+        "left": 0,
+        "right": 305,
+        "top": 0,
+        "bottom": 89,
+        "width": 305,
+        "height": 89
+      },
+      "nav": {
+        "left": 14,
+        "right": 291,
+        "top": 44,
+        "bottom": 88,
+        "width": 277,
+        "height": 44
+      },
+      "status": {
+        "left": 218.96875,
+        "right": 291,
+        "top": 9,
+        "bottom": 35,
+        "width": 72.03125,
+        "height": 26
+      },
+      "stacked": true,
+      "compact": true,
+      "links": [
+        {
+          "label": "Turnierleitung",
+          "accessible": "Turnierleitung",
+          "active": false,
+          "visible": false,
+          "left": 31.640625,
+          "right": 60.640625,
+          "top": 44,
+          "bottom": 88,
+          "width": 29,
+          "height": 44
+        },
+        {
+          "label": "Anmeldung",
+          "accessible": "Anmeldung",
+          "active": false,
+          "visible": false,
+          "left": 63.640625,
+          "right": 92.640625,
+          "top": 44,
+          "bottom": 88,
+          "width": 29,
+          "height": 44
+        },
+        {
+          "label": "Urkunden",
+          "accessible": "Urkunden",
+          "active": true,
+          "visible": true,
+          "left": 95.640625,
+          "right": 177.34375,
+          "top": 44,
+          "bottom": 88,
+          "width": 81.703125,
+          "height": 44
+        },
+        {
+          "label": "Sprachsystem",
+          "accessible": "Sprachsystem",
+          "active": false,
+          "visible": false,
+          "left": 180.34375,
+          "right": 209.34375,
+          "top": 44,
+          "bottom": 88,
+          "width": 29,
+          "height": 44
+        },
+        {
+          "label": "Geräte & Logs",
+          "accessible": "Geräte & Logs",
+          "active": false,
+          "visible": false,
+          "left": 212.34375,
+          "right": 241.34375,
+          "top": 44,
+          "bottom": 88,
+          "width": 29,
+          "height": 44
+        },
+        {
+          "label": "Einstellungen",
+          "accessible": "Einstellungen",
+          "active": false,
+          "visible": false,
+          "left": 244.34375,
+          "right": 273.34375,
+          "top": 44,
+          "bottom": 88,
+          "width": 29,
+          "height": 44
+        }
+      ]
+    }
+  ],
+  "exceptions": 0
+}

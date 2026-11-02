@@ -1,6 +1,6 @@
 /* global btsSpeechReadiness, cleitstand, btsAdminUpdates, btsScoresheetRemarks */
 'use strict';
-/* global btsSpeechService, cancelAnnouncementPlayback, createSpeechQueue, createFreeAnnouncementForm, btsDialogActions, subscribeEmergencyAudio */
+/* global btsSpeechService, cancelAnnouncementPlayback, createSpeechQueue, createFreeAnnouncementForm, btsDialogActions, subscribeEmergencyAudio, btsCertificates, btsCertificateSelection */
 
 var curt; // current tournament
 let current_view = null;
@@ -59,7 +59,7 @@ var ctournament = (function() {
 		}
 
 		crouting.register(rex, function (m) {
-			switch_tournament(m[1], func);
+			if (current_view === 'certificates' && curt?.key === m[1]) func();else switch_tournament(m[1], func);
 		}, handler);
 	}
 
@@ -759,6 +759,9 @@ var ctournament = (function() {
 				break;
 			case 'registration_check':
 				ui_registration_check();
+				break;
+			case 'certificates':
+				certificatePage?.refreshData();
 				break;
 			case 'registration_control':
 				ui_registration_control();
@@ -1954,12 +1957,7 @@ var ctournament = (function() {
 		}, {
 			class: 'toprow_menu_separator',
 		},
-		...view_items, {
-			class: 'toprow_menu_separator',
-		}, {
-			label: ci18n('csvexport:winners'),
-			func: ui_certificate_export,
-		});
+		...view_items);
 
 		return items;
 	}
@@ -2099,34 +2097,37 @@ var ctournament = (function() {
 		});
 	}
 
-	function _cancel_ui_certificate_export() {
-		const dlg = document.querySelector('.certificate_export_dialog');
-		if (!dlg) {
-			return;
+	let certificatePage = null;
+	function ui_certificates() {
+		if (certificatePage?.page.isConnected && certificatePage.tournamentKey === curt.key && current_view === 'certificates') {
+			certificatePage.refreshData();return;
 		}
-		cbts_utils.esc_stack_pop();
-		uiu.remove(dlg);
-		if (/\/certificate_export$/.test(window.location.pathname)) {
-			history.back();
+		certificatePage?.dispose();
+		cleitstand.unmount();
+		current_view = 'certificates';
+		crouting.set('t/:key/certificates', {key: curt.key});
+		render_show_toprow();
+		const owner = document.querySelector('.main');owner.replaceChildren();owner.className = 'main';
+		cleitstand.navigation(document.querySelector('.toprow'), curt, '/certificates', {syncBtp: ui_btp_fetch});
+		const tournament = curt;
+		const view = certificatePage = btsCertificates.create({
+			owner, tournament, getTournament: () => curt, request: send_with_live_status,
+			exportFile: (format, options) => ccsvexport.export_certificate_file(format, options),
+			onDispose: () => {
+				if (certificatePage === view) {certificatePage = null;if (!document.querySelector('.page-leitstand,.page-certificates')) cleitstand.unmount();}
+			},
+		});
+		for (const link of document.querySelectorAll('.toprow > .toprow_link.vlink')) {
+			link.addEventListener('click', event => {event.preventDefault();event.stopImmediatePropagation();view.navigate(() => crouting.navigate_to(link.classList.contains('ct_name') ? 't/' + encodeURIComponent(tournament.key) + '/' : 't/'), link);}, {capture: true});
 		}
-	}
+		const form = view.content;
+		const settings = uiu.el(form, 'section', 'certificate-settings');
+		const settingsHeading = uiu.el(settings, 'header', 'certificate-settings-heading');
+		uiu.el(settingsHeading, 'h2', {}, 'Urkundentexte und Einstellungen');
+		const settingsCount = uiu.el(settingsHeading, 'span', 'certificate-settings-count');
+		const settingsContent = uiu.el(settings, 'div', 'certificate-settings-content');
 
-	function ui_certificate_export() {
-		if (document.querySelector('.certificate_export_dialog')) {
-			return;
-		}
-		crouting.set('t/' + curt.key + '/certificate_export', {}, _cancel_ui_certificate_export);
-		cbts_utils.esc_stack_push(_cancel_ui_certificate_export);
-
-		const body = uiu.qs('body');
-		const dialogBg = uiu.el(body, 'div', 'dialog_bg certificate_export_dialog');
-		const dialog = uiu.el(dialogBg, 'div', 'dialog');
-		uiu.el(dialog, 'h3', {}, ci18n('csvexport:winners'));
-
-		const form = uiu.el(dialog, 'form');
-
-		const title = ccsvexport.split_tournament_title(curt.name, curt);
-		const initialMaxPlace = Number(curt.certificate_export_max_place || 3);
+		const title = ccsvexport.split_tournament_title(tournament.name, tournament);
 		function normalize_certificate_age_class_splits_for_ui(value) {
 			const result = {};
 			if (!value || typeof value !== 'object') return result;
@@ -2142,7 +2143,7 @@ var ctournament = (function() {
 			});
 			return result;
 			}
-			let certificateAgeClassSplits = normalize_certificate_age_class_splits_for_ui(curt.certificate_age_class_splits);
+			let certificateAgeClassSplits = normalize_certificate_age_class_splits_for_ui(tournament.certificate_age_class_splits);
 			function normalize_certificate_discipline_code_for_ui(value) {
 				const normalized = String(value || '').trim().toUpperCase();
 				if (!normalized || normalized === '*' || normalized === 'ALL') return '';
@@ -2157,31 +2158,11 @@ var ctournament = (function() {
 						}))
 						.filter((replacement) => replacement.discipline && replacement.replace);
 				}
-				let certificateDisciplineReplacements = normalize_certificate_discipline_replacements_for_ui(curt.certificate_discipline_replacements);
-			const event_options = ccsvexport.get_certificate_event_options(curt.matches, {
-			include_age_class_splits: true,
-			max_place: initialMaxPlace,
-			tournament: curt,
-			certificate_age_class_splits: certificateAgeClassSplits,
-		});
+				let certificateDisciplineReplacements = normalize_certificate_discipline_replacements_for_ui(tournament.certificate_discipline_replacements);
 		const today = new Date(get_effective_test_clock_now_ms());
-			let certificateSettingsSaveTimer = null;
-			let pendingCertificateSettingsChanges = {};
 			let refreshCertificateEventList = null;
 			let updateCertificateEventStatuses = null;
-
-			function save_certificate_export_settings(changes) {
-				Object.assign(curt, changes);
-				send_with_live_status({
-				type: 'tournament_edit_props',
-				key: curt.key,
-				props: changes,
-			}, (err) => {
-				if (err) {
-					cerror.net(err);
-					}
-				});
-			}
+			function save_certificate_export_settings(changes) { view.saveSettings(changes); }
 
 			function get_certificate_export_discipline_codes() {
 				const codes = new Set();
@@ -2191,12 +2172,12 @@ var ctournament = (function() {
 						codes.add(info.code);
 					}
 				}
-				if (Array.isArray(curt.events?.events)) {
-					curt.events.events.forEach((event) => add_event_name(event.name));
-				} else if (Array.isArray(curt.events)) {
-					curt.events.forEach((event) => add_event_name(event.name));
+				if (Array.isArray(tournament.events?.events)) {
+					tournament.events.events.forEach((event) => add_event_name(event.name));
+				} else if (Array.isArray(tournament.events)) {
+					tournament.events.forEach((event) => add_event_name(event.name));
 				}
-				(curt.matches || []).forEach((match) => add_event_name(match?.setup?.event_name));
+				(tournament.matches || []).forEach((match) => add_event_name(match?.setup?.event_name));
 				return [...codes].sort((a, b) => cbts_utils.natcmp(a, b));
 			}
 
@@ -2230,10 +2211,6 @@ var ctournament = (function() {
 					}
 				}
 
-		function certificate_age_class_split_enabled(event_name, age_group) {
-			return (certificateAgeClassSplits[event_name] || []).includes(age_group);
-		}
-
 		function set_certificate_age_class_split(event_name, age_group, enabled) {
 			const next = normalize_certificate_age_class_splits_for_ui(certificateAgeClassSplits);
 			const selected = new Set(next[event_name] || []);
@@ -2257,75 +2234,49 @@ var ctournament = (function() {
 			}
 		}
 
-		function schedule_certificate_export_settings_save(changes) {
-			pendingCertificateSettingsChanges = {
-				...pendingCertificateSettingsChanges,
-				...changes,
-			};
-			if (certificateSettingsSaveTimer != null) {
-				window.clearTimeout(certificateSettingsSaveTimer);
-			}
-			certificateSettingsSaveTimer = window.setTimeout(() => {
-				certificateSettingsSaveTimer = null;
-				const mergedChanges = pendingCertificateSettingsChanges;
-				pendingCertificateSettingsChanges = {};
-				save_certificate_export_settings(mergedChanges);
-			}, 250);
-		}
+		function schedule_certificate_export_settings_save(changes) { view.saveSettings(changes, true); }
 
-		const title1Label = uiu.el(form, 'label');
+		const details = uiu.el(settingsContent, 'div', 'certificate-export-details');
+		const title1Label = uiu.el(details, 'label');
 		title1Label.style.display = 'block';
 		title1Label.style.marginBottom = '0.75em';
 		uiu.el(title1Label, 'span', {}, 'Veranstaltung #1');
 		const title1Input = uiu.el(title1Label, 'input', {
 			type: 'text',
 			name: 'veranstaltung_1',
-			value: curt.certificate_title_line_1 || title.veranstaltung_1 || '',
+			value: tournament.certificate_title_line_1 || title.veranstaltung_1 || '',
 		});
 		title1Input.style.display = 'block';
 		title1Input.style.width = '100%';
 		title1Input.style.boxSizing = 'border-box';
 
-		const title2Label = uiu.el(form, 'label');
+		const title2Label = uiu.el(details, 'label');
 		title2Label.style.display = 'block';
 		title2Label.style.marginBottom = '0.75em';
 		uiu.el(title2Label, 'span', {}, 'Veranstaltung #2');
 		const title2Input = uiu.el(title2Label, 'input', {
 			type: 'text',
 			name: 'veranstaltung_2',
-			value: curt.certificate_title_line_2 || title.veranstaltung_2 || '',
+			value: tournament.certificate_title_line_2 || title.veranstaltung_2 || '',
 		});
 			title2Input.style.display = 'block';
 			title2Input.style.width = '100%';
 			title2Input.style.boxSizing = 'border-box';
 
-			const locationLabel = uiu.el(form, 'label');
+			const locationLabel = uiu.el(details, 'label');
 			locationLabel.style.display = 'block';
 			locationLabel.style.marginBottom = '0.75em';
 			uiu.el(locationLabel, 'span', {}, 'Ort');
 			const locationInput = uiu.el(locationLabel, 'input', {
 				type: 'text',
 				name: 'ort',
-				value: curt.certificate_export_location || '',
+				value: tournament.certificate_export_location || '',
 			});
 			locationInput.style.display = 'block';
 			locationInput.style.width = '100%';
 			locationInput.style.boxSizing = 'border-box';
 
-			const dateLabel = uiu.el(form, 'label');
-			dateLabel.style.display = 'block';
-			dateLabel.style.marginBottom = '0.75em';
-		uiu.el(dateLabel, 'span', {}, 'Datum');
-		const dateInput = uiu.el(dateLabel, 'input', {
-			type: 'date',
-			name: 'datum',
-			value: curt.certificate_export_date || format_date_input_value(today),
-		});
-		dateInput.style.display = 'block';
-		dateInput.style.width = '100%';
-		dateInput.style.boxSizing = 'border-box';
-
-		const countLabel = uiu.el(form, 'label');
+		const countLabel = uiu.el(details, 'label');
 		countLabel.style.display = 'block';
 		countLabel.style.marginBottom = '0.75em';
 		uiu.el(countLabel, 'span', {}, 'Anzahl der Urkunden je Disziplin');
@@ -2334,13 +2285,14 @@ var ctournament = (function() {
 			name: 'max_place',
 			min: '1',
 			step: '1',
-			value: String(curt.certificate_export_max_place || 3),
+			value: String(tournament.certificate_export_max_place || 3),
 		});
 		countInput.style.display = 'block';
 		countInput.style.width = '100%';
 		countInput.style.boxSizing = 'border-box';
 
-		const doubleSwappedLabel = uiu.el(form, 'label', {
+		const doubleSwappedLabel = uiu.el(settingsContent, 'label', {
+			class: 'certificate-double-option',
 			style: 'display: flex; gap: 0.5em; align-items: center; width: fit-content; clear: both; margin: 0.25em 0 1em 0;',
 			title: 'Erzeugt fuer Doppelpaare zusaetzlich eine zweite Exportzeile mit vertauschter Spielerreihenfolge.',
 		});
@@ -2348,14 +2300,12 @@ var ctournament = (function() {
 			type: 'checkbox',
 			name: 'certificate_export_double_swapped_entries_enabled',
 		});
-			if (curt.certificate_export_double_swapped_entries_enabled) {
+			if (tournament.certificate_export_double_swapped_entries_enabled) {
 				doubleSwappedInput.checked = true;
 			}
 			uiu.el(doubleSwappedLabel, 'span', {}, 'Doppel mit getauschten Spielern doppelt exportieren');
 
-				const disciplineReplacementWrap = uiu.el(form, 'div', {
-					style: 'margin: 0.25em 0 1em 0;',
-				});
+				const disciplineReplacementWrap = uiu.el(settingsContent, 'div', 'certificate-discipline-texts');
 
 				function render_certificate_discipline_replacements() {
 					while (disciplineReplacementWrap.firstChild) {
@@ -2407,6 +2357,13 @@ var ctournament = (function() {
 					const addBtn = uiu.el(addCell, 'button', {
 						type: 'button',
 					}, 'Hinzufügen');
+					const updateAdd = () => {
+						const reason = !disciplineSelect.value ? 'Keine Disziplin verfügbar.' : !replaceInput.value.trim() ? 'Bitte einen Disziplintext eingeben.' : '';
+						addBtn.disabled = !!reason;addBtn.title = reason;
+					};
+					disciplineSelect.setAttribute('aria-label', 'Disziplin für den Ersetzungstext');
+					replaceInput.setAttribute('aria-label', 'Ersetzung für den Disziplintext');
+					disciplineSelect.addEventListener('change', updateAdd);replaceInput.addEventListener('input', updateAdd);updateAdd();
 					addBtn.addEventListener('click', () => {
 						const normalized = normalize_certificate_discipline_replacements_for_ui([{
 							discipline: disciplineSelect.value,
@@ -2424,358 +2381,33 @@ var ctournament = (function() {
 				}
 				render_certificate_discipline_replacements();
 
-			const eventsWrap = uiu.el(form, 'div', 'settings');
-		uiu.el(eventsWrap, 'h3', {}, 'Disziplinen');
+		const eventsWrap = uiu.el(form, 'section', 'certificate-selection');
+		const selection = btsCertificateSelection.create({
+			owner: eventsWrap,
+			getOptions: () => ccsvexport.get_certificate_event_options(tournament.matches, {
+				include_age_class_splits: true, max_place: Number(countInput.value), tournament,
+				certificate_age_class_splits: certificateAgeClassSplits,
+			}),
+			getRows: key => ccsvexport.build_certificate_rows(tournament.matches, tournament, {
+				max_place: Number(countInput.value), selected_certificate_keys: new Set([key]),
+				ort: locationInput.value,
+				certificate_export_double_swapped_entries_enabled: doubleSwappedInput.checked,
+				certificate_discipline_replacements: certificateDisciplineReplacements,
+				certificate_age_class_splits: certificateAgeClassSplits,
+			}),
+			getMaxPlace: () => Number(countInput.value),
+			getMarkers: () => tournament.certificate_exports || {},
+			getSplits: () => certificateAgeClassSplits,
+			onSplit: set_certificate_age_class_split,
+			onReset: (key, label) => view.reset(key, label),
+			onChange: () => view.refresh(),
+			defaultDate: format_date_input_value(today),
+		});
+		refreshCertificateEventList = updateCertificateEventStatuses = () => selection.refresh();
+		const refreshSettingsCount = () => {settingsCount.textContent = 'Urkunden bis Platz ' + (countInput.value || '—');};
+		countInput.addEventListener('input', () => {refreshSettingsCount();selection.refresh();});
+		refreshSettingsCount();selection.refresh();
 
-		if (event_options.length === 0) {
-			uiu.el(eventsWrap, 'p', 'hint', 'Keine Disziplinen mit Platzierungsspielen gefunden.');
-			const emptyActions = uiu.el(form, 'div', { style: 'margin-top: 1.5em;' });
-			const cancelBtn = uiu.el(emptyActions, 'button', {
-				type: 'button',
-				class: 'match_save_button',
-			}, 'Zurück');
-			cancelBtn.addEventListener('click', _cancel_ui_certificate_export);
-		} else {
-			const toggleRow = uiu.el(eventsWrap, 'div', { style: 'margin-bottom: 1em;' });
-			const selectAllBtn = uiu.el(toggleRow, 'button', {
-				type: 'button',
-			}, 'Alle auswählen');
-			const clearBtn = uiu.el(toggleRow, 'button', {
-				type: 'button',
-				style: 'margin-left: 0.5em;',
-			}, 'Keine auswählen');
-			const resetAllBtn = uiu.el(toggleRow, 'button', {
-				type: 'button',
-				style: 'margin-left: 0.5em;',
-			}, 'Exportstatus aller Disziplinen zurücksetzen');
-
-			const quickFilterWrap = uiu.el(eventsWrap, 'div', { style: 'margin-bottom: 1em;' });
-			const onlyCompleteLabel = uiu.el(quickFilterWrap, 'label', {
-				style: 'display: inline-flex; gap: 0.5em; align-items: center; margin-right: 1em;',
-			});
-			const onlyCompleteInput = uiu.el(onlyCompleteLabel, 'input', {
-				type: 'checkbox',
-				checked: 'checked',
-			});
-			uiu.el(onlyCompleteLabel, 'span', {}, 'Nur fertig');
-
-			const onlyNewLabel = uiu.el(quickFilterWrap, 'label', {
-				style: 'display: inline-flex; gap: 0.5em; align-items: center; margin-right: 1em;',
-			});
-			const onlyNewInput = uiu.el(onlyNewLabel, 'input', {
-				type: 'checkbox',
-				checked: 'checked',
-			});
-			uiu.el(onlyNewLabel, 'span', {}, 'Nur noch nicht exportiert');
-
-			const lastScheduledLabel = uiu.el(quickFilterWrap, 'label', {
-				style: 'display: inline-flex; gap: 0.5em; align-items: center; margin-right: 1em;',
-			});
-			uiu.el(lastScheduledLabel, 'span', {}, 'Letztes Spiel am');
-			const lastScheduledInput = uiu.el(lastScheduledLabel, 'input', {
-				type: 'date',
-				value: format_date_input_value(today),
-			});
-
-			const typeFilterWrap = uiu.el(eventsWrap, 'div', { style: 'margin-bottom: 1em;' });
-			uiu.el(typeFilterWrap, 'span', { style: 'margin-right: 0.75em;' }, 'Typ:');
-			const typeFilterValues = ['all', 'single', 'double'];
-			const typeFilterLabels = {
-				all: 'Alle',
-				single: 'Nur Einzel',
-				double: 'Nur Doppel',
-			};
-			const typeFilterInputs = {};
-			typeFilterValues.forEach((value, index) => {
-				const radioLabel = uiu.el(typeFilterWrap, 'label', {
-					style: 'display: inline-flex; gap: 0.5em; align-items: center; margin-right: 1em;',
-				});
-				const attrs = {
-					type: 'radio',
-					name: 'certificate_export_type_filter',
-					value,
-				};
-				if (index === 0) {
-					attrs.checked = 'checked';
-				}
-				typeFilterInputs[value] = uiu.el(radioLabel, 'input', attrs);
-				uiu.el(radioLabel, 'span', {}, typeFilterLabels[value]);
-			});
-
-			const applyQuickFilterBtn = uiu.el(eventsWrap, 'button', {
-				type: 'button',
-				style: 'margin-bottom: 1em;',
-			}, 'Auswahl aus Filtern übernehmen');
-
-			const eventList = uiu.el(eventsWrap, 'div');
-
-			let eventCheckboxes = [];
-
-			function get_certificate_event_options_for_dialog() {
-				return ccsvexport.get_certificate_event_options(curt.matches, {
-					include_age_class_splits: true,
-					max_place: Number(countInput.value || 0) || initialMaxPlace,
-					tournament: curt,
-					certificate_age_class_splits: certificateAgeClassSplits,
-				});
-			}
-
-			function render_certificate_event_list() {
-				const previousChecked = new Map(eventCheckboxes.map((entry) => [
-					entry.checkbox.getAttribute('data-certificate-key'),
-					entry.checkbox.checked,
-				]));
-				eventCheckboxes = [];
-				while (eventList.firstChild) {
-					eventList.removeChild(eventList.firstChild);
-				}
-				get_certificate_event_options_for_dialog().forEach((event_option) => {
-					const certificate_key = event_option.key || event_option.event_name;
-					const checked = previousChecked.has(certificate_key)
-						? previousChecked.get(certificate_key)
-						: true;
-					const row = uiu.el(eventList, 'div', {
-						style: `display: flex; gap: 0.75em; align-items: flex-start; margin: 0.4em 0;${event_option.is_age_class_split ? ' padding-left: 1.8em;' : ''}`,
-					});
-					const selector = uiu.el(row, 'label', {
-						style: 'display: flex; gap: 0.75em; align-items: flex-start; flex: 1 1 auto;',
-					});
-					const checkboxAttrs = {
-						type: 'checkbox',
-						'data-certificate-key': certificate_key,
-					};
-					if (checked) {
-						checkboxAttrs.checked = 'checked';
-					}
-					const checkbox = uiu.el(selector, 'input', checkboxAttrs);
-					const infoWrap = uiu.el(selector, 'div', { style: 'display: block; flex: 1 1 auto;' });
-					const titleLine = uiu.el(infoWrap, 'div', {
-						style: 'display: flex; flex-wrap: wrap; align-items: center; gap: 0.35em 0.4em;',
-					});
-					const titleText = uiu.el(titleLine, 'span', {}, event_option.label);
-					const detailLine = uiu.el(infoWrap, 'div', {
-						style: 'display: flex; flex-wrap: wrap; align-items: center; gap: 0.3em 0.4em; margin-top: 0.18em;',
-					});
-					if (!event_option.is_age_class_split && Array.isArray(event_option.age_class_candidates) && event_option.age_class_candidates.length > 0) {
-						const splitLine = uiu.el(infoWrap, 'div', {
-							style: 'display: flex; flex-wrap: wrap; align-items: center; gap: 0.35em 0.5em; margin-top: 0.18em; color: #333; font-size: 0.86em;',
-						});
-						splitLine.addEventListener('click', (event) => {
-							event.stopPropagation();
-						});
-						uiu.el(splitLine, 'span', {}, 'Separate Wertung:');
-						event_option.age_class_candidates.forEach((age_group) => {
-							const splitLabel = uiu.el(splitLine, 'label', {
-								style: 'display: inline-flex; gap: 0.3em; align-items: center;',
-								title: `${age_group}-Urkundenwertung aus ${event_option.label} erzeugen`,
-							});
-							const splitInputAttrs = {
-								type: 'checkbox',
-							};
-							if (certificate_age_class_split_enabled(event_option.event_name, age_group)) {
-								splitInputAttrs.checked = 'checked';
-							}
-							const splitInput = uiu.el(splitLabel, 'input', splitInputAttrs);
-							uiu.el(splitLabel, 'span', {}, age_group);
-							splitInput.addEventListener('change', (event) => {
-								event.stopPropagation();
-								set_certificate_age_class_split(event_option.event_name, age_group, splitInput.checked);
-							});
-						});
-					}
-					const resetBtn = uiu.el(row, 'button', {
-						type: 'button',
-						style: 'margin-left: 0.5em;',
-					}, 'Zurücksetzen');
-					resetBtn.addEventListener('click', () => {
-						send({
-							type: 'certificate_export_reset',
-							tournament_key: curt.key,
-							event_name: certificate_key,
-						}, (err, response) => {
-							if (err) {
-								return cerror.net(err);
-							}
-							curt.certificate_exports = response && response.certificate_exports ? response.certificate_exports : {};
-							update_event_statuses();
-						});
-					});
-					eventCheckboxes.push({
-						checkbox,
-						event_option,
-						titleLine,
-						titleText,
-						detailLine,
-						resetBtn,
-					});
-				});
-			}
-
-			function get_selected_type_filter() {
-				if (typeFilterInputs.single.checked) return 'single';
-				if (typeFilterInputs.double.checked) return 'double';
-				return 'all';
-			}
-
-			function render_status_badge(container, text, class_name) {
-				return uiu.el(container, 'span', {
-					class: `certificate_export_badge ${class_name}`,
-				}, text);
-			}
-
-			function format_certificate_preview_tooltip(certificate_key, max_place, exported_at_display) {
-				const rows = ccsvexport.build_certificate_rows(curt.matches, curt, {
-					max_place,
-					selected_certificate_keys: new Set([certificate_key]),
-					ort: locationInput.value,
-					certificate_export_double_swapped_entries_enabled: doubleSwappedInput.checked,
-					certificate_discipline_replacements: certificateDisciplineReplacements,
-				});
-				const lines = [];
-				if (exported_at_display) {
-					lines.push(`Zuletzt exportiert: ${exported_at_display}`);
-				}
-				if (rows.length === 0) {
-					lines.push('Keine eindeutigen Platzierungen verfügbar.');
-					return lines.join('\n');
-				}
-				lines.push('Platzierungen:');
-				rows
-					.sort((a, b) => Number(a.place || 0) - Number(b.place || 0))
-					.forEach((row) => {
-						const players = [row.spieler_1, row.spieler_2].filter(Boolean).join(' / ');
-						lines.push(`${row.platz}: ${players || '—'}`);
-					});
-				return lines.join('\n');
-			}
-
-			function update_event_statuses() {
-				const max_place = Number(countInput.value || 0);
-				const export_state = curt.certificate_exports || {};
-				eventCheckboxes.forEach((entry) => {
-					const event_option = entry.event_option;
-					const certificate_key = event_option.key || event_option.event_name;
-					const is_complete = ccsvexport.event_is_complete_for_max_place(event_option, max_place);
-					const exported_at = export_state[certificate_key] || null;
-					const exported_at_display = format_certificate_export_timestamp(exported_at);
-					const available_places = ccsvexport.get_relevant_certificate_available_places(event_option, max_place).join(', ');
-					const pending_place_ranges = ccsvexport.get_relevant_certificate_pending_ranges(event_option, max_place);
-					entry.checkbox.dataset.complete = is_complete ? 'true' : 'false';
-					entry.checkbox.dataset.exported = exported_at ? 'true' : 'false';
-					entry.checkbox.dataset.kind = event_option.kind || '';
-					entry.checkbox.dataset.latestScheduledDate = event_option.latest_scheduled_date || '';
-					while (entry.titleLine.childNodes.length > 1) {
-						entry.titleLine.removeChild(entry.titleLine.lastChild);
-					}
-					while (entry.detailLine.firstChild) {
-						entry.detailLine.removeChild(entry.detailLine.firstChild);
-					}
-					render_status_badge(
-						entry.titleLine,
-						is_complete ? 'Fertig' : 'Offen',
-						is_complete
-							? 'certificate_export_badge_complete'
-							: 'certificate_export_badge_pending'
-					);
-					render_status_badge(
-						entry.titleLine,
-						exported_at ? `Exportiert: ${exported_at_display}` : 'Nicht exportiert',
-						exported_at
-							? 'certificate_export_badge_exported'
-							: 'certificate_export_badge_unexported'
-					);
-					render_status_badge(
-						entry.titleLine,
-						event_option.kind === 'double' ? 'Doppel' : 'Einzel',
-						'certificate_export_badge_kind'
-					);
-					render_status_badge(
-						entry.detailLine,
-						`Plätze: ${available_places || '—'}`,
-						'certificate_export_badge_places'
-					);
-					if (event_option.starter_count) {
-						render_status_badge(
-							entry.detailLine,
-							`Starter: ${event_option.starter_count}`,
-							'certificate_export_badge_places'
-						);
-					}
-					if (pending_place_ranges.length > 0) {
-						render_status_badge(
-							entry.detailLine,
-							`Ausstehend: ${pending_place_ranges.map((range) => range.label || `${range.place_from}/${range.place_to}`).join(', ')}`,
-							'certificate_export_badge_pending'
-						);
-					}
-					if (event_option.latest_scheduled_date) {
-						const latestDisplay = event_option.latest_scheduled_time
-							? `${event_option.latest_scheduled_date} ${event_option.latest_scheduled_time}`
-							: event_option.latest_scheduled_date;
-						render_status_badge(
-							entry.detailLine,
-							`Letztes Spiel: ${latestDisplay}`,
-							'certificate_export_badge_places'
-						);
-					}
-					const previewTitle = format_certificate_preview_tooltip(
-						certificate_key,
-						max_place,
-						exported_at ? exported_at_display : ''
-					);
-					entry.titleLine.title = previewTitle;
-					entry.titleText.title = previewTitle;
-					entry.checkbox.title = previewTitle;
-				});
-			}
-			updateCertificateEventStatuses = update_event_statuses;
-
-			function apply_quick_filters() {
-				const selected_type = get_selected_type_filter();
-				eventCheckboxes.forEach((entry) => {
-					const checkbox = entry.checkbox;
-					const matches_complete = !onlyCompleteInput.checked || checkbox.dataset.complete === 'true';
-					const matches_new = !onlyNewInput.checked || checkbox.dataset.exported !== 'true';
-					const matches_type = selected_type === 'all' || checkbox.dataset.kind === selected_type;
-					const matches_last_scheduled = !lastScheduledInput.value || checkbox.dataset.latestScheduledDate === lastScheduledInput.value;
-					checkbox.checked = matches_complete && matches_new && matches_type && matches_last_scheduled;
-				});
-			}
-
-			refreshCertificateEventList = () => {
-				render_certificate_event_list();
-				update_event_statuses();
-				apply_quick_filters();
-			};
-
-			selectAllBtn.addEventListener('click', () => {
-				eventCheckboxes.forEach((entry) => {
-					entry.checkbox.checked = true;
-				});
-			});
-
-			clearBtn.addEventListener('click', () => {
-				eventCheckboxes.forEach((entry) => {
-					entry.checkbox.checked = false;
-				});
-			});
-
-			resetAllBtn.addEventListener('click', () => {
-				send({
-					type: 'certificate_export_reset',
-					tournament_key: curt.key,
-					all: true,
-				}, (err, response) => {
-					if (err) {
-						return cerror.net(err);
-					}
-					curt.certificate_exports = response && response.certificate_exports ? response.certificate_exports : {};
-					update_event_statuses();
-				});
-			});
-
-			applyQuickFilterBtn.addEventListener('click', apply_quick_filters);
-			countInput.addEventListener('input', update_event_statuses);
 			title1Input.addEventListener('input', () => {
 				schedule_certificate_export_settings_save({
 					certificate_title_line_1: title1Input.value,
@@ -2791,12 +2423,8 @@ var ctournament = (function() {
 					certificate_export_location: locationInput.value,
 				});
 			});
-			dateInput.addEventListener('change', () => {
-				save_certificate_export_settings({
-					certificate_export_date: dateInput.value,
-				});
-			});
 			countInput.addEventListener('change', () => {
+				if (!countInput.validity.valid || !Number.isInteger(Number(countInput.value)) || Number(countInput.value) < 1) return;
 				save_certificate_export_settings({
 					certificate_export_max_place: Number(countInput.value || 0) || 3,
 				});
@@ -2805,106 +2433,45 @@ var ctournament = (function() {
 				save_certificate_export_settings({
 					certificate_export_double_swapped_entries_enabled: doubleSwappedInput.checked,
 				});
-				update_event_statuses();
+				updateCertificateEventStatuses?.();
 			});
-			refreshCertificateEventList();
-
-			const actions = uiu.el(form, 'div', { style: 'margin-top: 1.5em;' });
-			const exportCsvBtn = uiu.el(actions, 'button', {
-				type: 'button',
-				class: 'match_save_button',
-			}, 'CSV exportieren');
-			const exportXlsxBtn = uiu.el(actions, 'button', {
-				type: 'button',
-				class: 'match_save_button',
-				style: 'margin-left: 0.5em;',
-			}, 'XLSX exportieren');
-			const cancelBtn = uiu.el(actions, 'button', {
-				type: 'button',
-				class: 'match_save_button',
-				style: 'margin-left: 0.5em;',
-			}, 'Zurück');
-
-			function set_certificate_export_buttons_disabled(disabled) {
-				if (disabled) {
-					exportCsvBtn.setAttribute('disabled', 'disabled');
-					exportXlsxBtn.setAttribute('disabled', 'disabled');
-					return;
-				}
-				exportCsvBtn.removeAttribute('disabled');
-				exportXlsxBtn.removeAttribute('disabled');
-			}
-
-			function handle_certificate_export(format) {
-				const selected_certificate_keys = new Set(
-					eventCheckboxes
-						.filter((entry) => entry.checkbox.checked)
-						.map((entry) => entry.checkbox.getAttribute('data-certificate-key'))
-						.filter(Boolean)
-				);
-				if (selected_certificate_keys.size === 0) {
-					alert('Bitte mindestens eine Disziplin auswählen.');
-					return;
-				}
-				set_certificate_export_buttons_disabled(true);
-				let releaseTimeout = window.setTimeout(() => {
-					releaseTimeout = null;
-					set_certificate_export_buttons_disabled(false);
-				}, 5000);
-				try {
-						ccsvexport.export_certificate_file(format, {
-							veranstaltung_1: title1Input.value,
-							veranstaltung_2: title2Input.value,
-							ort: locationInput.value,
-							datum: dateInput.value,
-							max_place: Number(countInput.value || 0),
-						selected_certificate_keys,
-						certificate_export_double_swapped_entries_enabled: doubleSwappedInput.checked,
-							certificate_discipline_replacements: certificateDisciplineReplacements,
-					});
-				} catch (err) {
-					if (releaseTimeout != null) {
-						window.clearTimeout(releaseTimeout);
-					}
-					set_certificate_export_buttons_disabled(false);
-					cerror.net(err);
-					return;
-				}
-				save_certificate_export_settings({
-						certificate_title_line_1: title1Input.value,
-						certificate_title_line_2: title2Input.value,
-						certificate_export_location: locationInput.value,
-						certificate_export_date: dateInput.value,
-					certificate_export_max_place: Number(countInput.value || 0) || 3,
-					certificate_export_double_swapped_entries_enabled: doubleSwappedInput.checked,
-						certificate_discipline_replacements: certificateDisciplineReplacements,
-				});
-				send({
-					type: 'certificate_export_mark',
-					tournament_key: curt.key,
-					event_names: [...selected_certificate_keys],
-				}, (err, response) => {
-					if (releaseTimeout != null) {
-						window.clearTimeout(releaseTimeout);
-					}
-					set_certificate_export_buttons_disabled(false);
-					if (err) {
-						return cerror.net(err);
-					}
-					curt.certificate_exports = response && response.certificate_exports ? response.certificate_exports : {};
-					update_event_statuses();
-				});
-			}
-
-			exportCsvBtn.addEventListener('click', () => {
-				handle_certificate_export('csv');
-			});
-			exportXlsxBtn.addEventListener('click', () => {
-				handle_certificate_export('xlsx');
-			});
-
-			cancelBtn.addEventListener('click', _cancel_ui_certificate_export);
-		}
+		view.refreshData = () => {if (curt?.key !== tournament.key) return;Object.assign(tournament, curt);refreshCertificateEventList?.();view.refresh();view.refreshPreview();};
+		view.open({
+			hasEvents: selection.hasEvents,
+			selectionSummary: selection.summary,
+			readDocumentRows: () => ccsvexport.build_certificate_rows(tournament.matches, tournament, {
+				include_document_dates: true,
+				veranstaltung_1: title1Input.value, veranstaltung_2: title2Input.value, ort: locationInput.value,
+				max_place: Number(countInput.value), selected_certificate_keys: selection.selectedKeys(),
+				certificate_age_class_splits: certificateAgeClassSplits, certificate_discipline_replacements: certificateDisciplineReplacements,
+				certificate_export_double_swapped_entries_enabled: false,
+			}),
+			readPreviewRows: kind => ccsvexport.build_certificate_preview_rows(tournament.matches, tournament, {
+				include_document_dates: true,
+				kind, veranstaltung_1: title1Input.value, veranstaltung_2: title2Input.value, ort: locationInput.value,
+				max_place: Number(countInput.value), selected_certificate_keys: selection.selectedKeys(),
+				certificate_age_class_splits: certificateAgeClassSplits, certificate_discipline_replacements: certificateDisciplineReplacements,
+			}),
+			documentError: () => ccsvexport.get_certificate_event_options(tournament.matches, {
+				include_age_class_splits: true, max_place: Number(countInput.value), tournament, certificate_age_class_splits: certificateAgeClassSplits,
+			}).some(event => selection.selectedKeys().has(event.key || event.event_name) && !ccsvexport.event_is_complete_for_max_place(event, Number(countInput.value)))
+				? 'Für mindestens eine ausgewählte Disziplin fehlen noch gewünschte Urkundenplätze.' : '',
+			onStateChange: state => selection.setResetReason(state.resetReason),
+			validate: () => !countInput.validity.valid || !Number.isInteger(Number(countInput.value)) || Number(countInput.value) < 1 ? 'Bitte eine ganze Anzahl von Urkunden ab 1 angeben.' : '',
+			readOptions: () => ({
+				veranstaltung_1: title1Input.value, veranstaltung_2: title2Input.value, ort: locationInput.value,
+				max_place: Number(countInput.value),
+				selected_certificate_keys: selection.selectedKeys(),
+				certificate_export_double_swapped_entries_enabled: doubleSwappedInput.checked,
+				certificate_discipline_replacements: certificateDisciplineReplacements,
+				certificate_age_class_splits: certificateAgeClassSplits,
+			}),
+			hasRows: () => ccsvexport.build_certificate_rows(tournament.matches, tournament, {
+				max_place: Number(countInput.value), certificate_age_class_splits: certificateAgeClassSplits,
+				selected_certificate_keys: selection.selectedKeys(),
+			}).length > 0,
+			onMarkers: markers => {curt.certificate_exports = tournament.certificate_exports = markers;updateCertificateEventStatuses?.();},
+		});
 	}
 
 	function build_show_toprow_right_items() {
@@ -3191,12 +2758,6 @@ var ctournament = (function() {
 		_show_render_umpires();
 		if (typeof cleitstand !== 'undefined') cleitstand.mount(main, curt, {
 			syncBtp: ui_btp_fetch,
-			testlab: () => {
-				ui_edit();
-				const clock_mode = main.querySelector('[name="test_clock_mode"]');
-				clock_mode?.closest('.settings')?.scrollIntoView({block: 'start'});
-				clock_mode?.focus({preventScroll: true});
-			},
 		});
 	}
 	_route_single(/t\/([a-z0-9]+)\/$/, ui_show, change.default_handler(_update_all_ui_elements, {
@@ -3227,12 +2788,26 @@ var ctournament = (function() {
 		registration_dbv_rankings: update_registration_dbv_rankings,
 	}));
 
-	_route_single(/t\/([a-z0-9]+)\/certificate_export$/, ui_certificate_export, change.default_handler(ui_certificate_export, {
-		score: ui_certificate_export,
-		match_edit: ui_certificate_export,
-		match_remove: ui_certificate_export,
-		update_player_status: ui_certificate_export,
-	}));
+	const certificateChanges = change.default_handler(() => {}, {btp_status: btp_status_changed, ticker_status: ticker_status_changed});
+	function update_certificates(changeEvent) {
+		// Certificate drafts belong to this workspace. Acknowledgements must not overwrite newer inputs.
+		if (changeEvent.ctype === 'prop_changed' && changeEvent.val.field.startsWith('certificate_')) {
+			curt[changeEvent.val.field] = changeEvent.val.value;
+		} else if (changeEvent.ctype === 'props') {
+			const other = {};
+			for (const [field, value] of Object.entries(changeEvent.val)) {
+				if (field.startsWith('certificate_')) curt[field] = value;else other[field] = value;
+			}
+			certificateChanges({...changeEvent, val: other});
+		} else certificateChanges(changeEvent);
+		if (['score', 'match_edit', 'match_add', 'match_delete', 'props', 'prop_changed'].includes(changeEvent.ctype)) certificatePage?.refreshData();
+	}
+	crouting.register(/^t\/([a-z0-9]+)\/certificates$/, m => {
+		if (curt?.key === m[1]) ui_certificates();else switch_tournament(m[1], ui_certificates);
+	}, update_certificates);
+	crouting.register(/^t\/([a-z0-9]+)\/certificate_export$/, m => {
+		history.replaceState(null, '', '/admin/t/' + encodeURIComponent(m[1]) + '/certificates');crouting.rerender();
+	}, update_certificates);
 
 	function render_settings(target) {
 		const settings_div = uiu.el(target, 'div', 'metadata_right_container_2');

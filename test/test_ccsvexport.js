@@ -45,6 +45,71 @@ _describe('ccsvexport', () => {
 		);
 	});
 
+	_it('previews tournament participants before results exist while keeping sample placements out of exports', () => {
+		const pending = makeMatch({event_name: 'JE U17', scheduled_date: '2026-09-26', teams: [makeTeam('Anna Müller'), makeTeam('Gewinner #230')]}), double = makeMatch({event_name: 'JD U17', scheduled_date: '2026-09-26', teams: [makeTeam('Zoë García', 'Łukasz Nowak'), makeTeam('Zoë García', 'Łukasz Nowak')]});
+		const matches = [pending, pending, double], tournament = {name: 'Nord-Cup - Bremen', certificate_export_location: 'Bremen', certificate_export_date: '2026-09-26'};
+		const singleRows = ccsvexport.build_certificate_preview_rows(matches, tournament, {kind: 'single', include_document_dates: true}), doubleRows = ccsvexport.build_certificate_preview_rows(matches, tournament, {kind: 'double', include_document_dates: true});
+		assert.strictEqual(singleRows.length, 1);assert.strictEqual(singleRows[0].spieler_1, 'Anna Müller');assert.strictEqual(singleRows[0].veranstaltung_1, 'Nord-Cup');assert.strictEqual(singleRows[0].veranstaltung_2, 'Bremen');assert.strictEqual(singleRows[0].ort, 'Bremen');assert.strictEqual(singleRows[0].datum_letztes_spiel, '26.09.2026');assert.strictEqual(singleRows[0].ak, 'U17');assert.strictEqual(singleRows[0].preview_placement, true);
+		assert.strictEqual(doubleRows.length, 1);assert.strictEqual(doubleRows[0].spieler_1, 'Zoë García');assert.strictEqual(doubleRows[0].spieler_2, 'Łukasz Nowak');assert.strictEqual(doubleRows[0].preview_placement, true);
+		assert.deepStrictEqual(ccsvexport.build_certificate_rows(matches, tournament), []);
+	});
+
+	_it('uses real completed placements for previews without requiring an export selection or swapped doubles', () => {
+		const matches = [makeMatch({event_name: 'HD U19', team1_won: true, teams: [makeTeam('Anton', 'Berta'), makeTeam('Carl', 'Dora')]})];
+		const rows = ccsvexport.build_certificate_preview_rows(matches, {name: 'Turnier'}, {kind: 'double', selected_certificate_keys: new Set(), veranstaltung_1: 'Urkundentitel', veranstaltung_2: '', ort: '', datum: '2026-09-26', certificate_export_double_swapped_entries_enabled: true});
+		assert.strictEqual(rows.length, 2);assert.strictEqual(rows[0].veranstaltung_1, 'Urkundentitel');assert.strictEqual(rows[0].veranstaltung_2, '');assert.strictEqual(rows[0].ort, undefined);assert.strictEqual(rows[0].datum, '26.09.2026');assert.strictEqual(rows.find(row => row.spieler_1 === 'Anton').platz, '1. Platz');assert(rows.every(row => !row.preview_placement));
+	});
+
+	_it('keeps tournament metadata and explicit blank settings when only an example person can be shown', () => {
+		const tournament = {name: 'Nord-Cup', certificate_title_line_1: 'Gespeicherter Titel', certificate_title_line_2: 'Verband', certificate_export_location: 'Bremen', certificate_export_date: '2026-09-26'};
+		const [row] = ccsvexport.build_certificate_preview_rows([], tournament, {kind: 'double', veranstaltung_2: '', ort: '', include_document_dates: true, now: new Date('2026-11-02T12:00:00Z')});
+		assert.strictEqual(row.veranstaltung_1, 'Gespeicherter Titel');assert.strictEqual(row.veranstaltung_2, '');assert.strictEqual(row.ort, undefined);assert.strictEqual(row.datum_letztes_spiel, '');assert.strictEqual(row.datum_heute, '02.11.2026');assert.strictEqual(row.preview_sample, true);assert.strictEqual(row.preview_placement, true);assert(row.spieler_1 && row.spieler_2);assert.strictEqual(row.ak, '');
+	});
+
+	_it('uses the selection-page last-game date and current date without changing CSV data', () => {
+		const matches = [
+			makeMatch({event_name: 'HE U19', team1_won: true, scheduled_date: '2026-09-25'}),
+			makeMatch({event_name: 'HE U19', match_name: '3/4', team1_won: true, scheduled_date: '2026-09-28', teams: [makeTeam('Third'), makeTeam('Fourth')]}),
+			makeMatch({event_name: 'HD U19', match_name: '1/2', team1_won: true, scheduled_date: '2026-09-27', teams: [makeTeam('Anton', 'Berta'), makeTeam('Carl', 'Dora')]}),
+		];
+		const tournament = {name: 'Nord-Cup', system_timezone: 'Europe/Berlin'}, options = {now: new Date('2026-11-01T23:30:00Z'), datum: '2026-09-26'};
+		const original = ccsvexport.build_certificate_rows(matches, tournament, options), rows = ccsvexport.build_certificate_rows(matches, tournament, {...options, include_document_dates: true});
+		assert.strictEqual(rows.length, 6);
+		for (const row of rows) {
+			assert.strictEqual(row.datum, '26.09.2026');assert.strictEqual(row.datum_heute, '02.11.2026');
+			assert.strictEqual(row.datum_letztes_spiel, row.event_name === 'HD U19' ? '27.09.2026' : '28.09.2026');
+		}
+		assert.deepStrictEqual(rows.map(row => {const copy = {...row};delete copy.datum_heute;delete copy.datum_letztes_spiel;return copy;}), original);
+		assert.deepStrictEqual(ccsvexport.certificate_rows_to_table(rows), ccsvexport.certificate_rows_to_table(original));
+	});
+
+	_it('includes later games from other stages just like the selection page', () => {
+		const matches = [
+			makeMatch({event_name: 'ME U17 - Position 1-4', stage_id: 'main', stage_display_order: 1, team1_won: true, scheduled_date: '2026-09-25'}),
+			makeMatch({event_name: 'ME U17 - Position 5-8', stage_id: 'lower', stage_display_order: 2, team1_won: true, scheduled_date: '2026-09-28'}),
+		];
+		const rows = ccsvexport.build_certificate_rows(matches, {}, {include_document_dates: true});
+		assert.strictEqual(rows.length, 2);assert(rows.every(row => row.datum_letztes_spiel === '28.09.2026'));
+		const [option] = ccsvexport.get_certificate_event_options(matches);assert(rows.every(row => row.datum_letztes_spiel === ccsvexport.normalize_certificate_date(option.latest_scheduled_date)));
+	});
+
+	_it('previews the last planned game date before results exist without exporting sample placements', () => {
+		const matches = [makeMatch({scheduled_date: '2026-09-25'})], options = {include_document_dates: true, now: new Date('2026-11-02T12:00:00Z'), datum: '2026-09-26'};
+		const rows = ccsvexport.build_certificate_preview_rows(matches, {}, options);
+		assert.strictEqual(rows.length, 2);assert(rows.every(row => row.datum_letztes_spiel === '25.09.2026' && row.datum_heute === '02.11.2026' && row.datum === '26.09.2026' && row.preview_placement));
+		assert.deepStrictEqual(ccsvexport.build_certificate_rows(matches, {}, options), []);
+	});
+
+	_it('leaves last-game dates empty without a valid scheduled game and includes group-only games', () => {
+		const options = {include_document_dates: true, now: new Date('2026-11-02T12:00:00Z')};
+		for (const matches of [[], [makeMatch()], [makeMatch({scheduled_date: 'invalid'})]]) {
+			const rows = ccsvexport.build_certificate_preview_rows(matches, {}, options);
+			assert(rows.length);assert(rows.every(row => row.datum_letztes_spiel === '' && row.datum_heute === '02.11.2026'));
+		}
+		const rows = ccsvexport.build_certificate_preview_rows([makeMatch({match_name: 'G1', scheduled_date: '2026-09-25', team1_won: true, network_score: [[21, 10], [21, 12]]})], {}, options);
+		assert(rows.length);assert(rows.every(row => row.datum_letztes_spiel === '25.09.2026'));
+	});
+
 	_it('maps event names to discipline and age group', () => {
 		assert.deepStrictEqual(
 			ccsvexport.parse_event_name('HD U19'),
@@ -771,6 +836,17 @@ _describe('ccsvexport', () => {
 				place: 1,
 			},
 		]);
+	});
+
+	_it('uses the source discipline last-game date for separately awarded age classes', () => {
+		const matches = [makeMatch({event_name: 'ME U15', draw_id: 8, team1_won: true, scheduled_date: '2026-09-25', teams: [makeTeam('U15 Winner'), makeTeam('U13 Winner')]})];
+		matches[0].setup.teams[0].players[0].birth_year = 2012;
+		matches[0].setup.teams[1].players[0].birth_year = 2014;
+		const rows = ccsvexport.build_certificate_rows(matches, {}, {
+			include_document_dates: true, max_place: 1, age_reference_year: 2026,
+			certificate_age_class_splits: {'ME U15': ['U13']}, selected_certificate_keys: new Set(['ME U15::age:U13']),
+		});
+		assert.strictEqual(rows.length, 1);assert.strictEqual(rows[0].event_name, 'ME U15::age:U13');assert.strictEqual(rows[0].spieler_1, 'U13 Winner');assert.strictEqual(rows[0].datum_letztes_spiel, '25.09.2026');
 	});
 
 	_it('does not infer lower tournament age classes from missing source draw entries', () => {

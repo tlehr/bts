@@ -1199,7 +1199,7 @@ function append_certificate_rows_for_placement(rows, base_row, players, include_
 	}
 }
 
-function build_certificate_rows(matches, tournament, options = {}) {
+function certificate_details(tournament, options) {
 	const title = {
 		...split_tournament_title(tournament?.name, tournament),
 	};
@@ -1214,6 +1214,29 @@ function build_certificate_rows(matches, tournament, options = {}) {
 		: String(tournament?.certificate_export_location || '').trim();
 	const now = options.now || new Date();
 	const datum = normalize_certificate_date(options.datum, now);
+	return {...title, ...(ort ? { ort } : {}), datum};
+}
+
+function certificate_document_dates(rows, matches, tournament, options) {
+	// Document-only tokens keep the established CSV/XLSX row format unchanged.
+	if (!options.include_document_dates) return rows;
+	const now = options.now || new Date();
+	const today = tournament?.system_timezone
+		? new Intl.DateTimeFormat('de-DE', {timeZone: tournament.system_timezone, day: '2-digit', month: '2-digit', year: 'numeric'}).format(now)
+		: format_date_for_certificate(now);
+	const event_matches = build_event_match_index(matches), latest_dates = new Map();
+	return rows.map(row => {
+		const event_name = String(row.event_name || '').split('::age:')[0];
+		if (!latest_dates.has(event_name)) {
+			const latest = get_latest_scheduled_match_info(event_matches.get(event_name) || [], event_name);
+			latest_dates.set(event_name, /^\d{4}-\d{2}-\d{2}$/.test(latest?.date || '') ? normalize_certificate_date(latest.date) : '');
+		}
+		return {...row, datum_heute: today, datum_letztes_spiel: latest_dates.get(event_name)};
+	});
+}
+
+function build_certificate_rows(matches, tournament, options = {}) {
+	const details = certificate_details(tournament, options);
 	const selected_event_names = options.selected_event_names instanceof Set
 		? options.selected_event_names
 		: null;
@@ -1255,10 +1278,7 @@ function build_certificate_rows(matches, tournament, options = {}) {
 			if (entry.place_from > max_place) continue;
 			const players = entry.team?.players || [];
 				append_certificate_rows_for_placement(rows, {
-					veranstaltung_1: title.veranstaltung_1,
-					veranstaltung_2: title.veranstaltung_2,
-					...(ort ? { ort } : {}),
-					datum,
+					...details,
 					disziplin: get_certificate_discipline_label(event_info, certificate_discipline_replacements),
 				ak: event_info.ak,
 				platz: format_place_label(entry.place_from, entry.place_to),
@@ -1278,10 +1298,7 @@ function build_certificate_rows(matches, tournament, options = {}) {
 					if (entry.place_from > max_place) continue;
 					const players = entry.team?.players || [];
 						append_certificate_rows_for_placement(rows, {
-							veranstaltung_1: title.veranstaltung_1,
-							veranstaltung_2: title.veranstaltung_2,
-							...(ort ? { ort } : {}),
-							datum,
+							...details,
 							disziplin: get_certificate_discipline_label(event_info, certificate_discipline_replacements),
 						ak: event_info.ak,
 						platz: format_place_label(entry.place_from, entry.place_to),
@@ -1301,7 +1318,32 @@ function build_certificate_rows(matches, tournament, options = {}) {
 		return Number(b.place || 0) - Number(a.place || 0);
 	});
 
-	return rows;
+	return certificate_document_dates(rows, matches, tournament, options);
+}
+
+function build_certificate_preview_rows(matches, tournament, options = {}) {
+	const kind = options.kind === 'double' ? 'double' : 'single';
+	const settings = {...options, certificate_export_double_swapped_entries_enabled: false};
+	const rows = build_certificate_rows(matches, tournament, {...settings, selected_certificate_keys: null, selected_event_names: null})
+		.filter(row => (row.spieler_2 ? 'double' : 'single') === kind);
+	if (rows.length) return rows;
+	const details = certificate_details(tournament, settings), replacements = get_certificate_discipline_replacements(tournament, settings);
+	const selected = new Set([...(options.selected_certificate_keys || [])].map(key => key.split('::age:')[0]));
+	const candidates = [...(matches || [])].sort((left, right) => Number(selected.has(normalize_certificate_event_name(right?.setup?.event_name))) - Number(selected.has(normalize_certificate_event_name(left?.setup?.event_name))));
+	const seen = new Set();
+	for (const match of candidates) {
+		const event_name = normalize_certificate_event_name(match?.setup?.event_name), info = parse_event_name(event_name);
+		if (!event_name || info.kind !== kind) continue;
+		for (const team of match.setup.teams || []) {
+			const players = team?.players || [];
+			if (players.length !== (kind === 'double' ? 2 : 1) || players.some(player => !get_player_display_name(player) || is_placeholder_player(player))) continue;
+			const identity = JSON.stringify([event_name, players.map(player => player.btp_id ?? get_player_display_name(player)).sort()]);
+			if (seen.has(identity)) continue;seen.add(identity);
+			append_certificate_rows_for_placement(rows, {...details, event_name, disziplin: get_certificate_discipline_label(info, replacements), ak: info.ak, platz: '1. Platz', preview_placement: true}, players, false);
+		}
+	}
+	if (!rows.length) rows.push({...details, spieler_1: 'Max Mustermann', spieler_2: kind === 'double' ? 'Hans Dampf' : '', disziplin: kind === 'double' ? 'Doppel' : 'Einzel', ak: '', platz: '1. Platz', preview_sample: true, preview_placement: true});
+	return certificate_document_dates(rows, matches, tournament, settings);
 }
 
 function certificate_rows_to_table(rows) {
@@ -1581,6 +1623,7 @@ function export_certificate_file(format, options = {}) {
 
 return {
 	build_certificate_rows,
+	build_certificate_preview_rows,
 	build_certificate_export_data,
 	certificate_rows_to_table,
 	build_certificate_event_stats,

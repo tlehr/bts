@@ -205,6 +205,7 @@ function handle_tournament_edit_props(app, ws, msg) {
 		'technical_official_auto_assignment_mode',
 		'technical_official_break_after_assignment_seconds',
 		'logo_background_color', 'logo_foreground_color', 'scoring_formats',
+		'certificate_design',
 		'certificate_title_line_1', 'certificate_title_line_2',
 		'certificate_export_location',
 		'certificate_export_max_place', 'certificate_export_date',
@@ -213,6 +214,10 @@ function handle_tournament_edit_props(app, ws, msg) {
 		'certificate_age_class_splits',
 		'certificate_discipline_replacements']);
 
+	if (Object.prototype.hasOwnProperty.call(props, 'certificate_design')) {
+		const error = require('../static/js/certificate_design').validate(props.certificate_design);
+		if (error) return ws.respond(msg, {message: error});
+	}
 	if (msg.props.btp_timezone) {
 		props.btp_timezone = msg.props.btp_timezone === 'system' ? undefined : msg.props.btp_timezone;
 	}

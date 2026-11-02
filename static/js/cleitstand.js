@@ -1,4 +1,4 @@
-/* global btsCourtAssignment, btsRemarksDialog, cerror, cmatch, ctournament, btp_entry_status, calc, btsAdminUpdates, btsOfficialPicker, btsChoicePicker, btsDialogActions, btsMatchEditRules, match_scoring, ci18n, btsScoresheetRemarks */
+/* global crouting, btsCourtAssignment, btsRemarksDialog, cerror, cmatch, ctournament, btp_entry_status, calc, btsAdminUpdates, btsOfficialPicker, btsChoicePicker, btsDialogActions, btsMatchEditRules, match_scoring, ci18n, btsScoresheetRemarks */
 'use strict';
 
 // The live tournament board. Existing controls and incremental match updates retain their handlers.
@@ -19,7 +19,7 @@ var cleitstand = (function() {
     serviceJudge: '<path d="M4 4h13v7H4ZM7 2h13v7M4 7h13M17 7h3M12 11v8M6 22l6-3 6 3M12 19v3"/>',
     logs: '<path d="M8 6h13M8 12h13M8 18h13"/><circle cx="3" cy="6" r=".7"/><circle cx="3" cy="12" r=".7"/><circle cx="3" cy="18" r=".7"/>',
     sheet: '<rect x="4" y="3" width="16" height="18" rx="1"/><path d="M4 8h16M4 13h16M4 18h16M10 8v13"/>',
-    flask: '<path d="M9 2h6M10 2v7l-7 11a1 1 0 0 0 1 2h16a1 1 0 0 0 1-2L14 9V2M7 15h10"/>',
+    certificate: '<path d="M19 12V3H3v18h8M7 7h8M7 11h4"/><circle cx="16" cy="16" r="3"/><path d="m14 18-1 4 3-1 3 1-1-4"/>',
     search: '<circle cx="10" cy="10" r="6"/><path d="m15 15 6 6"/>',
     chevron: '<path d="m9 5 7 7-7 7"/>',
     down: '<path d="m6 9 6 6 6-6"/>',
@@ -113,6 +113,7 @@ var cleitstand = (function() {
     return {key:'court',direction:1};
   }
   const state={boardLayout:readBoardLayout(),layoutEditing:false,density:readDensity(),finishedSort:{key:'end',direction:-1},tabletSort:readTabletSort(),logFilter:'',logSort:readStorage(logSortKey)==='ascending'?1:-1};
+  let navigationContext=null;
   let root=null, model=null, actions={}, listeners=null, viewObserver=null, draggedCard=null, cardDragBlocked=false, layoutBeforeEdit=null, draggedMatch=null, dialogOpener=null, countsPending=false;
   let matchDialogView=null;
   let cardResize=null;
@@ -1733,8 +1734,8 @@ var cleitstand = (function() {
       label.before(group);group.append(label,badge);if(control)group.append(control);
     }
   }
-  function sizeBtpStatus(badge) {
-    const configured=Number(model.btp_autofetch_timeout_intervall);
+  function sizeBtpStatus(badge,tournament=model) {
+    const configured=Number(tournament.btp_autofetch_timeout_intervall);
     const seconds=Number.isFinite(configured)&&configured>0?Math.ceil(configured):30;
     const minutes=seconds>99,digits=minutes?String(Math.floor(seconds/60)).length+2:String(seconds).length;
     const key=[nameFontVersion,btpFontVersion,minutes,digits].join('|');
@@ -1751,20 +1752,23 @@ var cleitstand = (function() {
     badge.dataset.btpSizeKey=key;
   }
   function btpSync() {
-    if(!root?.isConnected||!actions.syncBtp)return;
+    const context=root?.isConnected?{tournament:model,syncBtp:actions.syncBtp}:navigationContext;
+    if(!context?.nav?.isConnected&&!root?.isConnected)return;
+    if(!context?.syncBtp)return;
+    const {tournament,syncBtp}=context;
     serviceStatuses();
     const badge=document.querySelector('.toprow_right .btp_status_badge');if(!badge)return;
     let control=document.querySelector('.toprow_btp_sync_button');
-    if(!model.btp_enabled){
+    if(!tournament.btp_enabled){
       control?.remove();badge.style.removeProperty('--btp-clock-width');badge.style.removeProperty('--btp-status-width');delete badge.dataset.btpSizeKey;return;
     }
-    sizeBtpStatus(badge);
+    sizeBtpStatus(badge,tournament);
     if(!control){
       control=el(null,'button','toprow_btp_sync_button');control.type='button';control.innerHTML=icon('refresh');badge.before(control);
-      control.setAttribute('aria-label','BTP jetzt synchronisieren');control.onclick=()=>actions.syncBtp();
+      control.setAttribute('aria-label','BTP jetzt synchronisieren');control.onclick=()=>syncBtp();
     }
     if(control.nextElementSibling!==badge)badge.before(control);
-    control.disabled=!!model.btp_status?.fetch_in_progress;
+    control.disabled=!!tournament.btp_status?.fetch_in_progress;
     control.title=control.disabled?'BTP-Synchronisierung läuft':'BTP jetzt synchronisieren';
   }
   function deviceLocations() {
@@ -2182,7 +2186,71 @@ var cleitstand = (function() {
     const node=el(grid,'section','control-card');node.dataset.boardCard=id;const title=el(node,'h2');title.innerHTML=icon(symbol);el(title,'span','',label);return node;
   }
   function navLink(parent,label,href,symbol) {
-    const link=el(parent,'a','',null);link.href=href;link.innerHTML=icon(symbol);el(link,'span','',label);return link;
+    const link=el(parent,'a','',null);link.href=href;link.setAttribute('aria-label',label);link.innerHTML=icon(symbol);el(link,'span','',label);return link;
+  }
+  function clearNavigation() {
+    const context=navigationContext;if(!context)return;
+    context.observer.disconnect();if(context.frame!==null)cancelAnimationFrame(context.frame);
+    document.fonts?.removeEventListener('loadingdone',context.fontsChanged);navigationContext=null;
+  }
+  function fitNavigation(context) {
+    context.frame=null;if(navigationContext!==context||!context.top.isConnected)return;
+    const {top,nav,brand,name,status}=context,links=[...nav.children];
+    const font=getComputedStyle(links[0]).font+'|'+getComputedStyle(brand).font;
+    if(!context.metrics||context.metrics.font!==font) {
+      top.classList.remove('has-stacked-navigation');nav.classList.remove('is-compact');
+      const gap=parseFloat(getComputedStyle(nav).columnGap)||0;
+      let full=gap*(links.length-1),compact=full;
+      for(const link of links) {
+        const labelWidth=link.querySelector('span').getBoundingClientRect().width;
+        link.style.setProperty('--navigation-label-width',labelWidth+'px');
+        const width=link.getBoundingClientRect().width;full+=width;compact+=width;
+        if(!link.hasAttribute('aria-current'))compact-=labelWidth+(parseFloat(getComputedStyle(link).columnGap)||0);
+      }
+      context.metrics={font,full,compact,brand:brand.getBoundingClientRect().width};
+    }
+    const style=getComputedStyle(top),gap=parseFloat(style.columnGap)||0;
+    const width=top.clientWidth-parseFloat(style.paddingLeft)-parseFloat(style.paddingRight);
+    const nameWidth=name?Math.min(name.scrollWidth,parseFloat(getComputedStyle(name).maxWidth)||Infinity):0;
+    const available=width-context.metrics.brand-nameWidth-status.getBoundingClientRect().width-gap*(name?3:2);
+    const stacked=available+.5<context.metrics.compact;
+    top.classList.toggle('has-stacked-navigation',stacked);
+    nav.classList.toggle('is-compact',context.metrics.full>(stacked?width:available)+.5);
+  }
+  function observeNavigation(top,nav,tournament,callbacks) {
+    const context={top,nav,tournament,syncBtp:callbacks.syncBtp,brand:top.querySelector('.toprow_link'),name:top.querySelector('.ct_name'),status:top.querySelector('.toprow_right'),frame:null,metrics:null};
+    const schedule=()=>{if(navigationContext===context&&context.frame===null)context.frame=requestAnimationFrame(()=>fitNavigation(context));};
+    context.observer=new ResizeObserver(schedule);
+    context.fontsChanged=()=>{context.metrics=null;schedule();};
+    navigationContext=context;serviceStatuses();btpSync();fitNavigation(context);
+    for(const node of [top,nav,nav.firstElementChild,context.name,context.status])if(node)context.observer.observe(node);
+    document.fonts?.addEventListener('loadingdone',context.fontsChanged);
+    document.fonts?.ready.then(()=>{if(navigationContext===context)context.fontsChanged();});
+  }
+  function navigation(top,tournament,activePath='/',callbacks={}) {
+    clearNavigation();
+    document.body.classList.add('leitstand-view');top.classList.add('leitstand-header');
+    // Board tools move into the workspace before mounting this shared header.
+    top.querySelector('.toprow_menu')?.remove();
+    const base='/admin/t/'+encodeURIComponent(tournament.key);
+    const first=top.querySelector('.toprow_link');if(first){
+      first.replaceChildren();
+      const certificates=activePath==='/certificates';
+      const mark=el(first,'span','board-brand-mark');mark.setAttribute('aria-hidden','true');mark.innerHTML=icon(certificates?'certificate':'court');
+      const title=el(first,'span','board-page-title',certificates?'BTS – Urkunden':'BTS – Turnierleitung');
+      if(certificates){title.id='leitstand-page-title';title.setAttribute('role','heading');title.setAttribute('aria-level','1');title.tabIndex=-1;}
+    }
+    top.querySelector('.leitstand-nav')?.remove();
+    const nav=el(top,'nav','leitstand-nav');nav.setAttribute('aria-label','Hauptnavigation');
+    for(const [label,path,symbol]of [['Turnierleitung','/','court'],['Anmeldung','/registration_control','people'],['Urkunden','/certificates','certificate'],['Sprachsystem','/speech-planning/','mic'],['Geräte & Logs',null,'monitor'],['Einstellungen','/edit','settings']]){
+      const link=navLink(nav,label,path?base+path:'/admin/diagnostics/',symbol);
+      if(path===activePath)link.setAttribute('aria-current','page');
+      if(path&&path!=='/speech-planning/')link.onclick=event=>{
+        if(event.button===0&&!event.ctrlKey&&!event.metaKey&&!event.shiftKey&&!event.altKey){event.preventDefault();crouting.navigate_to('t/'+encodeURIComponent(tournament.key)+path);}
+      };
+    }
+    observeNavigation(top,nav,tournament,callbacks);
+    return nav;
   }
   function menu(parent,label,symbol) {
     const details=el(parent,'details','board-menu'),summary=el(details,'summary','btn sm');summary.innerHTML=icon(symbol);el(summary,'span','',label);return el(details,'div','board-menu-content');
@@ -2241,14 +2309,7 @@ var cleitstand = (function() {
       }
       if(changed)positionBoardSidebar();
     });headerObserver.observe(top,{box:'border-box'});headerObserver.observe(side,{box:'border-box'});
-    const first=top.querySelector('.toprow_link');if(first){
-      first.replaceChildren();
-      const mark=el(first,'span','board-brand-mark');mark.setAttribute('aria-hidden','true');mark.innerHTML=icon('court');
-      el(first,'span','','BTS – Turnierleitung');
-    }
-    const nav=el(top,'nav','leitstand-nav');nav.setAttribute('aria-label','Hauptnavigation');
-    for(const [label,path,symbol]of [['Turnierleitung','/','court'],['Anmeldung','/registration_control','people'],['Sprachsystem','/speech-planning/','mic'],['Geräte & Logs',null,'monitor'],['Einstellungen','/edit','settings']])navLink(nav,label,path?base+path:'/admin/diagnostics/',symbol);
-    if(actions.testlab) {const link=navLink(nav,'Testlabor','#','flask');link.onclick=event=>{event.preventDefault();actions.testlab();};}
+    navigation(top,model,'/',actions);
     listeners=new AbortController();bindLayout();deviceLocations();automation(nativeAutomation);operatorQueue(nativeOperators);btpSync();applyBoardLayout();
     nameObserver=new ResizeObserver(entries=>{
       for(const {target,contentRect} of entries) {
@@ -2276,6 +2337,7 @@ var cleitstand = (function() {
     viewObserver=new MutationObserver(()=>{if(root&&!root.isConnected)unmount();});viewObserver.observe(main,{childList:true});
   }
   function unmount() {
+    clearNavigation();
     assignmentView?.dialog.close();assignmentView=null;
     callStatusView?.dialog.close();callStatusView=null;
     clearDialogPickers();
@@ -2289,9 +2351,9 @@ var cleitstand = (function() {
     headerObserver?.disconnect();headerObserver=null;headerHeight=null;sidebarHeight=null;document.body.classList.remove('leitstand-view');
     nameObserver?.disconnect();nameObserver=null;nameGroups.clear();dirtyNameGroups.clear();nameLayoutDirty=false;preparationLayoutDirty=false;if(nameFrame!==null)cancelAnimationFrame(nameFrame);nameFrame=null;
     timerObserver?.disconnect();timerObserver=null;timerValues.clear();dirtyTimers.clear();timerFittings.clear();preparationWidths.clear();if(timerFrame!==null)cancelAnimationFrame(timerFrame);timerFrame=null;timerComplete=null;
-    document.querySelector('.leitstand-header')?.classList.remove('leitstand-header');root=null;searchControl=null;
+    document.querySelector('.leitstand-header')?.classList.remove('leitstand-header','has-stacked-navigation');root=null;searchControl=null;
   }
-  return {mount,unmount,active,row,refreshRow,emptyRow,updateScore,updateMatchMetadata,score,timerDisplay,timerVisibilityChanged,deviceLocations,automation,refreshOperators,refreshCounts,refreshFinished,refreshTablets,tabletDevices,refreshScoreLayout,maxSetCount,matchTimes,matchDay,sortFinishedMatches,nameStages,matchDrag,clearMatchDrag,decorateControls,matchDialog,matchProtocolEvent,updateMatchRemarks,refreshCourtAssignment,refreshCallStatus,restoreDialogFocus,officialPicker,choicePicker,clearDialogPickers,closeDialogPickers,tabletAssignmentIcon,operatorQueue,rotationIcons,player,participant,refreshUnassigned,refreshDates:refreshDateGroups,btpSync,
+  return {mount,unmount,navigation,active,row,refreshRow,emptyRow,updateScore,updateMatchMetadata,score,timerDisplay,timerVisibilityChanged,deviceLocations,automation,refreshOperators,refreshCounts,refreshFinished,refreshTablets,tabletDevices,refreshScoreLayout,maxSetCount,matchTimes,matchDay,sortFinishedMatches,nameStages,matchDrag,clearMatchDrag,decorateControls,matchDialog,matchProtocolEvent,updateMatchRemarks,refreshCourtAssignment,refreshCallStatus,restoreDialogFocus,officialPicker,choicePicker,clearDialogPickers,closeDialogPickers,tabletAssignmentIcon,operatorQueue,rotationIcons,player,participant,refreshUnassigned,refreshDates:refreshDateGroups,btpSync,
     pendingUpdates:()=>[...pendingUpdates.keys()],
-    isUpdating:()=>nameFrame!==null||timerFrame!==null||dirtyTimers.size>0||countsPending||finishedSortPending};
+    isUpdating:()=>nameFrame!==null||timerFrame!==null||dirtyTimers.size>0||countsPending||finishedSortPending||!!navigationContext?.frame};
 })();

@@ -22,7 +22,7 @@ test:
 	@npm test
 
 dev:
-	@./node_modules/.bin/supervisor -w bts bts/bts.js
+	@./node_modules/.bin/supervisor -w bts,static/js/certificate_design.js bts/bts.js
 
 ticker-dev:
 	@./node_modules/.bin/supervisor -i static ticker/ticker.js
