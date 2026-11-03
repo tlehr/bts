@@ -46,17 +46,8 @@ function start(parentPort, workerData) {
         next();
     });
     app.get('/h/:tournament_key/speech/audio/:audio_id', require('./proxy'));
+    app.use('/speech-helper/v1', (_req,res) => res.status(409).json({error:'helper_server_moved'}));
     const { listener } = workerData;
-    if (broker.config.cache_dir) {
-        const { HelperPool } = require('./helpers/pool');
-        const pool = new HelperPool(require('path').join(broker.config.cache_dir, 'helpers'));
-        pool.ready.catch(error => app.speech.health.fail('helpers', error, false));
-        app.speech.helpers = pool;
-        broker.helpers = new (require('./helpers/generation').HelperGeneration)(broker, pool);
-        app.speech.helper_certificate_sha256 = listener.tls ? require('crypto').createHash('sha256')
-            .update(new (require('crypto').X509Certificate)(require('fs').readFileSync(listener.tls.cert)).raw).digest('hex') : null;
-        require('./helpers/http').routes(app, pool);
-    }
     const server = listener.tls ? require('https').createServer({
         key: require('fs').readFileSync(listener.tls.key), cert: require('fs').readFileSync(listener.tls.cert),
     }, app) : require('http').createServer(app);

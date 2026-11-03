@@ -731,6 +731,8 @@ class SpeechBroker {
         this.helper_generation_profile = health.status === 'fulfilled' && health.value.status === 'ready' &&
             /^[a-f0-9]{64}$/.test(health.value.helper_generation_profile || '') ? health.value.helper_generation_profile : null;
         const state = health.status === 'fulfilled' ? health.value : health.reason.response;
+        this.server_helper_dispatch = state?.helper_dispatch === 'server-v1';
+        if (this.helpers?.central) this.helpers.parallelism = this.server_helper_dispatch ? 31 : 0;
         // /health deliberately returns 503 while loading the model. This is
         // an explicit lifecycle state, unlike an unqualified HTTP 503 error.
         const starting = state?.status === 'starting' && (health.status === 'fulfilled' || health.reason.status === 503);

@@ -25,14 +25,8 @@ async function change(service, next) {
             // Verification is asynchronous, just as it is at startup.
             void disk.ready.catch(error => broker.health.fail('cache', error));
         }
-        const pool = service.helpers;
-        if (pool) {
-            const state = await pool.generation_state();
-            for (const job of state.jobs) await pool.settle(job.id, 'failed', 'helper_server_changed');
-            void Promise.allSettled(state.jobs.map(job => broker.request(oldConfig.base_url, oldConfig.api_key,
-                'POST', '/v1/helper-jobs/' + job.binding.upstream_id + '/cancel', {}, oldConfig.timeout_ms)));
-            pool.generation = {ready:false, reason:'speech_connection_changed'};
-        }
+        // Helpers belong to their speech server. Its producer-interest leases
+        // expire there; switching BTS must not cancel another producer's work.
         // Keep the old endpoint and cache for the complete lifetime of its grants.
         const now = broker.now();
         if (!broker.audio_connections) broker.audio_connections = new Map([[null, {config:oldConfig, disk:oldDisk, until:Infinity}]]);
@@ -46,6 +40,7 @@ async function change(service, next) {
         broker.disk = disk;
         if (disk !== oldDisk) broker.failures = new SpeechFailures(disk, broker.now);
         broker.metadata_verified = false;broker.last_metadata = 0;broker.helper_generation_profile = null;
+        broker.server_helper_dispatch = false;
         if (broker.helpers) broker.helpers.next = 0;
         broker.last_error = next.enabled ? 'speech_connecting' : null;
         broker.current = null;broker.last_post = -Infinity;broker.post_retry_at = 0;broker.last_post_voice.clear();
@@ -58,6 +53,7 @@ async function change(service, next) {
                 delete entry.terminal_failure;delete entry.recovery_loaded;delete entry.generated_for;
             }
             delete entry.helper_job;delete entry.helper_central_status;delete entry.helper_skip;delete entry.waiting_for_server;
+            delete entry.central_job;delete entry.server_execution;delete entry.central_skip;
         }
         for (const source of [...broker.health.issues.keys()]) if (source.startsWith('upstream_') || source === 'configuration') broker.health.clear(source);
         if (!next.enabled) prefetch.stop();

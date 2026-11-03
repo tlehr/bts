@@ -59,7 +59,7 @@
  window.btsSpeechReadiness.trackMatch=()=>{};
  window.__audioDeviceWrites=[];window.__audioDevices=[];window.__audioRevision=0;
  window.__connectionFixture={url:'http://192.0.2.20:8077',active_url:'http://192.0.2.20:8077',enabled:true,api_key_configured:true,locked:{url:false,enabled:false,api_key:false},writable:true,revision:'fixture-1',apply_pending:false,status:{state:'ready'}};
- window.__helperFixture={workers:[{id:'helper-one',name:'Hallenrechner',platform:'Linux',threads:2,memory_limit_mib:3584,online:true,paused:false,completed:3}],jobs:[],runtime:{size_bytes:2147483648},generation:{ready:true}};
+ window.__helperFixture={endpoint:'http://192.0.2.20:8077',workers:[{id:'helper-one',name:'Hallenrechner',platform:'Linux',threads:2,memory_limit_mib:3584,online:true,paused:false,completed:3}],jobs:[],runtime:{size_bytes:2147483648},generation:{ready:true}};
  window.send=(message,callback)=>{
   if(message.type==='speech_connection_get')return setTimeout(()=>callback?.(null,{connection:structuredClone(__connectionFixture)}),0);
   if(message.type==='speech_helpers')return setTimeout(()=>callback?.(null,{helpers:structuredClone(__helperFixture),speech:{audio_endpoint:{protocol:'http:',port:4001}}}),0);

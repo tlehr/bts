@@ -47,6 +47,7 @@
     "Reloading the speech-system URL directly opens playback",
     "Reloading the speech-system URL directly opens pronunciation",
     "Leaving the speech system releases its queue polling, frame and workspace",
+    "Helper starters use the main speech-server address instead of the BTS audio listener",
     "Main server and helper management share the settings page with explicit server-wide scope",
     "Connection drafts wait for explicit saving and do not disclose the existing key",
     "Server-wide saving uses one request with its revision and keeps tournament properties untouched",

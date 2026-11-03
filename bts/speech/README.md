@@ -81,20 +81,46 @@ am vorhandenen HTTPS-Ursprung darf direkt zum Worker gehen. Der Proxy darf den
 Audioweg nicht über den Node.js-Hauptserver führen. Unterschiedliche externe
 Portzuordnungen benötigen eine passende `audio_origin`.
 
-Der Anschluss bietet Audio sowie die authentifizierten Endpunkte für
-[weitere Sprachhelfer](../../docs/speech-helpers.md) an. Die Helfer übertragen
-Laufzeit, reguläre Kontextaufnahmen und Testaufnahmen direkt über diesen Prozess;
-ihre Steuerung bleibt auf dem vorhandenen Admin-WebSocket. Freie kompatible
-Helfer übernehmen kurze Quellen aus derselben priorisierten Warteschlange.
-Die zentrale Qualitätsprüfung, Zuschnitt und Aufbereitung bleiben beim
-Sprachserver. Ausfälle geben Arbeit für andere Helfer oder den lokalen Server
-frei; Leases und vorgemerkte Aufträge werden im Sprachprozess gespeichert.
+Der Anschluss liefert die regulären Audiodateien. [Sprachhelfer](../../docs/speech-helpers.md) verbinden sich direkt mit dem Hauptsprachserver; dessen `/speech-helper/v1` verwaltet Anmeldung, Laufzeitdownload, Leases und Rückgaben. BTS leitet die Verwaltung über `/v1/helpers` weiter und lädt vollständig vom Sprachserver erzeugte persönliche Starter über `/v1/helpers/bundle` herunter. `helpers/remote.js` bildet diese Verwaltungsanbindung ab, `helpers/demand.js` meldet priorisierte Quellen an den Server. Beide befinden sich im isolierten Sprachprozess. Helferquellen, Launcher, Paket-Erzeugung und deren Tests befinden sich ausschließlich im Repository `bts-sprachserver`. BTS enthält nur die Verwaltungs- und Bedarfsanbindung.
 HMAC-Berechtigungen, Ablaufzeit, Range-/ETag-
 Verarbeitung, Downloadgrenzen und Cache-Header der regulären Audioausgabe bleiben erhalten. CORS erlaubt
 den direkten Abruf durch Web Audio ohne Cookies oder Sprachserver-API-Key.
 Der Hauptserver bietet im Workerbetrieb keinen Audio-Proxy mehr an.
 
 ## Ausfall und Betrieb
+
+Das Sprachsystem unter `/admin/t/<Turnier>/speech-planning/` ist in die gemeinsame
+Verwaltungsnavigation eingebunden. Die Bereiche „Vorbereitung“, „Aufnahmen &
+Wiedergabe“ und „Aussprache“ erhalten laufende Durchsagen beim Seitenwechsel.
+Die dauerhafte Konfiguration bleibt unter `/admin/t/<Turnier>/edit/speech`;
+Hauptsprachserver-Verbindung und Sprachhelfer werden gemeinsam als serverweite
+Einstellungen verwaltet. Das Sprachsystem zeigt den Status samt Verwaltungslink
+sowie Wiedergabestatus, Aufnahmen und Aussprache-Ersetzungen. Die bisherige Planungsansicht wird intern unter
+`/speech-planning/plan/?embedded=1` ohne eigene Kopfleiste eingebunden und
+startet keine zusätzliche Audioausgabe.
+
+Die Verbindungskachel liest und speichert Aktivierung, URL und Zugangsschlüssel
+über die bestehenden Admin-WebSockets. Die private `config.json` wird nach
+Validierung atomar ersetzt; Umgebungsvariablen bleiben schreibgeschützt und
+Schlüssel werden nie an den Browser zurückgegeben. Ein leerer Schlüssel behält
+den bisherigen Zugang. Ein neuer Schlüssel wird in der privaten Konfiguration
+abgelegt; bestehende Schlüsseldateien bleiben bei anderen Änderungen erhalten.
+Die Verbindung wird zur Laufzeit übernommen, ohne BTS oder den isolierten
+Sprachprozess neu zu starten. Neue Arbeit verwendet den neuen Server. BTS meldet den Quellenbedarf an den neuen Server; Bedarf am bisherigen Server
+läuft aus. Helfer bleiben an ihrem jeweiligen Sprachserver angemeldet. Der
+Audioanschluss und bereits ausgegebene Audiolinks bleiben erhalten. Alte
+Links verwenden bis zum Ablauf ihre ursprüngliche Verbindung bzw. deren Cache.
+Ein Wechsel der URL verwendet einen getrennten Cacheindex. Scheitert die
+Übernahme, bleibt die Konfiguration gespeichert und die Oberfläche bietet eine
+Wiederholung an. Die separate Prüfung fragt nur `/health` und `/v1/voices` mit
+den eingegebenen Werten ab und erzeugt keine Aufnahme. Die Helferplattform wird einschließlich `linux` durch die Worker-Brücke
+weitergegeben. `test_speech_connection_settings.js` prüft Speicherung, Konflikte,
+Umgebungsvorgaben, Schlüsselbehandlung und echte lokale Verbindungsabfragen.
+`test_speech_runtime_connection.js` und `test_speech_worker.js` prüfen zusätzlich
+Laufzeitwechsel, Erhalt alter Audiofreigaben, Prozessneustart, Aktivierung aus
+dem ausgeschalteten Zustand sowie Helfersitzungen und Lease-Abbruch.
+
+Auf dem Sprachserver gehören Queue, Registrierung, Leases und Wiederholungen zu `HelperDispatch`. Die vorhandenen `HelperJobs` führen weiterhin die zentrale Qualitätsprüfung und Veröffentlichung aus. `/health` kündigt die zentrale Verwaltung mit `helper_dispatch: server-v1` an; bei älteren Servern bleibt die normale Sprachgenerierung verfügbar und die Helferverwaltung zeigt den Updatebedarf an. Ein Serverwechsel ändert keine Helferzugänge auf dem bisherigen Server. Für die einmalige Migration sind neue persönliche Starter und ein Runtimepaket im Helferverzeichnis des Sprachservers erforderlich.
 
 Die Sprachplanung unter `/admin/t/<Turnier>/speech-planning/` bietet eine
 Übersicht mit Bearbeitungsreihenfolge, Disziplinen und Begründungen, ein

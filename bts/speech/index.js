@@ -48,8 +48,10 @@ function create_inline(app, config) {
         for (const key of keys) require('../admin').notify_change(app, key, 'speech_cache_changed', {});
     } });
     const prefetch = new Prefetcher(app, broker);
+    const helpers = new (require('./helpers/remote').RemoteHelpers)(broker);
+    broker.helpers = new (require('./helpers/demand').ServerDemand)(broker);
     return require('./runtime_connection').attach({
-        broker, prefetch, health,
+        broker, prefetch, health, helpers,
         configure(tournament) { prefetch.configure(tournament); },
         start() { this.started = true;broker.start(); prefetch.start(); },
         stop() { this.started = false;broker.stop(); prefetch.stop(); },
@@ -103,7 +105,7 @@ function handle_request(app, ws, msg) {
         if (!pool) return reply({ speech_error: 'helper_process_required' });
         const execute = async () => {
             if (msg.type === 'speech_helpers') return { helpers: await pool.snapshot(key), speech: public_config(speech.broker, speech.prefetch.settings(key)) };
-            if (msg.type === 'speech_helper_bundle') return { bundle: await require('./helpers/bundle').bundle(pool, msg.endpoint, speech.helper_certificate_sha256, msg.platform) };
+            if (msg.type === 'speech_helper_bundle') return { bundle: await pool.bundle(msg.endpoint, msg.platform) };
             if (msg.type === 'speech_helper_test') return { helper_job: await pool.test(key, msg.voice, msg.worker_id) };
             return { helper_control: await pool.control(msg.worker_id, msg.action) };
         };

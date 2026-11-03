@@ -13,13 +13,14 @@ var btsSpeechInfrastructure = (() => {
   speech_connection_unavailable:'Die Serverkonfiguration konnte nicht geladen werden.',
   speech_connection_read_only:'Diese BTS-Instanz bietet keine beschreibbare Konfigurationsdatei.',
   speech_connection_test_busy:'Eine Verbindungsprüfung läuft bereits.',
-  helper_runtime_missing:'Das Laufzeitpaket ist auf BTS noch nicht vorbereitet.',
+  helper_runtime_missing:'Das Laufzeitpaket ist auf dem Sprachserver noch nicht vorbereitet.',
   helper_runtime_invalid:'Das Laufzeitpaket ist unvollständig.',
   helper_process_required:'Der isolierte Sprachprozess ist noch nicht verfügbar.',
-  helper_address_not_reachable:'Bitte eine vom Helfer-Rechner erreichbare BTS-Adresse verwenden. localhost bezeichnet dort den Helfer-Rechner.',
+  helper_server_update_required:'Der Hauptsprachserver benötigt das Update für die zentrale Helferverwaltung.',
+  helper_address_not_reachable:'Bitte eine vom Helfer-Rechner erreichbare Sprachserver-Adresse verwenden. localhost bezeichnet dort den Helfer-Rechner.',
   helper_platform_invalid:'Dieses Starterformat wird nicht unterstützt.',
   helper_launcher_invalid:'Der Windows-Starter ist auf BTS nicht vollständig vorbereitet.',
-  helper_certificate_missing:'Für den Starter fehlt das BTS-Zertifikat.',
+  helper_certificate_missing:'Für HTTPS bitte den Zertifikatsfingerabdruck am Sprachserver unter BTS_HELPER_CERTIFICATE_SHA256 hinterlegen.',
   helper_update_required:'Bitte den alten Helfer stoppen und einen neuen Starter herunterladen.',
   helper_plan_changed:'Der Vorbereitungsplan hat sich geändert.',
   helper_server_changed:'Wegen Serverwechsel neu eingeplant.',
@@ -132,11 +133,11 @@ var btsSpeechInfrastructure = (() => {
  }
  function mountHelpers(root,{request}) {
   root.classList.add('speech-helper-settings');root.id='speech-helpers';
-  el(root,'p','settings-speech-help','Sprachhelfer erzeugen zusätzliche Kontextaufnahmen. Qualitätsprüfung, Zuschnitt und Aufbereitung bleiben beim Hauptsprachserver. Die Helfer verbinden sich mit BTS.');
+  el(root,'p','settings-speech-help','Sprachhelfer verbinden sich direkt mit dem Hauptsprachserver. Er verwaltet Aufträge, Vergabe und Wiederholungen sowie Qualitätsprüfung, Zuschnitt und Aufbereitung. Bestehende Helfer benötigen nach der Umstellung einen neuen Starter.');
   const instructions=el(root,'details','speech-helper-instructions');el(instructions,'summary','','Installation und Voraussetzungen');
   el(instructions,'p','','Windows 11: Die einzelne EXE herunterladen und öffnen. Das Helferfenster erklärt Änderungen, Speicherbedarf und Datenaustausch. CPU-Kerne und Modell-RAM-Abbruchgrenze werden dort gewählt; der Nutzer startet ausdrücklich. Downloadfortschritt, Status, Stoppen und Entfernen bleiben im Fenster erreichbar. Eine gesondert angebotene WSL-Einrichtung kann einen Windows-Neustart erfordern; BTP vorher speichern und beenden. Die EXE ist derzeit nicht digital signiert; Windows kann eine Herausgeberwarnung anzeigen.');
   el(instructions,'p','','Linux x86_64: Die SH-Datei herunterladen und mit bash BTS-Sprachhelfer-Linux.sh starten. Benötigt werden Python 3.8+ und Bubblewrap. Ein fehlendes Bubblewrap-Paket wird nach gesonderter Zustimmung über den Paketmanager installiert. Die Laufzeit verwendet mitgelieferte Bibliotheken; ARM wird noch nicht unterstützt. Das Menü bietet Ressourcenwahl, lokale Lastmessung, Starten und Entfernen. Strg+C stoppt die Arbeit.');
-  const endpoint=btsSettingsWorkspace.field(root,{label:'BTS-Adresse für den Helfer',description:'Muss vom Helfer-Rechner erreichbar sein. Der persönliche Starter enthält die Verbindungskonfiguration und Zugangsdaten für diesen BTS.',attributes:{type:'url',name:'speech_helper_endpoint',spellcheck:'false',required:'required'}});
+  const endpoint=btsSettingsWorkspace.field(root,{label:'Sprachserver-Adresse für den Helfer',description:'Muss vom Helfer-Rechner erreichbar sein. Der persönliche Starter erhält einen eigenen Helferzugang; der Hauptschlüssel bleibt auf BTS. Eine am Sprachserver hinterlegte öffentliche Adresse hat Vorrang.',attributes:{type:'url',name:'speech_helper_endpoint',spellcheck:'false',required:'required'}});
   const downloads=el(root,'div','settings-card-actions');
   const windows=el(downloads,'button','btn','Windows-EXE herunterladen'),linux=el(downloads,'button','btn','Linux-SH herunterladen');
   windows.type=linux.type='button';windows.name='speech_helper_windows';linux.name='speech_helper_linux';
@@ -167,10 +168,10 @@ var btsSpeechInfrastructure = (() => {
   }
   function paint(response) {
    snapshot=response.helpers;if(!snapshot)throw new Error('speech_unavailable');stale=false;
-   const audio=response.speech?.audio_endpoint;
-   if(audio){origin=audio.origin||audio.protocol+'//'+location.hostname+':'+audio.port;if(!endpointEdited&&!endpoint.value)endpoint.value=origin;}
+   const address=snapshot.endpoint;
+   if(address){origin=address;if(!endpointEdited&&endpoint.value!==address)endpoint.value=address;}
    text(runtime,snapshot.runtime?'Laufzeit: '+(snapshot.runtime.size_bytes/1024**3).toFixed(1)+' GiB, einmaliger Download':errors[snapshot.error]||'Laufzeit derzeit nicht verfügbar.');
-   text(connection,snapshot.generation?.ready?'Verbunden · reguläre Aufträge werden automatisch verteilt':snapshot.generation?.reason==='helper_profile_mismatch'?'Helferpaket passt nicht zum Sprachserver. Paket auf BTS neu erstellen und Starter erneut herunterladen.':'Wartet auf einen bereiten Hauptsprachserver für reguläre Aufträge.');
+   text(connection,snapshot.generation?.ready?'Verbunden · reguläre Aufträge werden automatisch verteilt':snapshot.generation?.reason==='helper_profile_mismatch'?'Helferpaket passt nicht zum Sprachserver. Paket auf dem Sprachserver neu erstellen und Starter erneut herunterladen.':'Wartet auf einen bereiten Hauptsprachserver für reguläre Aufträge.');
    hidden(empty,!!snapshot.workers.length);hidden(table,!snapshot.workers.length);
    const keep=new Set();
    for(const [index,worker] of snapshot.workers.entries()) {
