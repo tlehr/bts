@@ -1,3 +1,5 @@
+@import url("admin_layout.css");
+
 /* stylelint-disable no-descending-specificity */
 :root {
 	font-family: system-ui, sans-serif;
@@ -14,9 +16,9 @@ body {
 }
 
 main {
-	max-width: 1600px;
+	max-width: calc(var(--admin-content-width) + var(--admin-page-gutter) * 2);
 	margin: auto;
-	padding: 24px;
+	padding: 24px var(--admin-page-gutter);
 }
 
 header {

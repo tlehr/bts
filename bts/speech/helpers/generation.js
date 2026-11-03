@@ -68,6 +68,7 @@ class HelperGeneration {
             // Reattach persistent reservations before admission. A restart may
             // have reconstructed the same entry as unsubmitted.
             for (const job of state.jobs) {
+                if (b.reconfiguring) return;
                 const entry = b.entries.get(job.binding.key);
                 if (!entry || entry.retired || job.binding.identity !== b.identity || job.binding.profile !== profile) {
                     await this.cancel(job, entry, 'helper_plan_changed'); continue;
@@ -118,6 +119,7 @@ class HelperGeneration {
             const capacity = Math.max(0, Math.min(32, workers.length * 2) - state.jobs.length);
             const free = workers.filter(worker => !worker.job_id && !occupied.has(worker.id)).slice(0, capacity);
             for (const worker of free) {
+                if (b.reconfiguring) return;
                 let entry = b.pending_order().find(item => this.accepts(item));
                 const accept = item => this.accepts(item);
                 if (!entry && !b.regular_work_pending()) entry = b.admit_idle('idle', { accept });

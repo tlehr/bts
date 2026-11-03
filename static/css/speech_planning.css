@@ -1,3 +1,5 @@
+@import url("admin_layout.css");
+
 /* Independent UI regions share local element selectors. */
 /* stylelint-disable no-descending-specificity */
 
@@ -204,9 +206,9 @@ strong {
 }
 
 .app {
-	max-width: 1880px;
+	max-width: calc(var(--admin-content-width) + var(--admin-page-gutter) * 2);
 	margin: auto;
-	padding: 24px 30px 32px;
+	padding: 24px var(--admin-page-gutter) 32px;
 }
 
 .masthead {
@@ -1365,7 +1367,7 @@ details ul {
 
 @media (max-width: 1180px) {
 	.app {
-		padding: 18px;
+		padding: 18px var(--admin-page-gutter);
 	}
 	.workspace {
 		grid-template-columns: 220px minmax(0, 1fr);
@@ -1394,7 +1396,7 @@ details ul {
 		font-size: 25px;
 	}
 	.app {
-		padding: 13px;
+		padding: 13px var(--admin-page-gutter);
 	}
 	.page-heading,
 	.masthead {
@@ -2165,3 +2167,12 @@ main.app {
 		break-inside: avoid;
 	}
 }
+
+/* The admin workspace owns navigation and the outer scroll area. */
+.speech-planning-embedded { overflow:hidden; }
+.speech-planning-embedded main.app { max-width:none; margin:0; padding:0; }
+.speech-planning-embedded :is(.masthead,.page-heading,main>.footer) { display:none; }
+.speech-planning-embedded .speech_health_banner { display:none; }
+.speech-planning-embedded :is(.plan,.queue) { position:static; max-height:none; }
+
+.speech-planning-embedded .view-switch { flex-wrap:wrap; max-width:100%; }

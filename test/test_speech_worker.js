@@ -34,7 +34,7 @@ const rpc = (app, message, ws = {}) => new Promise(resolve => handle(app,
     { speech_tournament_key: 'default', ...ws, respond: (_msg, _err, response) => resolve(response) },
     { tournament_key: 'default', ...message }));
 
-async function fixture(tls = false, context_version = null, worker_type = 'process') {
+async function fixture(tls = false, context_version = null, worker_type = 'process', options = {}) {
     const db = await database.init_test();
     await promisify(db.tournaments.insert.bind(db.tournaments))({ key: 'default', name: 'Worker-Test', language: 'de', announcement_speech_mode: 'auto' });
     const wav = wave([[300, 0], [100, 1000], [400, 0], [100, 1000], [300, 0]]);
@@ -71,7 +71,7 @@ async function fixture(tls = false, context_version = null, worker_type = 'proce
     const app = express();
     app.db = db;
     app.config = { speech: { enabled: true, api_key: KEY, url: 'http://127.0.0.1:' + upstream.address().port,
-        cache_dir: directory, poll_interval_ms: 500, submit_interval_ms: 500, worker_type } };
+        cache_dir: directory, poll_interval_ms: 500, submit_interval_ms: 500, worker_type, ...options } };
     if (tls) {
         const key = path.join(directory, 'test.key'), cert = path.join(directory, 'test.crt');
         execFileSync('openssl', ['req', '-x509', '-newkey', 'rsa:2048', '-nodes', '-keyout', key, '-out', cert,
@@ -92,6 +92,70 @@ async function fixture(tls = false, context_version = null, worker_type = 'proce
 
 describe('Isolated speech management', function() {
     this.timeout(20000);
+
+    it('switches the upstream live while keeping its process, audio listener and existing grants', async function() {
+        const f = await fixture(false, null, 'process', {cache_enabled:false});
+        const secondKey = 'second-upstream-' + 'y'.repeat(40), secondJobs = new Map(), secondPosts = [];
+        const secondWav = wave([[300,0],[500,1400],[300,0]]);
+        const second = http.createServer((req,res) => {
+            assert.strictEqual(req.headers['x-api-key'],secondKey);
+            const json = value => {res.setHeader('Content-Type','application/json');res.end(JSON.stringify(value));};
+            if(req.url==='/health') return json({status:'ready',model:'fixture',model_revision:'1'});
+            if(req.url==='/v1/voices') return json({voices:[{voice_id:'hallensprecherin',version:'1',languages:['de-DE']}]});
+            if(req.url==='/v1/speech') {
+                let body='';req.on('data',data=>body+=data);req.on('end',()=>{
+                    const request=JSON.parse(body),job_id=crypto.createHash('md5').update(request.text).digest('hex');
+                    secondPosts.push(request);const job={...request,job_id,status:'processing'};secondJobs.set(job_id,job);json(job);
+                });return;
+            }
+            if(req.url.startsWith('/v1/jobs/')) {
+                const job=secondJobs.get(req.url.split('/').pop());assert(job,'an old job must never be polled at the new server');
+                return json({...job,status:'completed',audio:{audio_id:job.job_id}});
+            }
+            if(req.url.startsWith('/v1/audio/')) {res.setHeader('Content-Type','audio/wav');res.end(secondWav);return;}
+            res.statusCode=404;res.end();
+        });await listen(second);
+        try {
+            await until(()=>f.app.speech.public_config().audio_endpoint);
+            await rpc(f.app,{type:'speech_resolve',parts:['Ansage vor dem Wechsel']});
+            const old = await until(async()=>{const r=await rpc(f.app,{type:'speech_status',parts:['Ansage vor dem Wechsel'],audio_urls:true});return r.clips?.[0]?.status==='completed'&&r.clips[0];});
+            const pid=f.app.speech.diagnostics().pid,endpoint=f.app.speech.public_config().audio_endpoint;
+            const version=f.app.speech.public_config().cache_version,signing=Buffer.from(f.app.speech.signing_key);
+            const target={...f.app.config.speech,url:'http://127.0.0.1:'+second.address().port,api_key:secondKey};
+            await f.app.speech.reconfigure_connection(configuration(target));
+            assert.strictEqual(f.app.speech.diagnostics().pid,pid);
+            assert.deepStrictEqual(f.app.speech.public_config().audio_endpoint,endpoint);
+            assert.deepStrictEqual(f.app.speech.signing_key,signing);
+            assert.notStrictEqual(f.app.speech.public_config().cache_version,version);
+            assert.deepStrictEqual(Buffer.from(await(await fetch(f.audioURL(old.audio_url))).arrayBuffer()),f.wav);
+            await rpc(f.app,{type:'speech_resolve',parts:['Ansage nach dem Wechsel']});
+            const fresh=await until(async()=>{const r=await rpc(f.app,{type:'speech_status',parts:['Ansage nach dem Wechsel'],audio_urls:true});return r.clips?.[0]?.status==='completed'&&r.clips[0];});
+            assert(fresh.audio_url.includes('&connection='));assert(secondPosts.some(p=>p.text==='Ansage nach dem Wechsel'));
+            assert(!f.posts.some(p=>p.text==='Ansage nach dem Wechsel'));
+            assert.deepStrictEqual(Buffer.from(await(await fetch(f.audioURL(fresh.audio_url))).arrayBuffer()),secondWav);
+            assert.strictEqual((await fetch(f.audioURL(fresh.audio_url.replace(/connection=[a-f0-9]+/,'connection='+'0'.repeat(32))))).status,401);
+            await f.app.speech.reconfigure_connection(configuration({...target,enabled:false}));
+            assert.strictEqual(f.app.speech.public_config().enabled,false);
+            assert.deepStrictEqual(Buffer.from(await(await fetch(f.audioURL(fresh.audio_url))).arrayBuffer()),secondWav);
+            await f.app.speech.reconfigure_connection(configuration(target));
+            assert.strictEqual(f.app.speech.public_config().enabled,true);assert.strictEqual(f.app.speech.diagnostics().pid,pid);
+            await f.app.speech.worker.terminate();
+            await until(()=>f.app.speech.diagnostics().pid!==pid&&f.app.speech.public_config().audio_endpoint);
+            assert.deepStrictEqual(Buffer.from(await(await fetch(f.audioURL(old.audio_url))).arrayBuffer()),f.wav);
+            assert.deepStrictEqual(Buffer.from(await(await fetch(f.audioURL(fresh.audio_url))).arrayBuffer()),secondWav);
+        } finally {await f.close();await close(second);}
+    });
+
+    it('enables an initially disabled service at runtime without starting a worker beforehand', async function() {
+        const f=await fixture(false,null,'process',{enabled:false});
+        try {
+            assert.strictEqual(f.app.speech.worker,null);assert.strictEqual(f.app.speech.public_config().enabled,false);
+            await f.app.speech.reconfigure_connection(configuration({...f.app.config.speech,enabled:true}));
+            assert(f.app.speech.diagnostics().pid);assert(f.app.speech.public_config().audio_endpoint);
+            await rpc(f.app,{type:'speech_resolve',parts:['Zur Laufzeit aktiviert']});
+            await until(async()=> (await rpc(f.app,{type:'speech_status',parts:['Zur Laufzeit aktiviert']})).clips?.[0]?.status==='completed');
+        } finally {await f.close();}
+    });
 
     it('keeps an existing speech plan running when multiple admin windows load it', async function() {
         const f = await fixture();

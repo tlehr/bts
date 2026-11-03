@@ -1,7 +1,8 @@
-/* global createAnnouncementTexts, createV2SpeechPlan, btsSpeechService */
+/* global createAnnouncementTexts, createV2SpeechPlan, btsSpeechService, btsAudioDevices */
 function announcementTexts() {
     return createAnnouncementTexts({
-        tournament: curt, translate: ci18n, announce, window,
+        tournament: curt, translate: ci18n, announce,
+        window: typeof btsAudioDevices === 'undefined' ? window : {localStorage: {getItem: name => btsAudioDevices.read(name)}},
         claim: buildAnnouncementClaimKey,
     });
 }
@@ -87,7 +88,7 @@ let emergencyTournamentKey = null;
 let emergencyAudioBlocked = false;
 const ANNOUNCEMENT_DEDUP_TTL_MS = 2500;
 const ANNOUNCEMENT_TAB_ID = `${Date.now()}_${Math.random().toString(36).slice(2)}`;
-const ANNOUNCEMENT_DEVICE_ID = (() => {
+const ANNOUNCEMENT_DEVICE_ID = typeof btsAudioDevices !== 'undefined' ? btsAudioDevices.id : (() => {
     const key = 'bts-audio-device-id-v1';
     try {
         const saved = window.localStorage.getItem(key);

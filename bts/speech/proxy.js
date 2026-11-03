@@ -59,7 +59,7 @@ module.exports = function audio_proxy(req, res) {
     const broker = req.app.speech?.broker;
     const { tournament_key, audio_id } = req.params;
     const playback = req.query.playback || '';
-    if (!broker?.authorize(tournament_key, audio_id, req.query.expires, req.query.signature, playback)) {
+    if (!broker?.authorize(tournament_key, audio_id, req.query.expires, req.query.signature, playback, req.query.connection)) {
         res.status(401).json({ error: 'invalid_audio_grant' });
         return;
     }
@@ -67,6 +67,7 @@ module.exports = function audio_proxy(req, res) {
         res.status(503).json({ error: 'audio_proxy_busy' });
         return;
     }
+    const connection = broker.audio_connection(req.query.connection);
     broker.audio_clients++;
     let upstream, released = false;
     const fail = error => {
@@ -95,13 +96,13 @@ module.exports = function audio_proxy(req, res) {
         res.setHeader('Referrer-Policy', 'no-referrer');
     };
     const cache = playback ? cacheFor(broker) : null;
-    const cacheKey = audio_id + ':' + playback;
+    const cacheKey = (req.query.connection || '') + ':' + audio_id + ':' + playback;
     if (cache?.items.has(cacheKey)) {
         const record = cache.items.get(cacheKey);
         cache.items.delete(cacheKey); cache.items.set(cacheKey, record);
         headers(); playbackResponse(req, res, record); return;
     }
-    const local = broker.disk?.file(audio_id);
+    const local = connection.disk?.file(audio_id);
     if (local) {
         headers();
         if (playback) {
@@ -124,10 +125,10 @@ module.exports = function audio_proxy(req, res) {
         }
         return;
     }
-    const target = new URL('/v1/audio/' + audio_id, broker.config.base_url);
+    const target = new URL('/v1/audio/' + audio_id, connection.config.base_url);
     upstream = (target.protocol === 'https:' ? https : http).request(target, {
         headers: {
-            'X-API-Key': broker.config.api_key,
+            'X-API-Key': connection.config.api_key,
             ...(!playback && req.headers.range ? { Range: req.headers.range } : {}),
             ...(!playback && req.headers['if-range'] ? { 'If-Range': req.headers['if-range'] } : {}),
         },
@@ -137,7 +138,7 @@ module.exports = function audio_proxy(req, res) {
             audio.resume(); fail();
             // A server restart/cleanup must not keep a stale completed reference forever.
             for (const entry of broker.entries.values()) {
-                if (entry.audio_id === audio_id) { entry.status = 'unsubmitted'; entry.retry_at = 0; }
+                if (req.query.connection === broker.connection_generation && entry.audio_id === audio_id) { entry.status = 'unsubmitted'; entry.retry_at = 0; }
             }
             return;
         }

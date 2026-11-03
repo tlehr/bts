@@ -360,7 +360,7 @@ function pause_scroll() {
 	setTimeout(() => {
 		is_paused = false;
 		auto_scroll();
-	}, parseInt((curt && curt.upcoming_matches_animation_pause) ? curt.upcoming_matches_animation_pause : 4) * 1000);
+	}, Number((curt && curt.upcoming_matches_animation_pause) ? curt.upcoming_matches_animation_pause : 4) * 1000);
 }
 
 function resize_table(resizable_rows, table_width_factor) {
@@ -903,7 +903,9 @@ function create_match_prepparation_button(targetEl, cssClass, title, listener, m
 		'data-location_id': location._id,
 	});
 
-	uiu.el(btn, 'img', {
+	if (typeof cleitstand !== 'undefined' && typeof cleitstand.preparationIcon === 'function') {
+		cleitstand.preparationIcon(btn, location, curt.key);
+	} else uiu.el(btn, 'img', {
 		style: 'height: 1.2em; margin-top: 0.2em;',
 		src: location.logo_id ? '/h/' + encodeURIComponent(curt.key) + '/logo/' + location.logo_id : '/static/icons/preparation.svg',
 		name: 'location_logo_img',
@@ -2624,8 +2626,8 @@ function fetchMatchFromEvent(e) {
 	}
 }
 function fetchLocationFromEvent(e) {
-	const btn = e.target;
-	const location_id = btn.getAttribute('data-location_id');
+	const btn = e.currentTarget?.hasAttribute('data-location_id') ? e.currentTarget : e.target?.closest('[data-location_id]');
+	const location_id = btn?.getAttribute('data-location_id');
 	const location = utils.find(curt.locations, l => l._id === location_id);
 	if (!location) {
 		cerror.silent('Location ' + location_id + ' konnte nicht gefunden werden');
@@ -4339,7 +4341,7 @@ function refresh_unassigned_preparation_context() {
 			}
 			if (!debug) continue;
 			update_preparation_row_status(row, match, {callable, cutoff, frontier});
-			if (typeof cleitstand !== 'undefined') cleitstand.decorateControls(row);
+			if (typeof cleitstand !== 'undefined' && cleitstand.decorateControls(row)) controls_changed = true;
 		}
 		if (typeof cleitstand !== 'undefined') cleitstand.refreshUnassigned(container,{controlsChanged:controls_changed});
 	});

@@ -117,6 +117,43 @@ describe('BTP fetch and integration pipeline', function() {
 		else process.env.BTS_BTP_FETCH_HARD_TIMEOUT_MS = old_timeout;
 	});
 
+	it('records real completion time only after the entire integration succeeds', async function() {
+		const { conn, state, sent } = current;
+		let real_time = 1700000000000;
+		conn.app.clock = {real_now_ms: () => real_time, now_ms: () => 123};
+		conn.last_successful_fetch_ts = real_time - 60000;
+		const blocker = await block_tournament(conn), fetch = conn.fetch(conn, false);
+		await sent;
+		state.reply(RESPONSE);
+		try {
+			await wait_for_integration(conn);
+			assert.strictEqual(conn.last_successful_fetch_ts, real_time - 60000);
+			real_time += 3000;
+		} finally {blocker.release();}
+		assert.strictEqual(await fetch, true);
+		await blocker.done;
+		assert.strictEqual(conn.last_successful_fetch_ts, real_time);
+	});
+
+	it('counts a successfully checked unchanged snapshot as a successful fetch', async function() {
+		const { conn, state, sent } = current;
+		conn.app.clock = {real_now_ms: () => 1700000000000, now_ms: () => 123};
+		state.skip = true;
+		const fetch = conn.fetch(conn, false);await sent;state.reply(RESPONSE);
+		assert.strictEqual((await fetch).reason, 'no_sync_changes');
+		assert.strictEqual(conn.last_successful_fetch_ts, 1700000000000);
+		assert.strictEqual(state.preparations, 0);
+	});
+
+	it('retains the previous successful time after an integration failure', async function() {
+		const { conn, state, sent } = current;
+		conn.last_successful_fetch_ts = 1700000000000;
+		btp_sync.sync_btp_data = async () => {throw new Error('Synthetic failed integration');};
+		const fetch = conn.fetch(conn, false);await sent;state.reply(RESPONSE);
+		await assert.rejects(fetch, /Synthetic failed integration/);
+		assert.strictEqual(conn.last_successful_fetch_ts, 1700000000000);
+	});
+
 	it('passes decoder wire hashes and JSON into planning without hashing again on the main thread', async function() {
 		const { conn, state, sent } = current;
 		const response = structuredClone(RESPONSE), json = JSON.stringify(response);
@@ -248,6 +285,7 @@ describe('BTP fetch and integration pipeline', function() {
 	for (const change of ['reset', 'disable', 'terminate']) {
 		it(`discards a queued snapshot after ${change}`, async function() {
 			const { conn, state, tournament, sent } = current;
+			conn.last_successful_fetch_ts = 1700000000000;
 			const blocker = await block_tournament(conn);
 			const fetch = conn.fetch(conn, true);
 			try {
@@ -265,6 +303,7 @@ describe('BTP fetch and integration pipeline', function() {
 			assert.strictEqual(state.applies, 0);
 			assert.strictEqual(state.preparations, 0);
 			assert.strictEqual(conn.last_applied_fetch_response_hash, undefined);
+			assert.strictEqual(conn.last_successful_fetch_ts, 1700000000000);
 			assert.strictEqual(state.schedules, 0);
 		});
 	}

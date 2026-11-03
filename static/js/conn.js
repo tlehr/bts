@@ -1,5 +1,5 @@
 'use strict';
-/* global btsSpeechHealth, btsAdminUpdates */
+/* global btsSpeechHealth, btsAdminUpdates, btsAudioDevices */
 var conn = (function(on_status, on_change) {
 var ws;
 var reconnect_duration = 500;
@@ -186,6 +186,9 @@ function handle_message(ws_msg) {
 	}
 
 	switch (msg.type) {
+	case 'audio_devices':
+		if (typeof btsAudioDevices !== 'undefined') btsAudioDevices.receive(msg);
+		break;
 	case 'emergency_playback':
 		if (typeof emergency_announce === 'function') emergency_announce(msg.enable === true);
 		break;
@@ -244,6 +247,7 @@ function connect() {
 
 	ws = new WebSocket(_construct_url(WS_PATH), 'bts-admin');
 	ws.onopen = function() {
+		if (typeof btsAudioDevices !== 'undefined') btsAudioDevices.reconnect();
 		if (typeof btsSpeechHealth !== 'undefined') send({ type: 'speech_health_subscribe' }, () => {});
 		on_status({
 			code: 'connected',
@@ -251,6 +255,7 @@ function connect() {
 	};
 	ws.onmessage = handle_message;
 	ws.onclose = function() {
+		if (typeof btsAudioDevices !== 'undefined') btsAudioDevices.disconnected();
 		if (typeof emergency_announce === 'function') emergency_announce(false);
 		if (typeof btsAdminUpdates !== 'undefined') btsAdminUpdates.reset();
 		if (typeof btsSpeechHealth !== 'undefined') btsSpeechHealth.disconnected();

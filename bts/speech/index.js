@@ -15,7 +15,7 @@ function create(app) {
         const config = configuration(app.config.speech);
         if (config.configured && !config.enabled) health.fail('configuration', new Error('speech_configuration_missing'), false);
         if (!config.cache_dir && app.db?.tournaments?.filename) config.cache_dir = path.join(path.dirname(app.db.tournaments.filename), 'speech-cache');
-        return protect(config.enabled && config.worker ? new (require('./worker_client'))(app, config) : create_inline(app, config));
+        return protect(config.worker ? new (require('./worker_client'))(app, config) : create_inline(app, config));
     } catch (error) {
         health.fail('initialization', error, false);
         const public_config = () => ({ enabled: false, last_error: 'speech_unavailable' });
@@ -48,18 +48,18 @@ function create_inline(app, config) {
         for (const key of keys) require('../admin').notify_change(app, key, 'speech_cache_changed', {});
     } });
     const prefetch = new Prefetcher(app, broker);
-    return {
+    return require('./runtime_connection').attach({
         broker, prefetch, health,
         configure(tournament) { prefetch.configure(tournament); },
-        start() { broker.start(); prefetch.start(); },
-        stop() { broker.stop(); prefetch.stop(); },
+        start() { this.started = true;broker.start(); prefetch.start(); },
+        stop() { this.started = false;broker.stop(); prefetch.stop(); },
         loaded(tournament, ws) {
             ws.speech_tournament_key = tournament.key;
             prefetch.subscribe(tournament.key, tournament);
             tournament.speech = public_config(broker, prefetch.settings(tournament.key));
         },
         changed(key, type, value) { prefetch.changed(key, type, value); },
-    };
+    });
 }
 
 function handle(app, ws, msg) {

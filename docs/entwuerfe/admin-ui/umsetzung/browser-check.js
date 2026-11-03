@@ -24,8 +24,20 @@ class CDP {
    const url=new URL(req.url,'http://localhost');
    let filename=path.resolve(root,'.'+decodeURIComponent(url.pathname));
    if(url.pathname==='/favicon.ico'){res.writeHead(204);res.end();return;}
+   // BTS generates these entry pages at runtime. Settings form tests do not
+   // exercise the separate BUP application embedded in its preview frames.
+   if(['/bup/','/bupdev/'].includes(url.pathname)){res.writeHead(200,{'Content-Type':'text/html; charset=utf-8'});res.end('<!doctype html><html><body>Vorschau im isolierten Formulartest</body></html>');return;}
+   if(url.pathname==='/h/preview/logo/fixture-court.svg'){res.writeHead(200,{'Content-Type':'image/svg+xml'});fs.createReadStream(path.join(root,'static/icons/court.svg')).pipe(res);return;}
    if(url.pathname.startsWith('/bup/'))filename=path.join(root,'static/bup/dev',url.pathname.slice(5));
    if(url.pathname.startsWith('/bupdev/'))filename=path.join(root,'static/bup/dev',url.pathname.slice(8));
+   if(url.pathname==='/admin/t/preview/speech-helpers/'){res.writeHead(302,{Location:'/admin/t/preview/edit/speech#speech-helpers'});res.end();return;}
+   if(url.pathname==='/admin/t/preview/speech-planning/plan/') {
+    let html=fs.readFileSync(path.join(root,'docs/sprachgenerierung-reihenfolge.html'),'utf8');
+    html=html.replace('</style>','</style><link rel="stylesheet" href="/static/css/speech_planning.css">')
+     .replace('</head>','<link rel="stylesheet" href="/static/css/speech_health.css"></head>')
+     .replace('</html>','<script src="/static/js/speech_health.js"></script><script src="/static/js/speech_planning_games.js"></script><script src="/static/js/speech_planning.js"></script></html>');
+    res.writeHead(200,{'Content-Type':'text/html; charset=utf-8'});res.end(html);return;
+   }
    if(url.pathname.startsWith('/admin/t/preview')) {
     const html=fs.readFileSync(path.join(root,'static/cbts.html'),'utf8').replaceAll('{{static_path}}','/static/').replaceAll('{{root_path}}','/').replaceAll('{{app_root}}','/admin/').replaceAll('{{error_reporting}}','false').replace(/<script src="[^"]*cadmin.js"><\/script>/,'');
     res.writeHead(200,{'Content-Type':'text/html; charset=utf-8'});res.end(html);return;
@@ -34,6 +46,15 @@ class CDP {
    try{if(fs.statSync(filename).isDirectory())filename=path.join(filename,'index.html');const ext=path.extname(filename);res.writeHead(200,{'Content-Type':({'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.mjs':'text/javascript; charset=utf-8','.wasm':'application/wasm','.css':'text/css; charset=utf-8','.svg':'image/svg+xml','.png':'image/png','.xml':'application/xml'}[ext]||'application/octet-stream'),'Cache-Control':'no-store'});fs.createReadStream(filename).pipe(res);}
    catch(error){res.writeHead(404);res.end();}
   });
+  const plannerSockets=new WebSocket.Server({server,path:'/ws/admin'});
+  plannerSockets.on('connection',socket=>socket.on('message',raw=>{
+   const message=JSON.parse(raw), response={rid:message.rid,type:message.type};
+   if(message.type==='tournament_get')response.tournament={key:'preview'};
+   if(message.type==='speech_planning')response.planning={state:'complete',phase:'competition',title:'Jugend-Rangliste 2026',voice:'hallensprecherin',games:{planned:12,preparation:2,oncourt:13},stages:[],current:null,total:{ready:0,queued:0,total:0,failed:0}};
+   if(message.type==='speech_queue')response.queue={items:[]};
+   if(message.type==='speech_games')response.games={items:[],now_ts:Date.now()};
+   socket.send(JSON.stringify(response));
+  }));
   await new Promise(r=>server.listen(0,'127.0.0.1',r));
   const base='http://127.0.0.1:'+server.address().port+'/static/mockups/admin/';
   profile=fs.mkdtempSync(path.join(os.tmpdir(),'bts-ui-preview-'));
@@ -55,8 +76,8 @@ class CDP {
    await c.evaluate(fs.readFileSync(path.join(__dirname,'fixture.js'),'utf8'));
    await until(()=>c.evaluate(`!!document.querySelector('.leitstand .ls-match')`));await c.evaluate('document.fonts.ready');await delay(150);
   }
-  async function snap(name,full=false){
-   await c.evaluate("window.scrollTo(0,0);document.querySelectorAll('.board-toast').forEach(node=>node.hidden=true);");
+  async function snap(name,full=false,{preserveScroll=false}={}){
+   await c.evaluate((preserveScroll ? '' : 'window.scrollTo(0,0);') + "document.querySelectorAll('.board-toast').forEach(node=>node.hidden=true);");
    const params={format:'png',captureBeyondViewport:full};
    if(full){const m=await c.call('Page.getLayoutMetrics');params.clip={x:0,y:0,width:Math.max(m.cssContentSize.width,await c.evaluate('innerWidth')),height:Math.min(m.cssContentSize.height,2400),scale:1};}
    const shot=await c.call('Page.captureScreenshot',params);
@@ -152,6 +173,9 @@ class CDP {
   if(process.argv.includes('--announcement-dialog-only')) {
    await require('./announcement-dialog-check')({c,check,click,open,metrics,previews,key});return;
   }
+  if(process.argv.includes('--audio-activation-only')) {
+   await require('./audio-activation-check')({c,check,click,open,metrics,previews,key,capture:snap});return;
+  }
   if(process.argv.includes('--announcement-editor-only')) {
    await require('./announcement-editor-check')({c,check,click,open,metrics,previews,key});return;
   }
@@ -163,6 +187,36 @@ class CDP {
   }
   if(process.argv.includes('--certificates-only')) {
    await require('./certificates-check')({c,check,click,open,metrics,previews,key});return;
+  }
+  if(process.argv.includes('--settings-workspace-only')) {
+   await require('./settings-workspace-check')({c,check,click,open,metrics,previews,key,capture:snap});return;
+  }
+  if(process.argv.includes('--preparation-icons-only')) {
+   await require('./preparation-icons-check')({c,open,metrics,key,capture:snap,check,previews});return;
+  }
+  if(process.argv.includes('--speech-infrastructure-only')) {
+   await require('./settings-speech-infrastructure-check.js')({c,open,metrics,capture:snap,verify:check});return;
+  }
+  if(process.argv.includes('--settings-speech-only')) {
+   await require('./settings-speech-check')({c,open,metrics,capture:snap,check,previews});return;
+  }
+  if(process.argv.includes('--settings-locations-only')) {
+   await require('./settings-locations-check')({c,open,metrics,key,capture:snap,check,previews});return;
+  }
+  if(process.argv.includes('--settings-scoring-only')) {
+   await require('./settings-scoring-check')({c,open,metrics,key,capture:snap,check,previews});return;
+  }
+  if(process.argv.includes('--duration-dialogs-only')) {
+   await open(1440,1000);await click('.leitstand-nav a[href$="/edit"]');
+   await until(()=>c.evaluate('!!document.querySelector(".page-settings")'));
+   await require('./settings-duration-dialogs-check')({c,verify:check,capture:snap});
+   assert(!c.events.some(event=>event.method==='Runtime.exceptionThrown'),'Duration dialogs have no browser exceptions');return;
+  }
+  if(process.argv.includes('--duration-editing-only')) {
+   await open(1440,1000);await click('.leitstand-nav a[href$="/edit"]');
+   await until(()=>c.evaluate('!!document.querySelector(".page-settings")'));
+   await require('./settings-duration-editing-check')({c,verify:check,key,capture:snap});
+   assert(!c.events.some(event=>event.method==='Runtime.exceptionThrown'),'Duration editing has no browser exceptions');return;
   }
   if(process.argv.includes('--compact-density-only')) {
    await require('./compact-density-check')({c,check,click,open,metrics,previews,capture:snap});return;

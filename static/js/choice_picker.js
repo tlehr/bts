@@ -7,9 +7,10 @@ var btsChoicePicker = (() => {
  const instances = new Set();
  let sequence = 0;
  const attr = (node, name, value) => {if (node.getAttribute(name) !== String(value)) node.setAttribute(name, String(value));};
- function create(select, {icon, beforeOpen}) {
+ function create(select, {icon, beforeOpen, renderSymbol}) {
   const lifetime = new AbortController(), {signal} = lifetime, id = 'choice-picker-' + (++sequence);
-  const label = select.closest('label'), caption = label?.querySelector('.match_edit_field_label'), oldFor = label?.htmlFor || '';
+  const wrappingLabel = select.closest('label'), label = wrappingLabel || select.labels?.[0];
+  const caption = wrappingLabel?.querySelector('.match_edit_field_label') || (!wrappingLabel ? label : null), oldFor = label?.htmlFor || '';
   const wrapper = document.createElement('span');wrapper.className = 'ls-choice-picker';wrapper.dataset.field = select.name;
   select.before(wrapper);wrapper.append(select);select.hidden = true;
   const trigger = document.createElement('button');trigger.type = 'button';trigger.id = id;trigger.className = 'ls-choice-trigger';
@@ -29,6 +30,7 @@ var btsChoicePicker = (() => {
   popup.dataset.field = select.name;popup.setAttribute('role', 'listbox');popup.setAttribute('aria-label', caption?.textContent || select.name);document.body.append(popup);
   const rows = new Map();let items = [], active = null, disposed = false, rowSequence = 0;
   function drawSymbol(node, option) {
+   if (renderSymbol) {renderSymbol(node, option);return;}
    const court = option?.dataset.courtNumber, symbolName = option?.dataset.icon || 'info';
    const key = court != null ? 'court:' + court : symbolName;
    if (node.dataset.symbol === key) return;
@@ -48,9 +50,10 @@ var btsChoicePicker = (() => {
    const message = select.validationMessage;
    attr(trigger, 'aria-invalid', !!message);
    if (select.hasAttribute('aria-required')) attr(trigger, 'aria-required', select.getAttribute('aria-required'));
-   error.hidden = !message;
+   if (error.hidden !== !message) error.hidden = !message;
    if (errorText.textContent !== message) errorText.textContent = message;
-   if (message) attr(trigger, 'aria-describedby', error.id);else trigger.removeAttribute('aria-describedby');
+   const description = [select.getAttribute('aria-describedby'), message ? error.id : null].filter(Boolean).join(' ');
+   if (description) attr(trigger, 'aria-describedby', description);else trigger.removeAttribute('aria-describedby');
   }
   function position() {
    if (popup.hidden) return;
@@ -81,7 +84,7 @@ var btsChoicePicker = (() => {
      node.addEventListener('mousemove', () => {if (!row.disabled) activate(row);}, {signal});
     }
     row.option = option;row.disabled = option.disabled || option.parentElement.disabled;
-    row.node.dataset.value = option.value;row.node.dataset.level = option.dataset.level || '0';row.node.dataset.kind = option.dataset.kind || '';
+    attr(row.node, 'data-value', option.value);attr(row.node, 'data-level', option.dataset.level || '0');attr(row.node, 'data-kind', option.dataset.kind || '');
     attr(row.node, 'aria-selected', option.selected);attr(row.node, 'aria-disabled', row.disabled);
     if (row.text.textContent !== option.textContent) row.text.textContent = option.textContent;
     drawSymbol(row.symbol, option);items.push(row);
@@ -91,9 +94,9 @@ var btsChoicePicker = (() => {
    const selected = select.selectedOptions[0];
    if (text.textContent !== (selected?.textContent || '')) text.textContent = selected?.textContent || '';
    if (context.textContent !== (selected?.dataset.context || '')) context.textContent = selected?.dataset.context || '';
-   context.hidden = !context.textContent;drawSymbol(symbol, selected);
+   if (context.hidden !== !context.textContent) context.hidden = !context.textContent;drawSymbol(symbol, selected);
    attr(trigger, 'aria-label', [caption?.textContent, text.textContent, context.textContent].filter(Boolean).join(' '));
-   trigger.disabled = select.disabled;refreshValidity();
+   if (trigger.disabled !== select.disabled) trigger.disabled = select.disabled;refreshValidity();
    if (select.disabled) close();
    else if (!popup.hidden) {if (!items.includes(active)) activate(items.find(row => row.option.selected) || items.find(row => !row.disabled));position();}
   }
@@ -133,6 +136,7 @@ var btsChoicePicker = (() => {
   document.addEventListener('scroll', event => {if (!popup.contains(event.target)) position();}, {capture: true, signal});
   window.addEventListener('resize', position, {signal});
   const api = {refresh, close, destroy() {
+   if (disposed) return;
    disposed = true;lifetime.abort();popup.remove();instances.delete(api);
    select.hidden = false;wrapper.replaceWith(select);if (label) label.htmlFor = oldFor;
   }};

@@ -150,7 +150,7 @@ var cleitstand = (function() {
   function writeStorage(key,value) {try{localStorage.setItem(key,value);return true;}catch{return false;}}
   function el(parent,tag,className,text) {const node=document.createElement(tag);if(className)node.className=className;if(text!=null)node.textContent=text;if(parent)parent.append(node);return node;}
   function toast(text) {if(!root)return;let node=root.querySelector('.board-toast');if(!node){node=el(root,'div','board-toast');node.setAttribute('role','status');}node.textContent=text;node.hidden=false;clearTimeout(toast.timeout);toast.timeout=setTimeout(()=>{node.hidden=true;},3200);}
-  function active(node) {return !!node?.closest?.('.leitstand');}
+  function active(node) {return !!root&&node?.closest?.('.leitstand')===root;}
   function nameParts(person={}) {
     const clean=value=>String(value||'').trim().replace(/\s+/g,' ');
     const first=clean(person.firstname),middle=clean(person.middlename);
@@ -724,6 +724,24 @@ var cleitstand = (function() {
     if(!node.classList.contains('ls-icon-action'))node.classList.add('ls-icon-action');
     if(node.tagName!=='BUTTON'&&node.tagName!=='A') {setAttribute(node,'role','button');setAttribute(node,'tabindex',0);}
   }
+  function preparationIcon(node,location,tournamentKey) {
+    const short=String(location.short_name||'').trim()||String(location.name||'').trim().split(/\s+/).filter(Boolean).map(word=>Array.from(word)[0]).join('').slice(0,3).toLocaleUpperCase();
+    const src=location.logo_id?'/h/'+encodeURIComponent(tournamentKey)+'/logo/'+encodeURIComponent(location.logo_id):null;
+    const signature=JSON.stringify([src,src?null:short,String(location._id)]);
+    if(node.dataset.preparationIcon===signature)return false;
+    node.dataset.preparationIcon=signature;
+    if(!node.classList.contains('ls-preparation-call-symbol'))node.classList.add('ls-preparation-call-symbol');
+    node.classList.toggle('has-custom-preparation-icon',!!src);
+    node.replaceChildren();
+    if(src) {
+      const image=el(node,'img','ls-preparation-custom-icon');image.alt='';image.draggable=false;image.src=src;
+    } else {
+      node.innerHTML=icon('mic');
+      const caption=el(node,'span','ls-call-location',short);caption.dataset.location_id=location._id;
+    }
+    setAttribute(node,'data-location-short-name',short);
+    return true;
+  }
   function maxSetCount(tournament=model) {
     const formats=Array.isArray(tournament?.scoring_formats?.formats)?tournament.scoring_formats.formats:[];
     const defaultFormat=formats.find(format=>String(format.id)===String(tournament.scoring_formats.default_id))||formats[0];
@@ -1151,10 +1169,18 @@ var cleitstand = (function() {
     checkInTarget(name,show&&people.every(value=>value.btp_id!=null&&Number(value.btp_id)>=0),checked);
   }
   function decorateControls(row) {
+    let preparationChanged=false;
     row.querySelectorAll('.timer').forEach(node=>{if(!node.querySelector('.timer-value'))timerDisplay(node,node.textContent);});
-    const selectors=[['.match_second_call_button,.match_second_preparation_call_button','bell'],['.match_preparation_call_button','mic'],['.match_manual_call_button','speaker'],['.match_begin_to_play_button','play']];
+    const selectors=[['.match_second_call_button,.match_second_preparation_call_button','bell'],['.match_manual_call_button','speaker'],['.match_begin_to_play_button','play']];
     for(const [selector,name] of selectors)row.querySelectorAll(selector).forEach(node=>actionIcon(node,name));
-    row.querySelectorAll('.match_preparation_call_button[data-location_id]').forEach(node=>{const place=model.locations.find(location=>String(location._id)===String(node.dataset.location_id));if(place){const short=place.short_name||place.name?.slice(0,3)||'';if(node.dataset.locationShortName!==short)node.dataset.locationShortName=short;const caption=node.querySelector('.ls-call-location')||el(node,'span','ls-call-location');if(caption.textContent!==short)caption.textContent=short;if(caption.dataset.location_id!==node.dataset.location_id)caption.dataset.location_id=node.dataset.location_id;if(place.name&&!node.title.includes(place.name))node.title+=' · '+place.name;setAttribute(node,'aria-label',node.title);}});
+    row.querySelectorAll('.match_preparation_call_button[data-location_id]').forEach(node=>{
+      const place=model.locations.find(location=>String(location._id)===String(node.dataset.location_id));if(!place)return;
+      if(preparationIcon(node,place,model.key))preparationChanged=true;
+      if(!node.classList.contains('ls-icon-action'))node.classList.add('ls-icon-action');
+      setAttribute(node,'role','button');setAttribute(node,'tabindex',0);
+      if(place.name&&!node.title.includes(place.name))node.title+=' · '+place.name;
+      setAttribute(node,'aria-label',node.title);
+    });
     row.querySelectorAll('.umpire_and_tablet .umpire,.umpire_and_tablet .service_judge,.umpire_and_tablet .tablet,.no_umpire').forEach(node=>{
       const name=node.classList.contains('service_judge')?'serviceJudge':node.classList.contains('umpire')?'umpire':node.classList.contains('tablet')?'tablet':'people';
       if(!node.classList.contains('ls-role-icon')){node.innerHTML=icon(name);node.classList.add('ls-role-icon');}setAttribute(node,'aria-label',name==='umpire'?'Schiedsrichter':name==='serviceJudge'?'Aufschlagrichter':name==='tablet'?'Tabletbedienung':'Offizielle zuweisen');
@@ -1168,6 +1194,7 @@ var cleitstand = (function() {
       if(buttons.length&&!group) {group=el(null,'span','ls-preparation-calls');calls.insertBefore(group,buttons[0]);}
       if(group)for(const node of buttons)if(node.parentElement!==group)group.append(node);
     }
+    return preparationChanged;
   }
   function preparationLayout(table) {
     let width=92;
@@ -2235,17 +2262,17 @@ var cleitstand = (function() {
     const base='/admin/t/'+encodeURIComponent(tournament.key);
     const first=top.querySelector('.toprow_link');if(first){
       first.replaceChildren();
-      const certificates=activePath==='/certificates';
-      const mark=el(first,'span','board-brand-mark');mark.setAttribute('aria-hidden','true');mark.innerHTML=icon(certificates?'certificate':'court');
-      const title=el(first,'span','board-page-title',certificates?'BTS – Urkunden':'BTS – Turnierleitung');
-      if(certificates){title.id='leitstand-page-title';title.setAttribute('role','heading');title.setAttribute('aria-level','1');title.tabIndex=-1;}
+      const page={'/certificates':{title:'Urkunden',symbol:'certificate'},'/edit':{title:'Einstellungen',symbol:'settings'},'/speech-planning/':{title:'Sprachsystem',symbol:'mic'}}[activePath];
+      const mark=el(first,'span','board-brand-mark');mark.setAttribute('aria-hidden','true');mark.innerHTML=icon(page?.symbol||'court');
+      const title=el(first,'span','board-page-title','BTS – '+(page?.title||'Turnierleitung'));
+      if(page){title.id='leitstand-page-title';title.setAttribute('role','heading');title.setAttribute('aria-level','1');title.tabIndex=-1;}
     }
     top.querySelector('.leitstand-nav')?.remove();
     const nav=el(top,'nav','leitstand-nav');nav.setAttribute('aria-label','Hauptnavigation');
     for(const [label,path,symbol]of [['Turnierleitung','/','court'],['Anmeldung','/registration_control','people'],['Urkunden','/certificates','certificate'],['Sprachsystem','/speech-planning/','mic'],['Geräte & Logs',null,'monitor'],['Einstellungen','/edit','settings']]){
       const link=navLink(nav,label,path?base+path:'/admin/diagnostics/',symbol);
       if(path===activePath)link.setAttribute('aria-current','page');
-      if(path&&path!=='/speech-planning/')link.onclick=event=>{
+      if(path)link.onclick=event=>{
         if(event.button===0&&!event.ctrlKey&&!event.metaKey&&!event.shiftKey&&!event.altKey){event.preventDefault();crouting.navigate_to('t/'+encodeURIComponent(tournament.key)+path);}
       };
     }
@@ -2353,7 +2380,7 @@ var cleitstand = (function() {
     timerObserver?.disconnect();timerObserver=null;timerValues.clear();dirtyTimers.clear();timerFittings.clear();preparationWidths.clear();if(timerFrame!==null)cancelAnimationFrame(timerFrame);timerFrame=null;timerComplete=null;
     document.querySelector('.leitstand-header')?.classList.remove('leitstand-header','has-stacked-navigation');root=null;searchControl=null;
   }
-  return {mount,unmount,navigation,active,row,refreshRow,emptyRow,updateScore,updateMatchMetadata,score,timerDisplay,timerVisibilityChanged,deviceLocations,automation,refreshOperators,refreshCounts,refreshFinished,refreshTablets,tabletDevices,refreshScoreLayout,maxSetCount,matchTimes,matchDay,sortFinishedMatches,nameStages,matchDrag,clearMatchDrag,decorateControls,matchDialog,matchProtocolEvent,updateMatchRemarks,refreshCourtAssignment,refreshCallStatus,restoreDialogFocus,officialPicker,choicePicker,clearDialogPickers,closeDialogPickers,tabletAssignmentIcon,operatorQueue,rotationIcons,player,participant,refreshUnassigned,refreshDates:refreshDateGroups,btpSync,
+  return {icon,preparationIcon,mount,unmount,navigation,active,row,refreshRow,emptyRow,updateScore,updateMatchMetadata,score,timerDisplay,timerVisibilityChanged,deviceLocations,automation,refreshOperators,refreshCounts,refreshFinished,refreshTablets,tabletDevices,refreshScoreLayout,maxSetCount,matchTimes,matchDay,sortFinishedMatches,nameStages,matchDrag,clearMatchDrag,decorateControls,matchDialog,matchProtocolEvent,updateMatchRemarks,refreshCourtAssignment,refreshCallStatus,restoreDialogFocus,officialPicker,choicePicker,clearDialogPickers,closeDialogPickers,tabletAssignmentIcon,operatorQueue,rotationIcons,player,participant,refreshUnassigned,refreshDates:refreshDateGroups,btpSync,
     pendingUpdates:()=>[...pendingUpdates.keys()],
     isUpdating:()=>nameFrame!==null||timerFrame!==null||dirtyTimers.size>0||countsPending||finishedSortPending||!!navigationContext?.frame};
 })();

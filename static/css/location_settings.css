@@ -1,0 +1,54 @@
+.page-settings .settings-locations,.page-settings .locations_div { display:grid; gap:20px; }
+.page-settings .settings-locations .settings-card-heading>div { flex:1; min-width:0; }
+.page-settings .settings-location-card h2 { overflow-wrap:anywhere; }
+.page-settings .settings-location-mark { display:inline-block; flex:0 0 12px; width:12px; height:12px; border:1px solid #21323526; border-radius:3px; background:var(--hall,#eef2f1); vertical-align:middle; }
+.page-settings .settings-location-color>.ls-choice-trigger { display:flex; align-items:center; gap:8px; width:100%; min-width:0; min-height:38px; margin:0; padding:8px 10px; border:1px solid #cfdad6; border-radius:5px; background:#fff; color:var(--ink); font:inherit; line-height:1.4; text-align:left; cursor:pointer; }
+.page-settings .settings-location-color>.ls-choice-trigger:hover { border-color:#a8bfb5; }
+.settings-color-swatch { display:block; flex-shrink:0; width:16px; height:16px; box-sizing:border-box; border:1px solid #21323540; border-radius:3px; forced-color-adjust:none; }
+.settings-color-swatch.highlight_0 { background:#eef2f1; }
+.settings-color-options .ls-choice-option { min-height:40px; box-sizing:border-box; }
+.page-settings .settings-location-icon { display:flex; align-items:center; gap:14px; }
+.page-settings .settings-location-icon>.settings-location-symbol { flex:0 0 60px; height:40px; }
+.page-settings .settings-location-symbol>:is(.ico,.ls-preparation-custom-icon) { width:36px; height:36px; }
+.page-settings .settings-location-symbol>.ico { margin-right:-6.3px; }
+.page-settings .settings-location-symbol>.ls-call-location { font-size:14px; }
+.page-settings .settings-location-icon>div { min-width:0; flex:1; }
+.page-settings .settings-location-icon input[type=file] { display:block; width:100%; max-width:100%; padding:0; min-height:0; font:inherit; font-size:12px; }
+.page-settings .settings-location-icon input::file-selector-button { margin:0 8px 4px 0; padding:6px 10px; border:1px solid #cfdad6; border-radius:5px; background:#fff; color:var(--ink); font:inherit; cursor:pointer; }
+.page-settings .settings-location-icon .upload_filename_location { display:block; width:auto; max-width:none; inline-size:auto; margin-top:4px; color:var(--muted); font-size:12px; overflow-wrap:anywhere; }
+.page-settings .settings-locations textarea { display:block; width:100%; min-width:0; min-height:68px; margin:0; padding:8px 10px; resize:vertical; border:1px solid #cfdad6; border-radius:5px; background:var(--settings-control-background,#fff); color:var(--settings-control-text,var(--ink)); font:inherit; font-size:13px; line-height:1.5; }
+.page-settings .settings-locations :is(input,select,textarea,summary):focus-visible { outline:2px solid var(--brand); outline-offset:2px; }
+.page-settings .settings-locations .settings-row[data-setting-state=inactive] { --settings-control-text:var(--muted); --settings-control-background:#f6f8f6; }
+.page-settings .settings-location-hint { margin:12px 0 0; color:var(--muted); font-size:12px; line-height:1.6; }
+.page-settings .settings-courts-card .settings-location-hint { margin-top:0; }
+.page-settings .settings-location-link { color:var(--brand); font-size:12px; line-height:1.6; }
+.page-settings .settings-courts-card .settings-location-link { display:inline-block; margin:5px 0 16px; }
+.page-settings .settings-location-status { display:flex; align-items:center; flex-wrap:wrap; gap:8px; margin-top:12px; color:#9b1c1c; font-size:12px; }
+.page-settings .settings-location-status .btn { min-height:30px; padding:4px 8px; font-size:12px; }
+.page-settings .settings-location-preview { margin-top:14px; padding:12px 14px; border:1px solid #e0e9e5; border-radius:6px; background:#f7f9f8; }
+.page-settings .settings-location-preview summary { color:var(--brand); font-size:13px; font-weight:600; cursor:pointer; }
+.page-settings .settings-location-preview-messages { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px 24px; padding-top:14px; }
+.page-settings .settings-location-preview h3 { margin:0 0 5px; color:var(--muted); font-size:12px; }
+.page-settings .settings-location-preview p { margin:4px 0; font-size:12px; line-height:1.6; overflow-wrap:anywhere; }
+.page-settings .settings-courts-table { width:100%; margin:0; border-collapse:collapse; table-layout:fixed; font-size:13px; text-align:left; }
+.page-settings .settings-courts-table :is(th,td) { padding:12px 10px; border-bottom:1px solid #edf1ee; background:transparent; text-align:left; overflow-wrap:anywhere; }
+.page-settings .settings-courts-table thead th { padding-top:0; color:var(--muted); font-size:12px; font-weight:600; }
+.page-settings .settings-courts-table th:first-child { width:28%; }
+.page-settings .settings-courts-table tbody th[scope=row] { font-weight:550; }
+.page-settings .settings-courts-table .settings-court-location th { width:auto; padding:10px; background:#f3f7f5; color:var(--ink); font-size:12px; }
+.page-settings .settings-court-location .settings-location-mark { margin-right:8px; }
+.page-settings .settings-court-location-count { margin-left:12px; color:var(--muted); font-weight:400; }
+.page-settings .settings-courts-table .settings-row-control[data-setting-state=inactive] { --settings-switch-on:#8a9594; --settings-switch-off:#dce1df; }
+.page-settings .settings-court-error { display:block; color:#9b1c1c; font-size:11px; line-height:1.5; }
+.page-settings .settings-court-mobile-label { display:none; }
+.page-settings .settings-location-empty { margin:0; color:var(--muted); font-size:13px; }
+@media(max-width:700px) {
+ .page-settings .settings-location-preview-messages { grid-template-columns:minmax(0,1fr); }
+ .page-settings .settings-courts-table thead { position:absolute; width:1px; height:1px; margin:-1px; padding:0; overflow:hidden; clip-path:inset(50%); }
+ .page-settings .settings-courts-table tbody,.page-settings .settings-courts-table tbody tr,.page-settings .settings-courts-table tbody :is(td,th) { display:block; width:auto; }
+ .page-settings .settings-courts-table tbody tr:not(.settings-court-location) { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; padding:14px 0; border-bottom:1px solid #edf1ee; }
+ .page-settings .settings-courts-table tbody th[scope=row] { grid-column:1/-1; }
+ .page-settings .settings-courts-table tbody :is(td,th[scope=row]) { padding:0; border:0; }
+ .page-settings .settings-court-mobile-label { display:block; margin-bottom:8px; color:var(--muted); font-size:11px; }
+ .page-settings .settings-courts-table .settings-court-location th { padding:10px; }
+}

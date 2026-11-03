@@ -1,6 +1,6 @@
-/* global btsSpeechReadiness, cleitstand, btsAdminUpdates, btsScoresheetRemarks */
+/* global btsSpeechReadiness, cleitstand, btsAdminUpdates, btsScoresheetRemarks, btsAudioDevices, btsDurationInput, btsScoringSettings, btsLocationSettings, btsSpeechWorkspace, btsSpeechInfrastructure */
 'use strict';
-/* global btsSpeechService, cancelAnnouncementPlayback, createSpeechQueue, createFreeAnnouncementForm, btsDialogActions, subscribeEmergencyAudio, btsCertificates, btsCertificateSelection */
+/* global btsSpeechService, cancelAnnouncementPlayback, createSpeechQueue, createFreeAnnouncementForm, btsDialogActions, subscribeEmergencyAudio, btsCertificates, btsCertificateSelection, btsSettingsWorkspace */
 
 var curt; // current tournament
 let current_view = null;
@@ -59,7 +59,7 @@ var ctournament = (function() {
 		}
 
 		crouting.register(rex, function (m) {
-			if (current_view === 'certificates' && curt?.key === m[1]) func();else switch_tournament(m[1], func);
+			if (['certificates', 'edit', 'speech'].includes(current_view) && curt?.key === m[1]) func(m);else switch_tournament(m[1], () => func(m));
 		}, handler);
 	}
 
@@ -78,6 +78,7 @@ var ctournament = (function() {
 			}
 			curt = response.tournament;
 			if (typeof subscribeEmergencyAudio === 'function') subscribeEmergencyAudio(curt.key);
+			if (typeof btsAudioDevices !== 'undefined') void btsAudioDevices.connect(curt).catch(cerror.net);
 			invalidate_match_lookup_index();
 			self_check_in_tabletoperator_waiting_ids = null;
 			preparation_selection_request_inflight = false;
@@ -87,7 +88,7 @@ var ctournament = (function() {
 				ci18n.switch_language(curt.language);
 			}
 			if (typeof btsSpeechService !== 'undefined') {
-				void btsSpeechService.ensureAudio();
+				void btsSpeechService.checkAudio();
 				void btsSpeechService.prepare([ci18n('announcements:speechcheck:text')]);
 			}
 			success_cb();
@@ -122,6 +123,7 @@ var ctournament = (function() {
 				}
 				curt = response.tournament;
 				if (typeof subscribeEmergencyAudio === 'function') subscribeEmergencyAudio(curt.key);
+				if (typeof btsAudioDevices !== 'undefined') void btsAudioDevices.connect(curt).catch(cerror.net);
 				invalidate_match_lookup_index();
 				cerror.silent('Turnierdaten nach verpasster Live-Aktualisierung neu geladen: ' + reason);
 				refresh_current_view();
@@ -672,7 +674,7 @@ var ctournament = (function() {
 	}
 
 	function add_normalization(c) {
-		curt.normalizations.push(c.val.normalization);
+		if (!curt.normalizations.some(rule => rule._id === c.val.normalization._id)) curt.normalizations.push(c.val.normalization);
 		// Keep the same ID order as a fresh NeDB query and the speech worker,
 		// including when a live addition precedes an overlapping existing rule.
 		curt.normalizations.sort((a, b) => a._id < b._id ? -1 : a._id > b._id ? 1 : 0);
@@ -688,7 +690,6 @@ var ctournament = (function() {
 	}
 	function update_normalization_values(c) {
 		uiu.qsEach('.normalizations_values_div', (div_el) => {
-			div_el.innerHTML = "";
 			render_normalisation_values(div_el);
 		});
 		if (typeof btsSpeechReadiness !== 'undefined') btsSpeechReadiness.changed();
@@ -760,6 +761,9 @@ var ctournament = (function() {
 			case 'registration_check':
 				ui_registration_check();
 				break;
+			case 'speech':
+				update_normalization_values();speechPage?.refreshSettings();
+				break;
 			case 'certificates':
 				certificatePage?.refreshData();
 				break;
@@ -778,6 +782,68 @@ var ctournament = (function() {
 	}
 
 	let refresh_location_announcement_previews = function() {};
+
+	function selected_official_rotation_mode() {
+		return curt.official_rotation_mode && curt.official_rotation_mode !== 'disabled' ? curt.official_rotation_mode :
+			curt.official_rotation_selected_mode || 'umpire_and_service_judge';
+	}
+
+	function update_settings_automation_info() {
+		const global_active = curt.automation_enabled !== false;
+		const active = {
+			preparation: !!curt.call_preparation_matches_automatically_enabled,
+			'court-call': !!curt.call_next_possible_scheduled_match_in_preparation,
+			tabletoperators: !!curt.tabletoperator_enabled,
+			officials: (curt.official_rotation_mode || 'umpire_and_service_judge') !== 'disabled',
+		};
+		uiu.qsEach('[data-automation-scope]', element => {
+			const state = global_active && active[element.dataset.automationScope] ? 'active' : 'paused';
+			if (element.dataset.automationState !== state) element.dataset.automationState = state;
+		});
+		uiu.qsEach('[name="official_rotation_enabled"]', element => {
+			if (element.checked !== active.officials) element.checked = active.officials;
+		});
+		uiu.qsEach('[name="official_rotation_selected_mode"]', element => {
+			const selected = selected_official_rotation_mode();
+			if (element.value !== selected) element.value = selected;
+		});
+		uiu.qsEach('.settings-automation-info', element => {
+			const areas = [...element.querySelectorAll('.settings-automation-area')];
+			const state = global_active && areas.some(node => active[node.dataset.automationSubarea]) ? 'active' : 'paused';
+			if (element.dataset.state !== state) element.dataset.state = state;
+			for (const [node, text] of [
+				[element.querySelector('.settings-automation-global'), ci18n('settings:automation:global:' + (global_active ? 'active' : 'paused'))],
+				...areas.map(node => [node, ci18n('settings:automation:area:' + (active[node.dataset.automationSubarea] ? 'active' : 'paused'), {area: ci18n('settings:area:' + node.dataset.automationSubarea)})]),
+			]) {
+				if (node.textContent !== text) node.textContent = text;
+			}
+		});
+		const release_control = document.querySelector('[name="tabletoperator_release_on_umpire_enabled"]');
+		if (release_control) {
+			const additional_operator = curt.tabletoperator_with_umpire_enabled === true;
+			const row = release_control.closest('.settings-row');
+			const state = additional_operator ? 'inactive' : 'active';
+			if (row.dataset.settingState !== state) row.dataset.settingState = state;
+			const hint = row.querySelector('.settings-tablet-umpire-hint');
+			if (hint.hidden !== !additional_operator) hint.hidden = !additional_operator;
+		}
+		const rotation_active = active.officials;
+		const mode = curt.technical_official_auto_assignment_mode || 'manual_only';
+		for (const [name, supported] of [
+			['preparation_call_technical_officials_available_enabled', ['when_available', 'on_preparation_call']],
+			['call_on_court_technical_officials_mode', ['when_available', 'on_preparation_call', 'on_match_call_if_possible']],
+		]) {
+			const control = document.querySelector('[name="' + name + '"]');
+			const hint = control?.closest('.settings-row')?.querySelector('.automation_suboption_hint');
+			if (!hint) continue;
+			const reason = !rotation_active ? 'hint_rotation_disabled' : !supported.includes(mode) ? 'hint_auto_assignment_mode' : null;
+			if (hint.hidden !== !reason) hint.hidden = !reason;
+			if (reason) {
+				const text = ci18n('tournament:edit:' + name + ':' + reason);
+				if (hint.textContent !== text) hint.textContent = text;
+			}
+		}
+	}
 
 	function update_edit_dependencies() {
 		if (current_view !== 'edit') {
@@ -799,6 +865,7 @@ var ctournament = (function() {
 		_set_disabled_by_name('btp_password', !btp_enabled);
 		_set_disabled_by_name('btp_timezone', !btp_enabled);
 		_set_disabled_by_name('btp_autofetch_timeout_intervall', !btp_enabled || !curt.btp_autofetch_enabled);
+		update_btp_settings_status();
 		_set_disabled_by_name('player_pause_reset', !btp_enabled || !!curt.btp_readonly);
 		const court_reset_pending = document.querySelector('[name="court_assignments_reset"]')?.dataset.pending === 'true';
 		_set_disabled_by_name('court_assignments_reset', !btp_enabled || !!curt.btp_readonly || court_reset_pending);
@@ -808,223 +875,16 @@ var ctournament = (function() {
 		_set_disabled_by_name('ticker_password', !ticker_enabled);
 		refresh_location_announcement_previews();
 
-		const tabletoperator_enabled = !!curt.tabletoperator_enabled;
-		[
-			'tabletoperator_with_umpire_enabled',
-			'tabletoperator_winner_of_quaterfinals_enabled',
-			'tabletoperator_use_manual_counting_boards_enabled',
-			'tabletoperator_split_doubles',
-			'tabletoperator_assignment_scope',
-			'tabletoperator_with_state_enabled',
-			'tabletoperator_with_state_from_match_enabled',
-			'tabletoperator_set_break_after_tabletservice',
-			'tabletoperator_break_seconds',
-		].forEach(field_name => _set_disabled_by_name(field_name, !tabletoperator_enabled));
-		_set_disabled_by_name('tabletoperator_release_on_umpire_enabled', !tabletoperator_enabled || !!curt.tabletoperator_with_umpire_enabled);
-		uiu.qsEach('[name="tabletoperator_enabled"]', function(el) {
-			const box = el.closest('.automation_group_box');
-			if (box) {
-				box.classList.toggle('automation_group_box_content_disabled', !tabletoperator_enabled);
-			}
-		});
-
-		const preparation_automation_enabled = !!curt.call_preparation_matches_automatically_enabled;
-		[
-			'preparation_successor_rally_count',
-			'preparation_call_min_gap_seconds',
-			'preparation_call_time_limit_before_scheduled_enabled',
-			'preparation_call_time_limit_before_scheduled_minutes',
-			'preparation_call_block_ahead_limit_enabled',
-			'preparation_call_block_ahead_limit',
-			'preparation_call_time_ahead_of_frontier_enabled',
-			'preparation_call_time_ahead_of_frontier_minutes',
-			'preparation_call_matches_ahead_of_frontier_enabled',
-			'preparation_call_matches_ahead_of_frontier_limit',
-			'preparation_call_technical_officials_available_enabled',
-			'preparation_call_no_player_waiting_as_tabletoperator_enabled',
-			'preparation_call_no_player_active_as_tabletoperator_enabled',
-		].forEach(field_name => _set_disabled_by_name(field_name, !preparation_automation_enabled));
-		const call_on_court_automation_enabled = !!curt.call_next_possible_scheduled_match_in_preparation;
-		[
-			'call_on_court_participant_readiness_mode',
-			'call_on_court_technical_officials_mode',
-			'call_on_court_require_official_space_enabled',
-			'call_on_court_only_preparation_enabled',
-			'call_on_court_only_preparation_minutes',
-			'call_on_court_time_limit_before_scheduled_enabled',
-			'call_on_court_time_limit_before_scheduled_minutes',
-			'call_on_court_block_ahead_limit_enabled',
-			'call_on_court_block_ahead_limit',
-			'call_on_court_time_ahead_of_frontier_enabled',
-			'call_on_court_time_ahead_of_frontier_minutes',
-			'call_on_court_matches_ahead_of_frontier_enabled',
-			'call_on_court_matches_ahead_of_frontier_limit',
-		].forEach(field_name => _set_disabled_by_name(field_name, !call_on_court_automation_enabled));
-
-		const technical_official_rotation_enabled = (curt.official_rotation_mode || 'umpire_and_service_judge') !== 'disabled';
-		const technical_official_auto_assignment_mode = curt.technical_official_auto_assignment_mode || 'manual_only';
-		const preparation_officials_rule_mode_supported =
-			technical_official_auto_assignment_mode === 'when_available' ||
-			technical_official_auto_assignment_mode === 'on_preparation_call';
-		const preparation_officials_rule_enabled =
-			preparation_automation_enabled &&
-			technical_official_rotation_enabled &&
-			preparation_officials_rule_mode_supported;
-		if (!preparation_officials_rule_enabled && curt.preparation_call_technical_officials_available_enabled) {
-			curt.preparation_call_technical_officials_available_enabled = false;
-			const checkbox = document.querySelector('[name="preparation_call_technical_officials_available_enabled"]');
-			if (checkbox) {
-				checkbox.checked = false;
-			}
-			send_single_prop('preparation_call_technical_officials_available_enabled', false, function(err) {
-				if (err) {
-					cerror.net(err);
-				}
-			});
-		}
-		_set_disabled_by_name('preparation_call_technical_officials_available_enabled', !preparation_officials_rule_enabled);
-		uiu.qsEach('[name="preparation_call_technical_officials_available_enabled"]', function(el) {
-			const label = el.closest('label');
-			if (label) {
-				label.classList.toggle('automation_suboption_checkbox_disabled', !preparation_officials_rule_enabled);
-			}
-			const hint = label ? label.nextElementSibling : null;
-			if (hint && hint.classList.contains('automation_suboption_hint')) {
-				let hint_key = null;
-				if (preparation_automation_enabled) {
-					if (!technical_official_rotation_enabled) {
-						hint_key = 'tournament:edit:preparation_call_technical_officials_available_enabled:hint_rotation_disabled';
-					} else if (!preparation_officials_rule_mode_supported) {
-						hint_key = 'tournament:edit:preparation_call_technical_officials_available_enabled:hint_auto_assignment_mode';
-					}
-				}
-				hint.style.display = hint_key ? 'block' : 'none';
-				if (hint_key) {
-					uiu.text(hint, ci18n(hint_key));
-				}
-			}
-		});
-		const call_on_court_officials_rule_mode_supported =
-			technical_official_auto_assignment_mode === 'when_available' ||
-			technical_official_auto_assignment_mode === 'on_preparation_call' ||
-			technical_official_auto_assignment_mode === 'on_match_call_if_possible';
-		const call_on_court_officials_select_enabled =
-			call_on_court_automation_enabled &&
-			technical_official_rotation_enabled;
-		const call_on_court_officials_available_option_enabled =
-			call_on_court_officials_select_enabled &&
-			call_on_court_officials_rule_mode_supported;
-		const call_on_court_officials_mode = curt.call_on_court_technical_officials_mode || 'disabled';
-		if ((!call_on_court_officials_select_enabled && call_on_court_officials_mode !== 'disabled') ||
-			(!call_on_court_officials_available_option_enabled && call_on_court_officials_mode === 'available')) {
-			curt.call_on_court_technical_officials_mode = 'disabled';
-			const select = document.querySelector('[name="call_on_court_technical_officials_mode"]');
-			if (select) {
-				select.value = 'disabled';
-			}
-			send_single_prop('call_on_court_technical_officials_mode', 'disabled', function(err) {
-				if (err) {
-					cerror.net(err);
-				}
-			});
-		}
-		_set_disabled_by_name('call_on_court_technical_officials_mode', !call_on_court_officials_select_enabled);
-		_set_disabled_by_name('call_on_court_require_official_space_enabled', !call_on_court_officials_select_enabled);
-		uiu.qsEach('[name="call_on_court_technical_officials_mode"]', function(el) {
-			const box = el.closest('.automation_rule_box');
-			if (box) {
-				box.classList.toggle('automation_rule_box_disabled', !call_on_court_officials_select_enabled);
-			}
-			const available_option = el.querySelector('option[value="available"]');
-			if (available_option) {
-				available_option.disabled = !call_on_court_officials_available_option_enabled;
-			}
-			const hint = box ? box.nextElementSibling : null;
-			if (hint && hint.classList.contains('automation_suboption_hint')) {
-				let hint_key = null;
-				if (call_on_court_automation_enabled) {
-					if (!technical_official_rotation_enabled) {
-						hint_key = 'tournament:edit:call_on_court_technical_officials_mode:hint_rotation_disabled';
-					} else if (!call_on_court_officials_rule_mode_supported) {
-						hint_key = 'tournament:edit:call_on_court_technical_officials_mode:hint_auto_assignment_mode';
-					}
-				}
-				hint.style.display = hint_key ? 'block' : 'none';
-				if (hint_key) {
-					uiu.text(hint, ci18n(hint_key));
-				}
-			}
-		});
-		uiu.qsEach('[name="call_on_court_require_official_space_enabled"]', function(el) {
-			const label = el.closest('label');
-			if (label) {
-				label.classList.toggle('automation_suboption_checkbox_disabled', !call_on_court_officials_select_enabled);
-			}
-		});
-		uiu.qsEach('[name="call_preparation_matches_automatically_enabled"]', function(el) {
-			const box = el.closest('.automation_group_box');
-			if (box) {
-				box.classList.toggle('automation_group_box_content_disabled', !preparation_automation_enabled);
-			}
-		});
-		uiu.qsEach('[name="call_next_possible_scheduled_match_in_preparation"]', function(el) {
-			const box = el.closest('.automation_group_box');
-			if (box) {
-				box.classList.toggle('automation_group_box_content_disabled', !call_on_court_automation_enabled);
-			}
-		});
-
-		[
-			['preparation_call_time_limit_before_scheduled_enabled', 'preparation_call_time_limit_before_scheduled_minutes'],
-			['preparation_call_block_ahead_limit_enabled', 'preparation_call_block_ahead_limit'],
-			['preparation_call_time_ahead_of_frontier_enabled', 'preparation_call_time_ahead_of_frontier_minutes'],
-			['preparation_call_matches_ahead_of_frontier_enabled', 'preparation_call_matches_ahead_of_frontier_limit'],
-		].forEach(([enabled_field, value_field]) => {
-			const enabled = !!curt[enabled_field];
-			_set_disabled_by_name(value_field, !preparation_automation_enabled || !enabled);
-			uiu.qsEach('[name="' + enabled_field + '"]', function(el) {
-				const box = el.closest('.automation_rule_box');
-				if (box) {
-					box.classList.toggle('automation_rule_box_disabled', !preparation_automation_enabled);
-					box.classList.toggle('automation_rule_box_value_disabled', preparation_automation_enabled && !enabled);
-				}
-			});
-		});
-		[
-			'call_on_court_participant_readiness_mode',
-			['call_on_court_only_preparation_enabled', 'call_on_court_only_preparation_minutes'],
-			['call_on_court_time_limit_before_scheduled_enabled', 'call_on_court_time_limit_before_scheduled_minutes'],
-			['call_on_court_block_ahead_limit_enabled', 'call_on_court_block_ahead_limit'],
-			['call_on_court_time_ahead_of_frontier_enabled', 'call_on_court_time_ahead_of_frontier_minutes'],
-			['call_on_court_matches_ahead_of_frontier_enabled', 'call_on_court_matches_ahead_of_frontier_limit'],
-		].forEach((entry) => {
-			if (typeof entry === 'string') {
-				uiu.qsEach('[name="' + entry + '"]', function(el) {
-					const box = el.closest('.automation_rule_box');
-					if (box) {
-						box.classList.toggle('automation_rule_box_disabled', !call_on_court_automation_enabled);
-					}
-				});
-				return;
-			}
-			const [enabled_field, value_field] = entry;
-			const enabled = !!curt[enabled_field];
-			_set_disabled_by_name(value_field, !call_on_court_automation_enabled || !enabled);
-			uiu.qsEach('[name="' + enabled_field + '"]', function(el) {
-				const box = el.closest('.automation_rule_box');
-				if (box) {
-					box.classList.toggle('automation_rule_box_disabled', !call_on_court_automation_enabled);
-					box.classList.toggle('automation_rule_box_value_disabled', call_on_court_automation_enabled && !enabled);
-				}
-			});
-		});
-
+		update_settings_automation_info();
 		apply_court_official_checkbox_dependencies();
 	}
 
 	function set_live_settings_status(status_key) {
 		if (!live_settings_status_el) {
 			return;
+		}
+		if (status_key === 'saved' && document.querySelector('.speech-infrastructure')?.btsSpeechInfrastructure?.dirty()) {
+			return set_live_settings_status_message('Serververbindung noch nicht gespeichert.', 'saving');
 		}
 		live_settings_status_el.className = 'live_settings_status live_settings_status_' + status_key;
 		uiu.text(live_settings_status_el, ci18n('tournament:edit:live_status:' + status_key));
@@ -1092,6 +952,7 @@ var ctournament = (function() {
 			return input_el.value;
 		};
 		const on_before_send = options.on_before_send || function() {};
+		const send_value = options.send_value || send_single_prop;
 		const on_success = options.on_success || function() {};
 		const on_error = options.on_error || function(input_el, old_value) {
 			if (input_el.type === 'checkbox') {
@@ -1102,16 +963,22 @@ var ctournament = (function() {
 		};
 
 		el.addEventListener(event_name, function() {
+			if (el.btsDuration && !el.btsDuration.validate()) {el.reportValidity();return;}
+			if (el.btsDuration) el.btsDuration.write(el.btsDuration.read());
 			const old_value = curt[field];
 			on_before_send(el);
-			const value = get_value(el);
-			send_single_prop(field, value, function(err) {
+			const value = el.btsDuration ? el.btsDuration.read() : get_value(el);
+			const submitted_text = el.value;
+			send_value(field, value, function(err) {
 				if (err) {
-					on_error(el, old_value);
+					if (el.btsDuration) {
+						if (el.value === submitted_text) el.btsDuration.restore(old_value);
+					} else on_error(el, old_value);
 					return cerror.net(err);
 				}
 				curt[field] = value;
 				update_edit_dependencies();
+				if (el.btsDuration && el.value === submitted_text) el.btsDuration.write(value);
 				on_success(el, value);
 			});
 		});
@@ -1205,11 +1072,12 @@ var ctournament = (function() {
 
 
 
-	function ui_btp_fetch() {
+	function ui_btp_fetch(on_complete) {
 		send({
 			type: 'btp_fetch',
 			tournament_key: curt.key,
 		}, err => {
+			if (typeof on_complete === 'function') on_complete(err);
 			if (err) {
 				return cerror.net(err);
 			}
@@ -1396,67 +1264,58 @@ var ctournament = (function() {
 		}
 	}
 
-	function render_local_speech_controls(container, refreshQueue) {
-		if (typeof btsSpeechService !== 'undefined') {
-			const controls = uiu.el(container, 'div', 'local_speech_controls');
-			const modeLabel = uiu.el(controls, 'label', {}, 'Sprachausgabe: ');
-			const mode = uiu.el(modeLabel, 'select', { name: 'announcement_speech_mode' });
-			for (const [value, label] of [
-				['browser', 'Browser-TTS'],
-				['auto', 'Lokaler Sprachserver mit Browser-Fallback'],
-				['server', 'Nur lokales Server-Audio'],
-			]) uiu.el(mode, 'option', { value }, label);
-			mode.value = btsSpeechService.settings().mode;
-			const voiceLabel = uiu.el(controls, 'label', {}, 'Lokale Stimme: ');
-			const voice = uiu.el(voiceLabel, 'select', { name: 'announcement_speech_voice' });
-			for (const [value, label] of [
-				['hallensprecherin', 'Hallensprecherin'], ['hallensprecher', 'Hallensprecher'],
-			]) uiu.el(voice, 'option', { value }, label);
-			voice.value = btsSpeechService.settings().voice;
-			const spareLabel = uiu.el(controls, 'label', { class: 'local_speech_spare_option' });
-			const spare = uiu.el(spareLabel, 'input', { type: 'checkbox', name: 'announcement_speech_warm_other_voice' });
-			spare.checked = btsSpeechService.settings().warm_other_voice === true;
-			uiu.el(spareLabel, 'span', {}, 'Andere Stimme nur bei vollständigem Leerlauf auf Vorrat vorbereiten');
-			uiu.el(controls, 'small', {}, 'Zuerst wird der gesamte Bedarf und Vorrat der gewählten Stimme vorbereitet. Fertige Aufnahmen beider Stimmen bleiben im Cache.');
-			const status = uiu.el(controls, 'div', { class: 'local_speech_status', 'aria-live': 'polite' }, 'Cache-Status wird geladen …');
-			render_local_speech_output_status(controls);
-			const paintStatus = (response, counts) => {
-				if (!status.isConnected) return;
-				if (response?.speech) curt.speech = response.speech;
-				const speech = curt.speech || {};
-				const text = !speech.enabled
-					? 'Lokaler Sprachserver ist im BTS-Backend noch nicht konfiguriert.'
-					: !counts ? 'Cache-Status derzeit nicht verfügbar.' :
-					(speech.last_error === 'speech_busy' ? 'Sprachserver beschäftigt; weitere Ansageteile warten im BTS. ' :
-						speech.last_error ? 'Sprachserver derzeit nicht bereit. ' + (counts.saved ? 'Gespeicherte Ansagen bleiben verfügbar. ' : '') : '') +
-						counts.ready + ' aktuell benötigte Aufträge bereit, ' + counts.preparing + ' werden vorbereitet.' +
-						(counts.failed ? ' ' + counts.failed + ' fehlgeschlagen.' : '') +
-						(speech.persistent_cache?.error ? ' Dauerhaftes Speichern derzeit fehlgeschlagen.' : '');
-				if (status.textContent !== text) status.textContent = text;
-			};
-			const changed = () => {
-				btsSpeechService.settingsChanged();
+	function render_local_speech_controls(container) {
+		const mode = btsSettingsWorkspace.field(container, {label:'Sprachausgabe', description:'Modus für alle verbundenen Clients dieses Turniers.', tag:'select', attributes:{name:'announcement_speech_mode'}});
+		for (const [value, label] of [['browser', 'Browser-TTS'], ['auto', 'Lokaler Sprachserver mit Browser-Fallback'], ['server', 'Nur lokales Server-Audio']]) uiu.el(mode, 'option', {value}, label);
+		mode.value = btsSpeechService.settings().mode;
+		const voice = btsSettingsWorkspace.field(container, {label:'Lokale Stimme', description:'Die gewählte Server-Stimme wird vorrangig vorbereitet. Fertige Aufnahmen beider Stimmen bleiben gespeichert.', tag:'select', attributes:{name:'announcement_speech_voice'}});
+		for (const [value, label] of [['hallensprecherin', 'Hallensprecherin'], ['hallensprecher', 'Hallensprecher']]) uiu.el(voice, 'option', {value}, label);
+		voice.value = btsSpeechService.settings().voice;
+		const spare = btsSettingsWorkspace.field(container, {label:'Andere Stimme auf Vorrat vorbereiten', description:'Erst wenn der gesamte Bedarf und Vorrat der gewählten Stimme erledigt ist und vollständiger Leerlauf besteht.', attributes:{type:'checkbox', role:'switch', name:'announcement_speech_warm_other_voice'}});
+		spare.checked = btsSpeechService.settings().warm_other_voice === true;
+		bind_live_prop(mode, 'announcement_speech_mode', {on_success:() => btsSpeechService.settingsChanged(), on_error:el => {el.value = curt.announcement_speech_mode ?? btsSpeechService.settings().mode;}});
+		bind_live_prop(voice, 'announcement_speech_voice', {on_success:() => btsSpeechService.settingsChanged(), on_error:el => {el.value = curt.announcement_speech_voice ?? btsSpeechService.settings().voice;}});
+		bind_live_prop(spare, 'announcement_speech_warm_other_voice');
+	}
+
+	function render_speech_playback_controls(playback, refreshQueue) {
+		const status = uiu.el(playback, 'p', {class:'local_speech_status', 'aria-live':'polite'}, 'Cache-Status wird geladen …');
+		render_local_speech_output_status(playback);
+		const paintStatus = (response, counts) => {
+			if (!status.isConnected) return;
+			if (response?.speech) curt.speech = response.speech;
+			const speech = curt.speech || {};
+			const text = !speech.enabled
+				? 'Lokaler Sprachserver ist im BTS-Backend noch nicht konfiguriert.'
+				: !counts ? 'Cache-Status derzeit nicht verfügbar.' :
+				(speech.last_error === 'speech_busy' ? 'Sprachserver beschäftigt; weitere Ansageteile warten im BTS. ' :
+					speech.last_error ? 'Sprachserver derzeit nicht bereit. ' + (counts.saved ? 'Gespeicherte Ansagen bleiben verfügbar. ' : '') : '') +
+					counts.ready + ' aktuell benötigte Aufträge bereit, ' + counts.preparing + ' werden vorbereitet.' +
+					(counts.failed ? ' ' + counts.failed + ' fehlgeschlagen.' : '') +
+					(speech.persistent_cache?.error ? ' Dauerhaftes Speichern derzeit fehlgeschlagen.' : '');
+			if (status.textContent !== text) status.textContent = text;
+		};
+		uiu.el(playback, 'p', 'settings-speech-help', 'Stimme und Modus gelten für alle Clients dieses Turniers. Lokales Audio wird automatisch vorbereitet. Falls der Browser Audio sperrt, genügt ein normaler Klick oder Tastendruck im BTS.');
+		const actions = uiu.el(playback, 'div', 'settings-card-actions');
+		const test = uiu.el(actions, 'button', {type:'button', class:'btn', name:'speech_test'}, 'Sprachtest auf diesem Gerät');
+		test.addEventListener('click', async () => {
+			if (test.disabled) return;test.disabled = true;
+			try {await runAnnouncementSpeechCheck();} finally {test.disabled = false;}
+		});
+		uiu.el(actions, 'button', {type:'button', class:'btn', name:'speech_stop_local'}, 'Ansage auf diesem Gerät stoppen')
+			.addEventListener('click', cancelAnnouncementPlayback);
+		uiu.el(actions, 'button', {type:'button', class:'btn', name:'speech_refresh'}, 'Cache-Status aktualisieren')
+			.addEventListener('click', () => {
 				refreshQueue?.();
-			};
-			bind_live_prop(mode, 'announcement_speech_mode', { on_success: changed });
-			bind_live_prop(voice, 'announcement_speech_voice', { on_success: changed });
-			bind_live_prop(spare, 'announcement_speech_warm_other_voice', { on_success: () => { refreshQueue?.(); } });
-			uiu.el(controls, 'small', {}, 'Stimme und Modus gelten für alle Clients dieses Turniers. Lokales Audio wird automatisch vorbereitet. Falls der Browser Audio sperrt, genügt ein normaler Klick oder Tastendruck im BTS.');
-			uiu.el(controls, 'button', { type: 'button' }, 'Ansage auf diesem Gerät stoppen')
-				.addEventListener('click', cancelAnnouncementPlayback);
-			uiu.el(controls, 'button', { type: 'button' }, 'Cache-Status aktualisieren')
-				.addEventListener('click', () => {
-					refreshQueue?.();
-					if (typeof btsSpeechReadiness !== 'undefined') void btsSpeechReadiness.refresh(true);
-				});
-			const legend = uiu.el(controls, 'div', 'local_speech_legend');
-			for (const [state, label] of [['ready', 'Lokal bereit'], ['preparing', 'Wird vorbereitet'],
-				['missing', 'Noch nicht bereit'], ['unavailable', 'Status nicht verfügbar']]) {
-				uiu.el(legend, 'span', { class: 'local_speech_readiness', 'data-speech-state': state }, label);
-			}
-			uiu.el(legend, 'small', {}, 'Haken: alle Ansageteile der gewählten Stimme gecacht und Audio auf diesem Gerät freigegeben. Details beim Darüberfahren. Hallen-Ansagen zusätzlich aktivieren.');
-			return paintStatus;
+				if (typeof btsSpeechReadiness !== 'undefined') void btsSpeechReadiness.refresh(true);
+			});
+		const legend = uiu.el(playback, 'div', 'local_speech_legend');
+		for (const [state, label] of [['ready', 'Lokal bereit'], ['preparing', 'Wird vorbereitet'],
+			['missing', 'Noch nicht bereit'], ['unavailable', 'Status nicht verfügbar']]) {
+			uiu.el(legend, 'span', { class: 'local_speech_readiness', 'data-speech-state': state }, label);
 		}
+		uiu.el(legend, 'small', {}, 'Haken: alle Ansageteile der gewählten Stimme gecacht und Audio auf diesem Gerät freigegeben. Details beim Darüberfahren. Hallen-Ansagen zusätzlich aktivieren.');
+		return paintStatus;
 	}
 
 	function render_enable_announcements_content(container, locations) {
@@ -1474,16 +1333,11 @@ var ctournament = (function() {
 					name: checkboxId
 				});
 
-				// Initialer Zustand aus localStorage
-				checkbox.checked = (window.localStorage.getItem(checkboxId) === 'true');
-
 				// Label anzeigen mit dem Location-Namen
 				uiu.el(form, 'label', { for: checkboxId }, (loc.name || 'Unbenannte Location') + " (Spielaufruf)");
 
-				// Event Listener zum Speichern in localStorage
-				checkbox.addEventListener('change', function () {
-					window.localStorage.setItem(checkboxId, checkbox.checked);
-				});
+				// The board edits the same centrally stored device preference as Settings.
+				btsAudioDevices.bind(checkbox, cerror.net);
 			}
 			{
 				const form = uiu.el(container, 'form');
@@ -1495,16 +1349,10 @@ var ctournament = (function() {
 					name: checkboxId
 				});
 
-				// Initialer Zustand aus localStorage
-				checkbox.checked = (window.localStorage.getItem(checkboxId) === 'true');
-
 				// Label anzeigen mit dem Location-Namen
 				uiu.el(form, 'label', { for: checkboxId }, (loc.name || 'Unbenannte Location') + " (in Vorbereitung)");
 
-				// Event Listener zum Speichern in localStorage
-				checkbox.addEventListener('change', function () {
-					window.localStorage.setItem(checkboxId, checkbox.checked);
-				});
+				btsAudioDevices.bind(checkbox, cerror.net);
 			}
 		});
 
@@ -1518,16 +1366,10 @@ var ctournament = (function() {
 				name: checkboxId
 			});
 
-			// Initialer Zustand aus localStorage
-			checkbox.checked = (window.localStorage.getItem(checkboxId) === 'true');
-
 			// Label anzeigen mit dem Location-Namen
 			uiu.el(form, 'label', { for: checkboxId }, 'Freie Remote Ansagen');
 
-			// Event Listener zum Speichern in localStorage
-			checkbox.addEventListener('change', function () {
-				window.localStorage.setItem(checkboxId, checkbox.checked);
-			});
+			btsAudioDevices.bind(checkbox, cerror.net);
 		}
 
 		{
@@ -2058,7 +1900,7 @@ var ctournament = (function() {
 			(mode === 'fixed' && Number.isFinite(Number(clock.fixed_ts)))
 				? format_datetime_local_input_value(new Date(Number(clock.fixed_ts)))
 				: format_datetime_local_input_value(new Date(get_effective_test_clock_now_ms()));
-		test_clock_controls.offset_input.value = String(Math.round((Number(clock.offset_ms) || 0) / 60000));
+		test_clock_controls.offset_input.btsDuration.write(Number(clock.offset_ms) || 0);
 		update_test_clock_mode_visibility();
 		update_test_clock_status();
 		ensure_test_clock_status_interval();
@@ -2097,7 +1939,7 @@ var ctournament = (function() {
 		});
 	}
 
-	let certificatePage = null;
+	let certificatePage = null, settingsPage = null, speechPage = null;
 	function ui_certificates() {
 		if (certificatePage?.page.isConnected && certificatePage.tournamentKey === curt.key && current_view === 'certificates') {
 			certificatePage.refreshData();return;
@@ -2114,7 +1956,7 @@ var ctournament = (function() {
 			owner, tournament, getTournament: () => curt, request: send_with_live_status,
 			exportFile: (format, options) => ccsvexport.export_certificate_file(format, options),
 			onDispose: () => {
-				if (certificatePage === view) {certificatePage = null;if (!document.querySelector('.page-leitstand,.page-certificates')) cleitstand.unmount();}
+				if (certificatePage === view) {certificatePage = null;if (!document.querySelector('.page-leitstand,.page-certificates,.page-settings,.page-speech')) cleitstand.unmount();}
 			},
 		});
 		for (const link of document.querySelectorAll('.toprow > .toprow_link.vlink')) {
@@ -2638,9 +2480,6 @@ var ctournament = (function() {
 			label: curt.name || curt.key,
 			func: ui_show,
 			'class': 'ct_name',
-		}, {
-			label: ci18n('edit tournament'),
-			func: ui_edit,
 		}]);
 	}
 
@@ -2809,6 +2648,41 @@ var ctournament = (function() {
 		history.replaceState(null, '', '/admin/t/' + encodeURIComponent(m[1]) + '/certificates');crouting.rerender();
 	}, update_certificates);
 
+	function speech_admin_request(type, values = {}) {
+		return new Promise((resolve, reject) => send({type, tournament_key:curt.key, ...values}, (error, response) => {
+			if (error || response?.speech_error) reject(new Error(error?.message || response.speech_error));else resolve(response || {});
+		}));
+	}
+
+	function ui_speech_system(section) {
+		const selected = typeof section === 'string' ? section : section?.[2];
+		if (speechPage?.page.isConnected && speechPage.tournamentKey === curt.key && current_view === 'speech') {speechPage.show(selected);return;}
+		speechPage?.dispose();cleitstand.unmount();current_view = 'speech';
+		render_show_toprow();
+		const owner = document.querySelector('.main');owner.replaceChildren();owner.className = 'main';
+		cleitstand.navigation(document.querySelector('.toprow'), curt, '/speech-planning/', {syncBtp:ui_btp_fetch});
+		const view = speechPage = btsSpeechWorkspace.create({
+			owner, tournamentKey:curt.key, service:btsSpeechService, request:speech_admin_request, section:selected,
+			onSelect:id => crouting.navigate_to('t/' + encodeURIComponent(curt.key) + '/speech-planning/' + (id === 'preparation' ? '' : id)),
+			onDispose:() => {
+				if (speechPage === view) {speechPage = null;if (!document.querySelector('.page-leitstand,.page-certificates,.page-settings,.page-speech')) cleitstand.unmount();}
+			},
+		});
+		live_settings_status_el = view.status;set_live_settings_status(live_settings_pending_requests ? 'saving' : 'saved');
+		let queue;
+		const paintStatus = render_speech_playback_controls(view.playback, () => {void queue?.refresh();});
+		const links = uiu.el(view.playback, 'div', 'settings-speech-links');
+		view.link(links, '/edit/speech', 'Server & Sprachhelfer verwalten →');
+		view.link(links, '/edit/calls', 'Audio-Ausgabe je Gerät einstellen →');
+		queue = createSpeechQueue({root:uiu.el(view.playback, 'section', 'speech_queue'), service:btsSpeechService, onSnapshot:paintStatus});
+		view.onDispose(queue.stop);
+		render_normalisation_values(uiu.el(view.pronunciation, 'div', 'normalizations_values_div'));
+	}
+	const speechChanges = change.default_handler(() => {}, {btp_status:btp_status_changed, ticker_status:ticker_status_changed});
+	_route_single(/^t\/([a-z0-9]+)\/speech-planning(?:\/([a-z-]+))?\/?$/, ui_speech_system, event => {
+		speechChanges(event);speechPage?.refreshSettings();
+	});
+
 	function render_settings(target) {
 		const settings_div = uiu.el(target, 'div', 'metadata_right_container_2');
 		uiu.el(settings_div, 'h3', {}, 'Turnier-Einstellungen');
@@ -2857,6 +2731,41 @@ var ctournament = (function() {
 	function btp_status_changed(c) {
 		set_service_status('btp_status', c);
 		update_btp_next_fetch_countdown();
+		update_btp_settings_status();
+	}
+	function update_btp_settings_status() {
+		if (current_view !== 'edit' || !curt) return;
+		const root = document.querySelector('.settings-btp');if (!root) return;
+		const badge = root.querySelector('.settings-btp-status'), message = root.querySelector('.settings-btp-message');
+		const button = root.querySelector('[name="btp_fetch"]'), status = curt.btp_status || {};
+		const busy = !!status.fetch_in_progress || button.dataset.pending === 'true';
+		let state = 'disconnected';
+		if (!curt.btp_enabled) state = 'deactivated';
+		else if (status.status === 'error') state = 'error';
+		else if (busy) state = 'syncing';
+		else if (status.status === 'connected') state = 'connected';
+		else if (['activated', 'connecting', 'waiting'].includes(status.status)) state = 'connecting';
+		const label = ci18n('settings:btp:status:' + state);
+		if (badge.textContent !== label) badge.textContent = label;
+		if (badge.dataset.state !== state) badge.dataset.state = state;
+		const detail = state === 'error' ? status.message || ci18n('settings:btp:connection_error') : '';
+		if (message.textContent !== detail) message.textContent = detail;
+		if (message.hidden !== !detail) message.hidden = !detail;
+		const disabled = !curt.btp_enabled || busy;
+		if (button.disabled !== disabled) button.disabled = disabled;
+		const title = !curt.btp_enabled ? ci18n('settings:btp:enable_first') : busy ? ci18n('settings:btp:fetch_busy') : '';
+		if (button.title !== title) button.title = title;
+		if (button.getAttribute('aria-busy') !== String(busy)) button.setAttribute('aria-busy', String(busy));
+		const lastSync = root.querySelector('.settings-btp-last-sync'), timestamp = Number(status.last_successful_fetch_ts);
+		let lastSyncText = ci18n('settings:btp:last_sync:unknown');
+		if (Number.isFinite(timestamp) && timestamp > 0 && Number.isFinite(new Date(timestamp).getTime())) {
+			const locale = ci18n.get_lang(), options = {year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', timeZone: curt.system_timezone || 'Europe/Berlin'};
+			let formatter;
+			try {formatter = new Intl.DateTimeFormat(locale, options);}
+			catch {formatter = new Intl.DateTimeFormat(locale, {...options, timeZone: 'Europe/Berlin'});}
+			lastSyncText = ci18n('settings:btp:last_sync', {time: formatter.format(new Date(timestamp))});
+		}
+		if (lastSync.textContent !== lastSyncText) lastSync.textContent = lastSyncText;
 	}
 	function ticker_status_changed(c) {
 		set_service_status('ticker_status', c);
@@ -2905,64 +2814,49 @@ var ctournament = (function() {
 		};
 	}
 
-	function ui_edit() {
+	function ui_edit(section) {
+		let dispose_audio_devices, speech_infrastructure;
+		const selectedSection = btsSettingsWorkspace.resolve(typeof section === 'string' ? section : settingsPage?.selected());
+		settingsPage?.dispose();
+		cleitstand.unmount();
 		current_view = 'edit';
-		crouting.set('t/:key/edit', { key: curt.key });
+		crouting.set('t/:key/edit' + (selectedSection === 'general' ? '' : '/' + selectedSection), { key: curt.key });
 		render_edit_toprow();
 		update_test_clock_body_state();
 
 		const main = uiu.qs('.main');
 		uiu.empty(main);
 		main.classList.remove('main_upcoming', 'main_self_check_in', 'main_registration');
+		cleitstand.navigation(document.querySelector('.toprow'), curt, '/edit', {syncBtp: ui_btp_fetch});
 
 		const form = uiu.el(main, 'div', 'tournament_settings');
+		const createSection = (id, className = 'settings') => uiu.el(form, 'div', {class: className, 'data-settings-section': id});
 		let input = {};
 
 		// tournament-div##################################################################################
 		{
-			const tournament_div = uiu.el(form, 'div', 'settings');
-			uiu.el(tournament_div, 'h2', 'edit', ci18n('tournament:edit:tournament'));
-
-			const key_label = uiu.el(tournament_div, 'label');
-			uiu.el(key_label, 'span', {}, ci18n('tournament:edit:id'));
-			uiu.el(key_label, 'input', {
-				type: 'text',
-				name: 'key',
-				readonly: 'readonly',
-				disabled: 'disabled',
-				title: 'Can not be changed',
-				'class': 'uneditable',
-				value: curt.key,
+			const general = createSection('general', 'settings-general');
+			const general_text = key => ci18n('settings:general:' + key);
+			const tournament = btsSettingsWorkspace.card(general, {
+				title: ci18n('tournament:edit:tournament'), description: general_text('description'), badge: general_text('scope'),
 			});
-
-			const name_label = uiu.el(tournament_div, 'label');
-			uiu.el(name_label, 'span', {}, ci18n('tournament:edit:name'));
-				input.name = uiu.el(name_label, 'input', {
-				type: 'text',
-				name: 'name',
-				required: 'required',
-				value: curt.name || curt.key,
-					'class': 'ct_name',
-				});
-				bind_live_prop(input.name, 'name', { event_name: 'blur' });
-
-
-			const name_tguid = uiu.el(tournament_div, 'label');
-			uiu.el(name_tguid, 'span', {}, ci18n('tournament:edit:tguid'));
-				input.tguid = uiu.el(name_tguid, 'input', {
-				type: 'text',
-				name: 'tguid',
-				value: curt.tguid ? curt.tguid : "",
-					'class': 'ct_tguid',
-				});
-				bind_live_prop(input.tguid, 'tguid', { event_name: 'blur' });
-
-			// Tournament language selection
-			const language_label = uiu.el(tournament_div, 'label');
-			uiu.el(language_label, 'span', {}, ci18n('tournament:edit:language'));
-			const language_select = uiu.el(language_label, 'select', {
-				name: 'language',
-				required: 'required',
+			input.name = btsSettingsWorkspace.field(tournament, {
+				label: general_text('name'), description: general_text('name:hint'),
+				attributes: {type: 'text', name: 'name', required: 'required', value: curt.name || curt.key, class: 'ct_name'},
+			});
+			bind_live_prop(input.name, 'name', {event_name: 'blur'});
+			btsSettingsWorkspace.field(tournament, {
+				label: general_text('key'), description: general_text('key:hint'),
+				attributes: {type: 'text', name: 'key', readonly: 'readonly', disabled: 'disabled', value: curt.key},
+			});
+			input.tguid = btsSettingsWorkspace.field(tournament, {
+				label: general_text('tguid'), description: general_text('tguid:hint'),
+				attributes: {type: 'text', name: 'tguid', value: curt.tguid || '', class: 'ct_tguid'},
+			});
+			bind_live_prop(input.tguid, 'tguid', {event_name: 'blur'});
+			const language_select = btsSettingsWorkspace.field(tournament, {
+				label: general_text('language'), description: general_text('language:hint'), tag: 'select',
+				attributes: {name: 'language', required: 'required'},
 			});
 			const all_langs = ci18n.get_all_languages();
 			uiu.el(language_select, 'option', { value: 'auto' }, ci18n('tournament:edit:language:auto'));
@@ -2975,270 +2869,225 @@ var ctournament = (function() {
 				}
 				uiu.el(language_select, 'option', l_attrs, l._name);
 			}
-				input.language = language_select;
-				bind_live_prop(input.language, 'language');
+			input.language = language_select;
+			bind_live_prop(input.language, 'language');
 
-			// Team competition?
-			const is_team_label = uiu.el(tournament_div, 'label');
-			uiu.el(is_team_label, 'span', {}, ci18n('tournament:edit:tournament:type'));
+			const competition = btsSettingsWorkspace.card(general, {title: general_text('competition'), description: general_text('competition:hint')});
 			const is_team_attrs = {
 				type: 'checkbox',
 				name: 'is_team',
+				role: 'switch',
 			};
 			if (curt.is_team) {
 				is_team_attrs.checked = 'checked';
 			}
 
-				input.is_team = uiu.el(is_team_label, 'input', is_team_attrs);
-				uiu.el(is_team_label, 'span', {}, ci18n('team competition'));
-				bind_live_prop(input.is_team, 'is_team');
+			input.is_team = btsSettingsWorkspace.field(competition, {
+				label: ci18n('team competition'), description: general_text('team:hint'), attributes: is_team_attrs,
+			});
+			bind_live_prop(input.is_team, 'is_team');
 
 			// Nation competition?
-			const is_nation_competition_label = uiu.el(tournament_div, 'label');
 			const is_nation_competition_attrs = {
 				type: 'checkbox',
 				name: 'is_nation_competition',
+				role: 'switch',
 			};
 			if (curt.is_nation_competition) {
 				is_nation_competition_attrs.checked = 'checked';
 			}
 
-			uiu.el(is_nation_competition_label, 'span', {}, '');
-				input.is_nation_competition = uiu.el(is_nation_competition_label, 'input', is_nation_competition_attrs);
-				uiu.el(is_nation_competition_label, 'span', {}, ci18n('nation competition'));
-				bind_live_prop(input.is_nation_competition, 'is_nation_competition');
-
-			const clock_fieldset = uiu.el(tournament_div, 'fieldset');
-			const clock_mode_label = uiu.el(clock_fieldset, 'label');
-			uiu.el(clock_mode_label, 'span', {}, 'Server-Zeitbasis');
-			const clock_mode_select = uiu.el(clock_mode_label, 'select', { name: 'test_clock_mode' });
-			uiu.el(clock_mode_select, 'option', { value: 'real' }, 'Echtzeit (Produktivmodus)');
-			uiu.el(clock_mode_select, 'option', { value: 'fixed' }, 'Fixe Zeit (nur Debug/Test)');
-			uiu.el(clock_mode_select, 'option', { value: 'offset' }, 'Offset-Zeit (nur Debug/Test)');
-
-			const clock_real_section = uiu.el(clock_fieldset, 'div', 'hint');
-			uiu.text(clock_real_section, 'Produktivmodus: BTS verwendet die aktuelle Serverzeit.');
-
-			const clock_fixed_section = uiu.el(clock_fieldset, 'div');
-			const clock_fixed_label = uiu.el(clock_fixed_section, 'label');
-			uiu.el(clock_fixed_label, 'span', {}, 'Fixe Zeit');
-			const clock_fixed_input = uiu.el(clock_fixed_label, 'input', {
-				type: 'datetime-local',
-				name: 'test_clock_fixed',
+			input.is_nation_competition = btsSettingsWorkspace.field(competition, {
+				label: ci18n('nation competition'), description: general_text('nation:hint'), attributes: is_nation_competition_attrs,
 			});
+			bind_live_prop(input.is_nation_competition, 'is_nation_competition');
 
-			const clock_offset_section = uiu.el(clock_fieldset, 'div');
-			const clock_offset_hint = uiu.el(clock_offset_section, 'div', 'hint');
-			uiu.text(clock_offset_hint, 'Wenn eine Zielzeit gesetzt ist, wird daraus der Offset berechnet. Sonst werden die Minuten verwendet.');
-
-			const clock_offset_label = uiu.el(clock_offset_section, 'label');
-			uiu.el(clock_offset_label, 'span', {}, 'Offset (Minuten)');
-			const clock_offset_input = uiu.el(clock_offset_label, 'input', {
-				type: 'number',
-				name: 'test_clock_offset_minutes',
-				step: '1',
-			});
-
-			const clock_offset_target_label = uiu.el(clock_offset_section, 'label');
-			uiu.el(clock_offset_target_label, 'span', {}, 'Offset-Zielzeit (optional)');
-			const clock_offset_target_input = uiu.el(clock_offset_target_label, 'input', {
-				type: 'datetime-local',
-				name: 'test_clock_offset_target',
-			});
-
-			const clock_actions = uiu.el(clock_fieldset, 'div', 'actions');
-			const apply_clock_btn = uiu.el(clock_actions, 'button', { type: 'button' }, 'Übernehmen');
-			const freeze_now_btn = uiu.el(clock_actions, 'button', { type: 'button' }, 'Jetzt einfrieren');
-			const reset_clock_btn = uiu.el(clock_actions, 'button', { type: 'button' }, 'Echtzeit');
-			const clock_status = uiu.el(clock_fieldset, 'div', 'hint');
-
-			test_clock_controls = {
-				mode_select: clock_mode_select,
-				real_section: clock_real_section,
-				fixed_section: clock_fixed_section,
-				offset_section: clock_offset_section,
-				fixed_input: clock_fixed_input,
-				offset_input: clock_offset_input,
-				offset_target_input: clock_offset_target_input,
-				freeze_now_btn: freeze_now_btn,
-				status: clock_status,
-			};
-			update_test_clock_controls();
-
-			clock_mode_select.addEventListener('change', update_test_clock_mode_visibility);
-
-			apply_clock_btn.addEventListener('click', () => {
-				if (clock_mode_select.value === 'fixed') {
-					const fixed_ts = Date.parse(clock_fixed_input.value);
-					if (!Number.isFinite(fixed_ts)) {
-						return cerror.silent('Ungültige fixe Zeit');
-					}
-					return send_test_clock_update({ mode: 'fixed', fixed_ts }, (err) => err && cerror.net(err));
-				}
-				if (clock_mode_select.value === 'offset') {
-					const offset_target_value = (clock_offset_target_input.value || '').trim();
-					if (offset_target_value !== '') {
-						const offset_target_ts = Date.parse(offset_target_value);
-						if (!Number.isFinite(offset_target_ts)) {
-							return cerror.silent('Ungültige Offset-Zielzeit');
-						}
-						return send_test_clock_update({ mode: 'offset', offset_target_ts }, (err) => err && cerror.net(err));
-					}
-					const offset_minutes = Number(clock_offset_input.value || 0);
-					if (!Number.isFinite(offset_minutes)) {
-						return cerror.silent('Ungültiger Offset');
-					}
-					return send_test_clock_update({ mode: 'offset', offset_ms: offset_minutes * 60000 }, (err) => err && cerror.net(err));
-				}
-				return send_test_clock_update({ mode: 'real' }, (err) => err && cerror.net(err));
-			});
-
-			freeze_now_btn.addEventListener('click', () => {
-				send_test_clock_update({ mode: 'fixed', fixed_ts: get_effective_test_clock_now_ms() }, (err) => err && cerror.net(err));
-			});
-
-			reset_clock_btn.addEventListener('click', () => {
-				send_test_clock_update({ mode: 'real' }, (err) => err && cerror.net(err));
-			});
 		}
 
 		// btp-connection-div##################################################################################
 		{
-			const btp_connection_div = uiu.el(form, 'div', 'settings');
-			uiu.el(btp_connection_div, 'h2', 'edit', ci18n('tournament:edit:btp_connection'));
-
-			// BTP
-			const btp_fieldset = uiu.el(btp_connection_div, 'fieldset');
-			const btp_enabled_label = uiu.el(btp_fieldset, 'label');
-			const ba_attrs = {
-				type: 'checkbox',
-				name: 'btp_enabled',
-			};
-			if (curt.btp_enabled) {
-				ba_attrs.checked = 'checked';
-			}
-				input.btp_enabled = uiu.el(btp_enabled_label, 'input', ba_attrs);
-				uiu.el(btp_enabled_label, 'span', {}, ci18n('tournament:edit:btp:enabled'));
-				bind_live_prop(input.btp_enabled, 'btp_enabled');
-
-			const btp_autofetch_enabled_label = uiu.el(btp_fieldset, 'label');
-			const bae_attrs = {
-				type: 'checkbox',
-				name: 'btp_autofetch_enabled',
-			};
-			if (curt.btp_autofetch_enabled) {
-				bae_attrs.checked = 'checked';
-			}
-				input.btp_autofetch_enabled = uiu.el(btp_autofetch_enabled_label, 'input', bae_attrs);
-				uiu.el(btp_autofetch_enabled_label, 'span', {}, ci18n('tournament:edit:btp:autofetch_enabled'));
-				bind_live_prop(input.btp_autofetch_enabled, 'btp_autofetch_enabled');
-
-			const btp_readonly_label = uiu.el(btp_fieldset, 'label');
-			const bro_attrs = {
-				type: 'checkbox',
-				name: 'btp_readonly',
-			};
-			if (curt.btp_readonly) {
-				bro_attrs.checked = 'checked';
-			}
-				if (!curt['btp_autofetch_timeout_intervall']) {
-					curt['btp_autofetch_timeout_intervall'] = 30;
-				}
-				// The stored setting and Admin API use seconds. Only BTPConn
-				// converts to milliseconds when constructing its timer.
-				const format_btp_autofetch_seconds = function(value) {
-					const seconds = Number(value);
-					if (!Number.isFinite(seconds) || seconds <= 0) {
-						return '30';
-					}
-					if (Number.isInteger(seconds)) {
-						return String(seconds);
-					}
-					return String(Math.round(seconds * 1000) / 1000).replace(/\.?0+$/, '');
-				};
-				const btp_autofetch_timeout_label = uiu.el(btp_connection_div, 'label');
-				uiu.el(btp_autofetch_timeout_label, 'span', {}, ci18n('tournament:edit:btp_autofetch_timeout_intervall'));
-				input.btp_autofetch_timeout_intervall = uiu.el(btp_autofetch_timeout_label, 'input', {
-					type: 'number',
-					name: 'btp_autofetch_timeout_intervall',
-					min: '1',
-					step: '1',
-					value: format_btp_autofetch_seconds(curt.btp_autofetch_timeout_intervall),
-				});
-				bind_live_prop(input.btp_autofetch_timeout_intervall, 'btp_autofetch_timeout_intervall', {
-					get_value: function(input_el) {
-						const seconds = Number(input_el.value);
-						if (!Number.isFinite(seconds) || seconds <= 0) {
-							return 30;
-						}
-						return seconds;
-					},
-					on_error: function(input_el, old_value) {
-						input_el.value = format_btp_autofetch_seconds(old_value);
-					},
-					on_success: function(input_el, value) {
-						input_el.value = format_btp_autofetch_seconds(value);
-					},
-				});
-
-				input.btp_readonly = uiu.el(btp_readonly_label, 'input', bro_attrs);
-				uiu.el(btp_readonly_label, 'span', {}, ci18n('tournament:edit:btp:readonly'));
-				bind_live_prop(input.btp_readonly, 'btp_readonly');
-
-			const btp_ip_label = uiu.el(btp_fieldset, 'label');
-			uiu.el(btp_ip_label, 'span', {}, ci18n('tournament:edit:btp:ip'));
-				input.btp_ip = uiu.el(btp_ip_label, 'input', {
-				type: 'text',
-				name: 'btp_ip',
-					value: (curt.btp_ip || ''),
-				});
-				bind_live_prop(input.btp_ip, 'btp_ip', { event_name: 'blur' });
-
-			const btp_password_label = uiu.el(btp_fieldset, 'label');
-			uiu.el(btp_password_label, 'span', {}, ci18n('tournament:edit:btp:password'));
-				input.btp_password = uiu.el(btp_password_label, 'input', {
-				type: 'text',
-				name: 'btp_password',
-					value: (curt.btp_password || ''),
-				});
-				bind_live_prop(input.btp_password, 'btp_password', { event_name: 'blur' });
-
-			// BTP timezone
-			const btp_timezone_label = uiu.el(btp_fieldset, 'label');
-			uiu.el(btp_timezone_label, 'span', {}, ci18n('tournament:edit:btp:timezone'));
-			const btp_timezone_select = uiu.el(btp_timezone_label, 'select', {
-				name: 'btp_timezone',
+			const btp_connection_div = createSection('btp', 'settings-btp');
+			const btp_text = key => ci18n('settings:btp:' + key);
+			const connection = btsSettingsWorkspace.card(btp_connection_div, {
+				title: ci18n('tournament:edit:btp_connection'), description: btp_text('connection:hint'), badge: btp_text('status:deactivated'),
 			});
-			uiu.el(
-				btp_timezone_select, 'option', { value: 'system' },
-				ci18n('tournament:edit:btp:system timezone', { tz: curt.system_timezone }));
-			let marked = false;
+			const status = connection.parentElement.querySelector('.settings-card-badge');
+			status.classList.add('settings-btp-status');status.setAttribute('role', 'status');
+			input.btp_enabled = btsSettingsWorkspace.field(connection, {
+				label: ci18n('tournament:edit:btp:enabled'), description: btp_text('enabled:hint'),
+				attributes: {type: 'checkbox', role: 'switch', name: 'btp_enabled'},
+			});
+			input.btp_enabled.checked = !!curt.btp_enabled;
+			bind_live_prop(input.btp_enabled, 'btp_enabled');
+			input.btp_ip = btsSettingsWorkspace.field(connection, {
+				label: btp_text('address'), description: btp_text('address:hint'),
+				attributes: {type: 'text', name: 'btp_ip', value: curt.btp_ip || '', spellcheck: 'false'},
+			});
+			bind_live_prop(input.btp_ip, 'btp_ip', {event_name: 'blur'});
+			input.btp_password = btsSettingsWorkspace.field(connection, {
+				label: btp_text('password'), description: btp_text('password:hint'),
+				attributes: {type: 'password', name: 'btp_password', value: curt.btp_password || '', autocomplete: 'off'},
+			});
+			bind_live_prop(input.btp_password, 'btp_password', {event_name: 'blur'});
+			input.btp_timezone = btsSettingsWorkspace.field(connection, {
+				label: btp_text('timezone'), description: btp_text('timezone:hint'), tag: 'select', attributes: {name: 'btp_timezone'},
+			});
+			uiu.el(input.btp_timezone, 'option', {value: 'system'}, ci18n('tournament:edit:btp:system timezone', {tz: curt.system_timezone}));
 			for (const tz of timezones.ALL_TIMEZONES) {
-				const attrs = {
-					value: tz,
-				}
-
-				if ((tz === curt.btp_timezone) && !marked) {
-					marked = true;
-					attrs.selected = 'selected';
-				}
-
-				uiu.el(btp_timezone_select, 'option', attrs, tz);
+				const option = uiu.el(input.btp_timezone, 'option', {value: tz}, tz);
+				if (tz === curt.btp_timezone) option.selected = true;
 			}
-				input.btp_timezone = btp_timezone_select;
-				bind_live_prop(input.btp_timezone, 'btp_timezone');
+			bind_live_prop(input.btp_timezone, 'btp_timezone');
+			uiu.el(connection.parentElement, 'p', {class: 'settings-btp-message', hidden: 'hidden', role: 'alert'});
+
+			const synchronization = btsSettingsWorkspace.card(btp_connection_div, {
+				title: btp_text('synchronization'), description: btp_text('synchronization:hint'),
+			});
+			input.btp_autofetch_enabled = btsSettingsWorkspace.field(synchronization, {
+				label: ci18n('tournament:edit:btp:autofetch_enabled'), description: btp_text('autofetch:hint'),
+				attributes: {type: 'checkbox', role: 'switch', name: 'btp_autofetch_enabled'},
+			});
+			input.btp_autofetch_enabled.checked = !!curt.btp_autofetch_enabled;
+			bind_live_prop(input.btp_autofetch_enabled, 'btp_autofetch_enabled');
+			if (!curt['btp_autofetch_timeout_intervall']) {
+				curt['btp_autofetch_timeout_intervall'] = 30;
+			}
+			input.btp_autofetch_timeout_intervall = btsSettingsWorkspace.field(synchronization, {
+				label: btp_text('interval'), description: btp_text('interval:hint'),
+				attributes: {type: 'text', name: 'btp_autofetch_timeout_intervall'},
+			});
+			btsDurationInput.attach(input.btp_autofetch_timeout_intervall, {
+				unit: 'seconds', value: Number(curt.btp_autofetch_timeout_intervall) > 0 && Number.isFinite(Number(curt.btp_autofetch_timeout_intervall)) ? curt.btp_autofetch_timeout_intervall : 30, min: .001,
+			});
+			bind_live_prop(input.btp_autofetch_timeout_intervall, 'btp_autofetch_timeout_intervall');
+			input.btp_readonly = btsSettingsWorkspace.field(synchronization, {
+				label: ci18n('tournament:edit:btp:readonly'), description: btp_text('readonly:hint'),
+				attributes: {type: 'checkbox', role: 'switch', name: 'btp_readonly'},
+			});
+			input.btp_readonly.checked = !!curt.btp_readonly;
+			bind_live_prop(input.btp_readonly, 'btp_readonly');
+			const fetch_button = btsSettingsWorkspace.field(synchronization, {
+				label: btp_text('manual'), description: btp_text('manual:hint'), tag: 'button',
+				attributes: {type: 'button', name: 'btp_fetch', class: 'btn settings-btp-sync'},
+			});
+			fetch_button.innerHTML = cleitstand.icon('refresh');uiu.el(fetch_button, 'span', {}, btp_text('fetch'));
+			const last_sync = uiu.el(fetch_button.closest('.settings-row').querySelector('.settings-row-info'), 'p', {
+				class: 'settings-btp-last-sync', id: 'settings-btp-last-sync',
+			});
+			fetch_button.setAttribute('aria-describedby', fetch_button.getAttribute('aria-describedby') + ' ' + last_sync.id);
+			fetch_button.addEventListener('click', () => {
+				if (fetch_button.disabled) return;
+				const key = curt.key;fetch_button.dataset.pending = 'true';update_btp_settings_status();
+				ui_btp_fetch(() => {
+					if (!fetch_button.isConnected || curt?.key !== key) return;
+					delete fetch_button.dataset.pending;update_btp_settings_status();
+				});
+			});
 		}
 
 		// tournament-flow-div##################################################################################
 		{
-			const tournament_flow_div = uiu.el(form, 'div', 'settings');
-			uiu.el(tournament_flow_div, 'h2', 'edit', ci18n('tournament:edit:tournament_flow'));
+			const tournament_flow_div = createSection('flow', 'settings-process settings-flow');
+			const calls_page = createSection('calls', 'settings-process settings-calls');
+			const officials_page = createSection('officials', 'settings-process settings-officials');
+			const flow_text = key => ci18n('settings:flow:' + key);
+			const property_text = key => ci18n('tournament:edit:' + key);
+			const flow_card = (key, parent = tournament_flow_div) => {
+				const body = btsSettingsWorkspace.card(parent, {title: flow_text(key), description: flow_text(key + ':hint')});
+				return body;
+			};
+			const flow_heading = (parent, key) => uiu.el(parent, 'h3', 'settings-flow-subheading', flow_text(key));
+			const flow_checkbox = (tournament, parent, name, description, default_value = false) => {
+				const control = btsSettingsWorkspace.field(parent, {
+					label: property_text(name), description,
+					attributes: {type: 'checkbox', role: 'switch', name},
+				});
+				control.checked = tournament[name] == null ? default_value : !!tournament[name];
+				bind_live_prop(control, name, {
+					on_error: (element, old_value) => {element.checked = old_value == null ? default_value : !!old_value;},
+				});
+				return control;
+			};
+			const flow_number = (tournament, parent, name, min, max, default_value, step) => {
+				const initial_value = tournament[name] == null || tournament[name] === '' ? default_value : tournament[name];
+				const control = btsSettingsWorkspace.field(parent, {
+					label: property_text(name),
+					attributes: {type: 'number', name, ...(min == null ? {} : {min}), ...(max == null ? {} : {max}), step, value: initial_value},
+				});
+				bind_live_prop(control, name, {
+					get_value: element => Number(element.value),
+					on_error: (element, old_value) => {element.value = old_value ?? initial_value;},
+				});
+				return control;
+			};
+			const flow_select = (tournament, parent, name, values, fallback, option_prefix = 'option:' + name + ':') => {
+				const control = btsSettingsWorkspace.field(parent, {label: property_text(name), tag: 'select', attributes: {name}});
+				for (const value of values) uiu.el(control, 'option', {value}, property_text(option_prefix + value));
+				const initial_value = tournament[name] ?? fallback();control.value = initial_value;
+				bind_live_prop(control, name, {on_error: (element, old_value) => {element.value = old_value ?? initial_value;}});
+				control.rule_box = control.closest('.settings-row');
+				control.rule_box.classList.add('automation_rule_box');
+				return control;
+			};
+			const flow_duration = (tournament, parent, name, min, max, default_value, step) => {
+				const control = flow_number(tournament, parent, name, min, max, default_value, step);
+				btsDurationInput.attach(control, {unit: 'seconds', value: control.value, min: min ?? 0, max});
+				return control;
+			};
+			const flow_limit = (tournament, parent, enabled_name, value_name, default_value, min, max, step, unit_key) => {
+				const value_is_set = tournament[value_name] != null && tournament[value_name] !== 'none' && tournament[value_name] !== '';
+				const enabled = tournament[enabled_name] != null ? !!tournament[enabled_name] : value_is_set;
+				const value_input = btsSettingsWorkspace.field(parent, {
+					label: property_text(enabled_name), description: property_text(value_name), unit: unit_key ? ci18n(unit_key) : undefined,
+					attributes: {type: 'number', name: value_name, min, max, step, value: value_is_set ? Number(tournament[value_name]) : default_value},
+				});
+				const box = value_input.closest('.settings-row');box.classList.add('automation_rule_box', 'settings-flow-limit');
+				const controls = value_input.parentElement;controls.classList.add('has-unit');
+				const enabled_input = uiu.el(controls, 'input', {type: 'checkbox', role: 'switch', name: enabled_name, id: value_input.id + '-enabled'});
+				controls.prepend(enabled_input);enabled_input.checked = enabled;
+				const label = box.querySelector('.settings-field-label');label.htmlFor = enabled_input.id;
+				value_input.setAttribute('aria-label', property_text(value_name));
+				enabled_input.setAttribute('aria-describedby', value_input.id + '-description');
+				// An inactive rule can still be configured for later activation.
+				bind_live_prop(enabled_input, enabled_name, {
+					on_error: (element, old_value) => {element.checked = old_value == null ? enabled : !!old_value;},
+				});
+				bind_live_prop(value_input, value_name, {
+					get_value: element => Number(element.value),
+					send_value: (name, value, callback) => {
+						// Older tournaments infer an enabled rule from its stored numeric
+						// value. Persist an explicit off switch before configuring that value.
+						if (curt[enabled_name] != null || enabled_input.checked) return send_single_prop(name, value, callback);
+						send_single_prop(enabled_name, false, err => {
+							if (err) return callback(err);
+							curt[enabled_name] = false;send_single_prop(name, value, callback);
+						});
+					},
+					on_error: (element, old_value) => {element.value = old_value == null || old_value === 'none' || old_value === '' ? default_value : old_value;},
+				});
+				if (unit_key) btsDurationInput.attach(value_input, {unit: 'minutes', value: value_is_set ? Number(tournament[value_name]) : default_value, min, max});
+				return {box, enabled_input, value_input};
+			};
+			const flow_hint = control => {
+				const hint = uiu.el(control.closest('.settings-row').querySelector('.settings-row-info'), 'p', 'automation_suboption_hint');
+				hint.id = control.id + '-availability';control.setAttribute('aria-describedby', hint.id);
+				return hint;
+			};
+			for (const [area, page, subareas] of [['calls', calls_page, ['preparation', 'court-call']], ['officials', officials_page, ['tabletoperators', 'officials']]]) {
+				const info = uiu.el(page, 'aside', {class: 'settings-automation-info', id: 'settings-automation-info-' + area, 'data-automation-area': area});
+				const state = uiu.el(info, 'div', {class: 'settings-automation-state', role: 'status', 'aria-live': 'polite'});
+				uiu.el(state, 'span', 'settings-automation-global');
+				for (const subarea of subareas) uiu.el(state, 'span', {class: 'settings-automation-area', 'data-automation-subarea': subarea});
+				uiu.el(info, 'p', {}, ci18n('settings:automation:editable'));
+				uiu.el(info, 'a', {href: '/admin/t/' + encodeURIComponent(curt.key) + '/edit/flow', 'data-settings-target': 'flow'}, ci18n('settings:automation:configure'));
+			}
+			const warmup_body = flow_card('warmup');
 			// Warmup Timer
-			if (!curt.warmup_ready) {
+			if (curt.warmup_ready == null || curt.warmup_ready === '') {
 				curt.warmup_ready = 150;
 			}
 
-			if (!curt.warmup_start) {
+			if (curt.warmup_start == null || curt.warmup_start === '') {
 				curt.warmup_start = 180;
 			}
 
@@ -3251,42 +3100,27 @@ var ctournament = (function() {
 
 			var last_selected_warmup = warmup_options[0];
 
-			const warmup_timer_label = uiu.el(tournament_flow_div, 'label');
-			uiu.el(warmup_timer_label, 'span', {}, ci18n('tournament:edit:warmup_timer_behavior'));
-			const warmup_timer_select = uiu.el(warmup_timer_label, 'select', {
-				name: 'warmup',
+			const warmup_timer_select = btsSettingsWorkspace.field(warmup_body, {
+				label: property_text('warmup_timer_behavior'), tag: 'select', attributes: {name: 'warmup'},
 			});
 			uiu.el(warmup_timer_select, 'option', { value: warmup_options[0][0] }, ci18n('tournament:edit:warmup_timer_behavior:' + warmup_options[0][0]), { wo: warmup_options[0][0] });
 			let warmup_marked = false;
 				input.warmup = warmup_timer_select;
 
-			const warmup_ready = uiu.el(tournament_flow_div, 'label');
-			uiu.el(warmup_ready, 'span', {}, ci18n('tournament:edit:warmup_ready'));
-			var warmup_ready_input = uiu.el(warmup_ready, 'input', {
-				type: 'number',
-				name: 'warmup_ready',
-				required: 'required',
-				disabled: warmup_options[0][3],
-				value: warmup_options[0][1],
+			const warmup_ready_input = btsSettingsWorkspace.field(warmup_body, {
+				label: flow_text('ready'),
+				attributes: {type: 'number', name: 'warmup_ready', required: 'required', min: '0', step: '1', value: warmup_options[0][1]},
 			});
-				input.warmup_ready = warmup_ready_input;
-				bind_live_prop(input.warmup_ready, 'warmup_ready', {
-					get_value: input_el => Number(input_el.value),
-				});
-
-			const warmup_start = uiu.el(tournament_flow_div, 'label');
-			uiu.el(warmup_start, 'span', {}, ci18n('tournament:edit:warmup_start'));
-			var warmup_start_input = uiu.el(warmup_start, 'input', {
-				type: 'number',
-				name: 'warmup_start',
-				required: 'required',
-				disabled: warmup_options[0][3],
-				value: warmup_options[0][2],
+			input.warmup_ready = warmup_ready_input;
+			btsDurationInput.attach(warmup_ready_input, {value: warmup_options[0][1]});
+			bind_live_prop(warmup_ready_input, 'warmup_ready', {get_value: element => Number(element.value)});
+			const warmup_start_input = btsSettingsWorkspace.field(warmup_body, {
+				label: flow_text('start'),
+				attributes: {type: 'number', name: 'warmup_start', required: 'required', min: '0', step: '1', value: warmup_options[0][2]},
 			});
-				input.warmup_start = warmup_start_input;
-				bind_live_prop(input.warmup_start, 'warmup_start', {
-					get_value: input_el => Number(input_el.value),
-				});
+			input.warmup_start = warmup_start_input;
+			btsDurationInput.attach(warmup_start_input, {value: warmup_options[0][2]});
+			bind_live_prop(warmup_start_input, 'warmup_start', {get_value: element => Number(element.value)});
 
 			for (const wo of warmup_options.slice(1)) {
 				const attrs = {
@@ -3297,9 +3131,9 @@ var ctournament = (function() {
 					warmup_marked = true;
 					attrs.selected = 'selected';
 
-					warmup_ready_input.value = wo[1];
+					warmup_ready_input.btsDuration.write(wo[1]);
 					warmup_ready_input.disabled = wo[3];
-					warmup_start_input.value = wo[2];
+					warmup_start_input.btsDuration.write(wo[2]);
 					warmup_start_input.disabled = wo[3];
 
 					last_selected_warmup = wo;
@@ -3312,213 +3146,277 @@ var ctournament = (function() {
 				if (!last_selected_warmup[3]) {
 					for (const wo of warmup_options) {
 						if (!wo[3]) {
-							wo[1] = warmup_ready_input.value;
-							wo[2] = warmup_start_input.value;
+							wo[1] = warmup_ready_input.btsDuration.read();
+							wo[2] = warmup_start_input.btsDuration.read();
 						}
 					}
 				}
 
 				for (const wo of warmup_options) {
 					if (warmup_timer_select.value == wo[0]) {
-						warmup_ready_input.value = wo[1];
+						warmup_ready_input.btsDuration.write(wo[1]);
 						warmup_ready_input.disabled = wo[3];
-						warmup_start_input.value = wo[2];
+						warmup_start_input.btsDuration.write(wo[2]);
 						warmup_start_input.disabled = wo[3];
 
 							last_selected_warmup = wo;
 						}
 					}
+					if (!warmup_ready_input.btsDuration.validate() || !warmup_start_input.btsDuration.validate()) return;
 					send_single_prop('warmup', warmup_timer_select.value, function(err) {
 						if (err) {
 							return cerror.net(err);
 						}
 					});
-					send_single_prop('warmup_ready', Number(warmup_ready_input.value), function(err) {
+					send_single_prop('warmup_ready', warmup_ready_input.btsDuration.read(), function(err) {
 						if (err) {
 							return cerror.net(err);
 						}
 					});
-					send_single_prop('warmup_start', Number(warmup_start_input.value), function(err) {
+					send_single_prop('warmup_start', warmup_start_input.btsDuration.read(), function(err) {
 						if (err) {
 							return cerror.net(err);
 						}
 					});
 				};
 
-			const bts_fieldset = uiu.el(tournament_flow_div, 'fieldset', 'automation_group_box');
-			const bts_legend = uiu.el(bts_fieldset, 'legend');
-			input.call_preparation_matches_automatically_enabled = uiu.el(bts_legend, 'input', {
-				type: 'checkbox',
-				name: 'call_preparation_matches_automatically_enabled',
+			const overall_body = flow_card('overall');
+			overall_body.classList.add('settings-automation-controls');
+			input.automation_enabled = flow_checkbox(curt, overall_body, 'automation_enabled', flow_text('overall:enabled:hint'), true);
+			input.call_preparation_matches_automatically_enabled = flow_checkbox(curt, overall_body, 'call_preparation_matches_automatically_enabled');
+			input.call_next_possible_scheduled_match_in_preparation = flow_checkbox(curt, overall_body, 'call_next_possible_scheduled_match_in_preparation');
+			input.tabletoperator_enabled = flow_checkbox(curt, overall_body, 'tabletoperator_enabled');
+			input.official_rotation_enabled = btsSettingsWorkspace.field(overall_body, {
+				label: property_text('official_rotation_mode'),
+				attributes: {type: 'checkbox', role: 'switch', name: 'official_rotation_enabled'},
 			});
-			if (curt.call_preparation_matches_automatically_enabled) {
-				input.call_preparation_matches_automatically_enabled.checked = true;
+			input.official_rotation_enabled.checked = curt.official_rotation_mode !== 'disabled';
+			input.official_rotation_enabled.addEventListener('change', () => {
+				const selected = selected_official_rotation_mode();
+				const mode = input.official_rotation_enabled.checked ? selected : 'disabled';
+				send_single_prop('official_rotation_mode', mode, err => {
+					if (!err) {
+						curt.official_rotation_mode = mode;
+						curt.official_rotation_selected_mode = selected;
+					}
+					update_edit_dependencies();
+					if (err) cerror.net(err);
+				});
+			});
+			for (const name of ['call_preparation_matches_automatically_enabled', 'call_next_possible_scheduled_match_in_preparation', 'tabletoperator_enabled', 'official_rotation_enabled']) {
+				input[name].closest('.settings-row').classList.add('settings-automation-child');
+				input[name].setAttribute('aria-describedby', input.automation_enabled.getAttribute('aria-describedby'));
 			}
-			uiu.el(bts_legend, 'span', {}, ci18n('tournament:edit:call_preparation_matches_automatically_enabled'));
-			bind_live_prop(input.call_preparation_matches_automatically_enabled, 'call_preparation_matches_automatically_enabled');
-			input.preparation_successor_rally_count = create_numeric_input(curt, bts_fieldset, 'preparation_successor_rally_count', 1, 100, 11, 1);
-			input.preparation_call_min_gap_seconds = create_numeric_input(curt, bts_fieldset, 'preparation_call_min_gap_seconds', 0, 300, 10, 1);
-			input.preparation_call_player_pause_expired_enabled = create_checkbox(curt, bts_fieldset, 'preparation_call_player_pause_expired_enabled', 'automation_suboption_checkbox');
-			input.preparation_call_no_player_waiting_as_tabletoperator_enabled = create_checkbox(curt, bts_fieldset, 'preparation_call_no_player_waiting_as_tabletoperator_enabled', 'automation_suboption_checkbox');
-			input.preparation_call_no_player_active_as_tabletoperator_enabled = create_checkbox(curt, bts_fieldset, 'preparation_call_no_player_active_as_tabletoperator_enabled', 'automation_suboption_checkbox');
-			input.preparation_call_technical_officials_available_enabled = create_checkbox(curt, bts_fieldset, 'preparation_call_technical_officials_available_enabled', 'automation_suboption_checkbox');
-			input.preparation_call_technical_officials_available_hint = uiu.el(bts_fieldset, 'div', 'automation_suboption_hint');
+
+			const call_rules = uiu.el(calls_page, 'div', 'settings-call-rules');
+			const bts_fieldset = flow_card('preparation', call_rules);
+			bts_fieldset.closest('.settings-card').dataset.automationScope = 'preparation';
+			bts_fieldset.closest('.settings-card').setAttribute('aria-describedby', 'settings-automation-info-calls');
+			input.preparation_successor_rally_count = flow_number(curt, bts_fieldset, 'preparation_successor_rally_count', 1, 100, 11, 1);
+			input.preparation_call_min_gap_seconds = flow_duration(curt, bts_fieldset, 'preparation_call_min_gap_seconds', 0, 300, 10, 1);
+			input.preparation_call_player_pause_expired_enabled = flow_checkbox(curt, bts_fieldset, 'preparation_call_player_pause_expired_enabled');
+			input.preparation_call_no_player_waiting_as_tabletoperator_enabled = flow_checkbox(curt, bts_fieldset, 'preparation_call_no_player_waiting_as_tabletoperator_enabled');
+			input.preparation_call_no_player_active_as_tabletoperator_enabled = flow_checkbox(curt, bts_fieldset, 'preparation_call_no_player_active_as_tabletoperator_enabled');
+			input.preparation_call_technical_officials_available_enabled = flow_checkbox(curt, bts_fieldset, 'preparation_call_technical_officials_available_enabled');
+			input.preparation_call_technical_officials_available_hint = flow_hint(input.preparation_call_technical_officials_available_enabled);
+			flow_heading(bts_fieldset, 'limits');
 			{
-				const rule = create_rule_limit_input(curt, bts_fieldset, 'preparation_call_time_limit_before_scheduled_enabled', 'preparation_call_time_limit_before_scheduled_minutes', 30, 0, 180, 1, 'tournament:edit:minutes');
+				const rule = flow_limit(curt, bts_fieldset, 'preparation_call_time_limit_before_scheduled_enabled', 'preparation_call_time_limit_before_scheduled_minutes', 30, 0, 180, 1, 'tournament:edit:minutes');
 				input.preparation_call_time_limit_before_scheduled_enabled = rule.enabled_input;
 				input.preparation_call_time_limit_before_scheduled_minutes = rule.value_input;
 			}
 			{
-				const rule = create_rule_limit_input(curt, bts_fieldset, 'preparation_call_block_ahead_limit_enabled', 'preparation_call_block_ahead_limit', 1, 0, 10, 1, null);
+				const rule = flow_limit(curt, bts_fieldset, 'preparation_call_block_ahead_limit_enabled', 'preparation_call_block_ahead_limit', 1, 0, 10, 1, null);
 				input.preparation_call_block_ahead_limit_enabled = rule.enabled_input;
 				input.preparation_call_block_ahead_limit = rule.value_input;
 			}
 			{
-				const rule = create_rule_limit_input(curt, bts_fieldset, 'preparation_call_time_ahead_of_frontier_enabled', 'preparation_call_time_ahead_of_frontier_minutes', 30, 0, 180, 1, 'tournament:edit:minutes');
+				const rule = flow_limit(curt, bts_fieldset, 'preparation_call_time_ahead_of_frontier_enabled', 'preparation_call_time_ahead_of_frontier_minutes', 30, 0, 180, 1, 'tournament:edit:minutes');
 				input.preparation_call_time_ahead_of_frontier_enabled = rule.enabled_input;
 				input.preparation_call_time_ahead_of_frontier_minutes = rule.value_input;
 			}
 			{
-				const rule = create_rule_limit_input(curt, bts_fieldset, 'preparation_call_matches_ahead_of_frontier_enabled', 'preparation_call_matches_ahead_of_frontier_limit', 1, 0, 50, 1, null);
+				const rule = flow_limit(curt, bts_fieldset, 'preparation_call_matches_ahead_of_frontier_enabled', 'preparation_call_matches_ahead_of_frontier_limit', 1, 0, 50, 1, null);
 				input.preparation_call_matches_ahead_of_frontier_enabled = rule.enabled_input;
 				input.preparation_call_matches_ahead_of_frontier_limit = rule.value_input;
 			}
-			const free_courts_fieldset = uiu.el(tournament_flow_div, 'fieldset', 'automation_group_box');
-			const free_courts_legend = uiu.el(free_courts_fieldset, 'legend');
-			input.call_next_possible_scheduled_match_in_preparation = uiu.el(free_courts_legend, 'input', {
-				type: 'checkbox',
-				name: 'call_next_possible_scheduled_match_in_preparation',
-			});
-			if (curt.call_next_possible_scheduled_match_in_preparation) {
-				input.call_next_possible_scheduled_match_in_preparation.checked = true;
-			}
-			uiu.el(free_courts_legend, 'span', {}, ci18n('tournament:edit:call_next_possible_scheduled_match_in_preparation'));
-			bind_live_prop(input.call_next_possible_scheduled_match_in_preparation, 'call_next_possible_scheduled_match_in_preparation');
-			{
-				const rule = create_rule_limit_input(curt, free_courts_fieldset, 'call_on_court_only_preparation_enabled', 'call_on_court_only_preparation_minutes', 0, 0, 180, 1, 'tournament:edit:minutes');
-				input.call_on_court_only_preparation_enabled = rule.enabled_input;
-				input.call_on_court_only_preparation_minutes = rule.value_input;
-			}
-			input.call_on_court_participant_readiness_mode = create_rule_select_input(curt, free_courts_fieldset, 'call_on_court_participant_readiness_mode', ['disabled', 'checked_in', 'pause_expired'], () => {
+			const free_courts_fieldset = flow_card('court', call_rules);
+			free_courts_fieldset.closest('.settings-card').dataset.automationScope = 'court-call';
+			free_courts_fieldset.closest('.settings-card').setAttribute('aria-describedby', 'settings-automation-info-calls');
+			input.call_on_court_participant_readiness_mode = flow_select(curt, free_courts_fieldset, 'call_on_court_participant_readiness_mode', ['disabled', 'checked_in', 'pause_expired'], () => {
 				if (curt.call_on_court_player_pause_expired_enabled === true) {
 					return 'pause_expired';
 				}
 				return 'disabled';
 			});
-			input.call_on_court_technical_officials_mode = create_rule_select_input(curt, free_courts_fieldset, 'call_on_court_technical_officials_mode', ['disabled', 'checked_in', 'available'], () => 'disabled');
-			input.call_on_court_require_official_space_enabled = create_checkbox(curt, input.call_on_court_technical_officials_mode.rule_box, 'call_on_court_require_official_space_enabled');
-			input.call_on_court_technical_officials_hint = uiu.el(input.call_on_court_technical_officials_mode.rule_box, 'div', 'automation_suboption_hint');
+			input.call_on_court_technical_officials_mode = flow_select(curt, free_courts_fieldset, 'call_on_court_technical_officials_mode', ['disabled', 'checked_in', 'available'], () => 'disabled');
+			input.call_on_court_require_official_space_enabled = flow_checkbox(curt, free_courts_fieldset, 'call_on_court_require_official_space_enabled');
+			input.call_on_court_technical_officials_hint = flow_hint(input.call_on_court_technical_officials_mode);
+			flow_heading(free_courts_fieldset, 'limits');
 			{
-				const rule = create_rule_limit_input(curt, free_courts_fieldset, 'call_on_court_time_limit_before_scheduled_enabled', 'call_on_court_time_limit_before_scheduled_minutes', 30, 0, 180, 1, 'tournament:edit:minutes');
+				const rule = flow_limit(curt, free_courts_fieldset, 'call_on_court_only_preparation_enabled', 'call_on_court_only_preparation_minutes', 0, 0, 180, 1, 'tournament:edit:minutes');
+				input.call_on_court_only_preparation_enabled = rule.enabled_input;
+				input.call_on_court_only_preparation_minutes = rule.value_input;
+			}
+			{
+				const rule = flow_limit(curt, free_courts_fieldset, 'call_on_court_time_limit_before_scheduled_enabled', 'call_on_court_time_limit_before_scheduled_minutes', 30, 0, 180, 1, 'tournament:edit:minutes');
 				input.call_on_court_time_limit_before_scheduled_enabled = rule.enabled_input;
 				input.call_on_court_time_limit_before_scheduled_minutes = rule.value_input;
 			}
 			{
-				const rule = create_rule_limit_input(curt, free_courts_fieldset, 'call_on_court_block_ahead_limit_enabled', 'call_on_court_block_ahead_limit', 1, 0, 10, 1, null);
+				const rule = flow_limit(curt, free_courts_fieldset, 'call_on_court_block_ahead_limit_enabled', 'call_on_court_block_ahead_limit', 1, 0, 10, 1, null);
 				input.call_on_court_block_ahead_limit_enabled = rule.enabled_input;
 				input.call_on_court_block_ahead_limit = rule.value_input;
 			}
 			{
-				const rule = create_rule_limit_input(curt, free_courts_fieldset, 'call_on_court_time_ahead_of_frontier_enabled', 'call_on_court_time_ahead_of_frontier_minutes', 30, 0, 180, 1, 'tournament:edit:minutes');
+				const rule = flow_limit(curt, free_courts_fieldset, 'call_on_court_time_ahead_of_frontier_enabled', 'call_on_court_time_ahead_of_frontier_minutes', 30, 0, 180, 1, 'tournament:edit:minutes');
 				input.call_on_court_time_ahead_of_frontier_enabled = rule.enabled_input;
 				input.call_on_court_time_ahead_of_frontier_minutes = rule.value_input;
 			}
 			{
-				const rule = create_rule_limit_input(curt, free_courts_fieldset, 'call_on_court_matches_ahead_of_frontier_enabled', 'call_on_court_matches_ahead_of_frontier_limit', 1, 0, 50, 1, null);
+				const rule = flow_limit(curt, free_courts_fieldset, 'call_on_court_matches_ahead_of_frontier_enabled', 'call_on_court_matches_ahead_of_frontier_limit', 1, 0, 50, 1, null);
 				input.call_on_court_matches_ahead_of_frontier_enabled = rule.enabled_input;
 				input.call_on_court_matches_ahead_of_frontier_limit = rule.value_input;
 			}
 
-			const tablet_fieldset = uiu.el(tournament_flow_div, 'fieldset', 'automation_group_box');
-			const tablet_legend = uiu.el(tablet_fieldset, 'legend');
-			input.tabletoperator_enabled = uiu.el(tablet_legend, 'input', {
-				type: 'checkbox',
-				name: 'tabletoperator_enabled',
+			const officials_grid = uiu.el(officials_page, 'div', 'settings-officials-grid');
+			const tablet_column = uiu.el(officials_grid, 'div', 'settings-officials-column');
+			const official_column = uiu.el(officials_grid, 'div', 'settings-officials-column');
+			const rotation_body = flow_card('rotation', official_column);
+			rotation_body.classList.add('settings-flow-rotation');
+			const scope_card = (body, area) => {
+				const card = body.closest('.settings-card');
+				card.dataset.automationScope = area;
+				card.setAttribute('aria-describedby', 'settings-automation-info-officials');
+			};
+			scope_card(rotation_body, 'officials');
+			input.official_rotation_selected_mode = btsSettingsWorkspace.field(rotation_body, {
+				label: property_text('official_rotation_selected_mode'), tag: 'select', attributes: {name: 'official_rotation_selected_mode'},
 			});
-			if (curt.tabletoperator_enabled) {
-				input.tabletoperator_enabled.checked = true;
+			for (const mode of ['umpire_only', 'umpire_and_service_judge']) {
+				uiu.el(input.official_rotation_selected_mode, 'option', {value: mode}, property_text('official_rotation_mode:' + mode));
 			}
-			uiu.el(tablet_legend, 'span', {}, ci18n('tournament:edit:tabletoperator_enabled'));
-			bind_live_prop(input.tabletoperator_enabled, 'tabletoperator_enabled');
-			input.tabletoperator_with_umpire_enabled                = create_checkbox(curt, tablet_fieldset, 'tabletoperator_with_umpire_enabled');
-			input.tabletoperator_release_on_umpire_enabled          = create_checkbox(curt, tablet_fieldset, 'tabletoperator_release_on_umpire_enabled');
-			input.tabletoperator_release_on_umpire_enabled.title    = ci18n('tournament:edit:tabletoperator_release_on_umpire_enabled:hint');
-			input.tabletoperator_winner_of_quaterfinals_enabled     = create_checkbox(curt, tablet_fieldset, 'tabletoperator_winner_of_quaterfinals_enabled');
-			input.tabletoperator_use_manual_counting_boards_enabled = create_checkbox(curt, tablet_fieldset, 'tabletoperator_use_manual_counting_boards_enabled');
-			input.tabletoperator_split_doubles                      = create_checkbox(curt, tablet_fieldset, 'tabletoperator_split_doubles');
-			input.tabletoperator_assignment_scope                   = create_rule_select_input(curt, tablet_fieldset, 'tabletoperator_assignment_scope', ['any', 'same_location', 'same_court'], () => 'any');
-			input.tabletoperator_with_state_enabled                 = create_checkbox(curt, tablet_fieldset, 'tabletoperator_with_state_enabled');
-			input.tabletoperator_with_state_from_match_enabled      = create_checkbox(curt, tablet_fieldset, 'tabletoperator_with_state_from_match_enabled');
-			input.tabletoperator_set_break_after_tabletservice      = create_checkbox(curt, tablet_fieldset, 'tabletoperator_set_break_after_tabletservice');
+			input.official_rotation_selected_mode.value = selected_official_rotation_mode();
+			input.official_rotation_selected_mode.addEventListener('change', () => {
+				const selected = input.official_rotation_selected_mode.value;
+				send_single_prop('official_rotation_selected_mode', selected, err => {
+					if (!err) {
+						curt.official_rotation_selected_mode = selected;
+						if (curt.official_rotation_mode !== 'disabled') curt.official_rotation_mode = selected;
+					}
+					update_edit_dependencies();
+					if (err) cerror.net(err);
+				});
+			});
 
-			if (!curt.tabletoperator_break_seconds) {
+			input.technical_official_auto_assignment_mode = flow_select(curt, rotation_body, 'technical_official_auto_assignment_mode',
+				['manual_only', 'on_match_call_if_possible', 'on_preparation_call', 'when_available'], () => 'manual_only', 'technical_official_auto_assignment_mode:');
+			input.technical_official_break_after_assignment_seconds = flow_duration(curt, rotation_body, 'technical_official_break_after_assignment_seconds', 0, 3600, 0, 1);
+
+			const cooperation = btsSettingsWorkspace.card(official_column, {
+				title: ci18n('settings:officials:cooperation'), description: ci18n('settings:officials:cooperation:hint'),
+			});
+			cooperation.closest('.settings-card').classList.add('settings-tablet-umpire');
+			scope_card(cooperation, 'tabletoperators');
+			input.tabletoperator_with_umpire_enabled                = flow_checkbox(curt, cooperation, 'tabletoperator_with_umpire_enabled');
+			input.tabletoperator_release_on_umpire_enabled          = flow_checkbox(curt, cooperation, 'tabletoperator_release_on_umpire_enabled', property_text('tabletoperator_release_on_umpire_enabled:hint'));
+			input.tabletoperator_release_on_umpire_enabled.title    = ci18n('tournament:edit:tabletoperator_release_on_umpire_enabled:hint');
+			const release = input.tabletoperator_release_on_umpire_enabled;
+			const release_hint = uiu.el(release.closest('.settings-row').querySelector('.settings-row-info'), 'p', {
+				class: 'settings-field-description settings-tablet-umpire-hint', id: release.id + '-dependency',
+			}, ci18n('settings:officials:release:inactive'));
+			release.setAttribute('aria-describedby', release.getAttribute('aria-describedby') + ' ' + release_hint.id);
+
+			const tablet_fieldset = flow_card('tablet', tablet_column);
+			scope_card(tablet_fieldset, 'tabletoperators');
+			input.tabletoperator_winner_of_quaterfinals_enabled     = flow_checkbox(curt, tablet_fieldset, 'tabletoperator_winner_of_quaterfinals_enabled');
+			input.tabletoperator_use_manual_counting_boards_enabled = flow_checkbox(curt, tablet_fieldset, 'tabletoperator_use_manual_counting_boards_enabled');
+			input.tabletoperator_split_doubles                      = flow_checkbox(curt, tablet_fieldset, 'tabletoperator_split_doubles');
+			input.tabletoperator_assignment_scope                   = flow_select(curt, tablet_fieldset, 'tabletoperator_assignment_scope', ['any', 'same_location', 'same_court'], () => 'any');
+			flow_heading(tablet_fieldset, 'announcements');
+			input.tabletoperator_with_state_enabled                 = flow_checkbox(curt, tablet_fieldset, 'tabletoperator_with_state_enabled');
+			input.tabletoperator_with_state_from_match_enabled      = flow_checkbox(curt, tablet_fieldset, 'tabletoperator_with_state_from_match_enabled');
+			flow_heading(tablet_fieldset, 'break');
+			input.tabletoperator_set_break_after_tabletservice      = flow_checkbox(curt, tablet_fieldset, 'tabletoperator_set_break_after_tabletservice');
+
+			if (curt.tabletoperator_break_seconds == null || curt.tabletoperator_break_seconds === '') {
 				curt.tabletoperator_break_seconds = 300;
 			}
-			input.tabletoperator_break_seconds                      = create_input(curt, "number", tablet_fieldset, 'tabletoperator_break_seconds')
+			input.tabletoperator_break_seconds                      = flow_duration(curt, tablet_fieldset, 'tabletoperator_break_seconds', null, null, 300, 1);
+
+			const sound = btsSettingsWorkspace.card(calls_page, {title: ci18n('settings:announcements:title'), description: ci18n('settings:announcements:shared')});
+			for (const name of ['annoncement_include_event', 'annoncement_include_round', 'annoncement_include_matchnumber']) {
+				input[name] = flow_checkbox(curt, sound, name);
+			}
+			flow_heading(sound, 'preparation_announcements');
+			input.preparation_meetingpoint_enabled = flow_checkbox(curt, sound, 'preparation_meetingpoint_enabled');
+			input.preparation_tabletoperator_setup_enabled = flow_checkbox(curt, sound, 'preparation_tabletoperator_setup_enabled');
+			sound.closest('.settings-card').classList.add('settings-announcements');
+			uiu.el(sound, 'a', {class: 'settings-related-link', href: '/admin/t/' + encodeURIComponent(curt.key) + '/edit/speech', 'data-settings-target': 'speech'}, ci18n('settings:announcements:general'));
+			const audio = btsSettingsWorkspace.card(calls_page, {title: ci18n('settings:audio:title'), description: ci18n('settings:audio:description')});
+			audio.closest('.settings-card').classList.add('settings-audio-devices');
+			dispose_audio_devices = btsAudioDevices.mount(audio, {tournament: curt,
+				onPending: begin_live_settings_request,
+				onResult: error => {end_live_settings_request(error);if (error) cerror.net(error);},
+			});
 
 		}
 
 
 		// scoring-formats-div##############################################################################
 		{
-		const scoring_div = uiu.el(form, "div", "settings");
-		scoring_formats_main = scoring_div;
-		render_scoring_formats(scoring_div);
-		render_stages_scoring_formats(scoring_div)
+			const scoring_div = createSection('scoring', 'settings-scoring');
+			scoring_formats_main = scoring_div;
+			render_scoring_formats(scoring_div);
+			render_stages_scoring_formats(scoring_div);
 		}
 
 
 
 		// call-div##################################################################################
 		{
-			const call_div = uiu.el(form, 'div', 'settings speech_settings_section');
-			uiu.el(call_div, 'h2', 'edit', ci18n('tournament:edit:calls'));
-			uiu.el(call_div, 'p', {}, 'Sprachausgabe für alle Clients dieses Turniers. Änderungen werden automatisch gespeichert. Die ausgewählte lokale Stimme wird vorrangig vorbereitet. Optional folgt die andere Stimme bei vollständigem Leerlauf.');
-			uiu.el(call_div, 'a', { href: '/admin/t/' + encodeURIComponent(curt.key) + '/speech-helpers/', target: '_blank', rel: 'noopener' }, 'Sprachhelfer auf weiteren Rechnern');
-			const layout = uiu.el(call_div, 'div', 'speech_settings_layout');
-			const speech_controls = uiu.el(layout, 'div');
-			let queue;
-			const paintStatus = render_local_speech_controls(speech_controls, () => { void queue?.refresh(); });
-			queue = createSpeechQueue({ root: uiu.el(layout, 'section', 'speech_queue'), service: btsSpeechService, onSnapshot: paintStatus });
-
-			const announcements_fieldset = uiu.el(call_div, 'fieldset');
-			input.annoncement_include_event = create_checkbox(curt, announcements_fieldset, 'annoncement_include_event');
-			input.annoncement_include_round = create_checkbox(curt, announcements_fieldset, 'annoncement_include_round');
-			input.annoncement_include_matchnumber = create_checkbox(curt, announcements_fieldset, 'annoncement_include_matchnumber');
-			input.no_match_cascade_announcements_enabled = create_checkbox(curt, announcements_fieldset, 'no_match_cascade_announcements_enabled');
-			input.preparation_meetingpoint_enabled = create_checkbox(curt, announcements_fieldset, 'preparation_meetingpoint_enabled');
-			input.preparation_tabletoperator_setup_enabled = create_checkbox(curt, announcements_fieldset, 'preparation_tabletoperator_setup_enabled');
-
-			input.announcement_speed = create_numeric_input(curt, call_div, 'announcement_speed', 0.8, 1.3, 1.05, 0.01);
-			input.announcement_pause_time_ms = create_numeric_input(curt, call_div, 'announcement_pause_time_ms', 0.0, 5.0, 2.0, 0.1);
-
-			render_normalisation_values(uiu.el(call_div, 'div','normalizations_values_div'));
-
+			const speech = createSection('speech', 'settings-speech');
+			const columns = uiu.el(speech, 'div', 'settings-speech-columns');
+			const voice = btsSettingsWorkspace.card(columns, {title:'Sprachausgabe', description:'Stimme und Ausgabe für alle Clients dieses Turniers', badge:'Turnierweit'});
+			const behavior = btsSettingsWorkspace.card(columns, {title:'Ansageverhalten', description:'Tempo, Pausen und zusätzliche Durchsagen', badge:'Turnierweit'});
+			input.announcement_speed = btsSettingsWorkspace.field(behavior, {label:'Ansagegeschwindigkeit', description:'Von 0,8 bis 1,3. Der Standardwert ist 1,05.', attributes:{type:'number', name:'announcement_speed', min:.8, max:1.3, step:.01, value:curt.announcement_speed ?? 1.05}});
+			bind_live_prop(input.announcement_speed, 'announcement_speed', {get_value:el => Number(el.value), on_error:el => {el.value = curt.announcement_speed ?? 1.05;}});
+			input.announcement_pause_time_ms = btsSettingsWorkspace.field(behavior, {label:'Pause zwischen Ansagen', description:'Wartezeit zwischen aufeinanderfolgenden Durchsagen, maximal fünf Sekunden.', attributes:{name:'announcement_pause_time_ms'}});
+			btsDurationInput.attach(input.announcement_pause_time_ms, {value:curt.announcement_pause_time_ms ?? 2, min:0, max:5});
+			bind_live_prop(input.announcement_pause_time_ms, 'announcement_pause_time_ms');
+			input.no_match_cascade_announcements_enabled = btsSettingsWorkspace.field(behavior, {label:'Weitere Kampflos-Ergebnisse automatisch ansagen', description:'Auch Folgeergebnisse ansagen, die durch das kampflose Ergebnis entstehen.', attributes:{type:'checkbox', role:'switch', name:'no_match_cascade_announcements_enabled'}});
+			input.no_match_cascade_announcements_enabled.checked = !!curt.no_match_cascade_announcements_enabled;
+			bind_live_prop(input.no_match_cascade_announcements_enabled, 'no_match_cascade_announcements_enabled');
+			render_local_speech_controls(voice);
+			speech_infrastructure = btsSpeechInfrastructure.mount(uiu.el(speech, 'div'), {
+				request:speech_admin_request, onPending:begin_live_settings_request, onResult:end_live_settings_request,
+				onDraft:() => set_live_settings_status(live_settings_pending_requests ? 'saving' : 'saved'),
+			});
+			const link = uiu.el(speech, 'a', {class:'settings-related-link settings-speech-system-link', href:'/admin/t/' + encodeURIComponent(curt.key) + '/speech-planning/'}, 'Sprachsystem öffnen: Vorbereitung, Wiedergabe und Aussprache →');
+			link.addEventListener('click', event => {
+				if (event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
+				event.preventDefault();crouting.navigate_to('t/' + encodeURIComponent(curt.key) + '/speech-planning/');
+			});
 
 		}
 
 		// upcoming-div ###################################################################################################
 		{
-			const upcoming_div = uiu.el(form, 'div', 'settings');
+			const upcoming_div = createSection('upcoming');
 			uiu.el(upcoming_div, 'h2', 'edit', ci18n('tournament:edit:upcoming_matches_settings'));
 
 			const upcoming_fieldset = uiu.el(upcoming_div, 'fieldset');
 			input.upcoming_animation_speed = create_numeric_input(curt, upcoming_fieldset, 'upcoming_matches_animation_speed', 0, 10, 2, 1);
 			input.upcoming_animation_pause = create_numeric_input(curt, upcoming_fieldset, 'upcoming_matches_animation_pause', 1, 20, 4, 1);
+			btsDurationInput.attach(input.upcoming_animation_pause, {value: curt.upcoming_matches_animation_pause ?? 4, min: 1, max: 20});
 			input.upcoming_matches_max_count = create_numeric_input(curt, upcoming_fieldset, 'upcoming_matches_max_count', 10, 50, 15, 1);
 			input.upcoming_matches_today_only_enabled = create_checkbox(curt, upcoming_fieldset, 'upcoming_matches_today_only_enabled');
 			input.self_check_in_called_overlay_duration_ms = create_duration_seconds_input(curt, upcoming_fieldset, 'self_check_in_called_overlay_duration_ms', 1, 60, 12, 0.5);
 		}
 
-		// officials_host ######################################################################################################
-		const officials_host = uiu.el(form, 'div', { id: 'officials_host' });
-		update_official_tables(officials_host);  // initial + später auch für Updates
-
-
-
 		// devices-div##################################################################################
 		{
-			const devices_div = uiu.el(form, 'div', 'settings');
+			const devices_div = createSection('devices');
 			uiu.el(devices_div, 'h2', 'edit', ci18n('tournament:edit:devices'));
 
 			render_logo_preview(devices_div);
@@ -3552,7 +3450,90 @@ var ctournament = (function() {
 
 		// debug-div##################################################################################
 		{
-			const debug_div = uiu.el(form, 'div', 'settings');
+			const debug = createSection('debug', 'settings-debug');
+			const clock_fieldset = btsSettingsWorkspace.card(debug, {
+				title: ci18n('settings:debug:clock'), description: ci18n('settings:debug:clock:hint'),
+			});
+			const clock_mode_select = btsSettingsWorkspace.field(clock_fieldset, {
+				label: 'Server-Zeitbasis', description: ci18n('settings:debug:clock:mode:hint'), tag: 'select', attributes: {name: 'test_clock_mode'},
+			});
+			uiu.el(clock_mode_select, 'option', { value: 'real' }, 'Echtzeit (Produktivmodus)');
+			uiu.el(clock_mode_select, 'option', { value: 'fixed' }, 'Fixe Zeit (nur Debug/Test)');
+			uiu.el(clock_mode_select, 'option', { value: 'offset' }, 'Offset-Zeit (nur Debug/Test)');
+
+			const clock_real_section = uiu.el(clock_fieldset, 'div', 'settings-clock-hint');
+			uiu.text(clock_real_section, 'Produktivmodus: BTS verwendet die aktuelle Serverzeit.');
+
+			const clock_fixed_section = uiu.el(clock_fieldset, 'div', 'settings-clock-variant');
+			const clock_fixed_input = btsSettingsWorkspace.field(clock_fixed_section, {
+				label: 'Fixe Zeit', attributes: {type: 'datetime-local', name: 'test_clock_fixed'},
+			});
+
+			const clock_offset_section = uiu.el(clock_fieldset, 'div', 'settings-clock-variant');
+			const clock_offset_hint = uiu.el(clock_offset_section, 'div', 'settings-clock-hint');
+			uiu.text(clock_offset_hint, 'Wenn eine Zielzeit gesetzt ist, wird daraus der Offset berechnet. Sonst wird der eingegebene Zeitversatz verwendet.');
+
+			const clock_offset_input = btsSettingsWorkspace.field(clock_offset_section, {
+				label: 'Offset', attributes: {type: 'text', name: 'test_clock_offset_minutes'},
+			});
+			btsDurationInput.attach(clock_offset_input, {unit: 'milliseconds', value: 0, min: null, signed: true});
+			const clock_offset_target_input = btsSettingsWorkspace.field(clock_offset_section, {
+				label: 'Offset-Zielzeit (optional)', attributes: {type: 'datetime-local', name: 'test_clock_offset_target'},
+			});
+
+			const clock_actions = uiu.el(clock_fieldset, 'div', 'settings-card-actions');
+			const apply_clock_btn = uiu.el(clock_actions, 'button', {type: 'button', class: 'btn'}, 'Übernehmen');
+			const freeze_now_btn = uiu.el(clock_actions, 'button', {type: 'button', class: 'btn'}, 'Jetzt einfrieren');
+			const reset_clock_btn = uiu.el(clock_actions, 'button', {type: 'button', class: 'btn', name: 'test_clock_reset'}, ci18n('settings:debug:clock:reset'));
+			const clock_status = uiu.el(clock_fieldset, 'p', 'settings-clock-status');
+
+			test_clock_controls = {
+				mode_select: clock_mode_select,
+				real_section: clock_real_section,
+				fixed_section: clock_fixed_section,
+				offset_section: clock_offset_section,
+				fixed_input: clock_fixed_input,
+				offset_input: clock_offset_input,
+				offset_target_input: clock_offset_target_input,
+				freeze_now_btn: freeze_now_btn,
+				status: clock_status,
+			};
+			update_test_clock_controls();
+
+			clock_mode_select.addEventListener('change', update_test_clock_mode_visibility);
+
+			apply_clock_btn.addEventListener('click', () => {
+				if (clock_mode_select.value === 'fixed') {
+					const fixed_ts = Date.parse(clock_fixed_input.value);
+					if (!Number.isFinite(fixed_ts)) {
+						return cerror.silent('Ungültige fixe Zeit');
+					}
+					return send_test_clock_update({ mode: 'fixed', fixed_ts }, (err) => err && cerror.net(err));
+				}
+				if (clock_mode_select.value === 'offset') {
+					const offset_target_value = (clock_offset_target_input.value || '').trim();
+					if (offset_target_value !== '') {
+						const offset_target_ts = Date.parse(offset_target_value);
+						if (!Number.isFinite(offset_target_ts)) {
+							return cerror.silent('Ungültige Offset-Zielzeit');
+						}
+						return send_test_clock_update({ mode: 'offset', offset_target_ts }, (err) => err && cerror.net(err));
+					}
+					if (!clock_offset_input.btsDuration.validate()) {clock_offset_input.reportValidity();return;}
+					return send_test_clock_update({ mode: 'offset', offset_ms: clock_offset_input.btsDuration.read() }, (err) => err && cerror.net(err));
+				}
+				return send_test_clock_update({ mode: 'real' }, (err) => err && cerror.net(err));
+			});
+
+			freeze_now_btn.addEventListener('click', () => {
+				send_test_clock_update({ mode: 'fixed', fixed_ts: get_effective_test_clock_now_ms() }, (err) => err && cerror.net(err));
+			});
+
+			reset_clock_btn.addEventListener('click', () => {
+				send_test_clock_update({ mode: 'real' }, (err) => err && cerror.net(err));
+			});
+
+			const debug_div = uiu.el(debug, 'div', 'settings');
 			uiu.el(debug_div, 'h2', 'edit', ci18n('tournament:edit:debug_output'));
 			const debug_fieldset = uiu.el(debug_div, 'fieldset');
 			uiu.el(debug_fieldset, 'div', 'hint', ci18n('tournament:edit:debug_output_hint'));
@@ -3590,7 +3571,7 @@ var ctournament = (function() {
 
 		// advertisement-div##################################################################################
 		{
-			const advertisement_div = uiu.el(form, 'div', 'settings');
+			const advertisement_div = createSection('advertisements');
 			render_advertisements(advertisement_div);
 		}
 
@@ -3598,14 +3579,13 @@ var ctournament = (function() {
 
 		// location-div##################################################################################
 		{
-			const location_div = uiu.el(form, 'div', 'settings location_settings_section');
+			const location_div = createSection('locations', 'settings-locations location_settings_section');
 			render_locations(location_div);
-			render_courts(location_div);
 		}
 
 		// ticker-connection-div##################################################################################
 		{
-			const ticker_div = uiu.el(form, 'div', 'settings');
+			const ticker_div = createSection('ticker');
 			uiu.el(ticker_div, 'h2', 'edit', ci18n('tournament:edit:ticker_connection'));
 
 			const ticker_fieldset = uiu.el(ticker_div, 'fieldset');
@@ -3642,18 +3622,18 @@ var ctournament = (function() {
 
 			// save-div##################################################################################
 			{
-				const save_div = uiu.el(form, 'div', 'settings');
+				const save_div = createSection('maintenance');
 				uiu.el(save_div, 'h2', 'edit', ci18n('tournament:edit'));
-				live_settings_pending_requests = 0;
 				live_settings_status_el = uiu.el(save_div, 'div', {
-					class: 'live_settings_status live_settings_status_saved',
-				}, ci18n('tournament:edit:live_status:saved'));
+					class: 'live_settings_status live_settings_status_' + (live_settings_pending_requests ? 'saving' : 'saved'),
+				}, ci18n('tournament:edit:live_status:' + (live_settings_pending_requests ? 'saving' : 'saved')));
 
 				const back_btn = uiu.el(save_div, 'button', {
 					role: 'button',
+					class: 'settings-back-button',
 				}, ci18n('Back'));
 				back_btn.addEventListener('click', () => {
-					ui_show();
+					crouting.navigate_to('t/' + encodeURIComponent(curt.key) + '/');
 				});
 
 				const reset_hint = uiu.el(save_div, 'p', {
@@ -3741,29 +3721,32 @@ var ctournament = (function() {
 				});
 			}
 			update_edit_dependencies();
+			const view = settingsPage = btsSettingsWorkspace.create({
+				owner: main, content: form, tournamentKey: curt.key, section: selectedSection,
+				status: live_settings_status_el, back: form.querySelector('.settings-back-button'),
+				onSelect: id => crouting.navigate_to('t/' + encodeURIComponent(curt.key) + '/edit' + (id === 'general' ? '' : '/' + id)),
+				onDispose: () => {
+					dispose_audio_devices?.();
+					speech_infrastructure?.dispose();
+					form.querySelector('.location_settings_section')?.btsLocationSettings?.destroy();
+					if (settingsPage === view) {settingsPage = null;if (!document.querySelector('.page-leitstand,.page-certificates,.page-settings,.page-speech')) cleitstand.unmount();}
+				},
+			});
 		}
-	_route_single(/t\/([a-z0-9]+)\/edit$/, ui_edit, change.default_handler(_update_all_ui_elements_edit, {
+	_route_single(/t\/([a-z0-9]+)\/edit(?:\/([a-z-]+))?$/, m => {
+		if (settingsPage?.page.isConnected && settingsPage.tournamentKey === curt.key && current_view === 'edit') {
+			settingsPage.show(m[2]);
+		} else ui_edit(m[2]);
+	}, change.default_handler(_update_all_ui_elements_edit, {
 		update_general_displaysettings: update_general_displaysettings,
 		update_player_status: update_player_status,
 		btp_status: btp_status_changed,
 		ticker_status: ticker_status_changed,
 	}));
 
-		function update_scoring_formats() {
+	function update_scoring_formats() {
 		if (typeof cleitstand !== 'undefined') cleitstand.refreshScoreLayout();
-		if (!scoring_formats_main) {
-			if (typeof debug !== "undefined" && debug?.log) {
-				debug.log("update_scoring_formats: main container not initialized");
-			}
-			return;
-		}
-
-		// kompletten Bereich leeren
-		while (scoring_formats_main.firstChild) {
-			scoring_formats_main.removeChild(scoring_formats_main.firstChild);
-		}
-
-		// vollständig neu rendern
+		if (!scoring_formats_main?.isConnected) return;
 		render_scoring_formats(scoring_formats_main);
 		render_stages_scoring_formats(scoring_formats_main);
 	}
@@ -3773,10 +3756,7 @@ var ctournament = (function() {
 		if (!Number.isFinite(duration) || duration < 0) {
 			return "—";
 		}
-		if (duration === 0) {
-			return "0 s";
-		}
-		return `${Math.round(duration / 1000)} s`;
+		return btsDurationInput.format(duration, {unit: 'milliseconds'}) + ' ' + ci18n('settings:duration:minutes');
 	}
 
 	function format_set_rule_summary(setPoints) {
@@ -3797,20 +3777,8 @@ var ctournament = (function() {
 		return Number.isFinite(parsed) ? parsed : null;
 	}
 
-	function duration_ms_to_seconds(value) {
-		const duration = parse_nullable_number(value);
-		if (duration === null) {
-			return "";
-		}
-		return duration / 1000;
-	}
-
-	function duration_seconds_to_ms(value) {
-		const duration = parse_nullable_number(value);
-		if (duration === null) {
-			return null;
-		}
-		return duration * 1000;
+	function duration_input_to_ms(value) {
+		return btsDurationInput.parse(value, {unit: 'milliseconds', nullable: true});
 	}
 
 	function is_break_in_set_enabled(setPoints) {
@@ -3838,6 +3806,7 @@ var ctournament = (function() {
 		if (!dlg) {
 			return;
 		}
+		if (dlg.btsScoringDispose) return dlg.btsScoringDispose();
 		cbts_utils.esc_stack_pop();
 		uiu.remove(dlg);
 	}
@@ -3851,8 +3820,9 @@ var ctournament = (function() {
 		if (typeof scoringFormatId !== 'undefined' && scoringFormatId !== null && Number(open_id) !== Number(scoringFormatId)) {
 			return false;
 		}
+		const saving = dlg.dataset.saving === 'true';
 		_cancel_ui_edit_scoring_format();
-		if (reason_i18n_key) {
+		if (reason_i18n_key && !saving) {
 			const reason_text = ci18n(reason_i18n_key);
 			if (!set_live_settings_status_message(reason_text, 'error')) {
 				cerror.silent(reason_text);
@@ -3862,26 +3832,30 @@ var ctournament = (function() {
 	}
 
 	function create_scoring_format_field(parent, label, name, value, type = "text", attrs = {}) {
-		const row = uiu.el(parent, 'label', 'scoring_format_edit_row');
-		uiu.el(row, 'span', {}, label);
-		return uiu.el(row, 'input', Object.assign({
+		const row = uiu.el(parent, 'div', 'scoring_format_edit_row'), id = 'scoring-format-field-' + name;
+		uiu.el(row, 'label', {for: id}, label);
+		const controls = uiu.el(row, 'div', 'scoring_format_edit_control');
+		return uiu.el(controls, 'input', Object.assign({
 			type,
 			name,
+			id,
 			value: value ?? '',
 		}, attrs));
 	}
 
 	function create_scoring_format_checkbox(parent, label, name, checked) {
-		const row = uiu.el(parent, 'label', 'scoring_format_edit_row');
-		uiu.el(row, 'span', {}, label);
+		const row = uiu.el(parent, 'div', 'scoring_format_edit_row'), id = 'scoring-format-field-' + name;
+		uiu.el(row, 'label', {for: id}, label);
 		const attrs = {
 			type: 'checkbox',
 			name,
+			id,
+			role: 'switch',
 		};
 		if (checked) {
 			attrs.checked = 'checked';
 		}
-		return uiu.el(row, 'input', attrs);
+		return uiu.el(uiu.el(row, 'div', 'scoring_format_edit_control'), 'input', attrs);
 	}
 
 	function is_scoring_value_editable(setPoints, fieldName) {
@@ -3908,8 +3882,10 @@ var ctournament = (function() {
 		const hasBreakInSet = is_break_in_set_enabled(setPoints);
 		const breakEnabled = create_scoring_format_checkbox(fieldset, ci18n("tournament:edit:scoring_formats:break_in_set_enabled"), `${prefix}_break_in_set_enabled`, hasBreakInSet);
 		const intervalAtInput = create_scoring_format_field(fieldset, ci18n("tournament:edit:scoring_formats:interval_at"), `${prefix}_interval_at`, setPoints?.interval_at, "number", { min: 0, step: 1 });
-		const intervalDurationInput = create_scoring_format_field(fieldset, `${ci18n("tournament:edit:scoring_formats:interval_duration")} (s)`, `${prefix}_interval_duration_s`, duration_ms_to_seconds(setPoints?.interval_duration_ms), "number", { min: 0, step: 1 });
-		create_scoring_format_field(fieldset, `${ci18n("tournament:edit:scoring_formats:break_before_set")} (s)`, `${prefix}_break_before_set_duration_s`, duration_ms_to_seconds(setPoints?.break_before_set_duration_ms), "number", { min: 0, step: 1 });
+		const intervalDurationInput = create_scoring_format_field(fieldset, ci18n('tournament:edit:scoring_formats:interval_duration'), `${prefix}_interval_duration_s`, '');
+		btsDurationInput.attach(intervalDurationInput, {unit: 'milliseconds', value: setPoints?.interval_duration_ms ?? null, nullable: true});
+		const breakDurationInput = create_scoring_format_field(fieldset, ci18n('tournament:edit:scoring_formats:break_before_set'), `${prefix}_break_before_set_duration_s`, '');
+		btsDurationInput.attach(breakDurationInput, {unit: 'milliseconds', value: setPoints?.break_before_set_duration_ms ?? null, nullable: true});
 
 		function normalizeScoreInputs() {
 			if (!endPointsInput.disabled) {
@@ -3950,6 +3926,7 @@ var ctournament = (function() {
 			const enabled = breakEnabled.checked;
 			intervalAtInput.disabled = !enabled;
 			intervalDurationInput.disabled = !enabled;
+			for (const field of [intervalAtInput, intervalDurationInput]) field.closest('.scoring_format_edit_row').classList.toggle('is-disabled', !enabled);
 		}
 
 		breakEnabled.addEventListener('change', updateBreakInSetUi);
@@ -3971,9 +3948,9 @@ var ctournament = (function() {
 			target.interval_enabled = hasBreakInSet;
 			if (hasBreakInSet) {
 				target.interval_at = parse_nullable_number(data[`${prefix}_interval_at`]);
-				target.interval_duration_ms = duration_seconds_to_ms(data[`${prefix}_interval_duration_s`]);
+				target.interval_duration_ms = duration_input_to_ms(data[`${prefix}_interval_duration_s`]);
 			}
-			target.break_before_set_duration_ms = duration_seconds_to_ms(data[`${prefix}_break_before_set_duration_s`]);
+			target.break_before_set_duration_ms = duration_input_to_ms(data[`${prefix}_break_before_set_duration_s`]);
 		}
 
 		update_set_points(scoringFormat.set_points, 'set_points');
@@ -3992,303 +3969,188 @@ var ctournament = (function() {
 	function ui_edit_scoring_format(scoringFormatId) {
 		const scoringFormats = curt?.scoring_formats;
 		const baseFormat = structuredClone(utils.find((scoringFormats && scoringFormats.formats) || [], f => Number(f.id) === Number(scoringFormatId)));
-		if (!baseFormat) {
-			return;
-		}
+		if (!baseFormat || document.querySelector('.scoring_format_edit_dialog')) return;
 
-		cbts_utils.esc_stack_push(_cancel_ui_edit_scoring_format);
-
-		const body = uiu.qs('body');
-		const dialogBg = uiu.el(body, 'div', 'dialog_bg scoring_format_edit_dialog', {
+		const opener = document.activeElement, owner = settingsPage?.page || uiu.qs('.main');
+		const dialog = uiu.el(document.body, 'dialog', {
+			class: 'leitstand-dialog scoring_format_edit_dialog',
 			'data-scoring-format-id': scoringFormatId,
+			'aria-labelledby': 'scoring-format-dialog-title',
+			'aria-describedby': 'scoring-format-dialog-help',
+			'aria-modal': 'true',
 		});
-		dialogBg.addEventListener('click', (e) => {
-			if (e.target === dialogBg) {
-				_cancel_ui_edit_scoring_format();
-			}
-		});
-
-		const dialog = uiu.el(dialogBg, 'div', 'dialog');
-		uiu.el(dialog, 'h3', {}, ci18n('tournament:edit:scoring_formats:dialog_title'));
+		const header = uiu.el(dialog, 'header', 'dialog-heading');
+		const title = uiu.el(header, 'h2', {id: 'scoring-format-dialog-title'});
+		title.innerHTML = cleitstand.icon('sheet');uiu.el(title, 'span', {}, ci18n('tournament:edit:scoring_formats:dialog_title'));
+		const close = uiu.el(header, 'button', {type: 'button', class: 'ls-dialog-close', 'aria-label': ci18n('dialog:close')});
+		close.innerHTML = cleitstand.icon('close');
 
 		const form = uiu.el(dialog, 'form');
-		const container = uiu.el(form, 'div', 'scoring_format_edit_container');
-		uiu.el(container, 'div', 'hint', ci18n('tournament:edit:scoring_formats:dialog_hint'));
-		create_scoring_format_field(container, ci18n("tournament:edit:scoring_formats:name"), 'name', baseFormat.name, 'text', { disabled: 'disabled' });
-		create_scoring_format_field(container, ci18n("tournament:edit:scoring_formats:num_sets"), 'numSets', baseFormat.numSets, 'number', { min: 1, step: 1, disabled: 'disabled' });
-		render_scoring_format_edit_section(container, 'set_points', ci18n("tournament:edit:scoring_formats:regular_sets"), baseFormat.set_points);
-		render_scoring_format_edit_section(container, 'last_set_points', ci18n("tournament:edit:scoring_formats:last_set"), baseFormat.last_set_points);
+		const container = uiu.el(form, 'div', 'dialog-content scoring_format_edit_container');
+		uiu.el(container, 'p', {class: 'scoring-format-dialog-help', id: 'scoring-format-dialog-help'}, ci18n('tournament:edit:scoring_formats:dialog_hint'));
+		const metadata = uiu.el(container, 'div', 'scoring-format-dialog-metadata');
+		create_scoring_format_field(metadata, ci18n('tournament:edit:scoring_formats:name'), 'name', baseFormat.name, 'text', {disabled: 'disabled'});
+		create_scoring_format_field(metadata, ci18n('tournament:edit:scoring_formats:num_sets'), 'numSets', baseFormat.numSets, 'number', {min: 1, step: 1, disabled: 'disabled'});
+		const rules = uiu.el(container, 'div', 'scoring-format-dialog-columns');
+		render_scoring_format_edit_section(rules, 'set_points', ci18n('tournament:edit:scoring_formats:regular_sets'), baseFormat.set_points);
+		render_scoring_format_edit_section(rules, 'last_set_points', ci18n('tournament:edit:scoring_formats:last_set'), baseFormat.last_set_points);
 
-		const buttons = uiu.el(form, 'div', { style: 'margin-top: 2em;' });
-		uiu.el(buttons, 'button', {
-			'class': 'match_save_button',
-			role: 'submit',
-		}, ci18n('Change'));
-
-		form_utils.onsubmit(form, function(data) {
+		const footer = uiu.el(form, 'footer', 'ls-dialog-footer');
+		const hint = uiu.el(footer, 'p', {class: 'scoring-format-dialog-status', id: 'scoring-format-dialog-status', role: 'status'});
+		const actions = uiu.el(footer, 'div', 'scoring-format-dialog-actions');
+		const cancel = uiu.el(actions, 'button', {type: 'button', class: 'btn'}, ci18n('dialog:close'));
+		const saveButton = uiu.el(actions, 'button', {type: 'submit', class: 'btn primary match_save_button', 'aria-describedby': hint.id}, ci18n('dialog:save'));
+		let errorMessage = '', controller, observer, disposed = false;
+		const render = ({dirty, busy}) => {
+			for (const input of form.querySelectorAll('.duration-input')) input.btsDuration.validate();
+			const invalid = [...form.querySelectorAll('input')].find(input => !input.disabled && !input.validity.valid);
+			const reason = invalid?.validationMessage || '';
+			btsDialogActions.control(saveButton, {disabled: !!busy || !dirty || !!reason,
+				label: ci18n(busy ? 'dialog:busy:save' : 'dialog:save'),
+				reason: busy ? ci18n('dialog:busy:save') : reason || (!dirty ? ci18n('dialog:no_changes') : '')});
+			btsDialogActions.control(cancel, {disabled: !!busy, label: ci18n(dirty ? 'Cancel' : 'dialog:close')});
+			close.disabled = !!busy;container.inert = !!busy;
+			form.setAttribute('aria-busy', String(!!busy));
+			const message = busy ? ci18n('dialog:busy:save') : errorMessage || reason;
+			if (hint.textContent !== message) hint.textContent = message;
+			hint.classList.toggle('is-error', !busy && !!(errorMessage || reason));
+		};
+		form.addEventListener('input', () => {errorMessage = '';});
+		form.addEventListener('change', () => {errorMessage = '';});
+		controller = btsDialogActions.create(form, {onUpdate: render, confirmDiscard: () => btsDialogActions.confirm({
+			owner: form, title: ci18n('dialog:unsaved_changes'),
+			message: ci18n('dialog:discard_details', {name: baseFormat.name || ci18n('tournament:edit:scoring_formats:dialog_title')}),
+			confirmLabel: ci18n('dialog:discard_changes'), cancelLabel: ci18n('dialog:keep_editing'), warning: true,
+			returnFocus: form.querySelector('input:not(:disabled)') || cancel,
+		})});
+		const dispose = () => {
+			if (disposed) return;disposed = true;
+			observer.disconnect();controller.destroy();cbts_utils.esc_stack_pop();
+			if (dialog.open) dialog.close();dialog.remove();
+			if (opener?.isConnected) opener.focus({preventScroll: true});
+		};
+		dialog.btsScoringDispose = dispose;
+		const requestClose = async () => {if (await controller.canClose() && dialog.isConnected) dispose();};
+		close.addEventListener('click', requestClose);cancel.addEventListener('click', requestClose);
+		dialog.addEventListener('click', event => {if (event.target === dialog) requestClose();});
+		dialog.addEventListener('cancel', event => {event.preventDefault();requestClose();});
+		dialog.addEventListener('keydown', event => {
+			if (event.key === 'Escape') {event.preventDefault();event.stopPropagation();requestClose();return;}
+			if (event.key !== 'Tab') return;
+			const fields = [...dialog.querySelectorAll('button,input,select,textarea,[tabindex]')].filter(field =>
+				!field.disabled && field.tabIndex >= 0 && !field.closest('[inert]') && field.getClientRects().length);
+			const index = fields.indexOf(document.activeElement);
+			if (!fields.length || (event.shiftKey ? index <= 0 : index < 0 || index === fields.length - 1)) {
+				event.preventDefault();(fields[event.shiftKey ? fields.length - 1 : 0] || dialog).focus();
+			}
+		});
+		dialog.addEventListener('close', dispose);
+		form.addEventListener('invalid', () => controller.refresh(), true);
+		form_utils.onsubmit(form, data => {
+			if (!controller.begin('save')) return;
 			const scoringFormat = scoring_format_from_form_data(baseFormat, data);
-			save_scoring_format(scoringFormatId, scoringFormat, (err) => {
+			dialog.dataset.saving = 'true';
+			save_scoring_format(scoringFormatId, scoringFormat, err => {
 				if (err) {
+					if (dialog.isConnected) {
+						delete dialog.dataset.saving;errorMessage = err.message || ci18n('settings:scoring:save_error');controller.end();
+					}
 					return cerror.net(err);
 				}
-				_cancel_ui_edit_scoring_format();
+				if (dialog.isConnected) {controller.accept();dispose();}
 			});
 		});
-
-		const cancelBtn = uiu.el(buttons, 'span', 'match_cancel_link vlink', ci18n('Cancel'));
-		cancelBtn.addEventListener('click', _cancel_ui_edit_scoring_format);
+		observer = new MutationObserver(() => {if (!owner.isConnected || !dialog.isConnected) dispose();});
+		observer.observe(document.body, {childList: true, subtree: true});
+		cbts_utils.esc_stack_push(requestClose);
+		dialog.showModal();(form.querySelector('input:not(:disabled)') || close).focus({preventScroll: true});
 	}
 
 	function render_scoring_formats(main) {
-		uiu.el(main, "h2", "edit", ci18n("tournament:edit:scoring_formats"));
-
-		const sf = curt?.scoring_formats || { formats: [], default_id: null };
-		const formats = Array.isArray(sf.formats) ? sf.formats : [];
-		const defaultId = sf.default_id;
-
-		const table = uiu.el(main, "table", "scoring_formats_table");
-		const tbody = uiu.el(table, "tbody");
-
-		{
-			const tr = uiu.el(tbody, "tr");
-			uiu.el(tr, "th", { class: "scoring_format_name_cell" }, ci18n("tournament:edit:scoring_formats:name"));
-			uiu.el(tr, "th", { class: "scoring_format_center_cell" }, ci18n("tournament:edit:scoring_formats:num_sets"));
-			uiu.el(tr, "th", { class: "scoring_format_type_cell" }, ci18n("tournament:edit:scoring_formats:type"));
-			uiu.el(tr, "th", { class: "scoring_format_center_cell" }, ci18n("tournament:edit:scoring_formats:end_max"));
-			uiu.el(tr, "th", { class: "scoring_format_center_cell" }, ci18n("tournament:edit:scoring_formats:interval_at"));
-			uiu.el(tr, "th", { class: "scoring_format_right_cell" }, ci18n("tournament:edit:scoring_formats:interval_duration"));
-			uiu.el(tr, "th", { class: "scoring_format_right_cell" }, ci18n("tournament:edit:scoring_formats:break_before_set"));
-			uiu.el(tr, "th", { class: "scoring_format_center_cell" }, ci18n("tournament:edit:scoring_formats:default"));
-			uiu.el(tr, "th", { class: "scoring_format_center_cell" }, ci18n("tournament:edit:scoring_formats:edit"));
+		if (!main.btsScoringSettings) {
+			main.btsScoringSettings = btsScoringSettings.mount(main, {
+				onEdit: ui_edit_scoring_format, formatDuration: format_duration_ms,
+				formatRules: format_set_rule_summary, intervalEnabled: is_break_in_set_enabled,
+			});
 		}
-
-		for (const [formatIndex, f] of formats.entries()) {
-			const rowClass = (formatIndex % 2 === 0) ? "scoring_formats_row_group_even" : "scoring_formats_row_group_odd";
-			const regularTr = uiu.el(tbody, "tr", rowClass);
-			const lastTr = uiu.el(tbody, "tr", `scoring_formats_subrow ${rowClass}`);
-			const regularSetPoints = f?.set_points;
-			const lastSetPoints = f?.last_set_points;
-			const isDefault = Number(f.id) === Number(defaultId);
-				const canEdit = true;
-
-				uiu.el(regularTr, "td", { rowspan: 2, class: "scoring_format_name_cell" }, f.name || "");
-				uiu.el(regularTr, "td", { rowspan: 2, class: "scoring_format_center_cell" }, String(f.numSets ?? ""));
-				uiu.el(regularTr, "td", { class: "scoring_format_type_cell scoring_format_rule_cell" }, ci18n("tournament:edit:scoring_formats:type_regular"));
-				uiu.el(regularTr, "td", { class: "scoring_format_rule_cell scoring_format_center_cell" }, format_set_rule_summary(regularSetPoints));
-				uiu.el(regularTr, "td", { class: "scoring_format_rule_cell scoring_format_center_cell" }, is_break_in_set_enabled(regularSetPoints) ? String(regularSetPoints.interval_at) : "—");
-				uiu.el(regularTr, "td", { class: "scoring_format_rule_cell scoring_format_right_cell" }, is_break_in_set_enabled(regularSetPoints) ? format_duration_ms(regularSetPoints && regularSetPoints.interval_duration_ms) : "—");
-				uiu.el(regularTr, "td", { class: "scoring_format_rule_cell scoring_format_right_cell" }, format_duration_ms(regularSetPoints && regularSetPoints.break_before_set_duration_ms));
-
-				const defTd = uiu.el(regularTr, "td", { rowspan: 2, class: "scoring_format_center_cell" });
-				if (isDefault) {
-					uiu.el(defTd, "span", {
-						class: "default_scoring_format_badge",
-						title: ci18n("tournament:edit:scoring_formats:default"),
-					}, ci18n("tournament:edit:scoring_formats:default_badge"));
-				} else {
-					uiu.el(defTd, "span", { class: "default_scoring_format_badge default_scoring_format_badge_inactive" }, "—");
-				}
-
-				const actionsTd = uiu.el(regularTr, "td", { rowspan: 2, class: "scoring_format_center_cell" });
-				const editBtn = uiu.el(
-					actionsTd,
-					"button",
-					{ "data-scoring-format-id": f.id },
-					ci18n("tournament:edit:scoring_formats:edit")
-					);
-
-				editBtn.addEventListener("click", (e) => {
-					const id = e.target.getAttribute("data-scoring-format-id");
-					ui_edit_scoring_format(id);
-				});
-
-				uiu.el(lastTr, "td", { class: "scoring_format_type_cell scoring_format_rule_cell" }, ci18n("tournament:edit:scoring_formats:type_last"));
-				uiu.el(lastTr, "td", { class: "scoring_format_rule_cell scoring_format_center_cell" }, format_set_rule_summary(lastSetPoints));
-				uiu.el(lastTr, "td", { class: "scoring_format_rule_cell scoring_format_center_cell" }, is_break_in_set_enabled(lastSetPoints) ? String(lastSetPoints.interval_at) : "—");
-				uiu.el(lastTr, "td", { class: "scoring_format_rule_cell scoring_format_right_cell" }, is_break_in_set_enabled(lastSetPoints) ? format_duration_ms(lastSetPoints && lastSetPoints.interval_duration_ms) : "—");
-				uiu.el(lastTr, "td", { class: "scoring_format_rule_cell scoring_format_right_cell" }, format_duration_ms(lastSetPoints && lastSetPoints.break_before_set_duration_ms));
-		}
+		main.btsScoringSettings.updateFormats(curt);
 	}
 
 	function update_stages_scoring_formats() {
 		if (typeof cleitstand !== 'undefined') cleitstand.refreshScoreLayout();
-		if (!scoring_formats_main) {
-			if (typeof debug !== "undefined" && debug?.log) {
-				debug.log("update_scoring_formats: main container not initialized");
-			}
-			return;
-		}
-
-		// kompletten Bereich leeren
-		while (scoring_formats_main.firstChild) {
-			scoring_formats_main.removeChild(scoring_formats_main.firstChild);
-		}
-
-		// vollständig neu rendern
-		render_scoring_formats(scoring_formats_main);
+		if (!scoring_formats_main?.isConnected) return;
 		render_stages_scoring_formats(scoring_formats_main);
 	}
 
 	function render_stages_scoring_formats(main) {
-		const sf = curt?.scoring_formats || { formats: [], default_id: null };
-		const defaultId = sf.default_id;
-
-		// Build lookup: scoring_format_id -> scoring_format_name
-		const formatNameById = new Map();
-		for (const f of sf.formats || []) {
-			formatNameById.set(Number(f.id), f.name || String(f.id));
-		}
-
-		const eventsPayload = curt?.events?.events || [];
-		const deviations = [];
-
-		for (const ev of eventsPayload) {
-			const eventName = ev?.name || "";
-			const stages = Array.isArray(ev?.stages) ? ev.stages : [];
-
-			for (const st of stages) {
-				// Missing/null scoring_format => default
-				const stageSfId =
-					st && st.scoring_format !== undefined && st.scoring_format !== null
-					? Number(st.scoring_format)
-					: null;
-
-				if (
-					stageSfId !== null &&
-					defaultId !== null &&
-					defaultId !== undefined &&
-					stageSfId !== Number(defaultId)
-				) {
-					deviations.push({
-						event_name: eventName,
-						stage_name: st?.name || "",
-						scoring_format_id: stageSfId,
-						scoring_format_name: formatNameById.get(stageSfId) || String(stageSfId),
-					});
-				}
-			}
-		}
-
-		deviations.sort((a, b) => {
-			const e = (a.event_name || "").localeCompare(b.event_name || "");
-			if (e) return e;
-			const s = (a.stage_name || "").localeCompare(b.stage_name || "");
-			if (s) return s;
-			return (a.scoring_format_id || 0) - (b.scoring_format_id || 0);
-		});
-
-		uiu.el(main, "h3", "edit", "Abweichungen vom Default");
-
-		if (defaultId === null || defaultId === undefined) {
-			uiu.el(
-				main,
-				"div",
-				"hint",
-				"Kein Default-Scoring-Format gefunden (scoring_formats.default_id ist leer)."
-			);
-			return;
-		}
-
-		if (deviations.length === 0) {
-			uiu.el(main, "div", "hint", "Keine Stages weichen vom Default-Scoring-Format ab.");
-			return;
-		}
-
-		const devTable = uiu.el(main, "table", "scoring_format_deviations_table");
-		const devBody = uiu.el(devTable, "tbody");
-
-		{
-			const tr = uiu.el(devBody, "tr");
-			uiu.el(tr, "th", {}, "Event");
-			uiu.el(tr, "th", {}, "Stage");
-			uiu.el(tr, "th", {}, "Verwendete Zählweise");
-		}
-
-		for (const d of deviations) {
-			const tr = uiu.el(devBody, "tr");
-			uiu.el(tr, "td", {}, d.event_name);
-			uiu.el(tr, "td", {}, d.stage_name);
-			uiu.el(tr, "td", {}, `${d.scoring_format_name} (#${d.scoring_format_id})`);
-		}
+		if (!main.btsScoringSettings) render_scoring_formats(main);
+		main.btsScoringSettings.updateAssignments(curt);
 	}
 
 	function render_normalisation_values(main) {
-		uiu.el(main, 'h2','edit', ci18n('tournament:edit:normalizations'));
-
-		const display_table = uiu.el(main, 'table');
-		const display_tbody = uiu.el(display_table, 'tbody');
-		const tr = uiu.el(display_tbody, 'tr');
-		uiu.el(tr, 'th', {}, ci18n('tournament:edit:normalizations:origin'));
-		uiu.el(tr, 'th', {}, ci18n('tournament:edit:normalizations:replace'));
-		uiu.el(tr, 'th', {}, ci18n('tournament:edit:normalizations:language'));
-		uiu.el(tr, 'th', {}, '');
-		const tr_input = uiu.el(display_tbody, 'tr');
-		create_undecorated_input("text", uiu.el(tr_input, 'td', {}), 'normalizations_origin');
-		create_undecorated_input("text", uiu.el(tr_input, 'td', {}), 'normalizations_replace');
-
-		// Tournament language selection
-		const language_td = uiu.el(tr_input, 'td');
-		const language_select = uiu.el(language_td, 'select', {
-		 	name: 'language',
-		 	required: 'required',
-			name: 'normalizations_language',
-			id: 'normalizations_language',
-		});
-		const all_langs = ci18n.get_all_languages();
-		for (const l of all_langs) {
-			const l_attrs = {
-		 		value: l['announcements:lang'],
-		 	};
-		 	if (l._code === curt.language) {
-		 		l_attrs.selected = 'selected';
-		 	}
-		 	uiu.el(language_select, 'option', l_attrs, l._name);
+		if (main.btsNormalizations) {main.btsNormalizations.update();return;}
+		const rows = new Map(), deleting = new Set();
+		const form = uiu.el(main, 'form', 'settings-normalization-form');
+		const inputs = {};
+		for (const [field, label] of [['origin', 'Original'], ['replace', 'Ersetzung'], ['language', 'Sprache']]) {
+			const wrapper = uiu.el(form, 'label', {});
+			uiu.el(wrapper, 'span', {}, label);
+			inputs[field] = uiu.el(wrapper, field === 'language' ? 'select' : 'input', {name:'normalizations_' + field, id:'normalizations_' + field});
+			wrapper.htmlFor = inputs[field].id;
 		}
-
-		//create_undecorated_input("text", uiu.el(tr_input, 'td', {}), 'normalizations_language');
-		const actions_td = uiu.el(tr_input, 'td', {});
-		const add_btn = uiu.el(actions_td, 'button', {}, ci18n('tournament:edit:add'));
-		add_btn.addEventListener('click', function (e) {
-
-			var new_normalization = {}
-			new_normalization.origin = document.getElementById('normalizations_origin').value;
-			new_normalization.replace = document.getElementById('normalizations_replace').value;
-			new_normalization.language = document.getElementById('normalizations_language').value;
-
-			send_with_live_status({
-				type: 'normalization_add',
-				tournament_key: curt.key,
-				normalization: new_normalization,
-			}, err => {
-				if (err) {
-					return cerror.net(err);
-				}
+		for (const language of ci18n.get_all_languages()) uiu.el(inputs.language, 'option', {value:language['announcements:lang']}, language._name);
+		inputs.language.value = ci18n('announcements:lang');
+		const add = uiu.el(form, 'button', {type:'submit', class:'btn', disabled:'disabled'}, ci18n('tournament:edit:add'));
+		const status = uiu.el(main, 'p', {class:'settings-normalization-status', role:'status'});
+		const empty = uiu.el(main, 'p', 'settings-speech-help', 'Noch keine Aussprache-Ersetzungen vorhanden.');
+		const table = uiu.el(main, 'table', 'settings-normalizations-table'), heading = uiu.el(uiu.el(table, 'thead'), 'tr');
+		const labels = ['Original', 'Ersetzung', 'Sprache', 'Aktionen'];
+		for (const label of labels) uiu.el(heading, 'th', {scope:'col'}, label);
+		const body = uiu.el(table, 'tbody');
+		let pending = false;
+		const values = () => Object.fromEntries(Object.entries(inputs).map(([key, input]) => [key, input.value]));
+		const refreshButton = () => {const disabled = pending || !inputs.origin.value.trim();if (add.disabled !== disabled) add.disabled = disabled;};
+		form.addEventListener('input', refreshButton);
+		form.addEventListener('submit', event => {
+			event.preventDefault();if (pending || !inputs.origin.value.trim()) return;
+			const submitted = values();pending = true;refreshButton();status.textContent = '';
+			send_with_live_status({type:'normalization_add', tournament_key:curt.key, normalization:submitted}, error => {
+				pending = false;if (!main.isConnected) return;
+				if (error) status.textContent = 'Die Ersetzung konnte nicht gespeichert werden. Bitte erneut hinzufügen.';
+				else if (Object.entries(submitted).every(([key, value]) => inputs[key].value === value)) {inputs.origin.value = '';inputs.replace.value = '';}
+				refreshButton();
 			});
 		});
-		for (const nv of curt.normalizations) {
-			const tr = uiu.el(display_tbody, 'tr');
-			uiu.el(tr, 'td', {}, nv.origin);
-			uiu.el(tr, 'td', {}, nv.replace);
-			uiu.el(tr, 'td', {}, nv.language);
-			const actions_td = uiu.el(tr, 'td', {});
-			const delete_btn = uiu.el(actions_td, 'button', {
-				'data-normalization-id': nv._id,
-			}, ci18n('tournament:edit:delete'));
-
-			delete_btn.addEventListener('click', function (e) {
-				const del_btn = e.target;
-				const normalization_id = del_btn.getAttribute('data-normalization-id');
-					send_with_live_status({
-						type: 'normalization_remove',
-						tournament_key: curt.key,
-						normalization_id: normalization_id,
-				}, err => {
-					if (err) {
-						return cerror.net(err);
+		function remove(id) {
+			if (deleting.has(id)) return;deleting.add(id);status.textContent = '';update();
+			send_with_live_status({type:'normalization_remove', tournament_key:curt.key, normalization_id:id}, error => {
+				deleting.delete(id);if (!main.isConnected) return;
+				if (error) status.textContent = 'Die Ersetzung konnte nicht gelöscht werden. Bitte erneut versuchen.';
+				update();
+			});
+		}
+		function update() {
+			const source = curt.normalizations || [], keys = new Set();
+			if (empty.hidden !== !!source.length) empty.hidden = !!source.length;
+			if (table.hidden !== !source.length) table.hidden = !source.length;
+			for (const [index, rule] of source.entries()) {
+				const id = String(rule._id);keys.add(id);let entry = rows.get(id);
+				if (!entry) {
+					const row = uiu.el(body, 'tr', {'data-normalization-id':id}), cells = [];
+					for (const label of labels.slice(0,3)) {
+						const cell = uiu.el(row, 'td');uiu.el(cell, 'span', {class:'settings-normalization-mobile-label', 'aria-hidden':'true'}, label);
+						cells.push(uiu.el(cell, 'span'));
 					}
-				});
-			});
+					const button = uiu.el(uiu.el(row, 'td'), 'button', {class:'btn', type:'button', 'data-normalization-id':id}, ci18n('tournament:edit:delete'));
+					button.addEventListener('click', () => remove(id));entry = {row,cells,button};rows.set(id,entry);
+				}
+				[rule.origin || '', rule.replace || '—', rule.language || '—'].forEach((value, offset) => {if (entry.cells[offset].textContent !== value) entry.cells[offset].textContent = value;});
+				if (entry.button.disabled !== deleting.has(id)) entry.button.disabled = deleting.has(id);
+				if (body.children[index] !== entry.row) body.insertBefore(entry.row, body.children[index] || null);
+			}
+			for (const [id, entry] of rows) if (!keys.has(id)) {entry.row.remove();rows.delete(id);}
 		}
+		main.btsNormalizations = {update};update();
 	}
 
 	function render_advertisements(main) {
@@ -7013,18 +6875,25 @@ var ctournament = (function() {
 	function render_select_number(container, label_text, input_name, displaystyle, value, min_value, max_value) {
 		const div = uiu.el(container, 'div', {field_name: input_name});
 		const label = uiu.el(div, 'span', 'label', label_text);
-		uiu.el(div, 'input', {
+		const input = uiu.el(div, 'input', {
 			type: 'number',
 			name: input_name,
 			min: min_value || 0,
 			max: max_value || 0,
 			value: value || 0,
 		});
+		if (['button_block_timeout', 'network_timeout', 'network_update_interval'].includes(input_name)) {
+			btsDurationInput.attach(input, {unit: 'milliseconds', value: value || 0, min: min_value, max: max_value});
+		}
 
 		uiu.visible(div, (displaystyle === true ||displaymode.option_applies(displaystyle, input_name)));
 	}
 
 	function create_displaysettings_object(d) {
+		const duration = (value, fallback) => {
+			const parsed = btsDurationInput.parse(value, {unit: 'milliseconds'});
+			return String(Number.isFinite(parsed) ? parsed : fallback);
+		};
 		const displaysetting  = {
 			id: d.display_setting_id,
 			description: d.display_setting_description || '',
@@ -7078,15 +6947,15 @@ var ctournament = (function() {
 			fullscreen_ask: 'never',
 			show_announcements: d.show_announcements || 'all',
 			neversettings: d.neversettings == 'on' ? true : false,
-			button_block_timeout: d.button_block_timeout || '100',
+			button_block_timeout: duration(d.button_block_timeout, 100),
 			negative_timers: d.negative_timers == 'on' ? true : false,
 			shuttle_counter: d.shuttle_counter == 'on' ? true : false,
 			editmode_doubleclick: d.editmode_doubleclick == 'on' ? true : false,
 			click_mode: d.click_mode || 'auto',
 			tablet_mode: d.tablet_mode || 'umpire',
 			style: d.style || 'complete',
-			network_timeout: d.network_timeout || '10000',
-			network_update_interval: d.network_update_interval || '10000',
+			network_timeout: duration(d.network_timeout, 10000),
+			network_update_interval: duration(d.network_update_interval, 10000),
 			language: d.language || 'auto',
 		}
 
@@ -7371,325 +7240,28 @@ var ctournament = (function() {
 	}
 
 	function render_locations(main) {
-		const location_div = uiu.el(main, 'div', 'locations_div');
-		uiu.el(location_div, 'h2', 'edit', ci18n('tournament:edit:location'));
-
-		const locations_table = uiu.el(location_div, 'table', 'locations_table');
-		const locations_tbody = uiu.el(locations_table, 'tbody');
-
-		const tr = uiu.el(locations_tbody, 'tr');
-		uiu.el(tr, 'th', {}, ci18n('tournament:edit:location'));
-		uiu.el(tr, 'th', {}, 'in Vorbereitung Ergänzung');
-		uiu.el(tr, 'th', {}, 'Meetingpoint-Durchsage');
-		uiu.el(tr, 'th', {}, 'in Vorbereitung Icon');
-		uiu.el(tr, 'th', {}, '');
-
-		let highlight_in_use = [];
-		for (const l of curt.locations) {
-			if(l.highlight) {
-				highlight_in_use.push(l.highlight);
-			}
+		if (!main.btsLocationSettings) {
+			main.btsLocationSettings = btsLocationSettings.mount(main, {tournament: () => curt, send: send_with_live_status});
 		}
-
-		function resolve_singular_plural_template(text, use_plural) {
-			return (text || '').replace(/\{([^{}\/]*)\/([^{}]*)\}/g, function(match, singular, plural) {
-				return use_plural ? plural : singular;
-			});
-		}
-
-		function create_preparation_preview_text(preparation_text, use_plural) {
-			const addition = resolve_singular_plural_template(preparation_text, use_plural).trim();
-			return ci18n('announcements:preparation') + (addition ? ' ' + addition : '');
-		}
-
-		function create_meetingpoint_preview_text(meetingpoint_text, use_plural) {
-			return resolve_singular_plural_template(meetingpoint_text, use_plural).trim() || ci18n('announcements:meetingpoint');
-		}
-
-		function create_second_preparation_call_preview_text(name, preparation_text, use_plural) {
-			const addition = resolve_singular_plural_template(preparation_text, use_plural).trim();
-			return ci18n('announcements:second_call') + ' ' + ci18n('announcements:preparation') + ' ' + ci18n('announcements:second_call_for') + ':' + name + (addition ? ' ' + addition : '') + '!';
-		}
-
-		function create_tablet_meetingpoint_preview_text(name, meetingpoint_text, use_plural) {
-			let meetingpoint = create_meetingpoint_preview_text(meetingpoint_text, use_plural);
-			meetingpoint = meetingpoint.replace("bitte meldet euch ", "");
-			meetingpoint = meetingpoint.replace("Bitte meldet euch ", "");
-			meetingpoint = meetingpoint.replace("!", "");
-			return name + ', ' + ci18n('announcements:please_as_tablet_service') + ' ' + meetingpoint + 'melden!';
-		}
-
-		function join_announcement_preview_parts(parts) {
-			return parts.filter(part => part != null && part !== '').join(' ');
-		}
-
-		function create_location_announcement_input(td, location, field) {
-			const textarea = create_textarea_input("textarea", td, field);
-			textarea.value = location[field] || '';
-			textarea.setAttribute('data-location-id', location._id);
-			textarea.setAttribute('maxlength', 175);
-			textarea.setAttribute('placeholder', 'Optional: {Einzahl/Mehrzahl}');
-			textarea.addEventListener('input', (e) => {
-				update_location_announcement_preview(e.target.parentNode.parentNode, e.target.getAttribute('data-location-id'));
-			});
-			textarea.addEventListener('focusout', (e) => {
-				send_location_to_admin(e.target.parentNode.parentNode, e.target.getAttribute('data-location-id'));
-			});
-			return textarea;
-		}
-
-		function update_location_announcement_preview(parent, location_id) {
-			const preparation_text = parent.querySelector("#preparation_addition").value.trim();
-			const meetingpoint_input = parent.querySelector("#meetingpoint_announcement");
-			const meetingpoint_text = meetingpoint_input.value.trim();
-			const preview = document.querySelector('[data-location-preview="announcement_messages"][data-location-id=' + JSON.stringify(location_id) + ']');
-			if (!preview) {
-				return;
-			}
-			preview.innerHTML = '';
-			const meetingpoint_enabled = !!curt.preparation_meetingpoint_enabled;
-			meetingpoint_input.disabled = !meetingpoint_enabled;
-			meetingpoint_input.parentNode.classList.toggle('location_announcement_disabled', !meetingpoint_enabled);
-			add_location_preview_item(preview, 'Erster Vorbereitungsaufruf', [
-				join_announcement_preview_parts([
-					create_preparation_preview_text(preparation_text, true),
-					'[für Feld 1!]',
-					'Max Mustermann gegen Erika Beispiel!',
-					meetingpoint_enabled ? create_meetingpoint_preview_text(meetingpoint_text, true) : create_preparation_preview_text(preparation_text, true),
-				]),
-			]);
-			if (meetingpoint_enabled) {
-				add_location_preview_item(preview, 'Zweiter Aufruf Spieler', [
-					join_announcement_preview_parts([
-						create_second_preparation_call_preview_text('Max Mustermann', preparation_text, false),
-						'Max Mustermann ' + create_meetingpoint_preview_text(meetingpoint_text, false),
-					]),
-					join_announcement_preview_parts([
-						create_second_preparation_call_preview_text('Max Mustermann / Erika Beispiel', preparation_text, true),
-						'Max Mustermann / Erika Beispiel ' + create_meetingpoint_preview_text(meetingpoint_text, true),
-					]),
-				]);
-				add_location_preview_item(preview, 'Zweiter Aufruf Schiedsrichter / Service Judge', [
-					join_announcement_preview_parts([
-						ci18n('announcements:second_call') + ' ' + ci18n('announcements:preparation') + ' ' + ci18n('announcements:second_call_for') + ':Schiedsrichter Max!',
-						'Schiedsrichter Max ' + create_meetingpoint_preview_text(meetingpoint_text, false),
-					]),
-				]);
-				add_location_preview_item(preview, 'Zweiter Aufruf Tabletbediener', [
-					join_announcement_preview_parts([
-						ci18n('announcements:second_call') + ' ' + ci18n('announcements:preparation') + ' ' + ci18n('announcements:second_call_for') + ':Tabletbediener Max!',
-						create_tablet_meetingpoint_preview_text('Tabletbediener Max', meetingpoint_text, false),
-					]),
-					join_announcement_preview_parts([
-						ci18n('announcements:second_call') + ' ' + ci18n('announcements:preparation') + ' ' + ci18n('announcements:second_call_for') + ':Tabletbediener Max / Tabletbediener Erika!',
-						create_tablet_meetingpoint_preview_text('Tabletbediener Max / Tabletbediener Erika', meetingpoint_text, true),
-					]),
-				]);
-			} else {
-				add_location_preview_item(preview, 'Zweiter Aufruf Spieler', [
-					create_second_preparation_call_preview_text('Max Mustermann', preparation_text, false),
-					create_second_preparation_call_preview_text('Max Mustermann / Erika Beispiel', preparation_text, true),
-				]);
-			}
-		}
-
-		function add_location_preview_item(parent, label, messages) {
-			const item = uiu.el(parent, 'div', 'location_announcement_preview_item');
-			uiu.el(item, 'div', 'location_announcement_preview_label', label);
-			for (const message of messages) {
-				uiu.el(item, 'strong', {}, message);
-			}
-		}
-
-		refresh_location_announcement_previews = function() {
-			uiu.qsEach('.locations_table tr[data-location-id]', function(row) {
-				if (row.querySelector("#preparation_addition") && row.querySelector("#meetingpoint_announcement")) {
-					update_location_announcement_preview(row, row.getAttribute('data-location-id'));
-				}
-			});
-		};
-
-		for (const l of curt.locations) {
-			const tr = uiu.el(locations_tbody, 'tr', {'data-location-id': l._id});
-			const name_th = uiu.el(tr, 'th', {});
-			uiu.el(name_th, 'div', {}, l.name);
-
-			const content = [1, 2, 3, 4, 5, 6];
-			const selected = l.highlight;
-			const select_color = uiu.el(name_th, 'select', {id: 'select_highlight', class: 'highlight_' + selected, 'data-location_id': l._id});
-			for (const item of content) {
-					const attrs = {
-						'data-display-setting-id': item,
-						value: item,
-						class: 'highlight_' + item,
-						style: (highlight_in_use.includes(item) && selected !== item) ? 'display:none;' : '',
-					}
-					if ((selected === item)) {
-						attrs.selected = 'selected';
-					}
-					uiu.el(select_color, 'option', attrs);
-				//}
-			}
-
-			select_color.addEventListener('change', (e) => {
-				e.target.classList = [e.target.value];
-				send_location_to_admin(e.target.parentNode.parentNode, e.target.getAttribute('data-location_id'));
-			});
-
-			const preparation_td = uiu.el(tr, 'td', {});
-			create_location_announcement_input(preparation_td, l, 'preparation_addition');
-
-			const meetinpoint_td = uiu.el(tr, 'td', {});
-			create_location_announcement_input(meetinpoint_td, l, 'meetingpoint_announcement');
-			const icon_td = uiu.el(tr, 'td', 'icon_td');
-			uiu.el(icon_td, 'img', {
-				style: 'height: 40px;',
-				src: l.logo_id ? '/h/' + encodeURIComponent(curt.key) + '/logo/' + l.logo_id : '/static/icons/preparation.svg',
-				name: 'location_logo_img',
-				'data-location_id': l._id
-			});
-
-			const logo_form = uiu.el(icon_td, 'form', 'logo_form');
-			const logo_button_id = l._id +'_logo_upload_input';
-
-			const filename_display = uiu.el(logo_form, 'div', {
-				class: 'upload_filename_location',
-				'data-location_id': l._id,
-			}, l.logo_name ? l.logo_name : 'preparation.svg');
-
-			const custom_label = uiu.el(logo_form, 'label', {
-				for: logo_button_id,
-				style: (
-					'display:inline-block;padding:3px 8px;cursor:pointer; border:1px solid;' +
-					'background:#eeeeee;color:black;border-radius:4px;margin:5px;font-size:small;'
-				),
-			}, 'ändern');
-
-			const logo_button = uiu.el(logo_form, 'input', {
-				id: logo_button_id,
-				type: 'file',
-				accept: 'image/*',
-				style: 'display:none;',
-				'data-location_id': l._id,
-			});
-			logo_button.addEventListener('change', (e) => {
-				_upload_location_logo(e);
-			});
-
-			const actions_td = uiu.el(tr, 'td', {});
-			const del_btn = uiu.el(actions_td, 'button', {
-				'data-location-id': l._id,
-			}, ci18n('tournament:edit:delete'));
-			del_btn.addEventListener('click', function (e) {
-				const del_btn = e.target;
-				const location_id = del_btn.getAttribute('data-location-id');
-				if (confirm('Do you really want to delete ' + location_id + '? (Will not do anything yet!)')) {
-					debug.log('TODO: would now delete court');
-				}
-			});
-
-			const preview_tr = uiu.el(locations_tbody, 'tr', {
-				class: 'location_announcement_preview_row',
-				'data-location-preview-row': l._id,
-			});
-			const preview_td = uiu.el(preview_tr, 'td', {colspan: 5});
-			const announcement_preview = uiu.el(preview_td, 'div', 'location_announcement_preview');
-			uiu.el(announcement_preview, 'div', 'location_announcement_preview_title', 'Aktuell mögliche Durchsagen');
-			uiu.el(announcement_preview, 'div', {
-				'data-location-preview': 'announcement_messages',
-				'data-location-id': l._id,
-			}, '');
-			update_location_announcement_preview(tr, l._id);
-		}
-	}
-
-	function _upload_location_logo(e) {
-		const input = e.target;
-		const location_id = e.target.getAttribute('data-location_id');
-		if (!input.files.length) return;
-
-		const reader = new FileReader();
-		reader.readAsDataURL(input.files[0]);
-		reader.onload = () => {
-			send_with_live_status({
-				type: 'tournament_upload_location_logo',
-				tournament_key: curt.key,
-				data_url: reader.result,
-				name: e.target.files[0].name,
-				location_id
-			}, (err) => {
-				if (err) {
-					return cerror.net(err);
-				}`
-				input.closest('form').reset();`
-			});
-		};
-		reader.onerror = (e) => {
-			alert('Failed to upload: ' + e);
+		main.btsLocationSettings.update();
+		refresh_location_announcement_previews = () => {
+			if (main.isConnected) main.btsLocationSettings.update();
 		};
 	}
 
-	function update_location_logo(location_id, logo_id, logo_name) {
-		switch (get_admin_subpage()){
-			case 'edit':
-				const location_logo_img = document.querySelector(`[name="location_logo_img"][data-location_id="${location_id}"]`);
-				location_logo_img.setAttribute('src', '/h/' + encodeURIComponent(curt.key) + '/logo/' + logo_id);
-				const filename_display = document.querySelector(`.upload_filename_location[data-location_id="${location_id}"]`);
-				filename_display.textContent = logo_name;
-				break;
-			default:
-				break;
-		}
-		return;
+	function update_location_logo() {
+		update_edit_locations_and_courts();
+		if (current_view === 'show') cmatch.refresh_unassigned_preparation_context();
 	}
 
-	function send_location_to_admin(parent, location_id) {
-		const highlight = parseInt(parent.querySelector("#select_highlight").value, 10);
-		const preparation_addition = parent.querySelector("#preparation_addition").value;
-		const meetingpoint_announcement = parent.querySelector("#meetingpoint_announcement").value;
-
-		send_with_live_status({
-			type: 'location_changed',
-			tournament_key: curt.key,
-			location_id,
-			highlight: highlight,
-			preparation_addition,
-			meetingpoint_announcement,
-		}, function (err, response) {
-			if (err) {
-				return cerror.net(err);
-			}
-		});
+	function update_location() {
+		update_edit_locations_and_courts();
 	}
-
-	function update_location(location_id, highlight, preparation_addition, meetingpoint_announcement) {
-		switch (get_admin_subpage()){
-			case 'edit':
-				update_edit_locations_and_courts();
-				break;
-			default:
-				break;
-		}
-		return;
-	};
 
 	function update_edit_locations_and_courts() {
-		if (current_view !== 'edit') {
-			return;
-		}
-		let section = document.querySelector('.location_settings_section');
-		if (!section) {
-			const locations_div = document.querySelector('.locations_div');
-			section = locations_div ? locations_div.parentElement : null;
-		}
-		if (!section) {
-			return;
-		}
-		section.innerHTML = '';
-		section.classList.add('location_settings_section');
-		render_locations(section);
-		render_courts(section);
-		update_edit_dependencies();
+		if (current_view !== 'edit') return;
+		const section = document.querySelector('.location_settings_section');
+		if (section?.isConnected) section.btsLocationSettings?.update();
 	}
 
 /* ============================================================
@@ -8441,69 +8013,7 @@ function update_official_tables(officials_host, { compact = false } = {}) {
   if (!include_service_judges) {
     officials_div.classList.add('official_rotation_mode_umpire_only');
   }
-  if (!compact) {
-    uiu.el(officials_div, 'h2', 'edit', ci18n('Technical officials rotation:'));
-    const official_rotation_mode_label = uiu.el(officials_div, 'label', 'official_rotation_mode_control');
-    uiu.el(official_rotation_mode_label, 'span', {}, ci18n('tournament:edit:official_rotation_mode'));
-    const official_rotation_mode_select = uiu.el(official_rotation_mode_label, 'select', {
-      name: 'official_rotation_mode',
-    });
-    [
-      'disabled',
-      'umpire_only',
-      'umpire_and_service_judge',
-    ].forEach((mode) => {
-      const attrs = { value: mode };
-      if (official_rotation_mode === mode) {
-        attrs.selected = 'selected';
-      }
-      uiu.el(official_rotation_mode_select, 'option', attrs, ci18n(`tournament:edit:official_rotation_mode:${mode}`));
-    });
-    bind_live_prop(official_rotation_mode_select, 'official_rotation_mode');
 
-    if (official_rotation_mode === 'disabled') {
-      return;
-    }
-
-    const technical_official_auto_assignment_mode = curt.technical_official_auto_assignment_mode || 'manual_only';
-    const technical_official_auto_assignment_mode_label = uiu.el(officials_div, 'label', 'official_rotation_mode_control');
-    uiu.el(technical_official_auto_assignment_mode_label, 'span', {}, ci18n('tournament:edit:technical_official_auto_assignment_mode'));
-    const technical_official_auto_assignment_mode_select = uiu.el(technical_official_auto_assignment_mode_label, 'select', {
-      name: 'technical_official_auto_assignment_mode',
-    });
-    [
-      'manual_only',
-      'on_match_call_if_possible',
-      'on_preparation_call',
-      'when_available',
-    ].forEach((mode) => {
-      const attrs = { value: mode };
-      if (technical_official_auto_assignment_mode === mode) {
-        attrs.selected = 'selected';
-      }
-      uiu.el(
-        technical_official_auto_assignment_mode_select,
-        'option',
-        attrs,
-        ci18n(`tournament:edit:technical_official_auto_assignment_mode:${mode}`)
-      );
-    });
-    bind_live_prop(technical_official_auto_assignment_mode_select, 'technical_official_auto_assignment_mode');
-
-    const technical_official_break_after_assignment_seconds_label = uiu.el(officials_div, 'label', 'official_rotation_mode_control');
-    uiu.el(technical_official_break_after_assignment_seconds_label, 'span', {}, ci18n('tournament:edit:technical_official_break_after_assignment_seconds'));
-    const technical_official_break_after_assignment_seconds_input = uiu.el(technical_official_break_after_assignment_seconds_label, 'input', {
-      type: 'number',
-      name: 'technical_official_break_after_assignment_seconds',
-      value: curt.technical_official_break_after_assignment_seconds || 0,
-      min: 0,
-      max: 3600,
-      step: 1,
-    });
-    bind_live_prop(technical_official_break_after_assignment_seconds_input, 'technical_official_break_after_assignment_seconds', {
-      get_value: input_el => Number(input_el.value),
-    });
-  }
 
   const all_officials = (curt.umpires || []).filter((official) => {
     if (!(official && official._id)) {
@@ -9370,223 +8880,24 @@ function update_officials() {
 		render_official_rotation(document.querySelector('.umpire_container'));
 		return;
 	}
-	if(current_view === 'edit') {
-		if (official_drag_active) {
-			official_drag_refresh_pending = true;
-			return;
-		}
-		if (update_official_tables._document_drop_cleanup) {
-			document.removeEventListener('drop', update_official_tables._document_drop_cleanup, true);
-			update_official_tables._document_drop_cleanup = null;
-		}
-		if (update_official_tables._window_dragend_cleanup) {
-			window.removeEventListener('dragend', update_official_tables._window_dragend_cleanup, true);
-			update_official_tables._window_dragend_cleanup = null;
-		}
-		update_official_tables(document.getElementById('officials_host'));
-	}
+	if (current_view === 'edit') update_edit_dependencies();
 	return;
 }
 
 
-	function render_courts(main) {
-		uiu.el(main, 'h2', 'edit', ci18n('tournament:edit:courts'));
-
-		const courts_table = uiu.el(main, 'table', 'courts_table');
-		const courts_tbody = uiu.el(courts_table, 'tbody');
-		const tr = uiu.el(courts_tbody, 'tr');
-		uiu.el(tr, 'th', {}, 'Spielort');
-		uiu.el(tr, 'th', {}, 'Nummer');
-		//uiu.el(tr, 'th', {}, 'Name');
-		uiu.el(tr, 'th', {}, 'Aktiv');
-		uiu.el(tr, 'th', {}, 'Schiedsrichter');
-		uiu.el(tr, 'th', {}, 'Aufschlagrichter');
-		uiu.el(tr, 'th', {}, '');
-
-		var l = {_id : ''};
-
-		for (const c of curt.courts) {
-			const tr = uiu.el(courts_tbody, 'tr');
-			if(l._id != c.location_id) {
-				l = utils.find(curt.locations, l => l._id === c.location_id);
-			}
-
-			uiu.el(tr, 'th', {}, l.name);
-			uiu.el(tr, 'th', {}, c.num);
-			//uiu.el(tr, 'td', {}, c.name || '');
-			const active_td = uiu.el(tr, 'td', {});
-			const active_cb = create_simple_checkbox(active_td, {'name' : 'active_cb', 'data-court-id': c._id,}, c.is_active);
-			active_cb.addEventListener('change', (e) => {
-				const court_id = e.target.getAttribute('data-court-id');
-				send_with_live_status({
-					type: 'court_edit',
-					tournament_key: curt.key,
-					is_active: e.target.checked,
-					court_id: court_id,
-				}, err => {
-					if (err) {
-						return cerror.net(err);
-					}
-				});
-			});
-			const umpire_td = uiu.el(tr, 'td', {});
-			const umpire_cb = create_simple_checkbox(umpire_td, {'name' : 'umpire_cb', 'data-court-id': c._id}, c.has_umpire !== false);
-			umpire_cb.addEventListener('change', (e) => {
-				const court_id = e.target.getAttribute('data-court-id');
-				const court = utils.find(curt.courts, (entry) => entry._id === court_id);
-				if (court) {
-					court.has_umpire = e.target.checked;
-					update_court(court);
-				}
-				send_with_live_status({
-					type: 'court_edit',
-					tournament_key: curt.key,
-					has_umpire: e.target.checked,
-					court_id,
-				}, err => {
-					if (err) {
-						return cerror.net(err);
-					}
-				});
-			});
-			const service_judge_td = uiu.el(tr, 'td', {});
-			const service_judge_cb = create_simple_checkbox(service_judge_td, {'name' : 'service_judge_cb', 'data-court-id': c._id}, c.has_service_judge !== false);
-			service_judge_cb.addEventListener('change', (e) => {
-				const court_id = e.target.getAttribute('data-court-id');
-				const court = utils.find(curt.courts, (entry) => entry._id === court_id);
-				if (court) {
-					court.has_service_judge = e.target.checked;
-					update_court(court);
-				}
-				send_with_live_status({
-					type: 'court_edit',
-					tournament_key: curt.key,
-					has_service_judge: e.target.checked,
-					court_id,
-				}, err => {
-					if (err) {
-						return cerror.net(err);
-					}
-				});
-			});
-			const actions_td = uiu.el(tr, 'td', {});
-			const del_btn = uiu.el(actions_td, 'button', {
-				'data-court-id': c._id,
-			}, ci18n('tournament:edit:delete'));
-			del_btn.addEventListener('click', function (e) {
-				const del_btn = e.target;
-				const court_id = del_btn.getAttribute('data-court-id');
-				if (confirm('Do you really want to delete ' + court_id + '? (Will not do anything yet!)')) {
-					debug.log('TODO: would now delete court');
-				}
-			});
-		}
-
-		const nums = curt.courts.map(c => parseInt(c.num));
-		const maxnum = Math.max(0, Math.max.apply(null, nums));
-		apply_court_official_checkbox_dependencies();
-	}
-
-	function create_simple_checkbox(parant_el, attrs, is_checked) {
+	function create_simple_checkbox(parent_el, attrs, is_checked) {
 		attrs.type = 'checkbox';
-		if(is_checked){
-			attrs.checked = 'checked';
-		}
-		const result = uiu.el(parant_el, 'input', attrs);
-		return result;
+		if (is_checked) attrs.checked = 'checked';
+		return uiu.el(parent_el, 'input', attrs);
 	}
 
-	function get_effective_court_official_checkbox_state(court) {
-		const rotation_mode = curt.official_rotation_mode || 'umpire_and_service_judge';
-		const is_active = court && court.is_active !== false;
-		const stored_has_umpire = court && court.has_umpire !== false;
-		const stored_has_service_judge = court && court.has_service_judge !== false;
-
-		if (!is_active) {
-			return {
-				umpire_checked: false,
-				umpire_disabled: true,
-				service_judge_checked: false,
-				service_judge_disabled: true,
-			};
-		}
-
-		if (rotation_mode === 'disabled') {
-			return {
-				umpire_checked: false,
-				umpire_disabled: true,
-				service_judge_checked: false,
-				service_judge_disabled: true,
-			};
-		}
-
-		if (rotation_mode === 'umpire_only') {
-			return {
-				umpire_checked: stored_has_umpire,
-				umpire_disabled: false,
-				service_judge_checked: false,
-				service_judge_disabled: true,
-			};
-		}
-
-		return {
-			umpire_checked: stored_has_umpire,
-			umpire_disabled: false,
-			service_judge_checked: stored_has_umpire ? stored_has_service_judge : false,
-			service_judge_disabled: !stored_has_umpire,
-		};
-	}
-
-	function apply_court_official_checkbox_dependencies(court = null) {
-		const courts_table = uiu.qs('.courts_table');
-		if (!courts_table) {
-			return;
-		}
-
-		const courts = court ? [court] : (curt.courts || []);
-		courts.forEach((current_court) => {
-			if (!current_court || !current_court._id) {
-				return;
-			}
-			const state = get_effective_court_official_checkbox_state(current_court);
-			const umpire_checkbox = courts_table.querySelector(`[name="umpire_cb"][data-court-id="${current_court._id}"]`);
-			if (umpire_checkbox) {
-				umpire_checkbox.checked = !!state.umpire_checked;
-				umpire_checkbox.disabled = !!state.umpire_disabled;
-			}
-			const service_judge_checkbox = courts_table.querySelector(`[name="service_judge_cb"][data-court-id="${current_court._id}"]`);
-			if (service_judge_checkbox) {
-				service_judge_checkbox.checked = !!state.service_judge_checked;
-				service_judge_checkbox.disabled = !!state.service_judge_disabled;
-			}
-		});
+	function apply_court_official_checkbox_dependencies() {
+		update_edit_locations_and_courts();
 	}
 
 	function update_court(court) {
-		switch (get_admin_subpage()){
-			case 'edit':
-				const courts_table = uiu.qs('.courts_table');
-				if (!courts_table || !court) {
-					break;
-				}
-				const active_checkbox = courts_table.querySelector(`[name="active_cb"][data-court-id="${court._id}"]`);
-				if (active_checkbox) {
-					active_checkbox.checked = court.is_active;
-				}
-				const umpire_checkbox = courts_table.querySelector(`[name="umpire_cb"][data-court-id="${court._id}"]`);
-				if (umpire_checkbox) {
-					umpire_checkbox.checked = court.has_umpire !== false;
-				}
-				const service_judge_checkbox = courts_table.querySelector(`[name="service_judge_cb"][data-court-id="${court._id}"]`);
-				if (service_judge_checkbox) {
-					service_judge_checkbox.checked = court.has_service_judge !== false;
-				}
-				apply_court_official_checkbox_dependencies(court);
-				break;
-			default:
-				cmatch.update_court(court);
-				break;
-		}
+		if (get_admin_subpage() === 'edit') update_edit_locations_and_courts();
+		else cmatch.update_court(court);
 	}
 
 	function create_checkbox(curt, parent_el, filed_id, label_class) {
@@ -9766,6 +9077,7 @@ function update_officials() {
 			max: max_seconds,
 			step: step_seconds
 		});
+		btsDurationInput.attach(result, {unit: 'milliseconds', value: value_seconds * 1000, min: min_seconds * 1000, max: max_seconds * 1000});
 		bind_live_prop(result, filed_id, {
 			get_value: input_el => Number(input_el.value) * 1000,
 		});

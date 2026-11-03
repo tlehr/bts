@@ -96,6 +96,8 @@ var change = (function() {
 		uiu.qsEach('input[name="' + field + '"]', function(el) {
 			if (el.type === 'checkbox') {
 				el.checked = !!value;
+			} else if (el.btsDuration) {
+				if (el !== document.activeElement) el.btsDuration.restore(value);
 			} else {
 				el.value = value ?? '';
 			}
@@ -142,7 +144,7 @@ var change = (function() {
 			}
 			ctournament.refresh_current_view();
 		}
-		if (field === 'tabletoperator_enabled') {
+		if (field === 'tabletoperator_enabled' && current_view !== 'edit') {
 			ctournament.refresh_current_view();
 		}
 		if (field === 'upcoming_matches_today_only_enabled') {
@@ -516,7 +518,7 @@ var change = (function() {
 				loc.logo_name = c.val.logo_name;
 				loc.logo_id = c.val.logo_id;
 			}
-			ctournament.update_location_logo(c.val.location_id, loc.logo_id, loc.logo_name);
+			if (loc) ctournament.update_location_logo(c.val.location_id, loc.logo_id, loc.logo_name);
 			break;
 		case 'match_preparation_call':
 			if (c.val && c.val.match && c.val.match.setup) {

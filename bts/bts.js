@@ -51,7 +51,7 @@ function main() {
 			database.init((err, db) => cb(err, config, db));
 		},
 		function (config, db, cb) {
-			const app = create_app(config, db);
+			const app = create_app(config, db, {configFile:path.resolve('config.json')});
 			clock.init(app).then(() => {
 					match_utils.start_technical_official_pause_manager(app);
 					match_utils.start_player_court_reconciliation_manager(app);
@@ -69,12 +69,8 @@ function main() {
 
 function cadmin_router() {
 	const router = express.Router();
-	router.get('/t/:tournament_key/speech-helpers/', function(req, res, next) {
-		fs.readFile(path.join(utils.root_dir(), 'static', 'speech_helpers.html'), 'utf8', function(error, html) {
-			if (error) return next(error);
-			res.set('Cache-Control', 'no-store');
-			res.type('html').send(req.app.diagnostics ? require('./diagnostics/pages').html(html, req.app.diagnostics.version) : html);
-		});
+	router.get('/t/:tournament_key/speech-helpers/', function(req, res) {
+		res.redirect('/admin/t/' + encodeURIComponent(req.params.tournament_key) + '/edit/speech#speech-helpers');
 	});
 	router.get('/diagnostics/', function(req, res, next) {
 		fs.readFile(path.join(utils.root_dir(), 'static', 'diagnostics.html'), 'utf8', function(error, html) {
@@ -83,7 +79,7 @@ function cadmin_router() {
 			res.type('html').send(req.app.diagnostics ? require('./diagnostics/pages').html(html, req.app.diagnostics.version) : html);
 		});
 	});
-	router.get('/t/:tournament_key/speech-planning/', function(req, res, next) {
+	router.get('/t/:tournament_key/speech-planning/plan/', function(req, res, next) {
 		fs.readFile(path.join(utils.root_dir(), 'docs', 'sprachgenerierung-reihenfolge.html'), 'utf8', function(err, html) {
 			if (err) return next(err);
 			res.set('Cache-Control', 'no-store');
@@ -111,11 +107,12 @@ function cadmin_router() {
 	return router;
 }
 
-function create_app(config, db) {
+function create_app(config, db, {configFile = null} = {}) {
 	
 	const app = express();
 	app.config = config;
 	app.db = db;
+	app.config_file = configFile;
 	require('./match_protocol').attach(app);
 	if (config.diagnostics?.enabled !== false) app.diagnostics = new (require('./diagnostics').Diagnostics)(app, require('./diagnostics/pages').buildVersion(config));
 	app.speech = require('./speech').create(app);

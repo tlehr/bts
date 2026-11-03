@@ -556,6 +556,22 @@ describe('Browser local speech provider', function() {
         assert(h.played[1].startsWith('/h/default/speech/audio/'));
     });
 
+    it('checks browser playback independently of the selected provider and server availability', async function() {
+        const h = harness({ mode: 'browser', fail: 'blocked' });
+        h.settings.enabled = false;
+        h.settings.language = 'en-US';
+        assert.strictEqual(await h.service.checkAudio(), false);
+        assert.strictEqual(h.service.settings().audio_error, 'audio_blocked');
+        h.setFail(null);
+        assert.strictEqual(await h.service.checkAudio(), true);
+        assert.strictEqual(await h.service.checkAudio(), true);
+        assert.strictEqual(h.played.length, 2, 'ready playback must not be probed again');
+        assert.deepStrictEqual(h.requests, [], 'permission checks must not generate speech');
+        h.settings.key = null;
+        assert.strictEqual(await h.service.checkAudio(), false);
+        assert.strictEqual(h.played.length, 2, 'do not probe before a tournament is open');
+    });
+
     it('does not probe audio in browser mode or interrupt an active announcement', async function() {
         const browser = harness({ mode: 'browser' });
         assert.strictEqual(await browser.service.ensureAudio(), false);
@@ -565,6 +581,7 @@ describe('Browser local speech provider', function() {
         await delay(5);
         const src = h.player.src;
         assert.strictEqual(await h.service.ensureAudio(), false);
+        assert.strictEqual(await h.service.checkAudio(), false);
         assert.strictEqual(h.player.src, src);
         h.service.cancel();
         await actual;

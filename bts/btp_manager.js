@@ -7,9 +7,12 @@ const serror = require('./serror');
 
 
 const conns_by_tkey = new Map();
+const last_successful_fetch_by_tkey = new Map();
 
 function reconfigure(app, t) {
 	const cur_conn = conns_by_tkey.get(t.key);
+	const last_successful_fetch_ts = cur_conn?.last_successful_fetch_ts ?? last_successful_fetch_by_tkey.get(t.key) ?? null;
+	if (last_successful_fetch_ts != null) last_successful_fetch_by_tkey.set(t.key, last_successful_fetch_ts);
 	if (cur_conn) {
 		cur_conn.terminate({ silent: !!t.btp_enabled });
 		conns_by_tkey.delete(t.key);
@@ -23,7 +26,7 @@ function reconfigure(app, t) {
 		app,
 		t.btp_ip, t.btp_password, t.key,
 		t.btp_autofetch_enabled, t.btp_readonly,
-		t.is_team, t.btp_timezone, t.btp_autofetch_timeout_intervall);
+		t.is_team, t.btp_timezone, t.btp_autofetch_timeout_intervall, last_successful_fetch_ts);
 	conns_by_tkey.set(t.key, conn);
 }
 
@@ -150,13 +153,15 @@ function init(app, cb) {
 function get_status(tkey) {
 	const conn = conns_by_tkey.get(tkey);
 	if (!conn) {
-		return { status: 'deactivated', message: '', next_fetch_ts: null, fetch_in_progress: false };
+		return { status: 'deactivated', message: '', next_fetch_ts: null, fetch_in_progress: false,
+			last_successful_fetch_ts: last_successful_fetch_by_tkey.get(tkey) ?? null };
 	}
 
 	return {
 		...conn.last_status,
 		next_fetch_ts: conn.next_fetch_ts,
 		fetch_in_progress: conn.fetch_in_progress,
+		last_successful_fetch_ts: conn.last_successful_fetch_ts ?? null,
 	};
 }
 

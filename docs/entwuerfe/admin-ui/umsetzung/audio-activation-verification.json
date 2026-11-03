@@ -1,0 +1,22 @@
+{
+  "checks": [
+    "No permission notice appears before playback has actually been checked",
+    "Chrome autoplay blocking on first arrival shows a clear audio activation request",
+    "The initial permission check generates no announcement, server request or remote output",
+    "The request is accessible and does not steal focus or open a modal dialog",
+    "A blocked browser keeps the same activation request when navigating to settings",
+    "The activation request also remains available in the certificates workspace",
+    "The permission request fits a narrow screen below the current navigation header",
+    "A real Chrome mouse click enables unmuted playback and removes the request",
+    "Capture and button handlers share one probe instead of starting duplicate playback",
+    "A browser that already allows playback needs no further activation request",
+    "A later browser rejection shows the existing request again",
+    "Persistent browser denial leaves an actionable retry with website settings guidance",
+    "Keyboard activation starts the permission check and prevents repeated submission while pending",
+    "Repeated activation during an outstanding probe does not create another player or probe",
+    "Completing the permission check removes the pending request without starting a spoken test",
+    "An unsupported audio format is not presented as a browser permission denial",
+    "No tournament means no unnecessary playback probe or permission request",
+    "Audio activation and workspace navigation produce no JavaScript exceptions"
+  ]
+}

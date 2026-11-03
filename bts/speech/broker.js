@@ -138,7 +138,7 @@ class SpeechBroker {
             max_part_length: this.config.max_text * 4 + 512, context_version: this.context_version,
             playback_profile: this.playback_profile, playback_version: this.playback_version,
             voices: this.voices, last_error: this.last_error,
-            cache_version: this.identity ? crypto.createHash('sha256').update(this.identity).digest('hex') : null,
+            cache_version: this.identity ? crypto.createHash('sha256').update(this.identity + (this.connection_generation || '')).digest('hex') : null,
             preparing: entries.filter(item => ['unsubmitted', 'queued', 'processing'].includes(item.status)).length,
             ready: entries.filter(item => item.status === 'completed').length,
             persistent_cache: { enabled: !!this.disk, ready: entries.filter(item => item.status === 'completed' && item.local).length,
@@ -696,23 +696,31 @@ class SpeechBroker {
         const expires = Math.floor(this.now() / 1000) + this.config.audio_url_ttl_seconds;
         const playback = !entry?.playback_profile && !entry?.context && entry?.voice === 'hallensprecher' ? /[,;:.!?\r\n]/.test(entry.text) ? 'edges-v1' : 'words-v1' : '';
         return '/h/' + encodeURIComponent(tournament_key) + '/speech/audio/' + audio_id +
-            '?expires=' + expires + '&signature=' + this.signature(tournament_key, audio_id, expires, playback) +
+            '?expires=' + expires + '&signature=' + this.signature(tournament_key, audio_id, expires, playback, this.connection_generation) +
+            (this.connection_generation ? '&connection=' + this.connection_generation : '') +
             (playback ? '&playback=' + playback : '');
     }
 
-    signature(tournament_key, audio_id, expires, playback = '') {
+    signature(tournament_key, audio_id, expires, playback = '', connection) {
         return crypto.createHmac('sha256', this.signing_key)
-            .update(JSON.stringify([tournament_key, audio_id, Number(expires), playback])).digest('base64url');
+            .update(JSON.stringify([tournament_key, audio_id, Number(expires), playback, ...(connection ? [connection] : [])])).digest('base64url');
     }
 
-    authorize(tournament_key, audio_id, expires, signature, playback = '') {
-        if (!this.config.enabled || !ID.test(audio_id) || !/^\d{10}$/.test(String(expires)) ||
+    audio_connection(connection) {
+        if (!this.audio_connections) return connection === undefined ? {config:this.config, disk:this.disk} : null;
+        if (connection !== undefined && (typeof connection !== 'string' || !/^[a-f0-9]{32}$/.test(connection))) return null;
+        const target = this.audio_connections.get(connection || null);
+        return target && target.until >= this.now() ? target : null;
+    }
+
+    authorize(tournament_key, audio_id, expires, signature, playback = '', connection) {
+        if (!this.audio_connection(connection)?.config.enabled || !ID.test(audio_id) || !/^\d{10}$/.test(String(expires)) ||
             !['', 'edges-v1', 'words-v1'].includes(playback) ||
             typeof signature !== 'string' || !/^[A-Za-z0-9_-]{43}$/.test(signature)) return false;
         const remaining = Number(expires) - Math.floor(this.now() / 1000);
         if (remaining < 0 || remaining > this.config.audio_url_ttl_seconds) return false;
         return crypto.timingSafeEqual(Buffer.from(signature),
-            Buffer.from(this.signature(tournament_key, audio_id, expires, playback)));
+            Buffer.from(this.signature(tournament_key, audio_id, expires, playback, connection)));
     }
 
     async refresh() {
@@ -993,17 +1001,17 @@ class SpeechBroker {
                 if (this.last_metadata + 15000 <= this.now()) await this.refresh();
                 // Restored metadata supports offline playback, but must not
                 // submit an old context plan while a new service starts.
-                if (this.metadata_verified) {
+                if (this.metadata_verified && !this.reconfiguring) {
                     this.fill_idle_queue();
                     if (this.helpers) await this.helpers.step();
-                    await this.step();
+                    if (!this.reconfiguring) await this.step();
                 }
                 this.health.clear('broker_loop');
             } catch (error) { this.last_error = 'speech_unavailable'; this.health.fail('broker_loop', error); }
-            if (!this.stopped) this.timer = setTimeout(tick, 100);
+            if (!this.stopped) this.timer = setTimeout(() => {this.cycle = tick();}, 100);
             this.timer?.unref();
         };
-        void tick();
+        this.cycle = tick();
     }
 
     stop() {

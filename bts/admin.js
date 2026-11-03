@@ -138,6 +138,28 @@ async function handle_match_reopen(app, ws, msg) {
 	} catch (err) { ws.respond(msg, err); }
 }
 
+// Keep the effective engine mode compatible with existing clients, while retaining
+// the selected mode when rotation is switched off or configured during a pause.
+function normalize_official_rotation_props(tournament, props) {
+	const mode_field = 'official_rotation_mode';
+	const selected_field = 'official_rotation_selected_mode';
+	const has_mode = Object.prototype.hasOwnProperty.call(props, mode_field);
+	const has_selected = Object.prototype.hasOwnProperty.call(props, selected_field);
+	if (!has_mode && !has_selected) return null;
+	const modes = ['umpire_only', 'umpire_and_service_judge'];
+	if ((has_mode && !['disabled', ...modes].includes(props[mode_field])) ||
+		(has_selected && !modes.includes(props[selected_field]))) {
+		return {message: 'Invalid official rotation mode'};
+	}
+	let mode = has_mode ? props[mode_field] : tournament[mode_field] || 'umpire_and_service_judge';
+	if (has_selected && !has_mode && mode !== 'disabled') mode = props[selected_field];
+	const previous_selection = modes.includes(tournament[mode_field]) ? tournament[mode_field] :
+		tournament[selected_field] || 'umpire_and_service_judge';
+	props[mode_field] = mode;
+	props[selected_field] = mode === 'disabled' ? (has_selected ? props[selected_field] : previous_selection) : mode;
+	return null;
+}
+
 function handle_tournament_edit_props(app, ws, msg) {
 	if (! msg.key) {
 		return ws.respond(msg, {message: 'Missing key'});
@@ -201,7 +223,7 @@ function handle_tournament_edit_props(app, ws, msg) {
 		'call_on_court_player_pause_expired_enabled',
 		'call_on_court_technical_officials_mode',
 		'call_on_court_require_official_space_enabled',
-		'official_rotation_mode',
+		'official_rotation_mode', 'official_rotation_selected_mode',
 		'technical_official_auto_assignment_mode',
 		'technical_official_break_after_assignment_seconds',
 		'logo_background_color', 'logo_foreground_color', 'scoring_formats',
@@ -229,6 +251,8 @@ function handle_tournament_edit_props(app, ws, msg) {
 			ws.respond(msg, err);
 			return;
 		}
+		const rotation_error = normalize_official_rotation_props(tournament, props);
+		if (rotation_error) return ws.respond(msg, rotation_error);
 		for (const field_name of ['displaysettings_general', 'displaysettings_general_tablet']) {
 			if (!Object.prototype.hasOwnProperty.call(props, field_name)) {
 				continue;
@@ -359,7 +383,7 @@ function handle_tournament_edit_prop(app, ws, msg) {
 		'call_on_court_player_pause_expired_enabled',
 		'call_on_court_technical_officials_mode',
 		'call_on_court_require_official_space_enabled',
-		'official_rotation_mode',
+		'official_rotation_mode', 'official_rotation_selected_mode',
 		'technical_official_auto_assignment_mode',
 		'technical_official_break_after_assignment_seconds',
 		'logo_background_color', 'logo_foreground_color',
@@ -397,6 +421,8 @@ function handle_tournament_edit_prop(app, ws, msg) {
 		if (validation_error) {
 			return ws.respond(msg, validation_error);
 		}
+		const rotation_error = normalize_official_rotation_props(tournament, props);
+		if (rotation_error) return ws.respond(msg, rotation_error);
 		app.db.tournaments.update({ key }, { $set: props }, { returnUpdatedDocs: true }, function (err, num, t) {
 			if (err) {
 				ws.respond(msg, err);
@@ -425,7 +451,9 @@ function handle_tournament_edit_prop(app, ws, msg) {
 					});
 				});
 			}
-			notify_change(app, key, 'prop_changed', { field, value: t[field] });
+			for (const changed_field of Object.keys(props)) {
+				notify_change(app, key, 'prop_changed', {field: changed_field, value: t[changed_field]});
+			}
 
 			if (!tournament.displaysettings_general || (field === 'displaysettings_general' && tournament.displaysettings_general != t.displaysettings_general)){
 				const bupws = require('./bupws');
@@ -1253,6 +1281,7 @@ function handle_normalization_add(app, ws, msg) {
 			return;
 		}
 		notify_change(app, msg.tournament_key, 'normalization_add', { normalization: inserted_normalization });
+		ws.respond(msg, null, {normalization: inserted_normalization});
 	});
 }
 function handle_normalization_remove(app, ws, msg) {
@@ -1266,8 +1295,9 @@ function handle_normalization_remove(app, ws, msg) {
 
 	const query = { _id: msg.normalization_id };
 	app.db.normalizations.remove(query, {}, (err) => {
+		if (err) return ws.respond(msg, err);
 		notify_change(app, msg.tournament_key, 'normalization_removed', {normalization_id: msg.normalization_id});
-		return;
+		ws.respond(msg, null, {});
 	});
 }
 function handle_advertisement_add(app, ws, msg) {
@@ -5687,7 +5717,16 @@ function handle_speech_health_subscribe(app, ws, msg) {
 	ws.respond(msg, null, { speech_health_supported: !!app.speech?.health });
 }
 
+function handle_audio_device_register(app, ws, msg) {
+	require('./audio_devices')(app).register(ws, msg).then(value => ws.respond(msg, null, value), error => ws.respond(msg, error));
+}
+
+function handle_audio_device_edit(app, ws, msg) {
+	require('./audio_devices')(app).edit(msg).then(value => ws.respond(msg, null, value), error => ws.respond(msg, error));
+}
+
 function on_close(app, ws) {
+	require('./audio_devices').release(app, ws);
 	require('./emergency_audio').release(app, ws);
 	if (! utils.remove(all_admins, ws)) {
 		serror.silent('Removing admin ws, but it was not connected!?');
@@ -5799,6 +5838,9 @@ module.exports = {
 	handle_diagnostics_reload: require('./diagnostics').handle,
 	handle_diagnostics_cancel: require('./diagnostics').handle,
 	handle_diagnostics_verbose: require('./diagnostics').handle,
+	handle_speech_connection_get: require('./speech/connection_settings').handle,
+	handle_speech_connection_save: require('./speech/connection_settings').handle,
+	handle_speech_connection_test: require('./speech/connection_settings').handle,
 	handle_speech_prepare: require('./speech').handle,
 	handle_speech_resolve: require('./speech').handle,
 	handle_speech_status: require('./speech').handle,
@@ -5869,6 +5911,8 @@ module.exports = {
 	handle_emergency_announce,
 	handle_emergency_audio_subscribe,
 	handle_emergency_audio_release,
+	handle_audio_device_register,
+	handle_audio_device_edit,
 	handle_official_list_move,
 	handle_official_edit,
 	handle_official_roles_edit,

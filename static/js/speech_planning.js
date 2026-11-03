@@ -1,7 +1,7 @@
 'use strict';
 
 (function() {
-    const match = /^\/admin\/t\/([^/]+)\/speech-planning\/?$/.exec(window.location.pathname);
+    const match = /^\/admin\/t\/([^/]+)\/speech-planning(?:\/plan)\/?$/.exec(window.location.pathname);
     if (!match) return;
     const key = decodeURIComponent(match[1]), main = document.querySelector('main');
     const diagram = window.btsSpeechPlanningDiagram, pending = new Map();
@@ -58,6 +58,7 @@
     for (const heading of diagramSection.querySelectorAll('.flow-heading,.flow-hint')) heading.remove();
     for (const node of [...main.children]) if (node !== diagramSection && node !== oldFooter) node.remove();
     main.className = 'app'; document.body.classList.add('speech-planning-page');
+    if (new URLSearchParams(location.search).has('embedded')) document.body.classList.add('speech-planning-embedded');
     main.insertAdjacentHTML('afterbegin', `
       <header class="masthead"><div class="brand"><div class="brand-mark">BTS</div><div class="brand-copy"><strong>Turnierleitung</strong><span class="muted small" id="tournament-name">Turnier wird geladen …</span></div></div><a class="back-link" href="/admin/t/${encodeURIComponent(key)}/">← Zum Turnier</a></header>
       <div class="page-heading"><div><h1>Sprachvorbereitung</h1><p class="subtitle">Was ist als Nächstes dran – und warum?</p></div><span class="pill waiting" id="connection-status" role="status">Verbindung wird aufgebaut</span></div>

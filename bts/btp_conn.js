@@ -285,7 +285,7 @@ function send_request(ip, port, xml_req, timeZone, callback, context) {
 
 
 class BTPConn {
-	constructor(app, ip, password, tkey, enabled_autofetch, readonly, is_team, timeZone, autofetch_timeout_intervall) {
+	constructor(app, ip, password, tkey, enabled_autofetch, readonly, is_team, timeZone, autofetch_timeout_intervall, last_successful_fetch_ts = null) {
 		this.app = app;
 		this.last_status = { status: 'activated', message: '' };
 		this.ip = ip;
@@ -297,6 +297,7 @@ class BTPConn {
 		this.autofetch_timeout = null;
 		this.next_fetch_ts = null;
 		this.fetch_in_progress = false;
+		this.last_successful_fetch_ts = last_successful_fetch_ts;
 		this.fetch_promise = null;
 		this.fetch_reschedule_requested = false;
 		this.last_applied_fetch_reset_ts = undefined;
@@ -470,6 +471,9 @@ class BTPConn {
 		const value = await queue_fetch_sync_task(this, response, fetch_reset_ts, response_hash, fetch_start_ms, court_assignments_revision);
 		if ((this.court_assignments_revision || 0) !== court_assignments_revision) return { value: null, reschedule: true };
 		if (value?.skipped) traces.annotate({ skipped: true, reason: value.reason });
+		if (!this.terminated && (value === true || value?.reason === 'no_sync_changes')) {
+			this.last_successful_fetch_ts = real_now_ms(this.app);
+		}
 		if (value === true && !this.terminated) {
 			const total_ms = real_now_ms(this.app) - fetch_start_ms;
 			if (require('./server_diagnostics').sync_timing_enabled(this.tkey)) {
@@ -615,6 +619,7 @@ class BTPConn {
 			...this.last_status,
 			next_fetch_ts: this.next_fetch_ts,
 			fetch_in_progress: this.fetch_in_progress,
+			last_successful_fetch_ts: this.last_successful_fetch_ts ?? null,
 		};
 		const admin = require('./admin');
 		admin.notify_change(this.app, this.tkey, 'btp_status', msg);

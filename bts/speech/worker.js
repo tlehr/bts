@@ -29,6 +29,7 @@ function start(parentPort, workerData) {
     parentPort.postMessage({ type: 'health', health: app.speech.health.snapshot() });
     const { broker, prefetch } = app.speech;
     broker.signing_key = Buffer.from(workerData.signing_key);
+    require('./runtime_connection').restore(broker, workerData.connection_state);
     let audio_endpoint = null;
     const public_config = broker.public_config.bind(broker);
     broker.public_config = voice => ({ ...public_config(voice), audio_endpoint });
@@ -71,6 +72,8 @@ function start(parentPort, workerData) {
     }, 1000).unref();
     // Prefetch subscriptions arrive from the main thread's committed revisions;
     // its database object is deliberately absent from this worker.
+    let onListening;
+    const listening = new Promise(resolve => {onListening = resolve;});
     server.listen(listener.port, listener.host, () => {
         audio_endpoint = { port: server.address().port, protocol: listener.tls ? 'https:' : 'http:' };
         if (broker.config.audio_origin) {
@@ -80,8 +83,10 @@ function start(parentPort, workerData) {
             }
             audio_endpoint.origin = origin.origin;
         }
+        app.speech.started = true;
         broker.start();
         parentPort.postMessage({ type: 'ready', configs: configs() });
+        onListening();
     });
     const interval = setInterval(() => {
         for (const key of prefetch.subscriptions.keys()) prefetch.schedule(key);
@@ -121,6 +126,10 @@ function start(parentPort, workerData) {
                 if (message.operation === 'request') {
                     const msg = message.payload;
                     await handle(app, { speech_tournament_key: msg.tournament_key, respond: (_msg, _error, response) => { value = response; } }, msg);
+                } else if (message.operation === 'connection') {
+                    await listening;
+                    await app.speech.reconfigure_connection(message.payload);
+                    value = {configs: configs(), connection_state:require('./runtime_connection').snapshot(broker)};
                 } else throw new Error('invalid_speech_operation');
                 parentPort.postMessage({ type: 'reply', id: message.id, value });
             }

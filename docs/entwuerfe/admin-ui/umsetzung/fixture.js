@@ -37,14 +37,15 @@
   {client_id:'30',hostname:'Anzeige',court_id:'CH_1',displaysetting_id:'display-profile',panel_devicemode:'display',online:true},
  ];
  const displaysettings=[{id:'tablet-profile',devicemode:'umpire',tablet_mode:'umpire'},{id:'display-profile',devicemode:'display'}];
- const fixture={key,name:'Jugend-Rangliste 2026',language:'de',btp_enabled:false,btp_settings:{check_in_per_match:true,pause_duration_ms:120000},automation_enabled:true,call_preparation_matches_automatically_enabled:true,call_next_possible_scheduled_match_in_preparation:true,tabletoperator_enabled:true,tabletoperator_split_doubles:false,official_rotation_mode:'umpire_and_service_judge',locations,courts,matches,umpires,displays,displaysettings,events:{events:[]},normalizations:[],scoring_formats:[],tabletoperators:[{_id:'tablet-1',tabletoperator:team(6).players,played_on_court:'CH_13',start_ts:1},{_id:'tablet-2',tabletoperator:team(14).players,played_on_court:'CH_4',start_ts:2}],status:{status:'connected',message:''},btp_status:{status:'deactivated',message:''},ticker_status:{status:'deactivated',message:''}};
+ const fixture={key,name:'Jugend-Rangliste 2026',language:'de',system_timezone:'Europe/Berlin',btp_enabled:false,btp_settings:{check_in_per_match:true,pause_duration_ms:120000},automation_enabled:true,call_preparation_matches_automatically_enabled:true,call_next_possible_scheduled_match_in_preparation:true,tabletoperator_enabled:true,tabletoperator_split_doubles:false,official_rotation_mode:'umpire_and_service_judge',locations,courts,matches,umpires,displays,displaysettings,events:{events:[]},normalizations:[],advertisements:[],scoring_formats:[],tabletoperators:[{_id:'tablet-1',tabletoperator:team(6).players,played_on_court:'CH_13',start_ts:1},{_id:'tablet-2',tabletoperator:team(14).players,played_on_court:'CH_4',start_ts:2}],status:{status:'connected',message:''},btp_status:{status:'deactivated',message:''},ticker_status:{status:'deactivated',message:''}};
  window.__writes=[];
  window.__emergencySubscriptions=[];
  window.__protocolEvents=[];window.__protocolRequests=0;
  window.__speechFixture={status:'completed',settings:{enabled:true,key,mode:'auto',voice:'hallensprecherin',language:'de-DE',audio_ready:true,max_text:1200}};
  window.__localAnnouncements=[];window.__speechPrepared=[];window.__speechPreparationRequests=[];
  window.btsSpeechService={
-  settings:()=>({...window.__speechFixture.settings}),ensureAudio:async()=>{},
+  settings:()=>({...window.__speechFixture.settings}),ensureAudio:async()=>{},checkAudio:async()=>true,
+  queue:async()=>({speech:{enabled:true,cache_version:'fixture'},queue:{items:[]}}),
   prepare:async(parts,options={})=>{window.__speechPrepared.push([...parts]);window.__speechPreparationRequests.push({parts:[...parts],urgent:options.urgent===true});},
   inspect:async parts=>({speech:{enabled:true,cache_version:'fixture'},clips:parts.map(()=>({status:window.__speechFixture.status,local:true}))}),
   speak:async(parts,_id,_browser,_localParts,_pauses,_plan,speechMode)=>{window.__localAnnouncements.push({parts:[...parts],speechMode});if(window.__speechPlaybackGate)await new Promise(resolve=>{window.__releaseSpeechPlayback=resolve;});return{status:'ok',provider:speechMode==='browser'?'browser':'server',started:true,...window.__speechPlaybackResult};},
@@ -56,7 +57,22 @@
   visible:()=>true,schedule:(callback,ms)=>setTimeout(callback,ms),
  });
  window.btsSpeechReadiness.trackMatch=()=>{};
+ window.__audioDeviceWrites=[];window.__audioDevices=[];window.__audioRevision=0;
+ window.__connectionFixture={url:'http://192.0.2.20:8077',active_url:'http://192.0.2.20:8077',enabled:true,api_key_configured:true,locked:{url:false,enabled:false,api_key:false},writable:true,revision:'fixture-1',apply_pending:false,status:{state:'ready'}};
+ window.__helperFixture={workers:[{id:'helper-one',name:'Hallenrechner',platform:'Linux',threads:2,memory_limit_mib:3584,online:true,paused:false,completed:3}],jobs:[],runtime:{size_bytes:2147483648},generation:{ready:true}};
  window.send=(message,callback)=>{
+  if(message.type==='speech_connection_get')return setTimeout(()=>callback?.(null,{connection:structuredClone(__connectionFixture)}),0);
+  if(message.type==='speech_helpers')return setTimeout(()=>callback?.(null,{helpers:structuredClone(__helperFixture),speech:{audio_endpoint:{protocol:'http:',port:4001}}}),0);
+  if(message.type==='audio_device_register') {
+   if(!__audioDevices.some(device=>device.id===message.device_id))__audioDevices.push({id:message.device_id,label:'Turnierleitung',address:'192.0.2.10',online:true,pages:2,settings:structuredClone(message.settings)},
+    {id:'audio-hall-north',label:'Hallenton Nord',address:'192.0.2.11',online:true,pages:1,settings:{free:false,locations:locations.map(location=>({id:location._id,calls:false,preparations:false}))}});
+   const value={tournament_key:key,revision:++__audioRevision,devices:structuredClone(__audioDevices)};setTimeout(()=>callback?.(null,value),0);return;
+  }
+  if(message.type==='audio_device_edit') {
+   __audioDeviceWrites.push(structuredClone(message));const device=__audioDevices.find(item=>item.id===message.device_id),change=message.change;
+   if(change.kind==='free')device.settings.free=change.value;else device.settings.locations.find(location=>location.id===change.location_id)[change.kind]=change.value;
+   const value={tournament_key:key,revision:++__audioRevision,devices:structuredClone(__audioDevices)};setTimeout(()=>callback?.(null,value),0);return;
+  }
   if(message.type==='emergency_audio_subscribe') {
    window.__emergencySubscriptions.push(structuredClone(message));setTimeout(()=>callback?.(null,{}),0);return;
   }

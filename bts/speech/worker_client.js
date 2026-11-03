@@ -31,7 +31,7 @@ class SpeechWorker {
     }
 
     public_config(voice = this.config.voice) {
-        return this.configs.get(voice) || { enabled: true, mode: this.config.mode, voice: this.config.voice,
+        return this.configs.get(voice) || { enabled: this.config.enabled, mode: this.config.mode, voice: this.config.voice,
             deadline_ms: this.config.deadline_ms, max_text: this.config.max_text, max_part_length: this.config.max_text * 4 + 512,
             context_version: null, cache_version: null, voices: [], last_error: 'speech_unavailable', preparing: 0, ready: 0 };
     }
@@ -69,7 +69,7 @@ class SpeechWorker {
     request(message) {
         // Bound data before structured cloning, including requests from old or
         // malformed clients. Detailed text/context validation stays in worker.
-        const fields = ['type', 'tournament_key', 'voice', 'language', 'audio_urls', 'pending_only', 'kind', 'group', 'offset', 'limit', 'state', 'match_id', 'revision', 'endpoint', 'worker_id', 'action'];
+        const fields = ['type', 'tournament_key', 'voice', 'language', 'audio_urls', 'pending_only', 'kind', 'group', 'offset', 'limit', 'state', 'match_id', 'revision', 'endpoint', 'platform', 'worker_id', 'action'];
         const payload = {};
         for (const key of fields) if (message[key] !== undefined) {
             const value = message[key];
@@ -128,14 +128,14 @@ class SpeechWorker {
             pending_requests: this.pending.size, ...this.bridge };
     }
 
-    call(operation, payload) {
+    call(operation, payload, timeout = 5000) {
         if (!this.worker || this.stopped || this.pending.size >= 128) return Promise.reject(new Error('speech_unavailable'));
         return new Promise((resolve, reject) => {
             const id = ++this.next_id;
             const timer = setTimeout(() => {
                 // A stuck speech worker cannot accumulate unbounded requests.
-                this.failed(this.worker, new Error('speech_worker_timeout (5000 ms)'));
-            }, 5000);
+                this.failed(this.worker, new Error('speech_worker_timeout (' + timeout + ' ms)'));
+            }, timeout);
             this.pending.set(id, { resolve, reject, timer });
             try { this.send({ type: 'call', id, operation, payload }); }
             catch (error) { this.failed(this.worker, error); }
@@ -143,9 +143,31 @@ class SpeechWorker {
     }
 
     start() {
+        this.started = true;
+        if (!this.config.enabled) return;
         if (!this.stopped) return;
         this.stopped = false;
         this.launch();
+    }
+
+    async reconfigure_connection(next) {
+        const fields = {base_url:next.base_url, api_key:next.api_key, enabled:next.enabled, configured:next.configured};
+        const previous = {...this.config}, existing = !!this.worker;
+        if (!existing) {
+            Object.assign(this.config, fields);
+            if (this.started && next.enabled) this.start();
+            else {this.configs.clear();return;}
+        }
+        try {
+            const timeout = Math.max(45000, this.config.audio_timeout_ms + 2 * this.config.timeout_ms + 10000);
+            const result = await this.call('connection', fields, timeout);
+            Object.assign(this.config, fields);
+            this.configs = new Map(result.configs);
+            this.connection_state = result.connection_state;
+        } catch (error) {
+            if (!existing) {this.stop();Object.assign(this.config, previous);this.started = true;}
+            throw error;
+        }
     }
 
     launch() {
@@ -157,7 +179,7 @@ class SpeechWorker {
                 tls: this.app.config.enable_https ? { key: this.app.config.https_key, cert: this.app.config.https_cert } : null };
             const Process = this.config.worker_type === 'process' ? ProcessWorker : Worker;
             worker = new Process(path.join(__dirname, this.config.worker_type === 'process' ? 'process.js' : 'worker.js'),
-                { workerData: { config: this.config, signing_key: this.signing_key, listener } });
+                { workerData: { config: this.config, signing_key: this.signing_key, connection_state:this.connection_state, listener } });
         } catch (error) { this.failed(null, error); return; }
         this.worker = worker;
         this.snapshots.clear();
@@ -223,6 +245,7 @@ class SpeechWorker {
     }
 
     stop() {
+        this.started = false;
         this.stopped = true;
         clearTimeout(this.restart_timer); this.restart_timer = null;
         clearImmediate(this.change_task); this.change_task = null; this.changes.clear();

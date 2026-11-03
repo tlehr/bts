@@ -1,0 +1,76 @@
+'use strict';
+
+module.exports = async function({c, verify, key, metrics, capture}) {
+ await metrics(1440,1000);
+ await c.evaluate(String.raw`(()=>{
+  __scoringEmit('update_btp_scoring_formats',{scoring_formats:structuredClone(__scoringSource)});
+  __scoringSaves.length=0;__scoringReplies.length=0;
+  window.__scoringDialog=()=>document.querySelector('.scoring_format_edit_dialog');
+  window.__scoringDialogField=name=>__scoringDialog().querySelector('[name="'+name+'"]');
+  window.__scoringDialogEdit=(name,value)=>{const field=__scoringDialogField(name);field.value=value;field.dispatchEvent(new Event('input',{bubbles:true}));};
+  window.__scoringDialogOpen=()=>{const button=__scoringEntry(1).querySelector('button');button.focus();button.click();};
+  __scoringDialogOpen();
+ })()`);
+ await verify('Scoring editors use a native modal, petrol header, shared close button and named action footer', String.raw`(()=>{const dialog=__scoringDialog(),heading=dialog.querySelector('.dialog-heading'),close=dialog.querySelector('.ls-dialog-close');return dialog.tagName==='DIALOG'&&dialog.open&&dialog.classList.contains('leitstand-dialog')&&document.getElementById(dialog.getAttribute('aria-labelledby')).textContent==='Punktsystem bearbeiten'&&getComputedStyle(heading).backgroundColor==='rgb(14, 90, 99)'&&close.getBoundingClientRect().width===28&&close.getBoundingClientRect().height===28&&close.getAttribute('aria-label')==='Schließen'&&dialog.querySelector('.ls-dialog-footer .match_save_button').textContent==='Änderungen übernehmen'&&dialog.querySelector('form').contains(dialog.querySelector('.ls-dialog-footer'));})()`);
+ await verify('An unchanged scoring editor disables Apply and retains the imported-field locks and input labels', String.raw`__scoringDialog().querySelector('.match_save_button').disabled&&__scoringDialog().querySelector('.scoring-format-dialog-actions button').textContent==='Schließen'&&['name','numSets','set_points_end_points','set_points_max_points','last_set_points_end_points','last_set_points_max_points'].every(name=>__scoringDialogField(name).disabled)&&[...__scoringDialog().querySelectorAll('input')].every(input=>input.labels.length===1)`);
+ await c.evaluate(String.raw`__scoringDialog().querySelector('form').requestSubmit()`);
+ await verify('Unchanged scoring dialogs cannot submit a redundant save', String.raw`__scoringSaves.length===0&&__scoringDialog().open`);
+ await verify('On desktop the two set sections stand side by side within the scrollable dialog body', String.raw`(()=>{const sections=[...__scoringDialog().querySelectorAll('fieldset')].map(node=>node.getBoundingClientRect());return sections.length===2&&Math.abs(sections[0].top-sections[1].top)<1&&sections[0].right<sections[1].left&&__scoringDialog().querySelector('.dialog-content').contains(__scoringDialogField('last_set_points_break_before_set_duration_s'));})()`);
+ await capture('einstellungen-punktsystem-dialog');
+ await c.evaluate(String.raw`__scoringDialogEdit('set_points_interval_duration_s','1:05')`);
+ await verify('Editing a pause enables Apply and changes Close to Cancel', String.raw`!__scoringDialog().querySelector('.match_save_button').disabled&&__scoringDialog().querySelector('.scoring-format-dialog-actions button').textContent==='Abbrechen'`);
+ await c.evaluate(String.raw`__scoringDialogEdit('set_points_interval_duration_s','1:00')`);
+ await verify('Restoring the original pause returns the scoring dialog to its unchanged state', String.raw`__scoringDialog().querySelector('.match_save_button').disabled&&__scoringDialog().querySelector('.scoring-format-dialog-actions button').textContent==='Schließen'`);
+ await c.evaluate(String.raw`__scoringDialogEdit('set_points_interval_duration_s','0:99');__scoringDialog().querySelector('form').requestSubmit()`);
+ await verify('Invalid durations show an explanation in the dialog and cannot save', String.raw`__scoringDialogField('set_points_interval_duration_s').getAttribute('aria-invalid')==='true'&&__scoringDialog().querySelector('.match_save_button').disabled&&__scoringDialog().querySelector('.scoring-format-dialog-status.is-error').textContent&&__scoringSaves.length===0`);
+ await c.evaluate(String.raw`__scoringDialogEdit('set_points_interval_duration_s','1:05');__scoringDialog().querySelector('.ls-dialog-close').click()`);
+ await verify('Closing a changed scoring dialog asks before discarding its draft', String.raw`__scoringDialog().open&&!!document.querySelector('.bts-confirm-dialog[open].is-warning')&&__scoringDialogField('set_points_interval_duration_s').value==='1:05'`);
+ await key('Escape','Escape',27);
+ await verify('Escape from the discard warning returns to the unchanged draft in the editor', String.raw`!document.querySelector('.bts-confirm-dialog')&&__scoringDialog().open&&__scoringDialogField('set_points_interval_duration_s').value==='1:05'&&__scoringSaves.length===0`);
+ await c.evaluate(String.raw`__scoringDialog().querySelector('.ls-dialog-close').focus()`);
+ for (const type of ['keyDown','keyUp']) await c.call('Input.dispatchKeyEvent',{type,key:'Tab',code:'Tab',windowsVirtualKeyCode:9,modifiers:8});
+ await verify('Reverse Tab navigation stays inside the scoring modal and reaches Apply', String.raw`document.activeElement===__scoringDialog().querySelector('.match_save_button')`);
+ await key('Tab','Tab',9);
+ await verify('Forward Tab navigation wraps to the shared header close button', String.raw`document.activeElement===__scoringDialog().querySelector('.ls-dialog-close')`);
+ await c.evaluate(String.raw`__scoringDialog().querySelector('.scoring-format-dialog-actions button').click()`);
+ await verify('The footer Cancel action uses the same discard warning', String.raw`!!document.querySelector('.bts-confirm-dialog[open]')&&__scoringDialog().open`);
+ await c.evaluate(String.raw`document.querySelector('.bts-confirm-accept').click()`);
+ await verify('Explicit discard closes the scoring editor and restores focus without saving', String.raw`!__scoringDialog()&&!document.querySelector('.bts-confirm-dialog')&&__scoringSaves.length===0&&document.activeElement===__scoringEntry(1).querySelector('button')`);
+ await c.evaluate('__scoringDialogOpen()');
+ await key('Escape','Escape',27);
+ await verify('Escape closes an unchanged scoring editor directly and returns focus to its opener', String.raw`!__scoringDialog()&&document.activeElement===__scoringEntry(1).querySelector('button')`);
+ await c.evaluate('__scoringDialogOpen()');
+ const backdrop=async()=>{
+  for (const type of ['mousePressed','mouseReleased']) await c.call('Input.dispatchMouseEvent',{type,x:3,y:3,button:'left',buttons:type==='mousePressed'?1:0,clickCount:1});
+ };
+ await backdrop();
+ await verify('Clicking the backdrop closes an unchanged scoring editor', String.raw`!__scoringDialog()&&document.activeElement===__scoringEntry(1).querySelector('button')`);
+ await c.evaluate(String.raw`__scoringDialogOpen();__scoringDialogEdit('set_points_interval_duration_s','1:05');__scoringDialog().querySelector('.match_save_button').click();__scoringDialog().querySelector('form').requestSubmit()`);
+ await verify('Saving locks editing and every close action while preventing duplicate requests', String.raw`__scoringSaves.length===1&&__scoringSaves[0].scoring_format.set_points.interval_duration_ms===65000&&__scoringDialog().querySelector('.dialog-content').inert&&__scoringDialog().querySelector('.match_save_button').disabled&&__scoringDialog().querySelector('.ls-dialog-close').disabled&&__scoringDialog().querySelector('.scoring-format-dialog-actions button').disabled&&__scoringDialog().querySelector('form').getAttribute('aria-busy')==='true'`);
+ await key('Escape','Escape',27);await backdrop();
+ await verify('Escape and backdrop clicks cannot dismiss an in-flight scoring save', String.raw`__scoringDialog().open&&!document.querySelector('.bts-confirm-dialog')&&__scoringSaves.length===1`);
+ await c.evaluate(String.raw`__scoringReplies.shift()({message:'Test: Speichern fehlgeschlagen'})`);
+ await verify('A save failure keeps the draft, unlocks editing and explains the error inside the modal', String.raw`__scoringDialogField('set_points_interval_duration_s').value==='1:05'&&!__scoringDialog().querySelector('.dialog-content').inert&&!__scoringDialog().querySelector('.match_save_button').disabled&&!__scoringDialog().querySelector('.ls-dialog-close').disabled&&__scoringDialog().querySelector('.scoring-format-dialog-status.is-error').textContent==='Test: Speichern fehlgeschlagen'`);
+ await c.evaluate(String.raw`__scoringDialog().querySelector('.match_save_button').click();__scoringEmit('scoring_format_changed',{scoring_format:__scoringSaves.at(-1).scoring_format});__scoringDialogOpen();window.__scoringDialogAfterReceipt=__scoringDialog();__scoringReplies.shift()(null,{})`);
+ await verify('A late successful response cannot close a newly opened scoring editor', String.raw`__scoringDialog()===__scoringDialogAfterReceipt&&__scoringDialog().open&&__scoringDialogField('set_points_interval_duration_s').value==='1:05'&&__scoringDialog().querySelector('.match_save_button').disabled`);
+ await c.evaluate(String.raw`__scoringDialogField('set_points_break_in_set_enabled').click()`);
+ await verify('An inactive interval retains its cached times and disables only its dependent fields and arrows', String.raw`__scoringDialogField('set_points_interval_duration_s').value==='1:05'&&__scoringDialogField('set_points_interval_duration_s').disabled&&__scoringDialogField('set_points_interval_at').disabled&&[...__scoringDialogField('set_points_interval_duration_s').nextElementSibling.children].every(button=>button.disabled)&&!__scoringDialogField('set_points_break_before_set_duration_s').disabled`);
+ await c.evaluate(String.raw`__scoringDialogField('set_points_break_in_set_enabled').click()`);
+ await verify('Restoring the interval restores its retained values and the pristine dialog state', String.raw`!__scoringDialogField('set_points_interval_duration_s').disabled&&__scoringDialogField('set_points_interval_duration_s').value==='1:05'&&__scoringDialog().querySelector('.match_save_button').disabled`);
+ for (const [width,height] of [[950,700],[390,844],[320,640]]) {
+  await metrics(width,height);
+  await verify('Scoring editor and all fields fit inside the viewport at '+width, String.raw`(()=>{const dialog=__scoringDialog(),bounds=dialog.getBoundingClientRect(),body=dialog.querySelector('.dialog-content'),header=dialog.querySelector('.dialog-heading').getBoundingClientRect(),footer=dialog.querySelector('.ls-dialog-footer').getBoundingClientRect(),content=body.getBoundingClientRect();return bounds.left>=0&&bounds.right<=innerWidth+.5&&bounds.top>=0&&bounds.bottom<=innerHeight+.5&&body.scrollWidth<=body.clientWidth+1&&content.top>=header.bottom-1&&content.bottom<=footer.top+1&&[...dialog.querySelectorAll('input,.duration-input-unit')].every(node=>{const rect=node.getBoundingClientRect();return rect.left>=bounds.left&&rect.right<=bounds.right;});})()`);
+  await c.evaluate(String.raw`(()=>{const dialog=__scoringDialog();window.__scoringDialogBars=[dialog.querySelector('.dialog-heading').getBoundingClientRect().top,dialog.querySelector('.ls-dialog-footer').getBoundingClientRect().bottom];dialog.querySelector('.dialog-content').scrollTop=10000;})()`);
+  await verify('Only an overflowing scoring body scrolls while header and footer stay fixed at '+width, String.raw`(()=>{const dialog=__scoringDialog(),body=dialog.querySelector('.dialog-content');return (body.scrollHeight<=body.clientHeight+1||body.scrollTop>0)&&dialog.scrollTop===0&&Math.abs(dialog.querySelector('.dialog-heading').getBoundingClientRect().top-__scoringDialogBars[0])<1&&Math.abs(dialog.querySelector('.ls-dialog-footer').getBoundingClientRect().bottom-__scoringDialogBars[1])<1;})()`);
+  await c.evaluate(String.raw`__scoringDialog().querySelector('.dialog-content').scrollTop=0`);
+  if (width===390) await capture('einstellungen-punktsystem-dialog-mobil');
+ }
+ await metrics(1440,1000);
+ await c.evaluate(String.raw`__scoringDialogEdit('set_points_interval_duration_s','1:10');__scoringEmit('scoring_format_changed',{scoring_format:structuredClone(curt.scoring_formats.formats.find(format=>format.id===2))});`);
+ await verify('A live update to another scoring format preserves the current editor and its draft', String.raw`__scoringDialog().open&&__scoringDialogField('set_points_interval_duration_s').value==='1:10'`);
+ await c.evaluate(String.raw`window.__scoringOldForm=__scoringDialog().querySelector('form');__scoringEmit('scoring_format_changed',{scoring_format:structuredClone(curt.scoring_formats.formats.find(format=>format.id===1))});`);
+ await verify('A matching external change removes the stale modal and releases its shared action controller', String.raw`!__scoringDialog()&&!document.querySelector('.bts-confirm-dialog')&&!btsDialogActions.get(__scoringOldForm)&&document.querySelector('.live_settings_status_error').textContent.includes('in einem anderen Fenster geändert')`);
+ await c.evaluate(String.raw`__scoringDialogOpen();window.__scoringOldForm=__scoringDialog().querySelector('form');__scoringDialog().remove();`);
+ await verify('Removing a scoring modal releases its controller, restores scrolling and leaves shared audio untouched', String.raw`!__scoringDialog()&&!btsDialogActions.get(__scoringOldForm)&&getComputedStyle(document.body).overflow!=='hidden'&&btsSpeechService===__scoringService&&__scoringCancels===0&&__scoringUnloads===0`);
+ await metrics(1920,1080);
+};

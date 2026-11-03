@@ -409,9 +409,8 @@ function createSpeechService(context) {
         return attempt;
     }
 
-    function ensureAudio() {
-        const value = settings();
-        if (!value.enabled || !value.key || value.mode === 'browser' || !languageSupported(value)) return Promise.resolve(false);
+    function checkAudio() {
+        if (!settings().key) return Promise.resolve(false);
         if (audio_ready && !audio_error) {
             if (audio_context?.state === 'suspended') void audio_context.resume().catch(() => {});
             return Promise.resolve(true);
@@ -419,8 +418,14 @@ function createSpeechService(context) {
         return unlock();
     }
 
+    function ensureAudio() {
+        const value = settings();
+        if (!value.enabled || !value.key || value.mode === 'browser' || !languageSupported(value)) return Promise.resolve(false);
+        return checkAudio();
+    }
+
     return {
-        settings, prepare, speak, cancel, unlock, ensureAudio, describeResult, preview,
+        settings, prepare, speak, cancel, unlock, ensureAudio, checkAudio, describeResult, preview,
         isBusy: () => !!(active || preview_controller),
         settingsChanged() { prepared.clear(); preview_controller?.abort(); changed(); void ensureAudio(); },
         cancelPreview: () => preview_controller?.abort(),
@@ -513,7 +518,7 @@ else {
     window.btsSpeechService = btsSpeechService;
     for (const name of ['click', 'keydown', 'touchend']) {
         document.addEventListener(name, event => {
-            if (event.isTrusted && !event.repeat) void btsSpeechService.ensureAudio();
+            if (event.isTrusted && !event.repeat) void btsSpeechService.checkAudio();
         }, { capture: true, passive: true });
     }
 }

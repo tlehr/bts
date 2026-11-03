@@ -219,7 +219,7 @@ var btsCertificates = (() => {
    if (url.origin !== doc.location.origin || url.pathname === doc.location.pathname) return;
    event.preventDefault();event.stopImmediatePropagation();
    navigate(() => {
-    if (url.pathname.startsWith('/admin/t/' + encodeURIComponent(tournamentKey) + '/') && !url.pathname.endsWith('/speech-planning/')) crouting.navigate_to(url.pathname.slice('/admin/'.length));
+    if (url.pathname.startsWith('/admin/t/' + encodeURIComponent(tournamentKey) + '/')) crouting.navigate_to(url.pathname.slice('/admin/'.length));
     else doc.location.href = url.href;
    }, link);
   }, {capture: true, signal});

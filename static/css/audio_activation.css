@@ -1,0 +1,41 @@
+.audio-activation {
+    position: fixed;
+    right: 16px;
+    z-index: 45;
+    box-sizing: border-box;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+    width: 440px;
+    max-width: calc(100% - 32px);
+    padding: 16px;
+    border: 1px solid #e4d5a6;
+    border-left: 4px solid #b99434;
+    border-radius: 8px;
+    background: #fffdf4;
+    box-shadow: 0 4px 18px #21323520;
+    color: #213235;
+    font: 14px/1.45 -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    text-align: left;
+}
+
+.audio-activation[hidden] { display: none; }
+.audio-activation strong { font-size: 15px; }
+.audio-activation p { margin: 6px 0 0; }
+.audio-activation button {
+    margin-left: auto;
+    padding: 9px 14px;
+    border: 1px solid #0e5a63;
+    border-radius: 6px;
+    background: #0e5a63;
+    color: #fff;
+    font: inherit;
+    cursor: pointer;
+}
+.audio-activation button:focus-visible { outline: 2px solid #0e5a63; outline-offset: 3px; }
+.audio-activation button:disabled { opacity: .65; cursor: wait; }
+
+@media print {
+    .audio-activation { display: none; }
+}
