@@ -364,6 +364,18 @@ function reset_court_assignments_request(updates, key_unicode, password) {
 	return request;
 }
 
+function reset_match_winners_request(nodes, key_unicode, password) {
+	const updates = nodes.map(node => ({id:node.ID[0],draw:node.DrawID[0],planning:node.PlanningID[0]}));
+	const request = update_request({btp_match_ids:updates,setup:{}},key_unicode,password,null,null,null,{write_match_check_in_status:false});
+	for (const [index,row] of request.Update.Tournament.Matches.entries()) {
+		const node = nodes[index];row.Match.Winner = 0;row.Match.ScoreStatus = 0;
+		row.Match.Status = node.Status?.[0] ?? 0;row.Match.Highlight = node.Highlight?.[0] ?? 0;
+		row.Match.MatchOrder = node.DisplayOrder?.[0] ?? 0;
+		if (node.CourtID?.[0] != null) row.Match.CourtID = node.CourtID[0];
+	}
+	return request;
+}
+
 function update_courts_request(courts, key_unicode, password){
 	assert(key_unicode);
 	const courts_list = [];
@@ -531,6 +543,7 @@ function decode(buf, callback, context = {}) {
 }
 
 module.exports = {
+	reset_match_winners_request,
 	decode,
 	decode_string,
 	encode,

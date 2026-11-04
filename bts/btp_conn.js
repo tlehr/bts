@@ -636,6 +636,14 @@ class BTPConn {
 		}
 	}
 
+	async reset_match_results(matches) {
+		try {return await require('./btp_match_results_reset').reset(this,matches);}
+		finally {
+			this.court_assignments_revision = (this.court_assignments_revision || 0) + 1;
+			this.last_applied_fetch_response_hash = null;
+		}
+	}
+
 	update_score(match) {
 		if (this.readonly) {
 			return;

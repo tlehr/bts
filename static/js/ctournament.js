@@ -1,4 +1,4 @@
-/* global btsSpeechReadiness, cleitstand, btsAdminUpdates, btsScoresheetRemarks, btsAudioDevices, btsDurationInput, btsScoringSettings, btsLocationSettings, btsSpeechWorkspace, btsSpeechInfrastructure */
+/* global btsSpeechReadiness, cleitstand, btsAdminUpdates, btsScoresheetRemarks, btsAudioDevices, btsDurationInput, btsScoringSettings, btsDisplaySettings, btsLogoPicker, btsAdvertisementSettings, btsTickerSettings, btsMaintenanceSettings, btsLocationSettings, btsSpeechWorkspace, btsSpeechInfrastructure */
 'use strict';
 /* global btsSpeechService, btsSpeechHealth, btsServiceStatus, cancelAnnouncementPlayback, createSpeechQueue, createFreeAnnouncementForm, btsDialogActions, subscribeEmergencyAudio, btsCertificates, btsCertificateSelection, btsSettingsWorkspace */
 
@@ -61,7 +61,7 @@ var ctournament = (function() {
 		}
 
 		crouting.register(rex, function (m) {
-			if (['certificates', 'edit', 'speech'].includes(current_view) && curt?.key === m[1]) func(m);else switch_tournament(m[1], () => func(m));
+			if (['certificates', 'edit', 'speech', 'devices'].includes(current_view) && curt?.key === m[1]) func(m);else switch_tournament(m[1], () => func(m));
 		}, handler);
 	}
 
@@ -698,23 +698,24 @@ var ctournament = (function() {
 	}
 
 	function add_advertisement(c) {
-		curt.advertisements.push(c.val.advertisement);
-		update_advertisements(c)
+		const advertisement = c.val.advertisement;
+		if (!advertisement) return;
+		if (!curt.advertisements) curt.advertisements = [];
+		const current = curt.advertisements.find(item => advertisement._id ? item._id === advertisement._id : item.id === advertisement.id);
+		if (current) Object.assign(current, advertisement);else curt.advertisements.push(advertisement);
+		update_advertisements();
 	}
 
 	function remove_advertisement(c) {
-		const changed_t = utils.find(curt.advertisements, m => m._id === c.val.advertisement_id);
+		const changed_t = utils.find(curt.advertisements || [], m => m._id === c.val.advertisement_id);
 		if (changed_t) {
 			curt.advertisements.splice(curt.advertisements.indexOf(changed_t), 1);
 		}
-		update_advertisements(c)
+		update_advertisements();
 	}
 
-	function update_advertisements(c) {
-		uiu.qsEach('.advertisements_div', (div_el) => {
-			div_el.innerHTML = "";
-			render_advertisements(div_el);
-		});
+	function update_advertisements() {
+		document.querySelector('.settings-advertisements')?.btsAdvertisementSettings?.update();
 	}
 
 	function update_current_match(c) {
@@ -732,13 +733,19 @@ var ctournament = (function() {
 	}
 
 	function _update_all_ui_elements_edit() {
-		update_general_displaysettings(uiu.qs('.general_displaysettings'));
+		update_general_displaysettings();
+		update_advertisements();
+		document.querySelector('.settings-ticker')?.btsTickerSettings?.update();
+		document.querySelector('.settings-maintenance')?.btsMaintenanceSettings?.update();
 	}
 
 	function refresh_current_view({matchListsOnly = false} = {}) {
 		switch (current_view) {
 			case 'edit':
 				ui_edit();
+				break;
+			case 'devices':
+				ui_devices();
 				break;
 			case 'show':
 				// A reset changes the lists, not the surrounding controls or layout.
@@ -868,13 +875,9 @@ var ctournament = (function() {
 		_set_disabled_by_name('btp_timezone', !btp_enabled);
 		_set_disabled_by_name('btp_autofetch_timeout_intervall', !btp_enabled || !curt.btp_autofetch_enabled);
 		update_btp_settings_status();
-		_set_disabled_by_name('player_pause_reset', !btp_enabled || !!curt.btp_readonly);
-		const court_reset_pending = document.querySelector('[name="court_assignments_reset"]')?.dataset.pending === 'true';
-		_set_disabled_by_name('court_assignments_reset', !btp_enabled || !!curt.btp_readonly || court_reset_pending);
+		document.querySelector('.settings-maintenance')?.btsMaintenanceSettings?.update();
 
-		const ticker_enabled = !!curt.ticker_enabled;
-		_set_disabled_by_name('ticker_url', !ticker_enabled);
-		_set_disabled_by_name('ticker_password', !ticker_enabled);
+		document.querySelector('.settings-ticker')?.btsTickerSettings?.update();
 		refresh_location_announcement_previews();
 
 		update_settings_automation_info();
@@ -1959,7 +1962,7 @@ var ctournament = (function() {
 			owner, tournament, getTournament: () => curt, request: send_with_live_status,
 			exportFile: (format, options) => ccsvexport.export_certificate_file(format, options),
 			onDispose: () => {
-				if (certificatePage === view) {certificatePage = null;if (!document.querySelector('.page-leitstand,.page-certificates,.page-settings,.page-speech')) cleitstand.unmount();}
+				if (certificatePage === view) {certificatePage = null;if (!document.querySelector('.page-leitstand,.page-certificates,.page-settings,.page-speech,.page-devices')) cleitstand.unmount();}
 			},
 		});
 		for (const link of document.querySelectorAll('.toprow > .toprow_link.vlink')) {
@@ -2708,7 +2711,7 @@ var ctournament = (function() {
 			owner, tournamentKey:curt.key, service:btsSpeechService, request:speech_admin_request, section:selected,
 			onSelect:id => crouting.navigate_to('t/' + encodeURIComponent(curt.key) + '/speech-planning/' + (id === 'preparation' ? '' : id)),
 			onDispose:() => {
-				if (speechPage === view) {speechPage = null;if (!document.querySelector('.page-leitstand,.page-certificates,.page-settings,.page-speech')) cleitstand.unmount();}
+				if (speechPage === view) {speechPage = null;if (!document.querySelector('.page-leitstand,.page-certificates,.page-settings,.page-speech,.page-devices')) cleitstand.unmount();}
 			},
 		});
 		live_settings_status_el = view.status;set_live_settings_status(live_settings_pending_requests ? 'saving' : 'saved');
@@ -2725,6 +2728,35 @@ var ctournament = (function() {
 	_route_single(/^t\/([a-z0-9]+)\/speech-planning(?:\/([a-z-]+))?\/?$/, ui_speech_system, event => {
 		speechChanges(event);speechPage?.refreshSettings();
 	});
+
+	function ui_devices() {
+		if (current_view === 'devices' && document.querySelector('.page-devices')) return;
+		settingsPage?.dispose();cleitstand.unmount();current_view = 'devices';
+		render_show_toprow();
+		const main = document.querySelector('.main');main.replaceChildren();main.className = 'main';
+		cleitstand.navigation(document.querySelector('.toprow'), curt, '/devices', {syncBtp:ui_btp_fetch});
+		const page = uiu.el(main, 'section', {class:'leitstand page-devices', 'aria-labelledby':'leitstand-page-title'});
+		const workspace = uiu.el(page, 'div', 'devices-workspace');
+		const card = uiu.el(workspace, 'section', 'devices-card');
+		uiu.el(card, 'h2', {}, 'Oberflächen & Profile');
+		uiu.el(card, 'p', 'devices-hint', 'Hier weist du einem Gerät sein Profil und seine Felder zu. Die Profile bearbeitest du in den Einstellungen.');
+		render_displaysettings(uiu.el(card, 'div', 'devices-table-wrap'));
+		const links = uiu.el(workspace, 'section', 'devices-card');
+		uiu.el(links, 'h2', {}, 'Weitere Geräte & Logs');
+		uiu.el(links, 'p', 'devices-hint', 'Verbundene Browserseiten, zentrale Protokolle und kontrolliertes Neuladen. Die Diagnose öffnet sich in einem eigenen Tab.');
+		const actions = uiu.el(links, 'div', 'devices-links');
+		for (const [tab, label] of [['devices', 'Geräte & Browserseiten öffnen'], ['logs', 'Logs öffnen']]) {
+			uiu.el(actions, 'a', {class:'btn', href:'/admin/diagnostics/?tab=' + tab, target:'_blank', rel:'noopener'}, label);
+		}
+		const settings = uiu.el(actions, 'a', {class:'btn', href:'/admin/t/' + encodeURIComponent(curt.key) + '/edit/devices'}, 'Profile bearbeiten');
+		settings.addEventListener('click', event => {
+			if (event.button || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
+			event.preventDefault();crouting.navigate_to('t/' + encodeURIComponent(curt.key) + '/edit/devices');
+		});
+	}
+	_route_single(/^t\/([a-z0-9]+)\/devices\/?$/, ui_devices, change.default_handler(() => {}, {
+		btp_status:btp_status_changed, ticker_status:ticker_status_changed,
+	}));
 
 	function render_settings(target) {
 		const settings_div = uiu.el(target, 'div', 'metadata_right_container_2');
@@ -2778,6 +2810,7 @@ var ctournament = (function() {
 		update_btp_next_fetch_countdown();
 		update_btp_settings_status();
 		if (completed && !c.snapshot) service_status_monitor().refresh(true);
+		document.querySelector('.settings-maintenance')?.btsMaintenanceSettings?.update();
 	}
 	function update_btp_settings_status() {
 		if (current_view !== 'edit' || !curt) return;
@@ -2816,6 +2849,7 @@ var ctournament = (function() {
 	function ticker_status_changed(c) {
 		if (!c.snapshot) service_status_monitor().changed('ticker');
 		set_service_status('ticker_status', c);
+		document.querySelector('.settings-ticker')?.btsTickerSettings?.update();
 	}
 
 	function bts_status_changed(c) {
@@ -2855,8 +2889,8 @@ var ctournament = (function() {
 			}, (err) => {
 				if (err) {
 					return cerror.net(err);
-				}`
-				input.closest('form').reset();`
+				}
+				input.value = '';
 			});
 		};
 		reader.onerror = (e) => {
@@ -3454,6 +3488,8 @@ var ctournament = (function() {
 		{
 			const upcoming_div = createSection('upcoming');
 			uiu.el(upcoming_div, 'h2', 'edit', ci18n('tournament:edit:upcoming_matches_settings'));
+			uiu.el(upcoming_div, 'p', {}, 'Diese Einstellungen gelten für die bisherigen Web-Spielübersichten und die Selbstanmeldung.');
+			uiu.el(upcoming_div, 'a', {'data-settings-target':'devices', href:'/admin/t/' + encodeURIComponent(curt.key) + '/edit/devices'}, 'Zu Oberflächen & Profile →');
 
 			const upcoming_fieldset = uiu.el(upcoming_div, 'fieldset');
 			input.upcoming_animation_speed = create_numeric_input(curt, upcoming_fieldset, 'upcoming_matches_animation_speed', 0, 10, 2, 1);
@@ -3466,44 +3502,48 @@ var ctournament = (function() {
 
 		// devices-div##################################################################################
 		{
-			const devices_div = createSection('devices');
-			uiu.el(devices_div, 'h2', 'edit', ci18n('tournament:edit:devices'));
-
-			render_logo_preview(devices_div);
-
-			const default_display_fieldset = uiu.el(devices_div, 'fieldset');
-			// Default display
-			const displaysettings_style_label = uiu.el(default_display_fieldset, 'label');
-			uiu.el(displaysettings_style_label, 'span', {}, ci18n('tournament:edit:displaysettings_general'));
-
-				input.displaysettings_general = createGeneralDisplaySettingsSelectBox(displaysettings_style_label, curt.displaysettings_general ? curt.displaysettings_general : "default", {
-					filterFn: (displaysetting) => displaysetting.devicemode === 'display',
-				});
-				bind_live_prop(input.displaysettings_general, 'displaysettings_general');
-
-			const tablet_displaysettings_style_label = uiu.el(default_display_fieldset, 'label');
-			uiu.el(tablet_displaysettings_style_label, 'span', {}, ci18n('tournament:edit:displaysettings_general_tablet'));
-
-			input.displaysettings_general_tablet = createGeneralDisplaySettingsSelectBox(tablet_displaysettings_style_label, curt.displaysettings_general_tablet || "", {
-					fieldName: 'displaysettings_general_tablet',
-					filterFn: (displaysetting) => displaysetting.devicemode === 'umpire',
-				});
-				bind_live_prop(input.displaysettings_general_tablet, 'displaysettings_general_tablet');
-
-			input.bupws_v2_enabled = create_checkbox(curt, default_display_fieldset, 'bupws_v2_enabled');
-			input.bup_v2_admin_wait_for_score_updates = create_checkbox(curt, default_display_fieldset, 'bup_v2_admin_wait_for_score_updates');
-
-			const general_displaysettings_div = uiu.el(devices_div, 'div', 'general_displaysettings');
-			render_general_displaysettings(general_displaysettings_div);
-			render_displaysettings(devices_div);
+			const profiles = createSection('devices', 'settings-displays');
+			render_general_displaysettings(profiles);
 		}
 
 		// debug-div##################################################################################
 		{
 			const debug = createSection('debug', 'settings-debug');
+			const create_debug_switch = (parent, field, options = {}) => {
+				input[field] = btsSettingsWorkspace.field(parent, {
+					label: ci18n('tournament:edit:' + field), description: ci18n('tournament:edit:' + field + ':hint'),
+					attributes: {type: 'checkbox', role: 'switch', name: field},
+				});
+				input[field].checked = !!curt[field];
+				bind_live_prop(input[field], field, options);
+			};
+			const logging = btsSettingsWorkspace.card(debug, {
+				title: 'Protokollierung & Messungen', description: ci18n('tournament:edit:debug_output_hint'),
+			});
+			for (const field of ['bts_debug_output_enabled', 'bts_server_diagnostics_enabled',
+				'bts_client_performance_debug_enabled', 'bts_score_press_timing_enabled']) {
+				create_debug_switch(logging, field);
+			}
+			uiu.el(logging, 'a', {class: 'settings-related-link', href: '/admin/diagnostics/', target: '_blank', rel: 'noopener'},
+				'Logs und verbundene Seiten öffnen →');
+			const automation_debug = btsSettingsWorkspace.card(debug, {
+				title: 'Automatik prüfen', description: 'Auswahl und Aufruf von Spielen in der Konsole und in der Turnierleitung nachvollziehen.',
+			});
+			create_debug_switch(automation_debug, 'bts_auto_call_trace_enabled');
+			for (const field of ['preparation_call_debug_output_enabled', 'preparation_call_debug_icons_enabled']) {
+				create_debug_switch(automation_debug, field, {
+					on_success: () => uiu.qsEach('.unassigned_container', element => cmatch.render_unassigned(element)),
+				});
+			}
+			const display_technical = btsSettingsWorkspace.card(debug, {
+				title:'Anzeigen und Tablet-Verbindung', description:'Rückmeldungen verbundener Geräte in der Turnierleitung.',
+			});
+			create_debug_switch(display_technical, 'bup_v2_admin_wait_for_score_updates');
 			const clock_fieldset = btsSettingsWorkspace.card(debug, {
 				title: ci18n('settings:debug:clock'), description: ci18n('settings:debug:clock:hint'),
+				badge: 'Serverweit',
 			});
+			uiu.el(clock_fieldset, 'p', 'settings-clock-hint', 'Diese Zeitbasis gilt für alle Turniere auf diesem BTS-Server.');
 			const clock_mode_select = btsSettingsWorkspace.field(clock_fieldset, {
 				label: 'Server-Zeitbasis', description: ci18n('settings:debug:clock:mode:hint'), tag: 'select', attributes: {name: 'test_clock_mode'},
 			});
@@ -3583,45 +3623,12 @@ var ctournament = (function() {
 				send_test_clock_update({ mode: 'real' }, (err) => err && cerror.net(err));
 			});
 
-			const debug_div = uiu.el(debug, 'div', 'settings');
-			uiu.el(debug_div, 'h2', 'edit', ci18n('tournament:edit:debug_output'));
-			const debug_fieldset = uiu.el(debug_div, 'fieldset');
-			uiu.el(debug_fieldset, 'div', 'hint', ci18n('tournament:edit:debug_output_hint'));
-			input.bts_debug_output_enabled = create_checkbox(curt, debug_fieldset, 'bts_debug_output_enabled');
-			uiu.el(debug_fieldset, 'div', 'hint', ci18n('tournament:edit:bts_debug_output_enabled:hint'));
-			input.bts_server_diagnostics_enabled = create_checkbox(curt, debug_fieldset, 'bts_server_diagnostics_enabled');
-			uiu.el(debug_fieldset, 'div', 'hint', ci18n('tournament:edit:bts_server_diagnostics_enabled:hint'));
-			input.bts_client_performance_debug_enabled = create_checkbox(curt, debug_fieldset, 'bts_client_performance_debug_enabled');
-			uiu.el(debug_fieldset, 'div', 'hint', ci18n('tournament:edit:bts_client_performance_debug_enabled:hint'));
-			input.bts_auto_call_trace_enabled = create_checkbox(curt, debug_fieldset, 'bts_auto_call_trace_enabled');
-			uiu.el(debug_fieldset, 'div', 'hint', ci18n('tournament:edit:bts_auto_call_trace_enabled:hint'));
-			input.bts_score_press_timing_enabled = create_checkbox(curt, debug_fieldset, 'bts_score_press_timing_enabled');
-			uiu.el(debug_fieldset, 'div', 'hint', ci18n('tournament:edit:bts_score_press_timing_enabled:hint'));
-			function create_preparation_debug_checkbox(field) {
-				const label = uiu.el(debug_fieldset, 'label');
-				input[field] = uiu.el(label, 'input', {
-					type: 'checkbox',
-					name: field,
-				});
-				input[field].checked = !!curt[field];
-				uiu.el(label, 'span', {}, ci18n('tournament:edit:' + field));
-				bind_live_prop(input[field], field, {
-					on_success: function() {
-						uiu.qsEach('.unassigned_container', function(unassigned_container) {
-							cmatch.render_unassigned(unassigned_container);
-						});
-					},
-				});
-				uiu.el(debug_fieldset, 'div', 'hint', ci18n('tournament:edit:' + field + ':hint'));
-			}
-			create_preparation_debug_checkbox('preparation_call_debug_output_enabled');
-			create_preparation_debug_checkbox('preparation_call_debug_icons_enabled');
 		}
 
 
 		// advertisement-div##################################################################################
 		{
-			const advertisement_div = createSection('advertisements');
+			const advertisement_div = createSection('advertisements', 'settings-advertisements');
 			render_advertisements(advertisement_div);
 		}
 
@@ -3635,141 +3642,25 @@ var ctournament = (function() {
 
 		// ticker-connection-div##################################################################################
 		{
-			const ticker_div = createSection('ticker');
-			uiu.el(ticker_div, 'h2', 'edit', ci18n('tournament:edit:ticker_connection'));
-
-			const ticker_fieldset = uiu.el(ticker_div, 'fieldset');
-			const ticker_enabled_label = uiu.el(ticker_fieldset, 'label');
-			const te_attrs = {
-				type: 'checkbox',
-				name: 'ticker_enabled',
-			};
-			if (curt.ticker_enabled) {
-				te_attrs.checked = 'checked';
-			}
-				input.ticker_enabled = uiu.el(ticker_enabled_label, 'input', te_attrs);
-				uiu.el(ticker_enabled_label, 'span', {}, ci18n('tournament:edit:ticker_enabled'));
-				bind_live_prop(input.ticker_enabled, 'ticker_enabled');
-
-			const ticker_url_label = uiu.el(ticker_fieldset, 'label');
-			uiu.el(ticker_url_label, 'span', {}, ci18n('tournament:edit:ticker_url'));
-				input.ticker_url = uiu.el(ticker_url_label, 'input', {
-				type: 'text',
-				name: 'ticker_url',
-					value: (curt.ticker_url || ''),
-				});
-				bind_live_prop(input.ticker_url, 'ticker_url', { event_name: 'blur' });
-
-			const ticker_password_label = uiu.el(ticker_fieldset, 'label');
-			uiu.el(ticker_password_label, 'span', {}, ci18n('tournament:edit:ticker_password'));
-				input.ticker_password = uiu.el(ticker_password_label, 'input', {
-				type: 'text',
-				name: 'ticker_password',
-					value: (curt.ticker_password || ''),
-				});
-				bind_live_prop(input.ticker_password, 'ticker_password', { event_name: 'blur' });
+			const ticker = createSection('ticker', 'settings-ticker');
+			ticker.btsTickerSettings = btsTickerSettings.mount(ticker, {
+				tournament:() => curt, bind:bind_live_prop, send:send_with_live_status,
+				refreshStatus:() => service_status_monitor().refresh(true),
+			});
 		}
 
-			// save-div##################################################################################
-			{
-				const save_div = createSection('maintenance');
-				uiu.el(save_div, 'h2', 'edit', ci18n('tournament:edit'));
-				live_settings_status_el = uiu.el(save_div, 'div', {
-					class: 'live_settings_status live_settings_status_' + (live_settings_pending_requests ? 'saving' : 'saved'),
-				}, ci18n('tournament:edit:live_status:' + (live_settings_pending_requests ? 'saving' : 'saved')));
-
-				const back_btn = uiu.el(save_div, 'button', {
-					role: 'button',
-					class: 'settings-back-button',
-				}, ci18n('Back'));
-				back_btn.addEventListener('click', () => {
-					crouting.navigate_to('t/' + encodeURIComponent(curt.key) + '/');
-				});
-
-				const reset_hint = uiu.el(save_div, 'p', {
-					class: 'tournament_reset_hint',
-				}, ci18n('tournament:edit:reset:hint'));
-				reset_hint.style.maxWidth = '60em';
-
-				const reset_btn = uiu.el(save_div, 'button', {
-					type: 'button',
-					class: 'tournament_reset_button',
-				}, ci18n('tournament:edit:reset'));
-				reset_btn.addEventListener('click', () => {
-					const expected = curt.key || 'default';
-					if (!window.confirm(ci18n('tournament:edit:reset:confirm'))) {
-						return;
-					}
-					const entered = window.prompt(ci18n('tournament:edit:reset:prompt').replace('{key}', expected), '');
-					if (entered !== expected) {
-						if (entered != null) {
-							window.alert(ci18n('tournament:edit:reset:cancelled'));
-						}
-						return;
-					}
-					send_with_live_status({
-						type: 'tournament_reset',
-						tournament_key: curt.key,
-					}, (err) => {
-						if (err) {
-							return cerror.net(err);
-						}
-						refresh_current_view();
-					});
-				});
-
-				uiu.el(save_div, 'p', {
-					class: 'court_assignments_reset_hint',
-				}, ci18n('tournament:edit:court_assignments_reset:hint'));
-				const court_reset_btn = uiu.el(save_div, 'button', {
-					type: 'button',
-					name: 'court_assignments_reset',
-					class: 'court_assignments_reset_button',
-				}, ci18n('tournament:edit:court_assignments_reset'));
-				const court_reset_status = uiu.el(save_div, 'p', { role: 'status' });
-				court_reset_btn.addEventListener('click', () => {
-					if (court_reset_btn.disabled || !window.confirm(ci18n('tournament:edit:court_assignments_reset:confirm'))) return;
-					court_reset_btn.disabled = true;
-					court_reset_btn.dataset.pending = 'true';
-					uiu.text(court_reset_status, '');
-					send_with_live_status({
-						type: 'court_assignments_reset',
-						tournament_key: curt.key,
-					}, (err, result) => {
-						delete court_reset_btn.dataset.pending;
-						court_reset_btn.disabled = !curt.btp_enabled || !!curt.btp_readonly;
-						if (err) return cerror.net(err);
-						uiu.text(court_reset_status, ci18n('tournament:edit:court_assignments_reset:done', {
-							count: result.changed_matches, btp_count: result.btp_changed_matches, skipped: result.skipped_matches,
-						}));
-					});
-				});
-
-				const pause_reset_hint = uiu.el(save_div, 'p', {
-					class: 'player_pause_reset_hint',
-				}, ci18n('tournament:edit:player_pause_reset:hint'));
-				pause_reset_hint.style.maxWidth = '60em';
-
-				const pause_reset_btn = uiu.el(save_div, 'button', {
-					type: 'button',
-					name: 'player_pause_reset',
-					class: 'player_pause_reset_button',
-				}, ci18n('tournament:edit:player_pause_reset'));
-				pause_reset_btn.addEventListener('click', () => {
-					if (!window.confirm(ci18n('tournament:edit:player_pause_reset:confirm'))) {
-						return;
-					}
-					send_with_live_status({
-						type: 'player_pause_reset',
-						tournament_key: curt.key,
-					}, (err) => {
-						if (err) {
-							return cerror.net(err);
-						}
-						refresh_current_view();
-					});
-				});
-			}
+		// maintenance-div##################################################################################
+		{
+			const maintenance = createSection('maintenance', 'settings-maintenance');
+			maintenance.btsMaintenanceSettings = btsMaintenanceSettings.mount(maintenance, {
+				tournament:() => curt, send:send_with_live_status,
+			});
+			live_settings_status_el = uiu.el(maintenance, 'div', {
+				class:'live_settings_status live_settings_status_' + (live_settings_pending_requests ? 'saving' : 'saved'),
+			}, ci18n('tournament:edit:live_status:' + (live_settings_pending_requests ? 'saving' : 'saved')));
+			const back = uiu.el(maintenance, 'button', {type:'button',class:'settings-back-button'}, ci18n('Back'));
+			back.addEventListener('click', () => crouting.navigate_to('t/' + encodeURIComponent(curt.key) + '/'));
+		}
 			update_edit_dependencies();
 			const view = settingsPage = btsSettingsWorkspace.create({
 				owner: main, content: form, tournamentKey: curt.key, section: selectedSection,
@@ -3779,7 +3670,11 @@ var ctournament = (function() {
 					dispose_audio_devices?.();
 					speech_infrastructure?.dispose();
 					form.querySelector('.location_settings_section')?.btsLocationSettings?.destroy();
-					if (settingsPage === view) {settingsPage = null;if (!document.querySelector('.page-leitstand,.page-certificates,.page-settings,.page-speech')) cleitstand.unmount();}
+					form.querySelector('.settings-displays')?.btsDisplaySettings?.destroy();
+					form.querySelector('.settings-advertisements')?.btsAdvertisementSettings?.destroy();
+					form.querySelector('.settings-ticker')?.btsTickerSettings?.destroy();
+					form.querySelector('.settings-maintenance')?.btsMaintenanceSettings?.destroy();
+					if (settingsPage === view) {settingsPage = null;if (!document.querySelector('.page-leitstand,.page-certificates,.page-settings,.page-speech,.page-devices')) cleitstand.unmount();}
 				},
 			});
 		}
@@ -3789,6 +3684,8 @@ var ctournament = (function() {
 		} else ui_edit(m[2]);
 	}, change.default_handler(_update_all_ui_elements_edit, {
 		update_general_displaysettings: update_general_displaysettings,
+		advertisement_add: add_advertisement,
+		advertisement_removed: remove_advertisement,
 		update_player_status: update_player_status,
 		btp_status: btp_status_changed,
 		ticker_status: ticker_status_changed,
@@ -4204,65 +4101,45 @@ var ctournament = (function() {
 	}
 
 	function render_advertisements(main) {
-		uiu.el(main, 'h2', 'edit', ci18n('tournament:edit:advertisements'));
-
-		const display_table = uiu.el(main, 'table');
-		const display_tbody = uiu.el(display_table, 'tbody');
-		const tr = uiu.el(display_tbody, 'tr');
-		uiu.el(tr, 'th', {}, ci18n('tournament:edit:advertisements:id'));
-		uiu.el(tr, 'th', {}, ci18n('tournament:edit:advertisements:url'));
-		uiu.el(tr, 'th', {}, ci18n('tournament:edit:advertisements:type'));
-		uiu.el(tr, 'th', {}, ci18n('tournament:edit:advertisements:disabled'));
-		uiu.el(tr, 'th', {}, '');
-		const tr_input = uiu.el(display_tbody, 'tr');
-		uiu.el(tr_input, 'td', {}, '');
-		create_undecorated_input("text", uiu.el(tr_input, 'td', {}), 'advertisement_url');
-		create_undecorated_input("text", uiu.el(tr_input, 'td', {}), 'advertisement_type');
-		uiu.el(tr_input, 'td', {}, '');
-		const actions_td = uiu.el(tr_input, 'td', {});
-		const add_btn = uiu.el(actions_td, 'button', {}, ci18n('tournament:edit:add'));
-		add_btn.addEventListener('click', function (e) {
-
-			var new_advertisement = {}
-			new_advertisement.id = generateGUID();
-			new_advertisement.url = document.getElementById('advertisement_url').value;
-			new_advertisement.type = document.getElementById('advertisement_type').value;
-			new_advertisement.disabled = false;
-				send_with_live_status({
-					type: 'advertisement_add',
-					tournament_key: curt.key,
-					advertisement: new_advertisement,
-			}, err => {
-				if (err) {
-					return cerror.net(err);
+		if (!main.btsAdvertisementSettings) main.btsAdvertisementSettings = btsAdvertisementSettings.mount(main, {
+			tournament:() => curt, send:send_with_live_status, createId:generateGUID,
+			loadLibrary:(key, callback) => {
+				const abort = new AbortController();
+				fetch('/h/' + encodeURIComponent(key) + '/advertisements/library',{signal:abort.signal}).then(async response => {
+					const data = await response.json();if (!response.ok) throw new Error(data.message);return data;
+				}).then(data => callback(null,data), error => {if (error.name !== 'AbortError') callback(error);});
+				return () => abort.abort();
+			},
+			selectAsset:(key, id, callback) => {
+				begin_live_settings_request();
+				fetch('/h/' + encodeURIComponent(key) + '/advertisements/library/select',{
+					method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({asset_id:id}),
+				}).then(async response => {
+					const data = await response.json();if (!response.ok) throw new Error(data.message);return data;
+				}).then(data => {end_live_settings_request();callback(null,data);}, error => {end_live_settings_request(error);callback(error);});
+			},
+			upload:(file, onProgress, callback) => {
+				begin_live_settings_request();
+				const xhr = new XMLHttpRequest();let finished = false;
+				function finish(error, response) {
+					if (finished) return;finished = true;end_live_settings_request(error?.cancelled ? null : error);callback(error,response);
 				}
-			});
+				xhr.open('POST', '/h/' + encodeURIComponent(curt.key) + '/advertisements/upload');
+				xhr.responseType = 'json';xhr.setRequestHeader('Content-Type','application/octet-stream');xhr.setRequestHeader('X-File-Name',encodeURIComponent(file.name));
+				xhr.upload.onprogress = event => {if (event.lengthComputable) onProgress(event.loaded/event.total);};
+				xhr.onload = () => {
+					if (xhr.status >= 200 && xhr.status < 300 && xhr.response?.advertisement) finish(null,xhr.response);
+					else finish({message:xhr.response?.message || (xhr.status === 404 ? 'Die Upload-Schnittstelle wurde nicht gefunden. Bitte BTS neu starten und die Seite neu laden.' : 'Der Server konnte den Upload nicht bestätigen. Bitte die Fehlerdetails beachten.'),
+						status:xhr.status,code:xhr.response?.code,stage:xhr.response?.stage,details:xhr.response?.details});
+				};
+				xhr.onerror = () => finish({message:'Die Verbindung wurde unterbrochen. Bitte erneut hochladen.'});
+				xhr.onabort = () => finish({cancelled:true});
+				xhr.send(file);return () => xhr.abort();
+			},
+			onAdded:advertisement => add_advertisement({val:{advertisement}}),
+			onRemoved:advertisement_id => remove_advertisement({val:{advertisement_id}}),
 		});
-		for (const nv of curt.advertisements) {
-			const tr = uiu.el(display_tbody, 'tr');
-			uiu.el(tr, 'td', {}, nv.id);
-			uiu.el(tr, 'td', {}, nv.url);
-			uiu.el(tr, 'td', {}, nv.type);
-			uiu.el(tr, 'td', {}, nv.disabled);
-			const actions_td = uiu.el(tr, 'td', {});
-			const delete_btn = uiu.el(actions_td, 'button', {
-				'data-advertisement-id': nv._id,
-			}, ci18n('tournament:edit:delete'));
-
-			delete_btn.addEventListener('click', function (e) {
-				const del_btn = e.target;
-				const advertisement_id = del_btn.getAttribute('data-advertisement-id');
-					send_with_live_status({
-						type: 'advertisement_remove',
-						tournament_key: curt.key,
-						advertisement_id: advertisement_id,
-				}, err => {
-					if (err) {
-						return cerror.net(err);
-					}
-				});
-			});
-		}
+		main.btsAdvertisementSettings.update();
 	}
 	function generateGUID() {
 		return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (char) {
@@ -4302,182 +4179,84 @@ var ctournament = (function() {
 	}
 
 	function render_logo_preview(main) {
-		uiu.el(main, 'h3', 'edit', ci18n('tournament:edit:logo'));
-		const logo_preview_container = uiu.el(main, 'div', {
-			style: (
-				'position:relative;text-align:center;' +
-				'height: 432px; width: 768px; font-size: 70px;' +
-				'background:' + (curt.logo_background_color || '#000000') + ';' +
-				'color:' + (curt.logo_foreground_color || '#aaaaaa') + ';'
-			),
-			name: "logo_preview",
-		});
-		if (curt.logo_id) {
-			uiu.el(logo_preview_container, 'img', {
-				style: 'height: 320px;',
-				src: '/h/' + encodeURIComponent(curt.key) + '/logo/' + curt.logo_id,
-				name: 'logo_preview_img'
-			});
+		main.classList.add('settings-branding');
+		const preview = uiu.el(main, 'div', {class:'settings-logo-preview', name:'logo_preview', 'aria-label':'Vorschau des Turnierlogos'});
+		preview.style.background = curt.logo_background_color || '#000000';preview.style.color = curt.logo_foreground_color || '#aaaaaa';
+		const image = uiu.el(preview, 'img', {name:'logo_preview_img', alt:curt.name || curt.key});
+		if (curt.logo_id) image.src = '/h/' + encodeURIComponent(curt.key) + '/logo/' + encodeURIComponent(curt.logo_id);else image.hidden = true;
+		uiu.el(preview, 'span', {}, 'Feld 1');
+		const form = uiu.el(main, 'form', 'logo_form');
+		const file = btsSettingsWorkspace.field(form, {label:'Turnierlogo auswählen', attributes:{id:'logo_upload_input', type:'file', accept:'image/*'}});
+		file.addEventListener('change', _upload_logo);
+		const choose = uiu.el(file.parentElement, 'button', {type:'button', class:'btn settings-logo-library-button'}, 'Vorhandenes Logo auswählen');
+		choose.addEventListener('click', () => btsLogoPicker.open({
+			owner:form, tournament:() => curt,
+			load:(key, callback) => send({type:'tournament_logo_list', tournament_key:key}, callback),
+			select:(key, logo_id, callback) => send_with_live_status({type:'tournament_select_logo', tournament_key:key, logo_id}, (error, props) => {
+				if (!error && curt.key === key) {Object.assign(curt, props);update_logo();}
+				callback(error);
+			}),
+		}));
+		uiu.el(form, 'p', {id:'upload_filename', class:'settings-field-description'}, curt.logo_name || 'Noch keine Datei ausgewählt');
+		for (const [field, label, fallback] of [['logo_background_color', 'Hintergrundfarbe', '#000000'], ['logo_foreground_color', 'Textfarbe', '#aaaaaa']]) {
+			const input = btsSettingsWorkspace.field(form, {label, attributes:{type:'color', name:field, value:curt[field] || fallback}});
+			input.addEventListener('change', () => send_with_live_status({type:'tournament_edit_logo', key:curt.key, props:{[field]:input.value}}, err => {
+				if (err) return cerror.net(err);
+				curt[field] = input.value;update_logo();
+			}));
 		}
-		uiu.el(logo_preview_container, 'div', {}, 'Court 42');
-
-		const logo_form = uiu.el(main, 'form', 'logo_form');
-		const logo_button_id = 'logo_upload_input';
-
-		const custom_label = uiu.el(logo_form, 'label', {
-			for: logo_button_id,
-			style: (
-				'display:inline-block;padding:3px 8px;cursor:pointer; border:1px solid;' +
-				'background:#eeeeee;color:black;border-radius:4px;margin:10px;'
-			),
-		}, 'Logo auswählen');
-
-		const filename_display = uiu.el(logo_form, 'span', {
-			id: 'upload_filename',
-			style: 'font-style: italic; color: #555;',
-		}, curt.logo_name ? curt.logo_name : 'Noch keine Datei ausgewählt');
-
-		const logo_button = uiu.el(logo_form, 'input', {
-			id: logo_button_id,
-			type: 'file',
-			accept: 'image/*',
-			style: 'display:none;',
-		});
-		logo_button.addEventListener('change', (e) => {
-			_upload_logo(e);
-		});
-		const logo_colors_container = uiu.el(logo_form, 'div', { style: 'display: block' });
-		const bg_col_label = uiu.el(logo_colors_container, 'label', {}, ci18n('tournament:edit:logo:background'));
-		const logo_background_color_input = uiu.el(bg_col_label, 'input', {
-			type: 'color',
-			name: 'logo_background_color',
-			value: curt.logo_background_color || '#000000',
-		});
-		logo_background_color_input.addEventListener('input', (e) => {
-			send_with_live_status({
-				type: 'tournament_edit_logo',
-				key: curt.key,
-				props: {
-					logo_background_color: e.target.value,
-				},
-			}, function (err) {
-				if (err) {
-					return cerror.net(err);
-				}
-			});
-		});
-		const fg_col_label = uiu.el(logo_colors_container, 'label', {}, ci18n('tournament:edit:logo:foreground'));
-		const fg_col_input = uiu.el(fg_col_label, 'input', {
-			type: 'color',
-			name: 'logo_foreground_color',
-			value: curt.logo_foreground_color || '#aaaaaa',
-		});
-		fg_col_input.addEventListener('input', (e) => {
-			send_with_live_status({
-				type: 'tournament_edit_logo',
-				key: curt.key,
-				props: {
-					logo_foreground_color: e.target.value,
-				},
-			}, function (err) {
-				if (err) {
-					return cerror.net(err);
-				}
-			});
-		});
 	}
 
 	function update_logo() {
-		switch (get_admin_subpage()){
-			case 'edit':
-				const logo_preview_container = document.querySelector('[name="logo_preview"]');
-				logo_preview_container.style.background = curt.logo_background_color;
-				logo_preview_container.style.color = curt.logo_foreground_color;
-				let logo_background_color_input = document.querySelector('[name="logo_background_color"]');
-				logo_background_color_input.value = curt.logo_background_color;
-				let fg_col_input = document.querySelector('[name="logo_foreground_color"]');
-				fg_col_input.value = curt.logo_foreground_color;
-				const logo_preview_img = logo_preview_container.querySelector('[name="logo_preview_img"]');
-				logo_preview_img.setAttribute('src', '/h/' + encodeURIComponent(curt.key) + '/logo/' + curt.logo_id);
-				const filename_display = document.querySelector('#upload_filename');
-				filename_display.textContent = curt.logo_name ? curt.logo_name : 'Noch keine Datei ausgewählt';
-				break;
-			default:
-				break;
+		const preview = document.querySelector('[name="logo_preview"]');if (!preview) return;
+		preview.style.background = curt.logo_background_color || '#000000';preview.style.color = curt.logo_foreground_color || '#aaaaaa';
+		for (const field of ['logo_background_color', 'logo_foreground_color']) {
+			const input = document.querySelector('[name="' + field + '"]');
+			if (input && input.value !== curt[field]) input.value = curt[field] || (field === 'logo_background_color' ? '#000000' : '#aaaaaa');
 		}
-		return;
+		const image = preview.querySelector('[name="logo_preview_img"]');image.hidden = !curt.logo_id;
+		if (curt.logo_id) image.setAttribute('src', '/h/' + encodeURIComponent(curt.key) + '/logo/' + encodeURIComponent(curt.logo_id));else image.removeAttribute('src');
+		document.querySelector('#upload_filename').textContent = curt.logo_name || 'Noch keine Datei ausgewählt';
 	}
 
 	function render_general_displaysettings(main) {
-		let used_configs = new Set();
-		curt.displays.forEach((d) => {
-			used_configs.add(d.displaysetting_id);
+		if (!main.btsDisplaySettings) main.btsDisplaySettings = btsDisplaySettings.mount(main, {
+			tournament:() => curt,
+			bindDefault:(input, field) => bind_live_prop(input, field, {
+				on_before_send:() => {input.dataset.pending = 'true';input.disabled = true;},
+				on_success:() => {delete input.dataset.pending;update_general_displaysettings();},
+				on_error:() => {delete input.dataset.pending;update_general_displaysettings();},
+			}),
+			onCreate:ui_create_display_setting_from_default, onEdit:ui_edit_display_setting, onCopy:ui_copy_display_setting,
+			onDelete:(id, callback) => send_with_live_status({type:'delete_display_setting', tournament_key:curt.key, setting_id:id}, callback),
+			formatMode:format_general_displaysetting_mode,
+			renderPreview:render_profile_snapshot,
+			renderLogo:render_logo_preview,
+			navigate:path => crouting.navigate_to(path.replace(/^\/admin\//, '')),
 		});
-
-		uiu.el(main, 'h3',  'edit', ci18n('tournament:edit:general_displaysettings'));
-		const create_actions = uiu.el(main, 'div', { style: 'margin: 0.5em 0 1em;' });
-		const create_display_btn = uiu.el(create_actions, 'button', {
-			type: 'button',
-		}, ci18n('tournament:edit:displaysettings:create_display'));
-		const create_tablet_btn = uiu.el(create_actions, 'button', {
-			type: 'button',
-			style: 'margin-left: 0.5em;',
-		}, ci18n('tournament:edit:displaysettings:create_tablet'));
-		create_display_btn.addEventListener('click', () => {
-			ui_create_display_setting_from_default('display');
-		});
-		create_tablet_btn.addEventListener('click', () => {
-			ui_create_display_setting_from_default('umpire');
-		});
-		const display_settings_table = uiu.el(main, 'table');
-		const display_settings_tbody = uiu.el(display_settings_table, 'tbody');
-		const tr = uiu.el(display_settings_tbody, 'tr');
-		uiu.el(tr, 'th', {}, ci18n('tournament:edit:displaysettings:name'));
-		uiu.el(tr, 'th', {}, ci18n('tournament:edit:displaysettings:mode'));
-		uiu.el(tr, 'th', {}, ci18n('tournament:edit:displaysettings:actions'));
-
-		for (const s of curt.displaysettings) {
-			const tr = uiu.el(display_settings_tbody, 'tr', { 'data-displaysetting_id': s.id });
-			render_general_displaysetting_line(tr, s, used_configs);
-		}
+		main.btsDisplaySettings.update();
 	}
 
-	function render_general_displaysetting_line(parrent, s, used_configs) {
-		uiu.el(parrent, 'th', {}, s.description ||s.id);
-		uiu.el(parrent, 'td', {}, format_general_displaysetting_mode(s));
-			const actions_td = uiu.el(parrent, 'td', {});
-			const is_default_setting = s.id === curt.displaysettings_general || s.id === curt.displaysettings_general_tablet;
-			const edit_btn = uiu.el(actions_td, 'button', {
-				'data-display_setting_id': s.id,
-			}, ci18n('tournament:edit:edit'));
-
-		edit_btn.addEventListener('click', (e) => {
-			on_edit_display_setting_button_click(e);
-		});
-
-
-			const delete_btn = uiu.el(actions_td, 'button', {
-				'data-display-setting-id': s.id,
-			}, ci18n('tournament:edit:delete'));
-
-		if (used_configs.has(s.id) || is_default_setting) {
-			delete_btn.setAttribute('disabled', 'disabled');
-		}
-
-		delete_btn.addEventListener('click', (e) => {
-			const del_btn = e.target;
-			const setting_id = del_btn.getAttribute('data-display-setting-id');
-
-			send_with_live_status({
-				type: 'delete_display_setting',
-				tournament_key: curt.key,
-				setting_id: setting_id,
-			}, err => {
-				if (err) {
-					return cerror.net(err);
+	function render_profile_snapshot(iframe, profile, context) {
+		const win = iframe.contentWindow, doc = iframe.contentDocument;
+		if (profile.tablet_mode === 'self_check_in' && profile.devicemode === 'umpire') return render_self_check_in_preview_document(doc);
+		if (profile.tablet_mode === 'registration_check' && profile.devicemode === 'umpire') {
+			doc.body.className = 'profile-input-preview';
+			if (!doc.querySelector('[data-profile-preview-styles]')) {
+				for (const href of ['/static/css/admin.css', '/static/css/display_settings.css']) {
+					const link = doc.createElement('link');link.rel = 'stylesheet';link.href = href;link.dataset.profilePreviewStyles = '';doc.head.append(link);
 				}
-			});
-		});
+			}
+			render_registration_tablet_preview(doc.body);
+			return true;
+		}
+		win.state.event.tournament_name = context.name;
+		if (profile.devicemode === 'display') return apply_display_preview_settings(iframe, profile, 'primary');
+		const applied = apply_tablet_preview_settings(iframe, profile, 'primary');
+		// The thumbnail shows the playing surface, rather than the settings screen.
+		if (!applied) return false;
+		win.settings.hide(true);
+		return update_live_tablet_preview_match(iframe, {score:[10, 8]});
 	}
 
 	function format_general_displaysetting_mode(s) {
@@ -4500,116 +4279,114 @@ var ctournament = (function() {
 		return s.devicemode || '';
 	}
 
-	function _cancel_ui_edit_display_setting() {
-		const dlg = document.querySelector('.display_setting_edit_dialog');
-		if (!dlg) {
-			return; // Already cancelled
-		}
-		cbts_utils.esc_stack_pop();
-		uiu.remove(dlg);
-
-		ui_edit();
-	}
-
-	function on_edit_display_setting_button_click(e) {
-		const btn = e.target;
-		const display_setting_id = btn.getAttribute('data-display_setting_id');
-		ui_edit_display_setting(display_setting_id);
-	}
-
 	function _build_new_display_setting_id(base_id, devicemode) {
 		const normalized_base = String(base_id || devicemode || 'display')
-			.replace(/\s+/g, '_')
-			.replace(/[^-a-zA-Z0-9_]/g, '');
-		return `${normalized_base}_${Date.now()}`;
+			.replace(/\s+/g, '_').replace(/[^-a-zA-Z0-9_]/g, '');
+		return normalized_base + '_' + generateGUID();
+	}
+
+	function ui_copy_display_setting(id) {
+		const source = (curt.displaysettings || []).find(setting => setting.id === id);
+		if (!source) return;
+		const copy = structuredClone(source);delete copy._id;
+		copy.id = _build_new_display_setting_id(source.id, source.devicemode);
+		copy.description = (source.description || source.id) + ' Kopie';
+		ui_edit_display_setting(copy.id, {display_setting:copy, is_new:true});
 	}
 
 	function ui_create_display_setting_from_default(devicemode) {
-		const default_setting_id = devicemode === 'umpire'
-			? curt.displaysettings_general_tablet
-			: curt.displaysettings_general;
-		const base_setting = structuredClone(utils.find(curt.displaysettings, d => d.id === default_setting_id));
-		if (!base_setting) {
-			alert('Keine passende Standardeinstellung gefunden.');
-			return;
-		}
-		base_setting.id = _build_new_display_setting_id(base_setting.id, devicemode);
-		base_setting.description = `${base_setting.description || base_setting.id} Kopie`;
-		base_setting.devicemode = devicemode;
-		ui_edit_display_setting(base_setting.id, {
-			display_setting: base_setting,
-			is_new: true,
-		});
+		const default_setting_id = devicemode === 'umpire' ? curt.displaysettings_general_tablet : curt.displaysettings_general;
+		const source = (curt.displaysettings || []).find(setting => setting.id === default_setting_id && setting.devicemode === devicemode)
+			|| (curt.displaysettings || []).find(setting => setting.devicemode === devicemode);
+		const setting = structuredClone(source || {devicemode, displaymode_style:'tournamentcourt', language:curt.language || 'auto'});
+		delete setting._id;setting.id = _build_new_display_setting_id(devicemode, devicemode);
+		setting.description = devicemode === 'display' ? 'Neues Anzeigeprofil' : 'Neues Bedienprofil';
+		ui_edit_display_setting(setting.id, {display_setting:setting, is_new:true});
 	}
 
 	function ui_edit_display_setting(display_setting_id, opts = {}) {
+		if (document.querySelector('.display_setting_edit_dialog')) return;
 		const is_new = !!opts.is_new;
-		const display_setting = structuredClone(opts.display_setting || utils.find(curt.displaysettings, d => d.id === display_setting_id));
-		if (!display_setting) {
-			return;
-		}
-		if (!is_new) {
-			crouting.set('t/' + curt.key + '/edit/s/' + display_setting_id, {}, _cancel_ui_edit_display_setting);
-		}
-
-		cbts_utils.esc_stack_push(_cancel_ui_edit_display_setting);
-
-		const body = uiu.qs('body');
-		const dialog_bg = uiu.el(body, 'div', 'dialog_bg display_setting_edit_dialog', {
-		 	'data-display_setting_id': display_setting_id,
-			'data-is-new': is_new ? 'true' : 'false',
+		const display_setting = structuredClone(opts.display_setting || (curt.displaysettings || []).find(setting => setting.id === display_setting_id));
+		if (!display_setting) return;
+		const opener = document.activeElement, owner = settingsPage?.page || document.querySelector('.main');
+		const dialog = uiu.el(document.body, 'dialog', {
+			class:'leitstand-dialog display_setting_edit_dialog', 'data-display_setting_id':display_setting_id,
+			'data-is-new':String(is_new), 'aria-labelledby':'display-setting-dialog-title', 'aria-modal':'true',
 		});
-		const dialog = uiu.el(dialog_bg, 'div', 'dialog display_setting_dialog');
-
-		uiu.el(dialog, 'h3', {}, is_new ? 'Displayeinstellung anlegen' : ci18n('Edit display setting'));
-
+		const header = uiu.el(dialog, 'header', 'dialog-heading');
+		const title = uiu.el(header, 'h2', {id:'display-setting-dialog-title'});
+		title.innerHTML = cleitstand.icon(display_setting.devicemode === 'umpire' ? 'edit' : 'monitor');
+		uiu.el(title, 'span', {}, is_new ? 'Profil anlegen' : 'Profil bearbeiten');
+		const close = uiu.el(header, 'button', {type:'button', class:'ls-dialog-close', 'aria-label':ci18n('dialog:close')});
+		close.innerHTML = cleitstand.icon('close');
 		const form = uiu.el(dialog, 'form');
-		uiu.el(form, 'input', {
-			type: 'hidden',
-			name: 'display_setting_id',
-			value: display_setting.id,
-		});
+		uiu.el(form, 'input', {type:'hidden', name:'display_setting_id', value:display_setting.id});
+		const content = uiu.el(form, 'div', 'display-setting-content');
+		uiu.el(content, 'p', 'display-setting-help', 'Änderungen am Profil gelten für alle Geräte, denen es zugewiesen ist.');
 		render_edit_display_setting(form, display_setting);
-
-		const buttons = uiu.el(form, 'div', {
-			style: 'margin-top: 2em; display: flex; gap: 0.75em; align-items: center; justify-content: center;',
+		content.append(form.querySelector('.edit_display_setting_container'));
+		const originalValues = create_displaysettings_object(Object.fromEntries(new FormData(form).entries()));
+		const footer = uiu.el(form, 'footer', 'ls-dialog-footer');
+		const status = uiu.el(footer, 'p', {class:'display-setting-status', role:'status'});
+		const actions = uiu.el(footer, 'div', 'display-setting-actions');
+		const cancel = uiu.el(actions, 'button', {type:'button', class:'btn'}, ci18n('Cancel'));
+		const save = uiu.el(actions, 'button', {type:'submit', class:'btn primary match_save_button'}, ci18n('dialog:save'));
+		let controller, observer, disposed = false, errorMessage = '';
+		const render = ({dirty, busy}) => {
+			for (const input of form.querySelectorAll('.duration-input')) input.btsDuration.validate();
+			const invalid = [...form.querySelectorAll('input,select')].find(input => !input.disabled && !input.validity.valid);
+			btsDialogActions.control(save, {disabled:!!busy || (!is_new && !dirty) || !!invalid,
+				label:ci18n(busy ? 'dialog:busy:save' : 'dialog:save')});
+			close.disabled = cancel.disabled = !!busy;content.inert = !!busy;
+			form.setAttribute('aria-busy', String(!!busy));
+			status.textContent = busy ? ci18n('dialog:busy:save') : errorMessage || invalid?.validationMessage || '';
+		};
+		form.addEventListener('input', () => {errorMessage = '';});form.addEventListener('change', () => {errorMessage = '';});
+		controller = btsDialogActions.create(form, {onUpdate:render, allowUnchanged:is_new, confirmDiscard:() => btsDialogActions.confirm({
+			owner:form, title:ci18n('dialog:unsaved_changes'), message:ci18n('dialog:discard_details', {name:display_setting.description || display_setting.id}),
+			confirmLabel:ci18n('dialog:discard_changes'), cancelLabel:ci18n('dialog:keep_editing'), warning:true,
+		})});
+		const dispose = () => {
+			if (disposed) return;disposed = true;observer?.disconnect();controller.destroy();form.btsDisplayPreviewDispose?.();
+			cbts_utils.esc_stack_pop();if (dialog.open) dialog.close();dialog.remove();
+			if (opener?.isConnected) opener.focus({preventScroll:true});
+		};
+		const requestClose = async () => {if (await controller.canClose() && dialog.isConnected) dispose();};
+		close.addEventListener('click', requestClose);cancel.addEventListener('click', requestClose);
+		dialog.addEventListener('cancel', event => {event.preventDefault();requestClose();});
+		dialog.addEventListener('click', event => {if (event.target === dialog) requestClose();});
+		dialog.addEventListener('keydown', event => {
+			if (event.key === 'Escape') {event.preventDefault();event.stopPropagation();requestClose();}
 		});
-
-		const btn = uiu.el(buttons, 'button', {
-			'class': 'match_save_button',
-			role: 'submit',
-		}, ci18n('Change'));
-
-		form_utils.onsubmit(form, function(d) {
-			const displaysetting = create_displaysettings_object(d);
-
-			send_with_live_status({
-				type: is_new ? 'create_display_setting' : 'edit_display_setting',
-				tournament_key: curt.key,
-				displaysetting: displaysetting,
-			}, err => {
-				if (err) {
-					return cerror.net(err);
-				}
-				_cancel_ui_edit_display_setting();
+		dialog.addEventListener('close', dispose);
+		form.addEventListener('invalid', () => controller.refresh(), true);
+		form_utils.onsubmit(form, data => {
+			if (!controller.begin(is_new ? 'create' : 'save')) return;
+			const displaysetting = {...display_setting};
+			for (const [field, value] of Object.entries(create_displaysettings_object(data))) {
+				if (!Object.hasOwn(displaysetting, field) || !utils.deep_equal(originalValues[field], value)) displaysetting[field] = value;
+			}
+			delete displaysetting._id;
+			send_with_live_status({type:is_new ? 'create_display_setting' : 'edit_display_setting', tournament_key:curt.key, displaysetting}, err => {
+				if (!dialog.isConnected) return;
+				if (err) {errorMessage = err.message || 'Das Profil konnte nicht gespeichert werden.';controller.end();return;}
+				const index = curt.displaysettings.findIndex(profile => profile.id === displaysetting.id);
+				if (index < 0) curt.displaysettings.push(displaysetting);else curt.displaysettings[index] = displaysetting;
+				update_general_displaysettings();settingsPage?.page.querySelector('.settings-displays')?.btsDisplaySettings?.select(displaysetting.devicemode);
+				controller.accept();dispose();
 			});
 		});
-
-		const cancel_btn = uiu.el(buttons, 'button', {
-			type: 'button',
-			class: 'match_save_button',
-		}, ci18n('Cancel'));
-		cancel_btn.addEventListener('click', _cancel_ui_edit_display_setting);
+		observer = new MutationObserver(() => {if (!owner.isConnected || !dialog.isConnected) dispose();});
+		observer.observe(document.body, {childList:true, subtree:true});cbts_utils.esc_stack_push(requestClose);
+		dialog.showModal();form.querySelector('[name="display_setting_description"]').focus({preventScroll:true});
 	}
-	crouting.register(/t\/([a-z0-9]+)\/edit\/s\/([-a-zA-Z0-9_ ]+)$/, function(m) {
-		ctournament.switch_tournament(m[1], function() {
-			ui_edit_display_setting(m[2]);
-		});
-	}, change.default_handler(() => {
-		const dlg = uiu.qs('.display_setting_edit_dialog');
-		const display_setting_id = dlg.getAttribute('data-display_setting_id');
-		ui_edit_display_setting(display_setting_id);
-	}));
+	_route_single(/^t\/([a-z0-9]+)\/edit\/s\/([-a-zA-Z0-9_ ]+)$/, m => {
+		ui_edit('devices');
+		const profile = (curt.displaysettings || []).find(setting => setting.id === m[2]);
+		if (profile) document.querySelector('.settings-displays').btsDisplaySettings.select(profile.devicemode);
+		ui_edit_display_setting(m[2]);
+	}, change.default_handler(_update_all_ui_elements_edit, {btp_status:btp_status_changed, ticker_status:ticker_status_changed}));
 
 	function build_display_setting_preview_event() {
 		return {
@@ -5694,6 +5471,11 @@ var ctournament = (function() {
 			previewType,
 			sequenceIndex: 0,
 		};
+		// Score patches reuse the rendered palette and layout. Settings edits
+		// need a full redraw, while the current example score and timers continue.
+		if (!utils.deep_equal(previewState.lastEffectiveSettings, effectiveSettings)) {
+			previewState.sceneInitialized = false;
+		}
 		previewState.lastEffectiveSettings = effectiveSettings;
 		if (prepare_display_preview_v2_state(previewState, effectiveSettings)) {
 			const updated = update_display_preview_match(previewState, { advance: false });
@@ -6248,6 +6030,8 @@ var ctournament = (function() {
 		}
 		previewBody._tabletPreviewState = null;
 		previewBody._displayPreviewState = null;
+		previewBody._selfCheckInPreviewState?.resize.disconnect();
+		previewBody._selfCheckInPreviewState = null;
 	}
 
 	function build_tablet_preview_bup_settings(previewSettings, previewType) {
@@ -6511,11 +6295,62 @@ var ctournament = (function() {
 		});
 	}
 
+	async function render_self_check_in_preview_document(doc) {
+		if (!doc.btsSelfCheckInStyles) {
+			// Use the same styles as the existing full-screen page, isolated from
+			// the surrounding settings dialog and from BUP's own button styles.
+			doc.querySelectorAll('link[rel=stylesheet]').forEach(link => link.remove());
+			doc.btsSelfCheckInStyles = Promise.all(['/static/css/admin.css', '/static/css/cmatch.css'].map(href => new Promise((resolve, reject) => {
+				const link = doc.createElement('link');link.rel = 'stylesheet';link.href = href;
+				link.onload = resolve;link.onerror = reject;doc.head.append(link);
+			})));
+		}
+		await doc.btsSelfCheckInStyles;
+		await doc.fonts.ready;
+		if (!doc.defaultView?.frameElement?.isConnected) return false;
+		if (!doc.querySelector('.self_check_in_container')) {
+			uiu.empty(doc.body);doc.body.className = '';
+			const main = uiu.el(doc.body, 'main', 'main_self_check_in');main.inert = true;
+			const container = uiu.el(main, 'div', 'self_check_in_container');
+			const location = curt.locations?.[0];
+			const matches = [
+				{number:239, event:'ME U17', names:['Erika Beispiel', 'Lena Muster'], ready:true},
+				{number:241, event:'JE U19', names:['Max Mustermann', 'Hans Dampf'], ready:false},
+				{number:238, event:'ME U17', names:['Mia Demo', 'Anna Beispiel'], ready:true},
+			].map(example => ({_id:'profile-preview-' + example.number, setup:{
+				match_num:example.number, event_name:example.event, scheduled_time_str:'18:30', location_id:location?._id,
+				teams:example.names.map((name, index) => ({players:[{name, btp_id:'profile-preview-' + example.number + '-' + index, checked_in:example.ready}]})),
+			}}));
+			render_self_check_in(container, {matches, readOnly:true});
+		}
+		doc.querySelectorAll('.self_check_in_match').forEach(fit_self_check_in_card);
+		return true;
+	}
+
+	function render_self_check_in_profile_preview(previewBody) {
+		if (previewBody._selfCheckInPreviewState) return;
+		clear_preview_runtime_state(previewBody);uiu.empty(previewBody);
+		previewBody.classList.remove('display_setting_registration_preview_body');
+		const viewport = uiu.el(previewBody, 'div', 'display-setting-check-in-preview');viewport.inert = true;
+		const iframe = uiu.el(viewport, 'iframe', {class:'self-check-in-preview-frame', title:'Vorschau Selbst-Check-in', tabindex:'-1', sandbox:'allow-same-origin'});
+		const resize = new ResizeObserver(items => {
+			for (const {contentRect} of items) viewport.style.setProperty('--self-check-in-preview-scale', String(contentRect.width / 960));
+		});
+		resize.observe(viewport);previewBody._selfCheckInPreviewState = {iframe, resize};
+		iframe.addEventListener('load', () => {
+			if (iframe.isConnected) void render_self_check_in_preview_document(iframe.contentDocument).catch(cerror.net);
+		});
+		iframe.srcdoc = '<!doctype html><html><head><meta charset="utf-8"><title>Vorschau Selbst-Check-in</title></head><body></body></html>';
+	}
+
 	function render_display_setting_preview(previewBody, form, previewType = 'primary') {
 		if (!previewBody) {
 			return;
 		}
 		const previewSettings = create_displaysettings_object(Object.fromEntries(new FormData(form).entries()));
+		if (previewSettings.devicemode === 'umpire' && previewSettings.tablet_mode === 'self_check_in') {
+			render_self_check_in_profile_preview(previewBody);return;
+		}
 		const isRegistrationTabletMode =
 			previewSettings.devicemode === 'umpire' &&
 			previewSettings.tablet_mode === 'registration_check';
@@ -6538,6 +6373,10 @@ var ctournament = (function() {
 		let previewRenderTimer = null;
 		let previewAnimationTimer = null;
 		let lastPreviewRenderSignature = null;
+		form.btsDisplayPreviewDispose = () => {
+			window.clearTimeout(previewRenderTimer);window.clearInterval(previewAnimationTimer);
+			form.querySelectorAll('.display_setting_preview_body').forEach(clear_preview_runtime_state);
+		};
 		const createSettingsSection = (title, className = '') => {
 			const section = uiu.el(edit_display_setting_container, 'section', {
 				class: `display_setting_section ${className}`.trim(),
@@ -6578,28 +6417,11 @@ var ctournament = (function() {
 		const primaryLayout = createPreviewLayout('Spielauswahl', 'Vorschau', 'display_setting_primary_layout');
 		const secondaryLayout = createPreviewLayout('Live-Spiel', 'Vorschau laufendes Spiel', 'display_setting_live_layout');
 
-		const id_div = uiu.el(metaSection, 'div');
-		uiu.el(id_div, 'span', 'display_setting_id', ci18n('display_setting:id'));
-		uiu.el(id_div, 'input', {
-			type: 'text',
-			name: 'display_setting_id',
-			size: 24,
-			required: 'required',
-			value: display_setting.id || '',
-			tabindex: 1,
-			disabled: 'disabled',
-		});
-
-
 		const description_div = uiu.el(metaSection, 'div');
-		uiu.el(description_div, 'span', 'display_setting_description', 'Description:');
+		uiu.el(description_div, 'label', {for:'display-setting-description'}, 'Profilname');
 		uiu.el(description_div, 'input', {
-			type: 'text',
-			name: 'display_setting_description',
-			placeholder: ci18n('e.g. MX O55'),
-			size: 18,
-			value: display_setting.description || '',
-			tabindex: 2,
+			type:'text', id:'display-setting-description', name:'display_setting_description', required:'required',
+			value:display_setting.description || display_setting.id || '',
 		});
 
 		const ALL_DEVICE_MODES = [
@@ -6648,11 +6470,13 @@ var ctournament = (function() {
 			'umpire',
 			'scorecard',
 			'registration_check',
+			'self_check_in',
 		];
 		const ALL_TABLET_MODE_LABELS = [
 			ci18n('display_setting:tablet_mode:umpire'),
 			ci18n('display_setting:tablet_mode:scorecard'),
 			ci18n('display_setting:tablet_mode:registration_check'),
+			ci18n('display_setting:tablet_mode:self_check_in'),
 		];
 		const ALL_STYLE_MODES = [
 			'default',
@@ -6724,7 +6548,7 @@ var ctournament = (function() {
 			}
 			previewRenderTimer = window.setTimeout(() => {
 				previewRenderTimer = null;
-				renderAllDisplaySettingPreviews(force);
+				if (form.isConnected) renderAllDisplaySettingPreviews(force);
 			}, delay);
 		};
 		const ensureDisplayPreviewAnimation = () => {
@@ -6741,10 +6565,11 @@ var ctournament = (function() {
 		});
 		const updateSecondarySectionMode = () => {
 			const isTablet = getCurrentDeviceMode() === 'umpire';
+			primaryLayout.settingsTitleEl.textContent = isTablet ? 'Spielauswahl' : 'Anzeige';
 			const tabletModeInput = form.querySelector('[name="tablet_mode"]');
 			const isRegistrationTabletMode = isTablet && tabletModeInput && tabletModeInput.value === 'registration_check';
 			if (secondaryLayout.settingsTitleEl) {
-				secondaryLayout.settingsTitleEl.textContent = isRegistrationTabletMode ? 'Anmeldung' : (isTablet ? 'Live-Spiel' : 'Anzeige');
+				secondaryLayout.settingsTitleEl.textContent = isTablet && tabletModeInput?.value === 'self_check_in' ? 'Selbst-Check-in' : isRegistrationTabletMode ? 'Anmeldung' : (isTablet ? 'Live-Spiel' : 'Anzeige');
 			}
 			if (secondaryLayout.previewColumn) {
 				secondaryLayout.previewColumn.style.display = 'flex';
@@ -6804,7 +6629,7 @@ var ctournament = (function() {
 		// }
 
 		const tablet_mode_select = render_drop_down(
-			secondaryLayout.settingsColumn,
+			metaSection,
 			ci18n('display_setting:tablet_mode'),
 			'tablet_mode',
 			true,
@@ -6857,8 +6682,9 @@ var ctournament = (function() {
 		}
 
 		const div = uiu.el(container, 'div', {field_name: select_name});
-		uiu.el(div, 'span', 'label', label_text);
+		uiu.el(div, 'label', {class:'label', for:'display-setting-' + select_name}, label_text);
 		const select = uiu.el(div, 'select', {
+			id:'display-setting-' + select_name,
 			name: select_name,
 			size: 1,
 		});
@@ -6899,8 +6725,9 @@ var ctournament = (function() {
 
 	function render_text_input(container, label_text, input_name, displaystyle, value, placeholder) {
 		const div = uiu.el(container, 'div', {field_name: input_name});
-		uiu.el(div, 'span', 'label', label_text);
+		uiu.el(div, 'label', {class:'label', for:'display-setting-' + input_name}, label_text);
 		uiu.el(div, 'input', {
+			id:'display-setting-' + input_name,
 			type: 'text',
 			name: input_name,
 			value: value || '',
@@ -7023,7 +6850,7 @@ var ctournament = (function() {
 		const tabletModeInput = form ? form.querySelector('[name="tablet_mode"]') : null;
 		const currentTabletMode = tabletModeInput ? (tabletModeInput.value || 'umpire') : 'umpire';
 		const isScorecardTabletMode = currentTabletMode === 'scorecard';
-		const isRegistrationTabletMode = !isDisplayMode && currentTabletMode === 'registration_check';
+		const isRegistrationTabletMode = !isDisplayMode && ['registration_check', 'self_check_in'].includes(currentTabletMode);
 		const primarySection = form ? form.querySelector('.display_setting_primary_layout') : null;
 		const technicalSection = form ? form.querySelector('.display_setting_technical_section') : null;
 		if (primarySection) {
@@ -7090,14 +6917,12 @@ var ctournament = (function() {
 		});
 	}
 
-	function update_general_displaysettings(c)
-	{
+	function update_general_displaysettings() {
 		if (typeof cleitstand !== 'undefined') cleitstand.refreshTablets();
-		//const general_displaysettings_div = uiu.qs('.general_displaysettings');
-		const general_displaysettings_div = document.querySelector(".general_displaysettings");
-		if(general_displaysettings_div) {
-			general_displaysettings_div.innerHTML = '';
-			render_general_displaysettings(general_displaysettings_div);
+		const profiles = document.querySelector('.settings-displays');
+		if (profiles?.isConnected) profiles.btsDisplaySettings?.update();
+		if (display_table_body?.isConnected) {
+			for (const device of curt.displays || []) update_display(device, {tablets:false});
 		}
 	}
 
@@ -7183,7 +7008,10 @@ var ctournament = (function() {
 	}
 
 	function update_display(display, options = {}) {
-		if (options.tablets !== false && typeof cleitstand !== 'undefined') cleitstand.refreshTablets();
+		if (options.tablets !== false) {
+			if (typeof cleitstand !== 'undefined') cleitstand.refreshTablets();
+			document.querySelector('.settings-displays')?.btsDisplaySettings?.update();
+		}
 		// Do this function only if the Display view (in on edit) is open
 		if(!display_table_body?.isConnected) {
 			return;
@@ -7282,6 +7110,7 @@ var ctournament = (function() {
 	}
 
 	function delete_display(c) {
+		document.querySelector('.settings-displays')?.btsDisplaySettings?.update();
 		if (typeof cleitstand !== 'undefined') cleitstand.refreshTablets();
 		const client_id = c.val && c.val.client_id != null ? c.val.client_id : c.val;
 		uiu.qsEach('[data-display_id=' + JSON.stringify(String(client_id)) + ']', function (display_tr) {
@@ -9243,14 +9072,6 @@ function update_officials() {
 		});
 	}
 
-	function createGeneralDisplaySettingsSelectBox(parentEl, displaysettings_id, opts = {}) {
-		const fieldName = opts.fieldName || 'displaysettings_general';
-		const displaysettings_select_box = uiu.el(parentEl, 'select', {
-			name: fieldName
-		});
-		createSelectBoxContent(displaysettings_select_box, curt.displaysettings, displaysettings_id, opts);
-		return displaysettings_select_box;
-	}
 	function createSelectBoxContent(select_box, content, selected_id, opts = {}) {
 		const filterFn = opts.filterFn || (() => true);
 		if (opts.includeEmptyOption) {
@@ -12151,7 +11972,7 @@ function update_officials() {
 		return ci18n('Court') + ' ' + court.num;
 	}
 
-	function render_self_check_in_chip(container, participant) {
+	function render_self_check_in_chip(container, participant, readOnly = false) {
 		const check_in_locked = is_self_check_in_participant_locked(participant);
 		const attrs = {
 			type: 'button',
@@ -12182,6 +12003,7 @@ function update_officials() {
 		if (cached_fit && cached_fit.font_size) {
 			name_el.style.fontSize = cached_fit.font_size;
 		}
+		if (readOnly) return;
 		chip.addEventListener('click', function(ev) {
 			ev.stopPropagation();
 			if (chip.disabled) {
@@ -12407,7 +12229,7 @@ function update_officials() {
 		schedule_fit_self_check_in_cards(new_card);
 	}
 
-	function render_self_check_in_match_card(container, match, do_fit) {
+	function render_self_check_in_match_card(container, match, do_fit, readOnly = false) {
 		if (do_fit === undefined) {
 			do_fit = true;
 		}
@@ -12460,7 +12282,7 @@ function update_officials() {
 			chips.style.setProperty('--self-check-in-chip-name-scale-row', '1');
 			chips.style.setProperty('--self-check-in-chip-box-scale-row', '1');
 		}
-		participants.forEach((participant) => render_self_check_in_chip(chips, participant));
+		participants.forEach((participant) => render_self_check_in_chip(chips, participant, readOnly));
 		if (do_fit) {
 			schedule_fit_self_check_in_cards(card);
 		}
@@ -12503,11 +12325,11 @@ function update_officials() {
 		return { cols: best.cols, rows: best.rows };
 	}
 
-	function render_self_check_in(container) {
+	function render_self_check_in(container, options = {}) {
 		self_check_in_tabletoperator_waiting_ids = null;
 		uiu.empty(container);
 
-		const matches = get_self_check_in_matches();
+		const matches = options.matches || get_self_check_in_matches();
 		container.setAttribute('data-match-count', String(matches.length));
 		if (matches.length === 0) {
 			uiu.el(container, 'div', 'self_check_in_empty', ci18n('Self-Check-In: empty'));
@@ -12533,7 +12355,7 @@ function update_officials() {
 		list.style.setProperty('--self-check-in-scale', String(scale));
 		list.style.setProperty('--self-check-in-chip-name-scale', String(chip_name_scale));
 		list.style.setProperty('--self-check-in-chip-box-scale', String(chip_box_scale));
-		matches.forEach((match) => render_self_check_in_match_card(list, match, false));
+		matches.forEach((match) => render_self_check_in_match_card(list, match, false, options.readOnly));
 		schedule_fit_self_check_in_cards(list);
 	}
 

@@ -148,12 +148,6 @@ function get_default_displaysettings_id(tournament, devicemode = 'display') {
 		|| default_displaysettings_key;
 }
 
-async function is_bupws_v2_enabled(app, tournament_key) {
-	const tournament = await app.db.tournaments.findOne_async({ key: tournament_key || default_tournament_key });
-	debug_flags.set_from_tournament(tournament);
-	return !!(tournament && tournament.bupws_v2_enabled);
-}
-
 function send_use_bup_v2(ws, tournament_key) {
 	if (!ws || ws.readyState !== 1) {
 		return false;
@@ -670,23 +664,12 @@ function create_display_court_displaysettings(client_id, hostname, court_id, dis
 	}
 }
 
-async function handle_init(app, ws, msg) {
+async function handle_init(_app, ws, msg) {
 	const tournament_key = msg.tournament_key || default_tournament_key;
 	ws.last_tournament_key = tournament_key;
-	if (await is_bupws_v2_enabled(app, tournament_key)) {
-		send_use_bup_v2(ws, tournament_key);
-		return;
-	}
-	var court_id = undefined;
-	ws.panel_devicemode = normalize_panel_devicemode(msg.panel_settings && msg.panel_settings.devicemode);
-	ws.court_id = undefined;
-	if (msg.initialize_display) {
-		await initialize_client(ws, app, tournament_key, court_id, undefined, ws.panel_devicemode);
-	} else { 
-		matches_handler(app, ws, tournament_key, ws.court_id);
-	}
-	await notify_admin_display_status_changed(app, ws, true);
-	send_courts(app, ws, tournament_key);
+	// Older clients start on this endpoint. Every tournament now uses V2,
+	// including restored tournaments with a legacy false/missing preference.
+	send_use_bup_v2(ws, tournament_key);
 }
 
 async function async_handle_select_court_assignment(app, ws, msg) {
@@ -1529,24 +1512,12 @@ async function change_default_display_mode(app, tournament, old_displaysettings_
 }
 
 async function refresh_protocol_mode(app, tournament_key) {
-	const use_v2 = await is_bupws_v2_enabled(app, tournament_key);
 	for (const panel_ws of all_panels) {
 		if (panel_ws.last_tournament_key && panel_ws.last_tournament_key !== tournament_key) {
 			continue;
 		}
 		panel_ws.court_id = undefined;
-		if (use_v2) {
-			send_use_bup_v2(panel_ws, tournament_key);
-		} else {
-			initialize_client(
-				panel_ws,
-				app,
-				tournament_key,
-				panel_ws.court_id,
-				undefined,
-				panel_ws.panel_devicemode,
-			);
-		}
+		send_use_bup_v2(panel_ws, tournament_key);
 	}
 	await bupws_v2.refresh_tournament(app, tournament_key);
 }

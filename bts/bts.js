@@ -130,6 +130,7 @@ function create_app(config, db, {configFile = null} = {}) {
 	app.use('/u(:courtnum)?', shortcuts.umpire_handler);
 
 	const certificate_assets = require('./certificate_assets');
+	require('./advertisement_assets').register(app);
 	app.post('/h/:tournament_key/certificates/background', body_parser.raw({type: ['application/pdf', 'image/png', 'image/jpeg', 'application/octet-stream'], limit: certificate_assets.MAX_BYTES}), certificate_assets.upload);
 	app.get('/h/:tournament_key/certificates/background/:asset_id', certificate_assets.get);
 	app.use(body_parser.json());

@@ -4,26 +4,30 @@ const queue = require('./update_queue');
 
 function can_reset(match) {
 	const setup = match.setup;
+	// Future games retain their court assignments even before opponents resolve.
+	// Eligibility must depend on play/result state, never on participant names.
 	return !!setup && !setup.now_on_court && setup.state !== 'oncourt' && setup.state !== 'finished' &&
 		typeof match.team1_won !== 'boolean' && !match.btp_winner && !match.btp_needsync && !match.end_ts && !setup.end_ts &&
 		!['walkover', 'retired', 'disqualified', 'no_match', 'no_match_team1', 'no_match_team2'].includes(match.score_status) &&
 		!(Number(match.btp_score_status) > 0);
 }
 
-// Confirm the write in BTP before changing local fields. Own just the court
-// field; preserve preparation, attendance and results.
-function reset(app, tournament_key, notify = () => {}) {
+// When BTP is included, confirm its write before changing local fields.
+// Own just the court field; preserve preparation, attendance and results.
+function reset(app, tournament_key, notify = () => {}, {target = 'both'} = {}) {
+	if (!['bts', 'both'].includes(target)) return Promise.reject(new Error('Ungültiges Ziel für das Zurücksetzen.'));
 	return queue.execute_locked([queue.lock_keys.tournament(tournament_key)],
 		queue.named('court_assignments_reset_' + tournament_key, async () => {
 			const tournament = await app.db.tournaments.findOne_async({ key: tournament_key });
 			if (!tournament) throw new Error('No tournament ' + tournament_key);
-			if (!tournament.btp_enabled || tournament.btp_readonly) {
+			if (target === 'both' && (!tournament.btp_enabled || tournament.btp_readonly)) {
 				throw new Error('Zum Zurücksetzen der Felder muss BTP schreibend verbunden sein.');
 			}
 			const reset_ts = app.clock ? app.clock.now_ms() : Date.now();
 			const matches = await app.db.matches.find_async({ tournament_key });
 			const pending = matches.filter(can_reset);
-			const remote = await require('./btp_manager').clear_court_assignments(tournament_key, pending);
+			const remote = target === 'both' ? await require('./btp_manager').clear_court_assignments(tournament_key, pending) :
+				{allowed_match_ids: pending.map(match => match._id), btp_changed_matches: 0, skipped_matches: 0};
 			const allowed = new Set(remote.allowed_match_ids);
 			const changed_setups = [];
 			for (const match of matches) {

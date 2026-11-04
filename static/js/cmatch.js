@@ -2065,7 +2065,7 @@ function update_match_row(m, new_section) {
 			case 'unassigned':
 				match_row_el.setAttribute('class', 'match highlight_' + (m.setup.highlight ? m.setup.highlight : 0));
 				render_match_row(match_row_el, m, null, 'unasigned', true, curt.tabletoperator_enabled);
-				if (preparation_call_debug_icons_enabled()) {
+				if (preparation_call_status_enabled()) {
 					update_preparation_row_status(match_row_el, m);
 					if (typeof cleitstand !== 'undefined') cleitstand.decorateControls(match_row_el);
 				}
@@ -4247,11 +4247,17 @@ function preparation_call_debug_text_enabled() {
 }
 
 function preparation_call_debug_icons_enabled() {
-	return !!(curt && curt.preparation_call_debug_icons_enabled) || (typeof document !== 'undefined' && typeof document.querySelector === 'function' && !!document.querySelector('.leitstand'));
+	return !!(curt && curt.preparation_call_debug_icons_enabled);
+}
+
+function preparation_call_status_enabled() {
+	// The board still needs call limits and status colours when its optional
+	// diagnostic icons are hidden.
+	return preparation_call_debug_icons_enabled() || (typeof document !== 'undefined' && typeof document.querySelector === 'function' && !!document.querySelector('.leitstand'));
 }
 
 function preparation_call_debug_data_enabled() {
-	return preparation_call_debug_text_enabled() || preparation_call_debug_icons_enabled();
+	return preparation_call_debug_text_enabled() || preparation_call_status_enabled();
 }
 
 function render_preparation_debug_header(container) {
@@ -4296,8 +4302,9 @@ function render_preparation_debug_header(container) {
 function update_preparation_row_status(row, match, {
 	callable = get_preparation_callable_match_ids(), cutoff = get_preparation_cutoff_match_ids(), frontier = get_preparation_frontier_match_ids(),
 } = {}) {
-	const window_status = get_preparation_debug_window_status(match);
-	const call_status = match.setup.state === 'preparation' ? get_call_on_court_debug_status(match) : null;
+	const status = preparation_call_status_enabled();
+	const window_status = status ? get_preparation_debug_window_status(match) : null;
+	const call_status = status && match.setup.state === 'preparation' ? get_call_on_court_debug_status(match) : null;
 	for (const [name, active] of Object.entries({
 		preparation_callable: callable.has(String(match._id)),
 		preparation_frontier: frontier.has(String(match._id)),
@@ -4309,15 +4316,23 @@ function update_preparation_row_status(row, match, {
 	})) if (row.classList.contains(name) !== active) row.classList.toggle(name, active);
 	if (callable.has(String(match._id))) {if (row.getAttribute('data-preparation-callable') !== 'true') row.setAttribute('data-preparation-callable', 'true');}
 	else if (row.hasAttribute('data-preparation-callable')) row.removeAttribute('data-preparation-callable');
-	render_preparation_debug_cell(row, match);
+	const td = row.querySelector('td.call_td');
+	const previous_icon = td?.querySelector('.preparation_debug_icon');
+	if (preparation_call_debug_icons_enabled()) {
+		render_preparation_debug_cell(row, match);
+		return !previous_icon && !!td?.querySelector('.preparation_debug_icon');
+	}
+	if (previous_icon) previous_icon.remove();
+	if (td?.classList.contains('preparation_debug_call_td')) td.classList.remove('preparation_debug_call_td');
+	return !!previous_icon;
 }
 
 function refresh_unassigned_preparation_context() {
 	const matches = new Map(curt.matches.map(match => [String(match._id), match]));
-	const debug = preparation_call_debug_icons_enabled();
-	const callable = debug ? get_preparation_callable_match_ids() : new Set();
-	const cutoff = debug ? get_preparation_cutoff_match_ids() : new Set();
-	const frontier = debug ? get_preparation_frontier_match_ids() : new Set();
+	const status = preparation_call_status_enabled();
+	const callable = status ? get_preparation_callable_match_ids() : new Set();
+	const cutoff = status ? get_preparation_cutoff_match_ids() : new Set();
+	const frontier = status ? get_preparation_frontier_match_ids() : new Set();
 	uiu.qsEach('.unassigned_container', container => {
 		let controls_changed = false;
 		render_preparation_debug_header(container);
@@ -4339,8 +4354,7 @@ function refresh_unassigned_preparation_context() {
 					'match:preparationcall', on_announce_preparation_matchbutton_click, match._id, location);
 				td.insertBefore(button, td.querySelector('.preparation_debug_icon'));
 			}
-			if (!debug) continue;
-			update_preparation_row_status(row, match, {callable, cutoff, frontier});
+			if (update_preparation_row_status(row, match, {callable, cutoff, frontier})) controls_changed = true;
 			if (typeof cleitstand !== 'undefined' && cleitstand.decorateControls(row)) controls_changed = true;
 		}
 		if (typeof cleitstand !== 'undefined') cleitstand.refreshUnassigned(container,{controlsChanged:controls_changed});
@@ -4375,9 +4389,10 @@ function render_unassigned(container) {
 		return true;
 	});
 	const show_preparation_debug_icons = preparation_call_debug_icons_enabled();
-	const callable_match_ids = show_preparation_debug_icons ? get_preparation_callable_match_ids() : new Set();
-	const cutoff_match_ids = show_preparation_debug_icons ? get_preparation_cutoff_match_ids() : new Set();
-	const frontier_match_ids = show_preparation_debug_icons ? get_preparation_frontier_match_ids() : new Set();
+	const show_preparation_status = preparation_call_status_enabled();
+	const callable_match_ids = show_preparation_status ? get_preparation_callable_match_ids() : new Set();
+	const cutoff_match_ids = show_preparation_status ? get_preparation_cutoff_match_ids() : new Set();
+	const frontier_match_ids = show_preparation_status ? get_preparation_frontier_match_ids() : new Set();
 
 	const table = uiu.el(container, 'table', 'match_table');
 	render_match_table_header(table, true);
@@ -4390,8 +4405,8 @@ function render_unassigned(container) {
 		const is_callable_for_preparation = callable_match_ids.has(String(match._id));
 		const is_cutoff_for_preparation = cutoff_match_ids.has(String(match._id));
 		const is_frontier_for_preparation = frontier_match_ids.has(String(match._id));
-		const preparation_window_status = show_preparation_debug_icons ? get_preparation_debug_window_status(match) : null;
-		const call_on_court_status = show_preparation_debug_icons && match?.setup?.state === 'preparation'
+		const preparation_window_status = show_preparation_status ? get_preparation_debug_window_status(match) : null;
+		const call_on_court_status = show_preparation_status && match?.setup?.state === 'preparation'
 			? get_call_on_court_debug_status(match)
 			: null;
 		const tr = uiu.el(tbody, 'tr', {

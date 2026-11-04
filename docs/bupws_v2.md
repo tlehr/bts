@@ -1,16 +1,74 @@
 # BUP WebSocket V2
 
+## Profile und Gerätezuordnung
+
+Unter **Einstellungen → Oberflächen & Profile** werden Anzeige- und Bedienprofile
+in getrennten Reitern gepflegt. Es gibt genau eine Standard-Anzeige und eine
+gemeinsame Standard-Bedienoberfläche. Weitere Profile werden manuell zugeordnet.
+Der Einsatzzweck eines Bedienprofils (Spielzählung, Spielzettel, Anmeldung oder
+Selbst-Check-in) ist unabhängig von der Hardware.
+Ein Profil kann mehreren Geräten zugewiesen sein; Bearbeitungen gelten für alle
+zugeordneten Geräte. Zugewiesene Profile und Standardprofile sind vor dem Löschen geschützt.
+
+Die konkrete Profil- und Feldzuordnung liegt unter **Geräte & Logs**
+im Turnierarbeitsbereich, erreichbar über `/admin/t/<key>/devices`.
+Die dortigen Links zur bestehenden Diagnose öffnen Geräte-/Seitenstatus und
+Logs in einem eigenen Tab, damit der laufende Arbeitsbereich samt Audio erhalten bleibt.
+Das gemeinsame Turnierlogo liegt im Reiter **Anzeigen** unter **Oberflächen & Profile**.
+Unter **Debug-Einstellungen** steuert **Rückmeldungen zu Spielstandsänderungen anzeigen**,
+ob die Warteanzeige der Turnierleitung auch die Darstellung laufender Punktänderungen auf den Geräten berücksichtigt.
+Die eigentliche Übertragung der Spielstände läuft unabhängig von diesem Schalter weiter.
+Neben dem Upload öffnet **Vorhandenes Logo auswählen** eine Galerie der auf dem
+Server gespeicherten Logos. Das aktuelle Logo ist markiert; **Logo übernehmen**
+weist die vorhandene Datei zu, ohne Hintergrund- oder Textfarbe zu ändern.
+Automatisch erzeugte QR-Codes werden anhand ihres Dateinamens aus der Galerie ausgefiltert.
+Auch ältere Dateien ohne Metadaten bleiben auswählbar. Neue Uploads behalten
+ihren Originalnamen in einer JSON-Begleitdatei im Verzeichnis `data/logos`.
+Die Admin-Befehle `tournament_logo_list` und `tournament_select_logo` lesen die
+Galerie bzw. übernehmen ein Logo und aktualisieren verbundene Anzeigen.
+Die isolierte Browserprüfung läuft über `npm run test:admin-logo-library`.
+
+Bis die bisherigen Web-Spielübersichten durch eigene Hallenanzeigen ersetzt sind,
+bleiben deren gemeinsame Optionen über den Link im Reiter **Anzeigen** sowie
+über `/admin/t/<key>/edit/upcoming` erreichbar. Die neue Profilseite ändert die
+bestehenden Zuordnungen und Anzeigenformate nicht.
+
+Die isolierte Browserprüfung der Profilverwaltung läuft über
+`npm run test:admin-display-settings` mit simulierten Serverantworten.
+Links in den Profilzeilen erscheinen statische Vorschaubilder mit Beispieldaten
+und den gespeicherten Profileinstellungen. Die vorhandenen Renderer erzeugen sie bei Bedarf;
+danach bleiben nur Dokumente ohne Skripte in der Liste. Die Vorschauen öffnen
+keine Geräteverbindungen und verwenden einen eigenen flüchtigen Einstellungsspeicher.
+Gespeicherte Layoutänderungen erneuern das jeweilige Bild, laufende Spielstände
+und Geräteänderungen lassen es unverändert. Die Prüfung mit dem tatsächlichen
+BUP-Renderer läuft über `npm run test:admin-profile-previews`.
+Beim Selbst-Check-in verwenden Miniatur und Dialogvorschau dieselben Kacheln,
+Styles und Größenberechnung wie die bestehende Vollbildseite, mit Beispieldaten
+und ohne aktive Check-in-Aktionen. Die eigentliche Self-Check-in-Ansicht bleibt erhalten.
+
 ## Ziel
 
 `bupws_v2` ist das neue WebSocket-Protokoll zwischen BTS und den BUP-Anzeigen/Tablets. Der wichtigste Unterschied zu V1 ist, dass der Server nicht mehr primär einen großen Turnier-/Event-Zustand verteilt, aus dem der Client seine Anzeige selbst rekonstruiert. Stattdessen sendet der Server gezielte Display-DTOs, die bereits auf den jeweiligen Client, dessen Feldzuordnung und dessen Anzeigestil zugeschnitten sind.
 
 Das reduziert Netzwerkverkehr und verschiebt teure Zustandsberechnungen vom Anzeigegerät auf den Server. Das ist besonders relevant für schwache Display-Clients wie Raspberry Pi Zero 2.
 
-Aktivierung auf Client-Seite:
+Alle Turniere verwenden V2 fest, einschließlich neuer Turniere und älterer
+Turniere mit fehlendem oder ausgeschaltetem `bupws_v2_enabled`. Das frühere Feld
+wird nicht mehr ausgewertet und kann nicht mehr über die Einstellungs-API verändert werden.
+Eine Protokollauswahl wird in der Oberfläche nicht angeboten. Die übrigen Profil-,
+Feld- und Gerätezuordnungen gelten weiterhin.
+
+Die bestehenden Client-Adressen funktionieren ohne zusätzlichen Aktivierungsparameter:
 
 ```text
-https://<server>/bup/#btsh_e=<tournament>&display&dm_style=<style>&bupws_v2=1
+https://<server>/bup/#btsh_e=<tournament>&display&dm_style=<style>
 ```
+
+Clients, die zunächst `/ws/bup` öffnen, werden bei der Initialisierung automatisch
+zu `/ws/bup_v2` weitergeleitet. Der V2-Endpunkt schaltet nicht mehr auf V1 zurück.
+Direkte Verbindungen zu `/ws/bup_v2` benötigen ebenfalls keine Turnieroption.
+`bup_v2_admin_wait_for_score_updates` bleibt als interne Speicherkennung für den
+Rückmeldungsschalter erhalten; Protokollnamen erscheinen nicht in seiner Beschriftung oder Erklärung.
 
 Debug-Logging im Browser:
 

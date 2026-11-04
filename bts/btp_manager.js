@@ -172,6 +172,10 @@ async function clear_court_assignments(tkey, matches) {
 }
 
 module.exports = {
+	reset_match_results:async (key,matches) => {
+		const connection = conns_by_tkey.get(key);if (!connection) throw new Error('BTP-Verbindung ist nicht bereit.');
+		return connection.reset_match_results(matches);
+	},
 	clear_court_assignments,
 	fetch,
 	get_status,

@@ -48,6 +48,9 @@ function createFakeElement(tagName) {
 		getAttribute(name) {
 			return Object.prototype.hasOwnProperty.call(this.attributes, name) ? this.attributes[name] : null;
 		},
+		hasAttribute(name) {
+			return Object.prototype.hasOwnProperty.call(this.attributes, name);
+		},
 		removeAttribute(name) {
 			delete this.attributes[name];
 			if (name.startsWith('data-')) delete this.dataset[name.slice(5)];
@@ -187,12 +190,12 @@ _describe('cmatch', () => {
 			teams: [{ players: [{ btp_id: id * 2 }] }, { players: [{ btp_id: id * 2 + 1 }] }] } }));
 		let removed = 0;
 		const cells = matches.map(() => {
-			const cell = { buttons: [], querySelectorAll() { return this.buttons; } };
+			const cell = { ...createFakeElement('td'), buttons: [], querySelector() { return null; }, querySelectorAll() { return this.buttons; } };
 			const button = { dataset: { location_id: 'hall' }, remove() { removed++; cell.buttons = []; } };
 			cell.buttons.push(button);
 			return cell;
 		});
-		const rows = matches.map((match, index) => ({ dataset: { match_id: match._id }, querySelector() { return cells[index]; } }));
+		const rows = matches.map((match, index) => ({ ...createFakeElement('tr'), dataset: { match_id: match._id }, querySelector() { return cells[index]; } }));
 		const container = { querySelectorAll() { return rows; } };
 		const unchanged_button = cells[1].buttons[0];
 		const cmatch = loadCmatchForUpdateCourtTest(createFakeElement('tr'), {

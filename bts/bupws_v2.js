@@ -841,25 +841,6 @@ function normalize_panel_devicemode(devicemode) {
 	return devicemode === 'umpire' ? 'umpire' : 'display';
 }
 
-async function is_bupws_v2_enabled(app, tournament_key) {
-	const tournament = await find_one_async(app.db.tournaments, { key: tournament_key || default_tournament_key }, PANEL_TOURNAMENT_PROJECTION);
-	debug_flags.set_from_tournament(tournament);
-	return !!(tournament && tournament.bupws_v2_enabled);
-}
-
-async function send_use_bup_v1_if_disabled(app, ws, tournament_key) {
-	if (await is_bupws_v2_enabled(app, tournament_key)) {
-		return false;
-	}
-	if (ws && ws.readyState === 1) {
-		ws.sendmsg({
-			type: 'use-bup-v1',
-			tournament_key,
-		});
-	}
-	return true;
-}
-
 function get_default_displaysettings_id(tournament, devicemode = 'display') {
 	const normalized_devicemode = normalize_panel_devicemode(devicemode);
 	if (normalized_devicemode === 'umpire') {
@@ -2485,9 +2466,6 @@ async function handle_init(app, ws, msg) {
 	apply_explicit_client_identity(ws, msg);
 	const tournament_key = msg.tournament_key || default_tournament_key;
 	ws.last_tournament_key = tournament_key;
-	if (await send_use_bup_v1_if_disabled(app, ws, tournament_key)) {
-		return;
-	}
 	ws.panel_devicemode = normalize_panel_devicemode(msg?.panel_settings?.devicemode || ws.panel_devicemode);
 	if (ws.panel_devicemode === 'umpire') {
 		if (should_skip_duplicate_umpire_init(app, ws, tournament_key, msg)) {
@@ -2556,9 +2534,6 @@ async function handle_init(app, ws, msg) {
 
 async function send_current_state(app, ws, tournament_key, msg, options = {}) {
 	if (!ws || ws.readyState !== 1) {
-		return;
-	}
-	if (await send_use_bup_v1_if_disabled(app, ws, tournament_key)) {
 		return;
 	}
 	if (normalize_panel_devicemode(msg?.panel_settings?.devicemode || ws.panel_devicemode) === 'umpire') {

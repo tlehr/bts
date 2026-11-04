@@ -38,6 +38,17 @@ describe('Shared dialog action lifecycle', function() {
   const pristine = new Event('submit', { cancelable: true });form.dispatchEvent(pristine);assert.strictEqual(pristine.defaultPrevented, true);
   data.value = 'draft';controller.begin('save');const duplicate = new Event('submit', { cancelable: true });form.dispatchEvent(duplicate);assert.strictEqual(duplicate.defaultPrevented, true);
  });
+ it('allows a new object to submit its unchanged defaults and still blocks duplicate submissions', function() {
+  const form = new EventTarget();
+  const controller = actions.create(form, {allowUnchanged:true, read:() => 'defaults', onUpdate() {}, confirmDiscard() {return false;}});
+  const initial = new Event('submit', {cancelable:true});form.dispatchEvent(initial);
+  assert.strictEqual(initial.defaultPrevented, false);
+  assert.strictEqual(controller.state().dirty, false);assert.strictEqual(controller.canClose(), true);
+  assert.strictEqual(controller.begin('save'), true);
+  const duplicate = new Event('submit', {cancelable:true});form.dispatchEvent(duplicate);
+  assert.strictEqual(duplicate.defaultPrevented, true);assert.strictEqual(controller.canClose(), false);
+  controller.end();assert.strictEqual(controller.begin('save'), true);controller.destroy();
+ });
  it('releases the form and listeners when a dialog closes', function() {
   const { form, calls, data, controller } = setup();assert.strictEqual(actions.get(form), controller);controller.destroy();
   const count = calls.length;data.value = 'draft';form.dispatchEvent(new Event('input'));

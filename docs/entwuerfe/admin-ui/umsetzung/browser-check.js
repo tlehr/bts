@@ -17,17 +17,33 @@ class CDP {
  async evaluate(expression){const r=await this.call('Runtime.evaluate',{expression,returnByValue:true,awaitPromise:true});if(r.exceptionDetails)throw new Error(r.exceptionDetails.exception?.description||r.exceptionDetails.text);return r.result.value;}
 }
 (async()=>{
- let server,chrome,ws,profile,c,profiling=false;
+ let server,chrome,ws,profile,c,advertisementDirectory,advertisementUploadApp,profiling=false;
  const report={checks:[]};
  try{
+  if(process.argv.includes('--settings-advertisements-upload-only')||process.argv.includes('--settings-advertisements-library-only')) {
+   advertisementDirectory=fs.mkdtempSync(path.join(os.tmpdir(),'bts-advertisement-browser-'));
+   advertisementUploadApp=require('express')();advertisementUploadApp.db=await require('../../../../bts/database').init_test();
+   await new Promise((resolve,reject)=>advertisementUploadApp.db.tournaments.insert({key:'preview'},error=>error?reject(error):resolve()));
+   require('../../../../bts/advertisement_assets').create({directory:advertisementDirectory}).register(advertisementUploadApp);
+  }
   server=http.createServer((req,res)=>{
    const url=new URL(req.url,'http://localhost');
+   if(advertisementUploadApp&&(/^\/h\/preview\/advertisements\/(upload|library(?:\/select)?)$/.test(url.pathname)||url.pathname.startsWith('/media/advertisements/'))) return advertisementUploadApp(req,res);
    let filename=path.resolve(root,'.'+decodeURIComponent(url.pathname));
    if(url.pathname==='/favicon.ico'){res.writeHead(204);res.end();return;}
    // BTS generates these entry pages at runtime. Settings form tests do not
    // exercise the separate BUP application embedded in its preview frames.
-   if(['/bup/','/bupdev/'].includes(url.pathname)){res.writeHead(200,{'Content-Type':'text/html; charset=utf-8'});res.end('<!doctype html><html><body>Vorschau im isolierten Formulartest</body></html>');return;}
+   if(['/bup/','/bupdev/'].includes(url.pathname)) {
+    res.writeHead(200,{'Content-Type':'text/html; charset=utf-8'});
+    res.end(process.argv.includes('--settings-profile-previews-only') ? fs.readFileSync(path.join(root,'static/bup/dev/bup.html'),'utf8') : '<!doctype html><html><body>Vorschau im isolierten Formulartest</body></html>');return;
+   }
+   if(process.argv.includes('--settings-profile-previews-only')&&/^\/h\/preview\/display\/(primary|live)\.json$/.test(url.pathname)) {
+    res.writeHead(200,{'Content-Type':'application/json'});fs.createReadStream(path.join(root,'static/bup/dev/div/tdemo.json')).pipe(res);return;
+   }
    if(url.pathname==='/h/preview/logo/fixture-court.svg'){res.writeHead(200,{'Content-Type':'image/svg+xml'});fs.createReadStream(path.join(root,'static/icons/court.svg')).pipe(res);return;}
+   if(process.argv.includes('--settings-logo-library-only')&&/^\/h\/preview\/logo\/logo-(current|other|old|upload)\.svg$/.test(url.pathname)) {
+    res.writeHead(200,{'Content-Type':'image/svg+xml'});fs.createReadStream(path.join(root,'static/icons/court.svg')).pipe(res);return;
+   }
    if(url.pathname.startsWith('/bup/'))filename=path.join(root,'static/bup/dev',url.pathname.slice(5));
    if(url.pathname.startsWith('/bupdev/'))filename=path.join(root,'static/bup/dev',url.pathname.slice(8));
    if(url.pathname==='/admin/t/preview/speech-helpers/'){res.writeHead(302,{Location:'/admin/t/preview/edit/speech#speech-helpers'});res.end();return;}
@@ -209,6 +225,40 @@ class CDP {
   }
   if(process.argv.includes('--settings-locations-only')) {
    await require('./settings-locations-check')({c,open,metrics,key,capture:snap,check,previews});return;
+  }
+  if(process.argv.includes('--settings-logo-library-only')) {
+   await require('./settings-logo-library-check')({c,open,metrics,capture:snap,check});return;
+  }
+  if(process.argv.includes('--settings-profile-previews-only')) {
+   await require('./settings-profile-previews-check')({c,open,metrics,capture:snap,check});return;
+  }
+  if(process.argv.includes('--settings-displays-only')) {
+   await require('./settings-displays-check')({c,open,metrics,capture:snap,check});return;
+  }
+  if(process.argv.includes('--settings-advertisements-only')) {
+   await require('./settings-advertisements-check')({c,open,metrics,capture:snap,check});return;
+  }
+  if(process.argv.includes('--settings-ticker-only')) {
+   await require('./settings-ticker-check')({c,open,metrics,key,capture:snap,check});return;
+  }
+  if(process.argv.includes('--settings-maintenance-only')) {
+   await require('./settings-maintenance-check')({c,open,metrics,key,capture:snap,check});return;
+  }
+  if(process.argv.includes('--settings-reset-selection-only')) {
+   await require('./settings-reset-selection-check')({c,open,metrics,key,capture:snap,check});return;
+  }
+  if(process.argv.includes('--settings-debug-only')) {
+   await require('./settings-debug-check')({c,open,metrics,key,capture:snap,check});return;
+  }
+  if(process.argv.includes('--settings-advertisements-upload-only')) {
+   await require('./settings-advertisements-upload-check')({c,open,metrics,capture:snap,check});return;
+  }
+  if(process.argv.includes('--settings-advertisements-library-only')) {
+   await require('./settings-advertisements-library-check')({c,open,metrics,capture:snap,check,
+    removeSaved:id=>new Promise((resolve,reject)=>advertisementUploadApp.db.advertisements.remove({_id:id},{},error=>error?reject(error):resolve())),
+    copyLegacy:async id=>{const copy=require('uuid/v4')()+'.png';await fs.promises.copyFile(path.join(advertisementDirectory,id),path.join(advertisementDirectory,copy));return copy;},
+    removeFile:id=>fs.promises.unlink(path.join(advertisementDirectory,id)),
+   });return;
   }
   if(process.argv.includes('--settings-scoring-only')) {
    await require('./settings-scoring-check')({c,open,metrics,key,capture:snap,check,previews});return;
@@ -947,5 +997,6 @@ class CDP {
   if(chrome){const done=new Promise(r=>chrome.once('exit',r));chrome.kill('SIGTERM');await Promise.race([done,delay(4000)]);}
   if(server){server.closeAllConnections();server.close();}
   if(profile){await delay(350);fs.rmSync(profile,{recursive:true,force:true,maxRetries:5,retryDelay:200});}
+  if(advertisementDirectory)fs.rmSync(advertisementDirectory,{recursive:true,force:true});
  }
 })().catch(e=>{console.error(e.stack);process.exitCode=1;});

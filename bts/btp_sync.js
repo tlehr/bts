@@ -587,7 +587,7 @@ function _btp_source_can_produce_human(draw_id, source_planning, dependency_look
 }
 
 function _btp_match_is_empty_bye_branch(bm, dependency_lookup = null) {
-	if (!_btp_node_is_match_like(bm) || bm.Winner) {
+	if (!_btp_node_is_match_like(bm) || _winner_index_from_match(bm) != null) {
 		return false;
 	}
 	if (_btp_raw_match_has_players(bm)) {
@@ -704,7 +704,7 @@ function explain_hidden_empty_bye_candidate_rejection(bm, lookup, visible_match_
 	if (!_btp_node_is_match_like(bm)) {
 		return { reason: 'not_match_like' };
 	}
-	if (bm.Winner) {
+	if (_winner_index_from_match(bm) != null) {
 		return { reason: 'has_winner' };
 	}
 	if (_btp_raw_match_has_players(bm)) {
@@ -1018,9 +1018,11 @@ async function craft_match(app, tkey, btp_id, location_map, court_map, event, st
 			};
 			match.team1_won = undefined;
 			match.btp_winner = undefined;
-			if (bm.Winner) {
-				match.btp_winner = bm.Winner[0];
-				match.team1_won = (match.btp_winner === 1);
+			// BTP may explicitly send Winner=0 for an unresolved/reset game.
+			const winner_index = _winner_index_from_match(bm);
+			if (winner_index != null) {
+				match.btp_winner = winner_index + 1;
+				match.team1_won = winner_index === 0;
 			} else if (_btp_match_is_empty_bye_branch(bm, btp_dependency_lookup)) {
 				match.btp_winner = 1;
 				match.team1_won = true;
@@ -1941,7 +1943,8 @@ function btp_result_signature_from_raw_match(bm) {
 	if (!bm) {
 		return null;
 	}
-	const winner = bm.Winner ? Number(bm.Winner[0]) : null;
+	const winner_index = _winner_index_from_match(bm);
+	const winner = winner_index == null ? null : winner_index + 1;
 	const score_status = bm.ScoreStatus ? Number(bm.ScoreStatus[0]) : 0;
 	if (winner == null && score_status === 0) {
 		return null;
@@ -2029,7 +2032,7 @@ function btp_match_clears_local_normal_result(current_match, bm) {
 		return false;
 	}
 	const remote_has_score = bm?.Sets?.[0]?.Set;
-	if (Array.isArray(remote_has_score) && remote_has_score.length > 0) {
+	if (Array.isArray(remote_has_score) && remote_has_score.some(set => Number(set.T1?.[0]) > 0 || Number(set.T2?.[0]) > 0)) {
 		return false;
 	}
 	const local_score_status = score_status_by_name_value(current_match.score_status, current_match.btp_score_status);

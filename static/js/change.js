@@ -1,4 +1,4 @@
-/* global btsSpeechService, cleitstand */
+/* global btsSpeechService, cleitstand, current_view */
 var change = (function() {
 
 	function default_handler(rerender, special_funcs) {
@@ -135,7 +135,7 @@ var change = (function() {
 		if (current_view === 'edit') {
 			ctournament.update_edit_dependencies();
 		}
-		if (field === 'displaysettings_general') {
+		if (field === 'displaysettings_general' || field === 'displaysettings_general_tablet') {
 			ctournament.update_general_displaysettings(change_obj);
 		}
 		if (field === 'language') {
@@ -150,7 +150,10 @@ var change = (function() {
 		if (field === 'upcoming_matches_today_only_enabled') {
 			ctournament.refresh_current_view();
 		}
-		if (['preparation_call_debug_output_enabled', 'preparation_call_debug_icons_enabled'].includes(field) && current_view === 'show') {
+		if (field === 'preparation_call_debug_icons_enabled' && current_view === 'show') {
+			cmatch.refresh_unassigned_preparation_context();
+		}
+		if (field === 'preparation_call_debug_output_enabled' && current_view === 'show') {
 			uiu.qsEach('.unassigned_container', function(unassigned_container) {
 				cmatch.render_unassigned(unassigned_container);
 			});
@@ -907,9 +910,9 @@ var change = (function() {
 			ctournament.update_general_displaysettings(c);
 			break;
 		case 'delete_display_setting':
-			const removed_setting_id = c.val.setting_id;
-			const rs = utils.find(curt.displaysettings, m => m.id === removed_setting_id);
-			curt.displaysettings.splice(curt.displaysettings.indexOf(rs), 1);
+			const removed_setting_id = typeof c.val === 'string' ? c.val : c.val.setting_id;
+			const removed_setting_index = curt.displaysettings.findIndex(setting => setting.id === removed_setting_id);
+			if (removed_setting_index >= 0) curt.displaysettings.splice(removed_setting_index, 1);
 			ctournament.update_general_displaysettings(c);
 			break;
 		case 'display_status_changed':

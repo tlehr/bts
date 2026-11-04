@@ -49,6 +49,63 @@ function singleMatchBtpState(overrides = {}) {
 }
 
 _describe('btp_sync', () => {
+	_it('keeps unresolved BTP games eligible for court resets with one or two unknown opponents', async () => {
+		for (const known_players of [[], [{ ID: [9] }]]) {
+			const db = await database.init_test();
+			const app = { db, wss: { clients: [] }, _btp_sync_effects: [] };
+			await insert(db, 'tournaments', { key: 'default', btp_enabled: false, btp_settings: {} });
+			await insert(db, 'courts', { _id: 'court7', tournament_key: 'default', btp_id: 7, num: 7 });
+			const state = singleMatchBtpState({ Winner: [0], ScoreStatus: [0], CourtID: [7], DisplayOrder: [6],
+				From1: [20], From2: [21], bts_complete: false, bts_players: [known_players, []] });
+			for (const planning of [20, 21]) {
+				state.matches.push({ ...singleMatchBtpState().matches[0], ID: [planning], MatchNr: [planning],
+					PlanningID: [planning], From1: [planning * 2], From2: [planning * 2 + 1], WinnerTo: [100] });
+			}
+			const sync = () => new Promise((resolve, reject) => btp_sync._integrate_matches(
+				app, 'default', state, new Map(), new Map(), new Map([[7, 'court7']]), err => err ? reject(err) : resolve()));
+			await sync();
+			const id = 'btp_default_MX U17_1';
+			let match = await db.matches.findOne_async({ _id: id });
+			assert.strictEqual(match.setup.state, 'incomplete');
+			assert.strictEqual(match.setup.court_id, 'court7');
+			assert.strictEqual(match.team1_won, undefined);
+			assert.strictEqual(match.btp_winner, undefined);
+			assert.deepStrictEqual(match.btp_match_ids, [{ id: 1, nr: 1, draw: 10, planning: 100 }]);
+			assert.strictEqual(require('../bts/court_assignments_reset').can_reset(match), true);
+			assert.strictEqual((await require('../bts/court_assignments_reset').reset(app, 'default', () => {}, { target: 'bts' })).changed_matches, 1);
+			delete state.matches[0].CourtID;
+			await sync();
+			match = await db.matches.findOne_async({ _id: id });
+			assert(!match.setup.court_id);
+			assert.strictEqual(match.setup.teams[0].players.length, known_players.length);
+			assert.strictEqual(match.setup.teams[1].players.length, 0);
+			assert.strictEqual(match.setup.links.from2_link, 'Gewinner #21');
+			assert.strictEqual(match.match_order, 6);
+		}
+	});
+
+	_it('imports an explicit unknown BTP winner as a result reset, including zero-valued sets', async () => {
+		for (const sets of [undefined, [{ Set: [{ T1: [0], T2: [0] }] }]]) {
+			const db = await database.init_test();
+			const app = { db, wss: { clients: [] }, _btp_sync_effects: [] };
+			await insert(db, 'tournaments', { key: 'default', btp_settings: {} });
+			const state = singleMatchBtpState({ Winner: [1], Sets: [{ Set: [{ T1: [21], T2: [10] }] }] });
+			const sync = () => new Promise((resolve, reject) => btp_sync._integrate_matches(
+				app, 'default', state, new Map(), new Map(), new Map(), err => err ? reject(err) : resolve()));
+			await sync();
+			const id = 'btp_default_MX U17_1';
+			assert.strictEqual((await db.matches.findOne_async({ _id: id })).team1_won, true);
+			Object.assign(state.matches[0], { Winner: [0], ScoreStatus: [0], Sets: sets });
+			await sync();
+			await sync();
+			const match = await db.matches.findOne_async({ _id: id });
+			assert.strictEqual(match.team1_won, undefined);
+			assert.strictEqual(match.btp_winner, undefined);
+			assert.strictEqual(match.network_score, undefined);
+			assert.notStrictEqual(match.setup.state, 'finished');
+		}
+	});
+
 	_it('preserves an unconfirmed final score and avoids a repeated BTP court call while automation is paused', async () => {
 		const db = await database.init_test();
 		const app = { db, wss: { clients: [] }, _btp_sync_effects: [], clock: { now_ms: () => 1000000 } };

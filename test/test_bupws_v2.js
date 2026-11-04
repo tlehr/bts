@@ -231,7 +231,7 @@ _describe('bupws v2 score fanout', () => {
 		const insert = (table, doc) => new Promise((resolve, reject) => {
 			db[table].insert(doc, err => err ? reject(err) : resolve());
 		});
-		await insert('tournaments', { key: 'fanout-test', bupws_v2_enabled: true });
+		await insert('tournaments', { key: 'fanout-test' });
 		await insert('courts', { _id: 'court-1', tournament_key: 'fanout-test', match_id: 'match-1', num: 1 });
 		await insert('matches', {
 			_id: 'match-1', tournament_key: 'fanout-test', network_score: [[1, 0]], presses: [],
@@ -269,6 +269,59 @@ _describe('bupws v2 score fanout', () => {
 			panels.forEach(ws => { ws.on_payload = check; });
 		});
 	}
+
+	_it('initializes and refreshes displays and tablets regardless of an old missing, false or true protocol flag', async () => {
+		const { app, panel, cleanup } = await fixture();
+		try {
+			await require('../bts/displaysettings_defaults').ensure_default_displaysettings(app,
+				await app.db.tournaments.findOne_async({key: 'fanout-test'}));
+			for (const legacy_value of [undefined, false, true]) {
+				const update = legacy_value === undefined ? {$unset: {bupws_v2_enabled: true}} : {$set: {bupws_v2_enabled: legacy_value}};
+				await app.db.tournaments.update_async({key: 'fanout-test'}, update, {});
+				const tournament = await app.db.tournaments.findOne_async({key: 'fanout-test'});
+				for (const devicemode of ['display', 'umpire']) {
+					const ws = panel(devicemode + '-' + legacy_value);
+					ws.panel_devicemode = devicemode;
+					await new Promise((resolve, reject) => app.db.display_court_displaysettings.insert({
+						client_id: ws.client_id, hostname: ws.hostname, court_id: 'court-1', panel_devicemode: devicemode,
+						displaysetting_id: devicemode === 'umpire' ? tournament.displaysettings_general_tablet : tournament.displaysettings_general,
+					}, error => error ? reject(error) : resolve()));
+					await bupws_v2.handle_init(app, ws, {tournament_key: 'fanout-test', panel_settings: {devicemode}});
+					assert(ws.messages.some(message => devicemode === 'display' ? message.type === 'display_state' : message.ctype === 'score-update'));
+					const previous = ws.messages.length;
+					await bupws_v2.send_current_state(app, ws, 'fanout-test');
+					assert(ws.messages.length > previous);
+					assert(!ws.messages.some(message => message.type === 'use-bup-v1'));
+				}
+			}
+		} finally { cleanup(); }
+	});
+
+	_it('keeps sending scores while the acknowledgement toggle independently controls the admin wait indicator', async () => {
+		const { app, panel, cleanup } = await fixture();
+		const admin = require('../bts/admin'), notify = admin.notify_change;
+		const previous_override = process.env.BUP_V2_ADMIN_WAIT_FOR_SCORE_UPDATES;
+		const notifications = [];
+		delete process.env.BUP_V2_ADMIN_WAIT_FOR_SCORE_UPDATES;
+		admin.notify_change = (_app, _key, type, value) => notifications.push({type, value});
+		const display = panel('acknowledgement-display');
+		try {
+			for (const [index, enabled] of [false, true, false].entries()) {
+				await app.db.tournaments.update_async({key: 'fanout-test'}, {$set: {bup_v2_admin_wait_for_score_updates: enabled}}, {});
+				await app.db.matches.update_async({_id: 'match-1'}, {$set: {network_score: [[index + 2, 0]]}}, {});
+				notifications.length = 0; display.messages.length = 0;
+				await bupws_v2.handle_score_change(app, 'fanout-test', 'court-1');
+				assert(display.messages.some(message => message.type === 'display_points_update'));
+				assert.strictEqual(notifications.some(item => item.type === 'display_wait_for_done' &&
+					item.value.val.payload_type === 'display_points_update'), enabled);
+			}
+		} finally {
+			admin.notify_change = notify;
+			if (previous_override === undefined) delete process.env.BUP_V2_ADMIN_WAIT_FOR_SCORE_UPDATES;
+			else process.env.BUP_V2_ADMIN_WAIT_FOR_SCORE_UPDATES = previous_override;
+			cleanup();
+		}
+	});
 
 	_it('uses current rally settings for scores without reading the tournament registration payload', async () => {
 		const { app, panel, cleanup } = await fixture();

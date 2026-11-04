@@ -18,6 +18,15 @@ function harness(displays = []) {
 }
 
 describe('Live display metadata', function() {
+    it('removes the specified profile for both deletion message shapes and ignores duplicates', function() {
+        const h = harness();h.context.curt.displaysettings = [{id:'keep'}, {id:'remove'}, {id:'last'}];
+        h.handle({ctype:'delete_display_setting', val:'remove'});
+        assert.deepStrictEqual(h.context.curt.displaysettings.map(setting=>setting.id), ['keep', 'last']);
+        h.handle({ctype:'delete_display_setting', val:'remove'});
+        assert.deepStrictEqual(h.context.curt.displaysettings.map(setting=>setting.id), ['keep', 'last']);
+        h.handle({ctype:'delete_display_setting', val:{setting_id:'last'}});
+        assert.deepStrictEqual(h.context.curt.displaysettings.map(setting=>setting.id), ['keep']);
+    });
     it('notifies the view immediately when a new device connects', function() {
         const h = harness(), display = { client_id: 'new', online: true, panel_devicemode: 'umpire', battery: { level: 0.25 } };
         h.status(display);

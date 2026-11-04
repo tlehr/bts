@@ -24,6 +24,32 @@ describe('clearing planned court assignments', function() {
 	});
 	afterEach(function() { manager.clear_court_assignments = original_clear; });
 
+	it('clears fields with one or two unknown opponents in BTS alone and in BTS with BTP', async function() {
+		for (const target of ['bts', 'both']) {
+			const matches = [[], [{ btp_id: 1, name: 'Known player' }]].map((players, index) => ({
+				_id: target + index, tournament_key: 'target', btp_match_ids: [{ id: index + 1, draw: 10, planning: index + 100 }],
+				match_order: index + 10,
+				setup: { state: 'incomplete', incomplete: true, court_id: 'planned-court', location_id: 'hall',
+					teams: [{ players }, { players: [] }], scheduled_time_str: '18:30',
+					links: { from1: 20, from2: 21, from2_link: { relation: 'winner', match_num: 42 } } },
+			}));
+			await insert(app.db.matches, matches);
+			let calls = 0;
+			manager.clear_court_assignments = async (_key, pending) => {
+				calls++;
+				for (const match of matches) assert(pending.some(candidate => candidate._id === match._id));
+				return { allowed_match_ids: pending.map(match => match._id), btp_changed_matches: 2, skipped_matches: 0 };
+			};
+			const result = await reset(app, 'target', () => {}, { target });
+			assert.strictEqual(result.changed_matches, 2);
+			assert.strictEqual(calls, target === 'both' ? 1 : 0);
+			for (const before of matches) {
+				assert.deepStrictEqual(await app.db.matches.findOne_async({ _id: before._id }),
+					{ ...before, setup: { ...before.setup, court_id: null } });
+			}
+		}
+	});
+
 	it('clears pending matches while preserving preparation, halls, scores and participant flags', async function() {
 		const matches = [];
 		for (const state of ['scheduled', 'incomplete', 'preparation', 'blocked']) {

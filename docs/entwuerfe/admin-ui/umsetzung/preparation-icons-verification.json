@@ -1,5 +1,5 @@
 {
-  "date": "2026-11-03",
+  "date": "2026-11-04",
   "checks": [
     "Without hall images every preparation call displays one microphone and its hall initials",
     "A live hall image replaces both microphone and initials on existing call controls",

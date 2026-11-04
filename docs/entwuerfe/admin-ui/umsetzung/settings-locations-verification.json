@@ -1,5 +1,5 @@
 {
-  "date": "2026-11-03",
+  "date": "2026-11-04",
   "checks": [
     "Locations use separate modern hall cards and a shared grouped field card",
     "All location inputs have unique associated labels and court switches have field-specific accessible names",

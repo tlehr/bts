@@ -146,5 +146,6 @@
     };
     const interval = setInterval(refresh, 2000);
     window.addEventListener('pagehide', () => { stopped = true; clearInterval(interval); clearTimeout(searchTimer); ws?.close(); });
+    showTab(new URLSearchParams(location.search).get('tab') === 'devices' ? 'devices' : 'logs');
     connect();
 })();

@@ -47,6 +47,25 @@ function peer(options = {}) {
 }
 
 describe('BTP court assignment reset', function() {
+	it('clears future games with one or two unknown opponents without changing draw dependencies', async function() {
+		const { connection, matches, nodes, requests } = peer();
+		const selected = [matches[0], matches[3]];
+		for (const [index, match] of selected.entries()) {
+			match.setup.teams = [{ players: index ? [{ btp_id: 9 }] : [] }, { players: [] }];
+			match.setup.incomplete = true;
+			const node = nodes.find(node => node.ID[0] === match.btp_match_ids[0].id);
+			Object.assign(node, { From1: [100], From2: [101], Winner: [0], ScoreStatus: [0],
+				bts_players: index ? [[{ ID: [9] }], null] : [null, null] });
+		}
+		const before = structuredClone(nodes);
+		assert.deepStrictEqual(await reset(connection, selected), {
+			allowed_match_ids: ['m1', 'm4'], btp_changed_matches: 2, skipped_matches: 0,
+		});
+		assert.deepStrictEqual(requests[1].Update.Tournament.Matches.map(row => [row.Match.ID, row.Match.CourtID]), [[1, 0], [4, 0]]);
+		for (const index of [0, 3]) delete before[index].CourtID;
+		assert.deepStrictEqual(nodes, before);
+	});
+
 	it('sends and verifies explicit removal, preserving order, status, time and preparation highlights', async function() {
 		const { connection, requests, nodes, courts, matches } = peer();
 		const before = structuredClone(nodes);

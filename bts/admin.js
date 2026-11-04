@@ -3,8 +3,6 @@
 const SetupChanges = require('./match_updates/setup_changes');
 
 const async = require('async');
-const fs = require('fs');
-const path = require('path');
 const uuidv4 = require('uuid/v4');
 const {promisify} = require('util');
 const registration_xlsx = require('./registration_xlsx');
@@ -21,6 +19,7 @@ const utils = require('./utils');
 const match_automation = require('./match_automation');
 const debug_flags = require('./debug_flags');
 const displaysettings_defaults = require('./displaysettings_defaults');
+const logo_library = require('./logo_library');
 const tabletoperator_waiting = require('../static/js/tabletoperator_waiting');
 
 const TABLETOPERATOR_RELEASE_SELECTION = '__release_tabletoperators__';
@@ -181,7 +180,7 @@ function handle_tournament_edit_props(app, ws, msg) {
 		'self_check_in_called_overlay_duration_ms',
 		'ticker_enabled', 'ticker_url', 'ticker_password',
 		'language', 'dm_style', 'displaysettings_general', 'displaysettings_general_tablet',
-		'bupws_v2_enabled', 'bup_v2_admin_wait_for_score_updates', 'bts_debug_output_enabled', 'bts_server_diagnostics_enabled', 'bts_client_performance_debug_enabled', 'bts_auto_call_trace_enabled', 'bts_score_press_timing_enabled',
+		'bup_v2_admin_wait_for_score_updates', 'bts_debug_output_enabled', 'bts_server_diagnostics_enabled', 'bts_client_performance_debug_enabled', 'bts_auto_call_trace_enabled', 'bts_score_press_timing_enabled',
 		'tabletoperator_enabled', 'tabletoperator_break_seconds',
 		'announcement_speed','announcement_pause_time_ms', 'announcement_speech_mode', 'announcement_speech_voice', 'announcement_speech_warm_other_voice',
 		'tabletoperator_set_break_after_tabletservice','tabletoperator_with_state_enabled',
@@ -308,12 +307,6 @@ function handle_tournament_edit_props(app, ws, msg) {
 				const bupws = require('./bupws');
 				bupws.change_default_display_mode(app, t, tournament.displaysettings_general_tablet, t.displaysettings_general_tablet);
 			}
-			if (Object.prototype.hasOwnProperty.call(props, 'bupws_v2_enabled')) {
-				const bupws = require('./bupws');
-				bupws.refresh_protocol_mode(app, key).catch((refreshErr) => {
-					console.warn('[bts] failed to refresh BUP protocol mode', refreshErr && (refreshErr.stack || refreshErr.message || String(refreshErr)));
-				});
-			}
 
 			ws.respond(msg, err);
 		});
@@ -340,7 +333,7 @@ function handle_tournament_edit_prop(app, ws, msg) {
 		'self_check_in_called_overlay_duration_ms',
 		'ticker_enabled', 'ticker_url', 'ticker_password',
 		'language', 'dm_style', 'displaysettings_general', 'displaysettings_general_tablet',
-		'bupws_v2_enabled', 'bup_v2_admin_wait_for_score_updates', 'bts_debug_output_enabled', 'bts_server_diagnostics_enabled', 'bts_client_performance_debug_enabled', 'bts_auto_call_trace_enabled', 'bts_score_press_timing_enabled',
+		'bup_v2_admin_wait_for_score_updates', 'bts_debug_output_enabled', 'bts_server_diagnostics_enabled', 'bts_client_performance_debug_enabled', 'bts_auto_call_trace_enabled', 'bts_score_press_timing_enabled',
 		'tabletoperator_enabled', 'tabletoperator_break_seconds',
 		'announcement_speed', 'announcement_pause_time_ms', 'announcement_speech_mode', 'announcement_speech_voice', 'announcement_speech_warm_other_voice',
 		'tabletoperator_set_break_after_tabletservice', 'tabletoperator_with_state_enabled',
@@ -462,12 +455,6 @@ function handle_tournament_edit_prop(app, ws, msg) {
 			if (!tournament.displaysettings_general_tablet || (field === 'displaysettings_general_tablet' && tournament.displaysettings_general_tablet != t.displaysettings_general_tablet)){
 				const bupws = require('./bupws');
 				bupws.change_default_display_mode(app, t, tournament.displaysettings_general_tablet, t.displaysettings_general_tablet);
-			}
-			if (field === 'bupws_v2_enabled') {
-				const bupws = require('./bupws');
-				bupws.refresh_protocol_mode(app, key).catch((refreshErr) => {
-					console.warn('[bts] failed to refresh BUP protocol mode', refreshErr && (refreshErr.stack || refreshErr.message || String(refreshErr)));
-				});
 			}
 
 			ws.respond(msg, err);
@@ -1071,6 +1058,8 @@ async function handle_tournament_reset(app, ws, msg) {
 	if (!_require_msg(ws, msg, ['tournament_key'])) {
 		return;
 	}
+	if (msg.target != null && msg.target !== 'bts') return ws.respond(msg, {message:'Das vollständige Leeren des Turnierbestands wird nur für BTS unterstützt.'});
+	if (typeof msg.tournament_key !== 'string' || !msg.tournament_key) return ws.respond(msg,{message:'Ungültiges Turnier.'});
 
 	try {
 		const result = await reset_tournament_to_empty_default(app, msg.tournament_key);
@@ -1138,21 +1127,22 @@ function clear_player_pause_fields_in_match(match) {
 	return changed;
 }
 
-async function reset_player_pause_times(app, tournament_key) {
+async function reset_player_pause_times(app, tournament_key, {target = 'both'} = {}) {
+	if (!['bts', 'both'].includes(target)) throw new Error('Ungültiges Ziel für das Zurücksetzen.');
 	const tournament = await app.db.tournaments.findOne_async({ key: tournament_key });
 	if (!tournament) {
 		throw new Error('No tournament ' + tournament_key);
 	}
-	if (!tournament.btp_enabled) {
+	if (target === 'both' && !tournament.btp_enabled) {
 		throw new Error('BTP-Anbindung ist nicht aktiviert. Pausenzeiten können nicht sicher in BTP zurückgesetzt werden.');
 	}
-	if (tournament.btp_readonly) {
+	if (target === 'both' && tournament.btp_readonly) {
 		throw new Error('BTP ist im Nur-Lesen-Modus. Pausenzeiten können nicht in BTP zurückgesetzt werden.');
 	}
 
 	const matches = await app.db.matches.find_async({ tournament_key });
 	const players_to_update = collect_players_for_pause_reset(matches);
-	if (players_to_update.length > 0) {
+	if (target === 'both' && players_to_update.length > 0) {
 		const btp_update_queued = btp_manager.update_players(app, tournament_key, players_to_update);
 		if (!btp_update_queued) {
 			throw new Error('BTP-Verbindung ist nicht bereit. Bitte BTP verbinden und erneut versuchen.');
@@ -1203,6 +1193,33 @@ async function handle_player_pause_reset(app, ws, msg) {
 		return ws.respond(msg, null, result);
 	} catch (err) {
 		return ws.respond(msg, err);
+	}
+}
+
+async function handle_maintenance_reset(app, ws, msg) {
+	if (!_require_msg(ws, msg, ['tournament_key', 'target', 'actions'])) return;
+	if (typeof msg.tournament_key !== 'string' || !msg.tournament_key) return ws.respond(msg,{message:'Ungültiges Turnier.'});
+	try {
+		const maintenance = require('./maintenance_reset'), plan = maintenance.validate(msg);
+		const tournament = await app.db.tournaments.findOne_async({key:msg.tournament_key});
+		if (!tournament) throw new Error('Turnier nicht gefunden.');
+		if (plan.target === 'both' && (!tournament.btp_enabled || tournament.btp_readonly || btp_manager.get_status(msg.tournament_key)?.status !== 'connected')) {
+			throw new Error('Für BTS und BTP muss BTP schreibend verbunden sein. Es wurde nichts zurückgesetzt.');
+		}
+		const result = await maintenance.execute(plan, {
+			match_results:(target,match_ids) => require('./match_results_reset').reset(app,msg.tournament_key,{target,match_ids},
+				(type,value) => notify_change(app,msg.tournament_key,type,value)),
+			court_assignments:target => require('./court_assignments_reset').reset(app,msg.tournament_key,
+				value => notify_change(app,msg.tournament_key,'court_assignments_reset',value),{target}),
+			player_pauses:async target => {
+				const result = await reset_player_pause_times(app,msg.tournament_key,{target});
+				notify_change(app,msg.tournament_key,'player_pause_reset',result);return result;
+			},
+		});
+		if (plan.target === 'both' && plan.actions.includes('match_results')) btp_manager.fetch(msg.tournament_key);
+		return ws.respond(msg,null,result);
+	} catch (error) {
+		return ws.respond(msg,{message:error.message,completed:error.completed || [],failed:error.failed}, {results:error.results || {}});
 	}
 }
 
@@ -1317,7 +1334,7 @@ function handle_advertisement_add(app, ws, msg) {
 		notify_change(app, msg.tournament_key, 'advertisement_add', { advertisement: inserted_advertisement });
 		const bupws = require('./bupws');
 		bupws.send_advertisement_add(app, msg.tournament_key,inserted_advertisement);
-		return;
+		ws.respond(msg, null, {advertisement: inserted_advertisement});
 	});
 }
 
@@ -1332,10 +1349,11 @@ function handle_advertisement_remove(app, ws, msg) {
 
 	const query = { _id: msg.advertisement_id };
 	app.db.advertisements.remove(query, {}, (err) => {
+		if (err) return ws.respond(msg, err);
 		notify_change(app, msg.tournament_key, 'advertisement_removed', { advertisement_id: msg.advertisement_id });
 		const bupws = require('./bupws');
 		bupws.send_advertisement_remove(app, msg.tournament_key,msg.advertisement_id);
-		return;
+		ws.respond(msg, null, {});
 	});
 }
 
@@ -5744,103 +5762,121 @@ function on_close(app, ws) {
 	}
 }
 
+async function async_handle_tournament_logo_list(app, ws, msg) {
+	try {
+		if (typeof msg.tournament_key !== 'string' || !msg.tournament_key || !await app.db.tournaments.findOne_async({key:msg.tournament_key})) throw new Error('Das Turnier wurde nicht gefunden.');
+		ws.respond(msg, null, {logos:await logo_library.list(app.db)});
+	} catch (error) {ws.respond(msg, {message:error.message});}
+}
+
+async function async_handle_tournament_select_logo(app, ws, msg) {
+	try {
+		const props = await logo_library.select(app.db, msg.tournament_key, msg.logo_id);
+		notify_change(app, msg.tournament_key, 'logo_changed', props);
+		require('./bupws_v2').refresh_tournament(app, msg.tournament_key).catch(error => console.error('[bup v2] logo refresh failed', error));
+		ws.respond(msg, null, props);
+	} catch (error) {ws.respond(msg, {message:error.message});}
+}
+
 async function async_handle_tournament_upload_logo(app, ws, msg) {
-	if (!_require_msg(ws, msg, ['tournament_key', 'data_url', 'name'])) {
-		return;
-	}
+	try {
+		if (!_require_msg(ws, msg, ['tournament_key', 'data_url', 'name'])) {
+			return;
+		}
 
-	const tournament = await app.db.tournaments.findOne_async({
-		key: msg.tournament_key,
-	});
-	if (!tournament) {
-		ws.respond(msg, {message: `Could not find tournament ${msg.tournament_key}`});
-		return;
-	}
+		const tournament = await app.db.tournaments.findOne_async({
+			key: msg.tournament_key,
+		});
+		if (!tournament) {
+			ws.respond(msg, {message: `Could not find tournament ${msg.tournament_key}`});
+			return;
+		}
 
-	const m = /^data:(image\/[a-z+]+)(?:;base64)?,([A-Za-z0-9+/=]+)$/.exec(msg.data_url);
-	if (!m) {
-		ws.respond(msg, {message: `Invalid base64 URI, starts with ${msg.data_url.slice(0, 80)}`});
-		return;
-	}
-	const mime_type = m[1];
-	const logo_b64 = m[2];
+		const m = /^data:(image\/[a-z+]+)(?:;base64)?,([A-Za-z0-9+/=]+)$/.exec(msg.data_url);
+		if (!m) {
+			ws.respond(msg, {message: `Invalid base64 URI, starts with ${msg.data_url.slice(0, 80)}`});
+			return;
+		}
+		const mime_type = m[1];
+		const logo_b64 = m[2];
 
-	const ext = {
-		'image/gif': 'gif',
-		'image/png': 'png',
-		'image/jpeg': 'jpg',
-		'image/svg+xml': 'svg',
-		'image/webp': 'webp',
-	}[mime_type];
-	if (!ext) {
-		ws.respond(msg, {message: `Unsupported mime type ${mime_type}`});
-		return;
-	}
+		const ext = {
+			'image/gif': 'gif',
+			'image/png': 'png',
+			'image/jpeg': 'jpg',
+			'image/svg+xml': 'svg',
+			'image/webp': 'webp',
+		}[mime_type];
+		if (!ext) {
+			ws.respond(msg, {message: `Unsupported mime type ${mime_type}`});
+			return;
+		}
 
-	const buf = Buffer.from(logo_b64, 'base64');
-	const logo_id = uuidv4() + '.' + ext;
-	await promisify(fs.writeFile)(path.join(utils.root_dir(), 'data', 'logos', logo_id), buf);
-	const logo_name = msg.name;
+		const buf = Buffer.from(logo_b64, 'base64');
+		const logo_id = await logo_library.save(buf, ext, msg.name);
+		const logo_name = msg.name;
 
-	const [_, updated_tournament] = await app.db.tournaments.update_async( // eslint-disable-line no-unused-vars
-		{key: msg.tournament_key},
-		{$set: {logo_id, logo_name}},
-		{returnUpdatedDocs: true});
-	notify_change(app, msg.tournament_key, 'logo_changed', {logo_id, logo_name});
-	require('./bupws_v2').refresh_tournament(app, msg.tournament_key).catch((refresh_err) => {
-		console.error('[bup v2] logo refresh failed', refresh_err);
-	});
+		const [_, updated_tournament] = await app.db.tournaments.update_async( // eslint-disable-line no-unused-vars
+			{key: msg.tournament_key},
+			{$set: {logo_id, logo_name}},
+			{returnUpdatedDocs: true});
+		notify_change(app, msg.tournament_key, 'logo_changed', {logo_id, logo_name});
+		require('./bupws_v2').refresh_tournament(app, msg.tournament_key).catch((refresh_err) => {
+			console.error('[bup v2] logo refresh failed', refresh_err);
+		});
 
-	return ws.respond(msg, null, {});
+		return ws.respond(msg, null, {});
+	} catch (error) {ws.respond(msg, {message:'Das Logo konnte nicht hochgeladen werden. Bitte erneut versuchen.'});}
 }
 
 async function async_handle_tournament_upload_location_logo(app, ws, msg) {
-	if (!_require_msg(ws, msg, ['tournament_key', 'data_url', 'name', 'location_id'])) {
-		return;
-	}
+	try {
+		if (!_require_msg(ws, msg, ['tournament_key', 'data_url', 'name', 'location_id'])) {
+			return;
+		}
 
-	const tournament = await app.db.tournaments.findOne_async({
-		key: msg.tournament_key,
-	});
-	if (!tournament) {
-		ws.respond(msg, {message: `Could not find tournament ${msg.tournament_key}`});
-		return;
-	}
+		const tournament = await app.db.tournaments.findOne_async({
+			key: msg.tournament_key,
+		});
+		if (!tournament) {
+			ws.respond(msg, {message: `Could not find tournament ${msg.tournament_key}`});
+			return;
+		}
 
-	const m = /^data:(image\/[a-z+]+)(?:;base64)?,([A-Za-z0-9+/=]+)$/.exec(msg.data_url);
-	if (!m) {
-		ws.respond(msg, {message: `Invalid base64 URI, starts with ${msg.data_url.slice(0, 80)}`});
-		return;
-	}
-	const mime_type = m[1];
-	const logo_b64 = m[2];
+		const m = /^data:(image\/[a-z+]+)(?:;base64)?,([A-Za-z0-9+/=]+)$/.exec(msg.data_url);
+		if (!m) {
+			ws.respond(msg, {message: `Invalid base64 URI, starts with ${msg.data_url.slice(0, 80)}`});
+			return;
+		}
+		const mime_type = m[1];
+		const logo_b64 = m[2];
 
-	const ext = {
-		'image/gif': 'gif',
-		'image/png': 'png',
-		'image/jpeg': 'jpg',
-		'image/svg+xml': 'svg',
-		'image/webp': 'webp',
-	}[mime_type];
-	if (!ext) {
-		ws.respond(msg, {message: `Unsupported mime type ${mime_type}`});
-		return;
-	}
+		const ext = {
+			'image/gif': 'gif',
+			'image/png': 'png',
+			'image/jpeg': 'jpg',
+			'image/svg+xml': 'svg',
+			'image/webp': 'webp',
+		}[mime_type];
+		if (!ext) {
+			ws.respond(msg, {message: `Unsupported mime type ${mime_type}`});
+			return;
+		}
 
-	const buf = Buffer.from(logo_b64, 'base64');
-	const logo_id = uuidv4() + '.' + ext;
-	await promisify(fs.writeFile)(path.join(utils.root_dir(), 'data', 'logos', logo_id), buf);
-	const logo_name = msg.name;
-	const location_id = msg.location_id;
-	const tournament_key = msg.tournament_key
+		const buf = Buffer.from(logo_b64, 'base64');
+		const logo_id = await logo_library.save(buf, ext, msg.name);
+		const logo_name = msg.name;
+		const location_id = msg.location_id;
+		const tournament_key = msg.tournament_key
 
-	const [_, updated_tournament] = await app.db.locations.update_async( // eslint-disable-line no-unused-vars
-		{tournament_key, _id: location_id},
-		{$set: {logo_id, logo_name}},
-		{returnUpdatedDocs: true});
-	notify_change(app, msg.tournament_key, 'location_logo_changed', {location_id, logo_id, logo_name});
+		const [_, updated_tournament] = await app.db.locations.update_async( // eslint-disable-line no-unused-vars
+			{tournament_key, _id: location_id},
+			{$set: {logo_id, logo_name}},
+			{returnUpdatedDocs: true});
+		notify_change(app, msg.tournament_key, 'location_logo_changed', {location_id, logo_id, logo_name});
 
-	return ws.respond(msg, null, {});
+		return ws.respond(msg, null, {});
+	} catch (error) {ws.respond(msg, {message:'Das Logo konnte nicht hochgeladen werden. Bitte erneut versuchen.'});}
 }
 
 module.exports = {
@@ -5870,6 +5906,8 @@ module.exports = {
 	async_handle_delete_display_setting,
 	async_handle_match_delete,
 	async_handle_tournament_upload_logo,
+	async_handle_tournament_logo_list,
+	async_handle_tournament_select_logo,
 	async_handle_tournament_upload_location_logo,
 	handle_begin_to_play_call,
 	handle_certificate_export_mark,
@@ -5893,6 +5931,7 @@ module.exports = {
 	handle_clock_set,
 	handle_create_tournament,
 	handle_tournament_reset,
+	handle_maintenance_reset,
 	handle_player_pause_reset,
 	handle_court_assignments_reset,
 	handle_courts_add,

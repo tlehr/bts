@@ -8,7 +8,7 @@ var btsDialogActions = (() => {
  function dismissConfirmation(owner) {
   if (confirmation && (!owner || confirmation.owner === owner || owner.contains(confirmation.owner))) confirmation.finish(false);
  }
- function confirm({owner, title, message, confirmLabel, cancelLabel, danger = false, warning = false, returnFocus}) {
+ function confirm({owner, title, message, confirmLabel, cancelLabel, danger = false, warning = false, returnFocus, verification}) {
   if (!owner?.isConnected || confirmation?.owner === owner) return Promise.resolve(false);
   dismissConfirmation();
   const document = owner.ownerDocument, previousFocus = returnFocus || document.activeElement;
@@ -31,6 +31,13 @@ var btsDialogActions = (() => {
   const footer = document.createElement('div');footer.className = 'bts-confirm-actions';
   const cancel = document.createElement('button');cancel.type = 'button';cancel.className = 'bts-confirm-cancel';cancel.textContent = cancelLabel;cancel.autofocus = true;
   const accept = document.createElement('button');accept.type = 'button';accept.className = 'bts-confirm-accept';accept.textContent = confirmLabel;
+  let verificationInput;
+  if (verification) {
+   const label = document.createElement('label');label.className = 'bts-confirm-verification-label';label.textContent = verification.label;
+   verificationInput = document.createElement('input');verificationInput.type = 'text';verificationInput.id = 'bts-confirm-verification-' + sequence;
+   verificationInput.className = 'bts-confirm-verification';verificationInput.autocomplete = 'off';verificationInput.spellcheck = false;verificationInput.required = true;
+   label.htmlFor = verificationInput.id;content.append(label,verificationInput);accept.disabled = true;
+  }
   if (danger || warning) {
    const appearance = danger ? 'is-danger' : 'is-warning';
    dialog.classList.add(appearance);accept.classList.add(appearance);
@@ -45,6 +52,7 @@ var btsDialogActions = (() => {
   const lifetime = new AbortController(), {signal} = lifetime;
   const observer = new MutationObserver(() => {if (!owner.isConnected || !dialog.isConnected) finish(false);});
   const finish = approved => {
+   if (approved && verificationInput && verificationInput.value !== verification.value) return;
    if (completed) return;completed = true;observer.disconnect();lifetime.abort();
    if (confirmation?.dialog === dialog) confirmation = null;
    if (dialog.open) dialog.close();dialog.remove();
@@ -52,7 +60,13 @@ var btsDialogActions = (() => {
    resolve(approved);
   };
   confirmation = {owner, dialog, finish};
-  cancel.addEventListener('click', () => finish(false), {signal});accept.addEventListener('click', () => finish(true), {signal});
+  cancel.addEventListener('click', () => finish(false), {signal});accept.addEventListener('click', () => {if (!accept.disabled) finish(true);}, {signal});
+  if (verificationInput) {
+   verificationInput.addEventListener('input', () => {accept.disabled = verificationInput.value !== verification.value;}, {signal});
+   verificationInput.addEventListener('keydown', event => {
+    if (event.key === 'Enter' && !event.isComposing) {event.preventDefault();if (!accept.disabled) finish(true);}
+   }, {signal});
+  }
   dialog.addEventListener('cancel', event => {event.preventDefault();finish(false);}, {signal});
   dialog.addEventListener('close', () => finish(false), {signal});
   dialog.addEventListener('click', event => {if (event.target === dialog) finish(false);}, {signal});
@@ -61,7 +75,7 @@ var btsDialogActions = (() => {
    if (event.key === 'Escape') {event.preventDefault();event.stopPropagation();finish(false);return;}
    if (event.key !== 'Tab') return;
    event.preventDefault();event.stopPropagation();
-   const fields = [content, cancel, accept], current = fields.indexOf(document.activeElement);
+   const fields = [content, verificationInput, cancel, accept].filter(node => node && !node.disabled), current = fields.indexOf(document.activeElement);
    fields[(current + (event.shiftKey ? -1 : 1) + fields.length) % fields.length].focus();
   }, {signal});
   document.body.append(dialog);observer.observe(document.body, {childList: true, subtree: true});
@@ -83,14 +97,14 @@ var btsDialogActions = (() => {
   if (label != null && node.textContent !== label) node.textContent = label;
   attribute(node, 'title', reason || null);
  }
- function create(form, { onUpdate, confirmDiscard, ignore = [], read = () => snapshot(form, ignore) }) {
+ function create(form, { onUpdate, confirmDiscard, ignore = [], read = () => snapshot(form, ignore), allowUnchanged = false }) {
   let baseline = read(), currentSnapshot = baseline, dirty = false, busy = null, destroyed = false;
   const state = () => ({ dirty, busy });
   const notify = () => { onUpdate(state());return state(); };
   const refresh = () => { currentSnapshot = read();dirty = currentSnapshot !== baseline;return notify(); };
   const input = () => refresh();
   // Capture prevents duplicate submits before the existing form handler runs.
-  const submit = event => { refresh();if (busy || !dirty) { event.preventDefault();event.stopImmediatePropagation(); } };
+  const submit = event => { refresh();if (busy || (!dirty && !allowUnchanged)) { event.preventDefault();event.stopImmediatePropagation(); } };
   form.addEventListener('input', input);form.addEventListener('change', input);form.addEventListener('submit', submit, true);
   const controller = {
    state, refresh,
@@ -98,7 +112,7 @@ var btsDialogActions = (() => {
     const before = new Map(JSON.parse(baseline)), after = new Map(JSON.parse(currentSnapshot));
     return [...new Set([...before.keys(), ...after.keys()])].filter(name => before.get(name) !== after.get(name));
    },
-   begin(operation) { refresh();if (busy || (operation === 'save' && !dirty)) return false;busy = operation;notify();return true; },
+   begin(operation) { refresh();if (busy || (operation === 'save' && !dirty && !allowUnchanged)) return false;busy = operation;notify();return true; },
    end() { busy = null;refresh(); },
    accept() { baseline = currentSnapshot = read();dirty = false;busy = null;notify(); },
    ignoreFields(names) {

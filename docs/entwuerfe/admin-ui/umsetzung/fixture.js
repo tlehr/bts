@@ -38,6 +38,8 @@
  ];
  const displaysettings=[{id:'tablet-profile',devicemode:'umpire',tablet_mode:'umpire'},{id:'display-profile',devicemode:'display'}];
  const fixture={key,name:'Jugend-Rangliste 2026',language:'de',system_timezone:'Europe/Berlin',btp_enabled:false,btp_settings:{check_in_per_match:true,pause_duration_ms:120000},automation_enabled:true,call_preparation_matches_automatically_enabled:true,call_next_possible_scheduled_match_in_preparation:true,tabletoperator_enabled:true,tabletoperator_split_doubles:false,official_rotation_mode:'umpire_and_service_judge',locations,courts,matches,umpires,displays,displaysettings,events:{events:[]},normalizations:[],advertisements:[],scoring_formats:[],tabletoperators:[{_id:'tablet-1',tabletoperator:team(6).players,played_on_court:'CH_13',start_ts:1},{_id:'tablet-2',tabletoperator:team(14).players,played_on_court:'CH_4',start_ts:2}],status:{status:'connected',message:''},btp_status:{status:'deactivated',message:''},ticker_status:{status:'deactivated',message:''}};
+ // These fixtures exercise the optional rule-status dialog and its icons.
+ fixture.preparation_call_debug_icons_enabled=true;
  window.__writes=[];
  window.__serviceStatusRequests=[];
  window.__emergencySubscriptions=[];

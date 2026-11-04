@@ -35,23 +35,31 @@ var btsSettingsWorkspace = (() => {
   if (describedBy.length) control.setAttribute('aria-describedby', describedBy.join(' '));
   return control;
  }
- const sections = [
-  ['general', 'Allgemein', 'settings'],
-  ['btp', 'BTP-Verbindung', 'refresh'],
-  ['flow', 'Ablauf', 'play'],
-  ['calls', 'Aufrufe', 'speaker'],
-  ['officials', 'Tabletbedienung & Offizielle', 'umpire'],
-  ['scoring', 'Punktsysteme', 'sheet'],
-  ['locations', 'Spielorte & Felder', 'court'],
-  ['speech', 'Sprache & Durchsagen', 'mic'],
-  ['upcoming', 'Spielübersichten', 'calendar'],
-  ['devices', 'Geräte & Anzeigen', 'monitor'],
-  ['advertisements', 'Werbung', 'flag'],
-  ['ticker', 'Ticker', 'server'],
-  ['maintenance', 'Wartung', 'folder'],
-  ['debug', 'Debug-Einstellungen', 'code'],
+ const groups = [
+  ['Turnier', [
+   ['general', 'Allgemein', 'settings'],
+   ['btp', 'BTP-Verbindung', 'refresh'],
+   ['locations', 'Spielorte & Felder', 'court'],
+   ['scoring', 'Punktsysteme', 'sheet'],
+  ]],
+  ['Spielbetrieb', [
+   ['flow', 'Ablauf', 'play'],
+   ['calls', 'Aufrufe', 'speaker'],
+   ['officials', 'Tabletbedienung & Offizielle', 'umpire'],
+   ['speech', 'Sprache & Durchsagen', 'mic'],
+  ]],
+  ['Darstellung & Ausgabe', [
+   ['devices', 'Oberflächen & Profile', 'monitor'],
+   ['advertisements', 'Werbung', 'flag'],
+   ['ticker', 'Ticker', 'server'],
+  ]],
+  ['System', [
+   ['maintenance', 'Wartung', 'folder'],
+   ['debug', 'Debug-Einstellungen', 'code'],
+  ]],
  ];
- const resolve = id => id === 'tabletoperators' ? 'officials' : ['preparation', 'court-call'].includes(id) ? 'calls' : sections.some(section => section[0] === id) ? id : 'general';
+ const sections = groups.flatMap(([, entries]) => entries);
+ const resolve = id => id === 'tabletoperators' ? 'officials' : ['preparation', 'court-call'].includes(id) ? 'calls' : id === 'upcoming' || sections.some(section => section[0] === id) ? id : 'general';
  function create({owner, content, tournamentKey, section, status, back, onSelect, onDispose}) {
   const doc = owner.ownerDocument, lifetime = new AbortController(), {signal} = lifetime;
   function el(parent, tag, className, text) {
@@ -63,24 +71,29 @@ var btsSettingsWorkspace = (() => {
   status.setAttribute('role', 'status');status.setAttribute('aria-live', 'polite');saveStatus.append(status);
   const workspace = el(page, 'div', 'settings-workspace');
   const sidebar = el(workspace, 'nav', 'settings-navigation');sidebar.setAttribute('aria-label', 'Einstellungsbereiche');
-  el(sidebar, 'div', 'settings-navigation-group', 'Turnier');
   const mobile = el(workspace, 'label', 'settings-mobile-navigation');el(mobile, 'span', '', 'Einstellungsbereich');
   const select = el(mobile, 'select');select.name = 'settings_section';
   content.classList.add('settings-content');workspace.append(content);
   const panels = new Map([...content.children].filter(node => node.dataset.settingsSection).map(node => [node.dataset.settingsSection, node]));
+  const legacy = panels.get('upcoming');
+  if (legacy) {legacy.classList.add('settings-panel');legacy.setAttribute('role', 'region');legacy.setAttribute('aria-label', 'Bisherige Web-Spielübersichten');}
   const links = new Map();
-  for (const [id, label, symbol] of sections) {
-   const panel = panels.get(id);if (!panel) continue;
-   if (id === 'debug') el(sidebar, 'div', 'settings-navigation-group', 'Weitere Werkzeuge');
-   const link = el(sidebar, 'a', 'settings-area-link');link.href = '/admin/t/' + encodeURIComponent(tournamentKey) + '/edit' + (id === 'general' ? '' : '/' + id);
-   link.innerHTML = cleitstand.icon(symbol);el(link, 'span', '', label);links.set(id, link);
-   panel.classList.add('settings-panel');panel.id = 'settings-panel-' + id;panel.setAttribute('role', 'region');panel.setAttribute('aria-label', label);
-   link.setAttribute('aria-controls', panel.id);
-   const option = el(select, 'option', '', label);option.value = id;
-   link.addEventListener('click', event => {
-    if (event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
-    event.preventDefault();onSelect(id);
-   }, {signal});
+  for (const [group, entries] of groups) {
+   const available = entries.filter(([id]) => panels.has(id));if (!available.length) continue;
+   el(sidebar, 'div', 'settings-navigation-group', group);
+   const options = el(select, 'optgroup');options.label = group;
+   for (const [id, label, symbol] of available) {
+    const panel = panels.get(id);
+    const link = el(sidebar, 'a', 'settings-area-link');link.href = '/admin/t/' + encodeURIComponent(tournamentKey) + '/edit' + (id === 'general' ? '' : '/' + id);
+    link.innerHTML = cleitstand.icon(symbol);el(link, 'span', '', label);links.set(id, link);
+    panel.classList.add('settings-panel');panel.id = 'settings-panel-' + id;panel.setAttribute('role', 'region');panel.setAttribute('aria-label', label);
+    link.setAttribute('aria-controls', panel.id);
+    const option = el(options, 'option', '', label);option.value = id;
+    link.addEventListener('click', event => {
+     if (event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
+     event.preventDefault();onSelect(id);
+    }, {signal});
+   }
   }
   content.addEventListener('click', event => {
    const link = event.target.closest('a[data-settings-target]');
@@ -94,10 +107,10 @@ var btsSettingsWorkspace = (() => {
    if (disposed) return;const next = resolve(id), changed = selected !== next;
    const previous = panels.get(selected);
    if (previous?.contains(doc.activeElement)) doc.activeElement.blur();
-   selected = next;select.value = next;
+   selected = next;select.value = next === 'upcoming' ? 'devices' : next;
    for (const [key, panel] of panels) panel.hidden = key !== next;
    for (const [key, link] of links) {
-    if (key === next) link.setAttribute('aria-current', 'page');else link.removeAttribute('aria-current');
+    if (key === (next === 'upcoming' ? 'devices' : next)) link.setAttribute('aria-current', 'page');else link.removeAttribute('aria-current');
    }
    page.dataset.settingsSection = next;
    if (changed) {

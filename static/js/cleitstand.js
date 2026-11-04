@@ -38,6 +38,8 @@ var cleitstand = (function() {
     download: '<path d="M12 2v14m-5-5 5 5 5-5M3 16v5h18v-5"/>',
     upload: '<path d="M12 16V2m-5 5 5-5 5 5M3 16v5h18v-5"/>',
     plus: '<path d="M12 4v16M4 12h16"/>',
+    copy: '<rect x="8" y="8" width="13" height="13" rx="2"/><path d="M16 8V3H3v13h5"/>',
+    trash: '<path d="M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7M14 10v7"/>',
     arrow: '<path d="M3 12h18m-6-6 6 6-6 6"/>',
     alert: '<path d="m12 3 10 18H2Z"/><path d="M12 9v5M12 17v1"/>',
     info: '<circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7v1"/>',
@@ -2262,14 +2264,14 @@ var cleitstand = (function() {
     const base='/admin/t/'+encodeURIComponent(tournament.key);
     const first=top.querySelector('.toprow_link');if(first){
       first.replaceChildren();
-      const page={'/certificates':{title:'Urkunden',symbol:'certificate'},'/edit':{title:'Einstellungen',symbol:'settings'},'/speech-planning/':{title:'Sprachsystem',symbol:'mic'}}[activePath];
+      const page={'/certificates':{title:'Urkunden',symbol:'certificate'},'/edit':{title:'Einstellungen',symbol:'settings'},'/devices':{title:'Geräte & Logs',symbol:'monitor'},'/speech-planning/':{title:'Sprachsystem',symbol:'mic'}}[activePath];
       const mark=el(first,'span','board-brand-mark');mark.setAttribute('aria-hidden','true');mark.innerHTML=icon(page?.symbol||'court');
       const title=el(first,'span','board-page-title','BTS – '+(page?.title||'Turnierleitung'));
       if(page){title.id='leitstand-page-title';title.setAttribute('role','heading');title.setAttribute('aria-level','1');title.tabIndex=-1;}
     }
     top.querySelector('.leitstand-nav')?.remove();
     const nav=el(top,'nav','leitstand-nav');nav.setAttribute('aria-label','Hauptnavigation');
-    for(const [label,path,symbol]of [['Turnierleitung','/','court'],['Anmeldung','/registration_control','people'],['Urkunden','/certificates','certificate'],['Sprachsystem','/speech-planning/','mic'],['Geräte & Logs',null,'monitor'],['Einstellungen','/edit','settings']]){
+    for(const [label,path,symbol]of [['Turnierleitung','/','court'],['Anmeldung','/registration_control','people'],['Urkunden','/certificates','certificate'],['Sprachsystem','/speech-planning/','mic'],['Geräte & Logs','/devices','monitor'],['Einstellungen','/edit','settings']]){
       const link=navLink(nav,label,path?base+path:'/admin/diagnostics/',symbol);
       if(path===activePath)link.setAttribute('aria-current','page');
       if(path)link.onclick=event=>{

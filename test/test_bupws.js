@@ -8,6 +8,17 @@ const admin = require('../bts/admin.js');
 const bupws = require('../bts/bupws.js');
 
 _describe('bupws', () => {
+	_it('always directs old endpoint connections to V2 for every tournament and device type', async () => {
+		for (const tournament_key of [undefined, 'new-tournament', 'restored-tournament']) {
+			for (const devicemode of ['display', 'umpire']) {
+				const messages = [], ws = {readyState: 1, sendmsg: message => messages.push(message)};
+				await bupws.handle_init({}, ws, {tournament_key, panel_settings: {devicemode}});
+				assert.deepStrictEqual(messages, [{type: 'use-bup-v2', tournament_key: tournament_key || 'default'}]);
+				assert.strictEqual(ws.last_tournament_key, tournament_key || 'default');
+			}
+		}
+	});
+
 	_it('rejects an admin finish confirmation when the match moved after the court was chosen', async () => {
 		const db = await require('../bts/database').init_test();
 		const insert = (store, docs) => require('util').promisify(store.insert.bind(store))(docs);

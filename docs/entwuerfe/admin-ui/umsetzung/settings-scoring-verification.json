@@ -1,5 +1,5 @@
 {
-  "date": "2026-11-03",
+  "date": "2026-11-04",
   "checks": [
     "The scoring page mounts two separate shared settings cards with helpful empty states",
     "Available formats show their names, set counts and exactly one labelled tournament default",
