@@ -1,4 +1,4 @@
-/* global btsCertificateDesign, btsCertificateDocument */
+/* global btsCertificateDesign, btsCertificateDocument, btsNumberInput */
 'use strict';
 // eslint-disable-next-line no-unused-vars -- Used by the certificate workspace.
 var btsCertificateDesigner = (() => {
@@ -16,15 +16,11 @@ var btsCertificateDesigner = (() => {
    return node;
   }
   function numberInput(parent, caption, name, min, max, {unit = 'cm', increment = .1, precision = .01} = {}) {
-   const cell = el(parent, 'div', 'certificate-number-field'), label = el(cell, 'label');el(label, 'span', '', caption);const stepper = el(cell, 'span', 'certificate-number-stepper'), decrease = button(stepper, '−'), input = el(stepper, 'input'), increase = button(stepper, '+');
+   const cell = el(parent, 'div', 'certificate-number-field'), label = el(cell, 'label');el(label, 'span', '', caption);const stepper = el(cell, 'span', 'certificate-number-stepper'), input = el(stepper, 'input');
    input.type = 'number';input.min = min;input.max = max;input.step = precision;input.name = name;input.id = name + '-' + tournamentKey;label.htmlFor = input.id;input.setAttribute('aria-label', caption);
    const small = String(increment).replace('.', ',') + ' ' + unit, large = String(increment * 10).replace('.', ',') + ' ' + unit, exact = String(precision).replace('.', ',') + ' ' + unit;
-   for (const [control, direction] of [[decrease, -1], [increase, 1]]) {
-    control.dataset.step = direction > 0 ? 'up' : 'down';control.setAttribute('aria-label', caption + (direction > 0 ? ' erhöhen' : ' verringern'));control.title = small + ' ändern; mit Umschalt ' + large;
-    control.addEventListener('click', event => {event.preventDefault();stepNumber(input, direction, event.shiftKey, increment);}, {signal});
-   }
    input.title = 'Pfeiltasten: ' + small + '; mit Umschalt: ' + large + '. Direkte Eingabe: ' + exact + '.';
-   input.addEventListener('keydown', event => {if (!['ArrowUp', 'ArrowDown'].includes(event.key) || event.altKey || event.ctrlKey || event.metaKey || event.isComposing) return;event.preventDefault();stepNumber(input, event.key === 'ArrowUp' ? 1 : -1, event.shiftKey, increment);}, {signal});
+   btsNumberInput.attach(input, {increment, container:stepper, allowed:() => active() && !loading});
    return input;
   }
   const heading = el(owner, 'div', 'certificate-designer-heading');el(heading, 'h2', '', 'Urkunde gestalten');
@@ -74,7 +70,7 @@ var btsCertificateDesigner = (() => {
     input.addEventListener('change', () => {const proposed = proposedArea();areaError = proposed.error;if (areaError) {state();return;}mutate('print-area-' + kind, () => {model[kind] = btsCertificateDesign.setPrintArea(template(), proposed.area);});}, {signal});
    }
   }
-  el(inspector, 'p', 'certificate-design-help', '± und Pfeiltasten ändern um 0,1 cm, mit Umschalt um 1 cm. Genaue Werte bis 0,01 cm können direkt eingegeben werden.');
+  el(inspector, 'p', 'certificate-design-help', 'Die Pfeile im Feld und die Pfeiltasten ändern um 0,1 cm, mit Umschalt um 1 cm. Genaue Werte bis 0,01 cm können direkt eingegeben werden.');
   el(inspector, 'p', 'certificate-design-help', 'Alle Textpositionen beziehen sich auf die linke obere Ecke des Druckbereichs. Beim Vergrößern oder Verkleinern passen sich Feldpositionen und Feldgrößen proportional an. Der gestrichelte Rahmen wird nicht gedruckt.');
   el(inspector, 'h3', '', 'Textfelder');
   const fieldSelect = choice(inspector, 'Textfeld auswählen', []);fieldSelect.name = 'certificate_design_field';
@@ -126,13 +122,6 @@ var btsCertificateDesigner = (() => {
   }
   function constrain(field) {
    btsCertificateDesign.constrainField(field, btsCertificateDesign.printArea(template()));
-  }
-  function stepNumber(input, direction, coarse, step) {
-   if (!active() || loading || input.matches(':disabled')) return;
-   const current = Number.isFinite(input.valueAsNumber) ? input.valueAsNumber : Number(input.dataset.displayValue), increment = coarse ? step * 10 : step;
-   const next = Math.round(Math.max(Number(input.min), Math.min(Number(input.max), current + direction * increment)) * 100) / 100;
-   if (input.value && next === input.valueAsNumber) return;
-   input.value = String(next);input.dispatchEvent(new Event('input', {bubbles: true}));input.dispatchEvent(new Event('change', {bubbles: true}));
   }
   function proposedArea() {
    const inputs = areaControls[areaMode.value].inputs;

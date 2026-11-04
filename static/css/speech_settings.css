@@ -68,7 +68,19 @@
 .page-settings .speech-infrastructure-scope { margin:0; padding:12px 16px; border:1px solid #cedfd7; border-left:3px solid var(--brand); border-radius:6px; background:#edf4f1; color:var(--brand); font-size:13px; line-height:1.5; }
 .page-settings .speech-infrastructure .settings-card-actions { display:flex; flex-wrap:wrap; gap:8px; margin-top:18px; }
 .page-settings .speech-infrastructure .settings-card-actions .btn { min-height:36px; margin:0; }
-.page-settings .speech-connection-state { margin:0 0 18px; padding:10px 12px; background:#f1f6f3; border-radius:5px; color:var(--brand); font-size:13px; overflow-wrap:anywhere; }
+.page-settings .speech-connection-state { margin:0 0 18px; padding:10px 12px; border:1px solid #d8dfdc; border-left:4px solid #a2afaa; background:#f1f3f2; border-radius:5px; color:var(--muted); font-size:13px; font-weight:600; overflow-wrap:anywhere; }
+.page-settings .speech-connection-state[data-tone=connected] { border-color:#bdd8c8; border-left-color:#327257; background:#e9f3ec; color:#327257; }
+.page-settings .speech-connection-state[data-tone=waiting] { border-color:#e3d4aa; border-left-color:#bd9236; background:#fcf7e8; color:#805d17; }
+.page-settings .speech-connection-state[data-tone=error] { border-color:#e4c3bd; border-left-color:#b45545; background:#fcf0ed; color:#953f32; }
+.page-settings .speech-connection-feedback[data-tone=error] { color:#953f32; }
+.page-settings .speech-connection-feedback[data-tone=connected] { color:#327257; }
+.page-settings .speech-helper-availability { margin:0 0 16px; padding:10px 12px; border:1px solid #d8dfdc; border-radius:5px; background:#f1f3f2; color:var(--muted); font-size:13px; line-height:1.5; }
+.page-settings .speech-helper-controls { display:block; min-inline-size:0; margin:0; padding:0; border:0; }
+.page-settings .settings-card.is-unavailable:has(.speech-helper-settings) { background:#fafbf9; }
+.page-settings .settings-card.is-unavailable:has(.speech-helper-settings) .settings-card-heading h2 { color:var(--muted); }
+.page-settings .speech-helper-controls:disabled { color:var(--muted); }
+.page-settings .speech-helper-controls:disabled :is(.speech-helper-badge,select) { background:#eef1ef; color:var(--muted); }
+.page-settings .speech-helper-settings .settings-speech-help[data-state=missing] { padding:10px 12px; border:1px solid #e3d4aa; border-left:3px solid #bd9236; border-radius:5px; background:#fcf7e8; color:#805d17; }
 .page-settings :is(.speech-connection-hint,.speech-connection-feedback,.speech-helper-feedback,.speech-helper-state) { font-size:12px; line-height:1.6; margin:14px 0 0; overflow-wrap:anywhere; }
 .page-settings .speech-connection-hint { color:var(--muted); }
 .page-settings :is(.speech-connection-feedback,.speech-helper-feedback):empty { display:none; }

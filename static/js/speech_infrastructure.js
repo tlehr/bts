@@ -5,8 +5,6 @@
 var btsSpeechInfrastructure = (() => {
  const errors = {
   speech_connection_invalid_url:'Bitte eine HTTP- oder HTTPS-Adresse mit Port eingeben, ohne Pfad oder Zugangsdaten.',
-  speech_connection_invalid_key:'Der Zugangsschlüssel muss mindestens 32 Zeichen enthalten.',
-  speech_connection_missing_key:'Bitte einen Zugangsschlüssel hinterlegen.',
   speech_connection_conflict:'Die Verbindung wurde inzwischen in einem anderen Fenster geändert. Einstellungen neu laden; dein Entwurf bleibt erhalten.',
   speech_connection_environment_locked:'Diese Vorgabe ist über die Serverumgebung festgelegt.',
   speech_connection_save_failed:'Die Serverkonfiguration konnte nicht gespeichert werden. Bitte erneut versuchen.',
@@ -17,7 +15,7 @@ var btsSpeechInfrastructure = (() => {
   helper_runtime_invalid:'Das Laufzeitpaket ist unvollständig.',
   helper_process_required:'Der isolierte Sprachprozess ist noch nicht verfügbar.',
   helper_server_update_required:'Der Hauptsprachserver benötigt das Update für die zentrale Helferverwaltung.',
-  helper_address_not_reachable:'Bitte eine vom Helfer-Rechner erreichbare Sprachserver-Adresse verwenden. localhost bezeichnet dort den Helfer-Rechner.',
+  helper_address_not_reachable:'Bitte oben eine vom Helfer-Rechner erreichbare Serveradresse verwenden oder am Sprachserver eine öffentliche Adresse hinterlegen. localhost bezeichnet auf dem Helfer dessen eigenen Rechner.',
   helper_platform_invalid:'Dieses Starterformat wird nicht unterstützt.',
   helper_launcher_invalid:'Der Windows-Starter ist auf BTS nicht vollständig vorbereitet.',
   helper_certificate_missing:'Für HTTPS bitte den Zertifikatsfingerabdruck am Sprachserver unter BTS_HELPER_CERTIFICATE_SHA256 hinterlegen.',
@@ -33,6 +31,20 @@ var btsSpeechInfrastructure = (() => {
  };
  const explain = error => errors[error?.message || error] || 'Die Anfrage konnte nicht abgeschlossen werden. Bitte erneut versuchen.';
  const states = {ready:'Bereit',busy:'Beschäftigt',error:'Gestört',starting:'Modelle werden geladen',disabled:'Deaktiviert',missing_credentials:'Zugang fehlt',connecting:'Verbindung wird aufgebaut',apply_pending:'Übernahme ausstehend',unauthorized:'Zugang abgewiesen',unavailable:'Nicht erreichbar',timeout:'Zeitüberschreitung',invalid:'Antwort nicht unterstützt',unknown:'Status noch unbekannt'};
+ const connectionState=view=>!view?'unknown':view.apply_pending?'apply_pending':!view.enabled?'disabled':view.status?.state||'unknown';
+ const reachable=view=>!!view?.enabled&&!view.apply_pending&&['ready','busy','starting'].includes(connectionState(view));
+ const tone=state=>state==='ready'?'connected':['error','missing_credentials','unauthorized','unavailable','timeout','invalid'].includes(state)?'error':state==='disabled'?'inactive':'waiting';
+ function helperEndpoint(address,pageUrl) {
+  try {
+   const endpoint=new URL(address),page=new URL(pageUrl);
+   if(!['http:','https:'].includes(endpoint.protocol))return '';
+   const local=host=>host==='localhost'||host==='[::1]'||/^127\./.test(host);
+   // A loopback upstream runs on the BTS machine. Keep the speech protocol and
+   // port, using the hostname by which this browser already reaches that host.
+   if(local(endpoint.hostname)&&!local(page.hostname))endpoint.hostname=page.hostname;
+   return endpoint.origin;
+  } catch(_){return '';}
+ }
  function el(parent,tag,cls,text) {
   const node=parent.ownerDocument.createElement(tag);node.className=cls||'';if(text!=null)node.textContent=text;parent.append(node);return node;
  }
@@ -54,78 +66,80 @@ var btsSpeechInfrastructure = (() => {
   return {refresh,dispose(){disposed=true;clearInterval(timer);}};
  }
  function statusText({connection,helpers}) {
-  const state=connection?.apply_pending?'apply_pending':connection?.status?.state||'unknown';
+  const state=connectionState(connection);
   const workers=(helpers?.workers||[]).filter(worker=>worker.online&&!worker.revoked&&!worker.update_required);
   return 'Sprachserver: '+(states[state]||states.unknown)+' · '+(helpers?workers.length+' Helfer verbunden':'Helferstatus unbekannt');
  }
  function mount(root,{request,onPending=()=>{},onResult=()=>{},onDraft=()=>{}}) {
   root.classList.add('speech-infrastructure');
   el(root,'p','speech-infrastructure-scope','Serverweit – diese Einstellungen und die Sprachhelfer gelten für alle Turniere dieses BTS.');
-  const connection=btsSettingsWorkspace.card(root,{title:'Hauptsprachserver',description:'Technische Verbindung und Zugang zum Sprachserver',badge:'Serverweit'});
+  const connection=btsSettingsWorkspace.card(root,{title:'Hauptsprachserver',description:'Technische Verbindung zum Sprachserver',badge:'Serverweit'});
   const state=el(connection,'p','speech-connection-state');state.setAttribute('role','status');
   const form=el(connection,'form','speech-connection-form');
   const enabled=btsSettingsWorkspace.field(form,{label:'Sprachserver verwenden',description:'Aktiviert die serverseitige Spracherzeugung für diese BTS-Instanz.',attributes:{name:'speech_connection_enabled',type:'checkbox',role:'switch'}});
   const url=btsSettingsWorkspace.field(form,{label:'Serveradresse',description:'Adresse aus Sicht des BTS-Rechners, zum Beispiel http://127.0.0.1:8077.',attributes:{name:'speech_connection_url',type:'url',required:'required',spellcheck:'false'}});
-  const key=btsSettingsWorkspace.field(form,{label:'Zugangsschlüssel',description:'Leer lassen, um den vorhandenen Schlüssel zu behalten. Ein neuer Schlüssel ersetzt ihn beim Speichern.',attributes:{name:'speech_connection_api_key',type:'password',autocomplete:'new-password',maxlength:'4096'}});
   const hint=el(form,'p','speech-connection-hint','Die Konfiguration wird geladen …');
   const actions=el(form,'div','settings-card-actions');
   const save=el(actions,'button','btn primary','Verbindung speichern');save.type='submit';save.name='speech_connection_save';
   const test=el(actions,'button','btn','Verbindung prüfen');test.type='button';test.name='speech_connection_test';
   const reload=el(actions,'button','btn','Einstellungen neu laden');reload.type='button';reload.name='speech_connection_reload';
   const feedback=el(connection,'p','speech-connection-feedback');feedback.setAttribute('role','status');
+  function message(value,status) {text(feedback,value);if(status)feedback.dataset.tone=tone(status);else feedback.removeAttribute('data-tone');}
   const helperBody=btsSettingsWorkspace.card(root,{title:'Sprachhelfer',description:'Weitere Rechner verbinden und gemeinsam mit dem Hauptsprachserver verwalten',badge:'Serverweit'});
   const helpers=mountHelpers(helperBody,{request});
-  let snapshot=null,pending=false,testing=false,disposed=false;
-  const values=()=>({url:url.value.trim(),enabled:enabled.checked,...(key.value?{api_key:key.value}:{})});
-  function dirty() {return snapshot&&(url.value.trim()!==snapshot.url||enabled.checked!==snapshot.enabled||!!key.value);}
+  let snapshot=null,currentConnection=null,pending=false,testing=false,disposed=false;
+  const values=()=>({url:url.value.trim(),enabled:enabled.checked});
+  function dirty() {return snapshot&&(url.value.trim()!==snapshot.url||enabled.checked!==snapshot.enabled);}
   function updateButtons() {
    disabled(save,!snapshot?.writable||pending||(!dirty()&&!snapshot.apply_pending)||!form.checkValidity());
    text(save,snapshot?.apply_pending&&!dirty()?'Verbindung übernehmen':'Verbindung speichern');
    disabled(test,!snapshot||testing||!url.validity.valid);disabled(reload,pending);
+   helpers.setConnection(currentConnection,enabled.checked);
   }
   function paint(view,{replace=false}={}) {
-   if(!view)return;
-   const status=view.apply_pending?'apply_pending':view.status?.state||'unknown';text(state,'Sprachserver: '+(states[status]||states.unknown)+(view.apply_pending&&view.active_url?' · aktuell verwendet: '+view.active_url:''));
+   currentConnection=view;
+   const status=connectionState(view);state.dataset.state=status;state.dataset.tone=tone(status);
+   text(state,'Sprachserver: '+(states[status]||states.unknown)+(view?.apply_pending&&view.active_url?' · aktuell verwendet: '+view.active_url:''));
+   if(!view){updateButtons();return;}
    const wasDirty=dirty(),previous=snapshot;
    if(!previous||replace||!wasDirty) {
-    if(url.value!==view.url)url.value=view.url;if(enabled.checked!==view.enabled)enabled.checked=view.enabled;if(key.value)key.value='';snapshot=view;
+    if(url.value!==view.url)url.value=view.url;if(enabled.checked!==view.enabled)enabled.checked=view.enabled;snapshot=view;
    }
-   for(const [field,input] of [['url',url],['enabled',enabled],['api_key',key]])disabled(input,!!view.locked[field]);
-   const placeholder=view.locked.api_key?'Über Serverumgebung festgelegt':view.api_key_configured?'Schlüssel ist hinterlegt':'Noch kein Schlüssel hinterlegt';if(key.placeholder!==placeholder)key.placeholder=placeholder;
-   const env=Object.values(view.locked).some(Boolean)?' Vorgaben aus der Serverumgebung sind hier schreibgeschützt.':'';
+   for(const [field,input] of [['url',url],['enabled',enabled]])disabled(input,!!view.locked[field]);
+   const env=['url','enabled'].some(field=>view.locked[field])?' Vorgaben aus der Serverumgebung sind hier schreibgeschützt.':'';
    const changed=previous&&view.revision!==previous.revision&&wasDirty&&!replace?' In einem anderen Fenster wurde gespeichert. Dein Entwurf bleibt erhalten.':'';
    text(hint,(view.apply_pending?'Gespeichert, aber noch nicht übernommen. Über „Verbindung übernehmen“ erneut versuchen.':'Änderungen werden zur Laufzeit übernommen. Ein BTS-Neustart ist nicht nötig.')+env+changed);
    updateButtons();
   }
   const poll=monitor(root,{request,withHelpers:false,onStatus:value=>{if(disposed)return;paint(value.connection);if(!snapshot)text(hint,'Die Serverkonfiguration ist derzeit nicht verfügbar. Über „Einstellungen neu laden“ erneut versuchen.');}});
   async function load() {
-   try {const response=await request('speech_connection_get');if(disposed)return;paint(response.connection);text(feedback,'');}
-   catch(error){if(!disposed)text(feedback,explain(error));}
+   try {const response=await request('speech_connection_get');if(disposed)return;paint(response.connection);message('');}
+   catch(error){if(!disposed){paint(null);message(explain(error));}}
   }
   reload.addEventListener('click',async()=>{
    // Refresh the server baseline while preserving the operator's draft.
-   try {const response=await request('speech_connection_get');if(disposed)return;const draft=values();paint(response.connection,{replace:true});url.value=draft.url;enabled.checked=draft.enabled;key.value=draft.api_key||'';updateButtons();text(feedback,'Aktueller Serverstand geladen. Dein Entwurf bleibt erhalten.');}
-   catch(error){if(!disposed)text(feedback,explain(error));}
+   try {const response=await request('speech_connection_get');if(disposed)return;const draft=values();paint(response.connection,{replace:true});url.value=draft.url;enabled.checked=draft.enabled;updateButtons();message('Aktueller Serverstand geladen. Dein Entwurf bleibt erhalten.');}
+   catch(error){if(!disposed){paint(null);message(explain(error));}}
   });
   form.addEventListener('input',()=>{updateButtons();onDraft();});form.addEventListener('change',()=>{updateButtons();onDraft();});
   form.addEventListener('submit',async event=>{
    event.preventDefault();if(pending||!snapshot?.writable||(!dirty()&&!snapshot.apply_pending)||!form.reportValidity())return;
    const submitted=values(),fields={...submitted};for(const name of Object.keys(snapshot.locked))if(snapshot.locked[name])delete fields[name];
-   pending=true;updateButtons();onPending();text(feedback,'Verbindung wird gespeichert …');
+   pending=true;updateButtons();onPending();message('Verbindung wird gespeichert …');
    try {
     const response=await request('speech_connection_save',{values:fields,revision:snapshot.revision});onResult(null);
     if(disposed)return;
     const newer=JSON.stringify(values())!==JSON.stringify(submitted),draft=values();paint(response.connection,{replace:true});
-    if(newer){url.value=draft.url;enabled.checked=draft.enabled;key.value=draft.api_key||'';}
-    text(feedback,response.connection.apply_pending?'Verbindung gespeichert. Die Übernahme ist fehlgeschlagen; bitte erneut übernehmen.':'Verbindung gespeichert und zur Laufzeit übernommen.');onDraft();
-   } catch(error){onResult(error);if(!disposed)text(feedback,explain(error));}
+    if(newer){url.value=draft.url;enabled.checked=draft.enabled;}
+    message(response.connection.apply_pending?'Verbindung gespeichert. Die Übernahme ist fehlgeschlagen; bitte erneut übernehmen.':'Verbindung gespeichert und zur Laufzeit übernommen.');onDraft();
+   } catch(error){onResult(error);if(!disposed)message(explain(error));}
    finally {pending=false;if(!disposed)updateButtons();}
   });
   test.addEventListener('click',async()=>{
-   if(testing||!snapshot||!url.reportValidity())return;testing=true;updateButtons();text(feedback,'Verbindung wird geprüft …');
+   if(testing||!snapshot||!url.reportValidity())return;testing=true;updateButtons();message('Verbindung wird geprüft …');
    const fields=values();for(const name of Object.keys(snapshot.locked))if(snapshot.locked[name])delete fields[name];
-   try {const response=await request('speech_connection_test',{values:fields});if(!disposed)text(feedback,response.result.message);}
-   catch(error){if(!disposed)text(feedback,explain(error));}
+   try {const response=await request('speech_connection_test',{values:fields});if(!disposed){message(response.result.message,response.result.state);void poll.refresh();}}
+   catch(error){if(!disposed)message(explain(error));}
    finally {testing=false;if(!disposed)updateButtons();}
   });
   updateButtons();void load();
@@ -133,11 +147,15 @@ var btsSpeechInfrastructure = (() => {
  }
  function mountHelpers(root,{request}) {
   root.classList.add('speech-helper-settings');root.id='speech-helpers';
+  const card=root.closest('.settings-card');
+  const availability=el(root,'p','speech-helper-availability');availability.id='speech-helper-availability';availability.setAttribute('role','status');
+  const controls=el(root,'fieldset','speech-helper-controls');controls.disabled=true;controls.setAttribute('aria-describedby',availability.id);
+  root=controls;
   el(root,'p','settings-speech-help','Sprachhelfer verbinden sich direkt mit dem Hauptsprachserver. Er verwaltet Aufträge, Vergabe und Wiederholungen sowie Qualitätsprüfung, Zuschnitt und Aufbereitung. Bestehende Helfer benötigen nach der Umstellung einen neuen Starter.');
   const instructions=el(root,'details','speech-helper-instructions');el(instructions,'summary','','Installation und Voraussetzungen');
   el(instructions,'p','','Windows 11: Die einzelne EXE herunterladen und öffnen. Das Helferfenster erklärt Änderungen, Speicherbedarf und Datenaustausch. CPU-Kerne und Modell-RAM-Abbruchgrenze werden dort gewählt; der Nutzer startet ausdrücklich. Downloadfortschritt, Status, Stoppen und Entfernen bleiben im Fenster erreichbar. Eine gesondert angebotene WSL-Einrichtung kann einen Windows-Neustart erfordern; BTP vorher speichern und beenden. Die EXE ist derzeit nicht digital signiert; Windows kann eine Herausgeberwarnung anzeigen.');
   el(instructions,'p','','Linux x86_64: Die SH-Datei herunterladen und mit bash BTS-Sprachhelfer-Linux.sh starten. Benötigt werden Python 3.8+ und Bubblewrap. Ein fehlendes Bubblewrap-Paket wird nach gesonderter Zustimmung über den Paketmanager installiert. Die Laufzeit verwendet mitgelieferte Bibliotheken; ARM wird noch nicht unterstützt. Das Menü bietet Ressourcenwahl, lokale Lastmessung, Starten und Entfernen. Strg+C stoppt die Arbeit.');
-  const endpoint=btsSettingsWorkspace.field(root,{label:'Sprachserver-Adresse für den Helfer',description:'Muss vom Helfer-Rechner erreichbar sein. Der persönliche Starter erhält einen eigenen Helferzugang; der Hauptschlüssel bleibt auf BTS. Eine am Sprachserver hinterlegte öffentliche Adresse hat Vorrang.',attributes:{type:'url',name:'speech_helper_endpoint',spellcheck:'false',required:'required'}});
+  el(root,'p','settings-speech-help','Die Serveradresse wird automatisch übernommen. Der persönliche Starter erhält einen vom Sprachserver ausgestellten Helferzugang.');
   const downloads=el(root,'div','settings-card-actions');
   const windows=el(downloads,'button','btn','Windows-EXE herunterladen'),linux=el(downloads,'button','btn','Linux-SH herunterladen');
   windows.type=linux.type='button';windows.name='speech_helper_windows';linux.name='speech_helper_linux';
@@ -153,24 +171,28 @@ var btsSpeechInfrastructure = (() => {
   const details=el(root,'details','speech-helper-jobs');el(details,'summary','','Aufträge und Testaufnahmen');
   el(details,'p','settings-speech-help','Testaufnahmen können hier angehört werden und werden nicht als reguläre Durchsage verwendet. Kontextaufnahmen sind erst nach der zentralen Qualitätsprüfung bereit.');
   const jobRoot=el(details,'div'),feedback=el(root,'p','speech-helper-feedback');feedback.setAttribute('role','status');
-  const rows=new Map(),jobs=new Map(),pendingWorkers=new Set();let snapshot=null,origin='',disposed=false,busy=false,downloading=false,actionPending=false,lastAction=0,stale=true,endpointEdited=false;
-  endpoint.addEventListener('input',()=>{endpointEdited=true;});
+  const rows=new Map(),jobs=new Map(),pendingWorkers=new Set();let snapshot=null,origin='',disposed=false,busy=false,downloading=false,actionPending=false,lastAction=0,stale=true,serverAvailable=false,serverIdentity='',accessRevision=0;
   const capable=worker=>worker.online&&!worker.paused&&!worker.revoked&&!worker.update_required;
   function buttons() {
-   disabled(windows,downloading||stale||!snapshot?.runtime);disabled(linux,downloading||stale||!snapshot?.runtime);
-   disabled(test,actionPending||stale||!snapshot?.workers?.some(capable));
-   for(const [id,row] of rows){disabled(row.test,stale||pendingWorkers.has(id)||!capable(row.worker));disabled(row.pause,stale||pendingWorkers.has(id));disabled(row.revoke,stale||pendingWorkers.has(id));}
+   const unavailable=!serverAvailable||stale;
+   card.classList.toggle('is-unavailable',unavailable);disabled(controls,unavailable);disabled(voice,unavailable);
+   disabled(windows,unavailable||downloading||!snapshot?.runtime||!origin);disabled(linux,unavailable||downloading||!snapshot?.runtime||!origin);
+   const reason=!serverAvailable?availability.textContent:stale?'Der Helferstatus ist noch nicht bestätigt.':!snapshot?.runtime?(errors[snapshot?.error]||'Das Laufzeitpaket fehlt auf dem Sprachserver.'):!origin?'Die Sprachserver-Adresse konnte nicht ermittelt werden.':downloading?'Der persönliche Starter wird heruntergeladen.':'';
+   for(const button of [windows,linux])if(button.title!==reason)button.title=reason;
+   disabled(test,unavailable||actionPending||!snapshot?.workers?.some(capable));
+   for(const [id,row] of rows){disabled(row.test,unavailable||pendingWorkers.has(id)||!capable(row.worker));disabled(row.pause,unavailable||pendingWorkers.has(id));disabled(row.revoke,unavailable||pendingWorkers.has(id));}
   }
   async function call(type,fields={}) {
    const wait=Math.max(0,lastAction+300-Date.now());lastAction=Date.now()+wait;
    if(wait)await new Promise(resolve=>setTimeout(resolve,wait));
-   if(disposed)throw new Error('disposed');return request(type,fields);
+   if(disposed||!serverAvailable)throw new Error('speech_unavailable');return request(type,fields);
   }
   function paint(response) {
    snapshot=response.helpers;if(!snapshot)throw new Error('speech_unavailable');stale=false;
    const address=snapshot.endpoint;
-   if(address){origin=address;if(!endpointEdited&&endpoint.value!==address)endpoint.value=address;}
+   origin=helperEndpoint(address,window.location.href);
    text(runtime,snapshot.runtime?'Laufzeit: '+(snapshot.runtime.size_bytes/1024**3).toFixed(1)+' GiB, einmaliger Download':errors[snapshot.error]||'Laufzeit derzeit nicht verfügbar.');
+   runtime.dataset.state=snapshot.runtime?'ready':'missing';
    text(connection,snapshot.generation?.ready?'Verbunden · reguläre Aufträge werden automatisch verteilt':snapshot.generation?.reason==='helper_profile_mismatch'?'Helferpaket passt nicht zum Sprachserver. Paket auf dem Sprachserver neu erstellen und Starter erneut herunterladen.':'Wartet auf einen bereiten Hauptsprachserver für reguläre Aufträge.');
    hidden(empty,!!snapshot.workers.length);hidden(table,!snapshot.workers.length);
    const keep=new Set();
@@ -209,23 +231,23 @@ var btsSpeechInfrastructure = (() => {
    buttons();
   }
   async function refresh() {
-   if(disposed||busy||!active(root))return;busy=true;
-   try {const response=await call('speech_helpers');if(!disposed)paint(response);}
-   catch(error){if(!disposed){stale=true;text(connection,explain(error));buttons();}}
+   if(disposed||busy||!serverAvailable||!active(root))return;busy=true;const revision=accessRevision;
+   try {const response=await call('speech_helpers');if(!disposed&&revision===accessRevision&&serverAvailable)paint(response);}
+   catch(error){if(!disposed&&revision===accessRevision){stale=true;text(connection,explain(error));buttons();}}
    finally {busy=false;}
   }
   async function act(type,fields,id) {
-   if(stale||id&&pendingWorkers.has(id)||!id&&actionPending)return;
+   if(!serverAvailable||stale||id&&pendingWorkers.has(id)||!id&&actionPending)return;
    if(id)pendingWorkers.add(id);else actionPending=true;buttons();text(feedback,'');
    try {await call(type,fields);if(!disposed)await refresh();}
    catch(error){if(!disposed)text(feedback,explain(error));}
    finally {pendingWorkers.delete(id);if(!id)actionPending=false;if(!disposed)buttons();}
   }
   async function download(platform) {
-   if(downloading||stale||!snapshot?.runtime)return;if(!endpoint.reportValidity())return;
-   downloading=true;buttons();text(feedback,'');
+   if(!serverAvailable||downloading||stale||!snapshot?.runtime||!origin)return;
+   downloading=true;buttons();text(feedback,'');const revision=accessRevision;
    try {
-    const response=await call('speech_helper_bundle',{endpoint:endpoint.value.trim(),platform});if(disposed)return;
+    const response=await call('speech_helper_bundle',{endpoint:origin,platform});if(disposed||revision!==accessRevision||!serverAvailable)return;
     const bundle=response.bundle,bytes=Uint8Array.from(atob(bundle.content_base64),char=>char.charCodeAt(0));
     const url=URL.createObjectURL(new Blob([bytes],{type:bundle.mime_type})),anchor=el(root,'a');anchor.href=url;anchor.download=bundle.filename;anchor.click();anchor.remove();
     setTimeout(()=>URL.revokeObjectURL(url),1000);
@@ -233,8 +255,18 @@ var btsSpeechInfrastructure = (() => {
    finally {downloading=false;if(!disposed)buttons();}
   }
   windows.onclick=()=>download('windows');linux.onclick=()=>download('linux');test.onclick=()=>act('speech_helper_test',{voice:voice.value});
-  const timer=setInterval(refresh,3000);buttons();void refresh();
-  return {refresh,dispose(){disposed=true;clearInterval(timer);for(const row of jobs.values())row.audio.pause();}};
+  function setConnection(view,draftEnabled) {
+   const available=reachable(view)&&draftEnabled,identity=view?[view.active_url||view.url,view.revision].join('|'):'';
+   const changed=available!==serverAvailable||identity!==serverIdentity;
+   if(changed){accessRevision++;stale=true;}serverAvailable=available;serverIdentity=identity;
+   hidden(availability,available);
+   text(availability,!view?'Der Verbindungsstatus des Hauptsprachservers ist noch nicht bestätigt.':!draftEnabled||connectionState(view)==='disabled'?'Sprachhelfer sind nur bei aktiviertem Sprachserver verfügbar.':'Sprachhelfer sind erst verfügbar, wenn der Hauptsprachserver erreichbar ist.');
+   hidden(connection,!available);buttons();if(changed&&available)void refresh();
+  }
+  const timer=setInterval(refresh,3000);buttons();
+  return {refresh,setConnection,dispose(){disposed=true;clearInterval(timer);for(const row of jobs.values())row.audio.pause();}};
  }
- return {mount,monitor,statusText};
+ return {mount,monitor,statusText,helperEndpoint};
 })();
+
+if(typeof module!=='undefined'&&module.exports)module.exports=btsSpeechInfrastructure;

@@ -4,14 +4,14 @@ const {handle}=require('../bts/speech/connection_settings');
 const {configuration}=require('../bts/speech/broker');
 
 describe('Server-wide speech connection settings',function(){
- let directory,app,ws,server,url,requests;
+ let directory,app,ws,server,url,requests,openServer;
  const secret='test-private-key-'+ 'x'.repeat(40);
  const invoke=message=>new Promise(resolve=>{ws.respond=(_message,error,value)=>resolve({error,value});handle(app,ws,{tournament_key:'one',...message});});
  beforeEach(async function(){
   directory=await fs.mkdtemp(path.join(os.tmpdir(),'bts-speech-config-'));
-  requests=[];server=http.createServer((req,res)=>{
+  openServer=false;requests=[];server=http.createServer((req,res)=>{
    requests.push({path:req.url,key:req.headers['x-api-key']});
-   if(req.headers['x-api-key']!==secret){res.writeHead(401);res.end('{}');return;}
+   if(!openServer&&req.headers['x-api-key']!==secret){res.writeHead(401);res.end('{}');return;}
    res.setHeader('Content-Type','application/json');res.end(JSON.stringify(req.url==='/health'?{status:'ready'}:{voices:[{voice_id:'hallensprecherin',languages:['de-DE']}]}));
   });await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));url='http://127.0.0.1:'+server.address().port;
   app={config_file:path.join(directory,'config.json'),config:{port:4000,speech:{enabled:true,url,api_key:secret,cache_dir:'keep-cache'}}};
@@ -31,6 +31,17 @@ describe('Server-wide speech connection settings',function(){
   assert.ifError(reply.error);assert.strictEqual(reply.value.connection.apply_pending,false);assert.strictEqual(app.speech,running);assert.strictEqual(running.broker.config.base_url,'http://192.0.2.20:8077');
   const saved=JSON.parse(await fs.readFile(app.config_file,'utf8'));assert.strictEqual(saved.port,4000);assert.strictEqual(saved.speech.cache_dir,'keep-cache');assert.strictEqual(saved.speech.api_key,secret);assert.strictEqual(saved.speech.url,'http://192.0.2.20:8077');
   assert.deepStrictEqual((await fs.readdir(directory)).sort(),['config.json']);assert.strictEqual((await fs.stat(app.config_file)).mode&0o777,0o600);
+ });
+ it('enables, saves and tests a LAN server without any access key',async function(){
+  openServer=true;
+  app.config.speech={enabled:true,url,cache_dir:'keep-cache'};
+  app.speech.broker.config=configuration(app.config.speech,{});
+  await fs.writeFile(app.config_file,JSON.stringify(app.config));
+  const before=await get();assert.strictEqual(before.enabled,true);assert.strictEqual(before.api_key_configured,false);
+  const saved=await invoke({type:'speech_connection_save',revision:before.revision,values:{enabled:true,url}});assert.ifError(saved.error);
+  const response=await invoke({type:'speech_connection_test',values:{url}});assert.ifError(response.error);assert.strictEqual(response.value.result.state,'ready');
+  assert(requests.length===2&&requests.every(row=>row.key===undefined));
+  assert.strictEqual(JSON.parse(await fs.readFile(app.config_file)).speech.api_key,undefined);
  });
  it('retains the previous key when the password field is empty',async function(){
   const before=await get();const response=await invoke({type:'speech_connection_save',revision:before.revision,values:{api_key:'',url,enabled:false}});assert.ifError(response.error);

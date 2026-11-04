@@ -1,6 +1,6 @@
 /* global btsSpeechReadiness, cleitstand, btsAdminUpdates, btsScoresheetRemarks, btsAudioDevices, btsDurationInput, btsScoringSettings, btsLocationSettings, btsSpeechWorkspace, btsSpeechInfrastructure */
 'use strict';
-/* global btsSpeechService, cancelAnnouncementPlayback, createSpeechQueue, createFreeAnnouncementForm, btsDialogActions, subscribeEmergencyAudio, btsCertificates, btsCertificateSelection, btsSettingsWorkspace */
+/* global btsSpeechService, btsSpeechHealth, btsServiceStatus, cancelAnnouncementPlayback, createSpeechQueue, createFreeAnnouncementForm, btsDialogActions, subscribeEmergencyAudio, btsCertificates, btsCertificateSelection, btsSettingsWorkspace */
 
 var curt; // current tournament
 let current_view = null;
@@ -30,6 +30,8 @@ let tournament_refresh_after_missed_change_pending = false;
 let btp_next_fetch_countdown_interval = null;
 let speech_output_badge_listener_registered = false;
 let local_speech_output_listener_registered = false;
+let service_status_monitor_instance = null;
+let bts_connection_status = {status:'connecting', message:''};
 let test_clock_controls = null;
 let test_clock_status_interval = null;
 const ANNOUNCEMENT_SPEECH_CHECK_STATE_STORAGE_KEY = 'bts_announcement_speech_check_state';
@@ -1077,6 +1079,7 @@ var ctournament = (function() {
 			type: 'btp_fetch',
 			tournament_key: curt.key,
 		}, err => {
+			service_status_monitor().refresh(true);
 			if (typeof on_complete === 'function') on_complete(err);
 			if (err) {
 				return cerror.net(err);
@@ -2425,9 +2428,17 @@ var ctournament = (function() {
 	}
 
 	function update_speech_output_badge(state) {
-		const current = state || (typeof getAnnouncementSpeechCheckState === 'function'
+		if (!document.querySelector('.speech_output_status_badge')) return;
+		const check = state || (typeof getAnnouncementSpeechCheckState === 'function'
 			? getAnnouncementSpeechCheckState()
 			: { status: 'untested', detail: '' });
+		const current = btsServiceStatus.speechOutputState({
+			connected: bts_connection_status.status === 'connected', check,
+			settings: typeof btsSpeechService !== 'undefined' ? btsSpeechService.settings() : null,
+			health: typeof btsSpeechHealth !== 'undefined' ? btsSpeechHealth.snapshot() : null,
+			busy: typeof btsSpeechService !== 'undefined' && btsSpeechService.isBusy?.(),
+			browserSupported: !!(window.speechSynthesis && window.SpeechSynthesisUtterance),
+		});
 		uiu.qsEach('.speech_output_status_badge', (badge_el) => {
 			badge_el.className = 'toprow_service_badge speech_output_status_badge ' + speech_output_badge_class(current.status);
 			badge_el.title = current.detail || '';
@@ -2440,6 +2451,16 @@ var ctournament = (function() {
 			return;
 		}
 		speech_output_badge_listener_registered = true;
+		window.addEventListener('bts-speech-output-changed', () => update_speech_output_badge());
+		window.addEventListener('bts-speech-metadata-changed', () => {
+			service_status_monitor().changed('speech');update_speech_output_badge();
+		});
+		window.addEventListener('bts-speech-health-changed', () => {
+			service_status_monitor().changed('speech_health');update_speech_output_badge();
+		});
+		document.addEventListener('visibilitychange', () => {
+			if (!document.hidden) service_status_monitor().refresh(true);
+		});
 		window.addEventListener('announcement-speech-check-state-changed', function(event) {
 			update_speech_output_badge(event && event.detail ? event.detail : null);
 		});
@@ -2455,10 +2476,32 @@ var ctournament = (function() {
 		toprow.set(left_items, build_show_toprow_right_items());
 		ensure_btp_next_fetch_countdown();
 		ensure_speech_output_badge_listener();
-		bts_status_changed({ val: curt.status || { status: 'connected', message: '' } });
+		set_service_status('status', {val:bts_connection_status});
 		btp_status_changed({ val: curt.btp_status });
 		ticker_status_changed({ val: curt.ticker_status || { status: 'deactivated', message: '' } });
 		update_speech_output_badge();
+		service_status_monitor().start();
+	}
+
+	function service_status_monitor() {
+		return service_status_monitor_instance || (service_status_monitor_instance = btsServiceStatus.createMonitor({
+			key: () => document.querySelector('.status_badge') && curt?.key,
+			request: (key, callback) => send({type:'service_status', tournament_key:key}, callback),
+			cancel: rid => conn_ui.cancel_request(rid),
+			failed: () => {
+				bts_connection_status = {status:'waiting', message:'BTS antwortet derzeit nicht. Der Status wird automatisch erneut abgefragt.'};
+				set_service_status('status', {val:bts_connection_status});update_speech_output_badge();
+			},
+			apply: services => {
+				bts_connection_status = {status:'connected', message:'Mit BTS verbunden'};
+				set_service_status('status', {val:bts_connection_status});
+				if (services.btp) btp_status_changed({val:services.btp, snapshot:true});
+				if (services.ticker) ticker_status_changed({val:services.ticker, snapshot:true});
+				if (services.speech) btsSpeechService.updateMetadata(services.speech);
+				if (services.speech_health) btsSpeechHealth.update(services.speech_health);
+				update_speech_output_badge();
+			},
+		}));
 	}
 
 	function render_show_toprow() {
@@ -2729,9 +2772,12 @@ var ctournament = (function() {
 	}
 
 	function btp_status_changed(c) {
+		const completed = curt?.btp_status?.fetch_in_progress && !c.val?.fetch_in_progress;
+		if (!c.snapshot) service_status_monitor().changed('btp');
 		set_service_status('btp_status', c);
 		update_btp_next_fetch_countdown();
 		update_btp_settings_status();
+		if (completed && !c.snapshot) service_status_monitor().refresh(true);
 	}
 	function update_btp_settings_status() {
 		if (current_view !== 'edit' || !curt) return;
@@ -2768,11 +2814,15 @@ var ctournament = (function() {
 		if (lastSync.textContent !== lastSyncText) lastSync.textContent = lastSyncText;
 	}
 	function ticker_status_changed(c) {
+		if (!c.snapshot) service_status_monitor().changed('ticker');
 		set_service_status('ticker_status', c);
 	}
 
 	function bts_status_changed(c) {
+		bts_connection_status = c.val;
+		if (c.val.status !== 'error') service_status_monitor().connected(c.val.status === 'connected');
 		set_service_status('status', c);
+		update_speech_output_badge();
 	}
 
 	function set_service_status(service_id, c) {
@@ -13028,6 +13078,7 @@ if ((typeof module !== 'undefined') && (typeof require !== 'undefined')) {
 	var utils = require('../bup/bup/js/utils.js');
 	var save_file = require('../bup/bup/js/save_file.js');
 	var timezones = require('./timezones.js');
+	var btsServiceStatus = require('./service_status');
 
 	var JSZip = null; // External library
 

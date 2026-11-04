@@ -2,12 +2,14 @@
 
 /* exported btsSpeechHealth */
 var btsSpeechHealth = (function() {
-    let banner;
+    let banner, current;
     const labels = { worker: 'Ansagenverwaltung', snapshot: 'Ansagenplanung', initialization: 'Start der Ansagenverwaltung',
         upstream_health: 'Verbindung zum Sprachserver', upstream_voices: 'Stimmen des Sprachservers',
         upstream_request: 'Sprachaufnahme / Aufbereitung', upstream_helpers: 'Auftragsverteilung an Sprachhelfer', generation: 'Generierung', cache: 'Audiocache',
         diagnostics: 'Speichern des Fehlerverlaufs', prefetch: 'Ansagenplanung', immediate_prefetch: 'Vorbereitung eines Aufrufs' };
     function update(health) {
+        current = health;
+        window.dispatchEvent(new CustomEvent('bts-speech-health-changed'));
         if (!banner) {
             banner = document.createElement('section'); banner.className = 'speech_health_banner';
             banner.setAttribute('role', 'alert'); banner.setAttribute('aria-live', 'assertive');
@@ -47,7 +49,7 @@ var btsSpeechHealth = (function() {
         } else nodes.push(list);
         banner.replaceChildren(...nodes);
     }
-    return { update, disconnected() {
+    return { update, snapshot: () => current, disconnected() {
         if (!banner || banner.hidden) return;
         banner.querySelector('p').textContent = 'Verbindung zu BTS unterbrochen. Der letzte bekannte Ansagenfehler bleibt bis zur erneuten Statusmeldung sichtbar.';
     } };

@@ -43,7 +43,7 @@ async function read(app) {
     const connectionFailed = issues.some(issue => issue.kind === 'upstream_connection' && issue.since >= (last?.result.checked_at || 0));
     const recent = last?.revision === revision && last.result.checked_at + 15000 > Date.now();
     const status = revision === active_revision && config.configured && recent && !connectionFailed ? last.result : {
-        state: revision !== active_revision ? 'apply_pending' : !config.configured ? 'disabled' : !config.enabled ? 'missing_credentials' :
+        state: revision !== active_revision ? 'apply_pending' : !config.configured ? 'disabled' : !config.enabled ? 'invalid' :
             connectionFailed ? 'unavailable' : publicSpeech.last_error === 'speech_busy' ? 'busy' :
                 publicSpeech.last_error === 'speech_connecting' ? 'connecting' :
                 publicSpeech.last_error ? 'error' : publicSpeech.voices?.length ? 'ready' : 'unknown',
@@ -72,7 +72,6 @@ function candidate(current, values) {
     const speech = {...current.document.speech, ...fields};
     const config = configuration(speech);
     if (!config.base_url) return fail('speech_connection_invalid_url');
-    if (config.configured && !keyValid(config.api_key)) return fail('speech_connection_missing_key');
     return {speech, config};
 }
 async function save(app, msg) {
@@ -104,7 +103,6 @@ async function save(app, msg) {
 }
 async function test(app, msg) {
     const current = await read(app), {config} = candidate(current, msg.values || {});
-    if (!keyValid(config.api_key)) return fail('speech_connection_missing_key');
     let result;
     try {
         const [health, voices] = await Promise.all([

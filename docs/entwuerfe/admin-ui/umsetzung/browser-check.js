@@ -125,6 +125,9 @@ class CDP {
   if(process.argv.includes('--mixed-updates-only')) {
    await require('./mixed-updates-check')({c,open,previews});return;
   }
+  if(process.argv.includes('--service-status-only')) {
+   await require('./service-status-check')({c,open,check});return;
+  }
   if(process.argv.includes('--large-list-updates-only')) {
    await require('./mixed-updates-check')({c,open,previews,matchCount:373,finishedCount:85,clockLimit:600,reportFile:'large-list-update-verification.json'});return;
   }
@@ -200,6 +203,10 @@ class CDP {
   if(process.argv.includes('--settings-speech-only')) {
    await require('./settings-speech-check')({c,open,metrics,capture:snap,check,previews});return;
   }
+  if(process.argv.includes('--speech-infrastructure-only')) {
+   await require('./settings-speech-infrastructure-check')({c,open,metrics,capture:snap,verify:check});
+   assert(!c.events.some(event=>event.method==='Runtime.exceptionThrown'),'Speech infrastructure has no browser exceptions');return;
+  }
   if(process.argv.includes('--settings-locations-only')) {
    await require('./settings-locations-check')({c,open,metrics,key,capture:snap,check,previews});return;
   }
@@ -217,6 +224,10 @@ class CDP {
    await until(()=>c.evaluate('!!document.querySelector(".page-settings")'));
    await require('./settings-duration-editing-check')({c,verify:check,key,capture:snap});
    assert(!c.events.some(event=>event.method==='Runtime.exceptionThrown'),'Duration editing has no browser exceptions');return;
+  }
+  if(process.argv.includes('--number-inputs-only')) {
+   await require('./number-input-check')({c,open,check,key,metrics});
+   assert(!c.events.some(event=>event.method==='Runtime.exceptionThrown'),'Number editing has no browser exceptions');return;
   }
   if(process.argv.includes('--compact-density-only')) {
    await require('./compact-density-check')({c,check,click,open,metrics,previews,capture:snap});return;

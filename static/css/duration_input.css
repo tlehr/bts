@@ -7,12 +7,12 @@ input.duration-input[aria-invalid=true],.page-settings .settings-row-control>inp
 .page-settings .settings-row-control.has-unit { --duration-input-gap:12px; }
 .page-settings .settings-row-control>input.duration-input { flex:0 1 110px; width:110px; max-width:110px; padding-right:30px; }
 .page-settings .settings-row-control.has-unit>input.duration-input { padding-right:30px; }
-.duration-input-stepper { position:relative; z-index:1; display:inline-grid; grid-template-rows:repeat(2,minmax(0,1fr)); align-self:stretch; flex:0 0 24px; width:24px; min-width:0; margin:1px 1px 1px calc(-25px - var(--duration-input-gap,10px)); border-left:1px solid var(--settings-control-text,#08474f); border-radius:0 4px 4px 0; overflow:hidden; }
-.duration-input-stepper>button { display:flex; align-items:center; justify-content:center; min-width:0; min-height:0; width:100%; margin:0; padding:0; border:0; border-radius:0; background:var(--settings-control-text,#0e5a63); color:#fff; cursor:pointer; }
-.duration-input-stepper>button+button { border-top:1px solid #ffffff3d; }
-.duration-input-stepper>button::before { content:''; width:5px; height:5px; border-top:1.5px solid currentColor; border-right:1.5px solid currentColor; transform:translateY(1px) rotate(-45deg); }
-.duration-input-stepper>.duration-input-decrease::before { transform:translateY(-1px) rotate(135deg); }
-.duration-input-stepper>button:hover:not(:disabled) { background:#08474f; }
-.duration-input-stepper>button:active:not(:disabled) { background:#06373d; }
-input.duration-input:is(:disabled,[readonly])+.duration-input-stepper { opacity:.45; pointer-events:none; }
-.duration-input-stepper>button:disabled { background:#8a9594; cursor:default; }
+:is(.duration-input-stepper,.number-input-stepper) { position:relative; z-index:1; display:inline-grid; grid-template-rows:repeat(2,minmax(0,1fr)); align-self:stretch; flex:0 0 24px; width:24px; min-width:0; margin:1px 1px 1px calc(-25px - var(--duration-input-gap,10px)); border-left:1px solid var(--settings-control-text,#08474f); border-radius:0 4px 4px 0; overflow:hidden; }
+:is(.duration-input-stepper,.number-input-stepper)>button { display:flex; align-items:center; justify-content:center; min-width:0; min-height:0; width:100%; margin:0; padding:0; border:0; border-radius:0; background:var(--settings-control-text,#0e5a63); color:#fff; cursor:pointer; }
+:is(.duration-input-stepper,.number-input-stepper)>button+button { border-top:1px solid #ffffff3d; }
+:is(.duration-input-stepper,.number-input-stepper)>button::before { content:''; width:5px; height:5px; border-top:1.5px solid currentColor; border-right:1.5px solid currentColor; transform:translateY(1px) rotate(-45deg); }
+:is(.duration-input-stepper,.number-input-stepper)>:is(.duration-input-decrease,.number-input-decrease)::before { transform:translateY(-1px) rotate(135deg); }
+:is(.duration-input-stepper,.number-input-stepper)>button:hover:not(:disabled) { background:#08474f; }
+:is(.duration-input-stepper,.number-input-stepper)>button:active:not(:disabled) { background:#06373d; }
+input.duration-input:is(:disabled,[readonly])+:is(.duration-input-stepper,.number-input-stepper) { opacity:.45; pointer-events:none; }
+:is(.duration-input-stepper,.number-input-stepper)>button:disabled { background:#8a9594; cursor:default; }

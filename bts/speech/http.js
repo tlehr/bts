@@ -11,7 +11,7 @@ function request(base, api_key, method, pathname, body, timeout_ms = 2500, heade
         const req = transport.request(target, {
             method,
             headers: {
-                'X-API-Key': api_key,
+                ...(api_key ? {'X-API-Key': api_key} : {}),
                 Accept: 'application/json',
                 ...(payload ? { 'Content-Type': 'application/json', 'Content-Length': payload.length } : {}),
                 ...headers,

@@ -128,7 +128,7 @@ module.exports = function audio_proxy(req, res) {
     const target = new URL('/v1/audio/' + audio_id, connection.config.base_url);
     upstream = (target.protocol === 'https:' ? https : http).request(target, {
         headers: {
-            'X-API-Key': connection.config.api_key,
+            ...(connection.config.api_key ? {'X-API-Key': connection.config.api_key} : {}),
             ...(!playback && req.headers.range ? { Range: req.headers.range } : {}),
             ...(!playback && req.headers['if-range'] ? { 'If-Range': req.headers['if-range'] } : {}),
         },

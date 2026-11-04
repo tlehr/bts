@@ -1,0 +1,12 @@
+.number-input-wrap { position:relative; display:inline-grid; width:110px; max-width:100%; min-width:0; vertical-align:middle; }
+.number-input-wrap>input.number-input { box-sizing:border-box; display:block; appearance:textfield; width:100%; min-width:0; min-height:38px; margin:0; padding:8px 30px 8px 10px; border:1px solid #cfdad6; border-radius:5px; background:var(--settings-control-background,#fff); color:var(--settings-control-text,#213235); font:inherit; line-height:1.4; font-variant-numeric:tabular-nums; }
+.number-input-wrap>input.number-input::-webkit-inner-spin-button,.number-input-wrap>input.number-input::-webkit-outer-spin-button { appearance:none; margin:0; }
+.number-input-wrap>input.number-input::selection { background:#0e5a63; color:#fff; }
+.number-input-wrap>input.number-input:hover:not(:disabled) { border-color:#a8bfb5; }
+.number-input-wrap>input.number-input:disabled { background:#f6f8f6; color:#87958a; }
+.number-input-wrap>.number-input-stepper { position:absolute; top:1px; right:1px; bottom:1px; margin:0; }
+.number-input-wrap>.number-input-stepper>button { min-height:0; }
+input.number-input:is(:disabled,[readonly])+.number-input-stepper { opacity:.45; pointer-events:none; }
+.page-settings .settings-row-control>.number-input-wrap { flex:0 1 110px; }
+.tournament_settings label>.number-input-wrap { width:110px; min-width:0; flex:0 1 110px; }
+.page-certificates .certificate-number-stepper.number-input-wrap { width:100%; }

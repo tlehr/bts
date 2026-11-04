@@ -207,7 +207,7 @@ Voraussetzung ist das separate, installierte bts-sprachserver-Projekt mit seinen
 
     ./scripts/configure-local-tts.sh ../bts-sprachserver
 
-Das Skript liest die Sprachserver-.env als Daten, übernimmt den API-Key in die private Datei data/speech-api-key und ergänzt ausschließlich die speech-Konfiguration in der bestehenden config.json. Andere BTS-Einstellungen bleiben erhalten. Die ursprüngliche Konfiguration wird einmalig unter data/speech-config-backup.json gesichert. Geheimnisse und diese Dateien sind gitignored. Das Skript veröffentlicht nichts und startet keine Dienste.
+Das Skript liest die Sprachserver-.env als Daten, benötigt keinen API-Schlüssel und ergänzt ausschließlich die speech-Konfiguration in der bestehenden config.json. Andere BTS-Einstellungen bleiben erhalten. Die ursprüngliche Konfiguration wird einmalig unter data/speech-config-backup.json gesichert. Geheimnisse und diese Dateien sind gitignored. Das Skript veröffentlicht nichts und startet keine Dienste.
 
 Anschließend:
 
@@ -267,14 +267,13 @@ Im Beispiel config.json.default ist der externe Dienst zunächst deaktiviert. Da
     "speech": {
       "enabled": true,
       "url": "http://127.0.0.1:8077",
-      "api_key_file": "data/speech-api-key",
       "mode": "auto",
       "voice": "hallensprecherin",
       "prefetch_interval_ms": 30000,
       "deadline_ms": 700
     }
 
-Alternativ BTS_SPEECH_ENABLED=true, BTS_SPEECH_URL, BTS_SPEECH_API_KEY_FILE oder BTS_SPEECH_API_KEY im **Backend-Prozess** setzen. Keinen Sprachserver-Key ins Browser-JavaScript oder in ausgelieferte Turnierdaten schreiben.
+Alternativ `BTS_SPEECH_ENABLED=true` und `BTS_SPEECH_URL` im Backend-Prozess setzen. Die Sprachserver-API und ihre Weboberfläche benötigen im lokalen Netz keinen Zugangsschlüssel. Alte `api_key`-/`api_key_file`- und Umgebungsvorgaben werden für vorhandene Installationen weiterhin akzeptiert; neue Installationen brauchen sie nicht. Persönliche Helferzugänge bleiben davon unabhängig und werden weiterhin geprüft.
 
 Weitere optionale Grenzen: max_entries (512), max_text (1200), timeout_ms (2500), submit_interval_ms (650), poll_interval_ms (2000), audio_url_ttl_seconds (900), audio_timeout_ms (30000), max_audio_clients (16). Der lokale Adapter begrenzt neue POSTs, gibt bei 429 Raum frei und blockiert keinen Spielruf auf CPU-Inferenz.
 
@@ -294,7 +293,7 @@ Der Sprachserver bietet zusätzlich Qwen3-TTS 0.6B Base als Startoption. Im sepa
 
 Danach den bisherigen Sprachserver regulär stoppen und mit `./scripts/start.sh --model-size 0.6b` starten. `./scripts/start.sh --model-size 1.7b` wechselt wieder zur bisherigen Größe. Ohne Auswahl bleibt die bestehende Konfiguration maßgeblich. Pro Serverprozess wird ein Modell geladen; die Größe wird nicht je Browser ausgewählt.
 
-API-Adresse, Schlüssel und öffentliche Stimmen-IDs bleiben gleich. Die eigenen Referenzaufnahmen können weiterverwendet werden; der Klang kann zwischen den Modellen abweichen. Der bestehende BTS-Adapter erkennt Modell-/Revisionsänderungen über `/health` und trennt die vorbereiteten Audios über die Syntheseidentität. Bestehende Aufnahmen werden nicht als passende Aufnahmen des anderen Modells ausgegeben. Nach dem Modellwechsel die Bereitschaft des Sprachservers abwarten und die Seite neu laden.
+API-Adresse und öffentliche Stimmen-IDs bleiben gleich. Die eigenen Referenzaufnahmen können weiterverwendet werden; der Klang kann zwischen den Modellen abweichen. Der bestehende BTS-Adapter erkennt Modell-/Revisionsänderungen über `/health` und trennt die vorbereiteten Audios über die Syntheseidentität. Bestehende Aufnahmen werden nicht als passende Aufnahmen des anderen Modells ausgegeben. Nach dem Modellwechsel die Bereitschaft des Sprachservers abwarten und die Seite neu laden.
 
 Die Messanleitung und Ergebnisse stehen im Sprachserver-Projekt unter `docs/model-comparison.md`. Der Wechsel auf das kleinere Modell ist eine Option; seine CPU-Geschwindigkeit muss am eingesetzten Rechner geprüft werden.
 
@@ -307,7 +306,7 @@ Nach dem bestätigten Kitten-Hörtest ist die native Alternative im separaten Sp
 
 Die Installation benötigt die beiden vorhandenen Referenz-WAVs samt ihren bestätigten Texten, einen C++20-Compiler und git. Sie bereitet je Stimme ein eigenes privates Profil vor. Sie ändert keine `.env` und keine bestehende Referenzkonfiguration. Der Worker hält Modell und Decoder geladen; die API nutzt weiterhin dauerhafte Jobs und WAVs.
 
-`/health` muss `backend: kitten_cpp`, `model: KittenML/kitten-tts-2` und `status: ready` anzeigen. BTS-Adresse, Schlüssel und die Auswahl **Lokaler Sprachserver mit Browser-Fallback** bleiben gleich. BTS erkennt den Wechsel über Backend und Syntheseidentität, verwirft bisherige Bereitschaftszuordnungen und fordert die passenden Teile automatisch vorab an. Sobald diese fertig sind, erscheinen dieselben grünen Markierungen. Generierung löst keine Wiedergabe aus.
+`/health` muss `backend: kitten_cpp`, `model: KittenML/kitten-tts-2` und `status: ready` anzeigen. BTS-Adresse und die Auswahl **Lokaler Sprachserver mit Browser-Fallback** bleiben gleich. BTS erkennt den Wechsel über Backend und Syntheseidentität, verwirft bisherige Bereitschaftszuordnungen und fordert die passenden Teile automatisch vorab an. Sobald diese fertig sind, erscheinen dieselben grünen Markierungen. Generierung löst keine Wiedergabe aus.
 
 Qwen- und Kitten-Caches sind getrennt; vorhandene Freigaben bleiben erhalten. Verspätete API-Antworten eines vor dem Wechsel begonnenen Auftrags werden verworfen und können keine alte Aufnahme wieder als bereit markieren. Rückwechsel im Sprachserver: `./scripts/start.sh --backend qwen --model-size 1.7b`. Für einen dauerhaften Kitten-Start kann der Betreiber dort `BTS_BACKEND=kitten_cpp` konfigurieren. Die Auswahl erfolgt einmal je Sprachserverprozess.
 

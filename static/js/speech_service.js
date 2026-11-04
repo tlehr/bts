@@ -426,6 +426,7 @@ function createSpeechService(context) {
 
     return {
         settings, prepare, speak, cancel, unlock, ensureAudio, checkAudio, describeResult, preview,
+        updateMetadata(value) { rememberMetadata({speech:value});changed(); },
         isBusy: () => !!(active || preview_controller),
         settingsChanged() { prepared.clear(); preview_controller?.abort(); changed(); void ensureAudio(); },
         cancelPreview: () => preview_controller?.abort(),
@@ -493,7 +494,12 @@ else {
             return response.arrayBuffer();
         },
         cancelBrowser: () => window.speechSynthesis?.cancel(),
-        onMetadata: value => { if (value && typeof curt !== 'undefined' && curt) curt.speech = { ...curt.speech, ...value }; },
+        onMetadata: value => {
+            if (value && typeof curt !== 'undefined' && curt) {
+                curt.speech = { ...curt.speech, ...value };
+                window.dispatchEvent(new CustomEvent('bts-speech-metadata-changed'));
+            }
+        },
         onStateChange: () => window.dispatchEvent(new CustomEvent('bts-speech-output-changed')),
         request: (type, values, timeout_ms, signal) => new Promise((resolve, reject) => {
             let rid;

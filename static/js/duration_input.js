@@ -93,24 +93,7 @@ var btsDurationInput = (() => {
             const next = Math.max(min ?? -Infinity, Math.min(max ?? Infinity, number + direction * amount));
             write(next);selectSegment(name);emitChange();return true;
         }
-        const stepper = input.ownerDocument.createElement('span');stepper.className = 'duration-input-stepper';
-        const buttons = [1, -1].map(direction => {
-            const button = input.ownerDocument.createElement('button');
-            button.type = 'button';button.tabIndex = -1;
-            button.className = direction > 0 ? 'duration-input-increase' : 'duration-input-decrease';
-            button.title = translate(direction > 0 ? 'increase' : 'decrease');button.setAttribute('aria-label', button.title);
-            button.addEventListener('pointerdown', event => {if (event.button === 0) event.preventDefault();});
-            button.addEventListener('click', event => {
-                event.preventDefault();
-                if (input.disabled || input.readOnly || input.matches(':disabled')) return;
-                input.focus();step(direction, event.shiftKey);
-            });
-            stepper.append(button);return button;
-        });
-        const syncButtons = () => {for (const button of buttons) button.disabled = input.disabled || input.readOnly;};
-        syncButtons();
-        new input.ownerDocument.defaultView.MutationObserver(syncButtons).observe(input, {attributes:true,attributeFilter:['disabled','readonly']});
-        input.after(stepper);
+        btsNumberInput.createStepper(input, {change:step, labels:[translate('increase'), translate('decrease')]});
         let pointerFocus = false, pointerStart = null;
         const resetPointer = () => {pointerFocus = false;pointerStart = null;};
         input.addEventListener('pointerdown', event => {
@@ -177,4 +160,7 @@ var btsDurationInput = (() => {
     return {attach, parse, format};
 })();
 
-if (typeof module !== 'undefined' && module.exports) module.exports = btsDurationInput;
+if (typeof module !== 'undefined' && module.exports) {
+    var btsNumberInput = require('./number_input');
+    module.exports = btsDurationInput;
+}

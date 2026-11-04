@@ -179,13 +179,13 @@ describe('Server speech adapter and protected audio', function() {
         assert.strictEqual(broker.current, null);
     });
 
-    it('keeps credentials private and disables a missing/unsafe configuration', function() {
+    it('keeps legacy credentials private, works without a key and disables an unsafe address', function() {
         const broker = new SpeechBroker(config());
         const public_data = JSON.stringify(broker.public_config());
         assert(!public_data.includes(KEY));
         assert(!public_data.includes('api_key'));
         assert(!public_data.includes('127.0.0.1'));
-        assert.strictEqual(configuration({ enabled: true }, {}).enabled, false);
+        assert.strictEqual(configuration({ enabled: true }, {}).enabled, true);
         assert.strictEqual(config({ url: 'file:///etc/passwd' }).enabled, false);
         assert.strictEqual(config({ url: 'http://secret@127.0.0.1:8077' }).enabled, false);
     });

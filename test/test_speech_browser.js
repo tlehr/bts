@@ -47,6 +47,18 @@ function harness(options = {}) {
 }
 
 describe('Browser local speech provider', function() {
+    it('refreshes connection metadata during playback without pausing, cancelling or replaying the announcement', async function() {
+        const h = harness({fail:'held'});await h.service.unlock();
+        h.player.paused = false;
+        const playing = h.service.speak([TEXT], 'metadata-refresh', h.fallback);
+        for (let tries = 0; h.played.length < 2 && tries < 20; tries++) await delay(1);
+        assert.strictEqual(h.played.length, 2);h.player.onplaying?.();
+        const src = h.player.src;
+        h.service.updateMetadata({enabled:true, cache_version:'new-version', audio_endpoint:{protocol:'http:', port:4001}});
+        assert(h.service.isBusy());assert.strictEqual(h.player.paused, false);
+        assert.strictEqual(h.player.src, src);assert.strictEqual(h.played.length, 2);assert.deepStrictEqual(h.browser, []);
+        h.player.onended();assert.strictEqual((await playing).status, 'ok');assert(!h.service.isBusy());
+    });
     it('honors an explicit browser choice immediately without changing the configured mode', async function() {
         const h = harness();
         const result = await h.service.speak([TEXT], 'explicit-browser', h.fallback, undefined, [], undefined, 'browser');

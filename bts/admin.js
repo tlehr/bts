@@ -5717,6 +5717,17 @@ function handle_speech_health_subscribe(app, ws, msg) {
 	ws.respond(msg, null, { speech_health_supported: !!app.speech?.health });
 }
 
+function handle_service_status(app, ws, msg) {
+	if (!_require_msg(ws, msg, ['tournament_key'])) return;
+	const selected = app.speech?.prefetch?.settings?.(msg.tournament_key);
+	ws.respond(msg, null, { services: {
+		btp: btp_manager.get_status(msg.tournament_key),
+		ticker: ticker_manager.get_status(msg.tournament_key),
+		speech: {enabled:false, ...app.speech?.broker?.public_config?.(selected?.voice), ...selected},
+		speech_health: app.speech?.health?.snapshot() || {state:'ok', issues:[]},
+	} });
+}
+
 function handle_audio_device_register(app, ws, msg) {
 	require('./audio_devices')(app).register(ws, msg).then(value => ws.respond(msg, null, value), error => ws.respond(msg, error));
 }
@@ -5853,6 +5864,7 @@ module.exports = {
 	handle_speech_helper_test: require('./speech').handle,
 	handle_speech_helper_control: require('./speech').handle,
 	handle_speech_health_subscribe,
+	handle_service_status,
 	handle_edit_display_setting,
 	handle_create_display_setting,
 	async_handle_delete_display_setting,

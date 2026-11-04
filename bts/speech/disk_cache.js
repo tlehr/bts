@@ -224,7 +224,7 @@ class SpeechDiskCache {
         await new Promise((resolve, reject) => {
             let output, size = 0;
             const request = (target.protocol === 'https:' ? https : http).get(target, {
-                headers: { 'X-API-Key': this.config.api_key },
+                headers: this.config.api_key ? {'X-API-Key': this.config.api_key} : {},
             }, response => {
                 if (response.statusCode !== 200 || response.headers['content-type']?.split(';')[0] !== 'audio/wav' ||
                     Number(response.headers['content-length']) > MAX_BYTES) {

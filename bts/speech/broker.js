@@ -35,7 +35,7 @@ function configuration(config = {}, env = process.env) {
     } catch (_) { base_url = null; }
     const configured = env.BTS_SPEECH_ENABLED === undefined ? config.enabled === true : env.BTS_SPEECH_ENABLED === 'true';
     return {
-        enabled: configured && !!base_url && /^[\x20-\x7e]{32,}$/.test(api_key),
+        enabled: configured && !!base_url,
         configured, api_key, base_url,
         worker: env.BTS_SPEECH_WORKER === undefined ? config.worker !== false : env.BTS_SPEECH_WORKER !== '0',
         worker_type: (env.BTS_SPEECH_WORKER_TYPE || config.worker_type) === 'thread' ? 'thread' : 'process',
