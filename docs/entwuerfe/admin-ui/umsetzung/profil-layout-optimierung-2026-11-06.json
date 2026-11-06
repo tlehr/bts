@@ -1,0 +1,255 @@
+{
+  "date": "2026-11-06",
+  "changes": [
+    "Das bereits geladene Profilverzeichnis wird innerhalb jedes Gerätezustands für die bevorzugte, zugewiesene und effektive Profilwahl wiederverwendet. Spätere Aufträge laden weiterhin den aktuellen Stand.",
+    "Vorhandene Registrierungsprofile werden aus demselben Verzeichnis erkannt, ohne einzelne Zusatzabfrage.",
+    "Feldauswahl und Mehrfeldanzeige verwenden die bereits geladenen Basisdaten statt eines zweiten kompletten Gerätezustandsabrufs.",
+    "Unveränderte Profilzuordnungen erzeugen keinen erneuten Speicherauftrag. Werbedaten werden nur für tatsächlich gesendete Einstellungen gelesen.",
+    "Inhalts- und Abstandsmessungen der Offiziellenzellen werden bis zu relevanten Änderungen wiederverwendet. Beobachter sind ausschließlich an den einzelnen Zellen registriert. Schrift, Ansichtsmodus, Tabellenwechsel und Sichtbarkeit werden berücksichtigt.",
+    "Zählerarbeit wird über Empfangspakete gebündelt. Die Verlaufsliste wird bei Ergebnis-/Zeit-/Metadatenänderungen sortiert, nicht zusätzlich für jede Zähleraktualisierung. Ausstehende Schreibarbeiten werden vor der Namensmessung im selben Darstellungsdurchlauf abgeschlossen."
+  ],
+  "db_controlled_comparison": {
+    "before": {
+      "scope": "Isolated in-memory backend, 20 scores, one scoring tablet, one unassigned tablet and one assigned TV; no network or external services.",
+      "points": 20,
+      "operations": {
+        "courts": 40,
+        "locations": 0,
+        "event": 0,
+        "matches": 60,
+        "tournaments": 60,
+        "umpires": 0,
+        "logs": 0,
+        "tabletoperators": 0,
+        "displaysettings": 160,
+        "display_court_displaysettings": 100,
+        "normalizations": 0,
+        "advertisements": 20,
+        "app_settings": 0
+      },
+      "total": 440,
+      "elapsed_ms": 132.37400889396667,
+      "tv_points": 20
+    },
+    "after": {
+      "scope": "Isolated in-memory backend, 20 scores, one scoring tablet, one unassigned tablet and one assigned TV; no network or external services.",
+      "points": 20,
+      "operations": {
+        "courts": 40,
+        "locations": 0,
+        "event": 0,
+        "matches": 60,
+        "tournaments": 40,
+        "umpires": 0,
+        "logs": 0,
+        "tabletoperators": 0,
+        "displaysettings": 20,
+        "display_court_displaysettings": 40,
+        "normalizations": 0,
+        "advertisements": 0,
+        "app_settings": 0
+      },
+      "total": 200,
+      "elapsed_ms": 96.66568398475647,
+      "tv_points": 20
+    },
+    "operation_reduction_percent": 54.55,
+    "profile_operation_reduction_percent": 87.5,
+    "limits": "Kontrollierter In-Memory-Test mit 20 Punkten, einem zählenden Tablet, einem Tablet ohne Feld und einer Anzeige. Kein vollständiger Live-Lauf; die Prozentwerte gelten für diesen Testfall."
+  },
+  "finish_layout_comparison": {
+    "scope": "Gleicher rein lesend kopierter Turnierstand mit 512 Spielen. Je Variante zehn Abschlüsse; Reihenfolge ohne/mit/mit/ohne Offizielle, mit CPU-Profilierung. Keine Live-Turnieränderungen.",
+    "results": {
+      "before": {
+        "without_officials": {
+          "samples": 10,
+          "finish_presentation_mean_ms": 132.7,
+          "finish_presentation_median_ms": 133.3,
+          "finish_presentation_max_ms": 155,
+          "ui_job_work_mean_ms": 77.14
+        },
+        "with_officials": {
+          "samples": 10,
+          "finish_presentation_mean_ms": 179.41,
+          "finish_presentation_median_ms": 150.1,
+          "finish_presentation_max_ms": 350,
+          "ui_job_work_mean_ms": 109.16
+        }
+      },
+      "after": {
+        "without_officials": {
+          "samples": 10,
+          "finish_presentation_mean_ms": 130.29,
+          "finish_presentation_median_ms": 133.4,
+          "finish_presentation_max_ms": 156.3,
+          "ui_job_work_mean_ms": 71.33
+        },
+        "with_officials": {
+          "samples": 10,
+          "finish_presentation_mean_ms": 130.45,
+          "finish_presentation_median_ms": 119,
+          "finish_presentation_max_ms": 186.4,
+          "ui_job_work_mean_ms": 68.43
+        }
+      }
+    },
+    "limits": [
+      "Kleine Browser-Stichproben mit Laufzeitschwankungen und Garbage Collection; kein Nachweis eines Live-p99-Ziels.",
+      "UI-Job-Laufzeiten enthalten synchrone Layoutarbeit innerhalb der gemessenen Jobs, nicht die gesamte Browser-CPU zwischen den Jobs.",
+      "Die Vergleichsläufe verwenden denselben Datenschnappschuss, aber keine angehaltene Browseruhr. Fortgeschrittene Pausentimer können die Stichproben zusätzlich beeinflussen; die Differenz ist kein isolierter Kausalnachweis."
+    ]
+  },
+  "validation": {
+    "unit_tests_passed": 277,
+    "row_browser_checks": 63,
+    "official_name_browser_checks": 15,
+    "compact_timer_browser_checks": 12,
+    "ownership_browser_checks": 13,
+    "date_group_browser_checks": 34,
+    "official_invalidation_browser_checks": 6,
+    "burst_regressions": {
+      "number": true,
+      "keepNumber": true,
+      "namesPreserved": true,
+      "nameQueryFree": true,
+      "nameCheckIn": true,
+      "identityReplaced": true,
+      "plan": true,
+      "reopened": true,
+      "remounted": true
+    },
+    "burst_summary": [
+      {
+        "kind": "results",
+        "point_max_ms": 72.3,
+        "updates_p95_ms": 195.2,
+        "cpu_mean_ms": 164.25766666666664
+      },
+      {
+        "kind": "names",
+        "point_max_ms": 42.2,
+        "updates_p95_ms": 141.1,
+        "cpu_mean_ms": 135.69066666666671
+      }
+    ],
+    "official_invalidation_samples": [
+      {
+        "label": "unchanged rows",
+        "cells": {},
+        "insets": 0
+      },
+      {
+        "label": "changed control",
+        "cells": {
+          "match-37": 1
+        },
+        "insets": 1
+      },
+      {
+        "label": "changed official",
+        "cells": {
+          "match-37": 1
+        },
+        "insets": 1
+      },
+      {
+        "label": "changed fonts",
+        "cells": {
+          "match-44": 1,
+          "match-37": 1,
+          "match-40": 1,
+          "match-36": 1,
+          "match-32": 1,
+          "match-38": 1,
+          "match-30": 1,
+          "match-43": 1,
+          "match-39": 1,
+          "match-42": 1,
+          "match-41": 1,
+          "match-45": 1,
+          "match-46": 1,
+          "match-47": 1,
+          "match-48": 1,
+          "match-49": 1,
+          "match-50": 1,
+          "match-51": 1,
+          "match-52": 1,
+          "match-53": 1
+        },
+        "insets": 20
+      }
+    ],
+    "structural_load": {
+      "matchCount": 373,
+      "timerCount": 200,
+      "stats": {
+        "applied": {
+          "count": 52,
+          "p50": 0.6999998092651367,
+          "p95": 32.40000009536743,
+          "max": 80.5
+        },
+        "independent": {
+          "count": 52,
+          "p50": 22.399999856948853,
+          "p95": 202.29999995231628,
+          "max": 302.09999990463257
+        },
+        "ack": {
+          "count": 52,
+          "p50": 22.5,
+          "p95": 221.5,
+          "max": 304.8
+        }
+      },
+      "outcomes": {
+        "presented": 1474,
+        "superseded": 1
+      },
+      "nonPresented": [
+        {
+          "sequence": 374,
+          "status": "superseded",
+          "type": "score",
+          "match_id": "load-0"
+        }
+      ],
+      "pending": {
+        "pending": 0,
+        "subscribers": 1,
+        "callbackErrors": 0
+      }
+    },
+    "new_lint_findings": 0,
+    "existing_failure": "Der bisherige umfassendere Layout-Cache-Test scheitert weiterhin bei der Erwartung unveränderter intrinsischer Breiten nach einem Fenster-Resize. Identisch auf der unveränderten Ausgangskopie reproduziert; der gezielte neue Invalidierungstest und sämtliche oben genannten Prüfungen bestehen.",
+    "supersession_validation": "Alle gemessenen Punkte müssen dargestellt sein. Ein überholter synthetischer Zwischenstand ist nur zulässig, wenn ein späterer Stand desselben Typs und Spiels nachweislich dargestellt wurde. Zeitüberschreitungen, Kapazitätsfehler und nicht bestätigte Ersetzungen bleiben Fehler."
+  },
+  "deployment": {
+    "backup": "/tmp/bts-profile-layout-backup-20261106",
+    "backend_reload": "Automatisch durch den bestehenden Dateiwächter ausgelöst.",
+    "before": {
+      "checked_at": "2026-11-06T02:09:40.404Z",
+      "server_id": "649582-1793924757193",
+      "matches": 512,
+      "active_matches": 15,
+      "btp": {
+        "status": "connected",
+        "last_successful_fetch_ts": 1793930979064,
+        "fetch_in_progress": false
+      }
+    },
+    "after": {
+      "checked_at": "2026-11-06T02:13:21.329Z",
+      "server_id": "690967-1793931157302",
+      "matches": 512,
+      "active_matches": 15,
+      "btp": {
+        "status": "connected",
+        "last_successful_fetch_ts": 1793931191808,
+        "fetch_in_progress": false
+      }
+    },
+    "browser_reload_required": true
+  },
+  "remaining": "Ein neuer vollständiger Live-Dauertest ist noch nötig, um das Admin-Ziel unter 100 ms am 99. Perzentil und unter 250 ms im Maximum zu beurteilen."
+}

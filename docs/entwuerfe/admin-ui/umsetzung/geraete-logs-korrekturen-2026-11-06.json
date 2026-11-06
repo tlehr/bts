@@ -1,0 +1,72 @@
+{
+  "date": "2026-11-06",
+  "changes": [
+    "Geräte- und Loglisten ohne Zebrastreifen, mit dezenten Trennlinien; Verbindungsfarben bleiben erhalten.",
+    "Anfangs 50 aktuelle passende Logeinträge; ältere Einträge werden in 50er-Seiten anhand exklusiver Revisionsgrenzen nachgeladen.",
+    "Live-Abfragen halten das gewählte Fenster und transportieren pro Antwort maximal 200 Einträge. Große Änderungen werden bei Bedarf seitenweise eingelesen, bevor der Live-Cursor fortschreitet.",
+    "Suche und Filter gelten serverseitig für alle gespeicherten Logs; Exporte bleiben vollständig und stabil.",
+    "Die verkürzten Spieldaten der Feldauswahl behalten Zählsystem und Abschlussangaben. BUP rät bei älteren Übersichten ohne Zählsystem keinen Abschluss."
+  ],
+  "error_cause": "BUP berechnete den Abschluss auch für verkürzte Feldauswahldaten ohne counting/scoring_format. Beim betroffenen Spiel ist im BTS ein scoring_format vorhanden, counting aber nicht; das Format fiel im Picker-Payload weg. Leere Score-Arrays und wiederholte Listenaktualisierungen lösten denselben Fehler erneut aus.",
+  "validation": {
+    "bts_tests_passed": 53,
+    "bup_targeted_tests_passed": 19,
+    "additional_scoring_winner_tests_passed": 2,
+    "browser_checks_passed": 74,
+    "browser_exceptions": 0,
+    "failed_assets": 0,
+    "new_lint_diagnostics": 0,
+    "regression_baselines": "Neue BUP-Regressionen und neue Tests für die Picker-Metadaten scheitern an der gesicherten Ausgangsfassung.",
+    "preexisting_failure": "Der zusätzlich betrachtete 5x11_11-Gesamtspieltest scheitert unverändert auch in der Ausgangsfassung an einem Zeilenumbruch im Ergebnistext. Ein breiterer Lauf wurde nach diesem bekannten Befund und sehr langen Scoring-Schleifen abgebrochen; die gezielten neuen und relevanten Tests bestehen."
+  },
+  "live_before": {
+    "checked_at": "2026-11-06T06:44:49.194Z",
+    "server_id": "709578-1793935999723",
+    "matches": 512,
+    "active_matches": 15,
+    "state_sha256": "07eb2bd3c5cbe147ddbaf9e0b44fa6fed26bfa9ce52950e007f3c17bb4e04e46",
+    "btp_status": "connected",
+    "affected": {
+      "state": "finished",
+      "has_scoring_format": true
+    }
+  },
+  "live_after": {
+    "checked_at": "2026-11-06T06:45:59.068Z",
+    "server_id": "776495-1793947544430",
+    "matches": 512,
+    "active_matches": 15,
+    "state_sha256": "07eb2bd3c5cbe147ddbaf9e0b44fa6fed26bfa9ce52950e007f3c17bb4e04e46",
+    "btp_status": "connected",
+    "affected": {
+      "state": "finished",
+      "has_scoring_format": true
+    },
+    "logs": {
+      "first_count": 50,
+      "matching_total": 1558,
+      "retained": 1558,
+      "next_before": 36724,
+      "second_count": 50,
+      "disjoint": true
+    }
+  },
+  "tournament_state_preserved": true,
+  "installed_sha256": {
+    "bup/js/network.js": "f837585fcfae78ff7bda91a2fdff971178145a4a3e8c3400896bddfe9364052b",
+    "bup/js/btsh.js": "c1e763f70486327f131fabaaa41b8f005abb3f6e6036bfbd3f891a642a25fe9b",
+    "bup/test/test_network_finished.js": "552ba7878c1c7975bd8873433edb1e09fba8e6a6110805b91e03ed36c1c30cda",
+    "bts/static/css/devices_workspace.css": "3e456292130c8bbaf3a6a12ee406fc51779c3585d7c4762631fbc4eefaeba43d",
+    "bts/static/js/devices_workspace.js": "d52a713c676cdcb57417676549d28c7fe34951073b68c0d87aa3e48ea08aa4c6",
+    "bts/test/test_diagnostics.js": "23922885aca82dd403f55b47e4cbc3dff9c3089434c28b6da84becfa85c6f11a",
+    "bts/test/test_bupws_v2.js": "e2019e2d1d42a1e99f11e082b1b6f7f8f373373336d27577a33bde1b0b849228",
+    "bts/docs/entwuerfe/admin-ui/umsetzung/devices-workspace-check.js": "f7be48d3e0eee4455966fc82392c20098b1662b1e72995ef5f800a26a3996d5d",
+    "bts/bts/diagnostics/store_process.js": "29a2ffd44f26eecd94f4dd2139689e26aea9941b091916df006c934d9c8ce796",
+    "bts/bts/diagnostics/index.js": "fb0fd2a51622ad44cec566c9bb6ffae72718a9dd858bf2d553a35521253d05ba",
+    "bts/bts/bupws_v2.js": "e5ec25915ae25f9920062af1310ecf94bec90fb4ada7ce9026b34fd7df81a70b"
+  },
+  "scope_limits": [
+    "Der Live-Nachtest war rein lesend. Keine produktiven Neuladeaufträge, Testpunkte oder Ergebnisänderungen.",
+    "Eine neue vollständige Live-Lastmessung ist damit nicht verbunden."
+  ]
+}

@@ -47,7 +47,7 @@ function dependency_projection(match, locked_matches, ignore_successor = false) 
 	}
 	return {
 		_id: match._id, btp_id: match.btp_id, btp_match_ids: match.btp_match_ids, btp_player_ids: match.btp_player_ids,
-		team1_won: match.team1_won, btp_winner: match.btp_winner,
+		team1_won: match.team1_won, btp_winner: match.btp_winner, btp_participant_conflict: match.btp_participant_conflict,
 		end_ts: match.end_ts, score_status: match.score_status, btp_needsync: match.btp_needsync,
 		match_order: match.match_order, forward_loser: match.forward_loser, no_match_losing_team: match.no_match_losing_team,
 		// Fewer locks must not hide a completed dependency change while planning
@@ -79,7 +79,7 @@ function point_preserving_change(before, after) {
 	// A remote score reset/result or changed scoring/opponents must still be
 	// planned against the latest local score. Player metadata/check-ins may merge.
 	if (![...POINT_FIELDS, 'end_ts', 'team1_won', 'btp_winner', 'btp_needsync',
-		'score_status', 'score_status_network_score', 'forward_loser', 'no_match_losing_team']
+		'score_status', 'score_status_network_score', 'forward_loser', 'no_match_losing_team', 'btp_participant_conflict']
 		.every(field => utils.deep_equal(before[field], after[field]))) return false;
 	if (!['state', 'now_on_court', 'court_id', 'counting', 'scoring_format',
 		'needs_preparation_successor', 'needs_preparation_successor_ts']

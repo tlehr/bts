@@ -1,0 +1,341 @@
+{
+  "date": "2026-11-06",
+  "scope": "Isolierter Browser mit 512 synthetischen Spielen, davon 392 beendet, 15 Feldern und 64 Offiziellenzuordnungen. Je Browser zehn unterschiedliche Abschlüsse und Wiederöffnungen, je ein unabhängiger Punkt, abwechselnd 16 gleichzeitige Änderungen kommender Spiele. Vier frische Browser in der Reihenfolge vorher/nachher/nachher/vorher, ohne CPU-Profiler oder Timeline-Aufzeichnung und ohne Live-Schreibzugriff.",
+  "diagnosis": [
+    "Eine native Ergebniszeile brachte auch ohne Ballverbrauch eine leere zusätzliche Ballspalte mit. Vor dem verzögerten Entfernen teilte diese implizite Spalte die restlichen Namensspalten neu auf, im Diagnosebeispiel 496,875 -> 238,4375 -> 496,875 Pixel. Mehr als 100 erneute Größenmeldungen und Namensanpassungen waren die Folge.",
+    "Der Ergebnisrahmen erlaubte einen inneren vertikalen Scrollbalken. Überstehende Schrift änderte dessen Sichtbarkeit und damit die verfügbare Namensbreite erneut um etwa 7,5 Pixel pro Teamspalte.",
+    "Gebündelte Layoutaufträge warteten nach dem Leeren der Empfangswarteschlange noch auf einen eigenen Darstellungsframe; neue Größenmeldungen planten die Anpassung erst für einen weiteren Frame."
+  ],
+  "changes": [
+    "Leere native Ballzellen werden sofort entfernt. Der erste tatsächlich gemeldete Ballverbrauch erzeugt die ausdrückliche Spalte und passende Zellen gemeinsam; weitere Ergebnisse verwenden dieses Schema.",
+    "Der Ergebnisrahmen unterbindet innere vertikale Scrollbalken wie die übrigen nach Inhalt wachsenden Spiellisten. Horizontales Scrollen und die vollständige letzte Ergebniszeile bleiben geprüft.",
+    "Ein unabhängig von Messabonnenten arbeitendes Queue-Idle-Signal stößt gemeinsame Schreib-, Zähler-, Sortier- und Namensaufträge nach dem Empfangsblock an. Ein Microtask bündelt diese Arbeit; Abmeldung und Wurzelprüfung schützen Seitenwechsel.",
+    "Bereits beobachtete neue Namensbreiten werden noch vor dem zugehörigen Paint verarbeitet. Notwendige Erstbeobachtung und zwei sichtbare Darstellungsframes bleiben Voraussetzung jeder Quittierung."
+  ],
+  "summary": {
+    "before": {
+      "browser_work": {
+        "count": 20,
+        "mean_ms": 517.72,
+        "p50_ms": 467.29,
+        "p95_ms": 1023.0620000000004,
+        "max_ms": 1369.406
+      },
+      "receipt_count": 220,
+      "all_presented": true,
+      "finish": {
+        "count": 20,
+        "mean_ms": 279.18,
+        "p50_ms": 223.4,
+        "p95_ms": 731.5,
+        "max_ms": 926.7,
+        "ui_wait": {
+          "count": 20,
+          "mean_ms": 155.24,
+          "p50_ms": 122.75,
+          "p95_ms": 471.5,
+          "max_ms": 613
+        }
+      },
+      "point": {
+        "count": 20,
+        "mean_ms": 115.51,
+        "p50_ms": 115.85,
+        "p95_ms": 154.5,
+        "max_ms": 164.8,
+        "ui_wait": {
+          "count": 20,
+          "mean_ms": 0,
+          "p50_ms": 0.0,
+          "p95_ms": 0,
+          "max_ms": 0
+        }
+      },
+      "reopen": {
+        "count": 20,
+        "mean_ms": 178.32,
+        "p50_ms": 163.35,
+        "p95_ms": 236.5,
+        "max_ms": 324.9,
+        "ui_wait": {
+          "count": 20,
+          "mean_ms": 115.24,
+          "p50_ms": 106.0,
+          "p95_ms": 155.5,
+          "max_ms": 178.6
+        }
+      }
+    },
+    "after": {
+      "browser_work": {
+        "count": 20,
+        "mean_ms": 343.82,
+        "p50_ms": 363.05,
+        "p95_ms": 464.807,
+        "max_ms": 495.633
+      },
+      "receipt_count": 220,
+      "all_presented": true,
+      "finish": {
+        "count": 20,
+        "mean_ms": 150.54,
+        "p50_ms": 167.0,
+        "p95_ms": 262.2,
+        "max_ms": 272.1,
+        "ui_wait": {
+          "count": 20,
+          "mean_ms": 99.97,
+          "p50_ms": 113.85,
+          "p95_ms": 209.1,
+          "max_ms": 216.9
+        }
+      },
+      "point": {
+        "count": 20,
+        "mean_ms": 100.7,
+        "p50_ms": 84.2,
+        "p95_ms": 152.7,
+        "max_ms": 169.6,
+        "ui_wait": {
+          "count": 20,
+          "mean_ms": 0,
+          "p50_ms": 0.0,
+          "p95_ms": 0,
+          "max_ms": 0
+        }
+      },
+      "reopen": {
+        "count": 20,
+        "mean_ms": 132.85,
+        "p50_ms": 131.4,
+        "p95_ms": 162.8,
+        "max_ms": 164.2,
+        "ui_wait": {
+          "count": 20,
+          "mean_ms": 102.94,
+          "p50_ms": 99.1,
+          "p95_ms": 131.3,
+          "max_ms": 131.8
+        }
+      }
+    }
+  },
+  "runs": [
+    {
+      "mode": "before",
+      "run": 1,
+      "summary": {
+        "cpu": {
+          "count": 10,
+          "mean_ms": 486.0236999999999,
+          "p50_ms": 500.37499999999955,
+          "p95_ms": 1023.0620000000004,
+          "max_ms": 1023.0620000000004
+        },
+        "finish": {
+          "count": 10,
+          "mean_ms": 267.39,
+          "p50_ms": 293.6,
+          "p95_ms": 731.5,
+          "max_ms": 731.5
+        },
+        "point": {
+          "count": 10,
+          "mean_ms": 112.84,
+          "p50_ms": 108.8,
+          "p95_ms": 154.5,
+          "max_ms": 154.5
+        },
+        "reopen": {
+          "count": 10,
+          "mean_ms": 169.27,
+          "p50_ms": 162.9,
+          "p95_ms": 236.5,
+          "max_ms": 236.5
+        }
+      }
+    },
+    {
+      "mode": "after",
+      "run": 1,
+      "summary": {
+        "cpu": {
+          "count": 10,
+          "mean_ms": 348.3997,
+          "p50_ms": 366.74699999999973,
+          "p95_ms": 495.633,
+          "max_ms": 495.633
+        },
+        "finish": {
+          "count": 10,
+          "mean_ms": 152.60999999999999,
+          "p50_ms": 168.5,
+          "p95_ms": 272.1,
+          "max_ms": 272.1
+        },
+        "point": {
+          "count": 10,
+          "mean_ms": 101.95,
+          "p50_ms": 119,
+          "p95_ms": 152.7,
+          "max_ms": 152.7
+        },
+        "reopen": {
+          "count": 10,
+          "mean_ms": 129.37,
+          "p50_ms": 128.4,
+          "p95_ms": 164.2,
+          "max_ms": 164.2
+        }
+      }
+    },
+    {
+      "mode": "after",
+      "run": 2,
+      "summary": {
+        "cpu": {
+          "count": 10,
+          "mean_ms": 339.23130000000003,
+          "p50_ms": 367.7240000000004,
+          "p95_ms": 464.807,
+          "max_ms": 464.807
+        },
+        "finish": {
+          "count": 10,
+          "mean_ms": 148.47,
+          "p50_ms": 170.2,
+          "p95_ms": 262.2,
+          "max_ms": 262.2
+        },
+        "point": {
+          "count": 10,
+          "mean_ms": 99.46000000000001,
+          "p50_ms": 89.8,
+          "p95_ms": 169.6,
+          "max_ms": 169.6
+        },
+        "reopen": {
+          "count": 10,
+          "mean_ms": 136.33999999999997,
+          "p50_ms": 145.8,
+          "p95_ms": 162.8,
+          "max_ms": 162.8
+        }
+      }
+    },
+    {
+      "mode": "before",
+      "run": 2,
+      "summary": {
+        "cpu": {
+          "count": 10,
+          "mean_ms": 549.4066,
+          "p50_ms": 477.30899999999997,
+          "p95_ms": 1369.406,
+          "max_ms": 1369.406
+        },
+        "finish": {
+          "count": 10,
+          "mean_ms": 290.96999999999997,
+          "p50_ms": 252.3,
+          "p95_ms": 926.7,
+          "max_ms": 926.7
+        },
+        "point": {
+          "count": 10,
+          "mean_ms": 118.17999999999999,
+          "p50_ms": 131.1,
+          "p95_ms": 164.8,
+          "max_ms": 164.8
+        },
+        "reopen": {
+          "count": 10,
+          "mean_ms": 187.36999999999998,
+          "p50_ms": 174.8,
+          "p95_ms": 324.9,
+          "max_ms": 324.9
+        }
+      }
+    }
+  ],
+  "validation": {
+    "node_tests": 45,
+    "node_command": "node_modules/.bin/mocha test/test_admin_update_observer.js test/test_conn.js test/test_conn_background.js",
+    "browser_modes": [
+      "fixed-columns",
+      "update-ownership",
+      "persistent-rows",
+      "history-pages",
+      "date-groups",
+      "compact-official-names",
+      "compact-timers",
+      "current-games-scroll",
+      "structural-load",
+      "sync-burst"
+    ],
+    "fixed_columns_checks": 16,
+    "ownership_checks": 15,
+    "other_geometry_checks": 354,
+    "structural_presentations": 1473,
+    "structural_point_max_ms": 151.3,
+    "sync_results_parallel_point_max_ms": 57.4,
+    "sync_names_parallel_point_max_ms": 45.2,
+    "eslint_findings_changed_js_and_unit_test": 0,
+    "installed_browser_smoke": "16 fixed-column checks passed after installation; no browser exceptions"
+  },
+  "deployment": {
+    "files": {
+      "static/js/cleitstand.js": {
+        "before_sha256": "81ff0419c4f374b74b72d5bffccbef9819bb55dfd1e710e2dc471ee0607ea65b",
+        "after_sha256": "a36b60fac044d184a89b45d68ba5936f5eefcc6c7f56bde8185285a8fb051449"
+      },
+      "static/js/admin_update_observer.js": {
+        "before_sha256": "8cbcc6308262e8e98f763bea3bd210a2e5dbb94cd4fee98dac4666645d5d456d",
+        "after_sha256": "e4ab8969bf30b4ea06992f63dac55e27d6397957c84e8313aad23a7522e41af8"
+      },
+      "static/css/leitstand.css": {
+        "before_sha256": "72a1095f3f73ef7a3546ee80b33a8e81cab9cdcf0c5af43d6f7fcec48b28876f",
+        "after_sha256": "74621e93ad55dfd3301a40e4ce51c661336d7bb61e40ddc4d9a9765dcf768014"
+      },
+      "test/test_admin_update_observer.js": {
+        "before_sha256": "6ba28d0122f98340d019242afe2f3d690742f648da9d63da12a88fd9c5cd2cda",
+        "after_sha256": "e12d3748324164720c27df4d94797de00c559797795725c0123f01be69142b0b"
+      },
+      "docs/entwuerfe/admin-ui/umsetzung/fixed-columns-check.js": {
+        "before_sha256": "a8c00c4a9e24eb7535f51966143e664df8a4c40db852015761849379f7f9d710",
+        "after_sha256": "3c014cf9cd4f4bd54cc0e664bf17fd63cca57f09fbc5f29bf3b8dd13a616d7ea"
+      }
+    },
+    "before": {
+      "checked_at": "2026-11-06T07:09:11.999Z",
+      "server_id": "776495-1793947544430",
+      "matches": 512,
+      "active_matches": 15,
+      "state_sha256": "07eb2bd3c5cbe147ddbaf9e0b44fa6fed26bfa9ce52950e007f3c17bb4e04e46",
+      "btp_status": "connecting",
+      "affected": {
+        "state": "finished",
+        "has_scoring_format": true
+      }
+    },
+    "after": {
+      "checked_at": "2026-11-06T07:09:44.540Z",
+      "server_id": "776495-1793947544430",
+      "matches": 512,
+      "active_matches": 15,
+      "state_sha256": "07eb2bd3c5cbe147ddbaf9e0b44fa6fed26bfa9ce52950e007f3c17bb4e04e46",
+      "btp_status": "connecting",
+      "affected": {
+        "state": "finished",
+        "has_scoring_format": true
+      }
+    }
+  },
+  "limits": [
+    "Die Browser-Arbeitszeit enthält auch Testassertionen und Warteframes. Quittierungszeiten werden separat erfasst.",
+    "Die größten Ausgangs-Ausreißer stammen aus dem jeweils ersten Abschluss eines frischen Browsers. Daher sind alle vier Einzelberichte, Mittelwerte und Mediane enthalten; diese Messungen sind kein Live-p99-Nachweis.",
+    "Die mittlere Abschlussquittung sinkt von 279,18 auf 150,54 ms, ihr Median von 223,4 auf 167 ms. Einzelne Abschlüsse benötigen auch danach bis zu 272,1 ms. Empfangsblöcke geben weiterhin nach 16 ms bzw. 25 Nachrichten die Kontrolle ab; umfangreiche gleichzeitige Änderungen beanspruchen weiterhin Browserzeit.",
+    "Ein vollständiger Live-Dauertest mit neu geladenen Seiten steht aus. Backend, BTP-Schreibwege, DB und Anzeigeclients wurden durch diese Optimierung nicht geändert.",
+    "Der lesende Nachtest bestätigt unveränderten Spielbestand und identischen BTS-Prozess. BTP meldet vor und nach der Frontendübernahme connecting; es wurde keine neue Anmeldung oder Konfigurationsänderung vorgenommen."
+  ]
+}

@@ -179,6 +179,12 @@ Zustand für nicht zugewiesene Tablets/Displays.
 
 Wird verwendet, wenn ein Tablet oder Display keine Feldzuordnung hat. Der Client kann damit eine Feldauswahl anzeigen oder, bei Display-only-Ansichten, Hostname und Monitor-Label groß darstellen.
 
+Die kompakten Spiele behalten unter `setup` ihr tatsächliches `counting`,
+`scoring_format` und `state`; vorhandene Abschlussangaben `end_ts` und
+`team1_won` werden ebenfalls übertragen. BUP verwendet diese Angaben für die
+Abschlussmarkierung der Feldauswahl. Bei älteren Übersichten ohne Zählsystem
+wird kein Ergebnis anhand angenommener Regeln berechnet.
+
 ## Netzwerk-Effizienz
 
 ### Relevanzfilter pro Client
@@ -192,6 +198,18 @@ V2 sendet nicht mehr pauschal den gesamten Turnierzustand an jedes Display. Der 
 - ob nur ein Score-Update reicht oder ein Full-State nötig ist
 
 Ein Display auf Feld 6 bekommt dadurch keine vollständigen Daten aller anderen Felder, außer der gewählte Anzeigestil braucht sie explizit.
+
+Laufende Punkte eines Zähltablets werden nicht an fest zugewiesene Zähltablets
+zurückgespiegelt, auch nicht an ein zweites Tablet desselben Feldes. Tablets ohne
+Feldzuordnung erhalten weiterhin die aktualisierte Feldauswahl. Anzeigen bekommen
+die für ihre Felder relevanten Punkte. Administrative Korrekturen, Zuordnungen und
+der Spielabschluss aktualisieren die betroffenen zugewiesenen Tablets weiterhin.
+
+Das Öffnen eines Spiels verschickt keine allgemeine Freigabemeldung an andere
+Tablets. Nur wenn ein anderes Tablet dasselbe Spiel tatsächlich übernimmt, bekommt
+der bisherige Besitzer genau eine `release-match`-Nachricht. Wiederholtes Öffnen
+durch denselben Besitzer löst keine weitere Freigabe aus; Schreibversuche des
+abgelösten Besitzers werden weiterhin gezielt zurückgewiesen.
 
 ### Kleine Punkt-/Timer-Updates statt Full-State
 

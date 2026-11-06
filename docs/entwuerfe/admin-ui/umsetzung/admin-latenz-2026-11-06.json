@@ -1,0 +1,206 @@
+{
+  "date": "2026-11-06",
+  "scope": "Isolierter Headless-Chrome-Browser mit den echten Frontend-Modulen und synthetischen Turnierdaten. Keine Änderungen an Live-Turnierdaten, BTP oder angeschlossenen Geräten.",
+  "symptom": "Verzögerte Punktanzeige auf der Turnierleitungsseite, besonders während großer Synchronisierungspakete.",
+  "causes": [
+    "Reine Namenskorrekturen verarbeiteten unnötig den gesamten Spielerstatus und die abhängigen Oberflächenelemente.",
+    "Schreibzugriffe pro Empfangspaket wechselten mit wiederholten Layoutmessungen und Sortierungen der ganzen Tabelle.",
+    "Vorbereitungsabfragen wurden innerhalb eines Synchronisierungspakets mehrfach angefordert.",
+    "Neue Punkte warteten hinter unabhängigen Geräte- und Spieländerungen."
+  ],
+  "changes": [
+    "Reine Namenskorrekturen aktualisieren nur die bestehenden Namen und die Textsuche. Spielerkennungen, Status und Strukturänderungen behalten die vollständige Verarbeitung.",
+    "Namensmessungen, Sortierung abgeschlossener Spiele und Vorbereitungsabfragen werden über die gesamte Empfangswarteschlange gebündelt.",
+    "Punkte dürfen unabhängige ältere Geräte- und Spieländerungen passieren. Änderungen desselben Spiels oder Feldes sowie globale und unbekannte Änderungen bleiben in Empfangsreihenfolge.",
+    "Punktreihenfolge, alternative Spielkennungen und fehlende Zuordnungen werden konservativ behandelt."
+  ],
+  "controlled_comparison": {
+    "matches": 373,
+    "finished_matches": 328,
+    "occupied_courts": 15,
+    "phases": 6,
+    "changes_per_phase": 80,
+    "points_per_phase": 1,
+    "before": [
+      {
+        "kind": "results",
+        "point_max_ms": 397.9,
+        "updates_p95_ms": 398.4,
+        "cpu_mean_ms": 363.2126666666666
+      },
+      {
+        "kind": "names",
+        "point_max_ms": 3318.6,
+        "updates_p95_ms": 3290,
+        "cpu_mean_ms": 3090.269666666667
+      }
+    ],
+    "after": [
+      {
+        "kind": "results",
+        "point_max_ms": 58.9,
+        "updates_p95_ms": 225.4,
+        "cpu_mean_ms": 163.16866666666667
+      },
+      {
+        "kind": "names",
+        "point_max_ms": 34.2,
+        "updates_p95_ms": 110.7,
+        "cpu_mean_ms": 99.48533333333332
+      }
+    ],
+    "regressions": {
+      "number": true,
+      "keepNumber": true,
+      "namesPreserved": true,
+      "nameQueryFree": true,
+      "nameCheckIn": true,
+      "identityReplaced": true,
+      "plan": true,
+      "reopened": true,
+      "remounted": true
+    }
+  },
+  "sustained_load": {
+    "ordinary": {
+      "matchCount": 128,
+      "finishedCount": 59,
+      "courtCount": 15,
+      "deviceCount": 30,
+      "timerCount": 216,
+      "structuralChanges": 0,
+      "stats": {
+        "applied": {
+          "count": 52,
+          "p50": 0.5,
+          "p95": 1.7999999523162842,
+          "max": 19.200000047683716
+        },
+        "independent": {
+          "count": 52,
+          "p50": 24.09999990463257,
+          "p95": 35.5,
+          "max": 40.700000047683716
+        },
+        "ack": {
+          "count": 52,
+          "p50": 24.1,
+          "p95": 35.7,
+          "max": 40.7
+        }
+      },
+      "outcomes": {
+        "presented": 1548
+      },
+      "pending": {
+        "pending": 0,
+        "subscribers": 1,
+        "callbackErrors": 0
+      },
+      "version": "batching and name fast path; before queue prioritization"
+    },
+    "large_list": {
+      "matchCount": 373,
+      "finishedCount": 85,
+      "courtCount": 15,
+      "deviceCount": 30,
+      "timerCount": 200,
+      "structuralChanges": 0,
+      "stats": {
+        "applied": {
+          "count": 52,
+          "p50": 0.7000000476837158,
+          "p95": 2.799999952316284,
+          "max": 19.5
+        },
+        "independent": {
+          "count": 52,
+          "p50": 26,
+          "p95": 57.30000019073486,
+          "max": 99.40000009536743
+        },
+        "ack": {
+          "count": 52,
+          "p50": 26.1,
+          "p95": 57.3,
+          "max": 99.5
+        }
+      },
+      "outcomes": {
+        "presented": 1524
+      },
+      "pending": {
+        "pending": 0,
+        "subscribers": 1,
+        "callbackErrors": 0
+      },
+      "version": "batching and name fast path; before queue prioritization"
+    },
+    "structural": {
+      "matchCount": 373,
+      "finishedCount": 85,
+      "courtCount": 15,
+      "deviceCount": 30,
+      "timerCount": 200,
+      "structuralChanges": 7,
+      "stats": {
+        "applied": {
+          "count": 51,
+          "p50": 0.7000000476837158,
+          "p95": 74.09999990463257,
+          "max": 107.90000009536743
+        },
+        "independent": {
+          "count": 51,
+          "p50": 26.699999809265137,
+          "p95": 232.70000004768372,
+          "max": 321.5
+        },
+        "ack": {
+          "count": 51,
+          "p50": 26.8,
+          "p95": 232.7,
+          "max": 321.6
+        }
+      },
+      "outcomes": {
+        "presented": 1329
+      },
+      "pending": {
+        "pending": 0,
+        "subscribers": 1,
+        "callbackErrors": 0
+      },
+      "version": "final queue prioritization; before final name-only refresh refinement"
+    }
+  },
+  "validation": {
+    "unit_tests_passed": 173,
+    "persistent_row_browser_checks_passed": 63,
+    "sync_burst_regressions_passed": 9,
+    "new_lint_findings": 0,
+    "point_burst_budget_ms": 250,
+    "existing_failures": [
+      {
+        "check": "test/test_update_performance_coverage.js",
+        "reason": "Vorhandene Coverage-Lücke für match_protocol_event und match_remarks; identisch auf dem unveränderten Arbeitsstand reproduziert."
+      },
+      {
+        "check": "Vollständige browser-check.js-Prüfung",
+        "reason": "Erster nativer Drag von match-45 erreicht das Ziel im Headless-Browser nicht; identisch auf unverändertem Ausgangsstand reproduziert. Gezielte Last- und Zeilenprüfungen bestehen."
+      }
+    ]
+  },
+  "limits": [
+    "Messwerte sind vom Testrechner und der Lastsituation abhängig; keine Netzwerk- oder Raspberry-Pi-Messung.",
+    "Kein neuer vollständiger zehnminütiger Live-Test.",
+    "Strukturelle Tabellenumbauten benötigen weiterhin mehr Zeit: maximal 321,6 ms im gemischten Strukturtest.",
+    "Punktlatenz und Dauer der gesamten Änderungspakete sind getrennte Messwerte."
+  ],
+  "deployment": {
+    "files": "Nur statische Frontend-Dateien sowie Tests und Dokumentation",
+    "server_restart_required": false,
+    "browser_reload_required": true,
+    "backup": "/tmp/bts-admin-perf-backup-20261106"
+  }
+}

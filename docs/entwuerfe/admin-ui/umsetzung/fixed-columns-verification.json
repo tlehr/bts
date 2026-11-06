@@ -1,0 +1,21 @@
+{
+  "scope": "Isolated fixture; changed player/official names and controls must retain columns, while resizing must update them. Counts of actual source-cell geometry reads.",
+  "checks": [
+    "A counter refresh does not measure participant or official cells",
+    "A changed name retains every column width",
+    "The changed official retains the complete accessible name",
+    "A changed official only measures its own row and uses observed cell sizes",
+    "Changing control visibility retains every column width",
+    "A longer player name fits the existing columns without reading cell geometry",
+    "A window resize changes responsive columns",
+    "Returning to the original width restores the column widths",
+    "Font invalidation drains without leaving measurement copies",
+    "Canvas chooses the same plain-name abbreviations as independent native layout",
+    "Finishing a game without shuttle counts never adds an implicit table column before sorting",
+    "The first counted shuttles create the explicit column and matching cells before layout",
+    "Further results preserve a visible shuttle column without changing name widths",
+    "Finished history cannot gain an inner vertical scrollbar from changing name glyphs",
+    "The full final visible result remains inside the history frame",
+    "Fixed columns introduce no browser exceptions"
+  ]
+}

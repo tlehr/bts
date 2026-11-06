@@ -6,12 +6,16 @@ var reconnect_duration = 500;
 var WS_PATH = '/ws/admin';
 var request_id = 1;
 var CHANGE_BATCH_MAX_MESSAGES = 25;
-var CHANGE_BATCH_MAX_MS = 8;
+// Keep related DOM writes together for up to one frame; shorter slices can
+// force an expensive intermediate layout between each handful of row patches.
+var CHANGE_BATCH_MAX_MS = 16;
 var CHANGE_HANDLER_WARN_MS = 16;
 
 var callback_handlers = {};
 var change_queue = [];
 var change_queue_head = 0;
+var change_queue_identity = {};
+var queued_scores = 0;
 var change_scheduler = change_queue_scheduler(process_change_queue);
 
 var immediate_change_types = new Set([
@@ -127,12 +131,48 @@ function compact_change_queue_if_needed(force) {
 	}
 }
 
+function next_change() {
+	// Points may pass unrelated device/other-game updates. Keep dependencies
+	// for the same game/court and every global/unknown change in wire order.
+	if (!queued_scores) return change_queue[change_queue_head++];
+	const matches = new Set(), courts = new Set();
+	const match_key = id => String(id).replace(/^bts_btp_/, 'btp_');
+	for (let i = change_queue_head; i < change_queue.length; i++) {
+		const message = change_queue[i], value = message.val || {};
+		const id = value.match_id ?? value.match__id;
+		const key = match_key(id);
+		if (message.ctype === 'score') {
+			if (id != null && !(matches.size && /^\d+$/.test(key)) && !matches.has(key) && !courts.has('*') &&
+				(value.court_id == null ? courts.size === 0 : !courts.has(String(value.court_id)))) {
+				return i === change_queue_head ? change_queue[change_queue_head++] : change_queue.splice(i, 1)[0];
+			}
+			break; // Keep the arrival order between points as well.
+		} else if (!['match_edit', 'court_current_match', 'update_player_status',
+			'display_status_changed', 'display_wait_for_done', 'display_is_done', 'display_render_stats'].includes(message.ctype)) break;
+		if (['match_edit', 'court_current_match', 'update_player_status', 'score'].includes(message.ctype)) {
+			if (id == null) break;
+			matches.add(key);
+			if (/^\d+$/.test(key)) break; // Planning IDs may alias a canonical game ID.
+			const ids = value.match?.btp_match_ids;
+			for (const alias of [value.match?._id, value.match?.match_id,
+				...(Array.isArray(ids) ? ids : []).flatMap(entry => entry ? [entry.id, entry.planning, entry.match_id] : [])]) {
+				if (alias != null) matches.add(match_key(alias));
+			}
+			const setup = value.match?.setup || value.setup;
+			if (setup?.court_id != null) courts.add(String(setup.court_id));
+			else if (setup?.now_on_court === true) courts.add('*');
+		}
+	}
+	return change_queue[change_queue_head++];
+}
+
 function process_change_queue() {
 	change_scheduler.cancel();
 	const start_ms = _now_ms();
 	let processed = 0;
 	while (queued_change_count() > 0) {
-		const message = change_queue[change_queue_head++];
+		const message = next_change();
+		if (message.ctype === 'score') queued_scores--;
 		dispatch_change(message);
 		processed++;
 		if (processed >= CHANGE_BATCH_MAX_MESSAGES || (_now_ms() - start_ms) >= CHANGE_BATCH_MAX_MS) {
@@ -140,6 +180,7 @@ function process_change_queue() {
 		}
 	}
 	compact_change_queue_if_needed(false);
+	if (typeof btsAdminUpdates !== 'undefined') btsAdminUpdates.setQueuePending?.(change_queue_identity, queued_change_count() > 0);
 	const duration_ms = _now_ms() - start_ms;
 	if (_debug_enabled() && processed > 0 && duration_ms >= CHANGE_BATCH_MAX_MS) {
 		console.log('[bts admin] change queue batch', {
@@ -164,12 +205,15 @@ function enqueue_change(msg) {
 			if (change_coalesce_key(change_queue[i]) === key) {
 				// Keep the newest event at its arrival position: an intervening full
 				// match snapshot must be applied before this newer score or status.
+				if (change_queue[i].ctype === 'score') queued_scores--;
 				change_queue.splice(i, 1);
 				break;
 			}
 		}
 	}
 	change_queue.push(msg);
+	if (msg.ctype === 'score') queued_scores++;
+	if (typeof btsAdminUpdates !== 'undefined') btsAdminUpdates.setQueuePending?.(change_queue_identity, true);
 	schedule_change_queue();
 }
 

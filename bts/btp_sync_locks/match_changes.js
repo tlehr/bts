@@ -38,7 +38,7 @@ module.exports = function match_changes(before, after) {
 	for (const field of ['end_ts', 'team1_won', 'btp_winner', 'btp_needsync', 'score_status', 'forward_loser', 'no_match_losing_team']) {
 		if (!deep_equal(before[field], after[field])) reasons.add('result');
 	}
-	for (const field of ['btp_id', 'btp_match_ids', 'btp_player_ids']) {
+	for (const field of ['btp_id', 'btp_match_ids', 'btp_player_ids', 'btp_participant_conflict']) {
 		if (!deep_equal(before[field], after[field])) reasons.add('identity');
 	}
 	const old = before.setup || {};

@@ -15,6 +15,19 @@ function insert(db, collection, doc) {
 }
 
 describe('display settings defaults', function() {
+	it('uses the existing catalog to find the registration profile and preserves the saved defaults', async function() {
+		const db = await database.init_test(), app = { db }, tournament = { key: 'default' };
+		await insert(db, 'tournaments', tournament);
+		await displaysettings_defaults.ensure_default_displaysettings(app, tournament);
+		const original = db.displaysettings.findOne_async;
+		db.displaysettings.findOne_async = () => { throw new Error('redundant profile lookup'); };
+		try {
+			const result = await displaysettings_defaults.ensure_default_displaysettings(app, { ...tournament });
+			assert.strictEqual(result.displaysettings.length, 3);
+			assert.strictEqual(result.tournament.displaysettings_general, tournament.displaysettings_general);
+			assert.strictEqual(result.tournament.displaysettings_general_tablet, tournament.displaysettings_general_tablet);
+		} finally { db.displaysettings.findOne_async = original; }
+	});
 	it('builds a tablet registration setting', function() {
 		const setting = displaysettings_defaults.build_default_registration_setting({ key: 'default' });
 

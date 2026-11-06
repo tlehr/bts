@@ -105,7 +105,7 @@ class Diagnostics {
         ws.on('close', () => {
             const page = ws.diagnostics_page;
             if (!page || page.ws !== ws) return;
-            page.online = false; page.last_seen = Date.now();
+            page.online = false;
             const expected = page.leaving || [...this.commands.values()].some(command => command.targets.some(target => target.page_id === page.id && target.state === 'reloading'));
             this.record({ level: expected ? 'info' : 'warn', source: page.role, page_id: page.id, device_id: page.device_id, tournament_key: page.tournament_key,
                 message: 'Seite getrennt · ' + page.path });
@@ -133,7 +133,7 @@ class Diagnostics {
     }
 
     metadata(page, msg) {
-        for (const key of ['path', 'version', 'tournament_key', 'match_id', 'court_id', 'label']) page[key] = short(msg[key], key === 'path' ? 500 : 200);
+        for (const key of ['path', 'version', 'tournament_key', 'match_id', 'court_id', 'label', 'panel_client_id']) page[key] = short(msg[key], key === 'path' ? 500 : 200);
         page.role = ['admin', 'display', 'umpire', 'client', 'speech-planning', 'diagnostics'].includes(msg.role) ? msg.role : 'client';
         page.client_dropped = Number.isSafeInteger(msg.dropped) && msg.dropped >= 0 ? msg.dropped : 0;
         page.last_seen = Date.now();
@@ -231,6 +231,7 @@ class Diagnostics {
     snapshot() {
         this.maintain();
         return { version: this.version, verbose_until: this.verbose_until, store: { ready: this.ready, error: this.store_error, dropped: this.dropped, execution: 'process' },
+            panel_contacts: require('../bupws_v2').get_panel_contacts(this.app),
             pages: [...this.pages.values()].map(page => Object.fromEntries(Object.entries(page).filter(([key]) => !['ws', 'instance', 'guard_pending', 'last_guard'].includes(key)))),
             commands: [...this.commands.values()].slice(-10).reverse(), now: Date.now() };
     }
@@ -255,14 +256,15 @@ async function handle(app, ws, msg) {
         if (msg.type === 'diagnostics_logs') {
             const input = msg.filter || {}, filter = {};
             if (typeof input !== 'object' || Array.isArray(input)) throw new Error('invalid_log_filter');
-            for (const field of ['search', 'source', 'level', 'page_id', 'tournament_key', 'match_id', 'export_id']) if (input[field] !== undefined) {
+            for (const field of ['search', 'source', 'level', 'page_id', 'device_id', 'tournament_key', 'match_id', 'export_id']) if (input[field] !== undefined) {
                 if (typeof input[field] !== 'string' || input[field].length > 200) throw new Error('invalid_log_filter');
                 filter[field] = input[field];
             }
-            for (const field of ['since', 'until', 'cursor', 'limit', 'export_offset']) if (input[field] != null) {
+            for (const field of ['since', 'until', 'cursor', 'limit', 'export_offset', 'before_revision']) if (input[field] != null) {
                 if (!Number.isFinite(input[field]) || input[field] < 0) throw new Error('invalid_log_filter');
                 filter[field] = input[field];
             }
+            if (filter.before_revision != null && !Number.isSafeInteger(filter.before_revision)) throw new Error('invalid_log_filter');
             if (input.export !== undefined) { if (typeof input.export !== 'boolean') throw new Error('invalid_log_filter'); filter.export = input.export; }
             if (Date.now() - (ws.diagnostics_query_last || 0) < 200) throw new Error('diagnostics_rate_limit');
             ws.diagnostics_query_last = Date.now();

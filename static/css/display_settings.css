@@ -56,18 +56,6 @@
 .settings-logo-choice-date { color:#6d7d80; font-size:11px; }
 .settings-logo-choice-current { align-self:flex-start; padding:3px 6px; border-radius:4px; background:#e9f3ec; color:#327257; font-size:11px; }
 .settings-logo-dialog .ls-dialog-footer { display:flex; flex:0 0 auto; flex-wrap:wrap; justify-content:flex-end; gap:8px; padding:12px 20px; border-top:1px solid #dce5e3; background:#fff; }
-.page-devices { padding:20px var(--admin-page-gutter); text-align:left; }
-.page-devices .devices-workspace { display:grid; gap:20px; max-width:var(--admin-content-width); margin:0 auto; }
-.page-devices .devices-card { min-width:0; padding:20px; border:1px solid var(--line); border-radius:var(--radius); background:white; }
-.page-devices h2 { margin:0 0 8px; font-size:16px; }
-.page-devices .devices-hint { margin:0 0 18px; color:var(--muted); font-size:12px; }
-.page-devices .devices-table-wrap { overflow:auto; }
-.page-devices .devices-table-wrap>h3 { display:none; }
-.page-devices .devices-table-wrap table { width:100%; border-collapse:collapse; text-align:left; }
-.page-devices .devices-table-wrap :is(th,td) { padding:10px 7px; border-bottom:1px solid var(--line); font-size:12px; font-weight:400; }
-.page-devices .devices-table-wrap tr:first-child th { font-weight:600; }
-.page-devices .devices-table-wrap select { max-width:210px; }
-.page-devices .devices-links { display:flex; flex-wrap:wrap; gap:10px; }
 .leitstand-dialog.display_setting_edit_dialog { width:min(1200px,96vw); }
 .display_setting_edit_dialog form { display:flex; flex-direction:column; min-height:0; }
 .display_setting_edit_dialog .btn { display:inline-flex; align-items:center; justify-content:center; gap:6px; min-height:34px; padding:6px 12px; border:1px solid #cfdad6; border-radius:6px; background:white; color:#213235; font:inherit; cursor:pointer; }

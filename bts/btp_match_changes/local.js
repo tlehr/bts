@@ -14,6 +14,7 @@ function local_state(document) {
 		dependency: JSON.stringify({
 			btp_match_ids: document.btp_match_ids, team1_won: document.team1_won,
 			btp_winner: document.btp_winner, btp_needsync: document.btp_needsync,
+			btp_participant_conflict: document.btp_participant_conflict,
 			score_status: document.score_status, forward_loser: document.forward_loser,
 			players: (document.setup?.teams || []).map(team => (team.players || []).map(player => player.btp_id)),
 		}),

@@ -10,6 +10,8 @@ const btp_proto = require('./btp_proto');
 const bulk_decoder = require('./btp_decode');
 const btp_parse = require('./btp_parse');
 const btp_sync = require('./btp_sync');
+const result_sync = require('./btp_result_sync');
+const request_log = require('./btp_request_log');
 const debug_flags = require('./debug_flags');
 const serror = require('./serror');
 
@@ -214,36 +216,35 @@ async function should_skip_fetch_sync(connection, response_hash, response = null
 
 function send_raw_request(ip, port, raw_req, callback) {
 	assert(callback);
-	if (!ip) {
-		return callback(new Error('No IP address specified'));
-	}
-	let called = false;
-	const client = net.connect({host: ip, port, timeout: CONNECT_TIMEOUT}, () => {
-		if (called) return;
-		client.setTimeout(WAIT_TIMEOUT);
-		client.write(raw_req);
-	});
-
-	const got = [];
-	client.on('error', (err) => {
+	if (!ip) return callback(Object.assign(new Error('No IP address specified'), { code: 'BTP_NO_ADDRESS', btp_phase: 'connect' }));
+	let called = false, connected = false, client;
+	const finish = (error, value) => {
 		if (called) return;
 		called = true;
-		callback(err);
-	});
+		if (error) error.btp_phase = connected ? 'response' : 'connect';
+		callback(error, value);
+	};
+	try {
+		client = net.connect({ host: ip, port, timeout: CONNECT_TIMEOUT }, () => {
+			if (called) return;
+			connected = true;
+			client.setTimeout(WAIT_TIMEOUT);
+			client.write(raw_req);
+		});
+	} catch (error) { finish(error); return; }
+	const got = [];
+	client.on('error', error => finish(error));
 	client.on('timeout', () => {
 		if (called) return;
-		called = true;
+		const timeout_ms = connected ? WAIT_TIMEOUT : CONNECT_TIMEOUT;
+		// Mark settled before destroy, which can synchronously emit close.
+		finish(Object.assign(new Error(`Connection to ${ip}:${port} timed out after ${timeout_ms}ms`), { code: 'ETIMEDOUT', timeout_ms }));
 		client.destroy();
-		callback(new Error(`Connection to ${ip}:${port} timed out after ${WAIT_TIMEOUT}ms`));
 	});
-	client.on('data', (data) => {
-		if (!called) got.push(data);
-	});
-	client.on('end', () => {
-		if (called) return;
-		called = true;
-
-		callback(null, Buffer.concat(got));
+	client.on('data', data => { if (!called) got.push(data); });
+	client.on('end', () => finish(null, Buffer.concat(got)));
+	client.on('close', () => {
+		if (!called) finish(Object.assign(new Error('BTP closed the connection before the complete reply arrived'), { code: 'ECONNRESET' }));
 	});
 	return () => {
 		if (called) return;
@@ -255,25 +256,25 @@ function send_raw_request(ip, port, raw_req, callback) {
 function send_request(ip, port, xml_req, timeZone, callback, context) {
 	assert(callback);
 	let encoded_req;
-	try {
-		encoded_req = btp_proto.encode(xml_req, timeZone);
-	} catch(e) {
-		serror.silent('Error while encoding for BTP:' + e.message);
-		return callback(e);
-	}
-	let cancelled = false;
-	let cancel_decode;
+	try { encoded_req = btp_proto.encode(xml_req, timeZone); }
+	catch (error) { error.btp_phase = 'encode'; return callback(error); }
+	let cancelled = false, delivered = false, cancel_decode;
+	const decoded = (error, response) => {
+		if (cancelled || delivered) return;
+		delivered = true;
+		if (error) error.btp_phase = 'decode';
+		callback(error, response);
+	};
 	const cancel_raw = send_raw_request(ip, port, encoded_req, (err, raw_response) => {
 		if (cancelled) return;
 		if (err) return callback(err);
-		if (context?.action === 'SENDTOURNAMENTINFO' && require('./offload/profile').enabled('btp_decode')) {
-			cancel_decode = bulk_decoder.decode(raw_response, context, (error, decoded) => {
-				if (cancelled) return;
-				if (error?.btp_parse_error) serror.silent('Encountered an error while parsing BTP message: ' + error.message);
-				callback(error, decoded);
-			});
-		} else {
-			btp_proto.decode(raw_response, callback, context);
+		try {
+			if (context?.action === 'SENDTOURNAMENTINFO' && require('./offload/profile').enabled('btp_decode')) {
+				cancel_decode = bulk_decoder.decode(raw_response, context, decoded);
+			} else btp_proto.decode(raw_response, decoded, context);
+		} catch (error) {
+			if (delivered) throw error; // Preserve exceptions in a caller's callback.
+			decoded(error);
 		}
 	});
 	return () => {
@@ -281,7 +282,7 @@ function send_request(ip, port, xml_req, timeZone, callback, context) {
 		if (typeof cancel_raw === 'function') cancel_raw();
 		if (cancel_decode) cancel_decode();
 	};
-} 
+}
 
 
 class BTPConn {
@@ -313,14 +314,18 @@ class BTPConn {
 			return;
 		}
 
+		clearTimeout(this.reconnect_timeout);
+		this.reconnect_timeout = null;
 		this.report_status('connecting','Try to establish connection to BTP.');
-		this.send(btp_proto.login_request(this.password), response => {
-			if (!response || response == null || !response.Action || !response.Action[0] || !response.Action[0].ID[0] || (response.Action[0].ID[0] !== 'REPLY')) {
+		this.send(btp_proto.login_request(this.password), (response, error) => {
+			if (this.terminated) return;
+			if (error) { this.report_status('error', request_log.safe_message(this, error)); return; }
+			if (!response || response == null || !response.Action || !response.Action[0] || !response.Action[0].ID?.[0] || (response.Action[0].ID[0] !== 'REPLY')) {
 				this.report_status('error','Invalid reply to login request');
 				return;
 			}
 
-			if (response.Action[0].Result[0] !== 1) {
+			if (response.Action[0].Result?.[0] !== 1) {
 				this.report_status('error', 'Invalid password');
 				return;
 			}
@@ -328,10 +333,8 @@ class BTPConn {
 			this.report_status('connected','Logged in.');
 			this.key_unicode = response.Action[0].Unicode[0];
 
-			this.pushall();
-			if (this.enabled_autofetch) {
-				request_fetch(this, true);
-			}
+			// Read back accepted results before retrying the durable outbox.
+			request_fetch(this, this.enabled_autofetch).then(() => this.pushall());
 		});
 	}
 
@@ -349,10 +352,15 @@ class BTPConn {
 		if (connection.terminated) {
 			return Promise.resolve(null);
 		}
-		connection.fetch_reschedule_requested = connection.fetch_reschedule_requested || reschedule_fetch === true;
+		connection.fetch_reschedule_requested = connection.fetch_reschedule_requested || reschedule_fetch === true ||
+			(connection.enabled_autofetch && connection.autofetch_timeout != null);
 		if (connection.fetch_promise) {
 			return connection.fetch_promise;
 		}
+		// A readback can run before the automatic deadline. It replaces that
+		// deadline rather than starting another recurring timer chain.
+		clearTimeout(connection.autofetch_timeout);
+		connection.autofetch_timeout = null;
 		connection.fetch_in_progress = true;
 		connection.next_fetch_ts = null;
 		connection.publish_status();
@@ -437,7 +445,7 @@ class BTPConn {
 	}
 
 	async _fetch_once() {
-		return require('./performance/traces').operation('btp_fetch', { tournament_key: this.tkey, type: 'sync' }, () => this._fetch_once_measured());
+		return require('./performance/traces').operation('btp_fetch', { tournament_key: this.tkey, type: 'sync' }, () => this._fetch_once_measured(), true);
 	}
 
 	async _fetch_once_measured() {
@@ -473,6 +481,7 @@ class BTPConn {
 		if (value?.skipped) traces.annotate({ skipped: true, reason: value.reason });
 		if (!this.terminated && (value === true || value?.reason === 'no_sync_changes')) {
 			this.last_successful_fetch_ts = real_now_ms(this.app);
+			this.pushall();
 		}
 		if (value === true && !this.terminated) {
 			const total_ms = real_now_ms(this.app) - fetch_start_ms;
@@ -512,6 +521,8 @@ class BTPConn {
 	}
 
 	schedule_fetch() {
+		clearTimeout(this.autofetch_timeout);
+		this.autofetch_timeout = null;
 		if (this.terminated) {
 			return;
 		}
@@ -521,20 +532,24 @@ class BTPConn {
 			return;
 		}
 		this.next_fetch_ts = real_now_ms(this.app) + this.autofetch_timeout_intervall;
-		this.publish_status();
-		this.autofetch_timeout = setTimeout(() => {
+		const timeout = setTimeout(() => {
+			if (this.autofetch_timeout !== timeout) return;
 			this.autofetch_timeout = null;
 			if (this.terminated) {
 				return;
 			}
-			this.next_fetch_ts = null;
-			this.publish_status();
 			request_fetch(this, true);
 		}, this.autofetch_timeout_intervall);
+		this.autofetch_timeout = timeout;
+		this.publish_status();
 	}
 
 	terminate(options = {}) {
 		this.terminated = true;
+		clearTimeout(this.result_retry_timeout);
+		this.result_retry_timeout = null;
+		clearTimeout(this.reconnect_timeout);
+		this.reconnect_timeout = null;
 		if (this.cancel_fetch_request) this.cancel_fetch_request();
 		this.next_fetch_ts = null;
 		this.fetch_in_progress = false;
@@ -548,43 +563,76 @@ class BTPConn {
 		this.report_status('deactivated','Terminated.');
 	}
 
-	send(xml_req, success_cb) {
+	send(xml_req, success_cb, details = {}) {
 		if (this.terminated) return success_cb(null);
 		const port = this.is_team ? BLP_PORT : BTP_PORT;
+		const context = request_log.context(this, xml_req, details);
 		return send_request(this.ip, port, xml_req, this.timeZone, (err, response) => {
 			if (this.terminated) {
 				return success_cb(null);
 			}
 			if (err) {
-				this.report_status('error', 'Connection error: ' + err.message);
+				request_log.failure(this, context, err);
+				this.report_status('error', 'Connection error: ' + request_log.safe_message(this, err));
 				this.schedule_reconnect();
-				return success_cb(null);
+				return success_cb(null, err);
 			}
-			success_cb(response);
+			const error = request_log.response_error(xml_req, response);
+			if (error) request_log.failure(this, context, error);
+			success_cb(response, error);
 		}, { tournament_key: this.tkey, action: xml_req.Action?.ID });
 	}
 
-	// Push the changes from all changed matches
+	// Retry only this tournament, with bounded network concurrency. Results stay
+	// durable until a later tournament read confirms both winner and sets.
 	pushall() {
-		this.app.db.matches.find(
-			{btp_needsync: true},
-
-			(err, matches) => {
+		if (this.readonly || this.terminated || typeof this.app?.db?.matches?.find !== 'function') return Promise.resolve();
+		if (this.pushall_promise) return this.pushall_promise;
+		this.pushall_promise = new Promise(resolve => {
+			this.app.db.matches.find({ tournament_key: this.tkey, btp_needsync: true }, async (err, matches) => {
 				if (err) {
 					serror.silent('Failed to query needsynced: ' + err.message);
+					this.schedule_result_retry();
+					resolve();
 					return;
 				}
-
-				for (const m of matches) {
-					if (typeof m.team1_won !== 'boolean' && m.score_status !== 'no_match') {
-						// serror.silent('match ' + m._id + ' has needsync but is not finished');
-						continue;
+				const pending = matches.filter(result_sync.is_result).sort((a, b) => String(a._id).localeCompare(String(b._id)));
+				if (!pending.length) {
+					this.result_retry_delay = 1000;
+					clearTimeout(this.result_retry_timeout);
+					this.result_retry_timeout = null;
+					if (this.result_write_error) {
+						const previous = this.result_write_error;
+						this.result_write_error = null;
+						if (this.last_status?.message === previous) this.report_status('connected', 'Ergebnisse mit BTP abgeglichen.');
+						else this.publish_status();
 					}
-
-					this.update_score(m);
+					resolve();
+					return;
 				}
-			}
-		);
+				// Rotate batches so an unconfirmed result cannot starve later ones.
+				const offset = (this.result_retry_offset || 0) % pending.length;
+				const batch = pending.slice(offset).concat(pending.slice(0, offset)).slice(0, 8);
+				this.result_retry_offset = offset + batch.length;
+				for (let i = 0; i < batch.length && !this.terminated; i += 2) {
+					await Promise.all(batch.slice(i, i + 2).map(match => this.update_score(match)));
+				}
+				this.schedule_result_retry();
+				resolve();
+			});
+		}).finally(() => { this.pushall_promise = null; });
+		return this.pushall_promise;
+	}
+
+	schedule_result_retry() {
+		if (this.terminated || this.readonly || this.result_retry_timeout) return;
+		const delay = this.result_retry_delay || 1000;
+		this.result_retry_timeout = setTimeout(() => {
+			this.result_retry_timeout = null;
+			this.result_retry_delay = Math.min(delay * 2, 30000);
+			request_fetch(this, this.enabled_autofetch).then(() => this.pushall());
+		}, delay);
+		this.result_retry_timeout.unref?.();
 	}
 
 	schedule_reconnect() {
@@ -598,7 +646,10 @@ class BTPConn {
 		this.next_fetch_ts = null;
 		this.fetch_in_progress = false;
 		this.publish_status();
-		setTimeout(() => this.connect(), 500);
+		if (!this.reconnect_timeout) {
+			this.reconnect_timeout = setTimeout(() => this.connect(), 500);
+			this.reconnect_timeout.unref?.();
+		}
 	}
 
 	on_end() {
@@ -617,6 +668,7 @@ class BTPConn {
 	publish_status() {
 		const msg = {
 			...this.last_status,
+			...(this.result_write_error ? { status: 'error', message: this.result_write_error } : {}),
 			next_fetch_ts: this.next_fetch_ts,
 			fetch_in_progress: this.fetch_in_progress,
 			last_successful_fetch_ts: this.last_successful_fetch_ts ?? null,
@@ -645,153 +697,174 @@ class BTPConn {
 	}
 
 	update_score(match) {
-		if (this.readonly) {
-			return;
-		}
+		return result_sync.enqueue(this, match, latest => this._send_score(latest));
+	}
 
-		async.waterfall([
-			(cb) => {
-				if (!match.setup) {
-					return cb(null, null, null);
-				}
+	_send_score(match) {
+		return new Promise(resolve => {
+			if (this.readonly || this.terminated) {
+				return resolve(false);
+			}
 
-				const packed_umpire = match.setup.umpire;
-				const packed_service_judge = match.setup.service_judge;
-				const packed_umpire_btp_id = packed_umpire && packed_umpire.btp_id != null ? packed_umpire.btp_id : null;
-				const packed_service_judge_btp_id = packed_service_judge && packed_service_judge.btp_id != null ? packed_service_judge.btp_id : null;
-
-				if (packed_umpire_btp_id != null && (packed_service_judge_btp_id != null || !packed_service_judge || !packed_service_judge.name)) {
-					return cb(null, packed_umpire_btp_id, packed_service_judge_btp_id);
-				}
-
-				if (!packed_umpire || !packed_umpire.name) {
-					if (packed_service_judge_btp_id != null) {
-						return cb(null, null, packed_service_judge_btp_id);
-					}
-					if (!packed_service_judge || !packed_service_judge.name) {
+			async.waterfall([
+				(cb) => {
+					if (!match.setup) {
 						return cb(null, null, null);
 					}
-				}
 
-				const resolveOfficialBtpId = (packed_official, done) => {
-					if (!packed_official) {
-						return done(null, null);
+					const packed_umpire = match.setup.umpire;
+					const packed_service_judge = match.setup.service_judge;
+					const packed_umpire_btp_id = packed_umpire && packed_umpire.btp_id != null ? packed_umpire.btp_id : null;
+					const packed_service_judge_btp_id = packed_service_judge && packed_service_judge.btp_id != null ? packed_service_judge.btp_id : null;
+
+					if (packed_umpire_btp_id != null && (packed_service_judge_btp_id != null || !packed_service_judge || !packed_service_judge.name)) {
+						return cb(null, packed_umpire_btp_id, packed_service_judge_btp_id);
 					}
-					if (packed_official.btp_id != null) {
-						return done(null, packed_official.btp_id);
+
+					if (!packed_umpire || !packed_umpire.name) {
+						if (packed_service_judge_btp_id != null) {
+							return cb(null, null, packed_service_judge_btp_id);
+						}
+						if (!packed_service_judge || !packed_service_judge.name) {
+							return cb(null, null, null);
+						}
 					}
-					if (!packed_official.name) {
-						return done(null, null);
-					}
-					this.app.db.umpires.findOne({
-						name: packed_official.name,
-						tournament_key: this.tkey,
-					}, (err, official) => {
+
+					const resolveOfficialBtpId = (packed_official, done) => {
+						if (!packed_official) {
+							return done(null, null);
+						}
+						if (packed_official.btp_id != null) {
+							return done(null, packed_official.btp_id);
+						}
+						if (!packed_official.name) {
+							return done(null, null);
+						}
+						this.app.db.umpires.findOne({
+							name: packed_official.name,
+							tournament_key: this.tkey,
+						}, (err, official) => {
+							if (err) {
+								return done(err);
+							}
+							return done(null, official ? official.btp_id : null);
+						});
+					};
+
+					resolveOfficialBtpId(packed_umpire, (err, umpire_btp_id) => {
 						if (err) {
-							return done(err);
+							return cb(err);
 						}
-						return done(null, official ? official.btp_id : null);
+						resolveOfficialBtpId(packed_service_judge, (err2, service_judge_btp_id) => {
+							if (err2) {
+								return cb(err2);
+							}
+							return cb(null, umpire_btp_id, service_judge_btp_id);
+						});
 					});
-				};
-
-				resolveOfficialBtpId(packed_umpire, (err, umpire_btp_id) => {
-					if (err) {
-						return cb(err);
+				},
+				(umpire_btp_id, service_judge_btp_id, cb) => {
+					if (!match.setup || !match.setup.court_id) {
+						return cb(null, umpire_btp_id, service_judge_btp_id, match.btp_clear_court === true ? 0 : null);
 					}
-					resolveOfficialBtpId(packed_service_judge, (err2, service_judge_btp_id) => {
-						if (err2) {
-							return cb(err2);
+
+					this.app.db.courts.findOne({
+						tournament_key: this.tkey,
+						_id: match.setup.court_id,
+					}, (err, court) => {
+						if (err) {
+							return cb(err);
 						}
-						return cb(null, umpire_btp_id, service_judge_btp_id);
+
+						return cb(null, umpire_btp_id, service_judge_btp_id, court ? court.btp_id : null);
 					});
-				});
-			},
-			(umpire_btp_id, service_judge_btp_id, cb) => {
-				if (!match.setup || !match.setup.court_id) {
-					return cb(null, umpire_btp_id, service_judge_btp_id, match.btp_clear_court === true ? 0 : null);
+				},
+				(umpire_btp_id, service_judge_btp_id, court_btp_id, cb) => {
+					this.app.db.tournaments.findOne({ key: this.tkey }, (err, tournament) => {
+						if (err) {
+							return cb(err);
+						}
+						return cb(null, umpire_btp_id, service_judge_btp_id, court_btp_id, tournament);
+					});
+				},
+			], (err, umpire_btp_id, service_judge_btp_id, court_btp_id, tournament) => {
+				if (err) {
+					request_log.local_failure(this, match, Object.assign(err, { btp_phase: 'prepare' }));
+					serror.silent('Error while fetching court/umpire: ' + err.message + '. Skipping sync of match ' + match._id);
+					return resolve(false);
 				}
 
-				this.app.db.courts.findOne({
-					tournament_key: this.tkey,
-					_id: match.setup.court_id,
-				}, (err, court) => {
-					if (err) {
-						return cb(err);
-					}
-
-					return cb(null, umpire_btp_id, service_judge_btp_id, court ? court.btp_id : null);
-				});
-			},
-			(umpire_btp_id, service_judge_btp_id, court_btp_id, cb) => {
-				this.app.db.tournaments.findOne({ key: this.tkey }, (err, tournament) => {
-					if (err) {
-						return cb(err);
-					}
-					return cb(null, umpire_btp_id, service_judge_btp_id, court_btp_id, tournament);
-				});
-			},
-		], (err, umpire_btp_id, service_judge_btp_id, court_btp_id, tournament) => {
-			if (err) {
-				serror.silent('Error while fetching court/umpire: ' + err.message + '. Skipping sync of match ' + match._id);
-				return;
-			}
-
-			if (!match.btp_match_ids) {
-				// TODO: assert here?
-				return;
-			}
-
-			if (! this.key_unicode) {
-				//serror.silent('Trying to send match data, but never logged in. Must retry later');
-				return;
-			}
-
-			const req = btp_proto.update_request(
-				match,
-				this.key_unicode,
-				this.password,
-				umpire_btp_id,
-				service_judge_btp_id,
-				court_btp_id,
-				{
-					write_match_check_in_status: tournament?.btp_settings?.check_in_per_match === true,
-					current_now_ms: now_ms(this.app),
+				if (!match.btp_match_ids) {
+					return resolve(false);
 				}
-			);
-			if (match.btp_winner_only_update === true) {
-				warn_compact('[bts] btp_update:winner_only_send', {
-					tournament_key: this.tkey,
-					match_id: match.btp_match_ids?.[0]?.id,
-					match_num: match.btp_match_ids?.[0]?.nr,
-					draw: match.btp_match_ids?.[0]?.draw,
-					planning: match.btp_match_ids?.[0]?.planning,
-				});
-			}
-			this.send(req, response => {
-				const results = response?.Action?.[0]?.Result;
-				const rescode = results ? results[0] : 'no-result';
+
+				if (! this.key_unicode) {
+					this.schedule_reconnect();
+					return resolve(false);
+				}
+
+				let req;
+				try {
+					req = btp_proto.update_request(
+						match,
+						this.key_unicode,
+						this.password,
+						umpire_btp_id,
+						service_judge_btp_id,
+						court_btp_id,
+						{
+							write_match_check_in_status: tournament?.btp_settings?.check_in_per_match === true,
+							current_now_ms: now_ms(this.app),
+						}
+					);
+				} catch (error) {
+					request_log.local_failure(this, match, Object.assign(error, { btp_phase: 'prepare' }));
+					return resolve(false);
+				}
 				if (match.btp_winner_only_update === true) {
-					warn_compact('[bts] btp_update:winner_only_result', {
+					warn_compact('[bts] btp_update:winner_only_send', {
 						tournament_key: this.tkey,
 						match_id: match.btp_match_ids?.[0]?.id,
 						match_num: match.btp_match_ids?.[0]?.nr,
-						result: rescode,
+						draw: match.btp_match_ids?.[0]?.draw,
+						planning: match.btp_match_ids?.[0]?.planning,
 					});
 				}
-				if (rescode === 1) {
-					if (!match._id) {
-						return;
+				if (this.terminated) return resolve(false);
+				this.send(req, (response, transport_error) => {
+					if (this.terminated) return resolve(false);
+					const results = response?.Action?.[0]?.Result;
+					const rescode = results ? results[0] : 'no-result';
+					if (match.btp_winner_only_update === true) {
+						warn_compact('[bts] btp_update:winner_only_result', {
+							tournament_key: this.tkey,
+							match_id: match.btp_match_ids?.[0]?.id,
+							match_num: match.btp_match_ids?.[0]?.nr,
+							result: rescode,
+						});
 					}
-					this.app.db.matches.update({_id: match._id}, {$set: {btp_needsync: false}}, {}, (err) => {
-						if (err) {
-							serror.silent('Failed to mark match as synced: ' + err.message);
+					if (rescode === 1) {
+						if (!match._id || result_sync.is_result(match)) {
+							// A transport ACK does not prove BTP stored the result.
+							return resolve(true);
 						}
-					});
-				} else {
-					serror.silent('Score update for ' + match.btp_id + ' failed with error code ' + rescode);
-				}
-			});
+						this.app.db.matches.update(result_sync.version_query(match, this.tkey),
+							{ $set: { btp_needsync: false } }, {}, err => {
+								if (err) serror.silent('Failed to mark match as synced: ' + err.message);
+								resolve(!err);
+							});
+					} else {
+						const detail = transport_error ? ': ' + request_log.safe_message(this, transport_error) : '';
+						serror.silent('Score update for ' + (match._id || match.btp_id) + ' failed with error code ' + rescode + detail);
+						const message = 'Ergebnisübertragung ausstehend; erneuter Versuch folgt.' + detail;
+						if (result_sync.is_result(match)) this.result_write_error = message;
+						this.report_status('error', message);
+						if (response) this.schedule_reconnect();
+						resolve(false);
+					}
+				}, { match_id: match._id, match_number: match.setup?.match_num });
 
+			});
 		});
 	}
 
@@ -814,13 +887,13 @@ class BTPConn {
 		}
 
 		const req = btp_proto.update_players_request(players, this.key_unicode, this.password);
-		this.send(req, response => {
+		this.send(req, (response, error) => {
 			const results = response?.Action?.[0]?.Result;
 			const rescode = (results && results.length > 0) ? results[0] : 'no-result';
 			if (rescode === 1) {
 
 			} else {
-				serror.silent('Update Player failed with error code ' + rescode);
+				serror.silent('Update Player failed with error code ' + rescode + (error ? ': ' + request_log.safe_message(this, error) : ''));
 			}
 		});
 		return true;
@@ -841,13 +914,13 @@ class BTPConn {
 		}
 
 		const req = btp_proto.update_courts_request(courts, this.key_unicode, this.password);
-		this.send(req, response => {
+		this.send(req, (response, error) => {
 			const results = response?.Action?.[0]?.Result;
 			const rescode = (results && results.length > 0) ? results[0] : 'no-result';
 			if (rescode === 1) {
 
 			} else {
-				serror.silent('Update Courts failed with error code ' + rescode);
+				serror.silent('Update Courts failed with error code ' + rescode + (error ? ': ' + request_log.safe_message(this, error) : ''));
 			}
 		});
 	}

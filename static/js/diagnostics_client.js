@@ -38,6 +38,7 @@
             return { page_id: pageId, device_id: device, instance, version, role, path: env.location.pathname, dropped,
                 tournament_key: tournament?.key || params.get('btsh_e') || tournamentKey,
                 match_id: String(state?.setup?.match_id || '').replace(/^bts_/, ''), court_id: state?.settings?.court_id || '',
+                panel_client_id: /^\/bup(?:dev)?\//.test(env.location.pathname) ? String(state?.settings?.client_id || '') : '',
                 label: state?.settings?.monitor_label || state?.settings?.client_id || doc.title || role };
         }
         function serialize(input, depth = 0, seen = new WeakSet()) {

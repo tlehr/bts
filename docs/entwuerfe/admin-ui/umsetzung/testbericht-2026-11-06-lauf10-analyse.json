@@ -1,0 +1,2068 @@
+{
+  "analysis_date": "2026-11-06",
+  "source": {
+    "file": "/home/tim/Downloads/bts-test-10.json",
+    "bytes": 141780044,
+    "sha256": "5dec987df538e25b40092ebfb4bce1ab8264c7112a795bd63fe81484311442ee",
+    "exported_at": "2026-11-06T03:53:29.760Z"
+  },
+  "comparison_source": {
+    "file": "/home/tim/Downloads/bts-test-9 (1).json",
+    "bytes": 121353458,
+    "sha256": "81a4080b5670e079aed2403a7907e4915d75ea42d7741c67b66497faefd97a3b",
+    "exported_at": "2026-11-06T03:24:48.328Z"
+  },
+  "run": {
+    "started_at": "2026-11-06T03:38:20.856Z",
+    "runtime_ms": 600134,
+    "stop_reason": "completed",
+    "failure": null,
+    "partial": false,
+    "mixed_server_profiles": false,
+    "scenario": "benchmark",
+    "seed": "519",
+    "initial_state": {
+      "matches": 512,
+      "finished_matches": 392,
+      "active_matches": 15,
+      "active_courts": 15,
+      "pending_player_checkins": 4,
+      "pending_players": 4,
+      "check_in_per_match": true,
+      "state_sha256": "c668056f0e07aefaf1a86b7d02224f063069b22cff66f4d1fed982d69e61567c"
+    },
+    "settings": {
+      "tournament": "default",
+      "base_url": "https://localhost:4433",
+      "point_interval_ms": [
+        3200,
+        6400
+      ],
+      "score_gap_ms": [
+        0,
+        0
+      ],
+      "pause_visible_ms": 3000,
+      "score_all_active": false,
+      "legacy_loopback_devices": false,
+      "server_telemetry": true,
+      "processing_traces": true,
+      "score_probability": [
+        0.4,
+        0.6
+      ]
+    },
+    "points": 1193,
+    "checkins": 72
+  },
+  "delivery": {
+    "tv_websocket_reception_ms": {
+      "count": 1210,
+      "mean": 5,
+      "min": 2,
+      "p50": 4,
+      "p95": 12,
+      "p99": 21,
+      "max": 117,
+      "over_50_ms": 1,
+      "over_100_ms": 1,
+      "over_200_ms": 0,
+      "sent_updates": 1210,
+      "unmatched_updates": 0,
+      "coverage": 1
+    },
+    "admin_visible_update_ms": {
+      "count": 1210,
+      "mean": 54.1,
+      "min": 13,
+      "p50": 41,
+      "p95": 116,
+      "p99": 423,
+      "max": 612,
+      "over_50_ms": 283,
+      "over_100_ms": 72,
+      "over_200_ms": 43,
+      "sent_updates": 1210,
+      "unmatched_updates": 0,
+      "coverage": 1
+    },
+    "score_outcomes": {
+      "presented": 1210
+    },
+    "all_admin_event_outcomes": {
+      "presented": 12924,
+      "superseded": 13
+    },
+    "expired": {
+      "tv": 0,
+      "admin": 0
+    },
+    "limits": "TV bestätigt simulierten WebSocket-Empfang; Admin den DOM-Zustand mit Render-Gelegenheit. Kein Einzelabgleich aller von BTP gespeicherten Ergebnisse."
+  },
+  "btp_interval": {
+    "fetch_count": 29,
+    "fetch_statuses": {
+      "ok": 29
+    },
+    "regular_interval_after_previous_completion_ms": {
+      "count": 12,
+      "mean": 30001.48,
+      "p50": 30001.1,
+      "p95": 30004.5,
+      "p99": 30004.5,
+      "max": 30004.5
+    },
+    "regular_after_start": 12,
+    "first_already_planned_fetch": 1,
+    "additional_result_checks": 16,
+    "method": "Abrufe mit 30 Sekunden Abstand zum Ende des vorherigen Abrufs sind regulär (20 ms Rundungs-/Scheduling-Toleranz). Alle 16 früheren Abrufe stammen anhand der Elternkette aus gemessenen Spielabschlüssen; dabei ist die automatische Ergebnisrücklese-/Wiederholungslogik aktiv. Der erste Abruf lief aus einer vor Testbeginn bestehenden Planung an.",
+    "idle_phase_fetches": [
+      {
+        "id": 3631,
+        "elapsed_ms": 364089,
+        "start_ts": 1793936664945,
+        "duration_ms": 1095.3,
+        "gap_after_previous_fetch_end_ms": 30000.1,
+        "classification": "regular_interval",
+        "measured_finish_ancestor": true,
+        "ancestors": [
+          {
+            "id": 2699,
+            "name": "handle_score_update_v2",
+            "type": "finish",
+            "is_measured_finish": true
+          }
+        ],
+        "status": "ok",
+        "reason": null
+      },
+      {
+        "id": 3825,
+        "elapsed_ms": 395185,
+        "start_ts": 1793936696041,
+        "duration_ms": 795.7,
+        "gap_after_previous_fetch_end_ms": 30000.7,
+        "classification": "regular_interval",
+        "measured_finish_ancestor": true,
+        "ancestors": [
+          {
+            "id": 2699,
+            "name": "handle_score_update_v2",
+            "type": "finish",
+            "is_measured_finish": true
+          }
+        ],
+        "status": "ok",
+        "reason": "no_sync_changes"
+      },
+      {
+        "id": 4017,
+        "elapsed_ms": 425982,
+        "start_ts": 1793936726838,
+        "duration_ms": 823.7,
+        "gap_after_previous_fetch_end_ms": 30001.3,
+        "classification": "regular_interval",
+        "measured_finish_ancestor": true,
+        "ancestors": [
+          {
+            "id": 2699,
+            "name": "handle_score_update_v2",
+            "type": "finish",
+            "is_measured_finish": true
+          }
+        ],
+        "status": "ok",
+        "reason": "no_sync_changes"
+      },
+      {
+        "id": 4211,
+        "elapsed_ms": 456807,
+        "start_ts": 1793936757663,
+        "duration_ms": 820.7,
+        "gap_after_previous_fetch_end_ms": 30001.3,
+        "classification": "regular_interval",
+        "measured_finish_ancestor": true,
+        "ancestors": [
+          {
+            "id": 2699,
+            "name": "handle_score_update_v2",
+            "type": "finish",
+            "is_measured_finish": true
+          }
+        ],
+        "status": "ok",
+        "reason": "no_sync_changes"
+      }
+    ],
+    "fetch_timing": [
+      {
+        "id": 80,
+        "elapsed_ms": 8912,
+        "start_ts": 1793936309768,
+        "duration_ms": 1357.5,
+        "gap_after_previous_fetch_end_ms": null,
+        "classification": "already_planned_at_run_start",
+        "measured_finish_ancestor": false,
+        "ancestors": [],
+        "status": "ok",
+        "reason": null
+      },
+      {
+        "id": 395,
+        "elapsed_ms": 40274,
+        "start_ts": 1793936341130,
+        "duration_ms": 1309.5,
+        "gap_after_previous_fetch_end_ms": 30004.5,
+        "classification": "regular_interval",
+        "measured_finish_ancestor": false,
+        "ancestors": [],
+        "status": "ok",
+        "reason": null
+      },
+      {
+        "id": 541,
+        "elapsed_ms": 54891,
+        "start_ts": 1793936355747,
+        "duration_ms": 3540.4,
+        "gap_after_previous_fetch_end_ms": 13307.5,
+        "classification": "additional_result_check",
+        "measured_finish_ancestor": true,
+        "ancestors": [
+          {
+            "id": 525,
+            "name": "handle_score_update_v2",
+            "type": "finish",
+            "is_measured_finish": true
+          }
+        ],
+        "status": "ok",
+        "reason": null
+      },
+      {
+        "id": 633,
+        "elapsed_ms": 62469,
+        "start_ts": 1793936363325,
+        "duration_ms": 1220.5,
+        "gap_after_previous_fetch_end_ms": 4037.6,
+        "classification": "additional_result_check",
+        "measured_finish_ancestor": true,
+        "ancestors": [
+          {
+            "id": 541,
+            "name": "btp_fetch",
+            "type": "sync",
+            "is_measured_finish": false
+          },
+          {
+            "id": 525,
+            "name": "handle_score_update_v2",
+            "type": "finish",
+            "is_measured_finish": true
+          }
+        ],
+        "status": "ok",
+        "reason": null
+      },
+      {
+        "id": 675,
+        "elapsed_ms": 65627,
+        "start_ts": 1793936366483,
+        "duration_ms": 1889.5,
+        "gap_after_previous_fetch_end_ms": 1937.5,
+        "classification": "additional_result_check",
+        "measured_finish_ancestor": true,
+        "ancestors": [
+          {
+            "id": 656,
+            "name": "handle_score_update_v2",
+            "type": "finish",
+            "is_measured_finish": true
+          }
+        ],
+        "status": "ok",
+        "reason": null
+      },
+      {
+        "id": 768,
+        "elapsed_ms": 74673,
+        "start_ts": 1793936375529,
+        "duration_ms": 1223.7,
+        "gap_after_previous_fetch_end_ms": 7156.5,
+        "classification": "additional_result_check",
+        "measured_finish_ancestor": true,
+        "ancestors": [
+          {
+            "id": 752,
+            "name": "handle_score_update_v2",
+            "type": "finish",
+            "is_measured_finish": true
+          }
+        ],
+        "status": "ok",
+        "reason": null
+      },
+      {
+        "id": 897,
+        "elapsed_ms": 86251,
+        "start_ts": 1793936387107,
+        "duration_ms": 1431,
+        "gap_after_previous_fetch_end_ms": 10354.3,
+        "classification": "additional_result_check",
+        "measured_finish_ancestor": true,
+        "ancestors": [
+          {
+            "id": 877,
+            "name": "handle_score_update_v2",
+            "type": "finish",
+            "is_measured_finish": true
+          }
+        ],
+        "status": "ok",
+        "reason": null
+      },
+      {
+        "id": 1089,
+        "elapsed_ms": 105775,
+        "start_ts": 1793936406631,
+        "duration_ms": 1505.1,
+        "gap_after_previous_fetch_end_ms": 18093,
+        "classification": "additional_result_check",
+        "measured_finish_ancestor": true,
+        "ancestors": [
+          {
+            "id": 1071,
+            "name": "handle_score_update_v2",
+            "type": "finish",
+            "is_measured_finish": true
+          }
+        ],
+        "status": "ok",
+        "reason": null
+      },
+      {
+        "id": 1208,
+        "elapsed_ms": 118106,
+        "start_ts": 1793936418962,
+        "duration_ms": 2142.2,
+        "gap_after_previous_fetch_end_ms": 10825.9,
+        "classification": "additional_result_check",
+        "measured_finish_ancestor": true,
+        "ancestors": [
+          {
+            "id": 1193,
+            "name": "handle_score_update_v2",
+            "type": "finish",
+            "is_measured_finish": true
+          }
+        ],
+        "status": "ok",
+        "reason": null
+      },
+      {
+        "id": 1514,
+        "elapsed_ms": 150249,
+        "start_ts": 1793936451105,
+        "duration_ms": 1660.9,
+        "gap_after_previous_fetch_end_ms": 30000.8,
+        "classification": "regular_interval",
+        "measured_finish_ancestor": true,
+        "ancestors": [
+          {
+            "id": 1193,
+            "name": "handle_score_update_v2",
+            "type": "finish",
+            "is_measured_finish": true
+          }
+        ],
+        "status": "ok",
+        "reason": null
+      },
+      {
+        "id": 1634,
+        "elapsed_ms": 162253,
+        "start_ts": 1793936463109,
+        "duration_ms": 1967.7,
+        "gap_after_previous_fetch_end_ms": 10343.1,
+        "classification": "additional_result_check",
+        "measured_finish_ancestor": true,
+        "ancestors": [
+          {
+            "id": 1617,
+            "name": "handle_score_update_v2",
+            "type": "finish",
+            "is_measured_finish": true
+          }
+        ],
+        "status": "ok",
+        "reason": null
+      },
+      {
+        "id": 1725,
+        "elapsed_ms": 170030,
+        "start_ts": 1793936470886,
+        "duration_ms": 1947.8,
+        "gap_after_previous_fetch_end_ms": 5809.3,
+        "classification": "additional_result_check",
+        "measured_finish_ancestor": true,
+        "ancestors": [
+          {
+            "id": 1701,
+            "name": "handle_score_update_v2",
+            "type": "finish",
+            "is_measured_finish": true
+          }
+        ],
+        "status": "ok",
+        "reason": null
+      },
+      {
+        "id": 2034,
+        "elapsed_ms": 200126,
+        "start_ts": 1793936500982,
+        "duration_ms": 1710.9,
+        "gap_after_previous_fetch_end_ms": 28148.2,
+        "classification": "additional_result_check",
+        "measured_finish_ancestor": true,
+        "ancestors": [
+          {
+            "id": 2019,
+            "name": "handle_score_update_v2",
+            "type": "finish",
+            "is_measured_finish": true
+          }
+        ],
+        "status": "ok",
+        "reason": null
+      },
+      {
+        "id": 2158,
+        "elapsed_ms": 211848,
+        "start_ts": 1793936512704,
+        "duration_ms": 1439.1,
+        "gap_after_previous_fetch_end_ms": 10011.1,
+        "classification": "additional_result_check",
+        "measured_finish_ancestor": true,
+        "ancestors": [
+          {
+            "id": 2141,
+            "name": "handle_score_update_v2",
+            "type": "finish",
+            "is_measured_finish": true
+          }
+        ],
+        "status": "ok",
+        "reason": null
+      },
+      {
+        "id": 2451,
+        "elapsed_ms": 243288,
+        "start_ts": 1793936544144,
+        "duration_ms": 1215.4,
+        "gap_after_previous_fetch_end_ms": 30000.9,
+        "classification": "regular_interval",
+        "measured_finish_ancestor": true,
+        "ancestors": [
+          {
+            "id": 2141,
+            "name": "handle_score_update_v2",
+            "type": "finish",
+            "is_measured_finish": true
+          }
+        ],
+        "status": "ok",
+        "reason": null
+      },
+      {
+        "id": 2715,
+        "elapsed_ms": 269944,
+        "start_ts": 1793936570800,
+        "duration_ms": 1667.9,
+        "gap_after_previous_fetch_end_ms": 25440.6,
+        "classification": "additional_result_check",
+        "measured_finish_ancestor": true,
+        "ancestors": [
+          {
+            "id": 2699,
+            "name": "handle_score_update_v2",
+            "type": "finish",
+            "is_measured_finish": true
+          }
+        ],
+        "status": "ok",
+        "reason": null
+      },
+      {
+        "id": 3033,
+        "elapsed_ms": 301612,
+        "start_ts": 1793936602468,
+        "duration_ms": 1383.6,
+        "gap_after_previous_fetch_end_ms": 30000.1,
+        "classification": "regular_interval",
+        "measured_finish_ancestor": true,
+        "ancestors": [
+          {
+            "id": 2699,
+            "name": "handle_score_update_v2",
+            "type": "finish",
+            "is_measured_finish": true
+          }
+        ],
+        "status": "ok",
+        "reason": null
+      },
+      {
+        "id": 3331,
+        "elapsed_ms": 332997,
+        "start_ts": 1793936633853,
+        "duration_ms": 1091.9,
+        "gap_after_previous_fetch_end_ms": 30001.4,
+        "classification": "regular_interval",
+        "measured_finish_ancestor": true,
+        "ancestors": [
+          {
+            "id": 2699,
+            "name": "handle_score_update_v2",
+            "type": "finish",
+            "is_measured_finish": true
+          }
+        ],
+        "status": "ok",
+        "reason": null
+      },
+      {
+        "id": 3631,
+        "elapsed_ms": 364089,
+        "start_ts": 1793936664945,
+        "duration_ms": 1095.3,
+        "gap_after_previous_fetch_end_ms": 30000.1,
+        "classification": "regular_interval",
+        "measured_finish_ancestor": true,
+        "ancestors": [
+          {
+            "id": 2699,
+            "name": "handle_score_update_v2",
+            "type": "finish",
+            "is_measured_finish": true
+          }
+        ],
+        "status": "ok",
+        "reason": null
+      },
+      {
+        "id": 3825,
+        "elapsed_ms": 395185,
+        "start_ts": 1793936696041,
+        "duration_ms": 795.7,
+        "gap_after_previous_fetch_end_ms": 30000.7,
+        "classification": "regular_interval",
+        "measured_finish_ancestor": true,
+        "ancestors": [
+          {
+            "id": 2699,
+            "name": "handle_score_update_v2",
+            "type": "finish",
+            "is_measured_finish": true
+          }
+        ],
+        "status": "ok",
+        "reason": "no_sync_changes"
+      },
+      {
+        "id": 4017,
+        "elapsed_ms": 425982,
+        "start_ts": 1793936726838,
+        "duration_ms": 823.7,
+        "gap_after_previous_fetch_end_ms": 30001.3,
+        "classification": "regular_interval",
+        "measured_finish_ancestor": true,
+        "ancestors": [
+          {
+            "id": 2699,
+            "name": "handle_score_update_v2",
+            "type": "finish",
+            "is_measured_finish": true
+          }
+        ],
+        "status": "ok",
+        "reason": "no_sync_changes"
+      },
+      {
+        "id": 4211,
+        "elapsed_ms": 456807,
+        "start_ts": 1793936757663,
+        "duration_ms": 820.7,
+        "gap_after_previous_fetch_end_ms": 30001.3,
+        "classification": "regular_interval",
+        "measured_finish_ancestor": true,
+        "ancestors": [
+          {
+            "id": 2699,
+            "name": "handle_score_update_v2",
+            "type": "finish",
+            "is_measured_finish": true
+          }
+        ],
+        "status": "ok",
+        "reason": "no_sync_changes"
+      },
+      {
+        "id": 4383,
+        "elapsed_ms": 481896,
+        "start_ts": 1793936782752,
+        "duration_ms": 3558.6,
+        "gap_after_previous_fetch_end_ms": 24268.3,
+        "classification": "additional_result_check",
+        "measured_finish_ancestor": true,
+        "ancestors": [
+          {
+            "id": 4365,
+            "name": "handle_score_update_v2",
+            "type": "finish",
+            "is_measured_finish": true
+          }
+        ],
+        "status": "ok",
+        "reason": null
+      },
+      {
+        "id": 4431,
+        "elapsed_ms": 486170,
+        "start_ts": 1793936787026,
+        "duration_ms": 1416.4,
+        "gap_after_previous_fetch_end_ms": 715.4,
+        "classification": "additional_result_check",
+        "measured_finish_ancestor": true,
+        "ancestors": [
+          {
+            "id": 4401,
+            "name": "handle_score_update_v2",
+            "type": "finish",
+            "is_measured_finish": true
+          }
+        ],
+        "status": "ok",
+        "reason": null
+      },
+      {
+        "id": 4754,
+        "elapsed_ms": 517590,
+        "start_ts": 1793936818446,
+        "duration_ms": 1695,
+        "gap_after_previous_fetch_end_ms": 30003.6,
+        "classification": "regular_interval",
+        "measured_finish_ancestor": true,
+        "ancestors": [
+          {
+            "id": 4401,
+            "name": "handle_score_update_v2",
+            "type": "finish",
+            "is_measured_finish": true
+          }
+        ],
+        "status": "ok",
+        "reason": null
+      },
+      {
+        "id": 5085,
+        "elapsed_ms": 549287,
+        "start_ts": 1793936850143,
+        "duration_ms": 1441.9,
+        "gap_after_previous_fetch_end_ms": 30002,
+        "classification": "regular_interval",
+        "measured_finish_ancestor": true,
+        "ancestors": [
+          {
+            "id": 4401,
+            "name": "handle_score_update_v2",
+            "type": "finish",
+            "is_measured_finish": true
+          }
+        ],
+        "status": "ok",
+        "reason": null
+      },
+      {
+        "id": 5382,
+        "elapsed_ms": 580730,
+        "start_ts": 1793936881586,
+        "duration_ms": 2372.1,
+        "gap_after_previous_fetch_end_ms": 30001.1,
+        "classification": "regular_interval",
+        "measured_finish_ancestor": true,
+        "ancestors": [
+          {
+            "id": 4401,
+            "name": "handle_score_update_v2",
+            "type": "finish",
+            "is_measured_finish": true
+          }
+        ],
+        "status": "ok",
+        "reason": null
+      },
+      {
+        "id": 5435,
+        "elapsed_ms": 585142,
+        "start_ts": 1793936885998,
+        "duration_ms": 1292.9,
+        "gap_after_previous_fetch_end_ms": 2039.9,
+        "classification": "additional_result_check",
+        "measured_finish_ancestor": true,
+        "ancestors": [
+          {
+            "id": 5382,
+            "name": "btp_fetch",
+            "type": "sync",
+            "is_measured_finish": false
+          },
+          {
+            "id": 4401,
+            "name": "handle_score_update_v2",
+            "type": "finish",
+            "is_measured_finish": true
+          }
+        ],
+        "status": "ok",
+        "reason": null
+      },
+      {
+        "id": 5482,
+        "elapsed_ms": 588704,
+        "start_ts": 1793936889560,
+        "duration_ms": 1247.5,
+        "gap_after_previous_fetch_end_ms": 2269.1,
+        "classification": "additional_result_check",
+        "measured_finish_ancestor": true,
+        "ancestors": [
+          {
+            "id": 5464,
+            "name": "handle_score_update_v2",
+            "type": "finish",
+            "is_measured_finish": true
+          }
+        ],
+        "status": "ok",
+        "reason": null
+      }
+    ],
+    "decoder_worker_completed_delta": 29,
+    "status_event_count": 58,
+    "conclusion": "Keine Vervielfachung der regelmäßigen Timer. Vier reguläre Abrufe in der zweiminütigen Ruhephase mit jeweils 30 Sekunden Wartezeit nach dem vorherigen Abschluss. Zusätzliche Abrufe sind Ergebnisprüfungen."
+  },
+  "latency_by_update_kind": {
+    "ordinary_points": {
+      "admin_ms": {
+        "count": 1193,
+        "mean": 50.06,
+        "p50": 41,
+        "p95": 97,
+        "p99": 299,
+        "max": 612
+      },
+      "over_200_ms": 27
+    },
+    "finish_confirmations": {
+      "admin_ms": {
+        "count": 17,
+        "mean": 339.29,
+        "p50": 266,
+        "p95": 598,
+        "p99": 598,
+        "max": 598
+      },
+      "over_200_ms": 16
+    }
+  },
+  "admin_point_breakdown_ms": {
+    "queue_ms": {
+      "count": 1210,
+      "mean": 2.22,
+      "p50": 0.2,
+      "p95": 1.2,
+      "p99": 36.3,
+      "max": 425.5
+    },
+    "handler_ms": {
+      "count": 1210,
+      "mean": 0.94,
+      "p50": 0.8,
+      "p95": 1.8,
+      "p99": 7.1,
+      "max": 15.1
+    },
+    "ui_wait_ms": {
+      "count": 1210,
+      "mean": 5.17,
+      "p50": 0,
+      "p95": 32.1,
+      "p99": 154.6,
+      "max": 432.5
+    },
+    "render_ms": {
+      "count": 1210,
+      "mean": 33.3,
+      "p50": 31.6,
+      "p95": 54.1,
+      "p99": 122.3,
+      "max": 232
+    },
+    "total_ms": {
+      "count": 1210,
+      "mean": 41.64,
+      "p50": 33.3,
+      "p95": 80.8,
+      "p99": 260.8,
+      "max": 581.1
+    }
+  },
+  "admin_ingress_ms": {
+    "count": 1210,
+    "mean": 12.5,
+    "p50": 6,
+    "p95": 36,
+    "p99": 146,
+    "max": 349
+  },
+  "browser_jobs": {
+    "names.layout": {
+      "count": 601,
+      "queue_ms": {
+        "mean": 173.35,
+        "max": 701.9
+      },
+      "work_ms": {
+        "mean": 35.28,
+        "max": 217
+      },
+      "elapsed_ms": {
+        "mean": 208.64,
+        "max": 783.7
+      }
+    },
+    "locations.labels": {
+      "count": 964,
+      "queue_ms": {
+        "mean": 112.39,
+        "max": 780.3
+      },
+      "work_ms": {
+        "mean": 0.91,
+        "max": 4.4
+      },
+      "elapsed_ms": {
+        "mean": 113.31,
+        "max": 781.3
+      }
+    },
+    "preparation.diagnosis": {
+      "count": 518,
+      "queue_ms": {
+        "mean": 37.26,
+        "max": 450.6
+      },
+      "work_ms": {
+        "mean": 1.15,
+        "max": 2.5
+      },
+      "elapsed_ms": {
+        "mean": 150.66,
+        "max": 927.4
+      }
+    },
+    "preparation.controls": {
+      "count": 603,
+      "queue_ms": {
+        "mean": 25.33,
+        "max": 526.1
+      },
+      "work_ms": {
+        "mean": 8.37,
+        "max": 21.6
+      },
+      "elapsed_ms": {
+        "mean": 33.7,
+        "max": 535
+      }
+    },
+    "preparation.courts": {
+      "count": 920,
+      "queue_ms": {
+        "mean": 99.99,
+        "max": 665.6
+      },
+      "work_ms": {
+        "mean": 0.96,
+        "max": 2.5
+      },
+      "elapsed_ms": {
+        "mean": 100.97,
+        "max": 666.7
+      }
+    },
+    "timers.fit": {
+      "count": 135,
+      "queue_ms": {
+        "mean": 130.28,
+        "max": 641.8
+      },
+      "work_ms": {
+        "mean": 8.06,
+        "max": 33
+      },
+      "elapsed_ms": {
+        "mean": 157.84,
+        "max": 655
+      }
+    },
+    "planned.sort": {
+      "count": 85,
+      "queue_ms": {
+        "mean": 111.37,
+        "max": 521.8
+      },
+      "work_ms": {
+        "mean": 3.03,
+        "max": 7.5
+      },
+      "elapsed_ms": {
+        "mean": 114.41,
+        "max": 526.2
+      }
+    },
+    "matches.warnings": {
+      "count": 404,
+      "queue_ms": {
+        "mean": 203.26,
+        "max": 668.6
+      },
+      "work_ms": {
+        "mean": 4.1,
+        "max": 13.6
+      },
+      "elapsed_ms": {
+        "mean": 207.38,
+        "max": 673.4
+      }
+    },
+    "finished.sort": {
+      "count": 46,
+      "queue_ms": {
+        "mean": 123.77,
+        "max": 317.5
+      },
+      "work_ms": {
+        "mean": 16.77,
+        "max": 34.3
+      },
+      "elapsed_ms": {
+        "mean": 140.54,
+        "max": 351.8
+      }
+    },
+    "lists.counts": {
+      "count": 51,
+      "queue_ms": {
+        "mean": 119.66,
+        "max": 286.9
+      },
+      "work_ms": {
+        "mean": 11.82,
+        "max": 32.4
+      },
+      "elapsed_ms": {
+        "mean": 131.48,
+        "max": 294.2
+      }
+    },
+    "lists.dates": {
+      "count": 17,
+      "queue_ms": {
+        "mean": 160.89,
+        "max": 230.9
+      },
+      "work_ms": {
+        "mean": 8.24,
+        "max": 13.1
+      },
+      "elapsed_ms": {
+        "mean": 169.13,
+        "max": 237.6
+      }
+    }
+  },
+  "browser_jobs_limits": "Diese Jobstatistiken stammen aus Darstellungsquittungen. Mehrere Quittungen können denselben gemeinsam ausgeführten Job enthalten; Anzahl mal mittlere Arbeitszeit ist keine unabhängige Gesamt-CPU-Messung.",
+  "other_admin_event_timings": {
+    "match_edit": {
+      "count": 467,
+      "queue_ms": {
+        "mean": 120.51,
+        "max": 405.8
+      },
+      "handler_ms": {
+        "mean": 4.31,
+        "max": 24.8
+      },
+      "ui_wait_ms": {
+        "mean": 319.87,
+        "max": 997.2
+      },
+      "render_ms": {
+        "mean": 41.76,
+        "max": 127.1
+      },
+      "total_ms": {
+        "mean": 486.45,
+        "max": 1071.5
+      }
+    },
+    "court_current_match": {
+      "count": 1210,
+      "queue_ms": {
+        "mean": 4.25,
+        "max": 460
+      },
+      "handler_ms": {
+        "mean": 0.88,
+        "max": 9
+      },
+      "ui_wait_ms": {
+        "mean": 7.48,
+        "max": 1023.7
+      },
+      "render_ms": {
+        "mean": 33.03,
+        "max": 234.9
+      },
+      "total_ms": {
+        "mean": 45.64,
+        "max": 1149.1
+      }
+    },
+    "tabletoperator_add": {
+      "count": 17,
+      "queue_ms": {
+        "mean": 49.12,
+        "max": 171.1
+      },
+      "handler_ms": {
+        "mean": 7.73,
+        "max": 16.3
+      },
+      "ui_wait_ms": {
+        "mean": 547.1,
+        "max": 1027.9
+      },
+      "render_ms": {
+        "mean": 48.16,
+        "max": 114.1
+      },
+      "total_ms": {
+        "mean": 652.11,
+        "max": 1207.3
+      }
+    },
+    "court_changed": {
+      "count": 17,
+      "queue_ms": {
+        "mean": 96.71,
+        "max": 217.9
+      },
+      "handler_ms": {
+        "mean": 4.38,
+        "max": 10
+      },
+      "ui_wait_ms": {
+        "mean": 508.79,
+        "max": 956.3
+      },
+      "render_ms": {
+        "mean": 39.58,
+        "max": 99
+      },
+      "total_ms": {
+        "mean": 649.47,
+        "max": 1149.3
+      }
+    },
+    "tabletoperator_removed": {
+      "count": 31,
+      "queue_ms": {
+        "mean": 41.73,
+        "max": 245.1
+      },
+      "handler_ms": {
+        "mean": 6.77,
+        "max": 13.5
+      },
+      "ui_wait_ms": {
+        "mean": 451.56,
+        "max": 852.1
+      },
+      "render_ms": {
+        "mean": 46.36,
+        "max": 129.1
+      },
+      "total_ms": {
+        "mean": 546.42,
+        "max": 885.4
+      }
+    }
+  },
+  "worst_score_updates": [
+    {
+      "trace_id": "live-drill-710723-mw4ffde2-296",
+      "sent_ts": 1793936421002,
+      "court_id": "default_3",
+      "match_id": "btp_default_JD U15_1340",
+      "tv_ms": 117,
+      "tv_received_ts": 1793936421119,
+      "admin_ms": 612,
+      "admin_received_ts": 1793936421148,
+      "admin_applied_ts": 1793936421519,
+      "admin_presented_ts": 1793936421614,
+      "admin_presentation_status": "presented",
+      "admin_ui_ms": {
+        "queue_ms": 371,
+        "handler_ms": 0.1,
+        "ui_wait_ms": 0,
+        "render_ms": 95.7,
+        "total_ms": 466.8
+      },
+      "admin_measurement_method": "dom-and-render-opportunity",
+      "admin_ui_jobs": [],
+      "server_operation": {
+        "id": 1226,
+        "type": "point",
+        "status": "ok",
+        "duration_ms": 127.1
+      }
+    },
+    {
+      "trace_id": "live-drill-710723-mw4fp9dh-1164",
+      "sent_ts": 1793936882357,
+      "court_id": "default_9",
+      "match_id": "btp_default_JD U15_1341",
+      "tv_ms": 12,
+      "tv_received_ts": 1793936882369,
+      "admin_ms": 598,
+      "admin_received_ts": 1793936882374,
+      "admin_applied_ts": 1793936882816,
+      "admin_presented_ts": 1793936882955,
+      "admin_presentation_status": "presented",
+      "admin_ui_ms": {
+        "queue_ms": 0.3,
+        "handler_ms": 9.5,
+        "ui_wait_ms": 432.5,
+        "render_ms": 138.8,
+        "total_ms": 581.1
+      },
+      "admin_measurement_method": "dom-and-render-opportunity",
+      "admin_ui_jobs": [
+        {
+          "name": "lists.counts",
+          "requested_ms": 3,
+          "queue_ms": 277.9,
+          "work_ms": 15.5,
+          "elapsed_ms": 293.4,
+          "status": "complete"
+        },
+        {
+          "name": "names.layout",
+          "requested_ms": 7.7,
+          "queue_ms": 317.2,
+          "work_ms": 117.1,
+          "elapsed_ms": 434.3,
+          "status": "complete"
+        },
+        {
+          "name": "finished.sort",
+          "requested_ms": 9.5,
+          "queue_ms": 291.8,
+          "work_ms": 23.6,
+          "elapsed_ms": 315.4,
+          "status": "complete"
+        },
+        {
+          "name": "matches.warnings",
+          "requested_ms": 9.7,
+          "queue_ms": 286.8,
+          "work_ms": 3.8,
+          "elapsed_ms": 290.6,
+          "status": "complete"
+        },
+        {
+          "name": "preparation.courts",
+          "requested_ms": 9.7,
+          "queue_ms": 290.6,
+          "work_ms": 1,
+          "elapsed_ms": 291.6,
+          "status": "complete"
+        }
+      ],
+      "server_operation": {
+        "id": 5391,
+        "type": "finish",
+        "status": "ok",
+        "duration_ms": 141.2
+      }
+    },
+    {
+      "trace_id": "live-drill-710723-mw4femfq-207",
+      "sent_ts": 1793936386070,
+      "court_id": "default_9",
+      "match_id": "btp_default_JD U13_1179",
+      "tv_ms": 4,
+      "tv_received_ts": 1793936386074,
+      "admin_ms": 565,
+      "admin_received_ts": 1793936386076,
+      "admin_applied_ts": 1793936386516,
+      "admin_presented_ts": 1793936386635,
+      "admin_presentation_status": "presented",
+      "admin_ui_ms": {
+        "queue_ms": 0.1,
+        "handler_ms": 8.5,
+        "ui_wait_ms": 431.9,
+        "render_ms": 119.3,
+        "total_ms": 559.8
+      },
+      "admin_measurement_method": "dom-and-render-opportunity",
+      "admin_ui_jobs": [
+        {
+          "name": "lists.counts",
+          "requested_ms": 3.5,
+          "queue_ms": 260.6,
+          "work_ms": 14.3,
+          "elapsed_ms": 274.9,
+          "status": "complete"
+        },
+        {
+          "name": "names.layout",
+          "requested_ms": 7.4,
+          "queue_ms": 298.7,
+          "work_ms": 134.1,
+          "elapsed_ms": 432.8,
+          "status": "complete"
+        },
+        {
+          "name": "finished.sort",
+          "requested_ms": 8.3,
+          "queue_ms": 276,
+          "work_ms": 21.8,
+          "elapsed_ms": 297.8,
+          "status": "complete"
+        },
+        {
+          "name": "matches.warnings",
+          "requested_ms": 8.6,
+          "queue_ms": 270,
+          "work_ms": 4.6,
+          "elapsed_ms": 274.6,
+          "status": "complete"
+        },
+        {
+          "name": "preparation.courts",
+          "requested_ms": 8.6,
+          "queue_ms": 274.7,
+          "work_ms": 1,
+          "elapsed_ms": 275.7,
+          "status": "complete"
+        }
+      ],
+      "server_operation": {
+        "id": 877,
+        "type": "finish",
+        "status": "ok",
+        "duration_ms": 84.6
+      }
+    },
+    {
+      "trace_id": "live-drill-710723-mw4fh4em-508",
+      "sent_ts": 1793936502670,
+      "court_id": "default_8",
+      "match_id": "btp_default_JD U15_1338",
+      "tv_ms": 35,
+      "tv_received_ts": 1793936502705,
+      "admin_ms": 531,
+      "admin_received_ts": 1793936502724,
+      "admin_applied_ts": 1793936503150,
+      "admin_presented_ts": 1793936503201,
+      "admin_presentation_status": "presented",
+      "admin_ui_ms": {
+        "queue_ms": 425.5,
+        "handler_ms": 0.6,
+        "ui_wait_ms": 0,
+        "render_ms": 51.3,
+        "total_ms": 477.4
+      },
+      "admin_measurement_method": "dom-and-render-opportunity",
+      "admin_ui_jobs": [],
+      "server_operation": {
+        "id": 2049,
+        "type": "point",
+        "status": "ok",
+        "duration_ms": 41.8
+      }
+    },
+    {
+      "trace_id": "live-drill-710723-mw4fnw4n-1001",
+      "sent_ts": 1793936818535,
+      "court_id": "default_3",
+      "match_id": "btp_default_JD U15_1340",
+      "tv_ms": 4,
+      "tv_received_ts": 1793936818539,
+      "admin_ms": 500,
+      "admin_received_ts": 1793936818818,
+      "admin_applied_ts": 1793936818869,
+      "admin_presented_ts": 1793936819035,
+      "admin_presentation_status": "presented",
+      "admin_ui_ms": {
+        "queue_ms": 47,
+        "handler_ms": 4.1,
+        "ui_wait_ms": 0,
+        "render_ms": 166,
+        "total_ms": 217.1
+      },
+      "admin_measurement_method": "dom-and-render-opportunity",
+      "admin_ui_jobs": [],
+      "server_operation": {
+        "id": 4757,
+        "type": "point",
+        "status": "ok",
+        "duration_ms": 13.2
+      }
+    },
+    {
+      "trace_id": "live-drill-710723-mw4fn3pr-908",
+      "sent_ts": 1793936781711,
+      "court_id": "default_14",
+      "match_id": "btp_default_MD U13_1260",
+      "tv_ms": 3,
+      "tv_received_ts": 1793936781714,
+      "admin_ms": 467,
+      "admin_received_ts": 1793936781731,
+      "admin_applied_ts": 1793936782018,
+      "admin_presented_ts": 1793936782178,
+      "admin_presentation_status": "presented",
+      "admin_ui_ms": {
+        "queue_ms": 0.3,
+        "handler_ms": 8,
+        "ui_wait_ms": 278.3,
+        "render_ms": 160.1,
+        "total_ms": 446.7
+      },
+      "admin_measurement_method": "dom-and-render-opportunity",
+      "admin_ui_jobs": [
+        {
+          "name": "lists.counts",
+          "requested_ms": 3.6,
+          "queue_ms": 83.8,
+          "work_ms": 17.1,
+          "elapsed_ms": 100.9,
+          "status": "complete"
+        },
+        {
+          "name": "names.layout",
+          "requested_ms": 7.3,
+          "queue_ms": 126.3,
+          "work_ms": 152.8,
+          "elapsed_ms": 279.1,
+          "status": "complete"
+        },
+        {
+          "name": "finished.sort",
+          "requested_ms": 8.1,
+          "queue_ms": 103.3,
+          "work_ms": 22.2,
+          "elapsed_ms": 125.5,
+          "status": "complete"
+        },
+        {
+          "name": "matches.warnings",
+          "requested_ms": 8.3,
+          "queue_ms": 96.3,
+          "work_ms": 5.3,
+          "elapsed_ms": 101.7,
+          "status": "complete"
+        },
+        {
+          "name": "preparation.courts",
+          "requested_ms": 8.3,
+          "queue_ms": 101.7,
+          "work_ms": 1.4,
+          "elapsed_ms": 103.1,
+          "status": "complete"
+        }
+      ],
+      "server_operation": {
+        "id": 4365,
+        "type": "finish",
+        "status": "ok",
+        "duration_ms": 106.9
+      }
+    },
+    {
+      "trace_id": "live-drill-710723-mw4fdy8g-129",
+      "sent_ts": 1793936354704,
+      "court_id": "default_13",
+      "match_id": "btp_default_JD U19_1680",
+      "tv_ms": 4,
+      "tv_received_ts": 1793936354708,
+      "admin_ms": 453,
+      "admin_received_ts": 1793936354712,
+      "admin_applied_ts": 1793936355010,
+      "admin_presented_ts": 1793936355157,
+      "admin_presentation_status": "presented",
+      "admin_ui_ms": {
+        "queue_ms": 0.4,
+        "handler_ms": 10,
+        "ui_wait_ms": 287.8,
+        "render_ms": 147.1,
+        "total_ms": 445.3
+      },
+      "admin_measurement_method": "dom-and-render-opportunity",
+      "admin_ui_jobs": [
+        {
+          "name": "lists.counts",
+          "requested_ms": 4.6,
+          "queue_ms": 162.2,
+          "work_ms": 13.4,
+          "elapsed_ms": 175.6,
+          "status": "complete"
+        },
+        {
+          "name": "names.layout",
+          "requested_ms": 8.9,
+          "queue_ms": 195.2,
+          "work_ms": 93.7,
+          "elapsed_ms": 288.9,
+          "status": "complete"
+        },
+        {
+          "name": "finished.sort",
+          "requested_ms": 10.2,
+          "queue_ms": 176,
+          "work_ms": 17.9,
+          "elapsed_ms": 193.9,
+          "status": "complete"
+        },
+        {
+          "name": "matches.warnings",
+          "requested_ms": 10.4,
+          "queue_ms": 169.8,
+          "work_ms": 4.7,
+          "elapsed_ms": 174.6,
+          "status": "complete"
+        },
+        {
+          "name": "preparation.courts",
+          "requested_ms": 10.4,
+          "queue_ms": 174.6,
+          "work_ms": 1.2,
+          "elapsed_ms": 175.8,
+          "status": "complete"
+        }
+      ],
+      "server_operation": {
+        "id": 525,
+        "type": "finish",
+        "status": "ok",
+        "duration_ms": 56.4
+      }
+    },
+    {
+      "trace_id": "live-drill-710723-mw4fe0m4-135",
+      "sent_ts": 1793936357788,
+      "court_id": "default_11",
+      "match_id": "btp_default_JD U13_1178",
+      "tv_ms": 24,
+      "tv_received_ts": 1793936357812,
+      "admin_ms": 452,
+      "admin_received_ts": 1793936357985,
+      "admin_applied_ts": 1793936358008,
+      "admin_presented_ts": 1793936358240,
+      "admin_presentation_status": "presented",
+      "admin_ui_ms": {
+        "queue_ms": 21.6,
+        "handler_ms": 2,
+        "ui_wait_ms": 0,
+        "render_ms": 232,
+        "total_ms": 255.6
+      },
+      "admin_measurement_method": "dom-and-render-opportunity",
+      "admin_ui_jobs": [],
+      "server_operation": {
+        "id": 577,
+        "type": "point",
+        "status": "ok",
+        "duration_ms": 31
+      }
+    },
+    {
+      "trace_id": "live-drill-710723-mw4fn43z-909",
+      "sent_ts": 1793936782223,
+      "court_id": "default_8",
+      "match_id": "btp_default_JD U15_1338",
+      "tv_ms": 11,
+      "tv_received_ts": 1793936782234,
+      "admin_ms": 451,
+      "admin_received_ts": 1793936782436,
+      "admin_applied_ts": 1793936782459,
+      "admin_presented_ts": 1793936782674,
+      "admin_presentation_status": "presented",
+      "admin_ui_ms": {
+        "queue_ms": 21.8,
+        "handler_ms": 1.5,
+        "ui_wait_ms": 0,
+        "render_ms": 214.9,
+        "total_ms": 238.2
+      },
+      "admin_measurement_method": "dom-and-render-opportunity",
+      "admin_ui_jobs": [],
+      "server_operation": {
+        "id": 4374,
+        "type": "point",
+        "status": "ok",
+        "duration_ms": 13.6
+      }
+    },
+    {
+      "trace_id": "live-drill-710723-mw4fn6p5-916",
+      "sent_ts": 1793936785577,
+      "court_id": "default_2",
+      "match_id": "btp_default_JD U17_1498",
+      "tv_ms": 9,
+      "tv_received_ts": 1793936785586,
+      "admin_ms": 448,
+      "admin_received_ts": 1793936785926,
+      "admin_applied_ts": 1793936785928,
+      "admin_presented_ts": 1793936786025,
+      "admin_presentation_status": "presented",
+      "admin_ui_ms": {
+        "queue_ms": 0.4,
+        "handler_ms": 1.5,
+        "ui_wait_ms": 0.1,
+        "render_ms": 97.6,
+        "total_ms": 99.6
+      },
+      "admin_measurement_method": "dom-and-render-opportunity",
+      "admin_ui_jobs": [],
+      "server_operation": {
+        "id": 4408,
+        "type": "point",
+        "status": "ok",
+        "duration_ms": 17.8
+      }
+    }
+  ],
+  "database": {
+    "window_seconds": 600.103,
+    "completed_counter_deltas": {
+      "DB courts:": 5296,
+      "DB locations:": 2120,
+      "DB event:": 2,
+      "DB matches:": 8481,
+      "DB tournaments:": 8270,
+      "DB umpires:": 2641,
+      "DB logs:": 75,
+      "DB tabletoperators:": 2200,
+      "DB displaysettings:": 2999,
+      "DB display_court_displaysettings:": 5487,
+      "DB normalizations:": 1548,
+      "DB advertisements:": 1563,
+      "DB app_settings:": 2
+    },
+    "total_operations": 40684,
+    "operations_per_second": 67.8,
+    "operations_per_measured_score_update": 33.62,
+    "sampled_db_wait_ms": {
+      "count": 36350,
+      "mean": 1.91,
+      "p50": 0.5,
+      "p95": 3.7,
+      "p99": 17.5,
+      "max": 459.5
+    },
+    "limits": "Serverweite Queuezähler umfassen Lesen und Schreiben sowie andere geöffnete Seiten. Wartezeitstatistiken verwenden nur die erhaltenen Detailspans."
+  },
+  "server": {
+    "runs": [
+      {
+        "server_id": "709578-1793935999723",
+        "samples": 595,
+        "peak_pending": {
+          "Locks:": 4,
+          "DB courts:": 2,
+          "DB locations:": 1,
+          "DB event:": 0,
+          "DB matches:": 2,
+          "DB tournaments:": 3,
+          "DB umpires:": 1,
+          "DB logs:": 0,
+          "DB tabletoperators:": 1,
+          "DB displaysettings:": 1,
+          "DB display_court_displaysettings:": 55,
+          "DB normalizations:": 1,
+          "DB advertisements:": 1,
+          "DB app_settings:": 0,
+          "Worker compaction_serialize:3": 0,
+          "Worker btp_decode:5": 0,
+          "Worker sync_plan_worker:6": 1,
+          "Admin send:": 34
+        },
+        "peak_oldest_ms": {
+          "Locks:": 133,
+          "DB courts:": 15,
+          "DB locations:": 2,
+          "DB event:": 0,
+          "DB matches:": 15,
+          "DB tournaments:": 9,
+          "DB umpires:": 2,
+          "DB logs:": 0,
+          "DB tabletoperators:": 2,
+          "DB displaysettings:": 3,
+          "DB display_court_displaysettings:": 370,
+          "DB normalizations:": 3,
+          "DB advertisements:": 3,
+          "DB app_settings:": 0,
+          "Worker compaction_serialize:3": 0,
+          "Worker btp_decode:5": 0,
+          "Worker sync_plan_worker:6": 589,
+          "Admin send:": 159
+        },
+        "max_event_loop_ms": 102.170623,
+        "max_probe_rtt_ms": 204
+      }
+    ],
+    "probe_failures": 0,
+    "queue_incidents": [],
+    "trace_statuses": {
+      "ok": 5600
+    },
+    "queue_failed_counter_deltas": {
+      "Locks:": 0,
+      "DB courts:": 0,
+      "DB locations:": 0,
+      "DB event:": 0,
+      "DB matches:": 0,
+      "DB tournaments:": 0,
+      "DB umpires:": 0,
+      "DB logs:": 0,
+      "DB tabletoperators:": 0,
+      "DB displaysettings:": 0,
+      "DB display_court_displaysettings:": 0,
+      "DB normalizations:": 0,
+      "DB advertisements:": 0,
+      "DB app_settings:": 0,
+      "Worker compaction_serialize:3": 0,
+      "Worker btp_decode:5": 0,
+      "Worker sync_plan_worker:6": 0
+    },
+    "trace_gaps": 0,
+    "archive_dropped": {
+      "samples": 0,
+      "traces": 0,
+      "events": 0
+    },
+    "pre_run_trace_records": 0,
+    "dropped_detail_spans": 5821
+  },
+  "comparison_to_run9": {
+    "decoder_worker_operations": {
+      "previous": 178,
+      "current": 29,
+      "change_percent": -83.71
+    },
+    "btp_status_events": {
+      "previous": 533,
+      "current": 58,
+      "change_percent": -89.12
+    },
+    "db_operations_per_second": {
+      "previous": 71.61,
+      "current": 67.8,
+      "change_percent": -5.32
+    },
+    "admin_p50_ms": {
+      "previous": 41,
+      "current": 41,
+      "change_percent": 0.0
+    },
+    "admin_p95_ms": {
+      "previous": 111,
+      "current": 116,
+      "change_percent": 4.5
+    },
+    "admin_p99_ms": {
+      "previous": 358,
+      "current": 423,
+      "change_percent": 18.16
+    },
+    "admin_max_ms": {
+      "previous": 609,
+      "current": 612,
+      "change_percent": 0.49
+    },
+    "limits": [
+      "Kein identischer A/B-Ausgangszustand: 392 statt 382 abgeschlossene und 15 statt 11 aktive Spiele zu Beginn.",
+      "1210 statt 995 Score-Updates, 17 statt 10 Abschlussbestätigungen und 72 statt 88 Check-ins.",
+      "Die Diagnosezählung einzelner Fetch-Wurzeloperationen war in Lauf 9 fehlerhaft. Vergleichbar sind Decoder-Workerzähler und serverweite DB-Zähler."
+    ],
+    "by_update_kind": {
+      "ordinary_points": {
+        "previous_admin_ms": {
+          "count": 985,
+          "mean": 50.46,
+          "p50": 41,
+          "p95": 99,
+          "p99": 256,
+          "max": 568
+        },
+        "current_admin_ms": {
+          "count": 1193,
+          "mean": 50.06,
+          "p50": 41,
+          "p95": 97,
+          "p99": 299,
+          "max": 612
+        }
+      },
+      "finish_confirmations": {
+        "previous_admin_ms": {
+          "count": 10,
+          "mean": 356.8,
+          "p50": 348,
+          "p95": 609,
+          "p99": 609,
+          "max": 609
+        },
+        "current_admin_ms": {
+          "count": 17,
+          "mean": 339.29,
+          "p50": 266,
+          "p95": 598,
+          "p99": 598,
+          "max": 598
+        }
+      }
+    }
+  },
+  "phase_metrics": [
+    {
+      "name": "checkin-and-play",
+      "start_ms": 0,
+      "end_ms": 120000,
+      "idle": false,
+      "actual_start_ms": 0,
+      "actual_end_ms": 120109,
+      "points": 288,
+      "score_updates": 295,
+      "finish_confirmations": 7,
+      "repair_score_updates": 0,
+      "player_checkins": 20,
+      "checkin_errors": 0,
+      "tablet_to_tv_ms": {
+        "count": 295,
+        "mean": 5,
+        "p50": 4,
+        "p95": 11,
+        "p99": 24,
+        "max": 31,
+        "sent_updates": 295,
+        "unmatched_updates": 0,
+        "coverage": 1,
+        "over_50_ms": 0,
+        "over_100_ms": 0,
+        "over_200_ms": 0
+      },
+      "tablet_to_admin_ms": {
+        "count": 295,
+        "mean": 59.9,
+        "p50": 40,
+        "p95": 246,
+        "p99": 452,
+        "max": 565,
+        "sent_updates": 295,
+        "unmatched_updates": 0,
+        "coverage": 1,
+        "over_50_ms": 66,
+        "over_100_ms": 27,
+        "over_200_ms": 18
+      },
+      "occupied_courts": {
+        "count": 103,
+        "mean": 15,
+        "p50": 15,
+        "p95": 15,
+        "p99": 15,
+        "max": 15
+      },
+      "free_courts": {
+        "count": 103,
+        "mean": 0,
+        "p50": 0,
+        "p95": 0,
+        "p99": 1,
+        "max": 1
+      }
+    },
+    {
+      "name": "load",
+      "start_ms": 120000,
+      "end_ms": 360000,
+      "idle": false,
+      "actual_start_ms": 120109,
+      "actual_end_ms": 360039,
+      "points": 605,
+      "score_updates": 610,
+      "finish_confirmations": 5,
+      "repair_score_updates": 0,
+      "player_checkins": 32,
+      "checkin_errors": 0,
+      "tablet_to_tv_ms": {
+        "count": 610,
+        "mean": 5,
+        "p50": 4,
+        "p95": 13,
+        "p99": 20,
+        "max": 117,
+        "sent_updates": 610,
+        "unmatched_updates": 0,
+        "coverage": 1,
+        "over_50_ms": 1,
+        "over_100_ms": 1,
+        "over_200_ms": 0
+      },
+      "tablet_to_admin_ms": {
+        "count": 610,
+        "mean": 51.4,
+        "p50": 41,
+        "p95": 95,
+        "p99": 299,
+        "max": 612,
+        "sent_updates": 610,
+        "unmatched_updates": 0,
+        "coverage": 1,
+        "over_50_ms": 146,
+        "over_100_ms": 28,
+        "over_200_ms": 16
+      },
+      "occupied_courts": {
+        "count": 211,
+        "mean": 14.4,
+        "p50": 14,
+        "p95": 15,
+        "p99": 15,
+        "max": 15
+      },
+      "free_courts": {
+        "count": 211,
+        "mean": 0.6,
+        "p50": 1,
+        "p95": 2,
+        "p99": 2,
+        "max": 2
+      }
+    },
+    {
+      "name": "idle",
+      "start_ms": 360000,
+      "end_ms": 480000,
+      "idle": true,
+      "actual_start_ms": 360039,
+      "actual_end_ms": 480031,
+      "points": 0,
+      "score_updates": 0,
+      "finish_confirmations": 0,
+      "repair_score_updates": 0,
+      "player_checkins": 0,
+      "checkin_errors": 0,
+      "tablet_to_tv_ms": {
+        "count": 0,
+        "mean": null,
+        "p50": null,
+        "p95": null,
+        "p99": null,
+        "max": null,
+        "sent_updates": 0,
+        "unmatched_updates": 0,
+        "coverage": null,
+        "over_50_ms": 0,
+        "over_100_ms": 0,
+        "over_200_ms": 0
+      },
+      "tablet_to_admin_ms": {
+        "count": 0,
+        "mean": null,
+        "p50": null,
+        "p95": null,
+        "p99": null,
+        "max": null,
+        "sent_updates": 0,
+        "unmatched_updates": 0,
+        "coverage": null,
+        "over_50_ms": 0,
+        "over_100_ms": 0,
+        "over_200_ms": 0
+      },
+      "occupied_courts": {
+        "count": 101,
+        "mean": 15,
+        "p50": 15,
+        "p95": 15,
+        "p99": 15,
+        "max": 15
+      },
+      "free_courts": {
+        "count": 101,
+        "mean": 0,
+        "p50": 0,
+        "p95": 0,
+        "p99": 0,
+        "max": 0
+      }
+    },
+    {
+      "name": "load-after-idle",
+      "start_ms": 480000,
+      "end_ms": 600000,
+      "idle": false,
+      "actual_start_ms": 480031,
+      "actual_end_ms": 600134,
+      "points": 300,
+      "score_updates": 305,
+      "finish_confirmations": 5,
+      "repair_score_updates": 0,
+      "player_checkins": 20,
+      "checkin_errors": 0,
+      "tablet_to_tv_ms": {
+        "count": 305,
+        "mean": 4.8,
+        "p50": 3,
+        "p95": 11,
+        "p99": 23,
+        "max": 29,
+        "sent_updates": 305,
+        "unmatched_updates": 0,
+        "coverage": 1,
+        "over_50_ms": 0,
+        "over_100_ms": 0,
+        "over_200_ms": 0
+      },
+      "tablet_to_admin_ms": {
+        "count": 305,
+        "mean": 54.1,
+        "p50": 41,
+        "p95": 104,
+        "p99": 451,
+        "max": 598,
+        "sent_updates": 305,
+        "unmatched_updates": 0,
+        "coverage": 1,
+        "over_50_ms": 71,
+        "over_100_ms": 17,
+        "over_200_ms": 9
+      },
+      "occupied_courts": {
+        "count": 104,
+        "mean": 15,
+        "p50": 15,
+        "p95": 15,
+        "p99": 15,
+        "max": 15
+      },
+      "free_courts": {
+        "count": 104,
+        "mean": 0,
+        "p50": 0,
+        "p95": 0,
+        "p99": 0,
+        "max": 1
+      }
+    }
+  ],
+  "assessment": {
+    "version": 1,
+    "thresholds": {
+      "p99_ms": 30,
+      "max_ms": 50,
+      "min_samples": 100,
+      "admin_render_p99_ms": 100,
+      "admin_render_max_ms": 250
+    },
+    "final": true,
+    "level": "ERROR",
+    "summary": "Mindestens ein Ziel ist verletzt.",
+    "criteria": [
+      {
+        "id": "tv_p99",
+        "label": "TV · p99 im gesamten Lauf",
+        "level": "OK",
+        "value": "21 ms",
+        "target": "< 30 ms",
+        "detail": "1210 zugeordnete Updates."
+      },
+      {
+        "id": "tv_reception",
+        "label": "TV · Eventempfang",
+        "level": "OK",
+        "value": "1210 / 1210",
+        "target": "Alle gesendeten Updates zugeordnet",
+        "detail": "Vollständige Zuordnung."
+      },
+      {
+        "id": "tv_max",
+        "label": "TV · Maximum",
+        "level": "WARN",
+        "value": "117 ms",
+        "target": "Wunschziel < 50 ms",
+        "detail": "Ein einzelner Ausreißer verletzt nicht automatisch das p99-Ziel. Updates über 50 ms: 1."
+      },
+      {
+        "id": "admin_p99",
+        "label": "Admin · p99 im gesamten Lauf",
+        "level": "ERROR",
+        "value": "423 ms",
+        "target": "< 100 ms",
+        "detail": "1210 zugeordnete Updates."
+      },
+      {
+        "id": "admin_reception",
+        "label": "Admin · Darstellung quittiert",
+        "level": "OK",
+        "value": "1210 / 1210",
+        "target": "Alle gesendeten Updates zugeordnet",
+        "detail": "Vollständige Zuordnung."
+      },
+      {
+        "id": "admin_max",
+        "label": "Admin · Maximum",
+        "level": "WARN",
+        "value": "612 ms",
+        "target": "Wunschziel < 250 ms",
+        "detail": "Ein einzelner Ausreißer verletzt nicht automatisch das p99-Ziel. Updates über 50 ms: 283."
+      },
+      {
+        "id": "queues",
+        "label": "Server-Warteschlangen",
+        "level": "OK",
+        "value": "Kein anhaltender Rückstau",
+        "target": "Kein wachsender Rückstau / keine Queue-Fehler",
+        "detail": "Bewertung anhand der bestehenden Rückstau-Erkennung; kurze Spitzen sind erlaubt."
+      }
+    ],
+    "queue_incidents": []
+  },
+  "conclusion": {
+    "btp_interval": "Im vollständigen Lauf bestätigt; 29 Abrufe und 29 Decoderaufträge anstelle der früheren 178 Decoderaufträge. Reguläre Wiederholung mit 30 Sekunden Wartezeit und nachvollziehbare zusätzliche Ergebnisprüfungen.",
+    "delivery": "Alle 1210 gemessenen Score-Updates an TV-Empfänger und Turnierleitung zugeordnet, keine abgelaufenen Empfänge, kein Serverwechsel und keine fehlgeschlagenen Queue-Operationen.",
+    "ui_latency": "Geschwindigkeitsziel weiter verfehlt: p99 423 ms und Maximum 612 ms. Eine Verbesserung der UI-Spitzen ist gegenüber Lauf 9 nicht nachgewiesen.",
+    "remaining_evidence": [
+      "Gewöhnliche Punkte p95 97 ms, p99 299 ms; Abschlussbestätigungen im Mittel 339 ms.",
+      "Beim langsamsten Punkt liegen zwischen Browserempfang und Darstellungsquittung rund 467 ms: 371 ms Empfangswarteschlange, 0,1 ms Handler und 95,7 ms Render-Gelegenheit.",
+      "Ein Abschluss mit insgesamt 598 ms wartet im Browser 432,5 ms auf angeforderte Arbeit. Dessen Namensjob wartet 317,2 ms und arbeitet 117,1 ms.",
+      "Strukturelle Ereignisse benötigen weiterhin bis 1207,3 ms Empfang-bis-Darstellungsquittung. Das ist eine andere Messstrecke als die Tablet-zu-Admin-Punktlatenz."
+    ],
+    "next_target": "Browserprofil des Abschlussablaufs und der danach eintreffenden Änderungen: lange Wartephasen vor gemeinsamen Jobs und teure Namens-/Layoutmessungen. Einzelne Server-/DB-Wartespitzen bleiben ebenfalls sichtbar; der Bericht beweist keine einzige Ursache für alle Ausreißer.",
+    "production_code_changes_in_this_analysis": false
+  }
+}

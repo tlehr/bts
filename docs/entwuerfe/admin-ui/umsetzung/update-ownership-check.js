@@ -11,6 +11,10 @@ module.exports=async function({c,open,previews}) {
    if(message.ctype==='qa_diagnosis')ctournament.request_location_preparation_selections();
    else if(message.ctype==='qa_layout')cleitstand.refreshUnassigned(document.querySelector('.unassigned_container'));
    else if(message.ctype==='qa_clock') {qa.clock=document.createElement('span');qa.clock.className='timer';document.querySelector('[data-board-card="automation"]').append(qa.clock);cleitstand.timerDisplay(qa.clock,'-22222:22:22');}
+   else if(message.ctype==='qa_name') {
+    const match=structuredClone(curt.matches.find(match=>match._id==='match-44'));match._id='qa-observed-name';match.setup.now_on_court=false;match.setup.state='finished';match.team1_won=true;match.network_score=[[21,15],[21,17]];
+    document.querySelector('.ls-finished-table').classList.add('qa-uncached-columns');curt.matches.push(match);cmatch.add_match(match,'finished');
+   }
    else crouting.on_change(message);
    qa.dispatchResolve?.();
   });
@@ -48,7 +52,7 @@ module.exports=async function({c,open,previews}) {
   check('Deferred UI wait is reported separately from synchronous handling',shared.every(receipt=>Number.isFinite(receipt.timings.ui_wait_ms)&&receipt.timings.ui_wait_ms>=0));
   await c.evaluate(`(async()=>{
    const qa=__ownership;qa.nativeResizeObserver=window.ResizeObserver;qa.resizeCallbacks=[];qa.holdClock=false;
-   window.ResizeObserver=class extends qa.nativeResizeObserver {constructor(callback){super((entries,observer)=>{if(qa.holdClock&&entries.some(entry=>entry.target.classList.contains('timer-value')))qa.resizeCallbacks.push(()=>callback(entries,observer));else callback(entries,observer)})}};
+   window.ResizeObserver=class extends qa.nativeResizeObserver {constructor(callback){super((entries,observer)=>{if(qa.holdClock&&entries.some(entry=>entry.target.classList.contains('timer-value'))||qa.holdNames&&entries.some(entry=>entry.target.matches('.team-one,.team-two')))qa.resizeCallbacks.push(()=>callback(entries,observer));else callback(entries,observer)})}};
    ctournament.ui_show();await new Promise((resolve,reject)=>{const start=performance.now();const frame=()=>{while(qa.blocked.length)qa.release();if(performance.now()-start>4000)return reject(new Error('Remounted clocks did not settle'));cleitstand.isUpdating()||ctournament.isUpdating()?requestAnimationFrame(frame):requestAnimationFrame(()=>requestAnimationFrame(resolve))};frame()});qa.holdClock=true;
   })()`);
   const clockId=await c.evaluate('__ownership.receive("qa_clock")');
@@ -57,6 +61,13 @@ module.exports=async function({c,open,previews}) {
   await c.evaluate('__ownership.holdClock=false;__ownership.resizeCallbacks.splice(0).forEach(release=>release())');
   const clock=await c.evaluate(`__ownership.wait(${clockId})`);
   check('The clock receipt includes observation and completed fitting before its presentation frames',clock.status==='presented'&&clock.ui_jobs.some(job=>job.name==='timers.fit'&&job.status==='complete')&&await c.evaluate(`parseFloat(__ownership.clock.querySelector('.timer-value').style.getPropertyValue('--timer-scale'))<1`));
+  await c.evaluate('__ownership.holdNames=true');
+  const nameId=await c.evaluate('__ownership.receive("qa_name")');
+  await c.evaluate('new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(()=>requestAnimationFrame(resolve))))');
+  check('A new name is not acknowledged before its first observed size',await c.evaluate(`__ownership.resizeCallbacks.length>0&&!__ownership.receipts.some(receipt=>receipt.message.__ownership===${nameId})`));
+  await c.evaluate('__ownership.holdNames=false;__ownership.resizeCallbacks.splice(0).forEach(release=>release())');
+  const name=await c.evaluate(`__ownership.wait(${nameId})`);
+  check('The new-name receipt waits for fitting and its rendering frames',name.status==='presented'&&name.ui_jobs.some(job=>job.name==='names.layout'&&job.status==='complete')&&await c.evaluate('!!document.querySelector("tr[data-match_id=qa-observed-name] [data-ls-full-name]")'));
   await c.evaluate('btsAdminUpdates.whenSettled()');
   check('All measured work drains without capacity failures or timeouts',await c.evaluate('__ownership.receipts.every(receipt=>receipt.status==="presented")&&btsAdminUpdates.stats().pending===0'));
   const receipts=await c.evaluate('__ownership.receipts.map(({message,status,timings,ui_jobs})=>({type:message.ctype,status,timings,ui_jobs}))');
@@ -64,6 +75,6 @@ module.exports=async function({c,open,previews}) {
   fs.writeFileSync(path.join(previews,'update-ownership-verification.json'),JSON.stringify(report,null,2)+'\n');
   console.log(JSON.stringify({checks:checks.length,receipts},null,2));
  } finally {
-  await c.evaluate('window.send=__ownership.send;__ownership.holdClock=false;__ownership.resizeCallbacks?.splice(0).forEach(release=>release());if(__ownership.nativeResizeObserver)window.ResizeObserver=__ownership.nativeResizeObserver;__ownership.clock?.remove();while(__ownership.blocked.length)__ownership.release();__ownership.unsubscribe()');
+  await c.evaluate('window.send=__ownership.send;__ownership.holdClock=false;__ownership.holdNames=false;__ownership.resizeCallbacks?.splice(0).forEach(release=>release());if(__ownership.nativeResizeObserver)window.ResizeObserver=__ownership.nativeResizeObserver;__ownership.clock?.remove();while(__ownership.blocked.length)__ownership.release();__ownership.unsubscribe()');
  }
 };

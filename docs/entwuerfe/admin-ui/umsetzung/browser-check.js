@@ -35,7 +35,7 @@ class CDP {
    // exercise the separate BUP application embedded in its preview frames.
    if(['/bup/','/bupdev/'].includes(url.pathname)) {
     res.writeHead(200,{'Content-Type':'text/html; charset=utf-8'});
-    res.end(process.argv.includes('--settings-profile-previews-only') ? fs.readFileSync(path.join(root,'static/bup/dev/bup.html'),'utf8') : '<!doctype html><html><body>Vorschau im isolierten Formulartest</body></html>');return;
+    res.end(['--settings-profile-previews-only','--devices-workspace-only'].some(flag=>process.argv.includes(flag)) ? fs.readFileSync(path.join(root,'static/bup/dev/bup.html'),'utf8') : '<!doctype html><html><body>Vorschau im isolierten Formulartest</body></html>');return;
    }
    if(process.argv.includes('--settings-profile-previews-only')&&/^\/h\/preview\/display\/(primary|live)\.json$/.test(url.pathname)) {
     res.writeHead(200,{'Content-Type':'application/json'});fs.createReadStream(path.join(root,'static/bup/dev/div/tdemo.json')).pipe(res);return;
@@ -59,7 +59,7 @@ class CDP {
     res.writeHead(200,{'Content-Type':'text/html; charset=utf-8'});res.end(html);return;
    }
    if(!filename.startsWith(root+path.sep)){res.writeHead(403);res.end();return;}
-   try{if(fs.statSync(filename).isDirectory())filename=path.join(filename,'index.html');const ext=path.extname(filename);res.writeHead(200,{'Content-Type':({'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.mjs':'text/javascript; charset=utf-8','.wasm':'application/wasm','.css':'text/css; charset=utf-8','.svg':'image/svg+xml','.png':'image/png','.xml':'application/xml'}[ext]||'application/octet-stream'),'Cache-Control':'no-store'});fs.createReadStream(filename).pipe(res);}
+   try{if(fs.statSync(filename).isDirectory())filename=path.join(filename,'index.html');const ext=path.extname(filename);res.writeHead(200,{'Content-Type':({'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.mjs':'text/javascript; charset=utf-8','.wasm':'application/wasm','.css':'text/css; charset=utf-8','.svg':'image/svg+xml','.png':'image/png','.gif':'image/gif','.xml':'application/xml'}[ext]||'application/octet-stream'),'Cache-Control':'no-store'});fs.createReadStream(filename).pipe(res);}
    catch(error){res.writeHead(404);res.end();}
   });
   const plannerSockets=new WebSocket.Server({server,path:'/ws/admin'});
@@ -138,11 +138,33 @@ class CDP {
    await c.call('Input.setInterceptDrags',{enabled:false});
   }
 
+  if(process.argv.includes('--history-pages-only')) {await require('./history-pages-check')({c,open,previews});return;}
+  if(process.argv.includes('--fixed-columns-only')) {await require('./fixed-columns-check')({c,open,previews});return;}
+  if(process.argv.includes('--completion-only')) {await require('./completion-check')({c,open,previews});return;}
+  if(process.argv.includes('--officials-invalidation-only')) {
+   await require('./officials-invalidation-check')({c,open,previews});return;
+  }
   if(process.argv.includes('--mixed-updates-only')) {
    await require('./mixed-updates-check')({c,open,previews});return;
   }
+  if(process.argv.includes('--planned-burst-only')) {
+   await require('./planned-burst-check')({c,open,previews});return;
+  }
+  if(process.argv.includes('--sync-burst-only')) {
+   await require('./sync-burst-check')({c,open,previews});return;
+  }
   if(process.argv.includes('--service-status-only')) {
    await require('./service-status-check')({c,open,check});return;
+  }
+  if(process.argv.includes('--tablets-only')) {
+   await open(1920,940);
+   await require('./tablets-check')({c,check,click,open,metrics,key,nativeDrag,delay,previews});
+   const exceptions=c.events.filter(event=>event.method==='Runtime.exceptionThrown').map(event=>event.params.exceptionDetails.exception?.description||event.params.exceptionDetails.text);
+   const failedAssets=c.events.filter(event=>event.method==='Network.responseReceived'&&event.params.response.status>=400).map(event=>event.params.response.url);
+   const consoleErrors=c.events.filter(event=>event.method==='Runtime.consoleAPICalled'&&event.params.type==='error').map(event=>event.params.args.map(arg=>arg.value||arg.description).join(' '));
+   assert.equal(exceptions.length,0,JSON.stringify(exceptions));assert.equal(failedAssets.length,0,JSON.stringify(failedAssets));assert.equal(consoleErrors.length,0,JSON.stringify(consoleErrors));
+   fs.writeFileSync(path.join(previews,'tablets-verification.json'),JSON.stringify({date:'2026-11-05',scope:'Tabletkachel mit echten Frontendmodulen und isolierten Beispieldaten; keine Verbindung zum laufenden BTS.',checks:report.checks,exceptions,consoleErrors,failedAssets},null,2)+'\n');
+   console.log(JSON.stringify({checks:report.checks.length,exceptions:exceptions.length,failedAssets:failedAssets.length}));return;
   }
   if(process.argv.includes('--large-list-updates-only')) {
    await require('./mixed-updates-check')({c,open,previews,matchCount:373,finishedCount:85,clockLimit:600,reportFile:'large-list-update-verification.json'});return;
@@ -209,6 +231,9 @@ class CDP {
   }
   if(process.argv.includes('--settings-workspace-only')) {
    await require('./settings-workspace-check')({c,check,click,open,metrics,previews,key,capture:snap});return;
+  }
+  if(process.argv.includes('--devices-workspace-only')) {
+   await require('./devices-workspace-check')({c,open,metrics,check,capture:snap,previews,key});return;
   }
   if(process.argv.includes('--preparation-icons-only')) {
    await require('./preparation-icons-check')({c,open,metrics,key,capture:snap,check,previews});return;

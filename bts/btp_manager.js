@@ -159,6 +159,7 @@ function get_status(tkey) {
 
 	return {
 		...conn.last_status,
+		...(conn.result_write_error ? { status: 'error', message: conn.result_write_error } : {}),
 		next_fetch_ts: conn.next_fetch_ts,
 		fetch_in_progress: conn.fetch_in_progress,
 		last_successful_fetch_ts: conn.last_successful_fetch_ts ?? null,

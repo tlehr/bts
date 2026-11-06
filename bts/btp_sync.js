@@ -12,6 +12,7 @@ const utils = require('./utils');
 const { fix_player } = require('./name_fixup');
 const match_changes = require('./btp_match_changes');
 const integrated_btp_match = require('./btp_match_changes/integrated_match');
+const participant_guard = require('./btp_participant_guard');
 const normalization_fingerprints = require('./tournament_model/normalization_fingerprints');
 const { cmp_scheduled_match_order } = require('./match_automation');
 
@@ -903,7 +904,7 @@ async function craft_match(app, tkey, btp_id, location_map, court_map, event, st
 
 			const setup = {
 				is_match: (bm.IsMatch && bm.IsMatch[0] ? true : false),
-				incomplete: !_teams_complete_for_match(teams),
+				incomplete: !_teams_complete_for_match(teams, gtid === 2 ? 2 : 1),
 				is_doubles: (gtid === 2),
 				match_num: bm.MatchNr[0],
 			scoring_format: scoring_format,
@@ -1259,6 +1260,11 @@ function preserveLocalLiveScoreFields(current_match, match) {
 }
 
 function mergeLocalMatchIntoBtpMatch(current_match, match) {
+	const conflict = participant_guard.conflict(current_match, participant_guard.setup_ids(match.setup));
+	if (conflict) {
+		return { ...require('nedb/lib/model').deepCopy(current_match), btp_participant_conflict: conflict,
+			_btp_sync_signature: match._btp_sync_signature };
+	}
 	if (current_match.team1_won === null) {
 		current_match.team1_won = undefined;
 	}
@@ -1653,11 +1659,11 @@ function _craft_teams(bm, clubs, districts) {
 	return res;
 }
 
-function _teams_complete_for_match(teams) {
+function _teams_complete_for_match(teams, players_per_team = 1) {
 	return Array.isArray(teams) &&
 		teams.length >= 2 &&
-		(teams[0]?.players || []).length > 0 &&
-		(teams[1]?.players || []).length > 0;
+		(teams[0]?.players || []).length === players_per_team &&
+		(teams[1]?.players || []).length === players_per_team;
 }
 
 function _parse_score(bm) {
@@ -1719,6 +1725,7 @@ function build_match_update_fields(match) {
 		team1_won: match.team1_won,
 		btp_winner: match.btp_winner,
 		btp_needsync: match.btp_needsync,
+		btp_participant_conflict: match.btp_participant_conflict,
 		network_score: match.network_score,
 		network_team1_left: match.network_team1_left,
 		network_team1_serving: match.network_team1_serving,
@@ -1975,6 +1982,7 @@ function btp_match_confirms_pending_local_sync(current_match, bm) {
 	if (!current_match || current_match.btp_needsync !== true) {
 		return false;
 	}
+	if (current_match.btp_participant_conflict || participant_guard.conflict(current_match, participant_guard.raw_ids(bm))) return false;
 	const local = btp_result_signature_from_match(current_match);
 	const remote = btp_result_signature_from_raw_match(bm);
 	if (!local || !remote) {
@@ -1989,7 +1997,7 @@ function btp_match_confirms_pending_local_sync(current_match, bm) {
 	if ((local.score_status === 2 || local.score_status === 3 || local.score_status === 4) && local.forward_loser !== remote.forward_loser) {
 		return false;
 	}
-	return true;
+	return require('./btp_result_sync').score_matches(current_match, bm);
 }
 
 function btp_match_clears_local_special_result(current_match, bm) {
@@ -2314,7 +2322,7 @@ function mark_pending_btp_sync_confirmed(app, tkey, current_match, bm) {
 			return;
 		}
 		app.db.matches.update(
-			{ _id: current_match._id, tournament_key: tkey, btp_needsync: true },
+			{ ...require('./btp_result_sync').version_query(current_match, tkey), btp_needsync: true },
 			{ $set: { btp_needsync: false } },
 			{},
 			(err, numAffected) => {
@@ -2588,6 +2596,17 @@ async function integrate_matches(app, tkey, btp_state, scoring_formats, location
 	}
 
 	const match_loop_start_ms = Date.now();
+	async function reconcile_participants(current, bm) {
+		const result = await participant_guard.reconcile(app, tkey, current, bm);
+		if (result.changed) {
+			changes = true;
+			match_timing.updated++;
+			remember_match(result.current);
+			delta.remember_local(result.current);
+			admin.notify_change(app, tkey, 'match_edit', { match__id: result.current._id, match: result.current });
+		}
+		return result;
+	}
 	async.eachLimit(delta.matches, 25, function (bm, cb) {
 		const draw = draws.get(bm.DrawID[0]);
 		assert(draw);
@@ -2607,7 +2626,8 @@ async function integrate_matches(app, tkey, btp_state, scoring_formats, location
 		const cur_match = matches_by_btp_id.get(btp_id) || null;
 		if (cur_match && cur_match.btp_needsync) {
 			get_current_match_for_btp_sync(app, tkey, matches_by_id.get(cur_match._id) || cur_match)
-				.then((current_match) => mark_pending_btp_sync_confirmed(app, tkey, current_match, bm))
+				.then((current_match) => reconcile_participants(current_match, bm))
+				.then(result => result.blocked ? false : mark_pending_btp_sync_confirmed(app, tkey, result.current, bm))
 				.then((confirmed) => {
 					if (confirmed) {
 						match_timing.confirmed_pending_sync++;
@@ -2639,6 +2659,7 @@ async function integrate_matches(app, tkey, btp_state, scoring_formats, location
 		if (
 			cur_match &&
 			cur_match._btp_sync_signature === btp_sync_signature &&
+			!cur_match.btp_participant_conflict &&
 			!btp_match_clears_local_special_result(cur_match, bm) &&
 			!btp_match_clears_local_normal_result(cur_match, bm) &&
 			!btp_match_needs_local_status_cleanup(cur_match, bm)
@@ -2661,20 +2682,22 @@ async function integrate_matches(app, tkey, btp_state, scoring_formats, location
 				if (typeof match.team1_won === 'boolean' || match.btp_winner || match.btp_needsync || match.score_status === 'no_match') {
 					match.setup.state = 'finished';
 					match.setup.now_on_court = false;
+				} else if (match.setup.incomplete === true) {
+					// A planned court is allowed; actually starting an unresolved
+					// game is not. Keep the planned assignment available for reset.
+					match.setup.now_on_court = false;
+					match.setup.state = 'incomplete';
+					matches_incomplete.push(match);
 				} else if (match.setup.now_on_court === true) {
 					match.setup.state = 'oncourt';
 					matches_on_court.push(match);
 				} 
-				else if (match.setup.incomplete == true) {
-					match.setup.state = 'incomplete';
-					matches_incomplete.push(match);
-				}
 				else if (match.setup.scheduled_date && match.setup.scheduled_time_str) {
 					match.setup.state = 'scheduled';
 				}
 
 			if (cur_match) {
-						const current_match = await get_current_match_for_btp_sync(app, tkey, matches_by_id.get(cur_match._id) || cur_match);
+						let current_match = await get_current_match_for_btp_sync(app, tkey, matches_by_id.get(cur_match._id) || cur_match);
 						if (!current_match) {
 							changes = true;
 							match_timing.added++;
@@ -2682,6 +2705,19 @@ async function integrate_matches(app, tkey, btp_state, scoring_formats, location
 							cb(null);
 							return;
 						}
+						const guarded = await reconcile_participants(current_match, bm);
+						if (guarded.blocked) {
+							// This incoming object must not be used for later player
+							// flags/notifications either: it has different opponents.
+							for (const list of [matches_on_court, matches_incomplete]) {
+								const index = list.indexOf(match);
+								if (index !== -1) list.splice(index, 1);
+							}
+							if (guarded.current.setup.now_on_court) matches_on_court.push(guarded.current);
+							cb(null);
+							return;
+						}
+						current_match = guarded.current;
 
 						const btp_clears_local_special_result = btp_match_clears_local_special_result(current_match, bm);
 						const btp_clears_local_normal_result = btp_match_clears_local_normal_result(current_match, bm);
@@ -5060,6 +5096,7 @@ function sync_btp_data(app, tkey, response, options = {}) {
 }
 
 module.exports = {
+	_mark_pending_btp_sync_confirmed: mark_pending_btp_sync_confirmed,
 	_integrate_snapshot: integrate_btp_snapshot,
 	calculate_match_ids_on_court,
 	craft_match,

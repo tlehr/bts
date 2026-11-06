@@ -69,8 +69,8 @@ describe('Admin change queue in a background tab', function() {
 		b.handled.push = msg => { b.advance(3); return push(msg); };
 		for (let i = 0; i < 12; i++) b.send('match_edit', { match__id: 'm' + i });
 		b.task();
-		assert.strictEqual(b.handled.length, 3);
-		assert.strictEqual(b.connection._test_change_queue_length(), 9);
+		assert.strictEqual(b.handled.length, 6);
+		assert.strictEqual(b.connection._test_change_queue_length(), 6);
 		b.drain();
 		assert.strictEqual(b.handled.length, 12);
 	});

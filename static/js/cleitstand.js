@@ -122,10 +122,16 @@ var cleitstand = (function() {
   let logView=null,unsubscribeLogs=null;
   let nameObserver=null, nameFrame=null, nameLayoutDirty=false;
   let nameComplete=null,timerComplete=null,countsComplete=null,finishedComplete=null;
+  let countsFrame=null;
+  let countsFlush=null,finishedFlush=null;
+  let deferredFrame=null;
+  const deferredUpdates=new Map();
   let headerObserver=null,headerHeight=null,sidebarHeight=null,btpFontVersion=0;
   let preparationLayoutDirty=false;
-  let finishedSortPending=false;
-  const nameGroups=new Map(),nameTooltips=new WeakMap(),dirtyNameGroups=new Set(),officialMeasurements=new WeakMap(),officialCellMeasurements=new WeakMap(),officialNameBindings=new WeakMap();
+  let finishedSortPending=false,finishedFrame=null;
+  const nameGroups=new Map(),nameTooltips=new WeakMap(),dirtyNameGroups=new Set(),officialCellMeasurements=new WeakMap(),officialNameBindings=new WeakMap();
+  let officialObservers=new WeakMap();
+  const dirtyOfficialCells=new WeakSet();
   let nameFontVersion=0;
   let timerObserver=null,timerFrame=null,timerMeasure=null;
   const timerValues=new Set(),dirtyTimers=new Set(),timerMeasurements=new WeakMap(),timerBoxes=new WeakMap(),timerForms=new WeakMap(),timerFittings=new Map();
@@ -139,11 +145,60 @@ var cleitstand = (function() {
     const complete=()=>{pendingUpdates.delete(job.promise);job.complete();};
     complete.claim=job.claim;complete.run=job.run;pendingUpdates.set(job.promise,complete);return complete;
   }
+  function runNameLayout() {
+    if(!root?.isConnected||!nameComplete)return;
+    if(typeof btsAdminUpdates!=='undefined'&&btsAdminUpdates.isQueuePending?.())return;
+    if(nameFrame!==null)cancelAnimationFrame(nameFrame);
+    nameFrame=-1;const done=nameComplete;let waitingForSize=false;
+    try {flushDeferredUpdates();countsFlush?.();finishedFlush?.();waitingForSize=done.run(refreshNames);}
+    finally {nameFrame=null;if(!waitingForSize){nameComplete=null;done();}}
+  }
   function queueNames() {
     if(!root?.isConnected)return;
     if(nameFrame!==null){nameComplete?.claim();return;}
-    const done=nameComplete=trackUpdate('names.layout');
-    nameFrame=requestAnimationFrame(()=>{nameComplete=null;try {done.run(refreshNames);} finally {done();}});
+    const done=nameComplete ||= trackUpdate('names.layout');done.claim();
+    nameFrame=requestAnimationFrame(()=>{
+      if(typeof btsAdminUpdates!=='undefined'&&btsAdminUpdates.isQueuePending?.()){nameFrame=null;queueNames();return;}
+      runNameLayout();
+    });
+  }
+  let queueIdleSubscription=null,idleFlushRoot=null;
+  // The queue has already yielded between its bounded receive batches. Finish
+  // their shared writes now, before another paint of the intermediate table.
+  function queueIdleFlush() {
+    if(idleFlushRoot===root||!root?.isConnected)return;
+    const mounted=root;idleFlushRoot=mounted;
+    queueMicrotask(()=>{
+      if(idleFlushRoot!==mounted)return;
+      idleFlushRoot=null;
+      if(root!==mounted||!root?.isConnected||typeof btsAdminUpdates!=='undefined'&&btsAdminUpdates.isQueuePending?.())return;
+      flushDeferredUpdates();countsFlush?.();finishedFlush?.();runNameLayout();
+    });
+  }
+  function flushDeferredUpdates() {
+    if(deferredFrame!==null)cancelAnimationFrame(deferredFrame);
+    deferredFrame=null;
+    const updates=[...deferredUpdates.values()];deferredUpdates.clear();
+    for(const {callback,done} of updates) {
+      try {done.run(callback);}
+      // Preserve the error report without abandoning independent list jobs.
+      catch(error) {setTimeout(()=>{throw error;},0);}
+      finally {done();}
+    }
+  }
+  function deferUpdate(name,callback) {
+    if(!root?.isConnected)return false;
+    // Whole-list work shares one job for a received block. Every caller
+    // still claims it, so presentation receipts wait for the actual controls.
+    const previous=deferredUpdates.get(name);
+    if(previous)previous.done.claim();
+    else deferredUpdates.set(name,{callback,done:trackUpdate(name)});
+    if(deferredFrame!==null)return true;
+    const refresh=()=>{
+      if(typeof btsAdminUpdates!=='undefined'&&btsAdminUpdates.isQueuePending?.()){deferredFrame=requestAnimationFrame(refresh);return;}
+      flushDeferredUpdates();
+    };
+    deferredFrame=requestAnimationFrame(refresh);return true;
   }
   const tabletSignatures=new WeakMap();
   const scoreViews=new WeakMap(),rowViews=new WeakMap();
@@ -213,7 +268,7 @@ var cleitstand = (function() {
     // Status colors do not change the name width. Resource badges and the
     // visibility of a fixed-width clock can change the space it needs.
     const members=group.members.map(({target})=>[...target.children].map(child=>child.classList.contains('timer')?['timer',child.hidden,child.style.display]:[child.className.baseVal??child.className,child.textContent]));
-    return JSON.stringify([members,group.inlineOfficials?officialCellMeasurements.get(group.officialCell)?.signature:null]);
+    return JSON.stringify([members,group.officialCell?officialContentKey(group.officialCell):null]);
   }
   function layoutProbe(source,className) {
     const probe=source.cloneNode(true);probe.classList.add('ls-layout-probe',className);probe.setAttribute('aria-hidden','true');probe.inert=true;
@@ -241,26 +296,48 @@ var cleitstand = (function() {
   function nameGroupAttached(container,group) {
     return container.isConnected&&group.members.every(member=>member.text.parentNode===member.target&&member.parents.every((node,index)=>node.parentNode===(member.parents[index+1]||container)));
   }
+  const sharedNameMeasurements=new Map(),knownNameWidths=new Map();
+  let nameCanvas=null;
+  function measurePlainNames(container,group) {
+    if(!container.matches('.team-one,.team-two')||group.members.some(member=>member.target.children.length))return false;
+    const members=new Map(group.members.map((member,index)=>[member.target,index]));
+    if([...container.children].some(child=>!members.has(child)&&(child.children.length||child.textContent.trim()!=='/'&&child.textContent.trim()!=='')))return false;
+    const context=nameCanvas ||= document.createElement('canvas').getContext('2d');
+    const metrics=node=>{
+      const style=getComputedStyle(node);
+      return {font:style.font,spacing:style.letterSpacing==='normal'?'0px':style.letterSpacing,extra:['paddingLeft','paddingRight','borderLeftWidth','borderRightWidth','marginLeft','marginRight'].reduce((sum,key)=>sum+(parseFloat(style[key])||0),0)};
+    };
+    const measure=(text,style)=>{context.font=style.font;if('letterSpacing'in context)context.letterSpacing=style.spacing;return context.measureText(text).width;};
+    const styles=group.members.map(member=>metrics(member.target)),base=metrics(container);
+    let extra=0;
+    for(const child of container.childNodes)if(!members.has(child))extra+=measure(child.textContent,base);
+    for(const [stage,labels]of group.stages.entries())group.stageWidths.set(stage,extra+labels.reduce((sum,label,index)=>sum+measure(label.replace(' ','\xa0')+group.members[index].suffix,styles[index])+styles[index].extra,0));
+    return true;
+  }
   function refreshNames() {
-    nameFrame=null;pruneTimers();
-    const layoutChanged=nameLayoutDirty;
-    if(nameLayoutDirty) {nameLayoutDirty=false;preparationLayoutDirty=false;positionBoardSidebar();root?.querySelectorAll('.ls-planned-table').forEach(preparationLayout);refreshOfficialsLayout();refreshBoundaryLayout();}
+    pruneTimers();
+    for(const [container,group] of nameGroups)if(!container.isConnected||!nameGroupAttached(container,group)){nameObserver?.unobserve(container);nameGroups.delete(container);dirtyNameGroups.delete(container);}
+    if(nameLayoutDirty) {nameLayoutDirty=false;preparationLayoutDirty=false;positionBoardSidebar();root?.querySelectorAll('.ls-planned-table').forEach(preparationLayout);refreshBoundaryLayout();}
     else if(preparationLayoutDirty) {preparationLayoutDirty=false;root?.querySelectorAll('.ls-planned-table').forEach(preparationLayout);refreshBoundaryLayout();}
-    const jobs=[],labels=[];
+    const jobs=[],labels=[],waiting=[];
     for(const container of dirtyNameGroups) {
       const group=nameGroups.get(container);dirtyNameGroups.delete(container);if(!group)continue;
       if(!active(container)||!nameGroupAttached(container,group)) {
         nameObserver?.unobserve(container);nameGroups.delete(container);dirtyNameGroups.delete(container);continue;
       }
       if(group.fontVersion!==nameFontVersion) {
-        const style=getComputedStyle(container);
-        group.insets=['paddingLeft','paddingRight','borderLeftWidth','borderRightWidth'].reduce((sum,key)=>sum+(parseFloat(style[key])||0),0);
-        group.fontVersion=nameFontVersion;group.fits.clear();group.stageWidths.clear();group.stageColumns.clear();group.readWidth=true;
+        group.fontVersion=nameFontVersion;group.fits.clear();group.stageWidths.clear();group.stageColumns.clear();
       }
       const content=nameContentKey(group);
-      if(content!==group.content) {group.content=content;group.fits.clear();group.stageWidths.clear();group.stageColumns.clear();group.readWidth=true;}
-      if(layoutChanged||group.readWidth||group.width==null) {group.width=container.getBoundingClientRect().width-group.insets;group.readWidth=false;}
+      if(content!==group.content) {group.content=content;group.fits.clear();group.stageWidths.clear();group.stageColumns.clear();}
+      if(group.width==null) {waiting.push(container);continue;}
+      if(group.inlineOfficials){
+        group.sharedKey=JSON.stringify([nameFontVersion,state.density,container.closest('.match_table')?.className,group.stages,content]);
+        const shared=sharedNameMeasurements.get(group.sharedKey);
+        if(shared){for(const [key,width]of shared.widths)group.stageWidths.set(key,width);for(const [key,columns]of shared.columns)group.stageColumns.set(key,columns);}
+      }
       const available=group.width;if(available<=0)continue;
+      if(!group.inlineOfficials&&!group.stageWidths.size)measurePlainNames(container,group);
       const cached=group.fits.get(available);
       if(cached!=null) {labels.push([group,cached]);continue;}
       let stage=0;
@@ -301,7 +378,10 @@ var cleitstand = (function() {
         remaining=next;
       }
     } finally {for(const job of jobs) {removeLayoutProbe(job.probe);job.range.selectNodeContents(job.container);}}
-    for(const {group,stage} of jobs)labels.push([group,stage]);
+    for(const {group,stage} of jobs){
+      if(group.sharedKey){if(sharedNameMeasurements.size>=256)sharedNameMeasurements.delete(sharedNameMeasurements.keys().next().value);sharedNameMeasurements.set(group.sharedKey,{widths:new Map(group.stageWidths),columns:new Map(group.stageColumns)});}
+      labels.push([group,stage]);
+    }
     // Cache hits can choose different labels at a new width, too. Keep those
     // writes after every geometry read, just like freshly measured results.
     for(const [group,stage] of labels) {
@@ -316,76 +396,49 @@ var cleitstand = (function() {
         });
       }
     }
+    for(const container of waiting)dirtyNameGroups.add(container);
+    return waiting.length>0;
   }
   function scheduleNames(changed) {
     // Status updates touch a handful of players. Re-measuring every name here
     // delays the next paint, even though the score handler itself was quick.
-    if(!changed)for(const [container,group] of nameGroups) {dirtyNameGroups.add(container);group.readWidth=true;}
-    else for(let container=changed;container;container=container.parentElement)if(nameGroups.has(container))dirtyNameGroups.add(container);
-    if(!changed||changed.closest('.umpire_and_tablet'))nameLayoutDirty=true;
+    if(!changed){knownNameWidths.clear();for(const container of nameGroups.keys())dirtyNameGroups.add(container);}
+    else {
+      for(let container=changed;container;container=container.parentElement)if(nameGroups.has(container))dirtyNameGroups.add(container);
+      for(const container of changed.querySelectorAll('.team-one,.team-two,.umpire_and_tablet,.umpire_and_tablet .person,.umpire_and_tablet .name'))if(nameGroups.has(container))dirtyNameGroups.add(container);
+    }
+    if(!changed)nameLayoutDirty=true;
     queueNames();
   }
-  function refreshOfficialsLayout() {
-    if(!root?.isConnected)return;
-    const horizontalInsets=node=>{const style=getComputedStyle(node);return ['paddingLeft','paddingRight','borderLeftWidth','borderRightWidth'].reduce((sum,key)=>sum+(parseFloat(style[key])||0),0);};
-    const tables=[...root.querySelectorAll('.match_table:has(.ls-officials-column)')];
-    const jobs=[],changedCells=new Set();
-    for(const table of tables) {
-      const cells=[...table.querySelectorAll('tbody>tr:not([hidden]):not(.do_not_show):not(.ls-date-collapsed)>td.umpire_and_tablet')];
-      const signature=JSON.stringify([nameFontVersion,state.density,table.tHead?.querySelector('.ls-officials-heading')?.textContent]);
-      const entries=cells.map(cell=>{
-        const signature=JSON.stringify([nameFontVersion,state.density,
-        [...cell.querySelectorAll('[data-ls-full-name]')].map(node=>node.dataset.lsFullName),
-        [...cell.querySelectorAll('.umpire,.service_judge,.tablet,.no_umpire')].map(node=>[node.classList.contains('service_judge')?'serviceJudge':node.classList.contains('umpire')?'umpire':node.classList.contains('tablet')?'tablet':'none',node.classList.contains('no_umpire')?node.textContent:'']),
+  function officialMutations(records,notify=true) {
+    for(const record of records) {
+      const target=record.target.nodeType===1?record.target:record.target.parentElement;
+      if(!target)continue;
+      // Clock digits and the chosen name abbreviation have fixed metrics.
+      // Full names, role nodes and control visibility invalidate the cell.
+      if(record.type==='characterData'&&!target.closest('.no_umpire'))continue;
+      if(record.type==='attributes'&&record.attributeName==='style'&&!target.matches('.ls-icon-action,.timer,td.umpire_and_tablet'))continue;
+      const cell=target.closest('td.umpire_and_tablet')||(target.matches('.timer,tr')?target.closest('tr')?.querySelector('td.umpire_and_tablet'):null);
+      if(cell){dirtyOfficialCells.add(cell);if(notify)scheduleNames(cell);}
+    }
+  }
+  function officialContentKey(cell) {
+    officialMutations(officialObservers.get(cell)?.takeRecords()||[],false);
+    let cached=officialCellMeasurements.get(cell);
+    if(!cached||dirtyOfficialCells.has(cell)) {
+      dirtyOfficialCells.delete(cell);
+      cached=JSON.stringify([
+        [...cell.querySelectorAll('.umpire,.service_judge,.tablet,.no_umpire')].map(node=>[node.className,node.classList.contains('no_umpire')?node.textContent:'']),
         [...cell.querySelectorAll('.ls-icon-action,.timer')].map(node=>[node.classList.contains('timer')?'timer':'action',node.hidden,node.style.display,node.style.visibility]),
-        ]);
-        const previous=officialCellMeasurements.get(cell),cached=previous?.signature===signature?previous:null;
-        if(!cached)changedCells.add(cell);
-        return {cell,signature,cached};
-      });
-      const cached=officialMeasurements.get(table);
-      jobs.push({table,entries,signature,cached:cached?.signature===signature?cached:null});
+      ]);
+      officialCellMeasurements.set(cell,cached);
     }
-    const probes=new Map([...changedCells].map(cell=>[cell,layoutProbe(cell,'ls-officials-measuring')]));
-    // Full labels are needed only in measurement copies. The live official
-    // retains its abbreviation, nodes and controls throughout measurement.
-    for(const [container,group] of nameGroups) {
-      if(!nameGroupAttached(container,group)) {
-        nameObserver?.unobserve(container);nameGroups.delete(container);dirtyNameGroups.delete(container);continue;
-      }
-      const probe=probes.get(group.officialCell);if(!probe)continue;
-      group.members.forEach((member,index)=>setNameLabel(probeMember(group.officialCell,probe,member),group.stages[0][index]));dirtyNameGroups.add(container);
-    }
-    const widths=[];
-    try {
-      for(const job of jobs) {
-        const {table,entries}=job;
-        if(!table.getClientRects().length||!table.clientWidth)continue;
-        const column=table.querySelector('.ls-officials-column'),heading=table.tHead?.querySelector('.ls-officials-heading');if(!heading)continue;
-        let measurement=job.cached;
-        if(!measurement) {
-          const range=document.createRange();range.selectNodeContents(heading);
-          const header=range.getBoundingClientRect().width+horizontalInsets(heading);
-          measurement={signature:job.signature,header};officialMeasurements.set(table,measurement);
-        }
-        const reserved=parseFloat(getComputedStyle(table).getPropertyValue('--score-leading-timer-width'))||0;
-        let needed=measurement.header;
-        // Leading clocks change the cell padding without changing a name's
-        // intrinsic width. Reuse the latter, but read the current reservation.
-        for(const entry of entries) {
-          const {cell}=entry;
-          let content=entry.cached;
-          if(!content) {
-            const widths=[...probes.get(cell).children].map(node=>{const style=getComputedStyle(node);return node.getBoundingClientRect().width+(parseFloat(style.marginLeft)||0)+(parseFloat(style.marginRight)||0);});
-            const width=state.density==='compact'?widths.reduce((sum,width)=>sum+width,0):Math.max(0,...widths);
-            content={signature:entry.signature,width};officialCellMeasurements.set(cell,content);
-          }
-          needed=Math.max(needed,content.width+horizontalInsets(cell)-reserved);
-        }
-        widths.push([table,Math.min(Math.ceil(needed),parseFloat(getComputedStyle(column).maxWidth)||280)+'px']);
-      }
-    } finally {for(const probe of probes.values())removeLayoutProbe(probe);}
-    for(const [table,width] of widths)if(table.style.getPropertyValue('--officials-width')!==width)table.style.setProperty('--officials-width',width);
+    return cached;
+  }
+  function nameWidthKey(container,inlineOfficials) {
+    const table=container.closest('.ls-finished-table');if(!table)return null;
+    const kind=container.matches('.team-one')?'team-one':container.matches('.team-two')?'team-two':inlineOfficials?'officials':container.parentElement?.matches('td.umpire_and_tablet')?'official-line':null;
+    return kind?JSON.stringify([state.density,table.className,kind]):null;
   }
   function bindNameGroup(container,people,targets,suffixes=[],inlineOfficials=false) {
     if(!container||!people.length||targets.length!==people.length)return;
@@ -397,13 +450,27 @@ var cleitstand = (function() {
     });
     if(members.some(member=>!member.text))return;
     for(const member of members) {member.target.dataset.lsFullName=member.full;member.target.setAttribute('aria-label',member.full);}
-    nameGroups.set(container,{members,stages,width:null,fits:new Map(),stageWidths:new Map(),stageColumns:new Map(),readWidth:true,officialCell:container.closest('.umpire_and_tablet'),inlineOfficials});nameObserver?.observe(container);scheduleNames(container);
+    const widthKey=nameWidthKey(container,inlineOfficials);
+    nameGroups.set(container,{members,stages,widthKey,width:previous?.width??knownNameWidths.get(widthKey)??null,fits:new Map(),stageWidths:new Map(),stageColumns:new Map(),officialCell:container.closest('.umpire_and_tablet'),inlineOfficials});nameObserver?.observe(container);scheduleNames(container);
   }
-  function bindMatchNames(row,match) {
+  function bindTeamNames(row,match) {
     for(const [index,selector] of ['.team-one','.team-two'].entries()) {
       const team=row.querySelector(selector);if(team)bindNameGroup(team,match.setup.teams[index].players,[...team.querySelectorAll('.player')]);
     }
+  }
+  function refreshPlayerNames(row,match) {
+    if(!active(row))return;
+    bindTeamNames(row,match);
+    const hidden=row.hidden;filterRow(row);if(hidden!==row.hidden)scheduleCounts();
+  }
+  function bindMatchNames(row,match) {
+    bindTeamNames(row,match);
     const cell=row.querySelector('.umpire_and_tablet');if(!cell)return;
+    if(!officialObservers.has(cell)) {
+      const observer=new MutationObserver(officialMutations);
+      observer.observe(cell,{subtree:true,childList:true,characterData:true,attributes:true,attributeFilter:['class','style','hidden','data-ls-full-name']});
+      officialObservers.set(cell,observer);
+    }
     const bindings=[];let operatorIndex=0;
     for(const participant of cell.querySelectorAll('.person')) {
       if(participant.classList.contains('operator-pair')) {
@@ -832,7 +899,7 @@ var cleitstand = (function() {
     if(start!=null&&end!=null&&start>end)start=null;
     return {start,end};
   }
-  const calendarDays=new Map(),calendarZones=new Map(),dateHeaders=new WeakMap(),dateViews=new WeakMap(),finishedRowTimes=new WeakMap();
+  const calendarDays=new Map(),calendarZones=new Map(),timestampDays=new Map(),dateHeaders=new WeakMap(),dateViews=new WeakMap(),finishedRowTimes=new WeakMap();
   const calendarLabel=new Intl.DateTimeFormat('de-DE',{timeZone:'UTC',weekday:'long',day:'numeric',month:'long',year:'numeric'});
   function calendarDay(value) {
     if(typeof value!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(value))return null;
@@ -844,6 +911,8 @@ var cleitstand = (function() {
   }
   function timestampDay(timestamp,timeZone) {
     if(timestamp==null)return null;
+    const cacheKey=JSON.stringify([timestamp,timeZone]);
+    if(timestampDays.has(cacheKey))return timestampDays.get(cacheKey);
     let format=calendarZones.get(timeZone);
     if(!format) {
       try {format=new Intl.DateTimeFormat('en',{timeZone,year:'numeric',month:'2-digit',day:'2-digit'});}
@@ -851,7 +920,9 @@ var cleitstand = (function() {
       calendarZones.set(timeZone,format);
     }
     const parts=Object.fromEntries(format.formatToParts(timestamp).map(part=>[part.type,part.value]));
-    return calendarDay(parts.year+'-'+parts.month+'-'+parts.day);
+    const day=calendarDay(parts.year+'-'+parts.month+'-'+parts.day);
+    if(timestampDays.size>=2048)timestampDays.delete(timestampDays.keys().next().value);
+    timestampDays.set(cacheKey,day);return day;
   }
   function matchDay(match,{finished=false,key='end',timeZone='Europe/Berlin',times}={}) {
     const planned=calendarDay(match.setup?.scheduled_date);
@@ -925,7 +996,29 @@ var cleitstand = (function() {
         if(row&&row.nextElementSibling!==boundary)row.after(boundary);
       }
     }
+    pageFinished(container);
   }
+  function refreshDates(container) {
+    if(!active(container))return;
+    deferUpdate('lists.dates',()=>root.querySelectorAll('.unassigned_container,.finished_container').forEach(container=>refreshDateGroups(container)));
+  }
+  function refreshPlanned(row) {
+    if(!active(row))return false;
+    return deferUpdate('planned.sort',()=>{
+      const byId=new Map(model.matches.map(match=>[String(match._id),match]));
+      for(const body of root.querySelectorAll('.unassigned_container .match_table>tbody')) {
+        const rows=new Map([...body.children].filter(row=>row.dataset.match_id!=null).map(row=>[row.dataset.match_id,row]));
+        const matches=[...rows.keys()].map(id=>byId.get(id)).filter(Boolean).sort(cmatch.cmp_match_order);
+        const nextMatch=node=>{while(node&&node.dataset.match_id==null)node=node.nextElementSibling;return node;};
+        let before=nextMatch(body.firstElementChild);
+        for(const match of matches) {
+          const row=rows.get(String(match._id));if(row!==before)body.insertBefore(row,before);before=nextMatch(row.nextElementSibling);
+        }
+      }
+      root.querySelectorAll('.unassigned_container').forEach(matchListCount);
+    });
+  }
+  const finishedCollator=new Intl.Collator('de',{numeric:true});
   function sortFinishedMatches(matches,key,direction) {
     // Compute effective start times once per match, including any undo/redo history.
     const entries=matches.map(match=>{
@@ -941,8 +1034,8 @@ var cleitstand = (function() {
     entries.sort((a,b)=>{
       if(a.value==null&&b.value!=null)return 1;
       if(b.value==null&&a.value!=null)return -1;
-      const order=a.value===b.value?0:key==='number'?a.value.localeCompare(b.value,'de',{numeric:true}):a.value<b.value?-1:1;
-      return order*direction||String(a.match.setup?.match_num??'').localeCompare(String(b.match.setup?.match_num??''),'de',{numeric:true})||String(a.match._id).localeCompare(String(b.match._id),'de',{numeric:true});
+      const order=a.value===b.value?0:key==='number'?finishedCollator.compare(a.value,b.value):a.value<b.value?-1:1;
+      return order*direction||finishedCollator.compare(String(a.match.setup?.match_num??''),String(b.match.setup?.match_num??''))||finishedCollator.compare(String(a.match._id),String(b.match._id));
     });
     return entries.map(entry=>entry.match);
   }
@@ -984,8 +1077,10 @@ var cleitstand = (function() {
       const cell=row.querySelector('td.match_shuttle_count')||el(row,'td','match_shuttle_count');
       cell.classList.add('ls-shuttle-count');cell.dataset.match_id=row.dataset.match_id;
       const number=cell.querySelector('.match_shuttle_count_number')||el(cell,'span','match_shuttle_count_number');number.dataset.match_id=row.dataset.match_id;
-      const value=count(row);number.textContent=value==null?'—':String(value);cell.title=value==null?'Nicht gezählt':'Gezählte Bälle: '+value;
-      cell.classList.toggle('match_shuttle_count_display_active',value!=null);
+      const value=count(row),text=value==null?'—':String(value),title=value==null?'Nicht gezählt':'Gezählte Bälle: '+value;
+      if(number.textContent!==text)number.textContent=text;
+      if(cell.title!==title)cell.title=title;
+      if(cell.classList.contains('match_shuttle_count_display_active')!==(value!=null))cell.classList.toggle('match_shuttle_count_display_active',value!=null);
       if(cell!==row.lastElementChild)row.append(cell);
     }
   }
@@ -993,7 +1088,18 @@ var cleitstand = (function() {
     if(!root?.isConnected)return;
     if(finishedSortPending){finishedComplete?.claim();return;}
     finishedSortPending=true;const mountedRoot=root,done=finishedComplete=trackUpdate('finished.sort');
-    queueMicrotask(()=>{finishedComplete=null;try {done.run(()=>{finishedSortPending=false;if(root===mountedRoot)sortFinishedTables();});} finally {done();}});
+    // A sync can change many results across several receive-queue tasks.
+    // Share one sort per frame instead of sorting the whole list after each task.
+    const flush=finishedFlush=()=>{
+      if(finishedFrame!==null)cancelAnimationFrame(finishedFrame);
+      finishedFlush=null;
+      finishedFrame=null;finishedComplete=null;try {done.run(()=>{finishedSortPending=false;if(root===mountedRoot)sortFinishedTables();});} finally {done();}
+    };
+    const finish=()=>{
+      if(typeof btsAdminUpdates!=='undefined'&&btsAdminUpdates.isQueuePending?.()){finishedFrame=requestAnimationFrame(finish);return;}
+      flush();
+    };
+    finishedFrame=requestAnimationFrame(finish);
   }
   const finishedTimeFormats=new Map();
   function updateFinishedTimes(row,match) {
@@ -1129,7 +1235,10 @@ var cleitstand = (function() {
     if(changed)dirtyTimers.add(changed);else {timerFittings.clear();for(const time of timerValues) {timerMeasurements.delete(time);dirtyTimers.add(time);}}
     if(!root?.isConnected)return;
     timerComplete?.claim();if(timerFrame!==null)return;
-    const done=timerComplete ||= trackUpdate('timers.fit');timerFrame=requestAnimationFrame(()=>{
+    const done=timerComplete ||= trackUpdate('timers.fit');
+    const fit=()=>{
+      // Do not force styles between successive row patches in the same burst.
+      if(typeof btsAdminUpdates!=='undefined'&&btsAdminUpdates.isQueuePending?.()){timerFrame=requestAnimationFrame(fit);return;}
       timerFrame=null;try {done.run(()=>{
       pruneTimers();
       // Read all clock sizes before writing fitted styles. Native timer ticks
@@ -1145,10 +1254,13 @@ var cleitstand = (function() {
       // Keep the same owned job pending for first observations. Its next run
       // is scheduled by ResizeObserver; the receipt still waits for fitting.
       if(!dirtyTimers.size) {timerComplete=null;done();}
-    });
+    };
+    timerFrame=requestAnimationFrame(fit);
   }
   function timerVisibilityChanged(node) {
     if(active(node)&&node.closest('.player'))scheduleNames(node);
+    const cell=active(node)&&node.closest('td.score')?.parentElement.querySelector('td.umpire_and_tablet');
+    if(cell)dirtyOfficialCells.add(cell);
   }
   function fontsChanged() {nameFontVersion++;scheduleNames();scheduleTimers();}
   function groupTabletOperators(row,match) {
@@ -1211,6 +1323,38 @@ var cleitstand = (function() {
       width=Math.max(width,Math.ceil(content+38-80));
     }
     if(table.style.getPropertyValue('--preparation-width')!==width+'px')table.style.setProperty('--preparation-width',width+'px');
+  }
+  const finishedLimitKey='bts-admin-finished-limit-v1';
+  let finishedLimit=readStorage(finishedLimitKey)==='all'?Infinity:50;
+  const finishedPages=new WeakMap();
+  function pageFinished(container,revealId=null) {
+    if(!container.classList.contains('finished_container'))return;
+    const rows=[...container.querySelectorAll('.match_table>tbody>tr[data-match_id]')];
+    const eligible=rows.filter(row=>!row.hidden&&!row.classList.contains('do_not_show')&&!row.classList.contains('ls-date-collapsed'));
+    const eligibleSet=new Set(eligible),searching=!!searchControl?.value.trim();
+    const reveal=eligible.findIndex(row=>row.dataset.match_id===revealId);
+    if(reveal>=finishedLimit)finishedLimit=reveal+50;
+    const visible=new Set(eligible.slice(0,searching?Infinity:finishedLimit));
+    for(const row of rows)row.classList.toggle('ls-history-overflow',eligibleSet.has(row)&&!visible.has(row));
+    for(const header of container.querySelectorAll('.ls-date-row')) {
+      const expanded=header.querySelector('button')?.getAttribute('aria-expanded')==='true';
+      let shown=false;
+      for(let row=header.nextElementSibling;row&&!row.classList.contains('ls-date-row');row=row.nextElementSibling)if(visible.has(row)){shown=true;break;}
+      const hidden=expanded&&!shown;if(header.hidden!==hidden)header.hidden=hidden;
+    }
+    let view=finishedPages.get(container);
+    if(!view){
+      const controls=el(container,'div','ls-history-pages'),caption=el(controls,'span');
+      const more=el(controls,'button','btn','Weitere 50 anzeigen');more.type='button';
+      const all=el(controls,'button','btn','Alle anzeigen');all.type='button';
+      const fewer=el(controls,'button','btn','Nur 50 anzeigen');fewer.type='button';
+      const update=value=>{finishedLimit=value;writeStorage(finishedLimitKey,value===Infinity?'all':'50');pageFinished(container);};
+      more.onclick=()=>update(finishedLimit+50);all.onclick=()=>update(Infinity);fewer.onclick=()=>update(50);
+      view={controls,caption,more,all,fewer};finishedPages.set(container,view);
+    }
+    view.controls.hidden=searching||eligible.length<=50;
+    const text=visible.size+' von '+eligible.length+' Spielen';if(view.caption.textContent!==text)view.caption.textContent=text;
+    view.more.hidden=view.all.hidden=visible.size>=eligible.length;view.fewer.hidden=visible.size<=50;
   }
   function matchListCount(container) {
     refreshDateGroups(container);
@@ -1395,6 +1539,7 @@ var cleitstand = (function() {
       setCellText(cell,setup[field]);if(cell.title!==cell.textContent)cell.title=cell.textContent;
     }
     if(fields.includes('scheduled_date'))scheduleCounts();
+    if(view.finished&&fields.some(field=>['match_num','scheduled_date','scheduled_time_str'].includes(field)))refreshFinished();
     const hidden=row.hidden;filterRow(row);if(row.hidden!==hidden)scheduleCounts();
     return true;
   }
@@ -1430,7 +1575,15 @@ var cleitstand = (function() {
       line.append(replaceCell(first,first.className+' team-one'),replaceCell(versus,'vs'),replaceCell(second,second.className+' team-two'));
     }
     const scoreCell=tr.querySelector('td.score'),timerCell=tr.querySelector('td.match_timer'),shuttles=tr.querySelector('td.match_shuttle_count');
-    if(shuttles&&finished)tr.append(shuttles);
+    if(shuttles&&finished) {
+      const table=tr.closest('table');
+      // Native rows always include a shuttle cell. An implicit extra column
+      // would temporarily halve every name column until the deferred sort
+      // removes it, forcing a second layout and another round of name fitting.
+      if(table.querySelector('.ls-shuttle-column'))tr.append(shuttles);
+      else if(Number.isFinite(Number(match.shuttle_count))&&Number(match.shuttle_count)>0)finishedShuttles(table,new Map(model.matches.map(match=>[String(match._id),match])));
+      else shuttles.remove();
+    }
     else if(shuttles&&property) {const count=replaceCell(shuttles);property.append(count);}
     if(timerCell&&scoreCell) {const timer=replaceCell(timerCell);scoreCell.append(timer);}
     const location=model.locations.find(place=>String(place._id)===String(match.setup.location_id));
@@ -1501,7 +1654,16 @@ var cleitstand = (function() {
   function scheduleCounts() {
     if(countsPending){countsComplete?.claim();return;}
     countsPending=true;const done=countsComplete=trackUpdate('lists.counts');
-    queueMicrotask(()=>{countsComplete=null;try {done.run(()=>{countsPending=false;refreshCounts();});} finally {done();}});
+    const flush=countsFlush=()=>{
+      if(countsFrame!==null)cancelAnimationFrame(countsFrame);
+      countsFlush=null;
+      countsFrame=null;countsComplete=null;try {done.run(()=>{countsPending=false;refreshCounts();});} finally {done();}
+    };
+    const refresh=()=>{
+      if(typeof btsAdminUpdates!=='undefined'&&btsAdminUpdates.isQueuePending?.()){countsFrame=requestAnimationFrame(refresh);return;}
+      flush();
+    };
+    countsFrame=requestAnimationFrame(refresh);
   }
   function courtGroups() {
     const table=root?.querySelector('.courts_container .match_table');if(!table)return;
@@ -1548,9 +1710,11 @@ var cleitstand = (function() {
   }
   function refreshCounts() {
     if(!root)return;const counts=root.querySelector('[data-field-counts]');if(!counts)return;
-    sortFinishedTables();
+    // Score/time/metadata changes schedule their own shared finished sort.
+    // A field count or filter refresh must not sort the same history again.
+    root.querySelectorAll('.finished_container').forEach(matchListCount);
     refreshTablets();
-    courtGroups();refreshScoreLayout();nameLayoutDirty=true;queueNames();root.querySelectorAll('.unassigned_container').forEach(matchListCount);
+    courtGroups();refreshScoreLayout();root.querySelectorAll('.unassigned_container').forEach(matchListCount);
     const courts=model.courts.filter(court=>readStorage('show_location_courts_'+court.location_id)!=='false');
     const occupied=new Set(model.matches.filter(match=>match.setup?.now_on_court&&match.setup?.court_id).map(match=>String(match.setup.court_id)));
     const busy=courts.filter(court=>occupied.has(String(court._id))).length;
@@ -1645,7 +1809,7 @@ var cleitstand = (function() {
         courtNumber:court?.num!=null&&String(court.num)!==''?String(court.num):null,
         location:location?.name||'',locationShort:location?.short_name||location?.name||'',
         level:known?level:null,percent,charging:display.battery?.charging===true,
-        status:percent==null?'unknown':percent<=10?'critical':percent<=25?'low':'normal'});
+        status:percent==null?'unknown':percent<10?'critical':percent<25?'low':'normal'});
     }
     const compare=(a,b)=>String(a).localeCompare(String(b),'de',{numeric:true});
     const courtOrder=(a,b)=>a.courtNumber==null&&b.courtNumber!=null?1:b.courtNumber==null&&a.courtNumber!=null?-1:compare(a.courtNumber??'',b.courtNumber??'')||compare(a.location,b.location);
@@ -1688,16 +1852,19 @@ var cleitstand = (function() {
         }
         const name=el(row,'td','ls-tablet-device');el(name,'span','ls-tablet-host',device.hostname).title=device.hostname;
         if(device.ip)el(name,'small','ls-tablet-ip',device.ip).title=device.ip;
-        const cell=el(row,'td','ls-tablet-charge'),battery=el(cell,'span','ls-tablet-battery is-'+device.status);
+        const cell=el(row,'td','ls-tablet-charge'),battery=el(cell,'span','ls-tablet-battery is-'+device.status+(device.charging&&device.percent!=null&&device.percent<100?' is-charging':''));
         const label=(device.percent==null?'Akkustand nicht verfügbar':'Akku: '+device.percent+' Prozent')+(device.charging?' · wird geladen':'');
-        battery.setAttribute('role','img');battery.setAttribute('aria-label',label);battery.title=label;battery.innerHTML=icon('battery');
-        if(device.percent!=null) {
-          const fill=document.createElementNS('http://www.w3.org/2000/svg','rect');
-          for(const [key,value] of Object.entries({x:4,y:8,width:14*device.percent/100,height:8,rx:1,fill:'currentColor',stroke:'none'}))fill.setAttribute(key,String(value));
-          battery.querySelector('svg').prepend(fill);
-        }
-        el(battery,'span','ls-tablet-percent',device.percent==null?'—':device.percent+'%');
-        if(device.charging) {const bolt=el(battery,'span','ls-tablet-charging');bolt.innerHTML=icon('bolt');bolt.setAttribute('aria-hidden','true');}
+        battery.setAttribute('role','img');battery.setAttribute('aria-label',label);battery.title=label;
+        const gauge=el(battery,'span','ls-tablet-battery-gauge');gauge.setAttribute('aria-hidden','true');
+        el(gauge,'span','ls-tablet-battery-charge');
+        const caption=parent=>{
+          const node=el(parent,'span','ls-tablet-battery-caption');
+          el(node,'span','ls-tablet-percent',device.percent==null?'—':device.percent+'%');
+          if(device.charging)el(node,'span','ls-tablet-charging').innerHTML=icon('bolt');
+        };
+        caption(gauge);
+        const fill=el(gauge,'span','ls-tablet-battery-fill');fill.style.width=(device.percent??0)/2+'px';fill.hidden=device.percent==null;
+        caption(fill);
         tabletSignatures.set(row,signature);
       }
       if(row!==before)body.insertBefore(row,before);before=row.nextElementSibling;
@@ -2105,8 +2272,9 @@ var cleitstand = (function() {
     } else if(action==='date-toggle') {
       const container=node.closest('.unassigned_container,.finished_container');if(!container)return;
       const view=dateView(container),choices=view.query?view.searchExpanded:view.expanded;
-      choices.set(node.closest('.ls-date-row').dataset.date,node.getAttribute('aria-expanded')!=='true');
-      refreshDateGroups(container);scheduleNames();
+      const header=node.closest('.ls-date-row'),expanded=node.getAttribute('aria-expanded')!=='true';
+      choices.set(header.dataset.date,expanded);
+      refreshDateGroups(container);if(expanded)pageFinished(container,header.nextElementSibling?.dataset.match_id);scheduleNames();
     } else if(action==='finished-sort') {
       const key=node.dataset.sortKey;if(!['number','plan','start','end'].includes(key))return;
       state.finishedSort={key,direction:state.finishedSort.key===key?-state.finishedSort.direction:1};sortFinishedTables();scheduleNames();
@@ -2340,11 +2508,15 @@ var cleitstand = (function() {
     });headerObserver.observe(top,{box:'border-box'});headerObserver.observe(side,{box:'border-box'});
     navigation(top,model,'/',actions);
     listeners=new AbortController();bindLayout();deviceLocations();automation(nativeAutomation);operatorQueue(nativeOperators);btpSync();applyBoardLayout();
+    queueIdleSubscription=typeof btsAdminUpdates!=='undefined'?btsAdminUpdates.onQueueIdle?.(queueIdleFlush):null;
     nameObserver=new ResizeObserver(entries=>{
       for(const {target,contentRect} of entries) {
         const group=nameGroups.get(target);if(!group||Math.abs((group.width??-1)-contentRect.width)<.25)continue;
-        group.width=contentRect.width;dirtyNameGroups.add(target);queueNames();
+        group.width=contentRect.width;if(group.widthKey&&contentRect.width>0)knownNameWidths.set(group.widthKey,contentRect.width);dirtyNameGroups.add(target);queueNames();
       }
+      // Observed widths belong to this layout. Fit them before its paint,
+      // rather than waiting for another frame with outdated labels.
+      runNameLayout();
     });
     timerObserver=new ResizeObserver(entries=>{for(const {target,contentRect} of entries) {
       timerBoxes.set(target,{width:contentRect.width,height:contentRect.height});
@@ -2362,7 +2534,7 @@ var cleitstand = (function() {
       const match=byId.get(String(tr.dataset.match_id));if(match)row(tr,match,tr.dataset.style);
       else {const court=model.courts.find(item=>String(item._id)===String(tr.dataset.court_id));if(court)emptyRow(tr,court,tr.dataset.style);}
     }
-    cmatch.refresh_unassigned_preparation_context();refreshCounts();
+    cmatch.refresh_unassigned_preparation_context();refreshFinished();refreshCounts();
     viewObserver=new MutationObserver(()=>{if(root&&!root.isConnected)unmount();});viewObserver.observe(main,{childList:true});
   }
   function unmount() {
@@ -2376,13 +2548,18 @@ var cleitstand = (function() {
     unsubscribeLogs?.();unsubscribeLogs=null;logView=null;
     if(root&&typeof ctournament!=='undefined')ctournament.clear_official_dragdrop?.();
     for(const complete of pendingUpdates.values())complete();
+    if(deferredFrame!==null)cancelAnimationFrame(deferredFrame);deferredFrame=null;deferredUpdates.clear();
+    if(countsFrame!==null)cancelAnimationFrame(countsFrame);countsFrame=null;countsPending=false;countsComplete=null;countsFlush=null;
+    if(finishedFrame!==null)cancelAnimationFrame(finishedFrame);finishedFrame=null;finishedSortPending=false;finishedComplete=null;finishedFlush=null;
     listeners?.abort();listeners=null;viewObserver?.disconnect();viewObserver=null;clearCardDragState();clearMatchDrag();
     headerObserver?.disconnect();headerObserver=null;headerHeight=null;sidebarHeight=null;document.body.classList.remove('leitstand-view');
-    nameObserver?.disconnect();nameObserver=null;nameGroups.clear();dirtyNameGroups.clear();nameLayoutDirty=false;preparationLayoutDirty=false;if(nameFrame!==null)cancelAnimationFrame(nameFrame);nameFrame=null;
+    queueIdleSubscription?.();queueIdleSubscription=null;idleFlushRoot=null;
+    nameObserver?.disconnect();nameObserver=null;nameGroups.clear();dirtyNameGroups.clear();sharedNameMeasurements.clear();knownNameWidths.clear();nameLayoutDirty=false;preparationLayoutDirty=false;if(nameFrame!==null)cancelAnimationFrame(nameFrame);nameFrame=null;nameComplete=null;
+    for(const cell of root?.querySelectorAll('td.umpire_and_tablet')||[])officialObservers.get(cell)?.disconnect();officialObservers=new WeakMap();
     timerObserver?.disconnect();timerObserver=null;timerValues.clear();dirtyTimers.clear();timerFittings.clear();preparationWidths.clear();if(timerFrame!==null)cancelAnimationFrame(timerFrame);timerFrame=null;timerComplete=null;
     document.querySelector('.leitstand-header')?.classList.remove('leitstand-header','has-stacked-navigation');root=null;searchControl=null;
   }
-  return {icon,preparationIcon,mount,unmount,navigation,active,row,refreshRow,emptyRow,updateScore,updateMatchMetadata,score,timerDisplay,timerVisibilityChanged,deviceLocations,automation,refreshOperators,refreshCounts,refreshFinished,refreshTablets,tabletDevices,refreshScoreLayout,maxSetCount,matchTimes,matchDay,sortFinishedMatches,nameStages,matchDrag,clearMatchDrag,decorateControls,matchDialog,matchProtocolEvent,updateMatchRemarks,refreshCourtAssignment,refreshCallStatus,restoreDialogFocus,officialPicker,choicePicker,clearDialogPickers,closeDialogPickers,tabletAssignmentIcon,operatorQueue,rotationIcons,player,participant,refreshUnassigned,refreshDates:refreshDateGroups,btpSync,
+  return {icon,preparationIcon,mount,unmount,navigation,active,row,refreshRow,refreshPlayerNames,emptyRow,updateScore,updateMatchMetadata,score,timerDisplay,timerVisibilityChanged,deviceLocations,automation,refreshOperators,refreshCounts,refreshFinished,refreshTablets,tabletDevices,refreshScoreLayout,maxSetCount,matchTimes,matchDay,sortFinishedMatches,nameStages,matchDrag,clearMatchDrag,decorateControls,matchDialog,matchProtocolEvent,updateMatchRemarks,refreshCourtAssignment,refreshCallStatus,restoreDialogFocus,officialPicker,choicePicker,clearDialogPickers,closeDialogPickers,tabletAssignmentIcon,operatorQueue,rotationIcons,player,participant,refreshUnassigned,refreshDates,refreshPlanned,deferUpdate,btpSync,
     pendingUpdates:()=>[...pendingUpdates.keys()],
-    isUpdating:()=>nameFrame!==null||timerFrame!==null||dirtyTimers.size>0||countsPending||finishedSortPending||!!navigationContext?.frame};
+    isUpdating:()=>nameFrame!==null||nameComplete!==null||timerFrame!==null||dirtyTimers.size>0||countsPending||finishedSortPending||deferredFrame!==null||deferredUpdates.size>0||!!navigationContext?.frame};
 })();

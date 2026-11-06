@@ -172,7 +172,7 @@ module.exports = async function({c, open, metrics, check, capture}) {
  await run(() => document.querySelector('.bts-confirm-accept').click());
  await run(() => document.querySelector('.leitstand-nav a[href$="/devices"]').click());
  await verify('Device assignments are available outside settings with the shared header', () =>
-  !!document.querySelector('.page-devices .display_tbody')&&document.querySelector('.board-page-title').textContent==='BTS – Geräte & Logs'&&
+  !!document.querySelector('.page-devices .devices-assignments')&&document.querySelector('.board-page-title').textContent==='BTS – Geräte & Logs'&&
   document.querySelector('.leitstand-nav [aria-current]').textContent==='Geräte & Logs'&&curt.displays.find(device=>device.client_id==='21').court_id==='CH_1'&&
   curt.displays.find(device=>device.client_id==='21').displaysetting_id==='tablet-profile');
  await run(() => {const select=document.querySelector('[name=displaysettings_21]');select.value=__profileCopyId;select.dispatchEvent(new Event('change'));});

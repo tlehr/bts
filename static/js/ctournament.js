@@ -1,10 +1,9 @@
-/* global btsSpeechReadiness, cleitstand, btsAdminUpdates, btsScoresheetRemarks, btsAudioDevices, btsDurationInput, btsScoringSettings, btsDisplaySettings, btsLogoPicker, btsAdvertisementSettings, btsTickerSettings, btsMaintenanceSettings, btsLocationSettings, btsSpeechWorkspace, btsSpeechInfrastructure */
+/* global btsSpeechReadiness, cleitstand, btsAdminUpdates, btsScoresheetRemarks, btsAudioDevices, btsDurationInput, btsScoringSettings, btsDisplaySettings, btsDevicesWorkspace, btsLogoPicker, btsAdvertisementSettings, btsTickerSettings, btsMaintenanceSettings, btsLocationSettings, btsSpeechWorkspace, btsSpeechInfrastructure */
 'use strict';
 /* global btsSpeechService, btsSpeechHealth, btsServiceStatus, cancelAnnouncementPlayback, createSpeechQueue, createFreeAnnouncementForm, btsDialogActions, subscribeEmergencyAudio, btsCertificates, btsCertificateSelection, btsSettingsWorkspace */
 
 var curt; // current tournament
 let current_view = null;
-let display_table_body = null;
 let scoring_formats_main = null;
 let live_settings_status_el = null;
 let live_settings_pending_requests = 0;
@@ -39,6 +38,7 @@ const ANNOUNCEMENT_SPEECH_CHECK_STATE_STORAGE_KEY = 'bts_announcement_speech_che
 var ctournament = (function() {
 	const pending_ui_updates = new Set();
 	let preparation_selection_pending_complete = null, preparation_labels_complete = null, recovery_complete = null;
+	let preparation_labels_fetch_pending = false;
 	const untracked_ui_update = Object.assign(() => {}, {claim:()=>{},run:callback=>callback()});
 	function track_ui_update(name) {
 		if (typeof btsAdminUpdates === 'undefined' || !btsAdminUpdates.hasSubscribers()) return untracked_ui_update;
@@ -434,6 +434,17 @@ var ctournament = (function() {
 	const match_metadata_fields = new Set(['scheduled_date', 'scheduled_time_str', 'match_num', 'match_name', 'event_name']);
 	const match_clock_fields = new Set(['preparation_call_timestamp']);
 	const match_successor_fields = new Set(['needs_preparation_successor', 'needs_preparation_successor_ts']);
+	const player_name_fields = new Set(['name', 'firstname', 'lastname', 'surname']);
+	function match_teams_names_equal(before, after) {
+		const without_names = player => Object.fromEntries(Object.entries(player).filter(([key]) => !player_name_fields.has(key)));
+		return Array.isArray(before) && Array.isArray(after) && before.length === after.length && before.every((team, index) => {
+			const incoming = after[index];
+			return team && incoming && utils.deep_equal({...team, players: null}, {...incoming, players: null}) &&
+				Array.isArray(team.players) && Array.isArray(incoming.players) && team.players.length === incoming.players.length &&
+				team.players.every((player, index) => player && incoming.players[index] &&
+					utils.deep_equal(without_names(player), without_names(incoming.players[index])));
+		});
+	}
 	function match_teams_check_in_equal(before, after) {
 		if (!Array.isArray(before) || !Array.isArray(after) || before.length !== after.length) return false;
 		return before.every((team, index) => {
@@ -452,6 +463,7 @@ var ctournament = (function() {
 		for (const field of new Set([...Object.keys(before), ...Object.keys(after)])) {
 			if (utils.deep_equal(before[field], after[field])) continue;
 			if (field === 'teams' && match_teams_check_in_equal(before.teams, after.teams)) { fields.push(field);continue; }
+			if (field === 'teams' && current_view === 'show' && match_teams_names_equal(before.teams, after.teams)) { fields.push('player_names');continue; }
 			// Unknown dependencies retain the existing structural update path.
 			if (!match_metadata_fields.has(field) && !match_clock_fields.has(field) && !match_successor_fields.has(field)) return null;
 			fields.push(field);
@@ -527,6 +539,7 @@ var ctournament = (function() {
 				const metadata = patch_fields.filter(field => match_metadata_fields.has(field));
 				if (metadata.length) cmatch.update_match_metadata(m, metadata);
 				if (patch_fields.includes('teams')) cmatch.update_player_status_indicators_for_match_players(m, { previous_setup });
+				if (patch_fields.includes('player_names')) cmatch.update_match_player_names(m);
 				if (values_changed || patch_fields.some(field => match_clock_fields.has(field))) cmatch.update_match_score(m);
 				else if (patch_fields.includes('needs_preparation_successor')) cmatch.update_preparation_demand_court_markers(m);
 				if (order_changed) cmatch.reorder_match_row(m, new_section);
@@ -534,7 +547,7 @@ var ctournament = (function() {
 				cmatch.update_match(m, old_section, new_section);
 				cmatch.update_player_status_indicators_for_match_players(m, { previous_setup });
 			}
-			if (order_changed || patch_fields?.length || (!content_unchanged && (!patch_fields || old_section !== new_section))) update_location_preparation_need_labels();
+			if (order_changed || patch_fields?.some(field => field !== 'player_names') || (!content_unchanged && (!patch_fields || old_section !== new_section))) update_location_preparation_need_labels();
 
 		return old_section;
 	}
@@ -1548,9 +1561,7 @@ var ctournament = (function() {
 		if (!labels.length) {
 			return;
 		}
-		if (fetch_selections) {
-			request_location_preparation_selections();
-		}
+		preparation_labels_fetch_pending ||= fetch_selections;
 		if (preparation_need_label_update_frame != null) {
 			preparation_labels_complete?.claim();
 			return;
@@ -1559,9 +1570,17 @@ var ctournament = (function() {
 			? window.requestAnimationFrame.bind(window)
 			: (fn) => setTimeout(fn, 0);
 		const complete = preparation_labels_complete = track_ui_update('locations.labels');
-		preparation_need_label_update_frame = schedule(() => {
-			try {complete.run(()=>{preparation_need_label_update_frame = null;preparation_labels_complete=null;update_location_preparation_need_labels_now();});} finally {complete();}
-		});
+		const refresh = () => {
+			if (typeof btsAdminUpdates !== 'undefined' && btsAdminUpdates.isQueuePending?.()) {
+				preparation_need_label_update_frame = schedule(refresh);return;
+			}
+			try {complete.run(()=>{
+				preparation_need_label_update_frame = null;preparation_labels_complete=null;
+				if (preparation_labels_fetch_pending) {preparation_labels_fetch_pending=false;request_location_preparation_selections();}
+				update_location_preparation_need_labels_now();
+			});} finally {complete();}
+		};
+		preparation_need_label_update_frame = schedule(refresh);
 	}
 
 	function render_automation_controls(target) {
@@ -1945,7 +1964,7 @@ var ctournament = (function() {
 		});
 	}
 
-	let certificatePage = null, settingsPage = null, speechPage = null;
+	let certificatePage = null, settingsPage = null, speechPage = null, devicesPage = null;
 	function ui_certificates() {
 		if (certificatePage?.page.isConnected && certificatePage.tournamentKey === curt.key && current_view === 'certificates') {
 			certificatePage.refreshData();return;
@@ -2729,34 +2748,25 @@ var ctournament = (function() {
 		speechChanges(event);speechPage?.refreshSettings();
 	});
 
-	function ui_devices() {
-		if (current_view === 'devices' && document.querySelector('.page-devices')) return;
-		settingsPage?.dispose();cleitstand.unmount();current_view = 'devices';
+	function ui_devices(section) {
+		const selected = typeof section === 'string' ? section : Array.isArray(section) ? section[2] || 'devices' : devicesPage?.selected();
+		if (current_view === 'devices' && devicesPage?.page.isConnected && devicesPage.tournamentKey === curt.key) {devicesPage.show(selected);return;}
+		settingsPage?.dispose();devicesPage?.dispose();cleitstand.unmount();current_view = 'devices';
 		render_show_toprow();
 		const main = document.querySelector('.main');main.replaceChildren();main.className = 'main';
 		cleitstand.navigation(document.querySelector('.toprow'), curt, '/devices', {syncBtp:ui_btp_fetch});
-		const page = uiu.el(main, 'section', {class:'leitstand page-devices', 'aria-labelledby':'leitstand-page-title'});
-		const workspace = uiu.el(page, 'div', 'devices-workspace');
-		const card = uiu.el(workspace, 'section', 'devices-card');
-		uiu.el(card, 'h2', {}, 'Oberflächen & Profile');
-		uiu.el(card, 'p', 'devices-hint', 'Hier weist du einem Gerät sein Profil und seine Felder zu. Die Profile bearbeitest du in den Einstellungen.');
-		render_displaysettings(uiu.el(card, 'div', 'devices-table-wrap'));
-		const links = uiu.el(workspace, 'section', 'devices-card');
-		uiu.el(links, 'h2', {}, 'Weitere Geräte & Logs');
-		uiu.el(links, 'p', 'devices-hint', 'Verbundene Browserseiten, zentrale Protokolle und kontrolliertes Neuladen. Die Diagnose öffnet sich in einem eigenen Tab.');
-		const actions = uiu.el(links, 'div', 'devices-links');
-		for (const [tab, label] of [['devices', 'Geräte & Browserseiten öffnen'], ['logs', 'Logs öffnen']]) {
-			uiu.el(actions, 'a', {class:'btn', href:'/admin/diagnostics/?tab=' + tab, target:'_blank', rel:'noopener'}, label);
-		}
-		const settings = uiu.el(actions, 'a', {class:'btn', href:'/admin/t/' + encodeURIComponent(curt.key) + '/edit/devices'}, 'Profile bearbeiten');
-		settings.addEventListener('click', event => {
-			if (event.button || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
-			event.preventDefault();crouting.navigate_to('t/' + encodeURIComponent(curt.key) + '/edit/devices');
+		const view = devicesPage = btsDevicesWorkspace.create({
+			owner:main, tournament:() => curt, send:(message,callback) => send(message,callback), section:selected,
+			navigate:path => crouting.navigate_to(path.replace(/^\/admin\//,'')),
+			onSelect:id => crouting.navigate_to('t/' + encodeURIComponent(curt.key) + '/devices' + (id === 'logs' ? '/logs' : '')),
+			onDispose:() => {if (devicesPage === view) devicesPage = null;},
 		});
 	}
-	_route_single(/^t\/([a-z0-9]+)\/devices\/?$/, ui_devices, change.default_handler(() => {}, {
-		btp_status:btp_status_changed, ticker_status:ticker_status_changed,
-	}));
+	const deviceChanges = change.default_handler(() => {}, {btp_status:btp_status_changed, ticker_status:ticker_status_changed});
+	_route_single(/^t\/([a-z0-9]+)\/devices(?:\/(logs))?\/?$/, ui_devices, event => {
+		deviceChanges(event);
+		if (['props','prop_changed','courts_changed','court_changed','location_changed','location_deleted'].includes(event.ctype)) devicesPage?.update();
+	});
 
 	function render_settings(target) {
 		const settings_div = uiu.el(target, 'div', 'metadata_right_container_2');
@@ -3524,8 +3534,12 @@ var ctournament = (function() {
 				'bts_client_performance_debug_enabled', 'bts_score_press_timing_enabled']) {
 				create_debug_switch(logging, field);
 			}
-			uiu.el(logging, 'a', {class: 'settings-related-link', href: '/admin/diagnostics/', target: '_blank', rel: 'noopener'},
-				'Logs und verbundene Seiten öffnen →');
+			const diagnosticsPath = 't/' + encodeURIComponent(curt.key) + '/devices/logs';
+			const diagnosticsLink = uiu.el(logging, 'a', {class:'settings-related-link', href:'/admin/' + diagnosticsPath}, 'Logs und verbundene Seiten öffnen →');
+			diagnosticsLink.addEventListener('click', event => {
+				if (event.button || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
+				event.preventDefault();crouting.navigate_to(diagnosticsPath);
+			});
 			const automation_debug = btsSettingsWorkspace.card(debug, {
 				title: 'Automatik prüfen', description: 'Auswahl und Aufruf von Spielen in der Konsole und in der Turnierleitung nachvollziehen.',
 			});
@@ -6918,204 +6932,23 @@ var ctournament = (function() {
 	}
 
 	function update_general_displaysettings() {
+		devicesPage?.update();
 		if (typeof cleitstand !== 'undefined') cleitstand.refreshTablets();
-		const profiles = document.querySelector('.settings-displays');
-		if (profiles?.isConnected) profiles.btsDisplaySettings?.update();
-		if (display_table_body?.isConnected) {
-			for (const device of curt.displays || []) update_display(device, {tablets:false});
-		}
-	}
-
-	function render_displaysettings(general_displaysettings_div) {
-		uiu.el(general_displaysettings_div, 'h3', 'edit', ci18n('tournament:edit:displays'));
-
-		const display_table = uiu.el(general_displaysettings_div, 'table');
-		const display_tbody = display_table_body = uiu.el(display_table, 'tbody', 'display_tbody');
-		const tr = uiu.el(display_tbody, 'tr');
-		uiu.el(tr, 'th', {}, ci18n('tournament:edit:displays:num'));
-		uiu.el(tr, 'th', {}, ci18n('tournament:edit:displays:hostname'));
-		uiu.el(tr, 'th', {}, ci18n('tournament:edit:displays:batterylevel'));
-		uiu.el(tr, 'th', {}, ci18n('tournament:edit:displays:court'));
-		uiu.el(tr, 'th', {}, ci18n('tournament:edit:displays:setting'));
-		uiu.el(tr, 'th', {}, ci18n('tournament:edit:displays:onlinestatus'));
-		uiu.el(tr, 'th', {}, ci18n('tournament:edit:displays:ack_time'));
-		uiu.el(tr, 'th', {}, "");
-		const delete_all_th = uiu.el(tr, 'th', {});
-		const delete_all_btn = uiu.el(delete_all_th, 'button', {
-			type: 'button',
-			class: 'display_delete_all_btn',
-		}, ci18n('tournament:edit:displays:delete_all'));
-		delete_all_btn.addEventListener('click', on_display_delete_all_click);
-
-
-		const rendered_display_ids = new Set();
-		for (const display of curt.displays) {
-			if (rendered_display_ids.has(display.client_id)) {
-				continue;
-			}
-			rendered_display_ids.add(display.client_id);
-			const tr = uiu.el(display_tbody, 'tr', { 'data-display_id': display.client_id });
-			render_display(tr, display);
-		}
-	}
-
-	function get_deletable_display_client_ids() {
-		const ids = [];
-		const seen = new Set();
-		(curt.displays || []).forEach((display) => {
-			if (!display || display.online || display.client_id == null || seen.has(display.client_id)) {
-				return;
-			}
-			seen.add(display.client_id);
-			ids.push(display.client_id);
-		});
-		return ids;
-	}
-
-	function delete_display_client_ids(client_ids, callback) {
-		const ids = client_ids.slice();
-		const next = () => {
-			const display_client_id = ids.shift();
-			if (display_client_id == null) {
-				if (callback) {
-					callback();
-				}
-				return;
-			}
-			send_with_live_status({
-				type: 'display_delete',
-				tournament_key: curt.key,
-				display_client_id: display_client_id,
-			}, err => {
-				if (err) {
-					return cerror.net(err);
-				}
-				next();
-			});
-		};
-		next();
-	}
-
-	function on_display_delete_all_click() {
-		const client_ids = get_deletable_display_client_ids();
-		if (client_ids.length < 1) {
-			return;
-		}
-		if (!window.confirm(ci18n('tournament:edit:displays:delete_all_confirm', { count: client_ids.length }))) {
-			return;
-		}
-		delete_display_client_ids(client_ids);
+		document.querySelector('.settings-displays')?.btsDisplaySettings?.update();
 	}
 
 	function update_display(display, options = {}) {
+		devicesPage?.update();
 		if (options.tablets !== false) {
 			if (typeof cleitstand !== 'undefined') cleitstand.refreshTablets();
 			document.querySelector('.settings-displays')?.btsDisplaySettings?.update();
 		}
-		// Do this function only if the Display view (in on edit) is open
-		if(!display_table_body?.isConnected) {
-			return;
-		}
-
-		var nodes = document.querySelectorAll('[data-display_id=' + JSON.stringify(display.client_id) + ']');
-		if(nodes.length > 0) {
-			for (let i = 1; i < nodes.length; i++) {
-				uiu.remove(nodes[i]);
-			}
-			uiu.qsEach('[data-display_id=' + JSON.stringify(display.client_id) + ']', function (display_tr) {
-				display_tr.innerHTML = '';
-				render_display(display_tr, display);
-			});
-		}
-		else {
-			new_display(display);
-		}
 	}
 
-	function new_display(display) {
-		const display_tbody = display_table_body;
-		if (!display_tbody?.isConnected) return;
-		const tr = uiu.el(display_tbody, 'tr', { 'data-display_id': display.client_id });
-		render_display(tr, display);
-
-		for (const child of display_tbody.children) {
-			const child_id = child.dataset.display_id;
-			if(child_id && Number(child_id) > Number(display.client_id))
-			{
-				display_tbody.insertBefore(tr, child);
-			}
-		}
-	}
-
-
-	function render_display(tr, display) {
-		tr.setAttribute('class', (!display.online) ? 'offline' : (display.wait_for_done ? 'wait_for_done' : 'online'));
-		uiu.el(tr, 'th', {}, display.client_id);
-		uiu.el(tr, 'th', {}, display.hostname);
-		var battery_node = uiu.el(tr, 'td', {}, 'N/A');
-		set_battery_state(display.battery, battery_node);
-		createCourtSelectBox(uiu.el(tr, 'td', {}, ''), display.client_id, display.court_id, display.displaysetting_id);
-		createDisplaySettingsSelectBox(uiu.el(tr, 'td', {}, ''), display.client_id, display.displaysetting_id);
-		uiu.el(tr, 'td', {}, (!display.online) ? 'offline' : 'online');
-		uiu.el(tr, 'td', {}, format_display_ack_stats(display.display_render_stats));
-		const actions_td = uiu.el(tr, 'td', {});
-		const reset_btn = uiu.el(actions_td, 'button', {
-			'data-display-client-id': display.client_id,
-		}, ci18n('tournament:edit:displays:restart'));
-
-		if (!display.online) {
-			reset_btn.setAttribute('disabled', 'disabled');
-		}
-		reset_btn.addEventListener('click', function (e) {
-			const rst_btn = e.target;
-			const display_client_id = rst_btn.getAttribute('data-display-client-id');
-			send_with_live_status({
-				type: 'display_reset',
-				tournament_key: curt.key,
-				display_client_id: display_client_id,
-			}, err => {
-				if (err) {
-					return cerror.net(err);
-				}
-			});
-		});
-
-		const delete_td = uiu.el(tr, 'td', {});
-		const delete_btn = uiu.el(delete_td, 'button', {
-			'data-display-client-id': display.client_id,
-		}, ci18n('tournament:edit:delete'));
-		if (display.online) {
-			delete_btn.setAttribute('disabled', 'disabled');
-		}
-		delete_btn.addEventListener('click', function (e) {
-			const del_btn = e.target;
-			const display_client_id = del_btn.getAttribute('data-display-client-id');
-			send_with_live_status({
-				type: 'display_delete',
-				tournament_key: curt.key,
-				display_client_id: display_client_id,
-			}, err => {
-				if (err) {
-					return cerror.net(err);
-				}
-			});
-		});
-	}
-
-	function format_display_ack_stats(stats) {
-		if (!stats || !stats.ack_count || typeof stats.avg_roundtrip_ms !== 'number') {
-			return '—';
-		}
-		return 'Ø ' + stats.avg_roundtrip_ms + ' ms (' + stats.ack_count + ')';
-	}
-
-	function delete_display(c) {
+	function delete_display() {
+		devicesPage?.update();
 		document.querySelector('.settings-displays')?.btsDisplaySettings?.update();
 		if (typeof cleitstand !== 'undefined') cleitstand.refreshTablets();
-		const client_id = c.val && c.val.client_id != null ? c.val.client_id : c.val;
-		uiu.qsEach('[data-display_id=' + JSON.stringify(String(client_id)) + ']', function (display_tr) {
-			display_tr.parentNode.removeChild(display_tr);
-		});
 	}
 
 	function render_locations(main) {
@@ -8961,115 +8794,6 @@ function update_officials() {
 			get_value: input_el => Number(input_el.value) * 1000,
 		});
 		return result;
-	}
-
-	function isMultiCourtDisplaysetting(displaysetting_id) {
-		const displaysetting = utils.find(curt.displaysettings || [], d => d.id === displaysetting_id)
-			|| utils.find(curt.displaysettings || [], d => d.id === curt.displaysettings_general);
-		const style = displaysetting && displaysetting.displaymode_style;
-		return !!style && Array.isArray(displaymode.FIELDLESS_MULTI_COURT_STYLES)
-			&& displaymode.FIELDLESS_MULTI_COURT_STYLES.indexOf(style) >= 0;
-	}
-
-	function isTwoCourtDisplaysetting(displaysetting_id) {
-		const displaysetting = utils.find(curt.displaysettings || [], d => d.id === displaysetting_id)
-			|| utils.find(curt.displaysettings || [], d => d.id === curt.displaysettings_general);
-		return displaysetting && ['2court', 'castall', 'stream'].includes(displaysetting.displaymode_style);
-	}
-
-	function createCourtSelectBox(parentEl, parent_id, court_id, displaysetting_id) {
-		const court_select_box = uiu.el(parentEl, 'select', {
-			name: 'court_' + parent_id,
-		});
-
-		const empty_id = "--";
-		const multi_id = "__multi__";
-		const is_multi_displaysetting = isMultiCourtDisplaysetting(displaysetting_id) || court_id === multi_id;
-		const is_two_court_displaysetting = isTwoCourtDisplaysetting(displaysetting_id);
-		const is_legacy_field_on_multi_displaysetting = is_multi_displaysetting && court_id && court_id !== empty_id && court_id !== multi_id;
-		const attrs = {
-			'data-display-setting-id': court_id,
-			value: empty_id,
-		}
-
-		if (!court_id || empty_id === court_id) {
-			attrs.selected = 'selected';
-		}
-		uiu.el(court_select_box, 'option', attrs, empty_id);
-
-		if (is_multi_displaysetting) {
-			const multi_attrs = {
-				'data-display-setting-id': court_id,
-				value: multi_id,
-			};
-			if (court_id === multi_id || is_legacy_field_on_multi_displaysetting) {
-				multi_attrs.selected = 'selected';
-			}
-			uiu.el(court_select_box, 'option', multi_attrs, 'Multi');
-		} else if (is_two_court_displaysetting) {
-			for (let court_idx = 0; court_idx < Math.max(0, curt.courts.length - 1); court_idx++) {
-				const first_court = curt.courts[court_idx];
-				const second_court = curt.courts[court_idx + 1];
-				const attrs = {
-					'data-display-setting-id': court_id,
-					value: first_court._id,
-				};
-				if (court_id === first_court._id || (court_idx === curt.courts.length - 2 && court_id === second_court._id)) {
-					attrs.selected = 'selected';
-				}
-				uiu.el(court_select_box, 'option', attrs, first_court.num + ' & ' + second_court.num);
-			}
-		} else {
-			for (const court of curt.courts) {
-				const attrs = {
-					'data-display-setting-id': court_id,
-					value: court._id,
-				}
-
-				if ((court_id === court._id)) {
-					attrs.selected = 'selected';
-				}
-				uiu.el(court_select_box, 'option', attrs, court.num);
-			}
-		}
-
-		court_select_box.addEventListener('change', (e) => {
-			const select_box = e.target;
-			const display_setting_id = select_box.name.split("_")[1];
-			send_with_live_status({
-				type: 'relocate_display',
-				tournament_key: curt.key,
-				new_court_id: e.srcElement.value,
-				display_setting_id: display_setting_id,
-			}, err => {
-				if (err) {
-					return cerror.net(err);
-				}
-			});
-		});
-	}
-
-	function createDisplaySettingsSelectBox(parentEl, parent_id, displaysettings_id) {
-		const displaysettings_select_box = uiu.el(parentEl, 'select', {
-			name: 'displaysettings_' + parent_id,
-		});
-
-		createSelectBoxContent(displaysettings_select_box, curt.displaysettings, displaysettings_id);
-
-		displaysettings_select_box.addEventListener('change', (e) => {
-			const select_box = e.target;
-			const display_setting_id = select_box.name.split("_")[1];
-			send_with_live_status({
-				type: 'change_display_mode',
-				tournament_key: curt.key,
-				new_displaysettings_id: e.srcElement.value,
-				display_setting_id: display_setting_id,
-			}, err => {
-				if (err) {
-					return cerror.net(err);
-				}
-			});
-		});
 	}
 
 	function createSelectBoxContent(select_box, content, selected_id, opts = {}) {

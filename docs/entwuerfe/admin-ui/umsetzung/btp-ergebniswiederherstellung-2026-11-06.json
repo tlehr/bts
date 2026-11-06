@@ -1,0 +1,342 @@
+{
+  "date": "2026-11-06",
+  "scope": "User-authorized recovery of confirmed winners, complete audit below match number 332, and durable BTP result delivery.",
+  "initial_diagnosis": "btp-ergebnisdiagnose-2026-11-06.json",
+  "recovery": {
+    "original": {
+      "checked_at": "2026-11-05T23:36:20.174Z",
+      "verified": [
+        {
+          "number": 273,
+          "id": 686,
+          "expected_winner": 2,
+          "winner": 2,
+          "score_unchanged": true,
+          "position_unchanged": true,
+          "court_unchanged": true,
+          "status_unchanged": true
+        },
+        {
+          "number": 269,
+          "id": 614,
+          "expected_winner": 1,
+          "winner": 1,
+          "score_unchanged": true,
+          "position_unchanged": true,
+          "court_unchanged": true,
+          "status_unchanged": true
+        },
+        {
+          "number": 285,
+          "id": 774,
+          "expected_winner": 2,
+          "winner": 2,
+          "score_unchanged": true,
+          "position_unchanged": true,
+          "court_unchanged": true,
+          "status_unchanged": true
+        },
+        {
+          "number": 282,
+          "id": 767,
+          "expected_winner": 2,
+          "winner": 2,
+          "score_unchanged": true,
+          "position_unchanged": true,
+          "court_unchanged": true,
+          "status_unchanged": true
+        },
+        {
+          "number": 280,
+          "id": 763,
+          "expected_winner": 2,
+          "winner": 2,
+          "score_unchanged": true,
+          "position_unchanged": true,
+          "court_unchanged": true,
+          "status_unchanged": true
+        },
+        {
+          "number": 279,
+          "id": 762,
+          "expected_winner": 2,
+          "winner": 2,
+          "score_unchanged": true,
+          "position_unchanged": true,
+          "court_unchanged": true,
+          "status_unchanged": true
+        },
+        {
+          "number": 283,
+          "id": 770,
+          "expected_winner": 1,
+          "winner": 1,
+          "score_unchanged": true,
+          "position_unchanged": true,
+          "court_unchanged": true,
+          "status_unchanged": true
+        },
+        {
+          "number": 286,
+          "id": 775,
+          "expected_winner": 1,
+          "winner": 1,
+          "score_unchanged": true,
+          "position_unchanged": true,
+          "court_unchanged": true,
+          "status_unchanged": true
+        },
+        {
+          "number": 281,
+          "id": 766,
+          "expected_winner": 2,
+          "winner": 2,
+          "score_unchanged": true,
+          "position_unchanged": true,
+          "court_unchanged": true,
+          "status_unchanged": true
+        }
+      ]
+    },
+    "additional": {
+      "checked_at": "2026-11-05T23:42:58.859Z",
+      "verified": [
+        {
+          "number": 287,
+          "id": 842,
+          "expected_winner": 1,
+          "winner": 1,
+          "score_unchanged": true,
+          "position_unchanged": true,
+          "court_unchanged": true,
+          "status_unchanged": true
+        },
+        {
+          "number": 289,
+          "id": 846,
+          "expected_winner": 2,
+          "winner": 2,
+          "score_unchanged": true,
+          "position_unchanged": true,
+          "court_unchanged": true,
+          "status_unchanged": true
+        },
+        {
+          "number": 290,
+          "id": 847,
+          "expected_winner": 1,
+          "winner": 1,
+          "score_unchanged": true,
+          "position_unchanged": true,
+          "court_unchanged": true,
+          "status_unchanged": true
+        },
+        {
+          "number": 291,
+          "id": 850,
+          "expected_winner": 1,
+          "winner": 1,
+          "score_unchanged": true,
+          "position_unchanged": true,
+          "court_unchanged": true,
+          "status_unchanged": true
+        },
+        {
+          "number": 295,
+          "id": 922,
+          "expected_winner": 2,
+          "winner": 2,
+          "score_unchanged": true,
+          "position_unchanged": true,
+          "court_unchanged": true,
+          "status_unchanged": true
+        },
+        {
+          "number": 311,
+          "id": 1082,
+          "expected_winner": 1,
+          "winner": 1,
+          "score_unchanged": true,
+          "position_unchanged": true,
+          "court_unchanged": true,
+          "status_unchanged": true
+        },
+        {
+          "number": 312,
+          "id": 1083,
+          "expected_winner": 2,
+          "winner": 2,
+          "score_unchanged": true,
+          "position_unchanged": true,
+          "court_unchanged": true,
+          "status_unchanged": true
+        }
+      ]
+    },
+    "evidence": "Current BTS and fresh BTP scores were checked against historical live-drill:finish-confirm records before every winner update.",
+    "writes": "Only verified Winner values were changed. Scores were not rewritten. Current status, highlight, court and order were preserved in the update envelope.",
+    "backup": "Raw pre-update match nodes are retained in local /tmp/bts-nine-winners-before.json and /tmp/bts-seven-winners-before.json; these files contain no access credentials."
+  },
+  "final_audit": {
+    "checked_at": "2026-11-05T23:52:11.489Z",
+    "checked": 324,
+    "missing": [],
+    "conflicts": [],
+    "pending": [],
+    "successful_syncs": [
+      1793922729982,
+      1793922730642
+    ]
+  },
+  "non_played_numbers_below_332": {
+    "byes": [
+      131,
+      136,
+      196,
+      199,
+      261,
+      262
+    ],
+    "empty_branch": [
+      325
+    ],
+    "note": "All seven numbered draw nodes exist in BTP. They do not represent played two-opponent matches and require no fabricated scores."
+  },
+  "browser": {
+    "checked_at": "2026-11-05T23:51:01.768Z",
+    "games": [
+      {
+        "number": 273,
+        "exists": true,
+        "section": "finished",
+        "row_present": true,
+        "winner": 2
+      },
+      {
+        "number": 269,
+        "exists": true,
+        "section": "finished",
+        "row_present": true,
+        "winner": 1
+      },
+      {
+        "number": 285,
+        "exists": true,
+        "section": "finished",
+        "row_present": true,
+        "winner": 2
+      },
+      {
+        "number": 282,
+        "exists": true,
+        "section": "finished",
+        "row_present": true,
+        "winner": 2
+      },
+      {
+        "number": 280,
+        "exists": true,
+        "section": "finished",
+        "row_present": true,
+        "winner": 2
+      },
+      {
+        "number": 279,
+        "exists": true,
+        "section": "finished",
+        "row_present": true,
+        "winner": 2
+      },
+      {
+        "number": 283,
+        "exists": true,
+        "section": "finished",
+        "row_present": true,
+        "winner": 1
+      },
+      {
+        "number": 286,
+        "exists": true,
+        "section": "finished",
+        "row_present": true,
+        "winner": 1
+      },
+      {
+        "number": 281,
+        "exists": true,
+        "section": "finished",
+        "row_present": true,
+        "winner": 2
+      },
+      {
+        "number": 287,
+        "exists": true,
+        "section": "finished",
+        "row_present": true,
+        "winner": 1
+      },
+      {
+        "number": 289,
+        "exists": true,
+        "section": "finished",
+        "row_present": true,
+        "winner": 2
+      },
+      {
+        "number": 290,
+        "exists": true,
+        "section": "finished",
+        "row_present": true,
+        "winner": 1
+      },
+      {
+        "number": 291,
+        "exists": true,
+        "section": "finished",
+        "row_present": true,
+        "winner": 1
+      },
+      {
+        "number": 295,
+        "exists": true,
+        "section": "finished",
+        "row_present": true,
+        "winner": 2
+      },
+      {
+        "number": 311,
+        "exists": true,
+        "section": "finished",
+        "row_present": true,
+        "winner": 1
+      },
+      {
+        "number": 312,
+        "exists": true,
+        "section": "finished",
+        "row_present": true,
+        "winner": 2
+      }
+    ]
+  },
+  "root_cause_evidence": {
+    "observed": "Historical writes failed with no-result; their pending flags were later absent. The initial network cause was not retained in the old log.",
+    "reproduced": "A delayed successful metadata acknowledgement cleared btp_needsync for a newer confirmed result. A later import could then remove its winner.",
+    "historical_limit": "The exact ordering of that race was not captured for each affected historical match."
+  },
+  "fix": [
+    "Serialize and coalesce writes for each match, loading the latest persisted revision before sending.",
+    "Persist confirmed results as pending before delivery; a successful transport ACK does not clear them.",
+    "Confirm delivery only when BTP returns the same winner, result status and set scores, guarded against a newer local revision.",
+    "Retry pending results after synchronization and reconnect, plus a backoff timer even with automatic fetching disabled.",
+    "Scope retries to the current tournament, rotating batches of at most eight with two concurrent retry requests.",
+    "Retain detailed write errors in connection status until the results are confirmed; cancel retry/reconnect timers on replacement."
+  ],
+  "validation": {
+    "targeted_tests_passed": 247,
+    "new_regression_tests_passed": 12,
+    "new_lint_errors": 0,
+    "live_btp": "Connected after the supervisor restarted BTS with the patched modules.",
+    "preexisting_test_failure": "The broader BTP suite also exposed an unchanged failure in test_btp_planner_worker.js:124 (an extra undefined court-notification argument); reproduced independently before deploying this patch."
+  }
+}

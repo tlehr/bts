@@ -28,7 +28,8 @@ function restore(effect) {
 			: target === 'match_utils' ? ['queue_auto_execute_preparation_selections',
 				'queue_auto_assign_technical_officials_when_available', 'queue_reconcile_player_court_flags',
 				'queue_auto_call_matches_on_free_courts', 'auto_call_matches_on_free_courts']
-				: target === 'bupws' ? ['handle_score_change'] : [];
+				: target === 'bupws' ? ['handle_score_change']
+					: target === 'btp_participant_guard' ? ['report'] : [];
 		if (!allowed.includes(method)) throw new Error('Unknown planner effect command');
 		return require('./' + target)[method](app, ...args);
 	} };

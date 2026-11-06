@@ -1,0 +1,28 @@
+{
+  "checked_at": "2026-11-06T00:26:23.747Z",
+  "regression_tests": 19,
+  "targeted_server_tests_passed": 446,
+  "lint_new_errors": 0,
+  "broader_suite_known_failure": {
+    "file": "test/test_btp_planner_worker.js",
+    "line": 124,
+    "cause": "Existing expected court notification lacks the third undefined argument; unchanged by this fix."
+  },
+  "btp_status": "connected",
+  "active_games_checked": 15,
+  "incomplete_active_games": [],
+  "active_participant_mismatches": [],
+  "participant_conflicts": [],
+  "verified_results_below_332": 324,
+  "missing_results": [],
+  "result_mismatches": [],
+  "pending_results_below_332": [],
+  "successful_syncs": [
+    1793924768095,
+    1793924768956
+  ],
+  "isolated_current_tournament_import": {
+    "matches": 512,
+    "result": "passed"
+  }
+}

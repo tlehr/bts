@@ -1,0 +1,402 @@
+{
+  "analysis_date": "2026-11-06",
+  "source": {
+    "user_file": "/home/tim/Downloads/bts-test-4.json",
+    "bytes": 2652154655,
+    "matching_local_manifest": "/home/tim/repos/bts-testclient/reports/run-2026-11-05T18-02-02-246Z-Gs2OUm/report.manifest.json",
+    "validation": "14 extracted metadata/statistic fields from the user file agree with the local manifest. Large arrays were examined through the corresponding local JSONL archives. Raw trace archives also retain earlier revisions/entries evicted from the exported trace array."
+  },
+  "run": {
+    "started_at": "2026-11-05T18:02:05.032Z",
+    "runtime_ms": 17765893,
+    "stop_reason": "interrupted",
+    "failure": null,
+    "partial": false,
+    "initial_state": {
+      "matches": 373,
+      "finished_matches": 328,
+      "active_matches": 0,
+      "active_courts": 15,
+      "pending_player_checkins": 16,
+      "pending_players": 16,
+      "check_in_per_match": true,
+      "state_sha256": "4e42fa6e4ca9f6632ef0a9f55e49c1de2dfafe552fb0e8c965f3cae44f4949ef"
+    },
+    "simulated_points": 1762,
+    "first_simulated_point": "2026-11-05T18:02:57.074000+00:00",
+    "last_simulated_point": "2026-11-05T18:29:17.703000+00:00",
+    "interpretation": "Interrupted run, not proof of sustained active scoring over the entire duration. Points were sent during the first roughly 27 minutes."
+  },
+  "delivery": {
+    "tablet_to_tv_ms": {
+      "count": 1779,
+      "mean": 4.8,
+      "min": 2,
+      "p50": 3,
+      "p95": 13,
+      "p99": 20,
+      "max": 88,
+      "over_50_ms": 4,
+      "over_100_ms": 0,
+      "over_200_ms": 0,
+      "sent_updates": 1779,
+      "unmatched_updates": 0,
+      "coverage": 1
+    },
+    "tablet_to_admin_ms": {
+      "count": 1779,
+      "mean": 41.1,
+      "min": 10,
+      "p50": 35,
+      "p95": 66,
+      "p99": 153,
+      "max": 1333,
+      "over_50_ms": 196,
+      "over_100_ms": 32,
+      "over_200_ms": 12,
+      "sent_updates": 1779,
+      "unmatched_updates": 0,
+      "coverage": 1
+    },
+    "reception_expired": {
+      "tv": 0,
+      "admin": 0
+    },
+    "limitation": "TV receipt and admin DOM/render opportunity are measured; BTP write acceptance/readback is not."
+  },
+  "admin_ui": {
+    "updates": {
+      "match_edit": {
+        "count": 465,
+        "queue_ms": {
+          "mean": 426.28,
+          "max": 1978.1
+        },
+        "handler_ms": {
+          "mean": 12.69,
+          "max": 42.8
+        },
+        "ui_wait_ms": {
+          "mean": 202.93,
+          "max": 554.4
+        },
+        "render_ms": {
+          "mean": 80.04,
+          "max": 347.8
+        },
+        "total_ms": {
+          "mean": 721.94,
+          "max": 2193.6
+        }
+      },
+      "score": {
+        "count": 1779,
+        "queue_ms": {
+          "mean": 3.11,
+          "max": 1222.3
+        },
+        "handler_ms": {
+          "mean": 1,
+          "max": 17.9
+        },
+        "ui_wait_ms": {
+          "mean": 2.02,
+          "max": 106.9
+        },
+        "render_ms": {
+          "mean": 26.62,
+          "max": 94.2
+        },
+        "total_ms": {
+          "mean": 32.75,
+          "max": 1264.9
+        }
+      },
+      "update_player_status": {
+        "count": 96,
+        "queue_ms": {
+          "mean": 383.49,
+          "max": 1120.1
+        },
+        "handler_ms": {
+          "mean": 0.63,
+          "max": 4.1
+        },
+        "ui_wait_ms": {
+          "mean": 7.18,
+          "max": 94
+        },
+        "render_ms": {
+          "mean": 47.81,
+          "max": 155.5
+        },
+        "total_ms": {
+          "mean": 439.11,
+          "max": 1171
+        }
+      }
+    },
+    "jobs": {
+      "names.layout": {
+        "count": 580,
+        "queue_ms": {
+          "mean": 31.18,
+          "max": 97.9
+        },
+        "work_ms": {
+          "mean": 9.93,
+          "max": 176.3
+        },
+        "elapsed_ms": {
+          "mean": 41.12,
+          "max": 224.7
+        }
+      },
+      "preparation.diagnosis": {
+        "count": 551,
+        "queue_ms": {
+          "mean": 65.91,
+          "max": 310.6
+        },
+        "work_ms": {
+          "mean": 5.02,
+          "max": 21.6
+        },
+        "elapsed_ms": {
+          "mean": 184.91,
+          "max": 558
+        }
+      },
+      "locations.labels": {
+        "count": 1061,
+        "queue_ms": {
+          "mean": 24.22,
+          "max": 199.6
+        },
+        "work_ms": {
+          "mean": 0.49,
+          "max": 7.3
+        },
+        "elapsed_ms": {
+          "mean": 24.72,
+          "max": 200.2
+        }
+      },
+      "timers.fit": {
+        "count": 140,
+        "queue_ms": {
+          "mean": 19.18,
+          "max": 164.9
+        },
+        "work_ms": {
+          "mean": 2.98,
+          "max": 19.4
+        },
+        "elapsed_ms": {
+          "mean": 64.77,
+          "max": 293.9
+        }
+      },
+      "lists.counts": {
+        "count": 75,
+        "queue_ms": {
+          "mean": 12.25,
+          "max": 38.9
+        },
+        "work_ms": {
+          "mean": 15.6,
+          "max": 36.8
+        },
+        "elapsed_ms": {
+          "mean": 27.85,
+          "max": 59.9
+        }
+      },
+      "finished.sort": {
+        "count": 414,
+        "queue_ms": {
+          "mean": 7.81,
+          "max": 38.4
+        },
+        "work_ms": {
+          "mean": 16.61,
+          "max": 37.2
+        },
+        "elapsed_ms": {
+          "mean": 24.42,
+          "max": 61.2
+        }
+      }
+    },
+    "finding": "Large match-edit bursts queue later messages. Repeated finished-list work is one reproduced contributor, not proof of the exclusive cause of every observed stall."
+  },
+  "server": {
+    "samples_analyzed": 17699,
+    "peaks": {
+      "rtt_ms": {
+        "value": 408,
+        "ts": 1793902769186
+      },
+      "heapUsed": {
+        "value": 222306760,
+        "ts": 1793903359604
+      },
+      "rss": {
+        "value": 810016768,
+        "ts": 1793903345585
+      },
+      "loop_max_ms": {
+        "value": 89.260031,
+        "ts": 1793902332021
+      },
+      "loop_p95_ms": {
+        "value": 45.219839,
+        "ts": 1793902333008
+      },
+      "loop_utilization": {
+        "value": 0.6033027530883269,
+        "ts": 1793901805210
+      }
+    },
+    "queues": {
+      "Locks:": {
+        "pending": 1,
+        "oldest_ms": 1,
+        "failed_first": 0,
+        "failed_last": 0
+      },
+      "DB courts:": {
+        "pending": 1,
+        "oldest_ms": 3,
+        "failed_first": 0,
+        "failed_last": 0
+      },
+      "DB locations:": {
+        "pending": 1,
+        "oldest_ms": 3,
+        "failed_first": 0,
+        "failed_last": 0
+      },
+      "DB event:": {
+        "pending": 0,
+        "oldest_ms": 0,
+        "failed_first": 0,
+        "failed_last": 0
+      },
+      "DB matches:": {
+        "pending": 1,
+        "oldest_ms": 14,
+        "failed_first": 0,
+        "failed_last": 0
+      },
+      "DB tournaments:": {
+        "pending": 3,
+        "oldest_ms": 45,
+        "failed_first": 0,
+        "failed_last": 0
+      },
+      "DB umpires:": {
+        "pending": 1,
+        "oldest_ms": 17,
+        "failed_first": 0,
+        "failed_last": 0
+      },
+      "DB logs:": {
+        "pending": 0,
+        "oldest_ms": 0,
+        "failed_first": 0,
+        "failed_last": 0
+      },
+      "DB tabletoperators:": {
+        "pending": 2,
+        "oldest_ms": 25,
+        "failed_first": 0,
+        "failed_last": 0
+      },
+      "DB displaysettings:": {
+        "pending": 9,
+        "oldest_ms": 27,
+        "failed_first": 0,
+        "failed_last": 0
+      },
+      "DB display_court_displaysettings:": {
+        "pending": 2,
+        "oldest_ms": 7,
+        "failed_first": 0,
+        "failed_last": 0
+      },
+      "DB normalizations:": {
+        "pending": 1,
+        "oldest_ms": 4,
+        "failed_first": 0,
+        "failed_last": 0
+      },
+      "DB advertisements:": {
+        "pending": 1,
+        "oldest_ms": 4,
+        "failed_first": 0,
+        "failed_last": 0
+      },
+      "DB app_settings:": {
+        "pending": 0,
+        "oldest_ms": 0,
+        "failed_first": 0,
+        "failed_last": 0
+      },
+      "Worker compaction_serialize:3": {
+        "pending": 0,
+        "oldest_ms": 0,
+        "failed_first": 0,
+        "failed_last": 0
+      },
+      "Worker btp_decode:5": {
+        "pending": 0,
+        "oldest_ms": 0,
+        "failed_first": 0,
+        "failed_last": 0
+      },
+      "Worker sync_plan_worker:6": {
+        "pending": 0,
+        "oldest_ms": 0,
+        "failed_first": 0,
+        "failed_last": 0
+      },
+      "Admin send:": {
+        "pending": 1,
+        "oldest_ms": 59,
+        "failed_first": 0,
+        "failed_last": 0
+      }
+    },
+    "max_btp_fetch_ms": 5160.6,
+    "finding": "The sampled queues do not show a sustained server backlog. Samples cannot exclude brief stalls between samples. A slow fetch includes worker/network time, not just main-thread blocking."
+  },
+  "btp": {
+    "cause_confirmed": false,
+    "live_btp_relogin_performed": false,
+    "configuration_changed": false,
+    "limitation": "Processing traces do not record acknowledgment and readback of each outgoing field/status write. Successful fetch traces and a connected status do not demonstrate successful BTP writes. The local historical log query returned no matching retained server error rows for the report period; this is not proof of successful writes."
+  },
+  "change": {
+    "files": [
+      "static/js/cmatch.js",
+      "static/js/cleitstand.js"
+    ],
+    "behavior": "The board no longer first inserts each corrected finished row in legacy order. Name/official corrections retain the result order; time/order/shuttle changes still trigger required work, coalesced per animation frame. Unchanged shuttle labels retain their text nodes. Pending sorting is cancelled on unmount.",
+    "isolated_comparison": {
+      "before": "sync-burst-before.json",
+      "after": "sync-burst-verification.json",
+      "limitation": "Synthetic 373-game browser fixture with 328 finished games; no live BTP or network latency measured."
+    },
+    "verification": {
+      "burst_phases": 6,
+      "updates_per_phase": 81,
+      "sort_and_navigation_regressions": 5,
+      "existing_match_patch_paths": 9,
+      "existing_ownership_browser_checks": 13,
+      "targeted_node_tests": 127,
+      "lint": "Changed board module and new test pass. cmatch.js has the same 182 preexisting lint errors and no added findings."
+    },
+    "live_retest_needed": true
+  }
+}

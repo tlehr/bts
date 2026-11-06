@@ -20,6 +20,7 @@ const publish_committed_points = require('./score_publication/committed_points')
 const write_score = require('./score_write');
 
 const all_panels = [];
+const disconnected_panel_contacts = new WeakMap();
 const active_umpire_match_owners = new Map();
 const default_tournament_key = 'default';
 const default_displaysettings_key = default_tournament_key;
@@ -185,6 +186,11 @@ function should_skip_duplicate_umpire_init(app, ws, tournament_key, msg) {
 function on_connect(app, ws) {
 	all_panels.push(ws);
 	ws.app = app;
+	ws.last_contact = Date.now();
+	// Receiving a frame is a contact even if its score is queued or its ACK
+	// no longer has a pending render entry. Sending data is not a contact.
+	const received = () => { ws.last_contact = Date.now(); };
+	for (const event of ['message', 'ping', 'pong']) ws.on?.(event, received);
 	ws.panel_devicemode = 'display';
 	reset_v2_payload_caches(ws);
 	ws.v2_finished_match_refresh_timeout = null;
@@ -210,6 +216,13 @@ function reset_v2_payload_caches(ws) {
 }
 
 function on_close(app, ws) {
+	const contact = panel_contact(ws);
+	if (contact) {
+		let history = disconnected_panel_contacts.get(app);
+		if (!history) { history = new Map(); disconnected_panel_contacts.set(app, history); }
+		const key = panel_contact_key(contact), previous = history.get(key);
+		if (!previous || previous.last_contact < contact.last_contact) history.set(key, contact);
+	}
 	clear_finished_match_refresh(ws);
 	clear_pending_render_acks(ws);
 	clear_umpire_match_owners_for_ws(ws);
@@ -220,6 +233,28 @@ function on_close(app, ws) {
 	if (ws && ws.last_tournament_key) {
 		notify_v2_display_status_changed(app, ws, false);
 	}
+}
+
+function panel_contact(ws) {
+	const client_id = determine_client_id(ws);
+	if (client_id == null || !ws.last_tournament_key || !Number.isFinite(ws.last_contact)) return null;
+	return {client_id: String(client_id), tournament_key: ws.last_tournament_key, last_contact: ws.last_contact};
+}
+
+function panel_contact_key(contact) {
+	return JSON.stringify([contact.tournament_key, contact.client_id]);
+}
+
+function get_panel_contacts(app) {
+	const contacts = new Map(disconnected_panel_contacts.get(app));
+	for (const ws of all_panels) {
+		if (ws.app !== app || ws.readyState !== 1) continue;
+		const contact = panel_contact(ws);
+		if (!contact) continue;
+		const key = panel_contact_key(contact), previous = contacts.get(key);
+		if (!previous || previous.last_contact < contact.last_contact) contacts.set(key, contact);
+	}
+	return [...contacts.values()].map(contact => ({...contact}));
 }
 
 function payload_size_bytes(payload) {
@@ -1785,10 +1820,15 @@ function build_court_picker_state_v2(options) {
 					network_score: match?.network_score || [],
 					score_status: match?.score_status || 'normal',
 					score_status_network_score: match?.score_status_network_score,
+					end_ts: match?.end_ts ?? null,
+					team1_won: match?.team1_won,
 					setup: {
 						match_id: 'bts_' + (match?._id || match?.setup?.match_id || ''),
 						event_name: match?.setup?.event_name || '',
 						match_name: match?.setup?.match_name || '',
+						state: match?.setup?.state || null,
+						counting: match?.setup?.counting,
+						scoring_format: match?.setup?.scoring_format,
 						is_doubles: !!match?.setup?.is_doubles,
 						teams: match?.setup?.teams || [],
 					},
@@ -1855,10 +1895,17 @@ async function update_display_court_displaysettings(app, client_id, updatevalues
 	});
 }
 
-async function resolve_panel_displaysetting_id(app, tournament, preferred_displaysetting_id, panel_devicemode = 'display') {
+async function read_displaysetting(app, id, profiles) {
+	// A full state already loaded the catalog while ensuring its defaults.
+	// Reuse that request's snapshot; a later request reads current profiles again.
+	return profiles ? profiles.find(profile => profile.id === id) || null
+		: find_one_async(app.db.displaysettings, { id });
+}
+
+async function resolve_panel_displaysetting_id(app, tournament, preferred_displaysetting_id, panel_devicemode = 'display', profiles) {
 	const normalized_panel_devicemode = normalize_panel_devicemode(panel_devicemode);
 	if (preferred_displaysetting_id) {
-		const preferred_displaysetting = await find_one_async(app.db.displaysettings, { id: preferred_displaysetting_id });
+		const preferred_displaysetting = await read_displaysetting(app, preferred_displaysetting_id, profiles);
 		if (preferred_displaysetting && preferred_displaysetting.devicemode === normalized_panel_devicemode) {
 			return preferred_displaysetting_id;
 		}
@@ -1866,14 +1913,14 @@ async function resolve_panel_displaysetting_id(app, tournament, preferred_displa
 	return get_default_displaysettings_id(tournament, normalized_panel_devicemode);
 }
 
-async function ensure_panel_court_displaysettings(app, tournament, client_id, hostname, preferred_displaysetting_id, panel_devicemode = 'display') {
+async function ensure_panel_court_displaysettings(app, tournament, client_id, hostname, preferred_displaysetting_id, panel_devicemode = 'display', profiles) {
 	const normalized_panel_devicemode = normalize_panel_devicemode(panel_devicemode);
 	let display_court_displaysetting = await get_display_court_displaysettings(app, client_id);
-	const displaysetting_id = await resolve_panel_displaysetting_id(app, tournament, preferred_displaysetting_id, normalized_panel_devicemode);
+	const displaysetting_id = await resolve_panel_displaysetting_id(app, tournament, preferred_displaysetting_id, normalized_panel_devicemode, profiles);
 	if (display_court_displaysetting) {
 		let current_displaysetting = null;
 		if (display_court_displaysetting.displaysetting_id) {
-			current_displaysetting = await find_one_async(app.db.displaysettings, { id: display_court_displaysetting.displaysetting_id });
+			current_displaysetting = await read_displaysetting(app, display_court_displaysetting.displaysetting_id, profiles);
 		}
 		const updatevalues = {};
 		if (hostname && display_court_displaysetting.hostname !== hostname) {
@@ -1888,7 +1935,7 @@ async function ensure_panel_court_displaysettings(app, tournament, client_id, ho
 		const uses_default_setting = is_default_displaysetting_id(tournament, display_court_displaysetting.displaysetting_id);
 		const has_wrong_mode = current_displaysetting && current_displaysetting.devicemode !== normalized_panel_devicemode;
 		const is_missing_setting = !display_court_displaysetting.displaysetting_id || !current_displaysetting;
-		if (uses_default_setting || has_wrong_mode || is_missing_setting) {
+		if ((uses_default_setting || has_wrong_mode || is_missing_setting) && display_court_displaysetting.displaysetting_id !== displaysetting_id) {
 			updatevalues.displaysetting_id = displaysetting_id;
 		}
 		if (Object.keys(updatevalues).length > 0) {
@@ -1929,7 +1976,8 @@ async function get_effective_display_state_inputs(app, tournament_key, ws, msg) 
 	if (!tournament) {
 		throw new Error('No tournament ' + tournament_key);
 	}
-	({ tournament } = await displaysettings_defaults.ensure_default_displaysettings(app, tournament));
+	const defaults = await displaysettings_defaults.ensure_default_displaysettings(app, tournament);
+	tournament = defaults.tournament;
 	remember_v2_tournament_settings(ws, tournament);
 	const display_court_displaysetting = await ensure_panel_court_displaysettings(
 		app,
@@ -1938,12 +1986,13 @@ async function get_effective_display_state_inputs(app, tournament_key, ws, msg) 
 		hostname,
 		msg?.panel_settings?.id,
 		panel_devicemode,
+		defaults.displaysettings,
 	);
 	const displaysetting_id = display_court_displaysetting?.displaysetting_id
 		|| msg?.panel_settings?.id
 		|| get_default_displaysettings_id(tournament, panel_devicemode);
 	const display_settings = displaysetting_id
-		? await find_one_async(app.db.displaysettings, { id: displaysetting_id })
+		? await read_displaysetting(app, displaysetting_id, defaults.displaysettings)
 		: null;
 	const court_id = display_court_displaysetting?.court_id || '';
 	const court_lookup_id = is_multi_court_assignment(court_id) ? '' : court_id;
@@ -1965,8 +2014,8 @@ async function get_effective_display_state_inputs(app, tournament_key, ws, msg) 
 	};
 }
 
-async function get_court_picker_inputs(app, tournament_key, ws, msg) {
-	const base = await get_effective_display_state_inputs(app, tournament_key, ws, msg);
+async function get_court_picker_inputs(app, tournament_key, ws, msg, base) {
+	base ||= await get_effective_display_state_inputs(app, tournament_key, ws, msg);
 	const courts = await find_many_async(app.db.courts, { tournament_key });
 	const match_ids = courts.map((court) => court?.match_id).filter(Boolean);
 	const raw_matches = match_ids.length > 0
@@ -1980,8 +2029,8 @@ async function get_court_picker_inputs(app, tournament_key, ws, msg) {
 	};
 }
 
-async function get_display_multi_state_inputs(app, tournament_key, ws, msg) {
-	const base = await get_effective_display_state_inputs(app, tournament_key, ws, msg);
+async function get_display_multi_state_inputs(app, tournament_key, ws, msg, base) {
+	base ||= await get_effective_display_state_inputs(app, tournament_key, ws, msg);
 	const courts = await find_many_async(app.db.courts, { tournament_key });
 	const match_ids = courts.map((court) => court?.match_id).filter(Boolean);
 	const raw_matches = match_ids.length > 0
@@ -2277,6 +2326,7 @@ function claim_umpire_match_owner(app, tournament_key, owner_ws, score_data) {
 	}
 	const court_id = score_data?.court_id || owner_ws?.court_id || null;
 	const key = umpire_match_owner_key(tournament_key, match_id);
+	const previous_owner = active_umpire_match_owners.get(key);
 	active_umpire_match_owners.set(key, {
 		ws: owner_ws,
 		client_id: determine_client_id(owner_ws),
@@ -2288,7 +2338,7 @@ function claim_umpire_match_owner(app, tournament_key, owner_ws, score_data) {
 		court_id,
 		match_id,
 	});
-	release_match_on_other_umpires(app, tournament_key, owner_ws, {
+	release_match_on_previous_umpire(app, tournament_key, owner_ws, previous_owner, {
 		match_id,
 		court_id,
 	});
@@ -2324,29 +2374,22 @@ function score_update_rejected_by_owner(app, tournament_key, ws, score_data) {
 	return true;
 }
 
-function release_match_on_other_umpires(app, tournament_key, owner_ws, score_data) {
+function release_match_on_previous_umpire(app, tournament_key, owner_ws, previous_owner, score_data) {
 	const match_id = score_data?.match_id;
 	const court_id = score_data?.court_id;
-	if (!match_id) {
+	const ws = previous_owner?.ws;
+	// Opening a game is idempotent. Only a real ownership transfer needs a
+	// release command, addressed to the tablet that previously owned this game.
+	if (!match_id || !ws || ws === owner_ws || ws.readyState !== 1 ||
+		ws.last_tournament_key !== tournament_key || ws.panel_devicemode !== 'umpire') {
 		return;
 	}
 	const owner_client_id = determine_client_id(owner_ws);
-	all_panels.forEach((ws) => {
-		if (
-			!ws ||
-			ws === owner_ws ||
-			ws.readyState !== 1 ||
-			ws.last_tournament_key !== tournament_key ||
-			ws.panel_devicemode !== 'umpire'
-		) {
-			return;
-		}
-		send_v2_change(app, ws, tournament_key, 'release-match', {
-			match_id,
-			court_id,
-			owner_client_id,
-			reason: 'opened-on-other-tablet',
-		});
+	send_v2_change(app, ws, tournament_key, 'release-match', {
+		match_id,
+		court_id,
+		owner_client_id,
+		reason: 'opened-on-other-tablet',
 	});
 }
 
@@ -2408,15 +2451,15 @@ async function send_umpire_current_state(app, ws, tournament_key, msg, options =
 		has_court: !!inputs.court,
 		settings_court_id: inputs.display_court_displaysetting?.court_id || null,
 	});
-	const settings_payload = await build_umpire_settings_payload(app, inputs);
 	if (options.send_settings !== false) {
+		const settings_payload = await build_umpire_settings_payload(app, inputs);
 		send_v2_change(app, ws, tournament_key, 'settings-update', settings_payload);
 	}
 	if (options.send_courts !== false) {
 		await send_umpire_courts_update(app, ws, tournament_key);
 	}
 	if (!inputs.court) {
-		const picker_inputs = await get_court_picker_inputs(app, tournament_key, ws, msg);
+		const picker_inputs = await get_court_picker_inputs(app, tournament_key, ws, msg, inputs);
 		const display = {
 			client_id: inputs.client_id,
 			hostname: inputs.hostname,
@@ -2492,7 +2535,7 @@ async function handle_init(app, ws, msg) {
 		ws.court_id = inputs.court?._id;
 		ws.last_v2_match_id = null;
 		ws.last_v2_tournament_assets_key = tournament_assets_v2(inputs.tournament).logo_assets_version;
-		const multi_inputs = await get_display_multi_state_inputs(app, tournament_key, ws, msg);
+		const multi_inputs = await get_display_multi_state_inputs(app, tournament_key, ws, msg, inputs);
 		payload = build_display_multi_state_v2(app, {
 			tournament: multi_inputs.tournament,
 			courts: multi_inputs.courts,
@@ -2517,7 +2560,7 @@ async function handle_init(app, ws, msg) {
 	} else {
 		ws.court_id = undefined;
 		ws.last_v2_match_id = null;
-		const picker_inputs = await get_court_picker_inputs(app, tournament_key, ws, msg);
+		const picker_inputs = await get_court_picker_inputs(app, tournament_key, ws, msg, inputs);
 		payload = build_court_picker_state_v2({
 			tournament: picker_inputs.tournament,
 			display,
@@ -2558,7 +2601,7 @@ async function send_current_state(app, ws, tournament_key, msg, options = {}) {
 		const tournament_assets_key = tournament_assets_v2(inputs.tournament).logo_assets_version;
 		const include_tournament_assets = ws.last_v2_tournament_assets_key !== tournament_assets_key;
 		ws.last_v2_tournament_assets_key = tournament_assets_key;
-		const multi_inputs = await get_display_multi_state_inputs(app, tournament_key, ws, msg);
+		const multi_inputs = await get_display_multi_state_inputs(app, tournament_key, ws, msg, inputs);
 		payload = build_display_multi_state_v2(app, {
 			tournament: multi_inputs.tournament,
 			courts: multi_inputs.courts,
@@ -2585,7 +2628,7 @@ async function send_current_state(app, ws, tournament_key, msg, options = {}) {
 	} else {
 		ws.court_id = undefined;
 		ws.last_v2_match_id = null;
-		const picker_inputs = await get_court_picker_inputs(app, tournament_key, ws, msg);
+		const picker_inputs = await get_court_picker_inputs(app, tournament_key, ws, msg, inputs);
 		payload = build_court_picker_state_v2({
 			tournament: picker_inputs.tournament,
 			display,
@@ -3283,6 +3326,7 @@ async function handle_score_update(app, ws, msg) {
 						score_phase('committed_display_points', start_ns, { recipients: sent });
 						require('./foreground_work').publication(() => handle_score_change(app, tournament_key, updated_match.setup.court_id, {
 							skip_umpire_ws: score_indicates_finished ? null : ws,
+							skip_assigned_umpires: !score_indicates_finished,
 							score_timing_score_data: score_data,
 						})).catch(error => {
 							console.warn('[bts] score display publication failed:', error && (error.stack || error.message || String(error))); // eslint-disable-line no-console
@@ -3521,6 +3565,10 @@ async function handle_score_change(app, tournament_key, court_id, options = {}) 
 	const changed_match = id => id === options.changed_match_id || id === 'bts_' + options.changed_match_id;
 	const matching_panels = all_panels.filter((ws) => {
 		if (!ws || ws.last_tournament_key !== tournament_key) return false;
+		// The scoring tablet already has the point. Assigned tablets must not
+		// receive point echoes; unassigned tablets still need their court picker.
+		// Administrative changes and match completion retain normal refreshes.
+		if (ws.panel_devicemode === 'umpire' && options.skip_assigned_umpires && ws.court_id) return false;
 		if (court_id || !options.changed_match_id) return true;
 		if (ws.panel_devicemode === 'umpire') return false;
 		if (!ws.court_id) return true;
@@ -3789,7 +3837,13 @@ async function add_display_status(app, tournament, displays) {
 		}
 		display.online = true;
 		display.hostname = await determine_client_hostname(panel_ws);
+		if (panel_ws.battery) display.battery = { ...panel_ws.battery };
 		display.display_render_stats = get_v2_render_stats(panel_ws);
+	}
+	for (const contact of get_panel_contacts(app)) {
+		if (contact.tournament_key !== tournament_key) continue;
+		const display = displays.find(item => String(item.client_id) === contact.client_id);
+		if (display) display.last_contact = contact.last_contact;
 	}
 }
 
@@ -3812,6 +3866,7 @@ module.exports = {
 	send_finished_confirmed,
 	handle_score_change,
 	add_display_status,
+	get_panel_contacts,
 	build_display_state_v2,
 	build_display_score_update_v2,
 	build_display_points_update_v2,

@@ -1,0 +1,612 @@
+{
+  "analysis_date": "2026-11-06",
+  "source": {
+    "file": "/home/tim/Downloads/bts-test-6 (1).json",
+    "bytes": 127181371,
+    "exported_at": "2026-11-06T00:24:50.990Z"
+  },
+  "run": {
+    "scenario": "benchmark",
+    "started_at": "2026-11-06T00:11:44.130Z",
+    "runtime_ms": 597399,
+    "stop_reason": "error",
+    "failure": "connect ECONNREFUSED 127.0.0.1:4433",
+    "points": 1045,
+    "checkins": 25,
+    "initial_state": {
+      "matches": 512,
+      "finished_matches": 344,
+      "active_matches": 15,
+      "active_courts": 15,
+      "pending_player_checkins": 0,
+      "pending_players": 0,
+      "check_in_per_match": true,
+      "state_sha256": "81fafd3fbddf7a27c7def3540ae539f3acffec1962020e51fa909353723e6150"
+    }
+  },
+  "continuity": {
+    "server_runs": [
+      {
+        "server_id": "642538-1793923375367",
+        "samples": 574,
+        "peak_pending": {
+          "Locks:": 3,
+          "DB courts:": 1,
+          "DB locations:": 1,
+          "DB event:": 0,
+          "DB matches:": 3,
+          "DB tournaments:": 4,
+          "DB umpires:": 1,
+          "DB logs:": 0,
+          "DB tabletoperators:": 2,
+          "DB displaysettings:": 4,
+          "DB display_court_displaysettings:": 8,
+          "DB normalizations:": 1,
+          "DB advertisements:": 1,
+          "DB app_settings:": 0,
+          "Worker compaction_serialize:3": 0,
+          "Worker btp_decode:5": 0,
+          "Worker sync_plan_worker:6": 0,
+          "Admin send:": 2
+        },
+        "peak_oldest_ms": {
+          "Locks:": 21,
+          "DB courts:": 20,
+          "DB locations:": 20,
+          "DB event:": 0,
+          "DB matches:": 33,
+          "DB tournaments:": 21,
+          "DB umpires:": 20,
+          "DB logs:": 0,
+          "DB tabletoperators:": 21,
+          "DB displaysettings:": 42,
+          "DB display_court_displaysettings:": 50,
+          "DB normalizations:": 3,
+          "DB advertisements:": 3,
+          "DB app_settings:": 0,
+          "Worker compaction_serialize:3": 0,
+          "Worker btp_decode:5": 0,
+          "Worker sync_plan_worker:6": 0,
+          "Admin send:": 35
+        },
+        "max_event_loop_ms": 98.238463,
+        "max_probe_rtt_ms": 303
+      },
+      {
+        "server_id": "647797-1793924489101",
+        "samples": 11,
+        "peak_pending": {
+          "Locks:": 0,
+          "DB courts:": 0,
+          "DB locations:": 0,
+          "DB event:": 0,
+          "DB matches:": 0,
+          "DB tournaments:": 0,
+          "DB umpires:": 0,
+          "DB logs:": 0,
+          "DB tabletoperators:": 0,
+          "DB displaysettings:": 0,
+          "DB display_court_displaysettings:": 0,
+          "DB normalizations:": 0,
+          "DB advertisements:": 0,
+          "DB app_settings:": 0,
+          "Worker compaction_serialize:3": 0,
+          "Worker btp_decode:5": 0,
+          "Admin send:": 0,
+          "Worker sync_plan_worker:6": 0
+        },
+        "peak_oldest_ms": {
+          "Locks:": 0,
+          "DB courts:": 0,
+          "DB locations:": 0,
+          "DB event:": 0,
+          "DB matches:": 0,
+          "DB tournaments:": 0,
+          "DB umpires:": 0,
+          "DB logs:": 0,
+          "DB tabletoperators:": 0,
+          "DB displaysettings:": 0,
+          "DB display_court_displaysettings:": 0,
+          "DB normalizations:": 0,
+          "DB advertisements:": 0,
+          "DB app_settings:": 0,
+          "Worker compaction_serialize:3": 0,
+          "Worker btp_decode:5": 0,
+          "Admin send:": 0,
+          "Worker sync_plan_worker:6": 0
+        },
+        "max_event_loop_ms": 56.950783,
+        "max_probe_rtt_ms": 40
+      }
+    ],
+    "restart_event": [
+      {
+        "ts": 1793924492283,
+        "label": "Server restarted: queue rates reset",
+        "details": {}
+      }
+    ],
+    "interpretation": "The server was reloaded during this benchmark. This is not a completed continuous comparison of the corrected version."
+  },
+  "delivery": {
+    "tv_websocket_reception_ms": {
+      "count": 1049,
+      "mean": 10.9,
+      "min": 2,
+      "p50": 8,
+      "p95": 29,
+      "p99": 55,
+      "max": 123,
+      "over_50_ms": 13,
+      "over_100_ms": 3,
+      "over_200_ms": 0,
+      "sent_updates": 1050,
+      "unmatched_updates": 1,
+      "coverage": 0.999
+    },
+    "admin_visible_update_ms": {
+      "count": 1049,
+      "mean": 80,
+      "min": 18,
+      "p50": 57,
+      "p95": 168,
+      "p99": 659,
+      "max": 1066,
+      "over_50_ms": 643,
+      "over_100_ms": 157,
+      "over_200_ms": 41,
+      "sent_updates": 1050,
+      "unmatched_updates": 1,
+      "coverage": 0.999
+    },
+    "limitation": "TV measures simulated receiver WebSocket arrival, not physical Pi rendering. BTP result acceptance is not measured by these latency metrics.",
+    "last_unmatched_update": {
+      "trace_id": "live-drill-644689-mw48bmhp-1050",
+      "sent_ts": 1793924488861,
+      "court_id": "default_5",
+      "match_id": "btp_default_JE U17_836"
+    },
+    "interpretation": "The only unmatched update was sent at the reload boundary. This report alone does not establish whether that update was persisted."
+  },
+  "admin_point_breakdown_ms": {
+    "websocket_callback_since_send": {
+      "count": 1049,
+      "mean": 25.8,
+      "p50": 14,
+      "p95": 77,
+      "p99": 215,
+      "max": 797
+    },
+    "queue_ms": {
+      "count": 1049,
+      "mean": 7.6,
+      "p50": 0.3,
+      "p95": 4.8,
+      "p99": 316.6,
+      "max": 811.9
+    },
+    "handler_ms": {
+      "count": 1049,
+      "mean": 1.2,
+      "p50": 0.8,
+      "p95": 3.2,
+      "p99": 9.6,
+      "max": 27.8
+    },
+    "ui_wait_ms": {
+      "count": 1049,
+      "mean": 3.1,
+      "p50": 0,
+      "p95": 0.1,
+      "p99": 68.7,
+      "max": 188.9
+    },
+    "render_ms": {
+      "count": 1049,
+      "mean": 42.2,
+      "p50": 37.8,
+      "p95": 82.3,
+      "p99": 138.9,
+      "max": 230.1
+    },
+    "total_ms": {
+      "count": 1049,
+      "mean": 54.2,
+      "p50": 40.5,
+      "p95": 114.2,
+      "p99": 360.6,
+      "max": 942
+    }
+  },
+  "browser_work": {
+    "timers.fit": {
+      "count": 84,
+      "queue_ms": {
+        "mean": 28.03,
+        "max": 159.3
+      },
+      "work_ms": {
+        "mean": 15.02,
+        "max": 110.6
+      },
+      "elapsed_ms": {
+        "mean": 180,
+        "max": 1041.4
+      }
+    },
+    "lists.counts": {
+      "count": 15,
+      "queue_ms": {
+        "mean": 12.79,
+        "max": 26.2
+      },
+      "work_ms": {
+        "mean": 28.23,
+        "max": 36.5
+      },
+      "elapsed_ms": {
+        "mean": 41.03,
+        "max": 56.9
+      }
+    },
+    "names.layout": {
+      "count": 198,
+      "queue_ms": {
+        "mean": 26,
+        "max": 152.7
+      },
+      "work_ms": {
+        "mean": 18.06,
+        "max": 296
+      },
+      "elapsed_ms": {
+        "mean": 44.08,
+        "max": 327.4
+      }
+    },
+    "finished.sort": {
+      "count": 10,
+      "queue_ms": {
+        "mean": 102.51,
+        "max": 174.2
+      },
+      "work_ms": {
+        "mean": 19.5,
+        "max": 22.5
+      },
+      "elapsed_ms": {
+        "mean": 122.01,
+        "max": 195.4
+      }
+    },
+    "preparation.diagnosis": {
+      "count": 164,
+      "queue_ms": {
+        "mean": 231.05,
+        "max": 1120.9
+      },
+      "work_ms": {
+        "mean": 17.41,
+        "max": 39.2
+      },
+      "elapsed_ms": {
+        "mean": 528.34,
+        "max": 1546.1
+      }
+    },
+    "locations.labels": {
+      "count": 304,
+      "queue_ms": {
+        "mean": 22.73,
+        "max": 316.3
+      },
+      "work_ms": {
+        "mean": 1.06,
+        "max": 17.2
+      },
+      "elapsed_ms": {
+        "mean": 23.8,
+        "max": 317.1
+      }
+    }
+  },
+  "browser_work_interpretation": "Ordinary point handlers are short. Slow points often wait for other browser work and rendering. Preparation diagnosis, timer fitting and name layout are candidates for profiling; this report does not isolate their individual causal contribution.",
+  "queue_events": [
+    {
+      "ts": 1793924495258,
+      "label": "Queue failures: Worker sync_plan_worker",
+      "details": {
+        "failed": 1,
+        "rejected": 0
+      }
+    },
+    {
+      "ts": 1793924492283,
+      "label": "Server restarted: queue rates reset",
+      "details": {}
+    },
+    {
+      "ts": 1793924384998,
+      "label": "Lock task: auto_execute_preparation_selections",
+      "details": {
+        "wait_ms": 407,
+        "runtime_ms": 45,
+        "failed": false,
+        "blocked_by": [
+          {
+            "id": 1986,
+            "task": "handle_match_player_check_in",
+            "key": null,
+            "trace_id": null,
+            "operation_id": 4023,
+            "locks": [
+              "match:default:btp_default_ME_U19_1070",
+              "tabletoperators:default"
+            ],
+            "state": "active",
+            "enqueued_ts": 1793924384469,
+            "start_ts": 1793924384762,
+            "observed_ts": 1793924384765
+          }
+        ]
+      }
+    },
+    {
+      "ts": 1793924384942,
+      "label": "Lock task: handle_match_player_check_in",
+      "details": {
+        "wait_ms": 293,
+        "runtime_ms": 180,
+        "failed": false,
+        "blocked_by": [
+          {
+            "id": 1985,
+            "task": "handle_match_player_check_in",
+            "key": null,
+            "trace_id": null,
+            "operation_id": 4022,
+            "locks": [
+              "match:default:btp_default_ME_U19_1070",
+              "tabletoperators:default"
+            ],
+            "state": "active",
+            "enqueued_ts": 1793924384464,
+            "start_ts": 1793924384586,
+            "observed_ts": 1793924384587
+          }
+        ]
+      }
+    },
+    {
+      "ts": 1793924384759,
+      "label": "Lock task: handle_match_player_check_in",
+      "details": {
+        "wait_ms": 122,
+        "runtime_ms": 173,
+        "failed": false,
+        "blocked_by": [
+          {
+            "id": 1984,
+            "task": "handle_match_player_check_in",
+            "key": null,
+            "trace_id": null,
+            "operation_id": 4021,
+            "locks": [
+              "match:default:btp_default_ME_U19_1068",
+              "tabletoperators:default"
+            ],
+            "state": "active",
+            "enqueued_ts": 1793924384464,
+            "start_ts": 1793924384548,
+            "observed_ts": 1793924384549
+          }
+        ]
+      }
+    },
+    {
+      "ts": 1793924268291,
+      "label": "Queues drained during pause",
+      "details": {
+        "elapsed_ms": 827
+      }
+    },
+    {
+      "ts": 1793924254827,
+      "label": "Lock task: handle_match_player_check_in",
+      "details": {
+        "wait_ms": 145,
+        "runtime_ms": 30,
+        "failed": false,
+        "blocked_by": [
+          {
+            "id": 1814,
+            "task": "handle_match_player_check_in",
+            "key": null,
+            "trace_id": null,
+            "operation_id": 3181,
+            "locks": [
+              "match:default:btp_default_ME_U19_1066",
+              "tabletoperators:default"
+            ],
+            "state": "active",
+            "enqueued_ts": 1793924254652,
+            "start_ts": 1793924254669,
+            "observed_ts": 1793924254676
+          }
+        ]
+      }
+    },
+    {
+      "ts": 1793924159191,
+      "label": "Lock task: auto_assign_technical_officials_when_available",
+      "details": {
+        "wait_ms": 127,
+        "runtime_ms": 27,
+        "failed": false,
+        "blocked_by": [
+          {
+            "id": 1449,
+            "task": "technical_official_pause_expiry_default",
+            "key": null,
+            "trace_id": null,
+            "operation_id": 2296,
+            "locks": [
+              "umpires:default"
+            ],
+            "state": "active",
+            "enqueued_ts": 1793924159035,
+            "start_ts": 1793924159075,
+            "observed_ts": 1793924159086
+          }
+        ]
+      }
+    },
+    {
+      "ts": 1793924013897,
+      "label": "Lock task: technical_official_pause_expiry_default",
+      "details": {
+        "wait_ms": 103,
+        "runtime_ms": 19,
+        "failed": false,
+        "blocked_by": [
+          {
+            "id": 933,
+            "task": "auto_execute_preparation_selections",
+            "key": null,
+            "trace_id": null,
+            "operation_id": 997,
+            "locks": [
+              "preparation:default",
+              "selection:default",
+              "tabletoperators:default",
+              "umpires:default"
+            ],
+            "state": "active",
+            "enqueued_ts": 1793924013766,
+            "start_ts": 1793924013770,
+            "observed_ts": 1793924013775
+          }
+        ]
+      }
+    }
+  ],
+  "failed_traces": [
+    {
+      "id": 6,
+      "session": 1,
+      "name": "sync_plan",
+      "type": "sync",
+      "tournament_key": "default",
+      "start_ts": 1793924492863,
+      "status": "error",
+      "summarized_spans": 0,
+      "pending_spans": 0,
+      "dropped_spans": 0,
+      "ts": 1793924494483,
+      "duration_ms": 1620.8,
+      "revision": 15,
+      "server_id": "647797-1793924489101"
+    }
+  ],
+  "assessment": {
+    "version": 1,
+    "thresholds": {
+      "p99_ms": 30,
+      "max_ms": 50,
+      "min_samples": 100,
+      "admin_render_p99_ms": 100,
+      "admin_render_max_ms": 250
+    },
+    "final": true,
+    "level": "ERROR",
+    "summary": "Mindestens ein Ziel ist verletzt.",
+    "criteria": [
+      {
+        "id": "tv_p99",
+        "label": "TV · p99 im gesamten Lauf",
+        "level": "ERROR",
+        "value": "55 ms",
+        "target": "< 30 ms",
+        "detail": "1049 zugeordnete Updates."
+      },
+      {
+        "id": "tv_reception",
+        "label": "TV · Eventempfang",
+        "level": "ERROR",
+        "value": "1049 / 1050",
+        "target": "Alle gesendeten Updates zugeordnet",
+        "detail": "Am Testende fehlen noch Zuordnungen; das beweist allein keinen Nachrichtenverlust."
+      },
+      {
+        "id": "tv_max",
+        "label": "TV · Maximum",
+        "level": "WARN",
+        "value": "123 ms",
+        "target": "Wunschziel < 50 ms",
+        "detail": "Ein einzelner Ausreißer verletzt nicht automatisch das p99-Ziel. Updates über 50 ms: 13."
+      },
+      {
+        "id": "admin_p99",
+        "label": "Admin · p99 im gesamten Lauf",
+        "level": "ERROR",
+        "value": "659 ms",
+        "target": "< 100 ms",
+        "detail": "1049 zugeordnete Updates."
+      },
+      {
+        "id": "admin_reception",
+        "label": "Admin · Darstellung quittiert",
+        "level": "ERROR",
+        "value": "1049 / 1050",
+        "target": "Alle gesendeten Updates zugeordnet",
+        "detail": "Am Testende fehlen noch Zuordnungen; das beweist allein keinen Nachrichtenverlust."
+      },
+      {
+        "id": "admin_max",
+        "label": "Admin · Maximum",
+        "level": "WARN",
+        "value": "1066 ms",
+        "target": "Wunschziel < 250 ms",
+        "detail": "Ein einzelner Ausreißer verletzt nicht automatisch das p99-Ziel. Updates über 50 ms: 643."
+      },
+      {
+        "id": "queues",
+        "label": "Server-Warteschlangen",
+        "level": "ERROR",
+        "value": "Problem im Lauf beobachtet",
+        "target": "Kein wachsender Rückstau / keine Queue-Fehler",
+        "detail": "Der Hinweis bleibt erhalten, auch wenn sich die Queues inzwischen geleert haben."
+      },
+      {
+        "id": "continuity",
+        "label": "Vergleichbarkeit",
+        "level": "UNKNOWN",
+        "value": "Server oder Profil gewechselt",
+        "target": "Ein unveränderter Serverstand",
+        "detail": "Der Lauf ist kein durchgehender Vergleich eines Serverstands."
+      },
+      {
+        "id": "completion",
+        "label": "Testabschluss",
+        "level": "ERROR",
+        "value": "error",
+        "target": "Sequenz vollständig abgeschlossen",
+        "detail": "Ein abgebrochener oder fehlerhafter Lauf ist kein vollständiger Testnachweis."
+      }
+    ],
+    "queue_incidents": [
+      "Queue failures: Worker sync_plan_worker"
+    ]
+  },
+  "live_followup": {
+    "successful_syncs": [
+      1793924900714,
+      1793924901696
+    ],
+    "verified_results_below_332": 324,
+    "missing_or_mismatching_results": 0,
+    "last_map_error_utc": "2026-11-06T00:25:40.803Z",
+    "map_errors_after_final_reload_observed": 0,
+    "cause": "The previous participant guard assumed each BTP side supplied a player array. Some unresolved branches supply undefined. The current guard normalizes missing sides; the corrected module has been loaded by the final reload."
+  }
+}

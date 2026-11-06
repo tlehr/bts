@@ -1,0 +1,66 @@
+{
+  "date": "2026-11-06",
+  "scope": "Isolierte Chrome-Diagnose mit synthetischen Spielen: 512 insgesamt, 15 auf Feldern, 50 beendet, 447 nicht zugewiesen. Zehn verschiedene Abschlüsse und Wiederöffnungen je Browserlauf, jeweils ein unabhängiger Punkt; abwechselnd 16 parallele Änderungen kommender Spiele. Zwei frische Browser pro Variante, Reihenfolge mit/ohne/ohne/mit Zebrastreifen. Keine Live-Schreibzugriffe.",
+  "diagnostic_comparison": {
+    "current": {
+      "cpu": 969.2114499999998,
+      "finish": 488.28,
+      "point": 143.81,
+      "reopen": 303.98,
+      "ScriptDuration": 251.66570000000002,
+      "LayoutDuration": 139.42845,
+      "RecalcStyleDuration": 148.3066
+    },
+    "without-zebra": {
+      "cpu": 838.1004,
+      "finish": 437.715,
+      "point": 127.25,
+      "reopen": 246.27,
+      "ScriptDuration": 223.81175,
+      "LayoutDuration": 126.89485,
+      "RecalcStyleDuration": 112.02125
+    },
+    "change_percent": {
+      "cpu": -13.53,
+      "finish": -10.36,
+      "point": -11.52,
+      "reopen": -18.98,
+      "ScriptDuration": -11.07,
+      "LayoutDuration": -8.99,
+      "RecalcStyleDuration": -24.47
+    }
+  },
+  "measurement_limits": [
+    "Gemessen wurde das Entfernen der Zebrastreifenregel bei bestehender dünner Trennlinie. Die anschließend etwas klarere Linienfarbe wurde visuell und funktional geprüft; sie wurde nicht separat zeitlich verglichen.",
+    "Die Mittelwerte sind kein Live-Dauertest und belegen keine allgemeine Prozentzahl für alle Turniergrößen oder Geräte.",
+    "Browserarbeitszeit und Darstellungsquittungen sind unterschiedliche Messgrößen."
+  ],
+  "implementation": [
+    "Entfernt den positionsabhängigen Streifenselektor aus den Spieltabellen.",
+    "Trennlinien verwenden die bestehende Designfarbe --line (#dce5e3), weiterhin 1 px.",
+    "Entfernt die ungenutzte Streifenabdunklung auch bei freien Feldern.",
+    "Hallen- und Statusmarkierungen, Hover und Tastaturfokus bleiben aktiv.",
+    "Die Liste nicht zugewiesener Spiele bleibt vollständig; bestehende Ergebnis-Seitensteuerung bleibt erhalten."
+  ],
+  "verification": {
+    "persistent_rows": {
+      "checks": 63,
+      "passed": true
+    },
+    "date_groups": {
+      "checks": 34,
+      "passed": true
+    },
+    "history_pages": {
+      "checks": 10,
+      "passed": true
+    },
+    "visual_inspection": [
+      "1920 x 1080",
+      "390 x 844"
+    ],
+    "browser_exceptions": 0,
+    "css_sha256": "72a1095f3f73ef7a3546ee80b33a8e81cab9cdcf0c5af43d6f7fcec48b28876f"
+  },
+  "artifacts_local": "/tmp/bts-zebra-20261106"
+}

@@ -580,6 +580,9 @@ async function call_match(app, tournament, match, old_court, callback, options =
 			return finish_call(currentErr);
 		}
 		const current_setup = current_match?.setup || {};
+		if (current_match && (current_setup.incomplete === true || !match_completly_initialized(current_setup))) {
+			return finish_call(new Error('Match cannot be called: current participants are incomplete.'));
+		}
 		require('./match_entry_status').preserve(current_match, match);
 		const entry_error = require('../static/js/btp_entry_status').call_error(current_match || match) ||
 			require('../static/js/btp_entry_status').call_error(match);

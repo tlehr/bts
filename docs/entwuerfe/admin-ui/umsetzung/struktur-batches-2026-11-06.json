@@ -1,0 +1,173 @@
+{
+  "date": "2026-11-06",
+  "scope": "Statische Browserverarbeitung der Turnierleitungsseite. Synthetische isolierte Tests; keine Schreibzugriffe auf das laufende Turnier oder BTP.",
+  "trigger": "Lauf 8 zeigt weiter lange Browserwartezeiten bei Strukturänderungen trotz sinkender DB-Last.",
+  "changes": [
+    "Vollständige Vorbereitungsschaltflächen, Anmeldewarnungen und allgemeine Feldbedarfsmarkierungen teilen je empfangenem Änderungsblock einen benannten UI-Auftrag.",
+    "Auch kommende Spiele werden gemeinsam sortiert; Datumsgruppen werden gebündelt aktualisiert. Bestehende Zeilen, Bedienelemente und Benutzereinstellungen bleiben erhalten.",
+    "Beim Einfügen einer Spielzeile nutzt die Turnierleitung ihre gemeinsame Sortierung anstelle einer zusätzlichen unmittelbaren Suche durch sämtliche vorherigen Spiele.",
+    "Timeranpassungen warten auf das Ende des Empfangsblocks, damit sie nicht zwischen einzelnen Zeilenänderungen neue Stilberechnungen erzwingen.",
+    "Vor einer gemeinsamen Namensmessung werden ausstehende Listenarbeiten ausgeführt. Darstellungsquittungen warten weiterhin auf die tatsächlich angeforderten Aufträge; unabhängige Punkte übernehmen keine fremden Aufträge.",
+    "Beim Verlassen oder erneuten Aufbau der Seite werden alte gemeinsame Aufträge beendet und Animation-Frame-Aufrufe gelöscht.",
+    "Ein fehlgeschlagener gemeinsamer Listenauftrag wird weiter als Fehler gemeldet, ohne unabhängige Listenaufträge zu verwerfen. Die zusätzliche Browserregression injiziert einen gezielt abgefangenen Fehler und bestätigt, dass der andere Auftrag trotzdem ausgeführt wird."
+  ],
+  "files": [
+    "static/js/cleitstand.js",
+    "static/js/cmatch.js",
+    "docs/entwuerfe/admin-ui/umsetzung/planned-burst-check.js",
+    "docs/entwuerfe/admin-ui/umsetzung/browser-check.js"
+  ],
+  "planned_burst": {
+    "fixture": "512 Spiele, 367 beendet, 130 kommende Spiele, 15 aktive Felder, 64 Offiziellenzuordnungen. Je drei Durchläufe mit 80 strukturellen Änderungen kommender Spiele und einem Punkt eines anderen Spiels.",
+    "method": "Identischer neuer Browserprüffall auf gesichertem Ausgangsstand und fertigem Stand; Profiler in beiden aktiv. Browser-TaskDuration wird pro vollständigem Block gemessen. Punktlatenz und Darstellungsquittungen werden zusätzlich geprüft.",
+    "before_file": "struktur-batches-2026-11-06-vorher.json",
+    "after_file": "struktur-batches-2026-11-06-nachher.json",
+    "before": {
+      "point_max_ms": 73,
+      "all_updates_p95_ms": 4922.8,
+      "all_updates_max_ms": 4923.5,
+      "cpu_mean_ms": 4340.388333333333
+    },
+    "after": {
+      "point_max_ms": 62.6,
+      "all_updates_p95_ms": 1657.5,
+      "all_updates_max_ms": 1658.7,
+      "cpu_mean_ms": 1193.433
+    },
+    "cpu_reduction_percent": 72.5,
+    "preparation_control_full_list_passes_before": [
+      81,
+      81,
+      81
+    ],
+    "preparation_control_full_list_passes_after": [
+      2,
+      2,
+      2
+    ],
+    "warning_full_list_passes_before": [
+      80,
+      80,
+      80
+    ],
+    "warning_full_list_passes_after": [
+      1,
+      1,
+      1
+    ],
+    "regressions": {
+      "sorted": true,
+      "checked": true,
+      "nodes": true,
+      "calls": true,
+      "checkOut": true,
+      "date": true,
+      "incomplete": true,
+      "remounted": true,
+      "failureIsolated": true
+    },
+    "all_243_updates_presented": true,
+    "negative_control": "Der unveränderte Ausgangsstand besteht die fachlichen Prüfungen, scheitert erwartungsgemäß an der neuen Begrenzung auf höchstens drei vollständige Vorbereitungskontroll-Durchläufe. Gemessen werden dort 81 statt zwei Durchläufe pro Block."
+  },
+  "verification": {
+    "node_tests": {
+      "passing": 189,
+      "failing": 0,
+      "command": "node_modules/.bin/mocha test/test_conn.js test/test_conn_background.js test/test_admin_update_observer.js test/test_ctournament_match_updates.js test/test_cmatch.js test/test_cmatch_history.js test/test_cmatch_official_select.js test/test_leitstand*.js --reporter dot"
+    },
+    "browser_suites_passed": [
+      "persistent-rows",
+      "compact-official-names",
+      "compact-timers",
+      "update-ownership",
+      "date-groups",
+      "officials-invalidation",
+      "structural-load",
+      "planned-burst",
+      "sync-burst"
+    ],
+    "persistent_row_checks": 63,
+    "date_group_checks": 34,
+    "official_invalidation_checks": 6,
+    "ownership_checks": 13,
+    "mixed_structural_load": {
+      "fixture": "373 Spiele, 200 Spieleruhren, 30 Geräte, Punkte sowie Abschluss und Wiederöffnung.",
+      "stats": {
+        "applied": {
+          "count": 52,
+          "p50": 0.8999998569488525,
+          "p95": 38.69999980926514,
+          "max": 41.5
+        },
+        "independent": {
+          "count": 52,
+          "p50": 25.5,
+          "p95": 140,
+          "max": 158.09999990463257
+        },
+        "ack": {
+          "count": 52,
+          "p50": 25.6,
+          "p95": 140.2,
+          "max": 158.1
+        }
+      },
+      "outcomes": {
+        "presented": 1379
+      },
+      "pending": {
+        "pending": 0,
+        "subscribers": 1,
+        "callbackErrors": 0
+      }
+    },
+    "finished_burst": {
+      "summary": [
+        {
+          "kind": "results",
+          "point_max_ms": 83.1,
+          "updates_p95_ms": 206.5,
+          "cpu_mean_ms": 175.83766666666668
+        },
+        {
+          "kind": "names",
+          "point_max_ms": 54.6,
+          "updates_p95_ms": 158.7,
+          "cpu_mean_ms": 169.22199999999998
+        }
+      ],
+      "regressions": {
+        "number": true,
+        "keepNumber": true,
+        "namesPreserved": true,
+        "nameQueryFree": true,
+        "nameCheckIn": true,
+        "identityReplaced": true,
+        "plan": true,
+        "reopened": true,
+        "remounted": true
+      }
+    },
+    "syntax": "PASS",
+    "git_diff_check": "PASS",
+    "new_test_eslint": "PASS",
+    "additional_existing_module_eslint_findings": 0,
+    "limits": [
+      "Lokale synthetische Prüffälle ersetzen keinen vollständigen Live-Zehn-Minuten-Lauf.",
+      "Der große Block umfasst nur drei Messwiederholungen pro Variante; laufende Timer und lokale Systemlast beeinflussen Einzelzeiten.",
+      "TV-Ausgabe auf einem physischen Pi und die Speicherung von Ergebnissen in BTP werden mit diesen Browserprüfungen nicht geprüft.",
+      "Große Blöcke brauchen weiterhin deutlich länger als einzelne Punkte; das Ziel p99 <100 ms im Livebetrieb ist noch nicht nachgewiesen."
+    ]
+  },
+  "deployment": {
+    "backup": "/tmp/bts-structural-batches-backup-20261106",
+    "backend_files_changed": false,
+    "restart_required": false,
+    "browser_reload_required": true,
+    "served_javascript_matches_checked_files": true,
+    "sha256": {
+      "static/js/cleitstand.js": "6035af9df6684e44c447d15f33cd065fd6a4fa67bd5513ed37d9f3f96adbcfed",
+      "static/js/cmatch.js": "2e44e9043dfe0f2f2ef857570f2572bbece728580ceaa611fa2e564a639b3842"
+    }
+  }
+}

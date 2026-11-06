@@ -38,9 +38,9 @@ module.exports = async function({c,open,metrics,key,capture,check}) {
   !document.querySelector('[name=bupws_v2_enabled]') && !/V2|Protokoll/.test(__debugField('bup_v2_admin_wait_for_score_updates').closest('.settings-card').textContent) &&
   __debugField('bup_v2_admin_wait_for_score_updates').labels[0].textContent==='Rückmeldungen zu Spielstandsänderungen anzeigen' &&
   __debugField('bup_v2_admin_wait_for_score_updates').closest('.settings-row').textContent.includes('bereits dargestellt haben'));
- await verify('Diagnostic messages have a direct link to the existing logs page',() => {
+ await verify('Diagnostic messages have a direct link to the new logs workspace',() => {
   const link=document.querySelector('.settings-debug .settings-related-link');
-  return link.getAttribute('href')==='/admin/diagnostics/' && link.target==='_blank' && link.rel.includes('noopener');
+  return link.getAttribute('href')==='/admin/t/preview/devices/logs' && !link.target;
  });
  await run(() => {window.__debugNodes=[...document.querySelectorAll('.settings-debug input,.settings-debug select')];});
  for (const field of ['bts_debug_output_enabled','bts_server_diagnostics_enabled','bts_client_performance_debug_enabled',

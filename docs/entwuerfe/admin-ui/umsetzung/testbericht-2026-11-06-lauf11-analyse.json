@@ -1,0 +1,2543 @@
+{
+  "analysis_date": "2026-11-06",
+  "source": {
+    "file": "/home/tim/Downloads/bts-test-11 (1).json",
+    "bytes": 140692736,
+    "sha256": "98fe1e1287b814fb5b00c85f488f8938aab6189e85f9733fe9d69af92638eddf",
+    "exported_at": "2026-11-06T06:25:29.769Z"
+  },
+  "comparison_source": {
+    "file": "/home/tim/Downloads/bts-test-10.json",
+    "bytes": 141780044,
+    "sha256": "5dec987df538e25b40092ebfb4bce1ab8264c7112a795bd63fe81484311442ee",
+    "exported_at": "2026-11-06T03:53:29.760Z"
+  },
+  "run": {
+    "started_at": "2026-11-06T06:15:04.004Z",
+    "runtime_ms": 600075,
+    "stop_reason": "completed",
+    "failure": null,
+    "partial": false,
+    "mixed_server_profiles": false,
+    "scenario": "benchmark",
+    "seed": "519",
+    "initial_state": {
+      "matches": 512,
+      "finished_matches": 409,
+      "active_matches": 15,
+      "active_courts": 15,
+      "pending_player_checkins": 0,
+      "pending_players": 0,
+      "check_in_per_match": true,
+      "state_sha256": "e81e7dc6e006bf4c068a05495baff65157d3175eb39740bc1244dbc6f1b68e12"
+    },
+    "settings": {
+      "tournament": "default",
+      "base_url": "https://localhost:4433",
+      "point_interval_ms": [
+        3200,
+        6400
+      ],
+      "score_gap_ms": [
+        0,
+        0
+      ],
+      "pause_visible_ms": 3000,
+      "score_all_active": false,
+      "legacy_loopback_devices": false,
+      "server_telemetry": true,
+      "processing_traces": true,
+      "score_probability": [
+        0.4,
+        0.6
+      ]
+    },
+    "points": 1199,
+    "checkins": 48,
+    "started_at_local": "2026-11-06T07:15:04.004000+01:00"
+  },
+  "delivery": {
+    "tv_websocket_reception_ms": {
+      "count": 1213,
+      "mean": 4.6,
+      "min": 2,
+      "p50": 3,
+      "p95": 11,
+      "p99": 21,
+      "max": 73,
+      "over_50_ms": 1,
+      "over_100_ms": 0,
+      "over_200_ms": 0,
+      "sent_updates": 1213,
+      "unmatched_updates": 0,
+      "coverage": 1
+    },
+    "admin_visible_update_ms": {
+      "count": 1213,
+      "mean": 48.6,
+      "min": 13,
+      "p50": 40,
+      "p95": 95,
+      "p99": 288,
+      "max": 467,
+      "over_50_ms": 264,
+      "over_100_ms": 57,
+      "over_200_ms": 19,
+      "sent_updates": 1213,
+      "unmatched_updates": 0,
+      "coverage": 1
+    },
+    "score_outcomes": {
+      "presented": 1213
+    },
+    "all_admin_event_outcomes": {
+      "presented": 12800,
+      "superseded": 9
+    },
+    "expired": {
+      "tv": 0,
+      "admin": 0
+    },
+    "limits": "TV bestätigt simulierten WebSocket-Empfang; Admin den DOM-Zustand mit Render-Gelegenheit. Kein Abgleich physischer Bildschirmausgabe oder aller von BTP gespeicherten Ergebnisse."
+  },
+  "btp_interval": {
+    "fetch_count": 28,
+    "fetch_statuses": {
+      "ok": 28
+    },
+    "regular_interval_after_previous_completion_ms": {
+      "count": 13,
+      "mean": 30001.67,
+      "min": 30000.3,
+      "p50": 30001,
+      "p95": 30007,
+      "p99": 30007,
+      "max": 30007
+    },
+    "regular_after_start": 13,
+    "first_already_planned_fetch": 1,
+    "additional_result_checks": 14,
+    "decoder_worker_completed_delta": 28,
+    "status_event_count": 56,
+    "idle_phase_fetches": [
+      {
+        "id": 9439,
+        "elapsed_ms": 390717,
+        "duration_ms": 1064.6,
+        "status": "ok",
+        "gap_after_previous_fetch_end_ms": 30001.4,
+        "classification": "regular_interval",
+        "measured_finish_ancestor": true,
+        "ancestors": [
+          {
+            "id": 8862,
+            "name": "handle_score_update_v2",
+            "type": "finish",
+            "is_measured_finish": true
+          }
+        ]
+      },
+      {
+        "id": 9643,
+        "elapsed_ms": 421783,
+        "duration_ms": 798.1,
+        "status": "ok",
+        "gap_after_previous_fetch_end_ms": 30001.4,
+        "classification": "regular_interval",
+        "measured_finish_ancestor": true,
+        "ancestors": [
+          {
+            "id": 8862,
+            "name": "handle_score_update_v2",
+            "type": "finish",
+            "is_measured_finish": true
+          }
+        ]
+      },
+      {
+        "id": 9849,
+        "elapsed_ms": 452582,
+        "duration_ms": 1155,
+        "status": "ok",
+        "gap_after_previous_fetch_end_ms": 30000.9,
+        "classification": "regular_interval",
+        "measured_finish_ancestor": true,
+        "ancestors": [
+          {
+            "id": 8862,
+            "name": "handle_score_update_v2",
+            "type": "finish",
+            "is_measured_finish": true
+          }
+        ]
+      }
+    ],
+    "fetch_timing": [
+      {
+        "id": 5660,
+        "elapsed_ms": 3391,
+        "duration_ms": 835.4,
+        "status": "ok",
+        "gap_after_previous_fetch_end_ms": null,
+        "classification": "already_planned_at_run_start",
+        "measured_finish_ancestor": false,
+        "ancestors": []
+      },
+      {
+        "id": 5726,
+        "elapsed_ms": 9932,
+        "duration_ms": 1641.5,
+        "status": "ok",
+        "gap_after_previous_fetch_end_ms": 5705.6,
+        "classification": "additional_result_check",
+        "measured_finish_ancestor": true,
+        "ancestors": [
+          {
+            "id": 5702,
+            "name": "handle_score_update_v2",
+            "type": "finish",
+            "is_measured_finish": true
+          }
+        ]
+      },
+      {
+        "id": 6041,
+        "elapsed_ms": 41574,
+        "duration_ms": 1284.8,
+        "status": "ok",
+        "gap_after_previous_fetch_end_ms": 30000.5,
+        "classification": "regular_interval",
+        "measured_finish_ancestor": true,
+        "ancestors": [
+          {
+            "id": 5702,
+            "name": "handle_score_update_v2",
+            "type": "finish",
+            "is_measured_finish": true
+          }
+        ]
+      },
+      {
+        "id": 6093,
+        "elapsed_ms": 45658,
+        "duration_ms": 1727.8,
+        "status": "ok",
+        "gap_after_previous_fetch_end_ms": 2799.2,
+        "classification": "additional_result_check",
+        "measured_finish_ancestor": true,
+        "ancestors": [
+          {
+            "id": 6073,
+            "name": "handle_score_update_v2",
+            "type": "finish",
+            "is_measured_finish": true
+          }
+        ]
+      },
+      {
+        "id": 6175,
+        "elapsed_ms": 53086,
+        "duration_ms": 1231.3,
+        "status": "ok",
+        "gap_after_previous_fetch_end_ms": 5700.2,
+        "classification": "additional_result_check",
+        "measured_finish_ancestor": true,
+        "ancestors": [
+          {
+            "id": 6155,
+            "name": "handle_score_update_v2",
+            "type": "finish",
+            "is_measured_finish": true
+          }
+        ]
+      },
+      {
+        "id": 6215,
+        "elapsed_ms": 56247,
+        "duration_ms": 3476.3,
+        "status": "ok",
+        "gap_after_previous_fetch_end_ms": 1929.7,
+        "classification": "additional_result_check",
+        "measured_finish_ancestor": true,
+        "ancestors": [
+          {
+            "id": 6197,
+            "name": "handle_score_update_v2",
+            "type": "finish",
+            "is_measured_finish": true
+          }
+        ]
+      },
+      {
+        "id": 6294,
+        "elapsed_ms": 63774,
+        "duration_ms": 1098.2,
+        "status": "ok",
+        "gap_after_previous_fetch_end_ms": 4050.7,
+        "classification": "additional_result_check",
+        "measured_finish_ancestor": true,
+        "ancestors": [
+          {
+            "id": 6215,
+            "name": "btp_fetch",
+            "type": "sync",
+            "is_measured_finish": false
+          },
+          {
+            "id": 6197,
+            "name": "handle_score_update_v2",
+            "type": "finish",
+            "is_measured_finish": true
+          }
+        ]
+      },
+      {
+        "id": 6558,
+        "elapsed_ms": 90359,
+        "duration_ms": 1495.9,
+        "status": "ok",
+        "gap_after_previous_fetch_end_ms": 25486.8,
+        "classification": "additional_result_check",
+        "measured_finish_ancestor": true,
+        "ancestors": [
+          {
+            "id": 6544,
+            "name": "handle_score_update_v2",
+            "type": "finish",
+            "is_measured_finish": true
+          }
+        ]
+      },
+      {
+        "id": 6860,
+        "elapsed_ms": 121856,
+        "duration_ms": 1410.7,
+        "status": "ok",
+        "gap_after_previous_fetch_end_ms": 30001.1,
+        "classification": "regular_interval",
+        "measured_finish_ancestor": true,
+        "ancestors": [
+          {
+            "id": 6544,
+            "name": "handle_score_update_v2",
+            "type": "finish",
+            "is_measured_finish": true
+          }
+        ]
+      },
+      {
+        "id": 7177,
+        "elapsed_ms": 153269,
+        "duration_ms": 1190.1,
+        "status": "ok",
+        "gap_after_previous_fetch_end_ms": 30002.3,
+        "classification": "regular_interval",
+        "measured_finish_ancestor": true,
+        "ancestors": [
+          {
+            "id": 6544,
+            "name": "handle_score_update_v2",
+            "type": "finish",
+            "is_measured_finish": true
+          }
+        ]
+      },
+      {
+        "id": 7496,
+        "elapsed_ms": 184460,
+        "duration_ms": 1141.3,
+        "status": "ok",
+        "gap_after_previous_fetch_end_ms": 30000.9,
+        "classification": "regular_interval",
+        "measured_finish_ancestor": true,
+        "ancestors": [
+          {
+            "id": 6544,
+            "name": "handle_score_update_v2",
+            "type": "finish",
+            "is_measured_finish": true
+          }
+        ]
+      },
+      {
+        "id": 7788,
+        "elapsed_ms": 215602,
+        "duration_ms": 1016.6,
+        "status": "ok",
+        "gap_after_previous_fetch_end_ms": 30000.7,
+        "classification": "regular_interval",
+        "measured_finish_ancestor": true,
+        "ancestors": [
+          {
+            "id": 6544,
+            "name": "handle_score_update_v2",
+            "type": "finish",
+            "is_measured_finish": true
+          }
+        ]
+      },
+      {
+        "id": 8044,
+        "elapsed_ms": 242193,
+        "duration_ms": 1562.9,
+        "status": "ok",
+        "gap_after_previous_fetch_end_ms": 25574.4,
+        "classification": "additional_result_check",
+        "measured_finish_ancestor": true,
+        "ancestors": [
+          {
+            "id": 8024,
+            "name": "handle_score_update_v2",
+            "type": "finish",
+            "is_measured_finish": true
+          }
+        ]
+      },
+      {
+        "id": 8127,
+        "elapsed_ms": 250479,
+        "duration_ms": 1271.4,
+        "status": "ok",
+        "gap_after_previous_fetch_end_ms": 6723.1,
+        "classification": "additional_result_check",
+        "measured_finish_ancestor": true,
+        "ancestors": [
+          {
+            "id": 8112,
+            "name": "handle_score_update_v2",
+            "type": "finish",
+            "is_measured_finish": true
+          }
+        ]
+      },
+      {
+        "id": 8248,
+        "elapsed_ms": 262184,
+        "duration_ms": 1357.7,
+        "status": "ok",
+        "gap_after_previous_fetch_end_ms": 10433.6,
+        "classification": "additional_result_check",
+        "measured_finish_ancestor": true,
+        "ancestors": [
+          {
+            "id": 8227,
+            "name": "handle_score_update_v2",
+            "type": "finish",
+            "is_measured_finish": true
+          }
+        ]
+      },
+      {
+        "id": 8542,
+        "elapsed_ms": 293542,
+        "duration_ms": 1549.7,
+        "status": "ok",
+        "gap_after_previous_fetch_end_ms": 30000.3,
+        "classification": "regular_interval",
+        "measured_finish_ancestor": true,
+        "ancestors": [
+          {
+            "id": 8227,
+            "name": "handle_score_update_v2",
+            "type": "finish",
+            "is_measured_finish": true
+          }
+        ]
+      },
+      {
+        "id": 8846,
+        "elapsed_ms": 323966,
+        "duration_ms": 2641.4,
+        "status": "ok",
+        "gap_after_previous_fetch_end_ms": 28874.3,
+        "classification": "additional_result_check",
+        "measured_finish_ancestor": true,
+        "ancestors": [
+          {
+            "id": 8819,
+            "name": "handle_score_update_v2",
+            "type": "finish",
+            "is_measured_finish": true
+          }
+        ]
+      },
+      {
+        "id": 8886,
+        "elapsed_ms": 327697,
+        "duration_ms": 1772.6,
+        "status": "ok",
+        "gap_after_previous_fetch_end_ms": 1089.6,
+        "classification": "additional_result_check",
+        "measured_finish_ancestor": true,
+        "ancestors": [
+          {
+            "id": 8862,
+            "name": "handle_score_update_v2",
+            "type": "finish",
+            "is_measured_finish": true
+          }
+        ]
+      },
+      {
+        "id": 9232,
+        "elapsed_ms": 359470,
+        "duration_ms": 1245.6,
+        "status": "ok",
+        "gap_after_previous_fetch_end_ms": 30000.4,
+        "classification": "regular_interval",
+        "measured_finish_ancestor": true,
+        "ancestors": [
+          {
+            "id": 8862,
+            "name": "handle_score_update_v2",
+            "type": "finish",
+            "is_measured_finish": true
+          }
+        ]
+      },
+      {
+        "id": 9439,
+        "elapsed_ms": 390717,
+        "duration_ms": 1064.6,
+        "status": "ok",
+        "gap_after_previous_fetch_end_ms": 30001.4,
+        "classification": "regular_interval",
+        "measured_finish_ancestor": true,
+        "ancestors": [
+          {
+            "id": 8862,
+            "name": "handle_score_update_v2",
+            "type": "finish",
+            "is_measured_finish": true
+          }
+        ]
+      },
+      {
+        "id": 9643,
+        "elapsed_ms": 421783,
+        "duration_ms": 798.1,
+        "status": "ok",
+        "gap_after_previous_fetch_end_ms": 30001.4,
+        "classification": "regular_interval",
+        "measured_finish_ancestor": true,
+        "ancestors": [
+          {
+            "id": 8862,
+            "name": "handle_score_update_v2",
+            "type": "finish",
+            "is_measured_finish": true
+          }
+        ]
+      },
+      {
+        "id": 9849,
+        "elapsed_ms": 452582,
+        "duration_ms": 1155,
+        "status": "ok",
+        "gap_after_previous_fetch_end_ms": 30000.9,
+        "classification": "regular_interval",
+        "measured_finish_ancestor": true,
+        "ancestors": [
+          {
+            "id": 8862,
+            "name": "handle_score_update_v2",
+            "type": "finish",
+            "is_measured_finish": true
+          }
+        ]
+      },
+      {
+        "id": 10072,
+        "elapsed_ms": 483744,
+        "duration_ms": 1106.7,
+        "status": "ok",
+        "gap_after_previous_fetch_end_ms": 30007,
+        "classification": "regular_interval",
+        "measured_finish_ancestor": true,
+        "ancestors": [
+          {
+            "id": 8862,
+            "name": "handle_score_update_v2",
+            "type": "finish",
+            "is_measured_finish": true
+          }
+        ]
+      },
+      {
+        "id": 10229,
+        "elapsed_ms": 500249,
+        "duration_ms": 1705,
+        "status": "ok",
+        "gap_after_previous_fetch_end_ms": 15398.3,
+        "classification": "additional_result_check",
+        "measured_finish_ancestor": true,
+        "ancestors": [
+          {
+            "id": 10210,
+            "name": "handle_score_update_v2",
+            "type": "finish",
+            "is_measured_finish": true
+          }
+        ]
+      },
+      {
+        "id": 10526,
+        "elapsed_ms": 531955,
+        "duration_ms": 1220.1,
+        "status": "ok",
+        "gap_after_previous_fetch_end_ms": 30001,
+        "classification": "regular_interval",
+        "measured_finish_ancestor": true,
+        "ancestors": [
+          {
+            "id": 10210,
+            "name": "handle_score_update_v2",
+            "type": "finish",
+            "is_measured_finish": true
+          }
+        ]
+      },
+      {
+        "id": 10663,
+        "elapsed_ms": 545039,
+        "duration_ms": 1415.2,
+        "status": "ok",
+        "gap_after_previous_fetch_end_ms": 11863.9,
+        "classification": "additional_result_check",
+        "measured_finish_ancestor": true,
+        "ancestors": [
+          {
+            "id": 10644,
+            "name": "handle_score_update_v2",
+            "type": "finish",
+            "is_measured_finish": true
+          }
+        ]
+      },
+      {
+        "id": 10953,
+        "elapsed_ms": 576458,
+        "duration_ms": 1531,
+        "status": "ok",
+        "gap_after_previous_fetch_end_ms": 30003.8,
+        "classification": "regular_interval",
+        "measured_finish_ancestor": true,
+        "ancestors": [
+          {
+            "id": 10644,
+            "name": "handle_score_update_v2",
+            "type": "finish",
+            "is_measured_finish": true
+          }
+        ]
+      },
+      {
+        "id": 11159,
+        "elapsed_ms": 596912,
+        "duration_ms": 1631.3,
+        "status": "ok",
+        "gap_after_previous_fetch_end_ms": 18923,
+        "classification": "additional_result_check",
+        "measured_finish_ancestor": true,
+        "ancestors": [
+          {
+            "id": 11138,
+            "name": "handle_score_update_v2",
+            "type": "finish",
+            "is_measured_finish": true
+          }
+        ]
+      }
+    ],
+    "method": "Reguläre Intervalle anhand von 30 Sekunden Abstand zum Ende des Vorgängers (20 ms Toleranz). Alle früheren Abrufe sind über ihre Elternketten gemessenen Spielabschlüssen zugeordnet. Geerbte Elternkontexte allein machen einen regulären Timer nicht zum zusätzlichen Abruf.",
+    "conclusion": "Keine vervielfachten regelmäßigen Timer. Alle 28 Abrufe erfolgreich, 13 reguläre Intervalle, ein vor Testbeginn geplanter erster Abruf und 14 zusätzliche Ergebnisprüfungen."
+  },
+  "latency_by_update_kind": {
+    "ordinary_points": {
+      "admin_ms": {
+        "count": 1199,
+        "mean": 45.63,
+        "min": 13,
+        "p50": 40,
+        "p95": 88,
+        "p99": 179,
+        "max": 416
+      },
+      "over_200_ms": 8,
+      "browser_breakdown_ms": {
+        "queue_ms": {
+          "count": 1199,
+          "mean": 1.06,
+          "min": 0,
+          "p50": 0.2,
+          "p95": 1.2,
+          "p99": 18,
+          "max": 154.9
+        },
+        "handler_ms": {
+          "count": 1199,
+          "mean": 0.87,
+          "min": 0.1,
+          "p50": 0.8,
+          "p95": 1.7,
+          "p99": 2.3,
+          "max": 33.5
+        },
+        "ui_wait_ms": {
+          "count": 1199,
+          "mean": 2.21,
+          "min": 0,
+          "p50": 0,
+          "p95": 0.1,
+          "p99": 57.6,
+          "max": 83.1
+        },
+        "render_ms": {
+          "count": 1199,
+          "mean": 31.82,
+          "min": 7.3,
+          "p50": 31.8,
+          "p95": 50.4,
+          "p99": 81.1,
+          "max": 130.3
+        },
+        "total_ms": {
+          "count": 1199,
+          "mean": 35.96,
+          "min": 8.3,
+          "p50": 33.5,
+          "p95": 72.9,
+          "p99": 120.4,
+          "max": 218.7
+        }
+      }
+    },
+    "finish_confirmations": {
+      "admin_ms": {
+        "count": 14,
+        "mean": 300.79,
+        "min": 155,
+        "p50": 293,
+        "p95": 467,
+        "p99": 467,
+        "max": 467
+      },
+      "over_200_ms": 11,
+      "browser_breakdown_ms": {
+        "queue_ms": {
+          "count": 14,
+          "mean": 0.23,
+          "min": 0.1,
+          "p50": 0.2,
+          "p95": 0.8,
+          "p99": 0.8,
+          "max": 0.8
+        },
+        "handler_ms": {
+          "count": 14,
+          "mean": 7.73,
+          "min": 5.2,
+          "p50": 7.9,
+          "p95": 10.2,
+          "p99": 10.2,
+          "max": 10.2
+        },
+        "ui_wait_ms": {
+          "count": 14,
+          "mean": 190.78,
+          "min": 68.6,
+          "p50": 181.5,
+          "p95": 326.7,
+          "p99": 326.7,
+          "max": 326.7
+        },
+        "render_ms": {
+          "count": 14,
+          "mean": 95.01,
+          "min": 44,
+          "p50": 98.5,
+          "p95": 135.5,
+          "p99": 135.5,
+          "max": 135.5
+        },
+        "total_ms": {
+          "count": 14,
+          "mean": 293.74,
+          "min": 149.7,
+          "p50": 288.1,
+          "p95": 459.2,
+          "p99": 459.2,
+          "max": 459.2
+        }
+      }
+    }
+  },
+  "browser_jobs": {
+    "lists.counts": {
+      "count": 42,
+      "queue_ms": {
+        "mean": 67.39,
+        "max": 273.5
+      },
+      "work_ms": {
+        "mean": 14.47,
+        "max": 19.3
+      },
+      "elapsed_ms": {
+        "mean": 81.87,
+        "max": 289.4
+      }
+    },
+    "names.layout": {
+      "count": 534,
+      "queue_ms": {
+        "mean": 109.79,
+        "max": 369.3
+      },
+      "work_ms": {
+        "mean": 16.55,
+        "max": 64.7
+      },
+      "elapsed_ms": {
+        "mean": 134.18,
+        "max": 391.1
+      }
+    },
+    "finished.sort": {
+      "count": 43,
+      "queue_ms": {
+        "mean": 99.61,
+        "max": 294.9
+      },
+      "work_ms": {
+        "mean": 16.42,
+        "max": 23.8
+      },
+      "elapsed_ms": {
+        "mean": 116.05,
+        "max": 308.5
+      }
+    },
+    "matches.warnings": {
+      "count": 391,
+      "queue_ms": {
+        "mean": 117.34,
+        "max": 352.1
+      },
+      "work_ms": {
+        "mean": 4.38,
+        "max": 10.1
+      },
+      "elapsed_ms": {
+        "mean": 121.75,
+        "max": 362.2
+      }
+    },
+    "preparation.courts": {
+      "count": 867,
+      "queue_ms": {
+        "mean": 66.32,
+        "max": 392
+      },
+      "work_ms": {
+        "mean": 0.91,
+        "max": 4
+      },
+      "elapsed_ms": {
+        "mean": 67.25,
+        "max": 393
+      }
+    },
+    "preparation.diagnosis": {
+      "count": 478,
+      "queue_ms": {
+        "mean": 29.7,
+        "max": 445.3
+      },
+      "work_ms": {
+        "mean": 1.32,
+        "max": 4.7
+      },
+      "elapsed_ms": {
+        "mean": 140.36,
+        "max": 700.6
+      }
+    },
+    "locations.labels": {
+      "count": 895,
+      "queue_ms": {
+        "mean": 69.82,
+        "max": 387.6
+      },
+      "work_ms": {
+        "mean": 0.82,
+        "max": 4
+      },
+      "elapsed_ms": {
+        "mean": 70.65,
+        "max": 388.4
+      }
+    },
+    "preparation.controls": {
+      "count": 545,
+      "queue_ms": {
+        "mean": 26.83,
+        "max": 381.1
+      },
+      "work_ms": {
+        "mean": 7.06,
+        "max": 17.1
+      },
+      "elapsed_ms": {
+        "mean": 33.89,
+        "max": 392
+      }
+    },
+    "lists.dates": {
+      "count": 14,
+      "queue_ms": {
+        "mean": 85.45,
+        "max": 256.3
+      },
+      "work_ms": {
+        "mean": 11.47,
+        "max": 20.7
+      },
+      "elapsed_ms": {
+        "mean": 96.93,
+        "max": 269.2
+      }
+    },
+    "timers.fit": {
+      "count": 126,
+      "queue_ms": {
+        "mean": 68.01,
+        "max": 319.6
+      },
+      "work_ms": {
+        "mean": 8.44,
+        "max": 26.9
+      },
+      "elapsed_ms": {
+        "mean": 112.4,
+        "max": 339
+      }
+    },
+    "planned.sort": {
+      "count": 67,
+      "queue_ms": {
+        "mean": 86.87,
+        "max": 228.9
+      },
+      "work_ms": {
+        "mean": 2.82,
+        "max": 5.7
+      },
+      "elapsed_ms": {
+        "mean": 89.72,
+        "max": 230.6
+      }
+    }
+  },
+  "browser_jobs_limits": "Mehrere Quittungen können denselben gemeinsamen Job enthalten. Die Statistik ist daher keine unabhängige CPU-Zeitmessung. queue_ms misst die Zeit bis zum ersten Jobdurchlauf, work_ms summiert die gemessenen Durchläufe; elapsed_ms umfasst zusätzlich mögliche Wartephasen zwischen Durchläufen.",
+  "other_admin_event_timings": {
+    "match_edit": {
+      "count": 433,
+      "queue_ms": {
+        "mean": 87.64,
+        "max": 274.7
+      },
+      "handler_ms": {
+        "mean": 4.62,
+        "max": 20.6
+      },
+      "ui_wait_ms": {
+        "mean": 229.31,
+        "max": 587.8
+      },
+      "render_ms": {
+        "mean": 45.13,
+        "max": 109
+      },
+      "total_ms": {
+        "mean": 366.69,
+        "max": 681.5
+      }
+    },
+    "court_current_match": {
+      "count": 1213,
+      "queue_ms": {
+        "mean": 2.38,
+        "max": 155
+      },
+      "handler_ms": {
+        "mean": 0.94,
+        "max": 8.4
+      },
+      "ui_wait_ms": {
+        "mean": 6.08,
+        "max": 1084.2
+      },
+      "render_ms": {
+        "mean": 32.32,
+        "max": 151.5
+      },
+      "total_ms": {
+        "mean": 41.73,
+        "max": 1180.6
+      }
+    },
+    "tabletoperator_add": {
+      "count": 14,
+      "queue_ms": {
+        "mean": 25.49,
+        "max": 88.9
+      },
+      "handler_ms": {
+        "mean": 9.71,
+        "max": 20.5
+      },
+      "ui_wait_ms": {
+        "mean": 551.87,
+        "max": 1316.3
+      },
+      "render_ms": {
+        "mean": 42.19,
+        "max": 91.4
+      },
+      "total_ms": {
+        "mean": 629.25,
+        "max": 1415.4
+      }
+    },
+    "tabletoperator_removed": {
+      "count": 24,
+      "queue_ms": {
+        "mean": 8.79,
+        "max": 33.6
+      },
+      "handler_ms": {
+        "mean": 7.98,
+        "max": 20
+      },
+      "ui_wait_ms": {
+        "mean": 391.98,
+        "max": 1504.6
+      },
+      "render_ms": {
+        "mean": 50.58,
+        "max": 138
+      },
+      "total_ms": {
+        "mean": 459.33,
+        "max": 1550.7
+      }
+    },
+    "court_changed": {
+      "count": 14,
+      "queue_ms": {
+        "mean": 61.58,
+        "max": 129.9
+      },
+      "handler_ms": {
+        "mean": 4.86,
+        "max": 14.3
+      },
+      "ui_wait_ms": {
+        "mean": 511.07,
+        "max": 1081.4
+      },
+      "render_ms": {
+        "mean": 44.26,
+        "max": 92.3
+      },
+      "total_ms": {
+        "mean": 621.76,
+        "max": 1181.1
+      }
+    }
+  },
+  "admin_ingress_ms": {
+    "count": 1213,
+    "mean": 9.65,
+    "min": 3,
+    "p50": 6,
+    "p95": 22,
+    "p99": 92,
+    "max": 226
+  },
+  "worst_score_updates": [
+    {
+      "trace_id": "live-drill-769357-mw4l0942-223",
+      "sent_ts": 1793945793314,
+      "court_id": "default_2",
+      "match_id": "btp_default_JD U17_1498",
+      "tv_ms": 6,
+      "tv_received_ts": 1793945793320,
+      "admin_ms": 467,
+      "admin_received_ts": 1793945793322,
+      "admin_applied_ts": 1793945793658,
+      "admin_presented_ts": 1793945793781,
+      "admin_presentation_status": "presented",
+      "admin_ui_ms": {
+        "queue_ms": 0.1,
+        "handler_ms": 9.8,
+        "ui_wait_ms": 326.7,
+        "render_ms": 122.6,
+        "total_ms": 459.2
+      },
+      "admin_measurement_method": "dom-and-render-opportunity",
+      "admin_ui_jobs": [
+        {
+          "name": "lists.counts",
+          "requested_ms": 3.2,
+          "queue_ms": 246,
+          "work_ms": 14.4,
+          "elapsed_ms": 260.4,
+          "status": "complete"
+        },
+        {
+          "name": "names.layout",
+          "requested_ms": 8.8,
+          "queue_ms": 278,
+          "work_ms": 49.7,
+          "elapsed_ms": 327.7,
+          "status": "complete"
+        },
+        {
+          "name": "finished.sort",
+          "requested_ms": 9.6,
+          "queue_ms": 259.8,
+          "work_ms": 17.4,
+          "elapsed_ms": 277.2,
+          "status": "complete"
+        },
+        {
+          "name": "matches.warnings",
+          "requested_ms": 9.9,
+          "queue_ms": 253.7,
+          "work_ms": 4.8,
+          "elapsed_ms": 258.5,
+          "status": "complete"
+        },
+        {
+          "name": "preparation.courts",
+          "requested_ms": 9.9,
+          "queue_ms": 258.5,
+          "work_ms": 1,
+          "elapsed_ms": 259.5,
+          "status": "complete"
+        }
+      ],
+      "is_finish": true,
+      "ingress_ms": 8,
+      "server_operation": {
+        "id": 6544,
+        "type": "finish",
+        "status": "ok",
+        "duration_ms": 90.6
+      }
+    },
+    {
+      "trace_id": "live-drill-769357-mw4l5bh1-824",
+      "sent_ts": 1793946029653,
+      "court_id": "default_7",
+      "match_id": "btp_default_MD U17_1581",
+      "tv_ms": 8,
+      "tv_received_ts": 1793946029661,
+      "admin_ms": 443,
+      "admin_received_ts": 1793946029662,
+      "admin_applied_ts": 1793946029997,
+      "admin_presented_ts": 1793946030096,
+      "admin_presentation_status": "presented",
+      "admin_ui_ms": {
+        "queue_ms": 0.2,
+        "handler_ms": 10.2,
+        "ui_wait_ms": 325,
+        "render_ms": 98.5,
+        "total_ms": 433.9
+      },
+      "admin_measurement_method": "dom-and-render-opportunity",
+      "admin_ui_jobs": [
+        {
+          "name": "lists.counts",
+          "requested_ms": 3.9,
+          "queue_ms": 7.8,
+          "work_ms": 19.3,
+          "elapsed_ms": 27.1,
+          "status": "complete"
+        },
+        {
+          "name": "names.layout",
+          "requested_ms": 9.2,
+          "queue_ms": 47.7,
+          "work_ms": 58,
+          "elapsed_ms": 326.1,
+          "status": "complete"
+        },
+        {
+          "name": "finished.sort",
+          "requested_ms": 10.2,
+          "queue_ms": 28.9,
+          "work_ms": 17.8,
+          "elapsed_ms": 46.7,
+          "status": "complete"
+        },
+        {
+          "name": "matches.warnings",
+          "requested_ms": 10.4,
+          "queue_ms": 20.7,
+          "work_ms": 6.8,
+          "elapsed_ms": 27.5,
+          "status": "complete"
+        },
+        {
+          "name": "preparation.courts",
+          "requested_ms": 10.4,
+          "queue_ms": 27.5,
+          "work_ms": 1.2,
+          "elapsed_ms": 28.7,
+          "status": "complete"
+        }
+      ],
+      "is_finish": true,
+      "ingress_ms": 9,
+      "server_operation": {
+        "id": 8862,
+        "type": "finish",
+        "status": "ok",
+        "duration_ms": 146.1
+      }
+    },
+    {
+      "trace_id": "live-drill-769357-mw4l5c6k-826",
+      "sent_ts": 1793946030572,
+      "court_id": "default_9",
+      "match_id": "btp_default_JD U19_1659",
+      "tv_ms": 73,
+      "tv_received_ts": 1793946030645,
+      "admin_ms": 416,
+      "admin_received_ts": 1793946030769,
+      "admin_applied_ts": 1793946030921,
+      "admin_presented_ts": 1793946030988,
+      "admin_presentation_status": "presented",
+      "admin_ui_ms": {
+        "queue_ms": 151,
+        "handler_ms": 1,
+        "ui_wait_ms": 0,
+        "render_ms": 66.7,
+        "total_ms": 218.7
+      },
+      "admin_measurement_method": "dom-and-render-opportunity",
+      "admin_ui_jobs": [],
+      "is_finish": false,
+      "ingress_ms": 197,
+      "server_operation": {
+        "id": 8874,
+        "type": "point",
+        "status": "ok",
+        "duration_ms": 83.9
+      }
+    },
+    {
+      "trace_id": "live-drill-769357-mw4kzisr-132",
+      "sent_ts": 1793945759211,
+      "court_id": "default_10",
+      "match_id": "btp_default_MD U15_1418",
+      "tv_ms": 3,
+      "tv_received_ts": 1793945759214,
+      "admin_ms": 412,
+      "admin_received_ts": 1793945759215,
+      "admin_applied_ts": 1793945759505,
+      "admin_presented_ts": 1793945759623,
+      "admin_presentation_status": "presented",
+      "admin_ui_ms": {
+        "queue_ms": 0.1,
+        "handler_ms": 7,
+        "ui_wait_ms": 282.9,
+        "render_ms": 117.9,
+        "total_ms": 407.9
+      },
+      "admin_measurement_method": "dom-and-render-opportunity",
+      "admin_ui_jobs": [
+        {
+          "name": "lists.counts",
+          "requested_ms": 2.9,
+          "queue_ms": 199,
+          "work_ms": 16.1,
+          "elapsed_ms": 215.1,
+          "status": "complete"
+        },
+        {
+          "name": "names.layout",
+          "requested_ms": 6.3,
+          "queue_ms": 234.8,
+          "work_ms": 48.6,
+          "elapsed_ms": 283.4,
+          "status": "complete"
+        },
+        {
+          "name": "finished.sort",
+          "requested_ms": 7,
+          "queue_ms": 216.9,
+          "work_ms": 17.2,
+          "elapsed_ms": 234.1,
+          "status": "complete"
+        },
+        {
+          "name": "matches.warnings",
+          "requested_ms": 7.1,
+          "queue_ms": 211,
+          "work_ms": 4.8,
+          "elapsed_ms": 215.8,
+          "status": "complete"
+        },
+        {
+          "name": "preparation.courts",
+          "requested_ms": 7.1,
+          "queue_ms": 215.8,
+          "work_ms": 0.9,
+          "elapsed_ms": 216.7,
+          "status": "complete"
+        }
+      ],
+      "is_finish": true,
+      "ingress_ms": 4,
+      "server_operation": {
+        "id": 6197,
+        "type": "finish",
+        "status": "ok",
+        "duration_ms": 93.8
+      }
+    },
+    {
+      "trace_id": "live-drill-769357-mw4lb3yy-1204",
+      "sent_ts": 1793946299866,
+      "court_id": "default_15",
+      "match_id": "btp_default_MD U19_1722",
+      "tv_ms": 3,
+      "tv_received_ts": 1793946299869,
+      "admin_ms": 384,
+      "admin_received_ts": 1793946299870,
+      "admin_applied_ts": 1793946300150,
+      "admin_presented_ts": 1793946300250,
+      "admin_presentation_status": "presented",
+      "admin_ui_ms": {
+        "queue_ms": 0.8,
+        "handler_ms": 8.7,
+        "ui_wait_ms": 270.1,
+        "render_ms": 100.7,
+        "total_ms": 380.3
+      },
+      "admin_measurement_method": "dom-and-render-opportunity",
+      "admin_ui_jobs": [
+        {
+          "name": "lists.counts",
+          "requested_ms": 4.4,
+          "queue_ms": 11.7,
+          "work_ms": 18,
+          "elapsed_ms": 29.8,
+          "status": "complete"
+        },
+        {
+          "name": "names.layout",
+          "requested_ms": 8.2,
+          "queue_ms": 56.4,
+          "work_ms": 56.7,
+          "elapsed_ms": 271.2,
+          "status": "complete"
+        },
+        {
+          "name": "finished.sort",
+          "requested_ms": 9.3,
+          "queue_ms": 31.5,
+          "work_ms": 23.8,
+          "elapsed_ms": 55.3,
+          "status": "complete"
+        },
+        {
+          "name": "matches.warnings",
+          "requested_ms": 9.5,
+          "queue_ms": 24.7,
+          "work_ms": 5.5,
+          "elapsed_ms": 30.2,
+          "status": "complete"
+        },
+        {
+          "name": "preparation.courts",
+          "requested_ms": 9.5,
+          "queue_ms": 30.2,
+          "work_ms": 1.1,
+          "elapsed_ms": 31.3,
+          "status": "complete"
+        }
+      ],
+      "is_finish": true,
+      "ingress_ms": 4,
+      "server_operation": {
+        "id": 11138,
+        "type": "finish",
+        "status": "ok",
+        "duration_ms": 73.6
+      }
+    },
+    {
+      "trace_id": "live-drill-769357-mw4kyj26-16",
+      "sent_ts": 1793945712894,
+      "court_id": "default_13",
+      "match_id": "btp_default_MD U13_1261",
+      "tv_ms": 4,
+      "tv_received_ts": 1793945712898,
+      "admin_ms": 344,
+      "admin_received_ts": 1793945712900,
+      "admin_applied_ts": 1793945713102,
+      "admin_presented_ts": 1793945713238,
+      "admin_presentation_status": "presented",
+      "admin_ui_ms": {
+        "queue_ms": 0.2,
+        "handler_ms": 7.3,
+        "ui_wait_ms": 195,
+        "render_ms": 135.5,
+        "total_ms": 338
+      },
+      "admin_measurement_method": "dom-and-render-opportunity",
+      "admin_ui_jobs": [
+        {
+          "name": "lists.counts",
+          "requested_ms": 3.3,
+          "queue_ms": 98.3,
+          "work_ms": 18,
+          "elapsed_ms": 116.3,
+          "status": "complete"
+        },
+        {
+          "name": "names.layout",
+          "requested_ms": 6.4,
+          "queue_ms": 138.8,
+          "work_ms": 57,
+          "elapsed_ms": 195.8,
+          "status": "complete"
+        },
+        {
+          "name": "finished.sort",
+          "requested_ms": 7.2,
+          "queue_ms": 119.3,
+          "work_ms": 18.6,
+          "elapsed_ms": 138,
+          "status": "complete"
+        },
+        {
+          "name": "matches.warnings",
+          "requested_ms": 7.5,
+          "queue_ms": 112.3,
+          "work_ms": 4.7,
+          "elapsed_ms": 117,
+          "status": "complete"
+        },
+        {
+          "name": "preparation.courts",
+          "requested_ms": 7.5,
+          "queue_ms": 117,
+          "work_ms": 2,
+          "elapsed_ms": 119,
+          "status": "complete"
+        }
+      ],
+      "is_finish": true,
+      "ingress_ms": 6,
+      "server_operation": {
+        "id": 5702,
+        "type": "finish",
+        "status": "ok",
+        "duration_ms": 81
+      }
+    },
+    {
+      "trace_id": "live-drill-769357-mw4l59rb-819",
+      "sent_ts": 1793946027432,
+      "court_id": "default_2",
+      "match_id": "btp_default_MD U19_1723",
+      "tv_ms": 23,
+      "tv_received_ts": 1793946027455,
+      "admin_ms": 337,
+      "admin_received_ts": 1793946027658,
+      "admin_applied_ts": 1793946027673,
+      "admin_presented_ts": 1793946027769,
+      "admin_presentation_status": "presented",
+      "admin_ui_ms": {
+        "queue_ms": 13.3,
+        "handler_ms": 1.1,
+        "ui_wait_ms": 0,
+        "render_ms": 96.5,
+        "total_ms": 110.9
+      },
+      "admin_measurement_method": "dom-and-render-opportunity",
+      "admin_ui_jobs": [],
+      "is_finish": false,
+      "ingress_ms": 226,
+      "server_operation": {
+        "id": 8830,
+        "type": "point",
+        "status": "ok",
+        "duration_ms": 30.4
+      }
+    },
+    {
+      "trace_id": "live-drill-769357-mw4kzgcz-124",
+      "sent_ts": 1793945756051,
+      "court_id": "default_15",
+      "match_id": "btp_default_MD U15_1419",
+      "tv_ms": 3,
+      "tv_received_ts": 1793945756054,
+      "admin_ms": 325,
+      "admin_received_ts": 1793945756056,
+      "admin_applied_ts": 1793945756276,
+      "admin_presented_ts": 1793945756376,
+      "admin_presentation_status": "presented",
+      "admin_ui_ms": {
+        "queue_ms": 0.2,
+        "handler_ms": 6.3,
+        "ui_wait_ms": 213.7,
+        "render_ms": 100.2,
+        "total_ms": 320.4
+      },
+      "admin_measurement_method": "dom-and-render-opportunity",
+      "admin_ui_jobs": [
+        {
+          "name": "lists.counts",
+          "requested_ms": 3,
+          "queue_ms": 14,
+          "work_ms": 12.3,
+          "elapsed_ms": 26.3,
+          "status": "complete"
+        },
+        {
+          "name": "names.layout",
+          "requested_ms": 5.7,
+          "queue_ms": 43.6,
+          "work_ms": 36.9,
+          "elapsed_ms": 214.3,
+          "status": "complete"
+        },
+        {
+          "name": "finished.sort",
+          "requested_ms": 6.3,
+          "queue_ms": 27.7,
+          "work_ms": 15.3,
+          "elapsed_ms": 43,
+          "status": "complete"
+        },
+        {
+          "name": "matches.warnings",
+          "requested_ms": 6.4,
+          "queue_ms": 23,
+          "work_ms": 3.6,
+          "elapsed_ms": 26.6,
+          "status": "complete"
+        },
+        {
+          "name": "preparation.courts",
+          "requested_ms": 6.5,
+          "queue_ms": 26.5,
+          "work_ms": 0.9,
+          "elapsed_ms": 27.4,
+          "status": "complete"
+        }
+      ],
+      "is_finish": true,
+      "ingress_ms": 5,
+      "server_operation": {
+        "id": 6155,
+        "type": "finish",
+        "status": "ok",
+        "duration_ms": 51
+      }
+    },
+    {
+      "trace_id": "live-drill-769357-mw4kyjnk-17",
+      "sent_ts": 1793945713664,
+      "court_id": "default_7",
+      "match_id": "btp_default_MD U17_1581",
+      "tv_ms": 15,
+      "tv_received_ts": 1793945713679,
+      "admin_ms": 311,
+      "admin_received_ts": 1793945713767,
+      "admin_applied_ts": 1793945713875,
+      "admin_presented_ts": 1793945713975,
+      "admin_presentation_status": "presented",
+      "admin_ui_ms": {
+        "queue_ms": 106,
+        "handler_ms": 2.2,
+        "ui_wait_ms": 0,
+        "render_ms": 100.2,
+        "total_ms": 208.4
+      },
+      "admin_measurement_method": "dom-and-render-opportunity",
+      "admin_ui_jobs": [],
+      "is_finish": false,
+      "ingress_ms": 103,
+      "server_operation": {
+        "id": 5716,
+        "type": "point",
+        "status": "ok",
+        "duration_ms": 19.2
+      }
+    },
+    {
+      "trace_id": "live-drill-769357-mw4kzamr-105",
+      "sent_ts": 1793945748627,
+      "court_id": "default_8",
+      "match_id": "btp_default_JD U15_1338",
+      "tv_ms": 5,
+      "tv_received_ts": 1793945748632,
+      "admin_ms": 300,
+      "admin_received_ts": 1793945748636,
+      "admin_applied_ts": 1793945748815,
+      "admin_presented_ts": 1793945748927,
+      "admin_presentation_status": "presented",
+      "admin_ui_ms": {
+        "queue_ms": 0.4,
+        "handler_ms": 5.2,
+        "ui_wait_ms": 173.7,
+        "render_ms": 111.9,
+        "total_ms": 291.2
+      },
+      "admin_measurement_method": "dom-and-render-opportunity",
+      "admin_ui_jobs": [
+        {
+          "name": "lists.counts",
+          "requested_ms": 2.4,
+          "queue_ms": 82.2,
+          "work_ms": 14.9,
+          "elapsed_ms": 97.2,
+          "status": "complete"
+        },
+        {
+          "name": "names.layout",
+          "requested_ms": 4.7,
+          "queue_ms": 119,
+          "work_ms": 55.4,
+          "elapsed_ms": 174.4,
+          "status": "complete"
+        },
+        {
+          "name": "finished.sort",
+          "requested_ms": 5.4,
+          "queue_ms": 99.6,
+          "work_ms": 18.7,
+          "elapsed_ms": 118.3,
+          "status": "complete"
+        },
+        {
+          "name": "matches.warnings",
+          "requested_ms": 5.6,
+          "queue_ms": 94.1,
+          "work_ms": 4.4,
+          "elapsed_ms": 98.5,
+          "status": "complete"
+        },
+        {
+          "name": "preparation.courts",
+          "requested_ms": 5.6,
+          "queue_ms": 98.5,
+          "work_ms": 0.9,
+          "elapsed_ms": 99.4,
+          "status": "complete"
+        }
+      ],
+      "is_finish": true,
+      "ingress_ms": 9,
+      "server_operation": {
+        "id": 6073,
+        "type": "finish",
+        "status": "ok",
+        "duration_ms": 64.5
+      }
+    }
+  ],
+  "database": {
+    "window_seconds": 600.031,
+    "completed_counter_deltas": {
+      "DB courts:": 5157,
+      "DB locations:": 2106,
+      "DB event:": 2,
+      "DB matches:": 8194,
+      "DB tournaments:": 8062,
+      "DB umpires:": 2626,
+      "DB logs:": 58,
+      "DB tabletoperators:": 2149,
+      "DB displaysettings:": 2916,
+      "DB display_court_displaysettings:": 5417,
+      "DB normalizations:": 1542,
+      "DB advertisements:": 1557,
+      "DB app_settings:": 2
+    },
+    "total_operations": 39788,
+    "operations_per_second": 66.31,
+    "operations_per_measured_score_update": 32.8,
+    "sampled_db_wait_ms": {
+      "count": 35793,
+      "mean": 1.0,
+      "min": 0,
+      "p50": 0.4,
+      "p95": 3.3,
+      "p99": 11.4,
+      "max": 61
+    },
+    "limits": "Serverweite Lese- und Schreiboperationen einschließlich anderer geöffneter Seiten. Detailspans sind teilweise begrenzt; Queuezähler sind deshalb die Grundlage für Operationszahlen."
+  },
+  "server": {
+    "runs": [
+      {
+        "server_id": "709578-1793935999723",
+        "samples": 594,
+        "peak_pending": {
+          "Locks:": 3,
+          "DB courts:": 2,
+          "DB locations:": 1,
+          "DB event:": 0,
+          "DB matches:": 2,
+          "DB tournaments:": 1,
+          "DB umpires:": 1,
+          "DB logs:": 0,
+          "DB tabletoperators:": 1,
+          "DB displaysettings:": 1,
+          "DB display_court_displaysettings:": 29,
+          "DB normalizations:": 1,
+          "DB advertisements:": 1,
+          "DB app_settings:": 0,
+          "Worker compaction_serialize:3": 0,
+          "Worker btp_decode:5": 0,
+          "Worker sync_plan_worker:6": 1,
+          "Admin send:": 1
+        },
+        "peak_oldest_ms": {
+          "Locks:": 48,
+          "DB courts:": 11,
+          "DB locations:": 1,
+          "DB event:": 0,
+          "DB matches:": 5,
+          "DB tournaments:": 9,
+          "DB umpires:": 1,
+          "DB logs:": 0,
+          "DB tabletoperators:": 1,
+          "DB displaysettings:": 1,
+          "DB display_court_displaysettings:": 10,
+          "DB normalizations:": 1,
+          "DB advertisements:": 1,
+          "DB app_settings:": 0,
+          "Worker compaction_serialize:3": 0,
+          "Worker btp_decode:5": 0,
+          "Worker sync_plan_worker:6": 19,
+          "Admin send:": 3
+        },
+        "max_event_loop_ms": 66.027519,
+        "max_probe_rtt_ms": 191
+      }
+    ],
+    "probe_failures": 0,
+    "queue_incidents": [],
+    "trace_statuses": {
+      "ok": 5553
+    },
+    "queue_failed_counter_deltas": {
+      "Locks:": 0,
+      "DB courts:": 0,
+      "DB locations:": 0,
+      "DB event:": 0,
+      "DB matches:": 0,
+      "DB tournaments:": 0,
+      "DB umpires:": 0,
+      "DB logs:": 0,
+      "DB tabletoperators:": 0,
+      "DB displaysettings:": 0,
+      "DB display_court_displaysettings:": 0,
+      "DB normalizations:": 0,
+      "DB advertisements:": 0,
+      "DB app_settings:": 0,
+      "Worker compaction_serialize:3": 0,
+      "Worker btp_decode:5": 0,
+      "Worker sync_plan_worker:6": 0
+    },
+    "trace_gaps": 0,
+    "archive_dropped": {
+      "samples": 0,
+      "traces": 0,
+      "events": 0
+    },
+    "dropped_detail_spans": 5764,
+    "matched_measured_score_operations": 1213
+  },
+  "frontend_local_metadata": {
+    "static/js/cleitstand.js": {
+      "current_sha256": "81ff0419c4f374b74b72d5bffccbef9819bb55dfd1e710e2dc471ee0607ea65b",
+      "current_mtime_utc": "2026-11-06T04:56:44.994781+00:00"
+    },
+    "static/js/conn.js": {
+      "current_sha256": "e23e459a6a44f5fda2c73f4ad699dc3ca01fc00933e5221855b0438f07b95b97",
+      "current_mtime_utc": "2026-11-06T04:53:52.256946+00:00"
+    },
+    "static/css/leitstand.css": {
+      "current_sha256": "72a1095f3f73ef7a3546ee80b33a8e81cab9cdcf0c5af43d6f7fcec48b28876f",
+      "current_mtime_utc": "2026-11-06T06:11:36.312254+00:00"
+    }
+  },
+  "comparison_to_run10": {
+    "admin_mean_ms": {
+      "previous": 54.1,
+      "current": 48.6,
+      "change_percent": -10.17
+    },
+    "admin_p50_ms": {
+      "previous": 41,
+      "current": 40,
+      "change_percent": -2.44
+    },
+    "admin_p95_ms": {
+      "previous": 116,
+      "current": 95,
+      "change_percent": -18.1
+    },
+    "admin_p99_ms": {
+      "previous": 423,
+      "current": 288,
+      "change_percent": -31.91
+    },
+    "admin_max_ms": {
+      "previous": 612,
+      "current": 467,
+      "change_percent": -23.69
+    },
+    "admin_updates_over_200_ms": {
+      "previous": 43,
+      "current": 19,
+      "change_percent": -55.81
+    },
+    "db_operations_per_second": {
+      "previous": 67.8,
+      "current": 66.31,
+      "change_percent": -2.2
+    },
+    "btp_fetch_count": {
+      "previous": 29,
+      "current": 28,
+      "change_percent": -3.45
+    },
+    "by_update_kind": {
+      "ordinary_points": {
+        "previous_admin_ms": {
+          "count": 1193,
+          "mean": 50.06,
+          "p50": 41,
+          "p95": 97,
+          "p99": 299,
+          "max": 612
+        },
+        "current_admin_ms": {
+          "count": 1199,
+          "mean": 45.63,
+          "min": 13,
+          "p50": 40,
+          "p95": 88,
+          "p99": 179,
+          "max": 416
+        }
+      },
+      "finish_confirmations": {
+        "previous_admin_ms": {
+          "count": 17,
+          "mean": 339.29,
+          "p50": 266,
+          "p95": 598,
+          "p99": 598,
+          "max": 598
+        },
+        "current_admin_ms": {
+          "count": 14,
+          "mean": 300.79,
+          "min": 155,
+          "p50": 293,
+          "p95": 467,
+          "p99": 467,
+          "max": 467
+        }
+      }
+    },
+    "browser_jobs": {
+      "lists.counts": {
+        "previous": {
+          "count": 51,
+          "queue_ms": {
+            "mean": 119.66,
+            "max": 286.9
+          },
+          "work_ms": {
+            "mean": 11.82,
+            "max": 32.4
+          },
+          "elapsed_ms": {
+            "mean": 131.48,
+            "max": 294.2
+          }
+        },
+        "current": {
+          "count": 42,
+          "queue_ms": {
+            "mean": 67.39,
+            "max": 273.5
+          },
+          "work_ms": {
+            "mean": 14.47,
+            "max": 19.3
+          },
+          "elapsed_ms": {
+            "mean": 81.87,
+            "max": 289.4
+          }
+        }
+      },
+      "names.layout": {
+        "previous": {
+          "count": 601,
+          "queue_ms": {
+            "mean": 173.35,
+            "max": 701.9
+          },
+          "work_ms": {
+            "mean": 35.28,
+            "max": 217
+          },
+          "elapsed_ms": {
+            "mean": 208.64,
+            "max": 783.7
+          }
+        },
+        "current": {
+          "count": 534,
+          "queue_ms": {
+            "mean": 109.79,
+            "max": 369.3
+          },
+          "work_ms": {
+            "mean": 16.55,
+            "max": 64.7
+          },
+          "elapsed_ms": {
+            "mean": 134.18,
+            "max": 391.1
+          }
+        }
+      },
+      "finished.sort": {
+        "previous": {
+          "count": 46,
+          "queue_ms": {
+            "mean": 123.77,
+            "max": 317.5
+          },
+          "work_ms": {
+            "mean": 16.77,
+            "max": 34.3
+          },
+          "elapsed_ms": {
+            "mean": 140.54,
+            "max": 351.8
+          }
+        },
+        "current": {
+          "count": 43,
+          "queue_ms": {
+            "mean": 99.61,
+            "max": 294.9
+          },
+          "work_ms": {
+            "mean": 16.42,
+            "max": 23.8
+          },
+          "elapsed_ms": {
+            "mean": 116.05,
+            "max": 308.5
+          }
+        }
+      },
+      "matches.warnings": {
+        "previous": {
+          "count": 404,
+          "queue_ms": {
+            "mean": 203.26,
+            "max": 668.6
+          },
+          "work_ms": {
+            "mean": 4.1,
+            "max": 13.6
+          },
+          "elapsed_ms": {
+            "mean": 207.38,
+            "max": 673.4
+          }
+        },
+        "current": {
+          "count": 391,
+          "queue_ms": {
+            "mean": 117.34,
+            "max": 352.1
+          },
+          "work_ms": {
+            "mean": 4.38,
+            "max": 10.1
+          },
+          "elapsed_ms": {
+            "mean": 121.75,
+            "max": 362.2
+          }
+        }
+      },
+      "preparation.courts": {
+        "previous": {
+          "count": 920,
+          "queue_ms": {
+            "mean": 99.99,
+            "max": 665.6
+          },
+          "work_ms": {
+            "mean": 0.96,
+            "max": 2.5
+          },
+          "elapsed_ms": {
+            "mean": 100.97,
+            "max": 666.7
+          }
+        },
+        "current": {
+          "count": 867,
+          "queue_ms": {
+            "mean": 66.32,
+            "max": 392
+          },
+          "work_ms": {
+            "mean": 0.91,
+            "max": 4
+          },
+          "elapsed_ms": {
+            "mean": 67.25,
+            "max": 393
+          }
+        }
+      },
+      "preparation.diagnosis": {
+        "previous": {
+          "count": 518,
+          "queue_ms": {
+            "mean": 37.26,
+            "max": 450.6
+          },
+          "work_ms": {
+            "mean": 1.15,
+            "max": 2.5
+          },
+          "elapsed_ms": {
+            "mean": 150.66,
+            "max": 927.4
+          }
+        },
+        "current": {
+          "count": 478,
+          "queue_ms": {
+            "mean": 29.7,
+            "max": 445.3
+          },
+          "work_ms": {
+            "mean": 1.32,
+            "max": 4.7
+          },
+          "elapsed_ms": {
+            "mean": 140.36,
+            "max": 700.6
+          }
+        }
+      },
+      "locations.labels": {
+        "previous": {
+          "count": 964,
+          "queue_ms": {
+            "mean": 112.39,
+            "max": 780.3
+          },
+          "work_ms": {
+            "mean": 0.91,
+            "max": 4.4
+          },
+          "elapsed_ms": {
+            "mean": 113.31,
+            "max": 781.3
+          }
+        },
+        "current": {
+          "count": 895,
+          "queue_ms": {
+            "mean": 69.82,
+            "max": 387.6
+          },
+          "work_ms": {
+            "mean": 0.82,
+            "max": 4
+          },
+          "elapsed_ms": {
+            "mean": 70.65,
+            "max": 388.4
+          }
+        }
+      },
+      "preparation.controls": {
+        "previous": {
+          "count": 603,
+          "queue_ms": {
+            "mean": 25.33,
+            "max": 526.1
+          },
+          "work_ms": {
+            "mean": 8.37,
+            "max": 21.6
+          },
+          "elapsed_ms": {
+            "mean": 33.7,
+            "max": 535
+          }
+        },
+        "current": {
+          "count": 545,
+          "queue_ms": {
+            "mean": 26.83,
+            "max": 381.1
+          },
+          "work_ms": {
+            "mean": 7.06,
+            "max": 17.1
+          },
+          "elapsed_ms": {
+            "mean": 33.89,
+            "max": 392
+          }
+        }
+      },
+      "lists.dates": {
+        "previous": {
+          "count": 17,
+          "queue_ms": {
+            "mean": 160.89,
+            "max": 230.9
+          },
+          "work_ms": {
+            "mean": 8.24,
+            "max": 13.1
+          },
+          "elapsed_ms": {
+            "mean": 169.13,
+            "max": 237.6
+          }
+        },
+        "current": {
+          "count": 14,
+          "queue_ms": {
+            "mean": 85.45,
+            "max": 256.3
+          },
+          "work_ms": {
+            "mean": 11.47,
+            "max": 20.7
+          },
+          "elapsed_ms": {
+            "mean": 96.93,
+            "max": 269.2
+          }
+        }
+      },
+      "timers.fit": {
+        "previous": {
+          "count": 135,
+          "queue_ms": {
+            "mean": 130.28,
+            "max": 641.8
+          },
+          "work_ms": {
+            "mean": 8.06,
+            "max": 33
+          },
+          "elapsed_ms": {
+            "mean": 157.84,
+            "max": 655
+          }
+        },
+        "current": {
+          "count": 126,
+          "queue_ms": {
+            "mean": 68.01,
+            "max": 319.6
+          },
+          "work_ms": {
+            "mean": 8.44,
+            "max": 26.9
+          },
+          "elapsed_ms": {
+            "mean": 112.4,
+            "max": 339
+          }
+        }
+      },
+      "planned.sort": {
+        "previous": {
+          "count": 85,
+          "queue_ms": {
+            "mean": 111.37,
+            "max": 521.8
+          },
+          "work_ms": {
+            "mean": 3.03,
+            "max": 7.5
+          },
+          "elapsed_ms": {
+            "mean": 114.41,
+            "max": 526.2
+          }
+        },
+        "current": {
+          "count": 67,
+          "queue_ms": {
+            "mean": 86.87,
+            "max": 228.9
+          },
+          "work_ms": {
+            "mean": 2.82,
+            "max": 5.7
+          },
+          "elapsed_ms": {
+            "mean": 89.72,
+            "max": 230.6
+          }
+        }
+      }
+    },
+    "limits": [
+      "Kein identischer A/B-Ausgangszustand: 409 statt 392 abgeschlossene Spiele, 88 statt 105 noch nicht zugewiesen; jeweils 512 Spiele und 15 aktive Felder.",
+      "1199 statt 1193 gewöhnliche Punkte, 14 statt 17 Abschlüsse und 48 statt 72 Check-ins; anfangs keine statt vier ausstehende Spieler-Check-ins.",
+      "Lauf 10 liegt vor mehreren Frontendänderungen. Der Vergleich trennt weder den Effekt der Trennlinien noch feste Spalten, Ergebnis-Seitensteuerung, Messcaches und Empfangsbudget voneinander.",
+      "Der Bericht enthält keine geladenen Frontend-Asset-Hashes und keine Ergebnis-Seitenpräferenz. Aktuelle Dateihashes und Änderungszeiten sind nur zusätzliche lokale Herkunftsinformation, kein Beweis der im Testbrowser geladenen Fassung."
+    ]
+  },
+  "phase_metrics": [
+    {
+      "name": "checkin-and-play",
+      "start_ms": 0,
+      "end_ms": 120000,
+      "idle": false,
+      "actual_start_ms": 0,
+      "actual_end_ms": 120151,
+      "points": 297,
+      "score_updates": 303,
+      "finish_confirmations": 6,
+      "repair_score_updates": 0,
+      "player_checkins": 12,
+      "checkin_errors": 0,
+      "tablet_to_tv_ms": {
+        "count": 303,
+        "mean": 4.6,
+        "p50": 3,
+        "p95": 11,
+        "p99": 21,
+        "max": 36,
+        "sent_updates": 303,
+        "unmatched_updates": 0,
+        "coverage": 1,
+        "over_50_ms": 0,
+        "over_100_ms": 0,
+        "over_200_ms": 0
+      },
+      "tablet_to_admin_ms": {
+        "count": 303,
+        "mean": 54,
+        "p50": 41,
+        "p95": 126,
+        "p99": 325,
+        "max": 467,
+        "sent_updates": 303,
+        "unmatched_updates": 0,
+        "coverage": 1,
+        "over_50_ms": 79,
+        "over_100_ms": 17,
+        "over_200_ms": 10
+      },
+      "occupied_courts": {
+        "count": 106,
+        "mean": 14.7,
+        "p50": 15,
+        "p95": 15,
+        "p99": 15,
+        "max": 15
+      },
+      "free_courts": {
+        "count": 106,
+        "mean": 0.3,
+        "p50": 0,
+        "p95": 1,
+        "p99": 1,
+        "max": 1
+      }
+    },
+    {
+      "name": "load",
+      "start_ms": 120000,
+      "end_ms": 360000,
+      "idle": false,
+      "actual_start_ms": 120151,
+      "actual_end_ms": 360183,
+      "points": 602,
+      "score_updates": 607,
+      "finish_confirmations": 5,
+      "repair_score_updates": 0,
+      "player_checkins": 32,
+      "checkin_errors": 0,
+      "tablet_to_tv_ms": {
+        "count": 607,
+        "mean": 4.7,
+        "p50": 3,
+        "p95": 11,
+        "p99": 22,
+        "max": 73,
+        "sent_updates": 607,
+        "unmatched_updates": 0,
+        "coverage": 1,
+        "over_50_ms": 1,
+        "over_100_ms": 0,
+        "over_200_ms": 0
+      },
+      "tablet_to_admin_ms": {
+        "count": 607,
+        "mean": 47.2,
+        "p50": 40,
+        "p95": 95,
+        "p99": 232,
+        "max": 443,
+        "sent_updates": 607,
+        "unmatched_updates": 0,
+        "coverage": 1,
+        "over_50_ms": 125,
+        "over_100_ms": 28,
+        "over_200_ms": 7
+      },
+      "occupied_courts": {
+        "count": 205,
+        "mean": 14.6,
+        "p50": 15,
+        "p95": 15,
+        "p99": 15,
+        "max": 15
+      },
+      "free_courts": {
+        "count": 205,
+        "mean": 0.4,
+        "p50": 0,
+        "p95": 1,
+        "p99": 2,
+        "max": 2
+      }
+    },
+    {
+      "name": "idle",
+      "start_ms": 360000,
+      "end_ms": 480000,
+      "idle": true,
+      "actual_start_ms": 360183,
+      "actual_end_ms": 480083,
+      "points": 0,
+      "score_updates": 0,
+      "finish_confirmations": 0,
+      "repair_score_updates": 0,
+      "player_checkins": 0,
+      "checkin_errors": 0,
+      "tablet_to_tv_ms": {
+        "count": 0,
+        "mean": null,
+        "p50": null,
+        "p95": null,
+        "p99": null,
+        "max": null,
+        "sent_updates": 0,
+        "unmatched_updates": 0,
+        "coverage": null,
+        "over_50_ms": 0,
+        "over_100_ms": 0,
+        "over_200_ms": 0
+      },
+      "tablet_to_admin_ms": {
+        "count": 0,
+        "mean": null,
+        "p50": null,
+        "p95": null,
+        "p99": null,
+        "max": null,
+        "sent_updates": 0,
+        "unmatched_updates": 0,
+        "coverage": null,
+        "over_50_ms": 0,
+        "over_100_ms": 0,
+        "over_200_ms": 0
+      },
+      "occupied_courts": {
+        "count": 103,
+        "mean": 14.3,
+        "p50": 14,
+        "p95": 15,
+        "p99": 15,
+        "max": 15
+      },
+      "free_courts": {
+        "count": 103,
+        "mean": 0.7,
+        "p50": 1,
+        "p95": 1,
+        "p99": 1,
+        "max": 1
+      }
+    },
+    {
+      "name": "load-after-idle",
+      "start_ms": 480000,
+      "end_ms": 600000,
+      "idle": false,
+      "actual_start_ms": 480083,
+      "actual_end_ms": 600075,
+      "points": 300,
+      "score_updates": 303,
+      "finish_confirmations": 3,
+      "repair_score_updates": 0,
+      "player_checkins": 4,
+      "checkin_errors": 0,
+      "tablet_to_tv_ms": {
+        "count": 303,
+        "mean": 4.3,
+        "p50": 3,
+        "p95": 10,
+        "p99": 15,
+        "max": 30,
+        "sent_updates": 303,
+        "unmatched_updates": 0,
+        "coverage": 1,
+        "over_50_ms": 0,
+        "over_100_ms": 0,
+        "over_200_ms": 0
+      },
+      "tablet_to_admin_ms": {
+        "count": 303,
+        "mean": 46,
+        "p50": 40,
+        "p95": 87,
+        "p99": 199,
+        "max": 384,
+        "sent_updates": 303,
+        "unmatched_updates": 0,
+        "coverage": 1,
+        "over_50_ms": 60,
+        "over_100_ms": 12,
+        "over_200_ms": 2
+      },
+      "occupied_courts": {
+        "count": 102,
+        "mean": 15,
+        "p50": 15,
+        "p95": 15,
+        "p99": 15,
+        "max": 15
+      },
+      "free_courts": {
+        "count": 102,
+        "mean": 0,
+        "p50": 0,
+        "p95": 0,
+        "p99": 0,
+        "max": 1
+      }
+    }
+  ],
+  "assessment": {
+    "version": 1,
+    "thresholds": {
+      "p99_ms": 30,
+      "max_ms": 50,
+      "min_samples": 100,
+      "admin_render_p99_ms": 100,
+      "admin_render_max_ms": 250
+    },
+    "final": true,
+    "level": "ERROR",
+    "summary": "Mindestens ein Ziel ist verletzt.",
+    "criteria": [
+      {
+        "id": "tv_p99",
+        "label": "TV · p99 im gesamten Lauf",
+        "level": "OK",
+        "value": "21 ms",
+        "target": "< 30 ms",
+        "detail": "1213 zugeordnete Updates."
+      },
+      {
+        "id": "tv_reception",
+        "label": "TV · Eventempfang",
+        "level": "OK",
+        "value": "1213 / 1213",
+        "target": "Alle gesendeten Updates zugeordnet",
+        "detail": "Vollständige Zuordnung."
+      },
+      {
+        "id": "tv_max",
+        "label": "TV · Maximum",
+        "level": "WARN",
+        "value": "73 ms",
+        "target": "Wunschziel < 50 ms",
+        "detail": "Ein einzelner Ausreißer verletzt nicht automatisch das p99-Ziel. Updates über 50 ms: 1."
+      },
+      {
+        "id": "admin_p99",
+        "label": "Admin · p99 im gesamten Lauf",
+        "level": "ERROR",
+        "value": "288 ms",
+        "target": "< 100 ms",
+        "detail": "1213 zugeordnete Updates."
+      },
+      {
+        "id": "admin_reception",
+        "label": "Admin · Darstellung quittiert",
+        "level": "OK",
+        "value": "1213 / 1213",
+        "target": "Alle gesendeten Updates zugeordnet",
+        "detail": "Vollständige Zuordnung."
+      },
+      {
+        "id": "admin_max",
+        "label": "Admin · Maximum",
+        "level": "WARN",
+        "value": "467 ms",
+        "target": "Wunschziel < 250 ms",
+        "detail": "Ein einzelner Ausreißer verletzt nicht automatisch das p99-Ziel. Updates über 50 ms: 264."
+      },
+      {
+        "id": "queues",
+        "label": "Server-Warteschlangen",
+        "level": "OK",
+        "value": "Kein anhaltender Rückstau",
+        "target": "Kein wachsender Rückstau / keine Queue-Fehler",
+        "detail": "Bewertung anhand der bestehenden Rückstau-Erkennung; kurze Spitzen sind erlaubt."
+      }
+    ],
+    "queue_incidents": []
+  },
+  "conclusion": {
+    "delivery": "Alle 1213 Score-Updates zugeordnet und dargestellt; keine abgelaufenen Empfänge, keine fehlgeschlagenen Queue-Operationen und kein Serverwechsel.",
+    "latency": "Verbesserung gegenüber Lauf 10: Admin-p99 423 auf 288 ms, Maximum 612 auf 467 ms, Updates über 200 ms von 43 auf 19. Ziel p99 unter 100 ms und gewünschtes Maximum unter 250 ms weiter nicht erreicht.",
+    "finish": "Abschlüsse im Mittel 300,79 statt 339,29 ms; gewöhnliche Punkte 45,63 statt 50,06 ms. Namensarbeit im Quittungsdurchschnitt 16,55 statt 35,28 ms, deren Maximum 64,7 statt 217 ms.",
+    "worst_finish": "Beim schlechtesten Abschluss mit 467 ms liegen 8 ms vor dem Browserempfang, 0,1 ms in dessen Empfangswarteschlange, 9,8 ms im Handler, 326,7 ms im Warten auf angeforderte UI-Arbeit und 122,6 ms bis zur abschließenden Renderquittung. Der Namensjob wartet 278 ms bis zum ersten Durchlauf und arbeitet 49,7 ms.",
+    "remaining_structural_work": "Andere strukturelle Änderungen warten weiterhin bis über eine Sekunde: bis 1550,7 ms bei Tabletbediener-Entfernung, 1415,4 ms bei Hinzufügen und 1181,1 ms bei Feldänderung. Diese Empfang-bis-Quittung-Zeiten unterscheiden sich von der Tablet-zu-Admin-Punktlatenz.",
+    "next_target": "Wartezeiten und Mehrphasenablauf gemeinsamer Namens-/Layoutaufträge nach Spielabschlüssen und Folgeänderungen profilieren. Bei einzelnen gewöhnlichen Punkten kommen auch Eingangs-/Empfangswartezeiten hinzu; der Bericht belegt keine einzige Ursache aller Ausreißer.",
+    "database": "DB-Rate nur leicht reduziert: 67,80 auf 66,31 Operationen/s. Kein anhaltender Rückstau. Keine aus dieser Analyse abgeleitete Notwendigkeit, erneut Spiele auszublenden.",
+    "production_code_changes_in_this_analysis": false
+  }
+}

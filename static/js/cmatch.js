@@ -601,7 +601,7 @@ function render_match_row(tr, match, court, style, show_player_status, show_add_
 	}
 
 	if (style === 'default' || style === 'plain' || style === 'unasigned') {
-		if (!show_add_tabletoperator && !entry_blocked) {
+		if (style !== 'unasigned' && !show_add_tabletoperator && !entry_blocked) {
 			create_match_button(players0, 'vlink match_second_call_button', 'match:secondcallteamone', on_second_call_team_one_button_click, match._id);
 		}
 
@@ -624,7 +624,7 @@ function render_match_row(tr, match, court, style, show_player_status, show_add_
 			create_match_button(players1, 'vlink match_second_preparation_call_button', 'match:secondcallteamtwo', on_second_preparation_call_team_two_button_click, match._id);
 		}
 
-		if (!show_add_tabletoperator && !entry_blocked) {
+		if (style !== 'unasigned' && !show_add_tabletoperator && !entry_blocked) {
 			create_match_button(players1, 'vlink match_second_call_button', 'match:secondcallteamtwo', on_second_call_team_two_button_click, match._id);
 		}
 	}
@@ -656,14 +656,14 @@ function render_match_row(tr, match, court, style, show_player_status, show_add_
 					if (style === 'unasigned' && match.setup.highlight >= 1) {
 						create_match_button(umpire_span, 'vlink match_second_preparation_call_button', 'match:secondcallumpire', on_second_preparation_call_umpire_button_click, match._id);
 					}
-					create_match_button(umpire_span, 'vlink match_second_call_button', 'match:secondcallumpire', on_second_call_umpire_button_click, match._id);
+					if (style !== 'unasigned') create_match_button(umpire_span, 'vlink match_second_call_button', 'match:secondcallumpire', on_second_call_umpire_button_click, match._id);
 
 					if (setup.service_judge && setup.service_judge.name) {
 						const service_judge_span = render_match_participant_el(to_td, setup.service_judge, match._id, 'service_judge', 'service_judge', show_participant_check_in_status);
 						if (style === 'unasigned' && match.setup.highlight >= 1) {
 							create_match_button(service_judge_span, 'vlink match_second_preparation_call_button', 'match:secondcallservicejudge', on_second_preparation_call_servicejudge_button_click, match._id);
 						}
-						create_match_button(service_judge_span, 'vlink match_second_call_button', 'match:secondcallservicejudge', on_second_call_servicejudge_button_click, match._id);
+						if (style !== 'unasigned') create_match_button(service_judge_span, 'vlink match_second_call_button', 'match:secondcallservicejudge', on_second_call_servicejudge_button_click, match._id);
 					} else {
 						const umpire_icon = umpire_span.querySelector('.umpire');
 						if (umpire_icon) {
@@ -686,7 +686,7 @@ function render_match_row(tr, match, court, style, show_player_status, show_add_
 						create_match_button(tablet_div, 'vlink match_second_preparation_call_button', 'match:secondcaltabletoperator', on_second_preparation_call_tabletoperator_button_click, match._id);
 					}
 
-				if (style === 'default' || style === 'plain' || style === 'unasigned') {
+				if (style === 'default' || style === 'plain') {
 					create_match_button(tablet_div, 'vlink match_second_call_button', 'match:secondcaltabletoperator', on_second_call_tabletoperator_button_click, match._id);
 				}
 			}
@@ -1794,6 +1794,7 @@ function insert_new_match_row(m, section) {
 				const tbody = finished_container.querySelector('.match_table > tbody');
 				const match_row_el = uiu.el(tbody, 'tr', {'class' : 'match highlight_' + m.setup.highlight , 'data-match_id': m._id});
 				render_match_row(match_row_el, m, null, 'default', false, curt.tabletoperator_enabled);
+				if (typeof cleitstand !== 'undefined' && cleitstand.active(match_row_el)) {cleitstand.refreshFinished();return;}
 				for (const child of tbody.children) {
 					if (child === match_row_el) {
 						continue;
@@ -1811,6 +1812,7 @@ function insert_new_match_row(m, section) {
 				const tbody = unassigned_container.querySelector('.match_table > tbody');
 				const match_row_el = uiu.el(tbody, 'tr', {'class' : 'match highlight_' + m.setup.highlight , 'data-match_id': m._id});
 				render_match_row(match_row_el, m, null, 'unasigned', true, curt.tabletoperator_enabled);
+				if (typeof cleitstand !== 'undefined' && cleitstand.refreshPlanned?.(match_row_el)) return;
 				for (const child of tbody.children) {
 					const child_btp_id = child.dataset.match_id;
 					const child_match = utils.find(curt.matches, m => m._id === child_btp_id);
@@ -1880,6 +1882,22 @@ function row_text(node, value) {
 	else node.prepend(document.createTextNode(text));
 }
 
+function update_match_player_names(match) {
+	_for_each_match_bound_element('tr', match, row => {
+		if (typeof cleitstand === 'undefined' || !cleitstand.active(row)) return;
+		for (const [index, selector] of ['.team-one', '.team-two'].entries()) {
+			const players = [...(row.querySelector(selector)?.querySelectorAll('.player') || [])];
+			for (const [number, player] of match.setup.teams[index].players.entries()) {
+				const target = players[number];if (!target) continue;
+				row_text(target, (player.name || short_name(player.firstname, player.lastname || player.surname)).replace(' ', '\xa0'));
+			}
+		}
+		cleitstand.refreshPlayerNames(row, match);
+		const view = row_content_views.get(row);
+		if (view) view.previous.teams = JSON.parse(JSON.stringify(match.setup.teams));
+	});
+}
+
 function row_class(node, name, enabled) {
 	if (node.classList.contains(name) !== enabled) node.classList.toggle(name, enabled);
 }
@@ -1906,7 +1924,7 @@ function patch_row_team(parent, match, index, previous, show_status, show_add_ta
 	const key = (id, index) => id == null || id === 'undefined' || id === 'null' ? 'index:'+index : String(id);
 	const players = new Map([...parent.querySelectorAll('.player')].map((node, index) => [key(node.dataset.btp_id, index), node]));
 	const wanted = [], style = parent.closest('tr').dataset.style, planned = style === 'unasigned';
-	const second = row_button(parent, '.match_second_call_button', !show_add_tabletoperator && !blocked,
+	const second = row_button(parent, '.match_second_call_button', !planned && !show_add_tabletoperator && !blocked,
 		index ? 'match:secondcallteamtwo' : 'match:secondcallteamone', index ? on_second_call_team_two_button_click : on_second_call_team_one_button_click, match);
 	const preparation = row_button(parent, '.match_second_preparation_call_button', planned && setup.highlight >= 1 && !blocked,
 		index ? 'match:secondcallteamtwo' : 'match:secondcallteamone', index ? on_second_preparation_call_team_two_button_click : on_second_preparation_call_team_one_button_click, match);
@@ -1975,7 +1993,7 @@ function patch_row_officials(cell, match, previous, style) {
 			} else icon.removeAttribute('title');
 		}
 		row_button(node, '.match_second_preparation_call_button', planned, second_title, preparation_handler, match);
-		row_button(node, '.match_second_call_button', true, second_title, second_handler, match);
+		row_button(node, '.match_second_call_button', !show_status, second_title, second_handler, match);
 		wanted.push(node);
 	}
 	let tablet = cell.querySelector(':scope > .tablet_operator');
@@ -1991,7 +2009,7 @@ function patch_row_officials(cell, match, previous, style) {
 			if (view && person) update_participant_check_in(node, person, view);
 		}
 		row_button(tablet, '.match_second_preparation_call_button', planned, 'match:secondcaltabletoperator', on_second_preparation_call_tabletoperator_button_click, match);
-		row_button(tablet, '.match_second_call_button', true, 'match:secondcaltabletoperator', on_second_call_tabletoperator_button_click, match);
+		row_button(tablet, '.match_second_call_button', !show_status, 'match:secondcaltabletoperator', on_second_call_tabletoperator_button_click, match);
 		wanted.push(tablet);
 	}
 	if (!setup.umpire && !setup.tabletoperators?.length) {
@@ -2054,7 +2072,12 @@ function update_match_row(m, new_section) {
 		// A field is a fixed slot, even if an older client left the previous
 		// match ID on it. Result/list updates must never repurpose that slot.
 		if (match_row_el.dataset?.court_id != null && new_section !== 'court_' + match_row_el.dataset.court_id) return;
-		if (patch_board_match_row(match_row_el, m, new_section)) {reorder_match_row(m, new_section);return;}
+		if (patch_board_match_row(match_row_el, m, new_section)) {
+			// The board sorts finished rows when their displayed times or sort
+			// fields change. A player/official correction cannot change that order.
+			if (new_section !== 'finished') reorder_match_row(m, new_section);
+			return;
+		}
 		match_row_el.innerHTML = '';
 
 		switch (new_section) {
@@ -2094,6 +2117,10 @@ function reorder_match_row(m, section) {
 	const matches = new Map(curt.matches.map(match => [match._id, match]));
 	_for_each_match_bound_element('tr', m, (match_row_el) => {
 		if (match_row_el.dataset?.court_id != null) return;
+		// The board owns the selected result order. Do not first move every
+		// updated row using the legacy order and then sort the same table again.
+		if (section === 'finished' && typeof cleitstand !== 'undefined' && cleitstand.active(match_row_el)) return;
+		if (section === 'unassigned' && typeof cleitstand !== 'undefined' && cleitstand.refreshPlanned?.(match_row_el)) return;
 		const tbody = match_row_el.parentElement;
 		if (!tbody || tbody.tagName !== 'TBODY') return;
 		let before = null;
@@ -2998,7 +3025,8 @@ function refresh_manual_btp_stage_status_warnings() {
 	});
 }
 
-function refresh_unassigned_status_context() {
+function refresh_unassigned_status_context(immediate = false) {
+	if (!immediate && typeof cleitstand !== 'undefined' && cleitstand.deferUpdate?.('matches.warnings', () => refresh_unassigned_status_context(true))) return;
 	refresh_manual_btp_stage_status_warnings();
 }
 
@@ -3737,7 +3765,8 @@ function get_preparation_demand_court_ids() {
 	return result;
 }
 
-function update_preparation_demand_court_markers(match) {
+function update_preparation_demand_court_markers(match, immediate = false) {
+	if (!match && !immediate && typeof cleitstand !== 'undefined' && cleitstand.deferUpdate?.('preparation.courts', () => update_preparation_demand_court_markers(null, true))) return;
 	const demand_court_ids = get_preparation_demand_court_ids();
 	const update = row => {
 		const court_id = row.getAttribute('data-court_id');
@@ -4327,7 +4356,8 @@ function update_preparation_row_status(row, match, {
 	return !!previous_icon;
 }
 
-function refresh_unassigned_preparation_context() {
+function refresh_unassigned_preparation_context(immediate = false) {
+	if (!immediate && typeof cleitstand !== 'undefined' && cleitstand.deferUpdate?.('preparation.controls', () => refresh_unassigned_preparation_context(true))) return;
 	const matches = new Map(curt.matches.map(match => [String(match._id), match]));
 	const status = preparation_call_status_enabled();
 	const callable = status ? get_preparation_callable_match_ids() : new Set();
@@ -6000,6 +6030,7 @@ return {
 	update_court,
 	update_match_score,
 	update_match_metadata,
+	update_match_player_names,
 	calc_score_str,
 	count_match_score_targets,
 	count_match_timer_targets,

@@ -14,6 +14,7 @@ module.exports=async function({c,check,open,previews}) {
   qa.same=()=>qa.row.isConnected&&qa.cells.length===qa.row.cells.length&&qa.cells.every((cell,index)=>qa.row.cells[index]===cell)&&qa.row.querySelector('.match_score')===qa.score&&qa.row.querySelector('.call_td')===qa.calls&&qa.row.querySelector('.ls-match-open')===qa.open;
   Object.defineProperty(qa.row,'innerHTML',{get(){return ''},set(){throw new Error('Existing row was rebuilt')}});
  })()`);
+ await verify('Unassigned games initially offer preparation recalls without redundant field recalls','!document.querySelector(".unassigned_container .match_second_call_button")&&__persistentRows.row.querySelectorAll(".umpire_and_tablet .match_second_preparation_call_button").length===2');
  const steps=[
   ['Unknown bookkeeping','match.setup.extra_dependency="kept"'],
   ['Round and discipline','match.setup.match_name="Finale";match.setup.event_name="JE U19"'],
@@ -40,6 +41,18 @@ module.exports=async function({c,check,open,previews}) {
   await c.evaluate(`__persistentRows.update(${JSON.stringify(code)})`);await verify(name+' preserves the row and every existing cell','__persistentRows.same()');
   if(name==='Player entry status')await verify('DNS blocks the existing participants and call controls','__persistentRows.row.querySelectorAll(".team-one .entry_blocked .btp_entry_status_badge").length===2&&!__persistentRows.row.querySelector(".match_preparation_call_button")');
   if(name==='Cleared player entry status')await verify('Clearing DNS restores the existing participants without stale badges','!__persistentRows.row.querySelector(".team-one .entry_blocked,.team-one .btp_entry_status_badge")');
+  if(['Umpire replacement','Judge addition','Tablet pairing addition','Tablet pairing replacement','Preparation restored'].includes(name)) {
+   await verify(name+' leaves exactly one preparation recall per official role',`[...__persistentRows.row.querySelectorAll('.umpire_and_tablet>.person,.umpire_and_tablet>.tablet_operator')].every(node=>node.querySelectorAll('.match_second_preparation_call_button').length===1&&!node.querySelector('.match_second_call_button'))`);
+  }
+  if(name==='Deferred status')await verify('Withdrawing preparation removes its role recalls without exposing field recalls','!__persistentRows.row.querySelector(".umpire_and_tablet .match_second_preparation_call_button,.umpire_and_tablet .match_second_call_button")');
+  for(const [step,selector,type]of [
+   ['Umpire replacement','.umpire_and_tablet>.person:has(.umpire)','second_preparation_call_umpire'],
+   ['Judge addition','.umpire_and_tablet>.person:has(.service_judge)','second_preparation_call_servicejudge'],
+   ['Tablet pairing addition','.umpire_and_tablet>.tablet_operator','second_preparation_call_tabletoperator'],
+  ])if(name===step) {
+   await c.evaluate(`__persistentRows.row.querySelector(${JSON.stringify(selector+' .match_second_preparation_call_button')}).click()`);
+   await verify(name+' recalls the role into preparation using the correct command',`__writes.at(-1).type===${JSON.stringify(type)}&&__writes.at(-1).match_id==='match-45'`);
+  }
  }
  await verify('Renames, participant status and role updates retain all original player and name objects','__persistentRows.players.every((node,index)=>node.isConnected&&node.firstChild===__persistentRows.names[index])');
  await verify('The renamed player and replaced officials show the current values',`__persistentRows.row.querySelector('.player[data-btp_id="35"]').dataset.lsFullName==='Lara Neuername'&&__persistentRows.row.querySelector('.person[data-btp_id="9010"] .name').dataset.lsFullName==='Neue Schiedsrichterin'&&__persistentRows.row.querySelector('.person[data-btp_id="9011"] .name').dataset.lsFullName==='Neue Aufschlagrichterin'`);
@@ -63,6 +76,13 @@ module.exports=async function({c,check,open,previews}) {
   if(name==='Restored scoring format')await verify('A shorter format releases the shared score reservation','document.querySelector(".leitstand").style.getPropertyValue("--score-set-count")==="3"');
  }
  await verify('Current game retains recall controls after participant changes','__persistentRows.current.row.querySelectorAll(".ls-teams .match_second_call_button").length===2');
+ await verify('On-court roles retain one field recall each and no preparation recalls',`[...__persistentRows.current.row.querySelectorAll('.umpire_and_tablet>.person,.umpire_and_tablet>.tablet_operator')].every(node=>node.querySelectorAll('.match_second_call_button').length===1&&!node.querySelector('.match_second_preparation_call_button'))`);
+ await c.evaluate(`__persistentRows.update('match.network_score=[[0,0]]','match-44')`);
+ await verify('Field recalls are visible before the first point',`[...__persistentRows.current.row.querySelectorAll('.umpire_and_tablet .match_second_call_button')].every(node=>node.getClientRects().length&&getComputedStyle(node).visibility==='visible')`);
+ await c.evaluate(`__persistentRows.current.row.querySelector('.umpire_and_tablet>.person:has(.umpire) .match_second_call_button').click()`);
+ await verify('The on-court umpire recall retains its field announcement command',`__writes.at(-1).type==='second_call_umpire'&&__writes.at(-1).match_id==='match-44'`);
+ await c.evaluate(`__persistentRows.update('match.network_score=[[7,8]]','match-44')`);
+ await verify('Role recalls disappear again when points have been played',`[...__persistentRows.current.row.querySelectorAll('.umpire_and_tablet .match_second_call_button')].every(node=>!node.getClientRects().length)`);
  await c.evaluate('__persistentRows.send("court_changed",{court_id:"CH_1",is_active:false,has_umpire:true,has_service_judge:false})');
  await verify('A field update preserves the occupied row, its contents and field graphic','__persistentRows.current.same()&&__persistentRows.current.people()&&!!__persistentRows.current.row.querySelector(".court_inactive")');
  await c.evaluate('__persistentRows.send("court_changed",{court_id:"CH_1",is_active:true,has_umpire:true,has_service_judge:false})');
@@ -88,6 +108,6 @@ module.exports=async function({c,check,open,previews}) {
  const boundaryReads=await c.evaluate(`(async()=>{const board=document.querySelector('.leitstand'),native=window.getComputedStyle;let reads=0;window.getComputedStyle=function(node,...args){if(node===board)reads++;return native.call(this,node,...args);};try{cleitstand.refreshCounts();await new Promise(resolve=>{let stable=0;const frame=()=>{stable=cleitstand.isUpdating()||ctournament.isUpdating()?0:stable+1;if(stable===3)resolve();else requestAnimationFrame(frame);};requestAnimationFrame(frame);});return{reads,boundaries:board.querySelectorAll('.ls-call-boundary').length};}finally{window.getComputedStyle=native;}})()`);
  await verify('Absent preparation boundaries need no global style measurement',String(boundaryReads.boundaries===0&&boundaryReads.reads===0));
  const exceptions=c.events.filter(event=>event.method==='Runtime.exceptionThrown');await verify('Targeted row updates produce no browser exceptions',String(exceptions.length===0));
- fs.writeFileSync(path.join(previews,'persistent-row-verification.json'),JSON.stringify({date:'2026-10-31',scope:'Isolated real frontend; existing row and cells must survive every update.',checks,exceptions:exceptions.length,measurements:await c.evaluate('__persistentRows.measurements')},null,2)+'\n');
+ fs.writeFileSync(path.join(previews,'persistent-row-verification.json'),JSON.stringify({date:'2026-11-04',scope:'Isolated real frontend; existing row and cells must survive every update.',checks,exceptions:exceptions.length,measurements:await c.evaluate('__persistentRows.measurements')},null,2)+'\n');
  console.log(JSON.stringify({checks:checks.length,exceptions:exceptions.length}));
 };

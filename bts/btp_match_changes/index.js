@@ -2,6 +2,7 @@
 
 const source_index = require('./sources');
 const local_state = require('./local');
+const participant_guard = require('../btp_participant_guard');
 const caches = new WeakMap();
 
 // The cache belongs to the actual datastore, including a planner's private DB.
@@ -42,7 +43,7 @@ function select(db, key, inputs, documents) {
 		if (!old || old.signature !== source.signature || old.assignment !== source.assignment) changed.add(id);
 	}
 	const source_changes = changed.size;
-	for (const [id] of sources.matches) {
+	for (const [id, source] of sources.matches) {
 		const local = locals.get(id);
 		const old_local = previous?.locals.get(id);
 		if (!local || !old_local || local.signature !== old_local.signature) {
@@ -50,6 +51,11 @@ function select(db, key, inputs, documents) {
 			local_changes++;
 		}
 		if (local?.document.btp_needsync || !local?.document._btp_sync_signature) changed.add(id);
+		// A discarded plan may already have cached this remote participant
+		// change. Recheck the live identity conflict until its flag is committed,
+		// and resolve stored conflicts even when the original signature returns.
+		if (local?.document.btp_participant_conflict || participant_guard.conflict(
+			local?.document, participant_guard.raw_ids(source.bm))) changed.add(id);
 	}
 	for (const [id, local] of locals) {
 		const old = previous?.locals.get(id);

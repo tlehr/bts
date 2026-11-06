@@ -6,6 +6,7 @@
 	"scripts": {
 		"test": "mocha test/",
     "test:admin-update-load": "node docs/entwuerfe/admin-ui/umsetzung/browser-check.js --mixed-updates-only",
+    "test:admin-sync-burst": "node docs/entwuerfe/admin-ui/umsetzung/browser-check.js --sync-burst-only",
     "test:admin-large-list": "node docs/entwuerfe/admin-ui/umsetzung/browser-check.js --large-list-updates-only",
     "test:admin-structural-load": "node docs/entwuerfe/admin-ui/umsetzung/browser-check.js --structural-load-only",
     "test:admin-paint-scope": "node docs/entwuerfe/admin-ui/umsetzung/browser-check.js --paint-scope-only",
@@ -27,6 +28,8 @@
     "test:admin-certificates": "node docs/entwuerfe/admin-ui/umsetzung/browser-check.js --certificates-only",
     "test:admin-settings": "node docs/entwuerfe/admin-ui/umsetzung/browser-check.js --settings-workspace-only",
     "test:admin-display-settings": "node docs/entwuerfe/admin-ui/umsetzung/browser-check.js --settings-displays-only",
+    "test:admin-devices": "node docs/entwuerfe/admin-ui/umsetzung/browser-check.js --devices-workspace-only",
+    "test:admin-tablets": "node docs/entwuerfe/admin-ui/umsetzung/browser-check.js --tablets-only",
     "test:admin-profile-previews": "node docs/entwuerfe/admin-ui/umsetzung/browser-check.js --settings-profile-previews-only",
     "test:admin-logo-library": "node docs/entwuerfe/admin-ui/umsetzung/browser-check.js --settings-logo-library-only",
     "test:admin-advertisements": "node docs/entwuerfe/admin-ui/umsetzung/browser-check.js --settings-advertisements-only",

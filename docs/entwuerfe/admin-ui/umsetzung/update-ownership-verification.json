@@ -14,6 +14,8 @@
     "Deferred UI wait is reported separately from synchronous handling",
     "A new clock is not acknowledged while its first resize observation is withheld",
     "The clock receipt includes observation and completed fitting before its presentation frames",
+    "A new name is not acknowledged before its first observed size",
+    "The new-name receipt waits for fitting and its rendering frames",
     "All measured work drains without capacity failures or timeouts"
   ],
   "receipts": [
@@ -21,11 +23,11 @@
       "type": "score",
       "status": "presented",
       "timings": {
-        "queue_ms": 0.8,
-        "handler_ms": 4.7,
-        "ui_wait_ms": 0,
-        "render_ms": 17,
-        "total_ms": 22.5
+        "queue_ms": 0.9,
+        "handler_ms": 3.5,
+        "ui_wait_ms": 0.1,
+        "render_ms": 8.4,
+        "total_ms": 12.9
       },
       "ui_jobs": []
     },
@@ -33,27 +35,43 @@
       "type": "qa_diagnosis",
       "status": "presented",
       "timings": {
-        "queue_ms": 0.2,
+        "queue_ms": 0.1,
         "handler_ms": 0.1,
-        "ui_wait_ms": 15.7,
-        "render_ms": 33.3,
-        "total_ms": 49.3
+        "ui_wait_ms": 16.9,
+        "render_ms": 31.9,
+        "total_ms": 49
       },
       "ui_jobs": [
         {
           "name": "preparation.diagnosis",
-          "requested_ms": 0.2,
+          "requested_ms": 0.1,
           "queue_ms": 0.1,
-          "work_ms": 1.6,
-          "elapsed_ms": 3.5,
+          "work_ms": 0.2,
+          "elapsed_ms": 2.2,
           "status": "complete"
         },
         {
           "name": "locations.labels",
-          "requested_ms": 2.3,
+          "requested_ms": 2.2,
           "queue_ms": 13.4,
           "work_ms": 0.3,
           "elapsed_ms": 13.7,
+          "status": "complete"
+        },
+        {
+          "name": "preparation.controls",
+          "requested_ms": 2.3,
+          "queue_ms": 13.6,
+          "work_ms": 1,
+          "elapsed_ms": 14.6,
+          "status": "complete"
+        },
+        {
+          "name": "preparation.courts",
+          "requested_ms": 2.3,
+          "queue_ms": 14.7,
+          "work_ms": 0.1,
+          "elapsed_ms": 14.8,
           "status": "complete"
         }
       ]
@@ -64,25 +82,41 @@
       "timings": {
         "queue_ms": 0.1,
         "handler_ms": 0.1,
-        "ui_wait_ms": 64.7,
-        "render_ms": 33.1,
-        "total_ms": 98
+        "ui_wait_ms": 66.1,
+        "render_ms": 32,
+        "total_ms": 98.3
       },
       "ui_jobs": [
         {
           "name": "preparation.diagnosis",
           "requested_ms": 0.1,
-          "queue_ms": 2.6,
-          "work_ms": 2.1,
-          "elapsed_ms": 53.9,
+          "queue_ms": 1.4,
+          "work_ms": 0.2,
+          "elapsed_ms": 50.5,
           "status": "complete"
         },
         {
           "name": "locations.labels",
-          "requested_ms": 52,
-          "queue_ms": 12.7,
+          "requested_ms": 50.5,
+          "queue_ms": 14.3,
+          "work_ms": 0.2,
+          "elapsed_ms": 14.6,
+          "status": "complete"
+        },
+        {
+          "name": "preparation.controls",
+          "requested_ms": 50.6,
+          "queue_ms": 14.5,
+          "work_ms": 1.1,
+          "elapsed_ms": 15.6,
+          "status": "complete"
+        },
+        {
+          "name": "preparation.courts",
+          "requested_ms": 50.6,
+          "queue_ms": 15.6,
           "work_ms": 0.1,
-          "elapsed_ms": 12.8,
+          "elapsed_ms": 15.7,
           "status": "complete"
         }
       ]
@@ -91,19 +125,19 @@
       "type": "qa_layout",
       "status": "presented",
       "timings": {
-        "queue_ms": 0.2,
+        "queue_ms": 0.3,
         "handler_ms": 0.3,
-        "ui_wait_ms": 15.3,
-        "render_ms": 32.7,
-        "total_ms": 48.5
+        "ui_wait_ms": 0.4,
+        "render_ms": 30.9,
+        "total_ms": 31.9
       },
       "ui_jobs": [
         {
           "name": "names.layout",
-          "requested_ms": 0.4,
-          "queue_ms": 14.7,
-          "work_ms": 0.5,
-          "elapsed_ms": 15.2,
+          "requested_ms": 0.6,
+          "queue_ms": 0.2,
+          "work_ms": 0.2,
+          "elapsed_ms": 0.4,
           "status": "complete"
         }
       ]
@@ -112,19 +146,19 @@
       "type": "qa_layout",
       "status": "presented",
       "timings": {
-        "queue_ms": 0.4,
-        "handler_ms": 0,
-        "ui_wait_ms": 15.3,
-        "render_ms": 32.7,
-        "total_ms": 48.4
+        "queue_ms": 0.5,
+        "handler_ms": 0.2,
+        "ui_wait_ms": 0.2,
+        "render_ms": 31,
+        "total_ms": 31.9
       },
       "ui_jobs": [
         {
           "name": "names.layout",
-          "requested_ms": 0.4,
-          "queue_ms": 14.7,
-          "work_ms": 0.5,
-          "elapsed_ms": 15.2,
+          "requested_ms": 0.7,
+          "queue_ms": 0,
+          "work_ms": 0.2,
+          "elapsed_ms": 0.2,
           "status": "complete"
         }
       ]
@@ -134,18 +168,55 @@
       "status": "presented",
       "timings": {
         "queue_ms": 0.2,
-        "handler_ms": 0.3,
+        "handler_ms": 0.2,
         "ui_wait_ms": 65.6,
-        "render_ms": 32.9,
-        "total_ms": 99
+        "render_ms": 33.1,
+        "total_ms": 99.1
       },
       "ui_jobs": [
         {
           "name": "timers.fit",
-          "requested_ms": 0.5,
-          "queue_ms": 15.1,
-          "work_ms": 0.5,
-          "elapsed_ms": 65.6,
+          "requested_ms": 0.4,
+          "queue_ms": 15.4,
+          "work_ms": 0.3,
+          "elapsed_ms": 65.5,
+          "status": "complete"
+        }
+      ]
+    },
+    {
+      "type": "qa_name",
+      "status": "presented",
+      "timings": {
+        "queue_ms": 0.1,
+        "handler_ms": 3.5,
+        "ui_wait_ms": 48.1,
+        "render_ms": 29.1,
+        "total_ms": 80.8
+      },
+      "ui_jobs": [
+        {
+          "name": "names.layout",
+          "requested_ms": 1.9,
+          "queue_ms": 3.8,
+          "work_ms": 2.5,
+          "elapsed_ms": 49.8,
+          "status": "complete"
+        },
+        {
+          "name": "finished.sort",
+          "requested_ms": 3.4,
+          "queue_ms": 1.9,
+          "work_ms": 0.4,
+          "elapsed_ms": 2.3,
+          "status": "complete"
+        },
+        {
+          "name": "lists.counts",
+          "requested_ms": 3.5,
+          "queue_ms": 0.7,
+          "work_ms": 1.1,
+          "elapsed_ms": 1.8,
           "status": "complete"
         }
       ]

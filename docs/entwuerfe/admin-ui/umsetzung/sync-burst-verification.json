@@ -1,0 +1,5485 @@
+{
+  "date": "2026-11-06",
+  "scope": "Isolierter Browser mit 373 Spielen, 328 abgeschlossenen Spielen und 15 belegten Feldern. Je Burst 80 Spielkorrekturen und ein nachfolgender Punkt über die echte Empfangswarteschlange; keine Live-Dienste.",
+  "phases": [
+    {
+      "kind": "results",
+      "round": 0,
+      "elapsed_ms": 180.60000014305115,
+      "preparation_requests": 0,
+      "rows_retained": true,
+      "sorted": true,
+      "finished_count": 328,
+      "score": "10:8",
+      "receipts": [
+        {
+          "type": "score",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 0.6,
+            "handler_ms": 9.7,
+            "ui_wait_ms": 0.1,
+            "render_ms": 38.7,
+            "total_ms": 49.1
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 14,
+            "handler_ms": 1.2,
+            "ui_wait_ms": 102,
+            "render_ms": 18.7,
+            "total_ms": 135.9
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 14.8,
+            "handler_ms": 0.7,
+            "ui_wait_ms": 101.2,
+            "render_ms": 18.8,
+            "total_ms": 135.5
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 15.5,
+            "handler_ms": 0.7,
+            "ui_wait_ms": 100.5,
+            "render_ms": 18.8,
+            "total_ms": 135.5
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 16.2,
+            "handler_ms": 0.6,
+            "ui_wait_ms": 99.9,
+            "render_ms": 18.9,
+            "total_ms": 135.6
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 16.6,
+            "handler_ms": 0.7,
+            "ui_wait_ms": 99.2,
+            "render_ms": 18.9,
+            "total_ms": 135.4
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 17.3,
+            "handler_ms": 0.5,
+            "ui_wait_ms": 98.7,
+            "render_ms": 18.9,
+            "total_ms": 135.4
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 17.7,
+            "handler_ms": 3.6,
+            "ui_wait_ms": 95.1,
+            "render_ms": 18.9,
+            "total_ms": 135.3
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 41.1,
+            "handler_ms": 1.3,
+            "ui_wait_ms": 74,
+            "render_ms": 19,
+            "total_ms": 135.4
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 42.3,
+            "handler_ms": 0.8,
+            "ui_wait_ms": 73.2,
+            "render_ms": 19,
+            "total_ms": 135.3
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 43,
+            "handler_ms": 0.5,
+            "ui_wait_ms": 72.7,
+            "render_ms": 19,
+            "total_ms": 135.2
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 43.6,
+            "handler_ms": 0.4,
+            "ui_wait_ms": 72.2,
+            "render_ms": 19,
+            "total_ms": 135.2
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 43.9,
+            "handler_ms": 0.5,
+            "ui_wait_ms": 71.7,
+            "render_ms": 19,
+            "total_ms": 135.1
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 44.4,
+            "handler_ms": 0.6,
+            "ui_wait_ms": 71.1,
+            "render_ms": 19,
+            "total_ms": 135.1
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 45,
+            "handler_ms": 0.5,
+            "ui_wait_ms": 70.6,
+            "render_ms": 19,
+            "total_ms": 135.1
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 45.4,
+            "handler_ms": 0.5,
+            "ui_wait_ms": 70.1,
+            "render_ms": 19,
+            "total_ms": 135
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 45.9,
+            "handler_ms": 0.4,
+            "ui_wait_ms": 69.7,
+            "render_ms": 19,
+            "total_ms": 135
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 46.2,
+            "handler_ms": 0.3,
+            "ui_wait_ms": 69.4,
+            "render_ms": 19.1,
+            "total_ms": 135
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 46.5,
+            "handler_ms": 0.4,
+            "ui_wait_ms": 69,
+            "render_ms": 19.1,
+            "total_ms": 135
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 46.9,
+            "handler_ms": 0.4,
+            "ui_wait_ms": 68.6,
+            "render_ms": 19.1,
+            "total_ms": 135
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 47.2,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 68.5,
+            "render_ms": 19.1,
+            "total_ms": 134.9
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 47.4,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 68.2,
+            "render_ms": 19.1,
+            "total_ms": 134.9
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 47.7,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 67.9,
+            "render_ms": 19.1,
+            "total_ms": 134.9
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 47.9,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 67.6,
+            "render_ms": 19.1,
+            "total_ms": 134.8
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 48.1,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 67.4,
+            "render_ms": 19.1,
+            "total_ms": 134.8
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 48.3,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 67.2,
+            "render_ms": 19.1,
+            "total_ms": 134.8
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 48.6,
+            "handler_ms": 0.3,
+            "ui_wait_ms": 66.8,
+            "render_ms": 19.1,
+            "total_ms": 134.8
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 48.8,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 66.6,
+            "render_ms": 19.1,
+            "total_ms": 134.7
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 48.9,
+            "handler_ms": 0.3,
+            "ui_wait_ms": 66.3,
+            "render_ms": 19.2,
+            "total_ms": 134.7
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 49.2,
+            "handler_ms": 0.3,
+            "ui_wait_ms": 66,
+            "render_ms": 19.2,
+            "total_ms": 134.7
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 49.5,
+            "handler_ms": 0.3,
+            "ui_wait_ms": 65.7,
+            "render_ms": 19.2,
+            "total_ms": 134.7
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 49.7,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 65.5,
+            "render_ms": 19.2,
+            "total_ms": 134.6
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 49.9,
+            "handler_ms": 0.4,
+            "ui_wait_ms": 65.1,
+            "render_ms": 19.2,
+            "total_ms": 134.6
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 71,
+            "handler_ms": 1,
+            "ui_wait_ms": 43.4,
+            "render_ms": 19.2,
+            "total_ms": 134.6
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 72,
+            "handler_ms": 0.6,
+            "ui_wait_ms": 42.8,
+            "render_ms": 19.2,
+            "total_ms": 134.6
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 72.6,
+            "handler_ms": 0.5,
+            "ui_wait_ms": 42.3,
+            "render_ms": 19.2,
+            "total_ms": 134.6
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 73,
+            "handler_ms": 0.4,
+            "ui_wait_ms": 41.9,
+            "render_ms": 19.2,
+            "total_ms": 134.5
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 73.4,
+            "handler_ms": 0.3,
+            "ui_wait_ms": 41.6,
+            "render_ms": 19.2,
+            "total_ms": 134.5
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 73.6,
+            "handler_ms": 0.3,
+            "ui_wait_ms": 41.3,
+            "render_ms": 19.2,
+            "total_ms": 134.4
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 73.8,
+            "handler_ms": 0.4,
+            "ui_wait_ms": 40.9,
+            "render_ms": 19.3,
+            "total_ms": 134.4
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 74.2,
+            "handler_ms": 0.4,
+            "ui_wait_ms": 40.5,
+            "render_ms": 19.3,
+            "total_ms": 134.4
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 74.6,
+            "handler_ms": 0.3,
+            "ui_wait_ms": 40.2,
+            "render_ms": 19.3,
+            "total_ms": 134.4
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 74.9,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 40,
+            "render_ms": 19.3,
+            "total_ms": 134.4
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 75,
+            "handler_ms": 0.3,
+            "ui_wait_ms": 39.7,
+            "render_ms": 19.3,
+            "total_ms": 134.3
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 75.3,
+            "handler_ms": 0.3,
+            "ui_wait_ms": 39.4,
+            "render_ms": 19.3,
+            "total_ms": 134.3
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 75.5,
+            "handler_ms": 0.3,
+            "ui_wait_ms": 39.1,
+            "render_ms": 19.3,
+            "total_ms": 134.2
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 75.8,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 38.9,
+            "render_ms": 19.3,
+            "total_ms": 134.2
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 76,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 38.7,
+            "render_ms": 19.3,
+            "total_ms": 134.2
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 76.2,
+            "handler_ms": 0.3,
+            "ui_wait_ms": 38.4,
+            "render_ms": 19.3,
+            "total_ms": 134.2
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 76.4,
+            "handler_ms": 0.4,
+            "ui_wait_ms": 38,
+            "render_ms": 19.3,
+            "total_ms": 134.1
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 76.8,
+            "handler_ms": 0.5,
+            "ui_wait_ms": 37.5,
+            "render_ms": 19.3,
+            "total_ms": 134.1
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 77.3,
+            "handler_ms": 0.4,
+            "ui_wait_ms": 37.1,
+            "render_ms": 19.3,
+            "total_ms": 134.1
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 77.7,
+            "handler_ms": 0.3,
+            "ui_wait_ms": 36.8,
+            "render_ms": 19.3,
+            "total_ms": 134.1
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 78,
+            "handler_ms": 0.3,
+            "ui_wait_ms": 36.5,
+            "render_ms": 19.3,
+            "total_ms": 134.1
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 78.3,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 36.2,
+            "render_ms": 19.3,
+            "total_ms": 134
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 78.5,
+            "handler_ms": 0.3,
+            "ui_wait_ms": 35.9,
+            "render_ms": 19.3,
+            "total_ms": 134
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 78.8,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 35.7,
+            "render_ms": 19.3,
+            "total_ms": 134
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 79,
+            "handler_ms": 0.3,
+            "ui_wait_ms": 35.4,
+            "render_ms": 19.3,
+            "total_ms": 134
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 98.7,
+            "handler_ms": 0.9,
+            "ui_wait_ms": 14.9,
+            "render_ms": 19.3,
+            "total_ms": 133.8
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 99.6,
+            "handler_ms": 0.4,
+            "ui_wait_ms": 14.5,
+            "render_ms": 19.3,
+            "total_ms": 133.8
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 100,
+            "handler_ms": 0.3,
+            "ui_wait_ms": 14.2,
+            "render_ms": 19.3,
+            "total_ms": 133.8
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 100.3,
+            "handler_ms": 0.3,
+            "ui_wait_ms": 13.9,
+            "render_ms": 19.3,
+            "total_ms": 133.8
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 100.5,
+            "handler_ms": 0.3,
+            "ui_wait_ms": 13.6,
+            "render_ms": 19.3,
+            "total_ms": 133.7
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 100.8,
+            "handler_ms": 0.4,
+            "ui_wait_ms": 13.2,
+            "render_ms": 19.3,
+            "total_ms": 133.7
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 101.2,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 13,
+            "render_ms": 19.3,
+            "total_ms": 133.7
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 101.4,
+            "handler_ms": 0.3,
+            "ui_wait_ms": 12.7,
+            "render_ms": 19.3,
+            "total_ms": 133.7
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 101.6,
+            "handler_ms": 0.3,
+            "ui_wait_ms": 12.4,
+            "render_ms": 19.3,
+            "total_ms": 133.6
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 101.8,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 12.2,
+            "render_ms": 19.3,
+            "total_ms": 133.5
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 102,
+            "handler_ms": 0.3,
+            "ui_wait_ms": 11.9,
+            "render_ms": 19.3,
+            "total_ms": 133.5
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 102.3,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 11.7,
+            "render_ms": 19.3,
+            "total_ms": 133.5
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 102.5,
+            "handler_ms": 0.3,
+            "ui_wait_ms": 11.4,
+            "render_ms": 19.4,
+            "total_ms": 133.6
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 102.8,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 11.2,
+            "render_ms": 19.4,
+            "total_ms": 133.6
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 102.8,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 11,
+            "render_ms": 19.4,
+            "total_ms": 133.4
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 103,
+            "handler_ms": 0.3,
+            "ui_wait_ms": 10.7,
+            "render_ms": 19.4,
+            "total_ms": 133.4
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 103.3,
+            "handler_ms": 0.3,
+            "ui_wait_ms": 10.4,
+            "render_ms": 19.4,
+            "total_ms": 133.4
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 103.6,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 10.2,
+            "render_ms": 19.4,
+            "total_ms": 133.4
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 103.8,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 10.1,
+            "render_ms": 19.4,
+            "total_ms": 133.4
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 104,
+            "handler_ms": 0.3,
+            "ui_wait_ms": 9.7,
+            "render_ms": 19.4,
+            "total_ms": 133.4
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 104.2,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 9.5,
+            "render_ms": 19.4,
+            "total_ms": 133.3
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 104.4,
+            "handler_ms": 0.3,
+            "ui_wait_ms": 9.2,
+            "render_ms": 19.4,
+            "total_ms": 133.3
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 104.6,
+            "handler_ms": 0.3,
+            "ui_wait_ms": 8.9,
+            "render_ms": 19.4,
+            "total_ms": 133.2
+          }
+        }
+      ],
+      "cpu_ms": {
+        "TaskDuration": 141.47400000000002,
+        "ScriptDuration": 55.349000000000004,
+        "LayoutDuration": 6.896,
+        "RecalcStyleDuration": 28.122999999999998
+      }
+    },
+    {
+      "kind": "results",
+      "round": 1,
+      "elapsed_ms": 127.60000014305115,
+      "preparation_requests": 0,
+      "rows_retained": true,
+      "sorted": true,
+      "finished_count": 328,
+      "score": "11:8",
+      "receipts": [
+        {
+          "type": "score",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 0.2,
+            "handler_ms": 0.3,
+            "ui_wait_ms": 0,
+            "render_ms": 55.6,
+            "total_ms": 56.1
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 4.4,
+            "handler_ms": 0.4,
+            "ui_wait_ms": 54.9,
+            "render_ms": 20.2,
+            "total_ms": 79.9
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 4.6,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 54.7,
+            "render_ms": 20.3,
+            "total_ms": 79.8
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 4.8,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 54.5,
+            "render_ms": 20.3,
+            "total_ms": 79.8
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 4.9,
+            "handler_ms": 0.3,
+            "ui_wait_ms": 54.2,
+            "render_ms": 20.3,
+            "total_ms": 79.7
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 5.2,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 54.1,
+            "render_ms": 20.3,
+            "total_ms": 79.7
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 5.2,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 53.9,
+            "render_ms": 20.3,
+            "total_ms": 79.6
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 5.5,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 53.7,
+            "render_ms": 20.3,
+            "total_ms": 79.6
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 5.6,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 53.5,
+            "render_ms": 20.4,
+            "total_ms": 79.7
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 5.8,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 53.3,
+            "render_ms": 20.4,
+            "total_ms": 79.7
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 5.8,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 53.2,
+            "render_ms": 20.4,
+            "total_ms": 79.5
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 5.9,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 53.1,
+            "render_ms": 20.4,
+            "total_ms": 79.5
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 6,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 53,
+            "render_ms": 20.4,
+            "total_ms": 79.5
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 6,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 52.8,
+            "render_ms": 20.4,
+            "total_ms": 79.4
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 6.2,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 52.6,
+            "render_ms": 20.4,
+            "total_ms": 79.4
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 6.4,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 52.5,
+            "render_ms": 20.4,
+            "total_ms": 79.4
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 6.4,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 52.3,
+            "render_ms": 20.4,
+            "total_ms": 79.3
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 6.6,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 52.1,
+            "render_ms": 20.4,
+            "total_ms": 79.3
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 6.7,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 52,
+            "render_ms": 20.4,
+            "total_ms": 79.2
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 6.8,
+            "handler_ms": 0,
+            "ui_wait_ms": 51.9,
+            "render_ms": 20.4,
+            "total_ms": 79.1
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 6.8,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 51.7,
+            "render_ms": 20.4,
+            "total_ms": 79.1
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 7,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 51.5,
+            "render_ms": 20.4,
+            "total_ms": 79.1
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 7.2,
+            "handler_ms": 0,
+            "ui_wait_ms": 51.5,
+            "render_ms": 20.4,
+            "total_ms": 79.1
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 7.2,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 51.3,
+            "render_ms": 20.4,
+            "total_ms": 79
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 7.3,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 51.1,
+            "render_ms": 20.4,
+            "total_ms": 79
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 7.5,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 50.9,
+            "render_ms": 20.4,
+            "total_ms": 78.9
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 7.6,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 50.7,
+            "render_ms": 20.5,
+            "total_ms": 79
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 7.7,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 50.6,
+            "render_ms": 20.5,
+            "total_ms": 78.9
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 7.7,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 50.5,
+            "render_ms": 20.5,
+            "total_ms": 78.8
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 7.8,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 50.3,
+            "render_ms": 20.5,
+            "total_ms": 78.8
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 7.9,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 50.1,
+            "render_ms": 20.5,
+            "total_ms": 78.7
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 8.2,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 49.8,
+            "render_ms": 20.5,
+            "total_ms": 78.7
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 8.4,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 49.7,
+            "render_ms": 20.4,
+            "total_ms": 78.6
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 8.5,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 49.5,
+            "render_ms": 20.4,
+            "total_ms": 78.6
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 8.7,
+            "handler_ms": 0.3,
+            "ui_wait_ms": 49.2,
+            "render_ms": 20.5,
+            "total_ms": 78.7
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 8.9,
+            "handler_ms": 0.3,
+            "ui_wait_ms": 48.9,
+            "render_ms": 20.5,
+            "total_ms": 78.6
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 9.1,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 48.7,
+            "render_ms": 20.5,
+            "total_ms": 78.5
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 9.2,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 48.6,
+            "render_ms": 20.5,
+            "total_ms": 78.4
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 9.3,
+            "handler_ms": 0.3,
+            "ui_wait_ms": 48.3,
+            "render_ms": 20.5,
+            "total_ms": 78.4
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 9.5,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 48.2,
+            "render_ms": 20.5,
+            "total_ms": 78.3
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 9.6,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 48,
+            "render_ms": 20.5,
+            "total_ms": 78.3
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 9.8,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 47.8,
+            "render_ms": 20.5,
+            "total_ms": 78.3
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 9.9,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 47.7,
+            "render_ms": 20.5,
+            "total_ms": 78.2
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 9.9,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 47.6,
+            "render_ms": 20.5,
+            "total_ms": 78.1
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 10,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 47.4,
+            "render_ms": 20.5,
+            "total_ms": 78.1
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 10.2,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 47.2,
+            "render_ms": 20.5,
+            "total_ms": 78.1
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 10.4,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 47,
+            "render_ms": 20.5,
+            "total_ms": 78.1
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 10.5,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 46.9,
+            "render_ms": 20.5,
+            "total_ms": 78
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 10.5,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 46.7,
+            "render_ms": 20.5,
+            "total_ms": 77.9
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 10.7,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 46.6,
+            "render_ms": 20.5,
+            "total_ms": 77.9
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 45.1,
+            "handler_ms": 0.4,
+            "ui_wait_ms": 11.9,
+            "render_ms": 20.5,
+            "total_ms": 77.9
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 45.4,
+            "handler_ms": 0.3,
+            "ui_wait_ms": 11.6,
+            "render_ms": 20.5,
+            "total_ms": 77.8
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 45.7,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 11.5,
+            "render_ms": 20.6,
+            "total_ms": 77.9
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 45.8,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 11.3,
+            "render_ms": 20.6,
+            "total_ms": 77.9
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 45.8,
+            "handler_ms": 0.3,
+            "ui_wait_ms": 11,
+            "render_ms": 20.6,
+            "total_ms": 77.7
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 46.1,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 10.9,
+            "render_ms": 20.6,
+            "total_ms": 77.7
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 46.2,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 10.7,
+            "render_ms": 20.6,
+            "total_ms": 77.7
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 46.4,
+            "handler_ms": 0,
+            "ui_wait_ms": 10.7,
+            "render_ms": 20.6,
+            "total_ms": 77.7
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 46.3,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 10.5,
+            "render_ms": 20.6,
+            "total_ms": 77.6
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 46.5,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 10.3,
+            "render_ms": 20.6,
+            "total_ms": 77.5
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 46.6,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 10.2,
+            "render_ms": 20.6,
+            "total_ms": 77.5
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 46.6,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 10,
+            "render_ms": 20.6,
+            "total_ms": 77.4
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 46.8,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 9.8,
+            "render_ms": 20.6,
+            "total_ms": 77.4
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 46.9,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 9.7,
+            "render_ms": 20.6,
+            "total_ms": 77.3
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 47,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 9.6,
+            "render_ms": 20.6,
+            "total_ms": 77.3
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 47.1,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 9.4,
+            "render_ms": 20.6,
+            "total_ms": 77.3
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 47.3,
+            "handler_ms": 0,
+            "ui_wait_ms": 9.4,
+            "render_ms": 20.6,
+            "total_ms": 77.3
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 47.2,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 9.2,
+            "render_ms": 20.6,
+            "total_ms": 77.2
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 47.3,
+            "handler_ms": 0,
+            "ui_wait_ms": 9.2,
+            "render_ms": 20.7,
+            "total_ms": 77.2
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 47.3,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 9,
+            "render_ms": 20.7,
+            "total_ms": 77.2
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 47.5,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 8.9,
+            "render_ms": 20.7,
+            "total_ms": 77.2
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 47.5,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 8.8,
+            "render_ms": 20.7,
+            "total_ms": 77.1
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 47.6,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 8.7,
+            "render_ms": 20.7,
+            "total_ms": 77.1
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 47.6,
+            "handler_ms": 0,
+            "ui_wait_ms": 8.7,
+            "render_ms": 20.7,
+            "total_ms": 77
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 47.6,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 8.5,
+            "render_ms": 20.7,
+            "total_ms": 77
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 47.8,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 8.3,
+            "render_ms": 20.7,
+            "total_ms": 76.9
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 47.9,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 8.2,
+            "render_ms": 20.7,
+            "total_ms": 76.9
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 48.1,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 8,
+            "render_ms": 20.7,
+            "total_ms": 76.9
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 48,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 7.9,
+            "render_ms": 20.7,
+            "total_ms": 76.7
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 48.1,
+            "handler_ms": 0,
+            "ui_wait_ms": 7.9,
+            "render_ms": 20.7,
+            "total_ms": 76.7
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 48.1,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 7.7,
+            "render_ms": 20.7,
+            "total_ms": 76.7
+          }
+        }
+      ],
+      "cpu_ms": {
+        "TaskDuration": 85.18999999999998,
+        "ScriptDuration": 22.264,
+        "LayoutDuration": 5.949000000000001,
+        "RecalcStyleDuration": 24.233
+      }
+    },
+    {
+      "kind": "results",
+      "round": 2,
+      "elapsed_ms": 144,
+      "preparation_requests": 0,
+      "rows_retained": true,
+      "sorted": true,
+      "finished_count": 328,
+      "score": "12:8",
+      "receipts": [
+        {
+          "type": "score",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 0.4,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 0,
+            "render_ms": 56.8,
+            "total_ms": 57.4
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 6,
+            "handler_ms": 0.3,
+            "ui_wait_ms": 56.2,
+            "render_ms": 29.6,
+            "total_ms": 92.1
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 6.3,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 55.9,
+            "render_ms": 29.7,
+            "total_ms": 92.1
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 6.3,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 55.8,
+            "render_ms": 29.6,
+            "total_ms": 91.9
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 6.5,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 55.6,
+            "render_ms": 29.6,
+            "total_ms": 91.9
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 6.7,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 55.4,
+            "render_ms": 29.6,
+            "total_ms": 91.9
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 6.7,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 55.2,
+            "render_ms": 29.6,
+            "total_ms": 91.7
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 7,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 54.9,
+            "render_ms": 29.6,
+            "total_ms": 91.7
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 7.2,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 54.8,
+            "render_ms": 29.6,
+            "total_ms": 91.7
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 7.3,
+            "handler_ms": 0.3,
+            "ui_wait_ms": 54.5,
+            "render_ms": 29.7,
+            "total_ms": 91.8
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 7.4,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 54.4,
+            "render_ms": 29.7,
+            "total_ms": 91.6
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 7.4,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 54.2,
+            "render_ms": 29.7,
+            "total_ms": 91.5
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 7.6,
+            "handler_ms": 0.3,
+            "ui_wait_ms": 53.9,
+            "render_ms": 29.7,
+            "total_ms": 91.5
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 7.8,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 53.7,
+            "render_ms": 29.7,
+            "total_ms": 91.4
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 8,
+            "handler_ms": 0.3,
+            "ui_wait_ms": 53.4,
+            "render_ms": 29.7,
+            "total_ms": 91.4
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 8.2,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 53.3,
+            "render_ms": 29.7,
+            "total_ms": 91.3
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 8.2,
+            "handler_ms": 0.3,
+            "ui_wait_ms": 53,
+            "render_ms": 29.7,
+            "total_ms": 91.2
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 8.5,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 52.9,
+            "render_ms": 29.7,
+            "total_ms": 91.2
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 8.7,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 52.7,
+            "render_ms": 29.7,
+            "total_ms": 91.2
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 8.7,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 52.5,
+            "render_ms": 29.7,
+            "total_ms": 91.1
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 8.8,
+            "handler_ms": 0.3,
+            "ui_wait_ms": 52.2,
+            "render_ms": 29.7,
+            "total_ms": 91
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 9.1,
+            "handler_ms": 0.4,
+            "ui_wait_ms": 51.8,
+            "render_ms": 29.7,
+            "total_ms": 91
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 9.4,
+            "handler_ms": 0.3,
+            "ui_wait_ms": 51.5,
+            "render_ms": 29.7,
+            "total_ms": 90.9
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 9.6,
+            "handler_ms": 0.3,
+            "ui_wait_ms": 51.2,
+            "render_ms": 29.7,
+            "total_ms": 90.8
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 10,
+            "handler_ms": 0.3,
+            "ui_wait_ms": 50.8,
+            "render_ms": 29.7,
+            "total_ms": 90.8
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 43.1,
+            "handler_ms": 0.4,
+            "ui_wait_ms": 17.6,
+            "render_ms": 29.7,
+            "total_ms": 90.8
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 43.4,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 17.4,
+            "render_ms": 29.8,
+            "total_ms": 90.8
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 43.6,
+            "handler_ms": 0.3,
+            "ui_wait_ms": 17,
+            "render_ms": 29.8,
+            "total_ms": 90.7
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 43.8,
+            "handler_ms": 0.3,
+            "ui_wait_ms": 16.7,
+            "render_ms": 29.8,
+            "total_ms": 90.6
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 44,
+            "handler_ms": 0.3,
+            "ui_wait_ms": 16.4,
+            "render_ms": 29.8,
+            "total_ms": 90.5
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 44.3,
+            "handler_ms": 0.3,
+            "ui_wait_ms": 16.1,
+            "render_ms": 29.8,
+            "total_ms": 90.5
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 44.5,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 15.9,
+            "render_ms": 29.8,
+            "total_ms": 90.4
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 44.7,
+            "handler_ms": 0.3,
+            "ui_wait_ms": 15.6,
+            "render_ms": 29.8,
+            "total_ms": 90.4
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 45,
+            "handler_ms": 0.3,
+            "ui_wait_ms": 15.3,
+            "render_ms": 29.7,
+            "total_ms": 90.3
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 45.2,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 15.1,
+            "render_ms": 29.7,
+            "total_ms": 90.2
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 45.4,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 15,
+            "render_ms": 29.7,
+            "total_ms": 90.2
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 45.3,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 14.8,
+            "render_ms": 29.7,
+            "total_ms": 90
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 45.4,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 14.7,
+            "render_ms": 29.7,
+            "total_ms": 89.9
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 45.4,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 14.5,
+            "render_ms": 29.7,
+            "total_ms": 89.8
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 45.4,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 14.4,
+            "render_ms": 29.7,
+            "total_ms": 89.6
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 45.4,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 14.2,
+            "render_ms": 29.7,
+            "total_ms": 89.5
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 45.5,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 14.1,
+            "render_ms": 29.7,
+            "total_ms": 89.4
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 45.7,
+            "handler_ms": 0,
+            "ui_wait_ms": 14,
+            "render_ms": 29.8,
+            "total_ms": 89.5
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 45.6,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 13.8,
+            "render_ms": 29.8,
+            "total_ms": 89.4
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 45.8,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 13.7,
+            "render_ms": 29.8,
+            "total_ms": 89.4
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 45.9,
+            "handler_ms": 0,
+            "ui_wait_ms": 13.6,
+            "render_ms": 29.8,
+            "total_ms": 89.3
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 45.8,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 13.4,
+            "render_ms": 29.8,
+            "total_ms": 89.2
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 45.9,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 13.3,
+            "render_ms": 29.8,
+            "total_ms": 89.1
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 46,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 13.2,
+            "render_ms": 29.8,
+            "total_ms": 89.1
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 46.1,
+            "handler_ms": 0,
+            "ui_wait_ms": 13.1,
+            "render_ms": 29.8,
+            "total_ms": 89
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 46.4,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 12.7,
+            "render_ms": 29.8,
+            "total_ms": 89
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 46.4,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 12.6,
+            "render_ms": 29.8,
+            "total_ms": 88.9
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 46.5,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 12.3,
+            "render_ms": 29.8,
+            "total_ms": 88.8
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 46.7,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 12.1,
+            "render_ms": 29.8,
+            "total_ms": 88.8
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 46.8,
+            "handler_ms": 0,
+            "ui_wait_ms": 12.1,
+            "render_ms": 29.8,
+            "total_ms": 88.7
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 46.7,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 11.9,
+            "render_ms": 29.8,
+            "total_ms": 88.6
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 46.9,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 11.8,
+            "render_ms": 29.8,
+            "total_ms": 88.6
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 46.9,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 11.7,
+            "render_ms": 29.8,
+            "total_ms": 88.5
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 47,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 11.6,
+            "render_ms": 29.8,
+            "total_ms": 88.5
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 47,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 11.5,
+            "render_ms": 29.8,
+            "total_ms": 88.4
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 47.1,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 11.4,
+            "render_ms": 29.8,
+            "total_ms": 88.4
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 47.1,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 11.2,
+            "render_ms": 29.9,
+            "total_ms": 88.4
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 47.2,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 11.1,
+            "render_ms": 29.9,
+            "total_ms": 88.3
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 47.3,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 11,
+            "render_ms": 29.9,
+            "total_ms": 88.3
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 47.4,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 10.9,
+            "render_ms": 29.9,
+            "total_ms": 88.3
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 47.3,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 10.8,
+            "render_ms": 29.9,
+            "total_ms": 88.1
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 47.4,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 10.7,
+            "render_ms": 29.9,
+            "total_ms": 88.1
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 47.4,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 10.6,
+            "render_ms": 29.9,
+            "total_ms": 88
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 47.5,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 10.5,
+            "render_ms": 29.9,
+            "total_ms": 88
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 47.5,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 10.3,
+            "render_ms": 29.9,
+            "total_ms": 87.9
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 47.7,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 10.2,
+            "render_ms": 29.9,
+            "total_ms": 87.9
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 47.7,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 10.1,
+            "render_ms": 29.9,
+            "total_ms": 87.8
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 47.7,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 10,
+            "render_ms": 29.9,
+            "total_ms": 87.7
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 47.7,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 9.9,
+            "render_ms": 29.9,
+            "total_ms": 87.6
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 47.9,
+            "handler_ms": 0,
+            "ui_wait_ms": 9.8,
+            "render_ms": 29.9,
+            "total_ms": 87.6
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 48,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 9.5,
+            "render_ms": 29.9,
+            "total_ms": 87.5
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 48.1,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 9.4,
+            "render_ms": 29.9,
+            "total_ms": 87.5
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 48.1,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 9.3,
+            "render_ms": 29.9,
+            "total_ms": 87.4
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 48.1,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 9.2,
+            "render_ms": 29.9,
+            "total_ms": 87.3
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 48.2,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 9,
+            "render_ms": 29.9,
+            "total_ms": 87.3
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 48.3,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 8.9,
+            "render_ms": 29.9,
+            "total_ms": 87.2
+          }
+        }
+      ],
+      "cpu_ms": {
+        "TaskDuration": 95.57500000000002,
+        "ScriptDuration": 25.043999999999997,
+        "LayoutDuration": 6.611999999999998,
+        "RecalcStyleDuration": 22.745
+      }
+    },
+    {
+      "kind": "names",
+      "round": 0,
+      "elapsed_ms": 126.60000014305115,
+      "preparation_requests": 0,
+      "rows_retained": true,
+      "sorted": true,
+      "finished_count": 328,
+      "score": "10:8",
+      "receipts": [
+        {
+          "type": "score",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 0.3,
+            "handler_ms": 0.3,
+            "ui_wait_ms": 0,
+            "render_ms": 27.4,
+            "total_ms": 28
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 4.6,
+            "handler_ms": 1.1,
+            "ui_wait_ms": 52.3,
+            "render_ms": 17.1,
+            "total_ms": 75.1
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 5.5,
+            "handler_ms": 0.4,
+            "ui_wait_ms": 51.9,
+            "render_ms": 17.1,
+            "total_ms": 74.9
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 5.9,
+            "handler_ms": 0.3,
+            "ui_wait_ms": 51.6,
+            "render_ms": 17.1,
+            "total_ms": 74.9
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 6.1,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 51.4,
+            "render_ms": 17.1,
+            "total_ms": 74.8
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 6.2,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 51.2,
+            "render_ms": 17.1,
+            "total_ms": 74.7
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 6.4,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 51,
+            "render_ms": 17.1,
+            "total_ms": 74.7
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 6.5,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 50.9,
+            "render_ms": 17.2,
+            "total_ms": 74.7
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 6.6,
+            "handler_ms": 0.3,
+            "ui_wait_ms": 50.5,
+            "render_ms": 17.3,
+            "total_ms": 74.7
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 6.9,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 50.3,
+            "render_ms": 17.3,
+            "total_ms": 74.7
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 7.1,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 50.1,
+            "render_ms": 17.3,
+            "total_ms": 74.7
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 7.2,
+            "handler_ms": 0.3,
+            "ui_wait_ms": 49.8,
+            "render_ms": 17.3,
+            "total_ms": 74.6
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 7.5,
+            "handler_ms": 0.4,
+            "ui_wait_ms": 49.4,
+            "render_ms": 17.3,
+            "total_ms": 74.6
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 7.8,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 49.2,
+            "render_ms": 17.3,
+            "total_ms": 74.5
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 8,
+            "handler_ms": 0.3,
+            "ui_wait_ms": 48.9,
+            "render_ms": 17.3,
+            "total_ms": 74.5
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 8.3,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 48.8,
+            "render_ms": 17.3,
+            "total_ms": 74.5
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 8.3,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 48.6,
+            "render_ms": 17.3,
+            "total_ms": 74.4
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 8.4,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 48.4,
+            "render_ms": 17.3,
+            "total_ms": 74.3
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 8.6,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 48.3,
+            "render_ms": 17.3,
+            "total_ms": 74.3
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 8.6,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 48.2,
+            "render_ms": 17.3,
+            "total_ms": 74.2
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 8.7,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 48.1,
+            "render_ms": 17.3,
+            "total_ms": 74.2
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 8.8,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 47.8,
+            "render_ms": 17.3,
+            "total_ms": 74.1
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 9,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 47.6,
+            "render_ms": 17.4,
+            "total_ms": 74.2
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 9.2,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 47.5,
+            "render_ms": 17.4,
+            "total_ms": 74.2
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 9.2,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 47.4,
+            "render_ms": 17.4,
+            "total_ms": 74.1
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 24.2,
+            "handler_ms": 0.4,
+            "ui_wait_ms": 32.1,
+            "render_ms": 17.4,
+            "total_ms": 74.1
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 24.5,
+            "handler_ms": 0.3,
+            "ui_wait_ms": 31.8,
+            "render_ms": 17.4,
+            "total_ms": 74
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 24.7,
+            "handler_ms": 0.4,
+            "ui_wait_ms": 31.4,
+            "render_ms": 17.4,
+            "total_ms": 73.9
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 25.2,
+            "handler_ms": 0.3,
+            "ui_wait_ms": 31,
+            "render_ms": 17.4,
+            "total_ms": 73.9
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 25.5,
+            "handler_ms": 0.3,
+            "ui_wait_ms": 30.7,
+            "render_ms": 17.4,
+            "total_ms": 73.9
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 25.7,
+            "handler_ms": 0.3,
+            "ui_wait_ms": 30.4,
+            "render_ms": 17.4,
+            "total_ms": 73.8
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 26,
+            "handler_ms": 0.3,
+            "ui_wait_ms": 30.1,
+            "render_ms": 17.4,
+            "total_ms": 73.8
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 26.3,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 29.9,
+            "render_ms": 17.4,
+            "total_ms": 73.8
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 26.4,
+            "handler_ms": 0.3,
+            "ui_wait_ms": 29.6,
+            "render_ms": 17.4,
+            "total_ms": 73.7
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 26.6,
+            "handler_ms": 0.3,
+            "ui_wait_ms": 29.3,
+            "render_ms": 17.4,
+            "total_ms": 73.6
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 26.9,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 29.1,
+            "render_ms": 17.4,
+            "total_ms": 73.6
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 27,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 28.9,
+            "render_ms": 17.4,
+            "total_ms": 73.5
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 27.2,
+            "handler_ms": 0,
+            "ui_wait_ms": 28.9,
+            "render_ms": 17.4,
+            "total_ms": 73.5
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 27.1,
+            "handler_ms": 0.3,
+            "ui_wait_ms": 28.6,
+            "render_ms": 17.4,
+            "total_ms": 73.4
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 27.4,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 28.5,
+            "render_ms": 17.4,
+            "total_ms": 73.4
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 27.5,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 28.5,
+            "render_ms": 17.3,
+            "total_ms": 73.4
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 27.6,
+            "handler_ms": 0.3,
+            "ui_wait_ms": 28.2,
+            "render_ms": 17.3,
+            "total_ms": 73.4
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 27.8,
+            "handler_ms": 0.3,
+            "ui_wait_ms": 27.8,
+            "render_ms": 17.3,
+            "total_ms": 73.2
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 28.1,
+            "handler_ms": 0.3,
+            "ui_wait_ms": 27.5,
+            "render_ms": 17.4,
+            "total_ms": 73.3
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 28.4,
+            "handler_ms": 0.3,
+            "ui_wait_ms": 27.2,
+            "render_ms": 17.4,
+            "total_ms": 73.3
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 28.6,
+            "handler_ms": 0.3,
+            "ui_wait_ms": 26.9,
+            "render_ms": 17.4,
+            "total_ms": 73.2
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 28.8,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 26.7,
+            "render_ms": 17.4,
+            "total_ms": 73.1
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 29,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 26.6,
+            "render_ms": 17.4,
+            "total_ms": 73.1
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 29,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 26.5,
+            "render_ms": 17.4,
+            "total_ms": 73
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 29.1,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 26.3,
+            "render_ms": 17.5,
+            "total_ms": 73.1
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 43.4,
+            "handler_ms": 0.3,
+            "ui_wait_ms": 11.9,
+            "render_ms": 17.5,
+            "total_ms": 73.1
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 43.6,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 11.8,
+            "render_ms": 17.5,
+            "total_ms": 73
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 43.7,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 11.6,
+            "render_ms": 17.5,
+            "total_ms": 73
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 43.8,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 11.4,
+            "render_ms": 17.5,
+            "total_ms": 72.9
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 43.9,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 11.3,
+            "render_ms": 17.5,
+            "total_ms": 72.8
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 44,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 11.2,
+            "render_ms": 17.5,
+            "total_ms": 72.8
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 44.1,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 11.1,
+            "render_ms": 17.5,
+            "total_ms": 72.8
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 44.1,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 11,
+            "render_ms": 17.5,
+            "total_ms": 72.7
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 44.2,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 10.9,
+            "render_ms": 17.5,
+            "total_ms": 72.7
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 44.4,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 10.7,
+            "render_ms": 17.5,
+            "total_ms": 72.7
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 44.4,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 10.5,
+            "render_ms": 17.5,
+            "total_ms": 72.6
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 44.6,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 10.4,
+            "render_ms": 17.5,
+            "total_ms": 72.6
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 44.6,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 10.3,
+            "render_ms": 17.5,
+            "total_ms": 72.5
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 44.6,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 10.2,
+            "render_ms": 17.5,
+            "total_ms": 72.4
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 44.8,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 10,
+            "render_ms": 17.5,
+            "total_ms": 72.4
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 44.8,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 9.8,
+            "render_ms": 17.5,
+            "total_ms": 72.3
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 45,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 9.6,
+            "render_ms": 17.5,
+            "total_ms": 72.3
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 45.1,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 9.5,
+            "render_ms": 17.5,
+            "total_ms": 72.2
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 45.1,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 9.4,
+            "render_ms": 17.6,
+            "total_ms": 72.2
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 45.2,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 9.3,
+            "render_ms": 17.6,
+            "total_ms": 72.2
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 45.2,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 9.2,
+            "render_ms": 17.6,
+            "total_ms": 72.1
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 45.3,
+            "handler_ms": 0.3,
+            "ui_wait_ms": 8.9,
+            "render_ms": 17.6,
+            "total_ms": 72.1
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 45.6,
+            "handler_ms": 0.3,
+            "ui_wait_ms": 8.6,
+            "render_ms": 17.6,
+            "total_ms": 72.1
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 45.8,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 8.5,
+            "render_ms": 17.6,
+            "total_ms": 72
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 45.9,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 8.3,
+            "render_ms": 17.6,
+            "total_ms": 72
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 46.1,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 8.1,
+            "render_ms": 17.6,
+            "total_ms": 71.9
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 46.2,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 7.9,
+            "render_ms": 17.6,
+            "total_ms": 71.9
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 46.4,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 7.8,
+            "render_ms": 17.6,
+            "total_ms": 71.9
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 46.4,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 7.7,
+            "render_ms": 17.6,
+            "total_ms": 71.8
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 46.5,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 7.5,
+            "render_ms": 17.6,
+            "total_ms": 71.8
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 46.6,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 7.4,
+            "render_ms": 17.6,
+            "total_ms": 71.7
+          }
+        }
+      ],
+      "cpu_ms": {
+        "TaskDuration": 76.17100000000005,
+        "ScriptDuration": 25.778999999999996,
+        "LayoutDuration": 6.6049999999999995,
+        "RecalcStyleDuration": 0.08400000000000074
+      }
+    },
+    {
+      "kind": "names",
+      "round": 1,
+      "elapsed_ms": 109.29999995231628,
+      "preparation_requests": 0,
+      "rows_retained": true,
+      "sorted": true,
+      "finished_count": 328,
+      "score": "11:8",
+      "receipts": [
+        {
+          "type": "score",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 0.3,
+            "handler_ms": 0.3,
+            "ui_wait_ms": 0,
+            "render_ms": 44.6,
+            "total_ms": 45.2
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 6.7,
+            "handler_ms": 0.3,
+            "ui_wait_ms": 43.9,
+            "render_ms": 12,
+            "total_ms": 62.9
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 6.8,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 43.8,
+            "render_ms": 11.9,
+            "total_ms": 62.7
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 6.9,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 43.5,
+            "render_ms": 11.9,
+            "total_ms": 62.5
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 7.1,
+            "handler_ms": 0.4,
+            "ui_wait_ms": 43.1,
+            "render_ms": 11.9,
+            "total_ms": 62.5
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 7.4,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 42.9,
+            "render_ms": 11.9,
+            "total_ms": 62.4
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 7.6,
+            "handler_ms": 0.3,
+            "ui_wait_ms": 42.6,
+            "render_ms": 11.9,
+            "total_ms": 62.4
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 7.7,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 42.4,
+            "render_ms": 11.9,
+            "total_ms": 62.2
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 7.9,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 42.2,
+            "render_ms": 11.9,
+            "total_ms": 62.2
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 8,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 42,
+            "render_ms": 11.9,
+            "total_ms": 62.1
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 8.2,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 41.8,
+            "render_ms": 11.9,
+            "total_ms": 62.1
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 8.4,
+            "handler_ms": 0.3,
+            "ui_wait_ms": 41.4,
+            "render_ms": 11.9,
+            "total_ms": 62
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 8.6,
+            "handler_ms": 0.4,
+            "ui_wait_ms": 41.1,
+            "render_ms": 11.8,
+            "total_ms": 61.9
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 9,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 40.9,
+            "render_ms": 11.8,
+            "total_ms": 61.9
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 9.1,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 40.7,
+            "render_ms": 11.8,
+            "total_ms": 61.8
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 9.2,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 40.5,
+            "render_ms": 11.8,
+            "total_ms": 61.7
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 9.3,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 40.3,
+            "render_ms": 11.9,
+            "total_ms": 61.7
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 9.4,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 40.1,
+            "render_ms": 11.9,
+            "total_ms": 61.6
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 9.6,
+            "handler_ms": 0.3,
+            "ui_wait_ms": 39.8,
+            "render_ms": 11.9,
+            "total_ms": 61.6
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 9.8,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 39.6,
+            "render_ms": 12,
+            "total_ms": 61.6
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 9.9,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 39.5,
+            "render_ms": 12,
+            "total_ms": 61.5
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 10,
+            "handler_ms": 0.3,
+            "ui_wait_ms": 39.2,
+            "render_ms": 12,
+            "total_ms": 61.5
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 10.2,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 39,
+            "render_ms": 12,
+            "total_ms": 61.4
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 10.3,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 38.8,
+            "render_ms": 12,
+            "total_ms": 61.3
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 10.4,
+            "handler_ms": 0.3,
+            "ui_wait_ms": 38.5,
+            "render_ms": 12,
+            "total_ms": 61.2
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 28.8,
+            "handler_ms": 0.4,
+            "ui_wait_ms": 19.9,
+            "render_ms": 12,
+            "total_ms": 61.1
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 29.2,
+            "handler_ms": 0.3,
+            "ui_wait_ms": 19.6,
+            "render_ms": 12,
+            "total_ms": 61.1
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 29.4,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 19.4,
+            "render_ms": 12,
+            "total_ms": 61
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 29.5,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 19.2,
+            "render_ms": 12,
+            "total_ms": 60.9
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 29.6,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 19.1,
+            "render_ms": 12,
+            "total_ms": 60.8
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 29.7,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 18.9,
+            "render_ms": 12,
+            "total_ms": 60.8
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 29.8,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 18.7,
+            "render_ms": 12,
+            "total_ms": 60.7
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 29.9,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 18.6,
+            "render_ms": 12,
+            "total_ms": 60.6
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 30,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 18.4,
+            "render_ms": 12,
+            "total_ms": 60.6
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 30.1,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 18.2,
+            "render_ms": 12,
+            "total_ms": 60.5
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 30.2,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 18.1,
+            "render_ms": 12,
+            "total_ms": 60.4
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 30.3,
+            "handler_ms": 0.3,
+            "ui_wait_ms": 17.8,
+            "render_ms": 12,
+            "total_ms": 60.4
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 30.4,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 17.7,
+            "render_ms": 12,
+            "total_ms": 60.2
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 30.5,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 17.5,
+            "render_ms": 12,
+            "total_ms": 60.2
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 30.7,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 17.3,
+            "render_ms": 12,
+            "total_ms": 60.2
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 30.8,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 17.1,
+            "render_ms": 12,
+            "total_ms": 60.1
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 30.9,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 17,
+            "render_ms": 12,
+            "total_ms": 60
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 31,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 16.8,
+            "render_ms": 12,
+            "total_ms": 60
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 31.1,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 16.7,
+            "render_ms": 12,
+            "total_ms": 59.9
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 31,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 16.5,
+            "render_ms": 12.1,
+            "total_ms": 59.8
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 31.2,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 16.3,
+            "render_ms": 12.1,
+            "total_ms": 59.8
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 31.3,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 16.2,
+            "render_ms": 12.1,
+            "total_ms": 59.7
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 31.4,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 16.1,
+            "render_ms": 12.1,
+            "total_ms": 59.7
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 31.5,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 15.8,
+            "render_ms": 12.1,
+            "total_ms": 59.6
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 31.6,
+            "handler_ms": 0.3,
+            "ui_wait_ms": 15.5,
+            "render_ms": 12.2,
+            "total_ms": 59.6
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 31.9,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 15.2,
+            "render_ms": 12.2,
+            "total_ms": 59.5
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 32.1,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 15.1,
+            "render_ms": 12.2,
+            "total_ms": 59.5
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 32.1,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 14.9,
+            "render_ms": 12.2,
+            "total_ms": 59.4
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 32.2,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 14.7,
+            "render_ms": 12.2,
+            "total_ms": 59.3
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 32.4,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 14.5,
+            "render_ms": 12.2,
+            "total_ms": 59.3
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 32.5,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 14.3,
+            "render_ms": 12.2,
+            "total_ms": 59.2
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 32.7,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 14.1,
+            "render_ms": 12.2,
+            "total_ms": 59.2
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 32.8,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 14,
+            "render_ms": 12.2,
+            "total_ms": 59.1
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 32.8,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 13.9,
+            "render_ms": 12.2,
+            "total_ms": 59
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 32.7,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 13.7,
+            "render_ms": 12.2,
+            "total_ms": 58.8
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 33,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 13.5,
+            "render_ms": 12.2,
+            "total_ms": 58.8
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 33,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 13.3,
+            "render_ms": 12.2,
+            "total_ms": 58.7
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 33.2,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 13.2,
+            "render_ms": 12.2,
+            "total_ms": 58.7
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 33.2,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 13,
+            "render_ms": 12.2,
+            "total_ms": 58.6
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 33.3,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 12.8,
+            "render_ms": 12.2,
+            "total_ms": 58.5
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 33.4,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 12.7,
+            "render_ms": 12.2,
+            "total_ms": 58.4
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 33.6,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 12.5,
+            "render_ms": 12.2,
+            "total_ms": 58.4
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 33.6,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 12.4,
+            "render_ms": 12.2,
+            "total_ms": 58.3
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 33.7,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 12.2,
+            "render_ms": 12.2,
+            "total_ms": 58.3
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 33.7,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 12.1,
+            "render_ms": 12.2,
+            "total_ms": 58.1
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 33.7,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 12,
+            "render_ms": 12.3,
+            "total_ms": 58.1
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 33.7,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 11.8,
+            "render_ms": 12.3,
+            "total_ms": 58
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 33.8,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 11.6,
+            "render_ms": 12.3,
+            "total_ms": 57.9
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 34,
+            "handler_ms": 0.3,
+            "ui_wait_ms": 11.3,
+            "render_ms": 12.3,
+            "total_ms": 57.9
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 34.3,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 11.2,
+            "render_ms": 12.3,
+            "total_ms": 57.9
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 34.5,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 10.8,
+            "render_ms": 12.4,
+            "total_ms": 57.9
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 34.5,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 10.7,
+            "render_ms": 12.4,
+            "total_ms": 57.7
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 34.7,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 10.5,
+            "render_ms": 12.4,
+            "total_ms": 57.7
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 34.7,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 10.4,
+            "render_ms": 12.4,
+            "total_ms": 57.6
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 34.7,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 10.2,
+            "render_ms": 12.4,
+            "total_ms": 57.5
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 34.9,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 10,
+            "render_ms": 12.4,
+            "total_ms": 57.5
+          }
+        }
+      ],
+      "cpu_ms": {
+        "TaskDuration": 70.53300000000002,
+        "ScriptDuration": 24.373000000000005,
+        "LayoutDuration": 6.7879999999999985,
+        "RecalcStyleDuration": 0
+      }
+    },
+    {
+      "kind": "names",
+      "round": 2,
+      "elapsed_ms": 125.29999995231628,
+      "preparation_requests": 0,
+      "rows_retained": true,
+      "sorted": true,
+      "finished_count": 328,
+      "score": "12:8",
+      "receipts": [
+        {
+          "type": "score",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 0.1,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 0,
+            "render_ms": 31.3,
+            "total_ms": 31.6
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 6.9,
+            "handler_ms": 0.3,
+            "ui_wait_ms": 64.1,
+            "render_ms": 2.4,
+            "total_ms": 73.7
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 7.1,
+            "handler_ms": 0.3,
+            "ui_wait_ms": 63.8,
+            "render_ms": 2.5,
+            "total_ms": 73.7
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 7.2,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 63.6,
+            "render_ms": 2.5,
+            "total_ms": 73.5
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 7.3,
+            "handler_ms": 0.3,
+            "ui_wait_ms": 63.3,
+            "render_ms": 2.5,
+            "total_ms": 73.4
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 7.6,
+            "handler_ms": 0.3,
+            "ui_wait_ms": 62.9,
+            "render_ms": 2.5,
+            "total_ms": 73.3
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 7.9,
+            "handler_ms": 0.3,
+            "ui_wait_ms": 62.5,
+            "render_ms": 2.5,
+            "total_ms": 73.2
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 8.1,
+            "handler_ms": 0.3,
+            "ui_wait_ms": 62.2,
+            "render_ms": 2.5,
+            "total_ms": 73.1
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 8.2,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 62.1,
+            "render_ms": 2.5,
+            "total_ms": 72.9
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 8.3,
+            "handler_ms": 0.3,
+            "ui_wait_ms": 61.8,
+            "render_ms": 2.5,
+            "total_ms": 72.9
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 8.5,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 61.6,
+            "render_ms": 2.5,
+            "total_ms": 72.8
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 8.6,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 61.4,
+            "render_ms": 2.6,
+            "total_ms": 72.8
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 8.7,
+            "handler_ms": 0.4,
+            "ui_wait_ms": 61,
+            "render_ms": 2.6,
+            "total_ms": 72.7
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 9.1,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 60.8,
+            "render_ms": 2.6,
+            "total_ms": 72.7
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 9.2,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 60.6,
+            "render_ms": 2.6,
+            "total_ms": 72.6
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 9.3,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 60.4,
+            "render_ms": 2.6,
+            "total_ms": 72.5
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 9.5,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 60.2,
+            "render_ms": 2.6,
+            "total_ms": 72.5
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 9.7,
+            "handler_ms": 0.3,
+            "ui_wait_ms": 59.9,
+            "render_ms": 2.6,
+            "total_ms": 72.5
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 9.9,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 59.8,
+            "render_ms": 2.6,
+            "total_ms": 72.4
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 9.9,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 59.6,
+            "render_ms": 2.7,
+            "total_ms": 72.4
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 10,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 59.4,
+            "render_ms": 2.7,
+            "total_ms": 72.3
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 10.2,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 59.2,
+            "render_ms": 2.7,
+            "total_ms": 72.3
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 10.3,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 59.1,
+            "render_ms": 2.7,
+            "total_ms": 72.2
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 10.4,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 58.9,
+            "render_ms": 2.7,
+            "total_ms": 72.2
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 10.6,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 58.7,
+            "render_ms": 2.7,
+            "total_ms": 72.1
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 28.9,
+            "handler_ms": 0.4,
+            "ui_wait_ms": 40.1,
+            "render_ms": 2.7,
+            "total_ms": 72.1
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 29.3,
+            "handler_ms": 0.3,
+            "ui_wait_ms": 39.7,
+            "render_ms": 2.7,
+            "total_ms": 72
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 29.6,
+            "handler_ms": 0.3,
+            "ui_wait_ms": 39.3,
+            "render_ms": 2.7,
+            "total_ms": 71.9
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 29.8,
+            "handler_ms": 0.3,
+            "ui_wait_ms": 39,
+            "render_ms": 2.7,
+            "total_ms": 71.8
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 30,
+            "handler_ms": 0.3,
+            "ui_wait_ms": 38.7,
+            "render_ms": 2.7,
+            "total_ms": 71.7
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 30.4,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 38.4,
+            "render_ms": 2.7,
+            "total_ms": 71.7
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 30.5,
+            "handler_ms": 0.4,
+            "ui_wait_ms": 38,
+            "render_ms": 2.7,
+            "total_ms": 71.6
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 30.8,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 37.9,
+            "render_ms": 2.7,
+            "total_ms": 71.5
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 30.8,
+            "handler_ms": 0.3,
+            "ui_wait_ms": 37.6,
+            "render_ms": 2.7,
+            "total_ms": 71.4
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 31.1,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 37.4,
+            "render_ms": 2.7,
+            "total_ms": 71.4
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 31.2,
+            "handler_ms": 0.3,
+            "ui_wait_ms": 37.1,
+            "render_ms": 2.7,
+            "total_ms": 71.3
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 31.4,
+            "handler_ms": 0.3,
+            "ui_wait_ms": 36.8,
+            "render_ms": 2.7,
+            "total_ms": 71.2
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 31.8,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 36.5,
+            "render_ms": 2.7,
+            "total_ms": 71.2
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 31.9,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 36.3,
+            "render_ms": 2.7,
+            "total_ms": 71.1
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 32.1,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 36.1,
+            "render_ms": 2.7,
+            "total_ms": 71.1
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 32.3,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 35.9,
+            "render_ms": 2.8,
+            "total_ms": 71.2
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 32.3,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 35.7,
+            "render_ms": 2.8,
+            "total_ms": 71
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 32.5,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 35.5,
+            "render_ms": 2.8,
+            "total_ms": 71
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 32.6,
+            "handler_ms": 0.4,
+            "ui_wait_ms": 35.1,
+            "render_ms": 2.8,
+            "total_ms": 70.9
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 32.9,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 34.9,
+            "render_ms": 2.8,
+            "total_ms": 70.8
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 33.1,
+            "handler_ms": 0.3,
+            "ui_wait_ms": 34.6,
+            "render_ms": 2.8,
+            "total_ms": 70.8
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 33.2,
+            "handler_ms": 0.3,
+            "ui_wait_ms": 34.3,
+            "render_ms": 2.8,
+            "total_ms": 70.6
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 33.5,
+            "handler_ms": 0.3,
+            "ui_wait_ms": 33.9,
+            "render_ms": 2.8,
+            "total_ms": 70.5
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 33.7,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 33.7,
+            "render_ms": 2.8,
+            "total_ms": 70.4
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 33.8,
+            "handler_ms": 0.3,
+            "ui_wait_ms": 33.4,
+            "render_ms": 2.8,
+            "total_ms": 70.3
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 47.7,
+            "handler_ms": 0.4,
+            "ui_wait_ms": 19.2,
+            "render_ms": 2.8,
+            "total_ms": 70.1
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 47.9,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 19,
+            "render_ms": 2.8,
+            "total_ms": 69.9
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 48.1,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 18.9,
+            "render_ms": 2.8,
+            "total_ms": 69.9
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 48.1,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 18.7,
+            "render_ms": 2.8,
+            "total_ms": 69.7
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 48,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 18.5,
+            "render_ms": 2.8,
+            "total_ms": 69.5
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 48.2,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 18.3,
+            "render_ms": 2.8,
+            "total_ms": 69.5
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 48.2,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 18.1,
+            "render_ms": 2.8,
+            "total_ms": 69.3
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 48.4,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 18,
+            "render_ms": 2.8,
+            "total_ms": 69.3
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 48.4,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 17.9,
+            "render_ms": 2.8,
+            "total_ms": 69.2
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 48.4,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 17.8,
+            "render_ms": 2.8,
+            "total_ms": 69.1
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 48.5,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 17.7,
+            "render_ms": 2.8,
+            "total_ms": 69.1
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 48.5,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 17.5,
+            "render_ms": 2.8,
+            "total_ms": 69
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 48.6,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 17.4,
+            "render_ms": 2.8,
+            "total_ms": 68.9
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 48.6,
+            "handler_ms": 0,
+            "ui_wait_ms": 17.4,
+            "render_ms": 2.8,
+            "total_ms": 68.8
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 48.6,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 17.2,
+            "render_ms": 2.9,
+            "total_ms": 68.9
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 48.7,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 17,
+            "render_ms": 2.9,
+            "total_ms": 68.8
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 48.8,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 16.8,
+            "render_ms": 2.9,
+            "total_ms": 68.7
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 49,
+            "handler_ms": 0.3,
+            "ui_wait_ms": 16.5,
+            "render_ms": 2.9,
+            "total_ms": 68.7
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 49.2,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 16.4,
+            "render_ms": 2.9,
+            "total_ms": 68.6
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 49.2,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 16.2,
+            "render_ms": 2.9,
+            "total_ms": 68.5
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 49.3,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 16,
+            "render_ms": 2.9,
+            "total_ms": 68.4
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 49.5,
+            "handler_ms": 0,
+            "ui_wait_ms": 16,
+            "render_ms": 2.9,
+            "total_ms": 68.4
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 49.4,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 15.8,
+            "render_ms": 2.9,
+            "total_ms": 68.3
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 49.5,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 15.7,
+            "render_ms": 3,
+            "total_ms": 68.3
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 49.6,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 15.6,
+            "render_ms": 3,
+            "total_ms": 68.3
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 59.1,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 5.9,
+            "render_ms": 3,
+            "total_ms": 68.2
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 59.2,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 5.8,
+            "render_ms": 3,
+            "total_ms": 68.1
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 59.5,
+            "handler_ms": 0,
+            "ui_wait_ms": 5.6,
+            "render_ms": 3,
+            "total_ms": 68.1
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 59.4,
+            "handler_ms": 0.3,
+            "ui_wait_ms": 5.3,
+            "render_ms": 3,
+            "total_ms": 68
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 59.7,
+            "handler_ms": 0.1,
+            "ui_wait_ms": 5.2,
+            "render_ms": 3,
+            "total_ms": 68
+          }
+        },
+        {
+          "type": "match_edit",
+          "status": "presented",
+          "timings": {
+            "queue_ms": 59.8,
+            "handler_ms": 0.2,
+            "ui_wait_ms": 4.9,
+            "render_ms": 3.1,
+            "total_ms": 68
+          }
+        }
+      ],
+      "cpu_ms": {
+        "TaskDuration": 77.75399999999993,
+        "ScriptDuration": 24.255,
+        "LayoutDuration": 7.586000000000002,
+        "RecalcStyleDuration": 0
+      }
+    }
+  ],
+  "regressions": {
+    "number": true,
+    "keepNumber": true,
+    "namesPreserved": true,
+    "nameQueryFree": true,
+    "nameCheckIn": true,
+    "identityReplaced": true,
+    "plan": true,
+    "reopened": true,
+    "remounted": true
+  },
+  "summary": [
+    {
+      "kind": "results",
+      "point_max_ms": 57.4,
+      "updates_p95_ms": 135.1,
+      "cpu_mean_ms": 107.41300000000001
+    },
+    {
+      "kind": "names",
+      "point_max_ms": 45.2,
+      "updates_p95_ms": 74.5,
+      "cpu_mean_ms": 74.81933333333333
+    }
+  ]
+}

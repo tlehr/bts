@@ -1,0 +1,70 @@
+{
+  "date": "2026-11-05",
+  "scope": "Isolated browser, 373 synthetic matches and 30 devices; 5 native score updates per second; no live BTS or BTP writes.",
+  "results": [
+    {
+      "enabled": false,
+      "surface": "devices",
+      "points": 60,
+      "frame_p95_ms": 16.799999999999272,
+      "frame_max_ms": 16.80000000000109,
+      "frozen_created": 0,
+      "renderer_created": 0,
+      "attached_iframes": 0,
+      "nodes": 2447,
+      "TaskDuration": 302,
+      "ScriptDuration": 97,
+      "LayoutDuration": 4,
+      "RecalcStyleDuration": 9,
+      "heap_mib": 14
+    },
+    {
+      "enabled": false,
+      "surface": "board-after-devices",
+      "points": 60,
+      "frame_p95_ms": 16.799999999999272,
+      "frame_max_ms": 33.400000000001455,
+      "frozen_created": 0,
+      "renderer_created": 0,
+      "attached_iframes": 0,
+      "nodes": 23705,
+      "TaskDuration": 2018,
+      "ScriptDuration": 63,
+      "LayoutDuration": 223,
+      "RecalcStyleDuration": 31,
+      "heap_mib": 16
+    },
+    {
+      "enabled": true,
+      "surface": "devices",
+      "points": 60,
+      "frame_p95_ms": 16.799999999999272,
+      "frame_max_ms": 33.400000000001455,
+      "frozen_created": 9,
+      "renderer_created": 3,
+      "attached_iframes": 6,
+      "nodes": 2453,
+      "TaskDuration": 1097,
+      "ScriptDuration": 149,
+      "LayoutDuration": 33,
+      "RecalcStyleDuration": 54,
+      "heap_mib": 21
+    },
+    {
+      "enabled": true,
+      "surface": "board-after-devices",
+      "points": 60,
+      "frame_p95_ms": 16.799999999999272,
+      "frame_max_ms": 66.79999999999927,
+      "frozen_created": 9,
+      "renderer_created": 3,
+      "attached_iframes": 0,
+      "nodes": 23705,
+      "TaskDuration": 2164,
+      "ScriptDuration": 87,
+      "LayoutDuration": 198,
+      "RecalcStyleDuration": 29,
+      "heap_mib": 25
+    }
+  ]
+}

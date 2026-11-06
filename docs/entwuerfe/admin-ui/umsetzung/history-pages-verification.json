@@ -1,0 +1,15 @@
+{
+  "scope": "Isolated browser with 150 synthetic results on two dates; pagination, search, updates, sorting, date expansion, row identity and reload persistence.",
+  "checks": [
+    "The initial history retains all 150 results and displays 50 of the current day",
+    "More results reveal the remaining current-day games on the same rows",
+    "The reduced view can be restored",
+    "Search finds a result beyond the initial page and from a collapsed day",
+    "Clearing search restores the reduced view",
+    "Opening another day reveals its first results instead of an empty group",
+    "A result updated outside the visible page retains its current score when shown",
+    "Sorting still includes all results",
+    "The all-results preference survives a page reload",
+    "History pages leave no incomplete work or browser exceptions"
+  ]
+}

@@ -14,6 +14,25 @@ function harness() {
 		message(id = 1, ctype = 'score') {return { type: 'change', tournament_key: 'test', ctype, val: { match_id: id } };} };
 }
 describe('Admin presentation receipts', function() {
+	it('notifies idle listeners once after all receive queues have drained', function() {
+		const h=harness(),first={},second={};let calls=0;
+		h.observer.onQueueIdle(()=>{assert.strictEqual(h.observer.isQueuePending(),false);calls++;});
+		h.observer.setQueuePending(first,false);assert.strictEqual(calls,0);
+		h.observer.setQueuePending(first,true);h.observer.setQueuePending(second,true);
+		h.observer.setQueuePending(first,false);assert.strictEqual(calls,0);
+		h.observer.setQueuePending(second,false);assert.strictEqual(calls,1);
+		h.observer.setQueuePending(second,false);assert.strictEqual(calls,1);
+		h.observer.setQueuePending(first,true);h.observer.setQueuePending(first,false);assert.strictEqual(calls,2);
+	});
+	it('unsubscribes queue idle callbacks and isolates a failing listener', function() {
+		const h=harness(),queue={};let removed=0,called=0;
+		const unsubscribe=h.observer.onQueueIdle(()=>removed++);unsubscribe();
+		h.observer.onQueueIdle(()=>{throw new Error('idle callback failed');});
+		h.observer.onQueueIdle(()=>called++);
+		h.observer.setQueuePending(queue,true);h.observer.setQueuePending(queue,false);
+		assert.strictEqual(removed,0);assert.strictEqual(called,1);assert.strictEqual(h.observer.stats().callbackErrors,1);
+	});
+
 	it('acknowledges only after handling and two visible frames, including queue and rendering time', function() {
 		const h = harness(), msg = h.message();h.observer.received(msg);h.advance(20);
 		h.observer.dispatch(msg, () => {h.advance(5);});

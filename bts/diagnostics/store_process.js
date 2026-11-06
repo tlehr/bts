@@ -87,16 +87,19 @@ function query(filter = {}) {
         return exportPage(filter.export_id, value, filter.export_offset || 0);
     }
     const cursor = Number.isSafeInteger(filter.cursor) && filter.cursor >= 0 ? filter.cursor : 0;
+    const before = Number.isSafeInteger(filter.before_revision) && filter.before_revision >= 0 ? filter.before_revision : Infinity;
     const limit = Math.min(200, Math.max(1, Number(filter.limit) || 200));
     const text = String(filter.search || '').slice(0, 200).toLocaleLowerCase('de');
-    const selected = [...rows.values()].filter(row => row.revision > cursor &&
+    const matching = [...rows.values()].filter(row =>
         (!filter.level || filter.level === 'all' || row.level === filter.level) &&
         (!filter.source || filter.source === 'all' || row.source === filter.source) &&
         (!filter.page_id || row.page_id === filter.page_id) &&
+        (!filter.device_id || row.device_id === filter.device_id) &&
         (!filter.tournament_key || row.tournament_key === filter.tournament_key) &&
         (!filter.match_id || row.match_id === filter.match_id) &&
         (!filter.since || row.updated_at >= filter.since) && (!filter.until || row.updated_at <= filter.until) &&
-        (!text || JSON.stringify(row).toLocaleLowerCase('de').includes(text)))
+        (!text || JSON.stringify(row).toLocaleLowerCase('de').includes(text)));
+    const selected = matching.filter(row => row.revision > cursor && row.revision < before)
         .sort((a, b) => b.revision - a.revision);
     if (filter.export) {
         if (exportsById.size >= 4) exportsById.delete(exportsById.keys().next().value);
@@ -104,7 +107,8 @@ function query(filter = {}) {
         exportsById.set(id, value); return exportPage(id, value, 0);
     }
     const items = publicRows(selected.slice(0, limit));
-    return { items, cursor: sequence, total: selected.length, retained: rows.size, truncated: selected.length > limit,
+    return { items, cursor: sequence, total: selected.length, matching_total: matching.length, retained: rows.size, truncated: selected.length > limit,
+        next_before: selected.length > limit ? items[items.length - 1].revision : null,
         oldest_ts: rows.size ? rows.values().next().value.ts : null, dropped, write_error: writeError, persistent: !!directory };
 }
 function publicRows(rows) {

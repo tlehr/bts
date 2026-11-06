@@ -30,8 +30,8 @@ describe('Tablet card data', function() {
         assert.deepStrictEqual(devices.map(row => row.charging), [true, false, true]);
     });
 
-    it('warns red through ten percent and yellow through twenty-five percent, also while charging', function() {
-        const displays = [0, 0.1, 0.11, 0.25, 0.26, 1].map((level, index) => device(String(index), { battery: { level, charging: true } }));
+    it('uses the same warning thresholds as device management, also while charging', function() {
+        const displays = [0, 0.09, 0.1, 0.24, 0.25, 1].map((level, index) => device(String(index), { battery: { level, charging: true } }));
         assert.deepStrictEqual(rows({ displays }, { key: 'battery', direction: 1 }).map(row => row.status),
             ['critical', 'critical', 'low', 'low', 'normal', 'normal']);
     });

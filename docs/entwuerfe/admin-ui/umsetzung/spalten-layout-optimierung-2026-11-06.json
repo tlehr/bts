@@ -1,0 +1,281 @@
+{
+  "date": "2026-11-06",
+  "scope": "Isolierter Browser mit 512 synthetischen Spielen (392 beendet), 15 Feldern und 64 Offiziellenzuordnungen. Zehn unterschiedliche Spielabschlüsse mit Wiederöffnung, je ein fremder Punkt, abwechselnd 16 parallele Änderungen kommender Spiele. Reihenfolge vorher/nachher/nachher/vorher; zwei unabhängige Browserläufe je Fassung, ohne Timeline-Recorder und ohne Live-Schreibzugriff.",
+  "changes": [
+    "Responsive feste Offiziellenspalten statt globaler inhaltsabhängiger Messung.",
+    "Zellgrößen aus ResizeObserver, wiederverwendete bekannte Breiten für Ergebniszeilen; Quittierungen warten auf notwendige Erstbeobachtungen.",
+    "Direkte Canvas-Textmessung für einfache Spielernamen, mit nativer Layout-Referenz geprüft; komplexe Inhalte behalten Layoutproben.",
+    "Begrenzte Wiederverwendung identischer Offiziellenmessungen sowie gespeicherter Datumszuordnungen; gemeinsame numerische Sortierung.",
+    "Zunächst 50 Ergebnisse gemäß gewählter Sortierung; Weitere 50, Alle anzeigen und Nur 50. Vollständige Suche, Aktualisierung aller Zeilen und gespeicherte Browserpräferenz.",
+    "Empfangsbudget 16 statt 8 ms, weiterhin höchstens 25 Nachrichten je Block und unveränderte Abhängigkeits-/Punktreihenfolge."
+  ],
+  "unchanged": [
+    "Zebramuster und Hallen-/Statusfarben.",
+    "Backend, BTP-Synchronisierung, Datenbank und Anzeigeclients."
+  ],
+  "summary": {
+    "before": {
+      "cpu": {
+        "count": 20,
+        "mean_ms": 890.45,
+        "p50_ms": 876.878,
+        "p95_ms": 1217.3990000000003,
+        "p99_ms": 1288.1429999999998,
+        "max_ms": 1288.1429999999998
+      },
+      "receipt_count": 220,
+      "all_presented": true,
+      "finish": {
+        "count": 20,
+        "mean_ms": 505.06,
+        "p50_ms": 448.1,
+        "p95_ms": 782.9,
+        "p99_ms": 817.3,
+        "max_ms": 817.3
+      },
+      "point": {
+        "count": 20,
+        "mean_ms": 219.87,
+        "p50_ms": 192.9,
+        "p95_ms": 413,
+        "p99_ms": 431.5,
+        "max_ms": 431.5
+      },
+      "reopen": {
+        "count": 20,
+        "mean_ms": 334.73,
+        "p50_ms": 325.3,
+        "p95_ms": 408.4,
+        "p99_ms": 458.5,
+        "max_ms": 458.5
+      }
+    },
+    "after": {
+      "cpu": {
+        "count": 20,
+        "mean_ms": 470.38,
+        "p50_ms": 499.607,
+        "p95_ms": 621.4419999999999,
+        "p99_ms": 934.9439999999997,
+        "max_ms": 934.9439999999997
+      },
+      "receipt_count": 220,
+      "all_presented": true,
+      "finish": {
+        "count": 20,
+        "mean_ms": 240.42,
+        "p50_ms": 230,
+        "p95_ms": 431,
+        "p99_ms": 478.9,
+        "max_ms": 478.9
+      },
+      "point": {
+        "count": 20,
+        "mean_ms": 119.05,
+        "p50_ms": 94.4,
+        "p95_ms": 185.4,
+        "p99_ms": 194.4,
+        "max_ms": 194.4
+      },
+      "reopen": {
+        "count": 20,
+        "mean_ms": 170.81,
+        "p50_ms": 158.1,
+        "p95_ms": 244.6,
+        "p99_ms": 390,
+        "max_ms": 390
+      }
+    },
+    "change_percent": {
+      "cpu": -47.18,
+      "finish": -52.4,
+      "point": -45.85,
+      "reopen": -48.97
+    }
+  },
+  "runs": [
+    {
+      "mode": "before",
+      "run": 1,
+      "report": "completion-release-before-1-verification.json",
+      "summary": {
+        "cpu": {
+          "count": 10,
+          "mean_ms": 878.8267,
+          "p50_ms": 984.3919999999997,
+          "p95_ms": 1217.3990000000003,
+          "max_ms": 1217.3990000000003
+        },
+        "finish": {
+          "count": 10,
+          "mean_ms": 485.95,
+          "p50_ms": 615.7,
+          "p95_ms": 763.9,
+          "max_ms": 763.9
+        },
+        "point": {
+          "count": 10,
+          "mean_ms": 214.65,
+          "p50_ms": 235.4,
+          "p95_ms": 413,
+          "max_ms": 413
+        },
+        "reopen": {
+          "count": 10,
+          "mean_ms": 339.1,
+          "p50_ms": 336.5,
+          "p95_ms": 458.5,
+          "max_ms": 458.5
+        }
+      }
+    },
+    {
+      "mode": "after",
+      "run": 1,
+      "report": "completion-release-after-1-verification.json",
+      "summary": {
+        "cpu": {
+          "count": 10,
+          "mean_ms": 516.9655999999999,
+          "p50_ms": 542.4699999999998,
+          "p95_ms": 934.9439999999997,
+          "max_ms": 934.9439999999997
+        },
+        "finish": {
+          "count": 10,
+          "mean_ms": 261.36,
+          "p50_ms": 285.6,
+          "p95_ms": 478.9,
+          "max_ms": 478.9
+        },
+        "point": {
+          "count": 10,
+          "mean_ms": 126.99000000000001,
+          "p50_ms": 100.3,
+          "p95_ms": 194.4,
+          "max_ms": 194.4
+        },
+        "reopen": {
+          "count": 10,
+          "mean_ms": 189.58999999999997,
+          "p50_ms": 165,
+          "p95_ms": 390,
+          "max_ms": 390
+        }
+      }
+    },
+    {
+      "mode": "after",
+      "run": 2,
+      "report": "completion-release-after-2-verification.json",
+      "summary": {
+        "cpu": {
+          "count": 10,
+          "mean_ms": 423.8041999999999,
+          "p50_ms": 499.607,
+          "p95_ms": 580.3940000000001,
+          "max_ms": 580.3940000000001
+        },
+        "finish": {
+          "count": 10,
+          "mean_ms": 219.47999999999996,
+          "p50_ms": 276.1,
+          "p95_ms": 341.7,
+          "max_ms": 341.7
+        },
+        "point": {
+          "count": 10,
+          "mean_ms": 111.10999999999999,
+          "p50_ms": 90,
+          "p95_ms": 180.5,
+          "max_ms": 180.5
+        },
+        "reopen": {
+          "count": 10,
+          "mean_ms": 152.04,
+          "p50_ms": 158.1,
+          "p95_ms": 191.2,
+          "max_ms": 191.2
+        }
+      }
+    },
+    {
+      "mode": "before",
+      "run": 2,
+      "report": "completion-release-before-2-verification.json",
+      "summary": {
+        "cpu": {
+          "count": 10,
+          "mean_ms": 902.0684000000001,
+          "p50_ms": 961.157,
+          "p95_ms": 1288.1429999999998,
+          "max_ms": 1288.1429999999998
+        },
+        "finish": {
+          "count": 10,
+          "mean_ms": 524.1700000000001,
+          "p50_ms": 611.4,
+          "p95_ms": 817.3,
+          "max_ms": 817.3
+        },
+        "point": {
+          "count": 10,
+          "mean_ms": 225.08,
+          "p50_ms": 254.2,
+          "p95_ms": 431.5,
+          "max_ms": 431.5
+        },
+        "reopen": {
+          "count": 10,
+          "mean_ms": 330.34999999999997,
+          "p50_ms": 335.1,
+          "p95_ms": 379.6,
+          "max_ms": 379.6
+        }
+      }
+    }
+  ],
+  "validation": {
+    "node_tests": 190,
+    "browser_suites": [
+      "fixed-columns (including independent native reference for Canvas abbreviations)",
+      "history-pages",
+      "persistent-rows",
+      "compact-official-names",
+      "compact-timers",
+      "update-ownership (including withheld first name-size observation)",
+      "date-groups",
+      "structural-load",
+      "planned-burst",
+      "sync-burst"
+    ],
+    "new_lint_diagnostics": 0
+  },
+  "files": {
+    "static/js/cleitstand.js": {
+      "before_sha256": "6035af9df6684e44c447d15f33cd065fd6a4fa67bd5513ed37d9f3f96adbcfed",
+      "after_sha256": "81ff0419c4f374b74b72d5bffccbef9819bb55dfd1e710e2dc471ee0607ea65b"
+    },
+    "static/js/conn.js": {
+      "before_sha256": "968d41c0e2362e479a2b26f4e974af162de885231e4d6c0682da36761371c60d",
+      "after_sha256": "e23e459a6a44f5fda2c73f4ad699dc3ca01fc00933e5221855b0438f07b95b97"
+    },
+    "static/css/leitstand.css": {
+      "before_sha256": "63dec8fe08baa16199f0d936786e5a487e7cc9f9f461b31614a6bfbec9943d4f",
+      "after_sha256": "d99d6f0c6502e9937589e3da53be2490a2ba29c6f932fbf24be2c1bf6e17ff63"
+    }
+  },
+  "limitations": [
+    "Lokale synthetische Messung; keine Netzwerk-, physische Display- oder BTP-Speicherbestätigung.",
+    "CPU-Werte enthalten auch die nachgelagerten Testassertionen und Warteframes; die Quittierungszeiten werden unabhängig davon erfasst.",
+    "Ein vollständiger Live-Dauertest steht aus. Auch nachher liegt p99 nicht nachgewiesen unter 100 ms; einzelne Strukturänderungen benötigen weiterhin mehrere hundert Millisekunden.",
+    "Alle anzeigen oder umfangreiche Suchen können die gesamte Ergebnisliste wieder einblenden und entsprechend mehr Layoutarbeit verursachen."
+  ],
+  "deployment_verification": {
+    "served_assets_match_measured_hashes": true,
+    "server_id": "709578-1793935999723",
+    "same_server_process_as_before": true,
+    "btp_observation": "Bei der lesenden Abschlusskontrolle wechselte die BTP-Verbindung zwischen connecting und error. Ein Live-Dauertest beziehungsweise eine erfolgreiche BTP-Übertragung wurde damit nicht bestätigt.",
+    "checked_at_utc": "2026-11-06T05:01:39.900Z"
+  }
+}

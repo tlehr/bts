@@ -122,8 +122,9 @@ async function ensure_default_displaysettings(app, tournament) {
 		const default_registration = await insert_setting_if_missing(app.db, build_default_registration_setting(tournament));
 		displaysettings = [default_display, default_tablet, default_registration];
 	} else {
-		const default_registration = await insert_setting_if_missing(app.db, build_default_registration_setting(tournament));
-		if (!displaysettings.some((setting) => setting.id === default_registration.id)) {
+		const registration = build_default_registration_setting(tournament);
+		if (!displaysettings.some((setting) => setting.id === registration.id)) {
+			const default_registration = await insert_setting_if_missing(app.db, registration);
 			displaysettings.push(default_registration);
 		}
 	}

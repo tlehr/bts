@@ -7,6 +7,92 @@ const {_describe, _it} = require('./tutils.js');
 const conn = require('../static/js/conn.js');
 
 _describe('conn', () => {
+	_it('yields after a frame of work without losing the remaining changes', () => {
+		const previous = global.performance;
+		let clock = 0;
+		global.performance = {now: () => clock};
+		try {
+			const handled = [], starts = [];
+			const connection = conn(() => {}, message => {
+				starts.push(clock);clock += 5;handled.push(message.val.match__id);
+			});
+			for (let i = 0; i < 10; i++) connection._test_handle_message({data: JSON.stringify({type: 'change', ctype: 'match_edit', val: {match__id: String(i)}})});
+			connection._test_process_change_queue();
+			assert(starts.every(start => start < 16), 'A batch must not begin another callback after its frame budget');
+			assert(clock >= 16 && clock < 21, 'A complete callback may cross the budget, after which the batch yields');
+			assert(connection._test_change_queue_length() > 0, 'The rest must wait for another task');
+			while (connection._test_change_queue_length()) connection._test_process_change_queue();
+			assert.deepStrictEqual(handled, Array.from({length: 10}, (_, i) => String(i)));
+		} finally {
+			global.performance = previous;
+		}
+	});
+	for (const [snapshot, point] of [
+		[{match__id: 'bts_btp_default_42'}, {match_id: 'btp_default_42'}],
+		[{match__id: 'canonical', match: {_id: 'canonical', btp_match_ids: [{id: 42, planning: 100}]}}, {match_id: 42}],
+		[{match__id: 100}, {match_id: 'canonical'}],
+	]) {
+		_it('preserves snapshot/point order for game aliases and missing tournament scopes', () => {
+			const handled = [], connection = conn(() => {}, message => handled.push(message.ctype));
+			connection._test_handle_message({data: JSON.stringify({type: 'change', ctype: 'match_edit', val: snapshot})});
+			connection._test_handle_message({data: JSON.stringify({type: 'change', ctype: 'score', tournament_key: 'default', val: point})});
+			connection._test_process_change_queue();
+			assert.deepStrictEqual(handled, ['match_edit', 'score']);
+		});
+	}
+	_it('presents points before an unrelated game/device backlog', () => {
+		const handled = [], connection = conn(() => {}, message => handled.push(message.ctype));
+		const receive = (ctype, val) => connection._test_handle_message({data: JSON.stringify({type: 'change', ctype, tournament_key: 'default', val})});
+		receive('match_edit', {match__id: 'other', match: {setup: {court_id: 'court2'}}});
+		receive('display_status_changed', {client_id: 'tv'});
+		receive('score', {match_id: 'playing', court_id: 'court1'});
+		connection._test_process_change_queue();
+		assert.deepStrictEqual(handled, ['score', 'match_edit', 'display_status_changed']);
+	});
+	for (const barrier of ['same_game', 'same_court', 'unknown_court', 'unknown_assignment', 'global']) {
+		_it('preserves the order for a point dependent on ' + barrier, () => {
+			const handled = [], connection = conn(() => {}, message => handled.push(message.ctype));
+			const metadata = {type: 'change', tournament_key: 'default', ctype: barrier === 'global' ? 'props' : 'match_edit',
+				val: {match__id: barrier === 'same_game' ? 'playing' : 'other', match: {setup: barrier === 'unknown_assignment' ? {now_on_court: true} : {court_id: 'court1'}}}};
+			connection._test_handle_message({data: JSON.stringify(metadata)});
+			connection._test_handle_message({data: JSON.stringify({type: 'change', tournament_key: 'default', ctype: 'score',
+				val: {match_id: 'playing', ...(barrier === 'unknown_court' ? {} : {court_id: 'court1'})}})});
+			connection._test_process_change_queue();
+			assert.deepStrictEqual(handled, [metadata.ctype, 'score']);
+		});
+	}
+	_it('keeps the oldest point ahead of newer points even while its snapshot is pending', () => {
+		const handled = [], connection = conn(() => {}, message => handled.push([message.ctype, message.val.match_id || message.val.match__id]));
+		const receive = (ctype, val) => connection._test_handle_message({data: JSON.stringify({type: 'change', ctype, tournament_key: 'default', val})});
+		receive('match_edit', {match__id: 'one', match: {setup: {court_id: 'court1'}}});
+		receive('score', {match_id: 'one', court_id: 'court1'});
+		receive('score', {match_id: 'two', court_id: 'court2'});
+		connection._test_process_change_queue();
+		assert.deepStrictEqual(handled, [['match_edit', 'one'], ['score', 'one'], ['score', 'two']]);
+	});
+	_it('keeps layout batching pending until all receive queues drain, including without measurement listeners', () => {
+		const previous = global.btsAdminUpdates;
+		const create = require('../static/js/admin_update_observer');
+		const observer = create({performance: {now: Date.now}, Date, setTimeout, clearTimeout});
+		global.btsAdminUpdates = observer;
+		try {
+			const handled = [];
+			const first = conn(() => {}, msg => handled.push(msg.val.match__id));
+			const second = conn(() => {}, msg => handled.push(msg.val.match__id));
+			const receive = (connection, id) => connection._test_handle_message({data: JSON.stringify({type: 'change', ctype: 'match_edit', val: {match__id: id}})});
+			assert.strictEqual(observer.isQueuePending(), false);
+			receive(first, 'one');receive(second, 'two');receive(first, 'three');
+			assert.strictEqual(observer.isQueuePending(), true);
+			first._test_process_change_queue();
+			assert.strictEqual(observer.isQueuePending(), true);
+			second._test_process_change_queue();
+			assert.strictEqual(observer.isQueuePending(), false);
+			assert.deepStrictEqual(handled, ['one', 'three', 'two']);
+			assert.strictEqual(observer.stats().pending, 0);
+		} finally {
+			if (previous === undefined) delete global.btsAdminUpdates;else global.btsAdminUpdates = previous;
+		}
+	});
 	_it('queues normal change messages instead of handling them synchronously', (done) => {
 		const handled = [];
 		const c = conn(() => {}, (msg) => handled.push(msg));

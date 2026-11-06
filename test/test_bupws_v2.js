@@ -1,10 +1,31 @@
 'use strict';
 
 const assert = require('assert');
+const { EventEmitter } = require('events');
 
 const { _describe, _it } = require('./tutils.js');
 const bupws_v2 = require('../bts/bupws_v2');
 const database = require('../bts/database');
+
+_describe('bupws v2 court picker scoring metadata', () => {
+	_it('keeps the actual scoring format for finished-state calculation instead of assuming 21 points', () => {
+		const scoring_format = { numSets: 1, set_points: { end_points: 9, max_points: 9 } };
+		const match = { _id: 'picker-match', setup: { counting: 'custom', scoring_format, state: 'oncourt', teams: [] }, network_score: [[9, 4]] };
+		const result = bupws_v2.build_court_picker_state_v2({ courts: [{ _id: 'court-1', match_id: match._id }], matches: [match], client_mode: 'umpire' });
+		const picker = result.courts[0].match;
+		assert.strictEqual(picker.setup.counting, 'custom');
+		assert.deepStrictEqual(picker.setup.scoring_format, scoring_format);
+		assert.strictEqual(picker.setup.state, 'oncourt');
+		assert.deepStrictEqual(picker.network_score, [[9, 4]]);
+	});
+	_it('preserves explicit completion and a winning second team in the compact picker', () => {
+		const match = { _id: 'finished-picker', setup: { state: 'finished' }, end_ts: 1793946300000, team1_won: false };
+		const result = bupws_v2.build_court_picker_state_v2({ courts: [{ _id: 'court-1', match_id: match._id }], matches: [match] });
+		assert.strictEqual(result.courts[0].match.end_ts, match.end_ts);
+		assert.strictEqual(result.courts[0].match.team1_won, false);
+		assert.strictEqual(result.courts[0].match.setup.state, 'finished');
+	});
+});
 
 _describe('bupws v2 score resource scope', () => {
 	_it('protects finish cleanup for numeric end timestamps without blocking unrelated courts', async () => {
@@ -241,13 +262,14 @@ _describe('bupws v2 score fanout', () => {
 		});
 		const app = { db };
 		const panels = [];
-		const panel = (client_id) => {
-			const ws = {
+		const panel = (client_id, route_messages = false) => {
+			const ws = Object.assign(new EventEmitter(), {
 				readyState: 1, client_id, hostname: client_id, messages: [],
 				send(raw) { this.messages.push(JSON.parse(raw)); if (this.on_payload) this.on_payload(); },
 				sendmsg(payload) { this.messages.push(payload); },
-			};
-			bupws_v2.on_connect(app, ws);
+			});
+			if (route_messages) require('../bts/wshandler').handle(bupws_v2, app, ws);
+			else bupws_v2.on_connect(app, ws);
 			ws.last_tournament_key = 'fanout-test';
 			ws.court_id = 'court-1';
 			ws.last_v2_match_id = 'match-1';
@@ -269,6 +291,209 @@ _describe('bupws v2 score fanout', () => {
 			panels.forEach(ws => { ws.on_payload = check; });
 		});
 	}
+
+	_it('reads a panel profile catalog once per state and applies edits without redundant profile or assignment queries', async () => {
+		const { app, panel, cleanup } = await fixture();
+		const defaults = require('../bts/displaysettings_defaults');
+		await defaults.ensure_default_displaysettings(app, await app.db.tournaments.findOne_async({ key: 'fanout-test' }));
+		const tv = panel('profile-catalog-tv');
+		await bupws_v2.handle_init(app, tv, { tournament_key: 'fanout-test' });
+		const store = app.db.displaysettings, bindings = app.db.display_court_displaysettings;
+		const original = { find: store.find_async, one: store.findOne_async, update: bindings.update };
+		let catalogs = 0, lookups = 0, writes = 0;
+		store.find_async = (...args) => { catalogs++; return original.find.apply(store, args); };
+		store.findOne_async = (...args) => { lookups++; return original.one.apply(store, args); };
+		bindings.update = function(...args) { writes++; return original.update.apply(this, args); };
+		try {
+			await bupws_v2.send_current_state(app, tv, 'fanout-test');
+			await bupws_v2.send_current_state(app, tv, 'fanout-test');
+			assert.deepStrictEqual({ catalogs, lookups, writes }, { catalogs: 2, lookups: 0, writes: 0 });
+			await store.update_async({ id: 'fanout-test_default_display' }, { $set: { d_c0: '#123456' } }, {});
+			await bupws_v2.send_current_state(app, tv, 'fanout-test');
+			const state = tv.messages.filter(message => message.type === 'court_picker_state').pop();
+			assert.strictEqual(state.display_settings.d_c0, '#123456');
+			assert.deepStrictEqual({ catalogs, lookups, writes }, { catalogs: 3, lookups: 0, writes: 0 });
+			await new Promise((resolve, reject) => store.insert({ id: 'alternative', devicemode: 'display', d_c0: '#abcdef' }, error => error ? reject(error) : resolve()));
+			await bupws_v2.send_current_state(app, tv, 'fanout-test', { panel_settings: { id: 'alternative', devicemode: 'display' } });
+			assert.strictEqual(tv.messages.filter(message => message.type === 'court_picker_state').pop().display_settings.d_c0, '#abcdef');
+			assert.deepStrictEqual({ catalogs, lookups, writes }, { catalogs: 4, lookups: 0, writes: 1 });
+			await bupws_v2.send_current_state(app, tv, 'fanout-test');
+			assert.strictEqual(tv.messages.filter(message => message.type === 'court_picker_state').pop().display_settings.d_c0, '#abcdef');
+			await store.remove_async({ id: 'alternative' }, {});
+			await bupws_v2.send_current_state(app, tv, 'fanout-test');
+			assert.strictEqual(tv.messages.filter(message => message.type === 'court_picker_state').pop().display_settings.d_c0, '#123456');
+			assert.deepStrictEqual({ catalogs, lookups, writes }, { catalogs: 6, lookups: 0, writes: 2 });
+		} finally {
+			store.find_async = original.find;store.findOne_async = original.one;bindings.update = original.update;cleanup();
+		}
+	});
+
+	_it('records tablet points and display ACKs as contacts without browser diagnostics or extra broadcasts', async () => {
+		const { app, panel, cleanup } = await fixture();
+		const clock = Date.now, score_update = bupws_v2.handle_score_update;
+		let now = clock(), point_work;
+		Date.now = () => now;
+		bupws_v2.handle_score_update = (...args) => (point_work = score_update(...args));
+		const tablet = panel('contact-tablet', true), tv = panel('contact-tv', true);
+		tablet.panel_devicemode = 'umpire';
+		const connected_at = now;
+		try {
+			now += 1000;
+			tablet.emit('message', JSON.stringify({type: 'score_update', tournament_key: 'fanout-test',
+				score: {match_id: 'match-1', court_id: 'court-1', network_score: [[2, 0]], presses: []},
+			}));
+			assert.strictEqual(tablet.last_contact, now, 'contact must be captured before queued processing finishes');
+			await point_work; await require('../bts/foreground_work').idle();
+			assert.strictEqual(tv.last_contact, connected_at, 'outgoing points must not advance the contact time');
+			const point_at = now;
+			const delivered = tv.messages.find(message => message.type === 'display_points_update');
+			assert(delivered?.message_id);
+			now += 1000;
+			tv.emit('message', JSON.stringify({type: 'display_rendered', message_id: delivered.message_id, ok: true}));
+			assert.strictEqual(tv.last_contact, now);
+			assert(tv.v2_render_ack_samples.length > 0);
+			const snapshot = () => bupws_v2.get_panel_contacts(app);
+			assert.strictEqual(snapshot().find(item => item.client_id === tablet.client_id).last_contact, point_at);
+			assert.strictEqual(snapshot().find(item => item.client_id === tv.client_id).last_contact, now);
+			const display_at = now;
+			now += 1000; snapshot();
+			assert.strictEqual(snapshot().find(item => item.client_id === tv.client_id).last_contact, display_at, 'polls must not invent contacts');
+			tv.emit('pong');
+			assert.strictEqual(tv.last_contact, now);
+			now += 1000;
+			tablet.readyState = 3; tablet.emit('close');
+			assert.strictEqual(snapshot().find(item => item.client_id === tablet.client_id).last_contact, point_at, 'disconnect must retain the last received contact');
+			const displays = [{client_id: tablet.client_id, online: false}];
+			await bupws_v2.add_display_status(app, {key: 'fanout-test'}, displays);
+			assert.strictEqual(displays.find(item => item.client_id === tablet.client_id).last_contact, point_at);
+			assert.strictEqual(displays.find(item => item.client_id === tv.client_id).last_contact, tv.last_contact);
+			const detached = snapshot().find(item => item.client_id === tablet.client_id);detached.last_contact = 1;
+			assert.strictEqual(snapshot().find(item => item.client_id === tablet.client_id).last_contact, point_at);
+			assert.deepStrictEqual(bupws_v2.get_panel_contacts({}), [], 'contact histories belong to their server instance');
+			const other = panel(tablet.client_id);other.last_tournament_key = 'other';
+			other.emit('message', '{}');
+			assert.strictEqual(snapshot().filter(item => item.client_id === tablet.client_id).length, 2);
+			assert.strictEqual(snapshot().find(item => item.client_id === tablet.client_id && item.tournament_key === 'fanout-test').last_contact, point_at);
+		} finally {
+			if (point_work) await point_work;
+			await require('../bts/foreground_work').idle();
+			bupws_v2.handle_score_update = score_update; Date.now = clock; cleanup();
+		}
+	});
+
+	_it('releases only the previous owner on a real takeover, never unrelated tablets', async () => {
+		const { app, panel, cleanup } = await fixture();
+		const owner = panel('owner'), replacement = panel('replacement');
+		const peers = [panel('same-court'), panel('other-court'), panel('unassigned'), panel('other-tournament')];
+		for (const ws of [owner, replacement, ...peers]) ws.panel_devicemode = 'umpire';
+		peers[1].court_id = 'court-2';
+		delete peers[2].court_id;
+		peers[3].last_tournament_key = 'other';
+		const admin = require('../bts/admin'), notify = admin.notify_change;
+		const waits = [];
+		admin.notify_change = (_app, _key, type, value) => {
+			if (type === 'display_wait_for_done') waits.push(value);
+		};
+		const open = ws => bupws_v2.handle_match_opened(app, ws, {
+			tournament_key: 'fanout-test', match_id: 'bts_match-1', court_id: 'court-1',
+		});
+		try {
+			await open(owner); await open(owner);
+			assert.strictEqual(waits.length, 0);
+			assert([owner, replacement, ...peers].every(ws => ws.messages.length === 0));
+			await open(replacement); await open(replacement);
+			assert.strictEqual(owner.messages.length, 1);
+			assert.strictEqual(owner.messages[0].ctype, 'release-match');
+			assert.strictEqual(owner.messages[0].val.match_id, 'match-1');
+			assert.strictEqual(owner.messages[0].val.owner_client_id, replacement.client_id);
+			assert.strictEqual(waits.length, 1);
+			assert.strictEqual(waits[0].client_id, owner.client_id);
+			assert([replacement, ...peers].every(ws => ws.messages.length === 0));
+			await bupws_v2.handle_score_update(app, owner, { tournament_key: 'fanout-test',
+				score: { match_id: 'match-1', court_id: 'court-1', network_score: [[9, 0]], presses: [] } });
+			assert.strictEqual(owner.messages.at(-1).val.reason, 'match-owned-by-other-tablet');
+			assert.deepStrictEqual((await app.db.matches.findOne_async({_id: 'match-1'})).network_score, [[1, 0]]);
+			assert([replacement, ...peers].every(ws => ws.messages.length === 0));
+		} finally { admin.notify_change = notify; cleanup(); }
+	});
+
+	_it('sends ongoing points to free tablets and the relevant TV, retaining assigned-tablet admin refreshes', async () => {
+		const { app, panel, cleanup } = await fixture();
+		const source = panel('source'), same_court = panel('same-court-peer'), other_court = panel('other-court-peer');
+		const free = panel('free-tablet'), foreign = panel('foreign-tablet');
+		const tv = panel('relevant-tv'), other_tv = panel('other-tv');
+		for (const ws of [source, same_court, other_court, free, foreign]) ws.panel_devicemode = 'umpire';
+		for (const ws of [tv, other_tv]) ws.panel_devicemode = 'display';
+		other_court.court_id = other_tv.court_id = 'court-2';
+		delete free.court_id;
+		delete foreign.court_id;
+		foreign.last_tournament_key = 'other';
+		const foreground = require('../bts/foreground_work'), publication = foreground.publication;
+		const publications = [];
+		foreground.publication = work => { const promise = publication(work); publications.push(promise); return promise; };
+		try {
+			await require('../bts/displaysettings_defaults').ensure_default_displaysettings(app,
+				await app.db.tournaments.findOne_async({key: 'fanout-test'}));
+			await new Promise((resolve, reject) => app.db.courts.insert({
+				_id: 'court-2', tournament_key: 'fanout-test', num: 2,
+			}, error => error ? reject(error) : resolve()));
+			for (const ws of [source, same_court, other_court, free]) {
+				await new Promise((resolve, reject) => app.db.display_court_displaysettings.insert({
+					client_id: ws.client_id, hostname: ws.hostname, court_id: ws.court_id || '',
+					panel_devicemode: 'umpire', displaysetting_id: 'fanout-test_default_umpire',
+				}, error => error ? reject(error) : resolve()));
+			}
+			for (let point = 2; point <= 3; point++) {
+				for (const ws of [source, same_court, other_court, free, foreign, tv, other_tv]) ws.messages.length = 0;
+				await bupws_v2.handle_score_update(app, source, {tournament_key: 'fanout-test',
+					score: {match_id: 'match-1', court_id: 'court-1', network_score: [[point, 0]], presses: []},
+				});
+				await Promise.all(publications);
+				assert([source, same_court, other_court, foreign, other_tv].every(ws => ws.messages.length === 0));
+				assert(free.messages.some(message => message.type === 'court_picker_state' && message.client_mode === 'umpire'));
+				assert(tv.messages.some(message => message.type === 'display_points_update' && message.score.current_set.left === point));
+			}
+			// A correction or assignment from the administration still refreshes
+			// assigned tablets on this court, as well as the free court picker.
+			for (const ws of [source, same_court, other_court, free]) ws.messages.length = 0;
+			await bupws_v2.handle_score_change(app, 'fanout-test', 'court-1');
+			assert(source.messages.some(message => message.ctype === 'score-update'));
+			assert(same_court.messages.some(message => message.ctype === 'score-update'));
+			assert(free.messages.some(message => message.type === 'court_picker_state'));
+			assert.strictEqual(other_court.messages.length, 0);
+			for (const ws of [source, same_court, other_court, free]) ws.messages.length = 0;
+			await bupws_v2.handle_score_update(app, source, {tournament_key: 'fanout-test', score: {
+				match_id: 'match-1', court_id: 'court-1', network_score: [[21, 0], [21, 0]],
+				team1_won: true, finish_confirmed: true, end_ts: Date.now(), presses: [],
+			}});
+			await Promise.all(publications);
+			assert(source.messages.some(message => message.ctype === 'score-update'));
+			assert(same_court.messages.some(message => message.ctype === 'score-update'));
+			assert(free.messages.some(message => message.type === 'court_picker_state'));
+			assert.strictEqual(other_court.messages.length, 0);
+		} finally {
+			await Promise.all(publications);
+			foreground.publication = publication;
+			cleanup();
+		}
+	});
+
+	_it('includes the latest battery times in device snapshots without sharing the live socket object', async () => {
+		const { app, panel, cleanup } = await fixture();
+		const tablet = panel('battery-snapshot');tablet.panel_devicemode = 'umpire';
+		tablet.battery = { level: .6, charging: false, chargingTime: null, dischargingTime: 10800 };
+		const other = panel('other-tournament-battery');other.last_tournament_key = 'other';other.battery = { level: .2 };
+		const displays = [{ client_id: tablet.client_id, battery: { level: .1 } }];
+		try {
+			await bupws_v2.add_display_status(app, { key: 'fanout-test' }, displays);
+			assert.strictEqual(displays.length, 1);
+			assert.strictEqual(displays[0].online, true);
+			assert.deepStrictEqual(displays[0].battery, tablet.battery);
+			assert.notStrictEqual(displays[0].battery, tablet.battery);
+			displays[0].battery.level = .9;
+			assert.strictEqual(tablet.battery.level, .6);
+		} finally { cleanup(); }
+	});
 
 	_it('initializes and refreshes displays and tablets regardless of an old missing, false or true protocol flag', async () => {
 		const { app, panel, cleanup } = await fixture();

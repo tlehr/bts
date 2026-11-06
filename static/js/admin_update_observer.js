@@ -6,6 +6,7 @@
 // eslint-disable-next-line no-unused-vars -- Shared with the connection and browser measurement client.
 var btsAdminUpdates = (function createAdminUpdateObserver(env) {
 	const listeners = new Map(), tasks = new WeakMap(), pending = new Set(), latest = new Map();
+	const changeQueues = new Set(), idleListeners = new Set();
 	let owners = [], sequence = 0, callbackErrors = 0;
 	const now = () => env.performance.now();
 	const wall = () => (env.Date || Date).now();
@@ -139,6 +140,13 @@ var btsAdminUpdates = (function createAdminUpdateObserver(env) {
 		};
 	}
 	const api = { received, dispatch, waitFor, wrapCallback, createJob,
+		setQueuePending(queue, pending) {
+			const wasPending=changeQueues.size>0;
+			if(pending)changeQueues.add(queue);else changeQueues.delete(queue);
+			if(wasPending&&!changeQueues.size)for(const callback of [...idleListeners])try{callback();}catch{callbackErrors++;}
+		},
+		onQueueIdle(callback) {idleListeners.add(callback);return ()=>idleListeners.delete(callback);},
+		isQueuePending: () => changeQueues.size > 0,
 		subscribe(listener,options = {}) {listeners.set(listener,options);return () => {listeners.delete(listener);if (!listeners.size) for (const task of [...pending]) finish(task, 'cancelled');};},
 		isActive: message => owners.some(task=>task.message === message),
 		isDispatching: () => owners.some(task=>!task.done),

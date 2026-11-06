@@ -1,0 +1,292 @@
+{
+  "analysis_date": "2026-11-06",
+  "source": {
+    "file": "/home/tim/Downloads/bts-test-9 (1).json",
+    "bytes": 121353458,
+    "sha256": "81a4080b5670e079aed2403a7907e4915d75ea42d7741c67b66497faefd97a3b",
+    "exported_at": "2026-11-06T03:24:48.328Z"
+  },
+  "run": {
+    "started_at": "2026-11-06T03:14:44.756Z",
+    "runtime_ms": 600085,
+    "stop_reason": "completed",
+    "failure": null,
+    "partial": false,
+    "initial_state": {
+      "matches": 512,
+      "finished_matches": 382,
+      "active_matches": 11,
+      "active_courts": 15,
+      "pending_player_checkins": 0,
+      "pending_players": 0,
+      "check_in_per_match": true,
+      "state_sha256": "82af64b527b7a4537c71d1b45515b2b54e1615a06789cba60ef1aae00c4ab1d6"
+    },
+    "points": 985,
+    "checkins": 88,
+    "settings": {
+      "tournament": "default",
+      "base_url": "https://localhost:4433",
+      "point_interval_ms": [
+        3200,
+        6400
+      ],
+      "score_gap_ms": [
+        0,
+        0
+      ],
+      "pause_visible_ms": 3000,
+      "score_all_active": false,
+      "legacy_loopback_devices": false,
+      "server_telemetry": true,
+      "processing_traces": true,
+      "score_probability": [
+        0.4,
+        0.6
+      ]
+    }
+  },
+  "delivery": {
+    "tv_websocket_reception_ms": {
+      "count": 995,
+      "mean": 5,
+      "min": 2,
+      "p50": 4,
+      "p95": 12,
+      "p99": 21,
+      "max": 90,
+      "over_50_ms": 2,
+      "over_100_ms": 0,
+      "over_200_ms": 0,
+      "sent_updates": 995,
+      "unmatched_updates": 0,
+      "coverage": 1
+    },
+    "admin_visible_update_ms": {
+      "count": 995,
+      "mean": 53.5,
+      "min": 13,
+      "p50": 41,
+      "p95": 111,
+      "p99": 358,
+      "max": 609,
+      "over_50_ms": 273,
+      "over_100_ms": 58,
+      "over_200_ms": 25,
+      "sent_updates": 995,
+      "unmatched_updates": 0,
+      "coverage": 1
+    },
+    "admin_score_outcomes": {
+      "presented": 995
+    },
+    "expired": {
+      "tv": 0,
+      "admin": 0
+    },
+    "limits": "TV bestätigt simulierten WebSocket-Empfang, Admin den DOM-Zustand mit Render-Gelegenheit. Dies ist kein Einzelabgleich der von BTP gespeicherten Sieger."
+  },
+  "btp_observation": {
+    "reported_status_events": 533,
+    "decoder_worker_completed_delta": {
+      "Worker btp_decode:5": 178
+    },
+    "interpretation": "Statusmeldungen allein zählen keine Abgleiche. Die zusätzliche reine Live-Beobachtung bestätigt tatsächliche Abgleiche im kurzen Abstand bei eingestellten 30 Sekunden.",
+    "before_fix_live": {
+      "checked_at": "2026-11-06T03:27:41.324Z",
+      "server_id": "690967-1793931157302",
+      "duration_ms": 45000,
+      "interval_seconds": 30,
+      "autofetch_enabled": true,
+      "matches": 512,
+      "active_matches": 15,
+      "status_events": 46,
+      "observed_fetch_starts": 15,
+      "fetch_start_timestamps": [
+        1793935662779,
+        1793935668846,
+        1793935671260,
+        1793935674170,
+        1793935674973,
+        1793935677541,
+        1793935682669,
+        1793935685143,
+        1793935687736,
+        1793935689457,
+        1793935693333,
+        1793935699433,
+        1793935701819,
+        1793935704761,
+        1793935705569
+      ],
+      "start_gaps_ms": [
+        6067,
+        2414,
+        2910,
+        803,
+        2568,
+        5128,
+        2474,
+        2593,
+        1721,
+        3876,
+        6100,
+        2386,
+        2942,
+        808
+      ],
+      "successful_completion_timestamps_including_initial_snapshot": [
+        1793935659454,
+        1793935663330,
+        1793935669430,
+        1793935671818,
+        1793935674757,
+        1793935675567,
+        1793935678080,
+        1793935683261,
+        1793935685704,
+        1793935688274,
+        1793935690039,
+        1793935693908,
+        1793935700004,
+        1793935702397,
+        1793935705323,
+        1793935706138
+      ],
+      "completion_gaps_ms": [
+        3876,
+        6100,
+        2388,
+        2939,
+        810,
+        2513,
+        5181,
+        2443,
+        2570,
+        1765,
+        3869,
+        6096,
+        2393,
+        2926,
+        815
+      ],
+      "final_btp_status": "connected"
+    },
+    "after_fix_live": {
+      "checked_at": "2026-11-06T03:33:23.699Z",
+      "server_id": "709578-1793935999723",
+      "duration_ms": 70000,
+      "interval_seconds": 30,
+      "autofetch_enabled": true,
+      "matches": 512,
+      "active_matches": 15,
+      "status_events": 5,
+      "observed_fetch_starts": 2,
+      "fetch_start_timestamps": [
+        1793936033376,
+        1793936064062
+      ],
+      "start_gaps_ms": [
+        30686
+      ],
+      "successful_completion_timestamps_including_initial_snapshot": [
+        1793936003374,
+        1793936034059,
+        1793936064851
+      ],
+      "completion_gaps_ms": [
+        30685,
+        30792
+      ],
+      "final_btp_status": "connected"
+    }
+  },
+  "cause": {
+    "file": "bts/btp_conn.js",
+    "description": "Zusätzliche Leseabgleiche zur Ergebnisbestätigung forderten nach Abschluss einen neuen automatischen Abgleich an. schedule_fetch ersetzte nur die gespeicherte Timerreferenz, ohne den bisherigen Timer zu löschen. Jeder noch aktive Timer konnte anschließend seine eigene regelmäßige Kette fortsetzen.",
+    "isolated_reproduction_ms": {
+      "result_readbacks": [
+        1000,
+        6000,
+        11000
+      ],
+      "all_fetch_starts_before_until_71000": [
+        1000,
+        6000,
+        11000,
+        30000,
+        31000,
+        36000,
+        41000,
+        60000,
+        61000,
+        66000,
+        71000
+      ],
+      "all_fetch_starts_after_until_71000": [
+        1000,
+        6000,
+        11000,
+        41000,
+        71000
+      ]
+    }
+  },
+  "correction": [
+    "Ein neuer Abgleich übernimmt eine bestehende automatische Planung und löscht deren bisherigen Timer bereits beim Start.",
+    "Eine neue automatische Planung löscht den alten Timer; eine verspätete alte Callback-Funktion darf den neuen Timer nicht ändern.",
+    "Intervallwechsel, Deaktivierung und Beenden der Verbindung hinterlassen keine alte automatische Planung.",
+    "Zusätzliche Leseabgleiche für die dauerhafte Ergebnisbestätigung bleiben aktiv. Sie erzeugen eine einzige neue automatische Planung ab dem letzten abgeschlossenen Abgleich.",
+    "Ein unnötiger Zwischenstatus beim Ablauf des Timers entfällt; Start und Abschluss werden weiterhin gemeldet."
+  ],
+  "diagnostics_correction": {
+    "observation": "Der Bericht enthält nur einen btp_fetch-Wurzeleintrag mit Beginn vor dem eigentlichen Lauf. Weitere Hintergrundabgleiche erbten dessen bereits abgeschlossenen Async-Kontext und ergänzten dort alte Datensätze; dadurch sind einzelne Fetch-Zähler aus diesem Bericht nicht zuverlässig.",
+    "dropped_detail_spans_in_report": 20048,
+    "fix": "Jeder vollständige BTP-Abruf erhält eine eigene unabhängige Messoperation. Eine neue Regression prüft zwei Folgeabrufe aus einem bereits abgeschlossenen Vorgänger-Kontext."
+  },
+  "database": {
+    "window_seconds": 600.035,
+    "completed_counter_deltas": {
+      "DB courts:": 5652,
+      "DB locations:": 2484,
+      "DB event:": 2,
+      "DB matches:": 8728,
+      "DB tournaments:": 9131,
+      "DB umpires:": 3000,
+      "DB logs:": 78,
+      "DB tabletoperators:": 2552,
+      "DB displaysettings:": 3033,
+      "DB display_court_displaysettings:": 5113,
+      "DB normalizations:": 1588,
+      "DB advertisements:": 1603,
+      "DB app_settings:": 3
+    },
+    "total_operations": 42967,
+    "operations_per_second": 71.61,
+    "limits": "Differenzen der ersten und letzten serverweiten Queuezähler umfassen Lese- und Schreiboperationen sowie andere geöffnete Seiten. Keine Attribution anhand der vermischten alten Trace-Kontexte."
+  },
+  "validation": {
+    "new_regressions": 9,
+    "targeted_tests_passing": 149,
+    "targeted_tests_failing": 0,
+    "before_fix_new_tests": {
+      "passing": 2,
+      "failing": 7
+    },
+    "command": "BTS_TESTCLIENT_DIR=/home/tim/repos/bts-testclient BTS_TESTCLIENT_REPORT_DIR=/tmp/btp-interval-test-reports node_modules/.bin/mocha test/test_btp_fetch_timers.js test/test_btp_fetch_pipeline.js test/test_btp_conn.js test/test_btp_result_sync.js test/test_btp_last_successful_fetch.js test/test_btp_interval_ui.js test/test_btp_request_log.js test/test_btp_decode*.js test/test_processing_traces.js test/test_performance_dashboard.js test/test_server_diagnostics.js --reporter dot",
+    "additional_eslint_findings": 0,
+    "syntax": "PASS",
+    "git_diff_check": "PASS"
+  },
+  "deployment": {
+    "backup": "/tmp/bts-btp-interval-backup-20261106",
+    "sha256": "eab8ec6b697d9492173b83f676eb37b01ef77dbff21deaf3ae305cf8cf1e1c42",
+    "new_server_id": "709578-1793935999723",
+    "configuration_changed": false,
+    "restart": "Dateiwächter hat BTS einmal neu gestartet und damit die angesammelten alten Timer entfernt."
+  },
+  "limits": [
+    "Der ursprüngliche Zehn-Minuten-Lauf wurde vor der Timerkorrektur aufgezeichnet; seine UI-Latenzen messen die erhöhte Abgleichlast mit.",
+    "Die Prüfung nach der Korrektur beobachtet 70 Sekunden regulären Betrieb rein lesend. Ein neuer vollständiger Lastvergleich und ein Einzelabgleich gespeicherter BTP-Ergebnisse sind damit nicht ersetzt."
+  ]
+}

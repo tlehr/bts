@@ -84,6 +84,56 @@ describe('Central diagnostics and remote reload', function() {
         assert.strictEqual(result.items[0].source, 'admin'); assert.strictEqual(result.items[0].page_id, 'page_alpha');
     });
 
+    it('associates panel pages by an explicit client ID rather than their label or address', function() {
+        const ws = client(hub, 'page_panel', { role: 'umpire', label: 'Halle 1', panel_client_id: 'client_with_underscores' });
+        assert.strictEqual(hub.snapshot().pages[0].panel_client_id, 'client_with_underscores');
+        ws.receive({ type: 'heartbeat', role: 'umpire', label: 'Halle 2', panel_client_id: 'other-client' });
+        assert.strictEqual(hub.snapshot().pages[0].panel_client_id, 'other-client');
+        ws.receive({ type: 'heartbeat', role: 'admin', label: 'client_with_underscores' });
+        assert.strictEqual(hub.snapshot().pages[0].panel_client_id, '');
+    });
+
+    it('includes protocol contacts in diagnostic snapshots even without a registered browser page', async function() {
+        const panels = require('../bts/bupws_v2');
+        const ws = Object.assign(new EventEmitter(), {readyState: 1, client_id: 'protocol-contact',
+            last_tournament_key: 'contact-test', hostname: 'Protocol tablet'});
+        panels.on_connect(app, ws);
+        try {
+            ws.emit('message', JSON.stringify({type: 'score_update'}));
+            let response;
+            await handle(app, {respond: (_msg, _error, value) => {response = value;}}, {type: 'diagnostics_snapshot'});
+            const contact = response.diagnostics.panel_contacts.find(item => item.client_id === ws.client_id);
+            assert.strictEqual(contact.last_contact, ws.last_contact);
+            assert.strictEqual(contact.tournament_key, 'contact-test');
+            assert(!response.diagnostics.pages.some(page => page.panel_client_id === ws.client_id));
+        } finally { ws.readyState = 3; panels.on_close(app, ws); }
+    });
+
+    it('retains the last received browser contact when a connection closes later', function() {
+        const ws = client(hub), received_at = ws.diagnostics_page.last_seen, clock = Date.now;
+        try {
+            Date.now = () => received_at + 10000;
+            ws.close();
+            const page = hub.snapshot().pages.find(page => page.id === 'page_alpha');
+            assert.strictEqual(page.online, false);
+            assert.strictEqual(page.last_seen, received_at);
+        } finally { Date.now = clock; }
+    });
+
+    it('filters device logs across pages through the admin API and keeps export filters', async function() {
+        const first = client(hub), second = client(hub, 'page_beta'), other = client(hub, 'page_other', {device_id:'device_other'});
+        for (const [index, ws] of [first, second, other].entries()) ws.receive({type:'logs',batch_id:1,entries:[{event_id:'device-filter-' + index,level:'warn',message:'device-filter-marker-' + index}]});
+        await until(async () => (await hub.query({search:'device-filter-marker'})).items.length === 3);
+        const request = async filter => {
+            let response;await handle(app, {respond:(_msg,_error,value) => {response = value;}}, {type:'diagnostics_logs',filter});return response;
+        };
+        const result = await request({device_id:'device_alpha',search:'device-filter-marker'});
+        assert.deepStrictEqual(result.logs.items.map(item => item.page_id).sort(), ['page_alpha','page_beta']);
+        const exported = await request({device_id:'device_other',search:'device-filter-marker',export:true});
+        assert.strictEqual(exported.logs.items.length, 1);assert.strictEqual(exported.logs.items[0].device_id, 'device_other');
+        assert((await request({device_id:7})).diagnostics_error);
+    });
+
     it('keeps filtered history across a storage-process restart and exposes incremental repeat updates', async function() {
         hub.record({ message: 'persist-marker', source: 'speech', level: 'warn', event_id: 'first' });
         const first = await until(async () => { const result = await hub.query({ search: 'persist-marker' }); return result.items.length && result; });
@@ -95,6 +145,50 @@ describe('Central diagnostics and remote reload', function() {
         const restored = await hub.query({ search: 'persist-marker', level: 'warn', source: 'speech' });
         assert.strictEqual(restored.items[0].count, 2); assert.strictEqual(restored.persistent, true);
         assert.strictEqual((await hub.query({ search: 'persist-marker', level: 'error' })).items.length, 0);
+    });
+
+    it('pages older filtered logs without advancing the live cursor past new or repeated messages', async function() {
+        for (let i = 0; i < 123; i++) hub.record({ source: 'server', level: 'warn', message: 'history-page-' + i });
+        hub.record({ source: 'speech', level: 'warn', message: 'history-page-other-source' });
+        await until(async () => (await hub.query({ search: 'history-page-', source: 'server' })).matching_total === 123);
+        const filter = { search: 'history-page-', source: 'server', limit: 50 };
+        const first = await hub.query(filter);
+        assert.strictEqual(first.items.length, 50);
+        assert.strictEqual(first.matching_total, 123);
+        assert.strictEqual(first.next_before, first.items.at(-1).revision);
+        hub.record({ source: 'server', level: 'warn', message: 'history-page-new' });
+        hub.record({ source: 'server', level: 'warn', message: 'history-page-0' });
+        await until(async () => (await hub.query({ ...filter, cursor: first.cursor })).items.length === 2);
+        const second = await hub.query({ ...filter, before_revision: first.next_before });
+        const third = await hub.query({ ...filter, before_revision: second.next_before });
+        const history = [...first.items, ...second.items, ...third.items];
+        assert.strictEqual(second.items.length, 50);
+        assert.strictEqual(history.length, 122, 'the repeated oldest row moved into the live range');
+        assert.strictEqual(new Set(history.map(row => row.id)).size, history.length);
+        assert.strictEqual(third.next_before, null);
+        const changes = await hub.query({ ...filter, cursor: first.cursor });
+        assert.strictEqual(changes.items.length, 2);
+        assert(changes.items.some(row => row.message === 'history-page-0' && row.count === 2));
+        assert(changes.items.some(row => row.message === 'history-page-new'));
+        assert.strictEqual(changes.matching_total, 124);
+        const exported = await hub.query({ ...filter, export: true });
+        assert.strictEqual(exported.total, 124, 'the display page size must not restrict exports');
+    });
+
+    it('validates older-page boundaries through the admin API and retains all search matches', async function() {
+        for (let i = 0; i < 55; i++) hub.record({ source: 'server', level: 'error', message: 'api-history-' + i });
+        await until(async () => (await hub.query({ search: 'api-history-' })).matching_total === 55);
+        const request = async filter => {
+            let result;await handle(app, { respond: (_request, _error, value) => { result = value; } }, { type: 'diagnostics_logs', filter });return result;
+        };
+        const first = (await request({ search: 'api-history-', limit: 50 })).logs;
+        const second = (await request({ search: 'api-history-', limit: 50, before_revision: first.next_before })).logs;
+        assert.strictEqual(second.items.length, 5);
+        assert.strictEqual(second.matching_total, 55);
+        assert.strictEqual(second.next_before, null);
+        for (const before_revision of [-1, 1.5, '20', Number.MAX_SAFE_INTEGER + 1]) {
+            assert.strictEqual((await request({ before_revision })).diagnostics_error, 'invalid_log_filter');
+        }
     });
 
     it('targets a page or all pages of a device and verifies a new page instance after reload', async function() {
@@ -191,6 +285,16 @@ describe('Central diagnostics and remote reload', function() {
 });
 
 describe('Browser reload safeguards', function() {
+    it('reports a panel client ID only for BUP pages and updates it when the panel identity changes', function() {
+        const h = browser();h.env.state = {settings:{devicemode:'umpire',client_id:'client_with_underscores'}};
+        assert.strictEqual(h.api.context().panel_client_id, '');
+        h.env.location.pathname = '/bup/';
+        assert.strictEqual(h.api.context().panel_client_id, 'client_with_underscores');
+        h.env.state.settings.client_id = 'another-client';
+        assert.strictEqual(h.api.context().panel_client_id, 'another-client');
+        h.env.location.pathname = '/bupdev/';
+        assert.strictEqual(h.api.context().panel_client_id, 'another-client');
+    });
     it('preserves unedited form baselines, blocks dirty forms and resumes when the form is closed', function() {
         const h = browser(), node = { type: 'text', value: 'original', isConnected: true, matches: () => true, closest: () => ({}) };
         h.handlers.focusin({ target: node }); node.value = 'changed'; h.handlers.input({ target: node });

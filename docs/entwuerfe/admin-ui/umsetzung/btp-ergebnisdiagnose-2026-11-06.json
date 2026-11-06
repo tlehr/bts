@@ -1,0 +1,541 @@
+{
+  "date": "2026-11-06",
+  "scope": "Read-only live comparison of the nine user-reported matches, historical diagnostics and an isolated in-memory reproduction. No BTP LOGIN, SENDUPDATE, setting changes, live database writes or product code changes were performed.",
+  "live_checked_at": "2026-11-05T23:28:01.273Z",
+  "rows": [
+    {
+      "match_number": 273,
+      "event": "JE U15",
+      "local_id": "btp_default_JE U15_686",
+      "local": {
+        "score": [
+          [
+            3,
+            21
+          ],
+          [
+            22,
+            20
+          ],
+          [
+            13,
+            21
+          ]
+        ],
+        "state": "finished",
+        "winner": null,
+        "pending_flag_present": false,
+        "needs_sync": false
+      },
+      "btp": {
+        "id": 686,
+        "score": [
+          [
+            3,
+            21
+          ],
+          [
+            22,
+            20
+          ],
+          [
+            13,
+            21
+          ]
+        ],
+        "winner": null,
+        "status": 5
+      },
+      "historical_confirmation": {
+        "trace_id": "live-drill-548057-mw3st893-76",
+        "ts": 1793898436359,
+        "score": "3:21 22:20 13:21",
+        "archive": "/home/tim/repos/bts-testclient/reports/run-2026-11-05T17-06-30-407Z-mdtBis/simulation/test-events.jsonl"
+      },
+      "historical_write_error": {
+        "number": 273,
+        "at": "2026-11-05T17:07:21.418000+00:00",
+        "delta_ms": 5059,
+        "message": "Score update for default_JE U15_686 failed with error code no-result"
+      }
+    },
+    {
+      "match_number": 269,
+      "event": "ME U13",
+      "local_id": "btp_default_ME U13_614",
+      "local": {
+        "score": [
+          [
+            26,
+            28
+          ],
+          [
+            21,
+            18
+          ],
+          [
+            21,
+            15
+          ]
+        ],
+        "state": "finished",
+        "winner": 1,
+        "pending_flag_present": false,
+        "needs_sync": false
+      },
+      "btp": {
+        "id": 614,
+        "score": [
+          [
+            26,
+            28
+          ],
+          [
+            21,
+            18
+          ],
+          [
+            21,
+            15
+          ]
+        ],
+        "winner": null,
+        "status": 5
+      },
+      "historical_confirmation": {
+        "trace_id": "live-drill-548057-mw3su4il-152",
+        "ts": 1793898478174,
+        "score": "26:28 21:18 21:15",
+        "archive": "/home/tim/repos/bts-testclient/reports/run-2026-11-05T17-06-30-407Z-mdtBis/simulation/test-events.jsonl"
+      },
+      "historical_write_error": {
+        "number": 269,
+        "at": "2026-11-05T17:08:03.228000+00:00",
+        "delta_ms": 5054,
+        "message": "Score update for default_ME U13_614 failed with error code no-result"
+      }
+    },
+    {
+      "match_number": 285,
+      "event": "ME U15",
+      "local_id": "btp_default_ME U15_774",
+      "local": {
+        "score": [
+          [
+            21,
+            15
+          ],
+          [
+            13,
+            21
+          ],
+          [
+            4,
+            21
+          ]
+        ],
+        "state": "finished",
+        "winner": null,
+        "pending_flag_present": false,
+        "needs_sync": false
+      },
+      "btp": {
+        "id": 774,
+        "score": [
+          [
+            21,
+            15
+          ],
+          [
+            13,
+            21
+          ],
+          [
+            4,
+            21
+          ]
+        ],
+        "winner": null,
+        "status": 5
+      },
+      "historical_confirmation": {
+        "trace_id": "live-drill-548057-mw3t2zji-907",
+        "ts": 1793898891631,
+        "score": "21:15 13:21 4:21",
+        "archive": "/home/tim/repos/bts-testclient/reports/run-2026-11-05T17-06-30-407Z-mdtBis/simulation/test-events.jsonl"
+      },
+      "historical_write_error": {
+        "number": 285,
+        "at": "2026-11-05T17:14:56.679000+00:00",
+        "delta_ms": 5048,
+        "message": "Score update for default_ME U15_774 failed with error code no-result"
+      }
+    },
+    {
+      "match_number": 282,
+      "event": "ME U15",
+      "local_id": "btp_default_ME U15_767",
+      "local": {
+        "score": [
+          [
+            14,
+            21
+          ],
+          [
+            11,
+            21
+          ]
+        ],
+        "state": "finished",
+        "winner": null,
+        "pending_flag_present": false,
+        "needs_sync": false
+      },
+      "btp": {
+        "id": 767,
+        "score": [
+          [
+            14,
+            21
+          ],
+          [
+            11,
+            21
+          ]
+        ],
+        "winner": null,
+        "status": 5
+      },
+      "historical_confirmation": {
+        "trace_id": "live-drill-548057-mw3sulr5-191",
+        "ts": 1793898500513,
+        "score": "14:21 11:21",
+        "archive": "/home/tim/repos/bts-testclient/reports/run-2026-11-05T17-06-30-407Z-mdtBis/simulation/test-events.jsonl"
+      },
+      "historical_write_error": {
+        "number": 282,
+        "at": "2026-11-05T17:08:25.575000+00:00",
+        "delta_ms": 5062,
+        "message": "Score update for default_ME U15_767 failed with error code no-result"
+      }
+    },
+    {
+      "match_number": 280,
+      "event": "ME U15",
+      "local_id": "btp_default_ME U15_763",
+      "local": {
+        "score": [
+          [
+            10,
+            21
+          ],
+          [
+            18,
+            21
+          ]
+        ],
+        "state": "finished",
+        "winner": null,
+        "pending_flag_present": false,
+        "needs_sync": false
+      },
+      "btp": {
+        "id": 763,
+        "score": [
+          [
+            10,
+            21
+          ],
+          [
+            18,
+            21
+          ]
+        ],
+        "winner": null,
+        "status": 5
+      },
+      "historical_confirmation": {
+        "trace_id": "live-drill-548057-mw3stfiu-94",
+        "ts": 1793898445783,
+        "score": "10:21 18:21",
+        "archive": "/home/tim/repos/bts-testclient/reports/run-2026-11-05T17-06-30-407Z-mdtBis/simulation/test-events.jsonl"
+      },
+      "historical_write_error": {
+        "number": 280,
+        "at": "2026-11-05T17:07:30.830000+00:00",
+        "delta_ms": 5047,
+        "message": "Score update for default_ME U15_763 failed with error code no-result"
+      }
+    },
+    {
+      "match_number": 279,
+      "event": "ME U15",
+      "local_id": "btp_default_ME U15_762",
+      "local": {
+        "score": [
+          [
+            18,
+            21
+          ],
+          [
+            21,
+            18
+          ],
+          [
+            21,
+            23
+          ]
+        ],
+        "state": "finished",
+        "winner": null,
+        "pending_flag_present": false,
+        "needs_sync": false
+      },
+      "btp": {
+        "id": 762,
+        "score": [
+          [
+            18,
+            21
+          ],
+          [
+            21,
+            18
+          ],
+          [
+            21,
+            23
+          ]
+        ],
+        "winner": null,
+        "status": 5
+      },
+      "historical_confirmation": {
+        "trace_id": "live-drill-548057-mw3t1pfk-796",
+        "ts": 1793898831879,
+        "score": "18:21 21:18 21:23",
+        "archive": "/home/tim/repos/bts-testclient/reports/run-2026-11-05T17-06-30-407Z-mdtBis/simulation/test-events.jsonl"
+      },
+      "historical_write_error": {
+        "number": 279,
+        "at": "2026-11-05T17:13:56.930000+00:00",
+        "delta_ms": 5051,
+        "message": "Score update for default_ME U15_762 failed with error code no-result"
+      }
+    },
+    {
+      "match_number": 283,
+      "event": "ME U15",
+      "local_id": "btp_default_ME U15_770",
+      "local": {
+        "score": [
+          [
+            18,
+            21
+          ],
+          [
+            25,
+            23
+          ],
+          [
+            21,
+            19
+          ]
+        ],
+        "state": "finished",
+        "winner": null,
+        "pending_flag_present": false,
+        "needs_sync": false
+      },
+      "btp": {
+        "id": 770,
+        "score": [
+          [
+            18,
+            21
+          ],
+          [
+            25,
+            23
+          ],
+          [
+            21,
+            19
+          ]
+        ],
+        "winner": null,
+        "status": 5
+      },
+      "historical_confirmation": {
+        "trace_id": "live-drill-548057-mw3t64tw-1177",
+        "ts": 1793899038452,
+        "score": "18:21 25:23 21:19",
+        "archive": "/home/tim/repos/bts-testclient/reports/run-2026-11-05T17-06-30-407Z-mdtBis/simulation/test-events.jsonl"
+      },
+      "historical_write_error": {
+        "number": 283,
+        "at": "2026-11-05T17:17:23.493000+00:00",
+        "delta_ms": 5041,
+        "message": "Score update for default_ME U15_770 failed with error code no-result"
+      }
+    },
+    {
+      "match_number": 286,
+      "event": "ME U15",
+      "local_id": "btp_default_ME U15_775",
+      "local": {
+        "score": [
+          [
+            21,
+            15
+          ],
+          [
+            21,
+            11
+          ]
+        ],
+        "state": "finished",
+        "winner": null,
+        "pending_flag_present": false,
+        "needs_sync": false
+      },
+      "btp": {
+        "id": 775,
+        "score": [
+          [
+            21,
+            15
+          ],
+          [
+            21,
+            11
+          ]
+        ],
+        "winner": null,
+        "status": 5
+      },
+      "historical_confirmation": {
+        "trace_id": "live-drill-548057-mw3sy2gt-488",
+        "ts": 1793898662142,
+        "score": "21:15 21:11",
+        "archive": "/home/tim/repos/bts-testclient/reports/run-2026-11-05T17-06-30-407Z-mdtBis/simulation/test-events.jsonl"
+      },
+      "historical_write_error": {
+        "number": 286,
+        "at": "2026-11-05T17:11:07.207000+00:00",
+        "delta_ms": 5065,
+        "message": "Score update for default_ME U15_775 failed with error code no-result"
+      }
+    },
+    {
+      "match_number": 281,
+      "event": "ME U15",
+      "local_id": "btp_default_ME U15_766",
+      "local": {
+        "score": [
+          [
+            18,
+            21
+          ],
+          [
+            14,
+            21
+          ]
+        ],
+        "state": "finished",
+        "winner": null,
+        "pending_flag_present": false,
+        "needs_sync": false
+      },
+      "btp": {
+        "id": 766,
+        "score": [
+          [
+            18,
+            21
+          ],
+          [
+            14,
+            21
+          ]
+        ],
+        "winner": null,
+        "status": 5
+      },
+      "historical_confirmation": {
+        "trace_id": "live-drill-548057-mw3swcxj-342",
+        "ts": 1793898582391,
+        "score": "18:21 14:21",
+        "archive": "/home/tim/repos/bts-testclient/reports/run-2026-11-05T17-06-30-407Z-mdtBis/simulation/test-events.jsonl"
+      },
+      "historical_write_error": {
+        "number": 281,
+        "at": "2026-11-05T17:09:47.440000+00:00",
+        "delta_ms": 5049,
+        "message": "Score update for default_ME U15_766 failed with error code no-result"
+      }
+    }
+  ],
+  "proven_findings": [
+    "All nine BTP rows contain the same sets as BTS but no Winner field.",
+    "All nine completion confirmations were sent by the simulator in the older run starting 2026-11-05T17:06:30Z. For each matching trace the stored server log records the exact result write failing with no-result roughly five seconds later.",
+    "None of the nine BTS rows currently has btp_needsync=true. Eight also lack the local winner; 269 retains a local winner.",
+    "The normal fetch path does not resend pending results. pushall is called after LOGIN and selects only rows marked btp_needsync=true.",
+    "A late successful acknowledgment for an older non-result update unconditionally clears the pending flag of the same match, including a more recent confirmed result. This was reproduced using the real BTPConn update_score method and an isolated in-memory database.",
+    "Once pending protection is absent, merging a BTP row without a winner can remove the local winner while keeping state=finished and its sets. The isolated reproduction produces the observed shape."
+  ],
+  "evidence_locations": {
+    "unconditional_acknowledgment": "bts/btp_conn.js:770-791",
+    "login_retry": "bts/btp_conn.js:329-333 and 568-584",
+    "pending_import_guard": "bts/btp_sync.js:2607-2617",
+    "finished_state_merge": "bts/btp_sync.js:1261-1274",
+    "historical_diagnostics": [
+      "data/diagnostics/events.2.jsonl",
+      "data/diagnostics/events.1.jsonl",
+      "data/diagnostics/events.jsonl"
+    ]
+  },
+  "isolated_reproduction": {
+    "isolated": true,
+    "no_network_requests": true,
+    "old_request_has_winner": false,
+    "confirmed_result": {
+      "winner": 2,
+      "pending": true
+    },
+    "after_old_ack": {
+      "winner": 2,
+      "pending": false
+    },
+    "next_import_merge": {
+      "state": "finished",
+      "winner": null,
+      "team1_won": null,
+      "score": [
+        [
+          3,
+          21
+        ],
+        [
+          22,
+          20
+        ],
+        [
+          13,
+          21
+        ]
+      ]
+    }
+  },
+  "limits": [
+    "Historical no-result messages do not retain the underlying socket/decode error or raw reply. The roughly five-second interval suggests a connection timeout but does not prove that transport cause.",
+    "The stale-acknowledgment race is a proven code defect, but the historical order of every request/response was not recorded. It is a demonstrated explanation for losing pending protection, not proof that this exact interleaving caused each of these nine incidents.",
+    "Sets already existing in BTP do not prove that the failed completion update was accepted; they can predate it."
+  ],
+  "proposed_correction": [
+    "Clear pending sync only for the exact version of the data that was acknowledged.",
+    "Retain failed confirmed results as pending and retry them in a bounded manner during ordinary sync, with clear write-error reporting.",
+    "Verify outgoing results against a subsequent BTP readback before declaring them fully synchronized.",
+    "Recover the nine historical winners from verified confirmation evidence only as a separate, explicit recovery action."
+  ]
+}

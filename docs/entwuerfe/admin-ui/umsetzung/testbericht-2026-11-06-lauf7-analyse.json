@@ -1,0 +1,702 @@
+{
+  "analysis_date": "2026-11-06",
+  "source": {
+    "file": "/home/tim/Downloads/bts-test-7 (2).json",
+    "bytes": 145804529,
+    "exported_at": "2026-11-06T01:30:32.862Z"
+  },
+  "run": {
+    "started_at": "2026-11-06T01:20:28.341Z",
+    "runtime_ms": 600066,
+    "stop_reason": "completed",
+    "failure": null,
+    "partial": false,
+    "points": 1214,
+    "checkins": 57,
+    "initial_state": {
+      "matches": 512,
+      "finished_matches": 349,
+      "active_matches": 15,
+      "active_courts": 15,
+      "pending_player_checkins": 0,
+      "pending_players": 0,
+      "check_in_per_match": true,
+      "state_sha256": "e27a86f24e0e0293c3f27af1d1581d22c25c9401983e7c49d3f1fdf7c4a3455d"
+    },
+    "mixed_server_profiles": false
+  },
+  "delivery": {
+    "tv_websocket_reception_ms": {
+      "count": 1232,
+      "mean": 5.1,
+      "min": 2,
+      "p50": 4,
+      "p95": 13,
+      "p99": 30,
+      "max": 62,
+      "over_50_ms": 1,
+      "over_100_ms": 0,
+      "over_200_ms": 0,
+      "sent_updates": 1232,
+      "unmatched_updates": 0,
+      "coverage": 1
+    },
+    "admin_visible_update_ms": {
+      "count": 1232,
+      "mean": 57.5,
+      "min": 12,
+      "p50": 42,
+      "p95": 127,
+      "p99": 427,
+      "max": 838,
+      "over_50_ms": 338,
+      "over_100_ms": 77,
+      "over_200_ms": 41,
+      "sent_updates": 1232,
+      "unmatched_updates": 0,
+      "coverage": 1
+    },
+    "point_outcomes": {
+      "presented": 1232
+    },
+    "expired": {
+      "tv": 0,
+      "admin": 0
+    },
+    "limits": "TV-Messung bestätigt simulierten WebSocket-Empfang, nicht die Ausgabe auf einem physischen Pi. Die Latenzmessungen prüfen keine BTP-Ergebnisübernahme."
+  },
+  "admin_point_breakdown_ms": {
+    "queue_ms": {
+      "count": 1232,
+      "mean": 2.52,
+      "p50": 0.2,
+      "p95": 2.3,
+      "p99": 42.6,
+      "max": 395.5
+    },
+    "handler_ms": {
+      "count": 1232,
+      "mean": 1.04,
+      "p50": 0.8,
+      "p95": 1.8,
+      "p99": 11.6,
+      "max": 19.6
+    },
+    "ui_wait_ms": {
+      "count": 1232,
+      "mean": 6.46,
+      "p50": 0,
+      "p95": 30.8,
+      "p99": 234,
+      "max": 703.4
+    },
+    "render_ms": {
+      "count": 1232,
+      "mean": 32.83,
+      "p50": 31.2,
+      "p95": 53.1,
+      "p99": 94.8,
+      "max": 185.1
+    },
+    "total_ms": {
+      "count": 1232,
+      "mean": 42.85,
+      "p50": 33,
+      "p95": 78.4,
+      "p99": 370.3,
+      "max": 822.5
+    }
+  },
+  "admin_ingress_ms": {
+    "count": 1232,
+    "mean": 14.69,
+    "p50": 6,
+    "p95": 41,
+    "p99": 218,
+    "max": 439
+  },
+  "by_update_kind": {
+    "ordinary_points": {
+      "latency_ms": {
+        "count": 1214,
+        "mean": 51.83,
+        "p50": 41,
+        "p95": 100,
+        "p99": 385,
+        "max": 538
+      },
+      "over_200_ms": 23
+    },
+    "finish_confirmations": {
+      "latency_ms": {
+        "count": 18,
+        "mean": 442.28,
+        "p50": 390,
+        "p95": 838,
+        "p99": 838,
+        "max": 838
+      },
+      "over_200_ms": 18
+    }
+  },
+  "browser_work": {
+    "lists.counts": {
+      "count": 53,
+      "queue_ms": {
+        "mean": 8.05,
+        "max": 15.5
+      },
+      "work_ms": {
+        "mean": 21.97,
+        "max": 32.6
+      },
+      "elapsed_ms": {
+        "mean": 30.03,
+        "max": 45.3
+      }
+    },
+    "names.layout": {
+      "count": 540,
+      "queue_ms": {
+        "mean": 142.06,
+        "max": 649.1
+      },
+      "work_ms": {
+        "mean": 25.8,
+        "max": 277.4
+      },
+      "elapsed_ms": {
+        "mean": 167.86,
+        "max": 700.9
+      }
+    },
+    "finished.sort": {
+      "count": 38,
+      "queue_ms": {
+        "mean": 279.78,
+        "max": 700.4
+      },
+      "work_ms": {
+        "mean": 13.73,
+        "max": 21.1
+      },
+      "elapsed_ms": {
+        "mean": 293.53,
+        "max": 710.6
+      }
+    },
+    "timers.fit": {
+      "count": 154,
+      "queue_ms": {
+        "mean": 26.88,
+        "max": 295.1
+      },
+      "work_ms": {
+        "mean": 11.05,
+        "max": 106.5
+      },
+      "elapsed_ms": {
+        "mean": 135.63,
+        "max": 504.6
+      }
+    },
+    "preparation.diagnosis": {
+      "count": 459,
+      "queue_ms": {
+        "mean": 42.14,
+        "max": 599
+      },
+      "work_ms": {
+        "mean": 10.77,
+        "max": 30.7
+      },
+      "elapsed_ms": {
+        "mean": 173.03,
+        "max": 853.2
+      }
+    },
+    "locations.labels": {
+      "count": 857,
+      "queue_ms": {
+        "mean": 78.76,
+        "max": 495.7
+      },
+      "work_ms": {
+        "mean": 0.76,
+        "max": 2.3
+      },
+      "elapsed_ms": {
+        "mean": 79.53,
+        "max": 496.4
+      }
+    }
+  },
+  "server": {
+    "runs": [
+      {
+        "server_id": "649582-1793924757193",
+        "samples": 594,
+        "peak_pending": {
+          "Locks:": 4,
+          "DB courts:": 1,
+          "DB locations:": 0,
+          "DB event:": 0,
+          "DB matches:": 1,
+          "DB tournaments:": 2,
+          "DB umpires:": 1,
+          "DB logs:": 0,
+          "DB tabletoperators:": 0,
+          "DB displaysettings:": 4,
+          "DB display_court_displaysettings:": 29,
+          "DB normalizations:": 0,
+          "DB advertisements:": 0,
+          "DB app_settings:": 0,
+          "Worker compaction_serialize:3": 0,
+          "Worker btp_decode:5": 0,
+          "Worker sync_plan_worker:6": 0,
+          "Admin send:": 4
+        },
+        "peak_oldest_ms": {
+          "Locks:": 49,
+          "DB courts:": 7,
+          "DB locations:": 0,
+          "DB event:": 0,
+          "DB matches:": 6,
+          "DB tournaments:": 31,
+          "DB umpires:": 1,
+          "DB logs:": 0,
+          "DB tabletoperators:": 0,
+          "DB displaysettings:": 50,
+          "DB display_court_displaysettings:": 17,
+          "DB normalizations:": 0,
+          "DB advertisements:": 0,
+          "DB app_settings:": 0,
+          "Worker compaction_serialize:3": 0,
+          "Worker btp_decode:5": 0,
+          "Worker sync_plan_worker:6": 0,
+          "Admin send:": 107
+        },
+        "max_event_loop_ms": 65.798143,
+        "max_probe_rtt_ms": 203
+      }
+    ],
+    "probe_failures": 0,
+    "trace_statuses": {
+      "ok": 5705
+    },
+    "btp_fetch_traces": {
+      "ok": 15
+    },
+    "queue_incidents": []
+  },
+  "db_comparison": [
+    {
+      "label": "optimized_2026_10_30",
+      "file": "/tmp/bts-optimization-run7.json",
+      "server": "2767523-1793321606411",
+      "window_seconds": 600.136,
+      "points": 1265,
+      "score_updates": 1279,
+      "checkins": 34,
+      "matches": 373,
+      "finished_at_start": 120,
+      "db_completed": {
+        "DB courts:": 4365,
+        "DB locations:": 2422,
+        "DB event:": 2,
+        "DB matches:": 7063,
+        "DB tournaments:": 7647,
+        "DB umpires:": 2954,
+        "DB logs:": 2,
+        "DB tabletoperators:": 2428,
+        "DB displaysettings:": 3894,
+        "DB display_court_displaysettings:": 4304,
+        "DB normalizations:": 1490,
+        "DB advertisements:": 1629,
+        "DB app_settings:": 2
+      },
+      "total_db_operations": 38202,
+      "db_operations_per_second": 63.66,
+      "db_operations_per_score": 29.87,
+      "traced_db_operations": 35470,
+      "admin_tournament_snapshots": 1488,
+      "admin_snapshot_db_operations": 16370,
+      "admin_snapshot_share_of_traced_db": 46.2,
+      "db_wait_ms": {
+        "p50": 0.3,
+        "p95": 2.9,
+        "p99": 7,
+        "max": 71.7
+      },
+      "operations": {
+        "matches:sync_snapshot_matches": 2244,
+        "umpires:find": 2088,
+        "displaysettings:findOne": 1851,
+        "tournaments:automation_tournaments": 1834,
+        "tournaments:findOne": 1815,
+        "displaysettings:find": 1624,
+        "locations:find": 1587,
+        "courts:find": 1586,
+        "advertisements:find": 1583,
+        "tabletoperators:find": 1522,
+        "tournaments:admin_tournament_read": 1488,
+        "matches:admin_match_overview": 1488,
+        "normalizations:find": 1488,
+        "display_court_displaysettings:find": 1488,
+        "display_court_displaysettings:findOne": 1386,
+        "tournaments:display_context_tournament": 1286,
+        "courts:display_context_court": 1284,
+        "matches:display_context_match": 1276,
+        "matches:score_update_write": 1271,
+        "courts:sync_snapshot_courts": 972,
+        "tournaments:sync_snapshot_tournaments": 797,
+        "tabletoperators:sync_snapshot_tabletoperators": 708,
+        "umpires:sync_snapshot_umpires": 698,
+        "locations:sync_snapshot_locations": 680,
+        "matches:findOne": 192
+      }
+    },
+    {
+      "label": "previous_test6",
+      "file": "/home/tim/Downloads/bts-test-6 (1).json",
+      "server": "642538-1793923375367",
+      "window_seconds": 584.107,
+      "points": 1045,
+      "score_updates": 1050,
+      "checkins": 25,
+      "matches": 512,
+      "finished_at_start": 344,
+      "db_completed": {
+        "DB courts:": 4244,
+        "DB locations:": 1723,
+        "DB event:": 2,
+        "DB matches:": 6853,
+        "DB tournaments:": 8140,
+        "DB umpires:": 2251,
+        "DB logs:": 39,
+        "DB tabletoperators:": 1736,
+        "DB displaysettings:": 11460,
+        "DB display_court_displaysettings:": 5850,
+        "DB normalizations:": 1335,
+        "DB advertisements:": 2416,
+        "DB app_settings:": 2
+      },
+      "total_db_operations": 46051,
+      "db_operations_per_second": 78.84,
+      "db_operations_per_score": 43.86,
+      "traced_db_operations": 42284,
+      "admin_tournament_snapshots": 1334,
+      "admin_snapshot_db_operations": 14678,
+      "admin_snapshot_share_of_traced_db": 34.7,
+      "db_wait_ms": {
+        "p50": 0.3,
+        "p95": 6.2,
+        "p99": 16.6,
+        "max": 181.2
+      },
+      "operations": {
+        "displaysettings:findOne": 7585,
+        "displaysettings:find": 3419,
+        "display_court_displaysettings:findOne": 3129,
+        "tournaments:findOne": 3112,
+        "courts:find": 2371,
+        "advertisements:find": 2368,
+        "umpires:find": 1917,
+        "tournaments:automation_tournaments": 1788,
+        "matches:sync_snapshot_matches": 1706,
+        "locations:find": 1383,
+        "tabletoperators:find": 1359,
+        "tournaments:admin_tournament_read": 1334,
+        "matches:admin_match_overview": 1334,
+        "normalizations:find": 1334,
+        "display_court_displaysettings:find": 1334,
+        "matches:find": 1058,
+        "matches:score_update_write": 1044,
+        "matches:display_context_match": 1040,
+        "tournaments:display_context_tournament": 1033,
+        "courts:display_context_court": 1033,
+        "courts:sync_snapshot_courts": 459,
+        "tournaments:sync_snapshot_tournaments": 245,
+        "tabletoperators:sync_snapshot_tabletoperators": 211,
+        "locations:sync_snapshot_locations": 169,
+        "umpires:sync_snapshot_umpires": 169
+      }
+    },
+    {
+      "label": "current_test7",
+      "file": "/home/tim/Downloads/bts-test-7 (2).json",
+      "server": "649582-1793924757193",
+      "window_seconds": 600.022,
+      "points": 1214,
+      "score_updates": 1232,
+      "checkins": 57,
+      "matches": 512,
+      "finished_at_start": 349,
+      "db_completed": {
+        "DB courts:": 5600,
+        "DB locations:": 2393,
+        "DB event:": 2,
+        "DB matches:": 8894,
+        "DB tournaments:": 10387,
+        "DB umpires:": 2879,
+        "DB logs:": 71,
+        "DB tabletoperators:": 2420,
+        "DB displaysettings:": 13669,
+        "DB display_court_displaysettings:": 6873,
+        "DB normalizations:": 1584,
+        "DB advertisements:": 2883,
+        "DB app_settings:": 2
+      },
+      "total_db_operations": 57657,
+      "db_operations_per_second": 96.09,
+      "db_operations_per_score": 46.8,
+      "traced_db_operations": 50358,
+      "admin_tournament_snapshots": 1581,
+      "admin_snapshot_db_operations": 17391,
+      "admin_snapshot_share_of_traced_db": 34.5,
+      "db_wait_ms": {
+        "p50": 0.2,
+        "p95": 2.8,
+        "p99": 9.9,
+        "max": 123.5
+      },
+      "operations": {
+        "displaysettings:findOne": 8869,
+        "displaysettings:find": 4029,
+        "tournaments:findOne": 3746,
+        "display_court_displaysettings:findOne": 3654,
+        "courts:find": 2789,
+        "advertisements:find": 2786,
+        "umpires:find": 2181,
+        "matches:sync_snapshot_matches": 1987,
+        "tournaments:automation_tournaments": 1838,
+        "locations:find": 1652,
+        "tabletoperators:find": 1638,
+        "tournaments:admin_tournament_read": 1581,
+        "matches:admin_match_overview": 1581,
+        "normalizations:find": 1581,
+        "display_court_displaysettings:find": 1581,
+        "matches:find": 1223,
+        "matches:score_update_write": 1214,
+        "matches:display_context_match": 1208,
+        "tournaments:display_context_tournament": 1204,
+        "courts:display_context_court": 1204,
+        "courts:sync_snapshot_courts": 705,
+        "tournaments:sync_snapshot_tournaments": 395,
+        "tabletoperators:sync_snapshot_tabletoperators": 349,
+        "locations:sync_snapshot_locations": 302,
+        "umpires:sync_snapshot_umpires": 302
+      }
+    }
+  ],
+  "db_interpretation": {
+    "operation_rate_increase_percent": 50.9,
+    "display_profile_share_of_total_increase_percent": 50.2,
+    "score_processing_db_operations_per_update": {
+      "optimized_2026_10_30": 6.39,
+      "current": 20.06
+    },
+    "observations": [
+      "Zähler erfassen DB-Operationen einschließlich Lese- und Schreibzugriffen; es sind keine SQL-Anfragen.",
+      "Der größte Anstieg betrifft Anzeigeprofile; die DB-Zugriffe auf Offizielle sind nahezu unverändert.",
+      "Der Testclient fordert im Steuerungszyklus selbst vollständige Turnier-Snapshots an. Im neuen Lauf wurden 1581 solche Aufträge mit 17391 zugeordneten DB-Lesezugriffen protokolliert.",
+      "Beim Erzeugen vollständiger Gerätezustände wird die Profilsammlung geladen, zusätzlich das Registrierungsprofil geprüft und dasselbe effektive Profil zum Teil erneut aufgelöst.",
+      "Server-Wartezeiten sind gestiegen, belegen aber nicht allein die Ursache der Browser-Spitzen. Im neuen Lauf liegt das 99. Perzentil der erfassten DB-Wartezeiten bei 9,9 ms."
+    ],
+    "limits": [
+      "Historische Läufe sind kein kontrollierter A/B-Vergleich: 373 statt 512 Spiele, 120 statt 349 abgeschlossene Spiele, unterschiedliche Check-in- und Abschlusszahlen und geänderte Punktverteilung.",
+      "DB-Zähler umfassen auch andere gleichzeitig geöffnete Seiten; Traces decken nicht zwingend jeden einzelnen Zählereintrag ab.",
+      "Die Punktzahl pro Lauf erklärt den Anstieg nicht allein: 29,87 gegenüber 46,80 DB-Operationen je gesendetem Update."
+    ]
+  },
+  "officials_isolated_comparison": {
+    "scope": "Isolated browser comparison with and without official assignments from a read-only local snapshot; no live writes.",
+    "order": [
+      false,
+      true,
+      true,
+      false
+    ],
+    "summary": [
+      {
+        "officials_enabled": false,
+        "rounds": 2,
+        "matches": 512,
+        "assigned_official_matches": 0,
+        "rotation_rebuild_10_ms_each_round": [
+          6.3999998569488525,
+          4.599999904632568
+        ],
+        "operations": {
+          "point": {
+            "presentation_ms": {
+              "count": 10,
+              "mean": 67.6,
+              "p50": 66.6,
+              "p95": 95.6,
+              "p99": 95.6,
+              "max": 95.6
+            },
+            "mean_ui_work_ms": 0.31
+          },
+          "finish": {
+            "presentation_ms": {
+              "count": 10,
+              "mean": 132.7,
+              "p50": 133.2,
+              "p95": 155,
+              "p99": 155,
+              "max": 155
+            },
+            "mean_ui_work_ms": 77.14
+          },
+          "reopen": {
+            "presentation_ms": {
+              "count": 10,
+              "mean": 156.61,
+              "p50": 149.9,
+              "p95": 215.4,
+              "p99": 215.4,
+              "max": 215.4
+            },
+            "mean_ui_work_ms": 85.46
+          }
+        }
+      },
+      {
+        "officials_enabled": true,
+        "rounds": 2,
+        "matches": 512,
+        "assigned_official_matches": 66,
+        "rotation_rebuild_10_ms_each_round": [
+          5.299999952316284,
+          6.099999904632568
+        ],
+        "operations": {
+          "point": {
+            "presentation_ms": {
+              "count": 10,
+              "mean": 75.06,
+              "p50": 66.7,
+              "p95": 108.4,
+              "p99": 108.4,
+              "max": 108.4
+            },
+            "mean_ui_work_ms": 0.27
+          },
+          "finish": {
+            "presentation_ms": {
+              "count": 10,
+              "mean": 179.41,
+              "p50": 150,
+              "p95": 350,
+              "p99": 350,
+              "max": 350
+            },
+            "mean_ui_work_ms": 109.16
+          },
+          "reopen": {
+            "presentation_ms": {
+              "count": 10,
+              "mean": 189.15,
+              "p50": 150.6,
+              "p95": 366.9,
+              "p99": 366.9,
+              "max": 366.9
+            },
+            "mean_ui_work_ms": 100.67
+          }
+        }
+      }
+    ],
+    "all_updates_presented": true,
+    "interpretation": "Zusätzliche Arbeit durch Offiziellenzuordnungen ist messbar, aber die Verteilungen überlappen. Auch ohne Offizielle bleiben umfangreiche Layout- und Sortierprüfungen der abgeschlossenen Spiele. Die eigentliche Rotationskachel kostet in diesem Test nur etwa 0,4 bis 0,6 ms pro Neuaufbau.",
+    "limits": [
+      "Aktueller rein lesend kopierter Turnierstand mit 512 Spielen und 66 Offiziellenzuordnungen; er ist nicht der exakte Startzustand des hochgeladenen Laufs.",
+      "Je Variante zehn Punkte, zehn Abschlüsse und zehn Wiederöffnungen; kein vollständiger zehnminütiger A/B-Dauertest.",
+      "Profiler und Browser laufen lokal; einzelne Ausreißer und Garbage Collection beeinflussen die kleinen Stichproben."
+    ]
+  },
+  "assessment": {
+    "version": 1,
+    "thresholds": {
+      "p99_ms": 30,
+      "max_ms": 50,
+      "min_samples": 100,
+      "admin_render_p99_ms": 100,
+      "admin_render_max_ms": 250
+    },
+    "final": true,
+    "level": "ERROR",
+    "summary": "Mindestens ein Ziel ist verletzt.",
+    "criteria": [
+      {
+        "id": "tv_p99",
+        "label": "TV · p99 im gesamten Lauf",
+        "level": "ERROR",
+        "value": "30 ms",
+        "target": "< 30 ms",
+        "detail": "1232 zugeordnete Updates."
+      },
+      {
+        "id": "tv_reception",
+        "label": "TV · Eventempfang",
+        "level": "OK",
+        "value": "1232 / 1232",
+        "target": "Alle gesendeten Updates zugeordnet",
+        "detail": "Vollständige Zuordnung."
+      },
+      {
+        "id": "tv_max",
+        "label": "TV · Maximum",
+        "level": "WARN",
+        "value": "62 ms",
+        "target": "Wunschziel < 50 ms",
+        "detail": "Ein einzelner Ausreißer verletzt nicht automatisch das p99-Ziel. Updates über 50 ms: 1."
+      },
+      {
+        "id": "admin_p99",
+        "label": "Admin · p99 im gesamten Lauf",
+        "level": "ERROR",
+        "value": "427 ms",
+        "target": "< 100 ms",
+        "detail": "1232 zugeordnete Updates."
+      },
+      {
+        "id": "admin_reception",
+        "label": "Admin · Darstellung quittiert",
+        "level": "OK",
+        "value": "1232 / 1232",
+        "target": "Alle gesendeten Updates zugeordnet",
+        "detail": "Vollständige Zuordnung."
+      },
+      {
+        "id": "admin_max",
+        "label": "Admin · Maximum",
+        "level": "WARN",
+        "value": "838 ms",
+        "target": "Wunschziel < 250 ms",
+        "detail": "Ein einzelner Ausreißer verletzt nicht automatisch das p99-Ziel. Updates über 50 ms: 338."
+      },
+      {
+        "id": "queues",
+        "label": "Server-Warteschlangen",
+        "level": "OK",
+        "value": "Kein anhaltender Rückstau",
+        "target": "Kein wachsender Rückstau / keine Queue-Fehler",
+        "detail": "Bewertung anhand der bestehenden Rückstau-Erkennung; kurze Spitzen sind erlaubt."
+      }
+    ],
+    "queue_incidents": []
+  },
+  "conclusion": {
+    "reliability": "Vollständiger Lauf ohne Serverwechsel, alle 1232 Score-Updates zugeordnet, keine fehlgeschlagenen Verarbeitungstraces oder Queue-Vorfälle.",
+    "latency": "Verbessert gegenüber Lauf 6; Admin-p99 427 ms und Maximum 838 ms verfehlen weiterhin die Ziele von unter 100 bzw. 250 ms.",
+    "priority_targets": [
+      "Wiederholtes Laden und Auflösen der Anzeigeprofile bei Gerätezuständen reduzieren und Änderungen weiterhin unmittelbar berücksichtigen.",
+      "Offiziellenspalten und Namenslayout nur für betroffene Tabellen/Zellen neu prüfen, statt die gesamte abgeschlossene Liste wiederholt zu durchsuchen.",
+      "Strukturelle Abschlussfolgen und Vorbereitungsänderungen in der echten Lastmessung abdecken."
+    ],
+    "production_changes_made_in_this_analysis": false
+  }
+}
