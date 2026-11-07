@@ -37,7 +37,7 @@ module.exports = async function({c, open, metrics, check, key, previews}) {
    await metrics(width, 1080);
    await c.evaluate('__navigationSettle()');
    await verify(page + ': navigation fits without clipping or overlap at ' + width, `(()=>{
-    const sample=__navigationSample();return sample.links.length===6&&sample.links.every(link=>link.accessible===link.label&&link.left>=0&&link.right<=innerWidth+.5&&link.top>=sample.header.top&&link.bottom<=sample.header.bottom)&&sample.header.height<=89&&sample.header.right<=innerWidth+.5&&(sample.stacked||sample.nav.right<=sample.status.left+.5)&&sample.links.every(link=>link.visible===(link.active||!sample.compact));
+    const sample=__navigationSample();return sample.links.length===7&&sample.links.every(link=>link.accessible===link.label&&link.left>=0&&link.right<=innerWidth+.5&&link.top>=sample.header.top&&link.bottom<=sample.header.bottom)&&sample.header.height<=89&&sample.header.right<=innerWidth+.5&&(sample.stacked||sample.nav.right<=sample.status.left+.5)&&sample.links.every(link=>link.visible===(link.active||!sample.compact));
    })()`);
    if (width >= 1280) await verify(page + ': tabs stay in the first header row at ' + width, '!__navigationSample().stacked&&__navigationSample().header.height<=45');
    samples.push({page, ...await c.evaluate('__navigationSample()')});
