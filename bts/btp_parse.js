@@ -62,6 +62,24 @@ function filter_matches(all_btp_matches, is_league) {
 	return all_btp_matches.filter(bm => (bm.IsPlayable && bm.MatchNr && bm.MatchNr[0] && bm.From1));
 }
 
+function map_get_btp_id(map, id) {
+	return map.get(id) || map.get(Number(id)) || map.get(String(id));
+}
+
+function make_payment_index(payments) {
+	const res = new Map();
+	const seen = new Map();
+	for (let i = 0; i < payments.length; i++) {
+		const payment = payments[i];
+		const id = payment.ID && payment.ID[0] != null ? payment.ID[0] : payment.GUID && payment.GUID[0];
+		const seen_key = id == null ? `__missing_${i}` : String(id);
+		const duplicate_index = seen.get(seen_key) || 0;
+		seen.set(seen_key, duplicate_index + 1);
+		res.set(duplicate_index === 0 ? id : `${seen_key}_${duplicate_index}`, payment);
+	}
+	return res;
+}
+
 // bts_players: Array of array of players participating.
 //              Only for matches, not individual players
 // bts_winners: Array of players who have won this match.
@@ -76,7 +94,7 @@ function _calc_match_players(matches_by_pid, entries, stage_entries, draws, play
 	}
 
 	if (bm.EntryID) { // Either placeholder match or match won
-		const e = entries.get(bm.EntryID[0]);
+		const e = map_get_btp_id(entries, bm.EntryID[0]);
 		if (!e) {
 			throw new Error('Cannot find entry ' + bm.EntryID[0]);
 		}
@@ -93,14 +111,14 @@ function _calc_match_players(matches_by_pid, entries, stage_entries, draws, play
 		}
 
 
-		const p1 = players.get(e.Player1ID[0]);
+		const p1 = map_get_btp_id(players, e.Player1ID[0]);
 		assert(p1);
 
 		_set_player_draw_entry_status(p1, draw_id, entry_status);
 
 		const res = [p1];
 		if (e.Player2ID) {
-			const p2 = players.get(e.Player2ID[0]);
+			const p2 = map_get_btp_id(players, e.Player2ID[0]);
 			assert(p2);
 			_set_player_draw_entry_status(p2, draw_id, entry_status);
 			res.push(p2);
@@ -118,13 +136,13 @@ function _calc_match_players(matches_by_pid, entries, stage_entries, draws, play
 	if (is_league) {
 		if (!bm.Team1Player1ID) return;
 
-		p1ar = [players.get(bm.Team1Player1ID[0])];
+		p1ar = [map_get_btp_id(players, bm.Team1Player1ID[0])];
 		if (bm.Player2ID) {
-			p1ar.push(players.get(bm.Team1Player2ID[0]));
+			p1ar.push(map_get_btp_id(players, bm.Team1Player2ID[0]));
 		}
-		p2ar = [players.get(bm.Team2Player1ID[0])];
+		p2ar = [map_get_btp_id(players, bm.Team2Player1ID[0])];
 		if (bm.Player2ID) {
-			p2ar.push(players.get(bm.Team2Player2ID[0]));
+			p2ar.push(map_get_btp_id(players, bm.Team2Player2ID[0]));
 		}
 	} else {
 		assert(bm.DrawID);
@@ -174,10 +192,10 @@ function _resolve_team(btp_tm, planning_id, team_matches_by_planning, entries, t
 	if (!pseudo_match.EntryID) {
 		return null; // throw error?
 	}
-	const entry = entries.get(pseudo_match.EntryID[0]);
+	const entry = map_get_btp_id(entries, pseudo_match.EntryID[0]);
 	const team_id = entry.Player1ID[0];
 
-	const team = teams.get(team_id);
+	const team = map_get_btp_id(teams, team_id);
 	if (! team) {
 		return null; // throw error?
 	}
@@ -190,9 +208,9 @@ function _annotate_league_teammatch(btp_tm, team_matches_by_planning, entries, t
 	if (!btp_tm.IsPlayable || !btp_tm.IsPlayable[0]) return;
 	if (!btp_tm.IsMatch || !btp_tm.IsMatch[0]) return;
 
-	const draw = draws.get(btp_tm.DrawID[0]);
+	const draw = map_get_btp_id(draws, btp_tm.DrawID[0]);
 	const draw_name = draw.Name[0];
-	const event = events.get(draw.EventID[0])
+	const event = map_get_btp_id(events, draw.EventID[0])
 	const event_name = event.Name[0];
 	btp_tm.bts_event_name = event_name === draw_name ? draw_name : `${event_name} ${draw_name}`;
 
@@ -240,6 +258,7 @@ function get_btp_state(response) {
 	const all_btp_clubs = btp_t.Clubs ? btp_t.Clubs[0].Club : [];
 	const all_btp_districts = btp_t.Districts ? btp_t.Districts[0].District : [];
 	const all_btp_scoring_formats = btp_t.ScoringFormats ? btp_t.ScoringFormats[0].ScoringFormat : [];
+	const all_btp_payments = btp_t.Payments && btp_t.Payments[0] && btp_t.Payments[0].Payment ? btp_t.Payments[0].Payment : [];
 
 	const on_court_match_ids = new Set();
 	for (const c of all_btp_courts) {
@@ -279,6 +298,7 @@ function get_btp_state(response) {
 	const districts = utils.make_index(all_btp_districts,d => d.ID[0]);
 	const scoring_formats = utils.make_index(all_btp_scoring_formats, sf => sf.ID[0]);
 	const btp_settings = utils.make_index(all_btp_settings, s =>s.ID[0]);
+	const payments = make_payment_index(all_btp_payments);
 
 	for (const bm of matches) {
 		_calc_match_players(matches_by_pid, entries, stage_entries, draws, players, bm, is_league);
@@ -303,6 +323,7 @@ function get_btp_state(response) {
 		clubs,
 		districts,
 		scoring_formats,
+		payments,
 		// Testing only
 		_matches_by_pid: matches_by_pid,
 		btp_settings

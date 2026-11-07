@@ -304,6 +304,9 @@ class CDP {
    await require('./number-input-check')({c,open,check,key,metrics});
    assert(!c.events.some(event=>event.method==='Runtime.exceptionThrown'),'Number editing has no browser exceptions');return;
   }
+  if(process.argv.includes('--accounting-only')) {
+   await require('./accounting-check')({c,open,check,click,metrics});return;
+  }
   if(process.argv.includes('--compact-density-only')) {
    await require('./compact-density-check')({c,check,click,open,metrics,previews,capture:snap});return;
   }

@@ -1487,6 +1487,1955 @@ td.battery-status-charging {
 	flex: 0 0 auto;
 }
 
+.registration_accounting {
+	display: flex;
+	align-items: stretch;
+	gap: 0.45rem;
+	flex: 0 1 28rem;
+	min-width: 20rem;
+	justify-content: flex-end;
+}
+
+.registration_accounting_amounts {
+	display: grid;
+	grid-template-columns: repeat(3, minmax(5.5rem, auto));
+	align-items: center;
+	gap: 0.25rem;
+	min-width: 0;
+	padding: 0.28rem 0.45rem;
+	border: 1px solid #d5dce2;
+	border-radius: 6px;
+	background: rgba(255, 255, 255, 0.72);
+	color: #3d4954;
+	font-size: 0.78rem;
+	line-height: 1.15;
+	white-space: nowrap;
+}
+
+.registration_accounting_open {
+	color: #a33128;
+}
+
+.registration_accounting_done {
+	color: #1f6a3b;
+}
+
+.registration_accounting_actions {
+	display: flex;
+	align-items: stretch;
+	gap: 0.25rem;
+	flex: 0 0 auto;
+}
+
+.registration_accounting_button {
+	min-height: 2.75rem;
+	margin: 0;
+	padding: 0.25rem 0.45rem;
+	border: 1px solid #9facb7;
+	border-radius: 6px;
+	background: #ffffff;
+	color: #334252;
+	font-size: 0.78rem;
+	font-weight: bold;
+	white-space: nowrap;
+}
+
+.registration_accounting_button:hover,
+.registration_accounting_button:focus-visible {
+	border-color: #4d86ad;
+	background: #edf6fb;
+}
+
+.main_accounting {
+	padding: 0.65rem;
+	background: #f5f7f9;
+	box-sizing: border-box;
+}
+
+.accounting_container {
+	display: flex;
+	flex-direction: column;
+	gap: 0.75rem;
+	max-width: 96rem;
+	margin: 0 auto;
+}
+
+.accounting_header {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) minmax(16rem, 26rem);
+	gap: 0.75rem;
+	align-items: end;
+	padding: 0.35rem 0;
+}
+
+.accounting_title h1 {
+	margin: 0;
+	color: #25313b;
+	font-size: 1.8rem;
+}
+
+.accounting_summary {
+	margin-top: 0.2rem;
+	color: #52606b;
+	font-size: 0.92rem;
+	font-weight: bold;
+}
+
+.accounting_header_actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.35rem;
+	margin-top: 0.5rem;
+}
+
+.accounting_header_actions button {
+	margin: 0;
+	padding: 0.36rem 0.65rem;
+	border: 1px solid #9facb7;
+	border-radius: 6px;
+	background: #ffffff;
+	color: #25313b;
+	font-weight: bold;
+}
+
+.accounting_fee_mode,
+.accounting_invoice_treatment,
+.accounting_document_code_control {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.45rem;
+	margin-top: 0.45rem;
+	color: #3d4954;
+	font-size: 0.86rem;
+	font-weight: bold;
+}
+
+.accounting_fee_mode select,
+.accounting_invoice_treatment select,
+.accounting_document_code_control input {
+	min-width: 14rem;
+	padding: 0.32rem 0.45rem;
+	border: 1px solid #9facb7;
+	border-radius: 6px;
+	background: #ffffff;
+	font: inherit;
+	font-weight: normal;
+}
+
+.accounting_document_code_control button {
+	margin: 0;
+	padding: 0.32rem 0.55rem;
+	border: 1px solid #9facb7;
+	border-radius: 6px;
+	background: #ffffff;
+	font-weight: bold;
+}
+
+.accounting_payment_settings {
+	margin-top: 0.7rem;
+	padding: 0.55rem;
+	border: 1px solid #cfd8e0;
+	border-radius: 6px;
+	background: #eef3f7;
+}
+
+.accounting_payment_settings h2 {
+	margin: 0 0 0.45rem;
+	color: #25313b;
+	font-size: 1rem;
+}
+
+.accounting_payment_settings_fields {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(10rem, 1fr)) minmax(7rem, 0.55fr);
+	gap: 0.45rem;
+	align-items: end;
+}
+
+.accounting_payment_settings_field {
+	display: flex;
+	flex-direction: column;
+	gap: 0.2rem;
+	min-width: 0;
+	color: #3d4954;
+	font-size: 0.82rem;
+	font-weight: bold;
+}
+
+.accounting_payment_settings_field input,
+.accounting_payment_settings_field select {
+	width: 100%;
+	min-width: 0;
+	box-sizing: border-box;
+	padding: 0.32rem 0.45rem;
+	border: 1px solid #9facb7;
+	border-radius: 6px;
+	background: #ffffff;
+	font: inherit;
+	font-weight: normal;
+}
+
+.accounting_payment_settings_checkbox {
+	align-self: end;
+	flex-direction: row;
+	align-items: center;
+	min-height: 2rem;
+	padding-bottom: 0.1rem;
+}
+
+.accounting_payment_settings_checkbox input {
+	width: auto;
+	min-width: 0;
+	margin: 0;
+}
+
+.accounting_payment_settings_actions {
+	display: flex;
+	align-items: center;
+	justify-content: flex-end;
+	gap: 0.55rem;
+	margin-top: 0.5rem;
+}
+
+.accounting_payment_settings_status {
+	color: #52606b;
+	font-size: 0.82rem;
+}
+
+.accounting_payment_receipt_hint {
+	margin: 0;
+	color: #52606b;
+	font-size: 0.86rem;
+}
+
+.accounting_document_event_period {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 0.15rem;
+	margin: 0.2rem 0 0.6rem;
+	color: #3d4954;
+}
+
+.accounting_payment_settings_actions button {
+	margin: 0;
+	padding: 0.32rem 0.55rem;
+	border: 1px solid #9facb7;
+	border-radius: 6px;
+	background: #ffffff;
+	font-weight: bold;
+}
+
+.accounting_filters {
+	display: flex;
+	gap: 0.35rem;
+}
+
+.accounting_balance_filter {
+	flex: 0 0 12rem;
+	min-width: 10rem;
+	padding: 0.45rem 0.55rem;
+	border: 1px solid #9facb7;
+	border-radius: 6px;
+	background: #ffffff;
+	font: inherit;
+}
+
+.accounting_search {
+	flex: 1 1 auto;
+	min-width: 0;
+	padding: 0.45rem 0.55rem;
+	border: 1px solid #9facb7;
+	border-radius: 6px;
+	font: inherit;
+}
+
+.accounting_filter_clear {
+	margin: 0;
+	padding: 0.35rem 0.55rem;
+	border: 1px solid #9facb7;
+	border-radius: 6px;
+	background: #ffffff;
+	font-weight: bold;
+}
+
+.accounting_items {
+	display: flex;
+	flex-direction: column;
+	gap: 0.45rem;
+	padding: 0.55rem 0;
+}
+
+.accounting_items_header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 0.5rem;
+}
+
+.accounting_items_header h2 {
+	margin: 0;
+	color: #25313b;
+	font-size: 1.15rem;
+}
+
+.accounting_item_form {
+	display: grid;
+	grid-template-columns: minmax(10rem, 1.2fr) minmax(9rem, 0.8fr) minmax(9rem, 0.75fr) minmax(9rem, 0.75fr) minmax(7rem, 0.6fr) minmax(8rem, 1fr) 12.5rem;
+	gap: 0.35rem;
+	align-items: center;
+}
+
+.accounting_item_form input,
+.accounting_item_form select {
+	min-width: 0;
+	padding: 0.38rem 0.45rem;
+	border: 1px solid #9facb7;
+	border-radius: 6px;
+	background: #ffffff;
+	font: inherit;
+}
+
+.accounting_item_form button {
+	margin: 0;
+	padding: 0.38rem 0.65rem;
+	border: 1px solid #4d86ad;
+	border-radius: 6px;
+	background: #edf6fb;
+	color: #25313b;
+	font-weight: bold;
+}
+
+.accounting_item_form_actions,
+.accounting_item_actions {
+	display: flex;
+	gap: 0.3rem;
+	align-items: center;
+	justify-content: flex-end;
+}
+
+.accounting_item_cancel_edit {
+	background: #ffffff !important;
+	border-color: #9facb7 !important;
+}
+
+.accounting_item_list {
+	display: flex;
+	flex-direction: column;
+	gap: 0.25rem;
+}
+
+.accounting_item_row {
+	display: grid;
+	grid-template-columns: minmax(10rem, 1.2fr) minmax(9rem, 0.8fr) minmax(9rem, 0.75fr) minmax(9rem, 0.75fr) minmax(7rem, 0.6fr) minmax(8rem, 1fr) 12.5rem;
+	gap: 0.35rem;
+	align-items: center;
+	padding: 0.35rem 0.45rem;
+	border: 1px solid #d5dce2;
+	border-radius: 6px;
+	background: #ffffff;
+	color: #3d4954;
+	font-size: 0.82rem;
+}
+
+.accounting_item_row strong {
+	color: #25313b;
+}
+
+.accounting_item_row > :nth-child(4) {
+	text-align: right;
+	white-space: nowrap;
+}
+
+.accounting_item_note {
+	min-width: 0;
+	color: #687580;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.accounting_item_empty {
+	color: #687580;
+	font-size: 0.86rem;
+}
+
+.accounting_letterhead {
+	display: flex;
+	flex-direction: column;
+	gap: 0.45rem;
+	margin: 0.85rem 0;
+	padding: 0.65rem;
+	border: 1px solid #d5dce2;
+	border-radius: 6px;
+	background: #f8fafc;
+}
+
+.accounting_letterhead_header {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.35rem 0.75rem;
+	align-items: baseline;
+}
+
+.accounting_letterhead_header h2 {
+	margin: 0;
+	color: #25313b;
+	font-size: 1.05rem;
+}
+
+.accounting_letterhead_header span,
+.accounting_letterhead_status {
+	color: #687580;
+	font-size: 0.84rem;
+}
+
+.accounting_letterhead_layout_open {
+	margin-left: auto;
+	padding: 0.25rem 0.45rem;
+	border: 1px solid #9facb7;
+	border-radius: 5px;
+	background: #ffffff;
+	font-weight: bold;
+}
+
+.accounting_letterhead_rows {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(24rem, 1fr));
+	gap: 0.45rem;
+}
+
+.accounting_letterhead_row {
+	display: grid;
+	grid-template-columns: minmax(11rem, 1fr) minmax(8rem, 11rem);
+	gap: 0.55rem;
+	align-items: stretch;
+	padding: 0.45rem;
+	border: 1px solid #dfe5ea;
+	border-radius: 5px;
+	background: #ffffff;
+}
+
+.accounting_letterhead_controls {
+	display: flex;
+	flex-direction: column;
+	gap: 0.45rem;
+	min-width: 0;
+}
+
+.accounting_letterhead_button_row {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.35rem;
+	align-items: center;
+}
+
+.accounting_letterhead_file {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	opacity: 0;
+	pointer-events: none;
+}
+
+.accounting_letterhead_row button {
+	margin: 0;
+	padding: 0.25rem 0.45rem;
+	border: 1px solid #9facb7;
+	border-radius: 5px;
+	background: #ffffff;
+	font-weight: bold;
+}
+
+.accounting_letterhead_preview {
+	position: relative;
+	align-self: center;
+	width: min(100%, 9rem);
+	aspect-ratio: 210 / 297;
+	overflow: hidden;
+	border: 1px solid #c6d0d9;
+	border-radius: 4px;
+	background: #f1f4f7;
+	box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.55);
+}
+
+.accounting_letterhead_preview_pdf {
+	position: absolute;
+	inset: 0;
+	width: 100%;
+	height: 100%;
+	border: 0;
+	pointer-events: none;
+}
+
+.accounting_letterhead_preview_empty {
+	position: absolute;
+	inset: 0;
+	display: grid;
+	place-items: center;
+	padding: 0.4rem;
+	color: #687580;
+	font-size: 0.78rem;
+	text-align: center;
+}
+
+.accounting_letterhead_layout_box {
+	width: min(92rem, calc(100vw - 2rem));
+	max-height: calc(100vh - 2rem);
+	overflow: auto;
+	text-align: left;
+}
+
+.accounting_letterhead_layout_hint {
+	margin: -0.35rem 0 0.8rem 0;
+	color: #687580;
+	font-size: 0.86rem;
+	text-align: center;
+}
+
+.accounting_letterhead_layout_form {
+	display: flex;
+	flex-direction: column;
+	gap: 1rem;
+}
+
+.accounting_letterhead_layout_body {
+	display: grid;
+	grid-template-columns: minmax(34rem, 1fr) minmax(26rem, 0.95fr);
+	gap: 1.25rem;
+	align-items: start;
+}
+
+.accounting_letterhead_layout_fields,
+.accounting_letterhead_layout_previews {
+	display: flex;
+	flex-direction: column;
+	gap: 0.65rem;
+}
+
+.accounting_letterhead_layout_page_fields,
+.accounting_letterhead_layout_preview {
+	display: flex;
+	flex-direction: column;
+	gap: 0.6rem;
+	padding: 0.8rem;
+	border: 1px solid #d5dce2;
+	border-radius: 6px;
+	background: #f8fafc;
+}
+
+.accounting_letterhead_layout_page_fields h4,
+.accounting_letterhead_layout_preview h4 {
+	margin: 0;
+	color: #334252;
+	font-size: 1.02rem;
+}
+
+.accounting_letterhead_layout_options {
+	background: #eef6fb;
+}
+
+.accounting_letterhead_layout_checkbox {
+	display: flex;
+	gap: 0.45rem;
+	align-items: center;
+	color: #25313b;
+	font-weight: bold;
+}
+
+.accounting_letterhead_layout_checkbox input {
+	width: auto;
+}
+
+.accounting_letterhead_layout_area_row {
+	display: grid;
+	grid-template-columns: 8.5rem repeat(4, minmax(5.2rem, 1fr));
+	gap: 0.45rem;
+	align-items: end;
+}
+
+.accounting_letterhead_layout_area_row_anchor {
+	grid-template-columns: 8.5rem repeat(2, minmax(5.2rem, 1fr)) 1fr;
+}
+
+.accounting_letterhead_layout_area_row strong {
+	padding-bottom: 0.5rem;
+	color: #25313b;
+	font-size: 0.95rem;
+}
+
+.accounting_letterhead_layout_area_row label {
+	display: grid;
+	gap: 0.2rem;
+	color: #687580;
+	font-size: 0.82rem;
+	font-weight: bold;
+}
+
+.accounting_letterhead_layout_area_row input {
+	box-sizing: border-box;
+	width: 100%;
+	padding: 0.45rem 0.5rem;
+	border: 1px solid #9facb7;
+	border-radius: 5px;
+	background: #ffffff;
+	font: inherit;
+	font-size: 1rem;
+}
+
+.accounting_letterhead_layout_page {
+	position: relative;
+	width: min(100%, 22rem);
+	aspect-ratio: 210 / 297;
+	margin: 0 auto;
+	border: 1px solid #b7c2cc;
+	background:
+		repeating-linear-gradient(0deg, transparent 0, transparent calc(10mm - 1px), #eef2f5 calc(10mm - 1px), #eef2f5 10mm),
+		repeating-linear-gradient(90deg, #ffffff 0, #ffffff calc(10mm - 1px), #eef2f5 calc(10mm - 1px), #eef2f5 10mm);
+	box-shadow: 0 0.25rem 0.9rem rgba(20, 29, 38, 0.12);
+}
+
+.accounting_letterhead_layout_pdf {
+	position: absolute;
+	inset: 0;
+	width: 100%;
+	height: 100%;
+	border: 0;
+	pointer-events: none;
+	z-index: 0;
+}
+
+.accounting_letterhead_layout_box_area {
+	position: absolute;
+	box-sizing: border-box;
+	display: flex;
+	align-items: flex-start;
+	padding: 0;
+	border: 0;
+	background: transparent;
+	overflow: visible;
+	z-index: 1;
+}
+
+.accounting_letterhead_layout_box_area span {
+	font-weight: normal;
+	line-height: 1.05;
+	text-shadow:
+		0 0 2px #ffffff,
+		0 0 4px #ffffff;
+	white-space: nowrap;
+}
+
+.accounting_letterhead_layout_box_bold span {
+	font-weight: bold;
+}
+
+.accounting_letterhead_layout_box_address {
+	color: #1d5f9f;
+	padding: 0.18rem;
+	border: 2px solid currentColor;
+	background: rgba(74, 144, 214, 0.2);
+	overflow: hidden;
+}
+
+.accounting_letterhead_layout_box_document_title {
+	color: #9a3412;
+}
+
+.accounting_letterhead_layout_box_document_number {
+	color: #7c2d12;
+}
+
+.accounting_letterhead_layout_box_document_date {
+	color: #4338ca;
+}
+
+.accounting_letterhead_layout_box_event_title {
+	color: #7a4316;
+}
+
+.accounting_letterhead_layout_box_content {
+	color: #207044;
+	padding: 0.18rem;
+	border: 2px solid currentColor;
+	background: rgba(79, 179, 123, 0.18);
+	overflow: hidden;
+}
+
+.accounting_letterhead_layout_box_footer {
+	justify-content: flex-end;
+	align-items: flex-end;
+	color: #6f4bb4;
+}
+
+.accounting_table_wrap {
+	container: accounting-table / inline-size;
+	overflow-x: auto;
+	border: 1px solid #d5dce2;
+	border-radius: 6px;
+	background: #ffffff;
+}
+
+.accounting_table {
+	width: 100%;
+	border-collapse: collapse;
+	font-size: 0.86rem;
+}
+
+.accounting_table th,
+.accounting_table td {
+	padding: 0.45rem 0.55rem;
+	border-bottom: 1px solid #edf0f2;
+	text-align: left;
+	vertical-align: top;
+}
+
+.accounting_table th {
+	position: sticky;
+	top: 0;
+	z-index: 1;
+	background: #e8edf2;
+	color: #334252;
+	font-size: 0.78rem;
+	white-space: nowrap;
+}
+
+.accounting_position_list_box {
+	width: min(96rem, calc(100vw - 2rem));
+	max-height: calc(100vh - 2rem);
+	overflow: hidden;
+	text-align: left;
+}
+
+.accounting_position_list_header {
+	display: flex;
+	justify-content: space-between;
+	gap: 1rem;
+	align-items: flex-start;
+	margin-bottom: 0.75rem;
+}
+
+.accounting_position_list_header h3 {
+	margin: 0;
+	color: #25313b;
+	font-size: 1.35rem;
+}
+
+.accounting_position_list_header p {
+	margin: 0.2rem 0 0;
+	color: #52606b;
+	font-weight: bold;
+}
+
+.accounting_position_list_actions {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: flex-end;
+	gap: 0.4rem;
+}
+
+.accounting_position_list_actions button {
+	margin: 0;
+	padding: 0.35rem 0.6rem;
+	border: 1px solid #9facb7;
+	border-radius: 6px;
+	background: #ffffff;
+	font-weight: bold;
+}
+
+.accounting_position_list_table_wrap {
+	max-height: calc(100vh - 9rem);
+	overflow: auto;
+	border: 1px solid #d5dce2;
+	border-radius: 6px;
+	background: #ffffff;
+}
+
+.accounting_position_list_table {
+	width: 100%;
+	border-collapse: collapse;
+	font-size: 0.94rem;
+	line-height: 1.35;
+}
+
+.accounting_position_list_table th,
+.accounting_position_list_table td {
+	padding: 0.5rem 0.6rem;
+	border-bottom: 1px solid #edf0f2;
+	text-align: left;
+	vertical-align: top;
+}
+
+.accounting_position_list_table th {
+	position: sticky;
+	top: 0;
+	z-index: 1;
+	background: #e8edf2;
+	color: #334252;
+	font-size: 0.84rem;
+	white-space: nowrap;
+}
+
+.accounting_position_list_table th:nth-child(7),
+.accounting_position_list_table td:nth-child(7) {
+	text-align: center;
+}
+
+.accounting_position_list_table tbody tr:nth-child(even) {
+	background: #fbfcfd;
+}
+
+.accounting_position_list_open {
+	background: #fff5ef;
+}
+
+.accounting_position_list_paid {
+	color: #334252;
+}
+
+.accounting_position_list_money {
+	text-align: right !important;
+	white-space: nowrap;
+	font-weight: bold;
+}
+
+.accounting_position_list_paid_cell input {
+	width: 1.05rem;
+	height: 1.05rem;
+	margin: 0;
+	vertical-align: middle;
+}
+
+@container accounting-table (max-width: 70rem) {
+	.accounting_table th:nth-child(5),
+	.accounting_table th:nth-child(6),
+	.accounting_table td:nth-child(5),
+	.accounting_table td:nth-child(6) {
+		display: none;
+	}
+}
+
+@media (max-width: 70rem) {
+	.accounting_table th:nth-child(5),
+	.accounting_table th:nth-child(6),
+	.accounting_table td:nth-child(5),
+	.accounting_table td:nth-child(6) {
+		display: none;
+	}
+}
+
+.accounting_tree_state,
+.accounting_tree_state_group {
+	background-color: #eef4f7;
+}
+
+.accounting_tree_club,
+.accounting_tree_club_group {
+	background-color: #f7f9fb;
+}
+
+.accounting_tree_none {
+	background-color: #fffdf7;
+}
+
+.accounting_table tbody tr:nth-child(even) {
+	background-color: #fbfcfd;
+}
+
+.accounting_table tbody tr.accounting_tree_state:nth-child(even),
+.accounting_table tbody tr.accounting_tree_state_group:nth-child(even) {
+	background-color: #e7f0f4;
+}
+
+.accounting_table tbody tr.accounting_tree_club:nth-child(even),
+.accounting_table tbody tr.accounting_tree_club_group:nth-child(even) {
+	background-color: #f1f5f8;
+}
+
+.accounting_table tbody tr.accounting_tree_none:nth-child(even) {
+	background-color: #fff9eb;
+}
+
+.accounting_table tbody tr.accounting_row_open {
+	background-color: #fff0e7;
+}
+
+.accounting_table tbody tr.accounting_row_open:nth-child(even) {
+	background-color: #ffe8dc;
+}
+
+.accounting_table tbody tr.accounting_row_open.accounting_tree_state,
+.accounting_table tbody tr.accounting_row_open.accounting_tree_state_group {
+	background-color: #ffc8aa;
+}
+
+.accounting_table tbody tr.accounting_row_open.accounting_tree_club,
+.accounting_table tbody tr.accounting_row_open.accounting_tree_club_group {
+	background-color: #ffdccc;
+}
+
+.accounting_table tbody tr.accounting_row_done {
+	background-color: #e9f7ee;
+}
+
+.accounting_table tbody tr.accounting_row_done:nth-child(even) {
+	background-color: #dff2e7;
+}
+
+.accounting_table tbody tr.accounting_row_done.accounting_tree_state,
+.accounting_table tbody tr.accounting_row_done.accounting_tree_state_group {
+	background-color: #bfe2ce;
+}
+
+.accounting_table tbody tr.accounting_row_done.accounting_tree_club,
+.accounting_table tbody tr.accounting_row_done.accounting_tree_club_group {
+	background-color: #d5eddf;
+}
+
+.accounting_table tbody tr.accounting_tree_none.accounting_row_done {
+	background-color: #eef4df;
+}
+
+.accounting_tree_row {
+	--accounting-tree-cell-line-state: 1.225rem;
+	--accounting-tree-cell-line-club: 2.425rem;
+	--accounting-tree-row-line-state: 1.225rem;
+	--accounting-tree-row-line-club: 2.425rem;
+}
+
+.accounting_tree_cell {
+	position: relative;
+	--accounting-tree-connector-y: 1.12rem;
+}
+
+.accounting_tree_label {
+	position: relative;
+	z-index: 1;
+	display: flex !important;
+	align-items: center;
+	gap: 0.35rem;
+	margin-top: 0 !important;
+	color: inherit !important;
+	font-size: inherit !important;
+}
+
+.accounting_tree_toggle,
+.accounting_tree_toggle_placeholder {
+	position: relative;
+	flex: 0 0 1.35rem;
+	width: 1.35rem;
+	height: 1.35rem;
+	box-sizing: border-box;
+}
+
+.accounting_tree_toggle {
+	position: relative;
+	z-index: 2;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	margin: 0;
+	padding: 0;
+	border: 1px solid #9facb7;
+	border-radius: 4px;
+	background: #ffffff;
+	color: #334252;
+	font-size: 0.9rem;
+	font-weight: bold;
+	line-height: 1;
+}
+
+.accounting_tree_toggle:hover,
+.accounting_tree_toggle:focus-visible {
+	border-color: #4d86ad;
+	background: #edf6fb;
+}
+
+.accounting_tree_level_0 {
+	padding-left: 0.55rem !important;
+}
+
+.accounting_tree_expanded .accounting_tree_level_0::before {
+	content: "";
+	position: absolute;
+	left: var(--accounting-tree-cell-line-state);
+	top: 1.35rem;
+	bottom: -0.5rem;
+	width: 1px;
+	background: #d5dce2;
+}
+
+.accounting_tree_level_1 {
+	padding-left: 1.75rem !important;
+}
+
+.accounting_tree_expanded .accounting_tree_level_1 {
+	background-image: linear-gradient(#d5dce2, #d5dce2);
+	background-position: var(--accounting-tree-cell-line-club) 1.35rem;
+	background-repeat: no-repeat;
+	background-size: 1px calc(100% - 0.85rem);
+}
+
+.accounting_tree_level_2 {
+	padding-left: 3rem !important;
+	background-image:
+		linear-gradient(#d5dce2, #d5dce2),
+		linear-gradient(#d5dce2, #d5dce2);
+	background-position:
+		var(--accounting-tree-cell-line-state) 0,
+		var(--accounting-tree-cell-line-club) 0;
+	background-repeat: no-repeat;
+	background-size:
+		1px 100%,
+		1px 100%;
+}
+
+.accounting_tree_level_2 .accounting_tree_label {
+	gap: 0;
+}
+
+.accounting_tree_level_2 .accounting_tree_toggle_placeholder {
+	flex-basis: 0;
+	width: 0;
+}
+
+.accounting_tree_level_1::before {
+	content: "";
+	position: absolute;
+	left: var(--accounting-tree-cell-line-state);
+	top: 0;
+	bottom: 0;
+	width: 1px;
+	background: #d5dce2;
+}
+
+.accounting_tree_level_1::after,
+.accounting_tree_level_2::after {
+	content: "";
+	position: absolute;
+	top: var(--accounting-tree-connector-y);
+	height: 1px;
+	background: #d5dce2;
+}
+
+.accounting_tree_level_1::after {
+	left: var(--accounting-tree-cell-line-state);
+	width: calc(var(--accounting-tree-cell-line-club) - var(--accounting-tree-cell-line-state));
+}
+
+.accounting_tree_level_2::after {
+	left: var(--accounting-tree-cell-line-club);
+	width: calc(3rem - var(--accounting-tree-cell-line-club));
+}
+
+.accounting_tree_state .accounting_col_player strong,
+.accounting_tree_state_group .accounting_col_player strong {
+	font-size: 0.95rem;
+}
+
+.accounting_tree_group_hint {
+	color: #9facb7;
+}
+
+.accounting_col_player {
+	min-width: 12rem;
+}
+
+.accounting_col_player strong,
+.accounting_col_player span {
+	display: block;
+}
+
+.accounting_col_player span {
+	margin-top: 0.1rem;
+	color: #687580;
+	font-size: 0.78rem;
+}
+
+.accounting_tree_detail {
+	margin-left: 1.7rem;
+}
+
+.accounting_tree_level_2 .accounting_tree_detail {
+	margin-left: 0;
+}
+
+.accounting_col_money {
+	text-align: right;
+	white-space: nowrap;
+}
+
+.accounting_col_balance {
+	min-width: 12rem;
+}
+
+.accounting_balance {
+	display: grid;
+	gap: 0.12rem;
+	min-width: 11.5rem;
+}
+
+.accounting_balance_line {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) max-content;
+	gap: 0.75rem;
+	align-items: baseline;
+}
+
+.accounting_balance_line span {
+	color: #687580;
+}
+
+.accounting_balance_line strong {
+	text-align: right;
+	white-space: nowrap;
+}
+
+.accounting_invoiced strong {
+	color: #263545;
+}
+
+.accounting_balance_open_line {
+	margin-top: 0.18rem;
+	padding-top: 0.25rem;
+	border-top: 1px solid #c8d0d7;
+}
+
+.accounting_open {
+	color: #a33128;
+	font-weight: bold;
+}
+
+.accounting_done {
+	color: #1f6a3b;
+	font-weight: bold;
+}
+
+.accounting_col_entries {
+	min-width: 14rem;
+}
+
+.accounting_entry_lines {
+	display: flex;
+	flex-direction: column;
+	gap: 0.18rem;
+	max-width: clamp(21rem, 32vw, 37.25rem);
+}
+
+.accounting_entry_line {
+	display: grid;
+	grid-template-columns: minmax(10rem, 1fr) 6.75rem;
+	align-items: center;
+	column-gap: 0.5rem;
+	color: #3d4954;
+	font-size: 0.78rem;
+}
+
+.accounting_entry_line span {
+	min-width: 0;
+}
+
+.accounting_entry_line strong {
+	text-align: right;
+	white-space: nowrap;
+}
+
+.accounting_entry_line_btp {
+	color: #1f6a3b;
+}
+
+.accounting_entry_line_required {
+	color: #7a4316;
+}
+
+.accounting_entry_line_rollup {
+	color: #52606b;
+	font-weight: bold;
+}
+
+.accounting_entry_line_empty {
+	color: #9facb7;
+}
+
+.accounting_entry_remove {
+	margin: 0;
+	padding: 0.1rem 0.35rem;
+	width: 4.9rem;
+	border: 1px solid #c8d0d7;
+	border-radius: 5px;
+	background: #ffffff;
+	color: #52606b;
+	font-size: 0.72rem;
+}
+
+.accounting_col_actions {
+	width: clamp(16rem, 23vw, 27rem);
+	max-width: 27rem;
+	white-space: normal;
+}
+
+.accounting_col_actions .registration_accounting_button {
+	display: inline-block;
+	min-height: 1.75rem;
+	padding: 0.18rem 0.42rem;
+	margin: 0 0.22rem 0.24rem 0;
+	border-radius: 5px;
+	font-size: 0.76rem;
+	vertical-align: top;
+}
+
+.accounting_col_actions .registration_accounting_button:last-child {
+	margin-right: 0;
+}
+
+.registration_receipt_box {
+	width: min(52rem, calc(100vw - 2rem));
+	max-height: calc(100vh - 2rem);
+	overflow: auto;
+}
+
+.registration_payment_box {
+	width: min(32rem, calc(100vw - 2rem));
+}
+
+.registration_item_bookings_box {
+	width: min(64rem, calc(100vw - 2rem));
+}
+
+.registration_payment_form,
+.registration_item_form {
+	display: grid;
+	gap: 0.65rem;
+}
+
+.registration_payment_form label,
+.registration_item_form label {
+	display: grid;
+	gap: 0.25rem;
+	color: #3d4954;
+	font-size: 0.86rem;
+	font-weight: bold;
+}
+
+.registration_payment_form input,
+.registration_payment_form select,
+.registration_item_form input,
+.registration_item_form select {
+	width: 100%;
+	box-sizing: border-box;
+	padding: 0.42rem 0.5rem;
+	border: 1px solid #9facb7;
+	border-radius: 6px;
+	background: #ffffff;
+	font: inherit;
+	font-weight: normal;
+}
+
+.registration_item_yes {
+	display: flex !important;
+	grid-template-columns: none !important;
+	align-items: center;
+	gap: 0.45rem !important;
+}
+
+.registration_item_yes input {
+	width: auto;
+}
+
+.registration_item_actions {
+	display: flex;
+	justify-content: flex-end;
+	gap: 0.35rem;
+}
+
+.registration_item_booking_section {
+	display: flex;
+	flex-direction: column;
+	gap: 0.35rem;
+	margin-top: 0.75rem;
+}
+
+.registration_item_booking_section h4 {
+	margin: 0;
+	color: #334252;
+	font-size: 0.92rem;
+}
+
+.registration_item_bookings {
+	display: flex;
+	flex-direction: column;
+	gap: 0.35rem;
+	margin: 0;
+}
+
+.registration_item_booking_header {
+	display: grid;
+	grid-template-columns: minmax(13rem, 1.4fr) 4.5rem 5.5rem 10rem minmax(8rem, 0.8fr) 6.75rem auto;
+	gap: 0.35rem;
+	padding: 0 0.35rem;
+	color: #687580;
+	font-size: 0.72rem;
+	font-weight: bold;
+}
+
+.registration_item_booking_header span:nth-child(6) {
+	text-align: right;
+}
+
+.registration_item_booking_row {
+	display: grid;
+	grid-template-columns: minmax(13rem, 1.4fr) 4.5rem 5.5rem 10rem minmax(8rem, 0.8fr) 6.75rem auto;
+	gap: 0.35rem;
+	align-items: center;
+	padding: 0.35rem;
+	border: 1px solid #d5dce2;
+	border-radius: 6px;
+	background: #f8fafc;
+}
+
+.registration_item_booking_new {
+	background: #edf6fb;
+}
+
+.registration_item_booking_existing {
+	background: #ffffff;
+}
+
+.registration_item_booking_cancelled {
+	background: #fff7f3;
+	color: #8a3a24;
+}
+
+.registration_item_booking_name,
+.registration_item_booking_note {
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.registration_item_booking_row input,
+.registration_item_booking_row select {
+	min-width: 0;
+	padding: 0.38rem 0.45rem;
+	border: 1px solid #9facb7;
+	border-radius: 6px;
+	background: #ffffff;
+	font: inherit;
+}
+
+.registration_item_booking_price {
+	color: #334252;
+	font-weight: bold;
+	white-space: nowrap;
+}
+
+.registration_item_booking_time {
+	color: #52606b;
+	white-space: nowrap;
+}
+
+.registration_item_booking_actions {
+	display: flex;
+	gap: 0.3rem;
+	justify-content: flex-end;
+}
+
+.registration_item_booking_actions button:disabled {
+	opacity: 0.65;
+	cursor: default;
+}
+
+.registration_item_booking_row strong {
+	text-align: right;
+	white-space: nowrap;
+}
+
+.registration_item_booking_row button {
+	margin: 0;
+	padding: 0.35rem 0.55rem;
+	border: 1px solid #9facb7;
+	border-radius: 6px;
+	background: #ffffff;
+	font-weight: bold;
+}
+
+.registration_receipt_player {
+	margin: 0 0 0.75rem 0;
+	color: #334252;
+	font-size: 1.08rem;
+	font-weight: bold;
+}
+
+.accounting_document_actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.35rem;
+	margin: 0 0 0.75rem 0;
+}
+
+.accounting_document_actions button,
+.registration_receipt_actions button {
+	margin: 0;
+	padding: 0.3rem 0.55rem;
+	border: 1px solid #9facb7;
+	border-radius: 5px;
+	background: #ffffff;
+	font-weight: bold;
+}
+
+.accounting_document_list_header {
+	display: flex;
+	justify-content: space-between;
+	gap: 1rem;
+	align-items: baseline;
+	margin: 0.15rem 0 0.35rem;
+	color: #263545;
+}
+
+.accounting_document_list_header span {
+	color: #687580;
+	font-size: 0.84rem;
+}
+
+.accounting_document_list {
+	display: flex;
+	flex-direction: column;
+	gap: 0.35rem;
+	margin: 0 0 0.85rem 0;
+}
+
+.accounting_document_row {
+	display: grid;
+	grid-template-columns: minmax(12rem, 1fr) max-content max-content max-content;
+	gap: 0.5rem;
+	align-items: center;
+	width: 100%;
+	padding: 0.45rem;
+	border: 1px solid #d5dce2;
+	border-radius: 6px;
+	background: #f8fafc;
+	color: #263545;
+	cursor: pointer;
+	font: inherit;
+	text-align: left;
+}
+
+.accounting_document_row:hover {
+	border-color: #9facb7;
+	background: #ffffff;
+}
+
+.accounting_document_row_selected {
+	border-color: #2f5f8f;
+	background: #eef5fb;
+	box-shadow: inset 3px 0 0 #2f5f8f;
+}
+
+.accounting_document_row_title {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.35rem 0.6rem;
+	align-items: baseline;
+	min-width: 0;
+}
+
+.accounting_document_row_title span {
+	color: #687580;
+	font-size: 0.84rem;
+}
+
+.accounting_document_row_state,
+.accounting_document_row_current {
+	justify-self: end;
+	padding: 0.16rem 0.45rem;
+	border-radius: 999px;
+	background: #edf0f2;
+	color: #52606b;
+	font-size: 0.78rem;
+	font-weight: bold;
+	white-space: nowrap;
+}
+
+.accounting_document_row_amount {
+	text-align: right;
+	white-space: nowrap;
+}
+
+.accounting_document_row_current {
+	visibility: hidden;
+	background: #2f5f8f;
+	color: #ffffff;
+}
+
+.accounting_document_row_selected .accounting_document_row_current {
+	visibility: visible;
+}
+
+.accounting_document_current_card {
+	margin: 0 0 0.85rem;
+	border: 1px solid #d5dce2;
+	border-radius: 6px;
+	background: #ffffff;
+	overflow: hidden;
+}
+
+.accounting_document_toolbar {
+	display: flex;
+	justify-content: space-between;
+	gap: 1rem;
+	align-items: center;
+	margin: 0;
+	padding: 0.65rem 0.75rem;
+	border: 0;
+	border-bottom: 1px solid #d5dce2;
+	border-radius: 0;
+	background: #f8fafc;
+}
+
+.accounting_document_toolbar_selection {
+	display: flex;
+	flex-direction: column;
+	gap: 0.1rem;
+	min-width: 0;
+	color: #687580;
+	font-size: 0.78rem;
+}
+
+.accounting_document_toolbar_selection strong {
+	color: #263545;
+	font-size: 0.92rem;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.accounting_document_toolbar_actions {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: flex-end;
+	gap: 0.45rem;
+}
+
+.accounting_document_toolbar_actions button {
+	margin: 0;
+	padding: 0.3rem 0.55rem;
+	border: 1px solid #9facb7;
+	border-radius: 5px;
+	background: #ffffff;
+	font-weight: bold;
+}
+
+.accounting_document_toolbar_actions button:disabled {
+	opacity: 0.55;
+}
+
+.accounting_document_preview {
+	padding: 0.75rem;
+	border: 0;
+	border-radius: 0;
+	background: #ffffff;
+}
+
+.accounting_document_heading {
+	display: flex;
+	justify-content: space-between;
+	gap: 1rem;
+	align-items: baseline;
+	margin-bottom: 0.35rem;
+}
+
+.accounting_document_heading h4 {
+	margin: 0;
+	color: #263545;
+	font-size: 1.05rem;
+}
+
+.accounting_document_heading span,
+.accounting_document_note {
+	color: #52606b;
+}
+
+.accounting_document_note {
+	white-space: pre-line;
+}
+
+.accounting_document_heading_actions {
+	display: flex;
+	gap: 0.45rem;
+	align-items: center;
+}
+
+.accounting_document_heading_actions button {
+	margin: 0;
+	padding: 0.22rem 0.5rem;
+	border: 1px solid #9facb7;
+	border-radius: 5px;
+	background: #ffffff;
+	font-weight: bold;
+}
+
+.accounting_document_meta {
+	display: grid;
+	grid-template-columns: max-content 1fr;
+	gap: 0.2rem 0.55rem;
+	margin: 0 0 0.55rem 0;
+	color: #52606b;
+	font-size: 0.85rem;
+}
+
+.accounting_document_meta dt {
+	font-weight: bold;
+}
+
+.accounting_document_meta dd {
+	margin: 0;
+}
+
+.accounting_document_selection {
+	display: flex;
+	flex-direction: column;
+	gap: 0.55rem;
+	padding: 0.75rem;
+	border: 1px solid #d5dce2;
+	border-radius: 6px;
+	background: #ffffff;
+	text-align: left;
+}
+
+.accounting_document_selection h4 {
+	margin: 0;
+	color: #263545;
+	font-size: 1.02rem;
+}
+
+.accounting_document_selection_rows {
+	display: flex;
+	flex-direction: column;
+	gap: 0.5rem;
+}
+
+.accounting_document_selection_group {
+	display: flex;
+	flex-direction: column;
+	gap: 0.25rem;
+}
+
+.accounting_document_selection_group_header {
+	display: grid;
+	grid-template-columns: 1.35rem max-content minmax(0, 1fr) max-content;
+	gap: 0.5rem;
+	align-items: baseline;
+	padding: 0.35rem 0.4rem;
+	border-radius: 5px;
+	background: #e8eef4;
+	color: #263545;
+	font-weight: bold;
+}
+
+.accounting_document_selection_toggle {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 1.2rem;
+	height: 1.2rem;
+	margin: 0;
+	padding: 0;
+	border: 1px solid #b9c4ce;
+	border-radius: 4px;
+	background: #ffffff;
+	color: #263545;
+	font-weight: bold;
+	line-height: 1;
+}
+
+.accounting_document_selection_toggle_empty {
+	border-color: transparent;
+	background: transparent;
+	color: transparent;
+	pointer-events: none;
+}
+
+.accounting_document_selection_group_header input,
+.accounting_document_selection_row input {
+	margin: 0;
+	transform: translateY(0.08rem);
+}
+
+.accounting_document_selection_group_header strong {
+	text-align: right;
+	white-space: nowrap;
+}
+
+.accounting_document_selection_group_rows {
+	display: flex;
+	flex-direction: column;
+	gap: 0.25rem;
+}
+
+.accounting_document_selection_children {
+	display: flex;
+	flex-direction: column;
+	gap: 0.25rem;
+}
+
+.accounting_document_selection_group_rows[hidden],
+.accounting_document_selection_children[hidden] {
+	display: none !important;
+}
+
+.accounting_document_selection_row {
+	display: grid;
+	grid-template-columns: 1.35rem max-content minmax(0, 1fr) max-content;
+	gap: 0.5rem;
+	align-items: baseline;
+	padding: 0.32rem 0.4rem;
+	border: 1px solid #edf0f2;
+	border-radius: 5px;
+	background: #f8fafc;
+	color: #263545;
+	font-weight: normal;
+}
+
+.accounting_document_selection_row span {
+	min-width: 0;
+}
+
+.accounting_document_selection_row strong,
+.accounting_document_selection_total {
+	text-align: right;
+	white-space: nowrap;
+}
+
+.accounting_document_selection_total {
+	display: block;
+	padding-top: 0.35rem;
+	border-top: 1px solid #d5dce2;
+}
+
+.accounting_document_selection_level_1 {
+	margin-left: 1.4rem;
+}
+
+.accounting_document_selection_level_2 {
+	margin-left: 2.8rem;
+}
+
+.registration_receipt_lines {
+	display: flex;
+	flex-direction: column;
+	gap: 0.25rem;
+	margin: 0.5rem 0 0.85rem 0;
+}
+
+.accounting_document_preview_lines {
+	gap: 0;
+}
+
+.accounting_document_preview_table_header,
+.accounting_document_preview_line,
+.accounting_document_preview_detail,
+.accounting_document_preview_total_line {
+	display: grid;
+	grid-template-columns: minmax(14rem, 1.45fr) minmax(7rem, 0.55fr) minmax(7rem, 0.55fr) minmax(7rem, 0.55fr);
+	column-gap: 1rem;
+	align-items: baseline;
+}
+
+.accounting_document_preview_table_header {
+	padding: 0.2rem 0 0.35rem;
+	border-bottom: 1px solid #cbd3dc;
+	color: #2e3a48;
+	font-size: 0.88rem;
+	font-weight: bold;
+}
+
+.accounting_document_preview_table_header span:nth-child(3),
+.accounting_document_preview_table_header span:nth-child(4) {
+	text-align: right;
+}
+
+.accounting_document_preview_line {
+	padding: 0.48rem 0 0.12rem;
+	border-top: 1px solid #edf0f2;
+}
+
+.accounting_document_preview_table_header + .accounting_document_preview_line {
+	border-top: 0;
+}
+
+.accounting_document_preview_detail {
+	padding: 0;
+	color: #52606b;
+	font-size: 0.82rem;
+	line-height: 1.16;
+}
+
+.accounting_document_preview_detail .accounting_document_preview_position {
+	padding-left: 0.6rem;
+}
+
+.accounting_document_preview_quantity {
+	color: #52606b;
+}
+
+.accounting_document_preview_price,
+.accounting_document_preview_amount {
+	text-align: right;
+	white-space: nowrap;
+}
+
+.accounting_document_preview_detail .accounting_document_preview_amount {
+	color: #52606b;
+	font-size: inherit;
+	font-weight: bold;
+}
+
+.accounting_document_preview_total_line {
+	padding: 0.28rem 0;
+	border-top: 1px solid #edf0f2;
+}
+
+.accounting_document_preview_total_label {
+	grid-column: 3 / 4;
+	font-size: 1.05rem;
+}
+
+.accounting_document_preview_total_line .accounting_document_preview_amount {
+	grid-column: 4 / 5;
+	font-size: 1.05rem;
+}
+
+.accounting_document_preview_payment {
+	display: grid;
+	gap: 0.2rem;
+	margin-top: 0.65rem;
+	padding-top: 0.65rem;
+	border-top: 1px solid #cbd3dc;
+	color: #25313b;
+	font-size: 0.95rem;
+}
+
+.accounting_document_preview_payment span {
+	display: block;
+}
+
+.accounting_document_preview_closing {
+	display: grid;
+	grid-template-columns: minmax(10rem, 16rem);
+	gap: 1.5rem;
+	align-items: end;
+	margin-top: 1.4rem;
+	color: #52606b;
+	font-size: 0.85rem;
+}
+
+.accounting_document_preview_signature {
+	padding-top: 2.2rem;
+	border-top: 1px solid #9facb7;
+}
+
+.registration_receipt_line {
+	display: grid;
+	grid-template-columns: minmax(12rem, 1fr) max-content;
+	column-gap: 1rem;
+	row-gap: 0.08rem;
+	align-items: baseline;
+	padding: 0.2rem 0 0.45rem;
+	border-bottom: 1px solid #edf0f2;
+}
+
+.registration_receipt_line strong {
+	text-align: right;
+	white-space: nowrap;
+}
+
+.registration_receipt_line_caused_by {
+	grid-column: 1 / -1;
+	display: flex;
+	flex-direction: column;
+	gap: 0.1rem;
+	color: #52606b;
+	font-size: 0.82rem;
+	line-height: 1.35;
+	padding-left: 0.55rem;
+	margin-top: -0.05rem;
+}
+
+.registration_receipt_line_caused_by small {
+	display: grid;
+	grid-template-columns: minmax(8rem, 1fr) minmax(5rem, 0.7fr) max-content;
+	column-gap: 1rem;
+	align-items: baseline;
+}
+
+.registration_receipt_line_caused_by em {
+	color: #687580;
+	font-size: 0.9em;
+	font-style: normal;
+}
+
+.registration_receipt_line_caused_by strong {
+	color: #52606b;
+	font-size: inherit;
+	font-weight: bold;
+	white-space: nowrap;
+}
+
+.registration_receipt_total {
+	margin-top: 0.35rem;
+	border-top: 2px solid #9facb7;
+	font-size: 1.05rem;
+}
+
+.registration_receipt_paid {
+	color: #1f6a3b;
+}
+
+.registration_receipt_open {
+	color: #a33128;
+}
+
+.registration_receipt_actions {
+	display: flex;
+	justify-content: flex-end;
+	gap: 0.45rem;
+}
+
+@media print {
+	body:has(.registration_receipt_dialog) > *:not(.registration_receipt_dialog) {
+		display: none !important;
+	}
+
+	.registration_receipt_dialog {
+		position: static !important;
+		padding: 0 !important;
+		background: #ffffff !important;
+		text-align: left !important;
+		overflow: visible !important;
+	}
+
+	.registration_receipt_box {
+		display: block !important;
+		width: auto !important;
+		max-height: none !important;
+		padding: 0 !important;
+		border-radius: 0 !important;
+		overflow: visible !important;
+	}
+
+	.accounting_document_actions,
+	.accounting_document_list,
+	.registration_receipt_actions {
+		display: none !important;
+	}
+
+	.accounting_document_preview {
+		border: 0;
+		padding: 0;
+	}
+}
+
 .registration_status_button {
 	display: inline-flex;
 	align-items: center;
@@ -1562,6 +3511,281 @@ td.battery-status-charging {
 }
 
 @media (max-width: 1080px) {
+	.main_accounting {
+		padding: 0.45rem;
+	}
+
+	.accounting_header {
+		grid-template-columns: minmax(0, 1fr);
+		gap: 0.45rem;
+	}
+
+	.accounting_title h1 {
+		font-size: 1.55rem;
+	}
+
+	.accounting_summary {
+		line-height: 1.35;
+	}
+
+		.accounting_fee_mode,
+		.accounting_invoice_treatment,
+		.accounting_document_code_control {
+			flex-wrap: wrap;
+		}
+
+	.accounting_payment_settings_fields {
+		grid-template-columns: repeat(2, minmax(9rem, 1fr));
+	}
+
+	.accounting_filters {
+		min-width: 0;
+	}
+
+	.accounting_item_form,
+	.accounting_item_row {
+		grid-template-columns: minmax(9rem, 1.1fr) minmax(8rem, 0.9fr) minmax(7rem, 0.7fr);
+	}
+
+	.accounting_item_form_actions,
+	.accounting_item_actions {
+		justify-content: stretch;
+	}
+
+	.accounting_item_form_actions button,
+	.accounting_item_actions button {
+		flex: 1 1 0;
+		min-width: 0;
+	}
+
+	.accounting_table_wrap {
+		overflow-x: visible;
+		border: 0;
+		background: transparent;
+	}
+
+	.accounting_table,
+	.accounting_table thead,
+	.accounting_table tbody,
+	.accounting_table tr,
+	.accounting_table th,
+	.accounting_table td {
+		display: block;
+	}
+
+	.accounting_table thead {
+		display: none;
+	}
+
+	.accounting_table {
+		border-collapse: separate;
+		border-spacing: 0;
+	}
+
+	.accounting_table tr {
+		position: relative;
+		display: grid;
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+		gap: 0.35rem 0.45rem;
+		margin-bottom: 0;
+		padding: 0.5rem;
+		border: 1px solid #d5dce2;
+		border-bottom: 0;
+		border-radius: 0;
+	}
+
+	.accounting_table tr.accounting_tree_row {
+		--accounting-tree-row-line-state: 1.725rem;
+		--accounting-tree-row-line-club: 2.925rem;
+	}
+
+	.accounting_table tbody tr:first-child {
+		border-radius: 6px 6px 0 0;
+	}
+
+	.accounting_table tbody tr:last-child {
+		border-bottom: 1px solid #d5dce2;
+		border-radius: 0 0 6px 6px;
+	}
+
+	.accounting_table td {
+		padding: 0;
+		border-bottom: 0;
+	}
+
+	.accounting_tree_cell {
+		--accounting-tree-connector-y: 0.68rem;
+	}
+
+	.accounting_table tr.accounting_tree_row_level_0.accounting_tree_expanded {
+		background-image: linear-gradient(#d5dce2, #d5dce2);
+		background-position: var(--accounting-tree-row-line-state) 1.85rem;
+		background-repeat: no-repeat;
+		background-size: 1px calc(100% - 1.85rem);
+	}
+
+	.accounting_table tr.accounting_tree_row_level_1 {
+		background-image: linear-gradient(#d5dce2, #d5dce2);
+		background-position: var(--accounting-tree-row-line-state) 0;
+		background-repeat: no-repeat;
+		background-size: 1px 100%;
+	}
+
+	.accounting_table tr.accounting_tree_row_level_1.accounting_tree_expanded {
+		background-image:
+			linear-gradient(#d5dce2, #d5dce2),
+			linear-gradient(#d5dce2, #d5dce2);
+		background-position:
+			var(--accounting-tree-row-line-state) 0,
+			var(--accounting-tree-row-line-club) 1.85rem;
+		background-repeat: no-repeat;
+		background-size:
+			1px 100%,
+			1px calc(100% - 1.85rem);
+	}
+
+	.accounting_table tr.accounting_tree_row_level_2 {
+		background-image:
+			linear-gradient(#d5dce2, #d5dce2),
+			linear-gradient(#d5dce2, #d5dce2);
+		background-position:
+			var(--accounting-tree-row-line-state) 0,
+			var(--accounting-tree-row-line-club) 0;
+		background-repeat: no-repeat;
+		background-size:
+			1px 100%,
+			1px 100%;
+	}
+
+	.accounting_tree_expanded .accounting_tree_level_0::before,
+	.accounting_tree_level_1::before {
+		display: none;
+	}
+
+	.accounting_tree_expanded .accounting_tree_level_1,
+	.accounting_tree_level_2 {
+		background-image: none;
+	}
+
+	.accounting_col_player,
+	.accounting_col_balance,
+	.accounting_col_entries,
+	.accounting_col_actions {
+		grid-column: 1 / -1;
+		min-width: 0;
+	}
+
+	.accounting_tree_row .accounting_col_balance,
+	.accounting_tree_row .accounting_col_entries,
+	.accounting_tree_row .accounting_col_actions {
+		box-sizing: border-box;
+		padding-left: 3.35rem !important;
+	}
+
+	.accounting_col_money {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 0.1rem;
+		min-width: 0;
+		text-align: left;
+		white-space: normal;
+	}
+
+	.accounting_col_money::before {
+		color: #687580;
+		font-size: 0.72rem;
+		font-weight: bold;
+	}
+
+	.accounting_col_entries {
+		padding-top: 0.45rem !important;
+	}
+
+	.accounting_entry_lines {
+		max-width: none;
+	}
+
+	.accounting_col_balance::before,
+	.accounting_col_entries::before {
+		display: block;
+		margin-bottom: 0.25rem;
+		color: #52606b;
+		font-size: 0.78rem;
+		font-weight: bold;
+	}
+
+	.accounting_col_balance::before {
+		content: "Zahlungen";
+	}
+
+	.accounting_col_entries::before {
+		content: "Positionen";
+	}
+
+	.accounting_table td.accounting_col_actions {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
+		gap: 0.35rem;
+		width: auto;
+		max-width: none;
+		margin-bottom: 0.45rem;
+		white-space: normal;
+	}
+
+	.accounting_col_actions .registration_accounting_button {
+		width: 100%;
+		min-width: 0;
+		margin: 0;
+	}
+
+	.accounting_col_actions .registration_accounting_button + .registration_accounting_button {
+		margin-top: 0;
+	}
+
+	.accounting_col_entries .accounting_entry_line {
+		grid-template-columns: minmax(0, 1fr) max-content;
+		column-gap: 1rem;
+	}
+
+	.accounting_document_row {
+		grid-template-columns: minmax(0, 1fr);
+	}
+
+	.accounting_document_row_amount,
+	.accounting_document_row_state,
+	.accounting_document_row_current {
+		justify-self: start;
+	}
+
+	.accounting_document_toolbar {
+		align-items: stretch;
+		flex-direction: column;
+	}
+
+	.accounting_document_toolbar_actions {
+		justify-content: flex-start;
+	}
+
+	.accounting_document_heading {
+		display: grid;
+		gap: 0.15rem;
+	}
+
+	.accounting_document_selection_row {
+		grid-template-columns: 1.35rem max-content minmax(0, 1fr);
+	}
+
+	.accounting_document_selection_group_header {
+		grid-template-columns: 1.35rem max-content minmax(0, 1fr);
+	}
+
+	.accounting_document_selection_row strong,
+	.accounting_document_selection_group_header strong {
+		grid-column: 3;
+		justify-self: end;
+	}
+
 	.registration_player_check,
 	.registration_comment_control {
 		display: grid;
@@ -1585,6 +3809,19 @@ td.battery-status-charging {
 		min-width: 0;
 	}
 
+	.registration_accounting {
+		grid-column: 1 / 3;
+		grid-row: 3;
+		min-width: 0;
+		justify-content: flex-start;
+	}
+
+	.registration_accounting_amounts {
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+		width: 100%;
+		white-space: normal;
+	}
+
 	.registration_status_actions {
 		grid-column: 2;
 		grid-row: 1 / 3;
@@ -1593,6 +3830,45 @@ td.battery-status-charging {
 }
 
 @media (max-width: 760px) {
+	.accounting_letterhead_rows {
+		grid-template-columns: minmax(0, 1fr);
+	}
+
+	.accounting_letterhead_row {
+		grid-template-columns: minmax(0, 1fr);
+	}
+
+	.accounting_letterhead_preview {
+		width: min(100%, 12rem);
+		justify-self: start;
+	}
+
+	.accounting_payment_settings_fields {
+		grid-template-columns: minmax(0, 1fr);
+	}
+
+	.accounting_payment_settings_actions {
+		align-items: stretch;
+		flex-direction: column;
+	}
+
+	.accounting_payment_settings_actions button {
+		width: 100%;
+	}
+
+	.accounting_letterhead_layout_body {
+		grid-template-columns: minmax(0, 1fr);
+	}
+
+	.accounting_letterhead_layout_area_row {
+		grid-template-columns: minmax(0, 1fr) repeat(2, minmax(4.2rem, 1fr));
+	}
+
+	.accounting_letterhead_layout_area_row strong {
+		grid-column: 1 / -1;
+		padding-bottom: 0;
+	}
+
 	.main_registration {
 		padding: 0.35rem;
 	}
@@ -1630,6 +3906,59 @@ td.battery-status-charging {
 	.registration_control_actions {
 		display: grid;
 		grid-template-columns: minmax(0, 1fr);
+	}
+
+	.accounting_header {
+		grid-template-columns: minmax(0, 1fr);
+	}
+
+		.accounting_filters {
+			flex-direction: column;
+		}
+
+		.accounting_balance_filter {
+			flex-basis: auto;
+			width: 100%;
+		}
+
+			.accounting_fee_mode,
+			.accounting_invoice_treatment,
+		.accounting_document_code_control {
+			align-items: stretch;
+			flex-direction: column;
+		}
+
+		.accounting_fee_mode select,
+		.accounting_invoice_treatment select,
+		.accounting_document_code_control input,
+		.accounting_document_code_control button {
+			width: 100%;
+		min-width: 0;
+	}
+
+	.accounting_item_form,
+	.accounting_item_row {
+		grid-template-columns: minmax(0, 1fr);
+	}
+
+	.accounting_table tr {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+
+	.registration_item_booking_row {
+		grid-template-columns: minmax(0, 1fr);
+	}
+
+	.registration_item_booking_header {
+		display: none;
+	}
+
+	.registration_item_booking_row strong {
+		text-align: left;
+	}
+
+	.accounting_table td.accounting_col_actions {
+		grid-template-columns: repeat(auto-fit, minmax(7.5rem, 1fr));
 	}
 
 	.registration_search_row {
@@ -1692,6 +4021,23 @@ td.battery-status-charging {
 		grid-template-columns: 0.7fr 1fr 1fr;
 		width: 100%;
 		order: 3;
+	}
+
+	.registration_accounting {
+		flex-direction: column;
+		width: 100%;
+		order: 4;
+	}
+
+	.registration_accounting_actions {
+		display: grid;
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+		width: 100%;
+	}
+
+	.registration_accounting_button {
+		width: 100%;
+		min-width: 0;
 	}
 
 	.registration_status_button,

@@ -76,6 +76,7 @@
 		"extract-zip": "*",
 		"nedb": "*",
 		"node-xlsx": "^0.21.0",
+		"pdf-lib": "^1.17.1",
 		"pretty-data": "^0.40.0",
 		"qrcode": "^1.5.3",
 		"request": "^2.88.0",

@@ -113,6 +113,21 @@ function update_courts(app, tkey, courts) {
 	conn.update_courts(courts);
 }
 
+function update_payments(app, tkey, payments, entry_id) {
+	assert(tkey);
+
+	if (!payments || payments.length < 1) {
+		return false;
+	}
+
+	const conn = conns_by_tkey.get(tkey);
+	if (!conn) {
+		return false;
+	}
+
+	return conn.update_payments(payments, entry_id);
+}
+
 function update_highlight(app, match) {
 	if (app?._btp_sync_effects) {
 		const effects = require('./btp_sync_effects');
@@ -185,5 +200,6 @@ module.exports = {
 	update_score,
 	update_players,
 	update_courts,
+	update_payments,
 	update_highlight,
 };

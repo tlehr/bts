@@ -426,6 +426,70 @@ function update_courts_request(courts, key_unicode, password){
 	return res;
 }
 
+function update_payments_request(payments, key_unicode, password) {
+	assert(key_unicode);
+	const payments_list = [];
+	const res = {
+		Header: {
+			Version: {
+				Hi: 1,
+				Lo: 1,
+			},
+		},
+		Action: {
+			ID: 'ADDRECORD',
+			Unicode: key_unicode,
+		},
+		Client: {
+			IP: 'bts',
+		},
+		Update: {
+			Tournament: {
+				Payments: payments_list,
+			},
+		},
+	};
+
+	if (password) {
+		res.Action.Password = password;
+	}
+
+	assert(payments);
+	assert(payments.length > 0);
+
+	for (const payment of payments) {
+		const player_id = Number(payment.player_id ?? payment.PlayerID);
+		const amount = Number(payment.amount ?? payment.Amount);
+		if (!Number.isFinite(player_id) || player_id <= 0 || !Number.isFinite(amount) || amount <= 0) {
+			continue;
+		}
+		const p = {
+			ID: Number.isFinite(Number(payment.id ?? payment.ID)) ? Number(payment.id ?? payment.ID) : 0,
+			playerID: player_id,
+			Amount: Math.round(amount * 100) / 100,
+		};
+		if (payment.guid || payment.GUID) {
+			p.GUID = String(payment.guid || payment.GUID);
+		}
+		if (payment.payment_type != null || payment.PaymentType != null) {
+			const payment_type = Number(payment.payment_type ?? payment.PaymentType);
+			if (Number.isFinite(payment_type)) {
+				p.PaymentType = payment_type;
+			}
+		}
+		if (payment.payment_date || payment.PaymentDate) {
+			const payment_date = payment.payment_date || payment.PaymentDate;
+			const date = payment_date instanceof Date ? payment_date : new Date(payment_date);
+			if (!Number.isNaN(date.getTime())) {
+				p.PaymentDate = date;
+			}
+		}
+		payments_list.push({Payment: p});
+	}
+
+	return res;
+}
+
 
 function _req2xml_add(doc, parent, obj, timeZone) {
 	for (const k in obj) {
@@ -468,7 +532,7 @@ function _req2xml_add(doc, parent, obj, timeZone) {
 			node.appendChild(doc.createTextNode(v));
 		} else if (typeof v === 'number') {
 			node = doc.createElement('ITEM');
-			node.setAttribute('TYPE', 'Integer');
+			node.setAttribute('TYPE', Number.isInteger(v) ? 'Integer' : 'Float');
 			node.appendChild(doc.createTextNode(v));
 		} else if (typeof v === 'boolean') {
 			node = doc.createElement('ITEM');
@@ -556,6 +620,7 @@ module.exports = {
 	update_stage_entries_request,
 	update_courts_request,
 	reset_court_assignments_request,
+	update_payments_request,
 	// Tests only
 	_req2xml: req2xml,
 };

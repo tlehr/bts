@@ -42,6 +42,12 @@ describe('admin tournament reset', function() {
 			ticker_password: 'ticker-secret',
 			displaysettings_general: 'display-a',
 			displaysettings_general_tablet: 'tablet-a',
+			accounting_letterhead_first_pdf: 'data:application/pdf;base64,JVBERi0xLjQ=',
+			accounting_letterhead_follow_pdf: 'data:application/pdf;base64,JVBERi0xLjQ=',
+			accounting_letterhead_first_page_number_enabled: false,
+			accounting_letterhead_layout: {
+				first: { content: { x: 20, y: 100, width: 170, height: 150 } },
+			},
 			events: { events: [{ id: 1, name: 'HE' }] },
 			registration_dbv_rankings: { event_1: { by_registration_key: { '3:4': { points: 123 } } } },
 		});
@@ -118,6 +124,10 @@ describe('admin tournament reset', function() {
 		assert.deepStrictEqual(tournament.events, { events: [] });
 		assert.strictEqual(tournament.displaysettings_general, 'display-a');
 		assert.strictEqual(tournament.displaysettings_general_tablet, 'tablet-a');
+		assert.strictEqual(tournament.accounting_letterhead_first_pdf, undefined);
+		assert.strictEqual(tournament.accounting_letterhead_follow_pdf, undefined);
+		assert.strictEqual(tournament.accounting_letterhead_first_page_number_enabled, undefined);
+		assert.strictEqual(tournament.accounting_letterhead_layout, undefined);
 
 		assert.strictEqual((await db.normalizations.find_async({ tournament_key: 'default' })).length, 1);
 		const displaysettings = await db.displaysettings.find_async({});

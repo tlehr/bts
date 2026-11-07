@@ -1,0 +1,22 @@
+'use strict';
+const assert=require('assert');
+module.exports=async function({c,open,check,click,metrics}) {
+ await open(1366,768);
+ await check('Buchhaltung is available from the board navigation',`!!document.querySelector('.leitstand-nav a[href$="/accounting"]')`);
+ await c.evaluate(`curt.accounting_entries=[{id:'charge-qa',kind:'charge',buyer_type:'player',buyer_id:'1',player_id:'1',player_name:'Mia Becker',buyer_name:'Mia Becker',description:'Meldegeld',amount:15,created_at:'2026-11-07T10:00:00Z'}]`);
+ await c.evaluate(`window.__accountingSend=send;window.send=(message,callback)=>message.type==='tournament_get'?setTimeout(()=>callback(null,{tournament:structuredClone(curt)}),0):__accountingSend(message,callback)`);
+ await click('.leitstand-nav a[href$="/accounting"]');
+ await check('Accounting opens as its own page with the shared navigation',`!!document.querySelector('.page-accounting .accounting_table')&&document.querySelector('.leitstand-nav [aria-current="page"]').getAttribute('href').endsWith('/accounting')&&document.querySelector('.board-page-title').textContent==='BTS – Buchhaltung'`);
+ await check('Buyer, charge and receipt actions render',`document.querySelector('.accounting_table').textContent.includes('Mia Becker')&&['Zahlung','Artikel','Beleg'].every(label=>[...document.querySelectorAll('.registration_accounting_button')].some(button=>button.textContent===label))`);
+ await c.evaluate(`crouting.on_change({ctype:'registration_accounting_entry',tournament_key:'preview',val:{entry:{id:'charge-qa2',kind:'charge',buyer_type:'player',buyer_id:'2',player_id:'2',player_name:'Finn Sommer',buyer_name:'Finn Sommer',description:'Artikel',amount:5,created_at:'2026-11-07T10:00:00Z'}}})`);
+ await check('Live accounting changes refresh the dedicated page',`document.querySelector('.accounting_table').textContent.includes('Finn Sommer')&&document.querySelector('.leitstand-nav [aria-current="page"]').getAttribute('href').endsWith('/accounting')`);
+ await c.evaluate(`const search=document.querySelector('.accounting_search');search.value='Becker';search.dispatchEvent(new Event('input',{bubbles:true}))`);
+ await check('Account search filters the buyer list',`[...document.querySelectorAll('.accounting_tree_row')].filter(row=>!row.hidden&&getComputedStyle(row).display!=='none').some(row=>row.textContent.includes('Mia Becker'))`);
+ await click('.leitstand-nav a[href$="/edit"]');
+ await check('Settings remain reachable from accounting',`!!document.querySelector('.page-settings')&&!document.querySelector('.page-accounting')`);
+ await click('.leitstand-nav a[href$="/accounting"]');
+ await check('Accounting navigation survives disposing the settings page',`!!document.querySelector('.page-accounting')&&!!document.querySelector('.leitstand-nav [aria-current="page"][href$="/accounting"]')`);
+ await click('.leitstand-nav a[href$="/preview/"]');
+ await check('The board remains reachable from accounting',`!!document.querySelector('.page-leitstand')&&!document.querySelector('.main_accounting')`);
+ assert(!c.events.some(event=>event.method==='Runtime.exceptionThrown'),'No browser exceptions');
+};

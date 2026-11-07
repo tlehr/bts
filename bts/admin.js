@@ -3,6 +3,9 @@
 const SetupChanges = require('./match_updates/setup_changes');
 
 const async = require('async');
+const crypto = require('crypto');
+const fs = require('fs');
+const path = require('path');
 const uuidv4 = require('uuid/v4');
 const {promisify} = require('util');
 const registration_xlsx = require('./registration_xlsx');
@@ -172,7 +175,7 @@ function handle_tournament_edit_props(app, ws, msg) {
 		'name','tguid',
 		'automation_enabled',
 		'btp_enabled', 'btp_autofetch_enabled', 'btp_readonly',
-		'btp_ip', 'btp_password','btp_autofetch_timeout_intervall',
+		'btp_ip', 'btp_password', 'btp_autofetch_timeout_intervall',
 		'is_team', 'is_nation_competition',
 		'warmup', 'warmup_ready', 'warmup_start',
 		'upcoming_matches_animation_speed', 'upcoming_matches_max_count','upcoming_matches_animation_pause',
@@ -233,7 +236,23 @@ function handle_tournament_edit_props(app, ws, msg) {
 		'certificate_export_last_scheduled_date_filter',
 		'certificate_export_double_swapped_entries_enabled',
 		'certificate_age_class_splits',
-		'certificate_discipline_replacements']);
+		'certificate_discipline_replacements',
+		'accounting_entry_fee_mode',
+		'accounting_document_code',
+		'accounting_invoice_treatment',
+		'accounting_payment_recipient',
+		'accounting_payment_bank',
+		'accounting_payment_iban',
+		'accounting_payment_bic',
+		'accounting_invoice_due_days',
+		'accounting_document_stamp_enabled',
+		'accounting_document_signature_mode',
+		'accounting_event_period_enabled',
+		'accounting_event_period_text',
+		'accounting_letterhead_first_pdf',
+		'accounting_letterhead_follow_pdf',
+		'accounting_letterhead_first_page_number_enabled',
+		'accounting_letterhead_layout']);
 
 	if (Object.prototype.hasOwnProperty.call(props, 'certificate_design')) {
 		const error = require('../static/js/certificate_design').validate(props.certificate_design);
@@ -244,6 +263,61 @@ function handle_tournament_edit_props(app, ws, msg) {
 	}
 	if (!require('../static/js/speech_settings').valid(props)) {
 		return ws.respond(msg, { message: 'Invalid speech settings' });
+	}
+	if (
+		Object.prototype.hasOwnProperty.call(props, 'accounting_entry_fee_mode') &&
+		!['registered', 'main_draw', 'main_draw_with_excluded', 'drawn'].includes(String(props.accounting_entry_fee_mode || ''))
+	) {
+		return ws.respond(msg, { message: 'Unsupported accounting_entry_fee_mode ' + props.accounting_entry_fee_mode });
+	}
+	if (
+		Object.prototype.hasOwnProperty.call(props, 'accounting_invoice_treatment') &&
+		!['paid', 'unpaid'].includes(String(props.accounting_invoice_treatment || ''))
+	) {
+		return ws.respond(msg, { message: 'Unsupported accounting_invoice_treatment ' + props.accounting_invoice_treatment });
+	}
+	if (Object.prototype.hasOwnProperty.call(props, 'accounting_document_code')) {
+		const code = _registration_accounting_document_code_override(props.accounting_document_code);
+		if (props.accounting_document_code && !code) {
+			return ws.respond(msg, { message: 'Invalid accounting_document_code' });
+		}
+		props.accounting_document_code = code;
+	}
+	if (Object.prototype.hasOwnProperty.call(props, 'accounting_letterhead_first_page_number_enabled')) {
+		props.accounting_letterhead_first_page_number_enabled = props.accounting_letterhead_first_page_number_enabled !== false;
+	}
+	if (Object.prototype.hasOwnProperty.call(props, 'accounting_document_stamp_enabled')) {
+		props.accounting_document_stamp_enabled = props.accounting_document_stamp_enabled === true;
+	}
+	if (
+		Object.prototype.hasOwnProperty.call(props, 'accounting_document_signature_mode') &&
+		!['stamp', 'signature', 'none'].includes(String(props.accounting_document_signature_mode || ''))
+	) {
+		return ws.respond(msg, { message: 'Unsupported accounting_document_signature_mode ' + props.accounting_document_signature_mode });
+	}
+	if (Object.prototype.hasOwnProperty.call(props, 'accounting_event_period_enabled')) {
+		props.accounting_event_period_enabled = props.accounting_event_period_enabled === true;
+	}
+	const accounting_payment_error = _normalize_registration_accounting_payment_props(props);
+	if (accounting_payment_error) {
+		return ws.respond(msg, accounting_payment_error);
+	}
+	for (const field of ['accounting_letterhead_first_pdf', 'accounting_letterhead_follow_pdf']) {
+		if (!Object.prototype.hasOwnProperty.call(props, field)) {
+			continue;
+		}
+		const pdf = _registration_accounting_letterhead_pdf(props[field]);
+		if (pdf === null) {
+			return ws.respond(msg, { message: 'Invalid ' + field });
+		}
+		props[field] = pdf;
+	}
+	if (Object.prototype.hasOwnProperty.call(props, 'accounting_letterhead_layout')) {
+		const layout = _registration_accounting_letterhead_layout(props.accounting_letterhead_layout);
+		if (layout === null) {
+			return ws.respond(msg, { message: 'Invalid accounting_letterhead_layout' });
+		}
+		props.accounting_letterhead_layout = layout;
 	}
 	app.db.tournaments.findOne({ key }, async (err, tournament) => {
 		if (err || !tournament) {
@@ -387,6 +461,22 @@ function handle_tournament_edit_prop(app, ws, msg) {
 		'certificate_export_double_swapped_entries_enabled',
 		'certificate_age_class_splits',
 		'certificate_discipline_replacements',
+		'accounting_entry_fee_mode',
+		'accounting_document_code',
+		'accounting_invoice_treatment',
+		'accounting_payment_recipient',
+		'accounting_payment_bank',
+		'accounting_payment_iban',
+		'accounting_payment_bic',
+		'accounting_invoice_due_days',
+		'accounting_document_stamp_enabled',
+		'accounting_document_signature_mode',
+		'accounting_event_period_enabled',
+		'accounting_event_period_text',
+		'accounting_letterhead_first_pdf',
+		'accounting_letterhead_follow_pdf',
+		'accounting_letterhead_first_page_number_enabled',
+		'accounting_letterhead_layout',
 	]);
 
 	const field = msg.field;
@@ -398,6 +488,52 @@ function handle_tournament_edit_prop(app, ws, msg) {
 	let value = msg.value;
 	if (field === 'btp_timezone') {
 		value = value === 'system' ? undefined : value;
+	}
+	if (field === 'accounting_entry_fee_mode' && !['registered', 'main_draw', 'main_draw_with_excluded', 'drawn'].includes(String(value || ''))) {
+		return ws.respond(msg, { message: 'Unsupported accounting_entry_fee_mode ' + value });
+	}
+	if (field === 'accounting_invoice_treatment' && !['paid', 'unpaid'].includes(String(value || ''))) {
+		return ws.respond(msg, { message: 'Unsupported accounting_invoice_treatment ' + value });
+	}
+	if (field === 'accounting_document_code') {
+		const code = _registration_accounting_document_code_override(value);
+		if (value && !code) {
+			return ws.respond(msg, { message: 'Invalid accounting_document_code' });
+		}
+		value = code;
+	}
+	if (field === 'accounting_letterhead_first_page_number_enabled') {
+		value = value !== false;
+	}
+	if (field === 'accounting_document_stamp_enabled') {
+		value = value === true;
+	}
+	if (field === 'accounting_document_signature_mode' && !['stamp', 'signature', 'none'].includes(String(value || ''))) {
+		return ws.respond(msg, { message: 'Unsupported accounting_document_signature_mode ' + value });
+	}
+	if (field === 'accounting_event_period_enabled') {
+		value = value === true;
+	}
+	const accounting_payment_props = {};
+	accounting_payment_props[field] = value;
+	const accounting_payment_error = _normalize_registration_accounting_payment_props(accounting_payment_props);
+	if (accounting_payment_error) {
+		return ws.respond(msg, accounting_payment_error);
+	}
+	value = accounting_payment_props[field];
+	if (field === 'accounting_letterhead_first_pdf' || field === 'accounting_letterhead_follow_pdf') {
+		const pdf = _registration_accounting_letterhead_pdf(value);
+		if (pdf === null) {
+			return ws.respond(msg, { message: 'Invalid ' + field });
+		}
+		value = pdf;
+	}
+	if (field === 'accounting_letterhead_layout') {
+		const layout = _registration_accounting_letterhead_layout(value);
+		if (layout === null) {
+			return ws.respond(msg, { message: 'Invalid accounting_letterhead_layout' });
+		}
+		value = layout;
 	}
 	const props = {};
 	props[field] = value;
@@ -1041,7 +1177,7 @@ async function reset_tournament_to_empty_default(app, tournament_key) {
 
 	const [, updated_tournament] = await app.db.tournaments.update_async(
 		{ key: tournament_key },
-		{ $set: tournament_patch, $unset: { tguid: true } },
+		{ $set: tournament_patch, $unset: { tguid: true, btp_payments: true, accounting_entries: true, accounting_items: true, accounting_documents: true, accounting_payment_recipient: true, accounting_payment_bank: true, accounting_payment_iban: true, accounting_payment_bic: true, accounting_invoice_due_days: true, accounting_document_stamp_enabled: true, accounting_document_signature_mode: true, accounting_event_period_enabled: true, accounting_event_period_text: true, accounting_letterhead_first_pdf: true, accounting_letterhead_follow_pdf: true, accounting_letterhead_first_page_number_enabled: true, accounting_letterhead_layout: true } },
 		{ returnUpdatedDocs: true },
 	);
 
@@ -5415,6 +5551,1090 @@ function handle_registration_open_event(app, ws, msg) {
 	});
 }
 
+function _registration_accounting_text(value, max_len) {
+	return String(value == null ? '' : value).trim().slice(0, max_len || 200);
+}
+
+function _normalize_registration_accounting_payment_props(props) {
+	for (const [field, max_len] of [
+		['accounting_payment_recipient', 200],
+		['accounting_payment_bank', 200],
+		['accounting_payment_iban', 80],
+		['accounting_payment_bic', 40],
+		['accounting_event_period_text', 120],
+	]) {
+		if (Object.prototype.hasOwnProperty.call(props, field)) {
+			props[field] = _registration_accounting_text(props[field], max_len);
+		}
+	}
+	if (Object.prototype.hasOwnProperty.call(props, 'accounting_invoice_due_days')) {
+		const value = Number(String(props.accounting_invoice_due_days ?? '').replace(',', '.'));
+		if (!Number.isFinite(value) || value < 0 || value > 365) {
+			return { message: 'Invalid accounting_invoice_due_days' };
+		}
+		props.accounting_invoice_due_days = Math.round(value);
+	}
+	return null;
+}
+
+function _registration_accounting_letterhead_pdf(value) {
+	const raw = String(value == null ? '' : value).trim();
+	if (!raw) {
+		return '';
+	}
+	if (!/^data:application\/pdf;base64,[A-Za-z0-9+/=\s]+$/.test(raw)) {
+		return null;
+	}
+	return raw.replace(/\s/g, '');
+}
+
+const REGISTRATION_ACCOUNTING_LETTERHEAD_DEFAULT_LAYOUT = {
+	first: {
+		address: { x: 20, y: 64, width: 95, height: 25 },
+		header: { x: 130, y: 44, width: 60, height: 28 },
+		document_title: { x: 20, y: 94, width: 95, height: 9 },
+		document_number: { x: 20, y: 105, width: 70, height: 5 },
+		document_date: { x: 20, y: 111, width: 70, height: 5 },
+		event_title: { x: 20, y: 116, width: 168, height: 7 },
+		content: { x: 20, y: 126, width: 168, height: 129 },
+		footer: { x: 155, y: 278, width: 35, height: 8 },
+	},
+	follow: {
+		content: { x: 20, y: 55, width: 168, height: 205 },
+		footer: { x: 155, y: 278, width: 35, height: 8 },
+	},
+};
+
+function _registration_accounting_letterhead_layout(value) {
+	if (value == null || value === '') {
+		return {};
+	}
+	if (typeof value !== 'object' || Array.isArray(value)) {
+		return null;
+	}
+	const page_names = ['first', 'follow'];
+	const area_names = ['address', 'header', 'document_title', 'document_number', 'document_date', 'event_title', 'content', 'footer'];
+	const out = {};
+	for (const page_name of page_names) {
+		const page = value[page_name];
+		if (page == null) {
+			continue;
+		}
+		if (typeof page !== 'object' || Array.isArray(page)) {
+			return null;
+		}
+		out[page_name] = {};
+		for (const area_name of area_names) {
+			const area = page[area_name];
+			if (area == null) {
+				continue;
+			}
+			if (typeof area !== 'object' || Array.isArray(area)) {
+				return null;
+			}
+			const clean_area = {};
+			const default_area = REGISTRATION_ACCOUNTING_LETTERHEAD_DEFAULT_LAYOUT[page_name]?.[area_name] || { x: 0, y: 0, width: 1, height: 1 };
+			for (const prop of ['x', 'y', 'width', 'height']) {
+				const raw_value = area[prop] == null || area[prop] === '' ? default_area[prop] : area[prop];
+				const number = _registration_accounting_number(raw_value);
+				if (number === null || number < 0 || number > 300) {
+					return null;
+				}
+				clean_area[prop] = number;
+			}
+			if (clean_area.width <= 0 || clean_area.height <= 0) {
+				return null;
+			}
+			out[page_name][area_name] = clean_area;
+		}
+	}
+	return out;
+}
+
+function _registration_accounting_number(value) {
+	const normalized = Number(String(value == null ? '' : value).replace(',', '.'));
+	return Number.isFinite(normalized) ? Math.round(normalized * 100) / 100 : null;
+}
+
+function _registration_accounting_ids(value) {
+	return (Array.isArray(value) ? value : [value])
+		.map((id) => _registration_accounting_text(id, 180))
+		.filter(Boolean)
+		.filter((id, index, ids) => ids.indexOf(id) === index);
+}
+
+function _registration_accounting_payment_allocations(value) {
+	return (Array.isArray(value) ? value : [])
+		.map((raw) => {
+			if (!raw || typeof raw !== 'object' || Array.isArray(raw)) {
+				return null;
+			}
+			const target_type = _registration_accounting_text(raw.target_type || raw.payment_target_type, 40);
+			if (!['invoice', 'open'].includes(target_type)) {
+				return null;
+			}
+			const amount = _registration_accounting_number(raw.amount);
+			if (amount === null || amount <= 0) {
+				return null;
+			}
+			return {
+				target_type,
+				amount,
+				invoice_id: _registration_accounting_text(raw.invoice_id, 160),
+				invoice_number: _registration_accounting_text(raw.invoice_number, 80),
+				position_ids: _registration_accounting_ids(raw.position_ids || raw.paid_position_ids),
+			};
+		})
+		.filter(Boolean);
+}
+
+function _registration_accounting_btp_payment_type(value) {
+	const method = _registration_accounting_text(value, 40);
+	const types = {
+		cash: 1,
+		transfer: 2,
+		card: 3,
+		other: 0,
+	};
+	return Object.prototype.hasOwnProperty.call(types, method) ? types[method] : 0;
+}
+
+function _registration_accounting_btp_guid(value, fallback_parts) {
+	const raw = _registration_accounting_text(value, 160);
+	if (/^\{[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\}$/i.test(raw)) {
+		return raw.toUpperCase();
+	}
+	const hash = crypto.createHash('sha1')
+		.update((fallback_parts || []).map((part) => String(part || '')).join('|'))
+		.digest('hex')
+		.slice(0, 32);
+	return ('{' + [
+		hash.slice(0, 8),
+		hash.slice(8, 12),
+		hash.slice(12, 16),
+		hash.slice(16, 20),
+		hash.slice(20, 32),
+	].join('-') + '}').toUpperCase();
+}
+
+function _registration_accounting_btp_payment_transfers(tournament, value, entry_id, payment_method, purchase_at) {
+	return (Array.isArray(value) ? value : [])
+		.map((raw, index) => {
+			if (!raw || typeof raw !== 'object' || Array.isArray(raw)) {
+				return null;
+			}
+			const player_id = _registration_accounting_text(raw.player_id || raw.PlayerID, 80);
+			if (!/^\d+$/.test(player_id)) {
+				return null;
+			}
+			const amount = _registration_accounting_number(raw.amount || raw.Amount);
+			if (amount === null || amount <= 0) {
+				return null;
+			}
+			const guid = _registration_accounting_btp_guid(raw.guid || raw.GUID, ['bts-payment', tournament?.tguid || '', entry_id, player_id, index]);
+			return {
+				guid,
+				player_id,
+				player_name: _registration_accounting_text(raw.player_name, 200),
+				amount,
+				position_ids: _registration_accounting_ids(raw.position_ids || raw.paid_position_ids),
+				payment_type: _registration_accounting_btp_payment_type(raw.payment_method || payment_method),
+				payment_date: _registration_accounting_text(raw.payment_date || raw.PaymentDate || purchase_at, 80),
+			};
+		})
+		.filter(Boolean);
+}
+
+function _registration_accounting_filter_text(value) {
+	return String(value || '').toLocaleLowerCase('de-DE');
+}
+
+function _registration_accounting_stage_name_text(stage) {
+	return _registration_accounting_filter_text([stage?.name, stage?.stage_name].filter(Boolean).join(' '));
+}
+
+function _registration_accounting_is_stage_main(stage) {
+	const type = Number(stage?.stage_type);
+	const name = _registration_accounting_stage_name_text(stage);
+	return type === 1 || name.includes('hauptfeld') || name.includes('main');
+}
+
+function _registration_accounting_is_stage_excluded(stage) {
+	const type = Number(stage?.stage_type);
+	const name = _registration_accounting_stage_name_text(stage);
+	return type === 9999 || name.includes('aussch') || name.includes('exclud');
+}
+
+function _registration_accounting_is_event_drawn(event) {
+	return event?.is_drawn === true || Number(event?.match_count || 0) > 0;
+}
+
+function _registration_accounting_entry_counts_for_fee(event, stage, mode) {
+	if (mode === 'registered') {
+		return true;
+	}
+	if (mode === 'main_draw_with_excluded') {
+		return _registration_accounting_is_stage_main(stage) || _registration_accounting_is_stage_excluded(stage);
+	}
+	if (mode === 'drawn') {
+		return _registration_accounting_is_stage_main(stage) && _registration_accounting_is_event_drawn(event);
+	}
+	return _registration_accounting_is_stage_main(stage);
+}
+
+function _registration_accounting_player_display_name(player) {
+	return _registration_accounting_text(player?.name || [player?.firstname, player?.lastname].filter(Boolean).join(' '), 200);
+}
+
+function _registration_accounting_position_targets(tournament) {
+	const mode = ['registered', 'main_draw', 'main_draw_with_excluded', 'drawn']
+		.includes(String(tournament?.accounting_entry_fee_mode || ''))
+		? String(tournament.accounting_entry_fee_mode)
+		: 'main_draw';
+	const targets = new Map();
+	const remember = (position_id, player_id, player_name, amount) => {
+		const id = _registration_accounting_text(position_id, 180);
+		const btp_player_id = _registration_accounting_text(player_id, 80);
+		const value = _registration_accounting_number(amount || 0);
+		if (!id || !/^\d+$/.test(btp_player_id) || value === null || value <= 0) {
+			return;
+		}
+		if (!targets.has(id)) {
+			targets.set(id, []);
+		}
+		targets.get(id).push({
+			player_id: btp_player_id,
+			player_name: _registration_accounting_text(player_name, 200),
+			amount: value,
+		});
+	};
+
+	const fee_keys = new Set();
+	(tournament?.events?.events || []).forEach((event) => {
+		const fee = _registration_accounting_number(event?.fee);
+		if (fee === null || fee <= 0) {
+			return;
+		}
+		(event?.stages || []).forEach((stage) => {
+			if (!_registration_accounting_entry_counts_for_fee(event, stage, mode)) {
+				return;
+			}
+			(stage?.entries || []).forEach((entry) => {
+				(entry?.team?.players || []).forEach((player) => {
+					const player_id = _registration_accounting_text(player?.btp_id, 80);
+					if (!/^\d+$/.test(player_id)) {
+						return;
+					}
+					const event_id = String(event?.id || event?.name || '');
+					const key = player_id + ':' + event_id;
+					if (fee_keys.has(key)) {
+						return;
+					}
+					fee_keys.add(key);
+					remember(['fee', player_id, event_id, mode].join(':'), player_id, _registration_accounting_player_display_name(player), fee);
+				});
+			});
+		});
+	});
+
+	(tournament?.accounting_entries || [])
+		.filter((entry) => entry && entry.kind === 'charge')
+		.forEach((entry) => {
+			remember('local:' + String(entry.id || ''), entry.player_id, entry.player_name, entry.amount);
+		});
+
+	return targets;
+}
+
+function _registration_accounting_reconstruct_btp_payment_transfers(tournament, entry) {
+	const position_targets = _registration_accounting_position_targets(tournament);
+	const shares_by_player = new Map();
+	(entry.payment_allocations || []).forEach((allocation) => {
+		const allocation_amount = _registration_accounting_number(allocation.amount);
+		if (allocation_amount === null || allocation_amount <= 0) {
+			return;
+		}
+		const targets = [];
+		const seen = new Set();
+		(allocation.position_ids || []).forEach((position_id) => {
+			(position_targets.get(position_id) || []).forEach((target) => {
+				const key = [position_id, target.player_id].join('|');
+				if (seen.has(key)) {
+					return;
+				}
+				seen.add(key);
+				targets.push({...target, position_id});
+			});
+		});
+		const target_total = _registration_accounting_number(targets.reduce((sum, target) => sum + (_registration_accounting_number(target.amount) || 0), 0));
+		if (target_total === null || target_total <= 0 || targets.length === 0) {
+			return;
+		}
+		let assigned = 0;
+		targets.forEach((target, index) => {
+			const share = index === targets.length - 1
+				? _registration_accounting_number(allocation_amount - assigned)
+				: _registration_accounting_number(allocation_amount * (_registration_accounting_number(target.amount) || 0) / target_total);
+			assigned = _registration_accounting_number(assigned + (share || 0)) || 0;
+			if (share === null || share <= 0) {
+				return;
+			}
+			if (!shares_by_player.has(target.player_id)) {
+				shares_by_player.set(target.player_id, {
+					player_id: target.player_id,
+					player_name: target.player_name,
+					amount: 0,
+					position_ids: [],
+				});
+			}
+			const player_share = shares_by_player.get(target.player_id);
+			player_share.amount = _registration_accounting_number(player_share.amount + share) || 0;
+			if (!player_share.position_ids.includes(target.position_id)) {
+				player_share.position_ids.push(target.position_id);
+			}
+		});
+	});
+
+	return [...shares_by_player.values()]
+		.filter((transfer) => transfer.amount > 0)
+		.map((transfer, index) => ({
+			guid: _registration_accounting_btp_guid('', ['bts-payment', tournament?.tguid || '', entry.id, transfer.player_id, index]),
+			player_id: transfer.player_id,
+			player_name: transfer.player_name,
+			amount: transfer.amount,
+			position_ids: transfer.position_ids,
+			payment_type: _registration_accounting_btp_payment_type(entry.payment_method),
+			payment_date: entry.purchase_at || entry.created_at,
+		}));
+}
+
+function _registration_accounting_catalog_item(tournament, item_id) {
+	const id = _registration_accounting_text(item_id, 160);
+	if (!id) {
+		return null;
+	}
+	return (Array.isArray(tournament?.accounting_items) ? tournament.accounting_items : [])
+		.find((item) => item && item.id === id) || null;
+}
+
+function _registration_accounting_entry_payload(app, msg, tournament, options) {
+	options = options || {};
+	const existing_entry = options.existing_entry || null;
+	const raw = msg.entry && typeof msg.entry === 'object' ? msg.entry : {};
+	const kind = _registration_accounting_text(raw.kind, 40);
+	const type = _registration_accounting_text(raw.type, 40);
+	const is_cancellation = raw.is_cancellation === true || raw.cancellation === true;
+	if (!['charge', 'payment'].includes(kind)) {
+		return { error: { message: 'Unsupported accounting entry kind ' + kind } };
+	}
+	if (is_cancellation && kind !== 'charge') {
+		return { error: { message: 'Accounting cancellation entries must be charges' } };
+	}
+	if (!['entry_fee', 'shuttles', 'item', 'other'].includes(type)) {
+		return { error: { message: 'Unsupported accounting entry type ' + type } };
+	}
+	const buyer_type = _registration_accounting_text(raw.buyer_type || 'player', 40);
+	if (!['player', 'club', 'state', 'none'].includes(buyer_type)) {
+		return { error: { message: 'Unsupported accounting entry buyer_type ' + buyer_type } };
+	}
+	let player_id = _registration_accounting_text(raw.player_id, 120);
+	let buyer_id = _registration_accounting_text(raw.buyer_id || player_id, 120);
+	if (buyer_type === 'none') {
+		buyer_id = 'none';
+		player_id = player_id || 'none';
+	}
+	if (buyer_type === 'player' && !player_id) {
+		return { error: { message: 'Missing accounting entry player_id' } };
+	}
+	if (buyer_type !== 'player' && !buyer_id) {
+		return { error: { message: 'Missing accounting entry buyer_id' } };
+	}
+	if (player_id && !/^[A-Za-z0-9:_-]+$/.test(player_id)) {
+		return { error: { message: 'Invalid accounting entry player_id ' + player_id } };
+	}
+	if (!/^[A-Za-z0-9:_-]+$/.test(buyer_id)) {
+		return { error: { message: 'Invalid accounting entry buyer_id ' + buyer_id } };
+	}
+	const item_id = _registration_accounting_text(raw.item_id, 160);
+	const catalog_item = kind === 'charge' && type === 'item' && !is_cancellation
+		? _registration_accounting_catalog_item(tournament, item_id)
+		: null;
+	const same_existing_item = kind === 'charge' &&
+		type === 'item' &&
+		!is_cancellation &&
+		existing_entry &&
+		item_id &&
+		item_id === _registration_accounting_text(existing_entry.item_id, 160);
+	const quantity = _registration_accounting_number(raw.quantity == null ? 1 : raw.quantity);
+	const raw_unit_price = same_existing_item ? existing_entry.unit_price : raw.unit_price;
+	const unit_price = catalog_item && !same_existing_item
+		? _registration_accounting_number(catalog_item.unit_price)
+		: _registration_accounting_number(raw_unit_price == null ? raw.amount : raw_unit_price);
+	const amount = kind === 'charge' && type === 'item' && quantity !== null && unit_price !== null
+		? _registration_accounting_number(quantity * unit_price)
+		: _registration_accounting_number(raw.amount == null && quantity !== null && unit_price !== null
+			? quantity * unit_price
+			: raw.amount);
+	if (quantity === null || quantity === 0 || (!is_cancellation && quantity <= 0) || (is_cancellation && quantity >= 0)) {
+		return { error: { message: 'Invalid accounting entry quantity' } };
+	}
+	if (unit_price === null || unit_price < 0) {
+		return { error: { message: 'Invalid accounting entry unit_price' } };
+	}
+	if (amount === null || amount === 0 || (!is_cancellation && amount <= 0) || (is_cancellation && amount >= 0)) {
+		return { error: { message: 'Invalid accounting entry amount' } };
+	}
+
+	const player_name = _registration_accounting_text(raw.player_name, 200);
+	const buyer_name = _registration_accounting_text(raw.buyer_name || player_name || (buyer_type === 'none' ? 'Ohne Käufer' : ''), 200);
+	const event_name = _registration_accounting_text(raw.event_name, 120);
+	const purchase_at = _registration_accounting_text(raw.purchase_at || raw.purchased_at || raw.created_at || now_iso(app), 40);
+	const description = _registration_accounting_text(same_existing_item
+		? existing_entry.description
+		: (catalog_item ? catalog_item.name : raw.description), 240) ||
+		(type === 'shuttles' ? 'Ballrolle' : kind === 'payment' ? 'Zahlung' : is_cancellation ? 'Storno' : 'Position');
+	const raw_item_overview_category = _registration_accounting_text(same_existing_item
+		? existing_entry.item_overview_category
+		: (catalog_item ? catalog_item.overview_category : raw.item_overview_category), 40);
+	const item_overview_category = ['item', 'fee'].includes(raw_item_overview_category)
+		? raw_item_overview_category
+		: 'item';
+	const id = now_ms(app) + '_' + uuidv4();
+	const sale_id = _registration_accounting_text(raw.sale_id, 160) || id;
+	const payment_method = _registration_accounting_text(raw.payment_method || 'cash', 40);
+	const payment_allocations = _registration_accounting_payment_allocations(raw.payment_allocations);
+	const paid_position_ids = _registration_accounting_ids(raw.paid_position_ids || raw.position_ids);
+	let btp_payment_transfers = kind === 'payment'
+		? _registration_accounting_btp_payment_transfers(tournament, raw.btp_payment_transfers, id, payment_method, purchase_at)
+		: [];
+	if (kind === 'payment' && btp_payment_transfers.length === 0) {
+		btp_payment_transfers = _registration_accounting_reconstruct_btp_payment_transfers(tournament, {
+			id,
+			amount,
+			payment_method,
+			purchase_at,
+			paid_position_ids,
+			payment_allocations,
+		});
+	}
+		const btp_payment_needsync = btp_payment_transfers.length > 0;
+		const btp_payment_sync_status = btp_payment_needsync ? 'pending' : '';
+	return {
+		entry: {
+			id,
+			sale_id,
+			tournament_key: _registration_accounting_text(msg.tournament_key, 120),
+			player_id,
+			player_name,
+			buyer_type,
+			buyer_id,
+			buyer_name,
+			club: _registration_accounting_text(raw.club || (buyer_type === 'club' ? buyer_name : ''), 200),
+			state: _registration_accounting_text(raw.state || (buyer_type === 'state' ? buyer_name : ''), 120),
+			event_name,
+			kind,
+			type,
+			description,
+			quantity,
+			unit_price,
+			amount,
+			item_id,
+			item_input_type: _registration_accounting_text(same_existing_item
+				? existing_entry.item_input_type
+				: (catalog_item ? catalog_item.input_type : raw.item_input_type), 40),
+			item_sale_unit: _registration_accounting_text(same_existing_item
+				? existing_entry.item_sale_unit
+				: (catalog_item ? catalog_item.sale_unit : raw.item_sale_unit), 80),
+			item_overview_category,
+			payment_method,
+			payment_target_type: ['invoice', 'open', 'mixed'].includes(_registration_accounting_text(raw.payment_target_type, 40))
+				? _registration_accounting_text(raw.payment_target_type, 40)
+				: '',
+			invoice_id: _registration_accounting_text(raw.invoice_id, 160),
+			invoice_number: _registration_accounting_text(raw.invoice_number, 80),
+			paid_position_ids,
+			payment_allocations,
+			btp_payment_transfers,
+				btp_payment_needsync,
+				btp_payment_sync_status,
+			note: _registration_accounting_text(raw.note, 500),
+			purchase_at,
+			is_cancellation,
+			voids_entry_id: _registration_accounting_text(raw.voids_entry_id, 160),
+			created_at: now_iso(app),
+		},
+	};
+}
+
+function handle_registration_accounting_entry(app, ws, msg) {
+	if (!_require_msg(ws, msg, ['tournament_key', 'entry'])) {
+		return;
+	}
+	const tournament_key = String(msg.tournament_key || '');
+	app.db.tournaments.findOne({ key: tournament_key }, function(find_err, tournament) {
+		if (find_err || !tournament) {
+			return ws.respond(msg, find_err || { message: 'No tournament ' + tournament_key });
+		}
+		const payload = _registration_accounting_entry_payload(app, msg, tournament);
+		if (payload.error) {
+			return ws.respond(msg, payload.error);
+		}
+		app.db.tournaments.update(
+			{ key: tournament_key },
+			{ $push: { accounting_entries: payload.entry } },
+			{ returnUpdatedDocs: true },
+			function(update_err, num) {
+				if (update_err) {
+					return ws.respond(msg, update_err);
+				}
+				if (num !== 1) {
+					return ws.respond(msg, { message: 'No tournament ' + tournament_key });
+				}
+				const btp_update_queued = payload.entry.kind === 'payment'
+					? btp_manager.update_payments(app, tournament_key, payload.entry.btp_payment_transfers || [], payload.entry.id)
+					: false;
+				notify_change(app, tournament_key, 'registration_accounting_entry', { entry: payload.entry });
+				return ws.respond(msg, null, { entry: payload.entry, btp_update_queued });
+			}
+		);
+	});
+}
+
+function handle_registration_accounting_entry_remove(app, ws, msg) {
+	if (!_require_msg(ws, msg, ['tournament_key', 'entry_id'])) {
+		return;
+	}
+	const tournament_key = String(msg.tournament_key || '');
+	const entry_id = _registration_accounting_text(msg.entry_id, 160);
+	if (!entry_id) {
+		return ws.respond(msg, { message: 'Missing accounting entry_id' });
+	}
+	app.db.tournaments.findOne({ key: tournament_key }, function(find_err, tournament) {
+		if (find_err || !tournament) {
+			return ws.respond(msg, find_err || { message: 'No tournament ' + tournament_key });
+		}
+		const entries = Array.isArray(tournament.accounting_entries)
+			? tournament.accounting_entries
+			: [];
+		const next_entries = entries.filter((entry) => entry && entry.id !== entry_id);
+		if (next_entries.length === entries.length) {
+			return ws.respond(msg, { message: 'No accounting entry ' + entry_id });
+		}
+		app.db.tournaments.update(
+			{ key: tournament_key },
+			{ $set: { accounting_entries: next_entries } },
+			{ returnUpdatedDocs: true },
+			function(update_err, num) {
+				if (update_err) {
+					return ws.respond(msg, update_err);
+				}
+				if (num !== 1) {
+					return ws.respond(msg, { message: 'No tournament ' + tournament_key });
+				}
+				notify_change(app, tournament_key, 'registration_accounting_entry_remove', { entry_id });
+				return ws.respond(msg, null, { entry_id });
+			}
+		);
+	});
+}
+
+function handle_registration_accounting_entry_update(app, ws, msg) {
+	if (!_require_msg(ws, msg, ['tournament_key', 'entry_id', 'entry'])) {
+		return;
+	}
+	const tournament_key = String(msg.tournament_key || '');
+	const entry_id = _registration_accounting_text(msg.entry_id, 160);
+	if (!entry_id) {
+		return ws.respond(msg, { message: 'Missing accounting entry_id' });
+	}
+	app.db.tournaments.findOne({ key: tournament_key }, function(find_err, tournament) {
+		if (find_err || !tournament) {
+			return ws.respond(msg, find_err || { message: 'No tournament ' + tournament_key });
+		}
+		const entries = Array.isArray(tournament.accounting_entries)
+			? tournament.accounting_entries
+			: [];
+		const entry_index = entries.findIndex((entry) => entry && entry.id === entry_id);
+		if (entry_index < 0) {
+			return ws.respond(msg, { message: 'No accounting entry ' + entry_id });
+		}
+		const existing_entry = entries[entry_index];
+		const payload = _registration_accounting_entry_payload(app, {
+			tournament_key,
+			entry: {
+				...existing_entry,
+				...(msg.entry || {}),
+			},
+		}, tournament, { existing_entry });
+		if (payload.error) {
+			return ws.respond(msg, payload.error);
+		}
+		const updated_entry = {
+			...payload.entry,
+			id: existing_entry.id,
+			tournament_key,
+			purchase_at: existing_entry.purchase_at || payload.entry.purchase_at,
+			created_at: existing_entry.created_at || payload.entry.created_at,
+			updated_at: now_iso(app),
+		};
+		if (existing_entry.kind === 'charge' && ['item', 'shuttles', 'other'].includes(String(existing_entry.type || ''))) {
+			updated_entry.sale_id = existing_entry.sale_id || updated_entry.sale_id;
+			updated_entry.description = existing_entry.description;
+			updated_entry.item_id = existing_entry.item_id || '';
+			updated_entry.item_input_type = existing_entry.item_input_type || '';
+			updated_entry.item_sale_unit = existing_entry.item_sale_unit || '';
+			updated_entry.quantity = existing_entry.quantity;
+			updated_entry.unit_price = existing_entry.unit_price;
+			updated_entry.amount = existing_entry.amount;
+			updated_entry.is_cancellation = existing_entry.is_cancellation === true;
+			updated_entry.voids_entry_id = existing_entry.voids_entry_id || '';
+		}
+		const next_entries = entries.slice();
+		next_entries[entry_index] = updated_entry;
+		app.db.tournaments.update(
+			{ key: tournament_key },
+			{ $set: { accounting_entries: next_entries } },
+			{ returnUpdatedDocs: true },
+			function(update_err, num) {
+				if (update_err) {
+					return ws.respond(msg, update_err);
+				}
+				if (num !== 1) {
+					return ws.respond(msg, { message: 'No tournament ' + tournament_key });
+				}
+				notify_change(app, tournament_key, 'registration_accounting_entry', { entry: updated_entry });
+				return ws.respond(msg, null, { entry: updated_entry });
+			}
+		);
+	});
+}
+
+function _registration_accounting_document_line(raw) {
+	raw = raw && typeof raw === 'object' ? raw : {};
+	const description = _registration_accounting_text(raw.description || raw.label, 240);
+	const quantity = _registration_accounting_number(raw.quantity == null ? 1 : raw.quantity);
+	const unit_price = _registration_accounting_number(raw.unit_price == null ? raw.amount : raw.unit_price);
+	const amount = _registration_accounting_number(raw.amount == null && quantity !== null && unit_price !== null
+		? quantity * unit_price
+		: raw.amount);
+	if (!description) {
+		return null;
+	}
+	if (quantity === null || unit_price === null || amount === null) {
+		return null;
+	}
+	const position_ids = (Array.isArray(raw.position_ids) ? raw.position_ids : [raw.position_id || raw.entry_id])
+		.map((id) => _registration_accounting_text(id, 180))
+		.filter(Boolean);
+	const caused_by = (Array.isArray(raw.caused_by) ? raw.caused_by : [])
+		.map((cause) => {
+			if (cause && typeof cause === 'object' && !Array.isArray(cause)) {
+				const label = _registration_accounting_text(cause.label || cause.name || cause.player_name || cause.buyer_name, 240);
+				if (!label) {
+					return null;
+				}
+				const detail = _registration_accounting_text(cause.detail || cause.event_name, 500);
+				const amount = cause.amount == null || cause.amount === ''
+					? null
+					: _registration_accounting_number(cause.amount);
+				const out = { label };
+				if (detail) {
+					out.detail = detail;
+				}
+				if (amount !== null) {
+					out.amount = amount;
+				}
+				return out;
+			}
+			const label = _registration_accounting_text(cause, 240);
+			return label ? { label } : null;
+		})
+		.filter(Boolean);
+	const caused_by_keys = new Set();
+	return {
+		description,
+		quantity,
+		unit_price,
+		amount,
+		sale_unit: _registration_accounting_text(raw.sale_unit || raw.item_sale_unit, 80),
+		entry_id: _registration_accounting_text(raw.entry_id, 160),
+		position_id: position_ids[0] || '',
+		position_ids: [...new Set(position_ids)],
+		caused_by: caused_by.filter((cause) => {
+			const key = cause.label + ':' + (cause.detail || '') + ':' + (cause.amount == null ? '' : cause.amount);
+			if (caused_by_keys.has(key)) {
+				return false;
+			}
+			caused_by_keys.add(key);
+			return true;
+		}),
+	};
+}
+
+function _registration_accounting_document_position_ids(document) {
+	const ids = [];
+	(Array.isArray(document?.lines) ? document.lines : []).forEach((line) => {
+		if (!line) {
+			return;
+		}
+		if (Array.isArray(line.position_ids)) {
+			ids.push(...line.position_ids);
+		} else if (line.position_id) {
+			ids.push(line.position_id);
+		} else if (line.entry_id) {
+			ids.push(line.entry_id);
+		}
+	});
+	return ids.map((id) => _registration_accounting_text(id, 180)).filter(Boolean);
+}
+
+function _registration_accounting_document_code(tournament) {
+	const override = _registration_accounting_document_code_override(tournament?.accounting_document_code);
+	if (override) {
+		return override;
+	}
+	const raw = _registration_accounting_text(tournament?.name || tournament?.key || 'TURNIER', 80);
+	const normalized = raw.normalize ? raw.normalize('NFKD').replace(/[\u0300-\u036f]/g, '') : raw;
+	const upper = normalized.toUpperCase()
+		.replace(/\b([A-Z])\s*-\s*(RLT)\b/g, '$1$2');
+	const age_matches = [...upper.matchAll(/\bU\s*(\d{1,2})\b/g)]
+		.map((match) => Number(match[1]))
+		.filter(Number.isFinite);
+	const age_code = age_matches.length ? 'U' + Math.max(...age_matches) : '';
+	const token_map = {
+		BREMEN: 'BRE',
+		BREMER: 'BRE',
+		NIEDERSACHSEN: 'NDS',
+		HAMBURG: 'HH',
+		SCHLESWIGHOLSTEIN: 'SH',
+		MECKLENBURGVORPOMMERN: 'MV',
+		LANDESMEISTERSCHAFT: 'LM',
+		LANDESMEISTERSCHAFTEN: 'LM',
+		MEISTERSCHAFT: 'M',
+		MEISTERSCHAFTEN: 'M',
+		MASTER: 'MAS',
+		MASTERS: 'MAS',
+		RANGLISTENTURNIER: 'RLT',
+		TURNIER: '',
+	};
+	const work = upper
+		.replace(/\bU\s*\d{1,2}\b/g, ' ')
+		.replace(/\b(?:19|20)\d{2}\b/g, ' ');
+	const core = (work.match(/[A-Z0-9]+/g) || [])
+		.map((token) => {
+			if (Object.prototype.hasOwnProperty.call(token_map, token)) {
+				return token_map[token];
+			}
+			if (/^\d+$/.test(token)) {
+				return token;
+			}
+			if (token.length <= 5) {
+				return token;
+			}
+			return (token[0] + token.slice(1).replace(/[AEIOU]/g, '')).slice(0, 6);
+		})
+		.join('');
+	const suffix = age_code;
+	const max_len = 16;
+	const code = suffix.length >= max_len
+		? suffix.slice(-max_len)
+		: core.slice(0, max_len - suffix.length) + suffix;
+	return code || 'TURNIER';
+}
+
+function _registration_accounting_document_code_override(value) {
+	const raw = _registration_accounting_text(value, 32);
+	if (!raw) {
+		return '';
+	}
+	const normalized = raw.normalize ? raw.normalize('NFKD').replace(/[\u0300-\u036f]/g, '') : raw;
+	return normalized.toUpperCase().replace(/[^A-Z0-9]+/g, '').slice(0, 16);
+}
+
+function _registration_accounting_document_year(tournament, issued_at) {
+	const raw = _registration_accounting_text(tournament?.name || '', 80);
+	const year_match = raw.match(/\b(?:19|20)\d{2}\b/);
+	if (year_match) {
+		return year_match[0];
+	}
+	const issued_date = issued_at ? new Date(issued_at) : new Date();
+	const issued_year = issued_date.getFullYear();
+	return Number.isFinite(issued_year) ? String(issued_year) : '0000';
+}
+
+function _registration_accounting_document_number(tournament, document_type, issued_at) {
+	const prefix = document_type === 'invoice' ? 'RE' : 'QU';
+	const next = (Array.isArray(tournament?.accounting_documents) ? tournament.accounting_documents : [])
+		.filter((document) => document && document.document_type === document_type)
+		.length + 1;
+	return prefix + '-' + _registration_accounting_document_year(tournament, issued_at) + '-' +
+		_registration_accounting_document_code(tournament) + '-' + utils.pad(next, 4, '0');
+}
+
+function _registration_accounting_document_payload(app, msg, tournament) {
+	const raw = msg.document && typeof msg.document === 'object' ? msg.document : {};
+	const document_type = _registration_accounting_text(raw.document_type, 40);
+	if (!['invoice', 'receipt'].includes(document_type)) {
+		return { error: { message: 'Unsupported accounting document_type ' + document_type } };
+	}
+	const buyer_type = _registration_accounting_text(raw.buyer_type || 'player', 40);
+	if (!['player', 'club', 'state', 'none'].includes(buyer_type)) {
+		return { error: { message: 'Unsupported accounting document buyer_type ' + buyer_type } };
+	}
+	const buyer_id = _registration_accounting_text(raw.buyer_id || raw.player_id || (buyer_type === 'none' ? 'none' : ''), 120);
+	if (!buyer_id) {
+		return { error: { message: 'Missing accounting document buyer_id' } };
+	}
+	if (!/^[A-Za-z0-9:_-]+$/.test(buyer_id)) {
+		return { error: { message: 'Invalid accounting document buyer_id ' + buyer_id } };
+	}
+	const lines = (Array.isArray(raw.lines) ? raw.lines : [])
+		.map(_registration_accounting_document_line)
+		.filter(Boolean);
+	if (lines.length === 0) {
+		return { error: { message: 'Accounting document requires lines' } };
+	}
+	const used_position_ids = new Set();
+	(Array.isArray(tournament?.accounting_documents) ? tournament.accounting_documents : [])
+		.filter((document) => document && document.document_type === document_type)
+		.forEach((document) => {
+			_registration_accounting_document_position_ids(document).forEach((id) => used_position_ids.add(id));
+		});
+	const duplicate_position_id = lines
+		.flatMap((line) => _registration_accounting_document_position_ids({ lines: [line] }))
+		.find((id) => used_position_ids.has(id));
+	if (duplicate_position_id) {
+		return { error: { message: 'Accounting document position already used ' + duplicate_position_id } };
+	}
+	const total = _registration_accounting_number(raw.total == null
+		? lines.reduce((sum, line) => sum + line.amount, 0)
+		: raw.total);
+	if (total === null || total <= 0) {
+		return { error: { message: 'Invalid accounting document total' } };
+	}
+	const id = now_ms(app) + '_' + uuidv4();
+	const issued_at = _registration_accounting_text(raw.issued_at || now_iso(app), 40);
+	return {
+		document: {
+			id,
+			tournament_key: _registration_accounting_text(msg.tournament_key, 120),
+			document_type,
+			document_number: _registration_accounting_document_number(tournament, document_type, issued_at),
+			buyer_type,
+			buyer_id,
+			buyer_name: _registration_accounting_text(raw.buyer_name, 200),
+			player_id: _registration_accounting_text(raw.player_id, 120),
+			player_name: _registration_accounting_text(raw.player_name, 200),
+			club: _registration_accounting_text(raw.club, 200),
+			state: _registration_accounting_text(raw.state, 120),
+			lines,
+			total,
+			paid_total: _registration_accounting_number(raw.paid_total == null ? 0 : raw.paid_total) || 0,
+			open_total: _registration_accounting_number(raw.open_total == null ? total : raw.open_total) || 0,
+			payment_entry_id: _registration_accounting_text(raw.payment_entry_id, 160),
+			payment_target_type: ['invoice', 'open', 'mixed'].includes(_registration_accounting_text(raw.payment_target_type, 40))
+				? _registration_accounting_text(raw.payment_target_type, 40)
+				: '',
+			linked_invoice_id: _registration_accounting_text(raw.linked_invoice_id || raw.invoice_id, 160),
+			linked_invoice_number: _registration_accounting_text(raw.linked_invoice_number || raw.invoice_number, 80),
+			paid_position_ids: _registration_accounting_ids(raw.paid_position_ids),
+			payment_allocations: _registration_accounting_payment_allocations(raw.payment_allocations),
+			sale_id: _registration_accounting_text(raw.sale_id, 160),
+			status: _registration_accounting_text(raw.status || 'issued', 40),
+			payment_recipient: _registration_accounting_text(raw.payment_recipient, 200),
+			payment_bank: _registration_accounting_text(raw.payment_bank, 200),
+			payment_iban: _registration_accounting_text(raw.payment_iban, 80),
+			payment_bic: _registration_accounting_text(raw.payment_bic, 40),
+			note: _registration_accounting_text(raw.note, 500),
+			issued_at,
+			due_at: _registration_accounting_text(raw.due_at, 40),
+			created_at: now_iso(app),
+		},
+	};
+}
+
+function handle_registration_accounting_document(app, ws, msg) {
+	if (!_require_msg(ws, msg, ['tournament_key', 'document'])) {
+		return;
+	}
+	const tournament_key = String(msg.tournament_key || '');
+	app.db.tournaments.findOne({ key: tournament_key }, function(find_err, tournament) {
+		if (find_err || !tournament) {
+			return ws.respond(msg, find_err || { message: 'No tournament ' + tournament_key });
+		}
+		const payload = _registration_accounting_document_payload(app, msg, tournament);
+		if (payload.error) {
+			return ws.respond(msg, payload.error);
+		}
+		app.db.tournaments.update(
+			{ key: tournament_key },
+			{ $push: { accounting_documents: payload.document } },
+			{ returnUpdatedDocs: true },
+			function(update_err, num) {
+				if (update_err) {
+					return ws.respond(msg, update_err);
+				}
+				if (num !== 1) {
+					return ws.respond(msg, { message: 'No tournament ' + tournament_key });
+				}
+				notify_change(app, tournament_key, 'registration_accounting_document', { document: payload.document });
+				return ws.respond(msg, null, { document: payload.document });
+			}
+		);
+	});
+}
+
+function _registration_accounting_item_payload(app, msg, existing_item) {
+	const raw = msg.item && typeof msg.item === 'object' ? msg.item : {};
+	const name = _registration_accounting_text(raw.name, 160);
+	if (!name) {
+		return { error: { message: 'Missing accounting item name' } };
+	}
+	const raw_billing_type = _registration_accounting_text(raw.billing_type || (raw.required === true ? 'required_player' : 'optional'), 40);
+	const billing_type = raw_billing_type === 'required' ? 'required_player' : raw_billing_type;
+	if (!['optional', 'required_player', 'required_discipline'].includes(billing_type)) {
+		return { error: { message: 'Unsupported accounting item billing_type ' + raw_billing_type } };
+	}
+	const overview_category = _registration_accounting_text(raw.overview_category || existing_item?.overview_category || 'item', 40);
+	if (!['item', 'fee'].includes(overview_category)) {
+		return { error: { message: 'Unsupported accounting item overview_category ' + overview_category } };
+	}
+	const unit_price = _registration_accounting_number(raw.unit_price == null ? 0 : raw.unit_price);
+	if (unit_price === null || unit_price < 0) {
+		return { error: { message: 'Invalid accounting item unit_price' } };
+	}
+	const sale_unit = _registration_accounting_text(raw.sale_unit || raw.unit || 'Stk.', 80) || 'Stk.';
+	const id = existing_item ? existing_item.id : now_ms(app) + '_' + uuidv4();
+	const item = {
+		id,
+		name,
+		billing_type,
+		input_type: 'quantity',
+		overview_category,
+		unit_price,
+		sale_unit,
+		default_quantity: 1,
+		note: _registration_accounting_text(raw.note, 500),
+		required: billing_type !== 'optional',
+		active: raw.active === false ? false : true,
+		created_at: existing_item?.created_at || now_iso(app),
+	};
+	if (existing_item) {
+		item.updated_at = now_iso(app);
+	}
+	return {
+		item,
+	};
+}
+
+function handle_registration_accounting_item(app, ws, msg) {
+	if (!_require_msg(ws, msg, ['tournament_key', 'item'])) {
+		return;
+	}
+	const payload = _registration_accounting_item_payload(app, msg);
+	if (payload.error) {
+		return ws.respond(msg, payload.error);
+	}
+	const tournament_key = String(msg.tournament_key || '');
+	app.db.tournaments.update(
+		{ key: tournament_key },
+		{ $push: { accounting_items: payload.item } },
+		{ returnUpdatedDocs: true },
+		function(update_err, num) {
+			if (update_err) {
+				return ws.respond(msg, update_err);
+			}
+			if (num !== 1) {
+				return ws.respond(msg, { message: 'No tournament ' + tournament_key });
+			}
+			notify_change(app, tournament_key, 'registration_accounting_item', { item: payload.item });
+			return ws.respond(msg, null, { item: payload.item });
+		}
+	);
+}
+
+function handle_registration_accounting_item_update(app, ws, msg) {
+	if (!_require_msg(ws, msg, ['tournament_key', 'item_id', 'item'])) {
+		return;
+	}
+	const tournament_key = String(msg.tournament_key || '');
+	const item_id = _registration_accounting_text(msg.item_id, 160);
+	if (!item_id) {
+		return ws.respond(msg, { message: 'Missing accounting item_id' });
+	}
+	app.db.tournaments.findOne({ key: tournament_key }, function(find_err, tournament) {
+		if (find_err || !tournament) {
+			return ws.respond(msg, find_err || { message: 'No tournament ' + tournament_key });
+		}
+		const items = Array.isArray(tournament.accounting_items)
+			? tournament.accounting_items
+			: [];
+		const existing_index = items.findIndex((item) => item && item.id === item_id);
+		if (existing_index < 0) {
+			return ws.respond(msg, { message: 'No accounting item ' + item_id });
+		}
+		const payload = _registration_accounting_item_payload(app, msg, items[existing_index]);
+		if (payload.error) {
+			return ws.respond(msg, payload.error);
+		}
+		const next_items = items.slice();
+		next_items[existing_index] = payload.item;
+		app.db.tournaments.update(
+			{ key: tournament_key },
+			{ $set: { accounting_items: next_items } },
+			{ returnUpdatedDocs: true },
+			function(update_err, num) {
+				if (update_err) {
+					return ws.respond(msg, update_err);
+				}
+				if (num !== 1) {
+					return ws.respond(msg, { message: 'No tournament ' + tournament_key });
+				}
+				notify_change(app, tournament_key, 'registration_accounting_item', { item: payload.item });
+				return ws.respond(msg, null, { item: payload.item });
+			}
+		);
+	});
+}
+
+function handle_registration_accounting_item_remove(app, ws, msg) {
+	if (!_require_msg(ws, msg, ['tournament_key', 'item_id'])) {
+		return;
+	}
+	const tournament_key = String(msg.tournament_key || '');
+	const item_id = _registration_accounting_text(msg.item_id, 160);
+	if (!item_id) {
+		return ws.respond(msg, { message: 'Missing accounting item_id' });
+	}
+	app.db.tournaments.findOne({ key: tournament_key }, function(find_err, tournament) {
+		if (find_err || !tournament) {
+			return ws.respond(msg, find_err || { message: 'No tournament ' + tournament_key });
+		}
+		const items = Array.isArray(tournament.accounting_items)
+			? tournament.accounting_items
+			: [];
+		const next_items = items.filter((item) => item && item.id !== item_id);
+		if (next_items.length === items.length) {
+			return ws.respond(msg, { message: 'No accounting item ' + item_id });
+		}
+		app.db.tournaments.update(
+			{ key: tournament_key },
+			{ $set: { accounting_items: next_items } },
+			{ returnUpdatedDocs: true },
+			function(update_err, num) {
+				if (update_err) {
+					return ws.respond(msg, update_err);
+				}
+				if (num !== 1) {
+					return ws.respond(msg, { message: 'No tournament ' + tournament_key });
+				}
+				notify_change(app, tournament_key, 'registration_accounting_item_remove', { item_id });
+				return ws.respond(msg, null, { item_id });
+			}
+		);
+	});
+}
+
 function _registration_xlsx_stage_label(stage) {
 	const type = Number(stage?.stage_type);
 	const name = _registration_xlsx_norm(stage?.name || stage?.stage_name);
@@ -5953,6 +7173,13 @@ module.exports = {
 	handle_registration_stage_comment,
 	handle_registration_stage_comment_read,
 	handle_registration_open_event,
+	handle_registration_accounting_entry,
+	handle_registration_accounting_entry_update,
+	handle_registration_accounting_entry_remove,
+	handle_registration_accounting_document,
+	handle_registration_accounting_item,
+	handle_registration_accounting_item_update,
+	handle_registration_accounting_item_remove,
 	async_handle_registration_xlsx_upload,
 	async_handle_registration_dbv_catalog,
 	async_handle_registration_dbv_import,

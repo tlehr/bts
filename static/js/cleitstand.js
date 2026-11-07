@@ -2432,14 +2432,14 @@ var cleitstand = (function() {
     const base='/admin/t/'+encodeURIComponent(tournament.key);
     const first=top.querySelector('.toprow_link');if(first){
       first.replaceChildren();
-      const page={'/certificates':{title:'Urkunden',symbol:'certificate'},'/edit':{title:'Einstellungen',symbol:'settings'},'/devices':{title:'Geräte & Logs',symbol:'monitor'},'/speech-planning/':{title:'Sprachsystem',symbol:'mic'}}[activePath];
+      const page={'/accounting':{title:'Buchhaltung',symbol:'sheet'},'/certificates':{title:'Urkunden',symbol:'certificate'},'/edit':{title:'Einstellungen',symbol:'settings'},'/devices':{title:'Geräte & Logs',symbol:'monitor'},'/speech-planning/':{title:'Sprachsystem',symbol:'mic'}}[activePath];
       const mark=el(first,'span','board-brand-mark');mark.setAttribute('aria-hidden','true');mark.innerHTML=icon(page?.symbol||'court');
       const title=el(first,'span','board-page-title','BTS – '+(page?.title||'Turnierleitung'));
       if(page){title.id='leitstand-page-title';title.setAttribute('role','heading');title.setAttribute('aria-level','1');title.tabIndex=-1;}
     }
     top.querySelector('.leitstand-nav')?.remove();
     const nav=el(top,'nav','leitstand-nav');nav.setAttribute('aria-label','Hauptnavigation');
-    for(const [label,path,symbol]of [['Turnierleitung','/','court'],['Anmeldung','/registration_control','people'],['Urkunden','/certificates','certificate'],['Sprachsystem','/speech-planning/','mic'],['Geräte & Logs','/devices','monitor'],['Einstellungen','/edit','settings']]){
+    for(const [label,path,symbol]of [['Turnierleitung','/','court'],['Anmeldung','/registration_control','people'],['Buchhaltung','/accounting','sheet'],['Urkunden','/certificates','certificate'],['Sprachsystem','/speech-planning/','mic'],['Geräte & Logs','/devices','monitor'],['Einstellungen','/edit','settings']]){
       const link=navLink(nav,label,path?base+path:'/admin/diagnostics/',symbol);
       if(path===activePath)link.setAttribute('aria-current','page');
       if(path)link.onclick=event=>{

@@ -48,6 +48,248 @@ function real_now_ms(app) {
 	return app?.clock ? app.clock.real_now_ms() : Date.now();
 }
 
+function accounting_money_number(value) {
+	const normalized = Number(String(value == null ? '' : value).replace(',', '.'));
+	return Number.isFinite(normalized) ? Math.round(normalized * 100) / 100 : 0;
+}
+
+function accounting_filter_text(value) {
+	return String(value || '').toLocaleLowerCase('de-DE');
+}
+
+function accounting_stage_name_text(stage) {
+	return accounting_filter_text([stage?.name, stage?.stage_name].filter(Boolean).join(' '));
+}
+
+function accounting_is_stage_main(stage) {
+	const type = Number(stage?.stage_type);
+	const name = accounting_stage_name_text(stage);
+	return type === 1 || name.includes('hauptfeld') || name.includes('main');
+}
+
+function accounting_is_stage_excluded(stage) {
+	const type = Number(stage?.stage_type);
+	const name = accounting_stage_name_text(stage);
+	return type === 9999 || name.includes('aussch') || name.includes('exclud');
+}
+
+function accounting_is_event_drawn(event) {
+	return event?.is_drawn === true || Number(event?.match_count || 0) > 0;
+}
+
+function accounting_entry_counts_for_fee(event, stage, mode) {
+	if (mode === 'registered') {
+		return true;
+	}
+	if (mode === 'main_draw_with_excluded') {
+		return accounting_is_stage_main(stage) || accounting_is_stage_excluded(stage);
+	}
+	if (mode === 'drawn') {
+		return accounting_is_stage_main(stage) && accounting_is_event_drawn(event);
+	}
+	return accounting_is_stage_main(stage);
+}
+
+function accounting_btp_payment_type(value) {
+	const method = String(value || '').trim();
+	const types = {
+		cash: 1,
+		transfer: 2,
+		card: 3,
+		other: 0,
+	};
+	return Object.prototype.hasOwnProperty.call(types, method) ? types[method] : 0;
+}
+
+function accounting_btp_payment_guid(value, fallback_parts) {
+	const raw = String(value || '').trim();
+	if (/^\{[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\}$/i.test(raw)) {
+		return raw.toUpperCase();
+	}
+	const hash = crypto.createHash('sha1')
+		.update((fallback_parts || []).map((part) => String(part || '')).join('|'))
+		.digest('hex')
+		.slice(0, 32);
+	return ('{' + [
+		hash.slice(0, 8),
+		hash.slice(8, 12),
+		hash.slice(12, 16),
+		hash.slice(16, 20),
+		hash.slice(20, 32),
+	].join('-') + '}').toUpperCase();
+}
+
+function accounting_normalize_btp_payment_transfer(tournament, entry, transfer, index) {
+	const player_id = String(transfer?.player_id ?? transfer?.PlayerID ?? '').trim();
+	return {
+		...transfer,
+		guid: accounting_btp_payment_guid(transfer?.guid || transfer?.GUID, ['bts-payment', tournament?.tguid || '', entry?.id || '', player_id, index]),
+		player_id,
+		amount: accounting_money_number(transfer?.amount ?? transfer?.Amount),
+	};
+}
+
+function collect_btp_payment_guids(value, target = new Set()) {
+	if (!value || typeof value !== 'object') {
+		return target;
+	}
+	if (Array.isArray(value)) {
+		value.forEach((item) => collect_btp_payment_guids(item, target));
+		return target;
+	}
+	if (Array.isArray(value.GUID)) {
+		value.GUID
+			.map((guid) => String(guid || '').trim())
+			.filter(Boolean)
+			.forEach((guid) => target.add(guid));
+	}
+	Object.values(value).forEach((item) => collect_btp_payment_guids(item, target));
+	return target;
+}
+
+function accounting_payment_allocations(entry) {
+	if (Array.isArray(entry?.payment_allocations) && entry.payment_allocations.length > 0) {
+		return entry.payment_allocations
+			.map((allocation) => ({
+				amount: accounting_money_number(allocation?.amount || 0),
+				position_ids: (Array.isArray(allocation?.position_ids) ? allocation.position_ids : allocation?.paid_position_ids || [])
+					.map((id) => String(id || '').trim())
+					.filter(Boolean),
+			}))
+			.filter((allocation) => allocation.amount > 0);
+	}
+	const position_ids = (Array.isArray(entry?.paid_position_ids) ? entry.paid_position_ids : [])
+		.map((id) => String(id || '').trim())
+		.filter(Boolean);
+	return [{
+		amount: accounting_money_number(entry?.amount || 0),
+		position_ids,
+	}].filter((allocation) => allocation.amount > 0 && allocation.position_ids.length > 0);
+}
+
+function accounting_position_targets(tournament) {
+	const fee_mode = ['registered', 'main_draw', 'main_draw_with_excluded', 'drawn']
+		.includes(String(tournament?.accounting_entry_fee_mode || ''))
+		? String(tournament.accounting_entry_fee_mode)
+		: 'main_draw';
+	const targets = new Map();
+	const remember = (position_id, player_id, player_name, amount) => {
+		const id = String(position_id || '').trim();
+		const btp_player_id = String(player_id || '').trim();
+		const value = accounting_money_number(amount || 0);
+		if (!id || !/^\d+$/.test(btp_player_id) || value <= 0) {
+			return;
+		}
+		if (!targets.has(id)) {
+			targets.set(id, []);
+		}
+		targets.get(id).push({
+			player_id: btp_player_id,
+			player_name: String(player_name || ''),
+			amount: value,
+		});
+	};
+
+	const fee_keys = new Set();
+	(tournament?.events?.events || []).forEach((event) => {
+		const fee = accounting_money_number(event?.fee);
+		if (fee <= 0) {
+			return;
+		}
+		(event?.stages || []).forEach((stage) => {
+			if (!accounting_entry_counts_for_fee(event, stage, fee_mode)) {
+				return;
+			}
+			(stage?.entries || []).forEach((entry) => {
+				(entry?.team?.players || []).forEach((player) => {
+					const player_id = String(player?.btp_id ?? '').trim();
+					if (!/^\d+$/.test(player_id)) {
+						return;
+					}
+					const event_id = String(event?.id || event?.name || '');
+					const key = player_id + ':' + event_id;
+					if (fee_keys.has(key)) {
+						return;
+					}
+					fee_keys.add(key);
+					remember(['fee', player_id, event_id, fee_mode].join(':'), player_id, player.name || [player.firstname, player.lastname].filter(Boolean).join(' '), fee);
+				});
+			});
+		});
+	});
+
+	(tournament?.accounting_entries || [])
+		.filter((entry) => entry && entry.kind === 'charge')
+		.forEach((entry) => {
+			remember('local:' + String(entry.id || ''), entry.player_id, entry.player_name, entry.amount);
+		});
+
+	return targets;
+}
+
+function accounting_reconstructed_btp_payment_transfers(tournament, entry) {
+	const existing = Array.isArray(entry?.btp_payment_transfers) ? entry.btp_payment_transfers : [];
+	if (existing.length > 0) {
+		return existing
+			.map((transfer, index) => accounting_normalize_btp_payment_transfer(tournament, entry, transfer, index))
+			.filter((transfer) => /^\d+$/.test(transfer.player_id) && transfer.amount > 0);
+	}
+	const position_targets = accounting_position_targets(tournament);
+	const shares_by_player = new Map();
+	accounting_payment_allocations(entry).forEach((allocation) => {
+		const allocation_amount = accounting_money_number(allocation.amount);
+		const targets = [];
+		const seen = new Set();
+		allocation.position_ids.forEach((position_id) => {
+			(position_targets.get(position_id) || []).forEach((target) => {
+				const key = [position_id, target.player_id].join('|');
+				if (seen.has(key)) {
+					return;
+				}
+				seen.add(key);
+				targets.push({ ...target, position_id });
+			});
+		});
+		const target_total = accounting_money_number(targets.reduce((sum, target) => sum + accounting_money_number(target.amount), 0));
+		if (allocation_amount <= 0 || target_total <= 0 || targets.length === 0) {
+			return;
+		}
+		let assigned = 0;
+		targets.forEach((target, index) => {
+			const share = index === targets.length - 1
+				? accounting_money_number(allocation_amount - assigned)
+				: accounting_money_number(allocation_amount * accounting_money_number(target.amount) / target_total);
+			assigned = accounting_money_number(assigned + share);
+			if (share <= 0) {
+				return;
+			}
+			if (!shares_by_player.has(target.player_id)) {
+				shares_by_player.set(target.player_id, {
+					player_id: target.player_id,
+					player_name: target.player_name || '',
+					amount: 0,
+					position_ids: [],
+				});
+			}
+			const player_share = shares_by_player.get(target.player_id);
+			player_share.amount = accounting_money_number(player_share.amount + share);
+			if (!player_share.position_ids.includes(target.position_id)) {
+				player_share.position_ids.push(target.position_id);
+			}
+		});
+	});
+	return [...shares_by_player.values()].map((transfer, index) => ({
+		guid: accounting_btp_payment_guid('', ['bts-payment', tournament?.tguid || '', entry.id, transfer.player_id, index]),
+		player_id: transfer.player_id,
+		player_name: transfer.player_name,
+		amount: transfer.amount,
+		position_ids: transfer.position_ids,
+		payment_type: accounting_btp_payment_type(entry?.payment_method),
+		payment_date: entry?.purchase_at || entry?.created_at || new Date().toISOString(),
+	}));
+}
+
+
 function warn_compact(label, payload, failure = false) {
 	if (!failure && !require('./server_diagnostics').sync_timing_enabled(payload.tournament_key)) return;
 	try {
@@ -82,6 +324,7 @@ async function queue_fetch_sync_task(connection, response, fetch_reset_ts, respo
 			source_json: require('./btp_decode/response_hashes').get(response).json,
 		} : {}),
 	});
+	if (value === true) connection.push_pending_payments();
 	if ((connection.court_assignments_revision || 0) !== court_assignments_revision) return null;
 	if (value === true || value?.reason === 'no_sync_changes') {
 		connection.last_applied_fetch_response_hash = response_hash;
@@ -306,6 +549,8 @@ class BTPConn {
 		this.is_team = is_team;
 		this.autofetch_timeout_intervall = normalize_autofetch_timeout_ms(autofetch_timeout_intervall);
 		this.last_applied_fetch_response_hash = null;
+		this.pending_payment_guids = new Set();
+		this.active_payment_entry_ids = new Set();
 		this.connect();
 	}
 
@@ -586,6 +831,7 @@ class BTPConn {
 	// Retry only this tournament, with bounded network concurrency. Results stay
 	// durable until a later tournament read confirms both winner and sets.
 	pushall() {
+		this.push_pending_payments();
 		if (this.readonly || this.terminated || typeof this.app?.db?.matches?.find !== 'function') return Promise.resolve();
 		if (this.pushall_promise) return this.pushall_promise;
 		this.pushall_promise = new Promise(resolve => {
@@ -633,6 +879,122 @@ class BTPConn {
 			request_fetch(this, this.enabled_autofetch).then(() => this.pushall());
 		}, delay);
 		this.result_retry_timeout.unref?.();
+	}
+
+	push_pending_payments() {
+		if (typeof this.app?.db?.tournaments?.findOne !== 'function') return;
+		this.app.db.tournaments.findOne({ key: this.tkey }, (err, tournament) => {
+			if (err) {
+				serror.silent('Failed to query pending BTP payments: ' + err.message);
+				return;
+			}
+			if (!tournament) {
+				return;
+			}
+			const imported_guids = new Set((tournament.btp_payments?.payments || [])
+				.map((payment) => String(payment?.guid ?? payment?.GUID ?? '').trim())
+				.filter(Boolean));
+			(tournament.accounting_entries || [])
+				.filter((entry) => entry && entry.kind === 'payment')
+				.filter((entry) => entry.btp_payment_needsync === true)
+				.filter((entry) => entry.btp_payment_sync_status === 'pending')
+				.filter((entry) => !this.active_payment_entry_ids.has(String(entry.id || '')))
+				.forEach((entry) => {
+					const all_transfers = accounting_reconstructed_btp_payment_transfers(tournament, entry);
+					if (all_transfers.length === 0) {
+						return;
+					}
+					const transfers = all_transfers
+						.filter((transfer) => !imported_guids.has(String(transfer?.guid || '').trim()));
+					if (transfers.length === 0) {
+						this.mark_payment_synced(entry.id);
+						return;
+					}
+					if (entry.btp_payment_sync_status === 'sent' || entry.btp_payment_sync_status === 'sending') {
+						return;
+					}
+					this.update_payments(transfers, entry.id);
+				});
+		});
+	}
+
+	update_payment_entry_fields(entry_id, fields, error_prefix, callback) {
+		if (!entry_id) {
+			if (callback) callback();
+			return;
+		}
+		this.app.db.tournaments.findOne({ key: this.tkey }, (find_err, tournament) => {
+			if (find_err || !tournament) {
+				if (find_err) {
+					serror.silent(error_prefix + ': ' + find_err.message);
+				}
+				if (callback) callback();
+				return;
+			}
+			const entries = Array.isArray(tournament.accounting_entries)
+				? tournament.accounting_entries
+				: [];
+			const entry_index = entries.findIndex((entry) => entry && entry.id === entry_id);
+			if (entry_index < 0) {
+				if (callback) callback();
+				return;
+			}
+			const next_entries = entries.slice();
+			next_entries[entry_index] = {
+				...next_entries[entry_index],
+				...fields,
+			};
+			this.app.db.tournaments.update(
+				{ key: this.tkey },
+				{ $set: { accounting_entries: next_entries } },
+				{},
+				(err) => {
+					if (err) {
+						serror.silent(error_prefix + ': ' + err.message);
+					}
+					if (callback) callback();
+				}
+			);
+		});
+	}
+
+	mark_payment_synced(entry_id, callback) {
+		this.update_payment_entry_fields(
+			entry_id,
+			{
+				btp_payment_needsync: false,
+				btp_payment_sync_status: 'synced',
+				btp_payment_synced_at: new Date().toISOString(),
+			},
+			'Failed to mark BTP payment as synced',
+			callback
+		);
+	}
+
+	mark_payment_sending(entry_id, callback) {
+		this.update_payment_entry_fields(
+			entry_id,
+			{
+				btp_payment_needsync: false,
+				btp_payment_sync_status: 'sending',
+				btp_payment_sending_at: new Date().toISOString(),
+			},
+			'Failed to mark BTP payment as sending',
+			callback
+		);
+	}
+
+	mark_payment_sent(entry_id, callback) {
+		this.update_payment_entry_fields(
+			entry_id,
+			{
+				btp_payment_needsync: false,
+				btp_payment_sync_status: 'sent',
+				btp_payment_sent_at: new Date().toISOString(),
+			},
+			'Failed to mark BTP payment as sent',
+			callback
+		);
 	}
 
 	schedule_reconnect() {
@@ -924,7 +1286,104 @@ class BTPConn {
 			}
 		});
 	}
-}
+
+	update_payments(payments, entry_id) {
+		if (this.readonly) {
+			return false;
+		}
+
+		if (!payments || payments.length < 1) {
+			return false;
+		}
+
+		if (! this.key_unicode) {
+			return false;
+		}
+
+		const active_entry_id = entry_id ? String(entry_id) : '';
+		if (active_entry_id && this.active_payment_entry_ids.has(active_entry_id)) {
+			return false;
+		}
+		if (active_entry_id) {
+			this.active_payment_entry_ids.add(active_entry_id);
+		}
+		const release_entry = () => {
+			if (active_entry_id) {
+				this.active_payment_entry_ids.delete(active_entry_id);
+			}
+		};
+
+		const payments_to_send = payments
+			.filter((payment) => {
+				const guid = String(payment?.guid || payment?.GUID || '').trim();
+				return !guid || !this.pending_payment_guids.has(guid);
+			});
+		if (payments_to_send.length < 1) {
+			release_entry();
+			return false;
+		}
+
+		const send_payments = (next_payments) => {
+			if (next_payments.length < 1) {
+				this.mark_payment_synced(entry_id, release_entry);
+				return;
+			}
+			next_payments
+				.map((payment) => String(payment?.guid || payment?.GUID || '').trim())
+				.filter(Boolean)
+				.forEach((guid) => this.pending_payment_guids.add(guid));
+			const sent_guids = next_payments
+				.map((payment) => String(payment?.guid || payment?.GUID || '').trim())
+				.filter(Boolean);
+			const confirmed_guids = new Set();
+			this.mark_payment_sending(entry_id, () => {
+				let had_error = false;
+				async.eachSeries(next_payments, (payment, next) => {
+					const req = btp_proto.update_payments_request([payment], this.key_unicode, this.password);
+					this.send(req, response => {
+						const results = response?.Action?.[0]?.Result;
+						const rescode = (results && results.length > 0) ? results[0] : 'no-result';
+						if (rescode !== 1) {
+							had_error = true;
+							serror.silent('Update Payment failed with error code ' + rescode);
+							next();
+							return;
+						}
+						collect_btp_payment_guids(response, confirmed_guids);
+						next();
+					});
+				}, () => {
+					if (!had_error && sent_guids.length > 0 && sent_guids.every((guid) => confirmed_guids.has(guid))) {
+						this.mark_payment_synced(entry_id, () => {
+							sent_guids.forEach((guid) => this.pending_payment_guids.delete(guid));
+							release_entry();
+						});
+						return;
+					}
+					this.mark_payment_sent(entry_id, () => {
+						sent_guids.forEach((guid) => this.pending_payment_guids.delete(guid));
+						release_entry();
+					});
+				});
+			});
+		};
+		this.app.db.tournaments.findOne({ key: this.tkey }, (err, tournament) => {
+			if (err) {
+				serror.silent('Failed to query BTP payments before update: ' + err.message);
+				send_payments(payments_to_send);
+				return;
+			}
+			const imported_guids = new Set((tournament?.btp_payments?.payments || [])
+				.map((payment) => String(payment?.guid ?? payment?.GUID ?? '').trim())
+				.filter(Boolean));
+			send_payments(payments_to_send.filter((payment) => {
+				const guid = String(payment?.guid || payment?.GUID || '').trim();
+				return !guid || !imported_guids.has(guid);
+			}));
+		});
+		return true;
+	}
+	}
 
 module.exports = {
 	BTPConn,

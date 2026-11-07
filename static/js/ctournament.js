@@ -33,6 +33,9 @@ let service_status_monitor_instance = null;
 let bts_connection_status = {status:'connecting', message:''};
 let test_clock_controls = null;
 let test_clock_status_interval = null;
+let accounting_tree_expansion_state = new Map();
+let accounting_tree_search_value = '';
+let accounting_tree_balance_filter = 'all';
 const ANNOUNCEMENT_SPEECH_CHECK_STATE_STORAGE_KEY = 'bts_announcement_speech_check_state';
 
 var ctournament = (function() {
@@ -791,6 +794,9 @@ var ctournament = (function() {
 				break;
 			case 'registration_control':
 				ui_registration_control();
+				break;
+			case 'accounting':
+				ui_accounting();
 				break;
 			default:
 				break;
@@ -1779,6 +1785,9 @@ var ctournament = (function() {
 			}, {
 				label: 'Meldungskontrolle',
 				href: base_path + '/registration_control',
+			}, {
+				label: 'Buchhaltung',
+				href: base_path + '/accounting',
 			},
 		];
 		if (view_items.length > 0 && view_items[view_items.length - 1].class === 'toprow_menu_separator') {
@@ -1981,7 +1990,7 @@ var ctournament = (function() {
 			owner, tournament, getTournament: () => curt, request: send_with_live_status,
 			exportFile: (format, options) => ccsvexport.export_certificate_file(format, options),
 			onDispose: () => {
-				if (certificatePage === view) {certificatePage = null;if (!document.querySelector('.page-leitstand,.page-certificates,.page-settings,.page-speech,.page-devices')) cleitstand.unmount();}
+				if (certificatePage === view) {certificatePage = null;if (!document.querySelector('.page-leitstand,.page-certificates,.page-settings,.page-speech,.page-devices,.page-accounting')) cleitstand.unmount();}
 			},
 		});
 		for (const link of document.querySelectorAll('.toprow > .toprow_link.vlink')) {
@@ -2621,7 +2630,7 @@ var ctournament = (function() {
 
 		const main = uiu.qs('.main');
 		uiu.empty(main);
-		main.classList.remove('main_upcoming', 'main_self_check_in', 'main_registration');
+		main.classList.remove('main_upcoming', 'main_self_check_in', 'main_registration', 'main_registration_control', 'main_accounting');
 
 		const meta_div = uiu.el(main, 'div', 'metadata_container');
 
@@ -2730,7 +2739,7 @@ var ctournament = (function() {
 			owner, tournamentKey:curt.key, service:btsSpeechService, request:speech_admin_request, section:selected,
 			onSelect:id => crouting.navigate_to('t/' + encodeURIComponent(curt.key) + '/speech-planning/' + (id === 'preparation' ? '' : id)),
 			onDispose:() => {
-				if (speechPage === view) {speechPage = null;if (!document.querySelector('.page-leitstand,.page-certificates,.page-settings,.page-speech,.page-devices')) cleitstand.unmount();}
+				if (speechPage === view) {speechPage = null;if (!document.querySelector('.page-leitstand,.page-certificates,.page-settings,.page-speech,.page-devices,.page-accounting')) cleitstand.unmount();}
 			},
 		});
 		live_settings_status_el = view.status;set_live_settings_status(live_settings_pending_requests ? 'saving' : 'saved');
@@ -2920,7 +2929,7 @@ var ctournament = (function() {
 
 		const main = uiu.qs('.main');
 		uiu.empty(main);
-		main.classList.remove('main_upcoming', 'main_self_check_in', 'main_registration');
+		main.classList.remove('main_upcoming', 'main_self_check_in', 'main_registration', 'main_registration_control', 'main_accounting');
 		cleitstand.navigation(document.querySelector('.toprow'), curt, '/edit', {syncBtp: ui_btp_fetch});
 
 		const form = uiu.el(main, 'div', 'tournament_settings');
@@ -3688,7 +3697,7 @@ var ctournament = (function() {
 					form.querySelector('.settings-advertisements')?.btsAdvertisementSettings?.destroy();
 					form.querySelector('.settings-ticker')?.btsTickerSettings?.destroy();
 					form.querySelector('.settings-maintenance')?.btsMaintenanceSettings?.destroy();
-					if (settingsPage === view) {settingsPage = null;if (!document.querySelector('.page-leitstand,.page-certificates,.page-settings,.page-speech,.page-devices')) cleitstand.unmount();}
+					if (settingsPage === view) {settingsPage = null;if (!document.querySelector('.page-leitstand,.page-certificates,.page-settings,.page-speech,.page-devices,.page-accounting')) cleitstand.unmount();}
 				},
 			});
 		}
@@ -6275,7 +6284,7 @@ var ctournament = (function() {
 		const header = uiu.el(page, 'div', 'display_setting_registration_header');
 		uiu.el(header, 'h1', {}, 'Anmeldung');
 		uiu.el(header, 'span', 'display_setting_registration_summary', '5 / 22 bearbeitet');
-		const search = uiu.el(page, 'div', 'display_setting_registration_search', 'Name, Verein, Bundesland, Disziplin');
+		const search = uiu.el(page, 'div', 'display_setting_registration_search', 'Name, Verein, Landesverband, Disziplin');
 		search.setAttribute('aria-hidden', 'true');
 		const filters = uiu.el(page, 'div', 'display_setting_registration_filters');
 		[
@@ -9426,6 +9435,6212 @@ function update_officials() {
 			.join(' / ');
 	}
 
+	function registration_accounting_player_id(player, fallback) {
+		if (player?.btp_id !== undefined && player?.btp_id !== null && String(player.btp_id) !== '') {
+			return String(player.btp_id);
+		}
+		return 'local_' + registration_key_part(person_display_name(player) || fallback || 'player');
+	}
+
+	function registration_accounting_entries() {
+		return Array.isArray(curt?.accounting_entries) ? curt.accounting_entries : [];
+	}
+
+	function registration_accounting_items() {
+		return Array.isArray(curt?.accounting_items) ? curt.accounting_items : [];
+	}
+
+	function registration_accounting_documents() {
+		return Array.isArray(curt?.accounting_documents) ? curt.accounting_documents : [];
+	}
+
+	function registration_btp_payments() {
+		return Array.isArray(curt?.btp_payments?.payments) ? curt.btp_payments.payments : [];
+	}
+
+	function registration_money_number(value) {
+		const number = Number(String(value ?? '').replace(',', '.'));
+		return Number.isFinite(number) ? Math.round(number * 100) / 100 : 0;
+	}
+
+	function registration_money_label(value) {
+		return registration_money_number(value).toLocaleString('de-DE', {
+			minimumFractionDigits: 2,
+			maximumFractionDigits: 2,
+		}) + ' EUR';
+	}
+
+	function accounting_item_sale_unit(item) {
+		return String(item?.sale_unit || item?.unit || 'Stk.').trim() || 'Stk.';
+	}
+
+	function accounting_item_billing_type(item) {
+		const type = String(item?.billing_type || '').trim();
+		if (['optional', 'required_player', 'required_discipline'].includes(type)) {
+			return type;
+		}
+		if (type === 'required') {
+			return 'required_player';
+		}
+		return item?.required ? 'required_player' : 'optional';
+	}
+
+	function accounting_item_billing_label(item) {
+		const type = accounting_item_billing_type(item);
+		if (type === 'required_player') {
+			return 'Pflichtartikel je Spieler';
+		}
+		if (type === 'required_discipline') {
+			return 'Pflichtartikel je Disziplin';
+		}
+		return 'Optionaler Artikel';
+	}
+
+	function accounting_item_overview_category(item) {
+		return String(item?.overview_category || '') === 'fee' ? 'fee' : 'item';
+	}
+
+	function accounting_item_overview_label(item) {
+		return accounting_item_overview_category(item) === 'fee' ? 'Meldegeld' : 'Artikel';
+	}
+
+	function accounting_account_key(account_type, account_id) {
+		return String(account_type || 'player') + ':' + String(account_id || '');
+	}
+
+	function accounting_club_id(club) {
+		return 'club_' + registration_key_part(club || 'verein');
+	}
+
+	function accounting_state_id(state) {
+		return 'state_' + registration_key_part(state || 'bundesland');
+	}
+
+	function accounting_entry_buyer_type(entry) {
+		const type = String(entry?.buyer_type || '').trim();
+		if (['player', 'club', 'state', 'none'].includes(type)) {
+			return type;
+		}
+		return 'player';
+	}
+
+	function accounting_entry_buyer_id(entry) {
+		const buyer_type = accounting_entry_buyer_type(entry);
+		if (buyer_type === 'none') {
+			return 'none';
+		}
+		return String(entry?.buyer_id || entry?.player_id || '').trim();
+	}
+
+	function accounting_account_label(account) {
+		if (account?.account_type === 'none') {
+			return 'Ohne Käufer';
+		}
+		return account?.display_name || account?.buyer_name || account?.player_name || account?.club || account?.state || account?.account_id || '';
+	}
+
+	const accounting_entry_fee_modes = {
+		registered: {
+			label: 'Je gemeldeter Disziplin',
+			short_label: 'gemeldet',
+		},
+		main_draw: {
+			label: 'Je Disziplin im Hauptfeld',
+			short_label: 'Hauptfeld',
+		},
+		main_draw_with_excluded: {
+			label: 'Je Disziplin im Hauptfeld + Ausschlussliste',
+			short_label: 'Hauptfeld + Ausschluss',
+		},
+		drawn: {
+			label: 'Je Teilnahme (ausgelost)',
+			short_label: 'ausgelost',
+		},
+	};
+
+	const accounting_invoice_treatment_modes = {
+		unpaid: 'nicht gezahlt',
+		paid: 'gezahlt',
+	};
+
+	const accounting_document_signature_modes = {
+		stamp: 'Unterschrift & Stempel',
+		signature: 'Unterschrift',
+		none: 'Nicht anzeigen',
+	};
+
+	const accounting_payment_default_details = {
+		recipient: 'Bremer Badminton Verband e.V.',
+		bank: 'Die Sparkasse Bremen AG',
+		iban: 'DE33 2905 0101 0082 3932 81',
+		bic: 'SBREDE22XXX',
+		due_days: 14,
+	};
+
+	const accounting_letterhead_default_layout = {
+		first: {
+			address: { x: 20, y: 64, width: 95, height: 25 },
+			document_title: { x: 20, y: 94, width: 95, height: 9 },
+			document_number: { x: 20, y: 105, width: 70, height: 5 },
+			document_date: { x: 20, y: 111, width: 70, height: 5 },
+			event_title: { x: 20, y: 116, width: 168, height: 7 },
+			content: { x: 20, y: 126, width: 168, height: 129 },
+			footer: { x: 155, y: 278, width: 35, height: 8 },
+		},
+		follow: {
+			content: { x: 20, y: 55, width: 168, height: 205 },
+			footer: { x: 155, y: 278, width: 35, height: 8 },
+		},
+	};
+
+	const accounting_letterhead_page_labels = {
+		first: 'Erste Seite',
+		follow: 'Folgeseiten',
+	};
+
+	const accounting_letterhead_area_labels = {
+		address: 'Adresse',
+		document_title: 'Überschrift',
+		document_number: 'Nummer',
+		document_date: 'Datum',
+		event_title: 'Veranstaltung',
+		content: 'Druckbereich',
+		footer: 'Seitenzahl',
+	};
+
+	const accounting_letterhead_area_fields = {
+		address: [
+			['x', 'X'],
+			['y', 'Y'],
+			['width', 'Breite'],
+			['height', 'Höhe'],
+		],
+		content: [
+			['x', 'X'],
+			['y', 'Y'],
+			['width', 'Breite'],
+			['height', 'Höhe'],
+		],
+		document_title: [
+			['x', 'X'],
+			['y', 'Y'],
+		],
+		document_number: [
+			['x', 'X'],
+			['y', 'Y'],
+		],
+		document_date: [
+			['x', 'X'],
+			['y', 'Y'],
+		],
+		event_title: [
+			['x', 'X'],
+			['y', 'Y'],
+		],
+		footer: [
+			['x', 'X'],
+			['y', 'Y'],
+		],
+	};
+
+	const accounting_letterhead_preview_font_sizes = {
+		address: 10,
+		document_title: 19,
+		document_number: 10,
+		document_date: 9,
+		event_title: 12,
+		content: 9,
+		footer: 8,
+	};
+
+	const accounting_letterhead_preview_bold_areas = new Set([
+		'address',
+		'document_title',
+		'document_number',
+		'event_title',
+		'content',
+	]);
+
+	function accounting_entry_fee_mode() {
+		const mode = String(curt?.accounting_entry_fee_mode || '');
+		return accounting_entry_fee_modes[mode] ? mode : 'main_draw';
+	}
+
+	function accounting_invoice_treatment_mode() {
+		const mode = String(curt?.accounting_invoice_treatment || '');
+		return accounting_invoice_treatment_modes[mode] ? mode : 'unpaid';
+	}
+
+	function accounting_payment_settings() {
+		const due_days = Number(curt?.accounting_invoice_due_days);
+		const signature_mode = accounting_document_signature_modes[curt?.accounting_document_signature_mode]
+			? curt.accounting_document_signature_mode
+			: (curt?.accounting_document_stamp_enabled === true ? 'stamp' : 'signature');
+		return {
+			recipient: String(curt?.accounting_payment_recipient || accounting_payment_default_details.recipient).trim(),
+			bank: String(curt?.accounting_payment_bank || accounting_payment_default_details.bank).trim(),
+			iban: String(curt?.accounting_payment_iban || accounting_payment_default_details.iban).trim(),
+			bic: String(curt?.accounting_payment_bic || accounting_payment_default_details.bic).trim(),
+			due_days: Number.isFinite(due_days) && due_days >= 0 ? Math.round(due_days) : accounting_payment_default_details.due_days,
+			signature_mode,
+			stamp_enabled: signature_mode === 'stamp',
+			event_period_enabled: curt?.accounting_event_period_enabled === true,
+			event_period_text: String(curt?.accounting_event_period_text || '').trim(),
+		};
+	}
+
+	function accounting_format_date_label(value) {
+		const match = String(value || '').match(/^(\d{4})-(\d{2})-(\d{2})/);
+		if (!match) {
+			return '';
+		}
+		return match[3] + '.' + match[2] + '.' + match[1];
+	}
+
+	function accounting_automatic_event_period_label() {
+		const dates = Array.from(new Set((curt?.matches || [])
+			.map((match) => String(match?.setup?.scheduled_date || '').slice(0, 10))
+			.filter((value) => /^\d{4}-\d{2}-\d{2}$/.test(value))))
+			.sort();
+		if (dates.length === 0) {
+			return '';
+		}
+		const first = accounting_format_date_label(dates[0]);
+		const last = accounting_format_date_label(dates[dates.length - 1]);
+		return first === last ? first : first + ' - ' + last;
+	}
+
+	function accounting_event_period_label() {
+		const settings = accounting_payment_settings();
+		if (!settings.event_period_enabled) {
+			return '';
+		}
+		return settings.event_period_text || accounting_automatic_event_period_label();
+	}
+
+	function accounting_first_page_number_enabled() {
+		return curt?.accounting_letterhead_first_page_number_enabled !== false;
+	}
+
+	function accounting_entry_counts_for_fee(event, stage, entry, mode) {
+		if (mode === 'registered') {
+			return true;
+		}
+		if (mode === 'main_draw_with_excluded') {
+			return is_registration_stage_main(stage) ||
+				is_registration_stage_excluded(stage);
+		}
+		if (mode === 'drawn') {
+			return is_registration_stage_main(stage) && is_registration_event_drawn(event);
+		}
+		return is_registration_stage_main(stage);
+	}
+
+	function set_accounting_entry_fee_mode(mode) {
+		if (!accounting_entry_fee_modes[mode]) {
+			return;
+		}
+		curt.accounting_entry_fee_mode = mode;
+		send_single_prop('accounting_entry_fee_mode', mode, function(err) {
+			if (err) {
+				return cerror.net(err);
+			}
+			if (current_view === 'accounting') {
+				ui_accounting();
+			}
+		});
+	}
+
+	function set_accounting_invoice_treatment_mode(mode) {
+		if (!accounting_invoice_treatment_modes[mode]) {
+			return;
+		}
+		curt.accounting_invoice_treatment = mode;
+		send_single_prop('accounting_invoice_treatment', mode, function(err) {
+			if (err) {
+				return cerror.net(err);
+			}
+			if (current_view === 'accounting') {
+				ui_accounting();
+			}
+		});
+	}
+
+	function normalize_accounting_document_code(value) {
+		return String(value || '')
+			.normalize('NFKD')
+			.replace(/[\u0300-\u036f]/g, '')
+			.toUpperCase()
+			.replace(/[^A-Z0-9]+/g, '')
+			.slice(0, 16);
+	}
+
+	function set_accounting_document_code(input) {
+		const previous_code = String(curt?.accounting_document_code || '');
+		const next_code = normalize_accounting_document_code(input.value);
+		if (next_code === previous_code) {
+			input.value = next_code;
+			return;
+		}
+		if (
+			registration_accounting_documents().length > 0 &&
+			!confirm('Rechnungskürzel ändern? Bereits erstellte Dokumentnummern bleiben unverändert. Neue Rechnungen und Quittungen verwenden das neue Kürzel.')
+		) {
+			input.value = previous_code;
+			return;
+		}
+		curt.accounting_document_code = next_code;
+		input.value = next_code;
+		send_single_prop('accounting_document_code', next_code, function(err) {
+			if (err) {
+				curt.accounting_document_code = previous_code;
+				input.value = previous_code;
+				cerror.net(err);
+			}
+		});
+	}
+
+	function render_accounting_payment_settings(parent) {
+		const settings = accounting_payment_settings();
+		const form = uiu.el(parent, 'form', 'accounting_payment_settings');
+		uiu.el(form, 'h2', {}, 'Rechnung');
+		const fields = uiu.el(form, 'div', 'accounting_payment_settings_fields');
+		function add_field(name, label, value, attrs = {}) {
+			const field = uiu.el(fields, 'label', 'accounting_payment_settings_field');
+			uiu.el(field, 'span', {}, label);
+			return uiu.el(field, 'input', {
+				name,
+				value,
+				autocomplete: 'off',
+				spellcheck: 'false',
+				...attrs,
+			});
+		}
+		function add_select(name, label, options, selected_value) {
+			const field = uiu.el(fields, 'label', 'accounting_payment_settings_field');
+			uiu.el(field, 'span', {}, label);
+			const select = uiu.el(field, 'select', { name });
+			Object.entries(options).forEach(([value, option_label]) => {
+				const attrs = { value };
+				if (value === selected_value) {
+					attrs.selected = 'selected';
+				}
+				uiu.el(select, 'option', attrs, option_label);
+			});
+			return select;
+		}
+		const recipient = add_field('accounting_payment_recipient', 'Empfänger', settings.recipient, { maxlength: '200' });
+		const bank = add_field('accounting_payment_bank', 'Bank', settings.bank, { maxlength: '200' });
+		const iban = add_field('accounting_payment_iban', 'IBAN', settings.iban, { maxlength: '80' });
+		const bic = add_field('accounting_payment_bic', 'BIC', settings.bic, { maxlength: '40' });
+		const due_days = add_field('accounting_invoice_due_days', 'Zahlungsfrist (Tage)', String(settings.due_days), {
+			type: 'number',
+			min: '0',
+			max: '365',
+			step: '1',
+		});
+		const period_enabled_label = uiu.el(fields, 'label', 'accounting_payment_settings_field accounting_payment_settings_checkbox');
+		const period_enabled_attrs = {
+			type: 'checkbox',
+			name: 'accounting_event_period_enabled',
+		};
+		if (settings.event_period_enabled) {
+			period_enabled_attrs.checked = 'checked';
+		}
+		const event_period_enabled = uiu.el(period_enabled_label, 'input', period_enabled_attrs);
+		uiu.el(period_enabled_label, 'span', {}, 'Veranstaltungszeitraum anzeigen');
+		const auto_period = accounting_automatic_event_period_label();
+		const event_period_text = add_field(
+			'accounting_event_period_text',
+			auto_period ? 'Veranstaltungszeitraum (leer = ' + auto_period + ')' : 'Veranstaltungszeitraum',
+			settings.event_period_text,
+			{
+				maxlength: '120',
+				placeholder: auto_period || 'z.B. 20.09.2026 - 21.09.2026',
+				},
+			);
+		const signature_mode = add_select(
+			'accounting_document_signature_mode',
+			'Unterschriftfeld',
+			accounting_document_signature_modes,
+			settings.signature_mode,
+		);
+		const actions = uiu.el(form, 'div', 'accounting_payment_settings_actions');
+		const status = uiu.el(actions, 'span', 'accounting_payment_settings_status', '');
+		uiu.el(actions, 'button', { type: 'submit' }, 'Speichern');
+		form.addEventListener('submit', (event) => {
+			event.preventDefault();
+			const next_due_days = Math.round(Number(due_days.value));
+			if (!Number.isFinite(next_due_days) || next_due_days < 0 || next_due_days > 365) {
+				uiu.text(status, 'Zahlungsfrist muss zwischen 0 und 365 Tagen liegen.');
+				due_days.focus();
+				return;
+			}
+			const props = {
+				accounting_payment_recipient: recipient.value.trim(),
+				accounting_payment_bank: bank.value.trim(),
+					accounting_payment_iban: iban.value.trim(),
+					accounting_payment_bic: bic.value.trim(),
+					accounting_invoice_due_days: next_due_days,
+					accounting_document_signature_mode: signature_mode.value,
+					accounting_document_stamp_enabled: signature_mode.value === 'stamp',
+					accounting_event_period_enabled: event_period_enabled.checked,
+					accounting_event_period_text: event_period_text.value.trim(),
+				};
+			Object.assign(curt, props);
+			uiu.text(status, 'Speichert...');
+			send_with_live_status({
+				type: 'tournament_edit_props',
+				key: curt.key,
+				props,
+			}, (err) => {
+				if (err) {
+					uiu.text(status, 'Fehler beim Speichern.');
+					cerror.net(err);
+					return;
+				}
+				due_days.value = String(next_due_days);
+				uiu.text(status, 'Gespeichert.');
+			});
+		});
+	}
+
+	function collect_registration_accounting_accounts() {
+		const fee_mode = accounting_entry_fee_mode();
+		const accounts = new Map();
+		const ensure_account = (account_type, account_id, data) => {
+			data = data || {};
+			const type = String(account_type || 'player');
+			const id = String(account_id || '').trim();
+			if (!id) {
+				return null;
+			}
+			const key = accounting_account_key(type, id);
+			if (!accounts.has(key)) {
+				accounts.set(key, {
+					account_type: type,
+					account_id: id,
+					player_id: type === 'player' ? id : '',
+					player: data.player || null,
+					player_name: data.player_name || (data.player ? person_display_name(data.player) : ''),
+					buyer_name: data.buyer_name || '',
+					display_name: data.display_name || data.buyer_name || data.player_name || '',
+					club: data.club || '',
+					state: data.state || '',
+					fee_items: [],
+					mandatory_items: [],
+					btp_payments: [],
+					local_entries: [],
+					fee_total: 0,
+					mandatory_charge_total: 0,
+					local_charge_total: 0,
+					btp_paid_total: 0,
+					local_paid_total: 0,
+					overview_fee_total: 0,
+					overview_item_total: 0,
+				});
+			}
+			const account = accounts.get(key);
+			if (!account.player_name && data.player) {
+				account.player_name = person_display_name(data.player);
+			}
+			if (!account.display_name) {
+				account.display_name = data.display_name || data.buyer_name || account.player_name || '';
+			}
+			if (!account.buyer_name && data.buyer_name) {
+				account.buyer_name = data.buyer_name;
+			}
+			if (!account.player && data.player) {
+				account.player = data.player;
+			}
+			if (!account.club && data.club) {
+				account.club = data.club;
+			}
+			if (!account.state && data.state) {
+				account.state = data.state;
+			}
+			return account;
+		};
+		const ensure_player_account = (player, fallback) => ensure_account('player', registration_accounting_player_id(player, fallback), {
+			player,
+			player_name: person_display_name(player),
+			display_name: person_display_name(player),
+			club: player?.club || '',
+			state: player?.state || '',
+		});
+		const clubs = new Map();
+		const states = new Map();
+		const remember_buyer_groups = (player) => {
+			const club = String(player?.club || '').trim();
+			if (club) {
+				clubs.set(accounting_club_id(club), {
+					display_name: club,
+					buyer_name: club,
+					club,
+					state: player?.state || '',
+				});
+			}
+			const state = String(player?.state || '').trim();
+			if (state) {
+				states.set(accounting_state_id(state), {
+					display_name: state,
+					buyer_name: state,
+					state,
+				});
+			}
+		};
+		(curt?.events?.events || []).forEach((event) => {
+			sorted_registration_stages(event).forEach((stage) => {
+				(stage.entries || []).forEach((entry) => {
+					(entry?.team?.players || []).forEach(remember_buyer_groups);
+				});
+			});
+		});
+		clubs.forEach((club, id) => ensure_account('club', id, club));
+		states.forEach((state, id) => ensure_account('state', id, state));
+		ensure_account('none', 'none', {
+			display_name: 'Ohne Käufer',
+			buyer_name: 'Ohne Käufer',
+		});
+		const fee_keys = new Set();
+		(curt?.events?.events || []).forEach((event) => {
+			const fee = registration_money_number(event?.fee);
+			if (fee <= 0) {
+				return;
+			}
+			sorted_registration_stages(event).forEach((stage) => {
+				(stage.entries || []).forEach((entry) => {
+					if (!accounting_entry_counts_for_fee(event, stage, entry, fee_mode)) {
+						return;
+					}
+					(entry?.team?.players || []).forEach((player, player_index) => {
+						const player_id = registration_accounting_player_id(player, player_index);
+						const key = player_id + ':' + String(event?.id || event?.name || '');
+						if (fee_keys.has(key)) {
+							return;
+						}
+						fee_keys.add(key);
+						const account = ensure_player_account(player, player_index);
+						if (!account) {
+							return;
+						}
+						account.fee_total += fee;
+						account.overview_fee_total += fee;
+						const event_id = String(event?.id || event?.name || '');
+						account.fee_items.push({
+							position_id: ['fee', player_id, event_id, fee_mode].join(':'),
+							description: 'Meldegeld ' + (event?.name || ''),
+							amount: fee,
+							event_name: event?.name || '',
+							mode: fee_mode,
+							caused_by: [{
+								label: person_display_name(player),
+								player_name: person_display_name(player),
+								club: player?.club || '',
+								state: player?.state || '',
+								detail: event?.name || '',
+								amount: fee,
+							}],
+						});
+					});
+				});
+			});
+		});
+		registration_accounting_items()
+			.filter((item) => item && item.active !== false && accounting_item_billing_type(item) !== 'optional')
+			.forEach((item) => {
+				accounts.forEach((account) => {
+					if (account.account_type !== 'player') {
+						return;
+					}
+					if (registration_money_number(account.fee_total) <= 0) {
+						return;
+					}
+					const billing_type = accounting_item_billing_type(item);
+					const quantity = billing_type === 'required_discipline'
+						? Math.max(0, (account.fee_items || []).length)
+						: 1;
+					const unit_price = registration_money_number(item.unit_price || 0);
+					if (quantity <= 0 || unit_price < 0) {
+						return;
+					}
+					const amount = registration_money_number(quantity * unit_price);
+					const overview_category = accounting_item_overview_category(item);
+					account.mandatory_charge_total += amount;
+					if (overview_category === 'fee') {
+						account.overview_fee_total += amount;
+					} else {
+						account.overview_item_total += amount;
+					}
+					account.mandatory_items.push({
+						position_id: ['required', account.account_id, item.id, billing_type].join(':'),
+						item_id: item.id,
+						description: item.name || 'Artikel',
+						input_type: item.input_type || 'quantity',
+						sale_unit: accounting_item_sale_unit(item),
+						quantity,
+						unit_price,
+						amount,
+						required: true,
+						billing_type,
+						overview_category,
+						caused_by: billing_type === 'required_discipline'
+							? (account.fee_items || []).map((fee_item) => ({
+								label: account.player_name,
+								player_name: account.player_name,
+								club: account.club || '',
+								state: account.state || '',
+								detail: fee_item.event_name || '',
+								amount: unit_price,
+							}))
+							: [{
+								label: account.player_name || accounting_account_label(account),
+								player_name: account.player_name || '',
+								club: account.club || '',
+								state: account.state || '',
+								amount,
+							}],
+					});
+				});
+			});
+		const accounting_items_by_id = new Map(registration_accounting_items()
+			.filter((item) => item && item.id)
+			.map((item) => [String(item.id), item]));
+		const local_accounting_entries = registration_accounting_entries().filter(Boolean);
+		const add_local_entry_to_account = (entry, account, amount) => {
+			account.local_entries.push({...entry, amount});
+			if (entry.kind === 'payment') {
+				account.local_paid_total += amount;
+			} else if (entry.kind === 'charge') {
+				account.local_charge_total += amount;
+				const catalog_item = accounting_items_by_id.get(String(entry.item_id || ''));
+				const overview_category = String(entry.item_overview_category || '') ||
+					accounting_item_overview_category(catalog_item);
+				if (overview_category === 'fee') {
+					account.overview_fee_total += amount;
+				} else {
+					account.overview_item_total += amount;
+				}
+			}
+		};
+		local_accounting_entries
+			.filter((entry) => entry.kind !== 'payment')
+			.forEach((entry) => {
+				const buyer_type = accounting_entry_buyer_type(entry);
+				const buyer_id = accounting_entry_buyer_id(entry);
+				const account = ensure_account(buyer_type, buyer_id, {
+					player_name: entry.player_name || '',
+					buyer_name: entry.buyer_name || entry.player_name || '',
+					display_name: entry.buyer_name || entry.player_name || '',
+					club: entry.club || '',
+					state: entry.state || '',
+				});
+				if (!account) {
+					return;
+				}
+				add_local_entry_to_account(entry, account, registration_money_number(entry.amount));
+			});
+		const position_accounts = new Map();
+		const remember_position_account = (position_id, account, amount) => {
+			const id = String(position_id || '').trim();
+			const value = registration_money_number(amount || 0);
+			if (!id || !account || value <= 0) {
+				return;
+			}
+			if (!position_accounts.has(id)) {
+				position_accounts.set(id, []);
+			}
+			position_accounts.get(id).push({ account, amount: value });
+		};
+		accounts.forEach((account) => {
+			(account.fee_items || []).forEach((entry) => {
+				remember_position_account(entry.position_id, account, entry.amount);
+			});
+			(account.mandatory_items || []).forEach((entry) => {
+				remember_position_account(entry.position_id, account, entry.amount);
+			});
+			(account.local_entries || []).forEach((entry) => {
+				if (entry.kind === 'charge') {
+					remember_position_account('local:' + String(entry.id || ''), account, entry.amount);
+				}
+			});
+		});
+			const imported_btp_payment_guids = new Set(registration_btp_payments()
+				.map((payment) => String(payment?.guid ?? payment?.GUID ?? '').trim())
+				.filter(Boolean));
+			const local_btp_payment_coverage_by_player = new Map();
+			local_accounting_entries
+				.filter((entry) => entry && entry.kind === 'payment' && !entry.is_cancellation)
+				.forEach((entry) => {
+					(Array.isArray(entry.btp_payment_transfers) ? entry.btp_payment_transfers : [])
+						.forEach((transfer) => {
+							const player_id = String(transfer?.player_id ?? transfer?.PlayerID ?? '').trim();
+							const amount = registration_money_number(transfer?.amount ?? transfer?.Amount);
+							if (!player_id || amount <= 0) {
+								return;
+							}
+							local_btp_payment_coverage_by_player.set(
+								player_id,
+								registration_money_number((local_btp_payment_coverage_by_player.get(player_id) || 0) + amount)
+							);
+						});
+				});
+		const add_payment_share_to_account = (entry, target_account, amount, position_ids, allocation) => {
+			const share = registration_money_number(amount);
+			if (!target_account || share <= 0) {
+				return;
+			}
+			const distributed_entry = {
+				...entry,
+				amount: share,
+				unit_price: share,
+				quantity: 1,
+				buyer_type: target_account.account_type,
+				buyer_id: target_account.account_id,
+				buyer_name: accounting_account_label(target_account),
+				player_id: target_account.player_id || '',
+				player_name: target_account.player_name || '',
+				club: target_account.club || '',
+				state: target_account.state || '',
+				paid_position_ids: position_ids,
+				payment_allocations: allocation ? [{
+					...allocation,
+					amount: share,
+					position_ids,
+				}] : accounting_payment_allocations(entry),
+				accounting_distributed_payment: true,
+				payment_distributed_from_id: entry.id || '',
+			};
+			add_local_entry_to_account(distributed_entry, target_account, share);
+		};
+		const distribute_payment_entry = (entry) => {
+			const transfer_guids = (Array.isArray(entry?.btp_payment_transfers) ? entry.btp_payment_transfers : [])
+				.map((transfer) => String(transfer?.guid || '').trim())
+				.filter(Boolean);
+			if (transfer_guids.length > 0 && transfer_guids.every((guid) => imported_btp_payment_guids.has(guid))) {
+				return;
+			}
+			const amount = registration_money_number(entry.amount);
+			const allocations = accounting_payment_allocations(entry);
+			let distributed_total = 0;
+			allocations.forEach((allocation) => {
+				const allocation_amount = registration_money_number(allocation.amount);
+				const position_ids = (allocation.position_ids || [])
+					.map((id) => String(id || '').trim())
+					.filter(Boolean);
+				const targets = [];
+				const seen_targets = new Set();
+				position_ids.forEach((position_id) => {
+					(position_accounts.get(position_id) || []).forEach((target) => {
+						const target_key = [
+							position_id,
+							target.account.account_type,
+							target.account.account_id,
+						].join('|');
+						if (seen_targets.has(target_key)) {
+							return;
+						}
+						seen_targets.add(target_key);
+						targets.push({
+							...target,
+							position_id,
+						});
+					});
+				});
+				const target_total = registration_money_number(targets.reduce((sum, target) => sum + registration_money_number(target.amount), 0));
+				if (allocation_amount <= 0 || target_total <= 0 || targets.length === 0) {
+					return;
+				}
+				let assigned = 0;
+				const shares_by_account = new Map();
+				targets.forEach((target, target_index) => {
+					const share = target_index === targets.length - 1
+						? registration_money_number(allocation_amount - assigned)
+						: registration_money_number(allocation_amount * registration_money_number(target.amount) / target_total);
+					assigned = registration_money_number(assigned + share);
+					if (share <= 0) {
+						return;
+					}
+					const account_key = accounting_account_key(target.account.account_type, target.account.account_id);
+					if (!shares_by_account.has(account_key)) {
+						shares_by_account.set(account_key, {
+							account: target.account,
+							amount: 0,
+							position_ids: [],
+						});
+					}
+					const account_share = shares_by_account.get(account_key);
+					account_share.amount = registration_money_number(account_share.amount + share);
+					if (!account_share.position_ids.includes(target.position_id)) {
+						account_share.position_ids.push(target.position_id);
+					}
+				});
+				shares_by_account.forEach((account_share) => {
+					add_payment_share_to_account(entry, account_share.account, account_share.amount, account_share.position_ids, allocation);
+					distributed_total = registration_money_number(distributed_total + account_share.amount);
+				});
+			});
+			const remaining = registration_money_number(amount - distributed_total);
+			if (remaining <= 0) {
+				return;
+			}
+			const buyer_type = accounting_entry_buyer_type(entry);
+			const buyer_id = accounting_entry_buyer_id(entry);
+			const account = ensure_account(buyer_type, buyer_id, {
+				player_name: entry.player_name || '',
+				buyer_name: entry.buyer_name || entry.player_name || '',
+				display_name: entry.buyer_name || entry.player_name || '',
+				club: entry.club || '',
+				state: entry.state || '',
+			});
+			if (account) {
+				add_local_entry_to_account(entry, account, remaining);
+			}
+		};
+			const btp_payment_totals_by_player = new Map();
+			registration_btp_payments().forEach((payment) => {
+				const player_id = String(payment?.player_id ?? payment?.PlayerID ?? payment?.playerID ?? '').trim();
+				const amount = registration_money_number(payment?.amount ?? payment?.Amount);
+				if (!player_id || amount === 0) {
+					return;
+				}
+				if (!btp_payment_totals_by_player.has(player_id)) {
+					btp_payment_totals_by_player.set(player_id, {
+						amount: 0,
+						payment_type: payment?.payment_type ?? payment?.PaymentType ?? '',
+						payment_date: payment?.payment_date ?? payment?.PaymentDate ?? '',
+						count: 0,
+					});
+				}
+				const total = btp_payment_totals_by_player.get(player_id);
+				total.amount = registration_money_number(total.amount + amount);
+				total.count += 1;
+				if (!total.payment_date && (payment?.payment_date || payment?.PaymentDate)) {
+					total.payment_date = payment?.payment_date ?? payment?.PaymentDate ?? '';
+				}
+			});
+			btp_payment_totals_by_player.forEach((payment, player_id) => {
+				const account = ensure_account('player', player_id);
+				if (!account) {
+					return;
+				}
+				const local_coverage = registration_money_number(local_btp_payment_coverage_by_player.get(player_id) || 0);
+				const amount = payment.amount > 0 && local_coverage > 0
+					? registration_money_number(payment.amount - Math.min(payment.amount, local_coverage))
+					: registration_money_number(payment.amount);
+				if (amount === 0) {
+					return;
+				}
+				account.btp_paid_total += amount;
+				account.btp_payments.push({
+					id: 'net:' + player_id,
+					position_id: 'btp:' + [
+						player_id,
+						'net',
+						payment.payment_date || '',
+						amount,
+					].join(':'),
+					amount,
+					payment_type: payment.payment_type || '',
+					payment_date: payment.payment_date || '',
+					btp_payment_count: payment.count,
+					source: 'btp',
+				});
+			});
+		local_accounting_entries
+			.filter((entry) => entry.kind === 'payment')
+			.forEach(distribute_payment_entry);
+		accounts.forEach((account) => {
+			account.item_total = registration_money_number(account.mandatory_charge_total + account.local_charge_total);
+			account.overview_fee_total = registration_money_number(account.overview_fee_total || 0);
+			account.overview_item_total = registration_money_number(account.overview_item_total || 0);
+			account.due_total = registration_money_number(account.fee_total + account.item_total);
+			account.paid_total = registration_money_number(account.btp_paid_total + account.local_paid_total);
+			account.open_total = registration_money_number(account.due_total - account.paid_total);
+		});
+		return accounts;
+	}
+
+	function remember_registration_accounting_entry(entry) {
+		if (!entry || !entry.id) {
+			return;
+		}
+		if (!Array.isArray(curt.accounting_entries)) {
+			curt.accounting_entries = [];
+		}
+		const existing_index = curt.accounting_entries.findIndex((candidate) => candidate && candidate.id === entry.id);
+		if (existing_index >= 0) {
+			curt.accounting_entries[existing_index] = entry;
+		} else {
+			curt.accounting_entries.push(entry);
+		}
+	}
+
+	function remember_registration_accounting_item(item) {
+		if (!item || !item.id) {
+			return;
+		}
+		if (!Array.isArray(curt.accounting_items)) {
+			curt.accounting_items = [];
+		}
+		const existing_index = curt.accounting_items.findIndex((candidate) => candidate && candidate.id === item.id);
+		if (existing_index >= 0) {
+			curt.accounting_items[existing_index] = item;
+		} else {
+			curt.accounting_items.push(item);
+		}
+	}
+
+	function remember_registration_accounting_document(document) {
+		if (!document || !document.id) {
+			return;
+		}
+		if (!Array.isArray(curt.accounting_documents)) {
+			curt.accounting_documents = [];
+		}
+		const existing_index = curt.accounting_documents.findIndex((candidate) => candidate && candidate.id === document.id);
+		if (existing_index >= 0) {
+			curt.accounting_documents[existing_index] = document;
+		} else {
+			curt.accounting_documents.push(document);
+		}
+	}
+
+	function add_registration_accounting_entry(entry, callback, options = {}) {
+		send_with_live_status({
+			type: 'registration_accounting_entry',
+			tournament_key: curt.key,
+			entry,
+		}, function(err, response) {
+			if (err) {
+				cerror.net(err);
+				if (callback) callback(err);
+				return;
+			}
+			if (response && response.entry) {
+				remember_registration_accounting_entry(response.entry);
+			}
+			if (callback) callback(null, response);
+			if (options.refresh !== false && current_view === 'accounting') {
+				ui_accounting();
+			}
+		});
+	}
+
+	function update_registration_accounting_entry_record(entry_id, entry, callback) {
+		send_with_live_status({
+			type: 'registration_accounting_entry_update',
+			tournament_key: curt.key,
+			entry_id,
+			entry,
+		}, function(err, response) {
+			if (err) {
+				cerror.net(err);
+				if (callback) callback(err);
+				return;
+			}
+			if (response && response.entry) {
+				remember_registration_accounting_entry(response.entry);
+			}
+			if (callback) callback(null, response);
+			if (current_view === 'accounting') {
+				ui_accounting();
+			}
+		});
+	}
+
+	function add_registration_accounting_item(item, callback) {
+		send_with_live_status({
+			type: 'registration_accounting_item',
+			tournament_key: curt.key,
+			item,
+		}, function(err, response) {
+			if (err) {
+				cerror.net(err);
+				if (callback) callback(err);
+				return;
+			}
+			if (response && response.item) {
+				remember_registration_accounting_item(response.item);
+			}
+			if (callback) callback(null, response);
+			if (current_view === 'accounting') {
+				ui_accounting();
+			}
+		});
+	}
+
+	function update_registration_accounting_item_record(item_id, item, callback) {
+		send_with_live_status({
+			type: 'registration_accounting_item_update',
+			tournament_key: curt.key,
+			item_id,
+			item,
+		}, function(err, response) {
+			if (err) {
+				cerror.net(err);
+				if (callback) callback(err);
+				return;
+			}
+			if (response && response.item) {
+				remember_registration_accounting_item(response.item);
+			}
+			if (callback) callback(null, response);
+			if (current_view === 'accounting') {
+				ui_accounting();
+			}
+		});
+	}
+
+	function add_registration_accounting_document(document, callback, options = {}) {
+		send_with_live_status({
+			type: 'registration_accounting_document',
+			tournament_key: curt.key,
+			document,
+		}, function(err, response) {
+			if (err) {
+				cerror.net(err);
+				if (callback) callback(err);
+				return;
+			}
+			if (response && response.document) {
+				remember_registration_accounting_document(response.document);
+			}
+			if (callback) callback(null, response);
+			if (options.refresh !== false && current_view === 'accounting') {
+				ui_accounting();
+			}
+		});
+	}
+
+	function remove_registration_accounting_entry(entry_id, callback) {
+		if (!entry_id) {
+			if (callback) callback(new Error('Missing accounting entry id'));
+			return;
+		}
+		send_with_live_status({
+			type: 'registration_accounting_entry_remove',
+			tournament_key: curt.key,
+			entry_id,
+		}, function(err) {
+			if (err) {
+				if (callback) callback(err);
+				return cerror.net(err);
+			}
+			if (Array.isArray(curt.accounting_entries)) {
+				curt.accounting_entries = curt.accounting_entries.filter((entry) => entry && entry.id !== entry_id);
+			}
+			if (callback) callback(null);
+			if (current_view === 'accounting') {
+				ui_accounting();
+			}
+		});
+	}
+
+	function remove_registration_accounting_item(item_id) {
+		if (!item_id) {
+			return;
+		}
+		send_with_live_status({
+			type: 'registration_accounting_item_remove',
+			tournament_key: curt.key,
+			item_id,
+		}, function(err) {
+			if (err) {
+				return cerror.net(err);
+			}
+			if (Array.isArray(curt.accounting_items)) {
+				curt.accounting_items = curt.accounting_items.filter((item) => item && item.id !== item_id);
+			}
+			if (current_view === 'accounting') {
+				ui_accounting();
+			}
+		});
+	}
+
+	function prompt_registration_money(message, default_value) {
+		const raw = prompt(message, String(default_value ?? '').replace('.', ','));
+		if (raw === null) {
+			return null;
+		}
+		const value = Number(String(raw).replace(',', '.'));
+		return Number.isFinite(value) && value > 0 ? Math.round(value * 100) / 100 : null;
+	}
+
+	function registration_datetime_display_value(value) {
+		const date = value ? new Date(value) : new Date();
+		if (!Number.isFinite(date.getTime())) {
+			return '-';
+		}
+		return date.toLocaleString('de-DE', {
+			day: '2-digit',
+			month: '2-digit',
+			year: 'numeric',
+			hour: '2-digit',
+			minute: '2-digit',
+		});
+	}
+
+	function registration_date_display_value(value) {
+		const date = value ? new Date(value) : new Date();
+		if (!Number.isFinite(date.getTime())) {
+			return '-';
+		}
+		return date.toLocaleDateString('de-DE', {
+			day: '2-digit',
+			month: '2-digit',
+			year: 'numeric',
+		});
+	}
+
+	function registration_datetime_storage_value(value) {
+		const date = value ? new Date(value) : new Date();
+		return Number.isFinite(date.getTime()) ? date.toISOString() : new Date().toISOString();
+	}
+
+	function accounting_invoice_due_at(issued_at, due_days = accounting_payment_settings().due_days) {
+		const date = issued_at ? new Date(issued_at) : new Date();
+		const base = Number.isFinite(date.getTime()) ? date : new Date();
+		base.setDate(base.getDate() + registration_money_number(due_days));
+		return base.toISOString();
+	}
+
+	function accounting_document_payment_details(document) {
+		const settings = accounting_payment_settings();
+		return {
+			recipient: document?.payment_recipient || settings.recipient,
+			bank: document?.payment_bank || settings.bank,
+			iban: document?.payment_iban || settings.iban,
+			bic: document?.payment_bic || settings.bic,
+			due_at: document?.due_at || accounting_invoice_due_at(document?.issued_at || document?.created_at),
+		};
+	}
+
+	function registration_accounting_sale_id() {
+		return 'sale_' + Date.now() + '_' + Math.random().toString(36).slice(2);
+	}
+
+	function accounting_document_buyer_payload(account) {
+		return {
+			buyer_type: account?.account_type || 'player',
+			buyer_id: account?.account_id || account?.player_id || '',
+			buyer_name: accounting_account_label(account),
+			player_id: account?.player_id || '',
+			player_name: account?.player_name || '',
+			club: account?.club || '',
+			state: account?.state || '',
+		};
+	}
+
+	function accounting_document_used_position_ids(document_type) {
+		const used = new Set();
+		registration_accounting_documents()
+			.filter((document) => document && document.document_type === document_type)
+			.forEach((document) => {
+				(document.lines || []).forEach((line) => {
+					(Array.isArray(line.position_ids) ? line.position_ids : [line.position_id || line.entry_id])
+						.map((id) => String(id || '').trim())
+						.filter(Boolean)
+						.forEach((id) => used.add(id));
+				});
+		});
+		return used;
+	}
+
+	function accounting_line_position_ids(line) {
+		return (Array.isArray(line?.position_ids) ? line.position_ids : [line?.position_id || line?.entry_id])
+			.map((id) => String(id || '').trim())
+			.filter(Boolean);
+	}
+
+	function accounting_document_position_ids(document) {
+		const ids = [];
+		(document?.lines || []).forEach((line) => {
+			accounting_line_position_ids(line).forEach((id) => {
+				if (!ids.includes(id)) {
+					ids.push(id);
+				}
+			});
+		});
+		return ids;
+	}
+
+	function accounting_payment_entries_for_invoice(document) {
+		const invoice_id = String(document?.id || '').trim();
+		const invoice_number = String(document?.document_number || '').trim();
+		return registration_accounting_entries()
+			.filter((entry) => {
+				if (!entry || entry.kind !== 'payment' || entry.is_cancellation) {
+					return false;
+				}
+				if (String(entry.payment_target_type || '') !== 'invoice') {
+					return false;
+				}
+				return (invoice_id && String(entry.invoice_id || '') === invoice_id) ||
+					(invoice_number && String(entry.invoice_number || '') === invoice_number);
+			});
+	}
+
+	function accounting_payment_allocations(entry) {
+		if (Array.isArray(entry?.payment_allocations) && entry.payment_allocations.length > 0) {
+			return entry.payment_allocations
+				.map((allocation) => ({
+					target_type: String(allocation?.target_type || allocation?.payment_target_type || ''),
+					amount: registration_money_number(allocation?.amount || 0),
+					invoice_id: String(allocation?.invoice_id || '').trim(),
+					invoice_number: String(allocation?.invoice_number || '').trim(),
+					position_ids: (Array.isArray(allocation?.position_ids) ? allocation.position_ids : allocation?.paid_position_ids || [])
+						.map((id) => String(id || '').trim())
+						.filter(Boolean),
+				}))
+				.filter((allocation) => allocation.amount > 0);
+		}
+		if (!entry || entry.kind !== 'payment') {
+			return [];
+		}
+		const target_type = String(entry.payment_target_type || '');
+		if (!['invoice', 'open'].includes(target_type)) {
+			return [];
+		}
+		return [{
+			target_type,
+			amount: registration_money_number(entry.amount || 0),
+			invoice_id: String(entry.invoice_id || '').trim(),
+			invoice_number: String(entry.invoice_number || '').trim(),
+			position_ids: (Array.isArray(entry.paid_position_ids) ? entry.paid_position_ids : [])
+				.map((id) => String(id || '').trim())
+				.filter(Boolean),
+		}].filter((allocation) => allocation.amount > 0);
+	}
+
+	function accounting_payment_btp_transfers_for_allocations(allocations) {
+		const accounts = collect_registration_accounting_accounts();
+		const position_accounts = new Map();
+		const remember_position_account = (position_id, account, amount) => {
+			const id = String(position_id || '').trim();
+			const value = registration_money_number(amount || 0);
+			if (!id || !account || value <= 0) {
+				return;
+			}
+			if (!position_accounts.has(id)) {
+				position_accounts.set(id, []);
+			}
+			position_accounts.get(id).push({ account, amount: value });
+		};
+		accounts.forEach((account) => {
+			(account.fee_items || []).forEach((entry) => {
+				remember_position_account(entry.position_id, account, entry.amount);
+			});
+			(account.mandatory_items || []).forEach((entry) => {
+				remember_position_account(entry.position_id, account, entry.amount);
+			});
+			(account.local_entries || []).forEach((entry) => {
+				if (entry.kind === 'charge') {
+					remember_position_account('local:' + String(entry.id || ''), account, entry.amount);
+				}
+			});
+		});
+		const shares_by_player = new Map();
+		(allocations || []).forEach((allocation) => {
+			const allocation_amount = registration_money_number(allocation?.amount || 0);
+			const position_ids = (allocation?.position_ids || [])
+				.map((id) => String(id || '').trim())
+				.filter(Boolean);
+			const targets = [];
+			const seen_targets = new Set();
+			position_ids.forEach((position_id) => {
+				(position_accounts.get(position_id) || []).forEach((target) => {
+					if (target.account?.account_type !== 'player' || !/^\d+$/.test(String(target.account.player_id || ''))) {
+						return;
+					}
+					const target_key = [
+						position_id,
+						target.account.account_type,
+						target.account.account_id,
+					].join('|');
+					if (seen_targets.has(target_key)) {
+						return;
+					}
+					seen_targets.add(target_key);
+					targets.push({
+						...target,
+						position_id,
+					});
+				});
+			});
+			const target_total = registration_money_number(targets.reduce((sum, target) => sum + registration_money_number(target.amount), 0));
+			if (allocation_amount <= 0 || target_total <= 0 || targets.length === 0) {
+				return;
+			}
+			let assigned = 0;
+			targets.forEach((target, target_index) => {
+				const share = target_index === targets.length - 1
+					? registration_money_number(allocation_amount - assigned)
+					: registration_money_number(allocation_amount * registration_money_number(target.amount) / target_total);
+				assigned = registration_money_number(assigned + share);
+				if (share <= 0) {
+					return;
+				}
+				const player_id = String(target.account.player_id || '').trim();
+				if (!shares_by_player.has(player_id)) {
+					shares_by_player.set(player_id, {
+						player_id,
+						player_name: target.account.player_name || '',
+						amount: 0,
+						position_ids: [],
+					});
+				}
+				const player_share = shares_by_player.get(player_id);
+				player_share.amount = registration_money_number(player_share.amount + share);
+				if (!player_share.position_ids.includes(target.position_id)) {
+					player_share.position_ids.push(target.position_id);
+				}
+			});
+		});
+		return [...shares_by_player.values()].filter((transfer) => transfer.amount > 0);
+	}
+
+	function accounting_join_sentence_parts(parts, conjunction = 'und') {
+		const values = (parts || [])
+			.map((part) => String(part || '').trim())
+			.filter(Boolean);
+		if (values.length <= 1) {
+			return values[0] || '';
+		}
+		if (values.length === 2) {
+			return values[0] + ' ' + conjunction + ' ' + values[1];
+		}
+		return values.slice(0, -1).join(', ') + ' ' + conjunction + ' ' + values[values.length - 1];
+	}
+
+	function accounting_receipt_settlement_sentence(allocations) {
+		const invoice_numbers = (allocations || [])
+			.filter((allocation) => allocation.target_type === 'invoice')
+			.map((allocation) => String(allocation.invoice_number || '').trim())
+			.filter(Boolean)
+			.filter((number, index, numbers) => numbers.indexOf(number) === index);
+		const has_open_positions = (allocations || []).some((allocation) => allocation.target_type === 'open');
+		const parts = [];
+		if (invoice_numbers.length === 1) {
+			parts.push('die Rechnung ' + invoice_numbers[0]);
+		} else if (invoice_numbers.length > 1) {
+			parts.push('die Rechnungen ' + accounting_join_sentence_parts(invoice_numbers));
+		}
+		if (has_open_positions) {
+			parts.push('bisher nicht in Rechnung gestellte Posten');
+		}
+		if (parts.length === 0) {
+			return '';
+		}
+		const single_invoice_only = invoice_numbers.length === 1 && !has_open_positions;
+		return 'Mit dieser Zahlung ' + (single_invoice_only ? 'wurde ' : 'wurden ') + accounting_join_sentence_parts(parts, 'sowie') + ' beglichen.';
+	}
+
+	function accounting_paid_position_ids() {
+		const used = new Set();
+		registration_accounting_entries()
+			.filter((entry) => entry && entry.kind === 'payment' && !entry.is_cancellation)
+			.forEach((entry) => {
+				accounting_payment_allocations(entry).forEach((allocation) => {
+					(allocation.position_ids || []).forEach((id) => used.add(id));
+				});
+			});
+		return used;
+	}
+
+	function accounting_unavailable_charge_position_ids() {
+		return new Set([
+			...accounting_document_used_position_ids('invoice'),
+			...accounting_paid_position_ids(),
+		]);
+	}
+
+	function accounting_invoice_paid_total(document) {
+		const invoice_id = String(document?.id || '').trim();
+		const invoice_number = String(document?.document_number || '').trim();
+		let paid_total = 0;
+		registration_accounting_entries()
+			.filter((entry) => entry && entry.kind === 'payment' && !entry.is_cancellation)
+			.forEach((entry) => {
+				accounting_payment_allocations(entry).forEach((allocation) => {
+					if (allocation.target_type !== 'invoice') {
+						return;
+					}
+					if (
+						(invoice_id && allocation.invoice_id === invoice_id) ||
+						(invoice_number && allocation.invoice_number === invoice_number)
+					) {
+						paid_total = registration_money_number(paid_total + allocation.amount);
+					}
+				});
+			});
+		return paid_total;
+	}
+
+	function accounting_document_with_payment_status(document) {
+		if (!document || document.document_type !== 'invoice') {
+			return document;
+		}
+		const total = registration_money_number(document.total || 0);
+		const paid_total = accounting_invoice_paid_total(document);
+		const open_total = Math.max(0, registration_money_number(total - paid_total));
+		return {
+			...document,
+			paid_total,
+			open_total,
+			status: open_total <= 0 ? 'paid' : 'issued',
+		};
+	}
+
+	function accounting_receipt_display_lines(document) {
+		if (!document || document.document_type !== 'receipt') {
+			return accounting_document_merge_lines(document?.lines || []);
+		}
+		const allocations = Array.isArray(document.payment_allocations)
+			? document.payment_allocations
+			: [];
+		if (allocations.length === 0) {
+			return accounting_document_merge_lines(document.lines || []);
+		}
+		const lines = [];
+		allocations.forEach((allocation) => {
+			if (allocation.target_type !== 'invoice') {
+				return;
+			}
+			const invoice = registration_accounting_documents().find((candidate) => candidate && candidate.document_type === 'invoice' && (
+				(allocation.invoice_id && candidate.id === allocation.invoice_id) ||
+				(allocation.invoice_number && candidate.document_number === allocation.invoice_number)
+			));
+			const invoice_lines = accounting_document_merge_lines(invoice?.lines || []);
+			if (invoice_lines.length > 0 && registration_money_number(invoice?.total || 0) === registration_money_number(allocation.amount || 0)) {
+				lines.push(...invoice_lines);
+			}
+		});
+		const open_position_ids = new Set(allocations
+			.filter((allocation) => allocation.target_type === 'open')
+			.flatMap((allocation) => allocation.position_ids || []));
+		accounting_document_merge_lines(document.lines || []).forEach((line) => {
+			const line_ids = accounting_line_position_ids(line);
+			if (line_ids.length === 0 || line_ids.some((id) => open_position_ids.has(id))) {
+				lines.push(line);
+			}
+		});
+		return lines.length > 0 ? accounting_document_merge_lines(lines) : accounting_document_merge_lines(document.lines || []);
+	}
+
+	function accounting_account_open_invoices(account) {
+		return accounting_documents_for_account(account)
+			.filter((document) => document && document.document_type === 'invoice')
+			.map(accounting_document_with_payment_status)
+			.filter((document) => registration_money_number(document.open_total || 0) > 0);
+	}
+
+	function accounting_uninvoiced_charge_summaries(account) {
+		return accounting_position_summaries(account, false, undefined, {
+			excluded_position_ids: accounting_unavailable_charge_position_ids(),
+			kind_filter: 'charge',
+		}).filter((summary) => registration_money_number(summary.amount || 0) > 0);
+	}
+
+	function accounting_summary_position_ids(summaries) {
+		const ids = [];
+		(summaries || []).forEach((summary) => {
+			(summary.position_ids || [])
+				.map((id) => String(id || '').trim())
+				.filter(Boolean)
+				.forEach((id) => {
+					if (!ids.includes(id)) {
+						ids.push(id);
+					}
+				});
+		});
+		return ids;
+	}
+
+	function accounting_charge_position_amounts(account) {
+		const amounts = new Map();
+		function add_position_amount(position_id, amount) {
+			const id = String(position_id || '').trim();
+			const value = registration_money_number(amount || 0);
+			if (!id || value <= 0) {
+				return;
+			}
+			amounts.set(id, registration_money_number((amounts.get(id) || 0) + value));
+		}
+		(account?.summary_fee_items || account?.fee_items || []).forEach((entry) => {
+			add_position_amount(entry?.position_id, entry?.amount);
+		});
+		(account?.summary_mandatory_items || account?.mandatory_items || []).forEach((entry) => {
+			add_position_amount(entry?.position_id, entry?.amount);
+		});
+		const local_entries = account?.summary_local_entries || account?.local_entries || [];
+		const voided_entry_ids = new Set(local_entries
+			.filter((entry) => entry && entry.is_cancellation && entry.voids_entry_id)
+			.map((entry) => String(entry.voids_entry_id)));
+		local_entries.forEach((entry) => {
+			if (!entry || entry.kind !== 'charge' || entry.is_cancellation || voided_entry_ids.has(String(entry.id || ''))) {
+				return;
+			}
+			add_position_amount(entry.id ? 'local:' + entry.id : '', entry.amount);
+		});
+		return amounts;
+	}
+
+	function accounting_invoiced_total(account) {
+		const used_position_ids = accounting_document_used_position_ids('invoice');
+		let total = 0;
+		accounting_charge_position_amounts(account).forEach((amount, position_id) => {
+			if (used_position_ids.has(position_id)) {
+				total = registration_money_number(total + amount);
+			}
+		});
+		return total;
+	}
+
+	function accounting_display_open_total(account, invoiced_total) {
+		const open_total = registration_money_number(account?.open_total || 0);
+		if (accounting_invoice_treatment_mode() !== 'paid') {
+			return open_total;
+		}
+		return registration_money_number(open_total - registration_money_number(invoiced_total || 0));
+	}
+
+	function accounting_document_line_from_summary(summary) {
+		return {
+			description: accounting_summary_document_label(summary),
+			quantity: summary.quantity || 1,
+			unit_price: summary.quantity ? registration_money_number(summary.amount / summary.quantity) : summary.amount,
+			amount: summary.amount,
+			sale_unit: summary.sale_unit || (summary.category === 'fee' ? 'Meldung' : ''),
+			position_id: (summary.position_ids || [])[0] || '',
+			position_ids: summary.position_ids || [],
+			caused_by: accounting_group_causes_by_label(summary.caused_by || []),
+		};
+	}
+
+	function accounting_document_merge_lines(lines) {
+		const merged = [];
+		const by_key = new Map();
+		(lines || []).forEach((line) => {
+			const quantity = registration_money_number(line?.quantity || 1);
+			const amount = registration_money_number(line?.amount || 0);
+			const unit_price = registration_money_number(line?.unit_price || (quantity ? amount / quantity : amount));
+			const sale_unit = String(line?.sale_unit || '').trim();
+			const description = accounting_document_display_description(line);
+			const key = [
+				description,
+				sale_unit,
+				unit_price.toFixed(4),
+			].join('\u0001');
+			const already_merged = by_key.has(key);
+			if (!already_merged) {
+				const copy = {
+					...line,
+					description,
+					quantity,
+					unit_price,
+					amount,
+					sale_unit,
+					position_id: line?.position_id || '',
+					position_ids: [],
+					caused_by: [],
+				};
+				by_key.set(key, copy);
+				merged.push(copy);
+			}
+			const target = by_key.get(key);
+			if (already_merged) {
+				target.quantity = registration_money_number(target.quantity + quantity);
+				target.amount = registration_money_number(target.amount + amount);
+			}
+			(Array.isArray(line?.position_ids) ? line.position_ids : [line?.position_id || line?.entry_id])
+				.map((id) => String(id || '').trim())
+				.filter(Boolean)
+				.forEach((id) => {
+					if (!target.position_ids.includes(id)) {
+						target.position_ids.push(id);
+					}
+				});
+			(Array.isArray(line?.caused_by) ? line.caused_by : []).forEach((cause) => {
+				accounting_push_cause(target.caused_by, cause);
+			});
+			target.position_id = target.position_ids[0] || target.position_id || '';
+		});
+		return merged.map((line) => ({
+			...line,
+			caused_by: accounting_group_causes_by_label(line.caused_by),
+		}));
+	}
+
+	function accounting_document_summary_group(label, summaries, checked) {
+		return {
+			label,
+			checked: checked !== false,
+			summaries: (summaries || []).filter((summary) => registration_money_number(summary.amount) > 0),
+			nodes: [],
+		};
+	}
+
+	function accounting_document_summary_for(account, document_type, source, category_filter, excluded_position_ids, item_key_filter) {
+		return accounting_position_summaries(account, document_type === 'receipt', source, {
+			excluded_position_ids,
+			kind_filter: document_type === 'invoice' ? 'charge' : 'payment',
+			category_filter,
+			item_key_filter,
+		}).filter((summary) => registration_money_number(summary.amount) > 0);
+	}
+
+	function accounting_document_selection_node(label, summaries, children, checked, options = {}) {
+		children = children || [];
+		return {
+			label,
+			summaries: summaries || [],
+			children: children.filter((child) => child && (child.summaries.length > 0 || child.children.length > 0)),
+			checked,
+			expanded: !!options.expanded,
+			prefer_children: !!options.prefer_children,
+		};
+	}
+
+	function accounting_document_splits_local_charges(document_type, category_filter) {
+		const categories = Array.isArray(category_filter) ? category_filter : [category_filter];
+		return document_type === 'invoice' && categories.includes('local_charge');
+	}
+
+	function accounting_document_find_tree_node(account) {
+		const tree = build_accounting_tree([...collect_registration_accounting_accounts().values()]);
+		const wanted_key = accounting_account_key(account?.account_type, account?.account_id);
+		for (const state of tree.states) {
+			const state_key = accounting_account_key(state.rollup_account?.account_type, state.rollup_account?.account_id);
+			if (state_key === wanted_key) {
+				return { type: 'state', state };
+			}
+			for (const club of state.clubs) {
+				const club_key = accounting_account_key(club.rollup_account?.account_type, club.rollup_account?.account_id);
+				if (club_key === wanted_key) {
+					return { type: 'club', club };
+				}
+			}
+		}
+		return null;
+	}
+
+	function accounting_document_local_charge_item_key(entry, label, sale_unit) {
+		return entry.item_id || [label, sale_unit, entry.unit_price || ''].join(':');
+	}
+
+	function accounting_document_local_charge_entry_summaries(account, excluded_position_ids, item_key_filter) {
+		const excluded = excluded_position_ids || new Set();
+		const item_keys = item_key_filter
+			? new Set(Array.isArray(item_key_filter) ? item_key_filter : [item_key_filter])
+			: null;
+		const entries = Array.isArray(account?.local_entries) ? account.local_entries : [];
+		const voided_entry_ids = new Set(entries
+			.filter((entry) => entry && entry.is_cancellation && entry.voids_entry_id)
+			.map((entry) => String(entry.voids_entry_id)));
+		return entries
+			.filter((entry) => {
+				if (!entry || entry.kind !== 'charge' || entry.is_cancellation || voided_entry_ids.has(String(entry.id || ''))) {
+					return false;
+				}
+				const amount = registration_money_number(entry.amount || 0);
+				if (amount <= 0) {
+					return false;
+				}
+				const position_id = entry.id ? 'local:' + entry.id : '';
+				if (position_id && excluded.has(position_id)) {
+					return false;
+				}
+				const label = entry.description || 'Buchung';
+				const sale_unit = entry.item_sale_unit || 'Stk.';
+				const item_key = accounting_document_local_charge_item_key(entry, label, sale_unit);
+				return !item_keys || item_keys.has(item_key);
+			})
+			.sort((a, b) => String(a.purchase_at || a.created_at || '').localeCompare(String(b.purchase_at || b.created_at || '')))
+			.map((entry) => {
+				const label = entry.description || 'Buchung';
+				const sale_unit = entry.item_sale_unit || 'Stk.';
+				const time_label = registration_datetime_display_value(entry.purchase_at || entry.created_at);
+				return {
+					kind: 'charge',
+					category: 'local_charge',
+					item_key: accounting_document_local_charge_item_key(entry, label, sale_unit),
+					class_name: 'accounting_entry_line_local',
+					label,
+					prefix: time_label,
+					sale_unit,
+					quantity: entry.quantity || 1,
+					amount: entry.amount,
+					local_entry_ids: entry.id ? [entry.id] : [],
+					position_ids: entry.id ? ['local:' + entry.id] : [],
+					caused_by: [{
+						label: accounting_cause_label(entry) || accounting_account_label(account),
+						detail: [time_label, accounting_document_quantity_label(entry.quantity || 1, sale_unit)].filter(Boolean).join(', '),
+						amount: entry.amount,
+					}],
+				};
+			});
+	}
+
+	function accounting_document_account_node(account, label, document_type, category_filter, excluded_position_ids, item_key_filter, checked) {
+		const summaries = accounting_document_summary_for(account, document_type, 'direct', category_filter, excluded_position_ids, item_key_filter);
+		const split_local_charges = accounting_document_splits_local_charges(document_type, category_filter);
+		const children = split_local_charges
+			? accounting_document_local_charge_entry_summaries(account, excluded_position_ids, item_key_filter)
+				.map((summary) => accounting_document_selection_node(accounting_summary_label(summary), [summary], [], checked))
+			: [];
+		return accounting_document_selection_node(label, summaries, children, checked, {
+			expanded: children.length > 0,
+			prefer_children: children.length > 0,
+		});
+	}
+
+	function accounting_document_player_nodes(players, document_type, category_filter, excluded_position_ids, item_key_filter) {
+		return (players || []).map((player_account) => accounting_document_account_node(
+			player_account,
+			accounting_account_label(player_account),
+			document_type,
+			category_filter,
+			excluded_position_ids,
+			item_key_filter,
+		)).filter((node) => node.summaries.length > 0 || node.children.length > 0);
+	}
+
+	function accounting_document_club_child_nodes(club, document_type, category_filter, excluded_position_ids, item_key_filter) {
+		const children = [];
+		const direct = accounting_document_account_node(
+			club.account,
+			accounting_account_label(club.account),
+			document_type,
+			category_filter,
+			excluded_position_ids,
+			item_key_filter,
+		);
+		if (direct.summaries.length > 0 || direct.children.length > 0) {
+			children.push(direct);
+		}
+		children.push(...accounting_document_player_nodes(club.players, document_type, category_filter, excluded_position_ids, item_key_filter));
+		return children;
+	}
+
+	function accounting_document_rollup_nodes(account, document_type, category_filter, excluded_position_ids, item_key_filter) {
+		const tree_node = accounting_document_find_tree_node(account);
+		if (!tree_node) {
+			return [];
+		}
+		if (tree_node.type === 'club') {
+			return accounting_document_player_nodes(tree_node.club.players, document_type, category_filter, excluded_position_ids, item_key_filter);
+		}
+		const split_local_charges = accounting_document_splits_local_charges(document_type, category_filter);
+		return tree_node.state.clubs.map((club) => accounting_document_selection_node(
+			accounting_account_label(club.account),
+			accounting_document_summary_for(club.rollup_account, document_type, undefined, category_filter, excluded_position_ids, item_key_filter),
+			accounting_document_club_child_nodes(club, document_type, category_filter, excluded_position_ids, item_key_filter),
+			undefined,
+			{ prefer_children: split_local_charges },
+		)).filter((node) => node.summaries.length > 0 || node.children.length > 0);
+	}
+
+	function accounting_document_group_nodes(account, document_type, category_filter, excluded_position_ids, item_key_filter, direct_checked, children_checked) {
+		const nodes = [];
+		const direct = accounting_document_account_node(
+			account,
+			accounting_account_label(account),
+			document_type,
+			category_filter,
+			excluded_position_ids,
+			item_key_filter,
+			direct_checked,
+		);
+		if (direct.summaries.length > 0 || direct.children.length > 0) {
+			nodes.push(direct);
+		}
+		const child_nodes = accounting_document_rollup_nodes(account, document_type, category_filter, excluded_position_ids, item_key_filter);
+		function set_default_checked(node) {
+			node.checked = children_checked;
+			(node.children || []).forEach(set_default_checked);
+			return node;
+		}
+		nodes.push(...child_nodes.map(set_default_checked));
+		return nodes;
+	}
+
+	function accounting_document_charge_summary_groups(account) {
+		const excluded_position_ids = accounting_unavailable_charge_position_ids();
+		const groups = [];
+		const fee_summaries = accounting_position_summaries(account, false, undefined, {
+			excluded_position_ids,
+			kind_filter: 'charge',
+			category_filter: 'fee',
+		});
+		const fee_group = accounting_document_summary_group('Meldegeld', fee_summaries, true);
+		fee_group.nodes = accounting_document_group_nodes(account, 'invoice', 'fee', excluded_position_ids, undefined, true, true);
+		groups.push(fee_group);
+		[
+			['mandatory', true],
+			['local_charge', false],
+		].forEach(([category, children_checked]) => {
+			accounting_position_summaries(account, false, undefined, {
+				excluded_position_ids,
+				kind_filter: 'charge',
+				category_filter: category,
+			}).forEach((summary) => {
+				const label = summary.label + (summary.sale_unit ? ' je ' + summary.sale_unit : '');
+				const group = accounting_document_summary_group(label, [summary], false);
+				group.nodes = accounting_document_group_nodes(account, 'invoice', category, excluded_position_ids, summary.item_key, true, children_checked);
+				group.prefer_children = category === 'local_charge';
+				groups.push(group);
+			});
+		});
+		return groups.filter((group) => group.summaries.length > 0);
+	}
+
+	function accounting_document_payment_summary_groups(account) {
+		const excluded_position_ids = accounting_document_used_position_ids('receipt');
+		const group = accounting_document_summary_group('Zahlungen', accounting_position_summaries(account, true, undefined, {
+			excluded_position_ids,
+			kind_filter: 'payment',
+		}), false);
+		group.nodes = accounting_document_group_nodes(account, 'receipt', ['local_payment', 'btp_payment'], excluded_position_ids, undefined, true, false);
+		const groups = [group];
+		return groups.filter((group) => group.summaries.length > 0);
+	}
+
+	function accounting_documents_for_account(account) {
+		const key = accounting_account_key(account?.account_type || 'player', account?.account_id || account?.player_id || '');
+		return registration_accounting_documents()
+			.filter((document) => accounting_account_key(document?.buyer_type || 'player', document?.buyer_id || document?.player_id || '') === key)
+			.sort((a, b) => String(b.issued_at || b.created_at || '').localeCompare(String(a.issued_at || a.created_at || '')));
+	}
+
+	function registration_accounting_base_entry(event, player) {
+		const player_id = registration_accounting_player_id(player);
+		const player_name = person_display_name(player);
+		return {
+			buyer_type: 'player',
+			buyer_id: player_id,
+			buyer_name: player_name,
+			player_id,
+			player_name,
+			club: player?.club || '',
+			state: player?.state || '',
+			event_name: event?.name || '',
+			payment_method: 'cash',
+		};
+	}
+
+	function accounting_account_base_entry(event, account) {
+		if (!account || account.account_type === 'player' || !account.account_type) {
+			return registration_accounting_base_entry(event, account?.player || account);
+		}
+		const buyer_name = accounting_account_label(account);
+		return {
+			buyer_type: account.account_type,
+			buyer_id: account.account_id,
+			buyer_name,
+			player_id: account.account_id,
+			player_name: buyer_name,
+			club: account.account_type === 'club' ? buyer_name : account.club || '',
+			state: account.account_type === 'state' ? buyer_name : account.state || '',
+			event_name: event?.name || '',
+			payment_method: 'cash',
+		};
+	}
+
+	function accounting_payment_method_label(value) {
+		switch (String(value || '').trim()) {
+			case 'cash':
+				return 'Bar';
+			case 'transfer':
+				return 'Überweisung';
+			case 'card':
+				return 'Karte';
+			case 'other':
+				return 'Sonstiges';
+			default:
+				return String(value || '').trim() || 'Zahlung';
+		}
+	}
+
+	function accounting_payment_method_receipt_phrase(value) {
+		switch (String(value || '').trim()) {
+			case 'cash':
+				return 'als Barzahlung';
+			case 'transfer':
+				return 'per Überweisung';
+			case 'card':
+				return 'per Kartenzahlung';
+			case 'other':
+				return 'als sonstige Zahlung';
+			default:
+				return 'als Zahlung';
+		}
+	}
+
+	function close_registration_payment_dialog() {
+		const dialog = document.querySelector('.registration_payment_dialog');
+		if (!dialog) {
+			return;
+		}
+		uiu.remove(dialog);
+		cbts_utils.esc_stack_pop();
+	}
+
+	function create_registration_receipt_document(account, payment_entry, callback, context = {}) {
+		const amount = registration_money_number(payment_entry?.amount || 0);
+		const target_type = String(payment_entry?.payment_target_type || context.payment_target_type || '');
+		const invoice = context.invoice || null;
+		const allocations = Array.isArray(context.payment_allocations)
+			? context.payment_allocations
+			: accounting_payment_allocations(payment_entry);
+		const open_lines = context.open_summaries
+			? accounting_document_merge_lines(context.open_summaries.map(accounting_document_line_from_summary))
+			: [];
+		const open_total = registration_money_number(open_lines.reduce((sum, line) => sum + registration_money_number(line.amount), 0));
+		let lines = [];
+		const invoice_allocations = allocations.filter((allocation) => allocation.target_type === 'invoice');
+		function invoice_for_allocation(allocation) {
+			return registration_accounting_documents()
+				.find((document) => document && document.document_type === 'invoice' && (
+					(allocation.invoice_id && document.id === allocation.invoice_id) ||
+					(allocation.invoice_number && document.document_number === allocation.invoice_number)
+				)) || null;
+		}
+		if (invoice_allocations.length > 0) {
+			invoice_allocations.forEach((allocation) => {
+				const paid_invoice = invoice_for_allocation(allocation);
+				const invoice_lines = accounting_document_merge_lines(paid_invoice?.lines || []);
+				const invoice_open_total = registration_money_number(accounting_document_with_payment_status(paid_invoice)?.open_total || 0);
+				if (paid_invoice && invoice_lines.length > 0 && invoice_open_total === allocation.amount) {
+					lines.push(...invoice_lines);
+					return;
+				}
+				lines.push({
+					description: 'Zahlung zu Rechnung ' + (allocation.invoice_number || ''),
+					quantity: 1,
+					unit_price: allocation.amount,
+					amount: allocation.amount,
+					position_ids: allocation.position_ids || [],
+				});
+			});
+		}
+		if (open_lines.length > 0 && open_total > 0) {
+			lines.push(...open_lines);
+		}
+		if (lines.length === 0) {
+			if (target_type === 'open' && open_lines.length > 0 && open_total === amount) {
+				lines = open_lines;
+			} else {
+				lines = [{
+					description: target_type === 'invoice' && (payment_entry?.invoice_number || invoice?.document_number)
+						? 'Zahlung zu Rechnung ' + (payment_entry?.invoice_number || invoice?.document_number)
+						: (payment_entry?.description || 'Zahlung'),
+					quantity: 1,
+					unit_price: amount,
+					amount,
+					position_id: payment_entry?.id ? 'local:' + payment_entry.id : '',
+					position_ids: payment_entry?.id ? ['local:' + payment_entry.id] : [],
+				}];
+			}
+		} else {
+			lines = accounting_document_merge_lines(lines);
+		}
+		const note_parts = [];
+		const payment_date = payment_entry?.purchase_at || payment_entry?.created_at || registration_datetime_storage_value();
+		note_parts.push('Ich bestätige den Zahlungseingang über ' + registration_money_label(amount) + ' am ' + registration_date_display_value(payment_date) + ' ' + accounting_payment_method_receipt_phrase(payment_entry?.payment_method) + '.');
+		const settlement_sentence = accounting_receipt_settlement_sentence(allocations);
+		if (settlement_sentence) {
+			note_parts.push(settlement_sentence);
+		}
+		if (payment_entry?.note) {
+			note_parts.push(payment_entry.note);
+		}
+		add_registration_accounting_document({
+			...accounting_document_buyer_payload(account),
+			document_type: 'receipt',
+			status: 'paid',
+			payment_entry_id: payment_entry?.id || '',
+			payment_target_type: target_type,
+			linked_invoice_id: payment_entry?.invoice_id || invoice?.id || '',
+			linked_invoice_number: payment_entry?.invoice_number || invoice?.document_number || '',
+			paid_position_ids: payment_entry?.paid_position_ids || [],
+			payment_allocations: allocations,
+			lines,
+			total: amount,
+			paid_total: amount,
+			open_total: 0,
+			note: note_parts.join('\n'),
+			issued_at: payment_date,
+		}, callback);
+	}
+
+	function add_registration_payment(event, account) {
+		close_registration_payment_dialog();
+		cbts_utils.esc_stack_push(close_registration_payment_dialog);
+		const open_invoices = accounting_account_open_invoices(account);
+		const open_position_groups = accounting_document_charge_summary_groups(account);
+		const dialog_bg = uiu.el(uiu.qs('body'), 'div', 'dialog_bg registration_payment_dialog');
+		dialog_bg.addEventListener('click', (e) => {
+			if (e.target === dialog_bg) {
+				close_registration_payment_dialog();
+			}
+		});
+		const dialog = uiu.el(dialog_bg, 'div', 'dialog registration_payment_box');
+		uiu.el(dialog, 'h3', {}, 'Zahlung annehmen');
+		uiu.el(dialog, 'p', 'registration_receipt_player', accounting_account_label(account));
+		if (open_invoices.length === 0 && open_position_groups.length === 0) {
+			uiu.el(dialog, 'p', 'registration_empty', 'Keine offenen Rechnungen oder nicht fakturierten Positionen vorhanden.');
+			const actions = uiu.el(dialog, 'div', 'registration_item_actions');
+			const close_btn = uiu.el(actions, 'button', { type: 'button' }, 'Schließen');
+			close_btn.addEventListener('click', close_registration_payment_dialog);
+			close_btn.focus();
+			return;
+		}
+		const form = uiu.el(dialog, 'form', 'registration_payment_form');
+		uiu.el(form, 'span', 'registration_form_label', 'Zahlung zuordnen');
+		const target_tree = uiu.el(form, 'div', 'accounting_document_selection accounting_payment_target_tree');
+		const target_rows = uiu.el(target_tree, 'div', 'accounting_document_selection_rows');
+		const amount_label = uiu.el(form, 'label');
+		uiu.el(amount_label, 'span', {}, 'Betrag');
+		const amount_input = uiu.el(amount_label, 'input', {
+			type: 'text',
+			name: 'amount',
+			value: '0',
+			inputmode: 'decimal',
+			required: 'required',
+			readonly: 'readonly',
+		});
+		const invoice_nodes = open_invoices.map((invoice) => ({
+			type: 'invoice',
+			invoice,
+			amount: registration_money_number(invoice.open_total || 0),
+			position_ids: accounting_document_position_ids(invoice),
+			label: 'Rechnung ' + (invoice.document_number || ''),
+			checked: true,
+		}));
+		function summary_amount(summaries) {
+			return (summaries || []).reduce((sum, summary) => sum + registration_money_number(summary.amount), 0);
+		}
+		function node_amount(node) {
+			if (node.type === 'invoice') {
+				return node.amount;
+			}
+			return summary_amount(node.summaries);
+		}
+		function node_has_selection(node) {
+			return !!node?.checkbox && (node.checkbox.checked || node.checkbox.indeterminate);
+		}
+		function node_is_fully_selected(node) {
+			return !!node?.checkbox && node.checkbox.checked && !node.checkbox.indeterminate;
+		}
+		function update_parent_state(parent_checkbox, children) {
+			const selected_count = children.filter(node_has_selection).length;
+			const full_count = children.filter(node_is_fully_selected).length;
+			parent_checkbox.checked = selected_count > 0 && full_count === children.length;
+			parent_checkbox.indeterminate = selected_count > 0 && !parent_checkbox.checked;
+		}
+		function set_node_checked(node, checked) {
+			if (!node?.checkbox) {
+				return;
+			}
+			node.checkbox.checked = checked;
+			node.checkbox.indeterminate = false;
+			(node.children || []).forEach((child) => set_node_checked(child, checked));
+		}
+		function selected_summaries_from_node(node) {
+			if (!node?.checkbox || (!node.checkbox.checked && !node.checkbox.indeterminate)) {
+				return [];
+			}
+			const child_summaries = (node.children || []).flatMap(selected_summaries_from_node);
+			if (node.checkbox.indeterminate || (node.prefer_children && child_summaries.length > 0)) {
+				return child_summaries;
+			}
+			return node.summaries || [];
+		}
+		function selected_open_summaries() {
+			const summaries = [];
+			const keys = new Set();
+			open_position_groups.forEach((group) => {
+				if (!group.checkbox || (!group.checkbox.checked && !group.checkbox.indeterminate)) {
+					return;
+				}
+				const child_summaries = (group.nodes || []).flatMap(selected_summaries_from_node);
+				const picked = group.checkbox.indeterminate || (group.prefer_children && child_summaries.length > 0)
+					? child_summaries
+					: group.summaries;
+				picked.forEach((summary) => {
+					const key = (summary.position_ids || []).join('|') || [summary.category, summary.item_key, summary.label].join('|');
+					if (!keys.has(key)) {
+						keys.add(key);
+						summaries.push(summary);
+					}
+				});
+			});
+			return summaries;
+		}
+		function selected_invoice_allocations() {
+			return invoice_nodes
+				.filter((node) => node.checkbox?.checked)
+				.map((node) => ({
+					target_type: 'invoice',
+					amount: node.amount,
+					invoice_id: node.invoice?.id || '',
+					invoice_number: node.invoice?.document_number || '',
+					position_ids: node.position_ids || [],
+				}));
+		}
+		function selected_payment_allocations() {
+			const allocations = selected_invoice_allocations();
+			const summaries = selected_open_summaries();
+			const open_amount = registration_money_number(summary_amount(summaries));
+			if (open_amount > 0) {
+				allocations.push({
+					target_type: 'open',
+					amount: open_amount,
+					position_ids: accounting_summary_position_ids(summaries),
+				});
+			}
+			return allocations;
+		}
+		function update_amount() {
+			const amount = registration_money_number(selected_payment_allocations()
+				.reduce((sum, allocation) => sum + registration_money_number(allocation.amount), 0));
+			amount_input.value = String(amount || '').replace('.', ',');
+			submit_btn.disabled = amount <= 0;
+		}
+		function render_payment_node(parent_el, node, level, checked, on_change) {
+			const row = uiu.el(parent_el, 'div', 'accounting_document_selection_row accounting_document_selection_level_' + level);
+			const has_children = (node.children || []).length > 0;
+			const toggle = uiu.el(row, 'button', {
+				type: 'button',
+				'class': 'accounting_document_selection_toggle' + (has_children ? '' : ' accounting_document_selection_toggle_empty'),
+			}, has_children ? (node.expanded ? '-' : '+') : '');
+			const checkbox_attrs = { type: 'checkbox' };
+			const node_checked = typeof node.checked === 'boolean' ? node.checked : checked;
+			if (node_checked) {
+				checkbox_attrs.checked = 'checked';
+			}
+			const checkbox = uiu.el(row, 'input', checkbox_attrs);
+			node.checkbox = checkbox;
+			uiu.el(row, 'span', {}, node.label);
+			uiu.el(row, 'strong', {}, registration_money_label(node_amount(node)));
+			const child_wrap = uiu.el(parent_el, 'div', 'accounting_document_selection_children');
+			child_wrap.hidden = !node.expanded;
+			(node.children || []).forEach((child) => render_payment_node(child_wrap, child, level + 1, node_checked, () => {
+				update_parent_state(checkbox, node.children);
+				on_change();
+			}));
+			toggle.addEventListener('click', () => {
+				if (!has_children) {
+					return;
+				}
+				child_wrap.hidden = !child_wrap.hidden;
+				uiu.text(toggle, child_wrap.hidden ? '+' : '-');
+			});
+			checkbox.addEventListener('change', () => {
+				checkbox.indeterminate = false;
+				(node.children || []).forEach((child) => set_node_checked(child, checkbox.checked));
+				on_change();
+			});
+		}
+		if (invoice_nodes.length > 0) {
+			const group = uiu.el(target_rows, 'section', 'accounting_document_selection_group');
+			const header = uiu.el(group, 'div', 'accounting_document_selection_group_header');
+			const toggle = uiu.el(header, 'button', { type: 'button', 'class': 'accounting_document_selection_toggle' }, '+');
+			const checkbox = uiu.el(header, 'input', { type: 'checkbox', checked: 'checked' });
+			uiu.el(header, 'span', {}, 'Offene Rechnungen');
+			uiu.el(header, 'strong', {}, registration_money_label(invoice_nodes.reduce((sum, node) => sum + node.amount, 0)));
+			const rows = uiu.el(group, 'div', 'accounting_document_selection_group_rows');
+			rows.hidden = true;
+			invoice_nodes.forEach((node) => render_payment_node(rows, node, 0, true, () => {
+				update_parent_state(checkbox, invoice_nodes);
+				update_amount();
+			}));
+			toggle.addEventListener('click', () => {
+				rows.hidden = !rows.hidden;
+				uiu.text(toggle, rows.hidden ? '+' : '-');
+			});
+			checkbox.addEventListener('change', () => {
+				checkbox.indeterminate = false;
+				invoice_nodes.forEach((node) => set_node_checked(node, checkbox.checked));
+				update_amount();
+			});
+			update_parent_state(checkbox, invoice_nodes);
+		}
+		open_position_groups.forEach((group) => {
+			group.checked = invoice_nodes.length === 0;
+			const group_el = uiu.el(target_rows, 'section', 'accounting_document_selection_group');
+			const group_header = uiu.el(group_el, 'div', 'accounting_document_selection_group_header');
+			const has_children = group.nodes.length > 0;
+			const toggle = uiu.el(group_header, 'button', {
+				type: 'button',
+				'class': 'accounting_document_selection_toggle' + (has_children ? '' : ' accounting_document_selection_toggle_empty'),
+			}, has_children ? '+' : '');
+			const checkbox_attrs = { type: 'checkbox' };
+			if (group.checked) {
+				checkbox_attrs.checked = 'checked';
+			}
+			const checkbox = uiu.el(group_header, 'input', checkbox_attrs);
+			group.checkbox = checkbox;
+			uiu.el(group_header, 'span', {}, 'Offene Posten: ' + group.label);
+			uiu.el(group_header, 'strong', {}, registration_money_label(summary_amount(group.summaries)));
+			const group_rows = uiu.el(group_el, 'div', 'accounting_document_selection_group_rows');
+			group_rows.hidden = true;
+			group.nodes.forEach((node) => render_payment_node(group_rows, node, 0, group.checked, () => {
+				update_parent_state(checkbox, group.nodes);
+				update_amount();
+			}));
+			toggle.addEventListener('click', () => {
+				if (!has_children) {
+					return;
+				}
+				group_rows.hidden = !group_rows.hidden;
+				uiu.text(toggle, group_rows.hidden ? '+' : '-');
+			});
+			checkbox.addEventListener('change', () => {
+				checkbox.indeterminate = false;
+				group.nodes.forEach((node) => set_node_checked(node, checkbox.checked));
+				update_amount();
+			});
+			update_parent_state(checkbox, group.nodes);
+		});
+		const method_label = uiu.el(form, 'label');
+		uiu.el(method_label, 'span', {}, 'Zahlungsart');
+		const method_select = uiu.el(method_label, 'select', { name: 'payment_method' });
+		[
+			['cash', 'Bar'],
+			['transfer', 'Überweisung'],
+			['card', 'Karte'],
+			['other', 'Sonstiges'],
+		].forEach(([value, label]) => uiu.el(method_select, 'option', { value }, label));
+		const note_label = uiu.el(form, 'label');
+		uiu.el(note_label, 'span', {}, 'Notiz');
+		const note_input = uiu.el(note_label, 'input', {
+			type: 'text',
+			name: 'note',
+			maxlength: '500',
+			placeholder: 'Notiz',
+		});
+		uiu.el(form, 'p', 'accounting_payment_receipt_hint', 'Die Quittung wird automatisch erstellt.');
+		const actions = uiu.el(form, 'div', 'registration_item_actions');
+		const submit_btn = uiu.el(actions, 'button', { type: 'submit' }, 'Zahlung buchen');
+		const close_btn = uiu.el(actions, 'button', { type: 'button' }, 'Schließen');
+		close_btn.addEventListener('click', close_registration_payment_dialog);
+		form.addEventListener('submit', (e) => {
+			e.preventDefault();
+			const allocations = selected_payment_allocations();
+			const amount = registration_money_number(amount_input.value || 0);
+			if (amount <= 0 || allocations.length === 0) {
+				amount_input.focus();
+				return;
+			}
+			const selected_open = selected_open_summaries();
+			const invoice_allocations = allocations.filter((allocation) => allocation.target_type === 'invoice');
+			const payment_target_type = allocations.length === 1 ? allocations[0].target_type : 'mixed';
+			const paid_position_ids = [];
+			allocations.forEach((allocation) => {
+				(allocation.position_ids || []).forEach((id) => {
+					if (!paid_position_ids.includes(id)) {
+						paid_position_ids.push(id);
+					}
+				});
+			});
+			const btp_payment_transfers = accounting_payment_btp_transfers_for_allocations(allocations);
+			const purchase_at = registration_datetime_storage_value();
+			add_registration_accounting_entry({
+				...accounting_account_base_entry(event, account),
+				kind: 'payment',
+				type: account?.account_type === 'player' ? 'entry_fee' : 'other',
+				description: invoice_allocations.length === 1 && allocations.length === 1
+					? 'Zahlung zu Rechnung ' + invoice_allocations[0].invoice_number
+					: 'Zahlung',
+				quantity: 1,
+				unit_price: amount,
+				amount,
+				payment_method: method_select.value,
+				payment_target_type,
+				invoice_id: invoice_allocations.length === 1 ? invoice_allocations[0].invoice_id : '',
+				invoice_number: invoice_allocations.length === 1 ? invoice_allocations[0].invoice_number : '',
+				paid_position_ids,
+				payment_allocations: allocations,
+				btp_payment_transfers,
+				note: note_input.value || '',
+				purchase_at,
+			}, function(err, response) {
+				if (err) {
+					return;
+				}
+				const payment_entry = response?.entry;
+				if (payment_entry) {
+					create_registration_receipt_document(account, payment_entry, function() {
+						close_registration_payment_dialog();
+					}, {
+						payment_allocations: allocations,
+						open_summaries: selected_open,
+					});
+				} else {
+					close_registration_payment_dialog();
+				}
+			}, { refresh: false });
+		});
+		update_amount();
+		submit_btn.focus();
+	}
+
+	function add_registration_catalog_item(event, account) {
+		show_registration_item_bookings(account, { focus_new: true });
+	}
+
+	function close_registration_receipt_dialog() {
+		const dialog = document.querySelector('.registration_receipt_dialog');
+		if (!dialog) {
+			return;
+		}
+		uiu.remove(dialog);
+		cbts_utils.esc_stack_pop();
+	}
+
+	function render_registration_receipt_line(parent, label, amount, class_name) {
+		const line = uiu.el(parent, 'div', 'registration_receipt_line ' + (class_name || ''));
+		uiu.el(line, 'span', {}, label);
+		uiu.el(line, 'strong', {}, registration_money_label(amount));
+		return line;
+	}
+
+	function render_accounting_document_preview_header(parent) {
+		const header = uiu.el(parent, 'div', 'accounting_document_preview_table_header');
+		uiu.el(header, 'span', {}, 'Position');
+		uiu.el(header, 'span', {}, 'Menge');
+		uiu.el(header, 'span', {}, 'Einzelpreis');
+		uiu.el(header, 'span', {}, 'Betrag');
+	}
+
+	function render_accounting_document_preview_position(parent, document, line) {
+		const row = uiu.el(parent, 'div', 'accounting_document_preview_line');
+		const quantity = registration_money_number(line.quantity || 1);
+		uiu.el(row, 'span', 'accounting_document_preview_position', accounting_document_display_description(line));
+		uiu.el(row, 'span', 'accounting_document_preview_quantity', accounting_document_quantity_label(quantity, line.sale_unit));
+		uiu.el(row, 'span', 'accounting_document_preview_price', registration_money_label(line.unit_price || 0));
+		uiu.el(row, 'strong', 'accounting_document_preview_amount', registration_money_label(line.amount || 0));
+
+		accounting_document_visible_causes(document, line).forEach((cause) => {
+			const detail = uiu.el(parent, 'div', 'accounting_document_preview_detail');
+			uiu.el(detail, 'span', 'accounting_document_preview_position', cause.label);
+			uiu.el(detail, 'span', 'accounting_document_preview_quantity', cause.detail || '');
+			uiu.el(detail, 'span', 'accounting_document_preview_price', '');
+			uiu.el(detail, 'strong', 'accounting_document_preview_amount', cause.amount !== undefined ? registration_money_label(cause.amount) : '');
+		});
+	}
+
+	function render_accounting_document_preview_total(parent, label, amount, class_name) {
+		const line = uiu.el(parent, 'div', 'accounting_document_preview_total_line ' + (class_name || ''));
+		uiu.el(line, 'span', 'accounting_document_preview_total_label', label);
+		uiu.el(line, 'strong', 'accounting_document_preview_amount', registration_money_label(amount));
+	}
+
+	function render_accounting_document_preview_payment(parent, document) {
+		const payment = accounting_document_payment_details(document);
+		const block = uiu.el(parent, 'div', 'accounting_document_preview_payment');
+		uiu.el(block, 'strong', {}, 'Zahlungsfrist: bis ' + registration_date_display_value(payment.due_at));
+		uiu.el(block, 'span', {}, 'Überweisung an: ' + payment.recipient);
+		uiu.el(block, 'span', {}, 'IBAN: ' + payment.iban + '   BIC: ' + payment.bic);
+		uiu.el(block, 'span', {}, 'Bank: ' + payment.bank);
+	}
+
+	function render_accounting_document_preview_closing(parent) {
+		const settings = accounting_payment_settings();
+		if (settings.signature_mode === 'none') {
+			return;
+		}
+		const block = uiu.el(parent, 'div', 'accounting_document_preview_closing');
+		const signature = uiu.el(block, 'div', 'accounting_document_preview_signature');
+		uiu.el(signature, 'span', {}, accounting_document_signature_modes[settings.signature_mode] || 'Unterschrift');
+	}
+
+	function accounting_document_type_label(type) {
+		return type === 'invoice' ? 'Rechnung' : 'Quittung';
+	}
+
+	function accounting_document_filename(document) {
+		const number = String(document?.document_number || accounting_document_type_label(document?.document_type || 'invoice'))
+			.replace(/[^A-Za-z0-9_.-]+/g, '_')
+			.replace(/^_+|_+$/g, '');
+		return (number || 'Beleg') + '.pdf';
+	}
+
+	function accounting_pdf_bytes_from_data_url(data_url) {
+		const match = String(data_url || '').match(/^data:application\/pdf;base64,(.+)$/);
+		if (!match) {
+			return null;
+		}
+		const binary = atob(match[1]);
+		const bytes = new Uint8Array(binary.length);
+		for (let i = 0; i < binary.length; i += 1) {
+			bytes[i] = binary.charCodeAt(i);
+		}
+		return bytes;
+	}
+
+	function accounting_letterhead_pdf_for_page(page_index) {
+		const first = String(curt?.accounting_letterhead_first_pdf || '');
+		const follow = String(curt?.accounting_letterhead_follow_pdf || '');
+		return page_index === 0 ? first : (follow || first);
+	}
+
+	function accounting_pdf_text(value) {
+		return String(value == null ? '' : value)
+			.replace(/\r/g, '')
+			.replace(/[–—]/g, '-')
+			.replace(/€/g, 'EUR')
+			.replace(/[^\n\t\x20-\x7E\u00A0-\u00FF]/g, '?');
+	}
+
+	function accounting_pdf_wrap_text(text, font, size, max_width) {
+		const raw_words = accounting_pdf_text(text).split(/\s+/).filter(Boolean);
+		const words = [];
+		const push_word_part = (part) => {
+			if (!part) {
+				return;
+			}
+			if (font.widthOfTextAtSize(part, size) <= max_width) {
+				words.push(part);
+				return;
+			}
+			let current_part = '';
+			Array.from(part).forEach((char) => {
+				const candidate = current_part + char;
+				if (font.widthOfTextAtSize(candidate, size) <= max_width || !current_part) {
+					current_part = candidate;
+				} else {
+					words.push(current_part);
+					current_part = char;
+				}
+			});
+			if (current_part) {
+				words.push(current_part);
+			}
+		};
+		raw_words.forEach((word) => {
+			if (font.widthOfTextAtSize(word, size) <= max_width) {
+				words.push(word);
+				return;
+			}
+			const parts = word.split(/(?<=-)/);
+			if (parts.length > 1) {
+				parts.forEach(push_word_part);
+			} else {
+				push_word_part(word);
+			}
+		});
+		const lines = [];
+		let current = '';
+		words.forEach((word) => {
+			const candidate = current ? current + ' ' + word : word;
+			if (font.widthOfTextAtSize(candidate, size) <= max_width || !current) {
+				current = candidate;
+			} else {
+				lines.push(current);
+				current = word;
+			}
+		});
+		if (current) {
+			lines.push(current);
+		}
+		return lines.length ? lines : [''];
+	}
+
+	function accounting_letterhead_legacy_document_area(header, area_key) {
+		if (!header) {
+			return null;
+		}
+		const x = registration_money_number(header.x);
+		const y = registration_money_number(header.y);
+		const width = registration_money_number(header.width);
+		const height = Math.max(0, registration_money_number(header.height));
+		if (area_key === 'document_title') {
+			return { x, y, width, height: Math.min(height, 10) || 8 };
+		}
+		if (area_key === 'document_number') {
+			return { x, y: y + Math.min(Math.max(height * 0.45, 7), 12), width, height: Math.min(height, 6) || 5 };
+		}
+		if (area_key === 'document_date') {
+			return { x, y: y + Math.min(Math.max(height * 0.68, 12), 18), width, height: Math.min(height, 6) || 5 };
+		}
+		return null;
+	}
+
+	function accounting_letterhead_stored_area(stored, page_key, area_key) {
+		const stored_area = stored?.[page_key]?.[area_key];
+		if (stored_area) {
+			return stored_area;
+		}
+		if (page_key !== 'first' || stored?.first?.event_title) {
+			return null;
+		}
+		const old_content = stored?.first?.content;
+		if (!old_content) {
+			return null;
+		}
+		const x = registration_money_number(old_content.x);
+		const y = registration_money_number(old_content.y);
+		const width = registration_money_number(old_content.width);
+		const height = Math.max(0, registration_money_number(old_content.height));
+		if (area_key === 'event_title') {
+			return { x, y, width, height: 7 };
+		}
+		if (area_key === 'content') {
+			const offset = 9.5;
+			return { x, y: y + offset, width, height: Math.max(10, height - offset) };
+		}
+		return null;
+	}
+
+	function accounting_letterhead_layout() {
+		const stored = curt?.accounting_letterhead_layout && typeof curt.accounting_letterhead_layout === 'object'
+			? curt.accounting_letterhead_layout
+			: {};
+		const result = {};
+		Object.keys(accounting_letterhead_default_layout).forEach((page_key) => {
+			result[page_key] = {};
+			Object.keys(accounting_letterhead_default_layout[page_key]).forEach((area_key) => {
+				const legacy_area = accounting_letterhead_legacy_document_area(stored?.[page_key]?.header, area_key);
+				const stored_area = accounting_letterhead_stored_area(stored, page_key, area_key);
+				result[page_key][area_key] = {
+					...accounting_letterhead_default_layout[page_key][area_key],
+					...(legacy_area || {}),
+					...(stored_area || {}),
+				};
+			});
+		});
+		return result;
+	}
+
+	function accounting_letterhead_area(layout, page_index, area_key) {
+		const page_key = page_index === 0 ? 'first' : 'follow';
+		return layout?.[page_key]?.[area_key] || accounting_letterhead_default_layout[page_key][area_key];
+	}
+
+	function accounting_pdf_mm(value) {
+		return registration_money_number(value) * 72 / 25.4;
+	}
+
+	function accounting_pdf_rect(page_width, page_height, layout, page_index, area_key) {
+		const area = accounting_letterhead_area(layout, page_index, area_key);
+		const x = accounting_pdf_mm(area.x);
+		const y_top = page_height - accounting_pdf_mm(area.y);
+		const width = accounting_pdf_mm(area.width);
+		const height = accounting_pdf_mm(area.height);
+		return {
+			x,
+			y_top,
+			y_bottom: y_top - height,
+			width,
+			height,
+			right: x + width,
+		};
+	}
+
+	async function accounting_pdf_add_page(pdf_doc, page_index) {
+		const background = accounting_letterhead_pdf_for_page(page_index);
+		const background_bytes = accounting_pdf_bytes_from_data_url(background);
+		if (background_bytes && typeof PDFLib !== 'undefined') {
+			try {
+				const background_doc = await PDFLib.PDFDocument.load(background_bytes, { ignoreEncryption: true });
+				const [background_page] = await pdf_doc.copyPages(background_doc, [0]);
+				pdf_doc.addPage(background_page);
+				return background_page;
+			} catch (err) {
+				console.warn('Briefpapier-PDF konnte nicht gelesen werden', err);
+			}
+		}
+		return pdf_doc.addPage([595.28, 841.89]);
+	}
+
+	async function make_accounting_document_pdf(document, options = {}) {
+		if (typeof PDFLib === 'undefined' || !PDFLib.PDFDocument) {
+			throw new Error('PDF-Bibliothek nicht geladen.');
+		}
+		document = accounting_document_with_payment_status(document);
+		const pdf_doc = await PDFLib.PDFDocument.create();
+		if (typeof pdf_doc.setTitle === 'function') {
+			pdf_doc.setTitle(accounting_document_filename(document).replace(/\.pdf$/i, ''));
+		}
+		const font = await pdf_doc.embedFont(PDFLib.StandardFonts.Helvetica);
+		const bold = await pdf_doc.embedFont(PDFLib.StandardFonts.HelveticaBold);
+		const pages = [];
+		const letterhead_layout = options.letterhead_layout
+			? clone_accounting_letterhead_layout(options.letterhead_layout)
+			: accounting_letterhead_layout();
+		const first_page_number_enabled = Object.prototype.hasOwnProperty.call(options, 'first_page_number_enabled')
+			? !!options.first_page_number_enabled
+			: accounting_first_page_number_enabled();
+		let page = null;
+		let width = 0;
+		let height = 0;
+		let y = 0;
+		let content_rect = null;
+		let document_title_rect = null;
+		let document_number_rect = null;
+		let document_date_rect = null;
+		let event_title_rect = null;
+		let address_rect = null;
+
+		const draw = (text, x, line_y, options = {}) => {
+			page.drawText(accounting_pdf_text(text), {
+				x,
+				y: line_y,
+				size: options.size || 10,
+				font: options.bold ? bold : font,
+				color: options.color || PDFLib.rgb(0.12, 0.16, 0.21),
+			});
+		};
+		const draw_right = (text, right, line_y, options = {}) => {
+			const size = options.size || 10;
+			const use_font = options.bold ? bold : font;
+			const safe_text = accounting_pdf_text(text);
+			page.drawText(safe_text, {
+				x: right - use_font.widthOfTextAtSize(safe_text, size),
+				y: line_y,
+				size,
+				font: use_font,
+				color: options.color || PDFLib.rgb(0.12, 0.16, 0.21),
+			});
+		};
+		const draw_line = (from_x, to_x, line_y, color = PDFLib.rgb(0.78, 0.82, 0.86)) => {
+			page.drawLine({ start: { x: from_x, y: line_y }, end: { x: to_x, y: line_y }, thickness: 0.6, color });
+		};
+		const draw_watermark = () => {
+			if (!options.watermark) {
+				return;
+			}
+			const text = accounting_pdf_text(options.watermark);
+			const size = Math.min(100, width / Math.max(1.7, text.length * 0.36));
+			page.drawText(text, {
+				x: width * 0.14,
+				y: height * 0.36,
+				size,
+				font: bold,
+				color: PDFLib.rgb(0.62, 0.66, 0.70),
+				opacity: 0.18,
+				rotate: PDFLib.degrees(35),
+			});
+		};
+		const draw_positioned_text = (rect, text, requested_size, is_bold) => {
+			if (!rect || !text) {
+				return;
+			}
+			const size = Math.min(requested_size, Math.max(7, rect.height));
+			let line_y = rect.y_top - size;
+			if (line_y < rect.y_bottom + 1) {
+				line_y = rect.y_bottom + 1;
+			}
+			draw(text, rect.x, line_y, { size, bold: is_bold });
+		};
+		const draw_document_header = (compact) => {
+			draw_positioned_text(document_title_rect, accounting_document_type_label(document.document_type), compact ? 11 : 19, true);
+			draw_positioned_text(document_number_rect, document.document_number || '', compact ? 9 : 10, true);
+			draw_positioned_text(document_date_rect, registration_date_display_value(document.issued_at || document.created_at), 9, false);
+		};
+		const draw_address = () => {
+			if (!address_rect) {
+				return;
+			}
+			const recipient_name = document.buyer_name || document.player_name || '';
+			const lines = [
+				document.buyer_type === 'state' && recipient_name ? { text: 'Landesverband', size: 8, bold: false, gap_after: 5 } : null,
+				recipient_name ? { text: recipient_name, size: 12, bold: true } : null,
+				document.club && document.club !== document.buyer_name ? { text: document.club, size: 9 } : null,
+				document.state && document.state !== document.club && document.state !== document.buyer_name ? { text: document.state, size: 9 } : null,
+			].filter(Boolean);
+			let address_y = address_rect.y_top - 8;
+			lines.forEach((line) => {
+				const line_font = line.bold ? bold : font;
+				accounting_pdf_wrap_text(line.text, line_font, line.size, address_rect.width).forEach((wrapped) => {
+					if (address_y < address_rect.y_bottom + line.size) {
+						return;
+					}
+					draw(wrapped, address_rect.x, address_y, { size: line.size, bold: line.bold });
+					address_y -= line.size + (line.gap_after || 2);
+				});
+			});
+		};
+		const new_page = async () => {
+			const page_index = pages.length;
+			page = await accounting_pdf_add_page(pdf_doc, page_index);
+			pages.push(page);
+			({ width, height } = page.getSize());
+			content_rect = accounting_pdf_rect(width, height, letterhead_layout, page_index, 'content');
+			document_title_rect = accounting_letterhead_area(letterhead_layout, page_index, 'document_title')
+				? accounting_pdf_rect(width, height, letterhead_layout, page_index, 'document_title')
+				: null;
+			document_number_rect = accounting_letterhead_area(letterhead_layout, page_index, 'document_number')
+				? accounting_pdf_rect(width, height, letterhead_layout, page_index, 'document_number')
+				: null;
+			document_date_rect = accounting_letterhead_area(letterhead_layout, page_index, 'document_date')
+				? accounting_pdf_rect(width, height, letterhead_layout, page_index, 'document_date')
+				: null;
+			event_title_rect = accounting_letterhead_area(letterhead_layout, page_index, 'event_title')
+				? accounting_pdf_rect(width, height, letterhead_layout, page_index, 'event_title')
+				: null;
+			address_rect = page_index === 0 ? accounting_pdf_rect(width, height, letterhead_layout, page_index, 'address') : null;
+			y = content_rect.y_top;
+			draw_watermark();
+			if (pages.length > 1) {
+				draw_document_header(true);
+			}
+		};
+		const draw_table_header = () => {
+			const table_width = content_rect.width;
+			const qty_x = content_rect.x + table_width * 0.53;
+			const amount_right = content_rect.right;
+			const header_y = y - 9;
+			draw('Position', content_rect.x, header_y, { size: 9, bold: true });
+			draw('Menge', qty_x, header_y, { size: 9, bold: true });
+			draw_right('Einzelpreis', amount_right - 70, header_y, { size: 9, bold: true });
+			draw_right('Betrag', amount_right, header_y, { size: 9, bold: true });
+			draw_line(content_rect.x, amount_right, header_y - 5);
+			y = header_y - 20;
+			return { table_width, qty_x, amount_right };
+		};
+		const ensure_space = async (needed) => {
+			if (content_rect && y - needed >= content_rect.y_bottom) {
+				return;
+			}
+			await new_page();
+			draw_table_header();
+		};
+		const draw_event_period = () => {
+			const event_period = accounting_event_period_label();
+			if (!event_period) {
+				return;
+			}
+			const anchor_rect = event_title_rect || content_rect;
+			const size = 9;
+			const line_gap = 10;
+			const period_x = anchor_rect.x;
+			const period_width = anchor_rect.width || content_rect.width;
+			const period_lines = accounting_pdf_wrap_text(event_period, font, size, period_width);
+			let period_y = event_title_rect ? event_title_rect.y_bottom - 4 : y - 2;
+			period_lines.forEach((line, index) => {
+				draw(line, period_x, period_y - index * line_gap, { size, color: PDFLib.rgb(0.36, 0.42, 0.48) });
+			});
+			y = Math.min(y, period_y - period_lines.length * line_gap - 2);
+		};
+
+		await new_page();
+		draw_document_header(false);
+		draw_address();
+		draw_positioned_text(event_title_rect, curt?.name || 'Turnier', 12, true);
+		draw_event_period();
+
+		let columns = draw_table_header();
+		for (const line of accounting_receipt_display_lines(document)) {
+			const description_lines = accounting_pdf_wrap_text(accounting_document_display_description(line), font, 10, columns.qty_x - content_rect.x - 12);
+			const caused_by = accounting_document_visible_causes(document, line);
+			const caused_by_chunks = caused_by.map((cause) => ({
+				cause,
+				lines: accounting_pdf_wrap_text(cause.label, font, 8, columns.amount_right - content_rect.x - 80),
+				detail_lines: cause.detail ? accounting_pdf_wrap_text(cause.detail, font, 7, Math.max(40, columns.amount_right - 76 - columns.qty_x)) : [],
+			}));
+			const row_height = Math.max(18, description_lines.length * 12 + 6);
+			const first_caused_by_height = caused_by_chunks.slice(0, 3).reduce((sum, chunk) => {
+				return sum + Math.max(chunk.lines.length, chunk.detail_lines.length || 1) * 9;
+			}, 0);
+			const initial_caused_by_height = caused_by_chunks.length > 0
+				? Math.max(9, Math.min(first_caused_by_height, 36)) + 4
+				: 4;
+			await ensure_space(row_height + initial_caused_by_height);
+			columns = {
+				table_width: content_rect.width,
+				qty_x: content_rect.x + content_rect.width * 0.53,
+				amount_right: content_rect.right,
+			};
+			description_lines.forEach((description_line, index) => {
+				draw(description_line, content_rect.x, y - index * 12, { size: 10 });
+			});
+			const quantity = registration_money_number(line.quantity || 1);
+			const quantity_label = accounting_document_quantity_label(quantity, line.sale_unit);
+			draw(quantity_label, columns.qty_x, y, { size: 10 });
+			draw_right(registration_money_label(line.unit_price || 0), columns.amount_right - 70, y, { size: 10 });
+			draw_right(registration_money_label(line.amount || 0), columns.amount_right, y, { size: 10, bold: true });
+			if (caused_by_chunks.length === 0) {
+				y -= row_height;
+				continue;
+			}
+			y -= Math.max(11, description_lines.length * 12 + 1);
+			for (const chunk of caused_by_chunks) {
+				const detail_line_count = Math.max(chunk.lines.length, chunk.detail_lines.length || 1);
+				await ensure_space(detail_line_count * 9 + 1);
+				for (let index = 0; index < detail_line_count; index += 1) {
+					const cause_line = chunk.lines[index] || '';
+					const detail_line = chunk.detail_lines[index] || '';
+					draw(cause_line, content_rect.x + 8, y - index * 9, { size: 8, color: PDFLib.rgb(0.36, 0.42, 0.48) });
+					if (detail_line) {
+						draw(detail_line, columns.qty_x, y - index * 9, { size: 7, color: PDFLib.rgb(0.46, 0.52, 0.58) });
+					}
+				}
+				if (chunk.cause.amount !== undefined) {
+					draw_right(registration_money_label(chunk.cause.amount), columns.amount_right, y, { size: 8, color: PDFLib.rgb(0.36, 0.42, 0.48) });
+				}
+				y -= detail_line_count * 9;
+			}
+			y -= 10;
+		}
+
+		await ensure_space(document.document_type === 'invoice' ? 150 : 62);
+		draw_line(content_rect.x, content_rect.right, y + 7, PDFLib.rgb(0.52, 0.59, 0.66));
+		const right = content_rect.right;
+		const sum_left = Math.max(content_rect.x, right - 190);
+		draw('Summe', sum_left, y - 10, { size: 11, bold: true });
+		draw_right(registration_money_label(document.total || 0), right, y - 10, { size: 11, bold: true });
+		y -= 26;
+		if (document.document_type === 'invoice') {
+			draw('Bereits gezahlt', sum_left, y, { size: 10 });
+			draw_right(registration_money_label(document.paid_total || 0), right, y, { size: 10 });
+			y -= 18;
+			draw('Offen', sum_left, y, { size: 12, bold: true });
+			draw_right(registration_money_label(document.open_total || 0), right, y, { size: 12, bold: true, color: PDFLib.rgb(0.58, 0.18, 0.11) });
+			y -= 30;
+			const payment = accounting_document_payment_details(document);
+			draw('Zahlungsfrist: bis ' + registration_date_display_value(payment.due_at), content_rect.x, y, { size: 10, bold: true });
+			y -= 14;
+			draw('Überweisung an: ' + payment.recipient, content_rect.x, y, { size: 10 });
+			y -= 12;
+			draw('IBAN: ' + payment.iban + '   BIC: ' + payment.bic, content_rect.x, y, { size: 10 });
+			y -= 12;
+			draw('Bank: ' + payment.bank, content_rect.x, y, { size: 10 });
+			y -= 20;
+		}
+		if (document.note) {
+			accounting_pdf_wrap_text(document.note, font, 10, content_rect.width).forEach((note_line) => {
+				draw(note_line, content_rect.x, y, { size: 10 });
+				y -= 12;
+			});
+		}
+		const signature_mode = accounting_payment_settings().signature_mode;
+		if (signature_mode !== 'none') {
+			await ensure_space(56);
+			y -= document.note ? 16 : 10;
+			const signature_width = Math.min(220, content_rect.width * 0.55);
+			const signature_y = y - 32;
+			draw_line(content_rect.x, content_rect.x + signature_width, signature_y, PDFLib.rgb(0.52, 0.59, 0.66));
+			draw(accounting_document_signature_modes[signature_mode] || 'Unterschrift', content_rect.x, signature_y - 12, { size: 8, color: PDFLib.rgb(0.36, 0.42, 0.48) });
+		}
+
+		const total_pages = pdf_doc.getPageCount();
+		pdf_doc.getPages().forEach((pdf_page, index) => {
+			if (index === 0 && !first_page_number_enabled) {
+				return;
+			}
+			const size = pdf_page.getSize();
+			const footer_rect = accounting_pdf_rect(size.width, size.height, letterhead_layout, index, 'footer');
+			const page_label = 'Seite ' + (index + 1) + ' / ' + total_pages;
+			pdf_page.drawText(page_label, {
+				x: footer_rect.right - font.widthOfTextAtSize(page_label, 8),
+				y: footer_rect.y_bottom + 2,
+				size: 8,
+				font,
+				color: PDFLib.rgb(0.36, 0.42, 0.48),
+			});
+		});
+		return pdf_doc.save();
+	}
+
+	async function download_accounting_document_pdf(document, options = {}) {
+		const bytes = await make_accounting_document_pdf(document, options);
+		save_file(accounting_document_pdf_file(document, bytes), accounting_document_filename(document));
+	}
+
+	function accounting_document_pdf_file(document, bytes) {
+		const filename = accounting_document_filename(document);
+		try {
+			return new File([bytes], filename, { type: 'application/pdf' });
+		} catch (err) {
+			return new Blob([bytes], { type: 'application/pdf' });
+		}
+	}
+
+	async function open_accounting_document_pdf(document, options = {}) {
+		const filename = accounting_document_filename(document);
+		const key = String(Date.now()) + '-' + Math.random().toString(36).slice(2);
+		const can_use_viewer = typeof BroadcastChannel === 'function';
+		let pdf_window = null;
+		let channel = null;
+		let viewer_ready = false;
+		let pending_bytes = null;
+		function send_pending_pdf() {
+			if (!channel || !viewer_ready || !pending_bytes) {
+				return;
+			}
+			const bytes = pending_bytes;
+			const buffer = bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength);
+			channel.postMessage({ type: 'pdf', filename, bytes: buffer });
+			pending_bytes = null;
+		}
+		try {
+			if (can_use_viewer) {
+				const viewer_url = '/admin/pdf-viewer/' + encodeURIComponent(filename) +
+					'?key=' + encodeURIComponent(key) +
+					(options.print_on_load ? '&print=1' : '');
+				channel = new BroadcastChannel('bts-accounting-pdf-' + key);
+				channel.onmessage = function(event) {
+					if (event.data && event.data.type === 'ready') {
+						viewer_ready = true;
+						send_pending_pdf();
+					}
+				};
+				pdf_window = window.open(viewer_url, '_blank');
+			} else {
+				pdf_window = window.open('', '_blank');
+				if (pdf_window) {
+					pdf_window.document.title = filename;
+					pdf_window.document.body.textContent = 'PDF wird erstellt ...';
+				}
+			}
+		} catch (err) {
+			pdf_window = null;
+		}
+		let bytes = null;
+		try {
+			bytes = await make_accounting_document_pdf(document, options);
+		} catch (err) {
+			if (channel) {
+				channel.postMessage({ type: 'error', message: 'PDF konnte nicht erstellt werden.' });
+				channel.close();
+			}
+			if (pdf_window) {
+				pdf_window.close();
+			}
+			throw err;
+		}
+		const file = accounting_document_pdf_file(document, bytes);
+		if (!pdf_window) {
+			if (channel) {
+				channel.close();
+			}
+			save_file(file, filename);
+			return;
+		}
+		if (channel) {
+			pending_bytes = bytes;
+			send_pending_pdf();
+			setTimeout(function() {
+				if (pending_bytes) {
+					pending_bytes = null;
+					pdf_window.location.href = URL.createObjectURL(file);
+				}
+				channel.close();
+			}, 5000);
+			return;
+		}
+		const url = URL.createObjectURL(file);
+		pdf_window.location.href = url;
+	}
+
+	async function print_accounting_document_pdf(accounting_document, options = {}) {
+		const bytes = await make_accounting_document_pdf(accounting_document, options);
+		const file = accounting_document_pdf_file(accounting_document, bytes);
+		const url = URL.createObjectURL(file);
+		const frame = window.document.createElement('iframe');
+		let cleanup_timer = null;
+		function cleanup() {
+			if (cleanup_timer) {
+				window.clearTimeout(cleanup_timer);
+			}
+			URL.revokeObjectURL(url);
+			uiu.remove(frame);
+		}
+		frame.setAttribute('aria-hidden', 'true');
+		frame.style.border = '0';
+		frame.style.height = '1px';
+		frame.style.left = '-10000px';
+		frame.style.opacity = '0';
+		frame.style.position = 'fixed';
+		frame.style.top = '0';
+		frame.style.width = '1px';
+		return new Promise((resolve, reject) => {
+			frame.addEventListener('load', function() {
+				cleanup_timer = window.setTimeout(cleanup, 120000);
+				try {
+					if (frame.contentWindow) {
+						frame.contentWindow.focus();
+						frame.contentWindow.print();
+						resolve();
+						return;
+					}
+					cleanup();
+					reject(new Error('PDF konnte nicht gedruckt werden.'));
+				} catch (err) {
+					cleanup();
+					reject(err);
+				}
+			}, { once: true });
+			frame.addEventListener('error', function() {
+				cleanup();
+				reject(new Error('PDF konnte nicht geladen werden.'));
+			}, { once: true });
+			window.document.body.appendChild(frame);
+			frame.src = url;
+		});
+	}
+
+	function create_registration_invoice_document(account, summaries, callback) {
+		const lines = accounting_document_merge_lines((summaries || []).map(accounting_document_line_from_summary))
+			.filter((line) => registration_money_number(line.amount) > 0);
+		if (lines.length === 0) {
+			alert('Keine freien Rechnungspositionen ausgewählt.');
+			return;
+		}
+		const total = registration_money_number(lines.reduce((sum, line) => sum + registration_money_number(line.amount), 0));
+		const issued_at = registration_datetime_storage_value();
+		const payment = accounting_payment_settings();
+		add_registration_accounting_document({
+			...accounting_document_buyer_payload(account),
+			document_type: 'invoice',
+			status: 'issued',
+			lines,
+			total,
+			paid_total: 0,
+			open_total: total,
+			payment_recipient: payment.recipient,
+			payment_bank: payment.bank,
+			payment_iban: payment.iban,
+			payment_bic: payment.bic,
+			due_at: accounting_invoice_due_at(issued_at, payment.due_days),
+			note: 'Bitte überweisen Sie den offenen Betrag unter Angabe der Rechnungsnummer.',
+			issued_at,
+		}, callback);
+	}
+
+	function create_registration_paid_total_receipt_document(account, summaries, callback) {
+		const lines = accounting_document_merge_lines((summaries || []).map(accounting_document_line_from_summary))
+			.filter((line) => registration_money_number(line.amount) > 0);
+		if (lines.length === 0) {
+			alert('Keine freien Zahlungspositionen ausgewählt.');
+			return;
+		}
+		const amount = registration_money_number(lines.reduce((sum, line) => sum + registration_money_number(line.amount), 0));
+		add_registration_accounting_document({
+			...accounting_document_buyer_payload(account),
+			document_type: 'receipt',
+			status: 'paid',
+			lines,
+			total: amount,
+			paid_total: amount,
+			open_total: 0,
+			issued_at: registration_datetime_storage_value(),
+		}, callback);
+	}
+
+	function render_accounting_document_preview(parent, document) {
+		document = accounting_document_with_payment_status(document);
+		const preview = uiu.el(parent, 'section', 'accounting_document_preview');
+		const heading = uiu.el(preview, 'div', 'accounting_document_heading');
+		uiu.el(heading, 'h4', {}, accounting_document_type_label(document.document_type) + ' ' + (document.document_number || ''));
+		uiu.el(heading, 'span', {}, registration_date_display_value(document.issued_at || document.created_at));
+		uiu.el(preview, 'p', 'registration_receipt_player', document.buyer_name || document.player_name || '');
+		const event_period = accounting_event_period_label();
+		if (event_period) {
+			const event_info = uiu.el(preview, 'p', 'accounting_document_event_period');
+			uiu.el(event_info, 'strong', {}, curt?.name || 'Turnier');
+			uiu.el(event_info, 'span', {}, event_period);
+		}
+		const meta = uiu.el(preview, 'dl', 'accounting_document_meta');
+		uiu.el(meta, 'dt', {}, 'Status');
+		uiu.el(meta, 'dd', {}, document.status === 'paid' ? 'bezahlt' : 'offen');
+		if (document.due_at) {
+			uiu.el(meta, 'dt', {}, 'Fällig');
+			uiu.el(meta, 'dd', {}, registration_datetime_display_value(document.due_at));
+		}
+		const lines = uiu.el(preview, 'div', 'registration_receipt_lines accounting_document_preview_lines');
+		render_accounting_document_preview_header(lines);
+		accounting_receipt_display_lines(document).forEach((line) => {
+			render_accounting_document_preview_position(lines, document, line);
+		});
+		render_accounting_document_preview_total(lines, 'Summe', document.total || 0, 'registration_receipt_total');
+		if (document.document_type === 'invoice') {
+			render_accounting_document_preview_total(lines, 'Bereits gezahlt', document.paid_total || 0, 'registration_receipt_paid');
+			render_accounting_document_preview_total(lines, 'Offen', document.open_total || 0, 'registration_receipt_open');
+			render_accounting_document_preview_payment(lines, document);
+		}
+		if (document.note) {
+			uiu.el(preview, 'p', 'accounting_document_note', document.note);
+		}
+		render_accounting_document_preview_closing(preview);
+	}
+
+	function render_accounting_document_selection(parent, account, document_type, callback) {
+		uiu.empty(parent);
+		const groups = document_type === 'invoice'
+			? accounting_document_charge_summary_groups(account)
+			: accounting_document_payment_summary_groups(account);
+		const title = document_type === 'invoice' ? 'Rechnungspositionen' : 'Zahlungspositionen';
+		const form = uiu.el(parent, 'form', 'accounting_document_selection');
+		uiu.el(form, 'h4', {}, title);
+		if (groups.length === 0) {
+			uiu.el(form, 'div', 'accounting_item_empty', document_type === 'invoice'
+				? 'Keine freien Rechnungspositionen vorhanden.'
+				: 'Keine freien Zahlungspositionen vorhanden.');
+			return;
+		}
+		const rows = uiu.el(form, 'div', 'accounting_document_selection_rows');
+		const total = uiu.el(form, 'strong', 'accounting_document_selection_total', '');
+		function summary_amount(summaries) {
+			return (summaries || []).reduce((sum, summary) => sum + registration_money_number(summary.amount), 0);
+		}
+		function node_has_selection(node) {
+			return !!node?.checkbox && (node.checkbox.checked || node.checkbox.indeterminate);
+		}
+		function node_is_fully_selected(node) {
+			return !!node?.checkbox && node.checkbox.checked && !node.checkbox.indeterminate;
+		}
+		function selected_summaries_from_node(node) {
+			if (!node?.checkbox || (!node.checkbox.checked && !node.checkbox.indeterminate)) {
+				return [];
+			}
+			if (node_is_fully_selected(node) && !node.prefer_children) {
+				return node.summaries || [];
+			}
+			const child_summaries = (node.children || []).flatMap(selected_summaries_from_node);
+			return child_summaries.length > 0 ? child_summaries : (node.summaries || []);
+		}
+		function selected_summaries() {
+			return groups.flatMap((group) => {
+				if (!group.checkbox || (!group.checkbox.checked && !group.checkbox.indeterminate)) {
+					return [];
+				}
+				if (group.checkbox.checked && !group.checkbox.indeterminate && !group.prefer_children) {
+					return group.summaries || [];
+				}
+				const node_summaries = (group.nodes || []).flatMap(selected_summaries_from_node);
+				return node_summaries.length > 0 ? node_summaries : (group.summaries || []);
+			});
+		}
+		function update_total() {
+			const amount = selected_summaries().reduce((sum, summary) => sum + registration_money_number(summary.amount), 0);
+			uiu.text(total, 'Summe ' + registration_money_label(amount));
+		}
+		function update_parent_state(parent_checkbox, children) {
+			const selected_count = children.filter(node_has_selection).length;
+			const full_count = children.filter(node_is_fully_selected).length;
+			parent_checkbox.checked = selected_count > 0 && full_count === children.length;
+			parent_checkbox.indeterminate = selected_count > 0 && !parent_checkbox.checked;
+		}
+		function render_node(parent_el, node, level, checked, on_change) {
+			const row = uiu.el(parent_el, 'div', 'accounting_document_selection_row accounting_document_selection_level_' + level);
+			const has_children = (node.children || []).length > 0;
+			const toggle = uiu.el(row, 'button', {
+				type: 'button',
+				'class': 'accounting_document_selection_toggle' + (has_children ? '' : ' accounting_document_selection_toggle_empty'),
+			}, has_children ? (node.expanded ? '-' : '+') : '');
+			const checkbox_attrs = { type: 'checkbox' };
+			const node_checked = typeof node.checked === 'boolean' ? node.checked : checked;
+			if (node_checked) {
+				checkbox_attrs.checked = 'checked';
+			}
+			const checkbox = uiu.el(row, 'input', checkbox_attrs);
+			node.checkbox = checkbox;
+			uiu.el(row, 'span', {}, node.label);
+			uiu.el(row, 'strong', {}, registration_money_label(summary_amount(node.summaries)));
+			const child_wrap = uiu.el(parent_el, 'div', 'accounting_document_selection_children');
+			child_wrap.hidden = !node.expanded;
+			(node.children || []).forEach((child) => render_node(child_wrap, child, level + 1, node_checked, () => {
+				update_parent_state(checkbox, node.children);
+				on_change();
+			}));
+			toggle.addEventListener('click', () => {
+				if (!has_children) {
+					return;
+				}
+				child_wrap.hidden = !child_wrap.hidden;
+				uiu.text(toggle, child_wrap.hidden ? '+' : '-');
+			});
+			checkbox.addEventListener('change', () => {
+				checkbox.indeterminate = false;
+				(node.children || []).forEach((child) => set_node_checked(child, checkbox.checked));
+				on_change();
+			});
+			return node;
+		}
+		function set_node_checked(node, checked) {
+			if (!node?.checkbox) {
+				return;
+			}
+			node.checkbox.checked = checked;
+			node.checkbox.indeterminate = false;
+			(node.children || []).forEach((child) => set_node_checked(child, checked));
+		}
+		groups.forEach((group, group_index) => {
+			const group_el = uiu.el(rows, 'section', 'accounting_document_selection_group');
+			if (!Array.isArray(group.nodes) || group.nodes.length === 0) {
+				group.nodes = group.summaries.map((summary) => accounting_document_selection_node(accounting_summary_label(summary), [summary]));
+			}
+			const group_header = uiu.el(group_el, 'div', 'accounting_document_selection_group_header');
+			const has_children = group.nodes.length > 0;
+			const toggle = uiu.el(group_header, 'button', {
+				type: 'button',
+				'class': 'accounting_document_selection_toggle' + (has_children ? '' : ' accounting_document_selection_toggle_empty'),
+			}, has_children ? '+' : '');
+			const group_checkbox_attrs = {
+				type: 'checkbox',
+			};
+			if (group.checked) {
+				group_checkbox_attrs.checked = 'checked';
+			}
+			const group_checkbox = uiu.el(group_header, 'input', group_checkbox_attrs);
+			group.checkbox = group_checkbox;
+			uiu.el(group_header, 'span', {}, group.label);
+			uiu.el(group_header, 'strong', {}, registration_money_label(summary_amount(group.summaries)));
+			const group_rows = uiu.el(group_el, 'div', 'accounting_document_selection_group_rows');
+			group_rows.hidden = true;
+			group.nodes.forEach((node) => render_node(group_rows, node, 0, group.checked, () => {
+				update_parent_state(group_checkbox, group.nodes);
+				update_total();
+			}));
+			toggle.addEventListener('click', () => {
+				if (!has_children) {
+					return;
+				}
+				group_rows.hidden = !group_rows.hidden;
+				uiu.text(toggle, group_rows.hidden ? '+' : '-');
+			});
+			group_checkbox.addEventListener('change', () => {
+				group_checkbox.indeterminate = false;
+				group.nodes.forEach((node) => set_node_checked(node, group_checkbox.checked));
+				update_total();
+			});
+			update_parent_state(group_checkbox, group.nodes);
+		});
+		update_total();
+		const actions = uiu.el(form, 'div', 'registration_item_actions');
+		const create_btn = uiu.el(actions, 'button', { type: 'submit' }, document_type === 'invoice' ? 'Rechnung erstellen' : 'Quittung erstellen');
+		form.addEventListener('submit', (e) => {
+			e.preventDefault();
+			const picked = selected_summaries();
+			if (document_type === 'invoice') {
+				create_registration_invoice_document(account, picked, callback);
+			} else {
+				create_registration_paid_total_receipt_document(account, picked, callback);
+			}
+		});
+		create_btn.focus();
+	}
+
+	function accounting_summary_quantity_label(quantity) {
+		const number = registration_money_number(quantity || 0);
+		return number.toLocaleString('de-DE', {
+			minimumFractionDigits: Number.isInteger(number) ? 0 : 2,
+			maximumFractionDigits: 2,
+		}) + 'x';
+	}
+
+	function accounting_summary_label(summary) {
+		const prefix = summary.prefix ? summary.prefix + ': ' : '';
+		const sale_unit = String(summary.sale_unit || '').trim();
+		return prefix + accounting_summary_quantity_label(summary.quantity) + ' ' + summary.label +
+			(sale_unit ? ' je ' + sale_unit : '');
+	}
+
+	function accounting_summary_document_label(summary) {
+		const prefix = summary.prefix ? summary.prefix + ': ' : '';
+		if (summary.category === 'local_charge') {
+			return summary.label || 'Position';
+		}
+		return prefix + (summary.label || 'Position');
+	}
+
+	function accounting_escape_regexp(text) {
+		return String(text || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+	}
+
+	function accounting_document_display_description(line) {
+		let description = String(line?.description || 'Position').trim();
+		description = description.replace(/^\s*\d{2}\.\d{2}\.\d{4},\s*\d{2}:\d{2}:\s*/, '');
+		const quantity = registration_money_number(line?.quantity || 0);
+		if (quantity > 0) {
+			description = description.replace(
+				new RegExp('^\\s*' + accounting_escape_regexp(accounting_summary_quantity_label(quantity)) + '\\s+', 'i'),
+				''
+			);
+		}
+		const sale_unit = String(line?.sale_unit || '').trim();
+		if (sale_unit) {
+			description = description.replace(new RegExp('\\s+je\\s+' + accounting_escape_regexp(sale_unit) + '\\s*$', 'i'), '');
+		}
+		return description || 'Position';
+	}
+
+	function accounting_document_detail_from_description(line) {
+		const description = String(line?.description || '').trim();
+		const match = description.match(/^\s*(\d{2}\.\d{2}\.\d{4},\s*\d{2}:\d{2}):\s*/);
+		if (!match) {
+			return '';
+		}
+		const quantity = registration_money_number(line?.quantity || 0);
+		const quantity_label = quantity > 0 ? accounting_document_quantity_label(quantity, line?.sale_unit || '') : '';
+		return [match[1], quantity_label].filter(Boolean).join(', ');
+	}
+
+	function accounting_plural_sale_unit(unit, quantity) {
+		const text = String(unit || '').trim();
+		const amount = registration_money_number(quantity);
+		if (!text || amount === 1) {
+			return text;
+		}
+		const plural_map = {
+			Meldung: 'Meldungen',
+			Disziplin: 'Disziplinen',
+			Rolle: 'Rollen',
+			Ball: 'Bälle',
+			Teilnehmer: 'Teilnehmer',
+			Stk: 'Stk.',
+			'Stk.': 'Stk.',
+		};
+		if (plural_map[text]) {
+			return plural_map[text];
+		}
+		const roll_match = text.match(/^Rolle(\s+.+)$/);
+		if (roll_match) {
+			return 'Rollen' + roll_match[1];
+		}
+		if (/ung$/i.test(text)) {
+			return text + 'en';
+		}
+		return text;
+	}
+
+	function accounting_document_quantity_label(quantity, sale_unit) {
+		const amount = registration_money_number(quantity || 1);
+		const amount_label = Number.isInteger(amount) ? String(amount) : String(amount).replace('.', ',');
+		const unit = accounting_plural_sale_unit(sale_unit, amount);
+		return amount_label + (unit ? ' ' + unit : '');
+	}
+
+	function accounting_optional_money_number(value) {
+		const raw = String(value ?? '').trim();
+		if (!raw) {
+			return null;
+		}
+		const number = Number(raw.replace(',', '.'));
+		return Number.isFinite(number) ? Math.round(number * 100) / 100 : null;
+	}
+
+	function accounting_cause_object(value, fallback_amount) {
+		const raw = value && typeof value === 'object' && !Array.isArray(value) ? value : null;
+		let detail = raw ? String(raw.detail || raw.event_name || '').trim() : '';
+		let label = raw
+			? String(raw.label || raw.name || raw.player_name || raw.buyer_name || raw.display_name || '').trim()
+			: String(value || '').trim();
+		if (!label && raw) {
+			label = accounting_cause_label(raw);
+		}
+		if (!detail && label) {
+			const match = label.match(/^(.*),\s*([^,]+)$/);
+			if (match && /\b(?:HE|DE|HD|DD|GD|JE|ME|JD|MD|MX|U\d{1,2})\b/i.test(match[2])) {
+				label = match[1].trim();
+				detail = match[2].trim();
+			}
+		}
+		if (!label) {
+			return null;
+		}
+		const amount = raw ? accounting_optional_money_number(raw.amount) : accounting_optional_money_number(fallback_amount);
+		const cause = { label };
+		if (detail) {
+			cause.detail = detail;
+		}
+		if (amount !== null) {
+			cause.amount = amount;
+		}
+		if (raw) {
+			const club = String(raw.club || '').trim();
+			const state = String(raw.state || '').trim();
+			if (club) {
+				cause.club = club;
+			}
+			if (state) {
+				cause.state = state;
+			}
+		}
+		return cause;
+	}
+
+	function accounting_push_cause(list, value, fallback_amount) {
+		const cause = accounting_cause_object(value, fallback_amount);
+		if (!cause) {
+			return;
+		}
+		const existing = list.find((item) =>
+			item.label === cause.label &&
+			String(item.detail || '') === String(cause.detail || '') &&
+			String(item.club || '') === String(cause.club || '')
+		);
+		if (existing) {
+			if (cause.amount !== undefined) {
+				existing.amount = registration_money_number((existing.amount || 0) + cause.amount);
+			}
+			return;
+		}
+		list.push(cause);
+	}
+
+	function accounting_cause_surname_sort_key(label) {
+		const clean_label = String(label || '')
+			.replace(/\s*\([^)]*\)\s*$/g, '')
+			.trim();
+		if (!clean_label) {
+			return '';
+		}
+		const comma_parts = clean_label.split(',').map((part) => part.trim()).filter(Boolean);
+		if (comma_parts.length > 1) {
+			return comma_parts[0];
+		}
+		const parts = clean_label.split(/\s+/).filter(Boolean);
+		return parts.length > 1 ? parts[parts.length - 1] : clean_label;
+	}
+
+	function accounting_compare_grouped_causes(a, b) {
+		const surname_compare = accounting_cause_surname_sort_key(a.label)
+			.localeCompare(accounting_cause_surname_sort_key(b.label), 'de-DE', { sensitivity: 'base' });
+		if (surname_compare !== 0) {
+			return surname_compare;
+		}
+		const label_compare = String(a.label || '').localeCompare(String(b.label || ''), 'de-DE', { sensitivity: 'base' });
+		if (label_compare !== 0) {
+			return label_compare;
+		}
+		return (a.index || 0) - (b.index || 0);
+	}
+
+	function accounting_group_causes_by_label(causes) {
+		const grouped = [];
+		const by_label = new Map();
+		(causes || []).forEach((value) => {
+			const cause = accounting_cause_object(value);
+			if (!cause) {
+				return;
+			}
+			const label = cause.label;
+			const club = String(cause.club || '').trim();
+			const key = label + '\u0001' + club;
+			if (!by_label.has(key)) {
+				const group = { label, club, state: cause.state || '', details: [], amount: undefined, index: grouped.length };
+				by_label.set(key, group);
+				grouped.push(group);
+			}
+			const group = by_label.get(key);
+			const detail = String(cause.detail || '').trim();
+			if (detail && !group.details.includes(detail)) {
+				group.details.push(detail);
+			}
+			if (cause.amount !== undefined) {
+				group.amount = registration_money_number((group.amount || 0) + cause.amount);
+			}
+		});
+		return grouped.sort(accounting_compare_grouped_causes).map((group) => {
+			const cause = { label: group.label };
+			if (group.club) {
+				cause.club = group.club;
+			}
+			if (group.state) {
+				cause.state = group.state;
+			}
+			if (group.details.length > 0) {
+				cause.detail = group.details.join(', ');
+			}
+			if (group.amount !== undefined) {
+				cause.amount = group.amount;
+			}
+			return cause;
+		});
+	}
+
+	function accounting_document_caused_by(line) {
+		const stored = (Array.isArray(line?.caused_by) ? line.caused_by : [])
+			.map((cause) => accounting_cause_object(cause))
+			.filter(Boolean);
+		if (stored.length > 0) {
+			return stored;
+		}
+		const position_ids = (Array.isArray(line?.position_ids) ? line.position_ids : [line?.position_id || line?.entry_id])
+			.map((id) => String(id || '').trim())
+			.filter(Boolean);
+		if (position_ids.length === 0) {
+			return [];
+		}
+		const wanted = new Set(position_ids);
+		const caused_by = [];
+		collect_registration_accounting_accounts().forEach((account) => {
+			(account.fee_items || []).forEach((entry) => {
+				if (wanted.has(String(entry.position_id || ''))) {
+					(entry.caused_by || [accounting_cause_label({ ...account, event_name: entry.event_name })]).forEach((cause) => {
+						accounting_push_cause(caused_by, cause, entry.amount);
+					});
+				}
+			});
+			(account.mandatory_items || []).forEach((entry) => {
+				if (wanted.has(String(entry.position_id || ''))) {
+					(entry.caused_by || [accounting_cause_label(account)]).forEach((cause) => {
+						accounting_push_cause(caused_by, cause, entry.amount);
+					});
+				}
+			});
+			(account.local_entries || []).forEach((entry) => {
+				if (wanted.has('local:' + String(entry.id || ''))) {
+					const sale_unit = entry.item_sale_unit || line?.sale_unit || 'Stk.';
+					accounting_push_cause(caused_by, {
+						label: accounting_cause_label(entry) || accounting_account_label(account),
+						detail: [
+							registration_datetime_display_value(entry.purchase_at || entry.created_at),
+							accounting_document_quantity_label(entry.quantity || line?.quantity || 1, sale_unit),
+						].filter(Boolean).join(', '),
+						amount: entry.amount,
+					}, entry.amount);
+				}
+			});
+			(account.btp_payments || []).forEach((entry) => {
+				if (wanted.has(String(entry.position_id || ''))) {
+					accounting_push_cause(caused_by, accounting_account_label(account), entry.amount);
+				}
+			});
+		});
+		return caused_by;
+	}
+
+	function accounting_document_fee_cause_context(line) {
+		const player_ids = (Array.isArray(line?.position_ids) ? line.position_ids : [line?.position_id || line?.entry_id])
+			.map((id) => String(id || '').trim().match(/^fee:([^:]+):/))
+			.filter(Boolean)
+			.map((match) => match[1]);
+		if (player_ids.length === 0) {
+			return new Map();
+		}
+		const wanted = new Set(player_ids);
+		const by_label = new Map();
+		(curt?.events?.events || []).forEach((event) => {
+			sorted_registration_stages(event).forEach((stage) => {
+				(stage.entries || []).forEach((entry) => {
+					(entry?.team?.players || []).forEach((player, player_index) => {
+						const player_id = registration_accounting_player_id(player, player_index);
+						if (!wanted.has(player_id)) {
+							return;
+						}
+						const label = person_display_name(player);
+						if (!label) {
+							return;
+						}
+						by_label.set(label, {
+							player_name: label,
+							club: player?.club || '',
+							state: player?.state || '',
+						});
+					});
+				});
+			});
+		});
+		return by_label;
+	}
+
+	function accounting_document_visible_causes(document, line) {
+		const causes = accounting_document_caused_by(line);
+		if (causes.length === 0) {
+			return [];
+		}
+		const show_club = document?.buyer_type === 'state';
+		const cause_context = show_club ? accounting_document_fee_cause_context(line) : new Map();
+		const context_causes = show_club
+			? causes.map((cause) => {
+				const context = cause_context.get(String(cause.label || '').trim()) || {};
+				const club = String(cause.club || context.club || '').trim();
+				const label = String(cause.label || '').trim();
+				if (!club || !label || label.includes('(' + club + ')')) {
+					return cause;
+				}
+				return {
+					...cause,
+					club,
+					state: cause.state || context.state || '',
+					label: label + ' (' + club + ')',
+				};
+			})
+			: causes;
+		const description_detail = accounting_document_detail_from_description(line);
+		const visible_causes = description_detail
+			? context_causes.map((cause) => ({ ...cause, detail: cause.detail || description_detail }))
+			: context_causes;
+		const grouped_causes = accounting_group_causes_by_label(visible_causes);
+		if (document?.buyer_type !== 'player') {
+			return grouped_causes;
+		}
+		return visible_causes.length > 1 ? grouped_causes : [];
+	}
+
+	function accounting_cause_label(data) {
+		const name = String(data?.player_name || data?.buyer_name || data?.display_name || '').trim();
+		const event_name = String(data?.event_name || '').trim();
+		const club = String(data?.club || '').trim();
+		const state = String(data?.state || '').trim();
+		let label = name || club || state || '';
+		if (event_name && !label.includes(event_name)) {
+			label += (label ? ', ' : '') + event_name;
+		}
+		if (club && label && !label.includes(club)) {
+			label += ' (' + club + ')';
+		}
+		return label;
+	}
+
+	function accounting_push_unique_text(list, value) {
+		const text = String(value || '').trim();
+		if (text && !list.includes(text)) {
+			list.push(text);
+		}
+	}
+
+	function accounting_summary_field(account, field, source) {
+		if (source === 'direct') {
+			return Array.isArray(account?.[field]) ? account[field] : [];
+		}
+		const source_prefix = source === 'children' ? 'child_summary_' : 'summary_';
+		const summary_field = source_prefix + field;
+		if (Array.isArray(account?.[summary_field])) {
+			return account[summary_field];
+		}
+		return source === 'children' ? [] : (Array.isArray(account?.[field]) ? account[field] : []);
+	}
+
+	function accounting_position_summaries(account, include_payments, source, options = {}) {
+		const excluded_position_ids = options.excluded_position_ids || new Set();
+		const kind_filter = options.kind_filter || '';
+		const category_filter = options.category_filter
+			? new Set(Array.isArray(options.category_filter) ? options.category_filter : [options.category_filter])
+			: null;
+		const item_key_filter = options.item_key_filter
+			? new Set(Array.isArray(options.item_key_filter) ? options.item_key_filter : [options.item_key_filter])
+			: null;
+		const summaries = new Map();
+		function add_summary(key, data) {
+			const quantity = registration_money_number(data.quantity || 1);
+			const amount = registration_money_number(data.amount || 0);
+			const kind = data.kind || 'charge';
+			const category = data.category || kind;
+			const item_key = data.item_key || '';
+			const position_ids = (Array.isArray(data.position_ids) ? data.position_ids : [data.position_id])
+				.map((id) => String(id || '').trim())
+				.filter(Boolean);
+			if (kind_filter && kind !== kind_filter) {
+				return;
+			}
+			if (category_filter && !category_filter.has(category)) {
+				return;
+			}
+			if (item_key_filter && !item_key_filter.has(item_key)) {
+				return;
+			}
+			if (position_ids.length > 0 && position_ids.every((id) => excluded_position_ids.has(id))) {
+				return;
+			}
+			if (!summaries.has(key)) {
+				summaries.set(key, {
+					kind,
+					category,
+					item_key,
+					class_name: data.class_name || '',
+					label: data.label || 'Position',
+					prefix: data.prefix || '',
+					sale_unit: data.sale_unit || '',
+					quantity: 0,
+					amount: 0,
+					local_entry_ids: [],
+					position_ids: [],
+					caused_by: [],
+				});
+			}
+			const summary = summaries.get(key);
+			summary.quantity = registration_money_number(summary.quantity + quantity);
+			summary.amount = registration_money_number(summary.amount + amount);
+			if (data.local_entry_id) {
+				summary.local_entry_ids.push(data.local_entry_id);
+			}
+			position_ids.forEach((id) => {
+				if (!summary.position_ids.includes(id)) {
+					summary.position_ids.push(id);
+				}
+			});
+			(Array.isArray(data.caused_by) ? data.caused_by : [data.caused_by || accounting_cause_label(data)]).forEach((cause) => {
+				accounting_push_cause(summary.caused_by, cause, amount);
+			});
+		}
+		const prefix = source === 'children' ? 'Unterkonten' : '';
+		accounting_summary_field(account, 'fee_items', source).forEach((entry) => {
+			add_summary('charge:fee', {
+				kind: 'charge',
+				category: 'fee',
+				class_name: 'accounting_entry_line_fee',
+				label: 'Meldegeld',
+				prefix,
+				quantity: 1,
+				amount: entry.amount,
+				position_id: entry.position_id,
+				caused_by: entry.caused_by || {
+					label: accounting_cause_label({ ...account, event_name: entry.event_name }),
+					amount: entry.amount,
+				},
+			});
+		});
+		accounting_summary_field(account, 'mandatory_items', source).forEach((entry) => {
+			const label = entry.description || 'Artikel';
+			const sale_unit = entry.sale_unit || 'Stk.';
+			add_summary(['charge:required', entry.item_id || label, sale_unit, entry.unit_price || ''].join(':'), {
+				kind: 'charge',
+				category: 'mandatory',
+				item_key: entry.item_id || [label, sale_unit, entry.unit_price || ''].join(':'),
+				class_name: (source === 'children' ? 'accounting_entry_line_rollup ' : '') + 'accounting_entry_line_required',
+				label,
+				prefix,
+				sale_unit,
+				quantity: entry.quantity || 1,
+				amount: entry.amount,
+				position_id: entry.position_id,
+				caused_by: entry.caused_by || {
+					label: accounting_cause_label(account),
+					amount: entry.amount,
+				},
+			});
+		});
+		accounting_summary_field(account, 'local_entries', source).forEach((entry) => {
+			if (entry.kind === 'payment') {
+				if (include_payments) {
+					add_summary('payment:local:' + (entry.payment_method || ''), {
+						kind: 'payment',
+						category: entry.source === 'btp' ? 'btp_payment' : 'local_payment',
+						class_name: (source === 'children' ? 'accounting_entry_line_rollup ' : '') + 'accounting_entry_line_local',
+						label: entry.description || 'Zahlung',
+						prefix,
+						quantity: 1,
+						amount: entry.amount,
+						local_entry_id: entry.id,
+						position_id: 'local:' + entry.id,
+						caused_by: {
+							label: accounting_cause_label(entry) || accounting_account_label(account),
+							amount: entry.amount,
+						},
+					});
+				}
+				return;
+			}
+			if (entry.kind !== 'charge') {
+				return;
+			}
+			const label = entry.description || 'Buchung';
+			const sale_unit = entry.item_sale_unit || 'Stk.';
+			add_summary(['charge:local', entry.item_id || label, sale_unit, entry.unit_price || ''].join(':'), {
+				kind: 'charge',
+				category: 'local_charge',
+				item_key: entry.item_id || [label, sale_unit, entry.unit_price || ''].join(':'),
+				class_name: (source === 'children' ? 'accounting_entry_line_rollup ' : '') + 'accounting_entry_line_local',
+				label,
+				prefix,
+				sale_unit,
+				quantity: entry.quantity || 1,
+				amount: entry.amount,
+				local_entry_id: entry.id,
+				position_id: 'local:' + entry.id,
+				caused_by: {
+					label: accounting_cause_label(entry) || accounting_account_label(account),
+					amount: entry.amount,
+				},
+			});
+		});
+		if (include_payments) {
+			accounting_summary_field(account, 'btp_payments', source).forEach((entry) => {
+				add_summary('payment:btp', {
+					kind: 'payment',
+					category: 'btp_payment',
+					class_name: (source === 'children' ? 'accounting_entry_line_rollup ' : '') + 'accounting_entry_line_btp',
+					label: 'BTP-Zahlung',
+					prefix,
+					quantity: 1,
+					amount: entry.amount,
+					position_id: entry.position_id,
+					caused_by: {
+						label: accounting_account_label(account),
+						amount: entry.amount,
+					},
+				});
+			});
+		}
+		return [...summaries.values()];
+	}
+
+	function accounting_render_summary_line(parent, summary, account) {
+		const line = uiu.el(parent, 'div', 'accounting_entry_line ' + (summary.class_name || ''));
+		uiu.el(line, 'span', {}, accounting_summary_label(summary));
+		uiu.el(line, 'strong', {}, registration_money_label(summary.amount));
+	}
+
+	function accounting_render_local_remove(parent, entry) {
+		if (!entry?.id) {
+			return;
+		}
+		const remove_btn = uiu.el(parent, 'button', {
+			type: 'button',
+			'class': 'accounting_entry_remove',
+			title: 'Lokale Buchung entfernen',
+		}, 'Entfernen');
+		remove_btn.addEventListener('click', () => {
+			if (confirm('Lokale Buchung entfernen?')) {
+				remove_registration_accounting_entry(entry.id);
+			}
+		});
+	}
+
+	function show_registration_receipt(player, account) {
+		close_registration_receipt_dialog();
+		cbts_utils.esc_stack_push(close_registration_receipt_dialog);
+		const dialog_bg = uiu.el(uiu.qs('body'), 'div', 'dialog_bg registration_receipt_dialog');
+		dialog_bg.addEventListener('click', (e) => {
+			if (e.target === dialog_bg) {
+				close_registration_receipt_dialog();
+			}
+		});
+		const dialog = uiu.el(dialog_bg, 'div', 'dialog registration_receipt_box');
+		uiu.el(dialog, 'h3', {}, 'Belege und Rechnungen');
+		uiu.el(dialog, 'p', 'registration_receipt_player', accounting_account_label(account) || person_display_name(player));
+		const document_actions = uiu.el(dialog, 'div', 'accounting_document_actions');
+		const invoice_btn = uiu.el(document_actions, 'button', { type: 'button' }, 'Rechnung erstellen');
+		const receipt_btn = uiu.el(document_actions, 'button', { type: 'button' }, 'Quittung erstellen');
+		const documents = accounting_documents_for_account(account);
+		const list_header = uiu.el(dialog, 'div', 'accounting_document_list_header');
+		uiu.el(list_header, 'strong', {}, 'Bestehende Dokumente');
+		uiu.el(list_header, 'span', {}, 'Dokument auswählen');
+		const list = uiu.el(dialog, 'div', 'accounting_document_list');
+		const current_card = uiu.el(dialog, 'section', 'accounting_document_current_card');
+		const toolbar = uiu.el(current_card, 'div', 'accounting_document_toolbar');
+		const toolbar_selection = uiu.el(toolbar, 'div', 'accounting_document_toolbar_selection');
+		const toolbar_label = uiu.el(toolbar_selection, 'span', {}, 'Aktuell ausgewählt');
+		const toolbar_actions = uiu.el(toolbar, 'div', 'accounting_document_toolbar_actions');
+		const pdf_btn = uiu.el(toolbar_actions, 'button', { type: 'button' }, 'PDF öffnen');
+		const download_btn = uiu.el(toolbar_actions, 'button', { type: 'button' }, 'PDF herunterladen');
+		const print_btn = uiu.el(toolbar_actions, 'button', { type: 'button' }, 'Drucken');
+		const close_btn = uiu.el(toolbar_actions, 'button', { type: 'button' }, 'Schließen');
+		const preview = uiu.el(current_card, 'div', 'accounting_document_preview_host');
+		const document_rows = new Map();
+		if (documents.length === 0) {
+			uiu.el(list, 'div', 'accounting_item_empty', 'Noch keine Dokumente erstellt.');
+		}
+		let active_document = documents[0] || null;
+		function document_key(document) {
+			return document?.id || document?.document_number || '';
+		}
+		function set_document_action_disabled(disabled) {
+			pdf_btn.disabled = disabled;
+			download_btn.disabled = disabled;
+			print_btn.disabled = disabled;
+		}
+		function update_selected_document() {
+			const active_key = document_key(active_document);
+			document_rows.forEach((row, key) => {
+				const selected = key === active_key;
+				row.classList.toggle('accounting_document_row_selected', selected);
+				row.setAttribute('aria-pressed', selected ? 'true' : 'false');
+			});
+			if (active_document) {
+				toolbar_label.textContent = 'Aktuell ausgewählt';
+				set_document_action_disabled(false);
+			} else {
+				toolbar_label.textContent = 'Kein Dokument ausgewählt';
+				set_document_action_disabled(true);
+			}
+		}
+		function render_active_document(document) {
+			active_document = document;
+			uiu.empty(preview);
+			if (active_document) {
+				render_accounting_document_preview(preview, active_document);
+			}
+			update_selected_document();
+		}
+		function add_document_row(document, prepend) {
+			document = accounting_document_with_payment_status(document);
+			const empty = list.querySelector('.accounting_item_empty');
+			if (empty) {
+				uiu.remove(empty);
+			}
+			const row = uiu.el(list, 'button', { type: 'button', 'class': 'accounting_document_row' });
+			const title = uiu.el(row, 'span', 'accounting_document_row_title');
+			uiu.el(title, 'strong', {}, accounting_document_type_label(document.document_type) + ' ' + (document.document_number || ''));
+			uiu.el(title, 'span', {}, registration_datetime_display_value(document.issued_at || document.created_at));
+			uiu.el(row, 'span', 'accounting_document_row_state', document.status === 'paid' ? 'bezahlt' : 'offen');
+			uiu.el(row, 'strong', 'accounting_document_row_amount', registration_money_label(document.total || 0));
+			uiu.el(row, 'span', 'accounting_document_row_current', 'Aktuell ausgewählt');
+			const key = document_key(document);
+			document_rows.set(key, row);
+			if (prepend && list.firstChild && list.firstChild !== row) {
+				list.insertBefore(row, list.firstChild);
+			}
+			row.addEventListener('click', () => render_active_document(document));
+			update_selected_document();
+			return row;
+		}
+		async function run_document_action(button, action) {
+			if (!active_document) {
+				return;
+			}
+			button.disabled = true;
+			try {
+				await action(active_document);
+			} catch (err) {
+				cerror.net(err);
+				alert('PDF konnte nicht erstellt werden: ' + (err?.message || err));
+			} finally {
+				button.disabled = false;
+				update_selected_document();
+			}
+		}
+		documents.forEach((document) => {
+			add_document_row(document, false);
+		});
+		pdf_btn.addEventListener('click', () => run_document_action(pdf_btn, open_accounting_document_pdf));
+		download_btn.addEventListener('click', () => run_document_action(download_btn, download_accounting_document_pdf));
+		print_btn.addEventListener('click', () => run_document_action(print_btn, print_accounting_document_pdf));
+		close_btn.addEventListener('click', close_registration_receipt_dialog);
+		if (active_document) {
+			render_active_document(active_document);
+		} else {
+			update_selected_document();
+		}
+		invoice_btn.addEventListener('click', () => {
+			render_accounting_document_selection(preview, account, 'invoice', function(err, response) {
+				if (!err && response?.document) {
+					add_document_row(response.document, true);
+					render_active_document(response.document);
+				}
+			});
+		});
+		receipt_btn.addEventListener('click', () => {
+			render_accounting_document_selection(preview, account, 'receipt', function(err, response) {
+				if (!err && response?.document) {
+					add_document_row(response.document, true);
+					render_active_document(response.document);
+				}
+			});
+		});
+	}
+
+	function close_registration_item_bookings_dialog() {
+		const dialog = document.querySelector('.registration_item_bookings_dialog');
+		if (!dialog) {
+			return;
+		}
+		uiu.remove(dialog);
+		cbts_utils.esc_stack_pop();
+	}
+
+	function registration_optional_accounting_items() {
+		return registration_accounting_items()
+			.filter((item) => item && item.active !== false && accounting_item_billing_type(item) === 'optional');
+	}
+
+	function registration_item_booking_item_label(item) {
+		return (item?.name || 'Artikel') + ' - ' + registration_money_label(item?.unit_price || 0) +
+			' je ' + accounting_item_sale_unit(item);
+	}
+
+	function latest_registration_account(account_key, fallback_account) {
+		const accounts = collect_registration_accounting_accounts();
+		return accounts.get(account_key) || fallback_account;
+	}
+
+	function refresh_registration_item_bookings_dialog(account_key, fallback_account) {
+		const account = latest_registration_account(account_key, fallback_account);
+		close_registration_item_bookings_dialog();
+		show_registration_item_bookings(account);
+	}
+
+	function create_registration_item_booking_select(parent, items, entry) {
+		const select = uiu.el(parent, 'select', { name: 'item_id' });
+		const selected_item_id = String(entry?.item_id || '');
+		let selected_found = false;
+		items.forEach((item) => {
+			const selected = item.id === selected_item_id;
+			selected_found = selected_found || selected;
+			const option_attrs = { value: item.id };
+			if (selected) {
+				option_attrs.selected = 'selected';
+			}
+			uiu.el(select, 'option', option_attrs, registration_item_booking_item_label(item));
+		});
+		if (entry && !selected_found) {
+			const option_attrs = { value: '' };
+			if (!selected_item_id) {
+				option_attrs.selected = 'selected';
+			}
+			uiu.el(select, 'option', option_attrs, entry.description || 'Freier Artikel');
+		}
+		return select;
+	}
+
+	function render_registration_item_booking_header(parent) {
+		const header = uiu.el(parent, 'div', 'registration_item_booking_header');
+		['Artikel', 'Menge', 'Preis', 'Zeit', 'Notiz', 'Betrag', 'Aktionen'].forEach((label) => {
+			uiu.el(header, 'span', {}, label);
+		});
+	}
+
+	function show_registration_item_bookings(account, options = {}) {
+		close_registration_item_bookings_dialog();
+		cbts_utils.esc_stack_push(close_registration_item_bookings_dialog);
+		const account_key = accounting_account_key(account?.account_type || 'player', account?.account_id || account?.player_id || '');
+		const items = registration_optional_accounting_items();
+		const dialog_bg = uiu.el(uiu.qs('body'), 'div', 'dialog_bg registration_item_bookings_dialog');
+		dialog_bg.addEventListener('click', (e) => {
+			if (e.target === dialog_bg) {
+				close_registration_item_bookings_dialog();
+			}
+		});
+		const dialog = uiu.el(dialog_bg, 'div', 'dialog registration_item_bookings_box');
+		uiu.el(dialog, 'h3', {}, 'Artikelkäufe');
+		uiu.el(dialog, 'p', 'registration_receipt_player', accounting_account_label(account));
+		const new_section = uiu.el(dialog, 'section', 'registration_item_booking_section');
+		uiu.el(new_section, 'h4', {}, 'Neuer Kauf');
+		if (items.length === 0) {
+			uiu.el(new_section, 'div', 'accounting_item_empty', 'Keine optionalen Artikel vorhanden.');
+		} else {
+			render_registration_item_booking_header(new_section);
+			const new_form = uiu.el(new_section, 'form', 'registration_item_purchase_form');
+			const purchase_rows = uiu.el(new_form, 'div', 'registration_item_bookings');
+			const row_controls = [];
+			const purchase_time_label = registration_datetime_display_value();
+			function update_purchase_remove_buttons() {
+				const active_rows = row_controls.filter((row) => document.body.contains(row.row));
+				active_rows.forEach((row) => {
+					row.remove_btn.disabled = active_rows.length <= 1;
+				});
+			}
+			function add_purchase_row() {
+				const row = uiu.el(purchase_rows, 'div', 'registration_item_booking_row registration_item_booking_new');
+				const item_select = create_registration_item_booking_select(row, items);
+				const quantity_input = uiu.el(row, 'input', {
+					type: 'text',
+					name: 'quantity',
+					value: '1',
+					inputmode: 'decimal',
+					placeholder: 'Menge',
+				});
+				const unit_price_display = uiu.el(row, 'span', 'registration_item_booking_price', '');
+				uiu.el(row, 'span', 'registration_item_booking_time', purchase_time_label);
+				const note_input = uiu.el(row, 'input', {
+					type: 'text',
+					name: 'note',
+					maxlength: '500',
+					placeholder: 'Notiz',
+				});
+				const amount = uiu.el(row, 'strong', {}, '');
+				const row_actions = uiu.el(row, 'span', 'registration_item_booking_actions');
+				const remove_btn = uiu.el(row_actions, 'button', { type: 'button' }, 'Zeile entfernen');
+				function selected_item() {
+					return items.find((item) => item && item.id === item_select.value) || items[0];
+				}
+				function sync_amount() {
+					const item = selected_item();
+					const unit_price = registration_money_number(item?.unit_price || 0);
+					const quantity = registration_money_number(quantity_input.value || 0);
+					unit_price_display.textContent = registration_money_label(unit_price);
+					amount.textContent = registration_money_label(quantity * unit_price);
+				}
+				item_select.addEventListener('change', sync_amount);
+				quantity_input.addEventListener('input', sync_amount);
+				remove_btn.addEventListener('click', () => {
+					uiu.remove(row);
+					update_purchase_remove_buttons();
+				});
+				const controls = {
+					row,
+					remove_btn,
+					selected_item,
+					quantity_input,
+					note_input,
+					amount,
+				};
+				row_controls.push(controls);
+				sync_amount();
+				update_purchase_remove_buttons();
+				return controls;
+			}
+			const first_purchase_row = add_purchase_row();
+			const purchase_actions = uiu.el(new_form, 'div', 'registration_item_actions registration_item_purchase_actions');
+			const add_row_btn = uiu.el(purchase_actions, 'button', { type: 'button' }, '+ Position');
+			const submit_btn = uiu.el(purchase_actions, 'button', { type: 'submit' }, 'Kauf buchen');
+			add_row_btn.addEventListener('click', () => {
+				add_purchase_row().quantity_input.focus();
+			});
+			new_form.addEventListener('submit', (e) => {
+				e.preventDefault();
+				const active_rows = row_controls.filter((row) => document.body.contains(row.row));
+				const sale_id = registration_accounting_sale_id();
+				const purchase_at = registration_datetime_storage_value();
+				const entries = active_rows.map((row) => {
+					const item = row.selected_item();
+					const quantity = registration_money_number(row.quantity_input.value || 0);
+					const unit_price = registration_money_number(item?.unit_price || 0);
+					return { row, item, quantity, unit_price };
+				}).filter((entry) => entry.item && entry.quantity > 0 && entry.unit_price >= 0);
+				if (entries.length === 0) {
+					return;
+				}
+				let index = 0;
+				function add_next_entry() {
+					if (index >= entries.length) {
+						if (current_view === 'accounting') {
+							ui_accounting();
+						}
+						refresh_registration_item_bookings_dialog(account_key, account);
+						return;
+					}
+					const entry = entries[index++];
+					add_registration_accounting_entry({
+						...accounting_account_base_entry(null, account),
+						sale_id,
+						kind: 'charge',
+						type: 'item',
+							item_id: entry.item.id,
+							item_input_type: entry.item.input_type || 'quantity',
+							item_sale_unit: accounting_item_sale_unit(entry.item),
+							item_overview_category: accounting_item_overview_category(entry.item),
+							description: entry.item.name,
+							quantity: entry.quantity,
+						unit_price: entry.unit_price,
+						amount: registration_money_number(entry.quantity * entry.unit_price),
+						note: entry.row.note_input.value || entry.item.note || '',
+						purchase_at,
+					}, function(err) {
+						if (!err) {
+							add_next_entry();
+						}
+					}, { refresh: false });
+				}
+				add_next_entry();
+			});
+			if (options.focus_new) {
+				first_purchase_row.quantity_input.focus();
+			}
+		}
+		const entries = (account?.local_entries || [])
+			.filter((entry) => entry && entry.kind === 'charge' && ['item', 'shuttles', 'other'].includes(String(entry.type || '')));
+		const existing_section = uiu.el(dialog, 'section', 'registration_item_booking_section');
+		uiu.el(existing_section, 'h4', {}, 'Direkte Buchungen');
+		if (entries.length > 0) {
+			render_registration_item_booking_header(existing_section);
+		}
+		const list = uiu.el(existing_section, 'div', 'registration_item_bookings');
+		if (entries.length === 0) {
+			uiu.el(list, 'div', 'accounting_item_empty', 'Keine direkten Artikelbuchungen vorhanden.');
+		}
+		const voided_entry_ids = new Set(entries
+			.filter((entry) => entry && entry.is_cancellation && entry.voids_entry_id)
+			.map((entry) => String(entry.voids_entry_id)));
+		entries.forEach((entry) => {
+			const row = uiu.el(list, 'div', 'registration_item_booking_row registration_item_booking_existing' + (entry.is_cancellation ? ' registration_item_booking_cancelled' : ''));
+			uiu.el(row, 'span', 'registration_item_booking_name', entry.description || 'Artikel');
+			uiu.el(row, 'span', {}, accounting_summary_quantity_label(entry.quantity || 1));
+			uiu.el(row, 'span', 'registration_item_booking_price', registration_money_label(entry.unit_price || 0));
+			uiu.el(row, 'span', 'registration_item_booking_time', registration_datetime_display_value(entry.purchase_at || entry.created_at));
+			uiu.el(row, 'span', 'registration_item_booking_note', entry.note || '-');
+			uiu.el(row, 'strong', {}, registration_money_label(entry.amount || 0));
+			const row_actions = uiu.el(row, 'span', 'registration_item_booking_actions');
+			const cancel_btn = uiu.el(row_actions, 'button', {
+				type: 'button',
+				'class': 'accounting_entry_remove',
+			}, entry.is_cancellation ? 'Storno' : voided_entry_ids.has(String(entry.id)) ? 'Storniert' : 'Stornieren');
+			if (entry.is_cancellation || voided_entry_ids.has(String(entry.id))) {
+				cancel_btn.disabled = true;
+			} else {
+				cancel_btn.addEventListener('click', () => {
+					if (confirm('Artikelbuchung stornieren?')) {
+						const quantity = -Math.abs(registration_money_number(entry.quantity || 1));
+						const unit_price = registration_money_number(entry.unit_price || 0);
+						const amount = -Math.abs(registration_money_number(entry.amount || quantity * unit_price));
+						add_registration_accounting_entry({
+							...accounting_account_base_entry(null, account),
+							sale_id: entry.sale_id || registration_accounting_sale_id(),
+							kind: 'charge',
+							type: entry.type || 'item',
+							item_id: entry.item_id || '',
+							item_input_type: entry.item_input_type || 'quantity',
+							item_sale_unit: entry.item_sale_unit || 'Stk.',
+							description: 'Storno ' + (entry.description || 'Artikel'),
+							quantity,
+							unit_price,
+							amount,
+							note: entry.note ? 'Storno zu: ' + entry.note : '',
+							purchase_at: registration_datetime_storage_value(),
+							is_cancellation: true,
+							voids_entry_id: entry.id,
+						}, function(err) {
+							if (!err) {
+								refresh_registration_item_bookings_dialog(account_key, account);
+							}
+						});
+					}
+				});
+			}
+		});
+		const actions = uiu.el(dialog, 'div', 'registration_item_actions');
+		const close_btn = uiu.el(actions, 'button', { type: 'button' }, 'Schließen');
+		close_btn.addEventListener('click', close_registration_item_bookings_dialog);
+		close_btn.focus();
+	}
+
+	function render_registration_accounting(parent, event, player, account) {
+		const wrap = uiu.el(parent, 'span', 'registration_accounting');
+		const amounts = uiu.el(wrap, 'span', 'registration_accounting_amounts');
+		uiu.el(amounts, 'span', {}, 'Soll ' + registration_money_label(account?.due_total || 0));
+		uiu.el(amounts, 'span', {}, 'Gezahlt ' + registration_money_label(account?.paid_total || 0));
+		const open = registration_money_number(account?.open_total || 0);
+		uiu.el(amounts, 'strong', {
+			'class': open > 0 ? 'registration_accounting_open' : 'registration_accounting_done',
+		}, 'Offen ' + registration_money_label(open));
+		const actions = uiu.el(wrap, 'span', 'registration_accounting_actions');
+		const pay_btn = uiu.el(actions, 'button', {
+			type: 'button',
+			'class': 'registration_accounting_button',
+			title: 'Zahlung erfassen',
+		}, 'Zahlung');
+		pay_btn.addEventListener('click', () => add_registration_payment(event, account));
+		const item_btn = uiu.el(actions, 'button', {
+			type: 'button',
+			'class': 'registration_accounting_button',
+			title: 'Artikel buchen',
+		}, 'Artikel');
+		item_btn.addEventListener('click', () => add_registration_catalog_item(event, account));
+		const receipt_btn = uiu.el(actions, 'button', {
+			type: 'button',
+			'class': 'registration_accounting_button',
+			title: 'Beleg anzeigen',
+		}, 'Beleg');
+		receipt_btn.addEventListener('click', () => show_registration_receipt(accounting_account_player(account), account));
+	}
+
+	function accounting_account_player(account) {
+		return account?.player || {
+			name: accounting_account_label(account),
+			btp_id: account?.player_id || '',
+			club: account?.club || '',
+			state: account?.state || '',
+		};
+	}
+
+	function render_accounting_entry_lines(parent, account) {
+		const lines = uiu.el(parent, 'div', 'accounting_entry_lines');
+		accounting_position_summaries(account, false)
+			.forEach((summary) => accounting_render_summary_line(lines, summary, account));
+		if (lines.children.length === 0) {
+			uiu.el(lines, 'div', 'accounting_entry_line accounting_entry_line_empty', '-');
+		}
+	}
+
+	function render_accounting_balance_cell(parent, account) {
+		const cell = uiu.el(parent, 'td', 'accounting_col_balance');
+		const balance = uiu.el(cell, 'div', 'accounting_balance');
+		const invoiced_total = accounting_invoiced_total(account);
+		const display_open_total = accounting_display_open_total(account, invoiced_total);
+		const lines = [
+			['Soll', account.due_total, ''],
+			['In Rechnung gestellt', invoiced_total, 'accounting_invoiced'],
+			['Gezahlt', account.paid_total, ''],
+			['Offen', display_open_total, display_open_total > 0 ? 'accounting_open' : 'accounting_done'],
+		];
+		lines.forEach(([label, amount, class_name]) => {
+			const line = uiu.el(balance, 'div', 'accounting_balance_line ' + (label === 'Offen' ? 'accounting_balance_open_line ' : '') + class_name);
+			uiu.el(line, 'span', {}, label + ':');
+			uiu.el(line, 'strong', {}, registration_money_label(amount));
+		});
+	}
+
+	function accounting_position_list_account_columns(account) {
+		const type = String(account?.account_type || '');
+		return {
+			state: type === 'state' ? accounting_account_label(account) : (account?.state || ''),
+			club: type === 'club' ? accounting_account_label(account) : (account?.club || ''),
+			name: type === 'player' ? (account?.player_name || accounting_account_label(account)) : (type === 'none' ? accounting_account_label(account) : ''),
+		};
+	}
+
+	function accounting_position_list_invoice_maps() {
+		const by_position_id = new Map();
+		const by_invoice_key = new Map();
+		registration_accounting_documents()
+			.filter((document) => document && document.document_type === 'invoice')
+			.forEach((document) => {
+				const invoice = accounting_document_with_payment_status(document);
+				const due_at = accounting_document_payment_details(invoice).due_at;
+				const payload = {
+					document: invoice,
+					number: invoice.document_number || '',
+					issued_at: invoice.issued_at || invoice.created_at || '',
+					due_at,
+				};
+				if (invoice.id) {
+					by_invoice_key.set('id:' + invoice.id, payload);
+				}
+				if (invoice.document_number) {
+					by_invoice_key.set('number:' + invoice.document_number, payload);
+				}
+				accounting_document_position_ids(invoice).forEach((position_id) => {
+					if (!by_position_id.has(position_id)) {
+						by_position_id.set(position_id, payload);
+					}
+				});
+			});
+		return { by_position_id, by_invoice_key };
+	}
+
+	function accounting_position_list_payment_date(entry) {
+		return entry?.purchase_at || entry?.payment_date || entry?.created_at || '';
+	}
+
+	function accounting_position_list_rows() {
+		const accounts = [...collect_registration_accounting_accounts().values()]
+			.filter((account) => account && !account.accounting_group_only)
+			.sort(accounting_sort_by_label);
+		const { by_position_id, by_invoice_key } = accounting_position_list_invoice_maps();
+		const rows = [];
+		const rows_by_position_id = new Map();
+		const rows_by_account_key = new Map();
+		function remember_row(account, data) {
+			const position_ids = (Array.isArray(data.position_ids) ? data.position_ids : [data.position_id])
+				.map((id) => String(id || '').trim())
+				.filter(Boolean);
+			const amount = registration_money_number(data.amount || 0);
+			if (position_ids.length === 0 || amount <= 0) {
+				return;
+			}
+			const invoice = position_ids.map((position_id) => by_position_id.get(position_id)).find(Boolean) || null;
+			const row = {
+				...accounting_position_list_account_columns(account),
+				account_key: accounting_account_key(account?.account_type, account?.account_id),
+				position_id: position_ids[0],
+				position_ids,
+				position_amounts: data.position_amounts || Object.fromEntries(position_ids.map((position_id) => [position_id, amount])),
+				position_details: data.position_details || Object.fromEntries(position_ids.map((position_id) => [position_id, data.detail || ''])),
+				position_paid_amounts: {},
+				position_paid_dates: {},
+				position: data.position || 'Position',
+				detail: data.detail || '',
+				amount,
+				invoice_number: invoice?.number || '',
+				invoiced_at: invoice?.issued_at || '',
+				due_at: invoice?.due_at || '',
+				paid_amount: 0,
+				paid_dates: [],
+				open_amount: amount,
+			};
+			rows.push(row);
+			position_ids.forEach((position_id) => rows_by_position_id.set(position_id, row));
+			if (!rows_by_account_key.has(row.account_key)) {
+				rows_by_account_key.set(row.account_key, []);
+			}
+			rows_by_account_key.get(row.account_key).push(row);
+		}
+		accounts.forEach((account) => {
+			const fee_items = account.fee_items || [];
+			if (fee_items.length > 0) {
+				const details = [];
+				const position_ids = [];
+				const position_amounts = {};
+				const position_details = {};
+				let amount = 0;
+				fee_items.forEach((entry) => {
+					const detail = String(entry.event_name || '').trim();
+					if (detail && !details.includes(detail)) {
+						details.push(detail);
+					}
+					if (entry.position_id && !position_ids.includes(entry.position_id)) {
+						position_ids.push(entry.position_id);
+					}
+					const entry_amount = registration_money_number(entry.amount || 0);
+					if (entry.position_id) {
+						position_amounts[entry.position_id] = registration_money_number((position_amounts[entry.position_id] || 0) + entry_amount);
+						position_details[entry.position_id] = detail;
+					}
+					amount = registration_money_number(amount + entry_amount);
+				});
+				remember_row(account, {
+					position_ids,
+					position_amounts,
+					position_details,
+					position: 'Meldegeld',
+					detail: details.join(', '),
+					amount,
+				});
+			}
+			(account.mandatory_items || []).forEach((entry) => {
+				remember_row(account, {
+					position_id: entry.position_id,
+					position: entry.description || 'Artikel',
+					detail: accounting_summary_quantity_label(entry.quantity || 1),
+					amount: entry.amount,
+				});
+			});
+			const local_entries = account.local_entries || [];
+			const voided_entry_ids = new Set(local_entries
+				.filter((entry) => entry && entry.is_cancellation && entry.voids_entry_id)
+				.map((entry) => String(entry.voids_entry_id)));
+			local_entries.forEach((entry) => {
+				if (!entry || entry.kind !== 'charge' || entry.is_cancellation || voided_entry_ids.has(String(entry.id || ''))) {
+					return;
+				}
+				remember_row(account, {
+					position_id: entry.id ? 'local:' + entry.id : '',
+					position: entry.description || 'Buchung',
+					detail: [
+						accounting_summary_quantity_label(entry.quantity || 1),
+						registration_datetime_display_value(entry.purchase_at || entry.created_at),
+					].filter(Boolean).join(', '),
+					amount: entry.amount,
+				});
+			});
+		});
+		function add_paid_share(row, amount, date, position_ids) {
+			if (!row) {
+				return;
+			}
+			const value = registration_money_number(amount || 0);
+			if (value === 0) {
+				return;
+			}
+			const target_position_ids = (Array.isArray(position_ids) && position_ids.length > 0 ? position_ids : row.position_ids || [row.position_id])
+				.map((id) => String(id || '').trim())
+				.filter(Boolean)
+				.filter((id, index, ids) => ids.indexOf(id) === index);
+			const remaining_total = registration_money_number(target_position_ids.reduce((sum, position_id) => {
+				const position_amount = registration_money_number(row.position_amounts?.[position_id] || 0);
+				const paid_amount = registration_money_number(row.position_paid_amounts?.[position_id] || 0);
+				return sum + Math.max(0, position_amount - paid_amount);
+			}, 0));
+			const basis_total = remaining_total > 0
+				? remaining_total
+				: registration_money_number(target_position_ids.reduce((sum, position_id) => sum + registration_money_number(row.position_amounts?.[position_id] || 0), 0));
+			if (basis_total <= 0) {
+				return;
+			}
+			let assigned = 0;
+			target_position_ids.forEach((position_id, index) => {
+				const position_amount = registration_money_number(row.position_amounts?.[position_id] || 0);
+				const paid_amount = registration_money_number(row.position_paid_amounts?.[position_id] || 0);
+				const basis = remaining_total > 0 ? Math.max(0, position_amount - paid_amount) : position_amount;
+				const share = index === target_position_ids.length - 1
+					? registration_money_number(value - assigned)
+					: registration_money_number(value * basis / basis_total);
+				assigned = registration_money_number(assigned + share);
+				if (share <= 0) {
+					return;
+				}
+				row.position_paid_amounts[position_id] = Math.max(0, Math.min(position_amount, registration_money_number(paid_amount + share)));
+				const date_label = date ? registration_date_display_value(date) : '';
+				if (date_label && date_label !== '-') {
+					if (!Array.isArray(row.position_paid_dates[position_id])) {
+						row.position_paid_dates[position_id] = [];
+					}
+					if (!row.position_paid_dates[position_id].includes(date_label)) {
+						row.position_paid_dates[position_id].push(date_label);
+					}
+				}
+			});
+			row.paid_amount = Math.max(0, Math.min(row.amount, registration_money_number(Object.values(row.position_paid_amounts)
+				.reduce((sum, paid_amount) => sum + registration_money_number(paid_amount), 0))));
+			row.open_amount = Math.max(0, registration_money_number(row.amount - row.paid_amount));
+			row.paid_dates = Object.values(row.position_paid_dates)
+				.flat()
+				.filter((date_label, index, dates) => date_label && dates.indexOf(date_label) === index);
+		}
+		function allocate_payment_to_positions(position_ids, amount, date) {
+			const targets_by_row = new Map();
+			(position_ids || [])
+				.map((id) => String(id || '').trim())
+				.filter(Boolean)
+				.forEach((position_id) => {
+					const row = rows_by_position_id.get(position_id);
+					if (!row) {
+						return;
+					}
+					const current = targets_by_row.get(row) || { row, basis: 0, position_ids: [] };
+					current.basis = registration_money_number(current.basis + registration_money_number(row.position_amounts?.[position_id] || 0));
+					if (!current.position_ids.includes(position_id)) {
+						current.position_ids.push(position_id);
+					}
+					targets_by_row.set(row, current);
+				});
+			const targets = [...targets_by_row.values()]
+				.map((target) => ({
+					row: target.row,
+					basis: target.basis > 0 ? target.basis : target.row.amount,
+					position_ids: target.position_ids,
+				}));
+			const value = registration_money_number(amount || 0);
+			if (targets.length === 0 || value <= 0) {
+				return;
+			}
+			const remaining_total = registration_money_number(targets.reduce((sum, target) => {
+				return sum + Math.min(target.basis, Math.max(0, target.row.amount - target.row.paid_amount));
+			}, 0));
+			const basis_total = remaining_total > 0
+				? remaining_total
+				: registration_money_number(targets.reduce((sum, target) => sum + target.basis, 0));
+			if (basis_total <= 0) {
+				return;
+			}
+			let assigned = 0;
+			targets.forEach((target, index) => {
+				const row = target.row;
+				const basis = remaining_total > 0
+					? Math.min(target.basis, Math.max(0, row.amount - row.paid_amount))
+					: target.basis;
+				const share = index === targets.length - 1
+					? registration_money_number(value - assigned)
+					: registration_money_number(value * basis / basis_total);
+				assigned = registration_money_number(assigned + share);
+				add_paid_share(row, share, date, target.position_ids);
+			});
+		}
+		registration_accounting_entries()
+			.filter((entry) => entry && entry.kind === 'payment' && !entry.is_cancellation)
+			.forEach((entry) => {
+				const date = accounting_position_list_payment_date(entry);
+				accounting_payment_allocations(entry).forEach((allocation) => {
+					let position_ids = allocation.position_ids || [];
+					if (allocation.target_type === 'invoice') {
+						const invoice = by_invoice_key.get('id:' + allocation.invoice_id) || by_invoice_key.get('number:' + allocation.invoice_number);
+						position_ids = accounting_document_position_ids(invoice?.document);
+					}
+					allocate_payment_to_positions(position_ids, allocation.amount, date);
+				});
+			});
+		accounts.forEach((account) => {
+			const account_rows = rows_by_account_key.get(accounting_account_key(account?.account_type, account?.account_id)) || [];
+			(account.btp_payments || []).forEach((payment) => {
+				const amount = registration_money_number(payment?.amount || 0);
+				if (amount <= 0) {
+					return;
+				}
+				allocate_payment_to_positions(account_rows.flatMap((row) => row.position_ids || [row.position_id]), amount, payment.payment_date || payment.PaymentDate || '');
+			});
+		});
+		function split_position_list_rows(source_rows) {
+			const split_rows = [];
+			source_rows.forEach((row) => {
+				const groups = new Map();
+				const remember_group = (position_id, amount, paid, paid_dates) => {
+					const invoice = by_position_id.get(position_id) || null;
+					const key = [
+						invoice?.number || '',
+						invoice?.issued_at || '',
+						invoice?.due_at || '',
+						paid ? 'paid' : 'open',
+					].join('\u0001');
+					if (!groups.has(key)) {
+						groups.set(key, {
+							...row,
+							position_ids: [],
+							position_amounts: {},
+							position_details: {},
+							amount: 0,
+							invoice_number: invoice?.number || '',
+							invoiced_at: invoice?.issued_at || '',
+							due_at: invoice?.due_at || '',
+							paid_amount: 0,
+							paid_dates: [],
+							open_amount: 0,
+						});
+					}
+					const group = groups.get(key);
+					const value = registration_money_number(amount || 0);
+					if (value <= 0) {
+						return;
+					}
+					if (!group.position_ids.includes(position_id)) {
+						group.position_ids.push(position_id);
+					}
+					group.position_amounts[position_id] = registration_money_number((group.position_amounts[position_id] || 0) + value);
+					group.position_details[position_id] = row.position_details?.[position_id] || row.detail || '';
+					group.amount = registration_money_number(group.amount + value);
+					if (paid) {
+						group.paid_amount = registration_money_number(group.paid_amount + value);
+						(paid_dates || []).forEach((date_label) => {
+							if (date_label && !group.paid_dates.includes(date_label)) {
+								group.paid_dates.push(date_label);
+							}
+						});
+					} else {
+						group.open_amount = registration_money_number(group.open_amount + value);
+					}
+				};
+				(row.position_ids || [row.position_id]).forEach((position_id) => {
+					const total = registration_money_number(row.position_amounts?.[position_id] || 0);
+					const paid = Math.max(0, Math.min(total, registration_money_number(row.position_paid_amounts?.[position_id] || 0)));
+					const open = Math.max(0, registration_money_number(total - paid));
+					if (paid > 0) {
+						remember_group(position_id, paid, true, row.position_paid_dates?.[position_id] || row.paid_dates || []);
+					}
+					if (open > 0 || paid <= 0) {
+						remember_group(position_id, open > 0 ? open : total, false, []);
+					}
+				});
+				groups.forEach((group) => {
+					const detail_parts = [];
+					group.position_ids.forEach((position_id) => {
+						const detail = String(group.position_details?.[position_id] || '').trim();
+						if (detail && !detail_parts.includes(detail)) {
+							detail_parts.push(detail);
+						}
+					});
+					group.detail = detail_parts.join(', ') || row.detail || '';
+					group.position_id = group.position_ids[0] || row.position_id;
+					split_rows.push(group);
+				});
+			});
+			return split_rows;
+		}
+		return split_position_list_rows(rows).sort((a, b) => (
+			String(a.state).localeCompare(String(b.state), 'de', { sensitivity: 'base' }) ||
+			String(a.club).localeCompare(String(b.club), 'de', { sensitivity: 'base' }) ||
+			String(a.name).localeCompare(String(b.name), 'de', { sensitivity: 'base' }) ||
+			String(a.position).localeCompare(String(b.position), 'de', { sensitivity: 'base' }) ||
+			String(a.detail).localeCompare(String(b.detail), 'de', { numeric: true, sensitivity: 'base' })
+		));
+	}
+
+	function accounting_position_list_invoice_label(row) {
+		if (!row.invoiced_at) {
+			return '';
+		}
+		const issued = registration_date_display_value(row.invoiced_at);
+		const due = row.due_at ? registration_date_display_value(row.due_at) : '';
+		return due && due !== '-' ? issued + ' (' + due + ')' : issued;
+	}
+
+	function accounting_position_list_invoice_compact_label(row) {
+		if (!row.invoice_number && !row.invoiced_at) {
+			return '-';
+		}
+		const due = row.due_at ? registration_date_display_value(row.due_at) : '';
+		if (row.invoice_number && due && due !== '-') {
+			return row.invoice_number + ' / ' + due;
+		}
+		return row.invoice_number || due || '-';
+	}
+
+	function accounting_position_list_invoice_title(row) {
+		if (!row.invoice_number && !row.invoiced_at) {
+			return 'Nicht in Rechnung gestellt';
+		}
+		return [
+			row.invoice_number ? 'Rechnung: ' + row.invoice_number : '',
+			row.invoiced_at ? 'In Rechnung gestellt: ' + registration_date_display_value(row.invoiced_at) : '',
+			row.due_at ? 'Zahlungsziel: ' + registration_date_display_value(row.due_at) : '',
+		].filter(Boolean).join('\n');
+	}
+
+	function accounting_position_list_detail_label(row) {
+		const detail = String(row.detail || '').trim();
+		if (!detail) {
+			return row.position || '-';
+		}
+		return (row.position || 'Posten') + ': ' + detail;
+	}
+
+	function accounting_position_list_is_paid(row) {
+		return registration_money_number(row.open_amount || 0) <= 0;
+	}
+
+	function accounting_position_list_paid_title(row) {
+		if (row.paid_dates.length > 0) {
+			return 'Gezahlt am: ' + row.paid_dates.join(', ');
+		}
+		return accounting_position_list_is_paid(row) ? 'Gezahlt' : 'Noch offen';
+	}
+
+	function accounting_position_list_csv(rows) {
+		const headers = ['LV', 'Verein', 'Name', 'Posten / Details', 'Betrag', 'Rechnung / Ziel', 'Gezahlt', 'Gezahlt am'];
+		const escape = (value) => '"' + String(value == null ? '' : value).replace(/"/g, '""') + '"';
+		const lines = [headers.map(escape).join(';')];
+		rows.forEach((row) => {
+			lines.push([
+				row.state,
+				row.club,
+				row.name,
+				accounting_position_list_detail_label(row),
+				registration_money_label(row.amount),
+				accounting_position_list_invoice_compact_label(row),
+				accounting_position_list_is_paid(row) ? 'Ja' : 'Nein',
+				row.paid_dates.join(', '),
+			].map(escape).join(';'));
+		});
+		return '\ufeff' + lines.join('\r\n');
+	}
+
+	function accounting_position_list_filename(extension) {
+		return 'Postenliste-' + (curt?.key || 'Turnier') + '.' + extension;
+	}
+
+	async function make_accounting_position_list_pdf(rows) {
+		if (typeof PDFLib === 'undefined' || !PDFLib.PDFDocument) {
+			throw new Error('PDF-Bibliothek nicht geladen.');
+		}
+		const pdf_doc = await PDFLib.PDFDocument.create();
+		if (typeof pdf_doc.setTitle === 'function') {
+			pdf_doc.setTitle('Postenliste');
+		}
+		const font = await pdf_doc.embedFont(PDFLib.StandardFonts.Helvetica);
+		const bold = await pdf_doc.embedFont(PDFLib.StandardFonts.HelveticaBold);
+		const page_size = [841.89, 595.28];
+		const mm_to_pt = 72 / 25.4;
+		const margins = {
+			left: 10 * mm_to_pt,
+			right: 10 * mm_to_pt,
+			top: 25 * mm_to_pt,
+			bottom: 10 * mm_to_pt,
+		};
+		const content_left = margins.left;
+		const content_right = page_size[0] - margins.right;
+		const content_width = content_right - content_left;
+		const column_gap = 8;
+		const columns = [
+			{ key: 'state', label: 'LV', min: 64, max: 124 },
+			{ key: 'club', label: 'Verein', min: 82, max: 145 },
+			{ key: 'name', label: 'Name', min: 88, max: 150 },
+			{ key: 'detail_label', label: 'Posten / Details', min: 130, max: 250, grow: 1 },
+			{ key: 'amount', label: 'Betrag', min: 54, max: 68, money: true },
+			{ key: 'invoice_compact', label: 'Rechnung / Ziel', min: 70, max: 140, grow: 2 },
+			{ key: 'paid_checkbox', label: 'Gezahlt', min: 40, max: 44, checkbox: true },
+		];
+		let page = null;
+		let y = 0;
+		const pages = [];
+		const text_color = PDFLib.rgb(0.12, 0.16, 0.21);
+		const muted = PDFLib.rgb(0.36, 0.42, 0.48);
+		const line_color = PDFLib.rgb(0.78, 0.82, 0.86);
+		function draw_text(text, x, line_y, options = {}) {
+			page.drawText(accounting_pdf_text(text), {
+				x,
+				y: line_y,
+				size: options.size || 7.5,
+				font: options.bold ? bold : font,
+				color: options.color || text_color,
+			});
+		}
+		function draw_right(text, right, line_y, options = {}) {
+			const size = options.size || 7.5;
+			const use_font = options.bold ? bold : font;
+			const safe_text = accounting_pdf_text(text);
+			page.drawText(safe_text, {
+				x: right - use_font.widthOfTextAtSize(safe_text, size),
+				y: line_y,
+				size,
+				font: use_font,
+				color: options.color || text_color,
+			});
+		}
+		function draw_checkbox(x, box_y, checked) {
+			const size = 9;
+			page.drawRectangle({
+				x,
+				y: box_y,
+				width: size,
+				height: size,
+				borderWidth: 0.8,
+				borderColor: checked ? PDFLib.rgb(0.18, 0.42, 0.24) : muted,
+			});
+			if (!checked) {
+				return;
+			}
+			const check_color = PDFLib.rgb(0.18, 0.42, 0.24);
+			page.drawLine({
+				start: { x: x + 2.0, y: box_y + 4.6 },
+				end: { x: x + 3.9, y: box_y + 2.6 },
+				thickness: 1.1,
+				color: check_color,
+			});
+			page.drawLine({
+				start: { x: x + 3.9, y: box_y + 2.6 },
+				end: { x: x + 7.5, y: box_y + 7.2 },
+				thickness: 1.1,
+				color: check_color,
+			});
+		}
+		function draw_header() {
+			const title = 'Postenliste';
+			const title_y = page_size[1] - margins.top - 4;
+			const title_width = bold.widthOfTextAtSize(title, 15);
+			const event_period = accounting_event_period_label() || accounting_automatic_event_period_label();
+			const event_label = [curt?.name || 'Turnier', event_period].filter(Boolean).join(' | ');
+			draw_text(title, content_left, title_y, { size: 15, bold: true });
+			if (event_label) {
+				const event_x = content_left + title_width + 16;
+				const event_width = Math.max(80, content_right - event_x - 72);
+				const event_lines = accounting_pdf_wrap_text(event_label, font, 8.5, event_width).slice(0, 2);
+				event_lines.forEach((line, index) => {
+					draw_text(line, event_x, title_y + 1 - index * 10, { size: 8.5, color: muted });
+				});
+			}
+			draw_right(registration_date_display_value(new Date()), content_right, page_size[1] - margins.top - 2, { size: 8, color: muted });
+			const summary = rows.length + ' Posten | Summe ' +
+				registration_money_label(rows.reduce((sum, row) => registration_money_number(sum + row.amount), 0));
+			draw_text(summary, content_left, page_size[1] - margins.top - 20, { size: 8, color: muted });
+			y = page_size[1] - margins.top - 42;
+			let x = content_left;
+			columns.forEach((column) => {
+				draw_text(column.label, x, y, { size: 8, bold: true });
+				x += column.width + column_gap;
+			});
+			page.drawLine({ start: { x: content_left, y: y - 5 }, end: { x: content_right, y: y - 5 }, thickness: 0.6, color: line_color });
+			y -= 17;
+		}
+		function new_page() {
+			page = pdf_doc.addPage(page_size);
+			pages.push(page);
+			draw_header();
+		}
+		function row_value(row, column) {
+			if (column.key === 'amount' || column.key === 'open_amount') {
+				return registration_money_label(row[column.key] || 0);
+			}
+			if (column.key === 'detail_label') {
+				return accounting_position_list_detail_label(row);
+			}
+			if (column.key === 'invoice_compact') {
+				return accounting_position_list_invoice_compact_label(row);
+			}
+			return row[column.key] || '-';
+		}
+		function measure_pdf_text(text, use_bold, size) {
+			const use_font = use_bold ? bold : font;
+			return use_font.widthOfTextAtSize(accounting_pdf_text(text), size);
+		}
+		function column_content_width(column, row) {
+			if (column.checkbox) {
+				return measure_pdf_text(column.label, true, 8);
+			}
+			const size = column.money ? 8.2 : 8.0;
+			return measure_pdf_text(row_value(row, column), column.money, size);
+		}
+		function fit_accounting_position_list_columns() {
+			const available_width = content_width - (column_gap * (columns.length - 1));
+			columns.forEach((column) => {
+				const header_width = measure_pdf_text(column.label, true, 8);
+				const content_width = rows.reduce((max_width, row) => Math.max(max_width, column_content_width(column, row)), header_width);
+				const desired = Math.ceil(content_width + 8);
+				column.width = Math.max(column.min, Math.min(column.max, desired));
+			});
+			let total_width = columns.reduce((sum, column) => sum + column.width, 0);
+			if (total_width > available_width) {
+				let overflow = total_width - available_width;
+				while (overflow > 0.1) {
+					const shrinkable = columns.filter((column) => column.width > column.min + 0.1);
+					if (shrinkable.length === 0) {
+						break;
+					}
+					const share = overflow / shrinkable.length;
+					shrinkable.forEach((column) => {
+						const shrink = Math.min(column.width - column.min, share);
+						column.width -= shrink;
+						overflow -= shrink;
+					});
+				}
+			} else if (total_width < available_width) {
+				let free = available_width - total_width;
+				while (free > 0.1) {
+					const expandable = columns.filter((column) => (column.grow || 0) > 0 && column.width < column.max - 0.1);
+					if (expandable.length === 0) {
+						break;
+					}
+					const grow_total = expandable.reduce((sum, column) => sum + (column.grow || 0), 0);
+					expandable.forEach((column) => {
+						const grow = Math.min(column.max - column.width, free * ((column.grow || 0) / grow_total));
+						column.width += grow;
+						free -= grow;
+					});
+				}
+			}
+		}
+		fit_accounting_position_list_columns();
+		new_page();
+		rows.forEach((row) => {
+			const wrapped = columns.map((column) => {
+				if (column.checkbox) {
+					return [''];
+				}
+				const size = column.money ? 8.2 : 8.0;
+				return accounting_pdf_wrap_text(row_value(row, column), font, size, column.width - 4);
+			});
+			const max_lines = Math.max(...wrapped.map((lines) => lines.length), 1);
+			const line_height = 10.5;
+			const row_height = Math.max(18, max_lines * line_height + 9);
+			if (y - row_height < margins.bottom + 18) {
+				new_page();
+			}
+			let x = content_left;
+			wrapped.forEach((lines, column_index) => {
+				const column = columns[column_index];
+				lines.forEach((line, line_index) => {
+					const line_y = y - 7.5 - line_index * line_height;
+					if (column.money) {
+						draw_right(line, x + column.width - 4, line_y, { size: 8.2, bold: true });
+					} else if (column.checkbox && line_index === 0) {
+						draw_checkbox(x + (column.width - 9) / 2, line_y - 1.5, accounting_position_list_is_paid(row));
+					} else {
+						draw_text(line, x, line_y, { size: 8.0 });
+					}
+				});
+				x += column.width + column_gap;
+			});
+			page.drawLine({ start: { x: content_left, y: y - row_height + 4 }, end: { x: content_right, y: y - row_height + 4 }, thickness: 0.25, color: line_color });
+			y -= row_height;
+		});
+		const total_pages = pdf_doc.getPageCount();
+		pdf_doc.getPages().forEach((pdf_page, index) => {
+			const label = 'Seite ' + (index + 1) + ' / ' + total_pages;
+			pdf_page.drawText(label, {
+				x: content_right - font.widthOfTextAtSize(label, 7),
+				y: margins.bottom - 12,
+				size: 7,
+				font,
+				color: muted,
+			});
+		});
+		return pdf_doc.save();
+	}
+
+	async function download_accounting_position_list_pdf(rows) {
+		const bytes = await make_accounting_position_list_pdf(rows);
+		save_file(new Blob([bytes], { type: 'application/pdf' }), accounting_position_list_filename('pdf'));
+	}
+
+	function close_accounting_position_list_dialog() {
+		const dialog = document.querySelector('.accounting_position_list_dialog');
+		if (!dialog) {
+			return;
+		}
+		uiu.remove(dialog);
+		cbts_utils.esc_stack_pop();
+	}
+
+	function show_accounting_position_list() {
+		close_accounting_position_list_dialog();
+		const rows = accounting_position_list_rows();
+		cbts_utils.esc_stack_push(close_accounting_position_list_dialog);
+		const dialog_bg = uiu.el(uiu.qs('body'), 'div', 'dialog_bg accounting_position_list_dialog');
+		dialog_bg.addEventListener('click', (e) => {
+			if (e.target === dialog_bg) {
+				close_accounting_position_list_dialog();
+			}
+		});
+		const dialog = uiu.el(dialog_bg, 'div', 'dialog accounting_position_list_box');
+		const header = uiu.el(dialog, 'div', 'accounting_position_list_header');
+		const title = uiu.el(header, 'div');
+		uiu.el(title, 'h3', {}, 'Postenliste');
+		const total = rows.reduce((sum, row) => registration_money_number(sum + row.amount), 0);
+		uiu.el(title, 'p', {}, rows.length + ' Posten | Summe ' + registration_money_label(total));
+		const actions = uiu.el(header, 'div', 'accounting_position_list_actions');
+		const pdf_btn = uiu.el(actions, 'button', { type: 'button' }, 'PDF herunterladen');
+		const csv_btn = uiu.el(actions, 'button', { type: 'button' }, 'CSV herunterladen');
+		const close_btn = uiu.el(actions, 'button', { type: 'button' }, 'Schließen');
+		const table_wrap = uiu.el(dialog, 'div', 'accounting_position_list_table_wrap');
+		const table = uiu.el(table_wrap, 'table', 'accounting_position_list_table');
+		const thead = uiu.el(table, 'thead');
+		const head_row = uiu.el(thead, 'tr');
+		['LV', 'Verein', 'Name', 'Posten / Details', 'Betrag', 'Rechnung / Ziel', 'Gezahlt']
+			.forEach((label) => uiu.el(head_row, 'th', {}, label));
+		const tbody = uiu.el(table, 'tbody');
+		if (rows.length === 0) {
+			const empty_row = uiu.el(tbody, 'tr');
+			uiu.el(empty_row, 'td', { colspan: '7' }, 'Keine Posten vorhanden.');
+		}
+		rows.forEach((row) => {
+			const tr = uiu.el(tbody, 'tr', row.open_amount > 0 ? 'accounting_position_list_open' : 'accounting_position_list_paid');
+			uiu.el(tr, 'td', {}, row.state || '-');
+			uiu.el(tr, 'td', {}, row.club || '-');
+			uiu.el(tr, 'td', {}, row.name || '-');
+			uiu.el(tr, 'td', {}, accounting_position_list_detail_label(row));
+			uiu.el(tr, 'td', 'accounting_position_list_money', registration_money_label(row.amount));
+			uiu.el(tr, 'td', { title: accounting_position_list_invoice_title(row) }, accounting_position_list_invoice_compact_label(row));
+			const paid_cell = uiu.el(tr, 'td', 'accounting_position_list_paid_cell');
+			const paid_attrs = {
+				type: 'checkbox',
+				disabled: 'disabled',
+				title: accounting_position_list_paid_title(row),
+			};
+			if (accounting_position_list_is_paid(row)) {
+				paid_attrs.checked = 'checked';
+			}
+			uiu.el(paid_cell, 'input', paid_attrs);
+		});
+		pdf_btn.addEventListener('click', async () => {
+			pdf_btn.disabled = true;
+			try {
+				await download_accounting_position_list_pdf(rows);
+			} catch (err) {
+				cerror.net(err);
+				alert('PDF konnte nicht erstellt werden: ' + (err?.message || err));
+			} finally {
+				pdf_btn.disabled = false;
+			}
+		});
+		csv_btn.addEventListener('click', () => {
+			save_file(new Blob([accounting_position_list_csv(rows)], { type: 'text/csv;charset=utf-8' }), accounting_position_list_filename('csv'));
+		});
+		close_btn.addEventListener('click', close_accounting_position_list_dialog);
+		close_btn.focus();
+	}
+
+	function render_accounting_item_admin(container) {
+		let edit_item_id = null;
+		const section = uiu.el(container, 'section', 'accounting_items');
+		const header = uiu.el(section, 'div', 'accounting_items_header');
+		uiu.el(header, 'h2', {}, 'Artikel');
+		const form = uiu.el(section, 'form', 'accounting_item_form');
+		const name_input = uiu.el(form, 'input', {
+			type: 'text',
+			name: 'name',
+			placeholder: 'Name',
+			maxlength: '160',
+			required: 'required',
+		});
+		const billing_type = uiu.el(form, 'select', { name: 'billing_type' });
+		uiu.el(billing_type, 'option', { value: 'optional' }, 'Optionaler Artikel');
+		uiu.el(billing_type, 'option', { value: 'required_player' }, 'Pflichtartikel je Spieler');
+		uiu.el(billing_type, 'option', { value: 'required_discipline' }, 'Pflichtartikel je Disziplin');
+		const overview_category = uiu.el(form, 'select', { name: 'overview_category' });
+		uiu.el(overview_category, 'option', { value: 'item' }, 'Zählt als Artikel');
+		uiu.el(overview_category, 'option', { value: 'fee' }, 'Zählt als Meldegeld');
+		const unit_price = uiu.el(form, 'input', {
+			type: 'text',
+			name: 'unit_price',
+			placeholder: 'Preis je Verkaufseinheit',
+			inputmode: 'decimal',
+			required: 'required',
+		});
+		const sale_unit = uiu.el(form, 'input', {
+			type: 'text',
+			name: 'sale_unit',
+			placeholder: 'Verkaufseinheit',
+			value: 'Stk.',
+		});
+		const note = uiu.el(form, 'input', {
+			type: 'text',
+			name: 'note',
+			placeholder: 'Notiz',
+			maxlength: '500',
+		});
+		const form_actions = uiu.el(form, 'div', 'accounting_item_form_actions');
+		const add_btn = uiu.el(form_actions, 'button', { type: 'submit' }, 'Hinzufügen');
+		const cancel_edit_btn = uiu.el(form_actions, 'button', {
+			type: 'button',
+			'class': 'accounting_item_cancel_edit',
+			hidden: 'hidden',
+		}, 'Abbrechen');
+		function reset_item_definition_form() {
+			edit_item_id = null;
+			form.reset();
+			overview_category.value = 'item';
+			sale_unit.value = 'Stk.';
+			add_btn.textContent = 'Hinzufügen';
+			cancel_edit_btn.hidden = true;
+		}
+		function edit_accounting_item(item) {
+			edit_item_id = item.id;
+			name_input.value = item.name || '';
+			billing_type.value = accounting_item_billing_type(item);
+			overview_category.value = accounting_item_overview_category(item);
+			unit_price.value = String(item.unit_price ?? '').replace('.', ',');
+			sale_unit.value = accounting_item_sale_unit(item);
+			note.value = item.note || '';
+			add_btn.textContent = 'Speichern';
+			cancel_edit_btn.hidden = false;
+			name_input.focus();
+		}
+		cancel_edit_btn.addEventListener('click', reset_item_definition_form);
+		form.addEventListener('submit', (e) => {
+			e.preventDefault();
+			const payload = {
+				name: name_input.value,
+				billing_type: billing_type.value,
+				overview_category: overview_category.value,
+				unit_price: unit_price.value,
+				sale_unit: sale_unit.value,
+				note: note.value,
+			};
+			const save = edit_item_id
+				? update_registration_accounting_item_record.bind(null, edit_item_id, payload)
+				: add_registration_accounting_item.bind(null, payload);
+			save(function(err) {
+				if (err) {
+					return;
+				}
+				reset_item_definition_form();
+			});
+		});
+		const list = uiu.el(section, 'div', 'accounting_item_list');
+		const items = registration_accounting_items()
+			.slice()
+			.sort((a, b) => String(a.name || '').localeCompare(String(b.name || ''), 'de', {
+				numeric: true,
+				sensitivity: 'base',
+			}));
+		if (items.length === 0) {
+			uiu.el(list, 'div', 'accounting_item_empty', 'Noch keine Artikel angelegt.');
+		}
+		items.forEach((item) => {
+			const row = uiu.el(list, 'div', 'accounting_item_row');
+			uiu.el(row, 'strong', {}, item.name || 'Artikel');
+			uiu.el(row, 'span', {}, accounting_item_billing_label(item));
+			uiu.el(row, 'span', {}, accounting_item_overview_label(item));
+			uiu.el(row, 'span', {}, registration_money_label(item.unit_price || 0));
+			uiu.el(row, 'span', {}, 'je ' + accounting_item_sale_unit(item));
+			uiu.el(row, 'span', 'accounting_item_note', item.note || '');
+			const action_wrap = uiu.el(row, 'div', 'accounting_item_actions');
+			const edit_btn = uiu.el(action_wrap, 'button', {
+				type: 'button',
+				'class': 'accounting_entry_remove',
+			}, 'Bearbeiten');
+			edit_btn.addEventListener('click', () => edit_accounting_item(item));
+			const remove_btn = uiu.el(action_wrap, 'button', {
+				type: 'button',
+				'class': 'accounting_entry_remove',
+			}, 'Entfernen');
+			remove_btn.addEventListener('click', () => {
+				if (confirm('Artikel entfernen? Bestehende Buchungen bleiben erhalten.')) {
+					remove_registration_accounting_item(item.id);
+				}
+			});
+		});
+		add_btn.disabled = false;
+	}
+
+	function accounting_letterhead_label(field) {
+		return field === 'accounting_letterhead_first_pdf' ? 'Erste Seite' : 'Folgeseiten';
+	}
+
+	function accounting_letterhead_has_pdf(field) {
+		return /^data:application\/pdf;base64,/.test(String(curt?.[field] || ''));
+	}
+
+	function accounting_letterhead_preview_pdf_url(background) {
+		const raw = String(background || '').trim();
+		if (!/^data:application\/pdf;base64,/.test(raw)) {
+			return '';
+		}
+		return raw + '#toolbar=0&navpanes=0&scrollbar=0&view=Fit';
+	}
+
+	function accounting_letterhead_pdf_for_field(field) {
+		if (field === 'accounting_letterhead_follow_pdf') {
+			return curt?.accounting_letterhead_follow_pdf || curt?.accounting_letterhead_first_pdf || '';
+		}
+		return curt?.accounting_letterhead_first_pdf || '';
+	}
+
+	function accounting_letterhead_status_text(field) {
+		if (accounting_letterhead_has_pdf(field)) {
+			return 'PDF hinterlegt';
+		}
+		if (field === 'accounting_letterhead_follow_pdf' && accounting_letterhead_has_pdf('accounting_letterhead_first_pdf')) {
+			return 'nutzt Erste Seite';
+		}
+		return 'kein PDF hinterlegt';
+	}
+
+	function update_accounting_letterhead_preview(field, preview_el, status_el) {
+		if (status_el) {
+			uiu.text(status_el, accounting_letterhead_status_text(field));
+		}
+		if (!preview_el) {
+			return;
+		}
+		uiu.empty(preview_el);
+		const preview_url = accounting_letterhead_preview_pdf_url(accounting_letterhead_pdf_for_field(field));
+		if (!preview_url) {
+			uiu.el(preview_el, 'span', 'accounting_letterhead_preview_empty', 'Keine Vorschau');
+			return;
+		}
+		uiu.el(preview_el, 'object', {
+			'class': 'accounting_letterhead_preview_pdf',
+			type: 'application/pdf',
+			data: preview_url,
+		});
+	}
+
+	function set_accounting_letterhead_pdf(field, value, status_el, preview_el) {
+		const previous = curt?.[field] || '';
+		curt[field] = value || '';
+		uiu.text(status_el, value ? 'wird gespeichert...' : 'wird entfernt...');
+		send_single_prop(field, curt[field], function(err) {
+			if (err) {
+				curt[field] = previous;
+				uiu.text(status_el, 'Fehler: ' + (err.message || 'Speichern fehlgeschlagen'));
+				update_accounting_letterhead_preview(field, preview_el, status_el);
+				return;
+			}
+			update_accounting_letterhead_preview(field, preview_el, status_el);
+			if (field === 'accounting_letterhead_first_pdf' && current_view === 'accounting') {
+				ui_accounting();
+			}
+		});
+	}
+
+	function read_accounting_letterhead_pdf(field, file, status_el, preview_el) {
+		if (!file) {
+			return;
+		}
+		if (file.type && file.type !== 'application/pdf' && !/\.pdf$/i.test(file.name || '')) {
+			alert('Bitte eine PDF-Datei auswählen.');
+			return;
+		}
+		const reader = new FileReader();
+		reader.onload = () => {
+			const value = String(reader.result || '');
+			if (!/^data:application\/pdf;base64,/.test(value)) {
+				alert('Die Datei konnte nicht als PDF gelesen werden.');
+				return;
+			}
+			set_accounting_letterhead_pdf(field, value, status_el, preview_el);
+		};
+		reader.onerror = () => {
+			uiu.text(status_el, 'Fehler beim Lesen');
+		};
+		uiu.text(status_el, 'wird gelesen...');
+		reader.readAsDataURL(file);
+	}
+
+	function close_accounting_letterhead_layout_dialog() {
+		const dialog = document.querySelector('.accounting_letterhead_layout_dialog');
+		if (!dialog) {
+			return;
+		}
+		uiu.remove(dialog);
+		cbts_utils.esc_stack_pop();
+	}
+
+	function clone_accounting_letterhead_layout(layout) {
+		return JSON.parse(JSON.stringify(layout || accounting_letterhead_default_layout));
+	}
+
+	function set_accounting_letterhead_layout(layout, callback) {
+		const previous = curt?.accounting_letterhead_layout;
+		curt.accounting_letterhead_layout = clone_accounting_letterhead_layout(layout);
+		send_single_prop('accounting_letterhead_layout', curt.accounting_letterhead_layout, function(err) {
+			if (err) {
+				curt.accounting_letterhead_layout = previous;
+				cerror.net(err);
+				alert('Briefpapier-Layout konnte nicht gespeichert werden: ' + (err.message || err));
+				if (typeof callback === 'function') {
+					callback(err);
+				}
+				return;
+			}
+			if (typeof callback === 'function') {
+				callback(null);
+			}
+		});
+	}
+
+	function accounting_letterhead_sample_causes(names, details, amount) {
+		return names.map((name, index) => ({
+			label: name,
+			detail: details[index % details.length],
+			amount,
+		}));
+	}
+
+	function accounting_letterhead_sample_document(document_type) {
+		const names = [
+			'Anna Musterfrau',
+			'Ben Beispiel',
+			'Carla Demo',
+			'David Platzhalter',
+			'Emilia Test',
+			'Finn Layout',
+			'Greta Vorschau',
+			'Hannes Rechnung',
+			'Ida Kontrolle',
+			'Jonas Blindtext',
+			'Klara Satzspiegel',
+			'Lukas Papier',
+			'Mia Seitenlauf',
+			'Nico Druckbereich',
+			'Ole Umbruch',
+			'Paula Zahlung',
+			'Rike Quittung',
+			'Sam Tabelle',
+			'Tara Kopfzeile',
+			'Yannick Fußzeile',
+		];
+		const event_details = ['JE U11', 'ME U13', 'JD U15', 'HE U17', 'GD U19'];
+		const fee_causes = accounting_letterhead_sample_causes(names, event_details, 7);
+		const physio_names = names.slice(0, 16);
+		const physio_causes = accounting_letterhead_sample_causes(physio_names, [''], 3);
+		const dbv_causes = accounting_letterhead_sample_causes(names.concat([
+			'Zoe Mehrseite',
+			'Max Musterbogen',
+			'Lea Layouttest',
+			'Noah Beispieltext',
+		]), event_details, 1);
+		const shirt_causes = accounting_letterhead_sample_causes(names.slice(0, 8), ['Größe XL'], 18);
+		const lines = [
+			{
+				description: 'Meldegeld',
+				quantity: fee_causes.length,
+				sale_unit: 'Meldung',
+				unit_price: 7,
+				amount: fee_causes.length * 7,
+				caused_by: fee_causes,
+			},
+			{
+				description: 'Physio Umlage',
+				quantity: physio_causes.length,
+				sale_unit: 'Teilnehmer',
+				unit_price: 3,
+				amount: physio_causes.length * 3,
+				caused_by: physio_causes,
+			},
+			{
+				description: 'DBV Turnierumlage',
+				quantity: dbv_causes.length,
+				sale_unit: 'Meldung',
+				unit_price: 1,
+				amount: dbv_causes.length,
+				caused_by: dbv_causes,
+			},
+			{
+				description: 'VICTOR GoldChampion',
+				quantity: 4,
+				sale_unit: 'Rolle à 12 Bälle',
+				unit_price: 38,
+				amount: 152,
+				caused_by: [
+					{ label: 'SV Musterstadt', detail: '14.09.2026, 09:12', amount: 76 },
+					{ label: 'Anna Musterfrau', detail: '14.09.2026, 10:38', amount: 38 },
+					{ label: 'Finn Layout', detail: '14.09.2026, 11:05', amount: 38 },
+				],
+			},
+			{
+				description: 'Turnier-Shirt in XL',
+				quantity: shirt_causes.length,
+				sale_unit: 'Stk.',
+				unit_price: 18,
+				amount: shirt_causes.length * 18,
+				caused_by: shirt_causes,
+			},
+			{
+				description: 'Trainingsfeld-Pauschale',
+				quantity: 2,
+				sale_unit: 'Stunden',
+				unit_price: 25,
+				amount: 50,
+				caused_by: [
+					{ label: 'SV Musterstadt', detail: 'Samstag', amount: 25 },
+					{ label: 'SV Musterstadt', detail: 'Sonntag', amount: 25 },
+				],
+			},
+		];
+		const total = registration_money_number(lines.reduce((sum, line) => sum + registration_money_number(line.amount), 0));
+		const paid_total = document_type === 'invoice' ? 120 : total;
+		const issued_at = registration_datetime_storage_value();
+		const payment = accounting_payment_settings();
+		return {
+			id: 'sample-' + document_type,
+			document_type,
+			document_number: (document_type === 'invoice' ? 'RE' : 'QU') + '-2026-MUSTER-0001',
+			status: document_type === 'invoice' ? 'issued' : 'paid',
+			buyer_type: 'club',
+			buyer_name: 'SV Musterstadt',
+			club: 'SV Musterstadt',
+			state: 'Musterland',
+			issued_at,
+			lines,
+			total,
+			paid_total,
+			open_total: Math.max(0, total - paid_total),
+			payment_recipient: payment.recipient,
+			payment_bank: payment.bank,
+			payment_iban: payment.iban,
+			payment_bic: payment.bic,
+			due_at: document_type === 'invoice' ? accounting_invoice_due_at(issued_at, payment.due_days) : '',
+			note: document_type === 'invoice'
+				? 'Bitte überweisen Sie den offenen Betrag unter Angabe der Rechnungsnummer. Dies ist Blindtext zur Prüfung von Zeilenumbruch, Satzspiegel und Seitenlauf.'
+				: 'Betrag dankend erhalten. Dies ist Blindtext zur Prüfung von Zeilenumbruch, Satzspiegel und Seitenlauf.',
+		};
+	}
+
+	function open_accounting_letterhead_sample(document_type, layout, first_page_number_input, button) {
+		button.disabled = true;
+		open_accounting_document_pdf(accounting_letterhead_sample_document(document_type), {
+			letterhead_layout: layout,
+			first_page_number_enabled: first_page_number_input.checked,
+			watermark: 'MUSTER',
+		})
+			.catch((err) => {
+				cerror.net(err);
+				alert('Muster-PDF konnte nicht erstellt werden: ' + (err?.message || err));
+			})
+			.finally(() => {
+				button.disabled = false;
+			});
+	}
+
+	function show_accounting_letterhead_layout_dialog() {
+		close_accounting_letterhead_layout_dialog();
+		cbts_utils.esc_stack_push(close_accounting_letterhead_layout_dialog);
+		const layout = clone_accounting_letterhead_layout(accounting_letterhead_layout());
+		const dialog_bg = uiu.el(uiu.qs('body'), 'div', 'dialog_bg accounting_letterhead_layout_dialog');
+		dialog_bg.addEventListener('click', (e) => {
+			if (e.target === dialog_bg) {
+				close_accounting_letterhead_layout_dialog();
+			}
+		});
+		const dialog = uiu.el(dialog_bg, 'div', 'dialog accounting_letterhead_layout_box');
+		uiu.el(dialog, 'h3', {}, 'Briefpapier-Layout');
+		uiu.el(dialog, 'p', 'accounting_letterhead_layout_hint', 'Alle Werte in mm von oben links auf A4.');
+		const form = uiu.el(dialog, 'form', 'accounting_letterhead_layout_form');
+		const body = uiu.el(form, 'div', 'accounting_letterhead_layout_body');
+		const fields = uiu.el(body, 'div', 'accounting_letterhead_layout_fields');
+		const previews = uiu.el(body, 'div', 'accounting_letterhead_layout_previews');
+		const options = uiu.el(fields, 'section', 'accounting_letterhead_layout_page_fields accounting_letterhead_layout_options');
+		const first_page_number_label = uiu.el(options, 'label', 'accounting_letterhead_layout_checkbox');
+		const first_page_number_attrs = {
+			type: 'checkbox',
+		};
+		if (accounting_first_page_number_enabled()) {
+			first_page_number_attrs.checked = 'checked';
+		}
+		const first_page_number_input = uiu.el(first_page_number_label, 'input', first_page_number_attrs);
+		uiu.el(first_page_number_label, 'span', {}, 'Seitenzahl auf erster Seite anzeigen');
+		const preview_boxes = {};
+		const input_controls = [];
+		function input_value(input) {
+			return registration_money_number(input.value || 0);
+		}
+		function format_mm(value) {
+			return String(registration_money_number(value));
+		}
+		function sync_preview_font_size(box, area_key) {
+			const page = box.closest('.accounting_letterhead_layout_page');
+			const page_width = page?.getBoundingClientRect().width || 0;
+			const pdf_size = accounting_letterhead_preview_font_sizes[area_key] || 9;
+			if (page_width > 0) {
+				box.style.fontSize = (pdf_size * page_width / 595.28) + 'px';
+			}
+		}
+		function sync_preview() {
+			Object.keys(preview_boxes).forEach((key) => {
+				const [page_key, area_key] = key.split(':');
+				const area = layout[page_key][area_key];
+				if (!area) {
+					return;
+				}
+				const box = preview_boxes[key];
+				if (page_key === 'first' && area_key === 'footer') {
+					box.hidden = !first_page_number_input.checked;
+				}
+				box.style.left = (area.x / 210 * 100) + '%';
+				box.style.top = (area.y / 297 * 100) + '%';
+				box.style.width = (area.width / 210 * 100) + '%';
+				box.style.height = (area.height / 297 * 100) + '%';
+				sync_preview_font_size(box, area_key);
+			});
+		}
+		function sync_inputs() {
+			input_controls.forEach((control) => {
+				control.input.value = format_mm(control.area[control.prop]);
+			});
+			sync_preview();
+		}
+		Object.keys(accounting_letterhead_page_labels).forEach((page_key) => {
+			const page_section = uiu.el(fields, 'section', 'accounting_letterhead_layout_page_fields');
+			uiu.el(page_section, 'h4', {}, accounting_letterhead_page_labels[page_key]);
+			Object.keys(layout[page_key]).forEach((area_key) => {
+				const area = layout[page_key][area_key];
+				const fields_for_area = accounting_letterhead_area_fields[area_key] || accounting_letterhead_area_fields.content;
+				const row = uiu.el(page_section, 'div', 'accounting_letterhead_layout_area_row' +
+					(fields_for_area.length <= 2 ? ' accounting_letterhead_layout_area_row_anchor' : ''));
+				uiu.el(row, 'strong', {}, accounting_letterhead_area_labels[area_key]);
+				fields_for_area.forEach(([prop, label]) => {
+					const wrapper = uiu.el(row, 'label');
+					uiu.el(wrapper, 'span', {}, label);
+					const input = uiu.el(wrapper, 'input', {
+						type: 'number',
+						inputmode: 'decimal',
+						step: '0.5',
+						min: '0',
+						max: '300',
+						value: format_mm(area[prop]),
+					});
+					input.addEventListener('input', () => {
+						area[prop] = input_value(input);
+						sync_preview();
+					});
+					input_controls.push({ input, area, prop });
+				});
+			});
+		});
+		Object.keys(accounting_letterhead_page_labels).forEach((page_key) => {
+			const preview = uiu.el(previews, 'section', 'accounting_letterhead_layout_preview');
+			uiu.el(preview, 'h4', {}, accounting_letterhead_page_labels[page_key]);
+			const page = uiu.el(preview, 'div', 'accounting_letterhead_layout_page');
+			const background = page_key === 'first'
+				? curt?.accounting_letterhead_first_pdf
+				: (curt?.accounting_letterhead_follow_pdf || curt?.accounting_letterhead_first_pdf);
+			const background_url = accounting_letterhead_preview_pdf_url(background);
+			if (background_url) {
+				uiu.el(page, 'object', {
+					'class': 'accounting_letterhead_layout_pdf',
+					type: 'application/pdf',
+					data: background_url,
+				});
+			}
+			Object.keys(layout[page_key]).forEach((area_key) => {
+				const box = uiu.el(page, 'div', 'accounting_letterhead_layout_box_area accounting_letterhead_layout_box_' + area_key +
+					(accounting_letterhead_preview_bold_areas.has(area_key) ? ' accounting_letterhead_layout_box_bold' : ''));
+				uiu.el(box, 'span', {}, accounting_letterhead_area_labels[area_key]);
+				preview_boxes[page_key + ':' + area_key] = box;
+			});
+		});
+		sync_preview();
+		const resize_observer = typeof ResizeObserver !== 'undefined'
+			? new ResizeObserver(sync_preview)
+			: null;
+		if (resize_observer) {
+			dialog.querySelectorAll('.accounting_letterhead_layout_page').forEach((page) => resize_observer.observe(page));
+		}
+		const actions = uiu.el(form, 'div', 'registration_item_actions accounting_letterhead_layout_actions');
+		const sample_invoice_btn = uiu.el(actions, 'button', { type: 'button' }, 'Musterrechnung');
+		const sample_receipt_btn = uiu.el(actions, 'button', { type: 'button' }, 'Musterquittung');
+		const reset_btn = uiu.el(actions, 'button', { type: 'button' }, 'Standardwerte');
+		const save_btn = uiu.el(actions, 'button', { type: 'submit' }, 'Speichern');
+		const close_btn = uiu.el(actions, 'button', { type: 'button' }, 'Schließen');
+		sample_invoice_btn.addEventListener('click', () => {
+			open_accounting_letterhead_sample('invoice', layout, first_page_number_input, sample_invoice_btn);
+		});
+		sample_receipt_btn.addEventListener('click', () => {
+			open_accounting_letterhead_sample('receipt', layout, first_page_number_input, sample_receipt_btn);
+		});
+		reset_btn.addEventListener('click', () => {
+			const defaults = clone_accounting_letterhead_layout(accounting_letterhead_default_layout);
+			Object.keys(defaults).forEach((page_key) => {
+				Object.keys(defaults[page_key]).forEach((area_key) => {
+					Object.assign(layout[page_key][area_key], defaults[page_key][area_key]);
+				});
+			});
+			sync_inputs();
+		});
+		first_page_number_input.addEventListener('change', () => {
+			curt.accounting_letterhead_first_page_number_enabled = first_page_number_input.checked;
+			sync_preview();
+			send_single_prop('accounting_letterhead_first_page_number_enabled', first_page_number_input.checked, function(err) {
+				if (err) {
+					curt.accounting_letterhead_first_page_number_enabled = !first_page_number_input.checked;
+					first_page_number_input.checked = !first_page_number_input.checked;
+					sync_preview();
+					cerror.net(err);
+				}
+			});
+		});
+		close_btn.addEventListener('click', close_accounting_letterhead_layout_dialog);
+		form.addEventListener('submit', (e) => {
+			e.preventDefault();
+			save_btn.disabled = true;
+			set_accounting_letterhead_layout(layout, (err) => {
+				if (err) {
+					save_btn.disabled = false;
+					return;
+				}
+				close_accounting_letterhead_layout_dialog();
+				if (current_view === 'accounting') {
+					ui_accounting();
+				}
+			});
+		});
+	}
+
+	function render_accounting_letterhead_admin(container) {
+		const section = uiu.el(container, 'section', 'accounting_letterhead');
+		const header = uiu.el(section, 'div', 'accounting_letterhead_header');
+		uiu.el(header, 'h2', {}, 'Briefpapier');
+		uiu.el(header, 'span', {}, 'PDF-Hintergrund für Rechnungen und Quittungen');
+		const layout_btn = uiu.el(header, 'button', { type: 'button', 'class': 'accounting_letterhead_layout_open' }, 'Layout bearbeiten');
+		layout_btn.addEventListener('click', show_accounting_letterhead_layout_dialog);
+		const rows = uiu.el(section, 'div', 'accounting_letterhead_rows');
+		['accounting_letterhead_first_pdf', 'accounting_letterhead_follow_pdf'].forEach((field) => {
+			const row = uiu.el(rows, 'div', 'accounting_letterhead_row');
+			const controls = uiu.el(row, 'div', 'accounting_letterhead_controls');
+			uiu.el(controls, 'strong', {}, accounting_letterhead_label(field));
+			const input = uiu.el(row, 'input', {
+				type: 'file',
+				accept: 'application/pdf,.pdf',
+				'class': 'accounting_letterhead_file',
+			});
+			const button_row = uiu.el(controls, 'div', 'accounting_letterhead_button_row');
+			const pick_btn = uiu.el(button_row, 'button', { type: 'button', 'class': 'accounting_letterhead_pick' }, 'PDF auswählen');
+			const remove_btn = uiu.el(button_row, 'button', { type: 'button' }, 'Entfernen');
+			const status = uiu.el(controls, 'span', 'accounting_letterhead_status', accounting_letterhead_status_text(field));
+			const preview = uiu.el(row, 'div', 'accounting_letterhead_preview');
+			update_accounting_letterhead_preview(field, preview, status);
+			pick_btn.addEventListener('click', () => input.click());
+			input.addEventListener('change', () => read_accounting_letterhead_pdf(field, input.files && input.files[0], status, preview));
+			remove_btn.addEventListener('click', () => {
+				if (!accounting_letterhead_has_pdf(field) || confirm(accounting_letterhead_label(field) + ' entfernen?')) {
+					set_accounting_letterhead_pdf(field, '', status, preview);
+					input.value = '';
+				}
+			});
+		});
+	}
+
+	function accounting_sort_by_label(a, b) {
+		return String(accounting_account_label(a)).localeCompare(String(accounting_account_label(b)), 'de', {
+			numeric: true,
+			sensitivity: 'base',
+		});
+	}
+
+	function accounting_tree_is_expanded(key, default_expanded) {
+		return accounting_tree_expansion_state.has(key)
+			? accounting_tree_expansion_state.get(key)
+			: default_expanded;
+	}
+
+	function accounting_tree_toggle(key, default_expanded, tbody, search, balance_filter) {
+		accounting_tree_expansion_state.set(key, !accounting_tree_is_expanded(key, default_expanded));
+		if (tbody && search && balance_filter) {
+			update_accounting_tree_visibility(tbody, search.value, balance_filter.value);
+		} else {
+			ui_accounting();
+		}
+	}
+
+	function accounting_tree_row_matches_filter(row, needle, balance_mode) {
+		const matches_search = !needle || String(row.getAttribute('data-accounting-search') || '').includes(needle);
+		const due_total = registration_money_number(row.getAttribute('data-accounting-due') || 0);
+		const open_total = registration_money_number(row.getAttribute('data-accounting-open') || 0);
+		const matches_balance = balance_mode === 'due'
+			? due_total > 0
+			: balance_mode === 'open'
+				? open_total > 0
+				: true;
+		return matches_search && matches_balance;
+	}
+
+	function update_accounting_tree_visibility(tbody, search_value, balance_mode) {
+		const needle = registration_filter_text(search_value);
+		const search_active = needle !== '';
+		tbody.querySelectorAll('tr.accounting_tree_row').forEach((row) => {
+			let parent_keys = [];
+			try {
+				parent_keys = JSON.parse(row.getAttribute('data-accounting-parent-keys') || '[]');
+			} catch (err) {
+				parent_keys = [];
+			}
+			const parents_expanded = search_active || parent_keys.every((key) => {
+				const default_expanded = key.indexOf('/club:') < 0;
+				return accounting_tree_is_expanded(key, default_expanded);
+			});
+			row.hidden = !parents_expanded || !accounting_tree_row_matches_filter(row, needle, balance_mode);
+		});
+		tbody.querySelectorAll('tr.accounting_tree_has_children').forEach((row) => {
+			const toggle_key = row.getAttribute('data-accounting-tree-key') || '';
+			const default_expanded = row.getAttribute('data-accounting-default-expanded') === 'true';
+			const expanded = search_active || accounting_tree_is_expanded(toggle_key, default_expanded);
+			const toggle = row.querySelector('.accounting_tree_toggle');
+			row.classList.toggle('accounting_tree_expanded', expanded);
+			if (toggle) {
+				toggle.textContent = expanded ? '-' : '+';
+				toggle.title = expanded ? 'Einklappen' : 'Ausklappen';
+				toggle.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+			}
+		});
+	}
+
+	function accounting_group_account(account_type, account_id, label, data) {
+		data = data || {};
+		return {
+			account_type,
+			account_id,
+			display_name: label,
+			buyer_name: label,
+			club: data.club || '',
+			state: data.state || '',
+			fee_items: [],
+			mandatory_items: [],
+			btp_payments: [],
+			local_entries: [],
+			fee_total: 0,
+			mandatory_charge_total: 0,
+			local_charge_total: 0,
+			item_total: 0,
+			btp_paid_total: 0,
+			local_paid_total: 0,
+			overview_fee_total: 0,
+			overview_item_total: 0,
+			due_total: 0,
+			paid_total: 0,
+			open_total: 0,
+			accounting_group_only: true,
+		};
+	}
+
+	function accounting_rollup_account(account, children) {
+		children = children || [];
+		const rollup = {
+			...account,
+			fee_items: [...(account?.fee_items || [])],
+			mandatory_items: [...(account?.mandatory_items || [])],
+			btp_payments: [...(account?.btp_payments || [])],
+			local_entries: [...(account?.local_entries || [])],
+			summary_fee_items: [...(account?.summary_fee_items || account?.fee_items || [])],
+			summary_mandatory_items: [...(account?.summary_mandatory_items || account?.mandatory_items || [])],
+			summary_btp_payments: [...(account?.summary_btp_payments || account?.btp_payments || [])],
+			summary_local_entries: [...(account?.summary_local_entries || account?.local_entries || [])],
+			child_summary_fee_items: [],
+			child_summary_mandatory_items: [],
+			child_summary_btp_payments: [],
+			child_summary_local_entries: [],
+			direct_fee_total: registration_money_number(account?.fee_total || 0),
+			direct_item_total: registration_money_number(account?.item_total || 0),
+			direct_overview_fee_total: registration_money_number(account?.overview_fee_total || 0),
+			direct_overview_item_total: registration_money_number(account?.overview_item_total || 0),
+			direct_due_total: registration_money_number(account?.due_total || 0),
+			direct_paid_total: registration_money_number(account?.paid_total || 0),
+			direct_open_total: registration_money_number(account?.open_total || 0),
+			child_fee_total: 0,
+			child_item_total: 0,
+			child_overview_fee_total: 0,
+			child_overview_item_total: 0,
+			child_due_total: 0,
+			child_paid_total: 0,
+			child_open_total: 0,
+			accounting_rollup: children.length > 0,
+		};
+		[
+			'fee_total',
+			'mandatory_charge_total',
+			'local_charge_total',
+			'item_total',
+			'overview_fee_total',
+			'overview_item_total',
+			'btp_paid_total',
+			'local_paid_total',
+			'due_total',
+			'paid_total',
+			'open_total',
+		].forEach((field) => {
+			rollup[field] = registration_money_number(account?.[field] || 0);
+		});
+		children.forEach((child) => {
+			const fee_items = child?.summary_fee_items || child?.fee_items || [];
+			const mandatory_items = child?.summary_mandatory_items || child?.mandatory_items || [];
+			const btp_payments = child?.summary_btp_payments || child?.btp_payments || [];
+			const local_entries = child?.summary_local_entries || child?.local_entries || [];
+			rollup.summary_fee_items.push(...fee_items);
+			rollup.summary_mandatory_items.push(...mandatory_items);
+			rollup.summary_btp_payments.push(...btp_payments);
+			rollup.summary_local_entries.push(...local_entries);
+			rollup.child_summary_fee_items.push(...fee_items);
+			rollup.child_summary_mandatory_items.push(...mandatory_items);
+			rollup.child_summary_btp_payments.push(...btp_payments);
+			rollup.child_summary_local_entries.push(...local_entries);
+			rollup.child_fee_total += registration_money_number(child?.fee_total || 0);
+			rollup.child_item_total += registration_money_number(child?.item_total || 0);
+			rollup.child_overview_fee_total += registration_money_number(child?.overview_fee_total || 0);
+			rollup.child_overview_item_total += registration_money_number(child?.overview_item_total || 0);
+			rollup.child_due_total += registration_money_number(child?.due_total || 0);
+			rollup.child_paid_total += registration_money_number(child?.paid_total || 0);
+			rollup.child_open_total += registration_money_number(child?.open_total || 0);
+			rollup.fee_total += registration_money_number(child?.fee_total || 0);
+			rollup.mandatory_charge_total += registration_money_number(child?.mandatory_charge_total || 0);
+			rollup.local_charge_total += registration_money_number(child?.local_charge_total || 0);
+			rollup.item_total += registration_money_number(child?.item_total || 0);
+			rollup.overview_fee_total += registration_money_number(child?.overview_fee_total || 0);
+			rollup.overview_item_total += registration_money_number(child?.overview_item_total || 0);
+			rollup.btp_paid_total += registration_money_number(child?.btp_paid_total || 0);
+			rollup.local_paid_total += registration_money_number(child?.local_paid_total || 0);
+			rollup.due_total += registration_money_number(child?.due_total || 0);
+			rollup.paid_total += registration_money_number(child?.paid_total || 0);
+			rollup.open_total += registration_money_number(child?.open_total || 0);
+		});
+		[
+			'fee_total',
+			'mandatory_charge_total',
+			'local_charge_total',
+			'item_total',
+			'overview_fee_total',
+			'overview_item_total',
+			'btp_paid_total',
+			'local_paid_total',
+			'due_total',
+			'paid_total',
+			'open_total',
+			'child_fee_total',
+			'child_item_total',
+			'child_overview_fee_total',
+			'child_overview_item_total',
+			'child_due_total',
+			'child_paid_total',
+			'child_open_total',
+		].forEach((field) => {
+			rollup[field] = registration_money_number(rollup[field] || 0);
+		});
+		return rollup;
+	}
+
+	function build_accounting_tree(accounts) {
+		const state_nodes = new Map();
+		const none_accounts = [];
+		const state_fallback_id = 'state_without_state';
+		const state_fallback_label = 'Ohne Landesverband';
+		const club_fallback_id = 'club_without_club';
+		const club_fallback_label = 'Ohne Verein';
+		function get_state_node(state_name, account) {
+			const label = String(state_name || account?.state || account?.display_name || state_fallback_label).trim() || state_fallback_label;
+			const id = label === state_fallback_label ? state_fallback_id : accounting_state_id(label);
+			if (!state_nodes.has(id)) {
+				state_nodes.set(id, {
+					account: account || accounting_group_account('state_group', id, label, { state: label }),
+					tree_key: 'state:' + id,
+					clubs: new Map(),
+				});
+			}
+			const node = state_nodes.get(id);
+			if (account && account.account_type === 'state') {
+				node.account = account;
+			}
+			return node;
+		}
+		function get_club_node(state_node, club_name, account) {
+			const label = String(club_name || account?.club || account?.display_name || club_fallback_label).trim() || club_fallback_label;
+			const id = label === club_fallback_label ? club_fallback_id : accounting_club_id(label);
+			if (!state_node.clubs.has(id)) {
+				state_node.clubs.set(id, {
+					account: account || accounting_group_account('club_group', id, label, {
+						club: label,
+						state: state_node.account?.state || '',
+					}),
+					tree_key: state_node.tree_key + '/club:' + id,
+					players: [],
+				});
+			}
+			const node = state_node.clubs.get(id);
+			if (account && account.account_type === 'club') {
+				node.account = account;
+			}
+			return node;
+		}
+		accounts.forEach((account) => {
+			if (account.account_type === 'none') {
+				none_accounts.push(account);
+				return;
+			}
+			if (account.account_type === 'state') {
+				get_state_node(account.state || accounting_account_label(account), account);
+			}
+		});
+		accounts.forEach((account) => {
+			if (account.account_type === 'club') {
+				const state_node = get_state_node(account.state || state_fallback_label);
+				get_club_node(state_node, account.club || accounting_account_label(account), account);
+			}
+		});
+		accounts.forEach((account) => {
+			if (account.account_type !== 'player') {
+				return;
+			}
+			const state_node = get_state_node(account.state || state_fallback_label);
+			const club_node = get_club_node(state_node, account.club || club_fallback_label);
+			club_node.players.push(account);
+		});
+		const states = [...state_nodes.values()].sort((a, b) => accounting_sort_by_label(a.account, b.account));
+		states.forEach((state) => {
+			state.clubs = [...state.clubs.values()].sort((a, b) => accounting_sort_by_label(a.account, b.account));
+			state.clubs.forEach((club) => {
+				club.players.sort(accounting_sort_by_label);
+				club.rollup_account = accounting_rollup_account(club.account, club.players);
+				club.search_text = registration_filter_text([
+					accounting_account_label(club.account),
+					club.account?.club,
+					club.account?.state,
+					...club.players.map((player_account) => [
+						accounting_account_label(player_account),
+						player_account.club,
+						player_account.state,
+					].join(' ')),
+				].join(' '));
+			});
+			state.rollup_account = accounting_rollup_account(state.account, state.clubs.map((club) => club.rollup_account));
+			state.search_text = registration_filter_text([
+				accounting_account_label(state.account),
+				state.account?.state,
+				...state.clubs.map((club) => club.search_text || accounting_account_label(club.account)),
+			].join(' '));
+		});
+		none_accounts.sort(accounting_sort_by_label);
+		return { states, none_accounts };
+	}
+
+	function render_accounting_account_row(tbody, account, level, options) {
+		options = options || {};
+		const invoiced_total = accounting_invoiced_total(account);
+		const display_open_total = accounting_display_open_total(account, invoiced_total);
+		const row_classes = [
+			display_open_total > 0 ? 'accounting_row_open' : 'accounting_row_done',
+			'accounting_tree_row',
+			'accounting_tree_row_level_' + level,
+			'accounting_tree_' + (account.account_type || 'account'),
+		];
+		if (options.toggle_key) {
+			row_classes.push('accounting_tree_has_children');
+		}
+		if (options.toggle_key && options.expanded) {
+			row_classes.push('accounting_tree_expanded');
+		}
+			const tr = uiu.el(tbody, 'tr', {
+				'class': row_classes.join(' '),
+				'data-accounting-search': options.search_text || registration_filter_text([
+					accounting_account_label(account),
+					account.club,
+					account.state,
+				].join(' ')),
+				'data-accounting-due': String(registration_money_number(account.due_total || 0)),
+				'data-accounting-open': String(display_open_total),
+				'data-accounting-tree-key': options.toggle_key || options.tree_key || '',
+				'data-accounting-parent-keys': JSON.stringify(options.parent_keys || []),
+				'data-accounting-default-expanded': options.default_expanded ? 'true' : 'false',
+			});
+		const name_cell = uiu.el(tr, 'td', 'accounting_col_player accounting_tree_cell accounting_tree_level_' + level);
+		const label_line = uiu.el(name_cell, 'span', 'accounting_tree_label');
+		if (options.toggle_key) {
+			const toggle = uiu.el(label_line, 'button', {
+				type: 'button',
+				'class': 'accounting_tree_toggle',
+				title: options.expanded ? 'Einklappen' : 'Ausklappen',
+				'aria-expanded': options.expanded ? 'true' : 'false',
+			}, options.expanded ? '-' : '+');
+			toggle.addEventListener('click', () => accounting_tree_toggle(options.toggle_key, options.default_expanded, tbody, options.search, options.balance_filter));
+		} else {
+			uiu.el(label_line, 'span', 'accounting_tree_toggle_placeholder');
+		}
+		uiu.el(label_line, 'strong', {}, accounting_account_label(account) || account.account_id);
+		const type_label = {
+			player: 'Spieler',
+			club: 'Verein',
+			state: 'Landesverband',
+			club_group: 'Verein',
+			state_group: 'Landesverband',
+			none: 'Ohne Käufer',
+		}[account.account_type] || 'Käufer';
+		const detail = [type_label, account.account_type === 'player' ? account.club : '', account.account_type === 'player' ? account.state : '']
+			.filter(Boolean)
+			.join(', ');
+		if (detail) {
+			uiu.el(name_cell, 'span', 'accounting_tree_detail', detail);
+		}
+		if (account.accounting_rollup) {
+			const parts = ['inkl. Unterkonten'];
+			if (options.child_count) {
+				parts.push(String(options.child_count));
+			}
+			uiu.el(name_cell, 'span', 'accounting_tree_detail', parts.join(' | '));
+		}
+		const action_cell = uiu.el(tr, 'td', 'accounting_col_actions');
+		if (account.accounting_group_only) {
+			uiu.el(action_cell, 'span', 'accounting_tree_group_hint', '-');
+		} else {
+			const pay_btn = uiu.el(action_cell, 'button', {
+				type: 'button',
+				'class': 'registration_accounting_button',
+			}, 'Zahlung');
+			pay_btn.addEventListener('click', () => add_registration_payment(null, account));
+			const item_btn = uiu.el(action_cell, 'button', {
+				type: 'button',
+				'class': 'registration_accounting_button',
+			}, 'Artikel');
+			item_btn.addEventListener('click', () => add_registration_catalog_item(null, account));
+			const receipt_btn = uiu.el(action_cell, 'button', {
+				type: 'button',
+				'class': 'registration_accounting_button',
+			}, 'Beleg');
+			receipt_btn.addEventListener('click', () => show_registration_receipt(accounting_account_player(account), account));
+		}
+		render_accounting_balance_cell(tr, account);
+		const entries_cell = uiu.el(tr, 'td', 'accounting_col_entries');
+		render_accounting_entry_lines(entries_cell, account);
+		uiu.el(tr, 'td', 'accounting_col_money', registration_money_label(account.overview_fee_total));
+		uiu.el(tr, 'td', 'accounting_col_money', registration_money_label(account.overview_item_total));
+	}
+
+	function render_accounting(container) {
+		const accounts = [...collect_registration_accounting_accounts().values()]
+			.sort(accounting_sort_by_label);
+		const header = uiu.el(container, 'div', 'accounting_header');
+		const title = uiu.el(header, 'div', 'accounting_title');
+		uiu.el(title, 'h1', {}, 'Buchhaltung');
+		const due_total = accounts.reduce((sum, account) => sum + registration_money_number(account.due_total), 0);
+		const invoiced_total = accounts.reduce((sum, account) => sum + accounting_invoiced_total(account), 0);
+		const paid_total = accounts.reduce((sum, account) => sum + registration_money_number(account.paid_total), 0);
+		const open_total = accounts.reduce((sum, account) => sum + accounting_display_open_total(account, accounting_invoiced_total(account)), 0);
+		uiu.el(title, 'div', 'accounting_summary',
+			'Soll ' + registration_money_label(due_total) +
+			' | In Rechnung gestellt ' + registration_money_label(invoiced_total) +
+			' | Gezahlt ' + registration_money_label(paid_total) +
+			' | Offen ' + registration_money_label(open_total));
+		const header_actions = uiu.el(title, 'div', 'accounting_header_actions');
+		const position_list_btn = uiu.el(header_actions, 'button', { type: 'button' }, 'Postenliste');
+		position_list_btn.addEventListener('click', show_accounting_position_list);
+		const mode_control = uiu.el(title, 'label', 'accounting_fee_mode');
+		uiu.el(mode_control, 'span', {}, 'Meldegeldmodus');
+		const mode_select = uiu.el(mode_control, 'select');
+		Object.entries(accounting_entry_fee_modes).forEach(([value, config]) => {
+			const attrs = { value };
+			if (value === accounting_entry_fee_mode()) {
+				attrs.selected = 'selected';
+			}
+			uiu.el(mode_select, 'option', attrs, config.label);
+		});
+		mode_select.addEventListener('change', () => set_accounting_entry_fee_mode(mode_select.value));
+		const invoice_treatment_control = uiu.el(title, 'label', 'accounting_invoice_treatment');
+		uiu.el(invoice_treatment_control, 'span', {}, 'In Rechnung gestellt wie');
+		const invoice_treatment_select = uiu.el(invoice_treatment_control, 'select');
+		Object.entries(accounting_invoice_treatment_modes).forEach(([value, label]) => {
+			const attrs = { value };
+			if (value === accounting_invoice_treatment_mode()) {
+				attrs.selected = 'selected';
+			}
+			uiu.el(invoice_treatment_select, 'option', attrs, label);
+		});
+		invoice_treatment_select.addEventListener('change', () => set_accounting_invoice_treatment_mode(invoice_treatment_select.value));
+		const code_control = uiu.el(title, 'form', 'accounting_document_code_control');
+		uiu.el(code_control, 'span', {}, 'Rechnungskürzel');
+		const code_input = uiu.el(code_control, 'input', {
+			type: 'text',
+			value: curt?.accounting_document_code || '',
+			placeholder: 'automatisch',
+			autocomplete: 'off',
+			spellcheck: 'false',
+			maxlength: '24',
+		});
+		uiu.el(code_control, 'button', { type: 'submit' }, 'Speichern');
+		code_control.addEventListener('submit', (e) => {
+			e.preventDefault();
+			set_accounting_document_code(code_input);
+		});
+			code_input.addEventListener('blur', () => {
+				code_input.value = normalize_accounting_document_code(code_input.value);
+			});
+			render_accounting_payment_settings(title);
+			const filters = uiu.el(header, 'div', 'accounting_filters');
+			const balance_filter = uiu.el(filters, 'select', {
+				'class': 'accounting_balance_filter',
+				'aria-label': 'Konten filtern',
+			});
+			[
+				['all', 'Zeige alle'],
+				['due', 'Zeige nur mit Soll'],
+				['open', 'Zeige nur Offene'],
+			].forEach(([value, label]) => {
+				const attrs = { value };
+				if (value === accounting_tree_balance_filter) {
+					attrs.selected = 'selected';
+				}
+				uiu.el(balance_filter, 'option', attrs, label);
+			});
+			const search = uiu.el(filters, 'input', {
+				type: 'search',
+				'class': 'accounting_search',
+				placeholder: 'Käufer, Verein, Landesverband',
+				autocomplete: 'off',
+				value: accounting_tree_search_value,
+			});
+		const clear_btn = uiu.el(filters, 'button', {
+			type: 'button',
+			'class': 'accounting_filter_clear',
+		}, 'Löschen');
+		render_accounting_letterhead_admin(container);
+		render_accounting_item_admin(container);
+
+		if (accounts.length === 0) {
+			uiu.el(container, 'div', 'registration_empty', 'Keine Käufer, Meldegelder oder Zahlungen gefunden.');
+			return;
+		}
+
+		const table_wrap = uiu.el(container, 'div', 'accounting_table_wrap');
+		const table = uiu.el(table_wrap, 'table', 'accounting_table');
+		const thead = uiu.el(table, 'thead');
+		const header_row = uiu.el(thead, 'tr');
+		['Käufer', 'Aktionen', 'Zahlungen', 'Positionen', 'Meldegeld', 'Artikel']
+			.forEach((label) => uiu.el(header_row, 'th', {}, label));
+		const tbody = uiu.el(table, 'tbody');
+		const tree = build_accounting_tree(accounts);
+		const search_active = registration_filter_text(accounting_tree_search_value) !== '';
+		tree.states.forEach((state) => {
+			const state_expanded = search_active || accounting_tree_is_expanded(state.tree_key, true);
+			render_accounting_account_row(tbody, state.rollup_account || state.account, 0, {
+				toggle_key: state.clubs.length > 0 ? state.tree_key : '',
+				tree_key: state.tree_key,
+				parent_keys: [],
+				default_expanded: true,
+				expanded: state_expanded,
+				child_count: state.clubs.length,
+				search_text: state.search_text,
+				search,
+				balance_filter,
+			});
+			state.clubs.forEach((club) => {
+				const club_expanded = search_active || accounting_tree_is_expanded(club.tree_key, false);
+				render_accounting_account_row(tbody, club.rollup_account || club.account, 1, {
+					toggle_key: club.players.length > 0 ? club.tree_key : '',
+					tree_key: club.tree_key,
+					parent_keys: [state.tree_key],
+					default_expanded: false,
+					expanded: club_expanded,
+					child_count: club.players.length,
+					search_text: club.search_text,
+					search,
+					balance_filter,
+				});
+				club.players.forEach((player_account) => {
+					render_accounting_account_row(tbody, player_account, 2, {
+						parent_keys: [state.tree_key, club.tree_key],
+					});
+				});
+			});
+		});
+		tree.none_accounts.forEach((account) => {
+			render_accounting_account_row(tbody, account, 0);
+		});
+
+			function update_filter() {
+				update_accounting_tree_visibility(tbody, search.value, balance_filter.value);
+			}
+			update_filter();
+			balance_filter.addEventListener('change', () => {
+				accounting_tree_balance_filter = balance_filter.value;
+				update_filter();
+			});
+			search.addEventListener('input', () => {
+				accounting_tree_search_value = search.value;
+				update_filter();
+			});
+		clear_btn.addEventListener('click', () => {
+			accounting_tree_search_value = '';
+			search.value = '';
+			update_filter();
+			search.focus();
+		});
+		if (accounting_tree_search_value) {
+			search.focus();
+			search.setSelectionRange(search.value.length, search.value.length);
+		}
+	}
+
 	function render_registration_comment_notice(parent, key, direction, comment, label, mark_read) {
 		if (!comment || !comment.comment) {
 			return;
@@ -9573,7 +15788,7 @@ function update_officials() {
 		const search = uiu.el(search_row, 'input', {
 			type: 'search',
 			'class': 'registration_search',
-			placeholder: 'Name, Verein, Bundesland, Disziplin',
+			placeholder: 'Name, Verein, Landesverband, Disziplin',
 			autocomplete: 'off',
 		});
 		const clear_filter_btn = uiu.el(search_row, 'button', {
@@ -9596,7 +15811,7 @@ function update_officials() {
 			? add_quick_filter_group(quick_filter_top, 'Disziplin')
 			: null;
 		const state_filters = state_filter_counts.length > 1
-			? add_quick_filter_group(quick_filter_top, 'Bundesland')
+			? add_quick_filter_group(quick_filter_top, 'Landesverband')
 			: null;
 		const club_filters = club_filter_counts.length > 1
 			? add_quick_filter_group(quick_filters, 'Verein')
@@ -10127,7 +16342,7 @@ function update_officials() {
 			{ key: 'birth', label: 'Geb.', class_name: 'registration_control_col_birth', min_width: 60 },
 			{ key: 'club', label: 'Verein', class_name: 'registration_control_col_club', min_width: 80 },
 			{ key: 'association', label: 'Verband', class_name: 'registration_control_col_association', min_width: 80 },
-			{ key: 'state', label: 'Bund.', class_name: 'registration_control_col_state', min_width: 58 },
+			{ key: 'state', label: 'LV', class_name: 'registration_control_col_state', min_width: 58 },
 			{ key: 'country', label: 'Land', class_name: 'registration_control_col_country', min_width: 32 },
 			...(registration_control_has_xlsx_value(rows, 'entered_at')
 				? [{ key: 'date', label: 'Datum', class_name: 'registration_control_col_date', min_width: 72 }]
@@ -11151,7 +17366,7 @@ function update_officials() {
 			'aria-label': 'Hinweis zum BTP-Import',
 		}, '?');
 		uiu.el(xlsx_help, 'span', 'registration_xlsx_help_text',
-			'In BTP: Bericht -> Meldungen. Im Dialog "Meldungen drucken" links bei den Konkurrenzen "Alle" und rechts bei den Feldern "Alle" auswaehlen. Dann unten auf Excel klicken und die gespeicherte .XLSX hier importieren. Der Import ergaenzt Rang, Punkte, Setzplatzdaten, Verein/Verband/Bundesland/Land und Meldedatum.');
+			'In BTP: Bericht -> Meldungen. Im Dialog "Meldungen drucken" links bei den Konkurrenzen "Alle" und rechts bei den Feldern "Alle" auswaehlen. Dann unten auf Excel klicken und die gespeicherte .XLSX hier importieren. Der Import ergaenzt Rang, Punkte, Setzplatzdaten, Verein/Verband/Landesverband/Land und Meldedatum.');
 		const xlsx_status = uiu.el(xlsx_group, 'span', 'registration_xlsx_status');
 		render_registration_xlsx_import_status(xlsx_status, curt.registration_xlsx_metadata);
 		xlsx_input.addEventListener('change', () => upload_registration_xlsx(xlsx_input, xlsx_status));
@@ -11302,6 +17517,58 @@ function update_officials() {
 			ui_registration_control();
 		} else if (current_view === 'show') {
 			cmatch.refresh_unassigned_status_context();
+		}
+	}
+
+	function update_registration_accounting_entry(c) {
+		if (c?.val?.entry) {
+			remember_registration_accounting_entry(c.val.entry);
+		}
+		if (current_view === 'accounting') {
+			ui_accounting();
+		}
+	}
+
+	function update_registration_accounting_entry_remove(c) {
+		if (Array.isArray(curt.accounting_entries)) {
+			curt.accounting_entries = curt.accounting_entries.filter((entry) => entry && entry.id !== c?.val?.entry_id);
+		}
+		if (current_view === 'accounting') {
+			ui_accounting();
+		}
+	}
+
+	function update_registration_accounting_item(c) {
+		if (c?.val?.item) {
+			remember_registration_accounting_item(c.val.item);
+		}
+		if (current_view === 'accounting') {
+			ui_accounting();
+		}
+	}
+
+	function update_registration_accounting_item_remove(c) {
+		if (Array.isArray(curt.accounting_items)) {
+			curt.accounting_items = curt.accounting_items.filter((item) => item && item.id !== c?.val?.item_id);
+		}
+		if (current_view === 'accounting') {
+			ui_accounting();
+		}
+	}
+
+	function update_registration_accounting_document(c) {
+		if (c?.val?.document) {
+			remember_registration_accounting_document(c.val.document);
+		}
+		if (current_view === 'accounting') {
+			ui_accounting();
+		}
+	}
+
+	function update_btp_payments(c) {
+		curt.btp_payments = c?.val?.btp_payments || { payments: [] };
+		if (current_view === 'accounting') {
+			ui_accounting();
 		}
 	}
 
@@ -12156,7 +18423,7 @@ function update_officials() {
 		update_test_clock_body_state();
 		const main = uiu.qs('.main');
 		uiu.empty(main);
-		main.classList.remove('main_upcoming', 'main_self_check_in', 'main_registration', 'main_registration_control');
+		main.classList.remove('main_upcoming', 'main_self_check_in', 'main_registration', 'main_registration_control', 'main_accounting');
 		main.classList.add('main_registration');
 		const container = uiu.el(main, 'div', 'registration_container registration_check_container');
 		render_registration_check(container);
@@ -12169,11 +18436,26 @@ function update_officials() {
 		update_test_clock_body_state();
 		const main = uiu.qs('.main');
 		uiu.empty(main);
-		main.classList.remove('main_upcoming', 'main_self_check_in', 'main_registration', 'main_registration_control');
+		main.classList.remove('main_upcoming', 'main_self_check_in', 'main_registration', 'main_registration_control', 'main_accounting');
 		main.classList.add('main_registration', 'main_registration_control');
 		const container = uiu.el(main, 'div', 'registration_container registration_control_container');
 		uiu.el(container, 'h1', {}, 'Hauptfeld-Kontrolle');
 		render_registration_control(container);
+	}
+
+	function ui_accounting() {
+		cleitstand.unmount();
+		current_view = 'accounting';
+		crouting.set('t/:key/accounting', { key: curt.key });
+		render_show_toprow();
+		update_test_clock_body_state();
+		const main = uiu.qs('.main');
+		uiu.empty(main);
+		main.classList.remove('main_upcoming', 'main_self_check_in', 'main_registration', 'main_registration_control', 'main_accounting');
+		main.classList.add('main_accounting');
+		cleitstand.navigation(document.querySelector('.toprow'), curt, '/accounting', {syncBtp: ui_btp_fetch});
+		const container = uiu.el(main, 'div', 'accounting_container page-accounting');
+		render_accounting(container);
 	}
 
 	function ui_match_screens(route, options) {
@@ -12183,7 +18465,7 @@ function update_officials() {
 		update_test_clock_body_state();
 		const main = uiu.qs('.main');
 		uiu.empty(main);
-		main.classList.remove('main_upcoming', 'main_self_check_in', 'main_registration', 'main_registration_control');
+		main.classList.remove('main_upcoming', 'main_self_check_in', 'main_registration', 'main_registration_control', 'main_accounting');
 		main.classList.add(options.main_class || 'main_upcoming');
 		main.onclick = null;
 		if (options.enable_fullscreen_toggle !== false) {
@@ -12335,6 +18617,12 @@ function update_officials() {
 		registration_stage_comment_read: update_registration_stage_comment_read,
 		registration_xlsx_metadata: update_registration_xlsx_metadata,
 		registration_dbv_rankings: update_registration_dbv_rankings,
+		registration_accounting_entry: update_registration_accounting_entry,
+		registration_accounting_entry_remove: update_registration_accounting_entry_remove,
+		registration_accounting_item: update_registration_accounting_item,
+		registration_accounting_item_remove: update_registration_accounting_item_remove,
+		registration_accounting_document: update_registration_accounting_document,
+		update_btp_payments,
 	}));
 
 	_route_single(/t\/([a-z0-9]+)\/registration_control/, ui_registration_control, change.default_handler(ui_registration_control, {
@@ -12348,6 +18636,19 @@ function update_officials() {
 		registration_stage_comment_read: update_registration_stage_comment_read,
 		registration_xlsx_metadata: update_registration_xlsx_metadata,
 		registration_dbv_rankings: update_registration_dbv_rankings,
+	}));
+
+	_route_single(/t\/([a-z0-9]+)\/accounting/, ui_accounting, change.default_handler(ui_accounting, {
+		update_btp_events: function(c) {
+			curt.events = c.val.events || {};
+			ui_accounting();
+		},
+		registration_accounting_entry: update_registration_accounting_entry,
+		registration_accounting_entry_remove: update_registration_accounting_entry_remove,
+		registration_accounting_item: update_registration_accounting_item,
+		registration_accounting_item_remove: update_registration_accounting_item_remove,
+		registration_accounting_document: update_registration_accounting_document,
+		update_btp_payments,
 	}));
 
 

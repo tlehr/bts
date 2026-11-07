@@ -4276,6 +4276,90 @@ function integrate_changed_events(app, tkey, btp_state, matchCountByEventId, fir
 }
 
 
+function integrate_btp_payments(app, tkey, btp_state, callback) {
+	const admin = require("./admin"); // avoid dependency cycle
+	const unwrap = (v) => (Array.isArray(v) && v.length === 1 ? v[0] : v);
+	const deepEqualJson = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+	const optional_number = (object, fields) => {
+		for (const field of fields) {
+			if (object[field] === undefined) continue;
+			const value = Number(unwrap(object[field]));
+			if (Number.isFinite(value)) {
+				return value;
+			}
+		}
+		return null;
+	};
+	const optional_string = (object, fields) => {
+		for (const field of fields) {
+			if (object[field] === undefined) continue;
+			const value = unwrap(object[field]);
+			if (value !== undefined && value !== null && String(value).trim() !== '') {
+				return String(value);
+			}
+		}
+		return '';
+	};
+	const optional_datetime = (object, fields) => {
+		for (const field of fields) {
+			if (object[field] === undefined) continue;
+			const value = unwrap(object[field]);
+			if (!value) continue;
+			if (typeof value === 'object' && Number.isFinite(Number(value.year))) {
+				return date_str(value) + ' ' + time_str(value) +
+					(Number.isFinite(Number(value.ms)) ? '.' + utils.pad(value.ms, 3, '0') : '');
+			}
+			if (String(value).trim() !== '') {
+				return String(value);
+			}
+		}
+		return '';
+	};
+
+	const payments = btp_state?.payments instanceof Map
+		? Array.from(btp_state.payments.values())
+		: [];
+	const payload = {
+		payments: payments
+			.map((payment) => ({
+				id: optional_number(payment, ['ID']),
+				amount: optional_number(payment, ['Amount']) || 0,
+				player_id: optional_number(payment, ['PlayerID', 'playerID']),
+				guid: optional_string(payment, ['GUID']),
+				payment_date: optional_datetime(payment, ['PaymentDate']),
+				payment_type: optional_number(payment, ['PaymentType']),
+			}))
+			.filter((payment) => Number.isFinite(Number(payment.player_id)))
+			.sort((a, b) =>
+				Number(a.player_id || 0) - Number(b.player_id || 0) ||
+				Number(a.id || 0) - Number(b.id || 0) ||
+				String(a.guid || '').localeCompare(String(b.guid || ''))
+			),
+	};
+
+	app.db.tournaments.findOne({ key: tkey }, (err, tournament) => {
+		if (err) return callback(err);
+		if (!tournament) return callback(new Error(`Tournament not found for key: ${tkey}`));
+		if (!payload.payments.length && !tournament.btp_payments) return callback(null);
+		if (deepEqualJson(tournament.btp_payments || null, payload)) {
+			return callback(null);
+		}
+		app.db.tournaments.update(
+			{ key: tkey },
+			{ $set: { btp_payments: payload } },
+			{},
+			(update_err) => {
+				if (update_err) return callback(update_err);
+				admin.notify_change(app, tkey, "update_btp_payments", {
+					btp_payments: payload,
+				});
+				return callback(null);
+			}
+		);
+	});
+}
+
+
 async function integrate_player_state(app, tkey, btp_state, callback) {
 	const btp_manager = require('./btp_manager');
 	app.db.tournaments.findOne({ key: tkey }, (err, tournament) => {
@@ -5051,6 +5135,7 @@ async function integrate_btp_snapshot(app, tkey, response, options = {}) {
 			async.waterfall([
 				timed_btp_sync_task(tkey, 'integrate_btp_settings', cb => integrate_btp_settings(app, tkey, btp_state, cb)),
 				timed_btp_sync_task(tkey, 'integrate_events', cb => integrate_events(app, tkey, btp_state, cb)),
+				timed_btp_sync_task(tkey, 'integrate_btp_payments', cb => integrate_btp_payments(app, tkey, btp_state, cb)),
 				timed_btp_sync_task(tkey, 'integrate_player_state', cb => integrate_player_state(app, tkey, btp_state, cb)),
 				timed_btp_sync_task(tkey, 'integrate_umpires', cb => integrate_umpires(app, tkey, btp_state, cb)),
 				timed_btp_sync_task(tkey, 'integrate_btp_scoring_formats', cb => integrate_btp_scoring_formats(app, tkey, btp_state, cb)),
@@ -5107,6 +5192,7 @@ module.exports = {
 	_integrate_player_state: integrate_player_state,
 	_integrate_events: integrate_events,
 	_integrate_matches: integrate_matches,
+	_integrate_btp_payments: integrate_btp_payments,
 	_integrate_courts: integrate_courts,
 	_integrate_now_on_court: integrate_now_on_court,
 	_parse_btp_court_num: parse_btp_court_num,

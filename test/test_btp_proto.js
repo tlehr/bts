@@ -119,4 +119,29 @@ _describe('btp_proto update_request', () => {
 		assert.strictEqual(match.Sets, undefined);
 		assert.strictEqual(match.Duration, undefined);
 	});
+
+	_it('builds BTP payment updates', () => {
+		const req = btp_proto.update_payments_request([{
+			player_id: '45',
+			amount: 11.5,
+			guid: '{E819D7D0-3D2F-41E0-805D-C91AB49A7CF9}',
+			payment_type: 1,
+			payment_date: '2026-10-03T10:20:00.000Z',
+		}], 'unicode', null);
+
+		assert.strictEqual(req.Action.ID, 'ADDRECORD');
+		const payment = req.Update.Tournament.Payments[0].Payment;
+		assert.strictEqual(payment.ID, 0);
+		assert.strictEqual(payment.playerID, 45);
+		assert.strictEqual(payment.Amount, 11.5);
+		assert.strictEqual(payment.GUID, '{E819D7D0-3D2F-41E0-805D-C91AB49A7CF9}');
+		assert.strictEqual(payment.PaymentType, 1);
+		assert(payment.PaymentDate instanceof Date);
+		const xml = btp_proto._req2xml(req);
+		assert(xml.includes('<GROUP ID="Payments">'));
+		assert(xml.includes('<ITEM TYPE="Integer" ID="ID">0</ITEM>'));
+		assert(xml.includes('<ITEM TYPE="Integer" ID="playerID">45</ITEM>'));
+		assert(xml.includes('<ITEM TYPE="Float" ID="Amount">11.5</ITEM>'));
+		assert(xml.includes('<ITEM TYPE="String" ID="GUID">{E819D7D0-3D2F-41E0-805D-C91AB49A7CF9}</ITEM>'));
+	});
 });
