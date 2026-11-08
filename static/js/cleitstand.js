@@ -297,24 +297,45 @@ var cleitstand = (function() {
     return container.isConnected&&group.members.every(member=>member.text.parentNode===member.target&&member.parents.every((node,index)=>node.parentNode===(member.parents[index+1]||container)));
   }
   const sharedNameMeasurements=new Map(),knownNameWidths=new Map();
-  let nameCanvas=null;
+  function boardScale() {return parseFloat(getComputedStyle(document.body).zoom)||1;}
   function measurePlainNames(container,group) {
-    if(!container.matches('.team-one,.team-two')||group.members.some(member=>member.target.children.length))return false;
-    const members=new Map(group.members.map((member,index)=>[member.target,index]));
-    if([...container.children].some(child=>!members.has(child)&&(child.children.length||child.textContent.trim()!=='/'&&child.textContent.trim()!=='')))return false;
-    const context=nameCanvas ||= document.createElement('canvas').getContext('2d');
-    const metrics=node=>{
-      const style=getComputedStyle(node);
-      return {font:style.font,spacing:style.letterSpacing==='normal'?'0px':style.letterSpacing,extra:['paddingLeft','paddingRight','borderLeftWidth','borderRightWidth','marginLeft','marginRight'].reduce((sum,key)=>sum+(parseFloat(style[key])||0),0)};
-    };
-    const measure=(text,style)=>{context.font=style.font;if('letterSpacing'in context)context.letterSpacing=style.spacing;return context.measureText(text).width;};
-    const styles=group.members.map(member=>metrics(member.target)),base=metrics(container);
-    let extra=0;
-    for(const child of container.childNodes)if(!members.has(child))extra+=measure(child.textContent,base);
-    for(const [stage,labels]of group.stages.entries())group.stageWidths.set(stage,extra+labels.reduce((sum,label,index)=>sum+measure(label.replace(' ','\xa0')+group.members[index].suffix,styles[index])+styles[index].extra,0));
+    const scale=boardScale();
+    if(!container.matches('.team-one,.team-two'))return false;
+    // Measure an inline copy, never the current stacked/shortened row. Hiding
+    // the separator and moving actions out of flow must not change the next
+    // decision about whether the same names fit on one line.
+    const key=JSON.stringify([nameFontVersion,state.density,group.content]);
+    if(group.plainMeasurementKey!==key) {
+      const probe=layoutProbe(container,'ls-name-measuring');
+      probe.classList.remove('ls-team-stacked');
+      try {
+        const members=group.members.map(member=>probeMember(container,probe,member));
+        const range=document.createRange();
+        const inlineWidths=[],stackedWidths=[];
+        for(const labels of group.stages) {
+          members.forEach((member,index)=>setNameLabel(member,labels[index]));
+          range.selectNodeContents(probe);
+          inlineWidths.push(range.getBoundingClientRect().width/scale);
+          stackedWidths.push(Math.max(...members.map(member=>member.target.getBoundingClientRect().width/scale)));
+        }
+        // Reserve the real inline space occupied by call buttons and separators
+        // even when those controls become positioned beside a stacked pair.
+        const playerWidth=members.reduce((sum,member)=>sum+member.target.getBoundingClientRect().width/scale,0);
+        const extra=Math.max(0,inlineWidths[inlineWidths.length-1]-playerWidth);
+        group.plainWidths=inlineWidths;
+        group.plainStackedWidths=stackedWidths.map(width=>width+extra);
+        group.plainMeasurementKey=key;
+      } finally {removeLayoutProbe(probe);}
+    }
+    const widths=group.plainWidths;
+    const stacked=group.members.length>1&&widths[widths.length-1]>group.width+.25;
+    if(group.stacked!==stacked){group.stacked=stacked;group.fits.clear();}
+    container.classList.toggle('ls-team-stacked',stacked);
+    for(const [stage,width]of widths.entries())group.stageWidths.set(stage,stacked?group.plainStackedWidths[stage]:width);
     return true;
   }
   function refreshNames() {
+    const scale=boardScale();
     pruneTimers();
     for(const [container,group] of nameGroups)if(!container.isConnected||!nameGroupAttached(container,group)){nameObserver?.unobserve(container);nameGroups.delete(container);dirtyNameGroups.delete(container);}
     if(nameLayoutDirty) {nameLayoutDirty=false;preparationLayoutDirty=false;positionBoardSidebar();root?.querySelectorAll('.ls-planned-table').forEach(preparationLayout);refreshBoundaryLayout();}
@@ -337,7 +358,7 @@ var cleitstand = (function() {
         if(shared){for(const [key,width]of shared.widths)group.stageWidths.set(key,width);for(const [key,columns]of shared.columns)group.stageColumns.set(key,columns);}
       }
       const available=group.width;if(available<=0)continue;
-      if(!group.inlineOfficials&&!group.stageWidths.size)measurePlainNames(container,group);
+      if(!group.inlineOfficials)measurePlainNames(container,group);
       const cached=group.fits.get(available);
       if(cached!=null) {labels.push([group,cached]);continue;}
       let stage=0;
@@ -367,9 +388,9 @@ var cleitstand = (function() {
           let width=job.group.stageWidths.get(job.stage);
           if(width==null) {
             if(job.group.inlineOfficials) {
-              const columns=[...job.probe.children].map(node=>({width:node.getBoundingClientRect().width,operators:[...node.querySelectorAll('.operators>.person')].map(person=>person.getBoundingClientRect().width)}));
+              const columns=[...job.probe.children].map(node=>({width:node.getBoundingClientRect().width/scale,operators:[...node.querySelectorAll('.operators>.person')].map(person=>person.getBoundingClientRect().width/scale)}));
               width=columns.reduce((sum,column)=>sum+column.width,0);job.group.stageColumns.set(job.stage,columns);
-            } else width=job.range.getBoundingClientRect().width;
+            } else width=job.range.getBoundingClientRect().width/scale;
             job.group.stageWidths.set(job.stage,width);
           }
           if(width>job.available+.25&&job.stage+1<job.group.stages.length) {job.stage++;next.push(job);}
@@ -846,7 +867,7 @@ var cleitstand = (function() {
     table.classList.toggle('ls-finished-table',finished);
     table.dataset.leitstandHead='true';let head=table.tHead;if(!head)head=table.createTHead();
     const columns=el(null,'colgroup');
-    for(const [index,width] of ['24px',planned?'135px':'49px','28px','36px','50px','42px',null,null,null,null].entries()) {
+    for(const [index,width] of ['20px',planned?'115px':'32px','28px','36px','50px','32px',null,null,null,null].entries()) {
       if(finished&&index===9)continue;
       const column=el(columns,'col');if(width)column.style.width=width;if(index===7)column.className='ls-officials-column';if(index===8)column.className=planned?'ls-preparation-column':'ls-score-column';if(index===9)column.className='ls-call-column';
       if(finished&&index===3)for(const width of ['50px','42px'])el(columns,'col','ls-play-time-column').style.width=width;
@@ -1284,6 +1305,9 @@ var cleitstand = (function() {
   }
   function decorateControls(row) {
     let preparationChanged=false;
+    // Empty official slots use the same text box as assigned officials, with
+    // identical padding, border and compact-mode height.
+    row.querySelectorAll('.umpire_and_tablet .person:has(>.no_umpire)>.match_no_umpire').forEach(node=>node.classList.add('name'));
     row.querySelectorAll('.timer').forEach(node=>{if(!node.querySelector('.timer-value'))timerDisplay(node,node.textContent);});
     const selectors=[['.match_second_call_button,.match_second_preparation_call_button','bell'],['.match_manual_call_button','speaker'],['.match_begin_to_play_button','play']];
     for(const [selector,name] of selectors)row.querySelectorAll(selector).forEach(node=>actionIcon(node,name));
@@ -1317,7 +1341,7 @@ var cleitstand = (function() {
       const key=JSON.stringify([nameFontVersion,state.density,[...calls.children].map(node=>[node.className,node.textContent,node.hidden,node.style.display])]);
       let content=preparationWidths.get(key);
       if(content==null) {
-        content=calls.getBoundingClientRect().width;
+        content=calls.getBoundingClientRect().width/boardScale();
         if(content) {if(preparationWidths.size>=512)preparationWidths.delete(preparationWidths.keys().next().value);preparationWidths.set(key,content);}
       }
       width=Math.max(width,Math.ceil(content+38-80));

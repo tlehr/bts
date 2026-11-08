@@ -263,9 +263,9 @@
 .leitstand .match_table tr.preparation_call_deferred>td { box-shadow:none; }
 .leitstand .match_table tr:is(.highlight_1,.highlight_2,.highlight_3,.highlight_4,.highlight_5,.highlight_6,.preparation_call_deferred)>td { background-color:color-mix(in srgb,var(--hall) var(--hall-tint),var(--row-bg))!important; }
 .leitstand .match_table tr:is(.highlight_1,.highlight_2,.highlight_3,.highlight_4,.highlight_5,.highlight_6,.preparation_call_deferred)>td:first-child { box-shadow:inset 3px 0 var(--hall); }
-.leitstand .match_table td.actions { width:24px; min-width:23px; padding-left:0; padding-right:0; text-align:right; }
+.leitstand .match_table td.actions { width:20px; min-width:0; padding-left:0; padding-right:0; text-align:right; }
 .leitstand.comfort .match_table td.actions { padding-left:0; padding-right:0; }
-.leitstand .match_table td.court_number { width:49px; padding:1px 0; text-align:center; white-space:nowrap; }
+.leitstand .match_table td.court_number { width:32px; padding:1px 0; text-align:center; white-space:nowrap; }
 .leitstand.comfort .match_table td.court_number { padding:1px 0; }
 .leitstand .match_table .court_number .location { font-size:10px; background:#fffffff0; padding:2px 5px; border:1px solid #203d3d40; border-radius:4px; }
 .leitstand .match_table.ls-planned-table :is(th:nth-child(2),td.court_number) { text-align:left; padding-left:6px; padding-right:6px; }
@@ -289,7 +289,7 @@
 .leitstand .ls-finished-table :is(th,td).ls-shuttle-count { text-align:center; padding-left:1px; padding-right:4px; white-space:nowrap; font-variant-numeric:tabular-nums; }
 .leitstand .ls-finished-table .match_shuttle_count_number::after { content:none; }
 .leitstand .versus-line { display:grid; grid-template-columns:minmax(0,1fr) 16px minmax(0,1fr); gap:6px; align-items:center; }
-.leitstand .team-one { text-align:right; } .leitstand .team-two { text-align:left; } .leitstand .vs { text-align:center; color:#879795; font-size:10px; }
+.leitstand .team-one { text-align:right; } .leitstand .team-two { text-align:left; padding-right:0; } .leitstand .vs { text-align:center; color:#879795; font-size:10px; }
 .leitstand .ls-name-measuring,.leitstand .ls-name-measuring :is(.player,.pair-member,.name) { white-space:nowrap!important; }
 .leitstand .ls-layout-probe { position:fixed!important; inset:0 auto auto 0!important; width:max-content!important; max-width:none!important; contain:layout style paint; visibility:hidden!important; pointer-events:none!important; }
 .leitstand .ls-probe-root { position:fixed!important; inset:0 auto auto 0!important; contain:layout style paint; visibility:hidden!important; pointer-events:none!important; }
@@ -563,10 +563,10 @@ body.leitstand-view .tabletoperator_suggestions .tabletoperator_assignment_icon 
 .leitstand .match_table tbody>tr>td.call_td { position:relative; width:var(--score-actions-width); min-width:104px; white-space:nowrap; text-align:right; padding-left:0; padding-right:4px; border-radius:0!important; }
 .leitstand .ls-planned-table tbody>tr>td.call_td { width:var(--preparation-actions-width); min-width:0; padding-right:8px; }
 .leitstand .ls-planned-table td.score { padding-left:4px; padding-right:2px; }
-.leitstand .ls-preparation-calls { display:inline-flex; vertical-align:middle; }
+.leitstand .ls-preparation-calls { display:inline-flex; vertical-align:middle; position:absolute; right:34px; top:50%; transform:translateY(-50%); }
 .leitstand .ls-preparation-calls:empty { display:none; }
 /* Several hall calls share the otherwise empty timer space. */
-.leitstand .ls-preparation-calls:has(.match_preparation_call_button+.match_preparation_call_button) { position:absolute; right:34px; top:50%; transform:translateY(-50%); }
+.leitstand .call_td:not(:has(.preparation_debug_icon)) .ls-preparation-calls { right:8px; }
 .leitstand .call_td [data-speech-state]::after { right:0; }
 .leitstand .call_td>.match_timer { max-width:100%; margin-left:0; }
 .leitstand .unassigned_container .match_timer { max-width:100%; }
@@ -587,7 +587,7 @@ body.leitstand-view .tabletoperator_suggestions .tabletoperator_assignment_icon 
 .leitstand .call_td .match_preparation_call_button.has-custom-preparation-icon[data-speech-state]::after { top:0; left:auto; right:0; transform:none; }
 .leitstand .ls-call-location { align-self:flex-end; font-size:10px; line-height:1; pointer-events:none; }
 .leitstand .match_table .call_td .preparation_debug_icon { position:static; display:inline-flex; align-items:center; justify-content:center; transform:none; width:20px; height:20px; border:0; color:#37564b!important; background:transparent!important; opacity:1; margin-left:3px; cursor:pointer; }
-.leitstand .ls-planned-table .call_td .preparation_debug_icon { margin-left:6px; }
+.leitstand .ls-planned-table .call_td .preparation_debug_icon { position:absolute; right:8px; top:50%; transform:translateY(-50%); margin:0; }
 .leitstand .match_table .call_td .preparation_debug_icon:hover { background:#ffffffb0!important; }
 .leitstand .match_table tr { --status-rgb:139,199,232; --status-edge:#265f7d; }
 .leitstand .match_table tr:is(.preparation_debug_window_blocked,.call_on_court_debug_blocked) { --status-rgb:205,88,79; --status-edge:#8e352e; }
@@ -636,7 +636,7 @@ body.leitstand-view .tabletoperator_suggestions .tabletoperator_assignment_icon 
 /* Resolve the score font's capital height once in CSS and inherit that length
    into smaller controls. Points and clock ticks need no geometry measurements. */
 @property --compact-score-height { syntax:"<length>"; inherits:true; initial-value:20px; }
-.leitstand[data-density="compact"] .match_table { font-size:var(--score-font-size); --compact-score-height:1cap; --compact-row-content:var(--compact-score-height); }
+.leitstand[data-density="compact"] .match_table { font-size:var(--score-font-size); --officials-limit:clamp(160px,14cqi,220px); --compact-score-height:1cap; --compact-row-content:max(16px,var(--compact-score-height)); }
 .leitstand[data-density="compact"] .ls-planned-table { --compact-row-content:20px; }
 .leitstand[data-density="compact"] .match_table tbody>tr:is(.ls-match,.ls-empty)>td { height:max(24px,calc(var(--compact-row-content) + 4px)); padding-top:2px; padding-bottom:1px; line-height:var(--compact-row-content); }
 /* The existing 1px row separator is part of the 2px bottom clearance. */
@@ -650,19 +650,32 @@ body.leitstand-view .tabletoperator_suggestions .tabletoperator_assignment_icon 
 .leitstand[data-density="compact"] .match_table :is(.team-one,.team-two,.vs) { height:var(--compact-row-content); white-space:nowrap; }
 .leitstand[data-density="compact"] .match_table :is(.team-one,.team-two) { overflow:hidden; text-overflow:ellipsis; }
 .leitstand[data-density="compact"] .match_table .person.player,
-.leitstand[data-density="compact"] .match_table .person .name { height:var(--compact-row-content); line-height:calc(var(--compact-row-content) - 2px); font-size:min(13px,calc(var(--compact-row-content) - 2px)); white-space:nowrap; vertical-align:top; }
+.leitstand[data-density="compact"] .match_table .person .name { height:var(--compact-row-content); line-height:calc(var(--compact-row-content) - 2px); font-size:12px; white-space:nowrap; vertical-align:top; }
 .leitstand[data-density="compact"] .match_table .umpire_and_tablet { --compact-person-count:1; white-space:nowrap; }
+.leitstand .match_table .match_no_umpire { font-size:13px; }
+.leitstand[data-density="compact"] .match_table .match_no_umpire { font-size:12px; }
+/* A doubles team may grow to two lines even in compact mode. The name fitter
+   chooses this after abbreviating the partners. Hide only the separator. */
+.leitstand .match_table .ls-team-stacked { display:flex; flex-direction:column; gap:2px; font-size:0; position:relative; }
+.leitstand .match_table .ls-team-stacked.team-one { align-items:flex-end; }
+.leitstand .match_table .ls-team-stacked.team-two { align-items:flex-start; }
+.leitstand .match_table .ls-team-stacked > span:not([class]) { display:none; }
+.leitstand .match_table .ls-team-stacked > :is(.ls-icon-action,.match_second_call_button,.match_second_preparation_call_button,.tabletoperator_assignment_icon) { position:absolute; top:50%; transform:translateY(-50%); }
+.leitstand .match_table .team-one.ls-team-stacked > :is(.ls-icon-action,.match_second_call_button,.match_second_preparation_call_button,.tabletoperator_assignment_icon) { left:0; }
+.leitstand .match_table .team-two.ls-team-stacked > :is(.ls-icon-action,.match_second_call_button,.match_second_preparation_call_button,.tabletoperator_assignment_icon) { right:0; }
+.leitstand[data-density="compact"] .match_table .versus-line:has(.ls-team-stacked) { height:auto; align-items:center; }
+.leitstand[data-density="compact"] .match_table .ls-team-stacked { height:auto; overflow:visible; }
 .leitstand[data-density="compact"] .umpire_and_tablet:has(>:nth-child(2)) { --compact-person-count:2; }
 .leitstand[data-density="compact"] .umpire_and_tablet:has(>:nth-child(3)) { --compact-person-count:3; }
 .leitstand[data-density="compact"] .umpire_and_tablet>.person,
 .leitstand[data-density="compact"] .umpire_and_tablet>.tablet_operator { display:inline-grid; width:var(--ls-person-width,calc(100% / var(--compact-person-count))); max-width:var(--ls-person-width,calc(100% / var(--compact-person-count))); height:var(--compact-row-content); margin:0; vertical-align:top; }
-.leitstand[data-density="compact"] .umpire_and_tablet .person { grid-template-columns:min(18px,var(--compact-row-content)) minmax(0,1fr) max-content; gap:2px; margin-block:0; }
+.leitstand[data-density="compact"] .umpire_and_tablet .person { grid-template-columns:min(18px,var(--compact-row-content)) minmax(0,max-content) max-content; gap:2px; margin-block:0; }
 .leitstand[data-density="compact"] .umpire_and_tablet>.tablet_operator { display:inline-flex; gap:2px; }
 .leitstand[data-density="compact"] .umpire_and_tablet .operators { display:flex; min-width:0; gap:2px; }
 .leitstand[data-density="compact"] .umpire_and_tablet .operators>.person { display:inline-grid; flex:var(--ls-person-grow,1); min-width:0; height:var(--compact-row-content); }
 .leitstand[data-density="compact"] .umpire_and_tablet.ls-officials-measuring :is(.person,.tablet_operator,.operators) { width:max-content!important; max-width:none; flex:none; }
 .leitstand[data-density="compact"] .umpire_and_tablet .person.operator-pair { grid-template-columns:min(18px,var(--compact-row-content)) minmax(0,1fr); }
-.leitstand[data-density="compact"] .umpire_and_tablet .name { min-width:0; overflow:hidden; text-overflow:ellipsis; }
+.leitstand[data-density="compact"] .umpire_and_tablet .name { min-width:0; padding-inline:0!important; overflow:hidden; text-overflow:ellipsis; }
 .leitstand[data-density="compact"] .match_table .ls-role-icon { width:min(18px,var(--compact-row-content)); min-width:0; height:var(--compact-row-content); min-height:0; }
 .leitstand[data-density="compact"] .match_table .ls-role-icon .ico { width:min(18px,var(--compact-row-content)); height:min(18px,var(--compact-row-content)); }
 .leitstand[data-density="compact"] .match_table :is(.ls-match-open,.ls-icon-action,.preparation_debug_icon),
@@ -675,7 +688,8 @@ body.leitstand-view .tabletoperator_suggestions .tabletoperator_assignment_icon 
 .leitstand[data-density="compact"] .match_table .timer { --compact-timer-ink-height:calc(var(--compact-row-content) - 2px); height:var(--compact-row-content); min-height:0; padding:1px 5px; font-size:calc(var(--compact-row-content) - 2px); vertical-align:top; }
 .leitstand[data-density="compact"] .match_table .match_timer,
 .leitstand[data-density="compact"] .match_table .ls-preparation-calls { vertical-align:top; line-height:0; }
-.leitstand[data-density="compact"] .ls-preparation-calls:has(.match_preparation_call_button+.match_preparation_call_button) { top:2px; transform:none; }
+.leitstand[data-density="compact"] .ls-preparation-calls,
+.leitstand[data-density="compact"] .ls-planned-table .call_td .preparation_debug_icon { top:2px; transform:none; }
 .leitstand[data-density="compact"] .match_table td.match_properties:has(.match_shuttle_count_display_active)>.ls-scheduled-time,
 .leitstand[data-density="compact"] .match_table .match_properties .match_shuttle_count_display_active { height:calc(var(--compact-row-content) / 2); line-height:calc(var(--compact-row-content) / 2); font-size:min(10px,calc(var(--compact-row-content) / 2)); }
 .leitstand[data-density="compact"] .match_table .timer-value { height:var(--compact-timer-ink-height); transform:none; overflow-y:clip; }
@@ -1211,11 +1225,29 @@ body.leitstand-view .has-stacked-navigation .leitstand-nav { grid-column:1 / -1;
 @media(max-width:700px) { body.leitstand-view .toprow_right > .board-service-status:not([data-service="bts"]) { display:none; } .leitstand .toolbar>.row { flex-wrap:wrap; } .leitstand .toolbar .board-toolbar-actions { width:100%; } .leitstand .drop-instruction { display:none; } }
 
 .board-workspace { display: grid; grid-template-columns: minmax(0, 1fr); }
+/* Match the proportions of the desktop board without browser-wide zoom.
+   Small touch screens retain their dedicated responsive layout. */
+@media (min-width: 1100px) and (max-width: 1600px) {
+  body.leitstand-view:has(.leitstand[data-density="compact"]) { zoom:0.8; }
+}
 .board-controls { grid-column: 1; grid-row: 1; min-width: 0; container-type: inline-size; container-name: board-controls; }
 .board-games { grid-column: 1; grid-row: 2; min-width: 0; container-type: inline-size; }
 .board-games .toolbar { flex-wrap: wrap; }
 .board-games .board-toolbar-actions { max-width: 100%; flex-wrap: wrap; }
-.board-workspace.has-card-sidebar { grid-template-columns: minmax(0, 1fr) 360px; column-gap: 12px; }
+/* Fit the games beside the sidebar on notebooks. Keep the full columns and
+   allow names to wrap rather than reserving desktop-sized empty space. */
+@container (min-width: 850px) and (max-width: 1100px) {
+  .leitstand .match_table { min-width:0; --officials-limit:160px; --score-font-size:18px; --score-gap:4px; --score-cell-padding:4px; }
+  .leitstand .match_table :is(th,td) { padding-inline:3px; }
+  .leitstand.comfort .match_table tbody > tr > td { padding-inline:3px; }
+  .leitstand .match_table .ls-officials-heading { white-space:normal; }
+  .leitstand .versus-line { grid-template-columns:minmax(0,1fr) 12px minmax(0,1fr); gap:2px; }
+  .leitstand .umpire_and_tablet .person { column-gap:2px; }
+  .leitstand .umpire_and_tablet .name { padding-inline:2px!important; }
+}
+/* Keep the sidebar beside the games on notebook screens, with more room for
+   the main content there and the full card width on larger displays. */
+.board-workspace.has-card-sidebar { grid-template-columns: minmax(0, 1fr) clamp(280px, 24cqi, 360px); column-gap: 12px; }
 .board-controls[hidden] + .board-games { grid-row: 1; }
 .board-sidebar { grid-column: 2; grid-row: 1 / span 2; align-self: start; min-width: 0; position: sticky; top: var(--card-sidebar-top, 60px); max-height: none; overflow: visible; padding: 0 2px 2px 0; }
 .board-sidebar.is-tall { position: static; }
@@ -1285,7 +1317,7 @@ body.leitstand-view .has-stacked-navigation .leitstand-nav { grid-column:1 / -1;
   .control-grid .card-drop-before::before { top: -6px; }
   .control-grid .card-drop-after::after { top: auto; bottom: -6px; }
 }
-@container tournament-board (max-width: 1450px) {
+@container tournament-board (max-width: 1200px) {
   .board-workspace.has-card-sidebar { grid-template-columns: minmax(0, 1fr); }
   .board-sidebar { position: static; grid-column: 1; grid-row: 2; max-height: none; overflow: visible; margin-bottom: 8px; padding: 0; }
   .board-workspace.has-card-sidebar .board-games { grid-row: 3; }

@@ -304,8 +304,17 @@ class CDP {
    await require('./number-input-check')({c,open,check,key,metrics});
    assert(!c.events.some(event=>event.method==='Runtime.exceptionThrown'),'Number editing has no browser exceptions');return;
   }
+  if(process.argv.includes('--preparation-info-layout-only')) {
+   await require('./preparation-info-layout-check')({c,open,check,metrics});return;
+  }
+  if(process.argv.includes('--accounting-responsive-only')) {
+   await require('./accounting-responsive-check')({c,open,check,click,metrics,key});return;
+  }
   if(process.argv.includes('--accounting-only')) {
    await require('./accounting-check')({c,open,check,click,metrics});return;
+  }
+  if(process.argv.includes('--compact-name-stability-only')) {
+   await require('./compact-name-stability-check')({c,open,check,metrics});return;
   }
   if(process.argv.includes('--compact-density-only')) {
    await require('./compact-density-check')({c,check,click,open,metrics,previews,capture:snap});return;

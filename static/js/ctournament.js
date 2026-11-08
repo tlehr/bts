@@ -15487,11 +15487,11 @@ function update_officials() {
 		const invoiced_total = accounts.reduce((sum, account) => sum + accounting_invoiced_total(account), 0);
 		const paid_total = accounts.reduce((sum, account) => sum + registration_money_number(account.paid_total), 0);
 		const open_total = accounts.reduce((sum, account) => sum + accounting_display_open_total(account, accounting_invoiced_total(account)), 0);
-		uiu.el(title, 'div', 'accounting_summary',
-			'Soll ' + registration_money_label(due_total) +
-			' | In Rechnung gestellt ' + registration_money_label(invoiced_total) +
-			' | Gezahlt ' + registration_money_label(paid_total) +
-			' | Offen ' + registration_money_label(open_total));
+		const summary = uiu.el(title, 'div', 'accounting_summary');
+		for (const [label, amount] of [['Soll', due_total], ['In Rechnung gestellt', invoiced_total], ['Gezahlt', paid_total], ['Offen', open_total]]) {
+			const item = uiu.el(summary, 'span', 'accounting_summary_item', label + ' ');
+			uiu.el(item, 'span', 'accounting_summary_value', registration_money_label(amount));
+		}
 		const header_actions = uiu.el(title, 'div', 'accounting_header_actions');
 		const position_list_btn = uiu.el(header_actions, 'button', { type: 'button' }, 'Postenliste');
 		position_list_btn.addEventListener('click', show_accounting_position_list);

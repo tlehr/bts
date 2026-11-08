@@ -6342,3 +6342,79 @@ h2.edit {
 .speech_inventory_error { color: #b42318; font-size: 0.8rem; margin-top: 0.3rem; }
 .speech_queue_jobs { margin-top: 1rem; }
 .speech_queue_jobs > summary { font-weight: bold; cursor: pointer; }
+
+/* Fit accounting workspaces to their available width, including the shared
+   administration gutters, rather than waiting for the viewport breakpoint. */
+.accounting_container {
+	container: accounting-page / inline-size;
+	min-width: 0;
+}
+
+.accounting_container *,
+.accounting_letterhead_layout_box * {
+	box-sizing: border-box;
+}
+
+.accounting_container :is(input, select),
+.accounting_container :is(.accounting_title, .accounting_items, .accounting_item_row > *, .accounting_payment_settings_field) {
+	min-width: 0;
+	max-width: 100%;
+}
+
+.accounting_container :is(.accounting_tree_label strong, .accounting_tree_detail, .accounting_item_row > *, .accounting_payment_settings_field) {
+	overflow-wrap: anywhere;
+}
+
+@container accounting-page (max-width: 1400px) {
+	.accounting_header { grid-template-columns: minmax(0, 1fr); }
+	.accounting_filters { min-width: 0; }
+	.accounting_fee_mode,
+	.accounting_invoice_treatment,
+	.accounting_document_code_control { flex-wrap: wrap; }
+}
+
+@container accounting-page (min-width: 760px) and (max-width: 1400px) {
+	.accounting_item_form,
+	.accounting_item_row { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+@media (max-width: 1280px) {
+	.accounting_letterhead_layout_body { grid-template-columns: minmax(0, 1fr); }
+}
+
+@media (max-width: 480px) {
+	.accounting_balance { min-width: 0; }
+	.accounting_balance_line { grid-template-columns: minmax(0, 1fr); gap: 0.1rem; }
+	.accounting_balance_line strong { text-align: left; }
+	.accounting_position_list_header { flex-direction: column; }
+	.accounting_position_list_actions { justify-content: flex-start; }
+	.accounting_letterhead_header { flex-wrap: wrap; }
+}
+
+.accounting_summary { display:flex; flex-wrap:wrap; gap:0.2rem 0.8rem; }
+.accounting_summary_item { max-width:100%; }
+.accounting_summary_value { display:inline-block; white-space:nowrap; }
+.accounting_title > :is(.accounting_fee_mode, .accounting_invoice_treatment) { margin-right:0.65rem; }
+.accounting_entry_line span { overflow-wrap:anywhere; }
+
+@media (max-width: 480px) {
+	.accounting_col_entries .accounting_entry_line { grid-template-columns:minmax(0,1fr); row-gap:0.1rem; }
+}
+
+.accounting_container .accounting_item_note {
+	white-space:normal;
+	overflow:visible;
+	text-overflow:clip;
+}
+
+.registration_item_bookings_box :is(input, select) {
+	min-width:0;
+	max-width:100%;
+	box-sizing:border-box;
+}
+
+@media (min-width: 761px) and (max-width: 1280px) {
+	.registration_item_booking_header { display:none; }
+	.registration_item_booking_row { grid-template-columns:repeat(2,minmax(0,1fr)); }
+	.registration_item_booking_row > :is(select, .registration_item_booking_time, .registration_item_booking_actions) { grid-column:1 / -1; }
+}
