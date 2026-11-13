@@ -16,6 +16,12 @@ module.exports = function notification_value(notification, current_match, curren
 		else if (original.match__id) Object.assign(replacements, { setup: current_match.setup, btp_winner: current_match.btp_winner });
 		else { source = current_match; committed = true; }
 	}
+	// A queue row can be inserted, split and assigned within one plan. Publish
+	// its committed state instead of making an already assigned pair wait again.
+	if (original?.tabletoperator?._id) {
+		const current = state.tabletoperators?.find(entry => entry._id === original.tabletoperator._id);
+		if (current) replacements.tabletoperator = current;
+	}
 	for (const [field, collection] of [['all_courts', 'courts'], ['all_locations', 'locations'], ['all_umpires', 'umpires']]) {
 		if (source?.[field]) replacements[field] = field === 'all_courts'
 			? state.courts.slice().sort((a, b) => natcmp(String(a.num), String(b.num)))

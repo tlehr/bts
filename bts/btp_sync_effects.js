@@ -26,6 +26,7 @@ function restore(effect) {
 		const allowed = target === 'btp_manager'
 			? ['update_score', 'update_players', 'update_courts', 'update_highlight']
 			: target === 'match_utils' ? ['queue_auto_execute_preparation_selections',
+				'schedule_auto_execute_preparation_selection_after_gap',
 				'queue_auto_assign_technical_officials_when_available', 'queue_reconcile_player_court_flags',
 				'queue_auto_call_matches_on_free_courts', 'auto_call_matches_on_free_courts']
 				: target === 'bupws' ? ['handle_score_change']

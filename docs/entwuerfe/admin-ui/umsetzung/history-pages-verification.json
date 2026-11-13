@@ -1,7 +1,11 @@
 {
-  "scope": "Isolated browser with 150 synthetic results on two dates; pagination, search, updates, sorting, date expansion, row identity and reload persistence.",
+  "scope": "Isolated browser with 150 synthetic results on two dates; pagination, search, updates, sorting, date expansion, row identity, unrendered score/name/metadata corrections, section changes, removal and reload persistence.",
   "checks": [
     "The initial history retains all 150 results and displays 50 of the current day",
+    "Only the first 50 results have names, controls and cells at startup",
+    "Score, full-match, metadata and name updates retain an unrendered result without building cells",
+    "Searching a corrected hidden name builds only that result with its current score and metadata on the same row",
+    "Clearing search retains existing row and player nodes and leaves the other results unrendered",
     "More results reveal the remaining current-day games on the same rows",
     "The reduced view can be restored",
     "Search finds a result beyond the initial page and from a collapsed day",
@@ -10,6 +14,12 @@
     "A result updated outside the visible page retains its current score when shown",
     "Sorting still includes all results",
     "The all-results preference survives a page reload",
+    "Reopening an unrendered result removes its placeholder and creates one complete scheduled row",
+    "Finishing the reopened game shows the current result once without a stale placeholder",
+    "Removing an unrendered result removes its indexed placeholder",
+    "Twenty further results keep exactly 50 complete history rows and retain every older indexed row",
+    "A released result still accepts full score and name corrections without creating hidden controls",
+    "Revealing a released result reconstructs the corrected data on its original row",
     "History pages leave no incomplete work or browser exceptions"
   ]
 }

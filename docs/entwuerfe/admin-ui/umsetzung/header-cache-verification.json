@@ -10,7 +10,9 @@
   },
   "resized": {
     "sidebarCorrect": true,
-    "newFontReads": 1
+    "newFontReads": 1,
+    "firstExplicitReads": 1,
+    "repeatedFontReads": 0
   },
   "remount": {
     "removed": true,
@@ -75,7 +77,7 @@
     },
     {
       "width": 1000,
-      "scrollY": 12733,
+      "scrollY": 12847,
       "top": 0,
       "height": 89,
       "visible": true,
@@ -107,7 +109,7 @@
     },
     {
       "width": 390,
-      "scrollY": 13216,
+      "scrollY": 13207,
       "top": 0,
       "height": 89,
       "visible": true,

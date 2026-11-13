@@ -15,7 +15,7 @@ module.exports=async function({c,verify,capture}) {
  const request=(handler,values,peer={})=>new Promise((resolve,reject)=>handler(app,{...peer,respond:(_msg,error,response)=>error?reject(error):resolve(response)},values));
  const match=await c.evaluate('(()=>{const match=structuredClone(curt.matches.find(match=>match._id===\'match-44\'));Object.assign(match.setup,{umpire:{name:\'Hans Heinrich\'},service_judge:{name:\'Bertha Baller\'},tabletoperators:[{name:\'Theo Lang\'}]});return match})()');
  await promisify(db.matches.insert.bind(db.matches))(match);
- await c.evaluate('localStorage.setItem(\'enable_announcement_calls_CH\',\'true\');localStorage.setItem(\'enable_announcement_preparations_CH\',\'true\');curt.announcement_pause_time_ms=.001;window.__allCallReceipts=()=>__writes.filter(message=>message.type===\'match_protocol_playback\');window.__allCallStart=__allCallReceipts().length;');
+ await c.evaluate('(async()=>{for(const kind of [\'calls\',\'preparations\'])await new Promise((resolve,reject)=>btsAudioDevices.setOwn(\'enable_announcement_\'+kind+\'_CH\',true,error=>error?reject(error):resolve()));curt.announcement_pause_time_ms=.001;window.__allCallReceipts=()=>__writes.filter(message=>message.type===\'match_protocol_playback\');window.__allCallStart=__allCallReceipts().length;})()');
  admin.on_connect(app,viewer);
  let count=0,previous;
  try {
@@ -43,9 +43,9 @@ module.exports=async function({c,verify,capture}) {
   await verify('Replaying an already received call does not create another device receipt','__allCallReceipts().length===__allCallStart+'+count);
   const message={...previous,val:{...previous.val,_announcement_claim_key:'match_preparation_call:match-44:1000:disabled'}};
   message.ctype='match_preparation_call';message.val={match__id:match._id,match,_announcement_claim_key:message.val._announcement_claim_key};
-  await c.evaluate('localStorage.setItem(\'enable_announcement_preparations_CH\',\'false\');crouting.on_change('+JSON.stringify(message)+')');
+  await c.evaluate('(async()=>{await new Promise((resolve,reject)=>btsAudioDevices.setOwn(\'enable_announcement_preparations_CH\',false,error=>error?reject(error):resolve()));crouting.on_change('+JSON.stringify(message)+');})()');
   await verify('A device with preparation audio switched off does not claim successful playback','__allCallReceipts().length===__allCallStart+'+count);
-  await c.evaluate('localStorage.setItem(\'enable_announcement_preparations_CH\',\'true\');delete window.__speechPlaybackResult');
+  await c.evaluate('(async()=>{await new Promise((resolve,reject)=>btsAudioDevices.setOwn(\'enable_announcement_preparations_CH\',true,error=>error?reject(error):resolve()));delete window.__speechPlaybackResult;})()');
   await capture('spiel-dialog-alle-aufrufe');
  } finally {admin.on_close(app,viewer);}
 };

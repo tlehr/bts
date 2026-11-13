@@ -1,5 +1,7 @@
 'use strict';
 
+const revisions = require('./compaction_worker/revisions');
+
 // Spread one round across ten minutes instead of starting every collection's
 // serialization and crash-safe file rewrite in the same event-loop turn.
 module.exports = function schedule_compaction(db, collections, options = {}) {
@@ -31,6 +33,7 @@ module.exports = function schedule_compaction(db, collections, options = {}) {
 		if (stopped) return;
 		const { name, store } = stores[index];
 		index = (index + 1) % stores.length;
+		if (!revisions.needed(store)) { schedule(); return; }
 		state.active_collection = name;
 		const done = error => {
 			state.active_collection = null;

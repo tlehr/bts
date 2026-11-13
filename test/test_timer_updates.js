@@ -1,8 +1,8 @@
 'use strict';
 const assert=require('assert'),create=require('../static/js/timer_updates');
-function fixture() {
+function fixture(extra = {}) {
 	let time=0,id=0;const timers=new Map();
-	const queue=create({Date:{now:()=>time},setTimeout:(fn,delay)=>{timers.set(++id,{fn,due:time+delay});return id;},clearTimeout:id=>timers.delete(id)});
+	const queue=create({Date:{now:()=>time},setTimeout:(fn,delay)=>{timers.set(++id,{fn,due:time+delay});return id;},clearTimeout:id=>timers.delete(id),...extra});
 	return {queue,timers,setTime(value){time=value;},run(timeNow){time=timeNow;const due=[...timers].filter(([,task])=>task.due<=time);for(const [id,task] of due){if(!timers.delete(id))continue;task.fn();}}};
 }
 describe('Shared local clock updates',function(){
@@ -36,5 +36,29 @@ describe('Shared local clock updates',function(){
 	it('continues the other clock callbacks and rearms after one callback fails',function(){
 		const h=fixture();let changed=false;h.queue.schedule(()=>{throw new Error('clock');},500);h.queue.schedule(()=>{changed=true;h.queue.schedule(()=>{},1000);},500);
 		assert.throws(()=>h.run(500),/clock/);assert(changed);assert.strictEqual(h.timers.size,1);
+	});
+	it('leaves the clock scheduler usable in browsers without viewport observation',function(){
+		const h=fixture();assert.strictEqual(h.queue.observe({},()=>{}),null);
+		assert.strictEqual(h.timers.size,0);assert.strictEqual(h.queue.stats().observed,0);
+	});
+	it('shares one observer, catches detached clock owners and cancels its last sweep',function(){
+		let observer,created=0;const observed=new Set(),seen=[];
+		class Observer {
+			constructor(callback,options){created++;this.callback=callback;this.options=options;observer=this;}
+			observe(element){observed.add(element);}
+			unobserve(element){observed.delete(element);}
+		}
+		const h=fixture({IntersectionObserver:Observer}),parent={isConnected:true},owner={isConnected:true},other={isConnected:true};
+		let detached=0;const stop=h.queue.observe(parent,v=>seen.push(v),()=>detached++,owner);
+		const stopOther=h.queue.observe(other,()=>{});
+		assert.strictEqual(created,1);assert.strictEqual(h.timers.size,1);
+		assert.strictEqual(observer.options.rootMargin,'600px 0px');
+		observer.callback([{target:parent,isIntersecting:false},{target:parent,isIntersecting:true}]);
+		assert.deepStrictEqual(seen,[false,true]);
+		owner.isConnected=false;h.run(1000);assert.strictEqual(detached,1);
+		assert.strictEqual(parent.isConnected,true,'Removing a clock must also release an attached parent');
+		assert(!observed.has(parent));assert.strictEqual(h.queue.stats().observed,1);
+		observer.callback([{target:parent,isIntersecting:true}]);assert.deepStrictEqual(seen,[false,true]);
+		stop();stopOther();stopOther();assert.strictEqual(h.timers.size,0);assert.strictEqual(h.queue.stats().observed,0);
 	});
 });

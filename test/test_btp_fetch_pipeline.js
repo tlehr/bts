@@ -27,7 +27,7 @@ function fixture() {
 		app: { db: {
 			tournaments: { findOne_async: async () => ({ ...tournament }) },
 			matches: { count: (query, callback) => {
-				assert.deepStrictEqual(query, { tournament_key: conn.tkey, btp_needsync: true });
+				assert.deepStrictEqual(query, { tournament_key: conn.tkey, $or: [{ btp_needsync: true }, { btp_call_pending: true }] });
 				callback(null, state.pending);
 			} },
 		} },

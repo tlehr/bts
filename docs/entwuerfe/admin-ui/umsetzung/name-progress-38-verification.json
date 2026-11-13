@@ -1,0 +1,4695 @@
+{
+  "intervals": true,
+  "scope": "512 synthetic games, 423 results, native receive queue, 40 isolated points and 40 points with a following court snapshot and 40 points with a complete third-set history and explicit scoring rules. No live writes. Independent first/second animation-frame DOM checks; receipts retain their existing two-frame method.",
+  "tracing": false,
+  "summary": {
+    "score": {
+      "applied_ms": {
+        "count": 40,
+        "mean_ms": 0.8475000143051148,
+        "p50_ms": 0.5999999046325684,
+        "p95_ms": 1.2000000476837158,
+        "max_ms": 8.700000047683716
+      },
+      "first_frame_ms": {
+        "count": 40,
+        "mean_ms": 3.6299999952316284,
+        "p50_ms": 1.2999999523162842,
+        "p95_ms": 13.700000047683716,
+        "max_ms": 15.300000190734863
+      },
+      "second_frame_ms": {
+        "count": 40,
+        "mean_ms": 17.71000002026558,
+        "p50_ms": 17,
+        "p95_ms": 30.40000009536743,
+        "max_ms": 32
+      },
+      "receipt_ms": {
+        "count": 40,
+        "mean_ms": 17.8,
+        "p50_ms": 17.2,
+        "p95_ms": 30.5,
+        "max_ms": 32.1
+      }
+    },
+    "snapshot": {
+      "applied_ms": {
+        "count": 40,
+        "mean_ms": 0.5599999845027923,
+        "p50_ms": 0.5,
+        "p95_ms": 1.0999999046325684,
+        "max_ms": 1.1000001430511475
+      },
+      "first_frame_ms": {
+        "count": 40,
+        "mean_ms": 4.419999986886978,
+        "p50_ms": 1.7000000476837158,
+        "p95_ms": 14.299999952316284,
+        "max_ms": 16.09999990463257
+      },
+      "second_frame_ms": {
+        "count": 40,
+        "mean_ms": 17.59999997615814,
+        "p50_ms": 17.299999952316284,
+        "p95_ms": 30.899999856948853,
+        "max_ms": 32.799999952316284
+      },
+      "receipt_ms": {
+        "count": 40,
+        "mean_ms": 17.665,
+        "p50_ms": 17.4,
+        "p95_ms": 31,
+        "max_ms": 32.8
+      }
+    },
+    "history": {
+      "applied_ms": {
+        "count": 40,
+        "mean_ms": 0.6275000095367431,
+        "p50_ms": 0.5,
+        "p95_ms": 1.0999999046325684,
+        "max_ms": 2.6000001430511475
+      },
+      "first_frame_ms": {
+        "count": 40,
+        "mean_ms": 3.724999988079071,
+        "p50_ms": 1.3999998569488525,
+        "p95_ms": 12.5,
+        "max_ms": 12.900000095367432
+      },
+      "second_frame_ms": {
+        "count": 40,
+        "mean_ms": 18.447500014305113,
+        "p50_ms": 18.200000047683716,
+        "p95_ms": 29,
+        "max_ms": 29.5
+      },
+      "receipt_ms": {
+        "count": 40,
+        "mean_ms": 18.485,
+        "p50_ms": 18.1,
+        "p95_ms": 29.1,
+        "max_ms": 29.6
+      }
+    },
+    "interval": {
+      "applied_ms": {
+        "count": 40,
+        "mean_ms": 0.7500000238418579,
+        "p50_ms": 0.6000001430511475,
+        "p95_ms": 1.2999999523162842,
+        "max_ms": 2.3999998569488525
+      },
+      "first_frame_ms": {
+        "count": 40,
+        "mean_ms": 5.939999997615814,
+        "p50_ms": 4.799999952316284,
+        "p95_ms": 15,
+        "max_ms": 15.200000047683716
+      },
+      "second_frame_ms": {
+        "count": 40,
+        "mean_ms": 23.88249999880791,
+        "p50_ms": 23.90000009536743,
+        "p95_ms": 37.5,
+        "max_ms": 38.09999990463257
+      },
+      "receipt_ms": {
+        "count": 40,
+        "mean_ms": 30.619999999999997,
+        "p50_ms": 31.1,
+        "p95_ms": 47.6,
+        "max_ms": 50.4
+      }
+    }
+  },
+  "phases": [
+    {
+      "mode": "score",
+      "measurements": [
+        {
+          "id": 1,
+          "mode": "score",
+          "applied_ms": 8.700000047683716,
+          "first_frame_ms": 9.5,
+          "second_frame_ms": 26.299999952316284,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.7,
+                "handler_ms": 7.6,
+                "ui_wait_ms": 0.1,
+                "render_ms": 17.8,
+                "total_ms": 26.2
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 2,
+          "mode": "score",
+          "applied_ms": 0.5,
+          "first_frame_ms": 0.5,
+          "second_frame_ms": 11.099999904632568,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.1,
+                "handler_ms": 0.4,
+                "ui_wait_ms": 0,
+                "render_ms": 10.7,
+                "total_ms": 11.2
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 3,
+          "mode": "score",
+          "applied_ms": 0.5999999046325684,
+          "first_frame_ms": 8.099999904632568,
+          "second_frame_ms": 24.799999952316284,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.2,
+                "handler_ms": 0.4,
+                "ui_wait_ms": 0,
+                "render_ms": 24.2,
+                "total_ms": 24.8
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 4,
+          "mode": "score",
+          "applied_ms": 0.5,
+          "first_frame_ms": 4.6000001430511475,
+          "second_frame_ms": 21.300000190734863,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.2,
+                "handler_ms": 0.3,
+                "ui_wait_ms": 0,
+                "render_ms": 20.9,
+                "total_ms": 21.4
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 5,
+          "mode": "score",
+          "applied_ms": 1,
+          "first_frame_ms": 1.2999999523162842,
+          "second_frame_ms": 17.90000009536743,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.4,
+                "handler_ms": 0.5,
+                "ui_wait_ms": 0.1,
+                "render_ms": 16.9,
+                "total_ms": 17.9
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 6,
+          "mode": "score",
+          "applied_ms": 0.6000001430511475,
+          "first_frame_ms": 0.7999999523162842,
+          "second_frame_ms": 14.200000047683716,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.2,
+                "handler_ms": 0.4,
+                "ui_wait_ms": 0,
+                "render_ms": 13.7,
+                "total_ms": 14.3
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 7,
+          "mode": "score",
+          "applied_ms": 0.6000001430511475,
+          "first_frame_ms": 0.7999999523162842,
+          "second_frame_ms": 11,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.3,
+                "handler_ms": 0.3,
+                "ui_wait_ms": 0,
+                "render_ms": 11.6,
+                "total_ms": 12.2
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 8,
+          "mode": "score",
+          "applied_ms": 0.7000000476837158,
+          "first_frame_ms": 6,
+          "second_frame_ms": 22.90000009536743,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.2,
+                "handler_ms": 0.5,
+                "ui_wait_ms": 0,
+                "render_ms": 22.4,
+                "total_ms": 23.1
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 9,
+          "mode": "score",
+          "applied_ms": 1.7999999523162842,
+          "first_frame_ms": 3.299999952316284,
+          "second_frame_ms": 21,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.5,
+                "handler_ms": 1.2,
+                "ui_wait_ms": 0,
+                "render_ms": 19.4,
+                "total_ms": 21.1
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 10,
+          "mode": "score",
+          "applied_ms": 0.6000001430511475,
+          "first_frame_ms": 15.300000190734863,
+          "second_frame_ms": 32,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.2,
+                "handler_ms": 0.5,
+                "ui_wait_ms": 0,
+                "render_ms": 31.4,
+                "total_ms": 32.1
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 11,
+          "mode": "score",
+          "applied_ms": 0.5999999046325684,
+          "first_frame_ms": 13.700000047683716,
+          "second_frame_ms": 30.40000009536743,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.1,
+                "handler_ms": 0.4,
+                "ui_wait_ms": 0,
+                "render_ms": 30,
+                "total_ms": 30.5
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 12,
+          "mode": "score",
+          "applied_ms": 1.2000000476837158,
+          "first_frame_ms": 1.3999998569488525,
+          "second_frame_ms": 26.700000047683716,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.4,
+                "handler_ms": 0.8,
+                "ui_wait_ms": 0,
+                "render_ms": 25.6,
+                "total_ms": 26.8
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 13,
+          "mode": "score",
+          "applied_ms": 0.9000000953674316,
+          "first_frame_ms": 1.3000001907348633,
+          "second_frame_ms": 22.800000190734863,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.3,
+                "handler_ms": 0.6,
+                "ui_wait_ms": 0,
+                "render_ms": 22,
+                "total_ms": 22.9
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 14,
+          "mode": "score",
+          "applied_ms": 0.5,
+          "first_frame_ms": 0.6999998092651367,
+          "second_frame_ms": 19.59999990463257,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.2,
+                "handler_ms": 0.3,
+                "ui_wait_ms": 0,
+                "render_ms": 19.2,
+                "total_ms": 19.7
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 15,
+          "mode": "score",
+          "applied_ms": 0.7000000476837158,
+          "first_frame_ms": 1,
+          "second_frame_ms": 16.200000047683716,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.2,
+                "handler_ms": 0.4,
+                "ui_wait_ms": 0,
+                "render_ms": 15.6,
+                "total_ms": 16.2
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 16,
+          "mode": "score",
+          "applied_ms": 1.2000000476837158,
+          "first_frame_ms": 1.8999998569488525,
+          "second_frame_ms": 15.899999856948853,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.4,
+                "handler_ms": 0.6,
+                "ui_wait_ms": 0.1,
+                "render_ms": 14.8,
+                "total_ms": 15.9
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 17,
+          "mode": "score",
+          "applied_ms": 0.5999999046325684,
+          "first_frame_ms": 1.0999999046325684,
+          "second_frame_ms": 12.599999904632568,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.2,
+                "handler_ms": 0.5,
+                "ui_wait_ms": 0,
+                "render_ms": 11.9,
+                "total_ms": 12.6
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 18,
+          "mode": "score",
+          "applied_ms": 0.2999999523162842,
+          "first_frame_ms": 0.39999985694885254,
+          "second_frame_ms": 15.5,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.1,
+                "handler_ms": 0.2,
+                "ui_wait_ms": 0,
+                "render_ms": 15.3,
+                "total_ms": 15.6
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 19,
+          "mode": "score",
+          "applied_ms": 0.40000009536743164,
+          "first_frame_ms": 0.7000000476837158,
+          "second_frame_ms": 6.5,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.2,
+                "handler_ms": 0.2,
+                "ui_wait_ms": 0,
+                "render_ms": 6.1,
+                "total_ms": 6.5
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 20,
+          "mode": "score",
+          "applied_ms": 0.5,
+          "first_frame_ms": 0.7999999523162842,
+          "second_frame_ms": 12.399999856948853,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.2,
+                "handler_ms": 0.3,
+                "ui_wait_ms": 0,
+                "render_ms": 12,
+                "total_ms": 12.5
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 21,
+          "mode": "score",
+          "applied_ms": 0.5999999046325684,
+          "first_frame_ms": 11.099999904632568,
+          "second_frame_ms": 28,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.2,
+                "handler_ms": 0.4,
+                "ui_wait_ms": 0,
+                "render_ms": 27.5,
+                "total_ms": 28.1
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 22,
+          "mode": "score",
+          "applied_ms": 0.2999999523162842,
+          "first_frame_ms": 0.6000001430511475,
+          "second_frame_ms": 8.900000095367432,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0,
+                "handler_ms": 0.3,
+                "ui_wait_ms": 0,
+                "render_ms": 8.6,
+                "total_ms": 8.9
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 23,
+          "mode": "score",
+          "applied_ms": 0.5,
+          "first_frame_ms": 0.9000000953674316,
+          "second_frame_ms": 9.100000143051147,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.2,
+                "handler_ms": 0.4,
+                "ui_wait_ms": 0,
+                "render_ms": 8.5,
+                "total_ms": 9.1
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 24,
+          "mode": "score",
+          "applied_ms": 0.5,
+          "first_frame_ms": 13.799999952316284,
+          "second_frame_ms": 30.40000009536743,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.2,
+                "handler_ms": 0.3,
+                "ui_wait_ms": 0,
+                "render_ms": 30,
+                "total_ms": 30.5
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 25,
+          "mode": "score",
+          "applied_ms": 0.8999998569488525,
+          "first_frame_ms": 1.1999998092651367,
+          "second_frame_ms": 17,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.3,
+                "handler_ms": 0.6,
+                "ui_wait_ms": 0,
+                "render_ms": 16.3,
+                "total_ms": 17.2
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 26,
+          "mode": "score",
+          "applied_ms": 0.39999985694885254,
+          "first_frame_ms": 0.39999985694885254,
+          "second_frame_ms": 8.799999952316284,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.2,
+                "handler_ms": 0.2,
+                "ui_wait_ms": 0,
+                "render_ms": 8.4,
+                "total_ms": 8.8
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 27,
+          "mode": "score",
+          "applied_ms": 0.6000001430511475,
+          "first_frame_ms": 0.7000000476837158,
+          "second_frame_ms": 8,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.2,
+                "handler_ms": 0.3,
+                "ui_wait_ms": 0,
+                "render_ms": 7.5,
+                "total_ms": 8
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 28,
+          "mode": "score",
+          "applied_ms": 0.8999998569488525,
+          "first_frame_ms": 1.2999999523162842,
+          "second_frame_ms": 21.09999990463257,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.3,
+                "handler_ms": 0.6,
+                "ui_wait_ms": 0,
+                "render_ms": 20.3,
+                "total_ms": 21.2
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 29,
+          "mode": "score",
+          "applied_ms": 0.7000000476837158,
+          "first_frame_ms": 1.2000000476837158,
+          "second_frame_ms": 17.5,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.3,
+                "handler_ms": 0.4,
+                "ui_wait_ms": 0,
+                "render_ms": 16.9,
+                "total_ms": 17.6
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 30,
+          "mode": "score",
+          "applied_ms": 0.6000001430511475,
+          "first_frame_ms": 13.200000047683716,
+          "second_frame_ms": 30,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.1,
+                "handler_ms": 0.5,
+                "ui_wait_ms": 0,
+                "render_ms": 29.5,
+                "total_ms": 30.1
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 31,
+          "mode": "score",
+          "applied_ms": 0.39999985694885254,
+          "first_frame_ms": 10.399999856948853,
+          "second_frame_ms": 27.09999990463257,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0,
+                "handler_ms": 0.2,
+                "ui_wait_ms": 0.1,
+                "render_ms": 26.7,
+                "total_ms": 27
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 32,
+          "mode": "score",
+          "applied_ms": 0.40000009536743164,
+          "first_frame_ms": 7.400000095367432,
+          "second_frame_ms": 23.90000009536743,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.2,
+                "handler_ms": 0.3,
+                "ui_wait_ms": 0,
+                "render_ms": 23.4,
+                "total_ms": 23.9
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 33,
+          "mode": "score",
+          "applied_ms": 0.8000001907348633,
+          "first_frame_ms": 3.3000001907348633,
+          "second_frame_ms": 20.100000143051147,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.3,
+                "handler_ms": 0.5,
+                "ui_wait_ms": 0,
+                "render_ms": 19.4,
+                "total_ms": 20.2
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 34,
+          "mode": "score",
+          "applied_ms": 1,
+          "first_frame_ms": 1.3000001907348633,
+          "second_frame_ms": 16.300000190734863,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.3,
+                "handler_ms": 0.6,
+                "ui_wait_ms": 0.1,
+                "render_ms": 15.4,
+                "total_ms": 16.4
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 35,
+          "mode": "score",
+          "applied_ms": 0.5,
+          "first_frame_ms": 0.5,
+          "second_frame_ms": 13,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.1,
+                "handler_ms": 0.4,
+                "ui_wait_ms": 0,
+                "render_ms": 12.6,
+                "total_ms": 13.1
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 36,
+          "mode": "score",
+          "applied_ms": 0.40000009536743164,
+          "first_frame_ms": 0.5,
+          "second_frame_ms": 10.5,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.1,
+                "handler_ms": 0.3,
+                "ui_wait_ms": 0,
+                "render_ms": 10.2,
+                "total_ms": 10.6
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 37,
+          "mode": "score",
+          "applied_ms": 0.2999999523162842,
+          "first_frame_ms": 0.39999985694885254,
+          "second_frame_ms": 5.599999904632568,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.2,
+                "handler_ms": 0.1,
+                "ui_wait_ms": 0,
+                "render_ms": 5.3,
+                "total_ms": 5.6
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 38,
+          "mode": "score",
+          "applied_ms": 0.3000001907348633,
+          "first_frame_ms": 0.40000009536743164,
+          "second_frame_ms": 5.6000001430511475,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.1,
+                "handler_ms": 0.2,
+                "ui_wait_ms": 0,
+                "render_ms": 5.4,
+                "total_ms": 5.7
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 39,
+          "mode": "score",
+          "applied_ms": 0.5,
+          "first_frame_ms": 2.1000001430511475,
+          "second_frame_ms": 13.300000190734863,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.2,
+                "handler_ms": 0.2,
+                "ui_wait_ms": 0,
+                "render_ms": 12.8,
+                "total_ms": 13.2
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 40,
+          "mode": "score",
+          "applied_ms": 0.7999999523162842,
+          "first_frame_ms": 1.2999999523162842,
+          "second_frame_ms": 13.099999904632568,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.3,
+                "handler_ms": 0.5,
+                "ui_wait_ms": 0,
+                "render_ms": 12.5,
+                "total_ms": 13.3
+              },
+              "ui_jobs": []
+            }
+          ]
+        }
+      ],
+      "cpu_ms": {
+        "TaskDuration": 456.853,
+        "ScriptDuration": 42.958999999999996,
+        "LayoutDuration": 34.236000000000004,
+        "RecalcStyleDuration": 0.907
+      },
+      "layout_count": 47
+    },
+    {
+      "mode": "snapshot",
+      "measurements": [
+        {
+          "id": 41,
+          "mode": "snapshot",
+          "applied_ms": 0.5,
+          "first_frame_ms": 1.2999999523162842,
+          "second_frame_ms": 8,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.1,
+                "handler_ms": 0.3,
+                "ui_wait_ms": 0,
+                "render_ms": 7.5,
+                "total_ms": 7.9
+              },
+              "ui_jobs": []
+            },
+            {
+              "type": "court_current_match",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.3,
+                "handler_ms": 0.7,
+                "ui_wait_ms": 0,
+                "render_ms": 6.9,
+                "total_ms": 7.9
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 42,
+          "mode": "snapshot",
+          "applied_ms": 0.39999985694885254,
+          "first_frame_ms": 0.6999998092651367,
+          "second_frame_ms": 5.299999952316284,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.3,
+                "handler_ms": 0.1,
+                "ui_wait_ms": 0,
+                "render_ms": 4.9,
+                "total_ms": 5.3
+              },
+              "ui_jobs": []
+            },
+            {
+              "type": "court_current_match",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.2,
+                "handler_ms": 0.1,
+                "ui_wait_ms": 0,
+                "render_ms": 4.9,
+                "total_ms": 5.2
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 43,
+          "mode": "snapshot",
+          "applied_ms": 0.3000001907348633,
+          "first_frame_ms": 0.6000001430511475,
+          "second_frame_ms": 8.5,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.2,
+                "handler_ms": 0.1,
+                "ui_wait_ms": 0,
+                "render_ms": 8.3,
+                "total_ms": 8.6
+              },
+              "ui_jobs": []
+            },
+            {
+              "type": "court_current_match",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.2,
+                "handler_ms": 0.1,
+                "ui_wait_ms": 0,
+                "render_ms": 8.2,
+                "total_ms": 8.5
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 44,
+          "mode": "snapshot",
+          "applied_ms": 0.40000009536743164,
+          "first_frame_ms": 0.7000000476837158,
+          "second_frame_ms": 7.599999904632568,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.2,
+                "handler_ms": 0.2,
+                "ui_wait_ms": 0,
+                "render_ms": 7.4,
+                "total_ms": 7.8
+              },
+              "ui_jobs": []
+            },
+            {
+              "type": "court_current_match",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.3,
+                "handler_ms": 0.1,
+                "ui_wait_ms": 0,
+                "render_ms": 7.3,
+                "total_ms": 7.7
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 45,
+          "mode": "snapshot",
+          "applied_ms": 0.8999998569488525,
+          "first_frame_ms": 1.5,
+          "second_frame_ms": 15.599999904632568,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.5,
+                "handler_ms": 0.5,
+                "ui_wait_ms": 0,
+                "render_ms": 14.8,
+                "total_ms": 15.8
+              },
+              "ui_jobs": []
+            },
+            {
+              "type": "court_current_match",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.8,
+                "handler_ms": 0.3,
+                "ui_wait_ms": 0.1,
+                "render_ms": 14.4,
+                "total_ms": 15.6
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 46,
+          "mode": "snapshot",
+          "applied_ms": 1.0999999046325684,
+          "first_frame_ms": 1.7000000476837158,
+          "second_frame_ms": 13.299999952316284,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.4,
+                "handler_ms": 0.5,
+                "ui_wait_ms": 0,
+                "render_ms": 12.4,
+                "total_ms": 13.3
+              },
+              "ui_jobs": []
+            },
+            {
+              "type": "court_current_match",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.7,
+                "handler_ms": 0.1,
+                "ui_wait_ms": 0,
+                "render_ms": 12.4,
+                "total_ms": 13.2
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 47,
+          "mode": "snapshot",
+          "applied_ms": 0.7000000476837158,
+          "first_frame_ms": 0.8999998569488525,
+          "second_frame_ms": 10.399999856948853,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.4,
+                "handler_ms": 0.3,
+                "ui_wait_ms": 0,
+                "render_ms": 9.9,
+                "total_ms": 10.6
+              },
+              "ui_jobs": []
+            },
+            {
+              "type": "court_current_match",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.5,
+                "handler_ms": 0.1,
+                "ui_wait_ms": 0,
+                "render_ms": 9.8,
+                "total_ms": 10.4
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 48,
+          "mode": "snapshot",
+          "applied_ms": 0.40000009536743164,
+          "first_frame_ms": 0.5999999046325684,
+          "second_frame_ms": 6.900000095367432,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.2,
+                "handler_ms": 0.2,
+                "ui_wait_ms": 0,
+                "render_ms": 6.5,
+                "total_ms": 6.9
+              },
+              "ui_jobs": []
+            },
+            {
+              "type": "court_current_match",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.3,
+                "handler_ms": 0,
+                "ui_wait_ms": 0,
+                "render_ms": 6.5,
+                "total_ms": 6.8
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 49,
+          "mode": "snapshot",
+          "applied_ms": 0.5,
+          "first_frame_ms": 3.799999952316284,
+          "second_frame_ms": 20.5,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.2,
+                "handler_ms": 0.3,
+                "ui_wait_ms": 0,
+                "render_ms": 20,
+                "total_ms": 20.5
+              },
+              "ui_jobs": []
+            },
+            {
+              "type": "court_current_match",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.4,
+                "handler_ms": 0.1,
+                "ui_wait_ms": 0,
+                "render_ms": 20,
+                "total_ms": 20.5
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 50,
+          "mode": "snapshot",
+          "applied_ms": 0.39999985694885254,
+          "first_frame_ms": 0.7000000476837158,
+          "second_frame_ms": 16.899999856948853,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.2,
+                "handler_ms": 0.3,
+                "ui_wait_ms": 0,
+                "render_ms": 16.4,
+                "total_ms": 16.9
+              },
+              "ui_jobs": []
+            },
+            {
+              "type": "court_current_match",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.4,
+                "handler_ms": 0.1,
+                "ui_wait_ms": 0,
+                "render_ms": 16.3,
+                "total_ms": 16.8
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 51,
+          "mode": "snapshot",
+          "applied_ms": 0.5,
+          "first_frame_ms": 0.7000000476837158,
+          "second_frame_ms": 16.799999952316284,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.2,
+                "handler_ms": 0.3,
+                "ui_wait_ms": 0,
+                "render_ms": 16.4,
+                "total_ms": 16.9
+              },
+              "ui_jobs": []
+            },
+            {
+              "type": "court_current_match",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.4,
+                "handler_ms": 0.2,
+                "ui_wait_ms": 0,
+                "render_ms": 16.2,
+                "total_ms": 16.8
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 52,
+          "mode": "snapshot",
+          "applied_ms": 0.39999985694885254,
+          "first_frame_ms": 7,
+          "second_frame_ms": 23.700000047683716,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.2,
+                "handler_ms": 0.2,
+                "ui_wait_ms": 0,
+                "render_ms": 23.3,
+                "total_ms": 23.7
+              },
+              "ui_jobs": []
+            },
+            {
+              "type": "court_current_match",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.3,
+                "handler_ms": 0,
+                "ui_wait_ms": 0,
+                "render_ms": 23.4,
+                "total_ms": 23.7
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 53,
+          "mode": "snapshot",
+          "applied_ms": 0.39999985694885254,
+          "first_frame_ms": 0.5,
+          "second_frame_ms": 7,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.2,
+                "handler_ms": 0.1,
+                "ui_wait_ms": 0,
+                "render_ms": 6.6,
+                "total_ms": 6.9
+              },
+              "ui_jobs": []
+            },
+            {
+              "type": "court_current_match",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.3,
+                "handler_ms": 0,
+                "ui_wait_ms": 0,
+                "render_ms": 6.6,
+                "total_ms": 6.9
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 54,
+          "mode": "snapshot",
+          "applied_ms": 0.5,
+          "first_frame_ms": 2.9000000953674316,
+          "second_frame_ms": 19.600000143051147,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.1,
+                "handler_ms": 0.4,
+                "ui_wait_ms": 0,
+                "render_ms": 19.2,
+                "total_ms": 19.7
+              },
+              "ui_jobs": []
+            },
+            {
+              "type": "court_current_match",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.4,
+                "handler_ms": 0,
+                "ui_wait_ms": 0,
+                "render_ms": 19.2,
+                "total_ms": 19.6
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 55,
+          "mode": "snapshot",
+          "applied_ms": 0.5999999046325684,
+          "first_frame_ms": 16.09999990463257,
+          "second_frame_ms": 32.799999952316284,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.2,
+                "handler_ms": 0.3,
+                "ui_wait_ms": 0,
+                "render_ms": 32.3,
+                "total_ms": 32.8
+              },
+              "ui_jobs": []
+            },
+            {
+              "type": "court_current_match",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.4,
+                "handler_ms": 0,
+                "ui_wait_ms": 0,
+                "render_ms": 32.4,
+                "total_ms": 32.8
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 56,
+          "mode": "snapshot",
+          "applied_ms": 0.8000001907348633,
+          "first_frame_ms": 13.100000143051147,
+          "second_frame_ms": 30.800000190734863,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.4,
+                "handler_ms": 0.4,
+                "ui_wait_ms": 0,
+                "render_ms": 30.1,
+                "total_ms": 30.9
+              },
+              "ui_jobs": []
+            },
+            {
+              "type": "court_current_match",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.6,
+                "handler_ms": 0.1,
+                "ui_wait_ms": 0,
+                "render_ms": 30,
+                "total_ms": 30.7
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 57,
+          "mode": "snapshot",
+          "applied_ms": 0.40000009536743164,
+          "first_frame_ms": 0.5,
+          "second_frame_ms": 8,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.2,
+                "handler_ms": 0.2,
+                "ui_wait_ms": 0,
+                "render_ms": 7.7,
+                "total_ms": 8.1
+              },
+              "ui_jobs": []
+            },
+            {
+              "type": "court_current_match",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.3,
+                "handler_ms": 0,
+                "ui_wait_ms": 0,
+                "render_ms": 7.7,
+                "total_ms": 8
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 58,
+          "mode": "snapshot",
+          "applied_ms": 0.5,
+          "first_frame_ms": 5.799999952316284,
+          "second_frame_ms": 22.59999990463257,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.3,
+                "handler_ms": 0.2,
+                "ui_wait_ms": 0,
+                "render_ms": 22.1,
+                "total_ms": 22.6
+              },
+              "ui_jobs": []
+            },
+            {
+              "type": "court_current_match",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.3,
+                "handler_ms": 0,
+                "ui_wait_ms": 0,
+                "render_ms": 22.1,
+                "total_ms": 22.4
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 59,
+          "mode": "snapshot",
+          "applied_ms": 0.5,
+          "first_frame_ms": 2.200000047683716,
+          "second_frame_ms": 18.799999952316284,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.2,
+                "handler_ms": 0.3,
+                "ui_wait_ms": 0,
+                "render_ms": 18.5,
+                "total_ms": 19
+              },
+              "ui_jobs": []
+            },
+            {
+              "type": "court_current_match",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.4,
+                "handler_ms": 0,
+                "ui_wait_ms": 0,
+                "render_ms": 18.5,
+                "total_ms": 18.9
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 60,
+          "mode": "snapshot",
+          "applied_ms": 0.6000001430511475,
+          "first_frame_ms": 0.8000001907348633,
+          "second_frame_ms": 15.5,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.3,
+                "handler_ms": 0.3,
+                "ui_wait_ms": 0,
+                "render_ms": 14.9,
+                "total_ms": 15.5
+              },
+              "ui_jobs": []
+            },
+            {
+              "type": "court_current_match",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.4,
+                "handler_ms": 0,
+                "ui_wait_ms": 0,
+                "render_ms": 15,
+                "total_ms": 15.4
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 61,
+          "mode": "snapshot",
+          "applied_ms": 0.7999999523162842,
+          "first_frame_ms": 12.099999904632568,
+          "second_frame_ms": 28.700000047683716,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.3,
+                "handler_ms": 0.5,
+                "ui_wait_ms": 0.1,
+                "render_ms": 27.9,
+                "total_ms": 28.8
+              },
+              "ui_jobs": []
+            },
+            {
+              "type": "court_current_match",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.7,
+                "handler_ms": 0.1,
+                "ui_wait_ms": 0,
+                "render_ms": 27.9,
+                "total_ms": 28.7
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 62,
+          "mode": "snapshot",
+          "applied_ms": 0.5,
+          "first_frame_ms": 8.399999856948853,
+          "second_frame_ms": 25.09999990463257,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.2,
+                "handler_ms": 0.3,
+                "ui_wait_ms": 0,
+                "render_ms": 24.7,
+                "total_ms": 25.2
+              },
+              "ui_jobs": []
+            },
+            {
+              "type": "court_current_match",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.4,
+                "handler_ms": 0.1,
+                "ui_wait_ms": 0,
+                "render_ms": 24.6,
+                "total_ms": 25.1
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 63,
+          "mode": "snapshot",
+          "applied_ms": 0.5999999046325684,
+          "first_frame_ms": 0.7999999523162842,
+          "second_frame_ms": 5.5,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.3,
+                "handler_ms": 0.2,
+                "ui_wait_ms": 0.1,
+                "render_ms": 5,
+                "total_ms": 5.6
+              },
+              "ui_jobs": []
+            },
+            {
+              "type": "court_current_match",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.4,
+                "handler_ms": 0,
+                "ui_wait_ms": 0,
+                "render_ms": 5,
+                "total_ms": 5.4
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 64,
+          "mode": "snapshot",
+          "applied_ms": 1.1000001430511475,
+          "first_frame_ms": 1.7000000476837158,
+          "second_frame_ms": 18,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.5,
+                "handler_ms": 0.7,
+                "ui_wait_ms": 0,
+                "render_ms": 16.9,
+                "total_ms": 18.1
+              },
+              "ui_jobs": []
+            },
+            {
+              "type": "court_current_match",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 1,
+                "handler_ms": 0.1,
+                "ui_wait_ms": 0,
+                "render_ms": 17,
+                "total_ms": 18.1
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 65,
+          "mode": "snapshot",
+          "applied_ms": 1.0999999046325684,
+          "first_frame_ms": 1.7000000476837158,
+          "second_frame_ms": 15.700000047683716,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.5,
+                "handler_ms": 0.5,
+                "ui_wait_ms": 0,
+                "render_ms": 14.7,
+                "total_ms": 15.7
+              },
+              "ui_jobs": []
+            },
+            {
+              "type": "court_current_match",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.8,
+                "handler_ms": 0.1,
+                "ui_wait_ms": 0,
+                "render_ms": 14.6,
+                "total_ms": 15.5
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 66,
+          "mode": "snapshot",
+          "applied_ms": 0.5999999046325684,
+          "first_frame_ms": 0.9000000953674316,
+          "second_frame_ms": 9.5,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.3,
+                "handler_ms": 0.3,
+                "ui_wait_ms": 0,
+                "render_ms": 8.9,
+                "total_ms": 9.5
+              },
+              "ui_jobs": []
+            },
+            {
+              "type": "court_current_match",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.5,
+                "handler_ms": 0.1,
+                "ui_wait_ms": 0,
+                "render_ms": 8.9,
+                "total_ms": 9.5
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 67,
+          "mode": "snapshot",
+          "applied_ms": 0.5999999046325684,
+          "first_frame_ms": 0.7999999523162842,
+          "second_frame_ms": 8.199999809265137,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.2,
+                "handler_ms": 0.4,
+                "ui_wait_ms": 0,
+                "render_ms": 7.6,
+                "total_ms": 8.2
+              },
+              "ui_jobs": []
+            },
+            {
+              "type": "court_current_match",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.5,
+                "handler_ms": 0,
+                "ui_wait_ms": 0,
+                "render_ms": 7.7,
+                "total_ms": 8.2
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 68,
+          "mode": "snapshot",
+          "applied_ms": 1,
+          "first_frame_ms": 1.6999998092651367,
+          "second_frame_ms": 16,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.5,
+                "handler_ms": 0.5,
+                "ui_wait_ms": 0,
+                "render_ms": 15.2,
+                "total_ms": 16.2
+              },
+              "ui_jobs": []
+            },
+            {
+              "type": "court_current_match",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.7,
+                "handler_ms": 0.1,
+                "ui_wait_ms": 0,
+                "render_ms": 15.1,
+                "total_ms": 15.9
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 69,
+          "mode": "snapshot",
+          "applied_ms": 0.39999985694885254,
+          "first_frame_ms": 0.6999998092651367,
+          "second_frame_ms": 4.8999998569488525,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.2,
+                "handler_ms": 0.2,
+                "ui_wait_ms": 0,
+                "render_ms": 4.5,
+                "total_ms": 4.9
+              },
+              "ui_jobs": []
+            },
+            {
+              "type": "court_current_match",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.3,
+                "handler_ms": 0,
+                "ui_wait_ms": 0,
+                "render_ms": 4.5,
+                "total_ms": 4.8
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 70,
+          "mode": "snapshot",
+          "applied_ms": 0.2999999523162842,
+          "first_frame_ms": 14.299999952316284,
+          "second_frame_ms": 30.899999856948853,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.1,
+                "handler_ms": 0.3,
+                "ui_wait_ms": 0,
+                "render_ms": 30.6,
+                "total_ms": 31
+              },
+              "ui_jobs": []
+            },
+            {
+              "type": "court_current_match",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.3,
+                "handler_ms": 0,
+                "ui_wait_ms": 0,
+                "render_ms": 30.6,
+                "total_ms": 30.9
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 71,
+          "mode": "snapshot",
+          "applied_ms": 0.20000004768371582,
+          "first_frame_ms": 10.599999904632568,
+          "second_frame_ms": 27.299999952316284,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.1,
+                "handler_ms": 0.1,
+                "ui_wait_ms": 0,
+                "render_ms": 27.2,
+                "total_ms": 27.4
+              },
+              "ui_jobs": []
+            },
+            {
+              "type": "court_current_match",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.2,
+                "handler_ms": 0,
+                "ui_wait_ms": 0,
+                "render_ms": 27.1,
+                "total_ms": 27.3
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 72,
+          "mode": "snapshot",
+          "applied_ms": 0.39999985694885254,
+          "first_frame_ms": 7.299999952316284,
+          "second_frame_ms": 24,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.2,
+                "handler_ms": 0.3,
+                "ui_wait_ms": 0,
+                "render_ms": 23.6,
+                "total_ms": 24.1
+              },
+              "ui_jobs": []
+            },
+            {
+              "type": "court_current_match",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.3,
+                "handler_ms": 0,
+                "ui_wait_ms": 0,
+                "render_ms": 23.7,
+                "total_ms": 24
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 73,
+          "mode": "snapshot",
+          "applied_ms": 0.39999985694885254,
+          "first_frame_ms": 0.5999999046325684,
+          "second_frame_ms": 12,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.1,
+                "handler_ms": 0.2,
+                "ui_wait_ms": 0,
+                "render_ms": 11.6,
+                "total_ms": 11.9
+              },
+              "ui_jobs": []
+            },
+            {
+              "type": "court_current_match",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.3,
+                "handler_ms": 0,
+                "ui_wait_ms": 0,
+                "render_ms": 11.7,
+                "total_ms": 12
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 74,
+          "mode": "snapshot",
+          "applied_ms": 1.0999999046325684,
+          "first_frame_ms": 1.5,
+          "second_frame_ms": 17.299999952316284,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.5,
+                "handler_ms": 0.5,
+                "ui_wait_ms": 0.1,
+                "render_ms": 16.3,
+                "total_ms": 17.4
+              },
+              "ui_jobs": []
+            },
+            {
+              "type": "court_current_match",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.8,
+                "handler_ms": 0.1,
+                "ui_wait_ms": 0,
+                "render_ms": 16.3,
+                "total_ms": 17.2
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 75,
+          "mode": "snapshot",
+          "applied_ms": 0.5,
+          "first_frame_ms": 4,
+          "second_frame_ms": 20.5,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.2,
+                "handler_ms": 0.3,
+                "ui_wait_ms": 0,
+                "render_ms": 20.1,
+                "total_ms": 20.6
+              },
+              "ui_jobs": []
+            },
+            {
+              "type": "court_current_match",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.5,
+                "handler_ms": 0,
+                "ui_wait_ms": 0,
+                "render_ms": 20,
+                "total_ms": 20.5
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 76,
+          "mode": "snapshot",
+          "applied_ms": 0.2999999523162842,
+          "first_frame_ms": 10,
+          "second_frame_ms": 26.59999990463257,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.2,
+                "handler_ms": 0.1,
+                "ui_wait_ms": 0,
+                "render_ms": 26.4,
+                "total_ms": 26.7
+              },
+              "ui_jobs": []
+            },
+            {
+              "type": "court_current_match",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.2,
+                "handler_ms": 0,
+                "ui_wait_ms": 0,
+                "render_ms": 26.4,
+                "total_ms": 26.6
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 77,
+          "mode": "snapshot",
+          "applied_ms": 0.5,
+          "first_frame_ms": 6.299999952316284,
+          "second_frame_ms": 23,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.2,
+                "handler_ms": 0.3,
+                "ui_wait_ms": 0,
+                "render_ms": 22.6,
+                "total_ms": 23.1
+              },
+              "ui_jobs": []
+            },
+            {
+              "type": "court_current_match",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.4,
+                "handler_ms": 0,
+                "ui_wait_ms": 0,
+                "render_ms": 22.6,
+                "total_ms": 23
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 78,
+          "mode": "snapshot",
+          "applied_ms": 0.40000009536743164,
+          "first_frame_ms": 2.9000000953674316,
+          "second_frame_ms": 19.600000143051147,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.2,
+                "handler_ms": 0.2,
+                "ui_wait_ms": 0,
+                "render_ms": 19.3,
+                "total_ms": 19.7
+              },
+              "ui_jobs": []
+            },
+            {
+              "type": "court_current_match",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.3,
+                "handler_ms": 0,
+                "ui_wait_ms": 0,
+                "render_ms": 19.3,
+                "total_ms": 19.6
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 79,
+          "mode": "snapshot",
+          "applied_ms": 0.40000009536743164,
+          "first_frame_ms": 15.800000190734863,
+          "second_frame_ms": 32.5,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.2,
+                "handler_ms": 0.2,
+                "ui_wait_ms": 0,
+                "render_ms": 32.2,
+                "total_ms": 32.6
+              },
+              "ui_jobs": []
+            },
+            {
+              "type": "court_current_match",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.4,
+                "handler_ms": 0,
+                "ui_wait_ms": 0,
+                "render_ms": 32.1,
+                "total_ms": 32.5
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 80,
+          "mode": "snapshot",
+          "applied_ms": 0.40000009536743164,
+          "first_frame_ms": 12.599999904632568,
+          "second_frame_ms": 30.09999990463257,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.2,
+                "handler_ms": 0.2,
+                "ui_wait_ms": 0,
+                "render_ms": 29.8,
+                "total_ms": 30.2
+              },
+              "ui_jobs": []
+            },
+            {
+              "type": "court_current_match",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.2,
+                "handler_ms": 0,
+                "ui_wait_ms": 0,
+                "render_ms": 29.8,
+                "total_ms": 30
+              },
+              "ui_jobs": []
+            }
+          ]
+        }
+      ],
+      "cpu_ms": {
+        "TaskDuration": 405.06,
+        "ScriptDuration": 34.382,
+        "LayoutDuration": 30.642000000000003,
+        "RecalcStyleDuration": 8.387
+      },
+      "layout_count": 48
+    },
+    {
+      "mode": "history",
+      "measurements": [
+        {
+          "id": 81,
+          "mode": "history",
+          "applied_ms": 2.6000001430511475,
+          "first_frame_ms": 4.1000001430511475,
+          "second_frame_ms": 24.600000143051147,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.3,
+                "handler_ms": 2.3,
+                "ui_wait_ms": 0,
+                "render_ms": 22.1,
+                "total_ms": 24.7
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 82,
+          "mode": "history",
+          "applied_ms": 1,
+          "first_frame_ms": 1.2000000476837158,
+          "second_frame_ms": 16.700000047683716,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.2,
+                "handler_ms": 0.8,
+                "ui_wait_ms": 0,
+                "render_ms": 15.8,
+                "total_ms": 16.8
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 83,
+          "mode": "history",
+          "applied_ms": 0.5999999046325684,
+          "first_frame_ms": 0.7999999523162842,
+          "second_frame_ms": 16.5,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.1,
+                "handler_ms": 0.5,
+                "ui_wait_ms": 0,
+                "render_ms": 16,
+                "total_ms": 16.6
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 84,
+          "mode": "history",
+          "applied_ms": 0.5999999046325684,
+          "first_frame_ms": 4,
+          "second_frame_ms": 20.59999990463257,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.1,
+                "handler_ms": 0.5,
+                "ui_wait_ms": 0,
+                "render_ms": 20.2,
+                "total_ms": 20.8
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 85,
+          "mode": "history",
+          "applied_ms": 1.0999999046325684,
+          "first_frame_ms": 1.7000000476837158,
+          "second_frame_ms": 19.799999952316284,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.2,
+                "handler_ms": 0.8,
+                "ui_wait_ms": 0,
+                "render_ms": 18.8,
+                "total_ms": 19.8
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 86,
+          "mode": "history",
+          "applied_ms": 1.1000001430511475,
+          "first_frame_ms": 1.6000001430511475,
+          "second_frame_ms": 18.600000143051147,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.2,
+                "handler_ms": 0.8,
+                "ui_wait_ms": 0,
+                "render_ms": 17.5,
+                "total_ms": 18.5
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 87,
+          "mode": "history",
+          "applied_ms": 0.9000000953674316,
+          "first_frame_ms": 2.299999952316284,
+          "second_frame_ms": 17.299999952316284,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.2,
+                "handler_ms": 0.6,
+                "ui_wait_ms": 0,
+                "render_ms": 16.5,
+                "total_ms": 17.3
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 88,
+          "mode": "history",
+          "applied_ms": 0.5,
+          "first_frame_ms": 0.7999999523162842,
+          "second_frame_ms": 9.599999904632568,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.1,
+                "handler_ms": 0.4,
+                "ui_wait_ms": 0,
+                "render_ms": 9.1,
+                "total_ms": 9.6
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 89,
+          "mode": "history",
+          "applied_ms": 0.5,
+          "first_frame_ms": 0.6000001430511475,
+          "second_frame_ms": 9.900000095367432,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.2,
+                "handler_ms": 0.3,
+                "ui_wait_ms": 0,
+                "render_ms": 9.6,
+                "total_ms": 10.1
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 90,
+          "mode": "history",
+          "applied_ms": 1,
+          "first_frame_ms": 1.2000000476837158,
+          "second_frame_ms": 21.299999952316284,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.3,
+                "handler_ms": 0.6,
+                "ui_wait_ms": 0,
+                "render_ms": 20.5,
+                "total_ms": 21.4
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 91,
+          "mode": "history",
+          "applied_ms": 0.5,
+          "first_frame_ms": 0.5999999046325684,
+          "second_frame_ms": 10.299999952316284,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.1,
+                "handler_ms": 0.3,
+                "ui_wait_ms": 0,
+                "render_ms": 9.9,
+                "total_ms": 10.3
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 92,
+          "mode": "history",
+          "applied_ms": 0.5,
+          "first_frame_ms": 0.7000000476837158,
+          "second_frame_ms": 9.799999952316284,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.1,
+                "handler_ms": 0.4,
+                "ui_wait_ms": 0,
+                "render_ms": 9.4,
+                "total_ms": 9.9
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 93,
+          "mode": "history",
+          "applied_ms": 0.9000000953674316,
+          "first_frame_ms": 1.0999999046325684,
+          "second_frame_ms": 16.200000047683716,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.2,
+                "handler_ms": 0.6,
+                "ui_wait_ms": 0,
+                "render_ms": 15.3,
+                "total_ms": 16.1
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 94,
+          "mode": "history",
+          "applied_ms": 0.39999985694885254,
+          "first_frame_ms": 3.0999999046325684,
+          "second_frame_ms": 19.899999856948853,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.1,
+                "handler_ms": 0.2,
+                "ui_wait_ms": 0,
+                "render_ms": 19.5,
+                "total_ms": 19.8
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 95,
+          "mode": "history",
+          "applied_ms": 0.6000001430511475,
+          "first_frame_ms": 0.7000000476837158,
+          "second_frame_ms": 16.100000143051147,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.2,
+                "handler_ms": 0.4,
+                "ui_wait_ms": 0,
+                "render_ms": 15.5,
+                "total_ms": 16.1
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 96,
+          "mode": "history",
+          "applied_ms": 0.40000009536743164,
+          "first_frame_ms": 12.900000095367432,
+          "second_frame_ms": 29.5,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.2,
+                "handler_ms": 0.2,
+                "ui_wait_ms": 0,
+                "render_ms": 29.2,
+                "total_ms": 29.6
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 97,
+          "mode": "history",
+          "applied_ms": 0.40000009536743164,
+          "first_frame_ms": 9.299999952316284,
+          "second_frame_ms": 25.90000009536743,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.1,
+                "handler_ms": 0.2,
+                "ui_wait_ms": 0,
+                "render_ms": 25.6,
+                "total_ms": 25.9
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 98,
+          "mode": "history",
+          "applied_ms": 0.5,
+          "first_frame_ms": 6.699999809265137,
+          "second_frame_ms": 24,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.1,
+                "handler_ms": 0.4,
+                "ui_wait_ms": 0,
+                "render_ms": 23.5,
+                "total_ms": 24
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 99,
+          "mode": "history",
+          "applied_ms": 0.40000009536743164,
+          "first_frame_ms": 0.7999999523162842,
+          "second_frame_ms": 17.5,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0,
+                "handler_ms": 0.3,
+                "ui_wait_ms": 0,
+                "render_ms": 17.1,
+                "total_ms": 17.4
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 100,
+          "mode": "history",
+          "applied_ms": 0.40000009536743164,
+          "first_frame_ms": 0.5,
+          "second_frame_ms": 15.700000047683716,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.2,
+                "handler_ms": 0.2,
+                "ui_wait_ms": 0,
+                "render_ms": 15.4,
+                "total_ms": 15.8
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 101,
+          "mode": "history",
+          "applied_ms": 0.5999999046325684,
+          "first_frame_ms": 12.799999952316284,
+          "second_frame_ms": 28.899999856948853,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.3,
+                "handler_ms": 0.3,
+                "ui_wait_ms": 0,
+                "render_ms": 28.4,
+                "total_ms": 29
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 102,
+          "mode": "history",
+          "applied_ms": 0.5,
+          "first_frame_ms": 8.5,
+          "second_frame_ms": 25.09999990463257,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.2,
+                "handler_ms": 0.3,
+                "ui_wait_ms": 0,
+                "render_ms": 24.7,
+                "total_ms": 25.2
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 103,
+          "mode": "history",
+          "applied_ms": 0.7000000476837158,
+          "first_frame_ms": 5,
+          "second_frame_ms": 21.700000047683716,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.3,
+                "handler_ms": 0.4,
+                "ui_wait_ms": 0,
+                "render_ms": 21,
+                "total_ms": 21.7
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 104,
+          "mode": "history",
+          "applied_ms": 0.5999999046325684,
+          "first_frame_ms": 1.3999998569488525,
+          "second_frame_ms": 18.200000047683716,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.2,
+                "handler_ms": 0.3,
+                "ui_wait_ms": 0,
+                "render_ms": 17.6,
+                "total_ms": 18.1
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 105,
+          "mode": "history",
+          "applied_ms": 0.5,
+          "first_frame_ms": 0.5999999046325684,
+          "second_frame_ms": 14.899999856948853,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.2,
+                "handler_ms": 0.2,
+                "ui_wait_ms": 0,
+                "render_ms": 14.5,
+                "total_ms": 14.9
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 106,
+          "mode": "history",
+          "applied_ms": 0.5999999046325684,
+          "first_frame_ms": 11.200000047683716,
+          "second_frame_ms": 27.90000009536743,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.1,
+                "handler_ms": 0.3,
+                "ui_wait_ms": 0,
+                "render_ms": 27.4,
+                "total_ms": 27.8
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 107,
+          "mode": "history",
+          "applied_ms": 0.40000009536743164,
+          "first_frame_ms": 7.700000047683716,
+          "second_frame_ms": 24.40000009536743,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.2,
+                "handler_ms": 0.2,
+                "ui_wait_ms": 0,
+                "render_ms": 24.1,
+                "total_ms": 24.5
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 108,
+          "mode": "history",
+          "applied_ms": 0.5,
+          "first_frame_ms": 4.199999809265137,
+          "second_frame_ms": 20.799999952316284,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.2,
+                "handler_ms": 0.3,
+                "ui_wait_ms": 0,
+                "render_ms": 20.2,
+                "total_ms": 20.7
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 109,
+          "mode": "history",
+          "applied_ms": 0.5,
+          "first_frame_ms": 0.7999999523162842,
+          "second_frame_ms": 17.40000009536743,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.2,
+                "handler_ms": 0.3,
+                "ui_wait_ms": 0,
+                "render_ms": 17,
+                "total_ms": 17.5
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 110,
+          "mode": "history",
+          "applied_ms": 0.40000009536743164,
+          "first_frame_ms": 0.5,
+          "second_frame_ms": 14.100000143051147,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.2,
+                "handler_ms": 0.2,
+                "ui_wait_ms": 0,
+                "render_ms": 13.7,
+                "total_ms": 14.1
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 111,
+          "mode": "history",
+          "applied_ms": 0.5,
+          "first_frame_ms": 0.6000001430511475,
+          "second_frame_ms": 10.600000143051147,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.2,
+                "handler_ms": 0.3,
+                "ui_wait_ms": 0,
+                "render_ms": 10.2,
+                "total_ms": 10.7
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 112,
+          "mode": "history",
+          "applied_ms": 0.5,
+          "first_frame_ms": 7.099999904632568,
+          "second_frame_ms": 23.799999952316284,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.3,
+                "handler_ms": 0.3,
+                "ui_wait_ms": 0,
+                "render_ms": 23.3,
+                "total_ms": 23.9
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 113,
+          "mode": "history",
+          "applied_ms": 0.5,
+          "first_frame_ms": 0.5,
+          "second_frame_ms": 8.100000143051147,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.1,
+                "handler_ms": 0.2,
+                "ui_wait_ms": 0.1,
+                "render_ms": 7.7,
+                "total_ms": 8.1
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 114,
+          "mode": "history",
+          "applied_ms": 0.5,
+          "first_frame_ms": 0.5999999046325684,
+          "second_frame_ms": 12.099999904632568,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.2,
+                "handler_ms": 0.3,
+                "ui_wait_ms": 0,
+                "render_ms": 11.7,
+                "total_ms": 12.2
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 115,
+          "mode": "history",
+          "applied_ms": 0.5,
+          "first_frame_ms": 0.5,
+          "second_frame_ms": 13.100000143051147,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.2,
+                "handler_ms": 0.3,
+                "ui_wait_ms": 0,
+                "render_ms": 12.6,
+                "total_ms": 13.1
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 116,
+          "mode": "history",
+          "applied_ms": 0.39999985694885254,
+          "first_frame_ms": 0.7000000476837158,
+          "second_frame_ms": 9.799999952316284,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.2,
+                "handler_ms": 0.2,
+                "ui_wait_ms": 0,
+                "render_ms": 9.4,
+                "total_ms": 9.8
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 117,
+          "mode": "history",
+          "applied_ms": 0.5999999046325684,
+          "first_frame_ms": 6.200000047683716,
+          "second_frame_ms": 22.90000009536743,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.2,
+                "handler_ms": 0.4,
+                "ui_wait_ms": 0,
+                "render_ms": 22.4,
+                "total_ms": 23
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 118,
+          "mode": "history",
+          "applied_ms": 0.40000009536743164,
+          "first_frame_ms": 0.5,
+          "second_frame_ms": 6.099999904632568,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.2,
+                "handler_ms": 0.3,
+                "ui_wait_ms": 0,
+                "render_ms": 5.7,
+                "total_ms": 6.2
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 119,
+          "mode": "history",
+          "applied_ms": 0.3000001907348633,
+          "first_frame_ms": 12.5,
+          "second_frame_ms": 29.200000047683716,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.1,
+                "handler_ms": 0.2,
+                "ui_wait_ms": 0,
+                "render_ms": 29,
+                "total_ms": 29.3
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 120,
+          "mode": "history",
+          "applied_ms": 0.6999998092651367,
+          "first_frame_ms": 12.399999856948853,
+          "second_frame_ms": 29,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.3,
+                "handler_ms": 0.4,
+                "ui_wait_ms": 0,
+                "render_ms": 28.4,
+                "total_ms": 29.1
+              },
+              "ui_jobs": []
+            }
+          ]
+        }
+      ],
+      "cpu_ms": {
+        "TaskDuration": 413.70099999999996,
+        "ScriptDuration": 28.964000000000002,
+        "LayoutDuration": 24.347999999999995,
+        "RecalcStyleDuration": 51.602999999999994
+      },
+      "layout_count": 45
+    },
+    {
+      "mode": "interval",
+      "measurements": [
+        {
+          "id": 121,
+          "mode": "interval",
+          "applied_ms": 0.40000009536743164,
+          "first_frame_ms": 7.5,
+          "second_frame_ms": 24.200000047683716,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.1,
+                "handler_ms": 0.2,
+                "ui_wait_ms": 0,
+                "render_ms": 23.9,
+                "total_ms": 24.2
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 122,
+          "mode": "interval",
+          "applied_ms": 1,
+          "first_frame_ms": 11.5,
+          "second_frame_ms": 28.399999856948853,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": true,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.1,
+                "handler_ms": 0.8,
+                "ui_wait_ms": 19.9,
+                "render_ms": 24,
+                "total_ms": 44.8
+              },
+              "ui_jobs": [
+                {
+                  "name": "timers.fit",
+                  "requested_ms": 0.7,
+                  "queue_ms": 10.7,
+                  "work_ms": 0.3,
+                  "elapsed_ms": 19.8,
+                  "status": "complete"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": 123,
+          "mode": "interval",
+          "applied_ms": 0.5,
+          "first_frame_ms": 8.200000047683716,
+          "second_frame_ms": 24.90000009536743,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.1,
+                "handler_ms": 0.3,
+                "ui_wait_ms": 0,
+                "render_ms": 24.4,
+                "total_ms": 24.8
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 124,
+          "mode": "interval",
+          "applied_ms": 0.7000000476837158,
+          "first_frame_ms": 0.9000000953674316,
+          "second_frame_ms": 18.600000143051147,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": true,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.1,
+                "handler_ms": 0.6,
+                "ui_wait_ms": 6.3,
+                "render_ms": 14.9,
+                "total_ms": 21.9
+              },
+              "ui_jobs": [
+                {
+                  "name": "timers.fit",
+                  "requested_ms": 0.6,
+                  "queue_ms": 0.2,
+                  "work_ms": 0.3,
+                  "elapsed_ms": 6.4,
+                  "status": "complete"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": 125,
+          "mode": "interval",
+          "applied_ms": 0.40000009536743164,
+          "first_frame_ms": 0.7000000476837158,
+          "second_frame_ms": 17.40000009536743,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.2,
+                "handler_ms": 0.2,
+                "ui_wait_ms": 0,
+                "render_ms": 17.1,
+                "total_ms": 17.5
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 126,
+          "mode": "interval",
+          "applied_ms": 1,
+          "first_frame_ms": 14.200000047683716,
+          "second_frame_ms": 30.90000009536743,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": true,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.1,
+                "handler_ms": 0.8,
+                "ui_wait_ms": 18.4,
+                "render_ms": 28.3,
+                "total_ms": 47.6
+              },
+              "ui_jobs": [
+                {
+                  "name": "timers.fit",
+                  "requested_ms": 0.7,
+                  "queue_ms": 13.3,
+                  "work_ms": 0.1,
+                  "elapsed_ms": 18.5,
+                  "status": "complete"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": 127,
+          "mode": "interval",
+          "applied_ms": 0.5,
+          "first_frame_ms": 0.5999999046325684,
+          "second_frame_ms": 11.799999952316284,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.2,
+                "handler_ms": 0.3,
+                "ui_wait_ms": 0,
+                "render_ms": 11.4,
+                "total_ms": 11.9
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 128,
+          "mode": "interval",
+          "applied_ms": 0.8000001907348633,
+          "first_frame_ms": 6.400000095367432,
+          "second_frame_ms": 23.300000190734863,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": true,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.1,
+                "handler_ms": 0.6,
+                "ui_wait_ms": 11.5,
+                "render_ms": 27.4,
+                "total_ms": 39.6
+              },
+              "ui_jobs": [
+                {
+                  "name": "timers.fit",
+                  "requested_ms": 0.6,
+                  "queue_ms": 5.6,
+                  "work_ms": 0.2,
+                  "elapsed_ms": 11.6,
+                  "status": "complete"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": 129,
+          "mode": "interval",
+          "applied_ms": 0.40000009536743164,
+          "first_frame_ms": 3.9000000953674316,
+          "second_frame_ms": 20.600000143051147,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.2,
+                "handler_ms": 0.2,
+                "ui_wait_ms": 0,
+                "render_ms": 20.2,
+                "total_ms": 20.6
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 130,
+          "mode": "interval",
+          "applied_ms": 0.8000001907348633,
+          "first_frame_ms": 1,
+          "second_frame_ms": 17,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": true,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.1,
+                "handler_ms": 0.7,
+                "ui_wait_ms": 4.5,
+                "render_ms": 28.3,
+                "total_ms": 33.6
+              },
+              "ui_jobs": [
+                {
+                  "name": "timers.fit",
+                  "requested_ms": 0.7,
+                  "queue_ms": 0.3,
+                  "work_ms": 0.1,
+                  "elapsed_ms": 4.6,
+                  "status": "complete"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": 131,
+          "mode": "interval",
+          "applied_ms": 0.40000009536743164,
+          "first_frame_ms": 13.599999904632568,
+          "second_frame_ms": 30.299999952316284,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.1,
+                "handler_ms": 0.4,
+                "ui_wait_ms": 0,
+                "render_ms": 29.9,
+                "total_ms": 30.4
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 132,
+          "mode": "interval",
+          "applied_ms": 0.7999999523162842,
+          "first_frame_ms": 0.8999998569488525,
+          "second_frame_ms": 10.5,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": true,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.2,
+                "handler_ms": 0.6,
+                "ui_wait_ms": 4,
+                "render_ms": 22.2,
+                "total_ms": 27
+              },
+              "ui_jobs": [
+                {
+                  "name": "timers.fit",
+                  "requested_ms": 0.6,
+                  "queue_ms": 0.3,
+                  "work_ms": 0.1,
+                  "elapsed_ms": 4.2,
+                  "status": "complete"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": 133,
+          "mode": "interval",
+          "applied_ms": 0.5,
+          "first_frame_ms": 0.7999999523162842,
+          "second_frame_ms": 15.099999904632568,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.1,
+                "handler_ms": 0.3,
+                "ui_wait_ms": 0,
+                "render_ms": 14.7,
+                "total_ms": 15.1
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 134,
+          "mode": "interval",
+          "applied_ms": 0.7000000476837158,
+          "first_frame_ms": 1,
+          "second_frame_ms": 18.899999856948853,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": true,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.1,
+                "handler_ms": 0.6,
+                "ui_wait_ms": 7.1,
+                "render_ms": 23.3,
+                "total_ms": 31.1
+              },
+              "ui_jobs": [
+                {
+                  "name": "timers.fit",
+                  "requested_ms": 0.6,
+                  "queue_ms": 0.3,
+                  "work_ms": 0.3,
+                  "elapsed_ms": 7.2,
+                  "status": "complete"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": 135,
+          "mode": "interval",
+          "applied_ms": 0.7999999523162842,
+          "first_frame_ms": 0.9000000953674316,
+          "second_frame_ms": 15,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.2,
+                "handler_ms": 0.5,
+                "ui_wait_ms": 0,
+                "render_ms": 14.2,
+                "total_ms": 14.9
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 136,
+          "mode": "interval",
+          "applied_ms": 0.9000000953674316,
+          "first_frame_ms": 11.400000095367432,
+          "second_frame_ms": 31.100000143051147,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": true,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.2,
+                "handler_ms": 0.7,
+                "ui_wait_ms": 19.5,
+                "render_ms": 23.9,
+                "total_ms": 44.3
+              },
+              "ui_jobs": [
+                {
+                  "name": "timers.fit",
+                  "requested_ms": 0.8,
+                  "queue_ms": 10.5,
+                  "work_ms": 0.3,
+                  "elapsed_ms": 19.6,
+                  "status": "complete"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": 137,
+          "mode": "interval",
+          "applied_ms": 0.5,
+          "first_frame_ms": 0.5999999046325684,
+          "second_frame_ms": 9.599999904632568,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.2,
+                "handler_ms": 0.4,
+                "ui_wait_ms": 0,
+                "render_ms": 9.1,
+                "total_ms": 9.7
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 138,
+          "mode": "interval",
+          "applied_ms": 0.5999999046325684,
+          "first_frame_ms": 5.599999904632568,
+          "second_frame_ms": 22.199999809265137,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": true,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.2,
+                "handler_ms": 0.4,
+                "ui_wait_ms": 9.5,
+                "render_ms": 29,
+                "total_ms": 39.1
+              },
+              "ui_jobs": [
+                {
+                  "name": "timers.fit",
+                  "requested_ms": 0.5,
+                  "queue_ms": 5.1,
+                  "work_ms": 0.1,
+                  "elapsed_ms": 9.6,
+                  "status": "complete"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": 139,
+          "mode": "interval",
+          "applied_ms": 0.5,
+          "first_frame_ms": 2.200000047683716,
+          "second_frame_ms": 19.299999952316284,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.1,
+                "handler_ms": 0.4,
+                "ui_wait_ms": 0,
+                "render_ms": 18.9,
+                "total_ms": 19.4
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 140,
+          "mode": "interval",
+          "applied_ms": 0.5999999046325684,
+          "first_frame_ms": 15.200000047683716,
+          "second_frame_ms": 31.90000009536743,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": true,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.2,
+                "handler_ms": 0.4,
+                "ui_wait_ms": 19.7,
+                "render_ms": 28.3,
+                "total_ms": 48.6
+              },
+              "ui_jobs": [
+                {
+                  "name": "timers.fit",
+                  "requested_ms": 0.5,
+                  "queue_ms": 14.7,
+                  "work_ms": 0.2,
+                  "elapsed_ms": 19.8,
+                  "status": "complete"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": 141,
+          "mode": "interval",
+          "applied_ms": 0.6000001430511475,
+          "first_frame_ms": 12.400000095367432,
+          "second_frame_ms": 29,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.1,
+                "handler_ms": 0.5,
+                "ui_wait_ms": 0,
+                "render_ms": 28.4,
+                "total_ms": 29
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 142,
+          "mode": "interval",
+          "applied_ms": 0.6000001430511475,
+          "first_frame_ms": 8.700000047683716,
+          "second_frame_ms": 25.40000009536743,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": true,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.1,
+                "handler_ms": 0.5,
+                "ui_wait_ms": 11.8,
+                "render_ms": 29.8,
+                "total_ms": 42.2
+              },
+              "ui_jobs": [
+                {
+                  "name": "timers.fit",
+                  "requested_ms": 0.5,
+                  "queue_ms": 8.2,
+                  "work_ms": 0,
+                  "elapsed_ms": 11.9,
+                  "status": "complete"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": 143,
+          "mode": "interval",
+          "applied_ms": 0.40000009536743164,
+          "first_frame_ms": 5.299999952316284,
+          "second_frame_ms": 21.90000009536743,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.1,
+                "handler_ms": 0.3,
+                "ui_wait_ms": 0,
+                "render_ms": 21.6,
+                "total_ms": 22
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 144,
+          "mode": "interval",
+          "applied_ms": 0.5,
+          "first_frame_ms": 1.6000001430511475,
+          "second_frame_ms": 18.40000009536743,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": true,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.2,
+                "handler_ms": 0.3,
+                "ui_wait_ms": 5.2,
+                "render_ms": 29.4,
+                "total_ms": 35.1
+              },
+              "ui_jobs": [
+                {
+                  "name": "timers.fit",
+                  "requested_ms": 0.5,
+                  "queue_ms": 1.1,
+                  "work_ms": 0.2,
+                  "elapsed_ms": 5.2,
+                  "status": "complete"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": 145,
+          "mode": "interval",
+          "applied_ms": 0.5999999046325684,
+          "first_frame_ms": 15,
+          "second_frame_ms": 38.09999990463257,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.2,
+                "handler_ms": 0.3,
+                "ui_wait_ms": 0.1,
+                "render_ms": 37.6,
+                "total_ms": 38.2
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 146,
+          "mode": "interval",
+          "applied_ms": 0.7000000476837158,
+          "first_frame_ms": 4.799999952316284,
+          "second_frame_ms": 21.399999856948853,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": true,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.1,
+                "handler_ms": 0.6,
+                "ui_wait_ms": 8.2,
+                "render_ms": 29.3,
+                "total_ms": 38.2
+              },
+              "ui_jobs": [
+                {
+                  "name": "timers.fit",
+                  "requested_ms": 0.5,
+                  "queue_ms": 4.2,
+                  "work_ms": 0.1,
+                  "elapsed_ms": 8.4,
+                  "status": "complete"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": 147,
+          "mode": "interval",
+          "applied_ms": 0.7999999523162842,
+          "first_frame_ms": 8,
+          "second_frame_ms": 24.59999990463257,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.3,
+                "handler_ms": 0.6,
+                "ui_wait_ms": 0,
+                "render_ms": 23.8,
+                "total_ms": 24.7
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 148,
+          "mode": "interval",
+          "applied_ms": 0.9000000953674316,
+          "first_frame_ms": 4.400000095367432,
+          "second_frame_ms": 38.09999990463257,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": true,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.1,
+                "handler_ms": 0.7,
+                "ui_wait_ms": 15.3,
+                "render_ms": 22.8,
+                "total_ms": 38.9
+              },
+              "ui_jobs": [
+                {
+                  "name": "timers.fit",
+                  "requested_ms": 0.7,
+                  "queue_ms": 3.5,
+                  "work_ms": 0.3,
+                  "elapsed_ms": 15.4,
+                  "status": "complete"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": 149,
+          "mode": "interval",
+          "applied_ms": 0.6000001430511475,
+          "first_frame_ms": 12,
+          "second_frame_ms": 28.90000009536743,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.1,
+                "handler_ms": 0.4,
+                "ui_wait_ms": 0,
+                "render_ms": 28.3,
+                "total_ms": 28.8
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 150,
+          "mode": "interval",
+          "applied_ms": 1,
+          "first_frame_ms": 13.900000095367432,
+          "second_frame_ms": 30.800000190734863,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": true,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.2,
+                "handler_ms": 0.7,
+                "ui_wait_ms": 16.9,
+                "render_ms": 29.7,
+                "total_ms": 47.5
+              },
+              "ui_jobs": [
+                {
+                  "name": "timers.fit",
+                  "requested_ms": 0.8,
+                  "queue_ms": 13,
+                  "work_ms": 0.1,
+                  "elapsed_ms": 17,
+                  "status": "complete"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": 151,
+          "mode": "interval",
+          "applied_ms": 1.7000000476837158,
+          "first_frame_ms": 2.0999999046325684,
+          "second_frame_ms": 33.5,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.5,
+                "handler_ms": 1.1,
+                "ui_wait_ms": 0,
+                "render_ms": 31.9,
+                "total_ms": 33.5
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 152,
+          "mode": "interval",
+          "applied_ms": 2.3999998569488525,
+          "first_frame_ms": 5.8999998569488525,
+          "second_frame_ms": 30.199999809265137,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": true,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.4,
+                "handler_ms": 2,
+                "ui_wait_ms": 13.5,
+                "render_ms": 17.5,
+                "total_ms": 33.4
+              },
+              "ui_jobs": [
+                {
+                  "name": "timers.fit",
+                  "requested_ms": 2,
+                  "queue_ms": 3.9,
+                  "work_ms": 0.3,
+                  "elapsed_ms": 13.9,
+                  "status": "complete"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": 153,
+          "mode": "interval",
+          "applied_ms": 0.5,
+          "first_frame_ms": 3.3999998569488525,
+          "second_frame_ms": 20,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.1,
+                "handler_ms": 0.3,
+                "ui_wait_ms": 0,
+                "render_ms": 19.6,
+                "total_ms": 20
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 154,
+          "mode": "interval",
+          "applied_ms": 0.5,
+          "first_frame_ms": 0.7999999523162842,
+          "second_frame_ms": 37.5,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": true,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0,
+                "handler_ms": 0.4,
+                "ui_wait_ms": 17.7,
+                "render_ms": 32.3,
+                "total_ms": 50.4
+              },
+              "ui_jobs": [
+                {
+                  "name": "timers.fit",
+                  "requested_ms": 0.4,
+                  "queue_ms": 0.3,
+                  "work_ms": 0.4,
+                  "elapsed_ms": 17.7,
+                  "status": "complete"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": 155,
+          "mode": "interval",
+          "applied_ms": 1.2999999523162842,
+          "first_frame_ms": 1.5999999046325684,
+          "second_frame_ms": 23.699999809265137,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.3,
+                "handler_ms": 0.9,
+                "ui_wait_ms": 0,
+                "render_ms": 22.5,
+                "total_ms": 23.7
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 156,
+          "mode": "interval",
+          "applied_ms": 1,
+          "first_frame_ms": 1.2000000476837158,
+          "second_frame_ms": 15.599999904632568,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": true,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.3,
+                "handler_ms": 0.6,
+                "ui_wait_ms": 4.1,
+                "render_ms": 27.2,
+                "total_ms": 32.2
+              },
+              "ui_jobs": [
+                {
+                  "name": "timers.fit",
+                  "requested_ms": 0.7,
+                  "queue_ms": 0.4,
+                  "work_ms": 0.1,
+                  "elapsed_ms": 4.3,
+                  "status": "complete"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": 157,
+          "mode": "interval",
+          "applied_ms": 0.39999985694885254,
+          "first_frame_ms": 0.5999999046325684,
+          "second_frame_ms": 12.299999952316284,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.1,
+                "handler_ms": 0.3,
+                "ui_wait_ms": 0,
+                "render_ms": 11.9,
+                "total_ms": 12.3
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 158,
+          "mode": "interval",
+          "applied_ms": 1.2999999523162842,
+          "first_frame_ms": 1.5999999046325684,
+          "second_frame_ms": 23.90000009536743,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": true,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.3,
+                "handler_ms": 1,
+                "ui_wait_ms": 8.2,
+                "render_ms": 21.4,
+                "total_ms": 30.9
+              },
+              "ui_jobs": [
+                {
+                  "name": "timers.fit",
+                  "requested_ms": 1.1,
+                  "queue_ms": 0.5,
+                  "work_ms": 0.1,
+                  "elapsed_ms": 8.4,
+                  "status": "complete"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": 159,
+          "mode": "interval",
+          "applied_ms": 0.5,
+          "first_frame_ms": 15.100000143051147,
+          "second_frame_ms": 32.299999952316284,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": false,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.2,
+                "handler_ms": 0.3,
+                "ui_wait_ms": 0,
+                "render_ms": 31.9,
+                "total_ms": 32.4
+              },
+              "ui_jobs": []
+            }
+          ]
+        },
+        {
+          "id": 160,
+          "mode": "interval",
+          "applied_ms": 0.9000000953674316,
+          "first_frame_ms": 12.099999904632568,
+          "second_frame_ms": 28.700000047683716,
+          "first_seen": true,
+          "second_seen": true,
+          "clock_visible": true,
+          "receipts": [
+            {
+              "type": "score",
+              "status": "presented",
+              "timings": {
+                "queue_ms": 0.2,
+                "handler_ms": 0.6,
+                "ui_wait_ms": 14.9,
+                "render_ms": 29.6,
+                "total_ms": 45.3
+              },
+              "ui_jobs": [
+                {
+                  "name": "timers.fit",
+                  "requested_ms": 0.6,
+                  "queue_ms": 11.4,
+                  "work_ms": 0,
+                  "elapsed_ms": 15.1,
+                  "status": "complete"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "cpu_ms": {
+        "TaskDuration": 823.8219999999999,
+        "ScriptDuration": 52.301,
+        "LayoutDuration": 41.14699999999999,
+        "RecalcStyleDuration": 170.069
+      },
+      "layout_count": 59
+    }
+  ],
+  "calls": {
+    "timerReplay": {
+      "count": 160,
+      "ms": 10.100000858306885
+    },
+    "score": {
+      "count": 160,
+      "ms": 62.99999952316284
+    }
+  },
+  "rows": 512,
+  "retained": true,
+  "pending": {
+    "pending": 0,
+    "subscribers": 1,
+    "callbackErrors": 0
+  },
+  "errors": []
+}

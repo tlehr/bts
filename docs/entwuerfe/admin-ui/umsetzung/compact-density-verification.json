@@ -7,7 +7,7 @@
     "The court table grows to all rows and still scrolls horizontally when needed at 2560",
     "Current and finished rows center the score with at least 2px clearance and a 24px minimum at 2560",
     "Planned rows have exactly 2px above and below the player status at 2560",
-    "Clocks, actions, role icons and court graphics never exceed their row reference at 2560",
+    "Clocks, actions, role icons and court graphics fit the row reference with its 16px control minimum at 2560",
     "Bells sit at the bottom of their unchanged click targets at 2560",
     "Speech badges for player, tablet and official bells stay inside the row at 2560",
     "Court backgrounds fill the reference height without distortion and keep the tablet number style at 2560",
@@ -23,7 +23,7 @@
     "The court table grows to all rows and still scrolls horizontally when needed at 1920",
     "Current and finished rows center the score with at least 2px clearance and a 24px minimum at 1920",
     "Planned rows have exactly 2px above and below the player status at 1920",
-    "Clocks, actions, role icons and court graphics never exceed their row reference at 1920",
+    "Clocks, actions, role icons and court graphics fit the row reference with its 16px control minimum at 1920",
     "Bells sit at the bottom of their unchanged click targets at 1920",
     "Speech badges for player, tablet and official bells stay inside the row at 1920",
     "Court backgrounds fill the reference height without distortion and keep the tablet number style at 1920",
@@ -39,7 +39,7 @@
     "The court table grows to all rows and still scrolls horizontally when needed at 1536",
     "Current and finished rows center the score with at least 2px clearance and a 24px minimum at 1536",
     "Planned rows have exactly 2px above and below the player status at 1536",
-    "Clocks, actions, role icons and court graphics never exceed their row reference at 1536",
+    "Clocks, actions, role icons and court graphics fit the row reference with its 16px control minimum at 1536",
     "Bells sit at the bottom of their unchanged click targets at 1536",
     "Speech badges for player, tablet and official bells stay inside the row at 1536",
     "Court backgrounds fill the reference height without distortion and keep the tablet number style at 1536",
@@ -55,7 +55,7 @@
     "The court table grows to all rows and still scrolls horizontally when needed at 390",
     "Current and finished rows center the score with at least 2px clearance and a 24px minimum at 390",
     "Planned rows have exactly 2px above and below the player status at 390",
-    "Clocks, actions, role icons and court graphics never exceed their row reference at 390",
+    "Clocks, actions, role icons and court graphics fit the row reference with its 16px control minimum at 390",
     "Bells sit at the bottom of their unchanged click targets at 390",
     "Speech badges for player, tablet and official bells stay inside the row at 390",
     "Court backgrounds fill the reference height without distortion and keep the tablet number style at 390",
@@ -81,6 +81,7 @@
           "id": "match-44",
           "planned": false,
           "height": 26,
+          "controlReference": 22,
           "reference": 22,
           "top": 2,
           "bottom": 2,
@@ -133,6 +134,7 @@
           "id": "match-37",
           "planned": false,
           "height": 26,
+          "controlReference": 22,
           "reference": 22,
           "top": 2,
           "bottom": 2,
@@ -203,6 +205,7 @@
           "id": "match-40",
           "planned": false,
           "height": 26,
+          "controlReference": 22,
           "reference": 22,
           "top": 2,
           "bottom": 2,
@@ -249,6 +252,7 @@
           "id": "match-36",
           "planned": false,
           "height": 26,
+          "controlReference": 22,
           "reference": 22,
           "top": 2,
           "bottom": 2,
@@ -289,6 +293,7 @@
           "id": "match-32",
           "planned": false,
           "height": 26,
+          "controlReference": 22,
           "reference": 22,
           "top": 2,
           "bottom": 2,
@@ -335,6 +340,7 @@
           "id": "match-38",
           "planned": false,
           "height": 26,
+          "controlReference": 22,
           "reference": 22,
           "top": 2,
           "bottom": 2,
@@ -375,6 +381,7 @@
           "id": "match-30",
           "planned": false,
           "height": 26,
+          "controlReference": 22,
           "reference": 22,
           "top": 2,
           "bottom": 2,
@@ -421,6 +428,7 @@
           "id": "match-43",
           "planned": false,
           "height": 26,
+          "controlReference": 22,
           "reference": 22,
           "top": 2,
           "bottom": 2,
@@ -461,6 +469,7 @@
           "id": "match-39",
           "planned": false,
           "height": 26,
+          "controlReference": 22,
           "reference": 22,
           "top": 2,
           "bottom": 2,
@@ -501,6 +510,7 @@
           "id": "match-42",
           "planned": false,
           "height": 26,
+          "controlReference": 22,
           "reference": 22,
           "top": 2,
           "bottom": 2,
@@ -541,6 +551,7 @@
           "id": "match-41",
           "planned": false,
           "height": 26,
+          "controlReference": 22,
           "reference": 22,
           "top": 2,
           "bottom": 2,
@@ -671,6 +682,7 @@
           "id": "compact-court-14",
           "planned": false,
           "height": 26,
+          "controlReference": 22,
           "reference": 22,
           "top": 2,
           "bottom": 2,
@@ -711,6 +723,7 @@
           "id": "compact-court-15",
           "planned": false,
           "height": 26,
+          "controlReference": 22,
           "reference": 22,
           "top": 2,
           "bottom": 2,
@@ -751,6 +764,7 @@
           "id": "match-45",
           "planned": true,
           "height": 24,
+          "controlReference": 20,
           "reference": 20,
           "top": 2,
           "bottom": 2,
@@ -912,12 +926,6 @@
               "bottom": 2
             },
             {
-              "class": "ico",
-              "height": 18,
-              "top": 3,
-              "bottom": 3
-            },
-            {
               "class": "vlink match_second_preparation_call_button ls-icon-action::after",
               "height": 12,
               "top": 3,
@@ -947,6 +955,7 @@
           "id": "match-46",
           "planned": true,
           "height": 24,
+          "controlReference": 20,
           "reference": 20,
           "top": 2,
           "bottom": 2,
@@ -1090,12 +1099,6 @@
               "bottom": 2
             },
             {
-              "class": "ico",
-              "height": 18,
-              "top": 3,
-              "bottom": 3
-            },
-            {
               "class": "vlink match_second_preparation_call_button ls-icon-action::after",
               "height": 12,
               "top": 3,
@@ -1119,6 +1122,7 @@
           "id": "match-47",
           "planned": true,
           "height": 24,
+          "controlReference": 20,
           "reference": 20,
           "top": 2,
           "bottom": 2,
@@ -1238,12 +1242,6 @@
               "bottom": 2
             },
             {
-              "class": "ico",
-              "height": 18,
-              "top": 3,
-              "bottom": 3
-            },
-            {
               "class": "vlink match_second_preparation_call_button ls-icon-action::after",
               "height": 12,
               "top": 3,
@@ -1267,6 +1265,7 @@
           "id": "match-48",
           "planned": true,
           "height": 24,
+          "controlReference": 20,
           "reference": 20,
           "top": 2,
           "bottom": 2,
@@ -1360,12 +1359,6 @@
               "height": 20,
               "top": 2,
               "bottom": 2
-            },
-            {
-              "class": "ico",
-              "height": 18,
-              "top": 3,
-              "bottom": 3
             }
           ]
         },
@@ -1373,6 +1366,7 @@
           "id": "match-49",
           "planned": true,
           "height": 24,
+          "controlReference": 20,
           "reference": 20,
           "top": 2,
           "bottom": 2,
@@ -1492,12 +1486,6 @@
               "bottom": 2
             },
             {
-              "class": "ico",
-              "height": 18,
-              "top": 3,
-              "bottom": 3
-            },
-            {
               "class": "vlink match_second_preparation_call_button ls-icon-action::after",
               "height": 12,
               "top": 3,
@@ -1521,6 +1509,7 @@
           "id": "match-50",
           "planned": true,
           "height": 24,
+          "controlReference": 20,
           "reference": 20,
           "top": 2,
           "bottom": 2,
@@ -1602,12 +1591,6 @@
               "height": 20,
               "top": 2,
               "bottom": 2
-            },
-            {
-              "class": "ico",
-              "height": 18,
-              "top": 3,
-              "bottom": 3
             }
           ]
         },
@@ -1615,6 +1598,7 @@
           "id": "match-51",
           "planned": true,
           "height": 24,
+          "controlReference": 20,
           "reference": 20,
           "top": 2,
           "bottom": 2,
@@ -1660,12 +1644,6 @@
               "height": 20,
               "top": 2,
               "bottom": 2
-            },
-            {
-              "class": "ico",
-              "height": 18,
-              "top": 3,
-              "bottom": 3
             }
           ]
         },
@@ -1673,6 +1651,7 @@
           "id": "match-52",
           "planned": true,
           "height": 24,
+          "controlReference": 20,
           "reference": 20,
           "top": 2,
           "bottom": 2,
@@ -1742,12 +1721,6 @@
               "height": 20,
               "top": 2,
               "bottom": 2
-            },
-            {
-              "class": "ico",
-              "height": 18,
-              "top": 3,
-              "bottom": 3
             }
           ]
         },
@@ -1755,6 +1728,7 @@
           "id": "match-53",
           "planned": true,
           "height": 24,
+          "controlReference": 20,
           "reference": 20,
           "top": 2,
           "bottom": 2,
@@ -1812,12 +1786,6 @@
               "height": 20,
               "top": 2,
               "bottom": 2
-            },
-            {
-              "class": "ico",
-              "height": 18,
-              "top": 3,
-              "bottom": 3
             }
           ]
         },
@@ -1825,6 +1793,7 @@
           "id": "compact-finished",
           "planned": false,
           "height": 26,
+          "controlReference": 22,
           "reference": 22,
           "top": 2,
           "bottom": 2,
@@ -1877,6 +1846,7 @@
           "id": "match-44",
           "planned": false,
           "height": 24,
+          "controlReference": 20,
           "reference": 20,
           "top": 2,
           "bottom": 2,
@@ -1929,6 +1899,7 @@
           "id": "match-37",
           "planned": false,
           "height": 24,
+          "controlReference": 20,
           "reference": 20,
           "top": 2,
           "bottom": 2,
@@ -1999,6 +1970,7 @@
           "id": "match-40",
           "planned": false,
           "height": 24,
+          "controlReference": 20,
           "reference": 20,
           "top": 2,
           "bottom": 2,
@@ -2045,6 +2017,7 @@
           "id": "match-36",
           "planned": false,
           "height": 24,
+          "controlReference": 20,
           "reference": 20,
           "top": 2,
           "bottom": 2,
@@ -2085,6 +2058,7 @@
           "id": "match-32",
           "planned": false,
           "height": 24,
+          "controlReference": 20,
           "reference": 20,
           "top": 2,
           "bottom": 2,
@@ -2131,6 +2105,7 @@
           "id": "match-38",
           "planned": false,
           "height": 24,
+          "controlReference": 20,
           "reference": 20,
           "top": 2,
           "bottom": 2,
@@ -2171,6 +2146,7 @@
           "id": "match-30",
           "planned": false,
           "height": 24,
+          "controlReference": 20,
           "reference": 20,
           "top": 2,
           "bottom": 2,
@@ -2217,6 +2193,7 @@
           "id": "match-43",
           "planned": false,
           "height": 24,
+          "controlReference": 20,
           "reference": 20,
           "top": 2,
           "bottom": 2,
@@ -2257,6 +2234,7 @@
           "id": "match-39",
           "planned": false,
           "height": 24,
+          "controlReference": 20,
           "reference": 20,
           "top": 2,
           "bottom": 2,
@@ -2297,6 +2275,7 @@
           "id": "match-42",
           "planned": false,
           "height": 24,
+          "controlReference": 20,
           "reference": 20,
           "top": 2,
           "bottom": 2,
@@ -2337,6 +2316,7 @@
           "id": "match-41",
           "planned": false,
           "height": 24,
+          "controlReference": 20,
           "reference": 20,
           "top": 2,
           "bottom": 2,
@@ -2467,6 +2447,7 @@
           "id": "compact-court-14",
           "planned": false,
           "height": 24,
+          "controlReference": 20,
           "reference": 20,
           "top": 2,
           "bottom": 2,
@@ -2507,6 +2488,7 @@
           "id": "compact-court-15",
           "planned": false,
           "height": 24,
+          "controlReference": 20,
           "reference": 20,
           "top": 2,
           "bottom": 2,
@@ -2547,6 +2529,7 @@
           "id": "match-45",
           "planned": true,
           "height": 24,
+          "controlReference": 20,
           "reference": 20,
           "top": 2,
           "bottom": 2,
@@ -2708,12 +2691,6 @@
               "bottom": 2
             },
             {
-              "class": "ico",
-              "height": 18,
-              "top": 3,
-              "bottom": 3
-            },
-            {
               "class": "vlink match_second_preparation_call_button ls-icon-action::after",
               "height": 12,
               "top": 3,
@@ -2743,6 +2720,7 @@
           "id": "match-46",
           "planned": true,
           "height": 24,
+          "controlReference": 20,
           "reference": 20,
           "top": 2,
           "bottom": 2,
@@ -2886,12 +2864,6 @@
               "bottom": 2
             },
             {
-              "class": "ico",
-              "height": 18,
-              "top": 3,
-              "bottom": 3
-            },
-            {
               "class": "vlink match_second_preparation_call_button ls-icon-action::after",
               "height": 12,
               "top": 3,
@@ -2915,6 +2887,7 @@
           "id": "match-47",
           "planned": true,
           "height": 24,
+          "controlReference": 20,
           "reference": 20,
           "top": 2,
           "bottom": 2,
@@ -3034,12 +3007,6 @@
               "bottom": 2
             },
             {
-              "class": "ico",
-              "height": 18,
-              "top": 3,
-              "bottom": 3
-            },
-            {
               "class": "vlink match_second_preparation_call_button ls-icon-action::after",
               "height": 12,
               "top": 3,
@@ -3063,6 +3030,7 @@
           "id": "match-48",
           "planned": true,
           "height": 24,
+          "controlReference": 20,
           "reference": 20,
           "top": 2,
           "bottom": 2,
@@ -3156,12 +3124,6 @@
               "height": 20,
               "top": 2,
               "bottom": 2
-            },
-            {
-              "class": "ico",
-              "height": 18,
-              "top": 3,
-              "bottom": 3
             }
           ]
         },
@@ -3169,6 +3131,7 @@
           "id": "match-49",
           "planned": true,
           "height": 24,
+          "controlReference": 20,
           "reference": 20,
           "top": 2,
           "bottom": 2,
@@ -3288,12 +3251,6 @@
               "bottom": 2
             },
             {
-              "class": "ico",
-              "height": 18,
-              "top": 3,
-              "bottom": 3
-            },
-            {
               "class": "vlink match_second_preparation_call_button ls-icon-action::after",
               "height": 12,
               "top": 3,
@@ -3317,6 +3274,7 @@
           "id": "match-50",
           "planned": true,
           "height": 24,
+          "controlReference": 20,
           "reference": 20,
           "top": 2,
           "bottom": 2,
@@ -3398,12 +3356,6 @@
               "height": 20,
               "top": 2,
               "bottom": 2
-            },
-            {
-              "class": "ico",
-              "height": 18,
-              "top": 3,
-              "bottom": 3
             }
           ]
         },
@@ -3411,6 +3363,7 @@
           "id": "match-51",
           "planned": true,
           "height": 24,
+          "controlReference": 20,
           "reference": 20,
           "top": 2,
           "bottom": 2,
@@ -3456,12 +3409,6 @@
               "height": 20,
               "top": 2,
               "bottom": 2
-            },
-            {
-              "class": "ico",
-              "height": 18,
-              "top": 3,
-              "bottom": 3
             }
           ]
         },
@@ -3469,6 +3416,7 @@
           "id": "match-52",
           "planned": true,
           "height": 24,
+          "controlReference": 20,
           "reference": 20,
           "top": 2,
           "bottom": 2,
@@ -3538,12 +3486,6 @@
               "height": 20,
               "top": 2,
               "bottom": 2
-            },
-            {
-              "class": "ico",
-              "height": 18,
-              "top": 3,
-              "bottom": 3
             }
           ]
         },
@@ -3551,6 +3493,7 @@
           "id": "match-53",
           "planned": true,
           "height": 24,
+          "controlReference": 20,
           "reference": 20,
           "top": 2,
           "bottom": 2,
@@ -3608,12 +3551,6 @@
               "height": 20,
               "top": 2,
               "bottom": 2
-            },
-            {
-              "class": "ico",
-              "height": 18,
-              "top": 3,
-              "bottom": 3
             }
           ]
         },
@@ -3621,6 +3558,7 @@
           "id": "compact-finished",
           "planned": false,
           "height": 24,
+          "controlReference": 20,
           "reference": 20,
           "top": 2,
           "bottom": 2,
@@ -3672,1794 +3610,1763 @@
         {
           "id": "match-44",
           "planned": false,
-          "height": 24,
-          "reference": 16,
-          "top": 4,
-          "bottom": 4,
+          "height": 24.23828125,
+          "controlReference": 20,
+          "reference": 20,
+          "top": 1.9921875,
+          "bottom": 2.24609375,
           "controls": [
             {
               "class": "btn icon-only ls-match-open",
-              "height": 16,
-              "top": 4,
-              "bottom": 4
+              "height": 20,
+              "top": 1.9921875,
+              "bottom": 2.24609375
             },
             {
               "class": "ico",
-              "height": 14,
-              "top": 5,
-              "bottom": 5
+              "height": 15,
+              "top": 4.4921875,
+              "bottom": 4.74609375
             },
             {
               "class": "court_num",
-              "height": 16,
-              "top": 4,
-              "bottom": 4
+              "height": 20,
+              "top": 1.9921875,
+              "bottom": 2.24609375
             },
             {
               "class": "tablet ls-role-icon",
-              "height": 16,
-              "top": 4,
-              "bottom": 4
+              "height": 20,
+              "top": 1.9921875,
+              "bottom": 2.24609375
             },
             {
               "class": "ico",
-              "height": 16,
-              "top": 4,
-              "bottom": 4
+              "height": 17.98828125,
+              "top": 2.98828125,
+              "bottom": 3.26171875
             },
             {
               "class": "timer",
-              "height": 16,
-              "top": 4,
-              "bottom": 4
+              "height": 20,
+              "top": 1.9921875,
+              "bottom": 2.24609375
             },
             {
               "class": "ico",
-              "height": 14,
+              "height": 13.984375,
               "top": 5,
-              "bottom": 5
+              "bottom": 5.25390625
             }
           ]
         },
         {
           "id": "match-37",
           "planned": false,
-          "height": 24,
-          "reference": 16,
-          "top": 4,
-          "bottom": 4,
+          "height": 24.23828125,
+          "controlReference": 20,
+          "reference": 20,
+          "top": 1.9921875,
+          "bottom": 2.24609375,
           "controls": [
             {
               "class": "btn icon-only ls-match-open",
-              "height": 16,
-              "top": 4,
-              "bottom": 4
+              "height": 20,
+              "top": 1.9921875,
+              "bottom": 2.24609375
             },
             {
               "class": "ico",
-              "height": 14,
-              "top": 5,
-              "bottom": 5
+              "height": 15,
+              "top": 4.4921875,
+              "bottom": 4.74609375
             },
             {
               "class": "court_num",
-              "height": 16,
-              "top": 4,
-              "bottom": 4
+              "height": 20,
+              "top": 1.9921875,
+              "bottom": 2.24609375
             },
             {
               "class": "umpire ls-role-icon",
-              "height": 16,
-              "top": 4,
-              "bottom": 4
+              "height": 20,
+              "top": 1.9921875,
+              "bottom": 2.24609375
             },
             {
               "class": "ico",
-              "height": 16,
-              "top": 4,
-              "bottom": 4
+              "height": 17.98828125,
+              "top": 2.98828125,
+              "bottom": 3.26171875
             },
             {
               "class": "service_judge ls-role-icon",
-              "height": 16,
-              "top": 4,
-              "bottom": 4
+              "height": 20,
+              "top": 1.9921875,
+              "bottom": 2.24609375
             },
             {
               "class": "ico",
-              "height": 16,
-              "top": 4,
-              "bottom": 4
+              "height": 17.98828125,
+              "top": 2.98828125,
+              "bottom": 3.26171875
             },
             {
               "class": "tablet ls-role-icon",
-              "height": 16,
-              "top": 4,
-              "bottom": 4
+              "height": 20,
+              "top": 1.9921875,
+              "bottom": 2.24609375
             },
             {
               "class": "ico",
-              "height": 16,
-              "top": 4,
-              "bottom": 4
+              "height": 17.98828125,
+              "top": 2.98828125,
+              "bottom": 3.26171875
             },
             {
               "class": "vlink match_confirm_button btn success",
-              "height": 16,
-              "top": 4,
-              "bottom": 4
+              "height": 20,
+              "top": 1.9921875,
+              "bottom": 2.24609375
             }
           ]
         },
         {
           "id": "match-40",
           "planned": false,
-          "height": 24,
-          "reference": 16,
-          "top": 4,
-          "bottom": 4,
+          "height": 24.23828125,
+          "controlReference": 20,
+          "reference": 20,
+          "top": 1.9921875,
+          "bottom": 2.24609375,
           "controls": [
             {
               "class": "btn icon-only ls-match-open",
-              "height": 16,
-              "top": 4,
-              "bottom": 4
+              "height": 20,
+              "top": 1.9921875,
+              "bottom": 2.24609375
             },
             {
               "class": "ico",
-              "height": 14,
-              "top": 5,
-              "bottom": 5
+              "height": 15,
+              "top": 4.4921875,
+              "bottom": 4.74609375
             },
             {
               "class": "court_num",
-              "height": 16,
-              "top": 4,
-              "bottom": 4
+              "height": 20,
+              "top": 1.9921875,
+              "bottom": 2.24609375
             },
             {
               "class": "tablet ls-role-icon",
-              "height": 16,
-              "top": 4,
-              "bottom": 4
+              "height": 20,
+              "top": 1.9921875,
+              "bottom": 2.24609375
             },
             {
               "class": "ico",
-              "height": 16,
-              "top": 4,
-              "bottom": 4
+              "height": 17.98828125,
+              "top": 2.98828125,
+              "bottom": 3.26171875
             },
             {
               "class": "vlink match_confirm_button btn success",
-              "height": 16,
-              "top": 4,
-              "bottom": 4
+              "height": 20,
+              "top": 1.9921875,
+              "bottom": 2.24609375
             }
           ]
         },
         {
           "id": "match-36",
           "planned": false,
-          "height": 24,
-          "reference": 16,
-          "top": 4,
-          "bottom": 4,
+          "height": 24.23828125,
+          "controlReference": 20,
+          "reference": 20,
+          "top": 1.9921875,
+          "bottom": 2.24609375,
           "controls": [
             {
               "class": "btn icon-only ls-match-open",
-              "height": 16,
-              "top": 4,
-              "bottom": 4
+              "height": 20,
+              "top": 1.9921875,
+              "bottom": 2.24609375
             },
             {
               "class": "ico",
-              "height": 14,
-              "top": 5,
-              "bottom": 5
+              "height": 15,
+              "top": 4.4921875,
+              "bottom": 4.74609375
             },
             {
               "class": "court_num",
-              "height": 16,
-              "top": 4,
-              "bottom": 4
+              "height": 20,
+              "top": 1.9921875,
+              "bottom": 2.24609375
             },
             {
               "class": "tablet ls-role-icon",
-              "height": 16,
-              "top": 4,
-              "bottom": 4
+              "height": 20,
+              "top": 1.9921875,
+              "bottom": 2.24609375
             },
             {
               "class": "ico",
-              "height": 16,
-              "top": 4,
-              "bottom": 4
+              "height": 17.98828125,
+              "top": 2.98828125,
+              "bottom": 3.26171875
             }
           ]
         },
         {
           "id": "match-32",
           "planned": false,
-          "height": 24,
-          "reference": 16,
-          "top": 4,
-          "bottom": 4,
+          "height": 24.23828125,
+          "controlReference": 20,
+          "reference": 20,
+          "top": 1.9921875,
+          "bottom": 2.24609375,
           "controls": [
             {
               "class": "btn icon-only ls-match-open",
-              "height": 16,
-              "top": 4,
-              "bottom": 4
+              "height": 20,
+              "top": 1.9921875,
+              "bottom": 2.24609375
             },
             {
               "class": "ico",
-              "height": 14,
-              "top": 5,
-              "bottom": 5
+              "height": 15,
+              "top": 4.4921875,
+              "bottom": 4.74609375
             },
             {
               "class": "court_num",
-              "height": 16,
-              "top": 4,
-              "bottom": 4
+              "height": 20,
+              "top": 1.9921875,
+              "bottom": 2.24609375
             },
             {
               "class": "tablet ls-role-icon",
-              "height": 16,
-              "top": 4,
-              "bottom": 4
+              "height": 20,
+              "top": 1.9921875,
+              "bottom": 2.24609375
             },
             {
               "class": "ico",
-              "height": 16,
-              "top": 4,
-              "bottom": 4
+              "height": 17.98828125,
+              "top": 2.98828125,
+              "bottom": 3.26171875
             },
             {
               "class": "vlink match_confirm_button btn success",
-              "height": 16,
-              "top": 4,
-              "bottom": 4
+              "height": 20,
+              "top": 1.9921875,
+              "bottom": 2.24609375
             }
           ]
         },
         {
           "id": "match-38",
           "planned": false,
-          "height": 24,
-          "reference": 16,
-          "top": 4,
-          "bottom": 4,
+          "height": 24.23828125,
+          "controlReference": 20,
+          "reference": 20,
+          "top": 1.9921875,
+          "bottom": 2.24609375,
           "controls": [
             {
               "class": "btn icon-only ls-match-open",
-              "height": 16,
-              "top": 4,
-              "bottom": 4
+              "height": 20,
+              "top": 1.9921875,
+              "bottom": 2.24609375
             },
             {
               "class": "ico",
-              "height": 14,
-              "top": 5,
-              "bottom": 5
+              "height": 15,
+              "top": 4.4921875,
+              "bottom": 4.74609375
             },
             {
               "class": "court_num",
-              "height": 16,
-              "top": 4,
-              "bottom": 4
+              "height": 20,
+              "top": 1.9921875,
+              "bottom": 2.24609375
             },
             {
               "class": "tablet ls-role-icon",
-              "height": 16,
-              "top": 4,
-              "bottom": 4
+              "height": 20,
+              "top": 1.9921875,
+              "bottom": 2.24609375
             },
             {
               "class": "ico",
-              "height": 16,
-              "top": 4,
-              "bottom": 4
+              "height": 17.98828125,
+              "top": 2.98828125,
+              "bottom": 3.26171875
             }
           ]
         },
         {
           "id": "match-30",
           "planned": false,
-          "height": 24,
-          "reference": 16,
-          "top": 4,
-          "bottom": 4,
+          "height": 24.23828125,
+          "controlReference": 20,
+          "reference": 20,
+          "top": 1.9921875,
+          "bottom": 2.24609375,
           "controls": [
             {
               "class": "btn icon-only ls-match-open",
-              "height": 16,
-              "top": 4,
-              "bottom": 4
+              "height": 20,
+              "top": 1.9921875,
+              "bottom": 2.24609375
             },
             {
               "class": "ico",
-              "height": 14,
-              "top": 5,
-              "bottom": 5
+              "height": 15,
+              "top": 4.4921875,
+              "bottom": 4.74609375
             },
             {
               "class": "court_num",
-              "height": 16,
-              "top": 4,
-              "bottom": 4
+              "height": 20,
+              "top": 1.9921875,
+              "bottom": 2.24609375
             },
             {
               "class": "tablet ls-role-icon",
-              "height": 16,
-              "top": 4,
-              "bottom": 4
+              "height": 20,
+              "top": 1.9921875,
+              "bottom": 2.24609375
             },
             {
               "class": "ico",
-              "height": 16,
-              "top": 4,
-              "bottom": 4
+              "height": 17.98828125,
+              "top": 2.98828125,
+              "bottom": 3.26171875
             },
             {
               "class": "vlink match_confirm_button btn success",
-              "height": 16,
-              "top": 4,
-              "bottom": 4
+              "height": 20,
+              "top": 1.9921875,
+              "bottom": 2.24609375
             }
           ]
         },
         {
           "id": "match-43",
           "planned": false,
-          "height": 24,
-          "reference": 16,
-          "top": 4,
-          "bottom": 4,
+          "height": 24.23828125,
+          "controlReference": 20,
+          "reference": 20,
+          "top": 1.9921875,
+          "bottom": 2.24609375,
           "controls": [
             {
               "class": "btn icon-only ls-match-open",
-              "height": 16,
-              "top": 4,
-              "bottom": 4
+              "height": 20,
+              "top": 1.9921875,
+              "bottom": 2.24609375
             },
             {
               "class": "ico",
-              "height": 14,
-              "top": 5,
-              "bottom": 5
+              "height": 15,
+              "top": 4.4921875,
+              "bottom": 4.74609375
             },
             {
               "class": "court_num",
-              "height": 16,
-              "top": 4,
-              "bottom": 4
+              "height": 20,
+              "top": 1.9921875,
+              "bottom": 2.24609375
             },
             {
               "class": "tablet ls-role-icon",
-              "height": 16,
-              "top": 4,
-              "bottom": 4
+              "height": 20,
+              "top": 1.9921875,
+              "bottom": 2.24609375
             },
             {
               "class": "ico",
-              "height": 16,
-              "top": 4,
-              "bottom": 4
+              "height": 17.98828125,
+              "top": 2.98828125,
+              "bottom": 3.26171875
             }
           ]
         },
         {
           "id": "match-39",
           "planned": false,
-          "height": 24,
-          "reference": 16,
-          "top": 4,
-          "bottom": 4,
+          "height": 24.23828125,
+          "controlReference": 20,
+          "reference": 20,
+          "top": 1.9921875,
+          "bottom": 2.24609375,
           "controls": [
             {
               "class": "btn icon-only ls-match-open",
-              "height": 16,
-              "top": 4,
-              "bottom": 4
+              "height": 20,
+              "top": 1.9921875,
+              "bottom": 2.24609375
             },
             {
               "class": "ico",
-              "height": 14,
-              "top": 5,
-              "bottom": 5
+              "height": 15,
+              "top": 4.4921875,
+              "bottom": 4.74609375
             },
             {
               "class": "court_num",
-              "height": 16,
-              "top": 4,
-              "bottom": 4
+              "height": 20,
+              "top": 1.9921875,
+              "bottom": 2.24609375
             },
             {
               "class": "tablet ls-role-icon",
-              "height": 16,
-              "top": 4,
-              "bottom": 4
+              "height": 20,
+              "top": 1.9921875,
+              "bottom": 2.24609375
             },
             {
               "class": "ico",
-              "height": 16,
-              "top": 4,
-              "bottom": 4
+              "height": 17.98828125,
+              "top": 2.98828125,
+              "bottom": 3.26171875
             }
           ]
         },
         {
           "id": "match-42",
           "planned": false,
-          "height": 24,
-          "reference": 16,
-          "top": 4,
-          "bottom": 4,
+          "height": 24.23828125,
+          "controlReference": 20,
+          "reference": 20,
+          "top": 1.9921875,
+          "bottom": 2.24609375,
           "controls": [
             {
               "class": "btn icon-only ls-match-open",
-              "height": 16,
-              "top": 4,
-              "bottom": 4
+              "height": 20,
+              "top": 1.9921875,
+              "bottom": 2.24609375
             },
             {
               "class": "ico",
-              "height": 14,
-              "top": 5,
-              "bottom": 5
+              "height": 15,
+              "top": 4.4921875,
+              "bottom": 4.74609375
             },
             {
               "class": "court_num",
-              "height": 16,
-              "top": 4,
-              "bottom": 4
+              "height": 20,
+              "top": 1.9921875,
+              "bottom": 2.24609375
             },
             {
               "class": "tablet ls-role-icon",
-              "height": 16,
-              "top": 4,
-              "bottom": 4
+              "height": 20,
+              "top": 1.9921875,
+              "bottom": 2.24609375
             },
             {
               "class": "ico",
-              "height": 16,
-              "top": 4,
-              "bottom": 4
+              "height": 17.98828125,
+              "top": 2.98828125,
+              "bottom": 3.26171875
             }
           ]
         },
         {
           "id": "match-41",
           "planned": false,
-          "height": 24,
-          "reference": 16,
-          "top": 4,
-          "bottom": 4,
+          "height": 24.23828125,
+          "controlReference": 20,
+          "reference": 20,
+          "top": 1.9921875,
+          "bottom": 2.24609375,
           "controls": [
             {
               "class": "btn icon-only ls-match-open",
-              "height": 16,
-              "top": 4,
-              "bottom": 4
+              "height": 20,
+              "top": 1.9921875,
+              "bottom": 2.24609375
             },
             {
               "class": "ico",
-              "height": 14,
-              "top": 5,
-              "bottom": 5
+              "height": 15,
+              "top": 4.4921875,
+              "bottom": 4.74609375
             },
             {
               "class": "court_num",
-              "height": 16,
-              "top": 4,
-              "bottom": 4
+              "height": 20,
+              "top": 1.9921875,
+              "bottom": 2.24609375
             },
             {
               "class": "vlink match_second_call_button ls-icon-action",
-              "height": 16,
-              "top": 4,
-              "bottom": 4
+              "height": 20,
+              "top": 1.9921875,
+              "bottom": 2.24609375
             },
             {
               "class": "ico",
-              "height": 14,
-              "top": 6,
-              "bottom": 4
+              "height": 16.9921875,
+              "top": 5,
+              "bottom": 2.24609375
             },
             {
               "class": "vlink match_second_call_button ls-icon-action",
-              "height": 16,
-              "top": 4,
-              "bottom": 4
+              "height": 20,
+              "top": 1.9921875,
+              "bottom": 2.24609375
             },
             {
               "class": "ico",
-              "height": 14,
-              "top": 6,
-              "bottom": 4
+              "height": 16.9921875,
+              "top": 5,
+              "bottom": 2.24609375
             },
             {
               "class": "tablet ls-role-icon",
-              "height": 16,
-              "top": 4,
-              "bottom": 4
+              "height": 20,
+              "top": 1.9921875,
+              "bottom": 2.24609375
             },
             {
               "class": "ico",
-              "height": 16,
-              "top": 4,
-              "bottom": 4
+              "height": 17.98828125,
+              "top": 2.98828125,
+              "bottom": 3.26171875
             },
             {
               "class": "vlink match_second_call_button ls-icon-action",
-              "height": 16,
-              "top": 4,
-              "bottom": 4
+              "height": 20,
+              "top": 1.9921875,
+              "bottom": 2.24609375
             },
             {
               "class": "ico",
-              "height": 14,
-              "top": 6,
-              "bottom": 4
+              "height": 16.9921875,
+              "top": 5,
+              "bottom": 2.24609375
             },
             {
               "class": "timer",
-              "height": 16,
-              "top": 4,
-              "bottom": 4
+              "height": 20,
+              "top": 1.9921875,
+              "bottom": 2.24609375
             },
             {
               "class": "ico",
-              "height": 14,
+              "height": 13.984375,
               "top": 5,
-              "bottom": 5
+              "bottom": 5.25390625
             },
             {
               "class": "vlink match_manual_call_button ls-icon-action",
-              "height": 16,
-              "top": 4,
-              "bottom": 4
+              "height": 20,
+              "top": 1.9921875,
+              "bottom": 2.24609375
             },
             {
               "class": "ico",
-              "height": 12,
-              "top": 6,
-              "bottom": 6
+              "height": 11.9921875,
+              "top": 5.99609375,
+              "bottom": 6.25
             },
             {
               "class": "vlink match_begin_to_play_button ls-icon-action",
-              "height": 16,
-              "top": 4,
-              "bottom": 4
+              "height": 20,
+              "top": 1.9921875,
+              "bottom": 2.24609375
             },
             {
               "class": "ico",
-              "height": 12,
-              "top": 6,
-              "bottom": 6
+              "height": 11.9921875,
+              "top": 5.99609375,
+              "bottom": 6.25
             },
             {
               "class": "vlink match_second_call_button ls-icon-action::after",
-              "height": 12,
-              "top": 5,
-              "bottom": 7
+              "height": 11.9922,
+              "top": 2.992187500000014,
+              "bottom": 9.253893749999985
             },
             {
               "class": "vlink match_second_call_button ls-icon-action::after",
-              "height": 12,
-              "top": 5,
-              "bottom": 7
+              "height": 11.9922,
+              "top": 2.992187500000014,
+              "bottom": 9.253893749999985
             },
             {
               "class": "vlink match_second_call_button ls-icon-action::after",
-              "height": 12,
-              "top": 5,
-              "bottom": 7
+              "height": 11.9922,
+              "top": 2.992187500000014,
+              "bottom": 9.253893749999985
             }
           ]
         },
         {
           "id": "compact-court-14",
           "planned": false,
-          "height": 24,
-          "reference": 16,
-          "top": 4,
-          "bottom": 4,
+          "height": 24.23828125,
+          "controlReference": 20,
+          "reference": 20,
+          "top": 1.9921875,
+          "bottom": 2.24609375,
           "controls": [
             {
               "class": "btn icon-only ls-match-open",
-              "height": 16,
-              "top": 4,
-              "bottom": 4
+              "height": 20,
+              "top": 1.9921875,
+              "bottom": 2.24609375
             },
             {
               "class": "ico",
-              "height": 14,
-              "top": 5,
-              "bottom": 5
+              "height": 15,
+              "top": 4.4921875,
+              "bottom": 4.74609375
             },
             {
               "class": "court_num",
-              "height": 16,
-              "top": 4,
-              "bottom": 4
+              "height": 20,
+              "top": 1.9921875,
+              "bottom": 2.24609375
             },
             {
               "class": "tablet ls-role-icon",
-              "height": 16,
-              "top": 4,
-              "bottom": 4
+              "height": 20,
+              "top": 1.9921875,
+              "bottom": 2.24609375
             },
             {
               "class": "ico",
-              "height": 16,
-              "top": 4,
-              "bottom": 4
+              "height": 17.98828125,
+              "top": 2.98828125,
+              "bottom": 3.26171875
             }
           ]
         },
         {
           "id": "compact-court-15",
           "planned": false,
-          "height": 24,
-          "reference": 16,
-          "top": 4,
-          "bottom": 4,
+          "height": 24.23828125,
+          "controlReference": 20,
+          "reference": 20,
+          "top": 1.9921875,
+          "bottom": 2.24609375,
           "controls": [
             {
               "class": "btn icon-only ls-match-open",
-              "height": 16,
-              "top": 4,
-              "bottom": 4
+              "height": 20,
+              "top": 1.9921875,
+              "bottom": 2.24609375
             },
             {
               "class": "ico",
-              "height": 14,
-              "top": 5,
-              "bottom": 5
+              "height": 15,
+              "top": 4.4921875,
+              "bottom": 4.74609375
             },
             {
               "class": "court_num",
-              "height": 16,
-              "top": 4,
-              "bottom": 4
+              "height": 20,
+              "top": 1.9921875,
+              "bottom": 2.24609375
             },
             {
               "class": "tablet ls-role-icon",
-              "height": 16,
-              "top": 4,
-              "bottom": 4
+              "height": 20,
+              "top": 1.9921875,
+              "bottom": 2.24609375
             },
             {
               "class": "ico",
-              "height": 16,
-              "top": 4,
-              "bottom": 4
+              "height": 17.98828125,
+              "top": 2.98828125,
+              "bottom": 3.26171875
             }
           ]
         },
         {
           "id": "match-45",
           "planned": true,
-          "height": 24,
+          "height": 24.23828125,
+          "controlReference": 20,
           "reference": 20,
-          "top": 2,
-          "bottom": 2,
+          "top": 1.9921875,
+          "bottom": 2.24609375,
           "controls": [
             {
               "class": "btn icon-only ls-match-open",
               "height": 20,
-              "top": 2,
-              "bottom": 2
+              "top": 1.9921875,
+              "bottom": 2.24609375
             },
             {
               "class": "ico",
               "height": 15,
-              "top": 4.5,
-              "bottom": 4.5
+              "top": 4.4921875,
+              "bottom": 4.74609375
             },
             {
               "class": "vlink match_second_preparation_call_button ls-icon-action",
               "height": 20,
-              "top": 2,
-              "bottom": 2
+              "top": 1.9921875,
+              "bottom": 2.24609375
             },
             {
               "class": "ico",
-              "height": 17,
+              "height": 16.9921875,
               "top": 5,
-              "bottom": 2
+              "bottom": 2.24609375
             },
             {
               "class": "ico",
-              "height": 12,
-              "top": 6,
-              "bottom": 6
+              "height": 11.9921875,
+              "top": 6.23046875,
+              "bottom": 6.015625
             },
             {
               "class": "ico",
-              "height": 12,
-              "top": 6,
-              "bottom": 6
+              "height": 11.9921875,
+              "top": 6.23046875,
+              "bottom": 6.015625
             },
             {
               "class": "ico",
-              "height": 12,
-              "top": 6,
-              "bottom": 6
+              "height": 11.9921875,
+              "top": 6.23046875,
+              "bottom": 6.015625
             },
             {
               "class": "ico",
-              "height": 12,
-              "top": 6,
-              "bottom": 6
+              "height": 11.9921875,
+              "top": 6.23046875,
+              "bottom": 6.015625
             },
             {
               "class": "ico",
-              "height": 12,
-              "top": 6,
-              "bottom": 6
+              "height": 11.9921875,
+              "top": 6.23046875,
+              "bottom": 6.015625
             },
             {
               "class": "ico",
-              "height": 12,
-              "top": 6,
-              "bottom": 6
+              "height": 11.9921875,
+              "top": 6.23046875,
+              "bottom": 6.015625
             },
             {
               "class": "ico",
-              "height": 12,
-              "top": 6,
-              "bottom": 6
+              "height": 11.9921875,
+              "top": 6.23046875,
+              "bottom": 6.015625
             },
             {
               "class": "vlink match_second_preparation_call_button ls-icon-action",
               "height": 20,
-              "top": 2,
-              "bottom": 2
+              "top": 1.9921875,
+              "bottom": 2.24609375
             },
             {
               "class": "ico",
-              "height": 17,
+              "height": 16.9921875,
               "top": 5,
-              "bottom": 2
+              "bottom": 2.24609375
             },
             {
               "class": "umpire ls-role-icon",
               "height": 20,
-              "top": 2,
-              "bottom": 2
+              "top": 1.9921875,
+              "bottom": 2.24609375
             },
             {
               "class": "ico",
-              "height": 18,
-              "top": 3,
-              "bottom": 3
+              "height": 17.98828125,
+              "top": 2.98828125,
+              "bottom": 3.26171875
             },
             {
               "class": "vlink match_second_preparation_call_button ls-icon-action",
               "height": 20,
-              "top": 2,
-              "bottom": 2
+              "top": 1.9921875,
+              "bottom": 2.24609375
             },
             {
               "class": "ico",
-              "height": 17,
+              "height": 16.9921875,
               "top": 5,
-              "bottom": 2
+              "bottom": 2.24609375
             },
             {
               "class": "service_judge ls-role-icon",
               "height": 20,
-              "top": 2,
-              "bottom": 2
+              "top": 1.9921875,
+              "bottom": 2.24609375
             },
             {
               "class": "ico",
-              "height": 18,
-              "top": 3,
-              "bottom": 3
+              "height": 17.98828125,
+              "top": 2.98828125,
+              "bottom": 3.26171875
             },
             {
               "class": "vlink match_second_preparation_call_button ls-icon-action",
               "height": 20,
-              "top": 2,
-              "bottom": 2
+              "top": 1.9921875,
+              "bottom": 2.24609375
             },
             {
               "class": "ico",
-              "height": 17,
+              "height": 16.9921875,
               "top": 5,
-              "bottom": 2
+              "bottom": 2.24609375
             },
             {
               "class": "timer",
               "height": 20,
-              "top": 2,
-              "bottom": 2
+              "top": 1.9921875,
+              "bottom": 2.24609375
             },
             {
               "class": "ico",
-              "height": 14,
+              "height": 13.984375,
               "top": 5,
-              "bottom": 5
+              "bottom": 5.25390625
             },
             {
               "class": "vlink match_preparation_call_button ls-preparation-call-symbol ls-icon-action",
               "height": 20,
-              "top": 2,
-              "bottom": 2
+              "top": 1.9921875,
+              "bottom": 2.24609375
             },
             {
               "class": "ico",
-              "height": 16,
-              "top": 4,
-              "bottom": 4
+              "height": 15.99609375,
+              "top": 3.984375,
+              "bottom": 4.2578125
             },
             {
               "class": "preparation_debug_icon preparation_debug_icon_unknown",
               "height": 20,
-              "top": 2,
-              "bottom": 2
-            },
-            {
-              "class": "ico",
-              "height": 18,
-              "top": 3,
-              "bottom": 3
+              "top": 1.9921875,
+              "bottom": 2.24609375
             },
             {
               "class": "vlink match_second_preparation_call_button ls-icon-action::after",
-              "height": 12,
-              "top": 3,
-              "bottom": 9
+              "height": 11.9922,
+              "top": 2.992187499999943,
+              "bottom": 9.253893750000056
             },
             {
               "class": "vlink match_second_preparation_call_button ls-icon-action::after",
-              "height": 12,
-              "top": 3,
-              "bottom": 9
+              "height": 11.9922,
+              "top": 2.992187499999943,
+              "bottom": 9.253893750000056
             },
             {
               "class": "vlink match_second_preparation_call_button ls-icon-action::after",
-              "height": 12,
-              "top": 3,
-              "bottom": 9
+              "height": 11.9922,
+              "top": 2.992187499999943,
+              "bottom": 9.253893750000056
             },
             {
               "class": "vlink match_second_preparation_call_button ls-icon-action::after",
-              "height": 12,
-              "top": 3,
-              "bottom": 9
+              "height": 11.9922,
+              "top": 2.992187499999943,
+              "bottom": 9.253893750000056
             }
           ]
         },
         {
           "id": "match-46",
           "planned": true,
-          "height": 24,
+          "height": 24.23828125,
+          "controlReference": 20,
           "reference": 20,
-          "top": 2,
-          "bottom": 2,
+          "top": 1.9921875,
+          "bottom": 2.24609375,
           "controls": [
             {
               "class": "btn icon-only ls-match-open",
               "height": 20,
-              "top": 2,
-              "bottom": 2
+              "top": 1.9921875,
+              "bottom": 2.24609375
             },
             {
               "class": "ico",
               "height": 15,
-              "top": 4.5,
-              "bottom": 4.5
+              "top": 4.4921875,
+              "bottom": 4.74609375
             },
             {
               "class": "vlink match_second_preparation_call_button ls-icon-action",
               "height": 20,
-              "top": 2,
-              "bottom": 2
+              "top": 1.9921875,
+              "bottom": 2.24609375
             },
             {
               "class": "ico",
-              "height": 17,
+              "height": 16.9921875,
               "top": 5,
-              "bottom": 2
+              "bottom": 2.24609375
             },
             {
               "class": "ico",
-              "height": 12,
-              "top": 6,
-              "bottom": 6
+              "height": 11.9921875,
+              "top": 6.23046875,
+              "bottom": 6.015625
             },
             {
               "class": "ico",
-              "height": 12,
-              "top": 6,
-              "bottom": 6
+              "height": 11.9921875,
+              "top": 6.23046875,
+              "bottom": 6.015625
             },
             {
               "class": "ico",
-              "height": 12,
-              "top": 6,
-              "bottom": 6
+              "height": 11.9921875,
+              "top": 6.23046875,
+              "bottom": 6.015625
             },
             {
               "class": "ico",
-              "height": 12,
-              "top": 6,
-              "bottom": 6
+              "height": 11.9921875,
+              "top": 6.23046875,
+              "bottom": 6.015625
             },
             {
               "class": "ico",
-              "height": 12,
-              "top": 6,
-              "bottom": 6
+              "height": 11.9921875,
+              "top": 6.23046875,
+              "bottom": 6.015625
             },
             {
               "class": "ico",
-              "height": 12,
-              "top": 6,
-              "bottom": 6
+              "height": 11.9921875,
+              "top": 6.23046875,
+              "bottom": 6.015625
             },
             {
               "class": "ico",
-              "height": 12,
-              "top": 6,
-              "bottom": 6
+              "height": 11.9921875,
+              "top": 6.23046875,
+              "bottom": 6.015625
             },
             {
               "class": "ico",
-              "height": 12,
-              "top": 6,
-              "bottom": 6
+              "height": 11.9921875,
+              "top": 6.23046875,
+              "bottom": 6.015625
             },
             {
               "class": "vlink match_second_preparation_call_button ls-icon-action",
               "height": 20,
-              "top": 2,
-              "bottom": 2
+              "top": 1.9921875,
+              "bottom": 2.24609375
             },
             {
               "class": "ico",
-              "height": 17,
+              "height": 16.9921875,
               "top": 5,
-              "bottom": 2
+              "bottom": 2.24609375
             },
             {
               "class": "tablet ls-role-icon",
               "height": 20,
-              "top": 2,
-              "bottom": 2
+              "top": 1.9921875,
+              "bottom": 2.24609375
             },
             {
               "class": "ico",
-              "height": 18,
-              "top": 3,
-              "bottom": 3
+              "height": 17.98828125,
+              "top": 2.98828125,
+              "bottom": 3.26171875
             },
             {
               "class": "vlink match_second_preparation_call_button ls-icon-action",
               "height": 20,
-              "top": 2,
-              "bottom": 2
+              "top": 1.9921875,
+              "bottom": 2.24609375
             },
             {
               "class": "ico",
-              "height": 17,
+              "height": 16.9921875,
               "top": 5,
-              "bottom": 2
+              "bottom": 2.24609375
             },
             {
               "class": "timer",
               "height": 20,
-              "top": 2,
-              "bottom": 2
+              "top": 1.9921875,
+              "bottom": 2.24609375
             },
             {
               "class": "ico",
-              "height": 14,
+              "height": 13.984375,
               "top": 5,
-              "bottom": 5
+              "bottom": 5.25390625
             },
             {
               "class": "vlink match_preparation_call_button ls-preparation-call-symbol ls-icon-action",
               "height": 20,
-              "top": 2,
-              "bottom": 2
+              "top": 1.9921875,
+              "bottom": 2.24609375
             },
             {
               "class": "ico",
-              "height": 16,
-              "top": 4,
-              "bottom": 4
+              "height": 15.99609375,
+              "top": 3.984375,
+              "bottom": 4.2578125
             },
             {
               "class": "preparation_debug_icon preparation_debug_icon_unknown",
               "height": 20,
-              "top": 2,
-              "bottom": 2
-            },
-            {
-              "class": "ico",
-              "height": 18,
-              "top": 3,
-              "bottom": 3
+              "top": 1.9921875,
+              "bottom": 2.24609375
             },
             {
               "class": "vlink match_second_preparation_call_button ls-icon-action::after",
-              "height": 12,
-              "top": 3,
-              "bottom": 9
+              "height": 11.9922,
+              "top": 2.992187499999943,
+              "bottom": 9.253893750000056
             },
             {
               "class": "vlink match_second_preparation_call_button ls-icon-action::after",
-              "height": 12,
-              "top": 3,
-              "bottom": 9
+              "height": 11.9922,
+              "top": 2.992187499999943,
+              "bottom": 9.253893750000056
             },
             {
               "class": "vlink match_second_preparation_call_button ls-icon-action::after",
-              "height": 12,
-              "top": 3,
-              "bottom": 9
+              "height": 11.9922,
+              "top": 2.992187499999943,
+              "bottom": 9.253893750000056
             }
           ]
         },
         {
           "id": "match-47",
           "planned": true,
-          "height": 24,
+          "height": 24.23828125,
+          "controlReference": 20,
           "reference": 20,
-          "top": 2,
-          "bottom": 2,
+          "top": 1.9921875,
+          "bottom": 2.24609375,
           "controls": [
             {
               "class": "btn icon-only ls-match-open",
               "height": 20,
-              "top": 2,
-              "bottom": 2
+              "top": 1.9921875,
+              "bottom": 2.24609375
             },
             {
               "class": "ico",
               "height": 15,
-              "top": 4.5,
-              "bottom": 4.5
+              "top": 4.4921875,
+              "bottom": 4.74609375
             },
             {
               "class": "vlink match_second_preparation_call_button ls-icon-action",
               "height": 20,
-              "top": 2,
-              "bottom": 2
+              "top": 1.9921875,
+              "bottom": 2.24609375
             },
             {
               "class": "ico",
-              "height": 17,
+              "height": 16.9921875,
               "top": 5,
-              "bottom": 2
+              "bottom": 2.24609375
             },
             {
               "class": "ico",
-              "height": 12,
-              "top": 6,
-              "bottom": 6
+              "height": 11.9921875,
+              "top": 6.23046875,
+              "bottom": 6.015625
             },
             {
               "class": "ico",
-              "height": 12,
-              "top": 6,
-              "bottom": 6
+              "height": 11.9921875,
+              "top": 6.23046875,
+              "bottom": 6.015625
             },
             {
               "class": "ico",
-              "height": 12,
-              "top": 6,
-              "bottom": 6
+              "height": 11.9921875,
+              "top": 6.23046875,
+              "bottom": 6.015625
             },
             {
               "class": "ico",
-              "height": 12,
-              "top": 6,
-              "bottom": 6
+              "height": 11.9921875,
+              "top": 6.23046875,
+              "bottom": 6.015625
             },
             {
               "class": "vlink match_second_preparation_call_button ls-icon-action",
               "height": 20,
-              "top": 2,
-              "bottom": 2
+              "top": 1.9921875,
+              "bottom": 2.24609375
             },
             {
               "class": "ico",
-              "height": 17,
+              "height": 16.9921875,
               "top": 5,
-              "bottom": 2
+              "bottom": 2.24609375
             },
             {
               "class": "umpire can_add_service_judge ls-role-icon",
               "height": 20,
-              "top": 2,
-              "bottom": 2
+              "top": 1.9921875,
+              "bottom": 2.24609375
             },
             {
               "class": "ico",
-              "height": 18,
-              "top": 3,
-              "bottom": 3
+              "height": 17.98828125,
+              "top": 2.98828125,
+              "bottom": 3.26171875
             },
             {
               "class": "vlink match_second_preparation_call_button ls-icon-action",
               "height": 20,
-              "top": 2,
-              "bottom": 2
+              "top": 1.9921875,
+              "bottom": 2.24609375
             },
             {
               "class": "ico",
-              "height": 17,
+              "height": 16.9921875,
               "top": 5,
-              "bottom": 2
+              "bottom": 2.24609375
             },
             {
               "class": "timer",
               "height": 20,
-              "top": 2,
-              "bottom": 2
+              "top": 1.9921875,
+              "bottom": 2.24609375
             },
             {
               "class": "ico",
-              "height": 14,
+              "height": 13.984375,
               "top": 5,
-              "bottom": 5
+              "bottom": 5.25390625
             },
             {
               "class": "vlink match_preparation_call_button ls-preparation-call-symbol ls-icon-action",
               "height": 20,
-              "top": 2,
-              "bottom": 2
+              "top": 1.9921875,
+              "bottom": 2.24609375
             },
             {
               "class": "ico",
-              "height": 16,
-              "top": 4,
-              "bottom": 4
+              "height": 15.99609375,
+              "top": 3.984375,
+              "bottom": 4.2578125
             },
             {
               "class": "preparation_debug_icon preparation_debug_icon_unknown",
               "height": 20,
-              "top": 2,
-              "bottom": 2
-            },
-            {
-              "class": "ico",
-              "height": 18,
-              "top": 3,
-              "bottom": 3
+              "top": 1.9921875,
+              "bottom": 2.24609375
             },
             {
               "class": "vlink match_second_preparation_call_button ls-icon-action::after",
-              "height": 12,
-              "top": 3,
-              "bottom": 9
+              "height": 11.9922,
+              "top": 2.992187499999943,
+              "bottom": 9.253893750000056
             },
             {
               "class": "vlink match_second_preparation_call_button ls-icon-action::after",
-              "height": 12,
-              "top": 3,
-              "bottom": 9
+              "height": 11.9922,
+              "top": 2.992187499999943,
+              "bottom": 9.253893750000056
             },
             {
               "class": "vlink match_second_preparation_call_button ls-icon-action::after",
-              "height": 12,
-              "top": 3,
-              "bottom": 9
+              "height": 11.9922,
+              "top": 2.992187499999943,
+              "bottom": 9.253893750000056
             }
           ]
         },
         {
           "id": "match-48",
           "planned": true,
-          "height": 24,
+          "height": 24.23828125,
+          "controlReference": 20,
           "reference": 20,
-          "top": 2,
-          "bottom": 2,
+          "top": 1.9921875,
+          "bottom": 2.24609375,
           "controls": [
             {
               "class": "btn icon-only ls-match-open",
               "height": 20,
-              "top": 2,
-              "bottom": 2
+              "top": 1.9921875,
+              "bottom": 2.24609375
             },
             {
               "class": "ico",
               "height": 15,
-              "top": 4.5,
-              "bottom": 4.5
+              "top": 4.4921875,
+              "bottom": 4.74609375
             },
             {
               "class": "ico",
-              "height": 12,
-              "top": 6,
-              "bottom": 6
+              "height": 11.9921875,
+              "top": 6.23046875,
+              "bottom": 6.015625
             },
             {
               "class": "timer",
-              "height": 18,
-              "top": 3,
-              "bottom": 3
+              "height": 17.98828125,
+              "top": 3.2421875,
+              "bottom": 3.0078125
             },
             {
               "class": "ico",
-              "height": 9,
-              "top": 7.5,
-              "bottom": 7.5
+              "height": 8.984375,
+              "top": 7.734375,
+              "bottom": 7.51953125
             },
             {
               "class": "ico",
-              "height": 12,
-              "top": 6,
-              "bottom": 6
+              "height": 11.9921875,
+              "top": 6.23046875,
+              "bottom": 6.015625
             },
             {
               "class": "ico",
-              "height": 12,
-              "top": 6,
-              "bottom": 6
+              "height": 11.9921875,
+              "top": 6.23046875,
+              "bottom": 6.015625
             },
             {
               "class": "ico",
-              "height": 12,
-              "top": 6,
-              "bottom": 6
+              "height": 11.9921875,
+              "top": 6.23046875,
+              "bottom": 6.015625
             },
             {
               "class": "vlink no_umpire no_umpire_add ls-role-icon",
               "height": 20,
-              "top": 2,
-              "bottom": 2
+              "top": 1.9921875,
+              "bottom": 2.24609375
             },
             {
               "class": "ico",
-              "height": 18,
-              "top": 3,
-              "bottom": 3
+              "height": 17.98828125,
+              "top": 2.98828125,
+              "bottom": 3.26171875
             },
             {
               "class": "vlink match_preparation_call_button ls-preparation-call-symbol ls-icon-action",
               "height": 20,
-              "top": 2,
-              "bottom": 2
+              "top": 1.9921875,
+              "bottom": 2.24609375
             },
             {
               "class": "ico",
-              "height": 16,
-              "top": 4,
-              "bottom": 4
+              "height": 15.99609375,
+              "top": 3.984375,
+              "bottom": 4.2578125
             },
             {
               "class": "vlink match_preparation_call_button ls-preparation-call-symbol ls-icon-action",
               "height": 20,
-              "top": 2,
-              "bottom": 2
+              "top": 1.9921875,
+              "bottom": 2.24609375
             },
             {
               "class": "ico",
-              "height": 16,
-              "top": 4,
-              "bottom": 4
+              "height": 15.99609375,
+              "top": 3.984375,
+              "bottom": 4.2578125
             },
             {
               "class": "preparation_debug_icon preparation_debug_icon_unknown",
               "height": 20,
-              "top": 2,
-              "bottom": 2
-            },
-            {
-              "class": "ico",
-              "height": 18,
-              "top": 3,
-              "bottom": 3
+              "top": 1.9921875,
+              "bottom": 2.24609375
             }
           ]
         },
         {
           "id": "match-49",
           "planned": true,
-          "height": 24,
+          "height": 24.23828125,
+          "controlReference": 20,
           "reference": 20,
-          "top": 2,
-          "bottom": 2,
+          "top": 1.9921875,
+          "bottom": 2.24609375,
           "controls": [
             {
               "class": "btn icon-only ls-match-open",
               "height": 20,
-              "top": 2,
-              "bottom": 2
+              "top": 1.9921875,
+              "bottom": 2.24609375
             },
             {
               "class": "ico",
               "height": 15,
-              "top": 4.5,
-              "bottom": 4.5
+              "top": 4.4921875,
+              "bottom": 4.74609375
             },
             {
               "class": "vlink match_second_preparation_call_button ls-icon-action",
               "height": 20,
-              "top": 2,
-              "bottom": 2
+              "top": 1.9921875,
+              "bottom": 2.24609375
             },
             {
               "class": "ico",
-              "height": 17,
+              "height": 16.9921875,
               "top": 5,
-              "bottom": 2
+              "bottom": 2.24609375
             },
             {
               "class": "ico",
-              "height": 12,
-              "top": 6,
-              "bottom": 6
+              "height": 11.9921875,
+              "top": 6.23046875,
+              "bottom": 6.015625
             },
             {
               "class": "ico",
-              "height": 12,
-              "top": 6,
-              "bottom": 6
+              "height": 11.9921875,
+              "top": 6.23046875,
+              "bottom": 6.015625
             },
             {
               "class": "ico",
-              "height": 12,
-              "top": 6,
-              "bottom": 6
+              "height": 11.9921875,
+              "top": 6.23046875,
+              "bottom": 6.015625
             },
             {
               "class": "ico",
-              "height": 12,
-              "top": 6,
-              "bottom": 6
+              "height": 11.9921875,
+              "top": 6.23046875,
+              "bottom": 6.015625
             },
             {
               "class": "vlink match_second_preparation_call_button ls-icon-action",
               "height": 20,
-              "top": 2,
-              "bottom": 2
+              "top": 1.9921875,
+              "bottom": 2.24609375
             },
             {
               "class": "ico",
-              "height": 17,
+              "height": 16.9921875,
               "top": 5,
-              "bottom": 2
+              "bottom": 2.24609375
             },
             {
               "class": "tablet ls-role-icon",
               "height": 20,
-              "top": 2,
-              "bottom": 2
+              "top": 1.9921875,
+              "bottom": 2.24609375
             },
             {
               "class": "ico",
-              "height": 18,
-              "top": 3,
-              "bottom": 3
+              "height": 17.98828125,
+              "top": 2.98828125,
+              "bottom": 3.26171875
             },
             {
               "class": "vlink match_second_preparation_call_button ls-icon-action",
               "height": 20,
-              "top": 2,
-              "bottom": 2
+              "top": 1.9921875,
+              "bottom": 2.24609375
             },
             {
               "class": "ico",
-              "height": 17,
+              "height": 16.9921875,
               "top": 5,
-              "bottom": 2
+              "bottom": 2.24609375
             },
             {
               "class": "timer",
               "height": 20,
-              "top": 2,
-              "bottom": 2
+              "top": 1.9921875,
+              "bottom": 2.24609375
             },
             {
               "class": "ico",
-              "height": 14,
+              "height": 13.984375,
               "top": 5,
-              "bottom": 5
+              "bottom": 5.25390625
             },
             {
               "class": "vlink match_preparation_call_button ls-preparation-call-symbol ls-icon-action",
               "height": 20,
-              "top": 2,
-              "bottom": 2
+              "top": 1.9921875,
+              "bottom": 2.24609375
             },
             {
               "class": "ico",
-              "height": 16,
-              "top": 4,
-              "bottom": 4
+              "height": 15.99609375,
+              "top": 3.984375,
+              "bottom": 4.2578125
             },
             {
               "class": "preparation_debug_icon preparation_debug_icon_unknown",
               "height": 20,
-              "top": 2,
-              "bottom": 2
-            },
-            {
-              "class": "ico",
-              "height": 18,
-              "top": 3,
-              "bottom": 3
+              "top": 1.9921875,
+              "bottom": 2.24609375
             },
             {
               "class": "vlink match_second_preparation_call_button ls-icon-action::after",
-              "height": 12,
-              "top": 3,
-              "bottom": 9
+              "height": 11.9922,
+              "top": 2.992187499999943,
+              "bottom": 9.253893750000056
             },
             {
               "class": "vlink match_second_preparation_call_button ls-icon-action::after",
-              "height": 12,
-              "top": 3,
-              "bottom": 9
+              "height": 11.9922,
+              "top": 2.992187499999943,
+              "bottom": 9.253893750000056
             },
             {
               "class": "vlink match_second_preparation_call_button ls-icon-action::after",
-              "height": 12,
-              "top": 3,
-              "bottom": 9
+              "height": 11.9922,
+              "top": 2.992187499999943,
+              "bottom": 9.253893750000056
             }
           ]
         },
         {
           "id": "match-50",
           "planned": true,
-          "height": 24,
+          "height": 24.23828125,
+          "controlReference": 20,
           "reference": 20,
-          "top": 2,
-          "bottom": 2,
+          "top": 1.9921875,
+          "bottom": 2.24609375,
           "controls": [
             {
               "class": "btn icon-only ls-match-open",
               "height": 20,
-              "top": 2,
-              "bottom": 2
+              "top": 1.9921875,
+              "bottom": 2.24609375
             },
             {
               "class": "ico",
               "height": 15,
-              "top": 4.5,
-              "bottom": 4.5
+              "top": 4.4921875,
+              "bottom": 4.74609375
             },
             {
               "class": "ico",
-              "height": 12,
-              "top": 6,
-              "bottom": 6
+              "height": 11.9921875,
+              "top": 6.23046875,
+              "bottom": 6.015625
             },
             {
               "class": "ico",
-              "height": 12,
-              "top": 6,
-              "bottom": 6
+              "height": 11.9921875,
+              "top": 6.23046875,
+              "bottom": 6.015625
             },
             {
               "class": "ico",
-              "height": 12,
-              "top": 6,
-              "bottom": 6
+              "height": 11.9921875,
+              "top": 6.23046875,
+              "bottom": 6.015625
             },
             {
               "class": "ico",
-              "height": 12,
-              "top": 6,
-              "bottom": 6
+              "height": 11.9921875,
+              "top": 6.23046875,
+              "bottom": 6.015625
             },
             {
               "class": "vlink no_umpire no_umpire_add ls-role-icon",
               "height": 20,
-              "top": 2,
-              "bottom": 2
+              "top": 1.9921875,
+              "bottom": 2.24609375
             },
             {
               "class": "ico",
-              "height": 18,
-              "top": 3,
-              "bottom": 3
+              "height": 17.98828125,
+              "top": 2.98828125,
+              "bottom": 3.26171875
             },
             {
               "class": "vlink match_preparation_call_button ls-preparation-call-symbol ls-icon-action",
               "height": 20,
-              "top": 2,
-              "bottom": 2
+              "top": 1.9921875,
+              "bottom": 2.24609375
             },
             {
               "class": "ico",
-              "height": 16,
-              "top": 4,
-              "bottom": 4
+              "height": 15.99609375,
+              "top": 3.984375,
+              "bottom": 4.2578125
             },
             {
               "class": "vlink match_preparation_call_button ls-preparation-call-symbol ls-icon-action",
               "height": 20,
-              "top": 2,
-              "bottom": 2
+              "top": 1.9921875,
+              "bottom": 2.24609375
             },
             {
               "class": "ico",
-              "height": 16,
-              "top": 4,
-              "bottom": 4
+              "height": 15.99609375,
+              "top": 3.984375,
+              "bottom": 4.2578125
             },
             {
               "class": "preparation_debug_icon preparation_debug_icon_unknown",
               "height": 20,
-              "top": 2,
-              "bottom": 2
-            },
-            {
-              "class": "ico",
-              "height": 18,
-              "top": 3,
-              "bottom": 3
+              "top": 1.9921875,
+              "bottom": 2.24609375
             }
           ]
         },
         {
           "id": "match-51",
           "planned": true,
-          "height": 24,
+          "height": 24.23828125,
+          "controlReference": 20,
           "reference": 20,
-          "top": 2,
-          "bottom": 2,
+          "top": 1.9921875,
+          "bottom": 2.24609375,
           "controls": [
             {
               "class": "btn icon-only ls-match-open",
               "height": 20,
-              "top": 2,
-              "bottom": 2
+              "top": 1.9921875,
+              "bottom": 2.24609375
             },
             {
               "class": "ico",
               "height": 15,
-              "top": 4.5,
-              "bottom": 4.5
+              "top": 4.4921875,
+              "bottom": 4.74609375
             },
             {
               "class": "ico",
-              "height": 12,
-              "top": 6,
-              "bottom": 6
+              "height": 11.9921875,
+              "top": 6.23046875,
+              "bottom": 6.015625
             },
             {
               "class": "ico",
-              "height": 12,
-              "top": 6,
-              "bottom": 6
+              "height": 11.9921875,
+              "top": 6.23046875,
+              "bottom": 6.015625
             },
             {
               "class": "vlink no_umpire no_umpire_add ls-role-icon",
               "height": 20,
-              "top": 2,
-              "bottom": 2
+              "top": 1.9921875,
+              "bottom": 2.24609375
             },
             {
               "class": "ico",
-              "height": 18,
-              "top": 3,
-              "bottom": 3
+              "height": 17.98828125,
+              "top": 2.98828125,
+              "bottom": 3.26171875
             },
             {
               "class": "preparation_debug_icon preparation_debug_icon_unknown",
               "height": 20,
-              "top": 2,
-              "bottom": 2
-            },
-            {
-              "class": "ico",
-              "height": 18,
-              "top": 3,
-              "bottom": 3
+              "top": 1.9921875,
+              "bottom": 2.24609375
             }
           ]
         },
         {
           "id": "match-52",
           "planned": true,
-          "height": 24,
+          "height": 24.23828125,
+          "controlReference": 20,
           "reference": 20,
-          "top": 2,
-          "bottom": 2,
+          "top": 1.9921875,
+          "bottom": 2.24609375,
           "controls": [
             {
               "class": "btn icon-only ls-match-open",
               "height": 20,
-              "top": 2,
-              "bottom": 2
+              "top": 1.9921875,
+              "bottom": 2.24609375
             },
             {
               "class": "ico",
               "height": 15,
-              "top": 4.5,
-              "bottom": 4.5
+              "top": 4.4921875,
+              "bottom": 4.74609375
             },
             {
               "class": "ico",
-              "height": 12,
-              "top": 6,
-              "bottom": 6
+              "height": 11.9921875,
+              "top": 6.23046875,
+              "bottom": 6.015625
             },
             {
               "class": "ico",
-              "height": 12,
-              "top": 6,
-              "bottom": 6
+              "height": 11.9921875,
+              "top": 6.23046875,
+              "bottom": 6.015625
             },
             {
               "class": "vlink no_umpire no_umpire_add ls-role-icon",
               "height": 20,
-              "top": 2,
-              "bottom": 2
+              "top": 1.9921875,
+              "bottom": 2.24609375
             },
             {
               "class": "ico",
-              "height": 18,
-              "top": 3,
-              "bottom": 3
+              "height": 17.98828125,
+              "top": 2.98828125,
+              "bottom": 3.26171875
             },
             {
               "class": "vlink match_preparation_call_button ls-preparation-call-symbol ls-icon-action",
               "height": 20,
-              "top": 2,
-              "bottom": 2
+              "top": 1.9921875,
+              "bottom": 2.24609375
             },
             {
               "class": "ico",
-              "height": 16,
-              "top": 4,
-              "bottom": 4
+              "height": 15.99609375,
+              "top": 3.984375,
+              "bottom": 4.2578125
             },
             {
               "class": "vlink match_preparation_call_button ls-preparation-call-symbol ls-icon-action",
               "height": 20,
-              "top": 2,
-              "bottom": 2
+              "top": 1.9921875,
+              "bottom": 2.24609375
             },
             {
               "class": "ico",
-              "height": 16,
-              "top": 4,
-              "bottom": 4
+              "height": 15.99609375,
+              "top": 3.984375,
+              "bottom": 4.2578125
             },
             {
               "class": "preparation_debug_icon preparation_debug_icon_unknown",
               "height": 20,
-              "top": 2,
-              "bottom": 2
-            },
-            {
-              "class": "ico",
-              "height": 18,
-              "top": 3,
-              "bottom": 3
+              "top": 1.9921875,
+              "bottom": 2.24609375
             }
           ]
         },
         {
           "id": "match-53",
           "planned": true,
-          "height": 24,
+          "height": 24.23828125,
+          "controlReference": 20,
           "reference": 20,
-          "top": 2,
-          "bottom": 2,
+          "top": 1.9921875,
+          "bottom": 2.24609375,
           "controls": [
             {
               "class": "btn icon-only ls-match-open",
               "height": 20,
-              "top": 2,
-              "bottom": 2
+              "top": 1.9921875,
+              "bottom": 2.24609375
             },
             {
               "class": "ico",
               "height": 15,
-              "top": 4.5,
-              "bottom": 4.5
+              "top": 4.4921875,
+              "bottom": 4.74609375
             },
             {
               "class": "vlink no_umpire no_umpire_add ls-role-icon",
               "height": 20,
-              "top": 2,
-              "bottom": 2
+              "top": 1.9921875,
+              "bottom": 2.24609375
             },
             {
               "class": "ico",
-              "height": 18,
-              "top": 3,
-              "bottom": 3
+              "height": 17.98828125,
+              "top": 2.98828125,
+              "bottom": 3.26171875
             },
             {
               "class": "vlink match_preparation_call_button ls-preparation-call-symbol ls-icon-action",
               "height": 20,
-              "top": 2,
-              "bottom": 2
+              "top": 1.9921875,
+              "bottom": 2.24609375
             },
             {
               "class": "ico",
-              "height": 16,
-              "top": 4,
-              "bottom": 4
+              "height": 15.99609375,
+              "top": 3.984375,
+              "bottom": 4.2578125
             },
             {
               "class": "vlink match_preparation_call_button ls-preparation-call-symbol ls-icon-action",
               "height": 20,
-              "top": 2,
-              "bottom": 2
+              "top": 1.9921875,
+              "bottom": 2.24609375
             },
             {
               "class": "ico",
-              "height": 16,
-              "top": 4,
-              "bottom": 4
+              "height": 15.99609375,
+              "top": 3.984375,
+              "bottom": 4.2578125
             },
             {
               "class": "preparation_debug_icon preparation_debug_icon_unknown",
               "height": 20,
-              "top": 2,
-              "bottom": 2
-            },
-            {
-              "class": "ico",
-              "height": 18,
-              "top": 3,
-              "bottom": 3
+              "top": 1.9921875,
+              "bottom": 2.24609375
             }
           ]
         },
         {
           "id": "compact-finished",
           "planned": false,
-          "height": 24,
-          "reference": 16,
-          "top": 4,
-          "bottom": 4,
+          "height": 24.23828125,
+          "controlReference": 20,
+          "reference": 20,
+          "top": 1.9921875,
+          "bottom": 2.24609375,
           "controls": [
             {
               "class": "btn icon-only ls-match-open",
-              "height": 16,
-              "top": 4,
-              "bottom": 4
+              "height": 20,
+              "top": 1.9921875,
+              "bottom": 2.24609375
             },
             {
               "class": "ico",
-              "height": 14,
-              "top": 5,
-              "bottom": 5
+              "height": 15,
+              "top": 4.4921875,
+              "bottom": 4.74609375
             },
             {
               "class": "court_history",
-              "height": 16,
-              "top": 4,
-              "bottom": 4
+              "height": 20,
+              "top": 1.9921875,
+              "bottom": 2.24609375
             },
             {
               "class": "vlink no_umpire ls-role-icon",
-              "height": 16,
-              "top": 4,
-              "bottom": 4
+              "height": 20,
+              "top": 1.9921875,
+              "bottom": 2.24609375
             },
             {
               "class": "ico",
-              "height": 16,
-              "top": 4,
-              "bottom": 4
+              "height": 17.98828125,
+              "top": 2.98828125,
+              "bottom": 3.26171875
             }
           ]
         }
       ],
       "scrolling": {
-        "height": 421,
-        "scrollHeight": 421,
-        "width": 1491,
-        "scrollWidth": 1491,
-        "tableHeight": 421
+        "height": 428,
+        "scrollHeight": 428,
+        "width": 1890,
+        "scrollWidth": 1890,
+        "tableHeight": 342.203125
       }
     },
     {
@@ -5469,51 +5376,52 @@
           "id": "match-44",
           "planned": false,
           "height": 24,
+          "controlReference": 14,
           "reference": 14,
           "top": 5,
           "bottom": 5,
           "controls": [
             {
               "class": "btn icon-only ls-match-open",
-              "height": 14,
-              "top": 5,
-              "bottom": 5
+              "height": 16,
+              "top": 4,
+              "bottom": 4
             },
             {
               "class": "ico",
-              "height": 12,
-              "top": 6,
-              "bottom": 6
+              "height": 14,
+              "top": 5,
+              "bottom": 5
             },
             {
               "class": "court_num",
-              "height": 14,
-              "top": 5,
-              "bottom": 5
+              "height": 16,
+              "top": 4,
+              "bottom": 4
             },
             {
               "class": "tablet ls-role-icon",
-              "height": 14,
-              "top": 5,
-              "bottom": 5
+              "height": 16,
+              "top": 4,
+              "bottom": 4
             },
             {
               "class": "ico",
-              "height": 14,
-              "top": 5,
-              "bottom": 5
+              "height": 16,
+              "top": 4,
+              "bottom": 4
             },
             {
               "class": "timer",
-              "height": 14,
-              "top": 5,
-              "bottom": 5
+              "height": 16,
+              "top": 4,
+              "bottom": 4
             },
             {
               "class": "ico",
-              "height": 12,
-              "top": 6,
-              "bottom": 6
+              "height": 14,
+              "top": 5,
+              "bottom": 5
             }
           ]
         },
@@ -5521,69 +5429,70 @@
           "id": "match-37",
           "planned": false,
           "height": 24,
+          "controlReference": 14,
           "reference": 14,
           "top": 5,
           "bottom": 5,
           "controls": [
             {
               "class": "btn icon-only ls-match-open",
-              "height": 14,
-              "top": 5,
-              "bottom": 5
+              "height": 16,
+              "top": 4,
+              "bottom": 4
             },
             {
               "class": "ico",
-              "height": 12,
-              "top": 6,
-              "bottom": 6
+              "height": 14,
+              "top": 5,
+              "bottom": 5
             },
             {
               "class": "court_num",
-              "height": 14,
-              "top": 5,
-              "bottom": 5
+              "height": 16,
+              "top": 4,
+              "bottom": 4
             },
             {
               "class": "umpire ls-role-icon",
-              "height": 14,
-              "top": 5,
-              "bottom": 5
+              "height": 16,
+              "top": 4,
+              "bottom": 4
             },
             {
               "class": "ico",
-              "height": 14,
-              "top": 5,
-              "bottom": 5
+              "height": 16,
+              "top": 4,
+              "bottom": 4
             },
             {
               "class": "service_judge ls-role-icon",
-              "height": 14,
-              "top": 5,
-              "bottom": 5
+              "height": 16,
+              "top": 4,
+              "bottom": 4
             },
             {
               "class": "ico",
-              "height": 14,
-              "top": 5,
-              "bottom": 5
+              "height": 16,
+              "top": 4,
+              "bottom": 4
             },
             {
               "class": "tablet ls-role-icon",
-              "height": 14,
-              "top": 5,
-              "bottom": 5
+              "height": 16,
+              "top": 4,
+              "bottom": 4
             },
             {
               "class": "ico",
-              "height": 14,
-              "top": 5,
-              "bottom": 5
+              "height": 16,
+              "top": 4,
+              "bottom": 4
             },
             {
               "class": "vlink match_confirm_button btn success",
-              "height": 14,
-              "top": 5,
-              "bottom": 5
+              "height": 16,
+              "top": 4,
+              "bottom": 4
             }
           ]
         },
@@ -5591,45 +5500,46 @@
           "id": "match-40",
           "planned": false,
           "height": 24,
+          "controlReference": 14,
           "reference": 14,
           "top": 5,
           "bottom": 5,
           "controls": [
             {
               "class": "btn icon-only ls-match-open",
-              "height": 14,
-              "top": 5,
-              "bottom": 5
+              "height": 16,
+              "top": 4,
+              "bottom": 4
             },
             {
               "class": "ico",
-              "height": 12,
-              "top": 6,
-              "bottom": 6
+              "height": 14,
+              "top": 5,
+              "bottom": 5
             },
             {
               "class": "court_num",
-              "height": 14,
-              "top": 5,
-              "bottom": 5
+              "height": 16,
+              "top": 4,
+              "bottom": 4
             },
             {
               "class": "tablet ls-role-icon",
-              "height": 14,
-              "top": 5,
-              "bottom": 5
+              "height": 16,
+              "top": 4,
+              "bottom": 4
             },
             {
               "class": "ico",
-              "height": 14,
-              "top": 5,
-              "bottom": 5
+              "height": 16,
+              "top": 4,
+              "bottom": 4
             },
             {
               "class": "vlink match_confirm_button btn success",
-              "height": 14,
-              "top": 5,
-              "bottom": 5
+              "height": 16,
+              "top": 4,
+              "bottom": 4
             }
           ]
         },
@@ -5637,39 +5547,40 @@
           "id": "match-36",
           "planned": false,
           "height": 24,
+          "controlReference": 14,
           "reference": 14,
           "top": 5,
           "bottom": 5,
           "controls": [
             {
               "class": "btn icon-only ls-match-open",
-              "height": 14,
-              "top": 5,
-              "bottom": 5
+              "height": 16,
+              "top": 4,
+              "bottom": 4
             },
             {
               "class": "ico",
-              "height": 12,
-              "top": 6,
-              "bottom": 6
+              "height": 14,
+              "top": 5,
+              "bottom": 5
             },
             {
               "class": "court_num",
-              "height": 14,
-              "top": 5,
-              "bottom": 5
+              "height": 16,
+              "top": 4,
+              "bottom": 4
             },
             {
               "class": "tablet ls-role-icon",
-              "height": 14,
-              "top": 5,
-              "bottom": 5
+              "height": 16,
+              "top": 4,
+              "bottom": 4
             },
             {
               "class": "ico",
-              "height": 14,
-              "top": 5,
-              "bottom": 5
+              "height": 16,
+              "top": 4,
+              "bottom": 4
             }
           ]
         },
@@ -5677,45 +5588,46 @@
           "id": "match-32",
           "planned": false,
           "height": 24,
+          "controlReference": 14,
           "reference": 14,
           "top": 5,
           "bottom": 5,
           "controls": [
             {
               "class": "btn icon-only ls-match-open",
-              "height": 14,
-              "top": 5,
-              "bottom": 5
+              "height": 16,
+              "top": 4,
+              "bottom": 4
             },
             {
               "class": "ico",
-              "height": 12,
-              "top": 6,
-              "bottom": 6
+              "height": 14,
+              "top": 5,
+              "bottom": 5
             },
             {
               "class": "court_num",
-              "height": 14,
-              "top": 5,
-              "bottom": 5
+              "height": 16,
+              "top": 4,
+              "bottom": 4
             },
             {
               "class": "tablet ls-role-icon",
-              "height": 14,
-              "top": 5,
-              "bottom": 5
+              "height": 16,
+              "top": 4,
+              "bottom": 4
             },
             {
               "class": "ico",
-              "height": 14,
-              "top": 5,
-              "bottom": 5
+              "height": 16,
+              "top": 4,
+              "bottom": 4
             },
             {
               "class": "vlink match_confirm_button btn success",
-              "height": 14,
-              "top": 5,
-              "bottom": 5
+              "height": 16,
+              "top": 4,
+              "bottom": 4
             }
           ]
         },
@@ -5723,39 +5635,40 @@
           "id": "match-38",
           "planned": false,
           "height": 24,
+          "controlReference": 14,
           "reference": 14,
           "top": 5,
           "bottom": 5,
           "controls": [
             {
               "class": "btn icon-only ls-match-open",
-              "height": 14,
-              "top": 5,
-              "bottom": 5
+              "height": 16,
+              "top": 4,
+              "bottom": 4
             },
             {
               "class": "ico",
-              "height": 12,
-              "top": 6,
-              "bottom": 6
+              "height": 14,
+              "top": 5,
+              "bottom": 5
             },
             {
               "class": "court_num",
-              "height": 14,
-              "top": 5,
-              "bottom": 5
+              "height": 16,
+              "top": 4,
+              "bottom": 4
             },
             {
               "class": "tablet ls-role-icon",
-              "height": 14,
-              "top": 5,
-              "bottom": 5
+              "height": 16,
+              "top": 4,
+              "bottom": 4
             },
             {
               "class": "ico",
-              "height": 14,
-              "top": 5,
-              "bottom": 5
+              "height": 16,
+              "top": 4,
+              "bottom": 4
             }
           ]
         },
@@ -5763,45 +5676,46 @@
           "id": "match-30",
           "planned": false,
           "height": 24,
+          "controlReference": 14,
           "reference": 14,
           "top": 5,
           "bottom": 5,
           "controls": [
             {
               "class": "btn icon-only ls-match-open",
-              "height": 14,
-              "top": 5,
-              "bottom": 5
+              "height": 16,
+              "top": 4,
+              "bottom": 4
             },
             {
               "class": "ico",
-              "height": 12,
-              "top": 6,
-              "bottom": 6
+              "height": 14,
+              "top": 5,
+              "bottom": 5
             },
             {
               "class": "court_num",
-              "height": 14,
-              "top": 5,
-              "bottom": 5
+              "height": 16,
+              "top": 4,
+              "bottom": 4
             },
             {
               "class": "tablet ls-role-icon",
-              "height": 14,
-              "top": 5,
-              "bottom": 5
+              "height": 16,
+              "top": 4,
+              "bottom": 4
             },
             {
               "class": "ico",
-              "height": 14,
-              "top": 5,
-              "bottom": 5
+              "height": 16,
+              "top": 4,
+              "bottom": 4
             },
             {
               "class": "vlink match_confirm_button btn success",
-              "height": 14,
-              "top": 5,
-              "bottom": 5
+              "height": 16,
+              "top": 4,
+              "bottom": 4
             }
           ]
         },
@@ -5809,39 +5723,40 @@
           "id": "match-43",
           "planned": false,
           "height": 24,
+          "controlReference": 14,
           "reference": 14,
           "top": 5,
           "bottom": 5,
           "controls": [
             {
               "class": "btn icon-only ls-match-open",
-              "height": 14,
-              "top": 5,
-              "bottom": 5
+              "height": 16,
+              "top": 4,
+              "bottom": 4
             },
             {
               "class": "ico",
-              "height": 12,
-              "top": 6,
-              "bottom": 6
+              "height": 14,
+              "top": 5,
+              "bottom": 5
             },
             {
               "class": "court_num",
-              "height": 14,
-              "top": 5,
-              "bottom": 5
+              "height": 16,
+              "top": 4,
+              "bottom": 4
             },
             {
               "class": "tablet ls-role-icon",
-              "height": 14,
-              "top": 5,
-              "bottom": 5
+              "height": 16,
+              "top": 4,
+              "bottom": 4
             },
             {
               "class": "ico",
-              "height": 14,
-              "top": 5,
-              "bottom": 5
+              "height": 16,
+              "top": 4,
+              "bottom": 4
             }
           ]
         },
@@ -5849,39 +5764,40 @@
           "id": "match-39",
           "planned": false,
           "height": 24,
+          "controlReference": 14,
           "reference": 14,
           "top": 5,
           "bottom": 5,
           "controls": [
             {
               "class": "btn icon-only ls-match-open",
-              "height": 14,
-              "top": 5,
-              "bottom": 5
+              "height": 16,
+              "top": 4,
+              "bottom": 4
             },
             {
               "class": "ico",
-              "height": 12,
-              "top": 6,
-              "bottom": 6
+              "height": 14,
+              "top": 5,
+              "bottom": 5
             },
             {
               "class": "court_num",
-              "height": 14,
-              "top": 5,
-              "bottom": 5
+              "height": 16,
+              "top": 4,
+              "bottom": 4
             },
             {
               "class": "tablet ls-role-icon",
-              "height": 14,
-              "top": 5,
-              "bottom": 5
+              "height": 16,
+              "top": 4,
+              "bottom": 4
             },
             {
               "class": "ico",
-              "height": 14,
-              "top": 5,
-              "bottom": 5
+              "height": 16,
+              "top": 4,
+              "bottom": 4
             }
           ]
         },
@@ -5889,39 +5805,40 @@
           "id": "match-42",
           "planned": false,
           "height": 24,
+          "controlReference": 14,
           "reference": 14,
           "top": 5,
           "bottom": 5,
           "controls": [
             {
               "class": "btn icon-only ls-match-open",
-              "height": 14,
-              "top": 5,
-              "bottom": 5
+              "height": 16,
+              "top": 4,
+              "bottom": 4
             },
             {
               "class": "ico",
-              "height": 12,
-              "top": 6,
-              "bottom": 6
+              "height": 14,
+              "top": 5,
+              "bottom": 5
             },
             {
               "class": "court_num",
-              "height": 14,
-              "top": 5,
-              "bottom": 5
+              "height": 16,
+              "top": 4,
+              "bottom": 4
             },
             {
               "class": "tablet ls-role-icon",
-              "height": 14,
-              "top": 5,
-              "bottom": 5
+              "height": 16,
+              "top": 4,
+              "bottom": 4
             },
             {
               "class": "ico",
-              "height": 14,
-              "top": 5,
-              "bottom": 5
+              "height": 16,
+              "top": 4,
+              "bottom": 4
             }
           ]
         },
@@ -5929,93 +5846,94 @@
           "id": "match-41",
           "planned": false,
           "height": 24,
+          "controlReference": 14,
           "reference": 14,
           "top": 5,
           "bottom": 5,
           "controls": [
             {
               "class": "btn icon-only ls-match-open",
-              "height": 14,
-              "top": 5,
-              "bottom": 5
+              "height": 16,
+              "top": 4,
+              "bottom": 4
             },
             {
               "class": "ico",
-              "height": 12,
-              "top": 6,
-              "bottom": 6
+              "height": 14,
+              "top": 5,
+              "bottom": 5
             },
             {
               "class": "court_num",
-              "height": 14,
-              "top": 5,
-              "bottom": 5
+              "height": 16,
+              "top": 4,
+              "bottom": 4
             },
             {
               "class": "vlink match_second_call_button ls-icon-action",
-              "height": 14,
-              "top": 5,
-              "bottom": 5
+              "height": 16,
+              "top": 4,
+              "bottom": 4
             },
             {
               "class": "ico",
-              "height": 12,
-              "top": 7,
-              "bottom": 5
+              "height": 14,
+              "top": 6,
+              "bottom": 4
             },
             {
               "class": "vlink match_second_call_button ls-icon-action",
-              "height": 14,
-              "top": 5,
-              "bottom": 5
+              "height": 16,
+              "top": 4,
+              "bottom": 4
             },
             {
               "class": "ico",
-              "height": 12,
-              "top": 7,
-              "bottom": 5
+              "height": 14,
+              "top": 6,
+              "bottom": 4
             },
             {
               "class": "tablet ls-role-icon",
-              "height": 14,
-              "top": 5,
-              "bottom": 5
+              "height": 16,
+              "top": 4,
+              "bottom": 4
             },
             {
               "class": "ico",
-              "height": 14,
-              "top": 5,
-              "bottom": 5
+              "height": 16,
+              "top": 4,
+              "bottom": 4
             },
             {
               "class": "vlink match_second_call_button ls-icon-action",
-              "height": 14,
-              "top": 5,
-              "bottom": 5
+              "height": 16,
+              "top": 4,
+              "bottom": 4
             },
             {
               "class": "ico",
-              "height": 12,
-              "top": 7,
-              "bottom": 5
+              "height": 14,
+              "top": 6,
+              "bottom": 4
             },
             {
               "class": "timer",
-              "height": 14,
-              "top": 5,
-              "bottom": 5
+              "height": 16,
+              "top": 4,
+              "bottom": 4
             },
             {
               "class": "ico",
-              "height": 12,
-              "top": 6,
-              "bottom": 6
-            },
-            {
-              "class": "vlink match_manual_call_button ls-icon-action",
               "height": 14,
               "top": 5,
               "bottom": 5
+            },
+            {
+              "class": "vlink match_manual_call_button ls-icon-action",
+              "height": 16,
+              "top": 4,
+              "bottom": 4
             },
             {
               "class": "ico",
@@ -6025,9 +5943,9 @@
             },
             {
               "class": "vlink match_begin_to_play_button ls-icon-action",
-              "height": 14,
-              "top": 5,
-              "bottom": 5
+              "height": 16,
+              "top": 4,
+              "bottom": 4
             },
             {
               "class": "ico",
@@ -6038,20 +5956,20 @@
             {
               "class": "vlink match_second_call_button ls-icon-action::after",
               "height": 12,
-              "top": 6,
-              "bottom": 6
+              "top": 5,
+              "bottom": 7
             },
             {
               "class": "vlink match_second_call_button ls-icon-action::after",
               "height": 12,
-              "top": 6,
-              "bottom": 6
+              "top": 5,
+              "bottom": 7
             },
             {
               "class": "vlink match_second_call_button ls-icon-action::after",
               "height": 12,
-              "top": 6,
-              "bottom": 6
+              "top": 5,
+              "bottom": 7
             }
           ]
         },
@@ -6059,39 +5977,40 @@
           "id": "compact-court-14",
           "planned": false,
           "height": 24,
+          "controlReference": 14,
           "reference": 14,
           "top": 5,
           "bottom": 5,
           "controls": [
             {
               "class": "btn icon-only ls-match-open",
-              "height": 14,
-              "top": 5,
-              "bottom": 5
+              "height": 16,
+              "top": 4,
+              "bottom": 4
             },
             {
               "class": "ico",
-              "height": 12,
-              "top": 6,
-              "bottom": 6
+              "height": 14,
+              "top": 5,
+              "bottom": 5
             },
             {
               "class": "court_num",
-              "height": 14,
-              "top": 5,
-              "bottom": 5
+              "height": 16,
+              "top": 4,
+              "bottom": 4
             },
             {
               "class": "tablet ls-role-icon",
-              "height": 14,
-              "top": 5,
-              "bottom": 5
+              "height": 16,
+              "top": 4,
+              "bottom": 4
             },
             {
               "class": "ico",
-              "height": 14,
-              "top": 5,
-              "bottom": 5
+              "height": 16,
+              "top": 4,
+              "bottom": 4
             }
           ]
         },
@@ -6099,903 +6018,874 @@
           "id": "compact-court-15",
           "planned": false,
           "height": 24,
+          "controlReference": 14,
           "reference": 14,
           "top": 5,
           "bottom": 5,
           "controls": [
             {
               "class": "btn icon-only ls-match-open",
-              "height": 14,
-              "top": 5,
-              "bottom": 5
+              "height": 16,
+              "top": 4,
+              "bottom": 4
             },
             {
               "class": "ico",
-              "height": 12,
-              "top": 6,
-              "bottom": 6
+              "height": 14,
+              "top": 5,
+              "bottom": 5
             },
             {
               "class": "court_num",
-              "height": 14,
-              "top": 5,
-              "bottom": 5
+              "height": 16,
+              "top": 4,
+              "bottom": 4
             },
             {
               "class": "tablet ls-role-icon",
-              "height": 14,
-              "top": 5,
-              "bottom": 5
+              "height": 16,
+              "top": 4,
+              "bottom": 4
             },
             {
               "class": "ico",
-              "height": 14,
-              "top": 5,
-              "bottom": 5
+              "height": 16,
+              "top": 4,
+              "bottom": 4
             }
           ]
         },
         {
           "id": "match-45",
           "planned": true,
-          "height": 24,
-          "reference": 20,
+          "height": 46,
+          "controlReference": 20,
+          "reference": 42,
           "top": 2,
           "bottom": 2,
           "controls": [
             {
               "class": "btn icon-only ls-match-open",
               "height": 20,
-              "top": 2,
-              "bottom": 2
+              "top": 13,
+              "bottom": 13
             },
             {
               "class": "ico",
               "height": 15,
-              "top": 4.5,
-              "bottom": 4.5
+              "top": 15.5,
+              "bottom": 15.5
             },
             {
               "class": "vlink match_second_preparation_call_button ls-icon-action",
               "height": 20,
-              "top": 2,
-              "bottom": 2
+              "top": 13,
+              "bottom": 13
             },
             {
               "class": "ico",
               "height": 17,
-              "top": 5,
-              "bottom": 2
+              "top": 16,
+              "bottom": 13
+            },
+            {
+              "class": "ico",
+              "height": 12,
+              "top": 17,
+              "bottom": 17
             },
             {
               "class": "ico",
               "height": 12,
               "top": 6,
+              "bottom": 28
+            },
+            {
+              "class": "ico",
+              "height": 12,
+              "top": 6,
+              "bottom": 28
+            },
+            {
+              "class": "ico",
+              "height": 12,
+              "top": 6,
+              "bottom": 28
+            },
+            {
+              "class": "ico",
+              "height": 12,
+              "top": 28,
               "bottom": 6
             },
             {
               "class": "ico",
               "height": 12,
-              "top": 6,
+              "top": 28,
               "bottom": 6
             },
             {
               "class": "ico",
               "height": 12,
-              "top": 6,
-              "bottom": 6
-            },
-            {
-              "class": "ico",
-              "height": 12,
-              "top": 6,
-              "bottom": 6
-            },
-            {
-              "class": "ico",
-              "height": 12,
-              "top": 6,
-              "bottom": 6
-            },
-            {
-              "class": "ico",
-              "height": 12,
-              "top": 6,
-              "bottom": 6
-            },
-            {
-              "class": "ico",
-              "height": 12,
-              "top": 6,
+              "top": 28,
               "bottom": 6
             },
             {
               "class": "vlink match_second_preparation_call_button ls-icon-action",
               "height": 20,
-              "top": 2,
-              "bottom": 2
+              "top": 13,
+              "bottom": 13
             },
             {
               "class": "ico",
               "height": 17,
-              "top": 5,
-              "bottom": 2
+              "top": 16,
+              "bottom": 13
             },
             {
               "class": "umpire ls-role-icon",
               "height": 20,
-              "top": 2,
-              "bottom": 2
+              "top": 13,
+              "bottom": 13
             },
             {
               "class": "ico",
               "height": 18,
-              "top": 3,
-              "bottom": 3
+              "top": 14,
+              "bottom": 14
             },
             {
               "class": "vlink match_second_preparation_call_button ls-icon-action",
               "height": 20,
-              "top": 2,
-              "bottom": 2
+              "top": 13,
+              "bottom": 13
             },
             {
               "class": "ico",
               "height": 17,
-              "top": 5,
-              "bottom": 2
+              "top": 16,
+              "bottom": 13
             },
             {
               "class": "service_judge ls-role-icon",
               "height": 20,
-              "top": 2,
-              "bottom": 2
+              "top": 13,
+              "bottom": 13
             },
             {
               "class": "ico",
               "height": 18,
-              "top": 3,
-              "bottom": 3
+              "top": 14,
+              "bottom": 14
             },
             {
               "class": "vlink match_second_preparation_call_button ls-icon-action",
               "height": 20,
-              "top": 2,
-              "bottom": 2
+              "top": 13,
+              "bottom": 13
             },
             {
               "class": "ico",
               "height": 17,
-              "top": 5,
-              "bottom": 2
+              "top": 16,
+              "bottom": 13
             },
             {
               "class": "timer",
               "height": 20,
-              "top": 2,
-              "bottom": 2
+              "top": 13,
+              "bottom": 13
             },
             {
               "class": "ico",
               "height": 14,
-              "top": 5,
-              "bottom": 5
+              "top": 16,
+              "bottom": 16
             },
             {
               "class": "vlink match_preparation_call_button ls-preparation-call-symbol ls-icon-action",
               "height": 20,
               "top": 2,
-              "bottom": 2
+              "bottom": 24
             },
             {
               "class": "ico",
               "height": 16,
               "top": 4,
-              "bottom": 4
+              "bottom": 26
             },
             {
               "class": "preparation_debug_icon preparation_debug_icon_unknown",
               "height": 20,
               "top": 2,
-              "bottom": 2
-            },
-            {
-              "class": "ico",
-              "height": 18,
-              "top": 3,
-              "bottom": 3
+              "bottom": 24
             },
             {
               "class": "vlink match_second_preparation_call_button ls-icon-action::after",
               "height": 12,
-              "top": 3,
-              "bottom": 9
+              "top": 14,
+              "bottom": 20
             },
             {
               "class": "vlink match_second_preparation_call_button ls-icon-action::after",
               "height": 12,
-              "top": 3,
-              "bottom": 9
+              "top": 14,
+              "bottom": 20
             },
             {
               "class": "vlink match_second_preparation_call_button ls-icon-action::after",
               "height": 12,
-              "top": 3,
-              "bottom": 9
+              "top": 14,
+              "bottom": 20
             },
             {
               "class": "vlink match_second_preparation_call_button ls-icon-action::after",
               "height": 12,
-              "top": 3,
-              "bottom": 9
+              "top": 14,
+              "bottom": 20
             }
           ]
         },
         {
           "id": "match-46",
           "planned": true,
-          "height": 24,
-          "reference": 20,
+          "height": 46,
+          "controlReference": 20,
+          "reference": 42,
           "top": 2,
           "bottom": 2,
           "controls": [
             {
               "class": "btn icon-only ls-match-open",
               "height": 20,
-              "top": 2,
-              "bottom": 2
+              "top": 13,
+              "bottom": 13
             },
             {
               "class": "ico",
               "height": 15,
-              "top": 4.5,
-              "bottom": 4.5
+              "top": 15.5,
+              "bottom": 15.5
             },
             {
               "class": "vlink match_second_preparation_call_button ls-icon-action",
               "height": 20,
-              "top": 2,
-              "bottom": 2
+              "top": 13,
+              "bottom": 13
             },
             {
               "class": "ico",
               "height": 17,
-              "top": 5,
-              "bottom": 2
+              "top": 16,
+              "bottom": 13
             },
             {
               "class": "ico",
               "height": 12,
               "top": 6,
+              "bottom": 28
+            },
+            {
+              "class": "ico",
+              "height": 12,
+              "top": 6,
+              "bottom": 28
+            },
+            {
+              "class": "ico",
+              "height": 12,
+              "top": 6,
+              "bottom": 28
+            },
+            {
+              "class": "ico",
+              "height": 12,
+              "top": 28,
+              "bottom": 6
+            },
+            {
+              "class": "ico",
+              "height": 12,
+              "top": 28,
+              "bottom": 6
+            },
+            {
+              "class": "ico",
+              "height": 12,
+              "top": 28,
               "bottom": 6
             },
             {
               "class": "ico",
               "height": 12,
               "top": 6,
-              "bottom": 6
+              "bottom": 28
             },
             {
               "class": "ico",
               "height": 12,
-              "top": 6,
-              "bottom": 6
-            },
-            {
-              "class": "ico",
-              "height": 12,
-              "top": 6,
-              "bottom": 6
-            },
-            {
-              "class": "ico",
-              "height": 12,
-              "top": 6,
-              "bottom": 6
-            },
-            {
-              "class": "ico",
-              "height": 12,
-              "top": 6,
-              "bottom": 6
-            },
-            {
-              "class": "ico",
-              "height": 12,
-              "top": 6,
-              "bottom": 6
-            },
-            {
-              "class": "ico",
-              "height": 12,
-              "top": 6,
+              "top": 28,
               "bottom": 6
             },
             {
               "class": "vlink match_second_preparation_call_button ls-icon-action",
               "height": 20,
-              "top": 2,
-              "bottom": 2
+              "top": 13,
+              "bottom": 13
             },
             {
               "class": "ico",
               "height": 17,
-              "top": 5,
-              "bottom": 2
+              "top": 16,
+              "bottom": 13
             },
             {
               "class": "tablet ls-role-icon",
               "height": 20,
-              "top": 2,
-              "bottom": 2
+              "top": 13,
+              "bottom": 13
             },
             {
               "class": "ico",
               "height": 18,
-              "top": 3,
-              "bottom": 3
+              "top": 14,
+              "bottom": 14
             },
             {
               "class": "vlink match_second_preparation_call_button ls-icon-action",
               "height": 20,
-              "top": 2,
-              "bottom": 2
+              "top": 13,
+              "bottom": 13
             },
             {
               "class": "ico",
               "height": 17,
-              "top": 5,
-              "bottom": 2
+              "top": 16,
+              "bottom": 13
             },
             {
               "class": "timer",
               "height": 20,
-              "top": 2,
-              "bottom": 2
+              "top": 13,
+              "bottom": 13
             },
             {
               "class": "ico",
               "height": 14,
-              "top": 5,
-              "bottom": 5
+              "top": 16,
+              "bottom": 16
             },
             {
               "class": "vlink match_preparation_call_button ls-preparation-call-symbol ls-icon-action",
               "height": 20,
               "top": 2,
-              "bottom": 2
+              "bottom": 24
             },
             {
               "class": "ico",
               "height": 16,
               "top": 4,
-              "bottom": 4
+              "bottom": 26
             },
             {
               "class": "preparation_debug_icon preparation_debug_icon_unknown",
               "height": 20,
               "top": 2,
-              "bottom": 2
-            },
-            {
-              "class": "ico",
-              "height": 18,
-              "top": 3,
-              "bottom": 3
+              "bottom": 24
             },
             {
               "class": "vlink match_second_preparation_call_button ls-icon-action::after",
               "height": 12,
-              "top": 3,
-              "bottom": 9
+              "top": 14,
+              "bottom": 20
             },
             {
               "class": "vlink match_second_preparation_call_button ls-icon-action::after",
               "height": 12,
-              "top": 3,
-              "bottom": 9
+              "top": 14,
+              "bottom": 20
             },
             {
               "class": "vlink match_second_preparation_call_button ls-icon-action::after",
               "height": 12,
-              "top": 3,
-              "bottom": 9
+              "top": 14,
+              "bottom": 20
             }
           ]
         },
         {
           "id": "match-47",
           "planned": true,
-          "height": 24,
-          "reference": 20,
+          "height": 46,
+          "controlReference": 20,
+          "reference": 42,
           "top": 2,
           "bottom": 2,
           "controls": [
             {
               "class": "btn icon-only ls-match-open",
               "height": 20,
-              "top": 2,
-              "bottom": 2
+              "top": 13,
+              "bottom": 13
             },
             {
               "class": "ico",
               "height": 15,
-              "top": 4.5,
-              "bottom": 4.5
+              "top": 15.5,
+              "bottom": 15.5
             },
             {
               "class": "vlink match_second_preparation_call_button ls-icon-action",
               "height": 20,
-              "top": 2,
-              "bottom": 2
+              "top": 13,
+              "bottom": 13
             },
             {
               "class": "ico",
               "height": 17,
-              "top": 5,
-              "bottom": 2
+              "top": 16,
+              "bottom": 13
             },
             {
               "class": "ico",
               "height": 12,
               "top": 6,
+              "bottom": 28
+            },
+            {
+              "class": "ico",
+              "height": 12,
+              "top": 28,
               "bottom": 6
             },
             {
               "class": "ico",
               "height": 12,
               "top": 6,
-              "bottom": 6
+              "bottom": 28
             },
             {
               "class": "ico",
               "height": 12,
-              "top": 6,
-              "bottom": 6
-            },
-            {
-              "class": "ico",
-              "height": 12,
-              "top": 6,
+              "top": 28,
               "bottom": 6
             },
             {
               "class": "vlink match_second_preparation_call_button ls-icon-action",
               "height": 20,
-              "top": 2,
-              "bottom": 2
+              "top": 13,
+              "bottom": 13
             },
             {
               "class": "ico",
               "height": 17,
-              "top": 5,
-              "bottom": 2
+              "top": 16,
+              "bottom": 13
             },
             {
               "class": "umpire can_add_service_judge ls-role-icon",
               "height": 20,
-              "top": 2,
-              "bottom": 2
+              "top": 13,
+              "bottom": 13
             },
             {
               "class": "ico",
               "height": 18,
-              "top": 3,
-              "bottom": 3
+              "top": 14,
+              "bottom": 14
             },
             {
               "class": "vlink match_second_preparation_call_button ls-icon-action",
               "height": 20,
-              "top": 2,
-              "bottom": 2
+              "top": 13,
+              "bottom": 13
             },
             {
               "class": "ico",
               "height": 17,
-              "top": 5,
-              "bottom": 2
+              "top": 16,
+              "bottom": 13
             },
             {
               "class": "timer",
               "height": 20,
-              "top": 2,
-              "bottom": 2
+              "top": 13,
+              "bottom": 13
             },
             {
               "class": "ico",
               "height": 14,
-              "top": 5,
-              "bottom": 5
+              "top": 16,
+              "bottom": 16
             },
             {
               "class": "vlink match_preparation_call_button ls-preparation-call-symbol ls-icon-action",
               "height": 20,
               "top": 2,
-              "bottom": 2
+              "bottom": 24
             },
             {
               "class": "ico",
               "height": 16,
               "top": 4,
-              "bottom": 4
+              "bottom": 26
             },
             {
               "class": "preparation_debug_icon preparation_debug_icon_unknown",
               "height": 20,
               "top": 2,
-              "bottom": 2
-            },
-            {
-              "class": "ico",
-              "height": 18,
-              "top": 3,
-              "bottom": 3
+              "bottom": 24
             },
             {
               "class": "vlink match_second_preparation_call_button ls-icon-action::after",
               "height": 12,
-              "top": 3,
-              "bottom": 9
+              "top": 14,
+              "bottom": 20
             },
             {
               "class": "vlink match_second_preparation_call_button ls-icon-action::after",
               "height": 12,
-              "top": 3,
-              "bottom": 9
+              "top": 14,
+              "bottom": 20
             },
             {
               "class": "vlink match_second_preparation_call_button ls-icon-action::after",
               "height": 12,
-              "top": 3,
-              "bottom": 9
+              "top": 14,
+              "bottom": 20
             }
           ]
         },
         {
           "id": "match-48",
           "planned": true,
-          "height": 24,
-          "reference": 20,
+          "height": 46,
+          "controlReference": 20,
+          "reference": 42,
           "top": 2,
           "bottom": 2,
           "controls": [
             {
               "class": "btn icon-only ls-match-open",
               "height": 20,
-              "top": 2,
-              "bottom": 2
+              "top": 13,
+              "bottom": 13
             },
             {
               "class": "ico",
               "height": 15,
-              "top": 4.5,
-              "bottom": 4.5
+              "top": 15.5,
+              "bottom": 15.5
             },
             {
               "class": "ico",
               "height": 12,
               "top": 6,
-              "bottom": 6
+              "bottom": 28
             },
             {
               "class": "timer",
               "height": 18,
               "top": 3,
-              "bottom": 3
+              "bottom": 25
             },
             {
               "class": "ico",
               "height": 9,
               "top": 7.5,
-              "bottom": 7.5
+              "bottom": 29.5
             },
             {
               "class": "ico",
               "height": 12,
-              "top": 6,
+              "top": 28,
               "bottom": 6
             },
             {
               "class": "ico",
               "height": 12,
               "top": 6,
-              "bottom": 6
+              "bottom": 28
             },
             {
               "class": "ico",
               "height": 12,
-              "top": 6,
+              "top": 28,
               "bottom": 6
             },
             {
               "class": "vlink no_umpire no_umpire_add ls-role-icon",
               "height": 20,
-              "top": 2,
-              "bottom": 2
+              "top": 13,
+              "bottom": 13
             },
             {
               "class": "ico",
               "height": 18,
-              "top": 3,
-              "bottom": 3
+              "top": 14,
+              "bottom": 14
             },
             {
               "class": "vlink match_preparation_call_button ls-preparation-call-symbol ls-icon-action",
               "height": 20,
               "top": 2,
-              "bottom": 2
+              "bottom": 24
             },
             {
               "class": "ico",
               "height": 16,
               "top": 4,
-              "bottom": 4
+              "bottom": 26
             },
             {
               "class": "vlink match_preparation_call_button ls-preparation-call-symbol ls-icon-action",
               "height": 20,
               "top": 2,
-              "bottom": 2
+              "bottom": 24
             },
             {
               "class": "ico",
               "height": 16,
               "top": 4,
-              "bottom": 4
+              "bottom": 26
             },
             {
               "class": "preparation_debug_icon preparation_debug_icon_unknown",
               "height": 20,
               "top": 2,
-              "bottom": 2
-            },
-            {
-              "class": "ico",
-              "height": 18,
-              "top": 3,
-              "bottom": 3
+              "bottom": 24
             }
           ]
         },
         {
           "id": "match-49",
           "planned": true,
-          "height": 24,
-          "reference": 20,
+          "height": 46,
+          "controlReference": 20,
+          "reference": 42,
           "top": 2,
           "bottom": 2,
           "controls": [
             {
               "class": "btn icon-only ls-match-open",
               "height": 20,
-              "top": 2,
-              "bottom": 2
+              "top": 13,
+              "bottom": 13
             },
             {
               "class": "ico",
               "height": 15,
-              "top": 4.5,
-              "bottom": 4.5
+              "top": 15.5,
+              "bottom": 15.5
             },
             {
               "class": "vlink match_second_preparation_call_button ls-icon-action",
               "height": 20,
-              "top": 2,
-              "bottom": 2
+              "top": 13,
+              "bottom": 13
             },
             {
               "class": "ico",
               "height": 17,
-              "top": 5,
-              "bottom": 2
+              "top": 16,
+              "bottom": 13
             },
             {
               "class": "ico",
               "height": 12,
               "top": 6,
+              "bottom": 28
+            },
+            {
+              "class": "ico",
+              "height": 12,
+              "top": 28,
               "bottom": 6
             },
             {
               "class": "ico",
               "height": 12,
               "top": 6,
-              "bottom": 6
+              "bottom": 28
             },
             {
               "class": "ico",
               "height": 12,
-              "top": 6,
-              "bottom": 6
-            },
-            {
-              "class": "ico",
-              "height": 12,
-              "top": 6,
+              "top": 28,
               "bottom": 6
             },
             {
               "class": "vlink match_second_preparation_call_button ls-icon-action",
               "height": 20,
-              "top": 2,
-              "bottom": 2
+              "top": 13,
+              "bottom": 13
             },
             {
               "class": "ico",
               "height": 17,
-              "top": 5,
-              "bottom": 2
+              "top": 16,
+              "bottom": 13
             },
             {
               "class": "tablet ls-role-icon",
               "height": 20,
-              "top": 2,
-              "bottom": 2
+              "top": 13,
+              "bottom": 13
             },
             {
               "class": "ico",
               "height": 18,
-              "top": 3,
-              "bottom": 3
+              "top": 14,
+              "bottom": 14
             },
             {
               "class": "vlink match_second_preparation_call_button ls-icon-action",
               "height": 20,
-              "top": 2,
-              "bottom": 2
+              "top": 13,
+              "bottom": 13
             },
             {
               "class": "ico",
               "height": 17,
-              "top": 5,
-              "bottom": 2
+              "top": 16,
+              "bottom": 13
             },
             {
               "class": "timer",
               "height": 20,
-              "top": 2,
-              "bottom": 2
+              "top": 13,
+              "bottom": 13
             },
             {
               "class": "ico",
               "height": 14,
-              "top": 5,
-              "bottom": 5
+              "top": 16,
+              "bottom": 16
             },
             {
               "class": "vlink match_preparation_call_button ls-preparation-call-symbol ls-icon-action",
               "height": 20,
               "top": 2,
-              "bottom": 2
+              "bottom": 24
             },
             {
               "class": "ico",
               "height": 16,
               "top": 4,
-              "bottom": 4
+              "bottom": 26
             },
             {
               "class": "preparation_debug_icon preparation_debug_icon_unknown",
               "height": 20,
               "top": 2,
-              "bottom": 2
-            },
-            {
-              "class": "ico",
-              "height": 18,
-              "top": 3,
-              "bottom": 3
+              "bottom": 24
             },
             {
               "class": "vlink match_second_preparation_call_button ls-icon-action::after",
               "height": 12,
-              "top": 3,
-              "bottom": 9
+              "top": 14,
+              "bottom": 20
             },
             {
               "class": "vlink match_second_preparation_call_button ls-icon-action::after",
               "height": 12,
-              "top": 3,
-              "bottom": 9
+              "top": 14,
+              "bottom": 20
             },
             {
               "class": "vlink match_second_preparation_call_button ls-icon-action::after",
               "height": 12,
-              "top": 3,
-              "bottom": 9
+              "top": 14,
+              "bottom": 20
             }
           ]
         },
         {
           "id": "match-50",
           "planned": true,
-          "height": 24,
-          "reference": 20,
+          "height": 46,
+          "controlReference": 20,
+          "reference": 42,
           "top": 2,
           "bottom": 2,
           "controls": [
             {
               "class": "btn icon-only ls-match-open",
               "height": 20,
-              "top": 2,
-              "bottom": 2
+              "top": 13,
+              "bottom": 13
             },
             {
               "class": "ico",
               "height": 15,
-              "top": 4.5,
-              "bottom": 4.5
+              "top": 15.5,
+              "bottom": 15.5
             },
             {
               "class": "ico",
               "height": 12,
               "top": 6,
+              "bottom": 28
+            },
+            {
+              "class": "ico",
+              "height": 12,
+              "top": 28,
               "bottom": 6
             },
             {
               "class": "ico",
               "height": 12,
-              "top": 6,
-              "bottom": 6
+              "top": 17,
+              "bottom": 17
             },
             {
               "class": "ico",
               "height": 12,
-              "top": 6,
-              "bottom": 6
-            },
-            {
-              "class": "ico",
-              "height": 12,
-              "top": 6,
-              "bottom": 6
+              "top": 17,
+              "bottom": 17
             },
             {
               "class": "vlink no_umpire no_umpire_add ls-role-icon",
               "height": 20,
-              "top": 2,
-              "bottom": 2
+              "top": 13,
+              "bottom": 13
             },
             {
               "class": "ico",
               "height": 18,
-              "top": 3,
-              "bottom": 3
+              "top": 14,
+              "bottom": 14
             },
             {
               "class": "vlink match_preparation_call_button ls-preparation-call-symbol ls-icon-action",
               "height": 20,
               "top": 2,
-              "bottom": 2
+              "bottom": 24
             },
             {
               "class": "ico",
               "height": 16,
               "top": 4,
-              "bottom": 4
+              "bottom": 26
             },
             {
               "class": "vlink match_preparation_call_button ls-preparation-call-symbol ls-icon-action",
               "height": 20,
               "top": 2,
-              "bottom": 2
+              "bottom": 24
             },
             {
               "class": "ico",
               "height": 16,
               "top": 4,
-              "bottom": 4
+              "bottom": 26
             },
             {
               "class": "preparation_debug_icon preparation_debug_icon_unknown",
               "height": 20,
               "top": 2,
-              "bottom": 2
-            },
-            {
-              "class": "ico",
-              "height": 18,
-              "top": 3,
-              "bottom": 3
+              "bottom": 24
             }
           ]
         },
@@ -7003,6 +6893,7 @@
           "id": "match-51",
           "planned": true,
           "height": 24,
+          "controlReference": 20,
           "reference": 20,
           "top": 2,
           "bottom": 2,
@@ -7048,12 +6939,6 @@
               "height": 20,
               "top": 2,
               "bottom": 2
-            },
-            {
-              "class": "ico",
-              "height": 18,
-              "top": 3,
-              "bottom": 3
             }
           ]
         },
@@ -7061,6 +6946,7 @@
           "id": "match-52",
           "planned": true,
           "height": 24,
+          "controlReference": 20,
           "reference": 20,
           "top": 2,
           "bottom": 2,
@@ -7130,12 +7016,6 @@
               "height": 20,
               "top": 2,
               "bottom": 2
-            },
-            {
-              "class": "ico",
-              "height": 18,
-              "top": 3,
-              "bottom": 3
             }
           ]
         },
@@ -7143,6 +7023,7 @@
           "id": "match-53",
           "planned": true,
           "height": 24,
+          "controlReference": 20,
           "reference": 20,
           "top": 2,
           "bottom": 2,
@@ -7200,12 +7081,6 @@
               "height": 20,
               "top": 2,
               "bottom": 2
-            },
-            {
-              "class": "ico",
-              "height": 18,
-              "top": 3,
-              "bottom": 3
             }
           ]
         },
@@ -7213,39 +7088,40 @@
           "id": "compact-finished",
           "planned": false,
           "height": 24,
+          "controlReference": 14,
           "reference": 14,
           "top": 5,
           "bottom": 5,
           "controls": [
             {
               "class": "btn icon-only ls-match-open",
-              "height": 14,
-              "top": 5,
-              "bottom": 5
+              "height": 16,
+              "top": 4,
+              "bottom": 4
             },
             {
               "class": "ico",
-              "height": 12,
-              "top": 6,
-              "bottom": 6
+              "height": 14,
+              "top": 5,
+              "bottom": 5
             },
             {
               "class": "court_history",
-              "height": 14,
-              "top": 5,
-              "bottom": 5
+              "height": 16,
+              "top": 4,
+              "bottom": 4
             },
             {
               "class": "vlink no_umpire ls-role-icon",
-              "height": 14,
-              "top": 5,
-              "bottom": 5
+              "height": 16,
+              "top": 4,
+              "bottom": 4
             },
             {
               "class": "ico",
-              "height": 14,
-              "top": 5,
-              "bottom": 5
+              "height": 16,
+              "top": 4,
+              "bottom": 4
             }
           ]
         }

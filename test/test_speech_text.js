@@ -50,6 +50,27 @@ function baseline(context) {
 }
 
 describe('Shared announcement text and preparation', function() {
+    it('reuses pronunciations while respecting ordered in-place rule edits and language changes', function() {
+        const current=tournament();let language='de-DE';
+        current.normalizations=[{origin:'Ng',replace:'N',language:'de-DE'},
+            {origin:'Nguyen',replace:'X',language:'de-DE'},{origin:'Nguyen',replace:'English',language:'en-GB'}];
+        const texts=create({tournament:current,translate:()=>language}),replaceAll=String.prototype.replaceAll;
+        let replacements=0;
+        String.prototype.replaceAll=function(...args){replacements++;return replaceAll.apply(this,args);};
+        try {
+            assert.strictEqual(texts.normalizeNames('Nguyen'),'Nuyen');
+            const first=replacements;assert(first>0);
+            for(let i=0;i<200;i++)assert.strictEqual(texts.normalizeNames('Nguyen'),'Nuyen');
+            assert.strictEqual(replacements,first,'repeated names must not repeat every replacement');
+            current.normalizations[0].replace='M';assert.strictEqual(texts.normalizeNames('Nguyen'),'Muyen');
+            current.normalizations.reverse();assert.strictEqual(texts.normalizeNames('Nguyen'),'X');
+            current.normalizations[1].language='en-GB';assert.strictEqual(texts.normalizeNames('Nguyen'),'Muyen');
+            language='en-GB';assert.strictEqual(texts.normalizeNames('Nguyen'),'English');
+            current.normalizations.length=0;assert.strictEqual(texts.normalizeNames('Nguyen'),'Nguyen');
+            current.normalizations.push({origin:'Nguyen',replace:'Ganz neu',language:'en-GB'});
+            assert.strictEqual(texts.normalizeNames('Nguyen'),'Ganz neu');
+        } finally {String.prototype.replaceAll=replaceAll;}
+    });
     for (const [name, { kind }] of Object.entries(create.calls)) it('retains the game playback claim in ' + name, function() {
         const current = tournament(), match = setup({ _announcement_claim_key: kind + ':match1:123:button-one' }), observed = [];
         const texts = create({ tournament: current, translate: (key, data) => translate('de', key, data),

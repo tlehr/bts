@@ -7,7 +7,13 @@
 var btsAdminUpdates = (function createAdminUpdateObserver(env) {
 	const listeners = new Map(), tasks = new WeakMap(), pending = new Set(), latest = new Map();
 	const changeQueues = new Set(), idleListeners = new Set();
-	let owners = [], sequence = 0, callbackErrors = 0;
+	let owners = [], sequence = 0, jobSequence = 0, callbackErrors = 0;
+	const diagnostic = () => env.btsUiBlocking?.enabled() ? env.btsUiBlocking : null;
+	function diagnosticContext(tasks = owners) {
+		return {updates:tasks.slice(0,8).map(task=>({sequence:task.id,type:task.message.ctype,
+			match_id:task.message.val?.match_id ?? task.message.val?.match__id ?? task.message.val?.match?._id,
+			trace_id:task.message.val?.debug_trace_id}))};
+	}
 	const now = () => env.performance.now();
 	const wall = () => (env.Date || Date).now();
 	const path = () => env.location?.pathname || '';
@@ -28,7 +34,13 @@ var btsAdminUpdates = (function createAdminUpdateObserver(env) {
 				render_ms: task.applied == null ? null : round(end - task.applied), total_ms: round(end - task.received) },
 			ui_jobs: task.jobs.map(record => ({...record})),
 			error: task.error || null };
-		for (const [listener,options] of listeners) if(task.message.type!=='local-update'||options.includeLocal) try { listener(receipt); } catch { callbackErrors++; }
+		for (const [listener,options] of listeners) if(task.message.type!=='local-update'||options.includeLocal) try {
+			// Measurement clients need the complete score for exact matching, but
+			// copying whole status snapshots into DevTools can itself block them.
+			const message=receipt.message;
+			listener(options.metadataOnly&&message.ctype!=='score'?{...receipt,message:{type:message.type,ctype:message.ctype,
+				tournament_key:message.tournament_key,val:{match_id:message.val?.match_id ?? message.val?.match__id ?? message.val?.match?._id}}}:receipt);
+		} catch { callbackErrors++; }
 		for(const resolve of task.settlers || [])resolve();
 	}
 	function received(message, timing = {}) {
@@ -71,6 +83,7 @@ var btsAdminUpdates = (function createAdminUpdateObserver(env) {
 		return promise;
 	}
 	function createJob(name) {
+		const jobId = ++jobSequence;
 		let resolve, reject, done = false;
 		const promise = new Promise((ok, fail) => {resolve=ok;reject=fail;}), requests = new Map();
 		promise.catch(()=>{}); // Jobs outside a measured update still rethrow run errors.
@@ -78,7 +91,7 @@ var btsAdminUpdates = (function createAdminUpdateObserver(env) {
 			if (done) return;
 			for (const task of owners) {
 				if (task.done || requests.has(task)) continue;
-				const record = {name, requested_ms:round(now()-task.received), queue_ms:null, work_ms:0, elapsed_ms:null, status:'pending'};
+				const record = {job_id:jobId,name, requested_ms:round(now()-task.received), queue_ms:null, work_ms:0, elapsed_ms:null, status:'pending'};
 				requests.set(task, {record, start:now()});task.jobs.push(record);waitFor(promise, task);
 			}
 		}
@@ -90,11 +103,13 @@ var btsAdminUpdates = (function createAdminUpdateObserver(env) {
 		}
 		function run(callback) {
 			const previous=owners, start=now(), running=[...requests.values()];owners=[...requests.keys()].filter(task=>!task.done);
+			const recorder=diagnostic(), slice=recorder?.begin('job:'+name,{job_id:jobId,...diagnosticContext()});
 			for (const {record,start:requested} of requests.values()) if(record.queue_ms==null)record.queue_ms=round(start-requested);
 			try {return callback();}
 			catch(error) {complete(error);throw error;}
 			finally {
 				for (const {record} of running) record.work_ms=round(record.work_ms+now()-start);
+				recorder?.end(slice);
 				owners=previous;
 			}
 		}
@@ -106,9 +121,10 @@ var btsAdminUpdates = (function createAdminUpdateObserver(env) {
 	function invoke(tasks, callback, args) {
 		const previous = owners;owners = tasks.filter(task=>!task.done);
 		const start = now();
+		const recorder=diagnostic(), slice=recorder?.begin('handler:'+ (owners[0]?.message.ctype || 'callback'),diagnosticContext());
 		try {return callback(...args);}
 		catch (error) {for(const task of owners) {task.error = String(error?.message || error);finish(task, 'failed');}throw error;}
-		finally {for(const task of owners)task.handlerMs += now() - start;owners = previous;}
+		finally {for(const task of owners)task.handlerMs += now() - start;recorder?.end(slice);owners = previous;}
 	}
 	function dispatch(message, callback) {
 		if (owners.some(task=>task.message === message)) return callback(message);

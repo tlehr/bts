@@ -11,6 +11,7 @@ const bulk_decoder = require('./btp_decode');
 const btp_parse = require('./btp_parse');
 const btp_sync = require('./btp_sync');
 const result_sync = require('./btp_result_sync');
+const call_sync = require('./btp_call_sync');
 const request_log = require('./btp_request_log');
 const debug_flags = require('./debug_flags');
 const serror = require('./serror');
@@ -383,9 +384,8 @@ function count_pending_local_btp_sync(app, tkey) {
 			resolve({ ok: false, count: null, reason: 'no_match_store' });
 			return;
 		}
-		const query = tkey
-			? { tournament_key: tkey, btp_needsync: true }
-			: { btp_needsync: true };
+		const query = { ...(tkey ? { tournament_key: tkey } : {}),
+			$or: [{ btp_needsync: true }, { btp_call_pending: true }] };
 		if (typeof matches.count === 'function') {
 			matches.count(query, (err, count) => {
 				if (err) {
@@ -555,16 +555,24 @@ class BTPConn {
 	}
 
 	connect() {
-		if (this.terminated) {
+		if (this.terminated || this.connect_in_progress) {
 			return;
 		}
 
 		clearTimeout(this.reconnect_timeout);
 		this.reconnect_timeout = null;
+		this.connect_in_progress = true;
 		this.report_status('connecting','Try to establish connection to BTP.');
 		this.send(btp_proto.login_request(this.password), (response, error) => {
+			this.connect_in_progress = false;
 			if (this.terminated) return;
-			if (error) { this.report_status('error', request_log.safe_message(this, error)); return; }
+			if (error) {
+				this.report_status('error', request_log.safe_message(this, error));
+				// The transport requested a reconnect while this login was held.
+				// Rejected credentials keep their existing no-retry behavior.
+				if (error.btp_phase !== 'reply') this.schedule_reconnect();
+				return;
+			}
 			if (!response || response == null || !response.Action || !response.Action[0] || !response.Action[0].ID?.[0] || (response.Action[0].ID[0] !== 'REPLY')) {
 				this.report_status('error','Invalid reply to login request');
 				return;
@@ -829,20 +837,22 @@ class BTPConn {
 	}
 
 	// Retry only this tournament, with bounded network concurrency. Results stay
-	// durable until a later tournament read confirms both winner and sets.
+	// durable until a later tournament read confirms the result or court call.
+	// Other pending setup edits must also survive a disconnected send.
 	pushall() {
 		this.push_pending_payments();
 		if (this.readonly || this.terminated || typeof this.app?.db?.matches?.find !== 'function') return Promise.resolve();
 		if (this.pushall_promise) return this.pushall_promise;
 		this.pushall_promise = new Promise(resolve => {
-			this.app.db.matches.find({ tournament_key: this.tkey, btp_needsync: true }, async (err, matches) => {
+			this.app.db.matches.find({ tournament_key: this.tkey, $or: [{ btp_needsync: true }, { btp_call_pending: true }] }, async (err, matches) => {
 				if (err) {
 					serror.silent('Failed to query needsynced: ' + err.message);
 					this.schedule_result_retry();
 					resolve();
 					return;
 				}
-				const pending = matches.filter(result_sync.is_result).sort((a, b) => String(a._id).localeCompare(String(b._id)));
+				const pending = matches.filter(match => match.btp_needsync === true || match.btp_call_pending === true)
+					.sort((a, b) => String(a._id).localeCompare(String(b._id)));
 				if (!pending.length) {
 					this.result_retry_delay = 1000;
 					clearTimeout(this.result_retry_timeout);
@@ -850,7 +860,7 @@ class BTPConn {
 					if (this.result_write_error) {
 						const previous = this.result_write_error;
 						this.result_write_error = null;
-						if (this.last_status?.message === previous) this.report_status('connected', 'Ergebnisse mit BTP abgeglichen.');
+						if (this.last_status?.message === previous) this.report_status('connected', 'Änderungen mit BTP abgeglichen.');
 						else this.publish_status();
 					}
 					resolve();
@@ -860,18 +870,28 @@ class BTPConn {
 				const offset = (this.result_retry_offset || 0) % pending.length;
 				const batch = pending.slice(offset).concat(pending.slice(0, offset)).slice(0, 8);
 				this.result_retry_offset = offset + batch.length;
+				let delivered = true;
 				for (let i = 0; i < batch.length && !this.terminated; i += 2) {
-					await Promise.all(batch.slice(i, i + 2).map(match => this.update_score(match)));
+					const results = await Promise.all(batch.slice(i, i + 2).map(match => this.update_score(match)));
+					delivered &&= results.every(result => result === true);
 				}
-				this.schedule_result_retry();
+				this.schedule_result_retry({ readback: delivered && pending.length <= batch.length });
 				resolve();
 			});
 		}).finally(() => { this.pushall_promise = null; });
 		return this.pushall_promise;
 	}
 
-	schedule_result_retry() {
+	schedule_result_retry({ readback = false } = {}) {
 		if (this.terminated || this.readonly || this.result_retry_timeout) return;
+		// A successful write remains durable until readback, but does not need
+		// another full tournament import before the regular <=30-second fetch.
+		// Failed writes and unsent batches retain their bounded fast retry.
+		const regular_readback = this.enabled_autofetch && (
+			this.fetch_in_progress && this.fetch_reschedule_requested ||
+			this.autofetch_timeout != null && this.next_fetch_ts != null &&
+			this.next_fetch_ts <= real_now_ms(this.app) + 30000);
+		if (readback && regular_readback) return;
 		const delay = this.result_retry_delay || 1000;
 		this.result_retry_timeout = setTimeout(() => {
 			this.result_retry_timeout = null;
@@ -1008,7 +1028,9 @@ class BTPConn {
 		this.next_fetch_ts = null;
 		this.fetch_in_progress = false;
 		this.publish_status();
-		if (!this.reconnect_timeout) {
+		// Other failed requests must not open another login while one is held.
+		// Its callback schedules the next attempt if that login also fails.
+		if (!this.reconnect_timeout && !this.connect_in_progress) {
 			this.reconnect_timeout = setTimeout(() => this.connect(), 500);
 			this.reconnect_timeout.unref?.();
 		}
@@ -1051,7 +1073,10 @@ class BTPConn {
 	}
 
 	async reset_match_results(matches) {
+		const context = request_log.context(this, {}, {operation:'result_reset',
+			match_ids:matches.flatMap(match => (match.btp_match_ids || []).map(id => id.id)).slice(0,20)});
 		try {return await require('./btp_match_results_reset').reset(this,matches);}
+		catch (error) {request_log.failure(this,context,error);throw error;}
 		finally {
 			this.court_assignments_revision = (this.court_assignments_revision || 0) + 1;
 			this.last_applied_fetch_response_hash = null;
@@ -1165,7 +1190,7 @@ class BTPConn {
 					return resolve(false);
 				}
 
-				let req;
+				let req, court_request;
 				try {
 					req = btp_proto.update_request(
 						match,
@@ -1179,6 +1204,14 @@ class BTPConn {
 							current_now_ms: now_ms(this.app),
 						}
 					);
+					if (call_sync.is_call(match)) {
+						if (!court_btp_id) throw new Error('Für den Spielaufruf fehlt die BTP-Feldzuordnung.');
+						// Keep the established BTP requests, but serialize both under
+						// the durable call. Match.CourtID alone does not call a game.
+						court_request = btp_proto.update_courts_request([
+							{ btp_id: court_btp_id, btp_match_id: match.btp_match_ids[0].id },
+						], this.key_unicode, this.password);
+					}
 				} catch (error) {
 					request_log.local_failure(this, match, Object.assign(error, { btp_phase: 'prepare' }));
 					return resolve(false);
@@ -1193,7 +1226,7 @@ class BTPConn {
 					});
 				}
 				if (this.terminated) return resolve(false);
-				this.send(req, (response, transport_error) => {
+				const done = (response, transport_error) => {
 					if (this.terminated) return resolve(false);
 					const results = response?.Action?.[0]?.Result;
 					const rescode = results ? results[0] : 'no-result';
@@ -1206,25 +1239,32 @@ class BTPConn {
 						});
 					}
 					if (rescode === 1) {
-						if (!match._id || result_sync.is_result(match)) {
-							// A transport ACK does not prove BTP stored the result.
+						if (!match._id || result_sync.is_result(match) || call_sync.is_call(match)) {
+							// A transport ACK does not prove BTP stored the result/call.
 							return resolve(true);
 						}
 						this.app.db.matches.update(result_sync.version_query(match, this.tkey),
-							{ $set: { btp_needsync: false } }, {}, err => {
+							{ $set: { btp_needsync: false, ...(match.btp_call_pending ? { btp_call_pending: false } : {}) } }, {}, err => {
 								if (err) serror.silent('Failed to mark match as synced: ' + err.message);
 								resolve(!err);
 							});
 					} else {
 						const detail = transport_error ? ': ' + request_log.safe_message(this, transport_error) : '';
 						serror.silent('Score update for ' + (match._id || match.btp_id) + ' failed with error code ' + rescode + detail);
-						const message = 'Ergebnisübertragung ausstehend; erneuter Versuch folgt.' + detail;
-						if (result_sync.is_result(match)) this.result_write_error = message;
+						const message = 'Übertragung an BTP ausstehend; erneuter Versuch folgt.' + detail;
+						if (result_sync.is_result(match) || match.btp_needsync || match.btp_call_pending) this.result_write_error = message;
 						this.report_status('error', message);
 						if (response) this.schedule_reconnect();
 						resolve(false);
 					}
-				}, { match_id: match._id, match_number: match.setup?.match_num });
+				};
+				const context = { match_id: match._id, match_number: match.setup?.match_num };
+				this.send(req, (response, error) => {
+					if (this.terminated) return resolve(false);
+					if (court_request && response?.Action?.[0]?.Result?.[0] === 1) {
+						this.send(court_request, done, context);
+					} else done(response, error);
+				}, context);
 
 			});
 		});

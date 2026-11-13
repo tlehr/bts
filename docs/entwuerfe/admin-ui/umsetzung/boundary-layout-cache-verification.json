@@ -1,0 +1,33 @@
+{
+  "scope": "Native table-column alignment, repeated updates and viewport resizes; zero application geometry reads. No live services.",
+  "checks": [
+    {
+      "left": 296,
+      "width": 1141.984375,
+      "expectedLeft": 296,
+      "expectedWidth": 1141.984375,
+      "reads": 0
+    },
+    {
+      "left": 296,
+      "width": 936.875,
+      "expectedLeft": 296,
+      "expectedWidth": 936.875,
+      "reads": 0
+    },
+    {
+      "left": 296,
+      "width": 341.984375,
+      "expectedLeft": 296,
+      "expectedWidth": 341.984375,
+      "reads": 0
+    },
+    {
+      "left": 296,
+      "width": 1141.984375,
+      "expectedLeft": 296,
+      "expectedWidth": 1141.984375,
+      "reads": 0
+    }
+  ]
+}

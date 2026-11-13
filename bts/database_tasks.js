@@ -1,5 +1,9 @@
 'use strict';
 
+const traces = require('./performance/traces');
+const foreground = require('./foreground_work');
+const storage_io = require('./performance/storage_io');
+
 const debug_flags = require('./debug_flags');
 const observers = new WeakMap();
 const QueueStats = require('./performance/queue_stats');
@@ -32,7 +36,7 @@ function summary(record, now) {
 		callback_ms: record.callback_started ? ms(record.callback_started, record.callback_finished || now) : null,
 		queue_release_pending_ms: record.callback_finished ? ms(record.callback_finished, now) : null,
 		persistence: record.persistence ? { kind: record.persistence.kind,
-			...require('./performance/storage_io').details(record.persistence),
+			...storage_io.details(record.persistence),
 			elapsed_ms: ms(record.persistence.started, record.persistence.finished || now),
 			pending: !record.persistence.finished } : null,
 	};
@@ -43,17 +47,16 @@ function attach(store, collection) {
 	const read_barrier = require('./database_read_barrier').attach(store);
 	const state = { active: null, last: null, next_id: 0, health: new QueueStats('db', collection + ':') };
 	observers.set(store, state);
-	require('./performance/storage_io').attach(store, () => state.active);
+	storage_io.attach(store, () => state.active);
 	const executor = store.executor, push = executor.push;
 	executor.push = function(task, force) {
 		// Ordering safety is independent of diagnostic flags. Classify the
 		// original task before its function is wrapped for timing below.
 		const barrier_task = read_barrier.wrap(task);
-		const traces = require('./performance/traces');
-		const source = !traces.capture() && traces.enabled() ? origin() : '';
+				const source = !traces.capture() && traces.enabled() ? origin() : '';
 		const task_name = name_of(store, task) + (source ? '@' + source : '');
 		const health_entry = state.health.enqueue(task_name);
-		const foreground = require('./foreground_work'), owner = foreground.capture();
+		const owner = foreground.capture();
 		const ordered = { ...barrier_task, fn: function(...args) {
 			return foreground.run(owner, () => {
 				state.health.start(health_entry);
@@ -100,7 +103,7 @@ function attach(store, collection) {
 		const original = store.persistence[method];
 		store.persistence[method] = function(...args) {
 			const record = state.active;
-			if ((!enabled() && !require('./performance/traces').enabled()) || !record || record.phase !== 'running') return original.apply(this, args);
+			if ((!enabled() && !traces.enabled()) || !record || record.phase !== 'running') return original.apply(this, args);
 			const persistence = { kind, started: process.hrtime.bigint(), finished: null };
 			record.persistence = persistence;
 			const last = method === 'persistNewState' ? 1 : 0;
@@ -117,7 +120,7 @@ function attach(store, collection) {
 
 function snapshot(store) {
 	const state = observers.get(store);
-	if (!state || (!enabled() && !require('./performance/traces').enabled())) return null;
+	if (!state || (!enabled() && !traces.enabled())) return null;
 	const now = process.hrtime.bigint();
 	const running = store.executor.queue.running();
 	const active = running && state.active ? summary(state.active, now) : null;

@@ -9,7 +9,7 @@ module.exports = {
 		await require('../foreground_work').idle();
 		return process.env.BTS_ADMIN_RESPONSE_ENCODER === 'worker'
 			? { bytes: await client.run(message, context), execution: 'worker' }
-			: { bytes: await require('./cooperative')(message), execution: 'cooperative' };
+			: { bytes: await require('./cooperative').bytes(message), execution: 'cooperative' };
 	},
 	close: () => client.close(),
 };

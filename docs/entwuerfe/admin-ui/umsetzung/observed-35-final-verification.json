@@ -1,0 +1,90 @@
+{
+  "failure": {
+    "receipts": [
+      {
+        "id": "failed",
+        "status": "failed"
+      },
+      {
+        "id": "unaffected",
+        "status": "presented"
+      }
+    ],
+    "errors": [
+      "Uncaught Error: intentional timer fitting failure"
+    ],
+    "pending": 0,
+    "layout": false
+  },
+  "known": [
+    {
+      "id": "known",
+      "presented": true
+    },
+    {
+      "id": "status",
+      "presented": true
+    },
+    {
+      "id": "moved",
+      "presented": false
+    }
+  ],
+  "scope": "Native browser receive queue and fitting. One first observation is withheld. Existing clock geometry must bypass an unrelated pending queue; a font change later in the same handler must retain its fresh fitting dependency. No live writes.",
+  "isolated": {
+    "heldObservations": 1,
+    "heldReceipt": false,
+    "readyReceipt": true,
+    "readyFitted": true
+  },
+  "firstReadyObservation": {
+    "scale": 0.421,
+    "width": 71.640625
+  },
+  "receipts": [
+    {
+      "id": "ready",
+      "status": "presented",
+      "timings": {
+        "queue_ms": 1.6,
+        "handler_ms": 0.2,
+        "ui_wait_ms": 10.4,
+        "render_ms": 18.6,
+        "total_ms": 30.8
+      },
+      "ui_jobs": [
+        {
+          "name": "timers.fit",
+          "requested_ms": 1.8,
+          "queue_ms": 9.9,
+          "work_ms": 0.5,
+          "elapsed_ms": 10.4,
+          "status": "complete"
+        }
+      ]
+    },
+    {
+      "id": "held",
+      "status": "presented",
+      "timings": {
+        "queue_ms": 1.5,
+        "handler_ms": 0.6,
+        "ui_wait_ms": 115.3,
+        "render_ms": 30.4,
+        "total_ms": 147.8
+      },
+      "ui_jobs": [
+        {
+          "name": "timers.fit",
+          "requested_ms": 2.1,
+          "queue_ms": 114.9,
+          "work_ms": 0.1,
+          "elapsed_ms": 115.1,
+          "status": "complete"
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "pending": 0
+}

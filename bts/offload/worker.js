@@ -9,7 +9,7 @@ module.exports = function serve(work) {
 		let result, error;
 		try { result = await work(job.payload); }
 		catch (err) { error = { name: err.name, message: err.message, code: err.code }; }
-		parentPort.postMessage({ id: job.id, value: result?.value, error,
+		parentPort.postMessage({ id: job.id, value: result?.value, error, scheduling:require('./background_priority').snapshot(),
 			worker_start_ts, worker_end_ts: Date.now(),
 			started, returning: process.hrtime.bigint() }, result?.transfers || []);
 	});

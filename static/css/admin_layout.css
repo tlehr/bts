@@ -7,12 +7,12 @@
 
 /* Shared administration width. Live court tables and audience displays keep
    their full window; the main navigation and service indicators stay outside. */
-.main:not(.main_upcoming, .main_self_check_in):not(:has(.page-leitstand)) {
+.main:not(.main_upcoming, .main_self_check_in):not(:has(> .page-leitstand)) {
 	box-sizing: border-box;
 	max-width: calc(var(--admin-content-width) + var(--admin-page-gutter) * 2);
 	margin-inline: auto;
 }
 
-.main:not(.main_upcoming, .main_self_check_in):not(:has(.page-leitstand, .page-certificates, .page-settings)) {
+.main:not(.main_upcoming, .main_self_check_in):not(:has(> .page-leitstand, > .page-certificates, > .page-settings)) {
 	padding-inline: var(--admin-page-gutter);
 }

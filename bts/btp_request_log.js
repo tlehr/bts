@@ -76,7 +76,7 @@ function failure(connection, request_context, error) {
 		: Array.isArray(value) ? value.map(clean) : value && typeof value === 'object'
 			? Object.fromEntries(Object.entries(value).map(([key, item]) => [key, clean(item)])) : value;
 	const safe = clean(record);
-	const operations = { result_update: 'Ergebnisübertragung', match_update: 'Spieländerung', players_update: 'Spielerübertragung',
+	const operations = { result_update: 'Ergebnisübertragung', result_reset: 'Ergebnisreset', match_update: 'Spieländerung', players_update: 'Spielerübertragung',
 		courts_update: 'Feldübertragung', login: 'Anmeldung', fetch: 'Turnierabgleich', participant_sync: 'Teilnehmerabgleich' };
 	const game = safe.match_number == null ? '' : ' · Spiel ' + safe.match_number;
 	const message = 'BTP: ' + (operations[safe.operation] || 'Auftrag') + ' fehlgeschlagen' + game + ' · ' + safe.error.message

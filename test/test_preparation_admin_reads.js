@@ -125,14 +125,14 @@ describe('shared read-only preparation answers', function() {
 			assert.strictEqual(calculations, before + 2, name);
 		}
 	});
-	it('refreshes time-dependent diagnostics and expires even when the tournament clock is frozen', async function() {
+	it('retains an unchanged status without expiring it every 250ms', async function() {
 		const f = await fixture();
 		await read(f.app, f.key, { now_ts });
 		await read(f.app, f.key, { now_ts: now_ts + 250 });
-		assert.strictEqual(calculations, 2);
+		assert.strictEqual(calculations, 1);
 		await new Promise(resolve => setTimeout(resolve, 270));
 		await read(f.app, f.key, { now_ts: now_ts + 250 });
-		assert.strictEqual(calculations, 3);
+		assert.strictEqual(calculations, 1);
 	});
 	it('does not retain a failed calculation', async function() {
 		const f = await fixture();

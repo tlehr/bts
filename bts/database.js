@@ -127,9 +127,14 @@ function init(callback) {
 		fs.mkdirSync(logos_dir);
 	}
 
+	// Install below the storage diagnostics before any collection attaches.
+	require('./append_worker').install();
 	TABLES.forEach(function(key) {
 		var d = new Datastore({ filename: path.join(db_dir, key) });
+		require('./prepared_append').attach(d);
 		require('./compaction_worker').attach(d, key, { identity_serialization: true });
+		require('./compaction_worker/revisions').attach(d);
+		if (key === 'matches') require('./append_worker').attach(d);
 		{
 			const timing_enabled = () => require('./server_diagnostics').enabled() ||
 				process.env.BTS_BTP_SYNC_TIMING === '1' || require('./debug_flags').any_score_press_timing_enabled();

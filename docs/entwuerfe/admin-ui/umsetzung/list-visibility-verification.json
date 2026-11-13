@@ -1,0 +1,66 @@
+{
+  "checks": [
+    "Distant lists retain normal layout without delaying their first reveal",
+    "Offscreen edits and the visible point finish without stale jobs",
+    "Scrolling reveals the corrected upcoming name and completes fitting",
+    "Scrolling reveals the corrected finished name and completes fitting",
+    "Changing density and width offscreen produces a fitted view when revealed",
+    "Deferred forms retain exactly one functional number stepper",
+    "Disabled fieldsets and readonly controls keep both arrows disabled",
+    "No uncaught browser errors"
+  ],
+  "operations": {
+    "pending": 0,
+    "receipts": [
+      {
+        "status": "presented",
+        "type": "score",
+        "ms": 43.3
+      },
+      {
+        "status": "presented",
+        "type": "match_edit",
+        "ms": 44.3
+      },
+      {
+        "status": "presented",
+        "type": "match_edit",
+        "ms": 43.7
+      }
+    ],
+    "score": "9:8"
+  },
+  "reveals": [
+    {
+      "kind": "upcoming",
+      "ms": 73.20000004768372,
+      "visible": true,
+      "name": "Johanna Fernliste",
+      "label": "Johanna Fernliste",
+      "pending": 0,
+      "stacked": false
+    },
+    {
+      "kind": "finished",
+      "ms": 41.90000009536743,
+      "visible": true,
+      "name": "Frieda Ergebnisliste",
+      "label": "Frieda Ergebnisliste",
+      "pending": 0,
+      "stacked": false
+    }
+  ],
+  "resized": {
+    "visible": true,
+    "pending": false,
+    "name": "Johanna Fernliste"
+  },
+  "number": {
+    "value": "3",
+    "arrows": 2,
+    "wrappers": 1,
+    "fieldsetDisabled": true,
+    "blocked": true,
+    "readonly": true
+  }
+}

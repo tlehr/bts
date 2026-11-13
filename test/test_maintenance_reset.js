@@ -50,6 +50,20 @@ describe('Selected maintenance resets', function() {
   assert.strictEqual((await app.db.matches.findOne_async({_id:'running'})).setup.court_id,'c3');
   assert.strictEqual((await app.db.tournaments.findOne_async({key:'cup'})).btp_readonly,true);
  });
+ it('offers player check-ins as an independent local maintenance selection', async function() {
+  manager.update_players = () => {throw new Error('Must not contact BTP');};
+  const {error,result} = await call({target:'bts',actions:['player_checkins']});assert.ifError(error);
+  assert.deepStrictEqual(result.completed,['player_checkins']);
+  assert.strictEqual(result.results.player_checkins.changed_matches,4);
+  for (const match of await app.db.matches.find_async({tournament_key:'cup'})) {
+   assert(match.setup.teams.every(team => team.players.every(player => player.checked_in === false)));
+  }
+  assert.strictEqual((await app.db.matches.findOne_async({_id:'foreign'})).setup.teams[0].players[0].checked_in,true);
+ });
+ it('accepts all four distinct reset areas in the same reviewed plan', function() {
+  assert.deepStrictEqual(maintenance.validate({target:'bts',actions:['player_checkins','player_pauses','court_assignments','match_results']}).actions,
+   ['match_results','court_assignments','player_pauses','player_checkins']);
+ });
  it('clears selected results and winners while preserving players, draws, schedule, other games and current courts', async function() {
   manager.reset_match_results = () => {throw new Error('Must not contact BTP');};
   const before = await app.db.matches.findOne_async({_id:'finished'}), foreign = await app.db.matches.findOne_async({_id:'foreign'});

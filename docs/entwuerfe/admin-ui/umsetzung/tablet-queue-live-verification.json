@@ -1,0 +1,55 @@
+{
+  "scope": "Real staged in-memory queue publications applied through the native browser receive queue. Synthetic participants, no live writes.",
+  "messages": [
+    {
+      "type": "tabletoperator_add",
+      "id": "queue-one",
+      "court": "field-0"
+    },
+    {
+      "type": "tabletoperator_removed",
+      "id": "queue-one",
+      "court": "field-0"
+    },
+    {
+      "type": "tabletoperator_add",
+      "id": "queue-two",
+      "court": "field-1"
+    },
+    {
+      "type": "tabletoperator_removed",
+      "id": "queue-two",
+      "court": "field-1"
+    }
+  ],
+  "retention": {
+    "same": {
+      "mutations": 0,
+      "foreign": 0,
+      "retained": true
+    },
+    "name": {
+      "mutations": 2,
+      "foreign": 0,
+      "retained": true
+    },
+    "pair": {
+      "mutations": 5,
+      "foreign": 0,
+      "retained": true
+    },
+    "single": {
+      "mutations": 3,
+      "foreign": 0,
+      "retained": true
+    }
+  },
+  "queue": {
+    "waiting": 0,
+    "count": "0",
+    "active": 2,
+    "retained": true,
+    "modelWaiting": 0
+  },
+  "errors": []
+}

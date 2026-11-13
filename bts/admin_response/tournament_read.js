@@ -13,6 +13,7 @@ module.exports = function read(db, key, immutable, callback) {
 		if (Object.keys(store.ttlIndexes || {}).length) return store.findOne({ key })._exec(done);
 		const record = model.tournament(key).record;
 		const data = record?.present && record.data.key === key ? record.data : null;
+		if (data?.events && typeof data.events === 'object') require('./match_cache').snapshot(data.events, false);
 		done(null, data ? { ...data } : null);
 	};
 	store.executor.push(certify_read({ this: store, fn: capture, diagnostic_name: 'admin_tournament_read', arguments: [callback] }));

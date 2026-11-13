@@ -1,5 +1,6 @@
 /* global createContextSpeechPlan */
 /* Shared legacy text builders. Context separates text preparation from playback. */
+let announcementContextPlanner;
 function createAnnouncementTexts(context) {
     const curt = context.tournament;
     let activeCall;
@@ -10,6 +11,8 @@ function createAnnouncementTexts(context) {
     // local audio can reuse the leaves of these compositions.
     const compositions = new Map();
     const names = new Set();
+    let normalizationInput = [], normalizationLanguage, normalizationRules = [];
+    const normalizedNames = new Map();
     function compose(parts, separator = '') {
         const text = parts.join(separator);
         const chunks = [];
@@ -60,7 +63,7 @@ function createAnnouncementTexts(context) {
         const buildLocalPlan = speech => {
             const current = speech ? { ...curt, speech: { ...curt.speech, ...speech } } : curt;
             if (call && ['bts-context-v1', 'bts-context-v2'].includes(current.speech?.context_version) && ci18n('announcements:lang') === 'de-DE') {
-                const planner = typeof module !== 'undefined' && module.exports ? require('./speech_context') : createContextSpeechPlan;
+                const planner = typeof module !== 'undefined' && module.exports ? (announcementContextPlanner ||= require('./speech_context')) : createContextSpeechPlan;
                 const recipe = planner(api, current, call.name, call.setup, call.args, parts);
                 if (recipe) return recipe;
             }
@@ -392,12 +395,30 @@ function createAnnouncementTexts(context) {
 
 
     function normalizeNames(name) {
-        if (curt.normalizations && curt.normalizations.length > 0) {
-            for (const norm of curt.normalizations) {
-                if (ci18n('announcements:lang') == norm.language) {
-                    name = name.replaceAll(norm.origin, norm.replace);
+        const rules = curt.normalizations || [];
+        if (rules.length) {
+            const language = ci18n('announcements:lang');
+            // Rules can be edited in place in an open browser. Compare their
+            // ordered values, including language, before reusing a spelling.
+            if (language !== normalizationLanguage || rules.length !== normalizationInput.length ||
+                rules.some((rule, index) => rule.origin !== normalizationInput[index][0] ||
+                    rule.replace !== normalizationInput[index][1] || rule.language !== normalizationInput[index][2])) {
+                normalizationInput = rules.map(rule => [rule.origin, rule.replace, rule.language]);
+                normalizationLanguage = language;
+                normalizationRules = normalizationInput.filter(rule => rule[2] === language);
+                normalizedNames.clear();
+            }
+            const original = name;
+            if (normalizedNames.has(original)) name = normalizedNames.get(original);
+            else {
+                for (const [origin, replacement] of normalizationRules) name = name.replaceAll(origin, replacement);
+                if (typeof original === 'string') {
+                    if (normalizedNames.size >= 1024) normalizedNames.delete(normalizedNames.keys().next().value);
+                    normalizedNames.set(original, name);
                 }
             }
+        } else if (normalizationInput.length) {
+            normalizationInput = [];normalizationRules = [];normalizedNames.clear();
         }
         if (typeof name === 'string') names.add(name.trim());
         return name;

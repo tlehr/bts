@@ -1,0 +1,359 @@
+{
+  "date": "2026-11-12",
+  "completed_at": "2026-11-12T08:06:14.302562+00:00",
+  "purpose": "Resolve outstanding layout checks after per-game DOM optimization and validate the complete browser runner.",
+  "status": "passed",
+  "suites_passed": 18,
+  "check_executions_passed": 1349,
+  "counting_note": "Executions overlap: the full runner includes several dedicated suites. This is not a count of unique tests.",
+  "method": {
+    "browser": "Headless Google Chrome via native DevTools protocol",
+    "fixture": "Real frontend modules; isolated synthetic tournament and simulated server replies",
+    "viewport_widths_px": [
+      320,
+      390,
+      844,
+      1000,
+      1024,
+      1100,
+      1150,
+      1200,
+      1240,
+      1280,
+      1366,
+      1424,
+      1536,
+      1920,
+      2560
+    ],
+    "densities": [
+      "compact",
+      "normal",
+      "comfort"
+    ],
+    "writes_to_live_bts_or_btp": false,
+    "bts_or_btp_started": false,
+    "artifacts_directory": "/tmp/bts-layout-20261112",
+    "runtime_javascript_changed_in_this_followup": false
+  },
+  "product_fixes": [
+    "Center compact numeric score glyphs in the existing row content frame, removing asymmetric 4px/6px clearance at narrow viewports without enlarging ordinary rows.",
+    "Set compact round metadata to 11px so Finale and placement labels fit the existing 32px column instead of clipping the prior 12px text.",
+    "Vertically center the deferred-preparation badge in its half-height slot so fractional browser zoom no longer clips its glyph bounds."
+  ],
+  "product_file": "static/css/leitstand.css",
+  "product_css_sha256": "eae1372828f4d216df0ee72b9a4ceb9117c5c690824dd31bbe57f5f04409123d",
+  "unchanged_runtime_sha256": "8df3fde01e77ec1462dc22dcf756301f3301669d5871d86b352f0b79dbb5f950",
+  "test_corrections": [
+    "Check fixed responsive official columns and stable player space instead of the removed adaptive-width algorithm. Preserve full accessible names; abbreviate only as much as necessary.",
+    "Compare fractional glyph and element bounds instead of integer clientWidth. Normalize CSS geometry for body zoom; tolerate only a quarter physical pixel of rounding error.",
+    "Wait for staged rendering before taking baselines. Open finished date groups for content checks; collapsed identity-only rows correctly retain zero cells.",
+    "Scope close controls to the visible dialog. Ensure native drag sources are onscreen and the fixture has enough scroll range to exercise the field dock.",
+    "Use the current speech-output event, consistent service snapshots and the registered audio-device API for playback preferences.",
+    "Require retained waiting-list forms and popups on unchanged updates, matching the intended DOM optimization.",
+    "Check direct card headings when reopening hidden cards. Test the low-battery warning at 24 percent because its threshold is strictly below 25 percent.",
+    "Exercise equal-font width reuse in Normal mode. Record native font-loading events: new fonts invalidate fitting; the same viewport with loaded fonts produces zero name or official measurements."
+  ],
+  "regression_evidence": {
+    "full_browser_runner": {
+      "checks": 299,
+      "exceptions": [],
+      "console_errors": [],
+      "failed_assets": []
+    },
+    "per_game_dom": {
+      "cases": 27,
+      "redundant_writes": 0,
+      "changed_foreign_rows": 0,
+      "moved_foreign_rows": 0,
+      "errors": [],
+      "pending": {
+        "pending": 0,
+        "subscribers": 0,
+        "callbackErrors": 0
+      }
+    },
+    "boundary_layout": {
+      "viewports": 4,
+      "application_geometry_reads": 0
+    },
+    "layout_cache": {
+      "checks": 29,
+      "same_viewport_sample": {
+        "label": "same viewport and loaded fonts",
+        "canvas": 0,
+        "timerRects": 0,
+        "preparationRects": 0,
+        "nameRanges": 0,
+        "officialRanges": 0,
+        "officialIntrinsic": 0,
+        "nameGroupContains": 0,
+        "officialCells": {},
+        "fontChanges": 2,
+        "liveNameWrites": 0
+      }
+    },
+    "visual_review": [
+      "full/full-hd.png",
+      "full/mobil.png",
+      "compact-density/kompakt-mobil.png"
+    ]
+  },
+  "suites": [
+    {
+      "suite": "full",
+      "status": "passed",
+      "checks_passed": 299,
+      "command": "BTS_PREVIEWS_DIR=/tmp/bts-layout-20261112/full node docs/entwuerfe/admin-ui/umsetzung/browser-check.js",
+      "reports": [
+        {
+          "path": "/tmp/bts-layout-20261112/full/verification.json",
+          "checks_passed": 299,
+          "sha256": "1599163a6c13239f7f96d5f4d5aed3972754e4cc709a4b07fead55f34f58a033"
+        }
+      ],
+      "log": "/tmp/bts-layout-20261112/full.log",
+      "log_sha256": "b0626a8865ac13a233289eda4fdb89bc4aa2349a80dc459f0004da6f2b4c7674"
+    },
+    {
+      "suite": "compact-official-names",
+      "status": "passed",
+      "checks_passed": 15,
+      "command": "BTS_PREVIEWS_DIR=/tmp/bts-layout-20261112/compact-official-names node docs/entwuerfe/admin-ui/umsetzung/browser-check.js --compact-official-names-only",
+      "reports": [
+        {
+          "path": "/tmp/bts-layout-20261112/compact-official-names/compact-official-names-verification.json",
+          "checks_passed": 15,
+          "sha256": "b185c2cc441fefe95c5ddcf3aafaa87b5a61c899b00070159b72771547d586a1"
+        }
+      ],
+      "log": "/tmp/bts-layout-20261112/compact-official-names.log",
+      "log_sha256": "14109b39c2ac9d9b4927fd71423a5d014948ad8eaaec5475161f532cbdcedb53"
+    },
+    {
+      "suite": "deferred-matches",
+      "status": "passed",
+      "checks_passed": 15,
+      "command": "BTS_PREVIEWS_DIR=/tmp/bts-layout-20261112/deferred-matches node docs/entwuerfe/admin-ui/umsetzung/browser-check.js --deferred-matches-only",
+      "reports": [
+        {
+          "path": "/tmp/bts-layout-20261112/deferred-matches/deferred-match-verification.json",
+          "checks_passed": 15,
+          "sha256": "620f49eb0c5b11408e020495cc29809fa1082346a8692019e95ac63fdc46f196"
+        }
+      ],
+      "log": "/tmp/bts-layout-20261112/deferred-matches.log",
+      "log_sha256": "502a0b8aea15e2e2b870b6aa6f346efe25e154a57781d2db3d91f31a9d8c8044"
+    },
+    {
+      "suite": "fixed-columns",
+      "status": "passed",
+      "checks_passed": 16,
+      "command": "BTS_PREVIEWS_DIR=/tmp/bts-layout-20261112/fixed-columns node docs/entwuerfe/admin-ui/umsetzung/browser-check.js --officials-invalidation-only",
+      "reports": [
+        {
+          "path": "/tmp/bts-layout-20261112/fixed-columns/fixed-columns-verification.json",
+          "checks_passed": 16,
+          "sha256": "5e14555afdf0271825628d28dca59307deb51a022ed5db0c153d2bc4c856fc6d"
+        }
+      ],
+      "log": "/tmp/bts-layout-20261112/fixed-columns.log",
+      "log_sha256": "0b964db1916f9e223dac9e39e9639440d268f832bf913fe89155da275df008bf"
+    },
+    {
+      "suite": "compact-density",
+      "status": "passed",
+      "checks_passed": 70,
+      "command": "BTS_PREVIEWS_DIR=/tmp/bts-layout-20261112/compact-density node docs/entwuerfe/admin-ui/umsetzung/browser-check.js --compact-density-only",
+      "reports": [
+        {
+          "path": "/tmp/bts-layout-20261112/compact-density/compact-density-verification.json",
+          "checks_passed": 70,
+          "sha256": "90a5865feea40dc2d879268f40e25c0da181400f4e6cc8d6e1b84d2cbc3f38de"
+        }
+      ],
+      "log": "/tmp/bts-layout-20261112/compact-density.log",
+      "log_sha256": "fca50f82b9bea4d0aace93e0ea24fd06df9c159c0d3cb743474891fbc24cd0c5"
+    },
+    {
+      "suite": "compact-timers",
+      "status": "passed",
+      "checks_passed": 12,
+      "command": "BTS_PREVIEWS_DIR=/tmp/bts-layout-20261112/compact-timers node docs/entwuerfe/admin-ui/umsetzung/browser-check.js --compact-timers-only",
+      "reports": [
+        {
+          "path": "/tmp/bts-layout-20261112/compact-timers/compact-timer-verification.json",
+          "checks_passed": 12,
+          "sha256": "681b023165bf3589ca78b512269ba43499d65aefc9314d5d2b5d608d4ce06e84"
+        }
+      ],
+      "log": "/tmp/bts-layout-20261112/compact-timers.log",
+      "log_sha256": "a17b74945fc5544d59ecd660c6ebff7e0ef38956290e479ae4f31114ebc71593"
+    },
+    {
+      "suite": "density",
+      "status": "passed",
+      "checks_passed": 234,
+      "command": "BTS_PREVIEWS_DIR=/tmp/bts-layout-20261112/density node docs/entwuerfe/admin-ui/umsetzung/browser-check.js --density-only",
+      "reports": [
+        {
+          "path": "/tmp/bts-layout-20261112/density/current-games-scroll-verification.json",
+          "checks_passed": 220,
+          "sha256": "1c5db2577218013adb0e94efe2b8fb1500a7e8a00faf5b421e35f043b47d8997"
+        },
+        {
+          "path": "/tmp/bts-layout-20261112/density/density-verification.json",
+          "checks_passed": 14,
+          "sha256": "466449a54bd64af3ff4d66bd3ab7d64cd9ce88a0387483785d68ea68167b83d1"
+        }
+      ],
+      "log": "/tmp/bts-layout-20261112/density.log",
+      "log_sha256": "76e0bb6a2da76d1ad5cb69a7d4d0d0552907ae471d34ff277d3177a3f20c4ae8"
+    },
+    {
+      "suite": "card-heights",
+      "status": "passed",
+      "checks_passed": 23,
+      "command": "BTS_PREVIEWS_DIR=/tmp/bts-layout-20261112/card-heights node docs/entwuerfe/admin-ui/umsetzung/browser-check.js --card-heights-only",
+      "reports": [
+        {
+          "path": "/tmp/bts-layout-20261112/card-heights/card-heights-verification.json",
+          "checks_passed": 23,
+          "sha256": "0d960d1d55270ebb8de843858dcfcbb5aa0e213c9754dc3be4ec3f01a5c8d767"
+        }
+      ],
+      "log": "/tmp/bts-layout-20261112/card-heights.log",
+      "log_sha256": "641835b534dfdaf114a5a8069afd071f539fba962ea495982a11bc3624c87ce6"
+    },
+    {
+      "suite": "navigation-responsive",
+      "status": "passed",
+      "checks_passed": 54,
+      "command": "BTS_PREVIEWS_DIR=/tmp/bts-layout-20261112/navigation-responsive node docs/entwuerfe/admin-ui/umsetzung/browser-check.js --navigation-responsive-only",
+      "reports": [
+        {
+          "path": "/tmp/bts-layout-20261112/navigation-responsive/navigation-responsive-verification.json",
+          "checks_passed": 54,
+          "sha256": "37c3809eafc0c6089cb0d77ac2015a597bd00024226ef9f7b9bd55225d9ca5dc"
+        }
+      ],
+      "log": "/tmp/bts-layout-20261112/navigation-responsive.log",
+      "log_sha256": "911247d1c649d48b0a937bab3306557605a8b1c5ea285060d7f0b08b13fa477c"
+    },
+    {
+      "suite": "header-status-layout",
+      "status": "passed",
+      "checks_passed": 9,
+      "command": "BTS_PREVIEWS_DIR=/tmp/bts-layout-20261112/header-status-layout node docs/entwuerfe/admin-ui/umsetzung/browser-check.js --header-status-layout-only",
+      "reports": [],
+      "log": "/tmp/bts-layout-20261112/header-status-layout.log",
+      "log_sha256": "11fd1a79518bbff1399c10ca099dbd33943b0ccfbc1764842d8c4fc88f929927"
+    },
+    {
+      "suite": "layout-hidden",
+      "status": "passed",
+      "checks_passed": 25,
+      "command": "BTS_PREVIEWS_DIR=/tmp/bts-layout-20261112/layout-hidden node docs/entwuerfe/admin-ui/umsetzung/browser-check.js --layout-hidden-only",
+      "reports": [],
+      "log": "/tmp/bts-layout-20261112/layout-hidden.log",
+      "log_sha256": "c2a8e539a90d5c24f6ec8c3e3bf4e33d0a9d259f7f3f5f0be1f04b62902512e8"
+    },
+    {
+      "suite": "initial-layout",
+      "status": "passed",
+      "checks_passed": 10,
+      "command": "BTS_PREVIEWS_DIR=/tmp/bts-layout-20261112/initial-layout node docs/entwuerfe/admin-ui/umsetzung/browser-check.js --initial-layout-only",
+      "reports": [
+        {
+          "path": "/tmp/bts-layout-20261112/initial-layout/initial-layout-verification.json",
+          "checks_passed": 10,
+          "sha256": "39bf17c76d62dfcbfc860a97fd046601e6aff2733d253b45190737d3aab0c497"
+        }
+      ],
+      "log": "/tmp/bts-layout-20261112/initial-layout.log",
+      "log_sha256": "450612f7c57c0b1ca7e5b3692e04705868881623971ab2ca0a4670d0dbe14597"
+    },
+    {
+      "suite": "preparation-info-layout",
+      "status": "passed",
+      "checks_passed": 102,
+      "command": "BTS_PREVIEWS_DIR=/tmp/bts-layout-20261112/preparation-info-layout node docs/entwuerfe/admin-ui/umsetzung/browser-check.js --preparation-info-layout-only",
+      "reports": [],
+      "log": "/tmp/bts-layout-20261112/preparation-info-layout.log",
+      "log_sha256": "96cffdf13f67d5d1733c7c22d707167247115ae7dee168f85bc15c255acceda5"
+    },
+    {
+      "suite": "timer-containment",
+      "status": "passed",
+      "checks_passed": 4,
+      "command": "BTS_PREVIEWS_DIR=/tmp/bts-layout-20261112/timer-containment node docs/entwuerfe/admin-ui/umsetzung/browser-check.js --timer-containment-only",
+      "reports": [
+        {
+          "path": "/tmp/bts-layout-20261112/timer-containment/timer-containment-verification.json",
+          "checks_passed": 4,
+          "sha256": "93e47a382fb0c30d4b56377ae3cea876d7afde686567a95c51bc07871b0329e1"
+        }
+      ],
+      "log": "/tmp/bts-layout-20261112/timer-containment.log",
+      "log_sha256": "93e47a382fb0c30d4b56377ae3cea876d7afde686567a95c51bc07871b0329e1"
+    },
+    {
+      "suite": "layout-cache",
+      "status": "passed",
+      "checks_passed": 29,
+      "command": "BTS_PREVIEWS_DIR=/tmp/bts-layout-20261112/layout-cache node docs/entwuerfe/admin-ui/umsetzung/browser-check.js --layout-cache-only",
+      "reports": [
+        {
+          "path": "/tmp/bts-layout-20261112/layout-cache/layout-cache-verification.json",
+          "checks_passed": 29,
+          "sha256": "c929b43992bd40fc08d8a38818b0dc567722689bfd23a239501c82179925417a"
+        }
+      ],
+      "log": "/tmp/bts-layout-20261112/layout-cache.log",
+      "log_sha256": "1af54b9b66c4bf72a30a90e248e6f5b75f6872000ec68801a15b8cbe05a17002"
+    },
+    {
+      "suite": "boundary-layout-cache",
+      "status": "passed",
+      "checks_passed": 4,
+      "command": "BTS_PREVIEWS_DIR=/tmp/bts-layout-20261112/boundary-layout-cache node docs/entwuerfe/admin-ui/umsetzung/browser-check.js --boundary-layout-cache-only",
+      "reports": [
+        {
+          "path": "/tmp/bts-layout-20261112/boundary-layout-cache/boundary-layout-cache-verification.json",
+          "checks_passed": 4,
+          "sha256": "6cda5daeaed06d9bd0a6492bcac8a5d5b7b642b5af1b6e4f94b00ca1b869ffdf"
+        }
+      ],
+      "log": "/tmp/bts-layout-20261112/boundary-layout-cache.log",
+      "log_sha256": "d4cc5af3c4df14a4daa3d27cfdba9f28cc3c56691977b7aff6d4fb9f695dad76"
+    },
+    {
+      "suite": "match-dialog",
+      "status": "passed",
+      "checks_passed": 401,
+      "command": "BTS_PREVIEWS_DIR=/tmp/bts-layout-20261112/match-dialog node docs/entwuerfe/admin-ui/umsetzung/browser-check.js --match-dialog-only",
+      "reports": [
+        {
+          "path": "/tmp/bts-layout-20261112/match-dialog/match-dialog-verification.json",
+          "checks_passed": 401,
+          "sha256": "f9a7e5ca5308fe259a664d079fef5bd059fd2f95674a908ce2366792e7aaac64"
+        }
+      ],
+      "log": "/tmp/bts-layout-20261112/match-dialog.log",
+      "log_sha256": "7026ba344517786ab96c5e1f06182e5dd981165fc970e0c58f8adcebc1cec9b5"
+    },
+    {
+      "suite": "dom-game-scope",
+      "status": "passed",
+      "checks_passed": 27,
+      "command": "BTS_PREVIEWS_DIR=/tmp/bts-layout-20261112/dom-game-scope BTS_DOM_SCOPE_REPORT=/tmp/bts-layout-20261112/dom-game-scope.json node docs/entwuerfe/admin-ui/umsetzung/browser-check.js --dom-game-scope-only",
+      "reports": [],
+      "log": "/tmp/bts-layout-20261112/dom-game-scope.log",
+      "log_sha256": "7a1cd1326c940e928d9d6765bb116037c747b52559d7d0dceafe67e630e4f28b"
+    }
+  ],
+  "limitations": [
+    "Isolated fixtures do not prove end-to-end latency or rendering on every real device.",
+    "This report makes no claim that the entire legacy repository passes lint."
+  ]
+}

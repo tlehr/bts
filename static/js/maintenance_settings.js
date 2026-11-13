@@ -50,7 +50,8 @@ var btsMaintenanceSettings = (() => {
       fullReset = plan.actions.includes('tournament');
      }
      const choiceLabels = {match_results:'Ergebnisse und Sieger von ' + (plan?.match_ids?.length || 0) + ' ausgewählten Spielen zurücksetzen',
-      court_assignments:'Feldzuweisungen noch nicht gestarteter Spiele entfernen',player_pauses:'Spielerpausen zurücksetzen'};
+      court_assignments:'Feldzuweisungen noch nicht gestarteter Spiele entfernen',player_pauses:'Spielerpausen zurücksetzen',
+      player_checkins:'Alle Spieler in jedem Spiel auf „nicht eingecheckt“ setzen (einschließlich laufender und beendeter Spiele; Offizielle bleiben unverändert)'};
      const message = fullReset ? t('reset:confirm') + '\n\n' + t('reset:hint') : plan ?
       'Ziel: ' + (plan.target === 'both' ? 'BTS und BTP' : 'Nur BTS') + '\n\n' + plan.actions.map(action => '• ' + choiceLabels[action]).join('\n') +
        (plan.match_ids?.length ? '\n\nAusgewählte Spiele:\n' + plan.match_ids.map(id => {
@@ -73,7 +74,7 @@ var btsMaintenanceSettings = (() => {
      if (disposed || tournament().key !== key) return;
      pending = null;
      if (failure) feedback(entry,failure.message || 'Die Wartungsaktion ist fehlgeschlagen. Bitte erneut versuchen.','error');
-     else feedback(entry,plan && !fullReset ? 'Zurückgesetzt: ' + plan.actions.map(action => ({court_assignments:'Feldzuweisungen',player_pauses:'Spielerpausen',match_results:'Ergebnisse und Sieger'})[action]).join(', ') +
+     else feedback(entry,plan && !fullReset ? 'Zurückgesetzt: ' + plan.actions.map(action => ({court_assignments:'Feldzuweisungen',player_pauses:'Spielerpausen',match_results:'Ergebnisse und Sieger',player_checkins:'Spieler-Check-ins'})[action]).join(', ') +
       (plan.target === 'both' ? '. Änderungen an BTP übergeben.' : '. Nur BTS wurde geändert.') : success(response || {}),'success');
      update();
     });
@@ -85,7 +86,7 @@ var btsMaintenanceSettings = (() => {
    })});
   add(actions,{name:'player_pause_reset',label:'Spielerpausen zurücksetzen',description:t('player_pause_reset:hint'),
    buttonLabel:'Pausen zurücksetzen',icon:'refresh',success:response => 'Spielerpausen zurückgesetzt – ' + (response.player_count ?? 0) + ' Spieler in ' + (response.changed_matches ?? 0) + ' Spielen.'});
-  add(reset,{name:'tournament_reset',label:'Bereiche und Ziel festlegen',description:'Ergebnisse und Sieger, Feldzuweisungen oder Spielerpausen auswählen. Alternativ den lokalen Turnierbestand vollständig leeren.',
+  add(reset,{name:'tournament_reset',label:'Bereiche und Ziel festlegen',description:'Ergebnisse und Sieger, Feldzuweisungen, Spielerpausen oder Spieler-Check-ins auswählen. Alternativ den lokalen Turnierbestand vollständig leeren.',
    buttonLabel:'Zurücksetzen auswählen',icon:'refresh',success:() => 'Der lokale Turnierbestand wurde zurückgesetzt.'});
   function update() {
    if (disposed) return;

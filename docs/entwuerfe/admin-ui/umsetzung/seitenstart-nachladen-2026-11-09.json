@@ -1,0 +1,358 @@
+{
+  "date": "2026-11-09",
+  "scope": "Follow-up to the first startup optimization, with the same frozen 512-match tournament response. Isolated Chrome; every server/write call simulated. No player data included.",
+  "behavior": [
+    "For more than 50 finished matches, create lightweight row identities first. Only results selected by pagination, date expansion or search receive names, controls, cells and observers.",
+    "The complete model remains present and receives native score, full-match, metadata and name corrections. Search of finished games uses the model, including unrendered results.",
+    "Visible results are rendered from current model values on their original row objects. Already-rendered rows and player nodes remain reusable across pagination.",
+    "Date headings, sorting, counts, location filtering and the all-results preference continue to include every result. Opening more results creates no additional server requests.",
+    "Read tab geometry in one phase before writing navigation label widths, preserving the existing responsive rules."
+  ],
+  "comparison": {
+    "baseline": "Includes the previous main-display transaction, first-observation guard, timezone formatter cache and native name-measurement batching.",
+    "order": "before, after, after, before; fresh Chrome sessions; no CPU profiler",
+    "measurement": "Response handling after test-data preparation until three frames without pending tournament/board work. Asset/script loading and server latency excluded.",
+    "runs": [
+      {
+        "mode": "before",
+        "run": 1,
+        "browser_build_ms": 1679.9,
+        "board_mount_ms": 453.9,
+        "dom_content_loaded_ms": 542.4,
+        "dom_nodes": 29971,
+        "game_rows": 512,
+        "rendered_results": 423,
+        "deferred_results": 0,
+        "visible_results": 50,
+        "checks_passed": 5
+      },
+      {
+        "mode": "after",
+        "run": 1,
+        "browser_build_ms": 1129.5,
+        "board_mount_ms": 160.7,
+        "dom_content_loaded_ms": 541.7,
+        "dom_nodes": 9268,
+        "game_rows": 512,
+        "rendered_results": 50,
+        "deferred_results": 373,
+        "visible_results": 50,
+        "checks_passed": 5
+      },
+      {
+        "mode": "after",
+        "run": 2,
+        "browser_build_ms": 1149.3,
+        "board_mount_ms": 161.7,
+        "dom_content_loaded_ms": 584,
+        "dom_nodes": 9268,
+        "game_rows": 512,
+        "rendered_results": 50,
+        "deferred_results": 373,
+        "visible_results": 50,
+        "checks_passed": 5
+      },
+      {
+        "mode": "before",
+        "run": 2,
+        "browser_build_ms": 1721.9,
+        "board_mount_ms": 443.6,
+        "dom_content_loaded_ms": 491.4,
+        "dom_nodes": 29971,
+        "game_rows": 512,
+        "rendered_results": 423,
+        "deferred_results": 0,
+        "visible_results": 50,
+        "checks_passed": 5
+      }
+    ],
+    "mean_browser_build_before_ms": 1700.9,
+    "mean_browser_build_after_ms": 1139.4,
+    "browser_build_reduction_percent": 33.01,
+    "dom_node_reduction_percent": 69.08,
+    "mean_board_mount_before_ms": 448.75,
+    "mean_board_mount_after_ms": 161.2
+  },
+  "verification": {
+    "node_tests_passed": 162,
+    "browser_runs": [
+      {
+        "mode": "history-pages",
+        "exit_code": 0
+      },
+      {
+        "mode": "update-ownership",
+        "exit_code": 0
+      },
+      {
+        "mode": "persistent-rows",
+        "exit_code": 0
+      },
+      {
+        "mode": "compact-name-stability",
+        "exit_code": 0
+      },
+      {
+        "mode": "preparation-info-layout",
+        "exit_code": 0
+      },
+      {
+        "mode": "navigation-responsive",
+        "exit_code": 0
+      },
+      {
+        "mode": "fixed-columns",
+        "exit_code": 0
+      },
+      {
+        "mode": "date-groups",
+        "exit_code": 1,
+        "baseline_exit_code": 1,
+        "baseline_identical": "Only row heights differ from historical expectation: 33.78125 vs 31 CSS pixels, identically before and after. Date states, counts, rows and player identities agree."
+      },
+      {
+        "mode": "sync-burst",
+        "exit_code": 0
+      },
+      {
+        "mode": "name-measurement-batch",
+        "exit_code": 0
+      },
+      {
+        "mode": "large-list-updates",
+        "exit_code": 0
+      },
+      {
+        "mode": "structural-load",
+        "exit_code": 0
+      }
+    ],
+    "history_regressions": {
+      "scope": "Isolated browser with 150 synthetic results on two dates; pagination, search, updates, sorting, date expansion, row identity, unrendered score/name/metadata corrections, section changes, removal and reload persistence.",
+      "checks": [
+        "The initial history retains all 150 results and displays 50 of the current day",
+        "Only the first 50 results have names, controls and cells at startup",
+        "Score, full-match, metadata and name updates retain an unrendered result without building cells",
+        "Searching a corrected hidden name builds only that result with its current score and metadata on the same row",
+        "Clearing search retains existing row and player nodes and leaves the other results unrendered",
+        "More results reveal the remaining current-day games on the same rows",
+        "The reduced view can be restored",
+        "Search finds a result beyond the initial page and from a collapsed day",
+        "Clearing search restores the reduced view",
+        "Opening another day reveals its first results instead of an empty group",
+        "A result updated outside the visible page retains its current score when shown",
+        "Sorting still includes all results",
+        "The all-results preference survives a page reload",
+        "Reopening an unrendered result removes its placeholder and creates one complete scheduled row",
+        "Finishing the reopened game shows the current result once without a stale placeholder",
+        "Removing an unrendered result removes its indexed placeholder",
+        "History pages leave no incomplete work or browser exceptions"
+      ]
+    },
+    "unchanged_date_geometry_failure": {
+      "before": {
+        "keys": "2026-10-30|2026-10-31",
+        "open1": true,
+        "open2": false,
+        "rows": [
+          {
+            "id": "match-45",
+            "connected": true,
+            "samePlayer": true,
+            "height": 56,
+            "oldHeight": 56
+          },
+          {
+            "id": "match-46",
+            "connected": true,
+            "samePlayer": true,
+            "height": 33.78125,
+            "oldHeight": 31
+          },
+          {
+            "id": "match-47",
+            "connected": true,
+            "samePlayer": true,
+            "height": 33.78125,
+            "oldHeight": 31
+          },
+          {
+            "id": "match-48",
+            "connected": true,
+            "samePlayer": true,
+            "height": 0,
+            "oldHeight": 31
+          },
+          {
+            "id": "match-49",
+            "connected": true,
+            "samePlayer": true,
+            "height": 0,
+            "oldHeight": 41.59375
+          },
+          {
+            "id": "match-50",
+            "connected": true,
+            "samePlayer": true,
+            "height": 0,
+            "oldHeight": 31
+          },
+          {
+            "id": "match-51",
+            "connected": true,
+            "samePlayer": true,
+            "height": 0,
+            "oldHeight": 31
+          },
+          {
+            "id": "match-52",
+            "connected": true,
+            "samePlayer": true,
+            "height": 0,
+            "oldHeight": 31
+          },
+          {
+            "id": "match-53",
+            "connected": true,
+            "samePlayer": true,
+            "height": 0,
+            "oldHeight": 31
+          }
+        ],
+        "count": "9"
+      },
+      "after": {
+        "keys": "2026-10-30|2026-10-31",
+        "open1": true,
+        "open2": false,
+        "rows": [
+          {
+            "id": "match-45",
+            "connected": true,
+            "samePlayer": true,
+            "height": 56,
+            "oldHeight": 56
+          },
+          {
+            "id": "match-46",
+            "connected": true,
+            "samePlayer": true,
+            "height": 33.78125,
+            "oldHeight": 31
+          },
+          {
+            "id": "match-47",
+            "connected": true,
+            "samePlayer": true,
+            "height": 33.78125,
+            "oldHeight": 31
+          },
+          {
+            "id": "match-48",
+            "connected": true,
+            "samePlayer": true,
+            "height": 0,
+            "oldHeight": 31
+          },
+          {
+            "id": "match-49",
+            "connected": true,
+            "samePlayer": true,
+            "height": 0,
+            "oldHeight": 41.59375
+          },
+          {
+            "id": "match-50",
+            "connected": true,
+            "samePlayer": true,
+            "height": 0,
+            "oldHeight": 31
+          },
+          {
+            "id": "match-51",
+            "connected": true,
+            "samePlayer": true,
+            "height": 0,
+            "oldHeight": 31
+          },
+          {
+            "id": "match-52",
+            "connected": true,
+            "samePlayer": true,
+            "height": 0,
+            "oldHeight": 31
+          },
+          {
+            "id": "match-53",
+            "connected": true,
+            "samePlayer": true,
+            "height": 0,
+            "oldHeight": 31
+          }
+        ],
+        "count": "9"
+      },
+      "test_modified_or_weakened": false
+    },
+    "lint": [
+      {
+        "file": "static/js/cmatch.js",
+        "baseline": 182,
+        "current": 182,
+        "added": []
+      },
+      {
+        "file": "static/js/cleitstand.js",
+        "baseline": 0,
+        "current": 0,
+        "added": []
+      },
+      {
+        "file": "docs/entwuerfe/admin-ui/umsetzung/history-pages-check.js",
+        "errors": 0,
+        "warnings": 0,
+        "messages": []
+      },
+      {
+        "file": "docs/entwuerfe/admin-ui/umsetzung/startup-check.js",
+        "errors": 0,
+        "warnings": 0,
+        "messages": []
+      }
+    ],
+    "installed_startup_smoke": {
+      "scope": "Synthetic isolated startup with 512 games and 423 finished.",
+      "checks": [
+        "All 512 games and 50 visible results survive the initial build",
+        "The main view is visible after all startup work",
+        "A failed build restores prior inline display and priority",
+        "A complete rebuild recovers after failure with every game",
+        "No unexpected browser exceptions"
+      ],
+      "matches": 512,
+      "game_rows": 512,
+      "visible_results": 50,
+      "rendered_results": 50,
+      "deferred_results": 373,
+      "pending": false
+    }
+  },
+  "limits": [
+    "Two runs per variant on this machine. This is not a p99 latency guarantee for other devices.",
+    "Asset/script loading still requires approximately another half second locally. The full reload is not under one second.",
+    "Explicitly requesting all results or a broad search can still build all matching rows. Already-built rows remain allocated until leaving or rebuilding the view.",
+    "No backend, database, BTP write path or BUP client changes."
+  ],
+  "source_files": [
+    {
+      "file": "static/js/cmatch.js",
+      "before_sha256": "4e8966e747f3f2357a173d17c02e048dc9765a8d389821d5c833013cfac23708",
+      "after_sha256": "e27ce4e392fe4b2b9d56e062114d88ea31bf5ba8eed35129d9917167f844d9af"
+    },
+    {
+      "file": "static/js/cleitstand.js",
+      "before_sha256": "265be8ed862d9e3b1e839a9257ea1413b9452ddffc40598eb5c7769755dc3525",
+      "after_sha256": "6a9f78a565af21fc792487448c1be2319e8b7a033098b3bf5e4f736d5abe4e58"
+    }
+  ]
+}

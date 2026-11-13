@@ -41,7 +41,8 @@ function restore(store, originals) {
 // index hooks still update the canonical entities. No public read sees the
 // staged indexes before persistence completes. Resource locks remain unchanged.
 function write(store, changes, query_for, prepared = new Map(), options = {}) {
-	return new Promise((resolve, reject) => store.executor.push({
+	return new Promise((resolve, reject) => {
+		const task = {
 		this: store, diagnostic_name: options.diagnostic_name || 'sync_batch_write', arguments: [(error, stats) => error ? reject(error) : resolve(stats)],
 		fn: function(done) {
 			if (options.fallback && (store.timestampData || !supported(store))) return options.fallback(done);
@@ -103,7 +104,10 @@ function write(store, changes, query_for, prepared = new Map(), options = {}) {
 			try { store.persistence.persistNewState(documents, persisted); }
 			catch (error) { persisted(error); }
 		},
-	}));
+		};
+		if (supported(store) && (!options.fallback || options.fallback_without_writes === true)) require('../database_read_barrier').certify_write(task, changes.map(change => change.id), () => supported(store));
+		store.executor.push(task);
+	});
 }
 
 module.exports = { certify, supported, write };

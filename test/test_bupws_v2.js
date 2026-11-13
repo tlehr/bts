@@ -6,6 +6,7 @@ const { EventEmitter } = require('events');
 const { _describe, _it } = require('./tutils.js');
 const bupws_v2 = require('../bts/bupws_v2');
 const database = require('../bts/database');
+const admin = require('../bts/admin');
 
 _describe('bupws v2 court picker scoring metadata', () => {
 	_it('keeps the actual scoring format for finished-state calculation instead of assuming 21 points', () => {
@@ -597,6 +598,7 @@ _describe('bupws v2 score fanout', () => {
 
 	_it('returns from persistence before court notifications while publishing the committed score immediately', async () => {
 		const { app, panel, cleanup } = await fixture();
+		await app.db.matches.update_async({ _id: 'match-1' }, { $set: { 'setup.state': 'called' } }, {});
 		const tablet = panel('callback-source'); tablet.panel_devicemode = 'umpire';
 		const tv = panel('callback-tv'); tv.panel_devicemode = 'display';
 		const admin = require('../bts/admin');
@@ -624,6 +626,68 @@ _describe('bupws v2 score fanout', () => {
 		} finally {
 			app.db.matches.update = update; admin.notify_change = notify; cleanup();
 		}
+	});
+
+	_it('publishes ordinary points and durations without a second full match event or repeated speech plans', async () => {
+		const { app, panel, cleanup } = await fixture();
+		const tablet = panel('compact-source');tablet.panel_devicemode = 'umpire';
+		const tv = panel('compact-tv');tv.panel_devicemode = 'display';
+		await app.db.matches.update_async({ _id: 'match-1' }, { $set: {
+			'setup.needs_preparation_successor': false, 'setup.needs_preparation_successor_ts': null,
+		} }, {});
+		const notify = admin.notify_change, events = [], plans = [];
+		app.speech = { changed(_key, type, value) { if (require('../bts/speech/prefetch').affectsPlan(type, value)) plans.push(type); } };
+		admin.notify_change = function(target, key, type, value) {
+			if (target === app) events.push({type, value});return notify(target, key, type, value);
+		};
+		try {
+			for (let point = 2; point <= 16; point++) await bupws_v2.handle_score_update(app, tablet, {
+				tournament_key: 'fanout-test', score: { match_id: 'match-1', court_id: 'court-1', network_score: [[point, 0]],
+					presses: [], duration_ms: point * 1000 },
+			});
+			assert.strictEqual(events.filter(event => event.type === 'score').length, 15);
+			assert.strictEqual(events.filter(event => event.type === 'court_current_match').length, 0);
+			assert.deepStrictEqual(plans, []);
+			assert.strictEqual(events.filter(event => event.type === 'score').at(-1).value.duration_ms, 16000);
+			assert.strictEqual(tv.messages.filter(message => message.type === 'display_points_update').length, 15);
+			assert.deepStrictEqual((await app.db.matches.findOne_async({ _id: 'match-1' })).network_score, [[16, 0]]);
+		} finally { admin.notify_change = notify;cleanup(); }
+	});
+
+	_it('retains full court notifications when the preparation threshold is crossed or undone', async () => {
+		const { app, panel, cleanup } = await fixture();
+		await app.db.tournaments.update_async({ key: 'fanout-test' }, { $set: { preparation_successor_rally_count: 1 } }, {});
+		const tablet = panel('threshold-source');tablet.panel_devicemode = 'umpire';
+		await app.db.matches.update_async({ _id: 'match-1' }, { $set: {
+			'setup.needs_preparation_successor': false, 'setup.needs_preparation_successor_ts': null,
+		} }, {});
+		const notify = admin.notify_change, events = [];
+		admin.notify_change = function(target, key, type, value) {
+			if (target === app && type === 'court_current_match') events.push(value.match);
+			return notify(target, key, type, value);
+		};
+		const point = score => bupws_v2.handle_score_update(app, tablet, {tournament_key:'fanout-test',
+			score:{match_id:'match-1',court_id:'court-1',network_score:score,presses:[]}});
+		try {
+			await point([[21, 10], [18, 21], [20, 4]]);
+			assert.strictEqual(events.length, 1);assert.strictEqual(events[0].setup.needs_preparation_successor, true);
+			await point([[21, 10], [18, 21], [20, 5]]);assert.strictEqual(events.length, 1);
+			await point([[21, 10], [18, 21], [18, 5]]);
+			assert.strictEqual(events.length, 2);assert.strictEqual(events[1].setup.needs_preparation_successor, false);
+		} finally { admin.notify_change = notify;cleanup(); }
+	});
+	_it('publishes the confirmed winner and state in the first finish event and retains the full snapshot', async () => {
+		const {app,panel,cleanup}=await fixture(),tablet=panel('finish-state-source');tablet.panel_devicemode='umpire';
+		const notify=admin.notify_change,events=[];
+		admin.notify_change=function(target,key,type,value){if(target===app)events.push({type,value:JSON.parse(JSON.stringify(value))});return notify(target,key,type,value)};
+		try {
+			await bupws_v2.handle_score_update(app,tablet,{tournament_key:'fanout-test',score:{match_id:'match-1',court_id:'court-1',
+				network_score:[[12,21],[13,21]],presses:[],end_ts:Date.now(),duration_ms:9000,finish_confirmed:true,team1_won:false}});
+			const score=events.find(event=>event.type==='score').value;
+			assert.strictEqual(score.state,'finished');assert.strictEqual(score.btp_winner,2);assert.strictEqual(score.team1_won,false);
+			assert.strictEqual(score.now_on_court,false);assert.strictEqual(score.duration_ms,9000);
+			assert(events.some(event=>event.type==='court_current_match'&&event.value.match.btp_winner===2));
+		} finally {admin.notify_change=notify;cleanup();}
 	});
 
 	_it('sends only persisted points to the initialized TV before delayed presentation reads', async () => {

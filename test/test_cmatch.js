@@ -60,6 +60,7 @@ function createFakeElement(tagName) {
 			return child;
 		},
 		querySelectorAll() { return []; },
+		querySelector(selector) { return this.querySelectorAll(selector)[0] || null; },
 		addEventListener() {},
 	};
 }
@@ -163,6 +164,7 @@ function loadCmatchForUpdateCourtTest(tr, curt, history, query_each, search = ''
 	vm.runInContext(source, context, { filename: 'cmatch.js' });
 	context.cmatch.test_routes = routes;
 	context.cmatch.test_timeouts = timeouts;
+	context.cmatch.test_context = context;
 	return context.cmatch;
 }
 
@@ -210,6 +212,35 @@ _describe('cmatch', () => {
 		cmatch.refresh_unassigned_preparation_context();
 		assert.strictEqual(removed, 1);
 		assert.strictEqual(cells[1].buttons[0], unchanged_button);
+	});
+
+	_it('coalesces targeted preparation updates without losing games and lets a full refresh include every row', () => {
+		for (const full of [false,true]) {
+			const pending = new Map(), visited = new Set();
+			const matches = [1,2,3].map(id => ({_id:'m'+id,setup:{state:'scheduled',is_match:true,
+				teams:[{players:[{btp_id:id*2}]},{players:[{btp_id:id*2+1}]}]}}));
+			let removed = 0;
+			const container = {querySelectorAll() { return rows; }};
+			const rows = matches.map(match => {
+				const cell = {...createFakeElement('td'),buttons:[],querySelector(){return null;},querySelectorAll(){return this.buttons;}};
+				cell.buttons.push({dataset:{location_id:'hall'},remove(){removed++;cell.buttons=[];}});
+				return {...createFakeElement('tr'),dataset:{match_id:match._id},closest(){return container;},
+					querySelector(){visited.add(match._id);return cell;}};
+			});
+			const tournament = {matches,locations:[{_id:'hall'}],location_preparation_selection_by_location_id:{hall:{manual_callable_match_ids:[]}}};
+			const cmatch = loadCmatchForUpdateCourtTest(createFakeElement('tr'),tournament,null,(selector,callback) => {
+				if (selector === '.unassigned_container') callback(container);
+				else { const id = /data-match_id="(m\d)"/.exec(selector)?.[1]; if (id) callback(rows.find(row=>row.dataset.match_id===id)); }
+			});
+			cmatch.test_context.cleitstand = {deferUpdate(name,callback){if(!pending.has(name))pending.set(name,callback);return true;},
+				active(){return true;},decorateControls(){return false;},refreshUnassigned(){},refreshCallStatus(){}};
+			const update = id => cmatch.refresh_unassigned_preparation_context(false,{match_ids:new Set([id]),boundaries:false,header:false});
+			update('m1');if(full)cmatch.refresh_unassigned_preparation_context();else update('m2');
+			assert.strictEqual(pending.size,1);assert.strictEqual(removed,0);
+			pending.get('preparation.controls')();
+			assert.deepStrictEqual([...visited].sort(),full?['m1','m2','m3']:['m1','m2']);
+			assert.strictEqual(removed,full?3:2);
+		}
 	});
 
 	_it('moves existing scheduled rows in both directions without rebuilding cells or touching already sorted rows', () => {
@@ -596,6 +627,67 @@ _describe('cmatch', () => {
 			cmatch._active_tabletoperator_court_for_player({ btp_id: 7 }),
 			'default_3'
 		);
+	});
+	_it('does not rebuild tablet allocations for player updates without rendered players', () => {
+		const match = {_id:'hidden-result',setup:{now_on_court:false,teams:[{players:[{btp_id:1},{btp_id:2}]},{players:[{btp_id:3},{btp_id:4}]}]}};
+		let reads = 0;
+		const tournament = {matches:[match]};
+		Object.defineProperty(tournament,'tabletoperators',{get(){reads++;return [];}});
+		const cmatch = loadCmatchForUpdateCourtTest(createFakeElement('tr'),tournament,{},()=>{});
+		cmatch.update_player_status_indicators_for_match_players(match);
+		assert.strictEqual(reads,0,'Hidden results require no tablet-allocation query');
+		assert.strictEqual(cmatch._active_tabletoperator_court_for_player({btp_id:1}),false);
+		assert(reads>0,'Actual resource queries must still inspect the current assignments');
+	});
+	_it('retains tablet allocation queries across player-only status messages and refreshes real assignment changes', () => {
+		const match = {_id:'game',setup:{now_on_court:true,court_id:'court_3',tabletoperators:[{btp_id:7}],teams:[{players:[{btp_id:1,checked_in:false}]}]}};
+		let allocation_reads = 0;
+		const tournament = {matches:[match]};
+		Object.defineProperty(tournament,'tabletoperators',{get(){allocation_reads++;return [];}});
+		const cmatch = loadCmatchForUpdateCourtTest(createFakeElement('tr'),tournament,{},()=>{});
+		const context = {curt:tournament,cmatch,utils:require('../static/bup/dev/js/utils'),cerror:{silent(){assert.fail('Unexpected missing match');}}};
+		vm.runInNewContext(fs.readFileSync(path.join(__dirname,'..','static','js','change.js'),'utf8'),context);
+		const handle = context.change.default_handler(()=>assert.fail('Player status must not rebuild the board'));
+		const update = (patch) => handle({ctype:'update_player_status',val:{match__id:'game',setup:{...structuredClone(match.setup),...patch}}});
+		assert.strictEqual(cmatch._active_tabletoperator_court_for_player({btp_id:7}),'court_3');
+		const baseline_reads = allocation_reads;
+		for (let index=0;index<8;index++) {
+			update({teams:[{players:[{btp_id:1,checked_in:index%2===0}]}]});
+			assert.strictEqual(cmatch._active_tabletoperator_court_for_player({btp_id:7}),'court_3');
+		}
+		assert.strictEqual(allocation_reads,baseline_reads,'Player check-ins must preserve the shared tablet-allocation cache');
+		for (const [patch,participant,expected] of [
+			[{court_id:'court_4'},7,'court_4'],
+			[{tabletoperators:[{btp_id:8}]},7,false],
+			[{tabletoperators:[{btp_id:8,now_tablet_on_court:'court_6'}]},8,'court_6'],
+			[{now_on_court:false},8,false],
+			[{now_on_court:true},8,'court_6'],
+		]) {
+			const reads_before = allocation_reads;update(patch);
+			assert.strictEqual(cmatch._active_tabletoperator_court_for_player({btp_id:participant}),expected);
+			assert(allocation_reads>reads_before,'Actual tablet activity changes must invalidate the allocation cache');
+		}
+	});
+	_it('coalesces board player status work while retaining current models and allocation invalidation', () => {
+		const matches = ['one','two'].map(_id => ({_id,setup:{now_on_court:false,teams:[{players:[{btp_id:1}]}]}}));
+		let visits = 0;
+		const tournament = {matches,tabletoperators:[]}, pending = new Map();
+		const cmatch = loadCmatchForUpdateCourtTest(createFakeElement('tr'),tournament,{},selector => {if(selector.startsWith('.player'))visits++;});
+		cmatch.test_context.cleitstand = {deferUpdate(name,callback){if(!pending.has(name))pending.set(name,callback);return true;}};
+		cmatch.update_player_status_indicators_for_match_players(matches[0]);
+		cmatch.update_player_status_indicators_for_match_players(matches[1]);
+		assert.strictEqual(visits,0);
+		assert.strictEqual(pending.size,1);
+		matches[0].setup.now_on_court = true;
+		matches[0].setup.court_id = 'court';
+		matches[0].setup.tabletoperators = [{btp_id:1}];
+		assert.strictEqual(cmatch._active_tabletoperator_court_for_player({btp_id:1}),'court','Queries during the block must use the current model');
+		pending.get('players.status')();pending.clear();
+		assert.strictEqual(visits,2,'Each affected game is visited once for the union of updated players');
+		cmatch.update_player_status_indicators_for_match_players(matches[0]);
+		cmatch.test_context.curt = {matches:[]};
+		pending.get('players.status')();
+		assert.strictEqual(visits,2,'Work for an unmounted tournament must not patch its replacement');
 	});
 
 	_it('never presents historical playing or tablet assignments as current suggestion roles', () => {

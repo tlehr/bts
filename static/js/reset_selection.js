@@ -29,6 +29,7 @@ var btsResetSelection = (() => {
    match_results:['Ergebnisse und Sieger zurücksetzen','Spiele und Auslosungen behalten. Laufende Spiele und Freilose werden nicht zurückgesetzt.'],
    court_assignments:['Feldzuweisungen entfernen','Auch für Spiele, deren Spieler noch nicht feststehen. Laufende und beendete Spiele behalten ihre Felder.'],
    player_pauses:['Spielerpausen zurücksetzen','Gespeicherte Spieler- und Tabletpausen zurücksetzen. Spiele und Ergebnisse bleiben erhalten.'],
+   player_checkins:['Spieler-Check-ins zurücksetzen','Alle Spieler in jedem Spiel auf „nicht eingecheckt“ setzen – auch in laufenden und beendeten Spielen. Offizielle bleiben unverändert.'],
    tournament:['Lokalen Turnierbestand vollständig leeren','Spiele, Tabletbediener, Logs, Felder, Spielorte und Offizielle löschen. BTP-Abgleich ausschalten; wiederverwendbare Einstellungen behalten.'],
   };
   for (const [name,[label,description]] of Object.entries(descriptions)) {

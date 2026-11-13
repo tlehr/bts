@@ -1,6 +1,6 @@
 /* Live tournament board. Scope presentation to the tournament view and its dialogs. */
 @font-face { font-family: 'BTS Segment'; src: url('seg7.ttf') format('truetype'); font-display: swap; }
-.leitstand { --ink:#213235; --muted:#6d7d80; --line:#dce5e3; --brand:#175a50; --brand-soft:#edf5f1; --green:#327257; --red:#af453e; --table-row-base:#fff; --table-row-background:#fff; --table-stripe:#f1f4f3; --radius:9px; color:var(--ink); font:13px/1.4 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; padding:8px 14px 25px; background:#f3f6f5; min-height:calc(100vh - 44px); box-sizing:border-box; container-type:inline-size; container-name:tournament-board; }
+.leitstand { --ls-role-width:26px; --ls-role-gap:4px; --ink:#213235; --muted:#6d7d80; --line:#dce5e3; --brand:#175a50; --brand-soft:#edf5f1; --green:#327257; --red:#af453e; --table-row-base:#fff; --table-row-background:#fff; --table-stripe:#f1f4f3; --radius:9px; color:var(--ink); font:13px/1.4 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; padding:8px 14px 25px; background:#f3f6f5; min-height:calc(100vh - 44px); box-sizing:border-box; container-type:inline-size; container-name:tournament-board; }
 .leitstand *, .leitstand-dialog * { box-sizing:border-box; }
 .leitstand [hidden] { display:none!important; }
 .leitstand .visually-hidden { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
@@ -220,6 +220,20 @@
 .leitstand .ls-planned-table { --preparation-width:92px; --preparation-actions-width:80px; }
 .leitstand .ls-planned-table .ls-preparation-column { width:var(--preparation-width); }
 .leitstand .ls-planned-table .ls-call-column { width:var(--preparation-actions-width); }
+/* Keep the table semantics and shared columns, with independent row layout.
+   A changed future player must not invalidate the entire native table paint. */
+.leitstand .ls-planned-table { display:block; --planned-columns:20px 115px 28px 36px 50px 32px minmax(0,1fr) var(--officials-limit) var(--preparation-width) var(--preparation-actions-width); }
+.leitstand .ls-planned-table>colgroup { display:none; }
+.leitstand .ls-planned-table>thead,.leitstand .ls-planned-table>tbody { display:contents; }
+.leitstand .ls-planned-table>thead>tr,.leitstand .ls-planned-table>tbody>tr { display:grid; grid-template-columns:var(--planned-columns); contain:layout style; }
+.leitstand .match_table.ls-planned-table>thead>tr>th,.leitstand .match_table.ls-planned-table>tbody>tr>:is(td,th) { display:block; width:auto; min-width:0; height:auto; align-content:center; box-sizing:border-box; }
+.leitstand .ls-planned-table>tbody>tr>td { min-height:30px; }
+.leitstand.comfort .match_table.ls-planned-table>tbody>tr>td { height:auto; min-height:40px; }
+.leitstand .ls-planned-table>thead>tr>th.ls-preparation-heading { grid-column:span 2; }
+.leitstand .ls-planned-table>tbody>tr.ls-date-row>th { grid-column:1/-1; }
+.leitstand .ls-planned-table>tbody>tr.ls-call-boundary>td { min-height:0; }
+.leitstand .ls-planned-table>tbody>tr.ls-call-boundary>td:first-child { grid-column:span 6; }
+.leitstand .ls-planned-table>tbody>tr.ls-call-boundary>td:last-child { grid-column:span 3; }
 .leitstand .match_table th { text-align:left; padding:4px 6px; border-bottom:1px solid var(--line); background:#f9fbfa; color:#798b84; font-size:10px; white-space:nowrap; }
 .leitstand .match_table th:nth-child(2) { text-align:center; }
 .leitstand .match_table th.ls-teams { text-align:center; }
@@ -309,10 +323,10 @@
 .leitstand .match_table .person.player,.leitstand .match_table .person>.name,.leitstand .match_table .player .btp_entry_status_badge { cursor:default; }
 .leitstand .match_table .person.player[data-check-in-action],.leitstand .match_table .person>.person_status_target[data-check-in-action] { cursor:pointer; }
 .leitstand .umpire_and_tablet { width:auto; min-width:0; }
-.leitstand .umpire_and_tablet .person { display:inline-grid; grid-template-columns:26px minmax(0,max-content) max-content; align-items:center; gap:4px; margin:1px 0; }
+.leitstand .umpire_and_tablet .person { display:inline-grid; grid-template-columns:var(--ls-role-width) minmax(0,max-content) max-content; align-items:center; gap:var(--ls-role-gap); margin:1px 0; }
 .leitstand .umpire_and_tablet > .person { display:grid; }
 .leitstand .umpire_and_tablet .name { min-width:0; padding-inline:5px!important; }
-.leitstand .umpire_and_tablet .ls-role-icon { display:inline-flex; align-items:center; justify-content:center; width:26px; min-width:26px; height:24px; background:none; margin:0; }
+.leitstand .umpire_and_tablet .ls-role-icon { display:inline-flex; align-items:center; justify-content:center; width:var(--ls-role-width); min-width:var(--ls-role-width); height:24px; background:none; margin:0; }
 .leitstand .umpire_and_tablet .ls-role-icon .ico { width:22px; height:22px; }
 .leitstand .umpire_and_tablet .tablet_operator { display:flex; align-items:center; gap:4px; }
 .leitstand .umpire_and_tablet .operators { display:block; min-width:0; }
@@ -338,7 +352,7 @@
 .leitstand .umpire_and_tablet .person.no_status { color:var(--ink); }
 .leitstand .pair-member { display:inline-block; }
 .match_edit_dialog:has(>.ls-match-dialog) { inset:0; display:flex; align-items:center; justify-content:center; width:auto; height:auto; padding:16px; overflow:hidden; background:#15291f66; backdrop-filter:blur(2px); }
-body.leitstand-view:has(.match_edit_dialog>.ls-match-dialog) { overflow:hidden; }
+body.leitstand-view:has(> .match_edit_dialog>.ls-match-dialog) { overflow:hidden; }
 .match_edit_dialog>.ls-match-dialog { display:flex; flex-direction:column; width:min(630px,100%); max-height:min(860px,88dvh,calc(100dvh - 32px)); margin:0; padding:0; overflow:hidden; border:2px solid #08474f; border-radius:12px; box-shadow:0 22px 100px #102f2033; color:#213235; background:white; font:13px/1.4 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; }
 .ls-match-dialog,.ls-match-dialog * { box-sizing:border-box; }
 .ls-match-dialog h3 { text-align:left; margin:0; font-size:17px; }
@@ -536,7 +550,7 @@ body.leitstand-view .tabletoperator_suggestions .tabletoperator_assignment_icon 
 .leitstand .timer { display:inline-flex!important; align-items:center; gap:2.5px; padding:3px 7px; min-width:0; max-width:100%; min-height:28px; font-size:22px; color:#fff!important; background:#111!important; border:0; border-radius:5px; line-height:1; vertical-align:middle; }
 .leitstand .timer[style*='display: none'] { display:none!important; }
 /* The current -n:nn frame is the upper limit; longer values shrink inside it. */
-.leitstand .timer-value { display:inline-grid; flex:0 1 5ch; min-width:0; width:5ch; max-width:5ch; height:1em; grid-template-columns:minmax(0,var(--timer-sign-width,1fr)) minmax(0,4fr); gap:0; align-items:center; font-family:'BTS Segment',monospace; transform:translateY(1.5px); }
+.leitstand .timer-value { contain:size layout; display:inline-grid; flex:0 1 5ch; min-width:0; width:5ch; max-width:5ch; height:1em; grid-template-columns:minmax(0,var(--timer-sign-width,1fr)) minmax(0,4fr); gap:0; align-items:center; font-family:'BTS Segment',monospace; transform:translateY(1.5px); }
 .leitstand .timer-value.timer-positive-long { grid-template-columns:minmax(0,1fr); }
 .leitstand .timer-positive-long>.timer-sign { display:none; }
 .leitstand :is(.timer-sign,.timer-digits) { min-width:0; font-size:var(--timer-scale,1em); white-space:nowrap; line-height:1; }
@@ -624,7 +638,8 @@ body.leitstand-view .tabletoperator_suggestions .tabletoperator_assignment_icon 
    scrollbar and change every name column after finishing a game. */
 .leitstand .table-wrap { overflow-y:hidden; }
 .leitstand .match_table tbody>tr.ls-call-boundary>td { height:17px!important; padding:2px 0; font-size:9px!important; color:var(--boundary-ink,#fff); text-align:center; background-color:var(--hall,#303638)!important; border-bottom:0; }
-.leitstand .ls-call-boundary-label { display:block; width:var(--boundary-width,100%); margin-left:var(--boundary-left,0px); padding:0 15px; text-align:center; }
+.leitstand .ls-call-boundary:is(.highlight_1,.highlight_2,.highlight_3,.highlight_4,.highlight_5,.highlight_6) { --boundary-ink:var(--ink); }
+.leitstand .ls-call-boundary-label { display:block; width:100%; padding:0 15px; text-align:center; }
 /* Balance the decorative icon's width so the text itself stays above the versus marker. */
 .leitstand .ls-call-boundary-label>.ico { width:11px; height:11px; margin:0 4px 0 -15px; vertical-align:middle; color:inherit; }
 .leitstand .board-hints { margin:5px 0; padding:3px 8px; border:1px solid var(--line); border-radius:4px; font-size:10px; color:var(--muted); }
@@ -639,11 +654,13 @@ body.leitstand-view .tabletoperator_suggestions .tabletoperator_assignment_icon 
 .leitstand[data-density="compact"] .match_table { font-size:var(--score-font-size); --officials-limit:clamp(160px,14cqi,220px); --compact-score-height:1cap; --compact-row-content:max(16px,var(--compact-score-height)); }
 .leitstand[data-density="compact"] .ls-planned-table { --compact-row-content:20px; }
 .leitstand[data-density="compact"] .match_table tbody>tr:is(.ls-match,.ls-empty)>td { height:max(24px,calc(var(--compact-row-content) + 4px)); padding-top:2px; padding-bottom:1px; line-height:var(--compact-row-content); }
+.leitstand[data-density="compact"] .match_table.ls-planned-table tbody>tr:is(.ls-match,.ls-empty)>td { height:auto; min-height:max(24px,calc(var(--compact-row-content) + 4px)); }
 /* The existing 1px row separator is part of the 2px bottom clearance. */
 /* Trimmed score lines retain invisible font descent in their scroll overflow. */
 .leitstand[data-density="compact"] .match_table .match_score { display:inline-flex; min-height:0; height:var(--compact-score-height); font-size:var(--score-font-size); line-height:1; vertical-align:top; overflow-y:clip; }
 .leitstand[data-density="compact"] .match_table .match_score:empty { display:none; }
-.leitstand[data-density="compact"] .match_table td.match_round { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.leitstand[data-density="compact"] .match_table td.match_round { font-size:11px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.leitstand[data-density="compact"] .match_score.ls-scoreline { min-height:0; height:var(--compact-row-content); align-items:center; }
 .leitstand[data-density="compact"] .ls-set-score { height:var(--compact-score-height); }
 .leitstand[data-density="compact"] .ls-set-score>span { text-box-trim:trim-both; text-box-edge:cap alphabetic; }
 .leitstand[data-density="compact"] .match_table .versus-line { height:var(--compact-row-content); align-items:start; }
@@ -709,6 +726,7 @@ body.leitstand-view .tabletoperator_suggestions .tabletoperator_assignment_icon 
 .leitstand[data-density="compact"] .ls-planned-table td.court_number:has(.preparation_call_deferred_badge) { line-height:0; }
 .leitstand[data-density="compact"] .ls-planned-table .court_number:has(.preparation_call_deferred_badge)>:is(.location,.court_history,.preparation_call_deferred_badge) { display:flex; width:max-content; max-width:100%; height:calc(var(--compact-row-content) / 2); min-height:0; line-height:calc(var(--compact-row-content) / 2 - 2px); font-size:8px; overflow:hidden; }
 .leitstand[data-density="compact"] .ls-planned-table .court_number:has(.preparation_call_deferred_badge) .ls-location-swatch { width:8px; height:8px; }
+.leitstand[data-density="compact"] .ls-planned-table .court_number .preparation_call_deferred_badge { align-items:center; }
 .leitstand .errors_scroll_left { max-width:100%; width:auto; max-height:132px; margin:0; overflow:auto; font-size:11px; scrollbar-width:thin; }
 .leitstand .errors_scroll_left > .errors { max-height:none; overflow-wrap:anywhere; }
 .leitstand .errors_scroll_left:has(> .errors:empty) { display:none; }
@@ -737,7 +755,7 @@ body.leitstand-view .tabletoperator_suggestions .tabletoperator_assignment_icon 
 .leitstand-dialog .dialog-content { flex:1 1 auto; min-height:0; padding:16px; overflow:auto; overscroll-behavior:contain; }
 .leitstand-dialog :is(pre,select) { max-width:100%; white-space:pre-wrap; overflow-wrap:anywhere; }
 .leitstand-dialog label { display:grid; gap:6px; margin-bottom:15px; }
-.leitstand-dialog select { width:100%; padding:8px; }
+.leitstand-dialog select { box-sizing:border-box; min-width:0; width:100%; padding:8px; }
 .leitstand-dialog .ls-court-assignment-actions { display:flex; justify-content:flex-end; }
 .leitstand-dialog .ls-court-assignment-actions>.btn { margin:0; }
 .leitstand-dialog .btn.primary { background:#0e5a63; border-color:#08474f; color:white; }
@@ -1111,7 +1129,7 @@ body.leitstand-view .tabletoperator_suggestions .tabletoperator_assignment_icon 
 @media(max-width:950px) { .page-certificates .certificate-design-workspace { grid-template-columns:minmax(0,1fr); } .page-certificates .certificate-design-preview { position:static; } }
 @media(max-width:540px) { .page-certificates .certificate-designer { padding:12px; } .page-certificates .certificate-design-preview { padding:8px; } }
 .announcement-playback-menu { text-align:left; }
-body:has(.announcement-playback-menu[open]) { overflow:hidden; }
+body.has-announcement-dialog { overflow:hidden; }
 .announcement-playback-menu .dialog-content { display:flex; flex-direction:column; gap:14px; }
 .announcement-playback-menu .dialog-content>* { flex:0 0 auto; min-width:0; }
 .announcement-playback-menu .announcement-target { display:grid; gap:3px; margin:0; }
@@ -1146,7 +1164,7 @@ body:has(.announcement-playback-menu[open]) { overflow:hidden; }
 .bts-confirm-dialog { box-sizing:border-box; width:min(630px,calc(100vw - 32px)); max-width:calc(100vw - 32px); max-height:calc(100dvh - 32px); margin:auto; padding:0; overflow:hidden; border:2px solid #08474f; border-radius:12px; box-shadow:0 22px 100px #102f2033; background:white; color:#213235; text-align:left; font:13px/1.5 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; }
 .bts-confirm-dialog[open] { display:flex; flex-direction:column; }
 .bts-confirm-dialog::backdrop { background:#15291f66; backdrop-filter:blur(2px); }
-body:has(.bts-confirm-dialog[open]) { overflow:hidden; }
+body:has(> .bts-confirm-dialog[open]) { overflow:hidden; }
 .bts-confirm-heading { display:flex; flex:0 0 auto; align-items:flex-start; gap:10px; margin:0; padding:16px 20px; border-bottom:1px solid #08474f; color:white; background:#0e5a63; font-size:17px; font-weight:650; line-height:1.4; text-align:left; overflow-wrap:anywhere; }
 .bts-confirm-title { min-width:0; }
 .bts-confirm-warning { flex:0 0 22px; width:22px; height:22px; margin-top:1px; fill:none; stroke:currentColor; stroke-width:1.6; stroke-linecap:round; stroke-linejoin:round; pointer-events:none; }
@@ -1179,7 +1197,7 @@ body:has(.bts-confirm-dialog[open]) { overflow:hidden; }
 /* Sticky descendants must be bounded by the full page, not the legacy 100% body height. */
 body.leitstand-view { height:auto; min-height:100%; margin:0; background:#f3f6f5; }
 body.leitstand-view>.main { padding:0; margin:0; }
-body.leitstand-view>.toprow { position:sticky; top:0; z-index:40; display:flex; align-items:center; gap:14px; min-height:44px; padding:0 14px; background:#fff; border-bottom:1px solid #dce5e3; color:#213235; font:11px -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; }
+body.leitstand-view>.toprow { backdrop-filter:none; -webkit-backdrop-filter:none; position:sticky; top:0; z-index:40; display:flex; align-items:center; gap:14px; min-height:44px; padding:0 14px; background:#fff; border-bottom:1px solid #dce5e3; color:#213235; font:11px -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; }
 body.leitstand-view .toprow_sep { display:none; }
 body.leitstand-view .toprow>.toprow_link:first-child { display:inline-flex; align-items:center; gap:9px; flex-shrink:0; font-size:17px; font-weight:700; color:#213235; white-space:nowrap; }
 .leitstand-header .board-brand-mark { display:inline-flex; width:29px; height:29px; padding:3.5px; box-sizing:border-box; border-radius:7px; background:#175a50; color:#fff; flex-shrink:0; }
@@ -1228,7 +1246,7 @@ body.leitstand-view .has-stacked-navigation .leitstand-nav { grid-column:1 / -1;
 /* Match the proportions of the desktop board without browser-wide zoom.
    Small touch screens retain their dedicated responsive layout. */
 @media (min-width: 1100px) and (max-width: 1600px) {
-  body.leitstand-view:has(.leitstand[data-density="compact"]) { zoom:0.8; }
+  body.leitstand-view:has(> .main > .leitstand[data-density="compact"]) { zoom:0.8; }
 }
 .board-controls { grid-column: 1; grid-row: 1; min-width: 0; container-type: inline-size; container-name: board-controls; }
 .board-games { grid-column: 1; grid-row: 2; min-width: 0; container-type: inline-size; }
@@ -1369,3 +1387,9 @@ body.leitstand-view .has-stacked-navigation .leitstand-nav { grid-column:1 / -1;
 
 .leitstand .ls-history-overflow { display:none!important; }
 .leitstand .ls-history-pages { display:flex; flex-wrap:wrap; gap:8px; align-items:center; padding:12px 0; }
+
+/* Reuse each table's painted content when neighbouring lists move or change.
+   Controls and side cards retain their independent painting areas as well. */
+@media screen {
+  .leitstand :is(.board-games,.board-controls,.board-sidebar,.table-wrap) { will-change:transform; }
+}

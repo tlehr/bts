@@ -1,0 +1,273 @@
+{
+  "date": "2026-11-13",
+  "verified_at": "2026-11-13T02:29:02.981181+00:00",
+  "status": "passed",
+  "purpose": "Capture the actual background functions, native layout stalls and transport stages behind slow score updates in the next ordinary test export.",
+  "activation": "Restart BTS and bts-testclient, then run the usual browser benchmark. The measurement browser automatically enables diagnosis before navigation. Ordinary user pages and BUP devices do not enable it.",
+  "implemented": [
+    "An opt-in bounded page recorder retains each synchronous named UI-job/handler slice, unique job identity and owning game/update trace IDs. It also captures foreign work before a later score.",
+    "Native long tasks, long animation frames with source attribution/forced style-layout duration, and a 100ms heartbeat expose work outside the named handlers. Each long frame retains its 16 longest script entries and reports omissions.",
+    "The measured Chrome samples CPU at 2ms and rotates profiles every 15 seconds. Only three recent raw profiles remain; bounded per-outlier function summaries with source locations survive the entire run.",
+    "A separate control socket retains the earliest score receipt; per-point report rows link to an outlier window and preserve that control timestamp separately from the actual presentation timestamp.",
+    "Server output spans carry the exact connection identity. A separate score send_flush span records completion of the socket write, which is not claimed as browser delivery. Reconnect epochs are retained.",
+    "Score updates echo the diagnostic trace ID only when supplied by a test sender. Loaded versioned asset addresses identify the actual browser sources.",
+    "Non-score receipt transport projects metadata instead of deep-copying whole game/status payloads into DevTools. No CDP Network/WebSocket-payload tracing is enabled.",
+    "Shared UI jobs have unique IDs; completed observations are counted once under unique_ui_jobs. Existing ui_jobs explicitly remain receipt associations. Pending superseded observations do not consume the unique completed-job count.",
+    "Standalone older CPU diagnostic helpers disable the automatic profiler so they cannot race it."
+  ],
+  "report_paths": {
+    "windows": "reception.admin[].blocking_diagnostics.windows[]",
+    "summary": "windows[].summary",
+    "point_link": "point_receptions[].admin_blocking_window_id",
+    "independent_receipt": "point_receptions[].admin_control_received_ts",
+    "socket_link": "windows[].summary.connection_id -> server_performance.traces[].spans[].connection_id",
+    "work_slices": "windows[].browser.segments",
+    "native_layout": "windows[].browser.frames[].scripts[].forced_style_layout_ms",
+    "cpu_during_delay": "windows[].cpu_focus",
+    "cpu_with_history": "windows[].cpu",
+    "actual_loaded_sources": "reception.admin[].blocking_diagnostics.page.assets"
+  },
+  "limits": {
+    "capture_trigger_browser_ms": 80,
+    "capture_trigger_control_to_browser_ms": 35,
+    "history_before_ms": 750,
+    "history_after_ms": 100,
+    "windows_per_run": 120,
+    "page_slices": 4096,
+    "longtasks": 256,
+    "long_frames": 256,
+    "event_loop_delay_records": 256,
+    "long_frame_scripts": 16,
+    "raw_cpu_chunks": 3,
+    "raw_cpu_chunk_period_ms": 15000,
+    "sample_interval_us": 2000,
+    "note": "The first 120 outlier windows are retained, not silently replaced by the last ones. Over-capacity windows, overwritten page records, CPU coverage gaps and capture errors are exported."
+  },
+  "validation": {
+    "selected_server_observer_and_export_tests": 119,
+    "score_pipeline_and_real_asset_router_tests": 51,
+    "complete_testclient_suite": 70,
+    "native_diagnostic_browser_checks": 14,
+    "normal_full_browser_checks": 299,
+    "strict_per_game_dom_cases": 27,
+    "full_browser_exceptions": [],
+    "full_browser_console_errors": [],
+    "full_browser_failed_assets": [],
+    "redundant_dom_writes": 0,
+    "foreign_row_mutations": 0,
+    "targeted_new_code_lint": "passed",
+    "diff_check": "passed"
+  },
+  "native_fixture_proof": {
+    "method": "Actual Chrome CPU profiler, actual page code and PerformanceObservers; synthetic tournament, simulated identity response. No live BTS/BTP access.",
+    "assertions": [
+      "The real page enables the flight recorder and exposes versioned asset paths",
+      "The measured page has its own server connection identity",
+      "The native point still completes its normal two-frame presentation receipt",
+      "Independent receipt timing triggers a named outlier window",
+      "The complete outlier window survives JSON export",
+      "The earlier unrelated task is present even though it is not the point’s dependency",
+      "The point handler is tied to the exact game and trace identifier",
+      "The CPU samples identify the deliberately blocking function and its source",
+      "Rotating the profiler retains the outlier across recording chunks",
+      "The report summary names the overlapping background job and sampled function",
+      "Native long tasks or long animation frames identify the actual stall",
+      "The diagnostic run retains existing game rows",
+      "No full WebSocket payload tracing is enabled",
+      "Diagnostic capture introduces no browser exceptions"
+    ],
+    "foreign_work": [
+      {
+        "id": 13,
+        "name": "job:fixture.foreign.layout",
+        "start_ms": 1345.8,
+        "job_id": 2,
+        "updates": [],
+        "end_ms": 1455.8,
+        "duration_ms": 110
+      }
+    ],
+    "outlier_summary": {
+      "connection_id": "isolated-browser",
+      "control_to_browser_callback_ms": 112,
+      "browser_callback_to_presentation_ms": 9,
+      "recorded_work": [
+        {
+          "id": 13,
+          "name": "job:fixture.foreign.layout",
+          "start_ms": 1345.8,
+          "job_id": 2,
+          "updates": [],
+          "end_ms": 1455.8,
+          "duration_ms": 110,
+          "overlap_ms": 110
+        },
+        {
+          "id": 14,
+          "name": "handler:score",
+          "start_ms": 1456.2,
+          "updates": [
+            {
+              "sequence": 1,
+              "type": "score",
+              "match_id": "match-44",
+              "trace_id": "isolated-blocking-point"
+            }
+          ],
+          "end_ms": 1459.2,
+          "duration_ms": 3,
+          "overlap_ms": 3
+        }
+      ],
+      "cpu_functions": [
+        {
+          "node_id": 8,
+          "function": "blockingFixtureWork",
+          "source": "bts-blocking-fixture.js",
+          "line": 3,
+          "column": 58,
+          "sampled_ms": 74.83
+        },
+        {
+          "node_id": 9,
+          "function": "now",
+          "source": "",
+          "line": -1,
+          "column": -1,
+          "sampled_ms": 29.11
+        },
+        {
+          "node_id": 7,
+          "function": "(anonymous)",
+          "source": "bts-blocking-fixture.js",
+          "line": 4,
+          "column": 89,
+          "sampled_ms": 4.16
+        },
+        {
+          "node_id": 10,
+          "function": "end",
+          "source": "http://127.0.0.1:38573/static/js/ui_blocking_diagnostics.js?bts_asset=6a7c5b3ffdf1165531534855",
+          "line": 72,
+          "column": 13,
+          "sampled_ms": 2.07
+        },
+        {
+          "node_id": 17,
+          "function": "default_handler_func",
+          "source": "http://127.0.0.1:38573/static/js/change.js?bts_asset=6387eb29a9fe0a4eb1e02d16",
+          "line": 326,
+          "column": 30,
+          "sampled_ms": 2.07
+        },
+        {
+          "node_id": 4,
+          "function": "(anonymous)",
+          "source": "",
+          "line": -1,
+          "column": -1,
+          "sampled_ms": 1.41
+        }
+      ]
+    },
+    "native_observers": [
+      "longtasks",
+      "frames"
+    ],
+    "clock": {
+      "offset_ms": 1792401171691.294,
+      "uncertainty_ms": 2
+    },
+    "profile_rotations": 2,
+    "cpu_coverage": {
+      "missing_before_ms": 0,
+      "missing_after_ms": 0,
+      "between_chunks_gap_ms": 6.655029296875
+    },
+    "errors": [],
+    "game_rows_retained": true
+  },
+  "limitations": [
+    "Diagnostic sampling and serialization perturb the measured run. These results prove capture functionality, not improved latency or permanent compliance with the 100/150/50ms goals.",
+    "CPU times are sampled estimates; inclusive rankings overlap. Profile gaps, calibration uncertainty and unavailable native observer types must be inspected.",
+    "A control socket is a separate recipient; its timestamp is not the physical receipt time of the browser connection. Server connection IDs and send_flush spans make this distinction explicit.",
+    "Pure upstream delays can still require server traces: page captures trigger on browser work/control-gap thresholds, not every possible tablet-to-display latency.",
+    "No real tournament or external BTP was started, reset or modified during these validations. No full legacy-repository lint claim."
+  ],
+  "sources": [
+    {
+      "file": "static/js/ui_blocking_diagnostics.js",
+      "sha256": "6a7c5b3ffdf11655315348552ff1c6463eac1edd8f17d28c142e2fc311b9f65a"
+    },
+    {
+      "file": "static/js/admin_update_observer.js",
+      "sha256": "ce04ee6c7219c29d53693ec013d70a9c3e37a61b4da1a266aa4aac512abdfefa"
+    },
+    {
+      "file": "static/js/conn.js",
+      "sha256": "23733591909e321a8c4f7d8785d7a1aaedd64cbb7521ae5cddde76a7baf0b666"
+    },
+    {
+      "file": "static/cbts.html",
+      "sha256": "67ef18a0732e83f9a6f152dcac7d37270e983776d59ee50143ebe9ae289a65d6"
+    },
+    {
+      "file": "bts/admin_response/outbox.js",
+      "sha256": "f06adc81b7f4f06beffbef32263b1e1cf480dd141b001f58fe143978b2c81c05"
+    },
+    {
+      "file": "bts/performance/traces.js",
+      "sha256": "0247f64ecad2fcd62df016f00ac0646aa992b3c5a7f639021453250a1a144f2b"
+    },
+    {
+      "file": "bts/admin.js",
+      "sha256": "bb17f86bbf838533e6417d2496530ff1acfa60d61376ae5da9d4d84e4f528a0a"
+    },
+    {
+      "file": "bts/bupws_v2.js",
+      "sha256": "66ddfdd58bbc0c0301df0035c193a10937e0e67f52fbb1fe14bd631186eaea5a"
+    },
+    {
+      "file": "debug/background_latency_control.js",
+      "sha256": "c58f65bb4c69c5f96ed028118350878fbfb6c8b4daeb4288a39d18f22073ce10"
+    },
+    {
+      "file": "debug/background_latency_probe.js",
+      "sha256": "56e52b479630f43935e13d464e2aa015d4db109c7ac554b97da70d4fb3e63cde"
+    },
+    {
+      "file": "test/test_ui_blocking_diagnostics.js",
+      "sha256": "a82946984639c788b390f31d7fbc0575f44b2a96a89cfb28b1f36190875af800"
+    },
+    {
+      "file": "test/test_blocking_capture.js",
+      "sha256": "11732d3af65cd1a8430adad551e651b853f75fa98b1cc7b15e1b36bf0838ff38"
+    },
+    {
+      "file": "docs/entwuerfe/admin-ui/umsetzung/blocking-diagnostics-check.js",
+      "sha256": "6488f0ab78f35a2bab9d2b8914580fc6634be3bec503d0e34655b51b61f82140"
+    },
+    {
+      "file": "/home/tim/repos/bts-testclient/src/reception/blocking_capture.js",
+      "sha256": "a3d8e9843f2a38fc5ef18df9b0f086814074dbb8e1beb7b15e3a03421389847b"
+    },
+    {
+      "file": "/home/tim/repos/bts-testclient/src/reception/browser_admin.js",
+      "sha256": "dd2e516b2d0504c397833fbdff4de19d0e2899f19a53557e5e9af0c7cca76cca"
+    },
+    {
+      "file": "/home/tim/repos/bts-testclient/src/live_tournament_drill.js",
+      "sha256": "ea315a6ded2f08e279ea597ae0333f366094fb57a4117b9ee36052ceda2cb94e"
+    },
+    {
+      "file": "/home/tim/repos/bts-testclient/test/test_blocking_capture.js",
+      "sha256": "03a6c2bc492c4b1d50560878f4e6cf12120799ec8eae62d239ef8534a1a98539"
+    }
+  ],
+  "raw_artifacts": "/tmp/bts-blocking-20261113",
+  "repeat": {
+    "browser": "BTS_PREVIEWS_DIR=/tmp/blocking-check node docs/entwuerfe/admin-ui/umsetzung/browser-check.js --ui-blocking-diagnostics-only",
+    "without_capture": "BTS_BROWSER_DIAGNOSTICS=0 npm start (in bts-testclient)",
+    "without_cpu_sampling": "BTS_BROWSER_CPU_DIAGNOSTICS=0 npm start (in bts-testclient)"
+  }
+}

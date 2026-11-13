@@ -39,6 +39,32 @@ describe('processing traces and flow evidence', function() {
 		assert.strictEqual(captured.spans[0].status, 'running');
 		assert.strictEqual(completed().find(row => row.name === 'detached_export').spans[0].status, 'ok');
 	});
+	it('exports the exact rolling percentile and all aggregate fields after sample eviction', async function() {
+		traces.enable();
+		for (let index = 0; index < 270; index++) await traces.operation('distribution_export', {type:'point'}, async () => {
+			const span = traces.begin('distribution_sample', 'phase');
+			traces.phase('distribution_value', Date.now(), index % 67);
+			traces.end(span, index === 269 ? new Error('recorded sample failure') : null);
+		});
+		const first = traces.snapshot(0), exported = first.completed;
+		while (first.remaining) {
+			const next = traces.snapshot(first.cursor);exported.push(...next.completed);
+			first.cursor = next.cursor;first.remaining = next.remaining;
+		}
+		const values = exported.filter(row => row.name === 'distribution_export')
+			.flatMap(row => row.spans.filter(span => span.name === 'distribution_value').map(span => span.duration_ms));
+		assert.strictEqual(values.length,270);
+		const stage = first.stages.find(row => row.name === 'distribution_value');
+		const recent = values.slice(-256).sort((a,b) => a-b);
+		assert.strictEqual(stage.p95,recent[Math.ceil(recent.length*.95)-1]);
+		assert.strictEqual(stage.percentile_samples,256);assert.strictEqual(stage.count,270);
+		assert.strictEqual(stage.min,Math.min(...values));assert.strictEqual(stage.max,Math.max(...values));
+		assert.strictEqual(stage.last,values.at(-1));assert.strictEqual(stage.skipped,0);
+		assert.strictEqual(stage.mean,Math.round(values.reduce((sum,value) => sum+value,0)/values.length*10)/10);
+		assert.strictEqual(first.stages.find(row => row.name === 'distribution_sample').failed,1);
+		assert.deepStrictEqual(Object.keys(stage).sort(),['key','type','name','kind','grouped','count','failed','min','max','last','skipped','mean','p95','percentile_samples'].sort());
+		assert.deepStrictEqual(traces.snapshot().stages.find(row => row.name === stage.name),stage);
+	});
 
 	it('retains bounded refresh timings and operation counts without snapshot contents', async function() {
 		traces.enable();
@@ -197,7 +223,7 @@ describe('processing traces and flow evidence', function() {
 		assert.strictEqual(phase.execution, 'worker'); assert.deepStrictEqual(phase.held_locks, []); assert(phase.parent_id);
 	});
 	it('records reserved admin output after its handler finishes, preserving message order and trace identity', async function() {
-		traces.enable(); const ws = new EventEmitter(), messages = []; ws.readyState = 1; ws.send = bytes => messages.push(JSON.parse(bytes));
+		traces.enable(); const ws = new EventEmitter(), messages = []; ws.readyState = 1; ws.send = (bytes,_options,callback) => {messages.push(JSON.parse(bytes));callback?.();};
 		const output = outbox(ws); let reservation;
 		await traces.operation('overview', { type: 'other' }, async () => { reservation = output.reserve(); });
 		await traces.operation('point_event', { type: 'point' }, async () => { output.send({ type: 'change', ctype: 'score', value: 2 }); });

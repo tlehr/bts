@@ -7,8 +7,9 @@ const {spawn} = require('child_process');
 const WebSocket = require('ws');
 const assert = require('assert');
 const root=path.resolve(__dirname,'../../../..');
-const previews=__dirname;
+const previews=process.env.BTS_PREVIEWS_DIR?path.resolve(process.env.BTS_PREVIEWS_DIR):__dirname;
 fs.mkdirSync(previews,{recursive:true});
+if(process.env.BTS_LAYOUT_DIAGNOSTICS==='1')fs.rmSync(path.join(previews,'layout-failure.json'),{force:true});
 const delay=ms=>new Promise(r=>setTimeout(r,ms));
 async function until(fn,ms=10000) { const start=Date.now(); do { const value=await fn();if(value)return value;await delay(60); }while(Date.now()-start<ms);throw new Error('Timed out'); }
 class CDP {
@@ -26,11 +27,25 @@ class CDP {
    await new Promise((resolve,reject)=>advertisementUploadApp.db.tournaments.insert({key:'preview'},error=>error?reject(error):resolve()));
    require('../../../../bts/advertisement_assets').create({directory:advertisementDirectory}).register(advertisementUploadApp);
   }
+  const statusBenchmark=process.argv.includes('--call-status-benchmark-only');
+  const assetCache=!statusBenchmark&&process.env.BTS_STARTUP_VERSIONED!=='0'?require('../../../../bts/admin_asset_cache')(root):null;
   server=http.createServer((req,res)=>{
+   if(assetCache&&req.url.includes('bts_asset=')){assetCache.serve(req,res,error=>{res.writeHead(error?500:404);res.end();});return;}
+
    const url=new URL(req.url,'http://localhost');
    if(advertisementUploadApp&&(/^\/h\/preview\/advertisements\/(upload|library(?:\/select)?)$/.test(url.pathname)||url.pathname.startsWith('/media/advertisements/'))) return advertisementUploadApp(req,res);
    let filename=path.resolve(root,'.'+decodeURIComponent(url.pathname));
+   if(process.env.BTS_STARTUP_NETWORK==='1'&&url.pathname==='/__startup-snapshot.json') {res.writeHead(200,{'Content-Type':'application/json','Cache-Control':'no-store'});fs.createReadStream(process.env.BTS_STARTUP_SNAPSHOT).pipe(res);return;}
+   if(process.env.BTS_STARTUP_NETWORK==='1'&&url.pathname==='/__startup-fixture.js') {
+    const instrument=require('./startup-check').instrumentation;let fixture=fs.readFileSync(path.join(__dirname,'fixture.js'),'utf8');
+    fixture=fixture.replace("setTimeout(()=>callback?.(null,{tournament:structuredClone(fixture)}),0)", "fetch('/__startup-snapshot.json',{cache:'no-store'}).then(response=>response.json()).then(data=>callback?.(null,{tournament:__startup.make(data)}))");
+    res.writeHead(200,{'Content-Type':'text/javascript','Cache-Control':'no-store'});res.end('('+instrument.toString()+')();'+fixture);return;
+   }
    if(url.pathname==='/favicon.ico'){res.writeHead(204);res.end();return;}
+   if(statusBenchmark&&process.env.BTS_CALL_STATUS_BASELINE==='1'&&url.pathname==='/static/js/ctournament.js') {
+    res.writeHead(200,{'Content-Type':'text/javascript; charset=utf-8','Cache-Control':'no-store'});
+    res.end(require('./call-status-benchmark').baselineSource(fs.readFileSync(path.join(root,'static/js/ctournament.js'),'utf8')));return;
+   }
    // BTS generates these entry pages at runtime. Settings form tests do not
    // exercise the separate BUP application embedded in its preview frames.
    if(['/bup/','/bupdev/'].includes(url.pathname)) {
@@ -54,8 +69,11 @@ class CDP {
      .replace('</html>','<script src="/static/js/speech_health.js"></script><script src="/static/js/speech_planning_games.js"></script><script src="/static/js/speech_planning.js"></script></html>');
     res.writeHead(200,{'Content-Type':'text/html; charset=utf-8'});res.end(html);return;
    }
-   if(url.pathname.startsWith('/admin/t/preview')) {
-    const html=fs.readFileSync(path.join(root,'static/cbts.html'),'utf8').replaceAll('{{static_path}}','/static/').replaceAll('{{root_path}}','/').replaceAll('{{app_root}}','/admin/').replaceAll('{{error_reporting}}','false').replace(/<script src="[^"]*cadmin.js"><\/script>/,'');
+   if(url.pathname.startsWith('/admin/t/preview')||(process.env.BTS_STARTUP_NETWORK==='1'&&url.pathname.startsWith('/admin/t/'))) {
+    let html=fs.readFileSync(path.join(root,'static/cbts.html'),'utf8').replaceAll('{{static_path}}','/static/').replaceAll('{{root_path}}','/').replaceAll('{{app_root}}','/admin/').replaceAll('{{error_reporting}}','false').replace(/<script src="[^"]*cadmin.js"><\/script>/,'');
+
+    if(process.env.BTS_STARTUP_NETWORK==='1')html=html.replace('</body>','<script src="/__startup-fixture.js"></script></body>');
+    if(assetCache){assetCache.decorate(html).then(value=>{res.writeHead(200,{'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store'});res.end(value);}).catch(error=>{res.writeHead(500);res.end(error.message);});return;}
     res.writeHead(200,{'Content-Type':'text/html; charset=utf-8'});res.end(html);return;
    }
    if(!filename.startsWith(root+path.sep)){res.writeHead(403);res.end();return;}
@@ -86,11 +104,15 @@ class CDP {
    await c.call('Profiler.enable');await c.call('Profiler.setSamplingInterval',{interval:1000});await c.call('Profiler.start');profiling=true;
   }
   const metrics=async(width,height=1050)=>c.call('Emulation.setDeviceMetricsOverride',{width,height,deviceScaleFactor:1,mobile:false});
-  async function open(width=1920,height=940){
-   await metrics(width,height);await c.call('Page.navigate',{url:base.replace('/static/mockups/admin/','/admin/t/preview/')});
-   await until(()=>c.evaluate(`document.readyState==='complete'&&typeof ctournament!=='undefined'`));await delay(100);
-   await c.evaluate(fs.readFileSync(path.join(__dirname,'fixture.js'),'utf8'));
-   await until(()=>c.evaluate(`!!document.querySelector('.leitstand .ls-match')`));await c.evaluate('document.fonts.ready');await delay(150);
+  async function open(width=1920,height=940,options={}){
+   await metrics(width,height);const pageMarker=String(Date.now())+Math.random();await c.evaluate('window.__harnessPageMarker='+JSON.stringify(pageMarker));
+   if(options.reload)await c.call('Page.reload',{ignoreCache:false});else await c.call('Page.navigate',{url:base.replace('/static/mockups/admin/','/admin/t/preview/')});
+   try{await until(()=>c.evaluate(`window.__harnessPageMarker!==${JSON.stringify(pageMarker)}&&document.readyState==='complete'&&typeof ctournament!=='undefined'`));}catch(error){console.log(JSON.stringify(c.events.filter(event=>event.method==='Runtime.exceptionThrown'),null,2));throw error;}await delay(options.startup?0:100);
+   if(process.env.BTS_STARTUP_NETWORK==='1'){await until(()=>c.evaluate('!!window.__startup?.ready'));await c.evaluate('__startup.ready');return;}
+   if(options.beforeFixture)await options.beforeFixture();
+   let fixture=fs.readFileSync(path.join(__dirname,'fixture.js'),'utf8');if(options.transformFixture)fixture=options.transformFixture(fixture);
+   await c.evaluate(fixture);
+   await until(()=>c.evaluate(`!!document.querySelector('.leitstand .ls-match')`));await c.evaluate('document.fonts.ready');await delay(options.startup?0:150);
   }
   async function snap(name,full=false,{preserveScroll=false}={}){
    await c.evaluate((preserveScroll ? '' : 'window.scrollTo(0,0);') + "document.querySelectorAll('.board-toast').forEach(node=>node.hidden=true);");
@@ -103,9 +125,18 @@ class CDP {
 
 
   report.checks=[];
+  if(process.argv.includes('--style-invalidation-only')) {await require('./style-invalidation-check')({c,open,previews});return;}
+  if(process.argv.includes('--visible-timers-only')) {await require('./visible-timers-check')({c,open});return;}
   // Geometry assertions must follow deferred layout/ResizeObserver work. Faster
   // cache hits must not make a check race the frame that updates column widths.
-  const check=async(name,expression)=>{const value=await c.evaluate(`(async()=>{await new Promise((resolve,reject)=>{let stable=0,done=false;const timeout=setTimeout(()=>{done=true;reject(new Error('UI layout did not settle'));},4000);const frame=()=>{if(done)return;stable=window.cleitstand?.isUpdating()||window.ctournament?.isUpdating()?0:stable+1;if(stable===3){done=true;clearTimeout(timeout);resolve();}else requestAnimationFrame(frame);};requestAnimationFrame(frame);});return (${expression});})()`);assert(value,name);report.checks.push(name);console.log('OK '+name);};
+  const check=async(name,expression)=>{const value=await c.evaluate(`(async()=>{await new Promise((resolve,reject)=>{let stable=0,done=false;const timeout=setTimeout(()=>{done=true;reject(new Error('UI layout did not settle'));},4000);const frame=()=>{if(done)return;stable=window.cleitstand?.isUpdating()||window.ctournament?.isUpdating()?0:stable+1;if(stable===3){done=true;clearTimeout(timeout);resolve();}else requestAnimationFrame(frame);};requestAnimationFrame(frame);});return (${expression});})()`);if(!value&&process.env.BTS_LAYOUT_DIAGNOSTICS==='1') {
+    const details=await c.evaluate(`(()=>{
+      const box=node=>node?.getBoundingClientRect().toJSON(),style=node=>node?Object.fromEntries(['fontSize','lineHeight','width','maxWidth','paddingLeft','paddingRight','overflow','zoom'].map(key=>[key,getComputedStyle(node)[key]])):null;
+      const row=document.querySelector('.unassigned_container tr[data-match_id="match-49"]'),cell=row?.querySelector('.court_number'),badge=cell?.querySelector('.preparation_call_deferred_badge'),range=document.createRange();if(badge)range.selectNodeContents(badge);
+      return{compact:window.__compactQA?.geometry(),viewport:[innerWidth,innerHeight],density:document.querySelector('.leitstand')?.dataset.density,names:window.__officialNamesQA?.geometry(),before:window.__officialsBefore,column:box(document.querySelector('.ls-officials-column')),plannedColumns:[...document.querySelectorAll('.ls-planned-table col')].map(node=>({class:node.className,inline:node.style.cssText,box:box(node),style:style(node)})),deferred:{row:box(row),cell:box(cell),badge:box(badge),text:badge?range.getBoundingClientRect().toJSON():null,cellStyle:style(cell),badgeStyle:style(badge)}};
+    })()`);
+    fs.writeFileSync(path.join(previews,'layout-failure.json'),JSON.stringify({name,details},null,2)+'\n');console.log(JSON.stringify({name,diagnostics:path.join(previews,'layout-failure.json')}));
+   }assert(value,name);report.checks.push(name);console.log('OK '+name);};
   const timerFits=`node=>{if(!node)return false;const range=document.createRange();return [...node.querySelector('.timer-value').children].every(part=>{if(!part.textContent)return true;range.selectNodeContents(part);const glyphs=range.getBoundingClientRect(),slot=part.getBoundingClientRect();return glyphs.left>=slot.left-.25&&glyphs.right<=slot.right+.25})}`;
   const timerInkGap=`node=>{const context=document.createElement('canvas').getContext('2d'),range=document.createRange();const ink=part=>{const style=getComputedStyle(part);context.font=[style.fontStyle,style.fontWeight,style.fontSize,style.fontFamily].join(' ');const text=context.measureText(part.textContent);range.selectNodeContents(part);const left=range.getBoundingClientRect().left;return{left:left-text.actualBoundingBoxLeft,right:left+text.actualBoundingBoxRight}};return ink(node.querySelector('.timer-digits')).left-ink(node.querySelector('.timer-sign')).right}`;
   const click=async(selector)=>c.evaluate(`document.querySelector(${JSON.stringify(selector)}).click()`);
@@ -138,8 +169,47 @@ class CDP {
    await c.call('Input.setInterceptDrags',{enabled:false});
   }
 
+  if(process.argv.includes('--ui-blocking-diagnostics-only')) {await require('./blocking-diagnostics-check')({c,open,previews});return;}
+  if(process.argv.includes('--name-metrics-cache-only')) {await require('./name-metrics-cache-check')({c,open,metrics,previews});return;}
+  if(process.argv.includes('--list-visibility-only')) {await require('./list-visibility-check')({c,open,metrics,previews});return;}
+  if(process.argv.includes('--libraries-only')) {await require('./libraries-check')({c,open,previews});return;}
+  if(process.argv.includes('--initial-layout-only')) {await require('./initial-layout-check')({c,open,metrics,previews});return;}
+  if(process.argv.includes('--date-refresh-scope-only')) {await require('./date-refresh-scope-check')({c,open});return;}
+  if(process.argv.includes('--shared-ui-yield-only')) {await require('./shared-ui-yield-check')({c,open,previews});return;}
+  if(process.argv.includes('--timer-jobs-only')) {await require('./timer-jobs-check')({c,open,previews});return;}
+  if(process.argv.includes('--speech-readiness-visibility-only')) {await require('./speech-readiness-visibility-check')({c,open,previews});return;}
+  if(process.argv.includes('--event-updates-only')) {await require('./event-updates-check')({c,open,metrics,previews});return;}
+  if(process.argv.includes('--boundary-layout-cache-only')) {await require('./boundary-layout-cache-check')({c,open,metrics,previews});return;}
+  if(process.argv.includes('--preparation-refresh-only')) {await require('./preparation-refresh-check')({c,open,previews});return;}
+  if(process.argv.includes('--shared-call-status-only')) {await require('./shared-call-status-check')({c,open});return;}
+  if(process.argv.includes('--call-status-content-only')) {await require('./call-status-content-check')({c,open});return;}
+  if(process.argv.includes('--call-status-benchmark-only')) {await require('./call-status-benchmark')({c,open});return;}
+  if(process.argv.includes('--dom-game-scope-only')) {await require('./dom-game-scope-check')({c,open});return;}
+  if(process.argv.includes('--player-index-only')) {await require('./player-index-check')({c,open,previews});return;}
+  if(process.argv.includes('--planned-sort-only')) {await require('./planned-sort-check')({c,open,previews});return;}
+  if(process.argv.includes('--preparation-parts-only')) {await require('./preparation-parts-check')({c,open,previews});return;}
+  if(process.argv.includes('--tablet-update-scope-only')) {await require('./tablet-update-scope-check')({c,open,previews});return;}
+  if(process.argv.includes('--name-visibility-only')) {await require('./name-visibility-check')({c,open,previews});return;}
+  if(process.argv.includes('--name-cache-retention-only')) {await require('./name-cache-retention-check')({c,open,previews});return;}
+  if(process.argv.includes('--planned-layout-only')) {await require('./planned-layout-check')({c,open,previews});return;}
+  if(process.argv.includes('--dom-updates-only')) {await require('./dom-updates-check')({c,open});return;}
+  if(process.argv.includes('--dom-retention-only')) {await require('./dom-retention-check')({c,open,metrics});return;}
+  if(process.argv.includes('--finished-resource-status-only')) {await require('./finished-resource-status-check')({c,open,previews});return;}
+  if(process.argv.includes('--rotation-interactions-only')) {await require('./rotation-interactions-check')({c,open,check,nativeDrag,delay,arrangement,rotationColumnsFit});return;}
+  if(process.argv.includes('--rotation-dom-scope-only')) {await require('./rotation-dom-scope-check')({c,open});return;}
+  if(process.argv.includes('--tablet-queue-live-only')) {await require('./tablet-queue-live-check')({c,open,metrics,previews});return;}
+  if(process.argv.includes('--point-updates-only')) {await require('./point-updates-check')({c,open,previews});return;}
+  if(process.argv.includes('--resize-observer-only')) {await require('./resize-observer-check')({c,open,metrics,previews});return;}
+  if(process.argv.includes('--startup-only')) {await require('./startup-check')({c,open,previews});return;}
   if(process.argv.includes('--history-pages-only')) {await require('./history-pages-check')({c,open,previews});return;}
+  if(process.argv.includes('--date-header-retention-only')) {await require('./date-header-retention-check')({c,open,previews});return;}
+  if(process.argv.includes('--announcement-scroll-only')) {await require('./announcement-scroll-check')({c,open,previews});return;}
   if(process.argv.includes('--fixed-columns-only')) {await require('./fixed-columns-check')({c,open,previews});return;}
+  if(process.argv.includes('--name-measurement-batch-only')) {await require('./name-measurement-batch-check')({c,open,metrics,previews});return;}
+  if(process.argv.includes('--compact-finish-only')) {await require('./compact-finish-check')({c,open,previews});return;}
+  if(process.argv.includes('--finished-pair-size-only')) {await require('./finished-pair-size-check')({c,open,metrics,previews});return;}
+  if(process.argv.includes('--historical-court-queue-only')) {await require('./historical-court-queue-check')({c,open,previews});return;}
+  if(process.argv.includes('--finished-metadata-cache-only')) {await require('./finished-metadata-cache-check')({c,open,previews});return;}
   if(process.argv.includes('--completion-only')) {await require('./completion-check')({c,open,previews});return;}
   if(process.argv.includes('--officials-invalidation-only')) {
    await require('./officials-invalidation-check')({c,open,previews});return;
@@ -153,6 +223,8 @@ class CDP {
   if(process.argv.includes('--sync-burst-only')) {
    await require('./sync-burst-check')({c,open,previews});return;
   }
+  if(process.argv.includes('--header-status-layout-only')) {await open(1920,940);await require('./header-status-layout-check')({c,check,click,delay,previews});return;}
+  if(process.argv.includes('--layout-hidden-only')) {await open(1920,940);await require('./layout-hidden-check')({c,check,click,open,metrics,key,nativeDrag,delay,previews});return;}
   if(process.argv.includes('--service-status-only')) {
    await require('./service-status-check')({c,open,check});return;
   }
@@ -384,19 +456,19 @@ class CDP {
 
   await open();
   await check('Echte Turnierleitung zeigt alle 13 Felder und sieben Kacheln mit eigenständiger Rotation',`document.querySelectorAll('.courts_container .court_row').length===13&&document.querySelectorAll('.control-card').length===7&&!!document.querySelector('[data-board-card="logs"]>.errors_scroll_left')&&!document.querySelector('.board-games .errors_scroll_left')&&!!document.querySelector('[data-board-card="rotation"]>.umpire_container')&&!document.querySelector('[data-board-card="operators"] .umpire_container')&&!document.querySelector('.staff-list')`);
-  await c.evaluate(`(()=>{window.__officialsOriginal=structuredClone(curt.matches.filter(match=>cmatch.calc_section(match)==='unassigned'));const person=(firstname,lastname,id)=>({firstname,lastname,surname:lastname,name:firstname+' '+lastname,btp_id:id,checked_in:true,check_in_per_match:true});for(const match of curt.matches.filter(match=>cmatch.calc_section(match)==='unassigned')){match.setup.tabletoperators=[];delete match.setup.umpire;delete match.setup.service_judge;}curt.matches.find(match=>match._id==='match-47').setup.umpire=person('Hans','Heinrich',90001);Object.assign(curt.matches.find(match=>match._id==='match-49').setup,{umpire:person('Anton','Anderson',90002),service_judge:person('Bertha','Baller',90003)});curt.matches.find(match=>match._id==='match-45').setup.teams[0].players=[person('Alexander Maximilian','Weber',90010),person('Nina Maria','Hansen',90011)];cmatch.render_unassigned(document.querySelector('.unassigned_container'));cmatch.refresh_unassigned_preparation_context();window.__oldOfficials=document.createElement('style');window.__oldOfficials.textContent='.ls-planned-table{--officials-width:clamp(220px,16cqi,280px)!important}';document.head.append(window.__oldOfficials)})()`);
+  await c.evaluate(`(()=>{window.__officialsOriginal=structuredClone(curt.matches.filter(match=>cmatch.calc_section(match)==='unassigned'));const person=(firstname,lastname,id)=>({firstname,lastname,surname:lastname,name:firstname+' '+lastname,btp_id:id,checked_in:true,check_in_per_match:true});for(const match of curt.matches.filter(match=>cmatch.calc_section(match)==='unassigned')){match.setup.tabletoperators=[];delete match.setup.umpire;delete match.setup.service_judge;}curt.matches.find(match=>match._id==='match-47').setup.umpire=person('Hans','Heinrich',90001);Object.assign(curt.matches.find(match=>match._id==='match-49').setup,{umpire:person('Anton','Anderson',90002),service_judge:person('Bertha','Baller',90003)});curt.matches.find(match=>match._id==='match-45').setup.teams[0].players=[person('Alexander Maximilian','Weber',90010),person('Nina Maria','Hansen',90011)];cmatch.render_unassigned(document.querySelector('.unassigned_container'));cmatch.refresh_unassigned_preparation_context();})()`);
   await metrics(1424,940);await delay(150);
-  await c.evaluate(`window.__officialsBefore={width:document.querySelector('.unassigned_container .umpire_and_tablet').getBoundingClientRect().width,teams:document.querySelector('.unassigned_container .ls-teams').getBoundingClientRect().width,shortened:[...document.querySelectorAll('tr[data-match_id="match-45"] .team-one .player')].some(node=>node.title.includes(node.dataset.lsFullName))};window.__oldOfficials.remove()`);
+  await c.evaluate(`window.__officialsBefore={width:document.querySelector('.unassigned_container .umpire_and_tablet').getBoundingClientRect().width,teams:document.querySelector('.unassigned_container .ls-teams').getBoundingClientRect().width,shortened:[...document.querySelectorAll('tr[data-match_id="match-45"] .team-one .player')].some(node=>node.title.includes(node.dataset.lsFullName))}`);
   await delay(150);
-  await check('Freier Platz neben kurzen Offiziellennamen geht vollständig an zuvor gekürzte Spielernamen',`(()=>{const width=document.querySelector('.unassigned_container .umpire_and_tablet').getBoundingClientRect().width,teams=document.querySelector('.unassigned_container .ls-teams').getBoundingClientRect().width;return window.__officialsBefore.shortened&&width<180&&Math.abs((teams-window.__officialsBefore.teams)-(window.__officialsBefore.width-width))<.2&&[...document.querySelectorAll('tr[data-match_id="match-45"] .team-one .player')].every(node=>node.title===(node.dataset.checkInAction||''))&&!document.querySelector('.ls-officials-measuring')})()`);
+  await check('Kurze Offiziellennamen bleiben innerhalb der festen responsiven Spalten; Spieler nutzen den verbleibenden Platz',`(()=>{const width=document.querySelector('.unassigned_container .umpire_and_tablet').getBoundingClientRect().width,teams=document.querySelector('.unassigned_container .ls-teams').getBoundingClientRect().width;return width>=220&&width<=280.1&&Math.abs(width-window.__officialsBefore.width)<.2&&Math.abs(teams-window.__officialsBefore.teams)<.2&&[...document.querySelectorAll('tr[data-match_id="match-45"] .team-one .player')].every(node=>node.getAttribute('aria-label')===node.dataset.lsFullName)&&!document.querySelector('.ls-officials-measuring')})()`);
   await snap('offizielle-inhalt',true);
   await metrics(1920,940);await delay(120);
   await c.evaluate(`window.__shortOfficialsWidth=document.querySelector('.unassigned_container .umpire_and_tablet').getBoundingClientRect().width;window.__shortOfficialMatch=structuredClone(curt.matches.find(match=>match._id==='match-47'));const changed=structuredClone(window.__shortOfficialMatch);Object.assign(changed.setup.umpire,{firstname:'Alexander Maximilian',lastname:'Keo Boun Khoune',surname:'Keo Boun Khoune',name:'Alexander Maximilian Keo Boun Khoune'});crouting.on_change({ctype:'match_edit',tournament_key:'preview',val:{match__id:changed._id,match:changed}})`);
   await delay(150);
-  await check('Ein längerer Offiziellenname erweitert die Spalte nach einer Live-Änderung nur bis zur bisherigen Obergrenze',`(()=>{const width=document.querySelector('.unassigned_container .umpire_and_tablet').getBoundingClientRect().width;return width>window.__shortOfficialsWidth&&width<=280.1&&document.querySelector('tr[data-match_id="match-47"] .name').getAttribute('aria-label')==='Alexander Maximilian Keo Boun Khoune'})()`);
+  await check('Ein längerer Offiziellenname aktualisiert seine Beschriftung ohne Spalten oder fremde Spielernamen zu verschieben',`(()=>{const width=document.querySelector('.unassigned_container .umpire_and_tablet').getBoundingClientRect().width;return Math.abs(width-window.__shortOfficialsWidth)<.2&&width<=280.1&&document.querySelector('tr[data-match_id="match-47"] .name').getAttribute('aria-label')==='Alexander Maximilian Keo Boun Khoune'})()`);
   await c.evaluate(`crouting.on_change({ctype:'match_edit',tournament_key:'preview',val:{match__id:window.__shortOfficialMatch._id,match:window.__shortOfficialMatch}})`);
   await delay(150);
-  await check('Ein kürzerer Offiziellenname gibt seinen Platz wieder frei und erhält die vorhandenen Check-in-Ziele',`Math.abs(document.querySelector('.unassigned_container .umpire_and_tablet').getBoundingClientRect().width-window.__shortOfficialsWidth)<.1&&document.querySelector('tr[data-match_id="match-47"] .person_status_target').getAttribute('role')==='button'&&!document.querySelector('.ls-officials-measuring')`);
+  await check('Ein kürzerer Offiziellenname erhält Spaltenbreite und vorhandene Check-in-Ziele',`Math.abs(document.querySelector('.unassigned_container .umpire_and_tablet').getBoundingClientRect().width-window.__shortOfficialsWidth)<.1&&document.querySelector('tr[data-match_id="match-47"] .person_status_target').getAttribute('role')==='button'&&!document.querySelector('.ls-officials-measuring')`);
   await c.evaluate(`for(const match of window.__officialsOriginal)crouting.on_change({ctype:'match_edit',tournament_key:'preview',val:{match__id:match._id,match}})`);
   await delay(150);
   const preparationContentFits=`(()=>{const table=document.querySelector('.unassigned_container .ls-planned-table'),heading=table?.querySelector('.ls-preparation-heading');return heading?.colSpan===2&&heading.textContent==='Vorbereitung'&&!table.tHead.textContent.includes('Aktionen')&&[...table.querySelectorAll('tr[data-match_id]')].every(row=>{const score=row.querySelector('td.score').getBoundingClientRect(),calls=row.querySelector('td.call_td').getBoundingClientRect(),info=row.querySelector('.preparation_debug_icon')?.getBoundingClientRect(),timer=row.querySelector('.match_timer .timer')?.getBoundingClientRect(),controls=[...row.querySelectorAll('.match_preparation_call_button,.preparation_debug_icon')].map(node=>node.getBoundingClientRect()).filter(box=>box.width);return calls.width<=80.1&&(!info||Math.abs(calls.right-info.right-8)<.1)&&controls.every((box,index)=>box.left>=score.left+1&&box.right<=calls.right-7.9&&controls.slice(index+1).every(other=>box.right<=other.left||box.left>=other.right))&&(!timer?.width||timer.right<=Math.min(...controls.map(box=>box.left))-1)})})()`;
@@ -414,7 +486,8 @@ class CDP {
   for(const type of ['mousePressed','mouseReleased'])await c.call('Input.dispatchMouseEvent',{type,...hallClick,button:'left',clickCount:1});
   await click('tr[data-match_id="match-45"] .preparation_debug_icon');
   await check('Klick auf das Hallenkürzel sendet den richtigen Vorbereitungsaufruf und Info öffnet weiterhin die Aufrufdetails',`window.__writes.some(message=>message.type==='match_preparation_call'&&message.match._id==='match-45'&&message.location_id==='CH')&&document.querySelector('.leitstand-dialog[open] h2').textContent==='Aufrufstatus · Spiel 45'`);
-  await click('.leitstand-dialog .dialog-heading button');
+  await click('.leitstand-dialog[open] .dialog-heading button');
+  await check('Aufrufdetails schließen den geöffneten Dialog vollständig',`!document.querySelector('.leitstand-dialog[open]')`);
   await c.evaluate(`window.scrollTo(0,0);window.__prepLocations=curt.locations.slice();curt.locations.push({_id:'WE',name:'Westhalle',short_name:'WE'},{_id:'OS',name:'Osthalle',short_name:'OS'});cmatch.refresh_unassigned_preparation_context()`);
   await check('Vier kompakte Hallenaufrufe nutzen den freien Timerplatz ohne Überdeckung',`document.querySelector('tr[data-match_id="match-50"] .ls-preparation-calls').children.length===4&&${preparationContentFits}`);
   await c.evaluate(`curt.locations=window.__prepLocations;cmatch.refresh_unassigned_preparation_context()`);
@@ -424,11 +497,15 @@ class CDP {
   await c.evaluate(`window.__tabletHintPlayers=[...document.querySelectorAll('.unassigned_container .player:has(.ls-resource-hint)')].map(node=>({node,text:[...node.childNodes].find(child=>child.nodeType===3)}));window.__tabletHintWrites=window.__writes.length;for(const {node} of window.__tabletHintPlayers){cleitstand.player(node);cleitstand.player(node)}const ids=new Set(window.__tabletHintPlayers.map(({node})=>node.dataset.match_id));for(const match of curt.matches)if(ids.has(match._id))cmatch.update_players(match)`);
   await check('Live-Statusaktualisierungen erhalten die neuen Tabletsymbole ohne Duplikate, geänderte Namen oder Serveraktionen',`${tabletHintsMatchMockup}&&window.__tabletHintPlayers.length>0&&window.__tabletHintPlayers.every(({node,text})=>node.isConnected&&text.parentNode===node)&&window.__writes.length===window.__tabletHintWrites`);
   const dockShown=`!!document.querySelector('#drag-field-dock')?.getClientRects().length`;
+  // This case requires all courts and its drag source to be on screen. Row
+  // contents can legitimately make the first unassigned game lower than 940px.
+  const dragViewport=await c.evaluate(`Math.max(940,Math.ceil(document.querySelector('tr[data-match_id="match-45"] .match_num').getBoundingClientRect().bottom+scrollY+20))`);
+  await metrics(1920,dragViewport);await c.evaluate('scrollTo(0,0)');
   await nativeDrag('tr[data-match_id="match-45"] .match_num','.courts_container tr[data-court_id="CH_13"] .court_number',{
    scrollSource:false,cancel:true,
    verify:()=>check('Sind alle angezeigten Felder sichtbar, bleibt die zusätzliche Ablageleiste beim echten Spielziehen ausgeblendet',`document.querySelector('#drag-field-dock')?.hidden&&!(${dockShown})`),
   });
-  await c.evaluate(`cleitstand.matchDrag('match-45');const first=document.querySelector('.courts_container .court_row .court_number');window.scrollTo(0,first.getBoundingClientRect().top+scrollY-document.querySelector('.toprow').getBoundingClientRect().bottom+1)`);
+  await c.evaluate(`window.__dockSpacer=document.createElement('div');__dockSpacer.style.height='100vh';document.body.append(__dockSpacer);cleitstand.matchDrag('match-45');const first=document.querySelector('.courts_container .court_row .court_number');window.scrollTo(0,first.getBoundingClientRect().top+scrollY-document.querySelector('.toprow').getBoundingClientRect().bottom+1)`);
   await delay(80);
   await check('Schon eine teilweise unter dem festen Kopf verdeckte Feldzeile blendet die Ablageleiste ein',dockShown);
   await c.evaluate(`window.scrollTo(0,0)`);await delay(80);
@@ -438,7 +515,7 @@ class CDP {
   await check('Eine am unteren Fensterrand abgeschnittene Feldzeile blendet die Ablageleiste wieder ein',dockShown);
   await metrics(1920,940);await delay(80);
   await check('Mehr Fensterhöhe blendet die Zusatzleiste ohne Neustart des Drags wieder aus',`!(${dockShown})`);
-  await c.evaluate(`cleitstand.clearMatchDrag();window.__dockCourts=structuredClone(curt.courts);curt.courts.find(court=>court._id==='CH_13').location_id='SN';cmatch.render_courts(document.querySelector('.courts_container'))`);
+  await c.evaluate(`cleitstand.clearMatchDrag();__dockSpacer.remove();window.__dockCourts=structuredClone(curt.courts);curt.courts.find(court=>court._id==='CH_13').location_id='SN';cmatch.render_courts(document.querySelector('.courts_container'))`);
   await metrics(1920,croppedHeight);
   await click('#show_location_courts_SN');
   await c.evaluate(`cleitstand.matchDrag('match-45')`);
@@ -481,60 +558,7 @@ class CDP {
   await c.evaluate(`crouting.on_change({ctype:'locations_changed',tournament_key:'preview',val:{all_locations:window.__singleLocations}})`);
   await check('Bei mehreren konfigurierten Locations erscheint die Hallenzeile wieder, auch wenn nur eine Felder enthält',`document.querySelector('.ls-location-row[data-court-group="CH"]').getBoundingClientRect().height===19&&document.querySelector('.ls-location-row[data-court-group="CH"] button').getAttribute('aria-expanded')==='true'`);
   await open();
-  await c.evaluate(`localStorage.setItem('bts-admin-card-layout-v1',JSON.stringify({top:['operators','announcement','device','automation'],sidebar:[]}))`);
-  await open();
-  assert.deepEqual(await arrangement(),{top:['operators','announcement','device','automation','rotation','tablets','logs'],sidebar:[]});
-  await check('Gespeicherte Anordnung der vier bisherigen Kacheln bleibt erhalten und ergänzt Rotation einmal',`document.querySelectorAll('[data-board-card="rotation"]').length===1`);
-  await c.evaluate(`window.__rotationOfficials=structuredClone(curt.umpires);window.__rotationContainer=document.querySelector('.umpire_container');crouting.on_change({ctype:'umpires_changed',tournament_key:'preview',val:{all_umpires:[]}})`);
-  await check('Leere Rotation zeigt nur Warteliste und manuelle Pause mit erreichbaren Ablageflächen',`document.querySelectorAll('.official_rotation_compact>.official_section_body').length===2&&!document.querySelector('.official_rotation_compact .official_card_skin')&&document.querySelectorAll('.official_rotation_compact .official_card_drop:only-child').length===3&&document.querySelector('.umpire_container')===window.__rotationContainer`);
-  await c.evaluate(`crouting.on_change({ctype:'umpires_changed',tournament_key:'preview',val:{all_umpires:structuredClone(window.__rotationOfficials)}});window.__rotationHadTimer=!!document.querySelector('[data-rotation-section="waiting"] [data-official-id="official-1"] .timer');crouting.on_change({ctype:'umpire_updated',tournament_key:'preview',val:{...window.__rotationOfficials[0],status:'oncourt',umpire_on_court:'CH_4',court_id:'CH_4'}})`);
-  await check('Native Offiziellenänderungen entfernen Feld- und Vorbereitungszuordnungen aus der kompakten Rotation',`(()=>{const container=document.querySelector('[data-board-card="rotation"] .umpire_container');return container===window.__rotationContainer&&window.__rotationHadTimer&&container.querySelectorAll('.official_card_skin').length===3&&!container.querySelector('[data-official-id="official-1"],[data-official-id="official-2"],[data-official-id="official-3"]')&&!container.querySelector('.court')&&container.querySelectorAll('.official_section_body').length===2})()`);
-  await c.evaluate(`crouting.on_change({ctype:'umpires_changed',tournament_key:'preview',val:{all_umpires:structuredClone(window.__rotationOfficials)}})`);
-  await check('Automatische Ruhezeit steht mit laufender Uhr in der Warteliste, manuelle Pause im gemeinsamen Bereich',`!!document.querySelector('[data-rotation-section="waiting"] [data-official-id="official-1"] .timer')&&!document.querySelector('[data-rotation-section="unavailable"] [data-official-id="official-1"]')&&!!document.querySelector('[data-rotation-section="unavailable"] [data-official-id="official-6"]')`);
-  await check('Rotationskarten verwenden dieselben Schiedsrichter- und Höhenmessgerät-Symbole wie die Spiele',`['umpire','service_judge'].every(role=>document.querySelector('.official_rotation_compact .official_card_icon.'+role+' .ico')?.innerHTML===document.querySelector('tr[data-match_id="match-45"] .'+role+'.ls-role-icon .ico')?.innerHTML)`);
-  await check('Nächste Rollen stehen in getrennten beschrifteten Spalten nebeneinander',`${rotationColumnsFit}&&!!document.querySelector('[data-next-role="umpire"] [data-official-id="official-4"]')&&!!document.querySelector('[data-next-role="service_judge"] [data-official-id="official-5"]')`);
-  await c.evaluate(`window.__rotationDropRest=document.querySelector('[data-official-list="service_judge_wait"]>.official_card_drop_terminal').getBoundingClientRect().height`);
-  await nativeDrag('[data-official-id="official-4"] .official_card_name','[data-official-list="service_judge_wait"]>.official_card_drop_terminal',{
-   settle:160,
-   beforeHover:()=>check('Gültige Rotations-Dropzonen wachsen beim Ziehen und halten den sichtbaren Drag-Ursprung in Kartengröße',`(()=>{const target=document.querySelector('[data-official-list="service_judge_wait"]>.official_card_drop_terminal'),source=document.querySelector('[data-official-id="official-4"]');window.__rotationDropActive=target.getBoundingClientRect().height;return target.classList.contains('official_card_drop_active')&&window.__rotationDropActive>window.__rotationDropRest&&source.getBoundingClientRect().height===24&&getComputedStyle(source.querySelector('.official_card_name')).visibility==='visible'})()`),
-   verify:point=>check('Beim Hover wächst die Rotations-Dropzone weiter und bleibt unter dem Mauszeiger',`(()=>{const target=document.querySelector('[data-official-list="service_judge_wait"]>.official_card_drop_terminal');return target.classList.contains('official_card_drop_hover_expand')&&target.getBoundingClientRect().height>window.__rotationDropActive&&target.contains(document.elementFromPoint(${point.x},${point.y}))})()`),
-  });
-  await delay(160);
-  await check('Nach dem Ablegen kehren Rotations-Dropzonen zur kompakten Größe zurück',`!document.querySelector('.official_rotation_compact.officials_drag_active,.official_rotation_compact .official_card_placeholder,.official_rotation_compact .official_card_drop_hover_expand')&&document.querySelector('[data-official-list="service_judge_wait"]>.official_card_drop_terminal').getBoundingClientRect().height===window.__rotationDropRest`);
-  await c.evaluate(`crouting.on_change({ctype:'umpire_updated',tournament_key:'preview',val:{...window.__rotationOfficials.find(official=>official._id==='official-4'),umpire_wait:null,service_judge_wait:Date.now()}})`);
-  await check('Verschieben zwischen den Rollenspalten setzt die nächste Rolle über die bestehende Wartelistenzuordnung',`window.__writes.some(message=>message.type==='official_list_move'&&message.official_id==='official-4'&&message.to_list==='service_judge_wait')&&!!document.querySelector('[data-next-role="service_judge"] [data-official-id="official-4"]')&&!document.querySelector('[data-next-role="umpire"] [data-official-id="official-4"]')`);
-  await c.evaluate(`crouting.on_change({ctype:'umpires_changed',tournament_key:'preview',val:{all_umpires:structuredClone(window.__rotationOfficials)}})`);
-  await c.evaluate(`window.__rotationMoveCount=window.__writes.filter(message=>message.type==='official_list_move').length`);
-  await nativeDrag('[data-official-id="official-1"] .official_card_name','[data-official-list="umpire_wait"]>.official_card_drop_terminal',{
-   settle:160,
-   verify:()=>check('Eine automatische Ruhezeit vergrößert keine gesperrten Wartelisten-Dropzonen',`!document.querySelector('[data-rotation-section="waiting"] .official_card_drop_active,[data-rotation-section="waiting"] .official_card_drop_hover_expand')&&!!document.querySelector('[data-rotation-section="unavailable"] .official_card_drop_active')`),
-  });
-  await check('Ziehen innerhalb der Warteliste hebt eine laufende automatische Ruhezeit nicht auf',`window.__writes.filter(message=>message.type==='official_list_move').length===window.__rotationMoveCount&&curt.umpires.find(official=>official._id==='official-1').umpire_pause===window.__rotationOfficials[0].umpire_pause`);
-  await nativeDrag('[data-official-id="official-4"] .official_card_name','[data-rotation-section="unavailable"] .official_card_drop_terminal',{settle:160});
-  await check('Manuelles Ablegen in Pause verwendet die vorhandene serverseitige Listenzuordnung',`window.__writes.some(message=>message.type==='official_list_move'&&message.official_id==='official-4'&&message.to_list==='umpire_pause'&&message.ordered_official_ids.includes('official-6'))`);
-  await c.evaluate(`crouting.on_change({ctype:'umpire_updated',tournament_key:'preview',val:{...window.__rotationOfficials.find(official=>official._id==='official-4'),umpire_wait:null,umpire_manual_pause:Date.now()}})`);
-  await check('Bestätigte manuelle Pause wechselt den Bereich und lässt die automatische Ruhezeit unverändert',`!!document.querySelector('[data-rotation-section="unavailable"] [data-official-id="official-4"]')&&!document.querySelector('[data-rotation-section="waiting"] [data-official-id="official-4"]')&&curt.umpires.find(official=>official._id==='official-1').umpire_pause===window.__rotationOfficials[0].umpire_pause`);
-  await nativeDrag('[data-official-id="official-4"] .official_card_name','[data-official-list="umpire_wait"]>.official_card_drop_terminal',{settle:160});
-  await check('Rückkehr aus manueller Pause verwendet die passende Warteliste und verändert keine wartenden Pausentimer',`(()=>{const move=window.__writes.filter(message=>message.type==='official_list_move'&&message.official_id==='official-4').at(-1);return move.to_list==='umpire_wait'&&!move.ordered_official_ids.includes('official-1')})()`);
-  await c.evaluate(`window.__rotationWriteCount=window.__writes.length;crouting.on_change({ctype:'umpire_updated',tournament_key:'preview',val:{...window.__rotationOfficials[0],umpire_pause:null,umpire_wait:Date.now(),status:'ready'}})`);
-  await check('Serverseitiger Ablauf entfernt die Ruhezeituhr und behält den Offiziellen ohne eigenen Aufruf in der Warteliste',`!!document.querySelector('[data-rotation-section="waiting"] [data-official-id="official-1"]')&&!document.querySelector('[data-official-id="official-1"] .timer')&&window.__writes.length===window.__rotationWriteCount`);
-  await c.evaluate(`crouting.on_change({ctype:'umpires_changed',tournament_key:'preview',val:{all_umpires:structuredClone(window.__rotationOfficials).filter(official=>official._id==='official-6')}})`);
-  await nativeDrag('[data-official-id="official-6"] .official_card_name','[data-official-list="umpire_wait"]>.official_card_drop_terminal',{
-   settle:160,
-   verify:point=>check('Auch eine leere Rollenwarteliste vergrößert ihr Ablageziel beim Hover und bleibt erreichbar',`(()=>{const target=document.querySelector('[data-official-list="umpire_wait"]>.official_card_drop_terminal');return target.matches(':only-child')&&target.classList.contains('official_card_drop_hover_expand')&&target.getBoundingClientRect().height===32&&target.contains(document.elementFromPoint(${point.x},${point.y}))})()`),
-  });
-  await check('Ablegen in die gewachsene leere Warteliste sendet die richtige Zuordnung',`(()=>{const move=window.__writes.filter(message=>message.type==='official_list_move'&&message.official_id==='official-6').at(-1);return move.to_list==='umpire_wait'&&JSON.stringify(move.ordered_official_ids)===JSON.stringify(['official-6'])})()`);
-  await c.evaluate(`crouting.on_change({ctype:'umpires_changed',tournament_key:'preview',val:{all_umpires:structuredClone(window.__rotationOfficials).filter(official=>official._id!=='official-1').map(official=>official._id==='official-5'?{...official,service_judge_wait:null,umpire_wait:Date.now()}:official)}})`);
-  await nativeDrag('[data-official-id="official-5"] .official_card_name','[data-official-list="umpire_wait"]>.official_card_drop:first-child',{
-   settle:160,
-   verify:point=>check('Eine innere Einfügezone wächst auf Kartengröße, während die Endzone wieder kleiner wird',`(()=>{const stack=document.querySelector('[data-official-list="umpire_wait"]'),target=stack.firstElementChild,terminal=stack.lastElementChild;return target.classList.contains('official_card_drop_hover_expand')&&target.getBoundingClientRect().height===24&&terminal.getBoundingClientRect().height===8&&target.contains(document.elementFromPoint(${point.x},${point.y}))})()`),
-  });
-  await check('Die gewachsene Einfügezone sendet die tatsächliche neue Reihenfolge',`(()=>{const move=window.__writes.filter(message=>message.type==='official_list_move'&&message.official_id==='official-5').at(-1);return move.to_list==='umpire_wait'&&JSON.stringify(move.ordered_official_ids)===JSON.stringify(['official-5','official-4'])})()`);
-  await c.evaluate(`window.__rotationCancelWrites=window.__writes.length`);
-  await nativeDrag('[data-official-id="official-4"] .official_card_name','[data-official-list="umpire_wait"]>.official_card_drop_terminal',{settle:160,cancel:true});
-  await delay(160);
-  await check('Abbruch stellt die kompakten Dropzonen ohne Schreibaktion wieder her',`window.__writes.length===window.__rotationCancelWrites&&!document.querySelector('.official_rotation_compact.officials_drag_active,.official_rotation_compact .official_card_placeholder,.official_rotation_compact .official_card_drop_hover_expand')&&document.querySelector('[data-official-list="umpire_wait"]>.official_card_drop_terminal').getBoundingClientRect().height===4`);
-  await c.evaluate(`crouting.on_change({ctype:'umpires_changed',tournament_key:'preview',val:{all_umpires:structuredClone(window.__rotationOfficials)}})`);
+  await require('./rotation-interactions-check')({c,open,check,nativeDrag,delay,arrangement,rotationColumnsFit});
   const scoreContentFits=`(()=>[...document.querySelectorAll('.courts_container tr.ls-match')].every(row=>{
     const score=row.querySelector('td.score'),calls=row.querySelector('td.call_td');if(!score||!calls)return true;
     const box=score.getBoundingClientRect(),actions=calls.getBoundingClientRect(),officials=row.querySelector('.umpire_and_tablet'),buttons=[...calls.querySelectorAll('button,a,[role="button"]')].filter(button=>button.getBoundingClientRect().width&&getComputedStyle(button).visibility!=='hidden').map(button=>button.getBoundingClientRect());
@@ -716,27 +740,7 @@ class CDP {
   await click('#announce_emergency_btn');await click('.bts-confirm-cancel');
   await check('Die Evakuierungsschaltfläche löst keine freie Durchsage aus',`window.__writes.filter(message=>message.type==='free_announce').length===2`);
   await c.evaluate(`document.querySelector('#custom_announcement').value='';document.querySelector('#custom_announcement').dispatchEvent(new Event('input'));localStorage.removeItem('enable_free_announcements');btsSpeechReadiness.refresh(true)`);
-  await c.evaluate(`window.__oldBtp={enabled:curt.btp_enabled,autofetch:curt.btp_autofetch_enabled,interval:curt.btp_autofetch_timeout_intervall,status:curt.btp_status};curt.btp_enabled=true;curt.btp_autofetch_enabled=true;curt.btp_autofetch_timeout_intervall=30;ctournament.btp_status_changed({val:{status:'connected',next_fetch_ts:Date.now()+28000}})`);
-  await c.evaluate(`window.__countdowns=[[30,18000],[99,99000],[100,99000],[100,18000],[3600,3599000]].map(([interval,remaining])=>{curt.btp_autofetch_timeout_intervall=interval;ctournament.btp_status_changed({val:{status:'connected',next_fetch_ts:Date.now()+remaining}});return{prefix:document.querySelector('.toprow_service_badge_prefix').textContent,value:document.querySelector('.toprow_service_badge_timer').textContent}})`);
-  await check('Countdown verwendet bis 99 Sekunden Sekundenwerte und darüber dauerhaft Minuten und Sekunden',`window.__countdowns.every((entry,index)=>entry.prefix==='in'&&entry.value===['18 s','99 s','1:39','0:18','59:59'][index])`);
-  await c.evaluate(`curt.btp_autofetch_timeout_intervall=30;ctournament.btp_status_changed({val:{status:'connected',next_fetch_ts:Date.now()+28000}});window.__originalServices={bts:curt.status,ticker:curt.ticker_status};ctournament.bts_status_changed({val:{status:'connected'}});ctournament.ticker_status_changed({val:{status:'connected'}});window.dispatchEvent(new CustomEvent('announcement-speech-check-state-changed',{detail:{status:'active',detail:'Audio bereit'}}));window.__activeServices=['.status_badge','.ticker_status_badge','.speech_output_status_badge'].map(selector=>document.querySelector(selector).textContent);ctournament.bts_status_changed({val:{status:'error',message:'Verbindung getrennt'}});ctournament.ticker_status_changed({val:{status:'deactivated'}});window.dispatchEvent(new CustomEvent('announcement-speech-check-state-changed',{detail:{status:'error',detail:'Audio nicht verfügbar'}}))`);
-  await check('BTS, Ticker und Sprachausgabe verwenden ausschließlich aktiv oder aus und behalten Fehlerdetails',`window.__activeServices.every(value=>value==='aktiv')&&['.status_badge','.ticker_status_badge','.speech_output_status_badge'].every(selector=>document.querySelector(selector).textContent==='aus')&&document.querySelector('.status_badge').title==='Verbindung getrennt'&&document.querySelector('.speech_output_status_badge').title==='Audio nicht verfügbar'`);
-  await c.evaluate(`ctournament.bts_status_changed({val:window.__originalServices.bts});ctournament.ticker_status_changed({val:window.__originalServices.ticker});window.dispatchEvent(new CustomEvent('announcement-speech-check-state-changed',{detail:{status:'untested',detail:'Noch nicht getestet'}}))`);
-  await delay(1100);
-  await check('BTP-Synchronisieren steht vor dem laufenden Countdown',`(()=>{const button=document.querySelector('.toprow_btp_sync_button');return button?.querySelector('svg')&&!button.disabled&&button.nextElementSibling.matches('.btp_status_badge')&&button.previousElementSibling.matches('.btp_status_label')&&button.getAttribute('aria-label')==='BTP jetzt synchronisieren'})()`);
-  await c.evaluate(`window.__service=document.querySelector('.board-service-status[data-service="btp"]');window.__readySymbol=getComputedStyle(window.__service,'::before').maskImage;window.__servicePositions=JSON.stringify([window.__service,document.querySelector('.btp_status_badge'),document.querySelector('.toprow_btp_sync_button')].map(node=>{const r=node.getBoundingClientRect();return[r.left,r.width]}))`);
-  await check('Obere Statusanzeigen verwenden die Spielerformatierung mit Symbolen; Spielernamen bleiben ohne Zusatzsymbole',`(()=>{const groups=[...document.querySelectorAll('.board-service-status')],group=getComputedStyle(window.__service),player=getComputedStyle(document.querySelector('.unassigned_container .player.checked_in'));return groups.length===4&&groups.every(node=>getComputedStyle(node,'::before').maskImage!=='none')&&group.backgroundColor===player.backgroundColor&&group.color===player.color&&group.borderTopColor===player.borderTopColor&&group.borderRadius===player.borderRadius&&!document.querySelector('.player-status-icon')})()`);
-  await click('.toprow_btp_sync_button');
-  await check('BTP-Icon verwendet den bestehenden manuellen Abgleich für das aktuelle Turnier',`window.__writes.filter(message=>message.type==='btp_fetch'&&message.tournament_key==='preview').length===1`);
-  const statusRect=await c.evaluate(`(()=>{const r=document.querySelector('.toprow_right').getBoundingClientRect();return{x:Math.floor(r.left)-12,y:0,width:Math.ceil(r.width)+24,height:44,scale:1}})()`);
-  const statusShot=await c.call('Page.captureScreenshot',{format:'png',clip:statusRect});fs.writeFileSync(path.join(previews,'statusleiste.png'),Buffer.from(statusShot.data,'base64'));
-  await c.evaluate(`ctournament.btp_status_changed({val:{status:'connected',fetch_in_progress:true}});document.querySelector('.toprow_btp_sync_button').click()`);
-  await check('Laufender BTP-Abgleich sperrt erneutes Auslösen am Icon',`document.querySelector('.toprow_btp_sync_button').disabled&&window.__writes.filter(message=>message.type==='btp_fetch').length===1`);
-  await check('Synchronisierung zeigt ein Uhrsymbol bei unveränderter Breite und rotierendem Sync-Icon',`(()=>{const position=JSON.stringify([window.__service,document.querySelector('.btp_status_badge'),document.querySelector('.toprow_btp_sync_button')].map(node=>{const r=node.getBoundingClientRect();return[r.left,r.width]}));return position===window.__servicePositions&&getComputedStyle(window.__service,'::before').maskImage!==window.__readySymbol&&document.querySelector('.toprow_btp_sync_button .ico').getAnimations().length===1})()`);
-  await c.evaluate(`window.__waitingSymbol=getComputedStyle(window.__service,'::before').maskImage;ctournament.btp_status_changed({val:{status:'error',message:'Verbindung getrennt'}})`);
-  await check('Fehlerstatus verwendet die rote Spielerformatierung und ein eigenes Fehlersymbol',`(()=>{const group=getComputedStyle(window.__service),player=getComputedStyle(document.querySelector('.unassigned_container .player.not_checked_in')),symbol=getComputedStyle(window.__service,'::before').maskImage;return group.backgroundColor===player.backgroundColor&&group.color===player.color&&group.borderTopColor===player.borderTopColor&&symbol!==window.__readySymbol&&symbol!==window.__waitingSymbol&&document.querySelector('.btp_status_badge').title==='Verbindung getrennt'})()`);
-  const failureShot=await c.call('Page.captureScreenshot',{format:'png',clip:statusRect});fs.writeFileSync(path.join(previews,'statusleiste-fehler.png'),Buffer.from(failureShot.data,'base64'));
-  await c.evaluate(`curt.btp_enabled=window.__oldBtp.enabled;curt.btp_autofetch_enabled=window.__oldBtp.autofetch;curt.btp_autofetch_timeout_intervall=window.__oldBtp.interval;ctournament.btp_status_changed({val:window.__oldBtp.status})`);
+  await require('./header-status-layout-check')({c,check,click,delay,previews});
   await check('Zwei Tablet-Paarungen bleiben in der kompakten Warteliste vollständig sichtbar',`(()=>{const list=document.querySelector('.unassigned_tableoperators_content');return list.clientHeight>=list.scrollHeight})()`);
   await check('Warteliste richtet Auf/Ab-Pfeile und Entfernen in getrennten festen Spalten aus',`(()=>{const rows=[...document.querySelectorAll('.tabletoperators_table tbody>tr')],up=document.querySelector('.tabletoperator_move_up_button').getBoundingClientRect(),down=document.querySelector('.tabletoperator_move_down_button').getBoundingClientRect(),removals=rows.map(row=>row.querySelector('.tabletoperator_remove_button').getBoundingClientRect().left),input=document.querySelector('.tabletoperator_add_custom_input').getBoundingClientRect(),add=document.querySelector('.tabletoperator_add_custom_button').getBoundingClientRect();return up.right<=down.left&&Math.max(...removals)-Math.min(...removals)<.1&&input.right<add.left&&document.querySelector('[data-board-card="operators"] .operator-count').textContent==='2'&&rows.every(row=>getComputedStyle(row).backgroundColor==='rgba(0, 0, 0, 0)')})()`);
   await c.evaluate(`window.__queuedOperators=curt.tabletoperators;const extra=structuredClone(curt.tabletoperators[1]);extra._id='tablet-3';extra.start_ts=3;curt.tabletoperators=[...curt.tabletoperators,extra];ctabletoperator.render_unassigned(document.querySelector('.unassigned_tableoperators_container'))`);
@@ -846,13 +850,13 @@ class CDP {
   await click('#ls-match-tab-2');
   await until(()=>c.evaluate(`!!document.querySelector('.ls-sheet-panel svg')`),15000);
   await check('Bestehender Schiedsrichterzettel rendert im selben Dialog',`!!document.querySelector('.ls-sheet-panel .single_scoresheet')&&document.querySelectorAll('.match_edit_dialog .dialog-actions .match_scoresheet_buttons button').length===2`);
-  await check('Der Spiel-Dialog zeigt einen Schließenknopf auch außerhalb des Bearbeiten-Reiters',`!!document.querySelector('.ls-dialog-close')&&document.querySelector('.ls-dialog-close').getClientRects().length>0&&![...document.querySelector('.match_edit_dialog').childNodes].some(node=>node.nodeType===3&&node.textContent.includes('[object Object]'))`);
+  await check('Der Spiel-Dialog zeigt einen Schließenknopf auch außerhalb des Bearbeiten-Reiters',`!!document.querySelector('.match_edit_dialog .ls-dialog-close')&&document.querySelector('.match_edit_dialog .ls-dialog-close').getClientRects().length>0&&![...document.querySelector('.match_edit_dialog').childNodes].some(node=>node.nodeType===3&&node.textContent.includes('[object Object]'))`);
   await snap('spiel-dialog');
-  await click('.ls-dialog-close');
+  await click('.match_edit_dialog .ls-dialog-close');
   await check('Dialogschließen gibt den Fokus an das richtige Spiel zurück',`!document.querySelector('.match_edit_dialog')&&document.activeElement.matches('tr[data-match_id="match-45"] .ls-match-open')`);
   await click('tr[data-match_id="match-51"] .ls-match-open');
   await check('Unvollständige Teams sperren nur den Schiedsrichterzettel',`document.querySelector('#ls-match-tab-2').disabled&&!document.querySelector('#ls-match-tab-3').disabled`);
-  await click('.ls-dialog-close');
+  await click('.match_edit_dialog .ls-dialog-close');
   await c.evaluate(`document.querySelector('#custom_announcement').value='Erhaltene Durchsage'`);
   await click('.board-toolbar-actions [data-action="layout-edit"]');
   await nativeDrag('[data-board-card="operators"] h2','[data-board-card="device"]');
@@ -938,6 +942,11 @@ class CDP {
     window.__sortOtherRows=[...document.querySelectorAll('.courts_container tr[data-court_id],.unassigned_container tr[data-match_id]')];
   })()`);
   await check('Beendete Spiele zeigen vier Sortierknöpfe für Spielnummer und Zeiten mit neuestem Ende zuerst',`JSON.stringify([...document.querySelector('.ls-finished-table thead tr').cells].slice(2,6).map(cell=>cell.textContent))==='["#","Plan","Beginn","Ende"]'&&document.querySelectorAll('.ls-finished-table .ls-time-sort').length===4&&document.querySelector('.ls-finished-table [aria-sort="descending"] .ls-time-sort').dataset.sortKey==='end'&&__finishedOrder()==='match-32,match-40,match-37,match-30'`);
+  // Cell/schema checks require materialized results. Date expansion and lazy
+  // history have their own tests; open these dates before retaining cell nodes.
+  await c.evaluate(`for(const button of new Map([...document.querySelectorAll('.finished_container .ls-date-row')].filter(row=>row.querySelector('button').getAttribute('aria-expanded')==='false').map(row=>[row.dataset.date,row.querySelector('button')])).values())button.click()`);
+  await check('Die Ergebnisstruktur wird an ausdrücklich geöffneten und aufgebauten Tagen geprüft',`[...document.querySelectorAll('.finished_container tr[data-match_id]')].every(row=>!row.hasAttribute('data-ls-deferred')&&!!row.querySelector('.player'))`);
+  await c.evaluate(`__finishedRows=[...document.querySelectorAll('.finished_container tbody>tr[data-match_id]')];__finishedPlayers=__finishedRows.map(row=>row.querySelector('.player'))`);
   await check('Ohne gezählte Bälle in beendeten Spielen fehlt die ganze Ballspalte trotz Ballzahlen auf dem Feld',`curt.matches.find(match=>match._id==='match-36').shuttle_count===3&&!document.querySelector('.ls-finished-table .ls-shuttle-column,.ls-finished-table .match_shuttle_count,.ls-finished-table th.ls-shuttle-count')&&document.querySelector('.ls-finished-table colgroup').children.length===11&&[...document.querySelectorAll('.ls-finished-table tbody>tr[data-match_id]')].every(row=>row.cells.length===11)`);
   await c.evaluate(`curt.matches.find(match=>match._id==='match-37').shuttle_count=2;cmatch.update_match_score(curt.matches.find(match=>match._id==='match-37'))`);
   await check('Die erste live gezählte Ballanzahl ergänzt Bälle rechts neben Ergebnis',`document.querySelector('.ls-finished-table thead tr').lastElementChild.textContent==='Bälle'&&document.querySelector('.ls-finished-table thead tr').lastElementChild.previousElementSibling.textContent==='Ergebnis'&&document.querySelectorAll('.ls-finished-table .ls-shuttle-column').length===1&&[...document.querySelectorAll('.ls-finished-table tbody>tr[data-match_id]')].every(row=>row.cells.length===12&&row.lastElementChild.classList.contains('ls-shuttle-count'))&&document.querySelector('.finished_container tr[data-match_id="match-37"] .match_shuttle_count_number').textContent==='2'`);
@@ -981,7 +990,7 @@ class CDP {
   await c.evaluate(`cmatch.reorder_match_row(curt.matches.find(match=>match._id==='match-40'),'finished')`);
   await check('Native Zeilenumsortierung erhält die persönliche Wahl der Zeitspalte',`__finishedOrder()==='match-32,match-36,match-40,match-37,match-30'`);
   await c.evaluate(`cmatch.render_finished(document.querySelector('.finished_container'))`);
-  await check('Vollständiger Neuaufbau erhält Sortierspalte und Richtung',`__finishedOrder()==='match-32,match-36,match-40,match-37,match-30'&&document.querySelector('.ls-finished-table [aria-sort="ascending"] .ls-time-sort').dataset.sortKey==='plan'&&[...document.querySelectorAll('.finished_container tr.ls-match')].every(row=>row.cells.length===12)`);
+  await check('Vollständiger Neuaufbau erhält Sortierspalte und Richtung',`__finishedOrder()==='match-32,match-36,match-40,match-37,match-30'&&document.querySelector('.ls-finished-table [aria-sort="ascending"] .ls-time-sort').dataset.sortKey==='plan'&&[...document.querySelectorAll('.finished_container tr.ls-match')].every(row=>row.hasAttribute('data-ls-deferred')?row.cells.length===0:row.cells.length===12)`);
   // Column geometry applies to visible games. Open every date explicitly;
   // the date-group suite verifies the default collapsed days separately.
   await c.evaluate(`for(const toggle of document.querySelectorAll('.finished_container .ls-date-toggle'))if(toggle.getAttribute('aria-expanded')==='false')toggle.click()`);

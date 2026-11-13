@@ -1,14 +1,14 @@
 'use strict';
-/* global btsSpeechHealth, btsAdminUpdates, btsAudioDevices */
+/* global btsSpeechHealth, btsAdminUpdates, btsAudioDevices, btsUiBlocking */
 var conn = (function(on_status, on_change) {
 var ws;
 var reconnect_duration = 500;
 var WS_PATH = '/ws/admin';
 var request_id = 1;
 var CHANGE_BATCH_MAX_MESSAGES = 25;
-// Keep related DOM writes together for up to one frame; shorter slices can
-// force an expensive intermediate layout between each handful of row patches.
-var CHANGE_BATCH_MAX_MS = 16;
+// Share related row writes, but leave half a frame for newly arriving points
+// and input. Fitting/sorting still wait for the receive queue to settle.
+var CHANGE_BATCH_MAX_MS = 8;
 var CHANGE_HANDLER_WARN_MS = 16;
 
 var callback_handlers = {};
@@ -16,7 +16,8 @@ var change_queue = [];
 var change_queue_head = 0;
 var change_queue_identity = {};
 var queued_scores = 0;
-var change_scheduler = change_queue_scheduler(process_change_queue);
+// Keep metadata behind network/input tasks; an arriving point promotes the batch.
+var change_scheduler = change_queue_scheduler(process_change_queue, { priority: 'background' });
 
 var immediate_change_types = new Set([
 	'free_announce',
@@ -44,6 +45,10 @@ var immediate_change_types = new Set([
 var coalescable_change_types = new Set([
 	'score',
 	'update_player_status',
+]);
+var score_independent_change_types = new Set([
+	'display_status_changed', 'display_wait_for_done', 'display_is_done', 'display_render_stats',
+	'speech_cache_changed', 'match_protocol_event',
 ]);
 
 function _construct_url(abspath) {
@@ -109,7 +114,7 @@ function dispatch_change(msg) {
 }
 
 function schedule_change_queue() {
-	change_scheduler.schedule();
+	change_scheduler.schedule(queued_scores > 0);
 }
 
 function queued_change_count() {
@@ -132,37 +137,57 @@ function compact_change_queue_if_needed(force) {
 }
 
 function next_change() {
-	// Points may pass unrelated device/other-game updates. Keep dependencies
-	// for the same game/court and every global/unknown change in wire order.
+	// Select the oldest point together with its prerequisite game/court changes.
+	// A snapshot for that point must not also hold it behind unrelated history.
 	if (!queued_scores) return change_queue[change_queue_head++];
-	const matches = new Set(), courts = new Set();
 	const match_key = id => String(id).replace(/^bts_btp_/, 'btp_');
+	let known_matches;
+	const known_match = (message, id) => {
+		const tournament = typeof window !== 'undefined' ? window.curt : null;
+		if (!Array.isArray(tournament?.matches) || tournament.key !== message.tournament_key) return null;
+		known_matches ||= new Map(tournament.matches.map(match => [match_key(match._id), match]));
+		return known_matches.get(match_key(id));
+	};
+	const before = [];
 	for (let i = change_queue_head; i < change_queue.length; i++) {
 		const message = change_queue[i], value = message.val || {};
 		const id = value.match_id ?? value.match__id;
-		const key = match_key(id);
 		if (message.ctype === 'score') {
-			if (id != null && !(matches.size && /^\d+$/.test(key)) && !matches.has(key) && !courts.has('*') &&
-				(value.court_id == null ? courts.size === 0 : !courts.has(String(value.court_id)))) {
-				return i === change_queue_head ? change_queue[change_queue_head++] : change_queue.splice(i, 1)[0];
+			if (id == null || (before.length && /^\d+$/.test(match_key(id)))) break;
+			const matches = new Set([match_key(id)]), courts = new Set([value.court_id == null ? '*' : String(value.court_id)]);
+			let selected = i;
+			// Walking backwards retains transitive dependencies, including a
+			// previous court vacated before a game moves to this point's court.
+			for (let j = before.length - 1; j >= 0; j--) {
+				const dependency = before[j];
+				if (![...dependency.matches].some(key => matches.has(key)) &&
+					!(dependency.courts.size && courts.size && (dependency.courts.has('*') || courts.has('*') ||
+						[...dependency.courts].some(court => courts.has(court))))) continue;
+				selected = dependency.index;
+				for (const key of dependency.matches) matches.add(key);
+				for (const court of dependency.courts) courts.add(court);
 			}
-			break; // Keep the arrival order between points as well.
-		} else if (!['match_edit', 'court_current_match', 'update_player_status',
-			'display_status_changed', 'display_wait_for_done', 'display_is_done', 'display_render_stats'].includes(message.ctype)) break;
-		if (['match_edit', 'court_current_match', 'update_player_status', 'score'].includes(message.ctype)) {
-			if (id == null) break;
-			matches.add(key);
-			if (/^\d+$/.test(key)) break; // Planning IDs may alias a canonical game ID.
-			const ids = value.match?.btp_match_ids;
-			for (const alias of [value.match?._id, value.match?.match_id,
-				...(Array.isArray(ids) ? ids : []).flatMap(entry => entry ? [entry.id, entry.planning, entry.match_id] : [])]) {
-				if (alias != null) matches.add(match_key(alias));
-			}
-			const setup = value.match?.setup || value.setup;
-			if (setup?.court_id != null) courts.add(String(setup.court_id));
-			else if (setup?.now_on_court === true) courts.add('*');
+			return selected === change_queue_head ? change_queue[change_queue_head++] : change_queue.splice(selected, 1)[0];
 		}
+		if (score_independent_change_types.has(message.ctype)) continue;
+		if (!['match_edit', 'court_current_match', 'update_player_status'].includes(message.ctype) || id == null || /^\d+$/.test(match_key(id))) break;
+		const matches = new Set([match_key(id)]), courts = new Set();
+		const ids = value.match?.btp_match_ids;
+		for (const alias of [value.match?._id, value.match?.match_id,
+			...(Array.isArray(ids) ? ids : []).flatMap(entry => entry ? [entry.id, entry.planning, entry.match_id] : [])]) {
+			if (alias != null) matches.add(match_key(alias));
+		}
+		const setup = value.match?.setup || value.setup;
+		const previous = known_match(message, value.match?._id ?? id)?.setup;
+		// Former courts of completed games are history. Actual transitions off
+		// occupied courts still precede their next point or allocation change.
+		const stayed_off_court = previous?.now_on_court === false && setup?.now_on_court === false;
+		if (previous?.now_on_court === true && previous.court_id != null) courts.add(String(previous.court_id));
+		if (setup?.court_id != null && !stayed_off_court) courts.add(String(setup.court_id));
+		else if (setup?.now_on_court === true) courts.add('*');
+		before.push({ index: i, matches, courts });
 	}
+	// Global/unknown messages and ambiguous planning IDs retain wire order.
 	return change_queue[change_queue_head++];
 }
 
@@ -291,6 +316,9 @@ function connect() {
 
 	ws = new WebSocket(_construct_url(WS_PATH), 'bts-admin');
 	ws.onopen = function() {
+		if (typeof btsUiBlocking !== 'undefined' && btsUiBlocking.enabled()) send({type:'debug_queue_stats'},(error,value)=>{
+			if(!error&&value.connection_id)btsUiBlocking.connection(value);
+		});
 		if (typeof btsAudioDevices !== 'undefined') btsAudioDevices.reconnect();
 		if (typeof btsSpeechHealth !== 'undefined') send({ type: 'speech_health_subscribe' }, () => {});
 		on_status({
@@ -299,6 +327,7 @@ function connect() {
 	};
 	ws.onmessage = handle_message;
 	ws.onclose = function() {
+		if (typeof btsUiBlocking !== 'undefined' && btsUiBlocking.enabled()) btsUiBlocking.connection({connection_id:null});
 		if (typeof btsAudioDevices !== 'undefined') btsAudioDevices.disconnected();
 		if (typeof emergency_announce === 'function') emergency_announce(false);
 		if (typeof btsAdminUpdates !== 'undefined') btsAdminUpdates.reset();

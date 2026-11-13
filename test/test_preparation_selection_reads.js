@@ -260,7 +260,7 @@ describe('preparation status model reads and timing', function() {
 		assert.deepStrictEqual(result.runnable_locations.map(location => location._id), ['hall']);
 		assert.strictEqual(await f.db.matches.findOne_async({ _id: 'ready' }), null);
 	});
-	it('records reads, synchronous status and separate candidate calculation and execution', async function() {
+	it('records reads, synchronous status and separate cooperative candidate calculation and execution', async function() {
 		const f = await fixture(), warn = console.warn, rows = [];
 		process.env.BTS_OFFLOAD_TIMING = '1';
 		console.warn = (...args) => { if (String(args[0]).startsWith('[bts] preparation:timing ')) rows.push(JSON.parse(args[0].slice(25))); };
@@ -273,7 +273,7 @@ describe('preparation status model reads and timing', function() {
 		assert.strictEqual(rows[0].reason, 'enough_preparation');
 		assert.strictEqual(rows[0].read_source, 'object_model');
 		const calculation = rows[1].phases.find(row => row.phase === 'candidate_calculation');
-		assert.strictEqual(calculation.synchronous, true); assert(calculation.process_cpu_ms >= 0);
+		assert.strictEqual(calculation.synchronous, false); assert.strictEqual(calculation.shared, true);
 		assert(rows[1].phases.some(row => row.phase === 'selection_read_matches'));
 		assert(rows[1].phases.some(row => row.phase === 'execute_preparation_calls'));
 		assert(rows.every(row => row.ts >= row.start_ts && row.status === 'ok'));

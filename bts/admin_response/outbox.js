@@ -2,16 +2,22 @@
 
 const { performance } = require('perf_hooks');
 const traces = require('../performance/traces');
+const connection_ids = new WeakMap();let connection_sequence = 0;
+function connection_id(ws) {
+	if (!connection_ids.has(ws)) connection_ids.set(ws, 'admin-' + process.pid + '-' + (++connection_sequence));
+	return connection_ids.get(ws);
+}
 
 // Reserve the response's position before starting its encoder. Later updates
 // must follow this snapshot on the same socket, or an older overview could
 // overwrite a newer live update. Other sockets and server work remain free.
 module.exports = function outbox(ws, encode = require('./encoder').encode) {
+	const recipient = connection_id(ws);
 	let active = false, closed = false, encoding = false;
 	const pending = [];
 	let encoding_started = 0;
 	ws.on('close', () => { closed = true; for (const entry of pending) traces.end(entry.wait_span, true); pending.length = 0; });
-	const tracked = message => ({ context: traces.capture(), wait_span: traces.begin('admin:' + (message?.ctype || message?.type || 'snapshot'), 'send_wait') });
+	const tracked = message => ({ context: traces.capture(), wait_span: traces.begin('admin:' + (message?.ctype || message?.type || 'snapshot'), 'send_wait', {connection_id:recipient}) });
 	const encode_small = (message, context = traces.capture()) => traces.with_context(context, () => {
 		const span = traces.begin('admin_update_encode', 'encoding');
 		try { const bytes = JSON.stringify(message); traces.end(span); return bytes; }
@@ -21,9 +27,13 @@ module.exports = function outbox(ws, encode = require('./encoder').encode) {
 		traces.end(job?.wait_span, closed);
 		if (!closed && (ws.readyState === undefined || ws.readyState === 1)) {
 			traces.with_context(job?.context, () => {
-				const span = traces.begin('admin:' + (job?.message?.ctype || details?.ctype || 'message'), 'send_enqueue');
-				try { ws.send(encoded, { binary: false }); traces.end(span); }
-				catch (error) { traces.end(span, error); throw error; }
+				const type = job?.message?.ctype || details?.ctype || 'message';
+				const span = traces.begin('admin:' + type, 'send_enqueue', {connection_id:recipient});
+				// A WebSocket write callback means handed to the transport, not
+				// browser receipt. Trace score writes only, while tracing is leased.
+				const flushed = type === 'score' ? traces.begin('admin:score','send_flush',{connection_id:recipient}) : null;
+				try { if (flushed) ws.send(encoded, {binary:false}, error=>traces.end(flushed,error));else ws.send(encoded, {binary:false});traces.end(span); }
+				catch (error) { traces.end(span, error);traces.end(flushed,error);throw error; }
 			});
 			if (details) ws.emit('bts:message_sent', details);
 		}
@@ -53,7 +63,7 @@ module.exports = function outbox(ws, encode = require('./encoder').encode) {
 			traces.end(encode_span, null, { execution });
 			traces.end(job.wait_span, closed);
 			if (closed) return;
-			const encoded = typeof bytes === 'string' ? bytes : Buffer.from(bytes);
+			const encoded = typeof bytes === 'string' || Buffer.isBuffer(bytes) ? bytes : Buffer.from(bytes);
 			ws.emit('bts:response_encoded', { rid: job.message.rid, bytes: Buffer.byteLength(encoded), execution,
 				elapsed_ms: Number(process.hrtime.bigint() - start) / 1e6 });
 			send(encoded, null, job);
@@ -76,7 +86,7 @@ module.exports = function outbox(ws, encode = require('./encoder').encode) {
 			const encoded = encode_small(message);
 			const details = start && { rid: message.rid, ctype: message.ctype, bytes: Buffer.byteLength(encoded),
 				elapsed_ms: Number(process.hrtime.bigint() - start) / 1e6 };
-			const entry = { encoded, details, queued: performance.now(), ...tracked(message) };
+			const entry = { encoded, details, message:{type:message.type,ctype:message.ctype}, queued: performance.now(), ...tracked(message) };
 			if (active) pending.push(entry); else send(encoded, details, entry);
 		},
 		shared(packet) {
@@ -108,6 +118,7 @@ module.exports = function outbox(ws, encode = require('./encoder').encode) {
 		},
 	};
 };
+module.exports.connection_id = connection_id;
 
 // Created afresh for each notify_change call, never cached across revisions.
 // Server WebSockets send an unmasked text frame and do not mutate this Buffer.

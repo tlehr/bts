@@ -165,6 +165,21 @@ describe('BTP request failure logging', function() {
 		const context = logs.context(conn, request()); logs.failure(conn, context, error); logs.failure(conn, context, error);
 		assert.strictEqual(records.length, 1); assert.strictEqual(parsed(records[0]).error.cause.code, 'ENOSPC');
 	});
+	it('logs a failed result-reset readback with its remaining values and invalidates earlier snapshots', async function() {
+		const reset = require('../bts/btp_match_results_reset'), original = reset.reset;
+		const error = Object.assign(new Error('Spiel #341 (BTP-ID 680): Sieger: 1; Punkte: 21:12'),
+			{code:'BTP_RESET_NOT_CONFIRMED',btp_phase:'verify'});
+		reset.reset = async () => {throw error;};conn.last_applied_fetch_response_hash = 'old';
+		try {
+			await assert.rejects(conn.reset_match_results([{btp_match_ids:[{id:680}]}]),failure => failure === error);
+			assert.strictEqual(records.length,1);const record = parsed(records[0]);
+			assert.strictEqual(record.operation,'result_reset');assert.deepStrictEqual(record.match_ids,[680]);
+			assert.strictEqual(record.phase,'verify');assert.strictEqual(record.error.code,'BTP_RESET_NOT_CONFIRMED');
+			assert(records[0].message.includes('Ergebnisreset fehlgeschlagen'));
+			assert(record.error.message.includes('Sieger: 1; Punkte: 21:12'));
+			assert.strictEqual(conn.last_applied_fetch_response_hash,null);assert.strictEqual(conn.court_assignments_revision,1);
+		} finally {reset.reset = original;}
+	});
 
 	it('preserves the game number through the actual score-delivery path', async function() {
 		conn.app.db = { tournaments: { findOne(_query, callback) { callback(null, { key: 'default' }); } } };
@@ -223,8 +238,13 @@ describe('Persistent BTP failure diagnostics', function() {
 				await new Promise(resolve => setTimeout(resolve, 10));
 			}
 			assert.strictEqual(result.items.length, 1); assert.strictEqual(parsed(result.items[0]).error.code, 'EHOSTUNREACH');
-			for (let i = 0; i < 200 && !fs.existsSync(path.join(directory, 'events.jsonl')); i++) await new Promise(resolve => setTimeout(resolve, 10));
-			assert(fs.readFileSync(path.join(directory, 'events.jsonl'), 'utf8').includes('EHOSTUNREACH'));
+			const file = path.join(directory, 'events.jsonl');
+			// Creation may precede the asynchronous append of this error.
+			for (let i = 0; i < 200; i++) {
+				if (fs.existsSync(file) && fs.readFileSync(file, 'utf8').includes('EHOSTUNREACH')) break;
+				await new Promise(resolve => setTimeout(resolve, 10));
+			}
+			assert(fs.readFileSync(file, 'utf8').includes('EHOSTUNREACH'));
 		} finally {
 			console.error = original;
 			if (hub) { const worker = hub.worker; hub.close(); if (worker && worker.exitCode === null) await new Promise(resolve => worker.once('exit', resolve)); }

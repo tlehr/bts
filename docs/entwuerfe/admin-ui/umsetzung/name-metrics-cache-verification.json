@@ -1,0 +1,24 @@
+{
+  "checks": [
+    "Leaving stores bounded native widths and the next reload preserves every label and stack",
+    "Restored measurements match independent native labels and stacks at 1366",
+    "Restored measurements match independent native labels and stacks at 1920",
+    "A malformed saved payload rebuilds natively without changing the labels",
+    "No uncaught browser exceptions"
+  ],
+  "cache": {
+    "bytes": 17669,
+    "entries": 39,
+    "save_ms": 0.5
+  },
+  "samples": [
+    {
+      "width": 1366,
+      "teams": 10
+    },
+    {
+      "width": 1920,
+      "teams": 10
+    }
+  ]
+}

@@ -506,19 +506,55 @@ _describe('match automation', () => {
 						needs_preparation_successor: true,
 					},
 				},
-				{
+				make_preparation_match({
 					_id: 'm2',
 					setup: {
 						state: 'preparation',
 						location_id: 'l1',
 					},
-				},
+				}),
 			],
 		}, 'l1');
 
 		assert.strictEqual(result.required_preparation_count, 2);
 		assert.strictEqual(result.current_preparation_count, 1);
 		assert.strictEqual(result.missing_preparation_count, 1);
+	});
+
+	for (const [reason, setup] of [
+		['incomplete flag', { incomplete: true }],
+		['empty teams', { teams: [{ players: [] }, { players: [] }] }],
+		['one unresolved team', { teams: [{ players: [{ _id: 'p1' }] }, { players: [] }] }],
+		['missing teams', { teams: undefined }],
+	]) {
+		_it('does not let an old preparation block a free court with ' + reason, () => {
+			const tournament = {
+				call_preparation_matches_automatically_enabled: true,
+				courts: [{ _id: 'c1', location_id: 'l1', is_active: true }],
+				matches: [
+					make_preparation_match({ _id: 'stale', setup: { state: 'preparation', location_id: 'l1', ...setup } }),
+					make_preparation_match({ _id: 'next', setup: { match_num: 2, location_id: 'l1' } }),
+				],
+			};
+			const selection = match_automation.calculate_location_preparation_selection(tournament, 'l1');
+			assert.strictEqual(selection.current_preparation_count, 0);
+			assert.strictEqual(selection.missing_preparation_count, 1);
+			assert.deepStrictEqual(selection.auto_selected_matches.map(match => match._id), ['next']);
+		});
+	}
+
+	_it('counts complete preparation teams while they still await check-in or a player pause', () => {
+		const result = match_automation.calculate_location_preparation_status({
+			courts: [{ _id: 'c1', location_id: 'l1', is_active: true }],
+			matches: [make_preparation_match({ setup: {
+				state: 'preparation', location_id: 'l1', teams: [
+					{ players: [{ _id: 'p1', checked_in: false, last_time_on_court_ts: Date.now() }] },
+					{ players: [{ _id: 'p2', checked_in: false }] },
+				],
+			} })],
+		}, 'l1');
+		assert.strictEqual(result.current_preparation_count, 1);
+		assert.strictEqual(result.missing_preparation_count, 0);
 	});
 
 	_it('accepts a scheduled match explicitly assigned to the location', () => {
@@ -1132,7 +1168,7 @@ _describe('match automation', () => {
 		assert.strictEqual(diagnostics.eligible, true);
 		assert.strictEqual(diagnostics.criteria_eligible, true);
 		assert.strictEqual(diagnostics.rules.find((rule) => rule.key === 'court_active_free').passed, true);
-		assert.strictEqual(diagnostics.rules.find((rule) => rule.key === 'call_on_court_preparation_age').detail, 'in Vorbereitung 6 von 5 min');
+		assert.match(diagnostics.rules.find((rule) => rule.key === 'call_on_court_preparation_age').detail, /Vorbereitung seit .*mindestens 5 min, freigegeben ab/);
 	});
 
 	_it('includes on-court call diagnostics in preparation selection debug data', () => {
@@ -2342,13 +2378,13 @@ _describe('match automation', () => {
 						needs_preparation_successor: true,
 					},
 				},
-				{
+				make_preparation_match({
 					_id: 'm-prepared',
 					setup: {
 						state: 'preparation',
 						location_id: 'l1',
 					},
-				},
+				}),
 				make_preparation_match({
 					_id: 'm1',
 					setup: {
@@ -2392,13 +2428,13 @@ _describe('match automation', () => {
 				{ _id: 'c1', location_id: 'l1', is_active: true, match_id: null },
 			],
 			matches: [
-				{
+				make_preparation_match({
 					_id: 'm-prepared',
 					setup: {
 						state: 'preparation',
 						location_id: 'l1',
 					},
-				},
+				}),
 				make_preparation_match({
 					_id: 'm1',
 					setup: {

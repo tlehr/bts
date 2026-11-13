@@ -1,0 +1,112 @@
+{
+  "source": "bts-test-12.json",
+  "source_sha256": "61f563b8222c32a8938abb921b831ee3cc5f61d6fc07b54d563f49a75492264e",
+  "scope": "Auswertung des vollständigen 600209-ms-Berichts ab 2026-11-10T01:20:11.545Z. Keine neuen produktiven Schreibzugriffe; Rohdaten mit Personenangaben werden nicht übernommen. Keine Vorher-Nachher-Messung der Korrektur.",
+  "percentiles": "Nearest rank; Median mittelt bei gerader Anzahl die beiden mittleren Werte.",
+  "updates": {
+    "ordinary": 1070,
+    "finish_confirmations": 14,
+    "sent": 1084,
+    "admin_presented": 1084,
+    "display_received": 1084,
+    "unmatched_admin": 0,
+    "unmatched_display": 0,
+    "trace_gaps": 0,
+    "queue_incidents": 0
+  },
+  "latency": {
+    "ordinary_admin": {
+      "count": 1070,
+      "median_ms": 34.0,
+      "p95_ms": 61,
+      "p99_ms": 88,
+      "max_ms": 348,
+      "over_100_ms": 7,
+      "over_200_ms": 1
+    },
+    "finish_admin": {
+      "count": 14,
+      "median_ms": 143.0,
+      "p95_ms": 249,
+      "p99_ms": 249,
+      "max_ms": 249,
+      "over_100_ms": 13,
+      "over_200_ms": 1
+    },
+    "combined_admin": {
+      "count": 1084,
+      "median_ms": 34.0,
+      "p95_ms": 66,
+      "p99_ms": 135,
+      "max_ms": 348,
+      "over_100_ms": 20,
+      "over_200_ms": 2
+    },
+    "combined_display": {
+      "count": 1084,
+      "median_ms": 4.0,
+      "p95_ms": 12,
+      "p99_ms": 20,
+      "max_ms": 71,
+      "over_100_ms": 0,
+      "over_200_ms": 0
+    }
+  },
+  "interpretation": [
+    "Der kombinierte Admin-p99 von 135 ms enthält Spielabschlüsse; normale Punkte haben einen p99 von 88 ms.",
+    "13 von 14 Abschlüssen und 7 von 1070 normalen Punkten überschreiten 100 ms.",
+    "Der langsamste normale Punkt wartet auf timers.fit. Der Bericht enthält keinen Browser-CPU-Trace, der die Ursache dieser Wartezeit belegt.",
+    "Die Darstellungsquittungen belegen die gemessene Turnierleitungsansicht; Displaywerte enden am WebSocket-Empfang. Weder physische Bildschirmausgabe noch BTP-Ergebnisexport werden hierdurch bestätigt.",
+    "Die erneut im Screenshot gemeldete ResizeObserver-Schleife wurde in den aktuellen isolierten Browserprüfungen nicht reproduziert. Die Fehlerprotokollierung bleibt aktiv."
+  ],
+  "worst_ordinary": {
+    "admin_ms": 348,
+    "display_ms": 10,
+    "ui": {
+      "queue_ms": 0.7,
+      "handler_ms": 0.6,
+      "ui_wait_ms": 290,
+      "render_ms": 38.6,
+      "total_ms": 329.9
+    },
+    "jobs": [
+      {
+        "name": "timers.fit",
+        "requested_ms": 1.2,
+        "queue_ms": 12.3,
+        "work_ms": 4.7,
+        "elapsed_ms": 290.1,
+        "status": "complete"
+      }
+    ]
+  },
+  "queue_fix": {
+    "cause": [
+      "Verschiedene tabletoperator-Meldungen mit verschachtelten IDs erhielten denselben Deduplizierungsschlüssel.",
+      "Eine geplante Hinzufügung konnte nach anschließender Feldzuweisung noch den alten wartenden Datensatz veröffentlichen."
+    ],
+    "change": "Meldungen nach Wartelisten-ID unterscheiden und den final gespeicherten Zustand des Wartelisteneintrags veröffentlichen. Keine zusätzlichen Datenbankabfragen.",
+    "baseline_regressions_failed": 3,
+    "candidate_targeted_node_passed": 108,
+    "additional_worker_node_passed": 7,
+    "existing_worker_failure": "Die Erwartung zu notify_courts unterscheidet ein explizites undefined-Argument von einem ausgelassenen Argument. Identischer Fehler im unveränderten Ausgangsstand; nicht als bestanden gewertet.",
+    "baseline_browser": {
+      "waiting": 1,
+      "active": 2
+    },
+    "candidate_browser": {
+      "waiting": 0,
+      "active": 2,
+      "court_rows_retained": true,
+      "window_errors": 0
+    },
+    "browser_checks": [
+      "--tablet-queue-live-only: echte Meldungen aus einem isolierten Syncplan, native Empfangswarteschlange, Seitenleistenanordnung wie im Screenshot, vier Fenstergrößen und je drei Ansichtsdichten.",
+      "--resize-observer-only: 512 Spiele, native Größenbeobachtung, Fenster-/Dichte-, Schrift- und Namensänderungen; keine window-Fehler."
+    ]
+  },
+  "product_sha256": {
+    "bts/btp_sync_plan.js": "9a60e1534005e3527f3b9b3a0323d48be628ef63b9621fd089f5976b775e852e",
+    "bts/btp_planner/notification_value.js": "3f43d373ac7a9d6e6815ba1db4492084d42127cf5b516f64faeb4ca5472d5e25"
+  }
+}

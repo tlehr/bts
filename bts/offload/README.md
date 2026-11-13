@@ -8,26 +8,36 @@ unabhängig ausgewertet (`1` ein, `0` aus):
 | Schalter | Standard | Wirkung |
 | --- | --- | --- |
 | `BTS_BTP_DECODE_WORKER` | `1` | Große BTP-Antworten im Decoder-Worker; kleine Bestätigungen direkt. |
-| `BTS_SYNC_PLAN_WORKER` | `1` | BTP-Integration, Normalisierung und Auto-Call-Planung auf privatem Speicherstand im Planungsworker. |
+| `BTS_SYNC_PLAN_WORKER` | `1` | BTP-Integration, Normalisierung sowie automatische Feld- und Vorbereitungsplanung auf privatem Speicherstand im Planungsworker. |
 | `BTS_SYNC_PLAN_PATCH_RETURN` | `1` | Planungsworker gibt bei bestehenden Objekten nur geänderte Felder zurück; benötigt `BTS_SYNC_PLAN_WORKER=1`. |
 | `BTS_DEVICE_INFO_BACKGROUND` | `0` | Geräteinformationen aus Punktmeldungen über eine asynchrone Queue je Gerät nachziehen. |
 | `BTS_XLSX_IMPORT_WORKER` | `0` | XLSX-Datei im Importworker lesen; Zuordnung und Speicherung anschließend im Hauptthread. |
-| `BTS_COMPACTION_WORKER` | `0` | NeDB-Datensätze im Worker serialisieren, unveränderte Zeilen wiederverwenden. |
+| `BTS_COMPACTION_WORKER` | `1` | NeDB-Datensätze im Worker serialisieren, unveränderte Zeilen wiederverwenden. |
 | `BTS_COMPACTION_MODEL_READS` | `1` | Punktmeldungen lesen stabile Modellobjekte während reiner Kompaktierung, sofern keine früheren Schreib-/unbekannten Aufträge warten. |
 | `BTS_PREPARATION_MODEL_READS` | `1` | Bedarf, automatische Kandidaten, Zulässigkeit und Aufrufabstände lesen geordnete Objektreferenzen statt vollständiger NeDB-Kopien. |
 | `BTS_PREPARATION_CANDIDATES_LIGHT` | `1` | Automatische Kandidatenauswahl berechnet keine umfassenden UI-Diagnosen. |
+| `BTS_CALL_STATUS_WORKER` | `1` | Gemeinsame Aufrufdiagnosen ab 100 Spielen im eigenen Worker berechnen; Übertragung und Dekodierung erfolgen in kurzen Abschnitten mit Punktpriorität. |
+| `BTS_BACKGROUND_WORKER_PRIORITY` | `1` | Unter Linux bekommen XML-Decodierung, Sync-Planung, Kompaktierungsserialisierung und Aufrufdiagnosen Thread-Nice 5; Hauptthread und Append-Worker behalten ihre Priorität. |
 | `BTS_SYNC_BATCH_WRITES` | `0` | Änderungen werden je zusammenhängender Sammlung als ein NeDB-Append gespeichert. |
 | `BTS_SYNC_PREPARED_TOURNAMENT` | `1` | Nur geänderte Turnierzweige kopieren und einmal validieren, vor den Ressourcen-Locks; Einzel-Append mit normalen Indizes und Rollback. |
 | `BTS_SYNC_PREPARED_MATCHES` | `1` | Geänderte Matchzweige vor den Sync-Locks vorbereiten; Punkt-/Historienzweige teilen und bei ersetztem Basisdatensatz normal neu berechnen. |
 | `BTS_ADMIN_RESPONSE_BACKGROUND` | `1` | Übersicht in kurzen Abschnitten kopieren und JSON erzeugen; geordnete Antworten und Updates pro Verbindung. |
 | `BTS_ADMIN_RESPONSE_PRIORITY` | `1` | Hintergrundarbeit pausiert während der Punktpersistierung bis zur Veröffentlichung; Spielende-Cleanup behält seine eigenen Locks. |
-| `BTS_COMPACTION_STAGED` | `0` | Automatische Kompaktierung bereitet die Datei außerhalb des Executors vor; benötigt den Kompaktierungsworker. |
+| `BTS_COMPACTION_STAGED` | `1` | Automatische Kompaktierung bereitet die Datei außerhalb des Executors vor; benötigt den Kompaktierungsworker. |
 
 `BTS_PERF_RUN_LABEL` benennt einen Versuch. Das Admin-Turnierobjekt enthält ein
 vorübergehendes `debug_offloading` mit Label, Prozesskennung und tatsächlichen
 Schaltern. Der Testclient speichert dieses Profil im Bericht und markiert
 Profilwechsel oder Serverneustarts als `mixed_server_profiles`. Das Profil wird
 nicht in die Turnierdatenbank geschrieben.
+
+Die CPU-Priorisierung wird beim Start des jeweiligen Hintergrundworkers
+angewendet. Änderungen am Schalter benötigen einen Worker- beziehungsweise
+Serverneustart. Eine bereits niedrigere Priorität wird nicht angehoben.
+Andere Betriebssysteme behalten ihre bisherige Priorität. Ein abgelehnter
+Systemaufruf wird einmal mit Ursache protokolliert; der Worker arbeitet weiter.
+Die tatsächlich gemessene Einstellung erscheint unter `workers[].scheduling`
+in den Diagnosedaten. Es wird keine globale Prozesspriorität verändert.
 
 ## Zuständigkeiten und Reihenfolge
 
@@ -47,6 +57,22 @@ Punkte, Apply mit Rollback und Veröffentlichung. Änderungen während der Planu
 Turnier-Reset, Verbindungsabbruch und geänderte Uhrkonfiguration werden geprüft.
 Freilosverarbeitung bleibt Bestandteil der Planung. Eigene Planer-Callbacks
 ohne explizit unterstützte Operation laufen weiterhin direkt.
+
+Die automatische Vorbereitung plant ebenfalls vor den Ressourcen-Locks. Erst
+der validierte Auftrag `auto_preparation_apply` übernimmt die Änderungen atomar.
+Ein während der Planung veränderter Teilnehmer oder Spielzustand erzwingt eine
+neue Planung. Aufrufabstands-Timer werden erst nach erfolgreicher Übernahme im
+Hauptprozess eingerichtet; die bereits verstrichene Planungszeit wird abgezogen.
+
+Der gemeinsame Aufrufstatus verwendet einen separaten Worker. Kleine Turniere,
+Erweiterungen bereits bekannter Antworten, eigene Berechnungshooks und Aufrufe
+innerhalb eines Planungsworkers behalten den kooperativen direkten Pfad. Ganze
+Turnier- und Diagnoseobjekte werden nicht synchron kopiert: Einzelne Datensätze
+und Diagnosen bilden Transferpakete. Datumstypen, fehlende Werte und Referenzen
+auf die aktuellen Modelldokumente bleiben erhalten. Unveränderte Diagnosepakete
+verwenden ihre bisherigen Regelobjekte weiter. Generation, Uhr und Ablaufzeit
+werden nach der Berechnung erneut geprüft; ein Workerfehler wird mit Ursache
+geloggt und löst die lokale Berechnung aus.
 
 Mit `BTS_SYNC_PLAN_PATCH_RETURN=1` überträgt `../btp_planner/changes.js` für
 bestehende Datensätze nur geänderte oberste Felder und die unveränderte NeDB-
@@ -166,9 +192,13 @@ Der Worker serialisiert den Snapshot, und NeDB schreibt eine eigene Staging-Date
 frei; die originale Datei bleibt maßgeblich. Erfolgreiche zwischenzeitliche
 Appends einschließlich Löschungen und Indexänderungen werden in Reihenfolge
 nachgezogen. Große Journale werden ebenfalls außerhalb des Executors serialisiert.
-Nur der Abschluss wartet im Executor: Restjournal anhängen, Staging-Datei fsyncen,
-atomar umbenennen, Verzeichnis fsyncen. Punkte können auf diesen letzten Abschnitt
-weiterhin warten; das Verfahren verspricht keine vollständig sperrfreien Writes.
+Auch das abschließende Restjournal wird außerhalb des Executors angehängt und
+die Staging-Datei dort geflusht. Der Executor prüft danach, dass kein neuer
+Journal- oder Index-Append eingegangen ist. Nur atomisches Umbenennen und der
+Verzeichnis-Flush halten die abschließende Sperre. Neue Writes während des
+Datei-Flushs erzwingen einen weiteren Nachziehversuch; nach vier Versuchen
+bleibt die ursprüngliche Datei maßgeblich und die Runde wird abgebrochen.
+Punkte können auf Umbenennen und Verzeichnis-Flush weiterhin warten.
 
 Die Restserialisierung ist auf acht Journal-Dokumente begrenzt; nach drei
 Nachziehversuchen wird eine überlastete Runde abgebrochen. Mehr als 1024

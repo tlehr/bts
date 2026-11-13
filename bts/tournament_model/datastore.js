@@ -1,7 +1,8 @@
 'use strict';
 
 const { deepCopy } = require('nedb/lib/model');
-const { certify_read } = require('../database_read_barrier');
+const read_barrier = require('../database_read_barrier');
+const { certify_read } = read_barrier;
 
 // NeDB-specific lifecycle hooks and ordered, read-only snapshots.
 class DatastoreBinding {
@@ -11,6 +12,7 @@ class DatastoreBinding {
 		this.model._reset(collection, datastore.getAllData());
 	}
 	_watch(collection, datastore) {
+		const observe_native_updates = ['matches', 'courts'].includes(collection) ? read_barrier.prepare_native_updates(datastore) : null;
 		if (collection === 'tournaments') require('./registration_rollback').attach(datastore, this.model);
 		const wrap = (name, changed) => {
 			const original = datastore[name];
@@ -32,6 +34,7 @@ class DatastoreBinding {
 			for (const document of Array.isArray(documents) ? documents : [documents]) this.model._remove(collection, document);
 		});
 		wrap('resetIndexes', () => this._reset(collection, datastore));
+		observe_native_updates?.();
 		this._reset(collection, datastore);
 	}
 	find_matches_by_players(key, players, callback) {
@@ -73,9 +76,15 @@ class DatastoreBinding {
 					done(null);
 				} catch (error) { done(error); }
 			};
-			// Preserve datastore write ordering without scanning or copying its docs.
-			this.db[collection].executor.push(certify_read({ this: this.db[collection], fn: capture, diagnostic_name: 'sync_snapshot_' + collection,
-				arguments: [error => error ? reject(error) : resolve()] }));
+			const done = error => error ? reject(error) : resolve();
+			// Pure model captures can read now when no preceding write can change
+			// the observed revision. Keep the immutable references and asynchronous
+			// delivery, without occupying an executor slot until its next turn.
+			const store = this.db[collection];
+			if (read_barrier.inspect_idle(store).allowed || read_barrier.inspect_readonly(store).allowed) {
+				capture(error => queueMicrotask(() => done(error)));
+			} else store.executor.push(certify_read({ this: store, fn: capture, diagnostic_name: 'sync_snapshot_' + collection,
+				arguments: [done] }));
 		})));
 		return result;
 	}

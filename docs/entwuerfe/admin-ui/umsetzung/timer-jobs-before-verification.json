@@ -1,0 +1,55 @@
+{
+  "scope": "Native browser receive queue and fitting. Only the first size observation of one independent synthetic clock is withheld; the other clock must fit and receive its full presentation receipt. No live writes.",
+  "isolated": {
+    "heldObservations": 1,
+    "heldReceipt": false,
+    "readyReceipt": false,
+    "readyFitted": true
+  },
+  "receipts": [
+    {
+      "id": "held",
+      "status": "presented",
+      "timings": {
+        "queue_ms": 0.9,
+        "handler_ms": 0.2,
+        "ui_wait_ms": 142.5,
+        "render_ms": 33.4,
+        "total_ms": 177
+      },
+      "ui_jobs": [
+        {
+          "name": "timers.fit",
+          "requested_ms": 1.1,
+          "queue_ms": 9,
+          "work_ms": 0.4,
+          "elapsed_ms": 142.4,
+          "status": "complete"
+        }
+      ]
+    },
+    {
+      "id": "ready",
+      "status": "presented",
+      "timings": {
+        "queue_ms": 0.8,
+        "handler_ms": 0.1,
+        "ui_wait_ms": 142.4,
+        "render_ms": 33.3,
+        "total_ms": 176.6
+      },
+      "ui_jobs": [
+        {
+          "name": "timers.fit",
+          "requested_ms": 0.9,
+          "queue_ms": 8.8,
+          "work_ms": 0.5,
+          "elapsed_ms": 142.2,
+          "status": "complete"
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "pending": 0
+}

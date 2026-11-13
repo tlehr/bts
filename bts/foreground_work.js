@@ -24,7 +24,7 @@ function background_idle() {
 }
 function begin(name) {
 	if (!(name.startsWith('handle_score_update') || name === 'confirm_match_finished_from_admin' ||
-		name === 'fetch_sync_apply' || name === 'post_sync_auto_call_apply') ||
+		name === 'fetch_sync_apply' || name === 'post_sync_auto_call_apply' || name === 'auto_preparation_apply') ||
 		!require('./offload/profile').enabled('admin_response_priority')) return null;
 	active++;
 	let finished = false;

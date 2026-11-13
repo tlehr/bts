@@ -118,7 +118,7 @@ describe('background admin response output', function() {
 		process.env.BTS_ADMIN_RESPONSE_PRIORITY = '1';
 		const { ResourceLockQueue } = require('../bts/resource_lock_queue'), update_queue = require('../bts/update_queue');
 		try {
-			for (const name of ['fetch_sync_apply', 'post_sync_auto_call_apply']) {
+			for (const name of ['fetch_sync_apply', 'post_sync_auto_call_apply', 'auto_preparation_apply']) {
 				const queue = new ResourceLockQueue();
 				let entered, release;
 				const started = new Promise(resolve => { entered = resolve; });

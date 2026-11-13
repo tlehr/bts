@@ -1,5 +1,7 @@
 'use strict';
 
+require('../offload/background_priority').configure('sync_plan_worker');
+
 const staging = require('./staging');
 const sessions = new Map();
 
@@ -16,7 +18,7 @@ require('../offload/worker')(async payload => {
 	const traces = require('../performance/traces');
 	if (!payload.trace_enabled) return plan_work(payload);
 	traces.enable();
-	return traces.operation('worker_plan', { type: payload.operation === 'auto_call' ? 'calling' : 'sync' }, async () => {
+	return traces.operation('worker_plan', { type: ['auto_call','auto_preparation'].includes(payload.operation) ? 'calling' : 'sync' }, async () => {
 		const result = await plan_work(payload);
 		result.value.diagnostic_phases = traces.capture().record.spans.filter(row => row.kind === 'phase');
 		return result;
@@ -51,6 +53,9 @@ async function plan_work(payload) {
 				result = await new Promise((resolve, reject) => require('../match_utils')._plan_auto_call_once(app, payload.tkey,
 					error => error ? reject(error) : resolve(true)));
 			} finally { rules.calculate_call_on_court_selection = select; }
+		} else if (payload.operation === 'auto_preparation') {
+			result = await new Promise((resolve,reject) => require('../match_utils')._plan_auto_preparation_once(app, payload.tkey,
+				error => error ? reject(error) : resolve(true)));
 		} else throw new Error('Unknown planner operation');
 		await session.db.wait_for_writes();
 		session.stage_state = staging.planning_snapshot(session.db);

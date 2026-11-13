@@ -1,0 +1,207 @@
+{
+  "date": "2026-11-09",
+  "scope": "Isolated Chrome with a frozen 512-match tournament response. All write/server calls simulated. Read-only live response timings measured separately. No player data included.",
+  "historical_cause": {
+    "commit": "6b99fe9",
+    "date": "2026-10-30",
+    "finding": "Header geometry reads lay out intermediate legacy results before board transformation and the existing 50-result visibility limit."
+  },
+  "changes": [
+    "Hide main only during the synchronous ui_show transaction; restore inline display and priority in finally.",
+    "Retain the names-layout job while first sizes are unobserved without forcing an otherwise unused computed-style/layout read.",
+    "Reuse at most 16 timezone formatters during scheduled-time conversion, retaining the existing conversion algorithm."
+  ],
+  "read_only_server": {
+    "samples": [
+      {
+        "response_ms": 82.38547992706299,
+        "bytes": 2369551
+      },
+      {
+        "response_ms": 75.59477281570435,
+        "bytes": 2369551
+      },
+      {
+        "response_ms": 59.49509882926941,
+        "bytes": 2369551
+      }
+    ],
+    "matches": 512,
+    "finished": 423,
+    "courts": 15,
+    "officials": 4
+  },
+  "comparison": {
+    "order": "before, after, after, before; fresh Chrome sessions; no CPU profiler",
+    "measurement": "From response handling (after fixture cloning) until three frames without pending tournament/board jobs. Asset load and server latency excluded.",
+    "runs": [
+      {
+        "mode": "before",
+        "run": 1,
+        "browser_build_ms": 2321.6,
+        "board_mount_ms": 1100.1,
+        "dom_content_loaded_ms": 519.1,
+        "asset_bytes": 5177228,
+        "matches": 512,
+        "game_rows": 512,
+        "visible_results": 50,
+        "checks_passed": 5
+      },
+      {
+        "mode": "after",
+        "run": 1,
+        "browser_build_ms": 1938,
+        "board_mount_ms": 531.6,
+        "dom_content_loaded_ms": 566.1,
+        "asset_bytes": 5055214,
+        "matches": 512,
+        "game_rows": 512,
+        "visible_results": 50,
+        "checks_passed": 5
+      },
+      {
+        "mode": "after",
+        "run": 2,
+        "browser_build_ms": 1779,
+        "board_mount_ms": 468.6,
+        "dom_content_loaded_ms": 486.1,
+        "asset_bytes": 5055214,
+        "matches": 512,
+        "game_rows": 512,
+        "visible_results": 50,
+        "checks_passed": 5
+      },
+      {
+        "mode": "before",
+        "run": 2,
+        "browser_build_ms": 2285.7,
+        "board_mount_ms": 1023.3,
+        "dom_content_loaded_ms": 546.3,
+        "asset_bytes": 5177228,
+        "matches": 512,
+        "game_rows": 512,
+        "visible_results": 50,
+        "checks_passed": 5
+      }
+    ],
+    "mean_browser_build_before_ms": 2303.65,
+    "mean_browser_build_after_ms": 1858.5,
+    "browser_build_reduction_percent": 19.32,
+    "mean_board_mount_before_ms": 1061.7,
+    "mean_board_mount_after_ms": 500.1
+  },
+  "verification": {
+    "node_tests_passed": 162,
+    "browser_runs": [
+      {
+        "mode": "startup",
+        "exit_code": 0
+      },
+      {
+        "mode": "update-ownership",
+        "exit_code": 0
+      },
+      {
+        "mode": "history-pages",
+        "exit_code": 0
+      },
+      {
+        "mode": "persistent-rows",
+        "exit_code": 0
+      },
+      {
+        "mode": "compact-name-stability",
+        "exit_code": 0
+      },
+      {
+        "mode": "preparation-info-layout",
+        "exit_code": 0
+      },
+      {
+        "mode": "navigation-responsive",
+        "exit_code": 0
+      },
+      {
+        "mode": "fixed-columns",
+        "exit_code": 0
+      },
+      {
+        "mode": "sync-burst",
+        "exit_code": 0
+      }
+    ],
+    "timezone_regression": "Unmodified baseline constructs 1000 formatters for 1000 conversions; candidate constructs one. Golden summer/winter and fractional-hour offsets pass.",
+    "lint": [
+      {
+        "file": "static/js/cmatch.js",
+        "baseline": 182,
+        "current": 182,
+        "added": []
+      },
+      {
+        "file": "static/js/ctournament.js",
+        "baseline": 232,
+        "current": 232,
+        "added": []
+      },
+      {
+        "file": "static/js/cleitstand.js",
+        "errors": 0,
+        "warnings": 0,
+        "messages": []
+      },
+      {
+        "file": "test/test_cmatch_schedule_time_cache.js",
+        "errors": 0,
+        "warnings": 0,
+        "messages": []
+      },
+      {
+        "file": "docs/entwuerfe/admin-ui/umsetzung/startup-check.js",
+        "errors": 0,
+        "warnings": 0,
+        "messages": []
+      }
+    ],
+    "installed_startup_smoke": {
+      "scope": "Synthetic isolated startup with 512 games and 423 finished.",
+      "checks": [
+        "All 512 games and 50 visible results survive the initial build",
+        "The main view is visible after all startup work",
+        "A failed build restores prior inline display and priority",
+        "A complete rebuild recovers after failure with every game",
+        "No unexpected browser exceptions"
+      ],
+      "matches": 512,
+      "courts": 13,
+      "visible_results": 50,
+      "pending": false,
+      "browser_build_ms": 2036.9
+    },
+    "synthetic_fixture": "Finished games use a fixed midday timestamp so date selection and the 50-result assertion remain deterministic across midnight."
+  },
+  "limitations": [
+    "Two runs per variant on this machine, not a user-device latency guarantee or p99 measurement.",
+    "All 512 rows are still built; 50 finished games initially visible. No data/list limit or virtualization added.",
+    "Asset/script initialization takes roughly another half second locally; a subsecond full reload is not achieved.",
+    "Existing baseline lint findings in cmatch.js and ctournament.js remain, with no added findings.",
+    "No backend, database, BTP write path or BUP client changes."
+  ],
+  "source_files": [
+    {
+      "file": "static/js/ctournament.js",
+      "before_sha256": "ceb12317080d358039d7e5106c0fbf33957bb6de191c13596f53a8f75c4ccd7d",
+      "after_sha256": "17c9e3fd28e017d4a8efd3e5e412f92bd9319b65f6b23d5d584cc44d319920f2"
+    },
+    {
+      "file": "static/js/cleitstand.js",
+      "before_sha256": "45b208196ff0c5f4088fa4f90fd06cbd32f493588eedb6c53e1f56cd19808390",
+      "after_sha256": "265be8ed862d9e3b1e839a9257ea1413b9452ddffc40598eb5c7769755dc3525"
+    },
+    {
+      "file": "static/js/cmatch.js",
+      "before_sha256": "2e44e9043dfe0f2f2ef857570f2572bbece728580ceaa611fa2e564a639b3842",
+      "after_sha256": "4e8966e747f3f2357a173d17c02e048dc9765a8d389821d5c833013cfac23708"
+    }
+  ]
+}

@@ -73,7 +73,8 @@ module.exports=async function({c,open,previews}) {
    Object.assign(match.setup,{state:'finished',now_on_court:false});match.shuttle_count=5;match.network_score=[[21,15],[21,17]];match.team1_won=true;match.btp_winner=1;match.end_ts=Date.now();
    crouting.on_change({ctype:'match_edit',tournament_key:curt.key,val:{match__id:match._id,match}});
    const table=qa.reference.closest('table'),during=qa.nameWidth(),column=!!table.querySelector('.ls-shuttle-column');
-   const schema=[...table.querySelectorAll('tr[data-match_id]')].every(row=>row.cells.length===table.querySelectorAll('colgroup>col').length);
+   // Collapsed history keeps identity-only rows until their day is opened.
+   const schema=[...table.querySelectorAll('tr[data-match_id]:not([data-ls-deferred])')].every(row=>row.cells.length===table.querySelectorAll('colgroup>col').length);
    await qa.settle();return{column,schema,during,after:qa.nameWidth()};
   })()`);
   check('The first counted shuttles create the explicit column and matching cells before layout',shuttles.column&&shuttles.schema&&Math.abs(shuttles.during-shuttles.after)<.25);

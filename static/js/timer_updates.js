@@ -5,7 +5,9 @@
 // eslint-disable-next-line no-unused-vars -- Shared with cmatch.
 var btsTimerUpdates = (function createTimerUpdates(env) {
 	const entries = new Set();
+	const watched = new Map();
 	let timeout = null, wakeAt = null, running = false, batches = 0, updates = 0;
+	let observer = null, sweep = null;
 	const now = () => env.Date.now();
 	function arm() {
 		if (running) return;
@@ -33,6 +35,30 @@ var btsTimerUpdates = (function createTimerUpdates(env) {
 		entries.add(entry);arm();
 		return () => {if(entries.delete(entry))arm();};
 	}
+	function sweepDetached() {
+		sweep = null;
+		for (const entry of watched.values()) if (!entry.owner.isConnected) {
+			entry.cancel();entry.detached?.();
+		}
+		if (watched.size) sweep = env.setTimeout(sweepDetached,1000);
+	}
+	// Observe the always-present player/cell, rather than its clock. An expired
+	// clock can be display:none and still needs to resume after a changed state.
+	function observe(element, callback, detached, owner = element) {
+		if (typeof env.IntersectionObserver !== 'function') return null;
+		observer ||= new env.IntersectionObserver(records => {
+			for (const record of records) watched.get(record.target)?.callback(record.isIntersecting);
+		}, {rootMargin:'600px 0px'});
+		watched.get(element)?.cancel();
+		const entry = {callback,detached,owner,cancel:() => {
+			if (watched.get(element) !== entry) return;
+			watched.delete(element);observer.unobserve(element);
+			if (!watched.size && sweep != null) {env.clearTimeout(sweep);sweep=null;}
+		}};
+		watched.set(element,entry);observer.observe(element);
+		if (sweep == null) sweep = env.setTimeout(sweepDetached,1000);
+		return entry.cancel;
+	}
 	if (typeof module !== 'undefined' && module.exports) module.exports = createTimerUpdates;
-	return {schedule,stats:()=>({pending:entries.size,batches,updates})};
+	return {schedule,observe,stats:()=>({pending:entries.size,batches,updates,observed:watched.size})};
 })(typeof window === 'undefined' ? {Date,setTimeout,clearTimeout} : window);

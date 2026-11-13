@@ -13,6 +13,16 @@ class TournamentModel {
 		this.db = db;
 		this.tournaments = new Map();
 		this._identities = new Map();
+		this._listeners = new Set();
+	}
+	subscribe(listener) { this._listeners.add(listener); return () => this._listeners.delete(listener); }
+	// Index observations can precede persistence. Consumers invalidate here and
+	// cross ordered datastore read barriers before exposing a new derived state.
+	_changed(collection, before, after) {
+		for (const listener of this._listeners) {
+			try { listener(collection, before, after); }
+			catch (error) { console.error('[bts] model observer failed:', error.message); } // eslint-disable-line no-console
+		}
 	}
 	tournament(key) {
 		key = String(key ?? 'default');
@@ -59,12 +69,14 @@ class TournamentModel {
 			if (old?.key !== document.key) require('../server_diagnostics').remove(old);
 			require('../server_diagnostics').set_from_tournament(document);
 		}
+		this._changed(collection, old, document);
 		return entity;
 	}
 	_remove(collection, document) {
 		const entity = this._identities.get(collection)?.get(String(document._id));
 		if (!entity?.present) return;
 		const tournament = entity.tournament;
+		const previous = entity.data;
 		if (collection === 'tournaments') {
 			update_registrations(tournament, null, entity.data.events);
 			require('../server_diagnostics').remove(entity.data);
@@ -76,6 +88,7 @@ class TournamentModel {
 		tournament.collection(collection).delete(entity.id);
 		if (normalization.supported(collection)) tournament.normalization_index(collection).delete(entity.id);
 		entity._replace(null);
+		this._changed(collection, previous, null);
 	}
 	_reset(collection, documents) {
 		for (const entity of this._identities.get(collection)?.values() || []) {

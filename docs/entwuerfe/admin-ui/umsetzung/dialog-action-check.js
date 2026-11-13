@@ -18,7 +18,7 @@ module.exports=async function({c,verify,click,metrics,key,delay,capture,open}) {
  await key('Escape','Escape',27);
  await c.evaluate('__setField(\'court_id\',\'CH_13\')');await click('#ls-match-tab-3');
  await verify('Raw data stays inside the dialog without a separate-open link and retains the editable draft','!document.querySelector(\'.dialog-actions-context>a,.ls-raw-panel a\')&&!!document.querySelector(\'.ls-raw-panel pre\')&&!document.querySelector(\'.match_save_button\').disabled&&document.querySelector(\'.match_edit_delete_button\').hidden');
- await click('.ls-dialog-close');
+ await click('.match_edit_dialog .ls-dialog-close');
  await verify('Unsaved changes open a yellow warning with dark text, an icon and safe Continue editing focus', `(()=>{const dialog=document.querySelector('.bts-confirm-dialog.is-warning');return dialog?.open&&dialog.querySelector('h2').textContent==='Ungespeicherte Änderungen'&&getComputedStyle(dialog.querySelector('h2')).backgroundColor==='rgb(241, 194, 27)'&&getComputedStyle(dialog.querySelector('h2')).color==='rgb(33, 50, 53)'&&getComputedStyle(dialog).borderTopColor==='rgb(138, 100, 0)'&&dialog.querySelector('.bts-confirm-warning')&&dialog.textContent.includes('Spiel 45')&&dialog.querySelector('.bts-confirm-accept').textContent==='Änderungen verwerfen'&&document.activeElement.textContent==='Weiter bearbeiten'&&__confirmations.length===0&&__writes.length===0})()`);
  await click('.bts-confirm-cancel');
  await verify('Rejecting discard through the window close button keeps the original draft', `!!document.querySelector('.match_edit_dialog')&&!document.querySelector('.bts-confirm-dialog')&&document.activeElement.matches('.match_edit_cancel_button')&&document.querySelector('.match_edit_dialog form').elements.court_id.value==='CH_13'`);
@@ -27,7 +27,7 @@ module.exports=async function({c,verify,click,metrics,key,delay,capture,open}) {
  await key('Escape','Escape',27);
  await verify('Escape in the warning keeps the draft and closes only its confirmation', `!!document.querySelector('.match_edit_dialog')&&!document.querySelector('.bts-confirm-dialog')&&document.querySelector('.match_edit_dialog form').elements.court_id.value==='CH_13'&&__confirmations.length===0`);
  await click('.match_edit_cancel_button');
- await c.evaluate("document.querySelector('.ls-dialog-close').click();document.querySelector('.match_edit_cancel_button').click()");
+ await c.evaluate("document.querySelector('.match_edit_dialog .ls-dialog-close').click();document.querySelector('.match_edit_cancel_button').click()");
  await verify('Repeated close requests retain a single discard warning', `document.querySelectorAll('.bts-confirm-dialog').length===1&&__writes.length===0`);
  for(const [width,height] of [[320,568],[568,320],[1920,1080]]) {
   await metrics(width,height);
@@ -40,7 +40,7 @@ module.exports=async function({c,verify,click,metrics,key,delay,capture,open}) {
  await click('tr[data-match_id="match-45"] .ls-match-open');await click('.match_edit_cancel_button');
  await verify('Closing a pristine dialog does not ask for discard approval', `!document.querySelector('.match_edit_dialog')&&!document.querySelector('.bts-confirm-dialog')&&__confirmations.length===0`);
  await click('tr[data-match_id="match-45"] .ls-match-open');await click('#ls-match-tab-1');
- await c.evaluate("__setField('court_id','CH_13')");await click('.ls-dialog-close');
+ await c.evaluate("__setField('court_id','CH_13')");await click('.match_edit_dialog .ls-dialog-close');
  await c.evaluate("window.__staleDiscardButton=document.querySelector('.bts-confirm-accept')");
  await click('tr[data-match_id="match-44"] .ls-match-open');await c.evaluate('__staleDiscardButton.click()');
  await verify('Replacing a game cancels its discard question and a stale approval cannot close the new game', `!document.querySelector('.bts-confirm-dialog')&&document.querySelector('.match_edit_dialog').getAttribute('data-edit-match_id')==='match-44'&&__writes.length===0`);

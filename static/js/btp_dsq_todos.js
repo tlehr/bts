@@ -21,9 +21,12 @@ var btp_dsq_todos = (function() {
 			(match.setup.teams || []).forEach((team, team_index) => {
 				for (const player of team?.players || []) {
 					if (!player) continue;
+					const resolved = match.score_status === 'disqualified' && loser === team_index;
+					const blocked = btp_entry_status.player_blocking_status(match, player, team) === 'DSQ';
+					if (!resolved && !blocked) continue;
 					const id = key(match, player);
-					if (match.score_status === 'disqualified' && loser === team_index) recorded.add(id);
-					if (btp_entry_status.player_blocking_status(match, player, team) === 'DSQ') {
+					if (resolved) recorded.add(id);
+					if (blocked) {
 						affected.set(id, { name: player.name || [player.firstname, player.lastname].filter(Boolean).join(' '),
 							event_name: discipline(match) });
 					}

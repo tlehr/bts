@@ -35,6 +35,7 @@ describe('prepared match metadata writes', function() {
 		const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'bts-prepared-match-'));
 		const store = new Datastore({ filename: path.join(directory, 'matches') });
 		try {
+			require('../bts/prepared_append').attach(store);
 			await promisify(store.loadDatabase.bind(store))();
 			await promisify(store.insert.bind(store))({ _id: 'one', tournament_key: 'test', network_score: [[1, 0]], presses: [],
 				setup: { match_num: 1, teams: [{ players: [{ btp_id: 1, name: 'A' }] }] } });
@@ -45,9 +46,12 @@ describe('prepared match metadata writes', function() {
 				return { collection: 'matches', id: 'one', before, after: model.modify(before, update), update }; };
 			const query = () => ({ _id: 'one', tournament_key: 'test' });
 			let change = edit();
-			assert.deepStrictEqual(await batch.write(store, [change], query, new Map([[change, prepare(change)]])), { prepared_writes: 1, prepared_fallbacks: 0 });
+			const ready_for_append = change => {
+				const ready = prepare(change);require('../bts/prepared_append').prepare(store, ready.document);return ready;
+			};
+			assert.deepStrictEqual(await batch.write(store, [change], query, new Map([[change, ready_for_append(change)]])), { prepared_writes: 1, prepared_fallbacks: 0 });
 			assert.strictEqual(domain.tournament('test').matches.get('one'), entity);
-			change = edit(); const prepared = prepare(change);
+			change = edit(); const prepared = ready_for_append(change);
 			await promisify(store.update.bind(store))(query(), { $set: { network_score: [[2, 0]] } }, {});
 			assert.deepStrictEqual(await batch.write(store, [change], query, new Map([[change, prepared]])), { prepared_writes: 0, prepared_fallbacks: 1 });
 			assert.deepStrictEqual(raw().network_score, [[2, 0]]);
@@ -57,7 +61,7 @@ describe('prepared match metadata writes', function() {
 				if (!failed) { failed = true; return queueMicrotask(() => done(new Error('append failed'))); }
 				return persist.call(this, documents, done);
 			};
-			try { await assert.rejects(batch.write(store, [change], query, new Map([[change, prepare(change)]])), /append failed/); }
+			try { await assert.rejects(batch.write(store, [change], query, new Map([[change, ready_for_append(change)]])), /append failed/); }
 			finally { store.persistence.persistNewState = persist; }
 			assert.strictEqual(raw().setup.match_num, 99);
 			const reload = new Datastore({ filename: store.filename });

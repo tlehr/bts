@@ -1,4 +1,4 @@
-/* global btsDialogActions, crouting, btsCertificateDesign, btsCertificateDocument, btsCertificateDesigner, save_file */
+/* global btsLibraries, btsDialogActions, crouting, btsCertificateDesign, btsCertificateDocument, btsCertificateDesigner, save_file */
 'use strict';
 
 // The certificates workspace shares export generation with the existing data builder.
@@ -140,11 +140,16 @@ var btsCertificates = (() => {
    finishNavigation();
   }
 
-  function runExport(format) {
+  async function runExport(format) {
    if (!active() || unavailable() || confirming || !form.reportValidity()) return;
    const options = config.readOptions();busy = format;error = '';notice = '';refresh();
-   try { exportFile(format, options); }
-   catch (_) { busy = null;notice = 'Die Exportdatei konnte nicht erstellt werden. Bitte erneut versuchen.';refresh();return; }
+   try {
+    if (format === 'xlsx') await btsLibraries.xlsx();
+    if (!active()) return;
+    await exportFile(format, options);
+    if (!active()) return;
+   }
+   catch (_) { if (!active()) return;busy = null;notice = 'Die Exportdatei konnte nicht erstellt werden. Bitte erneut versuchen.';refresh();return; }
    send({type: 'certificate_export_mark', tournament_key: tournamentKey, event_names: [...options.selected_certificate_keys]}, (err, response) => {
     busy = null;
     if (err) notice = 'Die Datei wurde erstellt, aber der Exportstatus konnte nicht gespeichert werden. Ein erneuter Export erstellt eine weitere Datei.';

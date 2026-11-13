@@ -62,7 +62,7 @@ describe('btp_conn', function() {
 		}
 	});
 
-	it('retries pending no-match results without a winner after reconnecting', function() {
+	it('retries pending results and unfinished setup edits after reconnecting', async function() {
 		const result = { _id: 'no-winner', score_status: 'no_match', btp_needsync: true };
 		const normal = { _id: 'normal', team1_won: false, btp_needsync: true };
 		const unfinished = { _id: 'unfinished', score_status: 'normal', btp_needsync: true };
@@ -70,8 +70,10 @@ describe('btp_conn', function() {
 		const conn = Object.create(BTPConn.prototype);
 		conn.app = { db: { matches: { find: (_query, callback) => callback(null, [result, normal, unfinished]) } } };
 		conn.update_score = match => sent.push(match);
-		conn.pushall();
-		assert.deepStrictEqual(sent, [result, normal]);
+		try {
+			await conn.pushall();
+			assert.deepStrictEqual(sent, [result, normal, unfinished]);
+		} finally { conn.terminate({ silent: true }); }
 	});
 
 	function make_conn_stub() {
@@ -146,7 +148,7 @@ describe('btp_conn', function() {
 		assert.strictEqual(_hash_fetch_response(response), _hash_fetch_response(response));
 		assert.notStrictEqual(
 			_hash_fetch_response(response),
-			_hash_fetch_response({ Action: [{ ID: ['REPLY'], Result: [1], Matches: [{ ID: ['m2'] }] }] })
+			_hash_fetch_response({ Action: [{ ID: ['REPLY'], Result: [1], Matches: [{ ID: ['m2'] }] }] }),
 		);
 	});
 
@@ -159,7 +161,7 @@ describe('btp_conn', function() {
 				db: {
 					matches: {
 						count: (query, cb) => {
-							assert.deepStrictEqual(query, { tournament_key: 'default', btp_needsync: true });
+							assert.deepStrictEqual(query, { tournament_key: 'default', $or: [{ btp_needsync: true }, { btp_call_pending: true }] });
 							cb(null, 0);
 						},
 					},

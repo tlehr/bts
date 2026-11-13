@@ -1,0 +1,299 @@
+{
+  "date": "2026-11-10",
+  "scope": "Name fitting on the tournament board. All browser writes mocked; no BTS, BTP, database or client settings changed.",
+  "cause": "Synchronous runNameLayout inside native ResizeObserver delivery changes the height/width of observed labels, causing undelivered resize notifications.",
+  "fix": "The callback records observed widths and queues the existing shared animation-frame job. Completion receipts still wait for required observations and fitting. No error filtering or logger changes.",
+  "reference": "https://drafts.csswg.org/resize-observer/#deliver-resize-loop-error",
+  "reproduction": {
+    "native_observer_unmodified": true,
+    "before_errors": [
+      {
+        "message": "ResizeObserver loop completed with undelivered notifications.",
+        "phase": "load"
+      },
+      {
+        "message": "ResizeObserver loop completed with undelivered notifications.",
+        "phase": "load"
+      },
+      {
+        "message": "ResizeObserver loop completed with undelivered notifications.",
+        "phase": "load"
+      },
+      {
+        "message": "ResizeObserver loop completed with undelivered notifications.",
+        "phase": "768/normal"
+      }
+    ],
+    "after_errors": [],
+    "scenario": "512 synthetic matches, six viewport/density combinations, font invalidation and a long player-name edit",
+    "after_rows": 512,
+    "after_pending": false,
+    "after_probes": 0
+  },
+  "source_sha256": {
+    "before_cleitstand": "49ea91a0d98fac0ac6e0d9d0bca995977f43c971d1a8effc076a68eb987f8000",
+    "after_cleitstand": "e155b9b3fae8cc75b846305adf8bf4d3d5c026b392e9058ff571eeb8609cb426"
+  },
+  "checks": {
+    "isolated_browser_runs": [
+      {
+        "test": "resize-observer",
+        "exit_code": 0
+      },
+      {
+        "test": "initial-layout",
+        "exit_code": 0
+      },
+      {
+        "test": "name-measurement-batch",
+        "exit_code": 0
+      },
+      {
+        "test": "name-metrics-cache",
+        "exit_code": 0
+      },
+      {
+        "test": "update-ownership",
+        "exit_code": 0
+      },
+      {
+        "test": "completion",
+        "exit_code": 0
+      },
+      {
+        "test": "header-cache",
+        "exit_code": 0
+      },
+      {
+        "test": "history-pages",
+        "exit_code": 0
+      }
+    ],
+    "installed_repository_runs": [
+      "resize-observer: passed (0 native window errors)",
+      "initial-layout: passed (10 assertions)"
+    ],
+    "node_tests": {
+      "command": "node_modules/.bin/mocha test/test_leitstand_names.js test/test_name_metrics_cache.js test/test_admin_update_observer.js test/test_leitstand_score_layout.js test/test_leitstand_tablets.js test/test_leitstand_finished_times.js test/test_leitstand_dates.js",
+      "passed": 76
+    },
+    "eslint": "Installed cleitstand.js, resize-observer-check.js and initial-layout-check.js pass with zero messages.",
+    "fixture_correction": "The early-finish timestamp in initial-layout-check now stays on the synthetic fixture day. Using Date.now crossed midnight and changed the selected result day; the unchanged baseline reproduced the same test failure. Assertions unchanged."
+  },
+  "timing_method": {
+    "order": [
+      "before",
+      "after",
+      "after",
+      "before"
+    ],
+    "fresh_profiles_per_variant": 2,
+    "reloads_per_variant": 6,
+    "frozen_response": {
+      "matches": 512,
+      "finished": 423,
+      "courts": 15
+    },
+    "visible": "Navigation start to bts-board-visible, after initial fonts, name fitting and viewport coverage settle.",
+    "fully_ready": "Navigation start until all initial list work and three stable frames are complete.",
+    "cache": "First navigation has empty HTTP/session caches. Three actual reloads reuse each profile. Every tournament response is fetched no-store.",
+    "concurrency": "Timed browser sessions ran serially, without CPU profiling, lint or unit tests in parallel. An earlier exploratory series overlapped lint and is excluded.",
+    "limits": "Local isolated HTTP harness with a frozen response; no production latency guarantee. Two cold samples per variant cannot establish a robust cold-start improvement."
+  },
+  "timing_medians_and_ranges": {
+    "before": {
+      "cold": {
+        "visible_ms": {
+          "median": 1007.1,
+          "min": 994,
+          "max": 1020.2
+        },
+        "fully_ready_ms": {
+          "median": 1481.2,
+          "min": 1476.6,
+          "max": 1485.9
+        },
+        "remaining_ms": {
+          "median": 474.1,
+          "min": 465.7,
+          "max": 482.6
+        }
+      },
+      "reload": {
+        "visible_ms": {
+          "median": 323.1,
+          "min": 291.7,
+          "max": 368.5
+        },
+        "fully_ready_ms": {
+          "median": 737.9,
+          "min": 690.5,
+          "max": 757.5
+        },
+        "remaining_ms": {
+          "median": 407.0,
+          "min": 382.8,
+          "max": 416.1
+        }
+      }
+    },
+    "after": {
+      "cold": {
+        "visible_ms": {
+          "median": 920.2,
+          "min": 914.1,
+          "max": 926.3
+        },
+        "fully_ready_ms": {
+          "median": 1386.8,
+          "min": 1384.5,
+          "max": 1389
+        },
+        "remaining_ms": {
+          "median": 466.5,
+          "min": 458.2,
+          "max": 474.9
+        }
+      },
+      "reload": {
+        "visible_ms": {
+          "median": 323.5,
+          "min": 305.6,
+          "max": 394.3
+        },
+        "fully_ready_ms": {
+          "median": 757.9,
+          "min": 719.1,
+          "max": 820.4
+        },
+        "remaining_ms": {
+          "median": 430.5,
+          "min": 392.2,
+          "max": 447.8
+        }
+      }
+    }
+  },
+  "timing_runs": [
+    {
+      "variant": "before",
+      "profile": 1,
+      "measurements": [
+        {
+          "cache": "cold",
+          "visible_ms": 1020.2,
+          "fully_ready_ms": 1485.9,
+          "remaining_ms": 465.7
+        },
+        {
+          "cache": "reload",
+          "visible_ms": 368.5,
+          "fully_ready_ms": 751.3,
+          "remaining_ms": 382.8
+        },
+        {
+          "cache": "reload",
+          "visible_ms": 308.5,
+          "fully_ready_ms": 724.5,
+          "remaining_ms": 416.0
+        },
+        {
+          "cache": "reload",
+          "visible_ms": 291.7,
+          "fully_ready_ms": 690.5,
+          "remaining_ms": 398.8
+        }
+      ]
+    },
+    {
+      "variant": "after",
+      "profile": 1,
+      "measurements": [
+        {
+          "cache": "cold",
+          "visible_ms": 926.3,
+          "fully_ready_ms": 1384.5,
+          "remaining_ms": 458.2
+        },
+        {
+          "cache": "reload",
+          "visible_ms": 326.9,
+          "fully_ready_ms": 719.1,
+          "remaining_ms": 392.2
+        },
+        {
+          "cache": "reload",
+          "visible_ms": 305.6,
+          "fully_ready_ms": 742.1,
+          "remaining_ms": 436.5
+        },
+        {
+          "cache": "reload",
+          "visible_ms": 320.1,
+          "fully_ready_ms": 755,
+          "remaining_ms": 434.9
+        }
+      ]
+    },
+    {
+      "variant": "after",
+      "profile": 2,
+      "measurements": [
+        {
+          "cache": "cold",
+          "visible_ms": 914.1,
+          "fully_ready_ms": 1389,
+          "remaining_ms": 474.9
+        },
+        {
+          "cache": "reload",
+          "visible_ms": 357.4,
+          "fully_ready_ms": 767.1,
+          "remaining_ms": 409.7
+        },
+        {
+          "cache": "reload",
+          "visible_ms": 313,
+          "fully_ready_ms": 760.8,
+          "remaining_ms": 447.8
+        },
+        {
+          "cache": "reload",
+          "visible_ms": 394.3,
+          "fully_ready_ms": 820.4,
+          "remaining_ms": 426.1
+        }
+      ]
+    },
+    {
+      "variant": "before",
+      "profile": 2,
+      "measurements": [
+        {
+          "cache": "cold",
+          "visible_ms": 994,
+          "fully_ready_ms": 1476.6,
+          "remaining_ms": 482.6
+        },
+        {
+          "cache": "reload",
+          "visible_ms": 337.8,
+          "fully_ready_ms": 752.4,
+          "remaining_ms": 414.6
+        },
+        {
+          "cache": "reload",
+          "visible_ms": 341.4,
+          "fully_ready_ms": 757.5,
+          "remaining_ms": 416.1
+        },
+        {
+          "cache": "reload",
+          "visible_ms": 291.8,
+          "fully_ready_ms": 691.2,
+          "remaining_ms": 399.4
+        }
+      ]
+    }
+  ]
+}

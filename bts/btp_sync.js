@@ -2323,7 +2323,7 @@ function mark_pending_btp_sync_confirmed(app, tkey, current_match, bm) {
 		}
 		app.db.matches.update(
 			{ ...require('./btp_result_sync').version_query(current_match, tkey), btp_needsync: true },
-			{ $set: { btp_needsync: false } },
+			{ $set: { btp_needsync: false, ...(current_match.btp_call_pending ? { btp_call_pending: false } : {}) } },
 			{},
 			(err, numAffected) => {
 				if (err) {
@@ -2332,6 +2332,7 @@ function mark_pending_btp_sync_confirmed(app, tkey, current_match, bm) {
 				}
 				if (numAffected === 1) {
 					current_match.btp_needsync = false;
+					if (current_match.btp_call_pending) current_match.btp_call_pending = false;
 					resolve(true);
 					return;
 				}
@@ -2447,6 +2448,7 @@ async function integrate_matches(app, tkey, btp_state, scoring_formats, location
 	const { draws, events, stages } = btp_state;
 
 	const match_ids_on_court = calculate_match_ids_on_court(btp_state);
+	const call_sync = require('./btp_call_sync');
 
 	let officials;
 	let tournament;
@@ -2468,6 +2470,7 @@ async function integrate_matches(app, tkey, btp_state, scoring_formats, location
 		callback(new Error(`Tournament not found for key: ${tkey}`));
 		return;
 	}
+	const call_context = { state: btp_state, tournament, court_map };
 
 	const matches_by_btp_id = new Map();
 	const matches_by_id = new Map();
@@ -2624,10 +2627,20 @@ async function integrate_matches(app, tkey, btp_state, scoring_formats, location
 			return;
 		}
 		const cur_match = matches_by_btp_id.get(btp_id) || null;
-		if (cur_match && cur_match.btp_needsync) {
+		if (cur_match && (cur_match.btp_needsync || cur_match.btp_call_pending || call_sync.needs_repair(cur_match, bm, call_context))) {
 			get_current_match_for_btp_sync(app, tkey, matches_by_id.get(cur_match._id) || cur_match)
 				.then((current_match) => reconcile_participants(current_match, bm))
-				.then(result => result.blocked ? false : mark_pending_btp_sync_confirmed(app, tkey, result.current, bm))
+				.then(async result => {
+					if (result.blocked) return false;
+					if (!call_sync.is_call(result.current)) return mark_pending_btp_sync_confirmed(app, tkey, result.current, bm);
+					const repair = await call_sync.reconcile(app, tkey, result.current, bm, call_context);
+					if (repair.changed) {
+						changes = true;
+						remember_match(result.current);
+						delta.remember_local(result.current);
+					}
+					return repair.confirmed;
+				})
 				.then((confirmed) => {
 					if (confirmed) {
 						match_timing.confirmed_pending_sync++;

@@ -8,16 +8,30 @@ const match_utils = require('../bts/match_utils');
 const reconciliation = require('../bts/match_reconciliation/run');
 const queue = require('../bts/update_queue');
 const turn = () => new Promise(resolve => setImmediate(resolve));
+let applications;
 
 async function fixture() {
 	const db = await database.init_test();
 	await promisify(db.tournaments.insert.bind(db.tournaments))({ key: 'periodic', call_preparation_matches_automatically_enabled: true });
 	await promisify(db.matches.insert.bind(db.matches))({ _id: 'future', tournament_key: 'periodic', setup: { state: 'blocked',
 		teams: [{ players: [{ btp_id: 1, now_playing_on_court: 'old', checked_in: true, tablet_break_active: true }] }] } });
-	return { db, clock: { now_ms: () => 100000 } };
+	const app = { db, clock: { now_ms: () => 100000 } };
+	const find = db.matches.find, snapshot = db.model.snapshot;
+	app.restore_reads = () => { db.matches.find = find;db.model.snapshot = snapshot; };
+	applications.push(app);return app;
 }
 
 describe('periodic automation inputs and player/court repair', function() {
+	beforeEach(function() { applications = []; });
+	afterEach(async function() {
+		// Repair schedules preparation asynchronously. Wait for that real
+		// follow-up before another fixture reuses the same allocation keys.
+		for (const app of applications) {
+			app.restore_reads();
+			if (app.db.model.tournament('periodic').record?.present) await promisify(match_utils.queue_auto_execute_preparation_selections)(app, 'periodic');
+			require('../bts/call_status').close(app);
+		}
+	});
 	it('skips all-match reads when pause readiness is disabled', async function() {
 		const app = await fixture();
 		app.db.matches.find = () => { throw new Error('unnecessary read'); };

@@ -1,0 +1,302 @@
+{
+  "created_utc": "2026-11-10T16:40:25.488468+00:00",
+  "status": "Target maxima not reliably achieved",
+  "limits_ms": {
+    "ordinary_strictly_below": 100,
+    "finish_strictly_below": 150,
+    "display_receive_strictly_below": 50
+  },
+  "measurement": {
+    "command": "node debug/live_tournament_drill.js --scenario benchmark --expected-matches 524 --seed 741 --score-one-active --plain-log --report REPORT.json",
+    "runtime_ms": 600000,
+    "same_fixture_before_each_run": {
+      "games": 524,
+      "completed_results": 471,
+      "occupied_courts": 14
+    },
+    "admin_endpoint": "Actual browser DOM update, every causal UI dependency and two visible requestAnimationFrame callbacks; unchanged.",
+    "display_endpoint": "Actual display WebSocket receipt; unchanged.",
+    "phases_ms": [
+      120000,
+      240000,
+      120000,
+      120000
+    ],
+    "receipts": "No filtering of set pauses, timer work, metadata bursts or slower points. Every observed point is included.",
+    "coverage_requirement": "Every sent point must be received and presented, with no expiration.",
+    "clean_run": "Plain BTS process, no inspector, CPU profiler, competing QA browser or diagnostic monkeypatch. Only periodic reading of report JSONL files.",
+    "btp_readback": "Compare winners and scores, plus both match.CourtID and court.MatchID, against the actual configured BTP instance after a sync.",
+    "qualification": "Single machine, identical seeded fixture and workload. Timing still varies between runs; these figures do not establish hard bounds on other hardware or networks."
+  },
+  "changes": [
+    "Bounded shared immutable snapshots and response caches avoid repeated full copies and serialization.",
+    "Negotiated event catalog deltas preserve legacy clients; granular entry patches validate atomically and fall back to full snapshots.",
+    "Shared UI work yields in bounded stages. Names and clocks retain their own required native geometry dependencies.",
+    "Only the requested list refreshes its dates; finished history remains bounded to 50 complete rows with search and paging retained.",
+    "Fixed ordinary role icon dimensions share CSS variables and cached native font context; rich or compact layouts retain native fallbacks.",
+    "Only registered matches-store appends use a warmed dedicated filesystem worker. Open/write/close and the persistence callback complete before display publication. No persistent file descriptors or early acknowledgements.",
+    "Ambiguous worker failures block further appends and all rewrites of that file until process restart. Ordinary filesystem errors retain their native codes."
+  ],
+  "checks": {
+    "final_targeted_node_tests": 101,
+    "final_targeted_node_test_result": "pass",
+    "new_backend_modules_and_targeted_frontend_lint": "pass",
+    "native_geometry_and_ownership": "pass, including held first observations and unrelated queued work",
+    "native_metric_storage_reload": "pass",
+    "native_finished_history_paging_search_and_corrections": "pass",
+    "known_existing_native_failures": [
+      "Compact official first-name expectation also fails on the unmodified preceding source.",
+      "Date-group row height expectation also fails on the preceding source and before the paint-layer change.",
+      "Wide match-dialog tablet picker expectation also fails on the preceding source."
+    ],
+    "known_failures_policy": "No expectations were relaxed, and these checks are not counted as passing.",
+    "admin_response_protocol_and_connection_node_tests": 129,
+    "admin_response_protocol_and_connection_result": "pass"
+  },
+  "isolated_role_measurement": {
+    "scope": "Twelve local finishes using the actual 524-game fixture; no BTS/BTP writes. Independent from end-to-end timing.",
+    "before_max_ms": 11.3,
+    "after_max_ms": 1.0,
+    "all_twelve_name_texts_and_native_dimensions_identical": true
+  },
+  "rejected_experiments": [
+    "Batching every remaining native abbreviation stage increased the worst measurement; not applied.",
+    "Battery-only and table-wrapper-only compositor layers did not provide the required paint benefit; not applied.",
+    "Extra history-header reuse had uncertain total benefit and remains private; not applied.",
+    "No reduced measurement endpoint, dropped UI jobs, changed point cadence, OS scheduling priority, V8 flags or benchmark-client edits."
+  ],
+  "runs": [
+    {
+      "runtime_ms": 600159,
+      "stop_reason": "completed",
+      "ordinary": {
+        "count": 995,
+        "mean_ms": 34.78492462311558,
+        "p50_ms": 33,
+        "p95_ms": 57,
+        "p99_ms": 79,
+        "max_ms": 177,
+        "at_or_over_limit": 4,
+        "limit_ms": 100
+      },
+      "finish": {
+        "count": 13,
+        "mean_ms": 113.15384615384616,
+        "p50_ms": 95,
+        "p95_ms": 218,
+        "p99_ms": 218,
+        "max_ms": 218,
+        "at_or_over_limit": 3,
+        "limit_ms": 150
+      },
+      "display": {
+        "count": 1008,
+        "mean_ms": 4.586309523809524,
+        "p50_ms": 3,
+        "p95_ms": 12,
+        "p99_ms": 20,
+        "max_ms": 60,
+        "at_or_over_limit": 2,
+        "limit_ms": 50
+      },
+      "coverage": {
+        "sent": 1008,
+        "rows": 1008,
+        "admin_missing": 0,
+        "tv_missing": 0,
+        "expired": {
+          "tv": 0,
+          "admin": 0
+        },
+        "non_presented": 0
+      },
+      "mixed_server_profiles": false,
+      "candidate": 31,
+      "diagnostics_during_measurement": false,
+      "source_scope": "Entry-granular event catalog updates; before the final role cache and append worker",
+      "independent_btp_readback": {
+        "matches": 524,
+        "results": 484,
+        "calls": 14,
+        "pending": 0,
+        "problems": []
+      },
+      "source_sha256": {
+        "bts/resource_lock_queue.js": "c1da39bf3b5e2f5c55a3357bcaaa30f70002b573854a677f7b8d98e6b1660b41",
+        "bts/performance/queue_stats.js": "09fa7e252bef2f494a50dd4cf4677e430de7984a5530dae14cf9ed80549bbcec",
+        "bts/database_tasks.js": "d67e5b71c9ad0bc4c1bf3d9f50d74ce78f25e6e636ba64201675142ad28d20d7",
+        "bts/admin_match_data.js": "2d6d022e980798f9d6257551b6aa83d074afcd88cb6e199528e495d891c9b2ae",
+        "bts/admin_response/match_cache.js": "c84407bffb5d216d600959735beca8d9021ab60482f66d8a5f5f438b0161f6f1",
+        "bts/admin_response/event_updates.js": "f9bf1be7fa2bbbd7a26be7c3f1c2e2220a807269ede86a7ebdda6757d8acc32a",
+        "bts/admin_response/event_patch.js": "8da47714fe4dd64a2e4b8adece31451296ff50bc989799953d051301fa2e1b11",
+        "bts/admin.js": "9e7940826351f132fec8934f2ec34b6903376637eba9c3a4fad04a37f4e721c2",
+        "static/js/event_updates.js": "3f4b1828376a308cd3256e63719f66ac33635ba5d76f04a1f1b084f0412506dd",
+        "static/js/ctournament.js": "21e54daeb01a545297dd4cca7b5efe2fd13c2ca52635a0f3808340b295b1fa4f",
+        "static/js/cleitstand.js": "7e5e30f7646fa733491b3c545c4344fcd5476fd5f59edff4e16ba98c9e5fd52a",
+        "static/css/leitstand.css": "97e3f1c9e5f79ed5c69de5df839f1365d3d7aba6c7f79cd406b87a81db7370e7",
+        "static/js/conn.js": "fc5eccd68c5a6a0ec4ce74cea56d2913178f31d1b302b9735c400ea669ddf175"
+      }
+    },
+    {
+      "runtime_ms": 600274,
+      "stop_reason": "completed",
+      "ordinary": {
+        "count": 1000,
+        "mean_ms": 34.77,
+        "p50_ms": 33,
+        "p95_ms": 60,
+        "p99_ms": 88,
+        "max_ms": 197,
+        "at_or_over_limit": 8,
+        "limit_ms": 100
+      },
+      "finish": {
+        "count": 13,
+        "mean_ms": 91.84615384615384,
+        "p50_ms": 87,
+        "p95_ms": 131,
+        "p99_ms": 131,
+        "max_ms": 131,
+        "at_or_over_limit": 0,
+        "limit_ms": 150
+      },
+      "display": {
+        "count": 1013,
+        "mean_ms": 4.753208292201382,
+        "p50_ms": 4,
+        "p95_ms": 11,
+        "p99_ms": 21,
+        "max_ms": 67,
+        "at_or_over_limit": 2,
+        "limit_ms": 50
+      },
+      "coverage": {
+        "sent": 1013,
+        "rows": 1013,
+        "admin_missing": 0,
+        "tv_missing": 0,
+        "expired": {
+          "tv": 0,
+          "admin": 0
+        },
+        "non_presented": 0
+      },
+      "mixed_server_profiles": false,
+      "candidate": 33,
+      "diagnostics_during_measurement": false,
+      "source_scope": "Final role measurement cache and append worker",
+      "limitation": "Final candidate 34 additionally contains failure-only guards and per-file append ordering, covered by 100 targeted tests; normal workload and all measurement endpoints are unchanged.",
+      "independent_btp_readback": {
+        "matches": 524,
+        "results": 484,
+        "calls": 15,
+        "pending": 0,
+        "problems": []
+      },
+      "source_sha256": {
+        "bts/append_worker/index.js": "819fa78278a3b647c04b98c8c0d2e9f2fadfdc82dc8198dad561335bc46b2232",
+        "bts/append_worker/worker.js": "58ed3fedcfde9a5e2cba8c2dab010cb868abef45feaf31da88d002b485ae6661",
+        "bts/database.js": "5fe5c7ecc29c3a21edc8f97f5c7a98323329c2d24b35e01cf986f22e57ef698b",
+        "bts/offload/profile.js": "9b9b1d75be09c166fe6f8e9e71fe974a45446227bad8d67b667d8332f032dc1b",
+        "bts/resource_lock_queue.js": "c1da39bf3b5e2f5c55a3357bcaaa30f70002b573854a677f7b8d98e6b1660b41",
+        "bts/admin_response/event_updates.js": "f9bf1be7fa2bbbd7a26be7c3f1c2e2220a807269ede86a7ebdda6757d8acc32a",
+        "bts/admin_response/event_patch.js": "8da47714fe4dd64a2e4b8adece31451296ff50bc989799953d051301fa2e1b11",
+        "static/js/event_updates.js": "3f4b1828376a308cd3256e63719f66ac33635ba5d76f04a1f1b084f0412506dd",
+        "static/js/ctournament.js": "21e54daeb01a545297dd4cca7b5efe2fd13c2ca52635a0f3808340b295b1fa4f",
+        "static/js/cleitstand.js": "ff56a75a36d6dd98f7624269ee51abcede1a0a53f05d29b3b1ed7b3725fcd5b3",
+        "static/css/leitstand.css": "ca201adf06d23bbdc903b1d2fa57f20c452d62e18f2654268689a2d2c8c21cfa"
+      }
+    },
+    {
+      "runtime_ms": 600152,
+      "stop_reason": "completed",
+      "ordinary": {
+        "count": 995,
+        "mean_ms": 34.9427135678392,
+        "p50_ms": 33,
+        "p95_ms": 58,
+        "p99_ms": 75,
+        "max_ms": 266,
+        "at_or_over_limit": 5,
+        "limit_ms": 100
+      },
+      "finish": {
+        "count": 13,
+        "mean_ms": 99.15384615384616,
+        "p50_ms": 105,
+        "p95_ms": 121,
+        "p99_ms": 121,
+        "max_ms": 121,
+        "at_or_over_limit": 0,
+        "limit_ms": 150
+      },
+      "display": {
+        "count": 1008,
+        "mean_ms": 4.5853174603174605,
+        "p50_ms": 4,
+        "p95_ms": 10,
+        "p99_ms": 15,
+        "max_ms": 59,
+        "at_or_over_limit": 2,
+        "limit_ms": 50
+      },
+      "coverage": {
+        "sent": 1008,
+        "rows": 1008,
+        "admin_missing": 0,
+        "tv_missing": 0,
+        "expired": {
+          "tv": 0,
+          "admin": 0
+        },
+        "non_presented": 0
+      },
+      "mixed_server_profiles": false,
+      "candidate": 34,
+      "diagnostics_during_measurement": false,
+      "source_scope": "Final role measurement cache and append worker",
+      "independent_btp_readback": {
+        "matches": 524,
+        "results": 484,
+        "calls": 15,
+        "pending": 0,
+        "problems": []
+      },
+      "source_sha256": {
+        "bts/append_worker/index.js": "e04e1cd00ed418f6ee564def3bc45e7b4b9a4727fd22aaa047db7cbfa8190849",
+        "bts/append_worker/worker.js": "58ed3fedcfde9a5e2cba8c2dab010cb868abef45feaf31da88d002b485ae6661",
+        "bts/compaction_worker/staged.js": "c588a03bab9241bbbe47c587649c69a6939d1deb81b6774f1fa792a872648c72",
+        "bts/database.js": "2e711247dce5f6f8d395a627050606fd107134d93c2b6368de67a27752892a3b",
+        "bts/offload/profile.js": "9b9b1d75be09c166fe6f8e9e71fe974a45446227bad8d67b667d8332f032dc1b",
+        "bts/resource_lock_queue.js": "c1da39bf3b5e2f5c55a3357bcaaa30f70002b573854a677f7b8d98e6b1660b41",
+        "bts/admin_response/event_updates.js": "f9bf1be7fa2bbbd7a26be7c3f1c2e2220a807269ede86a7ebdda6757d8acc32a",
+        "bts/admin_response/event_patch.js": "8da47714fe4dd64a2e4b8adece31451296ff50bc989799953d051301fa2e1b11",
+        "static/js/event_updates.js": "3f4b1828376a308cd3256e63719f66ac33635ba5d76f04a1f1b084f0412506dd",
+        "static/js/ctournament.js": "21e54daeb01a545297dd4cca7b5efe2fd13c2ca52635a0f3808340b295b1fa4f",
+        "static/js/cleitstand.js": "ff56a75a36d6dd98f7624269ee51abcede1a0a53f05d29b3b1ed7b3725fcd5b3",
+        "static/css/leitstand.css": "ca201adf06d23bbdc903b1d2fa57f20c452d62e18f2654268689a2d2c8c21cfa"
+      }
+    }
+  ],
+  "artifacts": "Full raw exports, traces, control experiments and per-candidate logs remain locally in /tmp/bts-latency-20261110. This repository report omits participant data and individual match identifiers.",
+  "final_targets_met": false,
+  "final_error_path_followup": {
+    "change": "After the last clean run, ERR_WORKER_* runtime error codes were also classified as an unknown write outcome. The ordinary success path is unchanged.",
+    "verification": "All 101 targeted tests and targeted ESLint pass after this final failure-only correction. BTS was restarted with this source. No further ten-minute benchmark was run after that error-code correction.",
+    "sha256": "ff25a2b52b1cf7b26b294b6fb3cbe4b861c9bdef47736d8e33d55cadaf4ff7d6"
+  },
+  "overall_goal_achieved": false,
+  "final_state": {
+    "bts": "running as a plain process",
+    "automation_enabled": false,
+    "test_driver": "completed; measurement browser closed",
+    "committed_or_pushed": false,
+    "independent_btp_readback": {
+      "matches": 524,
+      "results": 484,
+      "calls": 15,
+      "pending": 0,
+      "problems": []
+    }
+  }
+}

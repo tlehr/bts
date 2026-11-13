@@ -1,0 +1,1848 @@
+{
+  "date": "2026-11-11T10:52:52.750618+00:00",
+  "objective_status": "verified_in_three_consecutive_complete_clean_runs",
+  "thresholds_strict_ms": {
+    "ordinary": 100,
+    "finish": 150,
+    "display": 50
+  },
+  "measurement": {
+    "workload": "Unchanged full 600000 ms benchmark, seed 741, 524 actual BTP/BTS games, score-one-active, same four phases",
+    "admin_endpoint": "All owned UI jobs completed plus two visible native animation frames; own first ResizeObserver observations remain mandatory",
+    "display_endpoint": "Receipt of the committed score message",
+    "proof": "At least three consecutive complete runs without extra profilers, diagnostic preloads or other browser checks, same full product-source tree, all strict maxima and coverage checks passed; final direct BTP readback",
+    "testclient_repository": "read only; no workload/measurement changes"
+  },
+  "changes": [
+    "Fit a size- and layout-contained clock from its own native observation, preserving custom-container fallback.",
+    "Yield between shared UI stages instead of chaining sorting and name layout in one task.",
+    "Prioritize score messages over background metadata, retaining dependency and wire-order checks.",
+    "Skip periodic compaction only for lifecycle-tracked files unchanged since a successful rewrite; failed writes and concurrent appends stay dirty.",
+    "Allow observed names to progress through required UI stages in bounded frames during a continuing receive stream.",
+    "Complete already measurable names in the same finished-list frame after initial layout.",
+    "Coalesce finished-list sorting to at most once per native frame, retaining all owned work and receipts.",
+    "Keep at most one BTP login in flight during overlapping request failures; retain the existing retry delay and readback-before-outbox order.",
+    "Replay all persisted BTP needsync metadata as well as results and calls, so interrupted unfinished-match changes are not permanently skipped.",
+    "Permit committed readonly snapshots while certified pure staged compaction runs; block reads that would bypass earlier scoped writes.",
+    "Assemble full admin responses from immutable UTF8 fragments, preserving every native JSON byte and explicit WebSocket text frames.",
+    "Retain date headers when their leading finished match changes; bound compositor layers to table wrappers instead of individual rows.",
+    "Prepare owned event-catalog delivery variants cooperatively before allocation locks. Publish and advance recipient baselines only after actual validated database writes, within the original executor.",
+    "Candidate51: narrow ancestor :has selectors to verified direct-child structures, preserving page geometry, density zoom and dialog scroll locks.",
+    "Candidate54: free-announcement modal lifecycle owns the body scroll-lock state; no whole-page descendant :has for ordinary score/list edits. Re-evaluate open dialogs only on modal transitions, preserving independent owners and native confirmations."
+  ],
+  "runs": [
+    {
+      "label": 35,
+      "diagnostic": true,
+      "runtime_ms": 600334,
+      "stop_reason": "completed",
+      "ordinary": {
+        "count": 1001,
+        "mean_ms": 34.04895104895105,
+        "p50_ms": 33,
+        "p95_ms": 49,
+        "p99_ms": 72,
+        "max_ms": 162,
+        "at_or_over_limit": 3,
+        "limit_ms": 100
+      },
+      "finish": {
+        "count": 13,
+        "mean_ms": 108.46153846153847,
+        "p50_ms": 105,
+        "p95_ms": 150,
+        "p99_ms": 150,
+        "max_ms": 150,
+        "at_or_over_limit": 1,
+        "limit_ms": 150
+      },
+      "display": {
+        "count": 1014,
+        "mean_ms": 4.5266272189349115,
+        "p50_ms": 4,
+        "p95_ms": 10,
+        "p99_ms": 18,
+        "max_ms": 46,
+        "at_or_over_limit": 0,
+        "limit_ms": 50
+      },
+      "coverage": {
+        "sent": 1014,
+        "rows": 1014,
+        "admin_missing": 0,
+        "tv_missing": 0,
+        "expired": {
+          "tv": 0,
+          "admin": 0
+        },
+        "non_presented": 0
+      },
+      "btp_readback": {
+        "matches": 524,
+        "results": 484,
+        "calls": 15,
+        "pending": 0,
+        "problems": 0
+      },
+      "source_tree_sha256": null,
+      "all_thresholds_and_coverage_pass": false
+    },
+    {
+      "label": 36,
+      "diagnostic": true,
+      "runtime_ms": 600155,
+      "stop_reason": "completed",
+      "ordinary": {
+        "count": 998,
+        "mean_ms": 34.5060120240481,
+        "p50_ms": 33,
+        "p95_ms": 50,
+        "p99_ms": 114,
+        "max_ms": 203,
+        "at_or_over_limit": 11,
+        "limit_ms": 100
+      },
+      "finish": {
+        "count": 13,
+        "mean_ms": 115.53846153846153,
+        "p50_ms": 105,
+        "p95_ms": 189,
+        "p99_ms": 189,
+        "max_ms": 189,
+        "at_or_over_limit": 1,
+        "limit_ms": 150
+      },
+      "display": {
+        "count": 1011,
+        "mean_ms": 4.849653808110782,
+        "p50_ms": 4,
+        "p95_ms": 11,
+        "p99_ms": 21,
+        "max_ms": 167,
+        "at_or_over_limit": 3,
+        "limit_ms": 50
+      },
+      "coverage": {
+        "sent": 1011,
+        "rows": 1011,
+        "admin_missing": 0,
+        "tv_missing": 0,
+        "expired": {
+          "tv": 0,
+          "admin": 0
+        },
+        "non_presented": 0
+      },
+      "btp_readback": {
+        "matches": 524,
+        "results": 484,
+        "calls": 15,
+        "pending": 0,
+        "problems": 0
+      },
+      "source_tree_sha256": null,
+      "all_thresholds_and_coverage_pass": false
+    },
+    {
+      "label": 37,
+      "diagnostic": true,
+      "runtime_ms": 600276,
+      "stop_reason": "completed",
+      "ordinary": {
+        "count": 1000,
+        "mean_ms": 33.634,
+        "p50_ms": 32,
+        "p95_ms": 52,
+        "p99_ms": 72,
+        "max_ms": 167,
+        "at_or_over_limit": 1,
+        "limit_ms": 100
+      },
+      "finish": {
+        "count": 13,
+        "mean_ms": 105.07692307692308,
+        "p50_ms": 85,
+        "p95_ms": 208,
+        "p99_ms": 208,
+        "max_ms": 208,
+        "at_or_over_limit": 2,
+        "limit_ms": 150
+      },
+      "display": {
+        "count": 1013,
+        "mean_ms": 4.647581441263574,
+        "p50_ms": 4,
+        "p95_ms": 11,
+        "p99_ms": 19,
+        "max_ms": 39,
+        "at_or_over_limit": 0,
+        "limit_ms": 50
+      },
+      "coverage": {
+        "sent": 1013,
+        "rows": 1013,
+        "admin_missing": 0,
+        "tv_missing": 0,
+        "expired": {
+          "tv": 0,
+          "admin": 0
+        },
+        "non_presented": 0
+      },
+      "btp_readback": {
+        "matches": 524,
+        "results": 484,
+        "calls": 15,
+        "pending": 0,
+        "problems": 0
+      },
+      "source_tree_sha256": null,
+      "all_thresholds_and_coverage_pass": false
+    },
+    {
+      "label": 38,
+      "diagnostic": false,
+      "runtime_ms": 600100,
+      "stop_reason": "completed",
+      "ordinary": {
+        "count": 1003,
+        "mean_ms": 33.873379860418744,
+        "p50_ms": 33,
+        "p95_ms": 51,
+        "p99_ms": 72,
+        "max_ms": 126,
+        "at_or_over_limit": 4,
+        "limit_ms": 100
+      },
+      "finish": {
+        "count": 13,
+        "mean_ms": 107.46153846153847,
+        "p50_ms": 104,
+        "p95_ms": 174,
+        "p99_ms": 174,
+        "max_ms": 174,
+        "at_or_over_limit": 1,
+        "limit_ms": 150
+      },
+      "display": {
+        "count": 1016,
+        "mean_ms": 4.516732283464567,
+        "p50_ms": 3,
+        "p95_ms": 10,
+        "p99_ms": 16,
+        "max_ms": 67,
+        "at_or_over_limit": 2,
+        "limit_ms": 50
+      },
+      "coverage": {
+        "sent": 1016,
+        "rows": 1016,
+        "admin_missing": 0,
+        "tv_missing": 0,
+        "expired": {
+          "tv": 0,
+          "admin": 0
+        },
+        "non_presented": 0
+      },
+      "btp_readback": {
+        "matches": 524,
+        "results": 484,
+        "calls": 15,
+        "pending": 0,
+        "problems": 0
+      },
+      "source_tree_sha256": "fb9637f79800d3125259798db5d909002050718899a6298b3649209078e9023d",
+      "all_thresholds_and_coverage_pass": false
+    },
+    {
+      "label": 39,
+      "diagnostic": true,
+      "runtime_ms": 263273,
+      "stop_reason": "interrupted",
+      "ordinary": {
+        "count": 474,
+        "mean_ms": 34.845991561181435,
+        "p50_ms": 34,
+        "p95_ms": 50,
+        "p99_ms": 98,
+        "max_ms": 125,
+        "at_or_over_limit": 4,
+        "limit_ms": 100
+      },
+      "finish": {
+        "count": 10,
+        "mean_ms": 90.9,
+        "p50_ms": 91,
+        "p95_ms": 101,
+        "p99_ms": 101,
+        "max_ms": 101,
+        "at_or_over_limit": 0,
+        "limit_ms": 150
+      },
+      "display": {
+        "count": 484,
+        "mean_ms": 4.896694214876033,
+        "p50_ms": 4,
+        "p95_ms": 10,
+        "p99_ms": 15,
+        "max_ms": 70,
+        "at_or_over_limit": 2,
+        "limit_ms": 50
+      },
+      "coverage": {
+        "sent": 485,
+        "rows": 485,
+        "admin_missing": 1,
+        "tv_missing": 1,
+        "expired": {
+          "tv": 0,
+          "admin": 0
+        },
+        "non_presented": 1
+      },
+      "btp_readback": null,
+      "source_tree_sha256": "6702de9ba46b41567bac3cface91e1aa9eced80b531682dcd82597537d8f14fa",
+      "all_thresholds_and_coverage_pass": false
+    },
+    {
+      "label": 40,
+      "diagnostic": true,
+      "runtime_ms": 307212,
+      "stop_reason": "interrupted",
+      "ordinary": {
+        "count": 572,
+        "mean_ms": 34.36888111888112,
+        "p50_ms": 34,
+        "p95_ms": 50,
+        "p99_ms": 68,
+        "max_ms": 194,
+        "at_or_over_limit": 3,
+        "limit_ms": 100
+      },
+      "finish": {
+        "count": 11,
+        "mean_ms": 100.36363636363636,
+        "p50_ms": 97,
+        "p95_ms": 151,
+        "p99_ms": 151,
+        "max_ms": 151,
+        "at_or_over_limit": 1,
+        "limit_ms": 150
+      },
+      "display": {
+        "count": 583,
+        "mean_ms": 4.9073756432247,
+        "p50_ms": 4,
+        "p95_ms": 11,
+        "p99_ms": 21,
+        "max_ms": 61,
+        "at_or_over_limit": 1,
+        "limit_ms": 50
+      },
+      "coverage": {
+        "sent": 583,
+        "rows": 583,
+        "admin_missing": 0,
+        "tv_missing": 0,
+        "expired": {
+          "tv": 0,
+          "admin": 0
+        },
+        "non_presented": 0
+      },
+      "btp_readback": {
+        "matches": 524,
+        "results": 482,
+        "calls": 15,
+        "pending": 0,
+        "problems": 0
+      },
+      "source_tree_sha256": "6702de9ba46b41567bac3cface91e1aa9eced80b531682dcd82597537d8f14fa",
+      "all_thresholds_and_coverage_pass": false
+    },
+    {
+      "label": 41,
+      "diagnostic": false,
+      "runtime_ms": 600206,
+      "stop_reason": "completed",
+      "ordinary": {
+        "count": 990,
+        "mean_ms": 33.593939393939394,
+        "p50_ms": 33,
+        "p95_ms": 49,
+        "p99_ms": 76,
+        "max_ms": 267,
+        "at_or_over_limit": 7,
+        "limit_ms": 100
+      },
+      "finish": {
+        "count": 13,
+        "mean_ms": 98.23076923076923,
+        "p50_ms": 93,
+        "p95_ms": 127,
+        "p99_ms": 127,
+        "max_ms": 127,
+        "at_or_over_limit": 0,
+        "limit_ms": 150
+      },
+      "display": {
+        "count": 1003,
+        "mean_ms": 4.60418743768694,
+        "p50_ms": 4,
+        "p95_ms": 10,
+        "p99_ms": 21,
+        "max_ms": 77,
+        "at_or_over_limit": 2,
+        "limit_ms": 50
+      },
+      "coverage": {
+        "sent": 1003,
+        "rows": 1003,
+        "admin_missing": 0,
+        "tv_missing": 0,
+        "expired": {
+          "tv": 0,
+          "admin": 0
+        },
+        "non_presented": 0
+      },
+      "btp_readback": null,
+      "source_tree_sha256": "0f6f2fe93162db91c6a1f94d0d29d7538164efd72662629c764b5cbded5c2575",
+      "all_thresholds_and_coverage_pass": false
+    },
+    {
+      "runtime_ms": 600159,
+      "stop_reason": "completed",
+      "ordinary": {
+        "count": 1006,
+        "mean_ms": 33.10934393638171,
+        "p50_ms": 32,
+        "p95_ms": 48,
+        "p99_ms": 76,
+        "max_ms": 159,
+        "at_or_over_limit": 6,
+        "limit_ms": 100
+      },
+      "finish": {
+        "count": 13,
+        "mean_ms": 111.46153846153847,
+        "p50_ms": 99,
+        "p95_ms": 265,
+        "p99_ms": 265,
+        "max_ms": 265,
+        "at_or_over_limit": 1,
+        "limit_ms": 150
+      },
+      "display": {
+        "count": 1019,
+        "mean_ms": 4.598626104023553,
+        "p50_ms": 4,
+        "p95_ms": 11,
+        "p99_ms": 16,
+        "max_ms": 112,
+        "at_or_over_limit": 2,
+        "limit_ms": 50
+      },
+      "coverage": {
+        "sent": 1019,
+        "rows": 1019,
+        "admin_missing": 0,
+        "tv_missing": 0,
+        "expired": {
+          "tv": 0,
+          "admin": 0
+        },
+        "non_presented": 0
+      },
+      "label": 44,
+      "diagnostic": false,
+      "btp_readback": {
+        "matches": 524,
+        "results": 484,
+        "calls": 15,
+        "pending": 0,
+        "problems": 0
+      },
+      "source_tree_sha256": "922c5efa2708bdb59596e4a39fcacdb3b6628a31ccb4cc45ebb39a716197a596",
+      "source_unchanged": true,
+      "all_thresholds_and_coverage_pass": false
+    },
+    {
+      "runtime_ms": 600061,
+      "stop_reason": "completed",
+      "ordinary": {
+        "count": 998,
+        "mean_ms": 33.86072144288577,
+        "p50_ms": 33,
+        "p95_ms": 49,
+        "p99_ms": 91,
+        "max_ms": 139,
+        "at_or_over_limit": 8,
+        "limit_ms": 100
+      },
+      "finish": {
+        "count": 13,
+        "mean_ms": 98.76923076923077,
+        "p50_ms": 94,
+        "p95_ms": 154,
+        "p99_ms": 154,
+        "max_ms": 154,
+        "at_or_over_limit": 1,
+        "limit_ms": 150
+      },
+      "display": {
+        "count": 1011,
+        "mean_ms": 4.812067260138477,
+        "p50_ms": 4,
+        "p95_ms": 11,
+        "p99_ms": 23,
+        "max_ms": 73,
+        "at_or_over_limit": 3,
+        "limit_ms": 50
+      },
+      "coverage": {
+        "sent": 1011,
+        "rows": 1011,
+        "admin_missing": 0,
+        "tv_missing": 0,
+        "expired": {
+          "tv": 0,
+          "admin": 0
+        },
+        "non_presented": 0
+      },
+      "label": 45,
+      "diagnostic": true,
+      "btp_readback": {
+        "matches": 524,
+        "results": 484,
+        "calls": 15,
+        "pending": 0,
+        "problems": 0
+      },
+      "source_tree_sha256": "922c5efa2708bdb59596e4a39fcacdb3b6628a31ccb4cc45ebb39a716197a596",
+      "source_unchanged": true,
+      "all_thresholds_and_coverage_pass": false
+    },
+    {
+      "runtime_ms": 600153,
+      "stop_reason": "completed",
+      "ordinary": {
+        "count": 992,
+        "mean_ms": 33.23084677419355,
+        "p50_ms": 32,
+        "p95_ms": 49,
+        "p99_ms": 64,
+        "max_ms": 182,
+        "at_or_over_limit": 5,
+        "limit_ms": 100
+      },
+      "finish": {
+        "count": 13,
+        "mean_ms": 99.15384615384616,
+        "p50_ms": 97,
+        "p95_ms": 137,
+        "p99_ms": 137,
+        "max_ms": 137,
+        "at_or_over_limit": 0,
+        "limit_ms": 150
+      },
+      "display": {
+        "count": 1005,
+        "mean_ms": 4.565174129353234,
+        "p50_ms": 3,
+        "p95_ms": 10,
+        "p99_ms": 17,
+        "max_ms": 157,
+        "at_or_over_limit": 1,
+        "limit_ms": 50
+      },
+      "coverage": {
+        "sent": 1005,
+        "rows": 1005,
+        "admin_missing": 0,
+        "tv_missing": 0,
+        "expired": {
+          "tv": 0,
+          "admin": 0
+        },
+        "non_presented": 0
+      },
+      "label": 46,
+      "diagnostic": false,
+      "btp_readback": {
+        "matches": 524,
+        "results": 484,
+        "calls": 15,
+        "pending": 0,
+        "problems": 0
+      },
+      "source_tree_sha256": "2a37eb711504c78b40ef8cf7e90f14aee5da5dd303f3f4d2b7e51bcd4ce17c36",
+      "source_unchanged": true,
+      "all_thresholds_and_coverage_pass": false
+    },
+    {
+      "runtime_ms": 600265,
+      "stop_reason": "completed",
+      "ordinary": {
+        "count": 999,
+        "mean_ms": 33.78478478478478,
+        "p50_ms": 33,
+        "p95_ms": 48,
+        "p99_ms": 68,
+        "max_ms": 145,
+        "at_or_over_limit": 4,
+        "limit_ms": 100
+      },
+      "finish": {
+        "count": 13,
+        "mean_ms": 95.76923076923077,
+        "p50_ms": 93,
+        "p95_ms": 111,
+        "p99_ms": 111,
+        "max_ms": 111,
+        "at_or_over_limit": 0,
+        "limit_ms": 150
+      },
+      "display": {
+        "count": 1012,
+        "mean_ms": 4.403162055335969,
+        "p50_ms": 4,
+        "p95_ms": 10,
+        "p99_ms": 16,
+        "max_ms": 28,
+        "at_or_over_limit": 0,
+        "limit_ms": 50
+      },
+      "coverage": {
+        "sent": 1012,
+        "rows": 1012,
+        "admin_missing": 0,
+        "tv_missing": 0,
+        "expired": {
+          "tv": 0,
+          "admin": 0
+        },
+        "non_presented": 0
+      },
+      "label": 47,
+      "diagnostic": true,
+      "btp_readback": {
+        "matches": 524,
+        "results": 484,
+        "calls": 15,
+        "pending": 0,
+        "problems": 0
+      },
+      "source_tree_sha256": "2a37eb711504c78b40ef8cf7e90f14aee5da5dd303f3f4d2b7e51bcd4ce17c36",
+      "source_unchanged": true,
+      "all_thresholds_and_coverage_pass": false
+    },
+    {
+      "runtime_ms": 600165,
+      "stop_reason": "completed",
+      "ordinary": {
+        "count": 1008,
+        "mean_ms": 33.30555555555556,
+        "p50_ms": 33,
+        "p95_ms": 49,
+        "p99_ms": 67,
+        "max_ms": 126,
+        "at_or_over_limit": 5,
+        "limit_ms": 100
+      },
+      "finish": {
+        "count": 13,
+        "mean_ms": 90.84615384615384,
+        "p50_ms": 89,
+        "p95_ms": 114,
+        "p99_ms": 114,
+        "max_ms": 114,
+        "at_or_over_limit": 0,
+        "limit_ms": 150
+      },
+      "display": {
+        "count": 1021,
+        "mean_ms": 4.427032321253673,
+        "p50_ms": 3,
+        "p95_ms": 10,
+        "p99_ms": 16,
+        "max_ms": 83,
+        "at_or_over_limit": 1,
+        "limit_ms": 50
+      },
+      "coverage": {
+        "sent": 1021,
+        "rows": 1021,
+        "admin_missing": 0,
+        "tv_missing": 0,
+        "expired": {
+          "tv": 0,
+          "admin": 0
+        },
+        "non_presented": 0
+      },
+      "label": 48,
+      "diagnostic": false,
+      "btp_readback": {
+        "matches": 524,
+        "results": 484,
+        "calls": 15,
+        "pending": 0,
+        "problems": 0
+      },
+      "source_tree_sha256": "b9a59970a6e2ceb1bab424778046e4ed8235bb89067eccabfe12be1757e8632b",
+      "source_unchanged": true,
+      "all_thresholds_and_coverage_pass": false
+    },
+    {
+      "runtime_ms": 600172,
+      "stop_reason": "completed",
+      "ordinary": {
+        "count": 1005,
+        "mean_ms": 33.38905472636816,
+        "p50_ms": 32,
+        "p95_ms": 48,
+        "p99_ms": 69,
+        "max_ms": 142,
+        "at_or_over_limit": 6,
+        "limit_ms": 100
+      },
+      "finish": {
+        "count": 13,
+        "mean_ms": 119.38461538461539,
+        "p50_ms": 99,
+        "p95_ms": 183,
+        "p99_ms": 183,
+        "max_ms": 183,
+        "at_or_over_limit": 3,
+        "limit_ms": 150
+      },
+      "display": {
+        "count": 1018,
+        "mean_ms": 4.793713163064833,
+        "p50_ms": 4,
+        "p95_ms": 11,
+        "p99_ms": 19,
+        "max_ms": 58,
+        "at_or_over_limit": 1,
+        "limit_ms": 50
+      },
+      "coverage": {
+        "sent": 1018,
+        "rows": 1018,
+        "admin_missing": 0,
+        "tv_missing": 0,
+        "expired": {
+          "tv": 0,
+          "admin": 0
+        },
+        "non_presented": 0
+      },
+      "label": 49,
+      "diagnostic": true,
+      "btp_readback": {
+        "matches": 524,
+        "results": 484,
+        "calls": 15,
+        "pending": 0,
+        "problems": 0
+      },
+      "source_tree_sha256": "31c2f6eb81104b15bb83cd369d5f4a21084ce873043417d5562b9085dc75c4b3",
+      "source_unchanged": true,
+      "all_thresholds_and_coverage_pass": false
+    },
+    {
+      "runtime_ms": 600274,
+      "stop_reason": "completed",
+      "ordinary": {
+        "count": 1002,
+        "mean_ms": 32.75449101796407,
+        "p50_ms": 32,
+        "p95_ms": 47,
+        "p99_ms": 66,
+        "max_ms": 208,
+        "at_or_over_limit": 4,
+        "limit_ms": 100
+      },
+      "finish": {
+        "count": 13,
+        "mean_ms": 100.15384615384616,
+        "p50_ms": 90,
+        "p95_ms": 222,
+        "p99_ms": 222,
+        "max_ms": 222,
+        "at_or_over_limit": 1,
+        "limit_ms": 150
+      },
+      "display": {
+        "count": 1015,
+        "mean_ms": 4.452216748768473,
+        "p50_ms": 3,
+        "p95_ms": 10,
+        "p99_ms": 18,
+        "max_ms": 176,
+        "at_or_over_limit": 1,
+        "limit_ms": 50
+      },
+      "coverage": {
+        "sent": 1015,
+        "rows": 1015,
+        "admin_missing": 0,
+        "tv_missing": 0,
+        "expired": {
+          "tv": 0,
+          "admin": 0
+        },
+        "non_presented": 0
+      },
+      "label": 50,
+      "diagnostic": false,
+      "btp_readback": {
+        "matches": 524,
+        "results": 484,
+        "calls": 15,
+        "pending": 0,
+        "problems": 0
+      },
+      "source_tree_sha256": "50e92cb7788470eb38172d89ab386a994c380c999fa297a4acf9e94ec52decb9",
+      "source_unchanged": true,
+      "all_thresholds_and_coverage_pass": false
+    },
+    {
+      "runtime_ms": 600141,
+      "stop_reason": "completed",
+      "ordinary": {
+        "count": 999,
+        "mean_ms": 33.54254254254254,
+        "p50_ms": 33,
+        "p95_ms": 48,
+        "p99_ms": 69,
+        "max_ms": 125,
+        "at_or_over_limit": 3,
+        "limit_ms": 100
+      },
+      "finish": {
+        "count": 13,
+        "mean_ms": 94.84615384615384,
+        "p50_ms": 87,
+        "p95_ms": 156,
+        "p99_ms": 156,
+        "max_ms": 156,
+        "at_or_over_limit": 1,
+        "limit_ms": 150
+      },
+      "display": {
+        "count": 1012,
+        "mean_ms": 4.969367588932807,
+        "p50_ms": 4,
+        "p95_ms": 12,
+        "p99_ms": 17,
+        "max_ms": 57,
+        "at_or_over_limit": 1,
+        "limit_ms": 50
+      },
+      "coverage": {
+        "sent": 1012,
+        "rows": 1012,
+        "admin_missing": 0,
+        "tv_missing": 0,
+        "expired": {
+          "tv": 0,
+          "admin": 0
+        },
+        "non_presented": 0
+      },
+      "label": 51,
+      "diagnostic": true,
+      "btp_readback": {
+        "matches": 524,
+        "results": 484,
+        "calls": 15,
+        "pending": 0,
+        "problems": 0
+      },
+      "source_tree_sha256": "c8e3ddd64aee776d98e2fd9465f2ba332572ae24762f79350fbfbadc96dceb79",
+      "source_unchanged": true,
+      "all_thresholds_and_coverage_pass": false
+    },
+    {
+      "runtime_ms": 600287,
+      "stop_reason": "completed",
+      "ordinary": {
+        "count": 1014,
+        "mean_ms": 32.333333333333336,
+        "p50_ms": 32,
+        "p95_ms": 47,
+        "p99_ms": 64,
+        "max_ms": 130,
+        "at_or_over_limit": 2,
+        "limit_ms": 100
+      },
+      "finish": {
+        "count": 13,
+        "mean_ms": 93.23076923076923,
+        "p50_ms": 86,
+        "p95_ms": 120,
+        "p99_ms": 120,
+        "max_ms": 120,
+        "at_or_over_limit": 0,
+        "limit_ms": 150
+      },
+      "display": {
+        "count": 1027,
+        "mean_ms": 4.4440116845180135,
+        "p50_ms": 4,
+        "p95_ms": 10,
+        "p99_ms": 14,
+        "max_ms": 104,
+        "at_or_over_limit": 1,
+        "limit_ms": 50
+      },
+      "coverage": {
+        "sent": 1027,
+        "rows": 1027,
+        "admin_missing": 0,
+        "tv_missing": 0,
+        "expired": {
+          "tv": 0,
+          "admin": 0
+        },
+        "non_presented": 0
+      },
+      "label": 52,
+      "diagnostic": false,
+      "btp_readback": {
+        "matches": 524,
+        "results": 484,
+        "calls": 15,
+        "pending": 0,
+        "problems": 0
+      },
+      "source_tree_sha256": "c8e3ddd64aee776d98e2fd9465f2ba332572ae24762f79350fbfbadc96dceb79",
+      "source_unchanged": true,
+      "all_thresholds_and_coverage_pass": false
+    },
+    {
+      "runtime_ms": 600180,
+      "stop_reason": "completed",
+      "ordinary": {
+        "count": 1008,
+        "mean_ms": 32.02876984126984,
+        "p50_ms": 32,
+        "p95_ms": 45,
+        "p99_ms": 54,
+        "max_ms": 120,
+        "at_or_over_limit": 2,
+        "limit_ms": 100
+      },
+      "finish": {
+        "count": 13,
+        "mean_ms": 100.84615384615384,
+        "p50_ms": 88,
+        "p95_ms": 214,
+        "p99_ms": 214,
+        "max_ms": 214,
+        "at_or_over_limit": 1,
+        "limit_ms": 150
+      },
+      "display": {
+        "count": 1021,
+        "mean_ms": 4.329089128305583,
+        "p50_ms": 4,
+        "p95_ms": 10,
+        "p99_ms": 14,
+        "max_ms": 30,
+        "at_or_over_limit": 0,
+        "limit_ms": 50
+      },
+      "coverage": {
+        "sent": 1021,
+        "rows": 1021,
+        "admin_missing": 0,
+        "tv_missing": 0,
+        "expired": {
+          "tv": 0,
+          "admin": 0
+        },
+        "non_presented": 0
+      },
+      "label": 53,
+      "diagnostic": true,
+      "btp_readback": {
+        "matches": 524,
+        "results": 484,
+        "calls": 15,
+        "pending": 0,
+        "problems": 0
+      },
+      "source_tree_sha256": "c8e3ddd64aee776d98e2fd9465f2ba332572ae24762f79350fbfbadc96dceb79",
+      "source_unchanged": true,
+      "all_thresholds_and_coverage_pass": false
+    },
+    {
+      "label": 54,
+      "runtime_ms": 600292,
+      "ordinary": {
+        "count": 1008,
+        "mean_ms": 32.473214285714285,
+        "p50_ms": 32,
+        "p95_ms": 46,
+        "p99_ms": 56,
+        "max_ms": 86,
+        "at_or_over_limit": 0,
+        "limit_ms": 100
+      },
+      "finish": {
+        "count": 13,
+        "mean_ms": 95.53846153846153,
+        "p50_ms": 91,
+        "p95_ms": 137,
+        "p99_ms": 137,
+        "max_ms": 137,
+        "at_or_over_limit": 0,
+        "limit_ms": 150
+      },
+      "display": {
+        "count": 1021,
+        "mean_ms": 4.423114593535749,
+        "p50_ms": 3,
+        "p95_ms": 11,
+        "p99_ms": 16,
+        "max_ms": 37,
+        "at_or_over_limit": 0,
+        "limit_ms": 50
+      },
+      "coverage": {
+        "sent": 1021,
+        "rows": 1021,
+        "admin_missing": 0,
+        "tv_missing": 0,
+        "expired": {
+          "tv": 0,
+          "admin": 0
+        },
+        "non_presented": 0
+      },
+      "completed_owned_ui_jobs": 145,
+      "btp_readback": {
+        "matches": 524,
+        "results": 484,
+        "calls": 15,
+        "pending": 0,
+        "problems": 0
+      },
+      "diagnostic": false,
+      "source_tree_sha256": "a9324d4e6e91c363aeef31bd57eb6fd64cfda0468c488bf2a96506a5757d2737",
+      "source_unchanged": true,
+      "all_thresholds_and_coverage_pass": true
+    },
+    {
+      "label": 55,
+      "runtime_ms": 600344,
+      "ordinary": {
+        "count": 1006,
+        "mean_ms": 32.48210735586481,
+        "p50_ms": 32,
+        "p95_ms": 46,
+        "p99_ms": 58,
+        "max_ms": 93,
+        "at_or_over_limit": 0,
+        "limit_ms": 100
+      },
+      "finish": {
+        "count": 13,
+        "mean_ms": 96.76923076923077,
+        "p50_ms": 94,
+        "p95_ms": 136,
+        "p99_ms": 136,
+        "max_ms": 136,
+        "at_or_over_limit": 0,
+        "limit_ms": 150
+      },
+      "display": {
+        "count": 1019,
+        "mean_ms": 4.386653581943081,
+        "p50_ms": 4,
+        "p95_ms": 11,
+        "p99_ms": 15,
+        "max_ms": 25,
+        "at_or_over_limit": 0,
+        "limit_ms": 50
+      },
+      "coverage": {
+        "sent": 1019,
+        "rows": 1019,
+        "admin_missing": 0,
+        "tv_missing": 0,
+        "expired": {
+          "tv": 0,
+          "admin": 0
+        },
+        "non_presented": 0
+      },
+      "completed_owned_ui_jobs": 145,
+      "btp_readback": {
+        "matches": 524,
+        "results": 484,
+        "calls": 15,
+        "pending": 0,
+        "problems": 0
+      },
+      "diagnostic": false,
+      "source_tree_sha256": "a9324d4e6e91c363aeef31bd57eb6fd64cfda0468c488bf2a96506a5757d2737",
+      "source_unchanged": true,
+      "all_thresholds_and_coverage_pass": true
+    },
+    {
+      "label": 56,
+      "runtime_ms": 600197,
+      "ordinary": {
+        "count": 1000,
+        "mean_ms": 32.036,
+        "p50_ms": 31,
+        "p95_ms": 46,
+        "p99_ms": 55,
+        "max_ms": 82,
+        "at_or_over_limit": 0,
+        "limit_ms": 100
+      },
+      "finish": {
+        "count": 13,
+        "mean_ms": 97.07692307692308,
+        "p50_ms": 97,
+        "p95_ms": 118,
+        "p99_ms": 118,
+        "max_ms": 118,
+        "at_or_over_limit": 0,
+        "limit_ms": 150
+      },
+      "display": {
+        "count": 1013,
+        "mean_ms": 4.460019743336624,
+        "p50_ms": 4,
+        "p95_ms": 11,
+        "p99_ms": 15,
+        "max_ms": 28,
+        "at_or_over_limit": 0,
+        "limit_ms": 50
+      },
+      "coverage": {
+        "sent": 1013,
+        "rows": 1013,
+        "admin_missing": 0,
+        "tv_missing": 0,
+        "expired": {
+          "tv": 0,
+          "admin": 0
+        },
+        "non_presented": 0
+      },
+      "completed_owned_ui_jobs": 145,
+      "btp_readback": {
+        "matches": 524,
+        "results": 484,
+        "calls": 15,
+        "pending": 0,
+        "problems": 0
+      },
+      "diagnostic": false,
+      "source_tree_sha256": "a9324d4e6e91c363aeef31bd57eb6fd64cfda0468c488bf2a96506a5757d2737",
+      "source_unchanged": true,
+      "all_thresholds_and_coverage_pass": true
+    }
+  ],
+  "consecutive_clean_passes_at_end": 3,
+  "verification": {
+    "backend_unit_tests": 115,
+    "connection_observer_scheduler_unit_tests": 53,
+    "board_unit_tests": 53,
+    "native_browser_checks": [
+      "held own size observations and continuous receive queue",
+      "native ResizeObserver at six viewport/density combinations",
+      "initial layout",
+      "history paging, search and corrections",
+      "160 points including snapshots, third-set histories and intervals",
+      "12 consecutive metadata bursts: at most one finished-list sort per native frame, with all 12 owned receipts completed"
+    ],
+    "regression_oracles": "New stage/name-progress assertions fail before the corresponding fix and pass after it. The frame-sort oracle sees all 12 sorts before the first frame on the old code and one per frame on the fix. Reconnect tests reproduce overlapping held requests before the fix and verify timeout callback delivery and successful recovery through the actual socket adapter after it.",
+    "lint": "New backend files and board changes checked; conn.js retains the same six pre-existing lint errors (four console statements and two emergency_announce globals). btp_conn.js retains the same twelve pre-existing lint errors as its saved baseline (four console statements, six trailing commas and two empty blocks); the new reconnect test is clean.",
+    "reconnect_regression_tests": 6,
+    "reconnect_related_suite_tests": 116,
+    "additional_btp_integration_suite_tests": 58,
+    "rejected_login_regression": "A rejected login must not create a retry loop. The added case fails on the intermediate guard, then passes after retaining the reply-error no-retry behavior.",
+    "continuation_through_50": {
+      "event_precompute_backend_related_tests": 174,
+      "event_precompute_last_snapshot_followup_tests": 62,
+      "new_regressions": 7,
+      "catalog_critical_work_ab_ms": {
+        "old_mean": 33.11,
+        "old_max": 44.87,
+        "new_mean": 7.77,
+        "new_max": 8.73
+      },
+      "utf8_response_byte_equality": true,
+      "bounded_css_geometry_ab_identical": true,
+      "bounded_css_style_work_reduction_approx_percent": 55,
+      "css_native_passes": [
+        "density 220 assertions plus 14 navigation checks",
+        "certificates 92 assertions",
+        "scoring settings and actual modal lifecycle",
+        "resize observer six sizes, 512 rows, zero errors",
+        "focused 12 viewport/density combinations and CSS scroll locks"
+      ],
+      "pre_existing_broad_qa_failures": [
+        "Compact preparation-icon physical-pixel expectation at 1280px also fails with old CSS.",
+        "Queue picker after closing edited match dialog also fails with old CSS. Focused CSS removal check tests selector behavior, not this failing dialog lifecycle."
+      ]
+    },
+    "wire_audit_53": {
+      "phases_ms": {
+        "record-to-enqueue": {
+          "count": 1021,
+          "p99": 1,
+          "max": 2
+        },
+        "enqueue-to-actual-send": {
+          "count": 1021,
+          "p99": 1,
+          "max": 3
+        },
+        "actual-send-to-root": {
+          "count": 1021,
+          "p99": 1,
+          "max": 7
+        }
+      },
+      "coverage": 1021,
+      "slow_archive_writes": [
+        {
+          "kind": "archive_write",
+          "trace_id": null,
+          "at": 1794390927369,
+          "end": 1794390927413,
+          "ms": 43.574596,
+          "file": "point-receptions.jsonl"
+        },
+        {
+          "kind": "archive_write",
+          "trace_id": null,
+          "at": 1794390963998,
+          "end": 1794390964004,
+          "ms": 5.927938,
+          "file": "server-series.jsonl"
+        },
+        {
+          "kind": "archive_write",
+          "trace_id": null,
+          "at": 1794391331527,
+          "end": 1794391331531,
+          "ms": 3.341633,
+          "file": "performance.json.2369988.tmp"
+        }
+      ]
+    },
+    "announcement_scroll_54": {
+      "native_checks": 11,
+      "baseline_initial_checks": 9,
+      "exceptions": 0,
+      "related_unit_tests": 73,
+      "new_js_and_test_lint_clean": true,
+      "broader_existing_dialog_assertions_before_failure": 58,
+      "broader_failure_before_and_after": "announcement-background-check.js:24, missing .ls-call-status-dialog focus target in existing debug-icon fixture",
+      "private_ab": {
+        "alternating_runs": 6,
+        "geometry_identical": true,
+        "mean_style_work_ms_before": 18.04,
+        "mean_style_work_ms_after": 9.89,
+        "max_style_task_ms_before": 4.812,
+        "max_style_task_ms_after": 0.649,
+        "qualifier": "Two samples per variant; native task and painting timings noisier. No end-to-end target achievement inferred."
+      }
+    },
+    "final_runtime": {
+      "plain_bts_running": true,
+      "root_pid": 2380472,
+      "automation_enabled": false,
+      "active_own_test_or_monitor_processes": [],
+      "known_user_processes_still_running": {
+        "444598": true,
+        "332796": true,
+        "332819": true
+      },
+      "btp_readback": {
+        "matches": 524,
+        "results": 484,
+        "calls": 15,
+        "pending": 0,
+        "problems": []
+      },
+      "testclient_source_edited": false
+    },
+    "last_outbox_drain": {
+      "run": 56,
+      "initial_pending": 1,
+      "match_num": 482,
+      "initial_remote_discrepancies": 0,
+      "final_pending": 0,
+      "resolution": "Natural completion during regular server operation; a new read-only snapshot and direct BTP readback verified zero pending. No manual flag/data edits or extra BTP write requests.",
+      "initial_snapshot_retained": "after-candidate-56-initial.json",
+      "quiescent_snapshot_retained": "after-candidate-56-quiescent.json"
+    }
+  },
+  "qualifications": [
+    "Diagnostic runs are reported separately and never used as clean threshold proof.",
+    "The database resides on a nearly full mechanical HDD; a clean earlier run measured one actual append-worker file operation at 163.4 ms. No data relocation, early publication or persistent descriptor cache was used.",
+    "No physical screen-output or real-time operating-system guarantee is implied by sampled browser measurements.",
+    "Run 41 is free of profilers and extra browser checks, but BTP became unreachable during its last three minutes. Its final direct readback and the planned identical-fixture repetitions could not complete. It is not a successful BTP integration proof.",
+    "The next restore failed on its first BTP read before modifying either local or remote games. No further fixture reset was attempted.",
+    "Partial diagnostic run 39 ended early. A temporary private diagnostic wrapper threw on client shutdown and terminated that diagnostic BTS process; it is not used by the product. Before run 40 both BTP and local data were restored and verified.",
+    "A diagnostic run timed the actual native append as open 0.0316 ms, write 61.833 ms, close 0.0248 ms. That write alone exceeds the 50 ms display target. No publication before a completed append was introduced.",
+    "The 267 ms ordinary-point maximum in run 41 includes 234 ms before raw admin browser receipt, followed by 32.5 ms of UI processing/presentation and no owned layout jobs. This wait is not fully attributed; storage is not asserted to explain every outlier.",
+    "The final reconnect correction was made after the last complete latency run. Its dedicated and related tests pass, and the running outage behavior is checked; no post-correction complete latency pass is claimed.",
+    "Run49 uses heavy native browser invalidation tracing in the first minute; all three finish violations occur in that diagnostic window and are not clean-run regression evidence.",
+    "Run50 slow append worker reports171 ms including await/resume, but native filesystem phase was not instrumented. Do not attribute this entire delay to disk without evidence.",
+    "Run50 finish652 completes owned jobs before a144.6 ms render wait; native cause not established by that clean run.",
+    "Candidate51 is diagnostic: exact native fs timing, append-thread wait-state sampling, and browser native long-frame observation. It cannot count as a clean proof run.",
+    "Run51 point567 render delay overlaps CPU-profiler attachment at1794389716628; diagnostic effect, not clean product latency evidence. Other violations predate profiler attachment.",
+    "Clean52 TV104ms point475 enters BTS atsent+101ms; native append worker0.2ms, total handler7.5ms. No corresponding100ms server event-loop/GC pause. Cause before handler entry remains unproven; next diagnostic observes actual client socket send and server WebSocket entry without editing testclient or changing clocks/metrics.",
+    "Diagnostic53 no repeat of prior100ms pre-entry delay: all1021 updates max2ms record-to-enqueue,3ms enqueue-to-socket-send,7ms socket-send-to-BTS-entry. Client archive has one43.6ms native write, but it does not cause a goal violation in this run. Do not claim earlier104ms latency proven to be testclient archive."
+  ],
+  "source_changes_committed": false,
+  "last_successful_btp_readback": {
+    "run": 56,
+    "matches": 524,
+    "results": 484,
+    "calls": 15,
+    "pending": 0,
+    "problems": []
+  },
+  "final_state": {
+    "checkpoint_only": false,
+    "optimization_still_active": false,
+    "objective_achieved": true,
+    "last_candidate": 56,
+    "active_run_is_diagnostic": false,
+    "active_run_completed": true,
+    "consecutive_clean_passes": 3,
+    "testclient_unchanged": true,
+    "btp_online_and_verified_after_run": 56,
+    "current_test_automation": false,
+    "plain_bts_running": true,
+    "root_pid": 2380472,
+    "user_processes_preserved": true,
+    "active_own_test_or_monitor_processes": []
+  },
+  "prior_checkpoint_at": "2026-11-11T05:41:11.153130+00:00",
+  "authorization": "Continue until user interruption or verified achievement; latest explicit authorization supersedes earlier time limits.",
+  "verified_clean_repeats": {
+    "verified_at_utc": "2026-11-11T10:51:02.621Z",
+    "all_pass": true,
+    "labels": [
+      54,
+      55,
+      56
+    ],
+    "source_tree_sha256": "a9324d4e6e91c363aeef31bd57eb6fd64cfda0468c488bf2a96506a5757d2737",
+    "source_files": 324,
+    "ordinary_count": 3014,
+    "finish_count": 39,
+    "receipt_count": 3053,
+    "max_ms": {
+      "ordinary": 93,
+      "finish": 137,
+      "display": 37
+    },
+    "runs": [
+      {
+        "label": 54,
+        "runtime_ms": 600292,
+        "ordinary": {
+          "count": 1008,
+          "mean_ms": 32.473214285714285,
+          "p50_ms": 32,
+          "p95_ms": 46,
+          "p99_ms": 56,
+          "max_ms": 86,
+          "at_or_over_limit": 0,
+          "limit_ms": 100
+        },
+        "finish": {
+          "count": 13,
+          "mean_ms": 95.53846153846153,
+          "p50_ms": 91,
+          "p95_ms": 137,
+          "p99_ms": 137,
+          "max_ms": 137,
+          "at_or_over_limit": 0,
+          "limit_ms": 150
+        },
+        "display": {
+          "count": 1021,
+          "mean_ms": 4.423114593535749,
+          "p50_ms": 3,
+          "p95_ms": 11,
+          "p99_ms": 16,
+          "max_ms": 37,
+          "at_or_over_limit": 0,
+          "limit_ms": 50
+        },
+        "coverage": {
+          "sent": 1021,
+          "rows": 1021,
+          "admin_missing": 0,
+          "tv_missing": 0,
+          "expired": {
+            "tv": 0,
+            "admin": 0
+          },
+          "non_presented": 0
+        },
+        "completed_owned_ui_jobs": 145,
+        "btp_readback": {
+          "matches": 524,
+          "results": 484,
+          "calls": 15,
+          "pending": 0,
+          "problems": []
+        }
+      },
+      {
+        "label": 55,
+        "runtime_ms": 600344,
+        "ordinary": {
+          "count": 1006,
+          "mean_ms": 32.48210735586481,
+          "p50_ms": 32,
+          "p95_ms": 46,
+          "p99_ms": 58,
+          "max_ms": 93,
+          "at_or_over_limit": 0,
+          "limit_ms": 100
+        },
+        "finish": {
+          "count": 13,
+          "mean_ms": 96.76923076923077,
+          "p50_ms": 94,
+          "p95_ms": 136,
+          "p99_ms": 136,
+          "max_ms": 136,
+          "at_or_over_limit": 0,
+          "limit_ms": 150
+        },
+        "display": {
+          "count": 1019,
+          "mean_ms": 4.386653581943081,
+          "p50_ms": 4,
+          "p95_ms": 11,
+          "p99_ms": 15,
+          "max_ms": 25,
+          "at_or_over_limit": 0,
+          "limit_ms": 50
+        },
+        "coverage": {
+          "sent": 1019,
+          "rows": 1019,
+          "admin_missing": 0,
+          "tv_missing": 0,
+          "expired": {
+            "tv": 0,
+            "admin": 0
+          },
+          "non_presented": 0
+        },
+        "completed_owned_ui_jobs": 145,
+        "btp_readback": {
+          "matches": 524,
+          "results": 484,
+          "calls": 15,
+          "pending": 0,
+          "problems": []
+        }
+      },
+      {
+        "label": 56,
+        "runtime_ms": 600197,
+        "ordinary": {
+          "count": 1000,
+          "mean_ms": 32.036,
+          "p50_ms": 31,
+          "p95_ms": 46,
+          "p99_ms": 55,
+          "max_ms": 82,
+          "at_or_over_limit": 0,
+          "limit_ms": 100
+        },
+        "finish": {
+          "count": 13,
+          "mean_ms": 97.07692307692308,
+          "p50_ms": 97,
+          "p95_ms": 118,
+          "p99_ms": 118,
+          "max_ms": 118,
+          "at_or_over_limit": 0,
+          "limit_ms": 150
+        },
+        "display": {
+          "count": 1013,
+          "mean_ms": 4.460019743336624,
+          "p50_ms": 4,
+          "p95_ms": 11,
+          "p99_ms": 15,
+          "max_ms": 28,
+          "at_or_over_limit": 0,
+          "limit_ms": 50
+        },
+        "coverage": {
+          "sent": 1013,
+          "rows": 1013,
+          "admin_missing": 0,
+          "tv_missing": 0,
+          "expired": {
+            "tv": 0,
+            "admin": 0
+          },
+          "non_presented": 0
+        },
+        "completed_owned_ui_jobs": 145,
+        "btp_readback": {
+          "matches": 524,
+          "results": 484,
+          "calls": 15,
+          "pending": 0,
+          "problems": []
+        }
+      }
+    ]
+  },
+  "verified_source_manifest": {
+    "files": {
+      "bts/admin.js": "6a09bd560d4d88226ae9b686dafa80ff3cc9b0d52a546410b91959f47903a288",
+      "bts/admin_asset_cache.js": "fda88a978efcfae473b2ebbf5650fa2bef5e77b64ee7025f0b0a0992ff2e282b",
+      "bts/admin_match_data.js": "2d6d022e980798f9d6257551b6aa83d074afcd88cb6e199528e495d891c9b2ae",
+      "bts/admin_response/cooperative.js": "56d153e22e9c1b1cd2b9e78d920a9ce6caf0f9bd705bd1ffb604a90be40705c1",
+      "bts/admin_response/encoder.js": "59cc92af93733a56887be167b0fed34b539a0a8381fd03d34f6ebc2d2cb9d2dc",
+      "bts/admin_response/event_patch.js": "8da47714fe4dd64a2e4b8adece31451296ff50bc989799953d051301fa2e1b11",
+      "bts/admin_response/event_updates.js": "93f449700ede97037a1d9c499053f3a395b273a3f2745bb20415440ccd8df880",
+      "bts/admin_response/match_cache.js": "9902b82ae67463039d724de3ad14794753c0dc9db17cdb531c379059229f556d",
+      "bts/admin_response/outbox.js": "ce413079dc2bbf695f2e5e2c4f12e0c05ba949a85d3a79f54950a17c7639e32e",
+      "bts/admin_response/qrcode_cache.js": "facc41bb79d5342c6eb6caa9f8efa6b881b9b4210013fdb1ee68a3ba9ce13151",
+      "bts/admin_response/selection_cache.js": "9f47eca35ef3e8813c296573a7335bdcd6d1c7c767e1e75cf67436c580cfbdf6",
+      "bts/admin_response/tournament_read.js": "40b2cb3d4af869e9127f51c9a97b32adfff235ddc51d94bc5e95f26ee035f7bf",
+      "bts/admin_response/worker.js": "989ea0e62787f0a581e96c79361a61f28c23b46e2ccbe443347fdcf0a5c13935",
+      "bts/advertisement_assets.js": "da2c4ab6da4fe2d036f834a11522b351738fdbae2172f6322f82350da8aff901",
+      "bts/append_worker/index.js": "ff25a2b52b1cf7b26b294b6fb3cbe4b861c9bdef47736d8e33d55cadaf4ff7d6",
+      "bts/append_worker/worker.js": "58ed3fedcfde9a5e2cba8c2dab010cb868abef45feaf31da88d002b485ae6661",
+      "bts/audio_devices.js": "c78e1fc8ba094a7db039b6f9ad1a26394aebf1f8923a26f28b17d9cd521b88f5",
+      "bts/auto_call_precheck/deadlines.js": "fc1e3163cab384118bbd1e1e090170f25845011da95d233c8b54c334c1f3345e",
+      "bts/auto_call_precheck/index.js": "4f21d2087af8b0bb7cb6e14ea463d618547ddf5d8d939eb976fff3d4e633d383",
+      "bts/auto_call_precheck/inputs.js": "11fe66ad389da737332e7d991a35c4266337c22a1d372b8b0506161c9c3367d3",
+      "bts/btp_call_sync.js": "4c0aa2500198102ec7f42f3cd423303fb40e9c308acb6c281b3bd8bc4901b1a3",
+      "bts/btp_conn.js": "a2ef200e8a5782ec5c7543d413920dea47788eb82c6876ac0344beab3d79f82d",
+      "bts/btp_court_assignments_reset.js": "71db71538f63bb5cf882fe4064af3cf09ea627d47e71e5254a3242c6d814d9f4",
+      "bts/btp_decode/codec.js": "d7cbd928c6b5f5b9121f438080abf0601ed9c468a76dc344d85a58390bb76a32",
+      "bts/btp_decode/index.js": "27b4683e81f10410a41ffc2fbe35179e37219a560bc908f58673d5fa63ce59b6",
+      "bts/btp_decode/pool.js": "2d48b459ed5f8bfe4501c6c00516f00d4dca61ce91ea2db51a29298490b70cb1",
+      "bts/btp_decode/response_hashes.js": "2fa4c5627cfecacf2869404f02c80ead393b8f9268b2a8494f9380bf3b30cbf2",
+      "bts/btp_decode/worker.js": "4f87b1635b0059619d37b71dcede5b8f3885b323b76668aca853ab443fec980d",
+      "bts/btp_manager.js": "1872452788851726e36fc7c05e7d4578345f7c64aa28881d445a890ebdf52a98",
+      "bts/btp_match_changes/dependencies.js": "7351605ab9761c4473a8ba5d7d2cb9f561cb72463c5a69df4eea0b4f74ba6c0c",
+      "bts/btp_match_changes/graph.js": "0be12f04d65a9e01c69d941a81d7c228c6a30f4903afe9980e4142ce339a75db",
+      "bts/btp_match_changes/index.js": "f03b3bd9b84e9c63aae2b7254f6c61374a3f30cf51be05c68f768de6a07c9e87",
+      "bts/btp_match_changes/input_revision.js": "ef160ef11013fabb132496c8ef6a1b95c677b164848fb067da7ac563d18f15f2",
+      "bts/btp_match_changes/integrated_match.js": "5d18789c38d5bd6411fb51950f6699b9a59762ed25cb7f9462d7a77e7d320ffd",
+      "bts/btp_match_changes/local.js": "6e4334f44677d09df23359d5b86774128a0770bd66326553c70a978bf2c6ddec",
+      "bts/btp_match_changes/match_input.js": "2abdb6e04e74244e4ed7d0adc198089e005761993ecf8cf5f0285d6fa4c68be2",
+      "bts/btp_match_changes/sources.js": "d73a7551fc4ba16140e243831ed6c7cb21704bba86d7542475feb64c5ab936d5",
+      "bts/btp_match_results_reset.js": "09522afa6cb4404d3efd4234a267619bc9dec6829513662c61c9faf09c5af329",
+      "bts/btp_parse.js": "b496d02d53f7cf9c77d692c46f6d3e7754b674a428a94fb0aab2982735d34c08",
+      "bts/btp_participant_guard.js": "e89809820f862859f1942633bffd498774af2097359c69a8102077f507c4db2e",
+      "bts/btp_planner/batch_writes.js": "13b3bb6f651e3099ecc37c2ee154cdfcfbf0f4b642e0506941d5061375f8c67e",
+      "bts/btp_planner/changes.js": "c6c59a4a4214a33d8a5ba793ab30514503f6a3829c802b4ceae828e5c44c4890",
+      "bts/btp_planner/clock.js": "a13cbeeb0fbca6d71dfd8b7028e1ebe42171b199884393fca7c22c3e82c96e60",
+      "bts/btp_planner/index.js": "6c228c7f5c4ec179a597ea9f78eddf027970f9ba99818e6171665d1f246dfd80",
+      "bts/btp_planner/notification_value.js": "3f43d373ac7a9d6e6815ba1db4492084d42127cf5b516f64faeb4ca5472d5e25",
+      "bts/btp_planner/prepared_document.js": "7616fd52e2dddc0d6737b0627a51a7fcefcee30c59b0a08609bbfed51d7372d2",
+      "bts/btp_planner/prepared_match.js": "852919550428146bb9c12a33df685733942c53207a13d73d2f14c9689c2786db",
+      "bts/btp_planner/prepared_tournament.js": "83a9f8004c355f77dd26952b4a8ed7816b9ebcc3ba7f8bc5102ae14602d846e1",
+      "bts/btp_planner/refresh_writes.js": "6537a8f9ddbcf95bf6ae4b3072a1d9817fcd4c06048e124a76245300c864d7b2",
+      "bts/btp_planner/staging.js": "2c8d7ea1e216273d480da18fe6947f6a9fd970895a16b80c1ac2ecae8f9f0a91",
+      "bts/btp_planner/worker.js": "fd6751f531b653be71a97cf35c8fa670927fdb6053bea9efd13cfc53a46705b7",
+      "bts/btp_proto.js": "97412e1ba8e33ef4efb954b182bc4bc9e6c6afb725df502e206d8b27ba4ccff3",
+      "bts/btp_request_log.js": "7d274601e6c7e5e2703ab9643ec9d5c6502b44896af01d9886d5ca03bcc7bcc4",
+      "bts/btp_result_sync.js": "3ea5a4225bf7c759a8a01c5192dd3b128380d1e5709b0ca1f3ba1a4e278e28dd",
+      "bts/btp_sync.js": "c2ac35ebcc1db607c11546772cfe5464efe88f65b18f1643779c7242ea65dc97",
+      "bts/btp_sync_effects.js": "2e596c9b85adb906eb1e84241f064e2ecefd1d431e089626a2dadbdd3fca06d5",
+      "bts/btp_sync_locks/match_changes.js": "e948bf8473036b4774cdfccbc343ab75b0f913a854006bafa3684c60d763bf2c",
+      "bts/btp_sync_locks/ordering_notifications.js": "647605f288fcb1d1f814641ff305fc2fa8bee469d1d3d383fa482aa8c90c9f8a",
+      "bts/btp_sync_locks/ordering_only.js": "d5fcb266f50083bc6117c311468412e961b53d1eb4820d6a76a80f401d977625",
+      "bts/btp_sync_locks/resources.js": "af6e83b61d874405c0cfb984921e7601aa9d39de45c8f18e6f8b5c38badc5e09",
+      "bts/btp_sync_plan.js": "3692cd8144ad25d99a2c0475f4c9c31b4b5dc561ea0e4d0a0afc8662584d620f",
+      "bts/bts.js": "a5bc54161d63a7fe024694e7149885e4aa1de13e38c589c398666a54a8378649",
+      "bts/bupws.js": "5f644fb8691ec603b82e700ea5ad7ef63f2326c3abdfe1d04454e06bedc85107",
+      "bts/bupws_v2.js": "5073fb8f332f99b5f080cf2a420dfdae0caa1a3ffe8dbf801d2c4cf68fb9d3e7",
+      "bts/certificate_assets.js": "f7ad1a8989791a7167161f3ba54f832c4c399b0c1c6631ab66419a6cb9ef1f64",
+      "bts/clock.js": "844176c41a598291f2aea91be01ca93b2e8665468123afaea963cb73f868bd2d",
+      "bts/compaction_worker/index.js": "7d58db8facf28507b36e098f100c73a345831c24c0eaa9ad6c349d3e39196bdf",
+      "bts/compaction_worker/revisions.js": "1a433505ec8d4a6e555b9d1b5cb2282401cc9fce0edf315437e12738aac1c4c7",
+      "bts/compaction_worker/serialize.js": "5598c9429867b63a6d53ca87a0ff5a4a3de648dc484b0f35e128e33256d04be8",
+      "bts/compaction_worker/staged.js": "a0dfd66c80395ec5181bbd97241166a87edf3f165586cf7ecc449ac5dfb3c3f8",
+      "bts/compaction_worker/worker.js": "e36d9c3a411b096f0e86bc5cf8ebaebea705cdcdf669546c6038dfc5272ba702",
+      "bts/countries.js": "c19ce1c692dbff9a41588b89ba01706d8e9f7f207a67d8312be13a298ad1d47b",
+      "bts/court_assignments_reset.js": "75eb9b918bfd9ca1182c782d31bcc5eeeab9b60d7dc2865084f7b87411c93070",
+      "bts/database.js": "9e0988aa0b4dface2e9a0583fe24967cee2ea2b936f5e85459cbf06c78d61002",
+      "bts/database_compaction.js": "d074988bc652a387204ac0dc6ba63e3700e333a6addf4e89c4ff9cc25e96d075",
+      "bts/database_read_barrier.js": "64998d3bfe1f2d8f332f354475f16e576588a8ce8ea65f469fdf9fd9a2a7ee82",
+      "bts/database_tasks.js": "d67e5b71c9ad0bc4c1bf3d9f50d74ce78f25e6e636ba64201675142ad28d20d7",
+      "bts/dbv_ranking/index.js": "af70a0e8d5dbcecdf8091806b0b7963bcc1c854c91b13832a70fe0870a2bec1e",
+      "bts/dbv_ranking/parse.js": "a852593bdcc7dd59bd00f38a4245f231267e232f8a560887291b27191a616b2b",
+      "bts/dbv_ranking/worker.js": "0e0a4a6321ed11d215e59a38118b30413e3caf1497bc4e39d3822edddda9755b",
+      "bts/debug_flags.js": "b109092075947dda84dba5e1ec57cadf4f1718cb89b5ae589ddc1924a462d82a",
+      "bts/device_info/background.js": "f8bfd5eb21908cdfbbc22e59565e6d360286bd2db99a2a9993bf1aed39e226c1",
+      "bts/diagnostics/capture.js": "3a73d02ce4d8a35ea8e2fdca4df3620a8f5554bd7d462c439fa2aae5f7c88508",
+      "bts/diagnostics/index.js": "fb0fd2a51622ad44cec566c9bb6ffae72718a9dd858bf2d553a35521253d05ba",
+      "bts/diagnostics/pages.js": "76d4421c88d2d2022b86f6651f79891d10e354cf3aa32cf2d124e94d02a7e211",
+      "bts/diagnostics/sanitize.js": "0077eb6cff8e77e76902997de81e8ba64c1def258e4e157ee021cf2661deec52",
+      "bts/diagnostics/store_process.js": "29a2ffd44f26eecd94f4dd2139689e26aea9941b091916df006c934d9c8ce796",
+      "bts/displaysettings_defaults.js": "a3f89edb55493841646704edcfcea11eab7ca6c98f075bbb56b0173c1f9868b6",
+      "bts/emergency_audio.js": "38eff92f8c4d28456a31c8c0ca0941a034b891f56294fafef473503c5a9d6c12",
+      "bts/foreground_work.js": "66794f75fc5d3b78024714b0d220a8edb0f56244737e8e2b7ab9184c84633c41",
+      "bts/http_api.js": "dc44ae2f5b94028c95db4aa4f87c8f54be0073a2712f9ca46cf18860b1ffd9f8",
+      "bts/logo_library.js": "f02d446ea0f6d98be9e45231584007b9d56760e495219cca7a9c4a0cef7ca249",
+      "bts/maintenance_reset.js": "4eb908bc057a77f1fd92d8d27f33af1d174964f0b1ae2bc4381ff1c3332f739e",
+      "bts/match_automation/frontier_positions.js": "30bc1dd1ce7b4aaf97d70dedc8765c55428b71422fd57e370560b67a25502892",
+      "bts/match_automation/participant_lookup.js": "6e78c4fcb204fc1ebd5542654bcbb080b23cf2469fb75b0bdb1504da76c6c072",
+      "bts/match_automation.js": "19148194eed145d240c0a9076f766a86a945a9dd830e059b07dadaff13ae02ab",
+      "bts/match_cleanup/finish.js": "ef539745dd26ef9a1ba47ebe27c6705042238eb9706deb91345b8ed2caa411ca",
+      "bts/match_cleanup/officials.js": "c76015b27d80b3c422c470c52efe88ac015d9efe1612cd406dd4937bcf90fa3e",
+      "bts/match_cleanup/participant_writes.js": "614100ebaab8b44f8b6e502bff10a914a8a42f21c111e0abe35a663e9de7d74e",
+      "bts/match_cleanup/players.js": "7b7fac62a75966171d74c82b1f9af958bc4b621b00d144646dd2004136a71354",
+      "bts/match_cleanup/reads.js": "97dcb7a32671a8ee7921680b0a8f1003632290bf0a9dc7199f47f5699d6732be",
+      "bts/match_edit_place.js": "5a2cccde9a1033b876d85e227ab419a18b4e66c516f507d52581c6b5597542d8",
+      "bts/match_entry_guard.js": "3ae8e27ed58d5a5f4a807c4f76e611a6ad436f78b137e21cca4d51447f43cfb3",
+      "bts/match_entry_status.js": "aa0af53536f9cd51f97abe00b9b460de614edf2dedda0767e5ad9af8b0036f61",
+      "bts/match_protocol.js": "a10ccdecbe984600bf4be2b80bd489a1888b93d0851cc29e217f5927d013cc6c",
+      "bts/match_reactivation.js": "43f90d61b44baada82fb3251ea7e1829161beb7f2a6ebd1ea570a1066f3fbf77",
+      "bts/match_reconciliation/player_flags.js": "516df001e3f10b02345be4861ee69f4ac6725a1db5fc7dc614bc1d6387dee1ad",
+      "bts/match_reconciliation/run.js": "c104577ccb505d5ce6589c97f4192c7e6f76b8bd3d5a6ba351b8fc90195c645a",
+      "bts/match_reconciliation/tablet_queue.js": "060ff5f466b6757974a049d4b47caa23dc653f6883365146fd6d25b3ded40fa4",
+      "bts/match_remarks.js": "334c477aa2f344be1ade521b61e27b1fde53199e2e5ee5be24870d40e30f3eae",
+      "bts/match_reopen.js": "20d3086e167727cafbd089f45d334fb2ed7453626bdfcf1d91a643592a4ec4b8",
+      "bts/match_results_reset.js": "e0f56fd78432e652922c7ec1243ac10c9eff2d43e1098570a63a817736f6feaf",
+      "bts/match_updates/setup_changes.js": "8def44eeb5a6e6536f2fd3f5596712d57c08aa252272d9f07f734c3db87fe0c0",
+      "bts/match_utils.js": "fbd27b49eb13753330e9daa4559c3324d1584ebf7c5ca49efeda3362b38bbb80",
+      "bts/name_fixup.js": "25426c73a3bf677d4ae2f6814613b7bba45b489c334c1dae6d7fbda3114df589",
+      "bts/offload/client.js": "601e6b302a04948379e43e9387dcf6667baf119cc159e01c9d1bab49924d537b",
+      "bts/offload/process.js": "b1f18abf09910810ec71cb25aba56287651f2270ec90ad484913561d3b45b66e",
+      "bts/offload/profile.js": "9b9b1d75be09c166fe6f8e9e71fe974a45446227bad8d67b667d8332f032dc1b",
+      "bts/offload/timing.js": "232a713487fc03c1d105531f4dd0d6acd780d9a0c65cd122cebcc582391ee527",
+      "bts/offload/worker.js": "260b44bbab1a450a14358bd32984a6063adc9139b3b19fbe255a21909e9895c5",
+      "bts/panel_tournament_projection.js": "2cbf6bc1322fe78b2c963ffc7d3fb33b53268b052926663b9bfb344ed865119e",
+      "bts/performance/garbage_collection.js": "8233e6f884aad7d5ee5494a55c7e35777dc89fd39ebb04b04fe4cbb13f3c55ff",
+      "bts/performance/monitor.js": "f919ff27918342471858d3f9ef96d36a4c55729c62877ffe7d076965caea1e97",
+      "bts/performance/queue_stats.js": "09fa7e252bef2f494a50dd4cf4677e430de7984a5530dae14cf9ed80549bbcec",
+      "bts/performance/registry.js": "ab666bb1a7a2705a9564e9ae7eb892c54423aa53846cfe7db7d91e8db16af18b",
+      "bts/performance/storage_io.js": "a6287034a4e55f5025836fe0c015a1a70cadc541cdec9280aafc22fb2a549673",
+      "bts/performance/traces.js": "7aa110116d75a5bcc5806c0e19b6342a3ab577fb5ab5f5c6dbb779e83b69b5a5",
+      "bts/placements.js": "09b02c5aad1286256e73c3f65e143070ed72e712962cdbcb266c0c4d7e688721",
+      "bts/preparation_selection/admin_reads.js": "8d5ada40eeec1a6337eed45f59d143aeeb24afd14a738db9745cc23c17b48d2f",
+      "bts/preparation_selection/automatic.js": "0c3886431ffcfd74e2d5ef6e23616ba7e2ea9efce0810543e5e51ce82abd96f9",
+      "bts/preparation_selection/call_reads.js": "7a74db0766a5d93f45cfb3217f7709dacf302b91c81afb8d77ba44444a8240c5",
+      "bts/preparation_selection/cooperative.js": "5030c331d6540945d7ea82c8ba4321d0016f91940a9afa6a1553006c178e29bb",
+      "bts/preparation_selection/model_reads.js": "c2c74b49622fd480981dbfb38e1b0a5c7ea9f85a70622976472e2ac124a9e9d6",
+      "bts/preparation_selection/periodic_reads.js": "56014a353c62a6988e60816c1bc45b3ffbbfd386424c7bac53202ab4598434b0",
+      "bts/preparation_selection/selection_reads.js": "7cc2154099d2f7d4830b3fb2795f485725bbf43834812d19739701da45b4fe70",
+      "bts/preparation_selection/status.js": "6c650e3702d8b8304c2450543f9f398ee4fd625e5b3e5e6b098707a32293f7c4",
+      "bts/preparation_selection/timing.js": "69982b46b2364fee981de5f28d90eb779990668c624c426b72f64b20bdabe165",
+      "bts/prepared_append.js": "01503260cc0d0ae3b96f88da2e90a25c5efbdca282111438e3ddf8e33193a2c8",
+      "bts/queue_lock_keys.js": "9b00e0887e1444da83e27b3960eed5e049069277dabb96eba4e0c41f9dcede06",
+      "bts/registration_xlsx/index.js": "e5c35f931f6741ac349de8eff036eaddeb1394ddde8e10914c3940c222945653",
+      "bts/registration_xlsx/parse.js": "c0e3cd806e37324a2b359e369f24b5770d6e4bb34d559828324cdc576e7b589a",
+      "bts/registration_xlsx/worker.js": "c3e08fd571d02b9d8e30611c6bfa91f7984261e73e65fb027da622df1803366f",
+      "bts/resource_lock_queue.js": "c1da39bf3b5e2f5c55a3357bcaaa30f70002b573854a677f7b8d98e6b1660b41",
+      "bts/score_publication/committed_points.js": "26642742b80ca9110d4c30e6c23e246bb47b214ef2885bb9d70688226f09c52c",
+      "bts/score_sync_locks.js": "9c0efcbb9257450efb5a7fa1602dc4d978583d0bcbdd3ef4641ebaf21ce2d737",
+      "bts/score_write.js": "503b3bc7cf6230a7945cb6be3c85216cc7b5e15f1f9f2864aea20579088b4a3b",
+      "bts/serror.js": "887f891a6f23258409e67861c9ebaf736062b819b873590cc689b51df37b0e0c",
+      "bts/server_diagnostics.js": "7a1fb0c4e77dc98ce7a6ffbfa521867b1c7d82e77c506a5a4571e916d8b3e481",
+      "bts/shortcuts.js": "61d9617452f3bb9d2033f57cb4a3e7befae3125f50bcc934e1a828cbf3faa378",
+      "bts/speech/broker.js": "f1a24cb7ec33318e3abfb93a2e5bb9955561c71636dfa47089d6fb6f628a2b52",
+      "bts/speech/connection_settings.js": "1d2f5d984202b9861e81b83b36c7b243202ea1464e54cd2d2f7bb14883bd7a2c",
+      "bts/speech/context.js": "f37db10ee2c7dd7c1921295f88129b42c26c41c7b1a790c7fdb304d56775c041",
+      "bts/speech/coverage.js": "f88659414a890573ef03731e5a3c3b516362f2fc8b34aa8e01456df80b3447a7",
+      "bts/speech/disk_cache.js": "a12b100d2ff7215e50fa7c57d04f2e5e68888af7a339ae8c9e589dad0f61aa59",
+      "bts/speech/failures.js": "33752a02ee82bd5394897a8a02fad9d003e2994e387de5d6e17a8ef829de6104",
+      "bts/speech/game_status.js": "9b8d34acdebf8bc57c2d1091ae43dc10f353f9cb705998b8c04c9854129edf45",
+      "bts/speech/game_variants.js": "539bf3b4ef321fca1cda9dec9be4d0ba3b5c6d8412d214dc29be4853d00cac32",
+      "bts/speech/health.js": "0e3a475d8950a1ddc19890c82cb62422393effd90d97b5bc28445f0cd360b79f",
+      "bts/speech/helpers/demand.js": "f305450994948caa0f5ac69e94cdd3b8e716b3d2859b6cdeda0bdc2ae87dd717",
+      "bts/speech/helpers/remote.js": "8fc005d1b6969f13941be2b2ea73d94553b7735eb440409e8c10bb3489b087a5",
+      "bts/speech/http.js": "f95ca82fd1cdbbd864a63817d47c0c448d264e1b0c04bcd26013585dfb1d0f2f",
+      "bts/speech/idle_plan.js": "e03b7b937a63e7c92be99e371a4dfedf94624882a3788e2769a9ca69579532e8",
+      "bts/speech/index.js": "6754999760e89c52a5698897ab39a5ed04ede76a577e51eaf990ad0d4e5e0867",
+      "bts/speech/inventory.js": "41ad6a1090fb8e00128557d1106f2bf4b72d7a7bdaafce7b8ae6bd6fecd9cee1",
+      "bts/speech/numbers.js": "9ed9769bf35e31fe2ef45e6dbcbd591194493137a7e09f959eec7c620cfa1ecb",
+      "bts/speech/planning.js": "2bbdc0b6fe7da8fb9d45d78d5c31ebd9994282b180613062e27476fbe31ca8a0",
+      "bts/speech/planning_status.js": "55d62eff36a3bb43ae24fdccdc04f9ec38598a5c8e3600fc3f2645f32526f857",
+      "bts/speech/playback.js": "d807ac25b80c97e1f0b2f1ef7bab79bbf35a24213b2699a3bbccd3bb2d1e7d82",
+      "bts/speech/prefetch.js": "8e13ed91f1afda85e08c71cdbf6e3202779fdb5ccd9c7ad38e4bcaa726103bd9",
+      "bts/speech/process.js": "9ac803f52e49b3eeaf8c5acf0ea72649a2c35d4f6433c2731894ef1767e9354c",
+      "bts/speech/proxy.js": "06daeed278f26ea4ae594c4032368ffc9d0397de5fa6df7f7e18ed47a7a7a7b0",
+      "bts/speech/render_call_cache.js": "c606ce515102173a2a830b9ca3009a21d42092bbd606bc370d68719d9d9973cb",
+      "bts/speech/runtime_connection.js": "25a64249773ed15e159eb0c582d1f3fda695f5debfb80e469c6a1a83e72aed10",
+      "bts/speech/snapshot.js": "aed95862dd9641d7c34414f016cdc6f9d7bf9d518596538e94046ed61f6f085b",
+      "bts/speech/text.js": "b2429c9f476a7d27fd36989f929f5a8ade432a406b8bd817589b6691e786db45",
+      "bts/speech/v2_inventory.js": "6ac7a8f634423af67e6b7a4aa25aaee4bb8f3e7c03623e6a94620c849ce79b29",
+      "bts/speech/worker.js": "0cf4c494ee5615ef8908fd689654ab91b6e709b7562edffd97a8486c5bcc7aeb",
+      "bts/speech/worker_client.js": "6965751bc4ee33b190d547eeae66818560e6cb929c8b32e0b3a140053c300b00",
+      "bts/stournament.js": "af2048a41598ecdb78c1c3719c533e1e79dbd149ea82da5e4db1cb2330ab3454",
+      "bts/tabletoperator_audit.js": "1867b302b821f43e5faf9d5995932016c7d479c80c41fe150054b3d9c298fcef",
+      "bts/tabletoperator_umpire_release.js": "1f872a0c4f0dc206d81301368e05f3415fa1c5a7322208e37398aeea83daf48b",
+      "bts/ticker_conn.js": "eef2fa76574593a34f85e5ce7df90402b1d3f9d682295d6bbc9e265de1d62093",
+      "bts/ticker_manager.js": "7fcc60fed13598b283104f12098fd0ea80b33e0279a0e766aa0d4f6e3dbf6fc5",
+      "bts/timing/btp_decode.js": "9d4ab4a0b892a1edcdbd2ede482d84621348cf02f33e9f2b722c8116edfd79cb",
+      "bts/timing/event_loop_probe.js": "e4d5a1f18823d970734de10a20a998dd5a454c2ac73af18a372c281c8449818a",
+      "bts/timing/steps.js": "1a43c2a915757a76c07a731cd1dc08680f1b0db6af60539039e8167096b54897",
+      "bts/tournament_model/cleanup_reads.js": "ebc8170ba2de27c2bfb10b951cb0b104da0354a15acd0c821c0353d2409745a3",
+      "bts/tournament_model/court.js": "bd4060a85d744bb7b1c8b037982b88c08ebbe3eae582b0571038b077f0c099d3",
+      "bts/tournament_model/datastore.js": "01d6b9bcd6d880d85007494bdea7e8e838a4fc1eb048f6d1716c902f690b233f",
+      "bts/tournament_model/display_reads.js": "68375534fef3d4dd8087825a6f16adb4368ad4e22ce24a89fa74f9aca75bd094",
+      "bts/tournament_model/entity.js": "531e0c5991e693d718d914667569a418bb15b5d1e7dbfffe28e79563264597d5",
+      "bts/tournament_model/fingerprint_index.js": "e38a43ada2b2d91592fd05d6e643ff9b02a6152b15ee30311067dc9e70527084",
+      "bts/tournament_model/fingerprint_projections.js": "8b72ef014da0e7ed4dba6b6e5532ced8d59859a817dd39049ad570ac26deaf21",
+      "bts/tournament_model/fingerprints.js": "05420ff2f422832f7f55cfd4779e22a06a534598209bc54df691518afd6ed8d7",
+      "bts/tournament_model/match.js": "96686fcffeb1543d927879ebf844c0296229d657006e1be74cfeb48a2055f8c7",
+      "bts/tournament_model/model.js": "5293ba69df37592d31bdd522a8b61d8c5b62b85463fcc1d24b1ab63eeb9b1fb7",
+      "bts/tournament_model/normalization_fingerprints.js": "2764ce3104e4029cac56dde210e78b76c417e9459563ea7daca9542484047993",
+      "bts/tournament_model/normalization_reads.js": "b3fb8c31ff419143589a4d226ce889e25e7242af1722f2b03962d9ba30665e8d",
+      "bts/tournament_model/official.js": "1151d15c1865a971a8442f410079cdf4c50ece62615c58e321a04e756cffc308",
+      "bts/tournament_model/official_assignment.js": "73d0af0a643de5f93bb73d49b0bfcde4950e2dc22d9f83debcac7fffb6fa3694",
+      "bts/tournament_model/official_links.js": "55e71416306757e2f43eeae1c498b107764cf182f7ab3d51c3b26d0a553cd3d7",
+      "bts/tournament_model/participation.js": "a8272cb71e937e27aebd464cf4f62fee5c6f17e55486e2bb87c78937fefa144b",
+      "bts/tournament_model/player.js": "db0bafeb92b87280d41f9c79d19047f2a3b6ae9318d32ad91be102d266261da7",
+      "bts/tournament_model/player_ids.js": "9c0af388e3163bffbae9649a8f3f11fc04d9466d04bbe6fabae793f82b3802f4",
+      "bts/tournament_model/profile_fields.js": "1bfe46a033559c4e9439ceeee36f042667495a296a3e1d171eb2e16bd93720bf",
+      "bts/tournament_model/registration_rollback.js": "ea1d23b53ae1b560e9e39ef5171d2fc2eafe390b3980b60e639b495ae9c182c2",
+      "bts/tournament_model/registrations.js": "9efce200757a578499382c3050ac626569cc580b14bc394886e1b904c0302f10",
+      "bts/tournament_model/relations.js": "061a621514212aeedd8423e7043bb682c44a92066b12ffb72dda86f7e7b24bbc",
+      "bts/tournament_model/score_reads.js": "4141ebcd2214211fb5380149ed8da050926aedca6b0575504962709d2f3c27b3",
+      "bts/tournament_model/sync_validation.js": "324300fe6755a8e0b8cb827cb72f7315ba15ecf00f213e95bdeb66edbda950c5",
+      "bts/tournament_model/tournament.js": "cf7dd1b5ed4f015531fda7c0be66f87ca78d205fbb3cd460663c6c785284f3e1",
+      "bts/tournament_model.js": "e00f7a5ae163389d4018478b1ef610657813cadb2adb9b7c0ab10db1c10dd31a",
+      "bts/update_queue.js": "35720439f48a43b9f95f79bd38c5679988f07eb5f61bf2e95f2dfb6f6e60a587",
+      "bts/utils.js": "005ba80e222b8656a7b6a31c38b0d3235c4ee0a423cd0fbaa3739dd6ca69fefb",
+      "bts/wshandler.js": "3f0b0965b441a38e524b539c7f680fedf9cacfca96a8d45df02a02cd152bf3bf",
+      "bts/xml_utils.js": "0d4023762824c72e717600bbbc199d85ad4ec52e493cb739080ffeab46b95c19",
+      "static/css/admin.css": "a4e2f7d096eedc0e5ebf6663e970deb952aff409d1ae58a9f77c72e7b373833a",
+      "static/css/admin_layout.css": "577200f70d7f9ab45fc04df7ca982855dc216b3c54b03dbc9a6b0dd65455a2ba",
+      "static/css/advertisement_settings.css": "e696431ba381d4f1afe19d75e532e5df18068e1fe19a73c01b93cd893ec86f70",
+      "static/css/audio_activation.css": "66a1c9b04628445c1c520ad6f4a6c50bf8df170363305abe1d30a40fb268938b",
+      "static/css/cmatch.css": "42ea3f26016657e6eae3d773c37555eb89aefb6ad270b4ef12c76613bedce791",
+      "static/css/court.css": "0cba6864168bcf8877af3ca2303c4157b0de8dd4fc6fc6d4139c9b734dae1608",
+      "static/css/ctabletoperator.css": "238cb1aaf863063cd1e32466d99b5d96527b59f8ce7dce2d8b40ae3d391c7243",
+      "static/css/cumpires.css": "c7c2fc3106ecfc1222b4bb6175ad578b081264f1d5076fdeaa83a6c6caa3ed83",
+      "static/css/devices_workspace.css": "3e456292130c8bbaf3a6a12ee406fc51779c3585d7c4762631fbc4eefaeba43d",
+      "static/css/diagnostics.css": "6bfaad81a022e68958c87f23495b362ad56e9e786d4afa10779f62a69c3164fe",
+      "static/css/display_settings.css": "908810a288dddc87821c6c9ce3f45afe34bfecd5a24954829a7228aad83c0111",
+      "static/css/duration_input.css": "e1cd3d6a9c59330f22d05a72459dfa64a5d71297cf5f0238f935699ba258ef88",
+      "static/css/leitstand.css": "b293092077901f23d95eed250f2b5105dac8d6605c59f4e72beeba5f231b8cae",
+      "static/css/location_settings.css": "861bf3ba79f5bda5805ebd0008833477355eacb683cfee8bbe032609e9d22bb0",
+      "static/css/number_input.css": "0fd89391b1551652e91f4e7508a8883eab51ac358c3d85aafdd024b79cff27b4",
+      "static/css/scoring_settings.css": "e0c0878f801b286f0081f7f731863b2656f7edfc473b32812cd41474d8ece8af",
+      "static/css/speech_health.css": "883e7a005437742a4f01e453631a92c7d7b41688eaa706fda580889108732162",
+      "static/css/speech_helpers.css": "9cbd463ca0bb39c80c0c84898fc58c7fbcd05191c7483d5a48d063b9ae255835",
+      "static/css/speech_planning.css": "233ac688967c05b1ba7cf2a54a3fc5e157aa1aefeb8bce07974f3f6dbff6aa21",
+      "static/css/speech_settings.css": "c36d92e0f0e08bf4de615f6e20291ec733df9a4a1cf2a1f5be6664212dd17554",
+      "static/css/toprow.css": "3da8cc229d2191c627efa8009e11c27114d7b8c0742397dfdb62da34c3ed4544",
+      "static/js/admin_update_observer.js": "e4ab8969bf30b4ea06992f63dac55e27d6397957c84e8313aad23a7522e41af8",
+      "static/js/advertisement_picker.js": "de1f439e4dfc77df8ff40d8b0fcdc19c0add91d8dce717c27236b472d4fe915a",
+      "static/js/advertisement_settings.js": "9dadd9a9b9eaa8d4f537d67679bcb8cefac4b8bf3622d860b1451bab7826c984",
+      "static/js/announcement_editor.js": "0ad887e24d4029130deda1621d74fd5d13f13933738d597afb6537e9cf16382b",
+      "static/js/announcement_text.js": "ea23c07d22919e0fa99d1955e20e165d5312ff18e3f46dc83ffd571d7ad94c86",
+      "static/js/announcements.js": "8404c0da1fc9793e0a65e53e3323b7ff91a643614797b0b0796d402fe52cd0f1",
+      "static/js/audio_activation.js": "b8cbba67ee1f454968cfc9238dd35e8fcdc0d67a9b383a4da3df41e543c919eb",
+      "static/js/audio_devices.js": "17240268d0270edac621440a09dea778ed09ddb9f2ed4fb2b6ff40ebed29515e",
+      "static/js/browser_promise.js": "97c7446229fadde459cb7c99d3341d2376b0d3bfa55d68acd5cbd6f70e658f2c",
+      "static/js/btp_dns_todos.js": "615ac770fb75206296047fb338b52d821821a64847bc57a79a475fa4b4ef7adf",
+      "static/js/btp_dsq_todos.js": "99c89c043923181105a82cfb8c0d85d6b683beb164f63bda3a0ade58796c07f2",
+      "static/js/btp_entry_status.js": "91f64c66ace29cd5007bf6d0a4715db460966beb7b572a11894c620cfd2b97c4",
+      "static/js/cadmin.js": "fa7885f9027fb2483873cd15a21ec78568d583454d735f305edcc55c967ba51c",
+      "static/js/cbts_utils.js": "4cf2267d4b2bf17e43bdf8315c4ef63f8c0b086391a11cf433f885d48e90950c",
+      "static/js/ccsvexport.js": "651fae8a693ecf1778fd21e529d482b4251b80876c7031cc605acc91cf0e41df",
+      "static/js/cerror.js": "b8ed98d5ab2dd56e56e705029d9c3c70bd9a85a889e14804e4ed356db1a38e5f",
+      "static/js/certificate_design.js": "af6c9abea1fac4d0d45a3d2d1564f926cf4e8229b5bcf96b73c10936ecc9001e",
+      "static/js/certificate_designer.js": "be13c887dede7c6e747f241bb4a71594ac528076caef46d1660b22c008e53f47",
+      "static/js/certificate_document.js": "9fc8a6480c909521e43efba5a5e9e78aeb3ccde00065dc6cc49d09e6ea60f389",
+      "static/js/certificate_selection.js": "162e9fdf1abff6a1a8cc556f8cbb3cde9b3fc72f0943fe41e1b3563365d85465",
+      "static/js/certificates.js": "2a1e3551abd3ebbe514e25b34fccc17c38ca9831d47d1a689b089980952783e9",
+      "static/js/cflags.js": "c560dab0bdc3ae8e1fc9347b1220f0cdcdd3f28ee5b984240f1e99e984627e9e",
+      "static/js/change.js": "81de673560692b12ff5c023b3babd49983a2cd728bc2542179b2fac990e6f02d",
+      "static/js/change_helpers.js": "fbbfbe25bfeb4744472948a42293d69a37a0267338bff787d95b3cf288355000",
+      "static/js/change_queue_scheduler.js": "862a7e897125ee0a283bc7dcd1d2e1c44f49e48d609dbd405d474e1a51c20052",
+      "static/js/choice_picker.js": "36b4e883e794e49ffb377a3004cbae0b6e81d35d27a0ee248003b192d95f4c25",
+      "static/js/ci18n.js": "11f0573a02c1d9372b77ca1c868ae79f6dbdd44ed2d8c1f1c1f30f468ad178c2",
+      "static/js/ci18n_de.js": "ab0778342e7ea58a1c76943203cd23eb9c04695acbc5b41aac26ff07f7d593a1",
+      "static/js/ci18n_en.js": "9629178bf8d2240210905f8ee5cbc56392aaeca5ce16a1e3e2db28a92724870a",
+      "static/js/ci18n_nl.js": "741c57aa540b8453769c2f2e4eeda69c56f88c3ec8b6022e019fa050ccea6558",
+      "static/js/cleitstand.js": "8551e6f652e00d9bfe9fe2e87ba01eedbe9e14f90e7ea94e9ae702bc5ba5ec94",
+      "static/js/cmatch.js": "de6f7e596a35d5d273b1d4ccf5ab1f378612c698a7e6392b9407f28948cb7e1b",
+      "static/js/cmatch_history.js": "1d3f2adc2cbe17fbcd5729f2185ec7a6237202a552639eb38c828eab0bbba43f",
+      "static/js/cmatch_official_select_helpers.js": "4471219ec5e39c021716411b3cfb73f6ccb68f09f31526a2896d31a55f549d0c",
+      "static/js/cnationstats.js": "1e95a89dbe566a9f64e5bf8c8bc3fbd90fb059c38d7d457a40092334786127d6",
+      "static/js/conn.js": "c557880a50cacd31e51b89b355f0318f124c95d6b73ba793c93cc765fdf86f43",
+      "static/js/conn_ui.js": "4e2577d94ed13debfbca5ec83e99e913b6e816c126deafde36a76dc5ead4009e",
+      "static/js/countries.js": "e55f17967bfd9f23b823fc1d3fe38695933a6afc7c8f3936fe47aec7a91e2e51",
+      "static/js/court_assignment.js": "e99181ed02fe62ad3892441da6ec1b830a7737301cbb353d4dd5c2bbefd5eee0",
+      "static/js/crouting.js": "3d03a9547eef5a769afaa866cf9f939792eb90aa2f9a0103afd5389ec1df71df",
+      "static/js/ctabletoperator.js": "81efce3d1881c72b74185ae7ed9a2fae5fbcdafecd6fcbb7e281187c54d695d4",
+      "static/js/cto_stats.js": "299e2daa443b890a6ab8a586039d141c2d7d6bdfd3ee3c7ad7cb4810e0274a3e",
+      "static/js/ctournament.js": "21e54daeb01a545297dd4cca7b5efe2fd13c2ca52635a0f3808340b295b1fa4f",
+      "static/js/cumpires.js": "f63e1c3e05f83d3a5e7cfc2e06c93303c94e3b2f7d48b7a11d117d48ab07b8cb",
+      "static/js/debug.js": "fb68cf3540eece3f295c0e5271405cee5fc892fb8cbc48842a08c4fe12ff2b54",
+      "static/js/devices_workspace.js": "d52a713c676cdcb57417676549d28c7fe34951073b68c0d87aa3e48ea08aa4c6",
+      "static/js/diagnostics.js": "1474e5d81548d47eaaa6cad02dad378cfcafcf811ea001f712d42e19411a20b4",
+      "static/js/diagnostics_client.js": "fe50bf103e441a8a72d0034894897262a3fbff6d43c869f6981ab46e8a93f505",
+      "static/js/dialog_actions.js": "5d11d3e40d4ca15520994444dd019c6edbb269e2bd8e99c0ca7490399d24498f",
+      "static/js/display_settings.js": "a2d57ebf0de800ce1485141c2da07d0e68dfd8233d60325d4f3f84ccf5b6cd56",
+      "static/js/duration_input.js": "6c1b20adf8e3242f73829623f27a52a2c9ff8ed5cef0e56c63a10b201ea62e81",
+      "static/js/event_updates.js": "3f4b1828376a308cd3256e63719f66ac33635ba5d76f04a1f1b084f0412506dd",
+      "static/js/form_utils.js": "2e5bf0c9b0716bf262e894383aa782f6db6432bb9675119e314e6181f5df40b5",
+      "static/js/free_announcement.js": "fef024646e22ffc594ad4be74174cb46ad8ed96ade1d6d2a404568cd47c0b323",
+      "static/js/libraries.js": "3a4bec26c2319901dbf6a5d20f34bfdace1581c680610c0177393b561707ca2b",
+      "static/js/location_settings.js": "a3a1f1c237068d6cfe5e075ceee04207b1a4c40ce2d1ada1aa669221fa48f78c",
+      "static/js/logo_picker.js": "0aa41c164f8a0bb1fe1c2de6c607582ea8f280e92ba359d263dbb8982d53b1ea",
+      "static/js/maintenance_settings.js": "00f38152619338303fffd942a54ede2c291004ac0452c8930f343deb6cf0f438",
+      "static/js/match_edit_rules.js": "adf2934d2ad5f82dfccd66394ed5889a28f373c6ccb11957973a1b54f28e5e4b",
+      "static/js/match_scoring.js": "fbec6152c0c0d7f56ab366d30b8b5b1680d8cc1c467732d3ab2f607d77f228f2",
+      "static/js/number_input.js": "b1d590ff2d1123abfdc65011e65498472278243f090a731e841544a2a74c455a",
+      "static/js/official_picker.js": "488e1b9a8ed02698482aa3268aeba973ff1907745642308c07235d23e023f81c",
+      "static/js/profile_preview.js": "0222a2f5c936eeb92479b8e8752558efe941f4e147e75671355c0c52655d9b27",
+      "static/js/remarks_dialog.js": "1160f16fc99122a74173d5d33956ac757d5c9f2d9deb7d06b26d46ab2df7f86a",
+      "static/js/reset_selection.js": "15f2180b74e455f202b19aeff7011ae83e72e6dd1e17af0d51ce77f58d181567",
+      "static/js/scoresheet_remarks.js": "831fcc9bff810414e3141a705c3b6973d9400befcea0bc4f82cef982428b7769",
+      "static/js/scoring_settings.js": "3102e7533370e8c682ec13174c631e60d709b50e20d9543c33afb987ff982c46",
+      "static/js/service_status.js": "91b44cba7f020ed4252160baa032ee23b7565db6875ed41036050718d7cc0cef",
+      "static/js/settings_workspace.js": "e6629e30bf60ce37481211135c55204dae2bf9432b606aeb780704b1cf334939",
+      "static/js/speech_context.js": "f3d3b6292b7362704fa3274ef6c82462418fdeb0e553ded9b74317e4c14ed263",
+      "static/js/speech_context_v2.js": "d1400f3659046bf5fe061562f5c131f5d804f76146562e5d1603d69e6f1f3c9e",
+      "static/js/speech_health.js": "1e4a6ef381bd13cf6b2296bdd481c0bdf8bda2a4188d9b7ba2cb92f4a4396a9e",
+      "static/js/speech_helpers.js": "81d4dfbf4b7d92ffbd609a4da7cc398d57a0cd912b16f52f406b4200ebe2f7ac",
+      "static/js/speech_infrastructure.js": "f58201857f901c3b0c0c33ca9505ef77a2f09bfa60fbfbba1be90cdc7fd7465b",
+      "static/js/speech_inventory.js": "2d643746a7e04ee2257a3ceb232d76a3658837dd66858e3741d1dd10cfa62035",
+      "static/js/speech_planning.js": "0e1d26a45e2e319504d7b011dac7b6d0b3fb5fdc8af14658478b671b06f6f390",
+      "static/js/speech_planning_games.js": "e464fcea34a47cd6d6b26efb32535c22dbf4683c5ed65f6fc23c42e63f246bd2",
+      "static/js/speech_queue.js": "35e91d3c36bfd3e1346e792630245582129d990601791ccbe34d6e8dd213ea9f",
+      "static/js/speech_readiness.js": "ea880c09e641d722e5be312458cf3301cfc5b3c11d8ec52eb402b50a42fc0bee",
+      "static/js/speech_service.js": "8bb02691b4fe234574945b8290d18985f75d4cdb45d538bc19309e72a7d1eed0",
+      "static/js/speech_settings.js": "05cff0440f28cde2c1e73d1c7db4408c153dbcfd6ef6908f17d60f251069f1a0",
+      "static/js/speech_workspace.js": "b6b3483ea3711acc7afa3150e1a28f5c097b100cb8796e38da698b78a6805f61",
+      "static/js/tabletoperator_waiting.js": "5cad4c8102b77a60f413fee58420a6fee668b58d027da6f39052e60a4e04a2e1",
+      "static/js/ticker_settings.js": "87f3da54a18e1146270db9e19802ef7ac33d5cc1cf9bf44db1d2404c63867e18",
+      "static/js/timer_updates.js": "828b08be37378de1d6984a8a53fe5423038b8c24732a97b30c543d5dd7ca03d6",
+      "static/js/timezones.js": "ad198bf07aa5908b2e17da022778490e1d2881d3cd2f52895166e8028009ebff",
+      "static/js/toprow.js": "2d15c87c5c18d616fa2a5a891896f894dfc96c0baff4875476dfc1b41e25fd5c"
+    },
+    "tree_sha256": "a9324d4e6e91c363aeef31bd57eb6fd64cfda0468c488bf2a96506a5757d2737"
+  }
+}

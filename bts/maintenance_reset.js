@@ -1,10 +1,10 @@
 'use strict';
 
-const labels = {match_results:'Ergebnisse und Sieger',court_assignments:'Feldzuweisungen',player_pauses:'Spielerpausen'};
+const labels = {match_results:'Ergebnisse und Sieger',court_assignments:'Feldzuweisungen',player_pauses:'Spielerpausen',player_checkins:'Spieler-Check-ins'};
 
 function validate({target, actions, match_ids} = {}) {
  if (!['bts','both'].includes(target)) throw new Error('Bitte BTS oder BTS und BTP als Ziel auswählen.');
- if (!Array.isArray(actions) || !actions.length || actions.length > 3 ||
+ if (!Array.isArray(actions) || !actions.length || actions.length > Object.keys(labels).length ||
   actions.some(action => typeof action !== 'string' || !Object.hasOwn(labels,action)) || new Set(actions).size !== actions.length) {
   throw new Error('Bitte mindestens einen gültigen Bereich ohne doppelte Einträge auswählen.');
  }

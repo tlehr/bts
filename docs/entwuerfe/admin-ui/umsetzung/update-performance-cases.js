@@ -5,6 +5,17 @@
 // main route, so a new update cannot silently miss a performance test.
 module.exports = {
  speech_cache_changed: ['null','true'],
+ call_status_changed: ["({call_status:{epoch:'performance',revision:1,evaluated_at:Date.now(),valid_until:Date.now()+60000},selections:curt.locations.map(location=>({location_id:location._id,manual_callable_match_ids:['match-53'],diagnostics_by_match_id:{'match-53':{manual_eligible:true,criteria_eligible:true,within_call_window:true,rules:[]}},call_on_court_diagnostics_by_match_id:{},demand_court_ids:[]}))})", "curt.call_status.epoch==='performance'"],
+ match_protocol_event: ["({match_id:'match-44',event:{id:'perf-event',type:'score',timestamp:Date.now()}})", "document.querySelector('.leitstand')===__perfBoard"],
+ match_remarks: ["({match_id:'match-44',presses:[{type:'note',note_id:'perf-note',text:'Test',timestamp:Date.now()}]})", "curt.matches.find(match=>match._id==='match-44').presses.some(press=>press.note_id==='perf-note')"],
+ player_checkin_reset: ["({changed_matches:0})", "document.querySelector('.leitstand')===__perfBoard"],
+ registration_accounting_entry: ["({entry:{id:'new-entry',amount_cents:100}})", "curt.accounting_entries.some(entry=>entry.id==='new-entry')&&document.querySelector('.leitstand')===__perfBoard"],
+ registration_accounting_entry_remove: ["({entry_id:'test-entry'})", "!curt.accounting_entries.some(entry=>entry.id==='test-entry')&&document.querySelector('.leitstand')===__perfBoard"],
+ registration_accounting_item: ["({item:{id:'new-item',amount_cents:100}})", "curt.accounting_items.some(item=>item.id==='new-item')&&document.querySelector('.leitstand')===__perfBoard"],
+ registration_accounting_item_remove: ["({item_id:'test-item'})", "!curt.accounting_items.some(item=>item.id==='test-item')&&document.querySelector('.leitstand')===__perfBoard"],
+ registration_accounting_document: ["({document:{id:'new-document',amount_cents:100}})", "curt.accounting_documents.some(document=>document.id==='new-document')&&document.querySelector('.leitstand')===__perfBoard"],
+ update_btp_payments: ["({btp_payments:{payments:[{id:'test-payment'}]}})", "curt.btp_payments.payments[0].id==='test-payment'&&document.querySelector('.leitstand')===__perfBoard"],
+
  free_announce: ["({text:'Isolierte Testdurchsage'})",'true'],
  emergency_announce: ['false','curt.enable_emergency===false'],
  props: ["({automation_enabled:false})",'curt.automation_enabled===false'],

@@ -88,12 +88,17 @@ describe('ordering sync concurrency', function() {
 	it('finishes a call while its automatic preparation follow-up waits for selection', async function() {
 		const f = await fixture();
 		await f.app.db.tournaments.update_async({ key: f.key }, { $set: { call_preparation_matches_automatically_enabled: true } }, {});
+		// The imported fixture has unscheduled games. Give the follow-up a real
+		// preparation write; a validated no-op no longer needs selection locks.
+		await f.app.db.matches.update_async({_id:f.changed._id},{$set:{'setup.state':'scheduled'}},{});
 		const blocker = await hold(keys.selection(f.key));
+		let followup;
 		try {
 			await within(call(f));
-			await pending('auto_execute_preparation_selections', f.key);
+			followup = promisify(match_utils.queue_auto_execute_preparation_selections)(f.app, f.key);
+			await pending('auto_preparation_apply', f.key);
 			assert.strictEqual((await f.app.db.matches.findOne_async({ _id: f.match._id })).setup.state, 'oncourt');
-		} finally { blocker.release(); await blocker.done; await drain(f.key); }
+		} finally { blocker.release(); await blocker.done; await followup; await drain(f.key); }
 	});
 	it('replans automatic allocation after match numbers change while its commit waits', async function() {
 		const f = await fixture();

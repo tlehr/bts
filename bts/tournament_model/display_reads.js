@@ -2,7 +2,8 @@
 
 const { deepCopy } = require('nedb/lib/model');
 const tournament_projection = require('../panel_tournament_projection');
-const { certify_read } = require('../database_read_barrier');
+const read_barrier = require('../database_read_barrier');
+const { certify_read } = read_barrier;
 const COLLECTIONS = { tournament: 'tournaments', court: 'courts', match: 'matches' };
 
 module.exports = function attach_display_reads(model) {
@@ -34,10 +35,12 @@ module.exports = function attach_display_reads(model) {
 			} catch (error) { return done(error); }
 			done(null, value);
 		};
-		// Canonical objects change before persistence finishes. Never bypass the
-		// executor or read a score/court snapshot cached by an earlier request.
-		// The barrier independently disables read bypass whenever a TTL index
-		// exists, including one installed after this task was queued.
+		// A certified write to another record cannot alter this detached view.
+		// Same-record persistence, unknown jobs and TTL keep their barrier.
+		if (read_barrier.inspect_idle(store).allowed || read_barrier.inspect_readonly(store).allowed ||
+			part !== 'tournament' && read_barrier.inspect_disjoint(store, [id]).allowed) {
+			return capture((...results) => queueMicrotask(() => callback(...results)));
+		}
 		store.executor.push(certify_read({ this: store, fn: capture, arguments: [callback], diagnostic_name: 'display_context_' + part }));
 	};
 };

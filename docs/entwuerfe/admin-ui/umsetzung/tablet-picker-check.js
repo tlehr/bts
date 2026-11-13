@@ -47,10 +47,10 @@ module.exports=async function({c,verify,click,metrics,key,capture,open}) {
  await verify('The same Escape behaviour closes just the dialog suggestions and keeps the game open','__matchingDialogPopup.style.display===\'none\'&&!!document.querySelector(\'.match_edit_dialog\')');
  await c.evaluate('__matchingDialogInput.click()');
  await c.evaluate('ctabletoperator.render_unassigned(document.querySelector(\'.unassigned_tableoperators_container\'))');
- await verify('Refreshing the queue disposes its own popup and leaves the open dialog picker working','!__queuePopup.isConnected&&__matchingDialogPopup.isConnected&&__matchingDialogPopup.style.display!==\'none\'&&JSON.stringify(__pickerBareNames(__matchingDialogPopup))===JSON.stringify(__pickerExpected)');
+ await verify('An unchanged queue retains its picker and query while the open dialog picker keeps working','__queuePopup.isConnected&&__queueInput.isConnected&&__queueInput.value===\'Pickerprobe\'&&__matchingDialogPopup.isConnected&&__matchingDialogPopup.style.display!==\'none\'&&JSON.stringify(__pickerBareNames(__matchingDialogPopup))===JSON.stringify(__pickerExpected)');
  await click('#ls-match-tab-3');
  await verify('Changing game tabs closes its tablet popup without losing the query','__matchingDialogPopup.style.display===\'none\'&&__matchingDialogInput.value===\'Pickerprobe\'');
- await click('.ls-dialog-close');
+ await click('.match_edit_dialog .ls-dialog-close');
  if(await c.evaluate("!!document.querySelector('.bts-confirm-dialog.is-warning')"))await click('.bts-confirm-accept');
  await c.evaluate('__queueInput=document.querySelector(\'.tabletoperator_add_custom_input\');__queuePopup=document.getElementById(__queueInput.getAttribute(\'aria-controls\'));__queueSearch()');
  await verify('The queue picker still opens after closing a dialog with the same suggestions and no stale popup','__queuePopup.isConnected&&__queuePopup.style.display!==\'none\'&&JSON.stringify(__pickerBareNames(__queuePopup))===JSON.stringify(__pickerQueueExpected)&&document.querySelectorAll(\'.tabletoperator_suggestions\').length===1&&!__queueInput.closest(\'.tabletoperator_picker\').querySelector(\'[name="tabletoperator_assignment_id"]\')');

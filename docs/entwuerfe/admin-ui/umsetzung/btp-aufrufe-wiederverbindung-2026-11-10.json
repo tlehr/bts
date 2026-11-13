@@ -1,0 +1,58 @@
+{
+  "date": "2026-11-10T02:34:59.019020+00:00",
+  "scope": "Dauerhafte Wiederholung lokaler BTP-Spielaufrufe nach Verbindungsunterbrechung; keine manuellen Änderungen am laufenden Turnier.",
+  "causes": [
+    "pushall wiederholte ausschließlich abgeschlossene Ergebnisse, keine laufenden Aufrufe.",
+    "Match.CourtID und Court.MatchID wurden unabhängig übertragen; die Feldübertragung hatte keine dauerhafte Wiederholung.",
+    "Der Aufruf wurde vor dem lokalen Speichern an den Sender übergeben, der inzwischen den neuesten gespeicherten Stand liest."
+  ],
+  "changes": [
+    "Eigenes btp_call_pending wird zusammen mit dem lokalen Setup vor dem externen Senden gespeichert, auch bei Worker-Aufrufen.",
+    "Die beiden bisherigen BTP-Anfragen werden pro Spiel serialisiert; Fehler in einem der Schritte lassen den Aufruf ausstehend.",
+    "Erst ein Readback mit dem richtigen Match.CourtID und Court.MatchID bestätigt den Aufruf.",
+    "Bereits verlorene laufende Aufrufe werden bei schreibender Verbindung und bekannter Feldzuordnung wieder vorgemerkt; abweichende Teilnehmer und BTP-Ergebnisse werden geschützt.",
+    "Wiederholung nach Verbindungswechsel und bei deaktiviertem Auto-Fetch; vorhandene Begrenzung auf acht Spiele pro Runde und zwei gleichzeitig bleibt erhalten.",
+    "Verbindungs- und Planungs-Caches berücksichtigen ausstehende Aufrufe; normale Punkte ändern nicht die für den Aufruf relevante Revision."
+  ],
+  "verification": {
+    "baseline_new_outage_suite": {
+      "passing": 5,
+      "failing": 6,
+      "note": "Erste Fassung mit elf Tests reproduzierte unter anderem verlorene Aufrufe, falsche Feldübernahme und fehlende Wiederholung."
+    },
+    "targeted": {
+      "passing": 118,
+      "failing": 0,
+      "files": [
+        "test/test_btp_call_sync.js",
+        "test/test_btp_result_sync.js",
+        "test/test_btp_auto_call_publication.js",
+        "test/test_btp_sync_plan.js",
+        "test/test_btp_conn.js",
+        "test/test_btp_fetch_pipeline.js"
+      ]
+    },
+    "broader": {
+      "passing": 562,
+      "excluded_known_failure": "test/test_btp_planner_worker.js:124: notify_courts übergibt zusätzlich ein undefiniertes drittes Argument; bereits vor dieser Änderung dokumentiert.",
+      "command": "node_modules/.bin/mocha 'test/test_btp*.js' test/test_auto_call_precheck.js test/test_match_utils_officials.js test/test_match_utils_preparation.js test/test_match_utils_player_state.js test/test_court_assignment.js test/test_court_assignments_reset.js test/test_admin_match_reactivation.js test/test_tablet_queue_publication.js --grep 'retains both court notifications and refuses unknown effect commands' --invert --timeout 15000"
+    },
+    "lint": "Keine neuen Diagnosen. Neue Module und Tests sowie die aktualisierten kleineren Module sind fehlerfrei; vorhandene Diagnosen in den großen Bestandsmodulen bleiben bestehen.",
+    "live": {
+      "bts_read": true,
+      "active_local_calls": 15,
+      "btp_read": false,
+      "reason": "Verbindung zur konfigurierten BTP-Adresse lief nach 5000 ms in einen Timeout. BTS meldete ebenfalls einen Verbindungsaufbau. Kein erfolgreicher Live-Abgleich und keine Reparaturübertragung behauptet."
+    }
+  },
+  "activation": "Die Backend-Änderungen müssen durch einen BTS-Neustart geladen werden. Sobald BTP erreichbar ist, erkennt der nächste Abgleich auch bereits betroffene laufende Aufrufe.",
+  "sha256": {
+    "bts/btp_call_sync.js": "4c0aa2500198102ec7f42f3cd423303fb40e9c308acb6c281b3bd8bc4901b1a3",
+    "bts/btp_result_sync.js": "bcf2bc8e7503acc6c35f4ac15dbd79c1083d775b71a971da67bd3222960c0802",
+    "bts/btp_conn.js": "dd0975a7a79e6d0a1a1827313804417b7253788df49b5b3d95cce8f00e0b1420",
+    "bts/btp_sync.js": "c2ac35ebcc1db607c11546772cfe5464efe88f65b18f1643779c7242ea65dc97",
+    "bts/btp_sync_plan.js": "66b72d454a409467f6851b23c8dfd685f1dfe731f20d6d3556fe1581ee64d939",
+    "bts/btp_match_changes/index.js": "f03b3bd9b84e9c63aae2b7254f6c61374a3f30cf51be05c68f768de6a07c9e87",
+    "bts/match_utils.js": "fbd27b49eb13753330e9daa4559c3324d1584ebf7c5ca49efeda3362b38bbb80"
+  }
+}

@@ -3,6 +3,8 @@
 const fs=require('fs'),path=require('path'),assert=require('assert');
 module.exports=async function({c,open,previews}) {
  await open(1920,1080);
+ const upcoming=process.env.BTS_COMPLETION_UPCOMING==='1';
+ if(process.env.BTS_COMPLETION_CSS)await c.evaluate(`document.head.append(Object.assign(document.createElement('style'),{textContent:${JSON.stringify(process.env.BTS_COMPLETION_CSS)}}))`);
  await c.evaluate(`(()=>{
   const template=structuredClone(curt.matches.find(match=>match._id==='match-53')),now=Date.now();
   curt.courts=Array.from({length:15},(_,i)=>({_id:'C'+i,num:String(i+1),location_id:i<13?'CH':'SN',is_active:true,match_id:'completion-'+i}));
@@ -12,16 +14,19 @@ module.exports=async function({c,open,previews}) {
    for(const key of ['court_id','location_id','preparation_call_timestamp','umpire','service_judge','tabletoperators'])delete match.setup[key];
    match.setup.teams.forEach((team,j)=>team.players.forEach((player,k)=>{player.btp_id=20000+i*10+j*2+k;player.name='Alexandra-Johanna Testperson '+player.btp_id;player.firstname='Alexandra-Johanna';player.lastname='Testperson '+player.btp_id;delete player.last_time_on_court_ts;if(i>=407)player.last_time_on_court_ts=now-30000;}));
    if(i<15){Object.assign(match.setup,{state:'oncourt',now_on_court:true,court_id:'C'+i,location_id:i<13?'CH':'SN'});match.network_score=[[5,5]];}
-   else if(i<407){match.setup.state='finished';match.team1_won=true;match.btp_winner=1;match.network_score=[[21,15],[21,17]];match.end_ts=now-i*60000;}
+   else if(i<${upcoming?15:407}){match.setup.state='finished';match.team1_won=true;match.btp_winner=1;match.network_score=[[21,15],[21,17]];match.end_ts=now-i*60000;}
    if(i%8===0)match.setup.umpire={btp_id:99001,name:'Alexander Maximilian Keo Boun Khoune',firstname:'Alexander Maximilian',surname:'Keo Boun Khoune',checked_in:true};
    return match;
   });
   curt.matches=JSON.parse(JSON.stringify(curt.matches));ctournament.ui_show();
   const connection=conn(()=>{},message=>{const result=crouting.on_change(message);if(message.__completion?.endsWith('point'))requestAnimationFrame(()=>requestAnimationFrame(()=>__completion.frames.push({marker:message.__completion,score:document.querySelector('tr[data-match_id="completion-1"] .match_score').textContent})));return result;});
-  window.__completion={connection,frames:[],receive:(ctype,val,marker)=>connection._test_handle_message({data:JSON.stringify({type:'change',tournament_key:curt.key,ctype,val,__completion:marker})})};
+  window.__completion={connection,broadUpdates:[],frames:[],receive:(ctype,val,marker)=>connection._test_handle_message({data:JSON.stringify({type:'change',tournament_key:curt.key,ctype,val,__completion:marker})})};
+  const broadUpdate=cmatch.update_match;cmatch.update_match=function(match,...args){__completion.broadUpdates.push(match._id);return broadUpdate.call(this,match,...args);};
   __completion.settle=()=>new Promise((resolve,reject)=>{let stable=0;const deadline=performance.now()+15000;const frame=()=>{if(performance.now()>deadline)return reject(new Error('Completion layout did not settle'));stable=cleitstand.isUpdating()||ctournament.isUpdating()||connection._test_change_queue_length()?0:stable+1;if(stable===3)resolve();else requestAnimationFrame(frame);};requestAnimationFrame(frame);});
   __completion.run=async(round,burst)=>{
+   __completion.broadUpdates=[];
    const original=structuredClone(curt.matches.find(match=>match._id==='completion-'+(round+2))),receipts=[],rows=new Map([...document.querySelectorAll('tr[data-match_id]')].map(row=>[row.dataset.match_id,row]));
+   const participants=[...document.querySelectorAll('.unassigned_container tr[data-match_id]')].slice(0,burst).map(row=>({row,player:row.querySelector('.player'),name:row.querySelector('.player').firstChild,actions:row.querySelector('td.call_td')}));
    const unsubscribe=btsAdminUpdates.subscribe(receipt=>{if(receipt.message.__completion)receipts.push(receipt);});
    try{
     __completion.receive('score',{match_id:original._id,network_score:[[21,15],[21,17]],presses:[],team1_won:true,court_id:original.setup.court_id,now_on_court:false,end_ts:Date.now()},round+'-finish');
@@ -35,15 +40,18 @@ module.exports=async function({c,open,previews}) {
     await __completion.settle();await btsAdminUpdates.whenSettled();
     const finishedRow=document.querySelector('.finished_container tr[data-match_id="'+original._id+'"]');
     const finished=!!finishedRow&&!finishedRow.hidden&&!finishedRow.classList.contains('ls-history-overflow')&&!finishedRow.classList.contains('ls-date-collapsed')&&!document.querySelector('.courts_container tr[data-match_id="'+original._id+'"]');
+    const pauseBroadUpdates=__completion.broadUpdates.filter(id=>Number(id.split('-')[1])>=407).length;
+    const participantNodesRetained=participants.every(({row,player,name,actions})=>row.contains(player)&&player.contains(name)&&row.contains(actions));
     const retained=[...rows].every(([id,row])=>id===original._id||document.querySelector('tr[data-match_id="'+id+'"]')===row);
     __completion.receive('match_edit',{match__id:original._id,match:original},round+'-reopen');
     await __completion.settle();await btsAdminUpdates.whenSettled();
     const reopened=!!document.querySelector('.courts_container tr[data-match_id="'+original._id+'"]')&&!document.querySelector('.finished_container tr[data-match_id="'+original._id+'"]');
-    return{round,burst,finished,reopened,retained,receipts:receipts.map(receipt=>({marker:receipt.message.__completion,status:receipt.status,timings:receipt.timings,jobs:receipt.ui_jobs}))};
+    return{round,burst,finished,reopened,retained,participantNodesRetained,pauseBroadUpdates,receipts:receipts.map(receipt=>({marker:receipt.message.__completion,status:receipt.status,timings:receipt.timings,jobs:receipt.ui_jobs}))};
    }finally{unsubscribe();}
   };
  })()`);
  await c.evaluate('__completion.settle()');
+ const visibility=await c.evaluate('(()=>{const lines=[...document.querySelectorAll(".unassigned_container .versus-line")];return{lines:lines.length,automatic:lines.filter(line=>line.style.contentVisibility==="auto").length,skipped:lines.filter(line=>!line.checkVisibility({contentVisibilityAuto:true})).length,clocks:lines.filter(line=>line.querySelector(".timer")).length}})()');
  const tracing=process.env.BTS_COMPLETION_TRACE==='1';
  await c.call('Performance.enable');
  const start=c.events.length;
@@ -51,7 +59,7 @@ module.exports=async function({c,open,previews}) {
  const phases=[];
  for(let round=0;round<10;round++){
   const before=(await c.call('Performance.getMetrics')).metrics,phase=await c.evaluate(`__completion.run(${round},${round%2?16:0})`),after=(await c.call('Performance.getMetrics')).metrics;
-  phase.cpu_ms=Object.fromEntries(['TaskDuration','ScriptDuration','LayoutDuration','RecalcStyleDuration'].map(name=>[name,1000*(after.find(metric=>metric.name===name).value-before.find(metric=>metric.name===name).value)]));phases.push(phase);
+  phase.cpu_ms=Object.fromEntries(['TaskDuration','ScriptDuration','LayoutDuration','RecalcStyleDuration'].map(name=>[name,1000*(after.find(metric=>metric.name===name).value-before.find(metric=>metric.name===name).value)]));phase.layout_count=after.find(metric=>metric.name==='LayoutCount').value-before.find(metric=>metric.name==='LayoutCount').value;phases.push(phase);
  }
  const prefix=process.env.BTS_COMPLETION_PREFIX||'completion';
  if(tracing){
@@ -63,9 +71,10 @@ module.exports=async function({c,open,previews}) {
  const stats=values=>{const sorted=values.sort((a,b)=>a-b);return{count:sorted.length,mean_ms:values.reduce((a,b)=>a+b,0)/values.length,p50_ms:sorted[Math.floor(sorted.length*.5)],p95_ms:sorted[Math.ceil(sorted.length*.95)-1],max_ms:sorted.at(-1)};};
  const summary={cpu:stats(phases.map(phase=>phase.cpu_ms.TaskDuration)),...Object.fromEntries(['finish','point','reopen'].map(kind=>[kind,stats(phases.flatMap(phase=>phase.receipts.filter(receipt=>receipt.marker.endsWith('-'+kind)).map(receipt=>receipt.timings.total_ms)))]))};
  const frames=await c.evaluate('__completion.frames');
- const report={tracing,scope:'Isolated browser: 512 matches, 392 finished, 15 courts, 64 officials. Ten finishes and reopens, alternating with 16 concurrent upcoming match edits, plus an unrelated point. No live writes; optional profiler and timeline enabled only with BTS_COMPLETION_TRACE=1.',summary,phases,frames};
+ const report={tracing,scope:'Isolated browser: 512 matches, '+(upcoming?0:392)+' finished, 15 courts, 64 officials. Ten finishes and reopens, alternating with 16 concurrent upcoming match edits, plus an unrelated point. No live writes; optional profiler and timeline enabled only with BTS_COMPLETION_TRACE=1.',experimental_css:process.env.BTS_COMPLETION_CSS||null,visibility,summary,phases,frames};
  fs.writeFileSync(path.join(previews,prefix+'-verification.json'),JSON.stringify(report,null,2)+'\n');
  assert(phases.every(phase=>phase.finished&&phase.reopened&&phase.retained),'Finish, reopen and unrelated row identity must remain correct');
+ if(process.env.BTS_REQUIRE_STATUS_PATCH==='1')assert(phases.every(phase=>phase.participantNodesRetained&&phase.pauseBroadUpdates===0),'Pause/check-in bursts preserve player/name/action elements and skip broad row updates');
  assert(phases.every(phase=>phase.receipts.length===phase.burst+3&&phase.receipts.every(receipt=>receipt.status==='presented')),'Every finish, edit, reopen and point must receive a presentation receipt');
  assert(frames.length===10&&frames.every((frame,index)=>frame.score===(10+index)+':8'),'Two independent render frames must see every unrelated point');
  assert.strictEqual(await c.evaluate('btsAdminUpdates.stats().pending'),0,'No unfinished receipts');

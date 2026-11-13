@@ -1,0 +1,112 @@
+{
+  "date": "2026-11-11T23:14:03.434Z",
+  "scope": "Echter BTS-Server, echte Browser und WebSocket-Anfragen auf einer wegwerfbaren Festplattenkopie. BTP/Ticker/Sprache und Automatik der Kopie ausgeschaltet.",
+  "checks": [
+    "Real browser loaded the complete tournament from the BTS WebSocket",
+    "Self-check-in browser initially shows present players",
+    "Cancelling the real maintenance dialog leaves every match unchanged",
+    "Every player occurrence in every game is explicitly false on the server",
+    "Scores, winners, state, fields, pause flags and embedded officials are unchanged",
+    "Courts and official/operator records are unchanged",
+    "The maintenance browser receives all reset flags without reloading",
+    "The second real browser receives waiting player cards live",
+    "The shared call status advances after the bulk reset",
+    "Previously satisfied player check-in rules now block the on-court call",
+    "The shared call status is pushed to the subscribed WebSocket client",
+    "Another WebSocket client receives exactly one completion and the per-game status patches",
+    "Repeating through the real WebSocket reports zero changed games",
+    "A combined reset is rejected while BTP is disabled",
+    "Both real browser pages complete without JavaScript exceptions",
+    "Check-ins remain false after reopening the on-disk database",
+    "Every source database file retains its original hash and metadata"
+  ],
+  "fixture": {
+    "matches": 584,
+    "player_occurrences": 611,
+    "prepared": 2
+  },
+  "ui_completion_ms": 2978.1,
+  "reset": {
+    "changed_matches": 214
+  },
+  "notification_counts": {
+    "update_player_status": 214,
+    "match_protocol_event": 120,
+    "player_checkin_reset": 1,
+    "call_status_changed": 1
+  },
+  "browser_errors": [],
+  "source": {
+    "directory": "/home/tim/repos/bts/data",
+    "files": [
+      {
+        "name": "courts",
+        "sha256": "4c57501871b355a88d50c46978d7aac5bc621fe9c97c475aaa22dd4c5a19ba20"
+      },
+      {
+        "name": "locations",
+        "sha256": "d2801768601820ea393aa36c6471a46ecde19f46673ca2478be25489d060660e"
+      },
+      {
+        "name": "event",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "matches",
+        "sha256": "8b35ebe806a9f92e0f4f9bfe7dbb483afb7751b3ad37e5eef19095947f49405c"
+      },
+      {
+        "name": "tournaments",
+        "sha256": "39fb7b51056dac0481ef20f0ba359b066bc1cee7abb62b1d67a1171b5eea4228"
+      },
+      {
+        "name": "umpires",
+        "sha256": "79fba8d3bceee665b6f0c5ca58de6c3343a2676367d87680d40a333f66cc8c7a"
+      },
+      {
+        "name": "logs",
+        "sha256": "dfac86b0149c03088f28bc555a5971a892ed5d42a2b23ffd379cc7d6a7ea58c8"
+      },
+      {
+        "name": "tabletoperators",
+        "sha256": "437640dfa195df2f31cf664abe49a9b5f39b506ea104ffca40756c906587946e"
+      },
+      {
+        "name": "displaysettings",
+        "sha256": "9a2fc9f6e6b472c657c779441d5f90fa606e21ff876bbc7a4020dbe99a1b5a36"
+      },
+      {
+        "name": "display_court_displaysettings",
+        "sha256": "2efe5f8c7f71a49f89b8f8d6f8bc44a490b2bbf1ed37e6176569b34089caeb91"
+      },
+      {
+        "name": "normalizations",
+        "sha256": "bca0ff1b25f04cf2a2f9ed151f54e1a8045d128a80cbdcd0847eb88153c0e528"
+      },
+      {
+        "name": "advertisements",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "app_settings",
+        "sha256": "901f0796fbdfd6b7b40f5b7cc044ab85ba6f5923daf2c88ce9d9e0260a98bf3f"
+      }
+    ]
+  },
+  "product_sha256": {
+    "bts/player_checkin_reset.js": "7cd009cb97efe6fc6bf96fdb7e3128638db9ce2d7a4dfb2ac44a67c89508320b",
+    "bts/admin.js": "72665a94e9390cef076ad3294ce84734f7ed656321cb276b8d9eda94e1853a3e",
+    "static/js/change.js": "e134fcab3cc56403904d44c6f854b296133a7c8ae11f337f64e50e2dfa5b9324",
+    "static/js/maintenance_settings.js": "d35e2203036438b791c9c7253e6bbebfc2047565581ed7584275d9874622cbd5",
+    "static/js/reset_selection.js": "a49bb9ab500ffed2c35ce1e9bf4608b6ed82a113f0f85db6db3669b74e9489fe"
+  },
+  "limitations": [
+    "BTP-Übertragung bleibt deaktiviert; deren zwei Check-in-Modi sind durch die separaten Backendtests geprüft.",
+    "Die UI-Zeit ist eine einzelne Diagnosemessung auf der Kopie, kein Nachweis für Punktelatenz oder allgemeine Performancegrenzen."
+  ],
+  "harness_sha256": "abdaebb5004cd21d75120953344513f9d1b25f63636a688c16d403a13de1e78d",
+  "command": "node debug/checkin_reset_integration.js docs/entwuerfe/admin-ui/umsetzung/checkin-reset-direkttest-2026-11-12.json",
+  "timing_method": "Vom Auslösen des Bestätigungsknopfs bis zur echten Erfolgsmeldung im Wartungsbrowser; einschließlich Serververarbeitung, Übertragung und Browserarbeit. Keine reine Datenbankschreibzeit.",
+  "test_server_stopped": true,
+  "additional_test_development": "Der erste Direkttest bestand mit 15 Prüfungen. Zwei anschließend ergänzte Assertions wurden zunächst anhand der falschen Diagnoseebene bzw. einschließlich des leeren Alt-Spiels 488 formuliert. Die Testauswertung wurde auf feldbezogene Diagnosen vollständiger Spiele korrigiert; der abschließende Lauf besteht mit allen 17 Prüfungen. Produktdateien blieben während dieser Läufe unverändert."
+}

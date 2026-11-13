@@ -431,14 +431,6 @@
 	background-color: #00000030;
 }
 
-.match_table > tbody > tr:nth-of-type(even) > td {
-	background-color: #00000010;
-}
-
-.match_table > tbody > tr:nth-of-type(even):hover > td {
-	background-color: #00000030;
-}
-
 .match_table > tbody > tr.preparation_call_cutoff > td {
 	border-bottom: 2px solid rgba(139, 199, 232, 0.85);
 }
@@ -503,11 +495,6 @@
 	background-color: #00000040;
 }
 
-.match_table > tbody > tr:nth-of-type(even) > td.inactive {
-	
-	background-color: #00000050;
-}
-
 .match_table > tbody > tr > td.droppable_active {
 	
 	background-color: #fbe44d44;
@@ -516,16 +503,6 @@
 .match_table > tbody > tr:hover > td.droppable_active {
 	background-color: #fbe44dbb;
 }
-
-.match_table > tbody > tr:nth-of-type(even) > td.droppable_active {
-	
-	background-color: #fbe44d88;
-}
-
-.match_table > tbody > tr:nth-of-type(even):hover > td.droppable_active {
-	background-color: #fbe44dbb;
-}
-
 
 .match_table > tbody > tr > #droppable {
 	min-width: 1000px;

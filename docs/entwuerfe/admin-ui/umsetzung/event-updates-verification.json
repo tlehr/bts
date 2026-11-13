@@ -1,0 +1,9 @@
+{
+  "checks": 8,
+  "full_bytes": 64648,
+  "delta_bytes": 382,
+  "receipt_status": "presented",
+  "jobs": [
+    "matches.warnings"
+  ]
+}

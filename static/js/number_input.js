@@ -63,13 +63,20 @@ var btsNumberInput = (() => {
         function enhance(node) {
             if (node.nodeType !== 1 && node.nodeType !== 9 && node.nodeType !== 11) return;
             if (node.matches?.('input[type="number"]')) attach(node)?.sync();
+            if (!node.firstElementChild) return;
             for (const input of node.querySelectorAll('input[type="number"]')) attach(input)?.sync();
         }
         enhance(root);
         const observer = new (root.ownerDocument || root).defaultView.MutationObserver(records => {
+            const roots = new Set();
             for (const record of records) {
-                if (record.type === 'attributes') enhance(record.target);
-                else for (const node of record.addedNodes) enhance(node);
+                if (record.type === 'attributes') {if (record.target.isConnected && ['INPUT','FIELDSET'].includes(record.target.tagName)) enhance(record.target);}
+                else for (const node of record.addedNodes) if (node.nodeType === 1 && node.isConnected && (node.firstElementChild || node.tagName === 'INPUT')) roots.add(node);
+            }
+            for (const node of roots) {
+                let covered = false;
+                for (let parent = node.parentElement; parent; parent = parent.parentElement) if (roots.has(parent)) {covered = true;break;}
+                if (!covered && !node.closest('.ls-probe-root,.ls-layout-probe,[data-ls-text-ruler]')) enhance(node);
             }
         });
         observer.observe(root, {subtree:true, childList:true, attributes:true, attributeFilter:['type', 'disabled', 'readonly']});

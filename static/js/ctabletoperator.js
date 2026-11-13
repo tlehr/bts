@@ -8,6 +8,7 @@ let fit_resize_observer = null;
 let fit_request_pending = false;
 let fit_second_pass_pending = false;
 const pending_additions = new Set();
+const unassigned_views = new WeakMap();
 
 function waiting_index() {
 	return tabletoperator_waiting.index([
@@ -18,6 +19,21 @@ function waiting_index() {
 
 function render_unassigned(container) {
 	if (!container) {
+		return;
+	}
+	const view = unassigned_views.get(container);
+	if (view?.key === curt.key && container.contains(view.body) && container.closest('.leitstand')) {
+		const waiting = (curt.tabletoperators || []).filter(entry => entry && entry.court == null).sort((a,b) => (a.start_ts || 0) - (b.start_ts || 0));
+		const old = new Map([...view.body.rows].map(row => [row.dataset.tabletoperatorId,row])), rows = [];
+		for (const [index,entry] of waiting.entries()) {
+			const id = String(entry._id), row = old.get(id) || document.createElement('tr');old.delete(id);
+			if (!row.firstChild) render_tabletoperator_row(row,entry,index === 0,index === waiting.length - 1);
+			else patch_tabletoperator_row(row,entry,index === 0,index === waiting.length - 1);
+			rows.push(row);
+		}
+		for (const row of old.values()) row.remove();
+		cleitstand.reorderChildren(view.body,rows);
+		view.validate();cleitstand.operatorQueue(container);
 		return;
 	}
 	remove_tabletoperator_suggestions(container);
@@ -32,7 +48,8 @@ function render_unassigned(container) {
 
 	const tableoperator_content = uiu.el(container, 'div', 'unassigned_tableoperators_content');
 	render_tabletoperator_table(tableoperator_content, unassigned_tabletoperators);
-	render_tabletoperator_formular(container);
+	const validate = render_tabletoperator_formular(container);
+	unassigned_views.set(container,{key:curt.key,body:tableoperator_content.querySelector('tbody'),validate});
 	if (typeof cleitstand !== 'undefined') cleitstand.operatorQueue(container);
 	schedule_fit_unassigned_tableoperators(container);
 	bind_resize_handler_once();
@@ -111,6 +128,7 @@ function render_tabletoperator_row(tr, tabletoperator, is_fist_entry, is_last_en
 	if (!tabletoperator) {
 		return;
 	}
+	tr.dataset.tabletoperatorId = String(tabletoperator._id);
 	const to = Array.isArray(tabletoperator.tabletoperator) ? tabletoperator.tabletoperator : [];
 	const to_td = uiu.el(tr, 'td');
 	const tablet_div = uiu.el(to_td, 'div', 'tablet_operator', '');
@@ -149,6 +167,32 @@ function render_tabletoperator_row(tr, tabletoperator, is_fist_entry, is_last_en
 	if (tabletoperator.court == null) {
 		const buttonbar = uiu.el(tr, 'td');
 		create_tabletoperator_button(buttonbar, 'vlink tabletoperator_remove_button', 'tabletoperator:remove', on_remove_from_list_button_click, tabletoperator._id);
+	}
+}
+
+function patch_tabletoperator_row(row, entry, first, last) {
+	const names = row.querySelector('.operators'), people = [...names.children], wanted = (entry.tabletoperator || []).slice(0,2);
+	if (!wanted.length) wanted.push({name:'-'});
+	for (const [index,person] of wanted.entries()) {
+		const parent = people[index] || uiu.el(names,'div','person');
+		const label = parent.firstElementChild || uiu.el(parent,'span','match_no_umpire');
+		const text = person.name || '-';if (label.textContent !== text) label.textContent = text;
+		if (index === 0) {
+			const separator = label.nextElementSibling;
+			if (wanted.length > 1 && !separator) uiu.el(parent,'span','match_no_umpire',' \u200B/ ');
+			else if (wanted.length === 1) separator?.remove();
+		}
+	}
+	for (const person of people.slice(wanted.length)) person.remove();
+	const court = source_court(entry), graphic = row.querySelector('.court_played>div'), classes = court ? 'court_history' : '', text = court ? String(court.num) : '';
+	if (graphic.className !== classes) graphic.className = classes;if (graphic.textContent !== text) graphic.textContent = text;
+	for (const [index,selector,shown,title,listener] of [
+		[2,'.tabletoperator_move_up_button',!first,'tabletoperator:move_up',on_move_up_button_click],
+		[3,'.tabletoperator_move_down_button',!last,'tabletoperator:move_down',on_move_down_button_click],
+	]) {
+		const control = row.cells[index].querySelector(selector);
+		if (control && !shown) control.remove();
+		else if (!control && shown) create_tabletoperator_button(row.cells[index],'vlink '+selector.slice(1),title,listener,entry._id);
 	}
 }
 
@@ -243,8 +287,9 @@ function render_tabletoperator_formular(target) {
 				: activity.playing.has(player) ? ci18n('tabletoperator:already_playing')
 				: activity.preparing.has(player) ? ci18n('tabletoperator:already_preparing') : '';
 			picker.input.setCustomValidity(reason);
-			btp_fetch_btn.disabled = !picker.input.value.trim() || !!reason;
-			btp_fetch_btn.title = reason || ci18n('tabletoperator:add');
+			const disabled = !picker.input.value.trim() || !!reason, title = reason || ci18n('tabletoperator:add');
+			if (btp_fetch_btn.disabled !== disabled) btp_fetch_btn.disabled = disabled;
+			if (btp_fetch_btn.title !== title) btp_fetch_btn.title = title;
 		};
 		form.addEventListener('input', validate);
 		form.addEventListener('change', validate);
@@ -253,6 +298,7 @@ function render_tabletoperator_formular(target) {
 			validate();
 		});
 		validate();
+		return validate;
 }
 
 function add_to_tabletoperator(match, team_num, tabletoperator_name, tabletoperator_btp_id, complete) {
@@ -338,10 +384,7 @@ function fit_unassigned_tableoperators(container, allow_second_pass) {
 		return;
 	}
 	if (container.closest('.leitstand')) {
-		container.style.height = '';
-		container.style.maxHeight = '';
-		content.style.height = '';
-		content.style.maxHeight = '';
+		for (const node of [container,content]) for (const property of ['height','max-height']) if (node.style.getPropertyValue(property)) node.style.removeProperty(property);
 		return;
 	}
 	const previous_container_height = container.style.height;

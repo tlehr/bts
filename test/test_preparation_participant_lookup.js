@@ -100,6 +100,9 @@ describe('preparation participant references', function() {
 	});
 
 	it('bounds participant reads for a complete 519-game UI selection', function() {
+		// The correctness oracle deliberately performs the old quadratic scans.
+		// Its runtime is not the strict end-to-end point-latency acceptance test.
+		this.timeout(10000);
 		const tournament = fixture(519);
 		let reads = 0;
 		for (const match of tournament.matches) {

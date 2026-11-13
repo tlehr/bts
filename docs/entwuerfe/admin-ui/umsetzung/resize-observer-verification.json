@@ -1,0 +1,45 @@
+{
+  "scope": "Isolated native ResizeObserver, 512 synthetic matches, repeated viewport/density, font and name changes. No error filtering or preventDefault.",
+  "samples": [
+    {
+      "phase": "1920/compact",
+      "errors": 0,
+      "rows": 512,
+      "pending": false
+    },
+    {
+      "phase": "1000/compact",
+      "errors": 0,
+      "rows": 512,
+      "pending": false
+    },
+    {
+      "phase": "768/normal",
+      "errors": 0,
+      "rows": 512,
+      "pending": false
+    },
+    {
+      "phase": "500/compact",
+      "errors": 0,
+      "rows": 512,
+      "pending": false
+    },
+    {
+      "phase": "1366/normal",
+      "errors": 0,
+      "rows": 512,
+      "pending": false
+    },
+    {
+      "phase": "1366/compact",
+      "errors": 0,
+      "rows": 512,
+      "pending": false
+    }
+  ],
+  "errors": [],
+  "rows": 512,
+  "pending": false,
+  "probes": 0
+}

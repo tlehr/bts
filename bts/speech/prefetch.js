@@ -41,6 +41,7 @@ class Prefetcher {
         this.dirty = new Set();
         this.contexts = new Map();
         this.planning = new Map();
+        this.render_cache = new (require('./render_call_cache'))();
         this.urgent = new Set();
         this.interval = null;
     }
@@ -216,7 +217,7 @@ class Prefetcher {
             // Publish each captured game state even when a newer event cancels
             // generation, so its status cannot remain minutes behind live play.
             this.refresh_phases.set(key, 'coverage');
-            const coverage = await plan(context, matches, umpires, candidates);
+            const coverage = await plan(context, matches, umpires, candidates, this.render_cache);
             if (this.subscriptions.get(key) !== speech_settings) return;
             const game_plan = this.broker.coverage.set_game_plan(key, speech_settings.voice, coverage);
             if (published && !this.dirty.has(key)) {
@@ -254,6 +255,7 @@ class Prefetcher {
         this.dirty.clear();
         this.refresh_phases.clear();
         this.contexts.clear();
+        this.render_cache.clear();
         this.planning.clear();
         this.urgent.clear();
         for (const key of this.subscriptions.keys()) this.broker.pending_plans.delete(key);

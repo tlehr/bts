@@ -1,0 +1,6222 @@
+{
+  "date": "2026-11-08",
+  "base_commit": "33b2748",
+  "scope": "Ausschließlich Browseroptimierung der Turnierleitung. Alle Messungen und Updates mit synthetischen Daten in isolierten lokalen Browsern; keine produktiven Spiel- oder BTP-Schreibzugriffe.",
+  "cause": "Die native Namensmessung schrieb und las jede Kürzungsstufe einzeln je Team. Nach jeder Änderung folgte eine Geometrielesung; zusätzlich konnten Stapelklassen echter Zeilen vor weiteren Messungen geändert werden. Die nötigen nativen Messungen werden jetzt über alle betroffenen Teams je Stufe gebündelt, alle Änderungen echter Zeilen folgen erst nach den Geometrielesungen.",
+  "preserved": [
+    "Native Einzelmessungen ergeben dieselben Kürzungen und Stapelentscheidungen.",
+    "Zoom, kompakte Notebookansicht, gestapelte Doppelpaarungen, Offiziellenspalten und bestehende Zeilenobjekte.",
+    "Erforderliche Erstbeobachtung und zwei sichtbare Darstellungsframes vor Quittierung.",
+    "Bestehende Inhalts-/Schrift-/Dichtecaches, Beobachter und Entfernen sämtlicher Messkopien."
+  ],
+  "font_invalidation": {
+    "fixture": "120 Doppelpaarungen: 60 beendet, 60 nicht zugewiesen; 50 beendete sichtbar, zusammen 220 sichtbare Teams. Vollständige Schriftinvalidierung nach eingeschwungenem Layout.",
+    "before": {
+      "layout_count": 1104,
+      "style_count": 1324,
+      "layout_ms": 107.864,
+      "browser_work_ms": 1234.61
+    },
+    "after": {
+      "layout_count": 9,
+      "style_count": 14,
+      "layout_ms": 24.522,
+      "browser_work_ms": 178.45
+    },
+    "baseline_expected_failure": "Die Ausgangsfassung besteht alle fünf Geometrie-/Bereinigungsprüfungen und scheitert an der Grenze von höchstens 40 Layouts (1104). Die optimierte Fassung besteht alle sechs Prüfungen mit neun Layouts.",
+    "independent_geometry": [
+      {
+        "width": 1366,
+        "density": "compact",
+        "reference": [
+          {
+            "match": "batch-names-60",
+            "actual": [
+              "Christopher Müller-Schwennsen 60",
+              "Alexandra-Johanna Müller-Schwennsen 60"
+            ],
+            "expected": [
+              "Christopher Müller-Schwennsen 60",
+              "Alexandra-Johanna Müller-Schwennsen 60"
+            ],
+            "stacked": false,
+            "shouldStack": false,
+            "available": 472.65625
+          },
+          {
+            "match": "batch-names-69",
+            "actual": [
+              "Christopher Müller-Schwennsen 69",
+              "Alexandra-Johanna Müller-Schwennsen 69"
+            ],
+            "expected": [
+              "Christopher Müller-Schwennsen 69",
+              "Alexandra-Johanna Müller-Schwennsen 69"
+            ],
+            "stacked": false,
+            "shouldStack": false,
+            "available": 472.671875
+          },
+          {
+            "match": "batch-names-79",
+            "actual": [
+              "Christopher Müller-Schwennsen 79",
+              "Alexandra-Johanna Müller-Schwennsen 79"
+            ],
+            "expected": [
+              "Christopher Müller-Schwennsen 79",
+              "Alexandra-Johanna Müller-Schwennsen 79"
+            ],
+            "stacked": false,
+            "shouldStack": false,
+            "available": 472.65625
+          },
+          {
+            "match": "batch-names-88",
+            "actual": [
+              "Christopher Müller-Schwennsen 88",
+              "Alexandra-Johanna Müller-Schwennsen 88"
+            ],
+            "expected": [
+              "Christopher Müller-Schwennsen 88",
+              "Alexandra-Johanna Müller-Schwennsen 88"
+            ],
+            "stacked": false,
+            "shouldStack": false,
+            "available": 472.671875
+          },
+          {
+            "match": "batch-names-98",
+            "actual": [
+              "Christopher Müller-Schwennsen 98",
+              "Alexandra-Johanna Müller-Schwennsen 98"
+            ],
+            "expected": [
+              "Christopher Müller-Schwennsen 98",
+              "Alexandra-Johanna Müller-Schwennsen 98"
+            ],
+            "stacked": false,
+            "shouldStack": false,
+            "available": 472.65625
+          },
+          {
+            "match": "batch-names-107",
+            "actual": [
+              "Christopher Müller-Schwennsen 107",
+              "Alexandra-Johanna Müller-Schwennsen 107"
+            ],
+            "expected": [
+              "Christopher Müller-Schwennsen 107",
+              "Alexandra-Johanna Müller-Schwennsen 107"
+            ],
+            "stacked": false,
+            "shouldStack": false,
+            "available": 472.671875
+          },
+          {
+            "match": "batch-names-117",
+            "actual": [
+              "Christopher Müller-Schwennsen 117",
+              "Alexandra-Johanna Müller-Schwennsen 117"
+            ],
+            "expected": [
+              "Christopher Müller-Schwennsen 117",
+              "Alexandra-Johanna Müller-Schwennsen 117"
+            ],
+            "stacked": false,
+            "shouldStack": false,
+            "available": 472.65625
+          },
+          {
+            "match": "batch-names-6",
+            "actual": [
+              "Christopher Müller-Schwennsen 6",
+              "Alexandra-Johanna Müller-Schwennsen 6"
+            ],
+            "expected": [
+              "Christopher Müller-Schwennsen 6",
+              "Alexandra-Johanna Müller-Schwennsen 6"
+            ],
+            "stacked": false,
+            "shouldStack": false,
+            "available": 447.21875
+          },
+          {
+            "match": "batch-names-16",
+            "actual": [
+              "Christopher Müller-Schwennsen 16",
+              "A.-J. Müller-Schwennsen 16"
+            ],
+            "expected": [
+              "Christopher Müller-Schwennsen 16",
+              "A.-J. Müller-Schwennsen 16"
+            ],
+            "stacked": false,
+            "shouldStack": false,
+            "available": 447.203125
+          },
+          {
+            "match": "batch-names-25",
+            "actual": [
+              "Christopher Müller-Schwennsen 25",
+              "A.-J. Müller-Schwennsen 25"
+            ],
+            "expected": [
+              "Christopher Müller-Schwennsen 25",
+              "A.-J. Müller-Schwennsen 25"
+            ],
+            "stacked": false,
+            "shouldStack": false,
+            "available": 447.21875
+          },
+          {
+            "match": "batch-names-35",
+            "actual": [
+              "Christopher Müller-Schwennsen 35",
+              "A.-J. Müller-Schwennsen 35"
+            ],
+            "expected": [
+              "Christopher Müller-Schwennsen 35",
+              "A.-J. Müller-Schwennsen 35"
+            ],
+            "stacked": false,
+            "shouldStack": false,
+            "available": 447.203125
+          },
+          {
+            "match": "batch-names-44",
+            "actual": [
+              "Christopher Müller-Schwennsen 44",
+              "A.-J. Müller-Schwennsen 44"
+            ],
+            "expected": [
+              "Christopher Müller-Schwennsen 44",
+              "A.-J. Müller-Schwennsen 44"
+            ],
+            "stacked": false,
+            "shouldStack": false,
+            "available": 447.21875
+          }
+        ]
+      },
+      {
+        "width": 1920,
+        "density": "compact",
+        "reference": [
+          {
+            "match": "batch-names-60",
+            "actual": [
+              "Christopher Konstantin Maximilian Müller-Schwennsen 60",
+              "Alexandra-Johanna Müller-Schwennsen 60"
+            ],
+            "expected": [
+              "Christopher Konstantin Maximilian Müller-Schwennsen 60",
+              "Alexandra-Johanna Müller-Schwennsen 60"
+            ],
+            "stacked": false,
+            "shouldStack": false,
+            "available": 580.984375
+          },
+          {
+            "match": "batch-names-69",
+            "actual": [
+              "Christopher Konstantin Maximilian Müller-Schwennsen 69",
+              "Alexandra-Johanna Müller-Schwennsen 69"
+            ],
+            "expected": [
+              "Christopher Konstantin Maximilian Müller-Schwennsen 69",
+              "Alexandra-Johanna Müller-Schwennsen 69"
+            ],
+            "stacked": false,
+            "shouldStack": false,
+            "available": 581
+          },
+          {
+            "match": "batch-names-79",
+            "actual": [
+              "Christopher Konstantin Maximilian Müller-Schwennsen 79",
+              "Alexandra-Johanna Müller-Schwennsen 79"
+            ],
+            "expected": [
+              "Christopher Konstantin Maximilian Müller-Schwennsen 79",
+              "Alexandra-Johanna Müller-Schwennsen 79"
+            ],
+            "stacked": false,
+            "shouldStack": false,
+            "available": 580.984375
+          },
+          {
+            "match": "batch-names-88",
+            "actual": [
+              "Christopher Konstantin Maximilian Müller-Schwennsen 88",
+              "Alexandra-Johanna Müller-Schwennsen 88"
+            ],
+            "expected": [
+              "Christopher Konstantin Maximilian Müller-Schwennsen 88",
+              "Alexandra-Johanna Müller-Schwennsen 88"
+            ],
+            "stacked": false,
+            "shouldStack": false,
+            "available": 581
+          },
+          {
+            "match": "batch-names-98",
+            "actual": [
+              "Christopher Konstantin Maximilian Müller-Schwennsen 98",
+              "Alexandra-Johanna Müller-Schwennsen 98"
+            ],
+            "expected": [
+              "Christopher Konstantin Maximilian Müller-Schwennsen 98",
+              "Alexandra-Johanna Müller-Schwennsen 98"
+            ],
+            "stacked": false,
+            "shouldStack": false,
+            "available": 580.984375
+          },
+          {
+            "match": "batch-names-107",
+            "actual": [
+              "Christopher Konstantin Maximilian Müller-Schwennsen 107",
+              "Alexandra-Johanna Müller-Schwennsen 107"
+            ],
+            "expected": [
+              "Christopher Konstantin Maximilian Müller-Schwennsen 107",
+              "Alexandra-Johanna Müller-Schwennsen 107"
+            ],
+            "stacked": false,
+            "shouldStack": false,
+            "available": 581
+          },
+          {
+            "match": "batch-names-117",
+            "actual": [
+              "Christopher Konstantin Maximilian Müller-Schwennsen 117",
+              "Alexandra-Johanna Müller-Schwennsen 117"
+            ],
+            "expected": [
+              "Christopher Konstantin Maximilian Müller-Schwennsen 117",
+              "Alexandra-Johanna Müller-Schwennsen 117"
+            ],
+            "stacked": false,
+            "shouldStack": false,
+            "available": 580.984375
+          },
+          {
+            "match": "batch-names-6",
+            "actual": [
+              "Christopher Müller-Schwennsen 6",
+              "Alexandra-Johanna Müller-Schwennsen 6"
+            ],
+            "expected": [
+              "Christopher Müller-Schwennsen 6",
+              "Alexandra-Johanna Müller-Schwennsen 6"
+            ],
+            "stacked": false,
+            "shouldStack": false,
+            "available": 542.390625
+          },
+          {
+            "match": "batch-names-16",
+            "actual": [
+              "Christopher Müller-Schwennsen 16",
+              "Alexandra-Johanna Müller-Schwennsen 16"
+            ],
+            "expected": [
+              "Christopher Müller-Schwennsen 16",
+              "Alexandra-Johanna Müller-Schwennsen 16"
+            ],
+            "stacked": false,
+            "shouldStack": false,
+            "available": 542.375
+          },
+          {
+            "match": "batch-names-25",
+            "actual": [
+              "Christopher Müller-Schwennsen 25",
+              "Alexandra-Johanna Müller-Schwennsen 25"
+            ],
+            "expected": [
+              "Christopher Müller-Schwennsen 25",
+              "Alexandra-Johanna Müller-Schwennsen 25"
+            ],
+            "stacked": false,
+            "shouldStack": false,
+            "available": 542.390625
+          },
+          {
+            "match": "batch-names-35",
+            "actual": [
+              "Christopher Müller-Schwennsen 35",
+              "Alexandra-Johanna Müller-Schwennsen 35"
+            ],
+            "expected": [
+              "Christopher Müller-Schwennsen 35",
+              "Alexandra-Johanna Müller-Schwennsen 35"
+            ],
+            "stacked": false,
+            "shouldStack": false,
+            "available": 542.375
+          },
+          {
+            "match": "batch-names-44",
+            "actual": [
+              "Christopher Müller-Schwennsen 44",
+              "Alexandra-Johanna Müller-Schwennsen 44"
+            ],
+            "expected": [
+              "Christopher Müller-Schwennsen 44",
+              "Alexandra-Johanna Müller-Schwennsen 44"
+            ],
+            "stacked": false,
+            "shouldStack": false,
+            "available": 542.390625
+          }
+        ]
+      },
+      {
+        "width": 1920,
+        "density": "normal",
+        "reference": [
+          {
+            "match": "batch-names-60",
+            "actual": [
+              "Christopher Müller-Schwennsen 60",
+              "Alexandra-Johanna Müller-Schwennsen 60"
+            ],
+            "expected": [
+              "Christopher Müller-Schwennsen 60",
+              "Alexandra-Johanna Müller-Schwennsen 60"
+            ],
+            "stacked": false,
+            "shouldStack": false,
+            "available": 550.984375
+          },
+          {
+            "match": "batch-names-69",
+            "actual": [
+              "Christopher Müller-Schwennsen 69",
+              "Alexandra-Johanna Müller-Schwennsen 69"
+            ],
+            "expected": [
+              "Christopher Müller-Schwennsen 69",
+              "Alexandra-Johanna Müller-Schwennsen 69"
+            ],
+            "stacked": false,
+            "shouldStack": false,
+            "available": 551
+          },
+          {
+            "match": "batch-names-79",
+            "actual": [
+              "Christopher Müller-Schwennsen 79",
+              "Alexandra-Johanna Müller-Schwennsen 79"
+            ],
+            "expected": [
+              "Christopher Müller-Schwennsen 79",
+              "Alexandra-Johanna Müller-Schwennsen 79"
+            ],
+            "stacked": false,
+            "shouldStack": false,
+            "available": 550.984375
+          },
+          {
+            "match": "batch-names-88",
+            "actual": [
+              "Christopher Müller-Schwennsen 88",
+              "Alexandra-Johanna Müller-Schwennsen 88"
+            ],
+            "expected": [
+              "Christopher Müller-Schwennsen 88",
+              "Alexandra-Johanna Müller-Schwennsen 88"
+            ],
+            "stacked": false,
+            "shouldStack": false,
+            "available": 551
+          },
+          {
+            "match": "batch-names-98",
+            "actual": [
+              "Christopher Müller-Schwennsen 98",
+              "Alexandra-Johanna Müller-Schwennsen 98"
+            ],
+            "expected": [
+              "Christopher Müller-Schwennsen 98",
+              "Alexandra-Johanna Müller-Schwennsen 98"
+            ],
+            "stacked": false,
+            "shouldStack": false,
+            "available": 550.984375
+          },
+          {
+            "match": "batch-names-107",
+            "actual": [
+              "Christopher Müller-Schwennsen 107",
+              "Alexandra-Johanna Müller-Schwennsen 107"
+            ],
+            "expected": [
+              "Christopher Müller-Schwennsen 107",
+              "Alexandra-Johanna Müller-Schwennsen 107"
+            ],
+            "stacked": false,
+            "shouldStack": false,
+            "available": 551
+          },
+          {
+            "match": "batch-names-117",
+            "actual": [
+              "Christopher Müller-Schwennsen 117",
+              "Alexandra-Johanna Müller-Schwennsen 117"
+            ],
+            "expected": [
+              "Christopher Müller-Schwennsen 117",
+              "Alexandra-Johanna Müller-Schwennsen 117"
+            ],
+            "stacked": false,
+            "shouldStack": false,
+            "available": 550.984375
+          },
+          {
+            "match": "batch-names-6",
+            "actual": [
+              "Christopher Müller-Schwennsen 6",
+              "Alexandra-Johanna Müller-Schwennsen 6"
+            ],
+            "expected": [
+              "Christopher Müller-Schwennsen 6",
+              "Alexandra-Johanna Müller-Schwennsen 6"
+            ],
+            "stacked": false,
+            "shouldStack": false,
+            "available": 512.390625
+          },
+          {
+            "match": "batch-names-16",
+            "actual": [
+              "Christopher Müller-Schwennsen 16",
+              "A.-J. Müller-Schwennsen 16"
+            ],
+            "expected": [
+              "Christopher Müller-Schwennsen 16",
+              "A.-J. Müller-Schwennsen 16"
+            ],
+            "stacked": false,
+            "shouldStack": false,
+            "available": 512.375
+          },
+          {
+            "match": "batch-names-25",
+            "actual": [
+              "Christopher Müller-Schwennsen 25",
+              "Alexandra-Johanna Müller-Schwennsen 25"
+            ],
+            "expected": [
+              "Christopher Müller-Schwennsen 25",
+              "Alexandra-Johanna Müller-Schwennsen 25"
+            ],
+            "stacked": false,
+            "shouldStack": false,
+            "available": 512.390625
+          },
+          {
+            "match": "batch-names-35",
+            "actual": [
+              "Christopher Müller-Schwennsen 35",
+              "A.-J. Müller-Schwennsen 35"
+            ],
+            "expected": [
+              "Christopher Müller-Schwennsen 35",
+              "A.-J. Müller-Schwennsen 35"
+            ],
+            "stacked": false,
+            "shouldStack": false,
+            "available": 512.375
+          },
+          {
+            "match": "batch-names-44",
+            "actual": [
+              "Christopher Müller-Schwennsen 44",
+              "Alexandra-Johanna Müller-Schwennsen 44"
+            ],
+            "expected": [
+              "Christopher Müller-Schwennsen 44",
+              "Alexandra-Johanna Müller-Schwennsen 44"
+            ],
+            "stacked": false,
+            "shouldStack": false,
+            "available": 512.390625
+          }
+        ]
+      }
+    ]
+  },
+  "controlled_comparison": {
+    "fixture": "512 Spiele, 392 beendet, 15 Felder, 64 Offiziellenzuordnungen. Zehn unterschiedliche Abschlüsse und Wiederöffnungen je Browser, je ein fremder Punkt, abwechselnd 16 parallele Änderungen kommender Spiele. Vier frische Browser in Reihenfolge vorher/nachher/nachher/vorher. Keine Timeline- oder Profileraufzeichnung.",
+    "summary": {
+      "before": {
+        "browser_work": {
+          "count": 20,
+          "mean_ms": 651.64,
+          "p50_ms": 635.28,
+          "p95_ms": 1032.58,
+          "max_ms": 1141.29
+        },
+        "layout_count": 487,
+        "receipt_count": 220,
+        "all_presented": true,
+        "finish": {
+          "count": 20,
+          "mean_ms": 305.49,
+          "p50_ms": 309.05,
+          "p95_ms": 601.8,
+          "max_ms": 650.1
+        },
+        "point": {
+          "count": 20,
+          "mean_ms": 148.47,
+          "p50_ms": 140.75,
+          "p95_ms": 226.6,
+          "max_ms": 310.8
+        },
+        "reopen": {
+          "count": 20,
+          "mean_ms": 238.04,
+          "p50_ms": 234.85,
+          "p95_ms": 309.9,
+          "max_ms": 310.9
+        }
+      },
+      "after": {
+        "browser_work": {
+          "count": 20,
+          "mean_ms": 515.28,
+          "p50_ms": 520.37,
+          "p95_ms": 656.41,
+          "max_ms": 1194.4
+        },
+        "layout_count": 313,
+        "receipt_count": 220,
+        "all_presented": true,
+        "finish": {
+          "count": 20,
+          "mean_ms": 235.43,
+          "p50_ms": 237.3,
+          "p95_ms": 350.8,
+          "max_ms": 641.9
+        },
+        "point": {
+          "count": 20,
+          "mean_ms": 114.42,
+          "p50_ms": 98.6,
+          "p95_ms": 185.8,
+          "max_ms": 209.6
+        },
+        "reopen": {
+          "count": 20,
+          "mean_ms": 189.83,
+          "p50_ms": 175.75,
+          "p95_ms": 284.2,
+          "max_ms": 285.6
+        }
+      }
+    },
+    "runs": [
+      {
+        "mode": "before",
+        "run": 1,
+        "summary": {
+          "cpu": {
+            "count": 10,
+            "mean_ms": 665.4547999999999,
+            "p50_ms": 664.8579999999997,
+            "p95_ms": 1032.5790000000002,
+            "max_ms": 1032.5790000000002
+          },
+          "finish": {
+            "count": 10,
+            "mean_ms": 312.13,
+            "p50_ms": 332.1,
+            "p95_ms": 601.8,
+            "max_ms": 601.8
+          },
+          "point": {
+            "count": 10,
+            "mean_ms": 158.41,
+            "p50_ms": 147.8,
+            "p95_ms": 310.8,
+            "max_ms": 310.8
+          },
+          "reopen": {
+            "count": 10,
+            "mean_ms": 242.61000000000004,
+            "p50_ms": 243.6,
+            "p95_ms": 309.9,
+            "max_ms": 309.9
+          }
+        },
+        "phases": [
+          {
+            "round": 0,
+            "burst": 0,
+            "cpu_ms": {
+              "TaskDuration": 495.025,
+              "ScriptDuration": 133.059,
+              "LayoutDuration": 10.052999999999999,
+              "RecalcStyleDuration": 186.944
+            },
+            "layout_count": 21,
+            "receipts": [
+              {
+                "marker": "0-point",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 77.7,
+                  "handler_ms": 1.3,
+                  "ui_wait_ms": 0,
+                  "render_ms": 142.7,
+                  "total_ms": 221.7
+                }
+              },
+              {
+                "marker": "0-finish",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 0.9,
+                  "handler_ms": 21.3,
+                  "ui_wait_ms": 153.4,
+                  "render_ms": 46.6,
+                  "total_ms": 222.2
+                }
+              },
+              {
+                "marker": "0-reopen",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 0.8,
+                  "handler_ms": 7.5,
+                  "ui_wait_ms": 209.3,
+                  "render_ms": 23.8,
+                  "total_ms": 241.4
+                }
+              }
+            ]
+          },
+          {
+            "round": 1,
+            "burst": 16,
+            "cpu_ms": {
+              "TaskDuration": 1032.5790000000002,
+              "ScriptDuration": 252.17199999999994,
+              "LayoutDuration": 89.113,
+              "RecalcStyleDuration": 292.678
+            },
+            "layout_count": 27,
+            "receipts": [
+              {
+                "marker": "1-point",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 6.5,
+                  "handler_ms": 0.6,
+                  "ui_wait_ms": 0,
+                  "render_ms": 154.3,
+                  "total_ms": 161.4
+                }
+              },
+              {
+                "marker": "1-finish",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 3.2,
+                  "handler_ms": 6.1,
+                  "ui_wait_ms": 507.4,
+                  "render_ms": 85.1,
+                  "total_ms": 601.8
+                }
+              },
+              {
+                "marker": "1-edit-0",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 9.5,
+                  "handler_ms": 5.9,
+                  "ui_wait_ms": 611.5,
+                  "render_ms": 56.2,
+                  "total_ms": 683.1
+                }
+              },
+              {
+                "marker": "1-edit-1",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 15.3,
+                  "handler_ms": 4.9,
+                  "ui_wait_ms": 606.5,
+                  "render_ms": 56.4,
+                  "total_ms": 683.1
+                }
+              },
+              {
+                "marker": "1-edit-2",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 144.4,
+                  "handler_ms": 5.7,
+                  "ui_wait_ms": 476.3,
+                  "render_ms": 56.4,
+                  "total_ms": 682.8
+                }
+              },
+              {
+                "marker": "1-edit-3",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 149.9,
+                  "handler_ms": 5.2,
+                  "ui_wait_ms": 471,
+                  "render_ms": 56.4,
+                  "total_ms": 682.5
+                }
+              },
+              {
+                "marker": "1-edit-4",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 155,
+                  "handler_ms": 4.5,
+                  "ui_wait_ms": 466.4,
+                  "render_ms": 56.4,
+                  "total_ms": 682.3
+                }
+              },
+              {
+                "marker": "1-edit-5",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 159.2,
+                  "handler_ms": 3,
+                  "ui_wait_ms": 463.4,
+                  "render_ms": 56.4,
+                  "total_ms": 682
+                }
+              },
+              {
+                "marker": "1-edit-6",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 219.4,
+                  "handler_ms": 4,
+                  "ui_wait_ms": 402,
+                  "render_ms": 56.4,
+                  "total_ms": 681.8
+                }
+              },
+              {
+                "marker": "1-edit-7",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 223.3,
+                  "handler_ms": 3.1,
+                  "ui_wait_ms": 398.9,
+                  "render_ms": 56.4,
+                  "total_ms": 681.7
+                }
+              },
+              {
+                "marker": "1-edit-8",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 226.3,
+                  "handler_ms": 2.7,
+                  "ui_wait_ms": 396.2,
+                  "render_ms": 56.4,
+                  "total_ms": 681.6
+                }
+              },
+              {
+                "marker": "1-edit-9",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 228.8,
+                  "handler_ms": 2.5,
+                  "ui_wait_ms": 393.7,
+                  "render_ms": 56.4,
+                  "total_ms": 681.4
+                }
+              },
+              {
+                "marker": "1-edit-10",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 231.2,
+                  "handler_ms": 3.7,
+                  "ui_wait_ms": 390,
+                  "render_ms": 56.5,
+                  "total_ms": 681.4
+                }
+              },
+              {
+                "marker": "1-edit-11",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 293.7,
+                  "handler_ms": 4.9,
+                  "ui_wait_ms": 326.2,
+                  "render_ms": 56.5,
+                  "total_ms": 681.3
+                }
+              },
+              {
+                "marker": "1-edit-12",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 298.6,
+                  "handler_ms": 4.9,
+                  "ui_wait_ms": 321.3,
+                  "render_ms": 56.5,
+                  "total_ms": 681.3
+                }
+              },
+              {
+                "marker": "1-edit-13",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 303.3,
+                  "handler_ms": 3.8,
+                  "ui_wait_ms": 317.5,
+                  "render_ms": 56.5,
+                  "total_ms": 681.1
+                }
+              },
+              {
+                "marker": "1-edit-14",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 307.2,
+                  "handler_ms": 3.2,
+                  "ui_wait_ms": 314.2,
+                  "render_ms": 56.5,
+                  "total_ms": 681.1
+                }
+              },
+              {
+                "marker": "1-edit-15",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 361.6,
+                  "handler_ms": 5.5,
+                  "ui_wait_ms": 257.4,
+                  "render_ms": 56.5,
+                  "total_ms": 681
+                }
+              },
+              {
+                "marker": "1-reopen",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 0.6,
+                  "handler_ms": 4.3,
+                  "ui_wait_ms": 191.5,
+                  "render_ms": 27.3,
+                  "total_ms": 223.7
+                }
+              }
+            ]
+          },
+          {
+            "round": 2,
+            "burst": 0,
+            "cpu_ms": {
+              "TaskDuration": 551.9089999999998,
+              "ScriptDuration": 114.00099999999996,
+              "LayoutDuration": 13.459,
+              "RecalcStyleDuration": 228.15799999999996
+            },
+            "layout_count": 21,
+            "receipts": [
+              {
+                "marker": "2-point",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 4.8,
+                  "handler_ms": 0.5,
+                  "ui_wait_ms": 0,
+                  "render_ms": 187.1,
+                  "total_ms": 192.4
+                }
+              },
+              {
+                "marker": "2-finish",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 0.2,
+                  "handler_ms": 4.7,
+                  "ui_wait_ms": 110.6,
+                  "render_ms": 77.1,
+                  "total_ms": 192.6
+                }
+              },
+              {
+                "marker": "2-reopen",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 1,
+                  "handler_ms": 5.5,
+                  "ui_wait_ms": 252.8,
+                  "render_ms": 25.9,
+                  "total_ms": 285.2
+                }
+              }
+            ]
+          },
+          {
+            "round": 3,
+            "burst": 16,
+            "cpu_ms": {
+              "TaskDuration": 894.4040000000002,
+              "ScriptDuration": 213.1200000000001,
+              "LayoutDuration": 54.334999999999994,
+              "RecalcStyleDuration": 296.55900000000014
+            },
+            "layout_count": 27,
+            "receipts": [
+              {
+                "marker": "3-point",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 7.6,
+                  "handler_ms": 0.8,
+                  "ui_wait_ms": 0,
+                  "render_ms": 92.5,
+                  "total_ms": 100.9
+                }
+              },
+              {
+                "marker": "3-finish",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 1.5,
+                  "handler_ms": 7.3,
+                  "ui_wait_ms": 371.4,
+                  "render_ms": 93.8,
+                  "total_ms": 474
+                }
+              },
+              {
+                "marker": "3-edit-0",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 9.5,
+                  "handler_ms": 2.9,
+                  "ui_wait_ms": 511,
+                  "render_ms": 71.1,
+                  "total_ms": 594.5
+                }
+              },
+              {
+                "marker": "3-edit-1",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 12.3,
+                  "handler_ms": 2.3,
+                  "ui_wait_ms": 508.7,
+                  "render_ms": 71.2,
+                  "total_ms": 594.5
+                }
+              },
+              {
+                "marker": "3-edit-2",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 14.4,
+                  "handler_ms": 2.1,
+                  "ui_wait_ms": 506.6,
+                  "render_ms": 71.2,
+                  "total_ms": 594.3
+                }
+              },
+              {
+                "marker": "3-edit-3",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 16.3,
+                  "handler_ms": 1.9,
+                  "ui_wait_ms": 504.7,
+                  "render_ms": 71.2,
+                  "total_ms": 594.1
+                }
+              },
+              {
+                "marker": "3-edit-4",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 82.2,
+                  "handler_ms": 3.6,
+                  "ui_wait_ms": 437.1,
+                  "render_ms": 71.3,
+                  "total_ms": 594.2
+                }
+              },
+              {
+                "marker": "3-edit-5",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 85.9,
+                  "handler_ms": 4.3,
+                  "ui_wait_ms": 432.7,
+                  "render_ms": 71.3,
+                  "total_ms": 594.2
+                }
+              },
+              {
+                "marker": "3-edit-6",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 90.1,
+                  "handler_ms": 7.1,
+                  "ui_wait_ms": 425.6,
+                  "render_ms": 71.3,
+                  "total_ms": 594.1
+                }
+              },
+              {
+                "marker": "3-edit-7",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 97.2,
+                  "handler_ms": 3.7,
+                  "ui_wait_ms": 421.9,
+                  "render_ms": 71.3,
+                  "total_ms": 594.1
+                }
+              },
+              {
+                "marker": "3-edit-8",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 152.9,
+                  "handler_ms": 4,
+                  "ui_wait_ms": 365.7,
+                  "render_ms": 71.3,
+                  "total_ms": 593.9
+                }
+              },
+              {
+                "marker": "3-edit-9",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 156.9,
+                  "handler_ms": 2.8,
+                  "ui_wait_ms": 362.9,
+                  "render_ms": 71.3,
+                  "total_ms": 593.9
+                }
+              },
+              {
+                "marker": "3-edit-10",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 159.7,
+                  "handler_ms": 3.2,
+                  "ui_wait_ms": 359.6,
+                  "render_ms": 71.3,
+                  "total_ms": 593.8
+                }
+              },
+              {
+                "marker": "3-edit-11",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 162.9,
+                  "handler_ms": 3.1,
+                  "ui_wait_ms": 356.5,
+                  "render_ms": 71.3,
+                  "total_ms": 593.8
+                }
+              },
+              {
+                "marker": "3-edit-12",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 165.9,
+                  "handler_ms": 2.5,
+                  "ui_wait_ms": 354,
+                  "render_ms": 71.3,
+                  "total_ms": 593.7
+                }
+              },
+              {
+                "marker": "3-edit-13",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 168.4,
+                  "handler_ms": 2.2,
+                  "ui_wait_ms": 351.8,
+                  "render_ms": 71.3,
+                  "total_ms": 593.7
+                }
+              },
+              {
+                "marker": "3-edit-14",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 218.9,
+                  "handler_ms": 4.1,
+                  "ui_wait_ms": 299.4,
+                  "render_ms": 71.4,
+                  "total_ms": 593.8
+                }
+              },
+              {
+                "marker": "3-edit-15",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 222.9,
+                  "handler_ms": 4,
+                  "ui_wait_ms": 295.4,
+                  "render_ms": 71.4,
+                  "total_ms": 593.7
+                }
+              },
+              {
+                "marker": "3-reopen",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 1.1,
+                  "handler_ms": 5.3,
+                  "ui_wait_ms": 213.5,
+                  "render_ms": 34.3,
+                  "total_ms": 254.2
+                }
+              }
+            ]
+          },
+          {
+            "round": 4,
+            "burst": 0,
+            "cpu_ms": {
+              "TaskDuration": 536.4219999999999,
+              "ScriptDuration": 104.96899999999998,
+              "LayoutDuration": 44.10900000000001,
+              "RecalcStyleDuration": 180.126
+            },
+            "layout_count": 24,
+            "receipts": [
+              {
+                "marker": "4-point",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 8,
+                  "handler_ms": 0.7,
+                  "ui_wait_ms": 0,
+                  "render_ms": 139.1,
+                  "total_ms": 147.8
+                }
+              },
+              {
+                "marker": "4-finish",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 0.3,
+                  "handler_ms": 7.8,
+                  "ui_wait_ms": 86.5,
+                  "render_ms": 53.3,
+                  "total_ms": 147.9
+                }
+              },
+              {
+                "marker": "4-reopen",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 0.8,
+                  "handler_ms": 4.2,
+                  "ui_wait_ms": 197,
+                  "render_ms": 107.9,
+                  "total_ms": 309.9
+                }
+              }
+            ]
+          },
+          {
+            "round": 5,
+            "burst": 16,
+            "cpu_ms": {
+              "TaskDuration": 664.8579999999997,
+              "ScriptDuration": 172.898,
+              "LayoutDuration": 17.955,
+              "RecalcStyleDuration": 231.97
+            },
+            "layout_count": 24,
+            "receipts": [
+              {
+                "marker": "5-point",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 6.1,
+                  "handler_ms": 0.3,
+                  "ui_wait_ms": 0,
+                  "render_ms": 88.6,
+                  "total_ms": 95
+                }
+              },
+              {
+                "marker": "5-finish",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 2.3,
+                  "handler_ms": 6,
+                  "ui_wait_ms": 257.9,
+                  "render_ms": 65.9,
+                  "total_ms": 332.1
+                }
+              },
+              {
+                "marker": "5-edit-0",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 8.4,
+                  "handler_ms": 1.6,
+                  "ui_wait_ms": 340.3,
+                  "render_ms": 60.5,
+                  "total_ms": 410.8
+                }
+              },
+              {
+                "marker": "5-edit-1",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 9.7,
+                  "handler_ms": 3.1,
+                  "ui_wait_ms": 337.2,
+                  "render_ms": 60.5,
+                  "total_ms": 410.5
+                }
+              },
+              {
+                "marker": "5-edit-2",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 12.8,
+                  "handler_ms": 3.2,
+                  "ui_wait_ms": 333.9,
+                  "render_ms": 60.5,
+                  "total_ms": 410.4
+                }
+              },
+              {
+                "marker": "5-edit-3",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 16,
+                  "handler_ms": 2.9,
+                  "ui_wait_ms": 331,
+                  "render_ms": 60.5,
+                  "total_ms": 410.4
+                }
+              },
+              {
+                "marker": "5-edit-4",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 79.4,
+                  "handler_ms": 3.7,
+                  "ui_wait_ms": 266.6,
+                  "render_ms": 60.5,
+                  "total_ms": 410.2
+                }
+              },
+              {
+                "marker": "5-edit-5",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 83,
+                  "handler_ms": 2.7,
+                  "ui_wait_ms": 263.9,
+                  "render_ms": 60.5,
+                  "total_ms": 410.1
+                }
+              },
+              {
+                "marker": "5-edit-6",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 85.6,
+                  "handler_ms": 2.2,
+                  "ui_wait_ms": 261.7,
+                  "render_ms": 60.6,
+                  "total_ms": 410.1
+                }
+              },
+              {
+                "marker": "5-edit-7",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 87.7,
+                  "handler_ms": 1.8,
+                  "ui_wait_ms": 260,
+                  "render_ms": 60.5,
+                  "total_ms": 410
+                }
+              },
+              {
+                "marker": "5-edit-8",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 89.4,
+                  "handler_ms": 2,
+                  "ui_wait_ms": 258,
+                  "render_ms": 60.5,
+                  "total_ms": 409.9
+                }
+              },
+              {
+                "marker": "5-edit-9",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 91.3,
+                  "handler_ms": 1.9,
+                  "ui_wait_ms": 256.1,
+                  "render_ms": 60.5,
+                  "total_ms": 409.8
+                }
+              },
+              {
+                "marker": "5-edit-10",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 92.9,
+                  "handler_ms": 2.2,
+                  "ui_wait_ms": 253.9,
+                  "render_ms": 60.5,
+                  "total_ms": 409.5
+                }
+              },
+              {
+                "marker": "5-edit-11",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 137.7,
+                  "handler_ms": 3.6,
+                  "ui_wait_ms": 207.6,
+                  "render_ms": 60.5,
+                  "total_ms": 409.4
+                }
+              },
+              {
+                "marker": "5-edit-12",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 141.3,
+                  "handler_ms": 3.7,
+                  "ui_wait_ms": 203.8,
+                  "render_ms": 60.5,
+                  "total_ms": 409.3
+                }
+              },
+              {
+                "marker": "5-edit-13",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 145,
+                  "handler_ms": 2.4,
+                  "ui_wait_ms": 201.4,
+                  "render_ms": 60.6,
+                  "total_ms": 409.4
+                }
+              },
+              {
+                "marker": "5-edit-14",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 147.2,
+                  "handler_ms": 2.1,
+                  "ui_wait_ms": 199.3,
+                  "render_ms": 60.6,
+                  "total_ms": 409.2
+                }
+              },
+              {
+                "marker": "5-edit-15",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 149.3,
+                  "handler_ms": 1.6,
+                  "ui_wait_ms": 197.7,
+                  "render_ms": 60.6,
+                  "total_ms": 409.2
+                }
+              },
+              {
+                "marker": "5-reopen",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 1,
+                  "handler_ms": 3.3,
+                  "ui_wait_ms": 200,
+                  "render_ms": 39.3,
+                  "total_ms": 243.6
+                }
+              }
+            ]
+          },
+          {
+            "round": 6,
+            "burst": 0,
+            "cpu_ms": {
+              "TaskDuration": 632.3729999999994,
+              "ScriptDuration": 110.42800000000008,
+              "LayoutDuration": 45.80699999999999,
+              "RecalcStyleDuration": 263.115
+            },
+            "layout_count": 28,
+            "receipts": [
+              {
+                "marker": "6-point",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 80.8,
+                  "handler_ms": 0.7,
+                  "ui_wait_ms": 0,
+                  "render_ms": 229.3,
+                  "total_ms": 310.8
+                }
+              },
+              {
+                "marker": "6-finish",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 73.2,
+                  "handler_ms": 7.6,
+                  "ui_wait_ms": 161.4,
+                  "render_ms": 68.7,
+                  "total_ms": 310.9
+                }
+              },
+              {
+                "marker": "6-reopen",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 0.6,
+                  "handler_ms": 3.5,
+                  "ui_wait_ms": 223.2,
+                  "render_ms": 28.6,
+                  "total_ms": 255.9
+                }
+              }
+            ]
+          },
+          {
+            "round": 7,
+            "burst": 16,
+            "cpu_ms": {
+              "TaskDuration": 748.6369999999996,
+              "ScriptDuration": 166.99599999999992,
+              "LayoutDuration": 41.47100000000003,
+              "RecalcStyleDuration": 218.62799999999982
+            },
+            "layout_count": 26,
+            "receipts": [
+              {
+                "marker": "7-point",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 5.8,
+                  "handler_ms": 0.7,
+                  "ui_wait_ms": 0,
+                  "render_ms": 110.6,
+                  "total_ms": 117.1
+                }
+              },
+              {
+                "marker": "7-finish",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 1.7,
+                  "handler_ms": 5.7,
+                  "ui_wait_ms": 281.1,
+                  "render_ms": 60.6,
+                  "total_ms": 349.1
+                }
+              },
+              {
+                "marker": "7-edit-0",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 7.9,
+                  "handler_ms": 1.9,
+                  "ui_wait_ms": 359.4,
+                  "render_ms": 100,
+                  "total_ms": 469.2
+                }
+              },
+              {
+                "marker": "7-edit-1",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 9.7,
+                  "handler_ms": 2.9,
+                  "ui_wait_ms": 356.5,
+                  "render_ms": 100.1,
+                  "total_ms": 469.2
+                }
+              },
+              {
+                "marker": "7-edit-2",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 12.5,
+                  "handler_ms": 2.4,
+                  "ui_wait_ms": 354.1,
+                  "render_ms": 100.1,
+                  "total_ms": 469.1
+                }
+              },
+              {
+                "marker": "7-edit-3",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 14.8,
+                  "handler_ms": 2.3,
+                  "ui_wait_ms": 351.8,
+                  "render_ms": 100.1,
+                  "total_ms": 469
+                }
+              },
+              {
+                "marker": "7-edit-4",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 17,
+                  "handler_ms": 2.8,
+                  "ui_wait_ms": 349,
+                  "render_ms": 100.1,
+                  "total_ms": 468.9
+                }
+              },
+              {
+                "marker": "7-edit-5",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 100.1,
+                  "handler_ms": 3.6,
+                  "ui_wait_ms": 265.1,
+                  "render_ms": 100.1,
+                  "total_ms": 468.9
+                }
+              },
+              {
+                "marker": "7-edit-6",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 103.7,
+                  "handler_ms": 3.2,
+                  "ui_wait_ms": 261.8,
+                  "render_ms": 100.1,
+                  "total_ms": 468.8
+                }
+              },
+              {
+                "marker": "7-edit-7",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 107,
+                  "handler_ms": 2.6,
+                  "ui_wait_ms": 259.1,
+                  "render_ms": 100.1,
+                  "total_ms": 468.8
+                }
+              },
+              {
+                "marker": "7-edit-8",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 109.5,
+                  "handler_ms": 3.2,
+                  "ui_wait_ms": 255.9,
+                  "render_ms": 100.1,
+                  "total_ms": 468.7
+                }
+              },
+              {
+                "marker": "7-edit-9",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 112.6,
+                  "handler_ms": 2.4,
+                  "ui_wait_ms": 253.5,
+                  "render_ms": 100.1,
+                  "total_ms": 468.6
+                }
+              },
+              {
+                "marker": "7-edit-10",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 114.9,
+                  "handler_ms": 2.3,
+                  "ui_wait_ms": 251.2,
+                  "render_ms": 100.2,
+                  "total_ms": 468.6
+                }
+              },
+              {
+                "marker": "7-edit-11",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 164.7,
+                  "handler_ms": 2.8,
+                  "ui_wait_ms": 200.8,
+                  "render_ms": 100.2,
+                  "total_ms": 468.5
+                }
+              },
+              {
+                "marker": "7-edit-12",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 167.4,
+                  "handler_ms": 2.5,
+                  "ui_wait_ms": 198.3,
+                  "render_ms": 100.2,
+                  "total_ms": 468.4
+                }
+              },
+              {
+                "marker": "7-edit-13",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 169.8,
+                  "handler_ms": 2,
+                  "ui_wait_ms": 196.3,
+                  "render_ms": 100.2,
+                  "total_ms": 468.3
+                }
+              },
+              {
+                "marker": "7-edit-14",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 171.7,
+                  "handler_ms": 2.2,
+                  "ui_wait_ms": 194.1,
+                  "render_ms": 100.2,
+                  "total_ms": 468.2
+                }
+              },
+              {
+                "marker": "7-edit-15",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 173.8,
+                  "handler_ms": 2,
+                  "ui_wait_ms": 192.1,
+                  "render_ms": 100.2,
+                  "total_ms": 468.1
+                }
+              },
+              {
+                "marker": "7-reopen",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 0.9,
+                  "handler_ms": 4.3,
+                  "ui_wait_ms": 159.9,
+                  "render_ms": 31.2,
+                  "total_ms": 196.3
+                }
+              }
+            ]
+          },
+          {
+            "round": 8,
+            "burst": 0,
+            "cpu_ms": {
+              "TaskDuration": 416.68299999999994,
+              "ScriptDuration": 78.73799999999997,
+              "LayoutDuration": 8.541999999999994,
+              "RecalcStyleDuration": 158.8719999999999
+            },
+            "layout_count": 21,
+            "receipts": [
+              {
+                "marker": "8-point",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 5.5,
+                  "handler_ms": 0.4,
+                  "ui_wait_ms": 0,
+                  "render_ms": 138.6,
+                  "total_ms": 144.5
+                }
+              },
+              {
+                "marker": "8-finish",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 0.2,
+                  "handler_ms": 5.4,
+                  "ui_wait_ms": 78,
+                  "render_ms": 61,
+                  "total_ms": 144.6
+                }
+              },
+              {
+                "marker": "8-reopen",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 0.9,
+                  "handler_ms": 3.9,
+                  "ui_wait_ms": 164.6,
+                  "render_ms": 37.8,
+                  "total_ms": 207.2
+                }
+              }
+            ]
+          },
+          {
+            "round": 9,
+            "burst": 16,
+            "cpu_ms": {
+              "TaskDuration": 681.6580000000006,
+              "ScriptDuration": 167.6010000000001,
+              "LayoutDuration": 40.313999999999965,
+              "RecalcStyleDuration": 225.0540000000001
+            },
+            "layout_count": 25,
+            "receipts": [
+              {
+                "marker": "9-point",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 4.2,
+                  "handler_ms": 0.4,
+                  "ui_wait_ms": 0,
+                  "render_ms": 87.9,
+                  "total_ms": 92.5
+                }
+              },
+              {
+                "marker": "9-finish",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 1.3,
+                  "handler_ms": 4,
+                  "ui_wait_ms": 264.1,
+                  "render_ms": 76.7,
+                  "total_ms": 346.1
+                }
+              },
+              {
+                "marker": "9-edit-0",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 5.6,
+                  "handler_ms": 2,
+                  "ui_wait_ms": 379,
+                  "render_ms": 74.8,
+                  "total_ms": 461.4
+                }
+              },
+              {
+                "marker": "9-edit-1",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 7.4,
+                  "handler_ms": 2.3,
+                  "ui_wait_ms": 376.7,
+                  "render_ms": 74.8,
+                  "total_ms": 461.2
+                }
+              },
+              {
+                "marker": "9-edit-2",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 9.6,
+                  "handler_ms": 2.7,
+                  "ui_wait_ms": 374,
+                  "render_ms": 74.8,
+                  "total_ms": 461.1
+                }
+              },
+              {
+                "marker": "9-edit-3",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 12.3,
+                  "handler_ms": 3.6,
+                  "ui_wait_ms": 370.4,
+                  "render_ms": 74.8,
+                  "total_ms": 461.1
+                }
+              },
+              {
+                "marker": "9-edit-4",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 15.9,
+                  "handler_ms": 2.8,
+                  "ui_wait_ms": 367.6,
+                  "render_ms": 74.9,
+                  "total_ms": 461.2
+                }
+              },
+              {
+                "marker": "9-edit-5",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 75.6,
+                  "handler_ms": 3.6,
+                  "ui_wait_ms": 306.9,
+                  "render_ms": 74.9,
+                  "total_ms": 461
+                }
+              },
+              {
+                "marker": "9-edit-6",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 79.2,
+                  "handler_ms": 3.5,
+                  "ui_wait_ms": 303.4,
+                  "render_ms": 75,
+                  "total_ms": 461.1
+                }
+              },
+              {
+                "marker": "9-edit-7",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 82.7,
+                  "handler_ms": 2.6,
+                  "ui_wait_ms": 300.8,
+                  "render_ms": 75,
+                  "total_ms": 461.1
+                }
+              },
+              {
+                "marker": "9-edit-8",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 85.3,
+                  "handler_ms": 3.4,
+                  "ui_wait_ms": 297.3,
+                  "render_ms": 75,
+                  "total_ms": 461
+                }
+              },
+              {
+                "marker": "9-edit-9",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 88.6,
+                  "handler_ms": 1.9,
+                  "ui_wait_ms": 295.4,
+                  "render_ms": 75,
+                  "total_ms": 460.9
+                }
+              },
+              {
+                "marker": "9-edit-10",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 90.5,
+                  "handler_ms": 2,
+                  "ui_wait_ms": 293.4,
+                  "render_ms": 75,
+                  "total_ms": 460.9
+                }
+              },
+              {
+                "marker": "9-edit-11",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 136.7,
+                  "handler_ms": 2.5,
+                  "ui_wait_ms": 246.6,
+                  "render_ms": 75,
+                  "total_ms": 460.8
+                }
+              },
+              {
+                "marker": "9-edit-12",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 139.1,
+                  "handler_ms": 2.2,
+                  "ui_wait_ms": 244.4,
+                  "render_ms": 75,
+                  "total_ms": 460.7
+                }
+              },
+              {
+                "marker": "9-edit-13",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 141.3,
+                  "handler_ms": 1.9,
+                  "ui_wait_ms": 242.4,
+                  "render_ms": 75,
+                  "total_ms": 460.6
+                }
+              },
+              {
+                "marker": "9-edit-14",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 143.2,
+                  "handler_ms": 2.7,
+                  "ui_wait_ms": 239.7,
+                  "render_ms": 75,
+                  "total_ms": 460.6
+                }
+              },
+              {
+                "marker": "9-edit-15",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 145.9,
+                  "handler_ms": 2,
+                  "ui_wait_ms": 237.7,
+                  "render_ms": 75,
+                  "total_ms": 460.6
+                }
+              },
+              {
+                "marker": "9-reopen",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 0.7,
+                  "handler_ms": 2.7,
+                  "ui_wait_ms": 168.3,
+                  "render_ms": 37,
+                  "total_ms": 208.7
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "mode": "before",
+        "run": 2,
+        "summary": {
+          "cpu": {
+            "count": 10,
+            "mean_ms": 637.8231,
+            "p50_ms": 638.1930000000002,
+            "p95_ms": 1141.2910000000002,
+            "max_ms": 1141.2910000000002
+          },
+          "finish": {
+            "count": 10,
+            "mean_ms": 298.84999999999997,
+            "p50_ms": 307.2,
+            "p95_ms": 650.1,
+            "max_ms": 650.1
+          },
+          "point": {
+            "count": 10,
+            "mean_ms": 138.54,
+            "p50_ms": 137,
+            "p95_ms": 226.6,
+            "max_ms": 226.6
+          },
+          "reopen": {
+            "count": 10,
+            "mean_ms": 233.48000000000002,
+            "p50_ms": 229.4,
+            "p95_ms": 310.9,
+            "max_ms": 310.9
+          }
+        },
+        "phases": [
+          {
+            "round": 0,
+            "burst": 0,
+            "cpu_ms": {
+              "TaskDuration": 579.39,
+              "ScriptDuration": 143.077,
+              "LayoutDuration": 39.687,
+              "RecalcStyleDuration": 191.709
+            },
+            "layout_count": 22,
+            "receipts": [
+              {
+                "marker": "0-point",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 77.5,
+                  "handler_ms": 1.7,
+                  "ui_wait_ms": 0.1,
+                  "render_ms": 147.3,
+                  "total_ms": 226.6
+                }
+              },
+              {
+                "marker": "0-finish",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 1.1,
+                  "handler_ms": 23.8,
+                  "ui_wait_ms": 145.2,
+                  "render_ms": 57.1,
+                  "total_ms": 227.2
+                }
+              },
+              {
+                "marker": "0-reopen",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 0.8,
+                  "handler_ms": 8.1,
+                  "ui_wait_ms": 201.9,
+                  "render_ms": 100.1,
+                  "total_ms": 310.9
+                }
+              }
+            ]
+          },
+          {
+            "round": 1,
+            "burst": 16,
+            "cpu_ms": {
+              "TaskDuration": 853.008,
+              "ScriptDuration": 213.128,
+              "LayoutDuration": 49.07,
+              "RecalcStyleDuration": 258.36
+            },
+            "layout_count": 27,
+            "receipts": [
+              {
+                "marker": "1-point",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 4.4,
+                  "handler_ms": 0.5,
+                  "ui_wait_ms": 0,
+                  "render_ms": 90.2,
+                  "total_ms": 95.1
+                }
+              },
+              {
+                "marker": "1-finish",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 2.2,
+                  "handler_ms": 4.3,
+                  "ui_wait_ms": 399.4,
+                  "render_ms": 73.8,
+                  "total_ms": 479.7
+                }
+              },
+              {
+                "marker": "1-edit-0",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 6.4,
+                  "handler_ms": 6.3,
+                  "ui_wait_ms": 485.2,
+                  "render_ms": 45.4,
+                  "total_ms": 543.3
+                }
+              },
+              {
+                "marker": "1-edit-1",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 12.6,
+                  "handler_ms": 5.3,
+                  "ui_wait_ms": 479.9,
+                  "render_ms": 45.5,
+                  "total_ms": 543.3
+                }
+              },
+              {
+                "marker": "1-edit-2",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 77.2,
+                  "handler_ms": 8.5,
+                  "ui_wait_ms": 412,
+                  "render_ms": 45.6,
+                  "total_ms": 543.3
+                }
+              },
+              {
+                "marker": "1-edit-3",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 85.5,
+                  "handler_ms": 5.4,
+                  "ui_wait_ms": 406.6,
+                  "render_ms": 45.6,
+                  "total_ms": 543.1
+                }
+              },
+              {
+                "marker": "1-edit-4",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 90.9,
+                  "handler_ms": 4.8,
+                  "ui_wait_ms": 401.7,
+                  "render_ms": 45.7,
+                  "total_ms": 543.1
+                }
+              },
+              {
+                "marker": "1-edit-5",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 146.1,
+                  "handler_ms": 5.7,
+                  "ui_wait_ms": 345.5,
+                  "render_ms": 45.7,
+                  "total_ms": 543
+                }
+              },
+              {
+                "marker": "1-edit-6",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 151.7,
+                  "handler_ms": 2.2,
+                  "ui_wait_ms": 343.3,
+                  "render_ms": 45.7,
+                  "total_ms": 542.9
+                }
+              },
+              {
+                "marker": "1-edit-7",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 153.8,
+                  "handler_ms": 2.2,
+                  "ui_wait_ms": 341.1,
+                  "render_ms": 45.7,
+                  "total_ms": 542.8
+                }
+              },
+              {
+                "marker": "1-edit-8",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 156,
+                  "handler_ms": 2.9,
+                  "ui_wait_ms": 338.2,
+                  "render_ms": 45.7,
+                  "total_ms": 542.8
+                }
+              },
+              {
+                "marker": "1-edit-9",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 158.8,
+                  "handler_ms": 3.8,
+                  "ui_wait_ms": 334.4,
+                  "render_ms": 45.7,
+                  "total_ms": 542.7
+                }
+              },
+              {
+                "marker": "1-edit-10",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 205.1,
+                  "handler_ms": 4.2,
+                  "ui_wait_ms": 287.6,
+                  "render_ms": 45.8,
+                  "total_ms": 542.7
+                }
+              },
+              {
+                "marker": "1-edit-11",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 209.2,
+                  "handler_ms": 4.7,
+                  "ui_wait_ms": 282.9,
+                  "render_ms": 45.8,
+                  "total_ms": 542.6
+                }
+              },
+              {
+                "marker": "1-edit-12",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 213.9,
+                  "handler_ms": 3.4,
+                  "ui_wait_ms": 279.4,
+                  "render_ms": 45.8,
+                  "total_ms": 542.5
+                }
+              },
+              {
+                "marker": "1-edit-13",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 217.3,
+                  "handler_ms": 2.2,
+                  "ui_wait_ms": 277.1,
+                  "render_ms": 45.8,
+                  "total_ms": 542.4
+                }
+              },
+              {
+                "marker": "1-edit-14",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 219.4,
+                  "handler_ms": 3.3,
+                  "ui_wait_ms": 273.8,
+                  "render_ms": 45.8,
+                  "total_ms": 542.3
+                }
+              },
+              {
+                "marker": "1-edit-15",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 269,
+                  "handler_ms": 4.4,
+                  "ui_wait_ms": 223.1,
+                  "render_ms": 45.8,
+                  "total_ms": 542.3
+                }
+              },
+              {
+                "marker": "1-reopen",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 0.6,
+                  "handler_ms": 3.6,
+                  "ui_wait_ms": 177.1,
+                  "render_ms": 29.6,
+                  "total_ms": 210.9
+                }
+              }
+            ]
+          },
+          {
+            "round": 2,
+            "burst": 0,
+            "cpu_ms": {
+              "TaskDuration": 469.33500000000004,
+              "ScriptDuration": 86.42900000000003,
+              "LayoutDuration": 11.199,
+              "RecalcStyleDuration": 187.29100000000005
+            },
+            "layout_count": 21,
+            "receipts": [
+              {
+                "marker": "2-point",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 4.4,
+                  "handler_ms": 0.4,
+                  "ui_wait_ms": 0,
+                  "render_ms": 151.2,
+                  "total_ms": 156
+                }
+              },
+              {
+                "marker": "2-finish",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 0.2,
+                  "handler_ms": 4.3,
+                  "ui_wait_ms": 89.7,
+                  "render_ms": 61.9,
+                  "total_ms": 156.1
+                }
+              },
+              {
+                "marker": "2-reopen",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 29,
+                  "handler_ms": 5.1,
+                  "ui_wait_ms": 205.7,
+                  "render_ms": 31.3,
+                  "total_ms": 271.1
+                }
+              }
+            ]
+          },
+          {
+            "round": 3,
+            "burst": 16,
+            "cpu_ms": {
+              "TaskDuration": 1141.2910000000002,
+              "ScriptDuration": 266.41299999999995,
+              "LayoutDuration": 79.663,
+              "RecalcStyleDuration": 349.66599999999994
+            },
+            "layout_count": 28,
+            "receipts": [
+              {
+                "marker": "3-point",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 4.6,
+                  "handler_ms": 0.4,
+                  "ui_wait_ms": 0,
+                  "render_ms": 109.4,
+                  "total_ms": 114.4
+                }
+              },
+              {
+                "marker": "3-finish",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 2,
+                  "handler_ms": 4.3,
+                  "ui_wait_ms": 494.6,
+                  "render_ms": 149.2,
+                  "total_ms": 650.1
+                }
+              },
+              {
+                "marker": "3-edit-0",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 6.6,
+                  "handler_ms": 2,
+                  "ui_wait_ms": 709,
+                  "render_ms": 79.8,
+                  "total_ms": 797.4
+                }
+              },
+              {
+                "marker": "3-edit-1",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 8.2,
+                  "handler_ms": 2.7,
+                  "ui_wait_ms": 706.3,
+                  "render_ms": 79.8,
+                  "total_ms": 797
+                }
+              },
+              {
+                "marker": "3-edit-2",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 10.7,
+                  "handler_ms": 3.2,
+                  "ui_wait_ms": 703,
+                  "render_ms": 79.8,
+                  "total_ms": 796.7
+                }
+              },
+              {
+                "marker": "3-edit-3",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 13.8,
+                  "handler_ms": 3.1,
+                  "ui_wait_ms": 699.9,
+                  "render_ms": 79.8,
+                  "total_ms": 796.6
+                }
+              },
+              {
+                "marker": "3-edit-4",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 93.8,
+                  "handler_ms": 4.8,
+                  "ui_wait_ms": 618.1,
+                  "render_ms": 79.8,
+                  "total_ms": 796.5
+                }
+              },
+              {
+                "marker": "3-edit-5",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 98.5,
+                  "handler_ms": 3.7,
+                  "ui_wait_ms": 614.4,
+                  "render_ms": 79.8,
+                  "total_ms": 796.4
+                }
+              },
+              {
+                "marker": "3-edit-6",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 102.2,
+                  "handler_ms": 3,
+                  "ui_wait_ms": 611.4,
+                  "render_ms": 79.8,
+                  "total_ms": 796.4
+                }
+              },
+              {
+                "marker": "3-edit-7",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 105.1,
+                  "handler_ms": 2.4,
+                  "ui_wait_ms": 609,
+                  "render_ms": 79.9,
+                  "total_ms": 796.4
+                }
+              },
+              {
+                "marker": "3-edit-8",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 107.5,
+                  "handler_ms": 6.8,
+                  "ui_wait_ms": 602.2,
+                  "render_ms": 79.9,
+                  "total_ms": 796.4
+                }
+              },
+              {
+                "marker": "3-edit-9",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 186.3,
+                  "handler_ms": 3.8,
+                  "ui_wait_ms": 526.2,
+                  "render_ms": 79.9,
+                  "total_ms": 796.2
+                }
+              },
+              {
+                "marker": "3-edit-10",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 190.3,
+                  "handler_ms": 4,
+                  "ui_wait_ms": 522,
+                  "render_ms": 79.9,
+                  "total_ms": 796.2
+                }
+              },
+              {
+                "marker": "3-edit-11",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 194.2,
+                  "handler_ms": 3.8,
+                  "ui_wait_ms": 518.2,
+                  "render_ms": 79.9,
+                  "total_ms": 796.1
+                }
+              },
+              {
+                "marker": "3-edit-12",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 198,
+                  "handler_ms": 3.3,
+                  "ui_wait_ms": 514.9,
+                  "render_ms": 80,
+                  "total_ms": 796.2
+                }
+              },
+              {
+                "marker": "3-edit-13",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 201.2,
+                  "handler_ms": 3.8,
+                  "ui_wait_ms": 511.1,
+                  "render_ms": 80,
+                  "total_ms": 796.1
+                }
+              },
+              {
+                "marker": "3-edit-14",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 279.2,
+                  "handler_ms": 3.6,
+                  "ui_wait_ms": 433.2,
+                  "render_ms": 80,
+                  "total_ms": 796
+                }
+              },
+              {
+                "marker": "3-edit-15",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 282.8,
+                  "handler_ms": 3.1,
+                  "ui_wait_ms": 430.1,
+                  "render_ms": 80,
+                  "total_ms": 796
+                }
+              },
+              {
+                "marker": "3-reopen",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 0.8,
+                  "handler_ms": 4.3,
+                  "ui_wait_ms": 201.6,
+                  "render_ms": 18.3,
+                  "total_ms": 225
+                }
+              }
+            ]
+          },
+          {
+            "round": 4,
+            "burst": 0,
+            "cpu_ms": {
+              "TaskDuration": 519.1649999999996,
+              "ScriptDuration": 117.07699999999998,
+              "LayoutDuration": 32.24099999999999,
+              "RecalcStyleDuration": 178.717
+            },
+            "layout_count": 22,
+            "receipts": [
+              {
+                "marker": "4-point",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 8.2,
+                  "handler_ms": 0.7,
+                  "ui_wait_ms": 0,
+                  "render_ms": 167.3,
+                  "total_ms": 176.2
+                }
+              },
+              {
+                "marker": "4-finish",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 0.7,
+                  "handler_ms": 7.8,
+                  "ui_wait_ms": 105.4,
+                  "render_ms": 62.6,
+                  "total_ms": 176.5
+                }
+              },
+              {
+                "marker": "4-reopen",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 0.7,
+                  "handler_ms": 5.3,
+                  "ui_wait_ms": 234,
+                  "render_ms": 29.1,
+                  "total_ms": 269.1
+                }
+              }
+            ]
+          },
+          {
+            "round": 5,
+            "burst": 16,
+            "cpu_ms": {
+              "TaskDuration": 687.9149999999998,
+              "ScriptDuration": 162.4650000000001,
+              "LayoutDuration": 38.517999999999994,
+              "RecalcStyleDuration": 226.89899999999997
+            },
+            "layout_count": 25,
+            "receipts": [
+              {
+                "marker": "5-point",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 4.1,
+                  "handler_ms": 0.6,
+                  "ui_wait_ms": 0,
+                  "render_ms": 89.4,
+                  "total_ms": 94.1
+                }
+              },
+              {
+                "marker": "5-finish",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 1.3,
+                  "handler_ms": 4,
+                  "ui_wait_ms": 259.4,
+                  "render_ms": 75.2,
+                  "total_ms": 339.9
+                }
+              },
+              {
+                "marker": "5-edit-0",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 5.9,
+                  "handler_ms": 3.1,
+                  "ui_wait_ms": 348.1,
+                  "render_ms": 36.5,
+                  "total_ms": 393.6
+                }
+              },
+              {
+                "marker": "5-edit-1",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 8.8,
+                  "handler_ms": 3.6,
+                  "ui_wait_ms": 344.5,
+                  "render_ms": 36.5,
+                  "total_ms": 393.4
+                }
+              },
+              {
+                "marker": "5-edit-2",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 12.3,
+                  "handler_ms": 3,
+                  "ui_wait_ms": 341.5,
+                  "render_ms": 36.5,
+                  "total_ms": 393.3
+                }
+              },
+              {
+                "marker": "5-edit-3",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 15.3,
+                  "handler_ms": 2.5,
+                  "ui_wait_ms": 339,
+                  "render_ms": 36.5,
+                  "total_ms": 393.3
+                }
+              },
+              {
+                "marker": "5-edit-4",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 77.7,
+                  "handler_ms": 3.1,
+                  "ui_wait_ms": 275.8,
+                  "render_ms": 36.5,
+                  "total_ms": 393.1
+                }
+              },
+              {
+                "marker": "5-edit-5",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 80.8,
+                  "handler_ms": 2.2,
+                  "ui_wait_ms": 273.6,
+                  "render_ms": 36.5,
+                  "total_ms": 393.1
+                }
+              },
+              {
+                "marker": "5-edit-6",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 82.9,
+                  "handler_ms": 2.2,
+                  "ui_wait_ms": 271.4,
+                  "render_ms": 36.5,
+                  "total_ms": 393
+                }
+              },
+              {
+                "marker": "5-edit-7",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 85.1,
+                  "handler_ms": 2.1,
+                  "ui_wait_ms": 269.3,
+                  "render_ms": 36.5,
+                  "total_ms": 393
+                }
+              },
+              {
+                "marker": "5-edit-8",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 87.1,
+                  "handler_ms": 2.3,
+                  "ui_wait_ms": 267,
+                  "render_ms": 36.5,
+                  "total_ms": 392.9
+                }
+              },
+              {
+                "marker": "5-edit-9",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 89.5,
+                  "handler_ms": 2.5,
+                  "ui_wait_ms": 264.5,
+                  "render_ms": 36.4,
+                  "total_ms": 392.9
+                }
+              },
+              {
+                "marker": "5-edit-10",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 92,
+                  "handler_ms": 2.1,
+                  "ui_wait_ms": 262.4,
+                  "render_ms": 36.4,
+                  "total_ms": 392.9
+                }
+              },
+              {
+                "marker": "5-edit-11",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 134.1,
+                  "handler_ms": 2.5,
+                  "ui_wait_ms": 219.8,
+                  "render_ms": 36.4,
+                  "total_ms": 392.8
+                }
+              },
+              {
+                "marker": "5-edit-12",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 136.5,
+                  "handler_ms": 2.3,
+                  "ui_wait_ms": 217.5,
+                  "render_ms": 36.4,
+                  "total_ms": 392.7
+                }
+              },
+              {
+                "marker": "5-edit-13",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 138.8,
+                  "handler_ms": 3.3,
+                  "ui_wait_ms": 214.2,
+                  "render_ms": 36.4,
+                  "total_ms": 392.7
+                }
+              },
+              {
+                "marker": "5-edit-14",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 142.1,
+                  "handler_ms": 2.7,
+                  "ui_wait_ms": 211.4,
+                  "render_ms": 36.5,
+                  "total_ms": 392.7
+                }
+              },
+              {
+                "marker": "5-edit-15",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 144.7,
+                  "handler_ms": 1.8,
+                  "ui_wait_ms": 209.6,
+                  "render_ms": 36.5,
+                  "total_ms": 392.6
+                }
+              },
+              {
+                "marker": "5-reopen",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 0.8,
+                  "handler_ms": 2.4,
+                  "ui_wait_ms": 171.9,
+                  "render_ms": 34.9,
+                  "total_ms": 210
+                }
+              }
+            ]
+          },
+          {
+            "round": 6,
+            "burst": 0,
+            "cpu_ms": {
+              "TaskDuration": 477.0880000000002,
+              "ScriptDuration": 81.52400000000004,
+              "LayoutDuration": 11.122999999999994,
+              "RecalcStyleDuration": 228.14599999999996
+            },
+            "layout_count": 27,
+            "receipts": [
+              {
+                "marker": "6-point",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 7.2,
+                  "handler_ms": 0.5,
+                  "ui_wait_ms": 0,
+                  "render_ms": 195.1,
+                  "total_ms": 202.8
+                }
+              },
+              {
+                "marker": "6-finish",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 0.3,
+                  "handler_ms": 6.9,
+                  "ui_wait_ms": 125.5,
+                  "render_ms": 70.1,
+                  "total_ms": 202.8
+                }
+              },
+              {
+                "marker": "6-reopen",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 1.8,
+                  "handler_ms": 2.9,
+                  "ui_wait_ms": 187.3,
+                  "render_ms": 48.3,
+                  "total_ms": 240.3
+                }
+              }
+            ]
+          },
+          {
+            "round": 7,
+            "burst": 16,
+            "cpu_ms": {
+              "TaskDuration": 638.1930000000002,
+              "ScriptDuration": 145.20299999999997,
+              "LayoutDuration": 35.72500000000001,
+              "RecalcStyleDuration": 223.30000000000007
+            },
+            "layout_count": 25,
+            "receipts": [
+              {
+                "marker": "7-point",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 3.6,
+                  "handler_ms": 0.3,
+                  "ui_wait_ms": 0,
+                  "render_ms": 85.3,
+                  "total_ms": 89.2
+                }
+              },
+              {
+                "marker": "7-finish",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 1.4,
+                  "handler_ms": 3.4,
+                  "ui_wait_ms": 240.8,
+                  "render_ms": 66.2,
+                  "total_ms": 311.8
+                }
+              },
+              {
+                "marker": "7-edit-0",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 4.9,
+                  "handler_ms": 1.4,
+                  "ui_wait_ms": 321.4,
+                  "render_ms": 36.5,
+                  "total_ms": 364.2
+                }
+              },
+              {
+                "marker": "7-edit-1",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 6.2,
+                  "handler_ms": 1.3,
+                  "ui_wait_ms": 320.1,
+                  "render_ms": 36.6,
+                  "total_ms": 364.2
+                }
+              },
+              {
+                "marker": "7-edit-2",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 7.4,
+                  "handler_ms": 1.3,
+                  "ui_wait_ms": 318.8,
+                  "render_ms": 36.6,
+                  "total_ms": 364.1
+                }
+              },
+              {
+                "marker": "7-edit-3",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 8.6,
+                  "handler_ms": 2,
+                  "ui_wait_ms": 316.8,
+                  "render_ms": 36.6,
+                  "total_ms": 364
+                }
+              },
+              {
+                "marker": "7-edit-4",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 10.6,
+                  "handler_ms": 2.8,
+                  "ui_wait_ms": 314,
+                  "render_ms": 36.6,
+                  "total_ms": 364
+                }
+              },
+              {
+                "marker": "7-edit-5",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 13.3,
+                  "handler_ms": 2.6,
+                  "ui_wait_ms": 311.5,
+                  "render_ms": 36.5,
+                  "total_ms": 363.9
+                }
+              },
+              {
+                "marker": "7-edit-6",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 15.8,
+                  "handler_ms": 2,
+                  "ui_wait_ms": 309.5,
+                  "render_ms": 36.5,
+                  "total_ms": 363.8
+                }
+              },
+              {
+                "marker": "7-edit-7",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 72.7,
+                  "handler_ms": 2,
+                  "ui_wait_ms": 252.6,
+                  "render_ms": 36.5,
+                  "total_ms": 363.8
+                }
+              },
+              {
+                "marker": "7-edit-8",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 74.8,
+                  "handler_ms": 2,
+                  "ui_wait_ms": 250.5,
+                  "render_ms": 36.5,
+                  "total_ms": 363.8
+                }
+              },
+              {
+                "marker": "7-edit-9",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 76.7,
+                  "handler_ms": 2.8,
+                  "ui_wait_ms": 247.7,
+                  "render_ms": 36.5,
+                  "total_ms": 363.7
+                }
+              },
+              {
+                "marker": "7-edit-10",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 79.4,
+                  "handler_ms": 1.9,
+                  "ui_wait_ms": 245.8,
+                  "render_ms": 36.5,
+                  "total_ms": 363.6
+                }
+              },
+              {
+                "marker": "7-edit-11",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 81.4,
+                  "handler_ms": 1.9,
+                  "ui_wait_ms": 243.8,
+                  "render_ms": 36.6,
+                  "total_ms": 363.7
+                }
+              },
+              {
+                "marker": "7-edit-12",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 83.4,
+                  "handler_ms": 1.2,
+                  "ui_wait_ms": 242.5,
+                  "render_ms": 36.6,
+                  "total_ms": 363.7
+                }
+              },
+              {
+                "marker": "7-edit-13",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 84.5,
+                  "handler_ms": 1.7,
+                  "ui_wait_ms": 240.8,
+                  "render_ms": 36.6,
+                  "total_ms": 363.6
+                }
+              },
+              {
+                "marker": "7-edit-14",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 86.1,
+                  "handler_ms": 2.5,
+                  "ui_wait_ms": 238.3,
+                  "render_ms": 36.6,
+                  "total_ms": 363.5
+                }
+              },
+              {
+                "marker": "7-edit-15",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 133.9,
+                  "handler_ms": 2.7,
+                  "ui_wait_ms": 190.3,
+                  "render_ms": 36.6,
+                  "total_ms": 363.5
+                }
+              },
+              {
+                "marker": "7-reopen",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 0.6,
+                  "handler_ms": 3.2,
+                  "ui_wait_ms": 203,
+                  "render_ms": 22.6,
+                  "total_ms": 229.4
+                }
+              }
+            ]
+          },
+          {
+            "round": 8,
+            "burst": 0,
+            "cpu_ms": {
+              "TaskDuration": 358.5989999999999,
+              "ScriptDuration": 68.29200000000002,
+              "LayoutDuration": 6.757000000000013,
+              "RecalcStyleDuration": 155.24800000000005
+            },
+            "layout_count": 20,
+            "receipts": [
+              {
+                "marker": "8-point",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 3.5,
+                  "handler_ms": 0.4,
+                  "ui_wait_ms": 0,
+                  "render_ms": 133.1,
+                  "total_ms": 137
+                }
+              },
+              {
+                "marker": "8-finish",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 0.2,
+                  "handler_ms": 3.4,
+                  "ui_wait_ms": 82.2,
+                  "render_ms": 51.4,
+                  "total_ms": 137.2
+                }
+              },
+              {
+                "marker": "8-reopen",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 1,
+                  "handler_ms": 2.7,
+                  "ui_wait_ms": 151.8,
+                  "render_ms": 19.7,
+                  "total_ms": 175.2
+                }
+              }
+            ]
+          },
+          {
+            "round": 9,
+            "burst": 16,
+            "cpu_ms": {
+              "TaskDuration": 654.2469999999998,
+              "ScriptDuration": 148.185,
+              "LayoutDuration": 38.505999999999986,
+              "RecalcStyleDuration": 211.5770000000001
+            },
+            "layout_count": 26,
+            "receipts": [
+              {
+                "marker": "9-point",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 3.9,
+                  "handler_ms": 0.3,
+                  "ui_wait_ms": 0,
+                  "render_ms": 89.8,
+                  "total_ms": 94
+                }
+              },
+              {
+                "marker": "9-finish",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 1.6,
+                  "handler_ms": 3.7,
+                  "ui_wait_ms": 243.2,
+                  "render_ms": 58.7,
+                  "total_ms": 307.2
+                }
+              },
+              {
+                "marker": "9-edit-0",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 5.3,
+                  "handler_ms": 1.5,
+                  "ui_wait_ms": 315.7,
+                  "render_ms": 104.3,
+                  "total_ms": 426.8
+                }
+              },
+              {
+                "marker": "9-edit-1",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 6.7,
+                  "handler_ms": 1.7,
+                  "ui_wait_ms": 314,
+                  "render_ms": 104.3,
+                  "total_ms": 426.7
+                }
+              },
+              {
+                "marker": "9-edit-2",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 8.3,
+                  "handler_ms": 1.3,
+                  "ui_wait_ms": 312.7,
+                  "render_ms": 104.3,
+                  "total_ms": 426.6
+                }
+              },
+              {
+                "marker": "9-edit-3",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 9.6,
+                  "handler_ms": 1.2,
+                  "ui_wait_ms": 311.4,
+                  "render_ms": 104.3,
+                  "total_ms": 426.5
+                }
+              },
+              {
+                "marker": "9-edit-4",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 10.8,
+                  "handler_ms": 2.7,
+                  "ui_wait_ms": 308.7,
+                  "render_ms": 104.3,
+                  "total_ms": 426.5
+                }
+              },
+              {
+                "marker": "9-edit-5",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 13.4,
+                  "handler_ms": 2.6,
+                  "ui_wait_ms": 306.1,
+                  "render_ms": 104.3,
+                  "total_ms": 426.4
+                }
+              },
+              {
+                "marker": "9-edit-6",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 16,
+                  "handler_ms": 2.5,
+                  "ui_wait_ms": 303.6,
+                  "render_ms": 104.3,
+                  "total_ms": 426.4
+                }
+              },
+              {
+                "marker": "9-edit-7",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 77.5,
+                  "handler_ms": 3.5,
+                  "ui_wait_ms": 241,
+                  "render_ms": 104.3,
+                  "total_ms": 426.3
+                }
+              },
+              {
+                "marker": "9-edit-8",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 81.1,
+                  "handler_ms": 2.7,
+                  "ui_wait_ms": 238.2,
+                  "render_ms": 104.3,
+                  "total_ms": 426.3
+                }
+              },
+              {
+                "marker": "9-edit-9",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 83.7,
+                  "handler_ms": 4.8,
+                  "ui_wait_ms": 233.4,
+                  "render_ms": 104.3,
+                  "total_ms": 426.2
+                }
+              },
+              {
+                "marker": "9-edit-10",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 88.4,
+                  "handler_ms": 2.2,
+                  "ui_wait_ms": 231.2,
+                  "render_ms": 104.4,
+                  "total_ms": 426.2
+                }
+              },
+              {
+                "marker": "9-edit-11",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 90.6,
+                  "handler_ms": 1.3,
+                  "ui_wait_ms": 229.9,
+                  "render_ms": 104.4,
+                  "total_ms": 426.2
+                }
+              },
+              {
+                "marker": "9-edit-12",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 91.8,
+                  "handler_ms": 1.9,
+                  "ui_wait_ms": 228,
+                  "render_ms": 104.5,
+                  "total_ms": 426.2
+                }
+              },
+              {
+                "marker": "9-edit-13",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 143,
+                  "handler_ms": 3.4,
+                  "ui_wait_ms": 175.2,
+                  "render_ms": 104.5,
+                  "total_ms": 426.1
+                }
+              },
+              {
+                "marker": "9-edit-14",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 146.3,
+                  "handler_ms": 2.1,
+                  "ui_wait_ms": 173.1,
+                  "render_ms": 104.5,
+                  "total_ms": 426
+                }
+              },
+              {
+                "marker": "9-edit-15",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 148.3,
+                  "handler_ms": 1.7,
+                  "ui_wait_ms": 171.4,
+                  "render_ms": 104.5,
+                  "total_ms": 425.9
+                }
+              },
+              {
+                "marker": "9-reopen",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 0.9,
+                  "handler_ms": 2.6,
+                  "ui_wait_ms": 155.5,
+                  "render_ms": 33.9,
+                  "total_ms": 192.9
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "mode": "after",
+        "run": 1,
+        "summary": {
+          "cpu": {
+            "count": 10,
+            "mean_ms": 549.1542999999998,
+            "p50_ms": 540.1249999999998,
+            "p95_ms": 1194.399,
+            "max_ms": 1194.399
+          },
+          "finish": {
+            "count": 10,
+            "mean_ms": 252.63999999999996,
+            "p50_ms": 264.9,
+            "p95_ms": 641.9,
+            "max_ms": 641.9
+          },
+          "point": {
+            "count": 10,
+            "mean_ms": 121.75,
+            "p50_ms": 112.2,
+            "p95_ms": 209.6,
+            "max_ms": 209.6
+          },
+          "reopen": {
+            "count": 10,
+            "mean_ms": 200.91,
+            "p50_ms": 179.6,
+            "p95_ms": 285.6,
+            "max_ms": 285.6
+          }
+        },
+        "phases": [
+          {
+            "round": 0,
+            "burst": 0,
+            "cpu_ms": {
+              "TaskDuration": 409.619,
+              "ScriptDuration": 122.96600000000001,
+              "LayoutDuration": 6.899,
+              "RecalcStyleDuration": 127.57199999999999
+            },
+            "layout_count": 13,
+            "receipts": [
+              {
+                "marker": "0-point",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 73.1,
+                  "handler_ms": 1,
+                  "ui_wait_ms": 0,
+                  "render_ms": 111.7,
+                  "total_ms": 185.8
+                }
+              },
+              {
+                "marker": "0-finish",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 1,
+                  "handler_ms": 20,
+                  "ui_wait_ms": 119.4,
+                  "render_ms": 46,
+                  "total_ms": 186.4
+                }
+              },
+              {
+                "marker": "0-reopen",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 0.7,
+                  "handler_ms": 7.1,
+                  "ui_wait_ms": 150,
+                  "render_ms": 18.3,
+                  "total_ms": 176.1
+                }
+              }
+            ]
+          },
+          {
+            "round": 1,
+            "burst": 16,
+            "cpu_ms": {
+              "TaskDuration": 1194.399,
+              "ScriptDuration": 326.734,
+              "LayoutDuration": 67.463,
+              "RecalcStyleDuration": 317.97200000000004
+            },
+            "layout_count": 20,
+            "receipts": [
+              {
+                "marker": "1-point",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 5.2,
+                  "handler_ms": 0.6,
+                  "ui_wait_ms": 0,
+                  "render_ms": 86.2,
+                  "total_ms": 92
+                }
+              },
+              {
+                "marker": "1-finish",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 1.9,
+                  "handler_ms": 5,
+                  "ui_wait_ms": 456.9,
+                  "render_ms": 178.1,
+                  "total_ms": 641.9
+                }
+              },
+              {
+                "marker": "1-edit-0",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 7.4,
+                  "handler_ms": 7.3,
+                  "ui_wait_ms": 650.9,
+                  "render_ms": 173.3,
+                  "total_ms": 838.9
+                }
+              },
+              {
+                "marker": "1-edit-1",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 14.4,
+                  "handler_ms": 6.3,
+                  "ui_wait_ms": 644.6,
+                  "render_ms": 173.4,
+                  "total_ms": 838.7
+                }
+              },
+              {
+                "marker": "1-edit-2",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 74.8,
+                  "handler_ms": 5.4,
+                  "ui_wait_ms": 585,
+                  "render_ms": 173.4,
+                  "total_ms": 838.6
+                }
+              },
+              {
+                "marker": "1-edit-3",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 80.1,
+                  "handler_ms": 6.1,
+                  "ui_wait_ms": 578.8,
+                  "render_ms": 173.5,
+                  "total_ms": 838.5
+                }
+              },
+              {
+                "marker": "1-edit-4",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 86.2,
+                  "handler_ms": 3.4,
+                  "ui_wait_ms": 575.4,
+                  "render_ms": 173.6,
+                  "total_ms": 838.6
+                }
+              },
+              {
+                "marker": "1-edit-5",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 89.6,
+                  "handler_ms": 2.7,
+                  "ui_wait_ms": 572.6,
+                  "render_ms": 173.6,
+                  "total_ms": 838.5
+                }
+              },
+              {
+                "marker": "1-edit-6",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 136.3,
+                  "handler_ms": 4.6,
+                  "ui_wait_ms": 523.9,
+                  "render_ms": 173.6,
+                  "total_ms": 838.4
+                }
+              },
+              {
+                "marker": "1-edit-7",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 140.8,
+                  "handler_ms": 3.7,
+                  "ui_wait_ms": 520.2,
+                  "render_ms": 173.6,
+                  "total_ms": 838.3
+                }
+              },
+              {
+                "marker": "1-edit-8",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 144.4,
+                  "handler_ms": 3.3,
+                  "ui_wait_ms": 516.9,
+                  "render_ms": 173.6,
+                  "total_ms": 838.2
+                }
+              },
+              {
+                "marker": "1-edit-9",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 147.6,
+                  "handler_ms": 2.9,
+                  "ui_wait_ms": 514.1,
+                  "render_ms": 173.5,
+                  "total_ms": 838.1
+                }
+              },
+              {
+                "marker": "1-edit-10",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 150.4,
+                  "handler_ms": 2.8,
+                  "ui_wait_ms": 511.3,
+                  "render_ms": 173.5,
+                  "total_ms": 838
+                }
+              },
+              {
+                "marker": "1-edit-11",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 213.2,
+                  "handler_ms": 6,
+                  "ui_wait_ms": 445.3,
+                  "render_ms": 173.5,
+                  "total_ms": 838
+                }
+              },
+              {
+                "marker": "1-edit-12",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 219.1,
+                  "handler_ms": 5.4,
+                  "ui_wait_ms": 439.9,
+                  "render_ms": 173.5,
+                  "total_ms": 837.9
+                }
+              },
+              {
+                "marker": "1-edit-13",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 224.5,
+                  "handler_ms": 5.2,
+                  "ui_wait_ms": 434.7,
+                  "render_ms": 173.5,
+                  "total_ms": 837.9
+                }
+              },
+              {
+                "marker": "1-edit-14",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 297.8,
+                  "handler_ms": 5.3,
+                  "ui_wait_ms": 361.3,
+                  "render_ms": 173.5,
+                  "total_ms": 837.9
+                }
+              },
+              {
+                "marker": "1-edit-15",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 303,
+                  "handler_ms": 5.3,
+                  "ui_wait_ms": 355.9,
+                  "render_ms": 173.5,
+                  "total_ms": 837.7
+                }
+              },
+              {
+                "marker": "1-reopen",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 1.7,
+                  "handler_ms": 10.4,
+                  "ui_wait_ms": 226.2,
+                  "render_ms": 47.3,
+                  "total_ms": 285.6
+                }
+              }
+            ]
+          },
+          {
+            "round": 2,
+            "burst": 0,
+            "cpu_ms": {
+              "TaskDuration": 554.4699999999998,
+              "ScriptDuration": 115.34100000000002,
+              "LayoutDuration": 46.617000000000004,
+              "RecalcStyleDuration": 181.73900000000003
+            },
+            "layout_count": 13,
+            "receipts": [
+              {
+                "marker": "2-point",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 4.3,
+                  "handler_ms": 0.4,
+                  "ui_wait_ms": 0,
+                  "render_ms": 204.9,
+                  "total_ms": 209.6
+                }
+              },
+              {
+                "marker": "2-finish",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 0.1,
+                  "handler_ms": 4.1,
+                  "ui_wait_ms": 98.2,
+                  "render_ms": 107.3,
+                  "total_ms": 209.7
+                }
+              },
+              {
+                "marker": "2-reopen",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 0.7,
+                  "handler_ms": 4.2,
+                  "ui_wait_ms": 252.1,
+                  "render_ms": 27.2,
+                  "total_ms": 284.2
+                }
+              }
+            ]
+          },
+          {
+            "round": 3,
+            "burst": 16,
+            "cpu_ms": {
+              "TaskDuration": 540.1249999999998,
+              "ScriptDuration": 151.46499999999997,
+              "LayoutDuration": 17.44599999999999,
+              "RecalcStyleDuration": 158.86899999999991
+            },
+            "layout_count": 16,
+            "receipts": [
+              {
+                "marker": "3-point",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 4.6,
+                  "handler_ms": 0.4,
+                  "ui_wait_ms": 0,
+                  "render_ms": 82,
+                  "total_ms": 87
+                }
+              },
+              {
+                "marker": "3-finish",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 2.2,
+                  "handler_ms": 4.5,
+                  "ui_wait_ms": 211.3,
+                  "render_ms": 73.7,
+                  "total_ms": 291.7
+                }
+              },
+              {
+                "marker": "3-edit-0",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 6.8,
+                  "handler_ms": 1.9,
+                  "ui_wait_ms": 297.7,
+                  "render_ms": 37.7,
+                  "total_ms": 344.1
+                }
+              },
+              {
+                "marker": "3-edit-1",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 8.5,
+                  "handler_ms": 1.7,
+                  "ui_wait_ms": 296,
+                  "render_ms": 37.8,
+                  "total_ms": 344
+                }
+              },
+              {
+                "marker": "3-edit-2",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 10,
+                  "handler_ms": 2.3,
+                  "ui_wait_ms": 293.7,
+                  "render_ms": 37.8,
+                  "total_ms": 343.8
+                }
+              },
+              {
+                "marker": "3-edit-3",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 12.2,
+                  "handler_ms": 2.8,
+                  "ui_wait_ms": 290.9,
+                  "render_ms": 37.8,
+                  "total_ms": 343.7
+                }
+              },
+              {
+                "marker": "3-edit-4",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 14.8,
+                  "handler_ms": 3,
+                  "ui_wait_ms": 287.9,
+                  "render_ms": 37.8,
+                  "total_ms": 343.5
+                }
+              },
+              {
+                "marker": "3-edit-5",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 71.3,
+                  "handler_ms": 2.6,
+                  "ui_wait_ms": 231.7,
+                  "render_ms": 37.8,
+                  "total_ms": 343.4
+                }
+              },
+              {
+                "marker": "3-edit-6",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 73.7,
+                  "handler_ms": 3.5,
+                  "ui_wait_ms": 228.2,
+                  "render_ms": 37.8,
+                  "total_ms": 343.2
+                }
+              },
+              {
+                "marker": "3-edit-7",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 77.1,
+                  "handler_ms": 3.8,
+                  "ui_wait_ms": 224.4,
+                  "render_ms": 37.8,
+                  "total_ms": 343.1
+                }
+              },
+              {
+                "marker": "3-edit-8",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 80.7,
+                  "handler_ms": 2.2,
+                  "ui_wait_ms": 222.2,
+                  "render_ms": 37.8,
+                  "total_ms": 342.9
+                }
+              },
+              {
+                "marker": "3-edit-9",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 82.9,
+                  "handler_ms": 1.9,
+                  "ui_wait_ms": 220.3,
+                  "render_ms": 37.8,
+                  "total_ms": 342.9
+                }
+              },
+              {
+                "marker": "3-edit-10",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 84.6,
+                  "handler_ms": 2.2,
+                  "ui_wait_ms": 218.1,
+                  "render_ms": 37.8,
+                  "total_ms": 342.7
+                }
+              },
+              {
+                "marker": "3-edit-11",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 130.6,
+                  "handler_ms": 2.9,
+                  "ui_wait_ms": 171.4,
+                  "render_ms": 37.9,
+                  "total_ms": 342.8
+                }
+              },
+              {
+                "marker": "3-edit-12",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 133.5,
+                  "handler_ms": 2.8,
+                  "ui_wait_ms": 168.5,
+                  "render_ms": 37.9,
+                  "total_ms": 342.7
+                }
+              },
+              {
+                "marker": "3-edit-13",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 136.3,
+                  "handler_ms": 2.4,
+                  "ui_wait_ms": 166.1,
+                  "render_ms": 37.9,
+                  "total_ms": 342.7
+                }
+              },
+              {
+                "marker": "3-edit-14",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 138.6,
+                  "handler_ms": 2.3,
+                  "ui_wait_ms": 163.8,
+                  "render_ms": 37.9,
+                  "total_ms": 342.6
+                }
+              },
+              {
+                "marker": "3-edit-15",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 140.8,
+                  "handler_ms": 1.7,
+                  "ui_wait_ms": 162.1,
+                  "render_ms": 37.9,
+                  "total_ms": 342.5
+                }
+              },
+              {
+                "marker": "3-reopen",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 0.9,
+                  "handler_ms": 3.1,
+                  "ui_wait_ms": 130.3,
+                  "render_ms": 27.2,
+                  "total_ms": 161.5
+                }
+              }
+            ]
+          },
+          {
+            "round": 4,
+            "burst": 0,
+            "cpu_ms": {
+              "TaskDuration": 384.741,
+              "ScriptDuration": 83.38699999999999,
+              "LayoutDuration": 36.009000000000015,
+              "RecalcStyleDuration": 101.097
+            },
+            "layout_count": 14,
+            "receipts": [
+              {
+                "marker": "4-point",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 4.2,
+                  "handler_ms": 0.3,
+                  "ui_wait_ms": 0,
+                  "render_ms": 116,
+                  "total_ms": 120.5
+                }
+              },
+              {
+                "marker": "4-finish",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 0.2,
+                  "handler_ms": 4.1,
+                  "ui_wait_ms": 52.6,
+                  "render_ms": 63.7,
+                  "total_ms": 120.6
+                }
+              },
+              {
+                "marker": "4-reopen",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 0.7,
+                  "handler_ms": 3.2,
+                  "ui_wait_ms": 130.9,
+                  "render_ms": 30.5,
+                  "total_ms": 165.3
+                }
+              }
+            ]
+          },
+          {
+            "round": 5,
+            "burst": 16,
+            "cpu_ms": {
+              "TaskDuration": 500.6199999999996,
+              "ScriptDuration": 139.89999999999992,
+              "LayoutDuration": 16.787999999999997,
+              "RecalcStyleDuration": 147.86999999999995
+            },
+            "layout_count": 16,
+            "receipts": [
+              {
+                "marker": "5-point",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 4.1,
+                  "handler_ms": 0.2,
+                  "ui_wait_ms": 0,
+                  "render_ms": 80.2,
+                  "total_ms": 84.5
+                }
+              },
+              {
+                "marker": "5-finish",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 1.3,
+                  "handler_ms": 3.8,
+                  "ui_wait_ms": 187.8,
+                  "render_ms": 72,
+                  "total_ms": 264.9
+                }
+              },
+              {
+                "marker": "5-edit-0",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 5.3,
+                  "handler_ms": 1.4,
+                  "ui_wait_ms": 275.4,
+                  "render_ms": 46.5,
+                  "total_ms": 328.6
+                }
+              },
+              {
+                "marker": "5-edit-1",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 6.5,
+                  "handler_ms": 1.4,
+                  "ui_wait_ms": 274,
+                  "render_ms": 46.5,
+                  "total_ms": 328.4
+                }
+              },
+              {
+                "marker": "5-edit-2",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 7.9,
+                  "handler_ms": 1.9,
+                  "ui_wait_ms": 272.1,
+                  "render_ms": 46.5,
+                  "total_ms": 328.4
+                }
+              },
+              {
+                "marker": "5-edit-3",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 9.8,
+                  "handler_ms": 1.4,
+                  "ui_wait_ms": 270.7,
+                  "render_ms": 46.5,
+                  "total_ms": 328.4
+                }
+              },
+              {
+                "marker": "5-edit-4",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 11.1,
+                  "handler_ms": 1.8,
+                  "ui_wait_ms": 268.9,
+                  "render_ms": 46.5,
+                  "total_ms": 328.3
+                }
+              },
+              {
+                "marker": "5-edit-5",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 12.9,
+                  "handler_ms": 2.3,
+                  "ui_wait_ms": 266.6,
+                  "render_ms": 46.5,
+                  "total_ms": 328.3
+                }
+              },
+              {
+                "marker": "5-edit-6",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 15.1,
+                  "handler_ms": 2.3,
+                  "ui_wait_ms": 264.3,
+                  "render_ms": 46.5,
+                  "total_ms": 328.2
+                }
+              },
+              {
+                "marker": "5-edit-7",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 68,
+                  "handler_ms": 2.4,
+                  "ui_wait_ms": 211.3,
+                  "render_ms": 46.6,
+                  "total_ms": 328.3
+                }
+              },
+              {
+                "marker": "5-edit-8",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 70.2,
+                  "handler_ms": 2.4,
+                  "ui_wait_ms": 208.9,
+                  "render_ms": 46.6,
+                  "total_ms": 328.1
+                }
+              },
+              {
+                "marker": "5-edit-9",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 72.6,
+                  "handler_ms": 4.1,
+                  "ui_wait_ms": 204.8,
+                  "render_ms": 46.6,
+                  "total_ms": 328.1
+                }
+              },
+              {
+                "marker": "5-edit-10",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 76.7,
+                  "handler_ms": 2.4,
+                  "ui_wait_ms": 202.4,
+                  "render_ms": 46.7,
+                  "total_ms": 328.2
+                }
+              },
+              {
+                "marker": "5-edit-11",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 79,
+                  "handler_ms": 2.1,
+                  "ui_wait_ms": 200.3,
+                  "render_ms": 46.7,
+                  "total_ms": 328.1
+                }
+              },
+              {
+                "marker": "5-edit-12",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 81,
+                  "handler_ms": 1.5,
+                  "ui_wait_ms": 198.8,
+                  "render_ms": 46.7,
+                  "total_ms": 328
+                }
+              },
+              {
+                "marker": "5-edit-13",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 82.4,
+                  "handler_ms": 1.9,
+                  "ui_wait_ms": 196.9,
+                  "render_ms": 46.7,
+                  "total_ms": 327.9
+                }
+              },
+              {
+                "marker": "5-edit-14",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 123,
+                  "handler_ms": 3.1,
+                  "ui_wait_ms": 155,
+                  "render_ms": 46.7,
+                  "total_ms": 327.8
+                }
+              },
+              {
+                "marker": "5-edit-15",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 126.1,
+                  "handler_ms": 2.8,
+                  "ui_wait_ms": 152.2,
+                  "render_ms": 46.7,
+                  "total_ms": 327.8
+                }
+              },
+              {
+                "marker": "5-reopen",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 0.6,
+                  "handler_ms": 3.3,
+                  "ui_wait_ms": 124.1,
+                  "render_ms": 34.6,
+                  "total_ms": 162.6
+                }
+              }
+            ]
+          },
+          {
+            "round": 6,
+            "burst": 0,
+            "cpu_ms": {
+              "TaskDuration": 389.9379999999999,
+              "ScriptDuration": 80.52000000000004,
+              "LayoutDuration": 31.843999999999983,
+              "RecalcStyleDuration": 121.12800000000013
+            },
+            "layout_count": 17,
+            "receipts": [
+              {
+                "marker": "6-point",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 5.8,
+                  "handler_ms": 0.6,
+                  "ui_wait_ms": 0,
+                  "render_ms": 148.4,
+                  "total_ms": 154.8
+                }
+              },
+              {
+                "marker": "6-finish",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 0.2,
+                  "handler_ms": 5.7,
+                  "ui_wait_ms": 85.2,
+                  "render_ms": 63.8,
+                  "total_ms": 154.9
+                }
+              },
+              {
+                "marker": "6-reopen",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 0.6,
+                  "handler_ms": 3.3,
+                  "ui_wait_ms": 156.9,
+                  "render_ms": 29.7,
+                  "total_ms": 190.5
+                }
+              }
+            ]
+          },
+          {
+            "round": 7,
+            "burst": 16,
+            "cpu_ms": {
+              "TaskDuration": 603.8969999999999,
+              "ScriptDuration": 153.902,
+              "LayoutDuration": 40.574,
+              "RecalcStyleDuration": 166.52800000000002
+            },
+            "layout_count": 17,
+            "receipts": [
+              {
+                "marker": "7-point",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 4.2,
+                  "handler_ms": 0.3,
+                  "ui_wait_ms": 0,
+                  "render_ms": 83.5,
+                  "total_ms": 88
+                }
+              },
+              {
+                "marker": "7-finish",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 1.3,
+                  "handler_ms": 4,
+                  "ui_wait_ms": 197.4,
+                  "render_ms": 74.7,
+                  "total_ms": 277.4
+                }
+              },
+              {
+                "marker": "7-edit-0",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 5.6,
+                  "handler_ms": 1.3,
+                  "ui_wait_ms": 289.2,
+                  "render_ms": 36,
+                  "total_ms": 332.1
+                }
+              },
+              {
+                "marker": "7-edit-1",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 6.8,
+                  "handler_ms": 1.1,
+                  "ui_wait_ms": 288.1,
+                  "render_ms": 36.1,
+                  "total_ms": 332.1
+                }
+              },
+              {
+                "marker": "7-edit-2",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 7.9,
+                  "handler_ms": 1.3,
+                  "ui_wait_ms": 286.7,
+                  "render_ms": 36.1,
+                  "total_ms": 332
+                }
+              },
+              {
+                "marker": "7-edit-3",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 9.2,
+                  "handler_ms": 1.5,
+                  "ui_wait_ms": 285.2,
+                  "render_ms": 36.1,
+                  "total_ms": 332
+                }
+              },
+              {
+                "marker": "7-edit-4",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 10.7,
+                  "handler_ms": 1.5,
+                  "ui_wait_ms": 283.7,
+                  "render_ms": 36.1,
+                  "total_ms": 332
+                }
+              },
+              {
+                "marker": "7-edit-5",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 12,
+                  "handler_ms": 2.3,
+                  "ui_wait_ms": 281.5,
+                  "render_ms": 36.1,
+                  "total_ms": 331.9
+                }
+              },
+              {
+                "marker": "7-edit-6",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 14.3,
+                  "handler_ms": 1.8,
+                  "ui_wait_ms": 279.7,
+                  "render_ms": 36.1,
+                  "total_ms": 331.9
+                }
+              },
+              {
+                "marker": "7-edit-7",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 16.1,
+                  "handler_ms": 2,
+                  "ui_wait_ms": 277.7,
+                  "render_ms": 36.1,
+                  "total_ms": 331.9
+                }
+              },
+              {
+                "marker": "7-edit-8",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 71.3,
+                  "handler_ms": 2.8,
+                  "ui_wait_ms": 221.6,
+                  "render_ms": 36.1,
+                  "total_ms": 331.8
+                }
+              },
+              {
+                "marker": "7-edit-9",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 74.2,
+                  "handler_ms": 2.4,
+                  "ui_wait_ms": 219.1,
+                  "render_ms": 36.1,
+                  "total_ms": 331.8
+                }
+              },
+              {
+                "marker": "7-edit-10",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 76.4,
+                  "handler_ms": 2.7,
+                  "ui_wait_ms": 216.4,
+                  "render_ms": 36.1,
+                  "total_ms": 331.6
+                }
+              },
+              {
+                "marker": "7-edit-11",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 79,
+                  "handler_ms": 3.6,
+                  "ui_wait_ms": 212.8,
+                  "render_ms": 36.2,
+                  "total_ms": 331.6
+                }
+              },
+              {
+                "marker": "7-edit-12",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 82.5,
+                  "handler_ms": 2.1,
+                  "ui_wait_ms": 210.7,
+                  "render_ms": 36.2,
+                  "total_ms": 331.5
+                }
+              },
+              {
+                "marker": "7-edit-13",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 84.6,
+                  "handler_ms": 1.7,
+                  "ui_wait_ms": 209,
+                  "render_ms": 36.2,
+                  "total_ms": 331.5
+                }
+              },
+              {
+                "marker": "7-edit-14",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 86.2,
+                  "handler_ms": 1.5,
+                  "ui_wait_ms": 207.5,
+                  "render_ms": 36.2,
+                  "total_ms": 331.4
+                }
+              },
+              {
+                "marker": "7-edit-15",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 130.5,
+                  "handler_ms": 2.3,
+                  "ui_wait_ms": 162.3,
+                  "render_ms": 36.2,
+                  "total_ms": 331.3
+                }
+              },
+              {
+                "marker": "7-reopen",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 0.8,
+                  "handler_ms": 3.6,
+                  "ui_wait_ms": 150.2,
+                  "render_ms": 25,
+                  "total_ms": 179.6
+                }
+              }
+            ]
+          },
+          {
+            "round": 8,
+            "burst": 0,
+            "cpu_ms": {
+              "TaskDuration": 323.7139999999998,
+              "ScriptDuration": 66.91800000000003,
+              "LayoutDuration": 6.3870000000000315,
+              "RecalcStyleDuration": 111.47599999999991
+            },
+            "layout_count": 12,
+            "receipts": [
+              {
+                "marker": "8-point",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 3.9,
+                  "handler_ms": 0.3,
+                  "ui_wait_ms": 0,
+                  "render_ms": 108,
+                  "total_ms": 112.2
+                }
+              },
+              {
+                "marker": "8-finish",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 0.1,
+                  "handler_ms": 3.8,
+                  "ui_wait_ms": 47.3,
+                  "render_ms": 61,
+                  "total_ms": 112.2
+                }
+              },
+              {
+                "marker": "8-reopen",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 0.7,
+                  "handler_ms": 2.7,
+                  "ui_wait_ms": 144.8,
+                  "render_ms": 26.9,
+                  "total_ms": 175.1
+                }
+              }
+            ]
+          },
+          {
+            "round": 9,
+            "burst": 16,
+            "cpu_ms": {
+              "TaskDuration": 590.02,
+              "ScriptDuration": 147.7979999999999,
+              "LayoutDuration": 47.425,
+              "RecalcStyleDuration": 157.76000000000013
+            },
+            "layout_count": 17,
+            "receipts": [
+              {
+                "marker": "9-point",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 4.3,
+                  "handler_ms": 0.4,
+                  "ui_wait_ms": 0,
+                  "render_ms": 78.4,
+                  "total_ms": 83.1
+                }
+              },
+              {
+                "marker": "9-finish",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 1.6,
+                  "handler_ms": 4.2,
+                  "ui_wait_ms": 188.8,
+                  "render_ms": 72.1,
+                  "total_ms": 266.7
+                }
+              },
+              {
+                "marker": "9-edit-0",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 6,
+                  "handler_ms": 1.7,
+                  "ui_wait_ms": 275.6,
+                  "render_ms": 45.3,
+                  "total_ms": 328.6
+                }
+              },
+              {
+                "marker": "9-edit-1",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 7.6,
+                  "handler_ms": 1.8,
+                  "ui_wait_ms": 273.8,
+                  "render_ms": 45.3,
+                  "total_ms": 328.5
+                }
+              },
+              {
+                "marker": "9-edit-2",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 9.2,
+                  "handler_ms": 1.7,
+                  "ui_wait_ms": 272.1,
+                  "render_ms": 45.3,
+                  "total_ms": 328.3
+                }
+              },
+              {
+                "marker": "9-edit-3",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 10.9,
+                  "handler_ms": 2.6,
+                  "ui_wait_ms": 269.5,
+                  "render_ms": 45.3,
+                  "total_ms": 328.3
+                }
+              },
+              {
+                "marker": "9-edit-4",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 13.4,
+                  "handler_ms": 2,
+                  "ui_wait_ms": 267.5,
+                  "render_ms": 45.3,
+                  "total_ms": 328.2
+                }
+              },
+              {
+                "marker": "9-edit-5",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 15.3,
+                  "handler_ms": 1.9,
+                  "ui_wait_ms": 265.6,
+                  "render_ms": 45.3,
+                  "total_ms": 328.1
+                }
+              },
+              {
+                "marker": "9-edit-6",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 66.1,
+                  "handler_ms": 2.7,
+                  "ui_wait_ms": 214,
+                  "render_ms": 45.3,
+                  "total_ms": 328.1
+                }
+              },
+              {
+                "marker": "9-edit-7",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 68.5,
+                  "handler_ms": 2.2,
+                  "ui_wait_ms": 211.8,
+                  "render_ms": 45.3,
+                  "total_ms": 327.8
+                }
+              },
+              {
+                "marker": "9-edit-8",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 70.6,
+                  "handler_ms": 4,
+                  "ui_wait_ms": 207.8,
+                  "render_ms": 45.4,
+                  "total_ms": 327.8
+                }
+              },
+              {
+                "marker": "9-edit-9",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 74.6,
+                  "handler_ms": 2,
+                  "ui_wait_ms": 205.8,
+                  "render_ms": 45.4,
+                  "total_ms": 327.8
+                }
+              },
+              {
+                "marker": "9-edit-10",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 76.6,
+                  "handler_ms": 2.2,
+                  "ui_wait_ms": 203.6,
+                  "render_ms": 45.4,
+                  "total_ms": 327.8
+                }
+              },
+              {
+                "marker": "9-edit-11",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 78.7,
+                  "handler_ms": 2,
+                  "ui_wait_ms": 201.5,
+                  "render_ms": 45.4,
+                  "total_ms": 327.6
+                }
+              },
+              {
+                "marker": "9-edit-12",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 80.7,
+                  "handler_ms": 1.7,
+                  "ui_wait_ms": 199.8,
+                  "render_ms": 45.4,
+                  "total_ms": 327.6
+                }
+              },
+              {
+                "marker": "9-edit-13",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 121.8,
+                  "handler_ms": 2.3,
+                  "ui_wait_ms": 158.1,
+                  "render_ms": 45.4,
+                  "total_ms": 327.6
+                }
+              },
+              {
+                "marker": "9-edit-14",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 123.9,
+                  "handler_ms": 2.1,
+                  "ui_wait_ms": 156,
+                  "render_ms": 45.4,
+                  "total_ms": 327.4
+                }
+              },
+              {
+                "marker": "9-edit-15",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 126,
+                  "handler_ms": 2.5,
+                  "ui_wait_ms": 153.5,
+                  "render_ms": 45.4,
+                  "total_ms": 327.4
+                }
+              },
+              {
+                "marker": "9-reopen",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 0.9,
+                  "handler_ms": 3,
+                  "ui_wait_ms": 131.3,
+                  "render_ms": 93.4,
+                  "total_ms": 228.6
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "mode": "after",
+        "run": 2,
+        "summary": {
+          "cpu": {
+            "count": 10,
+            "mean_ms": 481.4067000000001,
+            "p50_ms": 577.2470000000003,
+            "p95_ms": 656.4139999999999,
+            "max_ms": 656.4139999999999
+          },
+          "finish": {
+            "count": 10,
+            "mean_ms": 218.22000000000003,
+            "p50_ms": 280.9,
+            "p95_ms": 350.8,
+            "max_ms": 350.8
+          },
+          "point": {
+            "count": 10,
+            "mean_ms": 107.08999999999999,
+            "p50_ms": 102.6,
+            "p95_ms": 170.6,
+            "max_ms": 170.6
+          },
+          "reopen": {
+            "count": 10,
+            "mean_ms": 178.75,
+            "p50_ms": 175.4,
+            "p95_ms": 212.3,
+            "max_ms": 212.3
+          }
+        },
+        "phases": [
+          {
+            "round": 0,
+            "burst": 0,
+            "cpu_ms": {
+              "TaskDuration": 392.903,
+              "ScriptDuration": 118.647,
+              "LayoutDuration": 8.231,
+              "RecalcStyleDuration": 112.69999999999999
+            },
+            "layout_count": 14,
+            "receipts": [
+              {
+                "marker": "0-point",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 72.5,
+                  "handler_ms": 1.2,
+                  "ui_wait_ms": 0,
+                  "render_ms": 96.9,
+                  "total_ms": 170.6
+                }
+              },
+              {
+                "marker": "0-finish",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 1.3,
+                  "handler_ms": 21.2,
+                  "ui_wait_ms": 109.5,
+                  "render_ms": 39.5,
+                  "total_ms": 171.5
+                }
+              },
+              {
+                "marker": "0-reopen",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 0.7,
+                  "handler_ms": 7.6,
+                  "ui_wait_ms": 146.4,
+                  "render_ms": 20.7,
+                  "total_ms": 175.4
+                }
+              }
+            ]
+          },
+          {
+            "round": 1,
+            "burst": 16,
+            "cpu_ms": {
+              "TaskDuration": 651.9110000000002,
+              "ScriptDuration": 187.645,
+              "LayoutDuration": 36.202,
+              "RecalcStyleDuration": 161.69799999999998
+            },
+            "layout_count": 18,
+            "receipts": [
+              {
+                "marker": "1-point",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 4.5,
+                  "handler_ms": 0.4,
+                  "ui_wait_ms": 0,
+                  "render_ms": 82.7,
+                  "total_ms": 87.6
+                }
+              },
+              {
+                "marker": "1-finish",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 3,
+                  "handler_ms": 4.1,
+                  "ui_wait_ms": 263.1,
+                  "render_ms": 80.6,
+                  "total_ms": 350.8
+                }
+              },
+              {
+                "marker": "1-edit-0",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 7.3,
+                  "handler_ms": 5.3,
+                  "ui_wait_ms": 352,
+                  "render_ms": 46.2,
+                  "total_ms": 410.8
+                }
+              },
+              {
+                "marker": "1-edit-1",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 12.6,
+                  "handler_ms": 5.6,
+                  "ui_wait_ms": 346.3,
+                  "render_ms": 46.2,
+                  "total_ms": 410.7
+                }
+              },
+              {
+                "marker": "1-edit-2",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 18.1,
+                  "handler_ms": 2.8,
+                  "ui_wait_ms": 343.4,
+                  "render_ms": 46.4,
+                  "total_ms": 410.7
+                }
+              },
+              {
+                "marker": "1-edit-3",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 72.5,
+                  "handler_ms": 4.3,
+                  "ui_wait_ms": 287.3,
+                  "render_ms": 46.4,
+                  "total_ms": 410.5
+                }
+              },
+              {
+                "marker": "1-edit-4",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 76.6,
+                  "handler_ms": 5.1,
+                  "ui_wait_ms": 282.2,
+                  "render_ms": 46.4,
+                  "total_ms": 410.3
+                }
+              },
+              {
+                "marker": "1-edit-5",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 81.6,
+                  "handler_ms": 4.6,
+                  "ui_wait_ms": 277.5,
+                  "render_ms": 46.4,
+                  "total_ms": 410.1
+                }
+              },
+              {
+                "marker": "1-edit-6",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 86,
+                  "handler_ms": 2.5,
+                  "ui_wait_ms": 275,
+                  "render_ms": 46.4,
+                  "total_ms": 409.9
+                }
+              },
+              {
+                "marker": "1-edit-7",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 127.6,
+                  "handler_ms": 4.3,
+                  "ui_wait_ms": 231.5,
+                  "render_ms": 46.4,
+                  "total_ms": 409.8
+                }
+              },
+              {
+                "marker": "1-edit-8",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 131.7,
+                  "handler_ms": 3.3,
+                  "ui_wait_ms": 228.2,
+                  "render_ms": 46.4,
+                  "total_ms": 409.6
+                }
+              },
+              {
+                "marker": "1-edit-9",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 134.9,
+                  "handler_ms": 2.6,
+                  "ui_wait_ms": 225.6,
+                  "render_ms": 46.4,
+                  "total_ms": 409.5
+                }
+              },
+              {
+                "marker": "1-edit-10",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 137.3,
+                  "handler_ms": 1.9,
+                  "ui_wait_ms": 223.7,
+                  "render_ms": 46.4,
+                  "total_ms": 409.3
+                }
+              },
+              {
+                "marker": "1-edit-11",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 139,
+                  "handler_ms": 2.2,
+                  "ui_wait_ms": 221.5,
+                  "render_ms": 46.4,
+                  "total_ms": 409.1
+                }
+              },
+              {
+                "marker": "1-edit-12",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 141.1,
+                  "handler_ms": 3.4,
+                  "ui_wait_ms": 218.1,
+                  "render_ms": 46.4,
+                  "total_ms": 409
+                }
+              },
+              {
+                "marker": "1-edit-13",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 183.4,
+                  "handler_ms": 3.4,
+                  "ui_wait_ms": 175.6,
+                  "render_ms": 46.4,
+                  "total_ms": 408.8
+                }
+              },
+              {
+                "marker": "1-edit-14",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 186.8,
+                  "handler_ms": 3.2,
+                  "ui_wait_ms": 172.5,
+                  "render_ms": 46.3,
+                  "total_ms": 408.8
+                }
+              },
+              {
+                "marker": "1-edit-15",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 189.8,
+                  "handler_ms": 3.7,
+                  "ui_wait_ms": 168.8,
+                  "render_ms": 46.3,
+                  "total_ms": 408.6
+                }
+              },
+              {
+                "marker": "1-reopen",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 0.7,
+                  "handler_ms": 3.9,
+                  "ui_wait_ms": 128.1,
+                  "render_ms": 72.1,
+                  "total_ms": 204.8
+                }
+              }
+            ]
+          },
+          {
+            "round": 2,
+            "burst": 0,
+            "cpu_ms": {
+              "TaskDuration": 296.74900000000014,
+              "ScriptDuration": 66.02399999999997,
+              "LayoutDuration": 5.5740000000000025,
+              "RecalcStyleDuration": 103.70900000000005
+            },
+            "layout_count": 12,
+            "receipts": [
+              {
+                "marker": "2-point",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 4,
+                  "handler_ms": 0.3,
+                  "ui_wait_ms": 0,
+                  "render_ms": 106.1,
+                  "total_ms": 110.4
+                }
+              },
+              {
+                "marker": "2-finish",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 0.2,
+                  "handler_ms": 3.9,
+                  "ui_wait_ms": 48.7,
+                  "render_ms": 57.8,
+                  "total_ms": 110.6
+                }
+              },
+              {
+                "marker": "2-reopen",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 0.9,
+                  "handler_ms": 3.2,
+                  "ui_wait_ms": 126.4,
+                  "render_ms": 32,
+                  "total_ms": 162.5
+                }
+              }
+            ]
+          },
+          {
+            "round": 3,
+            "burst": 16,
+            "cpu_ms": {
+              "TaskDuration": 608.4050000000001,
+              "ScriptDuration": 157.26900000000003,
+              "LayoutDuration": 39.115,
+              "RecalcStyleDuration": 160.005
+            },
+            "layout_count": 17,
+            "receipts": [
+              {
+                "marker": "3-point",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 4.5,
+                  "handler_ms": 0.5,
+                  "ui_wait_ms": 0,
+                  "render_ms": 84.2,
+                  "total_ms": 89.2
+                }
+              },
+              {
+                "marker": "3-finish",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 1.7,
+                  "handler_ms": 4.4,
+                  "ui_wait_ms": 206,
+                  "render_ms": 81.4,
+                  "total_ms": 293.5
+                }
+              },
+              {
+                "marker": "3-edit-0",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 6.3,
+                  "handler_ms": 1.6,
+                  "ui_wait_ms": 297.7,
+                  "render_ms": 55.6,
+                  "total_ms": 361.2
+                }
+              },
+              {
+                "marker": "3-edit-1",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 7.8,
+                  "handler_ms": 1.8,
+                  "ui_wait_ms": 295.8,
+                  "render_ms": 55.6,
+                  "total_ms": 361
+                }
+              },
+              {
+                "marker": "3-edit-2",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 9.5,
+                  "handler_ms": 2.1,
+                  "ui_wait_ms": 293.7,
+                  "render_ms": 55.6,
+                  "total_ms": 360.9
+                }
+              },
+              {
+                "marker": "3-edit-3",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 11.4,
+                  "handler_ms": 3.5,
+                  "ui_wait_ms": 290.2,
+                  "render_ms": 55.6,
+                  "total_ms": 360.7
+                }
+              },
+              {
+                "marker": "3-edit-4",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 14.8,
+                  "handler_ms": 3,
+                  "ui_wait_ms": 287.2,
+                  "render_ms": 55.6,
+                  "total_ms": 360.6
+                }
+              },
+              {
+                "marker": "3-edit-5",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 73,
+                  "handler_ms": 3,
+                  "ui_wait_ms": 229,
+                  "render_ms": 55.7,
+                  "total_ms": 360.7
+                }
+              },
+              {
+                "marker": "3-edit-6",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 76,
+                  "handler_ms": 3.7,
+                  "ui_wait_ms": 225.2,
+                  "render_ms": 55.7,
+                  "total_ms": 360.6
+                }
+              },
+              {
+                "marker": "3-edit-7",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 79.6,
+                  "handler_ms": 2.4,
+                  "ui_wait_ms": 222.8,
+                  "render_ms": 55.7,
+                  "total_ms": 360.5
+                }
+              },
+              {
+                "marker": "3-edit-8",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 82,
+                  "handler_ms": 2.5,
+                  "ui_wait_ms": 220.3,
+                  "render_ms": 55.7,
+                  "total_ms": 360.5
+                }
+              },
+              {
+                "marker": "3-edit-9",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 84.5,
+                  "handler_ms": 2.2,
+                  "ui_wait_ms": 218,
+                  "render_ms": 55.7,
+                  "total_ms": 360.4
+                }
+              },
+              {
+                "marker": "3-edit-10",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 86.7,
+                  "handler_ms": 1.4,
+                  "ui_wait_ms": 216.6,
+                  "render_ms": 55.7,
+                  "total_ms": 360.4
+                }
+              },
+              {
+                "marker": "3-edit-11",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 88,
+                  "handler_ms": 1.1,
+                  "ui_wait_ms": 215.5,
+                  "render_ms": 55.7,
+                  "total_ms": 360.3
+                }
+              },
+              {
+                "marker": "3-edit-12",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 130.8,
+                  "handler_ms": 3.1,
+                  "ui_wait_ms": 170.7,
+                  "render_ms": 55.7,
+                  "total_ms": 360.3
+                }
+              },
+              {
+                "marker": "3-edit-13",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 133.8,
+                  "handler_ms": 2.5,
+                  "ui_wait_ms": 168.2,
+                  "render_ms": 55.7,
+                  "total_ms": 360.2
+                }
+              },
+              {
+                "marker": "3-edit-14",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 136.2,
+                  "handler_ms": 1.9,
+                  "ui_wait_ms": 166.3,
+                  "render_ms": 55.8,
+                  "total_ms": 360.2
+                }
+              },
+              {
+                "marker": "3-edit-15",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 138.1,
+                  "handler_ms": 1.7,
+                  "ui_wait_ms": 164.5,
+                  "render_ms": 55.8,
+                  "total_ms": 360.1
+                }
+              },
+              {
+                "marker": "3-reopen",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 0.8,
+                  "handler_ms": 5,
+                  "ui_wait_ms": 137.8,
+                  "render_ms": 21.2,
+                  "total_ms": 164.8
+                }
+              }
+            ]
+          },
+          {
+            "round": 4,
+            "burst": 0,
+            "cpu_ms": {
+              "TaskDuration": 299.0539999999999,
+              "ScriptDuration": 72.57499999999995,
+              "LayoutDuration": 5.95699999999999,
+              "RecalcStyleDuration": 101.24699999999997
+            },
+            "layout_count": 13,
+            "receipts": [
+              {
+                "marker": "4-point",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 6.4,
+                  "handler_ms": 0.4,
+                  "ui_wait_ms": 0,
+                  "render_ms": 95.8,
+                  "total_ms": 102.6
+                }
+              },
+              {
+                "marker": "4-finish",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 0.3,
+                  "handler_ms": 6.1,
+                  "ui_wait_ms": 48.5,
+                  "render_ms": 47.8,
+                  "total_ms": 102.7
+                }
+              },
+              {
+                "marker": "4-reopen",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 1.7,
+                  "handler_ms": 4.3,
+                  "ui_wait_ms": 130.5,
+                  "render_ms": 22.5,
+                  "total_ms": 159
+                }
+              }
+            ]
+          },
+          {
+            "round": 5,
+            "burst": 16,
+            "cpu_ms": {
+              "TaskDuration": 577.2470000000003,
+              "ScriptDuration": 138.954,
+              "LayoutDuration": 41.84099999999999,
+              "RecalcStyleDuration": 156.10499999999993
+            },
+            "layout_count": 17,
+            "receipts": [
+              {
+                "marker": "5-point",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 3.9,
+                  "handler_ms": 0.3,
+                  "ui_wait_ms": 0,
+                  "render_ms": 80.6,
+                  "total_ms": 84.8
+                }
+              },
+              {
+                "marker": "5-finish",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 2.2,
+                  "handler_ms": 3.7,
+                  "ui_wait_ms": 198.1,
+                  "render_ms": 76.9,
+                  "total_ms": 280.9
+                }
+              },
+              {
+                "marker": "5-edit-0",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 6.1,
+                  "handler_ms": 1.4,
+                  "ui_wait_ms": 286.7,
+                  "render_ms": 33.6,
+                  "total_ms": 327.8
+                }
+              },
+              {
+                "marker": "5-edit-1",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 7.3,
+                  "handler_ms": 1.4,
+                  "ui_wait_ms": 285.3,
+                  "render_ms": 33.6,
+                  "total_ms": 327.6
+                }
+              },
+              {
+                "marker": "5-edit-2",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 8.6,
+                  "handler_ms": 1.6,
+                  "ui_wait_ms": 283.7,
+                  "render_ms": 33.6,
+                  "total_ms": 327.5
+                }
+              },
+              {
+                "marker": "5-edit-3",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 10,
+                  "handler_ms": 2.5,
+                  "ui_wait_ms": 281.2,
+                  "render_ms": 33.6,
+                  "total_ms": 327.3
+                }
+              },
+              {
+                "marker": "5-edit-4",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 12.3,
+                  "handler_ms": 3,
+                  "ui_wait_ms": 278.2,
+                  "render_ms": 33.6,
+                  "total_ms": 327.1
+                }
+              },
+              {
+                "marker": "5-edit-5",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 15.2,
+                  "handler_ms": 2.5,
+                  "ui_wait_ms": 275.7,
+                  "render_ms": 33.6,
+                  "total_ms": 327
+                }
+              },
+              {
+                "marker": "5-edit-6",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 68.5,
+                  "handler_ms": 2.1,
+                  "ui_wait_ms": 222.6,
+                  "render_ms": 33.6,
+                  "total_ms": 326.8
+                }
+              },
+              {
+                "marker": "5-edit-7",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 70.4,
+                  "handler_ms": 2.5,
+                  "ui_wait_ms": 220.1,
+                  "render_ms": 33.6,
+                  "total_ms": 326.6
+                }
+              },
+              {
+                "marker": "5-edit-8",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 72.9,
+                  "handler_ms": 3.3,
+                  "ui_wait_ms": 216.8,
+                  "render_ms": 33.6,
+                  "total_ms": 326.6
+                }
+              },
+              {
+                "marker": "5-edit-9",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 76.1,
+                  "handler_ms": 2.5,
+                  "ui_wait_ms": 214.3,
+                  "render_ms": 33.6,
+                  "total_ms": 326.5
+                }
+              },
+              {
+                "marker": "5-edit-10",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 78.5,
+                  "handler_ms": 1.9,
+                  "ui_wait_ms": 212.4,
+                  "render_ms": 33.6,
+                  "total_ms": 326.4
+                }
+              },
+              {
+                "marker": "5-edit-11",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 80.3,
+                  "handler_ms": 1.9,
+                  "ui_wait_ms": 210.5,
+                  "render_ms": 33.6,
+                  "total_ms": 326.3
+                }
+              },
+              {
+                "marker": "5-edit-12",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 82.1,
+                  "handler_ms": 1.2,
+                  "ui_wait_ms": 209.3,
+                  "render_ms": 33.6,
+                  "total_ms": 326.2
+                }
+              },
+              {
+                "marker": "5-edit-13",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 83.3,
+                  "handler_ms": 1.2,
+                  "ui_wait_ms": 208.1,
+                  "render_ms": 33.6,
+                  "total_ms": 326.2
+                }
+              },
+              {
+                "marker": "5-edit-14",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 130.6,
+                  "handler_ms": 2.5,
+                  "ui_wait_ms": 159.6,
+                  "render_ms": 33.6,
+                  "total_ms": 326.3
+                }
+              },
+              {
+                "marker": "5-edit-15",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 132.9,
+                  "handler_ms": 2.1,
+                  "ui_wait_ms": 157.5,
+                  "render_ms": 33.6,
+                  "total_ms": 326.1
+                }
+              },
+              {
+                "marker": "5-reopen",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 0.5,
+                  "handler_ms": 2.8,
+                  "ui_wait_ms": 119.6,
+                  "render_ms": 81.8,
+                  "total_ms": 204.7
+                }
+              }
+            ]
+          },
+          {
+            "round": 6,
+            "burst": 0,
+            "cpu_ms": {
+              "TaskDuration": 344.9490000000002,
+              "ScriptDuration": 76.42099999999996,
+              "LayoutDuration": 7.693000000000005,
+              "RecalcStyleDuration": 131.72500000000008
+            },
+            "layout_count": 17,
+            "receipts": [
+              {
+                "marker": "6-point",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 4.4,
+                  "handler_ms": 0.5,
+                  "ui_wait_ms": 0,
+                  "render_ms": 121.3,
+                  "total_ms": 126.2
+                }
+              },
+              {
+                "marker": "6-finish",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 0.2,
+                  "handler_ms": 4.2,
+                  "ui_wait_ms": 63.5,
+                  "render_ms": 58.3,
+                  "total_ms": 126.2
+                }
+              },
+              {
+                "marker": "6-reopen",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 1.7,
+                  "handler_ms": 3.4,
+                  "ui_wait_ms": 163,
+                  "render_ms": 44.2,
+                  "total_ms": 212.3
+                }
+              }
+            ]
+          },
+          {
+            "round": 7,
+            "burst": 16,
+            "cpu_ms": {
+              "TaskDuration": 656.4139999999999,
+              "ScriptDuration": 176.98500000000007,
+              "LayoutDuration": 42.423000000000016,
+              "RecalcStyleDuration": 184.4079999999999
+            },
+            "layout_count": 18,
+            "receipts": [
+              {
+                "marker": "7-point",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 4.2,
+                  "handler_ms": 0.5,
+                  "ui_wait_ms": 0,
+                  "render_ms": 89.9,
+                  "total_ms": 94.6
+                }
+              },
+              {
+                "marker": "7-finish",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 2.3,
+                  "handler_ms": 4,
+                  "ui_wait_ms": 244.9,
+                  "render_ms": 92,
+                  "total_ms": 343.2
+                }
+              },
+              {
+                "marker": "7-edit-0",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 6.6,
+                  "handler_ms": 1.6,
+                  "ui_wait_ms": 357.2,
+                  "render_ms": 43.3,
+                  "total_ms": 408.7
+                }
+              },
+              {
+                "marker": "7-edit-1",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 8,
+                  "handler_ms": 2.8,
+                  "ui_wait_ms": 354.4,
+                  "render_ms": 43.3,
+                  "total_ms": 408.5
+                }
+              },
+              {
+                "marker": "7-edit-2",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 10.7,
+                  "handler_ms": 3,
+                  "ui_wait_ms": 351.3,
+                  "render_ms": 43.3,
+                  "total_ms": 408.3
+                }
+              },
+              {
+                "marker": "7-edit-3",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 13.6,
+                  "handler_ms": 2.9,
+                  "ui_wait_ms": 348.4,
+                  "render_ms": 43.3,
+                  "total_ms": 408.2
+                }
+              },
+              {
+                "marker": "7-edit-4",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 16.4,
+                  "handler_ms": 1.7,
+                  "ui_wait_ms": 346.6,
+                  "render_ms": 43.3,
+                  "total_ms": 408
+                }
+              },
+              {
+                "marker": "7-edit-5",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 77.9,
+                  "handler_ms": 2.6,
+                  "ui_wait_ms": 284.1,
+                  "render_ms": 43.3,
+                  "total_ms": 407.9
+                }
+              },
+              {
+                "marker": "7-edit-6",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 80.4,
+                  "handler_ms": 3.2,
+                  "ui_wait_ms": 281,
+                  "render_ms": 43.2,
+                  "total_ms": 407.8
+                }
+              },
+              {
+                "marker": "7-edit-7",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 83.6,
+                  "handler_ms": 3.2,
+                  "ui_wait_ms": 277.8,
+                  "render_ms": 43.2,
+                  "total_ms": 407.8
+                }
+              },
+              {
+                "marker": "7-edit-8",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 86.7,
+                  "handler_ms": 3.1,
+                  "ui_wait_ms": 274.6,
+                  "render_ms": 43.2,
+                  "total_ms": 407.6
+                }
+              },
+              {
+                "marker": "7-edit-9",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 89.9,
+                  "handler_ms": 2.6,
+                  "ui_wait_ms": 271.9,
+                  "render_ms": 43.2,
+                  "total_ms": 407.6
+                }
+              },
+              {
+                "marker": "7-edit-10",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 92.4,
+                  "handler_ms": 2.2,
+                  "ui_wait_ms": 269.7,
+                  "render_ms": 43.3,
+                  "total_ms": 407.6
+                }
+              },
+              {
+                "marker": "7-edit-11",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 139.9,
+                  "handler_ms": 3.3,
+                  "ui_wait_ms": 221,
+                  "render_ms": 43.3,
+                  "total_ms": 407.5
+                }
+              },
+              {
+                "marker": "7-edit-12",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 143.1,
+                  "handler_ms": 2.1,
+                  "ui_wait_ms": 218.9,
+                  "render_ms": 43.3,
+                  "total_ms": 407.4
+                }
+              },
+              {
+                "marker": "7-edit-13",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 145.2,
+                  "handler_ms": 3.1,
+                  "ui_wait_ms": 215.8,
+                  "render_ms": 43.3,
+                  "total_ms": 407.4
+                }
+              },
+              {
+                "marker": "7-edit-14",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 148,
+                  "handler_ms": 3,
+                  "ui_wait_ms": 212.8,
+                  "render_ms": 43.3,
+                  "total_ms": 407.1
+                }
+              },
+              {
+                "marker": "7-edit-15",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 150.9,
+                  "handler_ms": 2.6,
+                  "ui_wait_ms": 210.2,
+                  "render_ms": 43.3,
+                  "total_ms": 407
+                }
+              },
+              {
+                "marker": "7-reopen",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 0.7,
+                  "handler_ms": 3.4,
+                  "ui_wait_ms": 126.8,
+                  "render_ms": 26.2,
+                  "total_ms": 157.1
+                }
+              }
+            ]
+          },
+          {
+            "round": 8,
+            "burst": 0,
+            "cpu_ms": {
+              "TaskDuration": 330.56300000000016,
+              "ScriptDuration": 67.21200000000005,
+              "LayoutDuration": 9.451999999999988,
+              "RecalcStyleDuration": 106.05700000000007
+            },
+            "layout_count": 13,
+            "receipts": [
+              {
+                "marker": "8-point",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 4.1,
+                  "handler_ms": 0.6,
+                  "ui_wait_ms": 0,
+                  "render_ms": 113.1,
+                  "total_ms": 117.8
+                }
+              },
+              {
+                "marker": "8-finish",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 0.2,
+                  "handler_ms": 4,
+                  "ui_wait_ms": 53.3,
+                  "render_ms": 60.4,
+                  "total_ms": 117.9
+                }
+              },
+              {
+                "marker": "8-reopen",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 0.7,
+                  "handler_ms": 3.2,
+                  "ui_wait_ms": 126.5,
+                  "render_ms": 28.6,
+                  "total_ms": 159
+                }
+              }
+            ]
+          },
+          {
+            "round": 9,
+            "burst": 16,
+            "cpu_ms": {
+              "TaskDuration": 655.8719999999996,
+              "ScriptDuration": 168.74199999999996,
+              "LayoutDuration": 43.269000000000005,
+              "RecalcStyleDuration": 177.49499999999995
+            },
+            "layout_count": 19,
+            "receipts": [
+              {
+                "marker": "9-point",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 4.2,
+                  "handler_ms": 0.6,
+                  "ui_wait_ms": 0,
+                  "render_ms": 82.3,
+                  "total_ms": 87.1
+                }
+              },
+              {
+                "marker": "9-finish",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 1.2,
+                  "handler_ms": 4.1,
+                  "ui_wait_ms": 198.3,
+                  "render_ms": 81.3,
+                  "total_ms": 284.9
+                }
+              },
+              {
+                "marker": "9-edit-0",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 5.9,
+                  "handler_ms": 2.3,
+                  "ui_wait_ms": 293.2,
+                  "render_ms": 54.6,
+                  "total_ms": 356
+                }
+              },
+              {
+                "marker": "9-edit-1",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 8,
+                  "handler_ms": 2.1,
+                  "ui_wait_ms": 291.1,
+                  "render_ms": 54.7,
+                  "total_ms": 355.9
+                }
+              },
+              {
+                "marker": "9-edit-2",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 10,
+                  "handler_ms": 1.5,
+                  "ui_wait_ms": 289.6,
+                  "render_ms": 54.7,
+                  "total_ms": 355.8
+                }
+              },
+              {
+                "marker": "9-edit-3",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 11.4,
+                  "handler_ms": 2.7,
+                  "ui_wait_ms": 286.9,
+                  "render_ms": 54.8,
+                  "total_ms": 355.8
+                }
+              },
+              {
+                "marker": "9-edit-4",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 14.1,
+                  "handler_ms": 1.7,
+                  "ui_wait_ms": 285.2,
+                  "render_ms": 54.8,
+                  "total_ms": 355.8
+                }
+              },
+              {
+                "marker": "9-edit-5",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 15.7,
+                  "handler_ms": 1.3,
+                  "ui_wait_ms": 283.9,
+                  "render_ms": 54.8,
+                  "total_ms": 355.7
+                }
+              },
+              {
+                "marker": "9-edit-6",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 70.2,
+                  "handler_ms": 2.2,
+                  "ui_wait_ms": 228.5,
+                  "render_ms": 54.8,
+                  "total_ms": 355.7
+                }
+              },
+              {
+                "marker": "9-edit-7",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 72.4,
+                  "handler_ms": 2.1,
+                  "ui_wait_ms": 226.4,
+                  "render_ms": 54.9,
+                  "total_ms": 355.8
+                }
+              },
+              {
+                "marker": "9-edit-8",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 74.4,
+                  "handler_ms": 4.2,
+                  "ui_wait_ms": 222.2,
+                  "render_ms": 54.9,
+                  "total_ms": 355.7
+                }
+              },
+              {
+                "marker": "9-edit-9",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 78.5,
+                  "handler_ms": 3.3,
+                  "ui_wait_ms": 218.9,
+                  "render_ms": 54.9,
+                  "total_ms": 355.6
+                }
+              },
+              {
+                "marker": "9-edit-10",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 81.7,
+                  "handler_ms": 1.9,
+                  "ui_wait_ms": 217,
+                  "render_ms": 54.9,
+                  "total_ms": 355.5
+                }
+              },
+              {
+                "marker": "9-edit-11",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 83.6,
+                  "handler_ms": 1.7,
+                  "ui_wait_ms": 215.3,
+                  "render_ms": 54.9,
+                  "total_ms": 355.5
+                }
+              },
+              {
+                "marker": "9-edit-12",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 85.2,
+                  "handler_ms": 1.7,
+                  "ui_wait_ms": 213.6,
+                  "render_ms": 54.9,
+                  "total_ms": 355.4
+                }
+              },
+              {
+                "marker": "9-edit-13",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 131.1,
+                  "handler_ms": 3.4,
+                  "ui_wait_ms": 166,
+                  "render_ms": 54.9,
+                  "total_ms": 355.4
+                }
+              },
+              {
+                "marker": "9-edit-14",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 134.4,
+                  "handler_ms": 2,
+                  "ui_wait_ms": 164,
+                  "render_ms": 54.9,
+                  "total_ms": 355.3
+                }
+              },
+              {
+                "marker": "9-edit-15",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 136.3,
+                  "handler_ms": 1.8,
+                  "ui_wait_ms": 162.2,
+                  "render_ms": 54.9,
+                  "total_ms": 355.2
+                }
+              },
+              {
+                "marker": "9-reopen",
+                "status": "presented",
+                "timings": {
+                  "queue_ms": 0.6,
+                  "handler_ms": 3.8,
+                  "ui_wait_ms": 161.6,
+                  "render_ms": 21.9,
+                  "total_ms": 187.9
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "validation": {
+    "node_tests": 45,
+    "passed_browser_modes": [
+      "name-measurement-batch",
+      "compact-name-stability",
+      "fixed-columns",
+      "update-ownership",
+      "preparation-info-layout",
+      "persistent-rows",
+      "sync-burst",
+      "history-pages",
+      "structural-load"
+    ],
+    "eslint_findings_changed_application_and_new_check": 0,
+    "structural_outcomes": {
+      "presented": 1477
+    },
+    "structural_point_stats": {
+      "applied": {
+        "count": 52,
+        "p50": 0.6999998092651367,
+        "p95": 5.799999952316284,
+        "max": 39.200000047683716
+      },
+      "independent": {
+        "count": 52,
+        "p50": 27.5,
+        "p95": 61.09999990463257,
+        "max": 95
+      },
+      "ack": {
+        "count": 52,
+        "p50": 27.6,
+        "p95": 61.2,
+        "max": 95
+      }
+    },
+    "structural_pending": {
+      "pending": 0,
+      "subscribers": 1,
+      "callbackErrors": 0
+    },
+    "installed_smoke": {
+      "passed": true,
+      "checks": 6,
+      "measurement": {
+        "layout_count": 9,
+        "style_count": 14,
+        "layout_ms": 28.529,
+        "browser_work_ms": 176.08300000000003
+      }
+    }
+  },
+  "known_existing_failure": {
+    "mode": "compact-timers",
+    "assertion": "Short, negative and hour values leave 1px above and below the digits at 1536",
+    "before_and_after_identical": true,
+    "top_px": [
+      0.35101318359375,
+      0.800537109375
+    ],
+    "bottom_px": [
+      0.337646484375,
+      0.81707763671875
+    ],
+    "status": "An unverändertem Ausgangsstand reproduziert. Test und Uhrendarstellung wurden nicht geändert."
+  },
+  "deployment": {
+    "files": {
+      "static/js/cleitstand.js": {
+        "before_sha256": "b28e5ab5e81ef8b0547f4236c525174f0de4f87301f9118b40f5de6113983d60",
+        "after_sha256": "45b208196ff0c5f4088fa4f90fd06cbd32f493588eedb6c53e1f56cd19808390"
+      },
+      "docs/entwuerfe/admin-ui/umsetzung/browser-check.js": {
+        "before_sha256": "0361955e766208c4856e24b160b6675cd760c1f20c7368e982c8715126f404d4",
+        "after_sha256": "fdba450a134d8fc262da26476f5a57b3868da71ac2fe918f595392293bb712cf"
+      },
+      "docs/entwuerfe/admin-ui/umsetzung/completion-check.js": {
+        "before_sha256": "4559d3d1efb4c9c99e628665448f5f49aa3dc790c9b42528e4a94b06d9af633d",
+        "after_sha256": "68b7e6fdcfc0ac46dfdfed70371caecb488cc2c2e5a408ae2c13c627efe44fcb"
+      },
+      "docs/entwuerfe/admin-ui/umsetzung/name-measurement-batch-check.js": {
+        "before_sha256": null,
+        "after_sha256": "68f86c0ffce4ae828d7d54da84d4901cb67dfe6f04561c89ba536c529727196d"
+      }
+    }
+  },
+  "limits": [
+    "Browser-Arbeitszeit umfasst auch Testassertionen und Warteframes; Quittierungen werden separat gemessen.",
+    "Mittelwerte verbessern sich; einzelne synthetische Abschlüsse benötigen weiterhin bis 641,9 ms (vorher 650,1 ms). Das p99-Ziel im Livebetrieb ist damit nicht nachgewiesen.",
+    "Der Datensatz zur vollständigen Namensinvalidierung und der kontrollierte 512-Spiele-Vergleich sind getrennte Szenarien.",
+    "Keine Änderungen an Backend, Datenbank, BTP-Schreibwegen oder Anzeigeclients. Ein vollständiger Live-Dauertest steht aus."
+  ]
+}

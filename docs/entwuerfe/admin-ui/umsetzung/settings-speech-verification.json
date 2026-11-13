@@ -1,5 +1,5 @@
 {
-  "date": "2026-11-04",
+  "date": "2026-11-11",
   "checks": [
     "Speech settings keep all six labeled configuration fields with separate server-wide cards",
     "Speech modes, voices, defaults and the shared duration format remain available",

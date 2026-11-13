@@ -1,5 +1,5 @@
 'use strict';
-/* global btsAdminUpdates */
+/* global btsAdminUpdates, cleitstand, ctournament, change */
 
 /*
 vpath in this mode is t/12/edit.
@@ -66,7 +66,11 @@ function route_change(c) {
 			match_id: c.val && c.val.match_id,
 		});
 	}
+	if (c.ctype === 'update_btp_events' && typeof ctournament !== 'undefined' && typeof ctournament.expand_events_change === 'function') {
+		c = ctournament.expand_events_change(c); if (!c) return false;
+	}
 	cur_route.on_change(c);
+	if (typeof cleitstand !== 'undefined') cleitstand.waitForInitialLists?.(c);
 	if (
 		c &&
 		c.ctype === 'score' &&

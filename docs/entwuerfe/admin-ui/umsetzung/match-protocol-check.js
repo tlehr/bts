@@ -43,19 +43,19 @@ module.exports=async function({c,verify,click,metrics,capture,contentFits,frameF
   await verify('Organisational history scrolls inside the fixed dialog at '+width+' pixels','(()=>{const panel=document.querySelector(\'.ls-protocol-panel\');return panel.scrollTop>0&&panel.scrollHeight>panel.clientHeight&&document.querySelector(\'.ls-dialog-heading\').getBoundingClientRect().top===__protocolHeaderTop})()&&'+frameFits+'&&'+contentFits);
  }
  await metrics(1920,1080);
- await click('.ls-dialog-close');
+ await click('.match_edit_dialog .ls-dialog-close');
  await c.evaluate('window.__holdProtocolResponse=true');
  await click('tr[data-match_id="match-44"] .ls-match-open');
  await c.evaluate('__emitProtocol(\'during-load\',\'assignment\',\'Schiedsrichter zugewiesen · Neue Person\',__protocolBase+200000);__heldProtocolResponse();window.__holdProtocolResponse=false');
  await verify('A live event arriving during loading survives an older history response','document.querySelector(\'.ls-protocol-list\').textContent.includes(\'Neue Person\')&&document.querySelectorAll(\'.ls-protocol-entry\').length===110');
- await click('.ls-dialog-close');
+ await click('.match_edit_dialog .ls-dialog-close');
  await c.evaluate('window.__holdProtocolResponse=true');
  await click('tr[data-match_id="match-44"] .ls-match-open');
- await click('.ls-dialog-close');
+ await click('.match_edit_dialog .ls-dialog-close');
  await c.evaluate('__heldProtocolResponse();window.__holdProtocolResponse=false;window.__protocolEvents=[]');
  await click('tr[data-match_id="match-51"] .ls-match-open');
  await verify('An empty protocol is explicit and a late response cannot reopen a closed dialog','document.querySelector(\'.ls-protocol-empty\').textContent===\'Noch keine Ereignisse protokolliert.\'&&!document.querySelector(\'.ls-protocol-empty\').hidden&&document.querySelector(\'.ls-protocol-list\').hidden&&document.querySelector(\'.ls-dialog-heading\').textContent.includes(\'51\')');
- await click('.ls-dialog-close');
+ await click('.match_edit_dialog .ls-dialog-close');
  await click('tr[data-match_id="match-44"] .ls-match-open');
  await c.evaluate('curt.announcement_pause_time_ms=.001;window.__speechPlaybackGate=true;window.__playbackReceipts=()=>__writes.filter(message=>message.type===\'match_protocol_playback\');window.__receiptsBefore=__playbackReceipts().length;announce([\'Test-Spielaufruf\'],true,\'match_called_on_court:match-44:1001\')');
  await verify('An audio call is not reported before playback has completed','__playbackReceipts().length===__receiptsBefore&&typeof __releaseSpeechPlayback===\'function\'');

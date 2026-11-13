@@ -11,7 +11,7 @@ const { dependency_setup } = require('./btp_sync_locks/match_changes');
 const { COLLECTIONS, memory_db, refresh, planning_snapshot, patch, differences } = require('./btp_planner/staging');
 const POINT_FIELDS = ['network_score', 'network_team1_left', 'network_team1_serving',
 	'network_teams_player1_even', 'presses', 'duration_ms', 'shuttle_count'];
-const caches = new WeakMap();
+const caches = new WeakMap(), local_planning_tails = new WeakMap();
 const yield_turn = () => new Promise(resolve => setImmediate(resolve));
 
 function cache_for(app, tkey, namespace = 'btp') {
@@ -48,7 +48,7 @@ function dependency_projection(match, locked_matches, ignore_successor = false) 
 	return {
 		_id: match._id, btp_id: match.btp_id, btp_match_ids: match.btp_match_ids, btp_player_ids: match.btp_player_ids,
 		team1_won: match.team1_won, btp_winner: match.btp_winner, btp_participant_conflict: match.btp_participant_conflict,
-		end_ts: match.end_ts, score_status: match.score_status, btp_needsync: match.btp_needsync,
+		end_ts: match.end_ts, score_status: match.score_status, btp_needsync: match.btp_needsync, btp_call_pending: match.btp_call_pending,
 		match_order: match.match_order, forward_loser: match.forward_loser, no_match_losing_team: match.no_match_losing_team,
 		// Fewer locks must not hide a completed dependency change while planning
 		// or waiting. Ignore ordinary points/profiles, but retain all setup flags.
@@ -167,12 +167,16 @@ async function unchanged(db, tkey, expected, locked_matches, skip = false, diagn
 
 async function guard(app, tkey, options) {
 	if (options.is_current && !options.is_current()) return 'connection_terminated';
-	const tournament = await app.db.tournaments.findOne_async({ key: tkey }, { btp_enabled: 1, last_reset_ts: 1 });
+	const preparation = options.worker_operation === 'auto_preparation';
+	const tournament = await app.db.tournaments.findOne_async({ key: tkey }, { btp_enabled: 1, last_reset_ts: 1,
+		...(preparation ? {automation_enabled:1,call_preparation_matches_automatically_enabled:1} : {}) });
 	if (options.is_current && !options.is_current()) return 'connection_terminated';
-	if (!tournament) return options.worker_operation === 'auto_call' ? 'tournament_missing' : 'btp_disabled';
+	const local = ['auto_call','auto_preparation'].includes(options.worker_operation);
+	if (!tournament) return local ? 'tournament_missing' : 'btp_disabled';
+	if (preparation && (tournament.automation_enabled === false || !tournament.call_preparation_matches_automatically_enabled)) return 'preparation_disabled';
 	// Automatic local allocation uses the same validated planner, also when
 	// this tournament is operated without a BTP connection.
-	if (options.worker_operation !== 'auto_call' && tournament.btp_enabled !== true) return 'btp_disabled';
+	if (!local && tournament.btp_enabled !== true) return 'btp_disabled';
 	if (options.expected_reset_ts !== undefined && tournament.last_reset_ts !== options.expected_reset_ts) return 'tournament_reset_during_sync';
 	return null;
 }
@@ -215,7 +219,7 @@ function next_pause_check(state, now) {
 	return next;
 }
 
-async function publish(app, effects, final_state) {
+async function publish(app, effects, final_state, prepared_events) {
 	const admin = require('./admin');
 	const by_id = collection => new Map(final_state[collection].map(doc => [doc._id, doc]));
 	const matches = by_id('matches');
@@ -229,16 +233,30 @@ async function publish(app, effects, final_state) {
 		const { tournament_key, ctype } = notification;
 		const value = notification.value;
 		const id = value?.match__id || value?.match?._id || (value?.setup && value?._id);
-		const key = `${ctype}:${id || value?._id || ''}`;
+		const key = `${ctype}:${id || value?.tabletoperator?._id || value?._id || ''}`;
 		if (seen.has(key)) continue;
 		seen.add(key);
 		const current = id && ctype !== 'match_remove' ? matches.get(id) : null;
 		if (id && ctype !== 'match_remove' && !current) continue;
 		const umpire = ctype === 'umpire_updated' ? umpires.get(value._id) : null;
 		admin.notify_change(app, tournament_key, ctype,
-			require('./btp_planner/notification_value')(notification, current, umpire, final_state));
+			prepared_events?.get(notification) || require('./btp_planner/notification_value')(notification, current, umpire, final_state));
 	}
 	return jobs;
+}
+
+// The unchanged dependency matches may advance during apply. Capture and
+// publish their committed versions in one executor turn: an older metadata
+// envelope must never overwrite a point already published by its writer.
+function publish_latest_matches(app, tkey, effects, state, prepared_events) {
+	const model = tournament_model.attach(app.db), store = app.db.matches;
+	return new Promise((resolve, reject) => store.executor.push({ this: store, diagnostic_name: 'sync_publish_latest',
+		arguments: [(error, jobs) => error ? reject(error) : resolve(jobs)], fn: function(done) {
+			const send = matches => { state.matches = matches; publish(app, effects, state, prepared_events).then(jobs => done(null, jobs), done); };
+			if (Object.keys(store.ttlIndexes || {}).length) return store.find({ tournament_key: tkey })._exec((error, matches) => error ? done(error) : send(matches));
+			try { send([...model.tournament(tkey).matches.values()].filter(entity => entity.present && entity.data.tournament_key === tkey).map(entity => entity.data)); }
+			catch (error) { done(error); }
+		} }));
 }
 
 async function apply(app, tkey, plan) {
@@ -269,13 +287,22 @@ async function apply(app, tkey, plan) {
 			const query = { _id: change.id, ...query_for(change.collection, tkey) };
 			if (plan.prepared.has(change) && batch_writes.supported(store) && !store.timestampData) {
 				const group = [change];
-				if (change.collection === 'matches') while (group.length < 4 && ordered[i + 1]?.collection === 'matches' &&
-					plan.prepared.has(ordered[i + 1])) group.push(ordered[++i]);
+				// Prepared bytes need no recursive validation under the allocation
+				// locks. Share their append, bounded by both record count and size.
+				const length = entry => require('./prepared_append').byte_length(store, plan.prepared.get(entry)?.document);
+				let bytes = length(change);
+				if (change.collection === 'matches') while (group.length < (bytes == null ? 16 : 64) && ordered[i + 1]?.collection === 'matches' &&
+					plan.prepared.has(ordered[i + 1])) {
+					const next_bytes = length(ordered[i + 1]);
+					if (bytes != null && (next_bytes == null || bytes + next_bytes > 256 * 1024)) break;
+					group.push(ordered[++i]);if (bytes != null) bytes += next_bytes;
+				}
 				const counts = await batch_writes.write(store, group, entry => ({ _id: entry.id, ...query_for(entry.collection, tkey) }), plan.prepared, {
 					diagnostic_name: group.length > 1 ? 'sync_prepared_match_group' : 'sync_batch_write',
 					// If TTL/timestamps or custom writers changed while queued, return
 					// without writes. Execute the native update outside this slot.
 					fallback: done => done(null, { native_fallback: true }),
+					fallback_without_writes: true,
 				});
 				if (counts.native_fallback) i -= group.length - 1;
 				else {
@@ -414,18 +441,42 @@ async function run(app, tkey, response, options, integrate, cache) {
 		plan.prepared = new Map();
 		if (require('./offload/profile').enabled('sync_prepared_tournament') || require('./offload/profile').enabled('sync_prepared_matches')) {
 			const prepare_start = Date.now();
+			let preencoded_documents = 0;
 			for (const change of changes) {
 				const store = app.db[change.collection];
 				const prepared_kind = change.collection === 'tournaments' ? 'tournament' : change.collection === 'matches' ? 'match' : null;
 				if (!prepared_kind || !require('./offload/profile').enabled(prepared_kind === 'match' ? 'sync_prepared_matches' : 'sync_prepared_tournament') ||
 					store.timestampData || !require('./btp_planner/batch_writes').supported(store)) continue;
 				const prepared = require('./btp_planner/prepared_' + prepared_kind).prepare(change);
-				if (prepared) plan.prepared.set(change, prepared);
+				if (prepared) {
+					// Derived model hashes belong to this private immutable revision.
+					// Build them before the commit so allocation locks cover writes,
+					// not recursive projection/comparison of every prepared match.
+					const fingerprints = require('./tournament_model/fingerprints');
+					fingerprints.inherit(change.collection, change.before, prepared.document);
+					fingerprints.fingerprint(change.collection, prepared.document, 'normalization');
+					plan.prepared.set(change, prepared);
+					if (require('./prepared_append').prepare(store, prepared.document)) preencoded_documents++;
+				}
 				// This is still private, immutable planning input, before any
 				// resource lock. Let queued points run between prepared documents.
 				await yield_turn();
 			}
-			log_timing('incremental_prepare_writes', prepare_start, { prepared_tournaments: plan.prepared.size });
+			log_timing('incremental_prepare_writes', prepare_start, { prepared_tournaments: plan.prepared.size, preencoded_documents });
+		}
+		// Catalog patches are pure delivery work. Prepare them cooperatively
+		// before taking allocation locks; publication still follows all writes.
+		const event_prepare_start = Date.now(), prepared_events = new Map();
+		for (const effect of effects) {
+			const notification = effect.resources.notification, value = notification?.value;
+			if (notification?.ctype === 'update_btp_events' && value && Object.keys(value).length === 1 &&
+				Object.prototype.hasOwnProperty.call(value, 'events')) {
+				prepared_events.set(notification, await require('./admin').prepare_event_notification(tkey, value));
+			}
+		}
+		if (prepared_events.size) {
+			log_timing('incremental_event_prepare', event_prepare_start, { effects: prepared_events.size });
+			await yield_turn();
 		}
 		const input = validation_input(before);
 		const final_state = resulting_state(before, changes);
@@ -469,14 +520,14 @@ async function run(app, tkey, response, options, integrate, cache) {
 				log_timing('incremental_point_rebase', rebase_start, { attempt, matches: rebased.size, match_ids: [...rebased.keys()].slice(0, 4) });
 			}
 			const skip_input = validation_input(final_state);
-			const pending = final_state.matches.some(match => match.btp_needsync);
+			const pending = final_state.matches.some(match => match.btp_needsync || match.btp_call_pending);
 			const pause_check = next_pause_check(final_state, now);
 			const apply_start = Date.now();
 			const write_stats = await apply(app, tkey, plan);
 			log_timing('incremental_writes', apply_start, { changes: changes.length,
 				...write_stats,
 				collections: Object.fromEntries(COLLECTIONS.map(collection => [collection, changes.filter(change => change.collection === collection).length])) });
-			if (scope.diagnostics.allocation_scope === 'ordering_only') {
+			if (scope.diagnostics.allocation_scope === 'ordering_only' && !scope.concurrent_points) {
 				// Calls/finishes can update participant status during these writes.
 				// Publish their current setup, never the old planning snapshot.
 				const live_start = Date.now();
@@ -484,7 +535,7 @@ async function run(app, tkey, response, options, integrate, cache) {
 				log_timing('incremental_live_matches', live_start, { matches: final_state.matches.length });
 			}
 			const publish_start = Date.now();
-			const jobs = await publish(app, effects, final_state);
+			const jobs = scope.concurrent_points ? await publish_latest_matches(app, tkey, effects, final_state, prepared_events) : await publish(app, effects, final_state, prepared_events);
 			log_timing('incremental_publish', publish_start, { effects: effects.length, deferred_jobs: jobs.length });
 			const cache_start = Date.now();
 			remember_committed_records(app.db, changes, skip_input);
@@ -519,16 +570,30 @@ async function run(app, tkey, response, options, integrate, cache) {
 
 function sync(app, tkey, response, options, integrate) {
 	const traces = require('./performance/traces');
-	const independent_call = !traces.capture()?.suppressed && options.worker_operation === 'auto_call' && traces.capture()?.record?.type !== 'calling';
+	const local = ['auto_call','auto_preparation'].includes(options.worker_operation);
+	const independent_call = !traces.capture()?.suppressed && local && traces.capture()?.record?.type !== 'calling';
 	if ((!traces.capture() || independent_call) && traces.enabled()) return traces.operation(options.task_name || 'sync_plan', {
-		tournament_key: tkey, type: options.worker_operation === 'auto_call' ? 'calling' : 'sync',
+		tournament_key: tkey, type: local ? 'calling' : 'sync',
 	}, () => sync(app, tkey, response, options, integrate), independent_call);
 	const cache = cache_for(app, tkey, options.planning_namespace);
 	// Direct callers and replacement connections must not overtake an older
 	// integration. This promise holds no resource lock.
 	const wait = traces.begin('sync_serialization', 'queue_wait');
-	const work = cache.tail.then(() => { traces.end(wait); return run(app, tkey, response, options, integrate, cache); });
+	let local_tails;
+	if (local) {
+		local_tails = local_planning_tails.get(app.db);
+		if (!local_tails) local_planning_tails.set(app.db, local_tails = new Map());
+	}
+	// Preparation and field allocation share dependencies. Serialize their
+	// private planning as well as their commit, so they do not repeatedly
+	// invalidate one another. This promise holds no foreground resource lock.
+	const previous = local_tails ? Promise.all([cache.tail, local_tails.get(tkey)]) : cache.tail;
+	const work = previous.then(() => { traces.end(wait); return run(app, tkey, response, options, integrate, cache); });
 	cache.tail = work.catch(() => {});
+	if (local_tails) {
+		const tail = cache.tail;local_tails.set(tkey, tail);
+		void tail.then(() => { if (local_tails.get(tkey) === tail) local_tails.delete(tkey); });
+	}
 	return work;
 }
 

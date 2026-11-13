@@ -1,5 +1,7 @@
 'use strict';
 
+const read_barrier = require('../database_read_barrier');
+
 // Visit committed records in executor order without a NeDB scan or deep copy.
 // The visitor is synchronous and must not mutate its immutable document input.
 module.exports = function attach_sync_validation(model) {
@@ -20,6 +22,10 @@ module.exports = function attach_sync_validation(model) {
 			} catch (error) { return done(error); }
 			done(null, valid);
 		};
-		store.executor.push({ this: store, fn: capture, arguments: [callback], diagnostic_name: 'sync_validate_' + collection });
+		// A synchronous, read-only visitor sees the same committed identities as
+		// an ordered capture if every preceding job is also a certified read.
+		if (read_barrier.inspect_idle(store).allowed || read_barrier.inspect_readonly(store).allowed) {
+			capture((...results) => queueMicrotask(() => callback(...results)));
+		} else store.executor.push(read_barrier.certify_read({ this: store, fn: capture, arguments: [callback], diagnostic_name: 'sync_validate_' + collection }));
 	};
 };

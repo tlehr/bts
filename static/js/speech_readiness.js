@@ -49,27 +49,82 @@ function createSpeechReadiness(context) {
     }
 
     function collect(value, selected = tracked, disconnected = false) {
-        const matches = new Map((value.tournament?.matches || []).map(match => [match._id, match]));
+        let matches;
+        const findMatch = id => {
+            const source = value.tournament?.matches || [];
+            // Initial tracking selects one control. Avoid allocating the full
+            // inventory for every new button; retain Map's last-ID precedence.
+            if (selected !== tracked) {
+                for (let index = source.length - 1; index >= 0; index--) {
+                    const match = source[index], matchId = match._id;
+                    if (matchId === id || Object.is(matchId, id)) return match;
+                }
+                return undefined;
+            }
+            if (!matches) {
+                matches = new Map();
+                for (const match of source) matches.set(match._id, match);
+            }
+            return matches.get(id);
+        };
+        const signatures = new Map(), setups = new WeakMap();
+        const signature = field => {
+            if (!signatures.has(field)) signatures.set(field, JSON.stringify(value.tournament?.[field]));
+            return signatures.get(field);
+        };
+        // Retain exactly the tournament properties read by the shared playback
+        // builders. Each dependency is serialized once per pass, including
+        // in-place edits to normalization rules, halls and synthesis recipes.
+        let dependencies = new Set();
+        const constructorDependencies = dependencies;
+        const tournament = new Proxy(value.tournament || {}, {
+            get(target, field) { if (typeof field === 'string') dependencies.add(field); return target[field]; },
+            has(target, field) { if (typeof field === 'string') dependencies.add(field); return field in target; },
+        });
         let parts;
         const texts = context.createTexts({
             local: true,
-            tournament: value.tournament || {}, translate: context.translate,
+            tournament, translate: context.translate,
             window: { localStorage: { getItem: () => 'true' } }, claim: () => null,
             announce: values => parts.push(...values),
         });
         const jobs = [];
         for (const [element, item] of selected) {
-            if (!element.isConnected && !disconnected) { tracked.delete(element); continue; }
+            if (!element.isConnected && !disconnected) { tracked.delete(element); context.unobserve?.(element); continue; }
+            // Hidden/offscreen controls need no text generation on a shared
+            // refresh. Keep their last parts for cache ownership, and expose a
+            // conservative checking state until intersection makes them live.
+            // Initial tracking still restores known readiness before insertion.
+            if (!disconnected && selected === tracked && !context.visible(element)) {
+                jobs.push({ element, item, parts: item.lastParts || [], deferred: true });
+                continue;
+            }
             parts = [];
             try {
                 if (item.read) parts = item.read();
                 else {
-                    const match = matches.get(item.matchId);
-                    if (match) texts[item.call](item.locationId === undefined ? match.setup :
-                        { ...match.setup, location_id: item.locationId });
+                    const match = findMatch(item.matchId);
+                    if (match) {
+                        if (!setups.has(match.setup)) setups.set(match.setup, JSON.stringify(match.setup));
+                        const setup = setups.get(match.setup), language = value.tournament?.language;
+                        const cached = item.partsCache;
+                        // Compare the shared setup signature directly. Escaping
+                        // it again into a JSON key for every button repeatedly
+                        // copies the entire participant/official setup.
+                        if (cached?.identity === value.identity && cached.language === language &&
+                            cached.call === item.call && cached.locationId === item.locationId && cached.setup === setup &&
+                            cached.dependencies.every(([field, previous]) => signature(field) === previous)) parts = cached.parts;
+                        else {
+                            dependencies = new Set(constructorDependencies);
+                            texts[item.call](item.locationId === undefined ? match.setup : { ...match.setup, location_id: item.locationId });
+                            item.partsCache = { identity: value.identity, language, call: item.call, locationId: item.locationId, setup,
+                                dependencies: [...dependencies].map(field => [field, signature(field)]), parts };
+                        }
+                    }
                 }
             } catch (_) { parts = []; }
-            jobs.push({ element, item, parts: [...new Set(parts.filter(Boolean))] });
+            item.lastParts = [...new Set(parts.filter(Boolean))];
+            jobs.push({ element, item, parts: item.lastParts });
         }
         return jobs;
     }
@@ -90,7 +145,7 @@ function createSpeechReadiness(context) {
     }
 
     function paint(jobs, value, retainKnown = false) {
-        for (const { element, item, parts } of jobs) {
+        for (const { element, item, parts, deferred } of jobs) {
             const states = parts.map(text => {
                 const entry = cache.get(text);
                 return entry && (retainKnown || inspecting.has(text) || now() - entry.checked < 15000) ? entry.status : 'unknown';
@@ -101,6 +156,7 @@ function createSpeechReadiness(context) {
             if (!value.settings.enabled) state = 'disabled';
             else if (value.settings.mode === 'browser') state = 'browser';
             else if (value.settings.language !== 'de-DE' || parts.some(text => text.length > (value.settings.max_part_length || value.settings.max_text))) state = 'unsupported';
+            else if (deferred) state = 'checking';
             else if (!parts.length) state = 'empty';
             else if (unavailable && !locallyReady || states.includes('unavailable')) state = 'unavailable';
             else if (!item.remote && value.settings.audio_error && value.settings.audio_error !== 'audio_blocked') state = 'audio_error';
@@ -193,7 +249,10 @@ function createSpeechReadiness(context) {
         const previous = tracked.get(element);
         item.title = previous?.title ?? (element.title || (item.label ? '' : element.textContent.trim()));
         item.rendered = previous?.rendered;
+        item.partsCache = previous?.partsCache;
+        item.lastParts = previous?.lastParts;
         tracked.set(element, item);
+        if (!previous) context.observe?.(element);
         const value = snapshot();
         if (identity !== value.identity) reset(value);
         // Rows are often rebuilt for score updates. Reuse the exact part
@@ -205,6 +264,15 @@ function createSpeechReadiness(context) {
     return {
         refresh,
         schedule,
+        cacheChanged() {
+            const value = snapshot();
+            // Cache pulses contain no new readiness answers. Inspect once in
+            // the existing forced refresh instead of repainting stale answers
+            // for every pulse in a server progress burst.
+            if (identity !== value.identity) { reset(value); paint(collect(value), value, true); }
+            if (running) { refreshAgain = forceAgain = true; }
+            else schedule(true);
+        },
         changed(force = false) {
             const value = snapshot();
             if (identity !== value.identity) reset(value);
@@ -225,21 +293,37 @@ function createSpeechReadiness(context) {
 var btsSpeechReadiness; // eslint-disable-line no-unused-vars -- shared browser controller
 if (typeof module !== 'undefined' && module.exports) module.exports = createSpeechReadiness;
 else {
+    const visibleControls = new WeakSet();
+    const visibility = typeof IntersectionObserver === 'undefined' ? null : new IntersectionObserver(entries => {
+        let entered = false;
+        for (const entry of entries) {
+            if (entry.isIntersecting && entry.intersectionRect.width > 0 && entry.intersectionRect.height > 0) {
+                if (!visibleControls.has(entry.target)) entered = true;
+                visibleControls.add(entry.target);
+            } else visibleControls.delete(entry.target);
+        }
+        if (entered) btsSpeechReadiness.schedule();
+    });
     btsSpeechReadiness = createSpeechReadiness({
         createTexts: createAnnouncementTexts, translate: (...args) => ci18n(...args), service: btsSpeechService,
         snapshot: () => ({ tournament: typeof curt === 'undefined' ? null : curt, settings: btsSpeechService.settings() }),
         visible: element => {
+            // Native intersection delivery observes scrolling and layout without
+            // forcing the whole match table to reflow for every tracked button.
+            if (visibility) return visibleControls.has(element);
             const rect = element.getBoundingClientRect();
             return rect.width > 0 && rect.height > 0 && rect.bottom >= 0 && rect.top <= window.innerHeight &&
                 window.getComputedStyle(element).visibility !== 'hidden';
         },
+        observe: element => visibility?.observe(element),
+        unobserve: element => visibility?.unobserve(element),
         schedule: (callback, ms) => setTimeout(callback, ms),
     });
     setInterval(() => { if (!document.hidden) void btsSpeechReadiness.refresh(); }, 5000);
     window.addEventListener('focus', () => btsSpeechReadiness.changed());
     window.addEventListener('storage', () => btsSpeechReadiness.changed());
     window.addEventListener('bts-speech-output-changed', () => btsSpeechReadiness.changed());
-    window.addEventListener('bts-speech-cache-changed', () => btsSpeechReadiness.changed(true));
+    window.addEventListener('bts-speech-cache-changed', () => btsSpeechReadiness.cacheChanged());
     window.addEventListener('scroll', () => btsSpeechReadiness.schedule(), { capture: true, passive: true });
     document.addEventListener('visibilitychange', () => { if (!document.hidden) btsSpeechReadiness.changed(true); });
 }

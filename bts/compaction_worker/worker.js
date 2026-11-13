@@ -1,5 +1,7 @@
 'use strict';
 
+require('../offload/background_priority').configure('compaction_serialize');
+
 const model = require('nedb/lib/model');
 const sessions = new Map();
 

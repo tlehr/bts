@@ -1,0 +1,1125 @@
+{
+  "scope": "Isolierter lokaler Chromium mit nativer Empfangswarteschlange und unveränderten Darstellungsquittungen einschließlich zweier Renderframes. Keine produktiven Schreibzugriffe, keine physischen Displaymessungen und keine Netzwerklatenz.",
+  "method": "Vier frische Profile je Prüfszenario, Reihenfolge vorher/nachher/nachher/vorher, ohne Profiler und ohne gleichzeitig laufende Tests oder Lint. 20 Abschlüsse je Variante, hälftig mit 16 parallelen Check-in-/Pausenänderungen; zusätzlich 320 Punkte je Variante mit 80 Feld-Snapshots. Prozentile: nearest rank. 512 Spiele, 15 Felder.",
+  "changes": [
+    "Größenmessung und Anpassung behalten pro Uhr einen eigenen Auftrag. Eine ausstehende Erstbeobachtung einer anderen Uhr blockiert das aktuelle Update nicht mehr. Fehler werden je betroffenem Auftrag gemeldet; unabhängige Anpassungen laufen weiter.",
+    "Check-in und die drei bekannten Spieler-Pausenfelder verwenden den Status-/Uhrenpfad und umgehen den breiten Zeilenabgleich, zusätzliche Sortierung und Vorbereitungsprüfungen. Identitäts- und Strukturänderungen behalten ihre bisherigen Pfade.",
+    "Ein geplanter Ergebnis-Sortierlauf übernimmt die Datums-/Zählaktualisierung der Ergebnisliste. Zählaufträge planen sich während ihres eigenen Durchlaufs nicht erneut ein.",
+    "Körper-Zoom wird bis zu Größen-/Dichte-/Schriftänderungen wiederverwendet. Reine Aufrufaktualisierungen prüfen auf der Turnierleitungsseite nur ihre zugehörigen Steuerelemente."
+  ],
+  "summary": {
+    "before": {
+      "point": {
+        "count": 20,
+        "mean_ms": 89.09,
+        "median_ms": 81.75,
+        "p95_ms": 119.9,
+        "max_ms": 120.3
+      },
+      "finish": {
+        "count": 20,
+        "mean_ms": 136.65,
+        "median_ms": 128.7,
+        "p95_ms": 231.2,
+        "max_ms": 276.7
+      },
+      "reopen": {
+        "count": 20,
+        "mean_ms": 101.25,
+        "median_ms": 92.94999999999999,
+        "p95_ms": 122.6,
+        "max_ms": 141.5
+      },
+      "score": {
+        "count": 80,
+        "mean_ms": 22.77,
+        "median_ms": 22.4,
+        "p95_ms": 33.2,
+        "max_ms": 43.4
+      },
+      "snapshot": {
+        "count": 80,
+        "mean_ms": 19.98,
+        "median_ms": 18.9,
+        "p95_ms": 32.7,
+        "max_ms": 35.4
+      },
+      "history": {
+        "count": 80,
+        "mean_ms": 21.32,
+        "median_ms": 22.1,
+        "p95_ms": 34.4,
+        "max_ms": 53.6
+      },
+      "interval": {
+        "count": 80,
+        "mean_ms": 42.88,
+        "median_ms": 42.2,
+        "p95_ms": 74.3,
+        "max_ms": 93.4
+      }
+    },
+    "after": {
+      "point": {
+        "count": 20,
+        "mean_ms": 81.86,
+        "median_ms": 86.4,
+        "p95_ms": 98.9,
+        "max_ms": 101.8
+      },
+      "finish": {
+        "count": 20,
+        "mean_ms": 88.29,
+        "median_ms": 87.55,
+        "p95_ms": 145.9,
+        "max_ms": 161.3
+      },
+      "reopen": {
+        "count": 20,
+        "mean_ms": 93.7,
+        "median_ms": 89.44999999999999,
+        "p95_ms": 161.8,
+        "max_ms": 175.4
+      },
+      "score": {
+        "count": 80,
+        "mean_ms": 21.95,
+        "median_ms": 20.6,
+        "p95_ms": 34.2,
+        "max_ms": 44.1
+      },
+      "snapshot": {
+        "count": 80,
+        "mean_ms": 20.8,
+        "median_ms": 19.75,
+        "p95_ms": 34,
+        "max_ms": 37.4
+      },
+      "history": {
+        "count": 80,
+        "mean_ms": 26.05,
+        "median_ms": 24.35,
+        "p95_ms": 49.2,
+        "max_ms": 60.6
+      },
+      "interval": {
+        "count": 80,
+        "mean_ms": 42.49,
+        "median_ms": 44.650000000000006,
+        "p95_ms": 75.3,
+        "max_ms": 88.9
+      }
+    }
+  },
+  "per_run": [
+    {
+      "variant": "before",
+      "test": "completion",
+      "exit": 0,
+      "report": "outliers-final-1-before-completion-verification.json",
+      "product_sha256": {
+        "static/js/cleitstand.js": "e155b9b3fae8cc75b846305adf8bf4d3d5c026b392e9058ff571eeb8609cb426",
+        "static/js/cmatch.js": "a6e8c446a736dc8186d2cadaa7d558306f4d1b3be4b4433be40b96b2c93f65ac",
+        "static/js/ctournament.js": "e7df7e7ee841204f601c1fbf6ea37ea762f2745165d7d07ebb1644b1ae5f2843"
+      },
+      "summary": {
+        "cpu": {
+          "count": 10,
+          "mean_ms": 295.4507,
+          "p50_ms": 326.43299999999977,
+          "p95_ms": 428.125,
+          "max_ms": 428.125
+        },
+        "finish": {
+          "count": 10,
+          "mean_ms": 140.88,
+          "p50_ms": 162.2,
+          "p95_ms": 276.7,
+          "max_ms": 276.7
+        },
+        "point": {
+          "count": 10,
+          "mean_ms": 90.55999999999999,
+          "p50_ms": 82.7,
+          "p95_ms": 120.3,
+          "max_ms": 120.3
+        },
+        "reopen": {
+          "count": 10,
+          "mean_ms": 99.42,
+          "p50_ms": 93.3,
+          "p95_ms": 118.9,
+          "max_ms": 118.9
+        }
+      },
+      "receipts": 110,
+      "all_presented": true
+    },
+    {
+      "variant": "before",
+      "test": "point-updates",
+      "exit": 0,
+      "report": "outliers-final-1-before-point-updates-verification.json",
+      "product_sha256": {
+        "static/js/cleitstand.js": "e155b9b3fae8cc75b846305adf8bf4d3d5c026b392e9058ff571eeb8609cb426",
+        "static/js/cmatch.js": "a6e8c446a736dc8186d2cadaa7d558306f4d1b3be4b4433be40b96b2c93f65ac",
+        "static/js/ctournament.js": "e7df7e7ee841204f601c1fbf6ea37ea762f2745165d7d07ebb1644b1ae5f2843"
+      },
+      "summary": {
+        "score": {
+          "applied_ms": {
+            "count": 40,
+            "mean_ms": 1.1600000023841859,
+            "p50_ms": 0.7999999523162842,
+            "p95_ms": 1.7999999523162842,
+            "max_ms": 11.799999952316284
+          },
+          "first_frame_ms": {
+            "count": 40,
+            "mean_ms": 5.025,
+            "p50_ms": 2.6999998092651367,
+            "p95_ms": 13.599999904632568,
+            "max_ms": 17.5
+          },
+          "second_frame_ms": {
+            "count": 40,
+            "mean_ms": 23.004999989271163,
+            "p50_ms": 22.799999952316284,
+            "p95_ms": 33,
+            "max_ms": 34
+          },
+          "receipt_ms": {
+            "count": 40,
+            "mean_ms": 23.100000000000005,
+            "p50_ms": 22.8,
+            "p95_ms": 33.2,
+            "max_ms": 34.2
+          }
+        },
+        "snapshot": {
+          "applied_ms": {
+            "count": 40,
+            "mean_ms": 0.7449999928474427,
+            "p50_ms": 0.8999998569488525,
+            "p95_ms": 1.2000000476837158,
+            "max_ms": 1.3999998569488525
+          },
+          "first_frame_ms": {
+            "count": 40,
+            "mean_ms": 4.567499989271164,
+            "p50_ms": 1.8999998569488525,
+            "p95_ms": 15.299999952316284,
+            "max_ms": 15.900000095367432
+          },
+          "second_frame_ms": {
+            "count": 40,
+            "mean_ms": 19.86750000119209,
+            "p50_ms": 18.799999952316284,
+            "p95_ms": 32.5,
+            "max_ms": 32.60000014305115
+          },
+          "receipt_ms": {
+            "count": 40,
+            "mean_ms": 19.950000000000003,
+            "p50_ms": 18.9,
+            "p95_ms": 32.6,
+            "max_ms": 32.7
+          }
+        },
+        "history": {
+          "applied_ms": {
+            "count": 40,
+            "mean_ms": 0.709999966621399,
+            "p50_ms": 0.5999999046325684,
+            "p95_ms": 1.3999998569488525,
+            "max_ms": 2.200000047683716
+          },
+          "first_frame_ms": {
+            "count": 40,
+            "mean_ms": 5.092499977350235,
+            "p50_ms": 2.5,
+            "p95_ms": 15.099999904632568,
+            "max_ms": 16.200000047683716
+          },
+          "second_frame_ms": {
+            "count": 40,
+            "mean_ms": 20.209999972581862,
+            "p50_ms": 19.40000009536743,
+            "p95_ms": 32.39999985694885,
+            "max_ms": 34.40000009536743
+          },
+          "receipt_ms": {
+            "count": 40,
+            "mean_ms": 20.235,
+            "p50_ms": 19.5,
+            "p95_ms": 32.4,
+            "max_ms": 34.4
+          }
+        },
+        "interval": {
+          "applied_ms": {
+            "count": 40,
+            "mean_ms": 0.9399999916553498,
+            "p50_ms": 0.7000000476837158,
+            "p95_ms": 1.7999999523162842,
+            "max_ms": 7.299999952316284
+          },
+          "first_frame_ms": {
+            "count": 40,
+            "mean_ms": 5.554999989271164,
+            "p50_ms": 2.0999999046325684,
+            "p95_ms": 14.799999952316284,
+            "max_ms": 16.299999952316284
+          },
+          "second_frame_ms": {
+            "count": 40,
+            "mean_ms": 29.03750001192093,
+            "p50_ms": 27.59999990463257,
+            "p95_ms": 55.89999985694885,
+            "max_ms": 68
+          },
+          "receipt_ms": {
+            "count": 40,
+            "mean_ms": 43.2,
+            "p50_ms": 39.9,
+            "p95_ms": 80.9,
+            "max_ms": 93.4
+          }
+        }
+      },
+      "receipts": 200,
+      "all_presented": true,
+      "errors": []
+    },
+    {
+      "variant": "after",
+      "test": "completion",
+      "exit": 0,
+      "report": "outliers-final-2-after-completion-verification.json",
+      "product_sha256": {
+        "static/js/cleitstand.js": "9a238ea990310cb9ea05ffed504c171b4c5d7665b1e0f412d7461371da6f00e5",
+        "static/js/cmatch.js": "1fbbc2e9c420ed6f522ebc5d1e03d29d9646cadd3aec7ed5a04e33622b99c98f",
+        "static/js/ctournament.js": "e3a36ef3b573f866902ad021a2d1a865dc039e79d59dbd9824b45b2f52fad654"
+      },
+      "summary": {
+        "cpu": {
+          "count": 10,
+          "mean_ms": 233.66709999999995,
+          "p50_ms": 243.42799999999997,
+          "p95_ms": 302.29999999999995,
+          "max_ms": 302.29999999999995
+        },
+        "finish": {
+          "count": 10,
+          "mean_ms": 88.01,
+          "p50_ms": 92,
+          "p95_ms": 145.9,
+          "max_ms": 145.9
+        },
+        "point": {
+          "count": 10,
+          "mean_ms": 82.22,
+          "p50_ms": 90.8,
+          "p95_ms": 101.8,
+          "max_ms": 101.8
+        },
+        "reopen": {
+          "count": 10,
+          "mean_ms": 89.07000000000001,
+          "p50_ms": 76.3,
+          "p95_ms": 161.8,
+          "max_ms": 161.8
+        }
+      },
+      "receipts": 110,
+      "all_presented": true
+    },
+    {
+      "variant": "after",
+      "test": "point-updates",
+      "exit": 0,
+      "report": "outliers-final-2-after-point-updates-verification.json",
+      "product_sha256": {
+        "static/js/cleitstand.js": "9a238ea990310cb9ea05ffed504c171b4c5d7665b1e0f412d7461371da6f00e5",
+        "static/js/cmatch.js": "1fbbc2e9c420ed6f522ebc5d1e03d29d9646cadd3aec7ed5a04e33622b99c98f",
+        "static/js/ctournament.js": "e3a36ef3b573f866902ad021a2d1a865dc039e79d59dbd9824b45b2f52fad654"
+      },
+      "summary": {
+        "score": {
+          "applied_ms": {
+            "count": 40,
+            "mean_ms": 1.1450000047683715,
+            "p50_ms": 0.8999998569488525,
+            "p95_ms": 2,
+            "max_ms": 9.600000143051147
+          },
+          "first_frame_ms": {
+            "count": 40,
+            "mean_ms": 5.182500004768372,
+            "p50_ms": 2.1000001430511475,
+            "p95_ms": 13.900000095367432,
+            "max_ms": 23.799999952316284
+          },
+          "second_frame_ms": {
+            "count": 40,
+            "mean_ms": 21.744999986886977,
+            "p50_ms": 20.600000143051147,
+            "p95_ms": 32.10000014305115,
+            "max_ms": 39.90000009536743
+          },
+          "receipt_ms": {
+            "count": 40,
+            "mean_ms": 21.83,
+            "p50_ms": 20.9,
+            "p95_ms": 32.1,
+            "max_ms": 39.9
+          }
+        },
+        "snapshot": {
+          "applied_ms": {
+            "count": 40,
+            "mean_ms": 0.6349999785423279,
+            "p50_ms": 0.5,
+            "p95_ms": 1.1000001430511475,
+            "max_ms": 1.3999998569488525
+          },
+          "first_frame_ms": {
+            "count": 40,
+            "mean_ms": 4.384999996423721,
+            "p50_ms": 1.4000000953674316,
+            "p95_ms": 15.199999809265137,
+            "max_ms": 16.40000009536743
+          },
+          "second_frame_ms": {
+            "count": 40,
+            "mean_ms": 18.704999977350234,
+            "p50_ms": 17.399999856948853,
+            "p95_ms": 32.90000009536743,
+            "max_ms": 33.69999980926514
+          },
+          "receipt_ms": {
+            "count": 40,
+            "mean_ms": 18.799999999999997,
+            "p50_ms": 17.5,
+            "p95_ms": 33,
+            "max_ms": 33.8
+          }
+        },
+        "history": {
+          "applied_ms": {
+            "count": 40,
+            "mean_ms": 1.1775000035762786,
+            "p50_ms": 0.8999998569488525,
+            "p95_ms": 2.200000047683716,
+            "max_ms": 7.3999998569488525
+          },
+          "first_frame_ms": {
+            "count": 40,
+            "mean_ms": 5.204999995231629,
+            "p50_ms": 3,
+            "p95_ms": 13.899999856948853,
+            "max_ms": 17.5
+          },
+          "second_frame_ms": {
+            "count": 40,
+            "mean_ms": 27.06749999523163,
+            "p50_ms": 26.100000143051147,
+            "p95_ms": 49.200000047683716,
+            "max_ms": 60.09999990463257
+          },
+          "receipt_ms": {
+            "count": 40,
+            "mean_ms": 27.067499999999995,
+            "p50_ms": 26,
+            "p95_ms": 49.2,
+            "max_ms": 60.1
+          }
+        },
+        "interval": {
+          "applied_ms": {
+            "count": 40,
+            "mean_ms": 0.7325000107288361,
+            "p50_ms": 0.6000001430511475,
+            "p95_ms": 1.6999998092651367,
+            "max_ms": 2.0999999046325684
+          },
+          "first_frame_ms": {
+            "count": 40,
+            "mean_ms": 4.905000036954879,
+            "p50_ms": 2,
+            "p95_ms": 14.300000190734863,
+            "max_ms": 16
+          },
+          "second_frame_ms": {
+            "count": 40,
+            "mean_ms": 27.67250003218651,
+            "p50_ms": 23.100000143051147,
+            "p95_ms": 59,
+            "max_ms": 63.299999952316284
+          },
+          "receipt_ms": {
+            "count": 40,
+            "mean_ms": 41.81999999999999,
+            "p50_ms": 44.6,
+            "p95_ms": 75.3,
+            "max_ms": 80.8
+          }
+        }
+      },
+      "receipts": 200,
+      "all_presented": true,
+      "errors": []
+    },
+    {
+      "variant": "after",
+      "test": "completion",
+      "exit": 0,
+      "report": "outliers-final-3-after-completion-verification.json",
+      "product_sha256": {
+        "static/js/cleitstand.js": "9a238ea990310cb9ea05ffed504c171b4c5d7665b1e0f412d7461371da6f00e5",
+        "static/js/cmatch.js": "1fbbc2e9c420ed6f522ebc5d1e03d29d9646cadd3aec7ed5a04e33622b99c98f",
+        "static/js/ctournament.js": "e3a36ef3b573f866902ad021a2d1a865dc039e79d59dbd9824b45b2f52fad654"
+      },
+      "summary": {
+        "cpu": {
+          "count": 10,
+          "mean_ms": 228.34300000000002,
+          "p50_ms": 226.027,
+          "p95_ms": 292.018,
+          "max_ms": 292.018
+        },
+        "finish": {
+          "count": 10,
+          "mean_ms": 88.57000000000001,
+          "p50_ms": 87.5,
+          "p95_ms": 161.3,
+          "max_ms": 161.3
+        },
+        "point": {
+          "count": 10,
+          "mean_ms": 81.49999999999999,
+          "p50_ms": 86.3,
+          "p95_ms": 96.9,
+          "max_ms": 96.9
+        },
+        "reopen": {
+          "count": 10,
+          "mean_ms": 98.32999999999998,
+          "p50_ms": 92.8,
+          "p95_ms": 175.4,
+          "max_ms": 175.4
+        }
+      },
+      "receipts": 110,
+      "all_presented": true
+    },
+    {
+      "variant": "after",
+      "test": "point-updates",
+      "exit": 0,
+      "report": "outliers-final-3-after-point-updates-verification.json",
+      "product_sha256": {
+        "static/js/cleitstand.js": "9a238ea990310cb9ea05ffed504c171b4c5d7665b1e0f412d7461371da6f00e5",
+        "static/js/cmatch.js": "1fbbc2e9c420ed6f522ebc5d1e03d29d9646cadd3aec7ed5a04e33622b99c98f",
+        "static/js/ctournament.js": "e3a36ef3b573f866902ad021a2d1a865dc039e79d59dbd9824b45b2f52fad654"
+      },
+      "summary": {
+        "score": {
+          "applied_ms": {
+            "count": 40,
+            "mean_ms": 0.9324999749660492,
+            "p50_ms": 0.5,
+            "p95_ms": 2,
+            "max_ms": 8.899999856948853
+          },
+          "first_frame_ms": {
+            "count": 40,
+            "mean_ms": 5.599999952316284,
+            "p50_ms": 3.6000001430511475,
+            "p95_ms": 15.099999904632568,
+            "max_ms": 17.899999856948853
+          },
+          "second_frame_ms": {
+            "count": 40,
+            "mean_ms": 22.007499986886977,
+            "p50_ms": 21.100000143051147,
+            "p95_ms": 36.40000009536743,
+            "max_ms": 44
+          },
+          "receipt_ms": {
+            "count": 40,
+            "mean_ms": 22.075000000000003,
+            "p50_ms": 21.1,
+            "p95_ms": 36.3,
+            "max_ms": 44.1
+          }
+        },
+        "snapshot": {
+          "applied_ms": {
+            "count": 40,
+            "mean_ms": 0.8874999940395355,
+            "p50_ms": 1,
+            "p95_ms": 1.2999999523162842,
+            "max_ms": 1.4000000953674316
+          },
+          "first_frame_ms": {
+            "count": 40,
+            "mean_ms": 6.530000013113022,
+            "p50_ms": 3.3000001907348633,
+            "p95_ms": 16.699999809265137,
+            "max_ms": 17.5
+          },
+          "second_frame_ms": {
+            "count": 40,
+            "mean_ms": 22.69000000357628,
+            "p50_ms": 21.59999990463257,
+            "p95_ms": 34.39999985694885,
+            "max_ms": 37.30000019073486
+          },
+          "receipt_ms": {
+            "count": 40,
+            "mean_ms": 22.8025,
+            "p50_ms": 21.7,
+            "p95_ms": 34.5,
+            "max_ms": 37.4
+          }
+        },
+        "history": {
+          "applied_ms": {
+            "count": 40,
+            "mean_ms": 1.024999988079071,
+            "p50_ms": 0.7000000476837158,
+            "p95_ms": 2.200000047683716,
+            "max_ms": 6.299999952316284
+          },
+          "first_frame_ms": {
+            "count": 40,
+            "mean_ms": 4.350000005960465,
+            "p50_ms": 2.799999952316284,
+            "p95_ms": 12.5,
+            "max_ms": 15.900000095367432
+          },
+          "second_frame_ms": {
+            "count": 40,
+            "mean_ms": 25.030000019073487,
+            "p50_ms": 24,
+            "p95_ms": 48.90000009536743,
+            "max_ms": 60.799999952316284
+          },
+          "receipt_ms": {
+            "count": 40,
+            "mean_ms": 25.04,
+            "p50_ms": 23.9,
+            "p95_ms": 48.9,
+            "max_ms": 60.6
+          }
+        },
+        "interval": {
+          "applied_ms": {
+            "count": 40,
+            "mean_ms": 0.7649999618530273,
+            "p50_ms": 0.6999998092651367,
+            "p95_ms": 1.3999998569488525,
+            "max_ms": 2.5
+          },
+          "first_frame_ms": {
+            "count": 40,
+            "mean_ms": 4.249999976158142,
+            "p50_ms": 1.7999999523162842,
+            "p95_ms": 13.399999856948853,
+            "max_ms": 16.200000047683716
+          },
+          "second_frame_ms": {
+            "count": 40,
+            "mean_ms": 28.739999967813493,
+            "p50_ms": 25.199999809265137,
+            "p95_ms": 56.09999990463257,
+            "max_ms": 62.799999952316284
+          },
+          "receipt_ms": {
+            "count": 40,
+            "mean_ms": 43.15750000000001,
+            "p50_ms": 47,
+            "p95_ms": 68.4,
+            "max_ms": 88.9
+          }
+        }
+      },
+      "receipts": 200,
+      "all_presented": true,
+      "errors": []
+    },
+    {
+      "variant": "before",
+      "test": "completion",
+      "exit": 0,
+      "report": "outliers-final-4-before-completion-verification.json",
+      "product_sha256": {
+        "static/js/cleitstand.js": "e155b9b3fae8cc75b846305adf8bf4d3d5c026b392e9058ff571eeb8609cb426",
+        "static/js/cmatch.js": "a6e8c446a736dc8186d2cadaa7d558306f4d1b3be4b4433be40b96b2c93f65ac",
+        "static/js/ctournament.js": "e7df7e7ee841204f601c1fbf6ea37ea762f2745165d7d07ebb1644b1ae5f2843"
+      },
+      "summary": {
+        "cpu": {
+          "count": 10,
+          "mean_ms": 296.2692,
+          "p50_ms": 306.72999999999996,
+          "p95_ms": 392.45600000000013,
+          "max_ms": 392.45600000000013
+        },
+        "finish": {
+          "count": 10,
+          "mean_ms": 132.41,
+          "p50_ms": 159.9,
+          "p95_ms": 231.2,
+          "max_ms": 231.2
+        },
+        "point": {
+          "count": 10,
+          "mean_ms": 87.61,
+          "p50_ms": 83.7,
+          "p95_ms": 116.5,
+          "max_ms": 116.5
+        },
+        "reopen": {
+          "count": 10,
+          "mean_ms": 103.07000000000001,
+          "p50_ms": 96.3,
+          "p95_ms": 141.5,
+          "max_ms": 141.5
+        }
+      },
+      "receipts": 110,
+      "all_presented": true
+    },
+    {
+      "variant": "before",
+      "test": "point-updates",
+      "exit": 0,
+      "report": "outliers-final-4-before-point-updates-verification.json",
+      "product_sha256": {
+        "static/js/cleitstand.js": "e155b9b3fae8cc75b846305adf8bf4d3d5c026b392e9058ff571eeb8609cb426",
+        "static/js/cmatch.js": "a6e8c446a736dc8186d2cadaa7d558306f4d1b3be4b4433be40b96b2c93f65ac",
+        "static/js/ctournament.js": "e7df7e7ee841204f601c1fbf6ea37ea762f2745165d7d07ebb1644b1ae5f2843"
+      },
+      "summary": {
+        "score": {
+          "applied_ms": {
+            "count": 40,
+            "mean_ms": 1.0049999713897706,
+            "p50_ms": 0.7000000476837158,
+            "p95_ms": 1.5999999046325684,
+            "max_ms": 10.399999856948853
+          },
+          "first_frame_ms": {
+            "count": 40,
+            "mean_ms": 5.560000002384186,
+            "p50_ms": 2.8999998569488525,
+            "p95_ms": 15.300000190734863,
+            "max_ms": 16.100000143051147
+          },
+          "second_frame_ms": {
+            "count": 40,
+            "mean_ms": 22.349999982118607,
+            "p50_ms": 22.399999856948853,
+            "p95_ms": 32.10000014305115,
+            "max_ms": 43.39999985694885
+          },
+          "receipt_ms": {
+            "count": 40,
+            "mean_ms": 22.437500000000007,
+            "p50_ms": 22.6,
+            "p95_ms": 32.2,
+            "max_ms": 43.4
+          }
+        },
+        "snapshot": {
+          "applied_ms": {
+            "count": 40,
+            "mean_ms": 0.8774999976158142,
+            "p50_ms": 1,
+            "p95_ms": 1.2999999523162842,
+            "max_ms": 1.3000001907348633
+          },
+          "first_frame_ms": {
+            "count": 40,
+            "mean_ms": 4.009999990463257,
+            "p50_ms": 1.7000000476837158,
+            "p95_ms": 15.5,
+            "max_ms": 17.09999990463257
+          },
+          "second_frame_ms": {
+            "count": 40,
+            "mean_ms": 19.90500001311302,
+            "p50_ms": 18.700000047683716,
+            "p95_ms": 33.10000014305115,
+            "max_ms": 35.40000009536743
+          },
+          "receipt_ms": {
+            "count": 40,
+            "mean_ms": 20.002499999999998,
+            "p50_ms": 18.9,
+            "p95_ms": 33.3,
+            "max_ms": 35.4
+          }
+        },
+        "history": {
+          "applied_ms": {
+            "count": 40,
+            "mean_ms": 0.7124999821186065,
+            "p50_ms": 0.5,
+            "p95_ms": 1.6999998092651367,
+            "max_ms": 2.299999952316284
+          },
+          "first_frame_ms": {
+            "count": 40,
+            "mean_ms": 4.512499976158142,
+            "p50_ms": 2,
+            "p95_ms": 13.299999952316284,
+            "max_ms": 16.5
+          },
+          "second_frame_ms": {
+            "count": 40,
+            "mean_ms": 22.382499986886977,
+            "p50_ms": 23,
+            "p95_ms": 40.5,
+            "max_ms": 53.59999990463257
+          },
+          "receipt_ms": {
+            "count": 40,
+            "mean_ms": 22.400000000000002,
+            "p50_ms": 23.1,
+            "p95_ms": 40.5,
+            "max_ms": 53.6
+          }
+        },
+        "interval": {
+          "applied_ms": {
+            "count": 40,
+            "mean_ms": 0.7799999833106994,
+            "p50_ms": 0.5999999046325684,
+            "p95_ms": 1.6000001430511475,
+            "max_ms": 2
+          },
+          "first_frame_ms": {
+            "count": 40,
+            "mean_ms": 4.522500014305114,
+            "p50_ms": 2,
+            "p95_ms": 13.5,
+            "max_ms": 16.40000009536743
+          },
+          "second_frame_ms": {
+            "count": 40,
+            "mean_ms": 28.63249999880791,
+            "p50_ms": 26.700000047683716,
+            "p95_ms": 52,
+            "max_ms": 54.09999990463257
+          },
+          "receipt_ms": {
+            "count": 40,
+            "mean_ms": 42.5525,
+            "p50_ms": 44.6,
+            "p95_ms": 73.7,
+            "max_ms": 74.6
+          }
+        }
+      },
+      "receipts": 200,
+      "all_presented": true,
+      "errors": []
+    }
+  ],
+  "final_guard": {
+    "summary": {
+      "cpu": {
+        "count": 10,
+        "mean_ms": 238.99299999999994,
+        "p50_ms": 235.67500000000007,
+        "p95_ms": 319.37799999999993,
+        "max_ms": 319.37799999999993
+      },
+      "finish": {
+        "count": 10,
+        "mean_ms": 88.55,
+        "p50_ms": 84.2,
+        "p95_ms": 171.8,
+        "max_ms": 171.8
+      },
+      "point": {
+        "count": 10,
+        "mean_ms": 82.08,
+        "p50_ms": 83.5,
+        "p95_ms": 113.1,
+        "max_ms": 113.1
+      },
+      "reopen": {
+        "count": 10,
+        "mean_ms": 93.68,
+        "p50_ms": 92.4,
+        "p95_ms": 125.7,
+        "max_ms": 125.7
+      }
+    },
+    "broad_pause_updates": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "all_receipts_presented": true
+  },
+  "final_guard_note": "Nach dem kontrollierten Vergleich wurden die Fehlerbereinigung der getrennten Uhrenaufträge ergänzt und die Aufruf-Teilaktualisierung ausdrücklich auf die Turnierleitungsansicht begrenzt. Ein weiterer Abschlusslauf sowie die gezielten Regressionen prüfen diesen endgültigen Stand.",
+  "startup": {
+    "scope": "Ein frisches Profil und zwei Reloads pro Variante mit derselben eingefrorenen Turnierantwort; keine Live-Verbindung und keine übernommenen persönlichen Daten. Kleine Stichprobe, keine Aussage über zusätzliche Startbeschleunigung.",
+    "before": [
+      {
+        "visible_ms": 914.2,
+        "all_ready_ms": 1356.6,
+        "later_ms": 442.4
+      },
+      {
+        "visible_ms": 291.8,
+        "all_ready_ms": 639.1,
+        "later_ms": 347.3
+      },
+      {
+        "visible_ms": 256,
+        "all_ready_ms": 608.5,
+        "later_ms": 352.5
+      }
+    ],
+    "after": [
+      {
+        "visible_ms": 830.7,
+        "all_ready_ms": 1235.6,
+        "later_ms": 404.9
+      },
+      {
+        "visible_ms": 290.9,
+        "all_ready_ms": 622.5,
+        "later_ms": 331.6
+      },
+      {
+        "visible_ms": 262.9,
+        "all_ready_ms": 642.4,
+        "later_ms": 379.5
+      }
+    ]
+  },
+  "checks": {
+    "node_passed": 118,
+    "browser": [
+      {
+        "test": "timer-jobs",
+        "exit": 0
+      },
+      {
+        "test": "update-ownership",
+        "exit": 0
+      },
+      {
+        "test": "resize-observer",
+        "exit": 0
+      },
+      {
+        "test": "fixed-columns",
+        "exit": 0
+      },
+      {
+        "test": "history-pages",
+        "exit": 0
+      },
+      {
+        "test": "compact-timers",
+        "exit": 1
+      },
+      {
+        "test": "compact-official-names",
+        "exit": 1
+      },
+      {
+        "test": "initial-layout",
+        "exit": 0
+      },
+      {
+        "test": "match-patches",
+        "exit": 0
+      },
+      {
+        "test": "call-status",
+        "exit": 1
+      },
+      {
+        "test": "structural-load",
+        "exit": 0
+      }
+    ],
+    "unchanged_baseline_failures": [
+      {
+        "test": "compact-timers",
+        "exit": 1
+      },
+      {
+        "test": "compact-official-names",
+        "exit": 1
+      },
+      {
+        "test": "call-status",
+        "exit": 1
+      }
+    ],
+    "timer_dependency_baseline_failed": true,
+    "pause_patch_baseline_failed": 3,
+    "native_clock_failure_test": "Absichtlicher Canvas-Messfehler: eigener Auftrag failed, unabhängiger Auftrag presented; genau der absichtliche window-Fehler wird protokolliert, alle Aufträge abgeschlossen."
+  },
+  "limits": [
+    "Kein Nachweis, dass der konkrete 348-ms-Ausreißer des produktiven Berichts mit identischem Ablauf reproduziert oder sämtliche produktiven Höchstlatenzen behoben sind.",
+    "Die Wiederöffnungen haben in der kleinen Vergleichsreihe trotz geringerem Mittel höhere p95-/Maximalwerte. Dafür wird kein belastbarer Gewinn behauptet.",
+    "Die isolierte Verlaufs-Kontrollreihe steigt im Mittel um rund 5 ms; die übrigen Punktekontrollen liegen im bisherigen Bereich. Einzelne Renderframes und kleine Stichproben schwanken.",
+    "Im Screenshotbericht enthalten weitere Ausreißer bereits Verzögerungen vor dem Empfang im Admin-Browser. Diese werden vom isolierten UI-Vergleich nicht abgedeckt.",
+    "Die drei breiteren UI-Fehler (kompakte Uhrenränder bei 1536 px, Kürzung offizieller Vornamen und fehlender Fokusauslöser am Ende des Aufrufdialogtests) sind auch im unveränderten Ausgangsstand vorhanden. Die Erwartungen wurden nicht abgeschwächt.",
+    "Die gezielte Wiederholung zeigt den höheren Wert der ersten Verlaufs-Kontrollreihe nicht erneut. Sie belegt keine allgemeinen Höchstlatenzen oder physischen Renderzeiten."
+  ],
+  "product_sha256": {
+    "static/js/cleitstand.js": "f1ea562b8588e3c41319ad78f8a51bcef0e1a8aa7b7b1e4fe9976517b12fe2e4",
+    "static/js/cmatch.js": "68e3ad0ff531c100083e08a82733602336150b02e1335d74139aea1551f1fa18",
+    "static/js/ctournament.js": "b456c18e998df5f1a282c456e308fb6f6e6aa8a618aa79b10d1fa41efee77ced"
+  },
+  "additional_point_controls": {
+    "scope": "Gezielte Wiederholung nach der auffälligen Verlaufs-Kontrollreihe. Je ein frisches Profil mit 160 Punkten und 40 Feld-Snapshots, keine gleichzeitigen Tests/Lint. Nachher direkt aus dem eigentlichen Repository. Alle 400 Darstellungsquittungen erfolgreich und keine Browserfehler.",
+    "results": {
+      "before": {
+        "score": {
+          "count": 40,
+          "mean_ms": 22.815000000000005,
+          "p50_ms": 21.6,
+          "p95_ms": 30.8,
+          "max_ms": 49.6
+        },
+        "snapshot": {
+          "count": 40,
+          "mean_ms": 23.885,
+          "p50_ms": 23.7,
+          "p95_ms": 37.7,
+          "max_ms": 39.2
+        },
+        "history": {
+          "count": 40,
+          "mean_ms": 28.167499999999997,
+          "p50_ms": 25.3,
+          "p95_ms": 56.9,
+          "max_ms": 59.7
+        },
+        "interval": {
+          "count": 40,
+          "mean_ms": 45.3525,
+          "p50_ms": 46.8,
+          "p95_ms": 69.2,
+          "max_ms": 83.5
+        }
+      },
+      "after": {
+        "score": {
+          "count": 40,
+          "mean_ms": 22.462500000000006,
+          "p50_ms": 21.1,
+          "p95_ms": 34.2,
+          "max_ms": 44.6
+        },
+        "snapshot": {
+          "count": 40,
+          "mean_ms": 22.172500000000003,
+          "p50_ms": 20.9,
+          "p95_ms": 32,
+          "max_ms": 37.8
+        },
+        "history": {
+          "count": 40,
+          "mean_ms": 21.950000000000003,
+          "p50_ms": 18.2,
+          "p95_ms": 49.2,
+          "max_ms": 52.3
+        },
+        "interval": {
+          "count": 40,
+          "mean_ms": 39.39,
+          "p50_ms": 39.4,
+          "p95_ms": 64.4,
+          "max_ms": 78.3
+        }
+      }
+    }
+  },
+  "root_verification": {
+    "node_passed": 118,
+    "browser": [
+      "timer-jobs",
+      "update-ownership",
+      "completion"
+    ],
+    "completion": {
+      "cpu": {
+        "count": 10,
+        "mean_ms": 233.95729999999998,
+        "p50_ms": 253.49699999999999,
+        "p95_ms": 292.02700000000004,
+        "max_ms": 292.02700000000004
+      },
+      "finish": {
+        "count": 10,
+        "mean_ms": 92.18999999999998,
+        "p50_ms": 89.7,
+        "p95_ms": 161.6,
+        "max_ms": 161.6
+      },
+      "point": {
+        "count": 10,
+        "mean_ms": 85.2,
+        "p50_ms": 89.3,
+        "p95_ms": 115.4,
+        "max_ms": 115.4
+      },
+      "reopen": {
+        "count": 10,
+        "mean_ms": 93.64,
+        "p50_ms": 92.3,
+        "p95_ms": 110,
+        "max_ms": 110
+      }
+    },
+    "pause_broad_updates": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "receipt_count": 110,
+    "all_presented": true
+  },
+  "lint": {
+    "cleitstand_and_changed_browser_checks": 0,
+    "test_ctournament_match_updates": 0,
+    "existing_cmatch_errors_before_after": [
+      182,
+      182
+    ],
+    "existing_ctournament_errors_before_after": [
+      205,
+      205
+    ],
+    "same_rule_message_multisets": true
+  },
+  "diagnostic_directory": "/tmp/bts-outliers-20261110"
+}

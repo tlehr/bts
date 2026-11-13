@@ -1,0 +1,421 @@
+{
+  "source": "bts-test-17.json",
+  "source_sha256": "a714c7fe9eebeeb098a79676f725226f99c3ade3acb00e6d3c250b35a666a108",
+  "scope": "Auswertung des vollständigen zehnminütigen Testlaufs; keine Produktänderung und keine Live-Zugriffe. Exportierte Angaben werden als Testdaten behandelt.",
+  "started_at": "2026-11-11T14:43:08.990Z",
+  "runtime_ms": 600258,
+  "stop_reason": "completed",
+  "failure": null,
+  "server_profile": {
+    "server_id": "2417909-1794407999308",
+    "run_label": null,
+    "features": {
+      "btp_decode": true,
+      "sync_plan": true,
+      "sync_plan_patch_return": true,
+      "device_info": false,
+      "xlsx_import": false,
+      "compaction": true,
+      "database_append": true,
+      "compaction_reads": true,
+      "score_idle_reads": true,
+      "score_readonly_reads": true,
+      "score_dependency_locks": true,
+      "score_direct_writes": true,
+      "preparation_reads": true,
+      "preparation_candidates": true,
+      "sync_batch_writes": false,
+      "sync_prepared_tournament": true,
+      "sync_prepared_matches": true,
+      "sync_prepared_append": true,
+      "admin_response_background": true,
+      "admin_response_priority": true,
+      "admin_match_revision_cache": true,
+      "admin_broadcast_shared": true,
+      "admin_response_worker": false,
+      "compaction_staged": true
+    }
+  },
+  "mixed_server_profiles": false,
+  "initial_state": {
+    "matches": 584,
+    "finished_matches": 11,
+    "active_matches": 1,
+    "active_courts": 15,
+    "pending_player_checkins": 1,
+    "pending_players": 1,
+    "check_in_per_match": true,
+    "state_sha256": "54125334039fd34acfba32503d12a4f84c6a7a3c1095adaf8617f8c4f7c9c226"
+  },
+  "settings": {
+    "tournament": "default",
+    "base_url": "https://localhost:4433",
+    "point_interval_ms": [
+      3200,
+      6400
+    ],
+    "score_gap_ms": [
+      0,
+      0
+    ],
+    "pause_visible_ms": 3000,
+    "score_all_active": false,
+    "legacy_loopback_devices": false,
+    "server_telemetry": true,
+    "processing_traces": true,
+    "score_probability": [
+      0.4,
+      0.6
+    ]
+  },
+  "latency": {
+    "ordinary_admin": {
+      "count": 1024,
+      "mean_ms": 36.25,
+      "median_ms": 34.0,
+      "p95_ms": 55,
+      "p99_ms": 134,
+      "max_ms": 254,
+      "strict_limit_ms": 100,
+      "at_or_over_limit": 19,
+      "over_limit": 19,
+      "equal_limit": 0
+    },
+    "finish_admin": {
+      "count": 5,
+      "mean_ms": 92.4,
+      "median_ms": 95,
+      "p95_ms": 113,
+      "p99_ms": 113,
+      "max_ms": 113,
+      "strict_limit_ms": 150,
+      "at_or_over_limit": 0,
+      "over_limit": 0,
+      "equal_limit": 0
+    },
+    "display_receive": {
+      "count": 1029,
+      "mean_ms": 4.52,
+      "median_ms": 4,
+      "p95_ms": 11,
+      "p99_ms": 16,
+      "max_ms": 85,
+      "strict_limit_ms": 50,
+      "at_or_over_limit": 1,
+      "over_limit": 1,
+      "equal_limit": 0
+    }
+  },
+  "coverage": {
+    "sent_updates": 1029,
+    "presented": 1029,
+    "display_received": 1029,
+    "unmatched_admin": 0,
+    "unmatched_display": 0,
+    "expired": {
+      "tv": 0,
+      "admin": 0
+    }
+  },
+  "server_point_operation": {
+    "count": 1024,
+    "mean_ms": 9.39,
+    "median_ms": 8.0,
+    "p95_ms": 17.5,
+    "p99_ms": 25.6,
+    "max_ms": 89.3,
+    "strict_limit_ms": 100,
+    "at_or_over_limit": 0,
+    "over_limit": 0,
+    "equal_limit": 0
+  },
+  "worst_admin": {
+    "trace_id": "live-drill-2419232-mwc8lg7l-755",
+    "sent_ts": 1794408676689,
+    "admin_ms": 254,
+    "tv_ms": 11,
+    "server_operation_ms": 9.3,
+    "server_score_send_offset_ms": 11,
+    "admin_received_offset_ms": 192,
+    "admin_ui_ms": {
+      "queue_ms": 0.6,
+      "handler_ms": 0.3,
+      "ui_wait_ms": 0,
+      "render_ms": 61,
+      "total_ms": 61.9
+    },
+    "finding": "Der Server reiht den Score bei +11 ms ohne gemessene Sendewartezeit ein. Die gemessene Browser-Empfangsverarbeitung beginnt erst bei +192 ms. Der Export allein trennt Socket-Zustellung und Browser-Hauptthreadplanung nicht vollständig. Der Score-Handler selbst dauert nur 0,3 ms; danach vergehen weitere 61 ms bis zum Render-Messende."
+  },
+  "worst_display": {
+    "trace_id": "live-drill-2419232-mwc8h864-566",
+    "display_ms": 85,
+    "server_operation_ms": 89.3,
+    "append_worker_ms": 81.6,
+    "append_input_wait_ms": 0.1,
+    "append_return_delivery_ms": 0.1,
+    "finding": "Die Speicherbestätigung wartet rund 82 ms im Append-Worker. Aus den exportierten Phasen lässt sich die Ursache innerhalb des Workers (I/O, Scheduling usw.) nicht weiter bestimmen. Eine Veröffentlichung vor Speicherbestätigung wurde nicht getestet und ist keine vorgeschlagene Abkürzung."
+  },
+  "ui_jobs": {
+    "board.initial-lists": {
+      "count": 1,
+      "queue_ms": {
+        "mean": 17,
+        "max": 17
+      },
+      "work_ms": {
+        "mean": 534.5,
+        "max": 534.5
+      },
+      "elapsed_ms": {
+        "mean": 1265.2,
+        "max": 1265.2
+      }
+    },
+    "timers.fit": {
+      "count": 735,
+      "queue_ms": {
+        "mean": 26.72,
+        "max": 179.6
+      },
+      "work_ms": {
+        "mean": 0.07,
+        "max": 0.7
+      },
+      "elapsed_ms": {
+        "mean": 39.97,
+        "max": 401
+      }
+    },
+    "names.first-size": {
+      "count": 474,
+      "work_ms": {
+        "mean": 0,
+        "max": 0
+      },
+      "elapsed_ms": {
+        "mean": 516.19,
+        "max": 826.8
+      }
+    },
+    "names.layout": {
+      "count": 326,
+      "queue_ms": {
+        "mean": 42.05,
+        "max": 797.4
+      },
+      "work_ms": {
+        "mean": 13.04,
+        "max": 86.9
+      },
+      "elapsed_ms": {
+        "mean": 55.1,
+        "max": 827.5
+      }
+    },
+    "lists.counts": {
+      "count": 31,
+      "queue_ms": {
+        "mean": 106.6,
+        "max": 498.6
+      },
+      "work_ms": {
+        "mean": 7.69,
+        "max": 16.2
+      },
+      "elapsed_ms": {
+        "mean": 114.29,
+        "max": 503.5
+      }
+    },
+    "preparation.controls": {
+      "count": 124,
+      "queue_ms": {
+        "mean": 12.85,
+        "max": 192.3
+      },
+      "work_ms": {
+        "mean": 21.66,
+        "max": 63.1
+      },
+      "elapsed_ms": {
+        "mean": 34.52,
+        "max": 213.3
+      }
+    },
+    "finished.sort": {
+      "count": 11,
+      "queue_ms": {
+        "mean": 32.59,
+        "max": 86.1
+      },
+      "work_ms": {
+        "mean": 3.43,
+        "max": 6.8
+      },
+      "elapsed_ms": {
+        "mean": 36.02,
+        "max": 92.9
+      }
+    },
+    "players.status": {
+      "count": 290,
+      "queue_ms": {
+        "mean": 25.85,
+        "max": 204.3
+      },
+      "work_ms": {
+        "mean": 3.72,
+        "max": 16.5
+      },
+      "elapsed_ms": {
+        "mean": 29.58,
+        "max": 205.7
+      }
+    },
+    "lists.dates": {
+      "count": 18,
+      "queue_ms": {
+        "mean": 10.42,
+        "max": 29.5
+      },
+      "work_ms": {
+        "mean": 4.77,
+        "max": 10.5
+      },
+      "elapsed_ms": {
+        "mean": 15.19,
+        "max": 40.1
+      }
+    },
+    "matches.warnings": {
+      "count": 69,
+      "queue_ms": {
+        "mean": 25.53,
+        "max": 195.1
+      },
+      "work_ms": {
+        "mean": 3.18,
+        "max": 7.9
+      },
+      "elapsed_ms": {
+        "mean": 28.72,
+        "max": 201.8
+      }
+    },
+    "preparation.courts": {
+      "count": 173,
+      "queue_ms": {
+        "mean": 52.36,
+        "max": 203.7
+      },
+      "work_ms": {
+        "mean": 0.93,
+        "max": 4.1
+      },
+      "elapsed_ms": {
+        "mean": 53.3,
+        "max": 204.4
+      }
+    },
+    "locations.labels": {
+      "count": 190,
+      "queue_ms": {
+        "mean": 51.67,
+        "max": 328.8
+      },
+      "work_ms": {
+        "mean": 0.64,
+        "max": 4.7
+      },
+      "elapsed_ms": {
+        "mean": 52.3,
+        "max": 329.2
+      }
+    },
+    "preparation.diagnosis": {
+      "count": 102,
+      "queue_ms": {
+        "mean": 50.94,
+        "max": 477.7
+      },
+      "work_ms": {
+        "mean": 0.74,
+        "max": 3.4
+      },
+      "elapsed_ms": {
+        "mean": 308.76,
+        "max": 1019.1
+      }
+    },
+    "planned.sort": {
+      "count": 21,
+      "queue_ms": {
+        "mean": 21.71,
+        "max": 170.1
+      },
+      "work_ms": {
+        "mean": 8.5,
+        "max": 15.7
+      },
+      "elapsed_ms": {
+        "mean": 30.21,
+        "max": 185.8
+      }
+    }
+  },
+  "ui_findings": {
+    "names_layout_max_work_ms": 86.9,
+    "preparation_controls_max_work_ms": 63.1,
+    "preparation_controls_mean_work_ms": 21.66,
+    "limits": "Die 40 gespeicherten langsamen Jobs decken nur einen Ausschnitt ab; ohne Browser-CPU-/Renderingprofil ist keine einzelne Funktion als Ursache sämtlicher Ausreißer bewiesen. board.initial-lists misst das Listenaufbauen, nicht die vollständige Navigation."
+  },
+  "btp": {
+    "fetch_count": 19,
+    "fetch_start_interval_s": {
+      "min": 30.55,
+      "max": 31.614
+    },
+    "fetch_duration_ms": {
+      "max": 1613
+    },
+    "finding": "Das automatische Abfrageintervall liegt weiterhin bei rund 30 Sekunden. Der Bericht enthält keinen direkten abschließenden Vergleich aller Sieger und Feldzuordnungen mit BTP."
+  },
+  "queues": {
+    "trace_statuses": {
+      "ok": 5204
+    },
+    "trace_gaps": 0,
+    "archive_dropped": {
+      "samples": 0,
+      "traces": 0,
+      "events": 0
+    },
+    "max_failed_count": 0,
+    "max_rejected_count": 0,
+    "final_pending": [
+      [
+        "DB display_court_displaysettings",
+        28
+      ]
+    ],
+    "finding": "Kein anhaltender Rückstau im Export. Kurzzeitige Warteschlangen bleiben sichtbar, unter anderem Admin send bis 395 ms und DB display_court_displaysettings bis 391 ms."
+  },
+  "memory_mib": {
+    "rss_start": 496.5,
+    "rss_end": 641.8,
+    "rss_peak": 723.0,
+    "limit": "Ein einzelner Lauf weist kein Speicherleck nach."
+  },
+  "comparison_limits": [
+    "Der neue Lauf beginnt mit 584 Spielen und elf fertigen Spielen. Die bisherigen erfolgreichen Läufe 54–56 begannen mit 524 Spielen und 471 fertigen Spielen sowie Seed 741 statt 519. Das ist kein kontrollierter Vorher-Nachher-Vergleich.",
+    "Der Export liefert eine Serverinstanz und Featureangaben, aber keine vollständige Quellprüfsumme dieses Laufs.",
+    "Fünf erfolgreiche Spielabschlüsse sind eine kleine Stichprobe.",
+    "Die drei früheren erfolgreichen Läufe belegen die Grenzwerte für deren Turnierzustand; dieser neue Bericht belegt, dass sie nicht allgemein zuverlässig eingehalten werden."
+  ],
+  "next_focus": [
+    "Große Listen noch offener Spiele und deren Vorbereitung-/Namensaktualisierung mit diesem frühen Turnierstand profilieren. Die Ursachenzuordnung benötigt ein Browserprofil an einem Ausreißer.",
+    "Den einzelnen langsamen Append gesondert untersuchen; erfolgreiche persistente Speicherung weiterhin vor der Veröffentlichung abwarten."
+  ],
+  "product_changed": false,
+  "live_tournament_changed": false
+}

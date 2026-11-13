@@ -1,14 +1,16 @@
 'use strict';
 
 // References belong to one synchronous selection, never to a persistent cache.
-// Only team players participate here; officials and tablet operators follow
-// their own availability rules. Dependency IDs retain their original types.
+// Dependencies use team players; field calls additionally reserve tablet
+// operators. Dependency IDs retain their original types.
 class ParticipantLookup {
 	constructor(matches, rules) {
 		this.rules = rules;
 		this.players = new WeakMap();
 		this.open_matches = new Map();
 		this.inactive_by_discipline = new Map();
+		this.busy = require('../match_reconciliation/tablet_queue').busy_ids(matches);
+		this.activities = new WeakMap();
 		for (const match of matches) {
 			if (!match) continue;
 			if (!rules.is_finished(match) && rules.counts_as_open?.(match) !== false) {
@@ -24,6 +26,21 @@ class ParticipantLookup {
 			const inactive = this.inactive_by_discipline.get(discipline);
 			for (const id of rules.inactive_ids(match)) inactive.add(id);
 		}
+	}
+
+	activity_conflicts(match) {
+		if (this.activities.has(match)) return this.activities.get(match);
+		const queue = require('../match_reconciliation/tablet_queue');
+		const players = (match.setup?.teams || []).flatMap(team => team.players || []);
+		const playing = queue.player_ids(players);
+		const tablets = match.setup?.tabletoperators || [];
+		const duplicate_roles = new Set([...queue.player_ids(tablets)].filter(id => playing.has(id)));
+		const conflicts = [...players, ...tablets].filter(player => {
+			const id = String(player?.btp_id);
+			return this.busy.has(id) || duplicate_roles.has(id);
+		});
+		this.activities.set(match, conflicts);
+		return conflicts;
 	}
 
 	player_ids(match) {

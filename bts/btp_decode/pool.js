@@ -16,7 +16,7 @@ class DecodePool {
 		this.active = null;
 		this.closed = false;
 		this.health = new (require('../performance/queue_stats'))('worker');
-		this.unregister_health = require('../performance/registry').register(this, 'btp_decode', owner => owner.health.snapshot());
+		this.unregister_health = require('../performance/registry').register(this, 'btp_decode', owner => owner.scheduling ? {...owner.health.snapshot(),scheduling:owner.scheduling} : owner.health.snapshot());
 	}
 	decode(packet, context = {}, callback) {
 		const job = { id: ++this.next_id, packet, context, callback, queued: process.hrtime.bigint() };
@@ -34,9 +34,11 @@ class DecodePool {
 		if (this.worker) return this.worker;
 		const worker = this.create_worker();
 		this.worker = worker;
+		this.scheduling = null;
 		worker.on('message', result => {
 			if (this.worker !== worker || this.active?.id !== result.id) return;
 			const received = process.hrtime.bigint();
+			this.scheduling = result.scheduling || null;
 			const job = this.active;
 			this.active = null;
 			worker.unref();

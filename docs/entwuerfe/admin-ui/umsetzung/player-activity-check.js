@@ -48,10 +48,22 @@ module.exports = async function({c, open, check, metrics, previews}) {
   const player=__activityQA.player(99001);
   return player===__activityQA.original&&player.querySelectorAll('.ls-resource-hint').length===1&&player.querySelector('.tablet_inline .ls-resource-court')?.textContent==='10'&&!player.querySelector('.tabletoperator_waiting_inline,.court');
  })()`);
+ await c.evaluate(`(()=>{
+  const qa=__activityQA;qa.free=qa.player(99004);qa.freeName=qa.free.firstChild;qa.calls=qa.row.querySelector('.call_td');
+  qa.patchResource=properties=>{const match=structuredClone(curt.matches.find(m=>m._id==='match-45'));const player=match.setup.teams[1].players[1];delete player.now_playing_on_court;delete player.now_tablet_on_court;Object.assign(player,properties);crouting.on_change({ctype:'match_edit',tournament_key:'preview',val:{match__id:match._id,match}});};
+  qa.patchResource({now_playing_on_court:'CH_7'});
+ })()`);
+ await check('A full match snapshot patches playing status and attendance locks while retaining names and actions',`(()=>{const qa=__activityQA,p=qa.player(99004);return p===qa.free&&p.firstChild===qa.freeName&&qa.calls===qa.row.querySelector('.call_td')&&p.classList.contains('now_playing')&&p.querySelector('.court .ls-resource-court')?.textContent==='7'&&!p.hasAttribute('data-check-in-action');})()`);
+ await c.evaluate('__activityQA.patchResource({now_tablet_on_court:"CH_8"})');
+ await check('A stale tablet flag without a current assignment cannot lock attendance or leave a resource badge',`(()=>{const qa=__activityQA,p=qa.player(99004);return p===qa.free&&p.firstChild===qa.freeName&&!p.classList.contains('now_playing')&&!p.querySelector('.ls-resource-hint')&&p.hasAttribute('data-check-in-action');})()`);
+ await c.evaluate(`(()=>{const active=structuredClone(curt.matches.find(m=>m._id==='match-44'));active.setup.tabletoperators.push({btp_id:99004,name:'Freier Spieler'});crouting.on_change({ctype:'match_edit',tournament_key:'preview',val:{match__id:active._id,match:active}});__activityQA.patchResource({now_tablet_on_court:'CH_10'});})()`);
+ await check('A full snapshot retains the actual tablet assignment, its court badge and attendance lock',`(()=>{const qa=__activityQA,p=qa.player(99004);return p===qa.free&&p.firstChild===qa.freeName&&!p.querySelector('.court')&&p.querySelector('.tablet_inline .ls-resource-court')?.textContent==='10'&&!p.hasAttribute('data-check-in-action');})()`);
+ await c.evaluate(`(()=>{const active=structuredClone(curt.matches.find(m=>m._id==='match-44'));active.setup.tabletoperators=active.setup.tabletoperators.filter(person=>person.btp_id!==99004);crouting.on_change({ctype:'match_edit',tournament_key:'preview',val:{match__id:active._id,match:active}});__activityQA.patchResource({});})()`);
+ await check('Clearing resource flags restores attendance interaction and preserves the player node',`(()=>{const qa=__activityQA,p=qa.player(99004);return p===qa.free&&p.firstChild===qa.freeName&&!p.querySelector('.ls-resource-hint')&&p.hasAttribute('data-check-in-action');})()`);
  await metrics(1050,940);
  await check('Court badges remain legible and identically sized after resizing',`(()=>{
   const hints=[...__activityQA.row.querySelectorAll('.ls-resource-court')];
   return hints.length===2&&hints.every(hint=>{const rect=hint.getBoundingClientRect();return rect.width>=20&&rect.height>=17&&getComputedStyle(hint).fontSize==='12px';});
  })()`);
- console.log(JSON.stringify({checks:6,kind:'player-activity',previews}));
+ console.log(JSON.stringify({checks:10,kind:'player-activity',previews}));
 };

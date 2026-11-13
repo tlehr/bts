@@ -1,0 +1,465 @@
+{
+  "date": "2026-11-12",
+  "purpose": "Zeitlich zuordnen, welche Hintergrundarbeit normale Punkte verzögert. Keine Funktionsoptimierung oder Änderung des Produktcodes in dieser Diagnose.",
+  "environment": {
+    "tournament_key": "default",
+    "matches": 584,
+    "courts": 15,
+    "halls": 2,
+    "real_btp": "online, writable; normal 30-second sync remains active",
+    "browser_viewport": [
+      1920,
+      1080
+    ],
+    "point_pacing": "Ein fälliges Feld je Poll; Punkte pro Feld 3200–6400 ms; sequenzieller Versand, Seed 519."
+  },
+  "method": {
+    "full_capture": "10 Minuten echter Standard-Benchmark, Browser- und Server-CPU-Profile, Chrome-Timeline, Netzwerkdienst-NetLog und zeitlich erfasste UI-Jobs. Diese Instrumentierung verstärkt die Latenzausreißer und ist keine unverfälschte Leistungsreferenz.",
+    "paired_control": "142 identische normale Punkte gleichzeitig in drei Browsern: vollständige Aufzeichnung, normale Testclient-Quittierungen ohne Network/Timeline, und ausschließlich Score-Quittierungen. Die spätere zusätzliche Profilierung des Kontrollbrowsers ist aus diesem Vergleich ausgeschlossen.",
+    "light_control": "Danach 120 Sekunden mit nur einer UI, ohne Network-Domain und ohne Kopieren der Nicht-Score-Nachrichten durch den Messclient. Produkt-Handler, Automatik, Statusmeldungen und DOM-Arbeiten laufen unverändert; Score-Endpunkt bleibt DOM-Anwendung plus zwei sichtbare Animation Frames. V8-Sampling und normale devtools.timeline bleiben zur Zuordnung aktiv.",
+    "timing": "CPU- und Trace-Zeit über Network.requestWillBeSent.timestamp/wallTime auf denselben OS-Monotonie-Zeitgeber bezogen. Punktzuordnung in der Kontrolle über Spiel-ID und genau einen gesendeten Punkt im vorhergehenden 2800-ms-Fenster.",
+    "native_duration_caution": "Layout, PrePaint und Paint werden innerhalb jeder Kategorie vereinigt; verschachtelte Paint-Ereignisse werden nicht mehrfach gezählt. Jobdauer und darin enthaltenes Layout sind keine additiven unabhängigen Zeiten."
+  },
+  "full_capture_results": {
+    "updates_sent": 1201,
+    "admin_presented": 1201,
+    "display_received": 1201,
+    "admin_p50_ms": 34,
+    "admin_p95_ms": 367,
+    "admin_max_ms": 1270,
+    "display_p50_ms": 4,
+    "display_max_ms": 80
+  },
+  "paired_control_results": {
+    "matched_ordinary_points": 142,
+    "full_instrumentation": {
+      "p50_ms": 42,
+      "p95_ms": 630,
+      "max_ms": 1270,
+      "over100": 31
+    },
+    "normal_test_receipts_without_extra_network_capture": {
+      "p50_ms": 37,
+      "p95_ms": 277,
+      "max_ms": 795,
+      "over100": 17
+    },
+    "score_only_receipts_without_extra_network_capture": {
+      "p50_ms": 35,
+      "p95_ms": 231,
+      "max_ms": 562,
+      "over100": 13
+    },
+    "example": {
+      "trace_id": "live-drill-2531325-mwcu8a2s-930",
+      "original": 1065,
+      "full_receipts": 532,
+      "score_receipts": 231
+    }
+  },
+  "light_control_results": {
+    "all": {
+      "count": 308,
+      "p50": 33,
+      "p95": 56,
+      "max": 279,
+      "over100": 4
+    },
+    "ordinary": {
+      "count": 306,
+      "p50": 33,
+      "p95": 55,
+      "max": 279,
+      "over100": 4
+    },
+    "finish": {
+      "count": 2,
+      "p50": 82,
+      "p95": 82,
+      "max": 90,
+      "over100": 0
+    },
+    "interpretation": "Weniger Messoverhead verkleinert viele Ausreißer, beseitigt aber die echten Layoutspitzen nicht. Zwei Abschlüsse sind kein belastbarer Maximalnachweis für Abschlüsse."
+  },
+  "findings": [
+    {
+      "name": "Große vollständige Aufrufstatuspakete",
+      "evidence": {
+        "captured_snapshot_utf8_bytes": 2397545,
+        "location_diagnostic_sizes": [
+          {
+            "id": "default_1",
+            "bytes": 1287461,
+            "fields": {
+              "location_id": 11,
+              "required_preparation_count": 1,
+              "current_preparation_count": 1,
+              "missing_preparation_count": 1,
+              "effective_required_preparation_count": 1,
+              "effective_missing_preparation_count": 1,
+              "candidate_match_ids": 2,
+              "candidate_match_nums": 2,
+              "selected_match_ids": 2,
+              "selected_match_nums": 2,
+              "auto_selected_match_ids": 2,
+              "auto_selected_match_nums": 2,
+              "display_candidate_match_ids": 2,
+              "display_candidate_match_nums": 2,
+              "display_frontier_match_id": 24,
+              "display_frontier_match_num": 2,
+              "display_cutoff_match_id": 24,
+              "display_cutoff_match_num": 2,
+              "diagnostics_by_match_id": 1139036,
+              "call_on_court_diagnostics_by_match_id": 145631,
+              "field_selection_debug": 94,
+              "successor_court_ids": 50,
+              "successor_match_ids": 101,
+              "free_court_ids": 25,
+              "demand_court_ids": 74,
+              "manual_callable_match_ids": 1653
+            }
+          },
+          {
+            "id": "default_2",
+            "bytes": 1144179,
+            "fields": {
+              "location_id": 11,
+              "required_preparation_count": 1,
+              "current_preparation_count": 1,
+              "missing_preparation_count": 1,
+              "effective_required_preparation_count": 1,
+              "effective_missing_preparation_count": 1,
+              "candidate_match_ids": 2,
+              "candidate_match_nums": 2,
+              "selected_match_ids": 2,
+              "selected_match_nums": 2,
+              "auto_selected_match_ids": 2,
+              "auto_selected_match_nums": 2,
+              "display_candidate_match_ids": 2,
+              "display_candidate_match_nums": 2,
+              "display_frontier_match_id": 24,
+              "display_frontier_match_num": 2,
+              "display_cutoff_match_id": 24,
+              "display_cutoff_match_num": 2,
+              "diagnostics_by_match_id": 1132463,
+              "call_on_court_diagnostics_by_match_id": 9262,
+              "field_selection_debug": 48,
+              "successor_court_ids": 14,
+              "successor_match_ids": 26,
+              "free_court_ids": 2,
+              "demand_court_ids": 14,
+              "manual_callable_match_ids": 1553
+            }
+          }
+        ],
+        "large_frames_in_light_capture": 55,
+        "large_frame_serialized_characters": 128838986,
+        "snapshot_section_changes": [
+          {
+            "location_id": "default_1",
+            "section": "diagnostics_by_match_id",
+            "entries": 522,
+            "changed_entries": 0,
+            "changed_compact_characters": 2
+          },
+          {
+            "location_id": "default_1",
+            "section": "call_on_court_diagnostics_by_match_id",
+            "entries": 4,
+            "changed_entries": 1,
+            "changed_compact_characters": 29246
+          },
+          {
+            "location_id": "default_2",
+            "section": "diagnostics_by_match_id",
+            "entries": 519,
+            "changed_entries": 0,
+            "changed_compact_characters": 2
+          },
+          {
+            "location_id": "default_2",
+            "section": "call_on_court_diagnostics_by_match_id",
+            "entries": 2,
+            "changed_entries": 0,
+            "changed_compact_characters": 2
+          }
+        ]
+      },
+      "cause": "Fast der gesamte Status besteht aus Regeldiagnosen für hunderte Spiele. Schon bei einer geänderten Felddiagnose werden unveränderte Diagnosen erneut übertragen, geparst und verglichen. In der ersten verglichenen Folge ändern sich nur Daten eines Spieleintrags.",
+      "source": [
+        "bts/call_status/project.js",
+        "bts/call_status/index.js",
+        "static/js/ctournament.js:1509"
+      ]
+    },
+    {
+      "name": "Zusätzliche Vollabfragen neben dem Push",
+      "evidence": "Im Kontrolllauf stehen 38 großen call_status_changed-Paketen 17 weitere große Pakete gegenüber, darunter Initialantworten. Mindestens 13 Status-/Antwortpaare unterscheiden sich in der Länge nur um 56 Zeichen und kommen binnen 26–187 ms nacheinander. Tabletbedieneränderungen und Spielerpausen fordern weiterhin preparation_selection_get an, obwohl der gemeinsame Dienst schon Push-Meldungen liefert.",
+      "source": [
+        "static/js/ctournament.js:651",
+        "static/js/ctournament.js:700",
+        "static/js/ctournament.js:1098",
+        "static/js/ctournament.js:1581",
+        "bts/admin.js:1063"
+      ],
+      "limitation": "Die Zusatzpakete wurden im Metadatenmitschnitt nur nach Größe/Zeit erfasst; die vollständigen Antwortinhalte wurden hier nicht einzeln gespeichert. Die doppelte Abfrage ist zusätzlich im Code belegt."
+    },
+    {
+      "name": "Synchrones Layout nach Vorbereitungsänderungen",
+      "evidence": "Beim normalen Punkt mit 244 ms laufen preparation.controls 32,9 ms und names.layout 55,4 ms. Im letztgenannten Job erzwingt refreshBoundaryLayout einen Layoutdurchlauf von 51,0 ms über 22.582 Layoutobjekte. Der eigene Punkthandler benötigt nur 1,6 ms.",
+      "source": [
+        "static/js/cleitstand.js:577",
+        "static/js/cleitstand.js:1738",
+        "static/js/cleitstand.js:1848",
+        "static/js/cmatch.js:4475"
+      ]
+    },
+    {
+      "name": "Nachgelagerte Layout- und Zeichenarbeit verzögert auch andere Punkte",
+      "evidence": "Beim normalen Punkt mit 279 ms benötigt der Punkthandler 1,0 ms. Während seines Intervalls laufen unter anderem ein einzelner Layoutdurchlauf von 74,93 ms über 22.257 Objekte und PrePaint von 42,35 ms. Es ist keine langsame eigentliche Punktberechnung erforderlich, um diesen Ausreißer zu erzeugen."
+    },
+    {
+      "name": "Messdatenübertragung als zusätzlicher Verstärker",
+      "evidence": "Der bisherige Testclient serialisiert für jede UI-Quittierung nochmals die vollständige Originalnachricht und überträgt sie an DevTools. Das CPU-Profil weist bei langsamen Punkten rund 100–300 ms in diesem Quittierungszweig nach. Der paarweise Browservergleich bestätigt erhebliche Unterschiede. Die zusätzliche Network-Aufzeichnung im großen Profil verstärkt den Effekt weiter.",
+      "source": [
+        "/home/tim/repos/bts-testclient/src/reception/browser_admin.js:77",
+        "static/js/admin_update_observer.js:16"
+      ],
+      "limitation": "Der Umfang des Effekts variiert mit Hintergrundmeldungen und Browser-Scheduling. Aus den Vergleichen folgt keine feste prozentuale Beschleunigung des Produkts."
+    }
+  ],
+  "attributed_points": [
+    {
+      "trace_id": "live-drill-2535623-mwcufjqs-243",
+      "type": "point",
+      "match_id": "btp_default_MX U13_467",
+      "sent_ts": 1794445352884,
+      "admin_ms": 279,
+      "received_ms": 86,
+      "server_duration_ms": 30.4,
+      "tv_ms": 17,
+      "ui_ms": {
+        "queue_ms": 3.7,
+        "handler_ms": 1,
+        "ui_wait_ms": 0,
+        "render_ms": 188.4,
+        "total_ms": 193.1
+      },
+      "native_ms_union_per_category": {
+        "Layout": 77.54,
+        "PrePaint": 44.19,
+        "Paint": 47.25
+      },
+      "overlapping_jobs": [
+        {
+          "name": "lists.dates",
+          "duration_ms": 3.8
+        },
+        {
+          "name": "players.status",
+          "duration_ms": 2.3
+        },
+        {
+          "name": "timers.fit",
+          "duration_ms": 0.1
+        },
+        {
+          "name": "timers.fit",
+          "duration_ms": 0.1
+        }
+      ],
+      "large_frames": [
+        {
+          "type": "call_status_changed",
+          "characters": 2338273,
+          "relative_received_ms": -121
+        },
+        {
+          "type": "response-envelope-type-outside-first-350-characters",
+          "characters": 2338217,
+          "relative_received_ms": 66
+        }
+      ]
+    },
+    {
+      "trace_id": "live-drill-2535623-mwcue4pm-68",
+      "type": "point",
+      "match_id": "btp_default_MX U13_469",
+      "sent_ts": 1794445286746,
+      "admin_ms": 244,
+      "received_ms": 214,
+      "server_duration_ms": 15.6,
+      "tv_ms": 10,
+      "ui_ms": {
+        "queue_ms": 0.2,
+        "handler_ms": 1.6,
+        "ui_wait_ms": 0,
+        "render_ms": 28.8,
+        "total_ms": 30.6
+      },
+      "native_ms_union_per_category": {
+        "Layout": 58.94,
+        "PrePaint": 10.45,
+        "Paint": 20.06
+      },
+      "overlapping_jobs": [
+        {
+          "name": "names.layout",
+          "duration_ms": 55.4
+        },
+        {
+          "name": "preparation.controls",
+          "duration_ms": 32.9
+        },
+        {
+          "name": "locations.labels",
+          "duration_ms": 0.3
+        },
+        {
+          "name": "preparation.diagnosis",
+          "duration_ms": 0
+        }
+      ],
+      "large_frames": [
+        {
+          "type": "call_status_changed",
+          "characters": 2346702,
+          "relative_received_ms": -241
+        },
+        {
+          "type": "call_status_changed",
+          "characters": 2371455,
+          "relative_received_ms": 17
+        },
+        {
+          "type": "response-envelope-type-outside-first-350-characters",
+          "characters": 2371399,
+          "relative_received_ms": 198
+        }
+      ]
+    },
+    {
+      "trace_id": "live-drill-2535623-mwcueje0-117",
+      "type": "point",
+      "match_id": "btp_default_MX U15_379",
+      "sent_ts": 1794445305768,
+      "admin_ms": 161,
+      "received_ms": 91,
+      "server_duration_ms": 13,
+      "tv_ms": 6,
+      "ui_ms": {
+        "queue_ms": 1.2,
+        "handler_ms": 0.3,
+        "ui_wait_ms": 0,
+        "render_ms": 68.5,
+        "total_ms": 70
+      },
+      "native_ms_union_per_category": {
+        "Layout": 22.44,
+        "PrePaint": 12.96,
+        "Paint": 57.84
+      },
+      "overlapping_jobs": [
+        {
+          "name": "names.layout",
+          "duration_ms": 18
+        },
+        {
+          "name": "names.layout",
+          "duration_ms": 11.4
+        },
+        {
+          "name": "lists.counts",
+          "duration_ms": 8.3
+        },
+        {
+          "name": "players.status",
+          "duration_ms": 2.5
+        }
+      ],
+      "large_frames": [
+        {
+          "type": "call_status_changed",
+          "characters": 2372402,
+          "relative_received_ms": -180
+        },
+        {
+          "type": "response-envelope-type-outside-first-350-characters",
+          "characters": 2372346,
+          "relative_received_ms": -120
+        }
+      ]
+    },
+    {
+      "trace_id": "live-drill-2535623-mwcudkfw-3",
+      "type": "point",
+      "match_id": "btp_default_MX U13_459",
+      "sent_ts": 1794445260476,
+      "admin_ms": 132,
+      "received_ms": 106,
+      "server_duration_ms": 8.5,
+      "tv_ms": 4,
+      "ui_ms": {
+        "queue_ms": 0.3,
+        "handler_ms": 1.4,
+        "ui_wait_ms": 0,
+        "render_ms": 24.3,
+        "total_ms": 26
+      },
+      "native_ms_union_per_category": {
+        "Layout": 34.14,
+        "PrePaint": 9.56,
+        "Paint": 25.04
+      },
+      "overlapping_jobs": [
+        {
+          "name": "names.layout",
+          "duration_ms": 41.4
+        },
+        {
+          "name": "preparation.diagnosis",
+          "duration_ms": 0
+        }
+      ],
+      "large_frames": [
+        {
+          "type": "call_status_changed",
+          "characters": 2346601,
+          "relative_received_ms": -70
+        },
+        {
+          "type": "response-envelope-type-outside-first-350-characters",
+          "characters": 2346545,
+          "relative_received_ms": 98
+        }
+      ]
+    }
+  ],
+  "optimization_priority": [
+    "Doppelte vollständige Statusabfragen nach erfolgreicher Push-Anmeldung vermeiden; Wiederanmeldung nach Verbindungswechsel korrekt erhalten.",
+    "Statusübertragung auf Änderungen begrenzen beziehungsweise umfangreiche Diagnosedetails gesondert abrufen, ohne die zentrale Entscheidung zu duplizieren.",
+    "Geometrie der Aufrufgrenze und Vorbereitungsbreite ohne erzwungenes gesamtes Tabellenlayout nach jedem Statuswechsel aktualisieren.",
+    "Den Messclient auf notwendige Score-Daten begrenzen; zusätzlich zeitlich abgegrenzte Diagnoseprofile statt dauerhaftem Network-Vollmitschnitt verwenden."
+  ],
+  "artifacts": {
+    "directory": "/tmp/bts-background-latency-ihj5JD",
+    "full_report": "/tmp/bts-background-latency-ihj5JD/report.json",
+    "browser_trace": "/tmp/bts-background-latency-ihj5JD/browser-0-trace.json",
+    "server_cpu": "/tmp/bts-background-latency-ihj5JD/server.cpuprofile",
+    "light_trace": "/tmp/bts-background-latency-ihj5JD/control-light/trace.json",
+    "light_cpu": "/tmp/bts-background-latency-ihj5JD/control-light/browser.cpuprofile",
+    "light_metadata": "/tmp/bts-background-latency-ihj5JD/control-light/background.json",
+    "light_analysis": "/tmp/bts-background-latency-ihj5JD/control-light/analysis.json",
+    "paired_comparison": "/tmp/bts-background-latency-ihj5JD/paired-controls.json"
+  },
+  "product_verification": {
+    "hashed_source_files": 329,
+    "changed_source_files": []
+  },
+  "cleanup": {
+    "pending_btp_results_or_calls_before_stop": 0,
+    "own_bts_server": "stopped after tests",
+    "own_browsers_and_load_drivers": "closed",
+    "tournament_data": "Der freigegebene echte Test hat Punkte, Check-ins und Abschlüsse in BTS/BTP fortgeschrieben; der Stand wurde nicht zurückgerollt."
+  }
+}

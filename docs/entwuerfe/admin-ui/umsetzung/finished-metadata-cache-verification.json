@@ -1,0 +1,20 @@
+{
+  "scope": "Native browser: 120 finished games, 50 visible. Full snapshots update 70 hidden officials; a later changed finish time must reorder and materialize its game.",
+  "initial": {
+    "deferred": 70,
+    "visible": 50
+  },
+  "repeated": {
+    "sortJobs": 0,
+    "histories": 0,
+    "mutations": 0,
+    "applied": true,
+    "retained": true
+  },
+  "changed": {
+    "first": "finished-cache-119",
+    "expected": "finished-cache-119",
+    "materialized": true,
+    "score": "21:1221:13"
+  }
+}

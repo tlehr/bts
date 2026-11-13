@@ -36,6 +36,55 @@ async function with_clock(work) {
 }
 
 describe('BTP automatic fetch timer ownership', function() {
+	it('coalesces successful write confirmations into the existing regular fetch', async function() {
+		await with_clock(async ({ conn, starts, advance }) => {
+			conn.schedule_fetch();
+			for (let i = 0; i < 15; i++) {
+				conn.schedule_result_retry({ readback: true });
+				await advance(1000);
+			}
+			assert.deepStrictEqual(starts, []);
+			await advance(15000);
+			assert.deepStrictEqual(starts, [30000]);
+			assert.strictEqual(conn.result_retry_timeout, undefined);
+		});
+	});
+
+	it('keeps fast retries for failed writes even when a regular fetch is planned', async function() {
+		await with_clock(async ({ conn, starts, advance }) => {
+			conn.schedule_fetch();
+			conn.schedule_result_retry({ readback: false });
+			await advance(1000);
+			assert.deepStrictEqual(starts, [1000]);
+		});
+	});
+
+	it('still confirms successful writes when automatic fetching is disabled', async function() {
+		await with_clock(async ({ conn, starts, advance }) => {
+			conn.enabled_autofetch = false;
+			conn.schedule_result_retry({ readback: true });
+			await advance(1000);
+			assert.deepStrictEqual(starts, [1000]);
+		});
+	});
+
+	it('does not postpone confirmation beyond thirty seconds', async function() {
+		await with_clock(async ({ conn, starts, advance }) => {
+			conn.autofetch_timeout_intervall = 120000;
+			conn.schedule_fetch();
+			conn.schedule_result_retry({ readback: true });
+			await advance(1000);
+			assert.deepStrictEqual(starts, [1000]);
+		});
+	});
+
+	it('reuses the regular deadline being established by an active fetch', async function() {
+		await with_clock(async ({ conn, timers }) => {
+			conn.fetch_in_progress = true;conn.fetch_reschedule_requested = true;
+			conn.schedule_result_retry({ readback: true });
+			assert.strictEqual(timers.size, 0);
+		});
+	});
 	it('keeps the configured thirty-second cadence across repeated automatic fetches', async function() {
 		await with_clock(async ({ conn, starts, advance }) => {
 			conn.schedule_fetch();await advance(90000);

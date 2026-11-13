@@ -1,4 +1,4 @@
-/* global btsCertificateDesign */
+/* global btsCertificateDesign, btsLibraries */
 'use strict';
 // PDF generation and preview share typography and physical coordinates.
 // eslint-disable-next-line no-unused-vars -- Used by the certificate workspace.
@@ -14,7 +14,7 @@ var btsCertificateDocument = (() => {
   return scripts.get(url);
  }
  async function libraries() {
-  const [PDFLib, fontkit] = await Promise.all([script('/static/vendor/pdf-lib.min.js', 'PDFLib'), script('/static/vendor/fontkit.min.js', 'fontkit')]);
+  const [PDFLib, fontkit] = await Promise.all([typeof btsLibraries !== 'undefined' ? btsLibraries.pdf() : script('/static/vendor/pdf-lib.min.js', 'PDFLib'), script('/static/vendor/fontkit.min.js', 'fontkit')]);
   return {PDFLib, fontkit};
  }
  async function pdfjs() {

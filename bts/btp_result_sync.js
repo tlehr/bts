@@ -2,12 +2,13 @@
 
 const { deepCopy } = require('nedb/lib/model');
 const { isDeepStrictEqual } = require('util');
+const call_sync = require('./btp_call_sync');
 
 // Compare the payload revision, not just the ID: a delayed acknowledgement of
 // an earlier court/status update must not acknowledge a newer result.
 const fields = ['btp_match_ids', 'setup', 'team1_won', 'btp_winner', 'network_score',
 	'score_status_network_score', 'score_status', 'btp_score_status', 'forward_loser',
-	'no_match_losing_team', 'end_ts', 'duration_ms', 'shuttle_count', 'match_order', 'btp_participant_conflict'];
+	'no_match_losing_team', 'end_ts', 'duration_ms', 'shuttle_count', 'match_order', 'btp_participant_conflict', 'btp_call_pending'];
 
 function version_query(match, tkey) {
 	const expected = Object.fromEntries(fields.map(field => [field, deepCopy(match[field])]));
@@ -54,12 +55,15 @@ async function latest_pending(connection, source) {
 	// These flags describe an outgoing operation, rather than stored state.
 	if (source.btp_clear_court === true && !current.setup?.court_id) current.btp_clear_court = true;
 	if (source.btp_winner_only_update === true) current.btp_winner_only_update = true;
-	if (is_result(current) && current.btp_needsync !== true) {
+	const pending = {};
+	if (is_result(current) && current.btp_needsync !== true) pending.btp_needsync = true;
+	if (call_sync.is_call(current) && current.btp_call_pending !== true) pending.btp_call_pending = true;
+	if (Object.keys(pending).length) {
 		const affected = await call(store, 'update', version_query(current, connection.tkey),
-			{ $set: { btp_needsync: true } }, {})
+			{ $set: pending }, {})
 			.catch(error => { error.btp_phase = 'persist'; throw error; });
 		if (affected !== 1) return null; // A newer change will enqueue/retry its own payload.
-		current.btp_needsync = true;
+		Object.assign(current, pending);
 	}
 	return current.btp_participant_conflict ? null : current;
 }
@@ -80,21 +84,23 @@ function enqueue(connection, match, send) {
 		while (entry.next && !connection.terminated && !connection.readonly) {
 			const source = entry.next;
 			entry.next = null;
-			entry.has_result ||= is_result(source);
+			entry.has_pending ||= is_result(source) || call_sync.is_call(source) || source.btp_needsync || source.btp_call_pending;
 			const latest = await latest_pending(connection, source);
 			if (latest && !connection.terminated) {
-				entry.has_result ||= is_result(latest);
+				entry.has_pending ||= is_result(latest) || latest.btp_needsync || latest.btp_call_pending;
 				result = await send(latest);
+				entry.delivered = result === true;
 			}
 		}
 		return result;
 	}).catch(error => {
+		entry.delivered = false;
 		require('./btp_request_log').local_failure(connection, match, error);
 		return false;
 	}).finally(() => {
 		connection.score_updates.delete(key);
 		if (entry.next && !connection.terminated) return enqueue(connection, entry.next, send);
-		if (entry.has_result) connection.schedule_result_retry();
+		if (entry.has_pending) connection.schedule_result_retry({ readback: entry.delivered === true });
 	});
 	return entry.promise;
 }

@@ -1,5 +1,7 @@
 'use strict';
 
+require('../offload/background_priority').configure('btp_decode');
+
 const { parentPort } = require('worker_threads');
 const codec = require('./codec');
 const crypto = require('crypto');
@@ -23,6 +25,6 @@ parentPort.on('message', job => {
 	if (timing) timing.finish(error);
 	// This timestamp precedes output cloning. The receiver's interval includes
 	// serialization, delivery, deserialization and main-thread scheduling.
-	parentPort.postMessage({ id: job.id, response, hashes, error, record,
+	parentPort.postMessage({ id: job.id, response, hashes, error, record, scheduling:require('../offload/background_priority').snapshot(),
 		started, returning: process.hrtime.bigint() });
 });

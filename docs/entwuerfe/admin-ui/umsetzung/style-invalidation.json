@@ -1,0 +1,61 @@
+{
+  "scope": "Isolated 584-game fixture, 558 upcoming games. Fresh document per phase; same 30 row changes and two frames after every mutation. No live BTS/BTP traffic.",
+  "phases": [
+    {
+      "mode": "current",
+      "fresh_document": true,
+      "row_changes": 30,
+      "geometry_unchanged": true,
+      "metrics": {
+        "TaskDuration": 2229.184,
+        "ScriptDuration": 10.581,
+        "LayoutDuration": 191.395,
+        "RecalcStyleDuration": 14.309000000000001,
+        "LayoutCount": 30,
+        "RecalcStyleCount": 63
+      }
+    },
+    {
+      "mode": "legacy",
+      "fresh_document": true,
+      "row_changes": 30,
+      "geometry_unchanged": true,
+      "metrics": {
+        "TaskDuration": 4519.169,
+        "ScriptDuration": 17.68700000000001,
+        "LayoutDuration": 184.79299999999998,
+        "RecalcStyleDuration": 1887.6620000000003,
+        "LayoutCount": 33,
+        "RecalcStyleCount": 61
+      }
+    },
+    {
+      "mode": "current",
+      "fresh_document": true,
+      "row_changes": 30,
+      "geometry_unchanged": true,
+      "metrics": {
+        "TaskDuration": 2349.278,
+        "ScriptDuration": 10.71500000000003,
+        "LayoutDuration": 197.84099999999998,
+        "RecalcStyleDuration": 14.03500000000002,
+        "LayoutCount": 31,
+        "RecalcStyleCount": 63
+      }
+    },
+    {
+      "mode": "legacy",
+      "fresh_document": true,
+      "row_changes": 30,
+      "geometry_unchanged": true,
+      "metrics": {
+        "TaskDuration": 4683.042,
+        "ScriptDuration": 15.518000000000033,
+        "LayoutDuration": 198.63800000000003,
+        "RecalcStyleDuration": 2009.8529999999996,
+        "LayoutCount": 34,
+        "RecalcStyleCount": 63
+      }
+    }
+  ]
+}

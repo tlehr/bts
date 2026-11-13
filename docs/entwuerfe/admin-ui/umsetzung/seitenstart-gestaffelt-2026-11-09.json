@@ -1,0 +1,4044 @@
+{
+  "date": "2026-11-09",
+  "created_utc": "2026-11-09T21:37:24.369993+00:00",
+  "scope": "Isolated local HTTP and Headless Chrome, 1366 x 900. Frozen current tournament: 512 games, 423 finished, 15 courts. All writes and services simulated. No live BTS or BTP changes; no player names or captured contents in this report.",
+  "method": {
+    "visible_ms": "Navigation start to bts-board-visible: visible sections built and fitted; fonts loaded, no pending layout jobs over consecutive animation frames. Distant rows may still be pending. Baseline: second settled frame of its eager build.",
+    "navigation_to_ready_ms": "Navigation start to visible main view and three consecutive animation frames with no ctournament or cleitstand work, including all startup sections. Remains the old full-load measurement.",
+    "cold": "Fresh Chrome profile, empty HTTP cache and session storage; a new isolated asset server instance for each profile.",
+    "reload": "Three actual Page.reload(ignoreCache:false) calls in each profile. Every tournament response fetched without cache.",
+    "order": "before-1, after-1, after-2, before-2, after-3, before-3, before-4, after-4; four cold calls and twelve reloads per variant; no CPU profiler or concurrent browser tests.",
+    "limits": "Local timing samples are not production latency guarantees. CPU scheduling and render-frame alignment vary. First visible load is distinct from complete offscreen preparation; a cold complete build still exceeds one second."
+  },
+  "summary": {
+    "before": {
+      "cold": {
+        "visible_ms": {
+          "count": 4,
+          "median_ms": 1392.95,
+          "min_ms": 1248.7,
+          "max_ms": 2015.4
+        },
+        "navigation_to_ready_ms": {
+          "count": 4,
+          "median_ms": 1405.0,
+          "min_ms": 1262.3,
+          "max_ms": 2026.7
+        },
+        "background_ms": {
+          "count": 4,
+          "median_ms": 12.45,
+          "min_ms": 7.9,
+          "max_ms": 16.2
+        }
+      },
+      "reload": {
+        "visible_ms": {
+          "count": 12,
+          "median_ms": 687.25,
+          "min_ms": 613,
+          "max_ms": 726.5
+        },
+        "navigation_to_ready_ms": {
+          "count": 12,
+          "median_ms": 702.3,
+          "min_ms": 629.7,
+          "max_ms": 743.4
+        },
+        "background_ms": {
+          "count": 12,
+          "median_ms": 16.7,
+          "min_ms": 12.6,
+          "max_ms": 18.5
+        }
+      }
+    },
+    "after": {
+      "cold": {
+        "visible_ms": {
+          "count": 4,
+          "median_ms": 869.45,
+          "min_ms": 855.1,
+          "max_ms": 874.3
+        },
+        "navigation_to_ready_ms": {
+          "count": 4,
+          "median_ms": 1270.3,
+          "min_ms": 1254.7,
+          "max_ms": 1284.9
+        },
+        "background_ms": {
+          "count": 4,
+          "median_ms": 399.5,
+          "min_ms": 398.8,
+          "max_ms": 414.1
+        }
+      },
+      "reload": {
+        "visible_ms": {
+          "count": 12,
+          "median_ms": 275.7,
+          "min_ms": 258.6,
+          "max_ms": 306
+        },
+        "navigation_to_ready_ms": {
+          "count": 12,
+          "median_ms": 641.75,
+          "min_ms": 574.8,
+          "max_ms": 657.9
+        },
+        "background_ms": {
+          "count": 12,
+          "median_ms": 349.5,
+          "min_ms": 316.0,
+          "max_ms": 383.0
+        }
+      }
+    }
+  },
+  "load_runs": [
+    {
+      "mode": "before",
+      "run": 1,
+      "measurements": [
+        {
+          "visible_ms": 1499.9000000953674,
+          "total_ms": 950.2000000476837,
+          "navigation_to_ready_ms": 1516.1000001430511,
+          "phases": {
+            "matches.prepare_render": {
+              "count": 1,
+              "ms": 1,
+              "max_ms": 1
+            },
+            "matches.render_courts": {
+              "count": 1,
+              "ms": 19.5,
+              "max_ms": 19.5
+            },
+            "matches.render_unassigned": {
+              "count": 1,
+              "ms": 23.699999809265137,
+              "max_ms": 23.699999809265137
+            },
+            "matches.render_finished": {
+              "count": 1,
+              "ms": 6.900000095367432,
+              "max_ms": 6.900000095367432
+            },
+            "operators": {
+              "count": 1,
+              "ms": 1.8000001907348633,
+              "max_ms": 1.8000001907348633
+            },
+            "officials": {
+              "count": 1,
+              "ms": 2.1999998092651367,
+              "max_ms": 2.1999998092651367
+            },
+            "board.mount": {
+              "count": 1,
+              "ms": 134.70000004768372,
+              "max_ms": 134.70000004768372
+            }
+          },
+          "matches": 512,
+          "courts": 15,
+          "dom_nodes": 8765,
+          "rendered_results": 50,
+          "deferred_results": 373,
+          "game_rows": 512,
+          "finished_visible": 50,
+          "main_visible": true,
+          "pending": false,
+          "navigation": {
+            "dom_content_loaded_ms": 534.5,
+            "load_ms": 534.9000000953674,
+            "assets": 127,
+            "export_library_requests": 0,
+            "asset_bytes": 3314262
+          }
+        },
+        {
+          "visible_ms": 716.8000001907349,
+          "total_ms": 615.2999999523163,
+          "navigation_to_ready_ms": 733.5,
+          "phases": {
+            "matches.prepare_render": {
+              "count": 1,
+              "ms": 0.8999998569488525,
+              "max_ms": 0.8999998569488525
+            },
+            "matches.render_courts": {
+              "count": 1,
+              "ms": 14.900000095367432,
+              "max_ms": 14.900000095367432
+            },
+            "matches.render_unassigned": {
+              "count": 1,
+              "ms": 19.700000047683716,
+              "max_ms": 19.700000047683716
+            },
+            "matches.render_finished": {
+              "count": 1,
+              "ms": 6.400000095367432,
+              "max_ms": 6.400000095367432
+            },
+            "operators": {
+              "count": 1,
+              "ms": 1,
+              "max_ms": 1
+            },
+            "officials": {
+              "count": 1,
+              "ms": 0.7999999523162842,
+              "max_ms": 0.7999999523162842
+            },
+            "board.mount": {
+              "count": 1,
+              "ms": 103.90000009536743,
+              "max_ms": 103.90000009536743
+            }
+          },
+          "first_stable_ms": 582,
+          "navigation": {
+            "load_ms": 94.20000004768372,
+            "type": "reload"
+          }
+        },
+        {
+          "visible_ms": 692.5999999046326,
+          "total_ms": 606.3999998569489,
+          "navigation_to_ready_ms": 710.0999999046326,
+          "phases": {
+            "matches.prepare_render": {
+              "count": 1,
+              "ms": 1.0999999046325684,
+              "max_ms": 1.0999999046325684
+            },
+            "matches.render_courts": {
+              "count": 1,
+              "ms": 15.599999904632568,
+              "max_ms": 15.599999904632568
+            },
+            "matches.render_unassigned": {
+              "count": 1,
+              "ms": 19.200000047683716,
+              "max_ms": 19.200000047683716
+            },
+            "matches.render_finished": {
+              "count": 1,
+              "ms": 5.8999998569488525,
+              "max_ms": 5.8999998569488525
+            },
+            "operators": {
+              "count": 1,
+              "ms": 0.7999999523162842,
+              "max_ms": 0.7999999523162842
+            },
+            "officials": {
+              "count": 1,
+              "ms": 0.7000000476837158,
+              "max_ms": 0.7000000476837158
+            },
+            "board.mount": {
+              "count": 1,
+              "ms": 102.40000009536743,
+              "max_ms": 102.40000009536743
+            }
+          },
+          "first_stable_ms": 566.2000000476837,
+          "navigation": {
+            "load_ms": 72.90000009536743,
+            "type": "reload"
+          }
+        },
+        {
+          "visible_ms": 613,
+          "total_ms": 540.7000000476837,
+          "navigation_to_ready_ms": 629.7000000476837,
+          "phases": {
+            "matches.prepare_render": {
+              "count": 1,
+              "ms": 0.8999998569488525,
+              "max_ms": 0.8999998569488525
+            },
+            "matches.render_courts": {
+              "count": 1,
+              "ms": 13.100000143051147,
+              "max_ms": 13.100000143051147
+            },
+            "matches.render_unassigned": {
+              "count": 1,
+              "ms": 17.40000009536743,
+              "max_ms": 17.40000009536743
+            },
+            "matches.render_finished": {
+              "count": 1,
+              "ms": 5.099999904632568,
+              "max_ms": 5.099999904632568
+            },
+            "operators": {
+              "count": 1,
+              "ms": 0.5,
+              "max_ms": 0.5
+            },
+            "officials": {
+              "count": 1,
+              "ms": 0.7000000476837158,
+              "max_ms": 0.7000000476837158
+            },
+            "board.mount": {
+              "count": 1,
+              "ms": 89.60000014305115,
+              "max_ms": 89.60000014305115
+            }
+          },
+          "first_stable_ms": 507.40000009536743,
+          "navigation": {
+            "load_ms": 66.5,
+            "type": "reload"
+          }
+        }
+      ]
+    },
+    {
+      "mode": "after",
+      "run": 1,
+      "measurements": [
+        {
+          "visible_ms": 874.2999999523163,
+          "total_ms": 796.9000000953674,
+          "navigation_to_ready_ms": 1273.7000000476837,
+          "phases": {
+            "matches.prepare_render": {
+              "count": 1,
+              "ms": 2.299999952316284,
+              "max_ms": 2.299999952316284
+            },
+            "matches.render_courts": {
+              "count": 1,
+              "ms": 27.40000009536743,
+              "max_ms": 27.40000009536743
+            },
+            "operators": {
+              "count": 1,
+              "ms": 2,
+              "max_ms": 2
+            },
+            "officials": {
+              "count": 1,
+              "ms": 2.1999998092651367,
+              "max_ms": 2.1999998092651367
+            },
+            "board.mount": {
+              "count": 1,
+              "ms": 52,
+              "max_ms": 52
+            },
+            "matches.render_unassigned": {
+              "count": 1,
+              "ms": 22.5,
+              "max_ms": 22.5
+            },
+            "matches.render_finished": {
+              "count": 1,
+              "ms": 8.099999904632568,
+              "max_ms": 8.099999904632568
+            }
+          },
+          "matches": 512,
+          "courts": 15,
+          "dom_nodes": 8765,
+          "rendered_results": 50,
+          "deferred_results": 373,
+          "game_rows": 512,
+          "finished_visible": 50,
+          "main_visible": true,
+          "pending": false,
+          "navigation": {
+            "dom_content_loaded_ms": 439.2000000476837,
+            "load_ms": 439.40000009536743,
+            "assets": 127,
+            "export_library_requests": 0,
+            "asset_bytes": 3316068
+          }
+        },
+        {
+          "visible_ms": 291.7999999523163,
+          "total_ms": 540.2999999523163,
+          "navigation_to_ready_ms": 655.5999999046326,
+          "phases": {
+            "matches.prepare_render": {
+              "count": 1,
+              "ms": 0.7999999523162842,
+              "max_ms": 0.7999999523162842
+            },
+            "matches.render_courts": {
+              "count": 1,
+              "ms": 17.299999952316284,
+              "max_ms": 17.299999952316284
+            },
+            "operators": {
+              "count": 1,
+              "ms": 0.7000000476837158,
+              "max_ms": 0.7000000476837158
+            },
+            "officials": {
+              "count": 1,
+              "ms": 0.7000000476837158,
+              "max_ms": 0.7000000476837158
+            },
+            "board.mount": {
+              "count": 1,
+              "ms": 22.5,
+              "max_ms": 22.5
+            },
+            "matches.render_unassigned": {
+              "count": 1,
+              "ms": 14.200000047683716,
+              "max_ms": 14.200000047683716
+            },
+            "matches.render_finished": {
+              "count": 1,
+              "ms": 7.699999809265137,
+              "max_ms": 7.699999809265137
+            }
+          },
+          "first_stable_ms": 507,
+          "navigation": {
+            "load_ms": 92.70000004768372,
+            "type": "reload"
+          }
+        },
+        {
+          "visible_ms": 277,
+          "total_ms": 543.6000001430511,
+          "navigation_to_ready_ms": 641.7000000476837,
+          "phases": {
+            "matches.prepare_render": {
+              "count": 1,
+              "ms": 0.8999998569488525,
+              "max_ms": 0.8999998569488525
+            },
+            "matches.render_courts": {
+              "count": 1,
+              "ms": 13,
+              "max_ms": 13
+            },
+            "operators": {
+              "count": 1,
+              "ms": 0.8999998569488525,
+              "max_ms": 0.8999998569488525
+            },
+            "officials": {
+              "count": 1,
+              "ms": 0.6000001430511475,
+              "max_ms": 0.6000001430511475
+            },
+            "board.mount": {
+              "count": 1,
+              "ms": 24.699999809265137,
+              "max_ms": 24.699999809265137
+            },
+            "matches.render_unassigned": {
+              "count": 1,
+              "ms": 14.5,
+              "max_ms": 14.5
+            },
+            "matches.render_finished": {
+              "count": 1,
+              "ms": 6.3999998569488525,
+              "max_ms": 6.3999998569488525
+            }
+          },
+          "first_stable_ms": 510.7000000476837,
+          "navigation": {
+            "load_ms": 72.09999990463257,
+            "type": "reload"
+          }
+        },
+        {
+          "visible_ms": 258.60000014305115,
+          "total_ms": 487.7000000476837,
+          "navigation_to_ready_ms": 574.8000001907349,
+          "phases": {
+            "matches.prepare_render": {
+              "count": 1,
+              "ms": 0.8999998569488525,
+              "max_ms": 0.8999998569488525
+            },
+            "matches.render_courts": {
+              "count": 1,
+              "ms": 14,
+              "max_ms": 14
+            },
+            "operators": {
+              "count": 1,
+              "ms": 0.5999999046325684,
+              "max_ms": 0.5999999046325684
+            },
+            "officials": {
+              "count": 1,
+              "ms": 0.5,
+              "max_ms": 0.5
+            },
+            "board.mount": {
+              "count": 1,
+              "ms": 21.5,
+              "max_ms": 21.5
+            },
+            "matches.render_unassigned": {
+              "count": 1,
+              "ms": 14.200000047683716,
+              "max_ms": 14.200000047683716
+            },
+            "matches.render_finished": {
+              "count": 1,
+              "ms": 7,
+              "max_ms": 7
+            }
+          },
+          "first_stable_ms": 454.7000000476837,
+          "navigation": {
+            "load_ms": 62.700000047683716,
+            "type": "reload"
+          }
+        }
+      ]
+    },
+    {
+      "mode": "after",
+      "run": 2,
+      "measurements": [
+        {
+          "visible_ms": 870.8000001907349,
+          "total_ms": 796.9000000953674,
+          "navigation_to_ready_ms": 1284.9000000953674,
+          "phases": {
+            "matches.prepare_render": {
+              "count": 1,
+              "ms": 1.3000001907348633,
+              "max_ms": 1.3000001907348633
+            },
+            "matches.render_courts": {
+              "count": 1,
+              "ms": 22.199999809265137,
+              "max_ms": 22.199999809265137
+            },
+            "operators": {
+              "count": 1,
+              "ms": 1.9000000953674316,
+              "max_ms": 1.9000000953674316
+            },
+            "officials": {
+              "count": 1,
+              "ms": 2.200000047683716,
+              "max_ms": 2.200000047683716
+            },
+            "board.mount": {
+              "count": 1,
+              "ms": 51.799999952316284,
+              "max_ms": 51.799999952316284
+            },
+            "matches.render_unassigned": {
+              "count": 1,
+              "ms": 20.299999952316284,
+              "max_ms": 20.299999952316284
+            },
+            "matches.render_finished": {
+              "count": 1,
+              "ms": 8.699999809265137,
+              "max_ms": 8.699999809265137
+            }
+          },
+          "matches": 512,
+          "courts": 15,
+          "dom_nodes": 8765,
+          "rendered_results": 50,
+          "deferred_results": 373,
+          "game_rows": 512,
+          "finished_visible": 50,
+          "main_visible": true,
+          "pending": false,
+          "navigation": {
+            "dom_content_loaded_ms": 460.80000019073486,
+            "load_ms": 461,
+            "assets": 127,
+            "export_library_requests": 0,
+            "asset_bytes": 3316068
+          }
+        },
+        {
+          "visible_ms": 290,
+          "total_ms": 521.7000000476837,
+          "navigation_to_ready_ms": 637.5,
+          "phases": {
+            "matches.prepare_render": {
+              "count": 1,
+              "ms": 1,
+              "max_ms": 1
+            },
+            "matches.render_courts": {
+              "count": 1,
+              "ms": 13.900000095367432,
+              "max_ms": 13.900000095367432
+            },
+            "operators": {
+              "count": 1,
+              "ms": 0.7999999523162842,
+              "max_ms": 0.7999999523162842
+            },
+            "officials": {
+              "count": 1,
+              "ms": 0.6000001430511475,
+              "max_ms": 0.6000001430511475
+            },
+            "board.mount": {
+              "count": 1,
+              "ms": 21.5,
+              "max_ms": 21.5
+            },
+            "matches.render_unassigned": {
+              "count": 1,
+              "ms": 14.400000095367432,
+              "max_ms": 14.400000095367432
+            },
+            "matches.render_finished": {
+              "count": 1,
+              "ms": 7.3999998569488525,
+              "max_ms": 7.3999998569488525
+            }
+          },
+          "first_stable_ms": 488.59999990463257,
+          "navigation": {
+            "load_ms": 87.69999980926514,
+            "type": "reload"
+          }
+        },
+        {
+          "visible_ms": 275.60000014305115,
+          "total_ms": 546.5,
+          "navigation_to_ready_ms": 641.8000001907349,
+          "phases": {
+            "matches.prepare_render": {
+              "count": 1,
+              "ms": 1,
+              "max_ms": 1
+            },
+            "matches.render_courts": {
+              "count": 1,
+              "ms": 13.5,
+              "max_ms": 13.5
+            },
+            "operators": {
+              "count": 1,
+              "ms": 0.6000001430511475,
+              "max_ms": 0.6000001430511475
+            },
+            "officials": {
+              "count": 1,
+              "ms": 0.39999985694885254,
+              "max_ms": 0.39999985694885254
+            },
+            "board.mount": {
+              "count": 1,
+              "ms": 21,
+              "max_ms": 21
+            },
+            "matches.render_unassigned": {
+              "count": 1,
+              "ms": 15,
+              "max_ms": 15
+            },
+            "matches.render_finished": {
+              "count": 1,
+              "ms": 7,
+              "max_ms": 7
+            }
+          },
+          "first_stable_ms": 513.8999998569489,
+          "navigation": {
+            "load_ms": 67.10000014305115,
+            "type": "reload"
+          }
+        },
+        {
+          "visible_ms": 275.7000000476837,
+          "total_ms": 517.4000000953674,
+          "navigation_to_ready_ms": 608.5,
+          "phases": {
+            "matches.prepare_render": {
+              "count": 1,
+              "ms": 1.0999999046325684,
+              "max_ms": 1.0999999046325684
+            },
+            "matches.render_courts": {
+              "count": 1,
+              "ms": 13.100000143051147,
+              "max_ms": 13.100000143051147
+            },
+            "operators": {
+              "count": 1,
+              "ms": 0.7000000476837158,
+              "max_ms": 0.7000000476837158
+            },
+            "officials": {
+              "count": 1,
+              "ms": 0.5,
+              "max_ms": 0.5
+            },
+            "board.mount": {
+              "count": 1,
+              "ms": 21.100000143051147,
+              "max_ms": 21.100000143051147
+            },
+            "matches.render_unassigned": {
+              "count": 1,
+              "ms": 14.400000095367432,
+              "max_ms": 14.400000095367432
+            },
+            "matches.render_finished": {
+              "count": 1,
+              "ms": 5.5,
+              "max_ms": 5.5
+            }
+          },
+          "first_stable_ms": 484.10000014305115,
+          "navigation": {
+            "load_ms": 65.40000009536743,
+            "type": "reload"
+          }
+        }
+      ]
+    },
+    {
+      "mode": "before",
+      "run": 2,
+      "measurements": [
+        {
+          "visible_ms": 1248.7000000476837,
+          "total_ms": 814.7999999523163,
+          "navigation_to_ready_ms": 1262.2999999523163,
+          "phases": {
+            "matches.prepare_render": {
+              "count": 1,
+              "ms": 1,
+              "max_ms": 1
+            },
+            "matches.render_courts": {
+              "count": 1,
+              "ms": 20,
+              "max_ms": 20
+            },
+            "matches.render_unassigned": {
+              "count": 1,
+              "ms": 25,
+              "max_ms": 25
+            },
+            "matches.render_finished": {
+              "count": 1,
+              "ms": 6.599999904632568,
+              "max_ms": 6.599999904632568
+            },
+            "operators": {
+              "count": 1,
+              "ms": 2,
+              "max_ms": 2
+            },
+            "officials": {
+              "count": 1,
+              "ms": 2.0999999046325684,
+              "max_ms": 2.0999999046325684
+            },
+            "board.mount": {
+              "count": 1,
+              "ms": 132.10000014305115,
+              "max_ms": 132.10000014305115
+            }
+          },
+          "matches": 512,
+          "courts": 15,
+          "dom_nodes": 8765,
+          "rendered_results": 50,
+          "deferred_results": 373,
+          "game_rows": 512,
+          "finished_visible": 50,
+          "main_visible": true,
+          "pending": false,
+          "navigation": {
+            "dom_content_loaded_ms": 416.90000009536743,
+            "load_ms": 417.2000000476837,
+            "assets": 127,
+            "export_library_requests": 0,
+            "asset_bytes": 3314262
+          }
+        },
+        {
+          "visible_ms": 669.6999998092651,
+          "total_ms": 571,
+          "navigation_to_ready_ms": 686.3999998569489,
+          "phases": {
+            "matches.prepare_render": {
+              "count": 1,
+              "ms": 0.8999998569488525,
+              "max_ms": 0.8999998569488525
+            },
+            "matches.render_courts": {
+              "count": 1,
+              "ms": 13.199999809265137,
+              "max_ms": 13.199999809265137
+            },
+            "matches.render_unassigned": {
+              "count": 1,
+              "ms": 20.40000009536743,
+              "max_ms": 20.40000009536743
+            },
+            "matches.render_finished": {
+              "count": 1,
+              "ms": 6.5,
+              "max_ms": 6.5
+            },
+            "operators": {
+              "count": 1,
+              "ms": 0.7999999523162842,
+              "max_ms": 0.7999999523162842
+            },
+            "officials": {
+              "count": 1,
+              "ms": 0.39999985694885254,
+              "max_ms": 0.39999985694885254
+            },
+            "board.mount": {
+              "count": 1,
+              "ms": 94.79999995231628,
+              "max_ms": 94.79999995231628
+            }
+          },
+          "first_stable_ms": 537.7000000476837,
+          "navigation": {
+            "load_ms": 91.59999990463257,
+            "type": "reload"
+          }
+        },
+        {
+          "visible_ms": 656.2999999523163,
+          "total_ms": 571.2999999523163,
+          "navigation_to_ready_ms": 674.1999998092651,
+          "phases": {
+            "matches.prepare_render": {
+              "count": 1,
+              "ms": 1,
+              "max_ms": 1
+            },
+            "matches.render_courts": {
+              "count": 1,
+              "ms": 15.200000047683716,
+              "max_ms": 15.200000047683716
+            },
+            "matches.render_unassigned": {
+              "count": 1,
+              "ms": 18.399999856948853,
+              "max_ms": 18.399999856948853
+            },
+            "matches.render_finished": {
+              "count": 1,
+              "ms": 5.599999904632568,
+              "max_ms": 5.599999904632568
+            },
+            "operators": {
+              "count": 1,
+              "ms": 0.6000001430511475,
+              "max_ms": 0.6000001430511475
+            },
+            "officials": {
+              "count": 1,
+              "ms": 0.5,
+              "max_ms": 0.5
+            },
+            "board.mount": {
+              "count": 1,
+              "ms": 99.20000004768372,
+              "max_ms": 99.20000004768372
+            }
+          },
+          "first_stable_ms": 538.2999999523163,
+          "navigation": {
+            "load_ms": 74.79999995231628,
+            "type": "reload"
+          }
+        },
+        {
+          "visible_ms": 654.4000000953674,
+          "total_ms": 565.7999999523163,
+          "navigation_to_ready_ms": 671.0999999046326,
+          "phases": {
+            "matches.prepare_render": {
+              "count": 1,
+              "ms": 1.0999999046325684,
+              "max_ms": 1.0999999046325684
+            },
+            "matches.render_courts": {
+              "count": 1,
+              "ms": 13.899999856948853,
+              "max_ms": 13.899999856948853
+            },
+            "matches.render_unassigned": {
+              "count": 1,
+              "ms": 19.100000143051147,
+              "max_ms": 19.100000143051147
+            },
+            "matches.render_finished": {
+              "count": 1,
+              "ms": 5.1000001430511475,
+              "max_ms": 5.1000001430511475
+            },
+            "operators": {
+              "count": 1,
+              "ms": 0.7000000476837158,
+              "max_ms": 0.7000000476837158
+            },
+            "officials": {
+              "count": 1,
+              "ms": 0.5,
+              "max_ms": 0.5
+            },
+            "board.mount": {
+              "count": 1,
+              "ms": 98.5,
+              "max_ms": 98.5
+            }
+          },
+          "first_stable_ms": 532.7999999523163,
+          "navigation": {
+            "load_ms": 74.90000009536743,
+            "type": "reload"
+          }
+        }
+      ]
+    },
+    {
+      "mode": "after",
+      "run": 3,
+      "measurements": [
+        {
+          "visible_ms": 868.1000001430511,
+          "total_ms": 810,
+          "navigation_to_ready_ms": 1266.9000000953674,
+          "phases": {
+            "matches.prepare_render": {
+              "count": 1,
+              "ms": 1.2999999523162842,
+              "max_ms": 1.2999999523162842
+            },
+            "matches.render_courts": {
+              "count": 1,
+              "ms": 21.59999990463257,
+              "max_ms": 21.59999990463257
+            },
+            "operators": {
+              "count": 1,
+              "ms": 2.0999999046325684,
+              "max_ms": 2.0999999046325684
+            },
+            "officials": {
+              "count": 1,
+              "ms": 2.4000000953674316,
+              "max_ms": 2.4000000953674316
+            },
+            "board.mount": {
+              "count": 1,
+              "ms": 51.60000014305115,
+              "max_ms": 51.60000014305115
+            },
+            "matches.render_unassigned": {
+              "count": 1,
+              "ms": 20.40000009536743,
+              "max_ms": 20.40000009536743
+            },
+            "matches.render_finished": {
+              "count": 1,
+              "ms": 8.5,
+              "max_ms": 8.5
+            }
+          },
+          "matches": 512,
+          "courts": 15,
+          "dom_nodes": 8765,
+          "rendered_results": 50,
+          "deferred_results": 373,
+          "game_rows": 512,
+          "finished_visible": 50,
+          "main_visible": true,
+          "pending": false,
+          "navigation": {
+            "dom_content_loaded_ms": 428.90000009536743,
+            "load_ms": 429.2000000476837,
+            "assets": 127,
+            "export_library_requests": 0,
+            "asset_bytes": 3316068
+          }
+        },
+        {
+          "visible_ms": 306,
+          "total_ms": 529.7999999523163,
+          "navigation_to_ready_ms": 655.4000000953674,
+          "phases": {
+            "matches.prepare_render": {
+              "count": 1,
+              "ms": 1,
+              "max_ms": 1
+            },
+            "matches.render_courts": {
+              "count": 1,
+              "ms": 14.299999952316284,
+              "max_ms": 14.299999952316284
+            },
+            "operators": {
+              "count": 1,
+              "ms": 0.7000000476837158,
+              "max_ms": 0.7000000476837158
+            },
+            "officials": {
+              "count": 1,
+              "ms": 0.5999999046325684,
+              "max_ms": 0.5999999046325684
+            },
+            "board.mount": {
+              "count": 1,
+              "ms": 23.799999952316284,
+              "max_ms": 23.799999952316284
+            },
+            "matches.render_unassigned": {
+              "count": 1,
+              "ms": 14.700000047683716,
+              "max_ms": 14.700000047683716
+            },
+            "matches.render_finished": {
+              "count": 1,
+              "ms": 6.700000047683716,
+              "max_ms": 6.700000047683716
+            }
+          },
+          "first_stable_ms": 496.5,
+          "navigation": {
+            "load_ms": 99.70000004768372,
+            "type": "reload"
+          }
+        },
+        {
+          "visible_ms": 274.89999985694885,
+          "total_ms": 556.7000000476837,
+          "navigation_to_ready_ms": 657.8999998569489,
+          "phases": {
+            "matches.prepare_render": {
+              "count": 1,
+              "ms": 1,
+              "max_ms": 1
+            },
+            "matches.render_courts": {
+              "count": 1,
+              "ms": 12.899999856948853,
+              "max_ms": 12.899999856948853
+            },
+            "operators": {
+              "count": 1,
+              "ms": 0.7000000476837158,
+              "max_ms": 0.7000000476837158
+            },
+            "officials": {
+              "count": 1,
+              "ms": 0.6000001430511475,
+              "max_ms": 0.6000001430511475
+            },
+            "board.mount": {
+              "count": 1,
+              "ms": 20.799999952316284,
+              "max_ms": 20.799999952316284
+            },
+            "matches.render_unassigned": {
+              "count": 1,
+              "ms": 12.699999809265137,
+              "max_ms": 12.699999809265137
+            },
+            "matches.render_finished": {
+              "count": 1,
+              "ms": 6.1000001430511475,
+              "max_ms": 6.1000001430511475
+            }
+          },
+          "first_stable_ms": 528.1000001430511,
+          "navigation": {
+            "load_ms": 76,
+            "type": "reload"
+          }
+        },
+        {
+          "visible_ms": 259.7000000476837,
+          "total_ms": 485.2000000476837,
+          "navigation_to_ready_ms": 575.7000000476837,
+          "phases": {
+            "matches.prepare_render": {
+              "count": 1,
+              "ms": 0.8999998569488525,
+              "max_ms": 0.8999998569488525
+            },
+            "matches.render_courts": {
+              "count": 1,
+              "ms": 13.700000047683716,
+              "max_ms": 13.700000047683716
+            },
+            "operators": {
+              "count": 1,
+              "ms": 0.5999999046325684,
+              "max_ms": 0.5999999046325684
+            },
+            "officials": {
+              "count": 1,
+              "ms": 0.5,
+              "max_ms": 0.5
+            },
+            "board.mount": {
+              "count": 1,
+              "ms": 21.5,
+              "max_ms": 21.5
+            },
+            "matches.render_unassigned": {
+              "count": 1,
+              "ms": 12.700000047683716,
+              "max_ms": 12.700000047683716
+            },
+            "matches.render_finished": {
+              "count": 1,
+              "ms": 5.400000095367432,
+              "max_ms": 5.400000095367432
+            }
+          },
+          "first_stable_ms": 454.89999985694885,
+          "navigation": {
+            "load_ms": 68.20000004768372,
+            "type": "reload"
+          }
+        }
+      ]
+    },
+    {
+      "mode": "before",
+      "run": 3,
+      "measurements": [
+        {
+          "visible_ms": 1286,
+          "total_ms": 845.8000001907349,
+          "navigation_to_ready_ms": 1293.9000000953674,
+          "phases": {
+            "matches.prepare_render": {
+              "count": 1,
+              "ms": 1.2000000476837158,
+              "max_ms": 1.2000000476837158
+            },
+            "matches.render_courts": {
+              "count": 1,
+              "ms": 20.40000009536743,
+              "max_ms": 20.40000009536743
+            },
+            "matches.render_unassigned": {
+              "count": 1,
+              "ms": 23.799999952316284,
+              "max_ms": 23.799999952316284
+            },
+            "matches.render_finished": {
+              "count": 1,
+              "ms": 6.799999952316284,
+              "max_ms": 6.799999952316284
+            },
+            "operators": {
+              "count": 1,
+              "ms": 2,
+              "max_ms": 2
+            },
+            "officials": {
+              "count": 1,
+              "ms": 2,
+              "max_ms": 2
+            },
+            "board.mount": {
+              "count": 1,
+              "ms": 132.29999995231628,
+              "max_ms": 132.29999995231628
+            }
+          },
+          "matches": 512,
+          "courts": 15,
+          "dom_nodes": 8765,
+          "rendered_results": 50,
+          "deferred_results": 373,
+          "game_rows": 512,
+          "finished_visible": 50,
+          "main_visible": true,
+          "pending": false,
+          "navigation": {
+            "dom_content_loaded_ms": 419.59999990463257,
+            "load_ms": 419.7999999523163,
+            "assets": 127,
+            "export_library_requests": 0,
+            "asset_bytes": 3314262
+          }
+        },
+        {
+          "visible_ms": 726.5,
+          "total_ms": 618,
+          "navigation_to_ready_ms": 739.5999999046326,
+          "phases": {
+            "matches.prepare_render": {
+              "count": 1,
+              "ms": 0.7999999523162842,
+              "max_ms": 0.7999999523162842
+            },
+            "matches.render_courts": {
+              "count": 1,
+              "ms": 14.5,
+              "max_ms": 14.5
+            },
+            "matches.render_unassigned": {
+              "count": 1,
+              "ms": 20.899999856948853,
+              "max_ms": 20.899999856948853
+            },
+            "matches.render_finished": {
+              "count": 1,
+              "ms": 5.900000095367432,
+              "max_ms": 5.900000095367432
+            },
+            "operators": {
+              "count": 1,
+              "ms": 0.9000000953674316,
+              "max_ms": 0.9000000953674316
+            },
+            "officials": {
+              "count": 1,
+              "ms": 0.7000000476837158,
+              "max_ms": 0.7000000476837158
+            },
+            "board.mount": {
+              "count": 1,
+              "ms": 107.29999995231628,
+              "max_ms": 107.29999995231628
+            }
+          },
+          "first_stable_ms": 584.8000001907349,
+          "navigation": {
+            "load_ms": 96,
+            "type": "reload"
+          }
+        },
+        {
+          "visible_ms": 723.2000000476837,
+          "total_ms": 641.7000000476837,
+          "navigation_to_ready_ms": 741.7000000476837,
+          "phases": {
+            "matches.prepare_render": {
+              "count": 1,
+              "ms": 0.8000001907348633,
+              "max_ms": 0.8000001907348633
+            },
+            "matches.render_courts": {
+              "count": 1,
+              "ms": 15.399999856948853,
+              "max_ms": 15.399999856948853
+            },
+            "matches.render_unassigned": {
+              "count": 1,
+              "ms": 18.200000047683716,
+              "max_ms": 18.200000047683716
+            },
+            "matches.render_finished": {
+              "count": 1,
+              "ms": 5.400000095367432,
+              "max_ms": 5.400000095367432
+            },
+            "operators": {
+              "count": 1,
+              "ms": 0.6000001430511475,
+              "max_ms": 0.6000001430511475
+            },
+            "officials": {
+              "count": 1,
+              "ms": 0.6000001430511475,
+              "max_ms": 0.6000001430511475
+            },
+            "board.mount": {
+              "count": 1,
+              "ms": 125.89999985694885,
+              "max_ms": 125.89999985694885
+            }
+          },
+          "first_stable_ms": 614.6000001430511,
+          "navigation": {
+            "load_ms": 73.10000014305115,
+            "type": "reload"
+          }
+        },
+        {
+          "visible_ms": 681.8999998569489,
+          "total_ms": 572.1000001430511,
+          "navigation_to_ready_ms": 694.5,
+          "phases": {
+            "matches.prepare_render": {
+              "count": 1,
+              "ms": 1,
+              "max_ms": 1
+            },
+            "matches.render_courts": {
+              "count": 1,
+              "ms": 15.200000047683716,
+              "max_ms": 15.200000047683716
+            },
+            "matches.render_unassigned": {
+              "count": 1,
+              "ms": 20.299999952316284,
+              "max_ms": 20.299999952316284
+            },
+            "matches.render_finished": {
+              "count": 1,
+              "ms": 6.6000001430511475,
+              "max_ms": 6.6000001430511475
+            },
+            "operators": {
+              "count": 1,
+              "ms": 0.7999999523162842,
+              "max_ms": 0.7999999523162842
+            },
+            "officials": {
+              "count": 1,
+              "ms": 0.8000001907348633,
+              "max_ms": 0.8000001907348633
+            },
+            "board.mount": {
+              "count": 1,
+              "ms": 108.19999980926514,
+              "max_ms": 108.19999980926514
+            }
+          },
+          "first_stable_ms": 542.5,
+          "navigation": {
+            "load_ms": 91.39999985694885,
+            "type": "reload"
+          }
+        }
+      ]
+    },
+    {
+      "mode": "before",
+      "run": 4,
+      "measurements": [
+        {
+          "visible_ms": 2015.4000000953674,
+          "total_ms": 1300.2000000476837,
+          "navigation_to_ready_ms": 2026.7000000476837,
+          "phases": {
+            "matches.prepare_render": {
+              "count": 1,
+              "ms": 3.6999998092651367,
+              "max_ms": 3.6999998092651367
+            },
+            "matches.render_courts": {
+              "count": 1,
+              "ms": 50.5,
+              "max_ms": 50.5
+            },
+            "matches.render_unassigned": {
+              "count": 1,
+              "ms": 48.39999985694885,
+              "max_ms": 48.39999985694885
+            },
+            "matches.render_finished": {
+              "count": 1,
+              "ms": 14.899999856948853,
+              "max_ms": 14.899999856948853
+            },
+            "operators": {
+              "count": 1,
+              "ms": 3.4000000953674316,
+              "max_ms": 3.4000000953674316
+            },
+            "officials": {
+              "count": 1,
+              "ms": 4.599999904632568,
+              "max_ms": 4.599999904632568
+            },
+            "board.mount": {
+              "count": 1,
+              "ms": 253.10000014305115,
+              "max_ms": 253.10000014305115
+            }
+          },
+          "matches": 512,
+          "courts": 15,
+          "dom_nodes": 8765,
+          "rendered_results": 50,
+          "deferred_results": 373,
+          "game_rows": 512,
+          "finished_visible": 50,
+          "main_visible": true,
+          "pending": false,
+          "navigation": {
+            "dom_content_loaded_ms": 635.4000000953674,
+            "load_ms": 635.5,
+            "assets": 127,
+            "export_library_requests": 0,
+            "asset_bytes": 3314262
+          }
+        },
+        {
+          "visible_ms": 721.0999999046326,
+          "total_ms": 615.1000001430511,
+          "navigation_to_ready_ms": 737.7000000476837,
+          "phases": {
+            "matches.prepare_render": {
+              "count": 1,
+              "ms": 0.7999999523162842,
+              "max_ms": 0.7999999523162842
+            },
+            "matches.render_courts": {
+              "count": 1,
+              "ms": 13.199999809265137,
+              "max_ms": 13.199999809265137
+            },
+            "matches.render_unassigned": {
+              "count": 1,
+              "ms": 20.09999990463257,
+              "max_ms": 20.09999990463257
+            },
+            "matches.render_finished": {
+              "count": 1,
+              "ms": 5.5,
+              "max_ms": 5.5
+            },
+            "operators": {
+              "count": 1,
+              "ms": 0.9000000953674316,
+              "max_ms": 0.9000000953674316
+            },
+            "officials": {
+              "count": 1,
+              "ms": 0.5999999046325684,
+              "max_ms": 0.5999999046325684
+            },
+            "board.mount": {
+              "count": 1,
+              "ms": 101.09999990463257,
+              "max_ms": 101.09999990463257
+            }
+          },
+          "first_stable_ms": 581.8000001907349,
+          "navigation": {
+            "load_ms": 90.79999995231628,
+            "type": "reload"
+          }
+        },
+        {
+          "visible_ms": 725.5,
+          "total_ms": 619.5,
+          "navigation_to_ready_ms": 743.4000000953674,
+          "phases": {
+            "matches.prepare_render": {
+              "count": 1,
+              "ms": 1.0999999046325684,
+              "max_ms": 1.0999999046325684
+            },
+            "matches.render_courts": {
+              "count": 1,
+              "ms": 17.300000190734863,
+              "max_ms": 17.300000190734863
+            },
+            "matches.render_unassigned": {
+              "count": 1,
+              "ms": 19.09999990463257,
+              "max_ms": 19.09999990463257
+            },
+            "matches.render_finished": {
+              "count": 1,
+              "ms": 5.700000047683716,
+              "max_ms": 5.700000047683716
+            },
+            "operators": {
+              "count": 1,
+              "ms": 0.7999999523162842,
+              "max_ms": 0.7999999523162842
+            },
+            "officials": {
+              "count": 1,
+              "ms": 0.5,
+              "max_ms": 0.5
+            },
+            "board.mount": {
+              "count": 1,
+              "ms": 107.09999990463257,
+              "max_ms": 107.09999990463257
+            }
+          },
+          "first_stable_ms": 586.6999998092651,
+          "navigation": {
+            "load_ms": 94.70000004768372,
+            "type": "reload"
+          }
+        },
+        {
+          "visible_ms": 629.1000001430511,
+          "total_ms": 544.7999999523163,
+          "navigation_to_ready_ms": 645.7000000476837,
+          "phases": {
+            "matches.prepare_render": {
+              "count": 1,
+              "ms": 0.8999998569488525,
+              "max_ms": 0.8999998569488525
+            },
+            "matches.render_courts": {
+              "count": 1,
+              "ms": 14.900000095367432,
+              "max_ms": 14.900000095367432
+            },
+            "matches.render_unassigned": {
+              "count": 1,
+              "ms": 18.59999990463257,
+              "max_ms": 18.59999990463257
+            },
+            "matches.render_finished": {
+              "count": 1,
+              "ms": 5.400000095367432,
+              "max_ms": 5.400000095367432
+            },
+            "operators": {
+              "count": 1,
+              "ms": 0.5,
+              "max_ms": 0.5
+            },
+            "officials": {
+              "count": 1,
+              "ms": 0.5999999046325684,
+              "max_ms": 0.5999999046325684
+            },
+            "board.mount": {
+              "count": 1,
+              "ms": 94.09999990463257,
+              "max_ms": 94.09999990463257
+            }
+          },
+          "first_stable_ms": 513.5,
+          "navigation": {
+            "load_ms": 73.90000009536743,
+            "type": "reload"
+          }
+        }
+      ]
+    },
+    {
+      "mode": "after",
+      "run": 4,
+      "measurements": [
+        {
+          "visible_ms": 855.0999999046326,
+          "total_ms": 791.3000001907349,
+          "navigation_to_ready_ms": 1254.7000000476837,
+          "phases": {
+            "matches.prepare_render": {
+              "count": 1,
+              "ms": 1.2999999523162842,
+              "max_ms": 1.2999999523162842
+            },
+            "matches.render_courts": {
+              "count": 1,
+              "ms": 20,
+              "max_ms": 20
+            },
+            "operators": {
+              "count": 1,
+              "ms": 1.9000000953674316,
+              "max_ms": 1.9000000953674316
+            },
+            "officials": {
+              "count": 1,
+              "ms": 2.0999999046325684,
+              "max_ms": 2.0999999046325684
+            },
+            "board.mount": {
+              "count": 1,
+              "ms": 52.5,
+              "max_ms": 52.5
+            },
+            "matches.render_unassigned": {
+              "count": 1,
+              "ms": 19.90000009536743,
+              "max_ms": 19.90000009536743
+            },
+            "matches.render_finished": {
+              "count": 1,
+              "ms": 8.199999809265137,
+              "max_ms": 8.199999809265137
+            }
+          },
+          "matches": 512,
+          "courts": 15,
+          "dom_nodes": 8765,
+          "rendered_results": 50,
+          "deferred_results": 373,
+          "game_rows": 512,
+          "finished_visible": 50,
+          "main_visible": true,
+          "pending": false,
+          "navigation": {
+            "dom_content_loaded_ms": 435.89999985694885,
+            "load_ms": 436.09999990463257,
+            "assets": 127,
+            "export_library_requests": 0,
+            "asset_bytes": 3316068
+          }
+        },
+        {
+          "visible_ms": 305.90000009536743,
+          "total_ms": 536,
+          "navigation_to_ready_ms": 655.5,
+          "phases": {
+            "matches.prepare_render": {
+              "count": 1,
+              "ms": 1,
+              "max_ms": 1
+            },
+            "matches.render_courts": {
+              "count": 1,
+              "ms": 15.600000143051147,
+              "max_ms": 15.600000143051147
+            },
+            "operators": {
+              "count": 1,
+              "ms": 0.7000000476837158,
+              "max_ms": 0.7000000476837158
+            },
+            "officials": {
+              "count": 1,
+              "ms": 0.5999999046325684,
+              "max_ms": 0.5999999046325684
+            },
+            "board.mount": {
+              "count": 1,
+              "ms": 22.299999952316284,
+              "max_ms": 22.299999952316284
+            },
+            "matches.render_unassigned": {
+              "count": 1,
+              "ms": 18.40000009536743,
+              "max_ms": 18.40000009536743
+            },
+            "matches.render_finished": {
+              "count": 1,
+              "ms": 6.799999952316284,
+              "max_ms": 6.799999952316284
+            }
+          },
+          "first_stable_ms": 502.60000014305115,
+          "navigation": {
+            "load_ms": 92.10000014305115,
+            "type": "reload"
+          }
+        },
+        {
+          "visible_ms": 275.7000000476837,
+          "total_ms": 548.6999998092651,
+          "navigation_to_ready_ms": 641.7999999523163,
+          "phases": {
+            "matches.prepare_render": {
+              "count": 1,
+              "ms": 1.0999999046325684,
+              "max_ms": 1.0999999046325684
+            },
+            "matches.render_courts": {
+              "count": 1,
+              "ms": 15.900000095367432,
+              "max_ms": 15.900000095367432
+            },
+            "operators": {
+              "count": 1,
+              "ms": 0.6000001430511475,
+              "max_ms": 0.6000001430511475
+            },
+            "officials": {
+              "count": 1,
+              "ms": 0.5999999046325684,
+              "max_ms": 0.5999999046325684
+            },
+            "board.mount": {
+              "count": 1,
+              "ms": 23.600000143051147,
+              "max_ms": 23.600000143051147
+            },
+            "matches.render_unassigned": {
+              "count": 1,
+              "ms": 16.90000009536743,
+              "max_ms": 16.90000009536743
+            },
+            "matches.render_finished": {
+              "count": 1,
+              "ms": 8.799999952316284,
+              "max_ms": 8.799999952316284
+            }
+          },
+          "first_stable_ms": 520.0999999046326,
+          "navigation": {
+            "load_ms": 70.10000014305115,
+            "type": "reload"
+          }
+        },
+        {
+          "visible_ms": 261.2000000476837,
+          "total_ms": 502.2999999523163,
+          "navigation_to_ready_ms": 590.5,
+          "phases": {
+            "matches.prepare_render": {
+              "count": 1,
+              "ms": 0.8999998569488525,
+              "max_ms": 0.8999998569488525
+            },
+            "matches.render_courts": {
+              "count": 1,
+              "ms": 13.399999856948853,
+              "max_ms": 13.399999856948853
+            },
+            "operators": {
+              "count": 1,
+              "ms": 0.7000000476837158,
+              "max_ms": 0.7000000476837158
+            },
+            "officials": {
+              "count": 1,
+              "ms": 0.5,
+              "max_ms": 0.5
+            },
+            "board.mount": {
+              "count": 1,
+              "ms": 22.90000009536743,
+              "max_ms": 22.90000009536743
+            },
+            "matches.render_unassigned": {
+              "count": 1,
+              "ms": 14.899999856948853,
+              "max_ms": 14.899999856948853
+            },
+            "matches.render_finished": {
+              "count": 1,
+              "ms": 7.299999952316284,
+              "max_ms": 7.299999952316284
+            }
+          },
+          "first_stable_ms": 469,
+          "navigation": {
+            "load_ms": 64,
+            "type": "reload"
+          }
+        }
+      ]
+    }
+  ],
+  "targets": {
+    "visible_reload_below_500_ms": true,
+    "visible_cold_below_1000_ms": true,
+    "all_remaining_work_within_500_ms": true
+  },
+  "implementation": [
+    "Build court rows, controls and enough upcoming rows to fill the viewport first. Verify actual section coverage for hidden halls, date groups and browser zoom.",
+    "Build all remaining upcoming rows and the existing 50 selected results in tasks directly after the visible paint; no scroll trigger, idle callback or persistent content-visibility skip.",
+    "Keep model data and pending row identities. Materialize from the current model, preserving already visible rows, controls, focus and cache behavior.",
+    "Share an initial-render job with affected incoming update receipts; court points remain independent. Cancel work and release callbacks when leaving the board.",
+    "Reattach history paging controls after rebuilding its initial table; protect browser-only font/metrics setup so pure Node helpers remain testable."
+  ],
+  "operating_comparison": {
+    "method": "Two before and two after browser sessions, ten finish/edit/point/reopen cycles each after startup has fully settled. Includes bursts of sixteen concurrent upcoming edits. Independent render frames confirm each unrelated point.",
+    "summary": {
+      "before": {
+        "cycles": 20,
+        "cpu_mean_ms": 277.27,
+        "point": {
+          "count": 20,
+          "median_ms": 83.25,
+          "min_ms": 66.6,
+          "max_ms": 129.6,
+          "mean_ms": 93.23
+        },
+        "finish": {
+          "count": 20,
+          "median_ms": 127.15,
+          "min_ms": 66.7,
+          "max_ms": 229,
+          "mean_ms": 129.5
+        },
+        "reopen": {
+          "count": 20,
+          "median_ms": 95.95,
+          "min_ms": 78.6,
+          "max_ms": 128.4,
+          "mean_ms": 99.11
+        }
+      },
+      "after": {
+        "cycles": 20,
+        "cpu_mean_ms": 281.09,
+        "point": {
+          "count": 20,
+          "median_ms": 88.15,
+          "min_ms": 64.5,
+          "max_ms": 128.8,
+          "mean_ms": 93.26
+        },
+        "finish": {
+          "count": 20,
+          "median_ms": 124.85,
+          "min_ms": 64.5,
+          "max_ms": 242.9,
+          "mean_ms": 129.53
+        },
+        "reopen": {
+          "count": 20,
+          "median_ms": 98.3,
+          "min_ms": 76.5,
+          "max_ms": 142.7,
+          "mean_ms": 107.11
+        }
+      }
+    },
+    "sessions": [
+      {
+        "mode": "before",
+        "run": 1,
+        "summary": {
+          "cpu": {
+            "count": 10,
+            "mean_ms": 275.2685,
+            "p50_ms": 300.82699999999994,
+            "p95_ms": 388.90399999999994,
+            "max_ms": 388.90399999999994
+          },
+          "finish": {
+            "count": 10,
+            "mean_ms": 126.55,
+            "p50_ms": 161.3,
+            "p95_ms": 219.7,
+            "max_ms": 219.7
+          },
+          "point": {
+            "count": 10,
+            "mean_ms": 90.15,
+            "p50_ms": 80.9,
+            "p95_ms": 121.6,
+            "max_ms": 121.6
+          },
+          "reopen": {
+            "count": 10,
+            "mean_ms": 99.00999999999998,
+            "p50_ms": 95.5,
+            "p95_ms": 128.4,
+            "max_ms": 128.4
+          }
+        }
+      },
+      {
+        "mode": "after",
+        "run": 1,
+        "summary": {
+          "cpu": {
+            "count": 10,
+            "mean_ms": 284.25610000000006,
+            "p50_ms": 305.9210000000001,
+            "p95_ms": 402.969,
+            "max_ms": 402.969
+          },
+          "finish": {
+            "count": 10,
+            "mean_ms": 133.49,
+            "p50_ms": 160.9,
+            "p95_ms": 242.9,
+            "max_ms": 242.9
+          },
+          "point": {
+            "count": 10,
+            "mean_ms": 96.77000000000001,
+            "p50_ms": 98.8,
+            "p95_ms": 128.8,
+            "max_ms": 128.8
+          },
+          "reopen": {
+            "count": 10,
+            "mean_ms": 105.55999999999999,
+            "p50_ms": 107,
+            "p95_ms": 142.7,
+            "max_ms": 142.7
+          }
+        }
+      },
+      {
+        "mode": "after",
+        "run": 2,
+        "summary": {
+          "cpu": {
+            "count": 10,
+            "mean_ms": 277.92089999999996,
+            "p50_ms": 299.15999999999985,
+            "p95_ms": 410.12200000000007,
+            "max_ms": 410.12200000000007
+          },
+          "finish": {
+            "count": 10,
+            "mean_ms": 125.56000000000002,
+            "p50_ms": 150.3,
+            "p95_ms": 234.9,
+            "max_ms": 234.9
+          },
+          "point": {
+            "count": 10,
+            "mean_ms": 89.75,
+            "p50_ms": 84.3,
+            "p95_ms": 117.6,
+            "max_ms": 117.6
+          },
+          "reopen": {
+            "count": 10,
+            "mean_ms": 108.66,
+            "p50_ms": 103.8,
+            "p95_ms": 140.4,
+            "max_ms": 140.4
+          }
+        }
+      },
+      {
+        "mode": "before",
+        "run": 2,
+        "summary": {
+          "cpu": {
+            "count": 10,
+            "mean_ms": 279.2794,
+            "p50_ms": 294.7719999999998,
+            "p95_ms": 387.54,
+            "max_ms": 387.54
+          },
+          "finish": {
+            "count": 10,
+            "mean_ms": 132.45999999999998,
+            "p50_ms": 163.4,
+            "p95_ms": 229,
+            "max_ms": 229
+          },
+          "point": {
+            "count": 10,
+            "mean_ms": 96.32000000000001,
+            "p50_ms": 92.4,
+            "p95_ms": 129.6,
+            "max_ms": 129.6
+          },
+          "reopen": {
+            "count": 10,
+            "mean_ms": 99.2,
+            "p50_ms": 96.2,
+            "p95_ms": 126.6,
+            "max_ms": 126.6
+          }
+        }
+      }
+    ],
+    "completed_dom_structure": {
+      "identical": true,
+      "elements": 14343
+    },
+    "earlier_series": [
+      {
+        "mode": "before",
+        "run": 1,
+        "summary": {
+          "cpu": {
+            "count": 10,
+            "mean_ms": 286.6291,
+            "p50_ms": 321.54400000000004,
+            "p95_ms": 415.564,
+            "max_ms": 415.564
+          },
+          "finish": {
+            "count": 10,
+            "mean_ms": 131.21,
+            "p50_ms": 168.8,
+            "p95_ms": 219.1,
+            "max_ms": 219.1
+          },
+          "point": {
+            "count": 10,
+            "mean_ms": 94.74999999999999,
+            "p50_ms": 92.2,
+            "p95_ms": 124.4,
+            "max_ms": 124.4
+          },
+          "reopen": {
+            "count": 10,
+            "mean_ms": 116.85,
+            "p50_ms": 113.1,
+            "p95_ms": 146.1,
+            "max_ms": 146.1
+          }
+        }
+      },
+      {
+        "mode": "after",
+        "run": 1,
+        "summary": {
+          "cpu": {
+            "count": 10,
+            "mean_ms": 312.95899999999995,
+            "p50_ms": 328.56099999999964,
+            "p95_ms": 558.7849999999999,
+            "max_ms": 558.7849999999999
+          },
+          "finish": {
+            "count": 10,
+            "mean_ms": 145.07,
+            "p50_ms": 163.9,
+            "p95_ms": 270.4,
+            "max_ms": 270.4
+          },
+          "point": {
+            "count": 10,
+            "mean_ms": 98.46,
+            "p50_ms": 107.4,
+            "p95_ms": 145.3,
+            "max_ms": 145.3
+          },
+          "reopen": {
+            "count": 10,
+            "mean_ms": 105.88999999999999,
+            "p50_ms": 92.7,
+            "p95_ms": 166.7,
+            "max_ms": 166.7
+          }
+        }
+      },
+      {
+        "mode": "after",
+        "run": 2,
+        "summary": {
+          "cpu": {
+            "count": 10,
+            "mean_ms": 295.1721000000001,
+            "p50_ms": 300.1970000000003,
+            "p95_ms": 448.18199999999996,
+            "max_ms": 448.18199999999996
+          },
+          "finish": {
+            "count": 10,
+            "mean_ms": 139.85999999999999,
+            "p50_ms": 163.4,
+            "p95_ms": 278.3,
+            "max_ms": 278.3
+          },
+          "point": {
+            "count": 10,
+            "mean_ms": 97.2,
+            "p50_ms": 99.3,
+            "p95_ms": 140.7,
+            "max_ms": 140.7
+          },
+          "reopen": {
+            "count": 10,
+            "mean_ms": 104.52000000000001,
+            "p50_ms": 93.3,
+            "p95_ms": 173.5,
+            "max_ms": 173.5
+          }
+        }
+      },
+      {
+        "mode": "before",
+        "run": 2,
+        "summary": {
+          "cpu": {
+            "count": 10,
+            "mean_ms": 272.5416,
+            "p50_ms": 308.5610000000001,
+            "p95_ms": 421.5279999999999,
+            "max_ms": 421.5279999999999
+          },
+          "finish": {
+            "count": 10,
+            "mean_ms": 125.29,
+            "p50_ms": 162.9,
+            "p95_ms": 216.4,
+            "max_ms": 216.4
+          },
+          "point": {
+            "count": 10,
+            "mean_ms": 90.52000000000001,
+            "p50_ms": 83.3,
+            "p95_ms": 122.3,
+            "max_ms": 122.3
+          },
+          "reopen": {
+            "count": 10,
+            "mean_ms": 94.68000000000002,
+            "p50_ms": 93.8,
+            "p95_ms": 136.7,
+            "max_ms": 136.7
+          }
+        }
+      }
+    ],
+    "interpretation": "Repeated comparison has essentially identical mean point and finish latency. Reopening varies by about one render frame. Earlier series showed higher candidate CPU and frame wait times, so they were repeated instead of selecting a single favorable run. Counts/structure are identical; these small samples do not prove a universal latency bound."
+  },
+  "checks": {
+    "node": {
+      "passed": 192,
+      "command": "node_modules/.bin/mocha test/test_ctournament_match_updates.js test/test_cmatch.js test/test_leitstand_*.js test/test_cmatch_schedule_time_cache.js test/test_name_metrics_cache.js test/test_update_queue.js test/test_admin_update_observer.js test/test_cmatch_history.js test/test_admin_asset_cache.js"
+    },
+    "browser": [
+      {
+        "test": "initial-layout",
+        "exit_code": 0
+      },
+      {
+        "test": "list-visibility",
+        "exit_code": 0
+      },
+      {
+        "test": "name-measurement-batch",
+        "exit_code": 0
+      },
+      {
+        "test": "name-metrics-cache",
+        "exit_code": 0
+      },
+      {
+        "test": "completion",
+        "exit_code": 0
+      },
+      {
+        "test": "update-ownership",
+        "exit_code": 0
+      },
+      {
+        "test": "history-pages",
+        "exit_code": 0
+      },
+      {
+        "test": "fixed-columns",
+        "exit_code": 0
+      },
+      {
+        "test": "header-cache",
+        "exit_code": 0
+      },
+      {
+        "test": "navigation-responsive",
+        "exit_code": 0
+      },
+      {
+        "test": "row-retention",
+        "exit_code": 0
+      },
+      {
+        "test": "structural-load",
+        "exit_code": 0
+      }
+    ],
+    "initial_layout": [
+      "The visible viewport paints while distant rows remain explicitly pending",
+      "Initial names and stacking already match independent native geometry",
+      "A court point remains independent of pending startup lists",
+      "Early edits and an added game appear once with current model values",
+      "Every list update waits for its completed initial rendering",
+      "A game completed during startup moves from its court into the results",
+      "Filling distant rows retains the visible row, control and keyboard focus",
+      "Leaving the board cancels all delayed rendering without recreating it",
+      "Larger viewports and hidden halls complete without partial rows",
+      "No uncaught browser exceptions"
+    ],
+    "structural_load": {
+      "matchCount": 373,
+      "finishedCount": 85,
+      "courtCount": 15,
+      "outcomes": {
+        "presented": 1477
+      },
+      "pending": {
+        "pending": 0,
+        "subscribers": 1,
+        "callbackErrors": 0
+      }
+    },
+    "scroll_reveal_ms": [
+      {
+        "kind": "upcoming",
+        "ms": 64.40000009536743
+      },
+      {
+        "kind": "finished",
+        "ms": 50.59999990463257
+      }
+    ],
+    "lint": [
+      {
+        "file": "initial-layout-check.js",
+        "new_errors": 0,
+        "rules": []
+      },
+      {
+        "file": "startup-check.js",
+        "new_errors": 0,
+        "rules": []
+      },
+      {
+        "file": "cleitstand.js",
+        "new_errors": 0,
+        "rules": []
+      },
+      {
+        "file": "cmatch.js",
+        "new_errors": 0,
+        "rules": []
+      },
+      {
+        "file": "crouting.js",
+        "new_errors": 0,
+        "rules": []
+      },
+      {
+        "file": "ctournament.js",
+        "new_errors": 0,
+        "rules": []
+      }
+    ],
+    "existing_suite_limitations": "The five earlier documented baseline failures in match-dialog, number-inputs, preparation-stability, settings-workspace and narrow court-assignment were not counted as passing or reclassified in this scoped run. See seitenstart-ziel-500ms-2026-11-09.json."
+  },
+  "exploratory_load_series_before_final_callback_cleanup": [
+    {
+      "mode": "before",
+      "run": 1,
+      "measurements": [
+        {
+          "visible_ms": 1424.7000000476837,
+          "total_ms": 897.2999999523163,
+          "navigation_to_ready_ms": 1436.5999999046326,
+          "phases": {
+            "matches.prepare_render": {
+              "count": 1,
+              "ms": 1.2999999523162842,
+              "max_ms": 1.2999999523162842
+            },
+            "matches.render_courts": {
+              "count": 1,
+              "ms": 23,
+              "max_ms": 23
+            },
+            "matches.render_unassigned": {
+              "count": 1,
+              "ms": 24.40000009536743,
+              "max_ms": 24.40000009536743
+            },
+            "matches.render_finished": {
+              "count": 1,
+              "ms": 7.099999904632568,
+              "max_ms": 7.099999904632568
+            },
+            "operators": {
+              "count": 1,
+              "ms": 2.3999998569488525,
+              "max_ms": 2.3999998569488525
+            },
+            "officials": {
+              "count": 1,
+              "ms": 2,
+              "max_ms": 2
+            },
+            "board.mount": {
+              "count": 1,
+              "ms": 138.69999980926514,
+              "max_ms": 138.69999980926514
+            }
+          },
+          "matches": 512,
+          "courts": 15,
+          "dom_nodes": 8765,
+          "rendered_results": 50,
+          "deferred_results": 373,
+          "game_rows": 512,
+          "finished_visible": 50,
+          "main_visible": true,
+          "pending": false,
+          "navigation": {
+            "dom_content_loaded_ms": 512.2000000476837,
+            "load_ms": 512.2999999523163,
+            "assets": 127,
+            "export_library_requests": 0,
+            "asset_bytes": 3314262
+          }
+        },
+        {
+          "visible_ms": 743.6000001430511,
+          "total_ms": 636.5,
+          "navigation_to_ready_ms": 760.3000001907349,
+          "phases": {
+            "matches.prepare_render": {
+              "count": 1,
+              "ms": 1.1000001430511475,
+              "max_ms": 1.1000001430511475
+            },
+            "matches.render_courts": {
+              "count": 1,
+              "ms": 16.200000047683716,
+              "max_ms": 16.200000047683716
+            },
+            "matches.render_unassigned": {
+              "count": 1,
+              "ms": 26.899999856948853,
+              "max_ms": 26.899999856948853
+            },
+            "matches.render_finished": {
+              "count": 1,
+              "ms": 8.5,
+              "max_ms": 8.5
+            },
+            "operators": {
+              "count": 1,
+              "ms": 0.9000000953674316,
+              "max_ms": 0.9000000953674316
+            },
+            "officials": {
+              "count": 1,
+              "ms": 0.7000000476837158,
+              "max_ms": 0.7000000476837158
+            },
+            "board.mount": {
+              "count": 1,
+              "ms": 106.70000004768372,
+              "max_ms": 106.70000004768372
+            }
+          },
+          "first_stable_ms": 603.0999999046326,
+          "navigation": {
+            "load_ms": 98.30000019073486,
+            "type": "reload"
+          }
+        },
+        {
+          "visible_ms": 726,
+          "total_ms": 626.5999999046326,
+          "navigation_to_ready_ms": 743.1999998092651,
+          "phases": {
+            "matches.prepare_render": {
+              "count": 1,
+              "ms": 1,
+              "max_ms": 1
+            },
+            "matches.render_courts": {
+              "count": 1,
+              "ms": 15.100000143051147,
+              "max_ms": 15.100000143051147
+            },
+            "matches.render_unassigned": {
+              "count": 1,
+              "ms": 19,
+              "max_ms": 19
+            },
+            "matches.render_finished": {
+              "count": 1,
+              "ms": 5.5,
+              "max_ms": 5.5
+            },
+            "operators": {
+              "count": 1,
+              "ms": 0.7000000476837158,
+              "max_ms": 0.7000000476837158
+            },
+            "officials": {
+              "count": 1,
+              "ms": 0.5,
+              "max_ms": 0.5
+            },
+            "board.mount": {
+              "count": 1,
+              "ms": 103.70000004768372,
+              "max_ms": 103.70000004768372
+            }
+          },
+          "first_stable_ms": 591.9000000953674,
+          "navigation": {
+            "load_ms": 82.39999985694885,
+            "type": "reload"
+          }
+        },
+        {
+          "visible_ms": 630,
+          "total_ms": 555.9000000953674,
+          "navigation_to_ready_ms": 646.7000000476837,
+          "phases": {
+            "matches.prepare_render": {
+              "count": 1,
+              "ms": 0.8999998569488525,
+              "max_ms": 0.8999998569488525
+            },
+            "matches.render_courts": {
+              "count": 1,
+              "ms": 11.799999952316284,
+              "max_ms": 11.799999952316284
+            },
+            "matches.render_unassigned": {
+              "count": 1,
+              "ms": 18,
+              "max_ms": 18
+            },
+            "matches.render_finished": {
+              "count": 1,
+              "ms": 5.5,
+              "max_ms": 5.5
+            },
+            "operators": {
+              "count": 1,
+              "ms": 0.7999999523162842,
+              "max_ms": 0.7999999523162842
+            },
+            "officials": {
+              "count": 1,
+              "ms": 0.5,
+              "max_ms": 0.5
+            },
+            "board.mount": {
+              "count": 1,
+              "ms": 94.80000019073486,
+              "max_ms": 94.80000019073486
+            }
+          },
+          "first_stable_ms": 522.5,
+          "navigation": {
+            "load_ms": 67.40000009536743,
+            "type": "reload"
+          }
+        }
+      ]
+    },
+    {
+      "mode": "after",
+      "run": 1,
+      "measurements": [
+        {
+          "visible_ms": 932.5,
+          "total_ms": 808.9000000953674,
+          "navigation_to_ready_ms": 1332,
+          "phases": {
+            "matches.prepare_render": {
+              "count": 1,
+              "ms": 1.2000000476837158,
+              "max_ms": 1.2000000476837158
+            },
+            "matches.render_courts": {
+              "count": 1,
+              "ms": 22.199999809265137,
+              "max_ms": 22.199999809265137
+            },
+            "operators": {
+              "count": 1,
+              "ms": 1.7999999523162842,
+              "max_ms": 1.7999999523162842
+            },
+            "officials": {
+              "count": 1,
+              "ms": 2.0999999046325684,
+              "max_ms": 2.0999999046325684
+            },
+            "board.mount": {
+              "count": 1,
+              "ms": 53.299999952316284,
+              "max_ms": 53.299999952316284
+            },
+            "matches.render_unassigned": {
+              "count": 1,
+              "ms": 23,
+              "max_ms": 23
+            },
+            "matches.render_finished": {
+              "count": 1,
+              "ms": 8.5,
+              "max_ms": 8.5
+            }
+          },
+          "matches": 512,
+          "courts": 15,
+          "dom_nodes": 8765,
+          "rendered_results": 50,
+          "deferred_results": 373,
+          "game_rows": 512,
+          "finished_visible": 50,
+          "main_visible": true,
+          "pending": false,
+          "navigation": {
+            "dom_content_loaded_ms": 496.59999990463257,
+            "load_ms": 496.89999985694885,
+            "assets": 127,
+            "export_library_requests": 0,
+            "asset_bytes": 3316064
+          }
+        },
+        {
+          "visible_ms": 292.40000009536743,
+          "total_ms": 506.09999990463257,
+          "navigation_to_ready_ms": 622.2999999523163,
+          "phases": {
+            "matches.prepare_render": {
+              "count": 1,
+              "ms": 0.7999999523162842,
+              "max_ms": 0.7999999523162842
+            },
+            "matches.render_courts": {
+              "count": 1,
+              "ms": 13.900000095367432,
+              "max_ms": 13.900000095367432
+            },
+            "operators": {
+              "count": 1,
+              "ms": 0.7000000476837158,
+              "max_ms": 0.7000000476837158
+            },
+            "officials": {
+              "count": 1,
+              "ms": 0.5,
+              "max_ms": 0.5
+            },
+            "board.mount": {
+              "count": 1,
+              "ms": 21,
+              "max_ms": 21
+            },
+            "matches.render_unassigned": {
+              "count": 1,
+              "ms": 14.200000047683716,
+              "max_ms": 14.200000047683716
+            },
+            "matches.render_finished": {
+              "count": 1,
+              "ms": 7.3999998569488525,
+              "max_ms": 7.3999998569488525
+            }
+          },
+          "first_stable_ms": 472.7999999523163,
+          "navigation": {
+            "load_ms": 93.5,
+            "type": "reload"
+          }
+        },
+        {
+          "visible_ms": 275.19999980926514,
+          "total_ms": 550,
+          "navigation_to_ready_ms": 641.2999999523163,
+          "phases": {
+            "matches.prepare_render": {
+              "count": 1,
+              "ms": 0.9000000953674316,
+              "max_ms": 0.9000000953674316
+            },
+            "matches.render_courts": {
+              "count": 1,
+              "ms": 12.100000143051147,
+              "max_ms": 12.100000143051147
+            },
+            "operators": {
+              "count": 1,
+              "ms": 0.5,
+              "max_ms": 0.5
+            },
+            "officials": {
+              "count": 1,
+              "ms": 0.6000001430511475,
+              "max_ms": 0.6000001430511475
+            },
+            "board.mount": {
+              "count": 1,
+              "ms": 21.399999856948853,
+              "max_ms": 21.399999856948853
+            },
+            "matches.render_unassigned": {
+              "count": 1,
+              "ms": 14.200000047683716,
+              "max_ms": 14.200000047683716
+            },
+            "matches.render_finished": {
+              "count": 1,
+              "ms": 7.299999952316284,
+              "max_ms": 7.299999952316284
+            }
+          },
+          "first_stable_ms": 518.5,
+          "navigation": {
+            "load_ms": 65,
+            "type": "reload"
+          }
+        },
+        {
+          "visible_ms": 271.80000019073486,
+          "total_ms": 496.90000009536743,
+          "navigation_to_ready_ms": 587.9000000953674,
+          "phases": {
+            "matches.prepare_render": {
+              "count": 1,
+              "ms": 0.8999998569488525,
+              "max_ms": 0.8999998569488525
+            },
+            "matches.render_courts": {
+              "count": 1,
+              "ms": 13,
+              "max_ms": 13
+            },
+            "operators": {
+              "count": 1,
+              "ms": 0.7999999523162842,
+              "max_ms": 0.7999999523162842
+            },
+            "officials": {
+              "count": 1,
+              "ms": 0.6000001430511475,
+              "max_ms": 0.6000001430511475
+            },
+            "board.mount": {
+              "count": 1,
+              "ms": 23.399999856948853,
+              "max_ms": 23.399999856948853
+            },
+            "matches.render_unassigned": {
+              "count": 1,
+              "ms": 14.5,
+              "max_ms": 14.5
+            },
+            "matches.render_finished": {
+              "count": 1,
+              "ms": 5.700000047683716,
+              "max_ms": 5.700000047683716
+            }
+          },
+          "first_stable_ms": 463.60000014305115,
+          "navigation": {
+            "load_ms": 67.20000004768372,
+            "type": "reload"
+          }
+        }
+      ]
+    },
+    {
+      "mode": "after",
+      "run": 2,
+      "measurements": [
+        {
+          "visible_ms": 970.3999998569489,
+          "total_ms": 794.2000000476837,
+          "navigation_to_ready_ms": 1350.7999999523163,
+          "phases": {
+            "matches.prepare_render": {
+              "count": 1,
+              "ms": 1.2999999523162842,
+              "max_ms": 1.2999999523162842
+            },
+            "matches.render_courts": {
+              "count": 1,
+              "ms": 20.5,
+              "max_ms": 20.5
+            },
+            "operators": {
+              "count": 1,
+              "ms": 2.0999999046325684,
+              "max_ms": 2.0999999046325684
+            },
+            "officials": {
+              "count": 1,
+              "ms": 2,
+              "max_ms": 2
+            },
+            "board.mount": {
+              "count": 1,
+              "ms": 53.59999990463257,
+              "max_ms": 53.59999990463257
+            },
+            "matches.render_unassigned": {
+              "count": 1,
+              "ms": 21.59999990463257,
+              "max_ms": 21.59999990463257
+            },
+            "matches.render_finished": {
+              "count": 1,
+              "ms": 8.799999952316284,
+              "max_ms": 8.799999952316284
+            }
+          },
+          "matches": 512,
+          "courts": 15,
+          "dom_nodes": 8765,
+          "rendered_results": 50,
+          "deferred_results": 373,
+          "game_rows": 512,
+          "finished_visible": 50,
+          "main_visible": true,
+          "pending": false,
+          "navigation": {
+            "dom_content_loaded_ms": 529.1999998092651,
+            "load_ms": 529.5,
+            "assets": 127,
+            "export_library_requests": 0,
+            "asset_bytes": 3316064
+          }
+        },
+        {
+          "visible_ms": 307.09999990463257,
+          "total_ms": 554.6000001430511,
+          "navigation_to_ready_ms": 670.7000000476837,
+          "phases": {
+            "matches.prepare_render": {
+              "count": 1,
+              "ms": 1.3999998569488525,
+              "max_ms": 1.3999998569488525
+            },
+            "matches.render_courts": {
+              "count": 1,
+              "ms": 17.100000143051147,
+              "max_ms": 17.100000143051147
+            },
+            "operators": {
+              "count": 1,
+              "ms": 0.8999998569488525,
+              "max_ms": 0.8999998569488525
+            },
+            "officials": {
+              "count": 1,
+              "ms": 0.6000001430511475,
+              "max_ms": 0.6000001430511475
+            },
+            "board.mount": {
+              "count": 1,
+              "ms": 21.700000047683716,
+              "max_ms": 21.700000047683716
+            },
+            "matches.render_unassigned": {
+              "count": 1,
+              "ms": 14.699999809265137,
+              "max_ms": 14.699999809265137
+            },
+            "matches.render_finished": {
+              "count": 1,
+              "ms": 7.799999952316284,
+              "max_ms": 7.799999952316284
+            }
+          },
+          "first_stable_ms": 521.2999999523163,
+          "navigation": {
+            "load_ms": 94,
+            "type": "reload"
+          }
+        },
+        {
+          "visible_ms": 275.7000000476837,
+          "total_ms": 541.9000000953674,
+          "navigation_to_ready_ms": 641.7000000476837,
+          "phases": {
+            "matches.prepare_render": {
+              "count": 1,
+              "ms": 0.7999999523162842,
+              "max_ms": 0.7999999523162842
+            },
+            "matches.render_courts": {
+              "count": 1,
+              "ms": 12.400000095367432,
+              "max_ms": 12.400000095367432
+            },
+            "operators": {
+              "count": 1,
+              "ms": 0.6000001430511475,
+              "max_ms": 0.6000001430511475
+            },
+            "officials": {
+              "count": 1,
+              "ms": 0.5,
+              "max_ms": 0.5
+            },
+            "board.mount": {
+              "count": 1,
+              "ms": 22,
+              "max_ms": 22
+            },
+            "matches.render_unassigned": {
+              "count": 1,
+              "ms": 14.600000143051147,
+              "max_ms": 14.600000143051147
+            },
+            "matches.render_finished": {
+              "count": 1,
+              "ms": 7.700000047683716,
+              "max_ms": 7.700000047683716
+            }
+          },
+          "first_stable_ms": 509.60000014305115,
+          "navigation": {
+            "load_ms": 73.60000014305115,
+            "type": "reload"
+          }
+        },
+        {
+          "visible_ms": 275.59999990463257,
+          "total_ms": 515.5999999046326,
+          "navigation_to_ready_ms": 608.3999998569489,
+          "phases": {
+            "matches.prepare_render": {
+              "count": 1,
+              "ms": 1.2000000476837158,
+              "max_ms": 1.2000000476837158
+            },
+            "matches.render_courts": {
+              "count": 1,
+              "ms": 14.400000095367432,
+              "max_ms": 14.400000095367432
+            },
+            "operators": {
+              "count": 1,
+              "ms": 0.9000000953674316,
+              "max_ms": 0.9000000953674316
+            },
+            "officials": {
+              "count": 1,
+              "ms": 0.5999999046325684,
+              "max_ms": 0.5999999046325684
+            },
+            "board.mount": {
+              "count": 1,
+              "ms": 21.700000047683716,
+              "max_ms": 21.700000047683716
+            },
+            "matches.render_unassigned": {
+              "count": 1,
+              "ms": 16.09999990463257,
+              "max_ms": 16.09999990463257
+            },
+            "matches.render_finished": {
+              "count": 1,
+              "ms": 6.5,
+              "max_ms": 6.5
+            }
+          },
+          "first_stable_ms": 482.2999999523163,
+          "navigation": {
+            "load_ms": 66.09999990463257,
+            "type": "reload"
+          }
+        }
+      ]
+    },
+    {
+      "mode": "before",
+      "run": 2,
+      "measurements": [
+        {
+          "visible_ms": 1386.7000000476837,
+          "total_ms": 844.9000000953674,
+          "navigation_to_ready_ms": 1402.8000001907349,
+          "phases": {
+            "matches.prepare_render": {
+              "count": 1,
+              "ms": 1.2999999523162842,
+              "max_ms": 1.2999999523162842
+            },
+            "matches.render_courts": {
+              "count": 1,
+              "ms": 21.40000009536743,
+              "max_ms": 21.40000009536743
+            },
+            "matches.render_unassigned": {
+              "count": 1,
+              "ms": 26.40000009536743,
+              "max_ms": 26.40000009536743
+            },
+            "matches.render_finished": {
+              "count": 1,
+              "ms": 7,
+              "max_ms": 7
+            },
+            "operators": {
+              "count": 1,
+              "ms": 1.9000000953674316,
+              "max_ms": 1.9000000953674316
+            },
+            "officials": {
+              "count": 1,
+              "ms": 1.9000000953674316,
+              "max_ms": 1.9000000953674316
+            },
+            "board.mount": {
+              "count": 1,
+              "ms": 136,
+              "max_ms": 136
+            }
+          },
+          "matches": 512,
+          "courts": 15,
+          "dom_nodes": 8765,
+          "rendered_results": 50,
+          "deferred_results": 373,
+          "game_rows": 512,
+          "finished_visible": 50,
+          "main_visible": true,
+          "pending": false,
+          "navigation": {
+            "dom_content_loaded_ms": 530,
+            "load_ms": 530.3000001907349,
+            "assets": 127,
+            "export_library_requests": 0,
+            "asset_bytes": 3314262
+          }
+        },
+        {
+          "visible_ms": 667.9000000953674,
+          "total_ms": 571.4000000953674,
+          "navigation_to_ready_ms": 684.5,
+          "phases": {
+            "matches.prepare_render": {
+              "count": 1,
+              "ms": 1,
+              "max_ms": 1
+            },
+            "matches.render_courts": {
+              "count": 1,
+              "ms": 16.700000047683716,
+              "max_ms": 16.700000047683716
+            },
+            "matches.render_unassigned": {
+              "count": 1,
+              "ms": 23.5,
+              "max_ms": 23.5
+            },
+            "matches.render_finished": {
+              "count": 1,
+              "ms": 5.700000047683716,
+              "max_ms": 5.700000047683716
+            },
+            "operators": {
+              "count": 1,
+              "ms": 0.7000000476837158,
+              "max_ms": 0.7000000476837158
+            },
+            "officials": {
+              "count": 1,
+              "ms": 0.5,
+              "max_ms": 0.5
+            },
+            "board.mount": {
+              "count": 1,
+              "ms": 93.29999995231628,
+              "max_ms": 93.29999995231628
+            }
+          },
+          "first_stable_ms": 542.1000001430511,
+          "navigation": {
+            "load_ms": 91,
+            "type": "reload"
+          }
+        },
+        {
+          "visible_ms": 692.2999999523163,
+          "total_ms": 598.9000000953674,
+          "navigation_to_ready_ms": 709.5,
+          "phases": {
+            "matches.prepare_render": {
+              "count": 1,
+              "ms": 1.2000000476837158,
+              "max_ms": 1.2000000476837158
+            },
+            "matches.render_courts": {
+              "count": 1,
+              "ms": 16.59999990463257,
+              "max_ms": 16.59999990463257
+            },
+            "matches.render_unassigned": {
+              "count": 1,
+              "ms": 19.200000047683716,
+              "max_ms": 19.200000047683716
+            },
+            "matches.render_finished": {
+              "count": 1,
+              "ms": 5.6000001430511475,
+              "max_ms": 5.6000001430511475
+            },
+            "operators": {
+              "count": 1,
+              "ms": 0.7000000476837158,
+              "max_ms": 0.7000000476837158
+            },
+            "officials": {
+              "count": 1,
+              "ms": 0.40000009536743164,
+              "max_ms": 0.40000009536743164
+            },
+            "board.mount": {
+              "count": 1,
+              "ms": 99.89999985694885,
+              "max_ms": 99.89999985694885
+            }
+          },
+          "first_stable_ms": 564.4000000953674,
+          "navigation": {
+            "load_ms": 78.09999990463257,
+            "type": "reload"
+          }
+        },
+        {
+          "visible_ms": 634.6999998092651,
+          "total_ms": 552.5999999046326,
+          "navigation_to_ready_ms": 651.3999998569489,
+          "phases": {
+            "matches.prepare_render": {
+              "count": 1,
+              "ms": 1,
+              "max_ms": 1
+            },
+            "matches.render_courts": {
+              "count": 1,
+              "ms": 12.699999809265137,
+              "max_ms": 12.699999809265137
+            },
+            "matches.render_unassigned": {
+              "count": 1,
+              "ms": 17.100000143051147,
+              "max_ms": 17.100000143051147
+            },
+            "matches.render_finished": {
+              "count": 1,
+              "ms": 5.799999952316284,
+              "max_ms": 5.799999952316284
+            },
+            "operators": {
+              "count": 1,
+              "ms": 0.6000001430511475,
+              "max_ms": 0.6000001430511475
+            },
+            "officials": {
+              "count": 1,
+              "ms": 0.5999999046325684,
+              "max_ms": 0.5999999046325684
+            },
+            "board.mount": {
+              "count": 1,
+              "ms": 91.40000009536743,
+              "max_ms": 91.40000009536743
+            }
+          },
+          "first_stable_ms": 520.5,
+          "navigation": {
+            "load_ms": 72.59999990463257,
+            "type": "reload"
+          }
+        }
+      ]
+    },
+    {
+      "mode": "after",
+      "run": 3,
+      "measurements": [
+        {
+          "visible_ms": 884.7999999523163,
+          "total_ms": 815.7000000476837,
+          "navigation_to_ready_ms": 1284.2999999523163,
+          "phases": {
+            "matches.prepare_render": {
+              "count": 1,
+              "ms": 1.0999999046325684,
+              "max_ms": 1.0999999046325684
+            },
+            "matches.render_courts": {
+              "count": 1,
+              "ms": 21,
+              "max_ms": 21
+            },
+            "operators": {
+              "count": 1,
+              "ms": 2.5,
+              "max_ms": 2.5
+            },
+            "officials": {
+              "count": 1,
+              "ms": 2.200000047683716,
+              "max_ms": 2.200000047683716
+            },
+            "board.mount": {
+              "count": 1,
+              "ms": 51.90000009536743,
+              "max_ms": 51.90000009536743
+            },
+            "matches.render_unassigned": {
+              "count": 1,
+              "ms": 21.300000190734863,
+              "max_ms": 21.300000190734863
+            },
+            "matches.render_finished": {
+              "count": 1,
+              "ms": 9.200000047683716,
+              "max_ms": 9.200000047683716
+            }
+          },
+          "matches": 512,
+          "courts": 15,
+          "dom_nodes": 8765,
+          "rendered_results": 50,
+          "deferred_results": 373,
+          "game_rows": 512,
+          "finished_visible": 50,
+          "main_visible": true,
+          "pending": false,
+          "navigation": {
+            "dom_content_loaded_ms": 438.09999990463257,
+            "load_ms": 438.2999999523163,
+            "assets": 127,
+            "export_library_requests": 0,
+            "asset_bytes": 3316064
+          }
+        },
+        {
+          "visible_ms": 321.5,
+          "total_ms": 553.5,
+          "navigation_to_ready_ms": 670.8999998569489,
+          "phases": {
+            "matches.prepare_render": {
+              "count": 1,
+              "ms": 0.8999998569488525,
+              "max_ms": 0.8999998569488525
+            },
+            "matches.render_courts": {
+              "count": 1,
+              "ms": 16.300000190734863,
+              "max_ms": 16.300000190734863
+            },
+            "operators": {
+              "count": 1,
+              "ms": 0.7000000476837158,
+              "max_ms": 0.7000000476837158
+            },
+            "officials": {
+              "count": 1,
+              "ms": 0.5999999046325684,
+              "max_ms": 0.5999999046325684
+            },
+            "board.mount": {
+              "count": 1,
+              "ms": 25.200000047683716,
+              "max_ms": 25.200000047683716
+            },
+            "matches.render_unassigned": {
+              "count": 1,
+              "ms": 13.799999952316284,
+              "max_ms": 13.799999952316284
+            },
+            "matches.render_finished": {
+              "count": 1,
+              "ms": 7.300000190734863,
+              "max_ms": 7.300000190734863
+            }
+          },
+          "first_stable_ms": 520,
+          "navigation": {
+            "load_ms": 92.39999985694885,
+            "type": "reload"
+          }
+        },
+        {
+          "visible_ms": 275.2999999523163,
+          "total_ms": 564.4000000953674,
+          "navigation_to_ready_ms": 658,
+          "phases": {
+            "matches.prepare_render": {
+              "count": 1,
+              "ms": 0.8999998569488525,
+              "max_ms": 0.8999998569488525
+            },
+            "matches.render_courts": {
+              "count": 1,
+              "ms": 12.900000095367432,
+              "max_ms": 12.900000095367432
+            },
+            "operators": {
+              "count": 1,
+              "ms": 0.7000000476837158,
+              "max_ms": 0.7000000476837158
+            },
+            "officials": {
+              "count": 1,
+              "ms": 0.5999999046325684,
+              "max_ms": 0.5999999046325684
+            },
+            "board.mount": {
+              "count": 1,
+              "ms": 21.5,
+              "max_ms": 21.5
+            },
+            "matches.render_unassigned": {
+              "count": 1,
+              "ms": 15.299999952316284,
+              "max_ms": 15.299999952316284
+            },
+            "matches.render_finished": {
+              "count": 1,
+              "ms": 7.299999952316284,
+              "max_ms": 7.299999952316284
+            }
+          },
+          "first_stable_ms": 531.3000001907349,
+          "navigation": {
+            "load_ms": 67.79999995231628,
+            "type": "reload"
+          }
+        },
+        {
+          "visible_ms": 259.10000014305115,
+          "total_ms": 497.5,
+          "navigation_to_ready_ms": 591.5,
+          "phases": {
+            "matches.prepare_render": {
+              "count": 1,
+              "ms": 0.8999998569488525,
+              "max_ms": 0.8999998569488525
+            },
+            "matches.render_courts": {
+              "count": 1,
+              "ms": 12.100000143051147,
+              "max_ms": 12.100000143051147
+            },
+            "operators": {
+              "count": 1,
+              "ms": 0.6999998092651367,
+              "max_ms": 0.6999998092651367
+            },
+            "officials": {
+              "count": 1,
+              "ms": 0.6000001430511475,
+              "max_ms": 0.6000001430511475
+            },
+            "board.mount": {
+              "count": 1,
+              "ms": 20.700000047683716,
+              "max_ms": 20.700000047683716
+            },
+            "matches.render_unassigned": {
+              "count": 1,
+              "ms": 15.399999856948853,
+              "max_ms": 15.399999856948853
+            },
+            "matches.render_finished": {
+              "count": 1,
+              "ms": 5.5,
+              "max_ms": 5.5
+            }
+          },
+          "first_stable_ms": 464.2000000476837,
+          "navigation": {
+            "load_ms": 67.40000009536743,
+            "type": "reload"
+          }
+        }
+      ]
+    },
+    {
+      "mode": "before",
+      "run": 3,
+      "measurements": [
+        {
+          "visible_ms": 1818.7000000476837,
+          "total_ms": 1366.6000001430511,
+          "navigation_to_ready_ms": 1836.6000001430511,
+          "phases": {
+            "matches.prepare_render": {
+              "count": 1,
+              "ms": 1.3000001907348633,
+              "max_ms": 1.3000001907348633
+            },
+            "matches.render_courts": {
+              "count": 1,
+              "ms": 25.600000143051147,
+              "max_ms": 25.600000143051147
+            },
+            "matches.render_unassigned": {
+              "count": 1,
+              "ms": 24.299999952316284,
+              "max_ms": 24.299999952316284
+            },
+            "matches.render_finished": {
+              "count": 1,
+              "ms": 8,
+              "max_ms": 8
+            },
+            "operators": {
+              "count": 1,
+              "ms": 1.8999998569488525,
+              "max_ms": 1.8999998569488525
+            },
+            "officials": {
+              "count": 1,
+              "ms": 2.0999999046325684,
+              "max_ms": 2.0999999046325684
+            },
+            "board.mount": {
+              "count": 1,
+              "ms": 200.29999995231628,
+              "max_ms": 200.29999995231628
+            }
+          },
+          "matches": 512,
+          "courts": 15,
+          "dom_nodes": 8765,
+          "rendered_results": 50,
+          "deferred_results": 373,
+          "game_rows": 512,
+          "finished_visible": 50,
+          "main_visible": true,
+          "pending": false,
+          "navigation": {
+            "dom_content_loaded_ms": 436.2999999523163,
+            "load_ms": 436.60000014305115,
+            "assets": 127,
+            "export_library_requests": 0,
+            "asset_bytes": 3314262
+          }
+        },
+        {
+          "visible_ms": 744.1999998092651,
+          "total_ms": 602.6000001430511,
+          "navigation_to_ready_ms": 760.7999999523163,
+          "phases": {
+            "matches.prepare_render": {
+              "count": 1,
+              "ms": 2.799999952316284,
+              "max_ms": 2.799999952316284
+            },
+            "matches.render_courts": {
+              "count": 1,
+              "ms": 19.799999952316284,
+              "max_ms": 19.799999952316284
+            },
+            "matches.render_unassigned": {
+              "count": 1,
+              "ms": 24.299999952316284,
+              "max_ms": 24.299999952316284
+            },
+            "matches.render_finished": {
+              "count": 1,
+              "ms": 6,
+              "max_ms": 6
+            },
+            "operators": {
+              "count": 1,
+              "ms": 0.7999999523162842,
+              "max_ms": 0.7999999523162842
+            },
+            "officials": {
+              "count": 1,
+              "ms": 0.5999999046325684,
+              "max_ms": 0.5999999046325684
+            },
+            "board.mount": {
+              "count": 1,
+              "ms": 95.60000014305115,
+              "max_ms": 95.60000014305115
+            }
+          },
+          "first_stable_ms": 569.3000001907349,
+          "navigation": {
+            "load_ms": 114.89999985694885,
+            "type": "reload"
+          }
+        },
+        {
+          "visible_ms": 688.2999999523163,
+          "total_ms": 618,
+          "navigation_to_ready_ms": 708.1999998092651,
+          "phases": {
+            "matches.prepare_render": {
+              "count": 1,
+              "ms": 0.7999999523162842,
+              "max_ms": 0.7999999523162842
+            },
+            "matches.render_courts": {
+              "count": 1,
+              "ms": 15,
+              "max_ms": 15
+            },
+            "matches.render_unassigned": {
+              "count": 1,
+              "ms": 18.59999990463257,
+              "max_ms": 18.59999990463257
+            },
+            "matches.render_finished": {
+              "count": 1,
+              "ms": 5.400000095367432,
+              "max_ms": 5.400000095367432
+            },
+            "operators": {
+              "count": 1,
+              "ms": 0.7000000476837158,
+              "max_ms": 0.7000000476837158
+            },
+            "officials": {
+              "count": 1,
+              "ms": 0.6000001430511475,
+              "max_ms": 0.6000001430511475
+            },
+            "board.mount": {
+              "count": 1,
+              "ms": 100.20000004768372,
+              "max_ms": 100.20000004768372
+            }
+          },
+          "first_stable_ms": 585.9000000953674,
+          "navigation": {
+            "load_ms": 65.5,
+            "type": "reload"
+          }
+        },
+        {
+          "visible_ms": 647.5,
+          "total_ms": 563.6999998092651,
+          "navigation_to_ready_ms": 664.0999999046326,
+          "phases": {
+            "matches.prepare_render": {
+              "count": 1,
+              "ms": 0.7999999523162842,
+              "max_ms": 0.7999999523162842
+            },
+            "matches.render_courts": {
+              "count": 1,
+              "ms": 13.299999952316284,
+              "max_ms": 13.299999952316284
+            },
+            "matches.render_unassigned": {
+              "count": 1,
+              "ms": 19.5,
+              "max_ms": 19.5
+            },
+            "matches.render_finished": {
+              "count": 1,
+              "ms": 5.700000047683716,
+              "max_ms": 5.700000047683716
+            },
+            "operators": {
+              "count": 1,
+              "ms": 0.5,
+              "max_ms": 0.5
+            },
+            "officials": {
+              "count": 1,
+              "ms": 0.5,
+              "max_ms": 0.5
+            },
+            "board.mount": {
+              "count": 1,
+              "ms": 95.70000004768372,
+              "max_ms": 95.70000004768372
+            }
+          },
+          "first_stable_ms": 537,
+          "navigation": {
+            "load_ms": 74.5,
+            "type": "reload"
+          }
+        }
+      ]
+    },
+    {
+      "mode": "before",
+      "run": 4,
+      "measurements": [
+        {
+          "visible_ms": 1419.2000000476837,
+          "total_ms": 838.7000000476837,
+          "navigation_to_ready_ms": 1436.5,
+          "phases": {
+            "matches.prepare_render": {
+              "count": 1,
+              "ms": 1.2999999523162842,
+              "max_ms": 1.2999999523162842
+            },
+            "matches.render_courts": {
+              "count": 1,
+              "ms": 24,
+              "max_ms": 24
+            },
+            "matches.render_unassigned": {
+              "count": 1,
+              "ms": 26.90000009536743,
+              "max_ms": 26.90000009536743
+            },
+            "matches.render_finished": {
+              "count": 1,
+              "ms": 7.1000001430511475,
+              "max_ms": 7.1000001430511475
+            },
+            "operators": {
+              "count": 1,
+              "ms": 2.1999998092651367,
+              "max_ms": 2.1999998092651367
+            },
+            "officials": {
+              "count": 1,
+              "ms": 2.5,
+              "max_ms": 2.5
+            },
+            "board.mount": {
+              "count": 1,
+              "ms": 134.40000009536743,
+              "max_ms": 134.40000009536743
+            }
+          },
+          "matches": 512,
+          "courts": 15,
+          "dom_nodes": 8765,
+          "rendered_results": 50,
+          "deferred_results": 373,
+          "game_rows": 512,
+          "finished_visible": 50,
+          "main_visible": true,
+          "pending": false,
+          "navigation": {
+            "dom_content_loaded_ms": 557.2000000476837,
+            "load_ms": 557.4000000953674,
+            "assets": 127,
+            "export_library_requests": 0,
+            "asset_bytes": 3314262
+          }
+        },
+        {
+          "visible_ms": 668.2000000476837,
+          "total_ms": 568,
+          "navigation_to_ready_ms": 684.9000000953674,
+          "phases": {
+            "matches.prepare_render": {
+              "count": 1,
+              "ms": 0.8999998569488525,
+              "max_ms": 0.8999998569488525
+            },
+            "matches.render_courts": {
+              "count": 1,
+              "ms": 15,
+              "max_ms": 15
+            },
+            "matches.render_unassigned": {
+              "count": 1,
+              "ms": 19.59999990463257,
+              "max_ms": 19.59999990463257
+            },
+            "matches.render_finished": {
+              "count": 1,
+              "ms": 5.6000001430511475,
+              "max_ms": 5.6000001430511475
+            },
+            "operators": {
+              "count": 1,
+              "ms": 0.7999999523162842,
+              "max_ms": 0.7999999523162842
+            },
+            "officials": {
+              "count": 1,
+              "ms": 0.5,
+              "max_ms": 0.5
+            },
+            "board.mount": {
+              "count": 1,
+              "ms": 93.70000004768372,
+              "max_ms": 93.70000004768372
+            }
+          },
+          "first_stable_ms": 536.5,
+          "navigation": {
+            "load_ms": 92.79999995231628,
+            "type": "reload"
+          }
+        },
+        {
+          "visible_ms": 674.3999998569489,
+          "total_ms": 590.5999999046326,
+          "navigation_to_ready_ms": 690.5999999046326,
+          "phases": {
+            "matches.prepare_render": {
+              "count": 1,
+              "ms": 1,
+              "max_ms": 1
+            },
+            "matches.render_courts": {
+              "count": 1,
+              "ms": 19,
+              "max_ms": 19
+            },
+            "matches.render_unassigned": {
+              "count": 1,
+              "ms": 21.90000009536743,
+              "max_ms": 21.90000009536743
+            },
+            "matches.render_finished": {
+              "count": 1,
+              "ms": 5.599999904632568,
+              "max_ms": 5.599999904632568
+            },
+            "operators": {
+              "count": 1,
+              "ms": 0.7000000476837158,
+              "max_ms": 0.7000000476837158
+            },
+            "officials": {
+              "count": 1,
+              "ms": 0.5999999046325684,
+              "max_ms": 0.5999999046325684
+            },
+            "board.mount": {
+              "count": 1,
+              "ms": 99.5,
+              "max_ms": 99.5
+            }
+          },
+          "first_stable_ms": 560.2999999523163,
+          "navigation": {
+            "load_ms": 74.5,
+            "type": "reload"
+          }
+        },
+        {
+          "visible_ms": 611.5999999046326,
+          "total_ms": 542.3999998569489,
+          "navigation_to_ready_ms": 628.2999999523163,
+          "phases": {
+            "matches.prepare_render": {
+              "count": 1,
+              "ms": 0.9000000953674316,
+              "max_ms": 0.9000000953674316
+            },
+            "matches.render_courts": {
+              "count": 1,
+              "ms": 13.099999904632568,
+              "max_ms": 13.099999904632568
+            },
+            "matches.render_unassigned": {
+              "count": 1,
+              "ms": 17.40000009536743,
+              "max_ms": 17.40000009536743
+            },
+            "matches.render_finished": {
+              "count": 1,
+              "ms": 5,
+              "max_ms": 5
+            },
+            "operators": {
+              "count": 1,
+              "ms": 0.7000000476837158,
+              "max_ms": 0.7000000476837158
+            },
+            "officials": {
+              "count": 1,
+              "ms": 0.5,
+              "max_ms": 0.5
+            },
+            "board.mount": {
+              "count": 1,
+              "ms": 90,
+              "max_ms": 90
+            }
+          },
+          "first_stable_ms": 518.6999998092651,
+          "navigation": {
+            "load_ms": 62.799999952316284,
+            "type": "reload"
+          }
+        }
+      ]
+    },
+    {
+      "mode": "after",
+      "run": 4,
+      "measurements": [
+        {
+          "visible_ms": 969.1000001430511,
+          "total_ms": 803.2000000476837,
+          "navigation_to_ready_ms": 1368.6000001430511,
+          "phases": {
+            "matches.prepare_render": {
+              "count": 1,
+              "ms": 1.2000000476837158,
+              "max_ms": 1.2000000476837158
+            },
+            "matches.render_courts": {
+              "count": 1,
+              "ms": 23,
+              "max_ms": 23
+            },
+            "operators": {
+              "count": 1,
+              "ms": 2,
+              "max_ms": 2
+            },
+            "officials": {
+              "count": 1,
+              "ms": 2.4000000953674316,
+              "max_ms": 2.4000000953674316
+            },
+            "board.mount": {
+              "count": 1,
+              "ms": 50.200000047683716,
+              "max_ms": 50.200000047683716
+            },
+            "matches.render_unassigned": {
+              "count": 1,
+              "ms": 19.200000047683716,
+              "max_ms": 19.200000047683716
+            },
+            "matches.render_finished": {
+              "count": 1,
+              "ms": 7.5,
+              "max_ms": 7.5
+            }
+          },
+          "matches": 512,
+          "courts": 15,
+          "dom_nodes": 8765,
+          "rendered_results": 50,
+          "deferred_results": 373,
+          "game_rows": 512,
+          "finished_visible": 50,
+          "main_visible": true,
+          "pending": false,
+          "navigation": {
+            "dom_content_loaded_ms": 538.6000001430511,
+            "load_ms": 538.7000000476837,
+            "assets": 127,
+            "export_library_requests": 0,
+            "asset_bytes": 3316064
+          }
+        },
+        {
+          "visible_ms": 323.2000000476837,
+          "total_ms": 553.5,
+          "navigation_to_ready_ms": 672,
+          "phases": {
+            "matches.prepare_render": {
+              "count": 1,
+              "ms": 0.8000001907348633,
+              "max_ms": 0.8000001907348633
+            },
+            "matches.render_courts": {
+              "count": 1,
+              "ms": 17.299999952316284,
+              "max_ms": 17.299999952316284
+            },
+            "operators": {
+              "count": 1,
+              "ms": 0.7999999523162842,
+              "max_ms": 0.7999999523162842
+            },
+            "officials": {
+              "count": 1,
+              "ms": 0.6000001430511475,
+              "max_ms": 0.6000001430511475
+            },
+            "board.mount": {
+              "count": 1,
+              "ms": 22.5,
+              "max_ms": 22.5
+            },
+            "matches.render_unassigned": {
+              "count": 1,
+              "ms": 13.899999856948853,
+              "max_ms": 13.899999856948853
+            },
+            "matches.render_finished": {
+              "count": 1,
+              "ms": 7.400000095367432,
+              "max_ms": 7.400000095367432
+            }
+          },
+          "first_stable_ms": 520.2000000476837,
+          "navigation": {
+            "load_ms": 96.40000009536743,
+            "type": "reload"
+          }
+        },
+        {
+          "visible_ms": 308.10000014305115,
+          "total_ms": 623.5,
+          "navigation_to_ready_ms": 724.3000001907349,
+          "phases": {
+            "matches.prepare_render": {
+              "count": 1,
+              "ms": 1,
+              "max_ms": 1
+            },
+            "matches.render_courts": {
+              "count": 1,
+              "ms": 14.299999952316284,
+              "max_ms": 14.299999952316284
+            },
+            "operators": {
+              "count": 1,
+              "ms": 0.7999999523162842,
+              "max_ms": 0.7999999523162842
+            },
+            "officials": {
+              "count": 1,
+              "ms": 0.5,
+              "max_ms": 0.5
+            },
+            "board.mount": {
+              "count": 1,
+              "ms": 26,
+              "max_ms": 26
+            },
+            "matches.render_unassigned": {
+              "count": 1,
+              "ms": 15.5,
+              "max_ms": 15.5
+            },
+            "matches.render_finished": {
+              "count": 1,
+              "ms": 6.900000095367432,
+              "max_ms": 6.900000095367432
+            }
+          },
+          "first_stable_ms": 594.0999999046326,
+          "navigation": {
+            "load_ms": 71.40000009536743,
+            "type": "reload"
+          }
+        },
+        {
+          "visible_ms": 294.2000000476837,
+          "total_ms": 532,
+          "navigation_to_ready_ms": 641.8000001907349,
+          "phases": {
+            "matches.prepare_render": {
+              "count": 1,
+              "ms": 1,
+              "max_ms": 1
+            },
+            "matches.render_courts": {
+              "count": 1,
+              "ms": 14.199999809265137,
+              "max_ms": 14.199999809265137
+            },
+            "operators": {
+              "count": 1,
+              "ms": 0.7000000476837158,
+              "max_ms": 0.7000000476837158
+            },
+            "officials": {
+              "count": 1,
+              "ms": 0.6999998092651367,
+              "max_ms": 0.6999998092651367
+            },
+            "board.mount": {
+              "count": 1,
+              "ms": 22.800000190734863,
+              "max_ms": 22.800000190734863
+            },
+            "matches.render_unassigned": {
+              "count": 1,
+              "ms": 18.40000009536743,
+              "max_ms": 18.40000009536743
+            },
+            "matches.render_finished": {
+              "count": 1,
+              "ms": 8.399999856948853,
+              "max_ms": 8.399999856948853
+            }
+          },
+          "first_stable_ms": 501.09999990463257,
+          "navigation": {
+            "load_ms": 77,
+            "type": "reload"
+          }
+        }
+      ]
+    }
+  ],
+  "source_sha256": {
+    "static/js/cleitstand.js": "49ea91a0d98fac0ac6e0d9d0bca995977f43c971d1a8effc076a68eb987f8000",
+    "static/js/cmatch.js": "a6e8c446a736dc8186d2cadaa7d558306f4d1b3be4b4433be40b96b2c93f65ac",
+    "static/js/ctournament.js": "e7df7e7ee841204f601c1fbf6ea37ea762f2745165d7d07ebb1644b1ae5f2843",
+    "static/js/crouting.js": "a4b0663d9caf7ed338a358d2f13fe306fc7854bd3c4a32c518cbe9c501f0f12c",
+    "static/cbts.html": "6ee8e39021879bf1ee2193f261a2c730dbe869264703c4ef9a3b7a4cff01c85a",
+    "bts/admin_asset_cache.js": "fda88a978efcfae473b2ebbf5650fa2bef5e77b64ee7025f0b0a0992ff2e282b",
+    "docs/entwuerfe/admin-ui/umsetzung/browser-check.js": "32596dd2edfce1e28e62814864c7b425de508f97616f1c3f8df8f93c57ae23d0",
+    "docs/entwuerfe/admin-ui/umsetzung/startup-check.js": "b64f3c244eb765be93c83992c809a8fc7bd4bd595f81d968f8e4017ee39321ac",
+    "docs/entwuerfe/admin-ui/umsetzung/initial-layout-check.js": "bc7640f50dad9051c1b3d96d559615d87a3cd3493773bb88aeb112786ee303ae"
+  },
+  "installed_verification": {
+    "source_matches_tested_candidate": true,
+    "source_hashes_match": true,
+    "first_call": {
+      "visible_ms": 965.2999999523163,
+      "total_ms": 814.2999999523163,
+      "navigation_to_ready_ms": 1364.7999999523163,
+      "phases": {
+        "matches.prepare_render": {
+          "count": 1,
+          "ms": 1.5,
+          "max_ms": 1.5
+        },
+        "matches.render_courts": {
+          "count": 1,
+          "ms": 28.200000047683716,
+          "max_ms": 28.200000047683716
+        },
+        "operators": {
+          "count": 1,
+          "ms": 2.200000047683716,
+          "max_ms": 2.200000047683716
+        },
+        "officials": {
+          "count": 1,
+          "ms": 2.9000000953674316,
+          "max_ms": 2.9000000953674316
+        },
+        "board.mount": {
+          "count": 1,
+          "ms": 64.29999995231628,
+          "max_ms": 64.29999995231628
+        },
+        "matches.render_unassigned": {
+          "count": 1,
+          "ms": 21.799999952316284,
+          "max_ms": 21.799999952316284
+        },
+        "matches.render_finished": {
+          "count": 1,
+          "ms": 9.300000190734863,
+          "max_ms": 9.300000190734863
+        }
+      },
+      "matches": 512,
+      "courts": 15,
+      "dom_nodes": 8765,
+      "rendered_results": 50,
+      "deferred_results": 373,
+      "game_rows": 512,
+      "finished_visible": 50,
+      "main_visible": true,
+      "pending": false,
+      "navigation": {
+        "dom_content_loaded_ms": 511.19999980926514,
+        "load_ms": 511.39999985694885,
+        "assets": 127,
+        "export_library_requests": 0,
+        "asset_bytes": 3316068
+      }
+    },
+    "reloads": [
+      {
+        "visible_ms": 290.80000019073486,
+        "total_ms": 521.1999998092651,
+        "navigation_to_ready_ms": 638.5,
+        "phases": {
+          "matches.prepare_render": {
+            "count": 1,
+            "ms": 0.9000000953674316,
+            "max_ms": 0.9000000953674316
+          },
+          "matches.render_courts": {
+            "count": 1,
+            "ms": 13.799999952316284,
+            "max_ms": 13.799999952316284
+          },
+          "operators": {
+            "count": 1,
+            "ms": 0.7999999523162842,
+            "max_ms": 0.7999999523162842
+          },
+          "officials": {
+            "count": 1,
+            "ms": 0.5,
+            "max_ms": 0.5
+          },
+          "board.mount": {
+            "count": 1,
+            "ms": 21,
+            "max_ms": 21
+          },
+          "matches.render_unassigned": {
+            "count": 1,
+            "ms": 13.200000047683716,
+            "max_ms": 13.200000047683716
+          },
+          "matches.render_finished": {
+            "count": 1,
+            "ms": 7.599999904632568,
+            "max_ms": 7.599999904632568
+          }
+        },
+        "first_stable_ms": 489.69999980926514,
+        "navigation": {
+          "load_ms": 94.20000004768372,
+          "type": "reload"
+        }
+      },
+      {
+        "visible_ms": 292,
+        "total_ms": 559.6000001430511,
+        "navigation_to_ready_ms": 658.2999999523163,
+        "phases": {
+          "matches.prepare_render": {
+            "count": 1,
+            "ms": 0.9000000953674316,
+            "max_ms": 0.9000000953674316
+          },
+          "matches.render_courts": {
+            "count": 1,
+            "ms": 15.599999904632568,
+            "max_ms": 15.599999904632568
+          },
+          "operators": {
+            "count": 1,
+            "ms": 0.6000001430511475,
+            "max_ms": 0.6000001430511475
+          },
+          "officials": {
+            "count": 1,
+            "ms": 0.7000000476837158,
+            "max_ms": 0.7000000476837158
+          },
+          "board.mount": {
+            "count": 1,
+            "ms": 26.399999856948853,
+            "max_ms": 26.399999856948853
+          },
+          "matches.render_unassigned": {
+            "count": 1,
+            "ms": 15.400000095367432,
+            "max_ms": 15.400000095367432
+          },
+          "matches.render_finished": {
+            "count": 1,
+            "ms": 7.5,
+            "max_ms": 7.5
+          }
+        },
+        "first_stable_ms": 530.7000000476837,
+        "navigation": {
+          "load_ms": 75.09999990463257,
+          "type": "reload"
+        }
+      }
+    ],
+    "initial_layout_checks": [
+      "The visible viewport paints while distant rows remain explicitly pending",
+      "Initial names and stacking already match independent native geometry",
+      "A court point remains independent of pending startup lists",
+      "Early edits and an added game appear once with current model values",
+      "Every list update waits for its completed initial rendering",
+      "A game completed during startup moves from its court into the results",
+      "Filling distant rows retains the visible row, control and keyboard focus",
+      "Leaving the board cancels all delayed rendering without recreating it",
+      "Larger viewports and hidden halls complete without partial rows",
+      "No uncaught browser exceptions"
+    ],
+    "startup_checks": [
+      "All 512 games and 50 visible results survive the initial build",
+      "The main view is visible after all startup work",
+      "A failed build restores prior inline display and priority",
+      "A complete rebuild recovers after failure with every game",
+      "No unexpected browser exceptions"
+    ],
+    "method": "Repeat isolated Chrome checks directly from /home/tim/repos/bts, using its actual BUP paths and font metadata. No live calls or writes."
+  }
+}

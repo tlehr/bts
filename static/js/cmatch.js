@@ -7,6 +7,7 @@ var has_resize_event = false;
 var scroll_timer = setTimeout(auto_scroll, 4000);
 var scroll_down = true;
 let is_paused = false;
+let board_render = false;
 
 const OVERRIDE_COLORS_KEYS = ['', 'bg'];
 let tabletoperator_status_index = null;
@@ -17,9 +18,11 @@ let player_status_match_index = null;
 let match_dom_root = null, match_dom_observer = null;
 const match_dom_index = new Map(), match_dom_keys = new WeakMap();
 const court_dom_index = new Map(), court_dom_keys = new WeakMap();
+const player_dom_index = new Map(), player_dom_keys = new WeakMap();
 const dom_bindings = [
 	{ attribute: 'data-match_id', index: match_dom_index, keys: match_dom_keys },
 	{ attribute: 'data-court_id', index: court_dom_index, keys: court_dom_keys },
+	{ attribute: 'data-btp_id', index: player_dom_index, keys: player_dom_keys, requires: 'data-match_id' },
 ];
 const match_timer_views = new WeakMap(), timer_views = new WeakMap();
 const match_score_states = new WeakMap();
@@ -27,6 +30,7 @@ const player_view_states = new WeakMap();
 const player_views = new WeakMap();
 const participant_views = new WeakMap();
 const row_content_views = new WeakMap();
+const deferred_player_status = new WeakMap();
 
 function forget_match_element(element) {
 	for (const { index, keys } of dom_bindings) {
@@ -42,7 +46,8 @@ function forget_match_element(element) {
 function remember_match_element(element) {
 	forget_match_element(element);
 	if (!element.isConnected) return;
-	for (const { attribute, index, keys } of dom_bindings) {
+	for (const { attribute, index, keys, requires } of dom_bindings) {
+		if (requires && !element.hasAttribute(requires)) continue;
 		const key = element.getAttribute(attribute);
 		if (key == null) continue;
 		if (!index.has(key)) index.set(key, new Set());
@@ -73,11 +78,11 @@ function update_match_dom_index(records) {
 function get_match_dom_index() {
 	if (typeof MutationObserver === 'undefined' || !document.body) return null;
 	if (match_dom_root !== document.body) {
-		match_dom_observer?.disconnect();match_dom_index.clear();court_dom_index.clear();
+		match_dom_observer?.disconnect();match_dom_index.clear();court_dom_index.clear();player_dom_index.clear();
 		match_dom_root = document.body;
 		visit_match_subtree(match_dom_root, remember_match_element);
 		match_dom_observer = new MutationObserver(update_match_dom_index);
-		match_dom_observer.observe(match_dom_root, { childList: true, subtree: true, attributes: true, attributeFilter: ['data-match_id', 'data-court_id'] });
+		match_dom_observer.observe(match_dom_root, { childList: true, subtree: true, attributes: true, attributeFilter: ['data-match_id', 'data-court_id', 'data-btp_id'] });
 	} else update_match_dom_index(match_dom_observer.takeRecords());
 	return match_dom_index;
 }
@@ -473,7 +478,40 @@ function render_match_table_header(table) {
 	uiu.el(title_tr, 'th', {}, '');
 }
 
+function defer_finished_row(tr, match) {
+	// Keep only the row identity for ordering, dates and live updates. Names,
+	// controls and their observers are built when this result becomes visible.
+	if (tr.dataset.lsDeferred !== 'true') tr.dataset.lsDeferred = 'true';
+	if (tr.dataset.style !== 'default') tr.dataset.style = 'default';
+	const highlight = 'highlight_' + (match.setup.highlight || 0);
+	const flags = {'ls-match':true,'ls-history-overflow':true,[highlight]:true};
+	for (const name of tr.classList) if (name.startsWith('highlight_') && name !== highlight) flags[name] = false;
+	row_classes(tr,flags);
+	const location_id = match.setup.location_id || resolve_match_court(match, null)?.location_id;
+	if (location_id) {if (tr.getAttribute('data-location_id') !== String(location_id)) tr.setAttribute('data-location_id', location_id);}
+	else if (tr.hasAttribute('data-location_id')) tr.removeAttribute('data-location_id');
+	row_class(tr,'do_not_show',!!location_id && window.localStorage.getItem('show_location_courts_' + location_id) === 'false');
+}
+
+function release_finished_row(tr, match) {
+	if (tr.hasAttribute('data-ls-deferred') || typeof cleitstand === 'undefined' || !cleitstand.active(tr)) return false;
+	cleitstand.releaseRowContent(tr);
+	row_content_views.delete(tr);
+	tr.replaceChildren();
+	defer_finished_row(tr, match);
+	return true;
+}
+
+function materialize_finished_row(tr, match) {
+	if (!tr.hasAttribute('data-ls-deferred')) return false;
+	tr.removeAttribute('data-ls-deferred');
+	render_match_row(tr, match, null, 'default', false, curt.tabletoperator_enabled);
+	return true;
+}
+
 function render_match_row(tr, match, court, style, show_player_status, show_add_tabletoperator) {
+	tr.removeAttribute('data-ls-deferred');
+	if(tr.hasAttribute('data-ls-startup-deferred')) {tr.removeAttribute('data-ls-startup-deferred');tr.hidden=false;}
 	var resizable_elements = {	tr: tr,
 								variable_width_elements : [],
 								variable_width_factor: [],
@@ -510,22 +548,25 @@ function render_match_row(tr, match, court, style, show_player_status, show_add_
 							);
 	const activeMatch = court && match.btp_winner != undefined;
 	const setup = match.setup;
-	tr.classList.toggle('preparation_call_deferred', setup.preparation_call_deferred === true);
+	const modern_row = typeof cleitstand !== 'undefined' && (board_render || cleitstand.active(tr)) && ['default', 'plain', 'unasigned'].includes(style);
+	row_class(tr, 'preparation_call_deferred', setup.preparation_call_deferred === true);
 
-	tr.setAttribute('data-match_id', match._id);
-	tr.setAttribute('data-style', style);
+	if (tr.getAttribute('data-match_id') !== String(match._id)) tr.setAttribute('data-match_id', match._id);
+	if (tr.getAttribute('data-style') !== style) tr.setAttribute('data-style', style);
 
 	if (style === 'default' || style === 'plain' || style === 'unasigned') {
 		const actions_td = uiu.el(tr, 'td', 'actions');
-		create_match_button(actions_td, 'vlink match_edit_button', 'match:edit', on_edit_button_click, match._id);
-		if(completeMatch) {
-			create_match_button(actions_td, 'vlink match_scoresheet_button', 'match:scoresheet', on_scoresheet_button_click, match._id);
+		if (!modern_row) {
+			create_match_button(actions_td, 'vlink match_edit_button', 'match:edit', on_edit_button_click, match._id);
+			if(completeMatch) {
+				create_match_button(actions_td, 'vlink match_scoresheet_button', 'match:scoresheet', on_scoresheet_button_click, match._id);
+			}
+			uiu.el(actions_td, 'a', {
+				'class': 'match_rawinfo',
+				'title': ci18n('match:rawinfo'),
+				'href': '/h/' + encodeURIComponent(curt.key) + '/m/' + encodeURIComponent(match._id) + '/info',
+			});
 		}
-		uiu.el(actions_td, 'a', {
-			'class': 'match_rawinfo',
-			'title': ci18n('match:rawinfo'),
-			'href': '/h/' + encodeURIComponent(curt.key) + '/m/' + encodeURIComponent(match._id) + '/info',
-		});
 	}
 
 	if (style === 'default' || style === 'unasigned') {
@@ -549,7 +590,7 @@ function render_match_row(tr, match, court, style, show_player_status, show_add_
 		if (location_id && window.localStorage.getItem('show_location_courts_' + location_id) === 'false') {
 			tr.classList.add('do_not_show');
 		} else {
-			tr.classList.remove('do_not_show');
+			row_class(tr, 'do_not_show', false);
 		}
 	}
 
@@ -577,7 +618,7 @@ function render_match_row(tr, match, court, style, show_player_status, show_add_
 	if (style === 'default' || style === 'plain' || style === 'unasigned') {
 		const match_str = (setup.scheduled_time_str ? (setup.scheduled_time_str + ' ') : '') + (setup.match_name ? (setup.match_name + ' ') : '') + setup.event_name;
 		uiu.el(tr, 'td', 'match_num', setup.match_num);
-		const match_properties_td = uiu.el(tr, 'td', 'match_properties', match_str);
+		const match_properties_td = uiu.el(tr, 'td', 'match_properties', modern_row ? '' : match_str);
 		if(! completeMatch) {
 			match_properties_td.classList.add('incomplete');
 		}
@@ -591,8 +632,11 @@ function render_match_row(tr, match, court, style, show_player_status, show_add_
 		const event_td = uiu.el(tr, 'td', 'match_event_upcoming');
 		uiu.el(event_td, 'span', 'match_event_upcoming', setup.event_name);
 	}
-	const players0 = uiu.el(tr, 'td', {
-		'class': ((match.team1_won === true) ? 'match_team_won' : 'match_team1'),
+	// Build the board's final team structure directly. Public tables retain their native cells.
+	const teams_parent = modern_row ? uiu.el(uiu.el(tr, 'td', 'ls-teams'), 'div', 'versus-line') : tr;
+	const team_tag = modern_row ? 'span' : 'td';
+	const players0 = uiu.el(teams_parent, team_tag, {
+		'class': ((match.team1_won === true) ? 'match_team_won' : 'match_team1') + (modern_row ? ' team-one' : ''),
 		style: 'text-align: right;',
 	});
 
@@ -611,8 +655,8 @@ function render_match_row(tr, match, court, style, show_player_status, show_add_
 	}
 
 	render_players_el(players0, setup, 0, match, show_player_status, style);
-	uiu.el(tr, 'td', 'match_vs', 'v');
-	const players1 = uiu.el(tr, 'td', ((match.team1_won === false) ? 'match_team_won ' : '') + 'match_team2');
+	uiu.el(teams_parent, team_tag, modern_row ? 'vs' : 'match_vs', 'v');
+	const players1 = uiu.el(teams_parent, team_tag, ((match.team1_won === false) ? 'match_team_won ' : '') + 'match_team2' + (modern_row ? ' team-two' : ''));
 
 	if(setup.teams[1].players.length < 1) {
 		players1.classList.add('incomplete');
@@ -1227,6 +1271,7 @@ function _get_dependency_date_locale() {
 	return 'de-DE';
 }
 
+const dependencyDateFormatters = new Map();
 function _format_local_dependency_date(date_str) {
 	const match = typeof date_str === 'string' ? date_str.match(/^(\d{4})-(\d{2})-(\d{2})$/) : null;
 	if (!match) {
@@ -1234,7 +1279,14 @@ function _format_local_dependency_date(date_str) {
 	}
 	const date = new Date(Date.UTC(Number(match[1]), Number(match[2]) - 1, Number(match[3])));
 	try {
-		return new Intl.DateTimeFormat(_get_dependency_date_locale()).format(date);
+		const locale = _get_dependency_date_locale();
+		let formatter = dependencyDateFormatters.get(locale);
+		if (!formatter) {
+			formatter = new Intl.DateTimeFormat(locale);
+			if (dependencyDateFormatters.size >= 16) dependencyDateFormatters.delete(dependencyDateFormatters.keys().next().value);
+			dependencyDateFormatters.set(locale, formatter);
+		}
+		return formatter.format(date);
 	} catch (err) {
 		return match[3] + "." + match[2] + "." + match[1];
 	}
@@ -1363,12 +1415,10 @@ function update_participant_check_in(element, participant, view) {
 	const locked = participant_check_in_locked(view.role);
 	const checked = locked || !!participant.checked_in;
 	const editable = view.show_check_in_status && participant.btp_id != null && participant.btp_id >= 0 && !locked;
-	element.classList.toggle('checked_in', view.show_check_in_status && checked);
-	element.classList.toggle('not_checked_in', view.show_check_in_status && !checked);
-	element.classList.toggle('no_status', !view.show_check_in_status);
-	element.classList.toggle('can_check_in', editable && !checked);
-	element.classList.toggle('can_check_out', editable && checked);
-	view.name.classList.toggle('person_status_target', editable);
+	row_classes(element, {checked_in:view.show_check_in_status && checked,
+		not_checked_in:view.show_check_in_status && !checked, no_status:!view.show_check_in_status,
+		can_check_in:editable && !checked, can_check_out:editable && checked});
+	row_class(view.name, 'person_status_target', editable);
 	if (typeof cleitstand !== 'undefined') cleitstand.participant?.(element);
 }
 
@@ -1380,9 +1430,7 @@ function render_match_participant_el(parentNode, participant, match_id, role, ic
 		'class': 'person ' + participant_status,
 		'data-btp_id': participant.btp_id,
 		'data-match_id': match_id,
-	}, participant.name || short_name(participant.firstname, participant.lastname || participant.surname, participant.name));
-
-	participant_el.innerHTML = '';
+	});
 	uiu.el(participant_el, 'div', icon_class, '');
 	const name_el = uiu.el(participant_el, 'span', 'name', participant.name || short_name(participant.firstname, participant.lastname || participant.surname, participant.name));
 	const view = { role, show_check_in_status, name: name_el };
@@ -1418,20 +1466,18 @@ function render_match_participant_el(parentNode, participant, match_id, role, ic
 }
 
 function render_player_entry_status_badge(player_el, match, player) {
-	const previous_badge = player_el.previousElementSibling;
-	if (previous_badge?.classList.contains('btp_entry_status_badge')) previous_badge.remove();
+	const sibling = player_el.previousElementSibling;
+	let badge = player_el.querySelector(':scope > .btp_entry_status_badge') || (sibling?.classList.contains('btp_entry_status_badge') ? sibling : null);
 	const status = btp_entry_status.player_blocking_status(match, player);
-	if (!status) return;
+	if (!status) {if (badge) badge.remove();return;}
 	const description = ci18n('match:player:entry_blocked', { event_name: match.setup.event_name || '', status });
-	const badge = uiu.el(player_el.parentNode, 'span', {
-		'class': 'btp_entry_status_badge',
-		'role': 'img',
-		'data-entry-status': status,
-		'aria-label': description,
-		'title': description,
-	});
-	uiu.el(badge, 'span', { 'class': 'btp_entry_status_badge_label', 'aria-hidden': 'true' }, status);
-	player_el.parentNode.insertBefore(badge, player_el);
+	if (!badge) {
+		badge = uiu.el(null, 'span', {'class':'btp_entry_status_badge','role':'img'});
+		uiu.el(badge, 'span', {'class':'btp_entry_status_badge_label','aria-hidden':'true'});
+		player_el.parentNode.insertBefore(badge, player_el);
+	}
+	for (const [name,value] of [['data-entry-status',status],['aria-label',description],['title',description]]) if (badge.getAttribute(name) !== value) badge.setAttribute(name,value);
+	row_text(badge.querySelector('.btp_entry_status_badge_label'),status);
 }
 
 function render_player_el(parentNode, player, match_id, now_on_court, show_player_status, style, is_doubles, match) {
@@ -1502,7 +1548,7 @@ function render_player_el(parentNode, player, match_id, now_on_court, show_playe
 		var timer_state = _extract_player_timer_state(player);
 		var timer = create_timer(timer_state, player_element, "#ffffff", "#ffffff");
 	}
-	player_view_states.set(player_element, player_view_signature(player, now_on_court, show_player_status, match));
+	player_view_states.set(player_element, player_view_signature(player, now_on_court, show_player_status, match, player_element));
 	player_views.set(player_element, { now_on_court, show_player_status });
 	return player_element;
 }
@@ -1593,8 +1639,14 @@ function _setup_player_btp_ids(setup) {
 	return _add_setup_player_btp_ids(setup, new Set());
 }
 
-function player_view_signature(player, now_on_court, show_player_status, match) {
+function player_view_signature(player, now_on_court, show_player_status, match, element) {
 	const blocking = btp_entry_status.player_blocking_status(match, player);
+	// Finished board rows hide court/tablet badges and have no attendance
+	// controls. Their live resource changes must not rebuild hidden indicators
+	// or invalidate names; entry-blocking information remains visible.
+	if (!show_player_status && typeof cleitstand !== 'undefined' && cleitstand.active(element) && element.closest('.finished_container')) {
+		return JSON.stringify(['finished', blocking, blocking ? match?.setup?.event_name : null]);
+	}
 	return JSON.stringify([
 		get_player_status(player, now_on_court, show_player_status, match), player.check_in_per_match,
 		is_player_check_in_locked(player, match), blocking, blocking ? match?.setup?.event_name : null,
@@ -1603,62 +1655,70 @@ function player_view_signature(player, now_on_court, show_player_status, match) 
 	]);
 }
 
+function patch_player_resource_hint(parent, className, value) {
+	let hint = parent.querySelector(':scope > .'+className);
+	if (value == null) {if (hint) {hint.remove();return true;}return false;}
+	if (!hint) {uiu.el(parent,'div',className,value);return true;}
+	if (className === 'tabletoperator_waiting_inline') return false;
+	const caption = hint.querySelector('.ls-resource-court') || hint;
+	if (caption.textContent === value) return false;
+	row_text(caption,value);
+	if (hint.classList.contains('ls-resource-hint')) {
+		const label = (className === 'court' ? 'Spielt auf Feld ' : 'Tabletbedienung auf Feld ')+value;
+		if (hint.title !== label) hint.title = label;
+		if (hint.getAttribute('aria-label') !== label) hint.setAttribute('aria-label',label);
+	}
+	return true;
+}
+
+function for_each_player_element(match_id, player_id, callback) {
+	if (!get_match_dom_index()) return _for_each_match_bound_element(
+		'.player[data-btp_id=' + JSON.stringify(String(player_id)) + ']', match_id, callback);
+	const ids = _match_dom_ids(match_id);
+	// A player has only a few appearances. Score cells, buttons and role nodes
+	// in those rows do not need selector tests for every attendance update.
+	for (const element of [...(player_dom_index.get(String(player_id)) || [])]) {
+		if (!element.isConnected) forget_match_element(element);
+		else if (ids.has(match_dom_keys.get(element)) && element.classList.contains('player')) callback(element);
+	}
+}
+
 function update_player(match_id, player, now_on_court, show_player_status, match) {
 	const player_btp_id = player && player.btp_id;
 	if (player_btp_id == null) {
 		return;
 	}
-	const tablet_court = active_tabletoperator_court_for_player(player);
-	const signature = player_view_signature(player, now_on_court, show_player_status, match);
-	_for_each_match_bound_element(
-		'.player[data-btp_id=' + JSON.stringify(String(player_btp_id)) + ']', match_id,
+	for_each_player_element(
+		match_id, player_btp_id,
 		function(player_el) {
+			const signature = player_view_signature(player, now_on_court, show_player_status, match, player_el);
 			if (player_view_states.get(player_el) === signature) return;
+			const tablet_court = active_tabletoperator_court_for_player(player);
 			let player_status = get_player_status(player, now_on_court, show_player_status, match);
 			const player_check_in_locked = is_player_check_in_locked(player, match);
 
 			if (player_status === 'entry_blocked') {
-				player_el.title = ci18n('match:player:entry_blocked', { event_name: match.setup.event_name || '', status: btp_entry_status.player_blocking_status(match, player) });
+				const title = ci18n('match:player:entry_blocked', { event_name: match.setup.event_name || '', status: btp_entry_status.player_blocking_status(match, player) });
+				if (player_el.title !== title) player_el.title = title;
 			} else if (player_el.classList.contains('entry_blocked') || player_el.classList.contains('entry_blocked_public')) {
 				player_el.removeAttribute('title');
 			}
-			player_el.classList.remove('entry_blocked', 'entry_blocked_public', "now_on_court", "now_playing", "checked_in", "not_checked_in", "no_status", "can_check_out", "can_check_in");
-			player_el.classList.add(player_status);
-			if(player.check_in_per_match && !player_check_in_locked) {
-				if(player_status == "checked_in") {
-					player_el.classList.add("can_check_out");
-				} else if (player_status == "not_checked_in") {
-					player_el.classList.add("can_check_in");
-				}
+			const classes = new Set(player_el.classList), states = ['entry_blocked','now_on_court','now_playing','checked_in','not_checked_in','no_status'];
+			const publicView = states.some(name => classes.has(name+'_public'));
+			for (const name of states) {classes.delete(name);classes.delete(name+'_public');}
+			classes.delete('can_check_out');classes.delete('can_check_in');classes.add(player_status+(publicView ? '_public' : ''));
+			if (player.check_in_per_match && !player_check_in_locked) {
+				if (player_status === 'checked_in') classes.add('can_check_out');
+				else if (player_status === 'not_checked_in') classes.add('can_check_in');
 			}
-
-			// Rebuild status badges and court/tablet indicators while keeping the name text.
-			while (player_el.firstElementChild) {
-				player_el.removeChild(player_el.lastElementChild);
-			}
+			if (classes.size !== player_el.classList.length || [...classes].some(name => !player_el.classList.contains(name))) player_el.className = [...classes].join(' ');
 			render_player_entry_status_badge(player_el, match, player);
-
-			if ((player.now_playing_on_court && player_status != "now_on_court") && player_status != "no_status") {
-				let parts = player.now_playing_on_court.split("_");
-				let court_number = parts[parts.length - 1];
-				uiu.el(player_el, 'div', 'court', court_number);
-			}
-
-			if(tablet_court) {
-				let parts = tablet_court.split("_");
-				let court_number = parts[parts.length - 1];
-				uiu.el(player_el, 'div', 'tablet_inline', court_number);
-			}
-
-			if(is_player_waiting_as_tabletoperator(player)) {
-				uiu.el(player_el, 'div', 'tabletoperator_waiting_inline', '');
-			}
-
-			if(show_player_status && player_status != "now_on_court" && player_status !== 'entry_blocked') {
-				var timer_state = _extract_player_timer_state(player);
-				var timer = create_timer(timer_state, player_el, "#ffffff", "#ffffff");
-			}
-			if (typeof cleitstand !== 'undefined') cleitstand.player(player_el);
+			const playing = player.now_playing_on_court && player_status !== 'now_on_court' && player_status !== 'no_status';
+			let layoutChanged = patch_player_resource_hint(player_el,'court',playing ? String(player.now_playing_on_court).split('_').at(-1) : null);
+			layoutChanged = patch_player_resource_hint(player_el,'tablet_inline',tablet_court ? String(tablet_court).split('_').at(-1) : null) || layoutChanged;
+			layoutChanged = patch_player_resource_hint(player_el,'tabletoperator_waiting_inline',is_player_waiting_as_tabletoperator(player) ? '' : null) || layoutChanged;
+			layoutChanged = update_match_timer(player_el,show_player_status && player_status !== 'now_on_court' && player_status !== 'entry_blocked' ? _extract_player_timer_state(player) : null,'#ffffff','#ffffff') || layoutChanged;
+			if (typeof cleitstand !== 'undefined') cleitstand.player(player_el,{layoutChanged});
 			player_view_states.set(player_el, signature);
 			player_views.set(player_el, { now_on_court, show_player_status });
 
@@ -1674,6 +1734,21 @@ function update_player_status_indicators_for_player_ids(player_ids, options) {
 		: new Set((player_ids || []).map(String));
 	if (wanted_ids.size === 0) {
 		return;
+	}
+	if (!options?.immediate && typeof cleitstand !== 'undefined' && cleitstand.deferUpdate) {
+		const source = curt;
+		let pending = deferred_player_status.get(source);
+		if (!pending) deferred_player_status.set(source, pending = new Set());
+		if (cleitstand.deferUpdate('players.status', () => {
+			deferred_player_status.delete(source);
+			if (curt === source) update_player_status_indicators_for_player_ids(pending, { immediate: true, invalidate: false });
+		})) {
+			for (const id of wanted_ids) pending.add(id);
+			// Models are already current. Invalidate immediately for row creation
+			// during the block, but refresh shared player badges once at its end.
+			if (!options || options.invalidate !== false) invalidate_tabletoperator_status_index();
+			return;
+		}
 	}
 	if (!options || options.invalidate !== false) {
 		invalidate_tabletoperator_status_index();
@@ -1727,7 +1802,7 @@ function refresh_player_pause_timers() {
 			const status = get_player_status(player, view.now_on_court, view.show_player_status, match);
 			const state = status !== 'now_on_court' && status !== 'entry_blocked' ? _extract_player_timer_state(player) : null;
 			if (update_match_timer(element, state, '#ffffff', '#ffffff') && typeof cleitstand !== 'undefined') cleitstand.timerVisibilityChanged?.(element);
-			player_view_states.set(element, player_view_signature(player, view.now_on_court, view.show_player_status, match));
+			player_view_states.set(element, player_view_signature(player, view.now_on_court, view.show_player_status, match, element));
 		});
 	}
 }
@@ -1848,12 +1923,12 @@ function update_entry_status_labels(match) {
 		const status = player && btp_entry_status.player_blocking_status(match, player);
 		if (!status) return;
 		const description = ci18n('match:player:entry_blocked', { event_name: match.setup.event_name || '', status });
-		element.title = description;
+		if (element.title !== description) element.title = description;
 		const badge = element.querySelector('.btp_entry_status_badge') || element.previousElementSibling;
-		if (badge?.classList.contains('btp_entry_status_badge')) {badge.title = description;badge.setAttribute('aria-label', description);}
+		if (badge?.classList.contains('btp_entry_status_badge')) {if (badge.title !== description) badge.title = description;if (badge.getAttribute('aria-label') !== description) badge.setAttribute('aria-label', description);}
 		if (typeof cleitstand !== 'undefined') cleitstand.player(element);
 		const view = player_views.get(element);
-		if (view) player_view_states.set(element, player_view_signature(player, view.now_on_court, view.show_player_status, match));
+		if (view) player_view_states.set(element, player_view_signature(player, view.now_on_court, view.show_player_status, match, element));
 	});
 }
 
@@ -1862,6 +1937,7 @@ function update_match_metadata(match, fields) {
 	const section = calc_section(match);
 	_for_each_match_bound_element('tr', match, row => {
 		if (row.dataset?.court_id != null && section !== 'court_' + row.dataset.court_id) return;
+		if (row.hasAttribute('data-ls-deferred')) {defer_finished_row(row, match);cleitstand.refreshFinished(row,match);return;}
 		if (typeof cleitstand !== 'undefined' && cleitstand.updateMatchMetadata?.(row, match, fields)) return;
 		const number = row.querySelector('td.match_num');
 		if (number && fields.includes('match_num')) uiu.text(number, match.setup.match_num);
@@ -1885,6 +1961,7 @@ function row_text(node, value) {
 function update_match_player_names(match) {
 	_for_each_match_bound_element('tr', match, row => {
 		if (typeof cleitstand === 'undefined' || !cleitstand.active(row)) return;
+		if (row.hasAttribute('data-ls-deferred')) {cleitstand.refreshFinished(row,match);return;}
 		for (const [index, selector] of ['.team-one', '.team-two'].entries()) {
 			const players = [...(row.querySelector(selector)?.querySelectorAll('.player') || [])];
 			for (const [number, player] of match.setup.teams[index].players.entries()) {
@@ -1900,6 +1977,15 @@ function update_match_player_names(match) {
 
 function row_class(node, name, enabled) {
 	if (node.classList.contains(name) !== enabled) node.classList.toggle(name, enabled);
+}
+
+function row_classes(node, flags) {
+	const classes = new Set(node.classList);let changed = false;
+	for (const [name,active] of Object.entries(flags)) {
+		if (classes.has(name) === !!active) continue;
+		changed = true;if (active) classes.add(name);else classes.delete(name);
+	}
+	if (changed) node.className = [...classes].join(' ');
 }
 
 function row_children(parent, wanted) {
@@ -1932,7 +2018,7 @@ function patch_row_team(parent, match, index, previous, show_status, show_add_ta
 	let separator = [...parent.children].find(node => node.classList.contains('ls-team-separator') || node.textContent.trim() === '/');
 	const flags = [...parent.querySelectorAll('img[data-nationality]')];
 	for (const [number, person] of (team.players || []).entries()) {
-		if (number) {separator ||= document.createElement('span');separator.classList.add('ls-team-separator');row_text(separator, ' / ');wanted.push(separator);}
+		if (number) {separator ||= document.createElement('span');row_class(separator,'ls-team-separator',true);row_text(separator, ' / ');wanted.push(separator);}
 		if (curt.is_nation_competition && person.nationality && (!number || person.nationality !== team.players[0].nationality)) {
 			let flag = flags.find(node => node.dataset.nationality === person.nationality && !wanted.includes(node));
 			if (!flag) {const holder = document.createElement('span');cflags.render_flag_el(holder, person.nationality);flag = holder.firstElementChild;}
@@ -1952,7 +2038,7 @@ function patch_row_team(parent, match, index, previous, show_status, show_add_ta
 	}
 	if (!team.players?.length) {
 		const dependency = parent.querySelector('.ls-participant-dependency') || document.createElement('span');
-		dependency.classList.add('ls-participant-dependency');row_text(dependency, _format_participant_dependency(match, index, curt.matches));wanted.push(dependency);
+		row_class(dependency,'ls-participant-dependency',true);row_text(dependency, _format_participant_dependency(match, index, curt.matches));wanted.push(dependency);
 	}
 	if (index) wanted.push(...[preparation, second].filter(Boolean));
 	row_children(parent, wanted);
@@ -1985,12 +2071,13 @@ function patch_row_officials(cell, match, previous, style) {
 		update_participant_check_in(node, person, participant_views.get(node));
 		if (role === 'umpire') {
 			const icon = node.querySelector('.umpire'), can_add = !setup.service_judge?.name;
-			icon.classList.toggle('can_add_service_judge', can_add);
+			row_class(icon, 'can_add_service_judge', can_add);
 			icon.removeEventListener('click', on_add_service_judge_button);
 			if (can_add) {
-				icon.title = ci18n('match:add_service_judge');icon.dataset.match_id = match._id;
+				const title = ci18n('match:add_service_judge');if (icon.title !== title) icon.title = title;
+				if (icon.dataset.match_id !== String(match._id)) icon.dataset.match_id = match._id;
 				icon.addEventListener('click', on_add_service_judge_button);
-			} else icon.removeAttribute('title');
+			} else if (icon.hasAttribute('title')) icon.removeAttribute('title');
 		}
 		row_button(node, '.match_second_preparation_call_button', planned, second_title, preparation_handler, match);
 		row_button(node, '.match_second_call_button', !show_status, second_title, second_handler, match);
@@ -2000,13 +2087,24 @@ function patch_row_officials(cell, match, previous, style) {
 	if (setup.tabletoperators?.length) {
 		if (!tablet) {tablet = uiu.el(cell, 'div', 'tablet_operator');uiu.el(tablet, 'div', 'operators');}
 		const people = tablet.querySelector('.operators');
-		if (!utils.deep_equal((previous?.tabletoperators || []).map(row_person_content), setup.tabletoperators.map(row_person_content))) {
-			// Only a changed tablet assignment rebuilds its own participant list.
-			for (const child of [...people.childNodes]) child.remove();
-			for (const person of setup.tabletoperators) render_match_participant_el(people, person, match._id, 'tabletoperator', 'tablet', show_status);
-		} else for (const node of people.querySelectorAll('.person')) {
-			const view = participant_views.get(node), person = setup.tabletoperators.find(person => String(person.btp_id) === node.dataset.btp_id);
-			if (view && person) update_participant_check_in(node, person, view);
+		const pair = people.querySelector('.operator-pair'), members = pair && [...pair.querySelectorAll('.pair-member')];
+		if (pair && members.length === setup.tabletoperators.length && !curt.tabletoperator_split_doubles) {
+			for (const [index,person] of setup.tabletoperators.entries()) if (!utils.deep_equal(row_person_content(previous?.tabletoperators?.[index]),row_person_content(person))) {
+				row_text(members[index],(person.name || short_name(person.firstname,person.lastname || person.surname))+(index < members.length-1 ? ' /' : ''));
+			}
+		} else {
+			const old = new Map([...people.querySelectorAll('.person')].filter(node => participant_views.has(node)).map(node => [node.dataset.btp_id,node]));
+			const participants = setup.tabletoperators.map(person => {
+				let node = old.get(String(person.btp_id));
+				if (!node) node = render_match_participant_el(people, person, match._id, 'tabletoperator', 'tablet', show_status);
+				else {
+					const before = previous?.tabletoperators?.find(value => String(value.btp_id) === String(person.btp_id));
+					if (!utils.deep_equal(row_person_content(before),row_person_content(person))) row_text(participant_views.get(node).name,person.name || short_name(person.firstname,person.lastname || person.surname));
+					update_participant_check_in(node, person, participant_views.get(node));
+				}
+				return node;
+			});
+			row_children(people,participants);
 		}
 		row_button(tablet, '.match_second_preparation_call_button', planned, 'match:secondcaltabletoperator', on_second_preparation_call_tabletoperator_button_click, match);
 		row_button(tablet, '.match_second_call_button', !show_status, 'match:secondcaltabletoperator', on_second_call_tabletoperator_button_click, match);
@@ -2033,10 +2131,12 @@ function patch_board_match_row(row, match, section) {
 	};
 	const before = view.previous, setup = match.setup, planned = section === 'unassigned', style = row.dataset.style;
 	const player_fields = ['teams', 'links', 'now_on_court', 'highlight', 'is_doubles'];
-	const players = player_fields.some(field => !utils.deep_equal(before[field], setup[field]));
+	const shared_players_changed = player_fields.filter(field => field !== 'teams').some(field => !utils.deep_equal(before[field], setup[field]));
+	const team_changes = [0,1].map(index => shared_players_changed || !utils.deep_equal(before.teams?.[index],setup.teams?.[index]));
+	const players = team_changes.some(Boolean);
 	const officials = ['umpire', 'service_judge', 'tabletoperators', 'highlight'].some(field => !utils.deep_equal(before[field], setup[field]));
 	const place = ['court_id', 'location_id', 'preparation_call_deferred'].some(field => before[field] !== setup[field]);
-	if (players) for (const [index, cell] of view.cells.teams.entries()) if (cell) patch_row_team(cell, match, index, before.teams?.[index], planned, !!curt.tabletoperator_enabled && (planned || section === 'finished'));
+	if (players) for (const [index, cell] of view.cells.teams.entries()) if (cell && team_changes[index]) patch_row_team(cell, match, index, before.teams?.[index], planned, !!curt.tabletoperator_enabled && (planned || section === 'finished'));
 	for (const [index, cell] of view.cells.teams.entries()) if (cell) row_class(cell, 'match_team_won', match.team1_won === (index === 0));
 	if (officials && view.cells.officials) patch_row_officials(view.cells.officials, match, before, style);
 	for (const name of [...row.classList]) if (name.startsWith('highlight_') && name !== 'highlight_'+(setup.highlight || 0)) row.classList.remove(name);
@@ -2067,15 +2167,18 @@ function patch_board_match_row(row, match, section) {
 	return true;
 }
 
-function update_match_row(m, new_section) {
+function update_match_row(m, new_section, {orderChanged = true} = {}) {
 	_for_each_match_bound_element('tr', m, (match_row_el) => {
 		// A field is a fixed slot, even if an older client left the previous
 		// match ID on it. Result/list updates must never repurpose that slot.
 		if (match_row_el.dataset?.court_id != null && new_section !== 'court_' + match_row_el.dataset.court_id) return;
+		if (new_section === 'finished' && match_row_el.hasAttribute('data-ls-deferred')) {
+			defer_finished_row(match_row_el, m);cleitstand.refreshFinished(match_row_el,m);return;
+		}
 		if (patch_board_match_row(match_row_el, m, new_section)) {
 			// The board sorts finished rows when their displayed times or sort
 			// fields change. A player/official correction cannot change that order.
-			if (new_section !== 'finished') reorder_match_row(m, new_section);
+			if (new_section !== 'finished' && orderChanged) reorder_match_row(m, new_section);
 			return;
 		}
 		match_row_el.innerHTML = '';
@@ -2092,7 +2195,7 @@ function update_match_row(m, new_section) {
 					update_preparation_row_status(match_row_el, m);
 					if (typeof cleitstand !== 'undefined') cleitstand.decorateControls(match_row_el);
 				}
-				reorder_match_row(m, new_section);
+				if (orderChanged) reorder_match_row(m, new_section);
 				break;
 			default:
 				const court = utils.find(curt.courts, c => c._id === m.setup.court_id);
@@ -2140,17 +2243,22 @@ function reorder_match_row(m, section) {
 	if (section === 'finished' && typeof cleitstand !== 'undefined') cleitstand.refreshFinished?.();
 }
 
-function update_match(m, old_section, new_section) {
+function update_match(m, old_section, new_section, {warningsChanged = true, orderChanged = true} = {}) {
 	invalidate_tabletoperator_status_index();
 	invalidate_player_status_match_index();
 	if(old_section != new_section) {
 		remove_match_from_gui(m, old_section);
 		insert_new_match_row(m, new_section);
 	} else {
-		update_match_row(m, new_section);
+		update_match_row(m, new_section, {orderChanged});
 	}
-	refresh_unassigned_status_context();
-	if (new_section === 'unassigned') refresh_unassigned_preparation_context();
+	if (warningsChanged) refresh_unassigned_status_context();
+	if (new_section === 'unassigned') {
+		const authoritative = (curt.locations || []).every(location => Array.isArray(
+			curt.location_preparation_selection_by_location_id?.[String(location._id)]?.manual_callable_match_ids));
+		refresh_unassigned_preparation_context(false, authoritative
+			? {match_ids:new Set([String(m._id)]),boundaries:false,header:false} : null);
+	}
 	update_preparation_demand_court_markers();
 }
 
@@ -2206,6 +2314,7 @@ function create_timer(timer_state, parent, default_color, exigent_color) {
 	var tobj = {};
 	var has_updated = false;
 	let stopped = false, rendered_warning, rendered_overdue, rendered_visible;
+	let near_viewport = true, stop_visibility = null;
 
 	var clear_pending_update = function() {
 		if (tobj.timeout != null) {
@@ -2214,13 +2323,13 @@ function create_timer(timer_state, parent, default_color, exigent_color) {
 		}
 	};
 
-	const update = function() {
+	const update = function(force = false) {
 		if (typeof btsAdminUpdates !== 'undefined' && btsAdminUpdates.hasLocalSubscribers() && !btsAdminUpdates.isDispatching()) {
-			return btsAdminUpdates.dispatch({ type: 'local-update', ctype: 'timer_tick', val: { parent_class: parent.className } }, update_timer);
+			return btsAdminUpdates.dispatch({ type: 'local-update', ctype: 'timer_tick', val: { parent_class: parent.className } }, force ? () => update_timer(true) : update_timer);
 		}
-		return update_timer();
+		return update_timer(force);
 	};
-	var update_timer = function() {
+	var update_timer = function(force = false) {
 		if (stopped) return;
 		const is_attached = document.body.contains(el);
 		// The first update can precede insertion. Later ticks must stop even
@@ -2228,9 +2337,14 @@ function create_timer(timer_state, parent, default_color, exigent_color) {
 		if (!is_attached && has_updated) {
 			stopped = true;
 			clear_pending_update();
+			stop_visibility?.();stop_visibility=null;
 			return;
 		}
 		has_updated = true;
+		// Offscreen clocks still use their real state/time when they re-enter
+		// the viewport. Repainting hundreds of unseen second counters otherwise
+		// lays out the large table up to ten times per second between points.
+		if (!near_viewport && !force) {clear_pending_update();return;}
 
 		var tv = timer.calc(timer_state, get_effective_test_clock_now_ms());
 		if (!tv) {
@@ -2260,7 +2374,7 @@ function create_timer(timer_state, parent, default_color, exigent_color) {
 			const next_delay = Number.isFinite(requested_delay)
 				? Math.max(250, Math.min(1000, requested_delay))
 				: 1000;
-			tobj.timeout = typeof btsTimerUpdates !== 'undefined' ? btsTimerUpdates.schedule(update, next_delay) : setTimeout(update, next_delay);
+			if (near_viewport) tobj.timeout = typeof btsTimerUpdates !== 'undefined' ? btsTimerUpdates.schedule(update, next_delay) : setTimeout(update, next_delay);
 			if (rendered_visible !== true) el.style.display = "inline-block";
 		} else {
 			if (rendered_visible !== false) el.style.display = "none";
@@ -2272,13 +2386,22 @@ function create_timer(timer_state, parent, default_color, exigent_color) {
 	update();
 	tobj.element = el;
 	tobj.signature = timer_signature(timer_state);
-	tobj.stop = function() { stopped = true;clear_pending_update(); };
+	tobj.stop = function() { stopped = true;clear_pending_update();stop_visibility?.();stop_visibility=null; };
 	tobj.setState = function(state) {
 		timer_state = state;
 		tobj.signature = timer_signature(state);
 		if (bgColor !== state.bgColor) { bgColor = state.bgColor;el.style.backgroundColor = bgColor || ''; }
-		update();
+		// A changed game state is real work even offscreen. Paint that change
+		// once, while leaving its periodic second counter suspended.
+		update(true);
 	};
+	if (typeof btsTimerUpdates !== 'undefined' && typeof cleitstand !== 'undefined' && (board_render || cleitstand.active(parent))) {
+		stop_visibility = btsTimerUpdates.observe?.(parent, visible => {
+			if (stopped || near_viewport === visible) return;
+			near_viewport = visible;clear_pending_update();
+			if (visible) update();
+		}, () => tobj.stop(), el);
+	}
 	timer_views.set(el, tobj);
 
 	return tobj;
@@ -2413,7 +2536,8 @@ function cmp_finished_match_order(m1, m2) {
 	return cmp_scheduled_match_order(m2, m1);
 }
 
-function prepare_render(t) {
+function prepare_render(t, options = {}) {
+	board_render = options.board === true;
 	t.matches.sort((m1, m2) => {return cmp_scheduled_match_order(m1, m2)});
 
 	t.courts_by_id = {};
@@ -2976,52 +3100,44 @@ function get_manual_btp_stage_status_warnings() {
 
 function render_manual_btp_stage_status_warnings(container) {
 	const warnings = get_manual_btp_stage_status_warnings();
-	const dns_todos = btp_dns_todos.collect(curt?.matches);
-	const dsq_todos = btp_dsq_todos.collect(curt?.matches);
+	const dns_todos = btp_dns_todos.collect(curt?.matches), dsq_todos = btp_dsq_todos.collect(curt?.matches);
 	const registration_todos = typeof ctournament !== 'undefined' && ctournament && typeof ctournament.get_registration_main_todos === 'function'
-		? ctournament.get_registration_main_todos()
-		: [];
-	if (!warnings.length && !registration_todos.length && !dns_todos.length && !dsq_todos.length) {
-		return;
+		? ctournament.get_registration_main_todos() : [];
+	const entries = [
+		...dns_todos.map(todo => ci18n('tournament:manual_btp_stage_status:dns_mismatch', {name:todo.name,event_name:todo.event_name || ci18n('tournament:manual_btp_stage_status:unknown_event'),match_num:todo.match_num != null ? '#'+todo.match_num : '-'})),
+		...dsq_todos.map(todo => ci18n('tournament:manual_btp_stage_status:dsq_mismatch', {name:todo.name,event_name:todo.event_name || ci18n('tournament:manual_btp_stage_status:unknown_event')})),
+		...warnings.map(todo => ci18n('tournament:manual_btp_stage_status:entry', {name:todo.name,event_name:todo.event_name || ci18n('tournament:manual_btp_stage_status:unknown_event'),match_num:todo.match_num != null ? '#'+todo.match_num : '-',status:todo.target_status})),
+		...registration_todos,
+	];
+	let view = container.querySelector?.(':scope > .manual_btp_stage_status_warning');
+	if (!entries.length) {view?.remove();return;}
+	const title = registration_todos.length || dns_todos.length || dsq_todos.length ? 'ToDos' : ci18n('tournament:manual_btp_stage_status:title');
+	const signature = JSON.stringify([title,entries]);
+	if (view?.btsWarningsSignature === signature) return view;
+	view ||= uiu.el(container,'div','manual_btp_stage_status_warning');
+	if (!view.querySelector) {
+		uiu.el(view,'div','manual_btp_stage_status_warning_title',title);
+		for (const entry of entries) uiu.el(view,'div','manual_btp_stage_status_warning_entry',entry);
+		return view;
 	}
-	const warning_container = uiu.el(container, 'div', 'manual_btp_stage_status_warning');
-	uiu.el(warning_container, 'div', 'manual_btp_stage_status_warning_title',
-		registration_todos.length || dns_todos.length || dsq_todos.length ? 'ToDos' : ci18n('tournament:manual_btp_stage_status:title'));
-	dns_todos.forEach((todo) => {
-		uiu.el(warning_container, 'div', 'manual_btp_stage_status_warning_entry', ci18n('tournament:manual_btp_stage_status:dns_mismatch', {
-			name: todo.name,
-			event_name: todo.event_name || ci18n('tournament:manual_btp_stage_status:unknown_event'),
-			match_num: todo.match_num != null ? ('#' + todo.match_num) : '-',
-		}));
-	});
-	dsq_todos.forEach((todo) => {
-		uiu.el(warning_container, 'div', 'manual_btp_stage_status_warning_entry', ci18n('tournament:manual_btp_stage_status:dsq_mismatch', {
-			name: todo.name,
-			event_name: todo.event_name || ci18n('tournament:manual_btp_stage_status:unknown_event'),
-		}));
-	});
-	warnings.forEach((warning) => {
-		uiu.el(warning_container, 'div', 'manual_btp_stage_status_warning_entry', ci18n('tournament:manual_btp_stage_status:entry', {
-			name: warning.name,
-			event_name: warning.event_name || ci18n('tournament:manual_btp_stage_status:unknown_event'),
-			match_num: warning.match_num != null ? ('#' + warning.match_num) : '-',
-			status: warning.target_status,
-		}));
-	});
-	registration_todos.forEach((todo) => {
-		uiu.el(warning_container, 'div', 'manual_btp_stage_status_warning_entry', todo);
-	});
+	const heading = view.querySelector('.manual_btp_stage_status_warning_title') || uiu.el(null,'div','manual_btp_stage_status_warning_title');
+	row_text(heading,title);
+	const existing = new Map(), nodes = [...view.querySelectorAll('.manual_btp_stage_status_warning_entry')], free = new Set(nodes), texts = new Set(entries);
+	for (const node of nodes) {
+		const list = existing.get(node.textContent) || [];list.push(node);existing.set(node.textContent,list);
+	}
+	const wanted = [heading,...entries.map((entry,index) => {
+		let node = existing.get(entry)?.shift();
+		if (!node && free.has(nodes[index]) && !texts.has(nodes[index].textContent)) {node = nodes[index];row_text(node,entry);}
+		node ||= uiu.el(null,'div','manual_btp_stage_status_warning_entry',entry);free.delete(node);return node;
+	})];
+	row_children(view,wanted);view.btsWarningsSignature = signature;return view;
 }
 
 function refresh_manual_btp_stage_status_warnings() {
-	uiu.qsEach('.unassigned_container', (container) => {
-		container.querySelectorAll('.manual_btp_stage_status_warning').forEach((warning_el) => warning_el.remove());
-		const first_child = container.firstChild;
-		render_manual_btp_stage_status_warnings(container);
-		const warning_el = container.querySelector('.manual_btp_stage_status_warning');
-		if (warning_el && first_child && warning_el !== first_child) {
-			container.insertBefore(warning_el, first_child);
-		}
+	uiu.qsEach('.unassigned_container', container => {
+		const warning = render_manual_btp_stage_status_warnings(container);
+		if (warning && container.firstChild !== warning) container.insertBefore(warning,container.firstChild);
 	});
 }
 
@@ -3530,7 +3646,7 @@ crouting.register(/t\/([a-z0-9]+)\/m\/([-a-zA-Z0-9_ ]+)\/scoresheet$/, function(
 	ui_scoresheet(match_id);
 }));
 
-function render_match_table(container, matches, style, show_player_status, show_add_tabletoperator) {
+function render_match_table(container, matches, style, show_player_status, show_add_tabletoperator, defer_finished = false) {
 	invalidate_tabletoperator_status_index();
 	invalidate_player_status_match_index();
 	if(!show_player_status)
@@ -3549,7 +3665,8 @@ function render_match_table(container, matches, style, show_player_status, show_
 	for (const m of matches) {
 		if(m.setup.is_match) {
 			const tr = uiu.el(tbody, 'tr', {'class' : 'match highlight_' + m.setup.highlight , 'data-match_id': m._id});
-			render_match_row(tr, m, null, style, show_player_status, show_add_tabletoperator);
+			if (defer_finished) defer_finished_row(tr, m);
+			else render_match_row(tr, m, null, style, show_player_status, show_add_tabletoperator);
 		}
 	}
 
@@ -3624,10 +3741,14 @@ function matches_same_discipline_for_manual_preparation(a, b) {
 	return discipline_a !== '' && discipline_a === discipline_b;
 }
 
-function has_inactive_special_result_player_for_manual_preparation(match) {
+function has_inactive_special_result_player_for_manual_preparation(match, context) {
 	const player_ids = new Set(get_match_player_btp_ids_for_manual_preparation(match));
 	if (player_ids.size === 0 || !curt || !Array.isArray(curt.matches)) {
 		return false;
+	}
+	if (context) {
+		const inactive = context.inactive_by_discipline.get(normalize_match_discipline_name_for_manual_preparation(match));
+		return !!inactive && [...player_ids].some(id => inactive.has(id));
 	}
 	for (const candidate of curt.matches) {
 		if (!candidate || candidate === match || !candidate.score_status || candidate.score_status === 'normal') {
@@ -3651,6 +3772,24 @@ function has_inactive_special_result_player_for_manual_preparation(match) {
 		}
 	}
 	return false;
+}
+
+// This index belongs to one synchronous refresh, so in-place changes to
+// results or players are observed on the very next refresh without a cache TTL.
+function manual_preparation_refresh_context() {
+	const inactive_by_discipline = new Map();
+	for (const match of curt.matches) {
+		if (!match || !match.score_status || match.score_status === 'normal') continue;
+		const team_index = match.score_status === 'no_match' && (match.no_match_losing_team === 0 || match.no_match_losing_team === 1)
+			? match.no_match_losing_team : typeof match.team1_won === 'boolean' ? (match.team1_won ? 1 : 0) : null;
+		if (team_index == null) continue;
+		const discipline = normalize_match_discipline_name_for_manual_preparation(match);
+		if (!discipline) continue;
+		let inactive = inactive_by_discipline.get(discipline);
+		if (!inactive) {inactive = new Set();inactive_by_discipline.set(discipline,inactive);}
+		for (const player of match.setup?.teams?.[team_index]?.players || []) if (player?.btp_id != null) inactive.add(String(player.btp_id));
+	}
+	return {inactive_by_discipline,blocked_matches:new WeakMap()};
 }
 
 function get_court_location_id(court_id) {
@@ -3683,11 +3822,19 @@ function get_preparation_debug_diagnostics_for_match_and_location(match, locatio
 	return diagnostics_by_match_id[String(match._id)] || null;
 }
 
-function is_manual_preparation_call_allowed_for_location(match, location) {
-	if (btp_entry_status.blocked_players(match).length) return false;
-	// A cached diagnosis may precede the current location/court assignment.
-	// Never create a button for another hall while its replacement is pending.
+const manual_call_ids_by_selection = new WeakMap();
+function is_manual_preparation_call_allowed_for_location(match, location, context) {
+	// A hall reassignment may have arrived before its replacement server status.
 	if (!match_matches_preparation_location(match, location)) return false;
+	const selection = curt?.location_preparation_selection_by_location_id?.[String(location?._id)];
+	if (Array.isArray(selection?.manual_callable_match_ids)) {
+		let ids = manual_call_ids_by_selection.get(selection);
+		if (!ids) { ids = new Set(selection.manual_callable_match_ids.map(String)); manual_call_ids_by_selection.set(selection, ids); }
+		return ids.has(String(match?._id));
+	}
+	let blocked = context?.blocked_matches.get(match);
+	if (blocked === undefined) {blocked = btp_entry_status.blocked_players(match).length > 0;context?.blocked_matches.set(match,blocked);}
+	if (blocked) return false;
 	const diagnostics = get_preparation_debug_diagnostics_for_match_and_location(match, location);
 	if (diagnostics && diagnostics.manual_eligible != null) {
 		return diagnostics.manual_eligible === true;
@@ -3701,7 +3848,7 @@ function is_manual_preparation_call_allowed_for_location(match, location) {
 	if (!match_has_complete_teams(match)) return false;
 	if (match?.team1_won !== undefined && match?.team1_won !== null) return false;
 	if (setup.now_on_court === true) return false;
-	if (has_inactive_special_result_player_for_manual_preparation(match)) return false;
+	if (has_inactive_special_result_player_for_manual_preparation(match,context)) return false;
 	if (get_match_players_for_manual_preparation(match).some((player) => player && player.now_playing_on_court)) return false;
 	return true;
 }
@@ -3765,7 +3912,7 @@ function get_preparation_demand_court_ids() {
 	return result;
 }
 
-function update_preparation_demand_court_markers(match, immediate = false) {
+function update_preparation_demand_court_markers(match, immediate = false, court_ids = null) {
 	if (!match && !immediate && typeof cleitstand !== 'undefined' && cleitstand.deferUpdate?.('preparation.courts', () => update_preparation_demand_court_markers(null, true))) return;
 	const demand_court_ids = get_preparation_demand_court_ids();
 	const update = row => {
@@ -3778,7 +3925,8 @@ function update_preparation_demand_court_markers(match, immediate = false) {
 			if (row.hasAttribute ? row.hasAttribute('data-preparation-demand-court') : row.getAttribute('data-preparation-demand-court') != null) row.removeAttribute('data-preparation-demand-court');
 		}
 	};
-	if (match?.setup?.court_id != null) for_each_court_row(match.setup.court_id, update);
+	if (court_ids) for (const id of court_ids) for_each_court_row(id, update);
+	else if (match?.setup?.court_id != null) for_each_court_row(match.setup.court_id, update);
 	else uiu.qsEach('.court_row[data-court_id]', update);
 }
 
@@ -3947,6 +4095,7 @@ const CALL_ON_COURT_DEBUG_RULE_LABELS = {
 	call_on_court_preparation_age: 'Mindestzeit in Vorbereitung erreicht',
 	call_on_court_time_before_scheduled: 'Zeitfenster vor geplanter Startzeit erreicht',
 	players_checked_in: 'Alle Spieler sind eingecheckt',
+	participants_available: 'Spieler und Tabletbediener sind frei und haben keine doppelte Aufgabe',
 	call_on_court_officials_checked_in: 'Schiedsrichter sind eingecheckt',
 	call_on_court_officials_available: 'Schiedsrichter sind verfügbar',
 	call_on_court_official_assignment_possible: 'Schiedsrichter können auf diesem Feld eingesetzt werden',
@@ -4013,23 +4162,27 @@ function get_call_on_court_debug_entries_for_match(match) {
 }
 
 function get_call_on_court_debug_status(match) {
-	const entries = get_call_on_court_debug_entries_for_match(match);
-	if (entries.length === 0) {
-		return null;
+	if (match?._id == null) return null;
+	let found = false;
+	for (const selection of Object.values(curt?.location_preparation_selection_by_location_id || {})) {
+		const diagnostics = selection?.call_on_court_diagnostics_by_match_id?.[String(match._id)];
+		if (!diagnostics) continue;
+		found = true;
+		if (diagnostics.eligible === true) return 'ready';
 	}
-	return entries.some((entry) => entry.diagnostics?.eligible === true) ? 'ready' : 'blocked';
+	return found ? 'blocked' : null;
 }
 
 function get_preparation_debug_window_status(match) {
-	const entries = get_preparation_debug_diagnostics_for_match(match);
-	const window_entries = entries.filter((entry) => entry.diagnostics?.within_call_window === true);
-	if (window_entries.length === 0) {
-		return null;
+	if (match?._id == null) return null;
+	let found = false;
+	for (const selection of Object.values(curt?.location_preparation_selection_by_location_id || {})) {
+		const diagnostics = selection?.diagnostics_by_match_id?.[String(match._id)];
+		if (diagnostics?.within_call_window !== true) continue;
+		found = true;
+		if (diagnostics.criteria_eligible === true) return 'ok';
 	}
-	if (window_entries.some((entry) => entry.diagnostics?.criteria_eligible === true)) {
-		return 'ok';
-	}
-	return 'blocked';
+	return found ? 'blocked' : null;
 }
 
 function format_preparation_debug_rule(rule, labels = PREPARATION_DEBUG_RULE_LABELS) {
@@ -4215,13 +4368,54 @@ function format_call_on_court_debug_tooltip(match, entries) {
 	return lines.join('\n');
 }
 
+const debug_icon_titles = new WeakMap(), debug_icon_bound = new WeakSet();
+let hovered_debug_icon = null, focused_debug_icon = null;
+function refresh_debug_icon_title(event) {
+	const node = event.currentTarget, resolve = debug_icon_titles.get(node);
+	if (event.type === 'mouseenter') hovered_debug_icon = node;
+	if (event.type === 'focus') focused_debug_icon = node;
+	if (!resolve) return;
+	const title = resolve();
+	if (node.title !== title) node.title = title;
+}
+function leave_debug_icon(event) {
+	if (event.type === 'mouseleave' && hovered_debug_icon === event.currentTarget) hovered_debug_icon = null;
+	if (event.type === 'blur' && focused_debug_icon === event.currentTarget) focused_debug_icon = null;
+}
+function refresh_call_status_details(match_ids) {
+	for (const node of new Set([hovered_debug_icon, focused_debug_icon])) {
+		if (!node?.isConnected || !match_ids.has(node.closest('tr')?.dataset.match_id)) continue;
+		refresh_debug_icon_title({currentTarget:node});
+	}
+	if (!hovered_debug_icon?.isConnected) hovered_debug_icon = null;
+	if (!focused_debug_icon?.isConnected) focused_debug_icon = null;
+}
+
 function render_debug_icon(td, css_class, title) {
 	const existing = td.querySelector('.preparation_debug_icon');
+	let node = existing;
 	if (existing) {
 		if (existing.className !== 'preparation_debug_icon ' + css_class) existing.className = 'preparation_debug_icon ' + css_class;
-		if (existing.title !== title) existing.title = title;
 	} else {
-		uiu.el(td, 'span', { class: 'preparation_debug_icon ' + css_class, title }, 'i');
+		node = uiu.el(td, 'span', { class: 'preparation_debug_icon ' + css_class }, 'i');
+	}
+	if (!debug_icon_bound.has(node)) {
+		debug_icon_bound.add(node);
+		node.addEventListener('mouseenter', refresh_debug_icon_title);
+		node.addEventListener('focus', refresh_debug_icon_title);
+		node.addEventListener('mouseleave', leave_debug_icon);
+		node.addEventListener('blur', leave_debug_icon);
+	}
+	// Rule details can change for hundreds of future games at once. Their
+	// text is needed only for a hovered/focused tooltip; the status colour and
+	// the information dialog still use the latest authoritative diagnosis.
+	if (typeof title === 'function') {
+		debug_icon_titles.set(node, title);
+		if (!node.title) node.title = 'Aufrufstatus anzeigen';
+		if (node === hovered_debug_icon || node === focused_debug_icon) refresh_debug_icon_title({currentTarget:node});
+	} else {
+		debug_icon_titles.delete(node);
+		if (node.title !== title) node.title = title;
 	}
 }
 
@@ -4240,7 +4434,7 @@ function render_call_on_court_debug_cell(tr, match) {
 	render_debug_icon(
 		td,
 		is_ready ? 'preparation_debug_icon_ok' : 'preparation_debug_icon_fail',
-		format_call_on_court_debug_tooltip(match, entries)
+		() => format_call_on_court_debug_tooltip(match, get_call_on_court_debug_entries_for_match(match))
 	);
 }
 
@@ -4260,6 +4454,7 @@ function render_preparation_debug_cell(tr, match) {
 		return;
 	}
 	const has_failed_rule = entries.some((entry) => {
+		if (entry.diagnostics?.manual_eligible != null) return entry.diagnostics.manual_eligible !== true;
 		const rules = Array.isArray(entry.diagnostics?.rules) ? entry.diagnostics.rules : [];
 		const manual_rules = rules.filter(is_manual_preparation_rule);
 		return manual_rules.some((rule) => !rule || (rule.enabled !== false && rule.passed !== true));
@@ -4267,7 +4462,7 @@ function render_preparation_debug_cell(tr, match) {
 	render_debug_icon(
 		td,
 		has_failed_rule ? 'preparation_debug_icon_fail' : 'preparation_debug_icon_ok',
-		format_preparation_debug_tooltip(match, entries)
+		() => format_preparation_debug_tooltip(match, get_preparation_debug_diagnostics_for_match(match))
 	);
 }
 
@@ -4330,8 +4525,8 @@ function render_preparation_debug_header(container) {
 
 function update_preparation_row_status(row, match, {
 	callable = get_preparation_callable_match_ids(), cutoff = get_preparation_cutoff_match_ids(), frontier = get_preparation_frontier_match_ids(),
+	status = preparation_call_status_enabled(), icons = preparation_call_debug_icons_enabled(),
 } = {}) {
-	const status = preparation_call_status_enabled();
 	const window_status = status ? get_preparation_debug_window_status(match) : null;
 	const call_status = status && match.setup.state === 'preparation' ? get_call_on_court_debug_status(match) : null;
 	for (const [name, active] of Object.entries({
@@ -4347,7 +4542,7 @@ function update_preparation_row_status(row, match, {
 	else if (row.hasAttribute('data-preparation-callable')) row.removeAttribute('data-preparation-callable');
 	const td = row.querySelector('td.call_td');
 	const previous_icon = td?.querySelector('.preparation_debug_icon');
-	if (preparation_call_debug_icons_enabled()) {
+	if (icons) {
 		render_preparation_debug_cell(row, match);
 		return !previous_icon && !!td?.querySelector('.preparation_debug_icon');
 	}
@@ -4356,43 +4551,85 @@ function update_preparation_row_status(row, match, {
 	return !!previous_icon;
 }
 
-function refresh_unassigned_preparation_context(immediate = false) {
-	if (!immediate && typeof cleitstand !== 'undefined' && cleitstand.deferUpdate?.('preparation.controls', () => refresh_unassigned_preparation_context(true))) return;
+let pending_preparation_context = null;
+function merge_preparation_context_changes(before, after) {
+	if (!before || !after) return null;
+	return {match_ids:before.match_ids === null || after.match_ids === null ? null : new Set([...before.match_ids, ...after.match_ids]),
+		boundaries:before.boundaries || after.boundaries, header:before.header || after.header};
+}
+function refresh_unassigned_preparation_context(immediate = false, changes = null) {
+	if (pending_preparation_context?.tournament === curt) changes = merge_preparation_context_changes(pending_preparation_context.changes, changes);
+	pending_preparation_context = null;
+	if (!immediate && typeof cleitstand !== 'undefined') {
+		pending_preparation_context = {tournament:curt, changes};
+		if (cleitstand.deferUpdate?.('preparation.controls', () => {
+			const pending = pending_preparation_context;pending_preparation_context = null;
+			if (pending?.tournament === curt) refresh_unassigned_preparation_context(true, pending.changes);
+		})) return;
+		pending_preparation_context = null;
+	}
 	const matches = new Map(curt.matches.map(match => [String(match._id), match]));
 	const status = preparation_call_status_enabled();
 	const callable = status ? get_preparation_callable_match_ids() : new Set();
 	const cutoff = status ? get_preparation_cutoff_match_ids() : new Set();
 	const frontier = status ? get_preparation_frontier_match_ids() : new Set();
+	const icons = preparation_call_debug_icons_enabled();
+	const visible_locations = (curt.locations || []).filter(location => window.localStorage.getItem('show_location_courts_' + location._id) !== 'false');
+	const context = visible_locations.some(location => !Array.isArray(curt.location_preparation_selection_by_location_id?.[String(location._id)]?.manual_callable_match_ids))
+		? manual_preparation_refresh_context() : null;
 	uiu.qsEach('.unassigned_container', container => {
 		let controls_changed = false;
-		render_preparation_debug_header(container);
-		for (const row of container.querySelectorAll('tbody > tr[data-match_id]')) {
+		if (!changes || changes.header) render_preparation_debug_header(container);
+		const rows = [];
+		if (changes?.match_ids) {
+			for (const id of changes.match_ids) _for_each_match_bound_element('.unassigned_container tbody > tr', id, row => {
+				if (row.closest('.unassigned_container') === container) rows.push(row);
+			});
+		} else rows.push(...container.querySelectorAll('tbody > tr[data-match_id]'));
+		for (const row of rows) {
 			const match = matches.get(row.dataset.match_id);
 			const td = row.querySelector('td.call_td');
 			if (!match || !td) continue;
-			const wanted = new Map((curt.locations || []).filter(location => match_has_complete_teams(match) &&
-				window.localStorage.getItem('show_location_courts_' + location._id) !== 'false' &&
-				is_manual_preparation_call_allowed_for_location(match, location)).map(location => [String(location._id), location]));
-			for (const button of td.querySelectorAll('.match_preparation_call_button')) {
+			const wanted = new Map();
+			if (match_has_complete_teams(match)) for (const location of visible_locations) {
+				if (is_manual_preparation_call_allowed_for_location(match,location,context)) wanted.set(String(location._id),location);
+			}
+			const buttons = td.querySelectorAll('.match_preparation_call_button');
+			for (const button of buttons) {
 				const id = button.dataset.location_id;
 				if (wanted.has(id)) wanted.delete(id);
 				else {button.remove();controls_changed=true;}
 			}
 			for (const location of wanted.values()) {
 				controls_changed=true;
-				const button = create_match_prepparation_button(td, 'vlink match_preparation_call_button',
+				// Finish new controls off the live row. Only their final insertion
+				// should invalidate layout or notify observers of this game's cell.
+				const holder = document.createElement('span');
+				const button = create_match_prepparation_button(holder, 'vlink match_preparation_call_button',
 					'match:preparationcall', on_announce_preparation_matchbutton_click, match._id, location);
-				td.insertBefore(button, td.querySelector('.preparation_debug_icon'));
+				if (typeof cleitstand !== 'undefined' && cleitstand.active?.(row)) {
+					cleitstand.decorateControls(holder,{preparationOnly:true});
+					let group = td.querySelector('.ls-preparation-calls');
+					if (!group) {group = document.createElement('span');group.className = 'ls-preparation-calls';group.append(button);td.insertBefore(group,td.querySelector('.preparation_debug_icon'));}
+					else group.append(button);
+				} else td.insertBefore(button, td.querySelector('.preparation_debug_icon'));
 			}
-			if (update_preparation_row_status(row, match, {callable, cutoff, frontier})) controls_changed = true;
-			if (typeof cleitstand !== 'undefined' && cleitstand.decorateControls(row)) controls_changed = true;
+			if (update_preparation_row_status(row, match, {callable, cutoff, frontier, status, icons})) controls_changed = true;
+			if (typeof cleitstand !== 'undefined') {
+				const preparationOnly = cleitstand.active?.(row);
+				// The board's narrow decorator has nothing to do on an empty
+				// call cell. Incomplete future games commonly make up most rows.
+				if ((!preparationOnly || icons || buttons.length || wanted.size) && cleitstand.decorateControls(row, {preparationOnly})) controls_changed = true;
+			}
 		}
-		if (typeof cleitstand !== 'undefined') cleitstand.refreshUnassigned(container,{controlsChanged:controls_changed});
+		if (typeof cleitstand !== 'undefined' && (!changes || controls_changed || changes.boundaries || changes.header)) {
+			cleitstand.refreshUnassigned(container,{controlsChanged:controls_changed, boundariesChanged:!changes || changes.boundaries, structureChanged:!changes, changedRows:rows});
+		}
 	});
-	if (typeof cleitstand !== 'undefined') cleitstand.refreshCallStatus?.();
+	if (typeof cleitstand !== 'undefined') cleitstand.refreshCallStatus?.(changes?.match_ids);
 }
 
-function render_unassigned(container) {
+function render_unassigned(container, {initialRows = Infinity} = {}) {
 	invalidate_tabletoperator_status_index();
 	invalidate_player_status_match_index();
 	uiu.empty(container);
@@ -4428,6 +4665,8 @@ function render_unassigned(container) {
 	render_match_table_header(table, true);
 	const tbody = uiu.el(table, 'tbody');
 
+	if (Number.isFinite(initialRows)) unassigned_matches.sort(cmp_scheduled_match_order);
+	let rendered = 0, deferred = false;
 	unassigned_matches.forEach((match) => {
 		if (!match.setup.is_match) {
 			return;
@@ -4453,12 +4692,32 @@ function render_unassigned(container) {
 		if (is_callable_for_preparation) {
 			tr.setAttribute('data-preparation-callable', 'true');
 		}
+		if (Number.isFinite(initialRows)) {
+			const location_id = match.setup.location_id || resolve_match_court(match, null)?.location_id;
+			const hidden_location = location_id && window.localStorage.getItem('show_location_courts_' + location_id) === 'false';
+			if (hidden_location || rendered++ >= initialRows) {
+				deferred = true;tr.dataset.lsStartupDeferred = 'true';tr.hidden = true;
+				if (location_id) tr.dataset.location_id = location_id;
+				tr.classList.toggle('do_not_show', !!hidden_location);return;
+			}
+		}
 		render_match_row(tr, match, null, 'unasigned', true, curt.tabletoperator_enabled);
 		if (show_preparation_debug_icons) {
 			render_preparation_debug_cell(tr, match);
 		}
 	});
 	if (typeof cleitstand !== 'undefined') cleitstand.refreshUnassigned(container);
+	if (deferred) return () => {
+		const byId = new Map(curt.matches.map(match => [String(match._id), match]));
+		for(const tr of container.querySelectorAll('[data-ls-startup-deferred]')) {
+			const match = byId.get(tr.dataset.match_id);
+			if(!match || calc_section(match) !== 'unassigned') {tr.remove();continue;}
+			render_match_row(tr, match, null, 'unasigned', true, curt.tabletoperator_enabled);
+			if (preparation_call_debug_icons_enabled()) render_preparation_debug_cell(tr, match);
+		}
+		refresh_unassigned_preparation_context();
+		if (typeof cleitstand !== 'undefined') cleitstand.refreshUnassigned(container);
+	};
 }
 
 function render_upcoming_matches(container) {
@@ -4510,6 +4769,7 @@ function render_upcoming_matches(container) {
 }
 
 
+const scheduledTimeFormatters = new Map(), scheduledTimestamps = new Map();
 function zoned_time_to_utc_timestamp(dateStr, timeStr, timeZone) {
     if (!dateStr) {
 		return 0;
@@ -4519,13 +4779,17 @@ function zoned_time_to_utc_timestamp(dateStr, timeStr, timeZone) {
 		return 0;
 	}
 
+	const cacheKey = JSON.stringify([dateStr, timeStr, timeZone]);
+	if (scheduledTimestamps.has(cacheKey)) return scheduledTimestamps.get(cacheKey);
 	const [year, month, day] = dateStr.split('-').map(Number);
     const [hour, minute] = timeStr.split(':').map(Number);
 
     // "Guess": als ob die eingegebene Zeit UTC wäre
     const utcGuessMs = Date.UTC(year, month - 1, day, hour, minute, 0);
 
-    const formatter = new Intl.DateTimeFormat('en-US', {
+    let formatter = scheduledTimeFormatters.get(timeZone);
+    if (!formatter) {
+      formatter = new Intl.DateTimeFormat('en-US', {
         timeZone,
         hour12: false,
         year: 'numeric',
@@ -4534,7 +4798,10 @@ function zoned_time_to_utc_timestamp(dateStr, timeStr, timeZone) {
         hour: '2-digit',
         minute: '2-digit',
         second: '2-digit',
-    });
+      });
+      if (scheduledTimeFormatters.size >= 16) scheduledTimeFormatters.delete(scheduledTimeFormatters.keys().next().value);
+      scheduledTimeFormatters.set(timeZone, formatter);
+    }
 
     // Wie sieht dieser utcGuess in der Ziel-Zeitzone aus?
     const parts = Object.fromEntries(
@@ -4555,7 +4822,10 @@ function zoned_time_to_utc_timestamp(dateStr, timeStr, timeZone) {
     const offsetMs = asIfUtcMs - utcGuessMs;
 
     // Gesucht: Zeitpunkt, der in der Zone die gewünschte lokale Zeit ergibt
-    return utcGuessMs - offsetMs;
+    const timestamp = utcGuessMs - offsetMs;
+    if (scheduledTimestamps.size >= 2048) scheduledTimestamps.delete(scheduledTimestamps.keys().next().value);
+    scheduledTimestamps.set(cacheKey, timestamp);
+    return timestamp;
 }
 
 
@@ -4564,7 +4834,7 @@ function render_finished(container) {
 	uiu.el(container, 'h3', 'section', ci18n('Finished Matches'));
 
 	const matches = curt.matches.filter(m => calc_section(m) === 'finished').sort(cmp_finished_match_order);
-	render_match_table(container, matches, 'default', false, curt.tabletoperator_enabled);
+	render_match_table(container, matches, 'default', false, curt.tabletoperator_enabled, matches.length > 50 && typeof cleitstand !== 'undefined');
 	if (typeof cleitstand !== 'undefined') cleitstand.refreshFinished?.();
 }
 
@@ -4721,8 +4991,8 @@ function update_court(court) {
 		if (match && calc_section(match) === 'court_'+court._id && patch_board_match_row(tr, match, 'court_'+court._id)) {
 			const graphic = tr.querySelector('.court_number .court_num,.court_number .court_inactive');
 			if (graphic) {
-				graphic.classList.toggle('court_num', court.is_active);graphic.classList.toggle('court_inactive', !court.is_active);
-				row_text(graphic, court.is_active ? court.num : '');graphic.title = ci18n(court.is_active ? 'inactivate_court' : 'activate_court');
+				row_class(graphic,'court_num',!!court.is_active);row_class(graphic,'court_inactive',!court.is_active);
+				row_text(graphic, court.is_active ? court.num : '');const title = ci18n(court.is_active ? 'inactivate_court' : 'activate_court');if (graphic.title !== title) graphic.title = title;
 				graphic.removeEventListener('click', on_inactivate_court_button_click);graphic.removeEventListener('click', on_activate_court_button_click);
 				graphic.addEventListener('click', court.is_active ? on_inactivate_court_button_click : on_activate_court_button_click);
 			}
@@ -6013,13 +6283,17 @@ function render_create(container) {
 
 return {
 	add_match,
+	edit: ui_edit,
 	calc_section,
 	cmp_match_order: cmp_scheduled_match_order,
 	prepare_render,
 	render_create,
 	render_finished,
+	materialize_finished_row,
+	release_finished_row,
 	render_unassigned,
 	refresh_unassigned_preparation_context,
+	refresh_call_status_details,
 	get_call_status,
 	render_courts,
 	_get_preparation_callable_match_ids: get_preparation_callable_match_ids,

@@ -16,7 +16,8 @@ module.exports = function attach_score_reads(model) {
 		const enqueued = process.hrtime.bigint();
 		const idle = profile.enabled('score_idle_reads') ? read_barrier.inspect_idle(store) : { allowed: false };
 		const readonly = !idle.allowed && profile.enabled('score_readonly_reads') ? read_barrier.inspect_readonly(store) : { allowed: false };
-		const bypass = idle.allowed ? idle : readonly.allowed ? readonly : profile.enabled('compaction_reads') ? read_barrier.inspect(store)
+		const disjoint = part !== 'tournament' && profile.enabled('score_readonly_reads') ? read_barrier.inspect_disjoint(store, [id]) : { allowed: false };
+		const bypass = idle.allowed ? idle : readonly.allowed ? readonly : disjoint.allowed ? disjoint : profile.enabled('compaction_reads') ? read_barrier.inspect(store)
 			: { allowed: false, reason: 'disabled' };
 		const extra = {
 			read_source: 'object_model',

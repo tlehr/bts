@@ -33,6 +33,7 @@
     "A game starting on court clears obsolete eligibility while the dialog stays open",
     "Match completion replaces old conditions with the finished state",
     "Footer close disposes the dialog",
+    "Reopening a game restores its information control after the owned UI work",
     "Space also activates the information control",
     "Escape closes the dialog and restores focus to the information control",
     "The shared header close control works as well",

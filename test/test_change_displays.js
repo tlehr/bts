@@ -18,6 +18,32 @@ function harness(displays = []) {
 }
 
 describe('Live display metadata', function() {
+    for (const [name,display,profiles,patch,expected] of [
+        ['TV battery',{client_id:'x',online:true,panel_devicemode:'display'},[],{battery:{level:.5}},false],
+        ['TV reconnect',{client_id:'x',online:false,panel_devicemode:'display'},[],{online:true},false],
+        ['offline tablet battery',{client_id:'x',online:false,panel_devicemode:'umpire'},[],{battery:{level:.5}},false],
+        ['tablet battery',{client_id:'x',online:true,panel_devicemode:'umpire'},[],{battery:{level:.5}},true],
+        ['tablet offline',{client_id:'x',online:true,panel_devicemode:'umpire'},[],{online:false},true],
+        ['tablet reconnect',{client_id:'x',online:false,panel_devicemode:'umpire'},[],{online:true},true],
+        ['profile overrides runtime',{client_id:'x',online:true,displaysetting_id:'p',panel_devicemode:'umpire'},[{id:'p',devicemode:'display'}],{battery:{level:.5}},false],
+        ['last profile wins',{client_id:'x',online:true,displaysetting_id:'p',panel_devicemode:'umpire'},[{id:'p',devicemode:'umpire'},{id:'p',devicemode:'display'}],{battery:{level:.5}},false],
+        ['mode leaves tablet',{client_id:'x',online:true,panel_devicemode:'umpire'},[],{panel_devicemode:'display'},true],
+        ['profile changes refresh once',{client_id:'x',online:true,displaysetting_id:'a'},[{id:'a',devicemode:'umpire'},{id:'b',devicemode:'display'}],{displaysetting_id:'b'},false],
+        ['numeric profile alias retains battery update',{client_id:'x',online:true,displaysetting_id:1},[{id:'1',devicemode:'umpire'}],{displaysetting_id:'1',battery:{level:.5}},true],
+    ]) it('limits the tablet refresh to affected membership: '+name, function() {
+        const h=harness([structuredClone(display)]);h.context.curt.displaysettings=profiles;
+        h.status({client_id:'x',...patch});
+        assert.strictEqual(h.calls.options.at(-1).tablets,expected);
+        if(name==='tablet battery')assert.deepStrictEqual(Array.from(h.calls.options.at(-1).tablet_fields),['battery']);
+        if(name==='profile changes refresh once')assert.strictEqual(h.calls.settings.length,1);
+        if(name==='numeric profile alias retains battery update')assert.strictEqual(h.calls.settings.length,0);
+    });
+    it('keeps a reconnected TV out of the tablet card while updating its render statistics',function() {
+        const h=harness([{client_id:'tv',online:false,panel_devicemode:'display'}]);
+        h.handle({ctype:'display_render_stats',val:{client_id:'tv',display_render_stats:{ack_count:1}}});
+        assert.strictEqual(h.context.curt.displays[0].online,true);
+        assert.strictEqual(h.calls.options[0].tablets,false);
+    });
     it('removes the specified profile for both deletion message shapes and ignores duplicates', function() {
         const h = harness();h.context.curt.displaysettings = [{id:'keep'}, {id:'remove'}, {id:'last'}];
         h.handle({ctype:'delete_display_setting', val:'remove'});
@@ -74,7 +100,7 @@ describe('Live display metadata', function() {
     });
 
     it('refreshes tablet connection state from render statistics only when the device becomes online', function() {
-        const display={client_id:'one',online:true},h=harness([display]);
+        const display={client_id:'one',online:true,panel_devicemode:'umpire'},h=harness([display]);
         h.handle({ctype:'display_render_stats',val:{client_id:'one',display_render_stats:{ack_count:1}}});
         assert.strictEqual(h.calls.options[0].tablets,false);assert.strictEqual(display.display_render_stats.ack_count,1);
         display.online=false;
@@ -83,7 +109,7 @@ describe('Live display metadata', function() {
     });
 
     it('skips the tablet card for status messages that only change render diagnostics', function() {
-        const h=harness([{client_id:'one',online:true}]);
+        const h=harness([{client_id:'one',online:true,panel_devicemode:'umpire'}]);
         h.status({client_id:'one',display_render_stats:{ack_count:1}});assert.strictEqual(h.calls.options[0].tablets,false);
         h.status({client_id:'one',battery:{level:.25}});assert.strictEqual(h.calls.options[1].tablets,true);
     });

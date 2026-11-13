@@ -3,7 +3,7 @@ const fs=require('fs'),path=require('path'),assert=require('assert');
 module.exports=async function({c,previews,matchCount,timerCount}) {
  await c.call('Performance.enable');
  await c.evaluate(`(()=>{
-  const qa=window.__containment={timers:[...document.querySelectorAll('.player .timer')],style:document.createElement('style')};document.head.append(qa.style);
+  const qa=window.__containment={timers:[...document.querySelectorAll('.player .timer')].map(timer=>{const copy=timer.cloneNode(true);timer.replaceWith(copy);return copy;}),style:document.createElement('style')};document.head.append(qa.style);
   qa.frames=n=>new Promise(resolve=>{const next=()=>--n?requestAnimationFrame(next):resolve();requestAnimationFrame(next)});
   qa.geometry=()=>[...document.querySelectorAll('.courts_container tr[data-match_id]')].map(row=>row.getBoundingClientRect().height);
   qa.timers.forEach(timer=>cleitstand.timerDisplay(timer,'1:23'));

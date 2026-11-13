@@ -11,8 +11,20 @@ var change = (function() {
 				'tabletoperator_add','tabletoperator_removed','update_player_status','umpires_changed','umpire_updated','official_edit','update_btp_settings','score'].includes(c.ctype)) {
 				cleitstand.refreshCourtAssignment?.();
 			}
-			if (typeof cleitstand !== 'undefined') cleitstand.refreshCallStatus?.();
+			if (typeof cleitstand !== 'undefined' && !['call_status_changed','display_status_changed','display_render_stats','display_wait_for_done','display_is_done','speech_cache_changed','match_protocol_event','btp_status','ticker_status','bts_status'].includes(c.ctype)) {
+				const scoped = ['score','match_edit','match_add','match_delete','match_preparation_call','match_called_on_court','court_current_match','update_player_status'].includes(c.ctype);
+				const id = c.val?.match__id ?? c.val?.match_id ?? c.val?.match?._id;
+				cleitstand.refreshCallStatus?.(scoped && id != null ? new Set([String(id)]) : undefined);
+			}
 		};
+	}
+
+	// Match the battery card's actual membership, including profile precedence.
+	function visible_tablet(display) {
+		if (!display?.online || display.client_id == null || String(display.client_id) === 'deleted') return false;
+		const profiles = curt.displaysettings || [];let profile;
+		for (let index = profiles.length - 1; index >= 0; index--) if (String(profiles[index].id) === String(display.displaysetting_id)) { profile = profiles[index];break; }
+		return (profile?.devicemode || display.panel_devicemode) === 'umpire';
 	}
 
 	function apply_score_patch(c) {
@@ -28,15 +40,6 @@ var change = (function() {
 				has_cmatch: typeof cmatch !== 'undefined' && !!cmatch,
 				has_update_match_score: typeof cmatch !== 'undefined' && cmatch && typeof cmatch.update_match_score === 'function',
 			});
-		}
-		if (
-			typeof current_view !== 'undefined' &&
-			current_view === 'show' &&
-			typeof ctournament !== 'undefined' &&
-			ctournament &&
-			typeof ctournament.update_location_preparation_need_labels === 'function'
-		) {
-			ctournament.update_location_preparation_need_labels();
 		}
 	}
 
@@ -279,9 +282,12 @@ var change = (function() {
 		if (cval.end_ts !== undefined) {
 			m.end_ts = cval.end_ts;
 		}
+		if ('duration_ms' in cval) m.duration_ms = cval.duration_ms;
 		if (!m.setup) {
 			m.setup = {};
 		}
+		if (cval.state !== undefined) m.setup.state = cval.state;
+		if (cval.btp_winner !== undefined) m.btp_winner = cval.btp_winner;
 		if (cval.court_id !== undefined) {
 			m.setup.court_id = cval.court_id;
 		}
@@ -333,6 +339,9 @@ var change = (function() {
 		}
 
 		switch (c.ctype) {
+		case 'call_status_changed':
+			ctournament.apply_call_status(c.val, c.tournament_key);
+			break;
 		case 'speech_cache_changed':
 			window.dispatchEvent(new CustomEvent('bts-speech-cache-changed'));
 			break;
@@ -467,24 +476,17 @@ var change = (function() {
 				ctournament.update_location_preparation_need_labels();
 			}
 			break;
-		case 'court_changed':
+		case 'court_changed': {
 			const court = utils.find(curt.courts, court => court._id === c.val.court_id);
-			if(court) {
-				court.is_active = c.val.is_active;
-				court.has_umpire = c.val.has_umpire;
-				court.has_service_judge = c.val.has_service_judge;
-				if (Object.prototype.hasOwnProperty.call(c.val, 'match_id')) {
-					court.match_id = c.val.match_id;
-				}
-			}
+			if (!court) break;
+			const fields = ['is_active','has_umpire','has_service_judge','match_id'].filter(field => Object.prototype.hasOwnProperty.call(c.val,field));
+			if (fields.every(field => court[field] === c.val[field])) break;
+			for (const field of fields) court[field] = c.val[field];
 			ctournament.update_court(court);
-			if (ctournament && typeof ctournament.update_officials === 'function') {
-				ctournament.update_officials();
-			}
-			if (current_view === 'show' && ctournament && typeof ctournament.update_location_preparation_need_labels === 'function') {
-				ctournament.update_location_preparation_need_labels();
-			}
+			if (ctournament && typeof ctournament.update_officials === 'function') ctournament.update_officials();
+			if (current_view === 'show' && ctournament && typeof ctournament.update_location_preparation_need_labels === 'function') ctournament.update_location_preparation_need_labels();
 			break;
+		}
 		case 'locations_changed':
 			curt.locations = c.val.all_locations;
 			if (current_view === 'show' && ctournament && typeof ctournament.update_show_location_controls === 'function') {
@@ -664,6 +666,11 @@ var change = (function() {
 			if (current_view !== 'edit') ctournament.refresh_current_view({matchListsOnly:true});
 			break;
 		}
+		case 'player_checkin_reset':
+			// Per-match status patches have already updated the local data. These
+			// views own separate attendance cards; refresh them once per bulk reset.
+			if (current_view === 'self_check_in' || current_view === 'registration_check') ctournament.refresh_current_view({matchListsOnly:true});
+			break;
 		case 'player_pause_reset':
 			// The notification contains counts, not refreshed match snapshots.
 			// Apply the same pause-field reset to the existing local participants.
@@ -698,9 +705,14 @@ var change = (function() {
 				return;
 			}
 
+			const before = m.setup, after = cval.setup;
+			const tablet_activity_changed = before.now_on_court !== after.now_on_court
+				|| before.court_id !== after.court_id
+				|| !utils.deep_equal(before.tabletoperators, after.tabletoperators);
 			m.btp_winner = cval.btp_winner;
-			m.setup = cval.setup;
-			cmatch.update_players(m);
+			m.setup = after;
+			// Check-ins and pauses do not change the shared tablet allocation.
+			cmatch.update_players(m, {invalidate:tablet_activity_changed});
 			break;
 		}
 		case 'umpires_changed':
@@ -880,7 +892,7 @@ var change = (function() {
 					curt.accounting_entries.push(c.val.entry);
 				}
 			}
-			if (ctournament && typeof ctournament.refresh_current_view === 'function') {
+			if (current_view === 'accounting' && ctournament && typeof ctournament.refresh_current_view === 'function') {
 				ctournament.refresh_current_view();
 			}
 			break;
@@ -888,7 +900,7 @@ var change = (function() {
 			if (Array.isArray(curt.accounting_entries)) {
 				curt.accounting_entries = curt.accounting_entries.filter((entry) => entry && entry.id !== c.val.entry_id);
 			}
-			if (ctournament && typeof ctournament.refresh_current_view === 'function') {
+			if (current_view === 'accounting' && ctournament && typeof ctournament.refresh_current_view === 'function') {
 				ctournament.refresh_current_view();
 			}
 			break;
@@ -904,7 +916,7 @@ var change = (function() {
 					curt.accounting_documents.push(c.val.document);
 				}
 			}
-			if (ctournament && typeof ctournament.refresh_current_view === 'function') {
+			if (current_view === 'accounting' && ctournament && typeof ctournament.refresh_current_view === 'function') {
 				ctournament.refresh_current_view();
 			}
 			break;
@@ -920,7 +932,7 @@ var change = (function() {
 					curt.accounting_items.push(c.val.item);
 				}
 			}
-			if (ctournament && typeof ctournament.refresh_current_view === 'function') {
+			if (current_view === 'accounting' && ctournament && typeof ctournament.refresh_current_view === 'function') {
 				ctournament.refresh_current_view();
 			}
 			break;
@@ -928,13 +940,13 @@ var change = (function() {
 			if (Array.isArray(curt.accounting_items)) {
 				curt.accounting_items = curt.accounting_items.filter((item) => item && item.id !== c.val.item_id);
 			}
-			if (ctournament && typeof ctournament.refresh_current_view === 'function') {
+			if (current_view === 'accounting' && ctournament && typeof ctournament.refresh_current_view === 'function') {
 				ctournament.refresh_current_view();
 			}
 			break;
 		case 'update_btp_payments':
 			curt.btp_payments = c.val.btp_payments || { payments: [] };
-			if (ctournament && typeof ctournament.refresh_current_view === 'function') {
+			if (current_view === 'accounting' && ctournament && typeof ctournament.refresh_current_view === 'function') {
 				ctournament.refresh_current_view();
 			}
 			break;
@@ -1017,17 +1029,19 @@ var change = (function() {
 			});
 			var d = utils.find(curt.displays, m => m.client_id === display_setting.client_id);
 			const last_d = {...d};
+			let profile_changed = false;
 			if (!d) {
 				curt.displays[curt.displays.length] = display_setting;
 				curt.displays.sort(utils.cmp_key('client_id'));
-				ctournament.update_display(display_setting);
+				ctournament.update_display(display_setting, {tablets:visible_tablet(display_setting)});
 				return;
 			} else {
 				for (const field of ['court_id', 'displaysetting_id', 'online', 'hostname', 'panel_devicemode', 'client_ip', 'ip', 'battery', 'display_render_stats']) {
 					if (Object.prototype.hasOwnProperty.call(display_setting, field)) d[field] = display_setting[field];
 				}
 				
-				if(d.displaysetting_id != last_d.displaysetting_id){
+				profile_changed = d.displaysetting_id != last_d.displaysetting_id;
+				if(profile_changed){
 					ctournament.update_general_displaysettings(c);
 				}
 			}
@@ -1036,7 +1050,9 @@ var change = (function() {
 			}
 			if(!utils.deep_equal(d, last_d)){		
 				const tablet_fields = ['court_id', 'displaysetting_id', 'online', 'hostname', 'panel_devicemode', 'client_ip', 'ip', 'battery'];
-				ctournament.update_display(d, {tablets: !utils.plucked_deep_equal(d, last_d, tablet_fields)});
+				const changed_fields = tablet_fields.filter(field => !utils.deep_equal(d[field], last_d[field]));
+				ctournament.update_display(d, {tablets: changed_fields.length > 0 && !profile_changed &&
+					(visible_tablet(last_d) || visible_tablet(d)), tablet_fields:changed_fields});
 			}
 			break;
 		case 'delete_display':
@@ -1076,7 +1092,7 @@ var change = (function() {
 			const became_online = d.online !== true;
 			d.online = true;
 			d.display_render_stats = c.val.display_render_stats;
-			ctournament.update_display(d, {tablets: became_online});
+			ctournament.update_display(d, {tablets: became_online && visible_tablet(d)});
 			break;
 		case 'display_wait_for_done':
 			var d = utils.find(curt.displays, m => m.client_id === c.val.client_id);

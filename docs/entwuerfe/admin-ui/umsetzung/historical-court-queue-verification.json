@@ -1,0 +1,19 @@
+{
+  "scope": "Native browser receive queue: 60 finished games retain the same historical field as one current game. A new point must render before their status backlog, while all 61 messages apply and complete their full presentation receipts.",
+  "result": {
+    "first": "score",
+    "changes": 61,
+    "score": "8:9",
+    "retained": true,
+    "receipts": 61,
+    "presented": true,
+    "point": {
+      "queue_ms": 1.8,
+      "handler_ms": 6.5,
+      "ui_wait_ms": 0.1,
+      "render_ms": 18.1,
+      "total_ms": 26.5
+    },
+    "updated": true
+  }
+}

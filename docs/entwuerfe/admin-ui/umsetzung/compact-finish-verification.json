@@ -1,0 +1,16 @@
+{
+  "scope": "Native browser: a persisted confirmed result must render completely from its first score event. The following authoritative full snapshot must preserve the same visible result.",
+  "first": {
+    "state": "finished",
+    "confirmation": 0,
+    "score": "21:1221:13",
+    "winner": 1
+  },
+  "following": {
+    "mutations": 0,
+    "row": true,
+    "players": true,
+    "officials": true,
+    "jobs": []
+  }
+}

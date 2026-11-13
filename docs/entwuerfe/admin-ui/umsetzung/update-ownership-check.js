@@ -15,6 +15,12 @@ module.exports=async function({c,open,previews}) {
     const match=structuredClone(curt.matches.find(match=>match._id==='match-44'));match._id='qa-observed-name';match.setup.now_on_court=false;match.setup.state='finished';match.team1_won=true;match.network_score=[[21,15],[21,17]];
     document.querySelector('.ls-finished-table').classList.add('qa-uncached-columns');curt.matches.push(match);cmatch.add_match(match,'finished');
    }
+   else if(message.ctype==='qa_deferred_name') {cleitstand.deferUpdate('qa-name-prerequisite',()=>{qa.deferredRan=true;});cleitstand.refreshRow(qa.row,curt.matches.find(match=>match._id==='match-44'),{place:true});}
+   else if(message.ctype==='qa_fitted_name')cleitstand.refreshRow(qa.row,curt.matches.find(match=>match._id==='match-44'),{place:true});
+   else if(message.ctype==='qa_known_names') {
+    const match=curt.matches.find(match=>match._id==='match-44');
+    cleitstand.refreshRow(document.querySelector('tr[data-match_id="match-44"]'),match,{place:true});
+   }
    else crouting.on_change(message);
    qa.dispatchResolve?.();
   });
@@ -61,17 +67,31 @@ module.exports=async function({c,open,previews}) {
   await c.evaluate('__ownership.holdClock=false;__ownership.resizeCallbacks.splice(0).forEach(release=>release())');
   const clock=await c.evaluate(`__ownership.wait(${clockId})`);
   check('The clock receipt includes observation and completed fitting before its presentation frames',clock.status==='presented'&&clock.ui_jobs.some(job=>job.name==='timers.fit'&&job.status==='complete')&&await c.evaluate(`parseFloat(__ownership.clock.querySelector('.timer-value').style.getPropertyValue('--timer-scale'))<1`));
+  await c.evaluate('__ownership.nativeQueuePending=btsAdminUpdates.isQueuePending;btsAdminUpdates.isQueuePending=()=>true');
+  try {
+   const independent=await c.evaluate('(async()=>__ownership.wait(await __ownership.receive("qa_fitted_name")))()');
+   check('Fitted names do not wait for unrelated receive-queue messages',independent.status==='presented'&&independent.ui_jobs.some(job=>job.name==='names.layout'&&job.status==='complete'));
+   const progress=await c.evaluate('(async()=>__ownership.wait(await __ownership.receive("qa_deferred_name")))()');
+   check('Observed names and their required shared work progress during a continuous receive stream',progress.status==='presented'&&progress.ui_jobs.some(job=>job.name==='qa-name-prerequisite'&&job.status==='complete')&&progress.ui_jobs.some(job=>job.name==='names.layout'&&job.status==='complete')&&await c.evaluate('__ownership.deferredRan===true'));
+  } finally {await c.evaluate('btsAdminUpdates.isQueuePending=__ownership.nativeQueuePending');}
   await c.evaluate('__ownership.holdNames=true');
   const nameId=await c.evaluate('__ownership.receive("qa_name")');
   await c.evaluate('new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(()=>requestAnimationFrame(resolve))))');
   check('A new name is not acknowledged before its first observed size',await c.evaluate(`__ownership.resizeCallbacks.length>0&&!__ownership.receipts.some(receipt=>receipt.message.__ownership===${nameId})`));
+  const knownNames=await c.evaluate('(async()=>__ownership.wait(await __ownership.receive("qa_known_names")))()');
+  check('An independently fitted row completes while another row still awaits its first size',knownNames.status==='presented'&&await c.evaluate(`!__ownership.receipts.some(receipt=>receipt.message.__ownership===${nameId})`));
   await c.evaluate('__ownership.holdNames=false;__ownership.resizeCallbacks.splice(0).forEach(release=>release())');
   const name=await c.evaluate(`__ownership.wait(${nameId})`);
   check('The new-name receipt waits for fitting and its rendering frames',name.status==='presented'&&name.ui_jobs.some(job=>job.name==='names.layout'&&job.status==='complete')&&await c.evaluate('!!document.querySelector("tr[data-match_id=qa-observed-name] [data-ls-full-name]")'));
+  await c.evaluate('__ownership.nativeQueuePending=btsAdminUpdates.isQueuePending;btsAdminUpdates.isQueuePending=()=>true');
+  try {
+   const finished=await c.evaluate(`(async()=>{const match=curt.matches.find(match=>match._id==='match-44');return __ownership.wait(await __ownership.receive('score',{match_id:match._id,court_id:match.setup.court_id,network_score:[[21,13],[21,15]],team1_won:true,btp_winner:1,state:'finished',now_on_court:false,end_ts:Date.now(),duration_ms:600000,presses:[]}))})()`);
+   check('A finished result settles its own list and names despite unrelated queued messages',finished.status==='presented'&&finished.ui_jobs.some(job=>job.name==='finished.sort'&&job.status==='complete'));
+  } finally {await c.evaluate('btsAdminUpdates.isQueuePending=__ownership.nativeQueuePending');}
   await c.evaluate('btsAdminUpdates.whenSettled()');
   check('All measured work drains without capacity failures or timeouts',await c.evaluate('__ownership.receipts.every(receipt=>receipt.status==="presented")&&btsAdminUpdates.stats().pending===0'));
   const receipts=await c.evaluate('__ownership.receipts.map(({message,status,timings,ui_jobs})=>({type:message.ctype,status,timings,ui_jobs}))');
-  const report={date:'2026-10-30',scope:'Isolierter Browser, native Empfangswarteschlange, echte UI-Aufgaben und gezielt zurückgehaltene Vorbereitungsdiagnosen. Keine Live-Dienste.',checks,receipts};
+  const report={date:new Date().toISOString(),scope:'Isolierter Browser, native Empfangswarteschlange, echte UI-Aufgaben und gezielt zurückgehaltene Vorbereitungsdiagnosen. Keine Live-Dienste.',checks,receipts};
   fs.writeFileSync(path.join(previews,'update-ownership-verification.json'),JSON.stringify(report,null,2)+'\n');
   console.log(JSON.stringify({checks:checks.length,receipts},null,2));
  } finally {

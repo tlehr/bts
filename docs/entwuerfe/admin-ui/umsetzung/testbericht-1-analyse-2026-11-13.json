@@ -1,0 +1,5967 @@
+{
+  "source": "bts-test-1.json",
+  "source_bytes": 118401530,
+  "source_sha256": "99f062db0eaccd628f68ae6850d0b1debeac3f45b4482f56d27ef06380f54003",
+  "scope": "Read-only offline analysis of user-supplied measurement data. No live BTS/BTP access, tournament writes, service restart, load tests, or product-code changes.",
+  "started_at": "2026-11-13T07:11:42.852Z",
+  "runtime_ms": 600212,
+  "stop_reason": "completed",
+  "failure": null,
+  "initial_state": {
+    "matches": 584,
+    "finished_matches": 65,
+    "active_matches": 15,
+    "active_courts": 15,
+    "pending_player_checkins": 0,
+    "pending_players": 0,
+    "check_in_per_match": true,
+    "state_sha256": "2d7160ba531ef804264a7fe30e2b5d79602092b9508ccf8950a6c86a1d59b19f"
+  },
+  "latency": {
+    "ordinary_admin": {
+      "count": 1172,
+      "mean": 36.224,
+      "min": 8,
+      "median": 32,
+      "p95": 57,
+      "p99": 165,
+      "max": 279,
+      "limit_ms": 100,
+      "at_or_over_limit": 23,
+      "over_limit": 23,
+      "equal_limit": 0,
+      "previous_report_19": {
+        "count": 1158,
+        "mean": 35.697,
+        "min": 9,
+        "p50": 32,
+        "p95": 55,
+        "p99": 190,
+        "max": 264,
+        "limit_ms": 100,
+        "at_or_over_limit": 19,
+        "over_limit": 19,
+        "equal_limit": 0
+      }
+    },
+    "finish_admin": {
+      "count": 14,
+      "mean": 97.5,
+      "min": 64,
+      "median": 94,
+      "p95": 158,
+      "p99": 158,
+      "max": 158,
+      "limit_ms": 150,
+      "at_or_over_limit": 1,
+      "over_limit": 1,
+      "equal_limit": 0,
+      "previous_report_19": {
+        "count": 16,
+        "mean": 102.562,
+        "min": 78,
+        "p50": 95,
+        "p95": 146,
+        "p99": 146,
+        "max": 146,
+        "limit_ms": 150,
+        "at_or_over_limit": 0,
+        "over_limit": 0,
+        "equal_limit": 0
+      }
+    },
+    "display_receive": {
+      "count": 1186,
+      "mean": 4.653,
+      "min": 2,
+      "median": 4,
+      "p95": 10,
+      "p99": 17,
+      "max": 27,
+      "limit_ms": 50,
+      "at_or_over_limit": 0,
+      "over_limit": 0,
+      "equal_limit": 0,
+      "previous_report_19": {
+        "count": 1174,
+        "mean": 5.044,
+        "min": 2,
+        "p50": 4,
+        "p95": 12,
+        "p99": 17,
+        "max": 151,
+        "limit_ms": 50,
+        "at_or_over_limit": 2,
+        "over_limit": 2,
+        "equal_limit": 0
+      }
+    }
+  },
+  "classification": {
+    "source": "live-drill:finish-confirm events matched by trace_id; remaining score receipts are ordinary points",
+    "finish_events": 14,
+    "percentiles": "nearest-rank p95/p99, arithmetic median of central pair"
+  },
+  "coverage": {
+    "sent": 1186,
+    "admin_matched": 1186,
+    "display_matched": 1186,
+    "score_statuses": {
+      "presented": 1186
+    },
+    "expired": {
+      "tv": 0,
+      "admin": 0
+    },
+    "diagnostic_archive": {
+      "dropped_point_receptions": 0,
+      "dropped_test_events": 0,
+      "limits": {
+        "point_receptions": 5000,
+        "test_events": 10000
+      },
+      "processing_traces_requested": true
+    },
+    "all_browser_message_outcomes": {
+      "presented": 8893,
+      "superseded": 11
+    }
+  },
+  "outliers": [
+    {
+      "trace_id": "live-drill-2834041-mwen3q7s-185",
+      "sent_ts": 1794553976440,
+      "court_id": "default_4",
+      "match_id": "btp_default_MX U13_447",
+      "tv_ms": 13,
+      "tv_received_ts": 1794553976453,
+      "admin_ms": 279,
+      "admin_received_ts": 1794553976676,
+      "admin_applied_ts": 1794553976679,
+      "admin_presented_ts": 1794553976719,
+      "admin_presentation_status": "presented",
+      "admin_ui_ms": {
+        "queue_ms": 0.3,
+        "handler_ms": 2.1,
+        "ui_wait_ms": 0,
+        "render_ms": 39.7,
+        "total_ms": 42.1
+      },
+      "admin_measurement_method": "dom-and-render-opportunity",
+      "admin_ui_jobs": [],
+      "admin_blocking_window_id": 3,
+      "admin_control_received_ts": 1794553976449,
+      "kind": "ordinary",
+      "sent_to_control_ms": 9,
+      "control_to_browser_callback_ms": 227,
+      "callback_to_presentation_ms": 43,
+      "browser_connection_id": "admin-2833904-3",
+      "server_operations": [
+        {
+          "id": 653,
+          "name": "handle_score_update_v2",
+          "start_relative_to_send_ms": 1,
+          "duration_ms": 17.2,
+          "status": "ok",
+          "browser_send_spans": [
+            {
+              "kind": "send_wait",
+              "connection_id": "admin-2833904-3",
+              "start_ts": 1794553976449,
+              "ts": 1794553976449,
+              "duration_ms": 0,
+              "status": "ok"
+            },
+            {
+              "kind": "send_enqueue",
+              "connection_id": "admin-2833904-3",
+              "start_ts": 1794553976449,
+              "ts": 1794553976449,
+              "duration_ms": 0,
+              "status": "ok"
+            },
+            {
+              "kind": "send_flush",
+              "connection_id": "admin-2833904-3",
+              "start_ts": 1794553976449,
+              "ts": 1794553976449,
+              "duration_ms": 0.5,
+              "status": "ok"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "trace_id": "live-drill-2834041-mwen98aj-818",
+      "sent_ts": 1794554233147,
+      "court_id": "default_1",
+      "match_id": "btp_default_MX U19_309",
+      "tv_ms": 4,
+      "tv_received_ts": 1794554233151,
+      "admin_ms": 277,
+      "admin_received_ts": 1794554233390,
+      "admin_applied_ts": 1794554233390,
+      "admin_presented_ts": 1794554233424,
+      "admin_presentation_status": "presented",
+      "admin_ui_ms": {
+        "queue_ms": 0.2,
+        "handler_ms": 0.2,
+        "ui_wait_ms": 0,
+        "render_ms": 33.7,
+        "total_ms": 34.1
+      },
+      "admin_measurement_method": "dom-and-render-opportunity",
+      "admin_ui_jobs": [],
+      "admin_blocking_window_id": 24,
+      "admin_control_received_ts": 1794554233152,
+      "kind": "ordinary",
+      "sent_to_control_ms": 5,
+      "control_to_browser_callback_ms": 238,
+      "callback_to_presentation_ms": 34,
+      "browser_connection_id": "admin-2833904-3",
+      "server_operations": [
+        {
+          "id": 3084,
+          "name": "handle_score_update_v2",
+          "start_relative_to_send_ms": 1,
+          "duration_ms": 12.4,
+          "status": "ok",
+          "browser_send_spans": [
+            {
+              "kind": "send_wait",
+              "connection_id": "admin-2833904-3",
+              "start_ts": 1794554233151,
+              "ts": 1794554233151,
+              "duration_ms": 0,
+              "status": "ok"
+            },
+            {
+              "kind": "send_enqueue",
+              "connection_id": "admin-2833904-3",
+              "start_ts": 1794554233151,
+              "ts": 1794554233151,
+              "duration_ms": 0,
+              "status": "ok"
+            },
+            {
+              "kind": "send_flush",
+              "connection_id": "admin-2833904-3",
+              "start_ts": 1794554233151,
+              "ts": 1794554233152,
+              "duration_ms": 0.7,
+              "status": "ok"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "trace_id": "live-drill-2834041-mwen8won-786",
+      "sent_ts": 1794554218103,
+      "court_id": "default_5",
+      "match_id": "btp_default_MX U19_307",
+      "tv_ms": 21,
+      "tv_received_ts": 1794554218124,
+      "admin_ms": 275,
+      "admin_received_ts": 1794554218328,
+      "admin_applied_ts": 1794554218329,
+      "admin_presented_ts": 1794554218378,
+      "admin_presentation_status": "presented",
+      "admin_ui_ms": {
+        "queue_ms": 0.3,
+        "handler_ms": 0.4,
+        "ui_wait_ms": 0,
+        "render_ms": 48.8,
+        "total_ms": 49.5
+      },
+      "admin_measurement_method": "dom-and-render-opportunity",
+      "admin_ui_jobs": [],
+      "admin_blocking_window_id": 22,
+      "admin_control_received_ts": 1794554218125,
+      "kind": "ordinary",
+      "sent_to_control_ms": 22,
+      "control_to_browser_callback_ms": 203,
+      "callback_to_presentation_ms": 50,
+      "browser_connection_id": "admin-2833904-3",
+      "server_operations": [
+        {
+          "id": 2940,
+          "name": "handle_score_update_v2",
+          "start_relative_to_send_ms": 3,
+          "duration_ms": 29.1,
+          "status": "ok",
+          "browser_send_spans": [
+            {
+              "kind": "send_wait",
+              "connection_id": "admin-2833904-3",
+              "start_ts": 1794554218124,
+              "ts": 1794554218124,
+              "duration_ms": 0,
+              "status": "ok"
+            },
+            {
+              "kind": "send_enqueue",
+              "connection_id": "admin-2833904-3",
+              "start_ts": 1794554218124,
+              "ts": 1794554218124,
+              "duration_ms": 0,
+              "status": "ok"
+            },
+            {
+              "kind": "send_flush",
+              "connection_id": "admin-2833904-3",
+              "start_ts": 1794554218124,
+              "ts": 1794554218125,
+              "duration_ms": 0.7,
+              "status": "ok"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "trace_id": "live-drill-2834041-mwen9pe7-863",
+      "sent_ts": 1794554255311,
+      "court_id": "default_11",
+      "match_id": "btp_default_MX U13_442",
+      "tv_ms": 7,
+      "tv_received_ts": 1794554255318,
+      "admin_ms": 244,
+      "admin_received_ts": 1794554255466,
+      "admin_applied_ts": 1794554255466,
+      "admin_presented_ts": 1794554255555,
+      "admin_presentation_status": "presented",
+      "admin_ui_ms": {
+        "queue_ms": 0.4,
+        "handler_ms": 0.2,
+        "ui_wait_ms": 0.1,
+        "render_ms": 89,
+        "total_ms": 89.7
+      },
+      "admin_measurement_method": "dom-and-render-opportunity",
+      "admin_ui_jobs": [],
+      "admin_blocking_window_id": 27,
+      "admin_control_received_ts": 1794554255320,
+      "kind": "ordinary",
+      "sent_to_control_ms": 9,
+      "control_to_browser_callback_ms": 146,
+      "callback_to_presentation_ms": 89,
+      "browser_connection_id": "admin-2833904-3",
+      "server_operations": [
+        {
+          "id": 3301,
+          "name": "handle_score_update_v2",
+          "start_relative_to_send_ms": 3,
+          "duration_ms": 8.6,
+          "status": "ok",
+          "browser_send_spans": [
+            {
+              "kind": "send_wait",
+              "connection_id": "admin-2833904-3",
+              "start_ts": 1794554255319,
+              "ts": 1794554255319,
+              "duration_ms": 0,
+              "status": "ok"
+            },
+            {
+              "kind": "send_enqueue",
+              "connection_id": "admin-2833904-3",
+              "start_ts": 1794554255319,
+              "ts": 1794554255319,
+              "duration_ms": 0,
+              "status": "ok"
+            },
+            {
+              "kind": "send_flush",
+              "connection_id": "admin-2833904-3",
+              "start_ts": 1794554255319,
+              "ts": 1794554255319,
+              "duration_ms": 0.5,
+              "status": "ok"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "trace_id": "live-drill-2834041-mwendzfr-1067",
+      "sent_ts": 1794554454951,
+      "court_id": "default_14",
+      "match_id": "btp_default_MX U15_371",
+      "tv_ms": 27,
+      "tv_received_ts": 1794554454978,
+      "admin_ms": 243,
+      "admin_received_ts": 1794554455042,
+      "admin_applied_ts": 1794554455062,
+      "admin_presented_ts": 1794554455194,
+      "admin_presentation_status": "presented",
+      "admin_ui_ms": {
+        "queue_ms": 17.8,
+        "handler_ms": 2.2,
+        "ui_wait_ms": 0,
+        "render_ms": 132,
+        "total_ms": 152
+      },
+      "admin_measurement_method": "dom-and-render-opportunity",
+      "admin_ui_jobs": [],
+      "admin_blocking_window_id": 35,
+      "admin_control_received_ts": 1794554454985,
+      "kind": "ordinary",
+      "sent_to_control_ms": 34,
+      "control_to_browser_callback_ms": 57,
+      "callback_to_presentation_ms": 152,
+      "browser_connection_id": "admin-2833904-3",
+      "server_operations": [
+        {
+          "id": 4895,
+          "name": "handle_score_update_v2",
+          "start_relative_to_send_ms": 6,
+          "duration_ms": 37.7,
+          "status": "ok",
+          "browser_send_spans": [
+            {
+              "kind": "send_wait",
+              "connection_id": "admin-2833904-3",
+              "start_ts": 1794554454979,
+              "ts": 1794554454979,
+              "duration_ms": 0,
+              "status": "ok"
+            },
+            {
+              "kind": "send_enqueue",
+              "connection_id": "admin-2833904-3",
+              "start_ts": 1794554454979,
+              "ts": 1794554454979,
+              "duration_ms": 0,
+              "status": "ok"
+            },
+            {
+              "kind": "send_flush",
+              "connection_id": "admin-2833904-3",
+              "start_ts": 1794554454979,
+              "ts": 1794554454985,
+              "duration_ms": 5.7,
+              "status": "ok"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "trace_id": "live-drill-2834041-mwencibf-889",
+      "sent_ts": 1794554386107,
+      "court_id": "default_11",
+      "match_id": "btp_default_MX U13_442",
+      "tv_ms": 10,
+      "tv_received_ts": 1794554386117,
+      "admin_ms": 241,
+      "admin_received_ts": 1794554386172,
+      "admin_applied_ts": 1794554386173,
+      "admin_presented_ts": 1794554386348,
+      "admin_presentation_status": "presented",
+      "admin_ui_ms": {
+        "queue_ms": 0.7,
+        "handler_ms": 0.5,
+        "ui_wait_ms": 0,
+        "render_ms": 175.1,
+        "total_ms": 176.3
+      },
+      "admin_measurement_method": "dom-and-render-opportunity",
+      "admin_ui_jobs": [],
+      "admin_blocking_window_id": 28,
+      "admin_control_received_ts": 1794554386118,
+      "kind": "ordinary",
+      "sent_to_control_ms": 11,
+      "control_to_browser_callback_ms": 54,
+      "callback_to_presentation_ms": 176,
+      "browser_connection_id": "admin-2833904-3",
+      "server_operations": [
+        {
+          "id": 4234,
+          "name": "handle_score_update_v2",
+          "start_relative_to_send_ms": 4,
+          "duration_ms": 27.7,
+          "status": "ok",
+          "browser_send_spans": [
+            {
+              "kind": "send_wait",
+              "connection_id": "admin-2833904-3",
+              "start_ts": 1794554386118,
+              "ts": 1794554386118,
+              "duration_ms": 0,
+              "status": "ok"
+            },
+            {
+              "kind": "send_enqueue",
+              "connection_id": "admin-2833904-3",
+              "start_ts": 1794554386118,
+              "ts": 1794554386118,
+              "duration_ms": 0,
+              "status": "ok"
+            },
+            {
+              "kind": "send_flush",
+              "connection_id": "admin-2833904-3",
+              "start_ts": 1794554386118,
+              "ts": 1794554386118,
+              "duration_ms": 0.5,
+              "status": "ok"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "trace_id": "live-drill-2834041-mwen6nkt-539",
+      "sent_ts": 1794554112989,
+      "court_id": "default_8",
+      "match_id": "btp_default_MX U19_300",
+      "tv_ms": 25,
+      "tv_received_ts": 1794554113014,
+      "admin_ms": 238,
+      "admin_received_ts": 1794554113205,
+      "admin_applied_ts": 1794554113207,
+      "admin_presented_ts": 1794554113227,
+      "admin_presentation_status": "presented",
+      "admin_ui_ms": {
+        "queue_ms": 0.3,
+        "handler_ms": 1.6,
+        "ui_wait_ms": 0,
+        "render_ms": 20.4,
+        "total_ms": 22.3
+      },
+      "admin_measurement_method": "dom-and-render-opportunity",
+      "admin_ui_jobs": [],
+      "admin_blocking_window_id": 9,
+      "admin_control_received_ts": 1794554113023,
+      "kind": "ordinary",
+      "sent_to_control_ms": 34,
+      "control_to_browser_callback_ms": 182,
+      "callback_to_presentation_ms": 22,
+      "browser_connection_id": "admin-2833904-3",
+      "server_operations": [
+        {
+          "id": 1963,
+          "name": "handle_score_update_v2",
+          "start_relative_to_send_ms": 12,
+          "duration_ms": 33,
+          "status": "ok",
+          "browser_send_spans": [
+            {
+              "kind": "send_wait",
+              "connection_id": "admin-2833904-3",
+              "start_ts": 1794554113013,
+              "ts": 1794554113013,
+              "duration_ms": 0,
+              "status": "ok"
+            },
+            {
+              "kind": "send_enqueue",
+              "connection_id": "admin-2833904-3",
+              "start_ts": 1794554113013,
+              "ts": 1794554113013,
+              "duration_ms": 0,
+              "status": "ok"
+            },
+            {
+              "kind": "send_flush",
+              "connection_id": "admin-2833904-3",
+              "start_ts": 1794554113013,
+              "ts": 1794554113023,
+              "duration_ms": 10.3,
+              "status": "ok"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "trace_id": "live-drill-2834041-mwend0z0-951",
+      "sent_ts": 1794554410284,
+      "court_id": "default_10",
+      "match_id": "btp_default_MX U13_450",
+      "tv_ms": 25,
+      "tv_received_ts": 1794554410309,
+      "admin_ms": 229,
+      "admin_received_ts": 1794554410433,
+      "admin_applied_ts": 1794554410435,
+      "admin_presented_ts": 1794554410513,
+      "admin_presentation_status": "presented",
+      "admin_ui_ms": {
+        "queue_ms": 1.3,
+        "handler_ms": 0.5,
+        "ui_wait_ms": 0,
+        "render_ms": 78.6,
+        "total_ms": 80.4
+      },
+      "admin_measurement_method": "dom-and-render-opportunity",
+      "admin_ui_jobs": [],
+      "admin_blocking_window_id": 30,
+      "admin_control_received_ts": 1794554410314,
+      "kind": "ordinary",
+      "sent_to_control_ms": 30,
+      "control_to_browser_callback_ms": 119,
+      "callback_to_presentation_ms": 80,
+      "browser_connection_id": "admin-2833904-3",
+      "server_operations": [
+        {
+          "id": 4478,
+          "name": "handle_score_update_v2",
+          "start_relative_to_send_ms": 4,
+          "duration_ms": 49.8,
+          "status": "ok",
+          "browser_send_spans": [
+            {
+              "kind": "send_wait",
+              "connection_id": "admin-2833904-3",
+              "start_ts": 1794554410309,
+              "ts": 1794554410309,
+              "duration_ms": 0,
+              "status": "ok"
+            },
+            {
+              "kind": "send_enqueue",
+              "connection_id": "admin-2833904-3",
+              "start_ts": 1794554410309,
+              "ts": 1794554410309,
+              "duration_ms": 0,
+              "status": "ok"
+            },
+            {
+              "kind": "send_flush",
+              "connection_id": "admin-2833904-3",
+              "start_ts": 1794554410309,
+              "ts": 1794554410314,
+              "duration_ms": 5.1,
+              "status": "ok"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "trace_id": "live-drill-2834041-mwen63kb-472",
+      "sent_ts": 1794554087051,
+      "court_id": "default_11",
+      "match_id": "btp_default_MX U13_442",
+      "tv_ms": 5,
+      "tv_received_ts": 1794554087056,
+      "admin_ms": 211,
+      "admin_received_ts": 1794554087213,
+      "admin_applied_ts": 1794554087216,
+      "admin_presented_ts": 1794554087262,
+      "admin_presentation_status": "presented",
+      "admin_ui_ms": {
+        "queue_ms": 0.6,
+        "handler_ms": 2.8,
+        "ui_wait_ms": 0,
+        "render_ms": 46.1,
+        "total_ms": 49.5
+      },
+      "admin_measurement_method": "dom-and-render-opportunity",
+      "admin_ui_jobs": [],
+      "admin_blocking_window_id": 8,
+      "admin_control_received_ts": 1794554087068,
+      "kind": "ordinary",
+      "sent_to_control_ms": 17,
+      "control_to_browser_callback_ms": 145,
+      "callback_to_presentation_ms": 49,
+      "browser_connection_id": "admin-2833904-3",
+      "server_operations": [
+        {
+          "id": 1709,
+          "name": "handle_score_update_v2",
+          "start_relative_to_send_ms": 2,
+          "duration_ms": 13.6,
+          "status": "ok",
+          "browser_send_spans": [
+            {
+              "kind": "send_wait",
+              "connection_id": "admin-2833904-3",
+              "start_ts": 1794554087056,
+              "ts": 1794554087056,
+              "duration_ms": 0,
+              "status": "ok"
+            },
+            {
+              "kind": "send_enqueue",
+              "connection_id": "admin-2833904-3",
+              "start_ts": 1794554087056,
+              "ts": 1794554087056,
+              "duration_ms": 0,
+              "status": "ok"
+            },
+            {
+              "kind": "send_flush",
+              "connection_id": "admin-2833904-3",
+              "start_ts": 1794554087056,
+              "ts": 1794554087057,
+              "duration_ms": 0.5,
+              "status": "ok"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "trace_id": "live-drill-2834041-mwen4jx3-286",
+      "sent_ts": 1794554014935,
+      "court_id": "default_7",
+      "match_id": "btp_default_MX U13_443",
+      "tv_ms": 10,
+      "tv_received_ts": 1794554014945,
+      "admin_ms": 193,
+      "admin_received_ts": 1794554015052,
+      "admin_applied_ts": 1794554015054,
+      "admin_presented_ts": 1794554015128,
+      "admin_presentation_status": "presented",
+      "admin_ui_ms": {
+        "queue_ms": 0.3,
+        "handler_ms": 1.5,
+        "ui_wait_ms": 0,
+        "render_ms": 73.8,
+        "total_ms": 75.6
+      },
+      "admin_measurement_method": "dom-and-render-opportunity",
+      "admin_ui_jobs": [],
+      "admin_blocking_window_id": 5,
+      "admin_control_received_ts": 1794554014946,
+      "kind": "ordinary",
+      "sent_to_control_ms": 11,
+      "control_to_browser_callback_ms": 106,
+      "callback_to_presentation_ms": 76,
+      "browser_connection_id": "admin-2833904-3",
+      "server_operations": [
+        {
+          "id": 1016,
+          "name": "handle_score_update_v2",
+          "start_relative_to_send_ms": 1,
+          "duration_ms": 19,
+          "status": "ok",
+          "browser_send_spans": [
+            {
+              "kind": "send_wait",
+              "connection_id": "admin-2833904-3",
+              "start_ts": 1794554014945,
+              "ts": 1794554014945,
+              "duration_ms": 0,
+              "status": "ok"
+            },
+            {
+              "kind": "send_enqueue",
+              "connection_id": "admin-2833904-3",
+              "start_ts": 1794554014945,
+              "ts": 1794554014945,
+              "duration_ms": 0,
+              "status": "ok"
+            },
+            {
+              "kind": "send_flush",
+              "connection_id": "admin-2833904-3",
+              "start_ts": 1794554014945,
+              "ts": 1794554014946,
+              "duration_ms": 0.6,
+              "status": "ok"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "trace_id": "live-drill-2834041-mwen3pvm-184",
+      "sent_ts": 1794553976002,
+      "court_id": "default_3",
+      "match_id": "btp_default_MX U19_299",
+      "tv_ms": 8,
+      "tv_received_ts": 1794553976010,
+      "admin_ms": 180,
+      "admin_received_ts": 1794553976100,
+      "admin_applied_ts": 1794553976120,
+      "admin_presented_ts": 1794553976182,
+      "admin_presentation_status": "presented",
+      "admin_ui_ms": {
+        "queue_ms": 18.7,
+        "handler_ms": 1.5,
+        "ui_wait_ms": 0,
+        "render_ms": 62.5,
+        "total_ms": 82.7
+      },
+      "admin_measurement_method": "dom-and-render-opportunity",
+      "admin_ui_jobs": [],
+      "admin_blocking_window_id": 2,
+      "admin_control_received_ts": 1794553976030,
+      "kind": "ordinary",
+      "sent_to_control_ms": 28,
+      "control_to_browser_callback_ms": 70,
+      "callback_to_presentation_ms": 82,
+      "browser_connection_id": "admin-2833904-3",
+      "server_operations": [
+        {
+          "id": 646,
+          "name": "handle_score_update_v2",
+          "start_relative_to_send_ms": 3,
+          "duration_ms": 17.7,
+          "status": "ok",
+          "browser_send_spans": [
+            {
+              "kind": "send_wait",
+              "connection_id": "admin-2833904-3",
+              "start_ts": 1794553976011,
+              "ts": 1794553976011,
+              "duration_ms": 0,
+              "status": "ok"
+            },
+            {
+              "kind": "send_enqueue",
+              "connection_id": "admin-2833904-3",
+              "start_ts": 1794553976011,
+              "ts": 1794553976011,
+              "duration_ms": 0,
+              "status": "ok"
+            },
+            {
+              "kind": "send_flush",
+              "connection_id": "admin-2833904-3",
+              "start_ts": 1794553976011,
+              "ts": 1794553976011,
+              "duration_ms": 0.6,
+              "status": "ok"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "trace_id": "live-drill-2834041-mwen74jk-591",
+      "sent_ts": 1794554134976,
+      "court_id": "default_10",
+      "match_id": "btp_default_MX U13_450",
+      "tv_ms": 13,
+      "tv_received_ts": 1794554134989,
+      "admin_ms": 165,
+      "admin_received_ts": 1794554134991,
+      "admin_applied_ts": 1794554134992,
+      "admin_presented_ts": 1794554135141,
+      "admin_presentation_status": "presented",
+      "admin_ui_ms": {
+        "queue_ms": 0.1,
+        "handler_ms": 0.2,
+        "ui_wait_ms": 0,
+        "render_ms": 149.3,
+        "total_ms": 149.6
+      },
+      "admin_measurement_method": "dom-and-render-opportunity",
+      "admin_ui_jobs": [],
+      "admin_blocking_window_id": 13,
+      "admin_control_received_ts": 1794554134990,
+      "kind": "ordinary",
+      "sent_to_control_ms": 14,
+      "control_to_browser_callback_ms": 1,
+      "callback_to_presentation_ms": 150,
+      "browser_connection_id": "admin-2833904-3",
+      "server_operations": [
+        {
+          "id": 2179,
+          "name": "handle_score_update_v2",
+          "start_relative_to_send_ms": 1,
+          "duration_ms": 15.6,
+          "status": "ok",
+          "browser_send_spans": [
+            {
+              "kind": "send_wait",
+              "connection_id": "admin-2833904-3",
+              "start_ts": 1794554134989,
+              "ts": 1794554134989,
+              "duration_ms": 0,
+              "status": "ok"
+            },
+            {
+              "kind": "send_enqueue",
+              "connection_id": "admin-2833904-3",
+              "start_ts": 1794554134989,
+              "ts": 1794554134989,
+              "duration_ms": 0,
+              "status": "ok"
+            },
+            {
+              "kind": "send_flush",
+              "connection_id": "admin-2833904-3",
+              "start_ts": 1794554134989,
+              "ts": 1794554134990,
+              "duration_ms": 0.4,
+              "status": "ok"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "trace_id": "live-drill-2834041-mwen9j1r-846",
+      "sent_ts": 1794554247087,
+      "court_id": "default_2",
+      "match_id": "btp_default_MX U13_454",
+      "tv_ms": 11,
+      "tv_received_ts": 1794554247098,
+      "admin_ms": 164,
+      "admin_received_ts": 1794554247113,
+      "admin_applied_ts": 1794554247115,
+      "admin_presented_ts": 1794554247251,
+      "admin_presentation_status": "presented",
+      "admin_ui_ms": {
+        "queue_ms": 0.9,
+        "handler_ms": 0.3,
+        "ui_wait_ms": 0,
+        "render_ms": 136.5,
+        "total_ms": 137.7
+      },
+      "admin_measurement_method": "dom-and-render-opportunity",
+      "admin_ui_jobs": [],
+      "admin_blocking_window_id": 25,
+      "admin_control_received_ts": 1794554247099,
+      "kind": "ordinary",
+      "sent_to_control_ms": 12,
+      "control_to_browser_callback_ms": 14,
+      "callback_to_presentation_ms": 138,
+      "browser_connection_id": "admin-2833904-3",
+      "server_operations": [
+        {
+          "id": 3223,
+          "name": "handle_score_update_v2",
+          "start_relative_to_send_ms": 2,
+          "duration_ms": 21.4,
+          "status": "ok",
+          "browser_send_spans": [
+            {
+              "kind": "send_wait",
+              "connection_id": "admin-2833904-3",
+              "start_ts": 1794554247099,
+              "ts": 1794554247099,
+              "duration_ms": 0,
+              "status": "ok"
+            },
+            {
+              "kind": "send_enqueue",
+              "connection_id": "admin-2833904-3",
+              "start_ts": 1794554247099,
+              "ts": 1794554247099,
+              "duration_ms": 0,
+              "status": "ok"
+            },
+            {
+              "kind": "send_flush",
+              "connection_id": "admin-2833904-3",
+              "start_ts": 1794554247099,
+              "ts": 1794554247099,
+              "duration_ms": 0.6,
+              "status": "ok"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "trace_id": "live-drill-2834041-mwene4id-1083",
+      "sent_ts": 1794554461525,
+      "court_id": "default_6",
+      "match_id": "btp_default_MX U15_367",
+      "tv_ms": 15,
+      "tv_received_ts": 1794554461540,
+      "admin_ms": 161,
+      "admin_received_ts": 1794554461592,
+      "admin_applied_ts": 1794554461594,
+      "admin_presented_ts": 1794554461686,
+      "admin_presentation_status": "presented",
+      "admin_ui_ms": {
+        "queue_ms": 0.9,
+        "handler_ms": 1.1,
+        "ui_wait_ms": 0,
+        "render_ms": 91.4,
+        "total_ms": 93.4
+      },
+      "admin_measurement_method": "dom-and-render-opportunity",
+      "admin_ui_jobs": [],
+      "admin_blocking_window_id": 37,
+      "admin_control_received_ts": 1794554461541,
+      "kind": "ordinary",
+      "sent_to_control_ms": 16,
+      "control_to_browser_callback_ms": 51,
+      "callback_to_presentation_ms": 94,
+      "browser_connection_id": "admin-2833904-3",
+      "server_operations": [
+        {
+          "id": 4959,
+          "name": "handle_score_update_v2",
+          "start_relative_to_send_ms": 7,
+          "duration_ms": 17.1,
+          "status": "ok",
+          "browser_send_spans": [
+            {
+              "kind": "send_wait",
+              "connection_id": "admin-2833904-3",
+              "start_ts": 1794554461540,
+              "ts": 1794554461540,
+              "duration_ms": 0,
+              "status": "ok"
+            },
+            {
+              "kind": "send_enqueue",
+              "connection_id": "admin-2833904-3",
+              "start_ts": 1794554461540,
+              "ts": 1794554461540,
+              "duration_ms": 0,
+              "status": "ok"
+            },
+            {
+              "kind": "send_flush",
+              "connection_id": "admin-2833904-3",
+              "start_ts": 1794554461540,
+              "ts": 1794554461541,
+              "duration_ms": 0.4,
+              "status": "ok"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "trace_id": "live-drill-2834041-mwen5818-368",
+      "sent_ts": 1794554046189,
+      "court_id": "default_14",
+      "match_id": "btp_default_MX U19_306",
+      "tv_ms": 8,
+      "tv_received_ts": 1794554046197,
+      "admin_ms": 145,
+      "admin_received_ts": 1794554046294,
+      "admin_applied_ts": 1794554046296,
+      "admin_presented_ts": 1794554046334,
+      "admin_presentation_status": "presented",
+      "admin_ui_ms": {
+        "queue_ms": 0.3,
+        "handler_ms": 1.8,
+        "ui_wait_ms": 0,
+        "render_ms": 37.4,
+        "total_ms": 39.5
+      },
+      "admin_measurement_method": "dom-and-render-opportunity",
+      "admin_ui_jobs": [],
+      "admin_blocking_window_id": 6,
+      "admin_control_received_ts": 1794554046199,
+      "kind": "ordinary",
+      "sent_to_control_ms": 10,
+      "control_to_browser_callback_ms": 95,
+      "callback_to_presentation_ms": 40,
+      "browser_connection_id": "admin-2833904-3",
+      "server_operations": [
+        {
+          "id": 1316,
+          "name": "handle_score_update_v2",
+          "start_relative_to_send_ms": 0,
+          "duration_ms": 11.2,
+          "status": "ok",
+          "browser_send_spans": [
+            {
+              "kind": "send_wait",
+              "connection_id": "admin-2833904-3",
+              "start_ts": 1794554046197,
+              "ts": 1794554046197,
+              "duration_ms": 0,
+              "status": "ok"
+            },
+            {
+              "kind": "send_enqueue",
+              "connection_id": "admin-2833904-3",
+              "start_ts": 1794554046197,
+              "ts": 1794554046197,
+              "duration_ms": 0,
+              "status": "ok"
+            },
+            {
+              "kind": "send_flush",
+              "connection_id": "admin-2833904-3",
+              "start_ts": 1794554046197,
+              "ts": 1794554046198,
+              "duration_ms": 0.7,
+              "status": "ok"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "trace_id": "live-drill-2834041-mwene00j-1069",
+      "sent_ts": 1794554455699,
+      "court_id": "default_8",
+      "match_id": "btp_default_MX U17_110",
+      "tv_ms": 3,
+      "tv_received_ts": 1794554455702,
+      "admin_ms": 136,
+      "admin_received_ts": 1794554455810,
+      "admin_applied_ts": 1794554455811,
+      "admin_presented_ts": 1794554455835,
+      "admin_presentation_status": "presented",
+      "admin_ui_ms": {
+        "queue_ms": 0.2,
+        "handler_ms": 0.2,
+        "ui_wait_ms": 0,
+        "render_ms": 24.3,
+        "total_ms": 24.7
+      },
+      "admin_measurement_method": "dom-and-render-opportunity",
+      "admin_ui_jobs": [],
+      "admin_blocking_window_id": 36,
+      "admin_control_received_ts": 1794554455703,
+      "kind": "ordinary",
+      "sent_to_control_ms": 4,
+      "control_to_browser_callback_ms": 107,
+      "callback_to_presentation_ms": 25,
+      "browser_connection_id": "admin-2833904-3",
+      "server_operations": [
+        {
+          "id": 4905,
+          "name": "handle_score_update_v2",
+          "start_relative_to_send_ms": 0,
+          "duration_ms": 5.4,
+          "status": "ok",
+          "browser_send_spans": [
+            {
+              "kind": "send_wait",
+              "connection_id": "admin-2833904-3",
+              "start_ts": 1794554455703,
+              "ts": 1794554455703,
+              "duration_ms": 0,
+              "status": "ok"
+            },
+            {
+              "kind": "send_enqueue",
+              "connection_id": "admin-2833904-3",
+              "start_ts": 1794554455703,
+              "ts": 1794554455703,
+              "duration_ms": 0,
+              "status": "ok"
+            },
+            {
+              "kind": "send_flush",
+              "connection_id": "admin-2833904-3",
+              "start_ts": 1794554455703,
+              "ts": 1794554455703,
+              "duration_ms": 0.5,
+              "status": "ok"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "trace_id": "live-drill-2834041-mwen7eqm-621",
+      "sent_ts": 1794554148190,
+      "court_id": "default_15",
+      "match_id": "btp_default_MX U15_362",
+      "tv_ms": 6,
+      "tv_received_ts": 1794554148196,
+      "admin_ms": 133,
+      "admin_received_ts": 1794554148261,
+      "admin_applied_ts": 1794554148263,
+      "admin_presented_ts": 1794554148323,
+      "admin_presentation_status": "presented",
+      "admin_ui_ms": {
+        "queue_ms": 1,
+        "handler_ms": 1.1,
+        "ui_wait_ms": 0,
+        "render_ms": 60.3,
+        "total_ms": 62.4
+      },
+      "admin_measurement_method": "dom-and-render-opportunity",
+      "admin_ui_jobs": [],
+      "admin_blocking_window_id": 15,
+      "admin_control_received_ts": 1794554148203,
+      "kind": "ordinary",
+      "sent_to_control_ms": 13,
+      "control_to_browser_callback_ms": 58,
+      "callback_to_presentation_ms": 62,
+      "browser_connection_id": "admin-2833904-3",
+      "server_operations": [
+        {
+          "id": 2299,
+          "name": "handle_score_update_v2",
+          "start_relative_to_send_ms": 3,
+          "duration_ms": 11.7,
+          "status": "ok",
+          "browser_send_spans": [
+            {
+              "kind": "send_wait",
+              "connection_id": "admin-2833904-3",
+              "start_ts": 1794554148196,
+              "ts": 1794554148196,
+              "duration_ms": 0,
+              "status": "ok"
+            },
+            {
+              "kind": "send_enqueue",
+              "connection_id": "admin-2833904-3",
+              "start_ts": 1794554148196,
+              "ts": 1794554148196,
+              "duration_ms": 0,
+              "status": "ok"
+            },
+            {
+              "kind": "send_flush",
+              "connection_id": "admin-2833904-3",
+              "start_ts": 1794554148196,
+              "ts": 1794554148197,
+              "duration_ms": 0.4,
+              "status": "ok"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "trace_id": "live-drill-2834041-mwen6nx3-540",
+      "sent_ts": 1794554113431,
+      "court_id": "default_11",
+      "match_id": "btp_default_MX U13_442",
+      "tv_ms": 10,
+      "tv_received_ts": 1794554113441,
+      "admin_ms": 132,
+      "admin_received_ts": 1794554113531,
+      "admin_applied_ts": 1794554113532,
+      "admin_presented_ts": 1794554113563,
+      "admin_presentation_status": "presented",
+      "admin_ui_ms": {
+        "queue_ms": 0.3,
+        "handler_ms": 0.3,
+        "ui_wait_ms": 0.1,
+        "render_ms": 31.1,
+        "total_ms": 31.8
+      },
+      "admin_measurement_method": "dom-and-render-opportunity",
+      "admin_ui_jobs": [],
+      "admin_blocking_window_id": 10,
+      "admin_control_received_ts": 1794554113448,
+      "kind": "ordinary",
+      "sent_to_control_ms": 17,
+      "control_to_browser_callback_ms": 83,
+      "callback_to_presentation_ms": 32,
+      "browser_connection_id": "admin-2833904-3",
+      "server_operations": [
+        {
+          "id": 1967,
+          "name": "handle_score_update_v2",
+          "start_relative_to_send_ms": 2,
+          "duration_ms": 19,
+          "status": "ok",
+          "browser_send_spans": [
+            {
+              "kind": "send_wait",
+              "connection_id": "admin-2833904-3",
+              "start_ts": 1794554113442,
+              "ts": 1794554113442,
+              "duration_ms": 0,
+              "status": "ok"
+            },
+            {
+              "kind": "send_enqueue",
+              "connection_id": "admin-2833904-3",
+              "start_ts": 1794554113442,
+              "ts": 1794554113442,
+              "duration_ms": 0,
+              "status": "ok"
+            },
+            {
+              "kind": "send_flush",
+              "connection_id": "admin-2833904-3",
+              "start_ts": 1794554113442,
+              "ts": 1794554113448,
+              "duration_ms": 6.8,
+              "status": "ok"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "trace_id": "live-drill-2834041-mwen8lgi-755",
+      "sent_ts": 1794554203554,
+      "court_id": "default_8",
+      "match_id": "btp_default_MX U19_300",
+      "tv_ms": 7,
+      "tv_received_ts": 1794554203561,
+      "admin_ms": 121,
+      "admin_received_ts": 1794554203619,
+      "admin_applied_ts": 1794554203621,
+      "admin_presented_ts": 1794554203675,
+      "admin_presentation_status": "presented",
+      "admin_ui_ms": {
+        "queue_ms": 0.3,
+        "handler_ms": 1.3,
+        "ui_wait_ms": 0.1,
+        "render_ms": 54.6,
+        "total_ms": 56.3
+      },
+      "admin_measurement_method": "dom-and-render-opportunity",
+      "admin_ui_jobs": [],
+      "admin_blocking_window_id": 20,
+      "admin_control_received_ts": 1794554203563,
+      "kind": "ordinary",
+      "sent_to_control_ms": 9,
+      "control_to_browser_callback_ms": 56,
+      "callback_to_presentation_ms": 56,
+      "browser_connection_id": "admin-2833904-3",
+      "server_operations": [
+        {
+          "id": 2804,
+          "name": "handle_score_update_v2",
+          "start_relative_to_send_ms": 2,
+          "duration_ms": 23.7,
+          "status": "ok",
+          "browser_send_spans": [
+            {
+              "kind": "send_wait",
+              "connection_id": "admin-2833904-3",
+              "start_ts": 1794554203562,
+              "ts": 1794554203562,
+              "duration_ms": 0,
+              "status": "ok"
+            },
+            {
+              "kind": "send_enqueue",
+              "connection_id": "admin-2833904-3",
+              "start_ts": 1794554203562,
+              "ts": 1794554203562,
+              "duration_ms": 0,
+              "status": "ok"
+            },
+            {
+              "kind": "send_flush",
+              "connection_id": "admin-2833904-3",
+              "start_ts": 1794554203562,
+              "ts": 1794554203563,
+              "duration_ms": 0.8,
+              "status": "ok"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "trace_id": "live-drill-2834041-mwen6qj6-548",
+      "sent_ts": 1794554116818,
+      "court_id": "default_1",
+      "match_id": "btp_default_MX U19_309",
+      "tv_ms": 14,
+      "tv_received_ts": 1794554116832,
+      "admin_ms": 118,
+      "admin_received_ts": 1794554116910,
+      "admin_applied_ts": 1794554116921,
+      "admin_presented_ts": 1794554116936,
+      "admin_presentation_status": "presented",
+      "admin_ui_ms": {
+        "queue_ms": 9.9,
+        "handler_ms": 0.3,
+        "ui_wait_ms": 0,
+        "render_ms": 14.9,
+        "total_ms": 25.1
+      },
+      "admin_measurement_method": "dom-and-render-opportunity",
+      "admin_ui_jobs": [],
+      "admin_blocking_window_id": 11,
+      "admin_control_received_ts": 1794554116833,
+      "kind": "ordinary",
+      "sent_to_control_ms": 15,
+      "control_to_browser_callback_ms": 77,
+      "callback_to_presentation_ms": 26,
+      "browser_connection_id": "admin-2833904-3",
+      "server_operations": [
+        {
+          "id": 2005,
+          "name": "handle_score_update_v2",
+          "start_relative_to_send_ms": 2,
+          "duration_ms": 27.8,
+          "status": "ok",
+          "browser_send_spans": [
+            {
+              "kind": "send_wait",
+              "connection_id": "admin-2833904-3",
+              "start_ts": 1794554116833,
+              "ts": 1794554116833,
+              "duration_ms": 0,
+              "status": "ok"
+            },
+            {
+              "kind": "send_enqueue",
+              "connection_id": "admin-2833904-3",
+              "start_ts": 1794554116833,
+              "ts": 1794554116833,
+              "duration_ms": 0,
+              "status": "ok"
+            },
+            {
+              "kind": "send_flush",
+              "connection_id": "admin-2833904-3",
+              "start_ts": 1794554116833,
+              "ts": 1794554116833,
+              "duration_ms": 0.5,
+              "status": "ok"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "trace_id": "live-drill-2834041-mwenebl4-1107",
+      "sent_ts": 1794554470697,
+      "court_id": "default_14",
+      "match_id": "btp_default_MX U15_371",
+      "tv_ms": 3,
+      "tv_received_ts": 1794554470700,
+      "admin_ms": 110,
+      "admin_received_ts": 1794554470737,
+      "admin_applied_ts": 1794554470737,
+      "admin_presented_ts": 1794554470807,
+      "admin_presentation_status": "presented",
+      "admin_ui_ms": {
+        "queue_ms": 0.2,
+        "handler_ms": 0.2,
+        "ui_wait_ms": 0,
+        "render_ms": 69.4,
+        "total_ms": 69.8
+      },
+      "admin_measurement_method": "dom-and-render-opportunity",
+      "admin_ui_jobs": [],
+      "admin_blocking_window_id": 38,
+      "admin_control_received_ts": 1794554470702,
+      "kind": "ordinary",
+      "sent_to_control_ms": 5,
+      "control_to_browser_callback_ms": 35,
+      "callback_to_presentation_ms": 70,
+      "browser_connection_id": "admin-2833904-3",
+      "server_operations": [
+        {
+          "id": 5044,
+          "name": "handle_score_update_v2",
+          "start_relative_to_send_ms": 0,
+          "duration_ms": 5.8,
+          "status": "ok",
+          "browser_send_spans": [
+            {
+              "kind": "send_wait",
+              "connection_id": "admin-2833904-3",
+              "start_ts": 1794554470700,
+              "ts": 1794554470700,
+              "duration_ms": 0,
+              "status": "ok"
+            },
+            {
+              "kind": "send_enqueue",
+              "connection_id": "admin-2833904-3",
+              "start_ts": 1794554470700,
+              "ts": 1794554470700,
+              "duration_ms": 0,
+              "status": "ok"
+            },
+            {
+              "kind": "send_flush",
+              "connection_id": "admin-2833904-3",
+              "start_ts": 1794554470700,
+              "ts": 1794554470701,
+              "duration_ms": 0.5,
+              "status": "ok"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "trace_id": "live-drill-2834041-mwen3pjb-183",
+      "sent_ts": 1794553975560,
+      "court_id": "default_2",
+      "match_id": "btp_default_MX U19_298",
+      "tv_ms": 6,
+      "tv_received_ts": 1794553975566,
+      "admin_ms": 106,
+      "admin_received_ts": 1794553975590,
+      "admin_applied_ts": 1794553975593,
+      "admin_presented_ts": 1794553975666,
+      "admin_presentation_status": "presented",
+      "admin_ui_ms": {
+        "queue_ms": 0.3,
+        "handler_ms": 2.8,
+        "ui_wait_ms": 0,
+        "render_ms": 72.3,
+        "total_ms": 75.4
+      },
+      "admin_measurement_method": "dom-and-render-opportunity",
+      "admin_ui_jobs": [],
+      "admin_control_received_ts": 1794553975567,
+      "kind": "ordinary",
+      "sent_to_control_ms": 7,
+      "control_to_browser_callback_ms": 23,
+      "callback_to_presentation_ms": 76,
+      "browser_connection_id": "admin-2833904-3",
+      "server_operations": [
+        {
+          "id": 639,
+          "name": "handle_score_update_v2",
+          "start_relative_to_send_ms": 2,
+          "duration_ms": 29.6,
+          "status": "ok",
+          "browser_send_spans": [
+            {
+              "kind": "send_wait",
+              "connection_id": "admin-2833904-3",
+              "start_ts": 1794553975566,
+              "ts": 1794553975566,
+              "duration_ms": 0,
+              "status": "ok"
+            },
+            {
+              "kind": "send_enqueue",
+              "connection_id": "admin-2833904-3",
+              "start_ts": 1794553975566,
+              "ts": 1794553975566,
+              "duration_ms": 0,
+              "status": "ok"
+            },
+            {
+              "kind": "send_flush",
+              "connection_id": "admin-2833904-3",
+              "start_ts": 1794553975566,
+              "ts": 1794553975567,
+              "duration_ms": 0.6,
+              "status": "ok"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "trace_id": "live-drill-2834041-mwen8wdr-785",
+      "sent_ts": 1794554217711,
+      "court_id": "default_10",
+      "match_id": "btp_default_MX U13_450",
+      "tv_ms": 4,
+      "tv_received_ts": 1794554217715,
+      "admin_ms": 101,
+      "admin_received_ts": 1794554217721,
+      "admin_applied_ts": 1794554217736,
+      "admin_presented_ts": 1794554217812,
+      "admin_presentation_status": "presented",
+      "admin_ui_ms": {
+        "queue_ms": 13.4,
+        "handler_ms": 1.3,
+        "ui_wait_ms": 0,
+        "render_ms": 76.1,
+        "total_ms": 90.8
+      },
+      "admin_measurement_method": "dom-and-render-opportunity",
+      "admin_ui_jobs": [],
+      "admin_blocking_window_id": 21,
+      "admin_control_received_ts": 1794554217715,
+      "kind": "ordinary",
+      "sent_to_control_ms": 4,
+      "control_to_browser_callback_ms": 6,
+      "callback_to_presentation_ms": 91,
+      "browser_connection_id": "admin-2833904-3",
+      "server_operations": [
+        {
+          "id": 2933,
+          "name": "handle_score_update_v2",
+          "start_relative_to_send_ms": 0,
+          "duration_ms": 15.8,
+          "status": "ok",
+          "browser_send_spans": [
+            {
+              "kind": "send_wait",
+              "connection_id": "admin-2833904-3",
+              "start_ts": 1794554217715,
+              "ts": 1794554217715,
+              "duration_ms": 0,
+              "status": "ok"
+            },
+            {
+              "kind": "send_enqueue",
+              "connection_id": "admin-2833904-3",
+              "start_ts": 1794554217715,
+              "ts": 1794554217715,
+              "duration_ms": 0,
+              "status": "ok"
+            },
+            {
+              "kind": "send_flush",
+              "connection_id": "admin-2833904-3",
+              "start_ts": 1794554217715,
+              "ts": 1794554217715,
+              "duration_ms": 0.4,
+              "status": "ok"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "server": {
+    "operation_counts": {
+      "admin_tournament_get": 1617,
+      "handle_score_update_v2": 1186,
+      "periodic_preparation_pause": 599,
+      "periodic_preparation_age": 599,
+      "periodic_official_pause": 599,
+      "speech_snapshot": 136,
+      "speech_request": 478,
+      "periodic_player_court_reconciliation": 40,
+      "btp_fetch": 19,
+      "post_sync_auto_call_apply": 30,
+      "handle_match_player_check_in": 17,
+      "database_compaction": 7
+    },
+    "errors": [],
+    "probe_failures": 0,
+    "trace_gaps": 0,
+    "archive_dropped": {
+      "samples": 0,
+      "traces": 0,
+      "events": 0
+    },
+    "queue_incidents": [],
+    "btp_fetch_interval_ms": {
+      "count": 18,
+      "mean": 31341.667,
+      "min": 30860,
+      "median": 31188,
+      "p95": 32710,
+      "p99": 32710,
+      "max": 32710
+    }
+  },
+  "ui_updates": {
+    "emergency_announce": {
+      "count": 1,
+      "queue_ms": {
+        "mean": 0.5,
+        "max": 0.5
+      },
+      "handler_ms": {
+        "mean": 2.7,
+        "max": 2.7
+      },
+      "ui_wait_ms": {
+        "mean": 1200.8,
+        "max": 1200.8
+      },
+      "render_ms": {
+        "mean": 54.8,
+        "max": 54.8
+      },
+      "total_ms": {
+        "mean": 1258.8,
+        "max": 1258.8
+      }
+    },
+    "display_wait_for_done": {
+      "count": 1415,
+      "queue_ms": {
+        "mean": 3.35,
+        "max": 252.1
+      },
+      "handler_ms": {
+        "mean": 0.03,
+        "max": 0.2
+      },
+      "ui_wait_ms": {
+        "mean": 0.01,
+        "max": 0.2
+      },
+      "render_ms": {
+        "mean": 17.87,
+        "max": 217.9
+      },
+      "total_ms": {
+        "mean": 21.26,
+        "max": 318.8
+      }
+    },
+    "display_render_stats": {
+      "count": 1214,
+      "queue_ms": {
+        "mean": 4.11,
+        "max": 287.6
+      },
+      "handler_ms": {
+        "mean": 0.03,
+        "max": 0.7
+      },
+      "ui_wait_ms": {
+        "mean": 0.01,
+        "max": 0.1
+      },
+      "render_ms": {
+        "mean": 26.65,
+        "max": 149.4
+      },
+      "total_ms": {
+        "mean": 30.81,
+        "max": 354.2
+      }
+    },
+    "display_is_done": {
+      "count": 1415,
+      "queue_ms": {
+        "mean": 4.53,
+        "max": 287.7
+      },
+      "handler_ms": {
+        "mean": 0.02,
+        "max": 1.9
+      },
+      "ui_wait_ms": {
+        "mean": 0,
+        "max": 0.1
+      },
+      "render_ms": {
+        "mean": 27.3,
+        "max": 149.5
+      },
+      "total_ms": {
+        "mean": 31.85,
+        "max": 354.3
+      }
+    },
+    "display_status_changed": {
+      "count": 2272,
+      "queue_ms": {
+        "mean": 3.45,
+        "max": 337.3
+      },
+      "handler_ms": {
+        "mean": 0.49,
+        "max": 5.5
+      },
+      "ui_wait_ms": {
+        "mean": 0.01,
+        "max": 0.2
+      },
+      "render_ms": {
+        "mean": 25.81,
+        "max": 162.9
+      },
+      "total_ms": {
+        "mean": 29.75,
+        "max": 393.4
+      }
+    },
+    "score": {
+      "count": 1186,
+      "queue_ms": {
+        "mean": 0.23,
+        "max": 18.7
+      },
+      "handler_ms": {
+        "mean": 0.44,
+        "max": 17.8
+      },
+      "ui_wait_ms": {
+        "mean": 0.69,
+        "max": 59.8
+      },
+      "render_ms": {
+        "mean": 24.97,
+        "max": 175.1
+      },
+      "total_ms": {
+        "mean": 26.32,
+        "max": 176.3
+      }
+    },
+    "court_current_match": {
+      "count": 115,
+      "queue_ms": {
+        "mean": 4.97,
+        "max": 96.1
+      },
+      "handler_ms": {
+        "mean": 0.49,
+        "max": 2.1
+      },
+      "ui_wait_ms": {
+        "mean": 10.36,
+        "max": 127.1
+      },
+      "render_ms": {
+        "mean": 29.64,
+        "max": 84.9
+      },
+      "total_ms": {
+        "mean": 45.46,
+        "max": 195.7
+      }
+    },
+    "call_status_changed": {
+      "count": 180,
+      "queue_ms": {
+        "mean": 8.91,
+        "max": 155.6
+      },
+      "handler_ms": {
+        "mean": 2.68,
+        "max": 72.7
+      },
+      "ui_wait_ms": {
+        "mean": 14.6,
+        "max": 430.5
+      },
+      "render_ms": {
+        "mean": 33.81,
+        "max": 164.7
+      },
+      "total_ms": {
+        "mean": 60,
+        "max": 658.7
+      }
+    },
+    "speech_cache_changed": {
+      "count": 149,
+      "queue_ms": {
+        "mean": 18.44,
+        "max": 327.2
+      },
+      "handler_ms": {
+        "mean": 0.04,
+        "max": 0.4
+      },
+      "ui_wait_ms": {
+        "mean": 0.01,
+        "max": 0.1
+      },
+      "render_ms": {
+        "mean": 25.79,
+        "max": 217.9
+      },
+      "total_ms": {
+        "mean": 44.29,
+        "max": 388.9
+      }
+    },
+    "btp_status": {
+      "count": 38,
+      "queue_ms": {
+        "mean": 0.06,
+        "max": 0.3
+      },
+      "handler_ms": {
+        "mean": 4.65,
+        "max": 13.3
+      },
+      "ui_wait_ms": {
+        "mean": 8.42,
+        "max": 66.3
+      },
+      "render_ms": {
+        "mean": 31.23,
+        "max": 111.4
+      },
+      "total_ms": {
+        "mean": 44.36,
+        "max": 130.9
+      }
+    },
+    "match_protocol_event": {
+      "count": 62,
+      "queue_ms": {
+        "mean": 84.16,
+        "max": 343.9
+      },
+      "handler_ms": {
+        "mean": 0.02,
+        "max": 0.2
+      },
+      "ui_wait_ms": {
+        "mean": 0.01,
+        "max": 0.1
+      },
+      "render_ms": {
+        "mean": 69.77,
+        "max": 184
+      },
+      "total_ms": {
+        "mean": 153.96,
+        "max": 393.3
+      }
+    },
+    "umpire_updated": {
+      "count": 5,
+      "queue_ms": {
+        "mean": 91.58,
+        "max": 250.3
+      },
+      "handler_ms": {
+        "mean": 2.26,
+        "max": 3.8
+      },
+      "ui_wait_ms": {
+        "mean": 8.16,
+        "max": 40.8
+      },
+      "render_ms": {
+        "mean": 84.3,
+        "max": 172.3
+      },
+      "total_ms": {
+        "mean": 186.3,
+        "max": 332.6
+      }
+    },
+    "umpires_changed": {
+      "count": 2,
+      "queue_ms": {
+        "mean": 53.2,
+        "max": 88.7
+      },
+      "handler_ms": {
+        "mean": 7.45,
+        "max": 12.6
+      },
+      "ui_wait_ms": {
+        "mean": 0,
+        "max": 0
+      },
+      "render_ms": {
+        "mean": 64.95,
+        "max": 67.8
+      },
+      "total_ms": {
+        "mean": 125.6,
+        "max": 169.1
+      }
+    },
+    "match_edit": {
+      "count": 364,
+      "queue_ms": {
+        "mean": 187.72,
+        "max": 402.6
+      },
+      "handler_ms": {
+        "mean": 1.08,
+        "max": 12.6
+      },
+      "ui_wait_ms": {
+        "mean": 65.63,
+        "max": 420.3
+      },
+      "render_ms": {
+        "mean": 45.53,
+        "max": 115
+      },
+      "total_ms": {
+        "mean": 299.97,
+        "max": 475
+      }
+    },
+    "match_preparation_call": {
+      "count": 14,
+      "queue_ms": {
+        "mean": 0.14,
+        "max": 0.2
+      },
+      "handler_ms": {
+        "mean": 7.53,
+        "max": 25
+      },
+      "ui_wait_ms": {
+        "mean": 173.44,
+        "max": 414.8
+      },
+      "render_ms": {
+        "mean": 48.42,
+        "max": 130.4
+      },
+      "total_ms": {
+        "mean": 229.52,
+        "max": 560.6
+      }
+    },
+    "update_player_status": {
+      "count": 396,
+      "queue_ms": {
+        "mean": 86.69,
+        "max": 402.8
+      },
+      "handler_ms": {
+        "mean": 0.08,
+        "max": 3.4
+      },
+      "ui_wait_ms": {
+        "mean": 77.4,
+        "max": 219.2
+      },
+      "total_ms": {
+        "mean": 213.8,
+        "max": 420.6
+      },
+      "render_ms": {
+        "mean": 49.63,
+        "max": 101.9
+      }
+    },
+    "tabletoperator_removed": {
+      "count": 26,
+      "queue_ms": {
+        "mean": 12.87,
+        "max": 101.3
+      },
+      "handler_ms": {
+        "mean": 1.64,
+        "max": 2.7
+      },
+      "ui_wait_ms": {
+        "mean": 87.88,
+        "max": 211.6
+      },
+      "render_ms": {
+        "mean": 51.85,
+        "max": 90.7
+      },
+      "total_ms": {
+        "mean": 154.24,
+        "max": 331.8
+      }
+    },
+    "tabletoperator_add": {
+      "count": 14,
+      "queue_ms": {
+        "mean": 15,
+        "max": 48.5
+      },
+      "handler_ms": {
+        "mean": 2.01,
+        "max": 3.2
+      },
+      "ui_wait_ms": {
+        "mean": 83.54,
+        "max": 128.2
+      },
+      "render_ms": {
+        "mean": 50.56,
+        "max": 84.8
+      },
+      "total_ms": {
+        "mean": 151.11,
+        "max": 237.6
+      }
+    },
+    "court_changed": {
+      "count": 14,
+      "queue_ms": {
+        "mean": 20.84,
+        "max": 114.5
+      },
+      "handler_ms": {
+        "mean": 1.74,
+        "max": 3.5
+      },
+      "ui_wait_ms": {
+        "mean": 54.69,
+        "max": 93.2
+      },
+      "render_ms": {
+        "mean": 55.94,
+        "max": 109.5
+      },
+      "total_ms": {
+        "mean": 133.21,
+        "max": 191.9
+      }
+    },
+    "match_called_on_court": {
+      "count": 13,
+      "queue_ms": {
+        "mean": 0.11,
+        "max": 0.2
+      },
+      "handler_ms": {
+        "mean": 0.18,
+        "max": 0.4
+      },
+      "ui_wait_ms": {
+        "mean": 0.01,
+        "max": 0.1
+      },
+      "render_ms": {
+        "mean": 60.55,
+        "max": 204.9
+      },
+      "total_ms": {
+        "mean": 60.85,
+        "max": 205.1
+      }
+    },
+    "update_btp_events": {
+      "count": 9,
+      "queue_ms": {
+        "mean": 0.81,
+        "max": 5.6
+      },
+      "handler_ms": {
+        "mean": 3.36,
+        "max": 5.7
+      },
+      "ui_wait_ms": {
+        "mean": 6.61,
+        "max": 33
+      },
+      "render_ms": {
+        "mean": 37.91,
+        "max": 93.9
+      },
+      "total_ms": {
+        "mean": 48.69,
+        "max": 134.1
+      }
+    }
+  },
+  "unique_ui_jobs": {
+    "board.initial-lists": {
+      "count": 1,
+      "work_ms": {
+        "mean": 360.8,
+        "max": 360.8
+      }
+    },
+    "timers.fit": {
+      "count": 251,
+      "work_ms": {
+        "mean": 0.13,
+        "max": 1.5
+      }
+    },
+    "names.first-size": {
+      "count": 577,
+      "work_ms": {
+        "mean": 0,
+        "max": 0
+      }
+    },
+    "names.layout": {
+      "count": 127,
+      "work_ms": {
+        "mean": 8.82,
+        "max": 82.1
+      }
+    },
+    "lists.counts": {
+      "count": 44,
+      "work_ms": {
+        "mean": 7.76,
+        "max": 13.5
+      }
+    },
+    "preparation.controls": {
+      "count": 176,
+      "work_ms": {
+        "mean": 12.52,
+        "max": 63.1
+      }
+    },
+    "finished.sort": {
+      "count": 33,
+      "work_ms": {
+        "mean": 6.92,
+        "max": 77
+      }
+    },
+    "locations.labels": {
+      "count": 185,
+      "work_ms": {
+        "mean": 0.39,
+        "max": 1.9
+      }
+    },
+    "planned.sort": {
+      "count": 39,
+      "work_ms": {
+        "mean": 8.95,
+        "max": 28.5
+      }
+    },
+    "matches.warnings": {
+      "count": 92,
+      "work_ms": {
+        "mean": 3.4,
+        "max": 20.4
+      }
+    },
+    "preparation.courts": {
+      "count": 89,
+      "work_ms": {
+        "mean": 0.94,
+        "max": 4.4
+      }
+    },
+    "players.status": {
+      "count": 105,
+      "work_ms": {
+        "mean": 3.46,
+        "max": 26
+      }
+    },
+    "lists.dates": {
+      "count": 13,
+      "work_ms": {
+        "mean": 4.02,
+        "max": 5.7
+      }
+    }
+  },
+  "blocking_diagnostics": {
+    "version": 1,
+    "enabled": true,
+    "cpu_sampling_us": 2000,
+    "profile_available": true,
+    "clock": {
+      "offset_ms": 1792401171691.359,
+      "uncertainty_ms": 3
+    },
+    "page": {
+      "version": 1,
+      "enabled": true,
+      "time_origin": 1794553900481.3,
+      "connection": {
+        "connection_id": "admin-2833904-3",
+        "server_time": 1794553901088,
+        "start_ms": 608.5
+      },
+      "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36",
+      "hardware_concurrency": 8,
+      "assets": [
+        "/static/js/diagnostics_client.js?v=bc20218a5795",
+        "/static/css/admin.css?bts_asset=a4e2f7d096eedc0e5ebf6663&v=bc20218a5795",
+        "/static/css/toprow.css?bts_asset=3da8cc229d2191c627efa800&v=bc20218a5795",
+        "/static/css/cmatch.css?bts_asset=42ea3f26016657e6eae3d773&v=bc20218a5795",
+        "/static/css/ctabletoperator.css?bts_asset=238cb1aaf863063cd1e32466&v=bc20218a5795",
+        "/static/css/court.css?bts_asset=0cba6864168bcf8877af3ca2&v=bc20218a5795",
+        "/static/css/cumpires.css?bts_asset=c7c2fc3106ecfc1222b4bb61&v=bc20218a5795",
+        "/static/css/speech_health.css?bts_asset=883e7a005437742a4f01e453&v=bc20218a5795",
+        "/static/css/audio_activation.css?bts_asset=66a1c9b04628445c1c520ad6&v=bc20218a5795",
+        "/static/css/duration_input.css?bts_asset=e1cd3d6a9c59330f22d05a72&v=bc20218a5795",
+        "/static/css/leitstand.css?bts_asset=eae1372828f4d216df0ee72b&v=bc20218a5795",
+        "/static/css/scoring_settings.css?bts_asset=e0c0878f801b286f0081f7f7&v=bc20218a5795",
+        "/static/css/display_settings.css?bts_asset=908810a288dddc87821c6c9c&v=bc20218a5795",
+        "/static/css/devices_workspace.css?bts_asset=3e456292130c8bbaf3a6a12e&v=bc20218a5795",
+        "/static/css/advertisement_settings.css?bts_asset=e696431ba381d4f1afe19d75&v=bc20218a5795",
+        "/static/css/location_settings.css?bts_asset=861bf3ba79f5bda5805ebd00&v=bc20218a5795",
+        "/static/css/speech_settings.css?bts_asset=c36d92e0f0e08bf4de615f6e&v=bc20218a5795",
+        "/static/css/number_input.css?bts_asset=0fd89391b1551652e91f4e75&v=bc20218a5795",
+        "/static/js/cerror.js?bts_asset=b8ed98d5ab2dd56e56e70502&v=bc20218a5795",
+        "/static/js/speech_health.js?bts_asset=1e4a6ef381bd13cf6b2296bd&v=bc20218a5795",
+        "/static/js/libraries.js?bts_asset=3a4bec26c2319901dbf6a5d2&v=bc20218a5795",
+        "/bupdev/libs/jquery.min.js?bts_asset=05b85d96f41fff14d8f608da&v=bc20218a5795",
+        "/bupdev/libs/jspdf.min.js?bts_asset=a218afd94b07928b17960711&v=bc20218a5795",
+        "/static/js/browser_promise.js?bts_asset=97c7446229fadde459cb7c99&v=bc20218a5795",
+        "/bupdev/libs/jszip.min.js?bts_asset=acc7e41455a80765b5fd9c7e&v=bc20218a5795",
+        "/bupdev/libs/mousetrap.min.js?bts_asset=dac68f8e452bde0e1f12742d&v=bc20218a5795",
+        "/bupdev/js/calc.js?bts_asset=289c243b814d62ad7bc2d7ab&v=bc20218a5795",
+        "/bupdev/js/compat.js?bts_asset=3327676815e299ccfcd06f7e&v=bc20218a5795",
+        "/bupdev/js/countrycodes.js?bts_asset=72ca97c208350fc37a1b83f3&v=bc20218a5795",
+        "/bupdev/js/displaymode.js?bts_asset=97110629589fe86943a7f11b&v=bc20218a5795",
+        "/bupdev/js/downloader.js?bts_asset=6b3028fa9566c96ce324874e&v=bc20218a5795",
+        "/bupdev/js/fullscreen.js?bts_asset=4bec4347c6feaa60260012d2&v=bc20218a5795",
+        "/bupdev/js/i18n.js?bts_asset=7cfbda64a81c115f9057f127&v=bc20218a5795",
+        "/bupdev/js/i18n_de.js?bts_asset=a2483bdfe2a8bab45ca6497f&v=bc20218a5795",
+        "/bupdev/js/i18n_en.js?bts_asset=e4e1fbeb7b9d41586b81faa7&v=bc20218a5795",
+        "/bupdev/js/printing.js?bts_asset=db21a401250d9315ba8292d1&v=bc20218a5795",
+        "/bupdev/js/pronunciation.js?bts_asset=c1afa4d07e2197b939322224&v=bc20218a5795",
+        "/bupdev/js/scoresheet.js?bts_asset=72cdc4e1113a9d765a226e06&v=bc20218a5795",
+        "/bupdev/js/settings.js?bts_asset=3aea2cd8c2a3c2b06debb3c5&v=bc20218a5795",
+        "/bupdev/js/svg2pdf.js?bts_asset=0f5e8a81534e45a4c21b5478&v=bc20218a5795",
+        "/bupdev/js/uiu.js?bts_asset=8a793b554dffc6cfca55b513&v=bc20218a5795",
+        "/bupdev/js/utils.js?bts_asset=e144771d21aeffdc7d4bc175&v=bc20218a5795",
+        "/bupdev/js/save_file.js?bts_asset=232a28778b9671363794f2f9&v=bc20218a5795",
+        "/bupdev/js/timer.js?bts_asset=fd7ca171a926c15e9b4f5a3e&v=bc20218a5795",
+        "/static/js/event_updates.js?bts_asset=3f4b1828376a308cd3256e63&v=bc20218a5795",
+        "/static/js/call_status_updates.js?bts_asset=8947024918842d9e77c5ce79&v=bc20218a5795",
+        "/static/js/crouting.js?bts_asset=3d03a9547eef5a769afaa866&v=bc20218a5795",
+        "/static/js/ci18n_de.js?bts_asset=ab0778342e7ea58a1c769432&v=bc20218a5795",
+        "/static/js/ci18n_en.js?bts_asset=9629178bf8d2240210905f8e&v=bc20218a5795",
+        "/static/js/ci18n_nl.js?bts_asset=741c57aa540b8453769c2f2e&v=bc20218a5795",
+        "/static/js/ci18n.js?bts_asset=11f0573a02c1d9372b77ca1c&v=bc20218a5795",
+        "/static/js/timezones.js?bts_asset=ad198bf07aa5908b2e17da02&v=bc20218a5795",
+        "/static/js/speech_context_v2.js?bts_asset=d1400f3659046bf5fe061562&v=bc20218a5795",
+        "/static/js/speech_context.js?bts_asset=f3d3b6292b7362704fa3274e&v=bc20218a5795",
+        "/static/js/announcement_text.js?bts_asset=ea23c07d22919e0fa99d1955&v=bc20218a5795",
+        "/static/js/speech_settings.js?bts_asset=05cff0440f28cde2c1e73d1c&v=bc20218a5795",
+        "/static/js/speech_service.js?bts_asset=8bb02691b4fe234574945b82&v=bc20218a5795",
+        "/static/js/audio_activation.js?bts_asset=b8cbba67ee1f454968cfc923&v=bc20218a5795",
+        "/static/js/speech_inventory.js?bts_asset=2d643746a7e04ee2257a3ceb&v=bc20218a5795",
+        "/static/js/speech_queue.js?bts_asset=35e91d3c36bfd3e1346e7926&v=bc20218a5795",
+        "/static/js/speech_readiness.js?bts_asset=ea880c09e641d722e5be3124&v=bc20218a5795",
+        "/static/js/announcement_editor.js?bts_asset=0ad887e24d4029130deda162&v=bc20218a5795",
+        "/static/js/free_announcement.js?bts_asset=fef024646e22ffc594ad4be7&v=bc20218a5795",
+        "/static/js/audio_devices.js?bts_asset=17240268d0270edac621440a&v=bc20218a5795",
+        "/static/js/announcements.js?bts_asset=8404c0da1fc9793e0a65e53e&v=bc20218a5795",
+        "/static/js/cadmin.js?bts_asset=fa7885f9027fb2483873cd15&v=bc20218a5795",
+        "/static/js/cbts_utils.js?bts_asset=4cf2267d4b2bf17e43bdf831&v=bc20218a5795",
+        "/static/js/ccsvexport.js?bts_asset=651fae8a693ecf1778fd21e5&v=bc20218a5795",
+        "/static/js/cflags.js?bts_asset=c560dab0bdc3ae8e1fc9347b&v=bc20218a5795",
+        "/static/js/change.js?bts_asset=6387eb29a9fe0a4eb1e02d16&v=bc20218a5795",
+        "/static/js/match_scoring.js?bts_asset=fbec6152c0c0d7f56ab366d3&v=bc20218a5795",
+        "/static/js/cmatch_history.js?bts_asset=1d3f2adc2cbe17fbcd5729f2&v=bc20218a5795",
+        "/static/js/btp_entry_status.js?bts_asset=91f64c66ace29cd5007bf6d0&v=bc20218a5795",
+        "/static/js/btp_dns_todos.js?bts_asset=615ac770fb75206296047fb3&v=bc20218a5795",
+        "/static/js/btp_dsq_todos.js?bts_asset=99c89c043923181105a82cfb&v=bc20218a5795",
+        "/static/js/official_picker.js?bts_asset=488e1b9a8ed02698482aa326&v=bc20218a5795",
+        "/static/js/choice_picker.js?bts_asset=36b4e883e794e49ffb377a30&v=bc20218a5795",
+        "/static/js/match_edit_rules.js?bts_asset=adf2934d2ad5f82dfccd6639&v=bc20218a5795",
+        "/static/js/dialog_actions.js?bts_asset=5d11d3e40d4ca15520994444&v=bc20218a5795",
+        "/static/js/certificate_design.js?bts_asset=af6c9abea1fac4d0d45a3d2d&v=bc20218a5795",
+        "/static/js/certificate_document.js?bts_asset=9fc8a6480c909521e43efba5&v=bc20218a5795",
+        "/static/js/certificate_designer.js?bts_asset=be13c887dede7c6e747f241b&v=bc20218a5795",
+        "/static/js/certificates.js?bts_asset=2a1e3551abd3ebbe514e25b3&v=bc20218a5795",
+        "/static/js/certificate_selection.js?bts_asset=162e9fdf1abff6a1a8cc556f&v=bc20218a5795",
+        "/static/js/scoresheet_remarks.js?bts_asset=831fcc9bff810414e3141a70&v=bc20218a5795",
+        "/static/js/remarks_dialog.js?bts_asset=1160f16fc99122a74173d5d3&v=bc20218a5795",
+        "/static/js/tabletoperator_waiting.js?bts_asset=5cad4c8102b77a60f413fee5&v=bc20218a5795",
+        "/static/js/court_assignment.js?bts_asset=e99181ed02fe62ad3892441d&v=bc20218a5795",
+        "/static/js/cleitstand.js?bts_asset=8df3fde01e77ec1462dc22dc&v=bc20218a5795",
+        "/static/js/settings_workspace.js?bts_asset=e6629e30bf60ce3748121113&v=bc20218a5795",
+        "/static/js/profile_preview.js?bts_asset=0222a2f5c936eeb92479b8e8&v=bc20218a5795",
+        "/static/js/display_settings.js?bts_asset=a2d57ebf0de800ce1485141c&v=bc20218a5795",
+        "/static/js/devices_workspace.js?bts_asset=d52a713c676cdcb574176765&v=bc20218a5795",
+        "/static/js/logo_picker.js?bts_asset=0aa41c164f8a0bb1fe1c2de6&v=bc20218a5795",
+        "/static/js/advertisement_settings.js?bts_asset=9dadd9a9b9eaa8d4f537d676&v=bc20218a5795",
+        "/static/js/ticker_settings.js?bts_asset=87f3da54a18e1146270db9e1&v=bc20218a5795",
+        "/static/js/maintenance_settings.js?bts_asset=d35e2203036438b791c9c725&v=bc20218a5795",
+        "/static/js/reset_selection.js?bts_asset=a49bb9ab500ffed2c35ce1e9&v=bc20218a5795",
+        "/static/js/advertisement_picker.js?bts_asset=de1f439e4dfc77df8ff40d8b&v=bc20218a5795",
+        "/static/js/speech_infrastructure.js?bts_asset=f58201857f901c3b0c0c33ca&v=bc20218a5795",
+        "/static/js/speech_workspace.js?bts_asset=b6b3483ea3711acc7afa3150&v=bc20218a5795",
+        "/static/js/scoring_settings.js?bts_asset=3102e7533370e8c682ec1317&v=bc20218a5795",
+        "/static/js/location_settings.js?bts_asset=a3a1f1c237068d6cfe5e075c&v=bc20218a5795",
+        "/static/js/number_input.js?bts_asset=b1d590ff2d1123abfdc65011&v=bc20218a5795",
+        "/static/js/duration_input.js?bts_asset=6c1b20adf8e3242f73829623&v=bc20218a5795",
+        "/static/js/timer_updates.js?bts_asset=828b08be37378de1d6984a8a&v=bc20218a5795",
+        "/static/js/cmatch.js?bts_asset=db45a30efb7e079d8abb5d8a&v=bc20218a5795",
+        "/static/js/change_queue_scheduler.js?bts_asset=862a7e897125ee0a283bc7dc&v=bc20218a5795",
+        "/static/js/ui_blocking_diagnostics.js?bts_asset=6a7c5b3ffdf1165531534855&v=bc20218a5795",
+        "/static/js/admin_update_observer.js?bts_asset=ce04ee6c7219c29d53693ec0&v=bc20218a5795",
+        "/static/js/conn.js?bts_asset=23733591909e321a8c4f7d87&v=bc20218a5795",
+        "/static/js/conn_ui.js?bts_asset=4e2577d94ed13debfbca5ec8&v=bc20218a5795",
+        "/static/js/countries.js?bts_asset=e55f17967bfd9f23b823fc1d&v=bc20218a5795",
+        "/static/js/service_status.js?bts_asset=91b44cba7f020ed4252160ba&v=bc20218a5795",
+        "/static/js/ctournament.js?bts_asset=01167c87a2ad03b4e71f2148&v=bc20218a5795",
+        "/static/js/cto_stats.js?bts_asset=299e2daa443b890a6ab8a586&v=bc20218a5795",
+        "/static/js/cnationstats.js?bts_asset=1e95a89dbe566a9f64e5bf8c&v=bc20218a5795",
+        "/static/js/cumpires.js?bts_asset=f63e1c3e05f83d3a5e7cfc2e&v=bc20218a5795",
+        "/static/js/ctabletoperator.js?bts_asset=61849da2b74038cff6e2e3cd&v=bc20218a5795",
+        "/static/js/debug.js?bts_asset=fb68cf3540eece3f295c0e52&v=bc20218a5795",
+        "/static/js/form_utils.js?bts_asset=2e5bf0c9b0716bf262e89438&v=bc20218a5795",
+        "/static/js/toprow.js?bts_asset=2d15c87c5c18d616fa2a5a89&v=bc20218a5795"
+      ],
+      "name_metrics": "1d26ded098261d70ba085f89c4e77bbbb7493fb118732fda16c6c17da15811f1"
+    },
+    "limits": {
+      "windows": 120,
+      "control": 256,
+      "profiles": 3,
+      "cpu_functions": 20
+    },
+    "stats": {
+      "triggers": 39,
+      "over_capacity": 0,
+      "control_evictions": 930,
+      "rotations": 41,
+      "profile_gaps_ms": 3461,
+      "aggregation_ms": 39.77,
+      "errors_total": 0
+    },
+    "errors": [],
+    "method": "Bounded page task/LoAF recorder; sampled CPU windows and independent control socket. No CDP Network payload capture. Instrumented diagnostic run, not an uninstrumented latency baseline."
+  },
+  "captured_history": {
+    "unique_record_counts": {
+      "segments": 2024,
+      "frames": 47,
+      "longtasks": 74,
+      "lag": 62
+    },
+    "task_stats": {
+      "handler:btp_status": {
+        "count": 8,
+        "mean": 3.625,
+        "min": 1.4,
+        "median": 3.25,
+        "p95": 6.6,
+        "p99": 6.6,
+        "max": 6.6
+      },
+      "handler:call_status_changed": {
+        "count": 43,
+        "mean": 6.681,
+        "min": 0,
+        "median": 2.1,
+        "p95": 22.2,
+        "p99": 72.7,
+        "max": 72.7
+      },
+      "handler:court_changed": {
+        "count": 11,
+        "mean": 1.827,
+        "min": 1.1,
+        "median": 1.6,
+        "p95": 3.5,
+        "p99": 3.5,
+        "max": 3.5
+      },
+      "handler:court_current_match": {
+        "count": 22,
+        "mean": 0.805,
+        "min": 0.1,
+        "median": 0.7,
+        "p95": 1.6,
+        "p99": 2.1,
+        "max": 2.1
+      },
+      "handler:display_is_done": {
+        "count": 116,
+        "mean": 0.014,
+        "min": 0,
+        "median": 0,
+        "p95": 0.1,
+        "p99": 0.1,
+        "max": 0.1
+      },
+      "handler:display_render_stats": {
+        "count": 85,
+        "mean": 0.028,
+        "min": 0,
+        "median": 0,
+        "p95": 0.1,
+        "p99": 0.1,
+        "max": 0.1
+      },
+      "handler:display_status_changed": {
+        "count": 158,
+        "mean": 0.462,
+        "min": 0,
+        "median": 0.5,
+        "p95": 1,
+        "p99": 1.3,
+        "max": 3.2
+      },
+      "handler:display_wait_for_done": {
+        "count": 116,
+        "mean": 0.028,
+        "min": 0,
+        "median": 0,
+        "p95": 0.1,
+        "p99": 0.2,
+        "max": 0.2
+      },
+      "handler:match_called_on_court": {
+        "count": 10,
+        "mean": 0.19,
+        "min": 0,
+        "median": 0.15000000000000002,
+        "p95": 0.4,
+        "p99": 0.4,
+        "max": 0.4
+      },
+      "handler:match_edit": {
+        "count": 141,
+        "mean": 1.452,
+        "min": 0,
+        "median": 0.1,
+        "p95": 5.2,
+        "p99": 9.1,
+        "max": 12.6
+      },
+      "handler:match_preparation_call": {
+        "count": 8,
+        "mean": 9.812,
+        "min": 4.2,
+        "median": 5.95,
+        "p95": 25,
+        "p99": 25,
+        "max": 25
+      },
+      "handler:match_protocol_event": {
+        "count": 34,
+        "mean": 0.024,
+        "min": 0,
+        "median": 0,
+        "p95": 0.1,
+        "p99": 0.1,
+        "max": 0.1
+      },
+      "handler:score": {
+        "count": 80,
+        "mean": 1.58,
+        "min": 0.1,
+        "median": 0.4,
+        "p95": 7.9,
+        "p99": 11,
+        "max": 11
+      },
+      "handler:speech_cache_changed": {
+        "count": 19,
+        "mean": 0.063,
+        "min": 0,
+        "median": 0,
+        "p95": 0.4,
+        "p99": 0.4,
+        "max": 0.4
+      },
+      "handler:tabletoperator_add": {
+        "count": 11,
+        "mean": 2.036,
+        "min": 1.3,
+        "median": 2.1,
+        "p95": 3.2,
+        "p99": 3.2,
+        "max": 3.2
+      },
+      "handler:tabletoperator_removed": {
+        "count": 20,
+        "mean": 1.67,
+        "min": 1.3,
+        "median": 1.5,
+        "p95": 2.5,
+        "p99": 2.7,
+        "max": 2.7
+      },
+      "handler:umpire_updated": {
+        "count": 4,
+        "mean": 2.225,
+        "min": 1.5,
+        "median": 1.85,
+        "p95": 3.7,
+        "p99": 3.7,
+        "max": 3.7
+      },
+      "handler:umpires_changed": {
+        "count": 1,
+        "mean": 12.6,
+        "min": 12.6,
+        "median": 12.6,
+        "p95": 12.6,
+        "p99": 12.6,
+        "max": 12.6
+      },
+      "handler:update_btp_events": {
+        "count": 4,
+        "mean": 3.35,
+        "min": 1.4,
+        "median": 3.15,
+        "p95": 5.7,
+        "p99": 5.7,
+        "max": 5.7
+      },
+      "handler:update_player_status": {
+        "count": 279,
+        "mean": 0.082,
+        "min": 0,
+        "median": 0,
+        "p95": 0.2,
+        "p99": 1.6,
+        "max": 3.4
+      },
+      "job:finished.sort": {
+        "count": 22,
+        "mean": 5.264,
+        "min": 1.8,
+        "median": 4.35,
+        "p95": 12.6,
+        "p99": 12.7,
+        "max": 12.7
+      },
+      "job:lists.counts": {
+        "count": 30,
+        "mean": 7.807,
+        "min": 4.5,
+        "median": 7.7,
+        "p95": 11.3,
+        "p99": 13.5,
+        "max": 13.5
+      },
+      "job:lists.dates": {
+        "count": 10,
+        "mean": 4.05,
+        "min": 2.8,
+        "median": 4.199999999999999,
+        "p95": 5.7,
+        "p99": 5.7,
+        "max": 5.7
+      },
+      "job:locations.labels": {
+        "count": 58,
+        "mean": 0.39,
+        "min": 0.1,
+        "median": 0.4,
+        "p95": 0.6,
+        "p99": 0.6,
+        "max": 0.6
+      },
+      "job:matches.warnings": {
+        "count": 51,
+        "mean": 3.576,
+        "min": 1.5,
+        "median": 2.9,
+        "p95": 5.1,
+        "p99": 20.4,
+        "max": 20.4
+      },
+      "job:names.layout": {
+        "count": 81,
+        "mean": 9.73,
+        "min": 0.4,
+        "median": 7.4,
+        "p95": 25.6,
+        "p99": 82.1,
+        "max": 82.1
+      },
+      "job:planned.sort": {
+        "count": 21,
+        "mean": 9.752,
+        "min": 4.9,
+        "median": 8.3,
+        "p95": 15.6,
+        "p99": 28.4,
+        "max": 28.4
+      },
+      "job:players.status": {
+        "count": 57,
+        "mean": 3.856,
+        "min": 0.4,
+        "median": 2.7,
+        "p95": 11,
+        "p99": 13.5,
+        "max": 13.5
+      },
+      "job:preparation.controls": {
+        "count": 55,
+        "mean": 20.447,
+        "min": 1,
+        "median": 15.7,
+        "p95": 54.1,
+        "p99": 63.1,
+        "max": 63.1
+      },
+      "job:preparation.courts": {
+        "count": 50,
+        "mean": 0.85,
+        "min": 0.5,
+        "median": 0.8,
+        "p95": 1.1,
+        "p99": 1.2,
+        "max": 1.2
+      },
+      "job:timers.fit": {
+        "count": 419,
+        "mean": 0.044,
+        "min": 0,
+        "median": 0,
+        "p95": 0.2,
+        "p99": 0.2,
+        "max": 0.3
+      }
+    },
+    "frame_stats": {
+      "count": 47,
+      "mean": 85.251,
+      "min": 50.9,
+      "median": 69.2,
+      "p95": 149.1,
+      "p99": 229.8,
+      "max": 229.8
+    },
+    "longtask_stats": {
+      "count": 74,
+      "mean": 77.324,
+      "min": 50,
+      "median": 64,
+      "p95": 159,
+      "p99": 177,
+      "max": 177
+    },
+    "heartbeat_delay_stats": {
+      "count": 62,
+      "mean": 74.255,
+      "min": 21.4,
+      "median": 58.95,
+      "p95": 166.7,
+      "p99": 214.3,
+      "max": 214.3
+    },
+    "not_global_counts": "History windows overlap and cover only selected outliers and nearby history. Entries are deduplicated by time_origin and native recorder id; counts/maxima are not all-run task statistics."
+  },
+  "outlier_decomposition": {
+    "ordinary_count": 23,
+    "with_capture": 22,
+    "control_to_browser": {
+      "count": 23,
+      "mean": 93.609,
+      "min": 1,
+      "median": 77,
+      "p95": 227,
+      "p99": 238,
+      "max": 238
+    },
+    "sent_to_control": {
+      "count": 23,
+      "mean": 14.609,
+      "min": 4,
+      "median": 12,
+      "p95": 34,
+      "p99": 34,
+      "max": 34
+    },
+    "own_score_handler": {
+      "count": 23,
+      "mean": 1.061,
+      "min": 0.2,
+      "median": 1.1,
+      "p95": 2.8,
+      "p99": 2.8,
+      "max": 2.8
+    },
+    "callback_to_presentation": {
+      "count": 23,
+      "mean": 74.478,
+      "min": 22,
+      "median": 70,
+      "p95": 152,
+      "p99": 176,
+      "max": 176
+    },
+    "browser_gap_at_least_35ms": 19
+  },
+  "diagnostic_coverage": {
+    "windows": 39,
+    "capture_statuses": {
+      "complete": 39
+    },
+    "windows_with_cpu_gap": 7,
+    "windows_with_cpu_gap_at_least_20ms": 6,
+    "captured_ordinary_outlier_ids": [
+      "live-drill-2834041-mwen3q7s-185",
+      "live-drill-2834041-mwen98aj-818",
+      "live-drill-2834041-mwen8won-786",
+      "live-drill-2834041-mwen9pe7-863",
+      "live-drill-2834041-mwendzfr-1067",
+      "live-drill-2834041-mwencibf-889",
+      "live-drill-2834041-mwen6nkt-539",
+      "live-drill-2834041-mwend0z0-951",
+      "live-drill-2834041-mwen63kb-472",
+      "live-drill-2834041-mwen4jx3-286",
+      "live-drill-2834041-mwen3pvm-184",
+      "live-drill-2834041-mwen74jk-591",
+      "live-drill-2834041-mwen9j1r-846",
+      "live-drill-2834041-mwene4id-1083",
+      "live-drill-2834041-mwen5818-368",
+      "live-drill-2834041-mwene00j-1069",
+      "live-drill-2834041-mwen7eqm-621",
+      "live-drill-2834041-mwen6nx3-540",
+      "live-drill-2834041-mwen8lgi-755",
+      "live-drill-2834041-mwen6qj6-548",
+      "live-drill-2834041-mwenebl4-1107",
+      "live-drill-2834041-mwen8wdr-785"
+    ],
+    "uncaptured_ordinary_outlier_ids": [
+      "live-drill-2834041-mwen3pjb-183"
+    ]
+  },
+  "source_verification": {
+    "checked": 99,
+    "mismatches": [],
+    "key_assets": [
+      {
+        "path": "/static/js/call_status_updates.js",
+        "reported_hash": "8947024918842d9e77c5ce79",
+        "local_hash": "8947024918842d9e77c5ce79"
+      },
+      {
+        "path": "/static/js/cleitstand.js",
+        "reported_hash": "8df3fde01e77ec1462dc22dc",
+        "local_hash": "8df3fde01e77ec1462dc22dc"
+      },
+      {
+        "path": "/static/js/cmatch.js",
+        "reported_hash": "db45a30efb7e079d8abb5d8a",
+        "local_hash": "db45a30efb7e079d8abb5d8a"
+      },
+      {
+        "path": "/static/js/ui_blocking_diagnostics.js",
+        "reported_hash": "6a7c5b3ffdf1165531534855",
+        "local_hash": "6a7c5b3ffdf1165531534855"
+      },
+      {
+        "path": "/static/js/admin_update_observer.js",
+        "reported_hash": "ce04ee6c7219c29d53693ec0",
+        "local_hash": "ce04ee6c7219c29d53693ec0"
+      },
+      {
+        "path": "/static/js/ctournament.js",
+        "reported_hash": "01167c87a2ad03b4e71f2148",
+        "local_hash": "01167c87a2ad03b4e71f2148"
+      }
+    ]
+  },
+  "analyzed_at_utc": "2026-11-13T07:25:32.402893+00:00",
+  "examples": [
+    {
+      "trace_id": "live-drill-2834041-mwen3q7s-185",
+      "sent_ts": 1794553976440,
+      "court_id": "default_4",
+      "match_id": "btp_default_MX U13_447",
+      "tv_ms": 13,
+      "tv_received_ts": 1794553976453,
+      "admin_ms": 279,
+      "admin_received_ts": 1794553976676,
+      "admin_applied_ts": 1794553976679,
+      "admin_presented_ts": 1794553976719,
+      "admin_presentation_status": "presented",
+      "admin_ui_ms": {
+        "queue_ms": 0.3,
+        "handler_ms": 2.1,
+        "ui_wait_ms": 0,
+        "render_ms": 39.7,
+        "total_ms": 42.1
+      },
+      "admin_measurement_method": "dom-and-render-opportunity",
+      "admin_ui_jobs": [],
+      "admin_blocking_window_id": 3,
+      "admin_control_received_ts": 1794553976449,
+      "kind": "ordinary",
+      "sent_to_control_ms": 9,
+      "control_to_browser_callback_ms": 227,
+      "callback_to_presentation_ms": 43,
+      "browser_connection_id": "admin-2833904-3",
+      "server_operations": [
+        {
+          "id": 653,
+          "name": "handle_score_update_v2",
+          "start_relative_to_send_ms": 1,
+          "duration_ms": 17.2,
+          "status": "ok",
+          "browser_send_spans": [
+            {
+              "kind": "send_wait",
+              "connection_id": "admin-2833904-3",
+              "start_ts": 1794553976449,
+              "ts": 1794553976449,
+              "duration_ms": 0,
+              "status": "ok"
+            },
+            {
+              "kind": "send_enqueue",
+              "connection_id": "admin-2833904-3",
+              "start_ts": 1794553976449,
+              "ts": 1794553976449,
+              "duration_ms": 0,
+              "status": "ok"
+            },
+            {
+              "kind": "send_flush",
+              "connection_id": "admin-2833904-3",
+              "start_ts": 1794553976449,
+              "ts": 1794553976449,
+              "duration_ms": 0.5,
+              "status": "ok"
+            }
+          ]
+        }
+      ],
+      "diagnostic": {
+        "id": 3,
+        "capture_status": "complete",
+        "cpu_coverage": {
+          "missing_before_ms": 0,
+          "missing_after_ms": 0,
+          "between_chunks_gap_ms": 0
+        },
+        "summary": {
+          "connection_id": "admin-2833904-3",
+          "control_to_browser_callback_ms": 227,
+          "browser_callback_to_presentation_ms": 43,
+          "recorded_work": [
+            {
+              "id": 1608,
+              "name": "job:preparation.controls",
+              "start_ms": 76010.1,
+              "job_id": 628,
+              "updates": [
+                {
+                  "sequence": 1439,
+                  "type": "call_status_changed"
+                }
+              ],
+              "end_ms": 76060.5,
+              "duration_ms": 50.4,
+              "overlap_ms": 50.4
+            },
+            {
+              "id": 1607,
+              "name": "handler:call_status_changed",
+              "start_ms": 75962.1,
+              "updates": [
+                {
+                  "sequence": 1439,
+                  "type": "call_status_changed"
+                }
+              ],
+              "end_ms": 76010,
+              "duration_ms": 47.9,
+              "overlap_ms": 42.3
+            },
+            {
+              "id": 1613,
+              "name": "handler:score",
+              "start_ms": 76196,
+              "updates": [
+                {
+                  "sequence": 1441,
+                  "type": "score",
+                  "match_id": "btp_default_MX U13_447",
+                  "trace_id": "live-drill-2834041-mwen3q7s-185"
+                }
+              ],
+              "end_ms": 76198,
+              "duration_ms": 2,
+              "overlap_ms": 2
+            },
+            {
+              "id": 1609,
+              "name": "job:locations.labels",
+              "start_ms": 76060.8,
+              "job_id": 627,
+              "updates": [
+                {
+                  "sequence": 1439,
+                  "type": "call_status_changed"
+                }
+              ],
+              "end_ms": 76061.1,
+              "duration_ms": 0.3,
+              "overlap_ms": 0.3
+            }
+          ],
+          "cpu_functions": [
+            {
+              "node_id": 27,
+              "function": "(garbage collector)",
+              "source": "",
+              "line": -1,
+              "column": -1,
+              "sampled_ms": 25.26
+            },
+            {
+              "node_id": 269,
+              "function": "deep_equal",
+              "source": "https://localhost:4433/bupdev/js/utils.js?bts_asset=e144771d21aeffdc7d4bc175&v=bc20218a5795",
+              "line": 179,
+              "column": 19,
+              "sampled_ms": 16.64
+            },
+            {
+              "node_id": 147,
+              "function": "apply",
+              "source": "https://localhost:4433/static/js/call_status_updates.js?bts_asset=8947024918842d9e77c5ce79&v=bc20218a5795",
+              "line": 6,
+              "column": 18,
+              "sampled_ms": 13.14
+            },
+            {
+              "node_id": 283,
+              "function": "format_preparation_debug_tooltip",
+              "source": "https://localhost:4433/static/js/cmatch.js?bts_asset=db45a30efb7e079d8abb5d8a&v=bc20218a5795",
+              "line": 4267,
+              "column": 41,
+              "sampled_ms": 5.36
+            },
+            {
+              "node_id": 270,
+              "function": "querySelectorAll",
+              "source": "",
+              "line": -1,
+              "column": -1,
+              "sampled_ms": 4.22
+            },
+            {
+              "node_id": 278,
+              "function": "decorateControls",
+              "source": "https://localhost:4433/static/js/cleitstand.js?bts_asset=8df3fde01e77ec1462dc22dc&v=bc20218a5795",
+              "line": 1710,
+              "column": 27,
+              "sampled_ms": 4.21
+            },
+            {
+              "node_id": 143,
+              "function": "collect",
+              "source": "https://localhost:4433/static/js/speech_readiness.js?bts_asset=ea880c09e641d722e5be3124&v=bc20218a5795",
+              "line": 50,
+              "column": 20,
+              "sampled_ms": 3.06
+            },
+            {
+              "node_id": 289,
+              "function": "render_debug_icon",
+              "source": "https://localhost:4433/static/js/cmatch.js?bts_asset=db45a30efb7e079d8abb5d8a&v=bc20218a5795",
+              "line": 4334,
+              "column": 26,
+              "sampled_ms": 2.78
+            },
+            {
+              "node_id": 298,
+              "function": "flush",
+              "source": "https://localhost:4433/static/js/timer_updates.js?bts_asset=828b08be37378de1d6984a8a&v=bc20218a5795",
+              "line": 18,
+              "column": 15,
+              "sampled_ms": 2.6
+            },
+            {
+              "node_id": 291,
+              "function": "(anonymous)",
+              "source": "",
+              "line": -1,
+              "column": -1,
+              "sampled_ms": 2.53
+            },
+            {
+              "node_id": 277,
+              "function": "_match_dom_ids",
+              "source": "https://localhost:4433/static/js/cmatch.js?bts_asset=db45a30efb7e079d8abb5d8a&v=bc20218a5795",
+              "line": 976,
+              "column": 25,
+              "sampled_ms": 2.24
+            },
+            {
+              "node_id": 290,
+              "function": "(anonymous)",
+              "source": "https://localhost:4433/static/js/cmatch.js?bts_asset=db45a30efb7e079d8abb5d8a&v=bc20218a5795",
+              "line": 4280,
+              "column": 38,
+              "sampled_ms": 2.18
+            }
+          ]
+        },
+        "overlapping_frames": [
+          {
+            "id": 1615,
+            "start_ms": 75961.9,
+            "end_ms": 76149.3,
+            "duration_ms": 187.4,
+            "blocking_ms": 137.3,
+            "render_start_ms": 76060.7000002861,
+            "style_layout_start_ms": 76061.2000002861,
+            "first_ui_event_ms": 0,
+            "script_count": 1,
+            "omitted_scripts": 0,
+            "scripts": [
+              {
+                "start_ms": 75961.90000009537,
+                "duration_ms": 98.69999980926514,
+                "execution_start_ms": 75961.90000009537,
+                "forced_style_layout_ms": 0,
+                "pause_ms": 0,
+                "invoker": "SchedulerPostTaskCallback",
+                "invoker_type": "user-callback",
+                "function": "",
+                "source": "https://localhost:4433/static/js/change_queue_scheduler.js?bts_asset=862a7e897125ee0a283bc7dc&v=bc20218a5795",
+                "char_position": 873
+              }
+            ],
+            "start_relative_to_control_ms": -5.8,
+            "end_relative_to_control_ms": 181.6,
+            "after_style_layout_start_ms": 88.1
+          }
+        ],
+        "overlapping_tasks": [
+          {
+            "id": 1607,
+            "name": "handler:call_status_changed",
+            "start_ms": 75962.1,
+            "updates": [
+              {
+                "sequence": 1439,
+                "type": "call_status_changed"
+              }
+            ],
+            "end_ms": 76010,
+            "duration_ms": 47.9,
+            "start_relative_to_control_ms": -5.6,
+            "end_relative_to_control_ms": 42.3
+          },
+          {
+            "id": 1608,
+            "name": "job:preparation.controls",
+            "start_ms": 76010.1,
+            "job_id": 628,
+            "updates": [
+              {
+                "sequence": 1439,
+                "type": "call_status_changed"
+              }
+            ],
+            "end_ms": 76060.5,
+            "duration_ms": 50.4,
+            "start_relative_to_control_ms": 42.4,
+            "end_relative_to_control_ms": 92.8
+          },
+          {
+            "id": 1609,
+            "name": "job:locations.labels",
+            "start_ms": 76060.8,
+            "job_id": 627,
+            "updates": [
+              {
+                "sequence": 1439,
+                "type": "call_status_changed"
+              }
+            ],
+            "end_ms": 76061.1,
+            "duration_ms": 0.3,
+            "start_relative_to_control_ms": 93.1,
+            "end_relative_to_control_ms": 93.4
+          },
+          {
+            "id": 1613,
+            "name": "handler:score",
+            "start_ms": 76196,
+            "updates": [
+              {
+                "sequence": 1441,
+                "type": "score",
+                "match_id": "btp_default_MX U13_447",
+                "trace_id": "live-drill-2834041-mwen3q7s-185"
+              }
+            ],
+            "end_ms": 76198,
+            "duration_ms": 2,
+            "start_relative_to_control_ms": 228.3,
+            "end_relative_to_control_ms": 230.3
+          }
+        ]
+      }
+    },
+    {
+      "trace_id": "live-drill-2834041-mwen98aj-818",
+      "sent_ts": 1794554233147,
+      "court_id": "default_1",
+      "match_id": "btp_default_MX U19_309",
+      "tv_ms": 4,
+      "tv_received_ts": 1794554233151,
+      "admin_ms": 277,
+      "admin_received_ts": 1794554233390,
+      "admin_applied_ts": 1794554233390,
+      "admin_presented_ts": 1794554233424,
+      "admin_presentation_status": "presented",
+      "admin_ui_ms": {
+        "queue_ms": 0.2,
+        "handler_ms": 0.2,
+        "ui_wait_ms": 0,
+        "render_ms": 33.7,
+        "total_ms": 34.1
+      },
+      "admin_measurement_method": "dom-and-render-opportunity",
+      "admin_ui_jobs": [],
+      "admin_blocking_window_id": 24,
+      "admin_control_received_ts": 1794554233152,
+      "kind": "ordinary",
+      "sent_to_control_ms": 5,
+      "control_to_browser_callback_ms": 238,
+      "callback_to_presentation_ms": 34,
+      "browser_connection_id": "admin-2833904-3",
+      "server_operations": [
+        {
+          "id": 3084,
+          "name": "handle_score_update_v2",
+          "start_relative_to_send_ms": 1,
+          "duration_ms": 12.4,
+          "status": "ok",
+          "browser_send_spans": [
+            {
+              "kind": "send_wait",
+              "connection_id": "admin-2833904-3",
+              "start_ts": 1794554233151,
+              "ts": 1794554233151,
+              "duration_ms": 0,
+              "status": "ok"
+            },
+            {
+              "kind": "send_enqueue",
+              "connection_id": "admin-2833904-3",
+              "start_ts": 1794554233151,
+              "ts": 1794554233151,
+              "duration_ms": 0,
+              "status": "ok"
+            },
+            {
+              "kind": "send_flush",
+              "connection_id": "admin-2833904-3",
+              "start_ts": 1794554233151,
+              "ts": 1794554233152,
+              "duration_ms": 0.7,
+              "status": "ok"
+            }
+          ]
+        }
+      ],
+      "diagnostic": {
+        "id": 24,
+        "capture_status": "complete",
+        "cpu_coverage": {
+          "missing_before_ms": 0,
+          "missing_after_ms": 0,
+          "between_chunks_gap_ms": 0
+        },
+        "summary": {
+          "connection_id": "admin-2833904-3",
+          "control_to_browser_callback_ms": 238,
+          "browser_callback_to_presentation_ms": 34,
+          "recorded_work": [
+            {
+              "id": 7382,
+              "name": "job:names.layout",
+              "start_ms": 332858.3,
+              "job_id": 1439,
+              "updates": [
+                {
+                  "sequence": 6093,
+                  "type": "match_edit",
+                  "match_id": "btp_default_MX U13_454"
+                },
+                {
+                  "sequence": 6095,
+                  "type": "update_player_status",
+                  "match_id": "btp_default_JD U13_1180"
+                },
+                {
+                  "sequence": 6096,
+                  "type": "update_player_status",
+                  "match_id": "btp_default_JD U13_1188"
+                },
+                {
+                  "sequence": 6097,
+                  "type": "update_player_status",
+                  "match_id": "btp_default_JE U13_560"
+                },
+                {
+                  "sequence": 6098,
+                  "type": "update_player_status",
+                  "match_id": "btp_default_MD U13_1275"
+                },
+                {
+                  "sequence": 6099,
+                  "type": "update_player_status",
+                  "match_id": "btp_default_ME U13_641"
+                },
+                {
+                  "sequence": 6100,
+                  "type": "update_player_status",
+                  "match_id": "btp_default_JD U13_1200"
+                },
+                {
+                  "sequence": 6101,
+                  "type": "update_player_status",
+                  "match_id": "btp_default_MD U13_1259"
+                }
+              ],
+              "end_ms": 332872.8,
+              "duration_ms": 14.5,
+              "overlap_ms": 14.5
+            },
+            {
+              "id": 7381,
+              "name": "job:lists.counts",
+              "start_ms": 332847.7,
+              "job_id": 1442,
+              "updates": [
+                {
+                  "sequence": 6093,
+                  "type": "match_edit",
+                  "match_id": "btp_default_MX U13_454"
+                }
+              ],
+              "end_ms": 332858.3,
+              "duration_ms": 10.6,
+              "overlap_ms": 10.6
+            },
+            {
+              "id": 7380,
+              "name": "job:players.status",
+              "start_ms": 332841.6,
+              "job_id": 1445,
+              "updates": [
+                {
+                  "sequence": 6093,
+                  "type": "match_edit",
+                  "match_id": "btp_default_MX U13_454"
+                },
+                {
+                  "sequence": 6095,
+                  "type": "update_player_status",
+                  "match_id": "btp_default_JD U13_1180"
+                },
+                {
+                  "sequence": 6096,
+                  "type": "update_player_status",
+                  "match_id": "btp_default_JD U13_1188"
+                },
+                {
+                  "sequence": 6097,
+                  "type": "update_player_status",
+                  "match_id": "btp_default_JE U13_560"
+                },
+                {
+                  "sequence": 6098,
+                  "type": "update_player_status",
+                  "match_id": "btp_default_MD U13_1275"
+                },
+                {
+                  "sequence": 6099,
+                  "type": "update_player_status",
+                  "match_id": "btp_default_ME U13_641"
+                },
+                {
+                  "sequence": 6100,
+                  "type": "update_player_status",
+                  "match_id": "btp_default_JD U13_1200"
+                },
+                {
+                  "sequence": 6101,
+                  "type": "update_player_status",
+                  "match_id": "btp_default_MD U13_1259"
+                }
+              ],
+              "end_ms": 332847,
+              "duration_ms": 5.4,
+              "overlap_ms": 5.4
+            },
+            {
+              "id": 7379,
+              "name": "job:preparation.courts",
+              "start_ms": 332840.7,
+              "job_id": 1444,
+              "updates": [
+                {
+                  "sequence": 6093,
+                  "type": "match_edit",
+                  "match_id": "btp_default_MX U13_454"
+                }
+              ],
+              "end_ms": 332841.6,
+              "duration_ms": 0.9,
+              "overlap_ms": 0.9
+            },
+            {
+              "id": 7386,
+              "name": "handler:score",
+              "start_ms": 332909.1,
+              "updates": [
+                {
+                  "sequence": 6111,
+                  "type": "score",
+                  "match_id": "btp_default_MX U19_309",
+                  "trace_id": "live-drill-2834041-mwen98aj-818"
+                }
+              ],
+              "end_ms": 332909.3,
+              "duration_ms": 0.2,
+              "overlap_ms": 0.2
+            },
+            {
+              "id": 7377,
+              "name": "job:timers.fit",
+              "start_ms": 332788.9,
+              "job_id": 1437,
+              "updates": [
+                {
+                  "sequence": 6093,
+                  "type": "match_edit",
+                  "match_id": "btp_default_MX U13_454"
+                }
+              ],
+              "end_ms": 332789,
+              "duration_ms": 0.1,
+              "overlap_ms": 0.1
+            },
+            {
+              "id": 7387,
+              "name": "handler:display_render_stats",
+              "start_ms": 332909.3,
+              "updates": [
+                {
+                  "sequence": 6108,
+                  "type": "display_render_stats"
+                }
+              ],
+              "end_ms": 332909.4,
+              "duration_ms": 0.1,
+              "overlap_ms": 0.1
+            }
+          ],
+          "cpu_functions": [
+            {
+              "node_id": 274,
+              "function": "(anonymous)",
+              "source": "https://localhost:4433/static/js/cleitstand.js?bts_asset=8df3fde01e77ec1462dc22dc&v=bc20218a5795",
+              "line": 466,
+              "column": 76,
+              "sampled_ms": 6.23
+            },
+            {
+              "node_id": 250,
+              "function": "matches",
+              "source": "",
+              "line": -1,
+              "column": -1,
+              "sampled_ms": 5.02
+            },
+            {
+              "node_id": 267,
+              "function": "querySelectorAll",
+              "source": "",
+              "line": -1,
+              "column": -1,
+              "sampled_ms": 4.18
+            },
+            {
+              "node_id": 214,
+              "function": "getBoundingClientRect",
+              "source": "",
+              "line": -1,
+              "column": -1,
+              "sampled_ms": 4.16
+            },
+            {
+              "node_id": 276,
+              "function": "add",
+              "source": "",
+              "line": -1,
+              "column": -1,
+              "sampled_ms": 2.17
+            },
+            {
+              "node_id": 264,
+              "function": "filterRow",
+              "source": "https://localhost:4433/static/js/cleitstand.js?bts_asset=8df3fde01e77ec1462dc22dc&v=bc20218a5795",
+              "line": 1928,
+              "column": 20,
+              "sampled_ms": 2.14
+            },
+            {
+              "node_id": 186,
+              "function": "timerDisplay",
+              "source": "https://localhost:4433/static/js/cleitstand.js?bts_asset=8df3fde01e77ec1462dc22dc&v=bc20218a5795",
+              "line": 1509,
+              "column": 23,
+              "sampled_ms": 2.1
+            },
+            {
+              "node_id": 268,
+              "function": "setClass",
+              "source": "https://localhost:4433/static/js/cleitstand.js?bts_asset=8df3fde01e77ec1462dc22dc&v=bc20218a5795",
+              "line": 1093,
+              "column": 19,
+              "sampled_ms": 2.09
+            },
+            {
+              "node_id": 257,
+              "function": "blocking_status",
+              "source": "https://localhost:4433/static/js/btp_entry_status.js?bts_asset=91f64c66ace29cd5007bf6d0&v=bc20218a5795",
+              "line": 10,
+              "column": 25,
+              "sampled_ms": 2.09
+            },
+            {
+              "node_id": 266,
+              "function": "maxSetCount",
+              "source": "https://localhost:4433/static/js/cleitstand.js?bts_asset=8df3fde01e77ec1462dc22dc&v=bc20218a5795",
+              "line": 1138,
+              "column": 22,
+              "sampled_ms": 2.07
+            },
+            {
+              "node_id": 272,
+              "function": "textWidth",
+              "source": "https://localhost:4433/static/js/cleitstand.js?bts_asset=8df3fde01e77ec1462dc22dc&v=bc20218a5795",
+              "line": 389,
+              "column": 20,
+              "sampled_ms": 2.07
+            }
+          ]
+        },
+        "overlapping_frames": [
+          {
+            "id": 7390,
+            "start_ms": 332641.5,
+            "end_ms": 332789.3,
+            "duration_ms": 147.8,
+            "blocking_ms": 85.5,
+            "render_start_ms": 332663.30000019073,
+            "style_layout_start_ms": 332664.09999990463,
+            "first_ui_event_ms": 0,
+            "script_count": 2,
+            "omitted_scripts": 0,
+            "scripts": [
+              {
+                "start_ms": 332645.09999990463,
+                "duration_ms": 9.400000095367432,
+                "execution_start_ms": 332645.09999990463,
+                "forced_style_layout_ms": 0,
+                "pause_ms": 0,
+                "invoker": "SchedulerPostTaskCallback",
+                "invoker_type": "user-callback",
+                "function": "",
+                "source": "https://localhost:4433/static/js/change_queue_scheduler.js?bts_asset=862a7e897125ee0a283bc7dc&v=bc20218a5795",
+                "char_position": 873
+              },
+              {
+                "start_ms": 332654.59999990463,
+                "duration_ms": 8.600000381469727,
+                "execution_start_ms": 332654.59999990463,
+                "forced_style_layout_ms": 0,
+                "pause_ms": 0,
+                "invoker": "SchedulerPostTaskCallback",
+                "invoker_type": "user-callback",
+                "function": "",
+                "source": "https://localhost:4433/static/js/change_queue_scheduler.js?bts_asset=862a7e897125ee0a283bc7dc&v=bc20218a5795",
+                "char_position": 873
+              }
+            ],
+            "start_relative_to_control_ms": -29.2,
+            "end_relative_to_control_ms": 118.6,
+            "after_style_layout_start_ms": 125.2
+          }
+        ],
+        "overlapping_tasks": [
+          {
+            "id": 7377,
+            "name": "job:timers.fit",
+            "start_ms": 332788.9,
+            "job_id": 1437,
+            "updates": [
+              {
+                "sequence": 6093,
+                "type": "match_edit",
+                "match_id": "btp_default_MX U13_454"
+              }
+            ],
+            "end_ms": 332789,
+            "duration_ms": 0.1,
+            "start_relative_to_control_ms": 118.2,
+            "end_relative_to_control_ms": 118.3
+          },
+          {
+            "id": 7379,
+            "name": "job:preparation.courts",
+            "start_ms": 332840.7,
+            "job_id": 1444,
+            "updates": [
+              {
+                "sequence": 6093,
+                "type": "match_edit",
+                "match_id": "btp_default_MX U13_454"
+              }
+            ],
+            "end_ms": 332841.6,
+            "duration_ms": 0.9,
+            "start_relative_to_control_ms": 170,
+            "end_relative_to_control_ms": 170.9
+          },
+          {
+            "id": 7380,
+            "name": "job:players.status",
+            "start_ms": 332841.6,
+            "job_id": 1445,
+            "updates": [
+              {
+                "sequence": 6093,
+                "type": "match_edit",
+                "match_id": "btp_default_MX U13_454"
+              },
+              {
+                "sequence": 6095,
+                "type": "update_player_status",
+                "match_id": "btp_default_JD U13_1180"
+              },
+              {
+                "sequence": 6096,
+                "type": "update_player_status",
+                "match_id": "btp_default_JD U13_1188"
+              },
+              {
+                "sequence": 6097,
+                "type": "update_player_status",
+                "match_id": "btp_default_JE U13_560"
+              },
+              {
+                "sequence": 6098,
+                "type": "update_player_status",
+                "match_id": "btp_default_MD U13_1275"
+              },
+              {
+                "sequence": 6099,
+                "type": "update_player_status",
+                "match_id": "btp_default_ME U13_641"
+              },
+              {
+                "sequence": 6100,
+                "type": "update_player_status",
+                "match_id": "btp_default_JD U13_1200"
+              },
+              {
+                "sequence": 6101,
+                "type": "update_player_status",
+                "match_id": "btp_default_MD U13_1259"
+              }
+            ],
+            "end_ms": 332847,
+            "duration_ms": 5.4,
+            "start_relative_to_control_ms": 170.9,
+            "end_relative_to_control_ms": 176.3
+          },
+          {
+            "id": 7381,
+            "name": "job:lists.counts",
+            "start_ms": 332847.7,
+            "job_id": 1442,
+            "updates": [
+              {
+                "sequence": 6093,
+                "type": "match_edit",
+                "match_id": "btp_default_MX U13_454"
+              }
+            ],
+            "end_ms": 332858.3,
+            "duration_ms": 10.6,
+            "start_relative_to_control_ms": 177,
+            "end_relative_to_control_ms": 187.6
+          },
+          {
+            "id": 7382,
+            "name": "job:names.layout",
+            "start_ms": 332858.3,
+            "job_id": 1439,
+            "updates": [
+              {
+                "sequence": 6093,
+                "type": "match_edit",
+                "match_id": "btp_default_MX U13_454"
+              },
+              {
+                "sequence": 6095,
+                "type": "update_player_status",
+                "match_id": "btp_default_JD U13_1180"
+              },
+              {
+                "sequence": 6096,
+                "type": "update_player_status",
+                "match_id": "btp_default_JD U13_1188"
+              },
+              {
+                "sequence": 6097,
+                "type": "update_player_status",
+                "match_id": "btp_default_JE U13_560"
+              },
+              {
+                "sequence": 6098,
+                "type": "update_player_status",
+                "match_id": "btp_default_MD U13_1275"
+              },
+              {
+                "sequence": 6099,
+                "type": "update_player_status",
+                "match_id": "btp_default_ME U13_641"
+              },
+              {
+                "sequence": 6100,
+                "type": "update_player_status",
+                "match_id": "btp_default_JD U13_1200"
+              },
+              {
+                "sequence": 6101,
+                "type": "update_player_status",
+                "match_id": "btp_default_MD U13_1259"
+              }
+            ],
+            "end_ms": 332872.8,
+            "duration_ms": 14.5,
+            "start_relative_to_control_ms": 187.6,
+            "end_relative_to_control_ms": 202.1
+          },
+          {
+            "id": 7386,
+            "name": "handler:score",
+            "start_ms": 332909.1,
+            "updates": [
+              {
+                "sequence": 6111,
+                "type": "score",
+                "match_id": "btp_default_MX U19_309",
+                "trace_id": "live-drill-2834041-mwen98aj-818"
+              }
+            ],
+            "end_ms": 332909.3,
+            "duration_ms": 0.2,
+            "start_relative_to_control_ms": 238.4,
+            "end_relative_to_control_ms": 238.6
+          },
+          {
+            "id": 7387,
+            "name": "handler:display_render_stats",
+            "start_ms": 332909.3,
+            "updates": [
+              {
+                "sequence": 6108,
+                "type": "display_render_stats"
+              }
+            ],
+            "end_ms": 332909.4,
+            "duration_ms": 0.1,
+            "start_relative_to_control_ms": 238.6,
+            "end_relative_to_control_ms": 238.7
+          }
+        ]
+      }
+    },
+    {
+      "trace_id": "live-drill-2834041-mwen9pe7-863",
+      "sent_ts": 1794554255311,
+      "court_id": "default_11",
+      "match_id": "btp_default_MX U13_442",
+      "tv_ms": 7,
+      "tv_received_ts": 1794554255318,
+      "admin_ms": 244,
+      "admin_received_ts": 1794554255466,
+      "admin_applied_ts": 1794554255466,
+      "admin_presented_ts": 1794554255555,
+      "admin_presentation_status": "presented",
+      "admin_ui_ms": {
+        "queue_ms": 0.4,
+        "handler_ms": 0.2,
+        "ui_wait_ms": 0.1,
+        "render_ms": 89,
+        "total_ms": 89.7
+      },
+      "admin_measurement_method": "dom-and-render-opportunity",
+      "admin_ui_jobs": [],
+      "admin_blocking_window_id": 27,
+      "admin_control_received_ts": 1794554255320,
+      "kind": "ordinary",
+      "sent_to_control_ms": 9,
+      "control_to_browser_callback_ms": 146,
+      "callback_to_presentation_ms": 89,
+      "browser_connection_id": "admin-2833904-3",
+      "server_operations": [
+        {
+          "id": 3301,
+          "name": "handle_score_update_v2",
+          "start_relative_to_send_ms": 3,
+          "duration_ms": 8.6,
+          "status": "ok",
+          "browser_send_spans": [
+            {
+              "kind": "send_wait",
+              "connection_id": "admin-2833904-3",
+              "start_ts": 1794554255319,
+              "ts": 1794554255319,
+              "duration_ms": 0,
+              "status": "ok"
+            },
+            {
+              "kind": "send_enqueue",
+              "connection_id": "admin-2833904-3",
+              "start_ts": 1794554255319,
+              "ts": 1794554255319,
+              "duration_ms": 0,
+              "status": "ok"
+            },
+            {
+              "kind": "send_flush",
+              "connection_id": "admin-2833904-3",
+              "start_ts": 1794554255319,
+              "ts": 1794554255319,
+              "duration_ms": 0.5,
+              "status": "ok"
+            }
+          ]
+        }
+      ],
+      "diagnostic": {
+        "id": 27,
+        "capture_status": "complete",
+        "cpu_coverage": {
+          "missing_before_ms": 0,
+          "missing_after_ms": 0,
+          "between_chunks_gap_ms": 0
+        },
+        "summary": {
+          "connection_id": "admin-2833904-3",
+          "control_to_browser_callback_ms": 146,
+          "browser_callback_to_presentation_ms": 89,
+          "recorded_work": [
+            {
+              "id": 7972,
+              "name": "job:names.layout",
+              "start_ms": 354866.2,
+              "job_id": 1580,
+              "updates": [
+                {
+                  "sequence": 6520,
+                  "type": "call_status_changed"
+                }
+              ],
+              "end_ms": 354916.3,
+              "duration_ms": 50.1,
+              "overlap_ms": 50.1
+            },
+            {
+              "id": 7977,
+              "name": "handler:match_preparation_call",
+              "start_ms": 354985.7,
+              "updates": [
+                {
+                  "sequence": 6524,
+                  "type": "match_preparation_call",
+                  "match_id": "btp_default_MX U13_455"
+                }
+              ],
+              "end_ms": 355010.7,
+              "duration_ms": 25,
+              "overlap_ms": 25
+            },
+            {
+              "id": 7970,
+              "name": "job:preparation.controls",
+              "start_ms": 354824.8,
+              "job_id": 1579,
+              "updates": [
+                {
+                  "sequence": 6520,
+                  "type": "call_status_changed"
+                }
+              ],
+              "end_ms": 354862.4,
+              "duration_ms": 37.6,
+              "overlap_ms": 23.7
+            },
+            {
+              "id": 7978,
+              "name": "job:planned.sort",
+              "start_ms": 355013.6,
+              "job_id": 1583,
+              "updates": [
+                {
+                  "sequence": 6524,
+                  "type": "match_preparation_call",
+                  "match_id": "btp_default_MX U13_455"
+                }
+              ],
+              "end_ms": 355023.5,
+              "duration_ms": 9.9,
+              "overlap_ms": 9.9
+            },
+            {
+              "id": 7971,
+              "name": "job:locations.labels",
+              "start_ms": 354865.8,
+              "job_id": 1578,
+              "updates": [
+                {
+                  "sequence": 6520,
+                  "type": "call_status_changed"
+                }
+              ],
+              "end_ms": 354866.2,
+              "duration_ms": 0.4,
+              "overlap_ms": 0.4
+            },
+            {
+              "id": 7975,
+              "name": "handler:score",
+              "start_ms": 354985.1,
+              "updates": [
+                {
+                  "sequence": 6523,
+                  "type": "score",
+                  "match_id": "btp_default_MX U13_442",
+                  "trace_id": "live-drill-2834041-mwen9pe7-863"
+                }
+              ],
+              "end_ms": 354985.3,
+              "duration_ms": 0.2,
+              "overlap_ms": 0.2
+            },
+            {
+              "id": 7979,
+              "name": "job:timers.fit",
+              "start_ms": 355042.4,
+              "job_id": 1582,
+              "updates": [
+                {
+                  "sequence": 6524,
+                  "type": "match_preparation_call",
+                  "match_id": "btp_default_MX U13_455"
+                }
+              ],
+              "end_ms": 355042.5,
+              "duration_ms": 0.1,
+              "overlap_ms": 0.1
+            },
+            {
+              "id": 7980,
+              "name": "job:timers.fit",
+              "start_ms": 355042.5,
+              "job_id": 1582,
+              "updates": [
+                {
+                  "sequence": 6524,
+                  "type": "match_preparation_call",
+                  "match_id": "btp_default_MX U13_455"
+                }
+              ],
+              "end_ms": 355042.6,
+              "duration_ms": 0.1,
+              "overlap_ms": 0.1
+            }
+          ],
+          "cpu_functions": [
+            {
+              "node_id": 375,
+              "function": "getBoundingClientRect",
+              "source": "",
+              "line": -1,
+              "column": -1,
+              "sampled_ms": 47.51
+            },
+            {
+              "node_id": 274,
+              "function": "(garbage collector)",
+              "source": "",
+              "line": -1,
+              "column": -1,
+              "sampled_ms": 21.74
+            },
+            {
+              "node_id": 366,
+              "function": "querySelectorAll",
+              "source": "",
+              "line": -1,
+              "column": -1,
+              "sampled_ms": 10.57
+            },
+            {
+              "node_id": 338,
+              "function": "decorateControls",
+              "source": "https://localhost:4433/static/js/cleitstand.js?bts_asset=8df3fde01e77ec1462dc22dc&v=bc20218a5795",
+              "line": 1710,
+              "column": 27,
+              "sampled_ms": 4.14
+            },
+            {
+              "node_id": 394,
+              "function": "bindMatchNames",
+              "source": "https://localhost:4433/static/js/cleitstand.js?bts_asset=8df3fde01e77ec1462dc22dc&v=bc20218a5795",
+              "line": 767,
+              "column": 25,
+              "sampled_ms": 2.29
+            },
+            {
+              "node_id": 406,
+              "function": "(anonymous)",
+              "source": "https://localhost:4433/static/js/cleitstand.js?bts_asset=8df3fde01e77ec1462dc22dc&v=bc20218a5795",
+              "line": 1349,
+              "column": 53,
+              "sampled_ms": 2.2
+            },
+            {
+              "node_id": 279,
+              "function": "timerContext",
+              "source": "https://localhost:4433/static/js/cleitstand.js?bts_asset=8df3fde01e77ec1462dc22dc&v=bc20218a5795",
+              "line": 1535,
+              "column": 23,
+              "sampled_ms": 2.14
+            },
+            {
+              "node_id": 404,
+              "function": "received",
+              "source": "https://localhost:4433/static/js/admin_update_observer.js?bts_asset=ce04ee6c7219c29d53693ec0&v=bc20218a5795",
+              "line": 45,
+              "column": 18,
+              "sampled_ms": 2.1
+            },
+            {
+              "node_id": 403,
+              "function": "own",
+              "source": "https://localhost:4433/static/js/audio_devices.js?bts_asset=17240268d0270edac621440a&v=bc20218a5795",
+              "line": 15,
+              "column": 14,
+              "sampled_ms": 2.1
+            },
+            {
+              "node_id": 16,
+              "function": "observer.subscribe.metadataOnly",
+              "source": "",
+              "line": 2,
+              "column": 63,
+              "sampled_ms": 2.09
+            },
+            {
+              "node_id": 409,
+              "function": "refreshDateGroups",
+              "source": "https://localhost:4433/static/js/cleitstand.js?bts_asset=8df3fde01e77ec1462dc22dc&v=bc20218a5795",
+              "line": 1272,
+              "column": 28,
+              "sampled_ms": 2.09
+            },
+            {
+              "node_id": 408,
+              "function": "matchListCount",
+              "source": "https://localhost:4433/static/js/cleitstand.js?bts_asset=8df3fde01e77ec1462dc22dc&v=bc20218a5795",
+              "line": 1817,
+              "column": 25,
+              "sampled_ms": 2.09
+            }
+          ]
+        },
+        "overlapping_frames": [
+          {
+            "id": 7989,
+            "start_ms": 354824.7,
+            "end_ms": 354922,
+            "duration_ms": 97.3,
+            "blocking_ms": 44.5,
+            "render_start_ms": 354865.7000002861,
+            "style_layout_start_ms": 354916.30000019073,
+            "first_ui_event_ms": 0,
+            "script_count": 2,
+            "omitted_scripts": 0,
+            "scripts": [
+              {
+                "start_ms": 354866.2000002861,
+                "duration_ms": 50.09999990463257,
+                "execution_start_ms": 354866.2000002861,
+                "forced_style_layout_ms": 48.5,
+                "pause_ms": 0,
+                "invoker": "FrameRequestCallback",
+                "invoker_type": "user-callback",
+                "function": "runNameFrame",
+                "source": "https://localhost:4433/static/js/cleitstand.js?bts_asset=8df3fde01e77ec1462dc22dc&v=bc20218a5795",
+                "char_position": 11940
+              },
+              {
+                "start_ms": 354824.7000002861,
+                "duration_ms": 38.09999990463257,
+                "execution_start_ms": 354824.7000002861,
+                "forced_style_layout_ms": 0,
+                "pause_ms": 0,
+                "invoker": "SchedulerPostTaskCallback",
+                "invoker_type": "user-callback",
+                "function": "",
+                "source": "https://localhost:4433/static/js/change_queue_scheduler.js?bts_asset=862a7e897125ee0a283bc7dc&v=bc20218a5795",
+                "char_position": 873
+              }
+            ],
+            "start_relative_to_control_ms": -14,
+            "end_relative_to_control_ms": 83.3,
+            "after_style_layout_start_ms": 5.7
+          },
+          {
+            "id": 7990,
+            "start_ms": 354979.2,
+            "end_ms": 355054.1,
+            "duration_ms": 74.9,
+            "blocking_ms": 16.6,
+            "render_start_ms": 355013,
+            "style_layout_start_ms": 355023.80000019073,
+            "first_ui_event_ms": 0,
+            "script_count": 2,
+            "omitted_scripts": 0,
+            "scripts": [
+              {
+                "start_ms": 354985.5,
+                "duration_ms": 25.40000009536743,
+                "execution_start_ms": 354985.5,
+                "forced_style_layout_ms": 0,
+                "pause_ms": 0,
+                "invoker": "DOMWebSocket.onmessage",
+                "invoker_type": "event-listener",
+                "function": "handle_message",
+                "source": "https://localhost:4433/static/js/conn.js?bts_asset=23733591909e321a8c4f7d87&v=bc20218a5795",
+                "char_position": 8675
+              },
+              {
+                "start_ms": 355013.5,
+                "duration_ms": 10.099999904632568,
+                "execution_start_ms": 355013.5,
+                "forced_style_layout_ms": 0,
+                "pause_ms": 0,
+                "invoker": "FrameRequestCallback",
+                "invoker_type": "user-callback",
+                "function": "runNameFrame",
+                "source": "https://localhost:4433/static/js/cleitstand.js?bts_asset=8df3fde01e77ec1462dc22dc&v=bc20218a5795",
+                "char_position": 11940
+              }
+            ],
+            "start_relative_to_control_ms": 140.5,
+            "end_relative_to_control_ms": 215.4,
+            "after_style_layout_start_ms": 30.3
+          }
+        ],
+        "overlapping_tasks": [
+          {
+            "id": 7970,
+            "name": "job:preparation.controls",
+            "start_ms": 354824.8,
+            "job_id": 1579,
+            "updates": [
+              {
+                "sequence": 6520,
+                "type": "call_status_changed"
+              }
+            ],
+            "end_ms": 354862.4,
+            "duration_ms": 37.6,
+            "start_relative_to_control_ms": -13.9,
+            "end_relative_to_control_ms": 23.7
+          },
+          {
+            "id": 7971,
+            "name": "job:locations.labels",
+            "start_ms": 354865.8,
+            "job_id": 1578,
+            "updates": [
+              {
+                "sequence": 6520,
+                "type": "call_status_changed"
+              }
+            ],
+            "end_ms": 354866.2,
+            "duration_ms": 0.4,
+            "start_relative_to_control_ms": 27.1,
+            "end_relative_to_control_ms": 27.5
+          },
+          {
+            "id": 7972,
+            "name": "job:names.layout",
+            "start_ms": 354866.2,
+            "job_id": 1580,
+            "updates": [
+              {
+                "sequence": 6520,
+                "type": "call_status_changed"
+              }
+            ],
+            "end_ms": 354916.3,
+            "duration_ms": 50.1,
+            "start_relative_to_control_ms": 27.5,
+            "end_relative_to_control_ms": 77.6
+          },
+          {
+            "id": 7975,
+            "name": "handler:score",
+            "start_ms": 354985.1,
+            "updates": [
+              {
+                "sequence": 6523,
+                "type": "score",
+                "match_id": "btp_default_MX U13_442",
+                "trace_id": "live-drill-2834041-mwen9pe7-863"
+              }
+            ],
+            "end_ms": 354985.3,
+            "duration_ms": 0.2,
+            "start_relative_to_control_ms": 146.4,
+            "end_relative_to_control_ms": 146.6
+          },
+          {
+            "id": 7977,
+            "name": "handler:match_preparation_call",
+            "start_ms": 354985.7,
+            "updates": [
+              {
+                "sequence": 6524,
+                "type": "match_preparation_call",
+                "match_id": "btp_default_MX U13_455"
+              }
+            ],
+            "end_ms": 355010.7,
+            "duration_ms": 25,
+            "start_relative_to_control_ms": 147,
+            "end_relative_to_control_ms": 172
+          },
+          {
+            "id": 7978,
+            "name": "job:planned.sort",
+            "start_ms": 355013.6,
+            "job_id": 1583,
+            "updates": [
+              {
+                "sequence": 6524,
+                "type": "match_preparation_call",
+                "match_id": "btp_default_MX U13_455"
+              }
+            ],
+            "end_ms": 355023.5,
+            "duration_ms": 9.9,
+            "start_relative_to_control_ms": 174.9,
+            "end_relative_to_control_ms": 184.8
+          },
+          {
+            "id": 7979,
+            "name": "job:timers.fit",
+            "start_ms": 355042.4,
+            "job_id": 1582,
+            "updates": [
+              {
+                "sequence": 6524,
+                "type": "match_preparation_call",
+                "match_id": "btp_default_MX U13_455"
+              }
+            ],
+            "end_ms": 355042.5,
+            "duration_ms": 0.1,
+            "start_relative_to_control_ms": 203.7,
+            "end_relative_to_control_ms": 203.8
+          },
+          {
+            "id": 7980,
+            "name": "job:timers.fit",
+            "start_ms": 355042.5,
+            "job_id": 1582,
+            "updates": [
+              {
+                "sequence": 6524,
+                "type": "match_preparation_call",
+                "match_id": "btp_default_MX U13_455"
+              }
+            ],
+            "end_ms": 355042.6,
+            "duration_ms": 0.1,
+            "start_relative_to_control_ms": 203.8,
+            "end_relative_to_control_ms": 203.9
+          }
+        ]
+      }
+    },
+    {
+      "trace_id": "live-drill-2834041-mwendzfr-1067",
+      "sent_ts": 1794554454951,
+      "court_id": "default_14",
+      "match_id": "btp_default_MX U15_371",
+      "tv_ms": 27,
+      "tv_received_ts": 1794554454978,
+      "admin_ms": 243,
+      "admin_received_ts": 1794554455042,
+      "admin_applied_ts": 1794554455062,
+      "admin_presented_ts": 1794554455194,
+      "admin_presentation_status": "presented",
+      "admin_ui_ms": {
+        "queue_ms": 17.8,
+        "handler_ms": 2.2,
+        "ui_wait_ms": 0,
+        "render_ms": 132,
+        "total_ms": 152
+      },
+      "admin_measurement_method": "dom-and-render-opportunity",
+      "admin_ui_jobs": [],
+      "admin_blocking_window_id": 35,
+      "admin_control_received_ts": 1794554454985,
+      "kind": "ordinary",
+      "sent_to_control_ms": 34,
+      "control_to_browser_callback_ms": 57,
+      "callback_to_presentation_ms": 152,
+      "browser_connection_id": "admin-2833904-3",
+      "server_operations": [
+        {
+          "id": 4895,
+          "name": "handle_score_update_v2",
+          "start_relative_to_send_ms": 6,
+          "duration_ms": 37.7,
+          "status": "ok",
+          "browser_send_spans": [
+            {
+              "kind": "send_wait",
+              "connection_id": "admin-2833904-3",
+              "start_ts": 1794554454979,
+              "ts": 1794554454979,
+              "duration_ms": 0,
+              "status": "ok"
+            },
+            {
+              "kind": "send_enqueue",
+              "connection_id": "admin-2833904-3",
+              "start_ts": 1794554454979,
+              "ts": 1794554454979,
+              "duration_ms": 0,
+              "status": "ok"
+            },
+            {
+              "kind": "send_flush",
+              "connection_id": "admin-2833904-3",
+              "start_ts": 1794554454979,
+              "ts": 1794554454985,
+              "duration_ms": 5.7,
+              "status": "ok"
+            }
+          ]
+        }
+      ],
+      "diagnostic": {
+        "id": 35,
+        "capture_status": "complete",
+        "cpu_coverage": {
+          "missing_before_ms": 0,
+          "missing_after_ms": 0,
+          "between_chunks_gap_ms": 0
+        },
+        "summary": {
+          "connection_id": "admin-2833904-3",
+          "control_to_browser_callback_ms": 57,
+          "browser_callback_to_presentation_ms": 152,
+          "recorded_work": [
+            {
+              "id": 10410,
+              "name": "job:preparation.controls",
+              "start_ms": 554581.6,
+              "job_id": 2181,
+              "updates": [
+                {
+                  "sequence": 8132,
+                  "type": "call_status_changed"
+                }
+              ],
+              "end_ms": 554619.9,
+              "duration_ms": 38.3,
+              "overlap_ms": 38.3
+            },
+            {
+              "id": 10407,
+              "name": "handler:call_status_changed",
+              "start_ms": 554561.7,
+              "updates": [
+                {
+                  "sequence": 8132,
+                  "type": "call_status_changed"
+                }
+              ],
+              "end_ms": 554579.2,
+              "duration_ms": 17.5,
+              "overlap_ms": 17.5
+            },
+            {
+              "id": 10408,
+              "name": "handler:score",
+              "start_ms": 554579.3,
+              "updates": [
+                {
+                  "sequence": 8134,
+                  "type": "score",
+                  "match_id": "btp_default_MX U15_371",
+                  "trace_id": "live-drill-2834041-mwendzfr-1067"
+                }
+              ],
+              "end_ms": 554581.5,
+              "duration_ms": 2.2,
+              "overlap_ms": 2.2
+            }
+          ],
+          "cpu_functions": [
+            {
+              "node_id": 73,
+              "function": "(garbage collector)",
+              "source": "",
+              "line": -1,
+              "column": -1,
+              "sampled_ms": 13.92
+            },
+            {
+              "node_id": 243,
+              "function": "render_debug_icon",
+              "source": "https://localhost:4433/static/js/cmatch.js?bts_asset=db45a30efb7e079d8abb5d8a&v=bc20218a5795",
+              "line": 4334,
+              "column": 26,
+              "sampled_ms": 10.1
+            },
+            {
+              "node_id": 232,
+              "function": "(anonymous)",
+              "source": "https://localhost:4433/static/js/cmatch.js?bts_asset=db45a30efb7e079d8abb5d8a&v=bc20218a5795",
+              "line": 4501,
+              "column": 37,
+              "sampled_ms": 7.04
+            },
+            {
+              "node_id": 219,
+              "function": "normalizeNames",
+              "source": "https://localhost:4433/static/js/announcement_text.js?bts_asset=ea23c07d22919e0fa99d1955&v=bc20218a5795",
+              "line": 396,
+              "column": 27,
+              "sampled_ms": 6.66
+            },
+            {
+              "node_id": 220,
+              "function": "apply",
+              "source": "https://localhost:4433/static/js/call_status_updates.js?bts_asset=8947024918842d9e77c5ce79&v=bc20218a5795",
+              "line": 6,
+              "column": 18,
+              "sampled_ms": 6.29
+            },
+            {
+              "node_id": 221,
+              "function": "deep_equal",
+              "source": "https://localhost:4433/bupdev/js/utils.js?bts_asset=e144771d21aeffdc7d4bc175&v=bc20218a5795",
+              "line": 179,
+              "column": 19,
+              "sampled_ms": 6.24
+            },
+            {
+              "node_id": 248,
+              "function": "get_preparation_debug_window_status",
+              "source": "https://localhost:4433/static/js/cmatch.js?bts_asset=db45a30efb7e079d8abb5d8a&v=bc20218a5795",
+              "line": 4139,
+              "column": 44,
+              "sampled_ms": 4.82
+            },
+            {
+              "node_id": 247,
+              "function": "querySelector",
+              "source": "",
+              "line": -1,
+              "column": -1,
+              "sampled_ms": 4.47
+            },
+            {
+              "node_id": 260,
+              "function": "createV2SpeechPlan",
+              "source": "https://localhost:4433/static/js/speech_context_v2.js?bts_asset=d1400f3659046bf5fe061562&v=bc20218a5795",
+              "line": 127,
+              "column": 27,
+              "sampled_ms": 4.29
+            },
+            {
+              "node_id": 238,
+              "function": "matches",
+              "source": "",
+              "line": -1,
+              "column": -1,
+              "sampled_ms": 2.32
+            },
+            {
+              "node_id": 137,
+              "function": "call_status_changes",
+              "source": "https://localhost:4433/static/js/ctournament.js?bts_asset=01167c87a2ad03b4e71f2148&v=bc20218a5795",
+              "line": 1516,
+              "column": 29,
+              "sampled_ms": 2.09
+            },
+            {
+              "node_id": 228,
+              "function": "(anonymous)",
+              "source": "https://localhost:4433/static/js/cleitstand.js?bts_asset=8df3fde01e77ec1462dc22dc&v=bc20218a5795",
+              "line": 1951,
+              "column": 38,
+              "sampled_ms": 2.09
+            }
+          ]
+        },
+        "overlapping_frames": [
+          {
+            "id": 10412,
+            "start_ms": 554437.7,
+            "end_ms": 554507.1,
+            "duration_ms": 69.4,
+            "blocking_ms": 12.6,
+            "render_start_ms": 554479.9000000954,
+            "style_layout_start_ms": 554480.2000002861,
+            "first_ui_event_ms": 0,
+            "script_count": 1,
+            "omitted_scripts": 0,
+            "scripts": [
+              {
+                "start_ms": 554452.5999999046,
+                "duration_ms": 26.40000009536743,
+                "execution_start_ms": 554452.5999999046,
+                "forced_style_layout_ms": 0,
+                "pause_ms": 0,
+                "invoker": "DOMWebSocket.onmessage",
+                "invoker_type": "event-listener",
+                "function": "handle_message",
+                "source": "https://localhost:4433/static/js/conn.js?bts_asset=23733591909e321a8c4f7d87&v=bc20218a5795",
+                "char_position": 8675
+              }
+            ],
+            "start_relative_to_control_ms": -66,
+            "end_relative_to_control_ms": 3.4,
+            "after_style_layout_start_ms": 26.9
+          },
+          {
+            "id": 10414,
+            "start_ms": 554561.7,
+            "end_ms": 554678.7,
+            "duration_ms": 117,
+            "blocking_ms": 49,
+            "render_start_ms": 554620.4000000954,
+            "style_layout_start_ms": 554620.5999999046,
+            "first_ui_event_ms": 0,
+            "script_count": 2,
+            "omitted_scripts": 0,
+            "scripts": [
+              {
+                "start_ms": 554579.3000001907,
+                "duration_ms": 40.69999980926514,
+                "execution_start_ms": 554579.3000001907,
+                "forced_style_layout_ms": 0,
+                "pause_ms": 0,
+                "invoker": "SchedulerPostTaskCallback",
+                "invoker_type": "user-callback",
+                "function": "",
+                "source": "https://localhost:4433/static/js/change_queue_scheduler.js?bts_asset=862a7e897125ee0a283bc7dc&v=bc20218a5795",
+                "char_position": 873
+              },
+              {
+                "start_ms": 554561.7000002861,
+                "duration_ms": 17.5,
+                "execution_start_ms": 554561.7000002861,
+                "forced_style_layout_ms": 0,
+                "pause_ms": 0,
+                "invoker": "SchedulerPostTaskCallback",
+                "invoker_type": "user-callback",
+                "function": "",
+                "source": "https://localhost:4433/static/js/change_queue_scheduler.js?bts_asset=862a7e897125ee0a283bc7dc&v=bc20218a5795",
+                "char_position": 873
+              }
+            ],
+            "start_relative_to_control_ms": 58,
+            "end_relative_to_control_ms": 175,
+            "after_style_layout_start_ms": 58.1
+          }
+        ],
+        "overlapping_tasks": [
+          {
+            "id": 10407,
+            "name": "handler:call_status_changed",
+            "start_ms": 554561.7,
+            "updates": [
+              {
+                "sequence": 8132,
+                "type": "call_status_changed"
+              }
+            ],
+            "end_ms": 554579.2,
+            "duration_ms": 17.5,
+            "start_relative_to_control_ms": 58,
+            "end_relative_to_control_ms": 75.5
+          },
+          {
+            "id": 10408,
+            "name": "handler:score",
+            "start_ms": 554579.3,
+            "updates": [
+              {
+                "sequence": 8134,
+                "type": "score",
+                "match_id": "btp_default_MX U15_371",
+                "trace_id": "live-drill-2834041-mwendzfr-1067"
+              }
+            ],
+            "end_ms": 554581.5,
+            "duration_ms": 2.2,
+            "start_relative_to_control_ms": 75.6,
+            "end_relative_to_control_ms": 77.8
+          },
+          {
+            "id": 10410,
+            "name": "job:preparation.controls",
+            "start_ms": 554581.6,
+            "job_id": 2181,
+            "updates": [
+              {
+                "sequence": 8132,
+                "type": "call_status_changed"
+              }
+            ],
+            "end_ms": 554619.9,
+            "duration_ms": 38.3,
+            "start_relative_to_control_ms": 77.9,
+            "end_relative_to_control_ms": 116.2
+          }
+        ]
+      }
+    },
+    {
+      "trace_id": "live-drill-2834041-mwencibf-889",
+      "sent_ts": 1794554386107,
+      "court_id": "default_11",
+      "match_id": "btp_default_MX U13_442",
+      "tv_ms": 10,
+      "tv_received_ts": 1794554386117,
+      "admin_ms": 241,
+      "admin_received_ts": 1794554386172,
+      "admin_applied_ts": 1794554386173,
+      "admin_presented_ts": 1794554386348,
+      "admin_presentation_status": "presented",
+      "admin_ui_ms": {
+        "queue_ms": 0.7,
+        "handler_ms": 0.5,
+        "ui_wait_ms": 0,
+        "render_ms": 175.1,
+        "total_ms": 176.3
+      },
+      "admin_measurement_method": "dom-and-render-opportunity",
+      "admin_ui_jobs": [],
+      "admin_blocking_window_id": 28,
+      "admin_control_received_ts": 1794554386118,
+      "kind": "ordinary",
+      "sent_to_control_ms": 11,
+      "control_to_browser_callback_ms": 54,
+      "callback_to_presentation_ms": 176,
+      "browser_connection_id": "admin-2833904-3",
+      "server_operations": [
+        {
+          "id": 4234,
+          "name": "handle_score_update_v2",
+          "start_relative_to_send_ms": 4,
+          "duration_ms": 27.7,
+          "status": "ok",
+          "browser_send_spans": [
+            {
+              "kind": "send_wait",
+              "connection_id": "admin-2833904-3",
+              "start_ts": 1794554386118,
+              "ts": 1794554386118,
+              "duration_ms": 0,
+              "status": "ok"
+            },
+            {
+              "kind": "send_enqueue",
+              "connection_id": "admin-2833904-3",
+              "start_ts": 1794554386118,
+              "ts": 1794554386118,
+              "duration_ms": 0,
+              "status": "ok"
+            },
+            {
+              "kind": "send_flush",
+              "connection_id": "admin-2833904-3",
+              "start_ts": 1794554386118,
+              "ts": 1794554386118,
+              "duration_ms": 0.5,
+              "status": "ok"
+            }
+          ]
+        }
+      ],
+      "diagnostic": {
+        "id": 28,
+        "capture_status": "complete",
+        "cpu_coverage": {
+          "missing_before_ms": 0,
+          "missing_after_ms": 0,
+          "between_chunks_gap_ms": 0
+        },
+        "summary": {
+          "connection_id": "admin-2833904-3",
+          "control_to_browser_callback_ms": 54,
+          "browser_callback_to_presentation_ms": 176,
+          "recorded_work": [
+            {
+              "id": 8737,
+              "name": "job:names.layout",
+              "start_ms": 485719.5,
+              "job_id": 1884,
+              "updates": [
+                {
+                  "sequence": 6845,
+                  "type": "match_edit",
+                  "match_id": "btp_default_MX U17_107"
+                },
+                {
+                  "sequence": 6847,
+                  "type": "update_player_status",
+                  "match_id": "btp_default_MD U17_1597"
+                },
+                {
+                  "sequence": 6848,
+                  "type": "update_player_status",
+                  "match_id": "btp_default_ME U17_955"
+                },
+                {
+                  "sequence": 6849,
+                  "type": "update_player_status",
+                  "match_id": "btp_default_JD U17_1517"
+                },
+                {
+                  "sequence": 6850,
+                  "type": "update_player_status",
+                  "match_id": "btp_default_JE U17_878"
+                },
+                {
+                  "sequence": 6851,
+                  "type": "update_player_status",
+                  "match_id": "btp_default_MD U17_1579"
+                },
+                {
+                  "sequence": 6852,
+                  "type": "update_player_status",
+                  "match_id": "btp_default_MD U17_1587"
+                },
+                {
+                  "sequence": 6853,
+                  "type": "update_player_status",
+                  "match_id": "btp_default_ME U17_957"
+                }
+              ],
+              "end_ms": 485801.6,
+              "duration_ms": 82.1,
+              "overlap_ms": 82.1
+            },
+            {
+              "id": 8736,
+              "name": "job:lists.counts",
+              "start_ms": 485711.7,
+              "job_id": 1887,
+              "updates": [
+                {
+                  "sequence": 6845,
+                  "type": "match_edit",
+                  "match_id": "btp_default_MX U17_107"
+                }
+              ],
+              "end_ms": 485719.4,
+              "duration_ms": 7.7,
+              "overlap_ms": 7.7
+            },
+            {
+              "id": 8719,
+              "name": "handler:match_edit",
+              "start_ms": 485692.2,
+              "updates": [
+                {
+                  "sequence": 6845,
+                  "type": "match_edit",
+                  "match_id": "btp_default_MX U17_107"
+                }
+              ],
+              "end_ms": 485697.4,
+              "duration_ms": 5.2,
+              "overlap_ms": 5.2
+            },
+            {
+              "id": 8732,
+              "name": "job:lists.dates",
+              "start_ms": 485699.2,
+              "job_id": 1881,
+              "updates": [
+                {
+                  "sequence": 6845,
+                  "type": "match_edit",
+                  "match_id": "btp_default_MX U17_107"
+                }
+              ],
+              "end_ms": 485703.6,
+              "duration_ms": 4.4,
+              "overlap_ms": 4.4
+            },
+            {
+              "id": 8735,
+              "name": "job:players.status",
+              "start_ms": 485707.7,
+              "job_id": 1890,
+              "updates": [
+                {
+                  "sequence": 6845,
+                  "type": "match_edit",
+                  "match_id": "btp_default_MX U17_107"
+                },
+                {
+                  "sequence": 6847,
+                  "type": "update_player_status",
+                  "match_id": "btp_default_MD U17_1597"
+                },
+                {
+                  "sequence": 6848,
+                  "type": "update_player_status",
+                  "match_id": "btp_default_ME U17_955"
+                },
+                {
+                  "sequence": 6849,
+                  "type": "update_player_status",
+                  "match_id": "btp_default_JD U17_1517"
+                },
+                {
+                  "sequence": 6850,
+                  "type": "update_player_status",
+                  "match_id": "btp_default_JE U17_878"
+                },
+                {
+                  "sequence": 6851,
+                  "type": "update_player_status",
+                  "match_id": "btp_default_MD U17_1579"
+                },
+                {
+                  "sequence": 6852,
+                  "type": "update_player_status",
+                  "match_id": "btp_default_MD U17_1587"
+                },
+                {
+                  "sequence": 6853,
+                  "type": "update_player_status",
+                  "match_id": "btp_default_ME U17_957"
+                }
+              ],
+              "end_ms": 485711.7,
+              "duration_ms": 4,
+              "overlap_ms": 4
+            },
+            {
+              "id": 8733,
+              "name": "job:matches.warnings",
+              "start_ms": 485703.6,
+              "job_id": 1888,
+              "updates": [
+                {
+                  "sequence": 6845,
+                  "type": "match_edit",
+                  "match_id": "btp_default_MX U17_107"
+                }
+              ],
+              "end_ms": 485705.5,
+              "duration_ms": 1.9,
+              "overlap_ms": 1.9
+            },
+            {
+              "id": 8734,
+              "name": "job:preparation.courts",
+              "start_ms": 485706.7,
+              "job_id": 1889,
+              "updates": [
+                {
+                  "sequence": 6845,
+                  "type": "match_edit",
+                  "match_id": "btp_default_MX U17_107"
+                }
+              ],
+              "end_ms": 485707.7,
+              "duration_ms": 1,
+              "overlap_ms": 1
+            },
+            {
+              "id": 8720,
+              "name": "handler:update_player_status",
+              "start_ms": 485697.4,
+              "updates": [
+                {
+                  "sequence": 6847,
+                  "type": "update_player_status",
+                  "match_id": "btp_default_MD U17_1597"
+                }
+              ],
+              "end_ms": 485698.3,
+              "duration_ms": 0.9,
+              "overlap_ms": 0.9
+            },
+            {
+              "id": 8718,
+              "name": "handler:score",
+              "start_ms": 485691.7,
+              "updates": [
+                {
+                  "sequence": 6859,
+                  "type": "score",
+                  "match_id": "btp_default_MX U13_442",
+                  "trace_id": "live-drill-2834041-mwencibf-889"
+                }
+              ],
+              "end_ms": 485692.2,
+              "duration_ms": 0.5,
+              "overlap_ms": 0.5
+            },
+            {
+              "id": 8715,
+              "name": "handler:match_called_on_court",
+              "start_ms": 485689,
+              "updates": [
+                {
+                  "sequence": 6846,
+                  "type": "match_called_on_court"
+                }
+              ],
+              "end_ms": 485689.1,
+              "duration_ms": 0.1,
+              "overlap_ms": 0.1
+            },
+            {
+              "id": 8722,
+              "name": "handler:update_player_status",
+              "start_ms": 485698.3,
+              "updates": [
+                {
+                  "sequence": 6849,
+                  "type": "update_player_status",
+                  "match_id": "btp_default_JD U17_1517"
+                }
+              ],
+              "end_ms": 485698.4,
+              "duration_ms": 0.1,
+              "overlap_ms": 0.1
+            },
+            {
+              "id": 8725,
+              "name": "handler:update_player_status",
+              "start_ms": 485698.4,
+              "updates": [
+                {
+                  "sequence": 6852,
+                  "type": "update_player_status",
+                  "match_id": "btp_default_MD U17_1587"
+                }
+              ],
+              "end_ms": 485698.5,
+              "duration_ms": 0.1,
+              "overlap_ms": 0.1
+            }
+          ],
+          "cpu_functions": [
+            {
+              "node_id": 255,
+              "function": "(anonymous)",
+              "source": "https://localhost:4433/static/js/cleitstand.js?bts_asset=8df3fde01e77ec1462dc22dc&v=bc20218a5795",
+              "line": 466,
+              "column": 76,
+              "sampled_ms": 69
+            },
+            {
+              "node_id": 251,
+              "function": "querySelectorAll",
+              "source": "",
+              "line": -1,
+              "column": -1,
+              "sampled_ms": 8.31
+            },
+            {
+              "node_id": 258,
+              "function": "getBoundingClientRect",
+              "source": "",
+              "line": -1,
+              "column": -1,
+              "sampled_ms": 8.3
+            },
+            {
+              "node_id": 211,
+              "function": "appendChild",
+              "source": "",
+              "line": -1,
+              "column": -1,
+              "sampled_ms": 4.71
+            },
+            {
+              "node_id": 250,
+              "function": "refreshDateGroups",
+              "source": "https://localhost:4433/static/js/cleitstand.js?bts_asset=8df3fde01e77ec1462dc22dc&v=bc20218a5795",
+              "line": 1272,
+              "column": 28,
+              "sampled_ms": 4.15
+            },
+            {
+              "node_id": 43,
+              "function": "(garbage collector)",
+              "source": "",
+              "line": -1,
+              "column": -1,
+              "sampled_ms": 2.12
+            },
+            {
+              "node_id": 248,
+              "function": "_normalize_setup",
+              "source": "https://localhost:4433/bupdev/js/calc.js?bts_asset=289c243b814d62ad7bc2d7ab&v=bc20218a5795",
+              "line": 129,
+              "column": 26,
+              "sampled_ms": 2.08
+            },
+            {
+              "node_id": 215,
+              "function": "contains",
+              "source": "",
+              "line": -1,
+              "column": -1,
+              "sampled_ms": 2.08
+            },
+            {
+              "node_id": 220,
+              "function": "_add_match_id_alias",
+              "source": "https://localhost:4433/static/js/ctournament.js?bts_asset=01167c87a2ad03b4e71f2148&v=bc20218a5795",
+              "line": 237,
+              "column": 30,
+              "sampled_ms": 2.07
+            },
+            {
+              "node_id": 137,
+              "function": "refreshNames",
+              "source": "https://localhost:4433/static/js/cleitstand.js?bts_asset=8df3fde01e77ec1462dc22dc&v=bc20218a5795",
+              "line": 575,
+              "column": 23,
+              "sampled_ms": 2.07
+            },
+            {
+              "node_id": 69,
+              "function": "handle_message",
+              "source": "https://localhost:4433/static/js/conn.js?bts_asset=23733591909e321a8c4f7d87&v=bc20218a5795",
+              "line": 244,
+              "column": 23,
+              "sampled_ms": 2.07
+            },
+            {
+              "node_id": 238,
+              "function": "timer_signature",
+              "source": "https://localhost:4433/static/js/cmatch.js?bts_asset=db45a30efb7e079d8abb5d8a&v=bc20218a5795",
+              "line": 2246,
+              "column": 24,
+              "sampled_ms": 2.07
+            }
+          ]
+        },
+        "overlapping_frames": [
+          {
+            "id": 8757,
+            "start_ms": 485690.8,
+            "end_ms": 485839.9,
+            "duration_ms": 149.1,
+            "blocking_ms": 97.8,
+            "render_start_ms": 485706.40000009537,
+            "style_layout_start_ms": 485801.90000009537,
+            "first_ui_event_ms": 0,
+            "script_count": 2,
+            "omitted_scripts": 0,
+            "scripts": [
+              {
+                "start_ms": 485706.7000002861,
+                "duration_ms": 95.19999980926514,
+                "execution_start_ms": 485706.7000002861,
+                "forced_style_layout_ms": 78.3,
+                "pause_ms": 0,
+                "invoker": "FrameRequestCallback",
+                "invoker_type": "user-callback",
+                "function": "runNameFrame",
+                "source": "https://localhost:4433/static/js/cleitstand.js?bts_asset=8df3fde01e77ec1462dc22dc&v=bc20218a5795",
+                "char_position": 11940
+              },
+              {
+                "start_ms": 485691.2000002861,
+                "duration_ms": 14.299999713897705,
+                "execution_start_ms": 485691.2000002861,
+                "forced_style_layout_ms": 0,
+                "pause_ms": 0,
+                "invoker": "SchedulerPostTaskCallback",
+                "invoker_type": "user-callback",
+                "function": "",
+                "source": "https://localhost:4433/static/js/change_queue_scheduler.js?bts_asset=862a7e897125ee0a283bc7dc&v=bc20218a5795",
+                "char_position": 873
+              }
+            ],
+            "start_relative_to_control_ms": 54.1,
+            "end_relative_to_control_ms": 203.2,
+            "after_style_layout_start_ms": 38
+          }
+        ],
+        "overlapping_tasks": [
+          {
+            "id": 8715,
+            "name": "handler:match_called_on_court",
+            "start_ms": 485689,
+            "updates": [
+              {
+                "sequence": 6846,
+                "type": "match_called_on_court"
+              }
+            ],
+            "end_ms": 485689.1,
+            "duration_ms": 0.1,
+            "start_relative_to_control_ms": 52.3,
+            "end_relative_to_control_ms": 52.4
+          },
+          {
+            "id": 8718,
+            "name": "handler:score",
+            "start_ms": 485691.7,
+            "updates": [
+              {
+                "sequence": 6859,
+                "type": "score",
+                "match_id": "btp_default_MX U13_442",
+                "trace_id": "live-drill-2834041-mwencibf-889"
+              }
+            ],
+            "end_ms": 485692.2,
+            "duration_ms": 0.5,
+            "start_relative_to_control_ms": 55,
+            "end_relative_to_control_ms": 55.5
+          },
+          {
+            "id": 8719,
+            "name": "handler:match_edit",
+            "start_ms": 485692.2,
+            "updates": [
+              {
+                "sequence": 6845,
+                "type": "match_edit",
+                "match_id": "btp_default_MX U17_107"
+              }
+            ],
+            "end_ms": 485697.4,
+            "duration_ms": 5.2,
+            "start_relative_to_control_ms": 55.5,
+            "end_relative_to_control_ms": 60.7
+          },
+          {
+            "id": 8720,
+            "name": "handler:update_player_status",
+            "start_ms": 485697.4,
+            "updates": [
+              {
+                "sequence": 6847,
+                "type": "update_player_status",
+                "match_id": "btp_default_MD U17_1597"
+              }
+            ],
+            "end_ms": 485698.3,
+            "duration_ms": 0.9,
+            "start_relative_to_control_ms": 60.7,
+            "end_relative_to_control_ms": 61.6
+          },
+          {
+            "id": 8722,
+            "name": "handler:update_player_status",
+            "start_ms": 485698.3,
+            "updates": [
+              {
+                "sequence": 6849,
+                "type": "update_player_status",
+                "match_id": "btp_default_JD U17_1517"
+              }
+            ],
+            "end_ms": 485698.4,
+            "duration_ms": 0.1,
+            "start_relative_to_control_ms": 61.6,
+            "end_relative_to_control_ms": 61.7
+          },
+          {
+            "id": 8725,
+            "name": "handler:update_player_status",
+            "start_ms": 485698.4,
+            "updates": [
+              {
+                "sequence": 6852,
+                "type": "update_player_status",
+                "match_id": "btp_default_MD U17_1587"
+              }
+            ],
+            "end_ms": 485698.5,
+            "duration_ms": 0.1,
+            "start_relative_to_control_ms": 61.7,
+            "end_relative_to_control_ms": 61.8
+          },
+          {
+            "id": 8729,
+            "name": "handler:update_player_status",
+            "start_ms": 485698.5,
+            "updates": [
+              {
+                "sequence": 6856,
+                "type": "update_player_status",
+                "match_id": "btp_default_ME U17_961"
+              }
+            ],
+            "end_ms": 485698.6,
+            "duration_ms": 0.1,
+            "start_relative_to_control_ms": 61.8,
+            "end_relative_to_control_ms": 61.9
+          },
+          {
+            "id": 8732,
+            "name": "job:lists.dates",
+            "start_ms": 485699.2,
+            "job_id": 1881,
+            "updates": [
+              {
+                "sequence": 6845,
+                "type": "match_edit",
+                "match_id": "btp_default_MX U17_107"
+              }
+            ],
+            "end_ms": 485703.6,
+            "duration_ms": 4.4,
+            "start_relative_to_control_ms": 62.5,
+            "end_relative_to_control_ms": 66.9
+          },
+          {
+            "id": 8733,
+            "name": "job:matches.warnings",
+            "start_ms": 485703.6,
+            "job_id": 1888,
+            "updates": [
+              {
+                "sequence": 6845,
+                "type": "match_edit",
+                "match_id": "btp_default_MX U17_107"
+              }
+            ],
+            "end_ms": 485705.5,
+            "duration_ms": 1.9,
+            "start_relative_to_control_ms": 66.9,
+            "end_relative_to_control_ms": 68.8
+          },
+          {
+            "id": 8734,
+            "name": "job:preparation.courts",
+            "start_ms": 485706.7,
+            "job_id": 1889,
+            "updates": [
+              {
+                "sequence": 6845,
+                "type": "match_edit",
+                "match_id": "btp_default_MX U17_107"
+              }
+            ],
+            "end_ms": 485707.7,
+            "duration_ms": 1,
+            "start_relative_to_control_ms": 70,
+            "end_relative_to_control_ms": 71
+          },
+          {
+            "id": 8735,
+            "name": "job:players.status",
+            "start_ms": 485707.7,
+            "job_id": 1890,
+            "updates": [
+              {
+                "sequence": 6845,
+                "type": "match_edit",
+                "match_id": "btp_default_MX U17_107"
+              },
+              {
+                "sequence": 6847,
+                "type": "update_player_status",
+                "match_id": "btp_default_MD U17_1597"
+              },
+              {
+                "sequence": 6848,
+                "type": "update_player_status",
+                "match_id": "btp_default_ME U17_955"
+              },
+              {
+                "sequence": 6849,
+                "type": "update_player_status",
+                "match_id": "btp_default_JD U17_1517"
+              },
+              {
+                "sequence": 6850,
+                "type": "update_player_status",
+                "match_id": "btp_default_JE U17_878"
+              },
+              {
+                "sequence": 6851,
+                "type": "update_player_status",
+                "match_id": "btp_default_MD U17_1579"
+              },
+              {
+                "sequence": 6852,
+                "type": "update_player_status",
+                "match_id": "btp_default_MD U17_1587"
+              },
+              {
+                "sequence": 6853,
+                "type": "update_player_status",
+                "match_id": "btp_default_ME U17_957"
+              }
+            ],
+            "end_ms": 485711.7,
+            "duration_ms": 4,
+            "start_relative_to_control_ms": 71,
+            "end_relative_to_control_ms": 75
+          },
+          {
+            "id": 8736,
+            "name": "job:lists.counts",
+            "start_ms": 485711.7,
+            "job_id": 1887,
+            "updates": [
+              {
+                "sequence": 6845,
+                "type": "match_edit",
+                "match_id": "btp_default_MX U17_107"
+              }
+            ],
+            "end_ms": 485719.4,
+            "duration_ms": 7.7,
+            "start_relative_to_control_ms": 75,
+            "end_relative_to_control_ms": 82.7
+          },
+          {
+            "id": 8737,
+            "name": "job:names.layout",
+            "start_ms": 485719.5,
+            "job_id": 1884,
+            "updates": [
+              {
+                "sequence": 6845,
+                "type": "match_edit",
+                "match_id": "btp_default_MX U17_107"
+              },
+              {
+                "sequence": 6847,
+                "type": "update_player_status",
+                "match_id": "btp_default_MD U17_1597"
+              },
+              {
+                "sequence": 6848,
+                "type": "update_player_status",
+                "match_id": "btp_default_ME U17_955"
+              },
+              {
+                "sequence": 6849,
+                "type": "update_player_status",
+                "match_id": "btp_default_JD U17_1517"
+              },
+              {
+                "sequence": 6850,
+                "type": "update_player_status",
+                "match_id": "btp_default_JE U17_878"
+              },
+              {
+                "sequence": 6851,
+                "type": "update_player_status",
+                "match_id": "btp_default_MD U17_1579"
+              },
+              {
+                "sequence": 6852,
+                "type": "update_player_status",
+                "match_id": "btp_default_MD U17_1587"
+              },
+              {
+                "sequence": 6853,
+                "type": "update_player_status",
+                "match_id": "btp_default_ME U17_957"
+              }
+            ],
+            "end_ms": 485801.6,
+            "duration_ms": 82.1,
+            "start_relative_to_control_ms": 82.8,
+            "end_relative_to_control_ms": 164.9
+          },
+          {
+            "id": 8738,
+            "name": "job:timers.fit",
+            "start_ms": 485839.7,
+            "job_id": 1882,
+            "updates": [
+              {
+                "sequence": 6845,
+                "type": "match_edit",
+                "match_id": "btp_default_MX U17_107"
+              }
+            ],
+            "end_ms": 485839.8,
+            "duration_ms": 0.1,
+            "start_relative_to_control_ms": 203,
+            "end_relative_to_control_ms": 203.1
+          }
+        ]
+      }
+    },
+    {
+      "trace_id": "live-drill-2834041-mwen6nkt-539",
+      "sent_ts": 1794554112989,
+      "court_id": "default_8",
+      "match_id": "btp_default_MX U19_300",
+      "tv_ms": 25,
+      "tv_received_ts": 1794554113014,
+      "admin_ms": 238,
+      "admin_received_ts": 1794554113205,
+      "admin_applied_ts": 1794554113207,
+      "admin_presented_ts": 1794554113227,
+      "admin_presentation_status": "presented",
+      "admin_ui_ms": {
+        "queue_ms": 0.3,
+        "handler_ms": 1.6,
+        "ui_wait_ms": 0,
+        "render_ms": 20.4,
+        "total_ms": 22.3
+      },
+      "admin_measurement_method": "dom-and-render-opportunity",
+      "admin_ui_jobs": [],
+      "admin_blocking_window_id": 9,
+      "admin_control_received_ts": 1794554113023,
+      "kind": "ordinary",
+      "sent_to_control_ms": 34,
+      "control_to_browser_callback_ms": 182,
+      "callback_to_presentation_ms": 22,
+      "browser_connection_id": "admin-2833904-3",
+      "server_operations": [
+        {
+          "id": 1963,
+          "name": "handle_score_update_v2",
+          "start_relative_to_send_ms": 12,
+          "duration_ms": 33,
+          "status": "ok",
+          "browser_send_spans": [
+            {
+              "kind": "send_wait",
+              "connection_id": "admin-2833904-3",
+              "start_ts": 1794554113013,
+              "ts": 1794554113013,
+              "duration_ms": 0,
+              "status": "ok"
+            },
+            {
+              "kind": "send_enqueue",
+              "connection_id": "admin-2833904-3",
+              "start_ts": 1794554113013,
+              "ts": 1794554113013,
+              "duration_ms": 0,
+              "status": "ok"
+            },
+            {
+              "kind": "send_flush",
+              "connection_id": "admin-2833904-3",
+              "start_ts": 1794554113013,
+              "ts": 1794554113023,
+              "duration_ms": 10.3,
+              "status": "ok"
+            }
+          ]
+        }
+      ],
+      "diagnostic": {
+        "id": 9,
+        "capture_status": "complete",
+        "cpu_coverage": {
+          "missing_before_ms": 0,
+          "missing_after_ms": 0,
+          "between_chunks_gap_ms": 0
+        },
+        "summary": {
+          "connection_id": "admin-2833904-3",
+          "control_to_browser_callback_ms": 182,
+          "browser_callback_to_presentation_ms": 22,
+          "recorded_work": [
+            {
+              "id": 4430,
+              "name": "job:preparation.controls",
+              "start_ms": 212520.1,
+              "job_id": 927,
+              "updates": [
+                {
+                  "sequence": 3847,
+                  "type": "call_status_changed"
+                },
+                {
+                  "sequence": 3849,
+                  "type": "match_preparation_call",
+                  "match_id": "btp_default_MX U13_454"
+                }
+              ],
+              "end_ms": 212583.2,
+              "duration_ms": 63.1,
+              "overlap_ms": 41.5
+            },
+            {
+              "id": 4436,
+              "name": "job:planned.sort",
+              "start_ms": 212679.9,
+              "job_id": 930,
+              "updates": [
+                {
+                  "sequence": 3849,
+                  "type": "match_preparation_call",
+                  "match_id": "btp_default_MX U13_454"
+                }
+              ],
+              "end_ms": 212688,
+              "duration_ms": 8.1,
+              "overlap_ms": 8.1
+            },
+            {
+              "id": 4441,
+              "name": "job:matches.warnings",
+              "start_ms": 212726.1,
+              "job_id": 931,
+              "updates": [
+                {
+                  "sequence": 3849,
+                  "type": "match_preparation_call",
+                  "match_id": "btp_default_MX U13_454"
+                }
+              ],
+              "end_ms": 212730.1,
+              "duration_ms": 4,
+              "overlap_ms": 4
+            },
+            {
+              "id": 4445,
+              "name": "job:names.layout",
+              "start_ms": 212735.2,
+              "job_id": 928,
+              "updates": [
+                {
+                  "sequence": 3849,
+                  "type": "match_preparation_call",
+                  "match_id": "btp_default_MX U13_454"
+                },
+                {
+                  "sequence": 3847,
+                  "type": "call_status_changed"
+                }
+              ],
+              "end_ms": 212739,
+              "duration_ms": 3.8,
+              "overlap_ms": 3.8
+            },
+            {
+              "id": 4437,
+              "name": "handler:score",
+              "start_ms": 212724.2,
+              "updates": [
+                {
+                  "sequence": 3852,
+                  "type": "score",
+                  "match_id": "btp_default_MX U19_300",
+                  "trace_id": "live-drill-2834041-mwen6nkt-539"
+                }
+              ],
+              "end_ms": 212725.8,
+              "duration_ms": 1.6,
+              "overlap_ms": 1.6
+            },
+            {
+              "id": 4443,
+              "name": "job:players.status",
+              "start_ms": 212730.9,
+              "job_id": 933,
+              "updates": [
+                {
+                  "sequence": 3849,
+                  "type": "match_preparation_call",
+                  "match_id": "btp_default_MX U13_454"
+                }
+              ],
+              "end_ms": 212732,
+              "duration_ms": 1.1,
+              "overlap_ms": 1.1
+            },
+            {
+              "id": 4442,
+              "name": "job:preparation.courts",
+              "start_ms": 212730.1,
+              "job_id": 932,
+              "updates": [
+                {
+                  "sequence": 3849,
+                  "type": "match_preparation_call",
+                  "match_id": "btp_default_MX U13_454"
+                }
+              ],
+              "end_ms": 212730.9,
+              "duration_ms": 0.8,
+              "overlap_ms": 0.8
+            },
+            {
+              "id": 4431,
+              "name": "job:timers.fit",
+              "start_ms": 212652.8,
+              "job_id": 929,
+              "updates": [
+                {
+                  "sequence": 3849,
+                  "type": "match_preparation_call",
+                  "match_id": "btp_default_MX U13_454"
+                }
+              ],
+              "end_ms": 212653,
+              "duration_ms": 0.2,
+              "overlap_ms": 0.2
+            },
+            {
+              "id": 4440,
+              "name": "handler:display_wait_for_done",
+              "start_ms": 212725.9,
+              "updates": [
+                {
+                  "sequence": 3851,
+                  "type": "display_wait_for_done"
+                }
+              ],
+              "end_ms": 212726.1,
+              "duration_ms": 0.2,
+              "overlap_ms": 0.2
+            },
+            {
+              "id": 4444,
+              "name": "handler:match_called_on_court",
+              "start_ms": 212733.6,
+              "updates": [
+                {
+                  "sequence": 3862,
+                  "type": "match_called_on_court"
+                }
+              ],
+              "end_ms": 212733.8,
+              "duration_ms": 0.2,
+              "overlap_ms": 0.2
+            }
+          ],
+          "cpu_functions": [
+            {
+              "node_id": 303,
+              "function": "querySelectorAll",
+              "source": "",
+              "line": -1,
+              "column": -1,
+              "sampled_ms": 12.46
+            },
+            {
+              "node_id": 302,
+              "function": "(anonymous)",
+              "source": "https://localhost:4433/static/js/cleitstand.js?bts_asset=8df3fde01e77ec1462dc22dc&v=bc20218a5795",
+              "line": 1736,
+              "column": 60,
+              "sampled_ms": 6.28
+            },
+            {
+              "node_id": 304,
+              "function": "render_debug_icon",
+              "source": "https://localhost:4433/static/js/cmatch.js?bts_asset=db45a30efb7e079d8abb5d8a&v=bc20218a5795",
+              "line": 4334,
+              "column": 26,
+              "sampled_ms": 6.26
+            },
+            {
+              "node_id": 306,
+              "function": "(anonymous)",
+              "source": "https://localhost:4433/static/js/cmatch.js?bts_asset=db45a30efb7e079d8abb5d8a&v=bc20218a5795",
+              "line": 4270,
+              "column": 17,
+              "sampled_ms": 4.47
+            },
+            {
+              "node_id": 314,
+              "function": "refreshDateGroups",
+              "source": "https://localhost:4433/static/js/cleitstand.js?bts_asset=8df3fde01e77ec1462dc22dc&v=bc20218a5795",
+              "line": 1272,
+              "column": 28,
+              "sampled_ms": 4.14
+            },
+            {
+              "node_id": 316,
+              "function": "querySelector",
+              "source": "",
+              "line": -1,
+              "column": -1,
+              "sampled_ms": 3.13
+            },
+            {
+              "node_id": 320,
+              "function": "(anonymous)",
+              "source": "https://localhost:4433/static/js/cleitstand.js?bts_asset=8df3fde01e77ec1462dc22dc&v=bc20218a5795",
+              "line": 1346,
+              "column": 38,
+              "sampled_ms": 2.26
+            },
+            {
+              "node_id": 315,
+              "function": "hasAttribute",
+              "source": "",
+              "line": -1,
+              "column": -1,
+              "sampled_ms": 2.09
+            },
+            {
+              "node_id": 103,
+              "function": "qsEach",
+              "source": "https://localhost:4433/bupdev/js/uiu.js?bts_asset=8a793b554dffc6cfca55b513&v=bc20218a5795",
+              "line": 4,
+              "column": 15,
+              "sampled_ms": 2.08
+            },
+            {
+              "node_id": 192,
+              "function": "_now_ms",
+              "source": "https://localhost:4433/static/js/conn.js?bts_asset=23733591909e321a8c4f7d87&v=bc20218a5795",
+              "line": 63,
+              "column": 16,
+              "sampled_ms": 2.08
+            },
+            {
+              "node_id": 327,
+              "function": "collect",
+              "source": "https://localhost:4433/static/js/btp_dsq_todos.js?bts_asset=99c89c043923181105a82cfb&v=bc20218a5795",
+              "line": 13,
+              "column": 17,
+              "sampled_ms": 2.08
+            },
+            {
+              "node_id": 308,
+              "function": "is_manual_preparation_rule",
+              "source": "https://localhost:4433/static/js/cmatch.js?bts_asset=db45a30efb7e079d8abb5d8a&v=bc20218a5795",
+              "line": 3667,
+              "column": 35,
+              "sampled_ms": 2.08
+            }
+          ]
+        },
+        "overlapping_frames": [
+          {
+            "id": 4446,
+            "start_ms": 212431.2,
+            "end_ms": 212661,
+            "duration_ms": 229.8,
+            "blocking_ms": 164,
+            "render_start_ms": 212519.90000009537,
+            "style_layout_start_ms": 212585.5,
+            "first_ui_event_ms": 0,
+            "script_count": 3,
+            "omitted_scripts": 0,
+            "scripts": [
+              {
+                "start_ms": 212431.2000002861,
+                "duration_ms": 72.89999961853027,
+                "execution_start_ms": 212431.2000002861,
+                "forced_style_layout_ms": 0,
+                "pause_ms": 0,
+                "invoker": "SchedulerPostTaskCallback",
+                "invoker_type": "user-callback",
+                "function": "",
+                "source": "https://localhost:4433/static/js/change_queue_scheduler.js?bts_asset=862a7e897125ee0a283bc7dc&v=bc20218a5795",
+                "char_position": 873
+              },
+              {
+                "start_ms": 212520,
+                "duration_ms": 63.5,
+                "execution_start_ms": 212520,
+                "forced_style_layout_ms": 0,
+                "pause_ms": 0,
+                "invoker": "FrameRequestCallback",
+                "invoker_type": "user-callback",
+                "function": "runNameFrame",
+                "source": "https://localhost:4433/static/js/cleitstand.js?bts_asset=8df3fde01e77ec1462dc22dc&v=bc20218a5795",
+                "char_position": 11940
+              },
+              {
+                "start_ms": 212504.2000002861,
+                "duration_ms": 15.699999809265137,
+                "execution_start_ms": 212504.2000002861,
+                "forced_style_layout_ms": 0,
+                "pause_ms": 0,
+                "invoker": "DOMWebSocket.onmessage",
+                "invoker_type": "event-listener",
+                "function": "handle_message",
+                "source": "https://localhost:4433/static/js/conn.js?bts_asset=23733591909e321a8c4f7d87&v=bc20218a5795",
+                "char_position": 8675
+              }
+            ],
+            "start_relative_to_control_ms": -110.5,
+            "end_relative_to_control_ms": 119.3,
+            "after_style_layout_start_ms": 75.5
+          }
+        ],
+        "overlapping_tasks": [
+          {
+            "id": 4430,
+            "name": "job:preparation.controls",
+            "start_ms": 212520.1,
+            "job_id": 927,
+            "updates": [
+              {
+                "sequence": 3847,
+                "type": "call_status_changed"
+              },
+              {
+                "sequence": 3849,
+                "type": "match_preparation_call",
+                "match_id": "btp_default_MX U13_454"
+              }
+            ],
+            "end_ms": 212583.2,
+            "duration_ms": 63.1,
+            "start_relative_to_control_ms": -21.6,
+            "end_relative_to_control_ms": 41.5
+          },
+          {
+            "id": 4431,
+            "name": "job:timers.fit",
+            "start_ms": 212652.8,
+            "job_id": 929,
+            "updates": [
+              {
+                "sequence": 3849,
+                "type": "match_preparation_call",
+                "match_id": "btp_default_MX U13_454"
+              }
+            ],
+            "end_ms": 212653,
+            "duration_ms": 0.2,
+            "start_relative_to_control_ms": 111.1,
+            "end_relative_to_control_ms": 111.3
+          },
+          {
+            "id": 4436,
+            "name": "job:planned.sort",
+            "start_ms": 212679.9,
+            "job_id": 930,
+            "updates": [
+              {
+                "sequence": 3849,
+                "type": "match_preparation_call",
+                "match_id": "btp_default_MX U13_454"
+              }
+            ],
+            "end_ms": 212688,
+            "duration_ms": 8.1,
+            "start_relative_to_control_ms": 138.2,
+            "end_relative_to_control_ms": 146.3
+          },
+          {
+            "id": 4437,
+            "name": "handler:score",
+            "start_ms": 212724.2,
+            "updates": [
+              {
+                "sequence": 3852,
+                "type": "score",
+                "match_id": "btp_default_MX U19_300",
+                "trace_id": "live-drill-2834041-mwen6nkt-539"
+              }
+            ],
+            "end_ms": 212725.8,
+            "duration_ms": 1.6,
+            "start_relative_to_control_ms": 182.5,
+            "end_relative_to_control_ms": 184.1
+          },
+          {
+            "id": 4440,
+            "name": "handler:display_wait_for_done",
+            "start_ms": 212725.9,
+            "updates": [
+              {
+                "sequence": 3851,
+                "type": "display_wait_for_done"
+              }
+            ],
+            "end_ms": 212726.1,
+            "duration_ms": 0.2,
+            "start_relative_to_control_ms": 184.2,
+            "end_relative_to_control_ms": 184.4
+          },
+          {
+            "id": 4441,
+            "name": "job:matches.warnings",
+            "start_ms": 212726.1,
+            "job_id": 931,
+            "updates": [
+              {
+                "sequence": 3849,
+                "type": "match_preparation_call",
+                "match_id": "btp_default_MX U13_454"
+              }
+            ],
+            "end_ms": 212730.1,
+            "duration_ms": 4,
+            "start_relative_to_control_ms": 184.4,
+            "end_relative_to_control_ms": 188.4
+          },
+          {
+            "id": 4442,
+            "name": "job:preparation.courts",
+            "start_ms": 212730.1,
+            "job_id": 932,
+            "updates": [
+              {
+                "sequence": 3849,
+                "type": "match_preparation_call",
+                "match_id": "btp_default_MX U13_454"
+              }
+            ],
+            "end_ms": 212730.9,
+            "duration_ms": 0.8,
+            "start_relative_to_control_ms": 188.4,
+            "end_relative_to_control_ms": 189.2
+          },
+          {
+            "id": 4443,
+            "name": "job:players.status",
+            "start_ms": 212730.9,
+            "job_id": 933,
+            "updates": [
+              {
+                "sequence": 3849,
+                "type": "match_preparation_call",
+                "match_id": "btp_default_MX U13_454"
+              }
+            ],
+            "end_ms": 212732,
+            "duration_ms": 1.1,
+            "start_relative_to_control_ms": 189.2,
+            "end_relative_to_control_ms": 190.3
+          },
+          {
+            "id": 4444,
+            "name": "handler:match_called_on_court",
+            "start_ms": 212733.6,
+            "updates": [
+              {
+                "sequence": 3862,
+                "type": "match_called_on_court"
+              }
+            ],
+            "end_ms": 212733.8,
+            "duration_ms": 0.2,
+            "start_relative_to_control_ms": 191.9,
+            "end_relative_to_control_ms": 192.1
+          },
+          {
+            "id": 4445,
+            "name": "job:names.layout",
+            "start_ms": 212735.2,
+            "job_id": 928,
+            "updates": [
+              {
+                "sequence": 3849,
+                "type": "match_preparation_call",
+                "match_id": "btp_default_MX U13_454"
+              },
+              {
+                "sequence": 3847,
+                "type": "call_status_changed"
+              }
+            ],
+            "end_ms": 212739,
+            "duration_ms": 3.8,
+            "start_relative_to_control_ms": 193.5,
+            "end_relative_to_control_ms": 197.3
+          }
+        ]
+      }
+    }
+  ],
+  "findings": [
+    {
+      "area": "Aufrufstatus und Vorbereitungsanzeigen",
+      "evidence": "Fenster 3: call_status_changed 47,9 ms und preparation.controls 50,4 ms in einem 98,7-ms-Skript; zugehöriger Browserframe 187,4 ms. Fenster 9: Handler 72,7 ms und Vorbereitungsauftrag 63,1 ms, Browserframe 229,8 ms."
+    },
+    {
+      "area": "Namensmessung",
+      "evidence": "Fenster 28: names.layout 82,1 ms; native Browseraufzeichnung erfasst in runNameFrame 78,3 ms erzwungene Stil-/Layoutarbeit. CPU-Profil zeigt measureSimpleNames und getComputedStyle für die Ressourcenhinweise an cleitstand.js:467."
+    },
+    {
+      "area": "Die Punkte selbst",
+      "evidence": "Bei allen 23 langsamen normalen Punkten benötigt der eigene Handler maximal 2,8 ms. Der gemessene Admin-Socket bestätigt jeden Schreibauftrag innerhalb von 34 ms nach Simulatorversand. 19 Fälle warten danach mindestens 35 ms zwischen unabhängigem Kontrollsocket und Browser-Callback."
+    }
+  ],
+  "limits": [
+    "Instrumentierter Lauf mit CPU-Sampling; kein kontrollierter Geschwindigkeitsvergleich mit Bericht 19. Turnierstände unterscheiden sich (anfangs 49 bzw. 65 beendete Spiele).",
+    "39 Aufzeichnungen vollständig; sieben enthalten Unterbrechungen des CPU-Samplings. 22 von 23 normalen Zielverletzungen haben ein Diagnosefenster. Ein 106-ms-Punkt bleibt wegen 75,4 ms Browserarbeit und 23 ms Empfangsdifferenz unter beiden Aufnahmeschwellen.",
+    "Native Frames enthalten Layout-, Stil-, Zeichen- und weitere Browserarbeit. (program) im CPU-Profil benennt keine konkrete Funktion und darf nicht vollständig als JavaScript oder Layout gewertet werden.",
+    "send_flush bestätigt den Schreibauftrag, keine physische Zustellung. Die Kontrollverbindung ist unabhängig vom Messbrowser.",
+    "Alle Messpunkte kamen an; die Konsistenz von BTP-Feldzuweisungen und Siegern ist damit nicht separat nachgewiesen."
+  ]
+}

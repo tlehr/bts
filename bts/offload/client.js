@@ -2,6 +2,7 @@
 
 const { Worker } = require('worker_threads');
 const timing = require('./timing');
+const snapshot = owner => owner.scheduling ? {...owner.health.snapshot(), scheduling:owner.scheduling} : owner.health.snapshot();
 
 // Separate persistent workers per operation keep their queues measurable and
 // prevent an XLSX upload from holding up a sync or a database compaction.
@@ -17,12 +18,12 @@ class WorkerClient {
 		this.generation = 0;
 		this.next_id = 0;
 		this.health = new (require('../performance/queue_stats'))('worker');
-		this.unregister_health = require('../performance/registry').register(this, operation, owner => owner.health.snapshot());
+		this.unregister_health = require('../performance/registry').register(this, operation, snapshot);
 	}
 	run(payload, context = {}, transfers = []) {
 		if (!this.unregister_health) {
 			this.health = new (require('../performance/queue_stats'))('worker');
-			this.unregister_health = require('../performance/registry').register(this, this.operation, owner => owner.health.snapshot());
+			this.unregister_health = require('../performance/registry').register(this, this.operation, snapshot);
 		}
 		if (this.pending.length >= this.max_pending) { this.health.rejected++; return Promise.reject(new Error(this.operation + ' worker queue full')); }
 		return new Promise((resolve, reject) => {
@@ -43,9 +44,11 @@ class WorkerClient {
 		if (this.worker) return this.worker;
 		const worker = this.create_worker();
 		this.worker = worker;
+		this.scheduling = null;
 		worker.on('message', message => {
 			if (this.worker !== worker || this.active?.id !== message.id) return;
 			const received = process.hrtime.bigint(), job = this.active;
+			this.scheduling = message.scheduling || null;
 			this.active = null; worker.unref();
 			const error = message.error ? Object.assign(new Error(message.error.message), message.error) : null;
 			this.finish(job, error, message.value, { worker_ms: timing.ms(message.returning - message.started),
@@ -94,7 +97,7 @@ class WorkerClient {
 	}
 	retire() {
 		const worker = this.worker;
-		this.worker = null; this.generation++;
+		this.worker = null; this.scheduling = null; this.generation++;
 		if (worker) { worker.unref(); worker.terminate().catch(() => {}); }
 	}
 	close() {

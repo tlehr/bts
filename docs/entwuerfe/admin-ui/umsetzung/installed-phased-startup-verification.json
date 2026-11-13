@@ -1,0 +1,66 @@
+{
+  "scope": "Frozen tournament capture; all server calls simulated. No player names or contents are recorded here.",
+  "checks": [
+    "All 512 games and 50 visible results survive the initial build",
+    "The main view is visible after all startup work",
+    "A failed build restores prior inline display and priority",
+    "A complete rebuild recovers after failure with every game",
+    "No unexpected browser exceptions"
+  ],
+  "visible_ms": 965.2999999523163,
+  "total_ms": 814.2999999523163,
+  "navigation_to_ready_ms": 1364.7999999523163,
+  "phases": {
+    "matches.prepare_render": {
+      "count": 1,
+      "ms": 1.5,
+      "max_ms": 1.5
+    },
+    "matches.render_courts": {
+      "count": 1,
+      "ms": 28.200000047683716,
+      "max_ms": 28.200000047683716
+    },
+    "operators": {
+      "count": 1,
+      "ms": 2.200000047683716,
+      "max_ms": 2.200000047683716
+    },
+    "officials": {
+      "count": 1,
+      "ms": 2.9000000953674316,
+      "max_ms": 2.9000000953674316
+    },
+    "board.mount": {
+      "count": 1,
+      "ms": 64.29999995231628,
+      "max_ms": 64.29999995231628
+    },
+    "matches.render_unassigned": {
+      "count": 1,
+      "ms": 21.799999952316284,
+      "max_ms": 21.799999952316284
+    },
+    "matches.render_finished": {
+      "count": 1,
+      "ms": 9.300000190734863,
+      "max_ms": 9.300000190734863
+    }
+  },
+  "matches": 512,
+  "courts": 15,
+  "dom_nodes": 8765,
+  "rendered_results": 50,
+  "deferred_results": 373,
+  "game_rows": 512,
+  "finished_visible": 50,
+  "main_visible": true,
+  "pending": false,
+  "navigation": {
+    "dom_content_loaded_ms": 511.19999980926514,
+    "load_ms": 511.39999985694885,
+    "assets": 127,
+    "export_library_requests": 0,
+    "asset_bytes": 3316068
+  }
+}

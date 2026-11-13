@@ -1,0 +1,16 @@
+{
+  "checks": [
+    "Closed announcement forms allow background scrolling",
+    "Opening the actual native announcement dialog locks background scrolling",
+    "A second independent announcement form retains its native dialog",
+    "Disposing one form preserves the other open dialog and its scroll lock",
+    "Waiting in the background releases scrolling while preserving the pending announcement",
+    "Background completion preserves another native modal, its focus and its scroll lock",
+    "Closing the other modal releases scrolling after background playback",
+    "Cancelling a pending announcement keeps scrolling available and releases its controls",
+    "Cancelling the modal releases its scroll lock",
+    "Editing the text closes an unconfirmed dialog and releases scrolling",
+    "Removing an open owner form removes its modal and releases scrolling"
+  ],
+  "exceptions": 0
+}

@@ -1,0 +1,10 @@
+{
+  "scope": "Native browser with one result, one upcoming game and one active tablet-operator assignment. No live services.",
+  "result": {
+    "playing": true,
+    "tablet": true,
+    "finishedMutations": 0,
+    "nameRetained": true,
+    "readonly": true
+  }
+}

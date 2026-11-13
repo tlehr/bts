@@ -1,0 +1,5405 @@
+{
+  "schema_version": 1,
+  "updated_at_utc": "2026-11-13T14:27:01.043430+00:00",
+  "final": true,
+  "authorization": {
+    "start_utc": "2026-11-13T07:27:03Z",
+    "deadline_utc": "2026-11-13T14:27:03Z",
+    "user_targets_ms": {
+      "ordinary": 100,
+      "finish": 150,
+      "display": 50
+    },
+    "strict": true,
+    "authorized": [
+      "10 minute tests against current tournament",
+      "reset tournament as needed",
+      "start BTS/BTP as needed"
+    ],
+    "source_report": "/home/tim/Downloads/bts-test-1.json",
+    "analysis": "/tmp/bts-test-1-analysis-20261113/analysis.json"
+  },
+  "targets_are_strict": true,
+  "initial_report": {
+    "source": "bts-test-1.json",
+    "source_sha256": "99f062db0eaccd628f68ae6850d0b1debeac3f45b4482f56d27ef06380f54003",
+    "latency": {
+      "ordinary_admin": {
+        "count": 1172,
+        "mean": 36.224,
+        "min": 8,
+        "median": 32.0,
+        "p95": 57,
+        "p99": 165,
+        "max": 279,
+        "limit_ms": 100,
+        "at_or_over_limit": 23,
+        "over_limit": 23,
+        "equal_limit": 0,
+        "previous_report_19": {
+          "count": 1158,
+          "mean": 35.697,
+          "min": 9,
+          "p50": 32.0,
+          "p95": 55,
+          "p99": 190,
+          "max": 264,
+          "limit_ms": 100,
+          "at_or_over_limit": 19,
+          "over_limit": 19,
+          "equal_limit": 0
+        }
+      },
+      "finish_admin": {
+        "count": 14,
+        "mean": 97.5,
+        "min": 64,
+        "median": 94.0,
+        "p95": 158,
+        "p99": 158,
+        "max": 158,
+        "limit_ms": 150,
+        "at_or_over_limit": 1,
+        "over_limit": 1,
+        "equal_limit": 0,
+        "previous_report_19": {
+          "count": 16,
+          "mean": 102.562,
+          "min": 78,
+          "p50": 95.0,
+          "p95": 146,
+          "p99": 146,
+          "max": 146,
+          "limit_ms": 150,
+          "at_or_over_limit": 0,
+          "over_limit": 0,
+          "equal_limit": 0
+        }
+      },
+      "display_receive": {
+        "count": 1186,
+        "mean": 4.653,
+        "min": 2,
+        "median": 4.0,
+        "p95": 10,
+        "p99": 17,
+        "max": 27,
+        "limit_ms": 50,
+        "at_or_over_limit": 0,
+        "over_limit": 0,
+        "equal_limit": 0,
+        "previous_report_19": {
+          "count": 1174,
+          "mean": 5.044,
+          "min": 2,
+          "p50": 4.0,
+          "p95": 12,
+          "p99": 17,
+          "max": 151,
+          "limit_ms": 50,
+          "at_or_over_limit": 2,
+          "over_limit": 2,
+          "equal_limit": 0
+        }
+      }
+    }
+  },
+  "measurement": {
+    "admin_endpoint": "DOM update plus two real browser frames",
+    "display_endpoint": "actual simulated display WebSocket receipt",
+    "sent_timestamp": "original sender timestamp retained",
+    "seed": "519",
+    "duration_ms": 600000,
+    "cpu_controls": "Runs explicitly marked cpu_sampling_disabled retain the bounded page recorder, original timestamps and actual DOM/two-frame presentation endpoint; only DevTools CPU sampling is disabled.",
+    "point_interval_ms": [
+      3200,
+      6400
+    ],
+    "one_due_tablet_at_a_time": true,
+    "transport_spacing_ms": 50,
+    "ordinary_limit_ms": 100,
+    "finish_limit_ms": 150,
+    "display_limit_ms": 50,
+    "late_instrumentation": "Native browser or Node CPU capture only after a measured violation; those runs remain diagnostic."
+  },
+  "final_candidate_first_run": 26,
+  "final_candidate_repetitions": 1,
+  "every_final_candidate_attempt_passed": false,
+  "aborted_attempts": [
+    {
+      "run": 5,
+      "reason": "Reset games remained deferred; not a completed acceptance run."
+    },
+    {
+      "run": 8,
+      "reason": "Stopped after 198 seconds without new calls; not a completed acceptance run."
+    }
+  ],
+  "runs": [
+    {
+      "run": 1,
+      "mode": "optimization_history",
+      "source": "/tmp/bts-reliable-20261113/run01.json",
+      "source_sha256": "e9cea9e60577a5c7dfb91d911624f97523616a8a0b383361fcccb78075b87231",
+      "complete": true,
+      "coverage": true,
+      "render_endpoint": true,
+      "stable_server": true,
+      "all_kinds_observed": true,
+      "successful_operations": null,
+      "target_met": false,
+      "latency": {
+        "ordinary": {
+          "count": 1116,
+          "limit_ms": 100,
+          "median_ms": 32,
+          "p95_ms": 60,
+          "p99_ms": 120,
+          "max_ms": 294,
+          "violations": 15
+        },
+        "finish": {
+          "count": 14,
+          "limit_ms": 150,
+          "median_ms": 101,
+          "p95_ms": 146,
+          "p99_ms": 146,
+          "max_ms": 146,
+          "violations": 0
+        },
+        "display": {
+          "count": 1130,
+          "limit_ms": 50,
+          "median_ms": 4,
+          "p95_ms": 11,
+          "p99_ms": 16,
+          "max_ms": 46,
+          "violations": 0
+        }
+      },
+      "operation_failures": null,
+      "workload": null,
+      "started_at": "2026-11-13T07:33:41.163Z",
+      "runtime_ms": 600205,
+      "initial_state": {
+        "matches": 584,
+        "finished_matches": 79,
+        "active_matches": 15,
+        "active_courts": 15,
+        "pending_player_checkins": 0,
+        "pending_players": 0,
+        "check_in_per_match": true,
+        "state_sha256": "9288306177026f7298c4d6b1d491aae652ad1c58ec6d980435db8505682d94af"
+      },
+      "settings": {
+        "tournament": "default",
+        "base_url": "https://localhost:4433",
+        "point_interval_ms": [
+          3200,
+          6400
+        ],
+        "score_gap_ms": [
+          0,
+          0
+        ],
+        "pause_visible_ms": 3000,
+        "score_all_active": false,
+        "legacy_loopback_devices": false,
+        "server_telemetry": true,
+        "processing_traces": true,
+        "score_probability": [
+          0.4,
+          0.6
+        ]
+      },
+      "blocking_diagnostics": [
+        {
+          "enabled": true,
+          "windows": 30,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "run": 2,
+      "mode": "optimization_history",
+      "source": "/tmp/bts-reliable-20261113/run02.json",
+      "source_sha256": "9bcfeba99f7c6de3f952fe011332070635d26ab874b6ebc1b3b71c56896a35f4",
+      "complete": true,
+      "coverage": true,
+      "render_endpoint": true,
+      "stable_server": true,
+      "all_kinds_observed": true,
+      "successful_operations": null,
+      "target_met": false,
+      "latency": {
+        "ordinary": {
+          "count": 1179,
+          "limit_ms": 100,
+          "median_ms": 31,
+          "p95_ms": 56,
+          "p99_ms": 138,
+          "max_ms": 356,
+          "violations": 19
+        },
+        "finish": {
+          "count": 10,
+          "limit_ms": 150,
+          "median_ms": 109.5,
+          "p95_ms": 189,
+          "p99_ms": 189,
+          "max_ms": 189,
+          "violations": 2
+        },
+        "display": {
+          "count": 1189,
+          "limit_ms": 50,
+          "median_ms": 3,
+          "p95_ms": 10,
+          "p99_ms": 19,
+          "max_ms": 328,
+          "violations": 3
+        }
+      },
+      "operation_failures": null,
+      "workload": null,
+      "started_at": "2026-11-13T07:47:47.231Z",
+      "runtime_ms": 600371,
+      "initial_state": {
+        "matches": 584,
+        "finished_matches": 93,
+        "active_matches": 15,
+        "active_courts": 15,
+        "pending_player_checkins": 0,
+        "pending_players": 0,
+        "check_in_per_match": true,
+        "state_sha256": "a46bbd2cdf4f240ffb77dddfcfbeee9726026ac7088e4d57594d51180a92bbf8"
+      },
+      "settings": {
+        "tournament": "default",
+        "base_url": "https://localhost:4433",
+        "point_interval_ms": [
+          3200,
+          6400
+        ],
+        "score_gap_ms": [
+          0,
+          0
+        ],
+        "pause_visible_ms": 3000,
+        "score_all_active": false,
+        "legacy_loopback_devices": false,
+        "server_telemetry": true,
+        "processing_traces": true,
+        "score_probability": [
+          0.4,
+          0.6
+        ]
+      },
+      "blocking_diagnostics": [
+        {
+          "enabled": true,
+          "windows": 31,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "run": 3,
+      "mode": "diagnostic",
+      "source": "/tmp/bts-reliable-20261113/run03.json",
+      "source_sha256": "f4b693a5c54f0687a3052f6de3a4de32fff5f53d8b6288f433b250950dfbf6b4",
+      "complete": true,
+      "coverage": true,
+      "render_endpoint": true,
+      "stable_server": true,
+      "all_kinds_observed": true,
+      "successful_operations": null,
+      "target_met": false,
+      "latency": {
+        "ordinary": {
+          "count": 1104,
+          "limit_ms": 100,
+          "median_ms": 32,
+          "p95_ms": 62,
+          "p99_ms": 136,
+          "max_ms": 543,
+          "violations": 24
+        },
+        "finish": {
+          "count": 16,
+          "limit_ms": 150,
+          "median_ms": 98,
+          "p95_ms": 597,
+          "p99_ms": 597,
+          "max_ms": 597,
+          "violations": 4
+        },
+        "display": {
+          "count": 1120,
+          "limit_ms": 50,
+          "median_ms": 3,
+          "p95_ms": 11,
+          "p99_ms": 23,
+          "max_ms": 83,
+          "violations": 2
+        }
+      },
+      "operation_failures": null,
+      "workload": null,
+      "started_at": "2026-11-13T07:58:25.885Z",
+      "runtime_ms": 600184,
+      "initial_state": {
+        "matches": 584,
+        "finished_matches": 103,
+        "active_matches": 15,
+        "active_courts": 15,
+        "pending_player_checkins": 0,
+        "pending_players": 0,
+        "check_in_per_match": true,
+        "state_sha256": "0e6beee9f5a707518ec0670e81842050586e4ad4d314c25239c7d4200c377d67"
+      },
+      "settings": {
+        "tournament": "default",
+        "base_url": "https://localhost:4433",
+        "point_interval_ms": [
+          3200,
+          6400
+        ],
+        "score_gap_ms": [
+          0,
+          0
+        ],
+        "pause_visible_ms": 3000,
+        "score_all_active": false,
+        "legacy_loopback_devices": false,
+        "server_telemetry": true,
+        "processing_traces": true,
+        "score_probability": [
+          0.4,
+          0.6
+        ]
+      },
+      "blocking_diagnostics": [
+        {
+          "enabled": true,
+          "windows": 46,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "run": 4,
+      "mode": "optimization_history",
+      "source": "/tmp/bts-reliable-20261113/run04.json",
+      "source_sha256": "d9a1d61eaacb095b7a716ca87a456513eaf25ee45739308361c95d88a4fa000d",
+      "complete": true,
+      "coverage": true,
+      "render_endpoint": true,
+      "stable_server": true,
+      "all_kinds_observed": true,
+      "successful_operations": null,
+      "target_met": false,
+      "latency": {
+        "ordinary": {
+          "count": 1124,
+          "limit_ms": 100,
+          "median_ms": 31,
+          "p95_ms": 50,
+          "p99_ms": 83,
+          "max_ms": 165,
+          "violations": 9
+        },
+        "finish": {
+          "count": 12,
+          "limit_ms": 150,
+          "median_ms": 94,
+          "p95_ms": 151,
+          "p99_ms": 151,
+          "max_ms": 151,
+          "violations": 1
+        },
+        "display": {
+          "count": 1136,
+          "limit_ms": 50,
+          "median_ms": 3,
+          "p95_ms": 10,
+          "p99_ms": 22,
+          "max_ms": 49,
+          "violations": 0
+        }
+      },
+      "operation_failures": null,
+      "workload": null,
+      "started_at": "2026-11-13T08:16:10.210Z",
+      "runtime_ms": 600125,
+      "initial_state": {
+        "matches": 584,
+        "finished_matches": 119,
+        "active_matches": 15,
+        "active_courts": 15,
+        "pending_player_checkins": 0,
+        "pending_players": 0,
+        "check_in_per_match": true,
+        "state_sha256": "0f1cb163d777340888a4dd512f5c68d3f7bf10f5434cec6c7e9763facb29c10a"
+      },
+      "settings": {
+        "tournament": "default",
+        "base_url": "https://localhost:4433",
+        "point_interval_ms": [
+          3200,
+          6400
+        ],
+        "score_gap_ms": [
+          0,
+          0
+        ],
+        "pause_visible_ms": 3000,
+        "score_all_active": false,
+        "legacy_loopback_devices": false,
+        "server_telemetry": true,
+        "processing_traces": true,
+        "score_probability": [
+          0.4,
+          0.6
+        ]
+      },
+      "blocking_diagnostics": [
+        {
+          "enabled": true,
+          "windows": 20,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "run": 6,
+      "mode": "diagnostic_cpu_sampling_disabled",
+      "source": "/tmp/bts-reliable-20261113/run06.json",
+      "source_sha256": "d5949ec49fb773975182c1baaab5d9bd5a6a0eadd3462c2a7296312cd4c03739",
+      "complete": true,
+      "coverage": true,
+      "render_endpoint": true,
+      "stable_server": true,
+      "all_kinds_observed": true,
+      "successful_operations": null,
+      "target_met": false,
+      "latency": {
+        "ordinary": {
+          "count": 805,
+          "limit_ms": 100,
+          "median_ms": 32,
+          "p95_ms": 52,
+          "p99_ms": 81,
+          "max_ms": 284,
+          "violations": 4
+        },
+        "finish": {
+          "count": 2,
+          "limit_ms": 150,
+          "median_ms": 113.5,
+          "p95_ms": 158,
+          "p99_ms": 158,
+          "max_ms": 158,
+          "violations": 1
+        },
+        "display": {
+          "count": 807,
+          "limit_ms": 50,
+          "median_ms": 4,
+          "p95_ms": 11,
+          "p99_ms": 19,
+          "max_ms": 53,
+          "violations": 1
+        }
+      },
+      "operation_failures": null,
+      "workload": null,
+      "started_at": "2026-11-13T08:41:51.233Z",
+      "runtime_ms": 600168,
+      "initial_state": {
+        "matches": 584,
+        "finished_matches": 11,
+        "active_matches": 0,
+        "active_courts": 15,
+        "pending_player_checkins": 16,
+        "pending_players": 16,
+        "check_in_per_match": true,
+        "state_sha256": "6bdc0ece8407a6554d7b73c579073ce2284bb378243b9e4b1d180051926b68e1"
+      },
+      "settings": {
+        "tournament": "default",
+        "base_url": "https://localhost:4433",
+        "point_interval_ms": [
+          3200,
+          6400
+        ],
+        "score_gap_ms": [
+          0,
+          0
+        ],
+        "pause_visible_ms": 3000,
+        "score_all_active": false,
+        "legacy_loopback_devices": false,
+        "server_telemetry": true,
+        "processing_traces": true,
+        "score_probability": [
+          0.4,
+          0.6
+        ]
+      },
+      "blocking_diagnostics": [
+        {
+          "enabled": true,
+          "cpu_enabled": false,
+          "cpu_sampling_us": null,
+          "windows": 8,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "run": 7,
+      "mode": "diagnostic",
+      "source": "/tmp/bts-reliable-20261113/run07.json",
+      "source_sha256": "55858fd605591d5483838d98949d202788bf3f1e5bc56f43b4b6ae1005e3c7e6",
+      "complete": true,
+      "coverage": true,
+      "render_endpoint": true,
+      "stable_server": true,
+      "all_kinds_observed": true,
+      "successful_operations": null,
+      "target_met": false,
+      "latency": {
+        "ordinary": {
+          "count": 689,
+          "limit_ms": 100,
+          "median_ms": 34,
+          "p95_ms": 65,
+          "p99_ms": 188,
+          "max_ms": 261,
+          "violations": 17
+        },
+        "finish": {
+          "count": 12,
+          "limit_ms": 150,
+          "median_ms": 90,
+          "p95_ms": 240,
+          "p99_ms": 240,
+          "max_ms": 240,
+          "violations": 1
+        },
+        "display": {
+          "count": 701,
+          "limit_ms": 50,
+          "median_ms": 4,
+          "p95_ms": 12,
+          "p99_ms": 23,
+          "max_ms": 58,
+          "violations": 1
+        }
+      },
+      "operation_failures": null,
+      "workload": null,
+      "started_at": "2026-11-13T08:58:11.131Z",
+      "runtime_ms": 600132,
+      "initial_state": {
+        "matches": 584,
+        "finished_matches": 13,
+        "active_matches": 13,
+        "active_courts": 15,
+        "pending_player_checkins": 0,
+        "pending_players": 0,
+        "check_in_per_match": true,
+        "state_sha256": "03b5aaea1d45bd6c4b9c0242996c2d1bfe54300489a1d4572b0aa368cd7ffa77"
+      },
+      "settings": {
+        "tournament": "default",
+        "base_url": "https://localhost:4433",
+        "point_interval_ms": [
+          3200,
+          6400
+        ],
+        "score_gap_ms": [
+          0,
+          0
+        ],
+        "pause_visible_ms": 3000,
+        "score_all_active": false,
+        "legacy_loopback_devices": false,
+        "server_telemetry": true,
+        "processing_traces": true,
+        "score_probability": [
+          0.4,
+          0.6
+        ]
+      },
+      "blocking_diagnostics": [
+        {
+          "enabled": true,
+          "cpu_enabled": true,
+          "cpu_sampling_us": 2000,
+          "windows": 35,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "run": 9,
+      "mode": "optimization_history",
+      "source": "/tmp/bts-reliable-20261113/run09.json",
+      "source_sha256": "fff014162802497fa1047b3c66c6d6a9bc075ac7566955e8f06e1fef63e0fe62",
+      "complete": true,
+      "coverage": true,
+      "render_endpoint": true,
+      "stable_server": true,
+      "all_kinds_observed": true,
+      "successful_operations": null,
+      "target_met": false,
+      "latency": {
+        "ordinary": {
+          "count": 1098,
+          "limit_ms": 100,
+          "median_ms": 33,
+          "p95_ms": 56,
+          "p99_ms": 99,
+          "max_ms": 270,
+          "violations": 10
+        },
+        "finish": {
+          "count": 6,
+          "limit_ms": 150,
+          "median_ms": 79.5,
+          "p95_ms": 117,
+          "p99_ms": 117,
+          "max_ms": 117,
+          "violations": 0
+        },
+        "display": {
+          "count": 1104,
+          "limit_ms": 50,
+          "median_ms": 4,
+          "p95_ms": 12,
+          "p99_ms": 24,
+          "max_ms": 64,
+          "violations": 1
+        }
+      },
+      "operation_failures": {},
+      "workload": {
+        "scenario": "benchmark",
+        "seed": "519",
+        "active_courts": 15,
+        "phases": [
+          {
+            "name": "checkin-and-play",
+            "points": 271,
+            "finishes": 0,
+            "occupied_courts": {
+              "count": 107,
+              "mean": 12,
+              "p50": 12,
+              "p95": 12,
+              "p99": 12,
+              "max": 12
+            }
+          },
+          {
+            "name": "load",
+            "points": 534,
+            "finishes": 2,
+            "occupied_courts": {
+              "count": 209,
+              "mean": 12,
+              "p50": 12,
+              "p95": 12,
+              "p99": 12,
+              "max": 12
+            }
+          },
+          {
+            "name": "idle",
+            "points": 0,
+            "finishes": 0,
+            "occupied_courts": {
+              "count": 109,
+              "mean": 13.7,
+              "p50": 14,
+              "p95": 14,
+              "p99": 14,
+              "max": 14
+            }
+          },
+          {
+            "name": "load-after-idle",
+            "points": 293,
+            "finishes": 4,
+            "occupied_courts": {
+              "count": 104,
+              "mean": 13.8,
+              "p50": 14,
+              "p95": 15,
+              "p99": 15,
+              "max": 15
+            }
+          }
+        ]
+      },
+      "started_at": "2026-11-13T09:23:24.477Z",
+      "runtime_ms": 600316,
+      "initial_state": {
+        "matches": 584,
+        "finished_matches": 30,
+        "active_matches": 12,
+        "active_courts": 15,
+        "pending_player_checkins": 0,
+        "pending_players": 0,
+        "check_in_per_match": true,
+        "state_sha256": "5ad33ef7e3f7e04e15a3f3069f1ae8fc4ffcf13128e3f2ce0d736c0c2cc0b2be"
+      },
+      "settings": {
+        "tournament": "default",
+        "base_url": "https://localhost:4433",
+        "point_interval_ms": [
+          3200,
+          6400
+        ],
+        "score_gap_ms": [
+          0,
+          0
+        ],
+        "pause_visible_ms": 3000,
+        "score_all_active": false,
+        "legacy_loopback_devices": false,
+        "server_telemetry": true,
+        "processing_traces": true,
+        "score_probability": [
+          0.4,
+          0.6
+        ]
+      },
+      "blocking_diagnostics": [
+        {
+          "enabled": true,
+          "cpu_enabled": true,
+          "cpu_sampling_us": 2000,
+          "windows": 20,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "run": 10,
+      "mode": "optimization_history_cpu_sampling_disabled",
+      "source": "/tmp/bts-reliable-20261113/run10.json",
+      "source_sha256": "6988c3465c35d72581d51c14b11ee47e1f9dd948b2300e7fa4d8ff0d0ca529c5",
+      "complete": true,
+      "coverage": true,
+      "render_endpoint": true,
+      "stable_server": true,
+      "all_kinds_observed": true,
+      "successful_operations": null,
+      "target_met": false,
+      "latency": {
+        "ordinary": {
+          "count": 1026,
+          "limit_ms": 100,
+          "median_ms": 32,
+          "p95_ms": 54,
+          "p99_ms": 120,
+          "max_ms": 223,
+          "violations": 13
+        },
+        "finish": {
+          "count": 13,
+          "limit_ms": 150,
+          "median_ms": 87,
+          "p95_ms": 113,
+          "p99_ms": 113,
+          "max_ms": 113,
+          "violations": 0
+        },
+        "display": {
+          "count": 1039,
+          "limit_ms": 50,
+          "median_ms": 4,
+          "p95_ms": 12,
+          "p99_ms": 20,
+          "max_ms": 67,
+          "violations": 1
+        }
+      },
+      "operation_failures": {},
+      "workload": {
+        "scenario": "benchmark",
+        "seed": "519",
+        "active_courts": 15,
+        "phases": [
+          {
+            "name": "checkin-and-play",
+            "points": 279,
+            "finishes": 2,
+            "occupied_courts": {
+              "count": 101,
+              "mean": 13.3,
+              "p50": 13,
+              "p95": 14,
+              "p99": 14,
+              "max": 14
+            }
+          },
+          {
+            "name": "load",
+            "points": 507,
+            "finishes": 8,
+            "occupied_courts": {
+              "count": 214,
+              "mean": 11.5,
+              "p50": 12,
+              "p95": 12,
+              "p99": 12,
+              "max": 13
+            }
+          },
+          {
+            "name": "idle",
+            "points": 0,
+            "finishes": 0,
+            "occupied_courts": {
+              "count": 109,
+              "mean": 11,
+              "p50": 11,
+              "p95": 11,
+              "p99": 11,
+              "max": 11
+            }
+          },
+          {
+            "name": "load-after-idle",
+            "points": 240,
+            "finishes": 3,
+            "occupied_courts": {
+              "count": 104,
+              "mean": 10.9,
+              "p50": 11,
+              "p95": 11,
+              "p99": 11,
+              "max": 11
+            }
+          }
+        ]
+      },
+      "started_at": "2026-11-13T09:37:39.546Z",
+      "runtime_ms": 600056,
+      "initial_state": {
+        "matches": 584,
+        "finished_matches": 36,
+        "active_matches": 14,
+        "active_courts": 15,
+        "pending_player_checkins": 0,
+        "pending_players": 0,
+        "check_in_per_match": true,
+        "state_sha256": "e42b55f343d8933580fb2bda64fd39349fccc6acd8fca5cee8de4c264a5773e6"
+      },
+      "settings": {
+        "tournament": "default",
+        "base_url": "https://localhost:4433",
+        "point_interval_ms": [
+          3200,
+          6400
+        ],
+        "score_gap_ms": [
+          0,
+          0
+        ],
+        "pause_visible_ms": 3000,
+        "score_all_active": false,
+        "legacy_loopback_devices": false,
+        "server_telemetry": true,
+        "processing_traces": true,
+        "score_probability": [
+          0.4,
+          0.6
+        ]
+      },
+      "blocking_diagnostics": [
+        {
+          "enabled": true,
+          "cpu_enabled": false,
+          "cpu_sampling_us": null,
+          "windows": 21,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "run": 11,
+      "mode": "diagnostic",
+      "source": "/tmp/bts-reliable-20261113/run11.json",
+      "source_sha256": "0d497204e398a701e58f1d3863bf673b81d39882b6c19109a2325aab006a2cf5",
+      "complete": true,
+      "coverage": true,
+      "render_endpoint": true,
+      "stable_server": true,
+      "all_kinds_observed": true,
+      "successful_operations": null,
+      "target_met": false,
+      "latency": {
+        "ordinary": {
+          "count": 1080,
+          "limit_ms": 100,
+          "median_ms": 33,
+          "p95_ms": 61,
+          "p99_ms": 125,
+          "max_ms": 196,
+          "violations": 21
+        },
+        "finish": {
+          "count": 12,
+          "limit_ms": 150,
+          "median_ms": 89.5,
+          "p95_ms": 157,
+          "p99_ms": 157,
+          "max_ms": 157,
+          "violations": 1
+        },
+        "display": {
+          "count": 1092,
+          "limit_ms": 50,
+          "median_ms": 4,
+          "p95_ms": 12,
+          "p99_ms": 21,
+          "max_ms": 43,
+          "violations": 0
+        }
+      },
+      "operation_failures": {},
+      "workload": {
+        "scenario": "benchmark",
+        "seed": "519",
+        "active_courts": 15,
+        "phases": [
+          {
+            "name": "checkin-and-play",
+            "points": 272,
+            "finishes": 1,
+            "occupied_courts": {
+              "count": 103,
+              "mean": 12.7,
+              "p50": 13,
+              "p95": 13,
+              "p99": 13,
+              "max": 13
+            }
+          },
+          {
+            "name": "load",
+            "points": 508,
+            "finishes": 9,
+            "occupied_courts": {
+              "count": 211,
+              "mean": 11.3,
+              "p50": 11,
+              "p95": 12,
+              "p99": 12,
+              "max": 12
+            }
+          },
+          {
+            "name": "idle",
+            "points": 0,
+            "finishes": 0,
+            "occupied_courts": {
+              "count": 111,
+              "mean": 11.7,
+              "p50": 11,
+              "p95": 15,
+              "p99": 15,
+              "max": 15
+            }
+          },
+          {
+            "name": "load-after-idle",
+            "points": 300,
+            "finishes": 2,
+            "occupied_courts": {
+              "count": 103,
+              "mean": 14.9,
+              "p50": 15,
+              "p95": 15,
+              "p99": 15,
+              "max": 15
+            }
+          }
+        ]
+      },
+      "started_at": "2026-11-13T09:51:09.522Z",
+      "runtime_ms": 600237,
+      "initial_state": {
+        "matches": 584,
+        "finished_matches": 49,
+        "active_matches": 13,
+        "active_courts": 15,
+        "pending_player_checkins": 0,
+        "pending_players": 0,
+        "check_in_per_match": true,
+        "state_sha256": "279118c49da8869f3b3daa5f7457bce8cee623e645ee963ac90e68ab98348294"
+      },
+      "settings": {
+        "tournament": "default",
+        "base_url": "https://localhost:4433",
+        "point_interval_ms": [
+          3200,
+          6400
+        ],
+        "score_gap_ms": [
+          0,
+          0
+        ],
+        "pause_visible_ms": 3000,
+        "score_all_active": false,
+        "legacy_loopback_devices": false,
+        "server_telemetry": true,
+        "processing_traces": true,
+        "score_probability": [
+          0.4,
+          0.6
+        ]
+      },
+      "blocking_diagnostics": [
+        {
+          "enabled": true,
+          "cpu_enabled": true,
+          "cpu_sampling_us": 2000,
+          "windows": 40,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "run": 12,
+      "mode": "optimization_history",
+      "source": "/tmp/bts-reliable-20261113/run12.json",
+      "source_sha256": "eb4cc3d4d62a61a28c6505fc8b0a9f09a1415e5cd44edef3dfb18bff1d1fc330",
+      "complete": true,
+      "coverage": true,
+      "render_endpoint": true,
+      "stable_server": true,
+      "all_kinds_observed": true,
+      "successful_operations": null,
+      "target_met": false,
+      "latency": {
+        "ordinary": {
+          "count": 980,
+          "limit_ms": 100,
+          "median_ms": 31,
+          "p95_ms": 47,
+          "p99_ms": 61,
+          "max_ms": 229,
+          "violations": 3
+        },
+        "finish": {
+          "count": 14,
+          "limit_ms": 150,
+          "median_ms": 88.5,
+          "p95_ms": 216,
+          "p99_ms": 216,
+          "max_ms": 216,
+          "violations": 2
+        },
+        "display": {
+          "count": 994,
+          "limit_ms": 50,
+          "median_ms": 4,
+          "p95_ms": 11,
+          "p99_ms": 19,
+          "max_ms": 62,
+          "violations": 1
+        }
+      },
+      "operation_failures": {},
+      "workload": {
+        "scenario": "benchmark",
+        "seed": "519",
+        "active_courts": 15,
+        "phases": [
+          {
+            "name": "checkin-and-play",
+            "points": 286,
+            "finishes": 1,
+            "occupied_courts": {
+              "count": 103,
+              "mean": 14,
+              "p50": 14,
+              "p95": 14,
+              "p99": 14,
+              "max": 14
+            }
+          },
+          {
+            "name": "load",
+            "points": 500,
+            "finishes": 11,
+            "occupied_courts": {
+              "count": 204,
+              "mean": 11.8,
+              "p50": 13,
+              "p95": 14,
+              "p99": 14,
+              "max": 14
+            }
+          },
+          {
+            "name": "idle",
+            "points": 0,
+            "finishes": 0,
+            "occupied_courts": {
+              "count": 109,
+              "mean": 6.1,
+              "p50": 6,
+              "p95": 7,
+              "p99": 7,
+              "max": 7
+            }
+          },
+          {
+            "name": "load-after-idle",
+            "points": 194,
+            "finishes": 2,
+            "occupied_courts": {
+              "count": 107,
+              "mean": 8.4,
+              "p50": 8,
+              "p95": 10,
+              "p99": 11,
+              "max": 11
+            }
+          }
+        ]
+      },
+      "started_at": "2026-11-13T10:07:18.806Z",
+      "runtime_ms": 600230,
+      "initial_state": {
+        "matches": 584,
+        "finished_matches": 61,
+        "active_matches": 14,
+        "active_courts": 15,
+        "pending_player_checkins": 0,
+        "pending_players": 0,
+        "check_in_per_match": true,
+        "state_sha256": "4433c4b3ecf8090101a6dfb1b5598fa5d30b58df59a712f0390e50c0a84eb06a"
+      },
+      "settings": {
+        "tournament": "default",
+        "base_url": "https://localhost:4433",
+        "point_interval_ms": [
+          3200,
+          6400
+        ],
+        "score_gap_ms": [
+          0,
+          0
+        ],
+        "pause_visible_ms": 3000,
+        "score_all_active": false,
+        "legacy_loopback_devices": false,
+        "server_telemetry": true,
+        "processing_traces": true,
+        "score_probability": [
+          0.4,
+          0.6
+        ]
+      },
+      "blocking_diagnostics": [
+        {
+          "enabled": true,
+          "cpu_enabled": true,
+          "cpu_sampling_us": 2000,
+          "windows": 11,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "run": 13,
+      "mode": "optimization_history",
+      "source": "/tmp/bts-reliable-20261113/run13.json",
+      "source_sha256": "1a2eaa85c50caaa0e321a4523724d16bff34cad443c6372e520cfc22f342d0de",
+      "complete": true,
+      "coverage": true,
+      "render_endpoint": true,
+      "stable_server": true,
+      "all_kinds_observed": true,
+      "successful_operations": null,
+      "target_met": false,
+      "latency": {
+        "ordinary": {
+          "count": 825,
+          "limit_ms": 100,
+          "median_ms": 32,
+          "p95_ms": 49,
+          "p99_ms": 61,
+          "max_ms": 100,
+          "violations": 1
+        },
+        "finish": {
+          "count": 2,
+          "limit_ms": 150,
+          "median_ms": 144,
+          "p95_ms": 182,
+          "p99_ms": 182,
+          "max_ms": 182,
+          "violations": 1
+        },
+        "display": {
+          "count": 827,
+          "limit_ms": 50,
+          "median_ms": 4,
+          "p95_ms": 11,
+          "p99_ms": 19,
+          "max_ms": 58,
+          "violations": 2
+        }
+      },
+      "operation_failures": {},
+      "workload": {
+        "scenario": "benchmark",
+        "seed": "519",
+        "active_courts": 15,
+        "phases": [
+          {
+            "name": "checkin-and-play",
+            "points": 22,
+            "finishes": 0,
+            "occupied_courts": {
+              "count": 99,
+              "mean": 1,
+              "p50": 0,
+              "p95": 5,
+              "p99": 5,
+              "max": 5
+            }
+          },
+          {
+            "name": "load",
+            "points": 522,
+            "finishes": 0,
+            "occupied_courts": {
+              "count": 208,
+              "mean": 11.7,
+              "p50": 13,
+              "p95": 13,
+              "p99": 13,
+              "max": 13
+            }
+          },
+          {
+            "name": "idle",
+            "points": 0,
+            "finishes": 0,
+            "occupied_courts": {
+              "count": 108,
+              "mean": 13.2,
+              "p50": 13,
+              "p95": 14,
+              "p99": 14,
+              "max": 14
+            }
+          },
+          {
+            "name": "load-after-idle",
+            "points": 281,
+            "finishes": 2,
+            "occupied_courts": {
+              "count": 105,
+              "mean": 13.2,
+              "p50": 13,
+              "p95": 14,
+              "p99": 14,
+              "max": 14
+            }
+          }
+        ]
+      },
+      "started_at": "2026-11-13T10:27:39.344Z",
+      "runtime_ms": 600211,
+      "initial_state": {
+        "matches": 584,
+        "finished_matches": 11,
+        "active_matches": 0,
+        "active_courts": 15,
+        "pending_player_checkins": 18,
+        "pending_players": 18,
+        "check_in_per_match": true,
+        "state_sha256": "deafc6b330ccd562dcaed54ad578db7ff0ac3e83772a97e64014622dc7fe82ac"
+      },
+      "settings": {
+        "tournament": "default",
+        "base_url": "https://localhost:4433",
+        "point_interval_ms": [
+          3200,
+          6400
+        ],
+        "score_gap_ms": [
+          0,
+          0
+        ],
+        "pause_visible_ms": 3000,
+        "score_all_active": false,
+        "legacy_loopback_devices": false,
+        "server_telemetry": true,
+        "processing_traces": true,
+        "score_probability": [
+          0.4,
+          0.6
+        ]
+      },
+      "blocking_diagnostics": [
+        {
+          "enabled": true,
+          "cpu_enabled": true,
+          "cpu_sampling_us": 2000,
+          "windows": 2,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "run": 14,
+      "mode": "diagnostic",
+      "source": "/tmp/bts-reliable-20261113/run14.json",
+      "source_sha256": "7ac0879bf3af9b01d9298dbfe351a411d3122e81d483ec92f9575f040b0175ed",
+      "complete": true,
+      "coverage": true,
+      "render_endpoint": true,
+      "stable_server": true,
+      "all_kinds_observed": true,
+      "successful_operations": null,
+      "target_met": false,
+      "latency": {
+        "ordinary": {
+          "count": 899,
+          "limit_ms": 100,
+          "median_ms": 32,
+          "p95_ms": 51,
+          "p99_ms": 75,
+          "max_ms": 201,
+          "violations": 1
+        },
+        "finish": {
+          "count": 14,
+          "limit_ms": 150,
+          "median_ms": 82,
+          "p95_ms": 335,
+          "p99_ms": 335,
+          "max_ms": 335,
+          "violations": 1
+        },
+        "display": {
+          "count": 913,
+          "limit_ms": 50,
+          "median_ms": 4,
+          "p95_ms": 13,
+          "p99_ms": 25,
+          "max_ms": 236,
+          "violations": 2
+        }
+      },
+      "operation_failures": {},
+      "workload": {
+        "scenario": "benchmark",
+        "seed": "519",
+        "active_courts": 15,
+        "phases": [
+          {
+            "name": "checkin-and-play",
+            "points": 251,
+            "finishes": 7,
+            "occupied_courts": {
+              "count": 104,
+              "mean": 11.7,
+              "p50": 11,
+              "p95": 14,
+              "p99": 14,
+              "max": 14
+            }
+          },
+          {
+            "name": "load",
+            "points": 378,
+            "finishes": 5,
+            "occupied_courts": {
+              "count": 212,
+              "mean": 8.4,
+              "p50": 8,
+              "p95": 11,
+              "p99": 11,
+              "max": 11
+            }
+          },
+          {
+            "name": "idle",
+            "points": 0,
+            "finishes": 0,
+            "occupied_courts": {
+              "count": 107,
+              "mean": 9,
+              "p50": 9,
+              "p95": 10,
+              "p99": 11,
+              "max": 11
+            }
+          },
+          {
+            "name": "load-after-idle",
+            "points": 270,
+            "finishes": 2,
+            "occupied_courts": {
+              "count": 108,
+              "mean": 12.3,
+              "p50": 12,
+              "p95": 13,
+              "p99": 13,
+              "max": 13
+            }
+          }
+        ]
+      },
+      "started_at": "2026-11-13T10:40:12.285Z",
+      "runtime_ms": 600424,
+      "initial_state": {
+        "matches": 584,
+        "finished_matches": 13,
+        "active_matches": 14,
+        "active_courts": 15,
+        "pending_player_checkins": 0,
+        "pending_players": 0,
+        "check_in_per_match": true,
+        "state_sha256": "6ca19fe839ccd770711b5f81b0dd282851e7ef7f89d4d5113609bcfc91fcd262"
+      },
+      "settings": {
+        "tournament": "default",
+        "base_url": "https://localhost:4433",
+        "point_interval_ms": [
+          3200,
+          6400
+        ],
+        "score_gap_ms": [
+          0,
+          0
+        ],
+        "pause_visible_ms": 3000,
+        "score_all_active": false,
+        "legacy_loopback_devices": false,
+        "server_telemetry": true,
+        "processing_traces": true,
+        "score_probability": [
+          0.4,
+          0.6
+        ]
+      },
+      "blocking_diagnostics": [
+        {
+          "enabled": true,
+          "cpu_enabled": true,
+          "cpu_sampling_us": 2000,
+          "windows": 9,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "run": 15,
+      "mode": "diagnostic",
+      "source": "/tmp/bts-reliable-20261113/run15.json",
+      "source_sha256": "3d5a0033a18ef0800873b5e0b64f6c28fc87f1b4afa535420dee29cbf59f29da",
+      "complete": true,
+      "coverage": true,
+      "render_endpoint": true,
+      "stable_server": true,
+      "all_kinds_observed": true,
+      "successful_operations": null,
+      "target_met": false,
+      "latency": {
+        "ordinary": {
+          "count": 875,
+          "limit_ms": 100,
+          "median_ms": 32,
+          "p95_ms": 50,
+          "p99_ms": 72,
+          "max_ms": 216,
+          "violations": 6
+        },
+        "finish": {
+          "count": 13,
+          "limit_ms": 150,
+          "median_ms": 85,
+          "p95_ms": 148,
+          "p99_ms": 148,
+          "max_ms": 148,
+          "violations": 0
+        },
+        "display": {
+          "count": 888,
+          "limit_ms": 50,
+          "median_ms": 4,
+          "p95_ms": 12,
+          "p99_ms": 26,
+          "max_ms": 169,
+          "violations": 3
+        }
+      },
+      "operation_failures": {},
+      "workload": {
+        "scenario": "benchmark",
+        "seed": "519",
+        "active_courts": 15,
+        "phases": [
+          {
+            "name": "checkin-and-play",
+            "points": 251,
+            "finishes": 2,
+            "occupied_courts": {
+              "count": 105,
+              "mean": 11.5,
+              "p50": 12,
+              "p95": 12,
+              "p99": 12,
+              "max": 12
+            }
+          },
+          {
+            "name": "load",
+            "points": 436,
+            "finishes": 6,
+            "occupied_courts": {
+              "count": 212,
+              "mean": 9.6,
+              "p50": 10,
+              "p95": 11,
+              "p99": 11,
+              "max": 12
+            }
+          },
+          {
+            "name": "idle",
+            "points": 0,
+            "finishes": 0,
+            "occupied_courts": {
+              "count": 109,
+              "mean": 9.4,
+              "p50": 10,
+              "p95": 10,
+              "p99": 10,
+              "max": 10
+            }
+          },
+          {
+            "name": "load-after-idle",
+            "points": 188,
+            "finishes": 5,
+            "occupied_courts": {
+              "count": 106,
+              "mean": 8.2,
+              "p50": 8,
+              "p95": 10,
+              "p99": 10,
+              "max": 10
+            }
+          }
+        ]
+      },
+      "started_at": "2026-11-13T10:59:27.563Z",
+      "runtime_ms": 600262,
+      "initial_state": {
+        "matches": 584,
+        "finished_matches": 27,
+        "active_matches": 12,
+        "active_courts": 15,
+        "pending_player_checkins": 0,
+        "pending_players": 0,
+        "check_in_per_match": true,
+        "state_sha256": "4789bb2773ee45f7a756511e5180ae3eadcfda689119623ca0d81144db607c94"
+      },
+      "settings": {
+        "tournament": "default",
+        "base_url": "https://localhost:4433",
+        "point_interval_ms": [
+          3200,
+          6400
+        ],
+        "score_gap_ms": [
+          0,
+          0
+        ],
+        "pause_visible_ms": 3000,
+        "score_all_active": false,
+        "legacy_loopback_devices": false,
+        "server_telemetry": true,
+        "processing_traces": true,
+        "score_probability": [
+          0.4,
+          0.6
+        ]
+      },
+      "blocking_diagnostics": [
+        {
+          "enabled": true,
+          "cpu_enabled": true,
+          "cpu_sampling_us": 2000,
+          "windows": 8,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "run": 16,
+      "mode": "diagnostic",
+      "source": "/tmp/bts-reliable-20261113/run16.json",
+      "source_sha256": "1f8395b11ff7aa9a923e2f50450c70d036679a92582bd79771c517c0ac5cfd3a",
+      "complete": true,
+      "coverage": true,
+      "render_endpoint": true,
+      "stable_server": true,
+      "all_kinds_observed": true,
+      "successful_operations": null,
+      "target_met": false,
+      "latency": {
+        "ordinary": {
+          "count": 795,
+          "limit_ms": 100,
+          "median_ms": 32,
+          "p95_ms": 50,
+          "p99_ms": 91,
+          "max_ms": 156,
+          "violations": 4
+        },
+        "finish": {
+          "count": 1,
+          "limit_ms": 150,
+          "median_ms": 125,
+          "p95_ms": 125,
+          "p99_ms": 125,
+          "max_ms": 125,
+          "violations": 0
+        },
+        "display": {
+          "count": 796,
+          "limit_ms": 50,
+          "median_ms": 4,
+          "p95_ms": 13,
+          "p99_ms": 19,
+          "max_ms": 96,
+          "violations": 3
+        }
+      },
+      "operation_failures": {},
+      "workload": {
+        "scenario": "benchmark",
+        "seed": "519",
+        "active_courts": 15,
+        "phases": [
+          {
+            "name": "checkin-and-play",
+            "points": 13,
+            "finishes": 0,
+            "occupied_courts": {
+              "count": 102,
+              "mean": 0.6,
+              "p50": 0,
+              "p95": 3,
+              "p99": 4,
+              "max": 4
+            }
+          },
+          {
+            "name": "load",
+            "points": 488,
+            "finishes": 0,
+            "occupied_courts": {
+              "count": 207,
+              "mean": 11.1,
+              "p50": 13,
+              "p95": 13,
+              "p99": 13,
+              "max": 13
+            }
+          },
+          {
+            "name": "idle",
+            "points": 0,
+            "finishes": 0,
+            "occupied_courts": {
+              "count": 106,
+              "mean": 13.4,
+              "p50": 13,
+              "p95": 14,
+              "p99": 14,
+              "max": 14
+            }
+          },
+          {
+            "name": "load-after-idle",
+            "points": 294,
+            "finishes": 1,
+            "occupied_courts": {
+              "count": 106,
+              "mean": 13.4,
+              "p50": 13,
+              "p95": 14,
+              "p99": 14,
+              "max": 14
+            }
+          }
+        ]
+      },
+      "started_at": "2026-11-13T11:25:50.311Z",
+      "runtime_ms": 600200,
+      "initial_state": {
+        "matches": 584,
+        "finished_matches": 11,
+        "active_matches": 0,
+        "active_courts": 15,
+        "pending_player_checkins": 16,
+        "pending_players": 16,
+        "check_in_per_match": true,
+        "state_sha256": "01dce40f4ea0e27234e0aeb4550a5b7ac2dbe13d7bba424cc0d19da684ddec51"
+      },
+      "settings": {
+        "tournament": "default",
+        "base_url": "https://localhost:4433",
+        "point_interval_ms": [
+          3200,
+          6400
+        ],
+        "score_gap_ms": [
+          0,
+          0
+        ],
+        "pause_visible_ms": 3000,
+        "score_all_active": false,
+        "legacy_loopback_devices": false,
+        "server_telemetry": true,
+        "processing_traces": true,
+        "score_probability": [
+          0.4,
+          0.6
+        ]
+      },
+      "blocking_diagnostics": [
+        {
+          "enabled": true,
+          "cpu_enabled": true,
+          "cpu_sampling_us": 2000,
+          "windows": 3,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "run": 17,
+      "mode": "optimization_history",
+      "source": "/tmp/bts-reliable-20261113/run17.json",
+      "source_sha256": "c5096663b517954b0eb49a7db5c20c49a955281cf8115bc70c03e9d9b80ab487",
+      "complete": true,
+      "coverage": true,
+      "render_endpoint": true,
+      "stable_server": true,
+      "all_kinds_observed": true,
+      "successful_operations": null,
+      "target_met": false,
+      "latency": {
+        "ordinary": {
+          "count": 868,
+          "limit_ms": 100,
+          "median_ms": 33,
+          "p95_ms": 51,
+          "p99_ms": 85,
+          "max_ms": 120,
+          "violations": 5
+        },
+        "finish": {
+          "count": 13,
+          "limit_ms": 150,
+          "median_ms": 71,
+          "p95_ms": 169,
+          "p99_ms": 169,
+          "max_ms": 169,
+          "violations": 1
+        },
+        "display": {
+          "count": 881,
+          "limit_ms": 50,
+          "median_ms": 4,
+          "p95_ms": 13,
+          "p99_ms": 23,
+          "max_ms": 49,
+          "violations": 0
+        }
+      },
+      "operation_failures": {},
+      "workload": {
+        "scenario": "benchmark",
+        "seed": "519",
+        "active_courts": 15,
+        "phases": [
+          {
+            "name": "checkin-and-play",
+            "points": 226,
+            "finishes": 9,
+            "occupied_courts": {
+              "count": 105,
+              "mean": 10.3,
+              "p50": 10,
+              "p95": 13,
+              "p99": 13,
+              "max": 13
+            }
+          },
+          {
+            "name": "load",
+            "points": 378,
+            "finishes": 4,
+            "occupied_courts": {
+              "count": 217,
+              "mean": 8.3,
+              "p50": 9,
+              "p95": 10,
+              "p99": 10,
+              "max": 10
+            }
+          },
+          {
+            "name": "idle",
+            "points": 0,
+            "finishes": 0,
+            "occupied_courts": {
+              "count": 106,
+              "mean": 10.3,
+              "p50": 10,
+              "p95": 12,
+              "p99": 12,
+              "max": 12
+            }
+          },
+          {
+            "name": "load-after-idle",
+            "points": 264,
+            "finishes": 0,
+            "occupied_courts": {
+              "count": 106,
+              "mean": 12,
+              "p50": 12,
+              "p95": 12,
+              "p99": 12,
+              "max": 12
+            }
+          }
+        ]
+      },
+      "started_at": "2026-11-13T11:41:19.345Z",
+      "runtime_ms": 600344,
+      "initial_state": {
+        "matches": 584,
+        "finished_matches": 12,
+        "active_matches": 13,
+        "active_courts": 15,
+        "pending_player_checkins": 0,
+        "pending_players": 0,
+        "check_in_per_match": true,
+        "state_sha256": "0b0dce0be0ca7cd8189b2b6b91da586de009e5f6a774a6c4c4e9460089645333"
+      },
+      "settings": {
+        "tournament": "default",
+        "base_url": "https://localhost:4433",
+        "point_interval_ms": [
+          3200,
+          6400
+        ],
+        "score_gap_ms": [
+          0,
+          0
+        ],
+        "pause_visible_ms": 3000,
+        "score_all_active": false,
+        "legacy_loopback_devices": false,
+        "server_telemetry": true,
+        "processing_traces": true,
+        "score_probability": [
+          0.4,
+          0.6
+        ]
+      },
+      "blocking_diagnostics": [
+        {
+          "enabled": true,
+          "cpu_enabled": true,
+          "cpu_sampling_us": 2000,
+          "windows": 4,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "run": 18,
+      "mode": "cpu_sampling_disabled_control_cpu_sampling_disabled",
+      "source": "/tmp/bts-reliable-20261113/run18.json",
+      "source_sha256": "123438d0730b47a5aa1ab0a406164bf6df8a1c6e877c399ff25d1ded865ec79b",
+      "complete": true,
+      "coverage": true,
+      "render_endpoint": true,
+      "stable_server": true,
+      "all_kinds_observed": true,
+      "successful_operations": null,
+      "target_met": false,
+      "latency": {
+        "ordinary": {
+          "count": 801,
+          "limit_ms": 100,
+          "median_ms": 32,
+          "p95_ms": 50,
+          "p99_ms": 77,
+          "max_ms": 217,
+          "violations": 6
+        },
+        "finish": {
+          "count": 11,
+          "limit_ms": 150,
+          "median_ms": 83,
+          "p95_ms": 99,
+          "p99_ms": 99,
+          "max_ms": 99,
+          "violations": 0
+        },
+        "display": {
+          "count": 812,
+          "limit_ms": 50,
+          "median_ms": 4,
+          "p95_ms": 12,
+          "p99_ms": 24,
+          "max_ms": 185,
+          "violations": 1
+        }
+      },
+      "operation_failures": {},
+      "workload": {
+        "scenario": "benchmark",
+        "seed": "519",
+        "active_courts": 15,
+        "phases": [
+          {
+            "name": "checkin-and-play",
+            "points": 238,
+            "finishes": 4,
+            "occupied_courts": {
+              "count": 104,
+              "mean": 11,
+              "p50": 11,
+              "p95": 12,
+              "p99": 12,
+              "max": 12
+            }
+          },
+          {
+            "name": "load",
+            "points": 365,
+            "finishes": 5,
+            "occupied_courts": {
+              "count": 213,
+              "mean": 8,
+              "p50": 8,
+              "p95": 9,
+              "p99": 9,
+              "max": 9
+            }
+          },
+          {
+            "name": "idle",
+            "points": 0,
+            "finishes": 0,
+            "occupied_courts": {
+              "count": 109,
+              "mean": 9,
+              "p50": 9,
+              "p95": 9,
+              "p99": 9,
+              "max": 9
+            }
+          },
+          {
+            "name": "load-after-idle",
+            "points": 198,
+            "finishes": 2,
+            "occupied_courts": {
+              "count": 104,
+              "mean": 8.9,
+              "p50": 9,
+              "p95": 9,
+              "p99": 9,
+              "max": 9
+            }
+          }
+        ]
+      },
+      "started_at": "2026-11-13T11:52:32.310Z",
+      "runtime_ms": 600309,
+      "initial_state": {
+        "matches": 584,
+        "finished_matches": 25,
+        "active_matches": 12,
+        "active_courts": 15,
+        "pending_player_checkins": 0,
+        "pending_players": 0,
+        "check_in_per_match": true,
+        "state_sha256": "2500e7b14cbaef8533a57bcd923cd9452243f25134829d885e267441f87a926b"
+      },
+      "settings": {
+        "tournament": "default",
+        "base_url": "https://localhost:4433",
+        "point_interval_ms": [
+          3200,
+          6400
+        ],
+        "score_gap_ms": [
+          0,
+          0
+        ],
+        "pause_visible_ms": 3000,
+        "score_all_active": false,
+        "legacy_loopback_devices": false,
+        "server_telemetry": true,
+        "processing_traces": true,
+        "score_probability": [
+          0.4,
+          0.6
+        ]
+      },
+      "blocking_diagnostics": [
+        {
+          "enabled": true,
+          "cpu_enabled": false,
+          "cpu_sampling_us": null,
+          "windows": 9,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "run": 19,
+      "mode": "diagnostic",
+      "source": "/tmp/bts-reliable-20261113/run19.json",
+      "source_sha256": "9b41576159c9fc9202a4e90a61a2c378dba5445241260d13cb54e638021359bd",
+      "complete": true,
+      "coverage": true,
+      "render_endpoint": true,
+      "stable_server": true,
+      "all_kinds_observed": true,
+      "successful_operations": null,
+      "target_met": false,
+      "latency": {
+        "ordinary": {
+          "count": 1007,
+          "limit_ms": 100,
+          "median_ms": 33,
+          "p95_ms": 54,
+          "p99_ms": 89,
+          "max_ms": 248,
+          "violations": 7
+        },
+        "finish": {
+          "count": 9,
+          "limit_ms": 150,
+          "median_ms": 83,
+          "p95_ms": 136,
+          "p99_ms": 136,
+          "max_ms": 136,
+          "violations": 0
+        },
+        "display": {
+          "count": 1016,
+          "limit_ms": 50,
+          "median_ms": 4,
+          "p95_ms": 15,
+          "p99_ms": 35,
+          "max_ms": 72,
+          "violations": 4
+        }
+      },
+      "operation_failures": {},
+      "workload": {
+        "scenario": "benchmark",
+        "seed": "519",
+        "active_courts": 15,
+        "phases": [
+          {
+            "name": "checkin-and-play",
+            "points": 164,
+            "finishes": 0,
+            "occupied_courts": {
+              "count": 101,
+              "mean": 7.7,
+              "p50": 9,
+              "p95": 14,
+              "p99": 14,
+              "max": 14
+            }
+          },
+          {
+            "name": "load",
+            "points": 607,
+            "finishes": 1,
+            "occupied_courts": {
+              "count": 210,
+              "mean": 13.8,
+              "p50": 14,
+              "p95": 14,
+              "p99": 14,
+              "max": 14
+            }
+          },
+          {
+            "name": "idle",
+            "points": 0,
+            "finishes": 0,
+            "occupied_courts": {
+              "count": 108,
+              "mean": 13,
+              "p50": 13,
+              "p95": 13,
+              "p99": 13,
+              "max": 13
+            }
+          },
+          {
+            "name": "load-after-idle",
+            "points": 236,
+            "finishes": 8,
+            "occupied_courts": {
+              "count": 101,
+              "mean": 10.8,
+              "p50": 12,
+              "p95": 12,
+              "p99": 13,
+              "max": 13
+            }
+          }
+        ]
+      },
+      "started_at": "2026-11-13T12:12:50.996Z",
+      "runtime_ms": 600480,
+      "initial_state": {
+        "matches": 584,
+        "finished_matches": 11,
+        "active_matches": 0,
+        "active_courts": 15,
+        "pending_player_checkins": 58,
+        "pending_players": 58,
+        "check_in_per_match": true,
+        "state_sha256": "1bb4ea8d5ca8c38c3955658dc24a6fc073290982512ee67928c5bbd1d3c60444"
+      },
+      "settings": {
+        "tournament": "default",
+        "base_url": "https://localhost:4433",
+        "point_interval_ms": [
+          3200,
+          6400
+        ],
+        "score_gap_ms": [
+          0,
+          0
+        ],
+        "pause_visible_ms": 3000,
+        "score_all_active": false,
+        "legacy_loopback_devices": false,
+        "server_telemetry": true,
+        "processing_traces": true,
+        "score_probability": [
+          0.4,
+          0.6
+        ]
+      },
+      "blocking_diagnostics": [
+        {
+          "enabled": true,
+          "cpu_enabled": true,
+          "cpu_sampling_us": 2000,
+          "windows": 7,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "run": 20,
+      "mode": "previous_candidate_clean_repetition",
+      "source": "/tmp/bts-reliable-20261113/run20.json",
+      "source_sha256": "c1370daae19ead7c9d3fafe795e925541ebe0f9e09e7e60a6a54fe56c7dc90ca",
+      "complete": true,
+      "coverage": true,
+      "render_endpoint": true,
+      "stable_server": true,
+      "all_kinds_observed": true,
+      "successful_operations": true,
+      "target_met": false,
+      "latency": {
+        "ordinary": {
+          "count": 749,
+          "limit_ms": 100,
+          "median_ms": 32,
+          "p95_ms": 50,
+          "p99_ms": 61,
+          "max_ms": 138,
+          "violations": 1
+        },
+        "finish": {
+          "count": 2,
+          "limit_ms": 150,
+          "median_ms": 112,
+          "p95_ms": 115,
+          "p99_ms": 115,
+          "max_ms": 115,
+          "violations": 0
+        },
+        "display": {
+          "count": 751,
+          "limit_ms": 50,
+          "median_ms": 4,
+          "p95_ms": 10,
+          "p99_ms": 16,
+          "max_ms": 30,
+          "violations": 0
+        }
+      },
+      "operation_failures": {},
+      "workload": {
+        "scenario": "benchmark",
+        "seed": "519",
+        "active_courts": 15,
+        "phases": [
+          {
+            "name": "checkin-and-play",
+            "points": 15,
+            "finishes": 0,
+            "occupied_courts": {
+              "count": 99,
+              "mean": 0.7,
+              "p50": 0,
+              "p95": 4,
+              "p99": 4,
+              "max": 4
+            }
+          },
+          {
+            "name": "load",
+            "points": 461,
+            "finishes": 0,
+            "occupied_courts": {
+              "count": 207,
+              "mean": 10.4,
+              "p50": 12,
+              "p95": 13,
+              "p99": 13,
+              "max": 13
+            }
+          },
+          {
+            "name": "idle",
+            "points": 0,
+            "finishes": 0,
+            "occupied_courts": {
+              "count": 104,
+              "mean": 13,
+              "p50": 13,
+              "p95": 13,
+              "p99": 13,
+              "max": 13
+            }
+          },
+          {
+            "name": "load-after-idle",
+            "points": 273,
+            "finishes": 2,
+            "occupied_courts": {
+              "count": 104,
+              "mean": 12.3,
+              "p50": 13,
+              "p95": 13,
+              "p99": 13,
+              "max": 13
+            }
+          }
+        ]
+      },
+      "started_at": "2026-11-13T12:31:42.706Z",
+      "runtime_ms": 600165,
+      "initial_state": {
+        "matches": 584,
+        "finished_matches": 11,
+        "active_matches": 0,
+        "active_courts": 15,
+        "pending_player_checkins": 8,
+        "pending_players": 8,
+        "check_in_per_match": true,
+        "state_sha256": "b74e4a380c2d815bcadfd1371a83a6c380174cd1bbe5416bec72aad5e650975f"
+      },
+      "settings": {
+        "tournament": "default",
+        "base_url": "https://localhost:4433",
+        "point_interval_ms": [
+          3200,
+          6400
+        ],
+        "score_gap_ms": [
+          0,
+          0
+        ],
+        "pause_visible_ms": 3000,
+        "score_all_active": false,
+        "legacy_loopback_devices": false,
+        "server_telemetry": true,
+        "processing_traces": true,
+        "score_probability": [
+          0.4,
+          0.6
+        ]
+      },
+      "blocking_diagnostics": [
+        {
+          "enabled": true,
+          "cpu_enabled": true,
+          "cpu_sampling_us": 2000,
+          "windows": 3,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "run": 21,
+      "mode": "previous_candidate_clean_repetition",
+      "source": "/tmp/bts-reliable-20261113/run21.json",
+      "source_sha256": "5941ea4dea4d8a852be464f427c7e30ed16d93903b522788293f31bc5476d5d2",
+      "complete": true,
+      "coverage": true,
+      "render_endpoint": true,
+      "stable_server": true,
+      "all_kinds_observed": true,
+      "successful_operations": true,
+      "target_met": false,
+      "latency": {
+        "ordinary": {
+          "count": 1060,
+          "limit_ms": 100,
+          "median_ms": 32,
+          "p95_ms": 49,
+          "p99_ms": 62,
+          "max_ms": 122,
+          "violations": 2
+        },
+        "finish": {
+          "count": 15,
+          "limit_ms": 150,
+          "median_ms": 77,
+          "p95_ms": 86,
+          "p99_ms": 86,
+          "max_ms": 86,
+          "violations": 0
+        },
+        "display": {
+          "count": 1075,
+          "limit_ms": 50,
+          "median_ms": 4,
+          "p95_ms": 10,
+          "p99_ms": 19,
+          "max_ms": 30,
+          "violations": 0
+        }
+      },
+      "operation_failures": {},
+      "workload": {
+        "scenario": "benchmark",
+        "seed": "519",
+        "active_courts": 15,
+        "phases": [
+          {
+            "name": "checkin-and-play",
+            "points": 280,
+            "finishes": 4,
+            "occupied_courts": {
+              "count": 102,
+              "mean": 13.6,
+              "p50": 14,
+              "p95": 14,
+              "p99": 14,
+              "max": 14
+            }
+          },
+          {
+            "name": "load",
+            "points": 522,
+            "finishes": 7,
+            "occupied_courts": {
+              "count": 208,
+              "mean": 12.1,
+              "p50": 12,
+              "p95": 13,
+              "p99": 13,
+              "max": 13
+            }
+          },
+          {
+            "name": "idle",
+            "points": 0,
+            "finishes": 0,
+            "occupied_courts": {
+              "count": 108,
+              "mean": 12.1,
+              "p50": 12,
+              "p95": 13,
+              "p99": 13,
+              "max": 13
+            }
+          },
+          {
+            "name": "load-after-idle",
+            "points": 258,
+            "finishes": 4,
+            "occupied_courts": {
+              "count": 106,
+              "mean": 11.6,
+              "p50": 11,
+              "p95": 13,
+              "p99": 13,
+              "max": 13
+            }
+          }
+        ]
+      },
+      "started_at": "2026-11-13T12:44:10.645Z",
+      "runtime_ms": 600323,
+      "initial_state": {
+        "matches": 584,
+        "finished_matches": 13,
+        "active_matches": 14,
+        "active_courts": 15,
+        "pending_player_checkins": 0,
+        "pending_players": 0,
+        "check_in_per_match": true,
+        "state_sha256": "3f2c432e7cbb1a1d5970b477e6962f4285553fd292a9387105623d42568634f8"
+      },
+      "settings": {
+        "tournament": "default",
+        "base_url": "https://localhost:4433",
+        "point_interval_ms": [
+          3200,
+          6400
+        ],
+        "score_gap_ms": [
+          0,
+          0
+        ],
+        "pause_visible_ms": 3000,
+        "score_all_active": false,
+        "legacy_loopback_devices": false,
+        "server_telemetry": true,
+        "processing_traces": true,
+        "score_probability": [
+          0.4,
+          0.6
+        ]
+      },
+      "blocking_diagnostics": [
+        {
+          "enabled": true,
+          "cpu_enabled": true,
+          "cpu_sampling_us": 2000,
+          "windows": 4,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "run": 22,
+      "mode": "previous_candidate_clean_repetition",
+      "source": "/tmp/bts-reliable-20261113/run22.json",
+      "source_sha256": "f197ff40af34213251fc0a4b9898b5f54fab099c49c6725ac65687e8404b6926",
+      "complete": true,
+      "coverage": true,
+      "render_endpoint": true,
+      "stable_server": true,
+      "all_kinds_observed": true,
+      "successful_operations": true,
+      "target_met": false,
+      "latency": {
+        "ordinary": {
+          "count": 805,
+          "limit_ms": 100,
+          "median_ms": 32,
+          "p95_ms": 47,
+          "p99_ms": 61,
+          "max_ms": 126,
+          "violations": 1
+        },
+        "finish": {
+          "count": 10,
+          "limit_ms": 150,
+          "median_ms": 74,
+          "p95_ms": 96,
+          "p99_ms": 96,
+          "max_ms": 96,
+          "violations": 0
+        },
+        "display": {
+          "count": 815,
+          "limit_ms": 50,
+          "median_ms": 4,
+          "p95_ms": 10,
+          "p99_ms": 17,
+          "max_ms": 31,
+          "violations": 0
+        }
+      },
+      "operation_failures": {},
+      "workload": {
+        "scenario": "benchmark",
+        "seed": "519",
+        "active_courts": 15,
+        "phases": [
+          {
+            "name": "checkin-and-play",
+            "points": 238,
+            "finishes": 3,
+            "occupied_courts": {
+              "count": 104,
+              "mean": 11,
+              "p50": 11,
+              "p95": 12,
+              "p99": 12,
+              "max": 12
+            }
+          },
+          {
+            "name": "load",
+            "points": 337,
+            "finishes": 6,
+            "occupied_courts": {
+              "count": 212,
+              "mean": 7.3,
+              "p50": 7,
+              "p95": 9,
+              "p99": 9,
+              "max": 9
+            }
+          },
+          {
+            "name": "idle",
+            "points": 0,
+            "finishes": 0,
+            "occupied_courts": {
+              "count": 108,
+              "mean": 7.1,
+              "p50": 7,
+              "p95": 8,
+              "p99": 9,
+              "max": 9
+            }
+          },
+          {
+            "name": "load-after-idle",
+            "points": 230,
+            "finishes": 1,
+            "occupied_courts": {
+              "count": 105,
+              "mean": 10.3,
+              "p50": 10,
+              "p95": 12,
+              "p99": 12,
+              "max": 12
+            }
+          }
+        ]
+      },
+      "started_at": "2026-11-13T13:08:33.797Z",
+      "runtime_ms": 600211,
+      "initial_state": {
+        "matches": 584,
+        "finished_matches": 28,
+        "active_matches": 12,
+        "active_courts": 15,
+        "pending_player_checkins": 0,
+        "pending_players": 0,
+        "check_in_per_match": true,
+        "state_sha256": "58472489759fb01ba57ef6e86d33ff994307886f0b3bde9b14ea17bdcde53601"
+      },
+      "settings": {
+        "tournament": "default",
+        "base_url": "https://localhost:4433",
+        "point_interval_ms": [
+          3200,
+          6400
+        ],
+        "score_gap_ms": [
+          0,
+          0
+        ],
+        "pause_visible_ms": 3000,
+        "score_all_active": false,
+        "legacy_loopback_devices": false,
+        "server_telemetry": true,
+        "processing_traces": true,
+        "score_probability": [
+          0.4,
+          0.6
+        ]
+      },
+      "blocking_diagnostics": [
+        {
+          "enabled": true,
+          "cpu_enabled": true,
+          "cpu_sampling_us": 2000,
+          "windows": 3,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "run": 23,
+      "mode": "previous_candidate_clean_repetition",
+      "source": "/tmp/bts-reliable-20261113/run23.json",
+      "source_sha256": "65c4d8de4faafef9193464391c7e27974b4b84634a5f812f7c39e3645653a074",
+      "complete": true,
+      "coverage": true,
+      "render_endpoint": true,
+      "stable_server": true,
+      "all_kinds_observed": true,
+      "successful_operations": true,
+      "target_met": false,
+      "latency": {
+        "ordinary": {
+          "count": 1023,
+          "limit_ms": 100,
+          "median_ms": 32,
+          "p95_ms": 52,
+          "p99_ms": 74,
+          "max_ms": 204,
+          "violations": 4
+        },
+        "finish": {
+          "count": 13,
+          "limit_ms": 150,
+          "median_ms": 79,
+          "p95_ms": 122,
+          "p99_ms": 122,
+          "max_ms": 122,
+          "violations": 0
+        },
+        "display": {
+          "count": 1036,
+          "limit_ms": 50,
+          "median_ms": 4,
+          "p95_ms": 11,
+          "p99_ms": 22,
+          "max_ms": 62,
+          "violations": 2
+        }
+      },
+      "operation_failures": {},
+      "workload": {
+        "scenario": "benchmark",
+        "seed": "519",
+        "active_courts": 15,
+        "phases": [
+          {
+            "name": "checkin-and-play",
+            "points": 262,
+            "finishes": 3,
+            "occupied_courts": {
+              "count": 102,
+              "mean": 12.4,
+              "p50": 13,
+              "p95": 13,
+              "p99": 13,
+              "max": 13
+            }
+          },
+          {
+            "name": "load",
+            "points": 496,
+            "finishes": 5,
+            "occupied_courts": {
+              "count": 208,
+              "mean": 11.4,
+              "p50": 11,
+              "p95": 15,
+              "p99": 15,
+              "max": 15
+            }
+          },
+          {
+            "name": "idle",
+            "points": 0,
+            "finishes": 0,
+            "occupied_courts": {
+              "count": 109,
+              "mean": 15,
+              "p50": 15,
+              "p95": 15,
+              "p99": 15,
+              "max": 15
+            }
+          },
+          {
+            "name": "load-after-idle",
+            "points": 265,
+            "finishes": 5,
+            "occupied_courts": {
+              "count": 103,
+              "mean": 12.2,
+              "p50": 12,
+              "p95": 14,
+              "p99": 14,
+              "max": 14
+            }
+          }
+        ]
+      },
+      "started_at": "2026-11-13T13:24:49.971Z",
+      "runtime_ms": 600396,
+      "initial_state": {
+        "matches": 584,
+        "finished_matches": 38,
+        "active_matches": 13,
+        "active_courts": 15,
+        "pending_player_checkins": 0,
+        "pending_players": 0,
+        "check_in_per_match": true,
+        "state_sha256": "4629052ee4fc4f8708ef0076f9000ea1948969553f55aab0cc298eb91f17ec23"
+      },
+      "settings": {
+        "tournament": "default",
+        "base_url": "https://localhost:4433",
+        "point_interval_ms": [
+          3200,
+          6400
+        ],
+        "score_gap_ms": [
+          0,
+          0
+        ],
+        "pause_visible_ms": 3000,
+        "score_all_active": false,
+        "legacy_loopback_devices": false,
+        "server_telemetry": true,
+        "processing_traces": true,
+        "score_probability": [
+          0.4,
+          0.6
+        ]
+      },
+      "blocking_diagnostics": [
+        {
+          "enabled": true,
+          "cpu_enabled": true,
+          "cpu_sampling_us": 2000,
+          "windows": 7,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "run": 24,
+      "mode": "previous_candidate_clean_repetition_cpu_sampling_disabled",
+      "source": "/tmp/bts-reliable-20261113/run24.json",
+      "source_sha256": "07c70ca1e224ea51ff309a89d0b82b11a2b043c207af8d19ba08f25a0a6cf0f2",
+      "complete": true,
+      "coverage": true,
+      "render_endpoint": true,
+      "stable_server": true,
+      "all_kinds_observed": true,
+      "successful_operations": false,
+      "target_met": false,
+      "latency": {
+        "ordinary": {
+          "count": 1046,
+          "limit_ms": 100,
+          "median_ms": 32,
+          "p95_ms": 52,
+          "p99_ms": 87,
+          "max_ms": 297,
+          "violations": 9
+        },
+        "finish": {
+          "count": 11,
+          "limit_ms": 150,
+          "median_ms": 85,
+          "p95_ms": 114,
+          "p99_ms": 114,
+          "max_ms": 114,
+          "violations": 0
+        },
+        "display": {
+          "count": 1057,
+          "limit_ms": 50,
+          "median_ms": 4,
+          "p95_ms": 12,
+          "p99_ms": 22,
+          "max_ms": 69,
+          "violations": 2
+        }
+      },
+      "operation_failures": {
+        "handle_match_player_check_in": 2
+      },
+      "workload": {
+        "scenario": "benchmark",
+        "seed": "519",
+        "active_courts": 15,
+        "phases": [
+          {
+            "name": "checkin-and-play",
+            "points": 235,
+            "finishes": 2,
+            "occupied_courts": {
+              "count": 103,
+              "mean": 10.7,
+              "p50": 11,
+              "p95": 11,
+              "p99": 11,
+              "max": 11
+            }
+          },
+          {
+            "name": "load",
+            "points": 518,
+            "finishes": 7,
+            "occupied_courts": {
+              "count": 208,
+              "mean": 12,
+              "p50": 13,
+              "p95": 14,
+              "p99": 14,
+              "max": 14
+            }
+          },
+          {
+            "name": "idle",
+            "points": 0,
+            "finishes": 0,
+            "occupied_courts": {
+              "count": 107,
+              "mean": 14.7,
+              "p50": 15,
+              "p95": 15,
+              "p99": 15,
+              "max": 15
+            }
+          },
+          {
+            "name": "load-after-idle",
+            "points": 293,
+            "finishes": 2,
+            "occupied_courts": {
+              "count": 100,
+              "mean": 14.6,
+              "p50": 15,
+              "p95": 15,
+              "p99": 15,
+              "max": 15
+            }
+          }
+        ]
+      },
+      "started_at": "2026-11-13T13:41:26.634Z",
+      "runtime_ms": 600162,
+      "initial_state": {
+        "matches": 584,
+        "finished_matches": 51,
+        "active_matches": 11,
+        "active_courts": 15,
+        "pending_player_checkins": 0,
+        "pending_players": 0,
+        "check_in_per_match": true,
+        "state_sha256": "61208105fdaaa7af7978091657d98c2dfada49b2e00fd3900f1a7af9ad40b0b0"
+      },
+      "settings": {
+        "tournament": "default",
+        "base_url": "https://localhost:4433",
+        "point_interval_ms": [
+          3200,
+          6400
+        ],
+        "score_gap_ms": [
+          0,
+          0
+        ],
+        "pause_visible_ms": 3000,
+        "score_all_active": false,
+        "legacy_loopback_devices": false,
+        "server_telemetry": true,
+        "processing_traces": true,
+        "score_probability": [
+          0.4,
+          0.6
+        ]
+      },
+      "blocking_diagnostics": [
+        {
+          "enabled": true,
+          "cpu_enabled": false,
+          "cpu_sampling_us": null,
+          "windows": 14,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "run": 25,
+      "mode": "previous_candidate_clean_repetition",
+      "source": "/tmp/bts-reliable-20261113/run25.json",
+      "source_sha256": "c2bf0a9eb404e4024dbebf54cd34e09d221040b4f91ccb662acc5a620469c46a",
+      "complete": true,
+      "coverage": true,
+      "render_endpoint": true,
+      "stable_server": true,
+      "all_kinds_observed": true,
+      "successful_operations": false,
+      "target_met": false,
+      "latency": {
+        "ordinary": {
+          "count": 837,
+          "limit_ms": 100,
+          "median_ms": 32,
+          "p95_ms": 46,
+          "p99_ms": 55,
+          "max_ms": 98,
+          "violations": 0
+        },
+        "finish": {
+          "count": 2,
+          "limit_ms": 150,
+          "median_ms": 79,
+          "p95_ms": 91,
+          "p99_ms": 91,
+          "max_ms": 91,
+          "violations": 0
+        },
+        "display": {
+          "count": 839,
+          "limit_ms": 50,
+          "median_ms": 4,
+          "p95_ms": 7,
+          "p99_ms": 11,
+          "max_ms": 15,
+          "violations": 0
+        }
+      },
+      "operation_failures": {
+        "periodic_preparation_age": 1
+      },
+      "workload": {
+        "scenario": "benchmark",
+        "seed": "519",
+        "active_courts": 15,
+        "phases": [
+          {
+            "name": "checkin-and-play",
+            "points": 19,
+            "finishes": 0,
+            "occupied_courts": {
+              "count": 102,
+              "mean": 0.9,
+              "p50": 0,
+              "p95": 4,
+              "p99": 5,
+              "max": 5
+            }
+          },
+          {
+            "name": "load",
+            "points": 534,
+            "finishes": 0,
+            "occupied_courts": {
+              "count": 208,
+              "mean": 12.3,
+              "p50": 14,
+              "p95": 14,
+              "p99": 14,
+              "max": 14
+            }
+          },
+          {
+            "name": "idle",
+            "points": 0,
+            "finishes": 0,
+            "occupied_courts": {
+              "count": 107,
+              "mean": 14,
+              "p50": 14,
+              "p95": 14,
+              "p99": 14,
+              "max": 14
+            }
+          },
+          {
+            "name": "load-after-idle",
+            "points": 284,
+            "finishes": 2,
+            "occupied_courts": {
+              "count": 101,
+              "mean": 13.2,
+              "p50": 13,
+              "p95": 14,
+              "p99": 14,
+              "max": 14
+            }
+          }
+        ]
+      },
+      "started_at": "2026-11-13T13:57:06.125Z",
+      "runtime_ms": 600236,
+      "initial_state": {
+        "matches": 584,
+        "finished_matches": 11,
+        "active_matches": 0,
+        "active_courts": 15,
+        "pending_player_checkins": 14,
+        "pending_players": 14,
+        "check_in_per_match": true,
+        "state_sha256": "9c18412219a6ed7c18c9b9dcb493b45ad61e375b11512aab5ca22fbeed080bd4"
+      },
+      "settings": {
+        "tournament": "default",
+        "base_url": "https://localhost:4433",
+        "point_interval_ms": [
+          3200,
+          6400
+        ],
+        "score_gap_ms": [
+          0,
+          0
+        ],
+        "pause_visible_ms": 3000,
+        "score_all_active": false,
+        "legacy_loopback_devices": false,
+        "server_telemetry": true,
+        "processing_traces": true,
+        "score_probability": [
+          0.4,
+          0.6
+        ]
+      },
+      "blocking_diagnostics": [
+        {
+          "enabled": true,
+          "cpu_enabled": true,
+          "cpu_sampling_us": 2000,
+          "windows": 1,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "run": 26,
+      "mode": "final_candidate_clean_repetition",
+      "source": "/tmp/bts-reliable-20261113/run26.json",
+      "source_sha256": "db8b4fcdb1a6dcfa388f349b2d53100a9015343b868ce04ad155ee7fceadcaab",
+      "complete": true,
+      "coverage": true,
+      "render_endpoint": true,
+      "stable_server": true,
+      "all_kinds_observed": true,
+      "successful_operations": true,
+      "target_met": false,
+      "latency": {
+        "ordinary": {
+          "count": 893,
+          "limit_ms": 100,
+          "median_ms": 33,
+          "p95_ms": 53,
+          "p99_ms": 80,
+          "max_ms": 302,
+          "violations": 5
+        },
+        "finish": {
+          "count": 15,
+          "limit_ms": 150,
+          "median_ms": 80,
+          "p95_ms": 156,
+          "p99_ms": 156,
+          "max_ms": 156,
+          "violations": 1
+        },
+        "display": {
+          "count": 908,
+          "limit_ms": 50,
+          "median_ms": 4,
+          "p95_ms": 12,
+          "p99_ms": 21,
+          "max_ms": 48,
+          "violations": 0
+        }
+      },
+      "operation_failures": {},
+      "workload": {
+        "scenario": "benchmark",
+        "seed": "519",
+        "active_courts": 15,
+        "phases": [
+          {
+            "name": "checkin-and-play",
+            "points": 237,
+            "finishes": 7,
+            "occupied_courts": {
+              "count": 103,
+              "mean": 11.2,
+              "p50": 12,
+              "p95": 14,
+              "p99": 14,
+              "max": 14
+            }
+          },
+          {
+            "name": "load",
+            "points": 372,
+            "finishes": 6,
+            "occupied_courts": {
+              "count": 214,
+              "mean": 8.1,
+              "p50": 9,
+              "p95": 10,
+              "p99": 10,
+              "max": 10
+            }
+          },
+          {
+            "name": "idle",
+            "points": 0,
+            "finishes": 0,
+            "occupied_courts": {
+              "count": 108,
+              "mean": 9,
+              "p50": 9,
+              "p95": 10,
+              "p99": 11,
+              "max": 11
+            }
+          },
+          {
+            "name": "load-after-idle",
+            "points": 284,
+            "finishes": 2,
+            "occupied_courts": {
+              "count": 104,
+              "mean": 13.2,
+              "p50": 13,
+              "p95": 14,
+              "p99": 14,
+              "max": 14
+            }
+          }
+        ]
+      },
+      "started_at": "2026-11-13T14:13:46.008Z",
+      "runtime_ms": 600181,
+      "initial_state": {
+        "matches": 584,
+        "finished_matches": 13,
+        "active_matches": 13,
+        "active_courts": 15,
+        "pending_player_checkins": 8,
+        "pending_players": 8,
+        "check_in_per_match": true,
+        "state_sha256": "8017f3e9e6f3b7c57d603ad24ae20bfe90e19d84b8cabdb2de4f54729a62e7fe"
+      },
+      "settings": {
+        "tournament": "default",
+        "base_url": "https://localhost:4433",
+        "point_interval_ms": [
+          3200,
+          6400
+        ],
+        "score_gap_ms": [
+          0,
+          0
+        ],
+        "pause_visible_ms": 3000,
+        "score_all_active": false,
+        "legacy_loopback_devices": false,
+        "server_telemetry": true,
+        "processing_traces": true,
+        "score_probability": [
+          0.4,
+          0.6
+        ]
+      },
+      "blocking_diagnostics": [
+        {
+          "enabled": true,
+          "cpu_enabled": true,
+          "cpu_sampling_us": 2000,
+          "windows": 12,
+          "errors": []
+        }
+      ]
+    }
+  ],
+  "checks": {
+    "latest_full_unit": {
+      "passed": 2612,
+      "pending": 31,
+      "failed": 0,
+      "log": "/tmp/bts-reliable-20261113/final-unit.log"
+    },
+    "latest_full_native": {
+      "passed": 299,
+      "exceptions": 0,
+      "missing_assets": 0,
+      "log": "/tmp/bts-reliable-20261113/final-visibility-layout.log"
+    },
+    "strict_evaluator": {
+      "passed": 4,
+      "log": "/tmp/bts-reliable-20261113/strict-final-tests.log"
+    },
+    "latest_player_speech_regressions": {
+      "passed": 146,
+      "log": "/tmp/bts-reliable-20261113/player-speech-targeted.log"
+    },
+    "focused_regressions": {
+      "passed": 136,
+      "log": "/tmp/bts-reliable-20261113/snapshot-sort-targeted.log"
+    },
+    "trace_aggregate_regressions": {
+      "passed": 21,
+      "log": "/tmp/bts-reliable-20261113/trace-aggregate-tests.log"
+    },
+    "native_scope_checks": [
+      "player-index",
+      "player-activity",
+      "dom-game-scope",
+      "layout-cache",
+      "planned-sort",
+      "preparation-parts",
+      "tablet-update-scope",
+      "name-cache-retention",
+      "name-visibility"
+    ]
+  },
+  "isolated_evidence": {
+    "planned_sort_before": {
+      "phases": [
+        {
+          "name": "new official",
+          "sorts": 1
+        },
+        {
+          "name": "official attendance",
+          "sorts": 1
+        },
+        {
+          "name": "preparation state",
+          "sorts": 1
+        },
+        {
+          "name": "one location",
+          "sorts": 1
+        },
+        {
+          "name": "deferral",
+          "sorts": 1
+        },
+        {
+          "name": "participant identity",
+          "sorts": 1
+        },
+        {
+          "name": "real schedule change with official",
+          "sorts": 1
+        },
+        {
+          "name": "restore schedule",
+          "sorts": 1
+        }
+      ],
+      "atEnd": true,
+      "restored": true,
+      "errors": []
+    },
+    "planned_sort_after": {
+      "phases": [
+        {
+          "name": "new official",
+          "sorts": 0
+        },
+        {
+          "name": "official attendance",
+          "sorts": 0
+        },
+        {
+          "name": "preparation state",
+          "sorts": 0
+        },
+        {
+          "name": "one location",
+          "sorts": 0
+        },
+        {
+          "name": "deferral",
+          "sorts": 0
+        },
+        {
+          "name": "participant identity",
+          "sorts": 0
+        },
+        {
+          "name": "real schedule change with official",
+          "sorts": 1
+        },
+        {
+          "name": "restore schedule",
+          "sorts": 1
+        }
+      ],
+      "atEnd": true,
+      "restored": true,
+      "errors": []
+    },
+    "known_button_parts": {
+      "phases": [
+        {
+          "name": "prime both halls",
+          "reads": 0,
+          "actual": 68.765625,
+          "style": "92px"
+        },
+        {
+          "name": "second hall only",
+          "reads": 0,
+          "actual": 34.109375,
+          "style": "92px"
+        },
+        {
+          "name": "first hall only",
+          "reads": 0,
+          "actual": 34.65625,
+          "style": "92px"
+        },
+        {
+          "name": "both halls again",
+          "reads": 0,
+          "actual": 68.765625,
+          "style": "92px"
+        },
+        {
+          "name": "unknown hall label",
+          "reads": 1,
+          "actual": 266.703125,
+          "style": "225px"
+        },
+        {
+          "name": "known label restored",
+          "reads": 0,
+          "actual": 68.765625,
+          "style": "92px"
+        }
+      ],
+      "errors": []
+    },
+    "tablet_update_before": {
+      "tvRefreshes": 5,
+      "foreignProjections": 2,
+      "tvMutations": 0,
+      "tvRowsRetained": true,
+      "tvRefreshCount": 103,
+      "tvModelCurrent": true,
+      "batteryFirst": true,
+      "batteryCorrect": true,
+      "otherUnchanged": true,
+      "batterySortCorrect": true,
+      "foreignAfterSecond": 1,
+      "newTablet": true,
+      "offlineRemoved": true,
+      "rebuildCurrent": true,
+      "errors": []
+    },
+    "tablet_update_after": {
+      "tvRefreshes": 9,
+      "foreignProjections": 0,
+      "tvMutations": 0,
+      "tvRowsRetained": true,
+      "tvRefreshCount": 0,
+      "tvModelCurrent": true,
+      "batteryFirst": true,
+      "batteryCorrect": true,
+      "otherUnchanged": true,
+      "batterySortCorrect": true,
+      "foreignAfterSecond": 0,
+      "newTablet": true,
+      "offlineRemoved": true,
+      "duplicateAliasCorrect": true,
+      "metadataFallback": true,
+      "rebuildCurrent": true,
+      "errors": []
+    },
+    "name_cache_before": {
+      "canvas_calls": 4,
+      "before": "match_team1 team-one",
+      "after": "match_team1 team-one",
+      "nameRetained": true,
+      "badge": "C0",
+      "status": "person player now_playing",
+      "resourceCorrect": true,
+      "errors": []
+    },
+    "name_cache_after": {
+      "canvas_calls": 0,
+      "evicted_canvas_calls": 4,
+      "evicted_resource_correct": true,
+      "before": "match_team1 team-one",
+      "after": "match_team1 team-one",
+      "nameRetained": true,
+      "badge": "C0",
+      "status": "person player now_playing",
+      "resourceCorrect": true,
+      "errors": []
+    },
+    "name_visibility_before": {
+      "hidden": {
+        "calls": 4,
+        "rectangles": 1,
+        "badge": "C77",
+        "nameRetained": true
+      },
+      "after": {
+        "calls": 4,
+        "rectangles": 1,
+        "visible": true,
+        "badge": "C77",
+        "stacked": false,
+        "teamWidth": 551,
+        "maxPlayerWidth": 259.484375,
+        "nameRetained": true
+      },
+      "errors": []
+    },
+    "name_visibility_after": {
+      "hidden": {
+        "calls": 0,
+        "rectangles": 0,
+        "badge": "C77",
+        "nameRetained": true
+      },
+      "after": {
+        "calls": 4,
+        "rectangles": 1,
+        "visible": true,
+        "badge": "C77",
+        "stacked": false,
+        "teamWidth": 551,
+        "maxPlayerWidth": 259.484375,
+        "nameRetained": true
+      },
+      "hiddenRename": {
+        "calls": 0,
+        "rectangles": 0
+      },
+      "renamedAfterScroll": true,
+      "errors": []
+    },
+    "trace_snapshot_before_after": {
+      "spread": {
+        "p50": 10.27246904373169,
+        "p95": 18.68217182159424,
+        "max": 25.62635898590088
+      },
+      "literal": {
+        "p50": 1.0963659286499023,
+        "p95": 4.143290042877197,
+        "max": 9.603205680847168
+      },
+      "spread2": {
+        "p50": 8.67327880859375,
+        "p95": 15.588046073913574,
+        "max": 26.28419828414917
+      },
+      "literal2": {
+        "p50": 1.7966208457946777,
+        "p95": 7.317239761352539,
+        "max": 23.150393962860107
+      }
+    },
+    "comparison_limit": "Microbenchmarks and progressively played tournaments are not a controlled end-to-end A/B test."
+  },
+  "latest_scoped_cache_evidence": {
+    "tablet_allocation": "Eight player-only status messages: before 18 full-allocation getter reads versus after 2, preserving the initial cache; five actual operator/court/activity changes still invalidate and yield the correct court.",
+    "speech_inventory": "Before: new free-text and single-game tracking eagerly mapped every game. After: free text and fully hidden controls do not read the game inventory; initial single-game tracking searches without allocating an inventory; shared visible refresh creates one lazy Map and retains last-duplicate precedence.",
+    "before_regressions": {
+      "player_cache_failed": 1,
+      "speech_inventory_failed": 2
+    },
+    "after_regressions_passed": 146
+  },
+  "loaf_analysis_correction": "Early temporary console summaries incorrectly treated a missing aggregate script_duration_ms field as zero. Raw exported frames retain scripts[].duration_ms. Run23 point202 has 105.4 ms total frame duration and 85.6 ms script, not 105.4 ms pure paint. Pure paint claims require separate native trace evidence.",
+  "final_planner_serialization": {
+    "before_regressions_failed": 2,
+    "after_planner_regressions_passed": 51,
+    "after_preparation_regressions_passed": 15,
+    "source": "bts/btp_sync_plan.js",
+    "scope": "Only local auto_call and auto_preparation planning share a per-database/per-tournament promise tail before snapshots. No foreground resource lock is held; other tournaments remain independent, and failures release the tail.",
+    "run25_original_error": "BTP sync changed repeatedly while waiting; retry on next fetch",
+    "run25_latency_passed_but_overall_failed": true
+  },
+  "name_visibility_overhead_control": {
+    "before": {
+      "phases": [
+        {
+          "name": "original",
+          "count": 100,
+          "p50": 48.6,
+          "p95": 49.2,
+          "max": 64.9,
+          "cpu": {
+            "TaskDuration": 1486.413,
+            "ScriptDuration": 252.14299999999994,
+            "LayoutDuration": 90.722,
+            "RecalcStyleDuration": 0.3359999999999995
+          }
+        }
+      ],
+      "errors": []
+    },
+    "after": {
+      "phases": [
+        {
+          "name": "original",
+          "count": 100,
+          "p50": 48.7,
+          "p95": 64.7,
+          "max": 66,
+          "cpu": {
+            "TaskDuration": 1789.305,
+            "ScriptDuration": 220.06,
+            "LayoutDuration": 77.192,
+            "RecalcStyleDuration": 0.2699999999999994
+          }
+        }
+      ],
+      "errors": []
+    },
+    "comparison_limit": "One paired isolated 100-point sample: median/max similar, total TaskDuration higher with visibility tracking, ScriptDuration/LayoutDuration lower. This does not establish a total CPU reduction. Both probes completed within the standard idle phase."
+  },
+  "storage_evidence": {
+    "production_filesystem_device": "/dev/sdb4",
+    "rotational": true,
+    "run16_native_write_sync_ms": 92.3,
+    "run18_native_write_sync_ms": 182.1,
+    "semantics": "The actual existing appendFileSync call was observed; open/close phases were negligible. No update was published before persistence."
+  },
+  "worker_priority": {
+    "actual": {
+      "server_id": "2958306-1794576015951",
+      "workers": [
+        {
+          "name": "database_append",
+          "scheduling": {
+            "applied": false,
+            "reason": "foreground",
+            "nice": 0
+          },
+          "pending": 0,
+          "active": 0
+        },
+        {
+          "name": "compaction_serialize",
+          "scheduling": {
+            "operation": "compaction_serialize",
+            "applied": true,
+            "previous_nice": 0,
+            "nice": 5,
+            "requested_nice": 5,
+            "changed": true
+          },
+          "pending": 0,
+          "active": 0
+        },
+        {
+          "name": "sync_plan_worker",
+          "scheduling": {
+            "operation": "sync_plan_worker",
+            "applied": true,
+            "previous_nice": 0,
+            "nice": 5,
+            "requested_nice": 5,
+            "changed": true
+          },
+          "pending": 0,
+          "active": 0
+        },
+        {
+          "name": "btp_decode",
+          "scheduling": {
+            "operation": "btp_decode",
+            "applied": true,
+            "previous_nice": 0,
+            "nice": 5,
+            "requested_nice": 5,
+            "changed": true
+          },
+          "pending": 0,
+          "active": 0
+        },
+        {
+          "name": "call_status_calculation",
+          "scheduling": {
+            "operation": "call_status_calculation",
+            "applied": true,
+            "previous_nice": 0,
+            "nice": 5,
+            "requested_nice": 5,
+            "changed": true
+          },
+          "pending": 0,
+          "active": 0
+        }
+      ]
+    },
+    "native_thread_probe": {
+      "platform": "linux",
+      "main_before": 0,
+      "main_after": 0,
+      "worker": {
+        "before": 0,
+        "after": 5,
+        "tid": "10"
+      }
+    },
+    "feature": "BTS_BACKGROUND_WORKER_PRIORITY",
+    "default": true,
+    "scope": "Linux only; four explicitly named calculation workers nice 5, main/append thread priority retained."
+  },
+  "rejected_battery_layers": {
+    "data": {
+      "phases": [
+        {
+          "name": "original",
+          "count": 100,
+          "p50": 48.6,
+          "p95": 50.5,
+          "max": 62.9,
+          "cpu": {
+            "TaskDuration": 1167.2359999999999,
+            "ScriptDuration": 200.23000000000002,
+            "LayoutDuration": 64.509,
+            "RecalcStyleDuration": 0.24100000000000163
+          }
+        },
+        {
+          "name": "paint-containment",
+          "count": 100,
+          "p50": 48.9,
+          "p95": 49.3,
+          "max": 65.5,
+          "cpu": {
+            "TaskDuration": 1124.339,
+            "ScriptDuration": 188.918,
+            "LayoutDuration": 65.88399999999999,
+            "RecalcStyleDuration": 0.35600000000000215
+          }
+        },
+        {
+          "name": "composited-gauge",
+          "count": 100,
+          "p50": 48.8,
+          "p95": 57.8,
+          "max": 74.9,
+          "cpu": {
+            "TaskDuration": 1596.3690000000001,
+            "ScriptDuration": 256.05499999999995,
+            "LayoutDuration": 80.825,
+            "RecalcStyleDuration": 0.18900000000000167
+          }
+        },
+        {
+          "name": "static-control",
+          "count": 100,
+          "p50": 48.8,
+          "p95": 49.3,
+          "max": 50.3,
+          "cpu": {
+            "TaskDuration": 1313.1260000000004,
+            "ScriptDuration": 222.50800000000004,
+            "LayoutDuration": 75.484,
+            "RecalcStyleDuration": 0.21000000000000185
+          }
+        }
+      ],
+      "errors": []
+    },
+    "adopted": false,
+    "reason": "Neither paint containment nor compositor layers gave a useful repeatable latency reduction; layers increased total task cost. Animation remains unchanged."
+  },
+  "rejected_transport_experiment": {
+    "data": [
+      {
+        "size": 524288,
+        "mode": "single",
+        "point_rtt": {
+          "count": 113,
+          "p50": 0.316178,
+          "p95": 0.991787,
+          "max": 1.511885
+        },
+        "pending": 0,
+        "writes": {
+          "count": 100,
+          "p50": 0.5570278167724609,
+          "p95": 0.7318329811096191,
+          "max": 0.9100551605224609
+        },
+        "whole_send": {
+          "count": 100,
+          "p50": 0.562157154083252,
+          "p95": 0.773928165435791,
+          "max": 0.9227309226989746
+        }
+      },
+      {
+        "size": 524288,
+        "mode": "chunks",
+        "point_rtt": {
+          "count": 120,
+          "p50": 0.302797,
+          "p95": 0.615512,
+          "max": 4.166075
+        },
+        "pending": 0,
+        "writes": {
+          "count": 1600,
+          "p50": 0.0641489028930664,
+          "p95": 0.09633493423461914,
+          "max": 1.8606491088867188
+        },
+        "whole_send": {
+          "count": 100,
+          "p50": 1.525576114654541,
+          "p95": 2.083937168121338,
+          "max": 4.572282791137695
+        }
+      },
+      {
+        "size": 2097152,
+        "mode": "single",
+        "point_rtt": {
+          "count": 328,
+          "p50": 0.365242,
+          "p95": 2.281689,
+          "max": 4.30635
+        },
+        "pending": 0,
+        "writes": {
+          "count": 100,
+          "p50": 2.043856143951416,
+          "p95": 2.705155849456787,
+          "max": 2.8482017517089844
+        },
+        "whole_send": {
+          "count": 100,
+          "p50": 2.050886631011963,
+          "p95": 2.7134580612182617,
+          "max": 2.8574657440185547
+        }
+      },
+      {
+        "size": 2097152,
+        "mode": "chunks",
+        "point_rtt": {
+          "count": 342,
+          "p50": 0.268151,
+          "p95": 0.540493,
+          "max": 2.771966
+        },
+        "pending": 0,
+        "writes": {
+          "count": 6400,
+          "p50": 0.0464630126953125,
+          "p95": 0.07201623916625977,
+          "max": 2.570578098297119
+        },
+        "whole_send": {
+          "count": 100,
+          "p50": 3.9332470893859863,
+          "p95": 5.712949275970459,
+          "max": 6.765923976898193
+        }
+      }
+    ],
+    "adopted": false,
+    "reason": "Native TLS writes were below 3 ms for 0.5–2 MiB messages. Fragmentation made bulk responses slower and did not explain the 50+ ms stalls.",
+    "scope": "Own isolated HTTPS/WebSocket server and separate tiny-message receiver, only during the standard idle phase."
+  },
+  "source_manifest": "/tmp/bts-reliable-20261113/source-before-run26.json",
+  "test_oracle_note": "Only the deliberately quadratic 519-game correctness oracle has a 10-second Mocha timeout after two spurious 2-second timeouts. Exact read-count/decision assertions and all strict end-to-end latency limits are unchanged.",
+  "visibility_semantics": "Startup retains the complete first fit. Subsequent native fitting of already observed groups more than 600px outside the viewport is deferred until approach. DOM status and resource badges still update immediately. The native regression verifies deferred name/font changes and correct labels after scrolling. Without IntersectionObserver the original full fitting remains.",
+  "source_verifications": [
+    {
+      "manifest": "source-before-run22.json",
+      "run": "run22",
+      "required_observed": true,
+      "all_match": true,
+      "tracked_asset_count": 99
+    },
+    {
+      "manifest": "source-before-run23.json",
+      "run": "run23",
+      "required_observed": true,
+      "all_match": true,
+      "tracked_asset_count": 99
+    },
+    {
+      "manifest": "source-before-run25.json",
+      "run": "run25",
+      "required_observed": true,
+      "all_match": true,
+      "tracked_asset_count": 99
+    },
+    {
+      "manifest": "source-before-run26.json",
+      "run": "run26",
+      "required_observed": true,
+      "all_match": true,
+      "tracked_asset_count": 99
+    }
+  ],
+  "source_hashes": {
+    "bts/admin.js": "bb17f86bbf838533e6417d2496530ff1acfa60d61376ae5da9d4d84e4f528a0a",
+    "bts/admin_asset_cache.js": "fda88a978efcfae473b2ebbf5650fa2bef5e77b64ee7025f0b0a0992ff2e282b",
+    "bts/admin_match_data.js": "2d6d022e980798f9d6257551b6aa83d074afcd88cb6e199528e495d891c9b2ae",
+    "bts/admin_response/call_status.js": "60dfae9ef0f6ebfca23520473b0ee24bc85bd3a956f623e6d3596759369feacc",
+    "bts/admin_response/cooperative.js": "56d153e22e9c1b1cd2b9e78d920a9ce6caf0f9bd705bd1ffb604a90be40705c1",
+    "bts/admin_response/encoder.js": "59cc92af93733a56887be167b0fed34b539a0a8381fd03d34f6ebc2d2cb9d2dc",
+    "bts/admin_response/event_patch.js": "8da47714fe4dd64a2e4b8adece31451296ff50bc989799953d051301fa2e1b11",
+    "bts/admin_response/event_updates.js": "93f449700ede97037a1d9c499053f3a395b273a3f2745bb20415440ccd8df880",
+    "bts/admin_response/match_cache.js": "9902b82ae67463039d724de3ad14794753c0dc9db17cdb531c379059229f556d",
+    "bts/admin_response/outbox.js": "f06adc81b7f4f06beffbef32263b1e1cf480dd141b001f58fe143978b2c81c05",
+    "bts/admin_response/qrcode_cache.js": "facc41bb79d5342c6eb6caa9f8efa6b881b9b4210013fdb1ee68a3ba9ce13151",
+    "bts/admin_response/selection_cache.js": "3017a2cf010e734a2d7a8c441feead3696d0ad491cccdc26a47a77a7db8ab98f",
+    "bts/admin_response/tournament_read.js": "40b2cb3d4af869e9127f51c9a97b32adfff235ddc51d94bc5e95f26ee035f7bf",
+    "bts/admin_response/worker.js": "989ea0e62787f0a581e96c79361a61f28c23b46e2ccbe443347fdcf0a5c13935",
+    "bts/advertisement_assets.js": "da2c4ab6da4fe2d036f834a11522b351738fdbae2172f6322f82350da8aff901",
+    "bts/append_worker/diagnostics.js": "5ba56f28974fc3c386779729a8e0652dea874352cf1781bed55ea3cfb993352c",
+    "bts/append_worker/index.js": "194bd7d249c2baec90f09dadb172fa90d5050a7760f9930a7f5363e33a5aebdc",
+    "bts/append_worker/worker.js": "489cb5f5989624df7769fd1f60fbc067f324c78cc3a23a006216d6c768b9071a",
+    "bts/audio_devices.js": "c78e1fc8ba094a7db039b6f9ad1a26394aebf1f8923a26f28b17d9cd521b88f5",
+    "bts/auto_call_precheck/deadlines.js": "fc1e3163cab384118bbd1e1e090170f25845011da95d233c8b54c334c1f3345e",
+    "bts/auto_call_precheck/index.js": "4f21d2087af8b0bb7cb6e14ea463d618547ddf5d8d939eb976fff3d4e633d383",
+    "bts/auto_call_precheck/inputs.js": "11fe66ad389da737332e7d991a35c4266337c22a1d372b8b0506161c9c3367d3",
+    "bts/btp_call_sync.js": "4c0aa2500198102ec7f42f3cd423303fb40e9c308acb6c281b3bd8bc4901b1a3",
+    "bts/btp_conn.js": "e15f927da4897e7999dae719c7e2826794ee9a95d539ea5bcafeaf8d8b63212f",
+    "bts/btp_court_assignments_reset.js": "71db71538f63bb5cf882fe4064af3cf09ea627d47e71e5254a3242c6d814d9f4",
+    "bts/btp_court_state.js": "9662038543763da0cfd792e04292d66de06bb57e1b9e9bbacc539474410bcb84",
+    "bts/btp_decode/codec.js": "d7cbd928c6b5f5b9121f438080abf0601ed9c468a76dc344d85a58390bb76a32",
+    "bts/btp_decode/index.js": "27b4683e81f10410a41ffc2fbe35179e37219a560bc908f58673d5fa63ce59b6",
+    "bts/btp_decode/pool.js": "67f1093d7c2d6ed3db2cacf9ed4a981f2639a59c01b346f13fe802e1999eff71",
+    "bts/btp_decode/response_hashes.js": "2fa4c5627cfecacf2869404f02c80ead393b8f9268b2a8494f9380bf3b30cbf2",
+    "bts/btp_decode/worker.js": "11ddbd0f3487cdd0c20477ef4384414323d3ef58202c6c7fab2989d1fe79b54b",
+    "bts/btp_manager.js": "1872452788851726e36fc7c05e7d4578345f7c64aa28881d445a890ebdf52a98",
+    "bts/btp_match_changes/dependencies.js": "7351605ab9761c4473a8ba5d7d2cb9f561cb72463c5a69df4eea0b4f74ba6c0c",
+    "bts/btp_match_changes/graph.js": "0be12f04d65a9e01c69d941a81d7c228c6a30f4903afe9980e4142ce339a75db",
+    "bts/btp_match_changes/index.js": "f03b3bd9b84e9c63aae2b7254f6c61374a3f30cf51be05c68f768de6a07c9e87",
+    "bts/btp_match_changes/input_revision.js": "ef160ef11013fabb132496c8ef6a1b95c677b164848fb067da7ac563d18f15f2",
+    "bts/btp_match_changes/integrated_match.js": "5d18789c38d5bd6411fb51950f6699b9a59762ed25cb7f9462d7a77e7d320ffd",
+    "bts/btp_match_changes/local.js": "6e4334f44677d09df23359d5b86774128a0770bd66326553c70a978bf2c6ddec",
+    "bts/btp_match_changes/match_input.js": "2abdb6e04e74244e4ed7d0adc198089e005761993ecf8cf5f0285d6fa4c68be2",
+    "bts/btp_match_changes/sources.js": "d73a7551fc4ba16140e243831ed6c7cb21704bba86d7542475feb64c5ab936d5",
+    "bts/btp_match_results_reset.js": "1da3dbe8e5190fb5221bfa4133e0eb88d8618114821e93c48c67efc48809a1c2",
+    "bts/btp_parse.js": "b496d02d53f7cf9c77d692c46f6d3e7754b674a428a94fb0aab2982735d34c08",
+    "bts/btp_participant_guard.js": "e89809820f862859f1942633bffd498774af2097359c69a8102077f507c4db2e",
+    "bts/btp_planner/batch_writes.js": "13b3bb6f651e3099ecc37c2ee154cdfcfbf0f4b642e0506941d5061375f8c67e",
+    "bts/btp_planner/changes.js": "c6c59a4a4214a33d8a5ba793ab30514503f6a3829c802b4ceae828e5c44c4890",
+    "bts/btp_planner/clock.js": "a13cbeeb0fbca6d71dfd8b7028e1ebe42171b199884393fca7c22c3e82c96e60",
+    "bts/btp_planner/index.js": "6c228c7f5c4ec179a597ea9f78eddf027970f9ba99818e6171665d1f246dfd80",
+    "bts/btp_planner/notification_value.js": "3f43d373ac7a9d6e6815ba1db4492084d42127cf5b516f64faeb4ca5472d5e25",
+    "bts/btp_planner/prepared_document.js": "7616fd52e2dddc0d6737b0627a51a7fcefcee30c59b0a08609bbfed51d7372d2",
+    "bts/btp_planner/prepared_match.js": "852919550428146bb9c12a33df685733942c53207a13d73d2f14c9689c2786db",
+    "bts/btp_planner/prepared_tournament.js": "83a9f8004c355f77dd26952b4a8ed7816b9ebcc3ba7f8bc5102ae14602d846e1",
+    "bts/btp_planner/refresh_writes.js": "6537a8f9ddbcf95bf6ae4b3072a1d9817fcd4c06048e124a76245300c864d7b2",
+    "bts/btp_planner/staging.js": "2c8d7ea1e216273d480da18fe6947f6a9fd970895a16b80c1ac2ecae8f9f0a91",
+    "bts/btp_planner/worker.js": "9b1d6c8149c51458a8836a1717d2df972a190657960ba35ecd4a63320d872eaf",
+    "bts/btp_proto.js": "97412e1ba8e33ef4efb954b182bc4bc9e6c6afb725df502e206d8b27ba4ccff3",
+    "bts/btp_request_log.js": "09aafe8cb43f07f277f39d65757285d750b930fb68bdafc562876415b82ec55e",
+    "bts/btp_result_sync.js": "3ea5a4225bf7c759a8a01c5192dd3b128380d1e5709b0ca1f3ba1a4e278e28dd",
+    "bts/btp_sync.js": "c2ac35ebcc1db607c11546772cfe5464efe88f65b18f1643779c7242ea65dc97",
+    "bts/btp_sync_effects.js": "93644a9ef55584229800e7223335d22470f8b0e3d5834b0c572e37860925af37",
+    "bts/btp_sync_locks/match_changes.js": "e948bf8473036b4774cdfccbc343ab75b0f913a854006bafa3684c60d763bf2c",
+    "bts/btp_sync_locks/ordering_notifications.js": "647605f288fcb1d1f814641ff305fc2fa8bee469d1d3d383fa482aa8c90c9f8a",
+    "bts/btp_sync_locks/ordering_only.js": "d5fcb266f50083bc6117c311468412e961b53d1eb4820d6a76a80f401d977625",
+    "bts/btp_sync_locks/resources.js": "af6e83b61d874405c0cfb984921e7601aa9d39de45c8f18e6f8b5c38badc5e09",
+    "bts/btp_sync_plan.js": "e749c733ac96c3eceaffe05cd605be34b1c853da5333d946124a57b892063215",
+    "bts/bts.js": "099b63944d9174c4ca3940359565cf6099f24cd19b990e186df3e9a8d0a3729c",
+    "bts/bupws.js": "5f644fb8691ec603b82e700ea5ad7ef63f2326c3abdfe1d04454e06bedc85107",
+    "bts/bupws_v2.js": "66ddfdd58bbc0c0301df0035c193a10937e0e67f52fbb1fe14bd631186eaea5a",
+    "bts/call_status/calculator.js": "6a98275caf19ed1222feb2a7ad440e32e55fcdd0b4d5333235fe5b2f3ad9acd8",
+    "bts/call_status/deadlines.js": "1dd1095c7bbdebb626e18355fca4012488a4b4d8c469b931628972e90e7fab0d",
+    "bts/call_status/index.js": "cd32f9a7945dd1eb2787185c8767d3a84e1680d5f507516a3a58ce47a0cd4990",
+    "bts/call_status/inputs.js": "4a21e3797e60ece79966f4193122667a66d3f146e88d3a405bf3173b454bbf15",
+    "bts/call_status/project.js": "cb7783235e29366089e70b031ae710e01ded1ff410bdcf180ed133b3815debcf",
+    "bts/call_status/transport.js": "af5bf4d19c327faf24c34090f93731b9cf1454d645d60145f27f02a08a4f6499",
+    "bts/call_status/worker.js": "b81c698c5decc2ff3ff0bebfb3d0633e59bd96f5effe66efda38d647d2177509",
+    "bts/certificate_assets.js": "f7ad1a8989791a7167161f3ba54f832c4c399b0c1c6631ab66419a6cb9ef1f64",
+    "bts/clock.js": "d301a937084154c67861d3dd96b2054171de6c0f7ec2a82e6a539f578422471b",
+    "bts/compaction_worker/index.js": "7d58db8facf28507b36e098f100c73a345831c24c0eaa9ad6c349d3e39196bdf",
+    "bts/compaction_worker/revisions.js": "1a433505ec8d4a6e555b9d1b5cb2282401cc9fce0edf315437e12738aac1c4c7",
+    "bts/compaction_worker/serialize.js": "5598c9429867b63a6d53ca87a0ff5a4a3de648dc484b0f35e128e33256d04be8",
+    "bts/compaction_worker/staged.js": "e7b5093a3b8971c92b3a0416d2aca02435d01d2eb1d6c74b79af2e9878ce1f0f",
+    "bts/compaction_worker/worker.js": "cd3709f0c570f6b988d34945a4f7ec886281a99b482b5c580f43e786f1714e30",
+    "bts/countries.js": "c19ce1c692dbff9a41588b89ba01706d8e9f7f207a67d8312be13a298ad1d47b",
+    "bts/court_assignments_reset.js": "75eb9b918bfd9ca1182c782d31bcc5eeeab9b60d7dc2865084f7b87411c93070",
+    "bts/database.js": "9e0988aa0b4dface2e9a0583fe24967cee2ea2b936f5e85459cbf06c78d61002",
+    "bts/database_compaction.js": "d074988bc652a387204ac0dc6ba63e3700e333a6addf4e89c4ff9cc25e96d075",
+    "bts/database_read_barrier.js": "c367a47b6218fc97eb7112651488620a867325be583655f1ab9524e4f85075eb",
+    "bts/database_tasks.js": "d67e5b71c9ad0bc4c1bf3d9f50d74ce78f25e6e636ba64201675142ad28d20d7",
+    "bts/dbv_ranking/index.js": "af70a0e8d5dbcecdf8091806b0b7963bcc1c854c91b13832a70fe0870a2bec1e",
+    "bts/dbv_ranking/parse.js": "a852593bdcc7dd59bd00f38a4245f231267e232f8a560887291b27191a616b2b",
+    "bts/dbv_ranking/worker.js": "0e0a4a6321ed11d215e59a38118b30413e3caf1497bc4e39d3822edddda9755b",
+    "bts/debug_flags.js": "b109092075947dda84dba5e1ec57cadf4f1718cb89b5ae589ddc1924a462d82a",
+    "bts/device_info/background.js": "f8bfd5eb21908cdfbbc22e59565e6d360286bd2db99a2a9993bf1aed39e226c1",
+    "bts/diagnostics/capture.js": "3a73d02ce4d8a35ea8e2fdca4df3620a8f5554bd7d462c439fa2aae5f7c88508",
+    "bts/diagnostics/index.js": "fb0fd2a51622ad44cec566c9bb6ffae72718a9dd858bf2d553a35521253d05ba",
+    "bts/diagnostics/pages.js": "76d4421c88d2d2022b86f6651f79891d10e354cf3aa32cf2d124e94d02a7e211",
+    "bts/diagnostics/sanitize.js": "0077eb6cff8e77e76902997de81e8ba64c1def258e4e157ee021cf2661deec52",
+    "bts/diagnostics/store_process.js": "29a2ffd44f26eecd94f4dd2139689e26aea9941b091916df006c934d9c8ce796",
+    "bts/displaysettings_defaults.js": "a3f89edb55493841646704edcfcea11eab7ca6c98f075bbb56b0173c1f9868b6",
+    "bts/emergency_audio.js": "38eff92f8c4d28456a31c8c0ca0941a034b891f56294fafef473503c5a9d6c12",
+    "bts/foreground_work.js": "a16ca3e57046bb7fac8eca8c9b665a58321ef0a85df4acfc2a6c0f1ba69e0173",
+    "bts/http_api.js": "dc44ae2f5b94028c95db4aa4f87c8f54be0073a2712f9ca46cf18860b1ffd9f8",
+    "bts/logo_library.js": "f02d446ea0f6d98be9e45231584007b9d56760e495219cca7a9c4a0cef7ca249",
+    "bts/maintenance_reset.js": "0273fbdd6964b04ea34432a76024ca249ebb5a044e1a8b8dfc836b10b2cd16df",
+    "bts/match_automation/frontier_positions.js": "30bc1dd1ce7b4aaf97d70dedc8765c55428b71422fd57e370560b67a25502892",
+    "bts/match_automation/participant_lookup.js": "de2c186525292ccc46ba8a49626e5084d37a8d8aa1d20a6f617ac022d6a64f0a",
+    "bts/match_automation.js": "52b914fceed84ee22d0b580c1e5f9db038161ce509a27cb1aece7672fb65665e",
+    "bts/match_cleanup/finish.js": "ef539745dd26ef9a1ba47ebe27c6705042238eb9706deb91345b8ed2caa411ca",
+    "bts/match_cleanup/officials.js": "c76015b27d80b3c422c470c52efe88ac015d9efe1612cd406dd4937bcf90fa3e",
+    "bts/match_cleanup/participant_writes.js": "614100ebaab8b44f8b6e502bff10a914a8a42f21c111e0abe35a663e9de7d74e",
+    "bts/match_cleanup/players.js": "7b7fac62a75966171d74c82b1f9af958bc4b621b00d144646dd2004136a71354",
+    "bts/match_cleanup/reads.js": "97dcb7a32671a8ee7921680b0a8f1003632290bf0a9dc7199f47f5699d6732be",
+    "bts/match_edit_place.js": "5a2cccde9a1033b876d85e227ab419a18b4e66c516f507d52581c6b5597542d8",
+    "bts/match_entry_guard.js": "3ae8e27ed58d5a5f4a807c4f76e611a6ad436f78b137e21cca4d51447f43cfb3",
+    "bts/match_entry_status.js": "aa0af53536f9cd51f97abe00b9b460de614edf2dedda0767e5ad9af8b0036f61",
+    "bts/match_protocol.js": "a10ccdecbe984600bf4be2b80bd489a1888b93d0851cc29e217f5927d013cc6c",
+    "bts/match_reactivation.js": "43f90d61b44baada82fb3251ea7e1829161beb7f2a6ebd1ea570a1066f3fbf77",
+    "bts/match_reconciliation/player_flags.js": "516df001e3f10b02345be4861ee69f4ac6725a1db5fc7dc614bc1d6387dee1ad",
+    "bts/match_reconciliation/run.js": "c104577ccb505d5ce6589c97f4192c7e6f76b8bd3d5a6ba351b8fc90195c645a",
+    "bts/match_reconciliation/tablet_queue.js": "060ff5f466b6757974a049d4b47caa23dc653f6883365146fd6d25b3ded40fa4",
+    "bts/match_remarks.js": "334c477aa2f344be1ade521b61e27b1fde53199e2e5ee5be24870d40e30f3eae",
+    "bts/match_reopen.js": "20d3086e167727cafbd089f45d334fb2ed7453626bdfcf1d91a643592a4ec4b8",
+    "bts/match_results_reset.js": "e0f56fd78432e652922c7ec1243ac10c9eff2d43e1098570a63a817736f6feaf",
+    "bts/match_updates/setup_changes.js": "8def44eeb5a6e6536f2fd3f5596712d57c08aa252272d9f07f734c3db87fe0c0",
+    "bts/match_utils.js": "c630f09600cc9a2423e822b85373e0a37755c7067f444f1bd4157931b09873e9",
+    "bts/name_fixup.js": "25426c73a3bf677d4ae2f6814613b7bba45b489c334c1dae6d7fbda3114df589",
+    "bts/offload/background_priority.js": "8058555e19ed4b4826125da152e985befdab2370f3bf2bb4a68bc42119ce5861",
+    "bts/offload/client.js": "4a3654a9ed673659aa7e8adde7ad16e7b1c5be469bfef42165049c1d715ada32",
+    "bts/offload/process.js": "b1f18abf09910810ec71cb25aba56287651f2270ec90ad484913561d3b45b66e",
+    "bts/offload/profile.js": "9f7775849347a546415468f9c2234411314177d03dfcd27e6a2fe2cbe3e383a1",
+    "bts/offload/timing.js": "232a713487fc03c1d105531f4dd0d6acd780d9a0c65cd122cebcc582391ee527",
+    "bts/offload/worker.js": "e0108ab2a2fce671691d70c252c17e9f620e10e032b4b5033b898e389470827e",
+    "bts/panel_tournament_projection.js": "2cbf6bc1322fe78b2c963ffc7d3fb33b53268b052926663b9bfb344ed865119e",
+    "bts/performance/garbage_collection.js": "8233e6f884aad7d5ee5494a55c7e35777dc89fd39ebb04b04fe4cbb13f3c55ff",
+    "bts/performance/monitor.js": "f919ff27918342471858d3f9ef96d36a4c55729c62877ffe7d076965caea1e97",
+    "bts/performance/percentile.js": "bb1126e8ab7d5477738db88185bc6234f9e3c1467df9dc1ef0c68e7925f98c3b",
+    "bts/performance/queue_stats.js": "09fa7e252bef2f494a50dd4cf4677e430de7984a5530dae14cf9ed80549bbcec",
+    "bts/performance/registry.js": "ab666bb1a7a2705a9564e9ae7eb892c54423aa53846cfe7db7d91e8db16af18b",
+    "bts/performance/storage_io.js": "a6287034a4e55f5025836fe0c015a1a70cadc541cdec9280aafc22fb2a549673",
+    "bts/performance/traces.js": "51c15bba0416673b3699d3b6986d32af1ad802dc60f54f5d03da601a06a2bc45",
+    "bts/placements.js": "09b02c5aad1286256e73c3f65e143070ed72e712962cdbcb266c0c4d7e688721",
+    "bts/player_checkin_reset.js": "7cd009cb97efe6fc6bf96fdb7e3128638db9ce2d7a4dfb2ac44a67c89508320b",
+    "bts/preparation_selection/admin_reads.js": "efd7170ba06cb6fca4af0ad0cff14f8bc4a7b6900ff54ebfd717913e890ae628",
+    "bts/preparation_selection/automatic.js": "0c3886431ffcfd74e2d5ef6e23616ba7e2ea9efce0810543e5e51ce82abd96f9",
+    "bts/preparation_selection/call_reads.js": "7a74db0766a5d93f45cfb3217f7709dacf302b91c81afb8d77ba44444a8240c5",
+    "bts/preparation_selection/cooperative.js": "5030c331d6540945d7ea82c8ba4321d0016f91940a9afa6a1553006c178e29bb",
+    "bts/preparation_selection/model_reads.js": "c2c74b49622fd480981dbfb38e1b0a5c7ea9f85a70622976472e2ac124a9e9d6",
+    "bts/preparation_selection/periodic_reads.js": "56014a353c62a6988e60816c1bc45b3ffbbfd386424c7bac53202ab4598434b0",
+    "bts/preparation_selection/selection_reads.js": "7cc2154099d2f7d4830b3fb2795f485725bbf43834812d19739701da45b4fe70",
+    "bts/preparation_selection/status.js": "6c650e3702d8b8304c2450543f9f398ee4fd625e5b3e5e6b098707a32293f7c4",
+    "bts/preparation_selection/timing.js": "69982b46b2364fee981de5f28d90eb779990668c624c426b72f64b20bdabe165",
+    "bts/prepared_append.js": "01503260cc0d0ae3b96f88da2e90a25c5efbdca282111438e3ddf8e33193a2c8",
+    "bts/queue_lock_keys.js": "9b00e0887e1444da83e27b3960eed5e049069277dabb96eba4e0c41f9dcede06",
+    "bts/registration_xlsx/index.js": "e5c35f931f6741ac349de8eff036eaddeb1394ddde8e10914c3940c222945653",
+    "bts/registration_xlsx/parse.js": "c0e3cd806e37324a2b359e369f24b5770d6e4bb34d559828324cdc576e7b589a",
+    "bts/registration_xlsx/worker.js": "c3e08fd571d02b9d8e30611c6bfa91f7984261e73e65fb027da622df1803366f",
+    "bts/resource_lock_queue.js": "c1da39bf3b5e2f5c55a3357bcaaa30f70002b573854a677f7b8d98e6b1660b41",
+    "bts/score_publication/committed_points.js": "26642742b80ca9110d4c30e6c23e246bb47b214ef2885bb9d70688226f09c52c",
+    "bts/score_sync_locks.js": "9c0efcbb9257450efb5a7fa1602dc4d978583d0bcbdd3ef4641ebaf21ce2d737",
+    "bts/score_write.js": "503b3bc7cf6230a7945cb6be3c85216cc7b5e15f1f9f2864aea20579088b4a3b",
+    "bts/serror.js": "887f891a6f23258409e67861c9ebaf736062b819b873590cc689b51df37b0e0c",
+    "bts/server_diagnostics.js": "7a1fb0c4e77dc98ce7a6ffbfa521867b1c7d82e77c506a5a4571e916d8b3e481",
+    "bts/shortcuts.js": "61d9617452f3bb9d2033f57cb4a3e7befae3125f50bcc934e1a828cbf3faa378",
+    "bts/speech/broker.js": "f1a24cb7ec33318e3abfb93a2e5bb9955561c71636dfa47089d6fb6f628a2b52",
+    "bts/speech/connection_settings.js": "1d2f5d984202b9861e81b83b36c7b243202ea1464e54cd2d2f7bb14883bd7a2c",
+    "bts/speech/context.js": "f37db10ee2c7dd7c1921295f88129b42c26c41c7b1a790c7fdb304d56775c041",
+    "bts/speech/coverage.js": "f88659414a890573ef03731e5a3c3b516362f2fc8b34aa8e01456df80b3447a7",
+    "bts/speech/disk_cache.js": "a12b100d2ff7215e50fa7c57d04f2e5e68888af7a339ae8c9e589dad0f61aa59",
+    "bts/speech/failures.js": "33752a02ee82bd5394897a8a02fad9d003e2994e387de5d6e17a8ef829de6104",
+    "bts/speech/game_status.js": "9b8d34acdebf8bc57c2d1091ae43dc10f353f9cb705998b8c04c9854129edf45",
+    "bts/speech/game_variants.js": "539bf3b4ef321fca1cda9dec9be4d0ba3b5c6d8412d214dc29be4853d00cac32",
+    "bts/speech/health.js": "0e3a475d8950a1ddc19890c82cb62422393effd90d97b5bc28445f0cd360b79f",
+    "bts/speech/helpers/demand.js": "f305450994948caa0f5ac69e94cdd3b8e716b3d2859b6cdeda0bdc2ae87dd717",
+    "bts/speech/helpers/remote.js": "8fc005d1b6969f13941be2b2ea73d94553b7735eb440409e8c10bb3489b087a5",
+    "bts/speech/http.js": "f95ca82fd1cdbbd864a63817d47c0c448d264e1b0c04bcd26013585dfb1d0f2f",
+    "bts/speech/idle_plan.js": "e03b7b937a63e7c92be99e371a4dfedf94624882a3788e2769a9ca69579532e8",
+    "bts/speech/index.js": "e69c8f5531eec9cb5ffcb0ddc537660b71101552d63680ebdfac5662286d57ff",
+    "bts/speech/inventory.js": "41ad6a1090fb8e00128557d1106f2bf4b72d7a7bdaafce7b8ae6bd6fecd9cee1",
+    "bts/speech/numbers.js": "9ed9769bf35e31fe2ef45e6dbcbd591194493137a7e09f959eec7c620cfa1ecb",
+    "bts/speech/planning.js": "2bbdc0b6fe7da8fb9d45d78d5c31ebd9994282b180613062e27476fbe31ca8a0",
+    "bts/speech/planning_status.js": "55d62eff36a3bb43ae24fdccdc04f9ec38598a5c8e3600fc3f2645f32526f857",
+    "bts/speech/playback.js": "d807ac25b80c97e1f0b2f1ef7bab79bbf35a24213b2699a3bbccd3bb2d1e7d82",
+    "bts/speech/prefetch.js": "8e13ed91f1afda85e08c71cdbf6e3202779fdb5ccd9c7ad38e4bcaa726103bd9",
+    "bts/speech/process.js": "9ac803f52e49b3eeaf8c5acf0ea72649a2c35d4f6433c2731894ef1767e9354c",
+    "bts/speech/proxy.js": "06daeed278f26ea4ae594c4032368ffc9d0397de5fa6df7f7e18ed47a7a7a7b0",
+    "bts/speech/render_call_cache.js": "c606ce515102173a2a830b9ca3009a21d42092bbd606bc370d68719d9d9973cb",
+    "bts/speech/runtime_connection.js": "25a64249773ed15e159eb0c582d1f3fda695f5debfb80e469c6a1a83e72aed10",
+    "bts/speech/snapshot.js": "aed95862dd9641d7c34414f016cdc6f9d7bf9d518596538e94046ed61f6f085b",
+    "bts/speech/text.js": "b2429c9f476a7d27fd36989f929f5a8ade432a406b8bd817589b6691e786db45",
+    "bts/speech/v2_inventory.js": "6ac7a8f634423af67e6b7a4aa25aaee4bb8f3e7c03623e6a94620c849ce79b29",
+    "bts/speech/worker.js": "0cf4c494ee5615ef8908fd689654ab91b6e709b7562edffd97a8486c5bcc7aeb",
+    "bts/speech/worker_client.js": "6965751bc4ee33b190d547eeae66818560e6cb929c8b32e0b3a140053c300b00",
+    "bts/stournament.js": "af2048a41598ecdb78c1c3719c533e1e79dbd149ea82da5e4db1cb2330ab3454",
+    "bts/tabletoperator_audit.js": "1867b302b821f43e5faf9d5995932016c7d479c80c41fe150054b3d9c298fcef",
+    "bts/tabletoperator_umpire_release.js": "1f872a0c4f0dc206d81301368e05f3415fa1c5a7322208e37398aeea83daf48b",
+    "bts/ticker_conn.js": "eef2fa76574593a34f85e5ce7df90402b1d3f9d682295d6bbc9e265de1d62093",
+    "bts/ticker_manager.js": "7fcc60fed13598b283104f12098fd0ea80b33e0279a0e766aa0d4f6e3dbf6fc5",
+    "bts/timing/btp_decode.js": "9d4ab4a0b892a1edcdbd2ede482d84621348cf02f33e9f2b722c8116edfd79cb",
+    "bts/timing/event_loop_probe.js": "e4d5a1f18823d970734de10a20a998dd5a454c2ac73af18a372c281c8449818a",
+    "bts/timing/steps.js": "1a43c2a915757a76c07a731cd1dc08680f1b0db6af60539039e8167096b54897",
+    "bts/tournament_model/cleanup_reads.js": "ebc8170ba2de27c2bfb10b951cb0b104da0354a15acd0c821c0353d2409745a3",
+    "bts/tournament_model/court.js": "bd4060a85d744bb7b1c8b037982b88c08ebbe3eae582b0571038b077f0c099d3",
+    "bts/tournament_model/datastore.js": "8bc52ae2b76d8371204447e85ad4d14903d7701d86f8d86f9b6b7589d31cdda6",
+    "bts/tournament_model/display_reads.js": "545cb3bac9509b31cbfe9a0630a8fd66a57b1cacf16863e74a9e933639c40a1a",
+    "bts/tournament_model/entity.js": "531e0c5991e693d718d914667569a418bb15b5d1e7dbfffe28e79563264597d5",
+    "bts/tournament_model/fingerprint_index.js": "e38a43ada2b2d91592fd05d6e643ff9b02a6152b15ee30311067dc9e70527084",
+    "bts/tournament_model/fingerprint_projections.js": "8b72ef014da0e7ed4dba6b6e5532ced8d59859a817dd39049ad570ac26deaf21",
+    "bts/tournament_model/fingerprints.js": "05420ff2f422832f7f55cfd4779e22a06a534598209bc54df691518afd6ed8d7",
+    "bts/tournament_model/match.js": "96686fcffeb1543d927879ebf844c0296229d657006e1be74cfeb48a2055f8c7",
+    "bts/tournament_model/model.js": "84ea20d00ba7223bbcbbe44c5481ce8fd702166523f76860f0c65205ac6e1ebe",
+    "bts/tournament_model/normalization_fingerprints.js": "2764ce3104e4029cac56dde210e78b76c417e9459563ea7daca9542484047993",
+    "bts/tournament_model/normalization_reads.js": "b3fb8c31ff419143589a4d226ce889e25e7242af1722f2b03962d9ba30665e8d",
+    "bts/tournament_model/official.js": "1151d15c1865a971a8442f410079cdf4c50ece62615c58e321a04e756cffc308",
+    "bts/tournament_model/official_assignment.js": "73d0af0a643de5f93bb73d49b0bfcde4950e2dc22d9f83debcac7fffb6fa3694",
+    "bts/tournament_model/official_links.js": "55e71416306757e2f43eeae1c498b107764cf182f7ab3d51c3b26d0a553cd3d7",
+    "bts/tournament_model/participation.js": "a8272cb71e937e27aebd464cf4f62fee5c6f17e55486e2bb87c78937fefa144b",
+    "bts/tournament_model/player.js": "db0bafeb92b87280d41f9c79d19047f2a3b6ae9318d32ad91be102d266261da7",
+    "bts/tournament_model/player_ids.js": "9c0af388e3163bffbae9649a8f3f11fc04d9466d04bbe6fabae793f82b3802f4",
+    "bts/tournament_model/profile_fields.js": "1bfe46a033559c4e9439ceeee36f042667495a296a3e1d171eb2e16bd93720bf",
+    "bts/tournament_model/registration_rollback.js": "ea1d23b53ae1b560e9e39ef5171d2fc2eafe390b3980b60e639b495ae9c182c2",
+    "bts/tournament_model/registrations.js": "9efce200757a578499382c3050ac626569cc580b14bc394886e1b904c0302f10",
+    "bts/tournament_model/relations.js": "061a621514212aeedd8423e7043bb682c44a92066b12ffb72dda86f7e7b24bbc",
+    "bts/tournament_model/score_reads.js": "4141ebcd2214211fb5380149ed8da050926aedca6b0575504962709d2f3c27b3",
+    "bts/tournament_model/sync_validation.js": "324300fe6755a8e0b8cb827cb72f7315ba15ecf00f213e95bdeb66edbda950c5",
+    "bts/tournament_model/tournament.js": "cf7dd1b5ed4f015531fda7c0be66f87ca78d205fbb3cd460663c6c785284f3e1",
+    "bts/tournament_model.js": "e00f7a5ae163389d4018478b1ef610657813cadb2adb9b7c0ab10db1c10dd31a",
+    "bts/update_queue.js": "35720439f48a43b9f95f79bd38c5679988f07eb5f61bf2e95f2dfb6f6e60a587",
+    "bts/utils.js": "005ba80e222b8656a7b6a31c38b0d3235c4ee0a423cd0fbaa3739dd6ca69fefb",
+    "bts/wshandler.js": "3f0b0965b441a38e524b539c7f680fedf9cacfca96a8d45df02a02cd152bf3bf",
+    "bts/xml_utils.js": "0d4023762824c72e717600bbbc199d85ad4ec52e493cb739080ffeab46b95c19",
+    "static/css/admin.css": "a4e2f7d096eedc0e5ebf6663e970deb952aff409d1ae58a9f77c72e7b373833a",
+    "static/css/admin_layout.css": "577200f70d7f9ab45fc04df7ca982855dc216b3c54b03dbc9a6b0dd65455a2ba",
+    "static/css/advertisement_settings.css": "e696431ba381d4f1afe19d75e532e5df18068e1fe19a73c01b93cd893ec86f70",
+    "static/css/audio_activation.css": "66a1c9b04628445c1c520ad6f4a6c50bf8df170363305abe1d30a40fb268938b",
+    "static/css/cmatch.css": "20811312d535a53769fca4384347c4771e16b3d47ca705effe2e241e4d74ca43",
+    "static/css/court.css": "0cba6864168bcf8877af3ca2303c4157b0de8dd4fc6fc6d4139c9b734dae1608",
+    "static/css/ctabletoperator.css": "238cb1aaf863063cd1e32466d99b5d96527b59f8ce7dce2d8b40ae3d391c7243",
+    "static/css/cumpires.css": "c7c2fc3106ecfc1222b4bb6175ad578b081264f1d5076fdeaa83a6c6caa3ed83",
+    "static/css/devices_workspace.css": "3e456292130c8bbaf3a6a12ee406fc51779c3585d7c4762631fbc4eefaeba43d",
+    "static/css/diagnostics.css": "6bfaad81a022e68958c87f23495b362ad56e9e786d4afa10779f62a69c3164fe",
+    "static/css/display_settings.css": "908810a288dddc87821c6c9ce3f45afe34bfecd5a24954829a7228aad83c0111",
+    "static/css/duration_input.css": "e1cd3d6a9c59330f22d05a72459dfa64a5d71297cf5f0238f935699ba258ef88",
+    "static/css/leitstand.css": "87347e6c1ebb7c54fa81c643b5f4580ac02010e67f121ad8bc972bc5d77505d9",
+    "static/css/location_settings.css": "861bf3ba79f5bda5805ebd0008833477355eacb683cfee8bbe032609e9d22bb0",
+    "static/css/number_input.css": "0fd89391b1551652e91f4e7508a8883eab51ac358c3d85aafdd024b79cff27b4",
+    "static/css/scoring_settings.css": "e0c0878f801b286f0081f7f731863b2656f7edfc473b32812cd41474d8ece8af",
+    "static/css/speech_health.css": "883e7a005437742a4f01e453631a92c7d7b41688eaa706fda580889108732162",
+    "static/css/speech_helpers.css": "9cbd463ca0bb39c80c0c84898fc58c7fbcd05191c7483d5a48d063b9ae255835",
+    "static/css/speech_planning.css": "233ac688967c05b1ba7cf2a54a3fc5e157aa1aefeb8bce07974f3f6dbff6aa21",
+    "static/css/speech_settings.css": "c36d92e0f0e08bf4de615f6e20291ec733df9a4a1cf2a1f5be6664212dd17554",
+    "static/css/toprow.css": "3da8cc229d2191c627efa8009e11c27114d7b8c0742397dfdb62da34c3ed4544",
+    "static/js/admin_update_observer.js": "ce04ee6c7219c29d53693ec013d70a9c3e37a61b4da1a266aa4aac512abdfefa",
+    "static/js/advertisement_picker.js": "de1f439e4dfc77df8ff40d8b0fcdc19c0add91d8dce717c27236b472d4fe915a",
+    "static/js/advertisement_settings.js": "9dadd9a9b9eaa8d4f537d67679bcb8cefac4b8bf3622d860b1451bab7826c984",
+    "static/js/announcement_editor.js": "0ad887e24d4029130deda1621d74fd5d13f13933738d597afb6537e9cf16382b",
+    "static/js/announcement_text.js": "ea23c07d22919e0fa99d1955e20e165d5312ff18e3f46dc83ffd571d7ad94c86",
+    "static/js/announcements.js": "8404c0da1fc9793e0a65e53e3323b7ff91a643614797b0b0796d402fe52cd0f1",
+    "static/js/audio_activation.js": "b8cbba67ee1f454968cfc9238dd35e8fcdc0d67a9b383a4da3df41e543c919eb",
+    "static/js/audio_devices.js": "17240268d0270edac621440a09dea778ed09ddb9f2ed4fb2b6ff40ebed29515e",
+    "static/js/browser_promise.js": "97c7446229fadde459cb7c99d3341d2376b0d3bfa55d68acd5cbd6f70e658f2c",
+    "static/js/btp_dns_todos.js": "615ac770fb75206296047fb338b52d821821a64847bc57a79a475fa4b4ef7adf",
+    "static/js/btp_dsq_todos.js": "99c89c043923181105a82cfb8c0d85d6b683beb164f63bda3a0ade58796c07f2",
+    "static/js/btp_entry_status.js": "91f64c66ace29cd5007bf6d0a4715db460966beb7b572a11894c620cfd2b97c4",
+    "static/js/cadmin.js": "fa7885f9027fb2483873cd15a21ec78568d583454d735f305edcc55c967ba51c",
+    "static/js/call_status_updates.js": "8947024918842d9e77c5ce792f4a9ae2e0759d736c6dbceb7c43f622e76cbc06",
+    "static/js/cbts_utils.js": "4cf2267d4b2bf17e43bdf8315c4ef63f8c0b086391a11cf433f885d48e90950c",
+    "static/js/ccsvexport.js": "651fae8a693ecf1778fd21e529d482b4251b80876c7031cc605acc91cf0e41df",
+    "static/js/cerror.js": "b8ed98d5ab2dd56e56e705029d9c3c70bd9a85a889e14804e4ed356db1a38e5f",
+    "static/js/certificate_design.js": "af6c9abea1fac4d0d45a3d2d1564f926cf4e8229b5bcf96b73c10936ecc9001e",
+    "static/js/certificate_designer.js": "be13c887dede7c6e747f241bb4a71594ac528076caef46d1660b22c008e53f47",
+    "static/js/certificate_document.js": "9fc8a6480c909521e43efba5a5e9e78aeb3ccde00065dc6cc49d09e6ea60f389",
+    "static/js/certificate_selection.js": "162e9fdf1abff6a1a8cc556f8cbb3cde9b3fc72f0943fe41e1b3563365d85465",
+    "static/js/certificates.js": "2a1e3551abd3ebbe514e25b34fccc17c38ca9831d47d1a689b089980952783e9",
+    "static/js/cflags.js": "c560dab0bdc3ae8e1fc9347b1220f0cdcdd3f28ee5b984240f1e99e984627e9e",
+    "static/js/change.js": "dde9123a2e38c59273a24ffe9ce63a0e7b16c6d86b4f98b3883ac6f079ced7d1",
+    "static/js/change_helpers.js": "fbbfbe25bfeb4744472948a42293d69a37a0267338bff787d95b3cf288355000",
+    "static/js/change_queue_scheduler.js": "862a7e897125ee0a283bc7dcd1d2e1c44f49e48d609dbd405d474e1a51c20052",
+    "static/js/choice_picker.js": "36b4e883e794e49ffb377a3004cbae0b6e81d35d27a0ee248003b192d95f4c25",
+    "static/js/ci18n.js": "11f0573a02c1d9372b77ca1c868ae79f6dbdd44ed2d8c1f1c1f30f468ad178c2",
+    "static/js/ci18n_de.js": "ab0778342e7ea58a1c76943203cd23eb9c04695acbc5b41aac26ff07f7d593a1",
+    "static/js/ci18n_en.js": "9629178bf8d2240210905f8ee5cbc56392aaeca5ce16a1e3e2db28a92724870a",
+    "static/js/ci18n_nl.js": "741c57aa540b8453769c2f2e4eeda69c56f88c3ec8b6022e019fa050ccea6558",
+    "static/js/cleitstand.js": "dda1379b36cbe043007a156fe1f681cbb3f931fe92e6ce44f2a3d4cfd14c4f57",
+    "static/js/cmatch.js": "82791a6939091e91816d4601c42b13fcbf1ae6fa689b1a17081dfb64c35e4f1e",
+    "static/js/cmatch_history.js": "1d3f2adc2cbe17fbcd5729f2185ec7a6237202a552639eb38c828eab0bbba43f",
+    "static/js/cmatch_official_select_helpers.js": "4471219ec5e39c021716411b3cfb73f6ccb68f09f31526a2896d31a55f549d0c",
+    "static/js/cnationstats.js": "1e95a89dbe566a9f64e5bf8c8bc3fbd90fb059c38d7d457a40092334786127d6",
+    "static/js/conn.js": "23733591909e321a8c4f7d8785d7a1aaedd64cbb7521ae5cddde76a7baf0b666",
+    "static/js/conn_ui.js": "4e2577d94ed13debfbca5ec83e99e913b6e816c126deafde36a76dc5ead4009e",
+    "static/js/countries.js": "e55f17967bfd9f23b823fc1d3fe38695933a6afc7c8f3936fe47aec7a91e2e51",
+    "static/js/court_assignment.js": "e99181ed02fe62ad3892441da6ec1b830a7737301cbb353d4dd5c2bbefd5eee0",
+    "static/js/crouting.js": "3d03a9547eef5a769afaa866cf9f939792eb90aa2f9a0103afd5389ec1df71df",
+    "static/js/ctabletoperator.js": "61849da2b74038cff6e2e3cd9515f0d452dcc88081a6f60af3c4af2d63e5f346",
+    "static/js/cto_stats.js": "299e2daa443b890a6ab8a586039d141c2d7d6bdfd3ee3c7ad7cb4810e0274a3e",
+    "static/js/ctournament.js": "3b63f66eab20a11e8d8054ca811b89e419e634fc32cb1eddf88b9ecbe0edcf1c",
+    "static/js/cumpires.js": "f63e1c3e05f83d3a5e7cfc2e06c93303c94e3b2f7d48b7a11d117d48ab07b8cb",
+    "static/js/debug.js": "fb68cf3540eece3f295c0e5271405cee5fc892fb8cbc48842a08c4fe12ff2b54",
+    "static/js/devices_workspace.js": "d52a713c676cdcb57417676549d28c7fe34951073b68c0d87aa3e48ea08aa4c6",
+    "static/js/diagnostics.js": "1474e5d81548d47eaaa6cad02dad378cfcafcf811ea001f712d42e19411a20b4",
+    "static/js/diagnostics_client.js": "fe50bf103e441a8a72d0034894897262a3fbff6d43c869f6981ab46e8a93f505",
+    "static/js/dialog_actions.js": "5d11d3e40d4ca15520994444dd019c6edbb269e2bd8e99c0ca7490399d24498f",
+    "static/js/display_settings.js": "a2d57ebf0de800ce1485141c2da07d0e68dfd8233d60325d4f3f84ccf5b6cd56",
+    "static/js/duration_input.js": "6c1b20adf8e3242f73829623f27a52a2c9ff8ed5cef0e56c63a10b201ea62e81",
+    "static/js/event_updates.js": "3f4b1828376a308cd3256e63719f66ac33635ba5d76f04a1f1b084f0412506dd",
+    "static/js/form_utils.js": "2e5bf0c9b0716bf262e894383aa782f6db6432bb9675119e314e6181f5df40b5",
+    "static/js/free_announcement.js": "fef024646e22ffc594ad4be74174cb46ad8ed96ade1d6d2a404568cd47c0b323",
+    "static/js/libraries.js": "3a4bec26c2319901dbf6a5d20f34bfdace1581c680610c0177393b561707ca2b",
+    "static/js/location_settings.js": "a3a1f1c237068d6cfe5e075ceee04207b1a4c40ce2d1ada1aa669221fa48f78c",
+    "static/js/logo_picker.js": "0aa41c164f8a0bb1fe1c2de6c607582ea8f280e92ba359d263dbb8982d53b1ea",
+    "static/js/maintenance_settings.js": "d35e2203036438b791c9c7253e6bbebfc2047565581ed7584275d9874622cbd5",
+    "static/js/match_edit_rules.js": "adf2934d2ad5f82dfccd66394ed5889a28f373c6ccb11957973a1b54f28e5e4b",
+    "static/js/match_scoring.js": "fbec6152c0c0d7f56ab366d30b8b5b1680d8cc1c467732d3ab2f607d77f228f2",
+    "static/js/number_input.js": "b1d590ff2d1123abfdc65011e65498472278243f090a731e841544a2a74c455a",
+    "static/js/official_picker.js": "488e1b9a8ed02698482aa3268aeba973ff1907745642308c07235d23e023f81c",
+    "static/js/profile_preview.js": "0222a2f5c936eeb92479b8e8752558efe941f4e147e75671355c0c52655d9b27",
+    "static/js/remarks_dialog.js": "1160f16fc99122a74173d5d33956ac757d5c9f2d9deb7d06b26d46ab2df7f86a",
+    "static/js/reset_selection.js": "a49bb9ab500ffed2c35ce1e9bf4608b6ed82a113f0f85db6db3669b74e9489fe",
+    "static/js/scoresheet_remarks.js": "831fcc9bff810414e3141a705c3b6973d9400befcea0bc4f82cef982428b7769",
+    "static/js/scoring_settings.js": "3102e7533370e8c682ec13174c631e60d709b50e20d9543c33afb987ff982c46",
+    "static/js/service_status.js": "91b44cba7f020ed4252160baa032ee23b7565db6875ed41036050718d7cc0cef",
+    "static/js/settings_workspace.js": "e6629e30bf60ce37481211135c55204dae2bf9432b606aeb780704b1cf334939",
+    "static/js/speech_context.js": "f3d3b6292b7362704fa3274ef6c82462418fdeb0e553ded9b74317e4c14ed263",
+    "static/js/speech_context_v2.js": "d1400f3659046bf5fe061562f5c131f5d804f76146562e5d1603d69e6f1f3c9e",
+    "static/js/speech_health.js": "1e4a6ef381bd13cf6b2296bdd481c0bdf8bda2a4188d9b7ba2cb92f4a4396a9e",
+    "static/js/speech_helpers.js": "81d4dfbf4b7d92ffbd609a4da7cc398d57a0cd912b16f52f406b4200ebe2f7ac",
+    "static/js/speech_infrastructure.js": "f58201857f901c3b0c0c33ca9505ef77a2f09bfa60fbfbba1be90cdc7fd7465b",
+    "static/js/speech_inventory.js": "2d643746a7e04ee2257a3ceb232d76a3658837dd66858e3741d1dd10cfa62035",
+    "static/js/speech_planning.js": "0e1d26a45e2e319504d7b011dac7b6d0b3fb5fdc8af14658478b671b06f6f390",
+    "static/js/speech_planning_games.js": "e464fcea34a47cd6d6b26efb32535c22dbf4683c5ed65f6fc23c42e63f246bd2",
+    "static/js/speech_queue.js": "35e91d3c36bfd3e1346e792630245582129d990601791ccbe34d6e8dd213ea9f",
+    "static/js/speech_readiness.js": "875e63b95c3779038450de10e7aec1e377963a6a52d3d1bd3deb9fd86355d899",
+    "static/js/speech_service.js": "8bb02691b4fe234574945b8290d18985f75d4cdb45d538bc19309e72a7d1eed0",
+    "static/js/speech_settings.js": "05cff0440f28cde2c1e73d1c7db4408c153dbcfd6ef6908f17d60f251069f1a0",
+    "static/js/speech_workspace.js": "b6b3483ea3711acc7afa3150e1a28f5c097b100cb8796e38da698b78a6805f61",
+    "static/js/tabletoperator_waiting.js": "5cad4c8102b77a60f413fee58420a6fee668b58d027da6f39052e60a4e04a2e1",
+    "static/js/ticker_settings.js": "87f3da54a18e1146270db9e19802ef7ac33d5cc1cf9bf44db1d2404c63867e18",
+    "static/js/timer_updates.js": "e316c445749058586bb0aea8bc79049dd9417e7caa68db05ddd42b967052d7d7",
+    "static/js/timezones.js": "ad198bf07aa5908b2e17da022778490e1d2881d3cd2f52895166e8028009ebff",
+    "static/js/toprow.js": "2d15c87c5c18d616fa2a5a891896f894dfc96c0baff4875476dfc1b41e25fd5c",
+    "static/js/ui_blocking_diagnostics.js": "6a7c5b3ffdf11655315348552ff1c6463eac1edd8f17d28c142e2fc311b9f65a"
+  },
+  "final_causal_windows": {
+    "outliers": [
+      {
+        "trace_id": "live-drill-2974851-mwf296ok-344",
+        "kind": "ordinary",
+        "admin_ms": 302,
+        "tv_ms": 13,
+        "admin_ui_ms": {
+          "queue_ms": 4,
+          "handler_ms": 0.4,
+          "ui_wait_ms": 0,
+          "render_ms": 162,
+          "total_ms": 166.4
+        },
+        "sent_ts": 1794579425300,
+        "admin_control_received_ts": 1794579425316,
+        "admin_received_ts": 1794579425436,
+        "control_to_browser_callback_ms": 120,
+        "recorded_work": [
+          {
+            "id": 4349,
+            "name": "job:names.layout",
+            "start_ms": 201902.1,
+            "job_id": 1197,
+            "updates": [
+              {
+                "sequence": 3226,
+                "type": "match_edit",
+                "match_id": "btp_default_MX U15_400"
+              },
+              {
+                "sequence": 3228,
+                "type": "update_player_status",
+                "match_id": "btp_default_JE U15_717"
+              },
+              {
+                "sequence": 3229,
+                "type": "update_player_status",
+                "match_id": "btp_default_MD U15_1435"
+              },
+              {
+                "sequence": 3230,
+                "type": "update_player_status",
+                "match_id": "btp_default_JD U15_1358"
+              },
+              {
+                "sequence": 3231,
+                "type": "update_player_status",
+                "match_id": "btp_default_MD U15_1420"
+              },
+              {
+                "sequence": 3232,
+                "type": "update_player_status",
+                "match_id": "btp_default_MD U15_1428"
+              },
+              {
+                "sequence": 3233,
+                "type": "update_player_status",
+                "match_id": "btp_default_JD U19_1677"
+              },
+              {
+                "sequence": 3234,
+                "type": "update_player_status",
+                "match_id": "btp_default_JE U19_1035"
+              }
+            ],
+            "end_ms": 201914.4,
+            "duration_ms": 12.3,
+            "relative_ms": 162.3
+          },
+          {
+            "id": 4351,
+            "name": "names.measure.rich",
+            "start_ms": 201902.9,
+            "groups": 5,
+            "end_ms": 201914.2,
+            "duration_ms": 11.3,
+            "relative_ms": 163.1
+          },
+          {
+            "id": 4328,
+            "name": "job:players.status",
+            "start_ms": 201808.6,
+            "job_id": 1202,
+            "updates": [
+              {
+                "sequence": 3226,
+                "type": "match_edit",
+                "match_id": "btp_default_MX U15_400"
+              }
+            ],
+            "end_ms": 201817.9,
+            "duration_ms": 9.3,
+            "relative_ms": 68.8
+          },
+          {
+            "id": 4347,
+            "name": "job:players.status",
+            "start_ms": 201881.1,
+            "job_id": 1205,
+            "updates": [
+              {
+                "sequence": 3228,
+                "type": "update_player_status",
+                "match_id": "btp_default_JE U15_717"
+              },
+              {
+                "sequence": 3229,
+                "type": "update_player_status",
+                "match_id": "btp_default_MD U15_1435"
+              },
+              {
+                "sequence": 3230,
+                "type": "update_player_status",
+                "match_id": "btp_default_JD U15_1358"
+              },
+              {
+                "sequence": 3231,
+                "type": "update_player_status",
+                "match_id": "btp_default_MD U15_1420"
+              },
+              {
+                "sequence": 3232,
+                "type": "update_player_status",
+                "match_id": "btp_default_MD U15_1428"
+              },
+              {
+                "sequence": 3233,
+                "type": "update_player_status",
+                "match_id": "btp_default_JD U19_1677"
+              },
+              {
+                "sequence": 3234,
+                "type": "update_player_status",
+                "match_id": "btp_default_JE U19_1035"
+              },
+              {
+                "sequence": 3235,
+                "type": "update_player_status",
+                "match_id": "btp_default_MX U19_315"
+              }
+            ],
+            "end_ms": 201889.5,
+            "duration_ms": 8.4,
+            "relative_ms": 141.3
+          },
+          {
+            "id": 4348,
+            "name": "job:lists.counts",
+            "start_ms": 201895.3,
+            "job_id": 1200,
+            "updates": [
+              {
+                "sequence": 3226,
+                "type": "match_edit",
+                "match_id": "btp_default_MX U15_400"
+              }
+            ],
+            "end_ms": 201902,
+            "duration_ms": 6.7,
+            "relative_ms": 155.5
+          }
+        ],
+        "frames": [
+          {
+            "id": 4362,
+            "start_ms": 201875.2,
+            "end_ms": 201951.2,
+            "duration_ms": 76,
+            "blocking_ms": 19.8,
+            "render_start_ms": 201895.09999990463,
+            "style_layout_start_ms": 201921,
+            "first_ui_event_ms": 0,
+            "script_count": 2,
+            "omitted_scripts": 0,
+            "scripts": [
+              {
+                "start_ms": 201895.30000019073,
+                "duration_ms": 25.59999990463257,
+                "execution_start_ms": 201895.30000019073,
+                "forced_style_layout_ms": 9.4,
+                "pause_ms": 0,
+                "invoker": "FrameRequestCallback",
+                "invoker_type": "user-callback",
+                "function": "runNameFrame",
+                "source": "https://localhost:4433/static/js/cleitstand.js?bts_asset=dda1379b36cbe043007a156f&v=70e3805b088d",
+                "char_position": 12134
+              },
+              {
+                "start_ms": 201876,
+                "duration_ms": 13.699999809265137,
+                "execution_start_ms": 201876,
+                "forced_style_layout_ms": 0,
+                "pause_ms": 0,
+                "invoker": "SchedulerPostTaskCallback",
+                "invoker_type": "user-callback",
+                "function": "",
+                "source": "https://localhost:4433/static/js/change_queue_scheduler.js?bts_asset=862a7e897125ee0a283bc7dc&v=70e3805b088d",
+                "char_position": 873
+              }
+            ],
+            "relative_ms": 135.4
+          }
+        ],
+        "cpu_focus_top": [
+          {
+            "sampled_ms": 286,
+            "self": [
+              {
+                "node_id": 2,
+                "function": "(program)",
+                "source": "",
+                "line": -1,
+                "column": -1,
+                "sampled_ms": 224.87
+              },
+              {
+                "node_id": 568,
+                "function": "measurePlainNames",
+                "source": "https://localhost:4433/static/js/cleitstand.js?bts_asset=dda1379b36cbe043007a156f&v=70e3805b088d",
+                "line": 562,
+                "column": 28,
+                "sampled_ms": 9.49
+              },
+              {
+                "node_id": 1732,
+                "function": "include",
+                "source": "https://localhost:4433/static/js/cleitstand.js?bts_asset=dda1379b36cbe043007a156f&v=70e3805b088d",
+                "line": 1203,
+                "column": 18,
+                "sampled_ms": 7.41
+              },
+              {
+                "node_id": 484,
+                "function": "removedNameNodes",
+                "source": "https://localhost:4433/static/js/cleitstand.js?bts_asset=dda1379b36cbe043007a156f&v=70e3805b088d",
+                "line": 342,
+                "column": 27,
+                "sampled_ms": 7.4
+              },
+              {
+                "node_id": 1722,
+                "function": "_add_setup_player_btp_ids",
+                "source": "https://localhost:4433/static/js/cmatch.js?bts_asset=82791a6939091e91816d4601&v=70e3805b088d",
+                "line": 1622,
+                "column": 34,
+                "sampled_ms": 7.3
+              },
+              {
+                "node_id": 642,
+                "function": "player",
+                "source": "https://localhost:4433/static/js/cleitstand.js?bts_asset=dda1379b36cbe043007a156f&v=70e3805b088d",
+                "line": 1989,
+                "column": 17,
+                "sampled_ms": 6.91
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "trace_id": "live-drill-2974851-mwf2c6v0-588",
+        "kind": "ordinary",
+        "admin_ms": 181,
+        "tv_ms": 23,
+        "admin_ui_ms": {
+          "queue_ms": 13.2,
+          "handler_ms": 0.1,
+          "ui_wait_ms": 0,
+          "render_ms": 56.3,
+          "total_ms": 69.6
+        },
+        "sent_ts": 1794579565501,
+        "admin_control_received_ts": 1794579565525,
+        "admin_received_ts": 1794579565612,
+        "control_to_browser_callback_ms": 87,
+        "recorded_work": [
+          {
+            "id": 6680,
+            "name": "job:names.layout",
+            "start_ms": 342071.5,
+            "job_id": 1542,
+            "updates": [
+              {
+                "sequence": 5075,
+                "type": "match_edit",
+                "match_id": "btp_default_MX U19_314"
+              },
+              {
+                "sequence": 5077,
+                "type": "update_player_status",
+                "match_id": "btp_default_JD U19_1658"
+              },
+              {
+                "sequence": 5078,
+                "type": "update_player_status",
+                "match_id": "btp_default_JD U19_1666"
+              },
+              {
+                "sequence": 5079,
+                "type": "update_player_status",
+                "match_id": "btp_default_JE U19_1039"
+              },
+              {
+                "sequence": 5080,
+                "type": "update_player_status",
+                "match_id": "btp_default_MD U19_1741"
+              },
+              {
+                "sequence": 5081,
+                "type": "update_player_status",
+                "match_id": "btp_default_MD U19_1749"
+              },
+              {
+                "sequence": 5082,
+                "type": "update_player_status",
+                "match_id": "btp_default_ME U19_1119"
+              },
+              {
+                "sequence": 5083,
+                "type": "update_player_status",
+                "match_id": "btp_default_JD U13_1195"
+              }
+            ],
+            "end_ms": 342089.9,
+            "duration_ms": 18.4,
+            "relative_ms": 130.7
+          },
+          {
+            "id": 6682,
+            "name": "names.measure.rich",
+            "start_ms": 342072.4,
+            "groups": 4,
+            "end_ms": 342089.7,
+            "duration_ms": 17.3,
+            "relative_ms": 131.6
+          },
+          {
+            "id": 6670,
+            "name": "handler:tabletoperator_removed",
+            "start_ms": 342059.7,
+            "updates": [
+              {
+                "sequence": 5086,
+                "type": "tabletoperator_removed"
+              }
+            ],
+            "end_ms": 342065.7,
+            "duration_ms": 6,
+            "relative_ms": 118.9
+          },
+          {
+            "id": 6657,
+            "name": "job:players.status",
+            "start_ms": 342005.9,
+            "job_id": 1547,
+            "updates": [
+              {
+                "sequence": 5075,
+                "type": "match_edit",
+                "match_id": "btp_default_MX U19_314"
+              }
+            ],
+            "end_ms": 342008.2,
+            "duration_ms": 2.3,
+            "relative_ms": 65.1
+          },
+          {
+            "id": 6678,
+            "name": "job:players.status",
+            "start_ms": 342067.2,
+            "job_id": 1549,
+            "updates": [
+              {
+                "sequence": 5077,
+                "type": "update_player_status",
+                "match_id": "btp_default_JD U19_1658"
+              },
+              {
+                "sequence": 5078,
+                "type": "update_player_status",
+                "match_id": "btp_default_JD U19_1666"
+              },
+              {
+                "sequence": 5079,
+                "type": "update_player_status",
+                "match_id": "btp_default_JE U19_1039"
+              },
+              {
+                "sequence": 5080,
+                "type": "update_player_status",
+                "match_id": "btp_default_MD U19_1741"
+              },
+              {
+                "sequence": 5081,
+                "type": "update_player_status",
+                "match_id": "btp_default_MD U19_1749"
+              },
+              {
+                "sequence": 5082,
+                "type": "update_player_status",
+                "match_id": "btp_default_ME U19_1119"
+              },
+              {
+                "sequence": 5083,
+                "type": "update_player_status",
+                "match_id": "btp_default_JD U13_1195"
+              },
+              {
+                "sequence": 5084,
+                "type": "update_player_status",
+                "match_id": "btp_default_MD U13_1260"
+              }
+            ],
+            "end_ms": 342069.3,
+            "duration_ms": 2.1,
+            "relative_ms": 126.4
+          },
+          {
+            "id": 6679,
+            "name": "job:lists.counts",
+            "start_ms": 342069.4,
+            "job_id": 1545,
+            "updates": [
+              {
+                "sequence": 5075,
+                "type": "match_edit",
+                "match_id": "btp_default_MX U19_314"
+              }
+            ],
+            "end_ms": 342071.5,
+            "duration_ms": 2.1,
+            "relative_ms": 128.6
+          }
+        ],
+        "frames": [
+          {
+            "id": 6701,
+            "start_ms": 342049.4,
+            "end_ms": 342101.4,
+            "duration_ms": 52,
+            "blocking_ms": 0,
+            "render_start_ms": 342067,
+            "style_layout_start_ms": 342090.5,
+            "first_ui_event_ms": 0,
+            "script_count": 2,
+            "omitted_scripts": 0,
+            "scripts": [
+              {
+                "start_ms": 342067.19999980927,
+                "duration_ms": 23.300000190734863,
+                "execution_start_ms": 342067.19999980927,
+                "forced_style_layout_ms": 14.9,
+                "pause_ms": 0,
+                "invoker": "FrameRequestCallback",
+                "invoker_type": "user-callback",
+                "function": "runNameFrame",
+                "source": "https://localhost:4433/static/js/cleitstand.js?bts_asset=dda1379b36cbe043007a156f&v=70e3805b088d",
+                "char_position": 12134
+              },
+              {
+                "start_ms": 342052.90000009537,
+                "duration_ms": 13,
+                "execution_start_ms": 342052.90000009537,
+                "forced_style_layout_ms": 0,
+                "pause_ms": 0,
+                "invoker": "SchedulerPostTaskCallback",
+                "invoker_type": "user-callback",
+                "function": "",
+                "source": "https://localhost:4433/static/js/change_queue_scheduler.js?bts_asset=862a7e897125ee0a283bc7dc&v=70e3805b088d",
+                "char_position": 873
+              }
+            ],
+            "relative_ms": 108.6
+          }
+        ],
+        "cpu_focus_top": [
+          {
+            "sampled_ms": 157,
+            "self": [
+              {
+                "node_id": 2,
+                "function": "(program)",
+                "source": "",
+                "line": -1,
+                "column": -1,
+                "sampled_ms": 106.45
+              },
+              {
+                "node_id": 568,
+                "function": "measurePlainNames",
+                "source": "https://localhost:4433/static/js/cleitstand.js?bts_asset=dda1379b36cbe043007a156f&v=70e3805b088d",
+                "line": 562,
+                "column": 28,
+                "sampled_ms": 14.55
+              },
+              {
+                "node_id": 1950,
+                "function": "(anonymous)",
+                "source": "https://localhost:4433/static/js/ui_blocking_diagnostics.js?bts_asset=6a7c5b3ffdf1165531534855&v=70e3805b088d",
+                "line": 85,
+                "column": 71,
+                "sampled_ms": 6.22
+              },
+              {
+                "node_id": 1951,
+                "function": "known_match",
+                "source": "https://localhost:4433/static/js/conn.js?bts_asset=23733591909e321a8c4f7d87&v=70e3805b088d",
+                "line": 144,
+                "column": 21,
+                "sampled_ms": 4.87
+              },
+              {
+                "node_id": 566,
+                "function": "run",
+                "source": "https://localhost:4433/static/js/admin_update_observer.js?bts_asset=ce04ee6c7219c29d53693ec0&v=70e3805b088d",
+                "line": 103,
+                "column": 14,
+                "sampled_ms": 4.34
+              },
+              {
+                "node_id": 1949,
+                "function": "(anonymous)",
+                "source": "https://localhost:4433/static/js/ui_blocking_diagnostics.js?bts_asset=6a7c5b3ffdf1165531534855&v=70e3805b088d",
+                "line": 84,
+                "column": 46,
+                "sampled_ms": 4.16
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "trace_id": "live-drill-2974851-mwf26gub-160",
+        "kind": "finish",
+        "admin_ms": 156,
+        "tv_ms": 5,
+        "admin_ui_ms": {
+          "queue_ms": 0.2,
+          "handler_ms": 21.9,
+          "ui_wait_ms": 34.8,
+          "render_ms": 90.5,
+          "total_ms": 147.4
+        },
+        "sent_ts": 1794579298500,
+        "admin_control_received_ts": 1794579298512,
+        "admin_received_ts": 1794579298508,
+        "control_to_browser_callback_ms": -4,
+        "recorded_work": [
+          {
+            "id": 1896,
+            "name": "handler:score",
+            "start_ms": 74949,
+            "updates": [
+              {
+                "sequence": 1524,
+                "type": "score",
+                "match_id": "btp_default_MX U15_394",
+                "trace_id": "live-drill-2974851-mwf26gub-160"
+              }
+            ],
+            "end_ms": 74970.9,
+            "duration_ms": 21.9,
+            "relative_ms": 9.2
+          },
+          {
+            "id": 1920,
+            "name": "job:players.status",
+            "start_ms": 75077.5,
+            "job_id": 698,
+            "updates": [
+              {
+                "sequence": 1527,
+                "type": "update_player_status",
+                "match_id": "btp_default_JD U17_1500"
+              },
+              {
+                "sequence": 1528,
+                "type": "update_player_status",
+                "match_id": "btp_default_JD U17_1508"
+              },
+              {
+                "sequence": 1529,
+                "type": "update_player_status",
+                "match_id": "btp_default_JE U15_719"
+              },
+              {
+                "sequence": 1530,
+                "type": "update_player_status",
+                "match_id": "btp_default_MX U15_394"
+              },
+              {
+                "sequence": 1531,
+                "type": "update_player_status",
+                "match_id": "btp_default_MD U15_1418"
+              },
+              {
+                "sequence": 1532,
+                "type": "update_player_status",
+                "match_id": "btp_default_MD U15_1426"
+              },
+              {
+                "sequence": 1533,
+                "type": "update_player_status",
+                "match_id": "btp_default_ME U15_794"
+              },
+              {
+                "sequence": 1534,
+                "type": "update_player_status",
+                "match_id": "btp_default_JD U15_1339"
+              }
+            ],
+            "end_ms": 75095.4,
+            "duration_ms": 17.9,
+            "relative_ms": 137.7
+          },
+          {
+            "id": 1900,
+            "name": "job:names.layout",
+            "start_ms": 74995.4,
+            "job_id": 693,
+            "updates": [
+              {
+                "sequence": 1524,
+                "type": "score",
+                "match_id": "btp_default_MX U15_394",
+                "trace_id": "live-drill-2974851-mwf26gub-160"
+              }
+            ],
+            "end_ms": 75005.5,
+            "duration_ms": 10.1,
+            "relative_ms": 55.6
+          },
+          {
+            "id": 1899,
+            "name": "job:finished.sort",
+            "start_ms": 74986.1,
+            "job_id": 696,
+            "updates": [
+              {
+                "sequence": 1524,
+                "type": "score",
+                "match_id": "btp_default_MX U15_394",
+                "trace_id": "live-drill-2974851-mwf26gub-160"
+              }
+            ],
+            "end_ms": 74995.4,
+            "duration_ms": 9.3,
+            "relative_ms": 46.3
+          },
+          {
+            "id": 1898,
+            "name": "job:lists.counts",
+            "start_ms": 74980.6,
+            "job_id": 691,
+            "updates": [
+              {
+                "sequence": 1524,
+                "type": "score",
+                "match_id": "btp_default_MX U15_394",
+                "trace_id": "live-drill-2974851-mwf26gub-160"
+              }
+            ],
+            "end_ms": 74986,
+            "duration_ms": 5.4,
+            "relative_ms": 40.8
+          }
+        ],
+        "frames": [
+          {
+            "id": 1951,
+            "start_ms": 74946.3,
+            "end_ms": 75013.3,
+            "duration_ms": 67,
+            "blocking_ms": 14.3,
+            "render_start_ms": 74977.30000019073,
+            "style_layout_start_ms": 75005.69999980927,
+            "first_ui_event_ms": 0,
+            "script_count": 3,
+            "omitted_scripts": 0,
+            "scripts": [
+              {
+                "start_ms": 74948.90000009537,
+                "duration_ms": 28.40000009536743,
+                "execution_start_ms": 74948.90000009537,
+                "forced_style_layout_ms": 0,
+                "pause_ms": 0,
+                "invoker": "SchedulerPostTaskCallback",
+                "invoker_type": "user-callback",
+                "function": "",
+                "source": "https://localhost:4433/static/js/change_queue_scheduler.js?bts_asset=862a7e897125ee0a283bc7dc&v=70e3805b088d",
+                "char_position": 873
+              },
+              {
+                "start_ms": 74986.09999990463,
+                "duration_ms": 19.59999990463257,
+                "execution_start_ms": 74986.09999990463,
+                "forced_style_layout_ms": 0,
+                "pause_ms": 0,
+                "invoker": "FrameRequestCallback",
+                "invoker_type": "user-callback",
+                "function": "finish",
+                "source": "https://localhost:4433/static/js/cleitstand.js?bts_asset=dda1379b36cbe043007a156f&v=70e3805b088d",
+                "char_position": 106749
+              },
+              {
+                "start_ms": 74980.5,
+                "duration_ms": 5.5,
+                "execution_start_ms": 74980.5,
+                "forced_style_layout_ms": 0,
+                "pause_ms": 0,
+                "invoker": "FrameRequestCallback",
+                "invoker_type": "user-callback",
+                "function": "refresh",
+                "source": "https://localhost:4433/static/js/cleitstand.js?bts_asset=dda1379b36cbe043007a156f&v=70e3805b088d",
+                "char_position": 158102
+              }
+            ],
+            "relative_ms": 6.5
+          },
+          {
+            "id": 1957,
+            "start_ms": 75066,
+            "end_ms": 75143.3,
+            "duration_ms": 77.3,
+            "blocking_ms": 16.6,
+            "render_start_ms": 75096,
+            "style_layout_start_ms": 75127.80000019073,
+            "first_ui_event_ms": 0,
+            "script_count": 5,
+            "omitted_scripts": 0,
+            "scripts": [
+              {
+                "start_ms": 75106.30000019073,
+                "duration_ms": 21.5,
+                "execution_start_ms": 75106.30000019073,
+                "forced_style_layout_ms": 18.6,
+                "pause_ms": 0,
+                "invoker": "FrameRequestCallback",
+                "invoker_type": "user-callback",
+                "function": "runNameFrame",
+                "source": "https://localhost:4433/static/js/cleitstand.js?bts_asset=dda1379b36cbe043007a156f&v=70e3805b088d",
+                "char_position": 12134
+              },
+              {
+                "start_ms": 75076.5,
+                "duration_ms": 19.5,
+                "execution_start_ms": 75076.5,
+                "forced_style_layout_ms": 0,
+                "pause_ms": 0,
+                "invoker": "SchedulerPostTaskCallback",
+                "invoker_type": "user-callback",
+                "function": "",
+                "source": "https://localhost:4433/static/js/change_queue_scheduler.js?bts_asset=862a7e897125ee0a283bc7dc&v=70e3805b088d",
+                "char_position": 873
+              },
+              {
+                "start_ms": 75129.59999990463,
+                "duration_ms": 13.200000286102295,
+                "execution_start_ms": 75129.59999990463,
+                "forced_style_layout_ms": 0,
+                "pause_ms": 0,
+                "invoker": "ResizeObserverCallback",
+                "invoker_type": "user-callback",
+                "function": "",
+                "source": "https://localhost:4433/static/js/cleitstand.js?bts_asset=dda1379b36cbe043007a156f&v=70e3805b088d",
+                "char_position": 237569
+              },
+              {
+                "start_ms": 75096.40000009537,
+                "duration_ms": 8.5,
+                "execution_start_ms": 75096.40000009537,
+                "forced_style_layout_ms": 0,
+                "pause_ms": 0,
+                "invoker": "FrameRequestCallback",
+                "invoker_type": "user-callback",
+                "function": "",
+                "source": "https://localhost:4433/static/js/admin_update_observer.js?bts_asset=ce04ee6c7219c29d53693ec0&v=70e3805b088d",
+                "char_position": 4132
+              },
+              {
+                "start_ms": 75066.5,
+                "duration_ms": 7.900000095367432,
+                "execution_start_ms": 75066.5,
+                "forced_style_layout_ms": 0,
+                "pause_ms": 0,
+                "invoker": "DOMWebSocket.onmessage",
+                "invoker_type": "event-listener",
+                "function": "handle_message",
+                "source": "https://localhost:4433/static/js/conn.js?bts_asset=23733591909e321a8c4f7d87&v=70e3805b088d",
+                "char_position": 8675
+              }
+            ],
+            "relative_ms": 126.2
+          }
+        ],
+        "cpu_focus_top": [
+          {
+            "sampled_ms": 148,
+            "self": [
+              {
+                "node_id": 2,
+                "function": "(program)",
+                "source": "",
+                "line": -1,
+                "column": -1,
+                "sampled_ms": 59.05
+              },
+              {
+                "node_id": 915,
+                "function": "row",
+                "source": "https://localhost:4433/static/js/cleitstand.js?bts_asset=dda1379b36cbe043007a156f&v=70e3805b088d",
+                "line": 2081,
+                "column": 14,
+                "sampled_ms": 14.24
+              },
+              {
+                "node_id": 64,
+                "function": "handle_message",
+                "source": "https://localhost:4433/static/js/conn.js?bts_asset=23733591909e321a8c4f7d87&v=70e3805b088d",
+                "line": 244,
+                "column": 23,
+                "sampled_ms": 12.01
+              },
+              {
+                "node_id": 1062,
+                "function": "timerDisplay",
+                "source": "https://localhost:4433/static/js/cleitstand.js?bts_asset=dda1379b36cbe043007a156f&v=70e3805b088d",
+                "line": 1575,
+                "column": 23,
+                "sampled_ms": 9.62
+              },
+              {
+                "node_id": 239,
+                "function": "sortFinishedTables",
+                "source": "https://localhost:4433/static/js/cleitstand.js?bts_asset=dda1379b36cbe043007a156f&v=70e3805b088d",
+                "line": 1443,
+                "column": 29,
+                "sampled_ms": 6.89
+              },
+              {
+                "node_id": 1248,
+                "function": "(anonymous)",
+                "source": "https://localhost:4433/static/js/cleitstand.js?bts_asset=dda1379b36cbe043007a156f&v=70e3805b088d",
+                "line": 785,
+                "column": 84,
+                "sampled_ms": 5.1
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "trace_id": "live-drill-2974851-mwf2g0j6-705",
+        "kind": "ordinary",
+        "admin_ms": 113,
+        "tv_ms": 11,
+        "admin_ui_ms": {
+          "queue_ms": 0.5,
+          "handler_ms": 0.3,
+          "ui_wait_ms": 0,
+          "render_ms": 13.2,
+          "total_ms": 14
+        },
+        "sent_ts": 1794579743922,
+        "admin_control_received_ts": 1794579743937,
+        "admin_received_ts": 1794579744021,
+        "control_to_browser_callback_ms": 84,
+        "recorded_work": [
+          {
+            "id": 8554,
+            "name": "job:matches.warnings",
+            "start_ms": 520379.4,
+            "job_id": 2034,
+            "updates": [
+              {
+                "sequence": 6254,
+                "type": "match_edit",
+                "match_id": "btp_default_MX U15_387"
+              }
+            ],
+            "end_ms": 520388.8,
+            "duration_ms": 9.4,
+            "relative_ms": 17.6
+          },
+          {
+            "id": 8553,
+            "name": "handler:match_edit",
+            "start_ms": 520371.5,
+            "updates": [
+              {
+                "sequence": 6276,
+                "type": "match_edit",
+                "match_id": "btp_default_MD U13_1254"
+              }
+            ],
+            "end_ms": 520378.7,
+            "duration_ms": 7.2,
+            "relative_ms": 9.7
+          },
+          {
+            "id": 8562,
+            "name": "job:names.layout",
+            "start_ms": 520439.8,
+            "job_id": 2031,
+            "updates": [
+              {
+                "sequence": 6254,
+                "type": "match_edit",
+                "match_id": "btp_default_MX U15_387"
+              },
+              {
+                "sequence": 6255,
+                "type": "match_edit",
+                "match_id": "btp_default_MD U13_1267"
+              }
+            ],
+            "end_ms": 520443.9,
+            "duration_ms": 4.1,
+            "relative_ms": 78.0
+          },
+          {
+            "id": 8564,
+            "name": "names.measure.rich",
+            "start_ms": 520440,
+            "groups": 2,
+            "end_ms": 520443.9,
+            "duration_ms": 3.9,
+            "relative_ms": 78.2
+          },
+          {
+            "id": 8556,
+            "name": "job:timers.fit",
+            "start_ms": 520401,
+            "job_id": 2032,
+            "updates": [
+              {
+                "sequence": 6254,
+                "type": "match_edit",
+                "match_id": "btp_default_MX U15_387"
+              }
+            ],
+            "end_ms": 520404.8,
+            "duration_ms": 3.8,
+            "relative_ms": 39.2
+          }
+        ],
+        "frames": [],
+        "cpu_focus_top": [
+          {
+            "sampled_ms": 98,
+            "self": [
+              {
+                "node_id": 2,
+                "function": "(program)",
+                "source": "",
+                "line": -1,
+                "column": -1,
+                "sampled_ms": 65.71
+              },
+              {
+                "node_id": 617,
+                "function": "collect",
+                "source": "https://localhost:4433/static/js/btp_dsq_todos.js?bts_asset=99c89c043923181105a82cfb&v=70e3805b088d",
+                "line": 13,
+                "column": 17,
+                "sampled_ms": 6.46
+              },
+              {
+                "node_id": 125,
+                "function": "(garbage collector)",
+                "source": "",
+                "line": -1,
+                "column": -1,
+                "sampled_ms": 5.57
+              },
+              {
+                "node_id": 33,
+                "function": "measureTimer",
+                "source": "https://localhost:4433/static/js/cleitstand.js?bts_asset=dda1379b36cbe043007a156f&v=70e3805b088d",
+                "line": 1613,
+                "column": 23,
+                "sampled_ms": 4.76
+              },
+              {
+                "node_id": 169,
+                "function": "getBoundingClientRect",
+                "source": "",
+                "line": -1,
+                "column": -1,
+                "sampled_ms": 4.66
+              },
+              {
+                "node_id": 641,
+                "function": "(anonymous)",
+                "source": "https://localhost:4433/static/js/cmatch.js?bts_asset=82791a6939091e91816d4601&v=70e3805b088d",
+                "line": 161,
+                "column": 54,
+                "sampled_ms": 2.09
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "trace_id": "live-drill-2974851-mwf2h4fr-836",
+        "kind": "ordinary",
+        "admin_ms": 112,
+        "tv_ms": 3,
+        "admin_ui_ms": {
+          "queue_ms": 0.3,
+          "handler_ms": 0.6,
+          "ui_wait_ms": 36.4,
+          "render_ms": 69.8,
+          "total_ms": 107.1
+        },
+        "sent_ts": 1794579795639,
+        "admin_control_received_ts": 1794579795643,
+        "admin_received_ts": 1794579795644,
+        "control_to_browser_callback_ms": 1,
+        "recorded_work": [
+          {
+            "id": 9470,
+            "name": "job:timers.fit",
+            "start_ms": 572113.5,
+            "job_id": 2091,
+            "updates": [
+              {
+                "sequence": 7111,
+                "type": "score",
+                "match_id": "btp_default_MX U19_317",
+                "trace_id": "live-drill-2974851-mwf2h4fr-836"
+              }
+            ],
+            "end_ms": 572120.9,
+            "duration_ms": 7.4,
+            "relative_ms": 34.7
+          }
+        ],
+        "frames": [],
+        "cpu_focus_top": [
+          {
+            "sampled_ms": 108,
+            "self": [
+              {
+                "node_id": 2,
+                "function": "(program)",
+                "source": "",
+                "line": -1,
+                "column": -1,
+                "sampled_ms": 76.96
+              },
+              {
+                "node_id": 11,
+                "function": "(idle)",
+                "source": "",
+                "line": -1,
+                "column": -1,
+                "sampled_ms": 15.84
+              },
+              {
+                "node_id": 33,
+                "function": "measureTimer",
+                "source": "https://localhost:4433/static/js/cleitstand.js?bts_asset=dda1379b36cbe043007a156f&v=70e3805b088d",
+                "line": 1613,
+                "column": 23,
+                "sampled_ms": 9.1
+              },
+              {
+                "node_id": 367,
+                "function": "pruneTimers",
+                "source": "https://localhost:4433/static/js/cleitstand.js?bts_asset=dda1379b36cbe043007a156f&v=70e3805b088d",
+                "line": 1624,
+                "column": 22,
+                "sampled_ms": 4.01
+              },
+              {
+                "node_id": 173,
+                "function": "deep_equal",
+                "source": "https://localhost:4433/bupdev/js/utils.js?bts_asset=e144771d21aeffdc7d4bc175&v=70e3805b088d",
+                "line": 179,
+                "column": 19,
+                "sampled_ms": 1.54
+              },
+              {
+                "node_id": 262,
+                "function": "querySelector",
+                "source": "",
+                "line": -1,
+                "column": -1,
+                "sampled_ms": 0.55
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "trace_id": "live-drill-2974851-mwf26lbk-171",
+        "kind": "ordinary",
+        "admin_ms": 109,
+        "tv_ms": 9,
+        "admin_ui_ms": {
+          "queue_ms": 0.1,
+          "handler_ms": 0.3,
+          "ui_wait_ms": 0,
+          "render_ms": 13.9,
+          "total_ms": 14.3
+        },
+        "sent_ts": 1794579304304,
+        "admin_control_received_ts": 1794579304318,
+        "admin_received_ts": 1794579304399,
+        "control_to_browser_callback_ms": 81,
+        "recorded_work": [
+          {
+            "id": 2274,
+            "name": "job:names.layout",
+            "start_ms": 80796.6,
+            "job_id": 793,
+            "updates": [
+              {
+                "sequence": 1737,
+                "type": "match_preparation_call",
+                "match_id": "btp_default_MX U15_400"
+              }
+            ],
+            "end_ms": 80800,
+            "duration_ms": 3.4,
+            "relative_ms": 52.8
+          }
+        ],
+        "frames": [],
+        "cpu_focus_top": [
+          {
+            "sampled_ms": 95,
+            "self": [
+              {
+                "node_id": 2,
+                "function": "(program)",
+                "source": "",
+                "line": -1,
+                "column": -1,
+                "sampled_ms": 83.68
+              },
+              {
+                "node_id": 3,
+                "function": "(idle)",
+                "source": "",
+                "line": -1,
+                "column": -1,
+                "sampled_ms": 4.19
+              },
+              {
+                "node_id": 1419,
+                "function": "measure",
+                "source": "https://localhost:4433/static/js/cleitstand.js?bts_asset=dda1379b36cbe043007a156f&v=70e3805b088d",
+                "line": 1835,
+                "column": 18,
+                "sampled_ms": 2.91
+              },
+              {
+                "node_id": 1010,
+                "function": "flush",
+                "source": "https://localhost:4433/static/js/timer_updates.js?bts_asset=e316c445749058586bb0aea8&v=70e3805b088d",
+                "line": 20,
+                "column": 15,
+                "sampled_ms": 2.15
+              },
+              {
+                "node_id": 566,
+                "function": "run",
+                "source": "https://localhost:4433/static/js/admin_update_observer.js?bts_asset=ce04ee6c7219c29d53693ec0&v=70e3805b088d",
+                "line": 103,
+                "column": 14,
+                "sampled_ms": 2.07
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "interpretation": "Sampling durations may include descheduling and are not exclusive CPU time. The (program) bucket does not identify an exact native function. Nested work must not be added as independent costs. Frame script durations are read from scripts[]; remaining frame time is not automatically paint CPU."
+  },
+  "remaining_limits": [
+    "Finite test repetitions do not establish a hard real-time guarantee on the operating system or physical clients.",
+    "A diagnostic sampling duration can include descheduling and must not be described as exact exclusive CPU time.",
+    "Production database files remain on their original persistent filesystem."
+  ],
+  "objective_achieved": false,
+  "backend_source_verification": {
+    "server_id": "2974505-1794579164558",
+    "server_start_ts": 1794579164558,
+    "planner_source_mtime_ms": 1794579163226.352,
+    "started_after_source_change": true
+  }
+}

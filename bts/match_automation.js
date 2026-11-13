@@ -391,7 +391,11 @@ function calculate_location_preparation_status(tournament, location_id) {
 	const matches = Array.isArray(tournament?.matches) ? tournament.matches : [];
 	const current_preparation_count = matches.filter((match) => {
 		const setup = match && match.setup;
-		return !!setup && setup.state === 'preparation' && setup.preparation_call_deferred !== true && setup.location_id === location_id;
+		// A preparation label can outlive its participants. Such an entry cannot
+		// fill a slot until both teams are known again. Check-in and pause
+		// readiness do not affect this count.
+		return !!setup && setup.state === 'preparation' && setup.preparation_call_deferred !== true && setup.location_id === location_id &&
+			setup.incomplete !== true && is_match_completely_initialized(match);
 	}).length;
 
 	return {
@@ -1456,6 +1460,10 @@ function calculate_call_on_court_selection(tournament, courts, options = {}) {
 	return { potential_matches, by_court };
 }
 
+function call_activity_conflicts(match, tournament, options) {
+	return with_participant_lookup(tournament, options)[PARTICIPANT_LOOKUP].activity_conflicts(match);
+}
+
 function passes_base_call_on_court_rules(match, court_id, tournament, options = {}) {
 	if (require('../static/js/btp_entry_status').blocked_players(match).length) return false;
 	const setup = match?.setup || {};
@@ -1474,6 +1482,7 @@ function passes_base_call_on_court_rules(match, court_id, tournament, options = 
 	if (!is_match_completely_initialized(match)) return false;
 	if (setup.now_on_court === true) return false;
 	if (match?.team1_won !== undefined && match?.team1_won !== null) return false;
+	if (call_activity_conflicts(match, tournament, options).length) return false;
 	if (!match_matches_location(match, location_id, courts_by_id)) return false;
 	if (has_open_participant_dependency(match, tournament, { ...options, matches_by_planning_id })) return false;
 	if (!passes_call_on_court_preparation_rule(match, tournament, now_ts)) return false;
@@ -1577,6 +1586,7 @@ function passes_field_independent_call_on_court_rules(match, tournament, options
 	if (!is_match_completely_initialized(match)) return false;
 	if (setup.now_on_court === true) return false;
 	if (match?.team1_won !== undefined && match?.team1_won !== null) return false;
+	if (call_activity_conflicts(match, tournament, options).length) return false;
 	if (has_open_participant_dependency(match, tournament, { ...options, matches_by_planning_id })) return false;
 	if (!passes_call_on_court_preparation_rule(match, tournament, now_ts)) return false;
 	if (!passes_time_limit_before_scheduled_for_prefix(match, tournament, 'call_on_court', now_ts)) return false;
@@ -1820,6 +1830,19 @@ function manual_preparation_rules_pass(rules) {
 	return enabled_diagnostic_rules_pass((Array.isArray(rules) ? rules : []).filter(is_manual_preparation_rule));
 }
 
+// The manual subset of the diagnostic rules, without constructing display
+// explanations for every match outside the current automatic call window.
+function manual_preparation_allowed(match, location_id, tournament, options = {}) {
+	const setup = match?.setup || {};
+	return ['scheduled', 'preparation', 'blocked'].includes(setup.state) &&
+		!require('../static/js/btp_entry_status').blocked_players(match).length && !has_terminal_score_status(match) &&
+		setup.is_match === true && setup.incomplete !== true && is_match_completely_initialized(match) &&
+		match.team1_won == null && setup.now_on_court !== true &&
+		match_matches_location(match, location_id, options.courts_by_id || get_courts_by_id(tournament)) &&
+		passes_no_inactive_special_result_player_rule(match, tournament, options) &&
+		passes_no_player_playing_on_court_rule(match);
+}
+
 function describe_timestamp(timestamp) {
 	if (!Number.isFinite(timestamp)) {
 		return '';
@@ -1852,7 +1875,7 @@ function format_limit_number(value) {
 	return String(Math.round(value * 10) / 10);
 }
 
-function describe_time_before_scheduled_limit_for_prefix(match, tournament, prefix, now_ts, passed) {
+function describe_time_before_scheduled_limit_for_prefix(match, tournament, prefix) {
 	const limit_minutes = get_time_limit_before_scheduled_minutes_for_prefix(tournament, prefix);
 	if (limit_minutes == null) {
 		return null;
@@ -1861,19 +1884,12 @@ function describe_time_before_scheduled_limit_for_prefix(match, tournament, pref
 	if (!Number.isFinite(scheduled_ts)) {
 		return 'Ansetzzeit fehlt';
 	}
-	const minutes_until_start = (scheduled_ts - now_ts) / (60 * 1000);
-	if (passed) {
-		if (minutes_until_start >= 0) {
-			return `noch ${format_limit_number(minutes_until_start)} von ${format_limit_number(limit_minutes)} min bis Start`;
-		}
-		return `${format_limit_number(Math.abs(minutes_until_start))} min nach geplanter Startzeit (Limit ${format_limit_number(limit_minutes)} min)`;
-	}
 	const available_from_ts = scheduled_ts - (limit_minutes * 60 * 1000);
-	return `noch ${format_limit_number(minutes_until_start)} min bis Start; Limit ${format_limit_number(limit_minutes)} min, freigegeben ab ${describe_timestamp(available_from_ts)}`;
+	return `Start ${describe_timestamp(scheduled_ts)}; Limit ${format_limit_number(limit_minutes)} min, freigegeben ab ${describe_timestamp(available_from_ts)}`;
 }
 
-function describe_time_before_scheduled_limit(match, tournament, now_ts, passed) {
-	return describe_time_before_scheduled_limit_for_prefix(match, tournament, 'preparation_call', now_ts, passed);
+function describe_time_before_scheduled_limit(match, tournament) {
+	return describe_time_before_scheduled_limit_for_prefix(match, tournament, 'preparation_call');
 }
 
 function get_frontier_match_distance(match, frontier, relevant_matches) {
@@ -1918,7 +1934,7 @@ function describe_frontier_limit(kind, distance, limit, frontier, unit = '') {
 	return `${kind} ${format_limit_number(distance)} von ${limit_text} nach ${frontier_label}`;
 }
 
-function describe_call_on_court_preparation_age(match, tournament, now_ts, passed) {
+function describe_call_on_court_preparation_age(match, tournament) {
 	const minimum_minutes = get_call_on_court_preparation_age_minutes(tournament);
 	if (minimum_minutes == null) {
 		return null;
@@ -1930,11 +1946,7 @@ function describe_call_on_court_preparation_age(match, tournament, now_ts, passe
 	if (!Number.isFinite(preparation_ts)) {
 		return 'Zeitpunkt des Vorbereitungsaufrufs fehlt';
 	}
-	const age_minutes = Math.max(0, (now_ts - preparation_ts) / (60 * 1000));
-	if (passed) {
-		return `in Vorbereitung ${format_limit_number(age_minutes)} von ${format_limit_number(minimum_minutes)} min`;
-	}
-	return `erst ${format_limit_number(age_minutes)} von ${format_limit_number(minimum_minutes)} min in Vorbereitung`;
+	return `Vorbereitung seit ${describe_timestamp(preparation_ts)}; mindestens ${format_limit_number(minimum_minutes)} min, freigegeben ab ${describe_timestamp(preparation_ts + minimum_minutes * 60000)}`;
 }
 
 function calculate_match_call_on_court_diagnostics(match, court_id, tournament, options = {}) {
@@ -1977,6 +1989,9 @@ function calculate_match_call_on_court_diagnostics(match, court_id, tournament, 
 	add_preparation_diagnostic_rule(rules, 'participants_complete', is_match_completely_initialized(match));
 	add_preparation_diagnostic_rule(rules, 'not_on_court', setup.now_on_court !== true);
 	add_preparation_diagnostic_rule(rules, 'not_finished', match?.team1_won === undefined || match?.team1_won === null);
+	const activity_conflicts = call_activity_conflicts(match, tournament, options);
+	add_preparation_diagnostic_rule(rules, 'participants_available', !activity_conflicts.length,
+		activity_conflicts.length ? `Spieler oder Tabletbediener bereits belegt: ${format_player_names(activity_conflicts)}` : null);
 	const location_passed = match_matches_location(match, location_id, courts_by_id);
 	add_preparation_diagnostic_rule(
 		rules,
@@ -1996,7 +2011,7 @@ function calculate_match_call_on_court_diagnostics(match, court_id, tournament, 
 		rules,
 		'call_on_court_preparation_age',
 		preparation_age_passed,
-		describe_call_on_court_preparation_age(match, tournament, now_ts, preparation_age_passed),
+		describe_call_on_court_preparation_age(match, tournament),
 		preparation_age_enabled
 	);
 
@@ -2006,7 +2021,7 @@ function calculate_match_call_on_court_diagnostics(match, court_id, tournament, 
 		rules,
 		'call_on_court_time_before_scheduled',
 		start_time_limit_passed,
-		describe_time_before_scheduled_limit_for_prefix(match, tournament, 'call_on_court', now_ts, start_time_limit_passed),
+		describe_time_before_scheduled_limit_for_prefix(match, tournament, 'call_on_court'),
 		start_time_limit_enabled,
 		'window'
 	);
@@ -2177,7 +2192,7 @@ function calculate_match_preparation_diagnostics(match, location_id, tournament,
 		rules,
 		'time_before_scheduled',
 		time_limit_passed,
-		describe_time_before_scheduled_limit(match, tournament, now_ts, time_limit_passed),
+		describe_time_before_scheduled_limit(match, tournament),
 		time_limit_enabled,
 		'window'
 	);
@@ -2400,10 +2415,11 @@ function complete_preparation_steps(steps) {
 	return next.value;
 }
 
-// The synchronous automation and read-only UI use the same rules. Only the UI
-// pauses between these stages; automatic calls keep their synchronous result.
+// Final synchronous guards and cooperative shared status reads use these same
+// rules. Shared calculations yield between stages for incoming points and I/O.
 function* location_preparation_selection_steps(tournament, location_id, options = {}) {
 	options = with_participant_lookup(tournament, with_frontier_positions(options));
+	const base = options.base_selections?.get(location_id);
 	yield;
 	const status = calculate_location_preparation_status(tournament, location_id);
 	const courts_by_id = options.courts_by_id || get_courts_by_id(tournament);
@@ -2412,7 +2428,7 @@ function* location_preparation_selection_steps(tournament, location_id, options 
 	const relevant_matches = options.relevant_matches || get_location_relevant_matches(tournament, location_id, { courts_by_id });
 	const frontier_window_matches = options.frontier_window_matches || get_location_preparation_frontier_window_matches(tournament, location_id, { courts_by_id });
 	yield;
-	const frontier = options.frontier !== undefined
+	const frontier = base ? base.frontier : options.frontier !== undefined
 		? options.frontier
 		: find_preparation_frontier_match(tournament, location_id, {
 			[PARTICIPANT_LOOKUP]: options[PARTICIPANT_LOOKUP],
@@ -2423,7 +2439,7 @@ function* location_preparation_selection_steps(tournament, location_id, options 
 			ignore_technical_officials_available_rule: options.ignore_technical_officials_available_rule === true,
 		});
 	yield;
-	const candidates = find_location_preparation_candidates(tournament, location_id, {
+	const candidates = base ? base.candidates : find_location_preparation_candidates(tournament, location_id, {
 		...options,
 		courts_by_id,
 		matches_by_planning_id,
@@ -2451,6 +2467,8 @@ function* location_preparation_selection_steps(tournament, location_id, options 
 		});
 	}
 	const field_selection_debug = calculate_location_field_selection_debug(tournament, location_id, status);
+	const manual_callable_match_ids = (tournament.matches || []).filter(match =>
+		manual_preparation_allowed(match, location_id, tournament, { ...options, courts_by_id })).map(match => match._id);
 	yield;
 	const { display_relevant_matches, display_frontier, display_cutoff, diagnostic_matches } = get_location_preparation_display_window(tournament, location_id, {
 		...options, courts_by_id, matches_by_planning_id, now_ts, frontier_window_matches,
@@ -2545,6 +2563,7 @@ function* location_preparation_selection_steps(tournament, location_id, options 
 		diagnostics_by_match_id,
 		call_on_court_diagnostics_by_match_id,
 		field_selection_debug,
+		manual_callable_match_ids,
 		candidates,
 		selected_matches,
 		auto_selected_matches,
@@ -2589,6 +2608,12 @@ async function fetch_location_preparation_status(app, tournament_key, location_i
 }
 
 async function fetch_location_preparation_selection(app, tournament_key, location_id, options = {}) {
+	if (shared_preparation_options(app, options)) {
+		const shared = await require('./call_status')(app).selection(tournament_key, location_id, options);
+		if (shared) return shared;
+		// Preserve the historical response for a hall removed or not yet stored.
+		// Such a request is outside the shared list of current locations.
+	}
 	const timing = options.preparation_timing;
 	const { tournaments: tournament, locations, courts, matches, umpires, tabletoperators } =
 		await require('./preparation_selection/selection_reads')(app, tournament_key, location_id, timing, options.automatic_only === true);
@@ -2615,11 +2640,22 @@ async function fetch_location_preparation_selection(app, tournament_key, locatio
 }
 
 async function fetch_all_location_preparation_selections(app, tournament_key, options = {}) {
+	if (shared_preparation_options(app, options)) {
+		const entry = await require('./call_status')(app).entry(tournament_key, { ...options, detailed: options.automatic_only !== true });
+		return options.automatic_only === true ? entry.raw : require('nedb/lib/model').deepCopy(entry.raw);
+	}
 	const { tournaments: tournament, locations, courts, matches, umpires, tabletoperators } =
 		await require('./preparation_selection/selection_reads')(app, tournament_key, null, options.preparation_timing, options.cooperative === true);
 
 	const input = { ...(tournament || {}), locations, courts, matches, umpires, tabletoperators };
 	return calculate_all_location_preparation_selections(input, { ...options, app });
+}
+
+function shared_preparation_options(app, options) {
+	const reads = require('./preparation_selection/model_reads');
+	return Object.keys(options).every(key => ['now_ts', 'automatic_only', 'cooperative', 'preparation_timing'].includes(key)) &&
+		['tournaments', 'locations', 'courts', 'matches', 'umpires', 'tabletoperators'].every(name =>
+			reads.supported(app, name, true) && !Object.keys(app.db[name].ttlIndexes || {}).length);
 }
 
 async function calculate_all_location_preparation_selections(input, options = {}) {

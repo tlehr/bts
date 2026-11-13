@@ -953,11 +953,13 @@ function handle_tournament_get(app, ws, msg, trace_done) {
 	if (!traces.capture() && traces.enabled()) return traces.operation('admin_tournament_get', { tournament_key: msg.key, type: 'admin' },
 		() => new Promise((resolve, reject) => handle_tournament_get(app, ws, msg, error => error ? reject(error) : resolve()))).catch(() => {});
 	const snapshot_span = traces.begin('admin_tournament_snapshot', 'phase');
+	const events_ticket = require('./admin_response/event_updates').begin(ws, msg.key, msg.events_delta === 2 ? 2 : msg.events_delta === true);
 	// Hold later live updates on this connection from the start of the read.
 	// Copying/encoding yields, so updates can commit before the reply is ready.
 	const respond_to_client = require('./offload/profile').enabled('admin_response_background') && ws.reserve_response
 		? ws.reserve_response(msg) : (error, response) => ws.respond(msg, error, response);
 	const respond = (error, response) => {
+		require('./admin_response/event_updates').finish(events_ticket, response?.tournament);
 		traces.end(snapshot_span, error);
 		try { return respond_to_client(error, response); }
 		finally { if (trace_done) trace_done(error); }
@@ -1058,12 +1060,19 @@ async function preparation_selection_response(app, ws, msg) {
 		return;
 	}
 
-	const selections = await require('./preparation_selection/admin_reads').read(app, msg.tournament_key, {
-		now_ts: now_ms(app), cache: typeof ws.respond_background === 'function',
-	});
-	return (ws.respond_background || ws.respond).call(ws, msg, null, {
-		selections,
-	});
+	const service = require('./call_status')(app);
+	const delivery = require('./admin_response/call_status');
+	const streaming = !!(ws.sendmsg && ws.respond_background);
+	const ticket = streaming ? delivery.begin(ws, msg.tournament_key, msg.call_status_delta) : null;
+	let value;
+	try { value = await service.snapshot(msg.tournament_key, {
+		cache: typeof ws.respond_background === 'function',
+	}); } catch (error) { return ws.respond(msg,error); }
+	if (ws.sendmsg && ws.respond_background) { service.unwatch(ws); service.watch(msg.tournament_key, ws); }
+	if (ticket) delivery.finish(ticket, value);
+	// Each response adapter adds its own type/rid to the envelope. Only the
+	// immutable selection data and revision are shared between connections.
+	return (ws.respond_background || ws.respond).call(ws, msg, null, { ...value, call_status_subscribed:streaming });
 }
 
 async function async_handle_preparation_selection_execute(app, ws, msg) {
@@ -1351,6 +1360,8 @@ async function handle_maintenance_reset(app, ws, msg) {
 				const result = await reset_player_pause_times(app,msg.tournament_key,{target});
 				notify_change(app,msg.tournament_key,'player_pause_reset',result);return result;
 			},
+			player_checkins:target => require('./player_checkin_reset').reset(app,msg.tournament_key,{target},
+				(type,value) => notify_change(app,msg.tournament_key,type,value)),
 		});
 		if (plan.target === 'both' && plan.actions.includes('match_results')) btp_manager.fetch(msg.tournament_key);
 		return ws.respond(msg,null,result);
@@ -6827,8 +6838,32 @@ function _notify_queue_hang(payload) {
 		});
 	}
 }
+const notification_announcement_types = new Set([
+	'match_preparation_call',
+	'match_called_on_court',
+	'begin_to_play_call',
+	'second_call_tabletoperator',
+	'second_preparation_call_tabletoperator',
+	'second_call_umpire',
+	'second_preparation_call_umpire',
+	'second_call_servicejudge',
+	'second_preparation_call_servicejudge',
+	'second_call_team_one',
+	'second_preparation_call_team_one',
+	'second_call_team_two',
+	'second_preparation_call_team_two',
+	'match_no_match_announcement',
+	'free_announce',
+]);
+function prepare_event_notification(tournament_key, value) {
+	return require('./admin_response/event_updates').precompute(value, all_admins, tournament_key);
+}
+
+let notification_dependencies;
 function notify_change(app, tournament_key, ctype, val) {
-	const effects = require('./btp_sync_effects');
+	const dependencies = notification_dependencies ||= { effects:require('./btp_sync_effects'), protocol:require('./match_protocol'), profile:require('./offload/profile'), outbox:require('./admin_response/outbox') };
+
+	const effects = dependencies.effects;
 	if (app?._btp_sync_effects) {
 		const value = effects.copy(val);
 		effects.capture(app, real_app => notify_change(real_app, tournament_key, ctype, value), {
@@ -6838,30 +6873,14 @@ function notify_change(app, tournament_key, ctype, val) {
 	}
 	let payload = val;
 	app.speech?.changed(tournament_key, ctype, val);
-	const announcement_change_types = new Set([
-		'match_preparation_call',
-		'match_called_on_court',
-		'begin_to_play_call',
-		'second_call_tabletoperator',
-		'second_preparation_call_tabletoperator',
-		'second_call_umpire',
-		'second_preparation_call_umpire',
-		'second_call_servicejudge',
-		'second_preparation_call_servicejudge',
-		'second_call_team_one',
-		'second_preparation_call_team_one',
-		'second_call_team_two',
-		'second_preparation_call_team_two',
-		'match_no_match_announcement',
-		'free_announce',
-	]);
-	if (payload && typeof payload === 'object' && announcement_change_types.has(ctype) && payload._announcement_ts == null) {
+
+	if (payload && typeof payload === 'object' && notification_announcement_types.has(ctype) && payload._announcement_ts == null) {
 		payload = {
 			...payload,
 			_announcement_ts: now_ms(app),
 		};
 	}
-	payload = require('./match_protocol').identify_announcement(ctype, payload);
+	payload = dependencies.protocol.identify_announcement(ctype, payload);
 	if (ctype === 'match_preparation_call' && payload && typeof payload === 'object') {
 		debug_flags.log(app, payload.match?.tournament_key || payload.match?.setup?.tournament_key || null, '[bts] debug:match_preparation_call_sent', {
 			match_id: payload.match__id || payload.match?._id || null,
@@ -6897,14 +6916,25 @@ function notify_change(app, tournament_key, ctype, val) {
 		});
 	}
 	const message = { type: 'change', tournament_key, ctype, val: payload };
-	const shared_enabled = require('./offload/profile').enabled('admin_broadcast_shared');
+	const event_delivery = ctype === 'update_btp_events' ? require('./admin_response/event_updates').prepare(payload)
+		: ctype === 'call_status_changed' ? require('./admin_response/call_status').prepare(payload) : null;
+	const event_packets = event_delivery ? new Map() : null;
+	const shared_enabled = dependencies.profile.enabled('admin_broadcast_shared');
 	let packet;
 	for (const admin_ws of all_admins) {
 		if (admin_ws.performance_probe) continue;
+		const client_value = event_delivery ? event_delivery(admin_ws, tournament_key) : payload;
+		if (client_value === null) continue;
+		const outbound = client_value === payload ? message : { ...message, val: client_value };
 		if (shared_enabled && admin_ws.send_broadcast) {
-			packet ||= require('./admin_response/outbox').prepare_broadcast(message);
-			admin_ws.send_broadcast(packet);
-		} else admin_ws.sendmsg({ ...message });
+			if (event_packets) {
+				if (!event_packets.has(client_value)) event_packets.set(client_value, dependencies.outbox.prepare_broadcast(outbound));
+				admin_ws.send_broadcast(event_packets.get(client_value));
+			} else {
+				packet ||= dependencies.outbox.prepare_broadcast(outbound);
+				admin_ws.send_broadcast(packet);
+			}
+		} else admin_ws.sendmsg({ ...outbound });
 	}
 }
 
@@ -6933,6 +6963,8 @@ function handle_fetch_allscoresheets_data(app, ws, msg) {
 function handle_debug_queue_stats(app, ws, msg) {
 	ws.respond(msg, null, {
 		queue: update_queue.stats(),
+		connection_id: require('./admin_response/outbox').connection_id(ws),
+		server_time: Date.now(),
 	});
 }
 
@@ -6975,6 +7007,7 @@ function handle_audio_device_edit(app, ws, msg) {
 }
 
 function on_close(app, ws) {
+	require('./call_status').release(app, ws);
 	require('./audio_devices').release(app, ws);
 	require('./emergency_audio').release(app, ws);
 	if (! utils.remove(all_admins, ws)) {
@@ -7230,6 +7263,7 @@ module.exports = {
 	cascade_no_match_for_future_player_matches,
 	clear_no_match_cascade_for_source_match,
 	notify_cascaded_no_match_announcements,
+	prepare_event_notification,
 	notify_change,
 	generate_tournament_web_url,
 	on_close,

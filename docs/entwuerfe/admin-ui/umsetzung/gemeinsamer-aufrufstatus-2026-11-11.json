@@ -1,0 +1,162 @@
+{
+  "scope": "Isolierte In-Memory-Datenbank und eigener nativer Testbrowser. Keine Änderungen an laufendem BTS oder BTP.",
+  "behavior": [
+    "Gemeinsame Aufrufauswahl für Vorbereitungsautomatik und Adminantworten",
+    "Neuberechnung nur nach relevanten Eingabeänderungen, Uhränderung oder Regel-Zeitgrenze",
+    "Server-Push an beobachtende Adminseiten mit Revision gegen verspätete Antworten",
+    "Keine neue Berechnung bei gewöhnlichen Punkt-/Aufschlag-/Historien-/Sync-Quittungsänderungen",
+    "Frische Schlussprüfung und validierte Feldvergabe bleiben erhalten"
+  ],
+  "server_benchmark_isolated": {
+    "fixture": {
+      "matches": 584,
+      "open": 558,
+      "courts": 15,
+      "locations": 2
+    },
+    "full": {
+      "n": 12,
+      "mean_ms": 76.35741581519444,
+      "median_ms": 65.0505759716034,
+      "max_ms": 156.90777206420898
+    },
+    "unchanged": {
+      "n": 60,
+      "mean_ms": 0.2392417311668396,
+      "median_ms": 0.18417596817016602,
+      "max_ms": 0.9646248817443848
+    },
+    "after_ordinary_point": {
+      "n": 60,
+      "mean_ms": 0.4726395686467489,
+      "median_ms": 0.4131789207458496,
+      "max_ms": 3.5352938175201416
+    },
+    "calculations_before_event": 13,
+    "calculations_after_event": 14,
+    "relevant_event_ms": 215.96745800971985
+  },
+  "server_benchmark_initial_with_parallel_tests": {
+    "fixture": {
+      "matches": 584,
+      "open": 558,
+      "courts": 15,
+      "locations": 2
+    },
+    "full": {
+      "n": 12,
+      "mean_ms": 92.27595792214076,
+      "median_ms": 82.2918701171875,
+      "max_ms": 158.64185500144958
+    },
+    "unchanged": {
+      "n": 60,
+      "mean_ms": 0.2719554980595907,
+      "median_ms": 0.23308205604553223,
+      "max_ms": 0.7062370777130127
+    },
+    "after_ordinary_point": {
+      "n": 60,
+      "mean_ms": 0.5285237868626912,
+      "median_ms": 0.510706901550293,
+      "max_ms": 1.42966890335083
+    },
+    "calculations_before_event": 13,
+    "calculations_after_event": 14,
+    "relevant_event_ms": 231.39535212516785
+  },
+  "benchmark_limits": [
+    "Nur Aufrufstatus-Lesepfad, keine Messung der gesamten Punkt- oder Abschlusslatenz.",
+    "Eine volle Neuberechnung bleibt teuer: im isolierten Lauf im Mittel 76 ms, bei der einzelnen relevanten Änderung rund 216 ms. Sie läuft kooperativ, wird aber nicht als dauerhaft unter 100 ms gewertet.",
+    "Ganze Turnierauswahl wird konservativ invalidiert; keine feine Invalidierung pro Spiel."
+  ],
+  "checks": {
+    "targeted_backend_and_ui_units": 301,
+    "additional_admin_and_bup_suite": 181,
+    "counts_overlap": true,
+    "native_shared_status": {
+      "checks": 7,
+      "required_refreshes": 3,
+      "actual_refreshes": 3
+    },
+    "native_preparation_legacy_regression": {
+      "scope": "Isolated native browser, 584 games, 11 finished, 15 active and 558 upcoming. Two scenarios: complete teams and 430 games with an unknown opponent. No live services.",
+      "initial": {
+        "total": 584,
+        "open": 558,
+        "dom": 33182
+      },
+      "cases": {
+        "initial": true,
+        "hall": true,
+        "court": true,
+        "hiddenHall": true,
+        "withdrawal": true,
+        "special": true,
+        "otherDiscipline": true,
+        "specialRemoved": true,
+        "noMatch": true,
+        "playing": true,
+        "unknown": true,
+        "denied": true,
+        "windowChanged": true,
+        "debugRetained": true,
+        "debugRemoved": true
+      },
+      "scenarios": [
+        {
+          "incomplete": false,
+          "times_ms": [
+            15.599999904632568,
+            15,
+            20.90000009536743,
+            16.600000143051147,
+            23.299999952316284,
+            26.899999856948853,
+            20.700000047683716,
+            25.799999952316284,
+            26.699999809265137,
+            17.899999856948853,
+            20,
+            15
+          ],
+          "mean_ms": 20.36666663487752,
+          "max_ms": 26.899999856948853
+        },
+        {
+          "incomplete": true,
+          "times_ms": [
+            10.5,
+            12.700000047683716,
+            13.5,
+            10.799999952316284,
+            18.299999952316284,
+            13.800000190734863,
+            21.700000047683716,
+            23,
+            20.200000047683716,
+            14.5,
+            18.59999990463257,
+            20.90000009536743
+          ],
+          "mean_ms": 16.54166668653488,
+          "max_ms": 23
+        }
+      ]
+    },
+    "coverage": [
+      "Gemeinsame Antworten zwischen Fenstern und Automatik, Upgrade leichter Auswahl",
+      "Unveränderliche öffentliche Antwort und getrennte veränderliche öffentliche Rohdaten",
+      "50 Punkte ohne Neuberechnung oder Push; Nachfolgerflag invalidiert",
+      "Check-in und alle sechs Eingabekollektionen, Anlegen/Entfernen",
+      "Startzeit, Spielerpause, Tablet-Pause, Vorbereitungsdauer, echte Timer-Pushs",
+      "Fixierte Uhr, Offset, Rücksprung, während Berechnung ablaufende Frist",
+      "Persistenzschranke, konkurrierende Änderung, Subscription-Rennen, Vorrangbesitzer ohne Deadlock",
+      "Abmeldung, Shutdown, Wiederholung nach temporärem Fehler",
+      "Manuelle Kriterien, unbekannte Teilnehmer, Fremdhalle, Sonderwertung, laufende Spieler",
+      "Alte/gleiche Revision, Serverneustart und falsches Turnier im Browser",
+      "Echter Admin-Antwortweg mit zwei WebSocket-Adaptern, gleicher Revision, Broadcast und Abmeldung"
+    ],
+    "integration_regression_fixed": "Der echte Admin-Antwortadapter ergänzt type und rid. Die Antwort erhält deshalb einen eigenen veränderlichen Umschlag; nur Auswahl und Revision werden unveränderlich geteilt."
+  }
+}

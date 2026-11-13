@@ -1,0 +1,1069 @@
+{
+  "scope": "120 synthetic doubles matches, 60 finished and 60 unassigned. Font invalidation must batch native measurements; independent per-team native layout checks labels and stacking at compact desktop/notebook and normal density.",
+  "checks": [
+    "Batched labels and stacking match independent native measurements at 1366 / compact",
+    "Batched labels and stacking match independent native measurements at 1920 / compact",
+    "Batched labels and stacking match independent native measurements at 1920 / normal",
+    "Resource hint labels and stacking match independent native measurements at 1920 / normal",
+    "Resource hint labels and stacking match independent native measurements at 1366 / compact",
+    "Resource hint labels and stacking match independent native measurements at 1920 / compact",
+    "No measurement copies remain after fitting",
+    "Name measurement produces no browser exceptions",
+    "A global font invalidation uses at most 40 browser layouts for 220 visible teams"
+  ],
+  "measurement": {
+    "layout_count": 8,
+    "style_count": 13,
+    "layout_ms": 42.999,
+    "browser_work_ms": 215.952
+  },
+  "samples": [
+    {
+      "width": 1366,
+      "density": "compact",
+      "reference": [
+        {
+          "match": "batch-names-60",
+          "actual": [
+            "Christopher Müller-Schwennsen 60",
+            "Alexandra-Johanna Müller-Schwennsen 60"
+          ],
+          "expected": [
+            "Christopher Müller-Schwennsen 60",
+            "Alexandra-Johanna Müller-Schwennsen 60"
+          ],
+          "stacked": false,
+          "shouldStack": false,
+          "available": 472.65625
+        },
+        {
+          "match": "batch-names-69",
+          "actual": [
+            "Christopher Müller-Schwennsen 69",
+            "Alexandra-Johanna Müller-Schwennsen 69"
+          ],
+          "expected": [
+            "Christopher Müller-Schwennsen 69",
+            "Alexandra-Johanna Müller-Schwennsen 69"
+          ],
+          "stacked": false,
+          "shouldStack": false,
+          "available": 472.671875
+        },
+        {
+          "match": "batch-names-79",
+          "actual": [
+            "Christopher Müller-Schwennsen 79",
+            "Alexandra-Johanna Müller-Schwennsen 79"
+          ],
+          "expected": [
+            "Christopher Müller-Schwennsen 79",
+            "Alexandra-Johanna Müller-Schwennsen 79"
+          ],
+          "stacked": false,
+          "shouldStack": false,
+          "available": 472.65625
+        },
+        {
+          "match": "batch-names-88",
+          "actual": [
+            "Christopher Müller-Schwennsen 88",
+            "Alexandra-Johanna Müller-Schwennsen 88"
+          ],
+          "expected": [
+            "Christopher Müller-Schwennsen 88",
+            "Alexandra-Johanna Müller-Schwennsen 88"
+          ],
+          "stacked": false,
+          "shouldStack": false,
+          "available": 472.671875
+        },
+        {
+          "match": "batch-names-98",
+          "actual": [
+            "Christopher Müller-Schwennsen 98",
+            "Alexandra-Johanna Müller-Schwennsen 98"
+          ],
+          "expected": [
+            "Christopher Müller-Schwennsen 98",
+            "Alexandra-Johanna Müller-Schwennsen 98"
+          ],
+          "stacked": false,
+          "shouldStack": false,
+          "available": 472.65625
+        },
+        {
+          "match": "batch-names-107",
+          "actual": [
+            "Christopher Müller-Schwennsen 107",
+            "Alexandra-Johanna Müller-Schwennsen 107"
+          ],
+          "expected": [
+            "Christopher Müller-Schwennsen 107",
+            "Alexandra-Johanna Müller-Schwennsen 107"
+          ],
+          "stacked": false,
+          "shouldStack": false,
+          "available": 472.671875
+        },
+        {
+          "match": "batch-names-117",
+          "actual": [
+            "Christopher Müller-Schwennsen 117",
+            "Alexandra-Johanna Müller-Schwennsen 117"
+          ],
+          "expected": [
+            "Christopher Müller-Schwennsen 117",
+            "Alexandra-Johanna Müller-Schwennsen 117"
+          ],
+          "stacked": false,
+          "shouldStack": false,
+          "available": 472.65625
+        },
+        {
+          "match": "batch-names-6",
+          "actual": [
+            "Christopher Müller-Schwennsen 6",
+            "Alexandra-Johanna Müller-Schwennsen 6"
+          ],
+          "expected": [
+            "Christopher Müller-Schwennsen 6",
+            "Alexandra-Johanna Müller-Schwennsen 6"
+          ],
+          "stacked": false,
+          "shouldStack": false,
+          "available": 447.21875
+        },
+        {
+          "match": "batch-names-16",
+          "actual": [
+            "Christopher Müller-Schwennsen 16",
+            "A.-J. Müller-Schwennsen 16"
+          ],
+          "expected": [
+            "Christopher Müller-Schwennsen 16",
+            "A.-J. Müller-Schwennsen 16"
+          ],
+          "stacked": false,
+          "shouldStack": false,
+          "available": 447.203125
+        },
+        {
+          "match": "batch-names-25",
+          "actual": [
+            "Christopher Müller-Schwennsen 25",
+            "A.-J. Müller-Schwennsen 25"
+          ],
+          "expected": [
+            "Christopher Müller-Schwennsen 25",
+            "A.-J. Müller-Schwennsen 25"
+          ],
+          "stacked": false,
+          "shouldStack": false,
+          "available": 447.21875
+        },
+        {
+          "match": "batch-names-35",
+          "actual": [
+            "Christopher Müller-Schwennsen 35",
+            "A.-J. Müller-Schwennsen 35"
+          ],
+          "expected": [
+            "Christopher Müller-Schwennsen 35",
+            "A.-J. Müller-Schwennsen 35"
+          ],
+          "stacked": false,
+          "shouldStack": false,
+          "available": 447.203125
+        },
+        {
+          "match": "batch-names-44",
+          "actual": [
+            "Christopher Müller-Schwennsen 44",
+            "A.-J. Müller-Schwennsen 44"
+          ],
+          "expected": [
+            "Christopher Müller-Schwennsen 44",
+            "A.-J. Müller-Schwennsen 44"
+          ],
+          "stacked": false,
+          "shouldStack": false,
+          "available": 447.21875
+        }
+      ]
+    },
+    {
+      "width": 1920,
+      "density": "compact",
+      "reference": [
+        {
+          "match": "batch-names-60",
+          "actual": [
+            "Christopher Konstantin Maximilian Müller-Schwennsen 60",
+            "Alexandra-Johanna Müller-Schwennsen 60"
+          ],
+          "expected": [
+            "Christopher Konstantin Maximilian Müller-Schwennsen 60",
+            "Alexandra-Johanna Müller-Schwennsen 60"
+          ],
+          "stacked": false,
+          "shouldStack": false,
+          "available": 580.984375
+        },
+        {
+          "match": "batch-names-69",
+          "actual": [
+            "Christopher Konstantin Maximilian Müller-Schwennsen 69",
+            "Alexandra-Johanna Müller-Schwennsen 69"
+          ],
+          "expected": [
+            "Christopher Konstantin Maximilian Müller-Schwennsen 69",
+            "Alexandra-Johanna Müller-Schwennsen 69"
+          ],
+          "stacked": false,
+          "shouldStack": false,
+          "available": 581
+        },
+        {
+          "match": "batch-names-79",
+          "actual": [
+            "Christopher Konstantin Maximilian Müller-Schwennsen 79",
+            "Alexandra-Johanna Müller-Schwennsen 79"
+          ],
+          "expected": [
+            "Christopher Konstantin Maximilian Müller-Schwennsen 79",
+            "Alexandra-Johanna Müller-Schwennsen 79"
+          ],
+          "stacked": false,
+          "shouldStack": false,
+          "available": 580.984375
+        },
+        {
+          "match": "batch-names-88",
+          "actual": [
+            "Christopher Konstantin Maximilian Müller-Schwennsen 88",
+            "Alexandra-Johanna Müller-Schwennsen 88"
+          ],
+          "expected": [
+            "Christopher Konstantin Maximilian Müller-Schwennsen 88",
+            "Alexandra-Johanna Müller-Schwennsen 88"
+          ],
+          "stacked": false,
+          "shouldStack": false,
+          "available": 581
+        },
+        {
+          "match": "batch-names-98",
+          "actual": [
+            "Christopher Konstantin Maximilian Müller-Schwennsen 98",
+            "Alexandra-Johanna Müller-Schwennsen 98"
+          ],
+          "expected": [
+            "Christopher Konstantin Maximilian Müller-Schwennsen 98",
+            "Alexandra-Johanna Müller-Schwennsen 98"
+          ],
+          "stacked": false,
+          "shouldStack": false,
+          "available": 580.984375
+        },
+        {
+          "match": "batch-names-107",
+          "actual": [
+            "Christopher Konstantin Maximilian Müller-Schwennsen 107",
+            "Alexandra-Johanna Müller-Schwennsen 107"
+          ],
+          "expected": [
+            "Christopher Konstantin Maximilian Müller-Schwennsen 107",
+            "Alexandra-Johanna Müller-Schwennsen 107"
+          ],
+          "stacked": false,
+          "shouldStack": false,
+          "available": 581
+        },
+        {
+          "match": "batch-names-117",
+          "actual": [
+            "Christopher Konstantin Maximilian Müller-Schwennsen 117",
+            "Alexandra-Johanna Müller-Schwennsen 117"
+          ],
+          "expected": [
+            "Christopher Konstantin Maximilian Müller-Schwennsen 117",
+            "Alexandra-Johanna Müller-Schwennsen 117"
+          ],
+          "stacked": false,
+          "shouldStack": false,
+          "available": 580.984375
+        },
+        {
+          "match": "batch-names-6",
+          "actual": [
+            "Christopher Müller-Schwennsen 6",
+            "Alexandra-Johanna Müller-Schwennsen 6"
+          ],
+          "expected": [
+            "Christopher Müller-Schwennsen 6",
+            "Alexandra-Johanna Müller-Schwennsen 6"
+          ],
+          "stacked": false,
+          "shouldStack": false,
+          "available": 542.390625
+        },
+        {
+          "match": "batch-names-16",
+          "actual": [
+            "Christopher Müller-Schwennsen 16",
+            "Alexandra-Johanna Müller-Schwennsen 16"
+          ],
+          "expected": [
+            "Christopher Müller-Schwennsen 16",
+            "Alexandra-Johanna Müller-Schwennsen 16"
+          ],
+          "stacked": false,
+          "shouldStack": false,
+          "available": 542.375
+        },
+        {
+          "match": "batch-names-25",
+          "actual": [
+            "Christopher Müller-Schwennsen 25",
+            "Alexandra-Johanna Müller-Schwennsen 25"
+          ],
+          "expected": [
+            "Christopher Müller-Schwennsen 25",
+            "Alexandra-Johanna Müller-Schwennsen 25"
+          ],
+          "stacked": false,
+          "shouldStack": false,
+          "available": 542.390625
+        },
+        {
+          "match": "batch-names-35",
+          "actual": [
+            "Christopher Müller-Schwennsen 35",
+            "Alexandra-Johanna Müller-Schwennsen 35"
+          ],
+          "expected": [
+            "Christopher Müller-Schwennsen 35",
+            "Alexandra-Johanna Müller-Schwennsen 35"
+          ],
+          "stacked": false,
+          "shouldStack": false,
+          "available": 542.375
+        },
+        {
+          "match": "batch-names-44",
+          "actual": [
+            "Christopher Müller-Schwennsen 44",
+            "Alexandra-Johanna Müller-Schwennsen 44"
+          ],
+          "expected": [
+            "Christopher Müller-Schwennsen 44",
+            "Alexandra-Johanna Müller-Schwennsen 44"
+          ],
+          "stacked": false,
+          "shouldStack": false,
+          "available": 542.390625
+        }
+      ]
+    },
+    {
+      "width": 1920,
+      "density": "normal",
+      "reference": [
+        {
+          "match": "batch-names-60",
+          "actual": [
+            "Christopher Müller-Schwennsen 60",
+            "Alexandra-Johanna Müller-Schwennsen 60"
+          ],
+          "expected": [
+            "Christopher Müller-Schwennsen 60",
+            "Alexandra-Johanna Müller-Schwennsen 60"
+          ],
+          "stacked": false,
+          "shouldStack": false,
+          "available": 550.984375
+        },
+        {
+          "match": "batch-names-69",
+          "actual": [
+            "Christopher Müller-Schwennsen 69",
+            "Alexandra-Johanna Müller-Schwennsen 69"
+          ],
+          "expected": [
+            "Christopher Müller-Schwennsen 69",
+            "Alexandra-Johanna Müller-Schwennsen 69"
+          ],
+          "stacked": false,
+          "shouldStack": false,
+          "available": 551
+        },
+        {
+          "match": "batch-names-79",
+          "actual": [
+            "Christopher Müller-Schwennsen 79",
+            "Alexandra-Johanna Müller-Schwennsen 79"
+          ],
+          "expected": [
+            "Christopher Müller-Schwennsen 79",
+            "Alexandra-Johanna Müller-Schwennsen 79"
+          ],
+          "stacked": false,
+          "shouldStack": false,
+          "available": 550.984375
+        },
+        {
+          "match": "batch-names-88",
+          "actual": [
+            "Christopher Müller-Schwennsen 88",
+            "Alexandra-Johanna Müller-Schwennsen 88"
+          ],
+          "expected": [
+            "Christopher Müller-Schwennsen 88",
+            "Alexandra-Johanna Müller-Schwennsen 88"
+          ],
+          "stacked": false,
+          "shouldStack": false,
+          "available": 551
+        },
+        {
+          "match": "batch-names-98",
+          "actual": [
+            "Christopher Müller-Schwennsen 98",
+            "Alexandra-Johanna Müller-Schwennsen 98"
+          ],
+          "expected": [
+            "Christopher Müller-Schwennsen 98",
+            "Alexandra-Johanna Müller-Schwennsen 98"
+          ],
+          "stacked": false,
+          "shouldStack": false,
+          "available": 550.984375
+        },
+        {
+          "match": "batch-names-107",
+          "actual": [
+            "Christopher Müller-Schwennsen 107",
+            "Alexandra-Johanna Müller-Schwennsen 107"
+          ],
+          "expected": [
+            "Christopher Müller-Schwennsen 107",
+            "Alexandra-Johanna Müller-Schwennsen 107"
+          ],
+          "stacked": false,
+          "shouldStack": false,
+          "available": 551
+        },
+        {
+          "match": "batch-names-117",
+          "actual": [
+            "Christopher Müller-Schwennsen 117",
+            "Alexandra-Johanna Müller-Schwennsen 117"
+          ],
+          "expected": [
+            "Christopher Müller-Schwennsen 117",
+            "Alexandra-Johanna Müller-Schwennsen 117"
+          ],
+          "stacked": false,
+          "shouldStack": false,
+          "available": 550.984375
+        },
+        {
+          "match": "batch-names-6",
+          "actual": [
+            "Christopher Müller-Schwennsen 6",
+            "Alexandra-Johanna Müller-Schwennsen 6"
+          ],
+          "expected": [
+            "Christopher Müller-Schwennsen 6",
+            "Alexandra-Johanna Müller-Schwennsen 6"
+          ],
+          "stacked": false,
+          "shouldStack": false,
+          "available": 512.390625
+        },
+        {
+          "match": "batch-names-16",
+          "actual": [
+            "Christopher Müller-Schwennsen 16",
+            "A.-J. Müller-Schwennsen 16"
+          ],
+          "expected": [
+            "Christopher Müller-Schwennsen 16",
+            "A.-J. Müller-Schwennsen 16"
+          ],
+          "stacked": false,
+          "shouldStack": false,
+          "available": 512.375
+        },
+        {
+          "match": "batch-names-25",
+          "actual": [
+            "Christopher Müller-Schwennsen 25",
+            "Alexandra-Johanna Müller-Schwennsen 25"
+          ],
+          "expected": [
+            "Christopher Müller-Schwennsen 25",
+            "Alexandra-Johanna Müller-Schwennsen 25"
+          ],
+          "stacked": false,
+          "shouldStack": false,
+          "available": 512.390625
+        },
+        {
+          "match": "batch-names-35",
+          "actual": [
+            "Christopher Müller-Schwennsen 35",
+            "A.-J. Müller-Schwennsen 35"
+          ],
+          "expected": [
+            "Christopher Müller-Schwennsen 35",
+            "A.-J. Müller-Schwennsen 35"
+          ],
+          "stacked": false,
+          "shouldStack": false,
+          "available": 512.375
+        },
+        {
+          "match": "batch-names-44",
+          "actual": [
+            "Christopher Müller-Schwennsen 44",
+            "Alexandra-Johanna Müller-Schwennsen 44"
+          ],
+          "expected": [
+            "Christopher Müller-Schwennsen 44",
+            "Alexandra-Johanna Müller-Schwennsen 44"
+          ],
+          "stacked": false,
+          "shouldStack": false,
+          "available": 512.390625
+        }
+      ]
+    },
+    {
+      "width": 1920,
+      "density": "normal",
+      "resources": true,
+      "reference": [
+        {
+          "match": "batch-names-60",
+          "actual": [
+            "Christopher Müller-Schwennsen 60",
+            "A.-J. Müller-Schwennsen 60"
+          ],
+          "expected": [
+            "Christopher Müller-Schwennsen 60",
+            "A.-J. Müller-Schwennsen 60"
+          ],
+          "stacked": false,
+          "shouldStack": false,
+          "available": 550.984375
+        },
+        {
+          "match": "batch-names-69",
+          "actual": [
+            "Christopher Müller-Schwennsen 69",
+            "Alexandra-Johanna Müller-Schwennsen 69"
+          ],
+          "expected": [
+            "Christopher Müller-Schwennsen 69",
+            "Alexandra-Johanna Müller-Schwennsen 69"
+          ],
+          "stacked": false,
+          "shouldStack": false,
+          "available": 551
+        },
+        {
+          "match": "batch-names-79",
+          "actual": [
+            "Christopher Müller-Schwennsen 79",
+            "A.-J. Müller-Schwennsen 79"
+          ],
+          "expected": [
+            "Christopher Müller-Schwennsen 79",
+            "A.-J. Müller-Schwennsen 79"
+          ],
+          "stacked": false,
+          "shouldStack": false,
+          "available": 550.984375
+        },
+        {
+          "match": "batch-names-88",
+          "actual": [
+            "Christopher Müller-Schwennsen 88",
+            "A.-J. Müller-Schwennsen 88"
+          ],
+          "expected": [
+            "Christopher Müller-Schwennsen 88",
+            "A.-J. Müller-Schwennsen 88"
+          ],
+          "stacked": false,
+          "shouldStack": false,
+          "available": 551
+        },
+        {
+          "match": "batch-names-98",
+          "actual": [
+            "Christopher Müller-Schwennsen 98",
+            "Alexandra-Johanna Müller-Schwennsen 98"
+          ],
+          "expected": [
+            "Christopher Müller-Schwennsen 98",
+            "Alexandra-Johanna Müller-Schwennsen 98"
+          ],
+          "stacked": false,
+          "shouldStack": false,
+          "available": 550.984375
+        },
+        {
+          "match": "batch-names-107",
+          "actual": [
+            "Christopher Müller-Schwennsen 107",
+            "A.-J. Müller-Schwennsen 107"
+          ],
+          "expected": [
+            "Christopher Müller-Schwennsen 107",
+            "A.-J. Müller-Schwennsen 107"
+          ],
+          "stacked": false,
+          "shouldStack": false,
+          "available": 551
+        },
+        {
+          "match": "batch-names-117",
+          "actual": [
+            "Christopher Müller-Schwennsen 117",
+            "A.-J. Müller-Schwennsen 117"
+          ],
+          "expected": [
+            "Christopher Müller-Schwennsen 117",
+            "A.-J. Müller-Schwennsen 117"
+          ],
+          "stacked": false,
+          "shouldStack": false,
+          "available": 550.984375
+        },
+        {
+          "match": "batch-names-6",
+          "actual": [
+            "Christopher Müller-Schwennsen 6",
+            "Alexandra-Johanna Müller-Schwennsen 6"
+          ],
+          "expected": [
+            "Christopher Müller-Schwennsen 6",
+            "Alexandra-Johanna Müller-Schwennsen 6"
+          ],
+          "stacked": false,
+          "shouldStack": false,
+          "available": 512.390625
+        },
+        {
+          "match": "batch-names-16",
+          "actual": [
+            "Christopher Müller-Schwennsen 16",
+            "A.-J. Müller-Schwennsen 16"
+          ],
+          "expected": [
+            "Christopher Müller-Schwennsen 16",
+            "A.-J. Müller-Schwennsen 16"
+          ],
+          "stacked": false,
+          "shouldStack": false,
+          "available": 512.375
+        },
+        {
+          "match": "batch-names-25",
+          "actual": [
+            "Christopher Müller-Schwennsen 25",
+            "Alexandra-Johanna Müller-Schwennsen 25"
+          ],
+          "expected": [
+            "Christopher Müller-Schwennsen 25",
+            "Alexandra-Johanna Müller-Schwennsen 25"
+          ],
+          "stacked": false,
+          "shouldStack": false,
+          "available": 512.390625
+        },
+        {
+          "match": "batch-names-35",
+          "actual": [
+            "Christopher Müller-Schwennsen 35",
+            "A.-J. Müller-Schwennsen 35"
+          ],
+          "expected": [
+            "Christopher Müller-Schwennsen 35",
+            "A.-J. Müller-Schwennsen 35"
+          ],
+          "stacked": false,
+          "shouldStack": false,
+          "available": 512.375
+        },
+        {
+          "match": "batch-names-44",
+          "actual": [
+            "Christopher Müller-Schwennsen 44",
+            "Alexandra-Johanna Müller-Schwennsen 44"
+          ],
+          "expected": [
+            "Christopher Müller-Schwennsen 44",
+            "Alexandra-Johanna Müller-Schwennsen 44"
+          ],
+          "stacked": false,
+          "shouldStack": false,
+          "available": 512.390625
+        }
+      ]
+    },
+    {
+      "width": 1366,
+      "density": "compact",
+      "resources": true,
+      "reference": [
+        {
+          "match": "batch-names-60",
+          "actual": [
+            "Christopher Müller-Schwennsen 60",
+            "A.-J. Müller-Schwennsen 60"
+          ],
+          "expected": [
+            "Christopher Müller-Schwennsen 60",
+            "A.-J. Müller-Schwennsen 60"
+          ],
+          "stacked": false,
+          "shouldStack": false,
+          "available": 472.65625
+        },
+        {
+          "match": "batch-names-69",
+          "actual": [
+            "Christopher Müller-Schwennsen 69",
+            "A.-J. Müller-Schwennsen 69"
+          ],
+          "expected": [
+            "Christopher Müller-Schwennsen 69",
+            "A.-J. Müller-Schwennsen 69"
+          ],
+          "stacked": false,
+          "shouldStack": false,
+          "available": 472.671875
+        },
+        {
+          "match": "batch-names-79",
+          "actual": [
+            "Christopher Müller-Schwennsen 79",
+            "A.-J. Müller-Schwennsen 79"
+          ],
+          "expected": [
+            "Christopher Müller-Schwennsen 79",
+            "A.-J. Müller-Schwennsen 79"
+          ],
+          "stacked": false,
+          "shouldStack": false,
+          "available": 472.65625
+        },
+        {
+          "match": "batch-names-88",
+          "actual": [
+            "Christopher Müller-Schwennsen 88",
+            "A.-J. Müller-Schwennsen 88"
+          ],
+          "expected": [
+            "Christopher Müller-Schwennsen 88",
+            "A.-J. Müller-Schwennsen 88"
+          ],
+          "stacked": false,
+          "shouldStack": false,
+          "available": 472.671875
+        },
+        {
+          "match": "batch-names-98",
+          "actual": [
+            "Christopher Müller-Schwennsen 98",
+            "A.-J. Müller-Schwennsen 98"
+          ],
+          "expected": [
+            "Christopher Müller-Schwennsen 98",
+            "A.-J. Müller-Schwennsen 98"
+          ],
+          "stacked": false,
+          "shouldStack": false,
+          "available": 472.65625
+        },
+        {
+          "match": "batch-names-107",
+          "actual": [
+            "Christopher Müller-Schwennsen 107",
+            "A.-J. Müller-Schwennsen 107"
+          ],
+          "expected": [
+            "Christopher Müller-Schwennsen 107",
+            "A.-J. Müller-Schwennsen 107"
+          ],
+          "stacked": false,
+          "shouldStack": false,
+          "available": 472.671875
+        },
+        {
+          "match": "batch-names-117",
+          "actual": [
+            "Christopher Müller-Schwennsen 117",
+            "A.-J. Müller-Schwennsen 117"
+          ],
+          "expected": [
+            "Christopher Müller-Schwennsen 117",
+            "A.-J. Müller-Schwennsen 117"
+          ],
+          "stacked": false,
+          "shouldStack": false,
+          "available": 472.65625
+        },
+        {
+          "match": "batch-names-6",
+          "actual": [
+            "Christopher Müller-Schwennsen 6",
+            "Alexandra-Johanna Müller-Schwennsen 6"
+          ],
+          "expected": [
+            "Christopher Müller-Schwennsen 6",
+            "Alexandra-Johanna Müller-Schwennsen 6"
+          ],
+          "stacked": false,
+          "shouldStack": false,
+          "available": 447.21875
+        },
+        {
+          "match": "batch-names-16",
+          "actual": [
+            "Christopher Müller-Schwennsen 16",
+            "A.-J. Müller-Schwennsen 16"
+          ],
+          "expected": [
+            "Christopher Müller-Schwennsen 16",
+            "A.-J. Müller-Schwennsen 16"
+          ],
+          "stacked": false,
+          "shouldStack": false,
+          "available": 447.203125
+        },
+        {
+          "match": "batch-names-25",
+          "actual": [
+            "Christopher Müller-Schwennsen 25",
+            "A.-J. Müller-Schwennsen 25"
+          ],
+          "expected": [
+            "Christopher Müller-Schwennsen 25",
+            "A.-J. Müller-Schwennsen 25"
+          ],
+          "stacked": false,
+          "shouldStack": false,
+          "available": 447.21875
+        },
+        {
+          "match": "batch-names-35",
+          "actual": [
+            "Christopher Müller-Schwennsen 35",
+            "A.-J. Müller-Schwennsen 35"
+          ],
+          "expected": [
+            "Christopher Müller-Schwennsen 35",
+            "A.-J. Müller-Schwennsen 35"
+          ],
+          "stacked": false,
+          "shouldStack": false,
+          "available": 447.203125
+        },
+        {
+          "match": "batch-names-44",
+          "actual": [
+            "Christopher Müller-Schwennsen 44",
+            "A.-J. Müller-Schwennsen 44"
+          ],
+          "expected": [
+            "Christopher Müller-Schwennsen 44",
+            "A.-J. Müller-Schwennsen 44"
+          ],
+          "stacked": false,
+          "shouldStack": false,
+          "available": 447.21875
+        }
+      ]
+    },
+    {
+      "width": 1920,
+      "density": "compact",
+      "resources": true,
+      "reference": [
+        {
+          "match": "batch-names-60",
+          "actual": [
+            "Christopher Müller-Schwennsen 60",
+            "Alexandra-Johanna Müller-Schwennsen 60"
+          ],
+          "expected": [
+            "Christopher Müller-Schwennsen 60",
+            "Alexandra-Johanna Müller-Schwennsen 60"
+          ],
+          "stacked": false,
+          "shouldStack": false,
+          "available": 580.984375
+        },
+        {
+          "match": "batch-names-69",
+          "actual": [
+            "Christopher Müller-Schwennsen 69",
+            "Alexandra-Johanna Müller-Schwennsen 69"
+          ],
+          "expected": [
+            "Christopher Müller-Schwennsen 69",
+            "Alexandra-Johanna Müller-Schwennsen 69"
+          ],
+          "stacked": false,
+          "shouldStack": false,
+          "available": 581
+        },
+        {
+          "match": "batch-names-79",
+          "actual": [
+            "Christopher Müller-Schwennsen 79",
+            "Alexandra-Johanna Müller-Schwennsen 79"
+          ],
+          "expected": [
+            "Christopher Müller-Schwennsen 79",
+            "Alexandra-Johanna Müller-Schwennsen 79"
+          ],
+          "stacked": false,
+          "shouldStack": false,
+          "available": 580.984375
+        },
+        {
+          "match": "batch-names-88",
+          "actual": [
+            "Christopher Müller-Schwennsen 88",
+            "Alexandra-Johanna Müller-Schwennsen 88"
+          ],
+          "expected": [
+            "Christopher Müller-Schwennsen 88",
+            "Alexandra-Johanna Müller-Schwennsen 88"
+          ],
+          "stacked": false,
+          "shouldStack": false,
+          "available": 581
+        },
+        {
+          "match": "batch-names-98",
+          "actual": [
+            "Christopher Müller-Schwennsen 98",
+            "Alexandra-Johanna Müller-Schwennsen 98"
+          ],
+          "expected": [
+            "Christopher Müller-Schwennsen 98",
+            "Alexandra-Johanna Müller-Schwennsen 98"
+          ],
+          "stacked": false,
+          "shouldStack": false,
+          "available": 580.984375
+        },
+        {
+          "match": "batch-names-107",
+          "actual": [
+            "Christopher Müller-Schwennsen 107",
+            "Alexandra-Johanna Müller-Schwennsen 107"
+          ],
+          "expected": [
+            "Christopher Müller-Schwennsen 107",
+            "Alexandra-Johanna Müller-Schwennsen 107"
+          ],
+          "stacked": false,
+          "shouldStack": false,
+          "available": 581
+        },
+        {
+          "match": "batch-names-117",
+          "actual": [
+            "Christopher Müller-Schwennsen 117",
+            "Alexandra-Johanna Müller-Schwennsen 117"
+          ],
+          "expected": [
+            "Christopher Müller-Schwennsen 117",
+            "Alexandra-Johanna Müller-Schwennsen 117"
+          ],
+          "stacked": false,
+          "shouldStack": false,
+          "available": 580.984375
+        },
+        {
+          "match": "batch-names-6",
+          "actual": [
+            "Christopher Müller-Schwennsen 6",
+            "Alexandra-Johanna Müller-Schwennsen 6"
+          ],
+          "expected": [
+            "Christopher Müller-Schwennsen 6",
+            "Alexandra-Johanna Müller-Schwennsen 6"
+          ],
+          "stacked": false,
+          "shouldStack": false,
+          "available": 542.390625
+        },
+        {
+          "match": "batch-names-16",
+          "actual": [
+            "Christopher Müller-Schwennsen 16",
+            "Alexandra-Johanna Müller-Schwennsen 16"
+          ],
+          "expected": [
+            "Christopher Müller-Schwennsen 16",
+            "Alexandra-Johanna Müller-Schwennsen 16"
+          ],
+          "stacked": false,
+          "shouldStack": false,
+          "available": 542.375
+        },
+        {
+          "match": "batch-names-25",
+          "actual": [
+            "Christopher Müller-Schwennsen 25",
+            "Alexandra-Johanna Müller-Schwennsen 25"
+          ],
+          "expected": [
+            "Christopher Müller-Schwennsen 25",
+            "Alexandra-Johanna Müller-Schwennsen 25"
+          ],
+          "stacked": false,
+          "shouldStack": false,
+          "available": 542.390625
+        },
+        {
+          "match": "batch-names-35",
+          "actual": [
+            "Christopher Müller-Schwennsen 35",
+            "Alexandra-Johanna Müller-Schwennsen 35"
+          ],
+          "expected": [
+            "Christopher Müller-Schwennsen 35",
+            "Alexandra-Johanna Müller-Schwennsen 35"
+          ],
+          "stacked": false,
+          "shouldStack": false,
+          "available": 542.375
+        },
+        {
+          "match": "batch-names-44",
+          "actual": [
+            "Christopher Müller-Schwennsen 44",
+            "Alexandra-Johanna Müller-Schwennsen 44"
+          ],
+          "expected": [
+            "Christopher Müller-Schwennsen 44",
+            "Alexandra-Johanna Müller-Schwennsen 44"
+          ],
+          "stacked": false,
+          "shouldStack": false,
+          "available": 542.390625
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,1332 @@
+{
+  "date": "2026-11-10",
+  "scope": "Ordinary point calculations shared by BUP browsers, BTS administration and BTS server modules importing BUP calc.js. Only the complete-format normalization shortcut changes production code.",
+  "change": "Complete scoring formats are read directly by private read-only scoring helpers. Reconstructing each historical rally no longer deep-copies the same rules and constructs a legacy fallback. Incomplete/legacy formats retain their existing normalization; public format factories continue returning independent editable objects. No persistent cache or protocol change.",
+  "source": {
+    "bup_base_commit": "37d9a2b",
+    "before_calc_sha256": "895bca34a8f776a959c5cdb31a6c2515f6d950cb940ae244e6bdfafe4b8e3673",
+    "after_calc_sha256": "289c243b814d62ad7bc2d7ab4f3889c6cf6957ce4c6f796c2c5f986cb1f68e52",
+    "point_check_sha256": "759355b6c9aa115dfe29c6980870850b987a000e25d660c380bffac8d67f9fd9"
+  },
+  "applicability": {
+    "frozen_capture_matches": 512,
+    "matches_with_complete_rules": 512,
+    "active_matches": 15,
+    "active_matches_with_complete_rules": 15,
+    "player_data_recorded": false
+  },
+  "node_calculation": {
+    "method": "Four fresh processes per variant, alternating order. Each process warms 300 complete-history calculations, then times 3000 more. Synthetic singles, standard complete 3x21 format, 106 press events, two finished sets and third-set score 10:9; unchanged result and timer. Copy count measures explicit copies of complete rule objects, not the initial setup copy. No concurrent tests, profiling or lint.",
+    "samples": [
+      {
+        "variant": "before",
+        "sample": 1,
+        "iterations": 3000,
+        "history_length": 106,
+        "elapsed_ms": 6269.814324855804,
+        "per_history_ms": 2.089938108285268,
+        "rule_copies": 612,
+        "score": [
+          [
+            21,
+            19
+          ],
+          [
+            19,
+            21
+          ],
+          [
+            10,
+            9
+          ]
+        ],
+        "timer": false
+      },
+      {
+        "variant": "after",
+        "sample": 1,
+        "iterations": 3000,
+        "history_length": 106,
+        "elapsed_ms": 111.58304286003113,
+        "per_history_ms": 0.03719434762001038,
+        "rule_copies": 0,
+        "score": [
+          [
+            21,
+            19
+          ],
+          [
+            19,
+            21
+          ],
+          [
+            10,
+            9
+          ]
+        ],
+        "timer": false
+      },
+      {
+        "variant": "after",
+        "sample": 2,
+        "iterations": 3000,
+        "history_length": 106,
+        "elapsed_ms": 98.33164310455322,
+        "per_history_ms": 0.032777214368184406,
+        "rule_copies": 0,
+        "score": [
+          [
+            21,
+            19
+          ],
+          [
+            19,
+            21
+          ],
+          [
+            10,
+            9
+          ]
+        ],
+        "timer": false
+      },
+      {
+        "variant": "before",
+        "sample": 2,
+        "iterations": 3000,
+        "history_length": 106,
+        "elapsed_ms": 6265.330221891403,
+        "per_history_ms": 2.0884434072971345,
+        "rule_copies": 612,
+        "score": [
+          [
+            21,
+            19
+          ],
+          [
+            19,
+            21
+          ],
+          [
+            10,
+            9
+          ]
+        ],
+        "timer": false
+      },
+      {
+        "variant": "before",
+        "sample": 3,
+        "iterations": 3000,
+        "history_length": 106,
+        "elapsed_ms": 6325.741055965424,
+        "per_history_ms": 2.1085803519884747,
+        "rule_copies": 612,
+        "score": [
+          [
+            21,
+            19
+          ],
+          [
+            19,
+            21
+          ],
+          [
+            10,
+            9
+          ]
+        ],
+        "timer": false
+      },
+      {
+        "variant": "after",
+        "sample": 3,
+        "iterations": 3000,
+        "history_length": 106,
+        "elapsed_ms": 117.57729911804199,
+        "per_history_ms": 0.03919243303934733,
+        "rule_copies": 0,
+        "score": [
+          [
+            21,
+            19
+          ],
+          [
+            19,
+            21
+          ],
+          [
+            10,
+            9
+          ]
+        ],
+        "timer": false
+      },
+      {
+        "variant": "after",
+        "sample": 4,
+        "iterations": 3000,
+        "history_length": 106,
+        "elapsed_ms": 94.21679902076721,
+        "per_history_ms": 0.03140559967358907,
+        "rule_copies": 0,
+        "score": [
+          [
+            21,
+            19
+          ],
+          [
+            19,
+            21
+          ],
+          [
+            10,
+            9
+          ]
+        ],
+        "timer": false
+      },
+      {
+        "variant": "before",
+        "sample": 4,
+        "iterations": 3000,
+        "history_length": 106,
+        "elapsed_ms": 6149.775798082352,
+        "per_history_ms": 2.0499252660274507,
+        "rule_copies": 612,
+        "score": [
+          [
+            21,
+            19
+          ],
+          [
+            19,
+            21
+          ],
+          [
+            10,
+            9
+          ]
+        ],
+        "timer": false
+      }
+    ],
+    "per_history_ms": {
+      "before": {
+        "count": 4,
+        "mean": 2.0842,
+        "median": 2.0892,
+        "p95": 2.1086,
+        "min": 2.0499,
+        "max": 2.1086
+      },
+      "after": {
+        "count": 4,
+        "mean": 0.0351,
+        "median": 0.035,
+        "p95": 0.0392,
+        "min": 0.0314,
+        "max": 0.0392
+      }
+    }
+  },
+  "browser_points": {
+    "method": "Four fresh profiles in before/after/after/before order. Per profile: 40 points with empty history, 40 plus the following court snapshot, and 40 with complete third-set history. 512 synthetic games, 423 results, 15 courts, complete scoring formats. Native MessageChannel receive queue and unchanged two-frame presentation receipts. Independent first/second animation-frame DOM checks. No CPU profiler, lint or other benchmark concurrently.",
+    "summary": {
+      "before": {
+        "score": {
+          "applied_ms": {
+            "count": 80,
+            "mean": 0.69,
+            "median": 0.5,
+            "p95": 1,
+            "min": 0.2,
+            "max": 7.5
+          },
+          "first_frame_ms": {
+            "count": 80,
+            "mean": 5.3013,
+            "median": 3.8,
+            "p95": 14.2,
+            "min": 0.4,
+            "max": 16.8
+          },
+          "second_frame_ms": {
+            "count": 80,
+            "mean": 20.2325,
+            "median": 20.5,
+            "p95": 31,
+            "min": 7,
+            "max": 33.4
+          },
+          "receipt_ms": {
+            "count": 80,
+            "mean": 20.3,
+            "median": 20.5,
+            "p95": 31,
+            "min": 6.9,
+            "max": 33.4
+          }
+        },
+        "snapshot": {
+          "applied_ms": {
+            "count": 80,
+            "mean": 0.5337,
+            "median": 0.5,
+            "p95": 0.7,
+            "min": 0.3,
+            "max": 0.9
+          },
+          "first_frame_ms": {
+            "count": 80,
+            "mean": 4.9275,
+            "median": 1.65,
+            "p95": 14.3,
+            "min": 0.4,
+            "max": 17
+          },
+          "second_frame_ms": {
+            "count": 80,
+            "mean": 18.555,
+            "median": 19.2,
+            "p95": 31,
+            "min": 6.9,
+            "max": 33.6
+          },
+          "receipt_ms": {
+            "count": 80,
+            "mean": 18.6038,
+            "median": 19.2,
+            "p95": 31,
+            "min": 7,
+            "max": 33.7
+          }
+        },
+        "history": {
+          "applied_ms": {
+            "count": 80,
+            "mean": 2.2262,
+            "median": 1.85,
+            "p95": 3.9,
+            "min": 1.2,
+            "max": 11.1
+          },
+          "first_frame_ms": {
+            "count": 80,
+            "mean": 6.0012,
+            "median": 4.05,
+            "p95": 15.3,
+            "min": 1.4,
+            "max": 16.3
+          },
+          "second_frame_ms": {
+            "count": 80,
+            "mean": 23.3462,
+            "median": 22.45,
+            "p95": 34.4,
+            "min": 7.9,
+            "max": 57.1
+          },
+          "receipt_ms": {
+            "count": 80,
+            "mean": 23.38,
+            "median": 22.5,
+            "p95": 34.5,
+            "min": 7.9,
+            "max": 57.2
+          }
+        }
+      },
+      "after": {
+        "score": {
+          "applied_ms": {
+            "count": 80,
+            "mean": 0.7262,
+            "median": 0.5,
+            "p95": 1,
+            "min": 0.2,
+            "max": 8.6
+          },
+          "first_frame_ms": {
+            "count": 80,
+            "mean": 4.6775,
+            "median": 1.25,
+            "p95": 14.1,
+            "min": 0.3,
+            "max": 18.5
+          },
+          "second_frame_ms": {
+            "count": 80,
+            "mean": 18.205,
+            "median": 17.35,
+            "p95": 30.2,
+            "min": 6.8,
+            "max": 32.3
+          },
+          "receipt_ms": {
+            "count": 80,
+            "mean": 18.2725,
+            "median": 17.4,
+            "p95": 30.3,
+            "min": 6.8,
+            "max": 32.3
+          }
+        },
+        "snapshot": {
+          "applied_ms": {
+            "count": 80,
+            "mean": 0.5137,
+            "median": 0.5,
+            "p95": 0.7,
+            "min": 0.3,
+            "max": 1
+          },
+          "first_frame_ms": {
+            "count": 80,
+            "mean": 5.3638,
+            "median": 1.95,
+            "p95": 14.9,
+            "min": 0.4,
+            "max": 16.8
+          },
+          "second_frame_ms": {
+            "count": 80,
+            "mean": 19.895,
+            "median": 19.3,
+            "p95": 33.5,
+            "min": 5.5,
+            "max": 39.7
+          },
+          "receipt_ms": {
+            "count": 80,
+            "mean": 19.9462,
+            "median": 19.3,
+            "p95": 33.6,
+            "min": 5.6,
+            "max": 39.7
+          }
+        },
+        "history": {
+          "applied_ms": {
+            "count": 80,
+            "mean": 0.7175,
+            "median": 0.6,
+            "p95": 1.2,
+            "min": 0.4,
+            "max": 2.4
+          },
+          "first_frame_ms": {
+            "count": 80,
+            "mean": 5.09,
+            "median": 2.25,
+            "p95": 15.1,
+            "min": 0.5,
+            "max": 15.8
+          },
+          "second_frame_ms": {
+            "count": 80,
+            "mean": 20.4475,
+            "median": 21.4,
+            "p95": 31.6,
+            "min": 6.2,
+            "max": 39.1
+          },
+          "receipt_ms": {
+            "count": 80,
+            "mean": 20.4512,
+            "median": 21.35,
+            "p95": 31.7,
+            "min": 6.3,
+            "max": 38.9
+          }
+        }
+      }
+    },
+    "profiles": [
+      {
+        "variant": "before",
+        "profile": 1,
+        "summary": {
+          "score": {
+            "applied_ms": {
+              "count": 40,
+              "mean_ms": 0.7225000083446502,
+              "p50_ms": 0.5,
+              "p95_ms": 1,
+              "max_ms": 7.400000095367432
+            },
+            "first_frame_ms": {
+              "count": 40,
+              "mean_ms": 5.3625,
+              "p50_ms": 3.8000001907348633,
+              "p95_ms": 14.400000095367432,
+              "max_ms": 16.799999952316284
+            },
+            "second_frame_ms": {
+              "count": 40,
+              "mean_ms": 20.342499989271165,
+              "p50_ms": 20.399999856948853,
+              "p95_ms": 31.09999990463257,
+              "max_ms": 33.39999985694885
+            },
+            "receipt_ms": {
+              "count": 40,
+              "mean_ms": 20.41,
+              "p50_ms": 20.4,
+              "p95_ms": 31.3,
+              "max_ms": 33.4
+            }
+          },
+          "snapshot": {
+            "applied_ms": {
+              "count": 40,
+              "mean_ms": 0.4925000071525574,
+              "p50_ms": 0.5,
+              "p95_ms": 0.6999998092651367,
+              "max_ms": 0.7000000476837158
+            },
+            "first_frame_ms": {
+              "count": 40,
+              "mean_ms": 4.272499996423721,
+              "p50_ms": 0.9000000953674316,
+              "p95_ms": 14.300000190734863,
+              "max_ms": 16.100000143051147
+            },
+            "second_frame_ms": {
+              "count": 40,
+              "mean_ms": 17.405000001192093,
+              "p50_ms": 14.799999952316284,
+              "p95_ms": 30.90000009536743,
+              "max_ms": 32.799999952316284
+            },
+            "receipt_ms": {
+              "count": 40,
+              "mean_ms": 17.4525,
+              "p50_ms": 14.9,
+              "p95_ms": 30.9,
+              "max_ms": 32.8
+            }
+          },
+          "history": {
+            "applied_ms": {
+              "count": 40,
+              "mean_ms": 1.9950000047683716,
+              "p50_ms": 1.7000000476837158,
+              "p95_ms": 3.4000000953674316,
+              "max_ms": 5.400000095367432
+            },
+            "first_frame_ms": {
+              "count": 40,
+              "mean_ms": 6.049999982118607,
+              "p50_ms": 3.5,
+              "p95_ms": 15.299999952316284,
+              "max_ms": 16.200000047683716
+            },
+            "second_frame_ms": {
+              "count": 40,
+              "mean_ms": 22.302499985694887,
+              "p50_ms": 22.299999952316284,
+              "p95_ms": 33.200000047683716,
+              "max_ms": 35.59999990463257
+            },
+            "receipt_ms": {
+              "count": 40,
+              "mean_ms": 22.325000000000003,
+              "p50_ms": 22.4,
+              "p95_ms": 33.1,
+              "max_ms": 35.6
+            }
+          }
+        },
+        "calls": {
+          "timerReplay": {
+            "count": 120,
+            "ms": 60.50000023841858
+          },
+          "score": {
+            "count": 120,
+            "ms": 92.8000020980835
+          }
+        },
+        "points": 120,
+        "receipts": 160,
+        "rows": 512,
+        "retained": true,
+        "pending": {
+          "pending": 0,
+          "subscribers": 1,
+          "callbackErrors": 0
+        },
+        "errors": []
+      },
+      {
+        "variant": "after",
+        "profile": 1,
+        "summary": {
+          "score": {
+            "applied_ms": {
+              "count": 40,
+              "mean_ms": 0.7675000071525574,
+              "p50_ms": 0.5,
+              "p95_ms": 1.4000000953674316,
+              "max_ms": 8.600000143051147
+            },
+            "first_frame_ms": {
+              "count": 40,
+              "mean_ms": 4.639999991655349,
+              "p50_ms": 1.3000001907348633,
+              "p95_ms": 14.299999952316284,
+              "max_ms": 18.5
+            },
+            "second_frame_ms": {
+              "count": 40,
+              "mean_ms": 17.38249999880791,
+              "p50_ms": 15.5,
+              "p95_ms": 30.5,
+              "max_ms": 32.299999952316284
+            },
+            "receipt_ms": {
+              "count": 40,
+              "mean_ms": 17.444999999999997,
+              "p50_ms": 15.6,
+              "p95_ms": 30.6,
+              "max_ms": 32.3
+            }
+          },
+          "snapshot": {
+            "applied_ms": {
+              "count": 40,
+              "mean_ms": 0.5525000035762787,
+              "p50_ms": 0.5999999046325684,
+              "p95_ms": 0.7999999523162842,
+              "max_ms": 1
+            },
+            "first_frame_ms": {
+              "count": 40,
+              "mean_ms": 5.482500040531159,
+              "p50_ms": 3,
+              "p95_ms": 14.5,
+              "max_ms": 16.100000143051147
+            },
+            "second_frame_ms": {
+              "count": 40,
+              "mean_ms": 21.177500003576277,
+              "p50_ms": 21.5,
+              "p95_ms": 36.19999980926514,
+              "max_ms": 39.700000047683716
+            },
+            "receipt_ms": {
+              "count": 40,
+              "mean_ms": 21.232499999999998,
+              "p50_ms": 21.5,
+              "p95_ms": 36.3,
+              "max_ms": 39.7
+            }
+          },
+          "history": {
+            "applied_ms": {
+              "count": 40,
+              "mean_ms": 0.7174999952316284,
+              "p50_ms": 0.6000001430511475,
+              "p95_ms": 1.2000000476837158,
+              "max_ms": 1.7999999523162842
+            },
+            "first_frame_ms": {
+              "count": 40,
+              "mean_ms": 5.427500033378601,
+              "p50_ms": 2.700000047683716,
+              "p95_ms": 15.100000143051147,
+              "max_ms": 15.799999952316284
+            },
+            "second_frame_ms": {
+              "count": 40,
+              "mean_ms": 21.08750001192093,
+              "p50_ms": 22,
+              "p95_ms": 32.5,
+              "max_ms": 39.10000014305115
+            },
+            "receipt_ms": {
+              "count": 40,
+              "mean_ms": 21.072499999999998,
+              "p50_ms": 22.1,
+              "p95_ms": 32.4,
+              "max_ms": 38.9
+            }
+          }
+        },
+        "calls": {
+          "timerReplay": {
+            "count": 120,
+            "ms": 9.500001192092896
+          },
+          "score": {
+            "count": 120,
+            "ms": 40.29999828338623
+          }
+        },
+        "points": 120,
+        "receipts": 160,
+        "rows": 512,
+        "retained": true,
+        "pending": {
+          "pending": 0,
+          "subscribers": 1,
+          "callbackErrors": 0
+        },
+        "errors": []
+      },
+      {
+        "variant": "after",
+        "profile": 2,
+        "summary": {
+          "score": {
+            "applied_ms": {
+              "count": 40,
+              "mean_ms": 0.6849999904632569,
+              "p50_ms": 0.5,
+              "p95_ms": 0.9000000953674316,
+              "max_ms": 7.200000047683716
+            },
+            "first_frame_ms": {
+              "count": 40,
+              "mean_ms": 4.714999973773956,
+              "p50_ms": 1.7000000476837158,
+              "p95_ms": 13.5,
+              "max_ms": 16.09999990463257
+            },
+            "second_frame_ms": {
+              "count": 40,
+              "mean_ms": 19.027499985694885,
+              "p50_ms": 19.700000047683716,
+              "p95_ms": 30.09999990463257,
+              "max_ms": 30.799999952316284
+            },
+            "receipt_ms": {
+              "count": 40,
+              "mean_ms": 19.099999999999998,
+              "p50_ms": 19.9,
+              "p95_ms": 30.2,
+              "max_ms": 30.8
+            }
+          },
+          "snapshot": {
+            "applied_ms": {
+              "count": 40,
+              "mean_ms": 0.47499998807907107,
+              "p50_ms": 0.5,
+              "p95_ms": 0.6000001430511475,
+              "max_ms": 0.7000000476837158
+            },
+            "first_frame_ms": {
+              "count": 40,
+              "mean_ms": 5.24500002861023,
+              "p50_ms": 1.5999999046325684,
+              "p95_ms": 14.900000095367432,
+              "max_ms": 16.799999952316284
+            },
+            "second_frame_ms": {
+              "count": 40,
+              "mean_ms": 18.6125,
+              "p50_ms": 18.299999952316284,
+              "p95_ms": 31.600000143051147,
+              "max_ms": 33.5
+            },
+            "receipt_ms": {
+              "count": 40,
+              "mean_ms": 18.660000000000004,
+              "p50_ms": 18.4,
+              "p95_ms": 31.7,
+              "max_ms": 33.6
+            }
+          },
+          "history": {
+            "applied_ms": {
+              "count": 40,
+              "mean_ms": 0.7175000190734864,
+              "p50_ms": 0.5999999046325684,
+              "p95_ms": 1.2999999523162842,
+              "max_ms": 2.4000000953674316
+            },
+            "first_frame_ms": {
+              "count": 40,
+              "mean_ms": 4.752500003576278,
+              "p50_ms": 2.3000001907348633,
+              "p95_ms": 14.799999952316284,
+              "max_ms": 15.099999904632568
+            },
+            "second_frame_ms": {
+              "count": 40,
+              "mean_ms": 19.80750000476837,
+              "p50_ms": 21.300000190734863,
+              "p95_ms": 31.40000009536743,
+              "max_ms": 31.59999990463257
+            },
+            "receipt_ms": {
+              "count": 40,
+              "mean_ms": 19.83,
+              "p50_ms": 21.2,
+              "p95_ms": 31.5,
+              "max_ms": 31.7
+            }
+          }
+        },
+        "calls": {
+          "timerReplay": {
+            "count": 120,
+            "ms": 8.700000524520874
+          },
+          "score": {
+            "count": 120,
+            "ms": 38.699997425079346
+          }
+        },
+        "points": 120,
+        "receipts": 160,
+        "rows": 512,
+        "retained": true,
+        "pending": {
+          "pending": 0,
+          "subscribers": 1,
+          "callbackErrors": 0
+        },
+        "errors": []
+      },
+      {
+        "variant": "before",
+        "profile": 2,
+        "summary": {
+          "score": {
+            "applied_ms": {
+              "count": 40,
+              "mean_ms": 0.657500046491623,
+              "p50_ms": 0.5,
+              "p95_ms": 0.8000001907348633,
+              "max_ms": 7.5
+            },
+            "first_frame_ms": {
+              "count": 40,
+              "mean_ms": 5.240000021457672,
+              "p50_ms": 3.799999952316284,
+              "p95_ms": 13.5,
+              "max_ms": 14.400000095367432
+            },
+            "second_frame_ms": {
+              "count": 40,
+              "mean_ms": 20.122500014305114,
+              "p50_ms": 22.100000143051147,
+              "p95_ms": 30.700000047683716,
+              "max_ms": 31
+            },
+            "receipt_ms": {
+              "count": 40,
+              "mean_ms": 20.19,
+              "p50_ms": 22.1,
+              "p95_ms": 30.8,
+              "max_ms": 31.2
+            }
+          },
+          "snapshot": {
+            "applied_ms": {
+              "count": 40,
+              "mean_ms": 0.574999988079071,
+              "p50_ms": 0.5999999046325684,
+              "p95_ms": 0.7999999523162842,
+              "max_ms": 0.9000000953674316
+            },
+            "first_frame_ms": {
+              "count": 40,
+              "mean_ms": 5.582499980926514,
+              "p50_ms": 3.799999952316284,
+              "p95_ms": 14.299999952316284,
+              "max_ms": 17
+            },
+            "second_frame_ms": {
+              "count": 40,
+              "mean_ms": 19.705000007152556,
+              "p50_ms": 20.5,
+              "p95_ms": 31,
+              "max_ms": 33.59999990463257
+            },
+            "receipt_ms": {
+              "count": 40,
+              "mean_ms": 19.755,
+              "p50_ms": 20.4,
+              "p95_ms": 31,
+              "max_ms": 33.7
+            }
+          },
+          "history": {
+            "applied_ms": {
+              "count": 40,
+              "mean_ms": 2.4574999868869782,
+              "p50_ms": 2.1000001430511475,
+              "p95_ms": 4.200000047683716,
+              "max_ms": 11.099999904632568
+            },
+            "first_frame_ms": {
+              "count": 40,
+              "mean_ms": 5.952499979734421,
+              "p50_ms": 4.800000190734863,
+              "p95_ms": 14.299999952316284,
+              "max_ms": 16.299999952316284
+            },
+            "second_frame_ms": {
+              "count": 40,
+              "mean_ms": 24.389999985694885,
+              "p50_ms": 23.299999952316284,
+              "p95_ms": 39.700000047683716,
+              "max_ms": 57.09999990463257
+            },
+            "receipt_ms": {
+              "count": 40,
+              "mean_ms": 24.435000000000002,
+              "p50_ms": 23.4,
+              "p95_ms": 39.7,
+              "max_ms": 57.2
+            }
+          }
+        },
+        "calls": {
+          "timerReplay": {
+            "count": 120,
+            "ms": 75.09999823570251
+          },
+          "score": {
+            "count": 120,
+            "ms": 110.60000038146973
+          }
+        },
+        "points": 120,
+        "receipts": 160,
+        "rows": 512,
+        "retained": true,
+        "pending": {
+          "pending": 0,
+          "subscribers": 1,
+          "callbackErrors": 0
+        },
+        "errors": []
+      }
+    ],
+    "total_points": 480,
+    "total_receipts": 640,
+    "interpretation": "Empty-history phases are controls; the primary saving is replaying full history. Applied time includes receiving, parsing and dispatch. Frame and receipt timing includes scheduling and can fluctuate by a render frame. No physical-screen, network or server end-to-end latency claim.",
+    "installed_repository": {
+      "points": 120,
+      "rows": 512,
+      "retained": true,
+      "pending": {
+        "pending": 0,
+        "subscribers": 1,
+        "callbackErrors": 0
+      },
+      "errors": [],
+      "summary": {
+        "score": {
+          "applied_ms": {
+            "count": 40,
+            "mean_ms": 0.7225000202655792,
+            "p50_ms": 0.5,
+            "p95_ms": 1.1000001430511475,
+            "max_ms": 8.400000095367432
+          },
+          "first_frame_ms": {
+            "count": 40,
+            "mean_ms": 5.20500003695488,
+            "p50_ms": 2.6000001430511475,
+            "p95_ms": 14.200000047683716,
+            "max_ms": 16
+          },
+          "second_frame_ms": {
+            "count": 40,
+            "mean_ms": 19.460000026226044,
+            "p50_ms": 19.200000047683716,
+            "p95_ms": 30.90000009536743,
+            "max_ms": 32.60000014305115
+          },
+          "receipt_ms": {
+            "count": 40,
+            "mean_ms": 19.532500000000002,
+            "p50_ms": 19.1,
+            "p95_ms": 31,
+            "max_ms": 32.7
+          }
+        },
+        "snapshot": {
+          "applied_ms": {
+            "count": 40,
+            "mean_ms": 0.5249999761581421,
+            "p50_ms": 0.5,
+            "p95_ms": 0.7000000476837158,
+            "max_ms": 0.8999998569488525
+          },
+          "first_frame_ms": {
+            "count": 40,
+            "mean_ms": 6.027499973773956,
+            "p50_ms": 3.5,
+            "p95_ms": 16,
+            "max_ms": 16.799999952316284
+          },
+          "second_frame_ms": {
+            "count": 40,
+            "mean_ms": 20.292500007152558,
+            "p50_ms": 20.200000047683716,
+            "p95_ms": 32.60000014305115,
+            "max_ms": 33.5
+          },
+          "receipt_ms": {
+            "count": 40,
+            "mean_ms": 20.352500000000003,
+            "p50_ms": 20.3,
+            "p95_ms": 32.6,
+            "max_ms": 33.5
+          }
+        },
+        "history": {
+          "applied_ms": {
+            "count": 40,
+            "mean_ms": 0.6824999988079071,
+            "p50_ms": 0.6000001430511475,
+            "p95_ms": 1.0999999046325684,
+            "max_ms": 2.1000001430511475
+          },
+          "first_frame_ms": {
+            "count": 40,
+            "mean_ms": 3.605000001192093,
+            "p50_ms": 1.0999999046325684,
+            "p95_ms": 14.700000047683716,
+            "max_ms": 16
+          },
+          "second_frame_ms": {
+            "count": 40,
+            "mean_ms": 18.64000000953674,
+            "p50_ms": 18.200000047683716,
+            "p95_ms": 31.399999856948853,
+            "max_ms": 32.59999990463257
+          },
+          "receipt_ms": {
+            "count": 40,
+            "mean_ms": 18.645000000000003,
+            "p50_ms": 18.3,
+            "p95_ms": 31.4,
+            "max_ms": 32.7
+          }
+        }
+      }
+    }
+  },
+  "startup_guard": {
+    "method": "Same frozen response and four fresh profiles in before/after/after/before order. Two actual reloads per profile. Every tournament fetch is no-store. Visible measure starts at navigation and waits for viewport geometry, fonts and names; full measure additionally waits for background lists and three stable frames. Serial runs, no concurrent CPU work.",
+    "summary": {
+      "before": {
+        "cold": {
+          "visible_ms": {
+            "count": 2,
+            "mean": 1012.6,
+            "median": 1012.6,
+            "p95": 1047.2,
+            "min": 978,
+            "max": 1047.2
+          },
+          "fully_ready_ms": {
+            "count": 2,
+            "mean": 1566.7,
+            "median": 1566.7,
+            "p95": 1617.7,
+            "min": 1515.7,
+            "max": 1617.7
+          },
+          "remaining_ms": {
+            "count": 2,
+            "mean": 554.1,
+            "median": 554.1,
+            "p95": 570.5,
+            "min": 537.7,
+            "max": 570.5
+          }
+        },
+        "reload": {
+          "visible_ms": {
+            "count": 4,
+            "mean": 366.325,
+            "median": 363.4,
+            "p95": 425.8,
+            "min": 312.7,
+            "max": 425.8
+          },
+          "fully_ready_ms": {
+            "count": 4,
+            "mean": 834.775,
+            "median": 818.55,
+            "p95": 925.1,
+            "min": 776.9,
+            "max": 925.1
+          },
+          "remaining_ms": {
+            "count": 4,
+            "mean": 468.45,
+            "median": 481.75,
+            "p95": 504.0,
+            "min": 406.3,
+            "max": 504.0
+          }
+        }
+      },
+      "after": {
+        "cold": {
+          "visible_ms": {
+            "count": 2,
+            "mean": 944.45,
+            "median": 944.45,
+            "p95": 949.5,
+            "min": 939.4,
+            "max": 949.5
+          },
+          "fully_ready_ms": {
+            "count": 2,
+            "mean": 1432.55,
+            "median": 1432.55,
+            "p95": 1465.3,
+            "min": 1399.8,
+            "max": 1465.3
+          },
+          "remaining_ms": {
+            "count": 2,
+            "mean": 488.1,
+            "median": 488.1,
+            "p95": 515.8,
+            "min": 460.4,
+            "max": 515.8
+          }
+        },
+        "reload": {
+          "visible_ms": {
+            "count": 4,
+            "mean": 331.925,
+            "median": 315.75,
+            "p95": 392.3,
+            "min": 303.9,
+            "max": 392.3
+          },
+          "fully_ready_ms": {
+            "count": 4,
+            "mean": 750.75,
+            "median": 736.05,
+            "p95": 802.9,
+            "min": 728,
+            "max": 802.9
+          },
+          "remaining_ms": {
+            "count": 4,
+            "mean": 418.825,
+            "median": 417.35,
+            "p95": 430.3,
+            "min": 410.3,
+            "max": 430.3
+          }
+        }
+      }
+    },
+    "profiles": [
+      {
+        "variant": "before",
+        "profile": 1,
+        "measurements": [
+          {
+            "cache": "cold",
+            "visible_ms": 1047.2,
+            "fully_ready_ms": 1617.7,
+            "remaining_ms": 570.5
+          },
+          {
+            "cache": "reload",
+            "visible_ms": 349.5,
+            "fully_ready_ms": 853.5,
+            "remaining_ms": 504.0
+          },
+          {
+            "cache": "reload",
+            "visible_ms": 425.8,
+            "fully_ready_ms": 925.1,
+            "remaining_ms": 499.3
+          }
+        ]
+      },
+      {
+        "variant": "after",
+        "profile": 1,
+        "measurements": [
+          {
+            "cache": "cold",
+            "visible_ms": 939.4,
+            "fully_ready_ms": 1399.8,
+            "remaining_ms": 460.4
+          },
+          {
+            "cache": "reload",
+            "visible_ms": 324.1,
+            "fully_ready_ms": 734.4,
+            "remaining_ms": 410.3
+          },
+          {
+            "cache": "reload",
+            "visible_ms": 307.4,
+            "fully_ready_ms": 737.7,
+            "remaining_ms": 430.3
+          }
+        ]
+      },
+      {
+        "variant": "after",
+        "profile": 2,
+        "measurements": [
+          {
+            "cache": "cold",
+            "visible_ms": 949.5,
+            "fully_ready_ms": 1465.3,
+            "remaining_ms": 515.8
+          },
+          {
+            "cache": "reload",
+            "visible_ms": 392.3,
+            "fully_ready_ms": 802.9,
+            "remaining_ms": 410.6
+          },
+          {
+            "cache": "reload",
+            "visible_ms": 303.9,
+            "fully_ready_ms": 728,
+            "remaining_ms": 424.1
+          }
+        ]
+      },
+      {
+        "variant": "before",
+        "profile": 2,
+        "measurements": [
+          {
+            "cache": "cold",
+            "visible_ms": 978,
+            "fully_ready_ms": 1515.7,
+            "remaining_ms": 537.7
+          },
+          {
+            "cache": "reload",
+            "visible_ms": 377.3,
+            "fully_ready_ms": 783.6,
+            "remaining_ms": 406.3
+          },
+          {
+            "cache": "reload",
+            "visible_ms": 312.7,
+            "fully_ready_ms": 776.9,
+            "remaining_ms": 464.2
+          }
+        ]
+      }
+    ],
+    "limit": "Two cold samples per variant are not enough to establish a robust startup improvement. The largest remaining-work interval after the change is 516 ms, compared with 571 ms before; one sample exceeds the desired 500 ms by about a frame."
+  },
+  "verification": {
+    "new_bup_regressions": {
+      "passed": 6,
+      "score_boundary_comparisons": 20480,
+      "baseline_failure": [
+        {
+          "title": "Reading scoring rules during point calculation recalculates a long history without copying complete rules for each rally",
+          "message": "Rule copies must not grow with history length: 612"
+        }
+      ],
+      "coverage": [
+        "long history without repeated rule copies",
+        "frozen inputs and unchanged outputs",
+        "full rules versus legacy formats, intervals and undo",
+        "all score boundaries in ten formats",
+        "editing the same rules object without stale cache",
+        "partial/invalid rules and independent public factories"
+      ]
+    },
+    "existing_bup_comparison": {
+      "passed_each": 81,
+      "failed_each": 13,
+      "identical_results": true,
+      "failures": [
+        {
+          "title": "BWF experimental 5x11_15 counting go through a whole match",
+          "message": "Expected values to be strictly equal:\n+ actual - expected\n\n  'Satz.\\n' +\n    '\\n' +\n+   'Das Spiel wurde gewonnen von\\n' +\n+   'Alice 11-6 15-14 11-5\\n' +\n-   'Das Spiel wurde gewonnen von Alice 11-6 15-14 11-5\\n' +\n    '\\n' +\n    'Bestätigen des Ergebnisses durch Klick.'"
+        },
+        {
+          "title": "Bundesliga 2017 5x11_15 counting with 90s intervals go through a whole match",
+          "message": "Expected values to be strictly equal:\n+ actual - expected\n\n  'Satz.\\n' +\n    '\\n' +\n+   'Das Spiel wurde gewonnen von\\n' +\n+   'Alice 11-6 15-14 11-5\\n' +\n-   'Das Spiel wurde gewonnen von Alice 11-6 15-14 11-5\\n' +\n    '\\n' +\n    'Bestätigen des Ergebnisses durch Klick.'"
+        },
+        {
+          "title": "BWF experimental 5x11/3 counting go through a whole match",
+          "message": "Expected values to be strictly equal:\n+ actual - expected\n\n  'Satz.\\n' +\n    '\\n' +\n+   'Das Spiel wurde gewonnen von\\n' +\n+   'Alice 11-6 13-12 11-5\\n' +\n-   'Das Spiel wurde gewonnen von Alice 11-6 13-12 11-5\\n' +\n    '\\n' +\n    'Bestätigen des Ergebnisses durch Klick.'"
+        },
+        {
+          "title": "pronunciation Interval / game point",
+          "message": "'Satz.\\n' +\n  '\\n' +\n  'Das Spiel wurde gewonnen von\\n' +\n  'Bob 23-21 30-29\\n' +\n  '\\n' +\n  'Bestätigen des Ergebnisses durch Klick.' == 'Satz.\\n' +\n  '\\n' +\n  'Das Spiel wurde gewonnen von Bob 23-21 30-29\\n' +\n  '\\n' +\n  'Bestätigen des Ergebnisses durch Klick.'"
+        },
+        {
+          "title": "pronunciation cards basics",
+          "message": "'Bob, disqualifiziert wegen unsportlichen Verhaltens.\\n' +\n  '\\n' +\n  'Das Spiel wurde gewonnen von\\n' +\n  'Andrew und Alice 4-4\\n' +\n  '\\n' +\n  'Bestätigen des Ergebnisses durch Klick.' == 'Bob, disqualifiziert wegen unsportlichen Verhaltens.\\n' +\n  '\\n' +\n  'Das Spiel wurde gewonnen von Andrew und Alice 4-4\\n' +\n  '\\n' +\n  'Bestätigen des Ergebnisses durch Klick.'"
+        },
+        {
+          "title": "pronunciation cards after games",
+          "message": "'Satz.\\n' +\n  '\\n' +\n  'Das Spiel wurde gewonnen von\\n' +\n  'Andrew und Alice 21-19 19-21 21-12\\n' +\n  '\\n' +\n  'Bestätigen des Ergebnisses durch Klick.' == 'Satz.\\n' +\n  '\\n' +\n  'Das Spiel wurde gewonnen von Andrew und Alice 21-19 19-21 21-12\\n' +\n  '\\n' +\n  'Bestätigen des Ergebnisses durch Klick.'"
+        },
+        {
+          "title": "pronunciation retiring",
+          "message": "'Bob hat aufgegeben.\\n' +\n  '\\n' +\n  'Das Spiel wurde gewonnen von\\n' +\n  'Andrew und Alice 0-0\\n' +\n  '\\n' +\n  'Bestätigen des Ergebnisses durch Klick.' == 'Bob hat aufgegeben.\\n' +\n  '\\n' +\n  'Das Spiel wurde gewonnen von Andrew und Alice 0-0\\n' +\n  '\\n' +\n  'Bestätigen des Ergebnisses durch Klick.'"
+        },
+        {
+          "title": "pronunciation retired at game start",
+          "message": "'Bob hat aufgegeben.\\n' +\n  '\\n' +\n  'Das Spiel wurde gewonnen von\\n' +\n  'Andrew und Alice 0-0\\n' +\n  '\\n' +\n  'Bestätigen des Ergebnisses durch Klick.' == 'Bob hat aufgegeben.\\n' +\n  '\\n' +\n  'Das Spiel wurde gewonnen von Andrew und Alice 0-0\\n' +\n  '\\n' +\n  'Bestätigen des Ergebnisses durch Klick.'"
+        },
+        {
+          "title": "pronunciation disqualified at game start",
+          "message": "'Bob, disqualifiziert wegen unsportlichen Verhaltens.\\n' +\n  '\\n' +\n  'Das Spiel wurde gewonnen von\\n' +\n  'Andrew und Alice 0-0\\n' +\n  '\\n' +\n  'Bestätigen des Ergebnisses durch Klick.' == 'Bob, disqualifiziert wegen unsportlichen Verhaltens.\\n' +\n  '\\n' +\n  'Das Spiel wurde gewonnen von Andrew und Alice 0-0\\n' +\n  '\\n' +\n  'Bestätigen des Ergebnisses durch Klick.'"
+        },
+        {
+          "title": "pronunciation ending game / match with a red card",
+          "message": "'Bob, Fehler wegen unsportlichen Verhaltens.\\n' +\n  'Satz.\\n' +\n  '\\n' +\n  'Das Spiel wurde gewonnen von\\n' +\n  'Alice 21-23 30-29 21-16\\n' +\n  '\\n' +\n  'Bestätigen des Ergebnisses durch Klick.' == 'Bob, Fehler wegen unsportlichen Verhaltens.\\n' +\n  'Satz.\\n' +\n  '\\n' +\n  'Das Spiel wurde gewonnen von Alice 21-23 30-29 21-16\\n' +\n  '\\n' +\n  'Bestätigen des Ergebnisses durch Klick.'"
+        },
+        {
+          "title": "pronunciation 5x11 end-of game pronunciation",
+          "message": "'Satz.\\n' +\n  '\\n' +\n  'Das Spiel wurde gewonnen von\\n' +\n  'Alice 11-1 11-3 4-11 5-11 11-6\\n' +\n  '\\n' +\n  'Bestätigen des Ergebnisses durch Klick.' == 'Satz.\\n' +\n  '\\n' +\n  'Das Spiel wurde gewonnen von Alice 11-1 11-3 4-11 5-11 11-6\\n' +\n  '\\n' +\n  'Bestätigen des Ergebnisses durch Klick.'"
+        },
+        {
+          "title": "pronunciation general correct handling around intervals",
+          "message": "'Andrew, disqualifiziert wegen unsportlichen Verhaltens.\\n' +\n  '\\n' +\n  'Das Spiel wurde gewonnen von\\n' +\n  'Bob und Birgit 11-6\\n' +\n  '\\n' +\n  'Bestätigen des Ergebnisses durch Klick.' == 'Andrew, disqualifiziert wegen unsportlichen Verhaltens.\\n' +\n  '\\n' +\n  'Das Spiel wurde gewonnen von Bob und Birgit 11-6\\n' +\n  '\\n' +\n  'Bestätigen des Ergebnisses durch Klick.'"
+        },
+        {
+          "title": "pronunciation red cards around game end",
+          "message": "'Andrew, disqualifiziert wegen unsportlichen Verhaltens.\\n' +\n  '\\n' +\n  'Das Spiel wurde gewonnen von\\n' +\n  'Bob und Birgit 21-6\\n' +\n  '\\n' +\n  'Bestätigen des Ergebnisses durch Klick.' == 'Andrew, disqualifiziert wegen unsportlichen Verhaltens.\\n' +\n  '\\n' +\n  'Das Spiel wurde gewonnen von Bob und Birgit 21-6\\n' +\n  '\\n' +\n  'Bestätigen des Ergebnisses durch Klick.'"
+        }
+      ]
+    },
+    "focused_bts_tests": 147,
+    "installed_node_tests": 153,
+    "browser_checks": [
+      {
+        "test": "initial-layout",
+        "exit_code": 0
+      },
+      {
+        "test": "resize-observer",
+        "exit_code": 0
+      },
+      {
+        "test": "update-ownership",
+        "exit_code": 0
+      },
+      {
+        "test": "completion",
+        "exit_code": 0
+      }
+    ],
+    "lint": "New tests are clean. The four pre-existing calc.js findings (one unused helper and three quote-style findings) are identical before/after.",
+    "exploratory_runs_excluded": "Earlier CSS containment prototypes showed no useful gain and were reverted. Early diagnostic browser runs used a profiler and are excluded from timing conclusions. An initial combined BUP run including 5x11_11 was stopped while still running; no success is claimed for it."
+  },
+  "activation": "Reload browser pages to load the changed calculation. The existing BTS server process was not restarted; its server-side calculation uses the change after the next normal restart."
+}

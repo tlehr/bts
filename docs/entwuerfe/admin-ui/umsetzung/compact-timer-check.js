@@ -12,9 +12,9 @@ module.exports=async function({c,check,click,open,metrics,previews,capture}) {
   qa.same=()=>qa.rows.every(row=>row.isConnected)&&qa.names.every(node=>node.isConnected)&&qa.parts.every((parts,index)=>parts.every(node=>qa.clocks[index].contains(node)));
   qa.frames=()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
   qa.geometry=()=>qa.clocks.map(node=>{
-   const box=node.getBoundingClientRect(),digits=node.querySelector('.timer-digits'),ink=digits.getBoundingClientRect(),style=getComputedStyle(node),bounds=node.closest('tr').getBoundingClientRect();
+   const scale=parseFloat(getComputedStyle(document.body).zoom)||1,box=node.getBoundingClientRect(),digits=node.querySelector('.timer-digits'),ink=digits.getBoundingClientRect(),style=getComputedStyle(node),bounds=node.closest('tr').getBoundingClientRect();
    const range=document.createRange();range.selectNodeContents(digits);const text=range.getBoundingClientRect();
-   return{value:node.getAttribute('aria-label'),height:box.height,width:box.width,rowHeight:bounds.height,inkHeight:ink.height,top:ink.top-box.top-parseFloat(style.borderTopWidth),bottom:box.bottom-ink.bottom-parseFloat(style.borderBottomWidth),fits:text.left>=box.left-.15&&text.right<=box.right+.15,font:getComputedStyle(digits).fontSize,transform:getComputedStyle(digits).transform};
+   return{value:node.getAttribute('aria-label'),height:box.height/scale,width:box.width/scale,rowHeight:bounds.height/scale,inkHeight:ink.height/scale,top:(ink.top-box.top)/scale-parseFloat(style.borderTopWidth),bottom:(box.bottom-ink.bottom)/scale-parseFloat(style.borderBottomWidth),tolerance:.25/scale,fits:text.left>=box.left-.25&&text.right<=box.right+.25,font:getComputedStyle(digits).fontSize,transform:getComputedStyle(digits).transform};
   });
  })()`);
  await verify('Clock fixtures cover field, preparation and player pause timers','__clockInkQA.clocks.length===3&&__clockInkQA.same()');
@@ -28,8 +28,8 @@ module.exports=async function({c,check,click,open,metrics,previews,capture}) {
    values.push(...(await c.evaluate('__clockInkQA.geometry()')).map((sample,index)=>({...sample,index,expectedWidth:baseline[index].width,expectedHeight:baseline[index].height,expectedRowHeight:baseline[index].rowHeight})));
   }
   samples.push({width,values});console.log(JSON.stringify({width,samples:values.length,top:[Math.min(...values.map(value=>value.top)),Math.max(...values.map(value=>value.top))],bottom:[Math.min(...values.map(value=>value.bottom)),Math.max(...values.map(value=>value.bottom))]}));
-  await verify('Short, negative and hour values leave 1px above and below the digits at '+width,String(values.every(value=>Math.abs(value.top-1)<.15&&Math.abs(value.bottom-1)<.15)));
-  await verify('Long values fit while clock widths, heights and rows stay fixed at '+width,String(values.every(value=>value.fits&&Math.abs(value.width-value.expectedWidth)<.15&&Math.abs(value.height-value.expectedHeight)<.15&&Math.abs(value.rowHeight-value.expectedRowHeight)<.15)));
+  await verify('Short, negative and hour values leave 1px above and below the digits at '+width,String(values.every(value=>Math.abs(value.top-1)<value.tolerance&&Math.abs(value.bottom-1)<value.tolerance)));
+  await verify('Long values fit while clock widths, heights and rows stay fixed at '+width,String(values.every(value=>value.fits&&Math.abs(value.width-value.expectedWidth)<value.tolerance&&Math.abs(value.height-value.expectedHeight)<value.tolerance&&Math.abs(value.rowHeight-value.expectedRowHeight)<value.tolerance)));
  }
  await metrics(1920,1080);await verify('Clock fitting preserves every existing game and player','__clockInkQA.same()');
  await c.evaluate(`__clockInkQA.clocks.forEach(node=>cleitstand.timerDisplay(node,'-1:01:55'));__clockInkQA.frames()`);

@@ -83,7 +83,9 @@ module.exports=async function({c,check,click,open,metrics,previews,key}) {
  await click('.ls-call-status-dialog .ls-dialog-footer button');
  await verify('Footer close disposes the dialog','!__callStatusDialog()');
  // Restore a visible opener to check native Escape and focus restoration.
- await c.evaluate(`__callStatusChange(match=>{match.setup.now_on_court=false;match.setup.court_id=null;match.setup.state='scheduled';match.setup.location_id=null;delete match.team1_won});document.querySelector('${trigger}').focus()`);
+ await c.evaluate(`__callStatusChange(match=>{match.setup.now_on_court=false;match.setup.court_id=null;match.setup.state='scheduled';match.setup.location_id=null;delete match.team1_won})`);
+ await verify('Reopening a game restores its information control after the owned UI work',`!!document.querySelector('${trigger}')`);
+ await c.evaluate(`document.querySelector('${trigger}').focus()`);
  await key(' ','Space',32,' ');
  await verify('Space also activates the information control','!!__callStatusDialog()?.open');
  await key('Escape','Escape',27);

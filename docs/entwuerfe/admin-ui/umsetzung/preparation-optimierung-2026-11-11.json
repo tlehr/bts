@@ -1,0 +1,385 @@
+{
+  "scope": "Gezielte UI-Optimierung nach Testbericht 17; ausschließlich isolierte Tests. Kein Neustart des laufenden BTS und keine Änderungen am echten Turnier oder an BTP.",
+  "product_files": [
+    "static/js/cmatch.js"
+  ],
+  "before_source_sha256": "de6f7e596a35d5d273b1d4ccf5ab1f378612c698a7e6392b9407f28948cb7e1b",
+  "after_source_sha256": "6d1d0ac9fa2c1a7875bf9327d3a61649e8a4eaf58df86ef4b8b40e5f13c60912",
+  "changes": [
+    "Aufrufprüfungen teilen für einen synchronen Aktualisierungsdurchlauf einen Index der inaktiven Spieler je Disziplin. Die Einzelprüfung außerhalb dieses Durchlaufs verwendet weiterhin den bisherigen Pfad.",
+    "Sichtbare Hallen und der Statusmodus werden einmal pro Durchlauf ermittelt. BTP-Sperren werden innerhalb dieses Durchlaufs je Spiel wiederverwendet.",
+    "Farben und Bereitschaft lesen nur die benötigten Wahrheitswerte aus den Serverdiagnosen, ohne Hallennamen, sortierte Detaildaten und Textbeschreibungen pro Zeile aufzubereiten. Die Detailansicht behält ihre bisherigen Daten.",
+    "Leere Aufrufzellen ohne Buttons und Debugsymbole überspringen die ausschließlich auf diese Controls begrenzte Board-Dekoration.",
+    "Kein Statuscache über mehrere Aktualisierungen: Änderungen an bestehenden Objekten werden beim nächsten Durchlauf unmittelbar erkannt."
+  ],
+  "benchmark": {
+    "fixture": {
+      "total": 584,
+      "open": 558,
+      "dom": 33181
+    },
+    "cases": {
+      "initial": true,
+      "hall": true,
+      "court": true,
+      "hiddenHall": true,
+      "withdrawal": true,
+      "special": true,
+      "otherDiscipline": true,
+      "specialRemoved": true,
+      "noMatch": true,
+      "playing": true,
+      "unknown": true,
+      "denied": true,
+      "windowChanged": true,
+      "debugRetained": true,
+      "debugRemoved": true
+    },
+    "comparisons": [
+      {
+        "incomplete": false,
+        "measurements_before": 24,
+        "measurements_after": 24,
+        "before_ms": [
+          20.299999952316284,
+          24.700000047683716,
+          28.100000143051147,
+          24,
+          30.100000143051147,
+          36.59999990463257,
+          25.5,
+          26.699999809265137,
+          28.40000009536743,
+          30.800000190734863,
+          34.59999990463257,
+          41.299999952316284,
+          21.700000047683716,
+          26,
+          28.700000047683716,
+          27.799999952316284,
+          29.5,
+          31.5,
+          46.200000047683716,
+          41,
+          45.59999990463257,
+          43.60000014305115,
+          41.30000019073486,
+          43.200000047683716
+        ],
+        "after_ms": [
+          14.299999952316284,
+          18.200000047683716,
+          22.299999952316284,
+          25.399999856948853,
+          22.100000143051147,
+          24.200000047683716,
+          18.40000009536743,
+          17.199999809265137,
+          23.200000047683716,
+          27.399999856948853,
+          26.100000143051147,
+          26.59999990463257,
+          15.200000047683716,
+          19.5,
+          17.100000143051147,
+          23.600000143051147,
+          24.600000143051147,
+          20.299999952316284,
+          26,
+          21.199999809265137,
+          21.90000009536743,
+          24,
+          21.699999809265137,
+          21.40000009536743
+        ],
+        "before_mean_ms": 32.38333335518837,
+        "after_mean_ms": 21.745833337306976,
+        "mean_reduction_percent": 32.84868762954905,
+        "before_max_ms": 46.200000047683716,
+        "after_max_ms": 27.399999856948853
+      },
+      {
+        "incomplete": true,
+        "measurements_before": 24,
+        "measurements_after": 24,
+        "before_ms": [
+          12,
+          21.90000009536743,
+          19.700000047683716,
+          11.799999952316284,
+          18.300000190734863,
+          25.700000047683716,
+          31.399999856948853,
+          15.200000047683716,
+          20.59999990463257,
+          30.799999952316284,
+          22,
+          13.5,
+          14.400000095367432,
+          25.200000047683716,
+          30.800000190734863,
+          34.299999952316284,
+          32,
+          27.899999856948853,
+          27.799999952316284,
+          33.80000019073486,
+          37.200000047683716,
+          33.09999990463257,
+          19.59999990463257,
+          18.600000143051147
+        ],
+        "after_ms": [
+          10.199999809265137,
+          17.399999856948853,
+          19.799999952316284,
+          27.90000009536743,
+          26.100000143051147,
+          25.899999856948853,
+          27.09999990463257,
+          28.600000143051147,
+          35.10000014305115,
+          11.799999952316284,
+          25.09999990463257,
+          31.299999952316284,
+          9.5,
+          8.599999904632568,
+          16,
+          21.09999990463257,
+          22,
+          17.40000009536743,
+          15.5,
+          12.200000047683716,
+          20.40000009536743,
+          9.5,
+          13.899999856948853,
+          22.200000047683716
+        ],
+        "before_mean_ms": 24.066666682561237,
+        "after_mean_ms": 19.77499998609225,
+        "mean_reduction_percent": 17.8324100843543,
+        "before_max_ms": 37.200000047683716,
+        "after_max_ms": 35.10000014305115
+      }
+    ],
+    "limit": "Zwei alte und zwei neue Browserläufe mit jeweils zwölf Messungen je Szenario, ohne CPU-Profiler. Gemessen wird die synchrone Aktualisierung der Vorbereitungssteuerung, nicht die gesamte Tablet-bis-Darstellung-Latenz. Messschwankungen sind sichtbar; daraus folgt keine neue Garantie für die Maximalwerte des Gesamtsystems."
+  },
+  "checks": {
+    "unit": {
+      "passing": 64,
+      "files": [
+        "test/test_cmatch.js",
+        "test/test_change_queue_scheduler.js"
+      ]
+    },
+    "native_preparation": {
+      "passing_cases": 15,
+      "before": true,
+      "after": true
+    },
+    "point_updates": {
+      "scope": "512 synthetic games, 423 results, native receive queue, 40 isolated points and 40 points with a following court snapshot and 40 points with a complete third-set history and explicit scoring rules. No live writes. Independent first/second animation-frame DOM checks; receipts retain their existing two-frame method.",
+      "summary": {
+        "score": {
+          "applied_ms": {
+            "count": 40,
+            "mean_ms": 1.1799999952316285,
+            "p50_ms": 0.9000000953674316,
+            "p95_ms": 1.7000000476837158,
+            "max_ms": 10.699999809265137
+          },
+          "first_frame_ms": {
+            "count": 40,
+            "mean_ms": 4.199999994039535,
+            "p50_ms": 1.5,
+            "p95_ms": 13,
+            "max_ms": 16.100000143051147
+          },
+          "second_frame_ms": {
+            "count": 40,
+            "mean_ms": 17.892500001192094,
+            "p50_ms": 16.899999856948853,
+            "p95_ms": 30.300000190734863,
+            "max_ms": 32.799999952316284
+          },
+          "receipt_ms": {
+            "count": 40,
+            "mean_ms": 18.025000000000002,
+            "p50_ms": 17,
+            "p95_ms": 30.4,
+            "max_ms": 33.1
+          }
+        },
+        "snapshot": {
+          "applied_ms": {
+            "count": 40,
+            "mean_ms": 0.9974999964237213,
+            "p50_ms": 1,
+            "p95_ms": 1.3999998569488525,
+            "max_ms": 1.4000000953674316
+          },
+          "first_frame_ms": {
+            "count": 40,
+            "mean_ms": 3.700000023841858,
+            "p50_ms": 1.7999999523162842,
+            "p95_ms": 12.600000143051147,
+            "max_ms": 16.5
+          },
+          "second_frame_ms": {
+            "count": 40,
+            "mean_ms": 17.21250002384186,
+            "p50_ms": 15.700000047683716,
+            "p95_ms": 29.300000190734863,
+            "max_ms": 33.299999952316284
+          },
+          "receipt_ms": {
+            "count": 40,
+            "mean_ms": 17.2875,
+            "p50_ms": 15.9,
+            "p95_ms": 29.5,
+            "max_ms": 33.4
+          }
+        },
+        "history": {
+          "applied_ms": {
+            "count": 40,
+            "mean_ms": 0.8824999868869782,
+            "p50_ms": 0.7000000476837158,
+            "p95_ms": 2,
+            "max_ms": 2.5999999046325684
+          },
+          "first_frame_ms": {
+            "count": 40,
+            "mean_ms": 3.8625,
+            "p50_ms": 1.7999999523162842,
+            "p95_ms": 11.599999904632568,
+            "max_ms": 14.5
+          },
+          "second_frame_ms": {
+            "count": 40,
+            "mean_ms": 15.984999978542328,
+            "p50_ms": 14.700000047683716,
+            "p95_ms": 28.799999952316284,
+            "max_ms": 32.200000047683716
+          },
+          "receipt_ms": {
+            "count": 40,
+            "mean_ms": 16.0075,
+            "p50_ms": 14.8,
+            "p95_ms": 28.8,
+            "max_ms": 32.2
+          }
+        }
+      },
+      "errors": [],
+      "pending": {
+        "pending": 0,
+        "subscribers": 1,
+        "callbackErrors": 0
+      },
+      "rows_retained": true
+    },
+    "burst": {
+      "before": {
+        "point_max_ms": 66.9,
+        "all_updates_p95_ms": 736.6,
+        "all_updates_max_ms": 737.2,
+        "cpu_mean_ms": 614.9193333333333
+      },
+      "after": {
+        "point_max_ms": 61.9,
+        "all_updates_p95_ms": 783.6,
+        "all_updates_max_ms": 784.7,
+        "cpu_mean_ms": 638.9123333333333
+      },
+      "before_functional": {
+        "sorted": true,
+        "checked": true,
+        "nodes": true,
+        "calls": true,
+        "checkOut": true,
+        "date": true,
+        "incomplete": true,
+        "remounted": true,
+        "failureIsolated": true
+      },
+      "after_functional": {
+        "sorted": true,
+        "checked": true,
+        "nodes": true,
+        "calls": true,
+        "checkOut": true,
+        "date": true,
+        "incomplete": true,
+        "remounted": true,
+        "failureIsolated": true
+      },
+      "before_full_refresh_counts": [
+        {
+          "tbody > tr[data-match_id]": 11,
+          ".manual_btp_stage_status_warning": 10
+        },
+        {
+          "tbody > tr[data-match_id]": 8,
+          ".manual_btp_stage_status_warning": 7
+        },
+        {
+          "tbody > tr[data-match_id]": 8,
+          ".manual_btp_stage_status_warning": 7
+        }
+      ],
+      "after_full_refresh_counts": [
+        {
+          "tbody > tr[data-match_id]": 9,
+          ".manual_btp_stage_status_warning": 8
+        },
+        {
+          "tbody > tr[data-match_id]": 9,
+          ".manual_btp_stage_status_warning": 8
+        },
+        {
+          "tbody > tr[data-match_id]": 9,
+          ".manual_btp_stage_status_warning": 8
+        }
+      ],
+      "limit": "Die bestehende Gesamtprüfung schlägt bei unverändertem und optimiertem Code an derselben Grenze von höchstens drei vollständigen Refreshs fehl. Tatsächlich sind es zuvor acht bis elf, danach neun. Der Test wurde nicht angepasst und wird nicht als vollständig bestanden gewertet. Alle separat berichteten neun Funktionsfälle sind in beiden Versionen erfolgreich; Punkte, 81 Quittungen je Phase und erhaltene Zeilen werden zuvor geprüft."
+    },
+    "lint": {
+      "new_check_file_errors": 0,
+      "cmatch_before_existing_findings": 182,
+      "cmatch_after_existing_findings": 182,
+      "new_cmatch_findings": 0
+    },
+    "diff_check": "passed"
+  },
+  "append_probe": {
+    "scope": "1000 sequential 8192-byte appends through the unchanged production worker, new temporary file on the BTS data filesystem. Synthetic operation benchmark without live load; no durability or scheduling guarantees.",
+    "wall": {
+      "count": 1000,
+      "mean_ms": 0.0902360270023346,
+      "median_ms": 0.07998490333557129,
+      "p95_ms": 0.1262340545654297,
+      "p99_ms": 0.2425532341003418,
+      "max_ms": 0.7485759258270264
+    },
+    "worker": {
+      "count": 1000,
+      "mean_ms": 0.031065846000000022,
+      "median_ms": 0.027765,
+      "p95_ms": 0.045411,
+      "p99_ms": 0.065719,
+      "max_ms": 0.399042
+    }
+  },
+  "append_decision": "Der separate Test auf demselben Dateisystem reproduziert den einzelnen langsamen Schreibvorgang nicht. Der Schreibprozess bleibt unverändert; Veröffentlichung und Datenbankbereinigung warten weiterhin auf dessen Bestätigung.",
+  "proposed_next_step": {
+    "state": "Vorschlag auf die Nutzerfrage, nicht Bestandteil dieser Änderung",
+    "description": "Gemeinsame serverseitige Statusquelle je Spiel und Spielort, gegebenenfalls Feld; Status, Gründe, geprüfter Datenstand und nächste relevante Zeitgrenze im Arbeitsspeicher. Ereignisse invalidieren alle betroffenen Abhängigkeiten; Änderungen und Fristablauf lösen eine Neuberechnung aus. Browser erhalten geänderte Statusdaten über die bestehende Verbindung.",
+    "existing": "auto_call_precheck erkennt bereits unveränderte Aufrufeingaben und nächste Zeitgrenzen. preparation_selection/admin_reads begrenzt die Wiederverwendung der UI-Diagnosen bisher auf 250 ms.",
+    "cautions": [
+      "Blockgrenzen und verfügbare Felder können mehrere Spiele derselben Halle betreffen.",
+      "Automatische und manuelle Vorbereitungsaufrufe sowie der eigentliche Feldaufruf benötigen ihre jeweils unterschiedlichen Prüfungen.",
+      "Ein tatsächlicher Aufruf behält seine abschließende Validierung und Ressourcensperren.",
+      "Neustart, Wiederverbindung und Änderungen der Turnieruhr müssen gespeicherte Statusdaten korrekt erneuern."
+    ]
+  }
+}

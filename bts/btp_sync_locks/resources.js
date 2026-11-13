@@ -7,7 +7,7 @@ const match_changes = require('./match_changes');
 module.exports = function resources(tkey, before, changes, effects) {
 	const locks = [keys.sync(tkey)];
 	const locked_matches = new Set();
-	const direct = new Set();
+	const direct = new Set(), exclusive_matches = new Set(), exclusive_courts = new Set();
 	const players = new Set();
 	const courts = new Set();
 	const reasons = {};
@@ -25,7 +25,7 @@ module.exports = function resources(tkey, before, changes, effects) {
 	const add_match = (id, source = 'direct') => {
 		if (!id) return;
 		locked_matches.add(id);
-		locks.push(keys.match(tkey, id));
+		if (source === 'direct' || source === 'effect') exclusive_matches.add(id);
 		if (source === 'direct') direct.add(id);
 		else {
 			if (!sources.has(source)) sources.set(source, new Set());
@@ -54,13 +54,13 @@ module.exports = function resources(tkey, before, changes, effects) {
 				if (doc?.setup?.court_id) courts.add(doc.setup.court_id);
 			}
 		}
-		if (collection === 'courts') { courts.add(id); add_match(old?.match_id); add_match(next?.match_id); match_work = true; }
+		if (collection === 'courts') { exclusive_courts.add(id); courts.add(id); add_match(old?.match_id); add_match(next?.match_id); match_work = true; }
 		if (collection === 'umpires') locks.push(keys.umpires(tkey));
 		if (collection === 'tabletoperators') {
 			locks.push(keys.tabletoperators(tkey));
 			for (const doc of [old, next]) {
 				add_match(doc?.match_id);
-				if (doc?.court) courts.add(doc.court);
+				if (doc?.court) { courts.add(doc.court); exclusive_courts.add(doc.court); }
 				(doc?.tabletoperator || []).forEach(player => { if (player.btp_id != null) players.add(String(player.btp_id)); });
 			}
 			match_work = true;
@@ -69,7 +69,7 @@ module.exports = function resources(tkey, before, changes, effects) {
 	for (const effect of effects) {
 		(effect.resources.matches || []).forEach(id => add_match(id, 'effect'));
 		(effect.resources.players || []).forEach(id => { if (id != null) players.add(String(id)); });
-		(effect.resources.courts || []).forEach(id => { if (id) courts.add(id); });
+		(effect.resources.courts || []).forEach(id => { if (id) { courts.add(id); exclusive_courts.add(id); } });
 	}
 	if (players.size || courts.size || locked_matches.size) match_work = true;
 	if (before.relations) {
@@ -82,7 +82,8 @@ module.exports = function resources(tkey, before, changes, effects) {
 			if (courts.has(match.setup?.court_id)) add_match(match._id, 'court');
 		}
 	}
-	for (const court of courts) locks.push(keys.court(tkey, court));
+	for (const id of locked_matches) locks.push(exclusive_matches.has(id) ? keys.match(tkey, id) : keys.dependency_match(tkey, id));
+	for (const court of courts) locks.push(exclusive_courts.has(court) ? keys.court(tkey, court) : keys.dependency_court(tkey, court));
 	if (match_work) {
 		locks.push(keys.selection(tkey));
 		// Keep allocation/check-in/finish writers serialized, also for profile
@@ -90,7 +91,7 @@ module.exports = function resources(tkey, before, changes, effects) {
 		// targeted calls on matches outside their write targets can continue.
 		if (!ordering_only) locks.push(keys.preparation(tkey), keys.tabletoperators(tkey), keys.umpires(tkey), keys.auto_call(tkey));
 	}
-	return { locks: keys.normalize_list(locks), locked_matches, diagnostics: {
+	return { locks: keys.normalize_list(locks), locked_matches, concurrent_points: locked_matches.size > exclusive_matches.size || courts.size > exclusive_courts.size, diagnostics: {
 		direct_match_locks: direct.size,
 		additional_match_locks: [...locked_matches].filter(id => !direct.has(id)).length,
 		local_only_changes: metadata_only,

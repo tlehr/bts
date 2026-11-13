@@ -1,6 +1,6 @@
 'use strict';
 
-// Only the read-only response arrays owned by preparation_selection/admin_reads
+// Only the read-only response arrays owned by the shared call status service
 // are registered. Each socket still encodes its own request ID and envelope.
 const registered = new WeakSet(), encodings = new WeakMap();
 function certify(value) { registered.add(value); return value; }

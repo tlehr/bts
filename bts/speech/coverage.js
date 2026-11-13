@@ -21,7 +21,8 @@ const { ParticipantPools, preparationFields, known } = require('./game_variants'
 // Describe possible playback pieces without submitting them to the broker.
 // Unknown games use the complete V2 discipline roster, or a placeholder when
 // the roster is incomplete or the voice profile requires a concrete opponent.
-async function plan(tournament, matches, umpires = [], candidates = []) {
+async function plan(tournament, matches, umpires = [], candidates = [], render_cache) {
+    const cached = render_cache?.context(tournament);
     const targets = new Map(), output = [], texts = renderer(tournament, 'de', output);
     const participants = new ParticipantPools(tournament, matches, texts);
     const calls = [], browserOutput = [], browser = renderer({ ...tournament, speech: {} }, 'de', browserOutput);
@@ -35,9 +36,14 @@ async function plan(tournament, matches, umpires = [], candidates = []) {
     };
     const call = (group, name, setup, ...args) => {
         output.length = 0; browserOutput.length = 0;
-        try { texts[name](setup, ...args); browser[name](setup, ...args); } catch (_) { return; }
-        if (!['bts-context-v1', 'bts-context-v2'].includes(tournament.speech?.context_version)) {
-            output.splice(0, output.length, ...texts.localParts(output));
+        const cache_key = cached?.key(name, setup, args), previous = cache_key && cached.get(cache_key);
+        if (previous) { output.push(...previous.parts); browserOutput.push(...previous.browser); }
+        else {
+            try { texts[name](setup, ...args); browser[name](setup, ...args); } catch (_) { return; }
+            if (!['bts-context-v1', 'bts-context-v2'].includes(tournament.speech?.context_version)) {
+                output.splice(0, output.length, ...texts.localParts(output));
+            }
+            if (cache_key) cached.set(cache_key, { parts: output.slice(), browser: browserOutput.slice() });
         }
         if (!output.length) return;
         const roster = scope.participants?.parts[group];

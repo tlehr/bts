@@ -429,6 +429,46 @@ describe('match preparation calls', function() {
 		assert.strictEqual(unchanged.setup.preparation_call_timestamp, undefined);
 	});
 
+	it('automatically fills the other hall when an incomplete old preparation falsely occupies its slot', async function() {
+		const db = await database.init_test();
+		const app = { db, clock: { now_ms: () => 5234567890 } };
+		const tournament = await insert(db, 'tournaments', {
+			key: 'default', btp_enabled: false, automation_enabled: true,
+			call_preparation_matches_automatically_enabled: true, official_rotation_mode: 'disabled',
+		});
+		for (const [id, name] of [['campus', 'Campus Helleweg'], ['north', 'Sporthalle Nord']]) {
+			await insert(db, 'locations', { _id: id, tournament_key: 'default', name, highlight: 6 });
+			await insert(db, 'courts', { _id: 'court-' + id, tournament_key: 'default', location_id: id, is_active: true });
+		}
+		const prepared = await insert(db, 'matches', {
+			_id: 'campus-prepared', tournament_key: 'default', setup: {
+				is_match: true, state: 'preparation', location_id: 'campus', match_num: 34,
+				teams: [{ players: [{ btp_id: 1 }] }, { players: [{ btp_id: 2 }] }],
+			},
+		});
+		const stale = await insert(db, 'matches', {
+			_id: 'north-stale', tournament_key: 'default', setup: {
+				is_match: true, incomplete: true, state: 'preparation', location_id: 'north', match_num: 488,
+				preparation_call_timestamp: 1111111111, teams: [{ players: [] }, { players: [] }],
+			},
+		});
+		await insert(db, 'matches', {
+			_id: 'next-match', tournament_key: 'default', setup: {
+				is_match: true, incomplete: false, state: 'scheduled', match_num: 41,
+				teams: [{ players: [{ name: 'Player C', btp_id: 3 }] }, { players: [{ name: 'Player D', btp_id: 4 }] }],
+			},
+		});
+
+		await auto_execute_preparation_selections(app, tournament);
+
+		const next = await db.matches.findOne_async({ _id: 'next-match' });
+		assert.strictEqual(next.setup.state, 'preparation');
+		assert.strictEqual(next.setup.location_id, 'north');
+		assert.strictEqual(next.setup.preparation_call_timestamp, 5234567890);
+		assert.deepStrictEqual(await db.matches.findOne_async({ _id: stale._id }), stale);
+		assert.deepStrictEqual(await db.matches.findOne_async({ _id: prepared._id }), prepared);
+	});
+
 	it('keeps at least ten seconds between automatic preparation call timestamps', async function() {
 		const db = await database.init_test();
 		let now = 1234567890;

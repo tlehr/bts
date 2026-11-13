@@ -1,5 +1,10 @@
 'use strict';
 
+const traces = require('./performance/traces');
+const profile = require('./offload/profile');
+const match_cache = require('./admin_response/match_cache');
+const foreground = require('./foreground_work');
+
 const { deepCopy } = require('nedb/lib/model');
 const { certify_read } = require('./database_read_barrier');
 
@@ -13,11 +18,11 @@ function overview(match) {
 }
 
 function read_matches(db, key, defer_history, callback, options = {}) {
-	const traces = require('./performance/traces'), read_span = traces.begin('admin_match_read', 'phase');
+	const read_span = traces.begin('admin_match_read', 'phase');
 	const original_callback = callback;
 	callback = (error, matches) => { traces.end(read_span, error); return original_callback(error, matches); };
-	const background = require('./offload/profile').enabled('admin_response_background');
-	const revision_cache = require('./offload/profile').enabled('admin_match_revision_cache');
+	const background = profile.enabled('admin_response_background');
+	const revision_cache = profile.enabled('admin_match_revision_cache');
 	if (!db.model || !defer_history && (!background || !revision_cache)) {
 		return db.matches.find({ tournament_key: key }, (error, matches) => {
 			if (error) return callback(error);
@@ -36,7 +41,7 @@ function read_matches(db, key, defer_history, callback, options = {}) {
 	const finish = background && revision_cache && options.immutable === true ? (error, records) => {
 		if (error) return callback(error);
 		const span = traces.begin('admin_match_copy', 'phase');
-		const snapshots = records.map(record => require('./admin_response/match_cache').snapshot(record, defer_history));
+		const snapshots = records.map(record => match_cache.snapshot(record, defer_history));
 		traces.end(span, null, { skipped: true, reason: 'immutable-datastore-revisions' });
 		callback(null, snapshots);
 	} : background ? (error, records) => {
@@ -48,8 +53,7 @@ function read_matches(db, key, defer_history, callback, options = {}) {
 		const matches = [];
 		let offset = 0;
 		function copy() {
-			const foreground = require('./foreground_work');
-			if (foreground.busy()) { foreground.idle().then(() => setImmediate(copy)); return; }
+						if (foreground.busy()) { foreground.idle().then(() => setImmediate(copy)); return; }
 			try {
 				const start = process.hrtime.bigint();
 				do { const record = records[offset++]; matches.push(defer_history ? overview(record) : deepCopy(record)); }

@@ -1,0 +1,25 @@
+{
+  "scope": "Native IntersectionObserver and production readiness controller with a fake inspection service; no live writes.",
+  "first": {
+    "requests": [
+      [
+        "Visible probe"
+      ]
+    ],
+    "geometryReads": 0,
+    "distant": "checking"
+  },
+  "final": {
+    "requests": [
+      [
+        "Visible probe"
+      ],
+      [
+        "Distant probe"
+      ]
+    ],
+    "geometryReads": 0,
+    "visible": "ready",
+    "distant": "ready"
+  }
+}

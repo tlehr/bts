@@ -52,7 +52,7 @@ async function fixture() {
 async function wait_pending(tkey, court) {
 	const deadline = Date.now() + 3000;
 	while (Date.now() < deadline) {
-		if (update_queue.stats().pending_tasks.some(task => task.task === 'fetch_sync_apply' && task.locks.includes(keys.sync(tkey)) && (!court || task.locks.includes(keys.court(tkey, court))))) return;
+		if (update_queue.stats().pending_tasks.some(task => task.task === 'fetch_sync_apply' && task.locks.includes(keys.sync(tkey)) && (!court || keys.any_conflict(task.locks, [keys.court(tkey, court)])))) return;
 		await new Promise(resolve => setTimeout(resolve, 2));
 	}
 	assert.fail('sync apply was not queued');
@@ -72,6 +72,49 @@ async function edit_one(app) {
 }
 
 describe('incremental BTP sync plans', function() {
+	it('serializes local preparation and field plans before their snapshots while leaving foreground locks available', async function() {
+		const {app,tkey}=await fixture(), entered=deferred(), release=deferred();
+		await app.db.tournaments.update_async({key:tkey},{$set:{call_preparation_matches_automatically_enabled:true}},{});
+		const old=process.env.BTS_SYNC_PLAN_WORKER;process.env.BTS_SYNC_PLAN_WORKER='0';
+		let secondStarted=false,first,second;
+		try {
+			first=planner.sync(app,tkey,{}, {...OPTIONS,worker_operation:'auto_call',planning_namespace:'local-court-test'},async staged=>{
+				entered.resolve();await release.promise;return edit_one(staged);
+			});
+			await entered.promise;
+			second=planner.sync(app,tkey,{}, {...OPTIONS,worker_operation:'auto_preparation',planning_namespace:'local-preparation-test'},async staged=>{
+				secondStarted=true;
+				assert.strictEqual((await staged.db.matches.findOne_async({_id:'one'})).setup.teams[0].players[0].checked_in,true,'The second plan must snapshot the committed first plan');
+				return true;
+			});
+			second.catch(()=>{});
+			await new Promise(resolve=>setTimeout(resolve,50));
+			assert.strictEqual(secondStarted,false,'Related automatic planners must not invalidate one another');
+			await update_queue.execute_locked([keys.match(tkey,'one')],async()=>true);
+			release.resolve();await Promise.all([first,second]);assert(secondStarted);
+		} finally {
+			release.resolve();await Promise.allSettled([first,second]);
+			if(old===undefined)delete process.env.BTS_SYNC_PLAN_WORKER;else process.env.BTS_SYNC_PLAN_WORKER=old;
+		}
+	});
+	it('lets another tournament plan independently and releases local planning after failure', async function() {
+		const {app,tkey}=await fixture(), entered=deferred(), release=deferred(), otherEntered=deferred();
+		const otherKey=tkey+'-independent';await promisify(app.db.tournaments.insert.bind(app.db.tournaments))({key:otherKey,btp_enabled:true,last_reset_ts:1});
+		const old=process.env.BTS_SYNC_PLAN_WORKER;process.env.BTS_SYNC_PLAN_WORKER='0';
+		let first,second,other,rejected,secondStarted=false;
+		try {
+			first=planner.sync(app,tkey,{}, {...OPTIONS,worker_operation:'auto_call',planning_namespace:'failed-local-test'},async()=>{entered.resolve();await release.promise;throw Error('controlled local planning failure');});
+			rejected=assert.rejects(first,/controlled local planning failure/);await entered.promise;
+			second=planner.sync(app,tkey,{}, {...OPTIONS,worker_operation:'auto_call',planning_namespace:'following-local-test'},async()=>{secondStarted=true;return true;});
+			other=planner.sync(app,otherKey,{}, {...OPTIONS,worker_operation:'auto_call',planning_namespace:'independent-local-test'},async()=>{otherEntered.resolve();return true;});
+			await otherEntered.promise;assert.strictEqual(secondStarted,false);
+			release.resolve();await Promise.all([rejected,second,other]);assert(secondStarted);
+		} finally {
+			release.resolve();await Promise.allSettled([first,second,other,rejected]);
+			if(old===undefined)delete process.env.BTS_SYNC_PLAN_WORKER;else process.env.BTS_SYNC_PLAN_WORKER=old;
+		}
+	});
+
 	it('uses worker-provided wire JSON and hash without serializing the response again', async function() {
 		const { app, tkey } = await fixture();
 		const wire = response(), json = JSON.stringify(wire);
@@ -521,7 +564,7 @@ describe('incremental BTP sync plans', function() {
 				await blocker.done;
 				await wait_pending(tkey, 'court-new');
 				const pending = update_queue.stats().pending_tasks.find(task => task.task === 'fetch_sync_apply' && task.locks.includes(keys.sync(tkey)));
-				assert(pending.locks.includes(keys.court(tkey, 'court-new')));
+				assert(keys.any_conflict(pending.locks, [keys.court(tkey, 'court-new')]));
 			} finally { next.release(); await next.done; }
 		} finally { blocker.release(); }
 		assert.strictEqual(await sync, true);
@@ -556,9 +599,10 @@ describe('incremental BTP sync plans', function() {
 		const next = effects.copy(old);
 		next.setup.court_id = 'new-court';
 		const scope = planner._resources(tkey, before, [{ collection: 'matches', id: 'one', before: old, after: next }], []);
-		assert(scope.locks.includes(keys.match(tkey, 'two')));
-		assert(scope.locks.includes(keys.court(tkey, 'court-one')));
-		assert(scope.locks.includes(keys.court(tkey, 'new-court')));
+		assert(keys.any_conflict(scope.locks, [keys.match(tkey, 'two')]));
+		assert(!keys.any_conflict(scope.locks, [keys.point_match(tkey, 'two')]));
+		assert(keys.any_conflict(scope.locks, [keys.court(tkey, 'court-one')]));
+		assert(keys.any_conflict(scope.locks, [keys.court(tkey, 'new-court')]));
 	});
 
 	it('allows points on a related game during metadata apply while finish, check-in and direct writes wait', async function() {
@@ -759,5 +803,13 @@ describe('incremental BTP sync plans', function() {
 		await app.db.matches.update_async({ _id: 'one' }, { $set: { btp_needsync: true } }, {});
 		for (let i = 0; i < 2; i++) await planner.sync(app, tkey, {}, OPTIONS, integrate);
 		assert.strictEqual(plans, 4);
+	});
+
+	it('keeps checking a pending court call when the BTP response is unchanged', async function() {
+		const { app, tkey } = await fixture();
+		await app.db.matches.update_async({ _id: 'one' }, { $set: { btp_call_pending: true } }, {});
+		let plans = 0;
+		for (let i = 0; i < 3; i++) await planner.sync(app, tkey, {}, OPTIONS, async () => { plans++; return true; });
+		assert.strictEqual(plans, 3);
 	});
 });

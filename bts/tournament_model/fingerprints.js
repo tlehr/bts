@@ -36,7 +36,8 @@ function inherit(collection, previous, next) {
 	const old = revisions.get(previous);
 	if (!old) return;
 	for (const [key, digest] of old) {
-		if (!key.startsWith(collection + ':')) continue;
+		// A prepared immutable revision can already own its exact digest.
+		if (!key.startsWith(collection + ':') || revisions.get(next)?.has(key)) continue;
 		const kind = key.slice(collection.length + 1);
 		if (!isDeepStrictEqual(project(collection, previous, kind), project(collection, next, kind))) continue;
 		let cached = revisions.get(next);

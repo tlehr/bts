@@ -1,0 +1,642 @@
+{
+  "date": "2026-11-12",
+  "purpose": "Implement narrow DOM updates for live game changes and remove redundant background status work.",
+  "changes": [
+    "Subscribed call-status stream sends per-location/per-game patches after the initial full snapshot; no parallel polling during ordinary updates; missing revisions trigger a full resubscription.",
+    "Immutable server projections reuse equal diagnoses and yield cooperatively; sockets without subscriptions receive no call-status background messages.",
+    "Boundary labels use native table cells aligned with the teams column; application geometry reads and forced boundary layout were removed.",
+    "Per-player/team/official updates preserve unaffected names, check-in controls, resource hints, badges and timer handles.",
+    "Paired tablet operator labels update individual members; aggregated attendance changes only when its displayed value changes.",
+    "Count badges, todo entries, call-status rule groups and assignment options retain their nodes; minimum moves retain ordered subsequences of games/options/devices.",
+    "Tablet waiting entries and their input form are retained; edits preserve focus, selection, input and unrelated entries.",
+    "Compact official rotation retains cards, drop targets and timer handles; retained handlers use fresh server records. Real browser drag-and-drop remains verified.",
+    "Cancelled/coalesced status reads release their tracked UI jobs after subscription, tournament change or connection loss."
+  ],
+  "method": {
+    "fixture_games": 584,
+    "writes_to_live_bts_or_btp": false,
+    "bts_restarted": false,
+    "dom_attribution": "MutationObserver with old values; reverse reconstruction detects identical attribute/text writes. Per-game tests also reject foreign row moves and check retained identities.",
+    "timing": "Native browser receive queue, unchanged two-animation-frame presented endpoint, no DOM audit instrumentation; 30 repetitions per case after 3 warmups. Status burst sends eight messages per repetition.",
+    "scope_limit": "Isolated UI and offline replay, not a live BTS/BTP/device end-to-end or long-duration reliability test."
+  },
+  "per_game_dom": {
+    "checks": 27,
+    "phases": [
+      {
+        "name": "point score only",
+        "match": "status-0",
+        "own": 2,
+        "warningMutations": 0,
+        "noops": 0,
+        "foreign": 0,
+        "foreignMoves": [],
+        "retained": true,
+        "custom": true
+      },
+      {
+        "name": "identical point",
+        "match": "status-0",
+        "own": 0,
+        "warningMutations": 0,
+        "noops": 0,
+        "foreign": 0,
+        "foreignMoves": [],
+        "retained": true,
+        "custom": true
+      },
+      {
+        "name": "unchanged court snapshot",
+        "match": "status-0",
+        "own": 0,
+        "warningMutations": 0,
+        "noops": 0,
+        "foreign": 0,
+        "foreignMoves": [],
+        "retained": true,
+        "custom": true
+      },
+      {
+        "name": "unchanged court metadata",
+        "match": "status-0",
+        "own": 0,
+        "warningMutations": 0,
+        "noops": 0,
+        "foreign": 0,
+        "foreignMoves": [],
+        "retained": true,
+        "custom": true
+      },
+      {
+        "name": "unchanged list regrouping",
+        "match": "status-30",
+        "own": 0,
+        "warningMutations": 0,
+        "noops": 0,
+        "foreign": 0,
+        "foreignMoves": [],
+        "retained": true,
+        "custom": true
+      },
+      {
+        "name": "one player name",
+        "match": "status-30",
+        "own": 3,
+        "warningMutations": 0,
+        "noops": 0,
+        "foreign": 0,
+        "foreignMoves": [],
+        "retained": true,
+        "custom": true
+      },
+      {
+        "name": "one team participant",
+        "match": "status-30",
+        "own": 14,
+        "warningMutations": 0,
+        "noops": 0,
+        "foreign": 0,
+        "foreignMoves": [],
+        "retained": true,
+        "custom": true
+      },
+      {
+        "name": "shuttle count",
+        "match": "status-30",
+        "own": 0,
+        "warningMutations": 0,
+        "noops": 0,
+        "foreign": 0,
+        "foreignMoves": [],
+        "retained": true,
+        "custom": true
+      },
+      {
+        "name": "server acknowledgement only",
+        "match": "status-30",
+        "own": 0,
+        "warningMutations": 0,
+        "noops": 0,
+        "foreign": 0,
+        "foreignMoves": [],
+        "retained": true,
+        "custom": true
+      },
+      {
+        "name": "one game number",
+        "match": "status-30",
+        "own": 3,
+        "warningMutations": 0,
+        "noops": 0,
+        "foreign": 0,
+        "foreignMoves": [],
+        "retained": true,
+        "custom": true
+      },
+      {
+        "name": "one event label",
+        "match": "status-30",
+        "own": 2,
+        "warningMutations": 0,
+        "noops": 0,
+        "foreign": 0,
+        "foreignMoves": [],
+        "retained": true,
+        "custom": true
+      },
+      {
+        "name": "one round label",
+        "match": "status-30",
+        "own": 2,
+        "warningMutations": 0,
+        "noops": 0,
+        "foreign": 0,
+        "foreignMoves": [],
+        "retained": true,
+        "custom": true
+      },
+      {
+        "name": "one schedule time",
+        "match": "status-30",
+        "own": 3,
+        "warningMutations": 0,
+        "noops": 0,
+        "foreign": 0,
+        "foreignMoves": [],
+        "retained": true,
+        "custom": true
+      },
+      {
+        "name": "one location",
+        "match": "status-30",
+        "own": 5,
+        "warningMutations": 0,
+        "noops": 0,
+        "foreign": 0,
+        "foreignMoves": [],
+        "retained": true,
+        "custom": true
+      },
+      {
+        "name": "one preparation deferral",
+        "match": "status-30",
+        "own": 2,
+        "warningMutations": 0,
+        "noops": 0,
+        "foreign": 0,
+        "foreignMoves": [],
+        "retained": true,
+        "custom": true
+      },
+      {
+        "name": "identical metadata snapshot",
+        "match": "status-30",
+        "own": 0,
+        "warningMutations": 0,
+        "noops": 0,
+        "foreign": 0,
+        "foreignMoves": [],
+        "retained": true,
+        "custom": true
+      },
+      {
+        "name": "move one game to the end of the list",
+        "match": "status-30",
+        "own": 0,
+        "warningMutations": 0,
+        "noops": 0,
+        "foreign": 0,
+        "foreignMoves": [],
+        "retained": true,
+        "custom": true
+      },
+      {
+        "name": "restore one game to its original list position",
+        "match": "status-30",
+        "own": 0,
+        "warningMutations": 0,
+        "noops": 0,
+        "foreign": 0,
+        "foreignMoves": [],
+        "retained": true,
+        "custom": true
+      },
+      {
+        "name": "player attendance retains clock and names",
+        "match": "status-30",
+        "own": 4,
+        "warningMutations": 0,
+        "noops": 0,
+        "foreign": 0,
+        "foreignMoves": [],
+        "retained": true,
+        "custom": true
+      },
+      {
+        "name": "official attendance retains role and name",
+        "match": "status-30",
+        "own": 4,
+        "warningMutations": 0,
+        "noops": 0,
+        "foreign": 0,
+        "foreignMoves": [],
+        "retained": true,
+        "custom": true
+      },
+      {
+        "name": "pause deadline retains resource hint and clock",
+        "match": "status-30",
+        "own": 4,
+        "warningMutations": 0,
+        "noops": 0,
+        "foreign": 0,
+        "foreignMoves": [],
+        "retained": true,
+        "custom": true
+      },
+      {
+        "name": "one paired operator attendance leaves aggregate unchanged",
+        "match": "status-30",
+        "own": 0,
+        "warningMutations": 0,
+        "noops": 0,
+        "foreign": 0,
+        "foreignMoves": [],
+        "retained": true,
+        "custom": true
+      },
+      {
+        "name": "paired operator attendance changes aggregate",
+        "match": "status-30",
+        "own": 7,
+        "warningMutations": 0,
+        "noops": 0,
+        "foreign": 0,
+        "foreignMoves": [],
+        "retained": true,
+        "custom": true
+      },
+      {
+        "name": "one paired operator name retains the other member",
+        "match": "status-30",
+        "own": 4,
+        "warningMutations": 0,
+        "noops": 0,
+        "foreign": 0,
+        "foreignMoves": [],
+        "retained": true,
+        "custom": true
+      },
+      {
+        "name": "unchanged todos retain the entire banner",
+        "match": "status-30",
+        "own": 0,
+        "warningMutations": 0,
+        "noops": 0,
+        "foreign": 0,
+        "foreignMoves": [],
+        "retained": true,
+        "custom": true
+      },
+      {
+        "name": "one todo updates only its text",
+        "match": "status-30",
+        "own": 0,
+        "warningMutations": 1,
+        "noops": 0,
+        "foreign": 0,
+        "foreignMoves": [],
+        "retained": true,
+        "custom": true
+      },
+      {
+        "name": "finish retains foreign rows and count badges",
+        "match": "status-0",
+        "own": 98,
+        "warningMutations": 0,
+        "noops": 0,
+        "foreign": 0,
+        "foreignMoves": [],
+        "retained": true,
+        "custom": true
+      }
+    ],
+    "exceptions": [],
+    "pending": {
+      "pending": 0,
+      "subscribers": 0,
+      "callbackErrors": 0
+    }
+  },
+  "rotation_dom": {
+    "phases": [
+      {
+        "name": "identical rotation",
+        "mutations": 0,
+        "noops": 0,
+        "foreign": 0,
+        "rootRetained": true,
+        "otherCardsRetained": true
+      },
+      {
+        "name": "one name",
+        "mutations": 3,
+        "noops": 0,
+        "foreign": 0,
+        "rootRetained": true,
+        "otherCardsRetained": true
+      },
+      {
+        "name": "fresh equal server records",
+        "mutations": 0,
+        "noops": 0,
+        "foreign": 0,
+        "rootRetained": true,
+        "otherCardsRetained": true
+      },
+      {
+        "name": "add one official",
+        "mutations": 17,
+        "noops": 0,
+        "foreign": 0,
+        "rootRetained": true,
+        "otherCardsRetained": true
+      },
+      {
+        "name": "move one official to end",
+        "mutations": 4,
+        "noops": 0,
+        "foreign": 0,
+        "rootRetained": true,
+        "otherCardsRetained": true
+      },
+      {
+        "name": "make one official unavailable",
+        "mutations": 20,
+        "noops": 0,
+        "foreign": 0,
+        "rootRetained": true,
+        "otherCardsRetained": true
+      },
+      {
+        "name": "remove one official",
+        "mutations": 2,
+        "noops": 0,
+        "foreign": 0,
+        "rootRetained": true,
+        "otherCardsRetained": true
+      }
+    ],
+    "unavailableRetained": true,
+    "handlersUseLatestRecord": true,
+    "pending": {
+      "pending": 0,
+      "subscribers": 0,
+      "callbackErrors": 0
+    }
+  },
+  "waiting_list_dom": {
+    "same": {
+      "mutations": 0,
+      "foreign": 0,
+      "retained": true
+    },
+    "name": {
+      "mutations": 2,
+      "foreign": 0,
+      "retained": true
+    },
+    "pair": {
+      "mutations": 5,
+      "foreign": 0,
+      "retained": true
+    },
+    "single": {
+      "mutations": 3,
+      "foreign": 0,
+      "retained": true
+    }
+  },
+  "offline_wire_replay": {
+    "source": "Offline replay of the two saved full snapshots from the earlier real tournament diagnosis; no server or BTP writes",
+    "full_bytes": 2397640,
+    "delta_bytes": 29598,
+    "saving_percent": 98.76553611050866,
+    "changed_locations": [
+      {
+        "id": "default_1",
+        "diagnoses": {
+          "diagnostics_by_match_id": 0,
+          "call_on_court_diagnostics_by_match_id": 1
+        }
+      }
+    ],
+    "exact_reconstruction": true
+  },
+  "call_status_mutation_comparison": {
+    "before_per_changed_game": 17,
+    "after_per_changed_game": 2,
+    "reduction_percent": 88.24,
+    "basis": "Original audit: 51 mutations for 3 single changes and 408 for three eight-change bursts. Final audit excludes independently advancing rotation clocks. The original point benchmark reused warmed-up scores and is explicitly excluded from before/after timing or mutation comparisons."
+  },
+  "dom_audit": [
+    {
+      "case": "point",
+      "rounds": 5,
+      "total_mutations": 10,
+      "independent_clock_mutations": 0,
+      "data_update_mutations": 10,
+      "redundant_attribute_or_text_writes": 0
+    },
+    {
+      "case": "duplicate_point",
+      "rounds": 5,
+      "total_mutations": 2,
+      "independent_clock_mutations": 2,
+      "data_update_mutations": 0,
+      "redundant_attribute_or_text_writes": 0
+    },
+    {
+      "case": "point_snapshot",
+      "rounds": 5,
+      "total_mutations": 10,
+      "independent_clock_mutations": 0,
+      "data_update_mutations": 10,
+      "redundant_attribute_or_text_writes": 0
+    },
+    {
+      "case": "status_same",
+      "rounds": 5,
+      "total_mutations": 0,
+      "independent_clock_mutations": 0,
+      "data_update_mutations": 0,
+      "redundant_attribute_or_text_writes": 0
+    },
+    {
+      "case": "status_one",
+      "rounds": 5,
+      "total_mutations": 12,
+      "independent_clock_mutations": 2,
+      "data_update_mutations": 10,
+      "redundant_attribute_or_text_writes": 0
+    },
+    {
+      "case": "status_burst",
+      "rounds": 5,
+      "total_mutations": 82,
+      "independent_clock_mutations": 2,
+      "data_update_mutations": 80,
+      "redundant_attribute_or_text_writes": 0
+    },
+    {
+      "case": "check_in",
+      "rounds": 5,
+      "total_mutations": 20,
+      "independent_clock_mutations": 0,
+      "data_update_mutations": 20,
+      "redundant_attribute_or_text_writes": 0
+    },
+    {
+      "case": "counts",
+      "rounds": 5,
+      "total_mutations": 0,
+      "independent_clock_mutations": 0,
+      "data_update_mutations": 0,
+      "redundant_attribute_or_text_writes": 0
+    },
+    {
+      "case": "battery",
+      "rounds": 5,
+      "total_mutations": 27,
+      "independent_clock_mutations": 2,
+      "data_update_mutations": 25,
+      "redundant_attribute_or_text_writes": 0
+    },
+    {
+      "case": "battery_same",
+      "rounds": 5,
+      "total_mutations": 0,
+      "independent_clock_mutations": 0,
+      "data_update_mutations": 0,
+      "redundant_attribute_or_text_writes": 0
+    }
+  ],
+  "timing": [
+    {
+      "case": "point",
+      "receipts": 30,
+      "median_ms": 30.65,
+      "p95_ms": 32.4,
+      "max_ms": 42.8,
+      "max_handler_ms": 1.3
+    },
+    {
+      "case": "duplicate_point",
+      "receipts": 30,
+      "median_ms": 32.2,
+      "p95_ms": 32.6,
+      "max_ms": 35.1,
+      "max_handler_ms": 0.6
+    },
+    {
+      "case": "point_snapshot",
+      "receipts": 60,
+      "median_ms": 30.2,
+      "p95_ms": 32.9,
+      "max_ms": 36,
+      "max_handler_ms": 0.6
+    },
+    {
+      "case": "status_same",
+      "receipts": 30,
+      "median_ms": 29.85,
+      "p95_ms": 30.7,
+      "max_ms": 34.6,
+      "max_handler_ms": 1.4
+    },
+    {
+      "case": "status_one",
+      "receipts": 30,
+      "median_ms": 47.5,
+      "p95_ms": 63.3,
+      "max_ms": 74.9,
+      "max_handler_ms": 3.2
+    },
+    {
+      "case": "status_burst",
+      "receipts": 240,
+      "median_ms": 46.7,
+      "p95_ms": 73,
+      "max_ms": 88.9,
+      "max_handler_ms": 2.6
+    },
+    {
+      "case": "check_in",
+      "receipts": 30,
+      "median_ms": 53.6,
+      "p95_ms": 56.9,
+      "max_ms": 57,
+      "max_handler_ms": 0.3
+    },
+    {
+      "case": "counts",
+      "receipts": 30,
+      "median_ms": 30.6,
+      "p95_ms": 46.9,
+      "max_ms": 47,
+      "max_handler_ms": 21.4
+    }
+  ],
+  "final_pending": {
+    "pending": 0,
+    "subscribers": 1,
+    "callbackErrors": 0
+  },
+  "final_errors": [],
+  "validation": {
+    "node_tests_passed": 230,
+    "browser_checks_passed": {
+      "per_game_dom": 27,
+      "rotation_dom": 7,
+      "rotation_drag_and_drop": 21,
+      "waiting_list_retention_cases": 4,
+      "persistent_game_rows": 63,
+      "court_assignment": 22,
+      "date_groups": 36,
+      "tablet_card_including_gif_fallback": 44,
+      "call_status_content": 12
+    },
+    "additional_passed": [
+      "shared-call-status",
+      "boundary-layout-cache (zero geometry reads at four viewport widths)",
+      "dom-retention",
+      "preparation-stability",
+      "logs"
+    ],
+    "new_server_and_wire_modules_lint": "passed",
+    "cleitstand_lint": "passed",
+    "javascript_syntax": "passed",
+    "git_diff_check": "passed"
+  },
+  "remaining_checks": [
+    "Lint of all large edited legacy modules remains failing; targeted new modules and cleitstand pass. No claim of a clean full repository lint run."
+  ],
+  "raw_artifacts": "/tmp/bts-dom-scope-20261112",
+  "repeat": [
+    "BTS_DOM_SCOPE_REPORT=/tmp/game-scope.json node docs/entwuerfe/admin-ui/umsetzung/browser-check.js --dom-game-scope-only",
+    "BTS_ROTATION_SCOPE_REPORT=/tmp/rotation-scope.json node docs/entwuerfe/admin-ui/umsetzung/browser-check.js --rotation-dom-scope-only",
+    "node docs/entwuerfe/admin-ui/umsetzung/browser-check.js --rotation-interactions-only",
+    "node docs/entwuerfe/admin-ui/umsetzung/browser-check.js --tablet-queue-live-only",
+    "BTS_DOM_AUDIT=1 BTS_DOM_SAMPLES=5 BTS_DOM_REPORT=/tmp/dom-audit.json node docs/entwuerfe/admin-ui/umsetzung/browser-check.js --dom-updates-only",
+    "BTS_DOM_AUDIT=0 BTS_DOM_SAMPLES=30 BTS_DOM_REPORT=/tmp/dom-timing.json node docs/entwuerfe/admin-ui/umsetzung/browser-check.js --dom-updates-only"
+  ],
+  "resolved_followup": {
+    "date": "2026-11-12",
+    "report": "layout-verification-2026-11-12.json",
+    "previously_failing": [
+      "Full legacy browser run stops at the adaptive official column/name-space geometry assertion; the separate compact-official-name test also fails its width-forcing assertion. These are not counted as passing.",
+      "The additional deferred-preparation-badge geometry check fails at 1280px compact density. It is not counted as passing."
+    ],
+    "status": "All reported layout failures, the full browser runner and complementary layout/dialog suites now pass. Product fixes are CSS only; the runtime DOM optimization is unchanged."
+  }
+}

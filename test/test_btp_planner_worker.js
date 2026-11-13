@@ -121,7 +121,7 @@ describe('persistent sync planning worker', function() {
 		bup.handle_score_change = (app, ...args) => calls.push(args);
 		try {
 			effects.restore({ command: { target: 'bupws', method: 'notify_courts', args: ['t', 'new', 'old'] }, resources: {} }).run({});
-			assert.deepStrictEqual(calls, [['t', 'new'], ['t', 'old']]);
+			assert.deepStrictEqual(calls, [['t', 'new', undefined], ['t', 'old']]);
 			assert.throws(() => effects.restore({ command: { target: 'fs', method: 'writeFile', args: [] } }).run({}), /Unknown/);
 		} finally { bup.handle_score_change = original; }
 	});

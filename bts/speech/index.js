@@ -73,7 +73,13 @@ function handle(app, ws, msg) {
 }
 
 function send_reply(app, ws, msg, values) {
-    try { (ws.respond_background || ws.respond).call(ws, msg, null, values); }
+    // Clip inspection/playback replies have a bounded number of parts. Putting
+    // their small answer through the snapshot encoder reserved this socket
+    // while that encoder waited for a foreground point to finish. Later score
+    // messages then waited behind speech readiness (68 ms in a live trace).
+    // Ordinary replies still respect an existing tournament-snapshot barrier.
+    const bounded = ['speech_status', 'speech_resolve', 'speech_prepare'].includes(msg.type);
+    try { (bounded ? ws.respond : ws.respond_background || ws.respond).call(ws, msg, null, values); }
     catch (error) { app.speech?.health?.fail('admin_reply', error, false); }
 }
 

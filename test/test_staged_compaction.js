@@ -28,6 +28,7 @@ describe('staged automatic compaction', function() {
 		originals = { ...storage };
 		directory = fs.mkdtempSync(path.join(os.tmpdir(), 'bts-staged-compaction-'));
 		store = new Datastore({ filename: path.join(directory, 'matches') });
+		require('../bts/prepared_append').attach(store);
 		compaction.attach(store, 'matches', { identity_serialization: true });
 		await promisify(store.loadDatabase.bind(store))();
 		await promisify(store.insert.bind(store))({ _id: 'game', score: 0, at: new Date(1234) });
@@ -117,6 +118,20 @@ describe('staged automatic compaction', function() {
 		await compacting;
 		assert.strictEqual((await reload()).docs[0].score, 4);
 	});
+	it('retains pre-serialized sync batches in the compaction catch-up journal', async function() {
+		const gate = hold_stage(), compacting = staged.run(store, 'matches');
+		await gate.entered;
+		try {
+			const before = store.indexes._id.getMatching('game')[0], update = { $set: { score: 8 } };
+			const change = { collection: 'matches', id: 'game', before, after: { ...before, score: 8 }, update };
+			const ready = require('../bts/btp_planner/prepared_match').prepare(change);
+			require('../bts/prepared_append').prepare(store, ready.document);
+			await batch.write(store, [change], () => ({ _id: 'game' }), new Map([[change, ready]]));
+		} finally { gate.release(); }
+		await compacting;
+		assert.strictEqual((await reload()).docs[0].score, 8);
+		assert.deepStrictEqual((await reload()).docs, await read());
+	});
 	it('queues points and external index appends only during the final rename', async function() {
 		const entered = deferred(), gate = deferred();
 		storage.rename = (from, to, done) => {
@@ -132,6 +147,39 @@ describe('staged automatic compaction', function() {
 		gate.resolve(); await Promise.all([compacting, point, index]);
 		const result = await reload();
 		assert.strictEqual(result.docs[0].score, 7); assert.strictEqual(result.db.indexes.score.unique, true);
+	});
+	it('persists points and external index changes while the replacement file is being flushed', async function() {
+		const entered = deferred(), gate = deferred();let held = false;
+		storage.flushToStorage = (options, done) => {
+			if (!held && typeof options === 'string' && options.endsWith('.bts-compacting')) {
+				held = true;entered.resolve();gate.promise.then(() => originals.flushToStorage(options,done));
+			} else originals.flushToStorage(options,done);
+		};
+		const compacting = staged.run(store,'matches');await entered.promise;
+		let pointDone = false, indexDone = false;
+		const point = update(6).then(() => {pointDone = true;});
+		const index = promisify(store.ensureIndex.bind(store))({fieldName:'score',unique:true}).then(() => {indexDone = true;});
+		try {
+			for (let n=0;n<20&&!pointDone;n++) await new Promise(resolve => setTimeout(resolve,5));
+			assert(pointDone,'a slow fsync of the replacement must not hold live point writes');
+			assert(indexDone,'external index appends still enter the catch-up journal');
+		} finally {gate.resolve();await Promise.all([compacting,point,index]);}
+		const result = await reload();
+		assert.strictEqual(result.docs[0].score,6);assert.strictEqual(result.db.indexes.score.unique,true);
+	});
+	it('declines a swap if writes keep changing every flushed replacement, retaining all acknowledged points', async function() {
+		let writes = 0;
+		storage.flushToStorage = (options, done) => {
+			if (typeof options === 'string' && options.endsWith('.bts-compacting')) {
+				return update(++writes).then(() => originals.flushToStorage(options,done),done);
+			}
+			return originals.flushToStorage(options,done);
+		};
+		await assert.rejects(staged.run(store,'matches'),/postponed by concurrent writes/);
+		assert(writes>1&&writes<=4,'catch-up retries must remain bounded');
+		assert.strictEqual((await reload()).docs[0].score,writes);
+		Object.assign(storage,originals);await staged.run(store,'matches');
+		assert.strictEqual((await reload()).docs[0].score,writes);
 	});
 	for (const method of ['crashSafeWriteFile', 'rename', 'flushToStorage']) {
 		it(`keeps all acknowledged points on ${method} failure and can retry`, async function() {

@@ -171,6 +171,32 @@ describe('BTP durable result delivery', function() {
 		assert.strictEqual((await read()).btp_needsync, false);
 	});
 
+	it('replays a pending unplayed match setup after an outage using its latest revision', async function() {
+		const first = conn.pushall();
+		await until(() => requests.length === 1);
+		requests[0].callback(null, new Error('offline'));
+		await first;
+		assert.strictEqual((await read()).btp_needsync, true);
+		await update(db.matches, { _id: 'm1' }, { $set: { 'setup.highlight': 2 } });
+		const retry = conn.pushall();
+		await until(() => requests.length === 2);
+		assert.strictEqual(requests[1].value.Update.Tournament.Matches[0].Match.Highlight, 2);
+		requests[1].callback(ack);
+		await retry;
+		assert.strictEqual((await read()).btp_needsync, false);
+	});
+
+	it('schedules automatic retries for failed pending metadata as well as results', async function() {
+		const retries = [];
+		conn.schedule_result_retry = options => retries.push(options);
+		const sending = conn.update_score(await read());
+		await until(() => requests.length === 1);
+		requests[0].callback(null, new Error('offline'));
+		await sending;
+		assert.deepStrictEqual(retries, [{ readback: false }]);
+		assert.strictEqual((await read()).btp_needsync, true);
+	});
+
 	it('retries only its own tournament and limits a batch to two simultaneous requests', async function() {
 		await finish();
 		await insert(db.matches, { ...await read(), _id: 'foreign', tournament_key: 'other' });

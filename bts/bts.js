@@ -67,7 +67,7 @@ function main() {
 	});
 }
 
-function cadmin_router() {
+function cadmin_router(assetCache) {
 	const router = express.Router();
 	router.get('/t/:tournament_key/speech-helpers/', function(req, res) {
 		res.redirect('/admin/t/' + encodeURIComponent(req.params.tournament_key) + '/edit/speech#speech-helpers');
@@ -111,7 +111,7 @@ function cadmin_router() {
 			html = html.replace(/{{static_path}}/g, '/static/');
 			html = html.replace(/{{root_path}}/g, '/');
 			html = html.replace(/{{app_root}}/g, '/admin/');
-			res.send(req.app.diagnostics ? require('./diagnostics/pages').html(html, req.app.diagnostics.version) : html);
+			assetCache.decorate(html).then(value=>res.send(req.app.diagnostics ? require('./diagnostics/pages').html(value, req.app.diagnostics.version) : value), next);
 		});
 	});
 	return router;
@@ -126,12 +126,14 @@ function create_app(config, db, {configFile = null} = {}) {
 	require('./match_protocol').attach(app);
 	if (config.diagnostics?.enabled !== false) app.diagnostics = new (require('./diagnostics').Diagnostics)(app, require('./diagnostics/pages').buildVersion(config));
 	app.speech = require('./speech').create(app);
+	const assetCache=require('./admin_asset_cache')(utils.root_dir());
+	app.use(assetCache.serve);
 	app.use('/bup/', require('./diagnostics/pages').bup(config.bup_location, config.bup_index));
 	app.use('/bup/', express.static(config.bup_location, {index: config.bup_index}));
 	app.use('/bupdev/', require('./diagnostics/pages').bup(path.join(utils.root_dir(), 'static/bup/dev/')));
 	app.use('/bupdev/', express.static(path.join(utils.root_dir(), 'static/bup/dev/')));
 	app.use('/static/', express.static('static/', {}));
-	app.use('/admin/', cadmin_router());
+	app.use('/admin/', cadmin_router(assetCache));
 	app.get('/', function(req, res) {
 		res.redirect('/admin/');
 	});
@@ -162,7 +164,7 @@ function create_app(config, db, {configFile = null} = {}) {
 	
 	const wss = new ws_module.Server({ server: server });
 	app.speech.start();
-	server.once('close', () => { app.speech.stop(); app.diagnostics?.close(); });
+	server.once('close', () => { app.speech.stop(); app.diagnostics?.close(); require('./call_status').close(app); });
 	app.wss = wss;
 	wss.on('connection', function connection(ws, req) {
 		const location = url.parse(req.url, true);

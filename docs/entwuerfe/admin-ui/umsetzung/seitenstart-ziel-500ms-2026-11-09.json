@@ -1,0 +1,1369 @@
+{
+  "date": "2026-11-09",
+  "target": {
+    "full_reload_ms_below": 500,
+    "met": false,
+    "definition": "Navigation start until main UI is visible and three consecutive render frames have no pending board/tournament layout jobs. UI-only timing is reported separately.",
+    "decision": "Keep all lists fully laid out before scrolling. Reject the faster content-visibility prototype because it slows the first reveal. Retain only measured optimizations without that operating cost; full reloads still exceed 500 ms."
+  },
+  "scope": "Isolated Chrome, 1366x900, fixed locally stored 512-match response (423 finished, 15 courts, 50 fully built result rows). All writes/BTP/speech mocked. Fresh no-store response on each Page.reload(ignoreCache:false); no CDP data injection in timed network path. Warm reloads retain the same tab HTTP and numeric-measurement caches. Cold means fresh profile without those caches. Every list is laid out and fitted before completion, including offscreen lists. No snapshot contents/player names are included. This is not a live-server end-to-end measurement.",
+  "changes": [
+    "Native text rulers and bounded numeric caches for simple teams; complex controls retain their native ancestor probes.",
+    "Preload clock fonts to avoid repeated fitting after late font arrival.",
+    "Build final modern team cells directly and omit hidden legacy edit links; public tables and dialog behavior retained.",
+    "Reuse bounded locale formatters and date/time/zone conversions.",
+    "Batch numeric-input observation without rescanning covered descendants, detached probes or text leaves; disabled/readonly/inert forms remain checked.",
+    "Fingerprint entry CSS/JS with immutable HTTP caching, shared asynchronous gzip, original script order/scope and exact version bytes. HTML and tournament data remain uncached.",
+    "Retain at most 512 numeric team measurements in sessionStorage of the same tab, at most 1048576 JSON code units, six-hour expiry. Script/CSS fingerprints and local font file metadata invalidate stored values; font readiness, FontFace descriptors, browser identity, pixel ratio, viewport, density and full labels/controls also participate. Writes occur only on pagehide. Missing/blocked/full/corrupt storage uses native measurement."
+  ],
+  "summary": {
+    "before": {
+      "fresh_profiles": 2,
+      "reloads": 6,
+      "full_reload_ms": {
+        "median": 1019.8,
+        "min": 951.2,
+        "max": 1125
+      },
+      "ui_build_ms": {
+        "median": 835.6,
+        "min": 781.6,
+        "max": 931.3
+      },
+      "cold_navigation_ms": [
+        1459.5,
+        1403.8
+      ],
+      "dom_nodes": [
+        9268,
+        9268
+      ]
+    },
+    "after": {
+      "fresh_profiles": 2,
+      "reloads": 6,
+      "full_reload_ms": {
+        "median": 689.6,
+        "min": 645,
+        "max": 735.2
+      },
+      "ui_build_ms": {
+        "median": 583.6,
+        "min": 555.6,
+        "max": 615.6
+      },
+      "cold_navigation_ms": [
+        1377.6,
+        1363.2
+      ],
+      "dom_nodes": [
+        8765,
+        8765
+      ]
+    }
+  },
+  "startup_comparison": [
+    {
+      "mode": "before",
+      "run": 1,
+      "measurements": [
+        {
+          "total_ms": 1021.1000001430511,
+          "navigation_to_ready_ms": 1459.5,
+          "phases": {
+            "matches.prepare_render": {
+              "count": 1,
+              "ms": 1.1000001430511475,
+              "max_ms": 1.1000001430511475
+            },
+            "matches.render_courts": {
+              "count": 1,
+              "ms": 20.09999990463257,
+              "max_ms": 20.09999990463257
+            },
+            "matches.render_unassigned": {
+              "count": 1,
+              "ms": 34.299999952316284,
+              "max_ms": 34.299999952316284
+            },
+            "matches.render_finished": {
+              "count": 1,
+              "ms": 13.900000095367432,
+              "max_ms": 13.900000095367432
+            },
+            "operators": {
+              "count": 1,
+              "ms": 1.9000000953674316,
+              "max_ms": 1.9000000953674316
+            },
+            "officials": {
+              "count": 1,
+              "ms": 2,
+              "max_ms": 2
+            },
+            "board.mount": {
+              "count": 1,
+              "ms": 145.70000004768372,
+              "max_ms": 145.70000004768372
+            }
+          },
+          "matches": 512,
+          "courts": 15,
+          "dom_nodes": 9268,
+          "rendered_results": 50,
+          "deferred_results": 373,
+          "game_rows": 512,
+          "finished_visible": 50,
+          "main_visible": true,
+          "pending": false,
+          "navigation": {
+            "dom_content_loaded_ms": 410.19999980926514,
+            "load_ms": 410.59999990463257,
+            "assets": 126,
+            "export_library_requests": 0,
+            "asset_bytes": 5968263
+          }
+        },
+        {
+          "total_ms": 880.6000001430511,
+          "navigation_to_ready_ms": 1056.7000000476837,
+          "phases": {
+            "matches.prepare_render": {
+              "count": 1,
+              "ms": 0.8999998569488525,
+              "max_ms": 0.8999998569488525
+            },
+            "matches.render_courts": {
+              "count": 1,
+              "ms": 15.5,
+              "max_ms": 15.5
+            },
+            "matches.render_unassigned": {
+              "count": 1,
+              "ms": 30.600000143051147,
+              "max_ms": 30.600000143051147
+            },
+            "matches.render_finished": {
+              "count": 1,
+              "ms": 14.200000047683716,
+              "max_ms": 14.200000047683716
+            },
+            "operators": {
+              "count": 1,
+              "ms": 0.7999999523162842,
+              "max_ms": 0.7999999523162842
+            },
+            "officials": {
+              "count": 1,
+              "ms": 0.6000001430511475,
+              "max_ms": 0.6000001430511475
+            },
+            "board.mount": {
+              "count": 1,
+              "ms": 127.5,
+              "max_ms": 127.5
+            }
+          },
+          "first_stable_ms": 846,
+          "navigation": {
+            "load_ms": 155,
+            "type": "reload"
+          }
+        },
+        {
+          "total_ms": 781.6000001430511,
+          "navigation_to_ready_ms": 951.2000000476837,
+          "phases": {
+            "matches.prepare_render": {
+              "count": 1,
+              "ms": 1.1000001430511475,
+              "max_ms": 1.1000001430511475
+            },
+            "matches.render_courts": {
+              "count": 1,
+              "ms": 12.099999904632568,
+              "max_ms": 12.099999904632568
+            },
+            "matches.render_unassigned": {
+              "count": 1,
+              "ms": 27.299999952316284,
+              "max_ms": 27.299999952316284
+            },
+            "matches.render_finished": {
+              "count": 1,
+              "ms": 10,
+              "max_ms": 10
+            },
+            "operators": {
+              "count": 1,
+              "ms": 0.6000001430511475,
+              "max_ms": 0.6000001430511475
+            },
+            "officials": {
+              "count": 1,
+              "ms": 0.5,
+              "max_ms": 0.5
+            },
+            "board.mount": {
+              "count": 1,
+              "ms": 102.60000014305115,
+              "max_ms": 102.60000014305115
+            }
+          },
+          "first_stable_ms": 749.5,
+          "navigation": {
+            "load_ms": 147.40000009536743,
+            "type": "reload"
+          }
+        },
+        {
+          "total_ms": 827.7000000476837,
+          "navigation_to_ready_ms": 1008.6000001430511,
+          "phases": {
+            "matches.prepare_render": {
+              "count": 1,
+              "ms": 0.8999998569488525,
+              "max_ms": 0.8999998569488525
+            },
+            "matches.render_courts": {
+              "count": 1,
+              "ms": 13.700000047683716,
+              "max_ms": 13.700000047683716
+            },
+            "matches.render_unassigned": {
+              "count": 1,
+              "ms": 29.299999952316284,
+              "max_ms": 29.299999952316284
+            },
+            "matches.render_finished": {
+              "count": 1,
+              "ms": 12,
+              "max_ms": 12
+            },
+            "operators": {
+              "count": 1,
+              "ms": 0.7999999523162842,
+              "max_ms": 0.7999999523162842
+            },
+            "officials": {
+              "count": 1,
+              "ms": 0.5999999046325684,
+              "max_ms": 0.5999999046325684
+            },
+            "board.mount": {
+              "count": 1,
+              "ms": 109.29999995231628,
+              "max_ms": 109.29999995231628
+            }
+          },
+          "first_stable_ms": 787.0999999046326,
+          "navigation": {
+            "load_ms": 154.40000009536743,
+            "type": "reload"
+          }
+        }
+      ]
+    },
+    {
+      "mode": "after",
+      "run": 1,
+      "measurements": [
+        {
+          "total_ms": 853.7000000476837,
+          "navigation_to_ready_ms": 1377.6000001430511,
+          "phases": {
+            "matches.prepare_render": {
+              "count": 1,
+              "ms": 1.0999999046325684,
+              "max_ms": 1.0999999046325684
+            },
+            "matches.render_courts": {
+              "count": 1,
+              "ms": 21.5,
+              "max_ms": 21.5
+            },
+            "matches.render_unassigned": {
+              "count": 1,
+              "ms": 27.299999952316284,
+              "max_ms": 27.299999952316284
+            },
+            "matches.render_finished": {
+              "count": 1,
+              "ms": 6.799999952316284,
+              "max_ms": 6.799999952316284
+            },
+            "operators": {
+              "count": 1,
+              "ms": 2.200000047683716,
+              "max_ms": 2.200000047683716
+            },
+            "officials": {
+              "count": 1,
+              "ms": 2,
+              "max_ms": 2
+            },
+            "board.mount": {
+              "count": 1,
+              "ms": 142.90000009536743,
+              "max_ms": 142.90000009536743
+            }
+          },
+          "matches": 512,
+          "courts": 15,
+          "dom_nodes": 8765,
+          "rendered_results": 50,
+          "deferred_results": 373,
+          "game_rows": 512,
+          "finished_visible": 50,
+          "main_visible": true,
+          "pending": false,
+          "navigation": {
+            "dom_content_loaded_ms": 490.2000000476837,
+            "load_ms": 490.40000009536743,
+            "assets": 127,
+            "export_library_requests": 0,
+            "asset_bytes": 3314203
+          }
+        },
+        {
+          "total_ms": 581.2000000476837,
+          "navigation_to_ready_ms": 701.4000000953674,
+          "phases": {
+            "matches.prepare_render": {
+              "count": 1,
+              "ms": 0.8999998569488525,
+              "max_ms": 0.8999998569488525
+            },
+            "matches.render_courts": {
+              "count": 1,
+              "ms": 13.100000143051147,
+              "max_ms": 13.100000143051147
+            },
+            "matches.render_unassigned": {
+              "count": 1,
+              "ms": 19.5,
+              "max_ms": 19.5
+            },
+            "matches.render_finished": {
+              "count": 1,
+              "ms": 5.799999952316284,
+              "max_ms": 5.799999952316284
+            },
+            "operators": {
+              "count": 1,
+              "ms": 0.7000000476837158,
+              "max_ms": 0.7000000476837158
+            },
+            "officials": {
+              "count": 1,
+              "ms": 0.6999998092651367,
+              "max_ms": 0.6999998092651367
+            },
+            "board.mount": {
+              "count": 1,
+              "ms": 93.60000014305115,
+              "max_ms": 93.60000014305115
+            }
+          },
+          "first_stable_ms": 548.2000000476837,
+          "navigation": {
+            "load_ms": 96.29999995231628,
+            "type": "reload"
+          }
+        },
+        {
+          "total_ms": 585,
+          "navigation_to_ready_ms": 677.7000000476837,
+          "phases": {
+            "matches.prepare_render": {
+              "count": 1,
+              "ms": 0.7999999523162842,
+              "max_ms": 0.7999999523162842
+            },
+            "matches.render_courts": {
+              "count": 1,
+              "ms": 14.799999952316284,
+              "max_ms": 14.799999952316284
+            },
+            "matches.render_unassigned": {
+              "count": 1,
+              "ms": 17.899999856948853,
+              "max_ms": 17.899999856948853
+            },
+            "matches.render_finished": {
+              "count": 1,
+              "ms": 5.200000047683716,
+              "max_ms": 5.200000047683716
+            },
+            "operators": {
+              "count": 1,
+              "ms": 0.6999998092651367,
+              "max_ms": 0.6999998092651367
+            },
+            "officials": {
+              "count": 1,
+              "ms": 0.5,
+              "max_ms": 0.5
+            },
+            "board.mount": {
+              "count": 1,
+              "ms": 109.40000009536743,
+              "max_ms": 109.40000009536743
+            }
+          },
+          "first_stable_ms": 548.4000000953674,
+          "navigation": {
+            "load_ms": 68.40000009536743,
+            "type": "reload"
+          }
+        },
+        {
+          "total_ms": 615.6000001430511,
+          "navigation_to_ready_ms": 735.2000000476837,
+          "phases": {
+            "matches.prepare_render": {
+              "count": 1,
+              "ms": 0.7999999523162842,
+              "max_ms": 0.7999999523162842
+            },
+            "matches.render_courts": {
+              "count": 1,
+              "ms": 12.399999856948853,
+              "max_ms": 12.399999856948853
+            },
+            "matches.render_unassigned": {
+              "count": 1,
+              "ms": 21.40000009536743,
+              "max_ms": 21.40000009536743
+            },
+            "matches.render_finished": {
+              "count": 1,
+              "ms": 7.700000047683716,
+              "max_ms": 7.700000047683716
+            },
+            "operators": {
+              "count": 1,
+              "ms": 0.7999999523162842,
+              "max_ms": 0.7999999523162842
+            },
+            "officials": {
+              "count": 1,
+              "ms": 0.6000001430511475,
+              "max_ms": 0.6000001430511475
+            },
+            "board.mount": {
+              "count": 1,
+              "ms": 109.59999990463257,
+              "max_ms": 109.59999990463257
+            }
+          },
+          "first_stable_ms": 582.1000001430511,
+          "navigation": {
+            "load_ms": 87.40000009536743,
+            "type": "reload"
+          }
+        }
+      ]
+    },
+    {
+      "mode": "after",
+      "run": 2,
+      "measurements": [
+        {
+          "total_ms": 861.1999998092651,
+          "navigation_to_ready_ms": 1363.1999998092651,
+          "phases": {
+            "matches.prepare_render": {
+              "count": 1,
+              "ms": 1.0999999046325684,
+              "max_ms": 1.0999999046325684
+            },
+            "matches.render_courts": {
+              "count": 1,
+              "ms": 20.200000047683716,
+              "max_ms": 20.200000047683716
+            },
+            "matches.render_unassigned": {
+              "count": 1,
+              "ms": 24.700000047683716,
+              "max_ms": 24.700000047683716
+            },
+            "matches.render_finished": {
+              "count": 1,
+              "ms": 7.700000047683716,
+              "max_ms": 7.700000047683716
+            },
+            "operators": {
+              "count": 1,
+              "ms": 2,
+              "max_ms": 2
+            },
+            "officials": {
+              "count": 1,
+              "ms": 2,
+              "max_ms": 2
+            },
+            "board.mount": {
+              "count": 1,
+              "ms": 130.29999995231628,
+              "max_ms": 130.29999995231628
+            }
+          },
+          "matches": 512,
+          "courts": 15,
+          "dom_nodes": 8765,
+          "rendered_results": 50,
+          "deferred_results": 373,
+          "game_rows": 512,
+          "finished_visible": 50,
+          "main_visible": true,
+          "pending": false,
+          "navigation": {
+            "dom_content_loaded_ms": 474.59999990463257,
+            "load_ms": 474.7999999523163,
+            "assets": 127,
+            "export_library_requests": 0,
+            "asset_bytes": 3314203
+          }
+        },
+        {
+          "total_ms": 591.4000000953674,
+          "navigation_to_ready_ms": 716.6000001430511,
+          "phases": {
+            "matches.prepare_render": {
+              "count": 1,
+              "ms": 0.9000000953674316,
+              "max_ms": 0.9000000953674316
+            },
+            "matches.render_courts": {
+              "count": 1,
+              "ms": 13.099999904632568,
+              "max_ms": 13.099999904632568
+            },
+            "matches.render_unassigned": {
+              "count": 1,
+              "ms": 21.700000047683716,
+              "max_ms": 21.700000047683716
+            },
+            "matches.render_finished": {
+              "count": 1,
+              "ms": 5.299999952316284,
+              "max_ms": 5.299999952316284
+            },
+            "operators": {
+              "count": 1,
+              "ms": 0.7999999523162842,
+              "max_ms": 0.7999999523162842
+            },
+            "officials": {
+              "count": 1,
+              "ms": 0.6000001430511475,
+              "max_ms": 0.6000001430511475
+            },
+            "board.mount": {
+              "count": 1,
+              "ms": 99.70000004768372,
+              "max_ms": 99.70000004768372
+            }
+          },
+          "first_stable_ms": 558,
+          "navigation": {
+            "load_ms": 95,
+            "type": "reload"
+          }
+        },
+        {
+          "total_ms": 582.2999999523163,
+          "navigation_to_ready_ms": 677.2999999523163,
+          "phases": {
+            "matches.prepare_render": {
+              "count": 1,
+              "ms": 0.9000000953674316,
+              "max_ms": 0.9000000953674316
+            },
+            "matches.render_courts": {
+              "count": 1,
+              "ms": 14.700000047683716,
+              "max_ms": 14.700000047683716
+            },
+            "matches.render_unassigned": {
+              "count": 1,
+              "ms": 17.59999990463257,
+              "max_ms": 17.59999990463257
+            },
+            "matches.render_finished": {
+              "count": 1,
+              "ms": 5.400000095367432,
+              "max_ms": 5.400000095367432
+            },
+            "operators": {
+              "count": 1,
+              "ms": 0.7000000476837158,
+              "max_ms": 0.7000000476837158
+            },
+            "officials": {
+              "count": 1,
+              "ms": 0.5999999046325684,
+              "max_ms": 0.5999999046325684
+            },
+            "board.mount": {
+              "count": 1,
+              "ms": 95.90000009536743,
+              "max_ms": 95.90000009536743
+            }
+          },
+          "first_stable_ms": 544.3999998569489,
+          "navigation": {
+            "load_ms": 71.29999995231628,
+            "type": "reload"
+          }
+        },
+        {
+          "total_ms": 555.6000001430511,
+          "navigation_to_ready_ms": 645,
+          "phases": {
+            "matches.prepare_render": {
+              "count": 1,
+              "ms": 1.2000000476837158,
+              "max_ms": 1.2000000476837158
+            },
+            "matches.render_courts": {
+              "count": 1,
+              "ms": 15.099999904632568,
+              "max_ms": 15.099999904632568
+            },
+            "matches.render_unassigned": {
+              "count": 1,
+              "ms": 17.200000047683716,
+              "max_ms": 17.200000047683716
+            },
+            "matches.render_finished": {
+              "count": 1,
+              "ms": 4.799999952316284,
+              "max_ms": 4.799999952316284
+            },
+            "operators": {
+              "count": 1,
+              "ms": 0.7000000476837158,
+              "max_ms": 0.7000000476837158
+            },
+            "officials": {
+              "count": 1,
+              "ms": 0.5,
+              "max_ms": 0.5
+            },
+            "board.mount": {
+              "count": 1,
+              "ms": 93.79999995231628,
+              "max_ms": 93.79999995231628
+            }
+          },
+          "first_stable_ms": 528.4000000953674,
+          "navigation": {
+            "load_ms": 65.09999990463257,
+            "type": "reload"
+          }
+        }
+      ]
+    },
+    {
+      "mode": "before",
+      "run": 2,
+      "measurements": [
+        {
+          "total_ms": 988.2999999523163,
+          "navigation_to_ready_ms": 1403.7999999523163,
+          "phases": {
+            "matches.prepare_render": {
+              "count": 1,
+              "ms": 1.1999998092651367,
+              "max_ms": 1.1999998092651367
+            },
+            "matches.render_courts": {
+              "count": 1,
+              "ms": 20.299999952316284,
+              "max_ms": 20.299999952316284
+            },
+            "matches.render_unassigned": {
+              "count": 1,
+              "ms": 34,
+              "max_ms": 34
+            },
+            "matches.render_finished": {
+              "count": 1,
+              "ms": 13.900000095367432,
+              "max_ms": 13.900000095367432
+            },
+            "operators": {
+              "count": 1,
+              "ms": 2.1000001430511475,
+              "max_ms": 2.1000001430511475
+            },
+            "officials": {
+              "count": 1,
+              "ms": 2,
+              "max_ms": 2
+            },
+            "board.mount": {
+              "count": 1,
+              "ms": 144.5,
+              "max_ms": 144.5
+            }
+          },
+          "matches": 512,
+          "courts": 15,
+          "dom_nodes": 9268,
+          "rendered_results": 50,
+          "deferred_results": 373,
+          "game_rows": 512,
+          "finished_visible": 50,
+          "main_visible": true,
+          "pending": false,
+          "navigation": {
+            "dom_content_loaded_ms": 387.7000000476837,
+            "load_ms": 387.90000009536743,
+            "assets": 126,
+            "export_library_requests": 0,
+            "asset_bytes": 5968263
+          }
+        },
+        {
+          "total_ms": 843.4000000953674,
+          "navigation_to_ready_ms": 1022.2000000476837,
+          "phases": {
+            "matches.prepare_render": {
+              "count": 1,
+              "ms": 1.1000001430511475,
+              "max_ms": 1.1000001430511475
+            },
+            "matches.render_courts": {
+              "count": 1,
+              "ms": 13.799999952316284,
+              "max_ms": 13.799999952316284
+            },
+            "matches.render_unassigned": {
+              "count": 1,
+              "ms": 28.799999952316284,
+              "max_ms": 28.799999952316284
+            },
+            "matches.render_finished": {
+              "count": 1,
+              "ms": 13.799999952316284,
+              "max_ms": 13.799999952316284
+            },
+            "operators": {
+              "count": 1,
+              "ms": 0.6999998092651367,
+              "max_ms": 0.6999998092651367
+            },
+            "officials": {
+              "count": 1,
+              "ms": 0.5,
+              "max_ms": 0.5
+            },
+            "board.mount": {
+              "count": 1,
+              "ms": 123,
+              "max_ms": 123
+            }
+          },
+          "first_stable_ms": 807.2999999523163,
+          "navigation": {
+            "load_ms": 151.09999990463257,
+            "type": "reload"
+          }
+        },
+        {
+          "total_ms": 825.7000000476837,
+          "navigation_to_ready_ms": 1017.2999999523163,
+          "phases": {
+            "matches.prepare_render": {
+              "count": 1,
+              "ms": 1.1000001430511475,
+              "max_ms": 1.1000001430511475
+            },
+            "matches.render_courts": {
+              "count": 1,
+              "ms": 16.40000009536743,
+              "max_ms": 16.40000009536743
+            },
+            "matches.render_unassigned": {
+              "count": 1,
+              "ms": 31.699999809265137,
+              "max_ms": 31.699999809265137
+            },
+            "matches.render_finished": {
+              "count": 1,
+              "ms": 11.700000047683716,
+              "max_ms": 11.700000047683716
+            },
+            "operators": {
+              "count": 1,
+              "ms": 0.6999998092651367,
+              "max_ms": 0.6999998092651367
+            },
+            "officials": {
+              "count": 1,
+              "ms": 0.6000001430511475,
+              "max_ms": 0.6000001430511475
+            },
+            "board.mount": {
+              "count": 1,
+              "ms": 115,
+              "max_ms": 115
+            }
+          },
+          "first_stable_ms": 804.2000000476837,
+          "navigation": {
+            "load_ms": 167.09999990463257,
+            "type": "reload"
+          }
+        },
+        {
+          "total_ms": 931.3000001907349,
+          "navigation_to_ready_ms": 1125,
+          "phases": {
+            "matches.prepare_render": {
+              "count": 1,
+              "ms": 1.6000001430511475,
+              "max_ms": 1.6000001430511475
+            },
+            "matches.render_courts": {
+              "count": 1,
+              "ms": 14.700000047683716,
+              "max_ms": 14.700000047683716
+            },
+            "matches.render_unassigned": {
+              "count": 1,
+              "ms": 29.299999952316284,
+              "max_ms": 29.299999952316284
+            },
+            "matches.render_finished": {
+              "count": 1,
+              "ms": 12.100000143051147,
+              "max_ms": 12.100000143051147
+            },
+            "operators": {
+              "count": 1,
+              "ms": 0.5999999046325684,
+              "max_ms": 0.5999999046325684
+            },
+            "officials": {
+              "count": 1,
+              "ms": 0.5,
+              "max_ms": 0.5
+            },
+            "board.mount": {
+              "count": 1,
+              "ms": 111.29999995231628,
+              "max_ms": 111.29999995231628
+            }
+          },
+          "first_stable_ms": 902.7000000476837,
+          "navigation": {
+            "load_ms": 165.29999995231628,
+            "type": "reload"
+          }
+        }
+      ]
+    }
+  ],
+  "normal_operation": {
+    "scope": "Isolated synthetic completion/point/reopen fixture at 1920x1080, 512 matches and 20 cycles per variant. Alternating baseline/candidate/candidate/baseline with two independent render-frame point checks. No delayed offscreen layout.",
+    "comparisons": [
+      {
+        "mode": "before",
+        "run": 1,
+        "summary": {
+          "cpu": {
+            "count": 10,
+            "mean_ms": 319.19179999999994,
+            "p50_ms": 314.6680000000002,
+            "p95_ms": 454.318,
+            "max_ms": 454.318
+          },
+          "finish": {
+            "count": 10,
+            "mean_ms": 150.57,
+            "p50_ms": 164,
+            "p95_ms": 253.9,
+            "max_ms": 253.9
+          },
+          "point": {
+            "count": 10,
+            "mean_ms": 90.69,
+            "p50_ms": 84.3,
+            "p95_ms": 120,
+            "max_ms": 120
+          },
+          "reopen": {
+            "count": 10,
+            "mean_ms": 114.63,
+            "p50_ms": 110.6,
+            "p95_ms": 187.2,
+            "max_ms": 187.2
+          }
+        }
+      },
+      {
+        "mode": "after",
+        "run": 1,
+        "summary": {
+          "cpu": {
+            "count": 10,
+            "mean_ms": 272.2569,
+            "p50_ms": 300.34099999999995,
+            "p95_ms": 378.204,
+            "max_ms": 378.204
+          },
+          "finish": {
+            "count": 10,
+            "mean_ms": 127.67,
+            "p50_ms": 156.9,
+            "p95_ms": 227.4,
+            "max_ms": 227.4
+          },
+          "point": {
+            "count": 10,
+            "mean_ms": 92.97999999999999,
+            "p50_ms": 84.3,
+            "p95_ms": 119.3,
+            "max_ms": 119.3
+          },
+          "reopen": {
+            "count": 10,
+            "mean_ms": 107.85,
+            "p50_ms": 96.6,
+            "p95_ms": 146.9,
+            "max_ms": 146.9
+          }
+        }
+      },
+      {
+        "mode": "after",
+        "run": 2,
+        "summary": {
+          "cpu": {
+            "count": 10,
+            "mean_ms": 270.6601,
+            "p50_ms": 302.678,
+            "p95_ms": 389.8619999999999,
+            "max_ms": 389.8619999999999
+          },
+          "finish": {
+            "count": 10,
+            "mean_ms": 128.42000000000002,
+            "p50_ms": 161.8,
+            "p95_ms": 212.7,
+            "max_ms": 212.7
+          },
+          "point": {
+            "count": 10,
+            "mean_ms": 92.93,
+            "p50_ms": 90.5,
+            "p95_ms": 138.6,
+            "max_ms": 138.6
+          },
+          "reopen": {
+            "count": 10,
+            "mean_ms": 98.32,
+            "p50_ms": 95.3,
+            "p95_ms": 141.6,
+            "max_ms": 141.6
+          }
+        }
+      },
+      {
+        "mode": "before",
+        "run": 2,
+        "summary": {
+          "cpu": {
+            "count": 10,
+            "mean_ms": 333.0605,
+            "p50_ms": 317.5219999999999,
+            "p95_ms": 545.98,
+            "max_ms": 545.98
+          },
+          "finish": {
+            "count": 10,
+            "mean_ms": 151.57,
+            "p50_ms": 163.9,
+            "p95_ms": 361.9,
+            "max_ms": 361.9
+          },
+          "point": {
+            "count": 10,
+            "mean_ms": 108.07000000000002,
+            "p50_ms": 113.6,
+            "p95_ms": 171.5,
+            "max_ms": 171.5
+          },
+          "reopen": {
+            "count": 10,
+            "mean_ms": 119.28999999999999,
+            "p50_ms": 110.1,
+            "p95_ms": 208.7,
+            "max_ms": 208.7
+          }
+        }
+      }
+    ],
+    "structural_load": {
+      "matches": 373,
+      "courts": 15,
+      "timers": 200,
+      "presented": 1505,
+      "pending": {
+        "pending": 0,
+        "subscribers": 1,
+        "callbackErrors": 0
+      }
+    },
+    "first_reveal_ms": [
+      {
+        "kind": "upcoming",
+        "ms": 48.59999990463257,
+        "visible": true,
+        "name": "Johanna Fernliste",
+        "label": "Johanna Fernliste",
+        "pending": 0,
+        "stacked": false
+      },
+      {
+        "kind": "finished",
+        "ms": 48,
+        "visible": true,
+        "name": "Frieda Ergebnisliste",
+        "label": "Frieda Ergebnisliste",
+        "pending": 0,
+        "stacked": false
+      }
+    ],
+    "cache_write_and_geometry_checks": {
+      "checks": [
+        "Leaving stores bounded native widths and the next reload preserves every label and stack",
+        "Restored measurements match independent native labels and stacks at 1366",
+        "Restored measurements match independent native labels and stacks at 1920",
+        "A malformed saved payload rebuilds natively without changing the labels",
+        "No uncaught browser exceptions"
+      ],
+      "cache": {
+        "bytes": 17424,
+        "entries": 39,
+        "save_ms": 0.9000000953674316
+      },
+      "samples": [
+        {
+          "width": 1366,
+          "teams": 10
+        },
+        {
+          "width": 1920,
+          "teams": 10
+        }
+      ]
+    },
+    "limitation": "Small isolated samples do not prove production tail-latency guarantees. First-load native measurement remains necessary; optional storage does not cache tournament responses."
+  },
+  "verification": {
+    "node_tests_passed": 117,
+    "cache_tests_passed": 9,
+    "new_lint_messages": 0,
+    "native_names": {
+      "layout_count": 9,
+      "style_count": 14,
+      "layout_ms": 22.363999999999997,
+      "browser_work_ms": 147.525
+    },
+    "passed_browser_suites": [
+      "startup including failed-build recovery",
+      "native name geometry at 1366/1920 and compact/normal",
+      "same-tab metrics reload, native geometry, resize and corrupt payload fallback",
+      "list readiness, offscreen edits/point, scroll, resize/density, numeric forms",
+      "completion and independent point frames",
+      "update-ownership",
+      "history-pages",
+      "fixed-columns",
+      "row-retention",
+      "header-cache including two final runs",
+      "navigation-responsive",
+      "structural-load (1505 presented, no pending receipts/callback errors)",
+      "libraries",
+      "certificates",
+      "certificate-designer"
+    ],
+    "existing_failures_reproduced_on_baseline": [
+      {
+        "suite": "match-dialog",
+        "assertion": "Queue picker popup count after closing a dirty game dialog."
+      },
+      {
+        "suite": "number-inputs",
+        "assertion": "Native comma insertText expected to produce 1.08."
+      },
+      {
+        "suite": "preparation-stability",
+        "assertion": "Expects synchronous layout:false while the existing preparation controls use deferred layout; nodes/mutations stay stable."
+      },
+      {
+        "suite": "settings-workspace",
+        "assertion": "Shared header navigation/icon expectation."
+      },
+      {
+        "suite": "court-assignment",
+        "assertion": "Grouped assignment controls fit 390 px viewport; assignment behavior checks before this pass."
+      }
+    ],
+    "native_measurement_storage_tests_passed": 6,
+    "final_browser_checks": [
+      {
+        "mode": "name-measurement-batch",
+        "code": 0
+      },
+      {
+        "mode": "list-visibility",
+        "code": 0
+      },
+      {
+        "mode": "name-metrics-cache",
+        "code": 0
+      },
+      {
+        "mode": "history-pages",
+        "code": 0
+      },
+      {
+        "mode": "update-ownership",
+        "code": 0
+      },
+      {
+        "mode": "navigation-responsive",
+        "code": 0
+      },
+      {
+        "mode": "header-cache (full async resize interval and repeated cache hit)",
+        "code": 0
+      },
+      {
+        "mode": "structural-load",
+        "code": 0
+      }
+    ],
+    "header_test_change": "Counts exactly one font measurement across the full asynchronous resize interval (including an automatic one-second BTP update), then requires zero reads on a repeated sync. Original post-wait-only counter was timing-dependent."
+  },
+  "rejected_experiments": [
+    "Whole-script concatenation changes strict-mode scope in legacy jsPDF; app-only concatenation had no reliable extra gain.",
+    "Canvas name widths, demand-driven abbreviation stages, zero-size rulers, DOM index batching, extra layout containment and scrollbar gutter did not give a reliable improvement.",
+    "Fitting timers immediately in ResizeObserver had no reliable additional gain.",
+    "Further postponement of commonly used dialog/export code was not adopted to chase a startup-only number.",
+    "Shadow-root isolation of the native ruler produced one 497 ms reload, but no consistently better result; not adopted or used to claim the 500 ms target.",
+    "Remove content-visibility and all its scheduling machinery: first-scroll regression outweighs faster startup. Persisting generic official-name probes gave no reliable further gain, so retain only team metrics."
+  ],
+  "source_sha256": {
+    "static/cbts.html": "6ee8e39021879bf1ee2193f261a2c730dbe869264703c4ef9a3b7a4cff01c85a",
+    "static/css/leitstand.css": "760769b1a65836289e5bbef2e31bbe92bf8dbeb383f368bf5d6b1386f55d572f",
+    "static/js/cleitstand.js": "502a7c236746cd005521bb7a70c2b348cb2e6ae5d54db1c89c24aa20bcc536ef",
+    "static/js/number_input.js": "b1d590ff2d1123abfdc65011e65498472278243f090a731e841544a2a74c455a",
+    "static/js/cmatch.js": "f97cc3a68c47e6e7ff65bf697114dddbf79abd5288cdcbef338c53245b01b3be",
+    "static/js/ctournament.js": "85723528ab889b82bc7cb6be1e009af5071f96adc2c06e80d801ece3112bcc21",
+    "bts/admin_asset_cache.js": "fda88a978efcfae473b2ebbf5650fa2bef5e77b64ee7025f0b0a0992ff2e282b",
+    "bts/bts.js": "a5bc54161d63a7fe024694e7149885e4aa1de13e38c589c398666a54a8378649"
+  },
+  "rejected_scroll_optimization": {
+    "reason": "Violated the operating-responsiveness constraint: first result reveal became about three times slower. Not included in final sources.",
+    "comparisons": [
+      {
+        "mode": "eager",
+        "run": 1,
+        "reveals": [
+          {
+            "kind": "upcoming",
+            "ms": 49,
+            "visible": true,
+            "name": "Johanna Fernliste",
+            "label": "Johanna Fernliste",
+            "pending": 0,
+            "stacked": false
+          },
+          {
+            "kind": "finished",
+            "ms": 50.90000009536743,
+            "visible": true,
+            "name": "Frieda Ergebnisliste",
+            "label": "Frieda Ergebnisliste",
+            "pending": 0,
+            "stacked": false
+          }
+        ],
+        "operations": {
+          "pending": 0,
+          "receipts": [
+            {
+              "status": "presented",
+              "type": "score",
+              "ms": 46.9
+            },
+            {
+              "status": "presented",
+              "type": "match_edit",
+              "ms": 47.6
+            },
+            {
+              "status": "presented",
+              "type": "match_edit",
+              "ms": 47.1
+            }
+          ],
+          "score": "9:8"
+        }
+      },
+      {
+        "mode": "auto",
+        "run": 1,
+        "reveals": [
+          {
+            "kind": "upcoming",
+            "ms": 96.39999985694885,
+            "visible": true,
+            "name": "Johanna Fernliste",
+            "label": "Johanna Fernliste",
+            "pending": 0,
+            "stacked": false
+          },
+          {
+            "kind": "finished",
+            "ms": 180.79999995231628,
+            "visible": true,
+            "name": "Frieda Ergebnisliste",
+            "label": "Frieda Ergebnisliste",
+            "pending": 0,
+            "stacked": false
+          }
+        ],
+        "operations": {
+          "pending": 0,
+          "receipts": [
+            {
+              "status": "presented",
+              "type": "score",
+              "ms": 30.4
+            },
+            {
+              "status": "presented",
+              "type": "match_edit",
+              "ms": 42.8
+            },
+            {
+              "status": "presented",
+              "type": "match_edit",
+              "ms": 41.8
+            }
+          ],
+          "score": "9:8"
+        }
+      },
+      {
+        "mode": "auto",
+        "run": 2,
+        "reveals": [
+          {
+            "kind": "upcoming",
+            "ms": 80.29999995231628,
+            "visible": true,
+            "name": "Johanna Fernliste",
+            "label": "Johanna Fernliste",
+            "pending": 0,
+            "stacked": false
+          },
+          {
+            "kind": "finished",
+            "ms": 147.70000004768372,
+            "visible": true,
+            "name": "Frieda Ergebnisliste",
+            "label": "Frieda Ergebnisliste",
+            "pending": 0,
+            "stacked": false
+          }
+        ],
+        "operations": {
+          "pending": 0,
+          "receipts": [
+            {
+              "status": "presented",
+              "type": "score",
+              "ms": 33.9
+            },
+            {
+              "status": "presented",
+              "type": "match_edit",
+              "ms": 39.8
+            },
+            {
+              "status": "presented",
+              "type": "match_edit",
+              "ms": 38.3
+            }
+          ],
+          "score": "9:8"
+        }
+      },
+      {
+        "mode": "eager",
+        "run": 2,
+        "reveals": [
+          {
+            "kind": "upcoming",
+            "ms": 48.5,
+            "visible": true,
+            "name": "Johanna Fernliste",
+            "label": "Johanna Fernliste",
+            "pending": 0,
+            "stacked": false
+          },
+          {
+            "kind": "finished",
+            "ms": 49.59999990463257,
+            "visible": true,
+            "name": "Frieda Ergebnisliste",
+            "label": "Frieda Ergebnisliste",
+            "pending": 0,
+            "stacked": false
+          }
+        ],
+        "operations": {
+          "pending": 0,
+          "receipts": [
+            {
+              "status": "presented",
+              "type": "score",
+              "ms": 45
+            },
+            {
+              "status": "presented",
+              "type": "match_edit",
+              "ms": 45.5
+            },
+            {
+              "status": "presented",
+              "type": "match_edit",
+              "ms": 45.3
+            }
+          ],
+          "score": "9:8"
+        }
+      }
+    ]
+  },
+  "installed_verification": {
+    "product_source_hashes_match_benchmark": true,
+    "delayed_list_layout_absent": true,
+    "node_smoke_tests_passed": 19,
+    "reload_and_native_geometry_browser_smoke": "passed",
+    "new_lint_messages": 0,
+    "live_tournament_writes": false,
+    "development_watcher_reload_requested": true,
+    "running_server_https_status": 200,
+    "running_server_versioned_assets": 118,
+    "running_server_metrics_version_present": true
+  }
+}

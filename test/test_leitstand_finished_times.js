@@ -8,6 +8,23 @@ vm.runInNewContext(fs.readFileSync(require.resolve('../static/js/cleitstand'), '
 const times = match => JSON.parse(JSON.stringify(context.cleitstand.matchTimes(match)));
 
 describe('Finished match times', function() {
+    it('reuses unchanged finished histories and invalidates on score, undo/redo or deferred-history changes', function() {
+        const undo=context.calc.undo;let reads=0;
+        context.calc.undo=state=>{reads++;return undo(state);};
+        try {
+            const match={end_ts:10000,presses:[{type:'love-all',timestamp:1000}],duration_ms:9000};
+            const first=context.cleitstand.matchTimes(match);first.start=9999;
+            for(let i=0;i<100;i++)assert.deepStrictEqual(times(match),{start:1000,end:10000});
+            assert.strictEqual(reads,1);
+            match.end_ts=12000;assert.deepStrictEqual(times(match),{start:1000,end:12000});
+            match.presses.push({type:'undo',timestamp:2000});assert.strictEqual(times(match).start,null);
+            match.presses.push({type:'redo',timestamp:3000});assert.strictEqual(times(match).start,1000);
+            match.presses=[{type:'love-all',timestamp:4000}];assert.strictEqual(times(match).start,4000);
+            assert.strictEqual(reads,5);
+            match.presses_deferred=true;match.duration_ms=3000;assert.strictEqual(times(match).start,9000);
+            assert.strictEqual(reads,5);
+        } finally {context.calc.undo=undo;}
+    });
     it('derives the actual start from saved duration without loading deferred histories', function() {
         assert.deepStrictEqual(times({ end_ts: 200000, duration_ms: 50000, presses_deferred: true,
             setup: { called_timestamp: 1000 } }), { start: 150000, end: 200000 });

@@ -1972,7 +1972,7 @@ async function get_effective_display_state_inputs(app, tournament_key, ws, msg) 
 	const panel_devicemode = normalize_panel_devicemode(
 		msg?.panel_settings?.devicemode || ws?.panel_devicemode || 'display'
 	);
-	let tournament = await find_one_async(app.db.tournaments, { key: tournament_key }, PANEL_TOURNAMENT_PROJECTION);
+	let tournament = await read_display_context_part(app, 'tournament', tournament_key);
 	if (!tournament) {
 		throw new Error('No tournament ' + tournament_key);
 	}
@@ -1996,8 +1996,8 @@ async function get_effective_display_state_inputs(app, tournament_key, ws, msg) 
 		: null;
 	const court_id = display_court_displaysetting?.court_id || '';
 	const court_lookup_id = is_multi_court_assignment(court_id) ? '' : court_id;
-	const court = court_lookup_id ? await find_one_async(app.db.courts, { tournament_key, _id: court_lookup_id }) : null;
-	let raw_match = court?.match_id ? await find_one_async(app.db.matches, { tournament_key, _id: court.match_id }) : null;
+	const court = court_lookup_id ? await read_display_context_part(app, 'court', tournament_key, court_lookup_id) : null;
+	let raw_match = court?.match_id ? await read_display_context_part(app, 'match', tournament_key, court.match_id) : null;
 	if (!raw_match && court_lookup_id) {
 		raw_match = await get_recent_finished_match_for_court(app, tournament_key, court_lookup_id);
 	}
@@ -3292,6 +3292,12 @@ async function handle_score_update(app, ws, msg) {
 			);
 			update['setup.needs_preparation_successor'] = preparation_successor_state.needs_preparation_successor;
 			update['setup.needs_preparation_successor_ts'] = preparation_successor_state.needs_preparation_successor_ts;
+			// The compact score event already updates points, history and clocks.
+			// A full court snapshot also invalidates speech planning and match-row
+			// metadata, so reserve it for an actual state/allocation transition.
+			const court_state_changed = finish_confirmed || score_indicates_finished || court.match_id !== match_id ||
+				['state', 'now_on_court', 'needs_preparation_successor', 'needs_preparation_successor_ts']
+					.some(field => match.setup[field] !== update['setup.' + field]);
 			score_phase('build_update', phase_start_ns, {
 				finish_confirmed,
 				score_indicates_finished,
@@ -3333,6 +3339,7 @@ async function handle_score_update(app, ws, msg) {
 						});
 						admin.notify_change(app, tournament_key, 'score', {
 							match_id,
+							...(score_data.debug_trace_id ? {debug_trace_id:String(score_data.debug_trace_id).slice(0,200)} : {}),
 							network_score: update.network_score,
 							team1_won: update.team1_won,
 							shuttle_count: update.shuttle_count,
@@ -3341,6 +3348,8 @@ async function handle_score_update(app, ws, msg) {
 							score_status_network_score: update.score_status_network_score,
 							presses: updated_match.presses,
 							end_ts: updated_match.end_ts,
+							duration_ms: updated_match.duration_ms,
+							...(finish_confirmed ? { state: updated_match.setup.state, btp_winner: updated_match.btp_winner } : {}),
 							court_id: updated_match.setup && updated_match.setup.court_id,
 							now_on_court: updated_match.setup && updated_match.setup.now_on_court,
 							needs_preparation_successor: updated_match.setup?.needs_preparation_successor,
@@ -3401,7 +3410,7 @@ async function handle_score_update(app, ws, msg) {
 					score_phase('validate_court_reference', start_ns, {
 						court_id: current_court._id || null,
 					});
-					cb(null, updated_match, current_court, true);
+					cb(null, updated_match, current_court, court_state_changed);
 				},
 				(updated_match, current_court, changed_court, cb) => {
 					const start_ns = timing_now_ns();
@@ -3548,6 +3557,7 @@ async function handle_score_update(app, ws, msg) {
 		})().catch(finish);
 	}));
 	update_queue.locks(score_task_locks, score_task);
+	if (!finish_locks) score_task._queue_start_locks = () => require('./score_sync_locks')(app, initial_tournament_key, initial_score_data, now_ms(app));
 	score_task._queue_trace_id = score_timing_trace_id(initial_score_data);
 	score_task._queue_context = { tournament_key: initial_tournament_key, court_id: initial_score_data.court_id,
 		match_id: initial_score_data.match_id, type: initial_score_data.finish_confirmed || initial_score_data.end_ts || typeof initial_score_data.team1_won === 'boolean' ? 'finish' : 'point' };

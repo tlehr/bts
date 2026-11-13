@@ -13,7 +13,7 @@ function element() {
         setAttribute(name, value) { writes.push([name, value]); this[name] = value; } };
 }
 
-function harness() {
+function harness({ texts = createTexts, schedule } = {}) {
     const current = { ...tournament(), matches: [{ _id: 'match1', setup: setup() }] };
     const settings = { key: 'default', enabled: true, voice: 'hallensprecherin', language: 'de-DE',
         mode: 'auto', max_text: 1200, audio_ready: true };
@@ -28,13 +28,111 @@ function harness() {
     } };
     h.ready = (text, voice = settings.voice) => statuses.set(voice + text, 'completed');
     h.advance = ms => { time += ms; };
-    h.controller = create({ createTexts, translate: (...args) => translate('de', ...args), service,
+    h.controller = create({ createTexts: texts, translate: (...args) => translate('de', ...args), service,
         snapshot: () => ({ tournament: current, settings }), now: () => time,
-        visible: target => target.visible });
+        visible: target => target.visible, schedule });
     return h;
 }
 
 describe('Announcement cache readiness indicators', function() {
+    it('defers hidden text recipes and restores newly visible controls without keeping stale green states', async function() {
+        const h = harness(), targets = [], reads = Array(100).fill(0);
+        for (let i = 0; i < 100; i++) {
+            const target = element(); target.visible = false; targets.push(target);
+            h.ready('Hidden ' + i);
+            h.controller.trackText(target, () => { reads[i]++; return ['Hidden ' + i]; });
+        }
+        assert(reads.every(count => count === 1), 'initial tracking still resolves the recipe before insertion');
+        await h.controller.refresh(true); await h.controller.refresh(true);
+        assert(reads.every(count => count === 1), 'shared refreshes must not rebuild invisible recipes');
+        assert.strictEqual(h.requests.length, 0);
+        targets[0].visible = true;
+        await h.controller.refresh();
+        assert.strictEqual(targets[0].dataset.speechState, 'ready');
+        assert.deepStrictEqual(h.requests, [['Hidden 0']]);
+        assert(reads.slice(1).every(count => count === 1));
+        targets[0].visible = false; h.advance(16000);
+        await h.controller.refresh();
+        assert.strictEqual(targets[0].dataset.speechState, 'checking');
+    });
+    it('does not inspect the game inventory for free text or entirely hidden controls', async function() {
+        const h=harness(), target=element();
+        Object.defineProperty(h.current,'matches',{get(){assert.fail('Free-text readiness does not depend on matches');}});
+        h.controller.trackText(target,()=>['Free announcement']);
+        await h.controller.refresh();
+        assert.strictEqual(target.dataset.speechState,'missing');
+        target.visible=false;await h.controller.refresh(true);
+        assert.strictEqual(target.dataset.speechState,'checking');
+    });
+    it('resolves newly tracked buttons without constructing an inventory and preserves last duplicate precedence', async function() {
+        const h=harness(), target=element();
+        const unknown={setup:setup()};
+        Object.defineProperty(unknown,'_id',{get(){assert.fail('A newly tracked final game needs no full inventory');}});
+        const first={_id:'match1',setup:{...setup(),match_num:111}}, last={_id:'match1',setup:{...setup(),match_num:222}};
+        h.current.matches=[unknown,first,last];
+        h.controller.trackMatch(target,'match1','match:manualcall');
+        assert.notStrictEqual(target.dataset.speechState,'empty');
+        // Shared refreshes still read the current full source and honor its
+        // last duplicate, including in-place replacement and removal.
+        h.current.matches=[first,last];await h.controller.refresh();
+        const expected=[...h.requests.at(-1)];
+        h.current.matches[1]={...last,setup:{...last.setup,teams:[{players:[{name:'Replacement player'}]},{players:[{name:'Second player'}]}]}};
+        await h.controller.refresh(true);
+        assert(h.requests.at(-1).includes('Replacement player'));
+        assert.notDeepStrictEqual(h.requests.at(-1),expected);
+        h.current.matches.pop();await h.controller.refresh(true);
+        assert(!h.requests.at(-1).includes('Replacement player'));
+    });
+    it('coalesces cache pulses without reevaluating unchanged controls before the forced inspection', async function() {
+        const scheduled = [], h = harness({ schedule: (callback, ms) => { scheduled.push({callback, ms}); return scheduled.length; } });
+        const target = element(); let reads = 0;
+        h.controller.trackText(target, () => { reads++; return ['Text']; });
+        scheduled.shift().callback(); await h.controller.refresh();
+        assert.strictEqual(target.dataset.speechState, 'missing');
+        const before = reads;
+        for (let i = 0; i < 20; i++) h.controller.cacheChanged();
+        assert.strictEqual(reads, before, 'A progress pulse has no new answers to paint');
+        assert.strictEqual(scheduled.length, 1, 'A burst shares the existing forced refresh');
+        h.ready('Text');scheduled.shift().callback();await h.controller.refresh();
+        assert.strictEqual(h.requests.length, 2, 'The forced inspection must bypass recent cached answers');
+        assert.strictEqual(target.dataset.speechState, 'ready');
+    });
+    it('reuses exact call parts while rechecking readiness and invalidates mutable builder dependencies', async function() {
+        let builds = 0;
+        const h = harness({ texts(context) {
+            const texts = createTexts(context), announce = texts.announceNewMatch;
+            texts.announceNewMatch = (...args) => { builds++; return announce(...args); };
+            return texts;
+        } }), target = element();
+        h.controller.trackMatch(target, 'match1', 'match:manualcall');
+        await h.controller.refresh();
+        const original = [...h.requests[0]];
+        original.forEach(text => h.ready(text));
+        for (let i = 0; i < 20; i++) await h.controller.refresh(true);
+        assert.strictEqual(builds, 1, 'Readiness refreshes must reuse unchanged playback text');
+        assert.strictEqual(target.dataset.speechState, 'ready');
+        h.statuses.delete(h.settings.voice + original[0]);
+        await h.controller.refresh(true);
+        assert.strictEqual(target.dataset.speechState, 'missing', 'Text caching must never cache a readiness answer');
+        assert.strictEqual(builds, 1);
+        h.current.matches[0].setup.teams[0].players[0].name = 'Geänderter Spieler';
+        await h.controller.refresh(true);
+        assert.strictEqual(builds, 2);
+        assert(h.requests.at(-1).includes('Geänderter Spieler'));
+        h.current.normalizations ||= [];
+        h.current.normalizations.push({origin:'Geänderter Spieler',replace:'Andere Aussprache',language:'de-DE'});
+        await h.controller.refresh(true);
+        assert.strictEqual(builds, 3);
+        assert(h.requests.at(-1).includes('Andere Aussprache'));
+        h.current.normalizations.at(-1).replace = 'Neue Aussprache';
+        await h.controller.refresh(true);
+        assert.strictEqual(builds, 4);
+        assert(h.requests.at(-1).includes('Neue Aussprache'));
+        h.current.annoncement_include_round = !h.current.annoncement_include_round;
+        await h.controller.refresh(true);
+        assert.strictEqual(builds, 5);
+    });
+
     it('shows remote generation readiness independently of this device audio permission and preserves button labels', async function() {
         const h = harness(), local = element(), remote = element();
         local.textContent = 'Lokal Abspielen'; remote.textContent = 'Remote Abspielen';
@@ -349,6 +447,7 @@ describe('Announcement cache readiness indicators', function() {
         h.pending = new Promise(resolve => { release = resolve; });
         const first = h.controller.refresh(true);
         const again = h.controller.refresh(true);
+        for (let i = 0; i < 20; i++) h.controller.cacheChanged();
         assert.strictEqual(first, again);
         assert.strictEqual(h.requests.length, 2, 'the follow-up must wait for the current request');
         h.ready('Text');

@@ -30,6 +30,7 @@ function normalize_state(state) {
 
 function create_service(db, persisted_state) {
 	let state = normalize_state(persisted_state);
+	const listeners = new Set();
 
 	function real_now_ms() {
 		return Date.now();
@@ -81,6 +82,9 @@ function create_service(db, persisted_state) {
 			{ upsert: true }
 		);
 		state = normalized;
+		for (const listener of listeners) {
+			try { listener(); } catch (error) { console.error('[bts] clock observer failed:', error.message); } // eslint-disable-line no-console
+		}
 		return get_state();
 	}
 
@@ -96,6 +100,7 @@ function create_service(db, persisted_state) {
 	}
 
 	return {
+		subscribe: listener => { listeners.add(listener); return () => listeners.delete(listener); },
 		now_ms: effective_now_ms,
 		now_date: () => new Date(effective_now_ms()),
 		real_now_ms,

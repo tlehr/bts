@@ -3,6 +3,7 @@
 <head>
     <meta charset="utf-8" />
     <title>Badminton Tournament Server</title>
+    <link rel="preload" href="{{static_path}}css/seg7.ttf" as="font" type="font/ttf" crossorigin />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="stylesheet" href="{{static_path}}css/admin.css" />
     <link rel="stylesheet" href="{{static_path}}css/toprow.css" />
@@ -36,8 +37,7 @@
     <!-- error handling first -->
     <script src="{{static_path}}js/cerror.js"></script>
     <script src="{{static_path}}js/speech_health.js"></script>
-    <script src="{{static_path}}vendor/xlsx.full.min.js"></script>
-    <script src="{{static_path}}vendor/pdf-lib.min.js"></script>
+    <script src="{{static_path}}js/libraries.js"></script>
 
     <!-- only used for bup -->
     <script src="{{root_path}}bupdev/libs/jquery.min.js"></script>
@@ -64,6 +64,9 @@
     <script src="{{root_path}}bupdev/js/utils.js"></script>
     <script src="{{root_path}}bupdev/js/save_file.js"></script>
     <script src="{{root_path}}bupdev/js/timer.js"></script>
+
+    <script src="{{static_path}}js/event_updates.js"></script>
+    <script src="{{static_path}}js/call_status_updates.js"></script>
 
     <!-- routing first, since many modules depend on it -->
     <script src="{{static_path}}js/crouting.js"></script>
@@ -134,6 +137,7 @@
     <script src="{{static_path}}js/timer_updates.js"></script>
     <script src="{{static_path}}js/cmatch.js"></script>
     <script src="{{static_path}}js/change_queue_scheduler.js"></script>
+    <script src="{{static_path}}js/ui_blocking_diagnostics.js"></script>
     <script src="{{static_path}}js/admin_update_observer.js"></script>
     <script src="{{static_path}}js/conn.js"></script>
     <script src="{{static_path}}js/conn_ui.js"></script>

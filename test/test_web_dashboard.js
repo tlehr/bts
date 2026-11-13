@@ -110,7 +110,9 @@ describe('web dashboard HTTP and real simulation bridge', function() {
 		const controller = new Controller();
 		try {
 			await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
-			const settings = { ...defaults('interactive'), base_url: 'http://127.0.0.1:' + server.address().port, max_runtime_ms: 1200 };
+			// This peer serves only the read-only WebSocket fixture. It cannot
+			// provide the real admin HTML required by the separate browser tests.
+			const settings = { ...defaults('interactive'), admin_render:false, base_url: 'http://127.0.0.1:' + server.address().port, max_runtime_ms: 1200 };
 			const finished = new Promise(resolve => controller.once('finished', resolve));
 			controller.start({ mode: 'interactive', settings });
 			await Promise.race([finished, new Promise((_, reject) => { const timer = setTimeout(() => reject(new Error('Simulation did not finish')), 8000); timer.unref(); })]);

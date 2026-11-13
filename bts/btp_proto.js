@@ -369,6 +369,9 @@ function reset_match_winners_request(nodes, key_unicode, password) {
 	const request = update_request({btp_match_ids:updates,setup:{}},key_unicode,password,null,null,null,{write_match_check_in_status:false});
 	for (const [index,row] of request.Update.Tournament.Matches.entries()) {
 		const node = nodes[index];row.Match.Winner = 0;row.Match.ScoreStatus = 0;
+		// Winner=0 alone preserves the previous sets in BTP. An explicit empty
+		// group clears them; zero-valued sets would still be stored as scores.
+		row.Match.Sets = [];
 		row.Match.Status = node.Status?.[0] ?? 0;row.Match.Highlight = node.Highlight?.[0] ?? 0;
 		row.Match.MatchOrder = node.DisplayOrder?.[0] ?? 0;
 		if (node.CourtID?.[0] != null) row.Match.CourtID = node.CourtID[0];

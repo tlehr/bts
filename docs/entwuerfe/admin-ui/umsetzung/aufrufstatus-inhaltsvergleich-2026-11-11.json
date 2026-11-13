@@ -1,0 +1,158 @@
+{
+  "scope": "Isolierte UI-Prüfungen mit eigenen Testbrowsern und In-Memory-Unit-Tests. Keine Änderungen an laufenden BTS-/BTP-Diensten.",
+  "behavior": [
+    "Neuere Revisionen mit identischen Statusdaten übernehmen die neue Revision, Auswertungszeit und Gültigkeit ohne Status-DOM-Arbeit.",
+    "Änderungen an Freigaben oder Diagnosen aktualisieren nur die betroffenen Spielzeilen über den vorhandenen DOM-Index.",
+    "Feldmarkierungen und Aufrufgrenzen werden getrennt aktualisiert. Reine Feldbedarfsänderungen besuchen keine Spielzeilen.",
+    "Mehrere Änderungen vor einem Frame werden vereinigt. Ein vollständiger Abgleich wird nicht durch eine Teilaktualisierung ersetzt.",
+    "Der Statusdialog wird bei Änderungen eines fremden Spiels nicht neu ausgewertet. Eigene Änderungen behalten Fokus und aufgeklappte Details."
+  ],
+  "native_content_test": {
+    "checks": {
+      "equalNoUiWork": true,
+      "metadataAdvanced": true,
+      "singleRowOnly": true,
+      "foreignDialogSkipped": true,
+      "burstKeepsBothGames": true,
+      "dialogUpdated": true,
+      "focusAndDetailsRetained": true,
+      "boundaryMoved": true,
+      "reorderedSetsNoUiWork": true,
+      "demandDoesNotVisitGames": true,
+      "rowsRetained": true
+    },
+    "evidence": {
+      "equal": {
+        "refreshes": 0,
+        "dialog_reads": 0,
+        "court_updates": 0,
+        "visited": [],
+        "mutations": 0
+      },
+      "single": {
+        "refreshes": 1,
+        "dialog_reads": 0,
+        "court_updates": 0,
+        "visited": [
+          "match-53"
+        ],
+        "mutations": 1
+      },
+      "burst": {
+        "refreshes": 2,
+        "dialog_reads": 1,
+        "court_updates": 0,
+        "visited": [
+          "match-48",
+          "match-53"
+        ],
+        "mutations": 41
+      },
+      "boundary": {
+        "refreshes": 2,
+        "dialog_reads": 2,
+        "court_updates": 0,
+        "visited": [
+          "match-48",
+          "match-53"
+        ],
+        "mutations": 3
+      },
+      "reordered": {
+        "refreshes": 0,
+        "dialog_reads": 0,
+        "court_updates": 0,
+        "visited": [],
+        "mutations": 0
+      },
+      "demand": {
+        "refreshes": 0,
+        "dialog_reads": 0,
+        "court_updates": 1,
+        "visited": [],
+        "mutations": 0
+      }
+    }
+  },
+  "verification": {
+    "targeted_units": 326,
+    "native_shared_status": 7,
+    "native_content_cases": 11,
+    "native_dialog_cases": 38,
+    "native_preparation_legacy_cases": 15
+  },
+  "legacy_preparation": {
+    "scope": "Isolated native browser, 584 games, 11 finished, 15 active and 558 upcoming. Two scenarios: complete teams and 430 games with an unknown opponent. No live services.",
+    "initial": {
+      "total": 584,
+      "open": 558,
+      "dom": 33182
+    },
+    "cases": {
+      "initial": true,
+      "hall": true,
+      "court": true,
+      "hiddenHall": true,
+      "withdrawal": true,
+      "special": true,
+      "otherDiscipline": true,
+      "specialRemoved": true,
+      "noMatch": true,
+      "playing": true,
+      "unknown": true,
+      "denied": true,
+      "windowChanged": true,
+      "debugRetained": true,
+      "debugRemoved": true
+    },
+    "scenarios": [
+      {
+        "incomplete": false,
+        "times_ms": [
+          24.40000009536743,
+          17.799999952316284,
+          25.700000047683716,
+          19.899999856948853,
+          20.299999952316284,
+          20.799999952316284,
+          17.59999990463257,
+          24.5,
+          30.59999990463257,
+          19.700000047683716,
+          23.800000190734863,
+          18.799999952316284
+        ],
+        "mean_ms": 21.99166665474574,
+        "max_ms": 30.59999990463257
+      },
+      {
+        "incomplete": true,
+        "times_ms": [
+          10.700000047683716,
+          8.799999952316284,
+          11.200000047683716,
+          11.299999952316284,
+          10,
+          8.600000143051147,
+          10,
+          9.299999952316284,
+          9.099999904632568,
+          8.699999809265137,
+          9.399999856948853,
+          13.200000047683716
+        ],
+        "mean_ms": 10.024999976158142,
+        "max_ms": 13.200000047683716
+      }
+    ]
+  },
+  "test_fixture_correction": {
+    "observed": "Die bestehende Dialogprüfung fokussierte beim Wiederöffnen eines beendeten Spiels das Informationssymbol vor Abschluss des vorgemerkten UI-Durchlaufs und scheiterte nach 32 erfolgreichen Fällen.",
+    "baseline": "Gleicher Fehler mit der vorherigen CMatch-Datei und wiederhergestelltem unbedingtem Status-Refresh im isolierten Overlay; keine Repository-Dateien dafür zurückgesetzt.",
+    "fix": "Zusätzliche Prüfung wartet über denselben bestehenden UI-Abschlussmechanismus auf das wieder sichtbare Symbol, anschließend unveränderte Space-/Escape-/Fokusprüfungen. Nun alle 38 Fälle erfolgreich."
+  },
+  "limits": [
+    "Initialer Stand, neue Spielorte und geänderte ältere Antworten ohne vollständige manuelle Freigabeliste benötigen weiterhin einen vollständigen Abgleich.",
+    "Die Vergleichsarbeit der neu empfangenen Statusdaten bleibt erforderlich. Es wird keine neue Tablet-Gesamtlatenz oder dauerhafte Einhaltung der früheren Zeitziele behauptet."
+  ]
+}

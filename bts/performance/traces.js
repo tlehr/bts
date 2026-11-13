@@ -2,6 +2,7 @@
 
 const { AsyncLocalStorage } = require('async_hooks');
 const { performance } = require('perf_hooks');
+const percentile95 = require('./percentile');
 const storage = new AsyncLocalStorage();
 const round = value => Math.round(Math.max(0, value) * 10) / 10;
 const LIMITS = { active: 64, completed: 500, spans: 160, db_spans: 80, summaries: 32, stages: 576, stages_per_type: 96, recent_samples: 256, response: 80 };
@@ -51,10 +52,7 @@ function enable(now = Date.now()) {
 function enabled() { return Date.now() <= until; }
 function capture() { return storage.getStore(); }
 function with_context(context, work) { return storage.run(context, work); }
-function clean(details = {}) {
-	const result = {};
-	for (const [key, value] of Object.entries(details)) {
-		if (!['tournament_key', 'court_id', 'match_id', 'trace_id', 'locks', 'conflicting_locks', 'blockers', 'queue_id',
+const detail_fields = new Set(['tournament_key', 'court_id', 'match_id', 'trace_id', 'locks', 'conflicting_locks', 'blockers', 'queue_id',
 			'collection', 'execution', 'skipped', 'reason', 'attempt', 'changes', 'match_locks', 'valid', 'effects',
 			'deferred_jobs', 'worker_ms', 'input_wait_ms', 'return_delivery_ms', 'dispatch_ms', 'request_id', 'ctype',
 			'before_callback_ms', 'callback_ms', 'persistence_kind', 'persistence_ms', 'copied_records',
@@ -62,12 +60,16 @@ function clean(details = {}) {
 			'refresh_foreground_wait_ms', 'allocation_scope', 'ordering_unchanged_notifications', 'recipients',
 			'direct_match_locks', 'additional_match_locks', 'dependency_player_matches', 'dependency_court_matches',
 			'dependency_effect_matches', 'allocation_reasons', 'bounded_match_groups', 'bounded_match_changes',
-			'prepared_match_writes', 'prepared_match_fallbacks', 'serialization_ms', 'storage_wait_ms',
+			'prepared_match_writes', 'prepared_match_fallbacks', 'preencoded_documents', 'serialization_ms', 'storage_wait_ms',
 			'storage_start_ts', 'storage_end_ts', 'storage_bytes', 'read_source', 'compaction_read_bypassed',
 			'compaction_read_decision', 'model_read_bypassed', 'model_read_decision', 'db_queue_wait_ms', 'read_ms', 'queue_depth_at_enqueue',
 			'compaction_pending_at_enqueue', 'snapshot_encode_ms', 'stage_write_ms', 'commit_queue_wait_ms',
 			'commit_start_ts', 'commit_end_ts', 'commit_locked_ms', 'input_documents', 'catchup_documents',
-			'commit_documents', 'part_count', 'context_part_count', 'completed_count'].includes(key)) continue;
+			'commit_documents', 'part_count', 'context_part_count', 'completed_count', 'connection_id']);
+function clean(details = {}) {
+	const result = {};
+	for (const [key, value] of Object.entries(details)) {
+		if (!detail_fields.has(key)) continue;
 		if (typeof value === 'string') result[key] = value.slice(0, 200);
 		else if (typeof value === 'number' || typeof value === 'boolean' || value === null) result[key] = value;
 		else if (Array.isArray(value)) { result[key] = value.slice(0, 40).map(item => typeof item === 'string' ? item.slice(0, 200)
@@ -211,9 +213,10 @@ function snapshot(after = revision) {
 		active_total: unfinished.length, active_truncated: Math.max(0, unfinished.length - LIMITS.active),
 		active: unfinished.slice(0, LIMITS.active).map(export_record), completed: records.map(export_record),
 		stages: [...stages.values()].map(stage => {
-			if (stage.cached_p95 == null) { const values = [...stage.recent].sort((a, b) => a - b); stage.cached_p95 = values[Math.ceil(values.length * .95) - 1]; }
-			const { recent, sum, cached_p95, ...row } = stage;
-			return { ...row, mean: round(sum / stage.count), p95: cached_p95, percentile_samples: recent.length };
+			if (stage.cached_p95 == null) stage.cached_p95 = percentile95(stage.recent);
+			return { key: stage.key, type: stage.type, name: stage.name, kind: stage.kind, grouped: stage.grouped,
+				count: stage.count, failed: stage.failed, min: stage.min, max: stage.max, last: stage.last, skipped: stage.skipped,
+				mean: round(stage.sum / stage.count), p95: stage.cached_p95, percentile_samples: stage.recent.length };
 		}) };
 }
 

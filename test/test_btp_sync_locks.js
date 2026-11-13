@@ -72,7 +72,10 @@ describe('BTP sync lock dependencies', function() {
 			assert(plan.locked_matches.has('related-player'));
 			assert(plan.locked_matches.has('related-court'));
 			assert(!plan.locked_matches.has('unrelated'));
-			assert(plan.locks.includes(keys.court('test', 'court')));
+			// A dependency reader protects against court allocation writers while
+			// allowing score-only point writers to proceed. Test the conflict,
+			// rather than requiring the older exclusive lock's spelling.
+			assert(keys.any_conflict(plan.locks, [keys.court('test', 'court')]));
 			assert.strictEqual(plan.diagnostics.expansion_reasons[reason], 1);
 			assert.deepStrictEqual(plan, scope(old, next, [], false));
 		});

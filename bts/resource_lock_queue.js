@@ -1,5 +1,10 @@
 'use strict';
 
+const traces = require('./performance/traces');
+const foreground = require('./foreground_work');
+const server_diagnostics = require('./server_diagnostics');
+const debug_flags = require('./debug_flags');
+
 const locks = require('./queue_lock_keys');
 
 function default_slow_task_threshold_ms() {
@@ -37,8 +42,7 @@ class ResourceLockQueue {
 	}
 
 	execute(task, options = {}) {
-		const traces = require('./performance/traces');
-		if (!traces.capture() && traces.enabled()) return traces.operation(this._task_name(task), {
+				if (!traces.capture() && traces.enabled()) return traces.operation(this._task_name(task), {
 			trace_id: task?._queue_trace_id || null, ...(task?._queue_context || {}),
 		}, () => this.execute(task, options));
 		const args = Array.isArray(options.args) ? options.args : [];
@@ -48,6 +52,7 @@ class ResourceLockQueue {
 			task,
 			args,
 			locks: task_locks,
+			base_locks: task_locks,
 			name: this._task_name(task),
 			mode: options.mode || null,
 			key: options.key || null,
@@ -67,7 +72,14 @@ class ResourceLockQueue {
 			entry.resolve = resolve;
 			entry.reject = reject;
 			this.pending.push(entry);
-			this._schedule();
+			// Start an otherwise free point before the next I/O/check turn. Its
+			// foreground lease then pauses cooperative background encoders early.
+			// Earlier pending work and every normal conflict keep their order;
+			// the task body itself still begins asynchronously in _start.
+			if (['handle_score_update', 'handle_score_update_v2'].includes(entry.name) &&
+				this.pending.length === 1 && this._can_start(entry, 0)) {
+				this.pending.shift(); this._start(entry);
+			} else this._schedule();
 		});
 	}
 
@@ -154,6 +166,12 @@ class ResourceLockQueue {
 	}
 
 	_can_start(entry, pending_index) {
+		// Evaluate against the latest committed model when the task may start,
+		// never against a score captured before an earlier queued writer.
+		if (typeof entry.task?._queue_start_locks === 'function') {
+			try { entry.locks = locks.normalize_list(entry.task._queue_start_locks() || entry.base_locks); }
+			catch (_) { entry.locks = entry.base_locks; }
+		}
 		for (const active_entry of this.active.values()) {
 			if (locks.normalized_lists_conflict(entry.locks, active_entry.locks)) {
 				entry.blocked_by = [this._blocker(active_entry, 'active')];
@@ -176,22 +194,21 @@ class ResourceLockQueue {
 
 	_trace_blockers(entry) {
 		if (!entry.wait_span) return;
-		require('./performance/traces').update(entry.wait_span, { blockers: entry.wait_blocked_by.map(blocker => ({ ...blocker,
+		traces.update(entry.wait_span, { blockers: entry.wait_blocked_by.map(blocker => ({ ...blocker,
 			conflicting_locks: entry.locks.filter(requested => blocker.locks.some(held => locks.lock_conflicts(requested, held))) })) });
 	}
 
 	_start(entry) {
-		const traces = require('./performance/traces');
-		traces.end(entry.wait_span, null, { blockers: (entry.wait_blocked_by || []).map(blocker => ({ ...blocker,
+				traces.end(entry.wait_span, null, { blockers: (entry.wait_blocked_by || []).map(blocker => ({ ...blocker,
 			conflicting_locks: entry.locks.filter(requested => blocker.locks.some(held => locks.lock_conflicts(requested, held))) })) });
 		entry.hold_span = traces.with_context(entry.trace_context, () => traces.begin(entry.name, 'lock_hold', { locks: entry.locks, queue_id: entry.id }));
 		entry.started_at = Date.now();
-		entry.foreground_end = require('./foreground_work').begin(entry.name);
+		entry.foreground_end = foreground.begin(entry.name);
 		this.active.set(entry.id, entry);
 		this._start_watchdog(entry);
 		Promise.resolve()
 			.then(() => traces.with_context(entry.trace_context, () => traces.run(entry.hold_span,
-				() => require('./foreground_work').run(entry.foreground_end, () => entry.task(...entry.args)))))
+				() => foreground.run(entry.foreground_end, () => entry.task(...entry.args)))))
 			.then((res) => this._finish(entry, null, res))
 			.catch((err) => this._finish(entry, err));
 	}
@@ -201,7 +218,7 @@ class ResourceLockQueue {
 			return;
 		}
 		this.active.delete(entry.id);
-		require('./performance/traces').end(entry.hold_span, err);
+		traces.end(entry.hold_span, err);
 		entry.foreground_end?.();
 		if (entry.timeout) {
 			clearTimeout(entry.timeout);
@@ -233,7 +250,7 @@ class ResourceLockQueue {
 				runtime_ms: entry.started_at ? Date.now() - entry.started_at : null,
 				queue_length: this.pending.length,
 			};
-			if (require('./server_diagnostics').enabled()) warn_compact('[bts] update_queue:task_still_running', payload);
+			if (server_diagnostics.enabled()) warn_compact('[bts] update_queue:task_still_running', payload);
 			if (typeof this.hang_reporter === 'function') {
 				try {
 					this.hang_reporter(payload);
@@ -287,7 +304,7 @@ class ResourceLockQueue {
 	}
 
 	_log_slow_task(entry) {
-		if (!require('./server_diagnostics').enabled() && !require('./debug_flags').any_score_press_timing_enabled() &&
+		if (!server_diagnostics.enabled() && !debug_flags.any_score_press_timing_enabled() &&
 			process.env.BTS_BTP_SYNC_TIMING !== '1' && !(Number(process.env.BTS_UPDATE_QUEUE_SLOW_TASK_MS) > 0)) return;
 		const threshold_ms = default_slow_task_threshold_ms();
 		if (!threshold_ms || !entry) {

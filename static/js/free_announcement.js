@@ -82,6 +82,11 @@ function createFreeAnnouncementForm({ form, textarea, localButton, remoteButton,
         buttons.forEach(button => button.classList.remove('is-waiting'));
         updateButtons();
     }
+    // Modal transitions own this state. A subtree :has on body would make
+    // ordinary score/list edits reconsider the whole page's scroll style.
+    function syncScrollLock() {
+        doc.body.classList.toggle('has-announcement-dialog', !!doc.querySelector('.announcement-playback-menu[open]'));
+    }
     function close(restoreFocus = true) {
         const trigger = selected?.button;
         stateObserver.disconnect();ownerObserver.disconnect();
@@ -91,6 +96,7 @@ function createFreeAnnouncementForm({ form, textarea, localButton, remoteButton,
         background = false;pending.hidden = true;
         buttons.forEach(button => button.setAttribute('aria-expanded', 'false'));
         if (menu.open) menu.close();
+        syncScrollLock();
         if (restoreFocus && trigger) {
             const target = trigger?.isConnected && !trigger.disabled ? trigger : textarea.isConnected ? textarea : null;
             target?.focus({preventScroll: true});
@@ -173,12 +179,14 @@ function createFreeAnnouncementForm({ form, textarea, localButton, remoteButton,
         stateObserver.observe(button, {attributes: true, attributeFilter: ['data-speech-state', 'title']});
         ownerObserver.observe(doc.body, {childList: true, subtree: true});
         menu.showModal();
+        syncScrollLock();
         (backgroundButton.disabled ? browserButton.hidden ? cancelButton : browserButton : backgroundButton).focus();
     }
     function minimize() {
         background = true;render();
         buttons.forEach(button => button.setAttribute('aria-expanded', 'false'));
         if (menu.open) menu.close();
+        syncScrollLock();
         pendingCancel.focus({preventScroll: true});
     }
     async function waitInBackground() {
@@ -254,7 +262,7 @@ function createFreeAnnouncementForm({ form, textarea, localButton, remoteButton,
     cancelButton.addEventListener('click', () => close(), {signal: lifetimeSignal});
     closeButton.addEventListener('click', () => close(), {signal: lifetimeSignal});
     menu.addEventListener('cancel', event => { event.preventDefault(); close(); }, {signal: lifetimeSignal});
-    menu.addEventListener('close', () => { if (!menu.open && !background) close(); }, {signal: lifetimeSignal});
+    menu.addEventListener('close', () => { syncScrollLock();if (!menu.open && !background) close(); }, {signal: lifetimeSignal});
     textarea.addEventListener('input', () => {
         if (!background) close(false);
         readiness?.changed();

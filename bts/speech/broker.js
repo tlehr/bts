@@ -68,6 +68,8 @@ class SpeechBroker {
         this.health = options.health || new (require('./health').SpeechHealth)({}, this.now);
         this.on_change = options.onChange || (() => {});
         this.entries = new Map();
+        this.part_keys = new Map();
+        this.part_key_bytes = 0;
         this.idle_plans = new Map();
         this.spare_plans = new Map();
         this.prefetch_plans = new Map();
@@ -277,7 +279,25 @@ class SpeechBroker {
     }
 
     key(text, voice, language) {
-        return crypto.createHash('sha256').update(JSON.stringify([text, voice, language])).digest('hex');
+        const input = JSON.stringify([text, voice, language]);
+        const previous = this.part_keys.get(input);
+        if (previous) {
+            this.part_keys.delete(input); this.part_keys.set(input, previous);
+            return previous;
+        }
+        const key = crypto.createHash('sha256').update(input).digest('hex');
+        // Pure content addresses survive configuration/connection changes.
+        // Bound both entry count and retained UTF-16 strings, including large
+        // recipes. Oversized requests still receive their ordinary hash.
+        const size = input.length * 2 + 128, maximum = 8 * 1024 * 1024;
+        if (size <= maximum) {
+            while (this.part_keys.size >= 8192 || this.part_key_bytes + size > maximum) {
+                const oldest = this.part_keys.keys().next().value;
+                this.part_keys.delete(oldest); this.part_key_bytes -= oldest.length * 2 + 128;
+            }
+            this.part_keys.set(input, key); this.part_key_bytes += size;
+        }
+        return key;
     }
 
     validate(parts, options = {}) {

@@ -493,8 +493,8 @@ function match_needs_technical_official_assignment(match, tournament) {
 
 async function match_update(app, match, old_court, callback) {
 	async.waterfall([	
-			(wcb) => update_match_btp(app, match, wcb), 
 			(wcb) => update_match_db(app, match, wcb),
+			(wcb) => update_match_btp(app, match, wcb),
 			(wcb) => notify_change_match_edit(app, match, wcb),
 			(wcb) => notify_bupws(app, match, old_court, wcb),
 		],
@@ -512,13 +512,13 @@ async function uncall_match(app, tournament, match, old_court, callback) {
 	async.waterfall([	(wcb) => remove_called_timestamp(match, wcb),
 		(wcb) => remove_tablet_on_court(app, tournament.key, match._id, null, wcb),
 		(wcb) => remove_tablet_operator_to_list(app, tournament.key, match, wcb),
-		(wcb) => update_match_btp(app, match, wcb), 
 		(wcb) => update_match_db(app, match, wcb),
+		(wcb) => update_match_btp(app, match, wcb),
 		(wcb) => release_match_courts(app, tournament.key, match._id, wcb),
 		(wcb) => notify_change_match_edit(app, match, wcb),
 		(wcb) => notify_bupws(app, match, old_court, wcb),
 		(wcb) => remove_player_on_court(app, tournament.key, match._id, null, wcb),
-		(wcb) => update_btp_courts(app, tournament.key, match, wcb)],
+		(wcb) => update_btp_courts(app, tournament.key, match, wcb, old_court)],
 		(err) => {
 			return callback(err);
 		}
@@ -651,8 +651,8 @@ async function call_match(app, tournament, match, old_court, callback, options =
 		(wcb) => add_tabletoperators(app, tournament, match, wcb),
 		(wcb) => set_umpires_on_court(app, tournament, match, wcb),
 		(wcb) => remove_highlight_preparation(match, wcb),
-		(wcb) => update_match_btp(app, match, wcb),
 		(wcb) => update_match_db(app, match, wcb),
+		(wcb) => update_match_btp(app, match, wcb),
 		(wcb) => update_court_db(app, match, wcb),
 		(wcb) => require('./tabletoperator_umpire_release').apply(app, tournament, match, tabletoperator_release).then(() => wcb(null), wcb),
 		(wcb) => notify_change_match_edit(app, match, wcb),
@@ -660,7 +660,6 @@ async function call_match(app, tournament, match, old_court, callback, options =
 		(wcb) => notify_change_match_called_on_court(app, match, wcb),
 		(wcb) => set_player_on_court(app, tournament.key, match, wcb),
 		(wcb) => set_player_on_tablet(app, tournament.key, match.setup, wcb),
-		(wcb) => update_btp_courts(app, tournament.key, match, wcb),
 		(wcb) => auto_execute_preparation_selection_for_setup(app, tournament, match.setup, wcb)],
 		(err) => {
 			return finish_call(err, match);
@@ -749,15 +748,14 @@ async function switch_court(app, tournament, match, old_court, callback) {
 		(wcb) => add_tabletoperators(app, tournament, match, wcb),
 		(wcb) => set_umpires_on_court(app, tournament, match, wcb),
 		(wcb) => remove_highlight_preparation(match, wcb),
-		(wcb) => update_match_btp(app, match, wcb),
 		(wcb) => update_match_db(app, match, wcb),
+		(wcb) => update_match_btp(app, match, wcb),
 		(wcb) => update_court_db(app, match, wcb),
 		(wcb) => notify_change_match_edit(app, match, wcb),
 		(wcb) => notify_bupws(app, match, old_court, wcb),
 		(wcb) => notify_change_match_called_on_court(app, match, wcb),
 		(wcb) => set_player_on_court(app, tournament.key, match, wcb),
 		(wcb) => set_player_on_tablet(app, tournament.key, match.setup, wcb),
-		(wcb) => update_btp_courts(app, tournament.key, match, wcb)
 		],
 		(err) => {
 			return callback(err, match);
@@ -922,11 +920,15 @@ async function get_preparation_call_gap_wait_ms(app, tournament) {
 	return Math.max(0, next_allowed_ts - now_ms(app));
 }
 
-function schedule_auto_execute_preparation_selection_after_gap(app, tournament_key, wait_ms) {
+function schedule_auto_execute_preparation_selection_after_gap(app, tournament_key, wait_ms, requested_at) {
 	if (!app || !app.db || !tournament_key) {
 		return;
 	}
-	const delay_ms = Math.max(0, Math.ceil(Number(wait_ms) || 0));
+	requested_at ??= now_ms(app);
+	if (require('./btp_sync_effects').capture(app, real_app => schedule_auto_execute_preparation_selection_after_gap(real_app, tournament_key, wait_ms, requested_at),
+		{ deferred_job: true }, { target: 'match_utils', method: 'schedule_auto_execute_preparation_selection_after_gap', args: [tournament_key, wait_ms, requested_at] })) return;
+	const elapsed = Math.max(0, now_ms(app) - requested_at);
+	const delay_ms = Math.max(0, Math.ceil((Number(wait_ms) || 0) - elapsed));
 	const due_ts = Date.now() + delay_ms;
 	const existing = delayed_preparation_selection_runs.get(tournament_key);
 	if (existing && existing.due_ts <= due_ts) {
@@ -1251,6 +1253,18 @@ function auto_execute_preparation_selection_for_setup(app, tournament, setup, ca
 	return callback(null);
 }
 
+function plan_auto_preparation_once(app, tournament_key, callback) {
+	const captured = (error, tournament) => {
+		if (error) return callback(error);
+		if (!tournament) return callback(new Error('Cannot find tournament ' + tournament_key));
+		return auto_execute_preparation_selections(app, tournament, callback);
+	};
+	const reads = require('./preparation_selection/model_reads');
+	if (reads.supported(app, 'tournaments', true)) reads.read(app, tournament_key, 'tournaments', true)
+		.then(tournament => captured(null, tournament), captured);
+	else app.db.tournaments.findOne({key:tournament_key}, captured);
+}
+
 function queue_auto_execute_preparation_selections(app, tournament_key, callback) {
 	if (require('./btp_sync_effects').capture(app, real_app => queue_auto_execute_preparation_selections(real_app, tournament_key), { deferred_job: true },
 		{ target: 'match_utils', method: 'queue_auto_execute_preparation_selections', args: [tournament_key] })) {
@@ -1310,7 +1324,16 @@ function queue_auto_execute_preparation_selections(app, tournament_key, callback
 		else app.db.tournaments.findOne({ key: tournament_key }, captured);
 	})));
 
-	update_queue.instance().execute(task).then(() => {
+	// Calculate against an isolated snapshot before taking allocation locks.
+	// The existing planner validates every dependency again, retries changed
+	// inputs, and publishes effects only after all writes succeed. Partial
+	// datastore adapters retain their established queue implementation.
+	const staged = app.db.model && require('./btp_planner/staging').COLLECTIONS.every(name => app.db[name]?.executor);
+	const execution = staged ? require('./btp_sync_plan').sync(app, tournament_key, {operation:'auto_preparation'}, {
+		planning_namespace:'automatic_preparation', task_name:'auto_preparation_apply', worker_operation:'auto_preparation', skip_unchanged:false,
+	}, planning_app => new Promise((resolve,reject) => plan_auto_preparation_once(planning_app, tournament_key,
+		error => error ? reject(error) : resolve(true)))) : update_queue.instance().execute(task);
+	execution.then(() => {
 		const current = pending_preparation_selection_runs.get(tournament_key);
 		pending_preparation_selection_runs.delete(tournament_key);
 		queue_auto_assign_technical_officials_when_available(app, tournament_key);
@@ -1828,6 +1851,12 @@ function update_match_db (app, match, callback) {
 	const setup = match.setup;
 	const match_q = {_id: match._id};
 	const set_obj = {setup};
+	if (match.btp_match_ids?.length) {
+		// Store this with the call itself, including calls committed by a worker.
+		// A crash/offline connection before the external send must not lose it.
+		match.btp_call_pending = require('./btp_call_sync').is_call(match);
+		set_obj.btp_call_pending = match.btp_call_pending;
+	}
 	if (match.btp_needsync !== undefined) {
 		set_obj.btp_needsync = match.btp_needsync;
 	}
@@ -3474,7 +3503,7 @@ async function call_match_in_preparation(app, tournament, match, location_id, ca
 	});
 }
 
-function update_btp_courts(app, tournament_key, match, callback) {
+function update_btp_courts(app, tournament_key, match, callback, previous_court_id) {
 	const stournament = require('./stournament');
 	const btp_manager = require('./btp_manager');
 	stournament.get_courts(app.db, tournament_key, (err, all_courts) => {
@@ -3483,24 +3512,7 @@ function update_btp_courts(app, tournament_key, match, callback) {
 			return;
 		}
 
-		const courts = [];
-
-		all_courts.forEach((element, index) => {
-			if (match.setup.court_id === element._id && match.setup.now_on_court) {
-				const court = {
-					btp_id: element.btp_id,
-					btp_match_id: match.btp_match_ids[0].id,
-				}
-
-				courts.push(court);
-			} else if (element.match_id && element.match_id == ("btp_" + match.btp_id) && !match.setup.now_on_court) {
-				const court = {
-					btp_id: element.btp_id
-				}
-
-				courts.push(court);
-			}
-		});
+		const courts = require('./btp_court_state').updates(all_courts, match, previous_court_id);
 
 		btp_manager.update_courts(app, tournament_key, courts);
 
@@ -3570,6 +3582,8 @@ module.exports ={
 	call_preparation_match_on_court,
 	call_next_possible_match_for_preparation,
 	call_match_in_preparation,
+	schedule_auto_execute_preparation_selection_after_gap,
+	_plan_auto_preparation_once: plan_auto_preparation_once,
 	_build_match_first_field_assignment_plan: build_match_first_field_assignment_plan,
 	_ensure_match_not_already_on_other_court: ensure_match_not_already_on_other_court,
 	sort_free_courts_for_auto_call,

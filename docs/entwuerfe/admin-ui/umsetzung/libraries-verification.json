@@ -1,0 +1,16 @@
+{
+  "scope": "Isolated browser; real local PDF/XLSX libraries, generated files kept in memory and simulated export markers. No live services.",
+  "checks": [
+    "Opening the board requests neither the Excel nor PDF export library",
+    "Concurrent callers share one PDF request and create a valid PDF",
+    "The lazy Excel library writes and reads a genuine workbook",
+    "A blocked PDF dependency returns an actionable error and removes its script",
+    "The next PDF request can recover immediately",
+    "CSV export remains available without loading Excel and marks only after file creation",
+    "Waiting for Excel keeps duplicate exports disabled and sends no premature mark",
+    "Disposing the workspace while its dependency is pending prevents a late download or mark",
+    "A dependency failure releases the export controls without marking or creating a file",
+    "Retry loads Excel and creates exactly one workbook and one export mark",
+    "Library and workspace checks produce no uncaught browser errors"
+  ]
+}

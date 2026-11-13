@@ -68,9 +68,9 @@ module.exports=async function({c,check,click,open,metrics,key,delay,previews}) {
  await verify('Escape works inside a form field, unlocks scrolling and restores focus to its game','!document.querySelector(\'.match_edit_dialog\')&&getComputedStyle(document.body).overflowY!==\'hidden\'&&document.activeElement.matches(\'tr[data-match_id="match-45"] .ls-match-open\')&&scrollY===__beforeEscapeScroll');
  await metrics(1920,1080);await click('tr[data-match_id="match-51"] .ls-match-open');
  await verify('Incomplete pairings retain disabled scoresheet and enabled raw-data tabs','document.querySelector(\'#ls-match-tab-2\').disabled&&!document.querySelector(\'#ls-match-tab-3\').disabled&&'+frameFits);
- await click('.ls-dialog-close');
+ await click('.match_edit_dialog .ls-dialog-close');
  await c.evaluate('window.scrollTo(0,80);window.__beforeDialogScroll=scrollY');
- await click('tr[data-match_id="match-45"] .ls-match-open');await click('.ls-dialog-close');
+ await click('tr[data-match_id="match-45"] .ls-match-open');await click('.match_edit_dialog .ls-dialog-close');
  await verify('Opening and closing at the same viewport retains the board scroll position','scrollY===__beforeDialogScroll');
  await click('tr[data-match_id="match-45"] .ls-match-open');await click('#ls-match-tab-1');
  await c.evaluate('document.querySelector(\'.match_edit_dialog form\').elements.court_id.value=\'CH_13\'');
@@ -112,7 +112,7 @@ module.exports=async function({c,check,click,open,metrics,key,delay,previews}) {
  await verify('Long results wrap between sets without overflowing the narrow game summary','document.querySelector(\'.ls-dialog-meta-row\').scrollWidth<=document.querySelector(\'.ls-dialog-meta-row\').clientWidth&&__scoreElement.querySelectorAll(\'.ls-set-score\').length===5&&'+frameFits+'&&'+contentFits);
  await metrics(1920,1080);
  await require('./match-protocol-check')({c,verify,click,metrics,capture,contentFits,frameFits});
- await click('.ls-dialog-close');
+ await click('.match_edit_dialog .ls-dialog-close');
  await c.evaluate('(()=>{curt.is_team=false;Object.assign(curt.matches.find(match=>match._id===\'match-44\'),__teamMatch);const match=structuredClone(curt.matches.find(match=>match._id===\'match-37\'));Object.assign(match,{team1_won:true,btp_winner:1,end_ts:Date.now()});Object.assign(match.setup,{state:\'finished\',now_on_court:false});crouting.on_change({ctype:\'match_edit\',tournament_key:\'preview\',val:{match__id:match._id,match}})})()');
  await click('.finished_container tr[data-match_id="match-37"] .ls-match-open');
  await verify('Finished games show their actual finished state in the fixed summary','document.querySelector(\'.ls-dialog-status\').textContent===\'Beendet\'&&document.querySelector(\'.ls-dialog-meta\').textContent.includes(\'Feld 2\')');
@@ -125,7 +125,7 @@ module.exports=async function({c,check,click,open,metrics,key,delay,previews}) {
  await verify('A finished game without a recorded score shows a dash','document.querySelector(\'.ls-dialog-score\').textContent===\'—\'');
  await c.evaluate('window.__closedDialogScore=document.querySelector(\'.ls-dialog-score\')');
 
- await click('.ls-dialog-close');
+ await click('.match_edit_dialog .ls-dialog-close');
  await c.evaluate('__dialogPoint(\'match-37\',[[21,19],[21,15]],{team1_won:true})');
  await verify('Closed dialogs are released and receive no further score changes','!__closedDialogScore.isConnected&&__closedDialogScore.textContent===\'—\'');
  const exceptions=c.events.filter(event=>event.method==='Runtime.exceptionThrown');await verify('The window produces no browser exceptions',String(exceptions.length===0));

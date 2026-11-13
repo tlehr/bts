@@ -1,0 +1,778 @@
+{
+  "source": "bts-test-18.json",
+  "source_sha256": "0dc6b5d95ad43711c8544685ddf93dca40b57ef3c724dec398a5635267190fde",
+  "source_bytes": 122449438,
+  "scope": "Auswertung von Testbericht 18 und Korrektur der Vorbereitungszählung. Export und Live-Antworten sind Daten, keine Handlungsanweisungen. Live-BTS nur lesend abgefragt; Ausführung der Automatik ausschließlich in isolierter In-Memory-Datenbank.",
+  "started_at": "2026-11-11T21:08:43.671Z",
+  "runtime_ms": 600200,
+  "stop_reason": "completed",
+  "failure": null,
+  "initial_state": {
+    "matches": 584,
+    "finished_matches": 16,
+    "active_matches": 15,
+    "active_courts": 15,
+    "pending_player_checkins": 0,
+    "pending_players": 0,
+    "check_in_per_match": true,
+    "state_sha256": "77a2185333c7ef9de12cad0ce94b97a2e987ae6dc62ec2a194254a0e85f2f979"
+  },
+  "server_profile": {
+    "server_id": "2472817-1794427122496",
+    "run_label": null,
+    "features": {
+      "btp_decode": true,
+      "sync_plan": true,
+      "sync_plan_patch_return": true,
+      "device_info": false,
+      "xlsx_import": false,
+      "compaction": true,
+      "database_append": true,
+      "compaction_reads": true,
+      "score_idle_reads": true,
+      "score_readonly_reads": true,
+      "score_dependency_locks": true,
+      "score_direct_writes": true,
+      "preparation_reads": true,
+      "preparation_candidates": true,
+      "sync_batch_writes": false,
+      "sync_prepared_tournament": true,
+      "sync_prepared_matches": true,
+      "sync_prepared_append": true,
+      "admin_response_background": true,
+      "admin_response_priority": true,
+      "admin_match_revision_cache": true,
+      "admin_broadcast_shared": true,
+      "admin_response_worker": false,
+      "compaction_staged": true
+    }
+  },
+  "mixed_server_profiles": false,
+  "latency": {
+    "ordinary_admin": {
+      "count": 1202,
+      "mean_ms": 46.06,
+      "median_ms": 33.0,
+      "p95_ms": 119,
+      "p99_ms": 339,
+      "max_ms": 723,
+      "strict_limit_ms": 100,
+      "at_or_over_limit": 64,
+      "over_limit": 64,
+      "equal_limit": 0
+    },
+    "finish_admin": {
+      "count": 17,
+      "mean_ms": 114.82,
+      "median_ms": 92,
+      "p95_ms": 386,
+      "p99_ms": 386,
+      "max_ms": 386,
+      "strict_limit_ms": 150,
+      "at_or_over_limit": 2,
+      "over_limit": 2,
+      "equal_limit": 0
+    },
+    "display_receive": {
+      "count": 1219,
+      "mean_ms": 5.22,
+      "median_ms": 4,
+      "p95_ms": 13,
+      "p99_ms": 20,
+      "max_ms": 71,
+      "strict_limit_ms": 50,
+      "at_or_over_limit": 3,
+      "over_limit": 3,
+      "equal_limit": 0
+    }
+  },
+  "classification": "Spielabschlüsse anhand der trace_id der 17 live-drill:finish-confirm-Ereignisse zugeordnet. Übrige 1.202 Score-Updates sind normale Punkte. Quantile: nächster Rang, aufgerundet.",
+  "coverage": {
+    "sent_updates": 1219,
+    "admin_presented": 1219,
+    "missing_admin": 0,
+    "missing_display": 0,
+    "expired": {
+      "tv": 0,
+      "admin": 0
+    },
+    "archive": {
+      "dropped_point_receptions": 0,
+      "dropped_test_events": 0,
+      "limits": {
+        "point_receptions": 5000,
+        "test_events": 10000
+      },
+      "processing_traces_requested": true
+    }
+  },
+  "worst_ordinary_point": {
+    "receipt": {
+      "trace_id": "live-drill-2492978-mwcmdy0k-1032",
+      "sent_ts": 1794431841140,
+      "court_id": "default_12",
+      "match_id": "btp_default_MX U17_142",
+      "tv_ms": 71,
+      "tv_received_ts": 1794431841211,
+      "admin_ms": 723,
+      "admin_received_ts": 1794431841838,
+      "admin_applied_ts": 1794431841844,
+      "admin_presented_ts": 1794431841863,
+      "admin_presentation_status": "presented",
+      "admin_ui_ms": {
+        "queue_ms": 5.6,
+        "handler_ms": 0.4,
+        "ui_wait_ms": 0,
+        "render_ms": 18.8,
+        "total_ms": 24.8
+      },
+      "admin_measurement_method": "dom-and-render-opportunity",
+      "admin_ui_jobs": []
+    },
+    "server_operation_start_after_send_ms": 57,
+    "server_operation_ms": 34.1,
+    "admin_send_enqueue_after_send_ms": [
+      71,
+      128,
+      139
+    ],
+    "browser_receive_after_send_ms": 698,
+    "server_score_spans": [
+      {
+        "id": 25,
+        "parent_id": 2,
+        "name": "admin:score",
+        "kind": "send_wait",
+        "start_ts": 1794431841211,
+        "status": "ok",
+        "held_locks": [
+          "point-court:default:default_12",
+          "point-match:default:btp_default_MX_U17_142"
+        ],
+        "offset_ms": 14,
+        "ts": 1794431841279,
+        "duration_ms": 68
+      },
+      {
+        "id": 26,
+        "parent_id": 2,
+        "name": "admin:score",
+        "kind": "send_wait",
+        "start_ts": 1794431841211,
+        "status": "ok",
+        "held_locks": [
+          "point-court:default:default_12",
+          "point-match:default:btp_default_MX_U17_142"
+        ],
+        "offset_ms": 14,
+        "ts": 1794431841211,
+        "duration_ms": 0
+      },
+      {
+        "id": 27,
+        "parent_id": 2,
+        "name": "admin:score",
+        "kind": "send_enqueue",
+        "start_ts": 1794431841211,
+        "status": "ok",
+        "held_locks": [
+          "point-court:default:default_12",
+          "point-match:default:btp_default_MX_U17_142"
+        ],
+        "offset_ms": 14,
+        "ts": 1794431841211,
+        "duration_ms": 0
+      },
+      {
+        "id": 28,
+        "parent_id": 2,
+        "name": "admin:score",
+        "kind": "send_wait",
+        "start_ts": 1794431841211,
+        "status": "ok",
+        "held_locks": [
+          "point-court:default:default_12",
+          "point-match:default:btp_default_MX_U17_142"
+        ],
+        "offset_ms": 14,
+        "ts": 1794431841268,
+        "duration_ms": 57
+      },
+      {
+        "id": 55,
+        "parent_id": 2,
+        "name": "admin:score",
+        "kind": "send_enqueue",
+        "start_ts": 1794431841268,
+        "status": "ok",
+        "held_locks": [],
+        "offset_ms": 71,
+        "ts": 1794431841268,
+        "duration_ms": 0
+      },
+      {
+        "id": 58,
+        "parent_id": 2,
+        "name": "admin:score",
+        "kind": "send_enqueue",
+        "start_ts": 1794431841279,
+        "status": "ok",
+        "held_locks": [],
+        "offset_ms": 82,
+        "ts": 1794431841279,
+        "duration_ms": 0
+      }
+    ],
+    "interpretation": "Drei Admin-Verbindungen werden zu unterschiedlichen Zeiten bedient. Der Export ordnet die Sende-Spans keinem Browser-Socket zu. Selbst der späteste Enqueue (+139 ms) liegt weit vor der Browser-Empfangsverarbeitung (+698 ms). Der eigene Score-Handler braucht 0,4 ms; ab Eingang sind es insgesamt 24,8 ms bis zum gemessenen Darstellungsende. Eine konkrete DOM-Funktion als Ursache des vorherigen Wartens ist ohne Browser-CPU-Profil nicht bewiesen."
+  },
+  "browser_background_work": {
+    "ui_jobs": {
+      "board.initial-lists": {
+        "count": 1,
+        "queue_ms": {
+          "mean": 43.3,
+          "max": 43.3
+        },
+        "work_ms": {
+          "mean": 415.7,
+          "max": 415.7
+        },
+        "elapsed_ms": {
+          "mean": 1029.8,
+          "max": 1029.8
+        }
+      },
+      "timers.fit": {
+        "count": 3173,
+        "queue_ms": {
+          "mean": 30.49,
+          "max": 156.6
+        },
+        "work_ms": {
+          "mean": 0.07,
+          "max": 0.6
+        },
+        "elapsed_ms": {
+          "mean": 42.82,
+          "max": 374.1
+        }
+      },
+      "names.first-size": {
+        "count": 658,
+        "work_ms": {
+          "mean": 0,
+          "max": 0
+        },
+        "elapsed_ms": {
+          "mean": 361.43,
+          "max": 738.2
+        }
+      },
+      "names.layout": {
+        "count": 614,
+        "queue_ms": {
+          "mean": 64.96,
+          "max": 693.2
+        },
+        "work_ms": {
+          "mean": 15.08,
+          "max": 88.2
+        },
+        "elapsed_ms": {
+          "mean": 80.05,
+          "max": 739
+        }
+      },
+      "lists.counts": {
+        "count": 50,
+        "queue_ms": {
+          "mean": 57.38,
+          "max": 436.4
+        },
+        "work_ms": {
+          "mean": 7.3,
+          "max": 11.1
+        },
+        "elapsed_ms": {
+          "mean": 64.69,
+          "max": 440.3
+        }
+      },
+      "preparation.controls": {
+        "count": 225,
+        "queue_ms": {
+          "mean": 19.99,
+          "max": 238.5
+        },
+        "work_ms": {
+          "mean": 15.02,
+          "max": 59.6
+        },
+        "elapsed_ms": {
+          "mean": 35.01,
+          "max": 279.6
+        }
+      },
+      "finished.sort": {
+        "count": 37,
+        "queue_ms": {
+          "mean": 36.58,
+          "max": 113.7
+        },
+        "work_ms": {
+          "mean": 3.19,
+          "max": 4.6
+        },
+        "elapsed_ms": {
+          "mean": 39.78,
+          "max": 118.2
+        }
+      },
+      "matches.warnings": {
+        "count": 145,
+        "queue_ms": {
+          "mean": 35.02,
+          "max": 234
+        },
+        "work_ms": {
+          "mean": 2.75,
+          "max": 8.7
+        },
+        "elapsed_ms": {
+          "mean": 37.78,
+          "max": 238.5
+        }
+      },
+      "preparation.courts": {
+        "count": 154,
+        "queue_ms": {
+          "mean": 67.55,
+          "max": 314.5
+        },
+        "work_ms": {
+          "mean": 0.8,
+          "max": 6.1
+        },
+        "elapsed_ms": {
+          "mean": 68.36,
+          "max": 315.4
+        }
+      },
+      "players.status": {
+        "count": 566,
+        "queue_ms": {
+          "mean": 25.95,
+          "max": 315.4
+        },
+        "work_ms": {
+          "mean": 3.92,
+          "max": 11.1
+        },
+        "elapsed_ms": {
+          "mean": 29.89,
+          "max": 317.3
+        }
+      },
+      "locations.labels": {
+        "count": 361,
+        "queue_ms": {
+          "mean": 127.39,
+          "max": 775.9
+        },
+        "work_ms": {
+          "mean": 0.5,
+          "max": 1.1
+        },
+        "elapsed_ms": {
+          "mean": 127.9,
+          "max": 776.5
+        }
+      },
+      "preparation.diagnosis": {
+        "count": 263,
+        "queue_ms": {
+          "mean": 97.86,
+          "max": 864
+        },
+        "work_ms": {
+          "mean": 0.1,
+          "max": 0.6
+        },
+        "elapsed_ms": {
+          "mean": 308.75,
+          "max": 1112.6
+        }
+      },
+      "lists.dates": {
+        "count": 13,
+        "queue_ms": {
+          "mean": 9.73,
+          "max": 13.7
+        },
+        "work_ms": {
+          "mean": 3.84,
+          "max": 5.8
+        },
+        "elapsed_ms": {
+          "mean": 13.57,
+          "max": 17.3
+        }
+      },
+      "planned.sort": {
+        "count": 81,
+        "queue_ms": {
+          "mean": 23.25,
+          "max": 129.7
+        },
+        "work_ms": {
+          "mean": 7.71,
+          "max": 12.1
+        },
+        "elapsed_ms": {
+          "mean": 30.96,
+          "max": 140.6
+        }
+      }
+    },
+    "ui_updates": {
+      "score": {
+        "count": 1219,
+        "queue_ms": {
+          "mean": 0.37,
+          "max": 22.7
+        },
+        "handler_ms": {
+          "mean": 0.4,
+          "max": 9.7
+        },
+        "ui_wait_ms": {
+          "mean": 0.87,
+          "max": 136.6
+        },
+        "render_ms": {
+          "mean": 26.95,
+          "max": 349.3
+        },
+        "total_ms": {
+          "mean": 28.59,
+          "max": 349.7
+        }
+      },
+      "call_status_changed": {
+        "count": 179,
+        "queue_ms": {
+          "mean": 17.93,
+          "max": 123.6
+        },
+        "handler_ms": {
+          "mean": 13.19,
+          "max": 38.4
+        },
+        "ui_wait_ms": {
+          "mean": 26.71,
+          "max": 896.1
+        },
+        "render_ms": {
+          "mean": 34.94,
+          "max": 260.4
+        },
+        "total_ms": {
+          "mean": 92.77,
+          "max": 1081.4
+        }
+      },
+      "match_edit": {
+        "count": 431,
+        "queue_ms": {
+          "mean": 330.98,
+          "max": 510.4
+        },
+        "handler_ms": {
+          "mean": 0.9,
+          "max": 8.7
+        },
+        "ui_wait_ms": {
+          "mean": 167.17,
+          "max": 877.8
+        },
+        "render_ms": {
+          "mean": 67.21,
+          "max": 155.1
+        },
+        "total_ms": {
+          "mean": 566.26,
+          "max": 995.5
+        }
+      },
+      "court_changed": {
+        "count": 17,
+        "queue_ms": {
+          "mean": 34.82,
+          "max": 246.6
+        },
+        "handler_ms": {
+          "mean": 2.61,
+          "max": 3.8
+        },
+        "ui_wait_ms": {
+          "mean": 719.59,
+          "max": 1091.3
+        },
+        "render_ms": {
+          "mean": 46.52,
+          "max": 260.3
+        },
+        "total_ms": {
+          "mean": 803.53,
+          "max": 1154.1
+        }
+      },
+      "match_preparation_call": {
+        "count": 13,
+        "queue_ms": {
+          "mean": 0.1,
+          "max": 0.2
+        },
+        "handler_ms": {
+          "mean": 4.55,
+          "max": 6.5
+        },
+        "ui_wait_ms": {
+          "mean": 542.61,
+          "max": 842.4
+        },
+        "render_ms": {
+          "mean": 69.62,
+          "max": 222.1
+        },
+        "total_ms": {
+          "mean": 616.88,
+          "max": 957.8
+        }
+      },
+      "tabletoperator_add": {
+        "count": 17,
+        "queue_ms": {
+          "mean": 28.82,
+          "max": 267.5
+        },
+        "handler_ms": {
+          "mean": 3.88,
+          "max": 7.2
+        },
+        "ui_wait_ms": {
+          "mean": 537.89,
+          "max": 1112.5
+        },
+        "render_ms": {
+          "mean": 83.26,
+          "max": 166.3
+        },
+        "total_ms": {
+          "mean": 653.85,
+          "max": 1153.8
+        }
+      }
+    },
+    "interpretation": "Auch ohne eigene Score-Jobs können andere UI-Aufgaben den Browser verzögern. Im gesamten Lauf 614 Namens-/Geometriedurchläufe (maximal 88,2 ms eigene Arbeit), 225 Vorbereitungssteuerungen (maximal 59,6 ms). Wartezeiten sind deutlich länger: names.layout bis 693,2 ms Queue; preparation.diagnosis bis 1.112,6 ms gesamte Aufgabenlaufzeit bei maximal 0,6 ms eigener synchroner Arbeit. Die verbleibende Gesamtlaufzeit umfasst Abhängigkeiten/Rendergelegenheiten und darf nicht als reine CPU-Arbeit oder als Beweis für unnötige DOM-Mutationen ausgegeben werden.",
+    "slow_job_limit": 40,
+    "retained_slow_jobs": 40
+  },
+  "server": {
+    "trace_count": 5576,
+    "trace_errors": [],
+    "operation_counts": {
+      "admin_tournament_get": 1665,
+      "handle_score_update_v2": 1219,
+      "periodic_player_court_reconciliation": 40,
+      "periodic_official_pause": 599,
+      "periodic_preparation_age": 599,
+      "periodic_preparation_pause": 599,
+      "speech_snapshot": 148,
+      "speech_request": 481,
+      "database_compaction": 8,
+      "post_sync_auto_call_apply": 37,
+      "btp_fetch": 20,
+      "admin_preparation_selection": 157,
+      "handle_match_player_check_in": 4
+    },
+    "max_score_operation_ms": 109.5,
+    "btp_fetch_count": 20,
+    "btp_fetch_interval_ms": {
+      "min": 30594,
+      "mean": 31219.5,
+      "max": 31924
+    },
+    "note": "1.665 admin_tournament_get-Abfragen sind Teil der hier gemessenen Gesamtlast. Ohne Zuordnung zu den Clients lassen sie sich nicht pauschal der normalen Turnierleitungsseite zuschreiben. BTP-Sync-Abstände liegen rund bei 31 Sekunden. Keine Prüfung der BTP-Ergebnis- oder Feldkonsistenz in dieser Aufgabe."
+  },
+  "sporthalle_nord": {
+    "evidence": "Nur-Lese-Aufnahme des laufenden Turniers: tournament_get und preparation_selection_get sowie offline gelesene persistierte Datensätze. Die Kandidaten 41–43 sind für beide Hallen zulässig, trotzdem wurde fehlender Bedarf = 0 gemeldet.",
+    "stale_preparation": {
+      "id": "btp_default_MD U13_1230",
+      "match_num": 488,
+      "location_id": "default_2",
+      "state": "preparation",
+      "incomplete": true,
+      "team_player_counts": [
+        0,
+        0
+      ],
+      "preparation_call_timestamp": 1794393964471
+    },
+    "cause": "Die zentrale Bedarfsrechnung zählte allein Zustand Vorbereitung, Halle und nicht zurückgestellter Aufruf. Ein unvollständiger Alt-Eintrag ohne Teilnehmer sättigte dadurch den gesamten Bedarf der Sporthalle Nord. Die Automatik übersprang die Halle bereits vor der Kandidatenauswahl, obwohl die Einzelspiel-Diagnose zulässig meldete.",
+    "change": "Vorbereitete Spiele zählen nur mit nicht aktivem incomplete-Flag und bekannten Teilnehmern beider Teams (derselbe strukturelle Helfer wie in den Aufrufregeln). Check-in, laufende Spielerpause und Vorbereitungsalter verändern den belegten Vorbereitungsplatz eines vollständigen Spiels nicht. Statusanzeige, gemeinsame Cache-Berechnung und automatischer Schnelltest verwenden dieselbe korrigierte Zählung.",
+    "replay_input_sha256": "5686cdd5c53b38e70ac801f6ec8e940e5d45c8ad2c6d4b4ddcd9e60c6b9bbf4d",
+    "replay_now_ts": 1794432000000,
+    "before": [
+      {
+        "location_id": "default_1",
+        "name": "Campus Helleweg",
+        "required": 1,
+        "current": 1,
+        "missing": 0,
+        "candidates": [
+          41,
+          42,
+          43
+        ],
+        "automatic": []
+      },
+      {
+        "location_id": "default_2",
+        "name": "Sporthalle Nord",
+        "required": 1,
+        "current": 1,
+        "missing": 0,
+        "candidates": [
+          41,
+          42,
+          43
+        ],
+        "automatic": []
+      }
+    ],
+    "after": [
+      {
+        "location_id": "default_1",
+        "name": "Campus Helleweg",
+        "required": 1,
+        "current": 1,
+        "missing": 0,
+        "candidates": [
+          41,
+          42,
+          43
+        ],
+        "automatic": []
+      },
+      {
+        "location_id": "default_2",
+        "name": "Sporthalle Nord",
+        "required": 1,
+        "current": 0,
+        "missing": 1,
+        "candidates": [
+          41,
+          42,
+          43
+        ],
+        "automatic": [
+          41
+        ]
+      }
+    ],
+    "live_state_change": false,
+    "service_restarted": false,
+    "unknown": "Wie der alte Vorbereitungseintrag ursprünglich entstand, ist nicht abschließend belegt. Der Eintrag wurde nicht gelöscht oder verändert. Die neue Zählung verhindert seine Blockade nach dem regulären Laden des geänderten Servercodes."
+  },
+  "validation": {
+    "new_regressions": 7,
+    "before_fix": {
+      "pass": 1,
+      "fail": 6,
+      "meaning": "Neue Regressionsfälle zuerst gegen die vorherige Produktionsfunktion ausgeführt: vier strukturelle Defekte, Cache-Invalidierung und tatsächlicher automatischer Hallenaufruf schlagen reproduzierbar fehl; korrektes Warten auf Check-in/Pause besteht."
+    },
+    "command": "npx mocha test/test_match_automation.js test/test_match_automation_frontier_positions.js test/test_match_automation_deferred.js test/test_match_utils_preparation.js test/test_call_status.js test/test_preparation_admin_reads.js test/test_preparation_participant_lookup.js test/test_preparation_selection_reads.js test/test_preparation_candidates.js test/test_btp_participant_guard.js test/test_btp_entry_blocking.js test/test_participant_writes.js --reporter dot",
+    "passing": 250,
+    "failing": 0,
+    "coverage": [
+      "Unvollständigkeitsflag trotz vorhandener Spieler",
+      "Beide Teams leer",
+      "Nur ein Team bekannt",
+      "Teams vollständig fehlend",
+      "Vollständige Teams mit ausstehendem Check-in/Pause belegen weiter einen Platz",
+      "Teilnehmerverlust invalidiert gemeinsamen Status und stimmt mit Automatik überein",
+      "Zwei Hallen: gültige Campus-Vorbereitung unverändert, unvollständige Nord-Vorbereitung blockiert den realen automatischen Aufruf eines neuen Spiels nicht"
+    ],
+    "lint": [
+      {
+        "file": "bts/match_automation.js",
+        "before_errors": 46,
+        "after_errors": 46,
+        "unchanged": true
+      },
+      {
+        "file": "test/test_match_automation.js",
+        "before_errors": 60,
+        "after_errors": 60,
+        "unchanged": true
+      },
+      {
+        "file": "test/test_match_utils_preparation.js",
+        "before_errors": 13,
+        "after_errors": 13,
+        "unchanged": true
+      },
+      {
+        "file": "test/test_call_status.js",
+        "before_errors": 0,
+        "after_errors": 0,
+        "unchanged": true
+      }
+    ],
+    "lint_note": "Vorher/Nachher aus denselben Arbeitsdateien durch Rücknahme ausschließlich dieser Task-Änderungen im Speicher verglichen; Regel-/Meldungsmengen unverändert. Bestehende Lintfehler werden nicht als bestandener Gesamt-Lint ausgegeben.",
+    "product_sha256": {
+      "bts/match_automation.js": "a0e93e1d06df03f13448175a21ab94f38c24ef79c91fbd385b4d7beba4117cf1",
+      "test/test_match_automation.js": "61127f6960f314ea062cf4ebcabbef9768e164e35b0701e2e816ddd5da8cd58c",
+      "test/test_match_utils_preparation.js": "2ba3a62a883dd353200f0fdd7ba5345030a55ecc23c712797f8071c4713ea919",
+      "test/test_call_status.js": "176bdb6b32b44aab23bb79d7107408338571c448de06512461ff680cb129402c"
+    },
+    "runs": [
+      {
+        "command": "npx mocha test/test_match_automation.js test/test_match_automation_frontier_positions.js test/test_match_automation_deferred.js test/test_match_utils_preparation.js test/test_call_status.js test/test_preparation_admin_reads.js test/test_preparation_participant_lookup.js test/test_preparation_selection_reads.js test/test_preparation_candidates.js test/test_btp_participant_guard.js test/test_btp_entry_blocking.js test/test_participant_writes.js --reporter dot",
+        "passing": 250,
+        "failing": 0,
+        "reported_duration_seconds": 8
+      },
+      {
+        "command": "npx mocha test/test_match_automation.js test/test_match_automation_frontier_positions.js test/test_match_automation_deferred.js test/test_match_utils_preparation.js test/test_call_status.js test/test_preparation_admin_reads.js test/test_preparation_participant_lookup.js test/test_preparation_selection_reads.js test/test_preparation_candidates.js test/test_btp_participant_guard.js test/test_btp_entry_blocking.js test/test_participant_writes.js --reporter dot",
+        "passing": 249,
+        "failing": 1,
+        "reported_duration_seconds": 10,
+        "failure": "Bestehende 519-Spiel-Fixture in test_preparation_participant_lookup.js überschreitet Mocha-Standardfrist von 2.000 ms; keine fehlgeschlagene fachliche Assertion."
+      },
+      {
+        "command": "npx mocha test/test_preparation_participant_lookup.js --reporter dot",
+        "passing": 6,
+        "failing": 0,
+        "reported_duration_ms": 672,
+        "note": "Unveränderter Test separat mit derselben Standardfrist erfolgreich."
+      },
+      {
+        "command": "npx mocha test/test_match_automation.js test/test_match_automation_frontier_positions.js test/test_match_automation_deferred.js test/test_match_utils_preparation.js test/test_call_status.js test/test_preparation_admin_reads.js test/test_preparation_participant_lookup.js test/test_preparation_selection_reads.js test/test_preparation_candidates.js test/test_btp_participant_guard.js test/test_btp_entry_blocking.js test/test_participant_writes.js --timeout 10000 --reporter dot",
+        "passing": 250,
+        "failing": 0,
+        "reported_duration_seconds": 7,
+        "note": "Abschließender vollständiger Durchlauf; ausschließlich Testharness-Frist erhöht, keine Assertion und kein Produkt-Zeitlimit verändert."
+      }
+    ],
+    "final_command": "npx mocha test/test_match_automation.js test/test_match_automation_frontier_positions.js test/test_match_automation_deferred.js test/test_match_utils_preparation.js test/test_call_status.js test/test_preparation_admin_reads.js test/test_preparation_participant_lookup.js test/test_preparation_selection_reads.js test/test_preparation_candidates.js test/test_btp_participant_guard.js test/test_btp_entry_blocking.js test/test_participant_writes.js --timeout 10000 --reporter dot"
+  },
+  "limits": [
+    "Der Lauf begann mit 584 Spielen und erst 16 Ergebnissen. Vergleich mit früheren fast beendeten Turnieren belegt keine Regression einer einzelnen Änderung.",
+    "Der Export enthält keine vollständige Prüfsumme der ausgelieferten UI-Dateien. Die zuletzt vorgenommenen DOM-Optimierungen können diesem Lauf deshalb nicht sicher zugeordnet werden.",
+    "Es wurde kein neuer Lastlauf gegen das reale Turnier ausgelöst. Die Zahlen beschreiben den Nutzerbericht vor dieser Korrektur, keine gemessene Beschleunigung durch den Zählungsfix.",
+    "Alle 1.219 Display- und Admin-Quittungen sind vollständig. Das belegt keine allgemeine Einhaltung der Latenzgrenzen.",
+    "Die Korrektur ist auf der Festplatte; der laufende BTS wurde nicht neu gestartet."
+  ]
+}

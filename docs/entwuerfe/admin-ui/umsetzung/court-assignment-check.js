@@ -46,6 +46,22 @@ module.exports=async function({c,check,click,open,metrics,previews}) {
  await verify('Preparation groups are ordered by longest waiting time, followed by normal scheduled order',String.raw`__assignmentIds()==='ready-old,ready-new,other-old,other-official,other-tablet,other-new,scheduled-early,scheduled-tie-first,scheduled-tie-second,scheduled-late,scheduled-stale,scheduled-guest'`);
  await verify('Current players, current tablet operators, waiting-list partners, unknown teams and BTP blocks are absent',String.raw`!__assignmentSelect().querySelector('option[value^="busy"],option[value="unknown"],option[value="partial-double"],option[value="btp-blocked"]')`);
  await verify('Old player flags and completed duties do not hide available players',String.raw`!!__assignmentSelect().querySelector('option[value="scheduled-stale"]')&&!!__assignmentSelect().querySelector('option[value="scheduled-guest"]')`);
+ const mutations=await c.evaluate(String.raw`(async()=>{
+  const settle=async()=>{await btsAdminUpdates.whenSettled();for(let i=0;i<4;i++)await new Promise(requestAnimationFrame)};
+  const audit=async(id,mutate)=>{
+   await settle();const select=__assignmentSelect(),options=[...select.options],target=options.find(option=>option.value===id),records=[];
+   const observer=new MutationObserver(batch=>records.push(...batch));observer.observe(select,{subtree:true,childList:true,attributes:true,characterData:true});
+   __assignmentChange(id,mutate);await settle();records.push(...observer.takeRecords());observer.disconnect();
+   const foreign=records.filter(record=>{const option=(record.target.nodeType===1?record.target:record.target.parentElement)?.closest('option');return(option&&option!==target)||[...record.addedNodes,...record.removedNodes].some(node=>node.tagName==='OPTION'&&node!==target)});
+   return{mutations:records.length,foreign:foreign.length,retained:options.every(option=>option.isConnected),moves:records.filter(record=>[...record.addedNodes,...record.removedNodes].includes(target)).length};
+  };
+  const name=await audit('other-tablet',match=>match.setup.teams[0].players[0].name='Renamed Assignment Player');
+  const reorder=await audit('scheduled-early',match=>match.setup.scheduled_date='2026-12-31');
+  const restored=await audit('scheduled-early',match=>match.setup.scheduled_date='2026-10-31');
+  return{name,reorder,restored};
+ })()`);
+ await verify('Changing one game label preserves all other assignment options',String(mutations.name.mutations===1&&mutations.name.foreign===0&&mutations.name.retained));
+ await verify('Reordering one game moves only that option in either direction',String([mutations.reorder,mutations.restored].every(result=>result.moves===2&&result.foreign===0&&result.retained)));
  await c.evaluate(String.raw`(()=>{__assignmentSelect().value='other-new';__assignmentSelect().dispatchEvent(new Event('change',{bubbles:true}));window.__assignmentOption=__assignmentSelect().selectedOptions[0];__assignmentChange('other-new',match=>match.setup.teams[1].players[0].checked_in=true);})()`);
  await verify('A live check-in moves the same selected option into the ready group without changing selection',String.raw`__assignmentSelect().value==='other-new'&&__assignmentSelect().selectedOptions[0]===__assignmentOption&&__assignmentOption.parentElement.dataset.group==='ready'&&__assignmentIds().startsWith('ready-old,other-new,ready-new,')`);
  await c.evaluate(String.raw`(()=>{__assignmentChange('other-new',match=>match.setup.teams[1].players[0].checked_in=false);})()`);
@@ -64,7 +80,7 @@ module.exports=async function({c,check,click,open,metrics,previews}) {
  await verify('An explicit available selection re-enables assignment',String.raw`!document.querySelector('.leitstand-dialog button[type="submit"]').disabled`);
  for(const [width,height]of [[390,844],[320,568],[1920,1080]]) {
   await metrics(width,height);
-  await verify('Grouped assignment controls fit the viewport at '+width,String.raw`(()=>{const d=document.querySelector('.leitstand-dialog'),s=__assignmentSelect(),box=d.getBoundingClientRect(),field=s.getBoundingClientRect();return box.left>=0&&box.right<=innerWidth&&box.bottom<=innerHeight&&field.left>=box.left&&field.right<=box.right&&d.scrollWidth<=d.clientWidth})()`);
+  await verify('Grouped assignment controls fit the viewport at '+width,String.raw`(()=>{const s=__assignmentSelect(),d=s.closest('.leitstand-dialog'),box=d.getBoundingClientRect(),field=s.getBoundingClientRect();return box.left>=0&&box.right<=innerWidth&&box.bottom<=innerHeight&&field.left>=box.left&&field.right<=box.right&&d.scrollWidth<=d.clientWidth})()`);
  }
  await c.evaluate(String.raw`(()=>{document.querySelector('.leitstand-dialog form').requestSubmit()})()`);
  await verify('Assignment sends the chosen game and actual destination court',String.raw`__assignmentCalls.length===1&&__assignmentCalls[0].message.match_id==='ready-new'&&__assignmentCalls[0].message.court_id==='CH_4'&&__assignmentCalls[0].message.tournament_key==='preview'`);
@@ -73,8 +89,8 @@ module.exports=async function({c,check,click,open,metrics,previews}) {
  await click(trigger);
  await c.evaluate(String.raw`(()=>{__assignmentChange('ready-new',match=>{match.setup.now_on_court=true;match.setup.court_id='CH_4';match.setup.state='oncourt';})})()`);
  await verify('A court filled by another client disables the open assignment form',String.raw`document.querySelector('.leitstand-dialog button[type="submit"]').disabled&&document.querySelector('.leitstand-dialog button[type="submit"]').title.includes('Feld')`);
- await click('.leitstand-dialog .dialog-heading button');
- await verify('Closing the assignment dialog releases its live-update view',String.raw`!document.querySelector('.leitstand-dialog')`);
+ await c.evaluate(`__assignmentSelect().closest('.leitstand-dialog').querySelector('.dialog-heading button').click()`);
+ await verify('Closing the assignment dialog releases its live-update view',String.raw`!__assignmentSelect()`);
  const exceptions=c.events.filter(event=>event.method==='Runtime.exceptionThrown');
  await verify('Grouped court assignment produces no browser exceptions',String(!exceptions.length));
  fs.writeFileSync(path.join(previews,'court-assignment-verification.json'),JSON.stringify({date:'2026-11-01',checks,exceptions:exceptions.length},null,2)+'\n');
