@@ -6,6 +6,7 @@
 var btsTimerUpdates = (function createTimerUpdates(env) {
 	const entries = new Set();
 	const watched = new Map();
+	const watches = new Set();
 	let timeout = null, wakeAt = null, running = false, batches = 0, updates = 0;
 	let observer = null, sweep = null;
 	const now = () => env.Date.now();
@@ -37,28 +38,39 @@ var btsTimerUpdates = (function createTimerUpdates(env) {
 	}
 	function sweepDetached() {
 		sweep = null;
-		for (const entry of watched.values()) if (!entry.owner.isConnected) {
+		for (const entry of watches) if (!entry.owner.isConnected) {
 			entry.cancel();entry.detached?.();
 		}
-		if (watched.size) sweep = env.setTimeout(sweepDetached,1000);
+		if (watches.size) sweep = env.setTimeout(sweepDetached,1000);
 	}
-	// Observe the always-present player/cell, rather than its clock. An expired
-	// clock can be display:none and still needs to resume after a changed state.
+	// Observe a stable row/player, rather than the clock that can be display:none.
+	// Several clocks can share that target while retaining independent lifetimes.
 	function observe(element, callback, detached, owner = element) {
 		if (typeof env.IntersectionObserver !== 'function') return null;
 		observer ||= new env.IntersectionObserver(records => {
-			for (const record of records) watched.get(record.target)?.callback(record.isIntersecting);
+			for (const record of records) {
+				const group = watched.get(record.target);
+				if (!group) continue;
+				group.visible = record.isIntersecting;
+				for (const entry of [...group.entries]) if (watches.has(entry)) entry.callback(group.visible);
+			}
 		}, {rootMargin:'600px 0px'});
-		watched.get(element)?.cancel();
 		const entry = {callback,detached,owner,cancel:() => {
-			if (watched.get(element) !== entry) return;
-			watched.delete(element);observer.unobserve(element);
-			if (!watched.size && sweep != null) {env.clearTimeout(sweep);sweep=null;}
+			if (!watches.delete(entry)) return;
+			const group = watched.get(element);
+			group.entries.delete(entry);
+			if (!group.entries.size) {watched.delete(element);observer.unobserve(element);}
+			if (!watches.size && sweep != null) {env.clearTimeout(sweep);sweep=null;}
 		}};
-		watched.set(element,entry);observer.observe(element);
+		let group = watched.get(element);
+		const first = !group;
+		if (first) {group = {entries:new Set(),visible:null};watched.set(element,group);}
+		group.entries.add(entry);watches.add(entry);
+		if (first) observer.observe(element);
+		else if (group.visible !== null) callback(group.visible);
 		if (sweep == null) sweep = env.setTimeout(sweepDetached,1000);
 		return entry.cancel;
 	}
 	if (typeof module !== 'undefined' && module.exports) module.exports = createTimerUpdates;
-	return {schedule,observe,stats:()=>({pending:entries.size,batches,updates,observed:watched.size})};
+	return {schedule,observe,stats:()=>({pending:entries.size,batches,updates,observed:watches.size})};
 })(typeof window === 'undefined' ? {Date,setTimeout,clearTimeout} : window);

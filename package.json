@@ -14,6 +14,7 @@
     "test:admin-style-invalidation": "node docs/entwuerfe/admin-ui/umsetzung/browser-check.js --style-invalidation-only",
     "test:admin-planned-layout": "node docs/entwuerfe/admin-ui/umsetzung/browser-check.js --planned-layout-only",
     "test:admin-visible-timers": "node docs/entwuerfe/admin-ui/umsetzung/browser-check.js --visible-timers-only",
+    "test:admin-timer-reload": "node docs/entwuerfe/admin-ui/umsetzung/browser-check.js --timer-reload-only",
     "test:admin-player-activity": "node docs/entwuerfe/admin-ui/umsetzung/browser-check.js --player-activity-only",
     "test:admin-player-index": "node docs/entwuerfe/admin-ui/umsetzung/browser-check.js --player-index-only",
     "test:admin-planned-sort": "node docs/entwuerfe/admin-ui/umsetzung/browser-check.js --planned-sort-only",

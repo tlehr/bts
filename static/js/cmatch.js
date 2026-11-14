@@ -2396,7 +2396,10 @@ function create_timer(timer_state, parent, default_color, exigent_color) {
 		update(true);
 	};
 	if (typeof btsTimerUpdates !== 'undefined' && typeof cleitstand !== 'undefined' && (board_render || cleitstand.active(parent))) {
-		stop_visibility = btsTimerUpdates.observe?.(parent, visible => {
+		// The board replaces the original timer TD with a SPAN during loading.
+		// Its row survives that move; observing the discarded TD freezes the clock.
+		const visibility_target = parent.closest?.('tr') || parent;
+		stop_visibility = btsTimerUpdates.observe?.(visibility_target, visible => {
 			if (stopped || near_viewport === visible) return;
 			near_viewport = visible;clear_pending_update();
 			if (visible) update();

@@ -61,4 +61,54 @@ describe('Shared local clock updates',function(){
 		observer.callback([{target:parent,isIntersecting:true}]);assert.deepStrictEqual(seen,[false,true]);
 		stop();stopOther();stopOther();assert.strictEqual(h.timers.size,0);assert.strictEqual(h.queue.stats().observed,0);
 	});
+	it('keeps independent clocks on the same stable row observed until the last one stops',function(){
+		let observer;const observed=new Set(),unobserved=[],seen=[];
+		class Observer {
+			constructor(callback){this.callback=callback;observer=this;}
+			observe(element){observed.add(element);}
+			unobserve(element){observed.delete(element);unobserved.push(element);}
+		}
+		const h=fixture({IntersectionObserver:Observer}),row={isConnected:true};
+		const stopFirst=h.queue.observe(row,visible=>seen.push(['first',visible]),null,{isConnected:true});
+		const stopSecond=h.queue.observe(row,visible=>seen.push(['second',visible]),null,{isConnected:true});
+		assert.strictEqual(observed.size,1);assert.strictEqual(h.queue.stats().observed,2);
+		observer.callback([{target:row,isIntersecting:false}]);
+		assert.deepStrictEqual(seen,[['first',false],['second',false]]);
+		stopFirst();assert.strictEqual(unobserved.length,0);
+		observer.callback([{target:row,isIntersecting:true}]);
+		assert.deepStrictEqual(seen,[['first',false],['second',false],['second',true]]);
+		stopSecond();stopFirst();
+		assert.deepStrictEqual(unobserved,[row]);assert.strictEqual(h.queue.stats().observed,0);assert.strictEqual(h.timers.size,0);
+	});
+	it('removes a detached clock without stopping another clock observed on the same row',function(){
+		let observer;const seen=[];
+		class Observer {
+			constructor(callback){this.callback=callback;observer=this;}
+			observe(){}
+			unobserve(){throw Error('The row still has a clock');}
+		}
+		const h=fixture({IntersectionObserver:Observer}),row={isConnected:true},owner={isConnected:true};
+		let detached=0;
+		h.queue.observe(row,visible=>seen.push(['removed',visible]),()=>detached++,owner);
+		h.queue.observe(row,visible=>seen.push(['remaining',visible]),null,{isConnected:true});
+		owner.isConnected=false;h.run(1000);
+		assert.strictEqual(detached,1);assert.strictEqual(h.queue.stats().observed,1);
+		observer.callback([{target:row,isIntersecting:true}]);
+		assert.deepStrictEqual(seen,[['remaining',true]]);
+	});
+	it('immediately suspends a new clock in an already offscreen row without reobserving it',function(){
+		let observer,observations=0;const seen=[];
+		class Observer {
+			constructor(callback){this.callback=callback;observer=this;}
+			observe(){observations++;}
+			unobserve(){}
+		}
+		const h=fixture({IntersectionObserver:Observer}),row={isConnected:true};
+		h.queue.observe(row,()=>{});
+		observer.callback([{target:row,isIntersecting:false}]);
+		const stop=h.queue.observe(row,visible=>seen.push(visible));
+		assert.deepStrictEqual(seen,[false]);assert.strictEqual(observations,1);
+		observer.callback([{target:row,isIntersecting:true}]);
+		assert.deepStrictEqual(seen,[false,true]);stop();
+	});
 });

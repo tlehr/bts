@@ -127,6 +127,7 @@ class CDP {
   report.checks=[];
   if(process.argv.includes('--style-invalidation-only')) {await require('./style-invalidation-check')({c,open,previews});return;}
   if(process.argv.includes('--visible-timers-only')) {await require('./visible-timers-check')({c,open});return;}
+  if(process.argv.includes('--timer-reload-only')) {await require('./timer-reload-check')({c,open});return;}
   // Geometry assertions must follow deferred layout/ResizeObserver work. Faster
   // cache hits must not make a check race the frame that updates column widths.
   const check=async(name,expression)=>{const value=await c.evaluate(`(async()=>{await new Promise((resolve,reject)=>{let stable=0,done=false;const timeout=setTimeout(()=>{done=true;reject(new Error('UI layout did not settle'));},4000);const frame=()=>{if(done)return;stable=window.cleitstand?.isUpdating()||window.ctournament?.isUpdating()?0:stable+1;if(stable===3){done=true;clearTimeout(timeout);resolve();}else requestAnimationFrame(frame);};requestAnimationFrame(frame);});return (${expression});})()`);if(!value&&process.env.BTS_LAYOUT_DIAGNOSTICS==='1') {
