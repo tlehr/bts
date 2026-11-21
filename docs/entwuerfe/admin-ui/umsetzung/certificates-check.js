@@ -267,6 +267,7 @@ module.exports = async function({c, check, click, open, metrics, previews, key})
  await verify('Exporting after deletion uses the original code without any automatic long-name fallback',String.raw`(await __certificateFiles.at(-1).blob.text()).includes(';MX;"O40+45";')&&!(await __certificateFiles.at(-1).blob.text()).includes('Gemischt')`);
  await c.evaluate(String.raw`__certificateReply('certificate_export_mark',null,{certificate_exports:curt.certificate_exports})`);
  await require('./certificate-senior-splits-check')({c, verify, metrics});
+ await require('./certificate-manual-check')({c, verify, eventually, metrics, previews});
  await c.evaluate(String.raw`__certificateTrigger().click();__certificateInput('veranstaltung_1','Verlassener Entwurf');window.__certificateFinalCommandCount=__certificateCommands.length;document.querySelector('.leitstand').remove()`);
  await c.evaluate('new Promise(resolve=>setTimeout(resolve,300))');
  await verify('Removing the workspace disposes listeners and deferred unsent requests',String.raw`!__certificatePage()&&__certificateCommands.length===__certificateFinalCommandCount`);

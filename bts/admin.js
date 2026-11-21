@@ -236,6 +236,8 @@ function handle_tournament_edit_props(app, ws, msg) {
 		'certificate_export_last_scheduled_date_filter',
 		'certificate_export_double_swapped_entries_enabled',
 		'certificate_age_class_splits',
+		'certificate_senior_age_basis',
+		'certificate_manual_entries',
 		'certificate_discipline_replacements',
 		'accounting_entry_fee_mode',
 		'accounting_document_code',
@@ -257,6 +259,14 @@ function handle_tournament_edit_props(app, ws, msg) {
 	if (Object.prototype.hasOwnProperty.call(props, 'certificate_design')) {
 		const error = require('../static/js/certificate_design').validate(props.certificate_design);
 		if (error) return ws.respond(msg, {message: error});
+	}
+	if (Object.prototype.hasOwnProperty.call(props, 'certificate_senior_age_basis') && !['calendar', 'season', 'previous_calendar', 'previous_season'].includes(props.certificate_senior_age_basis)) {
+		return ws.respond(msg, {message: 'Bitte Kalenderjahr, Saison, letztes Kalenderjahr oder letzte Saison für die O-Altersklassen auswählen.'});
+	}
+	if (Object.prototype.hasOwnProperty.call(props, 'certificate_manual_entries')) {
+		const error = require('../static/js/certificate_manual').validate(props.certificate_manual_entries);
+		if (error) return ws.respond(msg, {message: error});
+		props.certificate_manual_entries = props.certificate_manual_entries.map(({key, ak}) => ({key, ak}));
 	}
 	if (msg.props.btp_timezone) {
 		props.btp_timezone = msg.props.btp_timezone === 'system' ? undefined : msg.props.btp_timezone;
@@ -460,6 +470,8 @@ function handle_tournament_edit_prop(app, ws, msg) {
 		'certificate_export_last_scheduled_date_filter',
 		'certificate_export_double_swapped_entries_enabled',
 		'certificate_age_class_splits',
+		'certificate_senior_age_basis',
+		'certificate_manual_entries',
 		'certificate_discipline_replacements',
 		'accounting_entry_fee_mode',
 		'accounting_document_code',
@@ -486,6 +498,14 @@ function handle_tournament_edit_prop(app, ws, msg) {
 
 	const key = msg.key;
 	let value = msg.value;
+	if (field === 'certificate_senior_age_basis' && !['calendar', 'season', 'previous_calendar', 'previous_season'].includes(value)) {
+		return ws.respond(msg, {message: 'Bitte Kalenderjahr, Saison, letztes Kalenderjahr oder letzte Saison für die O-Altersklassen auswählen.'});
+	}
+	if (field === 'certificate_manual_entries') {
+		const error = require('../static/js/certificate_manual').validate(value);
+		if (error) return ws.respond(msg, {message: error});
+		value = value.map(({key, ak}) => ({key, ak}));
+	}
 	if (field === 'btp_timezone') {
 		value = value === 'system' ? undefined : value;
 	}

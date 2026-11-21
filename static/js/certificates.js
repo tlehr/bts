@@ -1,4 +1,4 @@
-/* global btsLibraries, btsDialogActions, crouting, btsCertificateDesign, btsCertificateDocument, btsCertificateDocx, btsCertificateDesigner, save_file */
+/* global btsLibraries, btsDialogActions, crouting, btsCertificateDesign, btsCertificateDocument, btsCertificateDocx, btsCertificateDesigner, btsCertificateManual, save_file */
 'use strict';
 
 // The certificates workspace shares export generation with the existing data builder.
@@ -16,11 +16,13 @@ var btsCertificates = (() => {
   if (title) page.setAttribute('aria-labelledby', title.id);else page.setAttribute('aria-label', 'Urkunden');
   const tabs = el(page, 'div', 'certificate-workspace-tabs');tabs.setAttribute('role', 'tablist');tabs.setAttribute('aria-label', 'Urkundenbereich');
   function tab(label, id) {const node = el(tabs, 'button', 'btn', label);node.type = 'button';node.setAttribute('role', 'tab');node.id = prefix + '-' + id;return node;}
-  const selectionTab = tab('Disziplinen', 'selection-tab'), designTab = tab('Urkunde gestalten', 'design-tab');
-  let activeTab = 'selection';
+  const selectionTab = tab('Disziplinen', 'selection-tab'), manualTab = tab('Manuelle Urkunden', 'manual-tab'), designTab = tab('Urkunde gestalten', 'design-tab');
+  const tabEntries = [[selectionTab, 'selection'], [manualTab, 'manual'], [designTab, 'design']];
+  let activeTab = 'selection', manualMode = false;
   const form = el(page, 'form', 'certificate-export-form');
   const scroll = el(form, 'div', 'certificate-export-content');
   const content = el(scroll, 'fieldset', 'certificate-export-fields');content.setAttribute('aria-label', 'Exporteinstellungen');content.id = prefix + '-selection';content.setAttribute('role', 'tabpanel');content.setAttribute('aria-labelledby', selectionTab.id);selectionTab.setAttribute('aria-controls', content.id);
+  const manualContent = el(scroll, 'fieldset', 'certificate-manual');manualContent.id = prefix + '-manual';manualContent.hidden = true;manualContent.setAttribute('role', 'tabpanel');manualContent.setAttribute('aria-labelledby', manualTab.id);manualTab.setAttribute('aria-controls', manualContent.id);
   const designOwner = el(scroll, 'fieldset', 'certificate-designer');designOwner.id = prefix + '-design';designOwner.hidden = true;designOwner.setAttribute('role', 'tabpanel');designOwner.setAttribute('aria-labelledby', designTab.id);designTab.setAttribute('aria-controls', designOwner.id);
   el(content, 'p', 'certificate-export-intro', 'Exporteinstellungen werden automatisch gespeichert. Wählen Sie die Disziplinen für die gewünschte Datei aus.');
   const footer = el(form, 'div', 'certificate-export-footer'), feedback = el(footer, 'div', 'certificate-export-feedback');
@@ -42,9 +44,12 @@ var btsCertificates = (() => {
    onChange: design => saveSettings({certificate_design: design}, true), onStateChange: () => refresh(),
   });
   function setTab(value, focus = false) {
-   activeTab = value;content.hidden = value !== 'selection';designOwner.hidden = value !== 'design';
-   for (const [node, id] of [[selectionTab, 'selection'], [designTab, 'design']]) {node.setAttribute('aria-selected', String(value === id));node.tabIndex = value === id ? 0 : -1;}
-   if (focus) (value === 'design' ? designTab : selectionTab).focus();
+   if (busy && busy !== 'save' || designer.busy() || confirming) return;
+   if (value !== 'design') manualMode = value === 'manual';
+   activeTab = value;content.hidden = value !== 'selection';manualContent.hidden = value !== 'manual';designOwner.hidden = value !== 'design';
+   config.onModeChange?.(manualMode);
+   for (const [node, id] of tabEntries) {node.setAttribute('aria-selected', String(value === id));node.tabIndex = value === id ? 0 : -1;if (focus && value === id) node.focus();}
+   notice = '';
    if (value === 'design') designer.refresh();refresh();
   }
   const active = () => !disposed && page.isConnected && owner.isConnected && getTournament()?.key === tournamentKey;
@@ -56,9 +61,9 @@ var btsCertificates = (() => {
    if (busy) return busy === 'save' ? 'Exporteinstellungen werden gespeichert.' : busy === 'reset' ? 'Exportstatus wird zurückgesetzt.' : 'Die Exportdatei wird erstellt und der Exportstatus gespeichert.';
    if (error) return error;
    if (hasChanges()) return 'Exporteinstellungen werden noch gespeichert.';
-   if (!config.hasEvents()) return 'Keine Disziplinen mit Platzierungsspielen vorhanden.';
+   if (!config.hasEvents()) return manualMode ? 'Noch keine Teilnehmer in den importierten Spielen vorhanden.' : 'Keine Disziplinen mit Platzierungsspielen vorhanden.';
    const invalid = config.validate();if (invalid) return invalid;
-   if (!config.readOptions().selected_certificate_keys.size) return 'Bitte mindestens eine Disziplin auswählen.';
+   if (!config.readOptions().selected_certificate_keys.size) return manualMode ? 'Bitte mindestens einen Spieler oder eine Paarung auswählen.' : 'Bitte mindestens eine Disziplin auswählen.';
    if (!config.hasRows()) return 'Für die Auswahl sind noch keine eindeutigen Platzierungen verfügbar.';
    return '';
   }
@@ -74,7 +79,9 @@ var btsCertificates = (() => {
    const text = reason || notice || 'Exporteinstellungen werden automatisch gespeichert.';
    if (hint.textContent !== text) hint.textContent = text;
    hint.classList.toggle('is-error', !!error);
-   content.disabled = designOwner.disabled = (!!busy && busy !== 'save') || designer.busy();
+   const locked = (!!busy && busy !== 'save') || designer.busy();
+   content.disabled = locked || manualMode;manualContent.disabled = locked || !manualMode;designOwner.disabled = locked;
+   for (const [node] of tabEntries) node.disabled = locked || confirming;
    if (busy || designer.busy()) form.setAttribute('aria-busy', 'true');else form.removeAttribute('aria-busy');
    btsDialogActions.control(csv, {hidden: !config.hasEvents(), disabled: !!reason || confirming, reason, label: busy === 'csv' ? 'CSV wird exportiert…' : 'CSV exportieren'});
    btsDialogActions.control(xlsx, {hidden: !config.hasEvents(), disabled: !!reason || confirming, reason, label: busy === 'xlsx' ? 'XLSX wird exportiert…' : 'XLSX exportieren'});
@@ -100,8 +107,10 @@ var btsCertificates = (() => {
   function settingsError(err, props) {
    const detail = typeof err?.message === 'string' ? err.message.trim() : typeof err === 'string' ? err.trim() : '';
    const outdated = (detail.startsWith('Unbekannter Platzhalter:') || detail === 'Ungültige Textformatierung.') && props.certificate_design && !btsCertificateDesign.validate(props.certificate_design);
+   const outdatedManual = detail === 'Ungültige manuelle Urkundeneinträge.' && props.certificate_manual_entries && !btsCertificateManual.validate(props.certificate_manual_entries);
    return ['Exporteinstellungen konnten nicht gespeichert werden.', detail,
     outdated ? 'Browser und BTS-Server verwenden unterschiedliche Vorlagenstände. Bitte BTS neu starten.' : '',
+    outdatedManual ? 'Bitte BTS neu starten und anschließend erneut speichern. Die Eingaben bleiben solange in dieser Ansicht erhalten.' : '',
     'Bitte erneut speichern.'].filter(Boolean).join(' ');
   }
   function flush() {
@@ -212,8 +221,11 @@ var btsCertificates = (() => {
   }
   const lifetime = new AbortController(), {signal} = lifetime;
   const observer = new MutationObserver(() => { if (!active()) dispose(); });
-  selectionTab.addEventListener('click', () => setTab('selection'), {signal});designTab.addEventListener('click', () => setTab('design'), {signal});
-  tabs.addEventListener('keydown', event => {if (['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) {event.preventDefault();setTab(event.key === 'Home' ? 'selection' : event.key === 'End' ? 'design' : activeTab === 'selection' ? 'design' : 'selection', true);}}, {signal});
+  for (const [node, id] of tabEntries) node.addEventListener('click', () => setTab(id), {signal});
+  tabs.addEventListener('keydown', event => {if (['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) {
+   event.preventDefault();const index = tabEntries.findIndex(([, id]) => id === activeTab);
+   setTab(tabEntries[event.key === 'Home' ? 0 : event.key === 'End' ? tabEntries.length - 1 : (index + (event.key === 'ArrowRight' ? 1 : -1) + tabEntries.length) % tabEntries.length][1], true);
+  }}, {signal});
   pdf.addEventListener('click', () => runDocument('pdf'), {signal});print.addEventListener('click', () => runDocument('print'), {signal});probe.addEventListener('click', () => runDocument('probe'), {signal});markPrint.addEventListener('click', markPrinted, {signal});
   docx.addEventListener('click', () => runDocument('docx'), {signal});
   retry.addEventListener('click', flush, {signal});
@@ -233,7 +245,7 @@ var btsCertificates = (() => {
    }, link);
   }, {capture: true, signal});
 
-  return {page, tournamentKey, content, refresh, saveSettings, reset, navigate, dispose,
+  return {page, tournamentKey, content, manualContent, isManual: () => manualMode, refresh, saveSettings, reset, navigate, dispose,
    refreshPreview() {if (activeTab === 'design') designer.refresh();},
    open(options) { config = {...config, ...options};setTab('selection');observer.observe(doc.body, {childList: true, subtree: true});title?.focus({preventScroll: true}); },
   };

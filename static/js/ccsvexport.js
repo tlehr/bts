@@ -555,21 +555,26 @@ function get_senior_certificate_team_key(team) {
 	return (team?.players || []).map(player => get_team_key({players: [player]})).sort().join('|');
 }
 
-function get_senior_certificate_age_context(event_name, matches, placements, existing_event_names, reference_year) {
+function get_senior_certificate_age_context(event_name, matches, placements, existing_event_names, reference_year, basis) {
 	const info = parse_event_name(event_name);
 	if (!/^O\d+(?:\+\d+)+$/.test(info.ak)) return null;
 	const ages = [...new Set(info.ak.slice(1).split('+').map(Number))].sort((a, b) => a - b);
-	// DBV SpO §1(5), SpO-DB §10(2): season starts in August;
-	// the following 1 January is the age-class cutoff (not the export date).
+	const is_season = basis === 'season' || basis === 'previous_season';
+	const is_previous = basis === 'previous_calendar' || basis === 'previous_season';
+	// Calendar year is the default. For the optional DBV season (August–July),
+	// SpO §1(5), SpO-DB §10(2) use the 1 January following its start.
 	const years = new Set(matches.map(match => {
 		const date = /^(\d{4})-(\d{2})-\d{2}$/.exec(match?.setup?.scheduled_date || '');
 		return date && Number(date[2]) >= 1 && Number(date[2]) <= 12
-			? Number(date[1]) + (Number(date[2]) >= 8 ? 1 : 0) : null;
+			? Number(date[1]) + (is_season && Number(date[2]) >= 8 ? 1 : 0) : null;
 	}).filter(Boolean));
-	const year = reference_year || (years.size === 1 ? [...years][0] : null);
-	const context = {ages, year, team_ages: new Map(), candidates: [], starter_counts: new Map(), unavailable_reason: ''};
+	const current_year = reference_year || (years.size === 1 ? [...years][0] : null);
+	const year = current_year ? current_year - (is_previous ? 1 : 0) : null;
+	const context = {ages, year, is_season, is_previous, team_ages: new Map(), candidates: [], starter_counts: new Map(), unavailable_reason: ''};
 	if (!year) {
-		context.unavailable_reason = 'Für die O-Aufteilung fehlt eine eindeutige Spielsaison in den Spielterminen.';
+		context.unavailable_reason = is_season
+			? 'Für die O-Aufteilung fehlt eine eindeutige Spielsaison in den Spielterminen.'
+			: 'Für die O-Aufteilung fehlt ein eindeutiges Kalenderjahr in den Spielterminen.';
 		return context;
 	}
 	const teams = new Map();
@@ -586,7 +591,7 @@ function get_senior_certificate_age_context(event_name, matches, placements, exi
 		const age = year - Math.max(...birth_years) - 1;
 		const age_number = ages.filter(number => number <= age).pop();
 		if (age_number == null) {
-			context.unavailable_reason = 'Die Geburtsjahre passen nicht zu den O-Altersklassen am DBV-Stichtag. Bitte Geburtsjahre und Spieltermine prüfen.';
+			context.unavailable_reason = 'Die Geburtsjahre passen nicht zu den O-Altersklassen am gewählten Stichtag. Bitte Geburtsjahre, Spieltermine und die Auswahl Kalenderjahr/Saison prüfen.';
 			return context;
 		}
 		context.team_ages.set(key, age_number);
@@ -602,6 +607,13 @@ function get_senior_certificate_age_context(event_name, matches, placements, exi
 		}
 	}
 	return context;
+}
+
+function get_senior_certificate_age_note({year, is_season, is_previous}) {
+	const period = is_season
+		? `${is_previous ? 'Letzte Saison' : 'Saison'} ${year - 1}/${String(year).slice(-2)} (DBV)`
+		: `${is_previous ? 'Letztes Kalenderjahr' : 'Kalenderjahr'} ${year}`;
+	return `${period} · Stichtag 01.01.${year}; bei Doppel und Mixed zählt der jüngere Partner.`;
 }
 
 function get_certificate_age_class_candidates(
@@ -1299,7 +1311,7 @@ function certificate_document_dates(rows, matches, tournament, options) {
 		: format_date_for_certificate(now);
 	const event_matches = build_event_match_index(matches), latest_dates = new Map();
 	return rows.map(row => {
-		const event_name = String(row.event_name || '').split('::age:')[0];
+		const event_name = row.source_event_name || String(row.event_name || '').split('::age:')[0];
 		if (!latest_dates.has(event_name)) {
 			const latest = get_latest_scheduled_match_info(event_matches.get(event_name) || [], event_name);
 			latest_dates.set(event_name, /^\d{4}-\d{2}-\d{2}$/.test(latest?.date || '') ? normalize_certificate_date(latest.date) : '');
@@ -1309,6 +1321,7 @@ function certificate_document_dates(rows, matches, tournament, options) {
 }
 
 function build_certificate_rows(matches, tournament, options = {}) {
+	if (options.manual_certificates === true) return build_manual_certificate_rows(matches, tournament, options);
 	const details = certificate_details(tournament, options);
 	const selected_event_names = options.selected_event_names instanceof Set
 		? options.selected_event_names
@@ -1333,6 +1346,7 @@ function build_certificate_rows(matches, tournament, options = {}) {
 		tournament,
 		certificate_discipline_replacements,
 		age_reference_year: options.age_reference_year,
+		certificate_senior_age_basis: options.certificate_senior_age_basis,
 		certificate_age_class_splits,
 	});
 	const event_entry_by_name = new Map(event_entries.map((event_entry) => [event_entry.event_name, event_entry]));
@@ -1395,9 +1409,137 @@ function build_certificate_rows(matches, tournament, options = {}) {
 	return certificate_document_dates(rows, matches, tournament, options);
 }
 
+function manual_certificate_key(event_name, team) {
+	const players = team.players.map(player => player.btp_id != null
+		? ['btp', String(player.btp_id)] : ['name', get_player_display_name(player), player.club || '']);
+	players.sort((a, b) => JSON.stringify(a).localeCompare(JSON.stringify(b)));
+	return 'manual:' + encodeURIComponent(JSON.stringify([event_name, players])).replace(/\./g, '%2E');
+}
+
+function get_manual_certificate_age_choices(event_names, tournament) {
+	const imported = new Map(get_tournament_certificate_events(tournament).map(event => [normalize_certificate_event_name(event.name), event]));
+	const names = [...new Set([...event_names, ...imported.keys()])];
+	const descriptions = names.map(name => {
+		const info = parse_event_name(name), match = /^([OU])(\d+(?:\+\d+)*)$/.exec(info.ak), event = imported.get(name);
+		const type = match?.[1], ages = match ? match[2].split('+').map(Number) : [];
+		return {name, info, type, ages, min: Number(event?.min_age) || 0, max: Number(event?.max_age) || 0};
+	});
+	const result = new Map();
+	for (const source of descriptions) {
+		if (!source.type) {result.set(source.name, []);continue;}
+		const senior = source.type === 'O';
+		const family = descriptions.filter(other => other.type === source.type && certificate_event_codes_are_compatible(source.info, other.info));
+		const known = descriptions.filter(other => other.type === source.type).flatMap(other => other.ages);
+		const standard = senior
+			? Array.from({length: Math.max(0, Math.floor(Math.min(120, source.max || Math.max(...known)) / 5))}, (_, index) => (index + 1) * 5)
+			: CERTIFICATE_YOUTH_AGE_NUMBERS;
+		const within_range = (event, age) => {
+			if (senior) {
+				const lower = event.min > 0 ? event.min : Math.min(...event.ages);
+				const upper = event.max > 0 ? event.max : event.min > 0 ? Infinity : Math.max(...event.ages);
+				return age >= lower && age <= upper;
+			}
+			const upper = event.max > 0 ? event.max + 1 : Math.max(...event.ages);
+			const lower = event.min > 0 ? event.min + 1 : event.ages.length > 1 ? Math.min(...event.ages) : 0;
+			return age >= lower && age <= upper;
+		};
+		const choices = [...new Set([...standard, ...source.ages])].filter(age => {
+			if (!within_range(source, age)) return false;
+			// Named classes anchor ownership. Intermediate O classes follow the next
+			// lower anchor; U classes follow the next higher one. This also handles
+			// a combined event surrounding a separately played class.
+			const owners = family.flatMap(other => within_range(other, age) || other.min === 0 && other.max === 0
+				? other.ages.filter(anchor => senior ? anchor <= age : anchor >= age).map(anchor => ({name: other.name, anchor})) : []);
+			if (!owners.length) return true;
+			const boundary = senior ? Math.max(...owners.map(owner => owner.anchor)) : Math.min(...owners.map(owner => owner.anchor));
+			return !owners.some(owner => owner.anchor === boundary && owner.name !== source.name);
+		}).sort((a, b) => a - b).map(age => format_age_group(age, source.type));
+		result.set(source.name, choices);
+	}
+	return result;
+}
+
+function get_manual_certificate_entries(matches, tournament, options = {}) {
+	const event_matches = build_event_match_index(matches);
+	const stats = new Map(build_certificate_event_stats(matches, {...options, tournament, max_place: Infinity, include_age_class_splits: false}).map(event => [event.event_name, event]));
+	const edits = new Map((options.certificate_manual_entries || tournament?.certificate_manual_entries || []).map(entry => [entry.key, entry]));
+	const age_choices = get_manual_certificate_age_choices([...event_matches.keys()], tournament);
+	const entries = [];
+	for (const event_name of event_matches.keys()) {
+		const event = stats.get(event_name) || {event_name, placements: []};
+		const info = parse_event_name(event.event_name), participants = new Map();
+		const label = [get_certificate_discipline_label(info, get_certificate_discipline_replacements(tournament, options)), info.ak].filter(Boolean).join(' ');
+		// Always rank from the original sporting result, before automatic age splits.
+		const placements = event.source_placements || event.placements;
+		const teams = [...(event_matches.get(event.event_name) || []).flatMap(match => match.setup?.teams || []), ...placements.map(placement => placement.team)];
+		for (const team of teams) {
+			const players = team?.players || [];
+			if (players.length !== (info.kind === 'double' ? 2 : 1) || players.some(player => !get_player_display_name(player) || is_placeholder_player(player))) continue;
+			const key = manual_certificate_key(event.event_name, team);
+			const split_age = stats.has(event_name) ? get_team_certificate_split_age_number(team, event) : null;
+			const ak = split_age == null ? (event.ak || info.ak) : format_age_group(split_age, event.senior_age_context ? 'O' : 'U');
+			if (!participants.has(key)) participants.set(key, {key, source_event_name: event.event_name, label, kind: info.kind, players, ak, place: '', overall_label: 'Noch offen'});
+		}
+		for (const placement of placements) {
+			if (!placement.team?.players) continue;
+			const entry = participants.get(manual_certificate_key(event.event_name, placement.team));
+			if (entry) {
+				entry.overall_from = placement.place_from;entry.overall_to = placement.place_to;
+				entry.overall_label = format_place_label(placement.place_from, placement.place_to);
+			}
+		}
+		for (const entry of participants.values()) {
+			const edit = edits.get(entry.key);
+			if (edit) entry.ak = String(edit.ak ?? ''); // Legacy saved places are deliberately ignored.
+			entry.age_options = age_choices.get(event_name) || [];
+			entry.source_ak = info.ak;
+			entry.name = entry.players.map(get_player_display_name).join(' / ');
+		}
+		const ordered = [...participants.values()].sort((a, b) => (a.overall_from || Infinity) - (b.overall_from || Infinity) || cbts_utils.natcmp(a.name, b.name));
+		const counts = new Map(), rank_counts = new Map();
+		for (const entry of ordered) rank_counts.set(entry.overall_from, (rank_counts.get(entry.overall_from) || 0) + 1);
+		let next_place = 1, earlier_open = false;
+		for (const entry of ordered) {
+			const age = entry.ak.trim().toLocaleUpperCase('de');
+			// Only a continuous, unambiguous sporting ranking can establish the order
+			// within an age class. Include all starters, regardless of export selection.
+			if (entry.overall_from !== next_place || entry.overall_from !== entry.overall_to || rank_counts.get(entry.overall_from) !== 1) earlier_open = true;
+			if (!age || age.length > 40) {
+				entry.place_reason = 'Bitte eine Altersklasse angeben.';
+				earlier_open = true;
+			} else if (earlier_open) {
+				entry.place_reason = 'Die sportliche Rangfolge oder die Altersklassenzuordnung davor ist noch nicht vollständig geklärt.';
+			} else {
+				const place = (counts.get(age) || 0) + 1;counts.set(age, place);
+				entry.place = String(place);next_place++;
+			}
+			entries.push(entry);
+		}
+	}
+	return entries.sort((a, b) => cbts_utils.natcmp(a.label, b.label) || (a.overall_from || Infinity) - (b.overall_from || Infinity) || cbts_utils.natcmp(a.name, b.name));
+}
+
+function build_manual_certificate_rows(matches, tournament, options) {
+	const selected = options.selected_certificate_keys;
+	if (!(selected instanceof Set)) return [];
+	const rows = [], details = certificate_details(tournament, options), replacements = get_certificate_discipline_replacements(tournament, options);
+	const swapped = options.certificate_export_double_swapped_entries_enabled ?? tournament?.certificate_export_double_swapped_entries_enabled;
+	for (const entry of get_manual_certificate_entries(matches, tournament, options)) {
+		const place = Number(entry.place), ak = entry.ak.trim();
+		if (!selected.has(entry.key) || !ak || ak.length > 40 || !Number.isSafeInteger(place) || place < 1) continue;
+		append_certificate_rows_for_placement(rows, {...details,
+			event_name: entry.key, source_event_name: entry.source_event_name,
+			disziplin: get_certificate_discipline_label(parse_event_name(entry.source_event_name), replacements),
+			ak, place, platz: format_place_label(place, place),
+		}, entry.players, !!swapped && entry.kind === 'double');
+	}
+	return certificate_document_dates(rows, matches, tournament, options);
+}
+
 function build_certificate_preview_rows(matches, tournament, options = {}) {
 	const kind = options.kind === 'double' ? 'double' : 'single';
 	const settings = {...options, certificate_export_double_swapped_entries_enabled: false};
+	if (options.manual_certificates === true) return build_certificate_rows(matches, tournament, settings).filter(row => (row.spieler_2 ? 'double' : 'single') === kind);
 	const rows = build_certificate_rows(matches, tournament, {...settings, selected_certificate_keys: null, selected_event_names: null})
 		.filter(row => (row.spieler_2 ? 'double' : 'single') === kind);
 	if (rows.length) return rows;
@@ -1454,6 +1596,8 @@ function build_certificate_event_stats(matches, options = {}) {
 	const event_match_index = build_event_match_index(matches);
 	const draw_event_names = get_draw_event_name_index(matches);
 	const age_reference_year = options.age_reference_year || infer_certificate_age_reference_year(matches);
+	const requested_senior_age_basis = options.certificate_senior_age_basis ?? options.tournament?.certificate_senior_age_basis;
+	const senior_age_basis = ['season', 'previous_calendar', 'previous_season'].includes(requested_senior_age_basis) ? requested_senior_age_basis : 'calendar';
 	const certificate_age_class_splits = options.certificate_age_class_splits instanceof Map
 		? options.certificate_age_class_splits
 		: get_enabled_certificate_age_class_splits(options.tournament, options);
@@ -1472,7 +1616,7 @@ function build_certificate_event_stats(matches, options = {}) {
 				code: parsed.code,
 				kind: parsed.kind,
 			};
-			const senior_age_context = get_senior_certificate_age_context(event_name, event_matches, placements, event_names, options.age_reference_year);
+			const senior_age_context = get_senior_certificate_age_context(event_name, event_matches, placements, event_names, options.age_reference_year, senior_age_basis);
 			const age_class_candidates = senior_age_context ? senior_age_context.candidates : get_certificate_age_class_candidates(
 				candidate_entry,
 				options.tournament,
@@ -1567,6 +1711,7 @@ function get_certificate_event_options(matches, options = {}) {
 		max_place: options.max_place,
 		tournament: options.tournament,
 		age_reference_year: options.age_reference_year,
+		certificate_senior_age_basis: options.certificate_senior_age_basis,
 		certificate_age_class_splits: options.certificate_age_class_splits,
 		certificate_discipline_replacements: options.certificate_discipline_replacements,
 	}).map((event_entry) => ({
@@ -1591,7 +1736,7 @@ function get_certificate_event_options(matches, options = {}) {
 			? { age_class_candidates: event_entry.age_class_candidates.map(age => format_age_group(age, event_entry.senior_age_context ? 'O' : 'U')) }
 			: {}),
 		...(event_entry.senior_age_context?.unavailable_reason ? {age_class_split_unavailable_reason: event_entry.senior_age_context.unavailable_reason} : {}),
-		...(event_entry.senior_age_context?.year ? {age_class_split_note: `Zuordnung nach DBV-Stichtag 01.01.${event_entry.senior_age_context.year}; bei Doppel und Mixed zählt der jüngere Partner.`} : {}),
+		...(event_entry.senior_age_context?.year ? {age_class_split_note: get_senior_certificate_age_note(event_entry.senior_age_context)} : {}),
 		...(event_entry.is_age_class_split ? { is_age_class_split: true } : {}),
 		...(event_entry.certificate_age_group ? { certificate_age_group: event_entry.certificate_age_group } : {}),
 	}));
@@ -1702,6 +1847,7 @@ function export_certificate_file(format, options = {}) {
 }
 
 return {
+	get_manual_certificate_entries,
 	build_certificate_rows,
 	build_certificate_preview_rows,
 	build_certificate_export_data,

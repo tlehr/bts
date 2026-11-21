@@ -1,4 +1,4 @@
-/* global btsLibraries */
+/* global btsLibraries, btsCertificateManual */
 /* global btsSpeechReadiness, cleitstand, btsAdminUpdates, btsScoresheetRemarks, btsAudioDevices, btsDurationInput, btsScoringSettings, btsDisplaySettings, btsDevicesWorkspace, btsLogoPicker, btsAdvertisementSettings, btsTickerSettings, btsMaintenanceSettings, btsRandomResultsSettings, btsLocationSettings, btsSpeechWorkspace, btsSpeechInfrastructure */
 'use strict';
 /* global btsSpeechService, btsSpeechHealth, btsServiceStatus, cancelAnnouncementPlayback, createSpeechQueue, createFreeAnnouncementForm, btsDialogActions, subscribeEmergencyAudio, btsCertificates, btsCertificateSelection, btsSettingsWorkspace, btsCallStatusUpdates */
@@ -2312,6 +2312,23 @@ var ctournament = (function() {
 		countInput.style.width = '100%';
 		countInput.style.boxSizing = 'border-box';
 
+		const ageBasisLabel = uiu.el(details, 'label', 'certificate-age-basis');
+		uiu.el(ageBasisLabel, 'span', {}, 'Stichtag für O-Altersklassen');
+		const ageBasisInput = uiu.el(ageBasisLabel, 'select', {name: 'certificate_senior_age_basis', 'aria-describedby': 'certificate-age-basis-hint'});
+		const ageBasisOptions = [
+			{value: 'calendar', label: 'Kalenderjahr', hint: 'Der 1. Januar des Turnierjahres. Kalenderjahr 2026 → 01.01.2026.'},
+			{value: 'season', label: 'Saison', hint: 'DBV: der auf den Saisonbeginn (1. August) folgende 1. Januar. Saison 2026/27 → 01.01.2027.'},
+			{value: 'previous_calendar', label: 'Letztes Kalenderjahr', hint: 'Der 1. Januar des Jahres vor dem Turnierjahr. Turnierjahr 2026 → 01.01.2025.'},
+			{value: 'previous_season', label: 'Letzte Saison', hint: 'Der Stichtag der vorherigen DBV-Saison. Bei Spielen in Saison 2026/27: letzte Saison 2025/26 → 01.01.2026.'},
+		];
+		ageBasisOptions.forEach(({value, label}) => uiu.el(ageBasisInput, 'option', {value}, label));
+		ageBasisInput.value = ageBasisOptions.some(option => option.value === tournament.certificate_senior_age_basis) ? tournament.certificate_senior_age_basis : 'calendar';
+		const ageBasisHint = uiu.el(ageBasisLabel, 'small', {id: 'certificate-age-basis-hint', class: 'certificate-age-basis-hint'});
+		const refreshAgeBasisHint = () => {
+			ageBasisHint.textContent = ageBasisOptions.find(option => option.value === ageBasisInput.value)?.hint || '';
+		};
+		refreshAgeBasisHint();
+
 		const doubleSwappedLabel = uiu.el(settingsContent, 'label', {
 			class: 'certificate-double-option',
 			style: 'display: flex; gap: 0.5em; align-items: center; width: fit-content; clear: both; margin: 0.25em 0 1em 0;',
@@ -2408,6 +2425,7 @@ var ctournament = (function() {
 			getOptions: () => ccsvexport.get_certificate_event_options(tournament.matches, {
 				include_age_class_splits: true, max_place: Number(countInput.value), tournament,
 				certificate_age_class_splits: certificateAgeClassSplits,
+				certificate_senior_age_basis: ageBasisInput.value,
 				certificate_discipline_replacements: certificateDisciplineReplacements,
 			}),
 			getRows: key => ccsvexport.build_certificate_rows(tournament.matches, tournament, {
@@ -2416,6 +2434,7 @@ var ctournament = (function() {
 				certificate_export_double_swapped_entries_enabled: doubleSwappedInput.checked,
 				certificate_discipline_replacements: certificateDisciplineReplacements,
 				certificate_age_class_splits: certificateAgeClassSplits,
+				certificate_senior_age_basis: ageBasisInput.value,
 			}),
 			getMaxPlace: () => Number(countInput.value),
 			getMarkers: () => tournament.certificate_exports || {},
@@ -2425,10 +2444,25 @@ var ctournament = (function() {
 			onChange: () => view.refresh(),
 			defaultDate: format_date_input_value(today),
 		});
-		refreshCertificateEventList = updateCertificateEventStatuses = () => selection.refresh();
+		const manualSelection = btsCertificateManual.create({
+			owner: view.manualContent, initial: tournament.certificate_manual_entries,
+			getEntries: entries => ccsvexport.get_manual_certificate_entries(tournament.matches, tournament, {
+				certificate_manual_entries: entries, certificate_age_class_splits: certificateAgeClassSplits,
+				certificate_senior_age_basis: ageBasisInput.value, certificate_discipline_replacements: certificateDisciplineReplacements,
+			}),
+			getMarkers: () => tournament.certificate_exports || {},
+			onSave: entries => schedule_certificate_export_settings_save({certificate_manual_entries: entries}),
+			onChange: () => {view.refresh();view.refreshPreview();},
+		});
+		refreshCertificateEventList = updateCertificateEventStatuses = () => {selection.refresh();if (view.isManual()) manualSelection.refresh();};
 		const refreshSettingsCount = () => {settingsCount.textContent = 'Urkunden bis Platz ' + (countInput.value || '—');};
-		countInput.addEventListener('input', () => {refreshSettingsCount();selection.refresh();});
-		refreshSettingsCount();selection.refresh();
+		countInput.addEventListener('input', () => {refreshSettingsCount();refreshCertificateEventList();});
+		refreshSettingsCount();refreshCertificateEventList();
+		ageBasisInput.addEventListener('change', () => {
+			refreshAgeBasisHint();
+			save_certificate_export_settings({certificate_senior_age_basis: ageBasisInput.value});
+			refreshCertificateEventList();view.refreshPreview();
+		});
 
 			title1Input.addEventListener('input', () => {
 				schedule_certificate_export_settings_save({
@@ -2458,40 +2492,33 @@ var ctournament = (function() {
 				updateCertificateEventStatuses?.();
 			});
 		view.refreshData = () => {if (curt?.key !== tournament.key) return;Object.assign(tournament, curt);refreshCertificateEventList?.();view.refresh();view.refreshPreview();};
+		const readCertificateOptions = () => ({
+			veranstaltung_1: title1Input.value, veranstaltung_2: title2Input.value, ort: locationInput.value,
+			max_place: Number(countInput.value), selected_certificate_keys: (view.isManual() ? manualSelection : selection).selectedKeys(),
+			manual_certificates: view.isManual(), certificate_manual_entries: manualSelection.drafts(),
+			certificate_age_class_splits: certificateAgeClassSplits, certificate_discipline_replacements: certificateDisciplineReplacements,
+			certificate_senior_age_basis: ageBasisInput.value, certificate_export_double_swapped_entries_enabled: doubleSwappedInput.checked,
+		});
 		view.open({
-			hasEvents: selection.hasEvents,
-			selectionSummary: selection.summary,
+			onModeChange: manual => {if (manual) manualSelection.refresh();},
+			hasEvents: () => (view.isManual() ? manualSelection : selection).hasEvents(),
+			selectionSummary: () => (view.isManual() ? manualSelection : selection).summary(),
 			readDocumentRows: () => ccsvexport.build_certificate_rows(tournament.matches, tournament, {
-				include_document_dates: true,
-				veranstaltung_1: title1Input.value, veranstaltung_2: title2Input.value, ort: locationInput.value,
-				max_place: Number(countInput.value), selected_certificate_keys: selection.selectedKeys(),
-				certificate_age_class_splits: certificateAgeClassSplits, certificate_discipline_replacements: certificateDisciplineReplacements,
+				...readCertificateOptions(), include_document_dates: true,
 				certificate_export_double_swapped_entries_enabled: false,
 			}),
 			readPreviewRows: kind => ccsvexport.build_certificate_preview_rows(tournament.matches, tournament, {
-				include_document_dates: true,
-				kind, veranstaltung_1: title1Input.value, veranstaltung_2: title2Input.value, ort: locationInput.value,
-				max_place: Number(countInput.value), selected_certificate_keys: selection.selectedKeys(),
-				certificate_age_class_splits: certificateAgeClassSplits, certificate_discipline_replacements: certificateDisciplineReplacements,
+				...readCertificateOptions(), include_document_dates: true, kind,
 			}),
-			documentError: () => ccsvexport.get_certificate_event_options(tournament.matches, {
+			documentError: () => view.isManual() ? manualSelection.validate() : ccsvexport.get_certificate_event_options(tournament.matches, {
 				include_age_class_splits: true, max_place: Number(countInput.value), tournament, certificate_age_class_splits: certificateAgeClassSplits,
+				certificate_senior_age_basis: ageBasisInput.value,
 			}).some(event => selection.selectedKeys().has(event.key || event.event_name) && !ccsvexport.event_is_complete_for_max_place(event, Number(countInput.value)))
 				? 'Für mindestens eine ausgewählte Disziplin fehlen noch gewünschte Urkundenplätze.' : '',
 			onStateChange: state => selection.setResetReason(state.resetReason),
-			validate: () => !countInput.validity.valid || !Number.isInteger(Number(countInput.value)) || Number(countInput.value) < 1 ? 'Bitte eine ganze Anzahl von Urkunden ab 1 angeben.' : '',
-			readOptions: () => ({
-				veranstaltung_1: title1Input.value, veranstaltung_2: title2Input.value, ort: locationInput.value,
-				max_place: Number(countInput.value),
-				selected_certificate_keys: selection.selectedKeys(),
-				certificate_export_double_swapped_entries_enabled: doubleSwappedInput.checked,
-				certificate_discipline_replacements: certificateDisciplineReplacements,
-				certificate_age_class_splits: certificateAgeClassSplits,
-			}),
-			hasRows: () => ccsvexport.build_certificate_rows(tournament.matches, tournament, {
-				max_place: Number(countInput.value), certificate_age_class_splits: certificateAgeClassSplits,
-				selected_certificate_keys: selection.selectedKeys(),
-			}).length > 0,
+			validate: () => view.isManual() ? manualSelection.validate() : !countInput.validity.valid || !Number.isInteger(Number(countInput.value)) || Number(countInput.value) < 1 ? 'Bitte eine ganze Anzahl von Urkunden ab 1 angeben.' : '',
+			readOptions: readCertificateOptions,
+			hasRows: () => ccsvexport.build_certificate_rows(tournament.matches, tournament, readCertificateOptions()).length > 0,
 			onMarkers: markers => {curt.certificate_exports = tournament.certificate_exports = markers;updateCertificateEventStatuses?.();},
 		});
 	}
