@@ -1,5 +1,5 @@
 /* global btsLibraries */
-/* global btsSpeechReadiness, cleitstand, btsAdminUpdates, btsScoresheetRemarks, btsAudioDevices, btsDurationInput, btsScoringSettings, btsDisplaySettings, btsDevicesWorkspace, btsLogoPicker, btsAdvertisementSettings, btsTickerSettings, btsMaintenanceSettings, btsLocationSettings, btsSpeechWorkspace, btsSpeechInfrastructure */
+/* global btsSpeechReadiness, cleitstand, btsAdminUpdates, btsScoresheetRemarks, btsAudioDevices, btsDurationInput, btsScoringSettings, btsDisplaySettings, btsDevicesWorkspace, btsLogoPicker, btsAdvertisementSettings, btsTickerSettings, btsMaintenanceSettings, btsRandomResultsSettings, btsLocationSettings, btsSpeechWorkspace, btsSpeechInfrastructure */
 'use strict';
 /* global btsSpeechService, btsSpeechHealth, btsServiceStatus, cancelAnnouncementPlayback, createSpeechQueue, createFreeAnnouncementForm, btsDialogActions, subscribeEmergencyAudio, btsCertificates, btsCertificateSelection, btsSettingsWorkspace, btsCallStatusUpdates */
 
@@ -790,6 +790,7 @@ var ctournament = (function() {
 		update_advertisements();
 		document.querySelector('.settings-ticker')?.btsTickerSettings?.update();
 		document.querySelector('.settings-maintenance')?.btsMaintenanceSettings?.update();
+		document.querySelector('.settings-debug')?.btsRandomResultsSettings?.update();
 	}
 
 	function refresh_current_view({matchListsOnly = false} = {}) {
@@ -932,6 +933,7 @@ var ctournament = (function() {
 		_set_disabled_by_name('btp_autofetch_timeout_intervall', !btp_enabled || !curt.btp_autofetch_enabled);
 		update_btp_settings_status();
 		document.querySelector('.settings-maintenance')?.btsMaintenanceSettings?.update();
+		document.querySelector('.settings-debug')?.btsRandomResultsSettings?.update();
 
 		document.querySelector('.settings-ticker')?.btsTickerSettings?.update();
 		refresh_location_announcement_previews();
@@ -2406,6 +2408,7 @@ var ctournament = (function() {
 			getOptions: () => ccsvexport.get_certificate_event_options(tournament.matches, {
 				include_age_class_splits: true, max_place: Number(countInput.value), tournament,
 				certificate_age_class_splits: certificateAgeClassSplits,
+				certificate_discipline_replacements: certificateDisciplineReplacements,
 			}),
 			getRows: key => ccsvexport.build_certificate_rows(tournament.matches, tournament, {
 				max_place: Number(countInput.value), selected_certificate_keys: new Set([key]),
@@ -2988,6 +2991,7 @@ var ctournament = (function() {
 		update_btp_settings_status();
 		if (completed && !c.snapshot) service_status_monitor().refresh(true);
 		document.querySelector('.settings-maintenance')?.btsMaintenanceSettings?.update();
+		document.querySelector('.settings-debug')?.btsRandomResultsSettings?.update();
 	}
 	function update_btp_settings_status() {
 		if (current_view !== 'edit' || !curt) return;
@@ -3810,6 +3814,7 @@ var ctournament = (function() {
 				send_test_clock_update({ mode: 'real' }, (err) => err && cerror.net(err));
 			});
 
+			debug.btsRandomResultsSettings = btsRandomResultsSettings.mount(debug, {tournament:() => curt, send:send_with_live_status});
 		}
 
 
@@ -3861,6 +3866,7 @@ var ctournament = (function() {
 					form.querySelector('.settings-advertisements')?.btsAdvertisementSettings?.destroy();
 					form.querySelector('.settings-ticker')?.btsTickerSettings?.destroy();
 					form.querySelector('.settings-maintenance')?.btsMaintenanceSettings?.destroy();
+					form.querySelector('.settings-debug')?.btsRandomResultsSettings?.destroy();
 					if (settingsPage === view) {settingsPage = null;if (!document.querySelector('.page-leitstand,.page-certificates,.page-settings,.page-speech,.page-devices,.page-accounting')) cleitstand.unmount();}
 				},
 			});

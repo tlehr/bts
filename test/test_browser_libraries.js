@@ -44,6 +44,17 @@ describe('Browser export library loading', function() {
   const retry = h.api.xlsx();h.context.XLSX = {};h.nodes[1].onload();
   assert.strictEqual(await retry, h.context.XLSX);
  });
+ it('loads DOCX and its shapes in order, shares requests and retries a failed shapes load', async function() {
+  const h = harness(), first = h.api.docx(), second = h.api.docx();
+  assert.strictEqual(h.nodes.length, 1);assert.strictEqual(h.nodes[0].src, '/static/vendor/docx/index.umd.js');
+  h.context.docx = {};h.nodes[0].onload();await Promise.resolve();
+  assert.strictEqual(h.nodes.length, 2);assert.strictEqual(h.nodes[1].src, '/static/vendor/docx/shapes.umd.js');
+  const failures = Promise.all([assert.rejects(first, /DOCX.*nicht geladen/), assert.rejects(second, /DOCX.*nicht geladen/)]);
+  h.nodes[1].onerror();await failures;
+  const retry = h.api.docx();await Promise.resolve();assert.strictEqual(h.nodes.length, 3);
+  h.context.docxShapes = {};h.nodes[2].onload();const result = await retry;
+  assert.strictEqual(result.docx, h.context.docx);assert.strictEqual(result.shapes, h.context.docxShapes);assert.strictEqual(h.timeouts.size, 0);
+ });
  it('rejects a response which did not provide the requested global and retries', async function() {
   const h = harness(), first = h.api.pdf(), failed = assert.rejects(first, /PDF.*nicht geladen/);
   h.nodes[0].onload();await failed;

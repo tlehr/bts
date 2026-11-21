@@ -33,9 +33,13 @@ var btsCertificateDocument = (() => {
   const result = new Map();
   for (const field of fields) {
    const key = fontKey(field);
-   if (!result.has(key)) {const data = await loadFont(field);result.set(key, {pdf: await document.embedFont(data, {subset: true}), face: fontkit.create(data)});}
+   if (!result.has(key)) {const data = await loadFont(field);result.set(key, {pdf: await document.embedFont(data, {subset: true}), face: fontkit.create(data), data});}
   }
   return result;
+ }
+ async function prepareFonts(fields, options = {}) {
+  const {PDFLib, fontkit} = options.PDFLib ? options : await libraries(), doc = await PDFLib.PDFDocument.create();doc.registerFontkit(fontkit);
+  return fonts(doc, fields, fontkit, options.loadFont);
  }
  function wrap(text, font, size, maxWidth) {
   const lines = [];
@@ -126,8 +130,8 @@ var btsCertificateDocument = (() => {
    return {blob, width, height: width * bitmap.height / bitmap.width, pages: 1};
   } finally {bitmap.close();}
  }
- async function paintBackground(canvas, template, key) {
-  canvas.width = Math.round(template.width * 4);canvas.height = Math.round(template.height * 4);
+ async function paintBackground(canvas, template, key, {pixelsPerMm = 4} = {}) {
+  canvas.width = Math.round(template.width * pixelsPerMm);canvas.height = Math.round(template.height * pixelsPerMm);
   const context = canvas.getContext('2d');context.fillStyle = '#ffffff';context.fillRect(0, 0, canvas.width, canvas.height);
   const bg = template.background;if (!bg) return;
   const data = await fetchBytes(assetUrl(key, bg));let image, pdf, task, bitmap, objectUrl;
@@ -199,6 +203,6 @@ var btsCertificateDocument = (() => {
   });
  }
 
- return {libraries, previewLines, inspect, paintBackground, createPdf, printPdf, layout, fontUrl, assetUrl};
+ return {libraries, previewLines, inspect, paintBackground, createPdf, printPdf, layout, fontUrl, assetUrl, prepareFonts};
 })();
 if (typeof module !== 'undefined' && module.exports) module.exports = btsCertificateDocument;

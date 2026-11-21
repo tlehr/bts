@@ -55,10 +55,10 @@ var btsCertificateDesigner = (() => {
   const uploadLabel = el(inspector, 'label', 'certificate-background-upload', 'PDF oder Bild auswählen');
   const upload = el(uploadLabel, 'input');upload.type = 'file';upload.accept = 'application/pdf,image/png,image/jpeg,image/webp';upload.setAttribute('aria-label', 'Hintergrundvorlage hochladen');
   const backgroundName = el(inspector, 'p', 'certificate-background-name'), removeBackground = button(inspector, 'Hintergrund entfernen');
-  el(inspector, 'p', 'certificate-design-help', 'Maximal 8 MB. Bei PDFs wird die erste Seite verwendet.');
+  el(inspector, 'p', 'certificate-design-help', 'Maximal 8 MB. Bei PDFs wird die erste Seite verwendet. Im DOCX-Export wird der Hintergrund als Bild eingefügt; Textfelder bleiben bearbeitbar.');
   const previewOnlyLabel = el(inspector, 'label', 'certificate-background-preview-only'), previewOnly = el(previewOnlyLabel, 'input');previewOnly.type = 'checkbox';previewOnly.name = 'certificate_background_preview_only';
   el(previewOnlyLabel, 'span', '', 'Hintergrund nur in der Vorschau anzeigen');
-  const previewOnlyHelp = el(inspector, 'p', 'certificate-design-help', 'Für vorgedrucktes Briefpapier: PDF, Probe-PDF und Druck enthalten nur die Textfelder. Beim Drucken die tatsächliche Größe (100 %) wählen.');previewOnlyHelp.id = 'certificate-background-preview-only-' + tournamentKey;previewOnly.setAttribute('aria-describedby', previewOnlyHelp.id);
+  const previewOnlyHelp = el(inspector, 'p', 'certificate-design-help', 'Für vorgedrucktes Briefpapier: PDF, DOCX, Probe-PDF und Druck enthalten nur die Textfelder. Beim Drucken die tatsächliche Größe (100 %) wählen.');previewOnlyHelp.id = 'certificate-background-preview-only-' + tournamentKey;previewOnly.setAttribute('aria-describedby', previewOnlyHelp.id);
   el(inspector, 'h3', '', 'Druckbereich');
   const areaMode = choice(inspector, 'Druckbereich festlegen über', [['margins', 'Seitenabstände'], ['position', 'Position und Größe']]);areaMode.name = 'certificate_print_area_mode';
   const areaControls = {};
@@ -84,7 +84,7 @@ var btsCertificateDesigner = (() => {
   const typography = el(properties, 'div', 'certificate-field-typography');
   const font = choice(typography, 'Schrift', Object.entries(btsCertificateDesign.FONTS).map(([key, value]) => [key, value.label]));
   const align = choice(typography, 'Textausrichtung im Feld', [['left', 'Links'], ['center', 'Zentriert'], ['right', 'Rechts']]);
-  el(properties, 'p', 'certificate-design-help', 'Alle Schriften stehen auf jedem Gerät zur Verfügung und werden in der PDF mitgespeichert.');
+  el(properties, 'p', 'certificate-design-help', 'Alle Schriften stehen auf jedem Gerät zur Verfügung und werden in PDF und DOCX mitgespeichert. Die Darstellung in Word oder LibreOffice kann leicht abweichen.');
   const numbers = {};
   const positions = el(properties, 'div', 'certificate-field-numbers');
   for (const [key, caption, min, max] of [['size', 'Schriftgröße (pt)', 6, 120], ['x', 'Links im Druckbereich (cm)', 0, 100], ['y', 'Oben im Druckbereich (cm)', 0, 100], ['width', 'Breite (cm)', .4, 100], ['height', 'Höhe (cm)', .3, 100]]) {

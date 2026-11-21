@@ -6,6 +6,8 @@ var btsLibraries = (() => {
  const definitions = {
   pdf: {global: 'PDFLib', url: '/static/vendor/pdf-lib.min.js', label: 'PDF'},
   xlsx: {global: 'XLSX', url: '/static/vendor/xlsx.full.min.js', label: 'Excel'},
+  docx: {global: 'docx', url: '/static/vendor/docx/index.umd.js', label: 'DOCX'},
+  docxShapes: {global: 'docxShapes', url: '/static/vendor/docx/shapes.umd.js', label: 'DOCX'},
  };
  function load(key) {
   const definition = definitions[key];
@@ -29,7 +31,9 @@ var btsLibraries = (() => {
   try {document.head.append(node);} catch (_) {fail();}
   return promise;
  }
- return {pdf: () => load('pdf'), xlsx: () => load('xlsx')};
+ return {pdf: () => load('pdf'), xlsx: () => load('xlsx'), docx: async () => {
+  const docx = await load('docx'), shapes = await load('docxShapes');return {docx, shapes};
+ }};
 })();
 
 if (typeof module !== 'undefined' && module.exports) module.exports = btsLibraries;

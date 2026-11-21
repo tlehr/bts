@@ -1341,6 +1341,17 @@ async function handle_player_pause_reset(app, ws, msg) {
 	}
 }
 
+async function handle_debug_random_results(app, ws, msg) {
+	if (!_require_msg(ws,msg,['tournament_key','action'])) return;
+	try {
+		const random = require('./random_results');
+		if (!['preview','execute'].includes(msg.action)) throw new Error('Ungültige Aktion für Zufallsergebnisse.');
+		const result = msg.action === 'preview' ? await random.preview(app,msg.tournament_key,msg.limit) :
+			await random.execute(app,msg.tournament_key,msg.token);
+		return ws.respond(msg,null,result);
+	} catch (error) {return ws.respond(msg,error);}
+}
+
 async function handle_maintenance_reset(app, ws, msg) {
 	if (!_require_msg(ws, msg, ['tournament_key', 'target', 'actions'])) return;
 	if (typeof msg.tournament_key !== 'string' || !msg.tournament_key) return ws.respond(msg,{message:'Ungültiges Turnier.'});
@@ -7185,6 +7196,7 @@ module.exports = {
 	handle_create_tournament,
 	handle_tournament_reset,
 	handle_maintenance_reset,
+	handle_debug_random_results,
 	handle_player_pause_reset,
 	handle_court_assignments_reset,
 	handle_courts_add,

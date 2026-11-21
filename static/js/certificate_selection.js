@@ -30,7 +30,7 @@ var btsCertificateSelection = (() => {
    const control = button(actions.content, key ? 'Exportstatus zurücksetzen' : 'Exportstatus aller Disziplinen zurücksetzen', 'certificate-export-reset');
    control.setAttribute('aria-label', key ? 'Exportstatus für ' + label + ' zurücksetzen' : 'Exportstatus aller Disziplinen zurücksetzen');
    icon(control, 'M20 9a8 8 0 0 0-14-5L3 7M3 2v5h5M4 15a8 8 0 0 0 14 5l3-3M21 22v-5h-5');
-   control.addEventListener('click', () => {actions.node.open = false;actions.trigger.focus({preventScroll: true});onReset(key, label);});
+   control.addEventListener('click', () => {actions.node.open = false;actions.trigger.focus({preventScroll: true});onReset(key, entries.get(key)?.option.label || label);});
    return control;
   }
   function formatDate(value, withTime = false) {
@@ -163,13 +163,15 @@ var btsCertificateSelection = (() => {
    text(details.pendingInfo, 'Offene Platzierungsspiele: ' + (entry.pending || '—'));details.pendingInfo.hidden = !entry.pending;
    text(details.exportInfo, entry.exportedAt ? 'Zuletzt exportiert: ' + formatDate(entry.exportedAt, true) : 'Noch nicht exportiert.');
    text(details.lastGame, 'Letztes geplantes Spiel: ' + (option.latest_scheduled_date ? formatDate(option.latest_scheduled_date + 'T00:00:00') + (option.latest_scheduled_time ? ' · ' + option.latest_scheduled_time : '') : '—'));
-   const splitSignature = JSON.stringify([option.age_class_candidates, option.is_age_class_split]);
+   const splitSignature = JSON.stringify([option.age_class_candidates, option.is_age_class_split, option.age_class_split_unavailable_reason, option.age_class_split_note]);
    if (details.splitSignature !== splitSignature) {
     details.splitSignature = splitSignature;details.splitControls.replaceChildren();
     const candidates = option.is_age_class_split ? [] : option.age_class_candidates || [];
-    details.splitControls.hidden = !candidates.length;
+    details.splitControls.hidden = !candidates.length && !option.age_class_split_unavailable_reason && !option.age_class_split_note;
+    if (candidates.length || option.age_class_split_unavailable_reason || option.age_class_split_note) el(details.splitControls, 'h3', '', 'Separate Wertungen');
+    if (option.age_class_split_note) el(details.splitControls, 'p', '', option.age_class_split_note);
+    if (option.age_class_split_unavailable_reason) el(details.splitControls, 'p', '', option.age_class_split_unavailable_reason);
     if (candidates.length) {
-     el(details.splitControls, 'h3', '', 'Separate Wertungen');
      for (const age of candidates) {
       const label = el(details.splitControls, 'label'), control = el(label, 'input');control.type = 'checkbox';control.checked = splits.includes(age);
       control.dataset.ageGroup = age;control.setAttribute('aria-label', age + '-Wertung aus ' + option.label);el(label, 'span', '', age);
@@ -177,9 +179,18 @@ var btsCertificateSelection = (() => {
      }
     }
    }
-   for (const control of details.splitControls.querySelectorAll('input[data-age-group]')) control.checked = splits.includes(control.dataset.ageGroup);
+   for (const control of details.splitControls.querySelectorAll('input[data-age-group]')) {
+    control.checked = splits.includes(control.dataset.ageGroup);
+    control.setAttribute('aria-label', control.dataset.ageGroup + '-Wertung aus ' + option.label);
+   }
   }
   function updateEntry(entry, option, markers) {
+   if (entry.option.label !== option.label) {
+    entry.checkbox.setAttribute('aria-label', option.label + ' für den Export auswählen');
+    entry.menu.trigger.setAttribute('aria-label', 'Aktionen für ' + option.label);entry.menu.trigger.title = 'Aktionen für ' + option.label;
+    entry.reset.setAttribute('aria-label', 'Exportstatus für ' + option.label + ' zurücksetzen');
+    entry.panel.setAttribute('aria-label', 'Details zu ' + option.label);
+   }
    entry.option = option;entry.exportedAt = markers[entry.key];entry.complete = ccsvexport.event_is_complete_for_max_place(option, getMaxPlace());
    const available = ccsvexport.get_relevant_certificate_available_places(option, getMaxPlace());
    const expected = Math.max(0, Math.min(getMaxPlace(), Number(option.starter_count) || getMaxPlace()));

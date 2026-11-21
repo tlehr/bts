@@ -37,7 +37,7 @@ module.exports = async function({c, check, click, open, metrics, previews}) {
   const now=new Date(),day=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0');
   const team=(names,start)=>({players:names.map((name,i)=>({name,btp_id:start+i}))});
   const match=(id,event,doubles)=>({_id:id,tournament_key:'preview',team1_won:true,network_score:[[21,12],[21,10]],presses:[],setup:{state:'finished',is_match:true,is_doubles:doubles,match_num:doubles?902:901,match_name:'Finale',event_name:event,scheduled_date:day,scheduled_time_str:'18:00',teams:[team(doubles?['Zoë García','Łukasz Nowak']:['Anna Müller'],1000),team(doubles?['Berta Siegerin','Emil Zweiter']:['Frieda Zweite'],2000)]}});
-  curt.matches=[match('design-single','JE U17',false),match('design-double','JD U17',true)];curt.certificate_export_max_place=2;curt.certificate_exports={};
+  curt.matches=[match('design-single','JE U17',false),match('design-double','JD U17',true)];curt.certificate_discipline_replacements=[{discipline:'JE',replace:'Jungeneinzel'},{discipline:'JD',replace:'Jungendoppel'}];curt.certificate_export_max_place=2;curt.certificate_exports={};
   window.__designDocument=document;window.__designService=btsSpeechService;window.__designSpeechCount=__localAnnouncements.length;
   window.__designPreviewFits=()=>{
    const preview=__designPage().querySelector('.certificate-design-preview').getBoundingClientRect(),inspector=__designPage().querySelector('.certificate-design-inspector').getBoundingClientRect(),stage=__designPage().querySelector('.certificate-design-stage').getBoundingClientRect(),paper=__designPage().querySelector('.certificate-design-paper').getBoundingClientRect(),header=document.querySelector('.leitstand-header').getBoundingClientRect(),footer=__designPage().querySelector('.certificate-export-footer').getBoundingClientRect(),kind=__designPage().querySelector('[name="certificate_design_kind"]').value,template=(curt.certificate_design||btsCertificateDesign.defaults())[kind],ratio=template.width/template.height;
@@ -48,6 +48,9 @@ module.exports = async function({c, check, click, open, metrics, previews}) {
  })()`);
  await verify('PDF and printing actions require a selection and preserve the existing CSV formats',String.raw`!__designPage().querySelector('.certificate-export-pdf').disabled&&!__designPage().querySelector('.certificate-export-print').disabled&&!!__designPage().querySelector('.certificate-export-csv')&&!!__designPage().querySelector('.certificate-export-xlsx')`);
  await verify('Heavy PDF libraries are not loaded merely by opening the selection page',String.raw`typeof PDFLib==='undefined'&&typeof fontkit==='undefined'`);
+ if(process.argv.includes('--certificate-docx-only')) {
+  await require('./certificate-docx-check')({c,verify,eventually,click,metrics,previews});return;
+ }
  await click('.certificate-workspace-tabs [role="tab"]:last-child');
  await eventually('document.querySelectorAll(".certificate-design-overlay text").length>0');
  if(process.argv.includes('--certificate-fonts-only')) {

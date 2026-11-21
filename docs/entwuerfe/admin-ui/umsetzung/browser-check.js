@@ -296,7 +296,7 @@ class CDP {
   if(process.argv.includes('--emergency-dialog-only')) {
    await require('./emergency-dialog-check')({c,check,click,open,metrics,previews,key});return;
   }
-  if(process.argv.includes('--certificate-designer-only')||process.argv.includes('--certificate-fonts-only')) {
+  if(process.argv.includes('--certificate-designer-only')||process.argv.includes('--certificate-fonts-only')||process.argv.includes('--certificate-docx-only')) {
    await require('./certificate-designer-check')({c,check,click,open,metrics,previews,key});return;
   }
   if(process.argv.includes('--certificates-only')) {
@@ -347,6 +347,9 @@ class CDP {
   }
   if(process.argv.includes('--settings-debug-only')) {
    await require('./settings-debug-check')({c,open,metrics,key,capture:snap,check});return;
+  }
+  if(process.argv.includes('--settings-random-results-only')) {
+   await require('./settings-random-results-check')({c,open,metrics,key,capture:snap,check});return;
   }
   if(process.argv.includes('--settings-advertisements-upload-only')) {
    await require('./settings-advertisements-upload-check')({c,open,metrics,capture:snap,check});return;

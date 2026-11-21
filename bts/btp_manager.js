@@ -188,6 +188,20 @@ async function clear_court_assignments(tkey, matches) {
 }
 
 module.exports = {
+	write_random_results:async (key,matches) => {
+		const connection = conns_by_tkey.get(key);
+		if (!connection) throw new Error('BTP-Verbindung ist nicht bereit.');
+		return require('./btp_random_results').write(connection,matches);
+	},
+	sync_random_results:async key => {
+		const connection = conns_by_tkey.get(key);
+		if (!connection || connection.terminated || connection.readonly) throw new Error('BTP muss schreibend verbunden sein.');
+		// A fetch begun before the write may have been invalidated. Wait for it,
+		// then explicitly fetch and integrate a fresh snapshot.
+		if (connection.fetch_promise) await connection.fetch_promise;
+		const result = await connection.sync_data();
+		if (result !== true && result?.reason !== 'no_sync_changes') throw new Error('Der BTP-Abgleich wurde nicht abgeschlossen.');
+	},
 	reset_match_results:async (key,matches) => {
 		const connection = conns_by_tkey.get(key);if (!connection) throw new Error('BTP-Verbindung ist nicht bereit.');
 		return connection.reset_match_results(matches);

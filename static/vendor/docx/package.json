@@ -1,0 +1,10 @@
+{
+  "name": "docx",
+  "version": "9.16.0",
+  "private": true,
+  "exports": {
+    ".": "./index.umd.js",
+    "./shapes": "./shapes.umd.js"
+  },
+  "main": "./index.umd.js"
+}

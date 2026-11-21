@@ -870,6 +870,13 @@ body.leitstand-view .tabletoperator_suggestions .tabletoperator_assignment_icon 
 .page-settings .settings-maintenance-reset .settings-card-badge { background:#fbece9; color:#a13e37; }
 .page-settings .settings-maintenance-result { margin:8px 0 0; color:var(--brand); font-size:12px; line-height:1.6; overflow-wrap:anywhere; }
 .page-settings .settings-maintenance-result[data-state=error] { color:#9b1c1c; }
+.page-settings .settings-random-note,.page-settings .settings-random-connection,.page-settings .settings-random-summary,.page-settings .settings-random-status { margin:12px 0; font-size:12px; line-height:1.6; overflow-wrap:anywhere; }
+.page-settings .settings-random-note { color:var(--muted); }
+.page-settings .settings-random-connection { padding:12px; border:1px solid #e8dfc8; border-radius:5px; background:#fbf7e8; color:#7d6527; }
+.page-settings .settings-random-status { color:var(--brand); }
+.page-settings .settings-random-status[data-state=error] { color:#9b1c1c; }
+.page-settings .settings-random-list { box-sizing:border-box; max-height:240px; margin:12px 0; padding:8px 12px 8px 30px; overflow:auto; border:1px solid #dce5e3; border-radius:5px; font-size:12px; line-height:1.8; overflow-wrap:anywhere; }
+.page-settings .settings-random-results .btn { max-width:100%; white-space:normal; }
 .settings-reset-dialog { width:min(720px,calc(100vw - 32px)); }
 .settings-reset-dialog .dialog-heading h2 { display:flex; align-items:center; gap:8px; margin:0; font-size:17px; }
 .settings-reset-form { display:flex; flex:1; flex-direction:column; min-height:0; margin:0; }
@@ -1033,7 +1040,8 @@ body.leitstand-view .tabletoperator_suggestions .tabletoperator_assignment_icon 
 .page-certificates .certificate-export-hint.is-error { color:#923a34; }
 .page-certificates .certificate-export-actions { display:flex; flex-wrap:wrap; justify-content:flex-end; gap:8px; }
 .page-certificates .certificate-export-actions .btn { min-height:34px; font-size:13px; white-space:normal; }
-.page-certificates .certificate-export-actions :is(.certificate-export-pdf,.certificate-export-probe,.certificate-export-print,.certificate-export-csv,.certificate-export-xlsx)::before { content:''; flex:0 0 15px; width:15px; height:15px; background:currentColor; mask:var(--certificate-action-icon) center / contain no-repeat; }
+.page-certificates .certificate-export-actions :is(.certificate-export-pdf,.certificate-export-docx,.certificate-export-probe,.certificate-export-print,.certificate-export-csv,.certificate-export-xlsx)::before { content:''; flex:0 0 15px; width:15px; height:15px; background:currentColor; mask:var(--certificate-action-icon) center / contain no-repeat; }
+.page-certificates .certificate-export-docx { --certificate-action-icon:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8ZM14 2v6h6M7 12l2 7 3-5 3 5 2-7'/%3E%3C/svg%3E"); }
 .page-certificates :is(.certificate-export-pdf,.certificate-export-probe) { --certificate-action-icon:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8ZM14 2v6h6M8 13h8M8 17h5'/%3E%3C/svg%3E"); }
 .page-certificates .certificate-export-print { --certificate-action-icon:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9V3h12v6M6 17H4a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-2M6 14h12v7H6ZM18 12h.01'/%3E%3C/svg%3E"); }
 .page-certificates .certificate-export-csv { --certificate-action-icon:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8ZM14 2v6h6'/%3E%3Ccircle cx='12.5' cy='12' r='1.2' fill='black' stroke='none'/%3E%3Cpath d='M12.8 16c0 1.6-.7 2.6-2 3.2' stroke-width='2.2'/%3E%3C/svg%3E"); }

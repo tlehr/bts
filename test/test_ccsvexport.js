@@ -113,12 +113,58 @@ _describe('ccsvexport', () => {
 	_it('maps event names to discipline and age group', () => {
 		assert.deepStrictEqual(
 			ccsvexport.parse_event_name('HD U19'),
-			{ disziplin: 'Herrendoppel', ak: 'U19', code: 'HD', kind: 'double' }
+			{ disziplin: 'HD', ak: 'U19', code: 'HD', kind: 'double' }
 		);
 		assert.deepStrictEqual(
 			ccsvexport.parse_event_name('ME U17'),
-			{ disziplin: 'Mädcheneinzel', ak: 'U17', code: 'ME', kind: 'single' }
+			{ disziplin: 'ME', ak: 'U17', code: 'ME', kind: 'single' }
 		);
+	});
+
+	_it('keeps BTP senior ages and every age of combined disciplines', () => {
+		for (const [name,code,ak,disziplin,kind] of [
+			['HE 35','HE','O35','HE','single'],
+			['HE 40+45','HE','O40+45','HE','single'],
+			['DE 40+45','DE','O40+45','DE','single'],
+			['HD 35+45','HD','O35+45','HD','double'],
+			['DD 40+55','DD','O40+55','DD','double'],
+			['MX 40+45','MX','O40+45','MX','double'],
+			['HE 70+75 - Position 1-4','HE','O70+75','HE','single'],
+			['HE O35','HE','O35','HE','single'],
+			['he o 40 + o 45','HE','O40+45','HE','single'],
+			['JE U13+U15','JE','U13+15','JE','single'],
+		]) {
+			assert.deepStrictEqual(ccsvexport.parse_event_name(name),{code,ak,disziplin,kind},name);
+		}
+		assert.strictEqual(ccsvexport.parse_event_name('HE').ak,'');
+		assert.strictEqual(ccsvexport.parse_event_name('HE 2026').ak,'');
+		assert.strictEqual(ccsvexport.parse_event_name('Freizeit 42').ak,'');
+	});
+
+	_it('distinguishes senior disciplines without changing selection keys or dropping ages in certificate data', () => {
+		const matches = [
+			makeMatch({event_name:'HE 35',team1_won:true}),
+			makeMatch({event_name:'HE 40+45',team1_won:true,teams:[makeTeam('Chris'),makeTeam('Dani')]}),
+			makeMatch({event_name:'DD 40+55',team1_won:true,teams:[makeTeam('Erin','Frankie'),makeTeam('Gabi','Heike')]}),
+		];
+		const options = ccsvexport.get_certificate_event_options(matches);
+		assert.deepStrictEqual(options.map(option => [option.event_name,option.label]),[
+			['HE 35','HE O35'],['HE 40+45','HE O40+45'],['DD 40+55','DD O40+55'],
+		]);
+		const rows = ccsvexport.build_certificate_rows(matches,{}, {selected_certificate_keys:new Set(['HE 40+45','DD 40+55'])});
+		assert.strictEqual(rows.length,4);assert(rows.every(row => row.ak === (row.event_name === 'HE 40+45' ? 'O40+45' : 'O40+55')));
+		const table = ccsvexport.certificate_rows_to_table(rows);
+		const ageColumn = table[0].indexOf('AK');assert(ageColumn >= 0);
+		assert.deepStrictEqual(table.slice(1).map(row => row[ageColumn]),rows.map(row => row.ak));
+		const csv = ccsvexport.make_csv(table);assert(csv.includes('O40+45'));assert(csv.includes('O40+55'));
+		const xlsx = require('xlsx'), book = xlsx.read(ccsvexport.make_xlsx(table),{type:'buffer'});
+		assert.deepStrictEqual(xlsx.utils.sheet_to_json(book.Sheets[book.SheetNames[0]],{header:1}).slice(1).map(row => row[ageColumn]),rows.map(row => row.ak));
+		const design = require('../static/js/certificate_design');
+		for (const record of design.records(rows)) {
+			assert.strictEqual(design.resolve('{disziplin} {ak}',record),record.event_name === 'HE 40+45' ? 'HE O40+45' : 'DD O40+55');
+		}
+		const preview = ccsvexport.build_certificate_preview_rows([makeMatch({event_name:'HE 40+45'})],{}, {kind:'single'});
+		assert(preview.length);assert(preview.every(row => row.ak === 'O40+45'));
 	});
 
 	_it('builds certificate rows for finals and place matches', () => {
@@ -146,7 +192,7 @@ _describe('ccsvexport', () => {
 				veranstaltung_1: 'Nord-Cup',
 				veranstaltung_2: 'Badmintonverband Bremen',
 				datum: '19.04.2026',
-				disziplin: 'Herrendoppel',
+				disziplin: 'HD',
 				ak: 'U19',
 				platz: '4. Platz',
 				spieler_1: 'Carl Eins',
@@ -158,7 +204,7 @@ _describe('ccsvexport', () => {
 				veranstaltung_1: 'Nord-Cup',
 				veranstaltung_2: 'Badmintonverband Bremen',
 				datum: '19.04.2026',
-				disziplin: 'Herrendoppel',
+				disziplin: 'HD',
 				ak: 'U19',
 				platz: '3. Platz',
 				spieler_1: 'Emil Drei',
@@ -170,7 +216,7 @@ _describe('ccsvexport', () => {
 				veranstaltung_1: 'Nord-Cup',
 				veranstaltung_2: 'Badmintonverband Bremen',
 				datum: '19.04.2026',
-				disziplin: 'Herreneinzel',
+				disziplin: 'HE',
 				ak: 'U19',
 				platz: '2. Platz',
 				spieler_1: 'Bela Zweiter',
@@ -182,7 +228,7 @@ _describe('ccsvexport', () => {
 				veranstaltung_1: 'Nord-Cup',
 				veranstaltung_2: 'Badmintonverband Bremen',
 				datum: '19.04.2026',
-				disziplin: 'Herreneinzel',
+				disziplin: 'HE',
 				ak: 'U19',
 				platz: '1. Platz',
 				spieler_1: 'Anton Sieger',
@@ -199,7 +245,7 @@ _describe('ccsvexport', () => {
 				veranstaltung_1: 'Nord-Cup',
 				veranstaltung_2: 'Bremen',
 				datum: '19.04.2026',
-				disziplin: 'Herreneinzel',
+				disziplin: 'HE',
 				ak: 'U19',
 				platz: '1. Platz',
 				spieler_1: 'Max Mustermann',
@@ -209,7 +255,7 @@ _describe('ccsvexport', () => {
 
 		assert.strictEqual(
 			ccsvexport.make_csv(table),
-			'Veranstaltung #1;Veranstaltung #2;Ort;Datum;Disziplin;AK;Platz;Spieler #1;Spieler #2\r\nNord-Cup;Bremen;;19.04.2026;Herreneinzel;U19;1. Platz;Max Mustermann;'
+			'Veranstaltung #1;Veranstaltung #2;Ort;Datum;Disziplin;AK;Platz;Spieler #1;Spieler #2\r\nNord-Cup;Bremen;;19.04.2026;HE;U19;1. Platz;Max Mustermann;'
 		);
 	});
 
@@ -270,8 +316,65 @@ _describe('ccsvexport', () => {
 		const rowsByEvent = new Map(rows.map((row) => [row.event_name, row]));
 		assert.strictEqual(rowsByEvent.get('GD U19').disziplin, 'gemischten Doppel');
 		assert.strictEqual(rowsByEvent.get('GD U19').spieler_1, 'Lukas Meyer');
-		assert.strictEqual(rowsByEvent.get('HE U19').disziplin, 'Herreneinzel');
+		assert.strictEqual(rowsByEvent.get('HE U19').disziplin, 'HE');
 		assert.strictEqual(rowsByEvent.get('HE U19').spieler_1, 'Lukas Meyer');
+	});
+
+	_it('uses only listed replacements consistently in selection, previews and certificate exports', () => {
+		const tournament = {certificate_discipline_replacements: [
+			{discipline: 'JD', replace: 'Jungendoppel'},
+			{discipline: 'JE', replace: 'Jungeneinzel'},
+			{discipline: 'MD', replace: 'Mädchendoppel'},
+			{discipline: 'ME', replace: 'Mädcheneinzel'},
+			{discipline: 'MX', replace: 'Gemischten Doppel'},
+		]};
+		const expected = [
+			['HE 35', 'HE', 'O35'], ['HE 40+45', 'HE', 'O40+45'],
+			['DE 40+45', 'DE', 'O40+45'], ['HD 35+45', 'HD', 'O35+45'],
+			['DD 40+55', 'DD', 'O40+55'], ['MX 40+45', 'Gemischten Doppel', 'O40+45'],
+			['GD U19', 'GD', 'U19'], ['JD U17', 'Jungendoppel', 'U17'],
+		];
+		const matches = expected.map(([event_name]) => makeMatch({
+			event_name, team1_won: true,
+			teams: ccsvexport.parse_event_name(event_name).kind === 'double'
+				? [makeTeam('Anna', 'Berta'), makeTeam('Chris', 'Dani')]
+				: [makeTeam('Anna'), makeTeam('Chris')],
+		}));
+		const labels = new Map(ccsvexport.get_certificate_event_options(matches, {tournament}).map(entry => [entry.event_name, entry.label]));
+		const rows = ccsvexport.build_certificate_rows(matches, tournament);
+		const design = require('../static/js/certificate_design');
+		for (const [event_name, discipline, age] of expected) {
+			assert.strictEqual(labels.get(event_name), `${discipline} ${age}`);
+			const eventRows = rows.filter(row => row.event_name === event_name);
+			assert.strictEqual(eventRows.length, 2);
+			assert(eventRows.every(row => row.disziplin === discipline && row.ak === age));
+			const pending = {...matches.find(match => match.setup.event_name === event_name), team1_won: undefined};
+			const preview = ccsvexport.build_certificate_preview_rows([pending], tournament, {kind: ccsvexport.parse_event_name(event_name).kind});
+			assert(preview.length);assert(preview.every(row => row.disziplin === discipline && row.ak === age));
+			for (const record of design.records(eventRows)) {
+				assert.strictEqual(design.resolve('{disziplin} {ak}', record), `${discipline} ${age}`);
+			}
+		}
+		const table = ccsvexport.certificate_rows_to_table(rows);
+		const disciplineColumn = table[0].indexOf('Disziplin');
+		assert.deepStrictEqual(table.slice(1).map(row => row[disciplineColumn]), rows.map(row => row.disziplin));
+	});
+
+	_it('applies replacement drafts immediately and restores codes when the list is cleared', () => {
+		const matches = [makeMatch({event_name: 'HE 35', team1_won: true})];
+		const tournament = {certificate_discipline_replacements: [{discipline: 'HE', replace: 'Herreneinzel'}]};
+		for (const [replacements, label] of [
+			[[{discipline: 'HE', replace: 'Herren Einzel'}], 'Herren Einzel'],
+			[[], 'HE'],
+		]) {
+			const options = {certificate_discipline_replacements: replacements};
+			const [entry] = ccsvexport.get_certificate_event_options(matches, {tournament, ...options});
+			assert.strictEqual(entry.event_name, 'HE 35');
+			assert.strictEqual(entry.label, `${label} O35`);
+			assert(ccsvexport.build_certificate_rows(matches, tournament, options).every(row => row.disziplin === label && row.ak === 'O35'));
+			assert(ccsvexport.build_certificate_preview_rows([makeMatch({event_name: 'HE 35'})], tournament, options).every(row => row.disziplin === label && row.ak === 'O35'));
+		}
+		assert.strictEqual(tournament.certificate_discipline_replacements[0].replace, 'Herreneinzel');
 	});
 
 	_it('creates an xlsx workbook buffer for Word/Excel import', () => {
@@ -280,7 +383,7 @@ _describe('ccsvexport', () => {
 				veranstaltung_1: 'Nord-Cup',
 				veranstaltung_2: 'Bremen',
 				datum: '19.04.2026',
-				disziplin: 'Herreneinzel',
+				disziplin: 'HE',
 				ak: 'U19',
 				platz: '1. Platz',
 				spieler_1: 'Max Mustermann',
@@ -324,7 +427,7 @@ _describe('ccsvexport', () => {
 				veranstaltung_2: 'Urkunden 2026',
 				ort: 'Bremen',
 				datum: '20.04.2026',
-				disziplin: 'Herrendoppel',
+				disziplin: 'HD',
 				ak: 'U19',
 				platz: '3. Platz',
 				spieler_1: 'Emil Drei',
@@ -356,8 +459,8 @@ _describe('ccsvexport', () => {
 		assert.deepStrictEqual(result, [
 			{
 				event_name: 'ME U17',
-				label: 'Mädcheneinzel U17',
-				disziplin: 'Mädcheneinzel',
+				label: 'ME U17',
+				disziplin: 'ME',
 				ak: 'U17',
 				code: 'ME',
 				kind: 'single',
@@ -372,8 +475,8 @@ _describe('ccsvexport', () => {
 			},
 			{
 				event_name: 'HD U19',
-				label: 'Herrendoppel U19',
-				disziplin: 'Herrendoppel',
+				label: 'HD U19',
+				disziplin: 'HD',
 				ak: 'U19',
 				code: 'HD',
 				kind: 'double',
@@ -385,8 +488,8 @@ _describe('ccsvexport', () => {
 			},
 			{
 				event_name: 'HE U19',
-				label: 'Herreneinzel U19',
-				disziplin: 'Herreneinzel',
+				label: 'HE U19',
+				disziplin: 'HE',
 				ak: 'U19',
 				code: 'HE',
 				kind: 'single',
@@ -505,7 +608,7 @@ _describe('ccsvexport', () => {
 				veranstaltung_1: 'Nord-Cup',
 				veranstaltung_2: 'Badmintonverband Bremen',
 				datum: '19.04.2026',
-				disziplin: 'Einzel',
+				disziplin: 'E',
 				ak: 'U11',
 				platz: '3. Platz',
 				spieler_1: 'Charlie',
@@ -517,7 +620,7 @@ _describe('ccsvexport', () => {
 				veranstaltung_1: 'Nord-Cup',
 				veranstaltung_2: 'Badmintonverband Bremen',
 				datum: '19.04.2026',
-				disziplin: 'Einzel',
+				disziplin: 'E',
 				ak: 'U11',
 				platz: '2. Platz',
 				spieler_1: 'Bravo',
@@ -529,7 +632,7 @@ _describe('ccsvexport', () => {
 				veranstaltung_1: 'Nord-Cup',
 				veranstaltung_2: 'Badmintonverband Bremen',
 				datum: '19.04.2026',
-				disziplin: 'Einzel',
+				disziplin: 'E',
 				ak: 'U11',
 				platz: '1. Platz',
 				spieler_1: 'Alpha',
@@ -568,8 +671,8 @@ _describe('ccsvexport', () => {
 		assert.deepStrictEqual(result, [
 			{
 				event_name: 'E U11',
-				label: 'Einzel U11',
-				disziplin: 'Einzel',
+				label: 'E U11',
+				disziplin: 'E',
 				ak: 'U11',
 				code: 'E',
 				kind: 'single',
@@ -712,7 +815,7 @@ _describe('ccsvexport', () => {
 					veranstaltung_1: 'Nord-Cup',
 					veranstaltung_2: '',
 					datum: '19.04.2026',
-					disziplin: 'Mädcheneinzel',
+					disziplin: 'ME',
 					ak: 'U13',
 					platz: '2. Platz',
 					spieler_1: 'Bravo',
@@ -724,7 +827,7 @@ _describe('ccsvexport', () => {
 					veranstaltung_1: 'Nord-Cup',
 					veranstaltung_2: '',
 					datum: '19.04.2026',
-					disziplin: 'Mädcheneinzel',
+					disziplin: 'ME',
 					ak: 'U13',
 					platz: '1. Platz',
 					spieler_1: 'Alpha',
@@ -778,8 +881,8 @@ _describe('ccsvexport', () => {
 			key: 'ME U15::age:U13',
 			event_name: 'ME U15',
 			source_event_name: 'ME U15',
-			label: 'Mädcheneinzel U13 (aus U15)',
-			disziplin: 'Mädcheneinzel',
+			label: 'ME U13 (aus U15)',
+			disziplin: 'ME',
 			ak: 'U13',
 			code: 'ME',
 			kind: 'single',
@@ -815,7 +918,7 @@ _describe('ccsvexport', () => {
 				veranstaltung_1: 'Nord-Cup',
 				veranstaltung_2: '',
 				datum: '19.04.2026',
-				disziplin: 'Mädcheneinzel',
+				disziplin: 'ME',
 				ak: 'U13',
 				platz: '2. Platz',
 				spieler_1: 'U13 Second',
@@ -827,7 +930,7 @@ _describe('ccsvexport', () => {
 				veranstaltung_1: 'Nord-Cup',
 				veranstaltung_2: '',
 				datum: '19.04.2026',
-				disziplin: 'Mädcheneinzel',
+				disziplin: 'ME',
 				ak: 'U13',
 				platz: '1. Platz',
 				spieler_1: 'U13 First',
@@ -1333,8 +1436,8 @@ _describe('ccsvexport', () => {
 		assert.deepStrictEqual(result, [
 			{
 				event_name: 'HE U19',
-				label: 'Herreneinzel U19',
-				disziplin: 'Herreneinzel',
+				label: 'HE U19',
+				disziplin: 'HE',
 				ak: 'U19',
 				code: 'HE',
 				kind: 'single',
@@ -1374,7 +1477,7 @@ _describe('ccsvexport', () => {
 				veranstaltung_1: 'Nord-Cup',
 				veranstaltung_2: 'Badmintonverband Bremen',
 				datum: '19.04.2026',
-				disziplin: 'Einzel',
+				disziplin: 'E',
 				ak: 'U11',
 				platz: '2. Platz',
 				spieler_1: 'Alpha',
@@ -1386,7 +1489,7 @@ _describe('ccsvexport', () => {
 				veranstaltung_1: 'Nord-Cup',
 				veranstaltung_2: 'Badmintonverband Bremen',
 				datum: '19.04.2026',
-				disziplin: 'Einzel',
+				disziplin: 'E',
 				ak: 'U11',
 				platz: '1. Platz',
 				spieler_1: 'Bravo',
@@ -1421,8 +1524,8 @@ _describe('ccsvexport', () => {
 		assert.deepStrictEqual(result, [
 			{
 				event_name: 'ME U17',
-				label: 'Mädcheneinzel U17',
-				disziplin: 'Mädcheneinzel',
+				label: 'ME U17',
+				disziplin: 'ME',
 				ak: 'U17',
 				code: 'ME',
 				kind: 'single',
@@ -1533,7 +1636,7 @@ _describe('ccsvexport', () => {
 				veranstaltung_1: 'Nord-Cup',
 				veranstaltung_2: 'Badmintonverband Bremen',
 				datum: '19.04.2026',
-				disziplin: 'Mädcheneinzel',
+				disziplin: 'ME',
 				ak: 'U17',
 				platz: '2. Platz',
 				spieler_1: 'Playoff Runner-up',
@@ -1545,7 +1648,7 @@ _describe('ccsvexport', () => {
 				veranstaltung_1: 'Nord-Cup',
 				veranstaltung_2: 'Badmintonverband Bremen',
 				datum: '19.04.2026',
-				disziplin: 'Mädcheneinzel',
+				disziplin: 'ME',
 				ak: 'U17',
 				platz: '1. Platz',
 				spieler_1: 'Playoff Winner',

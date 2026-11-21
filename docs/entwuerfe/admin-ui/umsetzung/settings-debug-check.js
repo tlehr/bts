@@ -25,10 +25,10 @@ module.exports = async function({c,open,metrics,key,capture,check}) {
  });
  await wait(() => !!document.querySelector('.settings-area-link[href$="/edit/debug"]'));
  await run(() => document.querySelector('.settings-area-link[href$="/edit/debug"]').click());
- await verify('Debug settings use four shared cards with logging, automation, connections and clock simulation',() =>
+ await verify('Debug settings use five shared cards with logging, automation, connections, clock simulation and random results',() =>
   location.pathname.endsWith('/edit/debug') && document.querySelector('.page-settings').dataset.settingsSection==='debug' &&
   [...document.querySelectorAll('.settings-debug .settings-card-heading h2')].map(node => node.textContent).join('|')===
-   'Protokollierung & Messungen|Automatik prüfen|Anzeigen und Tablet-Verbindung|Zeitsimulation' && !document.querySelector('.settings-debug>.settings'));
+   'Protokollierung & Messungen|Automatik prüfen|Anzeigen und Tablet-Verbindung|Zeitsimulation|Zufällige Testergebnisse' && !document.querySelector('.settings-debug>.settings'));
  await verify('All eight debug toggles use labelled switches with their own linked explanations',() => {
   const controls=[...document.querySelectorAll('.settings-debug input[type=checkbox]')];
   return controls.length===8 && controls.every(node => node.getAttribute('role')==='switch' && node.labels.length===1 &&

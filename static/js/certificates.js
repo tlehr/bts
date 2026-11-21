@@ -1,4 +1,4 @@
-/* global btsLibraries, btsDialogActions, crouting, btsCertificateDesign, btsCertificateDocument, btsCertificateDesigner, save_file */
+/* global btsLibraries, btsDialogActions, crouting, btsCertificateDesign, btsCertificateDocument, btsCertificateDocx, btsCertificateDesigner, save_file */
 'use strict';
 
 // The certificates workspace shares export generation with the existing data builder.
@@ -30,10 +30,10 @@ var btsCertificates = (() => {
   const actions = el(footer, 'div', 'certificate-export-actions');
   function button(label, className) { const node = el(actions, 'button', 'btn ' + className, label);node.type = 'button';return node; }
   const retry = button('Erneut speichern', 'certificate-export-retry');retry.hidden = true;
-  const pdf = button('PDF erzeugen', 'certificate-export-pdf'), print = button('Drucken', 'certificate-export-print');
+  const pdf = button('PDF erzeugen', 'certificate-export-pdf'), docx = button('DOCX exportieren', 'certificate-export-docx'), print = button('Drucken', 'certificate-export-print');
   const probe = button('Probe-PDF', 'certificate-export-probe'), markPrint = button('Druck als ausgegeben markieren', 'certificate-export-mark-print');probe.hidden = markPrint.hidden = true;
   const csv = button('CSV exportieren', 'certificate-export-csv'), xlsx = button('XLSX exportieren', 'certificate-export-xlsx');
-  for (const node of [csv, xlsx, retry, pdf, print, probe, markPrint]) node.setAttribute('aria-describedby', hint.id);
+  for (const node of [csv, xlsx, retry, pdf, docx, print, probe, markPrint]) node.setAttribute('aria-describedby', hint.id);
   let disposed = false, busy = null, timer = null, pending = {}, failed = {}, error = '', closing = false, confirming = false, notice = '', destination = null;
   let lastPrint = null, documentProgress = '';
   let config = {hasEvents: () => false, selectionSummary: () => '', onStateChange() {}, readOptions: () => ({selected_certificate_keys: new Set()}), readDocumentRows: () => [], readPreviewRows: () => [], documentError: () => '', validate: () => '', hasRows: () => false, onMarkers() {}};
@@ -51,7 +51,7 @@ var btsCertificates = (() => {
   const hasChanges = () => Object.keys(pending).length || Object.keys(failed).length;
   function unavailable() {
    if (busy === 'mark-print') return 'Druckstatus wird gespeichert.';
-   if (busy === 'pdf' || busy === 'print' || busy === 'probe') return documentProgress || 'Urkunden werden erstellt.';
+   if (busy === 'pdf' || busy === 'docx' || busy === 'print' || busy === 'probe') return documentProgress || 'Urkunden werden erstellt.';
    if (designer.busy()) return 'Die Hintergrundvorlage wird gespeichert.';
    if (busy) return busy === 'save' ? 'Exporteinstellungen werden gespeichert.' : busy === 'reset' ? 'Exportstatus wird zurückgesetzt.' : 'Die Exportdatei wird erstellt und der Exportstatus gespeichert.';
    if (error) return error;
@@ -81,6 +81,7 @@ var btsCertificates = (() => {
    btsDialogActions.control(retry, {hidden: !Object.keys(failed).length, disabled: !!busy || confirming, reason: busy ? reason : ''});
    const documentError = documentReason(), probeError = documentReason(true);
    btsDialogActions.control(pdf, {hidden: !config.hasEvents(), disabled: !!documentError || confirming, reason: documentError, label: busy === 'pdf' ? 'PDF wird erstellt…' : 'PDF erzeugen'});
+   btsDialogActions.control(docx, {hidden: !config.hasEvents(), disabled: !!documentError || confirming, reason: documentError, label: busy === 'docx' ? 'DOCX wird erstellt…' : 'DOCX exportieren'});
    btsDialogActions.control(print, {hidden: !config.hasEvents(), disabled: !!documentError || confirming, reason: documentError, label: busy === 'print' ? 'Druck wird vorbereitet…' : 'Drucken'});
    btsDialogActions.control(probe, {hidden: activeTab !== 'design', disabled: !!probeError || confirming, reason: probeError});
    btsDialogActions.control(markPrint, {label: lastPrint ? lastPrint.count + ' gedruckte Urkunden markieren' : 'Druck als ausgegeben markieren', hidden: !lastPrint, disabled: !!busy || designer.busy() || !!hasChanges() || confirming, reason: busy ? reason : ''});
@@ -163,7 +164,8 @@ var btsCertificates = (() => {
    const keys = [...new Set(records.map(record => record.event_name).filter(Boolean))], recordsSignature = JSON.stringify(records);
    busy = mode;notice = '';documentProgress = 'Urkunden werden erstellt…';refresh();
    try {
-    const bytes = await btsCertificateDocument.createPdf(designer.getDesign(), records, {tournamentKey, signal: lifetime.signal, replacePlaceholders: preview?.replacePlaceholders ?? true,
+    const create = mode === 'docx' ? btsCertificateDocx.createDocx : btsCertificateDocument.createPdf;
+    const bytes = await create(designer.getDesign(), records, {tournamentKey, signal: lifetime.signal, replacePlaceholders: preview?.replacePlaceholders ?? true,
      onProgress: (done, total) => {if (active()) {documentProgress = done + ' von ' + total + ' Urkunden erstellt.';refresh();}},
     });
     if (!active()) return;
@@ -172,12 +174,13 @@ var btsCertificates = (() => {
      await btsCertificateDocument.printPdf(bytes);if (!active()) return;
      lastPrint = {keys, count: records.length};busy = null;notice = 'Druckdialog geöffnet. Nach erfolgreichem Druck kann die Ausgabe markiert werden.';refresh();return;
     }
-    save_file(new Blob([bytes], {type: 'application/pdf'}), mode === 'probe' ? 'urkunde-probe.pdf' : 'urkunden.pdf');
+    const format = mode === 'docx' ? 'DOCX' : 'PDF';
+    save_file(new Blob([bytes], {type: mode === 'docx' ? btsCertificateDocx.MIME : 'application/pdf'}), mode === 'probe' ? 'urkunde-probe.pdf' : mode === 'docx' ? 'urkunden.docx' : 'urkunden.pdf');
     if (mode === 'probe') {busy = null;notice = 'Probe-PDF erstellt. Es wurden keine Disziplinen als ausgegeben markiert.';refresh();return;}
     send({type: 'certificate_export_mark', tournament_key: tournamentKey, event_names: keys}, (err, response) => {
      busy = null;
-     if (err) notice = 'Die PDF wurde erstellt, aber der Exportstatus konnte nicht gespeichert werden. Ein erneuter Export erstellt eine weitere Datei.';
-     else {config.onMarkers(response?.certificate_exports || {});notice = records.length + ' Urkunden als PDF erstellt.';}
+     if (err) notice = 'Die ' + format + '-Datei wurde erstellt, aber der Exportstatus konnte nicht gespeichert werden. Ein erneuter Export erstellt eine weitere Datei.';
+     else {config.onMarkers(response?.certificate_exports || {});notice = records.length + ' Urkunden als ' + format + ' erstellt.';}
      refresh();
     });
    } catch (err) {if (active()) {busy = null;notice = err.message || 'Die Urkunden konnten nicht erstellt werden.';refresh();}}
@@ -212,6 +215,7 @@ var btsCertificates = (() => {
   selectionTab.addEventListener('click', () => setTab('selection'), {signal});designTab.addEventListener('click', () => setTab('design'), {signal});
   tabs.addEventListener('keydown', event => {if (['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) {event.preventDefault();setTab(event.key === 'Home' ? 'selection' : event.key === 'End' ? 'design' : activeTab === 'selection' ? 'design' : 'selection', true);}}, {signal});
   pdf.addEventListener('click', () => runDocument('pdf'), {signal});print.addEventListener('click', () => runDocument('print'), {signal});probe.addEventListener('click', () => runDocument('probe'), {signal});markPrint.addEventListener('click', markPrinted, {signal});
+  docx.addEventListener('click', () => runDocument('docx'), {signal});
   retry.addEventListener('click', flush, {signal});
   csv.addEventListener('click', () => runExport('csv'), {signal});xlsx.addEventListener('click', () => runExport('xlsx'), {signal});
   form.addEventListener('submit', event => event.preventDefault(), {signal});
